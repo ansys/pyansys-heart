@@ -5,7 +5,7 @@ from setuptools import find_namespace_packages, setup
 setup(
     name="ansys-heart-lib",
     version="0.1.dev0",
-    url="https://github.com/pyansys/pyheart",
+    url="https://github.com/pyansys/pyheart-lib",
     author="ANSYS, Inc.",
     author_email="pyansys.support@ansys.com",
     maintainer="PyAnsys developers",

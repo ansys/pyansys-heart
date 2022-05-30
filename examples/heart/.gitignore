@@ -1,0 +1,2 @@
+# ignore any files in the examples working directory
+workdir/*

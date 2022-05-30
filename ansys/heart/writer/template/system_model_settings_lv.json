@@ -1,0 +1,44 @@
+{
+    "NumberOfCVInteractions": 1,
+
+    "InteractionLabelsIds" : {
+        "LV" : 10
+    },
+
+    "SimulationType": "Mono-Ventricular",
+
+    "OutputFileName": "system_usrmat_01.log",
+
+    "UnitSystem": "kg, mm, s, mN, kPa",
+
+    "UseNewmarkCorrection": true,
+    "UseGamma": true,
+    "UseAlpha": false,
+    "NewmarkGamma": 0.66,
+    "NewmarkAlpha": -0.05,
+
+    "SystemModelParameters": {
+        "Resistances": {
+            "art" : 1.0e-5,
+            "ven" : 5.0e-6,
+            "per" : 1.2e-4
+        },
+        "Compliances": {
+            "art" : 2.5e4,
+            "ven" : 6e5
+        },
+        "Volumes": {
+            "total" :5e6
+        }
+    },
+    "SystemModelInitialValues": {
+        "Pressures": {
+            "art": 7.0
+        },
+        "UnstressedVolumes" : {
+            "lv":  0,
+            "art": 5e5,
+            "ven": 3e6
+        }
+    }
+}

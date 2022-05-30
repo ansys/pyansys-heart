@@ -1,0 +1,59 @@
+{
+    "NumberOfCVInteractions": 2,
+
+    "InteractionLabelsIds" : {
+        "LV" : 10,
+        "RV" : 11
+    },
+
+    "SimulationType": "Bi-Ventricular",
+
+    "OutputFileName": "system_usrmat_biv.log",
+    "UnitSystem": "kg, mm, s, mN, kPa",
+
+    "UseNewmarkCorrection": true,
+    "UseGamma": true,
+    "UseAlpha": false,
+    "NewmarkGamma": 0.66,
+    "NewmarkAlpha": -0.05,
+
+    "SystemModelParameters": {
+        "Resistances": {
+            "art" : 4.46e-6,
+            "ven" : 1.10e-6,
+            "per" : 1.49e-4,
+
+            "pulm_art" : 2.48e-6, 
+            "pulm_ven" : 2.18e-6,
+            "pulm_per" : 1.78e-5
+        },
+        "Compliances": {
+            "art" : 1.53e4,
+            "ven" : 4.59e4,
+
+            "pulm_art" : 4.59e4,
+            "pulm_ven" : 1.53e4
+            
+        },
+        "Volumes": {
+            "total" :5e6
+        }
+    },
+    "SystemModelInitialValues": {
+        "Pressures": {
+            "art": 10.0,
+
+            "pulm_art" : 0
+        },
+
+        "UnstressedVolumes" : {
+            "lv":  0,
+            "art": 7.04e5,
+            "ven": 3.16e6,
+
+            "rv" : 0,
+            "pulm_art" : 7.83e4,
+            "pulm_ven" : 5.13e5
+        }
+    }
+}

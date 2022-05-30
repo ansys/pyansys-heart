@@ -19,6 +19,7 @@ commonmark=0.9.1=pyhd3eb1b0_0
 curl=7.82.0=h2bbff1b_0
 cycler=0.11.0=pypi_0
 dataclasses=0.8=pyh6d0b6a4_7
+dynalib=0.1.dev0=dev_0
 fonttools=4.33.3=pypi_0
 frozenlist=1.3.0=pypi_0
 future=0.18.2=py37_1

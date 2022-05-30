@@ -6,8 +6,8 @@ import pandas as pd
 import numpy as np
 from typing import List, Union
 
-from dynalib.ansys.dyna import keywords
-from dynalib.ansys.dyna.keywords import db as db
+from ansys.dyna import keywords
+from ansys.dyna.keywords import Deck
 
 # import some custom keywords that avoid buygs in dynalib
 from ansys.heart.writer.custom_dynalib_keywords._custom_set_node_list import (
@@ -16,6 +16,8 @@ from ansys.heart.writer.custom_dynalib_keywords._custom_set_node_list import (
 from ansys.heart.writer.custom_dynalib_keywords._custom_set_segment_add import (
     SetSegmentAdd_custom,
 )
+
+
 
 
 def create_node_keyword(nodes: np.array, offset: int = 0) -> keywords.Node:
@@ -397,12 +399,12 @@ def create_discrete_elements_kw(
     return kw
 
 
-def get_list_of_used_ids(keyword_db: db.DB, keyword_str: str) -> np.array:
+def get_list_of_used_ids(keyword_db: Deck, keyword_str: str) -> np.array:
     """Gets array of used ids in the database. E.g. for *SECTION, *PART and *MAT ids
 
     Parameters
     ----------
-    database : db.DB
+    database : Deck
         Database of keywords
     keyword : str
         Keyword which to find
@@ -425,7 +427,7 @@ def get_list_of_used_ids(keyword_db: db.DB, keyword_str: str) -> np.array:
 
     if keyword_str == valid_kws[1]:
         for kw in keyword_db.get_kwds_by_type(valid_kws[1]):
-            ids = np.append(ids, kw.pid)
+            ids = np.append(ids, kw.parts["pid"].to_numpy() )
 
     if keyword_str == valid_kws[2]:
         for kw in keyword_db.get_kwds_by_type(valid_kws[2]):
@@ -553,7 +555,7 @@ def example_performance():
     t1 = time.time()
 
     ## original "slow" export for large keywords
-    kw_db = db.DB()
+    kw_db = Deck()
     kw_db.append(kw)
     kw_db.export_file("test_export_elements.k ")
 
@@ -616,14 +618,14 @@ if __name__ == "__main__":
     kw = create_segment_set_keyword(segments, 2, "test")
 
     # test section ID
-    kw_db = db.DB()
+    kw_db = Deck()
     kw_db.append(keywords.SectionSolid(secid=1))
     kw_db.append(keywords.SectionShell(secid=2))
 
     kw_db.append(keywords.MatNull(mid=1))
     kw_db.append(keywords.MatNull(mid=2))
 
-    kw_db = db.DB()
+    kw_db = Deck()
 
     kw_db.append(SetNodeList_custom(sid=1))
     kw_db.append(SetNodeList_custom(sid=2))

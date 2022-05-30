@@ -10,7 +10,7 @@ import numpy as np
 
 from ansys.heart.custom_logging import logger
 
-from dynalib.ansys.dyna import keywords
+from ansys.dyna import keywords
 
 # import custom keywords. Overwrites classes defined in "keywords"
 from ansys.heart.writer.custom_dynalib_keywords._custom_mat_077h import (
@@ -193,12 +193,6 @@ def active_curve(
     if curve_type == "Strocchi2020":
 
         # parameters used in Strocchi:
-        import matplotlib
-
-        matplotlib.use(
-            "Qt5Agg"
-        )  # note: solves unresponsive plotwindow in interactive mode
-        from matplotlib import pyplot as plt
 
         # NOTE: in milliseconds
         logger.warning("End-time set to 1000 ms: Strocchi uses 800 ms")
@@ -228,6 +222,12 @@ def active_curve(
             time_array = np.append(time_array, t + ii * t_end)
             active_stress_array = np.append(active_stress_array, active_stress)
 
+        # import matplotlib
+
+        # matplotlib.use(
+        #     "Qt5Agg"
+        # )  # note: solves unresponsive plotwindow in interactive mode
+        # from matplotlib import pyplot as plt
         # plt.plot(T, TA, '.-')
         # plt.show()
 

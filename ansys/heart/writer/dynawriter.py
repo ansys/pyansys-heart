@@ -2,6 +2,7 @@
 """
 from multiprocessing.sharedctypes import Value
 import numpy as np
+import pandas as pd
 import os
 import time
 import json
@@ -40,20 +41,10 @@ from ansys.heart.writer.material_keywords import (
     active_curve,
 )
 
-from ansys.heart.writer.custom_dynalib_keywords._custom_control_implicit_dynamics import (
-    ControlImplicitDynamics_custom,
-)
-from ansys.heart.writer.custom_dynalib_keywords._custom_control_implicit_auto import (
-    ControlImplicitAuto_custom,
-)
-from ansys.heart.writer.custom_dynalib_keywords._custom_control_implicit_solution import (
-    ControlImplicitSolution_custom,
-)
-
 from vtk.numpy_interface import dataset_adapter as dsa
 
-from dynalib.ansys.dyna import keywords
-from dynalib.ansys.dyna.keywords import db as db
+from ansys.dyna import keywords
+from ansys.dyna.keywords import Deck
 
 
 class DynaWriter:
@@ -62,24 +53,24 @@ class DynaWriter:
         self.model = model
 
         # initialize databases for keywords
-        self.main_db = db.DB()  # main file
+        self.main_db = Deck()  # main file
 
-        self.parts_db = db.DB()  # parts file. also contains sections?
+        self.parts_db = Deck()  # parts file. also contains sections?
 
-        self.nodes_db = db.DB()  # nodes file
-        self.solid_elements_db = db.DB()  # elements file
+        self.nodes_db = Deck()  # nodes file
+        self.solid_elements_db = Deck()  # elements file
 
-        self.material_db = db.DB()  # material keywords
-        self.segment_sets_db = db.DB()  # segment set keywords
-        self.node_sets_db = db.DB()  # node set keywords
+        self.material_db = Deck()  # material keywords
+        self.segment_sets_db = Deck()  # segment set keywords
+        self.node_sets_db = Deck()  # node set keywords
 
-        self.boundary_condition_db = db.DB()  # b.c. keywords
-        self.spring_bc_db = db.DB()  # database of spring boundary conditions
+        self.boundary_condition_db = Deck()  # b.c. keywords
+        self.spring_bc_db = Deck()  # database of spring boundary conditions
 
-        self.cap_elements_db = db.DB()  # keyword database of shell elements
-        # self.cap_segmentsets_db = db.DB()   # keyword database for segment sets of caps
+        self.cap_elements_db = Deck()  # keyword database of shell elements
+        # self.cap_segmentsets_db = Deck()   # keyword database for segment sets of caps
         self.control_volume_db = (
-            db.DB()
+            Deck()
         )  # keyword database for control volume keywords
         self.system_model_json = {}
 
@@ -275,12 +266,20 @@ class DynaWriter:
         """
 
         logger.debug("Updating part keywords...")
-        # NOTE: this also refers to a new material per part/myocardium
+        # add parts with a dataframe
         for cavity in self.model._mesh._cavities:
-            part_kw = keywords.Part(
-                title=cavity.name, pid=cavity.id, secid=1, mid=cavity.id
-            )
+            part = pd.DataFrame(
+                {
+                    "heading" : [cavity.name],
+                    "pid" : [cavity.id],
+                    "secid" : [ 1 ],
+                    "mid" : [1]
 
+                }
+            )
+            part_kw = keywords.Part()
+            part_kw.parts = part
+            
             self.parts_db.append(part_kw)
 
         # set up section solid for cavity myocardium
@@ -368,11 +367,12 @@ class DynaWriter:
             )
 
         self.main_db.append(
-            ControlImplicitDynamics_custom(imass=imass, gamma=gamma, beta=beta)
+            keywords.ControlImplicitDynamics(imass=imass, gamma=gamma, beta=beta)
         )
+        
         # add auto controls
         self.main_db.append(
-            ControlImplicitAuto_custom(iauto=1, dtmin=dtmin, dtmax=dtmax)
+            keywords.ControlImplicitAuto(iauto=1, dtmin=dtmin, dtmax=dtmax)
         )
 
         # add general implicit controls
@@ -381,7 +381,7 @@ class DynaWriter:
         )
 
         # add implicit solution controls: Defaults are OK?
-        self.main_db.append(ControlImplicitSolution_custom())
+        self.main_db.append(keywords.ControlImplicitSolution())
 
         # add implicit solver controls
         self.main_db.append(keywords.ControlImplicitSolver())
@@ -616,15 +616,22 @@ class DynaWriter:
             scale_factor_normal = 0.1
             scale_factor_radial = 0.3
 
-            part_kw = keywords.Part(
-                pid=part_id,
-                secid=section_id,
-                mid=mat_id,
-                title="SupportSpring",
+            part_kw = keywords.Part()
+            part = pd.DataFrame(
+                {
+                "pid" : [part_id],
+                "secid" : [section_id],
+                "mid" : [mat_id],
+                "heading" : ["SupportSpring"],
+                }
             )
+            part_kw.parts = part
+
+
             section_kw = keywords.SectionDiscrete(
                 secid=section_id, cdl=0, tdl=0
             )
+
             mat_kw = keywords.MatSpringElastic(mid=mat_id, k=spring_stiffness)
 
             self.boundary_condition_db.append(part_kw)
@@ -867,10 +874,17 @@ class DynaWriter:
         for cavity in self.model._mesh._cavities:
             for cap in cavity.closing_caps:
                 cap.part_id = part_id
-                part_kw = keywords.Part(
-                    pid=cap.part_id, secid=section_id, mid=mat_null_id
+                part_kw = keywords.Part( )
+                part_info = pd.DataFrame(
+                    {
+                        "heading": [cap.name],
+                        "pid": [cap.part_id],
+                        "secid" : [section_id],
+                        "mid" : [mat_null_id]
+                    }
                 )
-                part_kw.title = cap.name
+                part_kw.parts = part_info
+
                 self.cap_elements_db.append(part_kw)
 
                 part_id = part_id + 1

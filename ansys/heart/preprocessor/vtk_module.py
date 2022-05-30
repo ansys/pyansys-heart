@@ -20,6 +20,7 @@ from vtk.numpy_interface import (
 
 """Module contains methods for mesh operations related to the vtk library"""
 
+
 def read_ensight_file(path_to_ensight: str):
     """Reads ensight file"""
     file_path = os.path.dirname(path_to_ensight)

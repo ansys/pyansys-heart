@@ -1,7 +1,10 @@
 import os
 import json
 
-from ansys.heart.preprocessor.global_parameters import VALID_MODELS, CAVITY_DEFINITIONS
+from ansys.heart.preprocessor.global_parameters import (
+    VALID_MODELS,
+    CAVITY_DEFINITIONS,
+)
 
 # import logger
 from ansys.heart.custom_logging import logger

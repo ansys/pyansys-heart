@@ -13,7 +13,9 @@ from ansys.heart.custom_logging import logger
 from dynalib.ansys.dyna import keywords
 
 # import custom keywords. Overwrites classes defined in "keywords"
-from ansys.heart.writer.custom_dynalib_keywords._custom_mat_077h import Mat077H as _custom_Mat077H
+from ansys.heart.writer.custom_dynalib_keywords._custom_mat_077h import (
+    Mat077H as _custom_Mat077H,
+)
 
 
 class MaterialCap(keywords.MatNull):

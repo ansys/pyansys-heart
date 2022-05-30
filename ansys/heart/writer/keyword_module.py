@@ -10,7 +10,9 @@ from dynalib.ansys.dyna import keywords
 from dynalib.ansys.dyna.keywords import db as db
 
 # import some custom keywords that avoid buygs in dynalib
-from ansys.heart.writer.custom_dynalib_keywords._custom_set_node_list import SetNodeList_custom
+from ansys.heart.writer.custom_dynalib_keywords._custom_set_node_list import (
+    SetNodeList_custom,
+)
 from ansys.heart.writer.custom_dynalib_keywords._custom_set_segment_add import (
     SetSegmentAdd_custom,
 )

@@ -55,6 +55,7 @@ from vtk.numpy_interface import dataset_adapter as dsa
 from dynalib.ansys.dyna import keywords
 from dynalib.ansys.dyna.keywords import db as db
 
+
 class DynaWriter:
     def __init__(self, model: HeartModel) -> None:
 
@@ -1008,4 +1009,3 @@ class DynaWriter:
 if __name__ == "__main__":
     # a = keywords.SetSegmentTitle()
     part_kw = keywords.Part()
-

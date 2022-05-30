@@ -5,8 +5,8 @@ import gmsh
 
 
 from ansys.heart.preprocessor._load_template import load_template
-from preprocessing import SC_EXE, FLUENT_EXE
-from preprocessing.custom_logging import logger
+from ansys.heart.preprocessor import SC_EXE, FLUENT_EXE
+from ansys.heart.custom_logging import logger
 
 _template_directory = os.path.join(os.path.dirname(__file__), "template")
 

@@ -976,14 +976,14 @@ class DynaWriter:
         if model_type in ["FourChamber", "BiVentricle"]:
             file_path = os.path.join(
                 Path(__file__).parent.absolute(),
-                "template",
+                "templates",
                 "system_model_settings_bv.json",
             )
 
         elif model_type in ["LeftVentricle"]:
             file_path = os.path.join(
                 Path(__file__).parent.absolute(),
-                "template",
+                "templates",
                 "system_model_settings_lv.json",
             )
 

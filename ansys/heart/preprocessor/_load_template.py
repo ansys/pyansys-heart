@@ -3,9 +3,10 @@
 #
 import os
 import posixpath
+from pathlib import Path
 
 # import preprocessing
-from preprocessing.custom_logging import logger
+from ansys.heart.custom_logging import logger
 
 import jinja2
 
@@ -13,6 +14,12 @@ import jinja2
 # Shared Jinja environment
 _environment = None
 
+def get_this_folder():
+    return Path(__file__).parent
+
+def get_loader():
+    template_folder = get_this_folder() / "templates"
+    return jinja2.FileSystemLoader(str(template_folder.resolve()))
 
 def _jinja_environment():
     """
@@ -23,7 +30,7 @@ def _jinja_environment():
         _environment = jinja2.Environment(
             # Automatic loading of templates stored in the module
             # This also enables template inheritance
-            loader=jinja2.PackageLoader("preprocessing", "template"),
+            loader=get_loader(),
             # Keep a single trailing newline, if present
             keep_trailing_newline=True,
             # Don't replace undefined template variables by an empty string

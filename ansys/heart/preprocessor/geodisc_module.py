@@ -5,7 +5,7 @@ from msilib.schema import Error
 import numpy as np
 import vtk
 from typing import Union, List
-from preprocessing.vtk_module import write_vtkdata_to_vtkfile
+from ansys.heart.preprocessor.vtk_module import write_vtkdata_to_vtkfile
 from vtk.numpy_interface import (
     dataset_adapter as dsa,
 )  # this is an improved numpy integration

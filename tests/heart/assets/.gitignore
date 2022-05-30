@@ -1,4 +1,1 @@
 # ignore any ensight files
-*.ens
-*.case
-*.geo

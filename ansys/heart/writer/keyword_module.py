@@ -13,11 +13,6 @@ from ansys.dyna.keywords import Deck
 from ansys.heart.writer.custom_dynalib_keywords._custom_set_node_list import (
     SetNodeList_custom,
 )
-from ansys.heart.writer.custom_dynalib_keywords._custom_set_segment_add import (
-    SetSegmentAdd_custom,
-)
-
-
 
 
 def create_node_keyword(nodes: np.array, offset: int = 0) -> keywords.Node:

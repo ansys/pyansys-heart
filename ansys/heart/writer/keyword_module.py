@@ -172,32 +172,6 @@ def create_node_set_keyword(
 
     return kw
 
-
-def create_segment_set_add_keyword(
-    segment_ids: np.array, set_id: int = 1, title: str = "segment-set-title"
-) -> SetSegmentAdd_custom:
-    """Creates a SetSegmentAdd keyword from a list of segment ids
-    """
-    kw = SetSegmentAdd_custom()
-    kw.sid = set_id
-    kw.options["TITLE"].active = True
-    kw.title = title
-    # rearrange set ids such that its size is n x 8
-    num_seg_ids = len(segment_ids)
-    num_cols = int(8)
-    num_rows = int(np.ceil(num_seg_ids / 8))
-    segment_ids2 = np.zeros(int(num_rows * num_cols)) * np.nan
-    segment_ids2[:num_seg_ids] = segment_ids
-    # reshaped segment_ids with nan values
-    segment_ids2 = np.reshape(segment_ids2, (num_rows, num_cols))
-
-    # set up dataframe
-    df = pd.DataFrame(data=segment_ids2, columns=kw.segment_ids.columns)
-
-    kw.segment_ids = df
-    return kw
-
-
 def create_element_shell_keyword(
     shells: np.array, part_id: int = 1, id_offset: int = 0
 ) -> keywords.ElementShell:

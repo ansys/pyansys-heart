@@ -25,7 +25,6 @@ from ansys.heart.writer.keyword_module import (
     create_element_shell_keyword,
     create_segment_set_keyword,
     create_node_set_keyword,
-    create_segment_set_add_keyword,
     create_discrete_elements_kw,
     create_define_curve_kw,
     create_define_sd_orientation_kw,
@@ -942,11 +941,10 @@ class DynaWriter:
                 seg_ids_to_combine.append(cap.segset_id)
 
             # add segment set add keyword
-            segadd_kw = create_segment_set_add_keyword(
-                segment_ids=np.array(seg_ids_to_combine),
-                set_id=cavity.id,
-                title=cavity.name,
-            )
+            segadd_kw = keywords.SetSegmentAdd( sid = cavity.id )
+            segadd_kw.sets._data = seg_ids_to_combine
+            segadd_kw.options["TITLE"].active = True
+            segadd_kw.title = cavity.name
 
             self.control_volume_db.append(segadd_kw)
 

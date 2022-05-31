@@ -10,7 +10,7 @@ from pathlib import Path
 from ansys.heart.preprocessor.heart_model import HeartModel
 from ansys.heart.preprocessor.model_information import ModelInformation
 from ansys.heart.custom_logging import logger
-from ansys.heart.writer.dynawriter import DynaWriter
+from ansys.heart.writer.dynawriter import MechanicsDynaWriter
 
 from examples.heart.preprocessor.example_extract_simulation_mesh import clean_directory
 
@@ -36,7 +36,7 @@ def create_ls_dyna_files(
     heart_model.load_model( path_model_info )
 
     # create dyna writer object and pass loaded model
-    dyna_writer = DynaWriter(heart_model)
+    dyna_writer = MechanicsDynaWriter(heart_model)
     dyna_writer.update()
     dyna_writer.export(export_directory)
 

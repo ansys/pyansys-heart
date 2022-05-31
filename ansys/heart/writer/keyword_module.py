@@ -167,6 +167,7 @@ def create_node_set_keyword(
 
     return kw
 
+
 def create_element_shell_keyword(
     shells: np.array, part_id: int = 1, id_offset: int = 0
 ) -> keywords.ElementShell:
@@ -396,7 +397,7 @@ def get_list_of_used_ids(keyword_db: Deck, keyword_str: str) -> np.array:
 
     if keyword_str == valid_kws[1]:
         for kw in keyword_db.get_kwds_by_type(valid_kws[1]):
-            ids = np.append(ids, kw.parts["pid"].to_numpy() )
+            ids = np.append(ids, kw.parts["pid"].to_numpy())
 
     if keyword_str == valid_kws[2]:
         for kw in keyword_db.get_kwds_by_type(valid_kws[2]):
@@ -460,10 +461,6 @@ def fast_element_writer(element_kw: keywords.ElementSolidOrtho, filename: str):
     for line in list_formatted_strings:
         fid.write(line)
     fid.close()
-
-    # fid.writelines( list_formatted_strings )
-
-    # for line in list_formatted_strings:
 
     return
 
@@ -552,8 +549,6 @@ if __name__ == "__main__":
     kw = keywords.DefineControlVolume()
     kw = keywords.SetSegmentAdd()
     kw = keywords.ElementShell()
-
-    kw = SetSegmentAdd_custom()
 
     kw = create_element_shell_keyword(
         np.array([[93, 94, 95], [1, 2, 3]]), part_id=2, id_offset=5

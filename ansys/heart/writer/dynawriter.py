@@ -45,38 +45,50 @@ from vtk.numpy_interface import dataset_adapter as dsa
 from ansys.dyna import keywords
 from ansys.dyna.keywords import Deck
 
-
-class DynaWriter:
+class BaseDynaWriter:
+    """BaseDynaWriter class which contains features essential
+    for all relevant LS-DYNA heart models
+    """
     def __init__(self, model: HeartModel) -> None:
+        """Initializes writer by loading a HeartModel
+
+        Parameters
+        ----------
+        model : HeartModel
+            HeartModel object which contains the necessary information for the writer, such as nodes and elements.
+        """        
 
         self.model = model
+        """Contains model information necessary for creating the LS-DYNA .k files"""
+        
+        # These are keyword databases relevant for all derived classes
+        self.main_db = Deck()
+        """Main keyword database, such as *CONTROL_IMPLICIT_SOLUTION, etc"""
+        self.parts_db = Deck()
+        """Part definition keyword database, such as *PART, *SECTION_SOLID, etc"""
+        self.nodes_db = Deck()  
+        """Nodes keyword database"""
+        self.solid_elements_db = Deck()
+        """Solid elements keyword database"""
 
-        # initialize databases for keywords
-        self.main_db = Deck()  # main file
+        self.material_db = Deck()
+        """Material keyword database"""
+        self.segment_sets_db = Deck()
+        """Segment set keyword database"""
+        self.node_sets_db = Deck()
+        """Node set keyword database"""
+        self.boundary_condition_db = Deck()
+        """Boundary conditions keyword database"""
 
-        self.parts_db = Deck()  # parts file. also contains sections?
-
-        self.nodes_db = Deck()  # nodes file
-        self.solid_elements_db = Deck()  # elements file
-
-        self.material_db = Deck()  # material keywords
-        self.segment_sets_db = Deck()  # segment set keywords
-        self.node_sets_db = Deck()  # node set keywords
-
-        self.boundary_condition_db = Deck()  # b.c. keywords
-        self.spring_bc_db = Deck()  # database of spring boundary conditions
-
-        self.cap_elements_db = Deck()  # keyword database of shell elements
-        # self.cap_segmentsets_db = Deck()   # keyword database for segment sets of caps
-        self.control_volume_db = (
-            Deck()
-        )  # keyword database for control volume keywords
-        self.system_model_json = {}
-
-        self.max_node_id: int = 0  # maximum node id
-        self.part_ids = []  # list of part ids in use
-        self.section_ids = []  # list of section ids in use
-        self.mat_ids = []  # list of material ids in use
+        # These are general attributes useful for keeping track of ids:
+        self.max_node_id: int = 0
+        """Max node id"""
+        self.part_ids = []
+        """List of used part ids"""
+        self.section_ids = [] 
+        """List of used section ids"""
+        self.mat_ids = []
+        """List of used mat ids"""
 
         self.volume_mesh = {
             "nodes": np.empty(0),
@@ -84,6 +96,7 @@ class DynaWriter:
             "cell_data": {},
             "point_data": {},
         }
+        """Volume mesh information"""
 
         # keeps track of some element id offsets
         self.id_offset = {
@@ -93,22 +106,43 @@ class DynaWriter:
             "vector": 0,
             "element": {"solid": 0, "discrete": 0, "shell": 0},
         }
+        """Id offset for several relevant keywords"""
 
-        # get mesh info explicitely from volume mesh. Doing this upon initialization
-        # avoids having to do this multiple times in "nodes", "elements", etc
+        # read mesh information into dictionary
         self._get_mesh_info()
+        
 
-        # this may depend on the type of model required. E.g.
-        # with or without zero-pressure, type of physics, etc.
-        # how to conveniently handle this?
-        self.files_to_include = [
-            "nodes_zerop.k",
-            "elements.k",
-            "material.k",
-            "segment_sets.k",
-            "material.k",
-            "boundary_conditions.k",
-        ]
+        return
+
+    def _get_mesh_info(self):
+        """Gets nodes, element definition, cell data and point data from the 
+        volume mesh
+        """
+        nodes, tetra, cell_data, point_data = get_tetra_info_from_unstructgrid(
+            self.model._mesh._vtk_volume
+        )
+        self.volume_mesh["nodes"] = nodes
+        self.volume_mesh["tetra"] = tetra
+        self.volume_mesh["cell_data"] = cell_data
+        self.volume_mesh["point_data"] = point_data
+
+        return        
+
+
+class MechanicsDynaWriter(BaseDynaWriter):
+    def __init__(self, model: HeartModel) -> None:
+        super().__init__( model )
+
+        # Atributes specific for cardiac mechanics:
+        self.spring_bc_db = Deck()
+        """Contains spring boundary condition for mechanics"""
+        self.cap_elements_db = Deck()  
+        """Contains cap elements and definitions """
+        self.control_volume_db = Deck()
+        """Contains control volume keywords"""
+        self.system_model_json = {}
+        """Contains system model parameters"""
+
         return
 
     def update(self):
@@ -123,6 +157,7 @@ class DynaWriter:
         self._update_segmentsets_db()
         self._update_nodesets_db()
         self._update_material_db()
+
         self._update_boundary_conditions_db()
 
         # for control volume
@@ -196,20 +231,6 @@ class DynaWriter:
         logger.debug(
             "Time spend writing files: {:.2f} s".format(tend - tstart)
         )
-
-        return
-
-    def _get_mesh_info(self):
-        """Gets nodes, element definition, cell data and point data from the 
-        volume mesh
-        """
-        nodes, tetra, cell_data, point_data = get_tetra_info_from_unstructgrid(
-            self.model._mesh._vtk_volume
-        )
-        self.volume_mesh["nodes"] = nodes
-        self.volume_mesh["tetra"] = tetra
-        self.volume_mesh["cell_data"] = cell_data
-        self.volume_mesh["point_data"] = point_data
 
         return
 

@@ -3,7 +3,7 @@ from the original source data to create a simulation-ready
 left-ventricle mesh, bi-ventricle mesh and four-chamber mesh
 """
 
-from aifc import Error
+
 import os
 from pathlib import Path
 import shutil

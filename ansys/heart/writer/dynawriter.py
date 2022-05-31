@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 
 from ansys.heart.preprocessor.heart_model import HeartModel
-from ansys.heart.preprocessor.heart_mesh import HeartMesh, Cavity, ClosingCap
+from ansys.heart.preprocessor.heart_mesh import ClosingCap
 
 from ansys.heart.custom_logging import logger
 from ansys.heart.preprocessor.vtk_module import (
@@ -50,6 +50,7 @@ class BaseDecks:
     """Class where each attribute corresponds to its respective deck. Used to the distinguish between each of the decks.
     This base class defines some commonly used (empty) decks.
     """
+
     def __init__(self) -> None:
         self.main = Deck()
         self.parts = Deck()
@@ -62,8 +63,10 @@ class BaseDecks:
 
         return
 
+
 class MechanicsDecks(BaseDecks):
     """This class inherits from the BaseDecks class and defines additional useful decks"""
+
     def __init__(self) -> None:
         super().__init__()
         self.cap_elements = Deck()
@@ -72,6 +75,7 @@ class MechanicsDecks(BaseDecks):
 
 class ElectrophysiologyDecks(BaseDecks):
     """Adds decks specificly for Electrophysiology simulations"""
+
     def __init__(self) -> None:
         super().__init__()
 

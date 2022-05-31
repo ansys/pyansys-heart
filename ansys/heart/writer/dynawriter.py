@@ -47,6 +47,9 @@ from ansys.dyna.keywords import Deck
 
 
 class BaseDecks:
+    """Class where each attribute corresponds to its respective deck. Used to the distinguish between each of the decks.
+    This base class defines some commonly used (empty) decks.
+    """
     def __init__(self) -> None:
         self.main = Deck()
         self.parts = Deck()
@@ -59,8 +62,8 @@ class BaseDecks:
 
         return
 
-
 class MechanicsDecks(BaseDecks):
+    """This class inherits from the BaseDecks class and defines additional useful decks"""
     def __init__(self) -> None:
         super().__init__()
         self.cap_elements = Deck()
@@ -68,6 +71,7 @@ class MechanicsDecks(BaseDecks):
 
 
 class ElectrophysiologyDecks(BaseDecks):
+    """Adds decks specificly for Electrophysiology simulations"""
     def __init__(self) -> None:
         super().__init__()
 
@@ -120,7 +124,7 @@ class BaseDynaWriter:
         """Id offset for several relevant keywords"""
 
         self.include_files = []
-        """List of .k files to include in main"""
+        """List of .k files to include in main. This is derived from the Decks classes"""
 
         # read mesh information into dictionary
         self._get_mesh_info()
@@ -139,6 +143,14 @@ class BaseDynaWriter:
         self.volume_mesh["cell_data"] = cell_data
         self.volume_mesh["point_data"] = point_data
 
+        return
+
+    def _get_list_of_includes(self):
+        """Gets a list of files to include in main.k"""
+        for key, value in vars(self.kw_database).items():
+            if key == "main":
+                continue
+            self.include_files.append(key)
         return
 
     def _add_includes(self):
@@ -188,11 +200,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database = MechanicsDecks()
         """Collection of keyword decks relevant for mechanics"""
 
-        # get all files to include in main.k
-        for key, value in vars(self.kw_database).items():
-            if key == "main":
-                continue
-            self.include_files.append(key)
+        self._get_list_of_includes()
 
         return
 

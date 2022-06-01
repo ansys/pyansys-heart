@@ -535,7 +535,7 @@ def example_performance():
 
 
 if __name__ == "__main__":
-
+    load_segset_kw = keywords.LoadSegmentSet()
     # keywords for spring b.c.
     kw = keywords.Part()
     kw = keywords.SectionDiscrete()

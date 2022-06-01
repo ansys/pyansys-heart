@@ -1094,10 +1094,10 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # for boundary conditions
         self._update_boundary_conditions_db()
 
-        # specific for the zero-pressure simulation
-        pressure_lv = 3
-        pressure_rv = 2
-        
+        # Approximate end-diastolic pressures
+        pressure_lv = 2  # kPa
+        pressure_rv = 0.5  # kPa
+
         self._add_enddiastolic_pressure_bc(
             pressure_lv=pressure_lv, pressure_rv=pressure_rv
         )

@@ -77,8 +77,8 @@ if __name__ == "__main__":
         ABS_BASE_PATH,
         "..",
         "workdir",
-        "left_ventricle_model",
-        "zero_pressure",
+        "bi_ventricle_model",
+        "lsdyna_files_zeropressure",
     )
 
     create_ls_dyna_files(path_model_info, export_path)
@@ -91,7 +91,7 @@ if __name__ == "__main__":
         ABS_BASE_PATH,
         "..",
         "workdir",
-        "left_ventricle_model",
-        "zero_pressure",
+        "four_chamber_model",
+        "lsdyna_files_zeropressure",
     )
     create_ls_dyna_files(path_model_info, export_path)

@@ -1148,8 +1148,45 @@ def compute_surface_nodal_area(vtk_surface: vtk.vtkPolyData) -> np.array:
         ii += 1
     return nodal_area
 
+def add_normals_to_polydata(vtk_polydata: vtk.vtkPolyData) -> vtk.vtkPolyData:
+    """Uses the normal filter to add normals to the polydata object"""
+    # compute normals
+    normal_filter = vtk.vtkPolyDataNormals()
+    normal_filter.SetInputData( vtk_polydata )
+    normal_filter.ComputeCellNormalsOn()
+    normal_filter.ComputePointNormalsOn()
+    normal_filter.AutoOrientNormalsOn()
+    normal_filter.ConsistencyOn()
+    normal_filter.NonManifoldTraversalOff()
+    normal_filter.SetSplitting(0)    
+    normal_filter.Update()    
+
+    return normal_filter.GetOutput()
+
+def extrude_polydata(vtk_surface: vtk.vtkPolyData, extrude_by: float = 1) -> vtk.vtkPolyData:
+    """Extrudes the a given surface in normal direction"""
+
+    vtk_surface = add_normals_to_polydata( vtk_surface )
+    extrude = vtk.vtkLinearExtrusionFilter()
+    extrude.CappingOn()
+    extrude.SetExtrusionTypeToNormalExtrusion()
+    extrude.SetInputData( vtk_surface )
+    extrude.SetScaleFactor( extrude_by )
+    extrude.Update()
+    extruded_polydata = extrude.GetOutput()
+
+    # write_vtkdata_to_vtkfile(extruded_polydata, "extruded.vtk")
+
+    return extruded_polydata
+
 
 if __name__ == "__main__":
+
+    vtk_surface = r"D:\development\pyheart-lib\pyheart-lib\examples\heart\workdir\four_chamber_model\extracted_regions_right_ventricle.vtk"
+    vtk_polydata = read_vtk_polydata_file(vtk_surface)
+
+    extrude_polydata(vtk_polydata)
+
 
     vtk_source = r"D:\SharedRepositories\CardiacModeling\parametric_heart\preprocessing\test\assets\cases\01\4C.vtk"
     # vtk_source = r"D:\SharedRepositories\CardiacModeling\parametric_heart\preprocessing\test\case\01\01.case"

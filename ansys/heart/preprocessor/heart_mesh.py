@@ -13,6 +13,7 @@ from typing import List
 from ansys.heart.preprocessor.cavity_module import *
 from ansys.heart.preprocessor.model_information import ModelInformation
 from ansys.heart.preprocessor.model_information import VALID_MODELS
+from ansys.heart.preprocessor.vtk_module import create_vtk_surface_triangles, write_vtkdata_to_vtkfile
 
 # import logger
 from ansys.heart.custom_logging import logger
@@ -800,6 +801,41 @@ class HeartMesh:
             filename = "part_surface_{:0>3.0f}.stl".format(value)
             filepath = os.path.join(self.info.working_directory, filename)
             vtk_surface_to_stl(vtk_part_volume, filepath)
+
+        return
+
+    def _extract_septum(self):
+        """Extract ids of elements that make up the septum"""
+        # use septum segment set, convert to vtk polydata and 
+        # extrude this in (negative?) normal direction. This forms an
+        # enclosed surface which can be used to tag the elements of the septum
+
+        volume_obj = dsa.WrapDataObject(self._vtk_volume)
+        points_volume = volume_obj.Points
+
+        # select septum and extrude this to vtk object        
+        for cavity in self._cavities:
+            find = False
+            for segset in cavity.segment_sets:
+                if segset["name"] == "endocardium-septum":
+                    septum_segset = segset["set"]
+                    find = True
+                    break
+            if find:
+                break
+
+        # create vtk object of segment set 
+        endocardium_septum_vtk = create_vtk_surface_triangles(points_volume, segset["set"] )
+
+        # add smoothing first
+        endocardium_septum_vtk = smooth_polydata(endocardium_septum_vtk)                       
+        endocardium_septum_vtk_extruded = extrude_polydata(endocardium_septum_vtk, -20)                         
+
+        # write_vtkdata_to_vtkfile(endocardium_septum_vtk, "septum_smoothed.vtk")
+        # write_vtkdata_to_vtkfile(endocardium_septum_vtk_extruded, "septum_smoothed_extruded.vtk")
+
+
+
 
         return
 

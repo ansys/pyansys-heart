@@ -130,6 +130,10 @@ class HeartModel:
         # validate cavities
         self._mesh._validate_cavities()
 
+        # extract volumetric region of septum 
+        if self.info.model_type in ["BiVentricle", "FourChamber"]:
+            self._mesh._extract_septum()
+
         return
 
 

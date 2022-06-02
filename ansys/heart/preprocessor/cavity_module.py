@@ -200,6 +200,7 @@ class Cavity:
 
         # same structure as node set: but use append to fill this
         self.segment_sets = []
+        self.element_sets = []
 
     @property
     def labels(self) -> dict:

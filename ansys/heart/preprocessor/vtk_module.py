@@ -1,3 +1,4 @@
+from asyncore import write
 from multiprocessing.sharedctypes import Value
 from pathlib import Path
 import os
@@ -1231,9 +1232,30 @@ def create_vtk_surface_triangles(points: np.array, triangles: np.array) -> vtk.v
     polydata.SetPoints(points_vtk)
     polydata.SetPolys(triangles_vtk)
     polydata.Modified()
-    polydata.Update()
+    # polydata.Update()
 
     return polydata 
+
+def smooth_polydata(vtk_polydata: vtk.vtkPolyData) -> vtk.vtkPolyData: 
+    """Uses Laplacian smoothing to smooth the vtk polydata object"""
+    smooth_filter = vtk.vtkSmoothPolyDataFilter()
+    smooth_filter.SetInputData(vtk_polydata)
+    smooth_filter.SetNumberOfIterations(15)
+    smooth_filter.SetRelaxationFactor(0.1)
+    smooth_filter.FeatureEdgeSmoothingOn()
+    # smooth_filter.FeatureEdgeSmoothingOff() # smooths feature edges
+    smooth_filter.BoundarySmoothingOn()
+    smooth_filter.Update()
+
+    # Update normals on newly smoothed polydata
+    normal_gen = vtk.vtkPolyDataNormals()
+    normal_gen.SetInputData(smooth_filter.GetOutput())
+    normal_gen.ComputePointNormalsOn()
+    normal_gen.ComputeCellNormalsOn()
+    normal_gen.Update()
+    vtk_polydata_smooth = normal_gen.GetOutput()
+    write_vtkdata_to_vtkfile(vtk_polydata_smooth, "smoothed.vtk")
+    return vtk_polydata_smooth
 
 if __name__ == "__main__":
 

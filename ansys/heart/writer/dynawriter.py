@@ -151,11 +151,15 @@ class BaseDynaWriter:
         return
 
     def _get_list_of_includes(self):
-        """Gets a list of files to include in main.k"""
-        for key, value in vars(self.kw_database).items():
-            if key == "main":
+        """Gets a list of files to include in main.k. Ommit any empty decks"""
+        for deckname, deck in vars(self.kw_database).items():
+            if deckname == "main":
                 continue
-            self.include_files.append(key)
+            # skip if no keywords are present in the deck
+            if len( deck.keywords ) == 0:
+                logger.debug("No keywords in deck: {0}".format(deckname))
+                continue
+            self.include_files.append(deckname)
         return
 
     def _add_includes(self):
@@ -218,7 +222,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """Formats the keywords and stores these in the
         respective keyword databases
         """
-        self._get_list_of_includes()
+
 
         self._update_main_db()
         self._update_node_db()
@@ -235,6 +239,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._update_cap_elements_db()
         self._update_controlvolume_db()
         self._update_system_model()
+
+        self._get_list_of_includes()
+        self._add_includes()
 
         return
 
@@ -271,7 +278,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.title = self.model.info.model_type
 
         self._add_solution_controls()
-        self._add_includes()
         self._add_export_controls()
 
         if add_damping:
@@ -1029,8 +1035,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         respective keyword databases. Overwrites the update method
         of MechanicsDynaWriter such that it yields a valid input deck
         for a zero-pressure simulation
-        """
-        self._get_list_of_includes()
+        """        
 
         self._update_main_db(add_damping=False)
 
@@ -1052,6 +1057,9 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
         self._add_control_reference_configuration()
+
+        self._get_list_of_includes()
+        self._add_includes()
 
         return
 

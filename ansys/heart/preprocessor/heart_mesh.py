@@ -13,6 +13,10 @@ from typing import List
 from ansys.heart.preprocessor.cavity_module import *
 from ansys.heart.preprocessor.model_information import ModelInformation
 from ansys.heart.preprocessor.model_information import VALID_MODELS
+from ansys.heart.preprocessor.vtk_module import (
+    create_vtk_surface_triangles,
+    write_vtkdata_to_vtkfile,
+)
 
 # import logger
 from ansys.heart.custom_logging import logger
@@ -800,6 +804,56 @@ class HeartMesh:
             filename = "part_surface_{:0>3.0f}.stl".format(value)
             filepath = os.path.join(self.info.working_directory, filename)
             vtk_surface_to_stl(vtk_part_volume, filepath)
+
+        return
+
+    def _extract_septum(self):
+        """Extract ids of elements that make up the septum"""
+        # use septum segment set, convert to vtk polydata and
+        # extrude this in (negative?) normal direction. This forms an
+        # enclosed surface which can be used to tag the elements of the septum
+
+        volume_obj = dsa.WrapDataObject(self._vtk_volume)
+        points_volume = volume_obj.Points
+
+        # select septum and convert this to vtk object
+        for cavity in self._cavities:
+            find = False
+            for segset in cavity.segment_sets:
+                if segset["name"] == "endocardium-septum":
+
+                    # remove two layers of triangles connected to the boundary edge
+                    endocardium_septum_segset = segset["set"]
+                    endocardium_septum_segset_reduced = remove_triangle_layers_from_trimesh(
+                        triangles=endocardium_septum_segset, iters=2
+                    )
+                    # convert to vtk object
+                    endocardium_septum_vtk = create_vtk_surface_triangles(
+                        points_volume, endocardium_septum_segset_reduced
+                    )
+                    # smooth surface
+                    endocardium_septum_vtk = smooth_polydata(
+                        endocardium_septum_vtk
+                    )
+
+                    # extrude in normal direction
+                    endocardium_septum_vtk_extruded = extrude_polydata(
+                        vtk_surface=endocardium_septum_vtk, extrude_by=-20
+                    )
+
+                    # get cell ids that are inside the extruded surface
+                    cell_ids_septum = cell_ids_inside_enclosed_surface(
+                        self._vtk_volume, endocardium_septum_vtk_extruded
+                    )
+
+                    cavity.element_sets.append(
+                        {"name": "septum", "set": cell_ids_septum, "id": 1}
+                    )
+
+                    find = True
+                    break
+            if find:
+                break
 
         return
 

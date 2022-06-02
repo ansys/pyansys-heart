@@ -59,8 +59,7 @@ class BaseDecks:
         self.material = Deck()
         self.segment_sets = Deck()
         self.node_sets = Deck()
-        self.boundary_conditions = Deck()
-        self.pericardium = Deck()
+        self.boundary_conditions = Deck()        
 
         return
 
@@ -72,6 +71,7 @@ class MechanicsDecks(BaseDecks):
         super().__init__()
         self.cap_elements = Deck()
         self.control_volume = Deck()
+        self.pericardium = Deck()
 
 
 class ElectrophysiologyDecks(BaseDecks):
@@ -1019,7 +1019,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
     def __init__(self, model: HeartModel) -> None:
         super().__init__(model)
 
-        self.kw_database = BaseDecks()
+        self.kw_database = MechanicsDecks()
         """Collection of keyword decks relevant for mechanics"""
 
         return

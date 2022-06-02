@@ -14,6 +14,7 @@ from scipy.__config__ import get_info
 
 import vtk
 from vtk.util import numpy_support as VN  # noqa
+from vtk.util.numpy_support import numpy_to_vtk
 from vtk.numpy_interface import (
     dataset_adapter as dsa,
 )  # this is an improved numpy integration
@@ -1150,6 +1151,7 @@ def compute_surface_nodal_area(vtk_surface: vtk.vtkPolyData) -> np.array:
 
 def add_normals_to_polydata(vtk_polydata: vtk.vtkPolyData) -> vtk.vtkPolyData:
     """Uses the normal filter to add normals to the polydata object"""
+    """https://python.hotexamples.com/site/file?hash=0x073485db2b84462230e3bdfe09eaf8ed123d2dc0c8c501190613e23367cbaed1&fullName=telluricpy-master/telluricpy/polydata.py&project=grosenkj/telluricpy"""
     # compute normals
     normal_filter = vtk.vtkPolyDataNormals()
     normal_filter.SetInputData( vtk_polydata )
@@ -1179,14 +1181,61 @@ def extrude_polydata(vtk_surface: vtk.vtkPolyData, extrude_by: float = 1) -> vtk
 
     return extruded_polydata
 
+def find_points_inside_polydata(vtk_surface: vtk.vtkPolyData, points: np.array ) -> np.array:
+    """Returns indices of points that are inside the polydata object """
+    # set points
+    tolerance = 1e-4
+    points = vtk.vtkPolyData()
+    points.SetPoints(points)
+
+    # mark points with filter
+    enclosed_points_filter = vtk.vtkSelectEnclosedPoints()
+    enclosed_points_filter.SetSurfaceData(vtk_surface)
+    enclosed_points_filter.SetInputData(points)
+    enclosed_points_filter.SetTolerance(tolerance)
+    enclosed_points_filter.Update()
+    
+    return
+
+def create_vtk_surface_triangles(points: np.array, triangles: np.array) -> vtk.vtkPolyData:
+    """Creates vtkPolyData object from array of points and array of triangles
+
+    Parameters
+    ----------
+    points : np.array
+        Nx3 array of point coordinates
+    triangles : np.array
+        Mx3 array of triangle definitions
+
+    Returns
+    -------
+    vtk.vtkPolyData
+        VTK Object PolyData object describing the surface
+    """
+    num_points = points.shape[0]    
+    points_vtk = vtk.vtkPoints()
+    points_vtk.SetNumberOfPoints(num_points)    
+    points_vtk.SetData(
+        numpy_to_vtk(np.asarray(points, order='C',dtype=float), deep=1)
+        )  
+
+    triangles_vtk = vtk.vtkCellArray()
+    for tri in triangles:
+        triangle_vtk = vtk.vtkTriangle()
+        triangle_vtk.GetPointIds().SetId(0,tri[0])
+        triangle_vtk.GetPointIds().SetId(1,tri[1])
+        triangle_vtk.GetPointIds().SetId(2,tri[2])
+        triangles_vtk.InsertNextCell(triangle_vtk)
+
+    polydata = vtk.vtkPolyData()
+    polydata.SetPoints(points_vtk)
+    polydata.SetPolys(triangles_vtk)
+    polydata.Modified()
+    polydata.Update()
+
+    return polydata 
 
 if __name__ == "__main__":
-
-    vtk_surface = r"D:\development\pyheart-lib\pyheart-lib\examples\heart\workdir\four_chamber_model\extracted_regions_right_ventricle.vtk"
-    vtk_polydata = read_vtk_polydata_file(vtk_surface)
-
-    extrude_polydata(vtk_polydata)
-
 
     vtk_source = r"D:\SharedRepositories\CardiacModeling\parametric_heart\preprocessing\test\assets\cases\01\4C.vtk"
     # vtk_source = r"D:\SharedRepositories\CardiacModeling\parametric_heart\preprocessing\test\case\01\01.case"

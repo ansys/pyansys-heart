@@ -1155,34 +1155,68 @@ def add_normals_to_polydata(vtk_polydata: vtk.vtkPolyData) -> vtk.vtkPolyData:
     """https://python.hotexamples.com/site/file?hash=0x073485db2b84462230e3bdfe09eaf8ed123d2dc0c8c501190613e23367cbaed1&fullName=telluricpy-master/telluricpy/polydata.py&project=grosenkj/telluricpy"""
     # compute normals
     normal_filter = vtk.vtkPolyDataNormals()
-    normal_filter.SetInputData( vtk_polydata )
+    normal_filter.SetInputData(vtk_polydata)
     normal_filter.ComputeCellNormalsOn()
     normal_filter.ComputePointNormalsOn()
     normal_filter.AutoOrientNormalsOn()
     normal_filter.ConsistencyOn()
     normal_filter.NonManifoldTraversalOff()
-    normal_filter.SetSplitting(0)    
-    normal_filter.Update()    
+    normal_filter.SetSplitting(0)
+    normal_filter.Update()
 
     return normal_filter.GetOutput()
 
-def extrude_polydata(vtk_surface: vtk.vtkPolyData, extrude_by: float = 1) -> vtk.vtkPolyData:
-    """Extrudes the a given surface in normal direction"""
 
-    vtk_surface = add_normals_to_polydata( vtk_surface )
+def extrude_polydata(
+    vtk_surface: vtk.vtkPolyData,
+    extrude_by: float = 1,
+    extrude_direction: np.array = np.empty(0),
+) -> vtk.vtkPolyData:
+    """Extrudes a given polydata surface in a given direction
+
+    Parameters
+    ----------
+    vtk_surface : vtk.vtkPolyData
+        Surface to extrude
+    extrude_by : float, optional
+        Extrude by this much, by default 1
+    extrude_direction : np.array, optional
+        Direction of extrusion, should have three components if not specified extrudes in normal direction
+
+    Returns
+    -------
+    vtk.vtkPolyData
+        Extruded vtkPolyData object
+    """
+
+    extrude_normal = False
+    if len(extrude_direction) == 0:
+        extrude_normal = True
+
+    vtk_surface = add_normals_to_polydata(vtk_surface)
+
     extrude = vtk.vtkLinearExtrusionFilter()
     extrude.CappingOn()
-    extrude.SetExtrusionTypeToNormalExtrusion()
-    extrude.SetInputData( vtk_surface )
-    extrude.SetScaleFactor( extrude_by )
+
+    if extrude_normal:
+        extrude.SetExtrusionTypeToNormalExtrusion()
+    else:
+        extrude.SetExtrusionTypeToVectorExtrusion()
+        extrude.SetVector(
+            extrude_direction[0], extrude_direction[1], extrude_direction[2]
+        )
+
+    extrude.SetInputData(vtk_surface)
+    extrude.SetScaleFactor(extrude_by)
     extrude.Update()
     extruded_polydata = extrude.GetOutput()
 
-    # write_vtkdata_to_vtkfile(extruded_polydata, "extruded.vtk")
-
     return extruded_polydata
 
-def find_points_inside_polydata(vtk_surface: vtk.vtkPolyData, points: np.array ) -> np.array:
+
+def find_points_inside_polydata(
+    vtk_surface: vtk.vtkPolyData, points: np.array
+) -> np.array:
     """Returns indices of points that are inside the polydata object """
     # set points
     tolerance = 1e-4
@@ -1195,10 +1229,13 @@ def find_points_inside_polydata(vtk_surface: vtk.vtkPolyData, points: np.array )
     enclosed_points_filter.SetInputData(points)
     enclosed_points_filter.SetTolerance(tolerance)
     enclosed_points_filter.Update()
-    
+
     return
 
-def create_vtk_surface_triangles(points: np.array, triangles: np.array) -> vtk.vtkPolyData:
+
+def create_vtk_surface_triangles(
+    points: np.array, triangles: np.array
+) -> vtk.vtkPolyData:
     """Creates vtkPolyData object from array of points and array of triangles
 
     Parameters
@@ -1213,19 +1250,19 @@ def create_vtk_surface_triangles(points: np.array, triangles: np.array) -> vtk.v
     vtk.vtkPolyData
         VTK Object PolyData object describing the surface
     """
-    num_points = points.shape[0]    
+    num_points = points.shape[0]
     points_vtk = vtk.vtkPoints()
-    points_vtk.SetNumberOfPoints(num_points)    
+    points_vtk.SetNumberOfPoints(num_points)
     points_vtk.SetData(
-        numpy_to_vtk(np.asarray(points, order='C',dtype=float), deep=1)
-        )  
+        numpy_to_vtk(np.asarray(points, order="C", dtype=float), deep=1)
+    )
 
     triangles_vtk = vtk.vtkCellArray()
     for tri in triangles:
         triangle_vtk = vtk.vtkTriangle()
-        triangle_vtk.GetPointIds().SetId(0,tri[0])
-        triangle_vtk.GetPointIds().SetId(1,tri[1])
-        triangle_vtk.GetPointIds().SetId(2,tri[2])
+        triangle_vtk.GetPointIds().SetId(0, tri[0])
+        triangle_vtk.GetPointIds().SetId(1, tri[1])
+        triangle_vtk.GetPointIds().SetId(2, tri[2])
         triangles_vtk.InsertNextCell(triangle_vtk)
 
     polydata = vtk.vtkPolyData()
@@ -1234,14 +1271,16 @@ def create_vtk_surface_triangles(points: np.array, triangles: np.array) -> vtk.v
     polydata.Modified()
     # polydata.Update()
 
-    return polydata 
+    return polydata
 
-def smooth_polydata(vtk_polydata: vtk.vtkPolyData) -> vtk.vtkPolyData: 
+
+def smooth_polydata(vtk_polydata: vtk.vtkPolyData) -> vtk.vtkPolyData:
     """Uses Laplacian smoothing to smooth the vtk polydata object"""
     smooth_filter = vtk.vtkSmoothPolyDataFilter()
     smooth_filter.SetInputData(vtk_polydata)
     smooth_filter.SetNumberOfIterations(15)
-    smooth_filter.SetRelaxationFactor(0.1)
+    smooth_filter.SetRelaxationFactor(0.01)
+    smooth_filter.SetConvergence(0.0)
     smooth_filter.FeatureEdgeSmoothingOn()
     # smooth_filter.FeatureEdgeSmoothingOff() # smooths feature edges
     smooth_filter.BoundarySmoothingOn()
@@ -1256,6 +1295,128 @@ def smooth_polydata(vtk_polydata: vtk.vtkPolyData) -> vtk.vtkPolyData:
     vtk_polydata_smooth = normal_gen.GetOutput()
     write_vtkdata_to_vtkfile(vtk_polydata_smooth, "smoothed.vtk")
     return vtk_polydata_smooth
+
+
+def cell_ids_inside_enclosed_surface(
+    vtk_source: vtk.vtkUnstructuredGrid, vtk_surface: vtk.vtkPolyData
+) -> vtk.vtkUnstructuredGrid:
+    """Tags any cells that are inside 
+
+    Parameters
+    ----------
+    vtk_source : vtk.vtkUnstructuredGrid
+        Source VTK object of which to check the whether the cells are inside/outside the specified surface
+    vtk_surface : vtk.vtkPolyData
+        Enclosed surface
+
+    Returns
+    -------
+    vtk.vtkUnstructuredGrid
+        VTK object with additional cell data indicating whether the cell is in/outside the provided surface
+    """
+    vtk_surface = add_normals_to_polydata(vtk_surface)
+    # cleaner = vtk.vtkCleanPolyData()
+    # cleaner.SetInputData(vtk_surface)
+    # cleaner.Update()
+    # vtk_surface1 = cleaner.GetOutput()
+    points, tetra, _, _ = get_tetra_info_from_unstructgrid(vtk_source)
+
+    centroids = np.mean(points[tetra, :], axis=1)
+
+    vtk_centroids = create_vtk_polydata_from_points(centroids)
+
+    select = vtk.vtkSelectEnclosedPoints()
+    select.SetInputData(vtk_centroids)
+    select.SetSurfaceData(vtk_surface)
+    select.CheckSurfaceOn()
+    select.SetTolerance(1e-9)  # fraction of diagonal of bounding box!
+    select.Update()
+
+    output = select.GetOutput()
+
+    output_dsa = dsa.WrapDataObject(output)
+
+    cell_ids_inside = np.where(output_dsa.PointData["SelectedPoints"] == 1)[0]
+
+    return cell_ids_inside
+
+
+def get_edges_from_triangles(triangles: np.array) -> np.array:
+    """Generates an array of edges from a array of triangles"""
+    num_triangles = triangles.shape[0]
+    num_edges = num_triangles * 3
+    edges = np.repeat(triangles, 3, axis=0)
+    mask = np.tile(
+        np.array([[1, 1, 0], [0, 1, 1], [1, 0, 1]], dtype=bool),
+        (num_triangles, 1),
+    )
+    edges = np.reshape(edges[mask], (num_edges, 2))
+
+    return edges
+
+
+def get_free_edges(triangles: np.array) -> np.array:
+    """Gets the boundary edges that are only referenced once"""
+    edges = get_edges_from_triangles(triangles)
+
+    edges_sort = np.sort(edges, axis=1)
+
+    unique_edges, idx, counts = np.unique(
+        edges_sort, axis=0, return_counts=True, return_index=True
+    )
+    free_edges = edges[idx, :][counts == 1, :]
+    return free_edges
+
+
+"""Identifies triangles connected to the boundary, and removes these from the triangle list"""
+
+
+def remove_triangle_layers_from_trimesh(
+    triangles: np.array, iters: int = 1
+) -> np.array:
+    """_summary_
+
+    Parameters
+    ----------
+    triangles : np.array
+        Array of triangles
+    iters : int, optional
+        Number of iterations, by default 1
+
+    Returns
+    -------
+    np.array
+        Reduced set of triangles
+    """
+    reduced_triangles = copy.deepcopy(triangles)
+    for ii in range(0, iters, 1):
+        num_triangles = reduced_triangles.shape[0]
+        edges = get_edges_from_triangles(reduced_triangles)
+        free_edges = get_free_edges(reduced_triangles)
+
+        # find elements connected to the free edges
+        edges = np.reshape(edges, (3, 2, num_triangles))
+        free_nodes = np.unique(free_edges)
+
+        idx_triangles_boundary = np.any(
+            np.isin(reduced_triangles, free_nodes), axis=1
+        )
+        # idx_triangles_boundary = np.any(
+        #     np.all( np.isin(edges, free_edges),
+        #         axis = 1),
+        #     axis = 0 )
+
+        logger.debug(
+            "Removing {0} connected triangles".format(
+                np.sum(idx_triangles_boundary)
+            )
+        )
+
+        # remove boundary triangles
+        reduced_triangles = reduced_triangles[~idx_triangles_boundary, :]
+
+    return reduced_triangles
+
 
 if __name__ == "__main__":
 

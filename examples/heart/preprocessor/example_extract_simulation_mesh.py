@@ -21,7 +21,7 @@ CASE_PATH = os.path.join(os.path.abspath(ASSET_PATH), "cases", "01", "01.case")
 BASE_WORK_DIR = os.path.join(Path(__file__).parent.absolute(), "..", "workdir")
 
 REMOVE_INTERMEDIATE_FILES = (
-    False  # flag indicating whether to remove intermediate files
+    True  # flag indicating whether to remove intermediate files
 )
 
 

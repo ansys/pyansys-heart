@@ -1292,8 +1292,7 @@ def smooth_polydata(vtk_polydata: vtk.vtkPolyData) -> vtk.vtkPolyData:
     normal_gen.ComputePointNormalsOn()
     normal_gen.ComputeCellNormalsOn()
     normal_gen.Update()
-    vtk_polydata_smooth = normal_gen.GetOutput()
-    write_vtkdata_to_vtkfile(vtk_polydata_smooth, "smoothed.vtk")
+    vtk_polydata_smooth = normal_gen.GetOutput()    
     return vtk_polydata_smooth
 
 

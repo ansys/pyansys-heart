@@ -14,7 +14,12 @@ __pycache__/
 *.zip
 
 # images
-.png
+*.png
+*.PNG
+
+# text files
+*.dat
+*.txt
 
 # Distribution / packaging
 .Python

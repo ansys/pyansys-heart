@@ -3,12 +3,15 @@
    Provide any documentation specific to your online documentation
    here.
 
-.. include:: ../../README.rst
-
+Contents
+---------
 
 .. toctree::
    :maxdepth: 2
-   :caption: Getting Started
-   :hidden:
+
+   introduction
    getting_started/index
+   user_guide/index
+   api/index
    examples/index
+   contributing

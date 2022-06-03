@@ -70,8 +70,8 @@ need to follow these steps:
         python -m pip install -r requirements/requirements_doc.txt
         python -m pip install -r requirements/requirements_tests.txt
 
-5.1 Download and install `dynalib` in development mode in your environment:
 
+   Download and install `dynalib`_ in development mode in your environment:
      .. code:: bash
 
         python -m pip install -e /path/to/dynalib-root
@@ -136,3 +136,4 @@ Then, you can execute:
 .. _pip: https://pypi.org/project/pip/
 .. _tox: https://tox.wiki/
 .. _venv: https://docs.python.org/3/library/venv.html
+.. _dynalib: https://github.com/pyansys/dynalib

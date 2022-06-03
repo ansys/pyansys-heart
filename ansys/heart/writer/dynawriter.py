@@ -195,12 +195,6 @@ class BaseDynaWriter:
                 fid = open(filepath, "a")
                 fid.write("*END")
 
-            # avoid write *KEYWORD as the first line
-            elif deckname == "nodes":
-                content = deck.write()
-                with open(filepath, "w") as f:
-                    f.writelines(content[9:])
-
             else:
                 deck.export_file(filepath)
         return
@@ -1104,7 +1098,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
     def _add_control_reference_configuration(self):
         """Adds control reference configuration keyword to main"""
         logger.debug("Adding *CONTROL_REFERENCE_CONFIGURATION to main.k")
-        kw = keywords.ControlReferenceConfiguration(maxiter=10, target="nodes.k", method=2)
+        kw = keywords.ControlReferenceConfiguration(maxiter=10, target="nodes.k", method=2,tol=1)
 
         self.kw_database.main.append(kw)
 

@@ -73,6 +73,13 @@ class MechanicsDecks(BaseDecks):
         self.control_volume = Deck()
         self.pericardium = Deck()
 
+class FiberGenerationDecks(BaseDecks):
+    """This class inherits from the BaseDecks class and defines additional useful decks for fiber generation"""
+    def __init__(self) -> None:
+        super().__init__()
+        self.ep_settings = Deck()
+        self.create_fiber = Deck()
+
 
 class ElectrophysiologyDecks(BaseDecks):
     """Adds decks specificly for Electrophysiology simulations"""

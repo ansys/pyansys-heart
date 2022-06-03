@@ -2,7 +2,7 @@
 from datetime import datetime
 
 from ansys.heart._version import __version__
-# from pyansys_sphinx_theme import pyansys_logo_black
+from pyansys_sphinx_theme import pyansys_logo_black
 
 # Project information
 project = "ansys-heart-lib"
@@ -11,9 +11,8 @@ author = "ANSYS, Inc."
 release = version = __version__
 
 # use the default pyansys logo
-# html_logo = pyansys_logo_black
-# html_theme = "pyansys_sphinx_theme"
-html_theme = "classic"
+html_logo = pyansys_logo_black
+html_theme = "pyansys_sphinx_theme"
 
 html_short_title = html_title = "ansys-heart-lib"
 

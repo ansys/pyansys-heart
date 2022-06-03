@@ -1,6 +1,15 @@
 """Sphinx documentation configuration file."""
 from datetime import datetime
 
+# add sys path for sphinx to find the packages/modules
+# NOTE: could be replaced?
+import os
+import sys
+abspath = os.path.dirname( os.path.abspath(__file__) )
+base_path = os.path.abspath( os.path.join(abspath, "..", "..") )
+sys.path.insert(0, base_path )
+
+
 from ansys.heart._version import __version__
 from pyansys_sphinx_theme import pyansys_logo_black
 

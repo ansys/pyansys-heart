@@ -428,11 +428,13 @@ def fast_element_writer(element_kw: keywords.ElementSolidOrtho, filename: str):
     # create list of formatted strings
     list_formatted_strings = []
     line_format = (
-        "{:>8.0f}" * 10
+        "{:8d}" * 2  # element ID and part ID
         + "\n"
-        + "{:>16.5e}" * 3
+        + "{:8d}" * 8  # node IDs
         + "\n"
-        + "{:>16.5e}" * 3
+        + "{:16e}" * 3  # fiber vector
+        + "\n"
+        + "{:16e}" * 3  # sheet vector
         + "\n"
     )
     for element in elements:
@@ -471,7 +473,7 @@ def example_performance():
     import pandas as pd
     import numpy as np
     from ansys.dyna import keywords
-    from ansys.dyna.keywords import db as db
+    # from ansys.dyna.keywords import db as db
 
     # create some data
     num_elem = 40000

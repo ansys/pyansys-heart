@@ -40,7 +40,7 @@ from ansys.heart.writer.material_keywords import (
     active_curve,
 )
 
-from vtk.numpy_interface import dataset_adapter as dsa
+from vtk.numpy_interface import dataset_adapter as dsa  # noqa
 
 from ansys.dyna import keywords
 from ansys.dyna.keywords import Deck
@@ -59,7 +59,7 @@ class BaseDecks:
         self.material = Deck()
         self.segment_sets = Deck()
         self.node_sets = Deck()
-        self.boundary_conditions = Deck()
+        self.boundary_conditions = Deck()        
 
         return
 
@@ -71,6 +71,7 @@ class MechanicsDecks(BaseDecks):
         super().__init__()
         self.cap_elements = Deck()
         self.control_volume = Deck()
+        self.pericardium = Deck()
 
 
 class ElectrophysiologyDecks(BaseDecks):
@@ -136,7 +137,7 @@ class BaseDynaWriter:
         return
 
     def _get_mesh_info(self):
-        """Gets nodes, element definition, cell data and point data from the 
+        """Gets nodes, element definition, cell data and point data from the
         volume mesh
         """
         nodes, tetra, cell_data, point_data = get_tetra_info_from_unstructgrid(
@@ -150,21 +151,22 @@ class BaseDynaWriter:
         return
 
     def _get_list_of_includes(self):
-        """Gets a list of files to include in main.k"""
-        for key, value in vars(self.kw_database).items():
-            if key == "main":
+        """Gets a list of files to include in main.k. Ommit any empty decks"""
+        for deckname, deck in vars(self.kw_database).items():
+            if deckname == "main":
                 continue
-            self.include_files.append(key)
+            # skip if no keywords are present in the deck
+            if len( deck.keywords ) == 0:
+                logger.debug("No keywords in deck: {0}".format(deckname))
+                continue
+            self.include_files.append(deckname)
         return
 
     def _add_includes(self):
-        """Adds *INCLUDE keywords
-        """
+        """Adds *INCLUDE keywords"""
         for include_file in self.include_files:
             filename_to_include = include_file + ".k"
-            self.kw_database.main.append(
-                keywords.Include(filename=filename_to_include)
-            )
+            self.kw_database.main.append(keywords.Include(filename=filename_to_include))
 
         return
 
@@ -189,6 +191,7 @@ class BaseDynaWriter:
 
                 for element_kw in element_kws:
                     fast_element_writer(element_kw, filepath)
+
                 fid = open(filepath, "a")
                 fid.write("*END")
 
@@ -198,7 +201,7 @@ class BaseDynaWriter:
 
 
 class MechanicsDynaWriter(BaseDynaWriter):
-    """Derived from BaseDynaWriter and derives all keywords relevant 
+    """Derived from BaseDynaWriter and derives all keywords relevant
     for simulations involving mechanics"""
 
     def __init__(self, model: HeartModel) -> None:
@@ -210,10 +213,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def update(self):
-        """Formats the keywords and stores these in the 
+        """Formats the keywords and stores these in the
         respective keyword databases
         """
-        self._get_list_of_includes()
+
 
         self._update_main_db()
         self._update_node_db()
@@ -231,11 +234,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._update_controlvolume_db()
         self._update_system_model()
 
+        self._get_list_of_includes()
+        self._add_includes()
+
         return
 
     def export(self, export_directory: str):
-        """Writes the model to files
-        """
+        """Writes the model to files"""
         tstart = time.time()
         logger.debug("Writing all LS-DYNA .k files...")
 
@@ -246,17 +251,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.export_databases(export_directory)
 
         # exports system model
-        path_system_model_settings = os.path.join(
-            export_directory, "system_model_settings.json"
-        )
+        path_system_model_settings = os.path.join(export_directory, "system_model_settings.json")
 
         with open(path_system_model_settings, "w") as outfile:
             json.dump(self.system_model_json, indent=4, fp=outfile)
 
         tend = time.time()
-        logger.debug(
-            "Time spend writing files: {:.2f} s".format(tend - tstart)
-        )
+        logger.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
 
         return
 
@@ -271,7 +272,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.title = self.model.info.model_type
 
         self._add_solution_controls()
-        self._add_includes()
         self._add_export_controls()
 
         if add_damping:
@@ -280,8 +280,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _update_node_db(self):
-        """Adds nodes to the Node database
-        """
+        """Adds nodes to the Node database"""
         logger.debug("Updating node keywords...")
         node_kw = keywords.Node()
         node_kw = add_nodes_to_kw(self.volume_mesh["nodes"], node_kw)
@@ -291,8 +290,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _update_parts_db(self):
-        """Creates database of PART keywords. Each myocardium defined as a 
-        separate part 
+        """Creates database of PART keywords. Each myocardium defined as a
+        separate part
         """
 
         logger.debug("Updating part keywords...")
@@ -319,21 +318,16 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _update_solid_elements_db(self):
-        """Creates Solid ortho elements for all cavities. 
+        """Creates Solid ortho elements for all cavities.
         Each cavity contains one myocardium which consists corresponds
         to one part.
         """
         logger.debug("Updating solid element keywords...")
         # create elements for each separate cavity
-        solid_element_count = (
-            0  # keeps track of number of solid elements already defined
-        )
+        solid_element_count = 0  # keeps track of number of solid elements already defined
 
         for cavity in self.model._mesh._cavities:
-            logger.debug(
-                "Writing elements for myocardium"
-                " attached to cavity: " + cavity.name
-            )
+            logger.debug("Writing elements for myocardium" " attached to cavity: " + cavity.name)
 
             tag_to_use = cavity.vtk_ids[0]
             tetra_idx = self.volume_mesh["cell_data"]["tags"] == tag_to_use
@@ -376,9 +370,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         as keywords
         """
         # add termination keywords
-        self.kw_database.main.append(
-            keywords.ControlTermination(endtim=end_time, dtmin=dtmin)
-        )
+        self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=dtmin))
 
         # add implict controls
         if simulation_type == "quasi-static":
@@ -391,14 +383,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
             beta = 0.25
         else:
             raise ValueError(
-                "Simulation type not recoqnized: Please choose "
-                "either quasi-static or static"
+                "Simulation type not recoqnized: Please choose " "either quasi-static or static"
             )
 
         self.kw_database.main.append(
-            keywords.ControlImplicitDynamics(
-                imass=imass, gamma=gamma, beta=beta
-            )
+            keywords.ControlImplicitDynamics(imass=imass, gamma=gamma, beta=beta)
         )
 
         # add auto controls
@@ -408,8 +397,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # add general implicit controls
         self.kw_database.main.append(
-            keywords.ControlImplicitGeneral(imflag=imass, dt0=dtmin)
-        )
+            keywords.ControlImplicitGeneral(imflag=1, dt0=dtmin)
+        )  # imflag=1 means implicit
 
         # add implicit solution controls: Defaults are OK?
         self.kw_database.main.append(keywords.ControlImplicitSolution())
@@ -418,9 +407,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.ControlImplicitSolver())
         return
 
-    def _add_export_controls(
-        self, dt_output_d3plot: float = 0.05, dt_output_icvout: float = 0.001
-    ):
+    def _add_export_controls(self, dt_output_d3plot: float = 0.05, dt_output_icvout: float = 0.001):
         """Adds solution controls to the main simulation
 
         Parameters
@@ -431,17 +418,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
             Writes control volume results at this time-step spacing, by default 0.001
         """
         # add output control
-        self.kw_database.main.append(
-            keywords.ControlOutput(npopt=1, neecho=1, ikedit=0, iflush=0)
-        )
+        self.kw_database.main.append(keywords.ControlOutput(npopt=1, neecho=1, ikedit=0, iflush=0))
 
         # add export controls
-        self.kw_database.main.append(
-            keywords.DatabaseIcvout(dt=dt_output_icvout, binary=2)
-        )
-        self.kw_database.main.append(
-            keywords.DatabaseAbstat(dt=dt_output_icvout, binary=2)
-        )
+        self.kw_database.main.append(keywords.DatabaseIcvout(dt=dt_output_icvout, binary=2))
+        self.kw_database.main.append(keywords.DatabaseAbstat(dt=dt_output_icvout, binary=2))
 
         self.kw_database.main.append(keywords.DatabaseElout(dt=0.1, binary=2))
 
@@ -450,19 +431,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.DatabaseMatsum(dt=0.1, binary=2))
 
         # frequency of full results
-        self.kw_database.main.append(
-            keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot)
-        )
+        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
 
-        self.kw_database.main.append(
-            keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0)
-        )
+        self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
 
         return
 
     def _add_damping(self):
-        """Adds damping to the main file
-        """
+        """Adds damping to the main file"""
         lcid_damp = 3
 
         kw_damp = keywords.DampingGlobal(lcid=lcid_damp)
@@ -480,8 +456,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _update_segmentsets_db(self):
-        """Updates the segment set database
-        """
+        """Updates the segment set database"""
         # write each segment set to the segment set database
 
         # NOTE 1: need to more robustly check segids that are already used?
@@ -504,8 +479,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _update_nodesets_db(self):
-        """Updates the node set database
-        """
+        """Updates the node set database"""
         # formats endo, epi- and septum nodeset keywords
         # do for all cavities and for all caps that are defined
         # append each of the keywords to the nodesets database
@@ -540,8 +514,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 set_id_visited.append(cap.nodeset_id)
 
     def _update_material_db(self, add_active: bool = True):
-        """Updates the database of material keywords
-        """
+        """Updates the database of material keywords"""
         for cavity in self.model._mesh._cavities:
             # cavity id assumed to correspond to material id
             # that is: one material per cavity myocardium
@@ -566,26 +539,26 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 self.kw_database.material.append(atrium_material)
                 print("")
 
-        # write and add active curve to material database
-        time_array, active_stress_array = active_curve("Strocchi2020")
-        active_curve_kw = create_define_curve_kw(
-            x=time_array,
-            y=active_stress_array,
-            curve_name="calcium_concentration",
-            curve_id=act_curve_id,
-            lcint=15000,
-        )
+        if add_active:
+            # write and add active curve to material database
+            time_array, active_stress_array = active_curve("Strocchi2020")
+            active_curve_kw = create_define_curve_kw(
+                x=time_array,
+                y=active_stress_array,
+                curve_name="calcium_concentration",
+                curve_id=act_curve_id,
+                lcint=15000,
+            )
 
-        active_curve_kw.sfo = 4.35  # y scaling
-        active_curve_kw.offa = 1.00  # x offset
+            active_curve_kw.sfo = 4.35  # y scaling
+            active_curve_kw.offa = 1.00  # x offset
 
-        self.kw_database.material.append(active_curve_kw)
+            self.kw_database.material.append(active_curve_kw)
 
         return
 
     def _update_boundary_conditions_db(self):
-        """Updates the boundary conditions keyword database
-        """
+        """Updates the boundary conditions keyword database"""
 
         self._add_cap_bc(bc_type="springs_caps")
 
@@ -603,9 +576,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """
         valid_bcs = ["fix_all_caps", "springs_caps"]
         if bc_type not in valid_bcs:
-            raise ValueError(
-                "Cap/Valve boundary condition must be of type: %r" % valid_bcs
-            )
+            raise ValueError("Cap/Valve boundary condition must be of type: %r" % valid_bcs)
 
         if bc_type == "fix_all_caps":
             for cavity in self.model._mesh._cavities:
@@ -660,9 +631,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
             part_kw.parts = part
 
-            section_kw = keywords.SectionDiscrete(
-                secid=section_id, cdl=0, tdl=0
-            )
+            section_kw = keywords.SectionDiscrete(secid=section_id, cdl=0, tdl=0)
 
             mat_kw = keywords.MatSpringElastic(mid=mat_id, k=spring_stiffness)
 
@@ -730,9 +699,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         nodes_discrete_elements = np.array(
             [cap.node_ids_cap_edge + 1, np.zeros(num_nodes_edge)], dtype=int
         ).T
-        vector_ids_normal = (
-            np.ones(num_nodes_edge, dtype=int) * vector_id_normal
-        )
+        vector_ids_normal = np.ones(num_nodes_edge, dtype=int) * vector_id_normal
 
         discrete_element_normal_kw = create_discrete_elements_kw(
             nodes=nodes_discrete_elements,
@@ -742,9 +709,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
             element_id_offset=self.id_offset["element"]["discrete"],
         )
 
-        self.id_offset["element"][
-            "discrete"
-        ] = discrete_element_normal_kw.elements["eid"].to_numpy()[-1]
+        self.id_offset["element"]["discrete"] = discrete_element_normal_kw.elements[
+            "eid"
+        ].to_numpy()[-1]
 
         # discrete elements for radial direction
         discrete_element_radial_kw = create_discrete_elements_kw(
@@ -755,9 +722,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
             element_id_offset=self.id_offset["element"]["discrete"],
         )
 
-        self.id_offset["element"][
-            "discrete"
-        ] = discrete_element_radial_kw.elements["eid"].to_numpy()[-1]
+        self.id_offset["element"]["discrete"] = discrete_element_radial_kw.elements[
+            "eid"
+        ].to_numpy()[-1]
 
         # append to the database
         self.kw_database.boundary_conditions.append(sd_orientation_normal_kw)
@@ -774,8 +741,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """
 
         def _sigmoid(z):
-            """sigmoid function to scale spring coefficient
-            """
+            """sigmoid function to scale spring coefficient"""
             return 1 / (1 + np.exp(-z))
 
         # compute penalty function
@@ -797,12 +763,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         for cavity in self.model._mesh._cavities:
             for nodeset in cavity.node_sets:
                 if nodeset["name"] == "epicardium":
-                    logger.debug(
-                        "\t{0} {1}".format(cavity.name, nodeset["name"])
-                    )
-                    epicardium_nodes = np.append(
-                        epicardium_nodes, nodeset["set"]
-                    )
+                    logger.debug("\t{0} {1}".format(cavity.name, nodeset["name"]))
+                    epicardium_nodes = np.append(epicardium_nodes, nodeset["set"])
 
         # select only nodes that are on the epicardium and penalty factor > 0.1
         pericardium_nodes = epicardium_nodes[penalty[epicardium_nodes] > 0.1]
@@ -815,8 +777,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # TODO: exposed to user/parameters?
         spring_stiffness = 50
 
-        part_kw = keywords.Part(
-            pid=part_id, secid=section_id, mid=mat_id, title="Pericardium",
+        part_kw = keywords.Part()
+        part_kw.parts = pd.DataFrame(
+            {
+                "heading": ["Pericardium"],
+                "pid": [part_id],
+                "secid": [section_id],
+                "mid": [mat_id],
+            }
         )
         section_kw = keywords.SectionDiscrete(secid=section_id, cdl=0, tdl=0)
         mat_kw = keywords.MatSpringElastic(mid=mat_id, k=spring_stiffness)
@@ -826,9 +794,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             vectors=np.eye(3), vector_id_offset=self.id_offset["vector"]
         )
 
-        self.id_offset["vector"] = sd_orientation_kw.vectors["vid"].to_numpy()[
-            -1
-        ]
+        self.id_offset["vector"] = sd_orientation_kw.vectors["vid"].to_numpy()[-1]
 
         # compute nodal areas:
         vtk_surface = vtk_surface_filter(self.model._mesh._vtk_volume, True)
@@ -862,16 +828,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
             element_id_offset=self.id_offset["element"]["discrete"],
         )
         # add offset
-        self.id_offset["element"]["discrete"] = discrete_element_kw.elements[
-            "eid"
-        ].to_numpy()[-1]
+        self.id_offset["element"]["discrete"] = discrete_element_kw.elements["eid"].to_numpy()[-1]
 
         # add keywords to database
-        self.kw_database.boundary_conditions.append(part_kw)
-        self.kw_database.boundary_conditions.append(section_kw)
-        self.kw_database.boundary_conditions.append(mat_kw)
-        self.kw_database.boundary_conditions.append(sd_orientation_kw)
-        self.kw_database.boundary_conditions.append(discrete_element_kw)
+        self.kw_database.pericardium.append(part_kw)
+        self.kw_database.pericardium.append(section_kw)
+        self.kw_database.pericardium.append(mat_kw)
+        self.kw_database.pericardium.append(sd_orientation_kw)
+        self.kw_database.pericardium.append(discrete_element_kw)
 
         return
 
@@ -882,9 +846,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # create part for each closing cap
         used_partids = get_list_of_used_ids(self.kw_database.parts, "PART")
         used_secids = get_list_of_used_ids(self.kw_database.parts, "SECTION")
-        used_segids = get_list_of_used_ids(
-            self.kw_database.segment_sets, "SET_SEGMENT"
-        )
+        used_segids = get_list_of_used_ids(self.kw_database.segment_sets, "SET_SEGMENT")
 
         part_id = np.max(used_partids) + 1
         section_id = np.max(used_secids) + 1
@@ -939,9 +901,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
                 self.kw_database.cap_elements.append(shell_kw)
 
-                shell_id_offset = (
-                    shell_id_offset + cap.closing_triangles.shape[0]
-                )
+                shell_id_offset = shell_id_offset + cap.closing_triangles.shape[0]
 
         # create corresponding segment sets. Store in new file?
         segset_id = np.max(used_segids) + 1
@@ -962,8 +922,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _update_controlvolume_db(self):
-        """Prepares the keywords for the control volume feature
-        """
+        """Prepares the keywords for the control volume feature"""
         # NOTE: Assumes cavity id is reseverd for combined
         # segment set
 
@@ -1019,8 +978,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _update_system_model(self):
-        """Updates json system model settings
-        """
+        """Updates json system model settings"""
         model_type = self.model.info.model_type
 
         if model_type in ["FourChamber", "BiVentricle"]:
@@ -1043,13 +1001,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # update the volumes
         for cavity in self.model._mesh._cavities:
             if "Left ventricle" in cavity.name:
-                sys_settings["SystemModelInitialValues"]["UnstressedVolumes"][
-                    "lv"
-                ] = cavity.volume
+                sys_settings["SystemModelInitialValues"]["UnstressedVolumes"]["lv"] = cavity.volume
             elif "Right ventricle" in cavity.name:
-                sys_settings["SystemModelInitialValues"]["UnstressedVolumes"][
-                    "rv"
-                ] = cavity.volume
+                sys_settings["SystemModelInitialValues"]["UnstressedVolumes"]["rv"] = cavity.volume
 
         self.system_model_json = sys_settings
 
@@ -1057,32 +1011,29 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
 
 class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
-    """Derived from MechanicsDynaWriter and consequently derives all keywords relevant 
+    """Derived from MechanicsDynaWriter and consequently derives all keywords relevant
     for simulations involving mechanics. This class does not use write the
-    control volume keywords but adds the keyword for computing the stress 
+    control volume keywords but adds the keyword for computing the stress
     free configuration based on left/right cavity pressures instead"""
 
     def __init__(self, model: HeartModel) -> None:
         super().__init__(model)
 
-        self.kw_database = BaseDecks()
+        self.kw_database = MechanicsDecks()
         """Collection of keyword decks relevant for mechanics"""
 
         return
 
     def update(self):
-        """Formats the keywords and stores these in the 
-        respective keyword databases. Overwrites the update method 
+        """Formats the keywords and stores these in the
+        respective keyword databases. Overwrites the update method
         of MechanicsDynaWriter such that it yields a valid input deck
         for a zero-pressure simulation
-        """
-        self._get_list_of_includes()
+        """        
 
         self._update_main_db(add_damping=False)
 
-        self.kw_database.main.title = (
-            self.model.info.model_type + " zero-pressure"
-        )
+        self.kw_database.main.title = self.model.info.model_type + " zero-pressure"
 
         self._update_node_db()
         self._update_solid_elements_db()
@@ -1096,18 +1047,18 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         # Approximate end-diastolic pressures
         pressure_lv = 2  # kPa
-        pressure_rv = 0.5  # kPa
+        pressure_rv = 0.5333  # kPa
 
-        self._add_enddiastolic_pressure_bc(
-            pressure_lv=pressure_lv, pressure_rv=pressure_rv
-        )
+        self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
         self._add_control_reference_configuration()
+
+        self._get_list_of_includes()
+        self._add_includes()
 
         return
 
     def export(self, export_directory: str):
-        """Writes the model to files
-        """
+        """Writes the model to files"""
         tstart = time.time()
         logger.debug("Writing all LS-DYNA .k files...")
 
@@ -1118,26 +1069,42 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.export_databases(export_directory)
 
         tend = time.time()
-        logger.debug(
-            "Time spend writing files: {:.2f} s".format(tend - tstart)
-        )
+        logger.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
 
         return
+
+    def _add_solution_controls(self):
+        """
+        Rewrite method for the zerop simulation
+        Returns
+        -------
+
+        """
+        self.kw_database.main.append(keywords.ControlTermination(endtim=1.0))
+        self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
+
+        # add auto controls
+        self.kw_database.main.append(keywords.ControlImplicitAuto(iauto=1, dtmin=0.01, dtmax=0.1))
+
+        # add general implicit controls
+        self.kw_database.main.append(keywords.ControlImplicitGeneral(imflag=1, dt0=0.1))
+
+        # add implicit solution controls: Defaults are OK?
+        self.kw_database.main.append(keywords.ControlImplicitSolution())
+
+        # add implicit solver controls
+        self.kw_database.main.append(keywords.ControlImplicitSolver())
 
     def _add_control_reference_configuration(self):
         """Adds control reference configuration keyword to main"""
         logger.debug("Adding *CONTROL_REFERENCE_CONFIGURATION to main.k")
-        kw = keywords.ControlReferenceConfiguration(
-            maxiter=10, target="nodes.k", method=2
-        )
+        kw = keywords.ControlReferenceConfiguration(maxiter=10, target="nodes.k", method=2,tol=1)
 
         self.kw_database.main.append(kw)
 
         return
 
-    def _add_enddiastolic_pressure_bc(
-        self, pressure_lv: float = 1, pressure_rv: float = 1
-    ):
+    def _add_enddiastolic_pressure_bc(self, pressure_lv: float = 1, pressure_rv: float = 1):
         """Adds end diastolic pressure boundary condition on the left and right endocardium"""
 
         # create unit load curve
@@ -1161,9 +1128,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
                 scale_factor = pressure_rv
 
             logger.debug(
-                "Adding end-diastolic pressure of {0} to {1}".format(
-                    scale_factor, cavity.name
-                )
+                "Adding end-diastolic pressure of {0} to {1}".format(scale_factor, cavity.name)
             )
 
             seg_ids_to_use = []

@@ -70,8 +70,8 @@ need to follow these steps:
         python -m pip install -r requirements/requirements_doc.txt
         python -m pip install -r requirements/requirements_tests.txt
 
-   Download and install `dynalib`_ in development mode in your environment:
 
+   Download and install `dynalib`_ in development mode in your environment:
      .. code:: bash
 
         python -m pip install -e /path/to/dynalib-root

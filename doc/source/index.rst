@@ -15,12 +15,3 @@ Contents
    api/index
    examples/index
    contributing
-
-
-
-
-
-
-
-
-

@@ -66,9 +66,15 @@ need to follow these steps:
 
      .. code:: bash
 
-        python -m pip install -r requirements/requirements_build.txt
+        python -m pip install -r requirements/requirements_build_pip.txt
         python -m pip install -r requirements/requirements_doc.txt
         python -m pip install -r requirements/requirements_tests.txt
+
+5.1 Download and install `dynalib` in development mode in your environment:
+
+     .. code:: bash
+
+        python -m pip install -e /path/to/dynalib-root
 
 6. Finally, verify your development installation by running:
 

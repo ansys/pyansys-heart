@@ -4,3 +4,11 @@
    here.
 
 .. include:: ../../README.rst
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Getting Started
+   :hidden:
+   getting_started/index
+   examples/index

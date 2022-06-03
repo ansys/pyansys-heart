@@ -1,6 +1,10 @@
-Autosummary Directive
+API Reference
 ---------------------
+This page contains the API reference.
 
+.. toctree::
+   :maxdepth: 3
+   
 .. autosummary::
    :toctree: _autosummary
 

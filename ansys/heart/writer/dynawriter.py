@@ -42,7 +42,7 @@ from ansys.heart.writer.material_keywords import (
 
 from vtk.numpy_interface import dataset_adapter as dsa  # noqa
 
-from ansys.dyna import keywords
+from ansys.dyna.keywords import keywords
 from ansys.dyna.keywords import Deck
 
 

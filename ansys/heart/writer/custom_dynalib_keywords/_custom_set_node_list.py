@@ -1,8 +1,8 @@
 import typing
-from ansys.dyna.keywords.card import Card, Field
-from ansys.dyna.keywords.duplicate_card import DuplicateCard
-from ansys.dyna.keywords.option import Options, Option
-from ansys.dyna.keywords.keyword_base import KeywordBase
+from ansys.dyna.keywords.lib.card import Card, Field
+from ansys.dyna.keywords.lib.duplicate_card import DuplicateCard
+from ansys.dyna.keywords.lib.option import Options, Option
+from ansys.dyna.keywords.lib.keyword_base import KeywordBase
 
 class SetNodeList_custom(KeywordBase):
     """DYNA SET_NODE_LIST keyword"""

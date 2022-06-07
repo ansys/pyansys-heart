@@ -1154,6 +1154,141 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
                 self.kw_database.main.append(load_segset_kw)
 
 
+class FiberGenerationDynaWriter(MechanicsDynaWriter):
+    def __init__(self, model: HeartModel) -> None:
+        super().__init__(model)
+
+        self.kw_database = FiberGenerationDecks()
+        """Collection of keywords relevant for fiber generation
+        """
+    
+    def update(self):
+        """Updates keyword database: overwrites the inherited function"""
+
+        ## 
+        self._update_main_db() # needs updating
+
+        self._update_node_db()           # can stay the same
+        self._update_solid_elements_db() # can stay the same         
+        self._update_parts_db()          # can stay the same
+
+        # only add septum if bi-ventricle or four chamber model
+        if self.model.info.model_type in ["BiVentricle", "FourChamber"]:
+            self._add_septum_to_parts_db()
+
+        self._update_segmentsets_db()    # can stay the same 
+        self._update_nodesets_db()       # can stay the same 
+        self._update_material_db(add_active=False) # can stay the same 
+
+
+        self._update_ep_settings()
+        # # for boundary conditions
+        # self._update_boundary_conditions_db() # can be removed
+
+        # # for control volume
+        # self._update_cap_elements_db()  # can be removed
+        # self._update_controlvolume_db() # can be removed
+        # self._update_system_model()     # can be removed
+
+        self._get_list_of_includes() 
+        self._add_includes()
+
+        return
+
+    def export(self, export_directory: str):
+        """Writes the model to files"""
+        tstart = time.time()
+        logger.debug("Writing all LS-DYNA .k files...")
+
+        if not export_directory:
+            export_directory = self.model.info.working_directory
+
+        # export .k files
+        self.export_databases(export_directory)
+
+        tend = time.time()
+        logger.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
+
+        return
+        
+    def _add_septum_to_parts_db(self):
+        """Adds the septum as a seperate part"""
+
+        found = False
+        for cavity in self.model._mesh._cavities:
+            for element_set in cavity.element_sets:
+                if "septum" in element_set["name"]:
+                    septum_ids = element_set["set"]
+                    found = True
+                    break
+            if found:
+                break
+        
+        # only Bi-Ventricle and FourChamber models have septum defined
+        if not found:
+            raise ValueError( "Septum not found for: %s" % self.model.info.model_type )            
+
+        # add new part id for septum
+        used_part_ids = get_list_of_used_ids( self.kw_database.parts, "PART" )
+
+        part_id = np.max(used_part_ids) + 1
+
+        # use material and section id of first part
+        mid_part1 = self.kw_database.parts.keywords[0].parts["mid"].to_numpy()[0]
+        secid_part1 = self.kw_database.parts.keywords[0].parts["secid"].to_numpy()[0]
+
+        part_kw = keywords.Part()
+        part_info = pd.DataFrame(
+            {
+                "heading": ["Septum"],
+                "pid": [part_id],
+                "secid": [secid_part1],
+                "mid": [mid_part1],
+            }
+        )
+        part_kw.parts = part_info
+        
+        self.kw_database.parts.append( part_kw )
+
+        return
+
+    def _update_ep_settings(self):
+        """Adds the settings for the electrophysiology solver
+        """
+
+        # check fields
+        kw1 = keywords.EmControl(
+            emsol = 11,
+            numls = 4, 
+            macrodt = 1,
+            dimtype = None,
+            nperio = None,
+            ncyclfem = 9e6,
+            ncylbem = None )
+
+        # keyword missing
+        kw2 = keywords.EmControlEp()
+
+        # max iter should be int
+        kw3 = keywords.EmSolverFem(reltol = 1e-6, maxite = 1e4, precon = 2)
+
+        # missing field beta and Cm?
+        kw4 = keywords.EmMat003()
+
+        # missing EM keyword?
+        kw5 = keywords.EmEpCellmodelTentusscher()
+
+        kw6 = keywords.EmOutput()
+
+        return
+
+
+
+    def _update_main_db(self):
+        # add main keywords
+        return
+
+
 if __name__ == "__main__":
 
     A = BaseDecks()

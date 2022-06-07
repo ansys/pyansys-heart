@@ -1,7 +1,7 @@
 import typing
-from ansys.dyna.keywords.card import Card, Field
-from ansys.dyna.keywords.duplicate_card import DuplicateCard
-from ansys.dyna.keywords.keyword_base import KeywordBase
+from ansys.dyna.keywords.lib.card import Card, Field
+from ansys.dyna.keywords.lib.duplicate_card import DuplicateCard
+from ansys.dyna.keywords.lib.keyword_base import KeywordBase
 
 """
 This files contains the keywords that is not supported by dynalib

@@ -10,7 +10,7 @@ import numpy as np
 
 from ansys.heart.custom_logging import logger
 
-from ansys.dyna import keywords
+from ansys.dyna.keywords import keywords
 
 # import custom keywords. Overwrites classes defined in "keywords"
 from ansys.heart.writer.custom_dynalib_keywords._custom_mat_077h import (

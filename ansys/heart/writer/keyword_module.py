@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 from typing import List, Union
 
-from ansys.dyna import keywords
+from ansys.dyna.keywords import keywords
 from ansys.dyna.keywords import Deck
 
 # import some custom keywords that avoid buygs in dynalib

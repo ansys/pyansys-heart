@@ -562,7 +562,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self._add_cap_bc(bc_type="springs_caps")
 
-        self._add_pericardium_bc()
+        self._add_pericardium_bc_usr()
 
         return
 
@@ -838,6 +838,71 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.pericardium.append(discrete_element_kw)
 
         return
+
+    def _add_pericardium_bc_usr(self):
+        """Adds the pericardium.
+        Same with _add_pericardium_bc but using *user_load, need customized LSDYNA exe!!
+        """
+
+        def _sigmoid(z):
+            """sigmoid function to scale spring coefficient"""
+            return 1 / (1 + np.exp(-z))
+
+        # compute penalty function
+        uvc_l = self.volume_mesh["point_data"]["uvc_longitudinal"]
+
+        if np.any(uvc_l < 0):
+            logger.warning(
+                "Negative normalized longitudinal coordinate detected. Changing {0} negative uvc_l values to 1".format(
+                    np.sum((uvc_l < 0))
+                ),
+            )
+
+        uvc_l[uvc_l < 0] = 1
+        penalty = -_sigmoid((abs(uvc_l) - 0.65) * 25) + 1  # for all volume nodes
+
+        # collect all pericardium nodes:
+        epicardium_segment = np.empty((0, 3), dtype=int)
+
+        logger.debug("Collecting epicardium nodesets:")
+        for cavity in self.model._mesh._cavities:
+            for sgm_set in cavity.segment_sets:
+                if sgm_set["name"] == "epicardium":
+                    logger.debug("\t{0} {1}".format(cavity.name, sgm_set["name"]))
+                    epicardium_segment = np.vstack((epicardium_segment, sgm_set["set"]))
+
+        penalty = np.mean(
+            penalty[epicardium_segment], axis=1
+        )  # averaged for all pericardium segments
+
+        cnt = 0
+        for isg, sgmt in enumerate(epicardium_segment):
+            if penalty[isg] > 0.01:
+                cnt += 1
+
+                # coord = self.volume_mesh["nodes"][sgmt]
+                # center = np.mean(coord, axis=0)
+                # normal = np.cross(coord[1] - coord[0], coord[2] - coord[0])
+                # normal /= np.linalg.norm(normal)
+                # cs_kw = keywords.DefineCoordinateSystem(
+                #     cid=cnt,
+                #     xo=center[0],
+                #     yo=center[1],
+                #     zo=center[2],
+                #     xl=center[0] + normal[0],
+                #     yl=center[1] + normal[1],
+                #     zl=center[2] + normal[2],
+                #     xp=coord[0, 0],
+                #     yp=coord[0, 1],
+                #     zp=coord[0, 2],
+                # )
+                load_sgm_kw=create_segment_set_keyword(sgmt.reshape(1,-1)+1,segid=1000+cnt)  # todo: auto counter
+                # todo: use dynalib
+                user_loadset_kw = "*USER_LOADING_SET\n{0:d},PRESSS,2,,{1:f},,,100".format(1000+cnt,penalty[isg])
+                self.kw_database.pericardium.append(load_sgm_kw)
+                self.kw_database.pericardium.append(user_loadset_kw)
+        user_load_kw = "*USER_LOADING\n{0:f}".format(0.05)
+        self.kw_database.pericardium.append(user_load_kw)
 
     def _update_cap_elements_db(self):
         """Updates the database of shell elements. Loops over all

@@ -84,7 +84,7 @@ def add_nodes_to_kw(
 
 
 def create_segment_set_keyword(
-    segments: np.array, segid: int = 1, title: str = "seg-title"
+    segments: np.array, segid: int = 1, title: str = ""
 ) -> keywords.SetSegment:
     """Creates a segment set keyword from an array with the segment set definition
 
@@ -96,7 +96,7 @@ def create_segment_set_keyword(
     segid : int, optional
         Segment set ID, by default 1
     title : str, optional
-        Title of the segment set, by default 'seg-title'
+        Title of the segment set
 
     Returns
     -------
@@ -113,8 +113,9 @@ def create_segment_set_keyword(
 
     kw = keywords.SetSegment(sid=segid)
 
-    kw.options["TITLE"].active = True
-    kw.title = title
+    if title != "":
+        kw.options["TITLE"].active = True
+        kw.title = title
 
     # prepare dataframe
     df = pd.DataFrame(data=segments, columns=kw.segments.columns[0:4])

@@ -48,21 +48,34 @@ class HeartModel:
         return
 
     def load_model(self, filename: str):
-        """Loads the model from a model info file
+        """Loads all relevant model information for the json file
+
+        Parameters
+        ----------
+        filename : str
+            Path to model information in json format
         """
+
         # exposed to user
         logger.info("Loading heart model from: %s " % filename)
         model_info = self._mesh.load_mesh(filename)
         self.info = model_info
         return
 
+
     def dump_model(
-        self, filename: str = None, clean_working_directory: bool = False
+        self, filename: str = "model_info.json", clean_working_directory: bool = False
     ):
-        """Dumps model information for future use. Exports
-        the simulation-ready mesh in vtk format and the list of
-        cavities which are part of the HeartMesh object
-        """
+        """Dumps model information for future use. Exports simulation mesh in .vtk format
+
+        Parameters
+        ----------
+        filename : str, optional
+            Path to model info json, by default "model_info.json"
+        clean_working_directory : bool, optional
+            Flag indicating whether to clean the working directory of any temporary files, by default False
+        """     
+
         # exposed to user
         if clean_working_directory:
             import glob as glob
@@ -87,8 +100,7 @@ class HeartModel:
         return
 
     def extract_simulation_mesh(self):
-        """Extracts the simulation mesh based on 
-        the model information provided
+        """Extracts the simulation mesh based on the model information provided
         """
         # exposed to user
 

@@ -411,6 +411,22 @@ class HeartMesh:
 
         return
 
+    def extract_apical_points(self):
+        """Extracts apical points from each ventricle"""
+
+        # get nodes
+        volume_dsa = dsa.WrapDataObject(self._vtk_volume)
+        nodes = volume_dsa.Points
+        
+        for cavity in self._cavities:
+            # skip if atrium
+            if "atrium" in cavity.name:
+                continue
+
+            cavity._get_apex(nodes)
+
+        return
+
     def _validate_node_sets(self):
         """Validates the node sets and makes sure there are no references to duplicate nodes. 
         Endocardium of any cavity takes precedence over septum for instance.

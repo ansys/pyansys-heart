@@ -139,6 +139,9 @@ class HeartModel:
         # extract endo/epicardium surfaces
         self._mesh.extract_endocardium_epicardium()
 
+        # extract apex
+        self._mesh.extract_apical_points()
+
         # validate cavities
         self._mesh._validate_cavities()
 

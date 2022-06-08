@@ -9,10 +9,8 @@ from typing import List, Union
 from ansys.dyna.keywords import keywords
 from ansys.dyna.keywords import Deck
 
-# import some custom keywords that avoid buygs in dynalib
-from ansys.heart.writer.custom_dynalib_keywords._custom_set_node_list import (
-    SetNodeList_custom,
-)
+# import some custom keywords that avoid bugs in dynalib
+from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 
 
 def create_node_keyword(nodes: np.array, offset: int = 0) -> keywords.Node:
@@ -126,7 +124,7 @@ def create_segment_set_keyword(
 
 def create_node_set_keyword(
     node_ids: np.array, node_set_id: int = 1, title: str = "nodeset-title"
-) -> SetNodeList_custom:
+) -> custom_keywords.SetNodeList:
     """Creates node set
 
     Parameters
@@ -144,7 +142,7 @@ def create_node_set_keyword(
         Formatted node set 
     """
 
-    kw = SetNodeList_custom(sid=node_set_id)
+    kw = custom_keywords.SetNodeList(sid=node_set_id)
 
     kw.options["TITLE"].active = True
     kw.title = title
@@ -593,10 +591,10 @@ if __name__ == "__main__":
 
     kw_db = Deck()
 
-    kw_db.append(SetNodeList_custom(sid=1))
-    kw_db.append(SetNodeList_custom(sid=2))
-    kw_db.append(SetNodeList_custom(sid=5))
-    kw_db.append(SetNodeList_custom(sid=6))
+    kw_db.append(custom_keywords.SetNodeList(sid=1))
+    kw_db.append(custom_keywords.SetNodeList(sid=2))
+    kw_db.append(custom_keywords.SetNodeList(sid=5))
+    kw_db.append(custom_keywords.SetNodeList(sid=6))
 
     # kw = keywords.SetNodeList_custom( sid = 1)
     kw = create_node_set_keyword(np.arange(0, 10, 1) + 1, 1, "test")

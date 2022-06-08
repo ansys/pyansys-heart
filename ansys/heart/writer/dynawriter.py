@@ -45,6 +45,9 @@ from vtk.numpy_interface import dataset_adapter as dsa  # noqa
 from ansys.dyna.keywords import keywords
 from ansys.dyna.keywords import Deck
 
+# import missing keywords
+from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
+
 
 class BaseDecks:
     """Class where each attribute corresponds to its respective deck. Used to the distinguish between each of the decks.
@@ -1267,7 +1270,8 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             ncylbem = None )
 
         # keyword missing
-        kw2 = keywords.EmControlEp()
+        
+        kw2 = custom_keywords.EmControlEp()
 
         # max iter should be int
         kw3 = keywords.EmSolverFem(reltol = 1e-6, maxite = 1e4, precon = 2)
@@ -1279,6 +1283,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         kw5 = keywords.EmEpCellmodelTentusscher()
 
         kw6 = keywords.EmOutput()
+
 
         return
 

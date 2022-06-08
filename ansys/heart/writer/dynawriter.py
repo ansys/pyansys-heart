@@ -40,55 +40,14 @@ from ansys.heart.writer.material_keywords import (
     active_curve,
 )
 
+from ansys.heart.writer.heart_decks import BaseDecks, MechanicsDecks, FiberGenerationDecks
+
 from vtk.numpy_interface import dataset_adapter as dsa  # noqa
 
 from ansys.dyna.keywords import keywords
-from ansys.dyna.keywords import Deck
 
 # import missing keywords
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
-
-
-class BaseDecks:
-    """Class where each attribute corresponds to its respective deck. Used to the distinguish between each of the decks.
-    This base class defines some commonly used (empty) decks.
-    """
-
-    def __init__(self) -> None:
-        self.main = Deck()
-        self.parts = Deck()
-        self.nodes = Deck()
-        self.solid_elements = Deck()
-        self.material = Deck()
-        self.segment_sets = Deck()
-        self.node_sets = Deck()
-        self.boundary_conditions = Deck()        
-
-        return
-
-
-class MechanicsDecks(BaseDecks):
-    """This class inherits from the BaseDecks class and defines additional useful decks"""
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.cap_elements = Deck()
-        self.control_volume = Deck()
-        self.pericardium = Deck()
-
-class FiberGenerationDecks(BaseDecks):
-    """This class inherits from the BaseDecks class and defines additional useful decks for fiber generation"""
-    def __init__(self) -> None:
-        super().__init__()
-        self.ep_settings = Deck()
-        self.create_fiber = Deck()
-
-
-class ElectrophysiologyDecks(BaseDecks):
-    """Adds decks specificly for Electrophysiology simulations"""
-
-    def __init__(self) -> None:
-        super().__init__()
 
 
 class BaseDynaWriter:
@@ -1166,16 +1125,16 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         """
     
     def update(self):
-        """Updates keyword database: overwrites the inherited function"""
+        """Updates keyword database for Fiber generation: overwrites the inherited function"""
 
         ## 
-        self._update_main_db() # needs updating
+        self._update_main_db()           # needs updating
 
         self._update_node_db()           # can stay the same
         self._update_solid_elements_db() # can stay the same         
         self._update_parts_db()          # can stay the same
 
-        # only add septum if bi-ventricle or four chamber model
+        # only add septum if bi-ventricle or four chamber model is used
         if self.model.info.model_type in ["BiVentricle", "FourChamber"]:
             self._add_septum_to_parts_db()
 
@@ -1183,15 +1142,8 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         self._update_nodesets_db()       # can stay the same 
         self._update_material_db(add_active=False) # can stay the same 
 
-
+        # update ep settings
         self._update_ep_settings()
-        # # for boundary conditions
-        # self._update_boundary_conditions_db() # can be removed
-
-        # # for control volume
-        # self._update_cap_elements_db()  # can be removed
-        # self._update_controlvolume_db() # can be removed
-        # self._update_system_model()     # can be removed
 
         self._get_list_of_includes() 
         self._add_includes()

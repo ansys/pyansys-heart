@@ -1138,6 +1138,31 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         return
 
+    def _add_export_controls(self, dt_output_d3plot: float = 0.5):
+        """Rewrite method for zerop export
+
+        Parameters
+        ----------
+        dt_output_d3plot : float, optional
+            Writes full D3PLOT results at this time-step spacing, by default 0.5
+        """
+        # add output control
+        self.kw_database.main.append(keywords.ControlOutput(npopt=1, neecho=1, ikedit=0, iflush=0))
+
+        # add export controls
+        # self.kw_database.main.append(keywords.DatabaseElout(dt=0.1, binary=2))
+        #
+        # self.kw_database.main.append(keywords.DatabaseGlstat(dt=0.1, binary=2))
+        #
+        # self.kw_database.main.append(keywords.DatabaseMatsum(dt=0.1, binary=2))
+
+        # frequency of full results
+        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
+
+        # self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
+
+        return
+
     def _add_solution_controls(self):
         """
         Rewrite method for the zerop simulation

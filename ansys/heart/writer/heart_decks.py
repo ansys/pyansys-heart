@@ -19,7 +19,6 @@ class BaseDecks:
 
         return
 
-
 class MechanicsDecks(BaseDecks):
     """This class inherits from the BaseDecks class and defines additional useful decks"""
 
@@ -35,7 +34,6 @@ class FiberGenerationDecks(BaseDecks):
         super().__init__()
         self.ep_settings = Deck()
         self.create_fiber = Deck()
-
 
 class ElectrophysiologyDecks(BaseDecks):
     """Adds decks specificly for Electrophysiology simulations"""

@@ -1144,6 +1144,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
         # update ep settings
         self._update_ep_settings()
+        self._update_fibers()
 
         self._get_list_of_includes() 
         self._add_includes()
@@ -1236,6 +1237,16 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
         kw6 = keywords.EmOutput()
 
+
+        kw = custom_keywords.EmEpFiberinitial()
+        kw = keywords.SetPartList()
+        kw = custom_keywords.EmEpCreatefiberorientation()
+        kw = keywords.DefineFunction()
+
+        return
+
+    def _update_fibers(self):
+        """Updates the keywords ufor"""
 
         return
 

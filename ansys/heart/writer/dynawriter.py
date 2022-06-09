@@ -1085,9 +1085,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
             filepath = os.path.join(export_directory, filename  )
 
             segments = np.empty( (0,3), dtype = int )
+
+            # collect segment sets
             for segset in cavity.segment_sets:
-                if segset["name"] == "endocardium":
-                    segments = segset["set"]
+                if segset["name"] in ["endocardium", "endocardium-septum"]:
+                    segments = np.vstack([ segments, segset["set"]] )
+
             
             # append cap segments:
             for cap in cavity.closing_caps:

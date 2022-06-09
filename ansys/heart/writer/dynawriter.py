@@ -256,6 +256,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
         with open(path_system_model_settings, "w") as outfile:
             json.dump(self.system_model_json, indent=4, fp=outfile)
 
+        # export segment sets to separate file
+        self._export_cavity_segmentsets( export_directory )
+
         tend = time.time()
         logger.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
 
@@ -1007,6 +1010,27 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self.system_model_json = sys_settings
 
+        return
+
+    def _export_cavity_segmentsets(self, export_directory: str):
+        """Exports the actual cavity segment sets to separate files"""       
+
+        for cavity in self.model._mesh._cavities:
+            filename = "cavity_" + "_".join( cavity.name.lower().split() ) + ".segment"
+            filepath = os.path.join(export_directory, filename  )
+
+            segments = np.empty( (0,3), dtype = int )
+            for segset in cavity.segment_sets:
+                if segset["name"] == "endocardium":
+                    segments = segset["set"]
+            
+            # append cap segments:
+            for cap in cavity.closing_caps:
+                segments = np.vstack( [segments, cap.closing_triangles] )
+
+            # combine segment sets
+            np.savetxt(filepath, segments, delimiter = ",", fmt = "%d")
+            
         return
 
 

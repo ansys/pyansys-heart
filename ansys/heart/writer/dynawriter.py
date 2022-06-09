@@ -305,7 +305,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     "heading": [cavity.name],
                     "pid": [cavity.id],
                     "secid": [1],
-                    "mid": [1],
+                    "mid": [cavity.id],  # mat ID is assumed to be the cavity ID,see in _update_material_db()
                 }
             )
             part_kw = keywords.Part()

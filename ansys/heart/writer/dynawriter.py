@@ -879,14 +879,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
             penalty[epicardium_segment], axis=1
         )  # averaged for all pericardium segments
 
-        # debug code
-        # export pericardium segment center and also the penalty factor, can be opened in Paraview
-        coord = self.volume_mesh["nodes"][epicardium_segment]
-        center = np.mean(coord, axis=1)
-        result = np.concatenate((center,penalty.reshape(-1,1)),axis=1)
-        np.savetxt('pericardium.txt',result[result[:,3]>0.1])
-        exit()
-        # end debug code
+        # # debug code
+        # # export pericardium segment center and also the penalty factor, can be opened in Paraview
+        # coord = self.volume_mesh["nodes"][epicardium_segment]
+        # center = np.mean(coord, axis=1)
+        # result = np.concatenate((center,penalty.reshape(-1,1)),axis=1)
+        # np.savetxt('pericardium.txt',result[result[:,3]>0.1])
+        # exit()
+        # # end debug code
 
         cnt = 0
         for isg, sgmt in enumerate(epicardium_segment):

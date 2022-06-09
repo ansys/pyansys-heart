@@ -869,14 +869,24 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         logger.debug("Collecting epicardium nodesets:")
         for cavity in self.model._mesh._cavities:
-            for sgm_set in cavity.segment_sets:
-                if sgm_set["name"] == "epicardium":
-                    logger.debug("\t{0} {1}".format(cavity.name, sgm_set["name"]))
-                    epicardium_segment = np.vstack((epicardium_segment, sgm_set["set"]))
+            if cavity.name =='Right ventricle' or cavity.name=="Left ventricle":
+                for sgm_set in cavity.segment_sets:
+                    if sgm_set["name"] == "epicardium":
+                        logger.debug("\t{0} {1}".format(cavity.name, sgm_set["name"]))
+                        epicardium_segment = np.vstack((epicardium_segment, sgm_set["set"]))
 
         penalty = np.mean(
             penalty[epicardium_segment], axis=1
         )  # averaged for all pericardium segments
+
+        # # debug code
+        # # export pericardium segment center and also the penalty factor, can be opened in Paraview
+        # coord = self.volume_mesh["nodes"][epicardium_segment]
+        # center = np.mean(coord, axis=1)
+        # result = np.concatenate((center,penalty.reshape(-1,1)),axis=1)
+        # np.savetxt('pericardium.txt',result[result[:,3]>0.1])
+        # exit()
+        # # end debug code
 
         cnt = 0
         for isg, sgmt in enumerate(epicardium_segment):

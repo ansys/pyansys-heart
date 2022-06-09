@@ -1130,9 +1130,9 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         ## 
         self._update_main_db()           # needs updating
 
-        self._update_node_db()           # can stay the same
-        self._update_solid_elements_db() # can stay the same         
-        self._update_parts_db()          # can stay the same
+        self._update_node_db()           # can stay the same (could move to base class)
+        self._update_solid_elements_db() # can stay the same (could move to base class)
+        self._update_parts_db()          # can stay the same (could move to base class)
 
         # only add septum if bi-ventricle or four chamber model is used
         if self.model.info.model_type in ["BiVentricle", "FourChamber"]:
@@ -1212,42 +1212,70 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         """Adds the settings for the electrophysiology solver
         """
 
-        # check fields
-        kw1 = keywords.EmControl(
+        self.kw_database.ep_settings.append(
+            keywords.EmControl(
             emsol = 11,
             numls = 4, 
             macrodt = 1,
             dimtype = None,
             nperio = None,
-            ncyclfem = 9e6,
             ncylbem = None )
+            )
 
-        # keyword missing
-        
-        kw2 = custom_keywords.EmControlEp()
+        # use defaults        
+        self.kw_database.ep_settings.append(
+            custom_keywords.EmControlEp()
+            )
 
         # max iter should be int
-        kw3 = keywords.EmSolverFem(reltol = 1e-6, maxite = 1e4, precon = 2)
+        self.kw_database.ep_settings.append(
+            keywords.EmSolverFem(reltol = 1e-6, maxite = int(1e4), precon = 2)
+        )
 
-        # missing field beta and Cm?
-        kw4 = keywords.EmMat003()
+        # NOTE: material id should be same as target myocardium
+        # create one material per cavity 
+        for cavity in self.model._mesh._cavities:
+            self.kw_database.ep_settings.extend( [
+                custom_keywords.EmMat003(
+                    mid = cavity.id,
+                    mtype = 2,
+                    sigma11 = 5.0e-4,
+                    sigma22 = 1.0e-4,
+                    sigma33 = 1.0e-4,
+                    beta = 0.14,
+                    cm = 0.01,
+                    aopt = 2.0,
+                    lambda_ = 0.5,
+                    a1 = 0,
+                    a2 = 0,
+                    a3 = 0,
+                    d1 = 0, 
+                    d2 = -1,
+                    d3 = 0
+                ),
+                custom_keywords.EmEpCellmodelTomek(
+                    mid = cavity.id
+                )
+            ] )
 
-        # missing EM keyword?
-        kw5 = keywords.EmEpCellmodelTentusscher()
+        self.kw_database.ep_settings.append(
+            keywords.EmOutput(
+                mats = 1,
+                matf = 1, 
+                sols = 1,
+                solf = 1
+            )
+        )
+        
+        return
 
-        kw6 = keywords.EmOutput()
-
+    def _update_fibers(self):
+        """Updates the keywords for fiber generation"""
 
         kw = custom_keywords.EmEpFiberinitial()
         kw = keywords.SetPartList()
         kw = custom_keywords.EmEpCreatefiberorientation()
         kw = keywords.DefineFunction()
-
-        return
-
-    def _update_fibers(self):
-        """Updates the keywords ufor"""
-
         return
 
 

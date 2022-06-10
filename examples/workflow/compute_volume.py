@@ -64,7 +64,19 @@ class STL:
         self.z = coord[connect][:, :, 2]
 
 
-def get_cavity_volume2(cavity):
+def get_cavity_volume2(x_m, cavity):
+    """
+    raw method to compute volume
+    avoid using meshio and vtk, but still needs numpy
+    Parameters
+    ----------
+    x_m
+    cavity
+
+    Returns
+    -------
+
+    """
     ids, a = np.unique(cavity, return_inverse=True)
     coords = x_m[ids]
     connectivity = a.reshape(cavity.shape)
@@ -72,7 +84,7 @@ def get_cavity_volume2(cavity):
     return abs(a)
 
 
-def get_cavity_volume(name, cavity):
+def get_cavity_volume(name, x_m, cavity):
     ids, a = np.unique(cavity, return_inverse=True)
     coords = x_m[ids]
     connectivity = a.reshape(cavity.shape)
@@ -98,15 +110,15 @@ def compute_stl_volume(f_stl):
     return float(volume)
 
 
-if __name__ == "__main__":
+def update_system_json(nodes_file):
     """
     Update the unstressed cavity volume in the system model settings.
 
     How to use:
-    Copy and run this script under the main simulation directory
+    run this script under the main simulation directory
     """
 
-    nodes_file = "iter4.guess"
+    # nodes_file = "iter4.guess"
     # BV or 4C
     lv_cavity_file = r"cavity_left_ventricle.segment"
     rv_cavity_file = r"cavity_right_ventricle.segment"
@@ -122,8 +134,8 @@ if __name__ == "__main__":
 
     lv_cavity = np.loadtxt(lv_cavity_file, delimiter=",", dtype=int)
     rv_cavity = np.loadtxt(rv_cavity_file, delimiter=",", dtype=int)
-    lv_volume = get_cavity_volume(lv_cavity_file.split(".")[0], lv_cavity)
-    rv_volume = get_cavity_volume(rv_cavity_file.split(".")[0], rv_cavity)
+    lv_volume = get_cavity_volume(lv_cavity_file.split(".")[0], x_m, lv_cavity)
+    rv_volume = get_cavity_volume(rv_cavity_file.split(".")[0], x_m, rv_cavity)
     print(lv_volume)
     print(rv_volume)
 
@@ -138,3 +150,9 @@ if __name__ == "__main__":
 
     with open(json_file, "w") as f:
         f.write(json.dumps(sys_dct, indent=2, separators=(",", ": ")))
+
+    return
+
+
+if __name__ == "__main__":
+    update_system_json("nodes.k")

@@ -296,7 +296,6 @@ class HeartMesh:
         the remeshed vtk file 
         """
         logger.debug("Mapping data from original mesh...")
-
         # NOTE Source contains all point data and cell data fields
         # NOTE Map the tags of only the myocardium
 
@@ -307,71 +306,58 @@ class HeartMesh:
         target = vtk.vtkUnstructuredGrid()
         target.DeepCopy(self._vtk_volume)
 
-        # Original: still valid for left and bi-ventricular model
-        if self.info.model_type in ["LeftVentricle", "BiVentricle"]:
-            # NOTE Source contains all point data and cell data fields
-            # NOTE Map the tags of only the myocardium
-            target = vtk_map_continuous_data(source, target)
+        # collect tags of involved ventricles
+        ventricular_tags = []
+        for cavity in self._cavities:
+            ventricular_tags.append( cavity.vtk_ids[0] )
 
-            # for debugging purposes
-            # write_vtkdata_to_vtkfile( source, "source_interp.vtk" )
-            # write_vtkdata_to_vtkfile( target, "target_interp_1.vtk" )
+        # NOTE 1: The method below was initially developed for fixing four chamber case interpolation bug
+        # NOTE 2: However, also solves interpolation issues for Bi-Ventricle and LeftVentricle cases
+        # NOTE Outline strategy:
+        # 1. extract left ventricle or biventricle from temporary _vtk_volume_temp
+        # 2. interpolate uvc onto target just using ventricles. Ignore any other cell or point arrays
+        # 3. interpolate tags onto target. (will overwrite 2)
+        # 4. cleanup by using tags to identify anything non-ventricuar - assign -100 to those parts
+        # 5. interpolate the remaining fields
 
-            # map the tags (consider this to be discrete data)
-            # store in as _vtk_volume
-            self._vtk_volume = self._map_tags_to_remeshed_volume(source, target)
+        # 1. extract reduced source model
+        source_ventricles = vtk.vtkUnstructuredGrid()
+        source_ventricles.DeepCopy(source)
+        source_ventricles = threshold_vtk_data_integers(source_ventricles, ventricular_tags, "tags")
+        source_dsa = dsa.WrapDataObject(source_ventricles)
+        source_point_data_names = source_dsa.PointData.keys()
+        source_cell_data_names = source_dsa.CellData.keys()
 
-            return
+        # 2.
+        uvc_array_names = [k for k in source_point_data_names if "uvc_" in k]
+        target = vtk_map_continuous_data(
+            source=source_ventricles, target=target, array_names_to_include=uvc_array_names
+        )
 
-        elif self.info.model_type in ["FourChamber"]:
-            # NOTE: four chamber case interpolation bug
-            # NOTE: STRATEGY for four chamber case:
-            # 1. extract biventricle from temporary four chamber case
-            # 2. interpolate uvc onto target just using ventricles. Ignore any other cell or point arrays
-            # 3. interpolate tags onto target. (will overwrite 2)
-            # 4. cleanup by using tags to identify anything non-ventricuar - assign -100 to those parts
-            # 5. interpolate the remaining fields
+        # 3.
+        self._map_tags_to_remeshed_volume(source, target)
 
-            # 1. extract source bv model
-            ventricular_tags = [1, 2]
-            source_bv = vtk.vtkUnstructuredGrid()
-            source_bv.DeepCopy(source)
-            source_bv = threshold_vtk_data_integers(source_bv, ventricular_tags, "tags")
-            source_dsa = dsa.WrapDataObject(source_bv)
-            source_point_data_names = source_dsa.PointData.keys()
-            source_cell_data_names = source_dsa.CellData.keys()
+        # 4.
+        target = self._replace_uvc_values(target, ventricular_tags)
 
-            # 2.
-            uvc_array_names = [k for k in source_point_data_names if "uvc_" in k]
-            target = vtk_map_continuous_data(
-                source=source_bv, target=target, array_names_to_include=uvc_array_names
-            )
+        # 5.
+        arrays_to_interpolate = set(source_point_data_names + source_cell_data_names) - set(
+            uvc_array_names + ["tags"]
+        )
+        target = vtk_map_continuous_data(
+            source=source, target=target, array_names_to_include=arrays_to_interpolate
+        )
 
-            # 3.
-            self._map_tags_to_remeshed_volume(source, target)
-
-            # 4.
-            target = self._replace_uvc_values(target)
-
-            # 5.
-            arrays_to_interpolate = set(source_point_data_names + source_cell_data_names) - set(
-                uvc_array_names + ["tags"]
-            )
-            target = vtk_map_continuous_data(
-                source=source, target=target, array_names_to_include=arrays_to_interpolate
-            )
-
-            self._vtk_volume = target
+        self._vtk_volume = target
 
         return
 
-    def _replace_uvc_values(self, vtk_grid: vtk.vtkUnstructuredGrid):
+    def _replace_uvc_values(self, vtk_grid: vtk.vtkUnstructuredGrid, tags):
         """Replaces the uvc values of any part other than the ventricle with -100"""
-        ventricular_tags = [1, 2]
 
         nodes, tetra, cell_data, point_data = get_tetra_info_from_unstructgrid( vtk_grid )
 
-        cell_ids_atria = np.where(np.isin(cell_data["tags"], ventricular_tags, invert=True))[0]
+        cell_ids_atria = np.where(np.isin(cell_data["tags"], tags, invert=True))[0]
 
         point_ids_to_edit = np.unique(tetra[cell_ids_atria, :])
         # replace all uvc coordinates not on ventricle to -100

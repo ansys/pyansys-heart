@@ -323,13 +323,14 @@ class HeartMesh:
 
             return
 
-        if self.info.model_type in ["FourChamber"]:
+        elif self.info.model_type in ["FourChamber"]:
             # NOTE: four chamber case interpolation bug
             # NOTE: STRATEGY for four chamber case:
-            # 1. interpolate uvc onto target just using ventricles. Ignore any other cell or point arrays
-            # 2. interpolate tags onto target. (will overwrite in 2)
-            # 3. cleanup by using tags to identify anything non-ventricuar - assign -100 to those parts
-            # 4. interpolate the remaining fields
+            # 1. extract biventricle from temporary four chamber case
+            # 2. interpolate uvc onto target just using ventricles. Ignore any other cell or point arrays
+            # 3. interpolate tags onto target. (will overwrite 2)
+            # 4. cleanup by using tags to identify anything non-ventricuar - assign -100 to those parts
+            # 5. interpolate the remaining fields
 
             # 1. extract source bv model
             ventricular_tags = [1, 2]
@@ -340,44 +341,55 @@ class HeartMesh:
             source_point_data_names = source_dsa.PointData.keys()
             source_cell_data_names = source_dsa.CellData.keys()
 
+            # 2.
             uvc_array_names = [k for k in source_point_data_names if "uvc_" in k]
-            target = vtk_map_continuous_data2(
+            target = vtk_map_continuous_data(
                 source=source_bv, target=target, array_names_to_include=uvc_array_names
             )
 
-            # 2.
+            # 3.
             self._map_tags_to_remeshed_volume(source, target)
 
-            # 3.
-            ventricular_tags = [1, 2]
-            nodes, tetra, cell_data, point_data = get_tetra_info_from_unstructgrid(target)
-            cell_ids_atria = np.where(np.isin(cell_data["tags"], ventricular_tags, invert=True))[0]
-            point_ids_to_edit = np.unique(tetra[cell_ids_atria, :])
-            # replace all uvc coordinates not on ventricle to -100
-            for key, value in point_data.items():
-                if "uvc_" in key:
-                    logger.debug("Replacing value of %s of non-ventricular points to -100 " % key)
-                    point_data[key][point_ids_to_edit] = -100
-                    # replace array of original vtk object
-                    add_vtk_array(
-                        polydata=target,
-                        data=point_data[key],
-                        name=key,
-                        data_type="point",
-                        array_type=float,
-                    )
-
             # 4.
+            target = self._replace_uvc_values(target)
+
+            # 5.
             arrays_to_interpolate = set(source_point_data_names + source_cell_data_names) - set(
                 uvc_array_names + ["tags"]
             )
-            target = vtk_map_continuous_data2(
+            target = vtk_map_continuous_data(
                 source=source, target=target, array_names_to_include=arrays_to_interpolate
             )
 
             self._vtk_volume = target
 
         return
+
+    def _replace_uvc_values(self, vtk_grid: vtk.vtkUnstructuredGrid):
+        """Replaces the uvc values of any part other than the ventricle with -100"""
+        ventricular_tags = [1, 2]
+
+        nodes, tetra, cell_data, point_data = get_tetra_info_from_unstructgrid( vtk_grid )
+
+        cell_ids_atria = np.where(np.isin(cell_data["tags"], ventricular_tags, invert=True))[0]
+
+        point_ids_to_edit = np.unique(tetra[cell_ids_atria, :])
+        # replace all uvc coordinates not on ventricle to -100
+        for key, value in point_data.items():
+            if "uvc_" in key:
+                logger.debug("Replacing value of %s of non-ventricular points to -100 " % key)
+                point_data[key][point_ids_to_edit] = -100
+                # replace array of original vtk object
+                add_vtk_array(
+                    polydata=vtk_grid,
+                    data=point_data[key],
+                    name=key,
+                    data_type="point",
+                    array_type=float,
+                )
+
+
+        return vtk_grid
 
     def extract_endocardium_epicardium(self):
         """Extracts the endo and epicardium from each of myocardial parts.

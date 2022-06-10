@@ -1278,15 +1278,21 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         # segmentset endocardium > epicardium (left ventricle)
         # segmentset endocardium > epicardium (right ventricle)
         # what to do for bi-ventricular case for apex > base.
+
+        if self.model.info.model_type not in ["BiVentricle", "FourChamber"]:
+            logger.error( "Model type not yet supported " % self.model.info.model_type )
+            raise ValueError("Model type %s not supported" % self.model.info.model_type )
+
         self.kw_database.create_fiber.append( 
             custom_keywords.EmEpFiberinitial(
                 id = 1,
-                partid = 1,
+                partid = 1, # set part id
                 stype = 2,
                 ssid1 = 1, 
                 ssid2 = 2
             )
         )
+
 
         part_list_kw = keywords.SetPartList(
             sid = 1,

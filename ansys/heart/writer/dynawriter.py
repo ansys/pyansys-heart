@@ -911,11 +911,20 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 # )
                 load_sgm_kw=create_segment_set_keyword(sgmt.reshape(1,-1)+1,segid=1000+cnt)  # todo: auto counter
                 # todo: use dynalib
-                user_loadset_kw = "*USER_LOADING_SET\n{0:d},PRESSS,2,,{1:f},,,100".format(1000+cnt,penalty[isg])
+                user_loadset_kw = "*USER_LOADING_SET\n{0:d},PRESSS,1000,,{1:f},,,100".format(1000+cnt,penalty[isg])
                 self.kw_database.pericardium.append(load_sgm_kw)
                 self.kw_database.pericardium.append(user_loadset_kw)
         user_load_kw = "*USER_LOADING\n{0:f}".format(0.05)
         self.kw_database.pericardium.append(user_load_kw)
+
+        # create random curve because this is not used in UserLoad
+        load_curve_id = 1000
+        load_curve_kw = create_define_curve_kw(
+            [0, 1], [0, 1], "random load curve", load_curve_id, 1000
+        )
+
+        # append unit curve to main.k
+        self.kw_database.pericardium.append(load_curve_kw)
 
     def _update_cap_elements_db(self):
         """Updates the database of shell elements. Loops over all
@@ -1225,7 +1234,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
     def _add_control_reference_configuration(self):
         """Adds control reference configuration keyword to main"""
         logger.debug("Adding *CONTROL_REFERENCE_CONFIGURATION to main.k")
-        kw = keywords.ControlReferenceConfiguration(maxiter=10, target="nodes.k", method=2,tol=1)
+        kw = keywords.ControlReferenceConfiguration(maxiter=5, target="nodes.k", method=2,tol=5)
 
         self.kw_database.main.append(kw)
 

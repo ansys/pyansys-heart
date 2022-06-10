@@ -8,6 +8,7 @@ import json
 
 def get_mass_properties(stl_obj):
     """
+    From numpy-stl
     http://www.geometrictools.com/Documentation/PolyhedralMassProperties.pdf
     """
 
@@ -71,17 +72,17 @@ def get_cavity_volume2(cavity):
     return abs(a)
 
 
-def get_cavity_volume(cavity):
+def get_cavity_volume(name, cavity):
     ids, a = np.unique(cavity, return_inverse=True)
     coords = x_m[ids]
     connectivity = a.reshape(cavity.shape)
     meshio.write_points_cells(
-        "cavity.stl",
+        name + ".stl",
         coords,
         [("triangle", connectivity)],
     )
 
-    return compute_stl_volume("cavity.stl")
+    return compute_stl_volume(name + ".stl")
 
 
 def compute_stl_volume(f_stl):
@@ -104,9 +105,8 @@ if __name__ == "__main__":
     How to use:
     Copy and run this script under the main simulation directory
     """
-    os.chdir(r"D:\pyheart-lib\examples\heart\workdir\bi_ventricle_model\lsdyna_files")
 
-    nodes_file = "nodes.k"
+    nodes_file = "iter4.guess"
     # BV or 4C
     lv_cavity_file = r"cavity_left_ventricle.segment"
     rv_cavity_file = r"cavity_right_ventricle.segment"
@@ -117,12 +117,13 @@ if __name__ == "__main__":
         for line in f.readlines():
             if line[0] != "*" and line[0] != "$":
                 data.append(line)
-    x_m = np.genfromtxt(data, delimiter=[8, 16, 16, 16])[:, 1:4]
+    x_m = np.genfromtxt(data, delimiter=[8, 16, 16, 16])
+    x_m = x_m[x_m[:, 0].argsort()][:, 1:]
 
     lv_cavity = np.loadtxt(lv_cavity_file, delimiter=",", dtype=int)
     rv_cavity = np.loadtxt(rv_cavity_file, delimiter=",", dtype=int)
-    lv_volume = get_cavity_volume(lv_cavity)
-    rv_volume = get_cavity_volume(rv_cavity)
+    lv_volume = get_cavity_volume(lv_cavity_file.split(".")[0], lv_cavity)
+    rv_volume = get_cavity_volume(rv_cavity_file.split(".")[0], rv_cavity)
     print(lv_volume)
     print(rv_volume)
 

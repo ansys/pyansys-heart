@@ -534,6 +534,8 @@ def vtk_map_continuous_data(
         Input which to use as reference
     source : Union[vtk.PolyData, vtk.UnstructuredGrid]
         Target object onto which to interpolate data
+    array_names_to_include : list
+        List of array names to include for interpolation. If empty all cell and point arrays will be interpolated
 
     Note
     -------

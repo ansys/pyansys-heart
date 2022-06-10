@@ -701,33 +701,47 @@ def vtk_map_continuous_data(
 
 def vtk_remove_arrays(
     vtk_grid: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid],
-    array_name: str,
+    array_name: str = "",
     data_type: str = "cell_data",
     remove_all: bool = False,
+    except_array_names: List[str] = []
 ):
     """Removes all or specific data arrays from vtk object
     """
-    if data_type not in ["cell_data", "point_data"]:
+
+    if data_type not in ["cell_data", "point_data", "both"]:
         raise ValueError("Data type not valid")
+
+    remove_cell_data = False
+    remove_point_data = False
+
+    if data_type in ["cell_data", "both"]:
+        remove_cell_data = True
+    if data_type in ["point_data", "both"]:
+        remove_point_data = True
+    
 
     num_cell_data = vtk_grid.GetCellData().GetNumberOfArrays()
     num_point_data = vtk_grid.GetPointData().GetNumberOfArrays()
 
     if remove_all:
-        while num_cell_data > 0:
-            vtk_grid.GetCellData().RemoveArray(0)
-            num_cell_data = vtk_grid.GetCellData().GetNumberOfArrays()
-        while num_point_data > 0:
-            vtk_grid.GetPointData().RemoveArray(0)
-            num_point_data = vtk_grid.GetPointData().GetNumberOfArrays()
+        if remove_cell_data:
+            while num_cell_data > 0:
+                vtk_grid.GetCellData().RemoveArray(0)
+                num_cell_data = vtk_grid.GetCellData().GetNumberOfArrays()
+        
+        if remove_point_data:
+            while num_point_data > 0:
+                vtk_grid.GetPointData().RemoveArray(0)
+                num_point_data = vtk_grid.GetPointData().GetNumberOfArrays()
 
     else:
-        if data_type == "cell_data":
+        if remove_cell_data:
             for ii in range(num_cell_data):
                 if array_name == vtk_grid.GetCellData().GetArrayName(ii):
                     vtk_grid.GetCellData().RemoveArray(ii)
 
-        elif data_type == "point_data":
+        elif remove_point_data:
             for ii in range(num_point_data):
                 if array_name == vtk_grid.GetPointData().GetArrayName(ii):
                     vtk_grid.GetPointData().RemoveArray(ii)

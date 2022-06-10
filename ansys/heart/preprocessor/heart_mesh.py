@@ -326,18 +326,90 @@ class HeartMesh:
         # NOTE Source contains all point data and cell data fields
         # NOTE Map the tags of only the myocardium
 
-        source = self._vtk_volume_temp
-        target = self._vtk_volume
+        source = self._vtk_volume_temp  # temporary volume (original topology?)
+        target = self._vtk_volume       # remeshed volume
 
-        target = vtk_map_continuous_data(source, target)
+        # Original: still valid for left and bi-ventricular model
+        if self.info.model_type in ["LeftVentricle", "BiVentricle"]:
+            # NOTE Source contains all point data and cell data fields
+            # NOTE Map the tags of only the myocardium
+            target = vtk_map_continuous_data(source, target)
 
-        # for debugging purposes
-        # write_vtkdata_to_vtkfile( source, "source_interp.vtk" )
-        # write_vtkdata_to_vtkfile( target, "target_interp_1.vtk" )
+            # for debugging purposes
+            # write_vtkdata_to_vtkfile( source, "source_interp.vtk" )
+            # write_vtkdata_to_vtkfile( target, "target_interp_1.vtk" )
 
-        # map the tags (consider this to be discrete data)
-        # store in as _vtk_volume
-        self._vtk_volume = self._map_tags_to_remeshed_volume(source, target)
+            # map the tags (consider this to be discrete data)
+            # store in as _vtk_volume
+            self._vtk_volume = self._map_tags_to_remeshed_volume(source, target)
+
+            return        
+
+        # problem: during interpolation uvc_ values on tags other than ventricle
+        # should be -100, using interpolation leads to issues
+        # data to map: 
+        source_with_uvc = vtk.vtkUnstructuredGrid()
+        source_with_uvc.DeepCopy( source )
+        source_dsa = dsa.WrapDataObject( source_with_uvc )
+        source_point_data_names = source_dsa.PointData.keys()
+        source_cell_data_names = source_dsa.CellData.keys()
+
+
+        # remove everything except uvc_ from source
+        for array_name in source_point_data_names:
+            if "uvc_" not in array_name:
+                vtk_remove_arrays(
+                    vtk_grid = source_with_uvc,
+                    array_name = array_name,
+                    data_type = "point_data" )
+        # remove all cell data
+        for array_name in source_cell_data_names:
+            if array_name != "tags":
+                vtk_remove_arrays(
+                    vtk_grid = source_with_uvc,
+                    array_name = array_name,
+                    data_type = "cell_data"                
+                )
+        # source_with_uvc only has uvc data
+        ventricular_tags = [ 1, 2 ]
+        source_without_uvc_bv = threshold_vtk_data_integers( source_with_uvc, ventricular_tags, "tags" )
+        # interpolate data of left ventricle onto new mesh
+        target = vtk_map_continuous_data( source_without_uvc_bv, target )
+
+        # map tags:
+        target = self._map_tags_to_remeshed_volume(source, target)
+
+        # change any with tag 1 or 2 to -100
+        nodes, tetra, cell_data, point_data = get_tetra_info_from_unstructgrid( target )
+        cell_ids_atria = np.where( np.isin( cell_data["tags"] , ventricular_tags, invert = True ) )[0]
+        point_ids_to_edit = np.unique( tetra[cell_ids_atria, :] )
+        # replace all uvc coordinates not on ventricle to -100
+        for key, value in point_data.items():
+            if "uvc_" in key:
+                logger.debug("Replacing value of %s of non-ventricular points to -100 " % key)
+                point_data[key][point_ids_to_edit] = -100
+                # replace array of original vtk object
+                add_vtk_array(
+                    polydata = target,
+                    data = point_data[key],
+                    name = key,
+                    data_type = "point",
+                    array_type = float )
+
+        write_vtkdata_to_vtkfile(target, "target_uvc_only.vtk")
+
+        # map fibers:
+        source_with_fibers = vtk.vtkUnstructuredGrid()
+        source_with_fibers.DeepCopy( source )
+        source_dsa = dsa.WrapDataObject( source_with_fibers )
+        source_point_data_names = source_dsa.PointData.keys()
+        source_cell_data_names = source_dsa.CellData.keys()
+
+
+
+
+
+        self._vtk_volume = target
 
         return
 

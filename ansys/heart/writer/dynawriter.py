@@ -1,6 +1,5 @@
 """Contains class for writing dyna keywords based on the HeartModel
 """
-from multiprocessing.sharedctypes import Value
 import numpy as np
 import pandas as pd
 import os
@@ -20,7 +19,6 @@ from ansys.heart.preprocessor.vtk_module import (
 
 from ansys.heart.writer.keyword_module import (
     add_nodes_to_kw,
-    create_discrete_elements_kw,
     create_element_solid_ortho_keyword,
     create_element_shell_keyword,
     create_segment_set_keyword,
@@ -59,7 +57,7 @@ class BaseDecks:
         self.material = Deck()
         self.segment_sets = Deck()
         self.node_sets = Deck()
-        self.boundary_conditions = Deck()        
+        self.boundary_conditions = Deck()
 
         return
 
@@ -156,7 +154,7 @@ class BaseDynaWriter:
             if deckname == "main":
                 continue
             # skip if no keywords are present in the deck
-            if len( deck.keywords ) == 0:
+            if len(deck.keywords) == 0:
                 logger.debug("No keywords in deck: {0}".format(deckname))
                 continue
             self.include_files.append(deckname)
@@ -217,7 +215,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         respective keyword databases
         """
 
-
         self._update_main_db()
         self._update_node_db()
         self._update_solid_elements_db()
@@ -236,6 +233,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self._get_list_of_includes()
         self._add_includes()
+
+        #
+        # Approximate end-diastolic pressures
+        pressure_lv = 2  # kPa
+        pressure_rv = 0.5333  # kPa
+
+        self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
         return
 
@@ -257,7 +261,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             json.dump(self.system_model_json, indent=4, fp=outfile)
 
         # export segment sets to separate file
-        self._export_cavity_segmentsets( export_directory )
+        self._export_cavity_segmentsets(export_directory)
 
         tend = time.time()
         logger.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
@@ -305,7 +309,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     "heading": [cavity.name],
                     "pid": [cavity.id],
                     "secid": [1],
-                    "mid": [cavity.id],  # mat ID is assumed to be the cavity ID,see in _update_material_db()
+                    "mid": [
+                        cavity.id
+                    ],  # mat ID is assumed to be the cavity ID,see in _update_material_db()
                 }
             )
             part_kw = keywords.Part()
@@ -869,7 +875,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         logger.debug("Collecting epicardium nodesets:")
         for cavity in self.model._mesh._cavities:
-            if cavity.name =='Right ventricle' or cavity.name=="Left ventricle":
+            if cavity.name == "Right ventricle" or cavity.name == "Left ventricle":
                 for sgm_set in cavity.segment_sets:
                     if sgm_set["name"] == "epicardium":
                         logger.debug("\t{0} {1}".format(cavity.name, sgm_set["name"]))
@@ -909,9 +915,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 #     yp=coord[0, 1],
                 #     zp=coord[0, 2],
                 # )
-                load_sgm_kw=create_segment_set_keyword(sgmt.reshape(1,-1)+1,segid=1000+cnt)  # todo: auto counter
+                load_sgm_kw = create_segment_set_keyword(
+                    sgmt.reshape(1, -1) + 1, segid=1000 + cnt
+                )  # todo: auto counter
                 # todo: use dynalib
-                user_loadset_kw = "*USER_LOADING_SET\n{0:d},PRESSS,1000,,{1:f},,,100".format(1000+cnt,penalty[isg])
+                user_loadset_kw = "*USER_LOADING_SET\n{0:d},PRESSS,1000,,{1:f},,,100".format(
+                    1000 + cnt, penalty[isg]
+                )
                 self.kw_database.pericardium.append(load_sgm_kw)
                 self.kw_database.pericardium.append(user_loadset_kw)
         user_load_kw = "*USER_LOADING\n{0:f}".format(0.05)
@@ -1097,28 +1107,69 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _export_cavity_segmentsets(self, export_directory: str):
-        """Exports the actual cavity segment sets to separate files"""       
+        """Exports the actual cavity segment sets to separate files"""
 
         for cavity in self.model._mesh._cavities:
-            filename = "cavity_" + "_".join( cavity.name.lower().split() ) + ".segment"
-            filepath = os.path.join(export_directory, filename  )
+            filename = "cavity_" + "_".join(cavity.name.lower().split()) + ".segment"
+            filepath = os.path.join(export_directory, filename)
 
-            segments = np.empty( (0,3), dtype = int )
+            segments = np.empty((0, 3), dtype=int)
 
             # collect segment sets
             for segset in cavity.segment_sets:
                 if segset["name"] in ["endocardium", "endocardium-septum"]:
-                    segments = np.vstack([ segments, segset["set"]] )
+                    segments = np.vstack([segments, segset["set"]])
 
-            
             # append cap segments:
             for cap in cavity.closing_caps:
-                segments = np.vstack( [segments, cap.closing_triangles] )
+                segments = np.vstack([segments, cap.closing_triangles])
 
             # combine segment sets
-            np.savetxt(filepath, segments, delimiter = ",", fmt = "%d")
-            
+            np.savetxt(filepath, segments, delimiter=",", fmt="%d")
+
         return
+
+    def _add_enddiastolic_pressure_bc(self, pressure_lv: float = 1, pressure_rv: float = 1):
+        """Adds end diastolic pressure boundary condition on the left and right endocardium"""
+
+        # create unit load curve
+        load_curve_id = 2
+        load_curve_kw = create_define_curve_kw(
+            [0, 1, 1.001], [0, 1, 0], "unit load curve", load_curve_id, 100
+        )
+
+        # append unit curve to main.k
+        self.kw_database.main.append(load_curve_kw)
+
+        # create *LOAD_SEGMENT_SETS for each ventricular cavity
+        for cavity in self.model._mesh._cavities:
+
+            if "atrium" in cavity.name:
+                continue
+
+            if cavity.name == "Left ventricle":
+                scale_factor = pressure_lv
+            elif cavity.name == "Right ventricle":
+                scale_factor = pressure_rv
+
+            logger.debug(
+                "Adding end-diastolic pressure of {0} to {1}".format(scale_factor, cavity.name)
+            )
+
+            seg_ids_to_use = []
+            # find id of endocardium
+            for segset in cavity.segment_sets:
+                if "endocardium" in segset["name"]:
+                    seg_ids_to_use.append(segset["id"])
+
+            # create load segment set for each endocardium segment
+            for seg_id in seg_ids_to_use:
+                load_segset_kw = keywords.LoadSegmentSet(
+                    ssid=seg_id, lcid=load_curve_id, sf=scale_factor
+                )
+
+                # append to main.k
+                self.kw_database.main.append(load_segset_kw)
 
 
 class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
@@ -1140,7 +1191,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         respective keyword databases. Overwrites the update method
         of MechanicsDynaWriter such that it yields a valid input deck
         for a zero-pressure simulation
-        """        
+        """
 
         self._update_main_db(add_damping=False)
 
@@ -1234,53 +1285,11 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
     def _add_control_reference_configuration(self):
         """Adds control reference configuration keyword to main"""
         logger.debug("Adding *CONTROL_REFERENCE_CONFIGURATION to main.k")
-        kw = keywords.ControlReferenceConfiguration(maxiter=5, target="nodes.k", method=2,tol=5)
+        kw = keywords.ControlReferenceConfiguration(maxiter=5, target="nodes.k", method=2, tol=5)
 
         self.kw_database.main.append(kw)
 
         return
-
-    def _add_enddiastolic_pressure_bc(self, pressure_lv: float = 1, pressure_rv: float = 1):
-        """Adds end diastolic pressure boundary condition on the left and right endocardium"""
-
-        # create unit load curve
-        load_curve_id = 2
-        load_curve_kw = create_define_curve_kw(
-            [0, 1], [0, 1], "unit load curve", load_curve_id, 100
-        )
-
-        # append unit curve to main.k
-        self.kw_database.main.append(load_curve_kw)
-
-        # create *LOAD_SEGMENT_SETS for each ventricular cavity
-        for cavity in self.model._mesh._cavities:
-
-            if "atrium" in cavity.name:
-                continue
-
-            if cavity.name == "Left ventricle":
-                scale_factor = pressure_lv
-            elif cavity.name == "Right ventricle":
-                scale_factor = pressure_rv
-
-            logger.debug(
-                "Adding end-diastolic pressure of {0} to {1}".format(scale_factor, cavity.name)
-            )
-
-            seg_ids_to_use = []
-            # find id of endocardium
-            for segset in cavity.segment_sets:
-                if "endocardium" in segset["name"]:
-                    seg_ids_to_use.append(segset["id"])
-
-            # create load segment set for each endocardium segment
-            for seg_id in seg_ids_to_use:
-                load_segset_kw = keywords.LoadSegmentSet(
-                    ssid=seg_id, lcid=load_curve_id, sf=scale_factor
-                )
-
-                # append to main.k
-                self.kw_database.main.append(load_segset_kw)
 
 
 if __name__ == "__main__":

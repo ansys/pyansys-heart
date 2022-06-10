@@ -1144,7 +1144,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
         # update ep settings
         self._update_ep_settings()
-        self._update_fibers()
+        self._update_create_fibers()
 
         self._get_list_of_includes() 
         self._add_includes()
@@ -1266,22 +1266,76 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
                 solf = 1
             )
         )
-        
+
         return
 
-    def _update_fibers(self):
+    def _update_create_fibers(self):
         """Updates the keywords for fiber generation"""
 
-        kw = custom_keywords.EmEpFiberinitial()
-        kw = keywords.SetPartList()
-        kw = custom_keywords.EmEpCreatefiberorientation()
-        kw = keywords.DefineFunction()
+        # collect relevant segment sets
+        # apex > base :
+        # nodeset: apex, nodeset base (rings)
+        # segmentset endocardium > epicardium (left ventricle)
+        # segmentset endocardium > epicardium (right ventricle)
+        # what to do for bi-ventricular case for apex > base.
+        self.kw_database.create_fiber.append( 
+            custom_keywords.EmEpFiberinitial(
+                id = 1,
+                partid = 1,
+                stype = 2,
+                ssid1 = 1, 
+                ssid2 = 2
+            )
+        )
+
+        part_list_kw = keywords.SetPartList(
+            sid = 1,
+        )
+        part_list_kw.parts._data = [1]
+        self.kw_database.create_fiber.append( 
+            part_list_kw
+            )
+
+        # self.kw_database.create_fiber.append( 
+        kw = custom_keywords.EmEpCreatefiberorientation(
+                partsid = 1,
+                solvid1 = 1,
+                solvid2 = 2,
+                alpha = -101,
+                beta = -102,         
+                wfile = 1,
+                prerun = 0       
+            )
+        
+        # define functions: 
+        from ansys.heart.writer.define_function_strings import function1, function2, function3
+        self.kw_database.create_fiber.append( 
+            keywords.DefineFunction(
+            fid = 101,
+            function = function1
+            )
+            )
+        self.kw_database.create_fiber.append( 
+            keywords.DefineFunction(
+            fid = 102,
+            function = function2
+            )
+            )
+        self.kw_database.create_fiber.append( 
+            keywords.DefineFunction(
+            fid = 103,
+            function = function3
+            )
+            )            
+        
+        
+
         return
 
 
 
     def _update_main_db(self):
-        # add main keywords
+        
         return
 
 

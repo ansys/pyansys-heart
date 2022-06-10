@@ -114,13 +114,13 @@ if __name__ == "__main__":
     if not os.path.isdir(BASE_WORK_DIR):
         os.mkdir(BASE_WORK_DIR)
 
-    # # extract left ventricle mesh
-    # logger.info("***************************")
-    # extract_leftventricle_mesh()
+    # extract left ventricle mesh
+    logger.info("***************************")
+    extract_leftventricle_mesh()
 
-    # # extract biventricle mesh
-    # logger.info("***************************")
-    # extract_biventricle_mesh()
+    # extract biventricle mesh
+    logger.info("***************************")
+    extract_biventricle_mesh()
 
     # extract four chamber mesh
     logger.info("***************************")

@@ -1166,7 +1166,38 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         logger.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
 
         return
+
+    def _update_parts_db(self):
+        """Creates database of PART keywords. Each myocardium defined as a
+        separate part. Septum also defined as separate part.
+        """
+        logger.debug("Updating part keywords...")
+        # add parts with a dataframe
+        for cavity in self.model._mesh._cavities:
+            part = pd.DataFrame(
+                {
+                    "heading": [cavity.name],
+                    "pid": [cavity.id],
+                    "secid": [1],
+                    "mid": [1],
+                }
+            )
+            part_kw = keywords.Part()
+            part_kw.parts = part
+
+            self.kw_database.parts.append(part_kw)
+
+        # set up section solid for cavity myocardium
+        section_kw = keywords.SectionSolid(secid=1, elform=13)
+
+        self.kw_database.parts.append(section_kw)
+
+        return
         
+
+        return
+
+
     def _add_septum_to_parts_db(self):
         """Adds the septum as a seperate part"""
 

@@ -894,10 +894,24 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 )
                 self.kw_database.pericardium.append(load_sgm_kw)
                 self.kw_database.pericardium.append(user_loadset_kw)
-                
+
         user_load_kw = custom_keywords.UserLoading(
             param1 = 0.05
         )
+
+        # create load curve to control when pericardium is active
+        load_curve_kw = keywords.DefineCurve(
+            lcid = 2            
+        )
+        load_curve_kw.options["TITLE"].active = True
+        load_curve_kw.title = "pericardium activation curve"
+        load_curve_kw.curves = pd.DataFrame(
+            {
+                "a1" : np.array( [0, 1] ),
+                "o1" : np.array( [0, 1] )
+            }
+        )
+
         self.kw_database.pericardium.append(user_load_kw)
 
     def _update_cap_elements_db(self):

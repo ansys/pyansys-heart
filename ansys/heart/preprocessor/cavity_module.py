@@ -163,6 +163,9 @@ class Cavity:
 
         self.centroid = np.empty(3)
 
+        self.apex_id: int = {"endocardium": 0, "epicardium": 0}
+        """Node id of apical points"""
+
         self.id: int = 0  # cavity id
         self.nodeset_ids = {}
         self.segset_ids = {}
@@ -657,6 +660,61 @@ class Cavity:
             segset_to_append = copy.deepcopy(node_set)
             segset_to_append["set"] = tris_global[element_indices, :]
             self.segment_sets.append(segset_to_append)
+
+        return
+
+    def _get_apex(self, nodes: np.array):
+        """Extracts an apical point from the cavity
+
+        Parameters
+        ----------
+        nodes : np.array
+            Array with global node coordinates
+        """
+        logger.debug("Extracting apical points")
+        logger.warning("No check whether detected point is at an edge")
+
+        # get reference point (mid-point between two valve centroids)
+        # robust enough to extract apical points for either left or right ventricle?
+        centroids = np.empty((0,3))
+        for cap in self.closing_caps:
+            centroids = np.vstack( (centroids, cap.centroid) )
+        reference_point = np.mean(centroids, axis = 0)
+
+        # use the defined node sets to extract the apical point:
+        for nodeset in self.node_sets:
+            set_name = nodeset["name"]
+            # no sense in trying to find the apex for the septum
+            if "septum" in nodeset["name"]:
+                continue 
+
+            points = nodes[nodeset["set"], : ]
+            id_max   = np.argmax( 
+                np.linalg.norm ( points - reference_point, axis = 1 ) 
+            )
+            global_node_id = nodeset["set"][id_max]
+            
+            # validate:
+            # checks whether node id is not on edge of segment set 
+            # if selected point is on edge of segment set select a point 
+            # which is not on a free edge (free face)
+            from ansys.heart.preprocessor.vtk_module import get_free_edges            
+            for segset in self.segment_sets:
+                triangles = segset["set"]
+                if set_name == segset["name"]:
+                    free_edges, free_triangles = get_free_edges( triangles, True )
+                    if np.isin( global_node_id, free_edges ):
+                        logger.warning("Apical point is on edge of segment set")                        
+                        logger.warning("Selecting point not on edge of segment set")    
+                        # select triangle that has two points on edge                    
+                        free_edge = free_edges[ np.argwhere( np.all( np.isin( free_edges, global_node_id ), axis = 1) ), : ]
+                        triangle_to_use = np.argwhere( np.sum ( np.isin( free_triangles, free_edge ), axis = 1 ) == 2 )                        
+
+                        # select the node that is not used in the free edge
+                        global_node_id = triangle_to_use[ np.isin( triangle_to_use, free_edge, invert = True ) ]                        
+                    break        
+
+            self.apex_id[ nodeset["name"] ] = global_node_id
 
         return
 

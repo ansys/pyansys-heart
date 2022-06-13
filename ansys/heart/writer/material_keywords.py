@@ -12,10 +12,8 @@ from ansys.heart.custom_logging import logger
 
 from ansys.dyna.keywords import keywords
 
-# import custom keywords. Overwrites classes defined in "keywords"
-from ansys.heart.writer.custom_dynalib_keywords._custom_mat_077h import (
-    Mat077H as _custom_Mat077H,
-)
+# import custom keywords in separate namespace
+from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 
 
 class MaterialCap(keywords.MatNull):
@@ -31,7 +29,7 @@ class MaterialCap(keywords.MatNull):
         super().__init__(mid=mid, ro=1.04e-6)
 
 
-class MaterialAtrium(_custom_Mat077H):
+class MaterialAtrium(custom_keywords.Mat077H):
     """Material for the atrium
 
     Parameters

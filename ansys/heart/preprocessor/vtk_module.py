@@ -1306,15 +1306,26 @@ def get_edges_from_triangles(triangles: np.array) -> np.array:
     return edges
 
 
-def get_free_edges(triangles: np.array) -> np.array:
+def get_free_edges(triangles: np.array, return_free_triangles: bool = False) -> np.array:
     """Gets the boundary edges that are only referenced once"""
+
     edges = get_edges_from_triangles(triangles)
 
     edges_sort = np.sort(edges, axis=1)
 
     unique_edges, idx, counts = np.unique(edges_sort, axis=0, return_counts=True, return_index=True)
     free_edges = edges[idx, :][counts == 1, :]
-    return free_edges
+
+    if not return_free_triangles:
+        return free_edges
+
+    elif return_free_triangles:
+        # get free triangles
+        free_triangles = triangles[
+            np.argwhere(np.sum(np.isin(triangles, free_edges), axis=1) == 2).flatten(), :
+        ]
+
+        return free_edges, free_triangles
 
 
 """Identifies triangles connected to the boundary, and removes these from the triangle list"""

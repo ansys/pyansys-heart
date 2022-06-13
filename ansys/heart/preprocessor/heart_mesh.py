@@ -545,6 +545,34 @@ class HeartMesh:
 
         return
 
+    def _create_myocardium_element_sets(self):
+        """Creates myocardium element sets with all un-referenced elements"""
+        volume_dsa = dsa.WrapDataObject( self._vtk_volume )
+        tags = volume_dsa.CellData["tags"]
+
+        for cavity in self._cavities:
+            tag_cavity = cavity.vtk_ids[0]
+
+            element_ids_cavity = np.where( tags == tag_cavity )[0]
+
+            element_ids_used = np.empty(0, dtype=int)
+            used_set_ids = [0]
+            for element_set in cavity.element_sets:
+                element_ids_used = np.append( element_ids_used, element_set["set"] )
+                used_set_ids.append( element_set["id"] )
+            
+            # un-referenced element ids are the myocardium elements
+            element_ids_myocardium = element_ids_cavity[ 
+                np.where( np.isin( element_ids_cavity, element_ids_used, invert = True ) ) [0] ]
+            
+            cavity.element_sets.append(
+                {"name": "myocardium",
+                "set": element_ids_myocardium,
+                "id": np.max(used_set_ids) + 1 }
+            )            
+
+        return
+
     def _map_tags_to_remeshed_volume(
         self, source: vtk.vtkUnstructuredGrid, target: vtk.vtkUnstructuredGrid
     ):
@@ -862,14 +890,18 @@ class HeartMesh:
                         self._vtk_volume, endocardium_septum_vtk_extruded
                     )
 
-                    cavity.element_sets.append(
-                        {"name": "septum", "set": cell_ids_septum, "id": 1}
-                    )
+                    # define element set
+                    septum_element_set = {"name": "septum", "set": cell_ids_septum, "id": 1}
 
                     find = True
                     break
             if find:
                 break
+
+        # Append element set to left ventricle
+        for cavity in self._cavities:
+            if cavity.name == "Left ventricle":
+                cavity.element_sets.append( septum_element_set )
 
         return
 

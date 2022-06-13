@@ -149,6 +149,9 @@ class HeartModel:
         if self.info.model_type in ["BiVentricle", "FourChamber"]:
             self._mesh._extract_septum()
 
+        # create element sets for myocardium
+        self._mesh._create_myocardium_element_sets()
+
         return
 
 

@@ -7,6 +7,7 @@ import os
 import time
 import json
 from pathlib import Path
+from tqdm import tqdm # for progress bar
 
 from ansys.heart.preprocessor.heart_model import HeartModel
 from ansys.heart.preprocessor.heart_mesh import ClosingCap
@@ -870,8 +871,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             }
         )
         self.kw_database.pericardium.append( load_curve_kw )
-
-        from tqdm import tqdm
+        
         cnt = 0
         load_sgm_kws = []
         segment_ids = []

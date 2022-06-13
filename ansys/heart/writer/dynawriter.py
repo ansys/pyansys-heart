@@ -874,10 +874,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
         
         cnt = 0
         load_sgm_kws = []
-        segment_ids = []
+        segment_ids = []        
         logger.debug("Creating segment sets for epicardium b.c.:")
+
+        penalty_threshold = 0.01
         for isg, sgmt in enumerate( tqdm( epicardium_segment ) ):
-            if penalty[isg] > 0.01:
+            if penalty[isg] > penalty_threshold:
                 cnt += 1
 
                 # coord = self.volume_mesh["nodes"][sgmt]
@@ -906,18 +908,19 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
                 load_sgm_kws.append( load_sgm_kw )                
                                
-        self.kw_database.pericardium.extend(load_sgm_kws)                
+        self.kw_database.pericardium.extend(load_sgm_kws)   
+                     
         # create user loadset keyword
         # segment_ids = 1000 + np.arange(0, np.sum( penalty > 0.01 ), 1) 
         user_loadset_kw = custom_keywords.UserLoadingSet()
 
-        # NOTE: can assign single values to dataframe - will be assigned to all rows
+        # NOTE: can assign mixed scalar/array values to dataframe - scalars are assigned to each row
         user_loadset_kw.load_sets = pd.DataFrame(
             {
                 "sid" : segment_ids,
                 "ltype" : "PRESSS",
                 "lcid" : 2, 
-                "sf1" : penalty[ penalty > 0.01 ],
+                "sf1" : penalty[ penalty > penalty_threshold ],
                 "iduls" : 100
             }
         )

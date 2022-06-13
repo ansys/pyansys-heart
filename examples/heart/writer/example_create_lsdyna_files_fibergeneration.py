@@ -63,7 +63,7 @@ if __name__ == "__main__":
         "..",
         "workdir",
         "left_ventricle_model",
-        "lsdyna_files_fibergenration",
+        "lsdyna_files_fibergeneration",
     )
 
     # create_ls_dyna_files(path_model_info, export_path)
@@ -77,7 +77,7 @@ if __name__ == "__main__":
         "..",
         "workdir",
         "bi_ventricle_model",
-        "lsdyna_files_fibergenration",
+        "lsdyna_files_fibergeneration",
     )
 
     create_ls_dyna_files(path_model_info, export_path)
@@ -91,6 +91,6 @@ if __name__ == "__main__":
         "..",
         "workdir",
         "four_chamber_model",
-        "lsdyna_files_fibergenration",
+        "lsdyna_files_fibergeneration",
     )
     create_ls_dyna_files(path_model_info, export_path)

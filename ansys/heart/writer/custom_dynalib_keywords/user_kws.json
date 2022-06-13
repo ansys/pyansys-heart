@@ -68,5 +68,75 @@
         }
       ]
     }
-  ]
+  ],
+  "USER_LOADING" : [
+    {
+      "fields": [
+        {
+          "name": "PARM1",
+          "type": "real",
+          "default": null,
+          "position": 0,
+          "width": 10,
+          "help": "This is the Nth user input parameter"
+        },        
+        {
+            "name": "PARM2",
+            "type": "real",
+            "default": null,
+            "position": 10,
+            "width": 10,
+            "help": "This is the Nth user input parameter"
+        },
+        {
+            "name": "PARM3",
+            "type": "real",
+            "default": null,
+            "position": 20,
+            "width": 10,
+            "help": "This is the Nth user input parameter"
+        },
+        {
+            "name": "PARM4",
+            "type": "real",
+            "default": null,
+            "position": 30,
+            "width": 10,
+            "help": "This is the Nth user input parameter"
+        },
+        {
+            "name": "PARM5",
+            "type": "real",
+            "default": null,
+            "position": 40,
+            "width": 10,
+            "help": "This is the Nth user input parameter"
+        },
+        {
+            "name": "PARM6",
+            "type": "real",
+            "default": null,
+            "position": 50,
+            "width": 10,
+            "help": "This is the Nth user input parameter"
+        },
+        {
+            "name": "PARM7",
+            "type": "real",
+            "default": null,
+            "position": 60,
+            "width": 10,
+            "help": "This is the Nth user input parameter"
+        },
+        {
+            "name": "PARM8",
+            "type": "real",
+            "default": null,
+            "position": 70,
+            "width": 10,
+            "help": "This is the Nth user input parameter"
+        }                                
+      ]
+    }
+  ] 
 }

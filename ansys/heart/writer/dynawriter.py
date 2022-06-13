@@ -878,11 +878,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 #     yp=coord[0, 1],
                 #     zp=coord[0, 2],
                 # )
-                kw = custom_keywords.UserLoadingSet()
-                load_sgm_kw=create_segment_set_keyword(sgmt.reshape(1,-1)+1,segid=1000+cnt)  # todo: auto counter                
+
+                segment_id = 1000+cnt
+
+                load_sgm_kw=create_segment_set_keyword(
+                    segments = sgmt.reshape(1,-1)+1,
+                    segid = segment_id )  # todo: auto counter                
                 
                 user_loadset_kw = custom_keywords.UserLoadingSet(
-                    sid = 1000+cnt,
+                    sid = segment_id,
                     ltype = "PRESSS",
                     lcid = 2,
                     sf1 = penalty[isg],
@@ -890,7 +894,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 )
                 self.kw_database.pericardium.append(load_sgm_kw)
                 self.kw_database.pericardium.append(user_loadset_kw)
-        user_load_kw = "*USER_LOADING\n{0:f}".format(0.05)
+                
+        user_load_kw = custom_keywords.UserLoading(
+            param1 = 0.05
+        )
         self.kw_database.pericardium.append(user_load_kw)
 
     def _update_cap_elements_db(self):

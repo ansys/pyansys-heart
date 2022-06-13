@@ -425,7 +425,7 @@ def fast_element_writer(element_kw: Union[keywords.ElementSolidOrtho, keywords.E
 
     if element_kw.subkeyword == "SOLID":
         writer = "solid_writer"
-    elif element.kw.subkeyword == "SOLID_ORTHO":
+    elif element_kw.subkeyword == "SOLID_ORTHO":
         writer = "solid_ortho_writer"
 
 

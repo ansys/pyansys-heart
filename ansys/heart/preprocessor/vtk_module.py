@@ -176,8 +176,8 @@ def get_tetra_info_from_unstructgrid(vtk_grid: vtk.vtkUnstructuredGrid, get_all_
 def get_tri_info_from_polydata(vtk_polydata: vtk.vtkPolyData, get_all_data=True):
     """Gets connectivity, celldata and point data info from polydata object
 
-    Note
-    ------
+    Notes
+    -----
     Assumes triangular elements
     """
     # logger.debug("Extracting triangle cell and point data...")
@@ -535,8 +535,8 @@ def vtk_map_continuous_data(
     source : Union[vtk.PolyData, vtk.UnstructuredGrid]
         Target object onto which to interpolate data
 
-    Note
-    -------
+    Notes
+    -----
         Modifies the underlying data of the target vtk object and overwrites if
         a data field with the same name is already present
     """
@@ -752,8 +752,8 @@ def create_vtk_polydata_from_points(points: np.array) -> vtk.vtkPolyData:
     vtk.vtkPolyData
         vtkPolyData object
     
-    Note
-    ------
+    Notes
+    -----
     To visualize in ParaView render the points as Gaussian Points
     """
     if len(points.shape) < 2 or points.shape[1] != 3:
@@ -939,8 +939,8 @@ def vtk_unstructured_grid_to_numpy(vtk_object: vtk.vtkUnstructuredGrid):
     ValueError
         _description_
 
-    Note
-    ------
+    Notes
+    -----
     This is not supported yet
     """
 

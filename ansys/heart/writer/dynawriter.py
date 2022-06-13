@@ -1339,31 +1339,86 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         # segmentset endocardium > epicardium (right ventricle)
         # what to do for bi-ventricular case for apex > base.
 
-        if self.model.info.model_type not in ["LeftVentricle"]:
+        if self.model.info.model_type in ["LeftVentricle"]:
             logger.error( "Model type %s not yet supported " % self.model.info.model_type )
             # raise ValueError("Model type %s not supported" % self.model.info.model_type )
 
         elif self.model.info.model_type in ["BiVentricle", "FourChamber"]:
+            logger.error( "Model type %s not yet supported " % self.model.info.model_type )
 
+            # collect nodes for base (valve rings)
+            nodes_base = np.empty(0, dtype=int)
+            for cavity in self.model._mesh._cavities:                
+                for cap in cavity.closing_caps:
+                    nodes_base = np.append( nodes_base, cap.node_ids_cap_edge + 1 )
+
+                if cavity.name == "Left ventricle":
+                    node_apex = np.array( [cavity.apex_id["epicardium"] + 1 ] )
+
+
+
+            node_set_id_base = 200
+            node_set_id_apex = 201
+            # create node-sets for base and apex
+            node_set_base_kw = create_node_set_keyword(
+                node_ids = nodes_base,
+                node_set_id = node_set_id_base,
+                title = "base nodes"
+            )
+            node_set_apex_kw = create_node_set_keyword(
+                node_ids = node_apex,
+                node_set_id = node_set_id_apex,
+                title = "apex node"
+            )
+
+            self.kw_database.node_sets.extend (
+                [
+                    node_set_base_kw,
+                    node_set_apex_kw
+                ]
+            )
+            
+            # apex > base
             self.kw_database.create_fiber.append( 
                 custom_keywords.EmEpFiberinitial(
                     id = 1,
                     partid = 1, # set part id
-                    stype = 2,
-                    ssid1 = 1, 
-                    ssid2 = 2
+                    stype = 1,
+                    ssid1 = node_set_id_base, 
+                    ssid2 = node_set_id_apex
                 )
             )
 
 
-            part_list_kw = keywords.SetPartList(
+            # create set parts for lv and rv myocardium
+            myocardium_part_ids = []
+            septum_part_id = []
+            for cavity in self.model._mesh._cavities:
+                for element_set in cavity.element_sets:
+                    if element_set["name"] == "Left ventricle myocardium":
+                        myocardium_part_ids.append( element_set["id"] )
+
+                    if element_set["name"] == "Left ventricle septum":
+                        septum_part_id.append( element_set["id"] )
+                
+            part_list1_kw = keywords.SetPartList(
                 sid = 1,
             )
-            part_list_kw.parts._data = [1]
-            self.kw_database.create_fiber.append( 
-                part_list_kw
-                )
+            # NOTE: variable card not working here.
+            part_list1_kw.parts._data = myocardium_part_ids
 
+            part_list2_kw = keywords.SetPartList(
+                sid = 2,
+            )
+            part_list2_kw.parts._data = septum_part_id
+
+            self.kw_database.create_fiber.extend( 
+                [
+                    part_list1_kw,
+                    part_list2_kw
+                ]
+            )
+            
             # self.kw_database.create_fiber.append( 
             kw = custom_keywords.EmEpCreatefiberorientation(
                     partsid = 1,

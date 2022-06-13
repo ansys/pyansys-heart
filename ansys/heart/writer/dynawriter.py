@@ -40,45 +40,14 @@ from ansys.heart.writer.material_keywords import (
     active_curve,
 )
 
+from ansys.heart.writer.heart_decks import BaseDecks, MechanicsDecks, FiberGenerationDecks
+
 from vtk.numpy_interface import dataset_adapter as dsa  # noqa
 
 from ansys.dyna.keywords import keywords
-from ansys.dyna.keywords import Deck
 
-
-class BaseDecks:
-    """Class where each attribute corresponds to its respective deck. Used to the distinguish between each of the decks.
-    This base class defines some commonly used (empty) decks.
-    """
-
-    def __init__(self) -> None:
-        self.main = Deck()
-        self.parts = Deck()
-        self.nodes = Deck()
-        self.solid_elements = Deck()
-        self.material = Deck()
-        self.segment_sets = Deck()
-        self.node_sets = Deck()
-        self.boundary_conditions = Deck()        
-
-        return
-
-
-class MechanicsDecks(BaseDecks):
-    """This class inherits from the BaseDecks class and defines additional useful decks"""
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.cap_elements = Deck()
-        self.control_volume = Deck()
-        self.pericardium = Deck()
-
-
-class ElectrophysiologyDecks(BaseDecks):
-    """Adds decks specificly for Electrophysiology simulations"""
-
-    def __init__(self) -> None:
-        super().__init__()
+# import missing keywords
+from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 
 
 class BaseDynaWriter:
@@ -1272,6 +1241,352 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
                 # append to main.k
                 self.kw_database.main.append(load_segset_kw)
+
+
+class FiberGenerationDynaWriter(MechanicsDynaWriter):
+    def __init__(self, model: HeartModel) -> None:
+        super().__init__(model)
+
+        self.kw_database = FiberGenerationDecks()
+        """Collection of keywords relevant for fiber generation
+        """
+    
+    def update(self):
+        """Updates keyword database for Fiber generation: overwrites the inherited function"""
+
+        ## 
+        self._update_main_db()           # needs updating
+
+        self._update_node_db()           # can stay the same (could move to base class)
+        self._update_parts_db()          # can stay the same (could move to base class)        
+        self._update_solid_elements_db() # can stay the same (could move to base class)
+        self._update_material_db()
+
+        self._update_segmentsets_db()    # can stay the same 
+        self._update_nodesets_db()       # can stay the same         
+
+        # update ep settings
+        self._update_ep_settings()
+        self._update_create_fibers()
+
+        self._get_list_of_includes() 
+        self._add_includes()
+
+        return
+
+    def export(self, export_directory: str):
+        """Writes the model to files"""
+        tstart = time.time()
+        logger.debug("Writing all LS-DYNA .k files...")
+
+        if not export_directory:
+            export_directory = self.model.info.working_directory
+
+        # export .k files
+        self.export_databases(export_directory)
+
+        tend = time.time()
+        logger.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
+
+        return
+
+    def _update_parts_db(self):
+        """Creates database of PART keywords. Each myocardium defined as a
+        separate part
+        """
+
+        logger.debug("Updating part keywords...")
+        # add parts with a dataframe
+        part_ids = []
+        part_id = 1
+        for cavity in self.model._mesh._cavities:
+            for element_set in cavity.element_sets:
+                part_name = " ".join( [cavity.name, element_set["name"]] )
+                part = pd.DataFrame(
+                    {
+                        "heading": [ part_name ],
+                        "pid": [ part_id ],
+                        "secid": [1],
+                        "mid": [ part_id ],
+                    }
+                )
+                part_kw = keywords.Part()
+                part_kw.parts = part
+
+                self.kw_database.parts.append(part_kw)
+
+                # store part id for future use
+                element_set["id"] = part_id
+                part_ids.append( part_id )
+                part_id = part_id + 1
+
+        # set up section solid for cavity myocardium
+        section_kw = keywords.SectionSolid(secid=1, elform=13)
+
+        self.kw_database.parts.append(section_kw)
+
+        return
+
+    def _update_solid_elements_db(self):
+        """Creates Solid ortho elements for all cavities.
+        Each cavity contains one myocardium which consists corresponds
+        to one part.
+        """
+        logger.debug("Updating solid element keywords...")
+        # create elements for each separate cavity
+        solid_element_count = 0  # keeps track of number of solid elements already defined
+
+        for cavity in self.model._mesh._cavities:
+            logger.debug("Writing elements for myocardium" " attached to cavity: " + cavity.name)
+
+            # get list of elements to write to the database. Create new keyword
+            # for each part. Parts defined by element sets            
+            for element_set in cavity.element_sets:
+                tetra_idx = element_set["set"]                
+                part_id = element_set["id"]
+
+                tetra_to_write = self.volume_mesh["tetra"][tetra_idx, :] + 1
+                fiber = self.volume_mesh["cell_data"]["fiber"][tetra_idx]
+                sheet = self.volume_mesh["cell_data"]["sheet"][tetra_idx]
+
+                # normalize fiber and sheet directions:
+                norm = np.linalg.norm(fiber, axis=1)
+                fiber = fiber / norm[:, None]
+                norm = np.linalg.norm(sheet, axis=1)
+                sheet = sheet / norm[:, None]
+
+                num_elements = len( tetra_idx )
+                
+                element_ids = np.arange(1, num_elements+1, 1) + solid_element_count
+                part_ids = np.ones( num_elements, dtype=int ) * part_id
+                kw_elements = keywords.ElementSolid()
+                elements = pd.DataFrame(
+                    {
+                        "eid" : element_ids,
+                        "pid" : part_ids,
+                        "n1" : tetra_to_write[:,0],
+                        "n2" : tetra_to_write[:,1],
+                        "n3" : tetra_to_write[:,2],
+                        "n4" : tetra_to_write[:,3],
+                        "n5" : tetra_to_write[:,3],
+                        "n6" : tetra_to_write[:,3],
+                        "n7" : tetra_to_write[:,3],
+                        "n8" : tetra_to_write[:,3]
+                    }
+                )
+                kw_elements.elements = elements
+
+                self.kw_database.solid_elements.append(kw_elements)
+
+                solid_element_count = solid_element_count + num_elements
+
+        return
+
+    def _update_material_db(self):
+        """Adds simple linear elastic material for each defined part"""
+        for cavity in self.model._mesh._cavities:
+            for element_set in cavity.element_sets:
+                kw = keywords.MatElastic(
+                    mid = element_set["id"],
+                    ro = 1e-6,
+                    e = 1
+                )
+                self.kw_database.material.append ( kw )
+
+    def _update_ep_settings(self):
+        """Adds the settings for the electrophysiology solver
+        """
+
+        self.kw_database.ep_settings.append(
+            keywords.EmControl(
+            emsol = 11,
+            numls = 4, 
+            macrodt = 1,
+            dimtype = None,
+            nperio = None,
+            ncylbem = None )
+            )
+
+        # use defaults        
+        self.kw_database.ep_settings.append(
+            custom_keywords.EmControlEp()
+            )
+
+        # max iter should be int
+        self.kw_database.ep_settings.append(
+            keywords.EmSolverFem(reltol = 1e-6, maxite = int(1e4), precon = 2)
+        )
+
+        # NOTE: material id should be same as target myocardium
+        # create one material per cavity 
+        for cavity in self.model._mesh._cavities:
+            for element_set in cavity.element_sets:
+                em_mat_id = element_set["id"]
+                self.kw_database.ep_settings.extend( [
+                    custom_keywords.EmMat003(
+                        mid = em_mat_id,
+                        mtype = 2,
+                        sigma11 = 5.0e-4,
+                        sigma22 = 1.0e-4,
+                        sigma33 = 1.0e-4,
+                        beta = 0.14,
+                        cm = 0.01,
+                        aopt = 2.0,
+                        lambda_ = 0.5,
+                        a1 = 0,
+                        a2 = 0,
+                        a3 = 0,
+                        d1 = 0, 
+                        d2 = -1,
+                        d3 = 0
+                    ),
+                    custom_keywords.EmEpCellmodelTomek(
+                        mid = em_mat_id
+                    )
+                ] )
+
+        self.kw_database.ep_settings.append(
+            keywords.EmOutput(
+                mats = 1,
+                matf = 1, 
+                sols = 1,
+                solf = 1
+            )
+        )
+
+        return
+
+    def _update_create_fibers(self):
+        """Updates the keywords for fiber generation"""
+
+        # collect relevant segment sets
+        # apex > base :
+        # nodeset: apex, nodeset base (rings)
+        # segmentset endocardium > epicardium (left ventricle)
+        # segmentset endocardium > epicardium (right ventricle)
+        # what to do for bi-ventricular case for apex > base.
+
+        if self.model.info.model_type in ["LeftVentricle"]:
+            logger.error( "Model type %s not yet supported " % self.model.info.model_type )
+            # raise ValueError("Model type %s not supported" % self.model.info.model_type )
+
+        elif self.model.info.model_type in ["BiVentricle", "FourChamber"]:
+            logger.error( "Model type %s not yet supported " % self.model.info.model_type )
+
+            # collect nodes for base (valve rings)
+            nodes_base = np.empty(0, dtype=int)
+            for cavity in self.model._mesh._cavities:                
+                for cap in cavity.closing_caps:
+                    nodes_base = np.append( nodes_base, cap.node_ids_cap_edge + 1 )
+
+                if cavity.name == "Left ventricle":
+                    node_apex = np.array( [cavity.apex_id["epicardium"] + 1 ] )
+
+
+
+            node_set_id_base = 200
+            node_set_id_apex = 201
+            # create node-sets for base and apex
+            node_set_base_kw = create_node_set_keyword(
+                node_ids = nodes_base,
+                node_set_id = node_set_id_base,
+                title = "base nodes"
+            )
+            node_set_apex_kw = create_node_set_keyword(
+                node_ids = node_apex,
+                node_set_id = node_set_id_apex,
+                title = "apex node"
+            )
+
+            self.kw_database.node_sets.extend (
+                [
+                    node_set_base_kw,
+                    node_set_apex_kw
+                ]
+            )
+            
+            # apex > base
+            self.kw_database.create_fiber.append( 
+                custom_keywords.EmEpFiberinitial(
+                    id = 1,
+                    partid = 1, # set part id
+                    stype = 1,
+                    ssid1 = node_set_id_base, 
+                    ssid2 = node_set_id_apex
+                )
+            )
+
+
+            # create set parts for lv and rv myocardium
+            myocardium_part_ids = []
+            septum_part_id = []
+            for cavity in self.model._mesh._cavities:
+                for element_set in cavity.element_sets:
+                    if element_set["name"] == "Left ventricle myocardium":
+                        myocardium_part_ids.append( element_set["id"] )
+
+                    if element_set["name"] == "Left ventricle septum":
+                        septum_part_id.append( element_set["id"] )
+                
+            part_list1_kw = keywords.SetPartList(
+                sid = 1,
+            )
+            # NOTE: variable card not working here.
+            part_list1_kw.parts._data = myocardium_part_ids
+
+            part_list2_kw = keywords.SetPartList(
+                sid = 2,
+            )
+            part_list2_kw.parts._data = septum_part_id
+
+            self.kw_database.create_fiber.extend( 
+                [
+                    part_list1_kw,
+                    part_list2_kw
+                ]
+            )
+            
+            # self.kw_database.create_fiber.append( 
+            kw = custom_keywords.EmEpCreatefiberorientation(
+                    partsid = 1,
+                    solvid1 = 1,
+                    solvid2 = 2,
+                    alpha = -101,
+                    beta = -102,         
+                    wfile = 1,
+                    prerun = 0       
+                )
+            
+            # define functions: 
+            from ansys.heart.writer.define_function_strings import function1, function2, function3
+            self.kw_database.create_fiber.append( 
+                keywords.DefineFunction(
+                fid = 101,
+                function = function1
+                )
+                )
+            self.kw_database.create_fiber.append( 
+                keywords.DefineFunction(
+                fid = 102,
+                function = function2
+                )
+                )
+            self.kw_database.create_fiber.append( 
+                keywords.DefineFunction(
+                fid = 103,
+                function = function3
+                )
+                )            
+        
+        
+
+        return
+
+
+
+    def _update_main_db(self):
+        
+        return
 
 
 if __name__ == "__main__":

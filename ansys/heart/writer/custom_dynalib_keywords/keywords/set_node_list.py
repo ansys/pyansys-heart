@@ -4,7 +4,7 @@ from ansys.dyna.keywords.lib.duplicate_card import DuplicateCard
 from ansys.dyna.keywords.lib.option import Options, Option
 from ansys.dyna.keywords.lib.keyword_base import KeywordBase
 
-class SetNodeList_custom(KeywordBase):
+class SetNodeList(KeywordBase):
     """DYNA SET_NODE_LIST keyword"""
 
     keyword = "SET"

@@ -1133,11 +1133,10 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         self._update_node_db()           # can stay the same (could move to base class)
         self._update_parts_db()          # can stay the same (could move to base class)        
         self._update_solid_elements_db() # can stay the same (could move to base class)
-
+        self._update_material_db()
 
         self._update_segmentsets_db()    # can stay the same 
-        self._update_nodesets_db()       # can stay the same 
-        self._update_material_db(add_active=False) # can stay the same 
+        self._update_nodesets_db()       # can stay the same         
 
         # update ep settings
         self._update_ep_settings()
@@ -1256,6 +1255,17 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
         return
 
+    def _update_material_db(self):
+        """Adds simple linear elastic material for each defined part"""
+        for cavity in self.model._mesh._cavities:
+            for element_set in cavity.element_sets:
+                kw = keywords.MatElastic(
+                    mid = element_set["id"],
+                    ro = 1e-6,
+                    e = 1
+                )
+                self.kw_database.material.append ( kw )
+
     def _update_ep_settings(self):
         """Adds the settings for the electrophysiology solver
         """
@@ -1283,28 +1293,30 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         # NOTE: material id should be same as target myocardium
         # create one material per cavity 
         for cavity in self.model._mesh._cavities:
-            self.kw_database.ep_settings.extend( [
-                custom_keywords.EmMat003(
-                    mid = cavity.id,
-                    mtype = 2,
-                    sigma11 = 5.0e-4,
-                    sigma22 = 1.0e-4,
-                    sigma33 = 1.0e-4,
-                    beta = 0.14,
-                    cm = 0.01,
-                    aopt = 2.0,
-                    lambda_ = 0.5,
-                    a1 = 0,
-                    a2 = 0,
-                    a3 = 0,
-                    d1 = 0, 
-                    d2 = -1,
-                    d3 = 0
-                ),
-                custom_keywords.EmEpCellmodelTomek(
-                    mid = cavity.id
-                )
-            ] )
+            for element_set in cavity.element_sets:
+                em_mat_id = element_set["id"]
+                self.kw_database.ep_settings.extend( [
+                    custom_keywords.EmMat003(
+                        mid = em_mat_id,
+                        mtype = 2,
+                        sigma11 = 5.0e-4,
+                        sigma22 = 1.0e-4,
+                        sigma33 = 1.0e-4,
+                        beta = 0.14,
+                        cm = 0.01,
+                        aopt = 2.0,
+                        lambda_ = 0.5,
+                        a1 = 0,
+                        a2 = 0,
+                        a3 = 0,
+                        d1 = 0, 
+                        d2 = -1,
+                        d3 = 0
+                    ),
+                    custom_keywords.EmEpCellmodelTomek(
+                        mid = em_mat_id
+                    )
+                ] )
 
         self.kw_database.ep_settings.append(
             keywords.EmOutput(
@@ -1327,60 +1339,62 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         # segmentset endocardium > epicardium (right ventricle)
         # what to do for bi-ventricular case for apex > base.
 
-        if self.model.info.model_type not in ["BiVentricle", "FourChamber"]:
+        if self.model.info.model_type not in ["LeftVentricle"]:
             logger.error( "Model type %s not yet supported " % self.model.info.model_type )
             # raise ValueError("Model type %s not supported" % self.model.info.model_type )
 
-        self.kw_database.create_fiber.append( 
-            custom_keywords.EmEpFiberinitial(
-                id = 1,
-                partid = 1, # set part id
-                stype = 2,
-                ssid1 = 1, 
-                ssid2 = 2
+        elif self.model.info.model_type in ["BiVentricle", "FourChamber"]:
+
+            self.kw_database.create_fiber.append( 
+                custom_keywords.EmEpFiberinitial(
+                    id = 1,
+                    partid = 1, # set part id
+                    stype = 2,
+                    ssid1 = 1, 
+                    ssid2 = 2
+                )
             )
-        )
 
 
-        part_list_kw = keywords.SetPartList(
-            sid = 1,
-        )
-        part_list_kw.parts._data = [1]
-        self.kw_database.create_fiber.append( 
-            part_list_kw
+            part_list_kw = keywords.SetPartList(
+                sid = 1,
             )
+            part_list_kw.parts._data = [1]
+            self.kw_database.create_fiber.append( 
+                part_list_kw
+                )
 
-        # self.kw_database.create_fiber.append( 
-        kw = custom_keywords.EmEpCreatefiberorientation(
-                partsid = 1,
-                solvid1 = 1,
-                solvid2 = 2,
-                alpha = -101,
-                beta = -102,         
-                wfile = 1,
-                prerun = 0       
-            )
-        
-        # define functions: 
-        from ansys.heart.writer.define_function_strings import function1, function2, function3
-        self.kw_database.create_fiber.append( 
-            keywords.DefineFunction(
-            fid = 101,
-            function = function1
-            )
-            )
-        self.kw_database.create_fiber.append( 
-            keywords.DefineFunction(
-            fid = 102,
-            function = function2
-            )
-            )
-        self.kw_database.create_fiber.append( 
-            keywords.DefineFunction(
-            fid = 103,
-            function = function3
-            )
-            )            
+            # self.kw_database.create_fiber.append( 
+            kw = custom_keywords.EmEpCreatefiberorientation(
+                    partsid = 1,
+                    solvid1 = 1,
+                    solvid2 = 2,
+                    alpha = -101,
+                    beta = -102,         
+                    wfile = 1,
+                    prerun = 0       
+                )
+            
+            # define functions: 
+            from ansys.heart.writer.define_function_strings import function1, function2, function3
+            self.kw_database.create_fiber.append( 
+                keywords.DefineFunction(
+                fid = 101,
+                function = function1
+                )
+                )
+            self.kw_database.create_fiber.append( 
+                keywords.DefineFunction(
+                fid = 102,
+                function = function2
+                )
+                )
+            self.kw_database.create_fiber.append( 
+                keywords.DefineFunction(
+                fid = 103,
+                function = function3
+                )
+                )            
         
         
 

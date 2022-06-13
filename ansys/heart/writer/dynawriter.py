@@ -857,8 +857,26 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # exit()
         # # end debug code
 
+        # create load curve to control when pericardium is active
+        load_curve_kw = keywords.DefineCurve(
+            lcid = 2            
+        )
+        load_curve_kw.options["TITLE"].active = True
+        load_curve_kw.title = "pericardium activation curve"
+        load_curve_kw.curves = pd.DataFrame(
+            {
+                "a1" : np.array( [0, 1] ),
+                "o1" : np.array( [0, 1] )
+            }
+        )
+        self.kw_database.pericardium.append( load_curve_kw )
+
+        from tqdm import tqdm
         cnt = 0
-        for isg, sgmt in enumerate(epicardium_segment):
+        load_sgm_kws = []
+        segment_ids = []
+        logger.debug("Creating segment sets for epicardium b.c.:")
+        for isg, sgmt in enumerate( tqdm( epicardium_segment ) ):
             if penalty[isg] > 0.01:
                 cnt += 1
 
@@ -880,40 +898,43 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 # )
 
                 segment_id = 1000+cnt
+                segment_ids.append(segment_id)
 
                 load_sgm_kw=create_segment_set_keyword(
                     segments = sgmt.reshape(1,-1)+1,
-                    segid = segment_id )  # todo: auto counter                
-                
-                user_loadset_kw = custom_keywords.UserLoadingSet(
-                    sid = segment_id,
-                    ltype = "PRESSS",
-                    lcid = 2,
-                    sf1 = penalty[isg],
-                    iduls = 100
-                )
-                self.kw_database.pericardium.append(load_sgm_kw)
-                self.kw_database.pericardium.append(user_loadset_kw)
+                    segid = segment_id )  # todo: auto counter
 
+                load_sgm_kws.append( load_sgm_kw )                
+                               
+        self.kw_database.pericardium.extend(load_sgm_kws)                
+        # create user loadset keyword
+        # segment_ids = 1000 + np.arange(0, np.sum( penalty > 0.01 ), 1) 
+        user_loadset_kw = custom_keywords.UserLoadingSet()
+
+        # NOTE: can assign single values to dataframe - will be assigned to all rows
+        user_loadset_kw.load_sets = pd.DataFrame(
+            {
+                "sid" : segment_ids,
+                "ltype" : "PRESSS",
+                "lcid" : 2, 
+                "sf1" : penalty[ penalty > 0.01 ],
+                "iduls" : 100
+            }
+        )
         user_load_kw = custom_keywords.UserLoading(
             param1 = 0.05
         )
 
-        # create load curve to control when pericardium is active
-        load_curve_kw = keywords.DefineCurve(
-            lcid = 2            
-        )
-        load_curve_kw.options["TITLE"].active = True
-        load_curve_kw.title = "pericardium activation curve"
-        load_curve_kw.curves = pd.DataFrame(
-            {
-                "a1" : np.array( [0, 1] ),
-                "o1" : np.array( [0, 1] )
-            }
+        # add to pericardium deck
+        self.kw_database.pericardium.extend(
+            [
+                user_loadset_kw,
+                user_load_kw
+            ]
         )
 
-        self.kw_database.pericardium.append(user_load_kw)
-
+        return
+        
     def _update_cap_elements_db(self):
         """Updates the database of shell elements. Loops over all
         the defined caps/valves

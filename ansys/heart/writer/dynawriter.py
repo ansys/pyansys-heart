@@ -878,9 +878,16 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 #     yp=coord[0, 1],
                 #     zp=coord[0, 2],
                 # )
-                load_sgm_kw=create_segment_set_keyword(sgmt.reshape(1,-1)+1,segid=1000+cnt)  # todo: auto counter
-                # todo: use dynalib
-                user_loadset_kw = "*USER_LOADING_SET\n{0:d},PRESSS,2,,{1:f},,,100".format(1000+cnt,penalty[isg])
+                kw = custom_keywords.UserLoadingSet()
+                load_sgm_kw=create_segment_set_keyword(sgmt.reshape(1,-1)+1,segid=1000+cnt)  # todo: auto counter                
+                
+                user_loadset_kw = custom_keywords.UserLoadingSet(
+                    sid = 1000+cnt,
+                    ltype = "PRESSS",
+                    lcid = 2,
+                    sf1 = penalty[isg],
+                    iduls = 100
+                )
                 self.kw_database.pericardium.append(load_sgm_kw)
                 self.kw_database.pericardium.append(user_loadset_kw)
         user_load_kw = "*USER_LOADING\n{0:f}".format(0.05)

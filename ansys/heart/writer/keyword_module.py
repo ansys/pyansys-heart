@@ -416,51 +416,89 @@ def get_list_of_used_ids(keyword_db: Deck, keyword_str: str) -> np.array:
     return ids
 
 
-def fast_element_writer(element_kw: keywords.ElementSolidOrtho, filename: str):
+def fast_element_writer(element_kw: Union[keywords.ElementSolidOrtho, keywords.ElementSolid], filename: str):
     """Fast implementation of the element writer. Use this as an alternative to
     the dynalib writer
     """
+
+    # TODO: generalize this writer
+
+    if element_kw.subkeyword == "SOLID":
+        writer = "solid_writer"
+    elif element.kw.subkeyword == "SOLID_ORTHO":
+        writer = "solid_ortho_writer"
+
+
     elements = element_kw.elements.to_numpy()
     headers = list(element_kw.elements.columns)
 
-    # create list of formatted strings
-    list_formatted_strings = []
-    line_format = (
-        "{:8d}" * 2  # element ID and part ID
-        + "\n"
-        + "{:8d}" * 8  # node IDs
-        + "\n"
-        + "{:16e}" * 3  # fiber vector
-        + "\n"
-        + "{:16e}" * 3  # sheet vector
-        + "\n"
-    )
-    for element in elements:
-        line_format_str = line_format.format(
-            element[0],
-            element[1],
-            element[2],
-            element[3],
-            element[4],
-            element[5],
-            element[6],
-            element[7],
-            element[8],
-            element[9],
-            element[10],
-            element[11],
-            element[12],
-            element[13],
-            element[14],
-            element[15],
+    if writer == "solid_ortho_writer":
+        # create list of formatted strings
+        list_formatted_strings = []
+        line_format = (
+            "{:8d}" * 2  # element ID and part ID
+            + "\n"
+            + "{:8d}" * 8  # node IDs
+            + "\n"
+            + "{:16e}" * 3  # fiber vector
+            + "\n"
+            + "{:16e}" * 3  # sheet vector
+            + "\n"
         )
-        list_formatted_strings.append(line_format_str)
+        for element in elements:
+            line_format_str = line_format.format(
+                element[0],
+                element[1],
+                element[2],
+                element[3],
+                element[4],
+                element[5],
+                element[6],
+                element[7],
+                element[8],
+                element[9],
+                element[10],
+                element[11],
+                element[12],
+                element[13],
+                element[14],
+                element[15],
+            )
+            list_formatted_strings.append(line_format_str)
 
-    fid = open(filename, "a")
-    fid.write("*ELEMENT_SOLID_ORTHO\n")
-    for line in list_formatted_strings:
-        fid.write(line)
-    fid.close()
+        fid = open(filename, "a")
+        fid.write("*ELEMENT_SOLID_ORTHO\n")
+        for line in list_formatted_strings:
+            fid.write(line)
+        fid.close()
+    
+    elif writer == "solid_writer":
+        list_formatted_strings = []
+        line_format = (
+            "{:8d}" * 2  # element ID and part ID
+            + "\n"
+            + "{:8d}" * 8  # node IDs
+            + "\n"
+        )
+        for element in elements:
+            line_format_str = line_format.format(
+                element[0],
+                element[1],
+                element[2],
+                element[3],
+                element[4],
+                element[5],
+                element[6],
+                element[7],
+                element[8],                
+                element[9],                
+            )
+            list_formatted_strings.append(line_format_str)
+        fid = open(filename, "a")
+        fid.write("*ELEMENT_SOLID\n")
+        for line in list_formatted_strings:
+            fid.write(line)
+        fid.close()
 
     return
 

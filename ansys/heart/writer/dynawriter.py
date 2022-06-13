@@ -271,7 +271,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     "heading": [cavity.name],
                     "pid": [cavity.id],
                     "secid": [1],
-                    "mid": [1],
+                    "mid": [cavity.id],
                 }
             )
             part_kw = keywords.Part()
@@ -1131,12 +1131,9 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         self._update_main_db()           # needs updating
 
         self._update_node_db()           # can stay the same (could move to base class)
+        self._update_parts_db()          # can stay the same (could move to base class)        
         self._update_solid_elements_db() # can stay the same (could move to base class)
-        self._update_parts_db()          # can stay the same (could move to base class)
 
-        # only add septum if bi-ventricle or four chamber model is used
-        if self.model.info.model_type in ["BiVentricle", "FourChamber"]:
-            self._add_septum_to_parts_db()
 
         self._update_segmentsets_db()    # can stay the same 
         self._update_nodesets_db()       # can stay the same 
@@ -1169,23 +1166,33 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
     def _update_parts_db(self):
         """Creates database of PART keywords. Each myocardium defined as a
-        separate part. Septum also defined as separate part.
+        separate part
         """
+
         logger.debug("Updating part keywords...")
         # add parts with a dataframe
+        part_ids = []
+        part_id = 1
         for cavity in self.model._mesh._cavities:
-            part = pd.DataFrame(
-                {
-                    "heading": [cavity.name],
-                    "pid": [cavity.id],
-                    "secid": [1],
-                    "mid": [1],
-                }
-            )
-            part_kw = keywords.Part()
-            part_kw.parts = part
+            for element_set in cavity.element_sets:
+                part_name = " ".join( [cavity.name, element_set["name"]] )
+                part = pd.DataFrame(
+                    {
+                        "heading": [ part_name ],
+                        "pid": [ part_id ],
+                        "secid": [1],
+                        "mid": [ part_id ],
+                    }
+                )
+                part_kw = keywords.Part()
+                part_kw.parts = part
 
-            self.kw_database.parts.append(part_kw)
+                self.kw_database.parts.append(part_kw)
+
+                # store part id for future use
+                element_set["id"] = part_id
+                part_ids.append( part_id )
+                part_id = part_id + 1
 
         # set up section solid for cavity myocardium
         section_kw = keywords.SectionSolid(secid=1, elform=13)
@@ -1193,49 +1200,59 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         self.kw_database.parts.append(section_kw)
 
         return
-        
 
-        return
+    def _update_solid_elements_db(self):
+        """Creates Solid ortho elements for all cavities.
+        Each cavity contains one myocardium which consists corresponds
+        to one part.
+        """
+        logger.debug("Updating solid element keywords...")
+        # create elements for each separate cavity
+        solid_element_count = 0  # keeps track of number of solid elements already defined
 
-
-    def _add_septum_to_parts_db(self):
-        """Adds the septum as a seperate part"""
-
-        found = False
         for cavity in self.model._mesh._cavities:
+            logger.debug("Writing elements for myocardium" " attached to cavity: " + cavity.name)
+
+            # get list of elements to write to the database. Create new keyword
+            # for each part. Parts defined by element sets            
             for element_set in cavity.element_sets:
-                if "septum" in element_set["name"]:
-                    septum_ids = element_set["set"]
-                    found = True
-                    break
-            if found:
-                break
-        
-        # only Bi-Ventricle and FourChamber models have septum defined
-        if not found:
-            raise ValueError( "Septum not found for: %s" % self.model.info.model_type )            
+                tetra_idx = element_set["set"]                
+                part_id = element_set["id"]
 
-        # add new part id for septum
-        used_part_ids = get_list_of_used_ids( self.kw_database.parts, "PART" )
+                tetra_to_write = self.volume_mesh["tetra"][tetra_idx, :] + 1
+                fiber = self.volume_mesh["cell_data"]["fiber"][tetra_idx]
+                sheet = self.volume_mesh["cell_data"]["sheet"][tetra_idx]
 
-        part_id = np.max(used_part_ids) + 1
+                # normalize fiber and sheet directions:
+                norm = np.linalg.norm(fiber, axis=1)
+                fiber = fiber / norm[:, None]
+                norm = np.linalg.norm(sheet, axis=1)
+                sheet = sheet / norm[:, None]
 
-        # use material and section id of first part
-        mid_part1 = self.kw_database.parts.keywords[0].parts["mid"].to_numpy()[0]
-        secid_part1 = self.kw_database.parts.keywords[0].parts["secid"].to_numpy()[0]
+                num_elements = len( tetra_idx )
+                
+                element_ids = np.arange(1, num_elements+1, 1) + solid_element_count
+                part_ids = np.ones( num_elements, dtype=int ) * part_id
+                kw_elements = keywords.ElementSolid()
+                elements = pd.DataFrame(
+                    {
+                        "eid" : element_ids,
+                        "pid" : part_ids,
+                        "n1" : tetra_to_write[:,0],
+                        "n2" : tetra_to_write[:,1],
+                        "n3" : tetra_to_write[:,2],
+                        "n4" : tetra_to_write[:,3],
+                        "n5" : tetra_to_write[:,3],
+                        "n6" : tetra_to_write[:,3],
+                        "n7" : tetra_to_write[:,3],
+                        "n8" : tetra_to_write[:,3]
+                    }
+                )
+                kw_elements.elements = elements
 
-        part_kw = keywords.Part()
-        part_info = pd.DataFrame(
-            {
-                "heading": ["Septum"],
-                "pid": [part_id],
-                "secid": [secid_part1],
-                "mid": [mid_part1],
-            }
-        )
-        part_kw.parts = part_info
-        
-        self.kw_database.parts.append( part_kw )
+                self.kw_database.solid_elements.append(kw_elements)
+
+                solid_element_count = solid_element_count + num_elements
 
         return
 
@@ -1311,8 +1328,8 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         # what to do for bi-ventricular case for apex > base.
 
         if self.model.info.model_type not in ["BiVentricle", "FourChamber"]:
-            logger.error( "Model type not yet supported " % self.model.info.model_type )
-            raise ValueError("Model type %s not supported" % self.model.info.model_type )
+            logger.error( "Model type %s not yet supported " % self.model.info.model_type )
+            # raise ValueError("Model type %s not supported" % self.model.info.model_type )
 
         self.kw_database.create_fiber.append( 
             custom_keywords.EmEpFiberinitial(

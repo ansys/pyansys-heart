@@ -1,5 +1,6 @@
 """Sphinx documentation configuration file."""
 from datetime import datetime
+import pathlib as Path
 
 # add sys path for sphinx to find the packages/modules
 # NOTE: could be replaced?
@@ -8,6 +9,9 @@ import sys
 abspath = os.path.dirname( os.path.abspath(__file__) )
 base_path = os.path.abspath( os.path.join(abspath, "..", "..") )
 sys.path.insert(0, base_path )
+
+# dynalib_path = r"D:\development\dynalib\dynalib"
+# sys.path.insert(0, dynalib_path)
 
 
 from ansys.heart._version import __version__
@@ -57,6 +61,7 @@ intersphinx_mapping = {
 }
 
 # numpydoc configuration
+# numpydoc_show_inherited_class_members = True
 numpydoc_show_class_members = False
 numpydoc_xref_param_type = True
 

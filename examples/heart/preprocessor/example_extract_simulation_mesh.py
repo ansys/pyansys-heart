@@ -7,6 +7,7 @@ left-ventricle mesh, bi-ventricle mesh and four-chamber mesh
 import os
 from pathlib import Path
 import shutil
+import json
 
 from ansys.heart.preprocessor.heart_model import HeartModel
 from ansys.heart.preprocessor.model_information import ModelInformation
@@ -44,6 +45,8 @@ def extract_leftventricle_mesh():
     left_ventricle_model = HeartModel(lv_ventricle_info)
     left_ventricle_model.extract_simulation_mesh()
 
+    left_ventricle_model.get_model_characteristics()
+
     left_ventricle_model.dump_model(
         model_info_path, clean_working_directory=REMOVE_INTERMEDIATE_FILES
     )  # Toggle clean to keep/remove all intermediate files )
@@ -66,6 +69,7 @@ def extract_biventricle_mesh():
 
     biventricle_model = HeartModel(bi_ventricle_info)
     biventricle_model.extract_simulation_mesh()
+    biventricle_model.get_model_characteristics()
 
     biventricle_model.dump_model(
         model_info_path, clean_working_directory=REMOVE_INTERMEDIATE_FILES
@@ -89,6 +93,7 @@ def extract_fourchamber_mesh():
 
     four_chamber_model = HeartModel(fourchamber_info)
     four_chamber_model.extract_simulation_mesh()
+    four_chamber_model.get_model_characteristics()
 
     four_chamber_model.dump_model(
         model_info_path, clean_working_directory=REMOVE_INTERMEDIATE_FILES

@@ -1,4 +1,34 @@
-{
+{  
+  "EM_CONTROL_EP": [
+    {
+      "fields": [
+        {
+          "name": "solveType",
+          "type": "integer",
+          "default": null,
+          "position": 0,
+          "width": 10,
+          "help": "Part set on which the system is solved"
+        },
+        {
+          "name": "numSplitI",
+          "type": "integer",
+          "default": null,
+          "position": 10,
+          "width": 10,
+          "help": "ID of the Laplace system that is solved in the transmural direction"
+        },
+        {
+          "name": "actuSigma",
+          "type": "integer",
+          "default": null,
+          "position": 20,
+          "width": 10,
+          "help": "ID of the Laplace system that is solved in the apicobasal direction"
+        }        
+      ]
+    }
+  ],
   "EM_EP_CREATEFIBERORIENTATION": [
     {
       "fields": [

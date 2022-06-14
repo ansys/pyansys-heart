@@ -860,7 +860,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # create load curve to control when pericardium is active
         load_curve_kw = keywords.DefineCurve(
-            lcid = 2            
+            lcid = 3            
         )
         load_curve_kw.options["TITLE"].active = True
         load_curve_kw.title = "pericardium activation curve"
@@ -878,7 +878,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         logger.debug("Creating segment sets for epicardium b.c.:")
 
         penalty_threshold = 0.01
-        for isg, sgmt in enumerate( tqdm( epicardium_segment ) ):
+        for isg, sgmt in enumerate( tqdm( epicardium_segment, ascii=True ) ):
             if penalty[isg] > penalty_threshold:
                 cnt += 1
 
@@ -919,13 +919,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
             {
                 "sid" : segment_ids,
                 "ltype" : "PRESSS",
-                "lcid" : 2, 
+                "lcid" : 3, 
                 "sf1" : penalty[ penalty > penalty_threshold ],
                 "iduls" : 100
             }
         )
         user_load_kw = custom_keywords.UserLoading(
-            param1 = 0.05
+            parm1 = 0.05
         )
 
         # add to pericardium deck

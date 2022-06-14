@@ -225,23 +225,21 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # for boundary conditions
         self._update_boundary_conditions_db()
+        self._add_pericardium_bc_usr()
 
         # for control volume
         self._update_cap_elements_db()
         self._update_controlvolume_db()
         self._update_system_model()
 
-        self._get_list_of_includes()
-        self._add_includes()
-
-        #
         # Approximate end-diastolic pressures
         pressure_lv = 2  # kPa
         pressure_rv = 0.5333  # kPa
 
         self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
-        self._add_pericardium_bc_usr()
+        self._get_list_of_includes()
+        self._add_includes()
         return
 
     def export(self, export_directory: str):

@@ -3,9 +3,9 @@ import os
 import vtk
 import numpy as np
 
-from .conftest import ROOT_FOLDER
-from .conftest import get_assets_folder, get_workdir
-from ansys.heart.preprocessor.vtk_module import vtk_read_mesh_file, write_vtkdata_to_vtkfile, compute_volume_stl, vtk_surface_to_stl
+from conftest import ROOT_FOLDER
+from conftest import get_assets_folder, get_workdir
+from ansys.heart.preprocessor.vtk_module import compute_volume_stl, vtk_surface_to_stl
 
 def test_compute_volume():    
     """Tests compute volume function from stl. Use unit-sphere as reference"""

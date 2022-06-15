@@ -67,7 +67,9 @@ def extract_biventricle_mesh():
         working_directory=work_dir,
     )
 
+    bi_ventricle_info.mesh_size = 2.0
     biventricle_model = HeartModel(bi_ventricle_info)
+    
     biventricle_model.extract_simulation_mesh()
     biventricle_model.get_model_characteristics()
 
@@ -90,6 +92,7 @@ def extract_fourchamber_mesh():
         path_original_mesh=CASE_PATH,
         working_directory=work_dir,
     )
+    fourchamber_info.mesh_size = 2.0
 
     four_chamber_model = HeartModel(fourchamber_info)
     four_chamber_model.extract_simulation_mesh()
@@ -133,4 +136,4 @@ if __name__ == "__main__":
 
     logger.info("***************************")
     logger.info("** DONE **")
-    #
+    

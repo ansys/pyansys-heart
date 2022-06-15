@@ -1,28 +1,20 @@
 import pytest
 import os
-import json
 import numpy as np
-import copy
-import pickle
+import shutil
 
-from ansys.heart.preprocessor.model_information import ModelInformation
-from ansys.heart.preprocessor.heart_model import HeartModel
 from ansys.heart.preprocessor.vtk_module import (
     read_vtk_polydata_file,
     read_vtk_unstructuredgrid_file,
 )
 from ansys.heart.preprocessor.vtk_module import (
-    get_tetra_info_from_unstructgrid,
-    get_tri_info_from_polydata,
+    get_tetra_info_from_unstructgrid 
 )
 from vtk.numpy_interface import dataset_adapter as dsa
 
 from conftest import (
     get_assets_folder,
     get_workdir,
-    clean_directory,
-    create_directory,
-    remove_keys_from_dict,
     read_file,
 )
 
@@ -34,7 +26,9 @@ def extraction_four_chamber():
     global output_dir
     output_dir = workflow_extract_mesh("FourChamber", get_workdir())
 
-    return
+    yield 
+    # cleanup
+    shutil.rmtree(output_dir)
 
 
 # STL Consistency

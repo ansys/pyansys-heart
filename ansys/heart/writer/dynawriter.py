@@ -1,11 +1,13 @@
 """Contains class for writing dyna keywords based on the HeartModel
 """
+from multiprocessing.sharedctypes import Value
 import numpy as np
 import pandas as pd
 import os
 import time
 import json
 from pathlib import Path
+from tqdm import tqdm # for progress bar
 
 from ansys.heart.preprocessor.heart_model import HeartModel
 from ansys.heart.preprocessor.heart_mesh import ClosingCap
@@ -19,6 +21,7 @@ from ansys.heart.preprocessor.vtk_module import (
 
 from ansys.heart.writer.keyword_module import (
     add_nodes_to_kw,
+    create_discrete_elements_kw,
     create_element_solid_ortho_keyword,
     create_element_shell_keyword,
     create_segment_set_keyword,
@@ -38,45 +41,14 @@ from ansys.heart.writer.material_keywords import (
     active_curve,
 )
 
+from ansys.heart.writer.heart_decks import BaseDecks, MechanicsDecks, FiberGenerationDecks
+
 from vtk.numpy_interface import dataset_adapter as dsa  # noqa
 
 from ansys.dyna.keywords import keywords
-from ansys.dyna.keywords import Deck
 
-
-class BaseDecks:
-    """Class where each attribute corresponds to its respective deck. Used to the distinguish between each of the decks.
-    This base class defines some commonly used (empty) decks.
-    """
-
-    def __init__(self) -> None:
-        self.main = Deck()
-        self.parts = Deck()
-        self.nodes = Deck()
-        self.solid_elements = Deck()
-        self.material = Deck()
-        self.segment_sets = Deck()
-        self.node_sets = Deck()
-        self.boundary_conditions = Deck()
-
-        return
-
-
-class MechanicsDecks(BaseDecks):
-    """This class inherits from the BaseDecks class and defines additional useful decks"""
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.cap_elements = Deck()
-        self.control_volume = Deck()
-        self.pericardium = Deck()
-
-
-class ElectrophysiologyDecks(BaseDecks):
-    """Adds decks specificly for Electrophysiology simulations"""
-
-    def __init__(self) -> None:
-        super().__init__()
+# import missing keywords
+from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 
 
 class BaseDynaWriter:
@@ -154,7 +126,7 @@ class BaseDynaWriter:
             if deckname == "main":
                 continue
             # skip if no keywords are present in the deck
-            if len(deck.keywords) == 0:
+            if len( deck.keywords ) == 0:
                 logger.debug("No keywords in deck: {0}".format(deckname))
                 continue
             self.include_files.append(deckname)
@@ -215,6 +187,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         respective keyword databases
         """
 
+
         self._update_main_db()
         self._update_node_db()
         self._update_solid_elements_db()
@@ -241,6 +214,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self._get_list_of_includes()
         self._add_includes()
+
         return
 
     def export(self, export_directory: str):
@@ -261,7 +235,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             json.dump(self.system_model_json, indent=4, fp=outfile)
 
         # export segment sets to separate file
-        self._export_cavity_segmentsets(export_directory)
+        self._export_cavity_segmentsets( export_directory )
 
         tend = time.time()
         logger.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
@@ -309,9 +283,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     "heading": [cavity.name],
                     "pid": [cavity.id],
                     "secid": [1],
-                    "mid": [
-                        cavity.id
-                    ],  # mat ID is assumed to be the cavity ID,see in _update_material_db()
+                    "mid": [cavity.id],  # mat ID is assumed to be the cavity ID,see in _update_material_db()
                 }
             )
             part_kw = keywords.Part()
@@ -892,9 +864,28 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # # exit()
         # # end debug code
 
+        # create load curve to control when pericardium is active
+        load_curve_kw = keywords.DefineCurve(
+            lcid = 3
+        )
+        load_curve_kw.options["TITLE"].active = True
+        load_curve_kw.title = "pericardium activation curve"
+        load_curve_kw.curves = pd.DataFrame(
+            {
+                "a1" : np.array( [0, 1] ),
+                "o1" : np.array( [1, 1] )
+            }
+        )
+        self.kw_database.pericardium.append( load_curve_kw )
+
         cnt = 0
-        for isg, sgmt in enumerate(epicardium_segment):
-            if penalty[isg] > 0.01:
+        load_sgm_kws = []
+        segment_ids = []
+        logger.debug("Creating segment sets for epicardium b.c.:")
+
+        penalty_threshold = 0.01
+        for isg, sgmt in enumerate( tqdm( epicardium_segment, ascii=True ) ):
+            if penalty[isg] > penalty_threshold:
                 cnt += 1
 
                 # coord = self.volume_mesh["nodes"][sgmt]
@@ -913,26 +904,45 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 #     yp=coord[0, 1],
                 #     zp=coord[0, 2],
                 # )
-                load_sgm_kw = create_segment_set_keyword(
-                    sgmt.reshape(1, -1) + 1, segid=1000 + cnt
-                )  # todo: auto counter
-                # todo: use dynalib
-                user_loadset_kw = "*USER_LOADING_SET\n{0:d},PRESSS,1000,,{1:f},,,100".format(
-                    1000 + cnt, penalty[isg]
-                )
-                self.kw_database.pericardium.append(load_sgm_kw)
-                self.kw_database.pericardium.append(user_loadset_kw)
-        user_load_kw = "*USER_LOADING\n{0:f}".format(10)
-        self.kw_database.pericardium.append(user_load_kw)
 
-        # create activation curve curve
-        load_curve_id = 1000
-        load_curve_kw = create_define_curve_kw(
-            [0, 1, 1.0001, 100000], [1, 1, 1, 1], "random load curve", load_curve_id, 1000
+                segment_id = 1000+cnt
+                segment_ids.append(segment_id)
+
+                load_sgm_kw=create_segment_set_keyword(
+                    segments = sgmt.reshape(1,-1)+1,
+                    segid = segment_id )  # todo: auto counter
+
+                load_sgm_kws.append( load_sgm_kw )
+
+        self.kw_database.pericardium.extend(load_sgm_kws)
+
+        # create user loadset keyword
+        # segment_ids = 1000 + np.arange(0, np.sum( penalty > 0.01 ), 1)
+        user_loadset_kw = custom_keywords.UserLoadingSet()
+
+        # NOTE: can assign mixed scalar/array values to dataframe - scalars are assigned to each row
+        user_loadset_kw.load_sets = pd.DataFrame(
+            {
+                "sid" : segment_ids,
+                "ltype" : "PRESSS",
+                "lcid" : 3,
+                "sf1" : penalty[ penalty > penalty_threshold ],
+                "iduls" : 100
+            }
+        )
+        user_load_kw = custom_keywords.UserLoading(
+            parm1 = 0.05
         )
 
-        # append unit curve to main.k
-        self.kw_database.pericardium.append(load_curve_kw)
+        # add to pericardium deck
+        self.kw_database.pericardium.extend(
+            [
+                user_loadset_kw,
+                user_load_kw
+            ]
+        )
+
+        return
 
     def _update_cap_elements_db(self):
         """Updates the database of shell elements. Loops over all
@@ -1092,26 +1102,27 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _export_cavity_segmentsets(self, export_directory: str):
-        """Exports the actual cavity segment sets to separate files"""
+        """Exports the actual cavity segment sets to separate files"""       
 
         for cavity in self.model._mesh._cavities:
-            filename = "cavity_" + "_".join(cavity.name.lower().split()) + ".segment"
-            filepath = os.path.join(export_directory, filename)
+            filename = "cavity_" + "_".join( cavity.name.lower().split() ) + ".segment"
+            filepath = os.path.join(export_directory, filename  )
 
-            segments = np.empty((0, 3), dtype=int)
+            segments = np.empty( (0,3), dtype = int )
 
             # collect segment sets
             for segset in cavity.segment_sets:
                 if segset["name"] in ["endocardium", "endocardium-septum"]:
-                    segments = np.vstack([segments, segset["set"]])
+                    segments = np.vstack([ segments, segset["set"]] )
 
+            
             # append cap segments:
             for cap in cavity.closing_caps:
-                segments = np.vstack([segments, cap.closing_triangles])
+                segments = np.vstack( [segments, cap.closing_triangles] )
 
             # combine segment sets
-            np.savetxt(filepath, segments, delimiter=",", fmt="%d")
-
+            np.savetxt(filepath, segments, delimiter = ",", fmt = "%d")
+            
         return
 
     def _add_enddiastolic_pressure_bc(self, pressure_lv: float = 1, pressure_rv: float = 1):
@@ -1201,7 +1212,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         respective keyword databases. Overwrites the update method
         of MechanicsDynaWriter such that it yields a valid input deck
         for a zero-pressure simulation
-        """
+        """        
 
         self._update_main_db(add_damping=False)
 

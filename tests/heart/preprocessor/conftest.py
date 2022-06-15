@@ -1,0 +1,54 @@
+import pathlib
+import os
+import pytest
+import glob as glob
+
+ROOT_FOLDER = os.path.join( pathlib.Path(__file__).parent )
+
+# def pytest_collection_modifyitems(config, items):
+#     keywordexpr = config.option.keyword
+#     markexpr = config.option.markexpr
+#     if keywordexpr or markexpr:
+#         return  # command line has a -k or -m, let pytest handle it
+#     skip_run_dyna = pytest.mark.skip(
+#         reason="run_dyna not selected for pytest run (`pytest -m run_dyna`).  Skip by default"
+#     )
+#     [item.add_marker(skip_run_dyna) for item in items if "run_dyna" in item.keywords]
+
+def pytest_sessionstart(session):
+    print("Starting pytest session")
+    workdir = get_workdir()
+    clean_workdir(workdir)
+    pass
+
+def get_assets_folder():
+    return os.path.join( ROOT_FOLDER, "assets" )
+
+def get_workdir():    
+    return os.path.join(ROOT_FOLDER, "workdir_tests")
+
+def clean_workdir(directory: str):
+    print("Creating or cleaning working directory for tests")
+    if not os.path.isdir(directory):
+        os.mkdir(directory)
+    filelist = glob.glob( os.path.join( directory, "*" ) )
+    for file in filelist:
+        print("Removing: %s" % file )
+        os.remove( file )
+    return 
+
+def normalize_line_endings(text: str) -> str:
+    return text.replace("\r\n", "\n").replace("\r", "\n")
+
+def read_file(file: pathlib.Path) -> str:
+    with open(file, encoding="utf-8") as ref:
+        return normalize_line_endings(ref.read())
+
+def compare_string_with_file(output: str, reference_file: str) -> None:
+    """compare the string in output, with the contents of reference_file
+    normalize all line endinges to \\n
+    """
+    reference_file: pathlib.Path = get_assets_folder() / reference_file
+    output = normalize_line_endings(output)
+    ref_contents = read_file(reference_file)
+    assert output == ref_contents

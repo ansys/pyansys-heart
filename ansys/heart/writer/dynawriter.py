@@ -551,41 +551,42 @@ class MechanicsDynaWriter(BaseDynaWriter):
         Parameters
         ----------
         bc_type : str
-            Boundary condition type. Valid bc's include: ["fix_all_caps", "springs_caps"].
+            Boundary condition type. Valid bc's include: ["fix_caps", "springs_caps"].
         """
-        valid_bcs = ["fix_all_caps", "springs_caps"]
+        valid_bcs = ["fix_caps", "springs_caps"]
         if bc_type not in valid_bcs:
             raise ValueError("Cap/Valve boundary condition must be of type: %r" % valid_bcs)
 
-        if bc_type == "fix_all_caps":
+        # create list of cap names where to add the spring b.c
+        caps_to_use = []
+        if self.model.info.model_type in ["LeftVentricle", "BiVentricle"]:
+            # use all caps:
             for cavity in self.model._mesh._cavities:
                 for cap in cavity.closing_caps:
-                    kw_fix = keywords.BoundarySpcSet()
-                    kw_fix.nsid = cap.nodeset_id
-                    kw_fix.dofx = 1
-                    kw_fix.dofy = 1
-                    kw_fix.dofz = 1
+                    caps_to_use.append(cap.name)
 
-                    self.kw_database.boundary_conditions.append(kw_fix)
+        elif self.model.info.model_type in ["FourChamber"]:
+            caps_to_use = [
+                "Superior vena cava inlet",
+                "Right inferior pulmonary vein inlet",
+                "Right superior pulmonary vein inlet",
+            ]
+
+        if bc_type == "fix_caps":
+            for cavity in self.model._mesh._cavities:
+                for cap in cavity.closing_caps:
+                    if cap.name in caps_to_use:
+                        kw_fix = keywords.BoundarySpcSet()
+                        kw_fix.nsid = cap.nodeset_id
+                        kw_fix.dofx = 1
+                        kw_fix.dofy = 1
+                        kw_fix.dofz = 1
+
+                        self.kw_database.boundary_conditions.append(kw_fix)
 
         # if bc type is springs -> add springs
         # NOTE add to boundary condition db or seperate spring db?
-        if bc_type == "springs_caps":
-
-            # create list of cap names where to add the spring b.c
-            caps_to_use = []
-            if self.model.info.model_type in ["LeftVentricle", "BiVentricle"]:
-                # use all caps:
-                for cavity in self.model._mesh._cavities:
-                    for cap in cavity.closing_caps:
-                        caps_to_use.append(cap.name)
-
-            elif self.model.info.model_type in ["FourChamber"]:
-                caps_to_use = [
-                    "Superior vena cava inlet",
-                    "Right inferior pulmonary vein inlet",
-                    "Right superior pulmonary vein inlet",
-                ]
+        elif bc_type == "springs_caps":
 
             # NOTE: Make dynamic and expose to user?
 
@@ -1227,7 +1228,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         # for boundary conditions
         # self._update_boundary_conditions_db()
-        self._add_cap_bc(bc_type="fix_all_caps")
+        self._add_cap_bc(bc_type="fix_caps")
         self._add_pericardium_bc_usr()
 
         # Approximate end-diastolic pressures

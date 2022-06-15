@@ -187,7 +187,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         respective keyword databases
         """
 
-
         self._update_main_db()
         self._update_node_db()
         self._update_solid_elements_db()
@@ -199,7 +198,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # for boundary conditions
         # self._update_boundary_conditions_db()
         self._add_cap_bc(bc_type="springs_caps")
-        self._add_pericardium_bc_usr()
+        self._add_pericardium_bc()
+        # self._add_pericardium_bc_usr()
 
         # for control volume
         self._update_cap_elements_db()
@@ -735,19 +735,25 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
 
         uvc_l[uvc_l < 0] = 1
-        penalty = -_sigmoid((abs(uvc_l) - 0.65) * 25) + 1
+        penalty = -_sigmoid((abs(uvc_l) - 0.15) * 25) + 1
 
         # collect all pericardium nodes:
         epicardium_nodes = np.empty(0, dtype=int)
         logger.debug("Collecting epicardium nodesets:")
         for cavity in self.model._mesh._cavities:
-            for nodeset in cavity.node_sets:
-                if nodeset["name"] == "epicardium":
-                    logger.debug("\t{0} {1}".format(cavity.name, nodeset["name"]))
-                    epicardium_nodes = np.append(epicardium_nodes, nodeset["set"])
+            if cavity.name == "Right ventricle" or cavity.name == "Left ventricle":
+                for nodeset in cavity.node_sets:
+                    if nodeset["name"] == "epicardium":
+                        logger.debug("\t{0} {1}".format(cavity.name, nodeset["name"]))
+                        epicardium_nodes = np.append(epicardium_nodes, nodeset["set"])
 
         # select only nodes that are on the epicardium and penalty factor > 0.1
-        pericardium_nodes = epicardium_nodes[penalty[epicardium_nodes] > 0.1]
+        pericardium_nodes = epicardium_nodes[penalty[epicardium_nodes] > 0.01]
+        # coord = self.volume_mesh["nodes"][pericardium_nodes]
+        # np.savetxt(r"pericardium.txt",
+        #            np.concatenate((coord,penalty[pericardium_nodes].reshape(-1,1)),axis=1))
+        # np.savetxt(r"D:\pyheart-lib\examples\heart\workdir\four_chamber_model\lsdyna_files\pericardium.nodes",
+        #            pericardium_nodes+1,fmt="%d")
 
         # NOTE: Need to be made dynamic
         part_id = 201
@@ -755,7 +761,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         mat_id = 201
 
         # TODO: exposed to user/parameters?
-        spring_stiffness = 50
+        spring_stiffness = 50 #kPA/mm
 
         part_kw = keywords.Part()
         part_kw.parts = pd.DataFrame(
@@ -867,14 +873,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # create load curve to control when pericardium is active
         load_curve_kw = keywords.DefineCurve(
-            lcid = 3
+            lcid = 4
         )
         load_curve_kw.options["TITLE"].active = True
         load_curve_kw.title = "pericardium activation curve"
         load_curve_kw.curves = pd.DataFrame(
             {
-                "a1" : np.array( [0, 1] ),
-                "o1" : np.array( [1, 1] )
+                "a1" : np.array( [0, 1, 100 ] ),
+                "o1" : np.array( [1, 1, 1] )
             }
         )
         self.kw_database.pericardium.append( load_curve_kw )
@@ -926,13 +932,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
             {
                 "sid" : segment_ids,
                 "ltype" : "PRESSS",
-                "lcid" : 3,
+                "lcid" : 4,
                 "sf1" : penalty[ penalty > penalty_threshold ],
                 "iduls" : 100
             }
         )
         user_load_kw = custom_keywords.UserLoading(
-            parm1 = 0.05
+            parm1 = 10.0
         )
 
         # add to pericardium deck
@@ -960,12 +966,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # NOTE should be dynamic
         mat_null_id = 100
 
-        material_kw = MaterialCap(mid=mat_null_id)
+        # material_kw = MaterialCap(mid=mat_null_id)
 
-        # from ansys.heart.writer.custom_dynalib_keywords._custom_mat_077h import (
-        #     Mat077H as _custom_Mat077H,
-        # )
-        # material_kw = _custom_Mat077H(mid=mat_null_id, ro=1e-6, pr=0.499, n=0, c10=1000)
+        material_kw = MaterialAtrium(mid=mat_null_id, rho=1e-6, poisson_ratio=0.499, c10=1000)
 
         section_kw = keywords.SectionShell(
             secid=section_id,
@@ -1229,7 +1232,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # for boundary conditions
         # self._update_boundary_conditions_db()
         self._add_cap_bc(bc_type="fix_caps")
-        self._add_pericardium_bc_usr()
+        # self._add_pericardium_bc_usr()
 
         # Approximate end-diastolic pressures
         pressure_lv = 2  # kPa

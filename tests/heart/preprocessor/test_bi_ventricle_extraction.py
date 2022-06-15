@@ -4,6 +4,7 @@ import json
 import numpy as np
 import copy
 import pickle
+import shutil
 
 from ansys.heart.preprocessor.model_information import ModelInformation
 from ansys.heart.preprocessor.heart_model import HeartModel
@@ -34,7 +35,9 @@ def extraction_bi_ventricle():
     global output_dir
     output_dir = workflow_extract_mesh("BiVentricle", get_workdir())
 
-    return
+    yield 
+    # cleanup
+    shutil.rmtree(output_dir)
 
 
 # STL Consistency

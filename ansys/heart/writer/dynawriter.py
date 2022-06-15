@@ -224,7 +224,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._update_material_db(add_active=True)
 
         # for boundary conditions
-        self._update_boundary_conditions_db()
+        # self._update_boundary_conditions_db()
+        self._add_cap_bc(bc_type="springs_caps")
         self._add_pericardium_bc_usr()
 
         # for control volume
@@ -568,8 +569,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
     def _update_boundary_conditions_db(self):
         """Updates the boundary conditions keyword database"""
 
-        self._add_cap_bc(bc_type="fix_all_caps")
-
+        # self._add_cap_bc(bc_type="fix_all_caps")
+        pass
         return
 
     def _add_cap_bc(self, bc_type: str):
@@ -865,7 +866,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
 
         uvc_l[uvc_l < 0] = 1
-        penalty = -_sigmoid((abs(uvc_l) - 0.65) * 25) + 1  # for all volume nodes
+        penalty = -_sigmoid((abs(uvc_l) - 0.15) * 25) + 1  # for all volume nodes
 
         # collect all pericardium nodes:
         epicardium_segment = np.empty((0, 3), dtype=int)
@@ -887,8 +888,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # coord = self.volume_mesh["nodes"][epicardium_segment]
         # center = np.mean(coord, axis=1)
         # result = np.concatenate((center,penalty.reshape(-1,1)),axis=1)
-        # np.savetxt('pericardium.txt',result[result[:,3]>0.1])
-        # exit()
+        # np.savetxt('pericardium.txt',result[result[:,3]>0.01])
+        # # exit()
         # # end debug code
 
         cnt = 0
@@ -927,7 +928,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # create activation curve curve
         load_curve_id = 1000
         load_curve_kw = create_define_curve_kw(
-            [0, 1, 1.0001, 100000], [0, 0, 1, 1], "random load curve", load_curve_id, 1000
+            [0, 1, 1.0001, 100000], [1, 1, 1, 1], "random load curve", load_curve_id, 1000
         )
 
         # append unit curve to main.k
@@ -1214,7 +1215,9 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self._update_material_db(add_active=False)
 
         # for boundary conditions
-        self._update_boundary_conditions_db()
+        # self._update_boundary_conditions_db()
+        self._add_cap_bc(bc_type="fix_all_caps")
+        self._add_pericardium_bc_usr()
 
         # Approximate end-diastolic pressures
         pressure_lv = 2  # kPa
@@ -1280,7 +1283,11 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         """
         self.kw_database.main.append(keywords.ControlTermination(endtim=1.0))
-        self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
+        # self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
+
+        self.kw_database.main.append(
+            keywords.ControlImplicitDynamics(imass=1, gamma=0.66, beta=0.38)
+        )
 
         # add auto controls
         self.kw_database.main.append(keywords.ControlImplicitAuto(iauto=1, dtmin=0.01, dtmax=0.1))
@@ -1294,10 +1301,18 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # add implicit solver controls
         self.kw_database.main.append(keywords.ControlImplicitSolver())
 
+        # add binout for post-process
+        self.kw_database.main.append(keywords.DatabaseNodout(dt=0.5,binary=1))
+        x = keywords.SetNodeGeneral(option='part', sid=999, e1=1, e2=2, e3=3, e4=4)
+        self.kw_database.main.append(x)
+        self.kw_database.main.append("*DATABASE_HISTORY_NODE_SET\n999")
+        return
+
+
     def _add_control_reference_configuration(self):
         """Adds control reference configuration keyword to main"""
         logger.debug("Adding *CONTROL_REFERENCE_CONFIGURATION to main.k")
-        kw = keywords.ControlReferenceConfiguration(maxiter=5, target="nodes.k", method=2, tol=5)
+        kw = keywords.ControlReferenceConfiguration(maxiter=3, target="nodes.k", method=2, tol=5)
 
         self.kw_database.main.append(kw)
 

@@ -7,6 +7,7 @@ from conftest import ROOT_FOLDER
 from conftest import get_assets_folder, get_workdir
 from ansys.heart.preprocessor.vtk_module import compute_volume_stl, vtk_surface_to_stl
 
+@pytest.mark.skip(reason="Example test")
 def test_compute_volume():    
     """Tests compute volume function from stl. Use unit-sphere as reference"""
     radius = 1

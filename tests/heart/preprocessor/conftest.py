@@ -3,7 +3,7 @@ import os
 import pytest
 import glob as glob
 
-ROOT_FOLDER = os.path.join( pathlib.Path(__file__).parent )
+ROOT_FOLDER = os.path.join( pathlib.Path(__file__).parent.parent )
 
 # def pytest_collection_modifyitems(config, items):
 #     keywordexpr = config.option.keyword
@@ -18,7 +18,6 @@ ROOT_FOLDER = os.path.join( pathlib.Path(__file__).parent )
 def pytest_sessionstart(session):
     print("Starting pytest session")
     workdir = get_workdir()
-    clean_workdir(workdir)
     pass
 
 def get_assets_folder():
@@ -27,11 +26,18 @@ def get_assets_folder():
 def get_workdir():    
     return os.path.join(ROOT_FOLDER, "workdir_tests")
 
-def clean_workdir(directory: str):
-    print("Creating or cleaning working directory for tests")
+def create_directory(directory: str ):
+    """Creates directory"""
+    print("Creating directory for tests")
     if not os.path.isdir(directory):
-        os.mkdir(directory)
+        os.makedirs(directory)    
+    return
+
+def clean_workdir(directory: str):
+    print("Cleaning working directory for tests")
     filelist = glob.glob( os.path.join( directory, "*" ) )
+    print("Files to remove:")
+    print(filelist)
     for file in filelist:
         print("Removing: %s" % file )
         os.remove( file )
@@ -52,3 +58,19 @@ def compare_string_with_file(output: str, reference_file: str) -> None:
     output = normalize_line_endings(output)
     ref_contents = read_file(reference_file)
     assert output == ref_contents
+
+def clean_directory(directory: str):
+    """Cleans the directory by removing it and re-creating it 
+    """
+    import shutil
+    if os.path.isdir(directory):
+        shutil.rmtree(directory)
+        os.mkdir(directory)
+    else:
+        os.mkdir(directory)
+    return
+
+def remove_keys_from_dict(dictionary: dict, exclude_keys = [] ):
+    """Removes specific keys from the dictionary"""
+    new_d = {k: dictionary[k] for k in set(list(dictionary.keys())) - set(exclude_keys)}
+    return new_d

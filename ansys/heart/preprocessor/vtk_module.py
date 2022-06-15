@@ -250,7 +250,8 @@ def threshold_vtk_data(
     threshold.SetInputArrayToProcess(
         0, 0, 0, vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS, data_name  # noqa
     )
-    threshold.ThresholdBetween(lower_limit - epsilon, upper_limit + epsilon)
+    threshold.SetLowerThreshold( lower_limit - epsilon )
+    threshold.SetUpperThreshold( upper_limit + epsilon)    
     threshold.AllScalarsOn()
     threshold.Update()
     result = threshold.GetOutput()

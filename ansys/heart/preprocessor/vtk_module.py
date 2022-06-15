@@ -762,6 +762,7 @@ def add_vtk_array(
     # determine type of array:
     if array_type is int:
         vtk_array = vtk.vtkIntArray()
+        data = np.array(data, int)
     elif array_type is float:
         vtk_array = vtk.vtkDoubleArray()
 

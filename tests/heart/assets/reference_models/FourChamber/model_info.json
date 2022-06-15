@@ -1,0 +1,28 @@
+{
+    "_model_type": "FourChamber",
+    "_vtk_labels_to_use": {
+        "Left ventricle myocardium": 1,
+        "Aortic valve plane": 16,
+        "Mitral valve plane": 14,
+        "Right ventricle myocardium": 2,
+        "Tricuspid valve plane": 15,
+        "Pulmonary valve plane": 17,
+        "Left atrium myocardium": 3,
+        "Left atrium appendage inlet": 18,
+        "Left superior pulmonary vein inlet": 19,
+        "Left inferior pulmonary vein inlet": 20,
+        "Right inferior pulmonary vein inlet": 21,
+        "Right superior pulmonary vein inlet": 22,
+        "Right atrium myocardium": 4,
+        "Superior vena cava inlet": 23,
+        "Inferior vena cava inlet": 24
+    },
+    "_database_name": "Strocchi2020",
+    "path_original_mesh": "d:\\development\\pyheart-lib\\pyheart-lib\\tests\\heart\\assets\\cases\\01\\01.case",
+    "working_directory": "d:\\development\\pyheart-lib\\pyheart-lib\\examples\\heart\\preprocessor\\..\\workdir\\four_chamber_model",
+    "is_remeshed": true,
+    "_mesh_size": 2.0,
+    "path_mesh": "d:\\development\\pyheart-lib\\pyheart-lib\\examples\\heart\\preprocessor\\..\\workdir\\four_chamber_model\\simulation_mesh.vtk",
+    "path_to_cap_file": "",
+    "path_to_pickle": "d:\\development\\pyheart-lib\\pyheart-lib\\examples\\heart\\preprocessor\\..\\workdir\\four_chamber_model\\cavities.pickle"
+}

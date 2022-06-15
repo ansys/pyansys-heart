@@ -1,0 +1,16 @@
+{
+    "_model_type": "LeftVentricle",
+    "_vtk_labels_to_use": {
+        "Left ventricle myocardium": 1,
+        "Aortic valve plane": 16,
+        "Mitral valve plane": 14
+    },
+    "_database_name": "Strocchi2020",
+    "path_original_mesh": "d:\\development\\pyheart-lib\\pyheart-lib\\tests\\heart\\assets\\cases\\01\\01.case",
+    "working_directory": "d:\\development\\pyheart-lib\\pyheart-lib\\examples\\heart\\preprocessor\\..\\workdir\\left_ventricle_model",
+    "is_remeshed": true,
+    "_mesh_size": 2.0,
+    "path_mesh": "d:\\development\\pyheart-lib\\pyheart-lib\\examples\\heart\\preprocessor\\..\\workdir\\left_ventricle_model\\simulation_mesh.vtk",
+    "path_to_cap_file": "",
+    "path_to_pickle": "d:\\development\\pyheart-lib\\pyheart-lib\\examples\\heart\\preprocessor\\..\\workdir\\left_ventricle_model\\cavities.pickle"
+}

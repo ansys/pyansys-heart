@@ -356,7 +356,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # add implict controls
         if simulation_type == "quasi-static":
             imass = 1
-            gamma = 0.66
+            gamma = 0.6
             beta = 0.38
         elif simulation_type == "static":
             imass = 0
@@ -1298,7 +1298,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
 
         self.kw_database.main.append(
-            keywords.ControlImplicitDynamics(imass=1, gamma=0.66, beta=0.38)
+            keywords.ControlImplicitDynamics(imass=1, gamma=0.6, beta=0.38)
         )
 
         # add auto controls

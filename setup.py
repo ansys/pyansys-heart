@@ -51,7 +51,8 @@ setup(
         "pandas==1.3.5",
         "pip==21.2.4",
         "scipy==1.7.3",
-        "vtk==9.1.0"
+        "vtk==9.1.0",
+        "tqdm==4.64.0"
     ],
     python_requires='>=3.7',
     classifiers=[

@@ -21,9 +21,7 @@ from ansys.heart.preprocessor.vtk_module import (
 # import logger
 from ansys.heart.custom_logging import logger
 
-from vtk.numpy_interface import (
-    dataset_adapter as dsa,
-)  # this is an improved numpy integration
+from vtk.numpy_interface import dataset_adapter as dsa  # this is an improved numpy integration
 
 
 class HeartMesh:
@@ -66,16 +64,12 @@ class HeartMesh:
         """Exports the mesh and all (relevant) generated data
         for future use
         """
-        path_simulation_mesh = os.path.join(
-            self.info.working_directory, "simulation_mesh.vtk"
-        )
+        path_simulation_mesh = os.path.join(self.info.working_directory, "simulation_mesh.vtk")
 
         # save processed volume mesh in designated path
         write_vtkdata_to_vtkfile(self._vtk_volume, path_simulation_mesh)
         # dump
-        pickle_path = os.path.join(
-            self.info.working_directory, "cavities.pickle"
-        )
+        pickle_path = os.path.join(self.info.working_directory, "cavities.pickle")
         fid = open(pickle_path, "wb")
 
         # remove any vtk objects which cannot be pickled
@@ -112,34 +106,25 @@ class HeartMesh:
         # self.extract_individual_parts_surface()
 
         # extract surface data
-        self._vtk_surface_polydata = vtk_surface_filter(
-            self._vtk_volume_temp, keep_global_ids=True
-        )
+        self._vtk_surface_polydata = vtk_surface_filter(self._vtk_volume_temp, keep_global_ids=True)
 
         if write_temporary_files:
-            write_vtkdata_to_vtkfile(
-                self._vtk_surface_polydata, "temp_surface.vtk"
-            )
+            write_vtkdata_to_vtkfile(self._vtk_surface_polydata, "temp_surface.vtk")
 
         # useful in some calls: NOTE: Just to ensure compatibility: might be removed?
         self._vtk_surface_data = get_surface_info(self._vtk_surface_polydata)
 
         # replaces previous line eventually?
-        (
-            nodes_tris,
-            tris,
-            cell_data_tris,
-            point_data_tris,
-        ) = get_tri_info_from_polydata(self._vtk_surface_polydata)
+        (nodes_tris, tris, cell_data_tris, point_data_tris,) = get_tri_info_from_polydata(
+            self._vtk_surface_polydata
+        )
         self._nodes_surface = nodes_tris
         self._elements_surface = tris
         self._cell_data_surface = cell_data_tris
         self._point_data_surface = point_data_tris
 
         # extract nodes and tetra definitions from raw data
-        nodes, tetra, cell_data, point_data = get_tetra_info_from_unstructgrid(
-            self._vtk_volume_raw
-        )
+        nodes, tetra, cell_data, point_data = get_tetra_info_from_unstructgrid(self._vtk_volume_raw)
         self._nodes_volume_raw = nodes
         self._elements_volume_raw = tetra
         self._cell_data_volume_raw = cell_data
@@ -227,8 +212,7 @@ class HeartMesh:
                 logger.debug("Writing caps of %s" % cavity.name)
 
                 mesh = meshio.Mesh(
-                    points=volume.Points,
-                    cells=[("triangle", np.array(all_tris, dtype=int))],
+                    points=volume.Points, cells=[("triangle", np.array(all_tris, dtype=int))],
                 )
 
                 filename = "caps_" + "_".join(cavity.name.split()) + ".stl"
@@ -269,23 +253,15 @@ class HeartMesh:
                     vtk_tags_to_use.append(cavity.vtk_ids[ii])
                     vtk_tags_to_use1[label] = cavity.vtk_ids[ii]
 
-        spaceclaim_input = self._extract_relevant_parts(
-            self._vtk_volume_temp, vtk_tags_to_use1
-        )
+        spaceclaim_input = self._extract_relevant_parts(self._vtk_volume_temp, vtk_tags_to_use1)
 
-        input_stl_spaceclaim = os.path.join(
-            working_dir, "input_surface_spaceclaim.stl"
-        )
-        output_stl_spaceclaim = os.path.join(
-            working_dir, "output_surface_spaceclaim.stl"
-        )
+        input_stl_spaceclaim = os.path.join(working_dir, "input_surface_spaceclaim.stl")
+        output_stl_spaceclaim = os.path.join(working_dir, "output_surface_spaceclaim.stl")
 
         input_stl_fluent = os.path.abspath(
             os.path.join(working_dir, "input_surface_spaceclaim.stl")
         )
-        output_msh_fluent = os.path.abspath(
-            os.path.join(working_dir, "fluent_volume_mesh.msh.h5")
-        )
+        output_msh_fluent = os.path.abspath(os.path.join(working_dir, "fluent_volume_mesh.msh.h5"))
 
         output_vtk = os.path.join(working_dir, "output_meshing.vtk")
 
@@ -304,9 +280,7 @@ class HeartMesh:
 
         elif use_fluent:
             logger.debug("\tLaunching Fluent meshing...")
-            mesh_by_fluentmeshing(
-                input_stl_fluent, output_msh_fluent, mesh_size
-            )
+            mesh_by_fluentmeshing(input_stl_fluent, output_msh_fluent, mesh_size)
 
             fluenthdf5_to_vtk(output_msh_fluent, output_vtk)
 
@@ -322,47 +296,101 @@ class HeartMesh:
         the remeshed vtk file 
         """
         logger.debug("Mapping data from original mesh...")
-
         # NOTE Source contains all point data and cell data fields
         # NOTE Map the tags of only the myocardium
 
-        source = self._vtk_volume_temp
-        target = self._vtk_volume
+        source = self._vtk_volume_temp  # temporary volume (original topology?)
+        target = self._vtk_volume  # remeshed volume
 
-        target = vtk_map_continuous_data(source, target)
+        # create proper copy
+        target = vtk.vtkUnstructuredGrid()
+        target.DeepCopy(self._vtk_volume)
 
-        # for debugging purposes
-        # write_vtkdata_to_vtkfile( source, "source_interp.vtk" )
-        # write_vtkdata_to_vtkfile( target, "target_interp_1.vtk" )
+        # collect tags of involved ventricles
+        ventricular_tags = []
+        for cavity in self._cavities:
+            ventricular_tags.append( cavity.vtk_ids[0] )
 
-        # map the tags (consider this to be discrete data)
-        # store in as _vtk_volume
-        self._vtk_volume = self._map_tags_to_remeshed_volume(source, target)
+        # NOTE 1: The method below was initially developed for fixing four chamber case interpolation bug
+        # NOTE 2: However, also solves interpolation issues for Bi-Ventricle and LeftVentricle cases
+        # NOTE Outline strategy:
+        # 1. extract left ventricle or biventricle from temporary _vtk_volume_temp
+        # 2. interpolate uvc onto target just using ventricles. Ignore any other cell or point arrays
+        # 3. interpolate tags onto target. (will overwrite 2)
+        # 4. cleanup by using tags to identify anything non-ventricuar - assign -100 to those parts
+        # 5. interpolate the remaining fields
+
+        # 1. extract reduced source model
+        source_ventricles = vtk.vtkUnstructuredGrid()
+        source_ventricles.DeepCopy(source)
+        source_ventricles = threshold_vtk_data_integers(source_ventricles, ventricular_tags, "tags")
+        source_dsa = dsa.WrapDataObject(source_ventricles)
+        source_point_data_names = source_dsa.PointData.keys()
+        source_cell_data_names = source_dsa.CellData.keys()
+
+        # 2.
+        uvc_array_names = [k for k in source_point_data_names if "uvc_" in k]
+        target = vtk_map_continuous_data(
+            source=source_ventricles, target=target, array_names_to_include=uvc_array_names
+        )
+
+        # 3.
+        self._map_tags_to_remeshed_volume(source, target)
+
+        # 4.
+        target = self._replace_uvc_values(target, ventricular_tags)
+
+        # 5.
+        arrays_to_interpolate = set(source_point_data_names + source_cell_data_names) - set(
+            uvc_array_names + ["tags"]
+        )
+        target = vtk_map_continuous_data(
+            source=source, target=target, array_names_to_include=arrays_to_interpolate
+        )
+
+        self._vtk_volume = target
 
         return
+
+    def _replace_uvc_values(self, vtk_grid: vtk.vtkUnstructuredGrid, tags):
+        """Replaces the uvc values of any part other than the ventricle with -100"""
+
+        nodes, tetra, cell_data, point_data = get_tetra_info_from_unstructgrid( vtk_grid )
+
+        cell_ids_atria = np.where(np.isin(cell_data["tags"], tags, invert=True))[0]
+
+        point_ids_to_edit = np.unique(tetra[cell_ids_atria, :])
+        # replace all uvc coordinates not on ventricle to -100
+        for key, value in point_data.items():
+            if "uvc_" in key:
+                logger.debug("Replacing value of %s of non-ventricular points to -100 " % key)
+                point_data[key][point_ids_to_edit] = -100
+                # replace array of original vtk object
+                add_vtk_array(
+                    polydata=vtk_grid,
+                    data=point_data[key],
+                    name=key,
+                    data_type="point",
+                    array_type=float,
+                )
+
+
+        return vtk_grid
 
     def extract_endocardium_epicardium(self):
         """Extracts the endo and epicardium from each of myocardial parts.
         """
         # extract surface
-        surface_mesh = vtk_surface_filter(
-            self._vtk_volume, keep_global_ids=True
-        )
+        surface_mesh = vtk_surface_filter(self._vtk_volume, keep_global_ids=True)
 
         # get the endo and epicardium points for each cavity
         for cavity in self._cavities:
-            logger.debug(
-                "Extracting endocardium and epicardium node sets of... "
-                + cavity.name
-            )
+            logger.debug("Extracting endocardium and epicardium node sets of... " + cavity.name)
             cavity._get_endocardium_epicardium_points(surface_mesh)
 
         # extract endo/epicardium segments for each cavity
         for cavity in self._cavities:
-            logger.debug(
-                "Extracting endocardium and epicardium segments of... "
-                + cavity.name
-            )
+            logger.debug("Extracting endocardium and epicardium segments of... " + cavity.name)
             cavity._get_endocardium_epicardium_segments(surface_mesh)
 
             # write to file to check
@@ -438,16 +466,11 @@ class HeartMesh:
             for nodeset in cavity.node_sets:
                 for ii, nodes in enumerate(nodes_used):
                     # check if any of the nodes are already in use
-                    use_idx = np.argwhere(
-                        np.isin(nodeset["set"], nodes, invert=True)
-                    ).flatten()
+                    use_idx = np.argwhere(np.isin(nodeset["set"], nodes, invert=True)).flatten()
                     if len(use_idx) != len(nodeset["set"]):
                         logger.warning(
                             "Found duplicate nodes in: {0} {1}. Already used in {2} {3}".format(
-                                cavity.name,
-                                nodeset["name"],
-                                part_id[ii][0],
-                                part_id[ii][1],
+                                cavity.name, nodeset["name"], part_id[ii][0], part_id[ii][1],
                             )
                         )
 
@@ -462,9 +485,7 @@ class HeartMesh:
             volume = dsa.WrapDataObject(self._vtk_volume)
             for nodeset in cavity.node_sets:
 
-                vtk_poly_points = create_vtk_polydata_from_points(
-                    volume.Points[nodeset["set"]]
-                )
+                vtk_poly_points = create_vtk_polydata_from_points(volume.Points[nodeset["set"]])
 
                 path_to_file = os.path.join(
                     self.info.working_directory,
@@ -505,8 +526,7 @@ class HeartMesh:
                     segset_septum["name"] = "endocardium-septum"
                     cavity.segment_sets.append(segset_septum)
                     logger.debug(
-                        "Assigning septum of left ventricle to "
-                        "segment set to Right ventricle"
+                        "Assigning septum of left ventricle to " "segment set to Right ventricle"
                     )
 
         # remove any duplicate segments within each cavity
@@ -524,9 +544,7 @@ class HeartMesh:
                     if np.any(np.all(tri == all_tris, axis=1)):
                         idx_remove.append(idx)
                 logger.debug(
-                    "Found {0} duplicate segments in {1}".format(
-                        len(idx_remove), seg_set["name"]
-                    )
+                    "Found {0} duplicate segments in {1}".format(len(idx_remove), seg_set["name"])
                 )
 
                 # remove the duplicate faces
@@ -619,9 +637,7 @@ class HeartMesh:
             tags[tags == tag_pair[1]] = tag_pair[0]
 
         # overwrite source array with new tags
-        add_vtk_array(
-            source, tags, name="tags", data_type="cell", array_type=int
-        )
+        add_vtk_array(source, tags, name="tags", data_type="cell", array_type=int)
 
         # map discrete cell data
         target = vtk_map_discrete_cell_data(source, target, data_name="tags")
@@ -641,9 +657,7 @@ class HeartMesh:
         and assigns this mesh to each cavity for reference
         """
 
-        self._vtk_surface = vtk_surface_filter(
-            self._vtk_volume, keep_global_ids=True
-        )
+        self._vtk_surface = vtk_surface_filter(self._vtk_volume, keep_global_ids=True)
 
         # write_vtkdata_to_vtkfile(self._vtk_surface, "surface_of_remeshed_volume.vtk")
 
@@ -653,9 +667,7 @@ class HeartMesh:
                 # surface, globalids = threshold_vtk_data( self._vtk_surface, surface_tag, surface_tag, "tags" )
                 cavity._myocardium_surface = self._vtk_surface
             else:
-                logger.error(
-                    "Myocardium not in list: " + ", ".join(cavity.labels)
-                )
+                logger.error("Myocardium not in list: " + ", ".join(cavity.labels))
 
         return
 
@@ -668,9 +680,7 @@ class HeartMesh:
     # private functions
     def _add_list_of_cavities(self):
         """ Initializes list of cavities given the model type and cavity definitions"""
-        cavity_definitions = VALID_MODELS[self.info.model_type][
-            "CavityDefinition"
-        ]
+        cavity_definitions = VALID_MODELS[self.info.model_type]["CavityDefinition"]
         vtk_label_to_tag = self.info.vtk_labels_to_use
 
         cavities: List[Cavity] = []
@@ -685,10 +695,7 @@ class HeartMesh:
                 vtk_ids.append(vtk_label_to_tag[part_name])
 
             cavity_object = Cavity(
-                name=cavity_name,
-                vtk_labels=part_names,
-                vtk_ids=vtk_ids,
-                model_info=self.info,
+                name=cavity_name, vtk_labels=part_names, vtk_ids=vtk_ids, model_info=self.info,
             )
 
             cavity_object.id = vtk_ids[0]
@@ -712,9 +719,7 @@ class HeartMesh:
         # labels_to_use = np.array( labels_to_use )
 
         # extract relevant part of the mesh.
-        vtk_thresholded = threshold_vtk_data_integers(
-            vtk_ugrid, tags_to_use, data_name="tags"
-        )
+        vtk_thresholded = threshold_vtk_data_integers(vtk_ugrid, tags_to_use, data_name="tags")
 
         return vtk_thresholded
 
@@ -748,12 +753,8 @@ class HeartMesh:
                     # skip if already visited
                     continue
 
-                d1 = np.linalg.norm(
-                    cap.centroid + cap.normal - cavity.centroid
-                )
-                d2 = np.linalg.norm(
-                    cap.centroid - cap.normal - cavity.centroid
-                )
+                d1 = np.linalg.norm(cap.centroid + cap.normal - cavity.centroid)
+                d2 = np.linalg.norm(cap.centroid - cap.normal - cavity.centroid)
                 if d2 > d1:
                     logger.debug(
                         "Flip cap normal such that it points inwards: %s"
@@ -774,14 +775,10 @@ class HeartMesh:
             cavity_triangles = np.empty((0, 3), dtype=int)
             for segsets in cavity.segment_sets:
                 if "endocardium" in segsets["name"]:
-                    cavity_triangles = np.vstack(
-                        (cavity_triangles, segsets["set"])
-                    )
+                    cavity_triangles = np.vstack((cavity_triangles, segsets["set"]))
 
             for cap in cavity.closing_caps:
-                cavity_triangles = np.vstack(
-                    (cavity_triangles, cap.closing_triangles)
-                )
+                cavity_triangles = np.vstack((cavity_triangles, cap.closing_triangles))
 
             # prepare stl file which is used to compute the volume
             # NOTE: could parse vtk.vtkPolyData of surface instead
@@ -790,16 +787,11 @@ class HeartMesh:
 
             cavity_triangles = np.array(cavity_triangles, dtype=int)
             # write stl and compute its volume and store in cavity
-            mesh = meshio.Mesh(
-                points=volume_mesh.Points,
-                cells=[("triangle", cavity_triangles)],
-            )
+            mesh = meshio.Mesh(points=volume_mesh.Points, cells=[("triangle", cavity_triangles)],)
 
             stl_path = os.path.join(
                 self.info.working_directory,
-                "closed_volume_{0}.stl".format(
-                    "_".join(cavity.name.lower().split())
-                ),
+                "closed_volume_{0}.stl".format("_".join(cavity.name.lower().split())),
             )
             mesh.write(stl_path)
 
@@ -838,13 +830,9 @@ class HeartMesh:
 
     def extract_individual_parts_surface(self):
         """Extracts the surfaces of each individual part"""
-        logger.debug(
-            "Extracting individual parts as stl surfaces... [for Fluent?]"
-        )
+        logger.debug("Extracting individual parts as stl surfaces... [for Fluent?]")
         for key, value in self.info.vtk_labels_to_use.items():
-            vtk_part_volume, _ = threshold_vtk_data(
-                self._vtk_volume_temp, value, value, "tags"
-            )
+            vtk_part_volume, _ = threshold_vtk_data(self._vtk_volume_temp, value, value, "tags")
             filename = "part_surface_{:0>3.0f}.stl".format(value)
             filepath = os.path.join(self.info.working_directory, filename)
             vtk_surface_to_stl(vtk_part_volume, filepath)
@@ -876,9 +864,7 @@ class HeartMesh:
                         points_volume, endocardium_septum_segset_reduced
                     )
                     # smooth surface
-                    endocardium_septum_vtk = smooth_polydata(
-                        endocardium_septum_vtk
-                    )
+                    endocardium_septum_vtk = smooth_polydata(endocardium_septum_vtk)
 
                     # extrude in normal direction
                     endocardium_septum_vtk_extruded = extrude_polydata(
@@ -910,9 +896,7 @@ class HeartMesh:
         model again at a later time
         """
         # write mesh for simulation to file
-        file_path = os.path.join(
-            self.info.working_directory, "simulation_volume_mesh.vtk"
-        )
+        file_path = os.path.join(self.info.working_directory, "simulation_volume_mesh.vtk")
         self.info.path_mesh = file_path
         write_vtkdata_to_vtkfile(self._vtk_volume, file_path)
 
@@ -927,18 +911,11 @@ class HeartMesh:
         surface : vtk.vtkPolyData
             Surface representation as vtkPolyData object
         """
-        nodes, tetra, cell_data, point_data = get_tetra_info_from_unstructgrid(
-            volume
-        )
+        nodes, tetra, cell_data, point_data = get_tetra_info_from_unstructgrid(volume)
 
         # extract surface
         surface = vtk_surface_filter(volume)
-        (
-            nodes_tris,
-            tris,
-            cell_data_tris,
-            point_data_tris,
-        ) = get_tri_info_from_polydata(surface)
+        (nodes_tris, tris, cell_data_tris, point_data_tris,) = get_tri_info_from_polydata(surface)
 
         # find duplicate nodes:
         unique_nodes = np.unique(nodes.round(decimals=2), axis=0)
@@ -954,9 +931,7 @@ class HeartMesh:
 
         mesh.write("volume_mesh_original.vtk")
 
-        cavities_and_parts = copy.deepcopy(
-            VALID_MODELS[self.info.model_type]["CavityDefinition"]
-        )
+        cavities_and_parts = copy.deepcopy(VALID_MODELS[self.info.model_type]["CavityDefinition"])
         vtk_labels_to_use = self.info.vtk_labels_to_use
 
         # create new tags for rings
@@ -968,15 +943,11 @@ class HeartMesh:
 
         for part_list in cavities_and_parts:
             part_name_myocardium = [
-                part_name
-                for part_name in part_list
-                if "myocardium" in part_name
+                part_name for part_name in part_list if "myocardium" in part_name
             ]
             if len(part_name_myocardium) != 1:
                 raise ValueError(
-                    "Expecting only one myocardium but found {0} ".format(
-                        len(part_name_myocardium)
-                    )
+                    "Expecting only one myocardium but found {0} ".format(len(part_name_myocardium))
                 )
             else:
                 part_name_myocardium = part_name_myocardium[0]
@@ -997,8 +968,7 @@ class HeartMesh:
                 part_id = vtk_labels_to_use[part_name]
                 tetra_part = tetra[tags == part_id, :]
                 node_indices_intersect = np.intersect1d(
-                    np.unique(tetra_myocardium.ravel()),
-                    np.unique(tetra_part.ravel()),
+                    np.unique(tetra_myocardium.ravel()), np.unique(tetra_part.ravel()),
                 )
                 # find elements that refer these nodes and change tag
                 # finds the overlapping faces
@@ -1028,16 +998,11 @@ class HeartMesh:
                 tetra_tagged_1d = np.reshape(tetra_tagged, (tetra_tagged.size))
                 masked_tagged_1d = np.reshape(mask_tagged, (tetra_tagged.size))
                 triangles_tagged = np.reshape(
-                    tetra_tagged_1d[np.where(masked_tagged_1d)],
-                    (tetra_tagged.shape[0], 3),
+                    tetra_tagged_1d[np.where(masked_tagged_1d)], (tetra_tagged.shape[0], 3),
                 )
 
-                mesh = meshio.Mesh(
-                    points=nodes, cells=[("triangle", triangles_tagged)]
-                )
-                mesh.write(
-                    "triangles_tagged_pid_{:0>3.0f}.stl".format(part_id)
-                )
+                mesh = meshio.Mesh(points=nodes, cells=[("triangle", triangles_tagged)])
+                mesh.write("triangles_tagged_pid_{:0>3.0f}.stl".format(part_id))
 
                 new_tag = new_tag + 1
 
@@ -1062,37 +1027,26 @@ class HeartMesh:
 
         mesh.write("volume_mesh_retagged.vtk")
 
-        vtk_retagged = read_vtk_unstructuredgrid_file(
-            "volume_mesh_retagged.vtk"
-        )
+        vtk_retagged = read_vtk_unstructuredgrid_file("volume_mesh_retagged.vtk")
 
         # extract surface
         surface = vtk_surface_filter(vtk_retagged)
 
-        (
-            nodes_tris,
-            tris,
-            cell_data_tris,
-            point_data,
-        ) = get_tri_info_from_polydata(surface)
+        (nodes_tris, tris, cell_data_tris, point_data,) = get_tri_info_from_polydata(surface)
 
         tags_tris = np.array(cell_data_tris["tags"], dtype=int)
         # export each tag as separate stl file
         unique_tags = np.unique(tags_tris)
         for unique_tag in unique_tags:
             tris_to_write = tris[tags_tris == unique_tag, :]
-            mesh = meshio.Mesh(
-                points=nodes_tris, cells=[("triangle", tris_to_write)]
-            )
+            mesh = meshio.Mesh(points=nodes_tris, cells=[("triangle", tris_to_write)])
             mesh.write("triangles_pid_{:0>3.0f}.stl".format(unique_tag))
 
         vtk_surface_to_stl(surface, "surface_mesh.vtk")
 
         return
 
-    def _OBSOLETE_separate_overlaps_surface(
-        self, vtk_volume: vtk.vtkUnstructuredGrid
-    ):
+    def _OBSOLETE_separate_overlaps_surface(self, vtk_volume: vtk.vtkUnstructuredGrid):
         """[OBSOLETE]
         """
 
@@ -1112,12 +1066,9 @@ class HeartMesh:
 
             surface_threshold = vtk_surface_filter(volume_thresholded)
 
-            (
-                nodes_to_add,
-                tris_to_add,
-                cell_data,
-                point_data_tris,
-            ) = get_tri_info_from_polydata(surface_threshold)
+            (nodes_to_add, tris_to_add, cell_data, point_data_tris,) = get_tri_info_from_polydata(
+                surface_threshold
+            )
             tags_to_add = np.array(cell_data["tags"], dtype=int)
 
             tris = np.vstack((tris, tris_to_add + offset))
@@ -1146,9 +1097,7 @@ class HeartMesh:
 
         # extract rings of valve parts
 
-        cavities_and_parts = copy.deepcopy(
-            VALID_MODELS[self.info.model_type]["CavityDefinition"]
-        )
+        cavities_and_parts = copy.deepcopy(VALID_MODELS[self.info.model_type]["CavityDefinition"])
         vtk_labels_to_use = self.info.vtk_labels_to_use
 
         # create new tags for rings
@@ -1160,15 +1109,11 @@ class HeartMesh:
 
         for part_list in cavities_and_parts:
             part_name_myocardium = [
-                part_name
-                for part_name in part_list
-                if "myocardium" in part_name
+                part_name for part_name in part_list if "myocardium" in part_name
             ]
             if len(part_name_myocardium) != 1:
                 raise ValueError(
-                    "Expecting only one myocardium but found {0} ".format(
-                        len(part_name_myocardium)
-                    )
+                    "Expecting only one myocardium but found {0} ".format(len(part_name_myocardium))
                 )
             else:
                 part_name_myocardium = part_name_myocardium[0]
@@ -1179,9 +1124,7 @@ class HeartMesh:
 
             tris_myocardium = tris[tags == vtk_tag_myocardium, :]
 
-            mesh = meshio.Mesh(
-                points=nodes, cells=[("triangle", tris_myocardium)]
-            )
+            mesh = meshio.Mesh(points=nodes, cells=[("triangle", tris_myocardium)])
             mesh.write("myocardium_{:0>3.0f}.vtk".format(vtk_tag_myocardium))
 
             # loop over remaining parts to find overlaps with reference part ( myocardium )
@@ -1190,14 +1133,11 @@ class HeartMesh:
                 part_id = vtk_labels_to_use[part_name]
                 tris_part = tris[tags == part_id, :]
                 node_indices_intersect = np.intersect1d(
-                    np.unique(tris_myocardium.ravel()),
-                    np.unique(tris_part.ravel()),
+                    np.unique(tris_myocardium.ravel()), np.unique(tris_part.ravel()),
                 )
 
                 np.savetxt(
-                    "intersecting_nodes.csv",
-                    nodes[node_indices_intersect, :],
-                    delimiter=",",
+                    "intersecting_nodes.csv", nodes[node_indices_intersect, :], delimiter=",",
                 )
                 # find elements that refer these nodes and change tag
                 # finds the overlapping faces
@@ -1215,9 +1155,7 @@ class HeartMesh:
                 tris_tagged = tris_part[tri_indices_to_tag, :]
 
                 # # remove the elements that use the intersecting nodes from the surface
-                indices_duplicate = find_duplicate_elements(
-                    tris_tagged, tris_myocardium
-                )
+                indices_duplicate = find_duplicate_elements(tris_tagged, tris_myocardium)
                 tris_myocardium[indices_duplicate, :] = -1
 
                 global_indices_tags = np.where(tags == part_id)[0]
@@ -1232,15 +1170,12 @@ class HeartMesh:
                 tris_tagged_1d = np.reshape(tris_tagged, (tris_tagged.size))
                 masked_tagged_1d = np.reshape(mask_tagged, (tris_tagged.size))
                 triangles_tagged = np.reshape(
-                    tris_tagged_1d[np.where(masked_tagged_1d)],
-                    (tris_tagged.shape[0], 3),
+                    tris_tagged_1d[np.where(masked_tagged_1d)], (tris_tagged.shape[0], 3),
                 )
 
                 # identify overlapping elements
 
-                mesh = meshio.Mesh(
-                    points=nodes, cells=[("triangle", triangles_tagged)]
-                )
+                mesh = meshio.Mesh(points=nodes, cells=[("triangle", triangles_tagged)])
                 stl_name = "triangles_pid_{:0>3.0f}.stl".format(part_id)
                 mesh.write(stl_name)
                 add_solid_name_to_stl(stl_name, "-".join(part_name.split()))
@@ -1250,14 +1185,11 @@ class HeartMesh:
             # write myocardium without the overlapping elements
             tris_myo_to_write = tris_myocardium[:, 0] > -1
             mesh = meshio.Mesh(
-                points=nodes,
-                cells=[("triangle", tris_myocardium[tris_myo_to_write, :])],
+                points=nodes, cells=[("triangle", tris_myocardium[tris_myo_to_write, :])],
             )
             stl_name = "triangles_pid_{:0>3.0f}.stl".format(vtk_tag_myocardium)
             mesh.write(stl_name)
-            add_solid_name_to_stl(
-                stl_name, "-".join(part_name_myocardium.split())
-            )
+            add_solid_name_to_stl(stl_name, "-".join(part_name_myocardium.split()))
 
         # find intersection between the myocardial parts
 

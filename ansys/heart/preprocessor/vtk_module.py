@@ -518,11 +518,11 @@ def vtk_map_discrete_cell_data(
     # write_vtkdata_to_vtkfile(vtk_object_target, "target_vtk.vtk")
     return vtk_object_target
 
-
 def vtk_map_continuous_data(
     source: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid],
     target: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid],
     normalize_vectors: bool = True,
+    array_names_to_include: list = [],
 ):
     """Maps cell and point data from source to target by making use of 
     VoronoiKernel and mapping cell to point data - and consequently mapping
@@ -534,12 +534,21 @@ def vtk_map_continuous_data(
         Input which to use as reference
     source : Union[vtk.PolyData, vtk.UnstructuredGrid]
         Target object onto which to interpolate data
+    array_names_to_include : list
+        List of array names to include for interpolation. If empty all cell and point arrays will be interpolated
 
     Notes
     -----
         Modifies the underlying data of the target vtk object and overwrites if
-        a data field with the same name is already present
+        a data field with the same name is already present.
     """
+    # NOTE: could use AddExcludeArray to exclude specific arrays from the interpolation
+
+    if array_names_to_include == []:
+        include_all = True
+    else:
+        include_all = False
+
     # get info on the data arrays
     # use numpy intergration to convert to "numpy" vtk array
     source_obj = dsa.WrapDataObject(source)
@@ -569,6 +578,17 @@ def vtk_map_continuous_data(
     interpolator.SetSourceData(source_interpolator)
     interpolator.SetKernel(voronoiKernel)
     # interpolator.SetKernel( linearKernel )
+
+    # add list of excluded array names:
+    # does not distinguish between cell or point data
+    if not include_all:
+        excludes = list(
+            set(cell_array_names_source + point_array_names_source) - set(array_names_to_include)
+        )
+        for exclude in excludes:
+            interpolator.AddExcludedArray(exclude)
+        logger.debug("Excluding %d array names" % len(excludes))
+
     interpolator.Update()
 
     # convert all data to cell data: NOTE here an interpolation error occurs
@@ -642,33 +662,61 @@ def vtk_map_continuous_data(
 
 def vtk_remove_arrays(
     vtk_grid: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid],
-    array_name: str,
+    array_name: str = "",
     data_type: str = "cell_data",
     remove_all: bool = False,
+    except_array_names: List[str] = [],
 ):
     """Removes all or specific data arrays from vtk object
     """
-    if data_type not in ["cell_data", "point_data"]:
+
+    if data_type not in ["cell_data", "point_data", "both"]:
         raise ValueError("Data type not valid")
+
+    if data_type == "both" and len(except_array_names) > 0:
+        raise ValueError("Please specify either point_data or cell_data when using exception list")
+
+    remove_cell_data = False
+    remove_point_data = False
+
+    if data_type in ["cell_data", "both"]:
+        remove_cell_data = True
+    if data_type in ["point_data", "both"]:
+        remove_point_data = True
 
     num_cell_data = vtk_grid.GetCellData().GetNumberOfArrays()
     num_point_data = vtk_grid.GetPointData().GetNumberOfArrays()
 
+    expected_number_of_arrays = len(except_array_names)
     if remove_all:
-        while num_cell_data > 0:
-            vtk_grid.GetCellData().RemoveArray(0)
-            num_cell_data = vtk_grid.GetCellData().GetNumberOfArrays()
-        while num_point_data > 0:
-            vtk_grid.GetPointData().RemoveArray(0)
-            num_point_data = vtk_grid.GetPointData().GetNumberOfArrays()
+
+        if remove_cell_data:
+            idx = 0
+            while num_cell_data > expected_number_of_arrays:
+                name_array_remove = vtk_grid.GetCellData().GetArrayName(idx)
+                if name_array_remove in except_array_names:
+                    idx = idx + 1
+                    continue
+                vtk_grid.GetCellData().RemoveArray(idx)
+                num_cell_data = vtk_grid.GetCellData().GetNumberOfArrays()
+
+        if remove_point_data:
+            idx = 0
+            while num_point_data > expected_number_of_arrays:
+                name_array_remove = vtk_grid.GetPointData().GetArrayName(idx)
+                if name_array_remove in except_array_names:
+                    idx = idx + 1
+                    continue
+                vtk_grid.GetPointData().RemoveArray(idx)
+                num_point_data = vtk_grid.GetPointData().GetNumberOfArrays()
 
     else:
-        if data_type == "cell_data":
+        if remove_cell_data:
             for ii in range(num_cell_data):
                 if array_name == vtk_grid.GetCellData().GetArrayName(ii):
                     vtk_grid.GetCellData().RemoveArray(ii)
 
-        elif data_type == "point_data":
+        elif remove_point_data:
             for ii in range(num_point_data):
                 if array_name == vtk_grid.GetPointData().GetArrayName(ii):
                     vtk_grid.GetPointData().RemoveArray(ii)

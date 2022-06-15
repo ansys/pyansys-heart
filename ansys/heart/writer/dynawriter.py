@@ -7,6 +7,7 @@ import os
 import time
 import json
 from pathlib import Path
+from tqdm import tqdm # for progress bar
 
 from ansys.heart.preprocessor.heart_model import HeartModel
 from ansys.heart.preprocessor.heart_mesh import ClosingCap
@@ -857,9 +858,28 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # exit()
         # # end debug code
 
+        # create load curve to control when pericardium is active
+        load_curve_kw = keywords.DefineCurve(
+            lcid = 3            
+        )
+        load_curve_kw.options["TITLE"].active = True
+        load_curve_kw.title = "pericardium activation curve"
+        load_curve_kw.curves = pd.DataFrame(
+            {
+                "a1" : np.array( [0, 1] ),
+                "o1" : np.array( [0, 1] )
+            }
+        )
+        self.kw_database.pericardium.append( load_curve_kw )
+        
         cnt = 0
-        for isg, sgmt in enumerate(epicardium_segment):
-            if penalty[isg] > 0.01:
+        load_sgm_kws = []
+        segment_ids = []        
+        logger.debug("Creating segment sets for epicardium b.c.:")
+
+        penalty_threshold = 0.01
+        for isg, sgmt in enumerate( tqdm( epicardium_segment, ascii=True ) ):
+            if penalty[isg] > penalty_threshold:
                 cnt += 1
 
                 # coord = self.volume_mesh["nodes"][sgmt]
@@ -878,14 +898,46 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 #     yp=coord[0, 1],
                 #     zp=coord[0, 2],
                 # )
-                load_sgm_kw=create_segment_set_keyword(sgmt.reshape(1,-1)+1,segid=1000+cnt)  # todo: auto counter
-                # todo: use dynalib
-                user_loadset_kw = "*USER_LOADING_SET\n{0:d},PRESSS,2,,{1:f},,,100".format(1000+cnt,penalty[isg])
-                self.kw_database.pericardium.append(load_sgm_kw)
-                self.kw_database.pericardium.append(user_loadset_kw)
-        user_load_kw = "*USER_LOADING\n{0:f}".format(0.05)
-        self.kw_database.pericardium.append(user_load_kw)
 
+                segment_id = 1000+cnt
+                segment_ids.append(segment_id)
+
+                load_sgm_kw=create_segment_set_keyword(
+                    segments = sgmt.reshape(1,-1)+1,
+                    segid = segment_id )  # todo: auto counter
+
+                load_sgm_kws.append( load_sgm_kw )                
+                               
+        self.kw_database.pericardium.extend(load_sgm_kws)   
+                     
+        # create user loadset keyword
+        # segment_ids = 1000 + np.arange(0, np.sum( penalty > 0.01 ), 1) 
+        user_loadset_kw = custom_keywords.UserLoadingSet()
+
+        # NOTE: can assign mixed scalar/array values to dataframe - scalars are assigned to each row
+        user_loadset_kw.load_sets = pd.DataFrame(
+            {
+                "sid" : segment_ids,
+                "ltype" : "PRESSS",
+                "lcid" : 3, 
+                "sf1" : penalty[ penalty > penalty_threshold ],
+                "iduls" : 100
+            }
+        )
+        user_load_kw = custom_keywords.UserLoading(
+            parm1 = 0.05
+        )
+
+        # add to pericardium deck
+        self.kw_database.pericardium.extend(
+            [
+                user_loadset_kw,
+                user_load_kw
+            ]
+        )
+
+        return
+        
     def _update_cap_elements_db(self):
         """Updates the database of shell elements. Loops over all
         the defined caps/valves

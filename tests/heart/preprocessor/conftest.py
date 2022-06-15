@@ -26,6 +26,7 @@ def get_assets_folder():
 def get_workdir():    
     return os.path.join(ROOT_FOLDER, "workdir_tests")
 
+
 def create_directory(directory: str ):
     """Creates directory"""
     print("Creating directory for tests")
@@ -57,6 +58,7 @@ def compare_string_with_file(output: str, reference_file: str) -> None:
     reference_file: pathlib.Path = get_assets_folder() / reference_file
     output = normalize_line_endings(output)
     ref_contents = read_file(reference_file)
+
     assert output == ref_contents
 
 def clean_directory(directory: str):
@@ -74,3 +76,4 @@ def remove_keys_from_dict(dictionary: dict, exclude_keys = [] ):
     """Removes specific keys from the dictionary"""
     new_d = {k: dictionary[k] for k in set(list(dictionary.keys())) - set(exclude_keys)}
     return new_d
+

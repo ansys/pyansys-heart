@@ -32,7 +32,7 @@ mechanics and a system model:
     #     "FourChamber" ]
     # Define the necessary model information:
     model_info = ModelInformation(
-        model_type = "Bi-Ventricle",
+        model_type = "BiVentricle",
         database_name = "Strocchi2020",
         path_original_mesh = case_path,
         working_directory = work_dir,

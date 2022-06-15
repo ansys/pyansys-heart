@@ -93,6 +93,8 @@ class HeartModel:
             filename = os.path.join(
                 self.info.working_directory, "model_info.json"
             )
+            
+        self.get_model_characteristics()
 
         # export the mesh
         self._mesh.export_mesh(filename)
@@ -153,6 +155,56 @@ class HeartModel:
         self._mesh._create_myocardium_element_sets()
 
         return
+
+    def get_model_characteristics(self, write_to_file: bool = True) -> dict:
+        """Creates a dictionary of model characteristics
+
+        Parameters
+        ----------
+        write_to_file : bool, optional
+            Flag indicating whether to write to file , by default True
+
+        Returns
+        -------
+        dict
+            Dictionary of model characteristics
+        """
+        characteristics = {
+            "model": {},
+            "mesh": {
+                "cavity" : []
+                }
+            }
+
+        characteristics["model"]["type"] = self.info.model_type
+        characteristics["mesh"]["num-cavities"] = len(self._mesh._cavities)
+        num_caps = 0
+        cavity_names = []
+        for cavity in self._mesh._cavities:
+            cavity_names.append( cavity.name )
+            cap_names = []
+            for cap in cavity.closing_caps:
+                cap_names.append( cap.name )
+                num_caps += 1
+            cavity.volume
+            cavity_info = { 
+                "name"      : cavity.name,
+                "cap-names" : cap_names,
+                "volume"    : cavity.volume
+                # "caps"      : cavity.closing_caps
+            }
+            characteristics["mesh"]["cavity"].append ( cavity_info )
+
+        characteristics["mesh"]["num-caps"]     = num_caps
+        characteristics["mesh"]["cavity-names"] = cavity_names       
+
+        # write to json
+        import json
+        json_path = os.path.join( self.info.working_directory, "model_characteristics.json" )
+        with open (json_path, "w") as outfile:
+            json.dump( characteristics, indent = 4, fp = outfile )
+
+        return characteristics
 
 
 if __name__ == "__main__":

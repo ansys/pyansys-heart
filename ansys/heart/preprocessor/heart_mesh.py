@@ -768,9 +768,9 @@ class HeartMesh:
         # NOTE: all normals should point inwards
         for cavity in self._cavities:
             # each cavity. Skip atrium cavities for now
-            if "atrium" in cavity.name:
-                logger.warning("Skipping volume computation %s" % cavity.name)
-                continue
+            # if "atrium" in cavity.name:
+            #     logger.warning("Skipping volume computation %s" % cavity.name)
+            #     continue
 
             cavity_triangles = np.empty((0, 3), dtype=int)
             for segsets in cavity.segment_sets:

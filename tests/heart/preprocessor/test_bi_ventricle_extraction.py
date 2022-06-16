@@ -62,7 +62,7 @@ def test_stl_consistency(stl_file):
         "points_endocardium_right_ventricle.vtk",
         "points_epicardium_left_ventricle.vtk",
         "points_epicardium_right_ventricle.vtk",
-        "points_epicardium-septum_left_ventricle.vtk",
+        "points_endocardium-septum_right_ventricle.vtk"
     ],
 )
 def test_vtk_consistency(vtk_file):

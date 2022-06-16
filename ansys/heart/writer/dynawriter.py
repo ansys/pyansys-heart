@@ -1523,41 +1523,63 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             # raise ValueError("Model type %s not supported" % self.model.info.model_type )
 
         elif self.model.info.model_type in ["BiVentricle", "FourChamber"]:
-            logger.error( "Model type %s not yet supported " % self.model.info.model_type )
+            logger.warning( "Model type %s under development " % self.model.info.model_type )
 
             # collect nodes and segment sets. 
             # node set: apex, base
             # segment sets: endocardium, epicardium
+            # NOTE: could be better if basal nodes are extracted in the preprocessor
+            # since that would allow you to robustly extract these nodessets using the 
+            # input data
             nodes_base = np.empty(0, dtype=int)
-            segment_set_ids_endo = []
-            segment_set_ids_epi = []
-            segment_set_id_lv_endo = 0
+            node_set_ids_endo = []
+            node_sets_ids_epi = []
+            node_set_id_lv_endo = 0
 
-            for cavity in self.model._mesh._cavities:                
+            for cavity in self.model._mesh._cavities: 
+                if "atrium" in cavity.name:
+                    continue 
+
                 for cap in cavity.closing_caps:
-                    nodes_base = np.append( nodes_base, cap.node_ids_cap_edge + 1 )
+                    nodes_base = np.append( nodes_base, cap.node_ids_cap_edge )
                 
-                for segment_set in cavity.segment_sets:
-                    if "endocardium" in segment_set["name"]:
-                        segment_set_ids_endo.append( segment_set["id"] )
+                for node_set in cavity.node_sets:
+                    if "endocardium" in node_set["name"]:
+                        node_set_ids_endo.append( node_set["id"] )
                         if cavity.name == "Left ventricle":
-                            segment_set_id_lv_endo = segment_set["id"]
-                    elif "epicardium" in segment_set["name"]:
-                        segment_set_ids_epi.append( segment_set["id"] )
+                            node_set_id_lv_endo = node_set["id"]
+                    elif "epicardium" in node_set["name"]:
+                        node_sets_ids_epi.append( node_set["id"] )
 
                 if cavity.name == "Left ventricle":
-                    node_apex = np.array( [cavity.apex_id["epicardium"] + 1 ] )
+                    node_apex = np.array( [cavity.apex_id["epicardium"]  ] )
 
+            # validate node set by removing any nodes that do not occur in either ventricle
+            # NOTE: can be much more consice
+            tet_ids_ventricles = np.empty( (0), dtype = int )
+            for cavity in self.model._mesh._cavities:                
+                for element_set in cavity.element_sets:
+                    if "ventricle" in cavity.name:
+                        tet_ids_ventricles = np.append( tet_ids_ventricles, element_set["set"] )
+            tetra_ventricles = self.volume_mesh["tetra"][tet_ids_ventricles, : ]
+
+            # remove nodes that occur just in atrial part
+            mask = np.isin( nodes_base, tetra_ventricles, invert=True )
+            logger.debug("Removing {0} nodes from base nodes".format( np.sum(mask) ) )
+            nodes_base = nodes_base[ np.invert( mask ) ]
+               
             # create set parts for lv and rv myocardium
             myocardium_part_ids = []
             septum_part_ids = []
             for cavity in self.model._mesh._cavities:
-                for element_set in cavity.element_sets:
-                    if element_set["name"] == "myocardium":
-                        myocardium_part_ids.append( element_set["id"] )
+                if "atrium" in cavity.name:
+                    continue
+                for segset in cavity.element_sets:
+                    if segset["name"] == "myocardium":
+                        myocardium_part_ids.append( segset["id"] )
 
-                    if element_set["name"] == "septum":
-                        septum_part_ids.append( element_set["id"] )
+                    if segset["name"] == "septum":
+                        septum_part_ids.append( segset["id"] )
             
             # Define part set for myocardium
             part_list1_kw = keywords.SetPartList(
@@ -1583,24 +1605,24 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             )
 
             # combine segment sets endocardium uing *SET_SEGMENT_ADD:
-            segment_set_id_all_endocardium = 1000
-            set_add_kw = keywords.SetSegmentAdd(
-                sid = segment_set_id_all_endocardium
+            node_set_id_all_endocardium = 1000
+            set_add_kw = keywords.SetNodeAdd(
+                sid = node_set_id_all_endocardium
             )
             set_add_kw.options["TITLE"].active = True
             set_add_kw.title = "all_endocardium_segments"
-            set_add_kw.sets._data = segment_set_ids_endo
+            set_add_kw.nodes._data = node_set_ids_endo
 
             self.kw_database.create_fiber.append( set_add_kw )
 
             # combine segment sets epicardium:
-            segment_set_id_all_epicardium = 1001
-            set_add_kw = keywords.SetSegmentAdd(
-                sid = segment_set_id_all_epicardium
+            node_set_id_all_epicardium = 1001
+            set_add_kw = keywords.SetNodeAdd(
+                sid = node_set_id_all_epicardium
             )
             set_add_kw.options["TITLE"].active = True
             set_add_kw.title = "all_epicardium_segments"
-            set_add_kw.sets._data = segment_set_ids_epi
+            set_add_kw.nodes._data = node_sets_ids_epi
 
             self.kw_database.create_fiber.append( set_add_kw )
 
@@ -1608,12 +1630,12 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             node_set_id_apex = 201
             # create node-sets for base and apex
             node_set_base_kw = create_node_set_keyword(
-                node_ids = nodes_base,
+                node_ids = nodes_base + 1,
                 node_set_id = node_set_id_base,
                 title = "base nodes"
             )
             node_set_apex_kw = create_node_set_keyword(
-                node_ids = node_apex,
+                node_ids = node_apex + 1,
                 node_set_id = node_set_id_apex,
                 title = "apex node"
             )
@@ -1642,9 +1664,9 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
                 custom_keywords.EmEpFiberinitial(
                     id = 2,
                     partid = 1, # set part id 1: myocardium
-                    stype = 1,  # set type 1 == segment set
-                    ssid1 = segment_set_id_all_epicardium, 
-                    ssid2 = segment_set_id_all_endocardium
+                    stype = 2,  # set type 1 == segment set, set type 2 == node set
+                    ssid1 = node_set_id_all_epicardium, 
+                    ssid2 = node_set_id_all_endocardium
                 )
             )
 
@@ -1653,9 +1675,9 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
                 custom_keywords.EmEpFiberinitial(
                     id = 3,
                     partid = 2, # set part id 2: septum
-                    stype = 1,  # set type 1 == segment set
-                    ssid1 = segment_set_id_all_epicardium, 
-                    ssid2 = segment_set_id_lv_endo
+                    stype = 2,  # set type 1 == segment set
+                    ssid1 = node_set_id_all_epicardium, 
+                    ssid2 = node_set_id_lv_endo
                 )
             )
            

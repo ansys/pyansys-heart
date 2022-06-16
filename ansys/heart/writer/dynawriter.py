@@ -1347,6 +1347,17 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         separate part
         """
 
+        # just keep ventricles in case of four chamber model
+        if self.model.info.model_type == "FourChamber":
+            logger.warning("Just keeping ventricular-parts for fiber generation")
+            cavities_to_keep = []
+            for ii, cavity in enumerate( self.model._mesh._cavities ):
+                if "ventricle" in cavity.name:
+                    cavities_to_keep.append(cavity)      
+
+            self.model._mesh._cavities = cavities_to_keep
+        
+
         logger.debug("Updating part keywords...")
         # add parts with a dataframe
         part_ids = []

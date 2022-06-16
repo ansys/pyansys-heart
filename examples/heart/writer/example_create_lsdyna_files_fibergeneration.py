@@ -13,9 +13,7 @@ from ansys.heart.preprocessor.model_information import ModelInformation
 from ansys.heart.custom_logging import logger
 from ansys.heart.writer.dynawriter import FiberGenerationDynaWriter
 
-from examples.heart.preprocessor.example_extract_simulation_mesh import (
-    clean_directory,
-)
+from ansys.heart.general import clean_directory
 
 ABS_BASE_PATH = Path(__file__).parent.absolute()
 

@@ -566,9 +566,13 @@ class Cavity:
 
         global_node_ids_septum = idmap_surface_to_volume[node_ids_septum]
 
-        # store in self (NOTE: this is not very explicit...)
-        self.node_sets[0]["set"] = global_node_ids_endocardium
-        self.node_sets[1]["set"] = global_node_ids_epicardium
+        # store in self 
+        for nodeset in self.node_sets:
+            if nodeset["name"] == "endocardium":
+                nodeset["set"] = global_node_ids_endocardium
+            elif nodeset["name"] == "epicardium":
+                nodeset["set"] = global_node_ids_epicardium           
+        
 
         # Septum nodeset only defined when BiVentricle or Four Chamber models are defined
         if (

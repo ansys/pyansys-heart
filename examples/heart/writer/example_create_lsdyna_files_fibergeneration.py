@@ -64,7 +64,7 @@ if __name__ == "__main__":
         "lsdyna_files_fibergeneration",
     )
 
-    # create_ls_dyna_files(path_model_info, export_path)
+    create_ls_dyna_files(path_model_info, export_path)
 
     # bi-ventricle model
     path_model_info = os.path.join(

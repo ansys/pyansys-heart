@@ -480,7 +480,33 @@ class HeartMesh:
 
                 nodes_used.append(nodeset["set"])
 
-            # write points of cavity to working directory
+        # add epicardium-septum to right ventricle node set
+        if self.info.model_type in ["BiVentricle", "FourChamber"]:
+            nodeset_septum = None
+            for cavity in self._cavities:
+                if cavity.name == "Left ventricle":
+                    for ii, node_set in enumerate(cavity.node_sets):
+                        if node_set["name"] == "epicardium-septum":
+                            nodeset_septum = copy.deepcopy(node_set)
+                    # remove key from segment set list
+                    cavity.node_sets.remove(node_set)
+
+            if nodeset_septum is None:
+                raise Error(
+                    "Did not find node set in Left ventricle cavity "
+                    "with name epicardium-septum"
+                )
+
+            for cavity in self._cavities:
+                if cavity.name == "Right ventricle":
+                    nodeset_septum["name"] = "endocardium-septum"
+                    cavity.node_sets.append(nodeset_septum)
+                    logger.debug(
+                        "Assigning septum of left ventricle to node set of right ventricle"
+                    )   
+
+
+        # write points of cavity to working directory
         for cavity in self._cavities:
             volume = dsa.WrapDataObject(self._vtk_volume)
             for nodeset in cavity.node_sets:

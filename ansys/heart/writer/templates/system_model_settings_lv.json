@@ -14,7 +14,7 @@
     "UseNewmarkCorrection": true,
     "UseGamma": true,
     "UseAlpha": false,
-    "NewmarkGamma": 0.66,
+    "NewmarkGamma": 0.6,
     "NewmarkAlpha": -0.05,
 
     "SystemModelParameters": {

@@ -1571,7 +1571,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
         # switch between the various models to generate valid input decks
         if self.model.info.model_type in ["LeftVentricle"]:
-            logger.error( "Model type %s in development " % self.model.info.model_type )
+            logger.warning( "Model type %s in development " % self.model.info.model_type )
 
             # Define part set for myocardium
             part_list1_kw = keywords.SetPartList(
@@ -1839,10 +1839,5 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
 
 if __name__ == "__main__":
+    print("protected")
 
-    A = BaseDecks()
-    B = MechanicsDecks()
-    vars(A)
-
-    # a = keywords.SetSegmentTitle()
-    part_kw = keywords.Part()

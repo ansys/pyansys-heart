@@ -598,7 +598,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             mat_id = 200
 
             # TODO: exposed to user/parameters?
-            spring_stiffness = 20
+            spring_stiffness = 200
             scale_factor_normal = 0.1
             scale_factor_radial = 0.3
 
@@ -979,19 +979,19 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # NOTE should be dynamic
         mat_null_id = 100
 
-        material_kw = MaterialCap(mid=mat_null_id)
+        # material_kw = MaterialCap(mid=mat_null_id)
 
-        # material_kw = MaterialAtrium(mid=mat_null_id, rho=1e-6, poisson_ratio=0.499, c10=1000)
+        material_kw = MaterialAtrium(mid=mat_null_id, rho=1e-6, poisson_ratio=0.499, c10=1000)
 
         section_kw = keywords.SectionShell(
             secid=section_id,
             elform=4,
             shrf=0.8333,
             nip=3,
-            t1=3,
-            t2=3,
-            t3=3,
-            t4=3,
+            t1=5,
+            t2=5,
+            t3=5,
+            t4=5,
         )
 
         self.kw_database.cap_elements.append(material_kw)

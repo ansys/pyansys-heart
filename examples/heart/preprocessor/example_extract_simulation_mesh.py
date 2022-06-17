@@ -11,6 +11,7 @@ import shutil
 from ansys.heart.preprocessor.heart_model import HeartModel
 from ansys.heart.preprocessor.model_information import ModelInformation
 from ansys.heart.custom_logging import logger
+from ansys.heart.general import clean_directory
 
 # some useful global variables:
 ASSET_PATH = os.path.join(
@@ -122,19 +123,6 @@ def extract_fourchamber_mesh_noremesh():
         model_info_path, clean_working_directory=REMOVE_INTERMEDIATE_FILES
     )
     return
-
-def clean_directory(directory: str):
-    """Cleans the directory by removing it and re-creating it
-    """
-
-    if os.path.isdir(directory):
-        shutil.rmtree(directory)
-        os.mkdir(directory)
-    else:
-        os.mkdir(directory)
-
-    return
-
 
 if __name__ == "__main__":
 

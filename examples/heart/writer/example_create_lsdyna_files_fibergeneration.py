@@ -11,8 +11,7 @@ from ansys.heart.preprocessor.heart_model import HeartModel
 from ansys.heart.preprocessor.model_information import ModelInformation
 from ansys.heart.custom_logging import logger
 from ansys.heart.writer.dynawriter import FiberGenerationDynaWriter
-
-from examples.heart.preprocessor.example_extract_simulation_mesh import clean_directory
+from ansys.heart.general import clean_directory
 
 ABS_BASE_PATH = Path(__file__).parent.absolute()
 
@@ -53,7 +52,7 @@ if __name__ == "__main__":
         ABS_BASE_PATH, "..", "workdir", "left_ventricle_model", "lsdyna_files_fibergeneration",
     )
 
-    # create_ls_dyna_files(path_model_info, export_path)
+    create_ls_dyna_files(path_model_info, export_path)
 
     # bi-ventricle model
     path_model_info = os.path.join(

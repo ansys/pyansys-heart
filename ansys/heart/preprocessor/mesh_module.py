@@ -2,6 +2,7 @@ import os
 import subprocess
 import numpy as np
 import gmsh
+import pathlib
 
 
 from ansys.heart.preprocessor._load_template import load_template
@@ -24,6 +25,11 @@ def mesh_by_fluentmeshing(path_to_input_stl: str, path_to_output: str, mesh_size
         "output_path": path_to_output,
         "mesh_size": mesh_size,
     }
+
+    # change directory to directory of stl file
+    old_directory = os.getcwd()
+    working_directory = pathlib.Path (path_to_input_stl).parent
+    os.chdir(working_directory)
 
     template = load_template("fluent_meshing_template.jou")
 
@@ -59,6 +65,9 @@ def mesh_by_fluentmeshing(path_to_input_stl: str, path_to_output: str, mesh_size
     logger.info("done")
 
     # p = subprocess.call(" ".join(args) )
+
+    # change back to old directory
+    os.chdir(old_directory)
 
     return
 

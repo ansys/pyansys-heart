@@ -1,19 +1,13 @@
 import math
 from msilib.schema import Error
 
-# from preprocessing.model import VentricleModel
 import numpy as np
 import vtk
-from typing import Union, List
-from ansys.heart.preprocessor.vtk_module import write_vtkdata_to_vtkfile
-from vtk.numpy_interface import (
-    dataset_adapter as dsa,
-)  # this is an improved numpy integration
+from typing import Union
+from vtk.numpy_interface import dataset_adapter as dsa  # this is an improved numpy integration
 
 
-def get_closed_path(
-    start_indices: Union[np.array, list], surface: vtk.vtkPolyData
-) -> np.array:
+def get_closed_path(start_indices: Union[np.array, list], surface: vtk.vtkPolyData) -> np.array:
     """Gets closed geodesic path on a surface from a list of start indices
     """
     surf = dsa.WrapDataObject(surface)
@@ -24,7 +18,8 @@ def get_closed_path(
     for i, start_idx in enumerate(start_indices):
         end_idx = end_indices[i]
 
-        # np.savetxt("start_end_node" + str(i) + ".csv", surf.Points[ [start_idx,end_idx], : ], delimiter = ',' )
+        # np.savetxt("start_end_node" + str(i) + ".csv",
+        # surf.Points[ [start_idx,end_idx], : ], delimiter = ',' )
 
         path = vtk_geodesic(surface, start_idx, end_idx)
         full_path.extend(path[:-1])
@@ -66,11 +61,9 @@ def vtk_geodesic(input: vtk.vtkPolyData, start_idx: int, end_idx: int):
     return ids
 
 
-def order_nodes_edgeloop(
-    node_indices: np.array, node_coords: np.array
-) -> np.array:
+def order_nodes_edgeloop(node_indices: np.array, node_coords: np.array) -> np.array:
     """This orders the node indices such that the ordered
-    set of nodes forms a closed/continuos loop. This uses the closest 
+    set of nodes forms a closed/continuos loop. This uses the closest
     point as next point in the edge loop
 
     Parameters
@@ -108,18 +101,14 @@ def order_nodes_edgeloop(
         idx_visited.append(next_idx)
         iters = iters + 1
         if iters > num_nodes:
-            raise Error(
-                "More iterations needed than expected - check impementation"
-            )
+            raise Error("More iterations needed than expected - check impementation")
 
     # remap to old numbering and return
     return node_indices[idx_visited]
 
 
-def sort_edgeloop_anti_clockwise(
-    points_to_sort: np.array, reference_point: np.array
-) -> bool:
-    """Sorts the points that form a edgeloop in anti-clockwise 
+def sort_edgeloop_anti_clockwise(points_to_sort: np.array, reference_point: np.array) -> bool:
+    """Sorts the points that form a edgeloop in anti-clockwise
     direction seen from the reference point.
 
     Parameters
@@ -133,9 +122,8 @@ def sort_edgeloop_anti_clockwise(
     -------
     bool
         Flag indicating whether the point order should be reversed or not
-    
     Note
-    ------
+    ----
     This only uses the first two points in the points array, but uses all
     points to compute the center of the sorted points that make up the edge
     loop
@@ -220,10 +208,7 @@ def sort_aniclkwise(xy_list, x0=None, y0=None):
     for i in range(len(xy_list)):
         xy_list[i].append(i)
 
-    xy_list1 = sorted(
-        xy_list,
-        key=lambda a_entry: carttopolar(a_entry[0], a_entry[1], x0, y0)[1],
-    )
+    xy_list1 = sorted(xy_list, key=lambda a_entry: carttopolar(a_entry[0], a_entry[1], x0, y0)[1],)
 
     sort_index = []
     for x in xy_list1:
@@ -261,12 +246,7 @@ def project_3d_points(p_set):
     # -------------------------------------------------------------------------------
     P_project = np.zeros(p_set.shape)
     for i in range(len(P_xy)):
-        point = (
-            rodrigues_rot(
-                np.array([P_xy[i, 0], P_xy[i, 1], 0]), [0, 0, 1], normal
-            )
-            + P_mean
-        )
+        point = rodrigues_rot(np.array([P_xy[i, 0], P_xy[i, 1], 0]), [0, 0, 1], normal) + P_mean
         P_project[i] = point.ravel()
 
     return P_project, normal, P_mean

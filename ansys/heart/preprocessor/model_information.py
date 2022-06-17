@@ -2,8 +2,7 @@ import os
 import json
 
 from ansys.heart.preprocessor.global_parameters import (
-    VALID_MODELS,
-    CAVITY_DEFINITIONS,
+    VALID_MODELS
 )
 
 # import logger
@@ -13,7 +12,7 @@ from ansys.heart.custom_logging import logger
 class ModelInformation:
     """Class that stores Model's meta data such as:
     working directory, original source file, parameters used, etc.
-    Also performs some checks whether the 
+    Also performs some checks whether the
     provided arguments are valid and as expected.
 
     Note
@@ -90,7 +89,7 @@ class ModelInformation:
 
     @property
     def vtk_labels_to_use(self) -> dict:
-        """This property is inherently linked to the model_type and hence 
+        """This property is inherently linked to the model_type and hence
         set by @model_type.setter
         """
         return self._vtk_labels_to_use
@@ -115,7 +114,7 @@ class ModelInformation:
             self._mesh_size = value
 
     def _get_list_of_tags_to_use(self, database_name: str):
-        """Relates the labels to tag ids. This is specific to the 
+        """Relates the labels to tag ids. This is specific to the
         database the vtk belongs to. That is: from the 24 hearts of Strocchi2020
         or to the database of 20 healthy hearts of Cristobal2021"""
 

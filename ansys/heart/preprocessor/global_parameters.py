@@ -3,11 +3,7 @@
 
 # cavity definitions
 CAVITY_DEFINITIONS = {
-    "LeftVentricle": [
-        "Left ventricle myocardium",
-        "Aortic valve plane",
-        "Mitral valve plane",
-    ],
+    "LeftVentricle": ["Left ventricle myocardium", "Aortic valve plane", "Mitral valve plane"],
     "RightVentricle": [
         "Right ventricle myocardium",
         "Tricuspid valve plane",
@@ -33,11 +29,7 @@ CAVITY_DEFINITIONS = {
 # dictionary of valid models
 VALID_MODELS = {
     "LeftVentricle": {
-        "LabelsToUse": [
-            "Left ventricle myocardium",
-            "Aortic valve plane",
-            "Mitral valve plane",
-        ],
+        "LabelsToUse": ["Left ventricle myocardium", "Aortic valve plane", "Mitral valve plane"],
         "CavityDefinition": [CAVITY_DEFINITIONS["LeftVentricle"]],
     },
     "BiVentricle": {

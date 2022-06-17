@@ -3,9 +3,7 @@ import scipy.spatial.distance
 import vtk
 from scipy.spatial import KDTree
 from vtk.util import numpy_support as VN  # noqa
-from vtk.numpy_interface import (
-    dataset_adapter as dsa,
-)  # this is an improved numpy integration
+from vtk.numpy_interface import dataset_adapter as dsa  # this is an improved numpy integration
 
 from ansys.heart.preprocessor.geodisc_module import project_3d_points
 from ansys.heart.preprocessor.geodisc_module import (
@@ -13,13 +11,6 @@ from ansys.heart.preprocessor.geodisc_module import (
     rodrigues_rot,
     sort_aniclkwise,
 )
-
-from ansys.heart.custom_logging import logger
-
-# from PreProcessing.model import VentricleModel
-
-# from model import VentricleModel
-
 
 def find_superior_cap(p_set, mesh):
     """
@@ -39,11 +30,9 @@ def find_superior_cap(p_set, mesh):
 
 
 def get_nodes_cap_edge(
-    points_close_to_surface: np.array,
-    surface: vtk.vtkPolyData,
-    surface_points_coord=None,
+    points_close_to_surface: np.array, surface: vtk.vtkPolyData, surface_points_coord=None,
 ):
-    """Gets the nodes which close each of the cavities. Returns the node 
+    """Gets the nodes which close each of the cavities. Returns the node
     indices that close the cap. Local node numbering is used
 
     """
@@ -68,18 +57,14 @@ def get_nodes_cap_edge(
     node_set = np.argwhere(dst < 1).ravel()
 
     # sort node set in anti clock direction
-    p_xy = rodrigues_rot(
-        nodes_surface[node_set] - p_mean, cap_normal, [0, 0, 1]
-    )
+    p_xy = rodrigues_rot(nodes_surface[node_set] - p_mean, cap_normal, [0, 0, 1])
     _, b = sort_aniclkwise(p_xy[:, 0:2].tolist())
     nodeset_ordered = node_set[b]
 
     # Valve nodes must on surface, this can not be ensured in case of multi-cavity
     # NOTE Martijn: Why is this the case?
     if surface_points_coord is not None:
-        dst = scipy.spatial.distance.cdist(
-            nodes_surface[nodeset_ordered], surface_points_coord
-        )
+        dst = scipy.spatial.distance.cdist(nodes_surface[nodeset_ordered], surface_points_coord)
         dd = np.min(dst, axis=1)
         # we eliminate the nodes if they are not on the surface
         nodeset_ordered = nodeset_ordered[np.where(dd == 0)]
@@ -155,18 +140,12 @@ def get_endo_epi_node_id(ventricle, valve_nodes, parts=2):
     deprecation method
     """
 
-    local_id = np.nonzero(
-        valve_nodes[:, None] == ventricle.surface["ids_to_volume"]
-    )[1]
+    local_id = np.nonzero(valve_nodes[:, None] == ventricle.surface["ids_to_volume"])[1]
     #  select elements if more than one node is in the list
-    split_ele = np.where(
-        np.any(np.isin(ventricle.surface["connect"], local_id), axis=1)
-    )[0]
+    split_ele = np.where(np.any(np.isin(ventricle.surface["connect"], local_id), axis=1))[0]
 
     # get endo/epi node coords
-    dct = extract_endo_epi_coords(
-        ventricle.surface_polydata, split_ele, parts=parts
-    )
+    dct = extract_endo_epi_coords(ventricle.surface_polydata, split_ele, parts=parts)
 
     # get their ID from volume mesh
     coords = VN.vtk_to_numpy(ventricle.volume.GetPoints().GetData())
@@ -307,8 +286,6 @@ def get_elements_attached_to_nodes(node_ids, all_nodes):
     # valve node id on surface mesh
     local_id = np.nonzero(node_ids[:, None] == all_nodes)[1]
     # select elements if more than one node is in the list
-    split_element = np.where(
-        np.any(np.isin(all_nodes.surface["connect"], local_id), axis=1)
-    )[0]
+    split_element = np.where(np.any(np.isin(all_nodes.surface["connect"], local_id), axis=1))[0]
 
     return split_element

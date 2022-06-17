@@ -14,12 +14,15 @@ import jinja2
 # Shared Jinja environment
 _environment = None
 
+
 def get_this_folder():
     return Path(__file__).parent
+
 
 def get_loader():
     template_folder = get_this_folder() / "templates"
     return jinja2.FileSystemLoader(str(template_folder.resolve()))
+
 
 def _jinja_environment():
     """

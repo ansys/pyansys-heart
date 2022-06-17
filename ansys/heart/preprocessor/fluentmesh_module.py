@@ -10,7 +10,6 @@ from ansys.heart.custom_logging import logger
 """Module containing functions to read/write fluent meshes in HDF5 format
 """
 
-
 def fluenthdf5_to_vtk(hdf5_filename: str, vtk_filename: str):
     """Converts Fluent hdf5 to vtk format
 
@@ -34,12 +33,8 @@ def fluenthdf5_to_vtk(hdf5_filename: str, vtk_filename: str):
 
         face_group = get_face_group(mesh_group[key])
         face_zone_info = get_face_zone_info(face_group)
-        tetrahedrons = face_group_to_tetrahedrons(
-            face_group, face_zone_info[0]
-        )
-        face_zones = face_group_to_face_zones(
-            face_group, face_zone_info[0], get_interior=False
-        )
+        tetrahedrons = face_group_to_tetrahedrons(face_group, face_zone_info[0])
+        face_zones = face_group_to_face_zones(face_group, face_zone_info[0], get_interior=False)
 
         points = get_nodes_from_mesh_group(mesh_group[key])[0]
 
@@ -48,9 +43,7 @@ def fluenthdf5_to_vtk(hdf5_filename: str, vtk_filename: str):
         for _, value in face_zones.items():
             # logger.info(value)
             cells.append(("triangle", value["faces"] - 1))
-            zoneids = (
-                np.ones(cells[-1][-1].shape[0], dtype=int) * value["zone-id"]
-            )
+            zoneids = np.ones(cells[-1][-1].shape[0], dtype=int) * value["zone-id"]
             cell_data.append(zoneids)
 
         cells.append(("tetra", tetrahedrons - 1))
@@ -150,9 +143,7 @@ def face_group_to_face_zones(
         # concatenate all faces into single array
         faces = np.reshape(faces, (int(len(faces) / 3), 3))
 
-        faces_zoneid = np.append(
-            faces_zoneid, np.ones(faces.shape[0], dtype=int) * (ii + 1)
-        )
+        faces_zoneid = np.append(faces_zoneid, np.ones(faces.shape[0], dtype=int) * (ii + 1))
 
         faces_all = np.append(faces_all, faces, axis=0)
 
@@ -167,16 +158,14 @@ def face_group_to_face_zones(
     return faces_out
 
 
-def face_group_to_tetrahedrons(
-    face_group: h5py.Group, face_zone_names: List[str]
-) -> np.array:
+def face_group_to_tetrahedrons(face_group: h5py.Group, face_zone_names: List[str]) -> np.array:
     """"Converts Fluent's face connectivity matrix to tetrahedron elements.
-    Format Fluent face: 
+    Format Fluent face:
     [n0 n1 n2] [c0 c1]
     n0 n1 n2 : node indices that make up face
-    c0 c1    : cell indices to which face is connected. Max 2. 
+    c0 c1    : cell indices to which face is connected. Max 2.
 
-    Note: this finds n3 to construct a tetrahedron 
+    Note: this finds n3 to construct a tetrahedron
     based on the connectivity of the faces. I.e.: the tetrahedron
     is defined by four faces as:
     f1: n1 n2 n3
@@ -184,7 +173,7 @@ def face_group_to_tetrahedrons(
     f3: n2 n3 n4
     f3: n1 n3 n4
 
-    Hence the tetrahedron will be composed of n1 n2 n3 n4. 
+    Hence the tetrahedron will be composed of n1 n2 n3 n4.
     This function exploits this characteristic
 
     Parameters
@@ -215,15 +204,11 @@ def face_group_to_tetrahedrons(
         nnodes = np.array(face_group[subdir2])
 
         if not np.all(nnodes == 3):
-            raise Exception(
-                "Functionality for non-triangular faces not implemented..."
-            )
+            raise Exception("Functionality for non-triangular faces not implemented...")
 
         # concatenate all faces into single array
         faces = np.reshape(faces, (int(len(faces) / 3), 3))
-        faces_zoneid = np.append(
-            faces_zoneid, np.ones(faces.shape[0]) * (ii + 1)
-        )
+        faces_zoneid = np.append(faces_zoneid, np.ones(faces.shape[0]) * (ii + 1))
         faces_all = np.append(faces_all, faces, axis=0)
 
     # cell connectivity arrays
@@ -233,14 +218,10 @@ def face_group_to_tetrahedrons(
     for ii, facezone in enumerate(face_zone_names):
         subdir1 = "c0/" + str(ii + 1)
         subdir2 = "c1/" + str(ii + 1)
-        c0c1 = np.column_stack(
-            (np.array(face_group[subdir1]), np.array(face_group[subdir2]))
-        )
+        c0c1 = np.column_stack((np.array(face_group[subdir1]), np.array(face_group[subdir2])))
         c0c1_all = np.append(c0c1_all, c0c1, axis=0)
 
-    uniq_elem_id, uniq_count = np.unique(
-        c0c1_all[c0c1_all > 0], return_counts=True
-    )
+    uniq_elem_id, uniq_count = np.unique(c0c1_all[c0c1_all > 0], return_counts=True)
     num_elem = uniq_elem_id.size
 
     tetrahedrons = np.empty((num_elem, 4), dtype=int)
@@ -282,10 +263,4 @@ def face_group_to_tetrahedrons(
 
 
 if __name__ == "__main__":
-    hdf5_filename = r"D:\SharedRepositories\CardiacModeling\parametric_heart\preprocessing\test\case\01\output\output_surface_spaceclaim.msh.h5"
-
-    fluenthdf5_to_vtk(hdf5_filename, "test.vtk")
-
-
-if __name__ == "__main__":
-    logger.info("Protected")
+    print("Protected")

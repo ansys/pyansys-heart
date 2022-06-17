@@ -44,12 +44,13 @@ def create_ls_dyna_files(path_to_model_info: str, export_directory: str = None):
 
 if __name__ == "__main__":
 
-    run_all = False
+    run_all = True
     if run_all:
         models_to_run = [
             "LeftVentricle",
             "BiVentricle",
-            "FourChamber"
+            "FourChamber",
+            "FourChamberOriginal"
             ]
     else:
         models_to_run = []
@@ -76,8 +77,9 @@ if __name__ == "__main__":
         )
         create_ls_dyna_files(path_model_info)
 
-    # four chamber model with original mesh
-    path_model_info = os.path.join(
-        ABS_BASE_PATH, "..", "workdir", "four_chamber_model_original", "model_info.json"
-    )
-    create_ls_dyna_files(path_model_info)
+    if "FourChamberOriginal" in models_to_run:
+        # four chamber model with original mesh
+        path_model_info = os.path.join(
+            ABS_BASE_PATH, "..", "workdir", "four_chamber_model_original", "model_info.json"
+        )
+        create_ls_dyna_files(path_model_info)

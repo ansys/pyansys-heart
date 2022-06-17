@@ -531,7 +531,7 @@ class HeartMesh:
                     cavity.node_sets.remove(node_set)
 
             if nodeset_septum is None:
-                raise Error(
+                raise ValueError(
                     "Did not find node set in Left ventricle cavity "
                     "with name epicardium-septum"
                 )

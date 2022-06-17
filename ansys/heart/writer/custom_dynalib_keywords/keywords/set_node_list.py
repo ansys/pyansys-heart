@@ -4,6 +4,7 @@ from ansys.dyna.keywords.lib.duplicate_card import DuplicateCard
 from ansys.dyna.keywords.lib.option import Options, Option
 from ansys.dyna.keywords.lib.keyword_base import KeywordBase
 
+
 class SetNodeList(KeywordBase):
     """DYNA SET_NODE_LIST keyword"""
 
@@ -15,55 +16,13 @@ class SetNodeList(KeywordBase):
         self._cards = [
             Card(
                 [
-                    Field(
-                        "sid",
-                        int,
-                        0,
-                        10,
-                        kwargs.get("sid")
-                    ),
-                    Field(
-                        "da1",
-                        float,
-                        10,
-                        10,
-                        kwargs.get("da1", 0.0)
-                    ),
-                    Field(
-                        "da2",
-                        float,
-                        20,
-                        10,
-                        kwargs.get("da2", 0.0)
-                    ),
-                    Field(
-                        "da3",
-                        float,
-                        30,
-                        10,
-                        kwargs.get("da3", 0.0)
-                    ),
-                    Field(
-                        "da4",
-                        float,
-                        40,
-                        10,
-                        kwargs.get("da4", 0.0)
-                    ),
-                    Field(
-                        "solver",
-                        str,
-                        50,
-                        10,
-                        kwargs.get("solver", "MECH")
-                    ),
-                    Field(
-                        "its",
-                        str,
-                        60,
-                        10,
-                        kwargs.get("its", "1")
-                    ),
+                    Field("sid", int, 0, 10, kwargs.get("sid")),
+                    Field("da1", float, 10, 10, kwargs.get("da1", 0.0)),
+                    Field("da2", float, 20, 10, kwargs.get("da2", 0.0)),
+                    Field("da3", float, 30, 10, kwargs.get("da3", 0.0)),
+                    Field("da4", float, 40, 10, kwargs.get("da4", 0.0)),
+                    Field("solver", str, 50, 10, kwargs.get("solver", "MECH")),
+                    Field("its", str, 60, 10, kwargs.get("its", "1")),
                 ],
             ),
             DuplicateCard(
@@ -80,31 +39,21 @@ class SetNodeList(KeywordBase):
                 None,
             ),
         ]
-        self._options = Options([
-            Option(
-                name = "TITLE",
-                card_order = -1,
-                title_order = 1,
-                cards = [
-                    Card(
-                        [
-                            Field(
-                                "title",
-                                str,
-                                0,
-                                80,
-                                kwargs.get("title")
-                            ),
-                        ],
-                    ),
-                ]
-            ),
-        ])
+        self._options = Options(
+            [
+                Option(
+                    name="TITLE",
+                    card_order=-1,
+                    title_order=1,
+                    cards=[Card([Field("title", str, 0, 80, kwargs.get("title")),],),],
+                ),
+            ]
+        )
 
     @property
     def sid(self) -> typing.Optional[int]:
         """Get or set the Node set ID. All node sets should have a unique set ID.
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("sid")
 
     @sid.setter
@@ -114,7 +63,7 @@ class SetNodeList(KeywordBase):
     @property
     def da1(self) -> float:
         """Get or set the First nodal attribute default value is 0.0.
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("da1")
 
     @da1.setter
@@ -124,7 +73,7 @@ class SetNodeList(KeywordBase):
     @property
     def da2(self) -> float:
         """Get or set the Second nodal attribute default value is 0.0.
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("da2")
 
     @da2.setter
@@ -134,7 +83,7 @@ class SetNodeList(KeywordBase):
     @property
     def da3(self) -> float:
         """Get or set the Third nodal attribute default value is 0.0.
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("da3")
 
     @da3.setter
@@ -144,7 +93,7 @@ class SetNodeList(KeywordBase):
     @property
     def da4(self) -> float:
         """Get or set the Fourth nodal attribute default value is 0.0.
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("da4")
 
     @da4.setter
@@ -156,7 +105,7 @@ class SetNodeList(KeywordBase):
         """Get or set the EQ.MECH: mechanics.
          EQ.CESE: CE/SE compressible fluid flow solver.
         EQ.ICFD: Incompressible fluid flow solver.
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("solver")
 
     @solver.setter
@@ -170,7 +119,7 @@ class SetNodeList(KeywordBase):
         """Get or set the Specify coupling type across different scales in two-scale co-simulation. This flag should only be included for node sets that provide coupling information in the input file referred to by *INCLUDE_COSIM; 
         EQ.1:	Tied contact coupling
         EQ.2 : Solid - in - shell immersed coupling
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("its")
 
     @its.setter
@@ -181,21 +130,20 @@ class SetNodeList(KeywordBase):
 
     @property
     def nodes(self):
-        '''Gets the table of segments'''
+        """Gets the table of segments"""
         return self._cards[1].table
 
     @nodes.setter
     def nodes(self, df):
-        '''sets segments from the dataframe df'''
+        """sets segments from the dataframe df"""
         self._cards[1].table = df
 
     @property
     def title(self) -> typing.Optional[str]:
         """Get or set the Additional title line
-        """ # nopep8
+        """  # nopep8
         return self._options["TITLE"].cards[0].get_value("title")
 
     @title.setter
     def title(self, value: str) -> None:
         self._options["TITLE"].cards[0].set_value("title", value)
-

@@ -2,6 +2,7 @@ import typing
 from ansys.dyna.keywords.lib.card import Card, Field
 from ansys.dyna.keywords.lib.keyword_base import KeywordBase
 
+
 class UserLoading(KeywordBase):
     """DYNA USER_LOADING keyword"""
 
@@ -13,62 +14,14 @@ class UserLoading(KeywordBase):
         self._cards = [
             Card(
                 [
-                    Field(
-                        "parm1",
-                        float,
-                        0,
-                        10,
-                        kwargs.get("parm1")
-                    ),
-                    Field(
-                        "parm2",
-                        float,
-                        10,
-                        10,
-                        kwargs.get("parm2")
-                    ),
-                    Field(
-                        "parm3",
-                        float,
-                        20,
-                        10,
-                        kwargs.get("parm3")
-                    ),
-                    Field(
-                        "parm4",
-                        float,
-                        30,
-                        10,
-                        kwargs.get("parm4")
-                    ),
-                    Field(
-                        "parm5",
-                        float,
-                        40,
-                        10,
-                        kwargs.get("parm5")
-                    ),
-                    Field(
-                        "parm6",
-                        float,
-                        50,
-                        10,
-                        kwargs.get("parm6")
-                    ),
-                    Field(
-                        "parm7",
-                        float,
-                        60,
-                        10,
-                        kwargs.get("parm7")
-                    ),
-                    Field(
-                        "parm8",
-                        float,
-                        70,
-                        10,
-                        kwargs.get("parm8")
-                    ),
+                    Field("parm1", float, 0, 10, kwargs.get("parm1")),
+                    Field("parm2", float, 10, 10, kwargs.get("parm2")),
+                    Field("parm3", float, 20, 10, kwargs.get("parm3")),
+                    Field("parm4", float, 30, 10, kwargs.get("parm4")),
+                    Field("parm5", float, 40, 10, kwargs.get("parm5")),
+                    Field("parm6", float, 50, 10, kwargs.get("parm6")),
+                    Field("parm7", float, 60, 10, kwargs.get("parm7")),
+                    Field("parm8", float, 70, 10, kwargs.get("parm8")),
                 ],
             ),
         ]
@@ -76,7 +29,7 @@ class UserLoading(KeywordBase):
     @property
     def parm1(self) -> typing.Optional[float]:
         """Get or set the This is the Nth user input parameter
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("parm1")
 
     @parm1.setter
@@ -86,7 +39,7 @@ class UserLoading(KeywordBase):
     @property
     def parm2(self) -> typing.Optional[float]:
         """Get or set the This is the Nth user input parameter
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("parm2")
 
     @parm2.setter
@@ -96,7 +49,7 @@ class UserLoading(KeywordBase):
     @property
     def parm3(self) -> typing.Optional[float]:
         """Get or set the This is the Nth user input parameter
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("parm3")
 
     @parm3.setter
@@ -106,7 +59,7 @@ class UserLoading(KeywordBase):
     @property
     def parm4(self) -> typing.Optional[float]:
         """Get or set the This is the Nth user input parameter
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("parm4")
 
     @parm4.setter
@@ -116,7 +69,7 @@ class UserLoading(KeywordBase):
     @property
     def parm5(self) -> typing.Optional[float]:
         """Get or set the This is the Nth user input parameter
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("parm5")
 
     @parm5.setter
@@ -126,7 +79,7 @@ class UserLoading(KeywordBase):
     @property
     def parm6(self) -> typing.Optional[float]:
         """Get or set the This is the Nth user input parameter
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("parm6")
 
     @parm6.setter
@@ -136,7 +89,7 @@ class UserLoading(KeywordBase):
     @property
     def parm7(self) -> typing.Optional[float]:
         """Get or set the This is the Nth user input parameter
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("parm7")
 
     @parm7.setter
@@ -146,10 +99,9 @@ class UserLoading(KeywordBase):
     @property
     def parm8(self) -> typing.Optional[float]:
         """Get or set the This is the Nth user input parameter
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("parm8")
 
     @parm8.setter
     def parm8(self, value: float) -> None:
         self._cards[0].set_value("parm8", value)
-

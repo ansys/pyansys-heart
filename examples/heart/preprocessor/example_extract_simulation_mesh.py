@@ -7,7 +7,6 @@ left-ventricle mesh, bi-ventricle mesh and four-chamber mesh
 import os
 from pathlib import Path
 import shutil
-import json
 
 from ansys.heart.preprocessor.heart_model import HeartModel
 from ansys.heart.preprocessor.model_information import ModelInformation
@@ -21,9 +20,7 @@ CASE_PATH = os.path.join(os.path.abspath(ASSET_PATH), "cases", "01", "01.case")
 
 BASE_WORK_DIR = os.path.join(Path(__file__).parent.absolute(), "..", "workdir")
 
-REMOVE_INTERMEDIATE_FILES = (
-    True  # flag indicating whether to remove intermediate files
-)
+REMOVE_INTERMEDIATE_FILES = False  # flag indicating whether to remove intermediate files
 
 
 def extract_leftventricle_mesh():
@@ -69,7 +66,6 @@ def extract_biventricle_mesh():
 
     bi_ventricle_info.mesh_size = 2.0
     biventricle_model = HeartModel(bi_ventricle_info)
-    
     biventricle_model.extract_simulation_mesh()
     biventricle_model.get_model_characteristics()
 
@@ -105,7 +101,7 @@ def extract_fourchamber_mesh():
 
 
 def clean_directory(directory: str):
-    """Cleans the directory by removing it and re-creating it 
+    """Cleans the directory by removing it and re-creating it
     """
 
     if os.path.isdir(directory):
@@ -124,11 +120,11 @@ if __name__ == "__main__":
 
     # extract left ventricle mesh
     logger.info("***************************")
-    extract_leftventricle_mesh()
+    # extract_leftventricle_mesh()
 
     # extract biventricle mesh
     logger.info("***************************")
-    extract_biventricle_mesh()
+    # extract_biventricle_mesh()
 
     # extract four chamber mesh
     logger.info("***************************")
@@ -136,4 +132,3 @@ if __name__ == "__main__":
 
     logger.info("***************************")
     logger.info("** DONE **")
-    

@@ -1,5 +1,5 @@
-"""This examples creates LS-DYNA files from existing 
-model_info.json files and its dependencies. 
+"""This examples creates LS-DYNA files from existing
+model_info.json files and its dependencies.
 Run "example_extract_simulation_mesh.py" first to create
 the required files.
 """
@@ -16,24 +16,21 @@ from examples.heart.preprocessor.example_extract_simulation_mesh import clean_di
 
 ABS_BASE_PATH = Path(__file__).parent.absolute()
 
-def create_ls_dyna_files(
-    path_to_model_info: str, export_directory: str = None
-):
+
+def create_ls_dyna_files(path_to_model_info: str, export_directory: str = None):
     """Creates the LS-DYNA files for the model specified
     """
     if not export_directory:
-        export_directory = os.path.join(
-            Path(path_model_info).parent.absolute(), "lsdyna_files"
-        )
+        export_directory = os.path.join(Path(path_model_info).parent.absolute(), "lsdyna_files")
 
     clean_directory(export_directory)
 
     # instantiate model ifnormation and heart model
-    model_info  = ModelInformation()
-    heart_model = HeartModel( model_info )
+    model_info = ModelInformation()
+    heart_model = HeartModel(model_info)
 
     # load processed heart model from info file
-    heart_model.load_model( path_model_info )
+    heart_model.load_model(path_model_info)
 
     # create dyna writer object and pass loaded model
     dyna_writer = MechanicsDynaWriter(heart_model)

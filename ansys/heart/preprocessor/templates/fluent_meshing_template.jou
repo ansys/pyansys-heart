@@ -33,6 +33,7 @@
 /objects/volumetric-regions compute "wrapped-myocardium" no
 /objects/volumetric-regions/change-type "wrapped-myocardium" '(*) solid
 ; start automeshing
+/mesh/tet/controls/cell-sizing size-field
 /mesh/auto-mesh "wrapped-myocardium" yes pyramids tet no
 ; improve quality
 /mesh/modify/auto-node-move '(*) '(*) 0.3 50 120 yes 5

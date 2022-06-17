@@ -141,13 +141,13 @@ if __name__ == "__main__":
     if not os.path.isdir(BASE_WORK_DIR):
         os.mkdir(BASE_WORK_DIR)
 
-    extract_four_chamber_no_remesh = True
-    run_all = False
+    run_all = True
     if run_all:
         models_to_run = [
             "LeftVentricle",
             "BiVentricle",
-            "FourChamber"
+            "FourChamber",
+            "FourChamberOriginal"
             ]
     else:
         models_to_run = []
@@ -167,7 +167,7 @@ if __name__ == "__main__":
         logger.info("***************************")
         extract_fourchamber_mesh()
 
-    if extract_four_chamber_no_remesh:
+    if "FourChamberOriginal" in models_to_run:
         logger.info("***************************")
         extract_fourchamber_mesh_noremesh()
 

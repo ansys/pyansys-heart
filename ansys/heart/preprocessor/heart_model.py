@@ -84,8 +84,14 @@ class HeartModel:
 
         return
 
-    def extract_simulation_mesh(self):
-        """Extracts the simulation mesh based on the model information provided
+    def extract_simulation_mesh(self, remesh: bool = True):
+        """Extracts the simulation mesh based on the model information provided        
+
+        Parameters
+        ----------
+        do_remesh : bool, optional
+            Flag indicating whether to perform a remeshing step with the
+            specified cell size, by default True
         """
         # exposed to user
 
@@ -94,24 +100,24 @@ class HeartModel:
         self._mesh.extract_parts()
         self._mesh.add_cavities()
 
-        do_remesh = self.info
-
-        if do_remesh:
+        if remesh:
             mesh_size = self.info.mesh_size
             logger.info("Remeshing uniformly with mesh size: %f " % mesh_size)
             self._mesh.remesh_volume(
                 mesher="fluent", mesh_size=mesh_size
             )  # need to make this dynamic.
             self.info.is_remeshed = True
+
+            # map data of original mesh to remeshed volume
+            # includes (discrete) mapping of the tags
+            self._mesh.map_data_to_remeshed_volume()
         else:
-            raise ValueError("Using original input data for simulation " "not yet supported")
-
-        # add remeshed volume to mesh object:
-        self._mesh.set_volume_mesh_vtk(self.info.path_mesh)
-
-        # map data of original mesh to remeshed volume
-        # includes (discrete) mapping of the tags
-        self._mesh.map_data_to_remeshed_volume()
+            myocardium_volume_vtk = self._mesh._extract_myocardium()
+            self._mesh._vtk_volume = myocardium_volume_vtk
+            self.info.is_remeshed = False
+            self.info._mesh_size = None
+            # raise ValueError("Using original input data for simulation " "not yet supported")
+            logger.warning("Extracting mesh without remeshing not thoroughly tested yet")
 
         # extract surface from remeshed volume mesh
         self._mesh.get_surface_from_volume()

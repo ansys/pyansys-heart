@@ -1311,7 +1311,6 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
                     cavities_to_keep.append(cavity)      
 
             self.model._mesh._cavities = cavities_to_keep
-        
 
         logger.debug("Updating part keywords...")
         # add parts with a dataframe
@@ -1467,13 +1466,13 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         node_sets_ids_epi = []
         node_set_id_lv_endo = 0
 
-        for cavity in self.model._mesh._cavities: 
+        for cavity in self.model._mesh._cavities:
             if "atrium" in cavity.name:
-                continue 
+                continue
 
             for cap in cavity.closing_caps:
                 nodes_base = np.append( nodes_base, cap.node_ids_cap_edge )
-            
+
             for node_set in cavity.node_sets:
                 if "endocardium" in node_set["name"]:
                     node_set_ids_endo.append( node_set["id"] )
@@ -1498,7 +1497,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         mask = np.isin( nodes_base, tetra_ventricles, invert=True )
         logger.debug("Removing {0} nodes from base nodes".format( np.sum(mask) ) )
         nodes_base = nodes_base[ np.invert( mask ) ]
-            
+
         # create set parts for lv and rv myocardium
         myocardium_part_ids = []
         septum_part_ids = []
@@ -1511,7 +1510,6 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
                 if segset["name"] == "septum":
                     septum_part_ids.append( segset["id"] )
-        
 
         # switch between the various models to generate valid input decks
         if self.model.info.model_type in ["LeftVentricle"]:
@@ -1520,12 +1518,12 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             # Define part set for myocardium
             part_list1_kw = keywords.SetPartList(
                 sid = 1,
-            )            
+            )
             part_list1_kw.parts._data = myocardium_part_ids
             part_list1_kw.options["TITLE"].active = True
             part_list1_kw.title = "myocardium_all"
 
-            self.kw_database.create_fiber.extend( 
+            self.kw_database.create_fiber.extend(
                 [
                     part_list1_kw,
                 ]
@@ -1596,7 +1594,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
                     ssid2 = node_set_id_all_endocardium
                 )
             )
-          
+
             # add *EM_EP_CREATEFIBERORIENTATION keywords
             self.kw_database.create_fiber.append (
                 custom_keywords.EmEpCreatefiberorientation(
@@ -1604,26 +1602,26 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
                     solvid1 = 1,
                     solvid2 = 2,
                     alpha = -101,
-                    beta = -102,         
+                    beta = -102,
                     wfile = 1,
-                    prerun = 1       
+                    prerun = 1
                 ) 
             )         
             
-            # define functions: 
+            # define functions:
             from ansys.heart.writer.define_function_strings import function1, function2, function3
-            self.kw_database.create_fiber.append( 
+            self.kw_database.create_fiber.append(
                 keywords.DefineFunction(
-                fid = 101,
-                function = function1
+                    fid = 101,
+                    function = function1
                 )
             )
             self.kw_database.create_fiber.append( 
                 keywords.DefineFunction(
-                fid = 102,
-                function = function2
+                    fid = 102,
+                    function = function2
                 )
-            )  
+            )
 
         elif self.model.info.model_type in ["BiVentricle", "FourChamber"]:
             logger.warning( "Model type %s under development " % self.model.info.model_type )
@@ -1700,7 +1698,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
                     id = 2,
                     partid = 1, # set part id 1: myocardium
                     stype = 2,  # set type 1 == segment set, set type 2 == node set
-                    ssid1 = node_set_id_all_epicardium, 
+                    ssid1 = node_set_id_all_epicardium,
                     ssid2 = node_set_id_all_endocardium
                 )
             )

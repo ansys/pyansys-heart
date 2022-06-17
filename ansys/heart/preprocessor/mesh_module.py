@@ -1,7 +1,8 @@
-from pathlib import Path
-import os, subprocess
+import os
+import subprocess
 import numpy as np
 import gmsh
+import pathlib
 
 
 from ansys.heart.preprocessor._load_template import load_template
@@ -15,9 +16,7 @@ _template_directory = os.path.join(os.path.dirname(__file__), "template")
 ## for remeshing purposes
 
 
-def mesh_by_fluentmeshing(
-    path_to_input_stl: str, path_to_output: str, mesh_size: float = 2.0
-):
+def mesh_by_fluentmeshing(path_to_input_stl: str, path_to_output: str, mesh_size: float = 2.0):
     """Uses Fluent meshing to wrap the surface and create
     tetrahedral mesh"""
 
@@ -27,11 +26,14 @@ def mesh_by_fluentmeshing(
         "mesh_size": mesh_size,
     }
 
+    # change directory to directory of stl file
+    old_directory = os.getcwd()
+    working_directory = pathlib.Path (path_to_input_stl).parent
+    os.chdir(working_directory)
+
     template = load_template("fluent_meshing_template.jou")
 
-    script = os.path.join(
-        os.path.dirname(path_to_input_stl), "fluent_meshing.jou"
-    )
+    script = os.path.join(os.path.dirname(path_to_input_stl), "fluent_meshing.jou")
     # script = "fluent_meshing.jou"
 
     with open(script, "w") as f:
@@ -40,7 +42,8 @@ def mesh_by_fluentmeshing(
     # subprocess.call( [SC_EXE, "/RunScript=" + script, *options] )
     num_cpus = 2
 
-    # args = ['"' + FLUENT_EXE + '"', "-v3ddp", "-tm{:.0f}".format(num_cpus), "-meshing", "-i", script  ]
+    # args = ['"' + FLUENT_EXE + '"', "-v3ddp",
+    # "-tm{:.0f}".format(num_cpus), "-meshing", "-i", script  ]
     args = [
         '"' + FLUENT_EXE + '"',
         "-v3ddp",
@@ -63,20 +66,21 @@ def mesh_by_fluentmeshing(
 
     # p = subprocess.call(" ".join(args) )
 
+    # change back to old directory
+    os.chdir(old_directory)
+
     return
 
 
 def shrink_by_spaceclaim(input, output):
-    """Uses SpaceClaim shrinkwrapping to wrap surface and 
+    """Uses SpaceClaim shrinkwrapping to wrap surface and
     create high quality surface mesh"""
 
     var_for_template = {
         "input": input,
         "output": output,
     }
-    posixpath_template = str(
-        os.path.join(_template_directory, "spaceclaim_shrink")
-    )
+    posixpath_template = str(os.path.join(_template_directory, "spaceclaim_shrink"))
     template = load_template("spaceclaim_shrink")
 
     script = "spaceclaim_shrink.py"
@@ -91,7 +95,7 @@ def shrink_by_spaceclaim(input, output):
 
 
 def run_gmsh(infile: str, outfile: str, mesh_size):
-    """Runs GMESH with specified in/output file 
+    """Runs GMESH with specified in/output file
     and target mesh size
 
     Args:

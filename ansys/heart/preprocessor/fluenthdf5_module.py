@@ -27,21 +27,15 @@ def fluenthdf5_to_vtk(hdf5_filename: str, vtk_filename: str):
     num_cell_zones = len(mesh_group)
 
     if num_cell_zones > 1:
-        raise NotImplementedError(
-            "Writing multiple cell zones not implemented yet"
-        )
+        raise NotImplementedError("Writing multiple cell zones not implemented yet")
 
     for key in mesh_group.keys():
         cell_zone_id = int(key)
 
         face_group = get_face_group(mesh_group[key])
         face_zone_info = get_face_zone_info(face_group)
-        tetrahedrons = face_group_to_tetrahedrons(
-            face_group, face_zone_info[0]
-        )
-        face_zones = face_group_to_face_zones(
-            face_group, face_zone_info[0], get_interior=False
-        )
+        tetrahedrons = face_group_to_tetrahedrons(face_group, face_zone_info[0])
+        face_zones = face_group_to_face_zones(face_group, face_zone_info[0], get_interior=False)
 
         points = get_nodes_from_mesh_group(mesh_group[key])[0]
 
@@ -51,10 +45,7 @@ def fluenthdf5_to_vtk(hdf5_filename: str, vtk_filename: str):
             for _, value in face_zones.items():
                 # logger.info(value)
                 cells.append(("triangle", value["faces"] - 1))
-                zoneids = (
-                    np.ones(cells[-1][-1].shape[0], dtype=int)
-                    * value["zone-id"]
-                )
+                zoneids = np.ones(cells[-1][-1].shape[0], dtype=int) * value["zone-id"]
                 cell_data.append(zoneids)
 
         cells.append(("tetra", tetrahedrons - 1))
@@ -167,9 +158,7 @@ def face_group_to_face_zones(
         # concatenate all faces into single array
         faces = np.reshape(faces, (int(len(faces) / 3), 3))
 
-        faces_zoneid = np.append(
-            faces_zoneid, np.ones(faces.shape[0], dtype=int) * (ii + 1)
-        )
+        faces_zoneid = np.append(faces_zoneid, np.ones(faces.shape[0], dtype=int) * (ii + 1))
 
         faces_all = np.append(faces_all, faces, axis=0)
 
@@ -184,16 +173,14 @@ def face_group_to_face_zones(
     return faces_out
 
 
-def face_group_to_tetrahedrons(
-    face_group: h5py.Group, face_zone_names: List[str]
-) -> np.array:
+def face_group_to_tetrahedrons(face_group: h5py.Group, face_zone_names: List[str]) -> np.array:
     """"Converts Fluent's face connectivity matrix to tetrahedron elements.
-    Format Fluent face: 
+    Format Fluent face:
     [n0 n1 n2] [c0 c1]
     n0 n1 n2 : node indices that make up face
-    c0 c1    : cell indices to which face is connected. Max 2. 
+    c0 c1    : cell indices to which face is connected. Max 2.
 
-    Note: this finds n3 to construct a tetrahedron 
+    Note: this finds n3 to construct a tetrahedron
     based on the connectivity of the faces. I.e.: the tetrahedron
     is defined by four faces as:
     f1: n1 n2 n3
@@ -201,7 +188,7 @@ def face_group_to_tetrahedrons(
     f3: n2 n3 n4
     f3: n1 n3 n4
 
-    Hence the tetrahedron will be composed of n1 n2 n3 n4. 
+    Hence the tetrahedron will be composed of n1 n2 n3 n4.
     This function exploits this characteristic
 
     Parameters
@@ -232,15 +219,11 @@ def face_group_to_tetrahedrons(
         nnodes = np.array(face_group[subdir2])
 
         if not np.all(nnodes == 3):
-            raise Exception(
-                "Functionality for non-triangular faces not implemented..."
-            )
+            raise Exception("Functionality for non-triangular faces not implemented...")
 
         # concatenate all faces into single array
         faces = np.reshape(faces, (int(len(faces) / 3), 3))
-        faces_zoneid = np.append(
-            faces_zoneid, np.ones(faces.shape[0]) * (ii + 1)
-        )
+        faces_zoneid = np.append(faces_zoneid, np.ones(faces.shape[0]) * (ii + 1))
         faces_all = np.append(faces_all, faces, axis=0)
 
     # cell connectivity arrays
@@ -250,14 +233,10 @@ def face_group_to_tetrahedrons(
     for ii, facezone in enumerate(face_zone_names):
         subdir1 = "c0/" + str(ii + 1)
         subdir2 = "c1/" + str(ii + 1)
-        c0c1 = np.column_stack(
-            (np.array(face_group[subdir1]), np.array(face_group[subdir2]))
-        )
+        c0c1 = np.column_stack((np.array(face_group[subdir1]), np.array(face_group[subdir2])))
         c0c1_all = np.append(c0c1_all, c0c1, axis=0)
 
-    uniq_elem_id, uniq_count = np.unique(
-        c0c1_all[c0c1_all > 0], return_counts=True
-    )
+    uniq_elem_id, uniq_count = np.unique(c0c1_all[c0c1_all > 0], return_counts=True)
     num_elem = uniq_elem_id.size
 
     tetrahedrons = np.empty((num_elem, 4), dtype=int)
@@ -297,147 +276,18 @@ def face_group_to_tetrahedrons(
     tetrahedrons = np.ndarray.astype(tetrahedrons, dtype=int)
     return tetrahedrons
 
-
-def _BROKEN_examine_fluent_hdf5_edge_loop(filename: str, nodes, edges):
-    """Loads edge loop and examines structure of hdf5
-    """
-
-    edges = edges + 1
-    edges = np.array(edges, dtype=np.uint)
-    edge_zone_id = 1
-    max_node_id = len(nodes)
-    min_node_id = 1
-    max_edge_id = edges.shape[0]
-    num_nodes_to_write = nodes.shape[0]
-    num_nodes_per_edge = np.ones(num_nodes_to_write, dtype=np.uint) * 2
-    edges_1d = np.reshape(edges, edges.size)
-
-    import shutil
-
-    shutil.copy(filename.replace(".msh.h5", "1.msh.h5"), filename)
-
-    fid = h5py.File(filename, "r+")
-    # fid.close()
-    # change the underlying data
-    # fid["meshes/1/edges/zoneTopology/id"][0] = edge_zone_id
-
-    # change node coordinates
-    # nodes = fid["meshes/1/nodes/coords/1"][:]   # tmp
-    del fid["meshes/1/nodes/coords/1"]
-    fid["meshes/1/nodes/coords"].create_dataset(name="1", data=nodes)
-
-    # change edges
-    # edges_1d = fid["meshes/1/edges/nodes/1/nodes"][:] # temp
-    del fid["meshes/1/edges/nodes/1/nodes"]
-    fid["meshes/1/edges/nodes/1"].create_dataset(name="nodes", data=edges_1d)
-
-    # change nnodes per edge
-    # num_nodes_per_edge = fid["meshes/1/edges/nodes/1/nnodes"][:] # tmp
-    del fid["meshes/1/edges/nodes/1/nnodes"]
-    fid["meshes/1/edges/nodes/1/"].create_dataset(
-        name="nnodes", data=num_nodes_per_edge
-    )
-
-    fid["meshes/1/edges/zoneTopology/maxId"][0] = max_edge_id
-    fid["meshes/1/nodes/zoneTopology/maxId"][0] = max_node_id
-
-    fid.close()
-
-    # ("coords", data = nodes )
-    # ("id", data = np.array([edge_zone_id]) )
-    # ("dimension", data = np.array([3]) )
-    # ("maxId", data = np.array([max_node_id]) )
-    # ("minId", data = np.array([min_node_id]) )
-    # ("name", data = np.array([b'feature-edge'], dtype = '|S7') )
-    # ("edgeType", data = np.array([5]) )
-    # ("zoneType", data = np.array([0]) )
-    # ("fields", data = np.array([b'edgeType;zoneType;'], dtype='|S18') )
-
-    # ("nnodes", data = num_nodes_per_edge )
-    # ("nodes", data = edges + 1 )
-
-    # # keys to create:
-    # keys = ['Cortex Variables', 'Origin', 'Solver', 'TGrid Meshing Data', 'TGrid Variables', 'Thread Variables', 'Version']
-
-    fid.close()
-    return
-
-
-def _BROKEN_edge_loop_to_msh_h5(nodes: np.array, edges: np.array):
-    """Creates a fluent compatible .msh.h5 file 
-    containing the specified edge loop with specified
-    id
-    """
-    # meshes/1
-    # - nodes
-    #  - zoneTopology
-    #  - coords
-    #   - 1 : 2d matrix of coordinates
-    # - edges
-    #  - zoneTopology
-    #   - id
-    #  - nodes
-    #   - 1
-    #    - nnodes : number of nodes per edge
-    #    - nodes : 1d array of node ids
-    # Two relevant fields:
-    # mesh_group["1/edges/zoneTopology"].keys()
-    # <KeysViewHDF5 ['id', 'dimension', 'maxId', 'minId', 'name', 'edgeType', 'zoneType', 'fields']>
-    #
-    # mesh_group["1/edges/nodes/1"].keys()
-    # <KeysViewHDF5 ['nnodes', 'nodes']>
-    edge_zone_id = 1
-    max_node_id = len(nodes) + 1
-    min_node_id = 1
-    num_nodes_to_write = nodes.shape[0]
-
-    import h5py as h5py
-
-    f = h5py.File("test.msh.h5", "w")
-
-    # create h5 structure from scratch
-    f.create_group("settings")
-    grp_coords = f.create_group("meshes/1/nodes")
-    grp_topology = f.create_group("meshes/1/edges/zoneTopology")
-    grp_nodes = f.create_group("meshes/1/edges/nodes/1")
-
-    grp_coords.create_dataset("coords", data=nodes)
-
-    grp_topology.create_dataset("id", data=np.array([edge_zone_id]))
-    grp_topology.create_dataset("dimension", data=np.array([3]))
-    grp_topology.create_dataset("maxId", data=np.array([max_node_id]))
-    grp_topology.create_dataset("minId", data=np.array([min_node_id]))
-    grp_topology.create_dataset(
-        "name", data=np.array([b"feature-edge"], dtype="|S7")
-    )
-    grp_topology.create_dataset("edgeType", data=np.array([5]))
-    grp_topology.create_dataset("zoneType", data=np.array([0]))
-    grp_topology.create_dataset(
-        "fields", data=np.array([b"edgeType;zoneType;"], dtype="|S18")
-    )
-
-    num_nodes_per_edge = np.ones(num_nodes_to_write) * 2
-
-    grp_nodes.create_dataset("nnodes", data=num_nodes_per_edge)
-    grp_nodes.create_dataset("nodes", data=edges + 1)
-
-    f.close()
-
-    return
-
-
 if __name__ == "__main__":
-    hdf5_filename = r"D:\SharedRepositories\CardiacModeling\parametric_heart\examples\workdir\left_ventricle_model\edge_loop.msh.h5"
+    print("protected")
+    # hdf5_filename = r"D:\SharedRepositories\CardiacModeling\parametric_heart\examples\workdir\"
+    # "left_ventricle_model\edge_loop.msh.h5"
 
-    nodes = np.array(
-        [[0, 0, 0], [1.0, 0.0, 0.0], [2.0, 0.0, 0.0], [2.0, 1.0, 0.0]],
-        dtype=float,
-    )
-    edges = np.array([[0, 1], [1, 2], [2, 3], [3, 0]], dtype=int)
-    _BROKEN_edge_loop_to_msh_h5(nodes, edges)
+    # nodes = np.array([[0, 0, 0], [1.0, 0.0, 0.0], [2.0, 0.0, 0.0], [2.0, 1.0, 0.0]], dtype=float,)
+    # edges = np.array([[0, 1], [1, 2], [2, 3], [3, 0]], dtype=int)
+    # _BROKEN_edge_loop_to_msh_h5(nodes, edges)
 
-    _BROKEN_examine_fluent_hdf5_edge_loop(hdf5_filename, nodes, edges)
+    # _BROKEN_examine_fluent_hdf5_edge_loop(hdf5_filename, nodes, edges)
 
-    hdf5_filename = r"D:\SharedRepositories\CardiacModeling\parametric_heart\preprocessing\test\case\01\output\output_surface_spaceclaim.msh.h5"
+    # hdf5_filename = r"D:\SharedRepositories\CardiacModeling\parametric_heart\
+    #     preprocessing\test\case\01\output\output_surface_spaceclaim.msh.h5"
 
-    fluenthdf5_to_vtk(hdf5_filename, "test.vtk")
+    # fluenthdf5_to_vtk(hdf5_filename, "test.vtk")

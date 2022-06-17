@@ -7,6 +7,7 @@ from ansys.dyna.keywords.lib.keyword_base import KeywordBase
 This files contains the keywords that is not supported by dynalib
 """
 
+
 class Mat077H(KeywordBase):
     """DYNA MAT_077_H keyword
         Replace the bug in current version of dynalib
@@ -50,11 +51,5 @@ class Mat077H(KeywordBase):
 
 if __name__ == "__main__":
     # test isotropic material
-    material_iso_kw = Mat077H(
-        mid=1,
-        ro=1e-6,
-        pr=0.499,
-        n=0,
-        c10=7.45,
-    )
+    material_iso_kw = Mat077H(mid=1, ro=1e-6, pr=0.499, n=0, c10=7.45,)
     print(material_iso_kw)

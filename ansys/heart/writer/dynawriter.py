@@ -1,16 +1,15 @@
 """Contains class for writing dyna keywords based on the HeartModel
 """
-from multiprocessing.sharedctypes import Value
 import numpy as np
 import pandas as pd
 import os
 import time
 import json
 from pathlib import Path
-from tqdm import tqdm # for progress bar
+from tqdm import tqdm  # for progress bar
 
 from ansys.heart.preprocessor.heart_model import HeartModel
-from ansys.heart.preprocessor.heart_mesh import ClosingCap
+from ansys.heart.preprocessor.cavity_module import ClosingCap
 
 from ansys.heart.custom_logging import logger
 from ansys.heart.preprocessor.vtk_module import (
@@ -62,7 +61,8 @@ class BaseDynaWriter:
         Parameters
         ----------
         model : HeartModel
-            HeartModel object which contains the necessary information for the writer, such as nodes and elements.
+            HeartModel object which contains the necessary
+            information for the writer, such as nodes and elements.
         """
 
         self.model = model
@@ -126,7 +126,7 @@ class BaseDynaWriter:
             if deckname == "main":
                 continue
             # skip if no keywords are present in the deck
-            if len( deck.keywords ) == 0:
+            if len(deck.keywords) == 0:
                 logger.debug("No keywords in deck: {0}".format(deckname))
                 continue
             self.include_files.append(deckname)
@@ -187,7 +187,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         respective keyword databases
         """
 
-
         self._update_main_db()
         self._update_node_db()
         self._update_solid_elements_db()
@@ -227,7 +226,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             json.dump(self.system_model_json, indent=4, fp=outfile)
 
         # export segment sets to separate file
-        self._export_cavity_segmentsets( export_directory )
+        self._export_cavity_segmentsets(export_directory)
 
         tend = time.time()
         logger.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
@@ -275,7 +274,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     "heading": [cavity.name],
                     "pid": [cavity.id],
                     "secid": [1],
-                    "mid": [cavity.id],  # mat ID is assumed to be the cavity ID,see in _update_material_db()
+                    "mid": [
+                        cavity.id
+                    ],  # mat ID is assumed to be the cavity ID,see in _update_material_db()
                 }
             )
             part_kw = keywords.Part()
@@ -417,11 +418,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         kw_damp = keywords.DampingGlobal(lcid=lcid_damp)
 
         kw_damp_curve = create_define_curve_kw(
-            x=[0, 100],
-            y=[500, 500],
-            curve_name="damping",
-            curve_id=lcid_damp,
-            lcint=0,
+            x=[0, 100], y=[500, 500], curve_name="damping", curve_id=lcid_damp, lcint=0,
         )
         self.kw_database.main.append(kw_damp)
         self.kw_database.main.append(kw_damp_curve)
@@ -438,9 +435,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             for segset in cavity.segment_sets:
                 segset_name = " ".join([cavity.name, segset["name"]])
                 kw = create_segment_set_keyword(
-                    segments=segset["set"] + 1,
-                    segid=segment_set_id,
-                    title=segset_name,
+                    segments=segset["set"] + 1, segid=segment_set_id, title=segset_name,
                 )
                 # append this kw to the segment set database
                 self.kw_database.segment_sets.append(kw)
@@ -617,20 +612,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 for cap in cavity.closing_caps:
                     if cap.name in caps_to_use:
                         self._add_springs_cap_edge(
-                            cap,
-                            part_id,
-                            scale_factor_normal,
-                            scale_factor_radial,
+                            cap, part_id, scale_factor_normal, scale_factor_radial,
                         )
 
         return
 
     def _add_springs_cap_edge(
-        self,
-        cap: ClosingCap,
-        part_id: int,
-        scale_factor_normal: float,
-        scale_factor_radial: float,
+        self, cap: ClosingCap, part_id: int, scale_factor_normal: float, scale_factor_radial: float,
     ):
         """Adds springs to the cap nodes and appends these
         to the boundary condition database
@@ -660,9 +648,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # add sd direction radial to nodes
         sd_orientation_radial_kw = create_define_sd_orientation_kw(
-            vectors=sd_orientations_radial,
-            vector_id_offset=self.id_offset["vector"],
-            iop=0,
+            vectors=sd_orientations_radial, vector_id_offset=self.id_offset["vector"], iop=0,
         )
 
         vector_ids_radial = sd_orientation_radial_kw.vectors["vid"].to_numpy()
@@ -722,7 +708,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         if np.any(uvc_l < 0):
             logger.warning(
-                "Negative normalized longitudinal coordinate detected. Changing {0} negative uvc_l values to 1".format(
+                "Negative normalized longitudinal coordinate detected."
+                "Changing {0} negative uvc_l values to 1".format(
                     np.sum((uvc_l < 0))
                 ),
             )
@@ -752,12 +739,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         part_kw = keywords.Part()
         part_kw.parts = pd.DataFrame(
-            {
-                "heading": ["Pericardium"],
-                "pid": [part_id],
-                "secid": [section_id],
-                "mid": [mat_id],
-            }
+            {"heading": ["Pericardium"], "pid": [part_id], "secid": [section_id], "mid": [mat_id]}
         )
         section_kw = keywords.SectionDiscrete(secid=section_id, cdl=0, tdl=0)
         mat_kw = keywords.MatSpringElastic(mid=mat_id, k=spring_stiffness)
@@ -826,7 +808,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         if np.any(uvc_l < 0):
             logger.warning(
-                "Negative normalized longitudinal coordinate detected. Changing {0} negative uvc_l values to 1".format(
+                "Negative normalized longitudinal coordinate detected. Changing {0}"
+                "negative uvc_l values to 1".format(
                     np.sum((uvc_l < 0))
                 ),
             )
@@ -839,7 +822,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         logger.debug("Collecting epicardium nodesets:")
         for cavity in self.model._mesh._cavities:
-            if cavity.name =='Right ventricle' or cavity.name=="Left ventricle":
+            if cavity.name == "Right ventricle" or cavity.name == "Left ventricle":
                 for sgm_set in cavity.segment_sets:
                     if sgm_set["name"] == "epicardium":
                         logger.debug("\t{0} {1}".format(cavity.name, sgm_set["name"]))
@@ -859,26 +842,19 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # # end debug code
 
         # create load curve to control when pericardium is active
-        load_curve_kw = keywords.DefineCurve(
-            lcid = 3            
-        )
+        load_curve_kw = keywords.DefineCurve(lcid=3)
         load_curve_kw.options["TITLE"].active = True
         load_curve_kw.title = "pericardium activation curve"
-        load_curve_kw.curves = pd.DataFrame(
-            {
-                "a1" : np.array( [0, 1] ),
-                "o1" : np.array( [0, 1] )
-            }
-        )
-        self.kw_database.pericardium.append( load_curve_kw )
-        
+        load_curve_kw.curves = pd.DataFrame({"a1": np.array([0, 1]), "o1": np.array([0, 1])})
+        self.kw_database.pericardium.append(load_curve_kw)
+
         cnt = 0
         load_sgm_kws = []
-        segment_ids = []        
+        segment_ids = []
         logger.debug("Creating segment sets for epicardium b.c.:")
 
         penalty_threshold = 0.01
-        for isg, sgmt in enumerate( tqdm( epicardium_segment, ascii=True ) ):
+        for isg, sgmt in enumerate(tqdm(epicardium_segment, ascii=True)):
             if penalty[isg] > penalty_threshold:
                 cnt += 1
 
@@ -899,45 +875,38 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 #     zp=coord[0, 2],
                 # )
 
-                segment_id = 1000+cnt
+                segment_id = 1000 + cnt
                 segment_ids.append(segment_id)
 
-                load_sgm_kw=create_segment_set_keyword(
-                    segments = sgmt.reshape(1,-1)+1,
-                    segid = segment_id )  # todo: auto counter
+                load_sgm_kw = create_segment_set_keyword(
+                    segments=sgmt.reshape(1, -1) + 1, segid=segment_id
+                )  # todo: auto counter
 
-                load_sgm_kws.append( load_sgm_kw )                
-                               
-        self.kw_database.pericardium.extend(load_sgm_kws)   
-                     
+                load_sgm_kws.append(load_sgm_kw)
+
+        self.kw_database.pericardium.extend(load_sgm_kws)
+
         # create user loadset keyword
-        # segment_ids = 1000 + np.arange(0, np.sum( penalty > 0.01 ), 1) 
+        # segment_ids = 1000 + np.arange(0, np.sum( penalty > 0.01 ), 1)
         user_loadset_kw = custom_keywords.UserLoadingSet()
 
         # NOTE: can assign mixed scalar/array values to dataframe - scalars are assigned to each row
         user_loadset_kw.load_sets = pd.DataFrame(
             {
-                "sid" : segment_ids,
-                "ltype" : "PRESSS",
-                "lcid" : 3, 
-                "sf1" : penalty[ penalty > penalty_threshold ],
-                "iduls" : 100
+                "sid": segment_ids,
+                "ltype": "PRESSS",
+                "lcid": 3,
+                "sf1": penalty[penalty > penalty_threshold],
+                "iduls": 100,
             }
         )
-        user_load_kw = custom_keywords.UserLoading(
-            parm1 = 0.05
-        )
+        user_load_kw = custom_keywords.UserLoading(parm1=0.05)
 
         # add to pericardium deck
-        self.kw_database.pericardium.extend(
-            [
-                user_loadset_kw,
-                user_load_kw
-            ]
-        )
+        self.kw_database.pericardium.extend([user_loadset_kw, user_load_kw])
 
         return
-        
+
     def _update_cap_elements_db(self):
         """Updates the database of shell elements. Loops over all
         the defined caps/valves
@@ -955,14 +924,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         material_kw = MaterialCap(mid=mat_null_id)
         section_kw = keywords.SectionShell(
-            secid=section_id,
-            elform=4,
-            shrf=0.8333,
-            nip=3,
-            t1=1,
-            t2=1,
-            t3=1,
-            t4=1,
+            secid=section_id, elform=4, shrf=0.8333, nip=3, t1=1, t2=1, t3=1, t4=1,
         )
 
         self.kw_database.cap_elements.append(material_kw)
@@ -1008,9 +970,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         for cavity in self.model._mesh._cavities:
             for cap in cavity.closing_caps:
                 segset_kw = create_segment_set_keyword(
-                    segments=cap.closing_triangles + 1,
-                    segid=segset_id,
-                    title=cap.name,
+                    segments=cap.closing_triangles + 1, segid=segset_id, title=cap.name,
                 )
 
                 self.kw_database.cap_elements.append(segset_kw)
@@ -1082,16 +1042,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         if model_type in ["FourChamber", "BiVentricle"]:
             file_path = os.path.join(
-                Path(__file__).parent.absolute(),
-                "templates",
-                "system_model_settings_bv.json",
+                Path(__file__).parent.absolute(), "templates", "system_model_settings_bv.json",
             )
 
         elif model_type in ["LeftVentricle"]:
             file_path = os.path.join(
-                Path(__file__).parent.absolute(),
-                "templates",
-                "system_model_settings_lv.json",
+                Path(__file__).parent.absolute(), "templates", "system_model_settings_lv.json",
             )
 
         fid = open(file_path)
@@ -1109,27 +1065,26 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _export_cavity_segmentsets(self, export_directory: str):
-        """Exports the actual cavity segment sets to separate files"""       
+        """Exports the actual cavity segment sets to separate files"""
 
         for cavity in self.model._mesh._cavities:
-            filename = "cavity_" + "_".join( cavity.name.lower().split() ) + ".segment"
-            filepath = os.path.join(export_directory, filename  )
+            filename = "cavity_" + "_".join(cavity.name.lower().split()) + ".segment"
+            filepath = os.path.join(export_directory, filename)
 
-            segments = np.empty( (0,3), dtype = int )
+            segments = np.empty((0, 3), dtype=int)
 
             # collect segment sets
             for segset in cavity.segment_sets:
                 if segset["name"] in ["endocardium", "endocardium-septum"]:
-                    segments = np.vstack([ segments, segset["set"]] )
+                    segments = np.vstack([segments, segset["set"]])
 
-            
             # append cap segments:
             for cap in cavity.closing_caps:
-                segments = np.vstack( [segments, cap.closing_triangles] )
+                segments = np.vstack([segments, cap.closing_triangles])
 
             # combine segment sets
-            np.savetxt(filepath, segments, delimiter = ",", fmt = "%d")
-            
+            np.savetxt(filepath, segments, delimiter=",", fmt="%d")
+
         return
 
 
@@ -1152,7 +1107,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         respective keyword databases. Overwrites the update method
         of MechanicsDynaWriter such that it yields a valid input deck
         for a zero-pressure simulation
-        """        
+        """
 
         self._update_main_db(add_damping=False)
 
@@ -1246,7 +1201,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
     def _add_control_reference_configuration(self):
         """Adds control reference configuration keyword to main"""
         logger.debug("Adding *CONTROL_REFERENCE_CONFIGURATION to main.k")
-        kw = keywords.ControlReferenceConfiguration(maxiter=10, target="nodes.k", method=2,tol=1)
+        kw = keywords.ControlReferenceConfiguration(maxiter=10, target="nodes.k", method=2, tol=1)
 
         self.kw_database.main.append(kw)
 
@@ -1302,26 +1257,26 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         self.kw_database = FiberGenerationDecks()
         """Collection of keywords relevant for fiber generation
         """
-    
+
     def update(self):
         """Updates keyword database for Fiber generation: overwrites the inherited function"""
 
-        ## 
-        self._update_main_db()           # needs updating
+        ##
+        self._update_main_db()  # needs updating
 
-        self._update_node_db()           # can stay the same (could move to base class)
-        self._update_parts_db()          # can stay the same (could move to base class++++++++++++++++++++)        
-        self._update_solid_elements_db() # can stay the same (could move to base class)
+        self._update_node_db()  # can stay the same (could move to base class)
+        self._update_parts_db()  # can stay the same (could move to base class++++++++++++++++++++)
+        self._update_solid_elements_db()  # can stay the same (could move to base class)
         self._update_material_db()
 
-        self._update_segmentsets_db()    # can stay the same 
-        self._update_nodesets_db()       # can stay the same         
+        self._update_segmentsets_db()  # can stay the same
+        self._update_nodesets_db()  # can stay the same
 
         # update ep settings
         self._update_ep_settings()
         self._update_create_fibers()
 
-        self._get_list_of_includes() 
+        self._get_list_of_includes()
         self._add_includes()
 
         return
@@ -1364,14 +1319,9 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         part_id = 1
         for cavity in self.model._mesh._cavities:
             for element_set in cavity.element_sets:
-                part_name = " ".join( [cavity.name, element_set["name"]] )
+                part_name = " ".join([cavity.name, element_set["name"]])
                 part = pd.DataFrame(
-                    {
-                        "heading": [ part_name ],
-                        "pid": [ part_id ],
-                        "secid": [1],
-                        "mid": [ part_id ],
-                    }
+                    {"heading": [part_name], "pid": [part_id], "secid": [1], "mid": [part_id]}
                 )
                 part_kw = keywords.Part()
                 part_kw.parts = part
@@ -1380,7 +1330,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
                 # store part id for future use
                 element_set["id"] = part_id
-                part_ids.append( part_id )
+                part_ids.append(part_id)
                 part_id = part_id + 1
 
         # set up section solid for cavity myocardium
@@ -1403,9 +1353,9 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             logger.debug("Writing elements for myocardium" " attached to cavity: " + cavity.name)
 
             # get list of elements to write to the database. Create new keyword
-            # for each part. Parts defined by element sets            
+            # for each part. Parts defined by element sets
             for element_set in cavity.element_sets:
-                tetra_idx = element_set["set"]                
+                tetra_idx = element_set["set"]
                 part_id = element_set["id"]
 
                 tetra_to_write = self.volume_mesh["tetra"][tetra_idx, :] + 1
@@ -1418,23 +1368,23 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
                 norm = np.linalg.norm(sheet, axis=1)
                 sheet = sheet / norm[:, None]
 
-                num_elements = len( tetra_idx )
-                
-                element_ids = np.arange(1, num_elements+1, 1) + solid_element_count
-                part_ids = np.ones( num_elements, dtype=int ) * part_id
+                num_elements = len(tetra_idx)
+
+                element_ids = np.arange(1, num_elements + 1, 1) + solid_element_count
+                part_ids = np.ones(num_elements, dtype=int) * part_id
                 kw_elements = keywords.ElementSolid()
                 elements = pd.DataFrame(
                     {
-                        "eid" : element_ids,
-                        "pid" : part_ids,
-                        "n1" : tetra_to_write[:,0],
-                        "n2" : tetra_to_write[:,1],
-                        "n3" : tetra_to_write[:,2],
-                        "n4" : tetra_to_write[:,3],
-                        "n5" : tetra_to_write[:,3],
-                        "n6" : tetra_to_write[:,3],
-                        "n7" : tetra_to_write[:,3],
-                        "n8" : tetra_to_write[:,3]
+                        "eid": element_ids,
+                        "pid": part_ids,
+                        "n1": tetra_to_write[:, 0],
+                        "n2": tetra_to_write[:, 1],
+                        "n3": tetra_to_write[:, 2],
+                        "n4": tetra_to_write[:, 3],
+                        "n5": tetra_to_write[:, 3],
+                        "n6": tetra_to_write[:, 3],
+                        "n7": tetra_to_write[:, 3],
+                        "n8": tetra_to_write[:, 3],
                     }
                 )
                 kw_elements.elements = elements
@@ -1449,12 +1399,8 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         """Adds simple linear elastic material for each defined part"""
         for cavity in self.model._mesh._cavities:
             for element_set in cavity.element_sets:
-                kw = keywords.MatElastic(
-                    mid = element_set["id"],
-                    ro = 1e-6,
-                    e = 1
-                )
-                self.kw_database.material.append ( kw )
+                kw = keywords.MatElastic(mid=element_set["id"], ro=1e-6, e=1)
+                self.kw_database.material.append(kw)
 
     def _update_ep_settings(self):
         """Adds the settings for the electrophysiology solver
@@ -1462,60 +1408,47 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
         self.kw_database.ep_settings.append(
             keywords.EmControl(
-            emsol = 11,
-            numls = 4, 
-            macrodt = 1,
-            dimtype = None,
-            nperio = None,
-            ncylbem = None )
+                emsol=11, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
             )
+        )
 
-        # use defaults        
-        self.kw_database.ep_settings.append(
-            custom_keywords.EmControlEp()
-            )
+        # use defaults
+        self.kw_database.ep_settings.append(custom_keywords.EmControlEp())
 
         # max iter should be int
         self.kw_database.ep_settings.append(
-            keywords.EmSolverFem(reltol = 1e-6, maxite = int(1e4), precon = 2)
+            keywords.EmSolverFem(reltol=1e-6, maxite=int(1e4), precon=2)
         )
 
         # NOTE: material id should be same as target myocardium
-        # create one material per cavity 
+        # create one material per cavity
         for cavity in self.model._mesh._cavities:
             for element_set in cavity.element_sets:
                 em_mat_id = element_set["id"]
-                self.kw_database.ep_settings.extend( [
-                    custom_keywords.EmMat003(
-                        mid = em_mat_id,
-                        mtype = 2,
-                        sigma11 = 5.0e-4,
-                        sigma22 = 1.0e-4,
-                        sigma33 = 1.0e-4,
-                        beta = 0.14,
-                        cm = 0.01,
-                        aopt = 2.0,
-                        lambda_ = 0.5,
-                        a1 = 0,
-                        a2 = 0,
-                        a3 = 0,
-                        d1 = 0, 
-                        d2 = -1,
-                        d3 = 0
-                    ),
-                    custom_keywords.EmEpCellmodelTomek(
-                        mid = em_mat_id
-                    )
-                ] )
+                self.kw_database.ep_settings.extend(
+                    [
+                        custom_keywords.EmMat003(
+                            mid=em_mat_id,
+                            mtype=2,
+                            sigma11=5.0e-4,
+                            sigma22=1.0e-4,
+                            sigma33=1.0e-4,
+                            beta=0.14,
+                            cm=0.01,
+                            aopt=2.0,
+                            lambda_=0.5,
+                            a1=0,
+                            a2=0,
+                            a3=0,
+                            d1=0,
+                            d2=-1,
+                            d3=0,
+                        ),
+                        custom_keywords.EmEpCellmodelTomek(mid=em_mat_id),
+                    ]
+                )
 
-        self.kw_database.ep_settings.append(
-            keywords.EmOutput(
-                mats = 1,
-                matf = 1, 
-                sols = 1,
-                solf = 1
-            )
-        )
+        self.kw_database.ep_settings.append(keywords.EmOutput(mats=1, matf=1, sols=1, solf=1))
 
         return
 
@@ -1696,49 +1629,42 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             logger.warning( "Model type %s under development " % self.model.info.model_type )
 
             # Define part set for myocardium
-            part_list1_kw = keywords.SetPartList(
-                sid = 1,
-            )            
+            part_list1_kw = keywords.SetPartList(sid=1,)
             part_list1_kw.parts._data = myocardium_part_ids
             part_list1_kw.options["TITLE"].active = True
             part_list1_kw.title = "myocardium_all"
 
             # Define part set for septum
-            part_list2_kw = keywords.SetPartList(
-                sid = 2,
-            )
+            part_list2_kw = keywords.SetPartList(sid=2,)
             part_list2_kw.options["TITLE"].active = True
             part_list2_kw.title = "septum"
             part_list2_kw.parts._data = septum_part_ids
 
-            self.kw_database.create_fiber.extend( 
-                [
-                    part_list1_kw,
-                    part_list2_kw
-                ]
-            )
+            self.kw_database.create_fiber.extend([part_list1_kw, part_list2_kw])
 
             # combine node sets endocardium uing *SET_SEGMENT_ADD:
             node_set_id_all_endocardium = 1000
             set_add_kw = keywords.SetNodeAdd(
                 sid = node_set_id_all_endocardium
             )
+
             set_add_kw.options["TITLE"].active = True
             set_add_kw.title = "all_endocardium_segments"
             set_add_kw.nodes._data = node_set_ids_endo
 
-            self.kw_database.create_fiber.append( set_add_kw )
+            self.kw_database.create_fiber.append(set_add_kw)
 
             # combine node sets epicardium:
             node_set_id_all_epicardium = 1001
             set_add_kw = keywords.SetNodeAdd(
                 sid = node_set_id_all_epicardium
             )
+
             set_add_kw.options["TITLE"].active = True
             set_add_kw.title = "all_epicardium_segments"
             set_add_kw.nodes._data = node_sets_ids_epi
 
-            self.kw_database.create_fiber.append( set_add_kw )
+            self.kw_database.create_fiber.append(set_add_kw)
 
             node_set_id_base = 200
             node_set_id_apex = 201
@@ -1754,27 +1680,22 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
                 title = "apex node"
             )
 
-            self.kw_database.create_fiber.extend (
-                [
-                    node_set_base_kw,
-                    node_set_apex_kw
-                ]
-            )
+            self.kw_database.create_fiber.extend([node_set_base_kw, node_set_apex_kw])
 
             # Set up *EM_EP_FIBERINITIAL keyword
             # apex > base
-            self.kw_database.create_fiber.append( 
+            self.kw_database.create_fiber.append(
                 custom_keywords.EmEpFiberinitial(
-                    id = 1,
-                    partid = 1, # set part id 1: myocardium
-                    stype = 2,  # set type 2 == nodes
-                    ssid1 = node_set_id_base, 
-                    ssid2 = node_set_id_apex
+                    id=1,
+                    partid=1,  # set part id 1: myocardium
+                    stype=2,  # set type 2 == nodes
+                    ssid1=node_set_id_base,
+                    ssid2=node_set_id_apex,
                 )
             )
 
             # all epicardium > all endocardium
-            self.kw_database.create_fiber.append( 
+            self.kw_database.create_fiber.append(
                 custom_keywords.EmEpFiberinitial(
                     id = 2,
                     partid = 1, # set part id 1: myocardium
@@ -1785,7 +1706,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             )
 
             # all epicardium > endocardium left ventricle
-            self.kw_database.create_fiber.append( 
+            self.kw_database.create_fiber.append(
                 custom_keywords.EmEpFiberinitial(
                     id = 3,
                     partid = 2, # set part id 2: septum
@@ -1794,58 +1715,35 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
                     ssid2 = node_set_id_lv_endo
                 )
             )
-           
-            # add *EM_EP_CREATEFIBERORIENTATION keywords
-            self.kw_database.create_fiber.append (
-                custom_keywords.EmEpCreatefiberorientation(
-                    partsid = 1,
-                    solvid1 = 1,
-                    solvid2 = 2,
-                    alpha = -101,
-                    beta = -102,         
-                    wfile = 1,
-                    prerun = 1       
-                ) 
-            )
-            # add *EM_EP_CREATEFIBERORIENTATION keywords
-            self.kw_database.create_fiber.append (
-                custom_keywords.EmEpCreatefiberorientation(
-                    partsid = 2,
-                    solvid1 = 1,
-                    solvid2 = 3,
-                    alpha = -101,
-                    beta = -103,         
-                    wfile = 1,
-                    prerun = 1       
-                ) 
-            )            
-            
-            # define functions: 
-            from ansys.heart.writer.define_function_strings import function1, function2, function3
-            self.kw_database.create_fiber.append( 
-                keywords.DefineFunction(
-                fid = 101,
-                function = function1
-                )
-            )
-            self.kw_database.create_fiber.append( 
-                keywords.DefineFunction(
-                fid = 102,
-                function = function2
-                )
-            )
-            self.kw_database.create_fiber.append( 
-                keywords.DefineFunction(
-                fid = 103,
-                function = function3
-                )
-            )            
-        
-        return
 
+            # add *EM_EP_CREATEFIBERORIENTATION keywords
+            self.kw_database.create_fiber.append(
+                custom_keywords.EmEpCreatefiberorientation(
+                    partsid=1, solvid1=1, solvid2=2, alpha=-101, beta=-102, wfile=1, prerun=1
+                )
+            )
+            # add *EM_EP_CREATEFIBERORIENTATION keywords
+            self.kw_database.create_fiber.append(
+                custom_keywords.EmEpCreatefiberorientation(
+                    partsid=2, solvid1=1, solvid2=3, alpha=-101, beta=-103, wfile=1, prerun=1
+                )
+            )
+
+            # define functions:
+            from ansys.heart.writer.define_function_strings import function1, function2, function3
+
+            self.kw_database.create_fiber.append(
+                keywords.DefineFunction(fid=101, function=function1)
+            )
+            self.kw_database.create_fiber.append(
+                keywords.DefineFunction(fid=102, function=function2)
+            )
+            self.kw_database.create_fiber.append(
+                keywords.DefineFunction(fid=103, function=function3)
+            )
 
     def _update_main_db(self):
-        
+
         return
 
 

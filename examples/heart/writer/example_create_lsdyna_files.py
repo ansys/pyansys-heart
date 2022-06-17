@@ -1,5 +1,5 @@
-"""This examples creates LS-DYNA files from existing 
-model_info.json files and its dependencies. 
+"""This examples creates LS-DYNA files from existing
+model_info.json files and its dependencies.
 Run "example_extract_simulation_mesh.py" first to create
 the required files.
 """
@@ -15,24 +15,21 @@ from ansys.heart.general import clean_directory
 
 ABS_BASE_PATH = Path(__file__).parent.absolute()
 
-def create_ls_dyna_files(
-    path_to_model_info: str, export_directory: str = None
-):
+
+def create_ls_dyna_files(path_to_model_info: str, export_directory: str = None):
     """Creates the LS-DYNA files for the model specified
     """
     if not export_directory:
-        export_directory = os.path.join(
-            Path(path_model_info).parent.absolute(), "lsdyna_files"
-        )
+        export_directory = os.path.join(Path(path_model_info).parent.absolute(), "lsdyna_files")
 
     clean_directory(export_directory)
 
     # instantiate model ifnormation and heart model
-    model_info  = ModelInformation()
-    heart_model = HeartModel( model_info )
+    model_info = ModelInformation()
+    heart_model = HeartModel(model_info)
 
     # load processed heart model from info file
-    heart_model.load_model( path_model_info )
+    heart_model.load_model(path_model_info)
 
     # create dyna writer object and pass loaded model
     dyna_writer = MechanicsDynaWriter(heart_model)
@@ -46,22 +43,42 @@ def create_ls_dyna_files(
 
 if __name__ == "__main__":
 
-    # left ventricle model:
-    path_model_info = os.path.join(
-        ABS_BASE_PATH, "..", "workdir", "left_ventricle_model", "model_info.json"
-    )
+    run_all = True
+    if run_all:
+        models_to_run = [
+            "LeftVentricle",
+            "BiVentricle",
+            "FourChamber",
+            "FourChamberOriginal"
+            ]
+    else:
+        models_to_run = []
 
-    create_ls_dyna_files(path_model_info)
+    if "LeftVentricle" in models_to_run:
+        # left ventricle model:
+        path_model_info = os.path.join(
+            ABS_BASE_PATH, "..", "workdir", "left_ventricle_model", "model_info.json"
+        )
 
-    # bi-ventricle model
-    path_model_info = os.path.join(
-        ABS_BASE_PATH, "..", "workdir", "bi_ventricle_model", "model_info.json"
-    )
+        create_ls_dyna_files(path_model_info)
 
-    create_ls_dyna_files(path_model_info)
+    if "BiVentricle" in models_to_run:
+        # bi-ventricle model
+        path_model_info = os.path.join(
+            ABS_BASE_PATH, "..", "workdir", "bi_ventricle_model", "model_info.json"
+        )
+        create_ls_dyna_files(path_model_info)
 
-    # four chamber model
-    path_model_info = os.path.join(
-        ABS_BASE_PATH, "..", "workdir", "four_chamber_model", "model_info.json"
-    )
-    create_ls_dyna_files(path_model_info)
+    if "FourChamber" in models_to_run:
+        # four chamber model
+        path_model_info = os.path.join(
+            ABS_BASE_PATH, "..", "workdir", "four_chamber_model", "model_info.json"
+        )
+        create_ls_dyna_files(path_model_info)
+
+    if "FourChamberOriginal" in models_to_run:
+        # four chamber model with original mesh
+        path_model_info = os.path.join(
+            ABS_BASE_PATH, "..", "workdir", "four_chamber_model_original", "model_info.json"
+        )
+        create_ls_dyna_files(path_model_info)

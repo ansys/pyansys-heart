@@ -2,6 +2,7 @@ import typing
 from ansys.dyna.keywords.lib.card import Card, Field
 from ansys.dyna.keywords.lib.keyword_base import KeywordBase
 
+
 class EmMat003(KeywordBase):
     """DYNA EM_MAT_003 keyword"""
 
@@ -13,214 +14,46 @@ class EmMat003(KeywordBase):
         self._cards = [
             Card(
                 [
-                    Field(
-                        "mid",
-                        int,
-                        0,
-                        10,
-                        kwargs.get("mid")
-                    ),
-                    Field(
-                        "mtype",
-                        int,
-                        10,
-                        10,
-                        kwargs.get("mtype", 0)
-                    ),
-                    Field(
-                        "sigma11",
-                        float,
-                        20,
-                        10,
-                        kwargs.get("sigma11")
-                    ),
-                    Field(
-                        "sigma22",
-                        float,
-                        30,
-                        10,
-                        kwargs.get("sigma22")
-                    ),
-                    Field(
-                        "sigma33",
-                        float,
-                        40,
-                        10,
-                        kwargs.get("sigma33")
-                    ),
-                    Field(
-                        "beta",
-                        float,
-                        50,
-                        10,
-                        kwargs.get("beta", 0.14)
-                    ),
-                    Field(
-                        "cm",
-                        float,
-                        60,
-                        10,
-                        kwargs.get("cm", 1.0)
-                    ),
+                    Field("mid", int, 0, 10, kwargs.get("mid")),
+                    Field("mtype", int, 10, 10, kwargs.get("mtype", 0)),
+                    Field("sigma11", float, 20, 10, kwargs.get("sigma11")),
+                    Field("sigma22", float, 30, 10, kwargs.get("sigma22")),
+                    Field("sigma33", float, 40, 10, kwargs.get("sigma33")),
+                    Field("beta", float, 50, 10, kwargs.get("beta", 0.14)),
+                    Field("cm", float, 60, 10, kwargs.get("cm", 1.0)),
                 ],
             ),
             Card(
                 [
-                    Field(
-                        "sigma12",
-                        float,
-                        0,
-                        10,
-                        kwargs.get("sigma12")
-                    ),
-                    Field(
-                        "sigma13",
-                        float,
-                        10,
-                        10,
-                        kwargs.get("sigma13")
-                    ),
-                    Field(
-                        "sigma21",
-                        float,
-                        20,
-                        10,
-                        kwargs.get("sigma21")
-                    ),
-                    Field(
-                        "sigma23",
-                        float,
-                        30,
-                        10,
-                        kwargs.get("sigma23")
-                    ),
-                    Field(
-                        "sigma31",
-                        float,
-                        40,
-                        10,
-                        kwargs.get("sigma31")
-                    ),
-                    Field(
-                        "sigma32",
-                        float,
-                        50,
-                        10,
-                        kwargs.get("sigma32")
-                    ),
-                    Field(
-                        "aopt",
-                        int,
-                        60,
-                        10,
-                        kwargs.get("aopt", 0)
-                    ),
-                    Field(
-                        "lambda_",
-                        float,
-                        70,
-                        10,
-                        kwargs.get("lambda_")
-                    ),
+                    Field("sigma12", float, 0, 10, kwargs.get("sigma12")),
+                    Field("sigma13", float, 10, 10, kwargs.get("sigma13")),
+                    Field("sigma21", float, 20, 10, kwargs.get("sigma21")),
+                    Field("sigma23", float, 30, 10, kwargs.get("sigma23")),
+                    Field("sigma31", float, 40, 10, kwargs.get("sigma31")),
+                    Field("sigma32", float, 50, 10, kwargs.get("sigma32")),
+                    Field("aopt", int, 60, 10, kwargs.get("aopt", 0)),
+                    Field("lambda_", float, 70, 10, kwargs.get("lambda_")),
                 ],
             ),
             Card(
                 [
-                    Field(
-                        "xp",
-                        float,
-                        0,
-                        10,
-                        kwargs.get("xp")
-                    ),
-                    Field(
-                        "yp",
-                        float,
-                        10,
-                        10,
-                        kwargs.get("yp")
-                    ),
-                    Field(
-                        "zp",
-                        float,
-                        20,
-                        10,
-                        kwargs.get("zp")
-                    ),
-                    Field(
-                        "a1",
-                        float,
-                        30,
-                        10,
-                        kwargs.get("a1")
-                    ),
-                    Field(
-                        "a2",
-                        float,
-                        40,
-                        10,
-                        kwargs.get("a2")
-                    ),
-                    Field(
-                        "a3",
-                        float,
-                        50,
-                        10,
-                        kwargs.get("a3")
-                    ),
-                    Field(
-                        "macf",
-                        int,
-                        60,
-                        10,
-                        kwargs.get("macf", 1)
-                    ),
+                    Field("xp", float, 0, 10, kwargs.get("xp")),
+                    Field("yp", float, 10, 10, kwargs.get("yp")),
+                    Field("zp", float, 20, 10, kwargs.get("zp")),
+                    Field("a1", float, 30, 10, kwargs.get("a1")),
+                    Field("a2", float, 40, 10, kwargs.get("a2")),
+                    Field("a3", float, 50, 10, kwargs.get("a3")),
+                    Field("macf", int, 60, 10, kwargs.get("macf", 1)),
                 ],
             ),
             Card(
                 [
-                    Field(
-                        "v1",
-                        float,
-                        0,
-                        10,
-                        kwargs.get("v1")
-                    ),
-                    Field(
-                        "v2",
-                        float,
-                        10,
-                        10,
-                        kwargs.get("v2")
-                    ),
-                    Field(
-                        "v3",
-                        float,
-                        20,
-                        10,
-                        kwargs.get("v3")
-                    ),
-                    Field(
-                        "d1",
-                        float,
-                        30,
-                        10,
-                        kwargs.get("d1")
-                    ),
-                    Field(
-                        "d2",
-                        float,
-                        40,
-                        10,
-                        kwargs.get("d2")
-                    ),
-                    Field(
-                        "d3",
-                        float,
-                        50,
-                        10,
-                        kwargs.get("d3")
-                    ),
+                    Field("v1", float, 0, 10, kwargs.get("v1")),
+                    Field("v2", float, 10, 10, kwargs.get("v2")),
+                    Field("v3", float, 20, 10, kwargs.get("v3")),
+                    Field("d1", float, 30, 10, kwargs.get("d1")),
+                    Field("d2", float, 40, 10, kwargs.get("d2")),
+                    Field("d3", float, 50, 10, kwargs.get("d3")),
                 ],
             ),
         ]
@@ -228,7 +61,7 @@ class EmMat003(KeywordBase):
     @property
     def mid(self) -> typing.Optional[int]:
         """Get or set the Material ID: refers to MID in the *PART card.
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("mid")
 
     @mid.setter
@@ -243,7 +76,7 @@ class EmMat003(KeywordBase):
             EQ.2: Conductor carrying a source. In these conductors, the eddy current problem is solved, which gives the actual current density. Typically, this would correspond to the coil.
             EQ.4: Conductor not connected to any current or voltage source, where the Eddy current problem is solved. Typically, this would correspond to the workpiece
         .
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("mtype")
 
     @mtype.setter
@@ -255,7 +88,7 @@ class EmMat003(KeywordBase):
     @property
     def sigma11(self) -> typing.Optional[float]:
         """Get or set the The 1,1 term in the 3 x 3 electromagnetic conductivity tensor matrix. Note that 1 corresponds to the a material direction.If a negative value is entered, a *DEFINE_FUNCTION will be expected. See remark 3- for available parameters.
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("sigma11")
 
     @sigma11.setter
@@ -265,7 +98,7 @@ class EmMat003(KeywordBase):
     @property
     def sigma22(self) -> typing.Optional[float]:
         """Get or set the The 2,2 term in the 3 x 3 electromagnetic conductivity tensor matrix.If a negative value is entered, a *DEFINE_FUNCTION will be expected. See remark 3- for available parameters.
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("sigma22")
 
     @sigma22.setter
@@ -275,7 +108,7 @@ class EmMat003(KeywordBase):
     @property
     def sigma33(self) -> typing.Optional[float]:
         """Get or set the The 2,2 term in the 3 x 3 electromagnetic conductivity tensor matrix.If a negative value is entered, a *DEFINE_FUNCTION will be expected. See remark 3- for available parameters. 
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("sigma33")
 
     @sigma33.setter
@@ -285,7 +118,7 @@ class EmMat003(KeywordBase):
     @property
     def beta(self) -> float:
         """Get or set the Surface to volume ratio.
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("beta")
 
     @beta.setter
@@ -295,7 +128,7 @@ class EmMat003(KeywordBase):
     @property
     def cm(self) -> float:
         """Get or set the Membrane capacitance
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("cm")
 
     @cm.setter
@@ -305,7 +138,7 @@ class EmMat003(KeywordBase):
     @property
     def sigma12(self) -> typing.Optional[float]:
         """Get or set the The 1,2 term in the 3 x 3 electromagnetic conductivity tensor matrix.Note that 2 corresponds to the b material direction.. If a negative value is entered, a *DEFINE_FUNCTION will be expected. See remark 3- for available parameters.
-        """ # nopep8
+        """  # nopep8
         return self._cards[1].get_value("sigma12")
 
     @sigma12.setter
@@ -315,7 +148,7 @@ class EmMat003(KeywordBase):
     @property
     def sigma13(self) -> typing.Optional[float]:
         """Get or set the The 1,3 term in the 3 x 3 electromagnetic conductivity tensor matrix.If a negative value is entered, a *DEFINE_FUNCTION will be expected. See remark 3- for available parameters.
-        """ # nopep8
+        """  # nopep8
         return self._cards[1].get_value("sigma13")
 
     @sigma13.setter
@@ -325,7 +158,7 @@ class EmMat003(KeywordBase):
     @property
     def sigma21(self) -> typing.Optional[float]:
         """Get or set the The 2,1 term in the 3 x 3 electromagnetic conductivity tensor matrix. Note that 1 corresponds to the a material direction.If a negative value is entered, a *DEFINE_FUNCTION will be expected. See remark 3- for available parameters.
-        """ # nopep8
+        """  # nopep8
         return self._cards[1].get_value("sigma21")
 
     @sigma21.setter
@@ -335,7 +168,7 @@ class EmMat003(KeywordBase):
     @property
     def sigma23(self) -> typing.Optional[float]:
         """Get or set the The 2,3 term in the 3 x 3 electromagnetic conductivity tensor matrix.If a negative value is entered, a *DEFINE_FUNCTION will be expected. See remark 3- for available parameters.
-        """ # nopep8
+        """  # nopep8
         return self._cards[1].get_value("sigma23")
 
     @sigma23.setter
@@ -345,7 +178,7 @@ class EmMat003(KeywordBase):
     @property
     def sigma31(self) -> typing.Optional[float]:
         """Get or set the The 3,1 term in the 3 x 3 electromagnetic conductivity tensor matrix.If a negative value is entered, a *DEFINE_FUNCTION will be expected. See remark 3- for available parameters.
-        """ # nopep8
+        """  # nopep8
         return self._cards[1].get_value("sigma31")
 
     @sigma31.setter
@@ -355,7 +188,7 @@ class EmMat003(KeywordBase):
     @property
     def sigma32(self) -> typing.Optional[float]:
         """Get or set the The 3,2 term in the 3 x 3 electromagnetic conductivity tensor matrix.If a negative value is entered, a *DEFINE_FUNCTION will be expected. See remark 3- for available parameters.
-        """ # nopep8
+        """  # nopep8
         return self._cards[1].get_value("sigma32")
 
     @sigma32.setter
@@ -371,7 +204,7 @@ class EmMat003(KeywordBase):
          EQ.3.0:locally orthotropic material axes determined by rotating the material axes about the element normal by an angle,BETA, from a line in the plane of the element defined by the cross product of the vector v with the element normal. The plane of a solid element is the midsurface between the inner surface and outer surface defined by the first four nodes and the last four nodes of the connectivity of the element, respectively.
          EQ.4.0:locally orthotropic in cylindrical coordinate system with the material axes determined by a vector v, and an originating point, P, which define the centerline axis. This option is for solid elements only. 
          EQ.5.0:globally defined reference frame with (a,b,c)=(X0,Y0,Z0).
-        """ # nopep8
+        """  # nopep8
         return self._cards[1].get_value("aopt")
 
     @aopt.setter
@@ -383,7 +216,7 @@ class EmMat003(KeywordBase):
     @property
     def lambda_(self) -> typing.Optional[float]:
         """Get or set the Intra- to extracellular conductivity ratio. When non-empty, the elliptic equation is solved to compute extracellular potentials
-        """ # nopep8
+        """  # nopep8
         return self._cards[1].get_value("lambda_")
 
     @lambda_.setter
@@ -393,7 +226,7 @@ class EmMat003(KeywordBase):
     @property
     def xp(self) -> typing.Optional[float]:
         """Get or set the Define coordinates of point p for AOPT = 1 and 4.
-        """ # nopep8
+        """  # nopep8
         return self._cards[2].get_value("xp")
 
     @xp.setter
@@ -403,7 +236,7 @@ class EmMat003(KeywordBase):
     @property
     def yp(self) -> typing.Optional[float]:
         """Get or set the Define coordinates of point p for AOPT = 1 and 4.
-        """ # nopep8
+        """  # nopep8
         return self._cards[2].get_value("yp")
 
     @yp.setter
@@ -413,7 +246,7 @@ class EmMat003(KeywordBase):
     @property
     def zp(self) -> typing.Optional[float]:
         """Get or set the Define coordinates of point p for AOPT = 1 and 4.
-        """ # nopep8
+        """  # nopep8
         return self._cards[2].get_value("zp")
 
     @zp.setter
@@ -423,7 +256,7 @@ class EmMat003(KeywordBase):
     @property
     def a1(self) -> typing.Optional[float]:
         """Get or set the Define components of vector a for AOPT = 2.
-        """ # nopep8
+        """  # nopep8
         return self._cards[2].get_value("a1")
 
     @a1.setter
@@ -433,7 +266,7 @@ class EmMat003(KeywordBase):
     @property
     def a2(self) -> typing.Optional[float]:
         """Get or set the Define components of vector a for AOPT = 2.
-        """ # nopep8
+        """  # nopep8
         return self._cards[2].get_value("a2")
 
     @a2.setter
@@ -443,7 +276,7 @@ class EmMat003(KeywordBase):
     @property
     def a3(self) -> typing.Optional[float]:
         """Get or set the Define components of vector a for AOPT = 2.
-        """ # nopep8
+        """  # nopep8
         return self._cards[2].get_value("a3")
 
     @a3.setter
@@ -454,7 +287,7 @@ class EmMat003(KeywordBase):
     def macf(self) -> int:
         """Get or set the Material axes change flag for solid elements: 
          EQ.1: No change, default
-        """ # nopep8
+        """  # nopep8
         return self._cards[2].get_value("macf")
 
     @macf.setter
@@ -464,7 +297,7 @@ class EmMat003(KeywordBase):
     @property
     def v1(self) -> typing.Optional[float]:
         """Get or set the Define components of vector v for AOPT = 3 and 4.
-        """ # nopep8
+        """  # nopep8
         return self._cards[3].get_value("v1")
 
     @v1.setter
@@ -474,7 +307,7 @@ class EmMat003(KeywordBase):
     @property
     def v2(self) -> typing.Optional[float]:
         """Get or set the Define components of vector v for AOPT = 3 and 4.
-        """ # nopep8
+        """  # nopep8
         return self._cards[3].get_value("v2")
 
     @v2.setter
@@ -484,7 +317,7 @@ class EmMat003(KeywordBase):
     @property
     def v3(self) -> typing.Optional[float]:
         """Get or set the Define components of vector v for AOPT = 3 and 4.
-        """ # nopep8
+        """  # nopep8
         return self._cards[3].get_value("v3")
 
     @v3.setter
@@ -494,7 +327,7 @@ class EmMat003(KeywordBase):
     @property
     def d1(self) -> typing.Optional[float]:
         """Get or set the Define components of vector d for AOPT = 2.
-        """ # nopep8
+        """  # nopep8
         return self._cards[3].get_value("d1")
 
     @d1.setter
@@ -504,7 +337,7 @@ class EmMat003(KeywordBase):
     @property
     def d2(self) -> typing.Optional[float]:
         """Get or set the Define components of vector d for AOPT = 2.
-        """ # nopep8
+        """  # nopep8
         return self._cards[3].get_value("d2")
 
     @d2.setter
@@ -514,10 +347,9 @@ class EmMat003(KeywordBase):
     @property
     def d3(self) -> typing.Optional[float]:
         """Get or set the Define components of vector d for AOPT = 2.
-        """ # nopep8
+        """  # nopep8
         return self._cards[3].get_value("d3")
 
     @d3.setter
     def d3(self, value: float) -> None:
         self._cards[3].set_value("d3", value)
-

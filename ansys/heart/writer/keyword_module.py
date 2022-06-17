@@ -1,10 +1,9 @@
 """Module that contains some useful methods to help format the keywords
 """
 
-from multiprocessing.sharedctypes import Value
 import pandas as pd
 import numpy as np
-from typing import List, Union
+from typing import Union
 
 from ansys.dyna.keywords import keywords
 from ansys.dyna.keywords import Deck
@@ -30,18 +29,14 @@ def create_node_keyword(nodes: np.array, offset: int = 0) -> keywords.Node:
     nids = np.arange(0, nodes.shape[0], 1) + 1
 
     kw = keywords.Node()
-    df = pd.DataFrame(
-        data=np.vstack([nids, nodes.T]).T, columns=kw.nodes.columns[0:4]
-    )
+    df = pd.DataFrame(data=np.vstack([nids, nodes.T]).T, columns=kw.nodes.columns[0:4])
 
     kw.nodes = df
 
     return kw
 
 
-def add_nodes_to_kw(
-    nodes: np.array, node_kw: keywords.Node, offset: int = 0
-) -> keywords.Node:
+def add_nodes_to_kw(nodes: np.array, node_kw: keywords.Node, offset: int = 0) -> keywords.Node:
     """Adds nodes to an existing node keyword. If nodes are
     already defined, this adds both the nodes in the previous
     keyword and the specified array of nodes. Automatically computes
@@ -66,14 +61,10 @@ def add_nodes_to_kw(
     nids = np.arange(0, nodes.shape[0], 1) + offset + 1
 
     # create dataframe
-    df = pd.DataFrame(
-        data=np.vstack([nids, nodes.T]).T, columns=node_kw.nodes.columns[0:4]
-    )
+    df = pd.DataFrame(data=np.vstack([nids, nodes.T]).T, columns=node_kw.nodes.columns[0:4])
 
     # concatenate old and new dataframe
-    df1 = pd.concat(
-        [node_kw.nodes, df], axis=0, ignore_index=True, join="outer"
-    )
+    df1 = pd.concat([node_kw.nodes, df], axis=0, ignore_index=True, join="outer")
 
     node_kw = keywords.Node()
     node_kw.nodes = df1
@@ -89,7 +80,7 @@ def create_segment_set_keyword(
     Parameters
     ----------
     segments : np.array
-        Array of node-indices that make up the segment. If three columns are provided 
+        Array of node-indices that make up the segment. If three columns are provided
         it is assumed that the segments are triangular
     segid : int, optional
         Segment set ID, by default 1
@@ -140,7 +131,7 @@ def create_node_set_keyword(
     Returns
     -------
     keywords.SetNodeList
-        Formatted node set 
+        Formatted node set
     """
 
     kw = custom_keywords.SetNodeList(sid=node_set_id)
@@ -171,7 +162,7 @@ def create_element_shell_keyword(
     shells: np.array, part_id: int = 1, id_offset: int = 0
 ) -> keywords.ElementShell:
 
-    """Creates element shell keyword from a numpy array of 
+    """Creates element shell keyword from a numpy array of
     elements where each row corresponds to an element.
     """
     num_shells = shells.shape[0]
@@ -263,11 +254,7 @@ def create_element_solid_ortho_keyword(
 
 
 def create_define_curve_kw(
-    x: np.array,
-    y: np.array,
-    curve_name: str = "my-title",
-    curve_id: int = 1,
-    lcint: int = 15000,
+    x: np.array, y: np.array, curve_name: str = "my-title", curve_id: int = 1, lcint: int = 15000,
 ) -> keywords.DefineCurve:
     """Creates define curve from x and y values"""
     kw = keywords.DefineCurve()
@@ -331,7 +318,8 @@ def create_discrete_elements_kw(
     part_id : int
         Part id of the discrete elements given
     vector_ids : Union[np.array, int]
-        Orientation ids (vector ids) along which the spring acts. Can be either an array of length N, or a scalar integer
+        Orientation ids (vector ids) along which the spring acts.
+        Can be either an array of length N, or a scalar integer
     scale_factor : Union[np.array, float]
         Scale factor on forces, either an array of length N or scalar value
     element_id_offset : int, optional
@@ -356,9 +344,7 @@ def create_discrete_elements_kw(
     element_ids = element_ids[:, None]
     part_ids = np.ones((num_elements, 1), dtype=float) * part_id
 
-    data = np.hstack(
-        [element_ids, part_ids, nodes, vector_ids[:, None], scaling]
-    )
+    data = np.hstack([element_ids, part_ids, nodes, vector_ids[:, None], scaling])
 
     # set up dataframe
     df = pd.DataFrame(data=data, columns=columns[0:6])
@@ -417,7 +403,9 @@ def get_list_of_used_ids(keyword_db: Deck, keyword_str: str) -> np.array:
     return ids
 
 
-def fast_element_writer(element_kw: Union[keywords.ElementSolidOrtho, keywords.ElementSolid], filename: str):
+def fast_element_writer(
+    element_kw: Union[keywords.ElementSolidOrtho, keywords.ElementSolid], filename: str
+):
     """Fast implementation of the element writer. Use this as an alternative to
     the dynalib writer
     """
@@ -428,7 +416,6 @@ def fast_element_writer(element_kw: Union[keywords.ElementSolidOrtho, keywords.E
         writer = "solid_writer"
     elif element_kw.subkeyword == "SOLID_ORTHO":
         writer = "solid_ortho_writer"
-
 
     elements = element_kw.elements.to_numpy()
     headers = list(element_kw.elements.columns)
@@ -472,15 +459,10 @@ def fast_element_writer(element_kw: Union[keywords.ElementSolidOrtho, keywords.E
         for line in list_formatted_strings:
             fid.write(line)
         fid.close()
-    
+
     elif writer == "solid_writer":
         list_formatted_strings = []
-        line_format = (
-            "{:8d}" * 2  # element ID and part ID
-            + "\n"
-            + "{:8d}" * 8  # node IDs
-            + "\n"
-        )
+        line_format = "{:8d}" * 2 + "\n" + "{:8d}" * 8 + "\n"  # element ID and part ID  # node IDs
         for element in elements:
             line_format_str = line_format.format(
                 element[0],
@@ -491,8 +473,8 @@ def fast_element_writer(element_kw: Union[keywords.ElementSolidOrtho, keywords.E
                 element[5],
                 element[6],
                 element[7],
-                element[8],                
-                element[9],                
+                element[8],
+                element[9],
             )
             list_formatted_strings.append(line_format_str)
         fid = open(filename, "a")
@@ -510,6 +492,7 @@ def example_performance():
     import pandas as pd
     import numpy as np
     from ansys.dyna import keywords
+
     # from ansys.dyna.keywords import db as db
 
     # create some data
@@ -589,13 +572,9 @@ if __name__ == "__main__":
     kw = keywords.SetSegmentAdd()
     kw = keywords.ElementShell()
 
-    kw = create_element_shell_keyword(
-        np.array([[93, 94, 95], [1, 2, 3]]), part_id=2, id_offset=5
-    )
+    kw = create_element_shell_keyword(np.array([[93, 94, 95], [1, 2, 3]]), part_id=2, id_offset=5)
 
-    elements = np.array(
-        [[32545, 31655, 28835, 28894], [28099, 28098, 27191, 33154]], dtype=int
-    )
+    elements = np.array([[32545, 31655, 28835, 28894], [28099, 28098, 27191, 33154]], dtype=int)
     avec = np.array([[0.0, 1.0, 0.0], [1.0, 0.0, 1.0]])
     dvec = np.array([[0.0, 1.0, 0.0], [1.0, 0.0, 1.0]]) / 2
     element_kw = create_element_solid_ortho_keyword(

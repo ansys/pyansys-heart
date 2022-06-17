@@ -14,9 +14,7 @@ ch.setLevel(logging.DEBUG)
 # create formatter
 # dateformat = '%b %d %Y %H:%M:%S'
 dateformat = "%Y/%m/%d %H:%M:%S"
-formatter = logging.Formatter(
-    "%(asctime)s - %(levelname)s - %(message)s", datefmt=dateformat
-)
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", datefmt=dateformat)
 
 # add formatter to ch
 ch.setFormatter(formatter)

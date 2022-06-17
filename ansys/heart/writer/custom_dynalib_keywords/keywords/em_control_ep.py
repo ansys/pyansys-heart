@@ -1,6 +1,6 @@
-import typing
 from ansys.dyna.keywords.lib.card import Card, Field
 from ansys.dyna.keywords.lib.keyword_base import KeywordBase
+
 
 class EmControlEp(KeywordBase):
     """DYNA EM_CONTROL_EP keyword"""
@@ -13,27 +13,9 @@ class EmControlEp(KeywordBase):
         self._cards = [
             Card(
                 [
-                    Field(
-                        "solvetype",
-                        int,
-                        0,
-                        10,
-                        kwargs.get("solvetype", 4)
-                    ),
-                    Field(
-                        "numsplit",
-                        int,
-                        10,
-                        10,
-                        kwargs.get("numsplit", 5)
-                    ),
-                    Field(
-                        "actusig",
-                        int,
-                        20,
-                        10,
-                        kwargs.get("actusig", 100000000)
-                    ),
+                    Field("solvetype", int, 0, 10, kwargs.get("solvetype", 4)),
+                    Field("numsplit", int, 10, 10, kwargs.get("numsplit", 5)),
+                    Field("actusig", int, 20, 10, kwargs.get("actusig", 100000000)),
                 ],
             ),
         ]
@@ -41,7 +23,7 @@ class EmControlEp(KeywordBase):
     @property
     def solvetype(self) -> int:
         """Get or set the ?
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("solvetype")
 
     @solvetype.setter
@@ -51,7 +33,7 @@ class EmControlEp(KeywordBase):
     @property
     def numsplit(self) -> int:
         """Get or set the ?
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("numsplit")
 
     @numsplit.setter
@@ -61,10 +43,9 @@ class EmControlEp(KeywordBase):
     @property
     def actusig(self) -> int:
         """Get or set the ?
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("actusig")
 
     @actusig.setter
     def actusig(self, value: int) -> None:
         self._cards[0].set_value("actusig", value)
-

@@ -2,6 +2,7 @@ import typing
 from ansys.dyna.keywords.lib.card import Card, Field
 from ansys.dyna.keywords.lib.keyword_base import KeywordBase
 
+
 class EmEpPurkinjeNetwork(KeywordBase):
     """DYNA EM_EP_PURKINJE_NETWORK keyword"""
 
@@ -13,101 +14,23 @@ class EmEpPurkinjeNetwork(KeywordBase):
         self._cards = [
             Card(
                 [
-                    Field(
-                        "purkid",
-                        int,
-                        0,
-                        10,
-                        kwargs.get("purkid")
-                    ),
-                    Field(
-                        "buildnet",
-                        int,
-                        10,
-                        10,
-                        kwargs.get("buildnet")
-                    ),
-                    Field(
-                        "ssid",
-                        int,
-                        20,
-                        10,
-                        kwargs.get("ssid")
-                    ),
-                    Field(
-                        "mid",
-                        int,
-                        30,
-                        10,
-                        kwargs.get("mid")
-                    ),
-                    Field(
-                        "pointstx",
-                        float,
-                        40,
-                        10,
-                        kwargs.get("pointstx")
-                    ),
-                    Field(
-                        "pointsty",
-                        float,
-                        50,
-                        10,
-                        kwargs.get("pointsty")
-                    ),
-                    Field(
-                        "pointstz",
-                        int,
-                        60,
-                        10,
-                        kwargs.get("pointstz")
-                    ),
-                    Field(
-                        "edgelen",
-                        float,
-                        70,
-                        10,
-                        kwargs.get("edgelen", 3)
-                    ),
+                    Field("purkid", int, 0, 10, kwargs.get("purkid")),
+                    Field("buildnet", int, 10, 10, kwargs.get("buildnet")),
+                    Field("ssid", int, 20, 10, kwargs.get("ssid")),
+                    Field("mid", int, 30, 10, kwargs.get("mid")),
+                    Field("pointstx", float, 40, 10, kwargs.get("pointstx")),
+                    Field("pointsty", float, 50, 10, kwargs.get("pointsty")),
+                    Field("pointstz", int, 60, 10, kwargs.get("pointstz")),
+                    Field("edgelen", float, 70, 10, kwargs.get("edgelen", 3)),
                 ],
             ),
             Card(
                 [
-                    Field(
-                        "ngen",
-                        int,
-                        0,
-                        10,
-                        kwargs.get("ngen", 30)
-                    ),
-                    Field(
-                        "nbrinit",
-                        int,
-                        10,
-                        10,
-                        kwargs.get("nbrinit", 8)
-                    ),
-                    Field(
-                        "nsplit",
-                        int,
-                        20,
-                        10,
-                        kwargs.get("nsplit", 2)
-                    ),
-                    Field(
-                        "inodeid",
-                        int,
-                        30,
-                        10,
-                        kwargs.get("inodeid")
-                    ),
-                    Field(
-                        "iedgeid",
-                        int,
-                        40,
-                        10,
-                        kwargs.get("iedgeid")
-                    ),
+                    Field("ngen", int, 0, 10, kwargs.get("ngen", 30)),
+                    Field("nbrinit", int, 10, 10, kwargs.get("nbrinit", 8)),
+                    Field("nsplit", int, 20, 10, kwargs.get("nsplit", 2)),
+                    Field("inodeid", int, 30, 10, kwargs.get("inodeid")),
+                    Field("iedgeid", int, 40, 10, kwargs.get("iedgeid")),
                 ],
             ),
         ]
@@ -115,7 +38,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
     @property
     def purkid(self) -> typing.Optional[int]:
         """Get or set the ID for the Purkinje network
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("purkid")
 
     @purkid.setter
@@ -125,7 +48,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
     @property
     def buildnet(self) -> typing.Optional[int]:
         """Get or set the Flag to create Purkinje network: EQ.0: Purkinje network not created, EQ.1: New Purkinje network created.
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("buildnet")
 
     @buildnet.setter
@@ -135,7 +58,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
     @property
     def ssid(self) -> typing.Optional[int]:
         """Get or set the Segment set on which the Purkinje network is lying
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("ssid")
 
     @ssid.setter
@@ -145,7 +68,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
     @property
     def mid(self) -> typing.Optional[int]:
         """Get or set the Material ID defined in the *MAT section
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("mid")
 
     @mid.setter
@@ -155,7 +78,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
     @property
     def pointstx(self) -> typing.Optional[float]:
         """Get or set the X coordinate of the tree origin
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("pointstx")
 
     @pointstx.setter
@@ -165,7 +88,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
     @property
     def pointsty(self) -> typing.Optional[float]:
         """Get or set the Y coordinate of the tree origin
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("pointsty")
 
     @pointsty.setter
@@ -175,7 +98,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
     @property
     def pointstz(self) -> typing.Optional[int]:
         """Get or set the Z coordinate of the tree origin
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("pointstz")
 
     @pointstz.setter
@@ -185,7 +108,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
     @property
     def edgelen(self) -> float:
         """Get or set the Edge length
-        """ # nopep8
+        """  # nopep8
         return self._cards[0].get_value("edgelen")
 
     @edgelen.setter
@@ -195,7 +118,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
     @property
     def ngen(self) -> int:
         """Get or set the Number of generations of branches
-        """ # nopep8
+        """  # nopep8
         return self._cards[1].get_value("ngen")
 
     @ngen.setter
@@ -205,7 +128,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
     @property
     def nbrinit(self) -> int:
         """Get or set the Number of branches attached to the tree origin
-        """ # nopep8
+        """  # nopep8
         return self._cards[1].get_value("nbrinit")
 
     @nbrinit.setter
@@ -215,7 +138,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
     @property
     def nsplit(self) -> int:
         """Get or set the Number of child branches at each node of the tree
-        """ # nopep8
+        """  # nopep8
         return self._cards[1].get_value("nsplit")
 
     @nsplit.setter
@@ -225,7 +148,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
     @property
     def inodeid(self) -> typing.Optional[int]:
         """Get or set the Initial node ID
-        """ # nopep8
+        """  # nopep8
         return self._cards[1].get_value("inodeid")
 
     @inodeid.setter
@@ -235,10 +158,9 @@ class EmEpPurkinjeNetwork(KeywordBase):
     @property
     def iedgeid(self) -> typing.Optional[int]:
         """Get or set the Initial edge ID
-        """ # nopep8
+        """  # nopep8
         return self._cards[1].get_value("iedgeid")
 
     @iedgeid.setter
     def iedgeid(self, value: int) -> None:
         self._cards[1].set_value("iedgeid", value)
-

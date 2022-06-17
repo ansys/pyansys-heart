@@ -102,7 +102,7 @@ def extract_fourchamber_mesh():
 
 def extract_fourchamber_mesh_noremesh():
     """Extracts a four chamber mesh"""
-    work_dir = os.path.join(BASE_WORK_DIR, "four_chamber_model_noremesh")
+    work_dir = os.path.join(BASE_WORK_DIR, "four_chamber_model_original")
     clean_directory(work_dir)
     model_info_path = os.path.join(work_dir, "model_info.json")
 
@@ -113,7 +113,6 @@ def extract_fourchamber_mesh_noremesh():
         path_original_mesh=CASE_PATH,
         working_directory=work_dir,
     )
-    fourchamber_info.mesh_size = 2.0
 
     four_chamber_model = HeartModel(fourchamber_info)
     four_chamber_model.extract_simulation_mesh( remesh = False )
@@ -121,7 +120,7 @@ def extract_fourchamber_mesh_noremesh():
 
     four_chamber_model.dump_model(
         model_info_path, clean_working_directory=REMOVE_INTERMEDIATE_FILES
-    )  # Toggle clean to keep/remove all intermediate files
+    )
     return
 
 def clean_directory(directory: str):
@@ -142,6 +141,7 @@ if __name__ == "__main__":
     if not os.path.isdir(BASE_WORK_DIR):
         os.mkdir(BASE_WORK_DIR)
 
+    extract_four_chamber_no_remesh = True
     run_all = False
     if run_all:
         models_to_run = [
@@ -167,7 +167,9 @@ if __name__ == "__main__":
         logger.info("***************************")
         extract_fourchamber_mesh()
 
-    # extract_fourchamber_mesh_noremesh()
+    if extract_four_chamber_no_remesh:
+        logger.info("***************************")
+        extract_fourchamber_mesh_noremesh()
 
     logger.info("***************************")
     logger.info("** DONE **")

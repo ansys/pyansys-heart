@@ -78,6 +78,6 @@ if __name__ == "__main__":
 
     # four chamber model with original mesh
     path_model_info = os.path.join(
-        ABS_BASE_PATH, "..", "workdir", "four_chamber_model_noremesh", "model_info.json"
+        ABS_BASE_PATH, "..", "workdir", "four_chamber_model_original", "model_info.json"
     )
     create_ls_dyna_files(path_model_info)

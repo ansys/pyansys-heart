@@ -34,7 +34,7 @@ from ansys.heart.preprocessor.vtk_module import (
     cell_ids_inside_enclosed_surface,
     read_vtk_unstructuredgrid_file,
     find_duplicate_elements,
-    remove_duplicate_nodes
+    remove_duplicate_nodes,
 )
 from ansys.heart.preprocessor.mesh_module import (
     shrink_by_spaceclaim,
@@ -172,6 +172,23 @@ class HeartMesh:
 
         return
 
+    def _extract_myocardium(self):
+        """Extracts only the myocardium parts"""
+        # only extract myocardium parts
+        vtk_tags_to_use = []
+        vtk_tags_to_use1 = {}
+        for cavity in self._cavities:
+            for ii, label in enumerate(cavity.labels):
+                if "myocardium" in label:
+                    vtk_tags_to_use.append(cavity.vtk_ids[ii])
+                    vtk_tags_to_use1[label] = cavity.vtk_ids[ii]
+
+        myocardium_volume_vtk = self._extract_relevant_parts(
+            self._vtk_volume_temp, vtk_tags_to_use1
+        )
+
+        return myocardium_volume_vtk
+
     def add_cavities(self):
         """Adds cavities based on the requested model"""
         dump_to_file = False
@@ -271,16 +288,7 @@ class HeartMesh:
 
         working_dir = self.info.working_directory
 
-        # only extract myocardium parts
-        vtk_tags_to_use = []
-        vtk_tags_to_use1 = {}
-        for cavity in self._cavities:
-            for ii, label in enumerate(cavity.labels):
-                if "myocardium" in label:
-                    vtk_tags_to_use.append(cavity.vtk_ids[ii])
-                    vtk_tags_to_use1[label] = cavity.vtk_ids[ii]
-
-        spaceclaim_input = self._extract_relevant_parts(self._vtk_volume_temp, vtk_tags_to_use1)
+        myocardium_volume_vtk = self._extract_myocardium()
 
         input_stl_spaceclaim = os.path.join(working_dir, "input_surface_spaceclaim.stl")
         output_stl_spaceclaim = os.path.join(working_dir, "output_surface_spaceclaim.stl")
@@ -292,7 +300,7 @@ class HeartMesh:
 
         output_vtk = os.path.join(working_dir, "output_meshing.vtk")
 
-        vtk_surface_to_stl(spaceclaim_input, input_stl_spaceclaim)
+        vtk_surface_to_stl(myocardium_volume_vtk, input_stl_spaceclaim)
 
         if use_gmesh:
             # launch spaceclaim to wrap the surface
@@ -315,7 +323,9 @@ class HeartMesh:
         # store path in info
         self.info.path_mesh = output_vtk
 
-        # cleanup        return
+        # add remeshed volume to mesh object:
+        self.set_volume_mesh_vtk( output_vtk )
+
         return
 
     def map_data_to_remeshed_volume(self):
@@ -561,6 +571,7 @@ class HeartMesh:
         # remove any duplicate segments within each cavity
         logger.debug("Detecting duplicate segments...")
         all_tris = np.empty((0, 3), dtype=int)
+        import tqdm as tqdm  # for progress bar
         for cavity in self._cavities:
 
             for seg_set in cavity.segment_sets:
@@ -569,11 +580,12 @@ class HeartMesh:
 
                 # find triangles to remove
                 idx_remove = []
-                for idx, tri in enumerate(seg_set1):
+                for idx, tri in enumerate( tqdm.tqdm( seg_set1, ascii=True ) ):
                     if np.any(np.all(tri == all_tris, axis=1)):
                         idx_remove.append(idx)
                 logger.debug(
-                    "Found {0} duplicate segments in {1}".format(len(idx_remove), seg_set["name"])
+                    "Found {0} duplicate segments in {1}".format(len(idx_remove),
+                    cavity.name + " " + seg_set["name"])
                 )
 
                 # remove the duplicate faces

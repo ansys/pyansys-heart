@@ -100,6 +100,30 @@ def extract_fourchamber_mesh():
     return
 
 
+def extract_fourchamber_mesh_noremesh():
+    """Extracts a four chamber mesh"""
+    work_dir = os.path.join(BASE_WORK_DIR, "four_chamber_model_noremesh")
+    clean_directory(work_dir)
+    model_info_path = os.path.join(work_dir, "model_info.json")
+
+    # create model
+    fourchamber_info = ModelInformation(
+        model_type="FourChamber",
+        database_name="Strocchi2020",
+        path_original_mesh=CASE_PATH,
+        working_directory=work_dir,
+    )
+    fourchamber_info.mesh_size = 2.0
+
+    four_chamber_model = HeartModel(fourchamber_info)
+    four_chamber_model.extract_simulation_mesh( remesh = False )
+    four_chamber_model.get_model_characteristics()
+
+    four_chamber_model.dump_model(
+        model_info_path, clean_working_directory=REMOVE_INTERMEDIATE_FILES
+    )  # Toggle clean to keep/remove all intermediate files
+    return
+
 def clean_directory(directory: str):
     """Cleans the directory by removing it and re-creating it
     """
@@ -118,17 +142,32 @@ if __name__ == "__main__":
     if not os.path.isdir(BASE_WORK_DIR):
         os.mkdir(BASE_WORK_DIR)
 
+    run_all = False
+    if run_all:
+        models_to_run = [
+            "LeftVentricle",
+            "BiVentricle",
+            "FourChamber"
+            ]
+    else:
+        models_to_run = []
+
     # extract left ventricle mesh
-    logger.info("***************************")
-    # extract_leftventricle_mesh()
+    if "LeftVentricle" in models_to_run:
+        logger.info("***************************")
+        extract_leftventricle_mesh()
 
-    # extract biventricle mesh
-    logger.info("***************************")
-    # extract_biventricle_mesh()
+    if "BiVentricle" in models_to_run:
+        # extract biventricle mesh
+        logger.info("***************************")
+        extract_biventricle_mesh()
 
-    # extract four chamber mesh
-    logger.info("***************************")
-    extract_fourchamber_mesh()
+    if "FourChamber" in models_to_run:
+        # extract four chamber mesh
+        logger.info("***************************")
+        extract_fourchamber_mesh()
+
+    # extract_fourchamber_mesh_noremesh()
 
     logger.info("***************************")
     logger.info("** DONE **")

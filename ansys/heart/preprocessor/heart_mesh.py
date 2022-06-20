@@ -206,7 +206,7 @@ class HeartMesh:
         vtk_tags_to_use1 = {}
         for cavity in self._cavities:
             for ii, label in enumerate(cavity.labels):
-                if "myocardium" in label:
+                if "myocardium" in label or "wall" in label:
                     vtk_tags_to_use.append(cavity.vtk_ids[ii])
                     vtk_tags_to_use1[label] = cavity.vtk_ids[ii]
 
@@ -227,8 +227,8 @@ class HeartMesh:
         for cavity in self._cavities:
             # cavity._set_connected_surfaces( self._vtk_surface_polydata )
             # NOTE: now uses raw surface mesh. This may not be very efficient
-            cavity._set_connected_surfaces(self._vtk_volume_temp)
             logger.debug("Processing... " + cavity.name)
+            cavity._set_connected_surfaces(self._vtk_volume_temp)
 
             logger.warning("Computing cavity centroid")
             cavity._compute_centroid_cavity()
@@ -266,6 +266,9 @@ class HeartMesh:
         write_caps_to_file = True
 
         for cavity in self._cavities:
+            if "artery" in cavity.name or "aorta" in cavity.name:
+                logger.debug("Skipping %s " % cavity.name)
+                continue
             logger.debug("Closing cavity... %s" % cavity.name)
             cavity._find_closing_edge_loop()
 
@@ -787,6 +790,7 @@ class HeartMesh:
         for part_names in cavity_definitions:
             # logger.debug(cavity)
             cavity_name = part_names[0].replace(" myocardium", "")
+            cavity_name = part_names[0].replace(" wall", "")
 
             vtk_ids = []
             for part_name in part_names:

@@ -3,13 +3,20 @@
 
 # cavity definitions
 CAVITY_DEFINITIONS = {
-    "LeftVentricle": ["Left ventricle myocardium", "Aortic valve plane", "Mitral valve plane"],
-    "RightVentricle": [
+    "LeftVentricle": 
+    [
+        "Left ventricle myocardium",
+        "Aortic valve plane",
+        "Mitral valve plane"
+    ],
+    "RightVentricle":
+    [
         "Right ventricle myocardium",
         "Tricuspid valve plane",
         "Pulmonary valve plane",
     ],
-    "LeftAtrium": [
+    "LeftAtrium":
+    [
         "Left atrium myocardium",
         "Mitral valve plane",
         "Left atrium appendage inlet",
@@ -18,17 +25,29 @@ CAVITY_DEFINITIONS = {
         "Right inferior pulmonary vein inlet",
         "Right superior pulmonary vein inlet",
     ],
-    "RightAtrium": [
+    "RightAtrium":
+    [
         "Right atrium myocardium",
         "Tricuspid valve plane",
         "Superior vena cava inlet",
         "Inferior vena cava inlet",
     ],
+    "Aorta" : 
+    [
+        "Aorta wall",
+        "Aortic valve plane"
+    ],
+    "Pulmonary artery":
+    [
+        "Pulmonary artery wall", 
+        "Pulmonary valve plane"
+    ]
 }
 
 # dictionary of valid models
 VALID_MODELS = {
-    "LeftVentricle": {
+    "LeftVentricle":
+    {
         "LabelsToUse": ["Left ventricle myocardium", "Aortic valve plane", "Mitral valve plane"],
         "CavityDefinition": [CAVITY_DEFINITIONS["LeftVentricle"]],
     },
@@ -71,6 +90,35 @@ VALID_MODELS = {
             CAVITY_DEFINITIONS["RightAtrium"],
         ],
     },
+    "FullHeart": {
+        "LabelsToUse": [
+            "Left ventricle myocardium",
+            "Aortic valve plane",
+            "Mitral valve plane",
+            "Right ventricle myocardium",
+            "Tricuspid valve plane",
+            "Pulmonary valve plane",
+            "Left atrium myocardium",
+            "Left atrium appendage inlet",
+            "Left superior pulmonary vein inlet",
+            "Left inferior pulmonary vein inlet",
+            "Right inferior pulmonary vein inlet",
+            "Right superior pulmonary vein inlet",
+            "Right atrium myocardium",
+            "Superior vena cava inlet",
+            "Inferior vena cava inlet",
+            "Aorta wall",
+            "Pulmonary artery wall"
+        ],
+        "CavityDefinition": [
+            CAVITY_DEFINITIONS["LeftVentricle"],
+            CAVITY_DEFINITIONS["RightVentricle"],
+            CAVITY_DEFINITIONS["LeftAtrium"],
+            CAVITY_DEFINITIONS["RightAtrium"],
+            CAVITY_DEFINITIONS["Aorta"],
+            CAVITY_DEFINITIONS["Pulmonary artery"],
+        ],
+    },    
 }
 
 if __name__ == "__main__":

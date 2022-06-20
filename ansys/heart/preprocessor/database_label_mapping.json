@@ -30,6 +30,7 @@
         "Right ventricle myocardium": 2,
         "Left atrium myocardium": 3,
         "Right atrium myocardium": 4,
+		"Aorta wall" : 5,
         "Pulmonary artery wall": 6,
         "Left atrial appendage border": 18,
         "Left superior pulmonary vein border": 21,

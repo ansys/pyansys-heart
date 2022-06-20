@@ -131,10 +131,10 @@ if __name__ == "__main__":
     run_all = True
     if run_all:
         models_to_run = [
-            # "LeftVentricle",
+            "LeftVentricle",
             "BiVentricle",
-            # "FourChamber",
-            # "FourChamberOriginal"
+            "FourChamber",
+            "FourChamberOriginal"
             ]
     else:
         models_to_run = []

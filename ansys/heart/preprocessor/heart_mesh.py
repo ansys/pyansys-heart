@@ -35,6 +35,7 @@ from ansys.heart.preprocessor.vtk_module import (
     read_vtk_unstructuredgrid_file,
     find_duplicate_elements,
     remove_duplicate_nodes,
+    rename_vtk_array,
 )
 from ansys.heart.preprocessor.mesh_module import (
     shrink_by_spaceclaim,
@@ -116,6 +117,31 @@ class HeartMesh:
     def extract_parts(self):
         """Extracts the relevant parts from the mesh given the vtk labels/tags
         to use. Also extracts info such as cell data and point data from the vtk files"""
+
+        if self.info.database_name == "Cristobal2021":
+            # change vtk array names if data from cristobal et al
+            # first element is naming of Strocchi et al 2020, and the naming assumed
+            # in this package
+            logger.warning(
+                "Modifying array names of %s to match dataset of Strocchi2020"
+                % self.info.database_name
+            )
+            name_array_mapping = [
+                ["tags", "ID", "cell_data"],
+                ["fibers", "fibres", "cell_data"],
+                ["uvc_longitudinal", "Z.dat", "point_data"],
+                ["uvc_rotational", "PHI.dat", "point_data"],
+                ["uvc_transmural", "RHO.dat", "point_data"],
+                ["uvc_intraventricular", "V.dat", "point_data"],
+            ]
+
+            for item in name_array_mapping:
+                self._vtk_volume_raw = rename_vtk_array(
+                    self._vtk_volume_raw,
+                    new_array_name=item[0],
+                    old_array_name=item[1],
+                    data_type=item[2],
+                )
 
         write_temporary_files = False
         # Add tags where elements overlap
@@ -324,7 +350,7 @@ class HeartMesh:
         self.info.path_mesh = output_vtk
 
         # add remeshed volume to mesh object:
-        self.set_volume_mesh_vtk( output_vtk )
+        self.set_volume_mesh_vtk(output_vtk)
 
         return
 
@@ -532,8 +558,7 @@ class HeartMesh:
 
             if nodeset_septum is None:
                 raise ValueError(
-                    "Did not find node set in Left ventricle cavity "
-                    "with name epicardium-septum"
+                    "Did not find node set in Left ventricle cavity " "with name epicardium-septum"
                 )
 
             for cavity in self._cavities:
@@ -542,8 +567,7 @@ class HeartMesh:
                     cavity.node_sets.append(nodeset_septum)
                     logger.debug(
                         "Assigning septum of left ventricle to node set of right ventricle"
-                    )   
-
+                    )
 
         # write points of cavity to working directory
         for cavity in self._cavities:
@@ -598,6 +622,7 @@ class HeartMesh:
         logger.debug("Detecting duplicate segments...")
         all_tris = np.empty((0, 3), dtype=int)
         import tqdm as tqdm  # for progress bar
+
         for cavity in self._cavities:
 
             for seg_set in cavity.segment_sets:
@@ -606,12 +631,13 @@ class HeartMesh:
 
                 # find triangles to remove
                 idx_remove = []
-                for idx, tri in enumerate( tqdm.tqdm( seg_set1, ascii=True ) ):
+                for idx, tri in enumerate(tqdm.tqdm(seg_set1, ascii=True)):
                     if np.any(np.all(tri == all_tris, axis=1)):
                         idx_remove.append(idx)
                 logger.debug(
-                    "Found {0} duplicate segments in {1}".format(len(idx_remove),
-                    cavity.name + " " + seg_set["name"])
+                    "Found {0} duplicate segments in {1}".format(
+                        len(idx_remove), cavity.name + " " + seg_set["name"]
+                    )
                 )
 
                 # remove the duplicate faces

@@ -1,3 +1,4 @@
 # ignore any files in the examples working directory
 workdir/*
+workdir_cristobal*
 preprocessor/workdir

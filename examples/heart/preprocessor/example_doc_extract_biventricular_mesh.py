@@ -11,7 +11,7 @@ import ansys.heart.preprocessor as preproc
 # get path to case
 case_path = os.path.join(
     pathlib.Path ( preproc.__file__ ).parents[3], 
-    "tests", "heart", "assets", "cases", "01", "01.case" )
+    "tests", "heart", "assets", "cases", "strocchi2020", "01", "01.case" )
 
 # specify working directory
 work_directory = os.path.join( pathlib.Path(__file__).parents[0], "workdir", "bi_ventricle_model" )

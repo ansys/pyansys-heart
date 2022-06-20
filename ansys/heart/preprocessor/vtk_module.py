@@ -788,6 +788,63 @@ def add_vtk_array(
     return
 
 
+def rename_vtk_array(
+    vtkobject: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid],
+    old_array_name: str,
+    new_array_name: str,
+    data_type: str = "both",
+):
+    """Renames cell or point array of vtk object
+
+    Parameters
+    ----------
+    vtkobject : Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]
+        vtk object
+    old_array_name : str
+        Old name of the data array
+    new_array_name : str
+        New name of the data array
+    data_type : str, optional
+        Data types to search. Allowed options include: "cell_data", "point_data" or "both",
+        by default "both"
+    """
+    num_cell_data = vtkobject.GetCellData().GetNumberOfArrays()
+    num_point_data = vtkobject.GetPointData().GetNumberOfArrays()
+
+    replaced = 0
+
+    # replace cell data names
+    if data_type == "cell_data" or data_type == "both":
+        for ii in range(num_cell_data):
+            vtk_array = vtkobject.GetCellData().GetArray(ii)
+            array_name = vtkobject.GetCellData().GetArray(ii).GetName()
+            if array_name == old_array_name:
+                logger.debug(
+                    "Replacing old cell data name '{0}' with new name: '{1}'".format(
+                        array_name, new_array_name
+                    )
+                )
+                vtkobject.GetCellData().GetArray(ii).SetName(new_array_name)
+                replaced += 1
+
+    # replace point data names
+    if data_type == "point_data" or data_type == "both":
+        for ii in range(num_point_data):
+            array_name = vtkobject.GetPointData().GetArrayName(ii)
+            if array_name == old_array_name:
+                logger.debug(
+                    "Replacing old point data name '{0}' with new name: '{1}'".format(
+                        array_name, new_array_name
+                    )
+                )
+                vtkobject.GetPointData().GetArray(ii).SetName(new_array_name)
+                replaced += 1
+    if replaced == 0:
+        logger.debug("No array names replaced")
+
+    return vtkobject
+
+
 def create_vtk_polydata_from_points(points: np.array) -> vtk.vtkPolyData:
     """Creates VTK PolyData object from set of points
 

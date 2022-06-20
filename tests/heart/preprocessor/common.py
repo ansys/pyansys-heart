@@ -1,16 +1,13 @@
 """Collect some pre-sets for mesh extraction"""
 import pathlib
-from conftest import *
-
+import os
 
 from ansys.heart.preprocessor.model_information import ModelInformation
 from ansys.heart.preprocessor.heart_model import HeartModel
 from conftest import (
     get_assets_folder,
-    get_workdir,
     clean_directory,
-    create_directory,
-    remove_keys_from_dict,
+    create_directory
 )
 
 
@@ -23,7 +20,7 @@ def workflow_extract_mesh(model_type: str, working_directory: pathlib.Path) -> p
         Type of model. Options include: 'LeftVentricle', 'BiVentricle', 'FourChamber'
     working_directory : pathlib.Path
         Working directory where to write model output
-    
+
     Returns
     -------
     pathlib.Path
@@ -35,7 +32,7 @@ def workflow_extract_mesh(model_type: str, working_directory: pathlib.Path) -> p
     create_directory(output_directory)
     clean_directory(output_directory)
 
-    case_path = os.path.join(get_assets_folder(), "cases", "01", "01.case")
+    case_path = os.path.join(get_assets_folder(), "cases", "strocchi2020", "01", "01.case")
 
     # create model info
     model_info = ModelInformation(

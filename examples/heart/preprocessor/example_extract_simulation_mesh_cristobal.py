@@ -16,9 +16,9 @@ from ansys.heart.general import clean_directory
 ASSET_PATH = os.path.join(
     Path(__file__).parent.absolute(), "..", "..", "..", "tests", "heart", "assets"
 )
-CASE_PATH = os.path.join(os.path.abspath(ASSET_PATH), "cases", "strocchi2020", "01", "01.case")
+CASE_PATH = os.path.join(os.path.abspath(ASSET_PATH), "cases", "cristobal2021", "01", "01.vtk")
 
-BASE_WORK_DIR = os.path.join(Path(__file__).parent.absolute(), "..", "workdir")
+BASE_WORK_DIR = os.path.join(Path(__file__).parent.absolute(), "..", "workdir_cristobal")
 
 REMOVE_INTERMEDIATE_FILES = False  # flag indicating whether to remove intermediate files
 
@@ -32,7 +32,7 @@ def extract_leftventricle_mesh():
     # create model
     lv_ventricle_info = ModelInformation(
         model_type="LeftVentricle",
-        database_name="Strocchi2020",
+        database_name="Cristobal2021",
         path_original_mesh=CASE_PATH,
         working_directory=work_dir,
     )
@@ -59,7 +59,7 @@ def extract_biventricle_mesh():
     # create model
     bi_ventricle_info = ModelInformation(
         model_type="BiVentricle",
-        database_name="Strocchi2020",
+        database_name="Cristobal2021",
         path_original_mesh=CASE_PATH,
         working_directory=work_dir,
     )
@@ -84,7 +84,7 @@ def extract_fourchamber_mesh():
     # create model
     fourchamber_info = ModelInformation(
         model_type="FourChamber",
-        database_name="Strocchi2020",
+        database_name="Cristobal2021",
         path_original_mesh=CASE_PATH,
         working_directory=work_dir,
     )
@@ -109,7 +109,7 @@ def extract_fourchamber_mesh_noremesh():
     # create model
     fourchamber_info = ModelInformation(
         model_type="FourChamber",
-        database_name="Strocchi2020",
+        database_name="Cristobal2021",
         path_original_mesh=CASE_PATH,
         working_directory=work_dir,
     )
@@ -134,7 +134,7 @@ if __name__ == "__main__":
             "LeftVentricle",
             "BiVentricle",
             "FourChamber",
-            # "FourChamberOriginal"
+            "FourChamberOriginal"
             ]
     else:
         models_to_run = []

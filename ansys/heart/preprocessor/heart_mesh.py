@@ -122,7 +122,7 @@ class HeartMesh:
             # change vtk array names if data from cristobal et al
             # first element is naming of Strocchi et al 2020, and the naming assumed
             # in this package
-            logger.warning(
+            logger.debug(
                 "Modifying array names of %s to match dataset of Strocchi2020"
                 % self.info.database_name
             )

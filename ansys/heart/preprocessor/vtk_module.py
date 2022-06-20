@@ -819,7 +819,7 @@ def rename_vtk_array(
             vtk_array = vtkobject.GetCellData().GetArray(ii)
             array_name = vtkobject.GetCellData().GetArray(ii).GetName()
             if array_name == old_array_name:
-                logger.warning(
+                logger.debug(
                     "Replacing old cell data name '{0}' with new name: '{1}'".format(
                         array_name, new_array_name
                     )
@@ -832,7 +832,7 @@ def rename_vtk_array(
         for ii in range(num_point_data):
             array_name = vtkobject.GetPointData().GetArrayName(ii)
             if array_name == old_array_name:
-                logger.warning(
+                logger.debug(
                     "Replacing old point data name '{0}' with new name: '{1}'".format(
                         array_name, new_array_name
                     )
@@ -840,7 +840,7 @@ def rename_vtk_array(
                 vtkobject.GetPointData().GetArray(ii).SetName(new_array_name)
                 replaced += 1
     if replaced == 0:
-        logger.warning("No array names replaced")
+        logger.debug("No array names replaced")
 
     return vtkobject
 

@@ -128,7 +128,8 @@ class HeartMesh:
             )
             name_array_mapping = [
                 ["tags", "ID", "cell_data"],
-                ["fibers", "fibres", "cell_data"],
+                ["fiber", "fibres", "cell_data"],
+                ["sheet", "sheets", "cell_data"],
                 ["uvc_longitudinal", "Z.dat", "point_data"],
                 ["uvc_rotational", "PHI.dat", "point_data"],
                 ["uvc_transmural", "RHO.dat", "point_data"],

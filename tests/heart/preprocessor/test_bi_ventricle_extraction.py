@@ -26,7 +26,7 @@ def extraction_bi_ventricle():
     global output_dir
     output_dir = workflow_extract_mesh("BiVentricle", get_workdir())
 
-    yield 
+    yield
     # cleanup
     shutil.rmtree(output_dir)
 

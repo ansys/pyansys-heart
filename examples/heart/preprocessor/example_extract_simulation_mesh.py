@@ -6,7 +6,6 @@ left-ventricle mesh, bi-ventricle mesh and four-chamber mesh
 
 import os
 from pathlib import Path
-import shutil
 
 from ansys.heart.preprocessor.heart_model import HeartModel
 from ansys.heart.preprocessor.model_information import ModelInformation
@@ -17,7 +16,7 @@ from ansys.heart.general import clean_directory
 ASSET_PATH = os.path.join(
     Path(__file__).parent.absolute(), "..", "..", "..", "tests", "heart", "assets"
 )
-CASE_PATH = os.path.join(os.path.abspath(ASSET_PATH), "cases", "01", "01.case")
+CASE_PATH = os.path.join(os.path.abspath(ASSET_PATH), "cases", "strocchi2020", "01", "01.case")
 
 BASE_WORK_DIR = os.path.join(Path(__file__).parent.absolute(), "..", "workdir")
 
@@ -135,7 +134,7 @@ if __name__ == "__main__":
             "LeftVentricle",
             "BiVentricle",
             "FourChamber",
-            "FourChamberOriginal"
+            # "FourChamberOriginal"
             ]
     else:
         models_to_run = []

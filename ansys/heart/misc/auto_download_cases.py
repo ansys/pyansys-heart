@@ -41,10 +41,20 @@ def download_cases():
     return
 
 def unzip_cases():
-    """Unzips the downloaded cases
+    """Un-tars the downloaded cases
     """
-    #TODO Needs to be implemented
+    import tarfile
+    import glob as glob
+    for database_name, subdict in URLS.items():        
+        download_dir = PurePath.joinpath( DOWNLOAD_DIR, database_name )
+        files = glob.glob( os.path.join( download_dir, "*.tar.gz") )
+        for file in tqdm(files):
+            tar_ball = tarfile.open( file )
+            tar_ball.extractall(path = download_dir)    
+    return
 
 if __name__ == "__main__":
     download_cases()
+    unzip_cases()
+
     print("Protected")

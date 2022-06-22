@@ -789,8 +789,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
         section_kw = keywords.SectionDiscrete(secid=section_id, cdl=0, tdl=0)
         mat_kw = keywords.MatSpringElastic(mid=mat_id, k=spring_stiffness)
 
-        type = 2  # 1: 3 equal springs in x,y and z 2: one spring in apex-mitral valve direction
-        if type == 1:
+        # 1: "omni-directional": equal springs in x,y, and z
+        # 2: "apex-mitral-drection": one spring in apex-mitral valve direction
+        spring_types = ["omni-directional", "apex-mitral-direction"]
+        spring_type = "apex-mitral-direction"
+        if spring_type == "omni-directional":
             # create three unit vectors
             sd_orientation_kw = create_define_sd_orientation_kw(
                 vectors=np.eye(3), vector_id_offset=self.id_offset["vector"]
@@ -805,14 +808,17 @@ class MechanicsDynaWriter(BaseDynaWriter):
             nodes = np.vstack([nodes, np.zeros(len(nodes))])
             nodes = nodes.T
             scale_factors = np.repeat(scale_factors, 3)
-        elif type == 2:
+            
+        elif spring_type == "apex-mitral-direction":
             # get center of mitral valve
             for cavity in self.model._mesh._cavities:
                 if cavity.name == "Left ventricle":
+                    apex_node_id = cavity.apex_id["epicardium"]
+                    apex1 = self.volume_mesh["nodes"][apex_node_id, :]
                     for cap in cavity.closing_caps:
                         if cap.name == "Mitral valve plane":
                             center = cap.centroid
-
+            # NOTE: consider using the already defined apical point
             apex = self.volume_mesh["nodes"][np.argmin(abs(uvc_l)), :]
             # define spring orientation from apex to mitral valve
             orientation = center - apex

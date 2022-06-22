@@ -39,7 +39,11 @@ class MaterialAtrium(custom_keywords.Mat077H):
     """
 
     def __init__(
-        self, mid: int = 1, rho: float = 1e-6, poisson_ratio: float = 0.499, c10: float = 7.46,
+        self,
+        mid: int = 1,
+        rho: float = 1e-6,
+        poisson_ratio: float = 0.499,
+        c10: float = 17.46,
     ):
 
         super().__init__(mid=mid, ro=rho, pr=poisson_ratio, n=0, c10=c10)

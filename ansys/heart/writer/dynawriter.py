@@ -196,12 +196,21 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._update_material_db(add_active=True)
 
         # for boundary conditions
-        self._update_boundary_conditions_db()
+        # self._update_boundary_conditions_db()
+        self._add_cap_bc(bc_type="springs_caps")
+        self._add_pericardium_bc()
+        # self._add_pericardium_bc_usr()
 
         # for control volume
         self._update_cap_elements_db()
         self._update_controlvolume_db()
         self._update_system_model()
+
+        # Approximate end-diastolic pressures
+        pressure_lv = 2  # kPa
+        pressure_rv = 0.5333  # kPa
+
+        self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
         self._get_list_of_includes()
         self._add_includes()
@@ -349,7 +358,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # add implict controls
         if simulation_type == "quasi-static":
             imass = 1
-            gamma = 0.66
+            gamma = 0.6
             beta = 0.38
         elif simulation_type == "static":
             imass = 0
@@ -528,10 +537,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
     def _update_boundary_conditions_db(self):
         """Updates the boundary conditions keyword database"""
 
-        self._add_cap_bc(bc_type="springs_caps")
-
-        self._add_pericardium_bc_usr()
-
+        # self._add_cap_bc(bc_type="fix_all_caps")
+        pass
         return
 
     def _add_cap_bc(self, bc_type: str):
@@ -540,41 +547,42 @@ class MechanicsDynaWriter(BaseDynaWriter):
         Parameters
         ----------
         bc_type : str
-            Boundary condition type. Valid bc's include: ["fix_all_caps", "springs_caps"].
+            Boundary condition type. Valid bc's include: ["fix_caps", "springs_caps"].
         """
-        valid_bcs = ["fix_all_caps", "springs_caps"]
+        valid_bcs = ["fix_caps", "springs_caps"]
         if bc_type not in valid_bcs:
             raise ValueError("Cap/Valve boundary condition must be of type: %r" % valid_bcs)
 
-        if bc_type == "fix_all_caps":
+        # create list of cap names where to add the spring b.c
+        caps_to_use = []
+        if self.model.info.model_type in ["LeftVentricle", "BiVentricle"]:
+            # use all caps:
             for cavity in self.model._mesh._cavities:
                 for cap in cavity.closing_caps:
-                    kw_fix = keywords.BoundarySpcSet()
-                    kw_fix.nsid = cap.nodeset_id
-                    kw_fix.dofx = 1
-                    kw_fix.dofy = 1
-                    kw_fix.dofz = 1
+                    caps_to_use.append(cap.name)
 
-                    self.kw_database.boundary_conditions.append(kw_fix)
+        elif self.model.info.model_type in ["FourChamber"]:
+            caps_to_use = [
+                "Superior vena cava inlet",
+                "Right inferior pulmonary vein inlet",
+                "Right superior pulmonary vein inlet",
+            ]
+
+        if bc_type == "fix_caps":
+            for cavity in self.model._mesh._cavities:
+                for cap in cavity.closing_caps:
+                    if cap.name in caps_to_use:
+                        kw_fix = keywords.BoundarySpcSet()
+                        kw_fix.nsid = cap.nodeset_id
+                        kw_fix.dofx = 1
+                        kw_fix.dofy = 1
+                        kw_fix.dofz = 1
+
+                        self.kw_database.boundary_conditions.append(kw_fix)
 
         # if bc type is springs -> add springs
         # NOTE add to boundary condition db or seperate spring db?
-        if bc_type == "springs_caps":
-
-            # create list of cap names where to add the spring b.c
-            caps_to_use = []
-            if self.model.info.model_type in ["LeftVentricle", "BiVentricle"]:
-                # use all caps:
-                for cavity in self.model._mesh._cavities:
-                    for cap in cavity.closing_caps:
-                        caps_to_use.append(cap.name)
-
-            elif self.model.info.model_type in ["FourChamber"]:
-                caps_to_use = [
-                    "Superior vena cava inlet",
-                    "Right inferior pulmonary vein inlet",
-                    "Right superior pulmonary vein inlet",
-                ]
+        elif bc_type == "springs_caps":
 
             # NOTE: Make dynamic and expose to user?
 
@@ -584,7 +592,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             mat_id = 200
 
             # TODO: exposed to user/parameters?
-            spring_stiffness = 20
+            spring_stiffness = 200
             scale_factor_normal = 0.1
             scale_factor_radial = 0.3
 
@@ -715,42 +723,26 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
 
         uvc_l[uvc_l < 0] = 1
-        penalty = -_sigmoid((abs(uvc_l) - 0.65) * 25) + 1
+        penalty = -_sigmoid((abs(uvc_l) - 0.1) * 25) + 1
 
         # collect all pericardium nodes:
         epicardium_nodes = np.empty(0, dtype=int)
         logger.debug("Collecting epicardium nodesets:")
         for cavity in self.model._mesh._cavities:
-            for nodeset in cavity.node_sets:
-                if nodeset["name"] == "epicardium":
-                    logger.debug("\t{0} {1}".format(cavity.name, nodeset["name"]))
-                    epicardium_nodes = np.append(epicardium_nodes, nodeset["set"])
+            if cavity.name == "Right ventricle" or cavity.name == "Left ventricle":
+                for nodeset in cavity.node_sets:
+                    if nodeset["name"] == "epicardium":
+                        logger.debug("\t{0} {1}".format(cavity.name, nodeset["name"]))
+                        epicardium_nodes = np.append(epicardium_nodes, nodeset["set"])
 
         # select only nodes that are on the epicardium and penalty factor > 0.1
-        pericardium_nodes = epicardium_nodes[penalty[epicardium_nodes] > 0.1]
-
-        # NOTE: Need to be made dynamic
-        part_id = 201
-        section_id = 201
-        mat_id = 201
+        pericardium_nodes = epicardium_nodes[penalty[epicardium_nodes] > 0.001]
+        # coord = self.volume_mesh["nodes"][pericardium_nodes]
+        # np.savetxt(r"pericardium.txt",
+        #            np.concatenate((coord,penalty[pericardium_nodes].reshape(-1,1)),axis=1))
 
         # TODO: exposed to user/parameters?
-        spring_stiffness = 50
-
-        part_kw = keywords.Part()
-        part_kw.parts = pd.DataFrame(
-            {"heading": ["Pericardium"], "pid": [part_id], "secid": [section_id], "mid": [mat_id]}
-        )
-        section_kw = keywords.SectionDiscrete(secid=section_id, cdl=0, tdl=0)
-        mat_kw = keywords.MatSpringElastic(mid=mat_id, k=spring_stiffness)
-
-        # create three unit vectors
-        sd_orientation_kw = create_define_sd_orientation_kw(
-            vectors=np.eye(3), vector_id_offset=self.id_offset["vector"]
-        )
-
-        self.id_offset["vector"] = sd_orientation_kw.vectors["vid"].to_numpy()[-1]
-
+        spring_stiffness = 50  # kPA/mm
         # compute nodal areas:
         vtk_surface = vtk_surface_filter(self.model._mesh._vtk_volume, True)
         nodal_areas = compute_surface_nodal_area(vtk_surface)
@@ -765,14 +757,65 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # compute scale factor
         scale_factors = nodal_areas * penalty[pericardium_nodes]
 
-        # create discrete elements for each node and for each direction
-        vector_ids = sd_orientation_kw.vectors["vid"].to_numpy()
-        num_nodes = len(pericardium_nodes)
-        vector_ids = np.tile(vector_ids, num_nodes)
-        nodes = np.repeat(pericardium_nodes + 1, 3)
-        nodes = np.vstack([nodes, np.zeros(len(nodes))])
-        nodes = nodes.T
-        scale_factors = np.repeat(scale_factors, 3)
+        # keywords
+        # NOTE: Need to be made dynamic
+        part_id = 201
+        section_id = 201
+        mat_id = 201
+
+        part_kw = keywords.Part()
+        part_kw.parts = pd.DataFrame(
+            {"heading": ["Pericardium"], "pid": [part_id], "secid": [section_id], "mid": [mat_id]}
+        )
+        section_kw = keywords.SectionDiscrete(secid=section_id, cdl=0, tdl=0)
+        mat_kw = keywords.MatSpringElastic(mid=mat_id, k=spring_stiffness)
+
+        # 1: "omni-directional": equal springs in x,y, and z
+        # 2: "apex-mitral-drection": one spring in apex-mitral valve direction
+        spring_types = ["omni-directional", "apex-mitral-direction"]
+        spring_type = "apex-mitral-direction"
+        if spring_type == "omni-directional":
+            # create three unit vectors
+            sd_orientation_kw = create_define_sd_orientation_kw(
+                vectors=np.eye(3), vector_id_offset=self.id_offset["vector"]
+            )
+
+            self.id_offset["vector"] = sd_orientation_kw.vectors["vid"].to_numpy()[-1]
+            # create discrete elements for each node and for each direction
+            vector_ids = sd_orientation_kw.vectors["vid"].to_numpy()
+            num_nodes = len(pericardium_nodes)
+            vector_ids = np.tile(vector_ids, num_nodes)
+            nodes = np.repeat(pericardium_nodes + 1, 3)
+            nodes = np.vstack([nodes, np.zeros(len(nodes))])
+            nodes = nodes.T
+            scale_factors = np.repeat(scale_factors, 3)
+            
+        elif spring_type == "apex-mitral-direction":
+            # get center of mitral valve
+            for cavity in self.model._mesh._cavities:
+                if cavity.name == "Left ventricle":
+                    apex_node_id = cavity.apex_id["epicardium"]
+                    apex1 = self.volume_mesh["nodes"][apex_node_id, :]
+                    for cap in cavity.closing_caps:
+                        if cap.name == "Mitral valve plane":
+                            center = cap.centroid
+            # NOTE: consider using the already defined apical point
+            apex = self.volume_mesh["nodes"][np.argmin(abs(uvc_l)), :]
+            # define spring orientation from apex to mitral valve
+            orientation = center - apex
+            orientation /= np.linalg.norm(orientation)
+
+            sd_orientation_kw = create_define_sd_orientation_kw(
+                vectors=orientation, vector_id_offset=self.id_offset["vector"]
+            )
+            self.id_offset["vector"] = sd_orientation_kw.vectors["vid"].to_numpy()[-1]
+
+            vector_ids = sd_orientation_kw.vectors["vid"].to_numpy()
+            num_nodes = len(pericardium_nodes)
+            vector_ids = np.tile(vector_ids, num_nodes)
+            nodes = pericardium_nodes + 1
+            nodes = np.vstack([nodes, np.zeros(len(nodes))])
+            nodes = nodes.T
 
         # create discrete elements
         discrete_element_kw = create_discrete_elements_kw(
@@ -815,7 +858,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
 
         uvc_l[uvc_l < 0] = 1
-        penalty = -_sigmoid((abs(uvc_l) - 0.65) * 25) + 1  # for all volume nodes
+        penalty = -_sigmoid((abs(uvc_l) - 0.15) * 25) + 1  # for all volume nodes
 
         # collect all pericardium nodes:
         epicardium_segment = np.empty((0, 3), dtype=int)
@@ -837,15 +880,17 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # coord = self.volume_mesh["nodes"][epicardium_segment]
         # center = np.mean(coord, axis=1)
         # result = np.concatenate((center,penalty.reshape(-1,1)),axis=1)
-        # np.savetxt('pericardium.txt',result[result[:,3]>0.1])
-        # exit()
+        # np.savetxt('pericardium.txt',result[result[:,3]>0.01])
+        # # exit()
         # # end debug code
 
         # create load curve to control when pericardium is active
-        load_curve_kw = keywords.DefineCurve(lcid=3)
+        load_curve_kw = keywords.DefineCurve(lcid=4)
         load_curve_kw.options["TITLE"].active = True
         load_curve_kw.title = "pericardium activation curve"
-        load_curve_kw.curves = pd.DataFrame({"a1": np.array([0, 1]), "o1": np.array([0, 1])})
+        load_curve_kw.curves = pd.DataFrame(
+            {"a1": np.array([0, 1, 100]), "o1": np.array([1, 1, 1])}
+        )
         self.kw_database.pericardium.append(load_curve_kw)
 
         cnt = 0
@@ -895,12 +940,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
             {
                 "sid": segment_ids,
                 "ltype": "PRESSS",
-                "lcid": 3,
+                "lcid": 4,
                 "sf1": penalty[penalty > penalty_threshold],
                 "iduls": 100,
             }
         )
-        user_load_kw = custom_keywords.UserLoading(parm1=0.05)
+        user_load_kw = custom_keywords.UserLoading(parm1=10.0)
 
         # add to pericardium deck
         self.kw_database.pericardium.extend([user_loadset_kw, user_load_kw])
@@ -922,9 +967,19 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # NOTE should be dynamic
         mat_null_id = 100
 
-        material_kw = MaterialCap(mid=mat_null_id)
+        # material_kw = MaterialCap(mid=mat_null_id)
+
+        material_kw = MaterialAtrium(mid=mat_null_id, rho=1e-6, poisson_ratio=0.499, c10=1000)
+
         section_kw = keywords.SectionShell(
-            secid=section_id, elform=4, shrf=0.8333, nip=3, t1=1, t2=1, t3=1, t4=1,
+            secid=section_id,
+            elform=4,
+            shrf=0.8333,
+            nip=3,
+            t1=5,
+            t2=5,
+            t3=5,
+            t4=5,
         )
 
         self.kw_database.cap_elements.append(material_kw)
@@ -984,25 +1039,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """Prepares the keywords for the control volume feature"""
         # NOTE: Assumes cavity id is reseverd for combined
         # segment set
-
-        # collect segment set ids to combine
-        for cavity in self.model._mesh._cavities:
-            seg_ids_to_combine = []
-            # find id of endocardium
-            for segset in cavity.segment_sets:
-                if "endocardium" in segset["name"]:
-                    seg_ids_to_combine.append(segset["id"])
-
-            for cap in cavity.closing_caps:
-                seg_ids_to_combine.append(cap.segset_id)
-
-            # add segment set add keyword
-            segadd_kw = keywords.SetSegmentAdd(sid=cavity.id)
-            segadd_kw.sets._data = seg_ids_to_combine
-            segadd_kw.options["TITLE"].active = True
-            segadd_kw.title = cavity.name
-
-            self.kw_database.control_volume.append(segadd_kw)
 
         # set up control volume keywords and interaction of
         # cavity with ambient. Only do for ventricles
@@ -1087,6 +1123,73 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         return
 
+    def _add_enddiastolic_pressure_bc(self, pressure_lv: float = 1, pressure_rv: float = 1):
+        """Adds end diastolic pressure boundary condition on the left and right endocardium"""
+
+        # collect segment set ids to combine
+        for cavity in self.model._mesh._cavities:
+            seg_ids_to_combine = []
+            # find id of endocardium
+            for segset in cavity.segment_sets:
+                if "endocardium" in segset["name"]:
+                    seg_ids_to_combine.append(segset["id"])
+
+            for cap in cavity.closing_caps:
+                seg_ids_to_combine.append(cap.segset_id)
+
+            # add segment set add keyword
+            segadd_kw = keywords.SetSegmentAdd(sid=cavity.id)
+            segadd_kw.sets._data = seg_ids_to_combine
+            segadd_kw.options["TITLE"].active = True
+            segadd_kw.title = cavity.name
+
+            self.kw_database.main.append(segadd_kw)
+
+        # create unit load curve
+        load_curve_id = 2
+        load_curve_kw = create_define_curve_kw(
+            [0, 1, 1.001], [0, 1, 0], "unit load curve", load_curve_id, 100
+        )
+
+        # append unit curve to main.k
+        self.kw_database.main.append(load_curve_kw)
+
+        # create *LOAD_SEGMENT_SETS for each ventricular cavity
+        for cavity in self.model._mesh._cavities:
+
+            if "atrium" in cavity.name:
+                continue
+
+            if cavity.name == "Left ventricle":
+                scale_factor = pressure_lv
+                seg_id = 1
+            elif cavity.name == "Right ventricle":
+                scale_factor = pressure_rv
+                seg_id = 2
+            load_segset_kw = keywords.LoadSegmentSet(
+                ssid=seg_id, lcid=load_curve_id, sf=scale_factor
+            )
+            self.kw_database.main.append(load_segset_kw)
+
+            # logger.debug(
+            #     "Adding end-diastolic pressure of {0} to {1}".format(scale_factor, cavity.name)
+            # )
+            #
+            # seg_ids_to_use = []
+            # # find id of endocardium
+            # for segset in cavity.segment_sets:
+            #     if "endocardium" in segset["name"]:
+            #         seg_ids_to_use.append(segset["id"])
+            #
+            # # create load segment set for each endocardium segment
+            # for seg_id in [1,2]:
+            #     load_segset_kw = keywords.LoadSegmentSet(
+            #         ssid=seg_id, lcid=load_curve_id, sf=scale_factor
+            #     )
+            #
+            #     # append to main.k
+            #     self.kw_database.main.append(load_segset_kw)
+
 
 class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
     """Derived from MechanicsDynaWriter and consequently derives all keywords relevant
@@ -1121,13 +1224,18 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self._update_material_db(add_active=False)
 
         # for boundary conditions
-        self._update_boundary_conditions_db()
+        # self._update_boundary_conditions_db()
+        self._add_cap_bc(bc_type="fix_caps")
+        self._add_pericardium_bc()
 
         # Approximate end-diastolic pressures
         pressure_lv = 2  # kPa
         pressure_rv = 0.5333  # kPa
 
+        self._update_cap_elements_db()
         self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
+
+        # zerop key words
         self._add_control_reference_configuration()
 
         self._get_list_of_includes()
@@ -1184,7 +1292,11 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         """
         self.kw_database.main.append(keywords.ControlTermination(endtim=1.0))
-        self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
+        # self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
+
+        self.kw_database.main.append(
+            keywords.ControlImplicitDynamics(imass=1, gamma=0.6, beta=0.38)
+        )
 
         # add auto controls
         self.kw_database.main.append(keywords.ControlImplicitAuto(iauto=1, dtmin=0.01, dtmax=0.1))
@@ -1198,10 +1310,17 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # add implicit solver controls
         self.kw_database.main.append(keywords.ControlImplicitSolver())
 
+        # add binout for post-process
+        self.kw_database.main.append(keywords.DatabaseNodout(dt=0.5, binary=1))
+        x = keywords.SetNodeGeneral(option="part", sid=999, e1=1, e2=2, e3=3, e4=4)
+        self.kw_database.main.append(x)
+        self.kw_database.main.append("*DATABASE_HISTORY_NODE_SET\n999")
+        return
+
     def _add_control_reference_configuration(self):
         """Adds control reference configuration keyword to main"""
         logger.debug("Adding *CONTROL_REFERENCE_CONFIGURATION to main.k")
-        kw = keywords.ControlReferenceConfiguration(maxiter=10, target="nodes.k", method=2, tol=1)
+        kw = keywords.ControlReferenceConfiguration(maxiter=3, target="nodes.k", method=2, tol=5)
 
         self.kw_database.main.append(kw)
 
@@ -1743,7 +1862,6 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
     def _update_main_db(self):
 
         return
-
 
 if __name__ == "__main__":
     print("protected")

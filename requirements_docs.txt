@@ -1,7 +1,6 @@
 aiohttp==3.8.1
 aiosignal==1.2.0
 alabaster==0.7.12
--e git+https://github.com/pyansys/pyheart-lib@d51738ab40742b35acd1d753a5bfa174774d5c3e#egg=ansys_heart_lib
 async-timeout==4.0.2
 asynctest==0.13.0
 attrs==21.4.0

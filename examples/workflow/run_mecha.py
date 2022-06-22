@@ -1,12 +1,16 @@
+"""
+
+"""
+#################################################################
+MPI = True
+LSDYNA = "mppdyna"
+NCPU = 6
+#################################################################
 import os
 import shutil
 import subprocess
 from compute_volume import update_system_json
-
-MPI = True
-LSDYNA = "mppdyna"
-NCPU = 6
-
+from pericardium_offset import add_pericardium_offset
 
 def run_lsdyna(sim_file, option=""):
     """
@@ -65,13 +69,22 @@ def main():
     guess_file = get_zerop_guess_file()
     os.chdir("..")
     shutil.copy2(
+        os.path.join("lsdyna_files", "nodes.k"),
+        os.path.join("lsdyna_files", "nodes_eod.k"),
+    )
+    shutil.copy2(
         os.path.join("lsdyna_files_zeropressure", guess_file),
         os.path.join("lsdyna_files", "nodes.k"),
     )
 
     os.chdir("lsdyna_files")
+
     # change unstressed volume in Josn file
     update_system_json("nodes.k")
+
+    # add pericardium springs offset
+    add_pericardium_offset()
+
     # run closed loop simulation
     run_lsdyna("main.k")
     return

@@ -1,17 +1,13 @@
-from asyncore import write
-from multiprocessing.sharedctypes import Value
 from pathlib import Path
 import os
 import copy
 
-from warnings import WarningMessage
 import numpy as np
 import meshio
 
 from ansys.heart.custom_logging import logger
 
-from typing import List, Union, Optional
-from scipy.__config__ import get_info
+from typing import List, Union
 
 import vtk
 from vtk.util import numpy_support as VN  # noqa
@@ -125,7 +121,7 @@ def get_vtk_points(vtk_object: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData]):
 
 
 def get_tetra_info_from_unstructgrid(vtk_grid: vtk.vtkUnstructuredGrid, get_all_data=True):
-    """Gets tetrahedron nodes, connectivity and cell/point data from 
+    """Gets tetrahedron nodes, connectivity and cell/point data from
     vtk poly data object. Returns as numpy arrays """
 
     logger.debug("Extracting tetrahedron cell and point data...")
@@ -250,7 +246,8 @@ def threshold_vtk_data(
     threshold.SetInputArrayToProcess(
         0, 0, 0, vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS, data_name  # noqa
     )
-    threshold.ThresholdBetween(lower_limit - epsilon, upper_limit + epsilon)
+    threshold.SetLowerThreshold(lower_limit - epsilon)
+    threshold.SetUpperThreshold(upper_limit + epsilon)
     threshold.AllScalarsOn()
     threshold.Update()
     result = threshold.GetOutput()
@@ -329,7 +326,7 @@ def get_surface_info(surface: vtk.vtkPolyData):
 
 
 def convert_vtk_into_tetra_only(path_to_vtkfile: str):
-    """Extracts tetrahedrons from the source vtk file 
+    """Extracts tetrahedrons from the source vtk file
     and overwrites the source file with just the tetrahedrons"""
 
     mesh = meshio.read(path_to_vtkfile)
@@ -500,7 +497,8 @@ def vtk_map_discrete_cell_data(
 
     interpolator = vtk.vtkPointInterpolator()
     # interpolator.SetInputData( poly_source.VTKObject )
-    # interpolator.SetSourceData( poly_target.VTKObject )                    # interpolates from input > source?
+    # interpolator.SetSourceData( poly_target.VTKObject )
+    # interpolates from input > source?
     interpolator.SetInputData(poly_target.VTKObject)
     interpolator.SetSourceData(poly_source.VTKObject)  # interpolates from input > source?
     # interpolator.SetKernel(voronoiKernel)
@@ -518,13 +516,14 @@ def vtk_map_discrete_cell_data(
     # write_vtkdata_to_vtkfile(vtk_object_target, "target_vtk.vtk")
     return vtk_object_target
 
+
 def vtk_map_continuous_data(
     source: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid],
     target: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid],
     normalize_vectors: bool = True,
     array_names_to_include: list = [],
 ):
-    """Maps cell and point data from source to target by making use of 
+    """Maps cell and point data from source to target by making use of
     VoronoiKernel and mapping cell to point data - and consequently mapping
     subsequent point data back to the cell
 
@@ -535,7 +534,8 @@ def vtk_map_continuous_data(
     source : Union[vtk.PolyData, vtk.UnstructuredGrid]
         Target object onto which to interpolate data
     array_names_to_include : list
-        List of array names to include for interpolation. If empty all cell and point arrays will be interpolated
+        List of array names to include for interpolation.
+        If empty all cell and point arrays will be interpolated
 
     Notes
     -----
@@ -761,6 +761,7 @@ def add_vtk_array(
     # determine type of array:
     if array_type is int:
         vtk_array = vtk.vtkIntArray()
+        data = np.array(data, int)
     elif array_type is float:
         vtk_array = vtk.vtkDoubleArray()
 
@@ -787,6 +788,63 @@ def add_vtk_array(
     return
 
 
+def rename_vtk_array(
+    vtkobject: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid],
+    old_array_name: str,
+    new_array_name: str,
+    data_type: str = "both",
+):
+    """Renames cell or point array of vtk object
+
+    Parameters
+    ----------
+    vtkobject : Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]
+        vtk object
+    old_array_name : str
+        Old name of the data array
+    new_array_name : str
+        New name of the data array
+    data_type : str, optional
+        Data types to search. Allowed options include: "cell_data", "point_data" or "both",
+        by default "both"
+    """
+    num_cell_data = vtkobject.GetCellData().GetNumberOfArrays()
+    num_point_data = vtkobject.GetPointData().GetNumberOfArrays()
+
+    replaced = 0
+
+    # replace cell data names
+    if data_type == "cell_data" or data_type == "both":
+        for ii in range(num_cell_data):
+            vtk_array = vtkobject.GetCellData().GetArray(ii)
+            array_name = vtkobject.GetCellData().GetArray(ii).GetName()
+            if array_name == old_array_name:
+                logger.debug(
+                    "Replacing old cell data name '{0}' with new name: '{1}'".format(
+                        array_name, new_array_name
+                    )
+                )
+                vtkobject.GetCellData().GetArray(ii).SetName(new_array_name)
+                replaced += 1
+
+    # replace point data names
+    if data_type == "point_data" or data_type == "both":
+        for ii in range(num_point_data):
+            array_name = vtkobject.GetPointData().GetArrayName(ii)
+            if array_name == old_array_name:
+                logger.debug(
+                    "Replacing old point data name '{0}' with new name: '{1}'".format(
+                        array_name, new_array_name
+                    )
+                )
+                vtkobject.GetPointData().GetArray(ii).SetName(new_array_name)
+                replaced += 1
+    if replaced == 0:
+        logger.debug("No array names replaced")
+
+    return vtkobject
+
+
 def create_vtk_polydata_from_points(points: np.array) -> vtk.vtkPolyData:
     """Creates VTK PolyData object from set of points
 
@@ -799,7 +857,6 @@ def create_vtk_polydata_from_points(points: np.array) -> vtk.vtkPolyData:
     -------
     vtk.vtkPolyData
         vtkPolyData object
-    
     Notes
     -----
     To visualize in ParaView render the points as Gaussian Points
@@ -820,7 +877,7 @@ def create_vtk_polydata_from_points(points: np.array) -> vtk.vtkPolyData:
 
 # -----------------------------------------------------
 def remove_duplicate_nodes(nodes: np.array, elements: np.array, tolerance: float = 1e-7):
-    """Finds and removes duplicate nodes and remaps element 
+    """Finds and removes duplicate nodes and remaps element
     definition to match unique node matrix
 
     Parameters
@@ -1117,7 +1174,9 @@ def compute_surface_nodal_area(vtk_surface: vtk.vtkPolyData) -> np.array:
 
 def add_normals_to_polydata(vtk_polydata: vtk.vtkPolyData) -> vtk.vtkPolyData:
     """Uses the normal filter to add normals to the polydata object"""
-    """https://python.hotexamples.com/site/file?hash=0x073485db2b84462230e3bdfe09eaf8ed123d2dc0c8c501190613e23367cbaed1&fullName=telluricpy-master/telluricpy/polydata.py&project=grosenkj/telluricpy"""
+    """https://python.hotexamples.com/site/file?hash=
+    0x073485db2b84462230e3bdfe09eaf8ed123d2dc0c8c501190613e23367cbaed1&fullName=telluricpy-master
+    /telluricpy/polydata.py&project=grosenkj/telluricpy"""
     # compute normals
     normal_filter = vtk.vtkPolyDataNormals()
     normal_filter.SetInputData(vtk_polydata)
@@ -1144,7 +1203,8 @@ def extrude_polydata(
     extrude_by : float, optional
         Extrude by this much, by default 1
     extrude_direction : np.array, optional
-        Direction of extrusion, should have three components if not specified extrudes in normal direction
+        Direction of extrusion, should have three components if not specified
+        extrudes in normal direction
 
     Returns
     -------
@@ -1254,19 +1314,21 @@ def smooth_polydata(vtk_polydata: vtk.vtkPolyData) -> vtk.vtkPolyData:
 def cell_ids_inside_enclosed_surface(
     vtk_source: vtk.vtkUnstructuredGrid, vtk_surface: vtk.vtkPolyData
 ) -> vtk.vtkUnstructuredGrid:
-    """Tags any cells that are inside 
+    """Tags any cells that are inside
 
     Parameters
     ----------
     vtk_source : vtk.vtkUnstructuredGrid
-        Source VTK object of which to check the whether the cells are inside/outside the specified surface
+        Source VTK object of which to check the whether the cells are inside/outside
+        the specified surface
     vtk_surface : vtk.vtkPolyData
         Enclosed surface
 
     Returns
     -------
     vtk.vtkUnstructuredGrid
-        VTK object with additional cell data indicating whether the cell is in/outside the provided surface
+        VTK object with additional cell data indicating whether
+        the cell is in/outside the provided surface
     """
     vtk_surface = add_normals_to_polydata(vtk_surface)
     # cleaner = vtk.vtkCleanPolyData()
@@ -1372,14 +1434,17 @@ def remove_triangle_layers_from_trimesh(triangles: np.array, iters: int = 1) -> 
 
 if __name__ == "__main__":
 
-    vtk_source = r"D:\SharedRepositories\CardiacModeling\parametric_heart\preprocessing\test\assets\cases\01\4C.vtk"
-    # vtk_source = r"D:\SharedRepositories\CardiacModeling\parametric_heart\preprocessing\test\case\01\01.case"
-    vtk_target = r"D:\SharedRepositories\CardiacModeling\parametric_heart\preprocessing\test\assets\cases\01\output\output_meshing.vtk"
+    # # vtk_source = r"D:\SharedRepositories\CardiacModeling\parametric_heart
+    # \preprocessing\test\assets\cases\01\4C.vtk"
+    # # vtk_source = r"D:\SharedRepositories\CardiacModeling\parametric_heart
+    # \preprocessing\test\case\01\01.case"
+    # vtk_target = r"D:\SharedRepositories\CardiacModeling\parametric_heart
+    # \preprocessing\test\assets\cases\01\output\output_meshing.vtk"
 
-    source = vtk_read_mesh_file(vtk_source)
-    target = read_vtk_unstructuredgrid_file(vtk_target)
+    # source = vtk_read_mesh_file(vtk_source)
+    # target = read_vtk_unstructuredgrid_file(vtk_target)
 
-    # for debugging discrete data mapping
-    vtk_map_discrete_cell_data(source, target, data_name="tags")
+    # # for debugging discrete data mapping
+    # vtk_map_discrete_cell_data(source, target, data_name="tags")
 
     print()

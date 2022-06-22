@@ -29,5 +29,3 @@ if installed_versions:
 else:
     assert False, "No valid installations found. Valid Ansys installations include: Ansys %s" % supported_versions
     exit()
-
-

@@ -1,22 +1,49 @@
 """Contains classes related to the heart mesh class"""
 import os
-from tkinter import SOLID
-import vtk
 import copy
+import numpy as np
 
 import pickle as pickle
 
-from multiprocessing.sharedctypes import Value
-from pickletools import read_unicodestring1
 from typing import List
 
-from ansys.heart.preprocessor.cavity_module import *
+import meshio
+import vtk
+from ansys.heart.preprocessor.cavity_module import Cavity
 from ansys.heart.preprocessor.model_information import ModelInformation
 from ansys.heart.preprocessor.model_information import VALID_MODELS
 from ansys.heart.preprocessor.vtk_module import (
     create_vtk_surface_triangles,
     write_vtkdata_to_vtkfile,
+    vtk_surface_filter,
+    vtk_read_mesh_file,
+    get_surface_info,
+    get_tetra_info_from_unstructgrid,
+    get_tri_info_from_polydata,
+    vtk_surface_to_stl,
+    convert_vtk_into_tetra_only,
+    threshold_vtk_data_integers,
+    threshold_vtk_data,
+    vtk_map_continuous_data,
+    vtk_map_discrete_cell_data,
+    add_vtk_array,
+    create_vtk_polydata_from_points,
+    remove_triangle_layers_from_trimesh,
+    smooth_polydata,
+    extrude_polydata,
+    cell_ids_inside_enclosed_surface,
+    read_vtk_unstructuredgrid_file,
+    find_duplicate_elements,
+    remove_duplicate_nodes,
+    rename_vtk_array,
 )
+from ansys.heart.preprocessor.mesh_module import (
+    shrink_by_spaceclaim,
+    run_gmsh,
+    mesh_by_fluentmeshing,
+    add_solid_name_to_stl,
+)
+from ansys.heart.preprocessor.fluenthdf5_module import fluenthdf5_to_vtk
 
 # import logger
 from ansys.heart.custom_logging import logger
@@ -91,6 +118,32 @@ class HeartMesh:
         """Extracts the relevant parts from the mesh given the vtk labels/tags
         to use. Also extracts info such as cell data and point data from the vtk files"""
 
+        if self.info.database_name == "Cristobal2021":
+            # change vtk array names if data from cristobal et al
+            # first element is naming of Strocchi et al 2020, and the naming assumed
+            # in this package
+            logger.debug(
+                "Modifying array names of %s to match dataset of Strocchi2020"
+                % self.info.database_name
+            )
+            name_array_mapping = [
+                ["tags", "ID", "cell_data"],
+                ["fiber", "fibres", "cell_data"],
+                ["sheet", "sheets", "cell_data"],
+                ["uvc_longitudinal", "Z.dat", "point_data"],
+                ["uvc_rotational", "PHI.dat", "point_data"],
+                ["uvc_transmural", "RHO.dat", "point_data"],
+                ["uvc_intraventricular", "V.dat", "point_data"],
+            ]
+
+            for item in name_array_mapping:
+                self._vtk_volume_raw = rename_vtk_array(
+                    self._vtk_volume_raw,
+                    new_array_name=item[0],
+                    old_array_name=item[1],
+                    data_type=item[2],
+                )
+
         write_temporary_files = False
         # Add tags where elements overlap
         # self.separate_overlaps( self._vtk_volume_ugriddata_raw )
@@ -133,7 +186,8 @@ class HeartMesh:
         # extract nodes and tetra definitions from thresholded data
 
         # NOTE: This is redundant?
-        # nodes, tetra, cell_data, point_data = get_tetra_info_from_unstructgrid( self._vtk_volume_temp )
+        # nodes, tetra, cell_data, point_data =
+        # get_tetra_info_from_unstructgrid( self._vtk_volume_temp )
 
         # self._nodes_volume      = nodes
         # self._elements_volume   = tetra
@@ -144,6 +198,23 @@ class HeartMesh:
         # self._write_parts_to_stl()
 
         return
+
+    def _extract_myocardium(self):
+        """Extracts only the myocardium parts"""
+        # only extract myocardium parts
+        vtk_tags_to_use = []
+        vtk_tags_to_use1 = {}
+        for cavity in self._cavities:
+            for ii, label in enumerate(cavity.labels):
+                if "myocardium" in label:
+                    vtk_tags_to_use.append(cavity.vtk_ids[ii])
+                    vtk_tags_to_use1[label] = cavity.vtk_ids[ii]
+
+        myocardium_volume_vtk = self._extract_relevant_parts(
+            self._vtk_volume_temp, vtk_tags_to_use1
+        )
+
+        return myocardium_volume_vtk
 
     def add_cavities(self):
         """Adds cavities based on the requested model"""
@@ -228,7 +299,7 @@ class HeartMesh:
         return
 
     def remesh_volume(self, mesher: str = "gmesh", mesh_size: float = 2.0):
-        """Remeshes the volume. Uses the surface as input, uses SpaceClaim to smooth the 
+        """Remeshes the volume. Uses the surface as input, uses SpaceClaim to smooth the
         geometry and gmesh to remesh the bulk"""
 
         logger.debug("Remeshing volume...")
@@ -244,16 +315,7 @@ class HeartMesh:
 
         working_dir = self.info.working_directory
 
-        # only extract myocardium parts
-        vtk_tags_to_use = []
-        vtk_tags_to_use1 = {}
-        for cavity in self._cavities:
-            for ii, label in enumerate(cavity.labels):
-                if "myocardium" in label:
-                    vtk_tags_to_use.append(cavity.vtk_ids[ii])
-                    vtk_tags_to_use1[label] = cavity.vtk_ids[ii]
-
-        spaceclaim_input = self._extract_relevant_parts(self._vtk_volume_temp, vtk_tags_to_use1)
+        myocardium_volume_vtk = self._extract_myocardium()
 
         input_stl_spaceclaim = os.path.join(working_dir, "input_surface_spaceclaim.stl")
         output_stl_spaceclaim = os.path.join(working_dir, "output_surface_spaceclaim.stl")
@@ -265,7 +327,7 @@ class HeartMesh:
 
         output_vtk = os.path.join(working_dir, "output_meshing.vtk")
 
-        vtk_surface_to_stl(spaceclaim_input, input_stl_spaceclaim)
+        vtk_surface_to_stl(myocardium_volume_vtk, input_stl_spaceclaim)
 
         if use_gmesh:
             # launch spaceclaim to wrap the surface
@@ -288,12 +350,14 @@ class HeartMesh:
         # store path in info
         self.info.path_mesh = output_vtk
 
-        # cleanup        return
+        # add remeshed volume to mesh object:
+        self.set_volume_mesh_vtk(output_vtk)
+
         return
 
     def map_data_to_remeshed_volume(self):
-        """Maps the data from the original mesh file to 
-        the remeshed vtk file 
+        """Maps the data from the original mesh file to
+        the remeshed vtk file
         """
         logger.debug("Mapping data from original mesh...")
         # NOTE Source contains all point data and cell data fields
@@ -309,13 +373,16 @@ class HeartMesh:
         # collect tags of involved ventricles
         ventricular_tags = []
         for cavity in self._cavities:
-            ventricular_tags.append( cavity.vtk_ids[0] )
+            ventricular_tags.append(cavity.vtk_ids[0])
 
-        # NOTE 1: The method below was initially developed for fixing four chamber case interpolation bug
-        # NOTE 2: However, also solves interpolation issues for Bi-Ventricle and LeftVentricle cases
+        # NOTE 1: The method below was initially developed for fixing four
+        #  chamber case interpolation bug
+        # NOTE 2: However, also solves interpolation issues for Bi-Ventricle
+        #  and LeftVentricle cases
         # NOTE Outline strategy:
         # 1. extract left ventricle or biventricle from temporary _vtk_volume_temp
-        # 2. interpolate uvc onto target just using ventricles. Ignore any other cell or point arrays
+        # 2. interpolate uvc onto target just using ventricles. Ignore any other
+        # cell or point arrays
         # 3. interpolate tags onto target. (will overwrite 2)
         # 4. cleanup by using tags to identify anything non-ventricuar - assign -100 to those parts
         # 5. interpolate the remaining fields
@@ -331,7 +398,7 @@ class HeartMesh:
         # 2.
         uvc_array_names = [k for k in source_point_data_names if "uvc_" in k]
         target = vtk_map_continuous_data(
-            source=source_ventricles, target=target, array_names_to_include=uvc_array_names
+            source=source_ventricles, target=target, array_names_to_include=uvc_array_names,
         )
 
         # 3.
@@ -355,7 +422,7 @@ class HeartMesh:
     def _replace_uvc_values(self, vtk_grid: vtk.vtkUnstructuredGrid, tags):
         """Replaces the uvc values of any part other than the ventricle with -100"""
 
-        nodes, tetra, cell_data, point_data = get_tetra_info_from_unstructgrid( vtk_grid )
+        nodes, tetra, cell_data, point_data = get_tetra_info_from_unstructgrid(vtk_grid)
 
         cell_ids_atria = np.where(np.isin(cell_data["tags"], tags, invert=True))[0]
 
@@ -373,7 +440,6 @@ class HeartMesh:
                     data_type="point",
                     array_type=float,
                 )
-
 
         return vtk_grid
 
@@ -445,7 +511,7 @@ class HeartMesh:
         # get nodes
         volume_dsa = dsa.WrapDataObject(self._vtk_volume)
         nodes = volume_dsa.Points
-        
+
         for cavity in self._cavities:
             # skip if atrium
             if "atrium" in cavity.name:
@@ -456,7 +522,7 @@ class HeartMesh:
         return
 
     def _validate_node_sets(self):
-        """Validates the node sets and makes sure there are no references to duplicate nodes. 
+        """Validates the node sets and makes sure there are no references to duplicate nodes.
         Endocardium of any cavity takes precedence over septum for instance.
         """
         logger.debug("Validating node sets...")
@@ -480,7 +546,31 @@ class HeartMesh:
 
                 nodes_used.append(nodeset["set"])
 
-            # write points of cavity to working directory
+        # add epicardium-septum to right ventricle node set
+        if self.info.model_type in ["BiVentricle", "FourChamber"]:
+            nodeset_septum = None
+            for cavity in self._cavities:
+                if cavity.name == "Left ventricle":
+                    for ii, node_set in enumerate(cavity.node_sets):
+                        if node_set["name"] == "epicardium-septum":
+                            nodeset_septum = copy.deepcopy(node_set)
+                    # remove key from segment set list
+                    cavity.node_sets.remove(node_set)
+
+            if nodeset_septum is None:
+                raise ValueError(
+                    "Did not find node set in Left ventricle cavity " "with name epicardium-septum"
+                )
+
+            for cavity in self._cavities:
+                if cavity.name == "Right ventricle":
+                    nodeset_septum["name"] = "endocardium-septum"
+                    cavity.node_sets.append(nodeset_septum)
+                    logger.debug(
+                        "Assigning septum of left ventricle to node set of right ventricle"
+                    )
+
+        # write points of cavity to working directory
         for cavity in self._cavities:
             volume = dsa.WrapDataObject(self._vtk_volume)
             for nodeset in cavity.node_sets:
@@ -500,7 +590,7 @@ class HeartMesh:
 
     def _validate_segment_sets(self):
         """Validates the segment sets. 1. Checks whether to add the epicardium-septum of
-        the left ventricle to the right-ventricle cavity. 2. Checks if normal 
+        the left ventricle to the right-ventricle cavity. 2. Checks if normal
         of endocardium part is pointing inwards
         """
         logger.debug("Validating segment sets...")
@@ -516,7 +606,7 @@ class HeartMesh:
                     cavity.segment_sets.remove(segset)
 
             if segset_septum is None:
-                raise Error(
+                raise ValueError(
                     "Did not find segment set in Left ventricle cavity "
                     "with name epicardium-septum"
                 )
@@ -532,6 +622,8 @@ class HeartMesh:
         # remove any duplicate segments within each cavity
         logger.debug("Detecting duplicate segments...")
         all_tris = np.empty((0, 3), dtype=int)
+        import tqdm as tqdm  # for progress bar
+
         for cavity in self._cavities:
 
             for seg_set in cavity.segment_sets:
@@ -540,11 +632,13 @@ class HeartMesh:
 
                 # find triangles to remove
                 idx_remove = []
-                for idx, tri in enumerate(seg_set1):
+                for idx, tri in enumerate(tqdm.tqdm(seg_set1, ascii=True)):
                     if np.any(np.all(tri == all_tris, axis=1)):
                         idx_remove.append(idx)
                 logger.debug(
-                    "Found {0} duplicate segments in {1}".format(len(idx_remove), seg_set["name"])
+                    "Found {0} duplicate segments in {1}".format(
+                        len(idx_remove), cavity.name + " " + seg_set["name"]
+                    )
                 )
 
                 # remove the duplicate faces
@@ -565,29 +659,32 @@ class HeartMesh:
 
     def _create_myocardium_element_sets(self):
         """Creates myocardium element sets with all un-referenced elements"""
-        volume_dsa = dsa.WrapDataObject( self._vtk_volume )
+        volume_dsa = dsa.WrapDataObject(self._vtk_volume)
         tags = volume_dsa.CellData["tags"]
 
         for cavity in self._cavities:
             tag_cavity = cavity.vtk_ids[0]
 
-            element_ids_cavity = np.where( tags == tag_cavity )[0]
+            element_ids_cavity = np.where(tags == tag_cavity)[0]
 
             element_ids_used = np.empty(0, dtype=int)
             used_set_ids = [0]
             for element_set in cavity.element_sets:
-                element_ids_used = np.append( element_ids_used, element_set["set"] )
-                used_set_ids.append( element_set["id"] )
-            
+                element_ids_used = np.append(element_ids_used, element_set["set"])
+                used_set_ids.append(element_set["id"])
+
             # un-referenced element ids are the myocardium elements
-            element_ids_myocardium = element_ids_cavity[ 
-                np.where( np.isin( element_ids_cavity, element_ids_used, invert = True ) ) [0] ]
-            
+            element_ids_myocardium = element_ids_cavity[
+                np.where(np.isin(element_ids_cavity, element_ids_used, invert=True))[0]
+            ]
+
             cavity.element_sets.append(
-                {"name": "myocardium",
-                "set": element_ids_myocardium,
-                "id": np.max(used_set_ids) + 1 }
-            )            
+                {
+                    "name": "myocardium",
+                    "set": element_ids_myocardium,
+                    "id": np.max(used_set_ids) + 1,
+                }
+            )
 
         return
 
@@ -598,7 +695,7 @@ class HeartMesh:
 
         Notes
         -----
-        This uses the original reference file as a source for interpolation. 
+        This uses the original reference file as a source for interpolation.
         """
         # _, _, cell_data_source, _ = get_tetra_info_from_unstructgrid(source)
         source_obj = dsa.WrapDataObject(source)
@@ -664,7 +761,8 @@ class HeartMesh:
         for cavity in self._cavities:
             if "myocardium" in cavity.labels[0]:
                 # surface_tag = cavity.vtk_ids[0]
-                # surface, globalids = threshold_vtk_data( self._vtk_surface, surface_tag, surface_tag, "tags" )
+                # surface, globalids = threshold_vtk_data( self._vtk_surface,
+                # surface_tag, surface_tag, "tags" )
                 cavity._myocardium_surface = self._vtk_surface
             else:
                 logger.error("Myocardium not in list: " + ", ".join(cavity.labels))
@@ -768,9 +866,9 @@ class HeartMesh:
         # NOTE: all normals should point inwards
         for cavity in self._cavities:
             # each cavity. Skip atrium cavities for now
-            if "atrium" in cavity.name:
-                logger.warning("Skipping volume computation %s" % cavity.name)
-                continue
+            # if "atrium" in cavity.name:
+            #     logger.warning("Skipping volume computation %s" % cavity.name)
+            #     continue
 
             cavity_triangles = np.empty((0, 3), dtype=int)
             for segsets in cavity.segment_sets:
@@ -877,7 +975,11 @@ class HeartMesh:
                     )
 
                     # define element set
-                    septum_element_set = {"name": "septum", "set": cell_ids_septum, "id": 1}
+                    septum_element_set = {
+                        "name": "septum",
+                        "set": cell_ids_septum,
+                        "id": 1,
+                    }
 
                     find = True
                     break
@@ -887,12 +989,12 @@ class HeartMesh:
         # Append element set to left ventricle
         for cavity in self._cavities:
             if cavity.name == "Left ventricle":
-                cavity.element_sets.append( septum_element_set )
+                cavity.element_sets.append(septum_element_set)
 
         return
 
     def _deprecated_export_mesh(self, directory: str):
-        """Exports the mesh and all necessary data to load the 
+        """Exports the mesh and all necessary data to load the
         model again at a later time
         """
         # write mesh for simulation to file
@@ -903,7 +1005,7 @@ class HeartMesh:
         return
 
     def _OBSOLETE_separate_overlaps(self, volume: vtk.vtkUnstructuredGrid):
-        """[OBSOLETE]Finds overlapping parts and separate these. These are then useful for 
+        """[OBSOLETE]Finds overlapping parts and separate these. These are then useful for
         generating a consistent volume mesh
 
         Parameters

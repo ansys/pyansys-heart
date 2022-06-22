@@ -1,4 +1,4 @@
-"""This uses dynalib to create some commonly used material cards and their 
+"""This uses dynalib to create some commonly used material cards and their
 default values. Uses inheritence.
 E.g.:
 Mat295
@@ -81,20 +81,11 @@ class MaterialHGOMyocardium(keywords.Mat295):
 
         # initialize isotropic module
         super().__init__(
-            mid=mid,
-            rho=rho,
-            aopt=aopt,
-            itype=itype,
-            beta=beta,
-            nu=nu,
-            k1=k1,
-            k2=k2,
+            mid=mid, rho=rho, aopt=aopt, itype=itype, beta=beta, nu=nu, k1=k1, k2=k2,
         )
 
         if not add_anisotropy and add_active:
-            raise ValueError(
-                "Cannot add active module if not adding anisotropy"
-            )
+            raise ValueError("Cannot add active module if not adding anisotropy")
 
         # add defaults for anisotropic module
         if add_anisotropy:
@@ -116,17 +107,7 @@ class MaterialHGOMyocardium(keywords.Mat295):
             k1_aniso = 0.49
             k2_aniso = 9.01
             aniso_data = np.array(
-                [
-                    [
-                        theta_aniso,
-                        a_aniso,
-                        b_aniso,
-                        ftype_aniso,
-                        fcid_aniso,
-                        k1_aniso,
-                        k2_aniso,
-                    ]
-                ]
+                [[theta_aniso, a_aniso, b_aniso, ftype_aniso, fcid_aniso, k1_aniso, k2_aniso]]
             )
 
             df = pd.DataFrame(data=aniso_data, columns=columns[0:7])
@@ -174,9 +155,7 @@ class MaterialHGOMyocardium(keywords.Mat295):
 
 
 def active_curve(
-    curve_type: str = "Strocchi2020",
-    endtime: float = 15,
-    timestep: float = 1e-2,
+    curve_type: str = "Strocchi2020", endtime: float = 15, timestep: float = 1e-2,
 ):
     """Computes various (normalized) curves used for the active module
 
@@ -202,9 +181,7 @@ def active_curve(
         t_dur = 550
 
         # this is normalized in y: that is Tpeak is not used
-        active_stress = (np.tanh(t / tau_r)) ** 2 * (
-            np.tanh((t_dur - t) / tau_d)
-        ) ** 2
+        active_stress = (np.tanh(t / tau_r)) ** 2 * (np.tanh((t_dur - t) / tau_d)) ** 2
         active_stress[t > t_dur] = 0
 
         # repeat dataset nCycles times:

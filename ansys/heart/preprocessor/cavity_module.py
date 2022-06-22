@@ -1,13 +1,27 @@
 from aifc import Error
+import os
+import copy
 import warnings
+import numpy as np
+import vtk
+from typing import List, Union
+
+from vtk.numpy_interface import dataset_adapter as dsa  # this is an improved numpy integration
 
 # NOTE: do more specific imports!
-from ansys.heart.preprocessor.mesh_module import *
-from ansys.heart.preprocessor.vtk_module import *
+# from ansys.heart.preprocessor.mesh_module import *
+from ansys.heart.preprocessor.vtk_module import (
+    vtk_surface_filter,
+    threshold_vtk_data,
+    get_tri_info_from_polydata,
+    add_vtk_array,
+    write_vtkdata_to_vtkfile,
+    compute_volume_stl,
+)
 
-from ansys.heart.preprocessor.vtk_module import compute_volume_stl
+# from ansys.heart.preprocessor.vtk_module import compute_volume_stl
 
-from ansys.heart.preprocessor.fluenthdf5_module import fluenthdf5_to_vtk
+# from ansys.heart.preprocessor.fluenthdf5_module import fluenthdf5_to_vtk
 from ansys.heart.preprocessor.geodisc_module import (
     order_nodes_edgeloop,
     sort_edgeloop_anti_clockwise,
@@ -51,8 +65,8 @@ class ClosingCap:
 
     @property
     def global_node_ids_source_mesh(self) -> np.array:
-        """Global node indices of where the mesh of the cap 
-        intersects with the mesh of the myocardium. These nodes are 
+        """Global node indices of where the mesh of the cap
+        intersects with the mesh of the myocardium. These nodes are
         later used to find similar nodes on the remeshed surface/volume
         """
         return self._global_node_ids
@@ -63,8 +77,8 @@ class ClosingCap:
 
     @property
     def nodes_source_mesh(self) -> np.array:
-        """Coordinates of the nodes where the mesh of the cap 
-        intersects with the mesh of the myocardium. These nodes are 
+        """Coordinates of the nodes where the mesh of the cap
+        intersects with the mesh of the myocardium. These nodes are
         later used to find similar nodes on the remeshed surface/volume
         """
         return self._nodes
@@ -134,13 +148,7 @@ class ClosingCap:
 
 class Valve(ClosingCap):
     def __init__(
-        self,
-        name,
-        capid,
-        global_node_ids=None,
-        nodes=None,
-        faces=None,
-        cap_type=None,
+        self, name, capid, global_node_ids=None, nodes=None, faces=None, cap_type=None,
     ):
         super().__init__(name, capid, global_node_ids, nodes, faces, cap_type)
 
@@ -149,11 +157,7 @@ class Cavity:
     """Class that defines the cavity and relevant cavity functions"""
 
     def __init__(
-        self,
-        name: str,
-        vtk_labels: list,
-        vtk_ids: list,
-        model_info: ModelInformation,
+        self, name: str, vtk_labels: list, vtk_ids: list, model_info: ModelInformation,
     ):
 
         self.name = name
@@ -188,9 +192,7 @@ class Cavity:
         self.closing_caps: List[ClosingCap] = []
 
         for label in vtk_labels[1:]:
-            self.closing_caps.append(
-                ClosingCap(name=label, capid=vtklabels_to_vtkids[label])
-            )
+            self.closing_caps.append(ClosingCap(name=label, capid=vtklabels_to_vtkids[label]))
 
         # store relevant node and segment sets of each cavity
         # list of dictionaries: is this convenient?
@@ -214,7 +216,7 @@ class Cavity:
         self._labels = value
 
     def _compute_cap_intersection_with_myocardium(self, nodes, elements, tags):
-        """Finds the points where the caps of this cavty intersect with the myocardium 
+        """Finds the points where the caps of this cavty intersect with the myocardium
         Needs (global) nodes element definitions and corresponding tags """
 
         tags = tags
@@ -227,36 +229,23 @@ class Cavity:
 
         # loop over each cap of the cavity
         for cap in self.closing_caps:
-            logger.debug(
-                "Trying to find intersecting nodes for cap {}...".format(
-                    cap.name
-                )
-            )
+            logger.debug("Trying to find intersecting nodes for cap {}...".format(cap.name))
             # logger.debug("Looking for intersections on cap {0}...".format(cap.name) )
             # loop over connected parts
             # for ii, label in enumerate( self.labels[1:] ):
             node_indices_intersect = np.intersect1d(
-                np.unique(ref_elems.ravel()),
-                np.unique(elems[tags == cap.id].ravel()),
+                np.unique(ref_elems.ravel()), np.unique(elems[tags == cap.id].ravel()),
             )
 
             if len(node_indices_intersect) > 0:
                 cap.global_node_ids_source_mesh = node_indices_intersect
-                cap.nodes_source_mesh = nodes[
-                    node_indices_intersect, :
-                ].tolist()
+                cap.nodes_source_mesh = nodes[node_indices_intersect, :].tolist()
             elif len(node_indices_intersect) == 0:
-                warnings.warn(
-                    "Warning: no connecting nodes found for: {0}".format(
-                        cap.name
-                    )
-                )
+                warnings.warn("Warning: no connecting nodes found for: {0}".format(cap.name))
 
         return
 
-    def _set_connected_surfaces(
-        self, surface: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]
-    ):
+    def _set_connected_surfaces(self, surface: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]):
         """Adds the surfaces that are involved in this cavity
         as vtk objects to the object"""
         self._surfaces = {}
@@ -308,9 +297,7 @@ class Cavity:
                 node_ids_cap = np.flip(node_ids_cap)
 
             # get global node ids of volume from "local" surface nodeids
-            global_node_ids = myocardium_surface.PointData["GlobalPointIds"][
-                node_ids_cap
-            ]
+            global_node_ids = myocardium_surface.PointData["GlobalPointIds"][node_ids_cap]
 
             # form edgeloop from sorted nodes
             nodes1 = global_node_ids
@@ -342,10 +329,8 @@ class Cavity:
         self.centroid = np.array(myocardium_surface.GetCenter())
         return
 
-    def _triangulate_caps(
-        self, vtk_volume=vtk.vtkUnstructuredGrid, add_centroid=False
-    ):
-        """Triangulates the closing caps by using a mid-point and the 
+    def _triangulate_caps(self, vtk_volume=vtk.vtkUnstructuredGrid, add_centroid=False):
+        """Triangulates the closing caps by using a mid-point and the
         nodes of the edge loop.
 
         Note
@@ -363,9 +348,7 @@ class Cavity:
 
                 # NOTE: How to add a point to the VTK Object?
                 # this is not working yet
-                vtk_volume_obj.SetPoints(
-                    np.vstack((vtk_volume_obj.Points, cap.centroid))
-                )
+                vtk_volume_obj.SetPoints(np.vstack((vtk_volume_obj.Points, cap.centroid)))
 
                 node_idx_centroid = vtk_volume_obj.Points.shape[0] + 1
 
@@ -417,19 +400,16 @@ class Cavity:
         ----------
         surface : vtk.vtkPolyData
             Surface mesh extracted from the volume mesh
-        
-        Note 
-        --------
-        This surface mesh should have the global point ids which are used for 
+        Note
+        ----
+        This surface mesh should have the global point ids which are used for
         mapping to the volume mesh as a point data field
         """
         # extract tag
         logger.debug("Extracting endo and epicardium for: " + self.labels[0])
 
         # identify the elements to remove
-        nodes, tris, tris_data, point_data = get_tri_info_from_polydata(
-            surface
-        )
+        nodes, tris, tris_data, point_data = get_tri_info_from_polydata(surface)
 
         idmap_surface_to_volume = point_data["GlobalPointIds"]
 
@@ -457,9 +437,7 @@ class Cavity:
             # check which elements contain one or more of the edge-loop nodes
             mask = np.isin(tris_global, cap.node_ids_cap_edge)
 
-            elements_to_remove = np.append(
-                elements_to_remove, np.where(np.any(mask, axis=1))[0]
-            )
+            elements_to_remove = np.append(elements_to_remove, np.where(np.any(mask, axis=1))[0])
 
         for element_idx in elements_to_remove:
             surface_copy.DeleteCell(element_idx)
@@ -531,10 +509,7 @@ class Cavity:
         region_id_epicardium = remaining_region_ids[0]
 
         # Special treatment for left ventricle in case of Bi-Ventricle or FourChamber model
-        if (
-            self.info.model_type in ["BiVentricle", "FourChamber"]
-            and self.name == "Left ventricle"
-        ):
+        if self.info.model_type in ["BiVentricle", "FourChamber"] and self.name == "Left ventricle":
             region_id_septum = remaining_region_ids[1]
 
         else:
@@ -542,45 +517,34 @@ class Cavity:
             region_id_septum = -1
 
         # map back to original node ids
-        node_ids_endocardium = np.argwhere(
-            region_id_endocardium == region_ids
-        ).flatten()
+        node_ids_endocardium = np.argwhere(region_id_endocardium == region_ids).flatten()
         num_nodes_endocardium = len(node_ids_endocardium)
 
-        node_ids_epicardium = np.argwhere(
-            region_id_epicardium == region_ids
-        ).flatten()
+        node_ids_epicardium = np.argwhere(region_id_epicardium == region_ids).flatten()
         num_nodes_epicardium = len(node_ids_epicardium)
 
         node_ids_septum = np.argwhere(region_id_septum == region_ids).flatten()
         num_nodes_septum = len(node_ids_septum)
 
         # map back to node ids of the volume mesh.
-        global_node_ids_endocardium = idmap_surface_to_volume[
-            node_ids_endocardium
-        ]
+        global_node_ids_endocardium = idmap_surface_to_volume[node_ids_endocardium]
 
-        global_node_ids_epicardium = idmap_surface_to_volume[
-            node_ids_epicardium
-        ]
+        global_node_ids_epicardium = idmap_surface_to_volume[node_ids_epicardium]
 
         global_node_ids_septum = idmap_surface_to_volume[node_ids_septum]
 
-        # store in self (NOTE: this is not very explicit...)
-        self.node_sets[0]["set"] = global_node_ids_endocardium
-        self.node_sets[1]["set"] = global_node_ids_epicardium
+        # store in self 
+        for nodeset in self.node_sets:
+            if nodeset["name"] == "endocardium":
+                nodeset["set"] = global_node_ids_endocardium
+            elif nodeset["name"] == "epicardium":
+                nodeset["set"] = global_node_ids_epicardium           
+        
 
         # Septum nodeset only defined when BiVentricle or Four Chamber models are defined
-        if (
-            self.info.model_type in ["BiVentricle", "FourChamber"]
-            and self.name == "Left ventricle"
-        ):
+        if self.info.model_type in ["BiVentricle", "FourChamber"] and self.name == "Left ventricle":
             self.node_sets.append(
-                {
-                    "name": "epicardium-septum",
-                    "set": global_node_ids_septum,
-                    "id": 0,
-                }
+                {"name": "epicardium-septum", "set": global_node_ids_septum, "id": 0}
             )
 
         logger.debug(
@@ -596,10 +560,7 @@ class Cavity:
 
         # number of orphan nodes:
         num_orphan_nodes = (
-            nodes.shape[0]
-            - num_nodes_endocardium
-            + num_nodes_epicardium
-            + num_nodes_septum
+            nodes.shape[0] - num_nodes_endocardium + num_nodes_epicardium + num_nodes_septum
         )
 
         logger.debug("\tNumber of nodes in all regions: {0}".format(counts))
@@ -607,17 +568,13 @@ class Cavity:
 
         path_to_file = os.path.join(
             self.info.working_directory,
-            "extracted_regions_{0}.vtk".format(
-                "_".join(self.name.lower().split())
-            ),
+            "extracted_regions_{0}.vtk".format("_".join(self.name.lower().split())),
         )
         write_vtkdata_to_vtkfile(connectivity_filter.GetOutput(), path_to_file)
 
         return
 
-    def _get_endocardium_epicardium_segments(
-        self, vtk_surface: vtk.vtkPolyData
-    ):
+    def _get_endocardium_epicardium_segments(self, vtk_surface: vtk.vtkPolyData):
         """From the available node sets generate segment sets
         """
         surface_obj = dsa.WrapDataObject(vtk_surface)
@@ -627,9 +584,7 @@ class Cavity:
             tris = np.reshape(surface_obj.Polygons, (num_polygons, 4))
             tris = tris[:, 1:]
         except:
-            raise Error(
-                "Failed to convert cells to triangles. Expecting only triangles"
-            )
+            raise Error("Failed to convert cells to triangles. Expecting only triangles")
 
         # map to global node ids
         tris_global = surface_obj.PointData["GlobalPointIds"][tris]
@@ -641,16 +596,12 @@ class Cavity:
             # also include the nodes of the edge loop: otherwise those elements will be ignored
             nodes_cap_edges = np.empty(0, dtype=int)
             for cap in self.closing_caps:
-                nodes_cap_edges = np.append(
-                    nodes_cap_edges, cap.node_ids_cap_edge
-                )
+                nodes_cap_edges = np.append(nodes_cap_edges, cap.node_ids_cap_edge)
 
             nodes_to_use = np.append(nodes_to_use, nodes_cap_edges)
 
             # if all three nodes are used in the triangle, then this is the corresponding surface
-            element_indices = np.all(
-                np.isin(tris_global, nodes_to_use), axis=1
-            )
+            element_indices = np.all(np.isin(tris_global, nodes_to_use), axis=1)
 
             # mesh = meshio.Mesh(points = surface_obj.Points,
             #                     cells = [("triangle", tris[element_indices, : ] ) ] )
@@ -676,45 +627,50 @@ class Cavity:
 
         # get reference point (mid-point between two valve centroids)
         # robust enough to extract apical points for either left or right ventricle?
-        centroids = np.empty((0,3))
+        centroids = np.empty((0, 3))
         for cap in self.closing_caps:
-            centroids = np.vstack( (centroids, cap.centroid) )
-        reference_point = np.mean(centroids, axis = 0)
+            centroids = np.vstack((centroids, cap.centroid))
+        reference_point = np.mean(centroids, axis=0)
 
         # use the defined node sets to extract the apical point:
         for nodeset in self.node_sets:
             set_name = nodeset["name"]
             # no sense in trying to find the apex for the septum
             if "septum" in nodeset["name"]:
-                continue 
+                continue
 
-            points = nodes[nodeset["set"], : ]
-            id_max   = np.argmax( 
-                np.linalg.norm ( points - reference_point, axis = 1 ) 
-            )
+            points = nodes[nodeset["set"], :]
+            id_max = np.argmax(np.linalg.norm(points - reference_point, axis=1))
             global_node_id = nodeset["set"][id_max]
-            
+
             # validate:
-            # checks whether node id is not on edge of segment set 
-            # if selected point is on edge of segment set select a point 
+            # checks whether node id is not on edge of segment set
+            # if selected point is on edge of segment set select a point
             # which is not on a free edge (free face)
-            from ansys.heart.preprocessor.vtk_module import get_free_edges            
+            from ansys.heart.preprocessor.vtk_module import get_free_edges
+
             for segset in self.segment_sets:
                 triangles = segset["set"]
                 if set_name == segset["name"]:
-                    free_edges, free_triangles = get_free_edges( triangles, True )
-                    if np.isin( global_node_id, free_edges ):
-                        logger.warning("Apical point is on edge of segment set")                        
-                        logger.warning("Selecting point not on edge of segment set")    
-                        # select triangle that has two points on edge                    
-                        free_edge = free_edges[ np.argwhere( np.all( np.isin( free_edges, global_node_id ), axis = 1) ), : ]
-                        triangle_to_use = np.argwhere( np.sum ( np.isin( free_triangles, free_edge ), axis = 1 ) == 2 )                        
+                    free_edges, free_triangles = get_free_edges(triangles, True)
+                    if np.isin(global_node_id, free_edges):
+                        logger.warning("Apical point is on edge of segment set")
+                        logger.warning("Selecting point not on edge of segment set")
+                        # select triangle that has two points on edge
+                        free_edge = free_edges[
+                            np.argwhere(np.all(np.isin(free_edges, global_node_id), axis=1)), :
+                        ]
+                        triangle_to_use = np.argwhere(
+                            np.sum(np.isin(free_triangles, free_edge), axis=1) == 2
+                        )
 
                         # select the node that is not used in the free edge
-                        global_node_id = triangle_to_use[ np.isin( triangle_to_use, free_edge, invert = True ) ]                        
-                    break        
+                        global_node_id = triangle_to_use[
+                            np.isin(triangle_to_use, free_edge, invert=True)
+                        ]
+                    break
 
-            self.apex_id[ nodeset["name"] ] = global_node_id
+            self.apex_id[nodeset["name"]] = global_node_id
 
         return
 
@@ -732,8 +688,7 @@ class Cavity:
         logger.debug("Writing cap raw coordinates to file")
         for cap in self.closing_caps:
             filename = os.path.join(
-                working_dir,
-                "points_" + cap.name.replace(" ", "_").lower() + ".csv",
+                working_dir, "points_" + cap.name.replace(" ", "_").lower() + ".csv",
             )
             cap.dump_nodes_to_file(filename)
 
@@ -742,9 +697,7 @@ class Cavity:
     def _read_cap_nodes_from_file(self, working_dir: str):
         """Reads the nodes that define the caps from a file """
         for cap in self.closing_caps:
-            filename = os.path.join(
-                working_dir, cap.name.lower().replace(" ", "_")
-            )
+            filename = os.path.join(working_dir, cap.name.lower().replace(" ", "_"))
             try:
                 cap.nodes_source_mesh = np.genfromtxt(filename, delimiter=",")
             except:

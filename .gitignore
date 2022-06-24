@@ -97,6 +97,9 @@ target/
 profile_default/
 ipython_config.py
 
+# Temporary directory
+tmp
+
 # pyenv
 #   For a library or package, you might want to ignore these files since the code is
 #   intended to run in multiple environments; otherwise, check them in:
@@ -170,3 +173,4 @@ cython_debug/
 .idea/
 
 # End of https://www.toptal.com/developers/gitignore/api/python
+

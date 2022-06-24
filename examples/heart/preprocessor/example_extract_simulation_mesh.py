@@ -123,6 +123,29 @@ def extract_fourchamber_mesh_noremesh():
     )
     return
 
+def extract_fullheart_mesh_noremesh():
+    """Extracts a full-heart mesh without remeshing"""
+    work_dir = os.path.join(BASE_WORK_DIR, "full_heart")
+    clean_directory(work_dir)
+    model_info_path = os.path.join(work_dir, "model_info.json")
+
+    # create model
+    fourchamber_info = ModelInformation(
+        model_type="FullHeart",
+        database_name="Strocchi2020",
+        path_original_mesh=CASE_PATH,
+        working_directory=work_dir,
+    )
+
+    four_chamber_model = HeartModel(fourchamber_info)
+    four_chamber_model.extract_simulation_mesh( remesh = False )
+    four_chamber_model.get_model_characteristics()
+
+    four_chamber_model.dump_model(
+        model_info_path, clean_working_directory=REMOVE_INTERMEDIATE_FILES
+    )
+    return
+
 if __name__ == "__main__":
 
     if not os.path.isdir(BASE_WORK_DIR):
@@ -131,10 +154,11 @@ if __name__ == "__main__":
     run_all = True
     if run_all:
         models_to_run = [
-            "LeftVentricle",
-            "BiVentricle",
-            "FourChamber",
+            # "LeftVentricle",
+            # "BiVentricle",
+            # "FourChamber",
             # "FourChamberOriginal"
+            "FullHeart"
             ]
     else:
         models_to_run = []
@@ -157,6 +181,10 @@ if __name__ == "__main__":
     if "FourChamberOriginal" in models_to_run:
         logger.info("***************************")
         extract_fourchamber_mesh_noremesh()
+
+    if "FullHeart" in models_to_run:
+        logger.info("***************************")
+        extract_fullheart_mesh_noremesh()
 
     logger.info("***************************")
     logger.info("** DONE **")

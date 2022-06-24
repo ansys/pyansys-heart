@@ -163,6 +163,8 @@ class HeartModel:
         num_caps = 0
         cavity_names = []
         for cavity in self._mesh._cavities:
+            if cavity.name in ["Aorta", "Pulmonary artery"]:
+                continue
             cavity_names.append(cavity.name)
             cap_names = []
             for cap in cavity.closing_caps:

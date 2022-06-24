@@ -266,9 +266,11 @@ class HeartMesh:
         write_caps_to_file = True
 
         for cavity in self._cavities:
-            if "artery" in cavity.name or "aorta" in cavity.name:
+            # skip Aorta and Pulmonary artery
+            if cavity.name in ["Aorta", "Pulmonary artery"]:
                 logger.debug("Skipping %s " % cavity.name)
                 continue
+
             logger.debug("Closing cavity... %s" % cavity.name)
             cavity._find_closing_edge_loop()
 
@@ -454,11 +456,19 @@ class HeartMesh:
 
         # get the endo and epicardium points for each cavity
         for cavity in self._cavities:
+            if cavity.name in ["Aorta", "Pulmonary artery"]:
+                logger.debug("Skipping %s " % cavity.name)
+                continue
+
             logger.debug("Extracting endocardium and epicardium node sets of... " + cavity.name)
             cavity._get_endocardium_epicardium_points(surface_mesh)
 
         # extract endo/epicardium segments for each cavity
         for cavity in self._cavities:
+            if cavity.name in ["Aorta", "Pulmonary artery"]:
+                logger.debug("Skipping %s " % cavity.name)
+                continue
+
             logger.debug("Extracting endocardium and epicardium segments of... " + cavity.name)
             cavity._get_endocardium_epicardium_segments(surface_mesh)
 
@@ -487,6 +497,9 @@ class HeartMesh:
 
         # write segment sets to file
         for cavity in self._cavities:
+            if cavity.name in ["Aorta", "Pulmonary artery"]:
+                logger.debug("Skipping %s " % cavity.name)
+                continue
             # write to file to check
             volume = dsa.WrapDataObject(self._vtk_volume)
             points = volume.Points
@@ -517,7 +530,7 @@ class HeartMesh:
 
         for cavity in self._cavities:
             # skip if atrium
-            if "atrium" in cavity.name:
+            if "atrium" in cavity.name or cavity.name in ["Aorta", "Pulmonary artery"]:
                 continue
 
             cavity._get_apex(nodes)
@@ -575,6 +588,8 @@ class HeartMesh:
 
         # write points of cavity to working directory
         for cavity in self._cavities:
+            if cavity.name in ["Aorta", "Pulmonary artery"]:
+                continue
             volume = dsa.WrapDataObject(self._vtk_volume)
             for nodeset in cavity.node_sets:
 
@@ -850,6 +865,9 @@ class HeartMesh:
         # ensure that the normal of each cap is pointing towards the cavity center
         visited_caps = []
         for cavity in self._cavities:
+            if cavity.name in ["Aorta", "Pulmonary artery"]:
+                continue
+
             for cap in cavity.closing_caps:
                 if cap.id in visited_caps:
                     # skip if already visited
@@ -869,6 +887,8 @@ class HeartMesh:
         # that is, the volume enclosed by the endocardium and cavity caps
         # NOTE: all normals should point inwards
         for cavity in self._cavities:
+            if cavity.name in ["Aorta", "Pulmonary artery"]:
+                continue            
             # each cavity. Skip atrium cavities for now
             # if "atrium" in cavity.name:
             #     logger.warning("Skipping volume computation %s" % cavity.name)

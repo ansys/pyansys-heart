@@ -325,8 +325,8 @@ class Cavity:
         for surface_name in self._surfaces.keys():
             if "myocardium" in surface_name:
                 myocardium_surface = self._surfaces[surface_name]
+                self.centroid = np.array(myocardium_surface.GetCenter())
                 break
-        self.centroid = np.array(myocardium_surface.GetCenter())
         return
 
     def _triangulate_caps(self, vtk_volume=vtk.vtkUnstructuredGrid, add_centroid=False):
@@ -539,7 +539,6 @@ class Cavity:
                 nodeset["set"] = global_node_ids_endocardium
             elif nodeset["name"] == "epicardium":
                 nodeset["set"] = global_node_ids_epicardium           
-        
 
         # Septum nodeset only defined when BiVentricle or Four Chamber models are defined
         if self.info.model_type in ["BiVentricle", "FourChamber"] and self.name == "Left ventricle":

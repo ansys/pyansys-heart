@@ -37,6 +37,7 @@ from ansys.heart.writer.material_keywords import (
     MaterialCap,
     MaterialHGOMyocardium,
     MaterialAtrium,
+    MaterialArtery,
     active_curve,
 )
 
@@ -507,6 +508,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 self.kw_database.material.append(atrium_material)
                 print("")
 
+            if cavity.name in ["Aorta", "Pulmonary artery"]:
+                # add arterial material
+                mat_id = cavity.id
+                atrium_material = MaterialArtery(mid=mat_id)
+                self.kw_database.material.append(atrium_material)
+                print("")
+
         if add_active:
             # write and add active curve to material database
             time_array, active_stress_array = active_curve("Strocchi2020")
@@ -530,7 +538,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self._add_cap_bc(bc_type="springs_caps")
 
-        self._add_pericardium_bc_usr()
+        # self._add_pericardium_bc_usr()
 
         return
 
@@ -953,6 +961,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # assumes there are no shells written yet since offset = 0
         shell_id_offset = 0
         for cavity in self.model._mesh._cavities:
+            if cavity.name in ["Aorta", "Pulmonary artery"]:
+                continue
             for cap in cavity.closing_caps:
                 shell_kw = create_element_shell_keyword(
                     shells=cap.closing_triangles + 1,
@@ -968,6 +978,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         segset_id = np.max(used_segids) + 1
 
         for cavity in self.model._mesh._cavities:
+            if cavity.name in ["Aorta", "Pulmonary artery"]:
+                continue            
             for cap in cavity.closing_caps:
                 segset_kw = create_segment_set_keyword(
                     segments=cap.closing_triangles + 1, segid=segset_id, title=cap.name,
@@ -987,6 +999,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # collect segment set ids to combine
         for cavity in self.model._mesh._cavities:
+            if cavity.name in ["Aorta", "Pulmonary artery"]:
+                continue            
             seg_ids_to_combine = []
             # find id of endocardium
             for segset in cavity.segment_sets:
@@ -1007,6 +1021,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # set up control volume keywords and interaction of
         # cavity with ambient. Only do for ventricles
         for cavity in self.model._mesh._cavities:
+            if cavity.name in ["Aorta", "Pulmonary artery"]:
+                continue            
             if "atrium" in cavity.name:
                 continue
 
@@ -1017,6 +1033,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self.kw_database.control_volume.append(cv_kw)
 
         for cavity in self.model._mesh._cavities:
+            if cavity.name in ["Aorta", "Pulmonary artery"]:
+                continue            
             if "atrium" in cavity.name:
                 continue
 
@@ -1040,7 +1058,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """Updates json system model settings"""
         model_type = self.model.info.model_type
 
-        if model_type in ["FourChamber", "BiVentricle"]:
+        if model_type in ["FourChamber", "BiVentricle", "FullHeart"]:
             file_path = os.path.join(
                 Path(__file__).parent.absolute(), "templates", "system_model_settings_bv.json",
             )

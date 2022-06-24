@@ -46,10 +46,11 @@ if __name__ == "__main__":
     run_all = True
     if run_all:
         models_to_run = [
-            "LeftVentricle",
-            "BiVentricle",
-            "FourChamber",
-            "FourChamberOriginal"
+            # "LeftVentricle",
+            # "BiVentricle",
+            # "FourChamber",
+            # "FourChamberOriginal",
+            "FullHeart"
             ]
     else:
         models_to_run = []
@@ -82,3 +83,10 @@ if __name__ == "__main__":
             ABS_BASE_PATH, "..", "workdir", "four_chamber_model_original", "model_info.json"
         )
         create_ls_dyna_files(path_model_info)
+
+    if "FullHeart" in models_to_run:
+        # four chamber model with original mesh
+        path_model_info = os.path.join(
+            ABS_BASE_PATH, "..", "workdir", "full_heart", "model_info.json"
+        )
+        create_ls_dyna_files(path_model_info)        

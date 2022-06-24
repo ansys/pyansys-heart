@@ -19,6 +19,7 @@ from ansys.heart.preprocessor.heart_model import HeartModel
         # "FourChamber",
     ],
 )
+@pytest.mark.skip(reason="Placeholder test")
 def test_map_data(model_type):
 
     # get asset paths

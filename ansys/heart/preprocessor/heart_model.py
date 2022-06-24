@@ -101,13 +101,15 @@ class HeartModel:
         self._mesh.add_cavities()
 
         if remesh:
+            if self.info.model_type == "FullHeart":
+                raise ValueError ("Remeshing not supported for this model type")
+
             mesh_size = self.info.mesh_size
             logger.info("Remeshing uniformly with mesh size: %f " % mesh_size)
             self._mesh.remesh_volume(
                 mesher="fluent", mesh_size=mesh_size
-            )  # need to make this dynamic.
+            ) 
             self.info.is_remeshed = True
-
             # map data of original mesh to remeshed volume
             # includes (discrete) mapping of the tags
             self._mesh.map_data_to_remeshed_volume()

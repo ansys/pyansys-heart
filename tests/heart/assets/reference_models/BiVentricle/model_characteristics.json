@@ -10,7 +10,7 @@
                     "Aortic valve plane",
                     "Mitral valve plane"
                 ],
-                "volume": 173243.31100199005
+                "volume": 173243.7525418482
             },
             {
                 "name": "Right ventricle",
@@ -18,7 +18,7 @@
                     "Tricuspid valve plane",
                     "Pulmonary valve plane"
                 ],
-                "volume": 234799.65023721053
+                "volume": 234799.90597649396
             }
         ],
         "num-cavities": 2,

@@ -51,6 +51,7 @@ def test_map_data(model_type):
 
     # skip remeshing - but set volume mesh directly from file
     model._mesh.set_volume_mesh_vtk(path_output_meshing)
+    # map data from original dataset to this volume mesh
     model._mesh.map_data_to_remeshed_volume()
 
     # simulation mesh is reference - load to compare

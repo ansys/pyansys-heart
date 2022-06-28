@@ -1,14 +1,16 @@
 import pytest
 import os
 import numpy as np
+import shutil
 
 # import shutil
 
-from conftest import get_assets_folder
+from conftest import create_directory, get_assets_folder
 
 from ansys.heart.preprocessor.model_information import ModelInformation
 from ansys.heart.preprocessor.heart_model import HeartModel
 from ansys.heart.preprocessor.vtk_module import vtk_read_mesh_file
+from conftest import get_workdir
 from vtk.numpy_interface import dataset_adapter as dsa
 
 # cavity extraction for LeftVentricle, BiVentricle, and FourChamber models
@@ -22,6 +24,10 @@ from vtk.numpy_interface import dataset_adapter as dsa
 )
 def test_map_data(model_type):
 
+    work_dir = os.path.join( get_workdir(), model_type )
+
+    create_directory(work_dir)
+
     # get asset paths
     reference_directory = os.path.join(get_assets_folder(), "reference_models", model_type)
 
@@ -34,6 +40,7 @@ def test_map_data(model_type):
     model_info = ModelInformation()
     model_info.load_from_file(model_info_path)
     model_info.path_original_mesh = path_to_raw_mesh
+    model_info.working_directory = work_dir
 
     model = HeartModel(model_info)
 
@@ -56,10 +63,10 @@ def test_map_data(model_type):
     assert np.all(model_dsa.Points == reference_model_dsa.Points), "Points are not the same"
     assert np.all(model_dsa.Cells == reference_model_dsa.Cells), "Cells are not the same"
     assert np.all(
-        model_dsa.PointData.keys() == reference_model_dsa.PointData.keys()
+       sorted(model_dsa.PointData.keys()) == sorted( reference_model_dsa.PointData.keys() )
     ), "PointData keys are not the same"
     assert np.all(
-        model_dsa.CellData.keys() == reference_model_dsa.CellData.keys()
+        sorted( model_dsa.CellData.keys() ) == sorted(reference_model_dsa.CellData.keys() )
     ), "CellData keys are not the same"
 
     for key in model_dsa.PointData.keys():
@@ -71,5 +78,8 @@ def test_map_data(model_type):
         value = model_dsa.CellData[key]
         reference_value = reference_model_dsa.CellData[key]
         assert np.all(value == reference_value), "Value of PointData %s does not match" % key
+
+    # cleanup
+    shutil.rmtree(work_dir)
 
     return

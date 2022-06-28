@@ -6,7 +6,7 @@
         "Mitral valve plane": 14
     },
     "_database_name": "Strocchi2020",
-    "path_original_mesh": "d:\\development\\pyheart-lib\\pyheart-lib\\tests\\heart\\assets\\cases\\01\\01.case",
+    "path_original_mesh": "d:\\development\\pyheart-lib\\pyheart-lib\\tests\\heart\\assets\\cases\\strocchi2020\\01\\01.case",
     "working_directory": "d:\\development\\pyheart-lib\\pyheart-lib\\examples\\heart\\preprocessor\\..\\workdir\\left_ventricle_model",
     "is_remeshed": true,
     "_mesh_size": 2.0,

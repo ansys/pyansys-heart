@@ -10,7 +10,7 @@
                     "Aortic valve plane",
                     "Mitral valve plane"
                 ],
-                "volume": 171467.5719246192
+                "volume": 171915.00849164027
             },
             {
                 "name": "Right ventricle",
@@ -18,7 +18,7 @@
                     "Tricuspid valve plane",
                     "Pulmonary valve plane"
                 ],
-                "volume": 234863.1339485809
+                "volume": 234862.7692023466
             },
             {
                 "name": "Left atrium",
@@ -30,7 +30,7 @@
                     "Right inferior pulmonary vein inlet",
                     "Right superior pulmonary vein inlet"
                 ],
-                "volume": 90223.2149043073
+                "volume": 88861.9414353789
             },
             {
                 "name": "Right atrium",
@@ -39,7 +39,7 @@
                     "Superior vena cava inlet",
                     "Inferior vena cava inlet"
                 ],
-                "volume": 193233.5242183483
+                "volume": 193402.92140147006
             }
         ],
         "num-cavities": 4,

@@ -4,11 +4,7 @@ import os
 
 from ansys.heart.preprocessor.model_information import ModelInformation
 from ansys.heart.preprocessor.heart_model import HeartModel
-from conftest import (
-    get_assets_folder,
-    clean_directory,
-    create_directory
-)
+from conftest import get_assets_folder, clean_directory, create_directory
 
 
 def workflow_extract_mesh(model_type: str, working_directory: pathlib.Path) -> pathlib.Path:

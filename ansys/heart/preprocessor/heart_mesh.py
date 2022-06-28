@@ -61,7 +61,13 @@ class HeartMesh:
         # TODO Move some of the methods to seperate public functions
 
         self.info = model_info
-
+        """Stores model information"""
+        self._vtk_volume_raw = None
+        """Stores the original volume mesh from the case data file"""
+        self._vtk_volume_temp = None
+        """Temporary volume mesh"""
+        self._vtk_volume = None
+        """Stores the final volume mesh used for simulation"""
         return
 
     # public functions

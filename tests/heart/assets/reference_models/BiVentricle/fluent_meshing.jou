@@ -1,0 +1,50 @@
+; fluent meshing journal 
+; 
+; set some settings for meshing 
+(define files-to-import '() )
+(define min-size 2.0 )    ; mesh size in mm 
+(define max-size 2.0 )     
+(define growth-rate-wrap 1.2 )     ; growth rate default 1.2
+;( define my-output-mesh "fluent_volumemesh.msh.h5" )
+( define my-output-mesh "d:\development\pyheart-lib\pyheart-lib\examples\heart\workdir\bi_ventricle_model\fluent_volume_mesh.msh.h5" )
+;
+; import files
+;/file/import/cad no "D:/SharedRepositories/CardiacModeling/PreProcessing/PreProcessing/test/case/01/output/" "part_surface_00*.stl" yes 40 yes mm
+/file/import/cad yes "d:\development\pyheart-lib\pyheart-lib\examples\heart\workdir\bi_ventricle_model\input_surface_spaceclaim.stl" yes 40 yes mm
+;
+; rename boundary
+/boundary/manage/name * "surface" 
+/objects/labels/create-label-per-zone "*" '(*)
+; start logging
+/file/start-transcript "fluent_meshing.log" ok
+;
+; create intersection loops
+/objects/create-intersection-loops collectively '(*)
+; set size field (just global size for now)
+( ti-menu-load-string 				
+	( format #f 
+		"/size-functions/set-global-controls ~a ~a ~a" min-size max-size growth-rate-wrap
+	)  
+)
+/scoped-sizing/compute yes 
+; wrap objects 
+/objects/wrap/wrap '(*) collectively "wrapped-myocardium" shrink-wrap external "wrap" hybrid 0.8 yes
+; compute volumetric regions 
+/objects/volumetric-regions compute "wrapped-myocardium" no
+/objects/volumetric-regions/change-type "wrapped-myocardium" '(*) solid
+; start automeshing
+/mesh/tet/controls/cell-sizing size-field
+/mesh/auto-mesh "wrapped-myocardium" yes pyramids tet no
+; improve quality
+/mesh/modify/auto-node-move '(*) '(*) 0.3 50 120 yes 5
+; clean up 
+/objects/delete-all-geom
+/mesh/zone-names-clean-up yes
+/mesh/prepare-for-solve yes
+/mesh/check-mesh
+/mesh/check-quality
+; write to file 
+( ti-menu-load-string 				
+	(format #f "/file/write-mesh ~a ok" my-output-mesh )
+)
+/exit yes

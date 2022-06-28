@@ -7,9 +7,7 @@ from ansys.heart.preprocessor.vtk_module import (
     read_vtk_polydata_file,
     read_vtk_unstructuredgrid_file,
 )
-from ansys.heart.preprocessor.vtk_module import (
-    get_tetra_info_from_unstructgrid
-)
+from ansys.heart.preprocessor.vtk_module import get_tetra_info_from_unstructgrid
 from vtk.numpy_interface import dataset_adapter as dsa
 
 from conftest import (
@@ -26,7 +24,7 @@ def extraction_left_ventricle():
     global output_dir
     output_dir = workflow_extract_mesh("LeftVentricle", get_workdir())
 
-    yield 
+    yield
     # cleanup
     shutil.rmtree(output_dir)
 

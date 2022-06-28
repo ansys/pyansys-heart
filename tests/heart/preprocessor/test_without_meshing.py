@@ -16,11 +16,10 @@ from vtk.numpy_interface import dataset_adapter as dsa
     "model_type",
     [
         "LeftVentricle",
-        # "BiVentricle",
-        # "FourChamber",
+        "BiVentricle",
+        "FourChamber",
     ],
 )
-# @pytest.mark.skip(reason="Placeholder test")
 def test_map_data(model_type):
 
     # get asset paths
@@ -72,7 +71,5 @@ def test_map_data(model_type):
         value = model_dsa.CellData[key]
         reference_value = reference_model_dsa.CellData[key]
         assert np.all(value == reference_value), "Value of PointData %s does not match" % key
-
-    # TODO: add point/cell data value comparison
 
     return

@@ -1,7 +1,7 @@
 import os
 
 if os.name == "nt":
-    supported_versions = ["212"]
+    supported_versions = ["212", "221"]
     awp_roots = {
         ver: os.environ.get(f"AWP_ROOT{ver}", "") for ver in supported_versions
     }

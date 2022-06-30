@@ -306,7 +306,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         return
 
-    def _update_solid_elements_db(self, add_fibers: bool=False):
+    def _update_solid_elements_db(self, add_fibers: bool = True):
         """Creates Solid ortho elements for all cavities.
         Each cavity contains one myocardium which consists corresponds
         to one part.
@@ -1282,8 +1282,8 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.kw_database.main.title = self.model.info.model_type + " zero-pressure"
 
         self._update_node_db()
-        self._update_solid_elements_db()
         self._update_parts_db()
+        self._update_solid_elements_db()
         self._update_segmentsets_db()
         self._update_nodesets_db()
         self._update_material_db(add_active=False)

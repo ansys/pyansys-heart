@@ -189,8 +189,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self._update_main_db()
         self._update_node_db()
-        self._update_solid_elements_db()
         self._update_parts_db()
+        self._update_solid_elements_db(add_fibers=True)      
         self._update_segmentsets_db()
         self._update_nodesets_db()
         self._update_material_db(add_active=True)
@@ -271,27 +271,33 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _update_parts_db(self):
-        """Creates database of PART keywords. Each myocardium defined as a
-        separate part
+        """Creates database of PART keywords.
+        Each element set within cavity defined as separate part. Each
+        cavity associated with one material
         """
 
         logger.debug("Updating part keywords...")
         # add parts with a dataframe
+        part_ids = []
+        part_id = 0
+        mat_id = 0
         for cavity in self.model._mesh._cavities:
-            part = pd.DataFrame(
-                {
-                    "heading": [cavity.name],
-                    "pid": [cavity.id],
-                    "secid": [1],
-                    "mid": [
-                        cavity.id
-                    ],  # mat ID is assumed to be the cavity ID,see in _update_material_db()
-                }
-            )
-            part_kw = keywords.Part()
-            part_kw.parts = part
+            mat_id  = mat_id + 1
+            for element_set in cavity.element_sets:
+                part_id = part_id + 1
+                part_name = " ".join([cavity.name, element_set["name"]])
+                part = pd.DataFrame(
+                    {"heading": [part_name], "pid": [part_id], "secid": [1], "mid": [mat_id]}
+                )
+                part_kw = keywords.Part()
+                part_kw.parts = part
 
-            self.kw_database.parts.append(part_kw)
+                self.kw_database.parts.append(part_kw)
+
+                # store part id for future use
+                element_set["id"] = part_id
+                element_set["mid"] = mat_id
+                part_ids.append(part_id)
 
         # set up section solid for cavity myocardium
         section_kw = keywords.SectionSolid(secid=1, elform=13)
@@ -300,7 +306,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         return
 
-    def _update_solid_elements_db(self):
+    def _update_solid_elements_db(self, add_fibers: bool = True):
         """Creates Solid ortho elements for all cavities.
         Each cavity contains one myocardium which consists corresponds
         to one part.
@@ -312,33 +318,59 @@ class MechanicsDynaWriter(BaseDynaWriter):
         for cavity in self.model._mesh._cavities:
             logger.debug("Writing elements for myocardium" " attached to cavity: " + cavity.name)
 
-            tag_to_use = cavity.vtk_ids[0]
-            tetra_idx = self.volume_mesh["cell_data"]["tags"] == tag_to_use
-
             # get list of elements to write to the database. Create new keyword
-            # for each part
-            tetra_to_write = self.volume_mesh["tetra"][tetra_idx, :]
-            fiber = self.volume_mesh["cell_data"]["fiber"][tetra_idx]
-            sheet = self.volume_mesh["cell_data"]["sheet"][tetra_idx]
+            # for each part. Parts defined by element sets
+            for element_set in cavity.element_sets:
+                tetra_idx = element_set["set"]
+                part_id = element_set["id"]
 
-            # normalize fiber and sheet directions:
-            norm = np.linalg.norm(fiber, axis=1)
-            fiber = fiber / norm[:, None]
-            norm = np.linalg.norm(sheet, axis=1)
-            sheet = sheet / norm[:, None]
+                tetra_to_write = self.volume_mesh["tetra"][tetra_idx, :] + 1
+                fiber = self.volume_mesh["cell_data"]["fiber"][tetra_idx]
+                sheet = self.volume_mesh["cell_data"]["sheet"][tetra_idx]
 
-            kw_elem_ortho = create_element_solid_ortho_keyword(
-                elements=tetra_to_write + 1,
-                a_vec=fiber,
-                d_vec=sheet,
-                partid=cavity.id,
-                id_offset=solid_element_count,
-                element_type="tetra",
-            )
+                # normalize fiber and sheet directions:
+                norm = np.linalg.norm(fiber, axis=1)
+                fiber = fiber / norm[:, None]
+                norm = np.linalg.norm(sheet, axis=1)
+                sheet = sheet / norm[:, None]
 
-            self.kw_database.solid_elements.append(kw_elem_ortho)
+                num_elements = len(tetra_idx)
 
-            solid_element_count = solid_element_count + tetra_to_write.shape[0]
+                element_ids = np.arange(1, num_elements + 1, 1) + solid_element_count
+                part_ids = np.ones(num_elements, dtype=int) * part_id
+
+                # format the element keywords
+                if not add_fibers:
+                    kw_elements = keywords.ElementSolid()
+                    elements = pd.DataFrame(
+                        {
+                            "eid": element_ids,
+                            "pid": part_ids,
+                            "n1": tetra_to_write[:, 0],
+                            "n2": tetra_to_write[:, 1],
+                            "n3": tetra_to_write[:, 2],
+                            "n4": tetra_to_write[:, 3],
+                            "n5": tetra_to_write[:, 3],
+                            "n6": tetra_to_write[:, 3],
+                            "n7": tetra_to_write[:, 3],
+                            "n8": tetra_to_write[:, 3],
+                        }
+                    )
+                    kw_elements.elements = elements
+
+                elif add_fibers:
+                    kw_elements = create_element_solid_ortho_keyword(
+                        elements=tetra_to_write,
+                        a_vec=fiber,
+                        d_vec=sheet,
+                        partid=part_id,
+                        id_offset=solid_element_count,
+                        element_type="tetra",
+                    )
+
+                # add elements to database
+                self.kw_database.solid_elements.append(kw_elements)
+                solid_element_count = solid_element_count + num_elements
 
         return
 
@@ -499,16 +531,17 @@ class MechanicsDynaWriter(BaseDynaWriter):
     def _update_material_db(self, add_active: bool = True):
         """Updates the database of material keywords"""
         for cavity in self.model._mesh._cavities:
-            # cavity id assumed to correspond to material id
-            # that is: one material per cavity myocardium
+            # element set id of first element set
+            # assumed correspond to material id (one material per cavity)
             # NOTE: in case of writing the zero-pressure input files the
             # active module should be off
+            mat_id = cavity.element_sets[0]["mid"]
 
             # curve id for active module
             act_curve_id = 15
+
             if "ventricle" in cavity.name:
                 # add ventricular materials
-                mat_id = cavity.id
                 myocardium_material_kw = MaterialHGOMyocardium(
                     mid=mat_id, add_anisotropy=True, add_active=add_active
                 )
@@ -517,7 +550,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             if "atrium" in cavity.name:
                 # add arterial material
-                mat_id = cavity.id
                 atrium_material = MaterialAtrium(mid=mat_id)
                 self.kw_database.material.append(atrium_material)
                 print("")
@@ -1250,8 +1282,8 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.kw_database.main.title = self.model.info.model_type + " zero-pressure"
 
         self._update_node_db()
-        self._update_solid_elements_db()
         self._update_parts_db()
+        self._update_solid_elements_db()
         self._update_segmentsets_db()
         self._update_nodesets_db()
         self._update_material_db(add_active=False)
@@ -1417,8 +1449,11 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         self._update_main_db()  # needs updating
 
         self._update_node_db()  # can stay the same (could move to base class)
+        if self.model.info.model_type == "FourChamber":
+            self._keep_ventricles()
+
         self._update_parts_db()  # can stay the same (could move to base class++++++++++++++++++++)
-        self._update_solid_elements_db()  # can stay the same (could move to base class)
+        self._update_solid_elements_db(add_fibers=False)  # can stay the same (could move to base class)
         self._update_material_db()
 
         self._update_segmentsets_db()  # can stay the same
@@ -1449,101 +1484,17 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
         return
 
-    def _update_parts_db(self):
-        """Creates database of PART keywords. Each myocardium defined as a
-        separate part
+    def _keep_ventricles(self):
+        """Removes any cavity except the ventricular cavities
         """
+        # just keep ventricles in case of four chamber model        
+        logger.warning("Just keeping ventricular-parts for fiber generation")
+        cavities_to_keep = []
+        for ii, cavity in enumerate(self.model._mesh._cavities):
+            if "ventricle" in cavity.name:
+                cavities_to_keep.append(cavity)
 
-        # just keep ventricles in case of four chamber model
-        if self.model.info.model_type == "FourChamber":
-            logger.warning("Just keeping ventricular-parts for fiber generation")
-            cavities_to_keep = []
-            for ii, cavity in enumerate(self.model._mesh._cavities):
-                if "ventricle" in cavity.name:
-                    cavities_to_keep.append(cavity)
-
-            self.model._mesh._cavities = cavities_to_keep
-
-        logger.debug("Updating part keywords...")
-        # add parts with a dataframe
-        part_ids = []
-        part_id = 1
-        for cavity in self.model._mesh._cavities:
-            for element_set in cavity.element_sets:
-                part_name = " ".join([cavity.name, element_set["name"]])
-                part = pd.DataFrame(
-                    {"heading": [part_name], "pid": [part_id], "secid": [1], "mid": [part_id]}
-                )
-                part_kw = keywords.Part()
-                part_kw.parts = part
-
-                self.kw_database.parts.append(part_kw)
-
-                # store part id for future use
-                element_set["id"] = part_id
-                part_ids.append(part_id)
-                part_id = part_id + 1
-
-        # set up section solid for cavity myocardium
-        section_kw = keywords.SectionSolid(secid=1, elform=13)
-
-        self.kw_database.parts.append(section_kw)
-
-        return
-
-    def _update_solid_elements_db(self):
-        """Creates Solid ortho elements for all cavities.
-        Each cavity contains one myocardium which consists corresponds
-        to one part.
-        """
-        logger.debug("Updating solid element keywords...")
-        # create elements for each separate cavity
-        solid_element_count = 0  # keeps track of number of solid elements already defined
-
-        for cavity in self.model._mesh._cavities:
-            logger.debug("Writing elements for myocardium" " attached to cavity: " + cavity.name)
-
-            # get list of elements to write to the database. Create new keyword
-            # for each part. Parts defined by element sets
-            for element_set in cavity.element_sets:
-                tetra_idx = element_set["set"]
-                part_id = element_set["id"]
-
-                tetra_to_write = self.volume_mesh["tetra"][tetra_idx, :] + 1
-                fiber = self.volume_mesh["cell_data"]["fiber"][tetra_idx]
-                sheet = self.volume_mesh["cell_data"]["sheet"][tetra_idx]
-
-                # normalize fiber and sheet directions:
-                norm = np.linalg.norm(fiber, axis=1)
-                fiber = fiber / norm[:, None]
-                norm = np.linalg.norm(sheet, axis=1)
-                sheet = sheet / norm[:, None]
-
-                num_elements = len(tetra_idx)
-
-                element_ids = np.arange(1, num_elements + 1, 1) + solid_element_count
-                part_ids = np.ones(num_elements, dtype=int) * part_id
-                kw_elements = keywords.ElementSolid()
-                elements = pd.DataFrame(
-                    {
-                        "eid": element_ids,
-                        "pid": part_ids,
-                        "n1": tetra_to_write[:, 0],
-                        "n2": tetra_to_write[:, 1],
-                        "n3": tetra_to_write[:, 2],
-                        "n4": tetra_to_write[:, 3],
-                        "n5": tetra_to_write[:, 3],
-                        "n6": tetra_to_write[:, 3],
-                        "n7": tetra_to_write[:, 3],
-                        "n8": tetra_to_write[:, 3],
-                    }
-                )
-                kw_elements.elements = elements
-
-                self.kw_database.solid_elements.append(kw_elements)
-
-                solid_element_count = solid_element_count + num_elements
-
+        self.model._mesh._cavities = cavities_to_keep
         return
 
     def _update_material_db(self):

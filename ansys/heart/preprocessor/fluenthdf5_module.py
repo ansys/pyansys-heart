@@ -77,7 +77,7 @@ def get_mesh_group(fid: h5py.File) -> h5py.Group:
 
 
 def get_face_group(group: h5py.Group) -> h5py.Group:
-    """Gets face zone group """
+    """Gets face zone group"""
 
     def find_faces(name):
         if "faces" in name:
@@ -88,7 +88,7 @@ def get_face_group(group: h5py.Group) -> h5py.Group:
 
 
 def get_face_zone_info(face_group: h5py.Group) -> List:
-    """Gets list of face zone names """
+    """Gets list of face zone names"""
     # get face zone ids
     face_zone_ids = np.array(face_group["zoneTopology/id"])
     # get face zones
@@ -174,7 +174,7 @@ def face_group_to_face_zones(
 
 
 def face_group_to_tetrahedrons(face_group: h5py.Group, face_zone_names: List[str]) -> np.array:
-    """"Converts Fluent's face connectivity matrix to tetrahedron elements.
+    """ "Converts Fluent's face connectivity matrix to tetrahedron elements.
     Format Fluent face:
     [n0 n1 n2] [c0 c1]
     n0 n1 n2 : node indices that make up face
@@ -275,6 +275,7 @@ def face_group_to_tetrahedrons(face_group: h5py.Group, face_zone_names: List[str
 
     tetrahedrons = np.ndarray.astype(tetrahedrons, dtype=int)
     return tetrahedrons
+
 
 if __name__ == "__main__":
     print("protected")

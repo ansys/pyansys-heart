@@ -85,7 +85,7 @@ class HeartModel:
         return
 
     def extract_simulation_mesh(self, remesh: bool = True):
-        """Extracts the simulation mesh based on the model information provided        
+        """Extracts the simulation mesh based on the model information provided
 
         Parameters
         ----------

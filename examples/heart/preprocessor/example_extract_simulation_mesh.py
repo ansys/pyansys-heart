@@ -3,14 +3,12 @@ from the original source data to create a simulation-ready
 left-ventricle mesh, bi-ventricle mesh and four-chamber mesh
 """
 
-
 import os
 from pathlib import Path
 
 from ansys.heart.preprocessor.heart_model import HeartModel
 from ansys.heart.preprocessor.model_information import ModelInformation
 from ansys.heart.custom_logging import logger
-from ansys.heart.general import clean_directory
 
 # some useful global variables:
 ASSET_PATH = os.path.join(

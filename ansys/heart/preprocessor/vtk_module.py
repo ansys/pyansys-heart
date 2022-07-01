@@ -73,7 +73,7 @@ def vtk_read_mesh_file(path_to_mesh: str):
 
 
 def write_vtkdata_to_vtkfile(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData], fname: str):
-    """Writes a vtk unstructured grid object to vtk file """
+    """Writes a vtk unstructured grid object to vtk file"""
 
     writer = vtk.vtkDataSetWriter()
     writer.SetFileName(fname)
@@ -122,7 +122,7 @@ def get_vtk_points(vtk_object: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData]):
 
 def get_tetra_info_from_unstructgrid(vtk_grid: vtk.vtkUnstructuredGrid, get_all_data=True):
     """Gets tetrahedron nodes, connectivity and cell/point data from
-    vtk poly data object. Returns as numpy arrays """
+    vtk poly data object. Returns as numpy arrays"""
 
     logger.debug("Extracting tetrahedron cell and point data...")
     # read nodes into numpy array
@@ -262,10 +262,12 @@ def threshold_vtk_data(
 
 
 def threshold_vtk_data_integers(
-    vtk_ugrid: vtk.vtkUnstructuredGrid, ints_for_thresholding: list, data_name: str,
+    vtk_ugrid: vtk.vtkUnstructuredGrid,
+    ints_for_thresholding: list,
+    data_name: str,
 ):
     """Extracts part of vtk object where a given cell data field
-    matches the requested list of integers """
+    matches the requested list of integers"""
 
     # find integer groups
     tag_diff = np.diff(ints_for_thresholding, prepend=ints_for_thresholding[0])
@@ -284,7 +286,10 @@ def threshold_vtk_data_integers(
     # appendFilter.MergePointsOn() # avoids duplicate points
     for int_group in tag_groups:
         vtk_tmp, _ = threshold_vtk_data(
-            vtk_ugrid, lower_limit=int_group[0], upper_limit=int_group[-1], data_name=data_name,
+            vtk_ugrid,
+            lower_limit=int_group[0],
+            upper_limit=int_group[-1],
+            data_name=data_name,
         )
         appendFilter.AddInputData(vtk_tmp)
 
@@ -315,7 +320,7 @@ def vtk_surface_filter(vtk_grid: vtk.vtkUnstructuredGrid, keep_global_ids: bool 
 
 
 def get_surface_info(surface: vtk.vtkPolyData):
-    """Gets data from a vtk polydata surface object (filter) """
+    """Gets data from a vtk polydata surface object (filter)"""
     # vtk_polydata = vtk_polydata_surface.GetOutput()
     surface_data = {
         "points": VN.vtk_to_numpy(surface.GetPoints().GetData()),
@@ -368,7 +373,9 @@ def convert_vtk_into_tetra_only(path_to_vtkfile: str):
 
 
 def get_vtk_data_field(
-    vtk_grid: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid], field_name: str, data_type: str,
+    vtk_grid: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid],
+    field_name: str,
+    data_type: str,
 ):
     """Gets data field from vtk polydata or unstructured grid object
 
@@ -403,7 +410,7 @@ def get_vtk_data_field(
 
 
 def get_info_from_vtk(vtk_grid: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]) -> List:
-    """ Uses numpy support to get points, cell connectivity, cell data, point data from vtk object
+    """Uses numpy support to get points, cell connectivity, cell data, point data from vtk object
 
     Parameters
     ----------
@@ -667,8 +674,7 @@ def vtk_remove_arrays(
     remove_all: bool = False,
     except_array_names: List[str] = [],
 ):
-    """Removes all or specific data arrays from vtk object
-    """
+    """Removes all or specific data arrays from vtk object"""
 
     if data_type not in ["cell_data", "point_data", "both"]:
         raise ValueError("Data type not valid")
@@ -875,6 +881,35 @@ def create_vtk_polydata_from_points(points: np.array) -> vtk.vtkPolyData:
     return poly.VTKObject
 
 
+def _obsolete_create_vtk_triangular_polydata(
+    points: np.array, triangles: np.array
+) -> vtk.vtkPolyData:
+    """Creates a vtkPolyData object from a set of points and triangles
+
+    Parameters
+    ----------
+    points : np.array
+        NPoints x 3 Array of point coordinates
+    triangles : np.array
+        NTriangles x 3 array of triangle definitions
+
+    Returns
+    -------
+    vtk.vtkPolyData
+        Vtk PolyData object
+    """
+    num_triangles = triangles.shape[0]
+    vtk_poly = vtk.vtkPolyData()
+    poly = dsa.WrapDataObject(vtk_poly)
+    poly.Points = points
+    num_points_per_poly = np.ones(num_triangles, dtype=int) * 3
+    cells = np.hstack([num_points_per_poly[:, None], triangles])
+    cells = np.ndarray.flatten(cells)
+    poly.Cells = cells
+
+    return poly.VTKObject
+
+
 # -----------------------------------------------------
 def remove_duplicate_nodes(nodes: np.array, elements: np.array, tolerance: float = 1e-7):
     """Finds and removes duplicate nodes and remaps element
@@ -891,7 +926,11 @@ def remove_duplicate_nodes(nodes: np.array, elements: np.array, tolerance: float
     """
     nodes_rounded = np.array(np.round(nodes * 1 / tolerance), dtype=int)
     unique_nodes, indices, inverse_indices, counts = np.unique(
-        nodes_rounded, axis=0, return_index=True, return_inverse=True, return_counts=True,
+        nodes_rounded,
+        axis=0,
+        return_index=True,
+        return_inverse=True,
+        return_counts=True,
     )
     unique_nodes = nodes[indices, :]
     elements = inverse_indices[elements]
@@ -960,8 +999,7 @@ def _broken_vtk_add_cells(
     triangles: np.array = np.empty(0),
     new_points: np.array = np.empty(0),
 ):
-    """Adds cells to the vtk object.
-    """
+    """Adds cells to the vtk object."""
     if len(new_points) == 0:
         add_points = False
     else:
@@ -1011,8 +1049,7 @@ def _broken_vtk_add_cells(
 
 
 def _broken_vtk_add_points(vtk_object: vtk.vtkUnstructuredGrid, points: np.array):
-    """Adds new points to the unstructured grid
-    """
+    """Adds new points to the unstructured grid"""
 
     return
 
@@ -1112,7 +1149,8 @@ def vtk_unstructured_grid_to_numpy(vtk_object: vtk.vtkUnstructuredGrid):
             num_cells_in_block = int(num_cells_in_block)
 
         cells_np = np.reshape(
-            cells[start_idx:end_idx], (num_cells_in_block, num_nodes_per_cell + 1),
+            cells[start_idx:end_idx],
+            (num_cells_in_block, num_nodes_per_cell + 1),
         )
         cells_np = cells_np[:, 1:]
 
@@ -1192,7 +1230,9 @@ def add_normals_to_polydata(vtk_polydata: vtk.vtkPolyData) -> vtk.vtkPolyData:
 
 
 def extrude_polydata(
-    vtk_surface: vtk.vtkPolyData, extrude_by: float = 1, extrude_direction: np.array = np.empty(0),
+    vtk_surface: vtk.vtkPolyData,
+    extrude_by: float = 1,
+    extrude_direction: np.array = np.empty(0),
 ) -> vtk.vtkPolyData:
     """Extrudes a given polydata surface in a given direction
 
@@ -1236,7 +1276,7 @@ def extrude_polydata(
 
 
 def find_points_inside_polydata(vtk_surface: vtk.vtkPolyData, points: np.array) -> np.array:
-    """Returns indices of points that are inside the polydata object """
+    """Returns indices of points that are inside the polydata object"""
     # set points
     tolerance = 1e-4
     points = vtk.vtkPolyData()
@@ -1362,7 +1402,10 @@ def get_edges_from_triangles(triangles: np.array) -> np.array:
     num_triangles = triangles.shape[0]
     num_edges = num_triangles * 3
     edges = np.repeat(triangles, 3, axis=0)
-    mask = np.tile(np.array([[1, 1, 0], [0, 1, 1], [1, 0, 1]], dtype=bool), (num_triangles, 1),)
+    mask = np.tile(
+        np.array([[1, 1, 0], [0, 1, 1], [1, 0, 1]], dtype=bool),
+        (num_triangles, 1),
+    )
     edges = np.reshape(edges[mask], (num_edges, 2))
 
     return edges

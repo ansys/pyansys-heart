@@ -1,10 +1,21 @@
 import os
+from ansys.heart.preprocessor.fluenthdf5_module import fluenthdf5_to_vtk
 
 from ansys.heart.preprocessor.heart_mesh import HeartMesh
+from ansys.heart.preprocessor.mesh_module import mesh_by_fluentmeshing
 from ansys.heart.preprocessor.model_information import ModelInformation
 
 # import logger
 from ansys.heart.custom_logging import logger
+from ansys.heart.preprocessor.vtk_module import (
+    get_tri_info_from_polydata,
+    read_vtk_unstructuredgrid_file,
+    threshold_vtk_data,
+    threshold_vtk_data_integers,
+    vtk_surface_to_stl,
+    write_vtkdata_to_vtkfile,
+)
+from vtk.numpy_interface import dataset_adapter as dsa  # this is an improved numpy integration
 
 
 class HeartBoundaryConditions:
@@ -140,6 +151,111 @@ class HeartModel:
 
         # create element sets for myocardium
         self._mesh._create_myocardium_element_sets()
+
+        return
+
+    def extract_simulation_mesh_from_simplified_geometry(self):
+        """Extracts a simulation mesh from a modified/simplified geometry"""
+        from ansys.heart.preprocessor.vtk_module import (
+            read_vtk_unstructuredgrid_file,
+            vtk_surface_to_stl,
+            create_vtk_surface_triangles,
+        )
+        from ansys.heart.preprocessor.mesh_module import add_solid_name_to_stl
+        from ansys.heart.preprocessor.fluenthdf5_module import fluenthdf5_to_vtk
+        from vtk.numpy_interface import (
+            dataset_adapter as dsa,
+        )  # this is an improved numpy integration
+        import numpy as np
+        import vtk
+
+        # node-tag mapping:
+        node_tag_map = {
+            "Left ventricle": {
+                "epicardium": 0,
+                "mitral-valve-edge": 1,
+                "aortic-valve-edge": 2,
+                "endocardium": 3,
+            },
+            "Right ventricle": {
+                "epicardium": 0,
+                "pulmonary-valve-edge": 1,
+                "tricuspid-valve-edge": 2,
+                "interventricular-edge": 3,
+                "endocardium": 4,
+            },
+        }
+
+        # read surface mesh
+        self._mesh._vtk_surface = read_vtk_unstructuredgrid_file(self.info.path_original_mesh)
+
+        # add list of cavities
+        self._mesh._cavities = self._mesh._add_list_of_cavities()
+
+        # convert to PolyData
+        geom = vtk.vtkGeometryFilter()
+        geom.SetInputData(self._mesh._vtk_surface)
+        geom.Update()
+        self._mesh._vtk_surface = geom.GetOutput()
+
+        filename = os.path.join(self.info.working_directory, "p05_1.stl")
+        vtk_surface_to_stl(self._mesh._vtk_surface, filename)
+
+        # write separate stl per part and per endo/epicardial surface
+        points, tris, cell_data, point_data = get_tri_info_from_polydata(self._mesh._vtk_surface)
+
+        for cavity in self._mesh._cavities:
+            tag = cavity.vtk_ids[0]
+            part_mask = cell_data["tags"] == tag
+
+            for surface_name in ["endocardium", "epicardium"]:
+                # only select faces where one of the nodes is part of the endocardium
+                node_tag = node_tag_map[cavity.name][surface_name]
+
+                name_of_stl = "_".join(cavity.name.lower().split() + [surface_name])
+                stl_path = os.path.join(
+                    self.info.working_directory,
+                    "part_{0}.stl".format(name_of_stl),
+                )
+
+                point_ids = np.where(point_data["node-tags"] == node_tag)[0]
+                surface_mask = np.any(np.isin(tris, point_ids), axis=1)
+                tris_to_write = tris[np.all(np.vstack([part_mask, surface_mask]), axis=0)]
+
+                # filt_surface = threshold_vtk_data(vtk_surface, tag, tag, data_name="tags")[0]
+                vtk_surface = create_vtk_surface_triangles(points, tris_to_write)
+
+                # write separate files for endo/epicardium
+
+                # write one stl surface per part
+
+                vtk_surface_to_stl(vtk_surface, stl_path)
+
+                name_of_part = "-".join(cavity.name.lower().split() + [surface_name])
+                add_solid_name_to_stl(stl_path, "{0}".format(name_of_part), "binary")
+
+        # create volume mesh
+        mesh_output = os.path.join(self.info.working_directory, "fluent_volume_mesh.msh.h5")
+        mesh_by_fluentmeshing(
+            stl_path, mesh_output, mesh_size=self.info.mesh_size, journal_type="simplified_geometry"
+        )
+
+        tets, face_zones, nodes = fluenthdf5_to_vtk(
+            mesh_output, mesh_output.replace(".msh.h5", ".vtk")
+        )
+
+        # assign face zones to cavity segment sets
+        for cavity in self._mesh._cavities:
+            # append segment-sets:
+            cavity.segment_sets.append()
+
+            # append node-sets
+
+        # find edge loops that make up the valve
+
+        # find intersection between face zones
+
+        # use vtk surface to tag volume elements
 
         return
 

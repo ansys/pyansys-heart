@@ -1,9 +1,7 @@
 import os
 import json
 
-from ansys.heart.preprocessor.global_parameters import (
-    VALID_MODELS
-)
+from ansys.heart.preprocessor.global_parameters import VALID_MODELS
 
 # import logger
 from ansys.heart.custom_logging import logger
@@ -74,7 +72,7 @@ class ModelInformation:
 
     @database_name.setter
     def database_name(self, value: str):
-        valid_databases = ["Strocchi2020", "Cristobal2021"]
+        valid_databases = ["Strocchi2020", "Cristobal2021", "Strocchi2020_simplified"]
         if value not in valid_databases:
             raise ValueError(
                 "Database {0} not recoqnized: may not be able "
@@ -134,15 +132,13 @@ class ModelInformation:
         return
 
     def save_to_file(self, filename: str):
-        """Saves model information to file
-        """
+        """Saves model information to file"""
         logger.info("Writing model info to file: %s" % filename)
         with open(filename, "w") as file:
             file.write(json.dumps(self.__dict__, indent=4))
 
     def load_from_file(self, filename: str):
-        """Loads model information from file
-        """
+        """Loads model information from file"""
         logger.info("Reading model info from file: %s" % filename)
         with open(filename, "r") as file:
             tmp = json.load(file)
@@ -160,8 +156,7 @@ class ModelInformation:
         self.path_to_pickle = tmp["path_to_pickle"]
 
     def clean_working_directory(self):
-        """Cleans working directory from any file
-        """
+        """Cleans working directory from any file"""
         import glob as glob
 
         files = glob.glob(os.path.join(self.working_directory, "*"))

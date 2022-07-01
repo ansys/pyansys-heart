@@ -65,7 +65,7 @@ def fluenthdf5_to_vtk(hdf5_filename: str, vtk_filename: str):
 
     fid.close()
 
-    return
+    return tetrahedrons, face_zones, points
 
 
 def get_mesh_group(fid: h5py.File) -> h5py.Group:

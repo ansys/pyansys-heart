@@ -89,7 +89,7 @@ def append_vtk_files(files: list, path_to_merged_vtk: str):
         # NOTE. not general
         if "LV" in Path(file).name:
             cell_tag = 1
-        if "RV" in Path(file).name:
+        elif "RV" in Path(file).name:
             cell_tag = 2
         else:
             cell_tag = 0
@@ -112,7 +112,10 @@ if __name__ == "__main__":
 
     if not os.path.isfile(path_to_case):
         append_files = True
+    else:
+        append_files = False
 
+    append_files = True
     # appends vtk files
     if append_files:
         # append files

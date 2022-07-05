@@ -1326,7 +1326,15 @@ def create_vtk_surface_triangles(points: np.array, triangles: np.array) -> vtk.v
     polydata.Modified()
     # polydata.Update()
 
-    return polydata
+    # clean polydata
+    clean_filter = vtk.vtkCleanPolyData()
+    clean_filter.SetInputData(polydata)
+    clean_filter.PointMergingOn()
+    clean_filter.Update()
+
+    polydata_cleaned = clean_filter.GetOutput()
+
+    return polydata_cleaned
 
 
 def smooth_polydata(vtk_polydata: vtk.vtkPolyData) -> vtk.vtkPolyData:
@@ -1473,6 +1481,106 @@ def remove_triangle_layers_from_trimesh(triangles: np.array, iters: int = 1) -> 
         reduced_triangles = reduced_triangles[~idx_triangles_boundary, :]
 
     return reduced_triangles
+
+
+def get_connected_regions(nodes: np.array, triangles: np.array) -> np.array:
+    """Finds the connected regions
+
+    Parameters
+    ----------
+    nodes : np.array
+        NumNodes x 3 array with point coordinates
+    triangles : np.array
+        NumTriangles x 3 array with triangle definitions
+
+    Returns
+    -------
+    np.array
+        Array with region ids
+    """
+
+    vtk_surface = create_vtk_surface_triangles(nodes, triangles)
+
+    # yse connectivity filter to extract all connected regions
+    connectivity0 = vtk.vtkPolyDataConnectivityFilter()
+    connectivity0.SetExtractionModeToAllRegions()
+    connectivity0.SetColorRegions(1)
+    connectivity0.SetInputData(vtk_surface)
+    connectivity0.Update()
+    vtk_surface_with_regions = connectivity0.GetOutput()
+
+    vtk_surface_dsa = dsa.WrapDataObject(vtk_surface_with_regions)
+    region_ids = vtk_surface_dsa.PointData["RegionId"]
+
+    # add separate array to facilitate point2cell filter. Somehow region ids are protected from
+    # this filter
+    add_vtk_array(
+        vtk_surface_with_regions, region_ids + 1, "regions", data_type="point", array_type=int
+    )
+    # map point data to cell data
+    point2cell = vtk.vtkPointDataToCellData()
+    point2cell.SetInputData(vtk_surface_with_regions)
+    point2cell.Update()
+    vtk_surface_with_regions = point2cell.GetOutput()
+
+    # get cell data from triangular polydata
+    cell_data = get_tri_info_from_polydata(vtk_surface_with_regions)[2]
+
+    region_ids = cell_data["regions"]
+    # cast to ints
+    region_ids = np.array(region_ids, dtype=int)
+    return region_ids
+
+
+def mark_elements_inside_surfaces(
+    volume_mesh: vtk.vtkUnstructuredGrid, surfaces: List[vtk.vtkPolyData]
+):
+    """Marks cells based on whether they are inside the provided list of surfaces"""
+    import tqdm as tqdm
+
+    # grab centroids of each cell
+    nodes, tetra, _, _ = get_tetra_info_from_unstructgrid(volume_mesh)
+
+    centroids = np.mean(nodes[tetra, :], axis=1)
+    centroids_vtk = create_vtk_polydata_from_points(centroids)
+
+    cell_tags = np.zeros(tetra.shape[0], dtype=int) - 1
+
+    selector = vtk.vtkSelectEnclosedPoints()
+    selector.SetInputData(centroids_vtk)
+    for ii, surface in enumerate(surfaces):
+        selector.SetSurfaceData(surface)
+        selector.Update()
+        selector.GetOutput()
+        centroids_vtk_dsa = dsa.WrapDataObject(selector.GetOutput())
+        cell_ids_inside = np.where(centroids_vtk_dsa.PointData["SelectedPoints"] == 1)[0]
+        cell_tags[cell_ids_inside] = ii+1
+
+        write_vtkdata_to_vtkfile(selector.GetOutput(), "inside_{:02d}.vtk".format(ii+1))
+
+    # logger.debug("%d cells not enclosed by any of the given surfaces" % np.sum(cell_tags == -1))
+    # logger.debug("Assigning data of closest cells")
+    # for cell_id in tqdm.tqdm(np.where(cell_tags == -1)[0], ascii=True):
+    #     id_list = vtk.vtkIdList()
+    #     neighbor_id_list = vtk.vtkIdList()
+    #     volume_mesh.GetCellNeighbors(cell_id, id_list, neighbor_id_list)
+    #     tet = volume_mesh.GetCell(cell_id)
+
+    # NOTE: very slow!
+    # cell_tags of value -1 were outside all the surfaces - find the first connected tetrahedron
+    logger.debug("%d cells not enclosed by any of the given surfaces" % np.sum(cell_tags == -1))
+    logger.debug("Assigning data of closest cells")
+    for cell_id in tqdm.tqdm(np.where(cell_tags == -1)[0], ascii=True):
+        # use data from adjecent tetrahedron
+        centroid = centroids[cell_id]
+        # centroids[cell_id] = [999999, -999999, -999999]
+        # centroids[cell_id] = [np.nan, np.nan, np.nan]
+        sorted_cell_ids = np.argsort(np.linalg.norm(centroid - centroids, axis=1))
+        closed_cell_id = sorted_cell_ids[np.argwhere(cell_tags[sorted_cell_ids] > -1).flatten()[0]]
+
+        cell_tags[cell_id] = cell_tags[closed_cell_id]
+
+    return cell_tags
 
 
 if __name__ == "__main__":

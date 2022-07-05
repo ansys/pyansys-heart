@@ -1,4 +1,5 @@
 import os
+from venv import create
 from ansys.heart.preprocessor.fluenthdf5_module import fluenthdf5_to_vtk
 
 from ansys.heart.preprocessor.heart_mesh import HeartMesh
@@ -8,6 +9,7 @@ from ansys.heart.preprocessor.model_information import ModelInformation
 # import logger
 from ansys.heart.custom_logging import logger
 from ansys.heart.preprocessor.vtk_module import (
+    add_vtk_array,
     get_tri_info_from_polydata,
     read_vtk_unstructuredgrid_file,
     threshold_vtk_data,
@@ -110,6 +112,7 @@ class HeartModel:
         self._mesh.load_raw_mesh()
         self._mesh.extract_parts()
         self._mesh.add_cavities()
+        self._mesh.get_cavity_cap_intersections()
 
         if remesh:
             mesh_size = self.info.mesh_size
@@ -163,11 +166,14 @@ class HeartModel:
         )
         from ansys.heart.preprocessor.mesh_module import add_solid_name_to_stl
         from ansys.heart.preprocessor.fluenthdf5_module import fluenthdf5_to_vtk
+        from ansys.heart.preprocessor.vtk_module import get_connected_regions
+
         from vtk.numpy_interface import (
             dataset_adapter as dsa,
         )  # this is an improved numpy integration
         import numpy as np
         import vtk
+        import copy
 
         # node-tag mapping:
         node_tag_map = {
@@ -187,23 +193,40 @@ class HeartModel:
         }
 
         # read surface mesh
-        self._mesh._vtk_surface = read_vtk_unstructuredgrid_file(self.info.path_original_mesh)
+        self._mesh._vtk_volume_raw = read_vtk_unstructuredgrid_file(self.info.path_original_mesh)
+        self._mesh._vtk_volume_temp = self._mesh._vtk_volume_raw
 
-        # add list of cavities
-        self._mesh._cavities = self._mesh._add_list_of_cavities()
+        # add cavities
+        self._mesh.add_cavities()
 
         # convert to PolyData
         geom = vtk.vtkGeometryFilter()
-        geom.SetInputData(self._mesh._vtk_surface)
+        geom.SetInputData(self._mesh._vtk_volume_raw)
         geom.Update()
         self._mesh._vtk_surface = geom.GetOutput()
 
-        filename = os.path.join(self.info.working_directory, "p05_1.stl")
-        vtk_surface_to_stl(self._mesh._vtk_surface, filename)
+        # filename = os.path.join(self.info.working_directory, "p05_1.stl")
+        # vtk_surface_to_stl(self._mesh._vtk_surface, filename)
 
         # write separate stl per part and per endo/epicardial surface
         points, tris, cell_data, point_data = get_tri_info_from_polydata(self._mesh._vtk_surface)
 
+        # find nodes on original topology that describes the closing caps/surfaces.
+        for cavity in self._mesh._cavities:
+            tag = cavity.vtk_ids[0]
+            part_mask = cell_data["tags"] == tag
+            for cap in cavity.closing_caps:
+                for key, node_tag in node_tag_map[cavity.name].items():
+                    if "valve-edge" in key:
+                        if key.replace("-", " ").replace(" edge", "") in cap.name.lower():
+                            logger.debug("Assigning nodes to %s" % cap.name)
+                            node_ids = np.where(point_data["node-tags"] == node_tag)[0]
+                            node_mask = np.isin(node_ids, tris[part_mask, :])
+                            nodes_cap = node_ids[node_mask]
+                            cap.nodes_source_mesh = points[nodes_cap, :]
+
+        # prepare the input for the mesher
+        logger.debug("Writing input for mesher")
         for cavity in self._mesh._cavities:
             tag = cavity.vtk_ids[0]
             part_mask = cell_data["tags"] == tag
@@ -240,22 +263,109 @@ class HeartModel:
             stl_path, mesh_output, mesh_size=self.info.mesh_size, journal_type="simplified_geometry"
         )
 
-        tets, face_zones, nodes = fluenthdf5_to_vtk(
-            mesh_output, mesh_output.replace(".msh.h5", ".vtk")
+        vtk_name = mesh_output.replace(".msh.h5", ".vtk")
+        tets, face_zones, nodes = fluenthdf5_to_vtk(mesh_output, vtk_name)
+        self._mesh.set_volume_mesh_vtk(vtk_name)
+
+        # tag elements based on whether the cell centroids are within the surface used
+        # as input for the meshing procedure
+        # in: volume mesh, surfaces to use
+        from ansys.heart.preprocessor.vtk_module import mark_elements_inside_surfaces
+
+        surfaces = []
+        for cavity in self._mesh._cavities:
+            tag = cavity.vtk_ids[0]
+            surface = threshold_vtk_data(self._mesh._vtk_surface, tag, tag, data_name="tags")[0]
+            geom = vtk.vtkGeometryFilter()
+            geom.SetInputData(surface)
+            geom.Update()
+            surface = geom.GetOutput()
+            surfaces.append(surface)
+
+        # add cell data with tags
+        cell_tags = mark_elements_inside_surfaces(self._mesh._vtk_volume, surfaces)
+        add_vtk_array(
+            self._mesh._vtk_volume, cell_tags, name="tags", data_type="cell", array_type=int
         )
 
+        ## separate left-ventricular epicardium, smallest part corresponds to the septum
+        faces_lv_epicardium = face_zones["left-ventricle-epicardium"]["faces"]
+
+        region_ids = get_connected_regions(nodes, faces_lv_epicardium)
+
+        unique_region_ids, counts = np.unique(region_ids, return_counts=True)
+        if len(unique_region_ids) != 2:
+            raise ValueError(
+                "Expecting 2 fully connected regions, but found %d connected regions ",
+                unique_region_ids,
+            )
+
+        # smallest region should correspond to the septum (assumes approximate uniform mesh)
+        id_lv_epicardium = unique_region_ids[np.argmax(counts)]
+        id_septum = unique_region_ids[np.argmin(counts)]
+
+        faces_lv_epicardium1 = faces_lv_epicardium[region_ids == id_lv_epicardium]
+        faces_septum = faces_lv_epicardium[region_ids == id_septum]
+
+        face_zones["left-ventricle-septum"] = {"faces": faces_septum, "zone-id": 0}
+        face_zones["left-ventricle-epicardium"]["faces"] = faces_lv_epicardium1
+
+        ##
+
         # assign face zones to cavity segment sets
+        # this already includes the endo- and epicardial segments
         for cavity in self._mesh._cavities:
-            # append segment-sets:
-            cavity.segment_sets.append()
+            for name in ["endocardium", "epicardium"]:
+                zone_name = "-".join(cavity.name.lower().split() + [name])
+                cavity.segment_sets.append(
+                    {
+                        "name": name,
+                        "set": face_zones[zone_name]["faces"],
+                        "id": face_zones[zone_name]["zone-id"],
+                    }
+                )
 
-            # append node-sets
+            if cavity.name == "Left ventricle":
+                cavity.segment_sets.append(
+                    {
+                        "name": "epicardium-septum",
+                        "set": face_zones["left-ventricle-septum"]["faces"],
+                        "id": face_zones["left-ventricle-septum"]["zone-id"],
+                    }
+                )
 
-        # find edge loops that make up the valve
+        # get node sets from segment sets
+        for cavity in self._mesh._cavities:
+            # remove any defined node-sets
+            logger.debug("Removing %d nodesets" % len(cavity.node_sets))
+            cavity.node_sets = []
+            # NOTE: this duplicates the nodes on the intersection of the
+            for segset in cavity.segment_sets:
+                nodeset = copy.deepcopy(segset)
+                nodeset["set"] = np.unique(segset["set"])
+                cavity.node_sets.append(nodeset)
 
-        # find intersection between face zones
+        self._mesh._validate_node_sets()
+        self._mesh._validate_segment_sets()
 
-        # use vtk surface to tag volume elements
+        # extract the surface from the remeshed volume mesh
+        self._mesh.get_surface_from_volume()
+
+        # closes the cavities
+        self._mesh.close_cavities()
+
+        # extract apical points
+        self._mesh.extract_apical_points()
+
+        # validate cavities
+        self._mesh._validate_cavities()
+
+        # extract volumetric region of septum
+        if self.info.model_type in ["BiVentricle", "FourChamber"]:
+            self._mesh._extract_septum()
+
+        # create element sets for myocardium
+        self._mesh._create_myocardium_element_sets()
 
         return
 

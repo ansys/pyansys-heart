@@ -166,7 +166,7 @@ def face_group_to_face_zones(
 
         faces_label.extend([face_zone_names_1[ii]] * num_faces)
         faces_out[face_zone_names_1[ii]] = {
-            "faces": faces,
+            "faces": faces - 1,
             "zone-id": face_zone_ids[ii],
         }
 

@@ -59,32 +59,16 @@ def run_preprocessor(
     return
 
 
-if __name__ == "__main__":
-    path_to_case = os.path.join(
-        Path(__file__).parents[3], "downloads", "Strocchi2020_simplified", "p05.vtk"
-    )
-    work_directory = os.path.join(Path(path_to_case).parent, "workdir")
-    model_type = "BiVentricle"
-    database_name = "Strocchi2020_simplified"
-    mesh_size = 1.5
+def append_vtk_files(files: list, path_to_merged_vtk: str):
+    """Appends a list of vtk files into a single vtk file
 
-    run_preprocessor(
-        model_type, database_name, path_to_case, work_directory, mesh_size, remesh=True
-    )
-
-    # append files
-    files = []
-    files.append(
-        os.path.join(
-            Path(__file__).parents[3], "downloads", "Strocchi2020_simplified", "p05_LV_volume.vtk"
-        )
-    )
-
-    files.append(
-        os.path.join(
-            Path(__file__).parents[3], "downloads", "Strocchi2020_simplified", "p05_RV_volume.vtk"
-        )
-    )
+    Parameters
+    ----------
+    files : list
+        List of vtk files of PolyData type
+    path_to_merged_vtk : str
+        Path to output vtk
+    """
 
     import vtk
     from ansys.heart.preprocessor.vtk_module import add_vtk_array
@@ -102,10 +86,13 @@ if __name__ == "__main__":
         polydata.ShallowCopy(reader.GetOutput())
 
         # add cell data
+        # NOTE. not general
         if "LV" in Path(file).name:
             cell_tag = 1
         if "RV" in Path(file).name:
             cell_tag = 2
+        else:
+            cell_tag = 0
 
         cell_tags = np.ones(polydata.GetNumberOfCells()) * cell_tag
         add_vtk_array(
@@ -115,6 +102,48 @@ if __name__ == "__main__":
 
     append.Update()
 
-    write_vtkdata_to_vtkfile(append.GetOutput(), "p05.vtk")
+    write_vtkdata_to_vtkfile(append.GetOutput(), path_to_merged_vtk)
+
+
+if __name__ == "__main__":
+    path_to_case = os.path.join(
+        Path(__file__).parents[3], "downloads", "Strocchi2020_simplified", "p05.vtk"
+    )
+
+    if not os.path.isfile(path_to_case):
+        append_files = True
+
+    # appends vtk files
+    if append_files:
+        # append files
+        files = []
+        files.append(
+            os.path.join(
+                Path(__file__).parents[3],
+                "downloads",
+                "Strocchi2020_simplified",
+                "p05_LV_volume.vtk",
+            )
+        )
+
+        files.append(
+            os.path.join(
+                Path(__file__).parents[3],
+                "downloads",
+                "Strocchi2020_simplified",
+                "p05_RV_volume.vtk",
+            )
+        )
+        append_vtk_files(files, path_to_case)
+
+    # prepare input for preprocessor
+    work_directory = os.path.join(Path(path_to_case).parent, "workdir")
+    model_type = "BiVentricle"
+    database_name = "Strocchi2020_simplified"
+    mesh_size = 1.5
+
+    run_preprocessor(
+        model_type, database_name, path_to_case, work_directory, mesh_size, remesh=True
+    )
 
     logger.info("** DONE **")

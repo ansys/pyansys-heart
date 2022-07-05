@@ -190,7 +190,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._update_main_db()
         self._update_node_db()
         self._update_parts_db()
-        self._update_solid_elements_db(add_fibers=True)      
+        self._update_solid_elements_db(add_fibers=True)
         self._update_segmentsets_db()
         self._update_nodesets_db()
         self._update_material_db(add_active=True)
@@ -282,7 +282,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         part_id = 0
         mat_id = 0
         for cavity in self.model._mesh._cavities:
-            mat_id  = mat_id + 1
+            mat_id = mat_id + 1
             for element_set in cavity.element_sets:
                 part_id = part_id + 1
                 part_name = " ".join([cavity.name, element_set["name"]])
@@ -312,6 +312,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
         to one part.
         """
         logger.debug("Updating solid element keywords...")
+        cell_data_fields = self.volume_mesh["cell_data"].keys()
+        if "fiber" not in cell_data_fields or "sheet" not in cell_data_fields:
+            logger.warning("Not writing fiber and sheet directions")
+            add_fibers = False
+
         # create elements for each separate cavity
         solid_element_count = 0  # keeps track of number of solid elements already defined
 
@@ -325,14 +330,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 part_id = element_set["id"]
 
                 tetra_to_write = self.volume_mesh["tetra"][tetra_idx, :] + 1
-                fiber = self.volume_mesh["cell_data"]["fiber"][tetra_idx]
-                sheet = self.volume_mesh["cell_data"]["sheet"][tetra_idx]
-
-                # normalize fiber and sheet directions:
-                norm = np.linalg.norm(fiber, axis=1)
-                fiber = fiber / norm[:, None]
-                norm = np.linalg.norm(sheet, axis=1)
-                sheet = sheet / norm[:, None]
 
                 num_elements = len(tetra_idx)
 
@@ -359,6 +356,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     kw_elements.elements = elements
 
                 elif add_fibers:
+                    fiber = self.volume_mesh["cell_data"]["fiber"][tetra_idx]
+                    sheet = self.volume_mesh["cell_data"]["sheet"][tetra_idx]
+
+                    # normalize fiber and sheet directions:
+                    norm = np.linalg.norm(fiber, axis=1)
+                    fiber = fiber / norm[:, None]
+                    norm = np.linalg.norm(sheet, axis=1)
+                    sheet = sheet / norm[:, None]
                     kw_elements = create_element_solid_ortho_keyword(
                         elements=tetra_to_write,
                         a_vec=fiber,
@@ -1453,7 +1458,9 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             self._keep_ventricles()
 
         self._update_parts_db()  # can stay the same (could move to base class++++++++++++++++++++)
-        self._update_solid_elements_db(add_fibers=False)  # can stay the same (could move to base class)
+        self._update_solid_elements_db(
+            add_fibers=False
+        )  # can stay the same (could move to base class)
         self._update_material_db()
 
         self._update_segmentsets_db()  # can stay the same
@@ -1485,9 +1492,8 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         return
 
     def _keep_ventricles(self):
-        """Removes any cavity except the ventricular cavities
-        """
-        # just keep ventricles in case of four chamber model        
+        """Removes any cavity except the ventricular cavities"""
+        # just keep ventricles in case of four chamber model
         logger.warning("Just keeping ventricular-parts for fiber generation")
         cavities_to_keep = []
         for ii, cavity in enumerate(self.model._mesh._cavities):

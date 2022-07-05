@@ -241,8 +241,15 @@ class HeartMesh:
             logger.warning("Computing cavity centroid")
             cavity._compute_centroid_cavity()
 
-            # point = create_vtk_polydata_from_points( np.array([cavity.centroid]) )
-            # write_vtkdata_to_vtkfile(point, "point.vtk")
+        return
+
+    def get_cavity_cap_intersections(self):
+        """Gets the intersection between the myocardium and the valve/closing
+        cap plane"""
+        dump_to_file = False
+
+        # add vtk surface object of all relevant parts to each cavity
+        for cavity in self._cavities:
 
             logger.debug("Computing intersection with myocardium")
             cavity._compute_cap_intersection_with_myocardium(
@@ -251,19 +258,10 @@ class HeartMesh:
                 self._cell_data_volume_raw["tags"],
             )
 
-        # validate cavities:
-        # for cavity in self._cavities:
-        #     print(cavity.name)
-        #     for cap in cavity.closing_caps:
-        #         logger.debug(cap.name)
-
         # write nodes that close the cap to file
         if dump_to_file:
             for cavity in self._cavities:
                 cavity._dump_cap_nodes_to_file(self.info.working_directory)
-
-        # NOTE: this uses another object - node numbering should be consistent with previous
-        # can lead to issues?
 
         return
 

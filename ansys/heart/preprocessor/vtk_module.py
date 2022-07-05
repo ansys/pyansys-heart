@@ -1554,9 +1554,9 @@ def mark_elements_inside_surfaces(
         selector.GetOutput()
         centroids_vtk_dsa = dsa.WrapDataObject(selector.GetOutput())
         cell_ids_inside = np.where(centroids_vtk_dsa.PointData["SelectedPoints"] == 1)[0]
-        cell_tags[cell_ids_inside] = ii+1
+        cell_tags[cell_ids_inside] = ii + 1
 
-        write_vtkdata_to_vtkfile(selector.GetOutput(), "inside_{:02d}.vtk".format(ii+1))
+        # write_vtkdata_to_vtkfile(selector.GetOutput(), "inside_{:02d}.vtk".format(ii+1))
 
     # logger.debug("%d cells not enclosed by any of the given surfaces" % np.sum(cell_tags == -1))
     # logger.debug("Assigning data of closest cells")

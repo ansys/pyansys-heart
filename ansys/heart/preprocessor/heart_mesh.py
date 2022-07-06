@@ -678,13 +678,13 @@ class HeartMesh:
         volume_dsa = dsa.WrapDataObject(self._vtk_volume)
         tags = volume_dsa.CellData["tags"]
 
+        used_set_ids = [0]
         for cavity in self._cavities:
             tag_cavity = cavity.vtk_ids[0]
 
             element_ids_cavity = np.where(tags == tag_cavity)[0]
 
             element_ids_used = np.empty(0, dtype=int)
-            used_set_ids = [0]
             for element_set in cavity.element_sets:
                 element_ids_used = np.append(element_ids_used, element_set["set"])
                 used_set_ids.append(element_set["id"])
@@ -701,6 +701,20 @@ class HeartMesh:
                     "id": np.max(used_set_ids) + 1,
                 }
             )
+
+            used_set_ids.append(np.max(used_set_ids) + 1)
+
+        # check whether element sets are correct
+        tags_element_sets = np.zeros(volume_dsa.VTKObject.GetNumberOfCells(), dtype=int) - 1
+        for cavity in self._cavities:
+            for element_set in cavity.element_sets:
+                # print(element_set["id"])
+                element_ids = element_set["set"]
+                tags_element_sets[element_ids] = element_set["id"]
+        add_vtk_array(
+            self._vtk_volume, tags_element_sets, "tags_elements", data_type="cell", array_type=int
+        )
+        # write_vtkdata_to_vtkfile(volume_dsa.VTKObject, "test_elemenets.vtk")
 
         return
 
@@ -987,6 +1001,9 @@ class HeartMesh:
                     # extrude in normal direction
                     endocardium_septum_vtk_extruded = extrude_polydata(
                         vtk_surface=endocardium_septum_vtk, extrude_by=-20
+                    )
+                    write_vtkdata_to_vtkfile(
+                        endocardium_septum_vtk_extruded, "extruded_endocardium.vtk"
                     )
 
                     # get cell ids that are inside the extruded surface

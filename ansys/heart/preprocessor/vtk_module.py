@@ -1546,17 +1546,12 @@ def mark_elements_inside_surfaces(
 
     cell_tags = np.zeros(tetra.shape[0], dtype=int) - 1
 
-    selector = vtk.vtkSelectEnclosedPoints()
-    selector.SetInputData(centroids_vtk)
     for ii, surface in enumerate(surfaces):
-        selector.SetSurfaceData(surface)
-        selector.Update()
-        selector.GetOutput()
-        centroids_vtk_dsa = dsa.WrapDataObject(selector.GetOutput())
-        cell_ids_inside = np.where(centroids_vtk_dsa.PointData["SelectedPoints"] == 1)[0]
+        cell_ids_inside = cell_ids_inside_enclosed_surface(volume_mesh, surface)
         cell_tags[cell_ids_inside] = ii + 1
-
-        # write_vtkdata_to_vtkfile(selector.GetOutput(), "inside_{:02d}.vtk".format(ii+1))
+        # write to file
+        points = create_vtk_polydata_from_points(centroids[cell_ids_inside, :])
+        write_vtkdata_to_vtkfile(points, "inside_{:02d}.vtk".format(ii + 1))
 
     # logger.debug("%d cells not enclosed by any of the given surfaces" % np.sum(cell_tags == -1))
     # logger.debug("Assigning data of closest cells")
@@ -1566,19 +1561,28 @@ def mark_elements_inside_surfaces(
     #     volume_mesh.GetCellNeighbors(cell_id, id_list, neighbor_id_list)
     #     tet = volume_mesh.GetCell(cell_id)
 
+    write_vtkdata_to_vtkfile(
+        create_vtk_polydata_from_points(centroids[cell_tags == -1]), "untagged_points.vtk"
+    )
+
     # NOTE: very slow!
     # cell_tags of value -1 were outside all the surfaces - find the first connected tetrahedron
     logger.debug("%d cells not enclosed by any of the given surfaces" % np.sum(cell_tags == -1))
     logger.debug("Assigning data of closest cells")
     for cell_id in tqdm.tqdm(np.where(cell_tags == -1)[0], ascii=True):
-        # use data from adjecent tetrahedron
+        # use data from closest tetrahedron
         centroid = centroids[cell_id]
-        # centroids[cell_id] = [999999, -999999, -999999]
-        # centroids[cell_id] = [np.nan, np.nan, np.nan]
         sorted_cell_ids = np.argsort(np.linalg.norm(centroid - centroids, axis=1))
         closed_cell_id = sorted_cell_ids[np.argwhere(cell_tags[sorted_cell_ids] > -1).flatten()[0]]
 
         cell_tags[cell_id] = cell_tags[closed_cell_id]
+
+    write_vtkdata_to_vtkfile(
+        create_vtk_polydata_from_points(centroids[cell_tags == 1, :]), "lv_points.vtk"
+    )
+    write_vtkdata_to_vtkfile(
+        create_vtk_polydata_from_points(centroids[cell_tags == 2, :]), "rv_points.vtk"
+    )
 
     return cell_tags
 

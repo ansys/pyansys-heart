@@ -175,6 +175,10 @@ if __name__ == "__main__":
     target_vtk1 = vtk_map_continuous_data(
         source_vtk, target_vtk, False, array_names_to_include=uvc_array_names
     )
+    source_cell_data_names = ["fiber", "sheet"]
+    target_vtk1 = vtk_map_continuous_data(
+        source_vtk, target_vtk, False, array_names_to_include=source_cell_data_names
+    )
     write_vtkdata_to_vtkfile(target_vtk1, path_to_target)
 
     logger.info("** DONE **")

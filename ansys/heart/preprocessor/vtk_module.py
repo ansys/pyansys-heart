@@ -1542,7 +1542,6 @@ def mark_elements_inside_surfaces(
     nodes, tetra, _, _ = get_tetra_info_from_unstructgrid(volume_mesh)
 
     centroids = np.mean(nodes[tetra, :], axis=1)
-    centroids_vtk = create_vtk_polydata_from_points(centroids)
 
     cell_tags = np.zeros(tetra.shape[0], dtype=int) - 1
 

@@ -1,23 +1,10 @@
 import os
-from venv import create
-from ansys.heart.preprocessor.fluenthdf5_module import fluenthdf5_to_vtk
 
 from ansys.heart.preprocessor.heart_mesh import HeartMesh
-from ansys.heart.preprocessor.mesh_module import mesh_by_fluentmeshing
 from ansys.heart.preprocessor.model_information import ModelInformation
 
 # import logger
 from ansys.heart.custom_logging import logger
-from ansys.heart.preprocessor.vtk_module import (
-    add_vtk_array,
-    get_tri_info_from_polydata,
-    read_vtk_unstructuredgrid_file,
-    threshold_vtk_data,
-    threshold_vtk_data_integers,
-    vtk_surface_to_stl,
-    write_vtkdata_to_vtkfile,
-)
-from vtk.numpy_interface import dataset_adapter as dsa  # this is an improved numpy integration
 
 
 class HeartBoundaryConditions:
@@ -158,14 +145,12 @@ class HeartModel:
         return
 
     def extract_simulation_mesh_from_simplified_geometry(self):
-        """Extracts a simulation mesh from a modified/simplified geometry"""
+        """Extracts a simulation mesh from a modified/simplified geometry
+        from Strocchi or Cristobal et al
+        """
         from ansys.heart.preprocessor.vtk_module import (
             read_vtk_unstructuredgrid_file,
             convert_to_polydata,
-        )
-
-        from vtk.numpy_interface import (
-            dataset_adapter as dsa,
         )
         import numpy as np
         import copy

@@ -16,6 +16,7 @@ from ansys.heart.preprocessor.vtk_module import (
     write_vtkdata_to_vtkfile,
     vtk_read_mesh_file,
     vtk_map_continuous_data,
+    append_vtk_files,
 )
 from vtk.numpy_interface import dataset_adapter as dsa
 
@@ -64,53 +65,6 @@ def run_preprocessor(
     model.dump_model(model_info_path, clean_working_directory=False)
     return
 
-
-def append_vtk_files(files: list, path_to_merged_vtk: str):
-    """Appends a list of vtk files into a single vtk file
-
-    Parameters
-    ----------
-    files : list
-        List of vtk files of PolyData type
-    path_to_merged_vtk : str
-        Path to output vtk
-    """
-
-    import vtk
-    from ansys.heart.preprocessor.vtk_module import add_vtk_array
-
-    # append vtk surfaces
-    reader = vtk.vtkPolyDataReader()
-    append = vtk.vtkAppendFilter()
-    for file in files:
-        if not os.path.isfile(file):
-            print("File not found...")
-            continue
-        reader.SetFileName(file)
-        reader.Update()
-        polydata = vtk.vtkPolyData()
-        polydata.ShallowCopy(reader.GetOutput())
-
-        # add cell data
-        # NOTE. not general
-        if "LV" in Path(file).name:
-            cell_tag = 1
-        elif "RV" in Path(file).name:
-            cell_tag = 2
-        else:
-            cell_tag = 0
-
-        cell_tags = np.ones(polydata.GetNumberOfCells()) * cell_tag
-        add_vtk_array(
-            polydata=polydata, data=cell_tags, name="tags", data_type="cell", array_type=int
-        )
-        append.AddInputData(polydata)
-
-    append.Update()
-
-    write_vtkdata_to_vtkfile(append.GetOutput(), path_to_merged_vtk)
-
-
 if __name__ == "__main__":
     path_to_case = os.path.join(
         Path(__file__).parents[3], "downloads", "Strocchi2020_simplified", "p05.vtk"
@@ -143,7 +97,7 @@ if __name__ == "__main__":
                 "p05_RV_volume.vtk",
             )
         )
-        append_vtk_files(files, path_to_case)
+        append_vtk_files(files, path_to_case, ["LV", "RV"])
 
     # prepare input for preprocessor
     work_directory = os.path.join(Path(path_to_case).parent, "workdir")

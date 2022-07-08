@@ -1565,6 +1565,71 @@ def mark_elements_inside_surfaces(
     return cell_tags
 
 
+def convert_to_polydata(vtk_ugrid: vtk.vtkUnstructuredGrid):
+    """Uses geometry filter to convert unstructured grid to polydata object
+
+    Parameters
+    ----------
+    vtk_ugrid : vtk.vtkUnstructuredGrid
+        Unstructured grid object
+
+    Returns
+    -------
+    vtk.vtkPolyData
+        Polydata object
+    """
+    geom = vtk.vtkGeometryFilter()
+    geom.SetInputData(vtk_ugrid)
+    geom.Update()
+    return geom.GetOutput()
+
+
+def append_vtk_files(files: list, path_to_merged_vtk: str, substrings: List[str] = []):
+    """Appends a list of vtk files into a single vtk file
+
+    Parameters
+    ----------
+    files : list
+        List of vtk files of PolyData type
+    path_to_merged_vtk : str
+        Path to output vtk
+    substrings : List[str], Optional
+        Tags the cells using this list of substrings. Default []
+    """
+
+    import vtk
+    from ansys.heart.preprocessor.vtk_module import add_vtk_array
+
+    # append vtk surfaces
+    reader = vtk.vtkPolyDataReader()
+    append = vtk.vtkAppendFilter()
+    for file in files:
+        if not os.path.isfile(file):
+            print("File not found...")
+            continue
+        reader.SetFileName(file)
+        reader.Update()
+        polydata = vtk.vtkPolyData()
+        polydata.ShallowCopy(reader.GetOutput())
+
+        # add cell data based on any substrings that are found
+        cell_tag = 0
+        for ii, substring in enumerate(substrings):
+            if substring in Path(file).name:
+                cell_tag = ii + 1
+
+        cell_tags = np.ones(polydata.GetNumberOfCells()) * cell_tag
+        add_vtk_array(
+            polydata=polydata, data=cell_tags, name="tags", data_type="cell", array_type=int
+        )
+        append.AddInputData(polydata)
+
+    append.Update()
+
+    write_vtkdata_to_vtkfile(append.GetOutput(), path_to_merged_vtk)
+    return
+
+
 if __name__ == "__main__":
 
     # # vtk_source = r"D:\SharedRepositories\CardiacModeling\parametric_heart

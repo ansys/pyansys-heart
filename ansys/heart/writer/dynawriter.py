@@ -314,8 +314,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
         logger.debug("Updating solid element keywords...")
         cell_data_fields = self.volume_mesh["cell_data"].keys()
         if "fiber" not in cell_data_fields or "sheet" not in cell_data_fields:
-            logger.warning("Not writing fiber and sheet directions")
-            add_fibers = False
+            raise KeyError("Mechanics writer requires fiber and sheet fields")
+            # logger.warning("Not writing fiber and sheet directions")
+            # add_fibers = False
 
         # create elements for each separate cavity
         solid_element_count = 0  # keeps track of number of solid elements already defined

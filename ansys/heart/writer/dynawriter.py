@@ -595,9 +595,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
         caps_to_use = []
         if self.model.info.model_type in ["LeftVentricle", "BiVentricle"]:
             # use all caps:
-            for cavity in self.model._mesh._cavities:
-                for cap in cavity.closing_caps:
-                    caps_to_use.append(cap.name)
+            # for cavity in self.model._mesh._cavities:
+            #     for cap in cavity.closing_caps:
+            #         caps_to_use.append(cap.name)
+            caps_to_use = [
+                "Mitral valve plane",
+                "Tricuspid valve plane",
+            ]
 
         elif self.model.info.model_type in ["FourChamber"]:
             caps_to_use = [

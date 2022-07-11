@@ -56,10 +56,26 @@ def get_zerop_guess_file():
 
 def main():
     """
-    Run Zerop + Closed loop
+    Run Fiber generation + Zerop + Closed loop
     Returns
     -------
     """
+
+    # Run fiber generation
+    os.chdir("lsdyna_files_fibergeneration")
+    run_lsdyna("main.k")
+    from ReadFib import temporal_fix_of_lsdyna_bug
+    temporal_fix_of_lsdyna_bug()
+    os.chdir("..")
+
+    shutil.copy2(
+        os.path.join("lsdyna_files_fibergeneration", "element_solid_ortho.k"),
+        os.path.join("lsdyna_files_zeropressure", "solid_elements.k"),
+    )
+    shutil.copy2(
+        os.path.join("lsdyna_files_fibergeneration", "element_solid_ortho.k"),
+        os.path.join("lsdyna_files", "solid_elements.k"),
+    )
 
     # run zerop simulation
     os.chdir("lsdyna_files_zeropressure")

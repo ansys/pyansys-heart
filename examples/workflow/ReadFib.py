@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 
 
@@ -66,12 +68,43 @@ def write_orth_element_kfile(fname, elem_orth):
         f.write("*END\n")
 
 
-def modify_orth_elements():
+def modify_ids_orth_elements():
+    """
+    Part ID is different from FiberGeneration module to simulation modules
+    This script is to change them
+    Returns
+    -------
 
+    """
     elem_ids, part_ids, connect, fib, sheet = read_orth_element_kfile("solid_elements.k")
-    part_ids = np.where(part_ids == 3, 1, part_ids)  # Septum is a part of LV
+    # Septum is a part of LV
+    # Change part ID 3 to ID 1
+    part_ids = np.where(part_ids == 3, 1, part_ids)
     write_orth_element_kfile("solid_elements.k", zip(elem_ids, part_ids, connect, fib, sheet))
 
 
+def temporal_fix_of_lsdyna_bug():
+    """
+    This is a temporal fix due to bug in LSDYNA's output file
+
+    Returns
+    -------
+
+    """
+    fn = "element_solid_ortho.k"
+    fn2 = "element_solid_ortho_0.k"
+    with open(fn) as f:
+        lines = f.readlines()
+    with open(fn2, "w") as f:
+        f.writelines(lines)
+
+    #     Fix the format error
+    lines[1] = "       1       1\n"
+    lines[2] = "    " + lines[2]
+
+    with open(fn, "w") as f:
+        f.writelines(lines)
+
+
 if __name__ == "__main__":
-    modify_orth_elements()
+    pass

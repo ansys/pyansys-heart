@@ -16,7 +16,7 @@ from ansys.heart.general import clean_directory
 ABS_BASE_PATH = Path(__file__).parent.absolute()
 
 
-def create_ls_dyna_files(path_to_model_info: str, export_directory: str = None):
+def create_ls_dyna_files(path_model_info: str, export_directory: str = None):
     """Creates the LS-DYNA files for the model specified
     """
     if not export_directory:

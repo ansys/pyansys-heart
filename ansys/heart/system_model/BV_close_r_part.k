@@ -7,6 +7,7 @@ $   numerical constant
 $   Only used for Euler Implicit
     float gamma = 0.6;
 $   Pre filling duration
+    float t_pre_fill;
     t_pre_fill = 1.0;
 
 $   physical constants

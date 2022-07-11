@@ -13,6 +13,7 @@ $   Only used for Euler Implicit
 $   Pre filling duration
 $   Impose venous pressure during this period
 $   to get the ventricle to ED states
+    float t_pre_fill;
     t_pre_fill = 1.0;
 
 $   physical constants

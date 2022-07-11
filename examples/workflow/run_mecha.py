@@ -4,13 +4,13 @@
 #################################################################
 MPI = True
 LSDYNA = "mppdyna"
-NCPU = 6
+NCPU = 8
 #################################################################
 import os
 import shutil
 import subprocess
 from compute_volume import update_system_json
-from pericardium_offset import add_pericardium_offset
+
 
 def run_lsdyna(sim_file, option=""):
     """
@@ -79,11 +79,8 @@ def main():
 
     os.chdir("lsdyna_files")
 
-    # change unstressed volume in Josn file
+    # change unstressed volume in Json file
     update_system_json("nodes.k")
-
-    # add pericardium springs offset
-    add_pericardium_offset()
 
     # run closed loop simulation
     run_lsdyna("main.k")

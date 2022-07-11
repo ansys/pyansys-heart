@@ -3,160 +3,102 @@ from the original source data to create a simulation-ready
 left-ventricle mesh, bi-ventricle mesh and four-chamber mesh
 """
 
-
 import os
 from pathlib import Path
 
 from ansys.heart.preprocessor.heart_model import HeartModel
 from ansys.heart.preprocessor.model_information import ModelInformation
 from ansys.heart.custom_logging import logger
-from ansys.heart.general import clean_directory
 
 # some useful global variables:
 ASSET_PATH = os.path.join(
     Path(__file__).parent.absolute(), "..", "..", "..", "tests", "heart", "assets"
 )
-CASE_PATH = os.path.join(os.path.abspath(ASSET_PATH), "cases", "strocchi2020", "01", "01.case")
+CASE_PATH_STROCCHI = os.path.join(
+    os.path.abspath(ASSET_PATH), "cases", "strocchi2020", "01", "01.case"
+)
+CASE_PATH_CRISTOBAL = os.path.join(
+    os.path.abspath(ASSET_PATH), "cases", "cristobal2021", "01", "01.vtk"
+)
 
 BASE_WORK_DIR = os.path.join(Path(__file__).parent.absolute(), "..", "workdir")
 
-REMOVE_INTERMEDIATE_FILES = False  # flag indicating whether to remove intermediate files
 
+def run_preprocessor(
+    model_type: str,
+    database_name: str,
+    path_original_mesh: str,
+    work_directory: str,
+    mesh_size: float = 2.0,
+    remesh: bool = True,
+):
+    """Runs the preprocessor with the given model information
 
-def extract_leftventricle_mesh():
-    """Extracts a left-ventricle mesh"""
-    work_dir = os.path.join(BASE_WORK_DIR, "left_ventricle_model")
-    clean_directory(work_dir)
-    model_info_path = os.path.join(work_dir, "model_info.json")
-
-    # create model
-    lv_ventricle_info = ModelInformation(
-        model_type="LeftVentricle",
-        database_name="Strocchi2020",
-        path_original_mesh=CASE_PATH,
-        working_directory=work_dir,
-    )
-
-    lv_ventricle_info.mesh_size = 2.0
-
-    left_ventricle_model = HeartModel(lv_ventricle_info)
-    left_ventricle_model.extract_simulation_mesh()
-
-    left_ventricle_model.get_model_characteristics()
-
-    left_ventricle_model.dump_model(
-        model_info_path, clean_working_directory=REMOVE_INTERMEDIATE_FILES
-    )  # Toggle clean to keep/remove all intermediate files )
-    return
-
-
-def extract_biventricle_mesh():
-    """Extracts a bi-ventricle mesh"""
-    work_dir = os.path.join(BASE_WORK_DIR, "bi_ventricle_model")
-    clean_directory(work_dir)
-    model_info_path = os.path.join(work_dir, "model_info.json")
+    Parameters
+    ----------
+    model_type : str
+        Type of model
+    database_name : str
+        Database name. Either Strocchi2020, Cristobal2021, Strocchi2020_Modified,
+        or Cristobal2021_Modified
+    path_original_mesh : str
+        Path to input mesh (vtk)
+    work_directory : str
+        Path to work directory
+    """
+    if not os.path.isdir(work_directory):
+        os.makedirs(work_directory)
 
     # create model
-    bi_ventricle_info = ModelInformation(
-        model_type="BiVentricle",
-        database_name="Strocchi2020",
-        path_original_mesh=CASE_PATH,
-        working_directory=work_dir,
+    model_info = ModelInformation(
+        model_type=model_type,
+        database_name=database_name,
+        path_original_mesh=path_original_mesh,
+        working_directory=work_directory,
     )
+    model_info.mesh_size = mesh_size
 
-    bi_ventricle_info.mesh_size = 2.0
-    biventricle_model = HeartModel(bi_ventricle_info)
-    biventricle_model.extract_simulation_mesh()
-    biventricle_model.get_model_characteristics()
+    model_info_path = os.path.join(work_directory, "model_info.json")
 
-    biventricle_model.dump_model(
-        model_info_path, clean_working_directory=REMOVE_INTERMEDIATE_FILES
-    )  # Toggle clean to keep/remove all intermediate files )
+    model = HeartModel(model_info)
+    model.extract_simulation_mesh(remesh=remesh)
+
+    model.dump_model(model_info_path, clean_working_directory=False)
     return
 
-
-def extract_fourchamber_mesh():
-    """Extracts a four chamber mesh"""
-    work_dir = os.path.join(BASE_WORK_DIR, "four_chamber_model")
-    clean_directory(work_dir)
-    model_info_path = os.path.join(work_dir, "model_info.json")
-
-    # create model
-    fourchamber_info = ModelInformation(
-        model_type="FourChamber",
-        database_name="Strocchi2020",
-        path_original_mesh=CASE_PATH,
-        working_directory=work_dir,
-    )
-    fourchamber_info.mesh_size = 2.0
-
-    four_chamber_model = HeartModel(fourchamber_info)
-    four_chamber_model.extract_simulation_mesh()
-    four_chamber_model.get_model_characteristics()
-
-    four_chamber_model.dump_model(
-        model_info_path, clean_working_directory=REMOVE_INTERMEDIATE_FILES
-    )  # Toggle clean to keep/remove all intermediate files
-    return
-
-
-def extract_fourchamber_mesh_noremesh():
-    """Extracts a four chamber mesh"""
-    work_dir = os.path.join(BASE_WORK_DIR, "four_chamber_model_original")
-    clean_directory(work_dir)
-    model_info_path = os.path.join(work_dir, "model_info.json")
-
-    # create model
-    fourchamber_info = ModelInformation(
-        model_type="FourChamber",
-        database_name="Strocchi2020",
-        path_original_mesh=CASE_PATH,
-        working_directory=work_dir,
-    )
-
-    four_chamber_model = HeartModel(fourchamber_info)
-    four_chamber_model.extract_simulation_mesh( remesh = False )
-    four_chamber_model.get_model_characteristics()
-
-    four_chamber_model.dump_model(
-        model_info_path, clean_working_directory=REMOVE_INTERMEDIATE_FILES
-    )
-    return
 
 if __name__ == "__main__":
 
-    if not os.path.isdir(BASE_WORK_DIR):
-        os.mkdir(BASE_WORK_DIR)
+    models_to_run = ["LeftVentricle", "BiVentricle", "FourChamber", "FourChamberOriginal"]
+    # databases_to_run = ["Strocchi2020", "Cristobal2021", "Strocchi2020_Simplified"]
+    # models_to_run = ["LeftVentricle"]
+    models_to_run = ["FourChamberOriginal"]
+    databases_to_run = ["Strocchi2020"]
 
-    run_all = True
-    if run_all:
-        models_to_run = [
-            "LeftVentricle",
-            "BiVentricle",
-            "FourChamber",
-            # "FourChamberOriginal"
-            ]
-    else:
-        models_to_run = []
+    for database in databases_to_run:
+        if database == "Strocchi2020":
+            case_path = CASE_PATH_STROCCHI
+        elif database == "Cristobal2021":
+            case_path = CASE_PATH_CRISTOBAL
 
-    # extract left ventricle mesh
-    if "LeftVentricle" in models_to_run:
-        logger.info("***************************")
-        extract_leftventricle_mesh()
+        for model_type in models_to_run:
+            logger.info("***************************")
+            work_directory = os.path.join(BASE_WORK_DIR, database, model_type)
 
-    if "BiVentricle" in models_to_run:
-        # extract biventricle mesh
-        logger.info("***************************")
-        extract_biventricle_mesh()
+            if model_type in ["LeftVentricle", "BiVentricle", "FourChamber"]:
+                do_remesh = True
+            elif model_type in ["FourChamberOriginal"]:
+                do_remesh = False
+                model_type = "FourChamber"
 
-    if "FourChamber" in models_to_run:
-        # extract four chamber mesh
-        logger.info("***************************")
-        extract_fourchamber_mesh()
+            run_preprocessor(
+                model_type=model_type,
+                database_name=database,
+                path_original_mesh=case_path,
+                work_directory=work_directory,
+                remesh=do_remesh,
+            )
 
-    if "FourChamberOriginal" in models_to_run:
-        logger.info("***************************")
-        extract_fourchamber_mesh_noremesh()
+            logger.info("***************************")
 
-    logger.info("***************************")
     logger.info("** DONE **")

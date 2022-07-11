@@ -1,9 +1,3 @@
-"""This examples creates LS-DYNA files from existing
-model_info.json files and its dependencies.
-Run "example_extract_simulation_mesh.py" first to create
-the required files.
-"""
-
 import os
 from pathlib import Path
 
@@ -59,13 +53,11 @@ def create_ls_dyna_files(path_to_model_info: str, writer_type: str, export_direc
 
 if __name__ == "__main__":
 
-    models_to_run = ["LeftVentricle", "BiVentricle", "FourChamber", "FourChamberOriginal"]
-    database = "Strocchi2020"
+    path_model_info = (
+        "D:\\development\\pyheart-lib\\pyheart-lib\\"
+        + "downloads\\Strocchi2020_simplified\\workdir\\model_info.json"
+    )
 
-    for model in models_to_run:
-        path_model_info = os.path.join(
-            ABS_BASE_PATH, "..", "workdir", database, model, "model_info.json"
-        )
-        create_ls_dyna_files(path_model_info, writer_type="Mechanics")
-        create_ls_dyna_files(path_model_info, writer_type="ZeroPressure")
-        create_ls_dyna_files(path_model_info, writer_type="FiberGeneration")
+    create_ls_dyna_files(path_model_info, writer_type="Mechanics")
+    create_ls_dyna_files(path_model_info, writer_type="ZeroPressure")
+    create_ls_dyna_files(path_model_info, writer_type="FiberGeneration")

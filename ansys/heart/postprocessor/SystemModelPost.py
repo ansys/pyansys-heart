@@ -29,6 +29,7 @@ class IcvOut:
             exit()
 
         # Fix small bug in LSDYNA Output: Volume is 0 at t0
+        # V1 = V0 + dt * (1-gamma) * Q0
         # negative flow is inflow for the cavity
         # 0.4 is from 1-gamma
         volume[0] = volume[1] + (time[1] - time[0]) * flow[0] * 0.4
@@ -103,6 +104,12 @@ class SystemModelPost:
                     self.rv[name] /= 1000
 
     def compute_ejection_ratio(self):
+        """
+        Compute ejection ratio of last loop
+        Returns
+        -------
+
+        """
         # get PV of last loop
         _, volume = self.get_PV(self.bin.time[-1] - self.cycle_duration)
 
@@ -113,7 +120,7 @@ class SystemModelPost:
 
     def get_PV(self, t_start=0, t_end=1000):
         """
-        get PV
+        get Pressure & volume
         Parameters
         ----------
         t_end
@@ -352,6 +359,16 @@ class SystemModelPost:
         return fig
 
     def check_total_volume(self, plot_all=False):
+        """
+        For a closed loop, check if total volume is constant
+        Parameters
+        ----------
+        plot_all
+
+        Returns
+        -------
+
+        """
         if not self.closed_loop:
             print("Only closed loop can check volume")
             return
@@ -398,32 +415,4 @@ class SystemModelPost:
         return fig
 
 
-if __name__ == "__main__":
-    p_ed = np.array([2, 0.5333])
-    v_ed = np.array([172.320, 234.799])
-    figs = []
-    # base_dir = r"\\LYOTECSPARE4\wye\pyheartlib_models\h01_bv_corase\bv_closed_impose_filling"
-    # result = PostProcessor(base_dir,p_ed,v_ed, closed_loop=True)
-    # result.check_prefilling("lv", offsset=0.2)
-    # result.check_prefilling("rv", offsset=0.2)
-    # result.plot_PV(last_loop=True)
-    # print(result.cavity0)
-    # plt.show()
-    # exit()
 
-    base_dir = (
-        r"\\LYOTECSPARE4\wye\pyheartlib_models\h01_bv_corase\bv_closed_impose_filling"
-    )
-    result = SystemModelPost(base_dir, p_ed, v_ed, closed_loop=True)
-    figs[0] = result.plot_PV(last_loop=True)
-    figs[1] = result.check_total_volume(plot_all=True)
-
-    figs[2] = result.plot_pressure_flow_volume("lv", ignore_filling=True, last_loop=True)
-    figs[3] = result.check_prefilling("lv")
-    figs[4] = result.check_output("lv")
-
-    if result.type == "BV":
-        result.plot_pressure_flow_volume("rv", ignore_filling=True, last_loop=True)
-        result.check_prefilling("rv")
-        result.check_output("rv")
-    plt.show()

@@ -630,8 +630,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
             mat_id = 200
 
             # TODO: exposed to user/parameters?
-            spring_stiffness = 20  # kPa/mm
-            scale_factor_normal = 1.0
+            if self.model.info.model_type == "BiVentricle":
+                spring_stiffness = 5  # kPa/mm
+            elif self.model.info.model_type == "FourChamber":
+                spring_stiffness = 20  # kPa/mm
+
+            scale_factor_normal = 0.5
             scale_factor_radial = 1.0
 
             part_kw = keywords.Part()

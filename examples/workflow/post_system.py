@@ -7,7 +7,7 @@ if __name__ == "__main__":
     v_ed = np.array([172.320, 234.799])
 
     base_dir = (
-        r"\\LYOTECSPARE4\wye\pyheartlib_models\h01_bv_corase\bv_closed_impose_filling_fix"
+        r"\\LYOTECSPARE4\wye\pyheartlib_models\h01_bv_corase\bv_closed_impose_filling2"
     )
     result = SystemModelPost(base_dir, p_ed, v_ed, closed_loop=True)
 

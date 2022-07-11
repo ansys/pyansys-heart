@@ -859,11 +859,19 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     apex1 = self.volume_mesh["nodes"][apex_node_id, :]
                     for cap in cavity.closing_caps:
                         if cap.name == "Mitral valve plane":
-                            center = cap.centroid
-            # NOTE: consider using the already defined apical point
-            apex = self.volume_mesh["nodes"][np.argmin(abs(uvc_l)), :]
+                            center1 = cap.centroid
+                        elif cap.name == "Aortic valve plane":
+                            center2 = cap.centroid
+                if cavity.name == "Right ventricle":
+                    for cap in cavity.closing_caps:
+                        if cap.name == "Pulmonary valve plane":
+                            center3 = cap.centroid
+                        elif cap.name == "Tricuspid valve plane":
+                            center4 = cap.centroid
+            # Change orientation as apex- center of 4 valves plane
+            center = (center4 + center3 + center2 + center1) / 4
             # define spring orientation from apex to mitral valve
-            orientation = center - apex
+            orientation = center - apex1
             orientation /= np.linalg.norm(orientation)
 
             sd_orientation_kw = create_define_sd_orientation_kw(

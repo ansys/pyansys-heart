@@ -53,7 +53,10 @@ def create_ls_dyna_files(path_to_model_info: str, writer_type: str, export_direc
 
 if __name__ == "__main__":
 
-    path_model_info = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020_simplified\\workdir\\model_info.json"
+    path_model_info = (
+        "D:\\development\\pyheart-lib\\pyheart-lib\\"
+        + "downloads\\Strocchi2020_simplified\\workdir\\model_info.json"
+    )
 
     create_ls_dyna_files(path_model_info, writer_type="Mechanics")
     create_ls_dyna_files(path_model_info, writer_type="ZeroPressure")

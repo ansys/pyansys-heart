@@ -67,7 +67,7 @@ def main():
     from ReadFib import temporal_fix_of_lsdyna_bug
     temporal_fix_of_lsdyna_bug()
     os.chdir("..")
-
+    # todo: works only with BV, extend to 4C case
     shutil.copy2(
         os.path.join("lsdyna_files_fibergeneration", "element_solid_ortho.k"),
         os.path.join("lsdyna_files_zeropressure", "solid_elements.k"),

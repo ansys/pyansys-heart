@@ -64,9 +64,8 @@ def main():
     # Run fiber generation
     os.chdir("lsdyna_files_fibergeneration")
     run_lsdyna("main.k")
-    from ReadFib import temporal_fix_of_lsdyna_bug
-    temporal_fix_of_lsdyna_bug()
     os.chdir("..")
+
     # todo: works only with BV, extend to 4C case
     shutil.copy2(
         os.path.join("lsdyna_files_fibergeneration", "element_solid_ortho.k"),

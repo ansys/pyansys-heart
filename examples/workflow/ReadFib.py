@@ -83,28 +83,5 @@ def modify_ids_orth_elements():
     write_orth_element_kfile("solid_elements.k", zip(elem_ids, part_ids, connect, fib, sheet))
 
 
-def temporal_fix_of_lsdyna_bug():
-    """
-    This is a temporal fix due to bug in LSDYNA's output file
-
-    Returns
-    -------
-
-    """
-    fn = "element_solid_ortho.k"
-    fn2 = "element_solid_ortho_0.k"
-    with open(fn) as f:
-        lines = f.readlines()
-    with open(fn2, "w") as f:
-        f.writelines(lines)
-
-    #     Fix the format error
-    lines[1] = "       1       1\n"
-    lines[2] = "    " + lines[2]
-
-    with open(fn, "w") as f:
-        f.writelines(lines)
-
-
 if __name__ == "__main__":
     pass

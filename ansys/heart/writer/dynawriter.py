@@ -174,13 +174,34 @@ class MechanicsDynaWriter(BaseDynaWriter):
     """Derived from BaseDynaWriter and derives all keywords relevant
     for simulations involving mechanics"""
 
-    def __init__(self, model: HeartModel) -> None:
+    def __init__(self, model: HeartModel, system_model_name: str = "ClosedLoop") -> None:
         super().__init__(model)
 
         self.kw_database = MechanicsDecks()
         """Collection of keyword decks relevant for mechanics"""
 
+        self.system_model_name = system_model_name
+        """Name of system model to use"""
+
+        # Depending on the system model specified give list of parameters
+
         return
+
+    @property
+    def system_model_name(self):
+        """System model name. Valid options include:
+        ["ConstantPreloadWindkesselAfterload",
+        "ClosedLoop]"""
+        return self._system_model
+
+    @system_model_name.setter
+    def system_model_name(self, value: str):
+        if value not in [
+            "ConstantPreloadWindkesselAfterload",
+            "ClosedLoop",
+        ]:
+            raise ValueError("System model not valid")
+        self._system_model = value
 
     def update(self):
         """Formats the keywords and stores these in the
@@ -228,11 +249,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # export .k files
         self.export_databases(export_directory)
 
-        # exports system model
-        path_system_model_settings = os.path.join(export_directory, "system_model_settings.json")
-
-        with open(path_system_model_settings, "w") as outfile:
-            json.dump(self.system_model_json, indent=4, fp=outfile)
+        # add system json in case of closed loop. For open-loop this is already
+        # added in the control volume database
+        if self.system_model_name == "ClosedLoop":
+            # exports system model
+            path_system_model_settings = os.path.join(
+                export_directory, "system_model_settings.json"
+            )
+            with open(path_system_model_settings, "w") as outfile:
+                json.dump(self.system_model_json, indent=4, fp=outfile)
 
         # export segment sets to separate file
         self._export_cavity_segmentsets(export_directory)
@@ -1130,10 +1155,17 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             # NOTE: static for the moment. Maximum of 2 cavities supported
             # but this is valid for the LeftVentricle, BiVentricle and FourChamber models
-            if "Left ventricle" in cavity.name:
-                cvi_kw.lcid_ = -10
-            elif "Right ventricle" in cavity.name:
-                cvi_kw.lcid_ = -11
+            if self.system_model_name == "ClosedLoop":
+                if "Left ventricle" in cavity.name:
+                    cvi_kw.lcid_ = -10
+                elif "Right ventricle" in cavity.name:
+                    cvi_kw.lcid_ = -11
+
+            elif self.system_model_name == "ConstantPreloadWindkesselAfterload":
+                if "Left ventricle" in cavity.name:
+                    cvi_kw.lcid_ = 10
+                if "Right ventricle" in cavity.name:
+                    cvi_kw.lcid_ = 11
 
             self.kw_database.control_volume.append(cvi_kw)
 
@@ -1143,31 +1175,79 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """Updates json system model settings"""
         model_type = self.model.info.model_type
 
-        if model_type in ["FourChamber", "BiVentricle"]:
-            file_path = os.path.join(
-                Path(__file__).parent.absolute(),
-                "templates",
-                "system_model_settings_bv.json",
-            )
+        # closed loop uses a custom executable
+        if self.system_model_name == "ClosedLoop":
+            logger.warning("Note that this model type requires a custom executable that supports the Closed Loop circulation model!")
+            if model_type in ["FourChamber", "BiVentricle"]:
+                file_path = os.path.join(
+                    Path(__file__).parent.absolute(),
+                    "templates",
+                    "system_model_settings_bv.json",
+                )
 
-        elif model_type in ["LeftVentricle"]:
-            file_path = os.path.join(
-                Path(__file__).parent.absolute(),
-                "templates",
-                "system_model_settings_lv.json",
-            )
+            elif model_type in ["LeftVentricle"]:
+                file_path = os.path.join(
+                    Path(__file__).parent.absolute(),
+                    "templates",
+                    "system_model_settings_lv.json",
+                )
 
-        fid = open(file_path)
-        sys_settings = json.load(fid)
+            fid = open(file_path)
+            sys_settings = json.load(fid)
 
-        # update the volumes
-        for cavity in self.model._mesh._cavities:
-            if "Left ventricle" in cavity.name:
-                sys_settings["SystemModelInitialValues"]["UnstressedVolumes"]["lv"] = cavity.volume
-            elif "Right ventricle" in cavity.name:
-                sys_settings["SystemModelInitialValues"]["UnstressedVolumes"]["rv"] = cavity.volume
+            # update the volumes
+            for cavity in self.model._mesh._cavities:
+                if "Left ventricle" in cavity.name:
+                    sys_settings["SystemModelInitialValues"]["UnstressedVolumes"][
+                        "lv"
+                    ] = cavity.volume
+                elif "Right ventricle" in cavity.name:
+                    sys_settings["SystemModelInitialValues"]["UnstressedVolumes"][
+                        "rv"
+                    ] = cavity.volume
 
-        self.system_model_json = sys_settings
+            self.system_model_json = sys_settings
+
+        # otherwise add the define function
+        elif self.system_model_name == "ConstantPreloadWindkesselAfterload":
+            from ansys.heart.writer.system_models import define_function_windkessel
+
+            for cavity in self.model._mesh._cavities:
+                if "Left ventricle" in cavity.name:
+                    constants: dict = {
+                        "Rv": 5.0e-6,
+                        "Ra": 1.0e-5,
+                        "Rp": 1.2e-4,
+                        "Ca": 2.5e4,
+                        "Pven": 2,
+                    }
+                    initial = {"part_init": 8}
+                    define_function_wk = define_function_windkessel(
+                        function_id=10,
+                        function_name="constant_preload_windkessel_afterload_left",
+                        implicit=True,
+                        constants=constants,
+                        initialvalues=initial,
+                    )
+                    self.kw_database.control_volume.append(define_function_wk)
+
+                elif "Right ventricle" in cavity.name:
+                    constants: dict = {
+                        "Rv": 5.0e-6 * 0.5,
+                        "Ra": 1.0e-5 * 0.35,
+                        "Rp": 1.2e-4 * 0.125,
+                        "Ca": 2.5e4 * 4.5,
+                        "Pven": 0.53333,
+                    }
+                    initial = {"part_init": 2}
+                    define_function_wk = define_function_windkessel(
+                        function_id=11,
+                        function_name="constant_preload_windkessel_afterload_right",
+                        implicit=True,
+                        constants=constants,
+                        initialvalues=initial,
+                    )
+                    self.kw_database.control_volume.append(define_function_wk)
 
         return
 

@@ -43,7 +43,10 @@ def create_ls_dyna_files(path_to_model_info: str, writer_type: str, export_direc
 
     # create dyna writer based on type of writer requested
     if writer_type == "Mechanics":
-        dyna_writer = MechanicsDynaWriter(heart_model)
+        dyna_writer = MechanicsDynaWriter(
+            heart_model, system_model_name="ConstantPreloadWindkesselAfterload"
+        )
+
     elif writer_type == "ZeroPressure":
         dyna_writer = ZeroPressureMechanicsDynaWriter(heart_model)
     elif writer_type == "FiberGeneration":
@@ -60,6 +63,7 @@ def create_ls_dyna_files(path_to_model_info: str, writer_type: str, export_direc
 if __name__ == "__main__":
 
     models_to_run = ["LeftVentricle", "BiVentricle", "FourChamber", "FourChamberOriginal"]
+    models_to_run = ["BiVentricle"]
     database = "Strocchi2020"
 
     for model in models_to_run:

@@ -1,3 +1,4 @@
+from multiprocessing.sharedctypes import Value
 from pathlib import Path
 import os
 import copy
@@ -189,6 +190,9 @@ def get_tri_info_from_polydata(vtk_polydata: vtk.vtkPolyData, get_all_data=True)
     tris = polys.reshape(-1, 4)
     tris = np.delete(tris, 0, axis=1)
 
+    mesh = meshio.Mesh(points=nodes, cells=[("triangle", tris)])
+    mesh.write("test_tris.vtk")
+
     # store cell/point data in dictionary
     cell_data = {}
     point_data = {}
@@ -214,7 +218,8 @@ def threshold_vtk_data(
     lower_limit: Union[float, int],
     upper_limit: Union[float, int],
     data_name: str,
-    epsilon=1e-3,
+    epsilon: float = 1e-3,
+    data_type: str = "CellData",
 ):
     """Uses the vtk thresholding filter to extract a part of the model
 
@@ -230,12 +235,17 @@ def threshold_vtk_data(
         Name of the cell data field to processes
     epsilon : _type_, optional
         Allowed tolerance for filter, by default 1e-3
+    data_type: str, optional
+        Type of data to filter. Either "CellData" or "PointsData"
+
 
     Returns
     -------
     _type_
         _description_
     """
+    if data_type not in ["CellData", "PointData"]:
+        raise ValueError("Please specify either 'CellData' or 'PointData'")
 
     with_id = vtk.vtkGenerateGlobalIds()  # noqa
     with_id.SetInputData(vtk_obj)
@@ -243,9 +253,15 @@ def threshold_vtk_data(
 
     threshold = vtk.vtkThreshold()  # noqa
     threshold.SetInputData(with_id.GetOutput())
-    threshold.SetInputArrayToProcess(
-        0, 0, 0, vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS, data_name  # noqa
-    )
+    if data_type == "CellData":
+        threshold.SetInputArrayToProcess(
+            0, 0, 0, vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS, data_name  # noqa
+        )
+    elif data_type == "PointData":
+        threshold.SetInputArrayToProcess(
+            0, 0, 0, vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS, data_name  # noqa
+        )
+
     threshold.SetLowerThreshold(lower_limit - epsilon)
     threshold.SetUpperThreshold(upper_limit + epsilon)
     threshold.AllScalarsOn()
@@ -253,11 +269,11 @@ def threshold_vtk_data(
     result = threshold.GetOutput()
     ids = VN.vtk_to_numpy(result.GetPointData().GetGlobalIds())
     # debug
-    # writer = vtk.vtkDataSetWriter()
-    # writer.SetFileName('x.vtk')
-    # writer.SetInputData(threshold.GetOutput())
-    # writer.SetFileTypeToBinary()
-    # writer.Write()
+    writer = vtk.vtkDataSetWriter()
+    writer.SetFileName("x.vtk")
+    writer.SetInputData(threshold.GetOutput())
+    writer.SetFileTypeToBinary()
+    writer.Write()
     return result, ids
 
 
@@ -1583,8 +1599,8 @@ def convert_to_polydata(vtk_ugrid: vtk.vtkUnstructuredGrid):
     return geom.GetOutput()
 
 
-def append_vtk_files(files: list, path_to_merged_vtk: str, substrings: List[str] = []):
-    """Appends a list of vtk files into a single vtk file
+def append_vtk_polydata_files(files: list, path_to_merged_vtk: str, substrings: List[str] = []):
+    """Appends a list of polydata vtk files into a single vtk file
 
     Parameters
     ----------
@@ -1601,7 +1617,7 @@ def append_vtk_files(files: list, path_to_merged_vtk: str, substrings: List[str]
 
     # append vtk surfaces
     reader = vtk.vtkPolyDataReader()
-    append = vtk.vtkAppendFilter()
+    append = vtk.vtkAppendPolyData()
     for file in files:
         if not os.path.isfile(file):
             print("File not found...")
@@ -1612,15 +1628,17 @@ def append_vtk_files(files: list, path_to_merged_vtk: str, substrings: List[str]
         polydata.ShallowCopy(reader.GetOutput())
 
         # add cell data based on any substrings that are found
-        cell_tag = 0
-        for ii, substring in enumerate(substrings):
-            if substring in Path(file).name:
-                cell_tag = ii + 1
+        if substrings != []:
+            cell_tag = 0
+            for ii, substring in enumerate(substrings):
+                if substring in Path(file).name:
+                    cell_tag = ii + 1
 
-        cell_tags = np.ones(polydata.GetNumberOfCells()) * cell_tag
-        add_vtk_array(
-            polydata=polydata, data=cell_tags, name="tags", data_type="cell", array_type=int
-        )
+            cell_tags = np.ones(polydata.GetNumberOfCells()) * cell_tag
+            add_vtk_array(
+                polydata=polydata, data=cell_tags, name="tags", data_type="cell", array_type=int
+            )
+
         append.AddInputData(polydata)
 
     append.Update()

@@ -9,6 +9,9 @@ from ansys.heart.preprocessor._load_template import load_template
 from ansys.heart.preprocessor import SC_EXE, FLUENT_EXE
 from ansys.heart.custom_logging import logger
 
+# for fluent:
+import ansys.fluent.core as pyfluent
+
 _template_directory = os.path.join(os.path.dirname(__file__), "template")
 
 """Module contains methods for mesh operations"""
@@ -56,29 +59,14 @@ def mesh_by_fluentmeshing(
 
     num_cpus = 2
 
-    # args = ['"' + FLUENT_EXE + '"', "-v3ddp",
-    # "-tm{:.0f}".format(num_cpus), "-meshing", "-i", script  ]
-    args = [
-        '"' + FLUENT_EXE + '"',
-        "-v3ddp",
-        "-hidden",
-        "-tm{:.0f}".format(num_cpus),
-        "-meshing",
-        "-i",
-        script,
-    ]
-
-    # subprocess.call( " ".join(args) )
-    # p = subprocess.Popen(" ".join(args), shell=True)
-
-    # TODO: need to add check on output
-    logger.info("Launching Fluent Meshing...")
-    p = subprocess.Popen(" ".join(args))
-    p.communicate()
-    p.wait(300)
-    logger.info("done")
-
-    # p = subprocess.call(" ".join(args) )
+    # start Fluent session using PyFluent:
+    session = pyfluent.launch_fluent(
+        meshing_mode=True, precision="double", processor_count=num_cpus, start_transcript=False
+    )
+    # session.stop_transcript()
+    session.meshing.tui.file.read_journal(script)
+    # error detection?
+    session.exit()
 
     # change back to old directory
     os.chdir(old_directory)
@@ -178,4 +166,17 @@ def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii"):
 
 
 if __name__ == "__main__":
+
+    # example:
+    # import ansys.fluent.core as pyfluent
+
+    # session = pyfluent.launch_fluent(meshing_mode=True, precision="double", processor_count=2)
+
+    # path_to_file = "d:\\development\\pyheart-lib\\pyheart-lib\\examples\\heart\\workdir\\Strocchi2020\\BiVentricle\\fluent_volume_mesh.msh.h5"
+    # path_to_journal = "d:\\development\\pyheart-lib\\pyheart-lib\\examples\\heart\\workdir\\Strocchi2020\\BiVentricle\\fluent_meshing.jou"
+    # tui = session.meshing.tui
+    # # tui.file.read_mesh(path_to_file)
+    # tui.file.read_journal(path_to_journal)
+    # session.exit()
+
     logger.info("Protected")

@@ -60,12 +60,11 @@ def mesh_by_fluentmeshing(
     num_cpus = 2
 
     # start Fluent session using PyFluent:
+    # TODO: Catch errors in session
     session = pyfluent.launch_fluent(
         meshing_mode=True, precision="double", processor_count=num_cpus, start_transcript=False
     )
-    # session.stop_transcript()
     session.meshing.tui.file.read_journal(script)
-    # error detection?
     session.exit()
 
     # change back to old directory
@@ -166,17 +165,4 @@ def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii"):
 
 
 if __name__ == "__main__":
-
-    # example:
-    # import ansys.fluent.core as pyfluent
-
-    # session = pyfluent.launch_fluent(meshing_mode=True, precision="double", processor_count=2)
-
-    # path_to_file = "d:\\development\\pyheart-lib\\pyheart-lib\\examples\\heart\\workdir\\Strocchi2020\\BiVentricle\\fluent_volume_mesh.msh.h5"
-    # path_to_journal = "d:\\development\\pyheart-lib\\pyheart-lib\\examples\\heart\\workdir\\Strocchi2020\\BiVentricle\\fluent_meshing.jou"
-    # tui = session.meshing.tui
-    # # tui.file.read_mesh(path_to_file)
-    # tui.file.read_journal(path_to_journal)
-    # session.exit()
-
     logger.info("Protected")

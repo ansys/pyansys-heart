@@ -190,9 +190,6 @@ def get_tri_info_from_polydata(vtk_polydata: vtk.vtkPolyData, get_all_data=True)
     tris = polys.reshape(-1, 4)
     tris = np.delete(tris, 0, axis=1)
 
-    mesh = meshio.Mesh(points=nodes, cells=[("triangle", tris)])
-    mesh.write("test_tris.vtk")
-
     # store cell/point data in dictionary
     cell_data = {}
     point_data = {}
@@ -269,11 +266,11 @@ def threshold_vtk_data(
     result = threshold.GetOutput()
     ids = VN.vtk_to_numpy(result.GetPointData().GetGlobalIds())
     # debug
-    writer = vtk.vtkDataSetWriter()
-    writer.SetFileName("x.vtk")
-    writer.SetInputData(threshold.GetOutput())
-    writer.SetFileTypeToBinary()
-    writer.Write()
+    # writer = vtk.vtkDataSetWriter()
+    # writer.SetFileName("x.vtk")
+    # writer.SetInputData(threshold.GetOutput())
+    # writer.SetFileTypeToBinary()
+    # writer.Write()
     return result, ids
 
 

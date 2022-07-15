@@ -16,7 +16,6 @@ from ansys.heart.preprocessor.vtk_module import (
     write_vtkdata_to_vtkfile,
     vtk_read_mesh_file,
     vtk_map_continuous_data,
-    append_vtk_files,
 )
 from vtk.numpy_interface import dataset_adapter as dsa
 
@@ -65,39 +64,43 @@ def run_preprocessor(
     model.dump_model(model_info_path, clean_working_directory=False)
     return
 
+
 if __name__ == "__main__":
     path_to_case = os.path.join(
-        Path(__file__).parents[3], "downloads", "Strocchi2020_simplified", "p05.vtk"
+        Path(__file__).parents[3],
+        "downloads",
+        "Strocchi2020_Demo1.0",
+        "p05_BiVentricular_volume2.vtk",
     )
 
-    if not os.path.isfile(path_to_case):
-        append_files = True
-    else:
-        append_files = False
+    # if not os.path.isfile(path_to_case):
+    #     append_files = True
+    # else:
+    #     append_files = False
 
-    append_files = True
-    # appends vtk files
-    if append_files:
-        # append files
-        files = []
-        files.append(
-            os.path.join(
-                Path(__file__).parents[3],
-                "downloads",
-                "Strocchi2020_simplified",
-                "p05_LV_volume.vtk",
-            )
-        )
+    # append_files = True
+    # # appends vtk files
+    # if append_files:
+    #     # append files
+    #     files = []
+    #     files.append(
+    #         os.path.join(
+    #             Path(__file__).parents[3],
+    #             "downloads",
+    #             "Strocchi2020_simplified",
+    #             "p05_LV_volume.vtk",
+    #         )
+    #     )
 
-        files.append(
-            os.path.join(
-                Path(__file__).parents[3],
-                "downloads",
-                "Strocchi2020_simplified",
-                "p05_RV_volume.vtk",
-            )
-        )
-        append_vtk_files(files, path_to_case, ["LV", "RV"])
+    #     files.append(
+    #         os.path.join(
+    #             Path(__file__).parents[3],
+    #             "downloads",
+    #             "Strocchi2020_simplified",
+    #             "p05_RV_volume.vtk",
+    #         )
+    #     )
+    #     append_vtk_files(files, path_to_case, ["LV", "RV"])
 
     # prepare input for preprocessor
     work_directory = os.path.join(Path(path_to_case).parent, "workdir")
@@ -116,7 +119,7 @@ if __name__ == "__main__":
     path_to_target = os.path.join(
         Path(__file__).parents[3],
         "downloads",
-        "Strocchi2020_simplified",
+        "Strocchi2020_Demo1.0",
         "workdir",
         "simulation_mesh.vtk",
     )
@@ -131,7 +134,7 @@ if __name__ == "__main__":
     )
     source_cell_data_names = ["fiber", "sheet"]
     target_vtk1 = vtk_map_continuous_data(
-        source_vtk, target_vtk, False, array_names_to_include=source_cell_data_names
+        source_vtk, target_vtk1, False, array_names_to_include=source_cell_data_names
     )
     write_vtkdata_to_vtkfile(target_vtk1, path_to_target)
 

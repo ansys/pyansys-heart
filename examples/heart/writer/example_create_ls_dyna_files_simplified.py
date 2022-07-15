@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
     path_model_info = (
         "D:\\development\\pyheart-lib\\pyheart-lib\\"
-        + "downloads\\Strocchi2020_simplified\\workdir\\model_info.json"
+        + "downloads\\\Strocchi2020_Demo1.0\\workdir\\model_info.json"
     )
 
     create_ls_dyna_files(path_model_info, writer_type="Mechanics")

@@ -53,11 +53,28 @@ def create_ls_dyna_files(path_to_model_info: str, writer_type: str, export_direc
 
 if __name__ == "__main__":
 
-    path_model_info = (
-        "D:\\development\\pyheart-lib\\pyheart-lib\\"
-        + "downloads\\\Strocchi2020_Demo1.0\\workdir\\model_info.json"
-    )
+    base_folder = os.path.join(Path(__file__).parents[3], "downloads", "Strocchi2020_Demo1.2")
+    case_folders = [
+        "p04",
+        "p05",
+        "p06",
+        "p08",
+        "p09",
+        "p10",
+        "p12",
+        "p13",
+        "p14",
+        "p16",
+        "p19",
+        "p21",
+        "p22",
+        "p23",
+        "p24",
+    ]
+    for case_folder in case_folders:
 
-    create_ls_dyna_files(path_model_info, writer_type="Mechanics")
-    create_ls_dyna_files(path_model_info, writer_type="ZeroPressure")
-    create_ls_dyna_files(path_model_info, writer_type="FiberGeneration")
+        path_model_info = os.path.join(base_folder, case_folder, "model_info.json")
+
+        create_ls_dyna_files(path_model_info, writer_type="Mechanics")
+        create_ls_dyna_files(path_model_info, writer_type="ZeroPressure")
+        create_ls_dyna_files(path_model_info, writer_type="FiberGeneration")

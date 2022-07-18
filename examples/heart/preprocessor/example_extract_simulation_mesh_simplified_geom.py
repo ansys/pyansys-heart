@@ -16,7 +16,6 @@ from ansys.heart.preprocessor.vtk_module import (
     write_vtkdata_to_vtkfile,
     vtk_read_mesh_file,
     vtk_map_continuous_data,
-    append_vtk_files,
 )
 from vtk.numpy_interface import dataset_adapter as dsa
 
@@ -65,74 +64,48 @@ def run_preprocessor(
     model.dump_model(model_info_path, clean_working_directory=False)
     return
 
+
 if __name__ == "__main__":
-    path_to_case = os.path.join(
-        Path(__file__).parents[3], "downloads", "Strocchi2020_simplified", "p05.vtk"
-    )
+    import glob as glob
 
-    if not os.path.isfile(path_to_case):
-        append_files = True
-    else:
-        append_files = False
+    base_folder = os.path.join(Path(__file__).parents[3], "downloads", "Strocchi2020_Demo1.2")
 
-    append_files = True
-    # appends vtk files
-    if append_files:
-        # append files
-        files = []
-        files.append(
-            os.path.join(
-                Path(__file__).parents[3],
-                "downloads",
-                "Strocchi2020_simplified",
-                "p05_LV_volume.vtk",
-            )
+    cases = glob.glob(os.path.join(base_folder, "*.vtk"))
+
+    for path_to_case in cases[8:]:
+
+        work_directory = os.path.join(Path(path_to_case).parent, Path(path_to_case).name[0:3])
+        case_num = Path(path_to_case).name[1:3]
+
+        if not os.path.isdir(work_directory):
+            os.makedirs(work_directory)
+
+        model_type = "BiVentricle"
+        database_name = "Strocchi2020_simplified"
+        mesh_size = 1.5
+
+        run_preprocessor(
+            model_type, database_name, path_to_case, work_directory, mesh_size, remesh=True
         )
 
-        files.append(
-            os.path.join(
-                Path(__file__).parents[3],
-                "downloads",
-                "Strocchi2020_simplified",
-                "p05_RV_volume.vtk",
-            )
+        ## add uvc point data to simulation mesh
+        path_to_source = os.path.join(
+            Path(__file__).parents[3], "downloads", "Strocchi2020", case_num, case_num + ".case"
         )
-        append_vtk_files(files, path_to_case, ["LV", "RV"])
+        path_to_target = os.path.join(work_directory, "simulation_mesh.vtk")
+        source_vtk = vtk_read_mesh_file(path_to_source)
+        target_vtk = vtk_read_mesh_file(path_to_target)
 
-    # prepare input for preprocessor
-    work_directory = os.path.join(Path(path_to_case).parent, "workdir")
-    model_type = "BiVentricle"
-    database_name = "Strocchi2020_simplified"
-    mesh_size = 1.5
-
-    run_preprocessor(
-        model_type, database_name, path_to_case, work_directory, mesh_size, remesh=True
-    )
-
-    ## add uvc point data to simulation mesh
-    path_to_source = os.path.join(
-        Path(__file__).parents[3], "downloads", "Strocchi2020", "05", "05.case"
-    )
-    path_to_target = os.path.join(
-        Path(__file__).parents[3],
-        "downloads",
-        "Strocchi2020_simplified",
-        "workdir",
-        "simulation_mesh.vtk",
-    )
-    source_vtk = vtk_read_mesh_file(path_to_source)
-    target_vtk = vtk_read_mesh_file(path_to_target)
-
-    source_dsa = dsa.WrapDataObject(source_vtk)
-    source_point_data_names = source_dsa.PointData.keys()
-    uvc_array_names = [k for k in source_point_data_names if "uvc_" in k]
-    target_vtk1 = vtk_map_continuous_data(
-        source_vtk, target_vtk, False, array_names_to_include=uvc_array_names
-    )
-    source_cell_data_names = ["fiber", "sheet"]
-    target_vtk1 = vtk_map_continuous_data(
-        source_vtk, target_vtk, False, array_names_to_include=source_cell_data_names
-    )
-    write_vtkdata_to_vtkfile(target_vtk1, path_to_target)
+        source_dsa = dsa.WrapDataObject(source_vtk)
+        source_point_data_names = source_dsa.PointData.keys()
+        uvc_array_names = [k for k in source_point_data_names if "uvc_" in k]
+        target_vtk1 = vtk_map_continuous_data(
+            source_vtk, target_vtk, False, array_names_to_include=uvc_array_names
+        )
+        source_cell_data_names = ["fiber", "sheet"]
+        target_vtk1 = vtk_map_continuous_data(
+            source_vtk, target_vtk1, False, array_names_to_include=source_cell_data_names
+        )
+        write_vtkdata_to_vtkfile(target_vtk1, path_to_target)
 
     logger.info("** DONE **")

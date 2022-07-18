@@ -16,9 +16,9 @@ if installed_versions:
     FLUENT_EXE = ""
     for installed_version, ansys_dir in sorted(installed_versions.items(), reverse=True):
         sc_exe = os.path.join(ansys_dir, "scdm", "SpaceClaim.exe")
-        fluent_exe = os.path.join(ansys_dir, "fluent", "ntbin", "win64", "fluent.exe")
-        if os.path.isfile(sc_exe) and os.path.isfile(sc_exe):
-            SC_EXE = sc_exe
+        fluent_exe = os.path.join(ansys_dir, "fluent", "ntbin", "win64", "fluent.exe")        
+        if os.path.isfile(sc_exe) and os.path.isfile(fluent_exe):
+            SC_EXE     = sc_exe
             FLUENT_EXE = fluent_exe
             break
 

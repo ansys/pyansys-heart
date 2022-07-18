@@ -154,13 +154,9 @@ class HeartModel:
         from Strocchi or Cristobal et al
         """
         from ansys.heart.preprocessor.vtk_module import (
-            convert_to_polydata,
-            rename_vtk_array,
             read_vtk_polydata_file,
-            vtk_remove_arrays,
         )
         import numpy as np
-        import copy
 
         # node-tag mapping:
         cavity_tag_map = {"Left ventricle": 1, "Right ventricle": 2}
@@ -182,41 +178,6 @@ class HeartModel:
 
         # read surface mesh
         self._mesh._vtk_volume_raw = read_vtk_polydata_file(self.info.path_original_mesh)
-
-        # from vtk.numpy_interface import dataset_adapter as dsa
-
-        # write_vtkdata_to_vtkfile(self._mesh._vtk_volume_raw, "vtk_surface.vtk")
-        # tmp1 = dsa.WrapDataObject(self._mesh._vtk_volume_raw)
-        # tmp1.VTKObject.GetNumberOfCells()
-        # polys = tmp1.Polygons
-
-        # convert point to cell data. Temporary solution
-        import vtk
-
-        p2c = vtk.vtkPointDataToCellData()
-        p2c.SetInputData(self._mesh._vtk_volume_raw)
-        p2c.AddPointDataArray("Cavity")
-        p2c.PassPointDataOn()
-        p2c.Update()
-        p2c.GetOutput()
-        temp = p2c.GetOutput()
-        vtk_remove_arrays(temp, "Cavity", "point_data")
-        vtk_remove_arrays(temp, "Node-tags", "cell_data")
-
-        # clean polydata:
-        clean_polydata = vtk.vtkCleanPolyData()
-        clean_polydata.SetInputData(temp)
-        clean_polydata.Update()
-        temp = clean_polydata.GetOutput()
-
-        self._mesh._vtk_volume_raw = temp
-
-        # vtk_remove_arrays(temp, "Cavity", "point_data")
-        # write_vtkdata_to_vtkfile(temp, "p2c.vtk")
-
-        # rename "Cavity" to "tags":
-        rename_vtk_array(self._mesh._vtk_volume_raw, "Cavity", "tags")
-        rename_vtk_array(self._mesh._vtk_volume_raw, "Node-tags", "node-tags")
 
         self._mesh._vtk_volume_temp = self._mesh._vtk_volume_raw
 

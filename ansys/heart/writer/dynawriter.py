@@ -870,14 +870,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
                             center1 = cap.centroid
                         elif cap.name == "Aortic valve plane":
                             center2 = cap.centroid
-                if cavity.name == "Right ventricle":
-                    for cap in cavity.closing_caps:
-                        if cap.name == "Pulmonary valve plane":
-                            center3 = cap.centroid
-                        elif cap.name == "Tricuspid valve plane":
-                            center4 = cap.centroid
-            # Change orientation as apex- center of 4 valves plane
-            center = (center4 + center3 + center2 + center1) / 4
+            # Change orientation as apex- center of 2 valves plane
+            center = (center2 + center1) / 2
             # define spring orientation from apex to mitral valve
             orientation = center - apex1
             orientation /= np.linalg.norm(orientation)

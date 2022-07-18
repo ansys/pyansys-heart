@@ -9,6 +9,9 @@ from ansys.heart.preprocessor._load_template import load_template
 from ansys.heart.preprocessor import SC_EXE, FLUENT_EXE
 from ansys.heart.custom_logging import logger
 
+# for fluent:
+import ansys.fluent.core as pyfluent
+
 _template_directory = os.path.join(os.path.dirname(__file__), "template")
 
 """Module contains methods for mesh operations"""
@@ -56,29 +59,13 @@ def mesh_by_fluentmeshing(
 
     num_cpus = 2
 
-    # args = ['"' + FLUENT_EXE + '"', "-v3ddp",
-    # "-tm{:.0f}".format(num_cpus), "-meshing", "-i", script  ]
-    args = [
-        '"' + FLUENT_EXE + '"',
-        "-v3ddp",
-        "-hidden",
-        "-tm{:.0f}".format(num_cpus),
-        "-meshing",
-        "-i",
-        script,
-    ]
-
-    # subprocess.call( " ".join(args) )
-    # p = subprocess.Popen(" ".join(args), shell=True)
-
-    # TODO: need to add check on output
-    logger.info("Launching Fluent Meshing...")
-    p = subprocess.Popen(" ".join(args))
-    p.communicate()
-    p.wait(300)
-    logger.info("done")
-
-    # p = subprocess.call(" ".join(args) )
+    # start Fluent session using PyFluent:
+    # TODO: Catch errors in session
+    session = pyfluent.launch_fluent(
+        meshing_mode=True, precision="double", processor_count=num_cpus, start_transcript=False
+    )
+    session.meshing.tui.file.read_journal(script)
+    session.exit()
 
     # change back to old directory
     os.chdir(old_directory)

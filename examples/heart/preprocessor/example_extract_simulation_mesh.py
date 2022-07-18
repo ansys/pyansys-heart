@@ -71,8 +71,8 @@ if __name__ == "__main__":
 
     models_to_run = ["LeftVentricle", "BiVentricle", "FourChamber", "FourChamberOriginal"]
     # databases_to_run = ["Strocchi2020", "Cristobal2021", "Strocchi2020_Simplified"]
-    # models_to_run = ["LeftVentricle"]
-    models_to_run = ["FourChamberOriginal"]
+    models_to_run = ["BiVentricle"]
+    # models_to_run = ["FourChamberOriginal"]
     databases_to_run = ["Strocchi2020"]
 
     for database in databases_to_run:

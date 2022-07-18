@@ -1653,6 +1653,8 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         nodes_base = np.empty(0, dtype=int)
         node_set_ids_endo = []
         node_sets_ids_epi = []
+        node_set_ids_epi_and_rseptum = []
+
         node_set_id_lv_endo = 0
 
         for cavity in self.model._mesh._cavities:
@@ -1665,10 +1667,13 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             for node_set in cavity.node_sets:
                 if "endocardium" in node_set["name"]:
                     node_set_ids_endo.append(node_set["id"])
+                    if "septum" in node_set["name"]:
+                        node_set_ids_epi_and_rseptum.append(node_set["id"])
                     if cavity.name == "Left ventricle":
                         node_set_id_lv_endo = node_set["id"]
                 elif "epicardium" in node_set["name"]:
                     node_sets_ids_epi.append(node_set["id"])
+                    node_set_ids_epi_and_rseptum.append(node_set["id"])
 
             if cavity.name == "Left ventricle":
                 node_apex = np.array([cavity.apex_id["epicardium"]])
@@ -1829,6 +1834,16 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
             self.kw_database.create_fiber.append(set_add_kw)
 
+            # combine node sets epicardium and septum:
+            node_set_all_but_left_endocardium = 1002
+            set_add_kw = keywords.SetNodeAdd(sid=node_set_all_but_left_endocardium)
+
+            set_add_kw.options["TITLE"].active = True
+            set_add_kw.title = "all_but_left_endocardium"
+            set_add_kw.nodes._data = node_set_ids_epi_and_rseptum
+
+            self.kw_database.create_fiber.append(set_add_kw)
+
             node_set_id_base = 200
             node_set_id_apex = 201
             # create node-sets for base and apex
@@ -1870,7 +1885,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
                     id=3,
                     partid=2,  # set part id 2: septum
                     stype=2,  # set type 1 == segment set
-                    ssid1=node_set_id_all_epicardium,
+                    ssid1=node_set_all_but_left_endocardium,
                     ssid2=node_set_id_lv_endo,
                 )
             )

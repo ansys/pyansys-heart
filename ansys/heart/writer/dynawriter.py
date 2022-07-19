@@ -1187,7 +1187,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # closed loop uses a custom executable
         if self.system_model_name == "ClosedLoop":
-            logger.warning("Note that this model type requires a custom executable that supports the Closed Loop circulation model!")
+            logger.warning(
+                "Note that this model type requires a custom executable that supports the Closed Loop circulation model!"
+            )
             if model_type in ["FourChamber", "BiVentricle"]:
                 file_path = os.path.join(
                     Path(__file__).parent.absolute(),
@@ -1389,12 +1391,12 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self._add_cap_bc(bc_type="fix_caps")
         self._add_pericardium_bc()
 
-        # Approximate end-diastolic pressures
-        pressure_lv = 2  # kPa
-        pressure_rv = 0.5333  # kPa
-
         self._update_cap_elements_db()
-        self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
+
+        # # Approximate end-diastolic pressures
+        # pressure_lv = 2  # kPa
+        # pressure_rv = 0.5333  # kPa
+        # self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
         # zerop key words
         self._add_control_reference_configuration()

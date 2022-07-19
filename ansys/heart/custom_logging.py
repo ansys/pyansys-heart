@@ -105,7 +105,3 @@ class Logger:
 
 LOGGER = Logger()
 LOGGER.enable_logging_to_stdout()
-
-if __name__ == "__main__":
-    print()
-    # log = CustomLogger( to_stdout = True )

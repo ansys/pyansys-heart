@@ -37,7 +37,9 @@ def create_ls_dyna_files(path_to_model_info: str, writer_type: str, export_direc
 
     # create dyna writer based on type of writer requested
     if writer_type == "Mechanics":
-        dyna_writer = MechanicsDynaWriter(heart_model)
+        dyna_writer = MechanicsDynaWriter(
+            heart_model, system_model_name="ConstantPreloadWindkesselAfterload"
+        )
     elif writer_type == "ZeroPressure":
         dyna_writer = ZeroPressureMechanicsDynaWriter(heart_model)
     elif writer_type == "FiberGeneration":
@@ -55,21 +57,21 @@ if __name__ == "__main__":
 
     base_folder = os.path.join(Path(__file__).parents[3], "downloads", "Strocchi2020_Demo1.2")
     case_folders = [
-        "p04",
+        # "p04",
         "p05",
-        "p06",
-        "p08",
-        "p09",
-        "p10",
-        "p12",
-        "p13",
-        "p14",
-        "p16",
-        "p19",
-        "p21",
-        "p22",
-        "p23",
-        "p24",
+        # "p06",
+        # "p08",
+        # "p09",
+        # "p10",
+        # "p12",
+        # "p13",
+        # "p14",
+        # "p16",
+        # "p19",
+        # "p21",
+        # "p22",
+        # "p23",
+        # "p24",
     ]
     for case_folder in case_folders:
 

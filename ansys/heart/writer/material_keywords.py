@@ -8,7 +8,7 @@ MatNull
 import pandas as pd
 import numpy as np
 
-from ansys.heart.custom_logging import logger
+from ansys.heart.custom_logging import LOGGER
 
 from ansys.dyna.keywords import keywords
 
@@ -81,7 +81,14 @@ class MaterialHGOMyocardium(keywords.Mat295):
 
         # initialize isotropic module
         super().__init__(
-            mid=mid, rho=rho, aopt=aopt, itype=itype, beta=beta, nu=nu, k1=k1, k2=k2,
+            mid=mid,
+            rho=rho,
+            aopt=aopt,
+            itype=itype,
+            beta=beta,
+            nu=nu,
+            k1=k1,
+            k2=k2,
         )
 
         if not add_anisotropy and add_active:
@@ -155,7 +162,9 @@ class MaterialHGOMyocardium(keywords.Mat295):
 
 
 def active_curve(
-    curve_type: str = "Strocchi2020", endtime: float = 15, timestep: float = 1e-2,
+    curve_type: str = "Strocchi2020",
+    endtime: float = 15,
+    timestep: float = 1e-2,
 ):
     """Computes various (normalized) curves used for the active module
 
@@ -172,7 +181,7 @@ def active_curve(
         # parameters used in Strocchi:
 
         # NOTE: in milliseconds
-        logger.warning("End-time set to 1000 ms: Strocchi uses 800 ms")
+        LOGGER.warning("End-time set to 1000 ms: Strocchi uses 800 ms")
         t_end = 1000  # note in Strocchi this seems to be 800 ms actually
         t = np.arange(0, t_end, timestep * 1e3)
         # Tpeak = 125

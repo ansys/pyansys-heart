@@ -11,7 +11,7 @@ from tqdm import tqdm  # for progress bar
 from ansys.heart.preprocessor.heart_model import HeartModel
 from ansys.heart.preprocessor.cavity_module import ClosingCap
 
-from ansys.heart.custom_logging import logger
+from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.vtk_module import (
     get_tetra_info_from_unstructgrid,
     vtk_surface_filter,
@@ -127,7 +127,7 @@ class BaseDynaWriter:
                 continue
             # skip if no keywords are present in the deck
             if len(deck.keywords) == 0:
-                logger.debug("No keywords in deck: {0}".format(deckname))
+                LOGGER.debug("No keywords in deck: {0}".format(deckname))
                 continue
             self.include_files.append(deckname)
         return
@@ -241,7 +241,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
     def export(self, export_directory: str):
         """Writes the model to files"""
         tstart = time.time()
-        logger.debug("Writing all LS-DYNA .k files...")
+        LOGGER.debug("Writing all LS-DYNA .k files...")
 
         if not export_directory:
             export_directory = self.model.info.working_directory
@@ -263,7 +263,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._export_cavity_segmentsets(export_directory)
 
         tend = time.time()
-        logger.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
+        LOGGER.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
 
         return
 
@@ -273,7 +273,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         -----
         Consider using a settings (json?) file as input
         """
-        logger.debug("Updating main keywords...")
+        LOGGER.debug("Updating main keywords...")
 
         self.kw_database.main.title = self.model.info.model_type
 
@@ -287,7 +287,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
     def _update_node_db(self):
         """Adds nodes to the Node database"""
-        logger.debug("Updating node keywords...")
+        LOGGER.debug("Updating node keywords...")
         node_kw = keywords.Node()
         node_kw = add_nodes_to_kw(self.volume_mesh["nodes"], node_kw)
 
@@ -301,7 +301,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         cavity associated with one material
         """
 
-        logger.debug("Updating part keywords...")
+        LOGGER.debug("Updating part keywords...")
         # add parts with a dataframe
         part_ids = []
         part_id = 0
@@ -336,7 +336,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         Each cavity contains one myocardium which consists corresponds
         to one part.
         """
-        logger.debug("Updating solid element keywords...")
+        LOGGER.debug("Updating solid element keywords...")
         cell_data_fields = self.volume_mesh["cell_data"].keys()
         if "fiber" not in cell_data_fields or "sheet" not in cell_data_fields:
             raise KeyError("Mechanics writer requires fiber and sheet fields")
@@ -347,7 +347,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         solid_element_count = 0  # keeps track of number of solid elements already defined
 
         for cavity in self.model._mesh._cavities:
-            logger.debug("Writing elements for myocardium" " attached to cavity: " + cavity.name)
+            LOGGER.debug("Writing elements for myocardium" " attached to cavity: " + cavity.name)
 
             # get list of elements to write to the database. Create new keyword
             # for each part. Parts defined by element sets
@@ -734,7 +734,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         scale_factor_radial *= nodal_areas
 
         # -------------------------------------------------------------------
-        logger.debug("Adding spring b.c. for cap: %s" % cap.name)
+        LOGGER.debug("Adding spring b.c. for cap: %s" % cap.name)
 
         # add part, section discrete, mat spring, sd_orientiation
         # element discrete
@@ -817,7 +817,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         uvc_l = self.volume_mesh["point_data"]["uvc_longitudinal"]
 
         if np.any(uvc_l < 0):
-            logger.warning(
+            LOGGER.warning(
                 "Negative normalized longitudinal coordinate detected."
                 "Changing {0} negative uvc_l values to 1".format(np.sum((uvc_l < 0))),
             )
@@ -827,12 +827,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # collect all pericardium nodes:
         epicardium_nodes = np.empty(0, dtype=int)
-        logger.debug("Collecting epicardium nodesets:")
+        LOGGER.debug("Collecting epicardium nodesets:")
         for cavity in self.model._mesh._cavities:
             if cavity.name == "Right ventricle" or cavity.name == "Left ventricle":
                 for nodeset in cavity.node_sets:
                     if nodeset["name"] == "epicardium":
-                        logger.debug("\t{0} {1}".format(cavity.name, nodeset["name"]))
+                        LOGGER.debug("\t{0} {1}".format(cavity.name, nodeset["name"]))
                         epicardium_nodes = np.append(epicardium_nodes, nodeset["set"])
 
         # select only nodes that are on the epicardium and penalty factor > 0.1
@@ -952,7 +952,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         uvc_l = self.volume_mesh["point_data"]["uvc_longitudinal"]
 
         if np.any(uvc_l < 0):
-            logger.warning(
+            LOGGER.warning(
                 "Negative normalized longitudinal coordinate detected. Changing {0}"
                 "negative uvc_l values to 1".format(np.sum((uvc_l < 0))),
             )
@@ -963,12 +963,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # collect all pericardium nodes:
         epicardium_segment = np.empty((0, 3), dtype=int)
 
-        logger.debug("Collecting epicardium nodesets:")
+        LOGGER.debug("Collecting epicardium nodesets:")
         for cavity in self.model._mesh._cavities:
             if cavity.name == "Right ventricle" or cavity.name == "Left ventricle":
                 for sgm_set in cavity.segment_sets:
                     if sgm_set["name"] == "epicardium":
-                        logger.debug("\t{0} {1}".format(cavity.name, sgm_set["name"]))
+                        LOGGER.debug("\t{0} {1}".format(cavity.name, sgm_set["name"]))
                         epicardium_segment = np.vstack((epicardium_segment, sgm_set["set"]))
 
         penalty = np.mean(
@@ -996,7 +996,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         cnt = 0
         load_sgm_kws = []
         segment_ids = []
-        logger.debug("Creating segment sets for epicardium b.c.:")
+        LOGGER.debug("Creating segment sets for epicardium b.c.:")
 
         penalty_threshold = 0.01
         for isg, sgmt in enumerate(tqdm(epicardium_segment, ascii=True)):
@@ -1187,7 +1187,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # closed loop uses a custom executable
         if self.system_model_name == "ClosedLoop":
-            logger.warning(
+            LOGGER.warning(
                 "Note that this model type requires a custom executable that supports the Closed Loop circulation model!"
             )
             if model_type in ["FourChamber", "BiVentricle"]:
@@ -1409,7 +1409,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
     def export(self, export_directory: str):
         """Writes the model to files"""
         tstart = time.time()
-        logger.debug("Writing all LS-DYNA .k files...")
+        LOGGER.debug("Writing all LS-DYNA .k files...")
 
         if not export_directory:
             export_directory = self.model.info.working_directory
@@ -1418,7 +1418,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.export_databases(export_directory)
 
         tend = time.time()
-        logger.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
+        LOGGER.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
 
         return
 
@@ -1482,7 +1482,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
     def _add_control_reference_configuration(self):
         """Adds control reference configuration keyword to main"""
-        logger.debug("Adding *CONTROL_REFERENCE_CONFIGURATION to main.k")
+        LOGGER.debug("Adding *CONTROL_REFERENCE_CONFIGURATION to main.k")
         kw = keywords.ControlReferenceConfiguration(maxiter=3, target="nodes.k", method=2, tol=5)
 
         self.kw_database.main.append(kw)
@@ -1512,7 +1512,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
             elif cavity.name == "Right ventricle":
                 scale_factor = pressure_rv
 
-            logger.debug(
+            LOGGER.debug(
                 "Adding end-diastolic pressure of {0} to {1}".format(scale_factor, cavity.name)
             )
 
@@ -1571,7 +1571,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
     def export(self, export_directory: str):
         """Writes the model to files"""
         tstart = time.time()
-        logger.debug("Writing all LS-DYNA .k files...")
+        LOGGER.debug("Writing all LS-DYNA .k files...")
 
         if not export_directory:
             export_directory = self.model.info.working_directory
@@ -1580,14 +1580,14 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         self.export_databases(export_directory)
 
         tend = time.time()
-        logger.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
+        LOGGER.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
 
         return
 
     def _keep_ventricles(self):
         """Removes any cavity except the ventricular cavities"""
         # just keep ventricles in case of four chamber model
-        logger.warning("Just keeping ventricular-parts for fiber generation")
+        LOGGER.warning("Just keeping ventricular-parts for fiber generation")
         cavities_to_keep = []
         for ii, cavity in enumerate(self.model._mesh._cavities):
             if "ventricle" in cavity.name:
@@ -1701,7 +1701,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
         # remove nodes that occur just in atrial part
         mask = np.isin(nodes_base, tetra_ventricles, invert=True)
-        logger.debug("Removing {0} nodes from base nodes".format(np.sum(mask)))
+        LOGGER.debug("Removing {0} nodes from base nodes".format(np.sum(mask)))
         nodes_base = nodes_base[np.invert(mask)]
 
         # create set parts for lv and rv myocardium
@@ -1719,7 +1719,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
         # switch between the various models to generate valid input decks
         if self.model.info.model_type in ["LeftVentricle"]:
-            logger.warning("Model type %s in development " % self.model.info.model_type)
+            LOGGER.warning("Model type %s in development " % self.model.info.model_type)
 
             # Define part set for myocardium
             part_list1_kw = keywords.SetPartList(
@@ -1806,7 +1806,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             )
 
         elif self.model.info.model_type in ["BiVentricle", "FourChamber"]:
-            logger.warning("Model type %s under development " % self.model.info.model_type)
+            LOGGER.warning("Model type %s under development " % self.model.info.model_type)
 
             # Define part set for myocardium
             part_list1_kw = keywords.SetPartList(

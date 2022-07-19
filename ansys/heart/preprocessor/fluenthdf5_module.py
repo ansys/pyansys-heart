@@ -3,7 +3,7 @@ import numpy as np
 import time
 import meshio
 from typing import List, Optional
-from ansys.heart.custom_logging import logger
+from ansys.heart.custom_logging import LOGGER
 
 
 """Module containing functions to read/write fluent meshes in HDF5 format
@@ -241,7 +241,7 @@ def face_group_to_tetrahedrons(face_group: h5py.Group, face_zone_names: List[str
 
     tetrahedrons = np.empty((num_elem, 4), dtype=int)
 
-    logger.info("Generating {0} tetrahedrons...".format(num_elem))
+    LOGGER.info("Generating {0} tetrahedrons...".format(num_elem))
 
     t0 = time.time()
 

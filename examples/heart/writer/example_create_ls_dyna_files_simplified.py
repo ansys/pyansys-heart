@@ -3,7 +3,7 @@ from pathlib import Path
 
 from ansys.heart.preprocessor.heart_model import HeartModel
 from ansys.heart.preprocessor.model_information import ModelInformation
-from ansys.heart.custom_logging import logger
+from ansys.heart.custom_logging import LOGGER
 from ansys.heart.writer.dynawriter import (
     FiberGenerationDynaWriter,
     MechanicsDynaWriter,
@@ -18,7 +18,7 @@ def create_ls_dyna_files(path_to_model_info: str, writer_type: str, export_direc
     """Creates the LS-DYNA files for the model specified"""
 
     if writer_type not in ["Mechanics", "ZeroPressure", "FiberGeneration"]:
-        logger.error("Writer type %s not valid" % writer_type)
+        LOGGER.error("Writer type %s not valid" % writer_type)
         return
 
     if not export_directory:
@@ -48,7 +48,7 @@ def create_ls_dyna_files(path_to_model_info: str, writer_type: str, export_direc
     dyna_writer.update()
     dyna_writer.export(export_directory)
 
-    logger.info("** DONE ** ")
+    LOGGER.info("** DONE ** ")
 
     return
 

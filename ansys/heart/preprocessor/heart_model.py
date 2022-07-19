@@ -4,7 +4,7 @@ from ansys.heart.preprocessor.heart_mesh import HeartMesh
 from ansys.heart.preprocessor.model_information import ModelInformation
 
 # import logger
-from ansys.heart.custom_logging import logger
+from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.vtk_module import (
     read_vtk_polydata_file,
     vtk_remove_arrays,
@@ -51,7 +51,7 @@ class HeartModel:
         """
 
         # exposed to user
-        logger.info("Loading heart model from: %s " % filename)
+        LOGGER.info("Loading heart model from: %s " % filename)
         model_info = self._mesh.load_mesh(filename)
         self.info = model_info
         return
@@ -75,7 +75,7 @@ class HeartModel:
             files = glob.glob(os.path.join(self.info.working_directory, "*"))
 
             if len(files) > 0:
-                logger.debug("Files detected: cleaning all files from directory")
+                LOGGER.debug("Files detected: cleaning all files from directory")
             for f in files:
                 os.remove(f)
 
@@ -108,7 +108,7 @@ class HeartModel:
 
         if remesh:
             mesh_size = self.info.mesh_size
-            logger.info("Remeshing uniformly with mesh size: %f " % mesh_size)
+            LOGGER.info("Remeshing uniformly with mesh size: %f " % mesh_size)
             self._mesh.remesh_volume(
                 mesher="fluent", mesh_size=mesh_size
             )  # need to make this dynamic.
@@ -123,7 +123,7 @@ class HeartModel:
             self.info.is_remeshed = False
             self.info._mesh_size = None
             # raise ValueError("Using original input data for simulation " "not yet supported")
-            logger.warning("Extracting mesh without remeshing not thoroughly tested yet")
+            LOGGER.warning("Extracting mesh without remeshing not thoroughly tested yet")
 
         # extract surface from remeshed volume mesh
         self._mesh.get_surface_from_volume()
@@ -197,7 +197,7 @@ class HeartModel:
         # get node sets from segment sets
         for cavity in self._mesh._cavities:
             # remove any defined node-sets
-            logger.debug("Removing %d nodesets" % len(cavity.node_sets))
+            LOGGER.debug("Removing %d nodesets" % len(cavity.node_sets))
             cavity.node_sets = []
             # NOTE: this duplicates the nodes on the intersection of the
             for segset in cavity.segment_sets:

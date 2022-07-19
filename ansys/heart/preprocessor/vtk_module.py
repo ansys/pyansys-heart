@@ -6,7 +6,7 @@ import copy
 import numpy as np
 import meshio
 
-from ansys.heart.custom_logging import logger
+from ansys.heart.custom_logging import LOGGER
 
 from typing import List, Union
 
@@ -63,11 +63,11 @@ def vtk_read_mesh_file(path_to_mesh: str):
 
     # reads .case (ensight):
     if mesh_extension == ".case":
-        logger.debug("Reading ensight file...{0}".format(path_to_mesh))
+        LOGGER.debug("Reading ensight file...{0}".format(path_to_mesh))
         vtk_data = read_ensight_file(path_to_mesh)
     # reads .vtk
     elif mesh_extension == ".vtk":
-        logger.debug("Reading vtk file...{0}".format(path_to_mesh))
+        LOGGER.debug("Reading vtk file...{0}".format(path_to_mesh))
         vtk_data = read_vtk_unstructuredgrid_file(path_to_mesh)
 
     return vtk_data
@@ -125,7 +125,7 @@ def get_tetra_info_from_unstructgrid(vtk_grid: vtk.vtkUnstructuredGrid, get_all_
     """Gets tetrahedron nodes, connectivity and cell/point data from
     vtk poly data object. Returns as numpy arrays"""
 
-    logger.debug("Extracting tetrahedron cell and point data...")
+    LOGGER.debug("Extracting tetrahedron cell and point data...")
     # read nodes into numpy array
     nodes = VN.vtk_to_numpy(vtk_grid.GetPoints().GetData())
 
@@ -165,7 +165,7 @@ def get_tetra_info_from_unstructgrid(vtk_grid: vtk.vtkUnstructuredGrid, get_all_
             point_data[array_name] = VN.vtk_to_numpy(vtk_grid.GetPointData().GetArray(array_name))
 
     else:
-        logger.debug("Not implemented reading specific cell data arrays based on name yet")
+        LOGGER.debug("Not implemented reading specific cell data arrays based on name yet")
 
     return nodes, tetra, cell_data, point_data
 
@@ -205,7 +205,7 @@ def get_tri_info_from_polydata(vtk_polydata: vtk.vtkPolyData, get_all_data=True)
         global_ids = VN.vtk_to_numpy(vtk_polydata.GetPointData().GetGlobalIds())
         point_data["global_ids"] = global_ids
     except:
-        logger.debug("Global Ids were not added to point data...")
+        LOGGER.debug("Global Ids were not added to point data...")
 
     return nodes, tris, cell_data, point_data
 
@@ -314,7 +314,7 @@ def threshold_vtk_data_integers(
 
 def vtk_surface_filter(vtk_grid: vtk.vtkUnstructuredGrid, keep_global_ids: bool = False):
     """Extracts surface from a vtk object (polydata or unstructured grid)"""
-    logger.debug("Extracting surface from vtk unstructured grid...")
+    LOGGER.debug("Extracting surface from vtk unstructured grid...")
     # make sure global id will be kept
     if keep_global_ids:
         with_id = vtk.vtkGenerateGlobalIds()  # noqa
@@ -352,8 +352,8 @@ def convert_vtk_into_tetra_only(path_to_vtkfile: str):
     elems = mesh.get_cells_type("tetra")
     meshio.write_points_cells(path_to_vtkfile, points, [("tetra", elems)])
 
-    logger.debug("Number of nodes generated: {0}".format(len(points)))
-    logger.debug("Number of elements generated: {0}".format(len(elems)))
+    LOGGER.debug("Number of nodes generated: {0}".format(len(points)))
+    LOGGER.debug("Number of elements generated: {0}".format(len(elems)))
     return
 
 
@@ -607,7 +607,7 @@ def vtk_map_continuous_data(
         )
         for exclude in excludes:
             interpolator.AddExcludedArray(exclude)
-        logger.debug("Excluding %d array names" % len(excludes))
+        LOGGER.debug("Excluding %d array names" % len(excludes))
 
     interpolator.Update()
 
@@ -628,7 +628,7 @@ def vtk_map_continuous_data(
             break
 
         if name not in cell_array_names_source and name not in cell_array_names_target:
-            logger.debug("Removing cell data..." + name)
+            LOGGER.debug("Removing cell data..." + name)
             vtk_remove_arrays(target_updated, array_name=name, data_type="cell_data")
 
         else:
@@ -641,7 +641,7 @@ def vtk_map_continuous_data(
             break
 
         if name not in point_array_names_source and name not in point_array_names_target:
-            logger.debug("Removing point data..." + name)
+            LOGGER.debug("Removing point data..." + name)
             vtk_remove_arrays(target_updated, array_name=name, data_type="point_data")
         else:
             ii = ii + 1
@@ -656,7 +656,7 @@ def vtk_map_continuous_data(
     # results in a file which cannot be read with Paraview.
 
     normalize_vectors = False
-    logger.warning("Normalization of vectors is buggy and turned off")
+    LOGGER.warning("Normalization of vectors is buggy and turned off")
 
     if normalize_vectors:
         for key in target_updated1.CellData.keys():
@@ -669,13 +669,13 @@ def vtk_map_continuous_data(
                 normalize = False
 
             if normalize:
-                logger.debug("Normalizing data: " + key)
+                LOGGER.debug("Normalizing data: " + key)
                 norm = np.linalg.norm(data, axis=1)
                 data = data / norm[:, None]
                 data = np.array(data)
                 add_vtk_array(target_updated1.VTKObject, data, key, "cell", float)
 
-    logger.warning("Removed returning cell / point data")
+    LOGGER.warning("Removed returning cell / point data")
 
     return target_updated1.VTKObject
 
@@ -838,7 +838,7 @@ def rename_vtk_array(
             vtk_array = vtkobject.GetCellData().GetArray(ii)
             array_name = vtkobject.GetCellData().GetArray(ii).GetName()
             if array_name == old_array_name:
-                logger.debug(
+                LOGGER.debug(
                     "Replacing old cell data name '{0}' with new name: '{1}'".format(
                         array_name, new_array_name
                     )
@@ -851,7 +851,7 @@ def rename_vtk_array(
         for ii in range(num_point_data):
             array_name = vtkobject.GetPointData().GetArrayName(ii)
             if array_name == old_array_name:
-                logger.debug(
+                LOGGER.debug(
                     "Replacing old point data name '{0}' with new name: '{1}'".format(
                         array_name, new_array_name
                     )
@@ -859,7 +859,7 @@ def rename_vtk_array(
                 vtkobject.GetPointData().GetArray(ii).SetName(new_array_name)
                 replaced += 1
     if replaced == 0:
-        logger.debug("No array names replaced")
+        LOGGER.debug("No array names replaced")
 
     return vtkobject
 
@@ -1147,7 +1147,7 @@ def vtk_unstructured_grid_to_numpy(vtk_object: vtk.vtkUnstructuredGrid):
         cell_type = cell_types[start_indices_cellblock[block]]
         num_nodes_per_cell = supported_cell_types[cell_type]["num_nodes"]
 
-        logger.debug("\tReading {0} block".format(supported_cell_types[cell_type]["name"]))
+        LOGGER.debug("\tReading {0} block".format(supported_cell_types[cell_type]["name"]))
 
         start_idx = start_indices_cellblock[block] + offset
         end_idx = end_indices_cellblock[block] * (num_nodes_per_cell + 1) + offset
@@ -1488,7 +1488,7 @@ def remove_triangle_layers_from_trimesh(triangles: np.array, iters: int = 1) -> 
         #         axis = 1),
         #     axis = 0 )
 
-        logger.debug("Removing {0} connected triangles".format(np.sum(idx_triangles_boundary)))
+        LOGGER.debug("Removing {0} connected triangles".format(np.sum(idx_triangles_boundary)))
 
         # remove boundary triangles
         reduced_triangles = reduced_triangles[~idx_triangles_boundary, :]
@@ -1564,8 +1564,8 @@ def mark_elements_inside_surfaces(
 
     # NOTE: very slow!
     # cell_tags of value -1 were outside all the surfaces - find the first connected tetrahedron
-    logger.debug("%d cells not enclosed by any of the given surfaces" % np.sum(cell_tags == -1))
-    logger.debug("Assigning data of closest cells")
+    LOGGER.debug("%d cells not enclosed by any of the given surfaces" % np.sum(cell_tags == -1))
+    LOGGER.debug("Assigning data of closest cells")
     for cell_id in tqdm.tqdm(np.where(cell_tags == -1)[0], ascii=True):
         # use data from closest tetrahedron
         centroid = centroids[cell_id]

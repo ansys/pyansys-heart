@@ -24,6 +24,10 @@ CASE_PATH_CRISTOBAL = os.path.join(
 BASE_WORK_DIR = os.path.join(Path(__file__).parent.absolute(), "..", "workdir")
 
 
+# DOWNLOAD_PATH = os.path.join(Path(__file__).parents[3], "downloads")
+# CASE_PATH_STROCCHI = os.path.join(DOWNLOAD_PATH, "Strocchi2020", "05", "05.case")
+
+
 def run_preprocessor(
     model_type: str,
     database_name: str,
@@ -83,7 +87,7 @@ if __name__ == "__main__":
 
         for model_type in models_to_run:
             logger.info("***************************")
-            work_directory = os.path.join(BASE_WORK_DIR, database, model_type)
+            work_directory = os.path.join(Path(case_path).parent, "workdir")
 
             if model_type in ["LeftVentricle", "BiVentricle", "FourChamber"]:
                 do_remesh = True

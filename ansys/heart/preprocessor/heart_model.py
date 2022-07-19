@@ -157,6 +157,7 @@ class HeartModel:
             read_vtk_polydata_file,
         )
         import numpy as np
+        import copy
 
         # node-tag mapping:
         cavity_tag_map = {"Left ventricle": 1, "Right ventricle": 2}
@@ -191,7 +192,7 @@ class HeartModel:
 
         self._mesh.get_cavity_cap_intersections_simplified(node_tag_map)
 
-        self._mesh.mesh_volume_from_simplified(node_tag_map, mesh_size=1.5)
+        self._mesh.mesh_volume_from_simplified(node_tag_map, self.info.mesh_size)
 
         # get node sets from segment sets
         for cavity in self._mesh._cavities:

@@ -25,8 +25,9 @@ class IcvOut:
 
         except ImportError:
             # todo: support ASCII
-            print("Need to provide ASCII version")
-            exit()
+            raise ImportError("qd not found. Install qd by 'python -m pip -install qd'")
+            # print("Need to provide ASCII version")
+            # exit()
 
         # Fix small bug in LSDYNA Output: Volume is 0 at t0
         # V1 = V0 + dt * (1-gamma) * Q0
@@ -236,9 +237,7 @@ class SystemModelPost:
         if ignore_filling:
             i_start = np.where(time > self.prefill_duration)[0][0]
         if last_loop:
-            i_start = np.where(time > self.bin.time[-1] - 1.1 * self.cycle_duration)[0][
-                0
-            ]
+            i_start = np.where(time > self.bin.time[-1] - 1.1 * self.cycle_duration)[0][0]
         axis[0].set_xlim([time[i_start], time[-1]])
 
         # find where both valves are closed: iso-volume
@@ -303,9 +302,7 @@ class SystemModelPost:
         axis[0].set_ylabel("Pressure (kPa)")
 
         axis[1].plot(self.bin.time[0:i_end], self.bin.volume[0:i_end, id])
-        axis[1].hlines(
-            self.v_ed[id], 0, self.prefill_duration, linestyles="--", color="orange"
-        )
+        axis[1].hlines(self.v_ed[id], 0, self.prefill_duration, linestyles="--", color="orange")
         axis[1].set_ylabel("Volume (mL)")
 
         axis[2].plot(self.bin.time[0:i_end], self.bin.flow[0:i_end, id])
@@ -387,12 +384,12 @@ class SystemModelPost:
             vlv = interp1d(self.bin.time, self.bin.volume[:, 0])(self.lv["time"])
             vrv = interp1d(self.bin.time, self.bin.volume[:, 1])(self.rv["time"])
             v_total = (
-                    vlv
-                    + self.lv["vart"]
-                    + self.lv["vven"]
-                    + vrv
-                    + self.lv["v_part"]
-                    + self.lv["v_pven"]
+                vlv
+                + self.lv["vart"]
+                + self.lv["vven"]
+                + vrv
+                + self.lv["v_part"]
+                + self.lv["v_pven"]
             )
             if plot_all:
                 axis.plot(self.lv["time"], self.lv["vart"], label="vart")
@@ -413,6 +410,3 @@ class SystemModelPost:
         axis.legend()
 
         return fig
-
-
-

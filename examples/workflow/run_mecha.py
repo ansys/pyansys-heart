@@ -4,13 +4,13 @@
 #################################################################
 MPI = True
 LSDYNA = "mppdyna"
-NCPU = 6
+NCPU = 8
 #################################################################
 import os
 import shutil
 import subprocess
 from compute_volume import update_system_json
-from pericardium_offset import add_pericardium_offset
+
 
 def run_lsdyna(sim_file, option=""):
     """
@@ -56,34 +56,46 @@ def get_zerop_guess_file():
 
 def main():
     """
-    Run Zerop + Closed loop
+    Run Fiber generation + Zerop + Closed loop
     Returns
     -------
     """
 
+    # Run fiber generation
+    os.chdir("fibergeneration")
+    run_lsdyna("main.k")
+    os.chdir("..")
+
+    # todo: works only with BV, extend to 4C case
+    shutil.copy2(
+        os.path.join("fibergeneration", "element_solid_ortho.k"),
+        os.path.join("zeropressure", "solid_elements.k"),
+    )
+    shutil.copy2(
+        os.path.join("fibergeneration", "element_solid_ortho.k"),
+        os.path.join("mechanics", "solid_elements.k"),
+    )
+
     # run zerop simulation
-    os.chdir("lsdyna_files_zeropressure")
+    os.chdir("zeropressure")
     run_lsdyna("main.k", "case")
 
     # get the result file and copy it to main directory
     guess_file = get_zerop_guess_file()
     os.chdir("..")
     shutil.copy2(
-        os.path.join("lsdyna_files", "nodes.k"),
-        os.path.join("lsdyna_files", "nodes_eod.k"),
+        os.path.join("mechanics", "nodes.k"),
+        os.path.join("mechanics", "nodes_eod.k"),
     )
     shutil.copy2(
-        os.path.join("lsdyna_files_zeropressure", guess_file),
-        os.path.join("lsdyna_files", "nodes.k"),
+        os.path.join("zeropressure", guess_file),
+        os.path.join("mechanics", "nodes.k"),
     )
 
-    os.chdir("lsdyna_files")
+    os.chdir("mechanics")
 
-    # change unstressed volume in Josn file
+    # change unstressed volume in Json file
     update_system_json("nodes.k")
-
-    # add pericardium springs offset
-    add_pericardium_offset()
 
     # run closed loop simulation
     run_lsdyna("main.k")

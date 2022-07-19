@@ -626,9 +626,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
         caps_to_use = []
         if self.model.info.model_type in ["LeftVentricle", "BiVentricle"]:
             # use all caps:
-            for cavity in self.model._mesh._cavities:
-                for cap in cavity.closing_caps:
-                    caps_to_use.append(cap.name)
+            # for cavity in self.model._mesh._cavities:
+            #     for cap in cavity.closing_caps:
+            #         caps_to_use.append(cap.name)
+            caps_to_use = [
+                "Mitral valve plane",
+                "Tricuspid valve plane",
+            ]
 
         elif self.model.info.model_type in ["FourChamber"]:
             caps_to_use = [
@@ -661,8 +665,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
             mat_id = 200
 
             # TODO: exposed to user/parameters?
-            spring_stiffness = 20  # kPa/mm
-            scale_factor_normal = 1.0
+            if self.model.info.model_type == "BiVentricle":
+                spring_stiffness = 5  # kPa/mm
+            elif self.model.info.model_type == "FourChamber":
+                spring_stiffness = 20  # kPa/mm
+
+            scale_factor_normal = 0.5
             scale_factor_radial = 1.0
 
             part_kw = keywords.Part()
@@ -890,11 +898,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     apex1 = self.volume_mesh["nodes"][apex_node_id, :]
                     for cap in cavity.closing_caps:
                         if cap.name == "Mitral valve plane":
-                            center = cap.centroid
-            # NOTE: consider using the already defined apical point
-            apex = self.volume_mesh["nodes"][np.argmin(abs(uvc_l)), :]
+                            center1 = cap.centroid
+                        elif cap.name == "Aortic valve plane":
+                            center2 = cap.centroid
+            # Change orientation as apex- center of 2 valves plane
+            center = (center2 + center1) / 2
             # define spring orientation from apex to mitral valve
-            orientation = center - apex
+            orientation = center - apex1
             orientation /= np.linalg.norm(orientation)
 
             sd_orientation_kw = create_define_sd_orientation_kw(
@@ -1177,7 +1187,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # closed loop uses a custom executable
         if self.system_model_name == "ClosedLoop":
-            logger.warning("Note that this model type requires a custom executable that supports the Closed Loop circulation model!")
+            logger.warning(
+                "Note that this model type requires a custom executable that supports the Closed Loop circulation model!"
+            )
             if model_type in ["FourChamber", "BiVentricle"]:
                 file_path = os.path.join(
                     Path(__file__).parent.absolute(),
@@ -1379,12 +1391,12 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self._add_cap_bc(bc_type="fix_caps")
         self._add_pericardium_bc()
 
-        # Approximate end-diastolic pressures
-        pressure_lv = 2  # kPa
-        pressure_rv = 0.5333  # kPa
-
         self._update_cap_elements_db()
-        self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
+
+        # # Approximate end-diastolic pressures
+        # pressure_lv = 2  # kPa
+        # pressure_rv = 0.5333  # kPa
+        # self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
         # zerop key words
         self._add_control_reference_configuration()

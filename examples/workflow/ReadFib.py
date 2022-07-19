@@ -1,5 +1,7 @@
+"""For the moment this module is not used - but for the moment we keep this for 
+potential future use.
+"""
 import numpy as np
-
 
 def read_orth_element_kfile(fn):
     def get_number_of_elements(file):
@@ -66,12 +68,20 @@ def write_orth_element_kfile(fname, elem_orth):
         f.write("*END\n")
 
 
-def modify_orth_elements():
+def modify_ids_orth_elements():
+    """
+    Part ID is different from FiberGeneration module to simulation modules
+    This script is to change them
+    Returns
+    -------
 
+    """
     elem_ids, part_ids, connect, fib, sheet = read_orth_element_kfile("solid_elements.k")
-    part_ids = np.where(part_ids == 3, 1, part_ids)  # Septum is a part of LV
+    # Septum is a part of LV
+    # Change part ID 3 to ID 1
+    part_ids = np.where(part_ids == 3, 1, part_ids)
     write_orth_element_kfile("solid_elements.k", zip(elem_ids, part_ids, connect, fib, sheet))
 
 
 if __name__ == "__main__":
-    modify_orth_elements()
+    pass

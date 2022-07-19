@@ -32,14 +32,14 @@ from ansys.heart.preprocessor.extractor_module import get_nodes_cap_edge
 # these import the "old" files
 # from preprocessing.extractor_module import *
 from ansys.heart.preprocessor.model_information import ModelInformation
-from ansys.heart.custom_logging import logger
+from ansys.heart.custom_logging import LOGGER
 
 
 class ClosingCap:
     """Definition of the closing cap"""
 
     def __init__(self, name, capid, cap_type=None):
-        """Initializes closing cap """
+        """Initializes closing cap"""
 
         self.name = name
         """Name of the cap"""
@@ -123,12 +123,12 @@ class ClosingCap:
         self._normal = value
 
     def dump_nodes_to_file(self, filename):
-        """Dumps nodes to a file """
+        """Dumps nodes to a file"""
         np.savetxt(filename, self.nodes_source_mesh, delimiter=",")
         return
 
     def compute_centroid_source(self):
-        """Computes the centroid of the cap """
+        """Computes the centroid of the cap"""
         self.centroid = np.mean(self.nodes_source_mesh)
         return self.centroid
 
@@ -137,7 +137,8 @@ class ClosingCap:
         return self.centroid
 
     def get_nodes_that_close_cap(
-        self, surface_myocardium: vtk.vtkPolyData,
+        self,
+        surface_myocardium: vtk.vtkPolyData,
     ):
         """[OBSOLETE] Uses the surface and original/raw nodes of the initial
         surface mesh to extract a "simplified" closing cap. Requires the surface
@@ -148,7 +149,13 @@ class ClosingCap:
 
 class Valve(ClosingCap):
     def __init__(
-        self, name, capid, global_node_ids=None, nodes=None, faces=None, cap_type=None,
+        self,
+        name,
+        capid,
+        global_node_ids=None,
+        nodes=None,
+        faces=None,
+        cap_type=None,
     ):
         super().__init__(name, capid, global_node_ids, nodes, faces, cap_type)
 
@@ -157,7 +164,11 @@ class Cavity:
     """Class that defines the cavity and relevant cavity functions"""
 
     def __init__(
-        self, name: str, vtk_labels: list, vtk_ids: list, model_info: ModelInformation,
+        self,
+        name: str,
+        vtk_labels: list,
+        vtk_ids: list,
+        model_info: ModelInformation,
     ):
 
         self.name = name
@@ -217,7 +228,7 @@ class Cavity:
 
     def _compute_cap_intersection_with_myocardium(self, nodes, elements, tags):
         """Finds the points where the caps of this cavty intersect with the myocardium
-        Needs (global) nodes element definitions and corresponding tags """
+        Needs (global) nodes element definitions and corresponding tags"""
 
         tags = tags
         elems = elements
@@ -229,12 +240,13 @@ class Cavity:
 
         # loop over each cap of the cavity
         for cap in self.closing_caps:
-            logger.debug("Trying to find intersecting nodes for cap {}...".format(cap.name))
+            LOGGER.debug("Trying to find intersecting nodes for cap {}...".format(cap.name))
             # logger.debug("Looking for intersections on cap {0}...".format(cap.name) )
             # loop over connected parts
             # for ii, label in enumerate( self.labels[1:] ):
             node_indices_intersect = np.intersect1d(
-                np.unique(ref_elems.ravel()), np.unique(elems[tags == cap.id].ravel()),
+                np.unique(ref_elems.ravel()),
+                np.unique(elems[tags == cap.id].ravel()),
             )
 
             if len(node_indices_intersect) > 0:
@@ -260,8 +272,7 @@ class Cavity:
         return
 
     def _find_closing_edge_loop(self):
-        """Finds the edgeloops that closes each cavity
-        """
+        """Finds the edgeloops that closes each cavity"""
         # NOTE: Call this from the cap object or cavity object?
 
         labels = self._surfaces.keys()
@@ -274,10 +285,10 @@ class Cavity:
         nodes_myocardium = myocardium_surface.Points
 
         for cap in self.closing_caps:
-            logger.debug("Finding nodes for cap: " + cap.name)
+            LOGGER.debug("Finding nodes for cap: " + cap.name)
 
             if cap.node_ids_cap_edge is not None:
-                logger.debug("Skipping Cap: Node ids already computed and set")
+                LOGGER.debug("Skipping Cap: Node ids already computed and set")
                 continue
 
             cap_normal, node_ids_cap = get_nodes_cap_edge(
@@ -293,7 +304,7 @@ class Cavity:
                 nodes_myocardium[node_ids_cap, :], self.centroid
             )
             if reverse_order:
-                logger.debug("Reversing order of cap nodes: %s" % cap.name)
+                LOGGER.debug("Reversing order of cap nodes: %s" % cap.name)
                 node_ids_cap = np.flip(node_ids_cap)
 
             # get global node ids of volume from "local" surface nodeids
@@ -342,7 +353,7 @@ class Cavity:
 
         all_tris = np.empty((0, 3), dtype=int)
         if add_centroid:
-            logger.error("Adding a centroid node is not supported yet")
+            LOGGER.error("Adding a centroid node is not supported yet")
             for cap in self.closing_caps:
                 node_ids_edge = cap.node_ids_cap_edge
 
@@ -406,7 +417,7 @@ class Cavity:
         mapping to the volume mesh as a point data field
         """
         # extract tag
-        logger.debug("Extracting endo and epicardium for: " + self.labels[0])
+        LOGGER.debug("Extracting endo and epicardium for: " + self.labels[0])
 
         # identify the elements to remove
         nodes, tris, tris_data, point_data = get_tri_info_from_polydata(surface)
@@ -533,13 +544,12 @@ class Cavity:
 
         global_node_ids_septum = idmap_surface_to_volume[node_ids_septum]
 
-        # store in self 
+        # store in self
         for nodeset in self.node_sets:
             if nodeset["name"] == "endocardium":
                 nodeset["set"] = global_node_ids_endocardium
             elif nodeset["name"] == "epicardium":
-                nodeset["set"] = global_node_ids_epicardium           
-        
+                nodeset["set"] = global_node_ids_epicardium
 
         # Septum nodeset only defined when BiVentricle or Four Chamber models are defined
         if self.info.model_type in ["BiVentricle", "FourChamber"] and self.name == "Left ventricle":
@@ -547,12 +557,12 @@ class Cavity:
                 {"name": "epicardium-septum", "set": global_node_ids_septum, "id": 0}
             )
 
-        logger.debug(
+        LOGGER.debug(
             "\tNumber of nodes: [endocardium: {0}, epicardium: {1}]".format(
                 num_nodes_endocardium, num_nodes_epicardium
             )
         )
-        logger.debug(
+        LOGGER.debug(
             "\tRegion ids: [endocardium: {0}, epicardium: {1}".format(
                 region_id_endocardium, region_id_epicardium
             )
@@ -563,8 +573,8 @@ class Cavity:
             nodes.shape[0] - num_nodes_endocardium + num_nodes_epicardium + num_nodes_septum
         )
 
-        logger.debug("\tNumber of nodes in all regions: {0}".format(counts))
-        logger.debug("\tNumber of orphan nodes: {0}".format(num_orphan_nodes))
+        LOGGER.debug("\tNumber of nodes in all regions: {0}".format(counts))
+        LOGGER.debug("\tNumber of orphan nodes: {0}".format(num_orphan_nodes))
 
         path_to_file = os.path.join(
             self.info.working_directory,
@@ -575,8 +585,7 @@ class Cavity:
         return
 
     def _get_endocardium_epicardium_segments(self, vtk_surface: vtk.vtkPolyData):
-        """From the available node sets generate segment sets
-        """
+        """From the available node sets generate segment sets"""
         surface_obj = dsa.WrapDataObject(vtk_surface)
         num_polygons = vtk_surface.GetNumberOfCells()
 
@@ -622,8 +631,8 @@ class Cavity:
         nodes : np.array
             Array with global node coordinates
         """
-        logger.debug("Extracting apical points")
-        logger.warning("No check whether detected point is at an edge")
+        LOGGER.debug("Extracting apical points")
+        LOGGER.warning("No check whether detected point is at an edge")
 
         # get reference point (mid-point between two valve centroids)
         # robust enough to extract apical points for either left or right ventricle?
@@ -654,8 +663,8 @@ class Cavity:
                 if set_name == segset["name"]:
                     free_edges, free_triangles = get_free_edges(triangles, True)
                     if np.isin(global_node_id, free_edges):
-                        logger.warning("Apical point is on edge of segment set")
-                        logger.warning("Selecting point not on edge of segment set")
+                        LOGGER.warning("Apical point is on edge of segment set")
+                        LOGGER.warning("Selecting point not on edge of segment set")
                         # select triangle that has two points on edge
                         free_edge = free_edges[
                             np.argwhere(np.all(np.isin(free_edges, global_node_id), axis=1)), :
@@ -675,8 +684,7 @@ class Cavity:
         return
 
     def compute_volume(self, stl_path: str):
-        """Computes the volume of the enclosed surface
-        """
+        """Computes the volume of the enclosed surface"""
         # uses the inner surface of each cavity to compute the volume
         # vtk_surface = vtk.vtkPolyData
         self.volume = compute_volume_stl(stl_path)
@@ -684,18 +692,19 @@ class Cavity:
         return
 
     def _dump_cap_nodes_to_file(self, working_dir: str):
-        """Dumps the cap nodes to a file """
-        logger.debug("Writing cap raw coordinates to file")
+        """Dumps the cap nodes to a file"""
+        LOGGER.debug("Writing cap raw coordinates to file")
         for cap in self.closing_caps:
             filename = os.path.join(
-                working_dir, "points_" + cap.name.replace(" ", "_").lower() + ".csv",
+                working_dir,
+                "points_" + cap.name.replace(" ", "_").lower() + ".csv",
             )
             cap.dump_nodes_to_file(filename)
 
         return
 
     def _read_cap_nodes_from_file(self, working_dir: str):
-        """Reads the nodes that define the caps from a file """
+        """Reads the nodes that define the caps from a file"""
         for cap in self.closing_caps:
             filename = os.path.join(working_dir, cap.name.lower().replace(" ", "_"))
             try:

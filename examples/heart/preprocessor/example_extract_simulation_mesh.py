@@ -8,7 +8,7 @@ from pathlib import Path
 
 from ansys.heart.preprocessor.heart_model import HeartModel
 from ansys.heart.preprocessor.model_information import ModelInformation
-from ansys.heart.custom_logging import logger
+from ansys.heart.custom_logging import LOGGER
 
 # some useful global variables:
 ASSET_PATH = os.path.join(
@@ -86,7 +86,7 @@ if __name__ == "__main__":
             case_path = CASE_PATH_CRISTOBAL
 
         for model_type in models_to_run:
-            logger.info("***************************")
+            LOGGER.info("***************************")
             work_directory = os.path.join(Path(case_path).parent, "workdir")
 
             if model_type in ["LeftVentricle", "BiVentricle", "FourChamber"]:
@@ -103,6 +103,6 @@ if __name__ == "__main__":
                 remesh=do_remesh,
             )
 
-            logger.info("***************************")
+            LOGGER.info("***************************")
 
-    logger.info("** DONE **")
+    LOGGER.info("** DONE **")

@@ -34,7 +34,7 @@ def create_ls_dyna_files(path_to_model_info: str, writer_type: str, export_direc
 
     clean_directory(export_directory)
 
-    # instantiate model ifnormation and heart model
+    # instantiate model information and heart model
     model_info = ModelInformation()
     heart_model = HeartModel(model_info)
 

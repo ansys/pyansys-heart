@@ -14,7 +14,7 @@ class EmControlEp(KeywordBase):
             Card(
                 [
                     Field("solvetype", int, 0, 10, kwargs.get("solvetype", 4)),
-                    Field("numsplit", int, 10, 10, kwargs.get("numsplit", 5)),
+                    Field("numsplit", int, 10, 10, kwargs.get("numsplit", 1)),
                     Field("actusig", int, 20, 10, kwargs.get("actusig", 100000000)),
                 ],
             ),

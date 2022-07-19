@@ -1,9 +1,3 @@
-"""This examples creates LS-DYNA files from existing
-model_info.json files and its dependencies.
-Run "example_extract_simulation_mesh.py" first to create
-the required files.
-"""
-
 import os
 from pathlib import Path
 
@@ -34,7 +28,7 @@ def create_ls_dyna_files(path_to_model_info: str, writer_type: str, export_direc
 
     clean_directory(export_directory)
 
-    # instantiate model information and heart model
+    # instantiate model ifnormation and heart model
     model_info = ModelInformation()
     heart_model = HeartModel(model_info)
 
@@ -46,7 +40,6 @@ def create_ls_dyna_files(path_to_model_info: str, writer_type: str, export_direc
         dyna_writer = MechanicsDynaWriter(
             heart_model, system_model_name="ConstantPreloadWindkesselAfterload"
         )
-
     elif writer_type == "ZeroPressure":
         dyna_writer = ZeroPressureMechanicsDynaWriter(heart_model)
     elif writer_type == "FiberGeneration":
@@ -62,15 +55,28 @@ def create_ls_dyna_files(path_to_model_info: str, writer_type: str, export_direc
 
 if __name__ == "__main__":
 
-    models_to_run = ["LeftVentricle", "BiVentricle", "FourChamber", "FourChamberOriginal"]
-    models_to_run = ["BiVentricle"]
-    database = "Strocchi2020"
+    base_folder = os.path.join(Path(__file__).parents[3], "downloads", "Strocchi2020_Demo1.2")
+    case_folders = [
+        # "p04",
+        "p05",
+        # "p06",
+        # "p08",
+        # "p09",
+        # "p10",
+        # "p12",
+        # "p13",
+        # "p14",
+        # "p16",
+        # "p19",
+        # "p21",
+        # "p22",
+        # "p23",
+        # "p24",
+    ]
+    for case_folder in case_folders:
 
-    for model in models_to_run:
-        path_model_info = os.path.join(
-            ABS_BASE_PATH, "..", "workdir", database, model, "model_info.json"
-        )
-        # path_model_info = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\05\\workdir\\model_info.json"
+        path_model_info = os.path.join(base_folder, case_folder, "model_info.json")
+
         create_ls_dyna_files(path_model_info, writer_type="Mechanics")
         create_ls_dyna_files(path_model_info, writer_type="ZeroPressure")
         create_ls_dyna_files(path_model_info, writer_type="FiberGeneration")

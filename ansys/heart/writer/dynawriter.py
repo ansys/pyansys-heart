@@ -174,13 +174,34 @@ class MechanicsDynaWriter(BaseDynaWriter):
     """Derived from BaseDynaWriter and derives all keywords relevant
     for simulations involving mechanics"""
 
-    def __init__(self, model: HeartModel) -> None:
+    def __init__(self, model: HeartModel, system_model_name: str = "ClosedLoop") -> None:
         super().__init__(model)
 
         self.kw_database = MechanicsDecks()
         """Collection of keyword decks relevant for mechanics"""
 
+        self.system_model_name = system_model_name
+        """Name of system model to use"""
+
+        # Depending on the system model specified give list of parameters
+
         return
+
+    @property
+    def system_model_name(self):
+        """System model name. Valid options include:
+        ["ConstantPreloadWindkesselAfterload",
+        "ClosedLoop]"""
+        return self._system_model
+
+    @system_model_name.setter
+    def system_model_name(self, value: str):
+        if value not in [
+            "ConstantPreloadWindkesselAfterload",
+            "ClosedLoop",
+        ]:
+            raise ValueError("System model not valid")
+        self._system_model = value
 
     def update(self):
         """Formats the keywords and stores these in the
@@ -190,7 +211,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._update_main_db()
         self._update_node_db()
         self._update_parts_db()
-        self._update_solid_elements_db(add_fibers=True)      
+        self._update_solid_elements_db(add_fibers=True)
         self._update_segmentsets_db()
         self._update_nodesets_db()
         self._update_material_db(add_active=True)
@@ -228,11 +249,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # export .k files
         self.export_databases(export_directory)
 
-        # exports system model
-        path_system_model_settings = os.path.join(export_directory, "system_model_settings.json")
-
-        with open(path_system_model_settings, "w") as outfile:
-            json.dump(self.system_model_json, indent=4, fp=outfile)
+        # add system json in case of closed loop. For open-loop this is already
+        # added in the control volume database
+        if self.system_model_name == "ClosedLoop":
+            # exports system model
+            path_system_model_settings = os.path.join(
+                export_directory, "system_model_settings.json"
+            )
+            with open(path_system_model_settings, "w") as outfile:
+                json.dump(self.system_model_json, indent=4, fp=outfile)
 
         # export segment sets to separate file
         self._export_cavity_segmentsets(export_directory)
@@ -282,7 +307,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         part_id = 0
         mat_id = 0
         for cavity in self.model._mesh._cavities:
-            mat_id  = mat_id + 1
+            mat_id = mat_id + 1
             for element_set in cavity.element_sets:
                 part_id = part_id + 1
                 part_name = " ".join([cavity.name, element_set["name"]])
@@ -312,6 +337,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
         to one part.
         """
         logger.debug("Updating solid element keywords...")
+        cell_data_fields = self.volume_mesh["cell_data"].keys()
+        if "fiber" not in cell_data_fields or "sheet" not in cell_data_fields:
+            raise KeyError("Mechanics writer requires fiber and sheet fields")
+            # logger.warning("Not writing fiber and sheet directions")
+            # add_fibers = False
+
         # create elements for each separate cavity
         solid_element_count = 0  # keeps track of number of solid elements already defined
 
@@ -325,14 +356,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 part_id = element_set["id"]
 
                 tetra_to_write = self.volume_mesh["tetra"][tetra_idx, :] + 1
-                fiber = self.volume_mesh["cell_data"]["fiber"][tetra_idx]
-                sheet = self.volume_mesh["cell_data"]["sheet"][tetra_idx]
-
-                # normalize fiber and sheet directions:
-                norm = np.linalg.norm(fiber, axis=1)
-                fiber = fiber / norm[:, None]
-                norm = np.linalg.norm(sheet, axis=1)
-                sheet = sheet / norm[:, None]
 
                 num_elements = len(tetra_idx)
 
@@ -359,6 +382,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     kw_elements.elements = elements
 
                 elif add_fibers:
+                    fiber = self.volume_mesh["cell_data"]["fiber"][tetra_idx]
+                    sheet = self.volume_mesh["cell_data"]["sheet"][tetra_idx]
+
+                    # normalize fiber and sheet directions:
+                    norm = np.linalg.norm(fiber, axis=1)
+                    fiber = fiber / norm[:, None]
+                    norm = np.linalg.norm(sheet, axis=1)
+                    sheet = sheet / norm[:, None]
                     kw_elements = create_element_solid_ortho_keyword(
                         elements=tetra_to_write,
                         a_vec=fiber,
@@ -1134,10 +1165,17 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             # NOTE: static for the moment. Maximum of 2 cavities supported
             # but this is valid for the LeftVentricle, BiVentricle and FourChamber models
-            if "Left ventricle" in cavity.name:
-                cvi_kw.lcid_ = -10
-            elif "Right ventricle" in cavity.name:
-                cvi_kw.lcid_ = -11
+            if self.system_model_name == "ClosedLoop":
+                if "Left ventricle" in cavity.name:
+                    cvi_kw.lcid_ = -10
+                elif "Right ventricle" in cavity.name:
+                    cvi_kw.lcid_ = -11
+
+            elif self.system_model_name == "ConstantPreloadWindkesselAfterload":
+                if "Left ventricle" in cavity.name:
+                    cvi_kw.lcid_ = 10
+                if "Right ventricle" in cavity.name:
+                    cvi_kw.lcid_ = 11
 
             self.kw_database.control_volume.append(cvi_kw)
 
@@ -1147,31 +1185,79 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """Updates json system model settings"""
         model_type = self.model.info.model_type
 
-        if model_type in ["FourChamber", "BiVentricle"]:
-            file_path = os.path.join(
-                Path(__file__).parent.absolute(),
-                "templates",
-                "system_model_settings_bv.json",
-            )
+        # closed loop uses a custom executable
+        if self.system_model_name == "ClosedLoop":
+            logger.warning("Note that this model type requires a custom executable that supports the Closed Loop circulation model!")
+            if model_type in ["FourChamber", "BiVentricle"]:
+                file_path = os.path.join(
+                    Path(__file__).parent.absolute(),
+                    "templates",
+                    "system_model_settings_bv.json",
+                )
 
-        elif model_type in ["LeftVentricle"]:
-            file_path = os.path.join(
-                Path(__file__).parent.absolute(),
-                "templates",
-                "system_model_settings_lv.json",
-            )
+            elif model_type in ["LeftVentricle"]:
+                file_path = os.path.join(
+                    Path(__file__).parent.absolute(),
+                    "templates",
+                    "system_model_settings_lv.json",
+                )
 
-        fid = open(file_path)
-        sys_settings = json.load(fid)
+            fid = open(file_path)
+            sys_settings = json.load(fid)
 
-        # update the volumes
-        for cavity in self.model._mesh._cavities:
-            if "Left ventricle" in cavity.name:
-                sys_settings["SystemModelInitialValues"]["UnstressedVolumes"]["lv"] = cavity.volume
-            elif "Right ventricle" in cavity.name:
-                sys_settings["SystemModelInitialValues"]["UnstressedVolumes"]["rv"] = cavity.volume
+            # update the volumes
+            for cavity in self.model._mesh._cavities:
+                if "Left ventricle" in cavity.name:
+                    sys_settings["SystemModelInitialValues"]["UnstressedVolumes"][
+                        "lv"
+                    ] = cavity.volume
+                elif "Right ventricle" in cavity.name:
+                    sys_settings["SystemModelInitialValues"]["UnstressedVolumes"][
+                        "rv"
+                    ] = cavity.volume
 
-        self.system_model_json = sys_settings
+            self.system_model_json = sys_settings
+
+        # otherwise add the define function
+        elif self.system_model_name == "ConstantPreloadWindkesselAfterload":
+            from ansys.heart.writer.system_models import define_function_windkessel
+
+            for cavity in self.model._mesh._cavities:
+                if "Left ventricle" in cavity.name:
+                    constants: dict = {
+                        "Rv": 5.0e-6,
+                        "Ra": 1.0e-5,
+                        "Rp": 1.2e-4,
+                        "Ca": 2.5e4,
+                        "Pven": 2,
+                    }
+                    initial = {"part_init": 8}
+                    define_function_wk = define_function_windkessel(
+                        function_id=10,
+                        function_name="constant_preload_windkessel_afterload_left",
+                        implicit=True,
+                        constants=constants,
+                        initialvalues=initial,
+                    )
+                    self.kw_database.control_volume.append(define_function_wk)
+
+                elif "Right ventricle" in cavity.name:
+                    constants: dict = {
+                        "Rv": 5.0e-6 * 0.5,
+                        "Ra": 1.0e-5 * 0.35,
+                        "Rp": 1.2e-4 * 0.125,
+                        "Ca": 2.5e4 * 4.5,
+                        "Pven": 0.53333,
+                    }
+                    initial = {"part_init": 2}
+                    define_function_wk = define_function_windkessel(
+                        function_id=11,
+                        function_name="constant_preload_windkessel_afterload_right",
+                        implicit=True,
+                        constants=constants,
+                        initialvalues=initial,
+                    )
+                    self.kw_database.control_volume.append(define_function_wk)
 
         return
 
@@ -1463,7 +1549,9 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             self._keep_ventricles()
 
         self._update_parts_db()  # can stay the same (could move to base class++++++++++++++++++++)
-        self._update_solid_elements_db(add_fibers=False)  # can stay the same (could move to base class)
+        self._update_solid_elements_db(
+            add_fibers=False
+        )  # can stay the same (could move to base class)
         self._update_material_db()
 
         self._update_segmentsets_db()  # can stay the same
@@ -1495,9 +1583,8 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         return
 
     def _keep_ventricles(self):
-        """Removes any cavity except the ventricular cavities
-        """
-        # just keep ventricles in case of four chamber model        
+        """Removes any cavity except the ventricular cavities"""
+        # just keep ventricles in case of four chamber model
         logger.warning("Just keeping ventricular-parts for fiber generation")
         cavities_to_keep = []
         for ii, cavity in enumerate(self.model._mesh._cavities):
@@ -1576,6 +1663,8 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         nodes_base = np.empty(0, dtype=int)
         node_set_ids_endo = []
         node_sets_ids_epi = []
+        node_set_ids_epi_and_rseptum = []
+
         node_set_id_lv_endo = 0
 
         for cavity in self.model._mesh._cavities:
@@ -1588,10 +1677,13 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             for node_set in cavity.node_sets:
                 if "endocardium" in node_set["name"]:
                     node_set_ids_endo.append(node_set["id"])
+                    if "septum" in node_set["name"]:
+                        node_set_ids_epi_and_rseptum.append(node_set["id"])
                     if cavity.name == "Left ventricle":
                         node_set_id_lv_endo = node_set["id"]
                 elif "epicardium" in node_set["name"]:
                     node_sets_ids_epi.append(node_set["id"])
+                    node_set_ids_epi_and_rseptum.append(node_set["id"])
 
             if cavity.name == "Left ventricle":
                 node_apex = np.array([cavity.apex_id["epicardium"]])
@@ -1752,6 +1844,16 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
             self.kw_database.create_fiber.append(set_add_kw)
 
+            # combine node sets epicardium and septum:
+            node_set_all_but_left_endocardium = 1002
+            set_add_kw = keywords.SetNodeAdd(sid=node_set_all_but_left_endocardium)
+
+            set_add_kw.options["TITLE"].active = True
+            set_add_kw.title = "all_but_left_endocardium"
+            set_add_kw.nodes._data = node_set_ids_epi_and_rseptum
+
+            self.kw_database.create_fiber.append(set_add_kw)
+
             node_set_id_base = 200
             node_set_id_apex = 201
             # create node-sets for base and apex
@@ -1793,7 +1895,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
                     id=3,
                     partid=2,  # set part id 2: septum
                     stype=2,  # set type 1 == segment set
-                    ssid1=node_set_id_all_epicardium,
+                    ssid1=node_set_all_but_left_endocardium,
                     ssid2=node_set_id_lv_endo,
                 )
             )

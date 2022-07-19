@@ -9,6 +9,9 @@ from ansys.heart.preprocessor._load_template import load_template
 from ansys.heart.preprocessor import SC_EXE, FLUENT_EXE
 from ansys.heart.custom_logging import logger
 
+# for fluent:
+import ansys.fluent.core as pyfluent
+
 _template_directory = os.path.join(os.path.dirname(__file__), "template")
 
 """Module contains methods for mesh operations"""
@@ -16,55 +19,53 @@ _template_directory = os.path.join(os.path.dirname(__file__), "template")
 ## for remeshing purposes
 
 
-def mesh_by_fluentmeshing(path_to_input_stl: str, path_to_output: str, mesh_size: float = 2.0):
+def mesh_by_fluentmeshing(
+    path_to_input_stl: str,
+    path_to_output: str,
+    mesh_size: float = 2.0,
+    journal_type: str = "original",
+):
     """Uses Fluent meshing to wrap the surface and create
     tetrahedral mesh"""
 
-    var_for_template = {
-        "input_path": path_to_input_stl,
-        "output_path": path_to_output,
-        "mesh_size": mesh_size,
-    }
+    if journal_type not in ["original", "simplified_geometry"]:
+        raise ValueError("Journal type %s not found " % journal_type)
 
     # change directory to directory of stl file
     old_directory = os.getcwd()
-    working_directory = pathlib.Path (path_to_input_stl).parent
+    working_directory = pathlib.Path(path_to_input_stl).parent
     os.chdir(working_directory)
 
-    template = load_template("fluent_meshing_template.jou")
+    if journal_type == "original":
+        var_for_template = {
+            "input_path": path_to_input_stl,
+            "output_path": path_to_output,
+            "mesh_size": mesh_size,
+        }
+        template = load_template("fluent_meshing_template.jou")
+
+    elif journal_type == "simplified_geometry":
+        var_for_template = {
+            "work_directory": working_directory,
+            "output_path": path_to_output,
+            "mesh_size": mesh_size,
+        }
+        template = load_template("fluent_meshing_template_simplified.jou")
 
     script = os.path.join(os.path.dirname(path_to_input_stl), "fluent_meshing.jou")
-    # script = "fluent_meshing.jou"
 
     with open(script, "w") as f:
         f.write(template.render(var_for_template))
 
-    # subprocess.call( [SC_EXE, "/RunScript=" + script, *options] )
     num_cpus = 2
 
-    # args = ['"' + FLUENT_EXE + '"', "-v3ddp",
-    # "-tm{:.0f}".format(num_cpus), "-meshing", "-i", script  ]
-    args = [
-        '"' + FLUENT_EXE + '"',
-        "-v3ddp",
-        "-hidden",
-        "-tm{:.0f}".format(num_cpus),
-        "-meshing",
-        "-i",
-        script,
-    ]
-
-    # subprocess.call( " ".join(args) )
-    # p = subprocess.Popen(" ".join(args), shell=True)
-
-    # TODO: need to add check on output
-    logger.info("Launching Fluent Meshing...")
-    p = subprocess.Popen(" ".join(args))
-    p.communicate()
-    p.wait(300)
-    logger.info("done")
-
-    # p = subprocess.call(" ".join(args) )
+    # start Fluent session using PyFluent:
+    # TODO: Catch errors in session
+    session = pyfluent.launch_fluent(
+        meshing_mode=True, precision="double", processor_count=num_cpus, start_transcript=False
+    )
+    session.meshing.tui.file.read_journal(script)
+    session.exit()
 
     # change back to old directory
     os.chdir(old_directory)
@@ -136,19 +137,29 @@ def run_gmsh(infile: str, outfile: str, mesh_size):
     return
 
 
-def add_solid_name_to_stl(filename, solid_name):
-    """Adds name of solid to stl file. Supports only single block!"""
-    start_str = "solid"
-    end_str = "endsolid"
-    f = open(filename, "r")
-    list_of_lines = f.readlines()
-    f.close()
-    list_of_lines[0] = "{0} {1}\n".format(start_str, solid_name)
-    list_of_lines[-1] = "{0} {1}\n".format(end_str, solid_name)
+def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii"):
+    """Adds name of solid to stl file. Supports only single block"""
+    if file_type == "ascii":
+        start_str = "solid"
+        end_str = "endsolid"
+        f = open(filename, "r")
+        list_of_lines = f.readlines()
+        f.close()
+        list_of_lines[0] = "{0} {1}\n".format(start_str, solid_name)
+        list_of_lines[-1] = "{0} {1}\n".format(end_str, solid_name)
 
-    f = open(filename, "w")
-    f.writelines(list_of_lines)
-    f.close()
+        f = open(filename, "w")
+        f.writelines(list_of_lines)
+        f.close()
+    # replace part name in binary file
+    elif file_type == "binary":
+        fid = open(filename, "r+b")
+        fid.seek(0)
+        data = fid.read(40)
+        fid.seek(0)
+        string_replace = "{:<40}".format(solid_name).encode()
+        fid.write(string_replace)
+        fid.close()
 
     return
 

@@ -49,6 +49,13 @@
         "Right superior pulmonary vein inlet": 15,
         "Superior vena cava inlet": 16,
         "Inferior vena cava inlet": 17
+    },
+    "Strocchi2020_simplified": {
+        "Left ventricle myocardium": 1,
+        "Right ventricle myocardium": 2,
+        "Mitral valve plane": 11,
+        "Aortic valve plane": 12,
+        "Pulmonary valve plane": 21,
+        "Tricuspid valve plane": 22
     }
 }
-

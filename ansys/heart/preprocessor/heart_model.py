@@ -5,6 +5,11 @@ from ansys.heart.preprocessor.model_information import ModelInformation
 
 # import logger
 from ansys.heart.custom_logging import logger
+from ansys.heart.preprocessor.vtk_module import (
+    read_vtk_polydata_file,
+    vtk_remove_arrays,
+    write_vtkdata_to_vtkfile,
+)
 
 
 class HeartBoundaryConditions:
@@ -85,7 +90,7 @@ class HeartModel:
         return
 
     def extract_simulation_mesh(self, remesh: bool = True):
-        """Extracts the simulation mesh based on the model information provided        
+        """Extracts the simulation mesh based on the model information provided
 
         Parameters
         ----------
@@ -99,6 +104,7 @@ class HeartModel:
         self._mesh.load_raw_mesh()
         self._mesh.extract_parts()
         self._mesh.add_cavities()
+        self._mesh.get_cavity_cap_intersections()
 
         if remesh:
             mesh_size = self.info.mesh_size
@@ -129,6 +135,86 @@ class HeartModel:
         self._mesh.extract_endocardium_epicardium()
 
         # extract apex
+        self._mesh.extract_apical_points()
+
+        # validate cavities
+        self._mesh._validate_cavities()
+
+        # extract volumetric region of septum
+        if self.info.model_type in ["BiVentricle", "FourChamber"]:
+            self._mesh._extract_septum()
+
+        # create element sets for myocardium
+        self._mesh._create_myocardium_element_sets()
+
+        return
+
+    def extract_simulation_mesh_from_simplified_geometry(self):
+        """Extracts a simulation mesh from a modified/simplified geometry
+        from Strocchi or Cristobal et al
+        """
+        from ansys.heart.preprocessor.vtk_module import (
+            read_vtk_polydata_file,
+        )
+        import numpy as np
+        import copy
+
+        # node-tag mapping:
+        cavity_tag_map = {"Left ventricle": 1, "Right ventricle": 2}
+        node_tag_map = {
+            "Left ventricle": {
+                "epicardium": 0,
+                "mitral-valve-edge": 1,
+                "aortic-valve-edge": 2,
+                "endocardium": 3,
+            },
+            "Right ventricle": {
+                "epicardium": 4,
+                "pulmonary-valve-edge": 5,
+                "tricuspid-valve-edge": 6,
+                "interventricular-edge": 7,
+                "endocardium": 8,
+            },
+        }
+
+        # read surface mesh
+        self._mesh._vtk_volume_raw = read_vtk_polydata_file(self.info.path_original_mesh)
+
+        self._mesh._vtk_volume_temp = self._mesh._vtk_volume_raw
+
+        # convert to PolyData
+        self._mesh._vtk_surface = (
+            self._mesh._vtk_volume_raw
+        )  # = convert_to_polydata(self._mesh._vtk_volume_raw)
+
+        # add cavities
+        self._mesh.add_cavities()
+
+        self._mesh.get_cavity_cap_intersections_simplified(node_tag_map)
+
+        self._mesh.mesh_volume_from_simplified(node_tag_map, self.info.mesh_size)
+
+        # get node sets from segment sets
+        for cavity in self._mesh._cavities:
+            # remove any defined node-sets
+            logger.debug("Removing %d nodesets" % len(cavity.node_sets))
+            cavity.node_sets = []
+            # NOTE: this duplicates the nodes on the intersection of the
+            for segset in cavity.segment_sets:
+                nodeset = copy.deepcopy(segset)
+                nodeset["set"] = np.unique(segset["set"])
+                cavity.node_sets.append(nodeset)
+
+        self._mesh._validate_node_sets()
+        self._mesh._validate_segment_sets()
+
+        # extract the surface from the remeshed volume mesh
+        self._mesh.get_surface_from_volume()
+
+        # closes the cavities
+        self._mesh.close_cavities()
+
+        # extract apical points
         self._mesh.extract_apical_points()
 
         # validate cavities

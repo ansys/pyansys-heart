@@ -1595,6 +1595,30 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         """Adds the settings for the electrophysiology solver"""
 
         self.kw_database.ep_settings.append(
+            keywords.DatabaseBinaryD3Plot(
+                dt=1.
+            )
+        )
+
+        self.kw_database.ep_settings.append(
+            keywords.ControlTimestep(
+                dtinit=1., dt2ms=1
+            )
+        )
+
+        self.kw_database.ep_settings.append(
+            keywords.ControlTermination(
+                endtim=10
+            )
+        )
+
+        self.kw_database.ep_settings.append(
+            keywords.EmControl(
+                emsol=11, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
+            )
+        )
+
+        self.kw_database.ep_settings.append(
             keywords.EmControl(
                 emsol=11, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
             )
@@ -1914,6 +1938,227 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             )
             self.kw_database.create_fiber.append(
                 keywords.DefineFunction(fid=103, function=function3)
+            )
+
+    def _update_main_db(self):
+
+        return
+
+
+class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
+    def __init__(self, model: HeartModel) -> None:
+        super().__init__(model)
+
+        self.kw_database = PurkinjeGenerationDecks()
+        """Collection of keywords relevant for Purkinje generation
+        """
+
+    def update(self):
+        """Updates keyword database for Purkinje generation: overwrites the inherited function"""
+
+        ##
+        self._update_main_db()  # needs updating
+
+        self._update_node_db()  # can stay the same (could move to base class)
+        if self.model.info.model_type == "FourChamber":
+            self._keep_ventricles()
+
+        self._update_parts_db()  # can stay the same (could move to base class++++++++++++++++++++)
+        self._update_solid_elements_db(
+            add_fibers=False
+        )  # can stay the same (could move to base class)
+        self._update_material_db()
+
+        self._update_segmentsets_db()  # can stay the same
+        self._update_nodesets_db()  # can stay the same
+
+        # update ep settings
+        self._update_ep_settings()
+        self._update_create_Purkinje()
+
+        self._get_list_of_includes()
+        self._add_includes()
+
+        return
+
+    def export(self, export_directory: str):
+        """Writes the model to files"""
+        tstart = time.time()
+        logger.debug("Writing all LS-DYNA .k files...")
+
+        if not export_directory:
+            export_directory = self.model.info.working_directory
+
+        # export .k files
+        self.export_databases(export_directory)
+
+        tend = time.time()
+        logger.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
+
+        return
+
+    def _keep_ventricles(self):
+        """Removes any cavity except the ventricular cavities"""
+        # just keep ventricles in case of four chamber model
+        logger.warning("Just keeping ventricular-parts for Purkinje generation")
+        cavities_to_keep = []
+        for ii, cavity in enumerate(self.model._mesh._cavities):
+            if "ventricle" in cavity.name:
+                cavities_to_keep.append(cavity)
+
+        self.model._mesh._cavities = cavities_to_keep
+        return
+
+    def _update_material_db(self):
+        """Adds simple linear elastic material for each defined part"""
+        for cavity in self.model._mesh._cavities:
+            for element_set in cavity.element_sets:
+                kw = keywords.MatElastic(mid=element_set["id"], ro=1e-6, e=1)
+                self.kw_database.material.append(kw)
+
+    def _update_ep_settings(self):
+        """Adds the settings for the electrophysiology solver"""
+
+        self.kw_database.ep_settings.append(
+            keywords.ControlTimestep(
+                dtinit=1., dt2ms=1
+            )
+        )
+
+        self.kw_database.ep_settings.append(
+            keywords.ControlTermination(
+                endtim=10
+            )
+        )
+
+        self.kw_database.ep_settings.append(
+            keywords.EmControl(
+                emsol=11, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
+            )
+        )
+
+        # NOTE: material id should be same as target myocardium
+        # create one material per cavity
+        for cavity in self.model._mesh._cavities:
+            for element_set in cavity.element_sets:
+                em_mat_id = element_set["id"]
+                self.kw_database.ep_settings.extend(
+                    [
+                        custom_keywords.EmMat003(
+                            mid=em_mat_id,
+                            mtype=2,
+                            sigma11=5.0e-4,
+                            sigma22=1.0e-4,
+                            sigma33=1.0e-4,
+                            beta=0.14,
+                            cm=0.01,
+                            aopt=2.0,
+                            lambda_=0.5,
+                            a1=0,
+                            a2=0,
+                            a3=0,
+                            d1=0,
+                            d2=-1,
+                            d3=0,
+                        ),
+                        custom_keywords.EmEpCellmodelTomek(mid=em_mat_id),
+                    ]
+                )
+
+        self.kw_database.ep_settings.append(keywords.EmOutput(mats=1, matf=1, sols=1, solf=1))
+
+        return
+
+    def _update_create_Purkinje(self):
+        """Updates the keywords for Purkinje generation"""
+
+        # collect relevant node and segment sets.
+        # node set: apex, base
+        # node set: endocardium, epicardium
+        # NOTE: could be better if basal nodes are extracted in the preprocessor
+        # since that would allow you to robustly extract these nodessets using the
+        # input data
+        # The below is relevant for all models.
+        nodes_base = np.empty(0, dtype=int)
+        segment_set_ids_endo_left = [] # TODO define sets for purkinje
+        segment_set_ids_endo_right = []
+
+        for cavity in self.model._mesh._cavities:
+            if cavity.name == "Left ventricle":
+                node_apex_left = np.array([cavity.apex_id["endocardium"]])
+
+        # validate node set by removing any nodes that do not occur in either ventricle
+        # NOTE: can be much more consice
+        tet_ids_ventricles = np.empty((0), dtype=int)
+        for cavity in self.model._mesh._cavities:
+            for element_set in cavity.element_sets:
+                if "ventricle" in cavity.name:
+                    tet_ids_ventricles = np.append(tet_ids_ventricles, element_set["set"])
+        tetra_ventricles = self.volume_mesh["tetra"][tet_ids_ventricles, :]
+
+        # remove nodes that occur just in atrial part
+        mask = np.isin(nodes_base, tetra_ventricles, invert=True)
+        logger.debug("Removing {0} nodes from base nodes".format(np.sum(mask)))
+        nodes_base = nodes_base[np.invert(mask)]
+
+        # switch between the various models to generate valid input decks
+        if self.model.info.model_type in ["LeftVentricle"]:
+            logger.warning("Model type %s in development " % self.model.info.model_type)
+
+            node_set_id_apex = 201
+            # create node-sets for apex
+            node_set_apex_kw = create_node_set_keyword(
+                node_ids=node_apex_left + 1, node_set_id=node_set_id_apex, title="apex node"
+            )
+
+            self.kw_database.create_Purkinje.extend([node_set_apex_kw])
+
+            # Purkinje generation parameters
+            self.kw_database.create_Purkinje.append(
+                custom_keywords.EmEpPurkinjeNetwork(
+                    purkid=1,
+                    buildnet=1,
+                    ssid=100,
+                    mid=25,
+                    pointstx=0, # TODO Get x,y and z coordinates of apex-endo: node_apex_left
+                    pointsty=0, 
+                    pointstz=0, 
+                    edgelen=2,
+                    ngen=30,
+                    nbrinit=8,
+                    nsplit=2,
+                    inodeid=1, # TODO inodeid = max id of mesh + 1
+                    iedgeid=1 # TODO check if beam elements exist in mesh
+                )
+            )
+        elif self.model.info.model_type in ["BiVentricle", "FourChamber"]:
+            # TODO Add right Purkinje
+            logger.warning("Model type %s in development " % self.model.info.model_type)
+
+            node_set_id_apex = 201
+            # create node-sets for apex
+            node_set_apex_kw = create_node_set_keyword(
+                node_ids=node_apex_left + 1, node_set_id=node_set_id_apex, title="apex node"
+            )
+
+            self.kw_database.create_Purkinje.extend([node_set_apex_kw])
+
+            self.kw_database.create_Purkinje.append(
+                custom_keywords.EmEpPurkinjeNetwork(
+                    purkid=1,
+                    buildnet=1,
+                    ssid=100,
+                    mid=25,
+                    pointstx=0, # TODO Get x,y and z coordinates of apex-endo
+                    pointsty=0, 
+                    pointstz=0, 
+                    edgelen=2,
+                    ngen=30,
+                    nbrinit=8,
+                    nsplit=2,
+                    inodeid=1, # TODO inodeid = max id of mesh + 1
+                    iedgeid=1 # TODO check if beam elements exist in mesh
+                )
             )
 
     def _update_main_db(self):

@@ -13,6 +13,7 @@ from ansys.heart.custom_logging import logger
 from ansys.heart.writer.dynawriter import (
     FiberGenerationDynaWriter,
     MechanicsDynaWriter,
+    PurkinjeGenerationDynaWriter,
     ZeroPressureMechanicsDynaWriter,
 )
 from ansys.heart.general import clean_directory
@@ -23,7 +24,7 @@ ABS_BASE_PATH = Path(__file__).parent.absolute()
 def create_ls_dyna_files(path_to_model_info: str, writer_type: str, export_directory: str = None):
     """Creates the LS-DYNA files for the model specified"""
 
-    if writer_type not in ["Mechanics", "ZeroPressure", "FiberGeneration"]:
+    if writer_type not in ["Mechanics", "ZeroPressure", "FiberGeneration", "PurkinjeGeneration"]:
         logger.error("Writer type %s not valid" % writer_type)
         return
 
@@ -46,12 +47,12 @@ def create_ls_dyna_files(path_to_model_info: str, writer_type: str, export_direc
         dyna_writer = MechanicsDynaWriter(
             heart_model, system_model_name="ConstantPreloadWindkesselAfterload"
         )
-
     elif writer_type == "ZeroPressure":
         dyna_writer = ZeroPressureMechanicsDynaWriter(heart_model)
     elif writer_type == "FiberGeneration":
         dyna_writer = FiberGenerationDynaWriter(heart_model)
-
+    elif writer_type == "PurkinjeGeneration":
+        dyna_writer = PurkinjeGenerationDynaWriter(heart_model)
     dyna_writer.update()
     dyna_writer.export(export_directory)
 
@@ -70,6 +71,7 @@ if __name__ == "__main__":
         path_model_info = os.path.join(
             ABS_BASE_PATH, "..", "workdir", database, model, "model_info.json"
         )
-        create_ls_dyna_files(path_model_info, writer_type="Mechanics")
-        create_ls_dyna_files(path_model_info, writer_type="ZeroPressure")
-        create_ls_dyna_files(path_model_info, writer_type="FiberGeneration")
+        # create_ls_dyna_files(path_model_info, writer_type="Mechanics")
+        # create_ls_dyna_files(path_model_info, writer_type="ZeroPressure")
+        # create_ls_dyna_files(path_model_info, writer_type="FiberGeneration")
+        create_ls_dyna_files(path_model_info, writer_type="PurkinjeGeneration")

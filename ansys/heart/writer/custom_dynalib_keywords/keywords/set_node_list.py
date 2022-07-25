@@ -22,7 +22,7 @@ class SetNodeList(KeywordBase):
                     Field("da3", float, 30, 10, kwargs.get("da3", 0.0)),
                     Field("da4", float, 40, 10, kwargs.get("da4", 0.0)),
                     Field("solver", str, 50, 10, kwargs.get("solver", "MECH")),
-                    Field("its", str, 60, 10, kwargs.get("its", "1")),
+                    #                    Field("its", str, 60, 10, kwargs.get("its", "1")),
                 ],
             ),
             DuplicateCard(
@@ -45,15 +45,20 @@ class SetNodeList(KeywordBase):
                     name="TITLE",
                     card_order=-1,
                     title_order=1,
-                    cards=[Card([Field("title", str, 0, 80, kwargs.get("title")),],),],
+                    cards=[
+                        Card(
+                            [
+                                Field("title", str, 0, 80, kwargs.get("title")),
+                            ],
+                        ),
+                    ],
                 ),
             ]
         )
 
     @property
     def sid(self) -> typing.Optional[int]:
-        """Get or set the Node set ID. All node sets should have a unique set ID.
-        """  # nopep8
+        """Get or set the Node set ID. All node sets should have a unique set ID."""  # nopep8
         return self._cards[0].get_value("sid")
 
     @sid.setter
@@ -62,8 +67,7 @@ class SetNodeList(KeywordBase):
 
     @property
     def da1(self) -> float:
-        """Get or set the First nodal attribute default value is 0.0.
-        """  # nopep8
+        """Get or set the First nodal attribute default value is 0.0."""  # nopep8
         return self._cards[0].get_value("da1")
 
     @da1.setter
@@ -72,8 +76,7 @@ class SetNodeList(KeywordBase):
 
     @property
     def da2(self) -> float:
-        """Get or set the Second nodal attribute default value is 0.0.
-        """  # nopep8
+        """Get or set the Second nodal attribute default value is 0.0."""  # nopep8
         return self._cards[0].get_value("da2")
 
     @da2.setter
@@ -82,8 +85,7 @@ class SetNodeList(KeywordBase):
 
     @property
     def da3(self) -> float:
-        """Get or set the Third nodal attribute default value is 0.0.
-        """  # nopep8
+        """Get or set the Third nodal attribute default value is 0.0."""  # nopep8
         return self._cards[0].get_value("da3")
 
     @da3.setter
@@ -92,8 +94,7 @@ class SetNodeList(KeywordBase):
 
     @property
     def da4(self) -> float:
-        """Get or set the Fourth nodal attribute default value is 0.0.
-        """  # nopep8
+        """Get or set the Fourth nodal attribute default value is 0.0."""  # nopep8
         return self._cards[0].get_value("da4")
 
     @da4.setter
@@ -116,7 +117,7 @@ class SetNodeList(KeywordBase):
 
     @property
     def its(self) -> str:
-        """Get or set the Specify coupling type across different scales in two-scale co-simulation. This flag should only be included for node sets that provide coupling information in the input file referred to by *INCLUDE_COSIM; 
+        """Get or set the Specify coupling type across different scales in two-scale co-simulation. This flag should only be included for node sets that provide coupling information in the input file referred to by *INCLUDE_COSIM;
         EQ.1:	Tied contact coupling
         EQ.2 : Solid - in - shell immersed coupling
         """  # nopep8
@@ -140,8 +141,7 @@ class SetNodeList(KeywordBase):
 
     @property
     def title(self) -> typing.Optional[str]:
-        """Get or set the Additional title line
-        """  # nopep8
+        """Get or set the Additional title line"""  # nopep8
         return self._options["TITLE"].cards[0].get_value("title")
 
     @title.setter

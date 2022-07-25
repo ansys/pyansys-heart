@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
         for model_type in models_to_run:
             LOGGER.info("***************************")
-            work_directory = os.path.join(BASE_WORK_DIR, "workdir", model_type)
+            work_directory = os.path.join(BASE_WORK_DIR, database, model_type)
             # work_directory = BASE_WORK_DIR
 
             if model_type in ["LeftVentricle", "BiVentricle", "FourChamber"]:

@@ -46,7 +46,7 @@ from ansys.heart.preprocessor.mesh_module import (
 from ansys.heart.preprocessor.fluenthdf5_module import fluenthdf5_to_vtk
 
 # import logger
-from ansys.heart.custom_logging import logger
+from ansys.heart.custom_logging import LOGGER
 
 from vtk.numpy_interface import dataset_adapter as dsa  # this is an improved numpy integration
 
@@ -127,7 +127,7 @@ class HeartMesh:
             # change vtk array names if data from cristobal et al
             # first element is naming of Strocchi et al 2020, and the naming assumed
             # in this package
-            logger.debug(
+            LOGGER.debug(
                 "Modifying array names of %s to match dataset of Strocchi2020"
                 % self.info.database_name
             )
@@ -236,9 +236,9 @@ class HeartMesh:
             # cavity._set_connected_surfaces( self._vtk_surface_polydata )
             # NOTE: now uses raw surface mesh. This may not be very efficient
             cavity._set_connected_surfaces(self._vtk_volume_temp)
-            logger.debug("Processing... " + cavity.name)
+            LOGGER.debug("Processing... " + cavity.name)
 
-            logger.warning("Computing cavity centroid")
+            LOGGER.warning("Computing cavity centroid")
             cavity._compute_centroid_cavity()
 
         return
@@ -255,7 +255,7 @@ class HeartMesh:
         dump_to_file = False
 
         for cavity in self._cavities:
-            logger.debug("Computing intersection with myocardium")
+            LOGGER.debug("Computing intersection with myocardium")
             cavity._compute_cap_intersection_with_myocardium(
                 self._nodes_volume_raw,
                 self._elements_volume_raw,
@@ -285,7 +285,7 @@ class HeartMesh:
                 for key, node_tag in node_tag_map[cavity.name].items():
                     if "valve-edge" in key:
                         if key.replace("-", " ").replace(" edge", "") in cap.name.lower():
-                            logger.debug("Assigning nodes to %s" % cap.name)
+                            LOGGER.debug("Assigning nodes to %s" % cap.name)
                             node_ids = np.where(point_data["node-tags"] == node_tag)[0]
                             node_mask = np.isin(node_ids, tris[part_mask, :])
                             nodes_cap = node_ids[node_mask]
@@ -299,7 +299,7 @@ class HeartMesh:
         write_caps_to_file = True
 
         for cavity in self._cavities:
-            logger.debug("Closing cavity... %s" % cavity.name)
+            LOGGER.debug("Closing cavity... %s" % cavity.name)
             cavity._find_closing_edge_loop()
 
             # TODO create shell elements by using the closing edge loop
@@ -313,7 +313,7 @@ class HeartMesh:
                 for cap in cavity.closing_caps:
                     all_tris = np.vstack((all_tris, cap.closing_triangles))
 
-                logger.debug("Writing caps of %s" % cavity.name)
+                LOGGER.debug("Writing caps of %s" % cavity.name)
 
                 mesh = meshio.Mesh(
                     points=volume.Points,
@@ -336,7 +336,7 @@ class HeartMesh:
         """Remeshes the volume. Uses the surface as input, uses SpaceClaim to smooth the
         geometry and gmesh to remesh the bulk"""
 
-        logger.debug("Remeshing volume...")
+        LOGGER.debug("Remeshing volume...")
 
         if mesher == "gmesh":
             use_gmesh = True
@@ -365,17 +365,17 @@ class HeartMesh:
 
         if use_gmesh:
             # launch spaceclaim to wrap the surface
-            logger.debug("\tLaunching SpaceClaim...")
+            LOGGER.debug("\tLaunching SpaceClaim...")
             shrink_by_spaceclaim(input_stl_spaceclaim, output_stl_spaceclaim)
 
-            logger.debug("\tLaunching GMESH...")
+            LOGGER.debug("\tLaunching GMESH...")
             run_gmsh(output_stl_spaceclaim, output_vtk, mesh_size)
 
             # extract tetrahedrons
             convert_vtk_into_tetra_only(output_vtk)
 
         elif use_fluent:
-            logger.debug("\tLaunching Fluent meshing...")
+            LOGGER.debug("\tLaunching Fluent meshing...")
             mesh_by_fluentmeshing(input_stl_fluent, output_msh_fluent, mesh_size)
 
             fluenthdf5_to_vtk(output_msh_fluent, output_vtk)
@@ -398,7 +398,7 @@ class HeartMesh:
             get_connected_regions,
         )
 
-        logger.debug("Writing input for mesher")
+        LOGGER.debug("Writing input for mesher")
         self.info.mesh_size = mesh_size
         points, tris, cell_data, point_data = get_tri_info_from_polydata(self._vtk_surface)
 
@@ -509,7 +509,7 @@ class HeartMesh:
         """Maps the data from the original mesh file to
         the remeshed vtk file
         """
-        logger.debug("Mapping data from original mesh...")
+        LOGGER.debug("Mapping data from original mesh...")
         # NOTE Source contains all point data and cell data fields
         # NOTE Map the tags of only the myocardium
 
@@ -582,7 +582,7 @@ class HeartMesh:
         # replace all uvc coordinates not on ventricle to -100
         for key, value in point_data.items():
             if "uvc_" in key:
-                logger.debug("Replacing value of %s of non-ventricular points to -100 " % key)
+                LOGGER.debug("Replacing value of %s of non-ventricular points to -100 " % key)
                 point_data[key][point_ids_to_edit] = -100
                 # replace array of original vtk object
                 add_vtk_array(
@@ -602,12 +602,12 @@ class HeartMesh:
 
         # get the endo and epicardium points for each cavity
         for cavity in self._cavities:
-            logger.debug("Extracting endocardium and epicardium node sets of... " + cavity.name)
+            LOGGER.debug("Extracting endocardium and epicardium node sets of... " + cavity.name)
             cavity._get_endocardium_epicardium_points(surface_mesh)
 
         # extract endo/epicardium segments for each cavity
         for cavity in self._cavities:
-            logger.debug("Extracting endocardium and epicardium segments of... " + cavity.name)
+            LOGGER.debug("Extracting endocardium and epicardium segments of... " + cavity.name)
             cavity._get_endocardium_epicardium_segments(surface_mesh)
 
             # write to file to check
@@ -676,7 +676,7 @@ class HeartMesh:
         """Validates the node sets and makes sure there are no references to duplicate nodes.
         Endocardium of any cavity takes precedence over septum for instance.
         """
-        logger.debug("Validating node sets...")
+        LOGGER.debug("Validating node sets...")
         nodes_used = []
         part_id = []
         for cavity in self._cavities:
@@ -685,7 +685,7 @@ class HeartMesh:
                     # check if any of the nodes are already in use
                     use_idx = np.argwhere(np.isin(nodeset["set"], nodes, invert=True)).flatten()
                     if len(use_idx) != len(nodeset["set"]):
-                        logger.warning(
+                        LOGGER.warning(
                             "Found duplicate nodes in: {0} {1}. Already used in {2} {3}".format(
                                 cavity.name,
                                 nodeset["name"],
@@ -720,7 +720,7 @@ class HeartMesh:
                 if cavity.name == "Right ventricle":
                     nodeset_septum["name"] = "endocardium-septum"
                     cavity.node_sets.append(nodeset_septum)
-                    logger.debug(
+                    LOGGER.debug(
                         "Assigning septum of left ventricle to node set of right ventricle"
                     )
 
@@ -747,7 +747,7 @@ class HeartMesh:
         the left ventricle to the right-ventricle cavity. 2. Checks if normal
         of endocardium part is pointing inwards
         """
-        logger.debug("Validating segment sets...")
+        LOGGER.debug("Validating segment sets...")
         # add epicardium-septum to right ventricle segment set
         if self.info.model_type in ["BiVentricle", "FourChamber"]:
             segset_septum = None
@@ -769,12 +769,12 @@ class HeartMesh:
                 if cavity.name == "Right ventricle":
                     segset_septum["name"] = "endocardium-septum"
                     cavity.segment_sets.append(segset_septum)
-                    logger.debug(
+                    LOGGER.debug(
                         "Assigning septum of left ventricle to " "segment set to Right ventricle"
                     )
 
         # remove any duplicate segments within each cavity
-        logger.debug("Detecting duplicate segments...")
+        LOGGER.debug("Detecting duplicate segments...")
         all_tris = np.empty((0, 3), dtype=int)
         import tqdm as tqdm  # for progress bar
 
@@ -789,7 +789,7 @@ class HeartMesh:
                 for idx, tri in enumerate(tqdm.tqdm(seg_set1, ascii=True)):
                     if np.any(np.all(tri == all_tris, axis=1)):
                         idx_remove.append(idx)
-                logger.debug(
+                LOGGER.debug(
                     "Found {0} duplicate segments in {1}".format(
                         len(idx_remove), cavity.name + " " + seg_set["name"]
                     )
@@ -910,7 +910,7 @@ class HeartMesh:
     def set_volume_mesh_vtk(self, filename):
         """Reads volume mesh (vtk) and sets the data"""
         if self._vtk_volume_temp:
-            logger.warning("Overwriting existing data...")
+            LOGGER.warning("Overwriting existing data...")
 
         self._vtk_volume = vtk_read_mesh_file(filename)
         return
@@ -931,7 +931,7 @@ class HeartMesh:
                 # surface_tag, surface_tag, "tags" )
                 cavity._myocardium_surface = self._vtk_surface
             else:
-                logger.error("Myocardium not in list: " + ", ".join(cavity.labels))
+                LOGGER.error("Myocardium not in list: " + ", ".join(cavity.labels))
 
         return
 
@@ -974,11 +974,11 @@ class HeartMesh:
         """Extracts the relevant parts from the input mesh file"""
 
         # get labels to use
-        logger.debug("Extracting tags...")
+        LOGGER.debug("Extracting tags...")
         labels_to_use = []
         for key, value in vtk_labels_to_use.items():
             labels_to_use.append(value)
-            logger.debug("\tName: " + key + " | id: " + str(value))
+            LOGGER.debug("\tName: " + key + " | id: " + str(value))
 
         labels_to_use.sort()
         tags_to_use = labels_to_use
@@ -1022,7 +1022,7 @@ class HeartMesh:
                 d1 = np.linalg.norm(cap.centroid + cap.normal - cavity.centroid)
                 d2 = np.linalg.norm(cap.centroid - cap.normal - cavity.centroid)
                 if d2 > d1:
-                    logger.debug(
+                    LOGGER.debug(
                         "Flip cap normal such that it points inwards: %s"
                         % " ".join([cavity.name, cap.name])
                     )
@@ -1072,7 +1072,7 @@ class HeartMesh:
 
     def _write_parts_to_stl(self):
         """Writes each unique tag to seperate .stl file (can be used in meshing step)"""
-        logger.debug("Writing parts to stl...[For Fluent use in future]")
+        LOGGER.debug("Writing parts to stl...[For Fluent use in future]")
         vtk_labels_to_use = self.info.vtk_labels_to_use
 
         nodes = self._nodes_surface
@@ -1098,7 +1098,7 @@ class HeartMesh:
 
     def extract_individual_parts_surface(self):
         """Extracts the surfaces of each individual part"""
-        logger.debug("Extracting individual parts as stl surfaces... [for Fluent?]")
+        LOGGER.debug("Extracting individual parts as stl surfaces... [for Fluent?]")
         for key, value in self.info.vtk_labels_to_use.items():
             vtk_part_volume, _ = threshold_vtk_data(self._vtk_volume_temp, value, value, "tags")
             filename = "part_surface_{:0>3.0f}.stl".format(value)
@@ -1342,7 +1342,7 @@ class HeartMesh:
         # extract surface for each tag to use
         offset = 0
         for tag in tags_to_use:
-            logger.debug("Extrating part id: {0}".format(tag))
+            LOGGER.debug("Extrating part id: {0}".format(tag))
             volume_thresholded, global_ids = threshold_vtk_data(
                 vtk_volume, tag, tag, data_name="tags"
             )
@@ -1488,4 +1488,4 @@ class HeartMesh:
 
 
 if __name__ == "__main__":
-    logger.info("Protected")
+    LOGGER.info("Protected")

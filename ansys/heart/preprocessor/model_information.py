@@ -4,7 +4,7 @@ import json
 from ansys.heart.preprocessor.global_parameters import VALID_MODELS
 
 # import logger
-from ansys.heart.custom_logging import logger
+from ansys.heart.custom_logging import LOGGER
 
 
 class ModelInformation:
@@ -60,10 +60,10 @@ class ModelInformation:
             )
         self._model_type = value
         self.vtk_labels_to_use = VALID_MODELS[self._model_type]["LabelsToUse"]
-        logger.info("Model Type: %s" % value)
-        logger.info("Labels to use:")
+        LOGGER.info("Model Type: %s" % value)
+        LOGGER.info("Labels to use:")
         for label in self.vtk_labels_to_use:
-            logger.info("\t%s" % label)
+            LOGGER.info("\t%s" % label)
         return
 
     @property
@@ -133,13 +133,13 @@ class ModelInformation:
 
     def save_to_file(self, filename: str):
         """Saves model information to file"""
-        logger.info("Writing model info to file: %s" % filename)
+        LOGGER.info("Writing model info to file: %s" % filename)
         with open(filename, "w") as file:
             file.write(json.dumps(self.__dict__, indent=4))
 
     def load_from_file(self, filename: str):
         """Loads model information from file"""
-        logger.info("Reading model info from file: %s" % filename)
+        LOGGER.info("Reading model info from file: %s" % filename)
         with open(filename, "r") as file:
             tmp = json.load(file)
 
@@ -161,7 +161,7 @@ class ModelInformation:
 
         files = glob.glob(os.path.join(self.working_directory, "*"))
         if len(files) > 0:
-            logger.debug("Files detected: cleaning all files from directory")
+            LOGGER.debug("Files detected: cleaning all files from directory")
         for f in files:
             os.remove(f)
 

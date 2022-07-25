@@ -7,7 +7,7 @@ import pathlib
 
 from ansys.heart.preprocessor._load_template import load_template
 from ansys.heart.preprocessor import SC_EXE, FLUENT_EXE
-from ansys.heart.custom_logging import logger
+from ansys.heart.custom_logging import LOGGER
 
 # for fluent:
 import ansys.fluent.core as pyfluent
@@ -165,4 +165,4 @@ def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii"):
 
 
 if __name__ == "__main__":
-    logger.info("Protected")
+    LOGGER.info("Protected")

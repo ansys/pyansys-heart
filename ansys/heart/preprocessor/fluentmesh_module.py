@@ -4,11 +4,12 @@ import time
 import meshio
 from typing import List, Optional
 
-from ansys.heart.custom_logging import logger
+from ansys.heart.custom_logging import LOGGER
 
 
 """Module containing functions to read/write fluent meshes in HDF5 format
 """
+
 
 def fluenthdf5_to_vtk(hdf5_filename: str, vtk_filename: str):
     """Converts Fluent hdf5 to vtk format
@@ -75,7 +76,7 @@ def get_mesh_group(fid: h5py.File) -> h5py.Group:
 
 
 def get_face_group(group: h5py.Group) -> h5py.Group:
-    """Gets face zone group """
+    """Gets face zone group"""
 
     def find_faces(name):
         if "faces" in name:
@@ -86,7 +87,7 @@ def get_face_group(group: h5py.Group) -> h5py.Group:
 
 
 def get_face_zone_info(face_group: h5py.Group) -> List:
-    """Gets list of face zone names """
+    """Gets list of face zone names"""
     # get face zone ids
     face_zone_ids = np.array(face_group["zoneTopology/id"])
     # get face zones
@@ -159,7 +160,7 @@ def face_group_to_face_zones(
 
 
 def face_group_to_tetrahedrons(face_group: h5py.Group, face_zone_names: List[str]) -> np.array:
-    """"Converts Fluent's face connectivity matrix to tetrahedron elements.
+    """ "Converts Fluent's face connectivity matrix to tetrahedron elements.
     Format Fluent face:
     [n0 n1 n2] [c0 c1]
     n0 n1 n2 : node indices that make up face
@@ -226,7 +227,7 @@ def face_group_to_tetrahedrons(face_group: h5py.Group, face_zone_names: List[str
 
     tetrahedrons = np.empty((num_elem, 4), dtype=int)
 
-    logger.info("Generating {0} tetrahedrons...".format(num_elem))
+    LOGGER.info("Generating {0} tetrahedrons...".format(num_elem))
 
     t0 = time.time()
 
@@ -256,7 +257,7 @@ def face_group_to_tetrahedrons(face_group: h5py.Group, face_zone_names: List[str
     tetrahedrons = np.column_stack((A, node_idx_append))
 
     t1 = time.time()
-    logger.info("** Time elapsed: {:.2f} s **".format(t1 - t0))
+    LOGGER.info("** Time elapsed: {:.2f} s **".format(t1 - t0))
 
     tetrahedrons = np.ndarray.astype(tetrahedrons, dtype=int)
     return tetrahedrons

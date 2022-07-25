@@ -2069,57 +2069,47 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         LOGGER.debug("Removing {0} nodes from base nodes".format(np.sum(mask)))
         nodes_base = nodes_base[np.invert(mask)]
 
-        # switch between the various models to generate valid input decks
-        if self.model.info.model_type in ["LeftVentricle"]:
+        node_set_id_apex_left = 201
+        # create node-sets for apex
+        node_set_apex_kw = create_node_set_keyword(
+            node_ids=[node_apex_left + 1],
+            node_set_id=node_set_id_apex_left,
+            title="apex node left",
+        )
+
+        self.kw_database.create_purkinje.extend([node_set_apex_kw])
+
+        apex_left_X = self.volume_mesh["nodes"][node_apex_left, 0]
+        apex_left_Y = self.volume_mesh["nodes"][node_apex_left, 1]
+        apex_left_Z = self.volume_mesh["nodes"][node_apex_left, 2]
+        node_id_start_left = (
+            self.volume_mesh["nodes"].shape[0] + 1
+        )  # TODO seek for max id rather than number of rows
+
+        edge_id_start_left = self.volume_mesh["tetra"].shape[0] + 1
+
+        # Purkinje generation parameters
+        self.kw_database.create_purkinje.append(
+            custom_keywords.EmEpPurkinjeNetwork(
+                purkid=1,
+                buildnet=1,
+                ssid=segment_set_ids_endo_left,
+                mid=25,
+                pointstx=apex_left_X,
+                pointsty=apex_left_Y,
+                pointstz=apex_left_Z,
+                edgelen=2,
+                ngen=50,
+                nbrinit=8,
+                nsplit=2,
+                inodeid=node_id_start_left,
+                iedgeid=edge_id_start_left,  # TODO check if beam elements exist in mesh
+            )
+        )
+
+        # Add right purkinje only in biventricular or 4chamber models
+        if self.model.info.model_type in ["BiVentricle", "FourChamber"]:
             LOGGER.warning("Model type %s in development " % self.model.info.model_type)
-
-            node_set_id_apex_left = 201
-            # create node-sets for apex
-            node_set_apex_kw = create_node_set_keyword(
-                node_ids=[node_apex_left + 1],
-                node_set_id=node_set_id_apex_left,
-                title="apex node left",
-            )
-
-            self.kw_database.create_purkinje.extend([node_set_apex_kw])
-
-            apex_left_X = self.volume_mesh["nodes"][node_apex_left, 0]
-            apex_left_Y = self.volume_mesh["nodes"][node_apex_left, 1]
-            apex_left_Z = self.volume_mesh["nodes"][node_apex_left, 2]
-            node_id_start_left = (
-                self.volume_mesh["nodes"].shape[0]
-            ) + 1  # TODO seek for max id rather than number of rows
-            edge_id_start_left = self.volume_mesh["tetra"].shape[0]
-            # Purkinje generation parameters
-            self.kw_database.create_purkinje.append(
-                custom_keywords.EmEpPurkinjeNetwork(
-                    purkid=1,
-                    buildnet=1,
-                    ssid=segment_set_ids_endo_left,
-                    mid=25,
-                    pointstx=apex_left_X,
-                    pointsty=apex_left_Y,
-                    pointstz=apex_left_Z,
-                    edgelen=2,
-                    ngen=30,
-                    nbrinit=8,
-                    nsplit=2,
-                    inodeid=node_id_start_left,
-                    iedgeid=edge_id_start_left,  # TODO check if beam elements exist in mesh
-                )
-            )
-        elif self.model.info.model_type in ["BiVentricle", "FourChamber"]:
-            LOGGER.warning("Model type %s in development " % self.model.info.model_type)
-
-            node_set_id_apex_left = 201
-            # create node-sets for apex
-            node_set_apex_kw = create_node_set_keyword(
-                node_ids=[node_apex_left + 1],
-                node_set_id=node_set_id_apex_left,
-                title="apex node left",
-            )
-
-            self.kw_database.create_purkinje.extend([node_set_apex_kw])
 
             node_set_id_apex_right = 202
             # create node-sets for apex
@@ -2130,34 +2120,6 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
             )
 
             self.kw_database.create_purkinje.extend([node_set_apex_kw])
-
-            apex_left_X = self.volume_mesh["nodes"][node_apex_left, 0]
-            apex_left_Y = self.volume_mesh["nodes"][node_apex_left, 1]
-            apex_left_Z = self.volume_mesh["nodes"][node_apex_left, 2]
-            node_id_start_left = (
-                self.volume_mesh["nodes"].shape[0] + 1
-            )  # TODO seek for max id rather than number of rows
-
-            edge_id_start_left = self.volume_mesh["tetra"].shape[0] + 1
-
-            # Purkinje generation parameters
-            self.kw_database.create_purkinje.append(
-                custom_keywords.EmEpPurkinjeNetwork(
-                    purkid=1,
-                    buildnet=1,
-                    ssid=segment_set_ids_endo_left,
-                    mid=25,
-                    pointstx=apex_left_X,
-                    pointsty=apex_left_Y,
-                    pointstz=apex_left_Z,
-                    edgelen=2,
-                    ngen=50,
-                    nbrinit=8,
-                    nsplit=2,
-                    inodeid=node_id_start_left,
-                    iedgeid=edge_id_start_left,  # TODO check if beam elements exist in mesh
-                )
-            )
 
             apex_right_X = self.volume_mesh["nodes"][node_apex_right, 0]
             apex_right_Y = self.volume_mesh["nodes"][node_apex_right, 1]
@@ -2186,8 +2148,6 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                     iedgeid=edge_id_start_right,
                 )
             )
-
-        return
 
     def _update_main_db(self):
 

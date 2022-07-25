@@ -1496,7 +1496,9 @@ def remove_triangle_layers_from_trimesh(triangles: np.array, iters: int = 1) -> 
     return reduced_triangles
 
 
-def get_connected_regions(nodes: np.array, triangles: np.array) -> np.array:
+def get_connected_regions(
+    nodes: np.array, triangles: np.array, return_vtk_object: bool = False
+) -> np.array:
     """Finds the connected regions
 
     Parameters
@@ -1505,11 +1507,15 @@ def get_connected_regions(nodes: np.array, triangles: np.array) -> np.array:
         NumNodes x 3 array with point coordinates
     triangles : np.array
         NumTriangles x 3 array with triangle definitions
+    return_vtk_object : bool, optional
+        Flag indicating whether to return the vtk (surface) object, by default False
 
     Returns
     -------
     np.array
         Array with region ids
+    vtk.vtkPolyData
+        VTK Object with region ids
     """
 
     vtk_surface = create_vtk_surface_triangles(nodes, triangles)
@@ -1542,7 +1548,10 @@ def get_connected_regions(nodes: np.array, triangles: np.array) -> np.array:
     region_ids = cell_data["regions"]
     # cast to ints
     region_ids = np.array(region_ids, dtype=int)
-    return region_ids
+    if return_vtk_object:
+        return region_ids, vtk_surface_with_regions
+    else:
+        return region_ids
 
 
 def mark_elements_inside_surfaces(

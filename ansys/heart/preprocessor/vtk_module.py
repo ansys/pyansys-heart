@@ -7,6 +7,7 @@ import numpy as np
 import meshio
 
 from ansys.heart.custom_logging import LOGGER
+from ansys.heart.preprocessor.mesh_module import add_solid_name_to_stl
 
 from typing import List, Union
 
@@ -95,7 +96,9 @@ def write_vtkdata_to_vtkfile(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPol
 #     return surface_filter.GetOutput()
 
 
-def vtk_surface_to_stl(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData], filename: str):
+def vtk_surface_to_stl(
+    vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData], filename: str, solid_name: str = None
+) -> None:
     """Writes stl from vtk surface mesh (polydata)"""
 
     vtk_data_to_write = vtk_data
@@ -112,6 +115,9 @@ def vtk_surface_to_stl(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData]
     writer.SetInputData(vtk_data_to_write)
     writer.SetFileTypeToBinary()
     writer.Write()
+
+    if solid_name:
+        add_solid_name_to_stl(filename, solid_name, "binary")
 
     return
 

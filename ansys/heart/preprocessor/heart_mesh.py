@@ -11,7 +11,7 @@ import meshio
 import vtk
 from ansys.heart.preprocessor.cavity_module import Cavity
 from ansys.heart.preprocessor.model_information import ModelInformation
-from ansys.heart.preprocessor.model_information import VALID_MODELS
+from ansys.heart.preprocessor.global_parameters import VALID_MODELS
 from ansys.heart.preprocessor.vtk_module import (
     create_vtk_surface_triangles,
     write_vtkdata_to_vtkfile,

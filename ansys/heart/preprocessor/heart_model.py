@@ -149,6 +149,174 @@ class HeartModel:
 
         return
 
+    def extract_simulation_mesh_improved(self, remesh: bool = True):
+        """Extracts the simulation mesh based on the model information provided. Improved version
+
+        Parameters
+        ----------
+        do_remesh : bool, optional
+            Flag indicating whether to perform a remeshing step with the
+            specified cell size, by default True
+        """
+        import copy
+
+        write_folder = self.info.working_directory
+
+        self._mesh.load_raw_mesh()
+        vtk_labels = copy.deepcopy(self.info.vtk_labels_to_use)
+        # invert label map
+        vtk_labels_inverse = dict((v, k) for k, v in vtk_labels.items())
+        tags_to_use = list(vtk_labels.values())
+
+        # model type determines what parts to extract
+        from ansys.heart.preprocessor.vtk_module import (
+            get_tetra_info_from_unstructgrid,
+            write_vtkdata_to_vtkfile,
+            vtk_surface_to_stl,
+            create_vtk_surface_triangles,
+            get_connected_regions,
+        )
+        from ansys.heart.preprocessor.mesh_module import add_solid_name_to_stl
+        from ansys.heart.preprocessor.extract_regions_manual import (
+            face_tetra_connectivity,
+            get_face_type,
+        )
+        import numpy as np
+
+        points, tetra, cell_data, point_data = get_tetra_info_from_unstructgrid(
+            self._mesh._vtk_volume_raw
+        )
+
+        # get part ids
+        part_ids = cell_data["tags"]
+        part_ids = np.array(part_ids, dtype=int)
+
+        # get face-tetra connectivity
+        faces, c0, c1 = face_tetra_connectivity(tetra)
+
+        # get face types
+        # face_type == 1: interior face
+        # face_type == 2: boundary face
+        face_types = get_face_type(faces, np.array([c0, c1]).T)
+
+        mask_interface_faces = np.all(
+            np.vstack([part_ids[c0] != part_ids[c1], face_types == 1]), axis=0
+        )
+
+        # get number of unique interfaces:
+        interface_pairs = np.vstack(
+            [part_ids[c0][mask_interface_faces], part_ids[c1][mask_interface_faces]]
+        )
+        # get all tag pairs
+        interface_pairs_sorted = np.sort(interface_pairs, axis=0)
+        tag_pairs = np.unique(interface_pairs_sorted, axis=1).transpose()
+
+        # # NOTE: delete any tag pairs?
+        # tag_pairs[np.any(tag_pairs == -1, axis=1), :]
+
+        # # assign -1 to any cell which is not used
+        # part_ids[np.isin(part_ids, tags_to_use, invert=True)] = -1
+
+        # remove myocardium<>myocardium interfaces
+        # remove myocardium<>aorta wall and myocardiun<>pulmonary artery wall interfaces
+        tag_pairs_1 = np.empty((0, 2), dtype=int)
+        for tag_pair in tag_pairs:
+            labels = [vtk_labels_inverse[tag_pair[0]], vtk_labels_inverse[tag_pair[1]]]
+            res1 = ["myocardium" in e for e in labels]
+            res2 = ["wall" in e for e in labels]
+            if np.all(["myocardium" in e for e in labels]):
+                # skip if myocardium-myocardium intersection
+                print("Skipping {0} | {1}".format(*tag_pair))
+                continue
+            if (
+                np.sum(["myocardium" in e for e in labels]) == 1
+                and np.sum(["wall" in e for e in labels]) == 1
+            ):
+                # skip if myocardium<>pulmonary artery or myocardium<>aorta wall interfaces
+                print("Skipping {0} | {1}".format(*tag_pair))
+                continue
+            tag_pairs_1 = np.vstack([tag_pairs_1, tag_pair])
+        tag_pairs = tag_pairs_1
+
+        # for labels_pair in label_pairs:
+        for pair in tag_pairs:
+            # skip any unused parts:
+            if not np.all(np.isin(pair, tags_to_use)):
+                LOGGER.debug("Skipping pair: {0}|{1}".format(*pair))
+
+            labels_pair = [vtk_labels_inverse[pair[0]], vtk_labels_inverse[pair[1]]]
+            pair_name = "_".join(labels_pair).replace(" ", "-").lower()
+            tags_pair = [vtk_labels[labels_pair[0]], vtk_labels[labels_pair[1]]]
+
+            mask_part1 = (
+                np.sum(
+                    np.vstack([part_ids[c0] == tags_pair[0], part_ids[c1] == tags_pair[0]]), axis=0
+                )
+                == 1
+            )
+            mask_part2 = (
+                np.sum(
+                    np.vstack([part_ids[c0] == tags_pair[1], part_ids[c1] == tags_pair[1]]), axis=0
+                )
+                == 1
+            )
+            # get interface between pairs
+            face_ids_interface = np.where(
+                np.all(np.vstack([mask_interface_faces, mask_part1, mask_part2]), axis=0)
+            )[0]
+
+            faces_interface = faces[face_ids_interface, :]
+            vtk_surface = create_vtk_surface_triangles(points, faces_interface)
+            filename = os.path.join(
+                write_folder, "part_interface_{:02d}_{:02d}.stl".format(tags_pair[0], tags_pair[1])
+            )
+            vtk_surface_to_stl(vtk_surface, filename, solid_name=pair_name)
+
+        # exclude valves/inlets from extraction
+        part_ids_to_extract = []
+        for label, pid in vtk_labels.items():
+            if "inlet" in label or "valve" in label:
+                continue
+            part_ids_to_extract.append(pid)
+        part_ids_to_extract = np.sort(part_ids_to_extract)
+
+        for part_id in part_ids_to_extract:
+            mask = np.vstack([face_types == 2, part_ids[c0] == part_id])
+            mask = np.all(mask, axis=0)
+            boundary_faces = faces[mask, :]
+
+            # extract regions for myocardial parts (LV: 1, RV: 2, LA: 3, RA: 4)
+            if "myocardium" in vtk_labels_inverse[part_id]:
+                region_ids, vtk_surface = get_connected_regions(points, boundary_faces, True)
+                # write_vtkdata_to_vtkfile(
+                #     vtk_surface, "..\\tmp\\part_with_region_ids_{:02d}.vtk".format(part_id)
+                # )
+
+                # smalles region endocardium, largest region epicardium. In case of Left ventricle
+                # smallest region is septum
+                name_map = ["endocardium", "epicardium", "septum"]
+                unique_region_ids, counts = np.unique(region_ids, return_counts=True)
+                for ii, index in enumerate(np.argsort(counts)):
+                    unique_region_ids[index]
+                    vtk_surface1 = create_vtk_surface_triangles(
+                        points, boundary_faces[region_ids == unique_region_ids[index]]
+                    )
+                    part_name = "-".join(
+                        "{0}-{1}".format(vtk_labels_inverse[part_id], name_map[index])
+                        .lower()
+                        .split()
+                    )
+                    filename = os.path.join(write_folder, "part_{0}.stl".format(part_name))
+                    vtk_surface_to_stl(vtk_surface1, filename, solid_name=part_name)
+            else:
+                vtk_surface = create_vtk_surface_triangles(points, boundary_faces)
+                # write_vtkdata_to_vtkfile(vtk_surface, "..\\tmp\\part_{:02d}.vtk".format(part_id))
+                part_name = "-".join("{0}".format(vtk_labels_inverse[part_id]).lower().split())
+                filename = os.path.join(write_folder, "part_{0}.stl".format(part_name))
+                vtk_surface_to_stl(vtk_surface, filename, solid_name=part_name)
+
+        return
+
     def extract_simulation_mesh_from_simplified_geometry(self):
         """Extracts a simulation mesh from a modified/simplified geometry
         from Strocchi or Cristobal et al

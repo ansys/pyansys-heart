@@ -1,7 +1,7 @@
 import os
 import json
 
-from ansys.heart.preprocessor.global_parameters import VALID_MODELS
+from ansys.heart.preprocessor.global_parameters import VALID_MODELS_IMPROVED
 
 # import logger
 from ansys.heart.custom_logging import LOGGER
@@ -51,7 +51,7 @@ class ModelInformation:
 
     @model_type.setter
     def model_type(self, value: str):
-        valid_models = list(VALID_MODELS.keys())
+        valid_models = list(VALID_MODELS_IMPROVED.keys())
         if value not in valid_models:
             raise ValueError(
                 "{0} not a valid model. Please specify one of the following: {1}".format(
@@ -59,7 +59,7 @@ class ModelInformation:
                 )
             )
         self._model_type = value
-        self.vtk_labels_to_use = VALID_MODELS[self._model_type]["LabelsToUse"]
+        self.vtk_labels_to_use = VALID_MODELS_IMPROVED[self._model_type]["LabelsToUse"]
         LOGGER.info("Model Type: %s" % value)
         LOGGER.info("Labels to use:")
         for label in self.vtk_labels_to_use:

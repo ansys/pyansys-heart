@@ -2116,7 +2116,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
             node_set_apex_kw = create_node_set_keyword(
                 node_ids=[node_apex_right + 1],
                 node_set_id=node_set_id_apex_right,
-                title="apex node left",
+                title="apex node right",
             )
 
             self.kw_database.create_purkinje.extend([node_set_apex_kw])

@@ -1598,6 +1598,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
                             d2=-1,
                             d3=0,
                         ),
+                        custom_keywords.EmEpCellmodelTomek(mid=em_mat_id),
                     ]
                 )
 

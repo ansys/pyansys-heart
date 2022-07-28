@@ -41,19 +41,21 @@ class FiberGenerationDecks(BaseDecks):
         self.ep_settings = Deck()
         self.create_fiber = Deck()
 
+
 class PurkinjeGenerationDecks(BaseDecks):
     """This class inherits from the BaseDecks class and
     defines additional useful decks for Purkinje generation"""
 
     def __init__(self) -> None:
         super().__init__()
+        self.mainLEFT = Deck()
+        self.mainRIGHT = Deck()
         self.ep_settings = Deck()
-        self.create_purkinje = Deck()
-
 
 class ElectrophysiologyDecks(BaseDecks):
     """Adds decks specificly for Electrophysiology simulations"""
 
     def __init__(self) -> None:
         super().__init__()
+        self.main = Deck()
         self.ep_settings = Deck()

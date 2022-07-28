@@ -1574,48 +1574,13 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         return
 
     def _update_material_db(self):
-        """Adds simple linear elastic material for each defined part"""
-        for cavity in self.model._mesh._cavities:
-            for element_set in cavity.element_sets:
-                kw = keywords.MatElastic(mid=element_set["id"], ro=1e-6, e=1)
-                self.kw_database.material.append(kw)
-
-    def _update_ep_settings(self):
-        """Adds the settings for the electrophysiology solver"""
-
-        self.kw_database.ep_settings.append(keywords.DatabaseBinaryD3Plot(dt=1.0))
-
-        self.kw_database.ep_settings.append(keywords.ControlTimestep(dtinit=1.0, dt2ms=1))
-
-        self.kw_database.ep_settings.append(keywords.ControlTermination(endtim=10))
-
-        self.kw_database.ep_settings.append(
-            keywords.EmControl(
-                emsol=11, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
-            )
-        )
-
-        self.kw_database.ep_settings.append(
-            keywords.EmControl(
-                emsol=11, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
-            )
-        )
-
-        # use defaults
-        self.kw_database.ep_settings.append(custom_keywords.EmControlEp())
-
-        # max iter should be int
-        self.kw_database.ep_settings.append(
-            keywords.EmSolverFem(reltol=1e-6, maxite=int(1e4), precon=2)
-        )
-
-        # NOTE: material id should be same as target myocardium
-        # create one material per cavity
+        """Adds simple linear elastic and orthotropic EM material for each defined part"""
         for cavity in self.model._mesh._cavities:
             for element_set in cavity.element_sets:
                 em_mat_id = element_set["id"]
-                self.kw_database.ep_settings.extend(
+                self.kw_database.material.extend(
                     [
+                        keywords.MatElastic(mid=em_mat_id, ro=1e-6, e=1),
                         custom_keywords.EmMat003(
                             mid=em_mat_id,
                             mtype=2,
@@ -1633,9 +1598,25 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
                             d2=-1,
                             d3=0,
                         ),
-                        custom_keywords.EmEpCellmodelTomek(mid=em_mat_id),
                     ]
                 )
+
+    def _update_ep_settings(self):
+        """Adds the settings for the electrophysiology solver"""
+
+        self.kw_database.ep_settings.append(
+            keywords.EmControl(
+                emsol=11, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
+            )
+        )
+
+        # use defaults
+        self.kw_database.ep_settings.append(custom_keywords.EmControlEp())
+
+        # max iter should be int
+        self.kw_database.ep_settings.append(
+            keywords.EmSolverFem(reltol=1e-6, maxite=int(1e4), precon=2)
+        )
 
         self.kw_database.ep_settings.append(keywords.EmOutput(mats=1, matf=1, sols=1, solf=1))
 
@@ -1910,6 +1891,11 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             )
 
     def _update_main_db(self):
+        self.kw_database.main.append(keywords.ControlTimestep(dtinit=1.0, dt2ms=1.0))
+
+        self.kw_database.main.append(keywords.ControlTermination(endtim=10))
+
+        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=1.0))
 
         return
 
@@ -1982,29 +1968,10 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         """Adds simple linear elastic material for each defined part"""
         for cavity in self.model._mesh._cavities:
             for element_set in cavity.element_sets:
-                kw = keywords.MatElastic(mid=element_set["id"], ro=1e-6, e=1)
-                self.kw_database.material.append(kw)
-
-    def _update_ep_settings(self):
-        """Adds the settings for the electrophysiology solver"""
-
-        self.kw_database.ep_settings.append(keywords.ControlTimestep(dtinit=1.0, dt2ms=1))
-
-        self.kw_database.ep_settings.append(keywords.ControlTermination(endtim=10))
-
-        self.kw_database.ep_settings.append(
-            keywords.EmControl(
-                emsol=11, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
-            )
-        )
-
-        # NOTE: material id should be same as target myocardium
-        # create one material per cavity
-        for cavity in self.model._mesh._cavities:
-            for element_set in cavity.element_sets:
                 em_mat_id = element_set["id"]
-                self.kw_database.ep_settings.extend(
+                self.kw_database.material.extend(
                     [
+                        keywords.MatElastic(mid=em_mat_id, ro=1e-6, e=1),
                         custom_keywords.EmMat003(
                             mid=em_mat_id,
                             mtype=2,
@@ -2022,9 +1989,17 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                             d2=-1,
                             d3=0,
                         ),
-                        custom_keywords.EmEpCellmodelTomek(mid=em_mat_id),
                     ]
                 )
+
+    def _update_ep_settings(self):
+        """Adds the settings for the electrophysiology solver"""
+
+        self.kw_database.ep_settings.append(
+            keywords.EmControl(
+                emsol=11, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
+            )
+        )
 
         self.kw_database.ep_settings.append(keywords.EmOutput(mats=1, matf=1, sols=1, solf=1))
 
@@ -2043,6 +2018,8 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         nodes_base = np.empty(0, dtype=int)
         node_apex_left = np.empty(0, dtype=int)
         node_apex_right = np.empty(0, dtype=int)
+        edge_id_start_left = np.empty(0, dtype=int)
+        edge_id_start_right = np.empty(0, dtype=int)
         for cavity in self.model._mesh._cavities:
             if cavity.name == "Left ventricle":
                 node_apex_left = cavity.apex_id["endocardium"]
@@ -2077,7 +2054,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
             title="apex node left",
         )
 
-        self.kw_database.create_purkinje.extend([node_set_apex_kw])
+        self.kw_database.node_sets.extend([node_set_apex_kw])
 
         apex_left_X = self.volume_mesh["nodes"][node_apex_left, 0]
         apex_left_Y = self.volume_mesh["nodes"][node_apex_left, 1]
@@ -2089,7 +2066,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         edge_id_start_left = self.volume_mesh["tetra"].shape[0] + 1
 
         # Purkinje generation parameters
-        self.kw_database.create_purkinje.append(
+        self.kw_database.mainLEFT.append(
             custom_keywords.EmEpPurkinjeNetwork(
                 purkid=1,
                 buildnet=1,
@@ -2119,7 +2096,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                 title="apex node right",
             )
 
-            self.kw_database.create_purkinje.extend([node_set_apex_kw])
+            self.kw_database.node_sets.extend([node_set_apex_kw])
 
             apex_right_X = self.volume_mesh["nodes"][node_apex_right, 0]
             apex_right_Y = self.volume_mesh["nodes"][node_apex_right, 1]
@@ -2131,7 +2108,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
             edge_id_start_right = 2 * self.volume_mesh["tetra"].shape[0]
 
             # Purkinje generation parameters
-            self.kw_database.create_purkinje.append(
+            self.kw_database.mainRIGHT.append(
                 custom_keywords.EmEpPurkinjeNetwork(
                     purkid=2,
                     buildnet=1,
@@ -2152,6 +2129,25 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
     def _update_main_db(self):
 
         return
+
+    def _get_list_of_includes(self):
+        """Gets a list of files to include in main.k. Ommit any empty decks"""
+        for deckname, deck in vars(self.kw_database).items():
+            if deckname == "mainLEFT" or deckname == "mainRIGHT":
+                continue
+            # skip if no keywords are present in the deck
+            if len(deck.keywords) == 0:
+                LOGGER.debug("No keywords in deck: {0}".format(deckname))
+                continue
+            self.include_files.append(deckname)
+        return
+
+    def _add_includes(self):
+        """Adds *INCLUDE keywords"""
+        for include_file in self.include_files:
+            filename_to_include = include_file + ".k"
+            self.kw_database.mainLEFT.append(keywords.Include(filename=filename_to_include))
+            self.kw_database.mainRIGHT.append(keywords.Include(filename=filename_to_include))
 
 
 if __name__ == "__main__":

@@ -165,6 +165,24 @@ class HeartModel:
             specified cell size, by default True
         """
         import copy
+        from geomdl import fitting
+        import numpy as np
+
+        # model type determines what parts to extract
+        from ansys.heart.preprocessor.vtk_module import (
+            get_tetra_info_from_unstructgrid,
+            write_vtkdata_to_vtkfile,
+            vtk_surface_to_stl,
+            create_vtk_surface_triangles,
+            get_connected_regions,
+            get_free_edges,
+        )
+        from ansys.heart.preprocessor.mesh_connectivity import (
+            face_tetra_connectivity,
+            get_face_type,
+        )
+        from ansys.heart.preprocessor.edge_module import edge_connectivity
+        from ansys.heart.preprocessor.geodisc_module import project_3d_points
 
         write_folder = self.info.working_directory
 
@@ -180,31 +198,6 @@ class HeartModel:
         # invert label map
         vtk_labels_inverse = dict((v, k) for k, v in vtk_labels.items())
         tags_to_use = list(vtk_labels.values())
-
-        # model type determines what parts to extract
-        from ansys.heart.preprocessor.vtk_module import (
-            get_tetra_info_from_unstructgrid,
-            get_tri_info_from_polydata,
-            write_vtkdata_to_vtkfile,
-            vtk_surface_to_stl,
-            create_vtk_surface_triangles,
-            get_connected_regions,
-            get_free_edges,
-            get_edges_from_triangles,
-            threshold_vtk_data,
-            vtk_surface_filter,
-        )
-        from ansys.heart.preprocessor.mesh_module import add_solid_name_to_stl
-        from ansys.heart.preprocessor.extract_regions_manual import (
-            face_tetra_connectivity,
-            get_face_type,
-        )
-        from ansys.heart.preprocessor.edge_module import edge_connectivity
-        from ansys.heart.preprocessor.geodisc_module import project_3d_points
-        from geomdl import fitting
-        from geomdl.visualization import VisMPL as vis
-
-        import numpy as np
 
         points, tetra, cell_data, point_data = get_tetra_info_from_unstructgrid(
             self._mesh._vtk_volume_raw, deep_copy=True
@@ -530,7 +523,7 @@ class HeartModel:
                             {"name": name, "set": face_zone["faces"], "id": face_zone["zone-id"]}
                         )
 
-            if cavity.name == "Left ventricle":
+            if cavity.name == "Left ventricle" and "LeftVentricle" not in self.info.model_type:
                 cavity.segment_sets.append(
                     {
                         "name": "epicardium-septum",

@@ -12,6 +12,7 @@ from ansys.heart.preprocessor.vtk_module import (
     get_tetra_info_from_unstructgrid,
     write_vtkdata_to_vtkfile,
 )
+from ansys.heart.custom_logging import LOGGER
 
 
 def get_faces_tetra(tetra):

@@ -275,15 +275,6 @@ class Cavity:
             surface_threshold = vtk_surface_filter(surface_threshold)
             self._surfaces[label] = surface_threshold
 
-        from ansys.heart.preprocessor.vtk_module import write_vtkdata_to_vtkfile
-        from ansys.heart.preprocessor.mesh_module import add_solid_name_to_stl
-
-        for key, polydata in self._surfaces.items():
-            if "myocardium" in key:
-                write_vtkdata_to_vtkfile(polydata, key + ".vtk")
-                vtk_surface_to_stl(polydata, key + ".stl")
-                add_solid_name_to_stl(key + ".stl", key, "binary")
-
         return
 
     def _find_closing_edge_loop(self):

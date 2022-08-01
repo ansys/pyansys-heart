@@ -24,6 +24,7 @@ def mesh_by_fluentmeshing(
     path_to_output: str,
     mesh_size: float = 2.0,
     journal_type: str = "original",
+    show_gui: bool = False,
 ):
     """Uses Fluent meshing to wrap the surface and create
     tetrahedral mesh"""
@@ -62,7 +63,11 @@ def mesh_by_fluentmeshing(
     # start Fluent session using PyFluent:
     # TODO: Catch errors in session
     session = pyfluent.launch_fluent(
-        meshing_mode=True, precision="double", processor_count=num_cpus, start_transcript=False
+        meshing_mode=True,
+        precision="double",
+        processor_count=num_cpus,
+        start_transcript=False,
+        show_gui=show_gui,
     )
     session.meshing.tui.file.read_journal(script)
     session.exit()
@@ -165,4 +170,27 @@ def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii"):
 
 
 if __name__ == "__main__":
+    import ansys.fluent.core as pyfluent
+
+    # from ansys.fluent.core.services import SurfaceDataType
+
+    session = pyfluent.launch_fluent(start_instance=True, show_gui=True, meshing_mode=True)
+
+    session.meshing.tui.file.read_mesh(
+        "D:\\development\pyheart-lib\\pyheart-lib\downloads\\Strocchi2020_Demo1.2\\p05\\fluent_volume_mesh.msh.h5"
+    )
+    session.meshing.tui.switch_to_solution_mode("yes")
+    field_data = session.field_data
+    field_data.add_get_surfaces_request(
+        surface_ids=[10296], provide_vertices=True, provide_faces=True
+    )
+    payload_data = field_data.get_fields()
+
+    # zone_id = info["right-ventricle-epicardium"]["zone_id"]
+    # data = session.field_data.get_surface_data("right-ventricle-epicardium",
+    # session.field_data.add_get_surfaces_request([zone_id])
+    data = session.field_data.get_fields()
+    session.check_health()
+    session.exit()
+
     LOGGER.info("Protected")

@@ -49,4 +49,4 @@
 ( ti-menu-load-string 				
 	(format #f "/file/write-mesh ~a ok" my-output-mesh )
 )
-/exit yes
+;/exit yes

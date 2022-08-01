@@ -1,10 +1,9 @@
 import os
 import json
 
-from ansys.heart.preprocessor.global_parameters import VALID_MODELS
-
 # import logger
 from ansys.heart.custom_logging import LOGGER
+from ansys.heart.preprocessor.global_parameters import VALID_MODELS as VALID_MODELS
 
 
 class ModelInformation:
@@ -28,7 +27,6 @@ class ModelInformation:
         path_mesh: str = "",
         path_to_cap_file: str = "",
     ):
-
         # required
         self.model_type = model_type
         self.database_name = database_name

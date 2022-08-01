@@ -48,11 +48,31 @@ def fluenthdf5_to_vtk(hdf5_filename: str, vtk_filename: str):
                 zoneids = np.ones(cells[-1][-1].shape[0], dtype=int) * value["zone-id"]
                 cell_data.append(zoneids)
 
-        cells.append(("tetra", tetrahedrons - 1))
+        cells.append(("tetra", tetrahedrons))
 
         cell_data.append(np.ones(tetrahedrons.shape[0] * cell_zone_id))
-        cell_data = {"face-zone-id": cell_data}
+        cell_data = {"zone-id": cell_data}
 
+        # add triangles: disable
+        add_triangles = False  # this may cause some issues
+        if add_triangles:
+            # triangle_zones = ("triangle", [[0, 1, 2], [1, 3, 2]])
+            triangles = np.empty((0, 3))
+            zone_ids_all_triangles = np.empty(0)
+            for zone, value in face_zones.items():
+                num_faces = value["faces"].shape[0]
+                zone_ids = np.ones(num_faces, dtype=int) * value["zone-id"]
+                zone_ids_all_triangles = np.append(zone_ids_all_triangles, zone_ids)
+                triangles = np.vstack([triangles, value["faces"]])
+
+            # put in right format
+            triangles = ("triangle", triangles)
+            # append to cells
+            cells.append(triangles)
+
+            cell_data["zone-id"].append(zone_ids_all_triangles)
+
+        # write file
         mesh = meshio.Mesh(
             points=points,
             cells=cells,
@@ -274,21 +294,10 @@ def face_group_to_tetrahedrons(face_group: h5py.Group, face_zone_names: List[str
     # logger.info( '** Time elapsed: {:.2f} s **'.format ( t1-t0 ) )
 
     tetrahedrons = np.ndarray.astype(tetrahedrons, dtype=int)
-    return tetrahedrons
+    return tetrahedrons - 1
 
 
 if __name__ == "__main__":
     print("protected")
-    # hdf5_filename = r"D:\SharedRepositories\CardiacModeling\parametric_heart\examples\workdir\"
-    # "left_ventricle_model\edge_loop.msh.h5"
-
-    # nodes = np.array([[0, 0, 0], [1.0, 0.0, 0.0], [2.0, 0.0, 0.0], [2.0, 1.0, 0.0]], dtype=float,)
-    # edges = np.array([[0, 1], [1, 2], [2, 3], [3, 0]], dtype=int)
-    # _BROKEN_edge_loop_to_msh_h5(nodes, edges)
-
-    # _BROKEN_examine_fluent_hdf5_edge_loop(hdf5_filename, nodes, edges)
-
-    # hdf5_filename = r"D:\SharedRepositories\CardiacModeling\parametric_heart\
-    #     preprocessing\test\case\01\output\output_surface_spaceclaim.msh.h5"
-
-    # fluenthdf5_to_vtk(hdf5_filename, "test.vtk")
+    hdf5_filename = r"D:\development\pyheart-lib\pyheart-lib\examples\heart\workdir\Strocchi2020\FullHeart\volume_mesh.msh.h5"
+    fluenthdf5_to_vtk(hdf5_filename, "test.vtk")

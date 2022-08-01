@@ -254,7 +254,11 @@ def create_element_solid_ortho_keyword(
 
 
 def create_define_curve_kw(
-    x: np.array, y: np.array, curve_name: str = "my-title", curve_id: int = 1, lcint: int = 15000,
+    x: np.array,
+    y: np.array,
+    curve_name: str = "my-title",
+    curve_id: int = 1,
+    lcint: int = 15000,
 ) -> keywords.DefineCurve:
     """Creates define curve from x and y values"""
     kw = keywords.DefineCurve()

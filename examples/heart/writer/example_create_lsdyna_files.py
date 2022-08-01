@@ -64,6 +64,7 @@ if __name__ == "__main__":
 
     models_to_run = ["LeftVentricle", "BiVentricle", "FourChamber", "FourChamberOriginal"]
     models_to_run = ["BiVentricle"]
+    models_to_run = ["BiVentricleImproved"]
     database = "Strocchi2020"
 
     for model in models_to_run:

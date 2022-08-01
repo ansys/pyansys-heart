@@ -122,6 +122,12 @@ def face_tetra_connectivity(tetra: np.array):
     c0 = tetra_ids[index][inverse]
     c1 = np.flip(tetra_ids_flip[index_r][inverse_r])
 
+    # removing any duplicate faces
+    mapper = np.sort(index)
+    faces_1 = faces_1[mapper, :]
+    c0 = c0[mapper]
+    c1 = c1[mapper]
+
     # print("num cells connected")
     # print("  " + str(num_cells_connected))
     # print("c0" + str(c0))

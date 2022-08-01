@@ -24,6 +24,7 @@ def mesh_by_fluentmeshing(
     path_to_output: str,
     mesh_size: float = 2.0,
     journal_type: str = "original",
+    show_gui: bool = False,
 ):
     """Uses Fluent meshing to wrap the surface and create
     tetrahedral mesh"""
@@ -62,7 +63,11 @@ def mesh_by_fluentmeshing(
     # start Fluent session using PyFluent:
     # TODO: Catch errors in session
     session = pyfluent.launch_fluent(
-        meshing_mode=True, precision="double", processor_count=num_cpus, start_transcript=False
+        meshing_mode=True,
+        precision="double",
+        processor_count=num_cpus,
+        start_transcript=False,
+        show_gui=show_gui,
     )
     session.meshing.tui.file.read_journal(script)
     session.exit()

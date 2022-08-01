@@ -11,6 +11,7 @@ from vtk.numpy_interface import dataset_adapter as dsa  # this is an improved nu
 # NOTE: do more specific imports!
 # from ansys.heart.preprocessor.mesh_module import *
 from ansys.heart.preprocessor.vtk_module import (
+    create_vtk_surface_triangles,
     vtk_surface_filter,
     threshold_vtk_data,
     get_tri_info_from_polydata,
@@ -63,6 +64,10 @@ class ClosingCap:
         """LS-DYNA segment set id"""
         self.part_id: int = 0
         """LS-DYNA Part id of the cap/valve"""
+        self.center: np.empty((0, 3), dtype=float)
+        """Center of the valve"""
+        self.center_raw: np.empty((0, 3), dtype=float)
+        """Original center of the valve"""
 
     @property
     def global_node_ids_source_mesh(self) -> np.array:
@@ -391,6 +396,8 @@ class Cavity:
 
                 all_tris = np.vstack((all_tris, tris_cap))
 
+            all_tris = np.array(all_tris, dtype=int)
+
         else:
             for cap in self.closing_caps:
 
@@ -411,6 +418,9 @@ class Cavity:
                 all_tris = np.vstack((all_tris, tris_cap))
 
             all_tris = np.array(all_tris, dtype=int)
+
+        # vtk_surface = create_vtk_surface_triangles(vtk_volume_obj.Points, all_tris)
+        # write_vtkdata_to_vtkfile(vtk_surface, "caps_of_" + self.name + "vtk")
 
         return
 

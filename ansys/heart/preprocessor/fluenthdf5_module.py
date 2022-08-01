@@ -48,27 +48,31 @@ def fluenthdf5_to_vtk(hdf5_filename: str, vtk_filename: str):
                 zoneids = np.ones(cells[-1][-1].shape[0], dtype=int) * value["zone-id"]
                 cell_data.append(zoneids)
 
-        cells.append(("tetra", tetrahedrons - 1))
+        cells.append(("tetra", tetrahedrons))
 
         cell_data.append(np.ones(tetrahedrons.shape[0] * cell_zone_id))
         cell_data = {"zone-id": cell_data}
 
-        # triangle_zones = ("triangle", [[0, 1, 2], [1, 3, 2]])
-        triangles = np.empty((0, 3))
-        zone_ids_all_triangles = np.empty(0)
-        for zone, value in face_zones.items():
-            num_faces = value["faces"].shape[0]
-            zone_ids = np.ones(num_faces, dtype=int) * value["zone-id"]
-            zone_ids_all_triangles = np.append(zone_ids_all_triangles, zone_ids)
-            triangles = np.vstack([triangles, value["faces"]])
+        # add triangles: disable
+        add_triangles = False  # this may cause some issues
+        if add_triangles:
+            # triangle_zones = ("triangle", [[0, 1, 2], [1, 3, 2]])
+            triangles = np.empty((0, 3))
+            zone_ids_all_triangles = np.empty(0)
+            for zone, value in face_zones.items():
+                num_faces = value["faces"].shape[0]
+                zone_ids = np.ones(num_faces, dtype=int) * value["zone-id"]
+                zone_ids_all_triangles = np.append(zone_ids_all_triangles, zone_ids)
+                triangles = np.vstack([triangles, value["faces"]])
 
-        # put in right format
-        triangles = ("triangle", triangles)
-        # append to cells
-        cells.append(triangles)
+            # put in right format
+            triangles = ("triangle", triangles)
+            # append to cells
+            cells.append(triangles)
 
-        cell_data["zone-id"].append(zone_ids_all_triangles)
+            cell_data["zone-id"].append(zone_ids_all_triangles)
 
+        # write file
         mesh = meshio.Mesh(
             points=points,
             cells=cells,
@@ -290,7 +294,7 @@ def face_group_to_tetrahedrons(face_group: h5py.Group, face_zone_names: List[str
     # logger.info( '** Time elapsed: {:.2f} s **'.format ( t1-t0 ) )
 
     tetrahedrons = np.ndarray.astype(tetrahedrons, dtype=int)
-    return tetrahedrons
+    return tetrahedrons - 1
 
 
 if __name__ == "__main__":

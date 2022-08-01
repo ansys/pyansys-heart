@@ -71,14 +71,12 @@ VALID_MODELS = {
             CAVITY_DEFINITIONS["RightAtrium"],
         ],
     },
-}
-
-VALID_MODELS_IMPROVED = {
-    "LeftVentricle": {
+    # IMPROVED MODELS:
+    "LeftVentricleImproved": {
         "LabelsToUse": ["Left ventricle myocardium", "Aortic valve plane", "Mitral valve plane"],
         "CavityDefinition": [CAVITY_DEFINITIONS["LeftVentricle"]],
     },
-    "BiVentricle": {
+    "BiVentricleImproved": {
         "LabelsToUse": [
             "Left ventricle myocardium",
             "Aortic valve plane",
@@ -92,7 +90,7 @@ VALID_MODELS_IMPROVED = {
             CAVITY_DEFINITIONS["RightVentricle"],
         ],
     },
-    "FourChamber": {
+    "FourChamberImproved": {
         "LabelsToUse": [
             "Left ventricle myocardium",
             "Aortic valve plane",
@@ -115,7 +113,7 @@ VALID_MODELS_IMPROVED = {
             "Right inferior pulmonary vein border",
             "Right superior pulmonary vein border",
             "Superior vena cava border",
-            "Inferior vena cava border"
+            "Inferior vena cava border",
         ],
         "CavityDefinition": [
             CAVITY_DEFINITIONS["LeftVentricle"],
@@ -124,7 +122,7 @@ VALID_MODELS_IMPROVED = {
             CAVITY_DEFINITIONS["RightAtrium"],
         ],
     },
-    "FullHeart": {
+    "FullHeartImproved": {
         "LabelsToUse": [
             "Left ventricle myocardium",
             "Aortic valve plane",
@@ -149,7 +147,7 @@ VALID_MODELS_IMPROVED = {
             "Superior vena cava border",
             "Inferior vena cava border",
             "Aorta wall",
-            "Pulmonary artery wall"
+            "Pulmonary artery wall",
         ],
         "CavityDefinition": [
             CAVITY_DEFINITIONS["LeftVentricle"],
@@ -159,6 +157,33 @@ VALID_MODELS_IMPROVED = {
         ],
     },
 }
+
+# dictionary of improved valid models
+CAVITY_DEFINITIONS_IMPROVED = {
+    "LeftVentricle": ["Left ventricle myocardium", "Aortic valve plane", "Mitral valve plane"],
+    "RightVentricle": [
+        "Right ventricle myocardium",
+        "Tricuspid valve plane",
+        "Pulmonary valve plane",
+    ],
+    "LeftAtrium": [
+        "Left atrium myocardium",
+        "Mitral valve plane",
+        "Left atrium appendage inlet",
+        "Left superior pulmonary vein inlet",
+        "Left inferior pulmonary vein inlet",
+        "Right inferior pulmonary vein inlet",
+        "Right superior pulmonary vein inlet",
+    ],
+    "RightAtrium": [
+        "Right atrium myocardium",
+        "Tricuspid valve plane",
+        "Superior vena cava inlet",
+        "Inferior vena cava inlet",
+    ],
+}
+
+VALID_MODELS_IMPROVED = {}
 
 if __name__ == "__main__":
     print("Protected")

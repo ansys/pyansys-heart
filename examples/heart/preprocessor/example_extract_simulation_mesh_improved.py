@@ -30,8 +30,10 @@ if __name__ == "__main__":
 
     models_to_run = ["LeftVentricle", "BiVentricle", "FourChamber", "FourChamberOriginal"]
     # databases_to_run = ["Strocchi2020", "Cristobal2021", "Strocchi2020_Simplified"]
-    models_to_run = ["BiVentricle"]
-    models_to_run = ["FullHeart"]
+    # models_to_run = ["LeftVentricleImproved"]
+    models_to_run = ["BiVentricleImproved", "FourChamberImproved", "FullHeartImproved"]
+    models_to_run = ["FullHeartImproved", "FourChamberImproved"]
+    # models_to_run = ["FullHeartImproved"]
     # models_to_run = ["FourChamberOriginal"]
     databases_to_run = ["Strocchi2020"]
 
@@ -44,13 +46,14 @@ if __name__ == "__main__":
         for model_type in models_to_run:
             LOGGER.info("***************************")
             # work_directory = os.path.join(Path(case_path).parent, "workdir")
-            work_directory = os.path.join(BASE_WORK_DIR, model_type)
+            work_directory = os.path.join(BASE_WORK_DIR, database, model_type)
 
-            if model_type in ["LeftVentricle", "BiVentricle", "FourChamber", "FullHeart"]:
-                do_remesh = True
-            elif model_type in ["FourChamberOriginal"]:
-                do_remesh = False
-                model_type = "FourChamber"
+            # if model_type in ["LeftVentricle", "BiVentricle", "FourChamber", "FullHeart"]:
+            #     do_remesh = True
+            # elif model_type in ["FourChamberOriginal"]:
+            #     do_remesh = False
+            #     model_type = "FourChamber"
+            do_remesh = True
 
             run_preprocessor_improved(
                 model_type=model_type,

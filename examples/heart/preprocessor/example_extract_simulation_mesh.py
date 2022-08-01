@@ -31,7 +31,7 @@ if __name__ == "__main__":
     models_to_run = ["LeftVentricle", "BiVentricle", "FourChamber", "FourChamberOriginal"]
     # databases_to_run = ["Strocchi2020", "Cristobal2021", "Strocchi2020_Simplified"]
     models_to_run = ["BiVentricle"]
-    models_to_run = ["FourChamber"]
+    # models_to_run = ["FourChamber"]
     # models_to_run = ["FourChamberOriginal"]
     databases_to_run = ["Strocchi2020"]
 
@@ -44,7 +44,7 @@ if __name__ == "__main__":
         for model_type in models_to_run:
             LOGGER.info("***************************")
             # work_directory = os.path.join(Path(case_path).parent, "workdir")
-            work_directory = os.path.join(BASE_WORK_DIR, model_type)
+            work_directory = os.path.join(BASE_WORK_DIR, database, model_type)
 
             if model_type in ["LeftVentricle", "BiVentricle", "FourChamber"]:
                 do_remesh = True

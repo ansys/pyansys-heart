@@ -104,6 +104,14 @@ class BaseDynaWriter:
         # read mesh information into dictionary
         self._get_mesh_info()
 
+        if "Improved" in self.model.info.model_type:
+            LOGGER.warning(
+                "Changing model type from : {0} to {1}".format(
+                    self.model.info.model_type, self.model.info.model_type.replace("Improved", "")
+                )
+            )
+            self.model.info.model_type = self.model.info.model_type.replace("Improved", "")
+
         return
 
     def _get_mesh_info(self):

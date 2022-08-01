@@ -127,7 +127,9 @@ def get_vtk_points(vtk_object: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData]):
     return VN.vtk_to_numpy(vtk_object.GetPoints().GetData())
 
 
-def get_tetra_info_from_unstructgrid(vtk_grid: vtk.vtkUnstructuredGrid, get_all_data=True):
+def get_tetra_info_from_unstructgrid(
+    vtk_grid: vtk.vtkUnstructuredGrid, get_all_data: bool = True, deep_copy: bool = False
+):
     """Gets tetrahedron nodes, connectivity and cell/point data from
     vtk poly data object. Returns as numpy arrays"""
 
@@ -173,10 +175,20 @@ def get_tetra_info_from_unstructgrid(vtk_grid: vtk.vtkUnstructuredGrid, get_all_
     else:
         LOGGER.debug("Not implemented reading specific cell data arrays based on name yet")
 
-    return nodes, tetra, cell_data, point_data
+    if not deep_copy:
+        return nodes, tetra, cell_data, point_data
+    else:
+        return (
+            copy.deepcopy(nodes),
+            copy.deepcopy(tetra),
+            copy.deepcopy(cell_data),
+            copy.deepcopy(point_data),
+        )
 
 
-def get_tri_info_from_polydata(vtk_polydata: vtk.vtkPolyData, get_all_data=True):
+def get_tri_info_from_polydata(
+    vtk_polydata: vtk.vtkPolyData, get_all_data: bool = True, deep_copy: bool = False
+):
     """Gets connectivity, celldata and point data info from polydata object
 
     Notes
@@ -213,7 +225,15 @@ def get_tri_info_from_polydata(vtk_polydata: vtk.vtkPolyData, get_all_data=True)
     except:
         LOGGER.debug("Global Ids were not added to point data...")
 
-    return nodes, tris, cell_data, point_data
+    if not deep_copy:
+        return nodes, tris, cell_data, point_data
+    else:
+        return (
+            copy.deepcopy(nodes),
+            copy.deepcopy(tris),
+            copy.deepcopy(cell_data),
+            copy.deepcopy(point_data),
+        )
 
 
 def threshold_vtk_data(
@@ -1460,11 +1480,8 @@ def get_free_edges(triangles: np.array, return_free_triangles: bool = False) -> 
         return free_edges, free_triangles
 
 
-"""Identifies triangles connected to the boundary, and removes these from the triangle list"""
-
-
 def remove_triangle_layers_from_trimesh(triangles: np.array, iters: int = 1) -> np.array:
-    """_summary_
+    """Identifies triangles connected to the boundary, and removes these from the triangle list
 
     Parameters
     ----------

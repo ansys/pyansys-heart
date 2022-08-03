@@ -55,6 +55,7 @@ from ansys.heart.writer.heart_decks import (
     MechanicsDecks,
     FiberGenerationDecks,
     PurkinjeGenerationDecks,
+    ElectrophysiologyDecks,
 )
 
 from vtk.numpy_interface import dataset_adapter as dsa  # noqa
@@ -2205,6 +2206,310 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
             self.kw_database.main_right_ventricle.append(
                 keywords.Include(filename=filename_to_include)
             )
+
+
+class ElectroPhysiologyDynaWriter(MechanicsDynaWriter):
+    def __init__(self, model: HeartModel) -> None:
+        super().__init__(model)
+
+        self.kw_database = ElectrophysiologyDecks()
+        """Collection of keywords relevant for EP simulation
+        """
+
+    def update(self):
+        """Updates keyword database for EP simulation: overwrites the inherited function"""
+
+        ##
+        self._update_main_db()  # needs updating
+
+        self._update_node_db()  # can stay the same (could move to base class)
+
+        self._update_parts_db()  # can stay the same (could move to base class++++++++++++++++++++)
+        self._update_solid_elements_db(
+            add_fibers=False
+        )  # can stay the same (could move to base class)
+        self._update_material_db()
+
+        self._update_segmentsets_db()  # can stay the same
+        self._update_nodesets_db()  # can stay the same
+
+        # update ep settings
+        self._update_ep_settings()
+        # self._update_use_Purkinje()  # TODO : import existing Purkinje network
+
+        self._get_list_of_includes()
+        self._add_includes()
+
+        return
+
+    def export(self, export_directory: str):
+        """Writes the model to files"""
+        tstart = time.time()
+        LOGGER.debug("Writing all LS-DYNA .k files...")
+
+        if not export_directory:
+            export_directory = self.model.info.working_directory
+
+        # export .k files
+        self.export_databases(export_directory)
+
+        tend = time.time()
+        LOGGER.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
+
+        return
+
+    def _update_material_db(self):
+        """Adds simple linear elastic material for each defined part"""
+        for cavity in self.model._mesh._cavities:
+            for element_set in cavity.element_sets:
+                mat_id = element_set["id"]
+                self.kw_database.material.extend(
+                    [
+                        keywords.MatElastic(mid=mat_id, ro=1e-6, e=1),
+                        custom_keywords.EmMat003(
+                            mid=mat_id,
+                            mtype=2,
+                            sigma11=5.0e-4,
+                            sigma22=1.0e-4,
+                            sigma33=1.0e-4,
+                            beta=0.14,
+                            cm=0.01,
+                            aopt=2.0,
+                            a1=0,
+                            a2=0,
+                            a3=0,
+                            d1=0,
+                            d2=-1,
+                            d3=0,
+                        ),
+                        keywords.EmEpCellmodelTentusscher(
+                            mid=mat_id,
+                            r=8314.472,
+                            t=310,
+                            f=96485.3415,
+                            cm=0.185,
+                            vc=0.016404,
+                            vsr=0.001094,
+                            vss=0.00005468,
+                            pkna=0.03,
+                            ko=5.4,
+                            nao=140.0,
+                            cao=2.0,
+                            gk1=5.405,
+                            gkr=0.153,
+                            gks=0.392,
+                            gna=14.838,
+                            gbna=0.0002,
+                            gcal=0.0000398,
+                            gbca=0.000592,
+                            gto=0.294,
+                            gpca=0.1238,
+                            gpk=0.0146,
+                            pnak=2.724,
+                            km=1.0,
+                            kmna=40.0,
+                            knaca=1000.0,
+                            ksat=0.1,
+                            alpha=2.5,
+                            gamma=0.35,
+                            kmca=1.38,
+                            kmnai=87.5,
+                            kpca=0.0005,
+                            k1=0.15,
+                            k2=0.045,
+                            k3=0.06,
+                            k4=0.005,
+                            ec=1.5,
+                            maxsr=2.5,
+                            minsr=1.0,
+                            vrel=0.102,
+                            vleak=0.00036,
+                            vxfer=0.0038,
+                            vmaxup=0.006375,
+                            kup=0.00025,
+                            bufc=0.2,
+                            kbufc=0.001,
+                            bufsr=10.0,
+                            kbufsf=0.3,
+                            bufss=0.4,
+                            kbufss=0.00025,
+                        ),
+                    ]
+                )
+
+    def _update_ep_settings(self):
+        """Adds the settings for the electrophysiology solver"""
+
+        self.kw_database.ep_settings.append(
+            keywords.EmControl(
+                emsol=11, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
+            )
+        )
+
+        # use defaults
+        self.kw_database.ep_settings.append(custom_keywords.EmControlEp())
+
+        # max iter should be int
+        self.kw_database.ep_settings.append(
+            keywords.EmSolverFem(reltol=1e-6, maxite=int(1e4), precon=2)
+        )
+
+        self.kw_database.ep_settings.append(keywords.EmOutput(mats=1, matf=1, sols=1, solf=1))
+        stim_node_set=[] # TODO define stim. nodes 
+        self.kw_database.ep_settings.append(keywords.EmEpTentusscherStimulus(
+            stimid=1,
+            settype=2
+            setid=stim_node_set
+            stimstrt=0,
+            stimt=1000.,
+            stimdur=20.,
+            stimamp=50.,
+        ))
+        return
+
+    def _update_use_Purkinje(self):
+        """Updates the keywords for Purkinje generation"""
+
+        # collect relevant node and segment sets.
+        # node set: apex, base
+        # node set: endocardium, epicardium
+        # NOTE: could be better if basal nodes are extracted in the preprocessor
+        # since that would allow you to robustly extract these nodessets using the
+        # input data
+        # The below is relevant for all models.
+        nodes_base = np.empty(0, dtype=int)
+        node_apex_left = np.empty(0, dtype=int)
+        node_apex_right = np.empty(0, dtype=int)
+        edge_id_start_left = np.empty(0, dtype=int)
+        edge_id_start_right = np.empty(0, dtype=int)
+        for cavity in self.model._mesh._cavities:
+            if cavity.name == "Left ventricle":
+                node_apex_left = cavity.apex_id["endocardium"]
+                for segment_set in cavity.segment_sets:
+                    if "endocardium" in segment_set["name"]:
+                        segment_set_ids_endo_left = segment_set["id"]
+            elif cavity.name == "Right ventricle":
+                node_apex_right = cavity.apex_id["endocardium"]
+                for segment_set in cavity.segment_sets:
+                    if "endocardium" in segment_set["name"] and "septum" not in segment_set["name"]:
+                        segment_set_ids_endo_right = segment_set["id"]
+
+        # validate node set by removing any nodes that do not occur in either ventricle
+        # NOTE: can be much more consice
+        tet_ids_ventricles = np.empty((0), dtype=int)
+        for cavity in self.model._mesh._cavities:
+            for element_set in cavity.element_sets:
+                if "ventricle" in cavity.name:
+                    tet_ids_ventricles = np.append(tet_ids_ventricles, element_set["set"])
+        tetra_ventricles = self.volume_mesh["tetra"][tet_ids_ventricles, :]
+
+        # remove nodes that occur just in atrial part
+        mask = np.isin(nodes_base, tetra_ventricles, invert=True)
+        LOGGER.debug("Removing {0} nodes from base nodes".format(np.sum(mask)))
+        nodes_base = nodes_base[np.invert(mask)]
+
+        node_set_id_apex_left = 201
+        # create node-sets for apex
+        node_set_apex_kw = create_node_set_keyword(
+            node_ids=[node_apex_left + 1],
+            node_set_id=node_set_id_apex_left,
+            title="apex node left",
+        )
+
+        self.kw_database.node_sets.extend([node_set_apex_kw])
+
+        apex_left_X = self.volume_mesh["nodes"][node_apex_left, 0]
+        apex_left_Y = self.volume_mesh["nodes"][node_apex_left, 1]
+        apex_left_Z = self.volume_mesh["nodes"][node_apex_left, 2]
+        node_id_start_left = (
+            self.volume_mesh["nodes"].shape[0] + 1
+        )  # TODO seek for max id rather than number of rows
+
+        edge_id_start_left = self.volume_mesh["tetra"].shape[0] + 1
+
+        # Purkinje generation parameters
+        self.kw_database.ep_settings.append(
+            custom_keywords.EmEpPurkinjeNetwork(
+                purkid=1,
+                buildnet=0,
+                ssid=segment_set_ids_endo_left,
+                mid=25,
+                pointstx=apex_left_X,
+                pointsty=apex_left_Y,
+                pointstz=apex_left_Z,
+                edgelen=2,
+                ngen=50,
+                nbrinit=8,
+                nsplit=2,
+                inodeid=node_id_start_left,
+                iedgeid=edge_id_start_left,  # TODO check if beam elements exist in mesh
+            )
+        )
+
+        # Add right purkinje only in biventricular or 4chamber models
+        if self.model.info.model_type in ["BiVentricle", "FourChamber"]:
+            LOGGER.warning("Model type %s in development " % self.model.info.model_type)
+
+            node_set_id_apex_right = 202
+            # create node-sets for apex
+            node_set_apex_kw = create_node_set_keyword(
+                node_ids=[node_apex_right + 1],
+                node_set_id=node_set_id_apex_right,
+                title="apex node right",
+            )
+
+            self.kw_database.node_sets.extend([node_set_apex_kw])
+
+            apex_right_X = self.volume_mesh["nodes"][node_apex_right, 0]
+            apex_right_Y = self.volume_mesh["nodes"][node_apex_right, 1]
+            apex_right_Z = self.volume_mesh["nodes"][node_apex_right, 2]
+            node_id_start_right = (
+                2 * self.volume_mesh["nodes"].shape[0]
+            )  # TODO find a solution in dyna to better handle id definition
+
+            edge_id_start_right = 2 * self.volume_mesh["tetra"].shape[0]
+
+            # Purkinje generation parameters
+            self.kw_database.ep_settings.append(
+                custom_keywords.EmEpPurkinjeNetwork(
+                    purkid=2,
+                    buildnet=0,
+                    ssid=segment_set_ids_endo_right,
+                    mid=26,
+                    pointstx=apex_right_X,
+                    pointsty=apex_right_Y,
+                    pointstz=apex_right_Z,
+                    edgelen=2,
+                    ngen=50,
+                    nbrinit=8,
+                    nsplit=2,
+                    inodeid=node_id_start_right,  # TODO check if beam elements exist in mesh
+                    iedgeid=edge_id_start_right,
+                )
+            )
+
+    def _update_main_db(self):
+
+        return
+
+    def _get_list_of_includes(self):
+        """Gets a list of files to include in main.k. Ommit any empty decks"""
+        for deckname, deck in vars(self.kw_database).items():
+            if deckname == "mainLEFT" or deckname == "mainRIGHT":
+                continue
+            # skip if no keywords are present in the deck
+            if len(deck.keywords) == 0:
+                LOGGER.debug("No keywords in deck: {0}".format(deckname))
+                continue
+            self.include_files.append(deckname)
+        return
+
+    def _add_includes(self):
+        """Adds *INCLUDE keywords"""
+        for include_file in self.include_files:
+            filename_to_include = include_file + ".k"
+            self.kw_database.mainLEFT.append(keywords.Include(filename=filename_to_include))
+            self.kw_database.mainRIGHT.append(keywords.Include(filename=filename_to_include))
 
 
 if __name__ == "__main__":

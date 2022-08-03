@@ -48,10 +48,18 @@ class Workflow:
         # TODO: add a "simulation" folder that contains all the precomputed features
         # TODO: make sure the necessary node, segment, part ids consistant in the different steps
         # TODO: make sure the necessary node, segment, part ids consistant in the different steps
-        # TODO add ggetters and setters for fiber angles, purkinje properties, simulation times and other parameters to expose to the user
+        # TODO add getters and setters for fiber angles, purkinje properties, simulation times and other parameters to expose to the user
         if Fibers:
+            LOGGER.debug("Generating fibers")
             self.generateFibers()
-        
+            # TODO copy element_solid_ortho.k to "simulation" folder
+        # TODO continue in the same spirit with zeroP, EP, mechanics, and Purkinje (in the future, add blood, and fluid)
+
+
+
+        if EP and Mechanics:
+            # TODO add coupling stuff
+
         return
 
     def generateZeroPressureConfiguration(self,export_directory:str=""):

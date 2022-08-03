@@ -58,7 +58,7 @@ class Workflow:
 
 
         if EP and Mechanics:
-            # TODO add coupling stuff
+            # TODO add coupling stuff and ignore default Ca2+ mechanics active stress/replaced by EP simulation
 
         return
 

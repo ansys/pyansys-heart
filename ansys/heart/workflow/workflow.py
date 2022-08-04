@@ -59,6 +59,7 @@ class Workflow:
 
         if EP and Mechanics:
             # TODO add coupling stuff and ignore default Ca2+ mechanics active stress/replaced by EP simulation
+            LOGGER.debug("Add Electromechanics coupling")
 
         return
 

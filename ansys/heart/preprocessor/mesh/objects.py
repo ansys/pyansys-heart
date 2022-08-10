@@ -342,6 +342,8 @@ class SurfaceMesh(Feature):
         """Edge groups"""
         self.id: int = sid
         """ID of surface"""
+        self.nsid: int = None
+        """ID of corresponding set of nodes"""
 
     @property
     def node_ids(self):
@@ -572,8 +574,10 @@ class Part:
     def __init__(self, name: str = None, part_type: str = None) -> None:
         self.name = name
         """Name of the part"""
-        self.id = None
+        self.pid = None
         """Part ID"""
+        self.mid = None
+        """Material id associated with part"""
         self.part_type = part_type
         """Type of the part"""
         self.tag_labels = None

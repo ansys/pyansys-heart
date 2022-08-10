@@ -3,7 +3,7 @@ can be created with the preprocessor
 """
 # import json
 import pathlib
-import typing
+from typing import List
 import os
 import numpy as np
 import pickle, json
@@ -60,14 +60,14 @@ class ModelInfo:
 
     def clean_workdir(
         self,
-        extensions_to_remove: typing.List[str] = [".stl", ".vtk", ".msh.h5"],
+        extensions_to_remove: List[str] = [".stl", ".vtk", ".msh.h5"],
         remove_all: bool = False,
     ):
         """Removes files with extension present in the working directory
 
         Parameters
         ----------
-        extensions_to_remove : typing.List[str], optional
+        extensions_to_remove : List[str], optional
             List of extensions to remove, by default [".stl", ".vtk", ".msh.h5"]
         remove_all: bool, optional
             Flag indicating whether to remove files with any extension.
@@ -106,7 +106,7 @@ class HeartModel:
     """Parent class for heart models"""
 
     @property
-    def parts(self) -> typing.List[Part]:
+    def parts(self) -> List[Part]:
         """Returns list of parts"""
         parts = []
         for key, value in self.__dict__.items():
@@ -116,12 +116,17 @@ class HeartModel:
         return parts
 
     @property
-    def part_names(self) -> typing.List[str]:
+    def part_names(self) -> List[str]:
         """Returns list of part names"""
         part_names = []
         for part in self.parts:
             part_names.append(part.name)
         return part_names
+
+    @property
+    def part_ids(self) -> List[int]:
+        """Returns list of used part ids"""
+        return [part.pid for part in self.parts]
 
     def __init__(self, info: ModelInfo) -> None:
         self.info = info
@@ -223,17 +228,19 @@ class HeartModel:
             filename = os.path.join(self.info.workdir, "heart_model.pickle")
         # cleanup model object for more efficient storage
         # NOTE deleting faces, nodes of surfaces does not affect size
-        del self.mesh_raw
+        self.mesh_raw = None
         with open(filename, "wb") as file:
             pickle.dump(self, file)
         self.info.dump_info()
         return
 
-    def load_model(self, filename: pathlib.Path):
+    @staticmethod
+    def load_model(filename: pathlib.Path):
         """Loads the model from file"""
+        # NOTE:
         with open(filename, "rb") as file:
-            self = pickle.load(file)
-        return
+            model = pickle.load(file)
+        return model
 
     def _add_labels_to_parts(self):
         """Uses model definitions to add corresponding vtk labels to the part"""
@@ -309,7 +316,7 @@ class HeartModel:
             # NOTE: number of cells do not a guarantee to distinguish between endo and epicardium
             # sort by bounding box volume instead.
             volumes = []
-            surfaces: typing.List[SurfaceMesh] = []
+            surfaces: List[SurfaceMesh] = []
             for ii, region_id in enumerate(unique_regions):
                 mask = region_ids == region_id
                 surface = SurfaceMesh(faces=boundary.faces[mask, :], nodes=self.mesh_raw.nodes)
@@ -655,7 +662,7 @@ class HeartModel:
 
         used_boundary_surface_names = [s.name for p in self.parts for s in p.surfaces]
         remaining_surfaces = list(set(self.mesh.boundary_names) - set(used_boundary_surface_names))
-        remaining_surfaces1: typing.List[SurfaceMesh] = []
+        remaining_surfaces1: List[SurfaceMesh] = []
         for surface in self.mesh.boundaries:
             if surface.name not in remaining_surfaces:
                 continue

@@ -8,8 +8,8 @@ import json
 from pathlib import Path
 from tqdm import tqdm  # for progress bar
 
-from ansys.heart.preprocessor.heart_model import HeartModel
-from ansys.heart.preprocessor.cavity_module import ClosingCap
+from ansys.heart.preprocessor._deprecated_heart_model import HeartModel
+from ansys.heart.preprocessor._deprecated_cavity_module import ClosingCap
 
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.vtk_module import (
@@ -503,7 +503,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
         kw_damp = keywords.DampingGlobal(lcid=lcid_damp)
 
         kw_damp_curve = create_define_curve_kw(
-            x=[0, 100], y=[500, 500], curve_name="damping", curve_id=lcid_damp, lcint=0,
+            x=[0, 100],
+            y=[500, 500],
+            curve_name="damping",
+            curve_id=lcid_damp,
+            lcint=0,
         )
         self.kw_database.main.append(kw_damp)
         self.kw_database.main.append(kw_damp_curve)
@@ -520,7 +524,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
             for segset in cavity.segment_sets:
                 segset_name = " ".join([cavity.name, segset["name"]])
                 kw = create_segment_set_keyword(
-                    segments=segset["set"] + 1, segid=segment_set_id, title=segset_name,
+                    segments=segset["set"] + 1,
+                    segid=segment_set_id,
+                    title=segset_name,
                 )
                 # append this kw to the segment set database
                 self.kw_database.segment_sets.append(kw)
@@ -704,13 +710,20 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 for cap in cavity.closing_caps:
                     if cap.name in caps_to_use:
                         self._add_springs_cap_edge(
-                            cap, part_id, scale_factor_normal, scale_factor_radial,
+                            cap,
+                            part_id,
+                            scale_factor_normal,
+                            scale_factor_radial,
                         )
 
         return
 
     def _add_springs_cap_edge(
-        self, cap: ClosingCap, part_id: int, scale_factor_normal: float, scale_factor_radial: float,
+        self,
+        cap: ClosingCap,
+        part_id: int,
+        scale_factor_normal: float,
+        scale_factor_radial: float,
     ):
         """Adds springs to the cap nodes and appends these
         to the boundary condition database
@@ -756,7 +769,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # add sd direction radial to nodes
         sd_orientation_radial_kw = create_define_sd_orientation_kw(
-            vectors=sd_orientations_radial, vector_id_offset=self.id_offset["vector"], iop=0,
+            vectors=sd_orientations_radial,
+            vector_id_offset=self.id_offset["vector"],
+            iop=0,
         )
 
         vector_ids_radial = sd_orientation_radial_kw.vectors["vid"].to_numpy()
@@ -1070,7 +1085,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
         material_kw = MaterialAtrium(mid=mat_null_id, rho=1e-6, poisson_ratio=0.499, c10=1000)
 
         section_kw = keywords.SectionShell(
-            secid=section_id, elform=4, shrf=0.8333, nip=3, t1=5, t2=5, t3=5, t4=5,
+            secid=section_id,
+            elform=4,
+            shrf=0.8333,
+            nip=3,
+            t1=5,
+            t2=5,
+            t3=5,
+            t4=5,
         )
 
         self.kw_database.cap_elements.append(material_kw)
@@ -1116,7 +1138,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
         for cavity in self.model._mesh._cavities:
             for cap in cavity.closing_caps:
                 segset_kw = create_segment_set_keyword(
-                    segments=cap.closing_triangles + 1, segid=segset_id, title=cap.name,
+                    segments=cap.closing_triangles + 1,
+                    segid=segset_id,
+                    title=cap.name,
                 )
 
                 self.kw_database.cap_elements.append(segset_kw)
@@ -1181,12 +1205,16 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
             if model_type in ["FourChamber", "BiVentricle"]:
                 file_path = os.path.join(
-                    Path(__file__).parent.absolute(), "templates", "system_model_settings_bv.json",
+                    Path(__file__).parent.absolute(),
+                    "templates",
+                    "system_model_settings_bv.json",
                 )
 
             elif model_type in ["LeftVentricle"]:
                 file_path = os.path.join(
-                    Path(__file__).parent.absolute(), "templates", "system_model_settings_lv.json",
+                    Path(__file__).parent.absolute(),
+                    "templates",
+                    "system_model_settings_lv.json",
                 )
 
             fid = open(file_path)
@@ -1701,13 +1729,17 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             LOGGER.warning("Model type %s in development " % self.model.info.model_type)
 
             # Define part set for myocardium
-            part_list1_kw = keywords.SetPartList(sid=1,)
+            part_list1_kw = keywords.SetPartList(
+                sid=1,
+            )
             part_list1_kw.parts._data = myocardium_part_ids
             part_list1_kw.options["TITLE"].active = True
             part_list1_kw.title = "myocardium_all"
 
             self.kw_database.create_fiber.extend(
-                [part_list1_kw,]
+                [
+                    part_list1_kw,
+                ]
             )
 
             # combine node sets endocardium uing *SET_NODE_ADD:
@@ -1784,13 +1816,17 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             LOGGER.warning("Model type %s under development " % self.model.info.model_type)
 
             # Define part set for myocardium
-            part_list1_kw = keywords.SetPartList(sid=1,)
+            part_list1_kw = keywords.SetPartList(
+                sid=1,
+            )
             part_list1_kw.parts._data = myocardium_part_ids
             part_list1_kw.options["TITLE"].active = True
             part_list1_kw.title = "myocardium_all"
 
             # Define part set for septum
-            part_list2_kw = keywords.SetPartList(sid=2,)
+            part_list2_kw = keywords.SetPartList(
+                sid=2,
+            )
             part_list2_kw.options["TITLE"].active = True
             part_list2_kw.title = "septum"
             part_list2_kw.parts._data = septum_part_ids

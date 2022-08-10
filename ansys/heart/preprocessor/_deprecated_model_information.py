@@ -3,7 +3,7 @@ import json
 
 # import logger
 from ansys.heart.custom_logging import LOGGER
-from ansys.heart.preprocessor.global_parameters import VALID_MODELS as VALID_MODELS
+from ansys.heart.preprocessor._deprecated_global_parameters import VALID_MODELS as VALID_MODELS
 
 
 class ModelInformation:

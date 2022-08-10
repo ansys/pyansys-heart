@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
 
-from ansys.heart.preprocessor.heart_model import HeartModel
-from ansys.heart.preprocessor.model_information import ModelInformation
+from ansys.heart.preprocessor._deprecated_heart_model import HeartModel
+from ansys.heart.preprocessor._deprecated_model_information import ModelInformation
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.writer.dynawriter import (
     FiberGenerationDynaWriter,

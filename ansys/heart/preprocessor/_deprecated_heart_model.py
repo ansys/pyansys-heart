@@ -1,12 +1,12 @@
 from multiprocessing.sharedctypes import Value
 import os
 
-from ansys.heart.preprocessor.heart_mesh import HeartMesh
-from ansys.heart.preprocessor.model_information import ModelInformation
+from ansys.heart.preprocessor._deprecated_heart_mesh import HeartMesh
+from ansys.heart.preprocessor._deprecated_model_information import ModelInformation
 
 # import logger
 from ansys.heart.custom_logging import LOGGER, Logger
-from ansys.heart.preprocessor.vtk_module import (
+from ansys.heart.preprocessor.mesh.vtkmethods import (
     # get_edge_loops,
     get_tri_info_from_polydata,
     read_vtk_polydata_file,
@@ -175,14 +175,13 @@ class HeartModel:
             vtk_surface_to_stl,
             create_vtk_surface_triangles,
             get_connected_regions,
-            get_free_edges,
         )
-        from ansys.heart.preprocessor.mesh_connectivity import (
+        from ansys.heart.preprocessor.mesh.connectivity import (
             face_tetra_connectivity,
             get_face_type,
         )
-        from ansys.heart.preprocessor.edge_module import edge_connectivity
-        from ansys.heart.preprocessor.geodisc_module import project_3d_points
+        from ansys.heart.preprocessor.mesh.connectivity import get_free_edges, edge_connectivity
+        from ansys.heart.preprocessor.mesh.geodisc import project_3d_points
 
         write_folder = self.info.working_directory
 
@@ -452,7 +451,7 @@ class HeartModel:
 
         # start meshing:
 
-        from ansys.heart.preprocessor.mesh_module import mesh_by_fluentmeshing
+        from ansys.heart.preprocessor.mesh.mesher import mesh_by_fluentmeshing
 
         LOGGER.debug("Remeshing volume")
         path_to_mesh = os.path.join(self.info.working_directory, "fluent_volume_mesh.msh.h5")
@@ -465,7 +464,7 @@ class HeartModel:
         )
 
         # read mesh and extract surfaces
-        from ansys.heart.preprocessor.fluenthdf5_module import fluenthdf5_to_vtk
+        from ansys.heart.preprocessor.mesh.fluenthdf5 import fluenthdf5_to_vtk
 
         filename_simulation_mesh_vtk = os.path.join(
             os.path.dirname(path_to_mesh), "simulation_mesh.vtk"

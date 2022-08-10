@@ -10,7 +10,7 @@ from vtk.numpy_interface import dataset_adapter as dsa  # this is an improved nu
 
 # NOTE: do more specific imports!
 # from ansys.heart.preprocessor.mesh_module import *
-from ansys.heart.preprocessor.vtk_module import (
+from ansys.heart.preprocessor.mesh.vtkmethods import (
     create_vtk_surface_triangles,
     vtk_surface_filter,
     threshold_vtk_data,
@@ -24,16 +24,16 @@ from ansys.heart.preprocessor.vtk_module import (
 # from ansys.heart.preprocessor.vtk_module import compute_volume_stl
 
 # from ansys.heart.preprocessor.fluenthdf5_module import fluenthdf5_to_vtk
-from ansys.heart.preprocessor.geodisc_module import (
+from ansys.heart.preprocessor.mesh.geodisc import (
     order_nodes_edgeloop,
     sort_edgeloop_anti_clockwise,
 )
 
-from ansys.heart.preprocessor.extractor_module import get_nodes_cap_edge
+from ansys.heart.preprocessor._deprecated_extractor_module import get_nodes_cap_edge
 
 # these import the "old" files
 # from preprocessing.extractor_module import *
-from ansys.heart.preprocessor.model_information import ModelInformation
+from ansys.heart.preprocessor._deprecated_model_information import ModelInformation
 from ansys.heart.custom_logging import LOGGER
 
 
@@ -667,7 +667,7 @@ class Cavity:
             # checks whether node id is not on edge of segment set
             # if selected point is on edge of segment set select a point
             # which is not on a free edge (free face)
-            from ansys.heart.preprocessor.vtk_module import get_free_edges
+            from ansys.heart.preprocessor.mesh.connectivity import get_free_edges
 
             for segset in self.segment_sets:
                 triangles = segset["set"]

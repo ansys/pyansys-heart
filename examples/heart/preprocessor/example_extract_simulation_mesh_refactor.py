@@ -8,11 +8,28 @@ from ansys.heart.preprocessor.models import ModelInfo
 
 
 if __name__ == "__main__":
-    work_dir = pathlib.Path.joinpath(pathlib.Path(__file__).parents[1], "workdir")
-    info = ModelInfo(database="Strocchi2020", work_directory=work_dir, path_to_case="test.case")
 
-    model = LeftVentricle(info)
+    # path_to_case = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\01\\01.case"
+    # workdir = os.path.join(pathlib.Path(path_to_case).parent, "BiVentricleRefactored")
+    # info = ModelInfo(database="Strocchi2020", work_directory=workdir, path_to_case=path_to_case)
 
-    # get parts:
+    # info.clean_workdir(remove_all=True)
+    # info.create_workdir()
+    # model = BiVentricle(info)
+    # model.read_input_mesh()
+    # model.extract_simulation_mesh()
+
+    # map data from original mesh to new mesh
+
+    path_to_case = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\01\\01.case"
+    workdir = os.path.join(pathlib.Path(path_to_case).parent, "FullHeartRefactored")
+    info = ModelInfo(database="Strocchi2020", work_directory=workdir, path_to_case=path_to_case)
+
+    info.clean_workdir(remove_all=True)
+    info.create_workdir()
+    model = FullHeart(info)
+    model.read_input_mesh()
+    model.extract_simulation_mesh()
+    # model.dump_model()
 
     pass

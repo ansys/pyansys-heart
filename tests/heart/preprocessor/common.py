@@ -2,8 +2,8 @@
 import pathlib
 import os
 
-from ansys.heart.preprocessor.model_information import ModelInformation
-from ansys.heart.preprocessor.heart_model import HeartModel
+from ansys.heart.preprocessor._deprecated_model_information import ModelInformation
+from ansys.heart.preprocessor._deprecated_heart_model import HeartModel
 from conftest import get_assets_folder, clean_directory, create_directory
 
 

@@ -8,8 +8,16 @@ import json
 from pathlib import Path
 from tqdm import tqdm  # for progress bar
 
-from ansys.heart.preprocessor._deprecated_heart_model import HeartModel
-from ansys.heart.preprocessor._deprecated_cavity_module import ClosingCap
+# from ansys.heart.preprocessor._deprecated_heart_model import HeartModel
+# from ansys.heart.preprocessor._deprecated_cavity_module import ClosingCap
+from ansys.heart.preprocessor.models import (
+    HeartModel,
+    LeftVentricle,
+    BiVentricle,
+    FourChamber,
+    FullHeart,
+)
+from ansys.heart.preprocessor.mesh.objects import Cap
 
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.mesh.vtkmethods import (
@@ -85,12 +93,13 @@ class BaseDynaWriter:
         self.mat_ids = []
         """List of used mat ids"""
 
-        self.volume_mesh = {
-            "nodes": np.empty(0),
-            "tetra": np.empty(0),
-            "cell_data": {},
-            "point_data": {},
-        }
+        # self.volume_mesh = {
+        #     "nodes": np.empty(0),
+        #     "tetra": np.empty(0),
+        #     "cell_data": {},
+        #     "point_data": {},
+        # }
+        self.volume_mesh = model.mesh
         """Volume mesh information"""
 
         # keeps track of some element id offsets
@@ -106,9 +115,6 @@ class BaseDynaWriter:
         self.include_files = []
         """List of .k files to include in main. This is derived from the Decks classes"""
 
-        # read mesh information into dictionary
-        self._get_mesh_info()
-
         if "Improved" in self.model.info.model_type:
             LOGGER.warning(
                 "Changing model type from : {0} to {1}".format(
@@ -116,20 +122,6 @@ class BaseDynaWriter:
                 )
             )
             self.model.info.model_type = self.model.info.model_type.replace("Improved", "")
-
-        return
-
-    def _get_mesh_info(self):
-        """Gets nodes, element definition, cell data and point data from the
-        volume mesh
-        """
-        nodes, tetra, cell_data, point_data = get_tetra_info_from_unstructgrid(
-            self.model._mesh._vtk_volume
-        )
-        self.volume_mesh["nodes"] = nodes
-        self.volume_mesh["tetra"] = tetra
-        self.volume_mesh["cell_data"] = cell_data
-        self.volume_mesh["point_data"] = point_data
 
         return
 
@@ -229,25 +221,25 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._update_nodesets_db()
         self._update_material_db(add_active=True)
 
-        # for boundary conditions
-        # self._update_boundary_conditions_db()
-        self._add_cap_bc(bc_type="springs_caps")
-        self._add_pericardium_bc()
-        # self._add_pericardium_bc_usr()
+        # # for boundary conditions
+        # # self._update_boundary_conditions_db()
+        # self._add_cap_bc(bc_type="springs_caps")
+        # self._add_pericardium_bc()
+        # # self._add_pericardium_bc_usr()
 
-        # for control volume
-        self._update_cap_elements_db()
-        self._update_controlvolume_db()
-        self._update_system_model()
+        # # for control volume
+        # self._update_cap_elements_db()
+        # self._update_controlvolume_db()
+        # self._update_system_model()
 
-        # Approximate end-diastolic pressures
-        pressure_lv = 2  # kPa
-        pressure_rv = 0.5333  # kPa
+        # # Approximate end-diastolic pressures
+        # pressure_lv = 2  # kPa
+        # pressure_rv = 0.5333  # kPa
 
-        self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
+        # self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
-        self._get_list_of_includes()
-        self._add_includes()
+        # self._get_list_of_includes()
+        # self._add_includes()
 
         return
 
@@ -257,7 +249,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         LOGGER.debug("Writing all LS-DYNA .k files...")
 
         if not export_directory:
-            export_directory = self.model.info.working_directory
+            export_directory = self.model.info.workdir
 
         # export .k files
         self.export_databases(export_directory)
@@ -288,7 +280,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """
         LOGGER.debug("Updating main keywords...")
 
-        self.kw_database.main.title = self.model.info.model_type
+        self.kw_database.main.title = self.model.model_type
 
         self._add_solution_controls()
         self._add_export_controls()
@@ -302,16 +294,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """Adds nodes to the Node database"""
         LOGGER.debug("Updating node keywords...")
         node_kw = keywords.Node()
-        node_kw = add_nodes_to_kw(self.volume_mesh["nodes"], node_kw)
+        node_kw = add_nodes_to_kw(self.model.mesh.nodes, node_kw)
 
         self.kw_database.nodes.append(node_kw)
 
         return
 
     def _update_parts_db(self):
-        """Creates database of PART keywords.
-        Each element set within cavity defined as separate part. Each
-        cavity associated with one material
+        """Loops over parts defined in the model and
+        creates keywords
         """
 
         LOGGER.debug("Updating part keywords...")
@@ -319,23 +310,25 @@ class MechanicsDynaWriter(BaseDynaWriter):
         part_ids = []
         part_id = 0
         mat_id = 0
-        for cavity in self.model._mesh._cavities:
+        # get list of cavities from model
+        for part in self.model.parts:
             mat_id = mat_id + 1
-            for element_set in cavity.element_sets:
-                part_id = part_id + 1
-                part_name = " ".join([cavity.name, element_set["name"]])
-                part = pd.DataFrame(
-                    {"heading": [part_name], "pid": [part_id], "secid": [1], "mid": [mat_id]}
-                )
-                part_kw = keywords.Part()
-                part_kw.parts = part
+            # for element_set in cavity.element_sets:
+            part_id = part_id + 1
+            part_name = part.name
+            part_df = pd.DataFrame(
+                {"heading": [part_name], "pid": [part_id], "secid": [1], "mid": [mat_id]}
+            )
+            part_kw = keywords.Part()
+            part_kw.parts = part_df
 
-                self.kw_database.parts.append(part_kw)
+            self.kw_database.parts.append(part_kw)
 
-                # store part id for future use
-                element_set["id"] = part_id
-                element_set["mid"] = mat_id
-                part_ids.append(part_id)
+            # store part id for future use
+            part.pid = part_id
+            part.mid = mat_id
+
+            part_ids.append(part_id)
 
         # set up section solid for cavity myocardium
         section_kw = keywords.SectionSolid(secid=1, elform=13)
@@ -350,71 +343,72 @@ class MechanicsDynaWriter(BaseDynaWriter):
         to one part.
         """
         LOGGER.debug("Updating solid element keywords...")
-        cell_data_fields = self.volume_mesh["cell_data"].keys()
+
+        cell_data_fields = self.model.mesh.cell_data.keys()
         if "fiber" not in cell_data_fields or "sheet" not in cell_data_fields:
             raise KeyError("Mechanics writer requires fiber and sheet fields")
             # logger.warning("Not writing fiber and sheet directions")
             # add_fibers = False
 
-        # create elements for each separate cavity
+        # create elements for each part
         solid_element_count = 0  # keeps track of number of solid elements already defined
 
-        for cavity in self.model._mesh._cavities:
-            LOGGER.debug("Writing elements for myocardium" " attached to cavity: " + cavity.name)
+        for part in self.model.parts:
+            if "ventricle" in part.name:
+                add_fibers = True
+            else:
+                add_fibers = False
 
-            # get list of elements to write to the database. Create new keyword
-            # for each part. Parts defined by element sets
-            for element_set in cavity.element_sets:
-                tetra_idx = element_set["set"]
-                part_id = element_set["id"]
+            LOGGER.debug(
+                "Writing elements for {0} | adding fibers: {1}".format(part.name, add_fibers)
+            )
 
-                tetra_to_write = self.volume_mesh["tetra"][tetra_idx, :] + 1
+            tetrahedrons = self.model.mesh.tetrahedrons[part.element_ids, :] + 1
+            num_elements = tetrahedrons.shape[0]
 
-                num_elements = len(tetra_idx)
+            element_ids = np.arange(1, num_elements + 1, 1) + solid_element_count
+            part_ids = np.ones(num_elements, dtype=int) * part.pid
 
-                element_ids = np.arange(1, num_elements + 1, 1) + solid_element_count
-                part_ids = np.ones(num_elements, dtype=int) * part_id
+            # format the element keywords
+            if not add_fibers:
+                kw_elements = keywords.ElementSolid()
+                elements = pd.DataFrame(
+                    {
+                        "eid": element_ids,
+                        "pid": part_ids,
+                        "n1": tetrahedrons[:, 0],
+                        "n2": tetrahedrons[:, 1],
+                        "n3": tetrahedrons[:, 2],
+                        "n4": tetrahedrons[:, 3],
+                        "n5": tetrahedrons[:, 3],
+                        "n6": tetrahedrons[:, 3],
+                        "n7": tetrahedrons[:, 3],
+                        "n8": tetrahedrons[:, 3],
+                    }
+                )
+                kw_elements.elements = elements
 
-                # format the element keywords
-                if not add_fibers:
-                    kw_elements = keywords.ElementSolid()
-                    elements = pd.DataFrame(
-                        {
-                            "eid": element_ids,
-                            "pid": part_ids,
-                            "n1": tetra_to_write[:, 0],
-                            "n2": tetra_to_write[:, 1],
-                            "n3": tetra_to_write[:, 2],
-                            "n4": tetra_to_write[:, 3],
-                            "n5": tetra_to_write[:, 3],
-                            "n6": tetra_to_write[:, 3],
-                            "n7": tetra_to_write[:, 3],
-                            "n8": tetra_to_write[:, 3],
-                        }
-                    )
-                    kw_elements.elements = elements
+            elif add_fibers:
+                fiber = self.volume_mesh.cell_data["fiber"][part.element_ids]
+                sheet = self.volume_mesh.cell_data["sheet"][part.element_ids]
 
-                elif add_fibers:
-                    fiber = self.volume_mesh["cell_data"]["fiber"][tetra_idx]
-                    sheet = self.volume_mesh["cell_data"]["sheet"][tetra_idx]
+                # normalize fiber and sheet directions:
+                norm = np.linalg.norm(fiber, axis=1)
+                fiber = fiber / norm[:, None]
+                norm = np.linalg.norm(sheet, axis=1)
+                sheet = sheet / norm[:, None]
+                kw_elements = create_element_solid_ortho_keyword(
+                    elements=tetrahedrons,
+                    a_vec=fiber,
+                    d_vec=sheet,
+                    partid=part.pid,
+                    id_offset=solid_element_count,
+                    element_type="tetra",
+                )
 
-                    # normalize fiber and sheet directions:
-                    norm = np.linalg.norm(fiber, axis=1)
-                    fiber = fiber / norm[:, None]
-                    norm = np.linalg.norm(sheet, axis=1)
-                    sheet = sheet / norm[:, None]
-                    kw_elements = create_element_solid_ortho_keyword(
-                        elements=tetra_to_write,
-                        a_vec=fiber,
-                        d_vec=sheet,
-                        partid=part_id,
-                        id_offset=solid_element_count,
-                        element_type="tetra",
-                    )
-
-                # add elements to database
-                self.kw_database.solid_elements.append(kw_elements)
-                solid_element_count = solid_element_count + num_elements
+            # add elements to database
+            self.kw_database.solid_elements.append(kw_elements)
+            solid_element_count = solid_element_count + num_elements
 
         return
 
@@ -516,25 +510,36 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
     def _update_segmentsets_db(self):
         """Updates the segment set database"""
-        # write each segment set to the segment set database
 
+        # NOTE 0: add all surfaces as segment sets
         # NOTE 1: need to more robustly check segids that are already used?
-        segment_set_id = 100
-        for cavity in self.model._mesh._cavities:
-            for segset in cavity.segment_sets:
-                segset_name = " ".join([cavity.name, segset["name"]])
+        surface_id = 0
+
+        # add closed cavity segment sets
+        cavities = [p.cavity for p in self.model.parts if p.cavity]
+        for cavity in cavities:
+            surface_id = surface_id + 1
+            cavity.surface.id = surface_id
+            kw = create_segment_set_keyword(
+                segments=cavity.surface.faces + 1,
+                segid=cavity.surface.id,
+                title=cavity.name,
+            )
+            # append this kw to the segment set database
+            self.kw_database.segment_sets.append(kw)
+
+        # write surfaces as segment sets
+        for part in self.model.parts:
+            for surface in part.surfaces:
+                surface_id = surface_id + 1
+                surface.id = surface_id
                 kw = create_segment_set_keyword(
-                    segments=segset["set"] + 1,
-                    segid=segment_set_id,
-                    title=segset_name,
+                    segments=surface.faces + 1,
+                    segid=surface.id,
+                    title=surface.name,
                 )
                 # append this kw to the segment set database
                 self.kw_database.segment_sets.append(kw)
-
-                # add assigned segment set id to the model
-                segset["id"] = segment_set_id
-                segment_set_id = segment_set_id + 1
-
         return
 
     def _update_nodesets_db(self):
@@ -542,35 +547,28 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # formats endo, epi- and septum nodeset keywords
         # do for all cavities and for all caps that are defined
         # append each of the keywords to the nodesets database
-        nodeset_id = 1
-        node_sets_visited = []
-        for cavity in self.model._mesh._cavities:
-            for nodeset in cavity.node_sets:
-                set_name = " ".join([cavity.name, nodeset["name"]])
-                kw = create_node_set_keyword(
-                    nodeset["set"] + 1, node_set_id=nodeset_id, title=set_name
-                )
-                self.kw_database.node_sets.append(kw)
-                # add assigned node set id to the model
-                nodeset["id"] = nodeset_id
-                nodeset_id = nodeset_id + 1
 
-        nodeset_id_offset = 100
-        # NOTE: could use same structure for nodeset as <class Cavity>
-        set_id_visited = []
-        for cavity in self.model._mesh._cavities:
-            for cap in cavity.closing_caps:
-                nodeset_id = cap.id + nodeset_id_offset
-                if nodeset_id in set_id_visited:
-                    # skip this node set
-                    continue
-                cap.nodeset_id = nodeset_id
-
+        surface_ids = [s.id for p in self.model.parts for s in p.surfaces]
+        node_set_id = np.max(surface_ids) + 1
+        # for each surface in each part add the respective node-set
+        for part in self.model.parts:
+            kws_surface = []
+            kws_caps = []
+            for surface in part.surfaces:
                 kw = create_node_set_keyword(
-                    cap.node_ids_cap_edge + 1, cap.nodeset_id, title=cap.name
+                    surface.node_ids + 1, node_set_id=surface.id, title=surface.name
                 )
-                self.kw_database.node_sets.append(kw)
-                set_id_visited.append(cap.nodeset_id)
+                kws_surface.append(kw)
+
+            # add node-set for each cap
+            for cap in part.caps:
+                kw = create_node_set_keyword(
+                    cap.node_ids + 1, node_set_id=node_set_id, title=cap.name
+                )
+                kws_caps.append(kw)
+                node_set_id = node_set_id + 1
+
+            self.kw_database.node_sets.extend(kws_caps + kws_surface)
 
     def _update_material_db(self, add_active: bool = True):
         """Updates the database of material keywords"""
@@ -720,7 +718,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
     def _add_springs_cap_edge(
         self,
-        cap: ClosingCap,
+        cap: Cap,
         part_id: int,
         scale_factor_normal: float,
         scale_factor_radial: float,
@@ -1367,832 +1365,832 @@ class MechanicsDynaWriter(BaseDynaWriter):
             #     self.kw_database.main.append(load_segset_kw)
 
 
-class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
-    """Derived from MechanicsDynaWriter and consequently derives all keywords relevant
-    for simulations involving mechanics. This class does not use write the
-    control volume keywords but adds the keyword for computing the stress
-    free configuration based on left/right cavity pressures instead"""
+# class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
+#     """Derived from MechanicsDynaWriter and consequently derives all keywords relevant
+#     for simulations involving mechanics. This class does not use write the
+#     control volume keywords but adds the keyword for computing the stress
+#     free configuration based on left/right cavity pressures instead"""
 
-    def __init__(self, model: HeartModel) -> None:
-        super().__init__(model)
+#     def __init__(self, model: HeartModel) -> None:
+#         super().__init__(model)
 
-        self.kw_database = MechanicsDecks()
-        """Collection of keyword decks relevant for mechanics"""
+#         self.kw_database = MechanicsDecks()
+#         """Collection of keyword decks relevant for mechanics"""
 
-        return
+#         return
 
-    def update(self):
-        """Formats the keywords and stores these in the
-        respective keyword databases. Overwrites the update method
-        of MechanicsDynaWriter such that it yields a valid input deck
-        for a zero-pressure simulation
-        """
+#     def update(self):
+#         """Formats the keywords and stores these in the
+#         respective keyword databases. Overwrites the update method
+#         of MechanicsDynaWriter such that it yields a valid input deck
+#         for a zero-pressure simulation
+#         """
 
-        self._update_main_db(add_damping=False)
+#         self._update_main_db(add_damping=False)
 
-        self.kw_database.main.title = self.model.info.model_type + " zero-pressure"
+#         self.kw_database.main.title = self.model.info.model_type + " zero-pressure"
 
-        self._update_node_db()
-        self._update_parts_db()
-        self._update_solid_elements_db()
-        self._update_segmentsets_db()
-        self._update_nodesets_db()
-        self._update_material_db(add_active=False)
+#         self._update_node_db()
+#         self._update_parts_db()
+#         self._update_solid_elements_db()
+#         self._update_segmentsets_db()
+#         self._update_nodesets_db()
+#         self._update_material_db(add_active=False)
 
-        # for boundary conditions
-        # self._update_boundary_conditions_db()
-        self._add_cap_bc(bc_type="fix_caps")
-        self._add_pericardium_bc()
+#         # for boundary conditions
+#         # self._update_boundary_conditions_db()
+#         self._add_cap_bc(bc_type="fix_caps")
+#         self._add_pericardium_bc()
 
-        self._update_cap_elements_db()
+#         self._update_cap_elements_db()
 
-        # # Approximate end-diastolic pressures
-        # pressure_lv = 2  # kPa
-        # pressure_rv = 0.5333  # kPa
-        # self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
+#         # # Approximate end-diastolic pressures
+#         # pressure_lv = 2  # kPa
+#         # pressure_rv = 0.5333  # kPa
+#         # self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
-        # zerop key words
-        self._add_control_reference_configuration()
+#         # zerop key words
+#         self._add_control_reference_configuration()
 
-        self._get_list_of_includes()
-        self._add_includes()
+#         self._get_list_of_includes()
+#         self._add_includes()
 
-        return
+#         return
 
-    def export(self, export_directory: str):
-        """Writes the model to files"""
-        tstart = time.time()
-        LOGGER.debug("Writing all LS-DYNA .k files...")
+#     def export(self, export_directory: str):
+#         """Writes the model to files"""
+#         tstart = time.time()
+#         LOGGER.debug("Writing all LS-DYNA .k files...")
 
-        if not export_directory:
-            export_directory = self.model.info.working_directory
+#         if not export_directory:
+#             export_directory = self.model.info.working_directory
 
-        # export .k files
-        self.export_databases(export_directory)
+#         # export .k files
+#         self.export_databases(export_directory)
 
-        tend = time.time()
-        LOGGER.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
+#         tend = time.time()
+#         LOGGER.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
 
-        return
+#         return
 
-    def _add_export_controls(self, dt_output_d3plot: float = 0.5):
-        """Rewrite method for zerop export
+#     def _add_export_controls(self, dt_output_d3plot: float = 0.5):
+#         """Rewrite method for zerop export
 
-        Parameters
-        ----------
-        dt_output_d3plot : float, optional
-            Writes full D3PLOT results at this time-step spacing, by default 0.5
-        """
-        # add output control
-        self.kw_database.main.append(keywords.ControlOutput(npopt=1, neecho=1, ikedit=0, iflush=0))
+#         Parameters
+#         ----------
+#         dt_output_d3plot : float, optional
+#             Writes full D3PLOT results at this time-step spacing, by default 0.5
+#         """
+#         # add output control
+#         self.kw_database.main.append(keywords.ControlOutput(npopt=1, neecho=1, ikedit=0, iflush=0))
 
-        # add export controls
-        # self.kw_database.main.append(keywords.DatabaseElout(dt=0.1, binary=2))
-        #
-        # self.kw_database.main.append(keywords.DatabaseGlstat(dt=0.1, binary=2))
-        #
-        # self.kw_database.main.append(keywords.DatabaseMatsum(dt=0.1, binary=2))
+#         # add export controls
+#         # self.kw_database.main.append(keywords.DatabaseElout(dt=0.1, binary=2))
+#         #
+#         # self.kw_database.main.append(keywords.DatabaseGlstat(dt=0.1, binary=2))
+#         #
+#         # self.kw_database.main.append(keywords.DatabaseMatsum(dt=0.1, binary=2))
 
-        # frequency of full results
-        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
+#         # frequency of full results
+#         self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
 
-        # self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
+#         # self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
 
-        return
+#         return
 
-    def _add_solution_controls(self):
-        """
-        Rewrite method for the zerop simulation
-        Returns
-        -------
+#     def _add_solution_controls(self):
+#         """
+#         Rewrite method for the zerop simulation
+#         Returns
+#         -------
 
-        """
-        self.kw_database.main.append(keywords.ControlTermination(endtim=1.0))
-        # self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
+#         """
+#         self.kw_database.main.append(keywords.ControlTermination(endtim=1.0))
+#         # self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
 
-        self.kw_database.main.append(
-            keywords.ControlImplicitDynamics(imass=1, gamma=0.6, beta=0.38)
-        )
+#         self.kw_database.main.append(
+#             keywords.ControlImplicitDynamics(imass=1, gamma=0.6, beta=0.38)
+#         )
 
-        # add auto controls
-        self.kw_database.main.append(keywords.ControlImplicitAuto(iauto=1, dtmin=0.01, dtmax=0.1))
+#         # add auto controls
+#         self.kw_database.main.append(keywords.ControlImplicitAuto(iauto=1, dtmin=0.01, dtmax=0.1))
 
-        # add general implicit controls
-        self.kw_database.main.append(keywords.ControlImplicitGeneral(imflag=1, dt0=0.1))
+#         # add general implicit controls
+#         self.kw_database.main.append(keywords.ControlImplicitGeneral(imflag=1, dt0=0.1))
 
-        # add implicit solution controls: Defaults are OK?
-        self.kw_database.main.append(keywords.ControlImplicitSolution())
+#         # add implicit solution controls: Defaults are OK?
+#         self.kw_database.main.append(keywords.ControlImplicitSolution())
 
-        # add implicit solver controls
-        self.kw_database.main.append(keywords.ControlImplicitSolver())
+#         # add implicit solver controls
+#         self.kw_database.main.append(keywords.ControlImplicitSolver())
 
-        # add binout for post-process
-        self.kw_database.main.append(keywords.DatabaseNodout(dt=0.5, binary=1))
-        x = keywords.SetNodeGeneral(option="part", sid=999, e1=1, e2=2, e3=3, e4=4)
-        self.kw_database.main.append(x)
-        self.kw_database.main.append("*DATABASE_HISTORY_NODE_SET\n999")
-        return
+#         # add binout for post-process
+#         self.kw_database.main.append(keywords.DatabaseNodout(dt=0.5, binary=1))
+#         x = keywords.SetNodeGeneral(option="part", sid=999, e1=1, e2=2, e3=3, e4=4)
+#         self.kw_database.main.append(x)
+#         self.kw_database.main.append("*DATABASE_HISTORY_NODE_SET\n999")
+#         return
 
-    def _add_control_reference_configuration(self):
-        """Adds control reference configuration keyword to main"""
-        LOGGER.debug("Adding *CONTROL_REFERENCE_CONFIGURATION to main.k")
-        kw = keywords.ControlReferenceConfiguration(maxiter=3, target="nodes.k", method=2, tol=5)
+#     def _add_control_reference_configuration(self):
+#         """Adds control reference configuration keyword to main"""
+#         LOGGER.debug("Adding *CONTROL_REFERENCE_CONFIGURATION to main.k")
+#         kw = keywords.ControlReferenceConfiguration(maxiter=3, target="nodes.k", method=2, tol=5)
 
-        self.kw_database.main.append(kw)
+#         self.kw_database.main.append(kw)
 
-        return
+#         return
 
-    def _add_enddiastolic_pressure_bc(self, pressure_lv: float = 1, pressure_rv: float = 1):
-        """Adds end diastolic pressure boundary condition on the left and right endocardium"""
+#     def _add_enddiastolic_pressure_bc(self, pressure_lv: float = 1, pressure_rv: float = 1):
+#         """Adds end diastolic pressure boundary condition on the left and right endocardium"""
 
-        # create unit load curve
-        load_curve_id = 2
-        load_curve_kw = create_define_curve_kw(
-            [0, 1], [0, 1], "unit load curve", load_curve_id, 100
-        )
+#         # create unit load curve
+#         load_curve_id = 2
+#         load_curve_kw = create_define_curve_kw(
+#             [0, 1], [0, 1], "unit load curve", load_curve_id, 100
+#         )
 
-        # append unit curve to main.k
-        self.kw_database.main.append(load_curve_kw)
+#         # append unit curve to main.k
+#         self.kw_database.main.append(load_curve_kw)
 
-        # create *LOAD_SEGMENT_SETS for each ventricular cavity
-        for cavity in self.model._mesh._cavities:
+#         # create *LOAD_SEGMENT_SETS for each ventricular cavity
+#         for cavity in self.model._mesh._cavities:
 
-            if "atrium" in cavity.name:
-                continue
+#             if "atrium" in cavity.name:
+#                 continue
 
-            if cavity.name == "Left ventricle":
-                scale_factor = pressure_lv
-            elif cavity.name == "Right ventricle":
-                scale_factor = pressure_rv
-
-            LOGGER.debug(
-                "Adding end-diastolic pressure of {0} to {1}".format(scale_factor, cavity.name)
-            )
-
-            seg_ids_to_use = []
-            # find id of endocardium
-            for segset in cavity.segment_sets:
-                if "endocardium" in segset["name"]:
-                    seg_ids_to_use.append(segset["id"])
-
-            # create load segment set for each endocardium segment
-            for seg_id in seg_ids_to_use:
-                load_segset_kw = keywords.LoadSegmentSet(
-                    ssid=seg_id, lcid=load_curve_id, sf=scale_factor
-                )
-
-                # append to main.k
-                self.kw_database.main.append(load_segset_kw)
-
-
-class FiberGenerationDynaWriter(MechanicsDynaWriter):
-    def __init__(self, model: HeartModel) -> None:
-        super().__init__(model)
-
-        self.kw_database = FiberGenerationDecks()
-        """Collection of keywords relevant for fiber generation
-        """
-
-    def update(self):
-        """Updates keyword database for Fiber generation: overwrites the inherited function"""
-
-        ##
-        self._update_main_db()  # needs updating
-
-        self._update_node_db()  # can stay the same (could move to base class)
-        if self.model.info.model_type == "FourChamber":
-            self._keep_ventricles()
-
-        self._update_parts_db()  # can stay the same (could move to base class++++++++++++++++++++)
-        self._update_solid_elements_db(
-            add_fibers=False
-        )  # can stay the same (could move to base class)
-        self._update_material_db()
-
-        self._update_segmentsets_db()  # can stay the same
-        self._update_nodesets_db()  # can stay the same
-
-        # update ep settings
-        self._update_ep_settings()
-        self._update_create_fibers()
-
-        self._get_list_of_includes()
-        self._add_includes()
-
-        return
-
-    def export(self, export_directory: str):
-        """Writes the model to files"""
-        tstart = time.time()
-        LOGGER.debug("Writing all LS-DYNA .k files...")
-
-        if not export_directory:
-            export_directory = self.model.info.working_directory
-
-        # export .k files
-        self.export_databases(export_directory)
-
-        tend = time.time()
-        LOGGER.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
-
-        return
-
-    def _keep_ventricles(self):
-        """Removes any cavity except the ventricular cavities"""
-        # just keep ventricles in case of four chamber model
-        LOGGER.warning("Just keeping ventricular-parts for fiber generation")
-        cavities_to_keep = []
-        for ii, cavity in enumerate(self.model._mesh._cavities):
-            if "ventricle" in cavity.name:
-                cavities_to_keep.append(cavity)
-
-        self.model._mesh._cavities = cavities_to_keep
-        return
-
-    def _update_material_db(self):
-        """Adds simple linear elastic and orthotropic EM material for each defined part"""
-        for cavity in self.model._mesh._cavities:
-            for element_set in cavity.element_sets:
-                em_mat_id = element_set["id"]
-                self.kw_database.material.extend(
-                    [
-                        keywords.MatElastic(mid=em_mat_id, ro=1e-6, e=1),
-                        custom_keywords.EmMat003(
-                            mid=em_mat_id,
-                            mtype=2,
-                            sigma11=5.0e-4,
-                            sigma22=1.0e-4,
-                            sigma33=1.0e-4,
-                            beta=0.14,
-                            cm=0.01,
-                            aopt=2.0,
-                            lambda_=0.5,
-                            a1=0,
-                            a2=0,
-                            a3=0,
-                            d1=0,
-                            d2=-1,
-                            d3=0,
-                        ),
-                        custom_keywords.EmEpCellmodelTomek(mid=em_mat_id),
-                    ]
-                )
-
-    def _update_ep_settings(self):
-        """Adds the settings for the electrophysiology solver"""
-
-        self.kw_database.ep_settings.append(
-            keywords.EmControl(
-                emsol=11, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
-            )
-        )
-
-        # use defaults
-        self.kw_database.ep_settings.append(custom_keywords.EmControlEp())
-
-        # max iter should be int
-        self.kw_database.ep_settings.append(
-            keywords.EmSolverFem(reltol=1e-6, maxite=int(1e4), precon=2)
-        )
-
-        self.kw_database.ep_settings.append(keywords.EmOutput(mats=1, matf=1, sols=1, solf=1))
-
-        return
-
-    def _update_create_fibers(self):
-        """Updates the keywords for fiber generation"""
-
-        # collect relevant node and segment sets.
-        # node set: apex, base
-        # node set: endocardium, epicardium
-        # NOTE: could be better if basal nodes are extracted in the preprocessor
-        # since that would allow you to robustly extract these nodessets using the
-        # input data
-        # The below is relevant for all models.
-        nodes_base = np.empty(0, dtype=int)
-        node_set_ids_endo = []
-        node_sets_ids_epi = []
-        node_set_ids_epi_and_rseptum = []
-
-        node_set_id_lv_endo = 0
-
-        for cavity in self.model._mesh._cavities:
-            if "atrium" in cavity.name:
-                continue
-
-            for cap in cavity.closing_caps:
-                nodes_base = np.append(nodes_base, cap.node_ids_cap_edge)
-
-            for node_set in cavity.node_sets:
-                if "endocardium" in node_set["name"]:
-                    node_set_ids_endo.append(node_set["id"])
-                    if "septum" in node_set["name"]:
-                        node_set_ids_epi_and_rseptum.append(node_set["id"])
-                    if cavity.name == "Left ventricle":
-                        node_set_id_lv_endo = node_set["id"]
-                elif "epicardium" in node_set["name"]:
-                    node_sets_ids_epi.append(node_set["id"])
-                    node_set_ids_epi_and_rseptum.append(node_set["id"])
-
-            if cavity.name == "Left ventricle":
-                node_apex = np.array([cavity.apex_id["epicardium"]])
-
-        # validate node set by removing any nodes that do not occur in either ventricle
-        # NOTE: can be much more consice
-        tet_ids_ventricles = np.empty((0), dtype=int)
-        for cavity in self.model._mesh._cavities:
-            for element_set in cavity.element_sets:
-                if "ventricle" in cavity.name:
-                    tet_ids_ventricles = np.append(tet_ids_ventricles, element_set["set"])
-        tetra_ventricles = self.volume_mesh["tetra"][tet_ids_ventricles, :]
-
-        # remove nodes that occur just in atrial part
-        mask = np.isin(nodes_base, tetra_ventricles, invert=True)
-        LOGGER.debug("Removing {0} nodes from base nodes".format(np.sum(mask)))
-        nodes_base = nodes_base[np.invert(mask)]
-
-        # create set parts for lv and rv myocardium
-        myocardium_part_ids = []
-        septum_part_ids = []
-        for cavity in self.model._mesh._cavities:
-            if "atrium" in cavity.name:
-                continue
-            for segset in cavity.element_sets:
-                if segset["name"] == "myocardium":
-                    myocardium_part_ids.append(segset["id"])
-
-                if segset["name"] == "septum":
-                    septum_part_ids.append(segset["id"])
-
-        # switch between the various models to generate valid input decks
-        if self.model.info.model_type in ["LeftVentricle"]:
-            LOGGER.warning("Model type %s in development " % self.model.info.model_type)
-
-            # Define part set for myocardium
-            part_list1_kw = keywords.SetPartList(
-                sid=1,
-            )
-            part_list1_kw.parts._data = myocardium_part_ids
-            part_list1_kw.options["TITLE"].active = True
-            part_list1_kw.title = "myocardium_all"
-
-            self.kw_database.create_fiber.extend(
-                [
-                    part_list1_kw,
-                ]
-            )
-
-            # combine node sets endocardium uing *SET_NODE_ADD:
-            node_set_id_all_endocardium = 1000
-            set_add_kw = keywords.SetNodeAdd(sid=node_set_id_all_endocardium)
-            set_add_kw.options["TITLE"].active = True
-            set_add_kw.title = "all_endocardium_segments"
-            set_add_kw.nodes._data = node_set_ids_endo
-
-            self.kw_database.create_fiber.append(set_add_kw)
-
-            # combine node sets epicardium:
-            node_set_id_all_epicardium = 1001
-            set_add_kw = keywords.SetNodeAdd(sid=node_set_id_all_epicardium)
-            set_add_kw.options["TITLE"].active = True
-            set_add_kw.title = "all_epicardium_segments"
-            set_add_kw.nodes._data = node_sets_ids_epi
-
-            self.kw_database.create_fiber.append(set_add_kw)
-
-            node_set_id_base = 200
-            node_set_id_apex = 201
-            # create node-sets for base and apex
-            node_set_base_kw = create_node_set_keyword(
-                node_ids=nodes_base + 1, node_set_id=node_set_id_base, title="base nodes"
-            )
-            node_set_apex_kw = create_node_set_keyword(
-                node_ids=node_apex + 1, node_set_id=node_set_id_apex, title="apex node"
-            )
-
-            self.kw_database.create_fiber.extend([node_set_base_kw, node_set_apex_kw])
-
-            # Set up *EM_EP_FIBERINITIAL keyword
-            # apex > base
-            self.kw_database.create_fiber.append(
-                custom_keywords.EmEpFiberinitial(
-                    id=1,
-                    partid=1,  # set part id 1: myocardium
-                    stype=2,  # set type 2 == nodes
-                    ssid1=node_set_id_base,
-                    ssid2=node_set_id_apex,
-                )
-            )
-
-            # all epicardium > all endocardium
-            self.kw_database.create_fiber.append(
-                custom_keywords.EmEpFiberinitial(
-                    id=2,
-                    partid=1,  # set part id 1: myocardium
-                    stype=2,  # set type 1 == segment set, set type 2 == node set
-                    ssid1=node_set_id_all_epicardium,
-                    ssid2=node_set_id_all_endocardium,
-                )
-            )
-
-            # add *EM_EP_CREATEFIBERORIENTATION keywords
-            self.kw_database.create_fiber.append(
-                custom_keywords.EmEpCreatefiberorientation(
-                    partsid=1, solvid1=1, solvid2=2, alpha=-101, beta=-102, wfile=1, prerun=1
-                )
-            )
-
-            # define functions:
-            from ansys.heart.writer.define_function_strings import function1, function2, function3
-
-            self.kw_database.create_fiber.append(
-                keywords.DefineFunction(fid=101, function=function1)
-            )
-            self.kw_database.create_fiber.append(
-                keywords.DefineFunction(fid=102, function=function2)
-            )
-
-        elif self.model.info.model_type in ["BiVentricle", "FourChamber"]:
-            LOGGER.warning("Model type %s under development " % self.model.info.model_type)
-
-            # Define part set for myocardium
-            part_list1_kw = keywords.SetPartList(
-                sid=1,
-            )
-            part_list1_kw.parts._data = myocardium_part_ids
-            part_list1_kw.options["TITLE"].active = True
-            part_list1_kw.title = "myocardium_all"
-
-            # Define part set for septum
-            part_list2_kw = keywords.SetPartList(
-                sid=2,
-            )
-            part_list2_kw.options["TITLE"].active = True
-            part_list2_kw.title = "septum"
-            part_list2_kw.parts._data = septum_part_ids
-
-            self.kw_database.create_fiber.extend([part_list1_kw, part_list2_kw])
-
-            # combine node sets endocardium uing *SET_SEGMENT_ADD:
-            node_set_id_all_endocardium = 1000
-            set_add_kw = keywords.SetNodeAdd(sid=node_set_id_all_endocardium)
-
-            set_add_kw.options["TITLE"].active = True
-            set_add_kw.title = "all_endocardium_segments"
-            set_add_kw.nodes._data = node_set_ids_endo
-
-            self.kw_database.create_fiber.append(set_add_kw)
-
-            # combine node sets epicardium:
-            node_set_id_all_epicardium = 1001
-            set_add_kw = keywords.SetNodeAdd(sid=node_set_id_all_epicardium)
-
-            set_add_kw.options["TITLE"].active = True
-            set_add_kw.title = "all_epicardium_segments"
-            set_add_kw.nodes._data = node_sets_ids_epi
-
-            self.kw_database.create_fiber.append(set_add_kw)
-
-            # combine node sets epicardium and septum:
-            node_set_all_but_left_endocardium = 1002
-            set_add_kw = keywords.SetNodeAdd(sid=node_set_all_but_left_endocardium)
-
-            set_add_kw.options["TITLE"].active = True
-            set_add_kw.title = "all_but_left_endocardium"
-            set_add_kw.nodes._data = node_set_ids_epi_and_rseptum
-
-            self.kw_database.create_fiber.append(set_add_kw)
-
-            node_set_id_base = 200
-            node_set_id_apex = 201
-            # create node-sets for base and apex
-            node_set_base_kw = create_node_set_keyword(
-                node_ids=nodes_base + 1, node_set_id=node_set_id_base, title="base nodes"
-            )
-            node_set_apex_kw = create_node_set_keyword(
-                node_ids=node_apex + 1, node_set_id=node_set_id_apex, title="apex node"
-            )
-
-            self.kw_database.create_fiber.extend([node_set_base_kw, node_set_apex_kw])
-
-            # Set up *EM_EP_FIBERINITIAL keyword
-            # apex > base
-            self.kw_database.create_fiber.append(
-                custom_keywords.EmEpFiberinitial(
-                    id=1,
-                    partid=1,  # set part id 1: myocardium
-                    stype=2,  # set type 2 == nodes
-                    ssid1=node_set_id_base,
-                    ssid2=node_set_id_apex,
-                )
-            )
-
-            # all epicardium > all endocardium
-            self.kw_database.create_fiber.append(
-                custom_keywords.EmEpFiberinitial(
-                    id=2,
-                    partid=1,  # set part id 1: myocardium
-                    stype=2,  # set type 1 == segment set, set type 2 == node set
-                    ssid1=node_set_id_all_epicardium,
-                    ssid2=node_set_id_all_endocardium,
-                )
-            )
-
-            # all epicardium > endocardium left ventricle
-            self.kw_database.create_fiber.append(
-                custom_keywords.EmEpFiberinitial(
-                    id=3,
-                    partid=2,  # set part id 2: septum
-                    stype=2,  # set type 1 == segment set
-                    ssid1=node_set_all_but_left_endocardium,
-                    ssid2=node_set_id_lv_endo,
-                )
-            )
-
-            # add *EM_EP_CREATEFIBERORIENTATION keywords
-            self.kw_database.create_fiber.append(
-                custom_keywords.EmEpCreatefiberorientation(
-                    partsid=1, solvid1=1, solvid2=2, alpha=-101, beta=-102, wfile=1, prerun=1
-                )
-            )
-            # add *EM_EP_CREATEFIBERORIENTATION keywords
-            self.kw_database.create_fiber.append(
-                custom_keywords.EmEpCreatefiberorientation(
-                    partsid=2, solvid1=1, solvid2=3, alpha=-101, beta=-103, wfile=1, prerun=1
-                )
-            )
-
-            # define functions:
-            from ansys.heart.writer.define_function_strings import function1, function2, function3
-
-            self.kw_database.create_fiber.append(
-                keywords.DefineFunction(fid=101, function=function1)
-            )
-            self.kw_database.create_fiber.append(
-                keywords.DefineFunction(fid=102, function=function2)
-            )
-            self.kw_database.create_fiber.append(
-                keywords.DefineFunction(fid=103, function=function3)
-            )
-
-    def _update_main_db(self):
-        self.kw_database.main.append(keywords.ControlTimestep(dtinit=1.0, dt2ms=1.0))
-
-        self.kw_database.main.append(keywords.ControlTermination(endtim=10))
-
-        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=1.0))
-
-        return
-
-
-class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
-    def __init__(self, model: HeartModel) -> None:
-        super().__init__(model)
-
-        self.kw_database = PurkinjeGenerationDecks()
-        """Collection of keywords relevant for Purkinje generation
-        """
-
-    def update(self):
-        """Updates keyword database for Purkinje generation: overwrites the inherited function"""
-
-        ##
-        self._update_main_db()  # needs updating
-
-        self._update_node_db()  # can stay the same (could move to base class)
-        if self.model.info.model_type == "FourChamber":
-            self._keep_ventricles()
-
-        self._update_parts_db()  # can stay the same (could move to base class++++++++++++++++++++)
-        self._update_solid_elements_db(
-            add_fibers=False
-        )  # can stay the same (could move to base class)
-        self._update_material_db()
-
-        self._update_segmentsets_db()  # can stay the same
-        self._update_nodesets_db()  # can stay the same
-
-        # update ep settings
-        self._update_ep_settings()
-        self._update_create_Purkinje()
-
-        self._get_list_of_includes()
-        self._add_includes()
-
-        return
-
-    def export(self, export_directory: str):
-        """Writes the model to files"""
-        tstart = time.time()
-        LOGGER.debug("Writing all LS-DYNA .k files...")
-
-        if not export_directory:
-            export_directory = self.model.info.working_directory
-
-        # export .k files
-        self.export_databases(export_directory)
-
-        tend = time.time()
-        LOGGER.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
-
-        return
-
-    def _keep_ventricles(self):
-        """Removes any cavity except the ventricular cavities"""
-        # just keep ventricles in case of four chamber model
-        LOGGER.warning("Just keeping ventricular-parts for Purkinje generation")
-        cavities_to_keep = []
-        for ii, cavity in enumerate(self.model._mesh._cavities):
-            if "ventricle" in cavity.name:
-                cavities_to_keep.append(cavity)
-
-        self.model._mesh._cavities = cavities_to_keep
-        return
-
-    def _update_material_db(self):
-        """Adds simple linear elastic material for each defined part"""
-        for cavity in self.model._mesh._cavities:
-            for element_set in cavity.element_sets:
-                em_mat_id = element_set["id"]
-                self.kw_database.material.extend(
-                    [
-                        keywords.MatElastic(mid=em_mat_id, ro=1e-6, e=1),
-                        custom_keywords.EmMat003(
-                            mid=em_mat_id,
-                            mtype=2,
-                            sigma11=5.0e-4,
-                            sigma22=1.0e-4,
-                            sigma33=1.0e-4,
-                            beta=0.14,
-                            cm=0.01,
-                            aopt=2.0,
-                            lambda_=0.5,
-                            a1=0,
-                            a2=0,
-                            a3=0,
-                            d1=0,
-                            d2=-1,
-                            d3=0,
-                        ),
-                    ]
-                )
-
-    def _update_ep_settings(self):
-        """Adds the settings for the electrophysiology solver"""
-
-        self.kw_database.ep_settings.append(
-            keywords.EmControl(
-                emsol=11, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
-            )
-        )
-
-        self.kw_database.ep_settings.append(keywords.EmOutput(mats=1, matf=1, sols=1, solf=1))
-
-        return
-
-    def _update_create_Purkinje(self):
-        """Updates the keywords for Purkinje generation"""
-
-        # collect relevant node and segment sets.
-        # node set: apex, base
-        # node set: endocardium, epicardium
-        # NOTE: could be better if basal nodes are extracted in the preprocessor
-        # since that would allow you to robustly extract these nodessets using the
-        # input data
-        # The below is relevant for all models.
-        nodes_base = np.empty(0, dtype=int)
-        node_apex_left = np.empty(0, dtype=int)
-        node_apex_right = np.empty(0, dtype=int)
-        edge_id_start_left = np.empty(0, dtype=int)
-        edge_id_start_right = np.empty(0, dtype=int)
-        for cavity in self.model._mesh._cavities:
-            if cavity.name == "Left ventricle":
-                node_apex_left = cavity.apex_id["endocardium"]
-                for segment_set in cavity.segment_sets:
-                    if "endocardium" in segment_set["name"]:
-                        segment_set_ids_endo_left = segment_set["id"]
-            elif cavity.name == "Right ventricle":
-                node_apex_right = cavity.apex_id["endocardium"]
-                for segment_set in cavity.segment_sets:
-                    if "endocardium" in segment_set["name"] and "septum" not in segment_set["name"]:
-                        segment_set_ids_endo_right = segment_set["id"]
-
-        # validate node set by removing any nodes that do not occur in either ventricle
-        # NOTE: can be much more consice
-        tet_ids_ventricles = np.empty((0), dtype=int)
-        for cavity in self.model._mesh._cavities:
-            for element_set in cavity.element_sets:
-                if "ventricle" in cavity.name:
-                    tet_ids_ventricles = np.append(tet_ids_ventricles, element_set["set"])
-        tetra_ventricles = self.volume_mesh["tetra"][tet_ids_ventricles, :]
-
-        # remove nodes that occur just in atrial part
-        mask = np.isin(nodes_base, tetra_ventricles, invert=True)
-        LOGGER.debug("Removing {0} nodes from base nodes".format(np.sum(mask)))
-        nodes_base = nodes_base[np.invert(mask)]
-
-        node_set_id_apex_left = 201
-        # create node-sets for apex
-        node_set_apex_kw = create_node_set_keyword(
-            node_ids=[node_apex_left + 1],
-            node_set_id=node_set_id_apex_left,
-            title="apex node left",
-        )
-
-        self.kw_database.node_sets.extend([node_set_apex_kw])
-
-        apex_left_X = self.volume_mesh["nodes"][node_apex_left, 0]
-        apex_left_Y = self.volume_mesh["nodes"][node_apex_left, 1]
-        apex_left_Z = self.volume_mesh["nodes"][node_apex_left, 2]
-        node_id_start_left = (
-            self.volume_mesh["nodes"].shape[0] + 1
-        )  # TODO seek for max id rather than number of rows
-
-        edge_id_start_left = self.volume_mesh["tetra"].shape[0] + 1
-
-        # Purkinje generation parameters
-        self.kw_database.mainLEFT.append(
-            custom_keywords.EmEpPurkinjeNetwork(
-                purkid=1,
-                buildnet=1,
-                ssid=segment_set_ids_endo_left,
-                mid=25,
-                pointstx=apex_left_X,
-                pointsty=apex_left_Y,
-                pointstz=apex_left_Z,
-                edgelen=2,
-                ngen=50,
-                nbrinit=8,
-                nsplit=2,
-                inodeid=node_id_start_left,
-                iedgeid=edge_id_start_left,  # TODO check if beam elements exist in mesh
-            )
-        )
-
-        # Add right purkinje only in biventricular or 4chamber models
-        if self.model.info.model_type in ["BiVentricle", "FourChamber"]:
-            LOGGER.warning("Model type %s in development " % self.model.info.model_type)
-
-            node_set_id_apex_right = 202
-            # create node-sets for apex
-            node_set_apex_kw = create_node_set_keyword(
-                node_ids=[node_apex_right + 1],
-                node_set_id=node_set_id_apex_right,
-                title="apex node right",
-            )
-
-            self.kw_database.node_sets.extend([node_set_apex_kw])
-
-            apex_right_X = self.volume_mesh["nodes"][node_apex_right, 0]
-            apex_right_Y = self.volume_mesh["nodes"][node_apex_right, 1]
-            apex_right_Z = self.volume_mesh["nodes"][node_apex_right, 2]
-            node_id_start_right = (
-                2 * self.volume_mesh["nodes"].shape[0]
-            )  # TODO find a solution in dyna to better handle id definition
-
-            edge_id_start_right = 2 * self.volume_mesh["tetra"].shape[0]
-
-            # Purkinje generation parameters
-            self.kw_database.mainRIGHT.append(
-                custom_keywords.EmEpPurkinjeNetwork(
-                    purkid=2,
-                    buildnet=1,
-                    ssid=segment_set_ids_endo_right,
-                    mid=26,
-                    pointstx=apex_right_X,
-                    pointsty=apex_right_Y,
-                    pointstz=apex_right_Z,
-                    edgelen=2,
-                    ngen=50,
-                    nbrinit=8,
-                    nsplit=2,
-                    inodeid=node_id_start_right,  # TODO check if beam elements exist in mesh
-                    iedgeid=edge_id_start_right,
-                )
-            )
-
-    def _update_main_db(self):
-
-        return
-
-    def _get_list_of_includes(self):
-        """Gets a list of files to include in main.k. Ommit any empty decks"""
-        for deckname, deck in vars(self.kw_database).items():
-            if deckname == "mainLEFT" or deckname == "mainRIGHT":
-                continue
-            # skip if no keywords are present in the deck
-            if len(deck.keywords) == 0:
-                LOGGER.debug("No keywords in deck: {0}".format(deckname))
-                continue
-            self.include_files.append(deckname)
-        return
-
-    def _add_includes(self):
-        """Adds *INCLUDE keywords"""
-        for include_file in self.include_files:
-            filename_to_include = include_file + ".k"
-            self.kw_database.mainLEFT.append(keywords.Include(filename=filename_to_include))
-            self.kw_database.mainRIGHT.append(keywords.Include(filename=filename_to_include))
+#             if cavity.name == "Left ventricle":
+#                 scale_factor = pressure_lv
+#             elif cavity.name == "Right ventricle":
+#                 scale_factor = pressure_rv
+
+#             LOGGER.debug(
+#                 "Adding end-diastolic pressure of {0} to {1}".format(scale_factor, cavity.name)
+#             )
+
+#             seg_ids_to_use = []
+#             # find id of endocardium
+#             for segset in cavity.segment_sets:
+#                 if "endocardium" in segset["name"]:
+#                     seg_ids_to_use.append(segset["id"])
+
+#             # create load segment set for each endocardium segment
+#             for seg_id in seg_ids_to_use:
+#                 load_segset_kw = keywords.LoadSegmentSet(
+#                     ssid=seg_id, lcid=load_curve_id, sf=scale_factor
+#                 )
+
+#                 # append to main.k
+#                 self.kw_database.main.append(load_segset_kw)
+
+
+# class FiberGenerationDynaWriter(MechanicsDynaWriter):
+#     def __init__(self, model: HeartModel) -> None:
+#         super().__init__(model)
+
+#         self.kw_database = FiberGenerationDecks()
+#         """Collection of keywords relevant for fiber generation
+#         """
+
+#     def update(self):
+#         """Updates keyword database for Fiber generation: overwrites the inherited function"""
+
+#         ##
+#         self._update_main_db()  # needs updating
+
+#         self._update_node_db()  # can stay the same (could move to base class)
+#         if self.model.info.model_type == "FourChamber":
+#             self._keep_ventricles()
+
+#         self._update_parts_db()  # can stay the same (could move to base class++++++++++++++++++++)
+#         self._update_solid_elements_db(
+#             add_fibers=False
+#         )  # can stay the same (could move to base class)
+#         self._update_material_db()
+
+#         self._update_segmentsets_db()  # can stay the same
+#         self._update_nodesets_db()  # can stay the same
+
+#         # update ep settings
+#         self._update_ep_settings()
+#         self._update_create_fibers()
+
+#         self._get_list_of_includes()
+#         self._add_includes()
+
+#         return
+
+#     def export(self, export_directory: str):
+#         """Writes the model to files"""
+#         tstart = time.time()
+#         LOGGER.debug("Writing all LS-DYNA .k files...")
+
+#         if not export_directory:
+#             export_directory = self.model.info.working_directory
+
+#         # export .k files
+#         self.export_databases(export_directory)
+
+#         tend = time.time()
+#         LOGGER.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
+
+#         return
+
+#     def _keep_ventricles(self):
+#         """Removes any cavity except the ventricular cavities"""
+#         # just keep ventricles in case of four chamber model
+#         LOGGER.warning("Just keeping ventricular-parts for fiber generation")
+#         cavities_to_keep = []
+#         for ii, cavity in enumerate(self.model._mesh._cavities):
+#             if "ventricle" in cavity.name:
+#                 cavities_to_keep.append(cavity)
+
+#         self.model._mesh._cavities = cavities_to_keep
+#         return
+
+#     def _update_material_db(self):
+#         """Adds simple linear elastic and orthotropic EM material for each defined part"""
+#         for cavity in self.model._mesh._cavities:
+#             for element_set in cavity.element_sets:
+#                 em_mat_id = element_set["id"]
+#                 self.kw_database.material.extend(
+#                     [
+#                         keywords.MatElastic(mid=em_mat_id, ro=1e-6, e=1),
+#                         custom_keywords.EmMat003(
+#                             mid=em_mat_id,
+#                             mtype=2,
+#                             sigma11=5.0e-4,
+#                             sigma22=1.0e-4,
+#                             sigma33=1.0e-4,
+#                             beta=0.14,
+#                             cm=0.01,
+#                             aopt=2.0,
+#                             lambda_=0.5,
+#                             a1=0,
+#                             a2=0,
+#                             a3=0,
+#                             d1=0,
+#                             d2=-1,
+#                             d3=0,
+#                         ),
+#                         custom_keywords.EmEpCellmodelTomek(mid=em_mat_id),
+#                     ]
+#                 )
+
+#     def _update_ep_settings(self):
+#         """Adds the settings for the electrophysiology solver"""
+
+#         self.kw_database.ep_settings.append(
+#             keywords.EmControl(
+#                 emsol=11, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
+#             )
+#         )
+
+#         # use defaults
+#         self.kw_database.ep_settings.append(custom_keywords.EmControlEp())
+
+#         # max iter should be int
+#         self.kw_database.ep_settings.append(
+#             keywords.EmSolverFem(reltol=1e-6, maxite=int(1e4), precon=2)
+#         )
+
+#         self.kw_database.ep_settings.append(keywords.EmOutput(mats=1, matf=1, sols=1, solf=1))
+
+#         return
+
+#     def _update_create_fibers(self):
+#         """Updates the keywords for fiber generation"""
+
+#         # collect relevant node and segment sets.
+#         # node set: apex, base
+#         # node set: endocardium, epicardium
+#         # NOTE: could be better if basal nodes are extracted in the preprocessor
+#         # since that would allow you to robustly extract these nodessets using the
+#         # input data
+#         # The below is relevant for all models.
+#         nodes_base = np.empty(0, dtype=int)
+#         node_set_ids_endo = []
+#         node_sets_ids_epi = []
+#         node_set_ids_epi_and_rseptum = []
+
+#         node_set_id_lv_endo = 0
+
+#         for cavity in self.model._mesh._cavities:
+#             if "atrium" in cavity.name:
+#                 continue
+
+#             for cap in cavity.closing_caps:
+#                 nodes_base = np.append(nodes_base, cap.node_ids_cap_edge)
+
+#             for node_set in cavity.node_sets:
+#                 if "endocardium" in node_set["name"]:
+#                     node_set_ids_endo.append(node_set["id"])
+#                     if "septum" in node_set["name"]:
+#                         node_set_ids_epi_and_rseptum.append(node_set["id"])
+#                     if cavity.name == "Left ventricle":
+#                         node_set_id_lv_endo = node_set["id"]
+#                 elif "epicardium" in node_set["name"]:
+#                     node_sets_ids_epi.append(node_set["id"])
+#                     node_set_ids_epi_and_rseptum.append(node_set["id"])
+
+#             if cavity.name == "Left ventricle":
+#                 node_apex = np.array([cavity.apex_id["epicardium"]])
+
+#         # validate node set by removing any nodes that do not occur in either ventricle
+#         # NOTE: can be much more consice
+#         tet_ids_ventricles = np.empty((0), dtype=int)
+#         for cavity in self.model._mesh._cavities:
+#             for element_set in cavity.element_sets:
+#                 if "ventricle" in cavity.name:
+#                     tet_ids_ventricles = np.append(tet_ids_ventricles, element_set["set"])
+#         tetra_ventricles = self.volume_mesh["tetra"][tet_ids_ventricles, :]
+
+#         # remove nodes that occur just in atrial part
+#         mask = np.isin(nodes_base, tetra_ventricles, invert=True)
+#         LOGGER.debug("Removing {0} nodes from base nodes".format(np.sum(mask)))
+#         nodes_base = nodes_base[np.invert(mask)]
+
+#         # create set parts for lv and rv myocardium
+#         myocardium_part_ids = []
+#         septum_part_ids = []
+#         for cavity in self.model._mesh._cavities:
+#             if "atrium" in cavity.name:
+#                 continue
+#             for segset in cavity.element_sets:
+#                 if segset["name"] == "myocardium":
+#                     myocardium_part_ids.append(segset["id"])
+
+#                 if segset["name"] == "septum":
+#                     septum_part_ids.append(segset["id"])
+
+#         # switch between the various models to generate valid input decks
+#         if self.model.info.model_type in ["LeftVentricle"]:
+#             LOGGER.warning("Model type %s in development " % self.model.info.model_type)
+
+#             # Define part set for myocardium
+#             part_list1_kw = keywords.SetPartList(
+#                 sid=1,
+#             )
+#             part_list1_kw.parts._data = myocardium_part_ids
+#             part_list1_kw.options["TITLE"].active = True
+#             part_list1_kw.title = "myocardium_all"
+
+#             self.kw_database.create_fiber.extend(
+#                 [
+#                     part_list1_kw,
+#                 ]
+#             )
+
+#             # combine node sets endocardium uing *SET_NODE_ADD:
+#             node_set_id_all_endocardium = 1000
+#             set_add_kw = keywords.SetNodeAdd(sid=node_set_id_all_endocardium)
+#             set_add_kw.options["TITLE"].active = True
+#             set_add_kw.title = "all_endocardium_segments"
+#             set_add_kw.nodes._data = node_set_ids_endo
+
+#             self.kw_database.create_fiber.append(set_add_kw)
+
+#             # combine node sets epicardium:
+#             node_set_id_all_epicardium = 1001
+#             set_add_kw = keywords.SetNodeAdd(sid=node_set_id_all_epicardium)
+#             set_add_kw.options["TITLE"].active = True
+#             set_add_kw.title = "all_epicardium_segments"
+#             set_add_kw.nodes._data = node_sets_ids_epi
+
+#             self.kw_database.create_fiber.append(set_add_kw)
+
+#             node_set_id_base = 200
+#             node_set_id_apex = 201
+#             # create node-sets for base and apex
+#             node_set_base_kw = create_node_set_keyword(
+#                 node_ids=nodes_base + 1, node_set_id=node_set_id_base, title="base nodes"
+#             )
+#             node_set_apex_kw = create_node_set_keyword(
+#                 node_ids=node_apex + 1, node_set_id=node_set_id_apex, title="apex node"
+#             )
+
+#             self.kw_database.create_fiber.extend([node_set_base_kw, node_set_apex_kw])
+
+#             # Set up *EM_EP_FIBERINITIAL keyword
+#             # apex > base
+#             self.kw_database.create_fiber.append(
+#                 custom_keywords.EmEpFiberinitial(
+#                     id=1,
+#                     partid=1,  # set part id 1: myocardium
+#                     stype=2,  # set type 2 == nodes
+#                     ssid1=node_set_id_base,
+#                     ssid2=node_set_id_apex,
+#                 )
+#             )
+
+#             # all epicardium > all endocardium
+#             self.kw_database.create_fiber.append(
+#                 custom_keywords.EmEpFiberinitial(
+#                     id=2,
+#                     partid=1,  # set part id 1: myocardium
+#                     stype=2,  # set type 1 == segment set, set type 2 == node set
+#                     ssid1=node_set_id_all_epicardium,
+#                     ssid2=node_set_id_all_endocardium,
+#                 )
+#             )
+
+#             # add *EM_EP_CREATEFIBERORIENTATION keywords
+#             self.kw_database.create_fiber.append(
+#                 custom_keywords.EmEpCreatefiberorientation(
+#                     partsid=1, solvid1=1, solvid2=2, alpha=-101, beta=-102, wfile=1, prerun=1
+#                 )
+#             )
+
+#             # define functions:
+#             from ansys.heart.writer.define_function_strings import function1, function2, function3
+
+#             self.kw_database.create_fiber.append(
+#                 keywords.DefineFunction(fid=101, function=function1)
+#             )
+#             self.kw_database.create_fiber.append(
+#                 keywords.DefineFunction(fid=102, function=function2)
+#             )
+
+#         elif self.model.info.model_type in ["BiVentricle", "FourChamber"]:
+#             LOGGER.warning("Model type %s under development " % self.model.info.model_type)
+
+#             # Define part set for myocardium
+#             part_list1_kw = keywords.SetPartList(
+#                 sid=1,
+#             )
+#             part_list1_kw.parts._data = myocardium_part_ids
+#             part_list1_kw.options["TITLE"].active = True
+#             part_list1_kw.title = "myocardium_all"
+
+#             # Define part set for septum
+#             part_list2_kw = keywords.SetPartList(
+#                 sid=2,
+#             )
+#             part_list2_kw.options["TITLE"].active = True
+#             part_list2_kw.title = "septum"
+#             part_list2_kw.parts._data = septum_part_ids
+
+#             self.kw_database.create_fiber.extend([part_list1_kw, part_list2_kw])
+
+#             # combine node sets endocardium uing *SET_SEGMENT_ADD:
+#             node_set_id_all_endocardium = 1000
+#             set_add_kw = keywords.SetNodeAdd(sid=node_set_id_all_endocardium)
+
+#             set_add_kw.options["TITLE"].active = True
+#             set_add_kw.title = "all_endocardium_segments"
+#             set_add_kw.nodes._data = node_set_ids_endo
+
+#             self.kw_database.create_fiber.append(set_add_kw)
+
+#             # combine node sets epicardium:
+#             node_set_id_all_epicardium = 1001
+#             set_add_kw = keywords.SetNodeAdd(sid=node_set_id_all_epicardium)
+
+#             set_add_kw.options["TITLE"].active = True
+#             set_add_kw.title = "all_epicardium_segments"
+#             set_add_kw.nodes._data = node_sets_ids_epi
+
+#             self.kw_database.create_fiber.append(set_add_kw)
+
+#             # combine node sets epicardium and septum:
+#             node_set_all_but_left_endocardium = 1002
+#             set_add_kw = keywords.SetNodeAdd(sid=node_set_all_but_left_endocardium)
+
+#             set_add_kw.options["TITLE"].active = True
+#             set_add_kw.title = "all_but_left_endocardium"
+#             set_add_kw.nodes._data = node_set_ids_epi_and_rseptum
+
+#             self.kw_database.create_fiber.append(set_add_kw)
+
+#             node_set_id_base = 200
+#             node_set_id_apex = 201
+#             # create node-sets for base and apex
+#             node_set_base_kw = create_node_set_keyword(
+#                 node_ids=nodes_base + 1, node_set_id=node_set_id_base, title="base nodes"
+#             )
+#             node_set_apex_kw = create_node_set_keyword(
+#                 node_ids=node_apex + 1, node_set_id=node_set_id_apex, title="apex node"
+#             )
+
+#             self.kw_database.create_fiber.extend([node_set_base_kw, node_set_apex_kw])
+
+#             # Set up *EM_EP_FIBERINITIAL keyword
+#             # apex > base
+#             self.kw_database.create_fiber.append(
+#                 custom_keywords.EmEpFiberinitial(
+#                     id=1,
+#                     partid=1,  # set part id 1: myocardium
+#                     stype=2,  # set type 2 == nodes
+#                     ssid1=node_set_id_base,
+#                     ssid2=node_set_id_apex,
+#                 )
+#             )
+
+#             # all epicardium > all endocardium
+#             self.kw_database.create_fiber.append(
+#                 custom_keywords.EmEpFiberinitial(
+#                     id=2,
+#                     partid=1,  # set part id 1: myocardium
+#                     stype=2,  # set type 1 == segment set, set type 2 == node set
+#                     ssid1=node_set_id_all_epicardium,
+#                     ssid2=node_set_id_all_endocardium,
+#                 )
+#             )
+
+#             # all epicardium > endocardium left ventricle
+#             self.kw_database.create_fiber.append(
+#                 custom_keywords.EmEpFiberinitial(
+#                     id=3,
+#                     partid=2,  # set part id 2: septum
+#                     stype=2,  # set type 1 == segment set
+#                     ssid1=node_set_all_but_left_endocardium,
+#                     ssid2=node_set_id_lv_endo,
+#                 )
+#             )
+
+#             # add *EM_EP_CREATEFIBERORIENTATION keywords
+#             self.kw_database.create_fiber.append(
+#                 custom_keywords.EmEpCreatefiberorientation(
+#                     partsid=1, solvid1=1, solvid2=2, alpha=-101, beta=-102, wfile=1, prerun=1
+#                 )
+#             )
+#             # add *EM_EP_CREATEFIBERORIENTATION keywords
+#             self.kw_database.create_fiber.append(
+#                 custom_keywords.EmEpCreatefiberorientation(
+#                     partsid=2, solvid1=1, solvid2=3, alpha=-101, beta=-103, wfile=1, prerun=1
+#                 )
+#             )
+
+#             # define functions:
+#             from ansys.heart.writer.define_function_strings import function1, function2, function3
+
+#             self.kw_database.create_fiber.append(
+#                 keywords.DefineFunction(fid=101, function=function1)
+#             )
+#             self.kw_database.create_fiber.append(
+#                 keywords.DefineFunction(fid=102, function=function2)
+#             )
+#             self.kw_database.create_fiber.append(
+#                 keywords.DefineFunction(fid=103, function=function3)
+#             )
+
+#     def _update_main_db(self):
+#         self.kw_database.main.append(keywords.ControlTimestep(dtinit=1.0, dt2ms=1.0))
+
+#         self.kw_database.main.append(keywords.ControlTermination(endtim=10))
+
+#         self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=1.0))
+
+#         return
+
+
+# class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
+#     def __init__(self, model: HeartModel) -> None:
+#         super().__init__(model)
+
+#         self.kw_database = PurkinjeGenerationDecks()
+#         """Collection of keywords relevant for Purkinje generation
+#         """
+
+#     def update(self):
+#         """Updates keyword database for Purkinje generation: overwrites the inherited function"""
+
+#         ##
+#         self._update_main_db()  # needs updating
+
+#         self._update_node_db()  # can stay the same (could move to base class)
+#         if self.model.info.model_type == "FourChamber":
+#             self._keep_ventricles()
+
+#         self._update_parts_db()  # can stay the same (could move to base class++++++++++++++++++++)
+#         self._update_solid_elements_db(
+#             add_fibers=False
+#         )  # can stay the same (could move to base class)
+#         self._update_material_db()
+
+#         self._update_segmentsets_db()  # can stay the same
+#         self._update_nodesets_db()  # can stay the same
+
+#         # update ep settings
+#         self._update_ep_settings()
+#         self._update_create_Purkinje()
+
+#         self._get_list_of_includes()
+#         self._add_includes()
+
+#         return
+
+#     def export(self, export_directory: str):
+#         """Writes the model to files"""
+#         tstart = time.time()
+#         LOGGER.debug("Writing all LS-DYNA .k files...")
+
+#         if not export_directory:
+#             export_directory = self.model.info.working_directory
+
+#         # export .k files
+#         self.export_databases(export_directory)
+
+#         tend = time.time()
+#         LOGGER.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
+
+#         return
+
+#     def _keep_ventricles(self):
+#         """Removes any cavity except the ventricular cavities"""
+#         # just keep ventricles in case of four chamber model
+#         LOGGER.warning("Just keeping ventricular-parts for Purkinje generation")
+#         cavities_to_keep = []
+#         for ii, cavity in enumerate(self.model._mesh._cavities):
+#             if "ventricle" in cavity.name:
+#                 cavities_to_keep.append(cavity)
+
+#         self.model._mesh._cavities = cavities_to_keep
+#         return
+
+#     def _update_material_db(self):
+#         """Adds simple linear elastic material for each defined part"""
+#         for cavity in self.model._mesh._cavities:
+#             for element_set in cavity.element_sets:
+#                 em_mat_id = element_set["id"]
+#                 self.kw_database.material.extend(
+#                     [
+#                         keywords.MatElastic(mid=em_mat_id, ro=1e-6, e=1),
+#                         custom_keywords.EmMat003(
+#                             mid=em_mat_id,
+#                             mtype=2,
+#                             sigma11=5.0e-4,
+#                             sigma22=1.0e-4,
+#                             sigma33=1.0e-4,
+#                             beta=0.14,
+#                             cm=0.01,
+#                             aopt=2.0,
+#                             lambda_=0.5,
+#                             a1=0,
+#                             a2=0,
+#                             a3=0,
+#                             d1=0,
+#                             d2=-1,
+#                             d3=0,
+#                         ),
+#                     ]
+#                 )
+
+#     def _update_ep_settings(self):
+#         """Adds the settings for the electrophysiology solver"""
+
+#         self.kw_database.ep_settings.append(
+#             keywords.EmControl(
+#                 emsol=11, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
+#             )
+#         )
+
+#         self.kw_database.ep_settings.append(keywords.EmOutput(mats=1, matf=1, sols=1, solf=1))
+
+#         return
+
+#     def _update_create_Purkinje(self):
+#         """Updates the keywords for Purkinje generation"""
+
+#         # collect relevant node and segment sets.
+#         # node set: apex, base
+#         # node set: endocardium, epicardium
+#         # NOTE: could be better if basal nodes are extracted in the preprocessor
+#         # since that would allow you to robustly extract these nodessets using the
+#         # input data
+#         # The below is relevant for all models.
+#         nodes_base = np.empty(0, dtype=int)
+#         node_apex_left = np.empty(0, dtype=int)
+#         node_apex_right = np.empty(0, dtype=int)
+#         edge_id_start_left = np.empty(0, dtype=int)
+#         edge_id_start_right = np.empty(0, dtype=int)
+#         for cavity in self.model._mesh._cavities:
+#             if cavity.name == "Left ventricle":
+#                 node_apex_left = cavity.apex_id["endocardium"]
+#                 for segment_set in cavity.segment_sets:
+#                     if "endocardium" in segment_set["name"]:
+#                         segment_set_ids_endo_left = segment_set["id"]
+#             elif cavity.name == "Right ventricle":
+#                 node_apex_right = cavity.apex_id["endocardium"]
+#                 for segment_set in cavity.segment_sets:
+#                     if "endocardium" in segment_set["name"] and "septum" not in segment_set["name"]:
+#                         segment_set_ids_endo_right = segment_set["id"]
+
+#         # validate node set by removing any nodes that do not occur in either ventricle
+#         # NOTE: can be much more consice
+#         tet_ids_ventricles = np.empty((0), dtype=int)
+#         for cavity in self.model._mesh._cavities:
+#             for element_set in cavity.element_sets:
+#                 if "ventricle" in cavity.name:
+#                     tet_ids_ventricles = np.append(tet_ids_ventricles, element_set["set"])
+#         tetra_ventricles = self.volume_mesh["tetra"][tet_ids_ventricles, :]
+
+#         # remove nodes that occur just in atrial part
+#         mask = np.isin(nodes_base, tetra_ventricles, invert=True)
+#         LOGGER.debug("Removing {0} nodes from base nodes".format(np.sum(mask)))
+#         nodes_base = nodes_base[np.invert(mask)]
+
+#         node_set_id_apex_left = 201
+#         # create node-sets for apex
+#         node_set_apex_kw = create_node_set_keyword(
+#             node_ids=[node_apex_left + 1],
+#             node_set_id=node_set_id_apex_left,
+#             title="apex node left",
+#         )
+
+#         self.kw_database.node_sets.extend([node_set_apex_kw])
+
+#         apex_left_X = self.volume_mesh["nodes"][node_apex_left, 0]
+#         apex_left_Y = self.volume_mesh["nodes"][node_apex_left, 1]
+#         apex_left_Z = self.volume_mesh["nodes"][node_apex_left, 2]
+#         node_id_start_left = (
+#             self.volume_mesh["nodes"].shape[0] + 1
+#         )  # TODO seek for max id rather than number of rows
+
+#         edge_id_start_left = self.volume_mesh["tetra"].shape[0] + 1
+
+#         # Purkinje generation parameters
+#         self.kw_database.mainLEFT.append(
+#             custom_keywords.EmEpPurkinjeNetwork(
+#                 purkid=1,
+#                 buildnet=1,
+#                 ssid=segment_set_ids_endo_left,
+#                 mid=25,
+#                 pointstx=apex_left_X,
+#                 pointsty=apex_left_Y,
+#                 pointstz=apex_left_Z,
+#                 edgelen=2,
+#                 ngen=50,
+#                 nbrinit=8,
+#                 nsplit=2,
+#                 inodeid=node_id_start_left,
+#                 iedgeid=edge_id_start_left,  # TODO check if beam elements exist in mesh
+#             )
+#         )
+
+#         # Add right purkinje only in biventricular or 4chamber models
+#         if self.model.info.model_type in ["BiVentricle", "FourChamber"]:
+#             LOGGER.warning("Model type %s in development " % self.model.info.model_type)
+
+#             node_set_id_apex_right = 202
+#             # create node-sets for apex
+#             node_set_apex_kw = create_node_set_keyword(
+#                 node_ids=[node_apex_right + 1],
+#                 node_set_id=node_set_id_apex_right,
+#                 title="apex node right",
+#             )
+
+#             self.kw_database.node_sets.extend([node_set_apex_kw])
+
+#             apex_right_X = self.volume_mesh["nodes"][node_apex_right, 0]
+#             apex_right_Y = self.volume_mesh["nodes"][node_apex_right, 1]
+#             apex_right_Z = self.volume_mesh["nodes"][node_apex_right, 2]
+#             node_id_start_right = (
+#                 2 * self.volume_mesh["nodes"].shape[0]
+#             )  # TODO find a solution in dyna to better handle id definition
+
+#             edge_id_start_right = 2 * self.volume_mesh["tetra"].shape[0]
+
+#             # Purkinje generation parameters
+#             self.kw_database.mainRIGHT.append(
+#                 custom_keywords.EmEpPurkinjeNetwork(
+#                     purkid=2,
+#                     buildnet=1,
+#                     ssid=segment_set_ids_endo_right,
+#                     mid=26,
+#                     pointstx=apex_right_X,
+#                     pointsty=apex_right_Y,
+#                     pointstz=apex_right_Z,
+#                     edgelen=2,
+#                     ngen=50,
+#                     nbrinit=8,
+#                     nsplit=2,
+#                     inodeid=node_id_start_right,  # TODO check if beam elements exist in mesh
+#                     iedgeid=edge_id_start_right,
+#                 )
+#             )
+
+#     def _update_main_db(self):
+
+#         return
+
+#     def _get_list_of_includes(self):
+#         """Gets a list of files to include in main.k. Ommit any empty decks"""
+#         for deckname, deck in vars(self.kw_database).items():
+#             if deckname == "mainLEFT" or deckname == "mainRIGHT":
+#                 continue
+#             # skip if no keywords are present in the deck
+#             if len(deck.keywords) == 0:
+#                 LOGGER.debug("No keywords in deck: {0}".format(deckname))
+#                 continue
+#             self.include_files.append(deckname)
+#         return
+
+#     def _add_includes(self):
+#         """Adds *INCLUDE keywords"""
+#         for include_file in self.include_files:
+#             filename_to_include = include_file + ".k"
+#             self.kw_database.mainLEFT.append(keywords.Include(filename=filename_to_include))
+#             self.kw_database.mainRIGHT.append(keywords.Include(filename=filename_to_include))
 
 
 if __name__ == "__main__":

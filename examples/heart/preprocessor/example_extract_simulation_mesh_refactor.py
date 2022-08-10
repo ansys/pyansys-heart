@@ -16,10 +16,9 @@ if __name__ == "__main__":
     # info.clean_workdir(remove_all=True)
     # info.create_workdir()
     # model = BiVentricle(info)
-    # model.read_input_mesh()
     # model.extract_simulation_mesh()
-
-    # map data from original mesh to new mesh
+    # model.dump_model()
+    # model.print_info()
 
     path_to_case = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\01\\01.case"
     workdir = os.path.join(pathlib.Path(path_to_case).parent, "FullHeartRefactored")
@@ -27,9 +26,14 @@ if __name__ == "__main__":
 
     info.clean_workdir(remove_all=True)
     info.create_workdir()
+    info.dump_info()
     model = FullHeart(info)
-    model.read_input_mesh()
     model.extract_simulation_mesh()
+    model.dump_model()
+    model.print_info()
+    model.info.clean_workdir([".stl", ".vtk", ".jou", ".log", ".trn"])
+
+    model.load_model(os.path.join(model.info.workdir, "heart_model.pickle"))
     # model.dump_model()
 
     pass

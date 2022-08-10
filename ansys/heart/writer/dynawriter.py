@@ -572,29 +572,29 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
     def _update_material_db(self, add_active: bool = True):
         """Updates the database of material keywords"""
-        for cavity in self.model._mesh._cavities:
-            # element set id of first element set
-            # assumed correspond to material id (one material per cavity)
-            # NOTE: in case of writing the zero-pressure input files the
-            # active module should be off
-            mat_id = cavity.element_sets[0]["mid"]
 
-            # curve id for active module
-            act_curve_id = 15
+        act_curve_id = 15
 
-            if "ventricle" in cavity.name:
-                # add ventricular materials
-                myocardium_material_kw = MaterialHGOMyocardium(
-                    mid=mat_id, add_anisotropy=True, add_active=add_active
+        for part in self.model.parts:
+            part.mid = part.pid
+            mat_id = part.mid
+
+            if "ventricle" in part.name:
+                myocardium_kw = MaterialHGOMyocardium(
+                    mid=part.mid, add_anisotropy=True, add_active=add_active
                 )
-                myocardium_material_kw.acid = act_curve_id
-                self.kw_database.material.append(myocardium_material_kw)
+                myocardium_kw.acid = act_curve_id
+                self.kw_database.material.append(myocardium_kw)
 
-            if "atrium" in cavity.name:
-                # add arterial material
-                atrium_material = MaterialAtrium(mid=mat_id)
-                self.kw_database.material.append(atrium_material)
-                print("")
+            elif "atrium" in part.name:
+                # add atrium material
+                atrium_kw = MaterialAtrium(mid=part.mid)
+                self.kw_database.material.append(atrium_kw)
+
+            else:
+                LOGGER.warning("Assuming same material as atrium for: {0}".format(part.name))
+                general_tissue_kw = MaterialAtrium(mid=part.mid)
+                self.kw_database.material.append(general_tissue_kw)
 
         if add_active:
             # write and add active curve to material database
@@ -606,10 +606,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 curve_id=act_curve_id,
                 lcint=15000,
             )
-
             active_curve_kw.sfo = 4.35  # y scaling
             active_curve_kw.offa = 1.00  # x offset
-
             self.kw_database.material.append(active_curve_kw)
 
         return

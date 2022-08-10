@@ -6,6 +6,7 @@ import pathlib
 import typing
 import os
 import numpy as np
+import pickle, json
 
 from ansys.heart.preprocessor.model_definitions import HEART_PARTS, LABELS_TO_ID
 from ansys.heart.preprocessor.mesh.objects import Part, Mesh, SurfaceMesh, Cap, Cavity, Point
@@ -34,7 +35,11 @@ class ModelInfo:
         self._database = value
 
     def __init__(
-        self, database: str, work_directory: pathlib.Path, path_to_case: pathlib.Path
+        self,
+        database: str,
+        work_directory: pathlib.Path,
+        path_to_case: pathlib.Path,
+        path_to_simulation_mesh: pathlib.Path = None,
     ) -> None:
         self.database = database
         """Name of the database to use"""
@@ -42,6 +47,8 @@ class ModelInfo:
         """Path to the working directory"""
         self.path_to_original_mesh = path_to_case
         """Path to the original mesh file"""
+        self.path_to_simulation_mesh = path_to_simulation_mesh
+        """Path to simulation mesh (in vtk format)"""
         self.labels_to_ids = LABELS_TO_ID[database]
         """Dict that maps labels > part/tag id"""
         self.ids_to_labels = dict((v, k) for k, v in LABELS_TO_ID[database].items())
@@ -84,6 +91,14 @@ class ModelInfo:
             os.makedirs(self.workdir)
         return
 
+    def dump_info(self, filename: pathlib.Path = None):
+        """Dumps model information to file"""
+        if not filename:
+            filename = os.path.join(self.workdir, "model_info.json")
+        with open(filename, "w") as file:
+            file.write(json.dumps(self.__dict__, indent=4))
+        return
+
 
 class HeartModel:
     """Parent class for heart models"""
@@ -122,6 +137,7 @@ class HeartModel:
 
     def extract_simulation_mesh(self, clean_up: bool = False):
         """Updates the model"""
+        self.read_input_mesh()
         self._remove_unused_tags()
         self._prepare_for_meshing()
         self._remesh()
@@ -149,10 +165,33 @@ class HeartModel:
         setattr(self, "_".join(part_name.lower().split()), Part(name=part_name))
         return
 
-    def print_parts(self):
-        """Prints the involved part and vtk label ids"""
-        for part in self.parts:
-            print("{0} : {1}".format(part.name, part.tag_ids))
+    def print_info(self):
+        """Prints information about the model"""
+        LOGGER.info("*****************************************")
+        LOGGER.info("*****************************************")
+        LOGGER.info("Mesh info:")
+        LOGGER.info("Number of tetra: {:d}".format(self.mesh.tetrahedrons.shape[0]))
+        LOGGER.info("Number of nodes: {:d}".format(self.mesh.nodes.shape[0]))
+        LOGGER.info("-----------------------------------------")
+        for ii, part in enumerate(self.parts):
+            LOGGER.info("{:d}. part name: {:}".format(ii + 1, part.name))
+            LOGGER.info("\tnumber of tetrahedrons: {:d}\n".format(len(part.element_ids)))
+
+            for surface in part.surfaces:
+                LOGGER.info(
+                    "\tsurface: {:} | # faces: {:d}".format(surface.name, surface.faces.shape[0])
+                )
+            for cap in part.caps:
+                LOGGER.info("\tcap: {:} | # nodes {:d}".format(cap.name, len(cap.node_ids)))
+            if part.cavity:
+                LOGGER.info(
+                    "\tcavity: {:} | volume: {:.1f} [mm3]".format(
+                        part.cavity.name, part.cavity.volume
+                    )
+                )
+            LOGGER.info("-----------------------------------------")
+        LOGGER.info("*****************************************")
+        LOGGER.info("*****************************************")
         return
 
     def read_input_mesh(self):
@@ -170,6 +209,25 @@ class HeartModel:
             self.mesh_raw.cell_data["tags"]
         except:
             raise KeyError("Expecting a field 'tags' in mesh_raw.cell_data")
+        return
+
+    def dump_model(self, filename: pathlib.Path = None):
+        """Saves model to file"""
+        LOGGER.debug("Writing model to disk")
+        if not filename:
+            filename = os.path.join(self.info.workdir, "heart_model.pickle")
+        # cleanup model object for more efficient storage
+        # NOTE deleting faces, nodes of surfaces does not affect size
+        del self.mesh_raw
+        with open(filename, "wb") as file:
+            pickle.dump(self, file)
+        self.info.dump_info()
+        return
+
+    def load_model(self, filename: pathlib.Path):
+        """Loads the model from file"""
+        with open(filename, "rb") as file:
+            self = pickle.load(file)
         return
 
     def _add_labels_to_parts(self):
@@ -368,7 +426,6 @@ class HeartModel:
                     sid=face_zone["zone-id"],
                 )
             )
-
         self._map_data_to_remeshed_volume()
 
         return
@@ -435,7 +492,10 @@ class HeartModel:
             if "uvc_" in key:
                 self.mesh.point_data[key][node_ids_to_modify] = -100
 
-        self.mesh.write_to_vtk(filename_remeshed.replace(".vtk", "_with_data.vtk"))
+        # mesh with interpolated data is the simulation mesh
+        path_to_simulation_mesh = os.path.join(self.info.workdir, "simulation_mesh.vtk")
+        self.mesh.write_to_vtk(path_to_simulation_mesh)
+        self.info.path_to_simulation_mesh = path_to_simulation_mesh
 
         # cleanup
         os.remove(filename_original)

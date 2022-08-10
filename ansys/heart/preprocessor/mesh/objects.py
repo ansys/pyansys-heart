@@ -593,7 +593,7 @@ class Part:
         self.cavity: Cavity = None
         """Cavity belonging to the part"""
 
-        if self.part_type in ["ventricle", "atrium"]:
+        if self.part_type in ["ventricle"]:
             self.apex_points: List[Point] = []
             """Points on apex"""
 

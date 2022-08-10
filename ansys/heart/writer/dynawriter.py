@@ -7,6 +7,7 @@ import time
 import json
 from pathlib import Path
 from tqdm import tqdm  # for progress bar
+from typing import List
 
 # from ansys.heart.preprocessor._deprecated_heart_model import HeartModel
 # from ansys.heart.preprocessor._deprecated_cavity_module import ClosingCap
@@ -87,13 +88,12 @@ class BaseDynaWriter:
         # These are general attributes useful for keeping track of ids:
         self.max_node_id: int = 0
         """Max node id"""
-        self.part_ids = []
-        """List of used part ids"""
+        self._used_part_ids: List[int] = []
+
         self.section_ids = []
         """List of used section ids"""
         self.mat_ids = []
         """List of used mat ids"""
-
         # self.volume_mesh = {
         #     "nodes": np.empty(0),
         #     "tetra": np.empty(0),
@@ -125,6 +125,26 @@ class BaseDynaWriter:
             self.model.info.model_type = self.model.info.model_type.replace("Improved", "")
 
         return
+
+    @property
+    def used_part_ids(self):
+        """Gets a sorted list of the used part ids"""
+        part_ids = [part.pid for part in self.model.parts]
+        part_ids, counts = np.unique(part_ids + self._used_part_ids, return_counts=True)
+        if np.any(counts > 1):
+            LOGGER.error("Duplicate part ids found")
+        return part_ids
+
+    def _add_part_id(self, pid: int):
+        """Adds a part id to the list"""
+        self._used_part_ids = self._used_part_ids + [pid]
+        return
+
+    def get_unique_part_id(self):
+        """Suggests a unique non-used part id"""
+        part_id = np.max(self.used_part_ids) + 1
+        self._add_part_id(part_id)
+        return part_id
 
     def _get_list_of_includes(self):
         """Gets a list of files to include in main.k. Ommit any empty decks"""
@@ -225,8 +245,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # for boundary conditions
         # self._update_boundary_conditions_db()
         self._add_cap_bc(bc_type="springs_caps")
-        # self._add_pericardium_bc()
-        # # self._add_pericardium_bc_usr()
+        self._add_pericardium_bc()
+        # self._add_pericardium_bc_usr()
 
         # # for control volume
         # self._update_cap_elements_db()
@@ -239,8 +259,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
-        # self._get_list_of_includes()
-        # self._add_includes()
+        self._get_list_of_includes()
+        self._add_includes()
 
         return
 
@@ -833,7 +853,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             return 1 / (1 + np.exp(-z))
 
         # compute penalty function
-        uvc_l = self.volume_mesh["point_data"]["uvc_longitudinal"]
+        uvc_l = self.model.mesh.point_data["uvc_longitudinal"]
 
         if np.any(uvc_l < 0):
             LOGGER.warning(
@@ -846,25 +866,46 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # collect all pericardium nodes:
         epicardium_nodes = np.empty(0, dtype=int)
-        LOGGER.debug("Collecting epicardium nodesets:")
-        for cavity in self.model._mesh._cavities:
-            if cavity.name == "Right ventricle" or cavity.name == "Left ventricle":
-                for nodeset in cavity.node_sets:
-                    if nodeset["name"] == "epicardium":
-                        LOGGER.debug("\t{0} {1}".format(cavity.name, nodeset["name"]))
-                        epicardium_nodes = np.append(epicardium_nodes, nodeset["set"])
+        epicardium_faces = np.empty((0, 3), dtype=int)
+        LOGGER.debug("Collecting epicardium nodesets of ventricles:")
+        ventricles = [self.model.get_part("Left ventricle"), self.model.get_part("Right ventricle")]
+        epicardium_surfaces = [ventricle.epicardium for ventricle in ventricles]
+
+        for surface in epicardium_surfaces:
+            epicardium_nodes = np.append(epicardium_nodes, surface.node_ids)
+            epicardium_faces = np.vstack([epicardium_faces, surface.faces])
+
+        # NOTE: some duplicates may exist - fix this in preprocessor
+        _, idx, counts = np.unique(epicardium_nodes, return_index=True, return_counts=True)
+        if np.any(counts > 1):
+            LOGGER.warning("Duplicate nodes found in pericardium")
+        epicardium_nodes = epicardium_nodes[np.sort(idx)]
 
         # select only nodes that are on the epicardium and penalty factor > 0.1
         pericardium_nodes = epicardium_nodes[penalty[epicardium_nodes] > 0.001]
-        # coord = self.volume_mesh["nodes"][pericardium_nodes]
-        # np.savetxt(r"pericardium.txt",
-        #            np.concatenate((coord,penalty[pericardium_nodes].reshape(-1,1)),axis=1))
+        # # write to file
+        # np.savetxt(
+        #     r"pericardium.txt",
+        #     np.concatenate(
+        #         (
+        #             self.model.mesh.nodes[pericardium_nodes, :],
+        #             penalty[pericardium_nodes].reshape(-1, 1),
+        #         ),
+        #         axis=1,
+        #     ),
+        #     delimiter=",",
+        # )
 
         # TODO: exposed to user/parameters?
         spring_stiffness = 50  # kPA/mm
         # compute nodal areas:
-        vtk_surface = vtk_surface_filter(self.model._mesh._vtk_volume, True)
-        nodal_areas = compute_surface_nodal_area(vtk_surface)
+        # NOTE: can be simplified
+        filename = os.path.join(self.model.info.workdir, "temp_volume_mesh.vtk")
+        self.model.mesh.write_to_vtk(filename)
+        mesh_vtk = vtkmethods.read_vtk_unstructuredgrid_file(filename)
+        os.remove(filename)
+        vtk_surface = vtkmethods.vtk_surface_filter(mesh_vtk, True)
+        nodal_areas = vtkmethods.compute_surface_nodal_area(vtk_surface)
 
         surface_obj = dsa.WrapDataObject(vtk_surface)
         surface_global_node_ids = surface_obj.PointData["GlobalPointIds"]
@@ -878,9 +919,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # keywords
         # NOTE: Need to be made dynamic
-        part_id = 201
-        section_id = 201
-        mat_id = 201
+        part_id = self.get_unique_part_id()
+        section_id = part_id
+        mat_id = part_id
 
         part_kw = keywords.Part()
         part_kw.parts = pd.DataFrame(
@@ -911,19 +952,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         elif spring_type == "apex-mitral-direction":
             # get center of mitral valve
-            for cavity in self.model._mesh._cavities:
-                if cavity.name == "Left ventricle":
-                    apex_node_id = cavity.apex_id["epicardium"]
-                    apex1 = self.volume_mesh["nodes"][apex_node_id, :]
-                    for cap in cavity.closing_caps:
-                        if cap.name == "Mitral valve plane":
-                            center1 = cap.centroid
-                        elif cap.name == "Aortic valve plane":
-                            center2 = cap.centroid
-            # Change orientation as apex- center of 2 valves plane
-            center = (center2 + center1) / 2
+            left_ventricle = self.model.get_part("Left ventricle")
+            apex_node_coordinates = left_ventricle.apex_points[0].xyz
+            # midpoint between aortic and mitral valve
+            center = np.mean([c.centroid for c in left_ventricle.caps], axis=0)
+
             # define spring orientation from apex to mitral valve
-            orientation = center - apex1
+            orientation = center - apex_node_coordinates
             orientation /= np.linalg.norm(orientation)
 
             sd_orientation_kw = create_define_sd_orientation_kw(

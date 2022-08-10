@@ -2,12 +2,10 @@
 can be created with the preprocessor
 """
 # import json
-from fileinput import filename
 import pathlib
 import typing
 import os
 import numpy as np
-import meshio
 
 from ansys.heart.preprocessor.model_definitions import HEART_PARTS, LABELS_TO_ID
 from ansys.heart.preprocessor.mesh.objects import Part, Mesh, SurfaceMesh, Cap, Cavity, Point

@@ -12,7 +12,7 @@ from ansys.heart.preprocessor._deprecated_heart_model import HeartModel
 from ansys.heart.preprocessor._deprecated_cavity_module import ClosingCap
 
 from ansys.heart.custom_logging import LOGGER
-from ansys.heart.preprocessor.vtk_module import (
+from ansys.heart.preprocessor.mesh.vtkmethods import (
     get_tetra_info_from_unstructgrid,
     vtk_surface_filter,
     compute_surface_nodal_area,

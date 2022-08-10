@@ -45,9 +45,7 @@ HEART_PARTS = {
 MODELS = {
     "LeftVentricle": {"Parts": ["Left ventricle"]},
     "BiVentricle": {"Parts": ["Left ventricle", "Right ventricle"]},
-    "FourChamber": {
-        "Parts": ["Left ventricle", "Right ventricle", "Left atrium", "Right atrium"]
-    },
+    "FourChamber": {"Parts": ["Left ventricle", "Right ventricle", "Left atrium", "Right atrium"]},
     "FullHeart": {
         "Parts": [
             "Left ventricle",
@@ -59,8 +57,8 @@ MODELS = {
         ]
     },
 }
-# map for mapping tag ids
-TAG_MAP = {
+# map for mapping labels to ID
+LABELS_TO_ID = {
     "Strocchi2020": {
         "Left ventricle myocardium": 1,
         "Right ventricle myocardium": 2,
@@ -122,6 +120,4 @@ TAG_MAP = {
         "Tricuspid valve plane": 22,
     },
 }
-
-# PART_FEATURES = {"Left ventricle" : {"Surfaces": ["endocaridun", "epicardium"], "Caps": ["Aortic valve", "Mitral valve"]}, }
 

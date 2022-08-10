@@ -53,6 +53,8 @@ class ModelInfo:
         """Dict that maps labels > part/tag id"""
         self.ids_to_labels = dict((v, k) for k, v in LABELS_TO_ID[database].items())
         """Inverted dict that maps part/tag id > labels"""
+        self.model_type: str = None
+        """Model (geometric) type"""
 
         pass
 
@@ -133,6 +135,9 @@ class HeartModel:
         """Adds any subparts"""
         self._add_labels_to_parts()
         """Adds appropiate vtk labels to the parts"""
+        self.model_type = self.__class__.__name__
+        """Model type"""
+        self.info.model_type = self.__class__.__name__
         pass
 
     def extract_simulation_mesh(self, clean_up: bool = False):

@@ -290,6 +290,8 @@ class Feature:
         """Name of feature"""
         self.type = None
         """Type of feature"""
+        self.nsid: int = None
+        """Node set id associated with feature"""
         pass
 
 

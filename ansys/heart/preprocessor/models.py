@@ -717,6 +717,7 @@ class HeartModel:
                             normals = np.cross(p1, p2)
                             cap_normal = np.mean(normals, axis=0)
                             cap_normal = cap_normal / np.linalg.norm(cap_normal)
+                            cap.normal = cap_normal
                             cap_centroid = np.mean(surf.nodes[cap.node_ids, :], axis=0)
                             d1 = np.linalg.norm(cap_centroid + cap_normal - cavity_centroid)
                             d2 = np.linalg.norm(cap_centroid - cap_normal - cavity_centroid)
@@ -726,6 +727,7 @@ class HeartModel:
                                 )
                                 cap.node_ids = np.flip(cap.node_ids)
                                 cap.tesselate()
+                                cap.normal = cap.normal * -1
 
                             cap.centroid = np.mean(surf.nodes[cap.node_ids, :], axis=0)
 

@@ -25,6 +25,7 @@ from ansys.heart.preprocessor.mesh.vtkmethods import (
     vtk_surface_filter,
     compute_surface_nodal_area,
 )
+import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 
 from ansys.heart.writer.keyword_module import (
     add_nodes_to_kw,
@@ -221,9 +222,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._update_nodesets_db()
         self._update_material_db(add_active=True)
 
-        # # for boundary conditions
-        # # self._update_boundary_conditions_db()
-        # self._add_cap_bc(bc_type="springs_caps")
+        # for boundary conditions
+        # self._update_boundary_conditions_db()
+        self._add_cap_bc(bc_type="springs_caps")
         # self._add_pericardium_bc()
         # # self._add_pericardium_bc_usr()
 
@@ -565,6 +566,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 kw = create_node_set_keyword(
                     cap.node_ids + 1, node_set_id=node_set_id, title=cap.name
                 )
+                cap.nsid = node_set_id
                 kws_caps.append(kw)
                 node_set_id = node_set_id + 1
 
@@ -633,29 +635,29 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # create list of cap names where to add the spring b.c
         caps_to_use = []
-        if self.model.info.model_type in ["LeftVentricle", "BiVentricle"]:
+        if isinstance(self.model, (LeftVentricle, BiVentricle)):
             # use all caps:
             # for cavity in self.model._mesh._cavities:
             #     for cap in cavity.closing_caps:
             #         caps_to_use.append(cap.name)
             caps_to_use = [
-                "Mitral valve plane",
-                "Tricuspid valve plane",
+                "mitral-valve",
+                "tricuspid-valve",
             ]
 
-        elif self.model.info.model_type in ["FourChamber"]:
+        elif isinstance(self.model, (FourChamber, FullHeart)):
             caps_to_use = [
-                "Superior vena cava inlet",
-                "Right inferior pulmonary vein inlet",
-                "Right superior pulmonary vein inlet",
+                "superior-vena-cava",
+                "right-inferior-pulmonary-vein",
+                "right-superior-pulmonary-vein",
             ]
 
         if bc_type == "fix_caps":
-            for cavity in self.model._mesh._cavities:
-                for cap in cavity.closing_caps:
+            for part in self.model.parts:
+                for cap in part.caps:
                     if cap.name in caps_to_use:
                         kw_fix = keywords.BoundarySpcSet()
-                        kw_fix.nsid = cap.nodeset_id
+                        kw_fix.nsid = cap.nsid
                         kw_fix.dofx = 1
                         kw_fix.dofy = 1
                         kw_fix.dofz = 1
@@ -663,54 +665,54 @@ class MechanicsDynaWriter(BaseDynaWriter):
                         self.kw_database.boundary_conditions.append(kw_fix)
 
         # if bc type is springs -> add springs
-        # NOTE add to boundary condition db or seperate spring db?
+        # NOTE add to boundary condition db or separate spring db?
         elif bc_type == "springs_caps":
+            part_id_offset = np.max(self.model.part_ids) + 10
+            mat_id_offset = np.max([part.mid for part in self.model.parts]) + 10
 
-            # NOTE: Make dynamic and expose to user?
-
-            # NOTE: Need to be made dynamic
-            part_id = 200
-            section_id = 200
-            mat_id = 200
+            # NOTE: Needs to be more dynamic to be made dynamic
+            part_id = part_id_offset
+            section_id = part_id_offset
+            mat_id_offset = mat_id_offset
 
             # TODO: exposed to user/parameters?
-            if self.model.info.model_type == "BiVentricle":
+            if isinstance(self.model, BiVentricle):
                 spring_stiffness = 5  # kPa/mm
-            elif self.model.info.model_type == "FourChamber":
+            elif isinstance(self.model, (FourChamber, FullHeart)):
                 spring_stiffness = 20  # kPa/mm
 
             scale_factor_normal = 0.5
             scale_factor_radial = 1.0
 
             part_kw = keywords.Part()
-            part = pd.DataFrame(
+            part_df = pd.DataFrame(
                 {
                     "pid": [part_id],
                     "secid": [section_id],
-                    "mid": [mat_id],
+                    "mid": [mat_id_offset],
                     "heading": ["SupportSpring"],
                 }
             )
-            part_kw.parts = part
+            part_kw.parts = part_df
 
             section_kw = keywords.SectionDiscrete(secid=section_id, cdl=0, tdl=0)
 
-            mat_kw = keywords.MatSpringElastic(mid=mat_id, k=spring_stiffness)
+            mat_kw = keywords.MatSpringElastic(mid=mat_id_offset, k=spring_stiffness)
 
             self.kw_database.boundary_conditions.append(part_kw)
             self.kw_database.boundary_conditions.append(section_kw)
             self.kw_database.boundary_conditions.append(mat_kw)
 
             # add springs for each cap
-            for cavity in self.model._mesh._cavities:
-                for cap in cavity.closing_caps:
-                    if cap.name in caps_to_use:
-                        self._add_springs_cap_edge(
-                            cap,
-                            part_id,
-                            scale_factor_normal,
-                            scale_factor_radial,
-                        )
+            caps = [cap for part in self.model.parts for cap in part.caps]
+            for cap in caps:
+                if cap.name in caps_to_use:
+                    self._add_springs_cap_edge(
+                        cap,
+                        part_id,
+                        scale_factor_normal,
+                        scale_factor_radial,
+                    )
 
         return
 
@@ -724,32 +726,40 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """Adds springs to the cap nodes and appends these
         to the boundary condition database
         """
+        # -------------------------------------------------------------------
+        LOGGER.debug("Adding spring b.c. for cap: %s" % cap.name)
+
         # NOTE: may want to extent the node ids to include adjacent nodes
-        num_nodes_edge = len(cap.node_ids_cap_edge)
+        num_nodes_edge = len(cap.node_ids)
+        mesh = self.model.mesh
         # -------------------------------------------------------------------
 
         # compute nodal areas:
-        vtk_surface = vtk_surface_filter(self.model._mesh._vtk_volume, True)
-        nodal_areas = compute_surface_nodal_area(vtk_surface)
-        surface_obj = dsa.WrapDataObject(vtk_surface)
+        # 1. write vtk of volume, 2. read vtk, 3. extract surface, 4. compute nodal areas
+        # NOTE: Should do this only once and not for every cap/valve involved
+        filename = os.path.join(self.model.info.workdir, "temp_volume_mesh.vtk")
+        mesh.write_to_vtk(filename)
+        mesh_vtk = vtkmethods.read_vtk_unstructuredgrid_file(filename)
+        os.remove(filename)
+
+        surface_vtk = vtkmethods.vtk_surface_filter(mesh_vtk, True)
+        nodal_areas = vtkmethods.compute_surface_nodal_area(surface_vtk)
+        surface_obj = dsa.WrapDataObject(surface_vtk)
         surface_global_node_ids = surface_obj.PointData["GlobalPointIds"]
 
         # select only those nodal areas which match the cap node ids
-        idx_select = np.isin(surface_global_node_ids, cap.node_ids_cap_edge)
+        idx_select = np.isin(surface_global_node_ids, cap.node_ids)
         nodal_areas = nodal_areas[idx_select]
 
         # scaled spring stiffness by nodal area
         scale_factor_normal *= nodal_areas
         scale_factor_radial *= nodal_areas
 
-        # -------------------------------------------------------------------
-        LOGGER.debug("Adding spring b.c. for cap: %s" % cap.name)
-
         # add part, section discrete, mat spring, sd_orientiation
         # element discrete
 
         # compute the radial components
-        sd_orientations_radial = cap.nodes_cap_edge - cap.centroid
+        sd_orientations_radial = mesh.nodes[cap.node_ids, :] - cap.centroid
 
         # normalize
         norms = np.linalg.norm(sd_orientations_radial, axis=1)
@@ -775,7 +785,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # create discrete elements for normal direction
         nodes_discrete_elements = np.array(
-            [cap.node_ids_cap_edge + 1, np.zeros(num_nodes_edge)], dtype=int
+            [cap.node_ids + 1, np.zeros(num_nodes_edge)], dtype=int
         ).T
         vector_ids_normal = np.ones(num_nodes_edge, dtype=int) * vector_id_normal
 

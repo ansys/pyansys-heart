@@ -170,6 +170,10 @@ class BaseDynaWriter:
         """Suggests a unique non-used segment set id"""
         return self._get_unique_id("SET_SEGMENT")
 
+    def get_unique_nodeset_id(self) -> int:
+        """Suggests a unique non-used node set id"""
+        return self._get_unique_id("SET_NODE")
+
     def get_unique_curve_id(self) -> int:
         """Suggests a unique curve-id"""
         return self._get_unique_id("DEFINE_CURVE")
@@ -370,17 +374,17 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         LOGGER.debug("Updating part keywords...")
         # add parts with a dataframe
-        part_ids = []
-        part_id = 0
-        mat_id = 0
+        part_id = self.get_unique_part_id()
+        mat_id = self.get_unique_mat_id()
+        section_id = self.get_unique_section_id()
         # get list of cavities from model
         for part in self.model.parts:
-            mat_id = mat_id + 1
+            mat_id = self.get_unique_mat_id()
             # for element_set in cavity.element_sets:
-            part_id = part_id + 1
+            part_id = self.get_unique_part_id()
             part_name = part.name
             part_df = pd.DataFrame(
-                {"heading": [part_name], "pid": [part_id], "secid": [1], "mid": [mat_id]}
+                {"heading": [part_name], "pid": [part_id], "secid": [section_id], "mid": [mat_id]}
             )
             part_kw = keywords.Part()
             part_kw.parts = part_df
@@ -391,10 +395,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
             part.pid = part_id
             part.mid = mat_id
 
-            part_ids.append(part_id)
-
         # set up section solid for cavity myocardium
-        section_kw = keywords.SectionSolid(secid=1, elform=13)
+        section_kw = keywords.SectionSolid(secid=section_id, elform=13)
 
         self.kw_database.parts.append(section_kw)
 
@@ -581,7 +583,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # add closed cavity segment sets
         cavities = [p.cavity for p in self.model.parts if p.cavity]
         for cavity in cavities:
-            surface_id = surface_id + 1
+            surface_id = self.get_unique_segmentset_id()
             cavity.surface.id = surface_id
             kw = create_segment_set_keyword(
                 segments=cavity.surface.faces + 1,
@@ -594,8 +596,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # write surfaces as segment sets
         for part in self.model.parts:
             for surface in part.surfaces:
-                surface_id = surface_id + 1
-                surface.id = surface_id
+                surface.id = self.get_unique_segmentset_id()
                 kw = create_segment_set_keyword(
                     segments=surface.faces + 1,
                     segid=surface.id,
@@ -619,13 +620,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
     def _update_nodesets_db(self):
         """Updates the node set database"""
-        # formats endo, epi- and septum nodeset keywords
-        # do for all cavities and for all caps that are defined
-        # append each of the keywords to the nodesets database
+        # formats endo, epi- and septum nodeset keywords. Do for all surfaces and caps
 
         surface_ids = [s.id for p in self.model.parts for s in p.surfaces]
         node_set_id = np.max(surface_ids) + 1
+
         # for each surface in each part add the respective node-set
+        # Use same ID as surface
         for part in self.model.parts:
             kws_surface = []
             kws_caps = []
@@ -637,10 +638,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             # add node-set for each cap
             for cap in part.caps:
-                kw = create_node_set_keyword(
-                    cap.node_ids + 1, node_set_id=node_set_id, title=cap.name
-                )
                 cap.nsid = node_set_id
+                kw = create_node_set_keyword(cap.node_ids + 1, node_set_id=cap.nsid, title=cap.name)
                 kws_caps.append(kw)
                 node_set_id = node_set_id + 1
 
@@ -741,13 +740,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # if bc type is springs -> add springs
         # NOTE add to boundary condition db or separate spring db?
         elif bc_type == "springs_caps":
-            part_id_offset = np.max(self.model.part_ids) + 10
-            mat_id_offset = np.max([part.mid for part in self.model.parts]) + 10
 
-            # NOTE: Needs to be more dynamic to be made dynamic
-            part_id = part_id_offset
-            section_id = part_id_offset
-            mat_id_offset = mat_id_offset
+            part_id = self.get_unique_part_id()
+            section_id = self.get_unique_section_id()
+            mat_id = self.get_unique_mat_id()
 
             # TODO: exposed to user/parameters?
             if isinstance(self.model, BiVentricle):
@@ -763,7 +759,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 {
                     "pid": [part_id],
                     "secid": [section_id],
-                    "mid": [mat_id_offset],
+                    "mid": [mat_id],
                     "heading": ["SupportSpring"],
                 }
             )
@@ -771,7 +767,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             section_kw = keywords.SectionDiscrete(secid=section_id, cdl=0, tdl=0)
 
-            mat_kw = keywords.MatSpringElastic(mid=mat_id_offset, k=spring_stiffness)
+            mat_kw = keywords.MatSpringElastic(mid=mat_id, k=spring_stiffness)
 
             self.kw_database.boundary_conditions.append(part_kw)
             self.kw_database.boundary_conditions.append(section_kw)
@@ -974,8 +970,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # keywords
         # NOTE: Need to be made dynamic
         part_id = self.get_unique_part_id()
-        section_id = part_id
-        mat_id = part_id
+        section_id = self.get_unique_section_id()
+        mat_id = self.get_unique_mat_id()
 
         part_kw = keywords.Part()
         part_kw.parts = pd.DataFrame(
@@ -1051,6 +1047,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """Adds the pericardium.
         Same with _add_pericardium_bc but using *user_load, need customized LSDYNA exe!!
         """
+        LOGGER.warning(
+            "User load pericardium not fully checked after refactoring - please check if results are consistent"
+        )
 
         def _sigmoid(z):
             """sigmoid function to scale spring coefficient"""
@@ -1069,15 +1068,18 @@ class MechanicsDynaWriter(BaseDynaWriter):
         penalty = -_sigmoid((abs(uvc_l) - 0.15) * 25) + 1  # for all volume nodes
 
         # collect all pericardium nodes:
-        epicardium_segment = np.empty((0, 3), dtype=int)
+        # collect all pericardium nodes:
+        epicardium_nodes = np.empty(0, dtype=int)
+        epicardium_faces = np.empty((0, 3), dtype=int)
+        LOGGER.debug("Collecting epicardium nodesets of ventricles:")
+        ventricles = [self.model.get_part("Left ventricle"), self.model.get_part("Right ventricle")]
+        epicardium_surfaces = [ventricle.epicardium for ventricle in ventricles]
 
-        LOGGER.debug("Collecting epicardium nodesets:")
-        for cavity in self.model._mesh._cavities:
-            if cavity.name == "Right ventricle" or cavity.name == "Left ventricle":
-                for sgm_set in cavity.segment_sets:
-                    if sgm_set["name"] == "epicardium":
-                        LOGGER.debug("\t{0} {1}".format(cavity.name, sgm_set["name"]))
-                        epicardium_segment = np.vstack((epicardium_segment, sgm_set["set"]))
+        for surface in epicardium_surfaces:
+            epicardium_nodes = np.append(epicardium_nodes, surface.node_ids)
+            epicardium_faces = np.vstack([epicardium_faces, surface.faces])
+
+        epicardium_segment = epicardium_faces
 
         penalty = np.mean(
             penalty[epicardium_segment], axis=1
@@ -1093,7 +1095,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # # end debug code
 
         # create load curve to control when pericardium is active
-        load_curve_kw = keywords.DefineCurve(lcid=self.get_unique_curve_id())
+        curve_id = self.get_unique_curve_id()
+        load_curve_kw = keywords.DefineCurve(lcid=curve_id)
         load_curve_kw.options["TITLE"].active = True
         load_curve_kw.title = "pericardium activation curve"
         load_curve_kw.curves = pd.DataFrame(
@@ -1128,7 +1131,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 #     zp=coord[0, 2],
                 # )
 
-                segment_id = 1000 + cnt
+                segment_id = self.get_unique_segmentset_id()
                 segment_ids.append(segment_id)
 
                 load_sgm_kw = create_segment_set_keyword(
@@ -1148,7 +1151,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             {
                 "sid": segment_ids,
                 "ltype": "PRESSS",
-                "lcid": self.get_unique_curve_id(),
+                "lcid": curve_id,
                 "sf1": penalty[penalty > penalty_threshold],
                 "iduls": 100,
             }
@@ -1394,57 +1397,58 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
 
-# class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
-#     """Derived from MechanicsDynaWriter and consequently derives all keywords relevant
-#     for simulations involving mechanics. This class does not use write the
-#     control volume keywords but adds the keyword for computing the stress
-#     free configuration based on left/right cavity pressures instead"""
+class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
+    """Derived from MechanicsDynaWriter and consequently derives all keywords relevant
+    for simulations involving mechanics. This class does not use write the
+    control volume keywords but adds the keyword for computing the stress
+    free configuration based on left/right cavity pressures instead"""
 
-#     def __init__(self, model: HeartModel) -> None:
-#         super().__init__(model)
+    def __init__(self, model: HeartModel) -> None:
+        super().__init__(model)
 
-#         self.kw_database = MechanicsDecks()
-#         """Collection of keyword decks relevant for mechanics"""
+        self.kw_database = MechanicsDecks()
+        """Collection of keyword decks relevant for mechanics"""
 
-#         return
+        return
 
-#     def update(self):
-#         """Formats the keywords and stores these in the
-#         respective keyword databases. Overwrites the update method
-#         of MechanicsDynaWriter such that it yields a valid input deck
-#         for a zero-pressure simulation
-#         """
+    def update(self):
+        """Formats the keywords and stores these in the
+        respective keyword databases. Overwrites the update method
+        of MechanicsDynaWriter such that it yields a valid input deck
+        for a zero-pressure simulation
+        """
 
-#         self._update_main_db(add_damping=False)
+        self._update_main_db(add_damping=False)
 
-#         self.kw_database.main.title = self.model.info.model_type + " zero-pressure"
+        self.kw_database.main.title = self.model.info.model_type + " zero-pressure"
 
-#         self._update_node_db()
-#         self._update_parts_db()
-#         self._update_solid_elements_db()
-#         self._update_segmentsets_db()
-#         self._update_nodesets_db()
-#         self._update_material_db(add_active=False)
+        self._update_node_db()
+        self._update_parts_db()
+        self._update_solid_elements_db()
+        self._update_segmentsets_db()
+        self._update_nodesets_db()
+        self._update_material_db(add_active=False)
 
-#         # for boundary conditions
-#         # self._update_boundary_conditions_db()
-#         self._add_cap_bc(bc_type="fix_caps")
-#         self._add_pericardium_bc()
+        # for boundary conditions
+        # self._update_boundary_conditions_db()
+        self._add_cap_bc(bc_type="fix_caps")
+        self._add_pericardium_bc()
 
-#         self._update_cap_elements_db()
+        self._update_cap_elements_db()
 
-#         # # Approximate end-diastolic pressures
-#         # pressure_lv = 2  # kPa
-#         # pressure_rv = 0.5333  # kPa
-#         # self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
+        # # Approximate end-diastolic pressures
+        # pressure_lv = 2  # kPa
+        # pressure_rv = 0.5333  # kPa
+        # self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
-#         # zerop key words
-#         self._add_control_reference_configuration()
+        # zerop key words
+        self._add_control_reference_configuration()
 
-#         self._get_list_of_includes()
-#         self._add_includes()
+        self._get_list_of_includes()
+        self._add_includes()
 
-#         return
+        return
+
 
 #     def export(self, export_directory: str):
 #         """Writes the model to files"""

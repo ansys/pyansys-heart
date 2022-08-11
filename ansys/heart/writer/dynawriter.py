@@ -309,7 +309,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
         LOGGER.debug("Writing all LS-DYNA .k files...")
 
         if not export_directory:
-            export_directory = self.model.info.workdir
+            export_directory = os.path.join(self.model.info.workdir, "mechanics")
+
+        if not os.path.isdir(export_directory):
+            os.mkdir(export_directory)
 
         # export .k files
         self.export_databases(export_directory)
@@ -1216,6 +1219,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # create closing triangles for each cap
         # assumes there are no shells written yet since offset = 0
         shell_id_offset = 0
+        cap_names_used = []
         for cap in caps:
             if cap.name in cap_names_used:
                 continue
@@ -1229,6 +1233,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self.kw_database.cap_elements.append(shell_kw)
 
             shell_id_offset = shell_id_offset + cap.triangles.shape[0]
+            cap_names_used.append(cap.name)
         return
 
     def _update_controlvolume_db(self):

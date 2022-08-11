@@ -44,7 +44,7 @@ if __name__ == "__main__":
         model.info.clean_workdir([".stl", ".vtk", ".jou", ".log", ".trn"])
 
     model = HeartModel.load_model(os.path.join(model.info.workdir, "heart_model.pickle"))
-    writer = MechanicsDynaWriter(model)
+    writer = MechanicsDynaWriter(model, "ConstantPreloadWindkesselAfterload")
     writer.update()
     writer.export(os.path.join(writer.model.info.workdir, "mechanics"))
     # model.dump_model()

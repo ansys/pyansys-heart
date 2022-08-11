@@ -18,7 +18,7 @@ from ansys.heart.preprocessor.models import (
     FourChamber,
     FullHeart,
 )
-from ansys.heart.preprocessor.mesh.objects import Cap
+from ansys.heart.preprocessor.mesh.objects import Cap, Cavity
 
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.mesh.vtkmethods import (
@@ -126,25 +126,53 @@ class BaseDynaWriter:
 
         return
 
-    @property
-    def used_part_ids(self):
-        """Gets a sorted list of the used part ids"""
-        part_ids = [part.pid for part in self.model.parts]
-        part_ids, counts = np.unique(part_ids + self._used_part_ids, return_counts=True)
+    def _get_unique_id(self, keyword: str, return_used_ids: bool = False) -> int:
+        """Gets unique id of given keyword
+
+        Parameters
+        ----------
+        keyword : str
+            Keyword string: valid inputs include:
+            ["SECTION", "PART", "MAT", "SET_SEGMENT", "SET_NODE", "CURVE"]
+
+        Returns
+        -------
+        int
+            Next unique id
+        """
+        used_ids = [0]
+        for key in self.kw_database.__dict__.keys():
+            db = self.kw_database.__dict__[key]
+            used_ids = np.append(used_ids, get_list_of_used_ids(db, keyword))
+        used_ids = np.array(used_ids, dtype=int)
+        _, counts = np.unique(used_ids, return_counts=True)
         if np.any(counts > 1):
-            LOGGER.error("Duplicate part ids found")
-        return part_ids
+            raise ValueError("{0} Duplicate ids found for: {1}".format(counts, keyword))
 
-    def _add_part_id(self, pid: int):
-        """Adds a part id to the list"""
-        self._used_part_ids = self._used_part_ids + [pid]
-        return
+        if return_used_ids:
+            return np.max(used_ids) + 1, used_ids
+        else:
+            return np.max(used_ids) + 1
 
-    def get_unique_part_id(self):
+    def get_unique_part_id(self) -> int:
         """Suggests a unique non-used part id"""
-        part_id = np.max(self.used_part_ids) + 1
-        self._add_part_id(part_id)
-        return part_id
+        return self._get_unique_id("PART")
+
+    def get_unique_mat_id(self) -> int:
+        """Suggests a unique non-used material id"""
+        return self._get_unique_id("MAT")
+
+    def get_unique_section_id(self) -> int:
+        """Suggests a unique non-used section id"""
+        return self._get_unique_id("SECTION")
+
+    def get_unique_segmentset_id(self) -> int:
+        """Suggests a unique non-used segment set id"""
+        return self._get_unique_id("SET_SEGMENT")
+
+    def get_unique_curve_id(self) -> int:
+        """Suggests a unique curve-id"""
+        return self._get_unique_id("DEFINE_CURVE")
 
     def _get_list_of_includes(self):
         """Gets a list of files to include in main.k. Ommit any empty decks"""
@@ -193,6 +221,17 @@ class BaseDynaWriter:
 
             else:
                 deck.export_file(filepath)
+        return
+
+    def _export_cavity_segmentsets(self, export_directory: str):
+        """Exports the cavity segment sets to separate files"""
+        cavities = [part.cavity for part in self.model.parts if part.cavity]
+        for cavity in cavities:
+            filepath = os.path.join(
+                export_directory, "_".join(cavity.name.lower().split()) + ".segment"
+            )
+            np.savetxt(filepath, cavity.surface.faces + 1, delimiter=",", fmt="%d")
+
         return
 
 
@@ -249,15 +288,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # self._add_pericardium_bc_usr()
 
         # # for control volume
-        # self._update_cap_elements_db()
-        # self._update_controlvolume_db()
-        # self._update_system_model()
+        self._update_cap_elements_db()
+        self._update_controlvolume_db()
+        self._update_system_model()
 
-        # # Approximate end-diastolic pressures
-        # pressure_lv = 2  # kPa
-        # pressure_rv = 0.5333  # kPa
+        # Approximate end-diastolic pressures
+        pressure_lv = 2  # kPa
+        pressure_rv = 0.5333  # kPa
 
-        # self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
+        self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
         self._get_list_of_includes()
         self._add_includes()
@@ -513,7 +552,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
     def _add_damping(self):
         """Adds damping to the main file"""
-        lcid_damp = 3
+        lcid_damp = self.get_unique_curve_id()
 
         kw_damp = keywords.DampingGlobal(lcid=lcid_damp)
 
@@ -561,6 +600,18 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 )
                 # append this kw to the segment set database
                 self.kw_database.segment_sets.append(kw)
+
+        # create corresponding segment sets. Store in new file?
+        caps = [cap for part in self.model.parts for cap in part.caps]
+        for cap in caps:
+            segid = self.get_unique_segmentset_id()
+            setattr(cap, "seg_id", segid)
+            segset_kw = create_segment_set_keyword(
+                segments=cap.triangles + 1,
+                segid=cap.seg_id,
+                title=cap.name,
+            )
+            self.kw_database.cap_elements.append(segset_kw)
         return
 
     def _update_nodesets_db(self):
@@ -595,7 +646,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
     def _update_material_db(self, add_active: bool = True):
         """Updates the database of material keywords"""
 
-        act_curve_id = 15
+        act_curve_id = self.get_unique_curve_id()
 
         for part in self.model.parts:
             part.mid = part.pid
@@ -1039,7 +1090,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # # end debug code
 
         # create load curve to control when pericardium is active
-        load_curve_kw = keywords.DefineCurve(lcid=4)
+        load_curve_kw = keywords.DefineCurve(lcid=self.get_unique_curve_id())
         load_curve_kw.options["TITLE"].active = True
         load_curve_kw.title = "pericardium activation curve"
         load_curve_kw.curves = pd.DataFrame(
@@ -1094,7 +1145,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             {
                 "sid": segment_ids,
                 "ltype": "PRESSS",
-                "lcid": 4,
+                "lcid": self.get_unique_curve_id(),
                 "sf1": penalty[penalty > penalty_threshold],
                 "iduls": 100,
             }
@@ -1111,15 +1162,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
         the defined caps/valves
         """
         # create part for each closing cap
-        used_partids = get_list_of_used_ids(self.kw_database.parts, "PART")
-        used_secids = get_list_of_used_ids(self.kw_database.parts, "SECTION")
-        used_segids = get_list_of_used_ids(self.kw_database.segment_sets, "SET_SEGMENT")
+        # used_partids = get_list_of_used_ids(self.kw_database.parts, "PART")
+        # used_secids = get_list_of_used_ids(self.kw_database.parts, "SECTION")
+        # used_segids = get_list_of_used_ids(self.kw_database.segment_sets, "SET_SEGMENT")
 
-        part_id = np.max(used_partids) + 1
-        section_id = np.max(used_secids) + 1
+        section_id = self.get_unique_section_id()
 
         # NOTE should be dynamic
-        mat_null_id = 100
+        mat_null_id = self.get_unique_mat_id()
 
         # material_kw = MaterialCap(mid=mat_null_id)
 
@@ -1139,56 +1189,46 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.cap_elements.append(material_kw)
         self.kw_database.cap_elements.append(section_kw)
 
+        caps = [cap for part in self.model.parts for cap in part.caps]
         # create new part for each cap
-        for cavity in self.model._mesh._cavities:
-            for cap in cavity.closing_caps:
-                cap.part_id = part_id
-                part_kw = keywords.Part()
-                part_info = pd.DataFrame(
-                    {
-                        "heading": [cap.name],
-                        "pid": [cap.part_id],
-                        "secid": [section_id],
-                        "mid": [mat_null_id],
-                    }
-                )
-                part_kw.parts = part_info
+        cap_names_used = []
+        for cap in caps:
+            if cap.name in cap_names_used:
+                LOGGER.debug("Already created material for {}: skipping".format(cap.name))
+                continue
 
-                self.kw_database.cap_elements.append(part_kw)
+            cap.pid = self.get_unique_part_id()
 
-                part_id = part_id + 1
+            part_kw = keywords.Part()
+            part_info = pd.DataFrame(
+                {
+                    "heading": [cap.name],
+                    "pid": [cap.pid],
+                    "secid": [section_id],
+                    "mid": [mat_null_id],
+                }
+            )
+            part_kw.parts = part_info
+
+            self.kw_database.cap_elements.append(part_kw)
+            cap_names_used.append(cap.name)
 
         # create closing triangles for each cap
         # assumes there are no shells written yet since offset = 0
         shell_id_offset = 0
-        for cavity in self.model._mesh._cavities:
-            for cap in cavity.closing_caps:
-                shell_kw = create_element_shell_keyword(
-                    shells=cap.closing_triangles + 1,
-                    part_id=cap.part_id,
-                    id_offset=shell_id_offset,
-                )
+        for cap in caps:
+            if cap.name in cap_names_used:
+                continue
 
-                self.kw_database.cap_elements.append(shell_kw)
+            shell_kw = create_element_shell_keyword(
+                shells=cap.triangles + 1,
+                part_id=cap.pid,
+                id_offset=shell_id_offset,
+            )
 
-                shell_id_offset = shell_id_offset + cap.closing_triangles.shape[0]
+            self.kw_database.cap_elements.append(shell_kw)
 
-        # create corresponding segment sets. Store in new file?
-        segset_id = np.max(used_segids) + 1
-
-        for cavity in self.model._mesh._cavities:
-            for cap in cavity.closing_caps:
-                segset_kw = create_segment_set_keyword(
-                    segments=cap.closing_triangles + 1,
-                    segid=segset_id,
-                    title=cap.name,
-                )
-
-                self.kw_database.cap_elements.append(segset_kw)
-
-                cap.segset_id = segset_id
-                segset_id = segset_id + 1
-
+            shell_id_offset = shell_id_offset + cap.triangles.shape[0]
         return
 
     def _update_controlvolume_db(self):
@@ -1198,23 +1238,24 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # set up control volume keywords and interaction of
         # cavity with ambient. Only do for ventricles
-        for cavity in self.model._mesh._cavities:
+        cavities = [part.cavity for part in self.model.parts if part.cavity]
+        for cavity in cavities:
             if "atrium" in cavity.name:
                 continue
 
             cv_kw = keywords.DefineControlVolume()
-            cv_kw.id = cavity.id
-            cv_kw.sid = cavity.id
+            cv_kw.id = cavity.surface.id
+            cv_kw.sid = cavity.surface.id
 
             self.kw_database.control_volume.append(cv_kw)
 
-        for cavity in self.model._mesh._cavities:
+        for cavity in cavities:
             if "atrium" in cavity.name:
                 continue
 
             cvi_kw = keywords.DefineControlVolumeInteraction()
-            cvi_kw.id = cavity.id
-            cvi_kw.cvid1 = cavity.id
+            cvi_kw.id = cavity.surface.id
+            cvi_kw.cvid1 = cavity.surface.id
             cvi_kw.cvid2 = 0  # ambient
 
             # NOTE: static for the moment. Maximum of 2 cavities supported
@@ -1244,14 +1285,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
             LOGGER.warning(
                 "Note that this model type requires a custom executable that supports the Closed Loop circulation model!"
             )
-            if model_type in ["FourChamber", "BiVentricle"]:
+            if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
                 file_path = os.path.join(
                     Path(__file__).parent.absolute(),
                     "templates",
                     "system_model_settings_bv.json",
                 )
 
-            elif model_type in ["LeftVentricle"]:
+            elif isinstance(self.model, LeftVentricle):
                 file_path = os.path.join(
                     Path(__file__).parent.absolute(),
                     "templates",
@@ -1262,15 +1303,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
             sys_settings = json.load(fid)
 
             # update the volumes
-            for cavity in self.model._mesh._cavities:
-                if "Left ventricle" in cavity.name:
-                    sys_settings["SystemModelInitialValues"]["UnstressedVolumes"][
-                        "lv"
-                    ] = cavity.volume
-                elif "Right ventricle" in cavity.name:
-                    sys_settings["SystemModelInitialValues"]["UnstressedVolumes"][
-                        "rv"
-                    ] = cavity.volume
+            sys_settings["SystemModelInitialValues"]["UnstressedVolumes"][
+                "lv"
+            ] = self.model.get_part("Left ventricle").cavity.volume
+
+            if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
+                sys_settings["SystemModelInitialValues"]["UnstressedVolumes"][
+                    "rv"
+                ] = self.model.get_part("Right ventricle").cavity.volume
 
             self.system_model_json = sys_settings
 
@@ -1278,7 +1318,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         elif self.system_model_name == "ConstantPreloadWindkesselAfterload":
             from ansys.heart.writer.system_models import define_function_windkessel
 
-            for cavity in self.model._mesh._cavities:
+            for cavity in self.model.cavities:
                 if "Left ventricle" in cavity.name:
                     constants: dict = {
                         "Rv": 5.0e-6,
@@ -1317,53 +1357,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         return
 
-    def _export_cavity_segmentsets(self, export_directory: str):
-        """Exports the actual cavity segment sets to separate files"""
-
-        for cavity in self.model._mesh._cavities:
-            filename = "cavity_" + "_".join(cavity.name.lower().split()) + ".segment"
-            filepath = os.path.join(export_directory, filename)
-
-            segments = np.empty((0, 3), dtype=int)
-
-            # collect segment sets
-            for segset in cavity.segment_sets:
-                if segset["name"] in ["endocardium", "endocardium-septum"]:
-                    segments = np.vstack([segments, segset["set"]])
-
-            # append cap segments:
-            for cap in cavity.closing_caps:
-                segments = np.vstack([segments, cap.closing_triangles])
-
-            # combine segment sets
-            np.savetxt(filepath, segments, delimiter=",", fmt="%d")
-
-        return
-
     def _add_enddiastolic_pressure_bc(self, pressure_lv: float = 1, pressure_rv: float = 1):
         """Adds end diastolic pressure boundary condition on the left and right endocardium"""
 
-        # collect segment set ids to combine
-        for cavity in self.model._mesh._cavities:
-            seg_ids_to_combine = []
-            # find id of endocardium
-            for segset in cavity.segment_sets:
-                if "endocardium" in segset["name"]:
-                    seg_ids_to_combine.append(segset["id"])
-
-            for cap in cavity.closing_caps:
-                seg_ids_to_combine.append(cap.segset_id)
-
-            # add segment set add keyword
-            segadd_kw = keywords.SetSegmentAdd(sid=cavity.id)
-            segadd_kw.sets._data = seg_ids_to_combine
-            segadd_kw.options["TITLE"].active = True
-            segadd_kw.title = cavity.name
-
-            self.kw_database.main.append(segadd_kw)
-
         # create unit load curve
-        load_curve_id = 2
+        load_curve_id = self.get_unique_curve_id()
         load_curve_kw = create_define_curve_kw(
             [0, 1, 1.001], [0, 1, 0], "unit load curve", load_curve_id, 100
         )
@@ -1372,40 +1370,23 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(load_curve_kw)
 
         # create *LOAD_SEGMENT_SETS for each ventricular cavity
-        for cavity in self.model._mesh._cavities:
-
+        cavities = [part.cavity for part in self.model.parts if part.cavity]
+        for cavity in cavities:
             if "atrium" in cavity.name:
                 continue
 
             if cavity.name == "Left ventricle":
                 scale_factor = pressure_lv
-                seg_id = 1
+                seg_id = cavity.surface.id
             elif cavity.name == "Right ventricle":
                 scale_factor = pressure_rv
-                seg_id = 2
+                seg_id = cavity.surface.id
             load_segset_kw = keywords.LoadSegmentSet(
                 ssid=seg_id, lcid=load_curve_id, sf=scale_factor
             )
             self.kw_database.main.append(load_segset_kw)
 
-            # logger.debug(
-            #     "Adding end-diastolic pressure of {0} to {1}".format(scale_factor, cavity.name)
-            # )
-            #
-            # seg_ids_to_use = []
-            # # find id of endocardium
-            # for segset in cavity.segment_sets:
-            #     if "endocardium" in segset["name"]:
-            #         seg_ids_to_use.append(segset["id"])
-            #
-            # # create load segment set for each endocardium segment
-            # for seg_id in [1,2]:
-            #     load_segset_kw = keywords.LoadSegmentSet(
-            #         ssid=seg_id, lcid=load_curve_id, sf=scale_factor
-            #     )
-            #
-            #     # append to main.k
-            #     self.kw_database.main.append(load_segset_kw)
+        return
 
 
 # class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):

@@ -292,6 +292,9 @@ class Feature:
         """Type of feature"""
         self.nsid: int = None
         """Node set id associated with feature"""
+        self.pid: int = None
+        """Part id associated with the feature"""
+        
         pass
 
 

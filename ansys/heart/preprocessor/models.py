@@ -128,6 +128,11 @@ class HeartModel:
         """Returns list of used part ids"""
         return [part.pid for part in self.parts]
 
+    @property
+    def cavities(self) -> List[Cavity]:
+        """Returns list of cavities in the model"""
+        return [part.cavity for part in self.parts if part.cavity]
+
     def __init__(self, info: ModelInfo) -> None:
         self.info = info
         """Model meta information"""
@@ -143,6 +148,7 @@ class HeartModel:
         self.model_type = self.__class__.__name__
         """Model type"""
         self.info.model_type = self.__class__.__name__
+
         pass
 
     def extract_simulation_mesh(self, clean_up: bool = False):

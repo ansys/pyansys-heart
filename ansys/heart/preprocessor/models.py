@@ -356,7 +356,9 @@ class HeartModel:
         Also obtains the septum in case of a BiVentricle, FourChamber or FullHeart model
 
         """
-        surfaces_to_add = []
+        surfaces_to_add: List[SurfaceMesh] = []
+        orphan_surfaces: List[SurfaceMesh] = []
+        separated_regions = []
         for boundary in self.mesh_raw.boundaries:
             if not "ventricle" in boundary.name and not "atrium" in boundary.name:
                 continue
@@ -367,14 +369,15 @@ class HeartModel:
                 boundary_name_suffix = ["epicardium", "endocardium", "septum"]
             else:
                 boundary_name_suffix = ["epicardium", "endocardium"]
+
+            num_expected_regions = len(boundary_name_suffix)
+
             LOGGER.debug("Extracting : {} from {}".format(boundary_name_suffix, boundary.name))
             region_ids = boundary.separate_connected_regions()
 
             unique_regions, counts = np.unique(region_ids, return_counts=True)
 
-            assert len(unique_regions) == len(
-                boundary_name_suffix
-            ), "Number of extracted regions does not match number of expected regions"
+            num_regions = len(unique_regions)
 
             # NOTE: number of cells do not a guarantee to distinguish between endo and epicardium
             # sort by bounding box volume instead.
@@ -385,14 +388,62 @@ class HeartModel:
                 surface = SurfaceMesh(faces=boundary.faces[mask, :], nodes=self.mesh_raw.nodes)
                 volumes.append(surface.compute_bounding_box()[1])
                 surfaces.append(surface)
+
             # sort by volume of bounding box
             order = np.flip(np.argsort(volumes))
             surfaces = [surfaces[idx] for idx in order]
-            # update names:
-            for ii, surface in enumerate(surfaces):
+
+            # get list of orphan surfaces if any
+            if num_expected_regions < num_regions:
+                LOGGER.warning(
+                    "Expecting {0} regions but getting {1} regions for boundary: {2}".format(
+                        num_expected_regions, num_regions, boundary.name
+                    )
+                )
+                for jj, surface in enumerate(surfaces):
+                    LOGGER.warning("\t{0}: num_faces: {1}".format(jj + 1, surface.faces.shape[0]))
+                LOGGER.warning(
+                    "First {0} surfaces have largest bounding box".format(num_expected_regions)
+                )
+                num_orphans = num_regions - num_expected_regions
+                orphan_surfaces.extend(surfaces[-num_orphans:])
+
+            surfaces_to_use = surfaces[:num_expected_regions]
+            for ii, surface in enumerate(surfaces_to_use):
                 surface.name = boundary.name.replace("myocardium", boundary_name_suffix[ii])
 
-            surfaces_to_add += surfaces
+            separated_regions.append(boundary.name)
+            surfaces_to_add += surfaces_to_use
+
+        # try to assign the orphan faces to any other connected boundary
+        for orphan_surface in orphan_surfaces:
+            orphan_surface.get_boundary_edges()
+            num_connected_nodes = []
+            surfaces_unseparated = [
+                b for b in self.mesh_raw.boundaries if b.name not in separated_regions
+            ]
+            for surface in surfaces_unseparated:
+                if surface.boundary_edges.shape[0] == 0:
+                    get_boundary_edges = True
+                else:
+                    get_boundary_edges = False
+
+                if get_boundary_edges:
+                    surface.get_boundary_edges()
+
+                num_connected_nodes.append(
+                    np.sum(np.isin(orphan_surface.boundary_nodes, surface.boundary_nodes))
+                )
+            if np.any(num_connected_nodes) > 0:
+                surface_to_copy_to = surfaces_unseparated[np.argmax(num_connected_nodes)]
+                LOGGER.warning(
+                    "Copying {0} orphan faces to {1}".format(
+                        orphan_surface.faces.shape[0], surface_to_copy_to.name
+                    )
+                )
+                surface_to_copy_to.faces = np.vstack(
+                    [surface_to_copy_to.faces, orphan_surface.faces]
+                )
 
         self.mesh_raw.boundaries = self.mesh_raw.boundaries + surfaces_to_add
 

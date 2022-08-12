@@ -294,7 +294,7 @@ class Feature:
         """Node set id associated with feature"""
         self.pid: int = None
         """Part id associated with the feature"""
-        
+
         pass
 
 
@@ -355,6 +355,13 @@ class SurfaceMesh(Feature):
         """Global node ids - sorted by earliest occurence"""
         _, idx = np.unique(self.faces.flatten(), return_index=True)
         node_ids = self.faces.flatten()[np.sort(idx)]
+        return node_ids
+
+    @property
+    def boundary_nodes(self):
+        """Global node ids of nodes on the boundary of the mesh (if any)"""
+        _, idx = np.unique(self.boundary_edges.flatten(), return_index=True)
+        node_ids = self.boundary_edges.flatten()[np.sort(idx)]
         return node_ids
 
     def compute_centroid(self) -> np.ndarray:

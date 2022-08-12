@@ -444,6 +444,11 @@ class HeartModel:
                 surface_to_copy_to.faces = np.vstack(
                     [surface_to_copy_to.faces, orphan_surface.faces]
                 )
+            else:
+                LOGGER.warning("Could not find suitable candidate surface - proceed with caution")
+                raise ValueError(
+                    "Could not find suitable candidate surface to merge orphan faces into - proceed with caution"
+                )
 
         self.mesh_raw.boundaries = self.mesh_raw.boundaries + surfaces_to_add
 

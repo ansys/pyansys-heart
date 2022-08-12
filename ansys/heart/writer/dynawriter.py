@@ -316,7 +316,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             export_directory = os.path.join(self.model.info.workdir, "mechanics")
 
         if not os.path.isdir(export_directory):
-            os.mkdir(export_directory)
+            os.makedirs(export_directory)
 
         # export .k files
         self.export_databases(export_directory)
@@ -613,7 +613,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 segid=cap.seg_id,
                 title=cap.name,
             )
-            self.kw_database.cap_elements.append(segset_kw)
+            self.kw_database.segment_sets.append(segset_kw)
         return
 
     def _update_nodesets_db(self):
@@ -632,6 +632,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 kw = create_node_set_keyword(
                     surface.node_ids + 1, node_set_id=surface.id, title=surface.name
                 )
+                surface.nsid = surface.id
                 kws_surface.append(kw)
 
             # add node-set for each cap
@@ -1456,7 +1457,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
             export_directory = os.path.join(self.model.info.workdir, "zeropressure")
 
         if not os.path.isdir(export_directory):
-            os.mkdir(export_directory)
+            os.makedirs(export_directory)
 
         # export .k files
         self.export_databases(export_directory)
@@ -1519,9 +1520,10 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         # add binout for post-process
         self.kw_database.main.append(keywords.DatabaseNodout(dt=0.5, binary=1))
-        x = keywords.SetNodeGeneral(option="part", sid=999, e1=1, e2=2, e3=3, e4=4)
-        self.kw_database.main.append(x)
-        self.kw_database.main.append("*DATABASE_HISTORY_NODE_SET\n999")
+        kw = keywords.SetNodeGeneral(option="part", sid=999, e1=1, e2=2, e3=3, e4=4)
+        self.kw_database.main.append(kw)
+        kw = keywords.DatabaseHistoryNodeSet(id1=999)
+        self.kw_database.main.append(kw)
         return
 
     def _add_control_reference_configuration(self):
@@ -1600,15 +1602,15 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         )  # can stay the same (could move to base class)
         self._update_material_db()
 
-        # self._update_segmentsets_db()  # can stay the same
-        # self._update_nodesets_db()  # can stay the same
+        self._update_segmentsets_db()  # can stay the same
+        self._update_nodesets_db()  # can stay the same
 
         # # update ep settings
-        # self._update_ep_settings()
-        # self._update_create_fibers()
+        self._update_ep_settings()
+        self._update_create_fibers()
 
-        # self._get_list_of_includes()
-        # self._add_includes()
+        self._get_list_of_includes()
+        self._add_includes()
 
         return
 
@@ -1618,7 +1620,10 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         LOGGER.debug("Writing all LS-DYNA .k files...")
 
         if not export_directory:
-            export_directory = self.model.info.working_directory
+            export_directory = self.model.info.workdir
+
+        if not os.path.isdir(export_directory):
+            os.makedirs(export_directory)
 
         # export .k files
         self.export_databases(export_directory)
@@ -1629,15 +1634,14 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         return
 
     def _keep_ventricles(self):
-        """Removes any cavity except the ventricular cavities"""
-        # just keep ventricles in case of four chamber model
+        """Removes any non-ventricular parts"""
+        # NOTE: Could move "remove part" method to model
         LOGGER.warning("Just keeping ventricular-parts for fiber generation")
-        cavities_to_keep = []
-        for ii, cavity in enumerate(self.model._mesh._cavities):
-            if "ventricle" in cavity.name:
-                cavities_to_keep.append(cavity)
-
-        self.model._mesh._cavities = cavities_to_keep
+        parts_to_keep = ["Left ventricle", "Right ventricle", "Septum"]
+        parts_to_remove = [part for part in self.model.part_names if part not in parts_to_keep]
+        for part_to_remove in parts_to_remove:
+            LOGGER.warning("Removing: {}".format(part_to_remove))
+            self.model.remove_part(part_to_remove)
         return
 
     def _update_material_db(self):
@@ -1707,41 +1711,41 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         # input data
         # The below is relevant for all models.
         nodes_base = np.empty(0, dtype=int)
-        node_set_ids_endo = []
-        node_sets_ids_epi = []
-        node_set_ids_epi_and_rseptum = []
+        node_set_ids_endo = []  # relevant for both models
+        node_sets_ids_epi = []  # relevant for both models
+        node_set_ids_epi_and_rseptum = []  # only relevant for bv, 4c and full model
 
-        node_set_id_lv_endo = 0
+        # list of ventricular parts
+        ventricles = [part for part in self.model.parts if "ventricle" in part.name]
+        septum = self.model.get_part("Septum")
 
-        for cavity in self.model._mesh._cavities:
-            if "atrium" in cavity.name:
-                continue
+        # collect node set ids (already generated previously)
+        node_set_ids_endo = [ventricle.endocardium.nsid for ventricle in ventricles]
+        node_sets_ids_epi = [ventricle.epicardium.nsid for ventricle in ventricles]
+        node_set_id_lv_endo = self.model.get_part("Left ventricle").endocardium.id
 
-            for cap in cavity.closing_caps:
-                nodes_base = np.append(nodes_base, cap.node_ids_cap_edge)
+        if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
+            surfaces = [surface for p in self.model.parts for surface in p.surfaces]
+            for surface in surfaces:
+                if "septum" in surface.name:
+                    node_set_ids_epi_and_rseptum = node_sets_ids_epi + [surface.id]
+                    break
 
-            for node_set in cavity.node_sets:
-                if "endocardium" in node_set["name"]:
-                    node_set_ids_endo.append(node_set["id"])
-                    if "septum" in node_set["name"]:
-                        node_set_ids_epi_and_rseptum.append(node_set["id"])
-                    if cavity.name == "Left ventricle":
-                        node_set_id_lv_endo = node_set["id"]
-                elif "epicardium" in node_set["name"]:
-                    node_sets_ids_epi.append(node_set["id"])
-                    node_set_ids_epi_and_rseptum.append(node_set["id"])
+        for part in self.model.parts:
+            for cap in part.caps:
+                nodes_base = np.append(nodes_base, cap.node_ids)
 
-            if cavity.name == "Left ventricle":
-                node_apex = np.array([cavity.apex_id["epicardium"]])
+        # apex id [0] endocardium, [1] epicardum
+        apex_point = self.model.get_part("Left ventricle").apex_points[1]
+        if "epicardium" not in apex_point.name:
+            raise ValueError("Expecting a point on the epicardium")
+        node_apex = apex_point.node_id
 
-        # validate node set by removing any nodes that do not occur in either ventricle
-        # NOTE: can be much more consice
+        # validate node set by removing nodes not part of the model without ventricles
         tet_ids_ventricles = np.empty((0), dtype=int)
-        for cavity in self.model._mesh._cavities:
-            for element_set in cavity.element_sets:
-                if "ventricle" in cavity.name:
-                    tet_ids_ventricles = np.append(tet_ids_ventricles, element_set["set"])
-        tetra_ventricles = self.volume_mesh["tetra"][tet_ids_ventricles, :]
+        for part in ventricles + [septum]:
+            tet_ids_ventricles = np.append(tet_ids_ventricles, part.element_ids)
+        tetra_ventricles = self.model.mesh.tetrahedrons[tet_ids_ventricles, :]
 
         # remove nodes that occur just in atrial part
         mask = np.isin(nodes_base, tetra_ventricles, invert=True)
@@ -1749,20 +1753,11 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         nodes_base = nodes_base[np.invert(mask)]
 
         # create set parts for lv and rv myocardium
-        myocardium_part_ids = []
-        septum_part_ids = []
-        for cavity in self.model._mesh._cavities:
-            if "atrium" in cavity.name:
-                continue
-            for segset in cavity.element_sets:
-                if segset["name"] == "myocardium":
-                    myocardium_part_ids.append(segset["id"])
-
-                if segset["name"] == "septum":
-                    septum_part_ids.append(segset["id"])
+        myocardium_part_ids = [ventricle.pid for ventricle in ventricles]
+        septum_part_ids = [self.model.get_part("Septum").pid]
 
         # switch between the various models to generate valid input decks
-        if self.model.info.model_type in ["LeftVentricle"]:
+        if isinstance(self.model, LeftVentricle):
             LOGGER.warning("Model type %s in development " % self.model.info.model_type)
 
             # Define part set for myocardium
@@ -1780,7 +1775,8 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             )
 
             # combine node sets endocardium uing *SET_NODE_ADD:
-            node_set_id_all_endocardium = 1000
+            node_set_id_all_endocardium = self.get_unique_nodeset_id()
+
             set_add_kw = keywords.SetNodeAdd(sid=node_set_id_all_endocardium)
             set_add_kw.options["TITLE"].active = True
             set_add_kw.title = "all_endocardium_segments"
@@ -1789,7 +1785,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             self.kw_database.create_fiber.append(set_add_kw)
 
             # combine node sets epicardium:
-            node_set_id_all_epicardium = 1001
+            node_set_id_all_epicardium = self.get_unique_nodeset_id()
             set_add_kw = keywords.SetNodeAdd(sid=node_set_id_all_epicardium)
             set_add_kw.options["TITLE"].active = True
             set_add_kw.title = "all_epicardium_segments"
@@ -1797,8 +1793,9 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
             self.kw_database.create_fiber.append(set_add_kw)
 
-            node_set_id_base = 200
-            node_set_id_apex = 201
+            node_set_id_base = self.get_unique_nodeset_id()
+            node_set_id_apex = self.get_unique_nodeset_id()
+
             # create node-sets for base and apex
             node_set_base_kw = create_node_set_keyword(
                 node_ids=nodes_base + 1, node_set_id=node_set_id_base, title="base nodes"
@@ -1849,7 +1846,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
                 keywords.DefineFunction(fid=102, function=function2)
             )
 
-        elif self.model.info.model_type in ["BiVentricle", "FourChamber"]:
+        elif isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             LOGGER.warning("Model type %s under development " % self.model.info.model_type)
 
             # Define part set for myocardium
@@ -1871,7 +1868,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             self.kw_database.create_fiber.extend([part_list1_kw, part_list2_kw])
 
             # combine node sets endocardium uing *SET_SEGMENT_ADD:
-            node_set_id_all_endocardium = 1000
+            node_set_id_all_endocardium = self.get_unique_nodeset_id()
             set_add_kw = keywords.SetNodeAdd(sid=node_set_id_all_endocardium)
 
             set_add_kw.options["TITLE"].active = True
@@ -1881,7 +1878,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             self.kw_database.create_fiber.append(set_add_kw)
 
             # combine node sets epicardium:
-            node_set_id_all_epicardium = 1001
+            node_set_id_all_epicardium = self.get_unique_nodeset_id()
             set_add_kw = keywords.SetNodeAdd(sid=node_set_id_all_epicardium)
 
             set_add_kw.options["TITLE"].active = True
@@ -1891,7 +1888,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             self.kw_database.create_fiber.append(set_add_kw)
 
             # combine node sets epicardium and septum:
-            node_set_all_but_left_endocardium = 1002
+            node_set_all_but_left_endocardium = self.get_unique_nodeset_id()
             set_add_kw = keywords.SetNodeAdd(sid=node_set_all_but_left_endocardium)
 
             set_add_kw.options["TITLE"].active = True
@@ -1900,8 +1897,8 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
             self.kw_database.create_fiber.append(set_add_kw)
 
-            node_set_id_base = 200
-            node_set_id_apex = 201
+            node_set_id_base = self.get_unique_nodeset_id()
+            node_set_id_apex = self.get_unique_nodeset_id() + 1
             # create node-sets for base and apex
             node_set_base_kw = create_node_set_keyword(
                 node_ids=nodes_base + 1, node_set_id=node_set_id_base, title="base nodes"

@@ -115,7 +115,7 @@ def create_segment_set_keyword(
 
 
 def create_node_set_keyword(
-    node_ids: np.array, node_set_id: int = 1, title: str = "nodeset-title"
+    node_ids: np.ndarray, node_set_id: int = 1, title: str = "nodeset-title"
 ) -> custom_keywords.SetNodeList:
     """Creates node set
 
@@ -133,6 +133,10 @@ def create_node_set_keyword(
     keywords.SetNodeList
         Formatted node set
     """
+    if not isinstance(node_ids, (np.ndarray, int, np.int32, np.int64, list)):
+        raise TypeError("Expecting node ids to be array of ints, list of ints or single int")
+    if isinstance(node_ids, (int, np.int32, np.int64)):
+        node_ids = [node_ids]
 
     kw = custom_keywords.SetNodeList(sid=node_set_id)
 

@@ -15,11 +15,13 @@ if __name__ == "__main__":
     2. Writes files for mechanics, zero-pressure, and fiber generation
     """
 
-    path_to_case = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\01\\01.case"
+    path_to_case = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\02\\02.case"
     workdir = os.path.join(pathlib.Path(path_to_case).parent, "FullHeartRefactored")
     info = models.ModelInfo(
         database="Strocchi2020", work_directory=workdir, path_to_case=path_to_case
     )
+    info.mesh_size = 1.5
+
     path_to_model = os.path.join(info.workdir, "heart_model.pickle")
 
     model = models.FullHeart(info)

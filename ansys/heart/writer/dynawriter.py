@@ -745,7 +745,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             mat_id = self.get_unique_mat_id()
 
             # TODO: exposed to user/parameters?
-            if isinstance(self.model, BiVentricle):
+            if isinstance(self.model, (LeftVentricle, BiVentricle)):
                 spring_stiffness = 5  # kPa/mm
             elif isinstance(self.model, (FourChamber, FullHeart)):
                 spring_stiffness = 20  # kPa/mm
@@ -917,7 +917,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         epicardium_nodes = np.empty(0, dtype=int)
         epicardium_faces = np.empty((0, 3), dtype=int)
         LOGGER.debug("Collecting epicardium nodesets of ventricles:")
-        ventricles = [self.model.get_part("Left ventricle"), self.model.get_part("Right ventricle")]
+        ventricles = [part for part in self.model.parts if "ventricle" in part.name]
         epicardium_surfaces = [ventricle.epicardium for ventricle in ventricles]
 
         for surface in epicardium_surfaces:
@@ -1071,7 +1071,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         epicardium_nodes = np.empty(0, dtype=int)
         epicardium_faces = np.empty((0, 3), dtype=int)
         LOGGER.debug("Collecting epicardium nodesets of ventricles:")
-        ventricles = [self.model.get_part("Left ventricle"), self.model.get_part("Right ventricle")]
+        ventricles = [part for part in self.model.parts if "ventricle" in part.name]
         epicardium_surfaces = [ventricle.epicardium for ventricle in ventricles]
 
         for surface in epicardium_surfaces:
@@ -1648,9 +1648,13 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         """Adds simple linear elastic and orthotropic EM material for each defined part"""
         # collect myocardium and septum parts
         ventricles = [part for part in self.model.parts if "ventricle" in part.name]
-        septum = self.model.get_part("Septum")
+        if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
+            septum = self.model.get_part("Septum")
+            parts = ventricles + [septum]
+        else:
+            parts = ventricles
 
-        for part in ventricles + [septum]:
+        for part in parts:
             element_ids = part.element_ids
             em_mat_id = self.get_unique_mat_id()
             self.kw_database.material.extend(
@@ -1743,7 +1747,12 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
         # validate node set by removing nodes not part of the model without ventricles
         tet_ids_ventricles = np.empty((0), dtype=int)
-        for part in ventricles + [septum]:
+        if septum:
+            parts = ventricles + [septum]
+        else:
+            parts = ventricles
+
+        for part in parts:
             tet_ids_ventricles = np.append(tet_ids_ventricles, part.element_ids)
         tetra_ventricles = self.model.mesh.tetrahedrons[tet_ids_ventricles, :]
 
@@ -1754,7 +1763,6 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
         # create set parts for lv and rv myocardium
         myocardium_part_ids = [ventricle.pid for ventricle in ventricles]
-        septum_part_ids = [self.model.get_part("Septum").pid]
 
         # switch between the various models to generate valid input decks
         if isinstance(self.model, LeftVentricle):
@@ -1848,6 +1856,8 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
         elif isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             LOGGER.warning("Model type %s under development " % self.model.info.model_type)
+
+            septum_part_ids = [self.model.get_part("Septum").pid]
 
             # Define part set for myocardium
             part_list1_kw = keywords.SetPartList(

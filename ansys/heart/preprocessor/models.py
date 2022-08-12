@@ -111,7 +111,7 @@ class HeartModel:
         parts = []
         for key, value in self.__dict__.items():
             attribute = getattr(self, key)
-            if type(attribute) == Part:
+            if isinstance(attribute, Part):
                 parts.append(attribute)
         return parts
 
@@ -152,7 +152,22 @@ class HeartModel:
         pass
 
     def extract_simulation_mesh(self, clean_up: bool = False):
-        """Updates the model"""
+        """Updates the model
+
+        Example
+        -------
+        Processes a model from the public database and generates a simulation mesh
+
+        Instantiate object that stores relevant information for the preprocessor
+        >>> info = ModelInfo("Strocchi2020", "my_workdir", "01.case", "heart_model.pickle")
+        Instantiate the model object
+        >>> model = FullHeart(info)
+        Run the extract simulation mesh method
+        >>> model.extract_simulation_mesh()
+        Print info of the extracted model
+        >>> model.print_info()
+
+        """
         self.read_input_mesh()
         self._remove_unused_tags()
         self._prepare_for_meshing()
@@ -181,14 +196,30 @@ class HeartModel:
         setattr(self, "_".join(part_name.lower().split()), Part(name=part_name))
         return
 
+    def remove_part(self, part_name: str):
+        """Removes a part with a specific name from the model"""
+        keys = self.__dict__.keys()
+        for key in keys:
+            attribute = getattr(self, key)
+            if isinstance(attribute, Part):
+                if part_name == attribute.name:
+                    delattr(self, key)
+                    return
+        return
+
     def print_info(self):
         """Prints information about the model"""
+        if not isinstance(self.mesh.tetrahedrons, np.ndarray):
+            LOGGER.info("Nothing to print")
+            return
+
         LOGGER.info("*****************************************")
         LOGGER.info("*****************************************")
         LOGGER.info("Mesh info:")
         LOGGER.info("Number of tetra: {:d}".format(self.mesh.tetrahedrons.shape[0]))
         LOGGER.info("Number of nodes: {:d}".format(self.mesh.nodes.shape[0]))
         LOGGER.info("-----------------------------------------")
+
         for ii, part in enumerate(self.parts):
             LOGGER.info("{:d}. part name: {:}".format(ii + 1, part.name))
             LOGGER.info("\tnumber of tetrahedrons: {:d}\n".format(len(part.element_ids)))
@@ -228,7 +259,13 @@ class HeartModel:
         return
 
     def dump_model(self, filename: pathlib.Path = None):
-        """Saves model to file"""
+        """Saves model to file
+
+        Example
+        -------
+        >>> model.dump_model("my_heart_model.pickle")
+
+        """
         LOGGER.debug("Writing model to disk")
         if not filename:
             filename = os.path.join(self.info.workdir, "heart_model.pickle")
@@ -242,7 +279,13 @@ class HeartModel:
 
     @staticmethod
     def load_model(filename: pathlib.Path):
-        """Loads the model from file"""
+        """Static method to load a preprocessed model from file
+
+        Example
+        -------
+        >>> model = HeartModel.load_model("my_model.pickle")
+
+        """
         # NOTE:
         with open(filename, "rb") as file:
             model = pickle.load(file)
@@ -395,6 +438,7 @@ class HeartModel:
             labels_to_use = [l for l in part.tag_labels if "inlet" not in l and "valve" not in l]
             part_ids_use = [self.info.labels_to_ids[l] for l in labels_to_use]
             part_names = ["-".join(l.split()).lower() for l in labels_to_use]
+
             self.mesh_raw.add_boundaries(part_ids_use, part_names)
 
         self._get_endo_epicardial_surfaces()
@@ -889,6 +933,7 @@ class FullHeart(HeartModel):
         """Left atrium part"""
         self.right_atrium = Part(name="Right atrium", part_type="atrium")
         """Right atrium part"""
+
         self.aorta = Part(name="Aorta", part_type="artery")
         """Aorta part"""
         self.pulmonary_artery = Part(name="Pulmonary artery", part_type="artery")
@@ -904,18 +949,19 @@ if __name__ == "__main__":
 
     model = LeftVentricle(info)
     print("LeftVentricle:")
-    model.print_parts()
+    model.print_info()
+    model.remove_part("Left ventricle")
 
     model = BiVentricle(info)
     print("BiVentricle:")
-    model.print_parts()
+    model.print_info()
 
     model = FourChamber(info)
     print("FourChamber:")
-    model.print_parts()
+    model.print_info()
 
     model = FullHeart(info)
     print("FullHeart:")
-    model.print_parts()
+    model.print_info()
 
     print(model.part_names)

@@ -25,7 +25,8 @@ if __name__ == "__main__":
     path_to_model = os.path.join(info.workdir, "heart_model.pickle")
 
     model = models.FullHeart(info)
-    run_preprocessor = True
+    run_preprocessor = False
+    write_lsdyna_files = True
 
     if run_preprocessor:
         info.clean_workdir(remove_all=True)
@@ -40,16 +41,18 @@ if __name__ == "__main__":
     # Load model (e.g. when you skip the preprocessor):
     model = models.HeartModel.load_model(path_to_model)
 
-    for writer in (
-        writers.MechanicsDynaWriter(model, "ConstantPreloadWindkesselAfterload"),
-        writers.ZeroPressureMechanicsDynaWriter(model),
-        writers.FiberGenerationDynaWriter(model),
-    ):
-        exportdir = os.path.join(
-            writer.model.info.workdir, writer.__class__.__name__.lower().replace("dynawriter", "")
-        )
+    if write_lsdyna_files:
+        for writer in (
+            writers.MechanicsDynaWriter(model, "ConstantPreloadWindkesselAfterload"),
+            writers.ZeroPressureMechanicsDynaWriter(model),
+            writers.FiberGenerationDynaWriter(model),
+        ):
+            exportdir = os.path.join(
+                writer.model.info.workdir,
+                writer.__class__.__name__.lower().replace("dynawriter", ""),
+            )
 
-        writer.update()
-        writer.export(exportdir)
+            writer.update()
+            writer.export(exportdir)
 
     pass

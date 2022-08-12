@@ -418,10 +418,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
         solid_element_count = 0  # keeps track of number of solid elements already defined
 
         for part in self.model.parts:
-            if "ventricle" in part.name:
-                add_fibers = True
-            else:
-                add_fibers = False
+            if type(self) == MechanicsDynaWriter:
+                if "ventricle" in part.name:
+                    add_fibers = True
+                else:
+                    add_fibers = False
 
             LOGGER.debug(
                 "Writing elements for {0} | adding fibers: {1}".format(part.name, add_fibers)

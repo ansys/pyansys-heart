@@ -40,7 +40,9 @@ class ModelInfo:
         work_directory: pathlib.Path,
         path_to_case: pathlib.Path,
         path_to_simulation_mesh: pathlib.Path = None,
+        mesh_size: float = 1.5,
     ) -> None:
+
         self.database = database
         """Name of the database to use"""
         self.workdir = work_directory
@@ -55,6 +57,7 @@ class ModelInfo:
         """Inverted dict that maps part/tag id > labels"""
         self.model_type: str = None
         """Model (geometric) type"""
+        self.mesh_size: float = None
 
         pass
 
@@ -145,6 +148,11 @@ class HeartModel:
         """Adds any subparts"""
         self._add_labels_to_parts()
         """Adds appropiate vtk labels to the parts"""
+
+        if not self.info.mesh_size:
+            self._set_default_mesh_size()
+            """Sets default mesh size"""
+
         self.model_type = self.__class__.__name__
         """Model type"""
         self.info.model_type = self.__class__.__name__
@@ -290,6 +298,12 @@ class HeartModel:
         with open(filename, "rb") as file:
             model = pickle.load(file)
         return model
+
+    def _set_default_mesh_size(self):
+        """Sets the default mesh size"""
+        LOGGER.warning("No mesh size given setting default mesh size")
+        self.info.mesh_size = 1.5
+        return
 
     def _add_labels_to_parts(self):
         """Uses model definitions to add corresponding vtk labels to the part"""
@@ -464,10 +478,15 @@ class HeartModel:
         """Uses the generated files to remesh the surfaces and volume"""
         LOGGER.info("Remeshing volume...")
         path_mesh_file = os.path.join(self.info.workdir, "fluent_volume_mesh.msh.h5")
+
+        if not self.info.mesh_size:
+            LOGGER.warning("No mesh size set: setting to uniform size of 1.5 mm")
+            self.info.mesh_size = 1.5
+
         mesher.fluentmeshing(
             self.info.workdir,
             path_mesh_file,
-            mesh_size=1.5,
+            mesh_size=self.info.mesh_size,
             journal_type="improved",
             show_gui=True,
         )
@@ -830,10 +849,11 @@ class HeartModel:
         And assigns these to the parts of the model"""
 
         # rename septum to right ventricle endocardium septum
-        part = self.get_part("Right ventricle", True)
-        for surface in part.surfaces:
-            if "Right ventricle septum" in surface.name:
-                surface.name = surface.name.replace("septum", "endocardium septum")
+        if isinstance(self, (BiVentricle, FourChamber, FullHeart)):
+            part = self.get_part("Right ventricle", True)
+            for surface in part.surfaces:
+                if "Right ventricle septum" in surface.name:
+                    surface.name = surface.name.replace("septum", "endocardium septum")
 
         # construct cavities with endocardium and caps
         for part in self.parts:

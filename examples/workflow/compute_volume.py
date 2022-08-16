@@ -89,9 +89,7 @@ def get_cavity_volume(name, x_m, cavity):
     coords = x_m[ids]
     connectivity = a.reshape(cavity.shape)
     meshio.write_points_cells(
-        name + ".stl",
-        coords,
-        [("triangle", connectivity)],
+        name + ".stl", coords, [("triangle", connectivity)],
     )
 
     return compute_stl_volume(name + ".stl")
@@ -155,4 +153,7 @@ def update_system_json(nodes_file):
 
 
 if __name__ == "__main__":
+    os.chdir(
+        "D:\\REPOS\\pyheart-lib\\examples\\heart\\workdir\\Strocchi2020\\BiVentricle\\lsdyna_files\\mechanics\\"
+    )
     update_system_json("nodes.k")

@@ -35,29 +35,31 @@ class Workflow:
         """
 
         self.model = model
+        """Heart model"""
         self.lsdynapath = lsdynapath
+        """path of the lsdyna executable"""
 
     def build(
         self,
-        Fibers:bool=0,
-        Purkinje:bool=0,
-        ZeroPressure:bool=0,
-        EP:bool=0,
-        Mechanics:bool=0,  
+        fibers:bool=0,
+        purkinje:bool=0,
+        zeropressure:bool=0,
+        ep:bool=0,
+        mechanics:bool=0,  
     ):
         # TODO: add a "simulation" folder that contains all the precomputed features
         # TODO: make sure the necessary node, segment, part ids consistant in the different steps
         # TODO: make sure the necessary node, segment, part ids consistant in the different steps
         # TODO add getters and setters for fiber angles, purkinje properties, simulation times and other parameters to expose to the user
-        if Fibers:
+        if fibers:
             LOGGER.debug("Generating fibers")
-            self.generateFibers()
+            self.generate_fibers()
             # TODO copy element_solid_ortho.k to "simulation" folder
         # TODO continue in the same spirit with zeroP, EP, mechanics, and Purkinje (in the future, add blood, and fluid)
 
 
 
-        if EP and Mechanics:
+        if ep and mechanics:
             # TODO add coupling stuff and ignore default Ca2+ mechanics active stress/replaced by EP simulation
             LOGGER.debug("Add Electromechanics coupling")
 
@@ -72,7 +74,7 @@ class Workflow:
         sim_file=os.path.join(export_directory,"main.k")
         self.run_lsdyna(sim_file,self.lsdynapath)
         return
-    def generateFibers(
+    def generate_fibers(
         self,
         alpha_endocardium: float=-60,
         alpha_eepicardium: float=60,

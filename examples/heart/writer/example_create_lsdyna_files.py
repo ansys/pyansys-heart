@@ -72,7 +72,7 @@ if __name__ == "__main__":
             ABS_BASE_PATH, "..", "workdir", database, model, "model_info.json"
         )
         # path_model_info = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\05\\workdir\\model_info.json"
-        # create_ls_dyna_files(path_model_info, writer_type="Mechanics")
-        # create_ls_dyna_files(path_model_info, writer_type="ZeroPressure")
+        create_ls_dyna_files(path_model_info, writer_type="Mechanics")
+        create_ls_dyna_files(path_model_info, writer_type="ZeroPressure")
         create_ls_dyna_files(path_model_info, writer_type="FiberGeneration")
         create_ls_dyna_files(path_model_info, writer_type="PurkinjeGeneration")

@@ -115,6 +115,8 @@ class BaseDynaWriter:
 
         self.include_files = []
         """List of .k files to include in main. This is derived from the Decks classes"""
+        f = open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "parameters.json"))
+        self.parameters = json.load(f)
 
         if "Improved" in self.model.info.model_type:
             LOGGER.warning(
@@ -563,7 +565,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         kw_damp_curve = create_define_curve_kw(
             x=[0, 100],
-            y=[500, 500],
+            y=self.parameters["Global damping"] * np.array([1, 1]),
             curve_name="damping",
             curve_id=lcid_damp,
             lcint=0,
@@ -745,14 +747,18 @@ class MechanicsDynaWriter(BaseDynaWriter):
             section_id = self.get_unique_section_id()
             mat_id = self.get_unique_mat_id()
 
-            # TODO: exposed to user/parameters?
             if isinstance(self.model, (LeftVentricle, BiVentricle)):
-                spring_stiffness = 5  # kPa/mm
-            elif isinstance(self.model, (FourChamber, FullHeart)):
-                spring_stiffness = 20  # kPa/mm
+                spring_stiffness = self.parameters["Boundary Condition"]["Valve Spring"][
+                    0
+                ]  # kPa/mm
 
-            scale_factor_normal = 0.5
-            scale_factor_radial = 1.0
+            elif isinstance(self.model, (FourChamber, FullHeart)):
+                spring_stiffness = self.parameters["Boundary Condition"]["Valve Spring"][
+                    1
+                ]  # kPa/mm
+
+            scale_factor_normal = self.parameters["Boundary Condition"]["Normal Scale factor"]
+            scale_factor_radial = self.parameters["Boundary Condition"]["Radial Scale factor"]
 
             part_kw = keywords.Part()
             part_df = pd.DataFrame(
@@ -912,7 +918,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
 
         uvc_l[uvc_l < 0] = 1
-        penalty = -_sigmoid((abs(uvc_l) - 0.1) * 25) + 1
+        penalty = (
+                -_sigmoid(
+                    (abs(uvc_l) - self.parameters["Pericardium"]["Penalty function"][0])
+                    * self.parameters["Pericardium"]["Penalty function"][1]
+                )
+                + 1
+        )
 
         # collect all pericardium nodes:
         epicardium_nodes = np.empty(0, dtype=int)
@@ -946,8 +958,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         #     delimiter=",",
         # )
 
-        # TODO: exposed to user/parameters?
-        spring_stiffness = 50  # kPA/mm
+        spring_stiffness = self.parameters["Pericardium"]["Spring Stiffness"]  # kPA/mm
         # compute nodal areas:
         # NOTE: can be simplified
         filename = os.path.join(self.model.info.workdir, "temp_volume_mesh.vtk")
@@ -982,8 +993,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # 1: "omni-directional": equal springs in x,y, and z
         # 2: "apex-mitral-drection": one spring in apex-mitral valve direction
-        spring_types = ["omni-directional", "apex-mitral-direction"]
-        spring_type = "apex-mitral-direction"
+        spring_type = self.parameters["Pericardium"]["Spring Type"]
+
         if spring_type == "omni-directional":
             # create three unit vectors
             sd_orientation_kw = create_define_sd_orientation_kw(
@@ -1437,8 +1448,8 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self._update_cap_elements_db()
 
         # # Approximate end-diastolic pressures
-        pressure_lv = 2  # kPa
-        pressure_rv = 0.5333  # kPa
+        pressure_lv = self.parameters["ED pressure"]["Left Ventricle"]  # kPa
+        pressure_rv = self.parameters["ED pressure"]["Right Ventricle"]  # kPa
         self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
         # zerop key words

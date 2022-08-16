@@ -296,11 +296,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._update_controlvolume_db()
         self._update_system_model()
 
-        # Approximate end-diastolic pressures
-        pressure_lv = 2  # kPa
-        pressure_rv = 0.5333  # kPa
-
-        self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
+        # # Approximate end-diastolic pressures
+        # pressure_lv = 2  # kPa
+        # pressure_rv = 0.5333  # kPa
+        #
+        # self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
         self._get_list_of_includes()
         self._add_includes()
@@ -1437,9 +1437,9 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self._update_cap_elements_db()
 
         # # Approximate end-diastolic pressures
-        # pressure_lv = 2  # kPa
-        # pressure_rv = 0.5333  # kPa
-        # self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
+        pressure_lv = 2  # kPa
+        pressure_rv = 0.5333  # kPa
+        self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
         # zerop key words
         self._add_control_reference_configuration()

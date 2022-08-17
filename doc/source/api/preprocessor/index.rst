@@ -1,5 +1,5 @@
-Preprocessor
-============
+HeartModels
+===========
 
 Here you can find methods for running and using the preprocessor to extract 
 a model of interest. 
@@ -7,9 +7,35 @@ a model of interest.
 .. currentmodule:: ansys.heart.preprocessor
 
 
-.. automodule:: ansys.heart.preprocessor.models
-    :members:
+Model information
+-----------------
+.. autoclass:: ansys.heart.preprocessor.models.ModelInfo
+   :members:
 
+Parent Heart Model
+------------------
+.. autoclass:: ansys.heart.preprocessor.models.HeartModel
+   :members:
+
+LeftVentricle
+-------------
+.. autoclass:: ansys.heart.preprocessor.models.LeftVentricle
+   :members:
+
+BiVentricle
+-----------
+.. autoclass:: ansys.heart.preprocessor.models.BiVentricle
+   :members:
+
+FourChamber
+-----------
+.. autoclass:: ansys.heart.preprocessor.models.FourChamber
+   :members:
+
+FullHeart
+---------
+.. autoclass:: ansys.heart.preprocessor.models.FullHeart
+   :members:
 
 .. toctree::
    :maxdepth: 4

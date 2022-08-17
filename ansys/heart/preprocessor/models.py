@@ -21,6 +21,7 @@ class ModelInfo:
 
     @property
     def database(self) -> str:
+        """Name of the database to use"""
         return self._database
 
     @database.setter
@@ -169,18 +170,35 @@ class HeartModel:
     def extract_simulation_mesh(self, clean_up: bool = False):
         """Updates the model
 
-        Example
-        -------
+        Examples
+        --------
         Processes a model from the public database and generates a simulation mesh
 
-        Instantiate object that stores relevant information for the preprocessor
-        >>> info = ModelInfo("Strocchi2020", "my_workdir", "01.case", "heart_model.pickle")
-        Instantiate the model object
+        1. Instantiate object that stores relevant information for the preprocessor
+
+        >>> info = ModelInfo(
+                       database="Strocchi2020",
+                       path_to_case = "01.case",
+                       work_directory = "workdir",
+                       mesh_size = 1.5
+                       )
+
+        2. Instantiate the model object
+
         >>> model = FullHeart(info)
-        Run the extract simulation mesh method
+
+        3. Run the extract simulation mesh method
+
         >>> model.extract_simulation_mesh()
-        Print info of the extracted model
+
+        4. Save model to disk
+
+        >>> model.dump_model()
+
+        5. Print info about the model
+
         >>> model.print_info()
+
 
         """
         self.read_input_mesh()
@@ -276,8 +294,8 @@ class HeartModel:
     def dump_model(self, filename: pathlib.Path = None):
         """Saves model to file
 
-        Example
-        -------
+        Examples
+        --------
         >>> model.dump_model("my_heart_model.pickle")
 
         """
@@ -301,8 +319,8 @@ class HeartModel:
     def load_model(filename: pathlib.Path):
         """Static method to load a preprocessed model from file
 
-        Example
-        -------
+        Examples
+        --------
         >>> model = HeartModel.load_model("my_model.pickle")
 
         """

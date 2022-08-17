@@ -63,6 +63,9 @@ class ModelInfo:
         self.mesh_size: float = mesh_size
         """Mesh size used for remeshing"""
 
+        if not os.path.isfile(self.path_to_original_mesh):
+            raise FileNotFoundError("%s not found" % self.path_to_original_mesh )
+
         pass
 
     def clean_workdir(
@@ -279,8 +282,13 @@ class HeartModel:
 
         """
         LOGGER.debug("Writing model to disk")
-        if not filename:
+        if not filename and not self.info.path_to_model:
             filename = os.path.join(self.info.workdir, "heart_model.pickle")
+        elif not filename:
+            filename = self.info.path_to_model
+        else:
+            self.info.path_to_model = filename
+
         # cleanup model object for more efficient storage
         # NOTE deleting faces, nodes of surfaces does not affect size
         self.mesh_raw = None

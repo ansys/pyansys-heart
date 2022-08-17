@@ -1732,9 +1732,8 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             surfaces = [surface for p in self.model.parts for surface in p.surfaces]
             for surface in surfaces:
-                if "septum" in surface.name:
+                if "septum" in surface.name and "endocardium" in surface.name:
                     node_set_ids_epi_and_rseptum = node_sets_ids_epi + [surface.id]
-                    node_sets_ids_epi.append(surface.id)
                     break
 
         for part in self.model.parts:

@@ -1,2 +1,3 @@
 _build/*
 source/api/_autosummary*
+source/api/preprocessor/_autosummary*

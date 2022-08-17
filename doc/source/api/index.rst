@@ -5,14 +5,17 @@ API Reference Preprocessor
 ==========================
 This page contains the API reference for the preprocessor modules
 
-.. toctree::
-   :maxdepth: 2
-   
+.. currentmodule:: ansys.heart
+
 .. autosummary::
-   :recursive:
    :toctree: _autosummary
 
-   ansys.heart.preprocessor.models
-   ansys.heart.preprocessor.mesh.objects
+.. toctree::
+   :maxdepth: 4
+   :hidden:
+
+   preprocessor/index
+
+
 
 

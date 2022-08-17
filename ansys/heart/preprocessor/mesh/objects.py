@@ -20,8 +20,8 @@ from ansys.heart.custom_logging import LOGGER
 class Mesh:
     """Mesh class: contains nodal coordinates and element definitions
 
-    Note
-    ----
+    Notes
+    -----
     Only tetrahedrons are supported
     """
 
@@ -53,8 +53,8 @@ class Mesh:
     def part_ids(self):
         """Array of part ids indicating to which part the tetrahedron belongs
 
-        Note
-        ----
+        Notes
+        -----
         This is derived from the "tags" field in cell data
         """
         try:
@@ -268,8 +268,8 @@ class Mesh:
     def get_surface_from_name(self, name: str = None):
         """Returns a list of surfaces that match the given list of names
 
-        Note
-        ----
+        Notes
+        -----
         Returns single surface. When multiple matches are found returns list of surfaces
         """
         surfaces_search = self.boundaries + self.interfaces

@@ -12,8 +12,7 @@ This page contains the API reference for the preprocessor modules
    :recursive:
    :toctree: _autosummary
 
-   ansys.heart.preprocessor.heart_model.HeartModel
-   ansys.heart.preprocessor.heart_mesh.HeartMesh   
-   ansys.heart.preprocessor.vtk_module
+   ansys.heart.preprocessor.models
+   ansys.heart.preprocessor.mesh.objects
 
 

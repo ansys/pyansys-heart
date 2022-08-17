@@ -933,18 +933,18 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # select only nodes that are on the epicardium and penalty factor > 0.1
         pericardium_nodes = epicardium_nodes[penalty[epicardium_nodes] > 0.001]
-        # # write to file
-        # np.savetxt(
-        #     r"pericardium.txt",
-        #     np.concatenate(
-        #         (
-        #             self.model.mesh.nodes[pericardium_nodes, :],
-        #             penalty[pericardium_nodes].reshape(-1, 1),
-        #         ),
-        #         axis=1,
-        #     ),
-        #     delimiter=",",
-        # )
+        # write to file
+        np.savetxt(
+            os.path.join(self.model.info.workdir, "pericardium.txt"),
+            np.concatenate(
+                (
+                    self.model.mesh.nodes[pericardium_nodes, :],
+                    penalty[pericardium_nodes].reshape(-1, 1),
+                ),
+                axis=1,
+            ),
+            delimiter=",",
+        )
 
         # TODO: exposed to user/parameters?
         spring_stiffness = 50  # kPA/mm

@@ -64,7 +64,7 @@ class ModelInfo:
         """Mesh size used for remeshing"""
 
         if not os.path.isfile(self.path_to_original_mesh):
-            raise FileNotFoundError("%s not found" % self.path_to_original_mesh )
+            raise FileNotFoundError("%s not found" % self.path_to_original_mesh)
 
         pass
 
@@ -957,7 +957,7 @@ class LeftVentricle(HeartModel):
 
     def __init__(self, info: ModelInfo) -> None:
 
-        self.left_ventricle = Part(name="Left ventricle", part_type="ventricle")
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part"""
         # remove septum - not used in left ventricle only model
         del self.left_ventricle.septum
@@ -971,11 +971,11 @@ class BiVentricle(HeartModel):
 
     def __init__(self, info: ModelInfo) -> None:
 
-        self.left_ventricle = Part(name="Left ventricle", part_type="ventricle")
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part"""
-        self.right_ventricle = Part(name="Right ventricle", part_type="ventricle")
+        self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
         """Right ventricle part"""
-        self.septum = Part(name="Septum", part_type="septum")
+        self.septum: Part = Part(name="Septum", part_type="septum")
         """Septum"""
 
         super().__init__(info)
@@ -987,16 +987,16 @@ class FourChamber(HeartModel):
 
     def __init__(self, info: ModelInfo) -> None:
 
-        self.left_ventricle = Part(name="Left ventricle", part_type="ventricle")
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part"""
-        self.right_ventricle = Part(name="Right ventricle", part_type="ventricle")
+        self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
         """Right ventricle part"""
-        self.septum = Part(name="Septum", part_type="septum")
+        self.septum: Part = Part(name="Septum", part_type="septum")
         """Septum"""
 
-        self.left_atrium = Part(name="Left atrium", part_type="atrium")
+        self.left_atrium: Part = Part(name="Left atrium", part_type="atrium")
         """Left atrium part"""
-        self.right_atrium = Part(name="Right atrium", part_type="atrium")
+        self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
         """Right atrium part"""
 
         super().__init__(info)
@@ -1011,20 +1011,20 @@ class FullHeart(HeartModel):
 
     def __init__(self, info: ModelInfo) -> None:
 
-        self.left_ventricle = Part(name="Left ventricle", part_type="ventricle")
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part"""
-        self.right_ventricle = Part(name="Right ventricle", part_type="ventricle")
+        self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
         """Right ventricle part"""
-        self.septum = Part(name="Septum", part_type="septum")
+        self.septum: Part = Part(name="Septum", part_type="septum")
         """Septum"""
-        self.left_atrium = Part(name="Left atrium", part_type="atrium")
+        self.left_atrium: Part = Part(name="Left atrium", part_type="atrium")
         """Left atrium part"""
-        self.right_atrium = Part(name="Right atrium", part_type="atrium")
+        self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
         """Right atrium part"""
 
-        self.aorta = Part(name="Aorta", part_type="artery")
+        self.aorta: Part = Part(name="Aorta", part_type="artery")
         """Aorta part"""
-        self.pulmonary_artery = Part(name="Pulmonary artery", part_type="artery")
+        self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type="artery")
         """Pulmonary artery part"""
 
         super().__init__(info)

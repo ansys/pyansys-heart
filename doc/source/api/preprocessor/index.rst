@@ -6,11 +6,10 @@ a model of interest.
 
 .. currentmodule:: ansys.heart.preprocessor
 
-.. autosummary::
-   :toctree: _autosummary
 
-   models
-   mesh.objects   
+.. automodule:: ansys.heart.preprocessor.models
+    :members:
+
 
 .. toctree::
    :maxdepth: 4

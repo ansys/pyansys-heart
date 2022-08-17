@@ -49,6 +49,8 @@ extensions = [
     "sphinx_copybutton",
 ]
 
+autodoc_member_order = "bysource"
+
 # Intersphinx mapping
 intersphinx_mapping = {
     "python": ("https://docs.python.org/dev", None),

@@ -40,6 +40,7 @@ class ModelInfo:
         work_directory: pathlib.Path,
         path_to_case: pathlib.Path,
         path_to_simulation_mesh: pathlib.Path = None,
+        path_to_model: pathlib.Path = None,
         mesh_size: float = 1.5,
     ) -> None:
 
@@ -50,14 +51,17 @@ class ModelInfo:
         self.path_to_original_mesh = path_to_case
         """Path to the original mesh file"""
         self.path_to_simulation_mesh = path_to_simulation_mesh
-        """Path to simulation mesh (in vtk format)"""
+        """Path to simulation(in .vtk format)"""
+        self.path_to_model = path_to_model
+        """Path to model (in .pickle format)"""
         self.labels_to_ids = LABELS_TO_ID[database]
         """Dict that maps labels > part/tag id"""
         self.ids_to_labels = dict((v, k) for k, v in LABELS_TO_ID[database].items())
         """Inverted dict that maps part/tag id > labels"""
         self.model_type: str = None
         """Model (geometric) type"""
-        self.mesh_size: float = None
+        self.mesh_size: float = mesh_size
+        """Mesh size used for remeshing"""
 
         pass
 

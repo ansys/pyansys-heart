@@ -4,6 +4,7 @@ import pathlib
 
 
 import ansys.heart.preprocessor.models as models
+from ansys.heart.workflow.support import run_preprocessor
 import ansys.heart.writer.dynawriter as writers
 
 
@@ -17,25 +18,20 @@ if __name__ == "__main__":
 
     path_to_case = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\02\\02.case"
     workdir = os.path.join(pathlib.Path(path_to_case).parent, "FullHeartRefactored")
-    info = models.ModelInfo(
-        database="Strocchi2020", work_directory=workdir, path_to_case=path_to_case
-    )
-    info.mesh_size = 1.5
+    path_to_model = os.path.join(workdir, "heart_model.pickle")
 
-    path_to_model = os.path.join(info.workdir, "heart_model.pickle")
-
-    model = models.FullHeart(info)
-    run_preprocessor = False
+    use_preprocessor = True
     write_lsdyna_files = True
 
-    if run_preprocessor:
-        info.clean_workdir(remove_all=True)
-        info.create_workdir()
-        info.dump_info()
-        model.extract_simulation_mesh()
-        model.dump_model(path_to_model)
-        model.print_info()
-        model.info.clean_workdir([".stl", ".vtk", ".jou", ".log", ".trn"])
+    if use_preprocessor:
+        model = run_preprocessor(
+            model_type=models.FullHeart,
+            database="Strocchi2020",
+            path_original_mesh=path_to_case,
+            work_directory=workdir,
+            path_to_model=path_to_model,
+            mesh_size=1.5,
+        )
 
     # write LS-DYNA files
     # Load model (e.g. when you skip the preprocessor):

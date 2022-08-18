@@ -13,14 +13,14 @@ if __name__ == "__main__":
     """Full Heart example
 
     1. Extracts simulation mesh
-    2. Writes files for mechanics, zero-pressure, and fiber generation
+    2. Writes files for mechanics, zero-pressure, fiber generation, and purkinje
     """
 
     path_to_case = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\02\\02.case"
     workdir = os.path.join(pathlib.Path(path_to_case).parent, "BiVentricleRefactored")
     path_to_model = os.path.join(workdir, "heart_model.pickle")
 
-    use_preprocessor = False
+    use_preprocessor = True
     write_lsdyna_files = True
 
     if use_preprocessor:

@@ -245,6 +245,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # pressure_rv = 0.5333  # kPa
         #
         # self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
+        self._add_cavity_segment()
 
         self._get_list_of_includes()
         self._add_includes()
@@ -1274,24 +1275,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
     def _add_enddiastolic_pressure_bc(self, pressure_lv: float = 1, pressure_rv: float = 1):
         """Adds end diastolic pressure boundary condition on the left and right endocardium"""
 
-        # collect segment set ids to combine
-        for cavity in self.model._mesh._cavities:
-            seg_ids_to_combine = []
-            # find id of endocardium
-            for segset in cavity.segment_sets:
-                if "endocardium" in segset["name"]:
-                    seg_ids_to_combine.append(segset["id"])
-
-            for cap in cavity.closing_caps:
-                seg_ids_to_combine.append(cap.segset_id)
-
-            # add segment set add keyword
-            segadd_kw = keywords.SetSegmentAdd(sid=cavity.id)
-            segadd_kw.sets._data = seg_ids_to_combine
-            segadd_kw.options["TITLE"].active = True
-            segadd_kw.title = cavity.name
-
-            self.kw_database.main.append(segadd_kw)
+        self._add_cavity_segment()
 
         # create unit load curve
         load_curve_id = 2
@@ -1337,6 +1321,27 @@ class MechanicsDynaWriter(BaseDynaWriter):
             #
             #     # append to main.k
             #     self.kw_database.main.append(load_segset_kw)
+
+    def _add_cavity_segment(self):
+
+        # collect segment set ids to combine
+        for cavity in self.model._mesh._cavities:
+            seg_ids_to_combine = []
+            # find id of endocardium
+            for segset in cavity.segment_sets:
+                if "endocardium" in segset["name"]:
+                    seg_ids_to_combine.append(segset["id"])
+
+            for cap in cavity.closing_caps:
+                seg_ids_to_combine.append(cap.segset_id)
+
+            # add segment set add keyword
+            segadd_kw = keywords.SetSegmentAdd(sid=cavity.id)
+            segadd_kw.sets._data = seg_ids_to_combine
+            segadd_kw.options["TITLE"].active = True
+            segadd_kw.title = cavity.name
+
+            self.kw_database.main.append(segadd_kw)
 
 
 class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):

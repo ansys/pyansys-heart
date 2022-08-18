@@ -1465,7 +1465,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         self._update_cap_elements_db()
 
-        # # Approximate end-diastolic pressures
+        # Approximate end-diastolic pressures
         pressure_lv = 2  # kPa
         pressure_rv = 0.5333  # kPa
         self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
@@ -1564,49 +1564,6 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.kw_database.main.append(kw)
 
         return
-
-    # def _add_enddiastolic_pressure_bc(self, pressure_lv: float = 1, pressure_rv: float = 1):
-    #     """Adds end diastolic pressure boundary condition on the left and right endocardium"""
-
-    #     # create unit load curve
-    #     load_curve_id = 2
-    #     load_curve_kw = create_define_curve_kw(
-    #         [0, 1], [0, 1], "unit load curve", load_curve_id, 100
-    #     )
-
-    #     # append unit curve to main.k
-    #     self.kw_database.main.append(load_curve_kw)
-
-    #     # create *LOAD_SEGMENT_SETS for each ventricular cavity
-    #     for cavity in self.model._mesh._cavities:
-
-    #         if "atrium" in cavity.name:
-    #             continue
-
-    #         if cavity.name == "Left ventricle":
-    #             scale_factor = pressure_lv
-    #         elif cavity.name == "Right ventricle":
-    #             scale_factor = pressure_rv
-
-    #         LOGGER.debug(
-    #             "Adding end-diastolic pressure of {0} to {1}".format(scale_factor, cavity.name)
-    #         )
-
-    #         seg_ids_to_use = []
-    #         # find id of endocardium
-    #         for segset in cavity.segment_sets:
-    #             if "endocardium" in segset["name"]:
-    #                 seg_ids_to_use.append(segset["id"])
-
-    #         # create load segment set for each endocardium segment
-    #         for seg_id in seg_ids_to_use:
-    #             load_segset_kw = keywords.LoadSegmentSet(
-    #                 ssid=seg_id, lcid=load_curve_id, sf=scale_factor
-    #             )
-
-    #             # append to main.k
-    #             self.kw_database.main.append(load_segset_kw)
-
 
 class FiberGenerationDynaWriter(MechanicsDynaWriter):
     def __init__(self, model: HeartModel) -> None:

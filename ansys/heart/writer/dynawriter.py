@@ -617,7 +617,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self.kw_database.segment_sets.append(segset_kw)
         return
 
-    def _update_nodesets_db(self):
+    def _update_nodesets_db(self, remove_duplicates: bool = True):
         """Updates the node set database"""
         # formats endo, epi- and septum nodeset keywords. Do for all surfaces and caps
 
@@ -626,24 +626,42 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # for each surface in each part add the respective node-set
         # Use same ID as surface
+        used_node_ids = np.empty(0, dtype=int)
+        for part in self.model.parts:
+            # add node-set for each cap
+            kws_caps = []
+            for cap in part.caps:
+                if remove_duplicates:
+                    node_ids = np.setdiff1d(cap.node_ids, used_node_ids)
+                else:
+                    node_ids = cap.node_ids
+
+                cap.nsid = node_set_id
+                kw = create_node_set_keyword(node_ids + 1, node_set_id=cap.nsid, title=cap.name)
+                kws_caps.append(kw)
+                node_set_id = node_set_id + 1
+
+                used_node_ids = np.append(used_node_ids, node_ids)
+
+            self.kw_database.node_sets.extend(kws_caps)
+
         for part in self.model.parts:
             kws_surface = []
-            kws_caps = []
             for surface in part.surfaces:
+                if remove_duplicates:
+                    node_ids = np.setdiff1d(surface.node_ids, used_node_ids)
+                else:
+                    node_ids = surface.node_ids
+
                 kw = create_node_set_keyword(
-                    surface.node_ids + 1, node_set_id=surface.id, title=surface.name
+                    node_ids + 1, node_set_id=surface.id, title=surface.name
                 )
                 surface.nsid = surface.id
                 kws_surface.append(kw)
 
-            # add node-set for each cap
-            for cap in part.caps:
-                cap.nsid = node_set_id
-                kw = create_node_set_keyword(cap.node_ids + 1, node_set_id=cap.nsid, title=cap.name)
-                kws_caps.append(kw)
-                node_set_id = node_set_id + 1
+                used_node_ids = np.append(used_node_ids, node_ids)
 
-            self.kw_database.node_sets.extend(kws_caps + kws_surface)
+            self.kw_database.node_sets.extend(kws_surface)
 
     def _update_material_db(self, add_active: bool = True):
         """Updates the database of material keywords"""

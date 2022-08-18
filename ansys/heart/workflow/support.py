@@ -1,118 +1,90 @@
 """This module provides some useful functions to support workflows
 """
 import os
-from ansys.heart.preprocessor.heart_model import HeartModel
-from ansys.heart.preprocessor.model_information import ModelInformation
+import pathlib as Path
+
+import ansys.heart.preprocessor.models as models
+
 from ansys.heart.custom_logging import LOGGER
 
 
 def run_preprocessor(
-    model_type: str,
-    database_name: str,
-    path_original_mesh: str,
-    work_directory: str,
+    model_type: models.HeartModel,
+    database: str,
+    path_original_mesh: Path,
+    work_directory: Path,
+    path_to_model: Path = None,
     mesh_size: float = 2.0,
-    remesh: bool = True,
+    clean_workdir: bool = True,
 ):
-    """Runs the preprocessor with the given model information
+    """Runs the preprocessor with the given input arguments
 
     Parameters
     ----------
-    model_type : str
-        Type of model
-    database_name : str
-        Database name. Either Strocchi2020, Cristobal2021, Strocchi2020_Modified,
-        or Cristobal2021_Modified
-    path_original_mesh : str
-        Path to input mesh (vtk)
-    work_directory : str
-        Path to work directory
+    model_type : models.HeartModel
+        Type of model. Valid values include: LeftVentricle, BiVentricle, FourChamber, FullHeart
+    database : str
+        Name of the database. Either "Strocchi2020" or "Cristobal2021"
+    path_original_mesh : Path
+        Path to the input mesh file
+    work_directory : Path
+        Working directory
+    path_to_model : Path, optional
+        Path to the model, by default None, writes as "heart_model.pickle"
+    mesh_size : float, optional
+        Size used for remeshing the volume, by default 2.0
+    clean_workdir : bool, optional
+        Flag indicating whether to clean the working directory, by default True
     """
+
+    if not path_to_model:
+        path_to_model = os.path.join(work_directory, "heart_model.pickle")
+
     LOGGER.info("##############################")
     LOGGER.info("## Launching preprocessor: ###")
     LOGGER.info("##############################")
-    LOGGER.info("## Model type: {:<12} ##".format(model_type))
-    LOGGER.info("## Database: {:<14} ##".format(database_name))
-    LOGGER.info("## Remeshing: {:<13} ##".format(str(remesh)))
-    if remesh:
-        LOGGER.info("##      Size: {:<13} ##".format(mesh_size))
+    LOGGER.info("## Model type: {:<12} ##".format(model_type.__name__))
+    LOGGER.info("## Database: {:<14} ##".format(database))
+    LOGGER.info("## Remeshing: {:<13} ##".format(str(True)))
+    LOGGER.info("##      Size: {:<13} ##".format(mesh_size))
     LOGGER.info("##############################")
     LOGGER.info("## path mesh: %s" % path_original_mesh)
     LOGGER.info("## working directory: %s" % work_directory)
+    LOGGER.info("## store model in: %s" % path_to_model)
     LOGGER.info("##############################")
 
     if not os.path.isdir(work_directory):
         os.makedirs(work_directory)
 
-    # create model
-    model_info = ModelInformation(
-        model_type=model_type,
-        database_name=database_name,
-        path_original_mesh=path_original_mesh,
-        working_directory=work_directory,
+    # instantiate model information
+    info = models.ModelInfo(
+        database=database,
+        path_to_case=path_original_mesh,
+        work_directory=work_directory,
+        path_to_model=path_to_model,
     )
-    model_info.mesh_size = mesh_size
 
-    model_info_path = os.path.join(work_directory, "model_info.json")
+    info.mesh_size = mesh_size
 
-    model = HeartModel(model_info)
-    model.extract_simulation_mesh(remesh=remesh)
-    model.dump_model(model_info_path, clean_working_directory=False)
+    info.clean_workdir(remove_all=True)
+    info.create_workdir()
+    info.dump_info()
 
-    return
+    if model_type == models.LeftVentricle:
+        model = models.LeftVentricle(info)
 
+    elif model_type == models.BiVentricle:
+        model = models.BiVentricle(info)
 
-def run_preprocessor_improved(
-    model_type: str,
-    database_name: str,
-    path_original_mesh: str,
-    work_directory: str,
-    mesh_size: float = 2.0,
-    remesh: bool = True,
-):
-    """Runs the preprocessor with the given model information
+    elif model_type == models.FourChamber:
+        model = models.FourChamber(info)
 
-    Parameters
-    ----------
-    model_type : str
-        Type of model
-    database_name : str
-        Database name. Either Strocchi2020, Cristobal2021, Strocchi2020_Modified,
-        or Cristobal2021_Modified
-    path_original_mesh : str
-        Path to input mesh (vtk)
-    work_directory : str
-        Path to work directory
-    """
-    LOGGER.info("##############################")
-    LOGGER.info("## Launching preprocessor: ###")
-    LOGGER.info("##############################")
-    LOGGER.info("## Model type: {:<12} ##".format(model_type))
-    LOGGER.info("## Database: {:<14} ##".format(database_name))
-    LOGGER.info("## Remeshing: {:<13} ##".format(str(remesh)))
-    if remesh:
-        LOGGER.info("##      Size: {:<13} ##".format(mesh_size))
-    LOGGER.info("##############################")
-    LOGGER.info("## path mesh: %s" % path_original_mesh)
-    LOGGER.info("## working directory: %s" % work_directory)
-    LOGGER.info("##############################")
+    elif model_type == models.FullHeart:
+        model = models.FullHeart(info)
 
-    if not os.path.isdir(work_directory):
-        os.makedirs(work_directory)
-
-    # create model
-    model_info = ModelInformation(
-        model_type=model_type,
-        database_name=database_name,
-        path_original_mesh=path_original_mesh,
-        working_directory=work_directory,
-    )
-    model_info.mesh_size = mesh_size
-
-    model_info_path = os.path.join(work_directory, "model_info.json")
-
-    model = HeartModel(model_info)
-    model.extract_simulation_mesh_improved(remesh=remesh)
-    model.dump_model(model_info_path, clean_working_directory=False)
-
-    return
+    model.extract_simulation_mesh()
+    model.dump_model(path_to_model)
+    model.print_info()
+    if clean_workdir:
+        model.info.clean_workdir([".stl", ".vtk", ".jou", ".log", ".trn"])
+    return model

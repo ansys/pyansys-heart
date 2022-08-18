@@ -9,10 +9,10 @@ from typing import List
 
 import meshio
 import vtk
-from ansys.heart.preprocessor.global_parameters import VALID_MODELS
-from ansys.heart.preprocessor.cavity_module import Cavity
-from ansys.heart.preprocessor.model_information import ModelInformation
-from ansys.heart.preprocessor.vtk_module import (
+from ansys.heart.preprocessor._deprecated_global_parameters import VALID_MODELS
+from ansys.heart.preprocessor._deprecated_cavity_module import Cavity
+from ansys.heart.preprocessor._deprecated_model_information import ModelInformation
+from ansys.heart.preprocessor.mesh.vtkmethods import (
     create_vtk_surface_triangles,
     write_vtkdata_to_vtkfile,
     vtk_surface_filter,
@@ -28,7 +28,6 @@ from ansys.heart.preprocessor.vtk_module import (
     vtk_map_discrete_cell_data,
     add_vtk_array,
     create_vtk_polydata_from_points,
-    remove_triangle_layers_from_trimesh,
     smooth_polydata,
     extrude_polydata,
     cell_ids_inside_enclosed_surface,
@@ -37,13 +36,14 @@ from ansys.heart.preprocessor.vtk_module import (
     remove_duplicate_nodes,
     rename_vtk_array,
 )
-from ansys.heart.preprocessor.mesh_module import (
-    shrink_by_spaceclaim,
-    run_gmsh,
+from ansys.heart.preprocessor.mesh.connectivity import remove_triangle_layers_from_trimesh
+
+from ansys.heart.preprocessor.mesh.mesher import (
+    _shrink_by_spaceclaim,
+    _run_gmsh,
     mesh_by_fluentmeshing,
-    add_solid_name_to_stl,
 )
-from ansys.heart.preprocessor.fluenthdf5_module import fluenthdf5_to_vtk
+from ansys.heart.preprocessor.mesh.fluenthdf5 import fluenthdf5_to_vtk, add_solid_name_to_stl
 
 # import logger
 from ansys.heart.custom_logging import LOGGER
@@ -369,10 +369,10 @@ class HeartMesh:
         if use_gmesh:
             # launch spaceclaim to wrap the surface
             LOGGER.debug("\tLaunching SpaceClaim...")
-            shrink_by_spaceclaim(input_stl_spaceclaim, output_stl_spaceclaim)
+            _shrink_by_spaceclaim(input_stl_spaceclaim, output_stl_spaceclaim)
 
             LOGGER.debug("\tLaunching GMESH...")
-            run_gmsh(output_stl_spaceclaim, output_vtk, mesh_size)
+            _run_gmsh(output_stl_spaceclaim, output_vtk, mesh_size)
 
             # extract tetrahedrons
             convert_vtk_into_tetra_only(output_vtk)

@@ -8,15 +8,63 @@ import pathlib
 from ansys.heart.preprocessor._load_template import load_template
 from ansys.heart.preprocessor import SC_EXE, FLUENT_EXE
 from ansys.heart.custom_logging import LOGGER
+import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5
 
-# for fluent:
 import ansys.fluent.core as pyfluent
 
 _template_directory = os.path.join(os.path.dirname(__file__), "template")
 
-"""Module contains methods for mesh operations"""
+"""Module contains methods for interaction with Fluent meshing """
 
-## for remeshing purposes
+
+def fluentmeshing(
+    path_to_stl_directory: str,
+    path_to_output: str,
+    mesh_size: float = 2.0,
+    journal_type: str = "improved",
+    show_gui: bool = False,
+):
+    """Uses Fluent meshing to wrap the surface and create tetrahedral mesh"""
+
+    if journal_type not in ["improved"]:
+        raise ValueError("Journal type %s not found " % journal_type)
+
+    # change directory to directory of stl file
+    old_directory = os.getcwd()
+    working_directory = path_to_stl_directory
+    os.chdir(working_directory)
+
+    if journal_type == "improved":
+        var_for_template = {
+            "work_directory": working_directory,
+            "output_path": path_to_output,
+            "mesh_size": mesh_size,
+        }
+        template = load_template("fluent_meshing_template_improved.jou")
+
+    script = os.path.join(path_to_stl_directory, "fluent_meshing.jou")
+
+    with open(script, "w") as f:
+        f.write(template.render(var_for_template))
+
+    num_cpus = 2
+
+    # start Fluent session using PyFluent:
+    # TODO: Catch errors in session
+    session = pyfluent.launch_fluent(
+        meshing_mode=True,
+        precision="double",
+        processor_count=num_cpus,
+        start_transcript=False,
+        show_gui=show_gui,
+    )
+    session.meshing.tui.file.read_journal(script)
+    session.exit()
+
+    # change back to old directory
+    os.chdir(old_directory)
+
+    return
 
 
 def mesh_by_fluentmeshing(
@@ -78,7 +126,7 @@ def mesh_by_fluentmeshing(
     return
 
 
-def shrink_by_spaceclaim(input, output):
+def _shrink_by_spaceclaim(input, output):
     """Uses SpaceClaim shrinkwrapping to wrap surface and
     create high quality surface mesh"""
 
@@ -100,7 +148,7 @@ def shrink_by_spaceclaim(input, output):
     return
 
 
-def run_gmsh(infile: str, outfile: str, mesh_size):
+def _run_gmsh(infile: str, outfile: str, mesh_size):
     """Runs GMESH with specified in/output file
     and target mesh size
 
@@ -139,33 +187,6 @@ def run_gmsh(infile: str, outfile: str, mesh_size):
     #     gmsh.fltk.run()
     #
     # gmsh.finalize()
-    return
-
-
-def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii"):
-    """Adds name of solid to stl file. Supports only single block"""
-    if file_type == "ascii":
-        start_str = "solid"
-        end_str = "endsolid"
-        f = open(filename, "r")
-        list_of_lines = f.readlines()
-        f.close()
-        list_of_lines[0] = "{0} {1}\n".format(start_str, solid_name)
-        list_of_lines[-1] = "{0} {1}\n".format(end_str, solid_name)
-
-        f = open(filename, "w")
-        f.writelines(list_of_lines)
-        f.close()
-    # replace part name in binary file
-    elif file_type == "binary":
-        fid = open(filename, "r+b")
-        fid.seek(0)
-        data = fid.read(40)
-        fid.seek(0)
-        string_replace = "{:<40}".format(solid_name).encode()
-        fid.write(string_replace)
-        fid.close()
-
     return
 
 

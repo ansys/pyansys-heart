@@ -297,6 +297,32 @@ def face_group_to_tetrahedrons(face_group: h5py.Group, face_zone_names: List[str
     return tetrahedrons - 1
 
 
+def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii"):
+    """Adds name of solid to stl file. Supports only single block"""
+    if file_type == "ascii":
+        start_str = "solid"
+        end_str = "endsolid"
+        f = open(filename, "r")
+        list_of_lines = f.readlines()
+        f.close()
+        list_of_lines[0] = "{0} {1}\n".format(start_str, solid_name)
+        list_of_lines[-1] = "{0} {1}\n".format(end_str, solid_name)
+
+        f = open(filename, "w")
+        f.writelines(list_of_lines)
+        f.close()
+    # replace part name in binary file
+    elif file_type == "binary":
+        fid = open(filename, "r+b")
+        fid.seek(0)
+        data = fid.read(40)
+        fid.seek(0)
+        string_replace = "{:<40}".format(solid_name).encode()
+        fid.write(string_replace)
+        fid.close()
+
+    return
+
 if __name__ == "__main__":
     print("protected")
     hdf5_filename = r"D:\development\pyheart-lib\pyheart-lib\examples\heart\workdir\Strocchi2020\FullHeart\volume_mesh.msh.h5"

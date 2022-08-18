@@ -6,9 +6,10 @@ import pathlib as Path
 # NOTE: could be replaced?
 import os
 import sys
-abspath = os.path.dirname( os.path.abspath(__file__) )
-base_path = os.path.abspath( os.path.join(abspath, "..", "..") )
-sys.path.insert(0, base_path )
+
+abspath = os.path.dirname(os.path.abspath(__file__))
+base_path = os.path.abspath(os.path.join(abspath, "..", ".."))
+sys.path.insert(0, base_path)
 
 # dynalib_path = r"D:\development\dynalib\dynalib"
 # sys.path.insert(0, dynalib_path)
@@ -47,6 +48,8 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
 ]
+
+autodoc_member_order = "bysource"
 
 # Intersphinx mapping
 intersphinx_mapping = {

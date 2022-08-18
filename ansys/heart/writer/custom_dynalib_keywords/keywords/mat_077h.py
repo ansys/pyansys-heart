@@ -10,7 +10,7 @@ This files contains the keywords that is not supported by dynalib
 
 class Mat077H(KeywordBase):
     """DYNA MAT_077_H keyword
-        Replace the bug in current version of dynalib
+    Replace the bug in current version of dynalib
 
     """
 
@@ -48,8 +48,23 @@ class Mat077H(KeywordBase):
     def _get_title(self):
         return f"*MAT_077_H"
 
+    @property
+    def mid(self) -> typing.Optional[int]:
+        """Get or set the Material ID: refers to MID in the *PART card."""  # nopep8
+        return self._cards[0].get_value("mid")
+
+    @mid.setter
+    def mid(self, value: int) -> None:
+        self._cards[0].set_value("mid", value)
+
 
 if __name__ == "__main__":
     # test isotropic material
-    material_iso_kw = Mat077H(mid=1, ro=1e-6, pr=0.499, n=0, c10=7.45,)
+    material_iso_kw = Mat077H(
+        mid=1,
+        ro=1e-6,
+        pr=0.499,
+        n=0,
+        c10=7.45,
+    )
     print(material_iso_kw)

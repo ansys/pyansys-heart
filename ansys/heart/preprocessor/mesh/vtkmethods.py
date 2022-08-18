@@ -7,7 +7,7 @@ import numpy as np
 import meshio
 
 from ansys.heart.custom_logging import LOGGER
-from ansys.heart.preprocessor.mesh_module import add_solid_name_to_stl
+from ansys.heart.preprocessor.mesh.fluenthdf5 import add_solid_name_to_stl
 
 from typing import List, Union
 
@@ -57,7 +57,7 @@ def read_vtk_polydata_file(path_to_vtk: str):
     return reader.GetOutput()
 
 
-def vtk_read_mesh_file(path_to_mesh: str):
+def vtk_read_mesh_file(path_to_mesh: str) -> vtk.vtkUnstructuredGrid():
     """Reads either ensight format or vtk format into vtk polydata"""
 
     mesh_extension = Path(path_to_mesh).suffix
@@ -1400,7 +1400,7 @@ def smooth_polydata(vtk_polydata: vtk.vtkPolyData) -> vtk.vtkPolyData:
 
 def cell_ids_inside_enclosed_surface(
     vtk_source: vtk.vtkUnstructuredGrid, vtk_surface: vtk.vtkPolyData
-) -> vtk.vtkUnstructuredGrid:
+) -> np.ndarray:
     """Tags any cells that are inside
 
     Parameters
@@ -1442,81 +1442,6 @@ def cell_ids_inside_enclosed_surface(
     cell_ids_inside = np.where(output_dsa.PointData["SelectedPoints"] == 1)[0]
 
     return cell_ids_inside
-
-
-def get_edges_from_triangles(triangles: np.array) -> np.array:
-    """Generates an array of edges from a array of triangles"""
-    num_triangles = triangles.shape[0]
-    num_edges = num_triangles * 3
-    edges = np.repeat(triangles, 3, axis=0)
-    mask = np.tile(
-        np.array([[1, 1, 0], [0, 1, 1], [1, 0, 1]], dtype=bool),
-        (num_triangles, 1),
-    )
-    edges = np.reshape(edges[mask], (num_edges, 2))
-
-    return edges
-
-
-def get_free_edges(triangles: np.array, return_free_triangles: bool = False) -> np.array:
-    """Gets the boundary edges that are only referenced once"""
-
-    edges = get_edges_from_triangles(triangles)
-
-    edges_sort = np.sort(edges, axis=1)
-
-    unique_edges, idx, counts = np.unique(edges_sort, axis=0, return_counts=True, return_index=True)
-    free_edges = edges[idx, :][counts == 1, :]
-
-    if not return_free_triangles:
-        return free_edges
-
-    elif return_free_triangles:
-        # get free triangles
-        free_triangles = triangles[
-            np.argwhere(np.sum(np.isin(triangles, free_edges), axis=1) == 2).flatten(), :
-        ]
-
-        return free_edges, free_triangles
-
-
-def remove_triangle_layers_from_trimesh(triangles: np.array, iters: int = 1) -> np.array:
-    """Identifies triangles connected to the boundary, and removes these from the triangle list
-
-    Parameters
-    ----------
-    triangles : np.array
-        Array of triangles
-    iters : int, optional
-        Number of iterations, by default 1
-
-    Returns
-    -------
-    np.array
-        Reduced set of triangles
-    """
-    reduced_triangles = copy.deepcopy(triangles)
-    for ii in range(0, iters, 1):
-        num_triangles = reduced_triangles.shape[0]
-        edges = get_edges_from_triangles(reduced_triangles)
-        free_edges = get_free_edges(reduced_triangles)
-
-        # find elements connected to the free edges
-        edges = np.reshape(edges, (3, 2, num_triangles))
-        free_nodes = np.unique(free_edges)
-
-        idx_triangles_boundary = np.any(np.isin(reduced_triangles, free_nodes), axis=1)
-        # idx_triangles_boundary = np.any(
-        #     np.all( np.isin(edges, free_edges),
-        #         axis = 1),
-        #     axis = 0 )
-
-        LOGGER.debug("Removing {0} connected triangles".format(np.sum(idx_triangles_boundary)))
-
-        # remove boundary triangles
-        reduced_triangles = reduced_triangles[~idx_triangles_boundary, :]
-
-    return reduced_triangles
 
 
 def get_connected_regions(

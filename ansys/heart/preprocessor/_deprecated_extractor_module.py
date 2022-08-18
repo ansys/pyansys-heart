@@ -5,12 +5,13 @@ from scipy.spatial import KDTree
 from vtk.util import numpy_support as VN  # noqa
 from vtk.numpy_interface import dataset_adapter as dsa  # this is an improved numpy integration
 
-from ansys.heart.preprocessor.geodisc_module import project_3d_points
-from ansys.heart.preprocessor.geodisc_module import (
+from ansys.heart.preprocessor.mesh.geodisc import project_3d_points
+from ansys.heart.preprocessor.mesh.geodisc import (
     get_closed_path,
     rodrigues_rot,
     sort_aniclkwise,
 )
+
 
 def find_superior_cap(p_set, mesh):
     """
@@ -30,7 +31,9 @@ def find_superior_cap(p_set, mesh):
 
 
 def get_nodes_cap_edge(
-    points_close_to_surface: np.array, surface: vtk.vtkPolyData, surface_points_coord=None,
+    points_close_to_surface: np.array,
+    surface: vtk.vtkPolyData,
+    surface_points_coord=None,
 ):
     """Gets the nodes which close each of the cavities. Returns the node
     indices that close the cap. Local node numbering is used

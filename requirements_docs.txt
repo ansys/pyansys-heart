@@ -1,6 +1,12 @@
 aiohttp==3.8.1
 aiosignal==1.2.0
 alabaster==0.7.12
+ansys-api-fluent==0.2.0
+ansys-api-platform-instancemanagement==1.0.0b3
+ansys-fluent-core==0.10.1
+ansys-heart-lib==0.1.dev0
+ansys-platform-instancemanagement==1.0.2
+appdirs==1.4.4
 async-timeout==4.0.2
 asynctest==0.13.0
 attrs==21.4.0
@@ -15,7 +21,10 @@ cycler==0.11.0
 docutils==0.17.1
 fonttools==4.33.3
 frozenlist==1.3.0
+geomdl==5.3.1
 gmsh==4.10.3
+googleapis-common-protos==1.56.4
+grpcio==1.47.0
 h5py==3.6.0
 idna==3.3
 imagesize==1.3.0
@@ -31,6 +40,9 @@ numpydoc==1.3.1
 packaging==21.3
 pandas==1.3.5
 Pillow==9.1.1
+pip==22.1.2
+protobuf==3.20.1
+protoc-gen-swagger==0.1.0
 pyansys-sphinx-theme==0.3.1
 pydata-sphinx-theme==0.8.1
 Pygments==2.12.0
@@ -40,6 +52,7 @@ pytz==2022.1
 requests==2.27.1
 rich==12.4.4
 scipy==1.7.3
+setuptools==61.2.0
 six==1.16.0
 snowballstemmer==2.2.0
 soupsieve==2.3.2.post1
@@ -51,9 +64,11 @@ sphinxcontrib-htmlhelp==2.0.0
 sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.5
+tqdm==4.64.0
 typing_extensions==4.2.0
 urllib3==1.26.9
 vtk==9.1.0
+wheel==0.37.1
 wincertstore==0.2
 wslink==1.6.5
 yarl==1.7.2

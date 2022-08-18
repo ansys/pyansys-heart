@@ -1,0 +1,24 @@
+{
+  "Unit System": "kPa, mm, mN, s",
+  "Global damping": 500.0,
+  "Boundary Condition": {
+    "Valve Spring": [
+      5.0,
+      20.0
+    ],
+    "Normal Scale factor": 0.5,
+    "Radial Scale factor": 1.0
+  },
+  "Pericardium": {
+    "Penalty function": [
+      0.1,
+      25
+    ],
+    "Spring Stiffness": 50.0,
+    "Spring Type": "apex-mitral-direction"
+  },
+  "ED pressure": {
+    "Left Ventricle": 2.0,
+    "Right Ventricle": 0.53333
+  }
+}

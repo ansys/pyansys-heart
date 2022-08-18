@@ -430,7 +430,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         for part in self.model.parts:
             if type(self) == MechanicsDynaWriter:
-                if "ventricle" in part.name:
+                if "ventricle" in part.name.lower() or "septum" in part.name.lower():
                     add_fibers = True
                 else:
                     add_fibers = False
@@ -683,7 +683,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             part.mid = part.pid
             mat_id = part.mid
 
-            if "ventricle" in part.name:
+            if "ventricle" in part.name.lower() or "septum" in part.name.lower():
                 myocardium_kw = MaterialHGOMyocardium(
                     mid=part.mid, add_anisotropy=True, add_active=add_active
                 )

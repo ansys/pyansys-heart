@@ -2125,7 +2125,6 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         # since that would allow you to robustly extract these nodessets using the
         # input data
         # The below is relevant for all models.
-        nodes_base = np.empty(0, dtype=int)
         node_apex_left = np.empty(0, dtype=int)
         node_apex_right = np.empty(0, dtype=int)
         edge_id_start_left = np.empty(0, dtype=int)
@@ -2136,9 +2135,61 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
             node_apex_left = self.model.left_ventricle.apex_points[0].node_id
             segment_set_ids_endo_left = self.model.left_ventricle.endocardium.id
 
+            # check whether point is on edge of endocardium - otherwise pick another node in
+            # the same triangle
+            endocardium = self.model.left_ventricle.endocardium
+            endocardium.get_boundary_edges()
+            if np.any(endocardium.boundary_edges == node_apex_left):
+                element_id = np.argwhere(np.any(endocardium.faces == node_apex_left, axis=1))[0][0]
+
+                node_apex_left = endocardium.faces[element_id, :][
+                    np.argwhere(
+                        np.isin(
+                            endocardium.faces[element_id, :],
+                            endocardium.boundary_edges,
+                            invert=True,
+                        )
+                    )[0][0]
+                ]
+                LOGGER.warning(
+                    "Node id {0} is on edge of {1}. Picking node id {2}".format(
+                        self.model.left_ventricle.apex_points[0].node_id,
+                        endocardium.name,
+                        node_apex_right,
+                    )
+                )
+                self.model.left_ventricle.apex_points[0].node_id = node_apex_left
+
         if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             node_apex_right = self.model.right_ventricle.apex_points[0].node_id
             segment_set_ids_endo_right = self.model.right_ventricle.endocardium.id
+
+            # check whether point is on edge of endocardium - otherwise pick another node in
+            # the same triangle
+            endocardium = self.model.right_ventricle.endocardium
+            endocardium.get_boundary_edges()
+            if np.any(endocardium.boundary_edges == node_apex_right):
+                element_id = np.argwhere(np.any(endocardium.faces == node_apex_right, axis=1))[0][0]
+
+                node_apex_right = endocardium.faces[element_id, :][
+                    np.argwhere(
+                        np.isin(
+                            endocardium.faces[element_id, :],
+                            endocardium.boundary_edges,
+                            invert=True,
+                        )
+                    )[0][0]
+                ]
+                LOGGER.warning(
+                    "Node id {0} is on edge of {1}. Picking node id {2}".format(
+                        self.model.right_ventricle.apex_points[0].node_id,
+                        endocardium.name,
+                        node_apex_right,
+                    )
+                )
+                self.model.right_ventricle.apex_points[0].node_id = node_apex_right
+
+        # check whether apical points are on the endge of the endocardium
 
         # NOTE: is this still relevant applicable with the new structure?
         # NOTE: validate node set by removing any nodes that do not occur in either ventricle

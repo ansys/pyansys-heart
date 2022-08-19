@@ -577,7 +577,7 @@ class HeartModel:
             LOGGER.warning("No mesh size set: setting to uniform size of 1.5 mm")
             self.info.mesh_size = 1.5
 
-        mesher.fluentmeshing(
+        mesher.mesh_tissue_by_fluent(
             self.info.workdir,
             path_mesh_file,
             mesh_size=self.info.mesh_size,
@@ -675,6 +675,25 @@ class HeartModel:
         # cleanup
         os.remove(filename_original)
         os.remove(filename_remeshed)
+        return
+
+    def _add_volume_mesh_for_blood_pool(self):
+        """Adds a volume mesh for the (interior) blood pool
+
+        Notes
+        -----
+        Uses the (fluent) mesh of the tissue as reference, and generates
+        patches from the cap nodes
+        """
+        path_to_input_mesh = os.path.join(self.info.workdir, "fluent_volume_mesh.msh.h5")
+        path_to_output_mesh = path_to_input_mesh.replace(".msh.h5", "_with_interior.msh.h5")
+
+        caps = [c for p in self.parts for c in p.caps]
+
+        mesher.mesh_cavity_interior_by_fluent(
+            path_to_input_mesh, path_to_output_mesh, caps, show_gui=True
+        )
+
         return
 
     def _update_parts(self):

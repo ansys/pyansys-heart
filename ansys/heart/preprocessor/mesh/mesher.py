@@ -3,9 +3,11 @@ import subprocess
 import numpy as np
 import gmsh
 import pathlib
+from typing import List
 
 
 from ansys.heart.preprocessor._load_template import load_template
+from ansys.heart.preprocessor.mesh.objects import Cap
 from ansys.heart.preprocessor import SC_EXE, FLUENT_EXE
 from ansys.heart.custom_logging import LOGGER
 import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5
@@ -17,7 +19,7 @@ _template_directory = os.path.join(os.path.dirname(__file__), "template")
 """Module contains methods for interaction with Fluent meshing """
 
 
-def fluentmeshing(
+def mesh_tissue_by_fluent(
     path_to_stl_directory: str,
     path_to_output: str,
     mesh_size: float = 2.0,
@@ -62,6 +64,56 @@ def fluentmeshing(
     session.exit()
 
     # change back to old directory
+    os.chdir(old_directory)
+
+    return
+
+
+def mesh_cavity_interior_by_fluent(
+    path_to_input_mesh: str,
+    path_to_output: str,
+    caps: List[Cap],
+    mesh_size: float = 2.0,
+    show_gui: bool = False,
+):
+    """Meshes the interior of each cavity"""
+    old_directory = os.getcwd()
+    working_directory = os.path.dirname(path_to_input_mesh)
+    os.chdir(working_directory)
+
+    # create dictionary for caps
+    cap_dict: dict = {}
+    for cap in caps:
+        if cap.name not in list(cap_dict.keys()):
+            node_ids_str = " ".join(['"bn{}"'.format(nid + 1) for nid in cap.node_ids])
+            cap_dict[cap.name] = node_ids_str
+
+    var_for_template = {
+        "input_mesh_file": path_to_input_mesh,
+        "output_path": path_to_output,
+        "caps": cap_dict,
+    }
+    template = load_template("fluent_meshing_template_add_blood_mesh.jou")
+
+    script = os.path.join(working_directory, "fluent_interior_meshing.jou")
+
+    with open(script, "w") as f:
+        f.write(template.render(var_for_template))
+
+    num_cpus = 2
+
+    # start Fluent session using PyFluent:
+    # TODO: Catch errors in session
+    session = pyfluent.launch_fluent(
+        meshing_mode=True,
+        precision="double",
+        processor_count=num_cpus,
+        start_transcript=False,
+        show_gui=show_gui,
+    )
+    session.meshing.tui.file.read_journal(script)
+    session.exit()
+
     os.chdir(old_directory)
 
     return

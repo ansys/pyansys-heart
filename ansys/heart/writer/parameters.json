@@ -1,5 +1,8 @@
 {
-  "Unit System": "kPa, mm, mN, s, kg",
+  "Unit": {
+    "Time": "s",
+    "Consistent System": "kPa, mm, mN, s, kg"
+  },
   "Time": {
     "End Time": 5.0,
     "dtmin": 0.001,
@@ -19,11 +22,16 @@
         "k2": 9.01
       },
       "Active": {
-        "Tmax": 125,
-        "time unit": "s"
+        "Tmax": 125
       }
     },
-    "Atrium": "undo"
+    "Atrium": {
+      "rho": 1e-6,
+      "itype": -1,
+      "mu1": 34.9,
+      "alpha1": 2,
+      "Comment": "Shoule be equivalent with MAT_077_H"
+    }
   },
   "Cap": {
     "Density": 1.0e-6,

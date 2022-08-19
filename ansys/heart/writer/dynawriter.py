@@ -709,12 +709,19 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             elif "atrium" in part.name:
                 # add atrium material
-                atrium_kw = MaterialAtrium(mid=part.mid)
+                # atrium_kw = MaterialAtrium(mid=part.mid)
+                atrium_kw = MaterialHGOMyocardium(
+                    mid=part.mid, iso_user=self.parameters["Material"]["Atrium"]
+                )
                 self.kw_database.material.append(atrium_kw)
 
             else:
                 LOGGER.warning("Assuming same material as atrium for: {0}".format(part.name))
-                general_tissue_kw = MaterialAtrium(mid=part.mid)
+                # general_tissue_kw = MaterialAtrium(mid=part.mid)
+                general_tissue_kw = MaterialHGOMyocardium(
+                    mid=part.mid, iso_user=self.parameters["Material"]["Atrium"]
+                )
+
                 self.kw_database.material.append(general_tissue_kw)
 
         if add_active:
@@ -727,17 +734,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 curve_id=act_curve_id,
                 lcint=15000,
             )
+            if self.parameters["Unit"]["Time"] == "ms":
+                active_curve_kw.sfa = 1000  # x scaling: to Millisecond
+
             active_curve_kw.sfo = 4.35  # y scaling
-            active_curve_kw.offa = 1.00  # x offset
+            active_curve_kw.offa = 1.00  # x offset: prefill time
             self.kw_database.material.append(active_curve_kw)
 
-        return
-
-    def _update_boundary_conditions_db(self):
-        """Updates the boundary conditions keyword database"""
-
-        # self._add_cap_bc(bc_type="fix_all_caps")
-        pass
         return
 
     def _add_cap_bc(self, bc_type: str):

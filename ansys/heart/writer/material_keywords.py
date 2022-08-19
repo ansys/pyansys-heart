@@ -61,14 +61,9 @@ class MaterialHGOMyocardium(keywords.Mat295):
         # initialize isotropic module
         super().__init__(
             mid=mid,
-            rho=base["rho"],
-            aopt=base["aopt"],
-            itype=base["itype"],
-            beta=base["beta"],
-            nu=base["nu"],
-            k1=base["k1"],
-            k2=base["k2"],
         )
+        for k, v in base.items():
+            setattr(self, k, v)
         if anisotropy_user is not None:
             # Default parameters
             anisotropy = {
@@ -114,117 +109,6 @@ class MaterialHGOMyocardium(keywords.Mat295):
             # transfer into keywords
             for k, v in active.items():
                 setattr(self, k, v)
-
-
-# class MaterialHGOMyocardium(keywords.Mat295):
-#     """Material for the myocardium. Either with active,
-#     passive, or both modules activated
-#
-#     Parameters
-#     ----------
-#     keywords : keywords.Mat295
-#         Base keyword from which to derive this keyword
-#
-#     Note
-#     ------
-#     How to properly parse material settings
-#     """
-#
-#     def __init__(
-#         self,
-#         mid: int = 1,
-#         rho: float = 1e-6,
-#         aopt: float = 2.0,
-#         add_anisotropy: bool = False,
-#         add_active: bool = False,
-#     ):
-#         # some defaults for the isotropic module
-#         itype: int = -3
-#         beta: float = 0.0
-#         nu: float = 0.499
-#         k1: float = 2.36
-#         k2: float = 1.75
-#
-#         # initialize isotropic module
-#         super().__init__(
-#             mid=mid,
-#             rho=rho,
-#             aopt=aopt,
-#             itype=itype,
-#             beta=beta,
-#             nu=nu,
-#             k1=k1,
-#             k2=k2,
-#         )
-#
-#         if not add_anisotropy and add_active:
-#             raise ValueError("Cannot add active module if not adding anisotropy")
-#
-#         # add defaults for anisotropic module
-#         if add_anisotropy:
-#             self.atype = -1
-#             self.intype = 0
-#             self.nf = 1  # number of fibers
-#
-#             # activates fiber type of the anisotropic module
-#             ftype_aniso = 1
-#             self.ftype = ftype_aniso
-#
-#             # prepare pandas dataframe:
-#             columns = self.anisotropic_settings.columns
-#             theta_aniso = 0.0
-#             a_aniso = 0.08
-#             b_aniso = 0.76
-#
-#             fcid_aniso = 0
-#             k1_aniso = 0.49
-#             k2_aniso = 9.01
-#             aniso_data = np.array(
-#                 [[theta_aniso, a_aniso, b_aniso, ftype_aniso, fcid_aniso, k1_aniso, k2_aniso]]
-#             )
-#
-#             df = pd.DataFrame(data=aniso_data, columns=columns[0:7])
-#
-#             # once set cannot change?
-#             self.anisotropic_settings = df
-#
-#         if add_active:
-#             self._add_active_module(model_type="GuccioneWaldmanMcCulloch")
-#
-#             self.acdir = 1
-#
-#             self.acid = 15  # could be changed
-#             self.acthr = 0.1
-#             self.sf = 1.0
-#             self.ss = 0.02
-#             self.sn = 0.02
-#
-#             # adds active fibers
-#
-#     def _add_active_module(self, model_type: str = "GuccioneWaldmanMcCulloch"):
-#         """Adds the GuccioneWaldmanMcCulloch active module
-#
-#         Parameters
-#         ----------
-#         model_type : str, optional
-#             Active model type, by default "GuccioneWaldmanMcCulloch"
-#         """
-#         if model_type == "GuccioneWaldmanMcCulloch":
-#             # activates actype 2
-#             self.actype = 2
-#             # parameters of actype 2
-#             self.ca2ionm = 4.35
-#             self.n = 2
-#             self.taumax = 125
-#             self.stf = 0.0
-#             self.b = 4.75
-#             self.l0 = 1.58
-#             self.l = 1.78
-#             self.eta = 1.45
-#         else:
-#             raise ValueError("Model type: %s not supported" % model_type)
-#
-#         return
 
 
 def active_curve(
@@ -293,8 +177,14 @@ if __name__ == "__main__":
     dct2 = {"k1": 1, "k2": 2}
     dct3 = {"acid": 15, "taumax": 125}
     kw = MaterialHGOMyocardium(mid=1, iso_user=dct, anisotropy_user=dct2, active_user=dct3)
+
     print(kw)
-
-    kw = MaterialAtrium()
-
-    print()
+    dct4 = {
+        "rho": 1e-6,
+        "itype": -1,
+        "mu1": 34.9,
+        "alpha1": 2,
+        "Comment": "Shoule be equivalent with MAT_077_H",
+    }
+    kw = MaterialHGOMyocardium(mid=1, iso_user=dct4)
+    print(kw)

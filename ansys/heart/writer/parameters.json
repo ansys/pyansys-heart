@@ -1,5 +1,36 @@
 {
-  "Unit System": "kPa, mm, mN, s",
+  "Unit System": "kPa, mm, mN, s, kg",
+  "Time": {
+    "End Time": 5.0,
+    "dtmin": 0.001,
+    "dtmax": 0.01,
+    "dt_d3plot": 0.05,
+    "dt_icvout": 0.001
+  },
+  "Material": {
+    "Myocardium": {
+      "Isotropic": {
+        "rho": 1e-6,
+        "k1": 2.36,
+        "k2": 1.75
+      },
+      "Anisotropic": {
+        "k1": 0.49,
+        "k2": 9.01
+      },
+      "Active": {
+        "Tmax": 125,
+        "time unit": "s"
+      }
+    },
+    "Atrium": "undo"
+  },
+  "Cap": {
+    "Density": 1.0e-6,
+    "nu": 0.499,
+    "c10": 1000,
+    "Thickness": 5.0
+  },
   "Global damping": 500.0,
   "Boundary Condition": {
     "Valve Spring": [
@@ -20,5 +51,32 @@
   "ED pressure": {
     "Left Ventricle": 2.0,
     "Right Ventricle": 0.53333
+  },
+  "Circulation System": {
+    "Name": "ConstantPreloadWindkesselAfterload",
+    "Left Ventricle": {
+      "Constant": {
+        "Rv": 5.0e-6,
+        "Ra": 1.0e-5,
+        "Rp": 1.2e-4,
+        "Ca": 2.5e4,
+        "Pven": 2
+      },
+      "Initial Value": {
+        "part_init": 8
+      }
+    },
+    "Right Ventricle": {
+      "Constant": {
+        "Rv": 2.5e-6,
+        "Ra": 0.35e-5,
+        "Rp": 0.15e-4,
+        "Ca": 11.25e4,
+        "Pven": 0.53333
+      },
+      "Initial Value": {
+        "part_init": 2
+      }
+    }
   }
 }

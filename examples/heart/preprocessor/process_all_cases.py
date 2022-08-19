@@ -47,7 +47,7 @@ if __name__ == "__main__":
                     if use_preprocessor:
                         model = run_preprocessor(
                             model_type=model_type,
-                            database="Strocchi2020",
+                            database=database,
                             path_original_mesh=case_path,
                             work_directory=workdir,
                             path_to_model=path_to_model,

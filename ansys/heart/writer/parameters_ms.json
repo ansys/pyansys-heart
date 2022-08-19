@@ -1,49 +1,49 @@
 {
   "Unit": {
-    "Time": "s",
-    "Consistent System": "kPa, mm, mN, s, kg"
+    "Time": "ms",
+    "Consistent System": "MPa, mm, N, ms, g"
   },
   "Time": {
-    "End Time": 5.0,
-    "dtmin": 0.001,
-    "dtmax": 0.01,
-    "dt_d3plot": 0.05,
-    "dt_icvout": 0.001
+    "End Time": 5000.0,
+    "dtmin": 1.0,
+    "dtmax": 10.0,
+    "dt_d3plot": 50.0,
+    "dt_icvout": 1.0
   },
   "Material": {
     "Myocardium": {
       "Isotropic": {
-        "rho": 1e-6,
-        "k1": 2.36,
+        "rho": 1e-3,
+        "k1": 2.36e-3,
         "k2": 1.75
       },
       "Anisotropic": {
-        "k1": 0.49,
+        "k1": 0.49e-3,
         "k2": 9.01
       },
       "Active": {
-        "Tmax": 125
+        "Tmax": 125e-3
       }
     },
     "Atrium": {
-      "rho": 1e-6,
+      "rho": 1e-3,
       "itype": -1,
-      "mu1": 34.9,
+      "mu1": 34.9e-3,
       "alpha1": 2,
       "Comment": "Shoule be equivalent with MAT_077_H"
     }
   },
   "Cap": {
-    "Density": 1.0e-6,
+    "Density": 1.0e-3,
     "nu": 0.499,
-    "c10": 1000,
+    "c10": 1000e-3,
     "Thickness": 5.0
   },
-  "Global damping": 500.0,
+  "Global damping": 500.0e-3,
   "Boundary Condition": {
     "Valve Spring": {
-      "BV": 5.0,
-      "4C": 20.0
+      "BV": 5.0e-3,
+      "4C": 20.0e-3
     },
     "Normal Scale factor": 0.5,
     "Radial Scale factor": 1.0
@@ -53,12 +53,12 @@
       0.1,
       25
     ],
-    "Spring Stiffness": 50.0,
+    "Spring Stiffness": 50.0e-3,
     "Spring Type": "apex-mitral-direction"
   },
   "ED pressure": {
-    "Left Ventricle": 2.0,
-    "Right Ventricle": 0.53333
+    "Left Ventricle": 2.0e-3,
+    "Right Ventricle": 0.53333e-3
   },
   "Circulation System": {
     "Name": "ConstantPreloadWindkesselAfterload",
@@ -67,11 +67,11 @@
         "Rv": 5.0e-6,
         "Ra": 1.0e-5,
         "Rp": 1.2e-4,
-        "Ca": 2.5e4,
-        "Pven": 2
+        "Ca": 2.5e7,
+        "Pven": 2e-3
       },
       "Initial Value": {
-        "part_init": 8
+        "part_init": 8e-3
       }
     },
     "Right Ventricle": {
@@ -79,11 +79,11 @@
         "Rv": 2.5e-6,
         "Ra": 0.35e-5,
         "Rp": 0.15e-4,
-        "Ca": 11.25e4,
-        "Pven": 0.53333
+        "Ca": 11.25e7,
+        "Pven": 0.53333e-3
       },
       "Initial Value": {
-        "part_init": 2
+        "part_init": 2e-3
       }
     }
   }

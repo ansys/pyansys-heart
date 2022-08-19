@@ -796,12 +796,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             if isinstance(self.model, (LeftVentricle, BiVentricle)):
                 spring_stiffness = self.parameters["Boundary Condition"]["Valve Spring"][
-                    0
+                    "BV"
                 ]  # kPa/mm
 
             elif isinstance(self.model, (FourChamber, FullHeart)):
                 spring_stiffness = self.parameters["Boundary Condition"]["Valve Spring"][
-                    1
+                    "4C"
                 ]  # kPa/mm
 
             scale_factor_normal = self.parameters["Boundary Condition"]["Normal Scale factor"]

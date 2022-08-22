@@ -108,7 +108,7 @@ class FluentCellZone:
 
         return
 
-    def set_cells(self, all_cells: np.ndarray) -> None:
+    def get_cells(self, all_cells: np.ndarray) -> None:
         """Selects the cells between min and max id from the list
         of all cells"""
         self.cells = all_cells[self.min_id : self.max_id]
@@ -153,256 +153,218 @@ class FluentFaceZone:
 class FluentMesh:
     """Class that stores the Fluent mesh"""
 
-    def __init__(self) -> None:
+    def __init__(self, filename: str = None) -> None:
+
+        self.filename: str = filename
+        """Path to file"""
         self.fid: h5py.File = None
         """File id to h5py file"""
-        self.filename: str = None
-        """Path to file"""
         self.nodes: np.ndarray = None
         """All nodes of the mesh"""
         self.faces: np.ndarray = None
         """All faces"""
         self.cells: np.ndarray = None
         """All cells"""
+        self.cell_ids: np.ndarray = None
+        """Array of cell ids use to define the cell zones"""
         self.cell_zones: List[FluentCellZone] = None
         """List of cell zones"""
         self.face_zones: List[FluentFaceZone] = None
         """List of face zones"""
+
         pass
 
-    def open_file(self, filename: str = None):
-        fid = h5py.File(self.filename, "r")
-        return fid
+    def load_mesh(self, filename: str = None, reconstruct_tetrahedrons: bool = True):
+        """Loads the mesh from the hdf5 file"""
+        self._open_file(filename)
 
+        self._read_nodes()
+        self._read_face_zone_info()
+        self._read_cell_zone_info()
 
-def get_cell_zones(fid: h5py.File) -> List[FluentCellZone]:
-    """Initializes the list of cell zones"""
+        self._read_all_faces_of_face_zones()
 
-    cell_zone_names = (
-        np.chararray.tobytes(np.array(fid["meshes/1/cells/zoneTopology/name"])).decode().split(";")
-    )
-    cell_zone_ids = np.array(fid["meshes/1/cells/zoneTopology/id"])
-    min_ids = np.array(fid["meshes/1/cells/zoneTopology/minId"])
-    max_ids = np.array(fid["meshes/1/cells/zoneTopology/maxId"])
-    cell_zones: List[FluentCellZone] = []
-    num_cell_zones = len(cell_zone_ids)
+        if reconstruct_tetrahedrons:
+            self._read_c0c1_of_face_zones()
+            self._convert_interior_faces_to_tetrahedrons()
+            self._set_cells_in_cell_zones()
 
-    for ii in range(0, len(cell_zone_names), 1):
-        cell_zones.append(
-            FluentCellZone(
-                name=cell_zone_names[ii],
-                cid=cell_zone_ids[ii],
-                min_id=min_ids[ii] - 1,
-                max_id=max_ids[ii] - 1,
-            )
-        )
-    return cell_zones
-
-
-def get_face_zones(fid: h5py.File) -> List[FluentFaceZone]:
-    """Initializes the list of face zones"""
-
-    ids = np.array(fid["meshes/1/faces/zoneTopology/id"])
-    max_ids = np.array(fid["meshes/1/faces/zoneTopology/maxId"])
-    min_ids = np.array(fid["meshes/1/faces/zoneTopology/minId"])
-    names = (
-        np.chararray.tobytes(np.array(fid["meshes/1/faces/zoneTopology/name"])).decode().split(";")
-    )
-    zone_types = np.array(fid["meshes/1/faces/zoneTopology/zoneType"])
-    num_face_zones = len(ids)
-    face_zones: List[FluentFaceZone] = []
-
-    for ii in range(0, num_face_zones, 1):
-        face_zones.append(
-            FluentFaceZone(
-                min_id=min_ids[ii],
-                max_id=max_ids[ii],
-                name=names[ii],
-                fid=ids[ii],
-                zone_type=zone_types[ii],
-                hdf5_id=ii + 1,
-            )
-        )
-    return face_zones
-
-
-def get_faces_of_face_zones(face_zones: List[FluentFaceZone], fid: h5py.File):
-    """Reads the faces of the face zone"""
-
-    for face_zone in face_zones:
-        subdir = "meshes/1/faces/nodes/" + str(face_zone.hdf5_id) + "/nodes"
-        subdir2 = "meshes/1/faces/nodes/" + str(face_zone.hdf5_id) + "/nnodes"
-        nnodes = np.array(fid[subdir2])
-        if not np.all(nnodes == 3):
-            raise ValueError("Only triangular meshes supported")
-
-        node_ids = np.array(fid[subdir])
-        num_triangles = int(len(node_ids) / 3)
-        face_zone.faces = np.reshape(node_ids, (num_triangles, 3))
-
-    return face_zones
-
-
-def get_c0c1_of_face_zones(face_zones: List[FluentFaceZone], fid: h5py.File):
-    """Reads the cell connectivity of the face zone. Only do for interior cells"""
-
-    for face_zone in face_zones:
-        if face_zone.zone_type != 2 or "interior" not in face_zone.name:
-            continue
-
-        subdir0 = "meshes/1/faces/c0/" + str(face_zone.hdf5_id)
-        subdir1 = "meshes/1/faces/c1/" + str(face_zone.hdf5_id)
-
-        c0c1 = np.array([fid[subdir0], fid[subdir1]]).T
-
-        face_zone.c0c1 = c0c1
-
-    return face_zones
-
-
-def interior_face_zone_to_tetrahedrons(face_zone: FluentFaceZone, mesh: FluentMesh):
-    """Uses c0c1 matrix to get tetrahedrons"""
-
-    # exploit unique to find indices of face pairs
-    if "interior" not in face_zone.name:
-        print("Expecting face zone name to contain 'interior'")
+        self._close_file()
         return
-    faces = face_zone.faces
 
-    # print("Processing: {}".format(face_zone.name))
+    def _set_cells_in_cell_zones(self):
+        """Iterates over the cell zones and assigns cells to them"""
+        for cell_zone in self.cell_zones:
+            zone_cell_ids = np.arange(cell_zone.min_id, cell_zone.max_id, 1)
+            mask = np.isin(self.cell_ids, zone_cell_ids)
+            cell_zone.cells = self.cells[mask, :]
 
-    c0c1 = face_zone.c0c1.T.ravel()
+        return self.cell_zones
 
-    cell_ids1, idx1, counts1 = np.unique(c0c1, return_index=True, return_counts=True)
-    cell_ids2, idx2, counts2 = np.unique(np.flipud(c0c1), return_index=True, return_counts=True)
+    def _open_file(self, filename: str = None):
+        """Opens the file for reading"""
+        if not filename and not self.filename:
+            raise ValueError("Please specify input file")
+        elif not filename:
+            filename = self.filename
+        else:
+            self.filename = filename
 
-    faces_temp = np.vstack([faces, faces])
+        if filename[-7:] != ".msh.h5":
+            raise FileNotFoundError("File does not have extension '.msh.h5'")
 
-    f1 = faces_temp[idx1, :]
-    f2 = np.flipud(faces_temp)[idx2, :]
+        self.fid = h5py.File(filename, "r")
+        return self.fid
 
-    # Find node in connected face which completes tetrahedron
-    mask = (f2[:, :, None] == f1[:, None, :]).any(-1)
-    mask = np.invert(mask)
+    def _close_file(self):
+        """Closes file"""
+        self.fid.close()
 
-    if not np.all(np.sum(mask, axis=1) == 1):
-        raise ValueError("The two faces do not seem to be connected with two nodes")
+    def _read_nodes(self):
+        """Reads the node field(s)"""
+        self.nodes = np.zeros((0, 3), dtype=float)
+        for ii in np.array(fid["meshes/1/nodes/coords"]):
+            self.nodes = np.vstack([self.nodes, np.array(fid["meshes/1/nodes/coords/" + ii])])
 
-    tetrahedrons = np.hstack([f1, f2[mask][:, None]])
+    def _read_cell_zone_info(self) -> List[FluentCellZone]:
+        """Initializes the list of cell zones"""
 
-    # element ids?
-    cell_ids = cell_ids1
-    return tetrahedrons, cell_ids
+        cell_zone_names = (
+            np.chararray.tobytes(np.array(fid["meshes/1/cells/zoneTopology/name"]))
+            .decode()
+            .split(";")
+        )
+        cell_zone_ids = np.array(fid["meshes/1/cells/zoneTopology/id"], dtype=int)
+        min_ids = np.array(fid["meshes/1/cells/zoneTopology/minId"], dtype=int)
+        max_ids = np.array(fid["meshes/1/cells/zoneTopology/maxId"], dtype=int)
+        cell_zones: List[FluentCellZone] = []
+        num_cell_zones = len(cell_zone_ids)
 
+        for ii in range(0, len(cell_zone_names), 1):
+            cell_zones.append(
+                FluentCellZone(
+                    name=cell_zone_names[ii],
+                    cid=cell_zone_ids[ii],
+                    min_id=min_ids[ii],
+                    max_id=max_ids[ii],
+                )
+            )
+        self.cell_zones = cell_zones
+        return cell_zones
 
-def read_fluent_mesh_hdf5(hdf5_filename: str):
-    """Reads mesh from fluent hdf5 format (.msh.h5)
+    def _read_face_zone_info(self) -> List[FluentFaceZone]:
+        """Initializes the list of face zones"""
 
-    Parameters
-    ----------
-    hdf5filename : str
-        path to hdf5 file
-    """
-    add_surface = False
-    mesh = FluentMesh()
+        ids = np.array(fid["meshes/1/faces/zoneTopology/id"], dtype=int)
+        max_ids = np.array(fid["meshes/1/faces/zoneTopology/maxId"], dtype=int)
+        min_ids = np.array(fid["meshes/1/faces/zoneTopology/minId"], dtype=int)
+        names = (
+            np.chararray.tobytes(np.array(fid["meshes/1/faces/zoneTopology/name"]))
+            .decode()
+            .split(";")
+        )
+        zone_types = np.array(fid["meshes/1/faces/zoneTopology/zoneType"], dtype=int)
+        num_face_zones = len(ids)
+        face_zones: List[FluentFaceZone] = []
 
-    fid = h5py.File(hdf5_filename, "r")
-    mesh_group = get_mesh_group(fid)
+        for ii in range(0, num_face_zones, 1):
+            face_zones.append(
+                FluentFaceZone(
+                    min_id=min_ids[ii],
+                    max_id=max_ids[ii],
+                    name=names[ii],
+                    fid=ids[ii],
+                    zone_type=zone_types[ii],
+                    hdf5_id=ii + 1,
+                )
+            )
+        self.face_zones = face_zones
+        return face_zones
 
-    # refactored:
-    mesh.nodes = np.zeros((0, 3), dtype=float)
-    for ii in np.array(fid["meshes/1/nodes/coords"]):
-        mesh.nodes = np.vstack([mesh.nodes, np.array(fid["meshes/1/nodes/coords/" + ii])])
+    def _read_all_faces_of_face_zones(self):
+        """Reads the faces of the face zone"""
 
-    cell_zones = get_cell_zones(fid)
-    face_zones = get_face_zones(fid)
-    face_zones = get_faces_of_face_zones(face_zones, fid)
-    face_zones = get_c0c1_of_face_zones(face_zones, fid)
+        for face_zone in self.face_zones:
+            subdir = "meshes/1/faces/nodes/" + str(face_zone.hdf5_id) + "/nodes"
+            subdir2 = "meshes/1/faces/nodes/" + str(face_zone.hdf5_id) + "/nnodes"
+            nnodes = np.array(self.fid[subdir2], dtype=int)
+            if not np.all(nnodes == 3):
+                raise ValueError("Only triangular meshes supported")
 
-    # cells = {"triangle" : face_zones[0].faces }
-    # mesh = meshio.Mesh(points=mesh.nodes, cells=cells)
-    # mesh.write("interior.stl")
+            node_ids = np.array(self.fid[subdir], dtype=int)
+            num_triangles = int(len(node_ids) / 3)
+            face_zone.faces = np.reshape(node_ids, (num_triangles, 3))
 
-    tetra1, cell_ids = interior_face_zone_to_tetrahedrons(face_zones[0], mesh)
+        return self.face_zones
 
-    cells = {"triangle": face_zones[0].faces}
-    cells = {"tetra": tetra1 - 1}
-    meshio_mesh = meshio.Mesh(points=mesh.nodes, cells=cells)
-    meshio_mesh.write("interior_1.vtk")
+    def _read_c0c1_of_face_zones(self):
+        """Reads the cell connectivity of the face zone. Only do for interior cells"""
 
-    # construct tetrahedrons
-    # for face_zone in face_zones:
-    #     if "interior" in face_zone.name:
-    #         c0c1 = face_zone.c0c1
+        for face_zone in self.face_zones:
+            if face_zone.zone_type != 2 or "interior" not in face_zone.name:
+                continue
 
-    # TODO
-    # construct tetrahedrons
-    # capture in FluentMesh object
-    # e.g.
-    # >>> fluent_mesh = FluentMesh()
-    # >>> fluent_mesh.read_mesh()
+            subdir0 = "meshes/1/faces/c0/" + str(face_zone.hdf5_id)
+            subdir1 = "meshes/1/faces/c1/" + str(face_zone.hdf5_id)
 
-    # NOTE BELOW OLD CODE:
-    # key = "1"
-    # face_group = get_face_group(mesh_group[key])
-    # face_zone_info = get_face_zone_info(face_group)
-    # tetrahedrons = face_group_to_tetrahedrons2(face_group, face_zone_info[0])
-    # face_zones = face_group_to_face_zones(face_group, face_zone_info[0], get_interior=False)
+            c0c1 = np.array([self.fid[subdir0], self.fid[subdir1]], dtype=int).T
 
-    # meshio_mesh = meshio.Mesh(
-    #     points=mesh.nodes, cells={"tetra": tetrahedrons["interior-27482"]["tetra"] - 1}
-    # )
-    # meshio_mesh.write("volume_mesh_interior-27482.vtk")
+            face_zone.c0c1 = c0c1
 
-    # points = get_nodes_from_mesh_group(mesh_group[key])[0]
+        return self.face_zones
 
-    # cells = []
-    # cell_data = []
-    # if add_surface:
-    #     for _, value in face_zones.items():
-    #         # logger.info(value)
-    #         cells.append(("triangle", value["faces"] - 1))
-    #         zoneids = np.ones(cells[-1][-1].shape[0], dtype=int) * value["zone-id"]
-    #         cell_data.append(zoneids)
+    def _convert_interior_faces_to_tetrahedrons(self):
+        """Uses c0c1 matrix to get tetrahedrons
 
-    # cells.append(("tetra", tetrahedrons))
+        Notes
+        -----
 
-    # cell_data.append(np.ones(tetrahedrons.shape[0] * cell_zone_id))
-    # cell_data = {"zone-id": cell_data}
+        f1: n1 n2 n3 c0 c1
+        f2: n3 n1 n4 c0 c1
 
-    # # add triangles: disable
-    # add_triangles = False  # this may cause some issues
-    # if add_triangles:
-    #     # triangle_zones = ("triangle", [[0, 1, 2], [1, 3, 2]])
-    #     triangles = np.empty((0, 3))
-    #     zone_ids_all_triangles = np.empty(0)
-    #     for zone, value in face_zones.items():
-    #         num_faces = value["faces"].shape[0]
-    #         zone_ids = np.ones(num_faces, dtype=int) * value["zone-id"]
-    #         zone_ids_all_triangles = np.append(zone_ids_all_triangles, zone_ids)
-    #         triangles = np.vstack([triangles, value["faces"]])
+        If f1 and f2 are connected to same face - extract node not occuring in
+        f1. The resulting four nodes will make up the tetrahedron
 
-    #     # put in right format
-    #     triangles = ("triangle", triangles)
-    #     # append to cells
-    #     cells.append(triangles)
+        Do this for all interior faces
 
-    #     cell_data["zone-id"].append(zone_ids_all_triangles)
+        """
 
-    # # write file
-    # mesh = meshio.Mesh(
-    #     points=points,
-    #     cells=cells,
-    #     # ("triangle", tris-1 ),
-    #     # ("tetra", tetrahedrons - 1)
-    #     # ],
-    #     cell_data=cell_data,
-    # )
-    # mesh.write(vtk_filename)
+        self.cells = np.zeros((0, 4), dtype=int)
+        self.cell_ids = np.zeros(0, dtype=int)
 
-    # fid.close()
+        for face_zone in self.face_zones:
+            if "interior" not in face_zone.name:
+                continue
 
-    return
+            faces = face_zone.faces
+            c0c1 = face_zone.c0c1.T.ravel()
+
+            cell_ids1, idx1, counts1 = np.unique(c0c1, return_index=True, return_counts=True)
+            cell_ids2, idx2, counts2 = np.unique(
+                np.flipud(c0c1), return_index=True, return_counts=True
+            )
+
+            faces_temp = np.vstack([faces, faces])
+
+            f1 = faces_temp[idx1, :]
+            f2 = np.flipud(faces_temp)[idx2, :]
+
+            # Find node in connected face which completes tetrahedron
+            mask = (f2[:, :, None] == f1[:, None, :]).any(-1)
+            mask = np.invert(mask)
+
+            if not np.all(np.sum(mask, axis=1) == 1):
+                raise ValueError("The two faces do not seem to be connected with two nodes")
+
+            tetrahedrons = np.hstack([f1, f2[mask][:, None]])
+
+            # element ids?
+            cell_ids = cell_ids1
+
+            self.cells = np.vstack([self.cells, tetrahedrons])
+            self.cell_ids = np.append(self.cell_ids, cell_ids)
+
+        return tetrahedrons, cell_ids
 
 
 def get_mesh_group(fid: h5py.File) -> h5py.Group:
@@ -771,7 +733,22 @@ if __name__ == "__main__":
 
     fid = h5py.File(hdf5_filename, "r")
 
-    read_fluent_mesh_hdf5(hdf5_filename)
+    mesh = FluentMesh()
+    mesh.load_mesh(hdf5_filename)
+
+    for face_zone in mesh.face_zones:
+        if "interior" in face_zone.name:
+            continue
+        cells = {"triangle": face_zone.faces - 1}
+        meshio_mesh = meshio.Mesh(points=mesh.nodes, cells=cells)
+        meshio_mesh.write("faces_of_{0}.stl".format(face_zone.name.replace(":", "-")))
+
+    for cell_zone in mesh.cell_zones:
+        cells = {"tetra": cell_zone.cells - 1}
+        meshio_mesh = meshio.Mesh(points=mesh.nodes, cells=cells)
+        meshio_mesh.write("volume_{}.vtk".format(cell_zone.name))
+
+    mesh.cells
 
     fid_w = open("hdf5_02.txt", "a")
 

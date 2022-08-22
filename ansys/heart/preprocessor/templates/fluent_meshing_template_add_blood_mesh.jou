@@ -2,15 +2,17 @@
 ;; uses cap definitions (dictionary with cap name and formatted node ids) as input 
 ;; Note. nodes should be formatted as a single string: '"bnXXX" "bnYYY" "bnZZZ"'
 ;
-; import mesh file 
+; some useful scheme variables:
 ( define my-output-mesh "{{output_path}}" )
-;
+; read mesh file
 /file/read "{{input_mesh_file}}"
-; **************
-; Creating caps:
-; **************
+; *****************************
+; Creating {{num_caps}} caps:
+; *****************************
 {% for cap_name, cap_node_ids in caps.items() %}
-; creating {{cap_name}}
+; -----------------------------
+; Creating: {{cap_name}}
+; -----------------------------
 /boundary/modify/create "{{cap_name}}" wall
 (define zone-id 
 	( get-unreferenced-face-zones-of-filter '{{cap_name}}*) )
@@ -25,10 +27,11 @@
 (ti-menu-load-string  ( format #f "/boundary/manage/merge  '~a alphabetic-order"
 							zone-ids
 						 ) )
+; -----------------------------
 {% endfor %}
 ;
-; **************
-; **************
+; *****************************
+; *****************************
 ;
 ; create mesh object
 /objects/create "valves" fluid , '(
@@ -36,7 +39,6 @@
 	) , mesh yes
 /objects/labels/create-label-per-zone "valves" '(*)
 /objects/labels/remove-zones "valves" "valves" '(*)
-
 ; prepare for (re) volume meshing:
 ; merge objects
 /objects/join-intersect/add-object-to-mesh "wrapped-myocardium" '(valves)
@@ -48,7 +50,9 @@
 /objects/volumetric-regions/compute "wrapped-myocardium" no yes
 ; remesh 
 /mesh/auto-mesh "wrapped-myocardium" yes pyramids tet no
-
+;
+/mesh/prepare-for-solve yes
+;
 ; save new mesh:
 ( ti-menu-load-string 				
 	(format #f "/file/write-mesh ~a ok" my-output-mesh )

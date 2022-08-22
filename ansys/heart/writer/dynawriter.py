@@ -355,8 +355,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.title = self.model.model_type
 
         if self.__class__.__name__ == "ZeroPressureMechanicsDynaWriter":
-            self._add_solution_controls()
-            self._add_export_controls()
+            scale_time = 1
+            if self.parameters["Unit"]["Time"] == "ms":
+                scale_time = 1000
+
+            self._add_solution_controls(scale_time=1 * scale_time)
+            self._add_export_controls(dt_output_d3plot=0.5 * scale_time)
+
         elif self.__class__.__name__ == "MechanicsDynaWriter":
             self._add_solution_controls(
                 end_time=self.parameters["Time"]["End Time"],
@@ -1310,6 +1315,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
         load_curve_kw = create_define_curve_kw(
             [0, 1, 1.001], [0, 1, 0], "unit load curve", load_curve_id, 100
         )
+        
+        if self.parameters["Unit"]["Time"] == "ms":
+            load_curve_kw.sfa = 1000  # x scaling: to Millisecond
 
         # append unit curve to main.k
         self.kw_database.main.append(load_curve_kw)
@@ -1430,14 +1438,14 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         return
 
-    def _add_solution_controls(self):
+    def _add_solution_controls(self, scale_time=1):
         """
         Rewrite method for the zerop simulation
         Returns
         -------
 
         """
-        self.kw_database.main.append(keywords.ControlTermination(endtim=1.0))
+        self.kw_database.main.append(keywords.ControlTermination(endtim=1.0 * scale_time))
         # self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
 
         self.kw_database.main.append(
@@ -1445,10 +1453,11 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         )
 
         # add auto controls
-        self.kw_database.main.append(keywords.ControlImplicitAuto(iauto=1, dtmin=0.01, dtmax=0.1))
+        self.kw_database.main.append(
+            keywords.ControlImplicitAuto(iauto=1, dtmin=0.01 * scale_time, dtmax=0.1 * scale_time))
 
         # add general implicit controls
-        self.kw_database.main.append(keywords.ControlImplicitGeneral(imflag=1, dt0=0.1))
+        self.kw_database.main.append(keywords.ControlImplicitGeneral(imflag=1, dt0=0.1 * scale_time))
 
         # add implicit solution controls: Defaults are OK?
         self.kw_database.main.append(keywords.ControlImplicitSolution())
@@ -1457,8 +1466,10 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.kw_database.main.append(keywords.ControlImplicitSolver())
 
         # add binout for post-process
-        self.kw_database.main.append(keywords.DatabaseNodout(dt=0.5, binary=1))
-        kw = keywords.SetNodeGeneral(option="part", sid=999, e1=1, e2=2, e3=3, e4=4)
+        self.kw_database.main.append(keywords.DatabaseNodout(dt=0.5 * scale_time, binary=1))
+
+        # example for nodout
+        kw = keywords.SetNodeGeneral(option="part", sid=999, e1=1, e2=2)
         self.kw_database.main.append(kw)
         kw = keywords.DatabaseHistoryNodeSet(id1=999)
         self.kw_database.main.append(kw)

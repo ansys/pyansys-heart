@@ -172,19 +172,21 @@ if __name__ == "__main__":
     active_curve()
 
     kw = MaterialCap()
-
-    dct = {"rho": 1, "k1": 1, "k2": 1}
-    dct2 = {"k1": 1, "k2": 2}
-    dct3 = {"acid": 15, "taumax": 125}
-    kw = MaterialHGOMyocardium(mid=1, iso_user=dct, anisotropy_user=dct2, active_user=dct3)
-
+    # test
+    dct_iso = {"rho": 1, "k1": 1, "k2": 1}
+    dct_aniso = {"k1": 1, "k2": 2}
+    dct_active = {"acid": 15, "taumax": 125}
+    kw = MaterialHGOMyocardium(
+        mid=1, iso_user=dct_iso, anisotropy_user=dct_aniso, active_user=dct_active
+    )
     print(kw)
-    dct4 = {
+
+    dct_iso2 = {
         "rho": 1e-6,
         "itype": -1,
         "mu1": 34.9,
         "alpha1": 2,
         "Comment": "Shoule be equivalent with MAT_077_H",
     }
-    kw = MaterialHGOMyocardium(mid=1, iso_user=dct4)
+    kw = MaterialHGOMyocardium(mid=1, iso_user=dct_iso2)
     print(kw)

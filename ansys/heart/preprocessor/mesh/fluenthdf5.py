@@ -123,7 +123,7 @@ class FluentFaceZone:
         min_id: int = None,
         max_id: int = None,
         name: str = None,
-        fid: int = None,
+        zone_id: int = None,
         zone_type: str = None,
         hdf5_id: int = None,
         faces: np.ndarray = None,
@@ -136,7 +136,7 @@ class FluentFaceZone:
         """Max face id of the face zone: indexing starts at 0"""
         self.name: str = name
         """Name of the face zone"""
-        self.id: int = fid
+        self.id: int = zone_id
         """Id of the face zone"""
         self.zone_type: str = zone_type
         """Type of face zone"""
@@ -176,6 +176,12 @@ class FluentMesh:
 
     def load_mesh(self, filename: str = None, reconstruct_tetrahedrons: bool = True):
         """Loads the mesh from the hdf5 file"""
+        if not filename and not self.filename:
+            raise FileNotFoundError("Please specify a file to read")
+
+        if self.filename:
+            filename = self.filename
+
         self._open_file(filename)
 
         self._read_nodes()
@@ -189,7 +195,17 @@ class FluentMesh:
             self._convert_interior_faces_to_tetrahedrons()
             self._set_cells_in_cell_zones()
 
+        self._update_indexing()
+
         self._close_file()
+        return
+
+    def _update_indexing(self):
+        """Updates the indexing of all cells and faces: indexshould start from 0"""
+        for cell_zone in self.cell_zones:
+            cell_zone.cells = cell_zone.cells - 1
+        for face_zone in self.face_zones:
+            face_zone.faces = face_zone.faces - 1
         return
 
     def _set_cells_in_cell_zones(self):
@@ -203,12 +219,8 @@ class FluentMesh:
 
     def _open_file(self, filename: str = None):
         """Opens the file for reading"""
-        if not filename and not self.filename:
+        if not filename:
             raise ValueError("Please specify input file")
-        elif not filename:
-            filename = self.filename
-        else:
-            self.filename = filename
 
         if filename[-7:] != ".msh.h5":
             raise FileNotFoundError("File does not have extension '.msh.h5'")
@@ -223,20 +235,20 @@ class FluentMesh:
     def _read_nodes(self):
         """Reads the node field(s)"""
         self.nodes = np.zeros((0, 3), dtype=float)
-        for ii in np.array(fid["meshes/1/nodes/coords"]):
-            self.nodes = np.vstack([self.nodes, np.array(fid["meshes/1/nodes/coords/" + ii])])
+        for ii in np.array(self.fid["meshes/1/nodes/coords"]):
+            self.nodes = np.vstack([self.nodes, np.array(self.fid["meshes/1/nodes/coords/" + ii])])
 
     def _read_cell_zone_info(self) -> List[FluentCellZone]:
         """Initializes the list of cell zones"""
 
         cell_zone_names = (
-            np.chararray.tobytes(np.array(fid["meshes/1/cells/zoneTopology/name"]))
+            np.chararray.tobytes(np.array(self.fid["meshes/1/cells/zoneTopology/name"]))
             .decode()
             .split(";")
         )
-        cell_zone_ids = np.array(fid["meshes/1/cells/zoneTopology/id"], dtype=int)
-        min_ids = np.array(fid["meshes/1/cells/zoneTopology/minId"], dtype=int)
-        max_ids = np.array(fid["meshes/1/cells/zoneTopology/maxId"], dtype=int)
+        cell_zone_ids = np.array(self.fid["meshes/1/cells/zoneTopology/id"], dtype=int)
+        min_ids = np.array(self.fid["meshes/1/cells/zoneTopology/minId"], dtype=int)
+        max_ids = np.array(self.fid["meshes/1/cells/zoneTopology/maxId"], dtype=int)
         cell_zones: List[FluentCellZone] = []
         num_cell_zones = len(cell_zone_ids)
 
@@ -255,15 +267,15 @@ class FluentMesh:
     def _read_face_zone_info(self) -> List[FluentFaceZone]:
         """Initializes the list of face zones"""
 
-        ids = np.array(fid["meshes/1/faces/zoneTopology/id"], dtype=int)
-        max_ids = np.array(fid["meshes/1/faces/zoneTopology/maxId"], dtype=int)
-        min_ids = np.array(fid["meshes/1/faces/zoneTopology/minId"], dtype=int)
+        ids = np.array(self.fid["meshes/1/faces/zoneTopology/id"], dtype=int)
+        max_ids = np.array(self.fid["meshes/1/faces/zoneTopology/maxId"], dtype=int)
+        min_ids = np.array(self.fid["meshes/1/faces/zoneTopology/minId"], dtype=int)
         names = (
-            np.chararray.tobytes(np.array(fid["meshes/1/faces/zoneTopology/name"]))
+            np.chararray.tobytes(np.array(self.fid["meshes/1/faces/zoneTopology/name"]))
             .decode()
             .split(";")
         )
-        zone_types = np.array(fid["meshes/1/faces/zoneTopology/zoneType"], dtype=int)
+        zone_types = np.array(self.fid["meshes/1/faces/zoneTopology/zoneType"], dtype=int)
         num_face_zones = len(ids)
         face_zones: List[FluentFaceZone] = []
 
@@ -273,7 +285,7 @@ class FluentMesh:
                     min_id=min_ids[ii],
                     max_id=max_ids[ii],
                     name=names[ii],
-                    fid=ids[ii],
+                    zone_id=ids[ii],
                     zone_type=zone_types[ii],
                     hdf5_id=ii + 1,
                 )
@@ -731,7 +743,7 @@ if __name__ == "__main__":
 
     # fluenthdf5_to_vtk(hdf5_filename, hdf5_filename.replace(".msh.h5", "_.vtk"))
 
-    fid = h5py.File(hdf5_filename, "r")
+    import os
 
     mesh = FluentMesh()
     mesh.load_mesh(hdf5_filename)
@@ -739,17 +751,24 @@ if __name__ == "__main__":
     for face_zone in mesh.face_zones:
         if "interior" in face_zone.name:
             continue
-        cells = {"triangle": face_zone.faces - 1}
+        cells = {"triangle": face_zone.faces}
         meshio_mesh = meshio.Mesh(points=mesh.nodes, cells=cells)
-        meshio_mesh.write("faces_of_{0}.stl".format(face_zone.name.replace(":", "-")))
+        meshio_mesh.write(
+            os.path.join(
+                os.path.dirname(hdf5_filename),
+                "faces_of_{0}.stl".format(face_zone.name.replace(":", "-")),
+            )
+        )
 
     for cell_zone in mesh.cell_zones:
-        cells = {"tetra": cell_zone.cells - 1}
+        cells = {"tetra": cell_zone.cells}
         meshio_mesh = meshio.Mesh(points=mesh.nodes, cells=cells)
-        meshio_mesh.write("volume_{}.vtk".format(cell_zone.name))
+        meshio_mesh.write(
+            os.path.join(os.path.dirname(hdf5_filename), "volume_of_{}.vtk".format(cell_zone.name))
+        )
 
-    mesh.cells
-
+    # prints info of hdf5 structure
+    fid = h5py.File(hdf5_filename, "r")
     fid_w = open("hdf5_02.txt", "a")
 
     def printname(name):
@@ -758,8 +777,3 @@ if __name__ == "__main__":
 
     fid.visit(printname)
     fid_w.close()
-
-    np.savetxt("coords_1.txt", np.array(fid["meshes/1/nodes/coords/1"]), delimiter=",")
-    np.savetxt("coords_2.txt", np.array(fid["meshes/1/nodes/coords/2"]), delimiter=",")
-    np.savetxt("coords_3.txt", np.array(fid["meshes/1/nodes/coords/3"]), delimiter=",")
-    np.savetxt("coords_4.txt", np.array(fid["meshes/1/nodes/coords/4"]), delimiter=",")

@@ -92,6 +92,7 @@ def mesh_cavity_interior_by_fluent(
         "input_mesh_file": path_to_input_mesh,
         "output_path": path_to_output,
         "caps": cap_dict,
+        "num_caps": len(cap_dict),
     }
     template = load_template("fluent_meshing_template_add_blood_mesh.jou")
 

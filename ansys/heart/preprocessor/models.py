@@ -694,6 +694,12 @@ class HeartModel:
             path_to_input_mesh, path_to_output_mesh, caps, show_gui=True
         )
 
+        # read volume mesh
+        path_mesh_file_vtk = path_to_output_mesh.replace(".msh.h5", ".vtk")
+        tetra, face_zones, nodes = mesher.hdf5.fluenthdf5_to_vtk(
+            path_to_output_mesh, path_mesh_file_vtk
+        )
+
         return
 
     def _update_parts(self):

@@ -113,10 +113,12 @@ class BaseDynaWriter:
         }
         """Id offset for several relevant keywords"""
 
-        self.include_files = []
         """List of .k files to include in main. This is derived from the Decks classes"""
-        f = open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "parameters.json"))
-        self.parameters = json.load(f)
+        self.include_files = []
+
+        """Load simulation parameters"""
+        from ansys.heart.writer.parameters import parameters
+        self.parameters = parameters
 
         if "Improved" in self.model.info.model_type:
             LOGGER.warning(

@@ -696,6 +696,16 @@ class HeartModel:
 
         # read volume mesh
         path_mesh_file_vtk = path_to_output_mesh.replace(".msh.h5", ".vtk")
+        mesh = mesher.hdf5.FluentMesh()
+        mesh.load_mesh(path_to_output_mesh)
+
+        face_zones = mesh.face_zones
+        tetra = mesh.cells
+        nodes = mesh.nodes
+
+        tetra_tissue = [cz.cells for cz in mesh.cell_zones if "heart-tet-cells" in cz.name][0]
+        cell_zone_tissue = next(czs for cz in mesh.cell_zones if "heart-tet-cells" in cz.name)
+
         tetra, face_zones, nodes = mesher.hdf5.fluenthdf5_to_vtk(
             path_to_output_mesh, path_mesh_file_vtk
         )

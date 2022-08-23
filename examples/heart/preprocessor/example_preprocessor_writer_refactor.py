@@ -16,15 +16,17 @@ if __name__ == "__main__":
     2. Writes files for mechanics, zero-pressure, fiber generation, and purkinje
     """
 
-    path_to_case = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\02\\02.case"
+    path_to_case = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\01\\01.case"
     workdir = os.path.join(pathlib.Path(path_to_case).parent, "BiVentricleRefactored")
+    # workdir = os.path.join(pathlib.Path(path_to_case).parent, "FullHeartRefactored")
     path_to_model = os.path.join(workdir, "heart_model.pickle")
 
-    use_preprocessor = True
+    use_preprocessor = False
     write_lsdyna_files = True
 
     if use_preprocessor:
         model = run_preprocessor(
+            # model_type=models.FullHeart,
             model_type=models.BiVentricle,
             database="Strocchi2020",
             path_original_mesh=path_to_case,
@@ -33,9 +35,14 @@ if __name__ == "__main__":
             mesh_size=1.5,
         )
 
+    model.mesh.write_to_vtk("heart_model.vtk")
+    model.left_ventricle.cavity.surface.write_to_stl("left_ventricle_cavity.stl")
+
     # write LS-DYNA files
     # Load model (e.g. when you skip the preprocessor):
     model = models.HeartModel.load_model(path_to_model)
+    if isinstance(model, models.HeartModel):
+        model._add_volume_mesh_for_blood_pool()
 
     if write_lsdyna_files:
         for writer in (

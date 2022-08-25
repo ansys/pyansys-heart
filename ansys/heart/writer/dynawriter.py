@@ -701,7 +701,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     active_dct = None
                 else:
                     active_dct = {
-                        "taumax": self.parameters["Material"]["Myocardium"]["Active"]["Tmax"]
+                        "taumax": self.parameters["Material"]["Myocardium"]["Active"]["Tmax"],
+                        "ca2ionm": self.parameters["Material"]["Myocardium"]["Active"]["ca2ionm"]
                     }
 
                 myocardium_kw = MaterialHGOMyocardium(

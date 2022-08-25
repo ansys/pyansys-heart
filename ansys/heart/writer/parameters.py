@@ -1,5 +1,5 @@
 # Define the time unit
-time_unit = "ms"
+time_unit = "s"
 
 # Scale parameters by given unit system
 if time_unit == "s":
@@ -26,7 +26,7 @@ parameters = {
         "Myocardium": {
             "Isotropic": {"rho": 1e-6 * scale, "k1": 2.36 / scale, "k2": 1.75},
             "Anisotropic": {"k1": 0.49 / scale, "k2": 9.01},
-            "Active": {"Tmax": 125 / scale},
+            "Active": {"Tmax": 125 / scale, "ca2ionm": 4.35, "Prefill": 1.0},
         },
         "Atrium": {
             "rho": 1e-6 * scale,

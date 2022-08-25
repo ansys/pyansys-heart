@@ -118,6 +118,7 @@ class BaseDynaWriter:
 
         """Load simulation parameters"""
         from ansys.heart.writer.parameters import parameters
+
         self.parameters = parameters
 
         if "Improved" in self.model.info.model_type:
@@ -734,6 +735,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
         if add_active:
             # write and add active curve to material database
             time_array, active_stress_array = active_curve("Strocchi2020")
+
+            if self.parameters["Unit"]["Time"] == "ms":
+                time_array *= 1000
+
             active_curve_kw = create_define_curve_kw(
                 x=time_array,
                 y=active_stress_array,
@@ -741,11 +746,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 curve_id=act_curve_id,
                 lcint=15000,
             )
-            if self.parameters["Unit"]["Time"] == "ms":
-                active_curve_kw.sfa = 1000  # x scaling: to Millisecond
 
-            active_curve_kw.sfo = 4.35  # y scaling
-            active_curve_kw.offa = 1.00  # x offset: prefill time
+            # y scaling
+            active_curve_kw.sfo = self.parameters["Material"]["Myocardium"]["Active"]["ca2ionm"]
+            # x offset: prefill duration
+            active_curve_kw.offa = self.parameters["Material"]["Myocardium"]["Active"]["Prefill"]
             self.kw_database.material.append(active_curve_kw)
 
         return
@@ -1317,7 +1322,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         load_curve_kw = create_define_curve_kw(
             [0, 1, 1.001], [0, 1, 0], "unit load curve", load_curve_id, 100
         )
-        
+
         if self.parameters["Unit"]["Time"] == "ms":
             load_curve_kw.sfa = 1000  # x scaling: to Millisecond
 
@@ -1456,10 +1461,13 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         # add auto controls
         self.kw_database.main.append(
-            keywords.ControlImplicitAuto(iauto=1, dtmin=0.01 * scale_time, dtmax=0.1 * scale_time))
+            keywords.ControlImplicitAuto(iauto=1, dtmin=0.01 * scale_time, dtmax=0.1 * scale_time)
+        )
 
         # add general implicit controls
-        self.kw_database.main.append(keywords.ControlImplicitGeneral(imflag=1, dt0=0.1 * scale_time))
+        self.kw_database.main.append(
+            keywords.ControlImplicitGeneral(imflag=1, dt0=0.1 * scale_time)
+        )
 
         # add implicit solution controls: Defaults are OK?
         self.kw_database.main.append(keywords.ControlImplicitSolution())

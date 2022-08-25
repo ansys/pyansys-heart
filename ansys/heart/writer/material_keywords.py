@@ -96,7 +96,7 @@ class MaterialHGOMyocardium(keywords.Mat295):
                 "sn": 0.02,
                 # parameters of actype 2: GuccioneWaldmanMcCulloch
                 "actype": 2,
-                "ca2ionm": 4.35,
+                # "ca2ionm": 4.35,
                 "n": 2,
                 "stf": 0.0,
                 "b": 4.75,
@@ -175,7 +175,7 @@ if __name__ == "__main__":
     # test
     dct_iso = {"rho": 1, "k1": 1, "k2": 1}
     dct_aniso = {"k1": 1, "k2": 2}
-    dct_active = {"acid": 15, "taumax": 125}
+    dct_active = {"acid": 15, "taumax": 125, "ca2ionm": 4.35}
     kw = MaterialHGOMyocardium(
         mid=1, iso_user=dct_iso, anisotropy_user=dct_aniso, active_user=dct_active
     )

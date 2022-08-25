@@ -21,7 +21,7 @@ if __name__ == "__main__":
     # workdir = os.path.join(pathlib.Path(path_to_case).parent, "FullHeartRefactored")
     path_to_model = os.path.join(workdir, "heart_model.pickle")
 
-    use_preprocessor = False
+    use_preprocessor = True
     write_lsdyna_files = True
 
     if use_preprocessor:
@@ -34,9 +34,6 @@ if __name__ == "__main__":
             path_to_model=path_to_model,
             mesh_size=1.5,
         )
-
-    model.mesh.write_to_vtk("heart_model.vtk")
-    model.left_ventricle.cavity.surface.write_to_stl("left_ventricle_cavity.stl")
 
     # write LS-DYNA files
     # Load model (e.g. when you skip the preprocessor):

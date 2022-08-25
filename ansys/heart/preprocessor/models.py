@@ -585,7 +585,9 @@ class HeartModel:
             show_gui=True,
         )
         path_mesh_file_vtk = path_mesh_file.replace(".msh.h5", ".vtk")
-        tetra, face_zones, nodes = mesher.hdf5.fluenthdf5_to_vtk(path_mesh_file, path_mesh_file_vtk)
+        tetra, face_zones, nodes = mesher.hdf5._deprecated_fluenthdf5_to_vtk(
+            path_mesh_file, path_mesh_file_vtk
+        )
 
         # update mesh object
         self.mesh.tetrahedrons = tetra
@@ -706,7 +708,7 @@ class HeartModel:
         tetra_tissue = [cz.cells for cz in mesh.cell_zones if "heart-tet-cells" in cz.name][0]
         cell_zone_tissue = next(czs for cz in mesh.cell_zones if "heart-tet-cells" in cz.name)
 
-        tetra, face_zones, nodes = mesher.hdf5.fluenthdf5_to_vtk(
+        tetra, face_zones, nodes = mesher.hdf5._deprecated_fluenthdf5_to_vtk(
             path_to_output_mesh, path_mesh_file_vtk
         )
 

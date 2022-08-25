@@ -464,13 +464,13 @@ class HeartModel:
         )
 
         # read mesh and extract surfaces
-        from ansys.heart.preprocessor.mesh.fluenthdf5 import fluenthdf5_to_vtk
+        from ansys.heart.preprocessor.mesh.fluenthdf5 import _deprecated_fluenthdf5_to_vtk
 
         filename_simulation_mesh_vtk = os.path.join(
             os.path.dirname(path_to_mesh), "simulation_mesh.vtk"
         )
 
-        tetrahedrons, face_zones, points = fluenthdf5_to_vtk(
+        tetrahedrons, face_zones, points = _deprecated_fluenthdf5_to_vtk(
             path_to_mesh, filename_simulation_mesh_vtk
         )
         # flip all the face zones:

@@ -10,7 +10,7 @@ from ansys.heart.custom_logging import LOGGER
 """
 
 
-def fluenthdf5_to_vtk(hdf5_filename: str, vtk_filename: str):
+def _deprecated_fluenthdf5_to_vtk(hdf5_filename: str, vtk_filename: str):
     """Converts Fluent hdf5 to vtk format
 
     Parameters

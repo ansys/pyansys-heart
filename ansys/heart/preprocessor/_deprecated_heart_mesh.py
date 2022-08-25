@@ -43,7 +43,10 @@ from ansys.heart.preprocessor.mesh.mesher import (
     _run_gmsh,
     mesh_by_fluentmeshing,
 )
-from ansys.heart.preprocessor.mesh.fluenthdf5 import fluenthdf5_to_vtk, add_solid_name_to_stl
+from ansys.heart.preprocessor.mesh.fluenthdf5 import (
+    _deprecated_fluenthdf5_to_vtk,
+    add_solid_name_to_stl,
+)
 
 # import logger
 from ansys.heart.custom_logging import LOGGER
@@ -381,7 +384,7 @@ class HeartMesh:
             LOGGER.debug("\tLaunching Fluent meshing...")
             mesh_by_fluentmeshing(input_stl_fluent, output_msh_fluent, mesh_size)
 
-            fluenthdf5_to_vtk(output_msh_fluent, output_vtk)
+            _deprecated_fluenthdf5_to_vtk(output_msh_fluent, output_vtk)
 
         self.info.mesh_size = mesh_size
         # store path in info
@@ -441,7 +444,7 @@ class HeartMesh:
 
         # extract mesh
         vtk_name = mesh_output.replace(".msh.h5", ".vtk")
-        tets, face_zones, nodes = fluenthdf5_to_vtk(mesh_output, vtk_name)
+        tets, face_zones, nodes = _deprecated_fluenthdf5_to_vtk(mesh_output, vtk_name)
         self.set_volume_mesh_vtk(vtk_name)
 
         # tag elements based on whether the cell centroids are within the surface used

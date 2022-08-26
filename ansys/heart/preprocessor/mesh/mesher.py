@@ -8,18 +8,77 @@ from typing import List
 
 from ansys.heart.preprocessor._load_template import load_template
 from ansys.heart.preprocessor.mesh.objects import Cap
-from ansys.heart.preprocessor import SC_EXE, FLUENT_EXE
+from ansys.heart.preprocessor import SC_EXE
 from ansys.heart.custom_logging import LOGGER
 import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5
 
 import ansys.fluent.core as pyfluent
 
-_template_directory = os.path.join(os.path.dirname(__file__), "template")
+_template_directory = os.path.join(pathlib.Path(__file__).parents[1], "templates")
 
 """Module contains methods for interaction with Fluent meshing """
 
 
-def mesh_tissue_by_fluent(
+def mesh_heart_model_by_fluent(
+    path_to_stl_directory: str,
+    path_to_output: str,
+    mesh_size: float = 2.0,
+    add_blood_pool: bool = False,
+    show_gui: bool = False,
+):
+    """Uses Fluent meshing to wrap the surface and create tetrahedral mesh.
+    Optionally extracts the blood pool"""
+
+    # change directory to directory of stl file
+    old_directory = os.getcwd()
+    working_directory = path_to_stl_directory
+    os.chdir(working_directory)
+
+    if add_blood_pool:
+        path_to_blood_pool_script = os.path.join(
+            _template_directory, "fluent_meshing_add_blood_mesh_template.jou"
+        )
+        f = open(path_to_blood_pool_script, "r")
+        blood_pool_script = "".join(f.readlines())
+        f.close()
+    else:
+        blood_pool_script = ""
+
+    var_for_template = {
+        "work_directory": working_directory,
+        "output_path": path_to_output,
+        "mesh_size": mesh_size,
+        "blood_pool_script": blood_pool_script,
+    }
+
+    template = load_template("fluent_meshing_template_improved_2.jou")
+
+    script = os.path.join(path_to_stl_directory, "fluent_meshing.jou")
+
+    with open(script, "w") as f:
+        f.write(template.render(var_for_template))
+
+    num_cpus = 2
+
+    # start Fluent session using PyFluent:
+    # TODO: Catch errors in session
+    session = pyfluent.launch_fluent(
+        meshing_mode=True,
+        precision="double",
+        processor_count=num_cpus,
+        start_transcript=False,
+        show_gui=show_gui,
+    )
+    session.meshing.tui.file.read_journal(script)
+    session.exit()
+
+    # change back to old directory
+    os.chdir(old_directory)
+
+    return
+
+
+def _deprecated_mesh_tissue_by_fluent(
     path_to_stl_directory: str,
     path_to_output: str,
     mesh_size: float = 2.0,
@@ -69,7 +128,7 @@ def mesh_tissue_by_fluent(
     return
 
 
-def mesh_cavity_interior_by_fluent(
+def _deprecated_mesh_cavity_interior_by_fluent(
     path_to_input_mesh: str,
     path_to_output: str,
     caps: List[Cap],
@@ -120,7 +179,7 @@ def mesh_cavity_interior_by_fluent(
     return
 
 
-def mesh_by_fluentmeshing(
+def _deprecated_mesh_by_fluentmeshing(
     path_to_input_stl: str,
     path_to_output: str,
     mesh_size: float = 2.0,

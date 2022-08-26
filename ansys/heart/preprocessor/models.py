@@ -475,6 +475,7 @@ class HeartModel:
                     [surface_to_copy_to.faces, orphan_surface.faces]
                 )
 
+
             else:
                 LOGGER.warning("Could not find suitable candidate surface - proceed with caution")
                 orphan_surface.write_to_stl(os.path.join(self.info.workdir, "orphan_surface.stl"))

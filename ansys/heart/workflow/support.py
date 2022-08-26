@@ -87,4 +87,5 @@ def run_preprocessor(
     model.print_info()
     if clean_workdir:
         model.info.clean_workdir([".stl", ".vtk", ".jou", ".log"])
+
     return model

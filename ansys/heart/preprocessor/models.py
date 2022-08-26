@@ -474,11 +474,20 @@ class HeartModel:
                 surface_to_copy_to.faces = np.vstack(
                     [surface_to_copy_to.faces, orphan_surface.faces]
                 )
+
+
             else:
                 LOGGER.warning("Could not find suitable candidate surface - proceed with caution")
-                raise ValueError(
-                    "Could not find suitable candidate surface to merge orphan faces into - proceed with caution"
-                )
+                orphan_surface.write_to_stl(os.path.join(self.info.workdir, "orphan_surface.stl"))
+                for surface in surfaces_to_add:
+                    surface.write_to_stl(os.path.join(self.info.workdir, surface.name + ".stl"))
+
+                if orphan_surface.faces.shape[0] < 5:
+                    LOGGER.warning("Deleting orphan surface: consists of less than 5 faces")
+                else:
+                    raise ValueError(
+                        "Could not find suitable candidate surface to merge orphan faces into - proceed with caution"
+                    )
 
         self.mesh_raw.boundaries = self.mesh_raw.boundaries + surfaces_to_add
 

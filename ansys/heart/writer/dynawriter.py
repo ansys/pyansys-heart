@@ -118,7 +118,6 @@ class BaseDynaWriter:
 
         """Load simulation parameters"""
         from ansys.heart.writer.parameters import parameters
-
         self.parameters = parameters
 
         if "Improved" in self.model.info.model_type:
@@ -305,7 +304,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._add_cap_bc(bc_type="springs_caps")
         self._add_pericardium_bc()
 
-        # for control volume
+        # # for control volume
         self._update_cap_elements_db()
         self._update_controlvolume_db()
         self._update_system_model()
@@ -722,15 +721,16 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 atrium_kw = MaterialHGOMyocardium(
                     mid=part.mid, iso_user=self.parameters["Material"]["Atrium"]
                 )
+
                 self.kw_database.material.append(atrium_kw)
 
             else:
                 LOGGER.warning("Assuming same material as atrium for: {0}".format(part.name))
+
                 # general_tissue_kw = MaterialAtrium(mid=part.mid)
                 general_tissue_kw = MaterialHGOMyocardium(
                     mid=part.mid, iso_user=self.parameters["Material"]["Atrium"]
                 )
-
                 self.kw_database.material.append(general_tissue_kw)
 
         if add_active:
@@ -806,6 +806,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             part_id = self.get_unique_part_id()
             section_id = self.get_unique_section_id()
             mat_id = self.get_unique_mat_id()
+
 
             if isinstance(self.model, (LeftVentricle, BiVentricle)):
                 spring_stiffness = self.parameters["Boundary Condition"]["Valve Spring"][
@@ -1005,6 +1006,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # select only nodes that are on the epicardium and penalty factor > 0.1
         pericardium_nodes = epicardium_nodes[penalty[epicardium_nodes] > 0.001]
+        
         # # write to file
         # np.savetxt(
         #     os.path.join(self.model.info.workdir, "pericardium.txt"),
@@ -1143,6 +1145,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             shrf=0.8333,
             nip=3,
             t1=self.parameters["Cap"]["Thickness"],
+
         )
 
         self.kw_database.cap_elements.append(material_kw)
@@ -1282,6 +1285,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             if self.system_model_name != self.parameters["Circulation System"]["Name"]:
                 LOGGER.error("Circulation system parameters cannot be rad from Json")
 
+
             for cavity in self.model.cavities:
                 if "Left ventricle" in cavity.name:
 
@@ -1392,6 +1396,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # # Approximate end-diastolic pressures
         pressure_lv = self.parameters["ED pressure"]["Left Ventricle"]  # kPa
         pressure_rv = self.parameters["ED pressure"]["Right Ventricle"]  # kPa
+
         self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
         # zerop key words
@@ -1481,6 +1486,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         # example for nodout
         kw = keywords.SetNodeGeneral(option="part", sid=999, e1=1, e2=2)
+
         self.kw_database.main.append(kw)
         kw = keywords.DatabaseHistoryNodeSet(id1=999)
         self.kw_database.main.append(kw)
@@ -1494,6 +1500,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.kw_database.main.append(kw)
 
         return
+
 
     # def _add_enddiastolic_pressure_bc(self, pressure_lv: float = 1, pressure_rv: float = 1):
     #     """Adds end diastolic pressure boundary condition on the left and right endocardium"""
@@ -2123,6 +2130,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         # mask = np.isin(nodes_base, tetra_ventricles, invert=True)
         # LOGGER.debug("Removing {0} nodes from base nodes".format(np.sum(mask)))
         # nodes_base = nodes_base[np.invert(mask)]
+
 
         node_set_id_apex_left = self.get_unique_nodeset_id()
         # create node-sets for apex

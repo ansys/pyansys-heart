@@ -17,8 +17,8 @@ if __name__ == "__main__":
     """
 
     path_to_case = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\01\\01.case"
-    workdir = os.path.join(pathlib.Path(path_to_case).parent, "BiVentricleRefactored")
-    # workdir = os.path.join(pathlib.Path(path_to_case).parent, "FullHeartRefactored")
+    # workdir = os.path.join(pathlib.Path(path_to_case).parent, "BiVentricleRefactored")
+    workdir = os.path.join(pathlib.Path(path_to_case).parent, "FullHeartRefactored")
     path_to_model = os.path.join(workdir, "heart_model.pickle")
 
     use_preprocessor = True
@@ -26,8 +26,8 @@ if __name__ == "__main__":
 
     if use_preprocessor:
         model = run_preprocessor(
-            # model_type=models.FullHeart,
-            model_type=models.BiVentricle,
+            model_type=models.FullHeart,
+            # model_type=models.BiVentricle,
             database="Strocchi2020",
             path_original_mesh=path_to_case,
             work_directory=workdir,

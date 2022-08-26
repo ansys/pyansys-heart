@@ -597,6 +597,10 @@ class HeartModel:
         self.mesh.tetrahedrons = tetra_tissue
         self.mesh.nodes = fluent_mesh.nodes
         for face_zone in fluent_mesh.face_zones:
+            # don't create surfaces for interior face zones
+            if "interior" in face_zone.name or face_zone.zone_type != 3:
+                continue
+
             face_zone_surface_mesh = SurfaceMesh(
                 name=face_zone.name,
                 faces=face_zone.faces[

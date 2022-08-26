@@ -43,6 +43,7 @@ class ModelInfo:
         path_to_simulation_mesh: pathlib.Path = None,
         path_to_model: pathlib.Path = None,
         mesh_size: float = 1.5,
+        add_blood_pool: bool = False,
     ) -> None:
 
         self.database = database
@@ -63,6 +64,8 @@ class ModelInfo:
         """Model (geometric) type"""
         self.mesh_size: float = mesh_size
         """Mesh size used for remeshing"""
+        self.add_blood_pool: bool = add_blood_pool
+        """Flag indicating whether to add blood to the cavities"""
 
         if not os.path.isfile(self.path_to_original_mesh):
             raise FileNotFoundError("%s not found" % self.path_to_original_mesh)
@@ -577,19 +580,19 @@ class HeartModel:
             LOGGER.warning("No mesh size set: setting to uniform size of 1.5 mm")
             self.info.mesh_size = 1.5
 
-        mesher.mesh_tissue_by_fluent(
+        add_blood_pool = False
+
+        mesher.mesh_heart_model_by_fluent(
             self.info.workdir,
             path_mesh_file,
             mesh_size=self.info.mesh_size,
-            journal_type="improved",
+            add_blood_pool=add_blood_pool,
             show_gui=True,
         )
-        # path_mesh_file_vtk = path_mesh_file.replace(".msh.h5", ".vtk")
-        # tetra, face_zones, nodes = mesher.hdf5._deprecated_fluenthdf5_to_vtk(
-        #     path_mesh_file, path_mesh_file_vtk
-        # )
+
         fluent_mesh = mesher.hdf5.FluentMesh()
         fluent_mesh.load_mesh(path_mesh_file)
+
         tissue_cell_zone = next(cz for cz in fluent_mesh.cell_zones if "heart-tet-cells" in cz.name)
         tetra_tissue = tissue_cell_zone.cells
 
@@ -690,7 +693,7 @@ class HeartModel:
         os.remove(filename_remeshed)
         return
 
-    def _add_volume_mesh_for_blood_pool(self):
+    def _deprecated_add_volume_mesh_for_blood_pool(self):
         """Adds a volume mesh for the (interior) blood pool
 
         Notes
@@ -703,7 +706,7 @@ class HeartModel:
 
         caps = [c for p in self.parts for c in p.caps]
 
-        mesher.mesh_cavity_interior_by_fluent(
+        mesher._deprecated_mesh_cavity_interior_by_fluent(
             path_to_input_mesh, path_to_output_mesh, caps, show_gui=True
         )
 

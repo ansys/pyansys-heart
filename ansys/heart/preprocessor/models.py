@@ -151,9 +151,12 @@ class HeartModel:
         self.info = info
         """Model meta information"""
         self.mesh = Mesh()
-        """Modified mesh"""
+        """Modified mesh of the tissue"""
         self.mesh_raw = Mesh()
         """Raw input mesh"""
+
+        self.fluid_mesh = Mesh()
+        """Generated fluid mesh"""
 
         self._add_subparts()
         """Adds any subparts"""
@@ -580,13 +583,11 @@ class HeartModel:
             LOGGER.warning("No mesh size set: setting to uniform size of 1.5 mm")
             self.info.mesh_size = 1.5
 
-        add_blood_pool = False
-
         mesher.mesh_heart_model_by_fluent(
             self.info.workdir,
             path_mesh_file,
             mesh_size=self.info.mesh_size,
-            add_blood_pool=add_blood_pool,
+            add_blood_pool=self.info.add_blood_pool,
             show_gui=True,
         )
 
@@ -596,9 +597,10 @@ class HeartModel:
         tissue_cell_zone = next(cz for cz in fluent_mesh.cell_zones if "heart-tet-cells" in cz.name)
         tetra_tissue = tissue_cell_zone.cells
 
-        # update mesh object
+        # update mesh object of the tissue
         self.mesh.tetrahedrons = tetra_tissue
         self.mesh.nodes = fluent_mesh.nodes
+
         for face_zone in fluent_mesh.face_zones:
             # don't create surfaces for interior face zones
             if "interior" in face_zone.name or face_zone.zone_type != 3:
@@ -616,6 +618,17 @@ class HeartModel:
             #     os.path.join(self.info.workdir, face_zone.name + ".stl")
             # )
             self.mesh.boundaries.append(face_zone_surface_mesh)
+
+        # update mesh object of the fluid
+        if self.info.add_blood_pool:
+            fluid_cell_zones = [
+                cz for cz in fluent_mesh.cell_zones if "heart-tet-cells" not in cz.name
+            ]
+            tetras_fluid = np.empty((0, 4))
+            for cell_zone in fluid_cell_zones:
+                tetras_fluid = np.vstack([tetras_fluid, cell_zone.cells])
+            self.fluid_mesh.tetrahedrons = tetras_fluid
+            self.fluid_mesh.nodes = fluent_mesh.nodes
 
         self._map_data_to_remeshed_volume()
 

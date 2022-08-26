@@ -17,7 +17,7 @@ if __name__ == "__main__":
     """
 
     path_to_case = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\01\\01.case"
-    workdir = os.path.join(pathlib.Path(path_to_case).parent, "BiVentricleRefactored")
+    workdir = os.path.join(pathlib.Path(path_to_case).parent, "BiVentricleRefactoredVolume")
     # workdir = os.path.join(pathlib.Path(path_to_case).parent, "FullHeartRefactored")
     path_to_model = os.path.join(workdir, "heart_model.pickle")
 
@@ -33,6 +33,7 @@ if __name__ == "__main__":
             work_directory=workdir,
             path_to_model=path_to_model,
             mesh_size=1.5,
+            add_blood_pool=False,
         )
 
     # write LS-DYNA files

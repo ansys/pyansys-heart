@@ -601,16 +601,28 @@ class HeartModel:
         self.mesh.tetrahedrons = tetra_tissue
         self.mesh.nodes = fluent_mesh.nodes
 
+        # ensures normals pointing into the cavity
+        # NOTE: not sure what determines the ordering when adding the blood pool
+        # E.g. the normals of the endo AND epicardium are now pointing inwards with
+        # this switch deactivated when adding add blood pool
+        if self.info.add_blood_pool:
+            flip_face_order = False
+        else:
+            flip_face_order = True
+
         for face_zone in fluent_mesh.face_zones:
             # don't create surfaces for interior face zones
             if "interior" in face_zone.name or face_zone.zone_type != 3:
                 continue
 
+            if flip_face_order:
+                faces = face_zone.faces[:, [0, 2, 1]]
+            else:
+                faces = face_zone.faces
+
             face_zone_surface_mesh = SurfaceMesh(
                 name=face_zone.name,
-                faces=face_zone.faces[
-                    :, [0, 2, 1]
-                ],  # ensures normals pointing away from the volume mesh
+                faces=faces,
                 nodes=self.mesh.nodes,
                 sid=face_zone.id,
             )

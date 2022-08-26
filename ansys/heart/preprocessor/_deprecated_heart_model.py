@@ -451,11 +451,11 @@ class HeartModel:
 
         # start meshing:
 
-        from ansys.heart.preprocessor.mesh.mesher import mesh_by_fluentmeshing
+        from ansys.heart.preprocessor.mesh.mesher import _deprecated_mesh_by_fluentmeshing
 
         LOGGER.debug("Remeshing volume")
         path_to_mesh = os.path.join(self.info.working_directory, "fluent_volume_mesh.msh.h5")
-        mesh_by_fluentmeshing(
+        _deprecated_mesh_by_fluentmeshing(
             filename,
             path_to_output=path_to_mesh,
             mesh_size=1.5,

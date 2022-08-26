@@ -41,7 +41,7 @@ from ansys.heart.preprocessor.mesh.connectivity import remove_triangle_layers_fr
 from ansys.heart.preprocessor.mesh.mesher import (
     _shrink_by_spaceclaim,
     _run_gmsh,
-    mesh_by_fluentmeshing,
+    _deprecated_mesh_by_fluentmeshing,
 )
 from ansys.heart.preprocessor.mesh.fluenthdf5 import (
     _deprecated_fluenthdf5_to_vtk,
@@ -382,7 +382,7 @@ class HeartMesh:
 
         elif use_fluent:
             LOGGER.debug("\tLaunching Fluent meshing...")
-            mesh_by_fluentmeshing(input_stl_fluent, output_msh_fluent, mesh_size)
+            _deprecated_mesh_by_fluentmeshing(input_stl_fluent, output_msh_fluent, mesh_size)
 
             _deprecated_fluenthdf5_to_vtk(output_msh_fluent, output_vtk)
 
@@ -438,7 +438,7 @@ class HeartMesh:
 
         # create volume mesh
         mesh_output = os.path.join(self.info.working_directory, "fluent_volume_mesh.msh.h5")
-        mesh_by_fluentmeshing(
+        _deprecated_mesh_by_fluentmeshing(
             stl_path, mesh_output, mesh_size=self.info.mesh_size, journal_type="simplified_geometry"
         )
 

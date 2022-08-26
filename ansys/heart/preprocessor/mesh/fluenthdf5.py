@@ -153,6 +153,11 @@ class FluentFaceZone:
 class FluentMesh:
     """Class that stores the Fluent mesh"""
 
+    @property
+    def cell_zone_names(self):
+        """List of cell zone names of non-empty cell zones"""
+        return [cz.name for cz in self.cell_zones if cz != None]
+
     def __init__(self, filename: str = None) -> None:
 
         self.filename: str = filename
@@ -192,7 +197,7 @@ class FluentMesh:
 
         if reconstruct_tetrahedrons:
             self._read_c0c1_of_face_zones()
-            self._convert_interior_faces_to_tetrahedrons()
+            self._convert_interior_faces_to_tetrahedrons2()
             self._set_cells_in_cell_zones()
 
         self._update_indexing()
@@ -313,8 +318,8 @@ class FluentMesh:
         """Reads the cell connectivity of the face zone. Only do for interior cells"""
 
         for face_zone in self.face_zones:
-            if face_zone.zone_type != 2 or "interior" not in face_zone.name:
-                continue
+            # if face_zone.zone_type != 2 or "interior" not in face_zone.name:
+            #     continue
 
             subdir0 = "meshes/1/faces/c0/" + str(face_zone.hdf5_id)
             subdir1 = "meshes/1/faces/c1/" + str(face_zone.hdf5_id)
@@ -366,6 +371,15 @@ class FluentMesh:
             mask = np.invert(mask)
 
             if not np.all(np.sum(mask, axis=1) == 1):
+                # note: in an edge case we may have an interior face that
+                # is connected to a cell where all the other faces are actually
+                # not of the interior.
+                # as a solution we can collect all faces first and consequently construct the tetrahedrons
+                face_ids = np.where(np.sum(mask, axis=1) != 1)[0]
+                for face_id in face_ids:
+
+                    f1[face_id]
+
                 raise ValueError("The two faces do not seem to be connected with two nodes")
 
             tetrahedrons = np.hstack([f1, f2[mask][:, None]])
@@ -375,6 +389,64 @@ class FluentMesh:
 
             self.cells = np.vstack([self.cells, tetrahedrons])
             self.cell_ids = np.append(self.cell_ids, cell_ids)
+
+        return tetrahedrons, cell_ids
+
+    def _convert_interior_faces_to_tetrahedrons2(self):
+        """Uses c0c1 matrix to get tetrahedrons
+
+        Notes
+        -----
+
+        f1: n1 n2 n3 c0 c1
+        f2: n3 n1 n4 c0 c1
+
+        If f1 and f2 are connected to same face - extract node not occuring in
+        f1. The resulting four nodes will make up the tetrahedron
+
+        Do this for all faces.
+
+        """
+
+        self.cells = np.zeros((0, 4), dtype=int)
+        self.cell_ids = np.zeros(0, dtype=int)
+
+        # collect all faces
+        faces = np.empty((0, 3), dtype=int)
+        c0c1 = np.empty((0, 2), dtype=int)
+        for face_zone in self.face_zones:
+            faces = np.vstack([faces, face_zone.faces])
+            c0c1 = np.vstack([c0c1, face_zone.c0c1])
+
+        c0c1 = c0c1.T.ravel()
+
+        cell_ids1, idx1, counts1 = np.unique(c0c1, return_index=True, return_counts=True)
+        cell_ids2, idx2, counts2 = np.unique(np.flipud(c0c1), return_index=True, return_counts=True)
+
+        faces_temp = np.vstack([faces, faces])
+
+        # remove the
+        if cell_ids1[0] == 0:
+            cell_ids1 = cell_ids1[1:]
+            idx1 = idx1[1:]
+            idx2 = idx2[1:]
+
+        f1 = faces_temp[idx1, :]
+        f2 = np.flipud(faces_temp)[idx2, :]
+
+        # Find node in connected face which completes tetrahedron
+        mask = (f2[:, :, None] == f1[:, None, :]).any(-1)
+        mask = np.invert(mask)
+
+        if not np.all(np.sum(mask, axis=1) == 1):
+            raise ValueError("The two faces do not seem to be connected with two nodes")
+
+        tetrahedrons = np.hstack([f1, f2[mask][:, None]])
+
+        cell_ids = cell_ids1
+
+        self.cells = np.vstack([self.cells, tetrahedrons])
+        self.cell_ids = np.append(self.cell_ids, cell_ids)
 
         return tetrahedrons, cell_ids
 
@@ -737,16 +809,27 @@ def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii"):
 
 if __name__ == "__main__":
     print("protected")
-    hdf5_filename = r"D:\development\pyheart-lib\pyheart-lib\downloads\Strocchi2020\01\BiVentricleRefactored\fluent_volume_mesh_with_interior.msh.h5"
-    # hdf5_filename = r"D:\development\pyheart-lib\pyheart-lib\downloads\Strocchi2020\01\BiVentricleRefactored\fluent_volume_mesh.msh.h5"
+
     # fluenthdf5_to_vtk(hdf5_filename, "test.vtk")
 
     # fluenthdf5_to_vtk(hdf5_filename, hdf5_filename.replace(".msh.h5", "_.vtk"))
 
     import os
 
-    mesh = FluentMesh()
-    mesh.load_mesh(hdf5_filename)
+    t1 = time.time()
+    hdf5_filename = r"D:\development\pyheart-lib\pyheart-lib\downloads\Strocchi2020\01\BiVentricleRefactored\fluent_volume_mesh.msh.h5"
+    mesh1 = FluentMesh()
+    mesh1.load_mesh(hdf5_filename)
+    t2 = time.time()
+    print("Time elapsed: {}".format(t2 - t1))
+
+    hdf5_filename = r"D:\development\pyheart-lib\pyheart-lib\downloads\Strocchi2020\01\BiVentricleRefactored\fluent_volume_mesh_with_interior.msh.h5"
+    mesh2 = FluentMesh()
+    mesh2.load_mesh(hdf5_filename)
+    t3 = time.time()
+    print("Time elapsed: {:.2f}".format(t3 - t2))
+
+    tetra, face_zones, points = _deprecated_fluenthdf5_to_vtk(hdf5_filename)
 
     for face_zone in mesh.face_zones:
         if "interior" in face_zone.name:

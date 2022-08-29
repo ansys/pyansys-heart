@@ -539,7 +539,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # add general implicit controls
         self.kw_database.main.append(
-            keywords.ControlImplicitGeneral(imflag=1, dt0=dtmin)
+            keywords.ControlImplicitGeneral(imflag=1, dt0=dtmax)
         )  # imflag=1 means implicit
 
         # add implicit solution controls: Defaults are OK?

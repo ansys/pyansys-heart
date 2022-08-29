@@ -118,6 +118,7 @@ class BaseDynaWriter:
 
         """Load simulation parameters"""
         from ansys.heart.writer.parameters import parameters
+
         self.parameters = parameters
 
         if "Improved" in self.model.info.model_type:
@@ -538,7 +539,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # add general implicit controls
         self.kw_database.main.append(
-            keywords.ControlImplicitGeneral(imflag=1, dt0=dtmin)
+            keywords.ControlImplicitGeneral(imflag=1, dt0=dtmax)
         )  # imflag=1 means implicit
 
         # add implicit solution controls: Defaults are OK?
@@ -701,7 +702,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 else:
                     active_dct = {
                         "taumax": self.parameters["Material"]["Myocardium"]["Active"]["Tmax"],
-                        "ca2ionm": self.parameters["Material"]["Myocardium"]["Active"]["ca2ionm"]
+                        "ca2ionm": self.parameters["Material"]["Myocardium"]["Active"]["ca2ionm"],
                     }
 
                 myocardium_kw = MaterialHGOMyocardium(
@@ -807,7 +808,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
             section_id = self.get_unique_section_id()
             mat_id = self.get_unique_mat_id()
 
-
             if isinstance(self.model, (LeftVentricle, BiVentricle)):
                 spring_stiffness = self.parameters["Boundary Condition"]["Valve Spring"][
                     "BV"
@@ -867,8 +867,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
         LOGGER.debug("Adding spring b.c. for cap: %s" % cap.name)
 
         # NOTE: may want to extent the node ids to include adjacent nodes
-        num_nodes_edge = len(cap.node_ids)
+        # num_nodes_edge = len(cap.node_ids)
         mesh = self.model.mesh
+        #
+        # attached_nodes = cap.node_ids
+        #
+        for boundary in mesh.boundaries:
+            if cap.name.split('-')[0] in boundary.name:
+                attached_nodes = boundary.node_ids
+                break
         # -------------------------------------------------------------------
 
         # compute nodal areas:
@@ -885,7 +892,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         surface_global_node_ids = surface_obj.PointData["GlobalPointIds"]
 
         # select only those nodal areas which match the cap node ids
-        idx_select = np.isin(surface_global_node_ids, cap.node_ids)
+        idx_select = np.nonzero(attached_nodes[:, None] == surface_global_node_ids)[1]
         nodal_areas = nodal_areas[idx_select]
 
         # scaled spring stiffness by nodal area
@@ -896,7 +903,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # element discrete
 
         # compute the radial components
-        sd_orientations_radial = mesh.nodes[cap.node_ids, :] - cap.centroid
+        sd_orientations_radial = mesh.nodes[attached_nodes, :] - cap.centroid
 
         # normalize
         norms = np.linalg.norm(sd_orientations_radial, axis=1)
@@ -922,9 +929,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # create discrete elements for normal direction
         nodes_discrete_elements = np.array(
-            [cap.node_ids + 1, np.zeros(num_nodes_edge)], dtype=int
+            [attached_nodes + 1, np.zeros(len(attached_nodes))], dtype=int
         ).T
-        vector_ids_normal = np.ones(num_nodes_edge, dtype=int) * vector_id_normal
+        vector_ids_normal = np.ones(len(attached_nodes), dtype=int) * vector_id_normal
 
         discrete_element_normal_kw = create_discrete_elements_kw(
             nodes=nodes_discrete_elements,
@@ -980,11 +987,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         uvc_l[uvc_l < 0] = 1
         penalty = (
-                -_sigmoid(
-                    (abs(uvc_l) - self.parameters["Pericardium"]["Penalty function"][0])
-                    * self.parameters["Pericardium"]["Penalty function"][1]
-                )
-                + 1
+            -_sigmoid(
+                (abs(uvc_l) - self.parameters["Pericardium"]["Penalty function"][0])
+                * self.parameters["Pericardium"]["Penalty function"][1]
+            )
+            + 1
         )
 
         # collect all pericardium nodes:
@@ -1006,19 +1013,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # select only nodes that are on the epicardium and penalty factor > 0.1
         pericardium_nodes = epicardium_nodes[penalty[epicardium_nodes] > 0.001]
-        
-        # # write to file
-        # np.savetxt(
-        #     os.path.join(self.model.info.workdir, "pericardium.txt"),
-        #     np.concatenate(
-        #         (
-        #             self.model.mesh.nodes[pericardium_nodes, :],
-        #             penalty[pericardium_nodes].reshape(-1, 1),
-        #         ),
-        #         axis=1,
-        #     ),
-        #     delimiter=",",
-        # )
 
         spring_stiffness = self.parameters["Pericardium"]["Spring Stiffness"]  # kPA/mm
         # compute nodal areas:
@@ -1034,11 +1028,25 @@ class MechanicsDynaWriter(BaseDynaWriter):
         surface_global_node_ids = surface_obj.PointData["GlobalPointIds"]
 
         # select only those nodal areas which match the pericardium node ids
-        idx_select = np.isin(surface_global_node_ids, pericardium_nodes)
+        idx_select = np.nonzero(pericardium_nodes[:, None] == surface_global_node_ids)[1]
         nodal_areas = nodal_areas[idx_select]
 
         # compute scale factor
         scale_factors = nodal_areas * penalty[pericardium_nodes]
+
+        # write to file
+        # np.savetxt(
+        #     os.path.join(self.model.info.workdir, "pericardium.txt"),
+        #     np.concatenate(
+        #         (
+        #             self.model.mesh.nodes[pericardium_nodes, :],
+        #             penalty[pericardium_nodes].reshape(-1, 1),
+        #             scale_factors.reshape(-1, 1),
+        #         ),
+        #         axis=1,
+        #     ),
+        #     delimiter=",",
+        # )
 
         # keywords
         # NOTE: Need to be made dynamic
@@ -1145,7 +1153,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
             shrf=0.8333,
             nip=3,
             t1=self.parameters["Cap"]["Thickness"],
-
         )
 
         self.kw_database.cap_elements.append(material_kw)
@@ -1284,7 +1291,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             if self.system_model_name != self.parameters["Circulation System"]["Name"]:
                 LOGGER.error("Circulation system parameters cannot be rad from Json")
-
 
             for cavity in self.model.cavities:
                 if "Left ventricle" in cavity.name:
@@ -1500,7 +1506,6 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.kw_database.main.append(kw)
 
         return
-
 
     # def _add_enddiastolic_pressure_bc(self, pressure_lv: float = 1, pressure_rv: float = 1):
     #     """Adds end diastolic pressure boundary condition on the left and right endocardium"""
@@ -2130,7 +2135,6 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         # mask = np.isin(nodes_base, tetra_ventricles, invert=True)
         # LOGGER.debug("Removing {0} nodes from base nodes".format(np.sum(mask)))
         # nodes_base = nodes_base[np.invert(mask)]
-
 
         node_set_id_apex_left = self.get_unique_nodeset_id()
         # create node-sets for apex

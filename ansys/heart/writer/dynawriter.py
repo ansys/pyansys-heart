@@ -867,8 +867,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
         LOGGER.debug("Adding spring b.c. for cap: %s" % cap.name)
 
         # NOTE: may want to extent the node ids to include adjacent nodes
-        num_nodes_edge = len(cap.node_ids)
+        # num_nodes_edge = len(cap.node_ids)
         mesh = self.model.mesh
+        #
+        attached_nodes = cap.node_ids
+        #
+        # for boundary in mesh.boundaries:
+        #     if cap.name.split('-')[0] in boundary.name:
+        #         attached_nodes = boundary.node_ids
+        #         break
         # -------------------------------------------------------------------
 
         # compute nodal areas:
@@ -885,7 +892,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         surface_global_node_ids = surface_obj.PointData["GlobalPointIds"]
 
         # select only those nodal areas which match the cap node ids
-        idx_select = np.isin(surface_global_node_ids, cap.node_ids)
+        # idx_select = np.isin(surface_global_node_ids, attached_nodes)
+        idx_select = np.nonzero(attached_nodes[:, None] == surface_global_node_ids)[1]
         nodal_areas = nodal_areas[idx_select]
 
         # scaled spring stiffness by nodal area
@@ -896,7 +904,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # element discrete
 
         # compute the radial components
-        sd_orientations_radial = mesh.nodes[cap.node_ids, :] - cap.centroid
+        sd_orientations_radial = mesh.nodes[attached_nodes, :] - cap.centroid
 
         # normalize
         norms = np.linalg.norm(sd_orientations_radial, axis=1)
@@ -922,9 +930,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # create discrete elements for normal direction
         nodes_discrete_elements = np.array(
-            [cap.node_ids + 1, np.zeros(num_nodes_edge)], dtype=int
+            [attached_nodes + 1, np.zeros(len(attached_nodes))], dtype=int
         ).T
-        vector_ids_normal = np.ones(num_nodes_edge, dtype=int) * vector_id_normal
+        vector_ids_normal = np.ones(len(attached_nodes), dtype=int) * vector_id_normal
 
         discrete_element_normal_kw = create_discrete_elements_kw(
             nodes=nodes_discrete_elements,

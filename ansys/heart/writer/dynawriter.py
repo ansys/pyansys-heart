@@ -892,7 +892,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         surface_global_node_ids = surface_obj.PointData["GlobalPointIds"]
 
         # select only those nodal areas which match the cap node ids
-        # idx_select = np.isin(surface_global_node_ids, attached_nodes)
         idx_select = np.nonzero(attached_nodes[:, None] == surface_global_node_ids)[1]
         nodal_areas = nodal_areas[idx_select]
 
@@ -1014,19 +1013,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # select only nodes that are on the epicardium and penalty factor > 0.1
         pericardium_nodes = epicardium_nodes[penalty[epicardium_nodes] > 0.001]
-        
-        # # write to file
-        # np.savetxt(
-        #     os.path.join(self.model.info.workdir, "pericardium.txt"),
-        #     np.concatenate(
-        #         (
-        #             self.model.mesh.nodes[pericardium_nodes, :],
-        #             penalty[pericardium_nodes].reshape(-1, 1),
-        #         ),
-        #         axis=1,
-        #     ),
-        #     delimiter=",",
-        # )
 
         spring_stiffness = self.parameters["Pericardium"]["Spring Stiffness"]  # kPA/mm
         # compute nodal areas:
@@ -1042,11 +1028,25 @@ class MechanicsDynaWriter(BaseDynaWriter):
         surface_global_node_ids = surface_obj.PointData["GlobalPointIds"]
 
         # select only those nodal areas which match the pericardium node ids
-        idx_select = np.isin(surface_global_node_ids, pericardium_nodes)
+        idx_select = np.nonzero(pericardium_nodes[:,None]==surface_global_node_ids)[1]
         nodal_areas = nodal_areas[idx_select]
 
         # compute scale factor
         scale_factors = nodal_areas * penalty[pericardium_nodes]
+
+        # write to file
+        # np.savetxt(
+        #     os.path.join(self.model.info.workdir, "pericardium.txt"),
+        #     np.concatenate(
+        #         (
+        #             self.model.mesh.nodes[pericardium_nodes, :],
+        #             penalty[pericardium_nodes].reshape(-1, 1),
+        #             scale_factors.reshape(-1, 1),
+        #         ),
+        #         axis=1,
+        #     ),
+        #     delimiter=",",
+        # )
 
         # keywords
         # NOTE: Need to be made dynamic

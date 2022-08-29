@@ -779,6 +779,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
             caps_to_use = [
                 "mitral-valve",
                 "tricuspid-valve",
+                # "pulmonary-valve",
+                # "aortic-valve"
             ]
 
         elif isinstance(self.model, (FourChamber, FullHeart)):
@@ -1426,6 +1428,9 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         # export .k files
         self.export_databases(export_directory)
+
+        # export segment sets to separate file
+        self._export_cavity_segmentsets(export_directory)
 
         tend = time.time()
         LOGGER.debug("Time spend writing files: {:.2f} s".format(tend - tstart))

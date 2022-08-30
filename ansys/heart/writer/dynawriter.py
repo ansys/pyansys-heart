@@ -791,6 +791,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
             caps_to_use = [
                 "mitral-valve",
                 "tricuspid-valve",
+                "aortic-valve",
+                "pulmonary-valve",
             ]
 
         elif isinstance(self.model, (FourChamber, FullHeart)):

@@ -228,6 +228,18 @@ class BaseDynaWriter:
                 fid = open(filepath, "a")
                 fid.write("*END")
 
+            elif deckname == "nodes":
+                ids = np.arange(0, self.model.mesh.nodes.shape[0], 1) + 1
+                content = np.hstack((ids.reshape(-1, 1), self.model.mesh.nodes))
+                np.savetxt(
+                    os.path.join(export_directory, "nodes.k"),
+                    content,
+                    fmt="%8d%16.5e%16.5e%16.5e",
+                    header="*KEYWORD\n*NODE\n"
+                    "$#   nid               x               y               z      tc      rc",
+                    footer="*END",
+                    comments="",
+                )
             else:
                 deck.export_file(filepath)
         return
@@ -873,7 +885,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # attached_nodes = cap.node_ids
         #
         for boundary in mesh.boundaries:
-            if cap.name.split('-')[0] in boundary.name:
+            if cap.name.split("-")[0] in boundary.name:
                 attached_nodes = boundary.node_ids
                 break
         # -------------------------------------------------------------------

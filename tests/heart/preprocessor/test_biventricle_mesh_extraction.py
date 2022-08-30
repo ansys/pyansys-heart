@@ -39,9 +39,9 @@ def extract_bi_ventricle():
     global reference_model
     reference_model = models.HeartModel.load_model(path_to_reference_model)
 
-    assert isinstance(
-        reference_model, models.BiVentricle
-    ), "Reference model should be of type BiVentricle"
+    assert isinstance(reference_model, models.BiVentricle), (
+        "Reference model should be of type %s" % models.BiVentricle.__class__.__name__
+    )
 
     workdir = os.path.join(get_workdir(), reference_model.__class__.__name__)
     path_to_model = os.path.join(workdir, "heart_model.pickle")

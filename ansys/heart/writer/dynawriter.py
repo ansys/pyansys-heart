@@ -591,7 +591,26 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.DatabaseMatsum(dt=0.1, binary=2))
 
         # frequency of full results
-        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
+        lcid = self.get_unique_curve_id()
+        time = [
+            0,
+            self.parameters["Material"]["Myocardium"]["Active"]["Prefill"],
+            self.parameters["Material"]["Myocardium"]["Active"]["Prefill"] + dt_output_d3plot,
+            self.parameters["Time"]["End Time"],
+        ]
+        step = [10 * dt_output_d3plot, 10 * dt_output_d3plot, dt_output_d3plot, dt_output_d3plot]
+        kw_curve = create_define_curve_kw(
+            x=time,
+            y=step,
+            curve_name="d3plot out control",
+            curve_id=lcid,
+            lcint=0,
+        )
+
+        self.kw_database.main.append(kw_curve)
+        self.kw_database.main.append(
+            keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot, lcdt=lcid, ioopt=1)
+        )
 
         self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
 

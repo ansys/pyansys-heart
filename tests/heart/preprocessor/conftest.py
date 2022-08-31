@@ -5,15 +5,14 @@ import glob as glob
 
 ROOT_FOLDER = os.path.join(pathlib.Path(__file__).parent.parent)
 
-# def pytest_collection_modifyitems(config, items):
-#     keywordexpr = config.option.keyword
-#     markexpr = config.option.markexpr
-#     if keywordexpr or markexpr:
-#         return  # command line has a -k or -m, let pytest handle it
-#     skip_run_dyna = pytest.mark.skip(
-#         reason="run_dyna not selected for pytest run (`pytest -m run_dyna`).  Skip by default"
-#     )
-#     [item.add_marker(skip_run_dyna) for item in items if "run_dyna" in item.keywords]
+"""
+
+Note
+----
+Note for VS Code/conda users: for the moment it seems that for proper pytest discovery in VS Code's
+native testing framework you need to install pyfluent into the base virtual environment. 
+
+"""
 
 
 def pytest_sessionstart(session):
@@ -70,8 +69,7 @@ def compare_string_with_file(output: str, reference_file: str) -> None:
 
 
 def clean_directory(directory: str):
-    """Cleans the directory by removing it and re-creating it 
-    """
+    """Cleans the directory by removing it and re-creating it"""
     import shutil
 
     if os.path.isdir(directory):

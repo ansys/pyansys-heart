@@ -32,7 +32,6 @@ def compare_surfaces(model: models.HeartModel, reference_model: models.HeartMode
     1. tests consistency of surface names
     2. tests surface topology (face id and ordering) of surfaces
     """
-    assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
 
     for part in model.parts:
         ref_part = next(

@@ -776,12 +776,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             # for cavity in self.model._mesh._cavities:
             #     for cap in cavity.closing_caps:
             #         caps_to_use.append(cap.name)
-            caps_to_use = [
-                "mitral-valve",
-                "tricuspid-valve",
-                # "pulmonary-valve",
-                # "aortic-valve"
-            ]
+            caps_to_use = ["mitral-valve", "tricuspid-valve", "pulmonary-valve", "aortic-valve"]
 
         elif isinstance(self.model, (FourChamber, FullHeart)):
             caps_to_use = [
@@ -875,7 +870,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # attached_nodes = cap.node_ids
         #
         for boundary in mesh.boundaries:
-            if cap.name.split('-')[0] in boundary.name:
+            if cap.name.split("-")[0] in boundary.name:
                 attached_nodes = boundary.node_ids
                 break
         # -------------------------------------------------------------------
@@ -1493,13 +1488,14 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.kw_database.main.append(keywords.ControlImplicitSolver())
 
         # add binout for post-process
-        self.kw_database.main.append(keywords.DatabaseNodout(dt=0.5 * scale_time, binary=1))
+        self.kw_database.main.append(keywords.DatabaseNodout(dt=0.2 * scale_time, binary=1))
 
-        # example for nodout
-        kw = keywords.SetNodeGeneral(option="part", sid=999, e1=1, e2=2)
+        # write for all nodes in nodout
+        nodeset_id = self.get_unique_nodeset_id()
+        kw = keywords.SetNodeGeneral(option="ALL", sid=nodeset_id)
 
         self.kw_database.main.append(kw)
-        kw = keywords.DatabaseHistoryNodeSet(id1=999)
+        kw = keywords.DatabaseHistoryNodeSet(id1=nodeset_id)
         self.kw_database.main.append(kw)
         return
 

@@ -529,7 +529,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
 
         self.kw_database.main.append(
-            keywords.ControlImplicitDynamics(imass=imass, gamma=gamma, beta=beta)
+            keywords.ControlImplicitDynamics(
+                imass=imass,
+                gamma=gamma,
+                beta=beta,
+                # active dynamic process only after prefilling
+                tdybir=self.parameters["Material"]["Myocardium"]["Active"]["Prefill"],
+            )
         )
 
         # add auto controls
@@ -1465,11 +1471,11 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         """
         self.kw_database.main.append(keywords.ControlTermination(endtim=1.0 * scale_time))
-        # self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
 
-        self.kw_database.main.append(
-            keywords.ControlImplicitDynamics(imass=1, gamma=0.6, beta=0.38)
-        )
+        self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
+        # self.kw_database.main.append(
+        #     keywords.ControlImplicitDynamics(imass=1, gamma=0.6, beta=0.38)
+        # )
 
         # add auto controls
         self.kw_database.main.append(

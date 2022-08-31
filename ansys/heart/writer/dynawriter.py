@@ -528,19 +528,31 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 "Simulation type not recoqnized: Please choose " "either quasi-static or static"
             )
 
+        prefill_time = self.parameters["Material"]["Myocardium"]["Active"]["Prefill"]
         self.kw_database.main.append(
             keywords.ControlImplicitDynamics(
                 imass=imass,
                 gamma=gamma,
                 beta=beta,
                 # active dynamic process only after prefilling
-                tdybir=self.parameters["Material"]["Myocardium"]["Active"]["Prefill"],
+                tdybir=prefill_time,
             )
         )
 
         # add auto controls
+        lcid = self.get_unique_curve_id()
+        time = [0, prefill_time, prefill_time + dtmax, end_time]
+        step = [dtmax, dtmin, dtmax, dtmax]
+        kw_curve = create_define_curve_kw(
+            x=time,
+            y=step,
+            curve_name="time step control",
+            curve_id=lcid,
+            lcint=0,
+        )
+        self.kw_database.main.append(kw_curve)
         self.kw_database.main.append(
-            keywords.ControlImplicitAuto(iauto=1, dtmin=dtmin, dtmax=dtmax)
+            keywords.ControlImplicitAuto(iauto=1, dtmin=dtmin, dtmax=-lcid)
         )
 
         # add general implicit controls

@@ -541,8 +541,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # add auto controls
         lcid = self.get_unique_curve_id()
+        # tune time step for better compromise between convergence and performance
         time = [0, prefill_time, prefill_time + dtmax, end_time]
-        step = [dtmax, dtmin, dtmax, dtmax]
+        step = [5 * dtmax, 5 * dtmax, dtmin, dtmax]
         kw_curve = create_define_curve_kw(
             x=time,
             y=step,

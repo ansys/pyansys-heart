@@ -1,4 +1,64 @@
-{
+# Dictionary of heart parts
+HEART_PARTS = {
+    "Left ventricle": {
+        "VTKLabels": [
+            "Left ventricle myocardium",
+            "Aortic valve plane",
+            "Mitral valve plane",
+        ]
+    },
+    "Right ventricle": {
+        "VTKLabels": [
+            "Right ventricle myocardium",
+            "Tricuspid valve plane",
+            "Pulmonary valve plane",
+        ]
+    },
+    "Left atrium": {
+        "VTKLabels": [
+            "Left atrium myocardium",
+            "Left atrium appendage inlet",
+            "Left superior pulmonary vein inlet",
+            "Left inferior pulmonary vein inlet",
+            "Right inferior pulmonary vein inlet",
+            "Right superior pulmonary vein inlet",
+            "Left atrial appendage border",
+            "Left superior pulmonary vein border",
+            "Left inferior pulmonary vein border",
+            "Right inferior pulmonary vein border",
+            "Right superior pulmonary vein border",
+        ]
+    },
+    "Right atrium": {
+        "VTKLabels": [
+            "Right atrium myocardium",
+            "Superior vena cava inlet",
+            "Inferior vena cava inlet",
+            "Superior vena cava border",
+            "Inferior vena cava border",
+        ]
+    },
+    "Aorta": {"VTKLabels": ["Aorta wall"]},
+    "Pulmonary artery": {"VTKLabels": ["Pulmonary artery wall"]},
+}
+# List of valid models
+MODELS = {
+    "LeftVentricle": {"Parts": ["Left ventricle"]},
+    "BiVentricle": {"Parts": ["Left ventricle", "Right ventricle"]},
+    "FourChamber": {"Parts": ["Left ventricle", "Right ventricle", "Left atrium", "Right atrium"]},
+    "FullHeart": {
+        "Parts": [
+            "Left ventricle",
+            "Right ventricle",
+            "Left atrium",
+            "Right atrium",
+            "Aorta",
+            "Pulmonary artery",
+        ]
+    },
+}
+# map for mapping labels to ID
+LABELS_TO_ID = {
     "Strocchi2020": {
         "Left ventricle myocardium": 1,
         "Right ventricle myocardium": 2,
@@ -23,7 +83,7 @@
         "Right inferior pulmonary vein inlet": 21,
         "Right superior pulmonary vein inlet": 22,
         "Superior vena cava inlet": 23,
-        "Inferior vena cava inlet": 24
+        "Inferior vena cava inlet": 24,
     },
     "Cristobal2021": {
         "Left ventricle myocardium": 1,
@@ -49,7 +109,7 @@
         "Right inferior pulmonary vein inlet": 14,
         "Right superior pulmonary vein inlet": 15,
         "Superior vena cava inlet": 16,
-        "Inferior vena cava inlet": 17
+        "Inferior vena cava inlet": 17,
     },
     "Strocchi2020_simplified": {
         "Left ventricle myocardium": 1,
@@ -57,6 +117,7 @@
         "Mitral valve plane": 11,
         "Aortic valve plane": 12,
         "Pulmonary valve plane": 21,
-        "Tricuspid valve plane": 22
-    }
+        "Tricuspid valve plane": 22,
+    },
 }
+

@@ -78,10 +78,9 @@ class SystemModelPost:
 
         """
         try:
-            self.lv = pd.read_csv(os.path.join(self.dir, "circulation_model.csv"))
-        except:
-            self.lv = pd.read_csv(os.path.join(self.dir, "circulation_model_l.csv"))
-
+            self.lv = pd.read_csv(os.path.join(self.dir, "constant_preload_windkessel_afterload_left.csv"))
+        except IOError:
+            print("Only accept default file name constant_preload_windkessel_afterload_*.csv")
         #  special fix for Constant pre/after load case
         #  part/pven are not written in Csv files
         if "part" not in self.lv.columns:
@@ -94,7 +93,7 @@ class SystemModelPost:
                 self.lv[name] /= 1000
 
         if self.type == "BV":
-            self.rv = pd.read_csv(os.path.join(self.dir, "circulation_model_r.csv"))
+            self.rv = pd.read_csv(os.path.join(self.dir, "constant_preload_windkessel_afterload_right.csv"))
 
             if "part" not in self.rv.columns:
                 self.rv["part"] = 2 * np.ones(len(self.lv["time"]))

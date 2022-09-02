@@ -6,9 +6,8 @@ left-ventricle mesh, bi-ventricle mesh and four-chamber mesh
 import os
 from pathlib import Path
 
-from ansys.heart.preprocessor.heart_model import HeartModel
-from ansys.heart.preprocessor.model_information import ModelInformation
 from ansys.heart.custom_logging import LOGGER
+from ansys.heart.workflow.support import run_preprocessor_improved
 
 # some useful global variables:
 ASSET_PATH = os.path.join(
@@ -27,55 +26,14 @@ BASE_WORK_DIR = os.path.join(Path(__file__).parent.absolute(), "..", "workdir")
 # DOWNLOAD_PATH = os.path.join(Path(__file__).parents[3], "downloads")
 # CASE_PATH_STROCCHI = os.path.join(DOWNLOAD_PATH, "Strocchi2020", "05", "05.case")
 
-
-def run_preprocessor(
-    model_type: str,
-    database_name: str,
-    path_original_mesh: str,
-    work_directory: str,
-    mesh_size: float = 2.0,
-    remesh: bool = True,
-):
-    """Runs the preprocessor with the given model information
-
-    Parameters
-    ----------
-    model_type : str
-        Type of model
-    database_name : str
-        Database name. Either Strocchi2020, Cristobal2021, Strocchi2020_Modified,
-        or Cristobal2021_Modified
-    path_original_mesh : str
-        Path to input mesh (vtk)
-    work_directory : str
-        Path to work directory
-    """
-    if not os.path.isdir(work_directory):
-        os.makedirs(work_directory)
-
-    # create model
-    model_info = ModelInformation(
-        model_type=model_type,
-        database_name=database_name,
-        path_original_mesh=path_original_mesh,
-        working_directory=work_directory,
-    )
-    model_info.mesh_size = mesh_size
-
-    model_info_path = os.path.join(work_directory, "model_info.json")
-
-    model = HeartModel(model_info)
-    model.extract_simulation_mesh(remesh=remesh)
-
-    model.dump_model(model_info_path, clean_working_directory=False)
-    return
-
-
 if __name__ == "__main__":
 
     models_to_run = ["LeftVentricle", "BiVentricle", "FourChamber", "FourChamberOriginal"]
     # databases_to_run = ["Strocchi2020", "Cristobal2021", "Strocchi2020_Simplified"]
-    models_to_run = ["BiVentricle", "FourChamber"]
+    # models_to_run = ["LeftVentricleImproved"]
+    models_to_run = ["BiVentricleImproved", "FourChamberImproved", "FullHeartImproved"]
+    models_to_run = ["FullHeartImproved", "FourChamberImproved"]
+    # models_to_run = ["FullHeartImproved"]
     # models_to_run = ["FourChamberOriginal"]
     databases_to_run = ["Strocchi2020"]
 
@@ -87,16 +45,17 @@ if __name__ == "__main__":
 
         for model_type in models_to_run:
             LOGGER.info("***************************")
+            # work_directory = os.path.join(Path(case_path).parent, "workdir")
             work_directory = os.path.join(BASE_WORK_DIR, database, model_type)
-            # work_directory = BASE_WORK_DIR
 
-            if model_type in ["LeftVentricle", "BiVentricle", "FourChamber"]:
-                do_remesh = True
-            elif model_type in ["FourChamberOriginal"]:
-                do_remesh = False
-                model_type = "FourChamber"
+            # if model_type in ["LeftVentricle", "BiVentricle", "FourChamber", "FullHeart"]:
+            #     do_remesh = True
+            # elif model_type in ["FourChamberOriginal"]:
+            #     do_remesh = False
+            #     model_type = "FourChamber"
+            do_remesh = True
 
-            run_preprocessor(
+            run_preprocessor_improved(
                 model_type=model_type,
                 database_name=database,
                 path_original_mesh=case_path,

@@ -30,7 +30,7 @@
 )
 /scoped-sizing/compute yes 
 ; wrap objects 
-/objects/wrap/wrap '(*) collectively "wrapped-myocardium" shrink-wrap external "wrap" hybrid 0.5 yes
+/objects/wrap/wrap '(*) collectively "wrapped-myocardium" shrink-wrap external "wrap" hybrid 0.8 yes
 ; compute volumetric regions 
 /objects/volumetric-regions compute "wrapped-myocardium" no
 /objects/volumetric-regions/change-type "wrapped-myocardium" '(*) solid

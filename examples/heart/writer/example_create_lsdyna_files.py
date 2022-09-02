@@ -7,8 +7,8 @@ the required files.
 import os
 from pathlib import Path
 
-from ansys.heart.preprocessor.heart_model import HeartModel
-from ansys.heart.preprocessor.model_information import ModelInformation
+from ansys.heart.preprocessor._deprecated_heart_model import HeartModel
+from ansys.heart.preprocessor._deprecated_model_information import ModelInformation
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.writer.dynawriter import (
     FiberGenerationDynaWriter,
@@ -65,6 +65,7 @@ if __name__ == "__main__":
 
     models_to_run = ["LeftVentricle", "BiVentricle", "FourChamber", "FourChamberOriginal"]
     models_to_run = ["BiVentricle"]
+    models_to_run = ["BiVentricleImproved"]
     database = "Strocchi2020"
 
     for model in models_to_run:

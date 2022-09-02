@@ -115,7 +115,7 @@ def create_segment_set_keyword(
 
 
 def create_node_set_keyword(
-    node_ids: np.array, node_set_id: int = 1, title: str = "nodeset-title"
+    node_ids: np.ndarray, node_set_id: int = 1, title: str = "nodeset-title"
 ) -> custom_keywords.SetNodeList:
     """Creates node set
 
@@ -133,6 +133,10 @@ def create_node_set_keyword(
     keywords.SetNodeList
         Formatted node set
     """
+    if not isinstance(node_ids, (np.ndarray, int, np.int32, np.int64, list)):
+        raise TypeError("Expecting node ids to be array of ints, list of ints or single int")
+    if isinstance(node_ids, (int, np.int32, np.int64)):
+        node_ids = [node_ids]
 
     kw = custom_keywords.SetNodeList(sid=node_set_id)
 
@@ -358,7 +362,7 @@ def create_discrete_elements_kw(
     return kw
 
 
-def get_list_of_used_ids(keyword_db: Deck, keyword_str: str) -> np.array:
+def get_list_of_used_ids(keyword_db: Deck, keyword_str: str) -> np.ndarray:
     """Gets array of used ids in the database. E.g. for *SECTION, *PART and *MAT ids
 
     Parameters
@@ -370,12 +374,12 @@ def get_list_of_used_ids(keyword_db: Deck, keyword_str: str) -> np.array:
 
     Returns
     -------
-    np.array
-        Array of ids which are already used
+    np.ndarray
+        Array of ids (ints) which are already used
     """
     ids = np.empty(0, dtype=int)
 
-    valid_kws = ["SECTION", "PART", "MAT", "SET_SEGMENT", "SET_NODE"]
+    valid_kws = ["SECTION", "PART", "MAT", "SET_SEGMENT", "SET_NODE", "DEFINE_CURVE"]
 
     if keyword_str not in valid_kws:
         raise ValueError("Expecting one of: {0}".format(valid_kws))
@@ -403,6 +407,13 @@ def get_list_of_used_ids(keyword_db: Deck, keyword_str: str) -> np.array:
         for kw in keyword_db.get_kwds_by_type("SET"):
             if "NODE" in kw.subkeyword:
                 ids = np.append(ids, kw.sid)
+
+    if keyword_str == valid_kws[5]:
+        for kw in keyword_db.get_kwds_by_type("DEFINE"):
+            if "CURVE" in kw.subkeyword:
+                ids = np.append(ids, kw.lcid)
+            elif "FUNCTION" in kw.subkeyword:
+                ids = np.append(ids, kw.fid)
 
     return ids
 

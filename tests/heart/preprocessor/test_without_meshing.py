@@ -7,9 +7,9 @@ import shutil
 
 from conftest import create_directory, get_assets_folder
 
-from ansys.heart.preprocessor.model_information import ModelInformation
-from ansys.heart.preprocessor.heart_model import HeartModel
-from ansys.heart.preprocessor.vtk_module import vtk_read_mesh_file
+from ansys.heart.preprocessor._deprecated_model_information import ModelInformation
+from ansys.heart.preprocessor._deprecated_heart_model import HeartModel
+from ansys.heart.preprocessor.mesh.vtkmethods import vtk_read_mesh_file
 from conftest import get_workdir
 from vtk.numpy_interface import dataset_adapter as dsa
 
@@ -24,7 +24,7 @@ from vtk.numpy_interface import dataset_adapter as dsa
 )
 def test_map_data(model_type):
 
-    work_dir = os.path.join( get_workdir(), model_type )
+    work_dir = os.path.join(get_workdir(), model_type)
 
     create_directory(work_dir)
 
@@ -64,10 +64,10 @@ def test_map_data(model_type):
     assert np.all(model_dsa.Points == reference_model_dsa.Points), "Points are not the same"
     assert np.all(model_dsa.Cells == reference_model_dsa.Cells), "Cells are not the same"
     assert np.all(
-       sorted(model_dsa.PointData.keys()) == sorted( reference_model_dsa.PointData.keys() )
+        sorted(model_dsa.PointData.keys()) == sorted(reference_model_dsa.PointData.keys())
     ), "PointData keys are not the same"
     assert np.all(
-        sorted( model_dsa.CellData.keys() ) == sorted(reference_model_dsa.CellData.keys() )
+        sorted(model_dsa.CellData.keys()) == sorted(reference_model_dsa.CellData.keys())
     ), "CellData keys are not the same"
 
     for key in model_dsa.PointData.keys():

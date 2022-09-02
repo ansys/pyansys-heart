@@ -10,11 +10,13 @@ from vtk.numpy_interface import dataset_adapter as dsa  # this is an improved nu
 
 # NOTE: do more specific imports!
 # from ansys.heart.preprocessor.mesh_module import *
-from ansys.heart.preprocessor.vtk_module import (
+from ansys.heart.preprocessor.mesh.vtkmethods import (
+    create_vtk_surface_triangles,
     vtk_surface_filter,
     threshold_vtk_data,
     get_tri_info_from_polydata,
     add_vtk_array,
+    vtk_surface_to_stl,
     write_vtkdata_to_vtkfile,
     compute_volume_stl,
 )
@@ -22,16 +24,16 @@ from ansys.heart.preprocessor.vtk_module import (
 # from ansys.heart.preprocessor.vtk_module import compute_volume_stl
 
 # from ansys.heart.preprocessor.fluenthdf5_module import fluenthdf5_to_vtk
-from ansys.heart.preprocessor.geodisc_module import (
+from ansys.heart.preprocessor.mesh.geodisc import (
     order_nodes_edgeloop,
     sort_edgeloop_anti_clockwise,
 )
 
-from ansys.heart.preprocessor.extractor_module import get_nodes_cap_edge
+from ansys.heart.preprocessor._deprecated_extractor_module import get_nodes_cap_edge
 
 # these import the "old" files
 # from preprocessing.extractor_module import *
-from ansys.heart.preprocessor.model_information import ModelInformation
+from ansys.heart.preprocessor._deprecated_model_information import ModelInformation
 from ansys.heart.custom_logging import LOGGER
 
 
@@ -62,6 +64,10 @@ class ClosingCap:
         """LS-DYNA segment set id"""
         self.part_id: int = 0
         """LS-DYNA Part id of the cap/valve"""
+        self.center: np.empty((0, 3), dtype=float)
+        """Center of the valve"""
+        self.center_raw: np.empty((0, 3), dtype=float)
+        """Original center of the valve"""
 
     @property
     def global_node_ids_source_mesh(self) -> np.array:
@@ -381,6 +387,8 @@ class Cavity:
 
                 all_tris = np.vstack((all_tris, tris_cap))
 
+            all_tris = np.array(all_tris, dtype=int)
+
         else:
             for cap in self.closing_caps:
 
@@ -401,6 +409,9 @@ class Cavity:
                 all_tris = np.vstack((all_tris, tris_cap))
 
             all_tris = np.array(all_tris, dtype=int)
+
+        # vtk_surface = create_vtk_surface_triangles(vtk_volume_obj.Points, all_tris)
+        # write_vtkdata_to_vtkfile(vtk_surface, "caps_of_" + self.name + "vtk")
 
         return
 
@@ -656,7 +667,7 @@ class Cavity:
             # checks whether node id is not on edge of segment set
             # if selected point is on edge of segment set select a point
             # which is not on a free edge (free face)
-            from ansys.heart.preprocessor.vtk_module import get_free_edges
+            from ansys.heart.preprocessor.mesh.connectivity import get_free_edges
 
             for segset in self.segment_sets:
                 triangles = segset["set"]

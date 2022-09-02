@@ -7,6 +7,7 @@ import numpy as np
 import meshio
 
 from ansys.heart.custom_logging import LOGGER
+from ansys.heart.preprocessor.mesh.fluenthdf5 import add_solid_name_to_stl
 
 from typing import List, Union
 
@@ -56,7 +57,7 @@ def read_vtk_polydata_file(path_to_vtk: str):
     return reader.GetOutput()
 
 
-def vtk_read_mesh_file(path_to_mesh: str):
+def vtk_read_mesh_file(path_to_mesh: str) -> vtk.vtkUnstructuredGrid():
     """Reads either ensight format or vtk format into vtk polydata"""
 
     mesh_extension = Path(path_to_mesh).suffix
@@ -95,7 +96,9 @@ def write_vtkdata_to_vtkfile(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPol
 #     return surface_filter.GetOutput()
 
 
-def vtk_surface_to_stl(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData], filename: str):
+def vtk_surface_to_stl(
+    vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData], filename: str, solid_name: str = None
+) -> None:
     """Writes stl from vtk surface mesh (polydata)"""
 
     vtk_data_to_write = vtk_data
@@ -113,6 +116,9 @@ def vtk_surface_to_stl(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData]
     writer.SetFileTypeToBinary()
     writer.Write()
 
+    if solid_name:
+        add_solid_name_to_stl(filename, solid_name, "binary")
+
     return
 
 
@@ -121,7 +127,9 @@ def get_vtk_points(vtk_object: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData]):
     return VN.vtk_to_numpy(vtk_object.GetPoints().GetData())
 
 
-def get_tetra_info_from_unstructgrid(vtk_grid: vtk.vtkUnstructuredGrid, get_all_data=True):
+def get_tetra_info_from_unstructgrid(
+    vtk_grid: vtk.vtkUnstructuredGrid, get_all_data: bool = True, deep_copy: bool = False
+):
     """Gets tetrahedron nodes, connectivity and cell/point data from
     vtk poly data object. Returns as numpy arrays"""
 
@@ -167,10 +175,20 @@ def get_tetra_info_from_unstructgrid(vtk_grid: vtk.vtkUnstructuredGrid, get_all_
     else:
         LOGGER.debug("Not implemented reading specific cell data arrays based on name yet")
 
-    return nodes, tetra, cell_data, point_data
+    if not deep_copy:
+        return nodes, tetra, cell_data, point_data
+    else:
+        return (
+            copy.deepcopy(nodes),
+            copy.deepcopy(tetra),
+            copy.deepcopy(cell_data),
+            copy.deepcopy(point_data),
+        )
 
 
-def get_tri_info_from_polydata(vtk_polydata: vtk.vtkPolyData, get_all_data=True):
+def get_tri_info_from_polydata(
+    vtk_polydata: vtk.vtkPolyData, get_all_data: bool = True, deep_copy: bool = False
+):
     """Gets connectivity, celldata and point data info from polydata object
 
     Notes
@@ -207,7 +225,15 @@ def get_tri_info_from_polydata(vtk_polydata: vtk.vtkPolyData, get_all_data=True)
     except:
         LOGGER.debug("Global Ids were not added to point data...")
 
-    return nodes, tris, cell_data, point_data
+    if not deep_copy:
+        return nodes, tris, cell_data, point_data
+    else:
+        return (
+            copy.deepcopy(nodes),
+            copy.deepcopy(tris),
+            copy.deepcopy(cell_data),
+            copy.deepcopy(point_data),
+        )
 
 
 def threshold_vtk_data(
@@ -1374,7 +1400,7 @@ def smooth_polydata(vtk_polydata: vtk.vtkPolyData) -> vtk.vtkPolyData:
 
 def cell_ids_inside_enclosed_surface(
     vtk_source: vtk.vtkUnstructuredGrid, vtk_surface: vtk.vtkPolyData
-) -> vtk.vtkUnstructuredGrid:
+) -> np.ndarray:
     """Tags any cells that are inside
 
     Parameters
@@ -1418,85 +1444,9 @@ def cell_ids_inside_enclosed_surface(
     return cell_ids_inside
 
 
-def get_edges_from_triangles(triangles: np.array) -> np.array:
-    """Generates an array of edges from a array of triangles"""
-    num_triangles = triangles.shape[0]
-    num_edges = num_triangles * 3
-    edges = np.repeat(triangles, 3, axis=0)
-    mask = np.tile(
-        np.array([[1, 1, 0], [0, 1, 1], [1, 0, 1]], dtype=bool),
-        (num_triangles, 1),
-    )
-    edges = np.reshape(edges[mask], (num_edges, 2))
-
-    return edges
-
-
-def get_free_edges(triangles: np.array, return_free_triangles: bool = False) -> np.array:
-    """Gets the boundary edges that are only referenced once"""
-
-    edges = get_edges_from_triangles(triangles)
-
-    edges_sort = np.sort(edges, axis=1)
-
-    unique_edges, idx, counts = np.unique(edges_sort, axis=0, return_counts=True, return_index=True)
-    free_edges = edges[idx, :][counts == 1, :]
-
-    if not return_free_triangles:
-        return free_edges
-
-    elif return_free_triangles:
-        # get free triangles
-        free_triangles = triangles[
-            np.argwhere(np.sum(np.isin(triangles, free_edges), axis=1) == 2).flatten(), :
-        ]
-
-        return free_edges, free_triangles
-
-
-"""Identifies triangles connected to the boundary, and removes these from the triangle list"""
-
-
-def remove_triangle_layers_from_trimesh(triangles: np.array, iters: int = 1) -> np.array:
-    """_summary_
-
-    Parameters
-    ----------
-    triangles : np.array
-        Array of triangles
-    iters : int, optional
-        Number of iterations, by default 1
-
-    Returns
-    -------
-    np.array
-        Reduced set of triangles
-    """
-    reduced_triangles = copy.deepcopy(triangles)
-    for ii in range(0, iters, 1):
-        num_triangles = reduced_triangles.shape[0]
-        edges = get_edges_from_triangles(reduced_triangles)
-        free_edges = get_free_edges(reduced_triangles)
-
-        # find elements connected to the free edges
-        edges = np.reshape(edges, (3, 2, num_triangles))
-        free_nodes = np.unique(free_edges)
-
-        idx_triangles_boundary = np.any(np.isin(reduced_triangles, free_nodes), axis=1)
-        # idx_triangles_boundary = np.any(
-        #     np.all( np.isin(edges, free_edges),
-        #         axis = 1),
-        #     axis = 0 )
-
-        LOGGER.debug("Removing {0} connected triangles".format(np.sum(idx_triangles_boundary)))
-
-        # remove boundary triangles
-        reduced_triangles = reduced_triangles[~idx_triangles_boundary, :]
-
-    return reduced_triangles
-
-
-def get_connected_regions(nodes: np.array, triangles: np.array) -> np.array:
+def get_connected_regions(
+    nodes: np.array, triangles: np.array, return_vtk_object: bool = False
+) -> np.array:
     """Finds the connected regions
 
     Parameters
@@ -1505,11 +1455,15 @@ def get_connected_regions(nodes: np.array, triangles: np.array) -> np.array:
         NumNodes x 3 array with point coordinates
     triangles : np.array
         NumTriangles x 3 array with triangle definitions
+    return_vtk_object : bool, optional
+        Flag indicating whether to return the vtk (surface) object, by default False
 
     Returns
     -------
     np.array
         Array with region ids
+    vtk.vtkPolyData
+        VTK Object with region ids
     """
 
     vtk_surface = create_vtk_surface_triangles(nodes, triangles)
@@ -1542,7 +1496,10 @@ def get_connected_regions(nodes: np.array, triangles: np.array) -> np.array:
     region_ids = cell_data["regions"]
     # cast to ints
     region_ids = np.array(region_ids, dtype=int)
-    return region_ids
+    if return_vtk_object:
+        return region_ids, vtk_surface_with_regions
+    else:
+        return region_ids
 
 
 def mark_elements_inside_surfaces(

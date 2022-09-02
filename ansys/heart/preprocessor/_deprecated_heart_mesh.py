@@ -9,10 +9,10 @@ from typing import List
 
 import meshio
 import vtk
-from ansys.heart.preprocessor.cavity_module import Cavity
-from ansys.heart.preprocessor.model_information import ModelInformation
-from ansys.heart.preprocessor.model_information import VALID_MODELS
-from ansys.heart.preprocessor.vtk_module import (
+from ansys.heart.preprocessor._deprecated_global_parameters import VALID_MODELS
+from ansys.heart.preprocessor._deprecated_cavity_module import Cavity
+from ansys.heart.preprocessor._deprecated_model_information import ModelInformation
+from ansys.heart.preprocessor.mesh.vtkmethods import (
     create_vtk_surface_triangles,
     write_vtkdata_to_vtkfile,
     vtk_surface_filter,
@@ -28,7 +28,6 @@ from ansys.heart.preprocessor.vtk_module import (
     vtk_map_discrete_cell_data,
     add_vtk_array,
     create_vtk_polydata_from_points,
-    remove_triangle_layers_from_trimesh,
     smooth_polydata,
     extrude_polydata,
     cell_ids_inside_enclosed_surface,
@@ -37,13 +36,14 @@ from ansys.heart.preprocessor.vtk_module import (
     remove_duplicate_nodes,
     rename_vtk_array,
 )
-from ansys.heart.preprocessor.mesh_module import (
-    shrink_by_spaceclaim,
-    run_gmsh,
+from ansys.heart.preprocessor.mesh.connectivity import remove_triangle_layers_from_trimesh
+
+from ansys.heart.preprocessor.mesh.mesher import (
+    _shrink_by_spaceclaim,
+    _run_gmsh,
     mesh_by_fluentmeshing,
-    add_solid_name_to_stl,
 )
-from ansys.heart.preprocessor.fluenthdf5_module import fluenthdf5_to_vtk
+from ansys.heart.preprocessor.mesh.fluenthdf5 import fluenthdf5_to_vtk, add_solid_name_to_stl
 
 # import logger
 from ansys.heart.custom_logging import LOGGER
@@ -68,6 +68,7 @@ class HeartMesh:
         """Temporary volume mesh"""
         self._vtk_volume = None
         """Stores the final volume mesh used for simulation"""
+
         return
 
     # public functions
@@ -160,7 +161,9 @@ class HeartMesh:
         )
 
         if write_temporary_files:
-            write_vtkdata_to_vtkfile(self._vtk_volume_temp, "temp.vtk")
+            write_vtkdata_to_vtkfile(
+                self._vtk_volume_temp, os.path.join(self.info.working_directory, "temp.vtk")
+            )
         # self.extract_individual_parts_surface()
 
         # extract surface data
@@ -366,10 +369,10 @@ class HeartMesh:
         if use_gmesh:
             # launch spaceclaim to wrap the surface
             LOGGER.debug("\tLaunching SpaceClaim...")
-            shrink_by_spaceclaim(input_stl_spaceclaim, output_stl_spaceclaim)
+            _shrink_by_spaceclaim(input_stl_spaceclaim, output_stl_spaceclaim)
 
             LOGGER.debug("\tLaunching GMESH...")
-            run_gmsh(output_stl_spaceclaim, output_vtk, mesh_size)
+            _run_gmsh(output_stl_spaceclaim, output_vtk, mesh_size)
 
             # extract tetrahedrons
             convert_vtk_into_tetra_only(output_vtk)
@@ -742,63 +745,74 @@ class HeartMesh:
 
         return
 
-    def _validate_segment_sets(self):
+    def _validate_segment_sets(self, check_duplicates: bool = True):
         """Validates the segment sets. 1. Checks whether to add the epicardium-septum of
         the left ventricle to the right-ventricle cavity. 2. Checks if normal
         of endocardium part is pointing inwards
         """
         LOGGER.debug("Validating segment sets...")
         # add epicardium-septum to right ventricle segment set
-        if self.info.model_type in ["BiVentricle", "FourChamber"]:
-            segset_septum = None
-            for cavity in self._cavities:
-                if cavity.name == "Left ventricle":
-                    for ii, segset in enumerate(cavity.segment_sets):
-                        if segset["name"] == "epicardium-septum":
-                            segset_septum = copy.deepcopy(segset)
-                    # remove key from segment set list
-                    cavity.segment_sets.remove(segset)
+        if self.info.model_type not in [
+            "BiVentricle",
+            "FourChamber",
+            "BiVentricleImproved",
+            "FourChamberImproved",
+            "FullHeartImproved",
+        ]:
+            LOGGER.warning(
+                "Duplicate segment check not valid for model type: %s :" % self.info.model_type
+            )
+            return
 
-            if segset_septum is None:
-                raise ValueError(
-                    "Did not find segment set in Left ventricle cavity "
-                    "with name epicardium-septum"
-                )
+        segset_septum = None
+        for cavity in self._cavities:
+            if cavity.name == "Left ventricle":
+                for ii, segset in enumerate(cavity.segment_sets):
+                    if segset["name"] == "epicardium-septum":
+                        segset_septum = copy.deepcopy(segset)
+                # remove key from segment set list
+                cavity.segment_sets.remove(segset)
 
-            for cavity in self._cavities:
-                if cavity.name == "Right ventricle":
-                    segset_septum["name"] = "endocardium-septum"
-                    cavity.segment_sets.append(segset_septum)
-                    LOGGER.debug(
-                        "Assigning septum of left ventricle to " "segment set to Right ventricle"
-                    )
-
-        # remove any duplicate segments within each cavity
-        LOGGER.debug("Detecting duplicate segments...")
-        all_tris = np.empty((0, 3), dtype=int)
-        import tqdm as tqdm  # for progress bar
+        if segset_septum is None:
+            raise ValueError(
+                "Did not find segment set in Left ventricle cavity " "with name epicardium-septum"
+            )
 
         for cavity in self._cavities:
-
-            for seg_set in cavity.segment_sets:
-                np.sort(all_tris, axis=1)
-                seg_set1 = np.sort(seg_set["set"], axis=1)
-
-                # find triangles to remove
-                idx_remove = []
-                for idx, tri in enumerate(tqdm.tqdm(seg_set1, ascii=True)):
-                    if np.any(np.all(tri == all_tris, axis=1)):
-                        idx_remove.append(idx)
+            if cavity.name == "Right ventricle":
+                segset_septum["name"] = "endocardium-septum"
+                cavity.segment_sets.append(segset_septum)
                 LOGGER.debug(
-                    "Found {0} duplicate segments in {1}".format(
-                        len(idx_remove), cavity.name + " " + seg_set["name"]
-                    )
+                    "Assigning septum of left ventricle to " "segment set to Right ventricle"
                 )
 
-                # remove the duplicate faces
-                seg_set["set"] = np.delete(seg_set["set"], idx_remove, axis=0)
+        if check_duplicates:
+            # remove any duplicate segments within each cavity
+            LOGGER.debug("Detecting duplicate segments...")
+            all_tris = np.empty((0, 3), dtype=int)
+            import tqdm as tqdm  # for progress bar
 
-                all_tris = np.vstack((all_tris, seg_set1))
+            for cavity in self._cavities:
+
+                for seg_set in cavity.segment_sets:
+                    np.sort(all_tris, axis=1)
+                    seg_set1 = np.sort(seg_set["set"], axis=1)
+
+                    # find triangles to remove
+                    idx_remove = []
+                    for idx, tri in enumerate(tqdm.tqdm(seg_set1, ascii=True)):
+                        if np.any(np.all(tri == all_tris, axis=1)):
+                            idx_remove.append(idx)
+                    LOGGER.debug(
+                        "Found {0} duplicate segments in {1}".format(
+                            len(idx_remove), cavity.name + " " + seg_set["name"]
+                        )
+                    )
+
+                    # remove the duplicate faces
+                    seg_set["set"] = np.delete(seg_set["set"], idx_remove, axis=0)
+
+                    all_tris = np.vstack((all_tris, seg_set1))
 
         ## TODO 2
         ## check if normals of the endocardium segments

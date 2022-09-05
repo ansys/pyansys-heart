@@ -1,4 +1,5 @@
 import subprocess
+from unittest import case
 import numpy as np
 import pandas as pd
 import os
@@ -15,7 +16,7 @@ class purkinje:
         self.origin = origin_coordinates
 
 
-class Workflow:
+class Simulator:
     """perform pre-simulation steps prior to final simulation, steps include fiber generation,
      zeo-pressure geometry and purkinje network generation"""
 
@@ -25,7 +26,7 @@ class Workflow:
         lsdynapath: str="",
         ) -> None:
 
-        """Initializes workflow by loading a HeartModel
+        """Initializes Simulator by loading a HeartModel
 
         Parameters
         ----------
@@ -51,17 +52,29 @@ class Workflow:
         # TODO: make sure the necessary node, segment, part ids consistant in the different steps
         # TODO: make sure the necessary node, segment, part ids consistant in the different steps
         # TODO add getters and setters for fiber angles, purkinje properties, simulation times and other parameters to expose to the user
-        if fibers:
-            LOGGER.debug("Generating fibers")
-            self.generate_fibers()
-            # TODO copy element_solid_ortho.k to "simulation" folder
+        # Generate Fibers
+        self.generate_fibers()
+        # TODO copy element_solid_ortho.k to "simulation" folder
+        
+        # Generate ZeroP
+        self.generateZeroPressureConfiguration()
+        # TODO handle guess files and nodes.k
+        
+        # Generate Purkinje
+        self.generatePurkinje()
+        # TODO rename purkinje files and move them to the Sim. folder 
+
         # TODO continue in the same spirit with zeroP, EP, mechanics, and Purkinje (in the future, add blood, and fluid)
 
 
+        if (ep) and not(mechanics) then:
+            LOGGER.debug("Pue EP model")
 
+        if not(ep) and (mechanics) then:
+            LOGGER.debug("Pure Mechanical model")
         if ep and mechanics:
             # TODO add coupling stuff and ignore default Ca2+ mechanics active stress/replaced by EP simulation
-            LOGGER.debug("Add Electromechanics coupling")
+            LOGGER.debug("Coupled EP + Mechanics problem")
 
         return
 

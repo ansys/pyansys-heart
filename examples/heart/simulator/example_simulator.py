@@ -4,9 +4,8 @@ import pathlib
 
 
 import ansys.heart.preprocessor.models as models
-from ansys.heart.simulator.support import run_preprocessor
+from ansys.heart.workflow.support import run_preprocessor
 import ansys.heart.writer.dynawriter as writers
-from ansys.heart.simulator.simulator import Simulator
 
 
 if __name__ == "__main__":
@@ -23,21 +22,8 @@ if __name__ == "__main__":
     workdir = os.path.join(pathlib.Path(path_to_case).parent, "BiVentricleRefactored")
     path_to_model = os.path.join(workdir, "heart_model.pickle")
 
-    use_preprocessor = False
-    write_lsdyna_files = False
-    simulator = True
-
-    if simulator:
-        model = models.HeartModel.load_model(path_to_model)
-        sim = Simulator(model)
-        sim.build()
-        # exportdir = os.path.join(
-        #     writer.model.info.workdir, writer.__class__.__name__.lower().replace("dynawriter", ""),
-        # )
-
-        # writer.model.mesh.write_to_vtk(os.path.join(writer.model.info.workdir, "volume_mesh.vtk"))
-        # writer.update()
-        # writer.export(exportdir)
+    use_preprocessor = True
+    write_lsdyna_files = True
 
     if use_preprocessor:
         model = run_preprocessor(

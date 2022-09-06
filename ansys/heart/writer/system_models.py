@@ -91,8 +91,12 @@ def windkessel_template():
         "        dt = t - t_old;\n"
         "    }}\n"
         "    else if ( t-t_last < 0. ) {{\n"
-        '        printf("## bisection is not handled now ##");\n'
-        "        abort(0);\n"
+        '        printf("  ## Warning bisection may not be properly handled ##");\n'
+        '        printf("  ## Warning: dt_old: %f", dt );\n'
+        "        is_new_dt = 0;\n"
+        "        dt = dt - (t_last-t);\n"
+        '        printf("## Warning: dt_new: %f", dt );\n'
+        "$       abort(0);\n"
         "    }} else\n"
         "    {{\n"
         "        is_new_dt = 0;\n"

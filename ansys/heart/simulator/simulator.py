@@ -39,6 +39,7 @@ class Simulator:
 
     def build(
         self,
+        workdir: str,
         fibers: bool = 0,
         purkinje: bool = 0,
         zeropressure: bool = 0,
@@ -50,37 +51,47 @@ class Simulator:
         # TODO: make sure the necessary node, segment, part ids consistant in the different steps
         # TODO add getters and setters for fiber angles, purkinje properties, simulation times and
         # other parameters to expose to the user
-        
+        workdir = os.path.join(self.model.info.path_to_model,"simulation")
+        simulationdynawriter = BaseDynaWriter(self.model)
         if fibers:
-        # Generate Fibers
-            self.write_fibers()
-
+            path_fibers = os.path.join(self.model.info.path_to_model,"fiber_generation")
+            self.write_fibers(path_fibers)
+            # run dyna
         if zeropressure:
+            path_zeropressure = os.path.join(self.model.info.path_to_model,"zeropressure_generation")
+            self.write_zeropressureconfiguration(path_zeropressure)
+            if fibers:
+                shutil.copy2(
+                    os.path.join(path_fibers, "element_solid_ortho.k"),
+                    os.path.join(path_zeropressure, "solid_elements.k"),
+                )
+
+            # run dyna
+            nodes_stressfree = self.get_stressfreenodes(path_zeropressure)
+            shutil.copy(os.path.join(path_zeropressure, "nodes.k"),os.path.join(path_zeropressure, "nodes_endofdiastole.k"))
+            shutil.copy(os.path.join(path_zeropressure, nodes_stressfree),os.path.join(path_zeropressure, "nodes.k"))
+
+        if purkinje:
+            path_purkinje = os.path.join(self.model.info.path_to_model,"purkinje_generation")
+            self.write_purkinje(path_purkinje)
+            # if exist left ventricle: 
+            # run dyna mainLeft
+            shutil.copy2(os.path.join(path_purkinje, "purkinjenetwork.k"),os.path.join(path_purkinje, "purkinjenetworkLEFT.k"))
+            simulationdynawriter.model.add_part("Left Purkinje")
+            # if exist right ventricle: 
+            # run dyna mainRight
+            shutil.copy2(os.path.join(path_purkinje, "purkinjenetwork.k"),os.path.join(path_purkinje, "purkinjenetworkRIGHT.k"))
+            simulationdynawriter.model.add_part("Right Purkinje")
+            if zeropressure:
+                shutil.copy2(os.path.join(path_zeropressure, "nodes.k"),os.path.join(path_purkinje, "nodes.k"))
             
-            shutil.copy2(
-                os.path.join("fibergeneration", "element_solid_ortho.k"),
-                os.path.join("mechanics", "solid_elements.k"),
-            )
-        # TODO copy element_solid_ortho.k to "simulation" folder
-
-        # Generate ZeroP
-        self.write_zeropressureconfiguration()
-        # TODO handle guess files and nodes.k
-
-        # Generate Purkinje
-        self.write_purkinje()
-        # TODO rename purkinje files and move them to the Sim. folder
-
-        # TODO continue in the same spirit with zeroP, EP, mechanics, and Purkinje (in the future, add blood, and fluid)
-
-        if (ep) and not (mechanics):
-            LOGGER.debug("Pue EP model")
-
-        if not (ep) and (mechanics):
-            LOGGER.debug("Pure Mechanical model")
-        if ep and mechanics:
+        # if (ep) and not (mechanics):
+        simulationdynawriter.include_files()
+        # if not (ep) and (mechanics):
+            # write mechanics
+        # if ep and mechanics:
             # TODO add coupling stuff and ignore default Ca2+ mechanics active stress/replaced by EP simulation
-            LOGGER.debug("Coupled EP + Mechanics problem")
+
 
         return
 
@@ -104,7 +115,7 @@ class Simulator:
         dyna_writer.export(workdir)
         return
 
-    def generatePurkinje(
+    def write_purkinje(
         self,
         workdir: str,
         pointstx: float = 0,  # TODO instanciate this
@@ -148,3 +159,20 @@ class Simulator:
 
         p = subprocess.run(commands, stdout=subprocess.PIPE)
         return
+
+
+
+    def get_stressfreenodes(workdir: str):
+        """
+        Find the result file after zerop
+        Returns
+        -------
+        """
+        # TODO check if converged
+        guess_files = []
+        for file in os.listdir(workdir):
+            if file[-5:] == "guess":
+                guess_files.append(file)
+
+        return guess_files[-1]
+

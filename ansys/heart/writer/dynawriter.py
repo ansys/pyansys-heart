@@ -254,6 +254,276 @@ class BaseDynaWriter:
             self.model.remove_part(part_to_remove)
         return
 
+    def export(self, export_directory: str):
+        """Writes the model to files"""
+        tstart = time.time()
+        LOGGER.debug("Writing all LS-DYNA .k files...")
+
+        if not export_directory:
+            export_directory = os.path.join(self.model.info.workdir, "mechanics")
+
+        if not os.path.isdir(export_directory):
+            os.makedirs(export_directory)
+
+        # export .k files
+        self.export_databases(export_directory)
+
+        # export segment sets to separate file
+        self._export_cavity_segmentsets(export_directory)
+
+        tend = time.time()
+        LOGGER.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
+
+        return
+
+    def _update_main_db(self, add_damping: bool = True):
+        """Updates the main .k file
+        Note
+        -----
+        Consider using a settings (json?) file as input
+        """
+        LOGGER.debug("Updating main keywords...")
+
+        self.kw_database.main.title = self.model.model_type
+
+        return
+
+    def _update_node_db(self):
+        """Adds nodes to the Node database"""
+        LOGGER.debug("Updating node keywords...")
+        node_kw = keywords.Node()
+        node_kw = add_nodes_to_kw(self.model.mesh.nodes, node_kw)
+
+        self.kw_database.nodes.append(node_kw)
+
+        return
+
+    def _update_parts_db(self):
+        """Loops over parts defined in the model and
+        creates keywords
+        """
+
+        LOGGER.debug("Updating part keywords...")
+        # add parts with a dataframe
+
+        section_id = self.get_unique_section_id()
+        # get list of cavities from model
+        for part in self.model.parts:
+            mat_id = self.get_unique_mat_id()
+            # for element_set in cavity.element_sets:
+            part_id = self.get_unique_part_id()
+            part_name = part.name
+            part_df = pd.DataFrame(
+                {"heading": [part_name], "pid": [part_id], "secid": [section_id], "mid": [mat_id]}
+            )
+            part_kw = keywords.Part()
+            part_kw.parts = part_df
+
+            self.kw_database.parts.append(part_kw)
+
+            # store part id for future use
+            part.pid = part_id
+            part.mid = mat_id
+
+        # set up section solid for cavity myocardium
+        section_kw = keywords.SectionSolid(secid=section_id, elform=13)
+
+        self.kw_database.parts.append(section_kw)
+
+        return
+
+    def _update_solid_elements_db(self, add_fibers: bool = True):
+        """Creates Solid ortho elements for all cavities.
+        Each cavity contains one myocardium which consists corresponds
+        to one part.
+        """
+        LOGGER.debug("Updating solid element keywords...")
+
+        cell_data_fields = self.model.mesh.cell_data.keys()
+        if "fiber" not in cell_data_fields or "sheet" not in cell_data_fields:
+            raise KeyError("Mechanics writer requires fiber and sheet fields")
+            # logger.warning("Not writing fiber and sheet directions")
+            # add_fibers = False
+
+        # create elements for each part
+        solid_element_count = 0  # keeps track of number of solid elements already defined
+
+        for part in self.model.parts:
+            if type(self) == MechanicsDynaWriter:
+                if "ventricle" in part.name.lower() or "septum" in part.name.lower():
+                    add_fibers = True
+                else:
+                    add_fibers = False
+
+            LOGGER.debug(
+                "\tAdding elements for {0} | adding fibers: {1}".format(part.name, add_fibers)
+            )
+
+            tetrahedrons = self.model.mesh.tetrahedrons[part.element_ids, :] + 1
+            num_elements = tetrahedrons.shape[0]
+
+            element_ids = np.arange(1, num_elements + 1, 1) + solid_element_count
+            part_ids = np.ones(num_elements, dtype=int) * part.pid
+
+            # format the element keywords
+            if not add_fibers:
+                kw_elements = keywords.ElementSolid()
+                elements = pd.DataFrame(
+                    {
+                        "eid": element_ids,
+                        "pid": part_ids,
+                        "n1": tetrahedrons[:, 0],
+                        "n2": tetrahedrons[:, 1],
+                        "n3": tetrahedrons[:, 2],
+                        "n4": tetrahedrons[:, 3],
+                        "n5": tetrahedrons[:, 3],
+                        "n6": tetrahedrons[:, 3],
+                        "n7": tetrahedrons[:, 3],
+                        "n8": tetrahedrons[:, 3],
+                    }
+                )
+                kw_elements.elements = elements
+
+            elif add_fibers:
+                fiber = self.volume_mesh.cell_data["fiber"][part.element_ids]
+                sheet = self.volume_mesh.cell_data["sheet"][part.element_ids]
+
+                # normalize fiber and sheet directions:
+                norm = np.linalg.norm(fiber, axis=1)
+                fiber = fiber / norm[:, None]
+                norm = np.linalg.norm(sheet, axis=1)
+                sheet = sheet / norm[:, None]
+                kw_elements = create_element_solid_ortho_keyword(
+                    elements=tetrahedrons,
+                    a_vec=fiber,
+                    d_vec=sheet,
+                    partid=part.pid,
+                    id_offset=solid_element_count,
+                    element_type="tetra",
+                )
+
+            # add elements to database
+            self.kw_database.solid_elements.append(kw_elements)
+            solid_element_count = solid_element_count + num_elements
+
+        return
+
+    def _add_solution_controls(
+        self,
+        end_time: float = 5,
+        dtmin: float = 0.001,
+        dtmax: float = 0.01,
+        simulation_type: str = "quasi-static",
+    ):
+        """Adds solution controls, output controls and other solver settings
+        as keywords
+        """
+        # add termination keywords
+        self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=dtmin))
+
+        return
+
+    def _update_segmentsets_db(self):
+        """Updates the segment set database"""
+
+        # NOTE 0: add all surfaces as segment sets
+        # NOTE 1: need to more robustly check segids that are already used?
+
+        # add closed cavity segment sets
+        cavities = [p.cavity for p in self.model.parts if p.cavity]
+        for cavity in cavities:
+            surface_id = self.get_unique_segmentset_id()
+            cavity.surface.id = surface_id
+            kw = create_segment_set_keyword(
+                segments=cavity.surface.faces + 1,
+                segid=cavity.surface.id,
+                title=cavity.name,
+            )
+            # append this kw to the segment set database
+            self.kw_database.segment_sets.append(kw)
+
+        # write surfaces as segment sets
+        for part in self.model.parts:
+            for surface in part.surfaces:
+                surface.id = self.get_unique_segmentset_id()
+                kw = create_segment_set_keyword(
+                    segments=surface.faces + 1,
+                    segid=surface.id,
+                    title=surface.name,
+                )
+                # append this kw to the segment set database
+                self.kw_database.segment_sets.append(kw)
+
+        # create corresponding segment sets. Store in new file?
+        caps = [cap for part in self.model.parts for cap in part.caps]
+        for cap in caps:
+            segid = self.get_unique_segmentset_id()
+            setattr(cap, "seg_id", segid)
+            segset_kw = create_segment_set_keyword(
+                segments=cap.triangles + 1,
+                segid=cap.seg_id,
+                title=cap.name,
+            )
+            self.kw_database.segment_sets.append(segset_kw)
+        return
+
+    def _update_nodesets_db(self, remove_duplicates: bool = True):
+        """Updates the node set database"""
+        # formats endo, epi- and septum nodeset keywords. Do for all surfaces and caps
+
+        surface_ids = [s.id for p in self.model.parts for s in p.surfaces]
+        node_set_id = np.max(surface_ids) + 1
+
+        # for each surface in each part add the respective node-set
+        # Use same ID as surface
+        used_node_ids = np.empty(0, dtype=int)
+        for part in self.model.parts:
+            # add node-set for each cap
+            kws_caps = []
+            for cap in part.caps:
+                if remove_duplicates:
+                    node_ids = np.setdiff1d(cap.node_ids, used_node_ids)
+                else:
+                    node_ids = cap.node_ids
+
+                cap.nsid = node_set_id
+                kw = create_node_set_keyword(node_ids + 1, node_set_id=cap.nsid, title=cap.name)
+                kws_caps.append(kw)
+                node_set_id = node_set_id + 1
+
+                used_node_ids = np.append(used_node_ids, node_ids)
+
+            self.kw_database.node_sets.extend(kws_caps)
+
+        for part in self.model.parts:
+            kws_surface = []
+            for surface in part.surfaces:
+                if remove_duplicates:
+                    node_ids = np.setdiff1d(surface.node_ids, used_node_ids)
+                else:
+                    node_ids = surface.node_ids
+
+                kw = create_node_set_keyword(
+                    node_ids + 1, node_set_id=surface.id, title=surface.name
+                )
+                surface.nsid = surface.id
+                kws_surface.append(kw)
+
+                used_node_ids = np.append(used_node_ids, node_ids)
+
+            self.kw_database.node_sets.extend(kws_surface)
+
+    def _update_material_db(self, add_active: bool = True):
+        """Updates the database of material keywords"""
+
+        for part in self.model.parts:
+            part.mid = part.pid
+            mat_id = part.mid
+            # TODO add matnull for everybody
+
+        return
+
+
 
 class MechanicsDynaWriter(BaseDynaWriter):
     """Derived from BaseDynaWriter and derives all keywords relevant

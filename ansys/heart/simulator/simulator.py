@@ -95,7 +95,7 @@ class Simulator:
             
         # if (ep) and not (mechanics):
         simulationdynawriter.include_files()
-        simulationdynawriter.kw_database
+        simulationdynawriter.kw_database.
         # if not (ep) and (mechanics):
             # write mechanics
         # if ep and mechanics:

@@ -50,21 +50,25 @@ class Simulator:
         # TODO: make sure the necessary node, segment, part ids consistant in the different steps
         # TODO add getters and setters for fiber angles, purkinje properties, simulation times and
         # other parameters to expose to the user
-
+        
+        if fibers:
         # Generate Fibers
-        self.generate_fibers()
-        shutil.copy2(
-            os.path.join("fibergeneration", "element_solid_ortho.k"),
-            os.path.join("mechanics", "solid_elements.k"),
-        )
+            self.write_fibers()
+
+        if zeropressure:
+            
+            shutil.copy2(
+                os.path.join("fibergeneration", "element_solid_ortho.k"),
+                os.path.join("mechanics", "solid_elements.k"),
+            )
         # TODO copy element_solid_ortho.k to "simulation" folder
 
         # Generate ZeroP
-        self.generateZeroPressureConfiguration()
+        self.write_zeropressureconfiguration()
         # TODO handle guess files and nodes.k
 
         # Generate Purkinje
-        self.generatePurkinje()
+        self.write_purkinje()
         # TODO rename purkinje files and move them to the Sim. folder
 
         # TODO continue in the same spirit with zeroP, EP, mechanics, and Purkinje (in the future, add blood, and fluid)
@@ -80,8 +84,9 @@ class Simulator:
 
         return
 
-    def generate_fibers(
+    def write_fibers(
         self,
+        workdir: str,
         alpha_endocardium: float = -60,
         alpha_eepicardium: float = 60,
         beta_endocardium: float = 25,
@@ -89,29 +94,19 @@ class Simulator:
     ):
         dyna_writer = FiberGenerationDynaWriter(self.model)
         dyna_writer.update()
-        dyna_writer.export(os.path.join(self.model.info.workdir, "fiber_generation"))
-        LOGGER.debug("Running fiber generation")
-        shutil.copy2(
-            os.path.join(self.model.info.workdir, "fiber_generation", "element_solid_ortho.k"),
-            os.path.join(self.model.info.workdir, "solid_elements.k"),
-            os.path.join("mechanics", "solid_elements.k"),
-        )
+        dyna_writer.export(workdir)
 
         return
 
-    def generateZeroPressureConfiguration(self, export_directory: str = ""):
+    def write_zeropressureconfiguration(self, workdir: str = ""):
         dyna_writer = ZeroPressureMechanicsDynaWriter(self.model)
         dyna_writer.update()
-        if not export_directory:
-            export_directory = os.path.join(self.model.info.workdir, "ZeroPressure".lower())
-        dyna_writer.export(export_directory)
-        sim_file = os.path.join(export_directory, "main.k")
-        LOGGER.debug("Running stress-free")
-        # self.run_lsdyna(sim_file, self.lsdynapath)
+        dyna_writer.export(workdir)
         return
 
     def generatePurkinje(
         self,
+        workdir: str,
         pointstx: float = 0,  # TODO instanciate this
         pointsty: float = 0,  # TODO instanciate this
         pointstz: float = 0,  # TODO instanciate this
@@ -124,8 +119,7 @@ class Simulator:
     ):
         dyna_writer = PurkinjeGenerationDynaWriter(self.model)
         dyna_writer.update()
-        dyna_writer.export(os.path.join(self.model.info.workdir, "purkinje_generation"))
-        LOGGER.debug("Running purkinje generation")
+        dyna_writer.export(workdir)
         return
 
     def run_lsdyna(sim_file: str, memory: int, lsdynapath: str, NCPU: int = 1, options: str = ""):

@@ -213,6 +213,7 @@ class BaseDynaWriter:
             # skip empty databases:
             if deck.keywords == []:
                 continue
+            LOGGER.info("Writing: {}".format(deckname))
 
             filepath = os.path.join(export_directory, deckname + ".k")
             # use fast element writer for solid ortho elements
@@ -228,6 +229,18 @@ class BaseDynaWriter:
                 fid = open(filepath, "a")
                 fid.write("*END")
 
+            elif deckname == "nodes":
+                ids = np.arange(0, self.model.mesh.nodes.shape[0], 1) + 1
+                content = np.hstack((ids.reshape(-1, 1), self.model.mesh.nodes))
+                np.savetxt(
+                    os.path.join(export_directory, "nodes.k"),
+                    content,
+                    fmt="%8d%16.5e%16.5e%16.5e",
+                    header="*KEYWORD\n*NODE\n"
+                    "$#   nid               x               y               z      tc      rc",
+                    footer="*END",
+                    comments="",
+                )
             else:
                 deck.export_file(filepath)
         return
@@ -814,7 +827,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
             # for cavity in self.model._mesh._cavities:
             #     for cap in cavity.closing_caps:
             #         caps_to_use.append(cap.name)
-            caps_to_use = ["mitral-valve", "tricuspid-valve", "pulmonary-valve", "aortic-valve"]
+
+            caps_to_use = [
+                "mitral-valve",
+                "tricuspid-valve",
+                "aortic-valve",
+                "pulmonary-valve",
+            ]
 
         elif isinstance(self.model, (FourChamber, FullHeart)):
             caps_to_use = [

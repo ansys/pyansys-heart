@@ -2,6 +2,7 @@
 can be created with the preprocessor
 """
 # import json
+import warnings
 import pathlib
 from typing import List
 import os
@@ -485,7 +486,7 @@ class HeartModel:
                 if orphan_surface.faces.shape[0] < 5:
                     LOGGER.warning("Deleting orphan surface: consists of less than 5 faces")
                 else:
-                    raise ValueError(
+                    warnings.warn(
                         "Could not find suitable candidate surface to merge orphan faces into - proceed with caution"
                     )
 

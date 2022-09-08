@@ -213,6 +213,7 @@ class BaseDynaWriter:
             # skip empty databases:
             if deck.keywords == []:
                 continue
+            LOGGER.info("Writing: {}".format(deckname))
 
             filepath = os.path.join(export_directory, deckname + ".k")
             # use fast element writer for solid ortho elements

@@ -2,14 +2,12 @@
 # Methods to configure jinja2 and load templates.
 #
 import os
-import posixpath
 from pathlib import Path
+import posixpath
 
 # import preprocessing
 from ansys.heart.custom_logging import LOGGER
-
 import jinja2
-
 
 # Shared Jinja environment
 _environment = None

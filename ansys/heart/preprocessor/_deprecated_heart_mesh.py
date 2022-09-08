@@ -1,53 +1,48 @@
 """Contains classes related to the heart mesh class"""
-import os
 import copy
-import numpy as np
-
+import os
 import pickle as pickle
-
 from typing import List
-
-import meshio
-import vtk
-from ansys.heart.preprocessor._deprecated_global_parameters import VALID_MODELS
-from ansys.heart.preprocessor._deprecated_cavity_module import Cavity
-from ansys.heart.preprocessor._deprecated_model_information import ModelInformation
-from ansys.heart.preprocessor.mesh.vtkmethods import (
-    create_vtk_surface_triangles,
-    write_vtkdata_to_vtkfile,
-    vtk_surface_filter,
-    vtk_read_mesh_file,
-    get_surface_info,
-    get_tetra_info_from_unstructgrid,
-    get_tri_info_from_polydata,
-    vtk_surface_to_stl,
-    convert_vtk_into_tetra_only,
-    threshold_vtk_data_integers,
-    threshold_vtk_data,
-    vtk_map_continuous_data,
-    vtk_map_discrete_cell_data,
-    add_vtk_array,
-    create_vtk_polydata_from_points,
-    smooth_polydata,
-    extrude_polydata,
-    cell_ids_inside_enclosed_surface,
-    read_vtk_unstructuredgrid_file,
-    find_duplicate_elements,
-    remove_duplicate_nodes,
-    rename_vtk_array,
-)
-from ansys.heart.preprocessor.mesh.connectivity import remove_triangle_layers_from_trimesh
-
-from ansys.heart.preprocessor.mesh.mesher import (
-    _shrink_by_spaceclaim,
-    _run_gmsh,
-    mesh_by_fluentmeshing,
-)
-from ansys.heart.preprocessor.mesh.fluenthdf5 import fluenthdf5_to_vtk, add_solid_name_to_stl
 
 # import logger
 from ansys.heart.custom_logging import LOGGER
-
+from ansys.heart.preprocessor._deprecated_cavity_module import Cavity
+from ansys.heart.preprocessor._deprecated_global_parameters import VALID_MODELS
+from ansys.heart.preprocessor._deprecated_model_information import ModelInformation
+from ansys.heart.preprocessor.mesh.connectivity import remove_triangle_layers_from_trimesh
+from ansys.heart.preprocessor.mesh.fluenthdf5 import add_solid_name_to_stl, fluenthdf5_to_vtk
+from ansys.heart.preprocessor.mesh.mesher import (
+    _run_gmsh,
+    _shrink_by_spaceclaim,
+    mesh_by_fluentmeshing,
+)
+from ansys.heart.preprocessor.mesh.vtkmethods import (
+    add_vtk_array,
+    cell_ids_inside_enclosed_surface,
+    convert_vtk_into_tetra_only,
+    create_vtk_polydata_from_points,
+    create_vtk_surface_triangles,
+    extrude_polydata,
+    find_duplicate_elements,
+    get_surface_info,
+    get_tetra_info_from_unstructgrid,
+    get_tri_info_from_polydata,
+    read_vtk_unstructuredgrid_file,
+    remove_duplicate_nodes,
+    rename_vtk_array,
+    smooth_polydata,
+    threshold_vtk_data,
+    threshold_vtk_data_integers,
+    vtk_map_continuous_data,
+    vtk_map_discrete_cell_data,
+    vtk_read_mesh_file,
+    vtk_surface_filter,
+    vtk_surface_to_stl,
+    write_vtkdata_to_vtkfile,
+)
+import meshio
+import numpy as np
+import vtk
 from vtk.numpy_interface import dataset_adapter as dsa  # this is an improved numpy integration
 
 
@@ -397,8 +392,8 @@ class HeartMesh:
         based on the surfaces of each part (left/right ventricle,...)
         """
         from ansys.heart.preprocessor.vtk_module import (
-            mark_elements_inside_surfaces,
             get_connected_regions,
+            mark_elements_inside_surfaces,
         )
 
         LOGGER.debug("Writing input for mesher")

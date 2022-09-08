@@ -1,12 +1,13 @@
 """Auto downloads cases from the remote repositories of Strocchi et al 2020, and Cristobal et al 2021
 """
-from ansys.heart.custom_logging import LOGGER
 import os
 from pathlib import Path, PurePath
-import requests
-import wget
+
+from ansys.heart.custom_logging import LOGGER
 from bs4 import BeautifulSoup
+import requests
 from tqdm import tqdm
+import wget
 
 URLS = {
     "Strocchi2020": {"url": "https://zenodo.org/record/3890034", "num_cases": 24},
@@ -38,8 +39,8 @@ def download_cases():
 
 def unzip_cases():
     """Un-tars the downloaded cases"""
-    import tarfile
     import glob as glob
+    import tarfile
 
     for database_name, subdict in URLS.items():
         download_dir = PurePath.joinpath(DOWNLOAD_DIR, database_name)

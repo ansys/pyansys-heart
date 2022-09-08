@@ -1,4 +1,5 @@
 import typing
+
 from ansys.dyna.keywords.lib.card import Card, Field
 from ansys.dyna.keywords.lib.keyword_base import KeywordBase
 
@@ -24,8 +25,7 @@ class EmEpTentusscherStimulus2(KeywordBase):
 
     @property
     def stimid(self) -> typing.Optional[int]:
-        """Get or set the ID of the stimulation
-        """  # nopep8
+        """Get or set the ID of the stimulation"""  # nopep8
         return self._cards[0].get_value("stimid")
 
     @stimid.setter
@@ -34,8 +34,7 @@ class EmEpTentusscherStimulus2(KeywordBase):
 
     @property
     def settype(self) -> typing.Optional[int]:
-        """Get or set the Set type: EQ.1: Segment set, EQ.2: Node set
-        """  # nopep8
+        """Get or set the Set type: EQ.1: Segment set, EQ.2: Node set"""  # nopep8
         return self._cards[0].get_value("settype")
 
     @settype.setter
@@ -44,8 +43,7 @@ class EmEpTentusscherStimulus2(KeywordBase):
 
     @property
     def setid(self) -> typing.Optional[int]:
-        """Get or set the Node set or segment set ID to be stimulated
-        """  # nopep8
+        """Get or set the Node set or segment set ID to be stimulated"""  # nopep8
         return self._cards[0].get_value("setid")
 
     @setid.setter
@@ -54,8 +52,7 @@ class EmEpTentusscherStimulus2(KeywordBase):
 
     @property
     def lcid(self) -> typing.Optional[int]:
-        """Get or set the load curve to use for stimulation, where the first coordinate represents time and the second represents the stim. amplitude
-        """  # nopep8
+        """Get or set the load curve to use for stimulation, where the first coordinate represents time and the second represents the stim. amplitude"""  # nopep8
         return self._cards[0].get_value("lcid")
 
     @lcid.setter

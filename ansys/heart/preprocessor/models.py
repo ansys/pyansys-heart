@@ -1,19 +1,21 @@
 """Module containing classes for the various heart models which
 can be created with the preprocessor
 """
+import json
+import os
+
 # import json
 import pathlib
+import pickle
 from typing import List
-import os
-import numpy as np
-import pickle, json
 
-from ansys.heart.preprocessor.model_definitions import HEART_PARTS, LABELS_TO_ID
-from ansys.heart.preprocessor.mesh.objects import Part, Mesh, SurfaceMesh, Cap, Cavity, Point
-import ansys.heart.preprocessor.mesh.mesher as mesher
-import ansys.heart.preprocessor.mesh.connectivity as connectivity
 from ansys.heart.custom_logging import LOGGER
+import ansys.heart.preprocessor.mesh.connectivity as connectivity
+import ansys.heart.preprocessor.mesh.mesher as mesher
+from ansys.heart.preprocessor.mesh.objects import Cap, Cavity, Mesh, Part, Point, SurfaceMesh
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
+from ansys.heart.preprocessor.model_definitions import HEART_PARTS, LABELS_TO_ID
+import numpy as np
 
 
 class ModelInfo:
@@ -474,7 +476,6 @@ class HeartModel:
                 surface_to_copy_to.faces = np.vstack(
                     [surface_to_copy_to.faces, orphan_surface.faces]
                 )
-
 
             else:
                 LOGGER.warning("Could not find suitable candidate surface - proceed with caution")

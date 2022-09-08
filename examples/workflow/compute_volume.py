@@ -1,9 +1,9 @@
+import json
 import os
 
-import numpy as np
 import meshio
+import numpy as np
 import vtk
-import json
 
 
 def get_mass_properties(stl_obj):
@@ -46,7 +46,7 @@ def get_mass_properties(stl_obj):
     intg /= np.array([6, 24, 24, 24, 60, 60, 60, 120, 120, 120])
     volume = intg[0]
     cog = intg[1:4] / volume
-    cogsq = cog ** 2
+    cogsq = cog**2
     inertia = np.zeros((3, 3))
     inertia[0, 0] = intg[5] + intg[6] - volume * (cogsq[1] + cogsq[2])
     inertia[1, 1] = intg[4] + intg[6] - volume * (cogsq[2] + cogsq[0])

@@ -1,4 +1,5 @@
 import typing
+
 from ansys.dyna.keywords.lib.card import Card, Field
 from ansys.dyna.keywords.lib.keyword_base import KeywordBase
 
@@ -27,8 +28,7 @@ class EmEpCreatefiberorientation(KeywordBase):
 
     @property
     def partsid(self) -> typing.Optional[int]:
-        """Get or set the Part set on which the system is solved
-        """  # nopep8
+        """Get or set the Part set on which the system is solved"""  # nopep8
         return self._cards[0].get_value("partsid")
 
     @partsid.setter
@@ -37,8 +37,7 @@ class EmEpCreatefiberorientation(KeywordBase):
 
     @property
     def solvid1(self) -> typing.Optional[int]:
-        """Get or set the ID of the Laplace system that is solved in the transmural direction
-        """  # nopep8
+        """Get or set the ID of the Laplace system that is solved in the transmural direction"""  # nopep8
         return self._cards[0].get_value("solvid1")
 
     @solvid1.setter
@@ -47,8 +46,7 @@ class EmEpCreatefiberorientation(KeywordBase):
 
     @property
     def solvid2(self) -> int:
-        """Get or set the ID of the Laplace system that is solved in the apicobasal direction
-        """  # nopep8
+        """Get or set the ID of the Laplace system that is solved in the apicobasal direction"""  # nopep8
         return self._cards[0].get_value("solvid2")
 
     @solvid2.setter
@@ -57,8 +55,7 @@ class EmEpCreatefiberorientation(KeywordBase):
 
     @property
     def alpha(self) -> typing.Optional[float]:
-        """Get or set the helical angle with respect to the counterclockwise circumferential direction in the heart when looking from the base towards the apex. If a negative value is entered, a *DEFINE_â€ŒFUNCTION will be expected. See remark 1- for available parameters
-        """  # nopep8
+        """Get or set the helical angle with respect to the counterclockwise circumferential direction in the heart when looking from the base towards the apex. If a negative value is entered, a *DEFINE_â€ŒFUNCTION will be expected. See remark 1- for available parameters"""  # nopep8
         return self._cards[0].get_value("alpha")
 
     @alpha.setter
@@ -67,8 +64,7 @@ class EmEpCreatefiberorientation(KeywordBase):
 
     @property
     def beta(self) -> typing.Optional[float]:
-        """Get or set the angle with respect to the outward transmural axis of the heart. If a negative value is entered, a *DEFINE_â€ŒFUNCTION will be expected. See remark 1- for available parameters
-        """  # nopep8
+        """Get or set the angle with respect to the outward transmural axis of the heart. If a negative value is entered, a *DEFINE_â€ŒFUNCTION will be expected. See remark 1- for available parameters"""  # nopep8
         return self._cards[0].get_value("beta")
 
     @beta.setter
@@ -77,8 +73,7 @@ class EmEpCreatefiberorientation(KeywordBase):
 
     @property
     def wfile(self) -> typing.Optional[int]:
-        """Get or set the Selects whether result files (ELEMENT_SOLID_ORTHO.k and vtk files) are exported. Eq 0: not exported. Eq 1: exported
-        """  # nopep8
+        """Get or set the Selects whether result files (ELEMENT_SOLID_ORTHO.k and vtk files) are exported. Eq 0: not exported. Eq 1: exported"""  # nopep8
         return self._cards[0].get_value("wfile")
 
     @wfile.setter
@@ -87,8 +82,7 @@ class EmEpCreatefiberorientation(KeywordBase):
 
     @property
     def prerun(self) -> typing.Optional[int]:
-        """Get or set the Select whether the run is stopped after creating fibers: Eq. 0: do not stop after fiber creation. Eq 1: stop after fiber creation
-        """  # nopep8
+        """Get or set the Select whether the run is stopped after creating fibers: Eq. 0: do not stop after fiber creation. Eq 1: stop after fiber creation"""  # nopep8
         return self._cards[0].get_value("prerun")
 
     @prerun.setter

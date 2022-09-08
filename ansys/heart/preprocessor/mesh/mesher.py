@@ -1,16 +1,14 @@
 import os
-import subprocess
-import numpy as np
-import gmsh
 import pathlib
-
-
-from ansys.heart.preprocessor._load_template import load_template
-from ansys.heart.preprocessor import SC_EXE, FLUENT_EXE
-from ansys.heart.custom_logging import LOGGER
-import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5
+import subprocess
 
 import ansys.fluent.core as pyfluent
+from ansys.heart.custom_logging import LOGGER
+from ansys.heart.preprocessor import FLUENT_EXE, SC_EXE
+from ansys.heart.preprocessor._load_template import load_template
+import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5
+import gmsh
+import numpy as np
 
 _template_directory = os.path.join(os.path.dirname(__file__), "template")
 

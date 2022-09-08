@@ -1,40 +1,36 @@
 from aifc import Error
-import os
 import copy
-import warnings
-import numpy as np
-import vtk
+import os
 from typing import List, Union
+import warnings
 
-from vtk.numpy_interface import dataset_adapter as dsa  # this is an improved numpy integration
-
-# NOTE: do more specific imports!
-# from ansys.heart.preprocessor.mesh_module import *
-from ansys.heart.preprocessor.mesh.vtkmethods import (
-    create_vtk_surface_triangles,
-    vtk_surface_filter,
-    threshold_vtk_data,
-    get_tri_info_from_polydata,
-    add_vtk_array,
-    vtk_surface_to_stl,
-    write_vtkdata_to_vtkfile,
-    compute_volume_stl,
-)
-
-# from ansys.heart.preprocessor.vtk_module import compute_volume_stl
-
-# from ansys.heart.preprocessor.fluenthdf5_module import fluenthdf5_to_vtk
-from ansys.heart.preprocessor.mesh.geodisc import (
-    order_nodes_edgeloop,
-    sort_edgeloop_anti_clockwise,
-)
-
+from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor._deprecated_extractor_module import get_nodes_cap_edge
 
 # these import the "old" files
 # from preprocessing.extractor_module import *
 from ansys.heart.preprocessor._deprecated_model_information import ModelInformation
-from ansys.heart.custom_logging import LOGGER
+
+# from ansys.heart.preprocessor.fluenthdf5_module import fluenthdf5_to_vtk
+from ansys.heart.preprocessor.mesh.geodisc import order_nodes_edgeloop, sort_edgeloop_anti_clockwise
+
+# NOTE: do more specific imports!
+# from ansys.heart.preprocessor.mesh_module import *
+from ansys.heart.preprocessor.mesh.vtkmethods import (
+    add_vtk_array,
+    compute_volume_stl,
+    create_vtk_surface_triangles,
+    get_tri_info_from_polydata,
+    threshold_vtk_data,
+    vtk_surface_filter,
+    vtk_surface_to_stl,
+    write_vtkdata_to_vtkfile,
+)
+import numpy as np
+import vtk
+from vtk.numpy_interface import dataset_adapter as dsa  # this is an improved numpy integration
+
+# from ansys.heart.preprocessor.vtk_module import compute_volume_stl
 
 
 class ClosingCap:

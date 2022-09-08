@@ -1,4 +1,5 @@
 import typing
+
 from ansys.dyna.keywords.lib.card import Card, Field
 from ansys.dyna.keywords.lib.keyword_base import KeywordBase
 
@@ -37,8 +38,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
 
     @property
     def purkid(self) -> typing.Optional[int]:
-        """Get or set the ID for the Purkinje network
-        """  # nopep8
+        """Get or set the ID for the Purkinje network"""  # nopep8
         return self._cards[0].get_value("purkid")
 
     @purkid.setter
@@ -47,8 +47,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
 
     @property
     def buildnet(self) -> typing.Optional[int]:
-        """Get or set the Flag to create Purkinje network: EQ.0: Purkinje network not created, EQ.1: New Purkinje network created.
-        """  # nopep8
+        """Get or set the Flag to create Purkinje network: EQ.0: Purkinje network not created, EQ.1: New Purkinje network created."""  # nopep8
         return self._cards[0].get_value("buildnet")
 
     @buildnet.setter
@@ -57,8 +56,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
 
     @property
     def ssid(self) -> typing.Optional[int]:
-        """Get or set the Segment set on which the Purkinje network is lying
-        """  # nopep8
+        """Get or set the Segment set on which the Purkinje network is lying"""  # nopep8
         return self._cards[0].get_value("ssid")
 
     @ssid.setter
@@ -67,8 +65,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
 
     @property
     def mid(self) -> typing.Optional[int]:
-        """Get or set the Material ID defined in the *MAT section
-        """  # nopep8
+        """Get or set the Material ID defined in the *MAT section"""  # nopep8
         return self._cards[0].get_value("mid")
 
     @mid.setter
@@ -77,8 +74,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
 
     @property
     def pointstx(self) -> typing.Optional[float]:
-        """Get or set the X coordinate of the tree origin
-        """  # nopep8
+        """Get or set the X coordinate of the tree origin"""  # nopep8
         return self._cards[0].get_value("pointstx")
 
     @pointstx.setter
@@ -87,8 +83,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
 
     @property
     def pointsty(self) -> typing.Optional[float]:
-        """Get or set the Y coordinate of the tree origin
-        """  # nopep8
+        """Get or set the Y coordinate of the tree origin"""  # nopep8
         return self._cards[0].get_value("pointsty")
 
     @pointsty.setter
@@ -97,8 +92,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
 
     @property
     def pointstz(self) -> typing.Optional[int]:
-        """Get or set the Z coordinate of the tree origin
-        """  # nopep8
+        """Get or set the Z coordinate of the tree origin"""  # nopep8
         return self._cards[0].get_value("pointstz")
 
     @pointstz.setter
@@ -107,8 +101,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
 
     @property
     def edgelen(self) -> float:
-        """Get or set the Edge length
-        """  # nopep8
+        """Get or set the Edge length"""  # nopep8
         return self._cards[0].get_value("edgelen")
 
     @edgelen.setter
@@ -117,8 +110,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
 
     @property
     def ngen(self) -> int:
-        """Get or set the Number of generations of branches
-        """  # nopep8
+        """Get or set the Number of generations of branches"""  # nopep8
         return self._cards[1].get_value("ngen")
 
     @ngen.setter
@@ -127,8 +119,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
 
     @property
     def nbrinit(self) -> int:
-        """Get or set the Number of branches attached to the tree origin
-        """  # nopep8
+        """Get or set the Number of branches attached to the tree origin"""  # nopep8
         return self._cards[1].get_value("nbrinit")
 
     @nbrinit.setter
@@ -137,8 +128,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
 
     @property
     def nsplit(self) -> int:
-        """Get or set the Number of child branches at each node of the tree
-        """  # nopep8
+        """Get or set the Number of child branches at each node of the tree"""  # nopep8
         return self._cards[1].get_value("nsplit")
 
     @nsplit.setter
@@ -147,8 +137,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
 
     @property
     def inodeid(self) -> typing.Optional[int]:
-        """Get or set the Initial node ID
-        """  # nopep8
+        """Get or set the Initial node ID"""  # nopep8
         return self._cards[1].get_value("inodeid")
 
     @inodeid.setter
@@ -157,8 +146,7 @@ class EmEpPurkinjeNetwork(KeywordBase):
 
     @property
     def iedgeid(self) -> typing.Optional[int]:
-        """Get or set the Initial edge ID
-        """  # nopep8
+        """Get or set the Initial edge ID"""  # nopep8
         return self._cards[1].get_value("iedgeid")
 
     @iedgeid.setter

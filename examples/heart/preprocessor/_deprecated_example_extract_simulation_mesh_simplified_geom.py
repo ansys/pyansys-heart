@@ -4,19 +4,18 @@ left-ventricle mesh, bi-ventricle mesh and four-chamber mesh
 """
 
 import os
-import numpy as np
-
 from pathlib import Path
 
+from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor._deprecated_heart_model import HeartModel
 from ansys.heart.preprocessor._deprecated_model_information import ModelInformation
-from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.vtk_module import (
     read_vtk_unstructuredgrid_file,
-    write_vtkdata_to_vtkfile,
-    vtk_read_mesh_file,
     vtk_map_continuous_data,
+    vtk_read_mesh_file,
+    write_vtkdata_to_vtkfile,
 )
+import numpy as np
 from vtk.numpy_interface import dataset_adapter as dsa
 
 BASE_WORK_DIR = os.path.join(Path(__file__).parent.absolute(), "..", "workdir")

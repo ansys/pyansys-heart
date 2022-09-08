@@ -1,4 +1,5 @@
 import typing
+
 from ansys.dyna.keywords.lib.card import Card, Field
 from ansys.dyna.keywords.lib.keyword_base import KeywordBase
 
@@ -22,8 +23,7 @@ class EmEpEcg(KeywordBase):
 
     @property
     def ecgid(self) -> typing.Optional[int]:
-        """Get or set the ID of the ECG computation
-        """  # nopep8
+        """Get or set the ID of the ECG computation"""  # nopep8
         return self._cards[0].get_value("ecgid")
 
     @ecgid.setter
@@ -32,8 +32,7 @@ class EmEpEcg(KeywordBase):
 
     @property
     def psid(self) -> typing.Optional[int]:
-        """Get or set the Point set ID containing the list of virtual points on which the pseudo-ECGs are computed
-        """  # nopep8
+        """Get or set the Point set ID containing the list of virtual points on which the pseudo-ECGs are computed"""  # nopep8
         return self._cards[0].get_value("psid")
 
     @psid.setter

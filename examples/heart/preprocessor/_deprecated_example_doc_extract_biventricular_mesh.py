@@ -3,10 +3,9 @@
 import os
 import pathlib
 
+import ansys.heart.preprocessor as preproc
 from ansys.heart.preprocessor._deprecated_heart_model import HeartModel
 from ansys.heart.preprocessor._deprecated_model_information import ModelInformation
-import ansys.heart.preprocessor as preproc
-
 
 # get path to case
 case_path = os.path.join(

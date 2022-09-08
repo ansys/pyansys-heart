@@ -1,4 +1,5 @@
 import typing
+
 from ansys.dyna.keywords.lib.card import Card, Field
 from ansys.dyna.keywords.lib.keyword_base import KeywordBase
 
@@ -28,8 +29,7 @@ class UserLoading(KeywordBase):
 
     @property
     def parm1(self) -> typing.Optional[float]:
-        """Get or set the This is the Nth user input parameter
-        """  # nopep8
+        """Get or set the This is the Nth user input parameter"""  # nopep8
         return self._cards[0].get_value("parm1")
 
     @parm1.setter
@@ -38,8 +38,7 @@ class UserLoading(KeywordBase):
 
     @property
     def parm2(self) -> typing.Optional[float]:
-        """Get or set the This is the Nth user input parameter
-        """  # nopep8
+        """Get or set the This is the Nth user input parameter"""  # nopep8
         return self._cards[0].get_value("parm2")
 
     @parm2.setter
@@ -48,8 +47,7 @@ class UserLoading(KeywordBase):
 
     @property
     def parm3(self) -> typing.Optional[float]:
-        """Get or set the This is the Nth user input parameter
-        """  # nopep8
+        """Get or set the This is the Nth user input parameter"""  # nopep8
         return self._cards[0].get_value("parm3")
 
     @parm3.setter
@@ -58,8 +56,7 @@ class UserLoading(KeywordBase):
 
     @property
     def parm4(self) -> typing.Optional[float]:
-        """Get or set the This is the Nth user input parameter
-        """  # nopep8
+        """Get or set the This is the Nth user input parameter"""  # nopep8
         return self._cards[0].get_value("parm4")
 
     @parm4.setter
@@ -68,8 +65,7 @@ class UserLoading(KeywordBase):
 
     @property
     def parm5(self) -> typing.Optional[float]:
-        """Get or set the This is the Nth user input parameter
-        """  # nopep8
+        """Get or set the This is the Nth user input parameter"""  # nopep8
         return self._cards[0].get_value("parm5")
 
     @parm5.setter
@@ -78,8 +74,7 @@ class UserLoading(KeywordBase):
 
     @property
     def parm6(self) -> typing.Optional[float]:
-        """Get or set the This is the Nth user input parameter
-        """  # nopep8
+        """Get or set the This is the Nth user input parameter"""  # nopep8
         return self._cards[0].get_value("parm6")
 
     @parm6.setter
@@ -88,8 +83,7 @@ class UserLoading(KeywordBase):
 
     @property
     def parm7(self) -> typing.Optional[float]:
-        """Get or set the This is the Nth user input parameter
-        """  # nopep8
+        """Get or set the This is the Nth user input parameter"""  # nopep8
         return self._cards[0].get_value("parm7")
 
     @parm7.setter
@@ -98,8 +92,7 @@ class UserLoading(KeywordBase):
 
     @property
     def parm8(self) -> typing.Optional[float]:
-        """Get or set the This is the Nth user input parameter
-        """  # nopep8
+        """Get or set the This is the Nth user input parameter"""  # nopep8
         return self._cards[0].get_value("parm8")
 
     @parm8.setter

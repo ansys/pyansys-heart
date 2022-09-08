@@ -1,6 +1,6 @@
-import numpy as np
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 import matplotlib.pyplot as plt
+import numpy as np
 
 if __name__ == "__main__":
     p_ed = np.array([2, 0.5333])

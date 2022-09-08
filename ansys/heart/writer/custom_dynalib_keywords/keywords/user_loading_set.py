@@ -1,4 +1,5 @@
 import typing
+
 from ansys.dyna.keywords.lib.card import Field
 from ansys.dyna.keywords.lib.duplicate_card import DuplicateCard
 from ansys.dyna.keywords.lib.keyword_base import KeywordBase

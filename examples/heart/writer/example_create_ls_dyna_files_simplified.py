@@ -1,15 +1,15 @@
 import os
 from pathlib import Path
 
+from ansys.heart.custom_logging import LOGGER
+from ansys.heart.general import clean_directory
 from ansys.heart.preprocessor._deprecated_heart_model import HeartModel
 from ansys.heart.preprocessor._deprecated_model_information import ModelInformation
-from ansys.heart.custom_logging import LOGGER
 from ansys.heart.writer.dynawriter import (
     FiberGenerationDynaWriter,
     MechanicsDynaWriter,
     ZeroPressureMechanicsDynaWriter,
 )
-from ansys.heart.general import clean_directory
 
 ABS_BASE_PATH = Path(__file__).parent.absolute()
 

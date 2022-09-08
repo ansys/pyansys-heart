@@ -2,9 +2,11 @@
 import os
 import pathlib
 
+
 import ansys.heart.preprocessor.models as models
 from ansys.heart.workflow.support import run_preprocessor
 import ansys.heart.writer.dynawriter as writers
+
 
 if __name__ == "__main__":
 
@@ -15,10 +17,12 @@ if __name__ == "__main__":
     """
 
     path_to_case = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\02\\02.case"
-    workdir = os.path.join(pathlib.Path(path_to_case).parent, "BiVentricleRefactored")
+    workdir = os.path.join(
+        pathlib.Path(path_to_case).parent, "BiVentricleRefactoredGoodFormatting_2mm_b127"
+    )
     path_to_model = os.path.join(workdir, "heart_model.pickle")
 
-    use_preprocessor = True
+    use_preprocessor = False
     write_lsdyna_files = True
 
     if use_preprocessor:
@@ -28,19 +32,20 @@ if __name__ == "__main__":
             path_original_mesh=path_to_case,
             work_directory=workdir,
             path_to_model=path_to_model,
-            mesh_size=1.5,
+            mesh_size=2.0,
         )
 
     # write LS-DYNA files
     # Load model (e.g. when you skip the preprocessor):
     model = models.HeartModel.load_model(path_to_model)
+    model.info.workdir = workdir
 
     if write_lsdyna_files:
         for writer in (
             writers.MechanicsDynaWriter(model, "ConstantPreloadWindkesselAfterload"),
             writers.ZeroPressureMechanicsDynaWriter(model),
             writers.FiberGenerationDynaWriter(model),
-            writers.PurkinjeGenerationDynaWriter(model),
+            # writers.PurkinjeGenerationDynaWriter(model),
         ):
             exportdir = os.path.join(
                 writer.model.info.workdir,
@@ -52,5 +57,7 @@ if __name__ == "__main__":
             )
             writer.update()
             writer.export(exportdir)
+
+            # pickle writer:
 
     pass

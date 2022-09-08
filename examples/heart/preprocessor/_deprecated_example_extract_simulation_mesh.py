@@ -44,8 +44,6 @@ if __name__ == "__main__":
             LOGGER.info("***************************")
             work_directory = os.path.join(BASE_WORK_DIR, database, model_type)
 
-
-
             if model_type in ["LeftVentricle", "BiVentricle", "FourChamber"]:
                 do_remesh = True
             elif model_type in ["FourChamberOriginal"]:

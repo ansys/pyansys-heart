@@ -1,15 +1,14 @@
 import math
 from msilib.schema import Error
+from typing import Union
 
 import numpy as np
 import vtk
-from typing import Union
 from vtk.numpy_interface import dataset_adapter as dsa  # this is an improved numpy integration
 
 
 def get_closed_path(start_indices: Union[np.array, list], surface: vtk.vtkPolyData) -> np.array:
-    """Gets closed geodesic path on a surface from a list of start indices
-    """
+    """Gets closed geodesic path on a surface from a list of start indices"""
     surf = dsa.WrapDataObject(surface)
 
     end_indices = np.append(start_indices[1:], start_indices[0])
@@ -186,7 +185,7 @@ def carttopolar(x, y, x0=0, y0=0):
     """
     x1 = x - x0
     y1 = y - y0
-    r = np.sqrt(x1 ** 2 + y1 ** 2)
+    r = np.sqrt(x1**2 + y1**2)
     t = np.arctan2(y1, x1) * 180 / math.pi
     if y1 < 0:
         t = 360 + t
@@ -208,7 +207,10 @@ def sort_aniclkwise(xy_list, x0=None, y0=None):
     for i in range(len(xy_list)):
         xy_list[i].append(i)
 
-    xy_list1 = sorted(xy_list, key=lambda a_entry: carttopolar(a_entry[0], a_entry[1], x0, y0)[1],)
+    xy_list1 = sorted(
+        xy_list,
+        key=lambda a_entry: carttopolar(a_entry[0], a_entry[1], x0, y0)[1],
+    )
 
     sort_index = []
     for x in xy_list1:

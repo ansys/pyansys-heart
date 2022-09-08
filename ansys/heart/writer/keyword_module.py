@@ -1,15 +1,14 @@
 """Module that contains some useful methods to help format the keywords
 """
 
-import pandas as pd
-import numpy as np
 from typing import Union
 
-from ansys.dyna.keywords import keywords
-from ansys.dyna.keywords import Deck
+from ansys.dyna.keywords import Deck, keywords
 
 # import some custom keywords that avoid bugs in dynalib
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
+import numpy as np
+import pandas as pd
 
 
 def create_node_keyword(nodes: np.array, offset: int = 0) -> keywords.Node:
@@ -504,12 +503,12 @@ def fast_element_writer(
 def example_performance():
 
     import time as time
-    import pandas as pd
-    import numpy as np
+
     from ansys.dyna import keywords
+    import numpy as np
+    import pandas as pd
 
     # from ansys.dyna.keywords import db as db
-
     # create some data
     num_elem = 40000
 

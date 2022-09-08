@@ -1,10 +1,7 @@
 """Module containing methods for mesh connectivity"""
 
-import numpy as np
-import pathlib
 import copy
-
-# import tqdm as tqdm
+import pathlib
 
 # from ansys.heart.preprocessor.vtk_module import (
 #     # read_vtk_unstructuredgrid_file,
@@ -14,6 +11,9 @@ import copy
 #     write_vtkdata_to_vtkfile,
 # )
 from ansys.heart.custom_logging import LOGGER
+import numpy as np
+
+# import tqdm as tqdm
 
 
 def get_faces_tetra(tetra):

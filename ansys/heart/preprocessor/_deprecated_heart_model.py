@@ -1,13 +1,11 @@
 from multiprocessing.sharedctypes import Value
 import os
 
-from ansys.heart.preprocessor._deprecated_heart_mesh import HeartMesh
-from ansys.heart.preprocessor._deprecated_model_information import ModelInformation
-
 # import logger
 from ansys.heart.custom_logging import LOGGER, Logger
-from ansys.heart.preprocessor.mesh.vtkmethods import (
-    # get_edge_loops,
+from ansys.heart.preprocessor._deprecated_heart_mesh import HeartMesh
+from ansys.heart.preprocessor._deprecated_model_information import ModelInformation
+from ansys.heart.preprocessor.mesh.vtkmethods import (  # get_edge_loops,
     get_tri_info_from_polydata,
     read_vtk_polydata_file,
     read_vtk_unstructuredgrid_file,
@@ -165,23 +163,25 @@ class HeartModel:
             specified cell size, by default True
         """
         import copy
-        from geomdl import fitting
-        import numpy as np
+
+        from ansys.heart.preprocessor.mesh.connectivity import (
+            edge_connectivity,
+            face_tetra_connectivity,
+            get_face_type,
+            get_free_edges,
+        )
+        from ansys.heart.preprocessor.mesh.geodisc import project_3d_points
 
         # model type determines what parts to extract
         from ansys.heart.preprocessor.vtk_module import (
-            get_tetra_info_from_unstructgrid,
-            write_vtkdata_to_vtkfile,
-            vtk_surface_to_stl,
             create_vtk_surface_triangles,
             get_connected_regions,
+            get_tetra_info_from_unstructgrid,
+            vtk_surface_to_stl,
+            write_vtkdata_to_vtkfile,
         )
-        from ansys.heart.preprocessor.mesh.connectivity import (
-            face_tetra_connectivity,
-            get_face_type,
-        )
-        from ansys.heart.preprocessor.mesh.connectivity import get_free_edges, edge_connectivity
-        from ansys.heart.preprocessor.mesh.geodisc import project_3d_points
+        from geomdl import fitting
+        import numpy as np
 
         write_folder = self.info.working_directory
 
@@ -645,11 +645,10 @@ class HeartModel:
         """Extracts a simulation mesh from a modified/simplified geometry
         from Strocchi or Cristobal et al
         """
-        from ansys.heart.preprocessor.vtk_module import (
-            read_vtk_polydata_file,
-        )
-        import numpy as np
         import copy
+
+        from ansys.heart.preprocessor.vtk_module import read_vtk_polydata_file
+        import numpy as np
 
         # node-tag mapping:
         cavity_tag_map = {"Left ventricle": 1, "Right ventricle": 2}

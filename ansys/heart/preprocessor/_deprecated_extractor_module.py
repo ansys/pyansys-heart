@@ -1,16 +1,15 @@
-import numpy as np
-import scipy.spatial.distance
-import vtk
-from scipy.spatial import KDTree
-from vtk.util import numpy_support as VN  # noqa
-from vtk.numpy_interface import dataset_adapter as dsa  # this is an improved numpy integration
-
-from ansys.heart.preprocessor.mesh.geodisc import project_3d_points
 from ansys.heart.preprocessor.mesh.geodisc import (
     get_closed_path,
+    project_3d_points,
     rodrigues_rot,
     sort_aniclkwise,
 )
+import numpy as np
+from scipy.spatial import KDTree
+import scipy.spatial.distance
+import vtk
+from vtk.numpy_interface import dataset_adapter as dsa  # this is an improved numpy integration
+from vtk.util import numpy_support as VN  # noqa
 
 
 def find_superior_cap(p_set, mesh):

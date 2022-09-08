@@ -1,5 +1,5 @@
-import os
 import json
+import os
 
 # import logger
 from ansys.heart.custom_logging import LOGGER

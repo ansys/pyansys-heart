@@ -2687,7 +2687,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         """
 
     def update(self):
-        """Updates keyword database for PElectrophysiology: overwrites the inherited function"""
+        """Updates keyword database for Electrophysiology: overwrites the inherited function"""
 
         ##
         self._update_main_db()  # needs updating

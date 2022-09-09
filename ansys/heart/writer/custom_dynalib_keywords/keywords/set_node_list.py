@@ -1,3 +1,4 @@
+# flake8: noqa E501
 import typing
 
 from ansys.dyna.keywords.lib.card import Card, Field

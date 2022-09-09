@@ -8,16 +8,9 @@ from typing import List
 
 from ansys.dyna.keywords import keywords
 from ansys.heart.custom_logging import LOGGER
-from ansys.heart.preprocessor.mesh.objects import Cap, Cavity
+from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-from ansys.heart.preprocessor.mesh.vtkmethods import (
-    compute_surface_nodal_area,
-    get_tetra_info_from_unstructgrid,
-    vtk_surface_filter,
-)
 
-# from ansys.heart.preprocessor._deprecated_heart_model import HeartModel
-# from ansys.heart.preprocessor._deprecated_cavity_module import ClosingCap
 from ansys.heart.preprocessor.models import (
     BiVentricle,
     FourChamber,
@@ -50,14 +43,12 @@ from ansys.heart.writer.keyword_module import (
 # import commonly used material models
 from ansys.heart.writer.material_keywords import (
     MaterialAtrium,
-    MaterialCap,
     MaterialHGOMyocardium,
     active_curve,
 )
 import numpy as np
 import pandas as pd
-from tqdm import tqdm  # for progress bar
-from vtk.numpy_interface import dataset_adapter as dsa  # noqa
+from vtk.numpy_interface import dataset_adapter as dsa  # type: ignore # noqa
 
 
 class BaseDynaWriter:
@@ -1249,7 +1240,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # closed loop uses a custom executable
         if self.system_model_name == "ClosedLoop":
             LOGGER.warning(
-                "Note that this model type requires a custom executable that supports the Closed Loop circulation model!"
+                "Note that this model type requires a custom executable that "
+                "supports the Closed Loop circulation model!"
             )
             if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
                 file_path = os.path.join(

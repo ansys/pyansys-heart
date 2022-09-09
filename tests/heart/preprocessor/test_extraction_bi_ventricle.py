@@ -1,22 +1,17 @@
-import pytest
 import os
-import numpy as np
 import shutil
 
 from ansys.heart.preprocessor.vtk_module import (
+    get_tetra_info_from_unstructgrid,
     read_vtk_polydata_file,
     read_vtk_unstructuredgrid_file,
 )
-from ansys.heart.preprocessor.vtk_module import get_tetra_info_from_unstructgrid
+from common import workflow_extract_mesh
+from conftest import get_assets_folder, get_workdir, read_file
+import numpy as np
+import pytest
 from vtk.numpy_interface import dataset_adapter as dsa
 
-from conftest import (
-    get_assets_folder,
-    get_workdir,
-    read_file,
-)
-
-from common import workflow_extract_mesh
 
 # fixture: run once
 @pytest.fixture(autouse=True, scope="module")

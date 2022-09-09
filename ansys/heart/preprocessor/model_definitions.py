@@ -120,4 +120,3 @@ LABELS_TO_ID = {
         "Tricuspid valve plane": 22,
     },
 }
-

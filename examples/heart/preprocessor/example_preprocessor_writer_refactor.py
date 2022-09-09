@@ -2,11 +2,9 @@
 import os
 import pathlib
 
-
 import ansys.heart.preprocessor.models as models
 from ansys.heart.workflow.support import run_preprocessor
 import ansys.heart.writer.dynawriter as writers
-
 
 if __name__ == "__main__":
 
@@ -14,6 +12,8 @@ if __name__ == "__main__":
 
     1. Extracts simulation mesh
     2. Writes files for mechanics, zero-pressure, fiber generation, and purkinje
+
+    Please change paths
     """
 
     path_to_case = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\02\\02.case"

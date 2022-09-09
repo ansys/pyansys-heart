@@ -1,8 +1,7 @@
 """Example to pre-process data from Strocchi2020 and Cristobal2021"""
+import glob as glob
 import os
 import pathlib
-import glob as glob
-
 
 import ansys.heart.preprocessor.models as models
 from ansys.heart.workflow.support import run_preprocessor

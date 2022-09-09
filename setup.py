@@ -2,25 +2,26 @@
 
 """pyheart-lib setup file."""
 import codecs
-import os
 from io import open as io_open
+import os
 
-from setuptools import setup, find_namespace_packages
+from setuptools import find_namespace_packages, setup
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 __version__ = None
-version_file = os.path.join(HERE, 'ansys', 'heart', '_version.py')
-with io_open(version_file, mode='r') as fd:
+version_file = os.path.join(HERE, "ansys", "heart", "_version.py")
+with io_open(version_file, mode="r") as fd:
     exec(fd.read())
 
 
 # Get the long description from the README file
 # This is needed for the description on PyPI
 def read(rel_path):
-    with codecs.open(os.path.join(HERE, rel_path), 'r') as fp:
+    with codecs.open(os.path.join(HERE, rel_path), "r") as fp:
         return fp.read()
 
-with open(os.path.join(HERE, 'README.rst'), encoding='utf-8') as f:
+
+with open(os.path.join(HERE, "README.rst"), encoding="utf-8") as f:
     long_description = f.read()
 
 packages = []
@@ -29,17 +30,17 @@ for package in find_namespace_packages(include="ansys*"):
         packages.append(package)
 
 setup(
-    name='ansys-heart-lib',
+    name="ansys-heart-lib",
     packages=packages,
     version=__version__,
-    description='Python framework for heart modeling using ansys tools',
+    description="Python framework for heart modeling using ansys tools",
     long_description=long_description,
     # long_description_content_type='text/x-rst',
     url="https://github.com/pyansys/pyheart-lib",
-    license='MIT',
-    author='ANSYS, Inc.',
+    license="MIT",
+    author="ANSYS, Inc.",
     maintainer="PyAnsys developers",
-    maintainer_email='pyansys.support@ansys.com',
+    maintainer_email="pyansys.support@ansys.com",
     # how to add dynalib?
     install_requires=[
         "gmsh==4.10.3",
@@ -51,14 +52,14 @@ setup(
         "pandas==1.3.5",
         "scipy==1.7.3",
         "vtk==9.1.0",
-        "tqdm==4.64.0"
+        "tqdm==4.64.0",
     ],
-    python_requires='>=3.7',
+    python_requires=">=3.7",
     classifiers=[
-        'Development Status :: 4 - Beta',
-        'Programming Language :: Python :: 3',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: OS Independent',
+        "Development Status :: 4 - Beta",
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
     ],
 )
 

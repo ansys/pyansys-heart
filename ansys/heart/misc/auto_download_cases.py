@@ -1,11 +1,9 @@
-"""Auto downloads cases from the remote repositories of Strocchi et al 2020, and Cristobal et al 2021
+"""Auto downloads cases from the remote repositories of Strocchi et al 2020,
+and Cristobal et al 2021
 """
 import os
 from pathlib import Path, PurePath
 
-from ansys.heart.custom_logging import LOGGER
-from bs4 import BeautifulSoup
-import requests
 from tqdm import tqdm
 import wget
 

@@ -17,7 +17,8 @@ def check_int(s):
 
 def extract_components_variable_from_cellml_file(cellml_file):
     # take as input the cell_ml txt file and return the component as a dictionnary,
-    # The dictionnary associates each component to its variables ([var_name,unit,initial_value,pub_in_out,priv_in_out])
+    # The dictionnary associates each component to its variables
+    # ([var_name,unit,initial_value,pub_in_out,priv_in_out])
     with open(cellml_file, "r") as f:
         cellml_lines = f.readlines()
     comp_cellml = []
@@ -81,7 +82,8 @@ def extract_components_variable_from_cellml_file(cellml_file):
 
 def extract_components_equation_from_cellml_file(cellml_file):
     # take as input the cell_ml txt file and return the component as a dictionnary,
-    # The dictionnary associates each component to a list where each element contains the lines corresponding to one equation
+    # The dictionnary associates each component to a list where each element
+    # contains the lines corresponding to one equation
     with open(cellml_file, "r") as f:
         cellml_lines = f.readlines()
     comp_cellml = []
@@ -127,7 +129,8 @@ def extract_components_equation_from_cellml_file(cellml_file):
 
 def extract_unit_from_cellml_file(cellml_file):
     # take as input the cell_ml txt file and return the component as a dictionnary,
-    # The dictionnary associates each component to a list where each element contains the lines corresponding to one equation
+    # The dictionnary associates each component to a list where each element contains
+    # the lines corresponding to one equation
 
     with open(cellml_file, "r") as f:
         cellml_lines = f.readlines()
@@ -204,7 +207,8 @@ def extract_mapping_from_cellml_file(cellml_file):
 
 
 def replace_lower_case_by_capital(chaine):
-    # take as input a string, remove each '_' and capitalize the first letter of the string in between the '_'
+    # take as input a string, remove each '_' and capitalize the first
+    # letter of the string in between the '_'
     # ex: replace_lower_case_by_capital(ion_channel_gate)=ionChannelGate
     liste = chaine.split("_")
     new_chaine = ""
@@ -214,7 +218,8 @@ def replace_lower_case_by_capital(chaine):
 
 
 def convert_symbole_cellml_to_modelica(quantity, pref, expo):
-    # convert the unit of cellml into the unit of modelica to have the abrevation of the units instead of the full name
+    # convert the unit of cellml into the unit of modelica to have the abrevation
+    # of the units instead of the full name
 
     q = ""
     p = ""
@@ -392,7 +397,9 @@ os.chdir("./" + library_name)
 with open("package.mo", "w") as f:
     f.write("within ;\npackage " + library_name + ' "CellsModel extension for modelica."\n')
     f.write(
-        'extends Modelica.Icons.Package;\n\nannotation (uses(Modelica(version="3.2.2")), Documentation(info="<html>\n<p>This is the Modelica library group to provide the utilities for using Modelica models in Twin Builder environment.</p>\n</html>"));'
+        'extends Modelica.Icons.Package;\n\nannotation (uses(Modelica(version="3.2.2")), '
+        'Documentation(info="<html>\n<p>This is the Modelica library group to provide the '
+        'utilities for using Modelica models in Twin Builder environment.</p>\n</html>"));'
     )
     f.write("\nend " + library_name + ";\n")
 with open("package.order", "w") as f:
@@ -478,7 +485,8 @@ with open("Components.mo", "w") as f:
                 if var[0] not in compute_var:
                     if var[1] != "dimensionless":
                         f.write("    parameter Real " + var[0] + "=" + var[2] + ";\n")
-                        # f.write('    parameter Units.'+replace_lower_case_by_capital(var[1])+' '+var[0]+'='+var[2]+';\n')
+                        # f.write('    parameter Units.'+replace_lower_case_by_capital(var[1])+'
+                        # '+var[0]+'='+var[2]+';\n')
                     else:
                         f.write("    parameter Real " + var[0] + "=" + var[2] + ";\n")
 
@@ -488,7 +496,8 @@ with open("Components.mo", "w") as f:
                             f.write("    Real " + var[0] + "(start=" + var[2] + ");\n")
                         else:
                             f.write("    Real " + var[0] + ";\n")
-                        # f.write('    Units.'+replace_lower_case_by_capital(var[1])+' '+var[0]+';\n')
+                        # f.write('    Units.'+replace_lower_case_by_capital
+                        # (var[1])+' '+var[0]+';\n')
                     else:
                         if var[2] != "No init":
                             f.write("    Real " + var[0] + "(start=" + var[2] + ");\n")
@@ -500,7 +509,8 @@ with open("Components.mo", "w") as f:
                 if var[1] != "dimensionless":
                     f.write("    Modelica.Blocks.Interfaces.RealOutput " + var[0] + ";\n")
                     comp_equation[comp].append(["        " + var[0] + " = " + var[2] + ";\n"])
-                    # f.write('    parameter Units.'+replace_lower_case_by_capital(var[1])+' '+var[0]+'='+var[2]+';\n')
+                    # f.write('    parameter Units.'+replace_lower_case_by_capital(var[1])+' '+
+                    # var[0]+'='+var[2]+';\n')
 
                 else:
                     f.write("    Modelica.Blocks.Interfaces.RealOutput " + var[0] + ";\n")
@@ -557,7 +567,8 @@ with open("Components.mo", "w") as f:
                     temp += k + " "
 
                 condition_sel = temp
-                # case of equation containing '==' condition, the '=' sign in modelica compare only string, for real need to be a double condition with <= and >=
+                # case of equation containing '==' condition, the '=' sign in modelica compare only
+                # string, for real need to be a double condition with <= and >=
                 if "==" in condition_sel:
                     condition_sel = (
                         condition_sel.split()[0]

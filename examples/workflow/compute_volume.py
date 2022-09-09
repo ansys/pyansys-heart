@@ -1,6 +1,4 @@
 import json
-import os
-
 import meshio
 import numpy as np
 import vtk

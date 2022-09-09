@@ -1,4 +1,4 @@
-"""For the moment this module is not used - but for the moment we keep this for 
+"""For the moment this module is not used - but for the moment we keep this for
 potential future use.
 """
 import numpy as np

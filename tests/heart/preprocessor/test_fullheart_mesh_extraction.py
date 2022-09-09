@@ -1,19 +1,14 @@
-import pytest
 import os
-import numpy as np
 import shutil
-
-# from pathlib import Path
-
-from conftest import (
-    get_assets_folder,
-    get_workdir,
-)
 
 import ansys.heart.preprocessor.models as models
 from ansys.heart.workflow.support import run_preprocessor
+from common import compare_caps, compare_cavities, compare_parts, compare_surfaces
+from conftest import get_assets_folder, get_workdir
+import pytest
 
-from common import compare_parts, compare_surfaces, compare_caps, compare_cavities
+# skip all tests in this file for now
+pytest.skip()
 
 
 # run this fixture first

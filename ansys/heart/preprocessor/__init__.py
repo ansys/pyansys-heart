@@ -8,7 +8,9 @@ if os.name == "nt":
     }
 
 elif os.name == "posix":
-    assert False, "Posix not supported yet"
+    # assert False, "Posix not supported yet"
+    UserWarning("Warning: posix not supported yet")
+    pass
 
 if installed_versions:
     # use latest installed version that is supported and has Spaceclaim and Fluent

@@ -1,0 +1,48 @@
+name: CI
+on:
+  pull_request:
+  push:
+    tags:
+      - "*"
+    branches:
+      - main
+
+env:
+  MAIN_PYTHON_VERSION: 3.7
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+#        os: [windows-latest, macos-latest, ubuntu-latest]
+        os: [ubuntu-latest]        
+        python-version: ["3.7"]
+      fail-fast: false
+
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Installing dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements_tests.txt
+
+      - name: Run preprocessor tests
+        run: |
+          pytest -m pytest tests/heart/preprocessor
+
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v2
+      #   if: matrix.python-version == ${{ env.MAIN_PYTHON_VERSION }}

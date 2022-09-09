@@ -54,8 +54,7 @@ def load_template(*name):
     # user's operating system!
     path = posixpath.join(*name)
     if os.path.sep != "/" and os.path.sep in path:  # pragma: no linux cover
-        log = logging.getLogger()
-        log.warning("Paths to templates must be specified as posix paths.")
+        LOGGER.warning("Paths to templates must be specified as posix paths.")
 
     env = _jinja_environment()
     return env.get_template(path)

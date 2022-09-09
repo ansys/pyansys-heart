@@ -31,7 +31,8 @@ class ModelInfo:
         valid_databases = ["Strocchi2020", "Cristobal2021"]
         if value not in valid_databases:
             raise ValueError(
-                "{0} not a valid database name. Please specify one of the following database names: {1}".format(
+                "{0} not a valid database name. Please specify one of the"
+                " following database names: {1}".format(
                     value, valid_databases
                 )
             )
@@ -487,7 +488,8 @@ class HeartModel:
                     LOGGER.warning("Deleting orphan surface: consists of less than 5 faces")
                 else:
                     raise ValueError(
-                        "Could not find suitable candidate surface to merge orphan faces into - proceed with caution"
+                        "Could not find suitable candidate surface to merge "
+                        "orphan faces into - proceed with caution"
                     )
 
         self.mesh_raw.boundaries = self.mesh_raw.boundaries + surfaces_to_add
@@ -888,7 +890,8 @@ class HeartModel:
                             d2 = np.linalg.norm(cap_centroid - cap_normal - cavity_centroid)
                             if d1 > d2:
                                 LOGGER.debug(
-                                    "Flipping order of nodes on cap to ensure normal pointing inward"
+                                    "Flipping order of nodes on cap to ensure normal "
+                                    "pointing inward"
                                 )
                                 cap.node_ids = np.flip(cap.node_ids)
                                 cap.tesselate()

@@ -4,7 +4,7 @@ from typing import Union
 
 import numpy as np
 import vtk
-from vtk.numpy_interface import dataset_adapter as dsa  # this is an improved numpy integration
+from vtk.numpy_interface import dataset_adapter as dsa  # noqa:
 
 
 def get_closed_path(start_indices: Union[np.array, list], surface: vtk.vtkPolyData) -> np.array:

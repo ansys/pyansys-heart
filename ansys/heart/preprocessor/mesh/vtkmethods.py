@@ -1,5 +1,4 @@
 import copy
-from multiprocessing.sharedctypes import Value
 import os
 from pathlib import Path
 from typing import List, Union
@@ -9,9 +8,9 @@ from ansys.heart.preprocessor.mesh.fluenthdf5 import add_solid_name_to_stl
 import meshio
 import numpy as np
 import vtk
-from vtk.numpy_interface import dataset_adapter as dsa  # this is an improved numpy integration
+from vtk.numpy_interface import dataset_adapter as dsa  # noqa
 from vtk.util import numpy_support as VN  # noqa
-from vtk.util.numpy_support import numpy_to_vtk
+from vtk.util.numpy_support import numpy_to_vtk  # noqa
 
 """Module contains methods for mesh operations related to the vtk library"""
 
@@ -1563,7 +1562,7 @@ def append_vtk_polydata_files(files: list, path_to_merged_vtk: str, substrings: 
         Tags the cells using this list of substrings. Default []
     """
 
-    from ansys.heart.preprocessor.vtk_module import add_vtk_array
+    from ansys.heart.preprocessor.mesh.vtkmethods import add_vtk_array
     import vtk
 
     # append vtk surfaces

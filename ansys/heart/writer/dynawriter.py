@@ -1,68 +1,49 @@
 """Contains class for writing dyna keywords based on the HeartModel
 """
-import numpy as np
-import pandas as pd
-import os
-import time
 import json
+import os
 from pathlib import Path
-from tqdm import tqdm  # for progress bar
+import time
 from typing import List
 
-# from ansys.heart.preprocessor._deprecated_heart_model import HeartModel
-# from ansys.heart.preprocessor._deprecated_cavity_module import ClosingCap
+from ansys.dyna.keywords import keywords
+from ansys.heart.custom_logging import LOGGER
+from ansys.heart.preprocessor.mesh.objects import Cap
+import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.models import (
-    HeartModel,
-    LeftVentricle,
     BiVentricle,
     FourChamber,
     FullHeart,
+    HeartModel,
+    LeftVentricle,
 )
-from ansys.heart.preprocessor.mesh.objects import Cap, Cavity
 
-from ansys.heart.custom_logging import LOGGER
-from ansys.heart.preprocessor.mesh.vtkmethods import (
-    get_tetra_info_from_unstructgrid,
-    vtk_surface_filter,
-    compute_surface_nodal_area,
+# import missing keywords
+from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
+from ansys.heart.writer.heart_decks import (
+    BaseDecks,
+    FiberGenerationDecks,
+    MechanicsDecks,
+    PurkinjeGenerationDecks,
 )
-import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-
 from ansys.heart.writer.keyword_module import (
     add_nodes_to_kw,
-    create_discrete_elements_kw,
-    create_element_solid_ortho_keyword,
-    create_element_shell_keyword,
-    create_segment_set_keyword,
-    create_node_set_keyword,
-    create_discrete_elements_kw,
     create_define_curve_kw,
     create_define_sd_orientation_kw,
+    create_discrete_elements_kw,
+    create_element_shell_keyword,
+    create_element_solid_ortho_keyword,
+    create_node_set_keyword,
+    create_segment_set_keyword,
     fast_element_writer,
     get_list_of_used_ids,
 )
 
 # import commonly used material models
-from ansys.heart.writer.material_keywords import (
-    MaterialCap,
-    MaterialHGOMyocardium,
-    MaterialAtrium,
-    active_curve,
-)
-
-from ansys.heart.writer.heart_decks import (
-    BaseDecks,
-    MechanicsDecks,
-    FiberGenerationDecks,
-    PurkinjeGenerationDecks,
-)
-
-from vtk.numpy_interface import dataset_adapter as dsa  # noqa
-
-from ansys.dyna.keywords import keywords
-
-# import missing keywords
-from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
+from ansys.heart.writer.material_keywords import MaterialAtrium, MaterialHGOMyocardium, active_curve
+import numpy as np
+import pandas as pd
+from vtk.numpy_interface import dataset_adapter as dsa  # type: ignore # noqa
 
 
 class BaseDynaWriter:
@@ -118,6 +99,7 @@ class BaseDynaWriter:
 
         """Load simulation parameters"""
         from ansys.heart.writer.parameters import parameters
+
         self.parameters = parameters
 
         if "Improved" in self.model.info.model_type:
@@ -183,7 +165,7 @@ class BaseDynaWriter:
         return self._get_unique_id("DEFINE_CURVE")
 
     def _get_list_of_includes(self):
-        """Gets a list of files to include in main.k. Ommit any empty decks"""
+        """Gets a list of files to include in main.k. Omit any empty decks"""
         for deckname, deck in vars(self.kw_database).items():
             if deckname == "main":
                 continue
@@ -524,7 +506,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             beta = 0.25
         else:
             raise ValueError(
-                "Simulation type not recoqnized: Please choose " "either quasi-static or static"
+                "Simulation type not recognized: Please choose " "either quasi-static or static"
             )
 
         self.kw_database.main.append(
@@ -538,7 +520,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # add general implicit controls
         self.kw_database.main.append(
-            keywords.ControlImplicitGeneral(imflag=1, dt0=dtmin)
+            keywords.ControlImplicitGeneral(imflag=1, dt0=dtmax)
         )  # imflag=1 means implicit
 
         # add implicit solution controls: Defaults are OK?
@@ -701,7 +683,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 else:
                     active_dct = {
                         "taumax": self.parameters["Material"]["Myocardium"]["Active"]["Tmax"],
-                        "ca2ionm": self.parameters["Material"]["Myocardium"]["Active"]["ca2ionm"]
+                        "ca2ionm": self.parameters["Material"]["Myocardium"]["Active"]["ca2ionm"],
                     }
 
                 myocardium_kw = MaterialHGOMyocardium(
@@ -807,7 +789,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
             section_id = self.get_unique_section_id()
             mat_id = self.get_unique_mat_id()
 
-
             if isinstance(self.model, (LeftVentricle, BiVentricle)):
                 spring_stiffness = self.parameters["Boundary Condition"]["Valve Spring"][
                     "BV"
@@ -867,8 +848,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
         LOGGER.debug("Adding spring b.c. for cap: %s" % cap.name)
 
         # NOTE: may want to extent the node ids to include adjacent nodes
-        num_nodes_edge = len(cap.node_ids)
+        # num_nodes_edge = len(cap.node_ids)
         mesh = self.model.mesh
+        #
+        # attached_nodes = cap.node_ids
+        #
+        for boundary in mesh.boundaries:
+            if cap.name.split("-")[0] in boundary.name:
+                attached_nodes = boundary.node_ids
+                break
         # -------------------------------------------------------------------
 
         # compute nodal areas:
@@ -885,7 +873,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         surface_global_node_ids = surface_obj.PointData["GlobalPointIds"]
 
         # select only those nodal areas which match the cap node ids
-        idx_select = np.isin(surface_global_node_ids, cap.node_ids)
+        idx_select = np.nonzero(attached_nodes[:, None] == surface_global_node_ids)[1]
         nodal_areas = nodal_areas[idx_select]
 
         # scaled spring stiffness by nodal area
@@ -896,7 +884,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # element discrete
 
         # compute the radial components
-        sd_orientations_radial = mesh.nodes[cap.node_ids, :] - cap.centroid
+        sd_orientations_radial = mesh.nodes[attached_nodes, :] - cap.centroid
 
         # normalize
         norms = np.linalg.norm(sd_orientations_radial, axis=1)
@@ -922,9 +910,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # create discrete elements for normal direction
         nodes_discrete_elements = np.array(
-            [cap.node_ids + 1, np.zeros(num_nodes_edge)], dtype=int
+            [attached_nodes + 1, np.zeros(len(attached_nodes))], dtype=int
         ).T
-        vector_ids_normal = np.ones(num_nodes_edge, dtype=int) * vector_id_normal
+        vector_ids_normal = np.ones(len(attached_nodes), dtype=int) * vector_id_normal
 
         discrete_element_normal_kw = create_discrete_elements_kw(
             nodes=nodes_discrete_elements,
@@ -980,11 +968,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         uvc_l[uvc_l < 0] = 1
         penalty = (
-                -_sigmoid(
-                    (abs(uvc_l) - self.parameters["Pericardium"]["Penalty function"][0])
-                    * self.parameters["Pericardium"]["Penalty function"][1]
-                )
-                + 1
+            -_sigmoid(
+                (abs(uvc_l) - self.parameters["Pericardium"]["Penalty function"][0])
+                * self.parameters["Pericardium"]["Penalty function"][1]
+            )
+            + 1
         )
 
         # collect all pericardium nodes:
@@ -1006,19 +994,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # select only nodes that are on the epicardium and penalty factor > 0.1
         pericardium_nodes = epicardium_nodes[penalty[epicardium_nodes] > 0.001]
-        
-        # # write to file
-        # np.savetxt(
-        #     os.path.join(self.model.info.workdir, "pericardium.txt"),
-        #     np.concatenate(
-        #         (
-        #             self.model.mesh.nodes[pericardium_nodes, :],
-        #             penalty[pericardium_nodes].reshape(-1, 1),
-        #         ),
-        #         axis=1,
-        #     ),
-        #     delimiter=",",
-        # )
 
         spring_stiffness = self.parameters["Pericardium"]["Spring Stiffness"]  # kPA/mm
         # compute nodal areas:
@@ -1034,11 +1009,25 @@ class MechanicsDynaWriter(BaseDynaWriter):
         surface_global_node_ids = surface_obj.PointData["GlobalPointIds"]
 
         # select only those nodal areas which match the pericardium node ids
-        idx_select = np.isin(surface_global_node_ids, pericardium_nodes)
+        idx_select = np.nonzero(pericardium_nodes[:, None] == surface_global_node_ids)[1]
         nodal_areas = nodal_areas[idx_select]
 
         # compute scale factor
         scale_factors = nodal_areas * penalty[pericardium_nodes]
+
+        # write to file
+        # np.savetxt(
+        #     os.path.join(self.model.info.workdir, "pericardium.txt"),
+        #     np.concatenate(
+        #         (
+        #             self.model.mesh.nodes[pericardium_nodes, :],
+        #             penalty[pericardium_nodes].reshape(-1, 1),
+        #             scale_factors.reshape(-1, 1),
+        #         ),
+        #         axis=1,
+        #     ),
+        #     delimiter=",",
+        # )
 
         # keywords
         # NOTE: Need to be made dynamic
@@ -1145,7 +1134,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
             shrf=0.8333,
             nip=3,
             t1=self.parameters["Cap"]["Thickness"],
-
         )
 
         self.kw_database.cap_elements.append(material_kw)
@@ -1247,7 +1235,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # closed loop uses a custom executable
         if self.system_model_name == "ClosedLoop":
             LOGGER.warning(
-                "Note that this model type requires a custom executable that supports the Closed Loop circulation model!"
+                "Note that this model type requires a custom executable that "
+                "supports the Closed Loop circulation model!"
             )
             if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
                 file_path = os.path.join(
@@ -1284,7 +1273,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             if self.system_model_name != self.parameters["Circulation System"]["Name"]:
                 LOGGER.error("Circulation system parameters cannot be rad from Json")
-
 
             for cavity in self.model.cavities:
                 if "Left ventricle" in cavity.name:
@@ -1500,7 +1488,6 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.kw_database.main.append(kw)
 
         return
-
 
     # def _add_enddiastolic_pressure_bc(self, pressure_lv: float = 1, pressure_rv: float = 1):
     #     """Adds end diastolic pressure boundary condition on the left and right endocardium"""
@@ -2131,7 +2118,6 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         # LOGGER.debug("Removing {0} nodes from base nodes".format(np.sum(mask)))
         # nodes_base = nodes_base[np.invert(mask)]
 
-
         node_set_id_apex_left = self.get_unique_nodeset_id()
         # create node-sets for apex
         node_set_apex_kw = create_node_set_keyword(
@@ -2215,7 +2201,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         return
 
     def _get_list_of_includes(self):
-        """Gets a list of files to include in main.k. Ommit any empty decks"""
+        """Gets a list of files to include in main.k. Omit any empty decks"""
         for deckname, deck in vars(self.kw_database).items():
             if deckname == "main_left_ventricle" or deckname == "main_right_ventricle":
                 continue

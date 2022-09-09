@@ -1,19 +1,11 @@
 """Module containing methods for mesh connectivity"""
 
-import numpy as np
-import pathlib
 import copy
 
-# import tqdm as tqdm
-
-# from ansys.heart.preprocessor.vtk_module import (
-#     # read_vtk_unstructuredgrid_file,
-#     threshold_vtk_data,
-#     vtk_read_mesh_file,
-#     get_tetra_info_from_unstructgrid,
-#     write_vtkdata_to_vtkfile,
-# )
 from ansys.heart.custom_logging import LOGGER
+import numpy as np
+
+# import tqdm as tqdm
 
 
 def get_faces_tetra(tetra):
@@ -60,7 +52,7 @@ def tetra_to_faces(tetra):
     tet_ids = np.arange(0, num_tetra, 1)
     face_ids = np.arange(0, len(unique_faces), 1)
 
-    # this giives faces_1 again:
+    # this gives faces_1 again:
     # unique_faces[tetra_face_map]
 
     return tetra_face_map, unique_faces
@@ -249,10 +241,10 @@ def edge_connectivity(
         if node not in visited:
             # print(node)
             visited.add(node)
-            for neighbour in graph[node]:
-                _dfs(visited, graph, neighbour)
+            for neighbor in graph[node]:
+                _dfs(visited, graph, neighbor)
 
-    # create adjacency list (typically refered to as "graph")
+    # create adjacency list (typically referred to as "graph")
     graph = {}
     node_ids = np.unique(edges)
     for node in node_ids:
@@ -261,7 +253,7 @@ def edge_connectivity(
         connected_nodes = edges.flatten()[mask.flatten()]
         graph[node] = connected_nodes
 
-    # check connecivity of each node using DFS.
+    # check connectivity of each node using DFS.
     # Group connected edges
     node_ids_visited = np.zeros(node_ids.shape[0], dtype=bool)
     edge_groups = []
@@ -281,7 +273,7 @@ def edge_connectivity(
 
         node_ids_visited[np.isin(node_ids, list(visited))] = True
 
-    # check whether edges form a closed loopg
+    # check whether edges form a closed loop
     group_types = []
     if return_type:
         for edge_group in edge_groups:

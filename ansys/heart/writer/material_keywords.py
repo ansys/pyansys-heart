@@ -5,15 +5,13 @@ Mat295
 Mat077
 MatNull
 """
-import pandas as pd
-import numpy as np
-
-from ansys.heart.custom_logging import LOGGER
-
 from ansys.dyna.keywords import keywords
+from ansys.heart.custom_logging import LOGGER
 
 # import custom keywords in separate namespace
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
+import numpy as np
+import pandas as pd
 
 
 class MaterialCap(keywords.MatNull):
@@ -112,9 +110,9 @@ class MaterialHGOMyocardium(keywords.Mat295):
 
 
 def active_curve(
-        curve_type: str = "Strocchi2020",
-        endtime: float = 15,
-        timestep: float = 1e-2,
+    curve_type: str = "Strocchi2020",
+    endtime: float = 15,
+    timestep: float = 1e-2,
 ):
     """Computes various (normalized) curves used for the active module
 

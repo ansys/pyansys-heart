@@ -1,7 +1,8 @@
-import pathlib
-import os
-import pytest
 import glob as glob
+import os
+import pathlib
+
+import pytest
 
 ROOT_FOLDER = os.path.join(pathlib.Path(__file__).parent.parent)
 

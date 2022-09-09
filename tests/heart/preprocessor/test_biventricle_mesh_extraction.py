@@ -8,7 +8,7 @@ from conftest import get_assets_folder, get_workdir
 import pytest
 
 # skip all tests in this file for now
-pytest.skip()
+pytest.skip(allow_module_level=True)
 
 # run this fixture first
 @pytest.fixture(autouse=True, scope="module")

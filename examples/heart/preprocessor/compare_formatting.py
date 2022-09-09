@@ -3,11 +3,6 @@ import os
 import pathlib
 
 
-import ansys.heart.preprocessor.models as models
-from ansys.heart.workflow.support import run_preprocessor
-import ansys.heart.writer.dynawriter as writers
-
-
 if __name__ == "__main__":
 
     """Full Heart example

@@ -10,7 +10,6 @@ from ansys.dyna.keywords import keywords
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-
 from ansys.heart.preprocessor.models import (
     BiVentricle,
     FourChamber,
@@ -41,11 +40,7 @@ from ansys.heart.writer.keyword_module import (
 )
 
 # import commonly used material models
-from ansys.heart.writer.material_keywords import (
-    MaterialAtrium,
-    MaterialHGOMyocardium,
-    active_curve,
-)
+from ansys.heart.writer.material_keywords import MaterialAtrium, MaterialHGOMyocardium, active_curve
 import numpy as np
 import pandas as pd
 from vtk.numpy_interface import dataset_adapter as dsa  # type: ignore # noqa

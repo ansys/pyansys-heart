@@ -1,6 +1,7 @@
 """Module containing methods for mesh connectivity"""
 
 import copy
+
 from ansys.heart.custom_logging import LOGGER
 import numpy as np
 

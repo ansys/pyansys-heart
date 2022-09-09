@@ -2,7 +2,6 @@
 import os
 import pathlib
 
-
 if __name__ == "__main__":
 
     """Full Heart example
@@ -21,8 +20,7 @@ if __name__ == "__main__":
     )
     path_to_model = os.path.join(workdir_good, "heart_model.pickle")
 
-    from ansys.dyna.keywords import Deck
-    from ansys.dyna.keywords import keywords
+    from ansys.dyna.keywords import Deck, keywords
     import numpy as np
 
     keywords.SectionShell()

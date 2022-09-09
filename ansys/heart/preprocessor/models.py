@@ -156,7 +156,7 @@ class HeartModel:
         self._add_subparts()
         """Adds any subparts"""
         self._add_labels_to_parts()
-        """Adds appropiate vtk labels to the parts"""
+        """Adds appropriate vtk labels to the parts"""
 
         if not self.info.mesh_size:
             self._set_default_mesh_size()
@@ -380,7 +380,7 @@ class HeartModel:
         return element_ids
 
     def _get_endo_epicardial_surfaces(self):
-        """get endo and epicardial surfaces
+        """get endo- and epicardial surfaces
 
         Note
         ----

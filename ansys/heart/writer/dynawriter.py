@@ -165,7 +165,7 @@ class BaseDynaWriter:
         return self._get_unique_id("DEFINE_CURVE")
 
     def _get_list_of_includes(self):
-        """Gets a list of files to include in main.k. Ommit any empty decks"""
+        """Gets a list of files to include in main.k. Omit any empty decks"""
         for deckname, deck in vars(self.kw_database).items():
             if deckname == "main":
                 continue
@@ -506,7 +506,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             beta = 0.25
         else:
             raise ValueError(
-                "Simulation type not recoqnized: Please choose " "either quasi-static or static"
+                "Simulation type not recognized: Please choose " "either quasi-static or static"
             )
 
         self.kw_database.main.append(
@@ -2201,7 +2201,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         return
 
     def _get_list_of_includes(self):
-        """Gets a list of files to include in main.k. Ommit any empty decks"""
+        """Gets a list of files to include in main.k. Omit any empty decks"""
         for deckname, deck in vars(self.kw_database).items():
             if deckname == "main_left_ventricle" or deckname == "main_right_ventricle":
                 continue

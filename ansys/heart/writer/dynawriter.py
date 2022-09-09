@@ -469,6 +469,7 @@ class BaseDynaWriter:
                 self.model.right_ventricle.apex_points[0].node_id = node_apex_right
         return node_apex_right
 
+
 class MechanicsDynaWriter(BaseDynaWriter):
     """Derived from BaseDynaWriter and derives all keywords relevant
     for simulations involving mechanics"""
@@ -557,7 +558,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._export_cavity_segmentsets(export_directory)
 
         tend = time.time()
-        LOGGER.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
+        LOGGER.debug("Time spent writing files: {:.2f} s".format(tend - tstart))
 
         return
 
@@ -1617,7 +1618,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.export_databases(export_directory)
 
         tend = time.time()
-        LOGGER.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
+        LOGGER.debug("Time spent writing files: {:.2f} s".format(tend - tstart))
 
         return
 
@@ -1790,7 +1791,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         self.export_databases(export_directory)
 
         tend = time.time()
-        LOGGER.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
+        LOGGER.debug("Time spent writing files: {:.2f} s".format(tend - tstart))
 
         return
 
@@ -1819,10 +1820,9 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
                         beta=0.14,
                         cm=0.01,
                         aopt=2.0,
-                        lambda_=0.5,
                         a1=0,
                         a2=0,
-                        a3=0,
+                        a3=1,
                         d1=0,
                         d2=-1,
                         d3=0,
@@ -2180,7 +2180,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         self.export_databases(export_directory)
 
         tend = time.time()
-        LOGGER.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
+        LOGGER.debug("Time spent writing files: {:.2f} s".format(tend - tstart))
 
         return
 
@@ -2201,10 +2201,9 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                         beta=0.14,
                         cm=0.01,
                         aopt=2.0,
-                        lambda_=0.5,
                         a1=0,
                         a2=0,
-                        a3=0,
+                        a3=1,
                         d1=0,
                         d2=-1,
                         d3=0,
@@ -2420,6 +2419,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                 keywords.Include(filename=filename_to_include)
             )
 
+
 class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def __init__(self, model: HeartModel) -> None:
         super().__init__(model)
@@ -2432,18 +2432,18 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         """Updates keyword database for Electrophysiology: overwrites the inherited function"""
 
         ##
-        self._update_main_db()  
+        self._update_main_db()
 
-        self._update_node_db()  
+        self._update_solution_controls()
+        self._update_export_controls()
+        self._update_node_db()
 
-        self._update_parts_db()  
-        self._update_solid_elements_db(
-            add_fibers=False
-        )  
+        self._update_parts_db()
+        self._update_solid_elements_db()
         self._update_material_db()
-
-        self._update_segmentsets_db()  
-        self._update_nodesets_db()  
+        self._update_cellmodels()
+        self._update_segmentsets_db()
+        self._update_nodesets_db()
 
         # update ep settings
         self._update_ep_settings()
@@ -2468,11 +2468,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self.export_databases(export_directory)
 
         tend = time.time()
-        LOGGER.debug("Time spend writing files: {:.2f} s".format(tend - tstart))
+        LOGGER.debug("Time spent writing files: {:.2f} s".format(tend - tstart))
 
         return
 
-    
     def _update_material_db(self):
         """Adds simple linear elastic material for each defined part"""
         for part in self.model.parts:
@@ -2489,13 +2488,92 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                         beta=0.14,
                         cm=0.01,
                         aopt=2.0,
-                        lambda_=0.5,
                         a1=0,
                         a2=0,
-                        a3=0,
+                        a3=1,
                         d1=0,
                         d2=-1,
                         d3=0,
+                    ),
+                ]
+            )
+
+    def _update_cellmodels(self):
+        """Adds simple linear elastic material for each defined part"""
+        for part in self.model.parts:
+            ep_mid = part.pid
+            self.kw_database.cell_models.extend(
+                [
+                    keywords.EmEpCellmodelTentusscher(
+                        mid=ep_mid,
+                        gas_constant=8314.472,
+                        t=310,
+                        faraday_constant=96485.3415,
+                        cm=0.185,
+                        vc=0.016404,
+                        vsr=0.001094,
+                        vss=0.00005468,
+                        pkna=0.03,
+                        ko=5.4,
+                        nao=140.0,
+                        cao=2.0,
+                        gk1=5.405,
+                        gkr=0.153,
+                        gks=0.392,
+                        gna=14.838,
+                        gbna=0.0002,
+                        gcal=0.0000398,
+                        gbca=0.000592,
+                        gto=0.294,
+                        gpca=0.1238,
+                        gpk=0.0146,
+                        pnak=2.724,
+                        km=1.0,
+                        kmna=40.0,
+                        knaca=1000.0,
+                        ksat=0.1,
+                        alpha=2.5,
+                        gamma=0.35,
+                        kmca=1.38,
+                        kmnai=87.5,
+                        kpca=0.0005,
+                        k1=0.15,
+                        k2=0.045,
+                        k3=0.06,
+                        k4=0.005,
+                        ec=1.5,
+                        maxsr=2.5,
+                        minsr=1.0,
+                        vrel=0.102,
+                        vleak=0.00036,
+                        vxfer=0.0038,
+                        vmaxup=0.006375,
+                        kup=0.00025,
+                        bufc=0.2,
+                        kbufc=0.001,
+                        bufsr=10.0,
+                        kbufsf=0.3,
+                        bufss=0.4,
+                        kbufss=0.00025,
+                        v=-85.23,
+                        ki=136.89,
+                        nai=8.604,
+                        cai=0.000126,
+                        cass=0.00036,
+                        casr=3.64,
+                        rpri=0.9073,
+                        xr1=0.00621,
+                        xr2=0.4712,
+                        xs=0.0095,
+                        m=0.00172,
+                        h=0.7444,
+                        j=0.7045,
+                        d=3.373e-5,
+                        f=0.7888,
+                        f2=0.9755,
+                        fcass=0.9953,
+                        s=0.999998,
+                        r=2.42e-8,
                     ),
                 ]
             )
@@ -2510,7 +2588,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         )
 
         # use defaults
-        self.kw_database.ep_settings.append(custom_keywords.EmControlEp())
+        self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=5))
 
         # max iter should be int
         self.kw_database.ep_settings.append(
@@ -2524,39 +2602,40 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         node_set_id_apex_left = self.get_unique_nodeset_id()
         # create node-sets for apex left
-        node_set_apex_kw = create_node_set_keyword(
+        node_set_kw = create_node_set_keyword(
             node_ids=[node_apex_left + 1],
             node_set_id=node_set_id_apex_left,
             title="apex node left",
         )
-        self.kw_database.node_sets.append(node_set_apex_kw)
+        self.kw_database.node_sets.append(node_set_kw)
 
         node_set_id_apex_right = self.get_unique_nodeset_id()
         # create node-sets for apex right
-        node_set_apex_kw = create_node_set_keyword(
+        node_set_kw = create_node_set_keyword(
             node_ids=[node_apex_right + 1],
             node_set_id=node_set_id_apex_right,
             title="apex node right",
         )
-        self.kw_database.node_sets.append(node_set_apex_kw)
-
+        self.kw_database.node_sets.append(node_set_kw)
+        # TODO add more nodes to initiate wave propagation !!!!
         node_set_id_stimulationnodes = self.get_unique_nodeset_id()
         # create node-sets for apex
-        node_set_apex_kw = create_node_set_keyword(
-            node_ids=[node_apex_left+1 ,node_apex_right+1],
+        node_set_kw = create_node_set_keyword(
+            node_ids=[node_apex_left + 1, node_apex_right + 1],
             node_set_id=node_set_id_stimulationnodes,
-            title="apex node right",
+            title="Stim nodes",
         )
+        self.kw_database.node_sets.append(node_set_kw)
 
         self.kw_database.ep_settings.append(
             custom_keywords.EmEpTentusscherStimulus(
-            stimid=1,
-            settype=2
-            setid=node_set_id_stimulationnodes,
-            stimstrt=0.,
-            stimt=1000.,
-            stimdur=20.,
-            stimamp=50.,
+                stimid=1,
+                settype=2,
+                setid=node_set_id_stimulationnodes,
+                stimstrt=0.0,
+                stimt=1000.0,
+                stimdur=20.0,
+                stimamp=50.0,
             )
         )
         return
@@ -2682,10 +2761,37 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     #             )
     #         )
 
+    def _update_solution_controls(
+        self, end_time: float = 800,
+    ):
+        """Adds solution controls, output controls and other solver settings
+        as keywords
+        """
+        # add termination keywords
+        self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=0.0))
+
+        self.kw_database.main.append(keywords.ControlTimestep(dtinit=1.0, dt2ms=1.0))
+        return
+
+    def _update_export_controls(self, dt_output_d3plot: float = 1.0):
+        """Adds solution controls to the main simulation
+
+        Parameters
+        ----------
+        dt_output_d3plot : float, optional
+            Writes full D3PLOT results at this time-step spacing, by default 0.05
+        dt_output_icvout : float, optional
+            Writes control volume results at this time-step spacing, by default 0.001
+        """
+        # frequency of full results
+        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
+
+        return
+
     def _update_main_db(self):
 
         return
-    
+
     def _get_list_of_includes(self):
         """Gets a list of files to include in main.k. Ommit any empty decks"""
         for deckname, deck in vars(self.kw_database).items():
@@ -2705,6 +2811,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             self.kw_database.main.append(keywords.Include(filename=filename_to_include))
 
         return
+
 
 if __name__ == "__main__":
     print("protected")

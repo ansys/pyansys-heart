@@ -5,7 +5,7 @@ import os
 from pathlib import Path, PurePath
 
 from tqdm import tqdm
-import wget
+import wget  # type: ignore
 
 URLS = {
     "Strocchi2020": {"url": "https://zenodo.org/record/3890034", "num_cases": 24},

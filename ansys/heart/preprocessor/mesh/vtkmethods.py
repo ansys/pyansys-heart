@@ -8,9 +8,9 @@ from ansys.heart.preprocessor.mesh.fluenthdf5 import add_solid_name_to_stl
 import meshio
 import numpy as np
 import vtk
-from vtk.numpy_interface import dataset_adapter as dsa  # noqa
-from vtk.util import numpy_support as VN  # noqa
-from vtk.util.numpy_support import numpy_to_vtk  # noqa
+from vtk.numpy_interface import dataset_adapter as dsa  # type: ignore # noqa
+from vtk.util import numpy_support as VN  # type: ignore # noqa
+from vtk.util.numpy_support import numpy_to_vtk  # type: ignore # noqa
 
 """Module contains methods for mesh operations related to the vtk library"""
 

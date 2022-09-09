@@ -12,6 +12,8 @@ if __name__ == "__main__":
 
     1. Extracts simulation mesh
     2. Writes files for mechanics, zero-pressure, fiber generation, and purkinje
+
+    Please change paths
     """
 
     path_to_case = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\02\\02.case"

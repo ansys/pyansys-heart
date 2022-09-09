@@ -32,9 +32,7 @@ class ModelInfo:
         if value not in valid_databases:
             raise ValueError(
                 "{0} not a valid database name. Please specify one of the"
-                " following database names: {1}".format(
-                    value, valid_databases
-                )
+                " following database names: {1}".format(value, valid_databases)
             )
         self._database = value
 

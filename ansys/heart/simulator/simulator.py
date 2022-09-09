@@ -39,26 +39,28 @@ class Simulator:
 
     def build(
         self,
-        workdir: str,
+        path_simulation: str,
         fibers: bool = 0,
         purkinje: bool = 0,
         zeropressure: bool = 0,
         ep: bool = 0,
         mechanics: bool = 0,
     ):
-        # TODO: add a "simulation" folder that contains all the precomputed features
-        # TODO: make sure the necessary node, segment, part ids consistant in the different steps
-        # TODO: make sure the necessary node, segment, part ids consistant in the different steps
+
         # TODO add getters and setters for fiber angles, purkinje properties, simulation times and
         # other parameters to expose to the user
-        path_simulation = os.path.join(self.model.info.path_to_model,"simulation")
+        path_simulation = os.path.join(self.model.info.path_to_model, "simulation")
         simulationdynawriter = BaseDynaWriter(self.model)
+
         if fibers:
-            path_fibers = os.path.join(self.model.info.path_to_model,"fiber_generation")
+            path_fibers = os.path.join(self.model.info.path_to_model, "fiber_generation")
             self.write_fibers(path_fibers)
             # run dyna
+
         if zeropressure:
-            path_zeropressure = os.path.join(self.model.info.path_to_model,"zeropressure_generation")
+            path_zeropressure = os.path.join(
+                self.model.info.path_to_model, "zeropressure_generation"
+            )
             self.write_zeropressureconfiguration(path_zeropressure)
             if fibers:
                 shutil.copy2(
@@ -68,37 +70,55 @@ class Simulator:
 
             # run dyna
             nodes_stressfree = self.get_stressfreenodes(path_zeropressure)
-            shutil.copy(os.path.join(path_zeropressure, "nodes.k"),os.path.join(path_zeropressure, "nodes_endofdiastole.k"))
-            shutil.copy(os.path.join(path_zeropressure, nodes_stressfree),os.path.join(path_zeropressure, "nodes.k"))
-
+            shutil.copy(
+                os.path.join(path_zeropressure, "nodes.k"),
+                os.path.join(path_zeropressure, "nodes_endofdiastole.k"),
+            )
+            shutil.copy(
+                os.path.join(path_zeropressure, nodes_stressfree),
+                os.path.join(path_zeropressure, "nodes.k"),
+            )
 
         if purkinje:
-            path_purkinje = os.path.join(self.model.info.path_to_model,"purkinje_generation")
-            # if exist left ventricle: 
+            path_purkinje = os.path.join(self.model.info.path_to_model, "purkinje_generation")
+            # if exist left ventricle:
             simulationdynawriter.model.add_part("Left Purkinje")
             simulationdynawriter.include_files.append("purkinjenetworkLEFT.k")
-            # if exist right ventricle: 
-            simulationdynawriter.model.add_part("Right Purkinje")            
+            # if exist right ventricle:
+            simulationdynawriter.model.add_part("Right Purkinje")
             simulationdynawriter.include_files.append("purkinjenetworkRIGHT.k")
             self.write_purkinje(path_purkinje)
             if zeropressure:
-                shutil.copy2(os.path.join(path_zeropressure, "nodes.k"),os.path.join(path_purkinje, "nodes.k"))
-            # if exist right ventricle: 
-            # run dyna mainLeft            
-            shutil.copy2(os.path.join(path_purkinje, "purkinjenetwork.k"),os.path.join(path_purkinje, "purkinjenetworkLEFT.k"))
-            shutil.copy2(os.path.join(path_purkinje, "purkinjenetworkLEFT.k"),os.path.join(path_simulation, "purkinjenetworkLEFT.k"))
-            # if exist right ventricle: 
+                shutil.copy2(
+                    os.path.join(path_zeropressure, "nodes.k"),
+                    os.path.join(path_purkinje, "nodes.k"),
+                )
+            # if exist right ventricle:
+            # run dyna mainLeft
+            shutil.copy2(
+                os.path.join(path_purkinje, "purkinjenetwork.k"),
+                os.path.join(path_purkinje, "purkinjenetworkLEFT.k"),
+            )
+            shutil.copy2(
+                os.path.join(path_purkinje, "purkinjenetworkLEFT.k"),
+                os.path.join(path_simulation, "purkinjenetworkLEFT.k"),
+            )
+            # if exist right ventricle:
             # run dyna mainRight
-            shutil.copy2(os.path.join(path_purkinje, "purkinjenetwork.k"),os.path.join(path_purkinje, "purkinjenetworkRIGHT.k"))
-            shutil.copy2(os.path.join(path_purkinje, "purkinjenetworkRIGHT.k"),os.path.join(path_simulation, "purkinjenetworkRIGHT.k"))
+            shutil.copy2(
+                os.path.join(path_purkinje, "purkinjenetwork.k"),
+                os.path.join(path_purkinje, "purkinjenetworkRIGHT.k"),
+            )
+            shutil.copy2(
+                os.path.join(path_purkinje, "purkinjenetworkRIGHT.k"),
+                os.path.join(path_simulation, "purkinjenetworkRIGHT.k"),
+            )
 
-            
         # if (ep) and not (mechanics):
         # if not (ep) and (mechanics):
-            # write mechanics
+        # write mechanics
         # if ep and mechanics:
-            # TODO add coupling stuff and ignore default Ca2+ mechanics active stress/replaced by EP simulation
-
+        # TODO add coupling stuff and ignore default Ca2+ mechanics active stress/replaced by EP simulation
 
         return
 
@@ -166,8 +186,6 @@ class Simulator:
 
         p = subprocess.run(commands, stdout=subprocess.PIPE)
         return
-
-
 
     def get_stressfreenodes(workdir: str):
         """

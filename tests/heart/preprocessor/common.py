@@ -87,10 +87,9 @@ def compare_cavities(model: models.HeartModel, reference_model: models.HeartMode
 
         ref_num_faces = ref_part.cavity.surface.faces.shape[0]
         num_faces = part.cavity.surface.faces.shape[0]
-        assert (
-            ref_num_faces == num_faces
-        ), "Cavity of part {0} has {1} faces in the reference model, but model has {2} faces".format(
-            ref_part.name, ref_num_faces, num_faces
+        assert ref_num_faces == num_faces, (
+            "Cavity of part {0} has {1} faces in the reference model, "
+            "but model has {2} faces".format(ref_part.name, ref_num_faces, num_faces)
         )
 
         assert np.all(part.cavity.surface.faces == ref_part.cavity.surface.faces), (

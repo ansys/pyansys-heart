@@ -1,48 +1,46 @@
 """Contains class for writing dyna keywords based on the HeartModel
 """
-import numpy as np
-import pandas as pd
-import os
-import time
 import json
+import os
 from pathlib import Path
-from tqdm import tqdm  # for progress bar
+import time
 from typing import List
 
-# from ansys.heart.preprocessor._deprecated_heart_model import HeartModel
-# from ansys.heart.preprocessor._deprecated_cavity_module import ClosingCap
+from ansys.dyna.keywords import keywords
+from ansys.heart.custom_logging import LOGGER
+from ansys.heart.preprocessor.mesh.objects import Cap
+import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.models import (
-    HeartModel,
-    LeftVentricle,
     BiVentricle,
     FourChamber,
     FullHeart,
+    HeartModel,
+    LeftVentricle,
 )
-from ansys.heart.preprocessor.mesh.objects import Cap, Cavity
 
-from ansys.heart.custom_logging import LOGGER
-from ansys.heart.preprocessor.mesh.vtkmethods import (
-    get_tetra_info_from_unstructgrid,
-    vtk_surface_filter,
-    compute_surface_nodal_area,
+# import missing keywords
+from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
+from ansys.heart.writer.heart_decks import (
+    BaseDecks,
+    FiberGenerationDecks,
+    MechanicsDecks,
+    PurkinjeGenerationDecks,
 )
-import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-
 from ansys.heart.writer.keyword_module import (
     add_nodes_to_kw,
-    create_discrete_elements_kw,
-    create_element_solid_ortho_keyword,
-    create_element_shell_keyword,
-    create_segment_set_keyword,
-    create_node_set_keyword,
-    create_discrete_elements_kw,
     create_define_curve_kw,
     create_define_sd_orientation_kw,
+    create_discrete_elements_kw,
+    create_element_shell_keyword,
+    create_element_solid_ortho_keyword,
+    create_node_set_keyword,
+    create_segment_set_keyword,
     fast_element_writer,
     get_list_of_used_ids,
 )
 
 # import commonly used material models
+
 from ansys.heart.writer.material_keywords import (
     MaterialCap,
     MaterialHGOMyocardium,
@@ -64,6 +62,7 @@ from ansys.dyna.keywords import keywords
 
 # import missing keywords
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
+
 
 
 class BaseDynaWriter:
@@ -327,7 +326,7 @@ class BaseDynaWriter:
         return self._get_unique_id("DEFINE_CURVE")
 
     def _get_list_of_includes(self):
-        """Gets a list of files to include in main.k. Ommit any empty decks"""
+        """Gets a list of files to include in main.k. Omit any empty decks"""
         for deckname, deck in vars(self.kw_database).items():
             if deckname == "main":
                 continue
@@ -740,7 +739,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             beta = 0.25
         else:
             raise ValueError(
-                "Simulation type not recoqnized: Please choose " "either quasi-static or static"
+                "Simulation type not recognized: Please choose " "either quasi-static or static"
             )
 
         self.kw_database.main.append(
@@ -1448,7 +1447,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # closed loop uses a custom executable
         if self.system_model_name == "ClosedLoop":
             LOGGER.warning(
-                "Note that this model type requires a custom executable that supports the Closed Loop circulation model!"
+                "Note that this model type requires a custom executable that "
+                "supports the Closed Loop circulation model!"
             )
             if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
                 file_path = os.path.join(
@@ -2397,7 +2397,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         return
 
     def _get_list_of_includes(self):
-        """Gets a list of files to include in main.k. Ommit any empty decks"""
+        """Gets a list of files to include in main.k. Omit any empty decks"""
         for deckname, deck in vars(self.kw_database).items():
             if deckname == "main_left_ventricle" or deckname == "main_right_ventricle":
                 continue

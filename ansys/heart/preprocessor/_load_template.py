@@ -2,14 +2,12 @@
 # Methods to configure jinja2 and load templates.
 #
 import os
-import posixpath
 from pathlib import Path
+import posixpath
 
 # import preprocessing
 from ansys.heart.custom_logging import LOGGER
-
 import jinja2
-
 
 # Shared Jinja environment
 _environment = None
@@ -56,8 +54,7 @@ def load_template(*name):
     # user's operating system!
     path = posixpath.join(*name)
     if os.path.sep != "/" and os.path.sep in path:  # pragma: no linux cover
-        log = logging.getLogger()
-        log.warning("Paths to templates must be specified as posix paths.")
+        LOGGER.warning("Paths to templates must be specified as posix paths.")
 
     env = _jinja_environment()
     return env.get_template(path)

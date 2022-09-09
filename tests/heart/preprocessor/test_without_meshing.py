@@ -1,17 +1,17 @@
-import pytest
 import os
-import numpy as np
 import shutil
+
+from ansys.heart.preprocessor._deprecated_heart_model import HeartModel
+from ansys.heart.preprocessor._deprecated_model_information import ModelInformation
+from ansys.heart.preprocessor.mesh.vtkmethods import vtk_read_mesh_file
+from conftest import create_directory, get_assets_folder, get_workdir
+import numpy as np
+import pytest
+from vtk.numpy_interface import dataset_adapter as dsa
 
 # import shutil
 
-from conftest import create_directory, get_assets_folder
 
-from ansys.heart.preprocessor._deprecated_model_information import ModelInformation
-from ansys.heart.preprocessor._deprecated_heart_model import HeartModel
-from ansys.heart.preprocessor.mesh.vtkmethods import vtk_read_mesh_file
-from conftest import get_workdir
-from vtk.numpy_interface import dataset_adapter as dsa
 
 # cavity extraction for LeftVentricle, BiVentricle, and FourChamber models
 @pytest.mark.parametrize(

@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build:
-    name: Style
+    name: Style Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout project
@@ -33,5 +33,5 @@ jobs:
 
       - name: Run pre-commit
         run: |
-          pre-commit install
-          pre-commit run --all-files --show-diff-on-failure
+          pre-commit run --all-files || ( git status --short ; git diff ; exit 1 )
+#          pre-commit run --all-files --show-diff-on-failure

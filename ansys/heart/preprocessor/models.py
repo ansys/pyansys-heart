@@ -11,7 +11,12 @@ from typing import List
 
 from ansys.heart.custom_logging import LOGGER
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
-import ansys.heart.preprocessor.mesh.mesher as mesher
+
+try:
+    import ansys.heart.preprocessor.mesh.mesher as mesher
+except:
+    LOGGER.warning("Failed to import mesher. Calling Fluent will fail")
+
 from ansys.heart.preprocessor.mesh.objects import Cap, Cavity, Mesh, Part, Point, SurfaceMesh
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.model_definitions import HEART_PARTS, LABELS_TO_ID

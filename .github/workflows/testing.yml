@@ -41,7 +41,7 @@ jobs:
 
       - name: Run preprocessor tests
         run: |
-          pytest -m pytest tests/heart/preprocessor
+          pytest -m pytest tests/heart/preprocessor/test_demo.py
 
       # - name: Upload coverage to Codecov
       #   uses: codecov/codecov-action@v2

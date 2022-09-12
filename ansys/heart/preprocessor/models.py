@@ -65,9 +65,6 @@ class ModelInfo:
         self.mesh_size: float = mesh_size
         """Mesh size used for remeshing"""
 
-        if not os.path.isfile(self.path_to_original_mesh):
-            raise FileNotFoundError("%s not found" % self.path_to_original_mesh)
-
         pass
 
     def clean_workdir(

@@ -3,9 +3,8 @@
 import os
 import pathlib
 
-import ansys.heart.preprocessor.models as models
 import ansys.heart.preprocessor as preproc
-
+import ansys.heart.preprocessor.models as models
 
 # get path to case
 case_path = os.path.join(

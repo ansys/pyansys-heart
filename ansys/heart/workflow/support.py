@@ -4,9 +4,8 @@ from msilib import add_tables
 import os
 import pathlib as Path
 
-import ansys.heart.preprocessor.models as models
-
 from ansys.heart.custom_logging import LOGGER
+import ansys.heart.preprocessor.models as models
 
 
 def run_preprocessor(
@@ -90,4 +89,5 @@ def run_preprocessor(
     model.print_info()
     if clean_workdir:
         model.info.clean_workdir([".stl", ".vtk", ".jou", ".log"])
+
     return model

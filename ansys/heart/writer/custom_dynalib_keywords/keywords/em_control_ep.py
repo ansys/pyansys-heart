@@ -22,8 +22,7 @@ class EmControlEp(KeywordBase):
 
     @property
     def solvetype(self) -> int:
-        """Get or set the ?
-        """  # nopep8
+        """Get or set the ?"""  # nopep8
         return self._cards[0].get_value("solvetype")
 
     @solvetype.setter
@@ -32,8 +31,7 @@ class EmControlEp(KeywordBase):
 
     @property
     def numsplit(self) -> int:
-        """Get or set the ?
-        """  # nopep8
+        """Get or set the ?"""  # nopep8
         return self._cards[0].get_value("numsplit")
 
     @numsplit.setter
@@ -42,8 +40,7 @@ class EmControlEp(KeywordBase):
 
     @property
     def actusig(self) -> int:
-        """Get or set the ?
-        """  # nopep8
+        """Get or set the ?"""  # nopep8
         return self._cards[0].get_value("actusig")
 
     @actusig.setter

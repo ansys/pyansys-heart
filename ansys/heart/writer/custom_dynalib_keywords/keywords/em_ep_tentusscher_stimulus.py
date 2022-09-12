@@ -1,4 +1,6 @@
+# flake8: noqa: E501
 import typing
+
 from ansys.dyna.keywords.lib.card import Card, Field
 from ansys.dyna.keywords.lib.keyword_base import KeywordBase
 
@@ -31,8 +33,7 @@ class EmEpTentusscherStimulus(KeywordBase):
 
     @property
     def stimid(self) -> typing.Optional[int]:
-        """Get or set the ID of the stimulation
-        """  # nopep8
+        """Get or set the ID of the stimulation"""  # nopep8
         return self._cards[0].get_value("stimid")
 
     @stimid.setter
@@ -41,8 +42,7 @@ class EmEpTentusscherStimulus(KeywordBase):
 
     @property
     def settype(self) -> typing.Optional[int]:
-        """Get or set the Set type: EQ.1: Segment set, EQ.2: Node set
-        """  # nopep8
+        """Get or set the Set type: EQ.1: Segment set, EQ.2: Node set"""  # nopep8
         return self._cards[0].get_value("settype")
 
     @settype.setter
@@ -51,8 +51,7 @@ class EmEpTentusscherStimulus(KeywordBase):
 
     @property
     def setid(self) -> typing.Optional[int]:
-        """Get or set the Node set or segment set ID to be stimulated
-        """  # nopep8
+        """Get or set the Node set or segment set ID to be stimulated"""  # nopep8
         return self._cards[0].get_value("setid")
 
     @setid.setter
@@ -61,8 +60,7 @@ class EmEpTentusscherStimulus(KeywordBase):
 
     @property
     def stimstrt(self) -> typing.Optional[float]:
-        """Get or set the Starting time of the stimulation
-        """  # nopep8
+        """Get or set the Starting time of the stimulation"""  # nopep8
         return self._cards[1].get_value("stimstrt")
 
     @stimstrt.setter
@@ -71,8 +69,7 @@ class EmEpTentusscherStimulus(KeywordBase):
 
     @property
     def stimt(self) -> float:
-        """Get or set the Stimulation period
-        """  # nopep8
+        """Get or set the Stimulation period"""  # nopep8
         return self._cards[1].get_value("stimt")
 
     @stimt.setter
@@ -81,8 +78,7 @@ class EmEpTentusscherStimulus(KeywordBase):
 
     @property
     def stimdur(self) -> float:
-        """Get or set the Stimulation duration
-        """  # nopep8
+        """Get or set the Stimulation duration"""  # nopep8
         return self._cards[1].get_value("stimdur")
 
     @stimdur.setter
@@ -91,8 +87,7 @@ class EmEpTentusscherStimulus(KeywordBase):
 
     @property
     def stimamp(self) -> float:
-        """Get or set the Stimulation amplitude
-        """  # nopep8
+        """Get or set the Stimulation amplitude"""  # nopep8
         return self._cards[1].get_value("stimamp")
 
     @stimamp.setter

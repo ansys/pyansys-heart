@@ -1,20 +1,16 @@
-from multiprocessing.sharedctypes import Value
-from pathlib import Path
-import os
 import copy
-
-import numpy as np
-import meshio
+import os
+from pathlib import Path
+from typing import List, Union
 
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.mesh.fluenthdf5 import add_solid_name_to_stl
-
-from typing import List, Union
-
+import meshio
+import numpy as np
 import vtk
-from vtk.util import numpy_support as VN  # noqa
-from vtk.util.numpy_support import numpy_to_vtk
-from vtk.numpy_interface import dataset_adapter as dsa  # this is an improved numpy integration
+from vtk.numpy_interface import dataset_adapter as dsa  # type: ignore # noqa
+from vtk.util import numpy_support as VN  # type: ignore # noqa
+from vtk.util.numpy_support import numpy_to_vtk  # type: ignore # noqa
 
 """Module contains methods for mesh operations related to the vtk library"""
 
@@ -1566,8 +1562,8 @@ def append_vtk_polydata_files(files: list, path_to_merged_vtk: str, substrings: 
         Tags the cells using this list of substrings. Default []
     """
 
+    from ansys.heart.preprocessor.mesh.vtkmethods import add_vtk_array
     import vtk
-    from ansys.heart.preprocessor.vtk_module import add_vtk_array
 
     # append vtk surfaces
     reader = vtk.vtkPolyDataReader()

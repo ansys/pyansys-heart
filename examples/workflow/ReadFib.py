@@ -1,7 +1,8 @@
-"""For the moment this module is not used - but for the moment we keep this for 
+"""For the moment this module is not used - but for the moment we keep this for
 potential future use.
 """
 import numpy as np
+
 
 def read_orth_element_kfile(fn):
     def get_number_of_elements(file):

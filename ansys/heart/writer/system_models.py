@@ -1,6 +1,6 @@
 """Module contains system model class
 
-Valid models include: 
+Valid models include:
 1. Open loop constant pre-after load
 2. Open-loop 3-element Windkessel
 3. Closed loop
@@ -92,7 +92,7 @@ def windkessel_template():
         "    }}\n"
         "    else if ( t-t_last < 0. ) {{\n"
         '        printf("## bisection is not handled now ##");\n'
-        "        is_new_dt = 0;\n"
+        "        abort(0);\n"
         "    }} else\n"
         "    {{\n"
         "        is_new_dt = 0;\n"

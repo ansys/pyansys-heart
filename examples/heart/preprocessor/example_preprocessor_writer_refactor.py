@@ -27,17 +27,18 @@ if __name__ == "__main__":
 
     if use_preprocessor:
         model = run_preprocessor(
+            # model_type=models.FullHeart,
             model_type=models.BiVentricle,
             database="Strocchi2020",
             path_original_mesh=path_to_case,
             work_directory=workdir,
             path_to_model=path_to_model,
             mesh_size=1.5,
+            add_blood_pool=False,
         )
 
     # write LS-DYNA files
     # Load model (e.g. when you skip the preprocessor):
-    model = models.HeartModel.load_model(path_to_model)
 
     if write_lsdyna_files:
         for writer in (

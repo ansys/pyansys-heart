@@ -74,10 +74,11 @@ def test_dump_model_001():
     info.workdir = get_workdir()
     create_directory(info.workdir)
     model = models.BiVentricle(info)
-    model.info.path_to_model = None
     expected_path = os.path.join(model.info.workdir, "heart_model.pickle")
     if os.path.isfile(expected_path):
         os.remove(expected_path)
+
+    model.info.path_to_model = None
     model.dump_model()
     assert os.path.isfile(expected_path)
 
@@ -91,6 +92,7 @@ def test_dump_model_002():
     expected_path = os.path.join(model.info.workdir, "heart_model1.pickle")
     if os.path.isfile(expected_path):
         os.remove(expected_path)
+
     model.info.path_to_model = expected_path
     model.dump_model()
     assert os.path.isfile(expected_path)
@@ -106,6 +108,7 @@ def test_dump_model_003():
     expected_path = os.path.join(model.info.workdir, "heart_model3.pickle")
     if os.path.isfile(expected_path):
         os.remove(expected_path)
+
     model.dump_model(expected_path)
     assert os.path.isfile(expected_path)
 

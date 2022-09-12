@@ -1,4 +1,3 @@
-import typing
 from ansys.dyna.keywords.lib.card import Card, Field
 from ansys.dyna.keywords.lib.keyword_base import KeywordBase
 
@@ -23,8 +22,7 @@ class EmEpCellmodelTomek(KeywordBase):
 
     @property
     def mid(self) -> int:
-        """Get or set the Material ID
-        """  # nopep8
+        """Get or set the Material ID"""  # nopep8
         return self._cards[0].get_value("mid")
 
     @mid.setter
@@ -33,8 +31,7 @@ class EmEpCellmodelTomek(KeywordBase):
 
     @property
     def phiendmid(self) -> float:
-        """Get or set the Phi endocardium > mid
-        """  # nopep8
+        """Get or set the Phi endocardium > mid"""  # nopep8
         return self._cards[0].get_value("phiendmid")
 
     @phiendmid.setter
@@ -43,8 +40,7 @@ class EmEpCellmodelTomek(KeywordBase):
 
     @property
     def phimidepi(self) -> float:
-        """Get or set the Phi mid > epicardium
-        """  # nopep8
+        """Get or set the Phi mid > epicardium"""  # nopep8
         return self._cards[0].get_value("phimidepi")
 
     @phimidepi.setter

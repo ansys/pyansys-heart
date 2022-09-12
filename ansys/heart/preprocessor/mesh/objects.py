@@ -1,20 +1,18 @@
 """Module that contains classes relevant for the mesh.
 Such as a Mesh object, Part object, Features, etc
 """
-import typing
-from typing import List, Union
-import pathlib
-
-import numpy as np
-import meshio
 import copy
 import os
-
-import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-import ansys.heart.preprocessor.mesh.connectivity as connect
-import ansys.heart.preprocessor.mesh.geodisc as geodisc
+import pathlib
+import typing
+from typing import List, Union
 
 from ansys.heart.custom_logging import LOGGER
+import ansys.heart.preprocessor.mesh.connectivity as connect
+import ansys.heart.preprocessor.mesh.geodisc as geodisc
+import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
+import meshio
+import numpy as np
 
 
 class Mesh:
@@ -107,12 +105,14 @@ class Mesh:
             self.cell_data,
             self.point_data,
         ) = vtkmethods.get_tetra_info_from_unstructgrid(mesh_vtk, get_all_data=True)
+
         # convert tags into float
         for key, value in self.cell_data.items():
             if key == "tags":
                 if np.issubdtype(self.cell_data[key].dtype, np.integer):
                     LOGGER.debug("Converting cell data '{0}' into floats".format(key))
                     self.cell_data[key] = np.array(self.cell_data[key], dtype=float)
+
         return None
 
     def write_to_vtk(self, filename):

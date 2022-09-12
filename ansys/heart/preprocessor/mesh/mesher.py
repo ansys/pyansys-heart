@@ -310,7 +310,8 @@ if __name__ == "__main__":
     session = pyfluent.launch_fluent(start_instance=True, show_gui=True, meshing_mode=True)
 
     session.meshing.tui.file.read_mesh(
-        "D:\\development\pyheart-lib\\pyheart-lib\downloads\\Strocchi2020_Demo1.2\\p05\\fluent_volume_mesh.msh.h5"
+        "D:\\development\pyheart-lib\\pyheart-lib\downloads\\Strocchi2020_Demo1.2"
+        "\\p05\\fluent_volume_mesh.msh.h5"
     )
     session.meshing.tui.switch_to_solution_mode("yes")
     field_data = session.field_data

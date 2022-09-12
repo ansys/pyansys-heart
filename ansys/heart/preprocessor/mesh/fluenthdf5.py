@@ -1,10 +1,10 @@
-import h5py
-import numpy as np
 import time
-import meshio
 from typing import List, Optional
-from ansys.heart.custom_logging import LOGGER
 
+from ansys.heart.custom_logging import LOGGER
+import h5py
+import meshio
+import numpy as np
 
 """Module containing functions to read/write fluent meshes in HDF5 format
 """
@@ -805,7 +805,6 @@ def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii"):
         fid.close()
 
     return
-
 
 if __name__ == "__main__":
     print("protected")

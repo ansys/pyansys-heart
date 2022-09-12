@@ -1,0 +1,8 @@
+; copy boundary from mesh (goes into unreferenced)
+/boundary/manage/copy '(left-ventricle-endocardium)
+; auto patch holes on this boundary
+(define endocardium-zone-id (get-unreferenced-face-zones) )
+(ti-menu-load-string  ( format #f "/boundary/modify/auto-patch-holes ~a"
+							endocardium-zone-id
+						 ) )
+; delete endocardium and copy other zones to mesh object

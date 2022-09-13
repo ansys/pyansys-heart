@@ -1,0 +1,48 @@
+; ------------------------------------------------------------------
+; ------------------------------------------------------------------
+; template script for auto-generating caps for all endocardial parts
+; and extracting blood pool volume
+; This first copies all the endocardial zones and septum and
+; and closes the the cavities based on the free faces
+; Note that the auto-patch utility may not work in all cases.
+; ------------------------------------------------------------------
+;
+/objects/delete-all-geom
+(define zone-ids-endo (get-face-zones-of-filter '*endocardium*) )
+(define zone-id-septum (get-face-zones-of-filter '*septum*) )
+(define zone-ids-to-copy (append zone-ids-endo zone-id-septum) )
+(ti-menu-load-string  ( format #f "/boundary/manage/copy ~a"
+							zone-ids-to-copy
+						 ) )						 
+; auto patch holes on this boundary
+; Note: auto patch doesn't always work -> why?x
+(define zone-ids-to-patch (get-unreferenced-face-zones-of-filter '*) )
+(ti-menu-load-string  ( format #f "/boundary/modify/auto-patch-holes ~a"
+							zone-ids-to-patch
+						 ) )						 
+(define zone-ids-patch (get-unreferenced-face-zones-of-filter '*patch*) )
+
+; create object with only the patches 
+(ti-menu-load-string (format #f "/objects/create valves fluid , ~a , mesh yes"
+						zone-ids-patch ) )
+/objects/delete-unreferenced-faces-and-edges
+/objects/labels/create-label-per-zone "valves" '(*)
+/objects/labels/remove-zones "valves" "valves" '(*)
+;(ti-menu-load-string  ( format #f "/boundary/manage/delete ~a"
+;							zone-ids-to-patch
+;						 ) )
+; delete the rest of the unreferenced zones
+;(for-each 
+;    (lambda (x)
+;	    (ti-menu-load-string ( format #f /boundary/modify/select
+
+;(ti-menu-load-string  ( format #f "/boundary/manage/delete ~a"
+;							zone-id
+;						 ) )
+/objects/merge '(wrapped-myocardium valves) "wrapped-myocardium"
+/diagnostics/face-connectivity/fix-duplicate-faces objects '(wrapped-myocardium)
+/boundary/remesh/controls/intersect/remesh-post-intersection? no
+/boundary/remesh/intersect-all-face-zones yes 40 0.05 no
+/boundary/manage/remove-suffix '(*)
+; ------------------------------------------------------------------
+; ------------------------------------------------------------------

@@ -36,7 +36,8 @@
 ;
 ; compute volumetric regions 
 /objects/volumetric-regions compute "wrapped-myocardium" no
-/objects/volumetric-regions/change-type "wrapped-myocardium" '(*) solid
+/objects/volumetric-regions/change-type "wrapped-myocardium" '(*) fluid
+/objects/volumetric-regions/change-type "wrapped-myocardium" '(heart) solid
 ; start automeshing
 /mesh/tet/controls/cell-sizing size-field
 /mesh/auto-mesh "wrapped-myocardium" yes pyramids tet no

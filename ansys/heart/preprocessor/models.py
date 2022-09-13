@@ -1,19 +1,21 @@
 """Module containing classes for the various heart models which
 can be created with the preprocessor
 """
+import json
+import os
+
 # import json
 import pathlib
+import pickle
 from typing import List
-import os
-import numpy as np
-import pickle, json
 
-from ansys.heart.preprocessor.model_definitions import HEART_PARTS, LABELS_TO_ID
-from ansys.heart.preprocessor.mesh.objects import Part, Mesh, SurfaceMesh, Cap, Cavity, Point
-import ansys.heart.preprocessor.mesh.mesher as mesher
-import ansys.heart.preprocessor.mesh.connectivity as connectivity
 from ansys.heart.custom_logging import LOGGER
+import ansys.heart.preprocessor.mesh.connectivity as connectivity
+import ansys.heart.preprocessor.mesh.mesher as mesher
+from ansys.heart.preprocessor.mesh.objects import Cap, Cavity, Mesh, Part, Point, SurfaceMesh
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
+from ansys.heart.preprocessor.model_definitions import HEART_PARTS, LABELS_TO_ID
+import numpy as np
 
 
 class ModelInfo:
@@ -29,9 +31,8 @@ class ModelInfo:
         valid_databases = ["Strocchi2020", "Cristobal2021"]
         if value not in valid_databases:
             raise ValueError(
-                "{0} not a valid database name. Please specify one of the following database names: {1}".format(
-                    value, valid_databases
-                )
+                "{0} not a valid database name. Please specify one of the"
+                " following database names: {1}".format(value, valid_databases)
             )
         self._database = value
 
@@ -155,7 +156,7 @@ class HeartModel:
         self._add_subparts()
         """Adds any subparts"""
         self._add_labels_to_parts()
-        """Adds appropiate vtk labels to the parts"""
+        """Adds appropriate vtk labels to the parts"""
 
         if not self.info.mesh_size:
             self._set_default_mesh_size()
@@ -379,7 +380,7 @@ class HeartModel:
         return element_ids
 
     def _get_endo_epicardial_surfaces(self):
-        """get endo and epicardial surfaces
+        """get endo- and epicardial surfaces
 
         Note
         ----
@@ -485,7 +486,8 @@ class HeartModel:
                     LOGGER.warning("Deleting orphan surface: consists of less than 5 faces")
                 else:
                     raise ValueError(
-                        "Could not find suitable candidate surface to merge orphan faces into - proceed with caution"
+                        "Could not find suitable candidate surface to merge "
+                        "orphan faces into - proceed with caution"
                     )
 
         self.mesh_raw.boundaries = self.mesh_raw.boundaries + surfaces_to_add
@@ -872,7 +874,8 @@ class HeartModel:
                             d2 = np.linalg.norm(cap_centroid - cap_normal - cavity_centroid)
                             if d1 > d2:
                                 LOGGER.debug(
-                                    "Flipping order of nodes on cap to ensure normal pointing inward"
+                                    "Flipping order of nodes on cap to ensure normal "
+                                    "pointing inward"
                                 )
                                 cap.node_ids = np.flip(cap.node_ids)
                                 cap.tesselate()

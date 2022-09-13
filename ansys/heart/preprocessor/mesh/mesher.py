@@ -1,16 +1,14 @@
 import os
-import subprocess
-import numpy as np
-import gmsh
 import pathlib
-
-
-from ansys.heart.preprocessor._load_template import load_template
-from ansys.heart.preprocessor import SC_EXE, FLUENT_EXE
-from ansys.heart.custom_logging import LOGGER
-import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5
+import subprocess
 
 import ansys.fluent.core as pyfluent
+from ansys.heart.custom_logging import LOGGER
+from ansys.heart.preprocessor import SC_EXE
+from ansys.heart.preprocessor._load_template import load_template
+import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401
+import gmsh
+import numpy as np
 
 _template_directory = os.path.join(os.path.dirname(__file__), "template")
 
@@ -198,7 +196,8 @@ if __name__ == "__main__":
     session = pyfluent.launch_fluent(start_instance=True, show_gui=True, meshing_mode=True)
 
     session.meshing.tui.file.read_mesh(
-        "D:\\development\pyheart-lib\\pyheart-lib\downloads\\Strocchi2020_Demo1.2\\p05\\fluent_volume_mesh.msh.h5"
+        "D:\\development\pyheart-lib\\pyheart-lib\downloads\\Strocchi2020_Demo1.2"
+        "\\p05\\fluent_volume_mesh.msh.h5"
     )
     session.meshing.tui.switch_to_solution_mode("yes")
     field_data = session.field_data

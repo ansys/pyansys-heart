@@ -1,10 +1,10 @@
-import h5py
-import numpy as np
 import time
-import meshio
 from typing import List, Optional
-from ansys.heart.custom_logging import LOGGER
 
+from ansys.heart.custom_logging import LOGGER
+import h5py
+import meshio
+import numpy as np
 
 """Module containing functions to read/write fluent meshes in HDF5 format
 """
@@ -323,7 +323,11 @@ def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii"):
 
     return
 
+
 if __name__ == "__main__":
     print("protected")
-    hdf5_filename = r"D:\development\pyheart-lib\pyheart-lib\examples\heart\workdir\Strocchi2020\FullHeart\volume_mesh.msh.h5"
+    hdf5_filename = (
+        "D:\\development\\pyheart-lib\\pyheart-lib\\examples\\heart\\workdir\\"
+        "Strocchi2020\\FullHeart\\volume_mesh.msh.h5"
+    )
     fluenthdf5_to_vtk(hdf5_filename, "test.vtk")

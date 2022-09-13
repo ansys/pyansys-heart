@@ -3,9 +3,8 @@
 import os
 import pathlib as Path
 
-import ansys.heart.preprocessor.models as models
-
 from ansys.heart.custom_logging import LOGGER
+import ansys.heart.preprocessor.models as models
 
 
 def run_preprocessor(

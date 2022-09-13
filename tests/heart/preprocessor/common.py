@@ -1,10 +1,10 @@
 """Collect some pre-sets for mesh extraction"""
-import pathlib
 import os
+import pathlib
 
-from ansys.heart.preprocessor._deprecated_model_information import ModelInformation
 from ansys.heart.preprocessor._deprecated_heart_model import HeartModel
-from conftest import get_assets_folder, clean_directory, create_directory
+from ansys.heart.preprocessor._deprecated_model_information import ModelInformation
+from conftest import clean_directory, create_directory, get_assets_folder
 
 
 def workflow_extract_mesh(model_type: str, working_directory: pathlib.Path) -> pathlib.Path:

@@ -1,7 +1,8 @@
-import pathlib
-import os
-import pytest
 import glob as glob
+import os
+import pathlib
+
+import pytest
 
 ROOT_FOLDER = os.path.join(pathlib.Path(__file__).parent.parent)
 
@@ -70,8 +71,7 @@ def compare_string_with_file(output: str, reference_file: str) -> None:
 
 
 def clean_directory(directory: str):
-    """Cleans the directory by removing it and re-creating it 
-    """
+    """Cleans the directory by removing it and re-creating it"""
     import shutil
 
     if os.path.isdir(directory):

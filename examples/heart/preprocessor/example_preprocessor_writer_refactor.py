@@ -2,12 +2,9 @@
 import os
 import pathlib
 
-
 import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.support import run_preprocessor
 import ansys.heart.writer.dynawriter as writers
-from ansys.heart.simulator.simulator import Simulator
-
 
 if __name__ == "__main__":
 
@@ -15,12 +12,14 @@ if __name__ == "__main__":
 
     1. Extracts simulation mesh
     2. Writes files for mechanics, zero-pressure, fiber generation, and purkinje
+
+    Please change paths
     """
 
     path_to_case = os.path.join(
         pathlib.Path(__file__).parents[3], "downloads\\Strocchi2020\\01\\01.case"
     )
-    workdir = os.path.join(pathlib.Path(path_to_case).parent, "BiVentricleRefactored")
+    workdir = os.path.join(pathlib.Path(path_to_case).parent, "BiVentricle")
     path_to_model = os.path.join(workdir, "heart_model.pickle")
 
     use_preprocessor = False
@@ -55,6 +54,7 @@ if __name__ == "__main__":
 
     if write_lsdyna_files:
         for writer in (
+            writers.ElectrophysiologyDynaWriter(model),
             writers.MechanicsDynaWriter(model, "ConstantPreloadWindkesselAfterload"),
             writers.ZeroPressureMechanicsDynaWriter(model),
             writers.FiberGenerationDynaWriter(model),

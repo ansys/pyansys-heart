@@ -44,6 +44,7 @@ class ModelInfo:
         path_to_simulation_mesh: pathlib.Path = None,
         path_to_model: pathlib.Path = None,
         mesh_size: float = 1.5,
+        add_blood_pool: bool = False,
     ) -> None:
 
         self.database = database
@@ -64,6 +65,8 @@ class ModelInfo:
         """Model (geometric) type"""
         self.mesh_size: float = mesh_size
         """Mesh size used for remeshing"""
+        self.add_blood_pool: bool = add_blood_pool
+        """Flag indicating whether to add blood to the cavities"""
 
         if not os.path.isfile(self.path_to_original_mesh):
             raise FileNotFoundError("%s not found" % self.path_to_original_mesh)
@@ -149,9 +152,12 @@ class HeartModel:
         self.info = info
         """Model meta information"""
         self.mesh = Mesh()
-        """Modified mesh"""
+        """Modified mesh of the tissue"""
         self.mesh_raw = Mesh()
         """Raw input mesh"""
+
+        self.fluid_mesh = Mesh()
+        """Generated fluid mesh"""
 
         self._add_subparts()
         """Adds any subparts"""
@@ -579,30 +585,65 @@ class HeartModel:
             LOGGER.warning("No mesh size set: setting to uniform size of 1.5 mm")
             self.info.mesh_size = 1.5
 
-        mesher.fluentmeshing(
+        mesher.mesh_heart_model_by_fluent(
             self.info.workdir,
             path_mesh_file,
             mesh_size=self.info.mesh_size,
-            journal_type="improved",
+            add_blood_pool=self.info.add_blood_pool,
             show_gui=True,
         )
-        path_mesh_file_vtk = path_mesh_file.replace(".msh.h5", ".vtk")
-        tetra, face_zones, nodes = mesher.hdf5.fluenthdf5_to_vtk(path_mesh_file, path_mesh_file_vtk)
 
-        # update mesh object
-        self.mesh.tetrahedrons = tetra
-        self.mesh.nodes = nodes
-        for face_zone_name, face_zone in face_zones.items():
-            self.mesh.boundaries.append(
-                SurfaceMesh(
-                    name=face_zone_name,
-                    faces=face_zone["faces"][
-                        :, [0, 2, 1]
-                    ],  # ensures normals pointing away from the volume mesh
-                    nodes=self.mesh.nodes,
-                    sid=face_zone["zone-id"],
-                )
+        fluent_mesh = mesher.hdf5.FluentMesh()
+        fluent_mesh.load_mesh(path_mesh_file)
+
+        tissue_cell_zone = next(cz for cz in fluent_mesh.cell_zones if "heart-tet-cells" in cz.name)
+        tetra_tissue = tissue_cell_zone.cells
+
+        # update mesh object of the tissue
+        self.mesh.tetrahedrons = tetra_tissue
+        self.mesh.nodes = fluent_mesh.nodes
+
+        # ensures normals pointing into the cavity
+        # NOTE: not sure what determines the ordering when adding the blood pool
+        # E.g. the normals of the endo AND epicardium are now pointing inwards with
+        # this switch deactivated when adding add blood pool
+        if self.info.add_blood_pool:
+            flip_face_order = False
+        else:
+            flip_face_order = True
+
+        for face_zone in fluent_mesh.face_zones:
+            # don't create surfaces for interior face zones
+            if "interior" in face_zone.name or face_zone.zone_type != 3:
+                continue
+
+            if flip_face_order:
+                faces = face_zone.faces[:, [0, 2, 1]]
+            else:
+                faces = face_zone.faces
+
+            face_zone_surface_mesh = SurfaceMesh(
+                name=face_zone.name,
+                faces=faces,
+                nodes=self.mesh.nodes,
+                sid=face_zone.id,
             )
+            # face_zone_surface_mesh.write_to_stl(
+            #     os.path.join(self.info.workdir, face_zone.name + ".stl")
+            # )
+            self.mesh.boundaries.append(face_zone_surface_mesh)
+
+        # update mesh object of the fluid
+        if self.info.add_blood_pool:
+            fluid_cell_zones = [
+                cz for cz in fluent_mesh.cell_zones if "heart-tet-cells" not in cz.name
+            ]
+            tetras_fluid = np.empty((0, 4))
+            for cell_zone in fluid_cell_zones:
+                tetras_fluid = np.vstack([tetras_fluid, cell_zone.cells])
+            self.fluid_mesh.tetrahedrons = tetras_fluid
+            self.fluid_mesh.nodes = fluent_mesh.nodes
+
         self._map_data_to_remeshed_volume()
 
         return
@@ -673,6 +714,53 @@ class HeartModel:
         # cleanup
         os.remove(filename_original)
         os.remove(filename_remeshed)
+        return
+
+    def _deprecated_add_volume_mesh_for_blood_pool(self):
+        """Adds a volume mesh for the (interior) blood pool
+
+        Notes
+        -----
+        Uses the (fluent) mesh of the tissue as reference, and generates
+        patches from the cap nodes
+        """
+        path_to_input_mesh = os.path.join(self.info.workdir, "fluent_volume_mesh.msh.h5")
+        path_to_output_mesh = path_to_input_mesh.replace(".msh.h5", "_with_interior.msh.h5")
+
+        caps = [c for p in self.parts for c in p.caps]
+
+        mesher._deprecated_mesh_cavity_interior_by_fluent(
+            path_to_input_mesh, path_to_output_mesh, caps, show_gui=True
+        )
+
+        path_mesh_file_vtk = path_to_output_mesh.replace(".msh.h5", ".vtk")
+
+        # read volume mesh input
+        mesh1 = mesher.hdf5.FluentMesh()
+        mesh1.load_mesh(path_to_input_mesh)
+
+        tetra_tissue1 = [cz.cells for cz in mesh1.cell_zones if "heart-tet-cells" in cz.name][0]
+        cell_zone_tissue1 = next(cz for cz in mesh1.cell_zones if "heart-tet-cells" in cz.name)
+
+        tetra_old, face_zones_old, nodes_old = mesher.hdf5._deprecated_fluenthdf5_to_vtk(
+            path_to_input_mesh, path_mesh_file_vtk
+        )
+
+        # read volume mesh output
+        mesh2 = mesher.hdf5.FluentMesh()
+        mesh2.load_mesh(path_to_output_mesh)
+
+        face_zones = mesh2.face_zones
+        tetra = mesh2.cells
+        nodes = mesh2.nodes
+
+        tetra_tissue2 = [cz.cells for cz in mesh2.cell_zones if "heart-tet-cells" in cz.name][0]
+        cell_zone_tissue2 = next(cz for cz in mesh2.cell_zones if "heart-tet-cells" in cz.name)
+
+        tetra, face_zones, nodes = mesher.hdf5._deprecated_fluenthdf5_to_vtk(
+            path_to_output_mesh, path_mesh_file_vtk
+        )
+
         return
 
     def _update_parts(self):

@@ -40,12 +40,7 @@ from ansys.heart.writer.keyword_module import (
     fast_element_writer,
     get_list_of_used_ids,
 )
-from ansys.heart.writer.material_keywords import (
-    MaterialAtrium,
-    MaterialCap,
-    MaterialHGOMyocardium,
-    active_curve,
-)
+from ansys.heart.writer.material_keywords import MaterialAtrium, MaterialHGOMyocardium, active_curve
 import numpy as np
 import pandas as pd
 from vtk.numpy_interface import dataset_adapter as dsa  # noqa
@@ -2689,7 +2684,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     #         elif cavity.name == "Right ventricle":
     #             node_apex_right = cavity.apex_id["endocardium"]
     #             for segment_set in cavity.segment_sets:
-    #                 if "endocardium" in segment_set["name"] and "septum" not in segment_set["name"]:
+    #                 if "endocardium" in segment_set["name"] and "septum" not
+    #                       in segment_set["name"]:
     #                     segment_set_ids_endo_right = segment_set["id"]
 
     #     # validate node set by removing any nodes that do not occur in either ventricle

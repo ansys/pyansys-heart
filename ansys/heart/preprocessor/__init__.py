@@ -14,7 +14,7 @@ elif os.name == "posix":
 
 if os.name == "posix":
     UserWarning("Skipping product installation checks")
-    
+
 elif os.name == "nt" and installed_versions:
     # use latest installed version that is supported and has Spaceclaim and Fluent
     SC_EXE = ""

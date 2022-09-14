@@ -742,13 +742,32 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 "Simulation type not recognized: Please choose " "either quasi-static or static"
             )
 
+        prefill_time = self.parameters["Material"]["Myocardium"]["Active"]["Prefill"]
         self.kw_database.main.append(
-            keywords.ControlImplicitDynamics(imass=imass, gamma=gamma, beta=beta)
+            keywords.ControlImplicitDynamics(
+                imass=imass,
+                gamma=gamma,
+                beta=beta,
+                # active dynamic process only after prefilling
+                tdybir=prefill_time,
+            )
         )
 
         # add auto controls
+        lcid = self.get_unique_curve_id()
+        # tune time step for better compromise between convergence and performance
+        time = [0, prefill_time, prefill_time + dtmax, end_time]
+        step = [5 * dtmax, 5 * dtmax, dtmin, dtmax]
+        kw_curve = create_define_curve_kw(
+            x=time,
+            y=step,
+            curve_name="time step control",
+            curve_id=lcid,
+            lcint=0,
+        )
+        self.kw_database.main.append(kw_curve)
         self.kw_database.main.append(
-            keywords.ControlImplicitAuto(iauto=1, dtmin=dtmin, dtmax=dtmax)
+            keywords.ControlImplicitAuto(iauto=1, dtmin=dtmin, dtmax=-lcid)
         )
 
         # add general implicit controls
@@ -787,7 +806,26 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.DatabaseMatsum(dt=0.1, binary=2))
 
         # frequency of full results
-        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
+        lcid = self.get_unique_curve_id()
+        time = [
+            0,
+            self.parameters["Material"]["Myocardium"]["Active"]["Prefill"],
+            self.parameters["Material"]["Myocardium"]["Active"]["Prefill"] + dt_output_d3plot,
+            self.parameters["Time"]["End Time"],
+        ]
+        step = [10 * dt_output_d3plot, 10 * dt_output_d3plot, dt_output_d3plot, dt_output_d3plot]
+        kw_curve = create_define_curve_kw(
+            x=time,
+            y=step,
+            curve_name="d3plot out control",
+            curve_id=lcid,
+            lcint=0,
+        )
+
+        self.kw_database.main.append(kw_curve)
+        self.kw_database.main.append(
+            keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot, lcdt=lcid, ioopt=1)
+        )
 
         self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
 
@@ -990,6 +1028,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             # for cavity in self.model._mesh._cavities:
             #     for cap in cavity.closing_caps:
             #         caps_to_use.append(cap.name)
+
             caps_to_use = [
                 "mitral-valve",
                 "tricuspid-valve",
@@ -1644,6 +1683,9 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # export .k files
         self.export_databases(export_directory)
 
+        # export segment sets to separate file
+        self._export_cavity_segmentsets(export_directory)
+
         tend = time.time()
         LOGGER.debug("Time spent writing files: {:.2f} s".format(tend - tstart))
 
@@ -1682,11 +1724,11 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         """
         self.kw_database.main.append(keywords.ControlTermination(endtim=1.0 * scale_time))
-        # self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
 
-        self.kw_database.main.append(
-            keywords.ControlImplicitDynamics(imass=1, gamma=0.6, beta=0.38)
-        )
+        self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
+        # self.kw_database.main.append(
+        #     keywords.ControlImplicitDynamics(imass=1, gamma=0.6, beta=0.38)
+        # )
 
         # add auto controls
         self.kw_database.main.append(
@@ -1705,13 +1747,14 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.kw_database.main.append(keywords.ControlImplicitSolver())
 
         # add binout for post-process
-        self.kw_database.main.append(keywords.DatabaseNodout(dt=0.5 * scale_time, binary=1))
+        self.kw_database.main.append(keywords.DatabaseNodout(dt=0.2 * scale_time, binary=1))
 
-        # example for nodout
-        kw = keywords.SetNodeGeneral(option="part", sid=999, e1=1, e2=2)
+        # write for all nodes in nodout
+        nodeset_id = self.get_unique_nodeset_id()
+        kw = keywords.SetNodeGeneral(option="ALL", sid=nodeset_id)
 
         self.kw_database.main.append(kw)
-        kw = keywords.DatabaseHistoryNodeSet(id1=999)
+        kw = keywords.DatabaseHistoryNodeSet(id1=nodeset_id)
         self.kw_database.main.append(kw)
         return
 

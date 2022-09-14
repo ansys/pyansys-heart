@@ -535,7 +535,7 @@ class Cap(Feature):
         """Type"""
         return
 
-    def tesselate(self) -> np.ndarray:
+    def tessellate(self) -> np.ndarray:
         """Forms triangles with the node ids"""
         ref_node = self.node_ids[0]
         num_triangles = self.node_ids.shape[0] - 1

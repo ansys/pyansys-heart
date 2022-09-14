@@ -91,8 +91,12 @@ def windkessel_template():
         "        dt = t - t_old;\n"
         "    }}\n"
         "    else if ( t-t_last < 0. ) {{\n"
-        '        printf("## bisection is not handled now ##");\n'
-        "        abort(0);\n"
+        '        printf("  ## Warning bisection may not be properly handled ##");\n'
+        '        printf("  ## Warning: dt_old: %f", dt );\n'
+        "        is_new_dt = 0;\n"
+        "        dt = dt - (t_last-t);\n"
+        '        printf("## Warning: dt_new: %f", dt );\n'
+        "$       abort(0);\n"
         "    }} else\n"
         "    {{\n"
         "        is_new_dt = 0;\n"
@@ -121,7 +125,7 @@ def windkessel_template():
         "$   LSDYNA will integrate cavity volume implicitly: V^t = V^t_old+dt*Q^t\n"
         "$   LSDYNAs input dp is interpolated by dp=(1-r)*p^t_old+r*p^t+1_i\n"
         "$   This is not suitable to check the valve opening (to compute Q at t)\n"
-        "$   We retreive firstly p^t at this iteration\n"
+        "$   We retrieve firstly p^t at this iteration\n"
         "        pk = (dp -(1-gamma)*pk2)/gamma;\n"
         "    }} else\n"
         "    {{\n"

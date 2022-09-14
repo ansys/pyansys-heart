@@ -4,7 +4,6 @@ from datetime import datetime
 # add sys path for sphinx to find the packages/modules
 # NOTE: could be replaced?
 import os
-import pathlib as Path
 import sys
 
 abspath = os.path.dirname(os.path.abspath(__file__))

@@ -19,7 +19,8 @@ repos:
   rev: v2.1.0
   hooks:
   - id: codespell
-    exclude: examples/dyna_decks/*
+    exclude: examples/dyna_decks
+    args: [-L solf]
 
 # - repo: https://github.com/pycqa/pydocstyle
 #   rev: 6.1.1

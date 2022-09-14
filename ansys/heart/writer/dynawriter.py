@@ -430,7 +430,7 @@ class BaseDynaWriter:
                     "Node id {0} is on edge of {1}. Picking node id {2}".format(
                         self.model.left_ventricle.apex_points[0].node_id,
                         endocardium.name,
-                        node_apex_right,
+                        node_apex_left,
                     )
                 )
                 self.model.left_ventricle.apex_points[0].node_id = node_apex_left
@@ -728,7 +728,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # add termination keywords
         self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=dtmin))
 
-        # add implict controls
+        # add implicit controls
         if simulation_type == "quasi-static":
             imass = 1
             gamma = 0.6
@@ -1420,7 +1420,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
     def _update_controlvolume_db(self):
         """Prepares the keywords for the control volume feature"""
-        # NOTE: Assumes cavity id is reseverd for combined
+        # NOTE: Assumes cavity id is reserved for combined
         # segment set
 
         # set up control volume keywords and interaction of

@@ -296,7 +296,8 @@ class FluentMesh:
                 # note: in an edge case we may have an interior face that
                 # is connected to a cell where all the other faces are actually
                 # not of the interior.
-                # as a solution we can collect all faces first and consequently construct the tetrahedrons
+                # as a solution we can collect all faces first and consequently construct
+                # the tetrahedrons
                 face_ids = np.where(np.sum(mask, axis=1) != 1)[0]
                 for face_id in face_ids:
 
@@ -739,7 +740,8 @@ def _deprecated_face_group_to_tetrahedrons2(
         c0c1 = np.array([face_group[subdir_c0], face_group[subdir_c1]]).T
 
         # np.savetxt(
-        #     "c0c1_func1_{}.txt".format(facezone_name.replace("interior-", "")), c0c1, delimiter=","
+        #     "c0c1_func1_{}.txt".format(
+        # facezone_name.replace("interior-", "")),c0c1, delimiter=","
         # )
 
         # exploit unique to find indices of face pairs

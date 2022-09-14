@@ -128,7 +128,7 @@ class FluentMesh:
         return
 
     def _update_indexing(self):
-        """Updates the indexing of all cells and faces: indexshould start from 0"""
+        """Updates the indexing of all cells and faces: index should start from 0"""
         for cell_zone in self.cell_zones:
             cell_zone.cells = cell_zone.cells - 1
         for face_zone in self.face_zones:
@@ -261,7 +261,7 @@ class FluentMesh:
         f1: n1 n2 n3 c0 c1
         f2: n3 n1 n4 c0 c1
 
-        If f1 and f2 are connected to same face - extract node not occuring in
+        If f1 and f2 are connected to same face - extract node not occurring in
         f1. The resulting four nodes will make up the tetrahedron
 
         Do this for all interior faces
@@ -324,7 +324,7 @@ class FluentMesh:
         f1: n1 n2 n3 c0 c1
         f2: n3 n1 n4 c0 c1
 
-        If f1 and f2 are connected to same face - extract node not occuring in
+        If f1 and f2 are connected to same face - extract node not occurring in
         f1. The resulting four nodes will make up the tetrahedron
 
         Do this for all faces.
@@ -455,7 +455,7 @@ def _deprecated_fluenthdf5_to_vtk(hdf5_filename: str, vtk_filename: str):
 
 
 def _deprecated_get_mesh_group(fid: h5py.File) -> h5py.Group:
-    """Gets meshgroup from hdf5 file handle"""
+    """Gets mesh group from hdf5 file handle"""
     keys = list(fid.keys())
     if keys[0] != "meshes":
         raise KeyError("No 'meshes' field found")

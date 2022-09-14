@@ -54,7 +54,7 @@ class PurkinjeGenerationDecks(BaseDecks):
 
 
 class ElectrophysiologyDecks(BaseDecks):
-    """Adds decks specificly for Electrophysiology simulations"""
+    """Adds decks specifically for Electrophysiology simulations"""
 
     def __init__(self) -> None:
         super().__init__()

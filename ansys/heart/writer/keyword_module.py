@@ -39,7 +39,7 @@ def add_nodes_to_kw(nodes: np.array, node_kw: keywords.Node, offset: int = 0) ->
     """Adds nodes to an existing node keyword. If nodes are
     already defined, this adds both the nodes in the previous
     keyword and the specified array of nodes. Automatically computes
-    the index offset incase node_kw.nodes is not empty
+    the index offset in case node_kw.nodes is not empty
 
     Parameters
     ----------
@@ -179,7 +179,7 @@ def create_element_shell_keyword(
         element_type = "quad"
         columns = kw.elements.columns[0:6]
     else:
-        raise ValueError("Uknown type. Check size of shell array")
+        raise ValueError("Unknown type. Check size of shell array")
 
     # create element id array
     element_ids = np.arange(0, num_shells, 1) + 1 + id_offset

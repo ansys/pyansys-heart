@@ -62,7 +62,7 @@ def vtk_geodesic(input: vtk.vtkPolyData, start_idx: int, end_idx: int):
 
 def order_nodes_edgeloop(node_indices: np.array, node_coords: np.array) -> np.array:
     """This orders the node indices such that the ordered
-    set of nodes forms a closed/continuos loop. This uses the closest
+    set of nodes forms a closed/continuous loop. This uses the closest
     point as next point in the edge loop
 
     Parameters
@@ -100,7 +100,7 @@ def order_nodes_edgeloop(node_indices: np.array, node_coords: np.array) -> np.ar
         idx_visited.append(next_idx)
         iters = iters + 1
         if iters > num_nodes:
-            raise Error("More iterations needed than expected - check impementation")
+            raise Error("More iterations needed than expected - check implementation")
 
     # remap to old numbering and return
     return node_indices[idx_visited]

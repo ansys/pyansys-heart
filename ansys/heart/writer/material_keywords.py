@@ -1,5 +1,5 @@
 """This uses dynalib to create some commonly used material cards and their
-default values. Uses inheritence.
+default values. Uses inheritance.
 E.g.:
 Mat295
 Mat077
@@ -184,7 +184,7 @@ if __name__ == "__main__":
         "itype": -1,
         "mu1": 34.9,
         "alpha1": 2,
-        "Comment": "Shoule be equivalent with MAT_077_H",
+        "Comment": "Should be equivalent with MAT_077_H",
     }
     kw = MaterialHGOMyocardium(mid=1, iso_user=dct_iso2)
     print(kw)

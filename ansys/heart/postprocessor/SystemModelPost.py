@@ -73,7 +73,7 @@ class SystemModelPost:
 
     def _load_csv(self):
         """
-        laod system states written from define function
+        load system states written from define function
         Returns
         -------
 

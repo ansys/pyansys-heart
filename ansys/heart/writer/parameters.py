@@ -33,7 +33,7 @@ parameters = {
             "itype": -1,
             "mu1": 34.9 / scale,
             "alpha1": 2,
-            "Comment": "Shoule be equivalent with MAT_077_H",
+            "Comment": "Should be equivalent with MAT_077_H",
         },
     },
     "Cap": {"Density": 1.0e-6 * scale, "nu": 0.499, "c10": 1000 / scale, "Thickness": 5.0},

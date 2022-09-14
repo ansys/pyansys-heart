@@ -592,7 +592,7 @@ def vtk_map_continuous_data(
         include_all = False
 
     # get info on the data arrays
-    # use numpy intergration to convert to "numpy" vtk array
+    # use numpy integration to convert to "numpy" vtk array
     source_obj = dsa.WrapDataObject(source)
     target_obj = dsa.WrapDataObject(target)
 
@@ -1091,7 +1091,7 @@ def _broken_vtk_add_points(vtk_object: vtk.vtkUnstructuredGrid, points: np.array
 
 def _broken_vtk_add_triangle(vtk_object: vtk.vtkUnstructuredGrid, triangles):
     """Adds triangle to a vtk unstructured grid object. For now only add triangular
-    elemenets
+    elements
 
     Parameters
     ----------
@@ -1464,7 +1464,7 @@ def get_connected_regions(
 
     vtk_surface = create_vtk_surface_triangles(nodes, triangles)
 
-    # yse connectivity filter to extract all connected regions
+    # connectivity filter to extract all connected regions
     connectivity0 = vtk.vtkPolyDataConnectivityFilter()
     connectivity0.SetExtractionModeToAllRegions()
     connectivity0.SetColorRegions(1)

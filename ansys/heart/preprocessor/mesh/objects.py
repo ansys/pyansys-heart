@@ -358,7 +358,7 @@ class SurfaceMesh(Feature):
 
     @property
     def node_ids(self):
-        """Global node ids - sorted by earliest occurence"""
+        """Global node ids - sorted by earliest occurrence"""
         _, idx = np.unique(self.faces.flatten(), return_index=True)
         node_ids = self.faces.flatten()[np.sort(idx)]
         return node_ids

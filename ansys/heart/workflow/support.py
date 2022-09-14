@@ -1,6 +1,5 @@
 """This module provides some useful functions to support workflows
 """
-from msilib import add_tables
 import os
 import pathlib as Path
 
@@ -16,7 +15,7 @@ def run_preprocessor(
     path_to_model: Path = None,
     mesh_size: float = 2.0,
     add_blood_pool: bool = False,
-    clean_workdir: bool = True,    
+    clean_workdir: bool = True,
 ):
     """Runs the preprocessor with the given input arguments
 
@@ -63,7 +62,7 @@ def run_preprocessor(
         path_to_case=path_original_mesh,
         work_directory=work_directory,
         path_to_model=path_to_model,
-        add_blood_pool = add_blood_pool
+        add_blood_pool=add_blood_pool,
     )
 
     info.mesh_size = mesh_size

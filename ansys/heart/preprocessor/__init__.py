@@ -8,9 +8,14 @@ if os.name == "nt":
     }
 
 elif os.name == "posix":
-    assert False, "Posix not supported yet"
+    # assert False, "Posix not supported yet"
+    UserWarning("Warning: posix not supported yet")
+    pass
 
-if installed_versions:
+if os.name == "posix":
+    UserWarning("Skipping product installation checks")
+
+elif os.name == "nt" and installed_versions:
     # use latest installed version that is supported and has Spaceclaim and Fluent
     SC_EXE = ""
     FLUENT_EXE = ""

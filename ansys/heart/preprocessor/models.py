@@ -68,9 +68,6 @@ class ModelInfo:
         self.add_blood_pool: bool = add_blood_pool
         """Flag indicating whether to add blood to the cavities"""
 
-        if not os.path.isfile(self.path_to_original_mesh):
-            raise FileNotFoundError("%s not found" % self.path_to_original_mesh)
-
         pass
 
     def clean_workdir(

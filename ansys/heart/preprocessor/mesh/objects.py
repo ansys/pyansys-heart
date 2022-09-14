@@ -1,20 +1,18 @@
 """Module that contains classes relevant for the mesh.
 Such as a Mesh object, Part object, Features, etc
 """
-import typing
-from typing import List, Union
-import pathlib
-
-import numpy as np
-import meshio
 import copy
 import os
-
-import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-import ansys.heart.preprocessor.mesh.connectivity as connect
-import ansys.heart.preprocessor.mesh.geodisc as geodisc
+import pathlib
+import typing
+from typing import List, Union
 
 from ansys.heart.custom_logging import LOGGER
+import ansys.heart.preprocessor.mesh.connectivity as connect
+import ansys.heart.preprocessor.mesh.geodisc as geodisc
+import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
+import meshio
+import numpy as np
 
 
 class Mesh:

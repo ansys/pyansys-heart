@@ -1,6 +1,6 @@
 """Module contains system model class
 
-Valid models include: 
+Valid models include:
 1. Open loop constant pre-after load
 2. Open-loop 3-element Windkessel
 3. Closed loop

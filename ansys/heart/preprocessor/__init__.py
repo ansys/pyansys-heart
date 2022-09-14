@@ -8,17 +8,22 @@ if os.name == "nt":
     }
 
 elif os.name == "posix":
-    assert False, "Posix not supported yet"
+    # assert False, "Posix not supported yet"
+    UserWarning("Warning: posix not supported yet")
+    pass
 
-if installed_versions:
+if os.name == "posix":
+    UserWarning("Skipping product installation checks")
+
+elif os.name == "nt" and installed_versions:
     # use latest installed version that is supported and has Spaceclaim and Fluent
     SC_EXE = ""
     FLUENT_EXE = ""
     for installed_version, ansys_dir in sorted(installed_versions.items(), reverse=True):
         sc_exe = os.path.join(ansys_dir, "scdm", "SpaceClaim.exe")
-        fluent_exe = os.path.join(ansys_dir, "fluent", "ntbin", "win64", "fluent.exe")        
+        fluent_exe = os.path.join(ansys_dir, "fluent", "ntbin", "win64", "fluent.exe")
         if os.path.isfile(sc_exe) and os.path.isfile(fluent_exe):
-            SC_EXE     = sc_exe
+            SC_EXE = sc_exe
             FLUENT_EXE = fluent_exe
             break
 

@@ -1,20 +1,21 @@
 """Module containing classes for the various heart models which
 can be created with the preprocessor
 """
-# import json
-import warnings
-import pathlib
-from typing import List
+import json
 import os
-import numpy as np
-import pickle, json
 
-from ansys.heart.preprocessor.model_definitions import HEART_PARTS, LABELS_TO_ID
-from ansys.heart.preprocessor.mesh.objects import Part, Mesh, SurfaceMesh, Cap, Cavity, Point
-import ansys.heart.preprocessor.mesh.mesher as mesher
-import ansys.heart.preprocessor.mesh.connectivity as connectivity
+# import json
+import pathlib
+import pickle
+from typing import List
+
 from ansys.heart.custom_logging import LOGGER
+import ansys.heart.preprocessor.mesh.connectivity as connectivity
+import ansys.heart.preprocessor.mesh.mesher as mesher
+from ansys.heart.preprocessor.mesh.objects import Cap, Cavity, Mesh, Part, Point, SurfaceMesh
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
+from ansys.heart.preprocessor.model_definitions import HEART_PARTS, LABELS_TO_ID
+import numpy as np
 
 
 class ModelInfo:
@@ -30,9 +31,8 @@ class ModelInfo:
         valid_databases = ["Strocchi2020", "Cristobal2021"]
         if value not in valid_databases:
             raise ValueError(
-                "{0} not a valid database name. Please specify one of the following database names: {1}".format(
-                    value, valid_databases
-                )
+                "{0} not a valid database name. Please specify one of the"
+                " following database names: {1}".format(value, valid_databases)
             )
         self._database = value
 
@@ -44,6 +44,7 @@ class ModelInfo:
         path_to_simulation_mesh: pathlib.Path = None,
         path_to_model: pathlib.Path = None,
         mesh_size: float = 1.5,
+        add_blood_pool: bool = False,
     ) -> None:
 
         self.database = database
@@ -64,9 +65,8 @@ class ModelInfo:
         """Model (geometric) type"""
         self.mesh_size: float = mesh_size
         """Mesh size used for remeshing"""
-
-        if not os.path.isfile(self.path_to_original_mesh):
-            raise FileNotFoundError("%s not found" % self.path_to_original_mesh)
+        self.add_blood_pool: bool = add_blood_pool
+        """Flag indicating whether to add blood to the cavities"""
 
         pass
 
@@ -149,14 +149,17 @@ class HeartModel:
         self.info = info
         """Model meta information"""
         self.mesh = Mesh()
-        """Modified mesh"""
+        """Modified mesh of the tissue"""
         self.mesh_raw = Mesh()
         """Raw input mesh"""
+
+        self.fluid_mesh = Mesh()
+        """Generated fluid mesh"""
 
         self._add_subparts()
         """Adds any subparts"""
         self._add_labels_to_parts()
-        """Adds appropiate vtk labels to the parts"""
+        """Adds appropriate vtk labels to the parts"""
 
         if not self.info.mesh_size:
             self._set_default_mesh_size()
@@ -380,7 +383,7 @@ class HeartModel:
         return element_ids
 
     def _get_endo_epicardial_surfaces(self):
-        """get endo and epicardial surfaces
+        """get endo- and epicardial surfaces
 
         Note
         ----
@@ -476,7 +479,6 @@ class HeartModel:
                     [surface_to_copy_to.faces, orphan_surface.faces]
                 )
 
-
             else:
                 LOGGER.warning("Could not find suitable candidate surface - proceed with caution")
                 orphan_surface.write_to_stl(os.path.join(self.info.workdir, "orphan_surface.stl"))
@@ -486,8 +488,9 @@ class HeartModel:
                 if orphan_surface.faces.shape[0] < 5:
                     LOGGER.warning("Deleting orphan surface: consists of less than 5 faces")
                 else:
-                    warnings.warn(
-                        "Could not find suitable candidate surface to merge orphan faces into - proceed with caution"
+                    raise ValueError(
+                        "Could not find suitable candidate surface to merge "
+                        "orphan faces into - proceed with caution"
                     )
 
         self.mesh_raw.boundaries = self.mesh_raw.boundaries + surfaces_to_add
@@ -579,30 +582,65 @@ class HeartModel:
             LOGGER.warning("No mesh size set: setting to uniform size of 1.5 mm")
             self.info.mesh_size = 1.5
 
-        mesher.fluentmeshing(
+        mesher.mesh_heart_model_by_fluent(
             self.info.workdir,
             path_mesh_file,
             mesh_size=self.info.mesh_size,
-            journal_type="improved",
+            add_blood_pool=self.info.add_blood_pool,
             show_gui=True,
         )
-        path_mesh_file_vtk = path_mesh_file.replace(".msh.h5", ".vtk")
-        tetra, face_zones, nodes = mesher.hdf5.fluenthdf5_to_vtk(path_mesh_file, path_mesh_file_vtk)
 
-        # update mesh object
-        self.mesh.tetrahedrons = tetra
-        self.mesh.nodes = nodes
-        for face_zone_name, face_zone in face_zones.items():
-            self.mesh.boundaries.append(
-                SurfaceMesh(
-                    name=face_zone_name,
-                    faces=face_zone["faces"][
-                        :, [0, 2, 1]
-                    ],  # ensures normals pointing away from the volume mesh
-                    nodes=self.mesh.nodes,
-                    sid=face_zone["zone-id"],
-                )
+        fluent_mesh = mesher.hdf5.FluentMesh()
+        fluent_mesh.load_mesh(path_mesh_file)
+
+        tissue_cell_zone = next(cz for cz in fluent_mesh.cell_zones if "heart-tet-cells" in cz.name)
+        tetra_tissue = tissue_cell_zone.cells
+
+        # update mesh object of the tissue
+        self.mesh.tetrahedrons = tetra_tissue
+        self.mesh.nodes = fluent_mesh.nodes
+
+        # ensures normals pointing into the cavity
+        # NOTE: not sure what determines the ordering when adding the blood pool
+        # E.g. the normals of the endo AND epicardium are now pointing inwards with
+        # this switch deactivated when adding add blood pool
+        if self.info.add_blood_pool:
+            flip_face_order = False
+        else:
+            flip_face_order = True
+
+        for face_zone in fluent_mesh.face_zones:
+            # don't create surfaces for interior face zones
+            if "interior" in face_zone.name or face_zone.zone_type != 3:
+                continue
+
+            if flip_face_order:
+                faces = face_zone.faces[:, [0, 2, 1]]
+            else:
+                faces = face_zone.faces
+
+            face_zone_surface_mesh = SurfaceMesh(
+                name=face_zone.name,
+                faces=faces,
+                nodes=self.mesh.nodes,
+                sid=face_zone.id,
             )
+            # face_zone_surface_mesh.write_to_stl(
+            #     os.path.join(self.info.workdir, face_zone.name + ".stl")
+            # )
+            self.mesh.boundaries.append(face_zone_surface_mesh)
+
+        # update mesh object of the fluid
+        if self.info.add_blood_pool:
+            fluid_cell_zones = [
+                cz for cz in fluent_mesh.cell_zones if "heart-tet-cells" not in cz.name
+            ]
+            tetras_fluid = np.empty((0, 4))
+            for cell_zone in fluid_cell_zones:
+                tetras_fluid = np.vstack([tetras_fluid, cell_zone.cells])
+            self.fluid_mesh.tetrahedrons = tetras_fluid
+            self.fluid_mesh.nodes = fluent_mesh.nodes
+
         self._map_data_to_remeshed_volume()
 
         return
@@ -677,6 +715,53 @@ class HeartModel:
         # cleanup
         os.remove(filename_original)
         os.remove(filename_remeshed)
+        return
+
+    def _deprecated_add_volume_mesh_for_blood_pool(self):
+        """Adds a volume mesh for the (interior) blood pool
+
+        Notes
+        -----
+        Uses the (fluent) mesh of the tissue as reference, and generates
+        patches from the cap nodes
+        """
+        path_to_input_mesh = os.path.join(self.info.workdir, "fluent_volume_mesh.msh.h5")
+        path_to_output_mesh = path_to_input_mesh.replace(".msh.h5", "_with_interior.msh.h5")
+
+        caps = [c for p in self.parts for c in p.caps]
+
+        mesher._deprecated_mesh_cavity_interior_by_fluent(
+            path_to_input_mesh, path_to_output_mesh, caps, show_gui=True
+        )
+
+        path_mesh_file_vtk = path_to_output_mesh.replace(".msh.h5", ".vtk")
+
+        # read volume mesh input
+        mesh1 = mesher.hdf5.FluentMesh()
+        mesh1.load_mesh(path_to_input_mesh)
+
+        tetra_tissue1 = [cz.cells for cz in mesh1.cell_zones if "heart-tet-cells" in cz.name][0]
+        cell_zone_tissue1 = next(cz for cz in mesh1.cell_zones if "heart-tet-cells" in cz.name)
+
+        tetra_old, face_zones_old, nodes_old = mesher.hdf5._deprecated_fluenthdf5_to_vtk(
+            path_to_input_mesh, path_mesh_file_vtk
+        )
+
+        # read volume mesh output
+        mesh2 = mesher.hdf5.FluentMesh()
+        mesh2.load_mesh(path_to_output_mesh)
+
+        face_zones = mesh2.face_zones
+        tetra = mesh2.cells
+        nodes = mesh2.nodes
+
+        tetra_tissue2 = [cz.cells for cz in mesh2.cell_zones if "heart-tet-cells" in cz.name][0]
+        cell_zone_tissue2 = next(cz for cz in mesh2.cell_zones if "heart-tet-cells" in cz.name)
+
+        tetra, face_zones, nodes = mesher.hdf5._deprecated_fluenthdf5_to_vtk(
+            path_to_output_mesh, path_mesh_file_vtk
+        )
+
         return
 
     def _update_parts(self):
@@ -888,7 +973,8 @@ class HeartModel:
                             d2 = np.linalg.norm(cap_centroid - cap_normal - cavity_centroid)
                             if d1 > d2:
                                 LOGGER.debug(
-                                    "Flipping order of nodes on cap to ensure normal pointing inward"
+                                    "Flipping order of nodes on cap to ensure normal "
+                                    "pointing inward"
                                 )
                                 cap.node_ids = np.flip(cap.node_ids)
                                 cap.tesselate()

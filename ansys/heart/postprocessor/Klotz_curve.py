@@ -4,7 +4,7 @@ import numpy as np
 
 class EDPVR:
     """
-    ref: Klotz, Stefan, Marc L. Dickstein, and Daniel Burkhoff. Nature protocols 2.9 (2007): 2152-2158.
+    ref: Klotz, et al. Nature protocols 2.9 (2007): 2152-2158.
     """
 
     # human constant
@@ -20,17 +20,17 @@ class EDPVR:
 
         if self.pm <= 22:
             self.Beta = np.log10(self.pm / 30) / np.log10(self.vm / self.v30)
-            self.Alpha = 30 / self.v30 ** self.Beta
+            self.Alpha = 30 / self.v30**self.Beta
         else:
             v15 = 0.8 * (self.v30 - self.v0) + self.v0
             self.Beta = np.log10(self.pm / 15) / np.log10(self.vm / v15)
-            self.Alpha = self.pm / self.vm ** self.Beta
+            self.Alpha = self.pm / self.vm**self.Beta
 
     def get_constants(self):
         return self.Alpha, self.Beta
 
     def get_pressure(self, volume):
-        return self.Alpha * volume ** self.Beta
+        return self.Alpha * volume**self.Beta
 
     def get_volume(self, pressure):
         volume = np.zeros(pressure.shape)

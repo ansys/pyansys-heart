@@ -29,7 +29,7 @@ def get_error(coord0, coord1):
     return mean, max
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     fname = r"nodout"
     xm, x_end1 = read_binout(fname)
     from compute_volume import get_cavity_volume2

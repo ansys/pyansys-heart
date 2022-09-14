@@ -8,6 +8,8 @@ from conftest import create_directory, get_workdir
 import numpy as np
 import pytest
 
+pytest.skip(allow_module_level=True)
+
 
 def _get_test_model_info() -> models.ModelInfo:
     """Gets a test model info and populates it"""

@@ -87,7 +87,7 @@ class Simulator:
         return
 
     def get_stressfreenodes(workdir: str):
-        """_summary_
+        """get stres free nodes
 
         Parameters
         ----------

@@ -52,7 +52,6 @@ def add_nodes_to_kw(nodes: np.array, node_kw: keywords.Node, offset: int = 0) ->
     offset : int
         Node id offset
     """
-
     # get node id of last node:
     if not node_kw.nodes.empty and offset == 0:
         last_nid = node_kw.nodes.iloc[-1, 0]
@@ -93,7 +92,6 @@ def create_segment_set_keyword(
     keywords.SetSegment
         Formatted segment set keyword
     """
-
     if segments.shape[1] < 3 or segments.shape[1] > 4:
         raise ValueError("expecting segments to have 3 or 4 columns")
 
@@ -166,12 +164,12 @@ def create_node_set_keyword(
 def create_element_shell_keyword(
     shells: np.array, part_id: int = 1, id_offset: int = 0
 ) -> keywords.ElementShell:
-
     """Create element shell keyword.
 
     Note
     ----
     From a numpy array of elements. Each row corresponds to an element.
+
     """
     num_shells = shells.shape[0]
 
@@ -226,7 +224,6 @@ def create_element_solid_ortho_keyword(
     keywords.ElementSolidOrtho
         Formatted *ELEMENT_SOLID_ORTHO keyword
     """
-
     kw = keywords.ElementSolidOrtho()
 
     df = pd.DataFrame(columns=kw.elements)
@@ -436,7 +433,6 @@ def fast_element_writer(
     Use this as an alternative to the dynalib writer
 
     """
-
     # TODO: generalize this writer
 
     if element_kw.subkeyword == "SOLID":
@@ -514,7 +510,7 @@ def fast_element_writer(
 
 
 def example_performance():
-
+    """Test performance of regular vs. improved keyword writer."""
     import time as time
 
     from ansys.dyna import keywords

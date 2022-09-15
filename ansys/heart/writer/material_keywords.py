@@ -1,6 +1,5 @@
 """
-Use dynalib to create some commonly used material cards and their
-default values.
+Use dynalib to create some commonly used material cards and their default values.
 
 Note
 ----
@@ -54,6 +53,8 @@ class MaterialAtrium(custom_keywords.Mat077H):
 
 
 class MaterialHGOMyocardium(keywords.Mat295):
+    """HGO Material model - derived from Mat295."""
+
     def __init__(self, mid: int = 1, iso_user=None, anisotropy_user=None, active_user=None):
 
         # Default parameters

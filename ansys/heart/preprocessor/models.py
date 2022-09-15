@@ -1,7 +1,4 @@
-"""
-Module containing classes for the various heart models which
-can be created with the preprocessor.
-"""
+"""Module containing classes for the various heart models."""
 import json
 import os
 
@@ -322,7 +319,7 @@ class HeartModel:
 
     @staticmethod
     def load_model(filename: pathlib.Path):
-        """Static method to load a preprocessed model from file.
+        """Load a preprocessed model from file.
 
         Examples
         --------
@@ -517,7 +514,6 @@ class HeartModel:
         These surfaces are written in .stl format which can be imported in Fluent Meshing
 
         """
-
         # establish connectivity of the raw mesh
         self.mesh_raw.establish_connectivity()
         # mark interface pairs - and get all unique interface-pairs
@@ -648,7 +644,6 @@ class HeartModel:
 
     def _map_data_to_remeshed_volume(self):
         """Map the data from the original mesh to the remeshed mesh."""
-
         # get list of tag ids to keep for mapping
         mapper = self.info.labels_to_ids
         labels = [l for p in self.parts if p.tag_labels for l in p.tag_labels]
@@ -775,7 +770,6 @@ class HeartModel:
         5. Creates cavities
 
         """
-
         self._extract_septum()
         self._assign_elements_to_parts()
         self._assign_surfaces_to_parts()
@@ -893,7 +887,6 @@ class HeartModel:
 
     def _assign_surfaces_to_parts(self):
         """Assign surfaces generated during remeshing to model parts."""
-
         for part in self.parts:
             for surface in part.surfaces:
                 boundary_name = "-".join(surface.name.lower().split())
@@ -907,8 +900,7 @@ class HeartModel:
         return
 
     def _assign_caps_to_parts(self):
-        """Use connectivity to obtain cap boundaries and adds these to their respective parts"""
-
+        """Use connectivity to obtain cap boundaries and adds these to their respective parts."""
         used_boundary_surface_names = [s.name for p in self.parts for s in p.surfaces]
         remaining_surfaces = list(set(self.mesh.boundary_names) - set(used_boundary_surface_names))
         remaining_surfaces1: List[SurfaceMesh] = []
@@ -1027,7 +1019,6 @@ class HeartModel:
 
     def _assign_cavities_to_parts(self):
         """Create cavities based on endocardium surfaces and cap definitions."""
-
         # rename septum to right ventricle endocardium septum
         if isinstance(self, (BiVentricle, FourChamber, FullHeart)):
             part = self.get_part("Right ventricle", True)
@@ -1065,12 +1056,12 @@ class HeartModel:
 
 
 class LeftVentricle(HeartModel):
-    """Model of just the left ventricle"""
+    """Model of just the left ventricle."""
 
     def __init__(self, info: ModelInfo) -> None:
 
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
-        """Left ventricle part"""
+        """Left ventricle part."""
         # remove septum - not used in left ventricle only model
         del self.left_ventricle.septum
 
@@ -1079,37 +1070,37 @@ class LeftVentricle(HeartModel):
 
 
 class BiVentricle(HeartModel):
-    """Model of the left and right ventricle"""
+    """Model of the left and right ventricle."""
 
     def __init__(self, info: ModelInfo) -> None:
 
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
-        """Left ventricle part"""
+        """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
-        """Right ventricle part"""
+        """Right ventricle part."""
         self.septum: Part = Part(name="Septum", part_type="septum")
-        """Septum"""
+        """Septum."""
 
         super().__init__(info)
         pass
 
 
 class FourChamber(HeartModel):
-    """Model of the left/right ventricle and left/right atrium"""
+    """Model of the left/right ventricle and left/right atrium."""
 
     def __init__(self, info: ModelInfo) -> None:
 
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
-        """Left ventricle part"""
+        """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
-        """Right ventricle part"""
+        """Right ventricle part."""
         self.septum: Part = Part(name="Septum", part_type="septum")
-        """Septum"""
+        """Septum."""
 
         self.left_atrium: Part = Part(name="Left atrium", part_type="atrium")
-        """Left atrium part"""
+        """Left atrium part."""
         self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
-        """Right atrium part"""
+        """Right atrium part."""
 
         super().__init__(info)
 
@@ -1117,29 +1108,25 @@ class FourChamber(HeartModel):
 
 
 class FullHeart(HeartModel):
-    """
-    Model of the left/right ventricle,  left/right atrium, aorta
-    and pulmonary artery
-
-    """
+    """Model of both ventricles, both atria, aorta and pulmonary artery."""
 
     def __init__(self, info: ModelInfo) -> None:
 
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
-        """Left ventricle part"""
+        """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
-        """Right ventricle part"""
+        """Right ventricle part."""
         self.septum: Part = Part(name="Septum", part_type="septum")
-        """Septum"""
+        """Septum."""
         self.left_atrium: Part = Part(name="Left atrium", part_type="atrium")
-        """Left atrium part"""
+        """Left atrium part."""
         self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
-        """Right atrium part"""
+        """Right atrium part."""
 
         self.aorta: Part = Part(name="Aorta", part_type="artery")
-        """Aorta part"""
+        """Aorta part."""
         self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type="artery")
-        """Pulmonary artery part"""
+        """Pulmonary artery part."""
 
         super().__init__(info)
 

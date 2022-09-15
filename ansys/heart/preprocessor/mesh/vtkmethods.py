@@ -1,3 +1,4 @@
+"""Module contains methods for mesh operations related to the vtk library."""
 import copy
 import os
 from pathlib import Path
@@ -11,8 +12,6 @@ import vtk
 from vtk.numpy_interface import dataset_adapter as dsa  # type: ignore # noqa
 from vtk.util import numpy_support as VN  # type: ignore # noqa
 from vtk.util.numpy_support import numpy_to_vtk  # type: ignore # noqa
-
-"""Module contains methods for mesh operations related to the vtk library."""
 
 
 def read_ensight_file(path_to_ensight: str):
@@ -55,7 +54,6 @@ def read_vtk_polydata_file(path_to_vtk: str):
 
 def vtk_read_mesh_file(path_to_mesh: str) -> vtk.vtkUnstructuredGrid():
     """Read either ensight format or vtk format into vtk polydata."""
-
     mesh_extension = Path(path_to_mesh).suffix
 
     # reads .case (ensight):
@@ -72,7 +70,6 @@ def vtk_read_mesh_file(path_to_mesh: str) -> vtk.vtkUnstructuredGrid():
 
 def write_vtkdata_to_vtkfile(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData], fname: str):
     """Write a vtk unstructured grid object to vtk file."""
-
     writer = vtk.vtkDataSetWriter()
     writer.SetFileName(fname)
     writer.SetInputData(vtk_data)
@@ -96,7 +93,6 @@ def vtk_surface_to_stl(
     vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData], filename: str, solid_name: str = None
 ) -> None:
     """Write stl from vtk surface mesh (polydata)."""
-
     vtk_data_to_write = vtk_data
 
     if type(vtk_data) != type(vtk.vtkPolyData()):
@@ -126,11 +122,7 @@ def get_vtk_points(vtk_object: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData]):
 def get_tetra_info_from_unstructgrid(
     vtk_grid: vtk.vtkUnstructuredGrid, get_all_data: bool = True, deep_copy: bool = False
 ):
-    """
-    Get tetrahedron nodes, connectivity and cell/point data from
-    vtk poly data object. Returns as numpy arrays.
-    """
-
+    """Get tetrahedron nodes, connectivity and cell/point data."""
     LOGGER.debug("Extracting tetrahedron cell and point data...")
     # read nodes into numpy array
     nodes = VN.vtk_to_numpy(vtk_grid.GetPoints().GetData())
@@ -242,7 +234,7 @@ def threshold_vtk_data(
     epsilon: float = 1e-3,
     data_type: str = "CellData",
 ):
-    """Use the vtk thresholding filter to extract a part of the model
+    """Use the vtk thresholding filter to extract a part of the model.
 
     Parameters
     ----------
@@ -303,11 +295,7 @@ def threshold_vtk_data_integers(
     ints_for_thresholding: list,
     data_name: str,
 ):
-    """
-    Extract part of vtk object where a given cell data field
-    matches the requested list of integers.
-    """
-
+    """Threshold the vtk object using integers."""
     # find integer groups
     tag_diff = np.diff(ints_for_thresholding, prepend=ints_for_thresholding[0])
     slice_locs = np.where(tag_diff != 1)[0]
@@ -370,11 +358,7 @@ def get_surface_info(surface: vtk.vtkPolyData):
 
 
 def convert_vtk_into_tetra_only(path_to_vtkfile: str):
-    """
-    Extract tetrahedrons from the source vtk file
-    and overwrites the source file with just the tetrahedrons.
-    """
-
+    """Extract tetrahedrons from the source vtk file."""
     mesh = meshio.read(path_to_vtkfile)
     points = mesh.points
     elems = mesh.get_cells_type("tetra")
@@ -468,7 +452,6 @@ def get_info_from_vtk(vtk_grid: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid])
     ValueError
         _description_
     """
-
     vtk_obj = dsa.WrapDataObject(vtk_grid)
 
     num_cells = vtk_obj.GetNumberOfCells()
@@ -502,7 +485,11 @@ def vtk_map_discrete_cell_data(
     data_name: str,
 ):
     """
-    Map discrete values from a source to a target. Uses linear interpolation with
+    Map discrete values from a source to a target.
+
+    Note
+    ----
+    Uses linear interpolation with
     1 closest point. Note that this computes the centroids of the cells first, creates
     a new vtk poly data object as point cloud and uses that for interpolating the target
     cell data field.
@@ -514,7 +501,6 @@ def vtk_map_discrete_cell_data(
     vtk_object_target : Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]
         Target vtk object
     """
-
     source_points, source_tets, source_cdata, source_pdata = get_info_from_vtk(vtk_object_source)
     target_points, target_tets, target_cdata, target_pdata = get_info_from_vtk(vtk_object_target)
 
@@ -572,9 +558,12 @@ def vtk_map_continuous_data(
     normalize_vectors: bool = True,
     array_names_to_include: list = [],
 ):
-    """Map cell and point data from source to target by making use of
-    VoronoiKernel and mapping cell to point data - and consequently mapping
-    subsequent point data back to the cell.
+    """Map cell and point data from source to target.
+
+    Note
+    ----
+    Makes use of VoronoiKernel and mapping cell to point data
+    consequently point data is mapped back to the cell.
 
     Parameters
     ----------
@@ -717,7 +706,6 @@ def vtk_remove_arrays(
     except_array_names: List[str] = [],
 ):
     """Remove all or specific data arrays from vtk object."""
-
     if data_type not in ["cell_data", "point_data", "both"]:
         raise ValueError("Data type not valid")
 
@@ -954,8 +942,7 @@ def _obsolete_create_vtk_triangular_polydata(
 
 # -----------------------------------------------------
 def remove_duplicate_nodes(nodes: np.array, elements: np.array, tolerance: float = 1e-7):
-    """Find and removes duplicate nodes and remaps element
-    definition to match unique node matrix.
+    """Find and removes duplicate nodes and remaps element definitions.
 
     Parameters
     ----------
@@ -1014,7 +1001,6 @@ def find_duplicate_elements(elements_ref: np.array, elements: np.array) -> np.ar
 # def compute_volume_polydata( vtk_object: vtk.vtkPolyData ) -> float:
 def compute_volume_stl(stl_name: str) -> float:
     """Compute the volume of a vtk PolyData Object."""
-
     # this avoids having to write the stl first, but directly
     # computes the volume from the polydata
     reader = vtk.vtkSTLReader()  # noqa
@@ -1029,9 +1015,6 @@ def compute_volume_stl(stl_name: str) -> float:
     volume = mass_property.GetVolume()  # mm3
 
     return float(volume)
-
-
-#     return
 
 
 def _broken_vtk_add_cells(
@@ -1088,31 +1071,8 @@ def _broken_vtk_add_cells(
     return
 
 
-def _broken_vtk_add_points(vtk_object: vtk.vtkUnstructuredGrid, points: np.array):
-    """Add new points to the unstructured grid."""
-
-    return
-
-
-def _broken_vtk_add_triangle(vtk_object: vtk.vtkUnstructuredGrid, triangles):
-    """Add triangle to a vtk unstructured grid object.
-
-    Note
-    ----
-    For now only add triangular elements.
-
-    Parameters
-    ----------
-    vtk_object : vtk.vtkUnstructuredGrid
-        Vtk object to which to add the triangles
-    """
-
-    return
-
-
 def vtk_unstructured_grid_to_numpy(vtk_object: vtk.vtkUnstructuredGrid):
-
-    """[BROKEN] Extracts cells and points from an arbitrary unstructured grid.
+    """[BROKEN] Extract cells and points from an arbitrary unstructured grid.
 
     Parameters
     ----------
@@ -1128,7 +1088,6 @@ def vtk_unstructured_grid_to_numpy(vtk_object: vtk.vtkUnstructuredGrid):
     -----
     This is not supported yet
     """
-
     vtk_data = dsa.WrapDataObject(vtk_object)
 
     cells = vtk_data.Cells
@@ -1259,7 +1218,9 @@ def add_normals_to_polydata(vtk_polydata: vtk.vtkPolyData) -> vtk.vtkPolyData:
     ----
     https://python.hotexamples.com/site/file?hash=
     0x073485db2b84462230e3bdfe09eaf8ed123d2dc0c8c501190613e23367cbaed1&fullName=telluricpy-master
-    /telluricpy/polydata.py&project=grosenkj/telluricpy"""
+    /telluricpy/polydata.py&project=grosenkj/telluricpy
+
+    """
     # compute normals
     normal_filter = vtk.vtkPolyDataNormals()
     normal_filter.SetInputData(vtk_polydata)
@@ -1296,7 +1257,6 @@ def extrude_polydata(
     vtk.vtkPolyData
         Extruded vtkPolyData object
     """
-
     extrude_normal = False
     if len(extrude_direction) == 0:
         extrude_normal = True
@@ -1471,7 +1431,6 @@ def get_connected_regions(
     vtk.vtkPolyData
         VTK Object with region ids
     """
-
     vtk_surface = create_vtk_surface_triangles(nodes, triangles)
 
     # connectivity filter to extract all connected regions
@@ -1571,7 +1530,6 @@ def append_vtk_polydata_files(files: list, path_to_merged_vtk: str, substrings: 
     substrings : List[str], Optional
         Tags the cells using this list of substrings. Default []
     """
-
     from ansys.heart.preprocessor.mesh.vtkmethods import add_vtk_array
     import vtk
 

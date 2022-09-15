@@ -1,6 +1,8 @@
 """
 Module that contains classes relevant for the mesh.
+
 Such as a Mesh object, Part object, Features, etc.
+
 """
 import copy
 import os
@@ -118,7 +120,6 @@ class Mesh:
 
     def write_to_vtk(self, filename):
         """Write mesh to VTK file."""
-
         if self.cell_data != None:
             if not isinstance(self.cell_data, dict):
                 raise ValueError("Expecting cell data to be a dictionary")
@@ -156,7 +157,7 @@ class Mesh:
         return
 
     def establish_connectivity(self):
-        """Establishe the connetivity of the tetrahedrons."""
+        """Establish the connetivity of the tetrahedrons."""
         self.faces, self.conn["c0"], self.conn["c1"] = connect.face_tetra_connectivity(
             self.tetrahedrons
         )
@@ -372,7 +373,7 @@ class SurfaceMesh(Feature):
         return node_ids
 
     def compute_centroid(self) -> np.ndarray:
-        """Computes the centroid of the surface."""
+        """Compute the centroid of the surface."""
         return np.mean(self.nodes[np.unique(self.faces), :], axis=0)
 
     def compute_bounding_box(self) -> Union[np.ndarray, float]:
@@ -514,7 +515,7 @@ class Cavity(Feature):
         return self.volume
 
     def compute_centroid(self):
-        """Computes the centroid of the cavity."""
+        """Compute the centroid of the cavity."""
         self.centroid = np.mean(self.surface.nodes[np.unique(self.surface.faces), :], axis=0)
         return self.centroid
 
@@ -576,6 +577,7 @@ class Part:
 
     @property
     def surfaces(self) -> List[SurfaceMesh]:
+        """List of surfaces belonging to part."""
         surfaces = []
         for key, value in self.__dict__.items():
             if isinstance(value, SurfaceMesh):
@@ -584,6 +586,7 @@ class Part:
 
     @property
     def surface_names(self) -> List[str]:
+        """List of surface names belonging to part."""
         surface_names = []
         for key, value in self.__dict__.items():
             if isinstance(value, SurfaceMesh):
@@ -618,7 +621,6 @@ class Part:
 
     def _add_surfaces(self):
         """Add surfaces to the part."""
-
         if self.part_type in ["ventricle", "atrium"]:
             self.endocardium = SurfaceMesh("{0} endocardium".format(self.name))
             """Endocardium."""

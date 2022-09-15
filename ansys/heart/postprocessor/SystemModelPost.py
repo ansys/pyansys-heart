@@ -1,3 +1,4 @@
+"""Methods and classes for postprocessing system model data."""
 import os
 
 import matplotlib.pyplot as plt
@@ -7,8 +8,10 @@ from scipy.interpolate import interp1d
 
 
 class IcvOut:
+    """ICVOut class."""
+
     def __init__(self, fn):
-        """read LSDYNA output parameters."""
+        """Read LSDYNA output parameters."""
         # get data fields
         try:
             from qd.cae.dyna import Binout
@@ -38,6 +41,8 @@ class IcvOut:
 
 
 class SystemModelPost:
+    """Class for post-processing system model."""
+
     def __init__(self, dir, p_ed, v_ed, closed_loop=False):
         self.dir = dir
         self.p_ed = p_ed
@@ -67,12 +72,7 @@ class SystemModelPost:
         self._load_csv()
 
     def _load_csv(self):
-        """
-        load system states written from define function.
-        Returns
-        -------
-
-        """
+        """Load system states written from define function."""
         try:
             self.lv = pd.read_csv(
                 os.path.join(self.dir, "constant_preload_windkessel_afterload_left.csv")
@@ -104,12 +104,7 @@ class SystemModelPost:
                     self.rv[name] /= 1000
 
     def compute_ejection_ratio(self):
-        """
-        Compute ejection ratio of last loop.
-        Returns
-        -------
-
-        """
+        """Compute ejection ratio of last loop."""
         # get PV of last loop
         _, volume = self.get_PV(self.bin.time[-1] - self.cycle_duration)
 
@@ -119,15 +114,12 @@ class SystemModelPost:
         return
 
     def get_PV(self, t_start=0, t_end=1000):
-        """
-        get Pressure & volume.
+        """Get Pressure & volume.
+
         Parameters
         ----------
         t_end
         t_start
-
-        Returns
-        -------
 
         """
         i_start = np.where(self.bin.time >= t_start)[0][0]
@@ -141,15 +133,12 @@ class SystemModelPost:
         return pressure, volume
 
     def plot_PV(self, ignore_filling=True, last_loop=False):
-        """
-        plot PV loop.
+        """Plot PV loop.
+
         Parameters
         ----------
         ignore_filling
         last_loop
-
-        Returns
-        -------
 
         """
         t_s = 0
@@ -184,19 +173,15 @@ class SystemModelPost:
         return fig
 
     def plot_pressure_flow_volume(self, cavity, ignore_filling=True, last_loop=False):
-        """
-        Plot curves.
+        """Plot curves.
+
         Parameters
         ----------
         cavity
         ignore_filling
         last_loop
 
-        Returns
-        -------
-
         """
-
         fig, axis = plt.subplots(3, figsize=(8, 4), sharex=True)
 
         if cavity == "lv":
@@ -270,12 +255,7 @@ class SystemModelPost:
         return fig
 
     def check_prefilling(self, cavity, offset=0.0):
-        """
-        used to check prefilling process.
-        Returns
-        -------
-
-        """
+        """Check prefilling process."""
         fig, axis = plt.subplots(3, figsize=(8, 4), sharex=True)
 
         if cavity == "lv":
@@ -312,12 +292,7 @@ class SystemModelPost:
         return fig
 
     def check_output(self, cavity="lv"):
-        """
-        Check system states == FEM states.
-        Returns
-        -------
-
-        """
+        """Check system states == FEM states."""
         fig, axis = plt.subplots(2, figsize=(8, 4))
 
         if cavity == "lv":
@@ -355,14 +330,11 @@ class SystemModelPost:
         return fig
 
     def check_total_volume(self, plot_all=False):
-        """
-        For a closed loop, check if total volume is constant.
+        """Check if total volume is constant for a closed loop.
+
         Parameters
         ----------
         plot_all
-
-        Returns
-        -------
 
         """
         if not self.closed_loop:

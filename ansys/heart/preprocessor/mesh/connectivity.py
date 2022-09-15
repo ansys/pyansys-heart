@@ -60,7 +60,6 @@ def tetra_to_faces(tetra):
 
 def face_tetra_connectivity(tetra: np.array):
     """Compute the tetra-face connectivity tables."""
-
     import time as time
 
     LOGGER.debug("Establishing tetra-face connectivity...")
@@ -165,7 +164,6 @@ def get_face_type(faces: np.array, face_cell_connectivity: np.array) -> np.array
     np.array
         Type of face. Either interior (face_type = 1) or boundary (face_type = 2)
     """
-
     interior_face_ids = face_cell_connectivity[:, 0] != face_cell_connectivity[:, 1]
     boundary_face_ids = face_cell_connectivity[:, 0] == face_cell_connectivity[:, 1]
     face_types = np.zeros((faces.shape[0]), dtype=int)
@@ -192,7 +190,6 @@ def get_edges_from_triangles(triangles: np.array) -> np.array:
 
 def get_free_edges(triangles: np.array, return_free_triangles: bool = False) -> np.array:
     """Get the boundary edges that are only referenced once."""
-
     edges = get_edges_from_triangles(triangles)
 
     edges_sort = np.sort(edges, axis=1)

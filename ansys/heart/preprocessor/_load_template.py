@@ -14,10 +14,12 @@ _environment = None
 
 
 def get_this_folder():
+    """Get folder of this file."""
     return Path(__file__).parent
 
 
 def get_loader():
+    """Get the loader."""
     template_folder = get_this_folder() / "templates"
     return jinja2.FileSystemLoader(str(template_folder.resolve()))
 

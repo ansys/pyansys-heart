@@ -20,9 +20,13 @@ import ansys.heart.writer.dynawriter as writers
 
 class Simulator:
     """perform pre-simulation steps prior to final simulation, steps include fiber generation,
-     zeo-pressure geometry and purkinje network generation"""
+    zeo-pressure geometry and purkinje network generation"""
 
-    def __init__(self, model: HeartModel, lsdynapath: str = "",) -> None:
+    def __init__(
+        self,
+        model: HeartModel,
+        lsdynapath: str = "",
+    ) -> None:
 
         """Initializes Simulator by loading a HeartModel
 

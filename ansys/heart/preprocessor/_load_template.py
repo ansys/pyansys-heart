@@ -23,9 +23,7 @@ def get_loader():
 
 
 def _jinja_environment():
-    """
-    Returns a shared Jinja environment to create templates from.
-    """
+    """Return a shared Jinja environment to create templates from."""
     global _environment
     if _environment is None:
         _environment = jinja2.Environment(
@@ -43,7 +41,7 @@ def _jinja_environment():
 
 def load_template(*name):
     """
-    Loads a template from the local template directory.
+    Load a template from the local template directory.
 
     Templates can be specified as a single filename, e.g.
     ``load_template('temp.txt')``, or loaded from subdirectories using e.g.

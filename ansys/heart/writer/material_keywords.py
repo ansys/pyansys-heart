@@ -1,9 +1,14 @@
-"""This uses dynalib to create some commonly used material cards and their
-default values. Uses inheritance.
+"""
+Use dynalib to create some commonly used material cards and their
+default values.
+
+Note
+----
 E.g.:
 Mat295
 Mat077
 MatNull
+
 """
 from ansys.dyna.keywords import keywords
 from ansys.heart.custom_logging import LOGGER
@@ -15,7 +20,7 @@ import pandas as pd
 
 
 class MaterialCap(keywords.MatNull):
-    """Material of the closing cap/valves
+    """Material of the closing cap/valves.
 
     Parameters
     ----------
@@ -28,7 +33,7 @@ class MaterialCap(keywords.MatNull):
 
 
 class MaterialAtrium(custom_keywords.Mat077H):
-    """Material for the atrium
+    """Material for the atrium.
 
     Parameters
     ----------
@@ -114,7 +119,7 @@ def active_curve(
     endtime: float = 15,
     timestep: float = 1e-2,
 ):
-    """Computes various (normalized) curves used for the active module
+    """Compute various (normalized) curves used for the active module.
 
     Parameters
     ----------

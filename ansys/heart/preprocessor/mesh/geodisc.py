@@ -8,7 +8,7 @@ from vtk.numpy_interface import dataset_adapter as dsa  # type: ignore
 
 
 def get_closed_path(start_indices: Union[np.array, list], surface: vtk.vtkPolyData) -> np.array:
-    """Gets closed geodesic path on a surface from a list of start indices"""
+    """Get closed geodesic path on a surface from a list of start indices."""
     surf = dsa.WrapDataObject(surface)
 
     end_indices = np.append(start_indices[1:], start_indices[0])
@@ -29,7 +29,7 @@ def get_closed_path(start_indices: Union[np.array, list], surface: vtk.vtkPolyDa
 
 
 def vtk_geodesic(input: vtk.vtkPolyData, start_idx: int, end_idx: int):
-    """Computes the geodesic path between two vertices on a vtkPolyData surface
+    """Compute the geodesic path between two vertices on a vtkPolyData surface
 
     Parameters
     ----------
@@ -61,9 +61,7 @@ def vtk_geodesic(input: vtk.vtkPolyData, start_idx: int, end_idx: int):
 
 
 def order_nodes_edgeloop(node_indices: np.array, node_coords: np.array) -> np.array:
-    """This orders the node indices such that the ordered
-    set of nodes forms a closed/continuous loop. This uses the closest
-    point as next point in the edge loop
+    """Order node indices to form closed/continuous loop.
 
     Parameters
     ----------
@@ -107,8 +105,7 @@ def order_nodes_edgeloop(node_indices: np.array, node_coords: np.array) -> np.ar
 
 
 def sort_edgeloop_anti_clockwise(points_to_sort: np.array, reference_point: np.array) -> bool:
-    """Sorts the points that form a edgeloop in anti-clockwise
-    direction seen from the reference point.
+    """Sort the points of an edge-loop in anti-clockwise direction.
 
     Parameters
     ----------
@@ -147,7 +144,10 @@ def sort_edgeloop_anti_clockwise(points_to_sort: np.array, reference_point: np.a
 
 def rodrigues_rot(P, n0, n1):
     """
-    RODRIGUES ROTATION
+    RODRIGUES ROTATION.
+
+    Note
+    ----
     - Rotate given points based on a starting and ending vector
     - Axis k and angle of rotation theta given by vectors n0,n1
     P_rot = P*cos(theta) + (k x P)*sin(theta) + k*<k,P>*(1-cos(theta))
@@ -180,9 +180,7 @@ def rodrigues_rot(P, n0, n1):
 
 
 def carttopolar(x, y, x0=0, y0=0):
-    """
-    cartisian to polar coordinate system with origin shift to x0,y0
-    """
+    """Cartisian to polar coordinate system with origin shift to x0,y0."""
     x1 = x - x0
     y1 = y - y0
     r = np.sqrt(x1**2 + y1**2)
@@ -193,9 +191,7 @@ def carttopolar(x, y, x0=0, y0=0):
 
 
 def sort_aniclkwise(xy_list, x0=None, y0=None):
-    """
-    Sort points anti clockwise with x0 y0 as origin
-    """
+    """Sort points anti clockwise with x0 y0 as origin."""
     if x0 is None and y0 is None:
         (x0, y0) = np.mean(xy_list, axis=0).tolist()
     elif x0 is None:
@@ -221,11 +217,12 @@ def sort_aniclkwise(xy_list, x0=None, y0=None):
 
 
 def project_3d_points(p_set):
-    """
-    ref:
+    """Project points on representative plane.
+
+    Note
+    ----
+    Uses SVD to find representative plane:
     https://meshlogic.github.io/posts/jupyter/curve-fitting/fitting-a-circle-to-cluster-of-3d-points/
-    :param p_set:
-    :return:
     """
     # -------------------------------------------------------------------------------
     # (1) Fitting plane by SVD for the mean-centered data

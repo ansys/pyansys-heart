@@ -1,4 +1,6 @@
-"""This module provides some useful functions to support workflows
+"""
+This module provides some useful functions to support workflows.
+
 """
 import os
 import pathlib as Path
@@ -17,7 +19,7 @@ def run_preprocessor(
     add_blood_pool: bool = False,
     clean_workdir: bool = True,
 ):
-    """Runs the preprocessor with the given input arguments
+    """Run the preprocessor with the given input arguments.
 
     Parameters
     ----------

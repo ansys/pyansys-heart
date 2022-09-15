@@ -1,6 +1,8 @@
-"""Auto downloads cases from the remote repositories of Strocchi et al 2020,
-and Cristobal et al 2021
 """
+Auto downloads cases from the remote repositories of Strocchi et al 2020,
+and Cristobal et al 2021.
+"""
+
 import os
 from pathlib import Path, PurePath
 
@@ -36,7 +38,7 @@ def download_cases():
 
 
 def unzip_cases():
-    """Un-tars the downloaded cases"""
+    """Un-tars the downloaded cases."""
     import glob as glob
     import tarfile
 

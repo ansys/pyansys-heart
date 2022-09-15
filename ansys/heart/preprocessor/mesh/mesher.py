@@ -14,7 +14,7 @@ import numpy as np
 
 _template_directory = os.path.join(pathlib.Path(__file__).parents[1], "templates")
 
-"""Module contains methods for interaction with Fluent meshing """
+"""Module contains methods for interaction with Fluent meshing."""
 
 
 def mesh_heart_model_by_fluent(
@@ -24,8 +24,8 @@ def mesh_heart_model_by_fluent(
     add_blood_pool: bool = False,
     show_gui: bool = False,
 ):
-    """Uses Fluent meshing to wrap the surface and create tetrahedral mesh.
-    Optionally extracts the blood pool"""
+    """Use Fluent meshing to wrap the surface and create tetrahedral mesh.
+    Optionally extracts the blood pool."""
 
     # change directory to directory of stl file
     old_directory = os.getcwd()
@@ -83,7 +83,7 @@ def _deprecated_mesh_tissue_by_fluent(
     journal_type: str = "improved",
     show_gui: bool = False,
 ):
-    """Uses Fluent meshing to wrap the surface and create tetrahedral mesh"""
+    """Use Fluent meshing to wrap the surface and create tetrahedral mesh."""
 
     if journal_type not in ["improved"]:
         raise ValueError("Journal type %s not found " % journal_type)
@@ -133,7 +133,7 @@ def _deprecated_mesh_cavity_interior_by_fluent(
     mesh_size: float = 2.0,
     show_gui: bool = False,
 ):
-    """Meshes the interior of each cavity"""
+    """Mesh the interior of each cavity."""
     old_directory = os.getcwd()
     working_directory = os.path.dirname(path_to_input_mesh)
     os.chdir(working_directory)
@@ -184,8 +184,8 @@ def _deprecated_mesh_by_fluentmeshing(
     journal_type: str = "original",
     show_gui: bool = False,
 ):
-    """Uses Fluent meshing to wrap the surface and create
-    tetrahedral mesh"""
+    """Use Fluent meshing to wrap the surface and create
+    tetrahedral mesh."""
 
     if journal_type not in ["original", "simplified_geometry"]:
         raise ValueError("Journal type %s not found " % journal_type)
@@ -237,8 +237,8 @@ def _deprecated_mesh_by_fluentmeshing(
 
 
 def _shrink_by_spaceclaim(input, output):
-    """Uses SpaceClaim shrinkwrapping to wrap surface and
-    create high quality surface mesh"""
+    """Use SpaceClaim shrinkwrapping to wrap surface and
+    create high quality surface mesh."""
 
     var_for_template = {
         "input": input,
@@ -259,8 +259,8 @@ def _shrink_by_spaceclaim(input, output):
 
 
 def _run_gmsh(infile: str, outfile: str, mesh_size):
-    """Runs GMESH with specified in/output file
-    and target mesh size
+    """Run GMESH with specified in/output file and target mesh size.
+
 
     Args:
         infile (str): Path to .stl input file

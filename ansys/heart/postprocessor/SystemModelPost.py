@@ -8,12 +8,7 @@ from scipy.interpolate import interp1d
 
 class IcvOut:
     def __init__(self, fn):
-        """
-        read LSDYNA output
-        Parameters
-        ----------
-        fn
-        """
+        """read LSDYNA output parameters."""
         # get data fields
         try:
             from qd.cae.dyna import Binout
@@ -73,7 +68,7 @@ class SystemModelPost:
 
     def _load_csv(self):
         """
-        load system states written from define function
+        load system states written from define function.
         Returns
         -------
 
@@ -110,7 +105,7 @@ class SystemModelPost:
 
     def compute_ejection_ratio(self):
         """
-        Compute ejection ratio of last loop
+        Compute ejection ratio of last loop.
         Returns
         -------
 
@@ -125,7 +120,7 @@ class SystemModelPost:
 
     def get_PV(self, t_start=0, t_end=1000):
         """
-        get Pressure & volume
+        get Pressure & volume.
         Parameters
         ----------
         t_end
@@ -147,7 +142,7 @@ class SystemModelPost:
 
     def plot_PV(self, ignore_filling=True, last_loop=False):
         """
-        plot PV loop
+        plot PV loop.
         Parameters
         ----------
         ignore_filling
@@ -190,7 +185,7 @@ class SystemModelPost:
 
     def plot_pressure_flow_volume(self, cavity, ignore_filling=True, last_loop=False):
         """
-        Plot curves
+        Plot curves.
         Parameters
         ----------
         cavity
@@ -276,7 +271,7 @@ class SystemModelPost:
 
     def check_prefilling(self, cavity, offset=0.0):
         """
-        used to check prefilling process
+        used to check prefilling process.
         Returns
         -------
 
@@ -318,7 +313,7 @@ class SystemModelPost:
 
     def check_output(self, cavity="lv"):
         """
-        Check system states == FEM states
+        Check system states == FEM states.
         Returns
         -------
 
@@ -361,7 +356,7 @@ class SystemModelPost:
 
     def check_total_volume(self, plot_all=False):
         """
-        For a closed loop, check if total volume is constant
+        For a closed loop, check if total volume is constant.
         Parameters
         ----------
         plot_all

@@ -1,3 +1,4 @@
+"""Module containing functions to read/write fluent meshes in HDF5 format."""
 import time
 from typing import List, Optional
 
@@ -6,39 +7,41 @@ import h5py
 import meshio
 import numpy as np
 
-"""Module containing functions to read/write fluent meshes in HDF5 format
-"""
-
 
 class FluentCellZone:
-    """Class that stores information of the cell zone"""
+    """Class that stores information of the cell zone."""
 
     def __init__(
         self, min_id: int = None, max_id: int = None, name: str = None, cid: int = None
     ) -> None:
 
         self.min_id: int = min_id
-        """Min cell id of the cell zone: indexing starts at 0"""
+        """Min cell id of the cell zone: indexing starts at 0."""
         self.max_id: int = max_id
-        """Max cell id of the cell zone: indexing starts at 0"""
+        """Max cell id of the cell zone: indexing starts at 0."""
         self.name: str = name
-        """Name of the cell zone"""
+        """Name of the cell zone."""
         self.id: int = cid
-        """Id of the cell zone"""
+        """Id of the cell zone."""
         self.cells: np.ndarray = None
-        """Array of cells for this cell zone"""
+        """Array of cells for this cell zone."""
 
         return
 
     def get_cells(self, all_cells: np.ndarray) -> None:
-        """Selects the cells between min and max id from the list
-        of all cells"""
+        """Select the cells between min and max id.
+
+        Note
+        ----
+        Requires list of all cells.
+
+        """
         self.cells = all_cells[self.min_id : self.max_id]
         return
 
 
 class FluentFaceZone:
-    """Class that stores information of the face zone"""
+    """Class that stores information of the face zone."""
 
     def __init__(
         self,
@@ -53,56 +56,56 @@ class FluentFaceZone:
     ) -> None:
 
         self.min_id: int = min_id
-        """Min face id of the face zone: indexing starts at 0"""
+        """Min face id of the face zone: indexing starts at 0."""
         self.max_id: int = max_id
-        """Max face id of the face zone: indexing starts at 0"""
+        """Max face id of the face zone: indexing starts at 0."""
         self.name: str = name
-        """Name of the face zone"""
+        """Name of the face zone."""
         self.id: int = zone_id
-        """Id of the face zone"""
+        """Id of the face zone."""
         self.zone_type: str = zone_type
-        """Type of face zone"""
+        """Type of face zone."""
         self.faces: np.ndarray = faces
-        """Array of faces for this face zone"""
+        """Array of faces for this face zone."""
         self.c0c1: np.ndarray = c0c1
-        """Array that stores connected cell-ids"""
+        """Array that stores connected cell-ids."""
         self.hdf5_id = hdf5_id
-        """Id of face zone in hdf5 file"""
+        """Id of face zone in hdf5 file."""
 
         return
 
 
 class FluentMesh:
-    """Class that stores the Fluent mesh"""
+    """Class that stores the Fluent mesh."""
 
     @property
     def cell_zone_names(self):
-        """List of cell zone names of non-empty cell zones"""
+        """List of cell zone names of non-empty cell zones."""
         return [cz.name for cz in self.cell_zones if cz != None]
 
     def __init__(self, filename: str = None) -> None:
 
         self.filename: str = filename
-        """Path to file"""
+        """Path to file."""
         self.fid: h5py.File = None
-        """File id to h5py file"""
+        """File id to h5py file."""
         self.nodes: np.ndarray = None
-        """All nodes of the mesh"""
+        """All nodes of the mesh."""
         self.faces: np.ndarray = None
-        """All faces"""
+        """All faces."""
         self.cells: np.ndarray = None
-        """All cells"""
+        """All cells."""
         self.cell_ids: np.ndarray = None
-        """Array of cell ids use to define the cell zones"""
+        """Array of cell ids use to define the cell zones."""
         self.cell_zones: List[FluentCellZone] = None
-        """List of cell zones"""
+        """List of cell zones."""
         self.face_zones: List[FluentFaceZone] = None
-        """List of face zones"""
+        """List of face zones."""
 
         pass
 
     def load_mesh(self, filename: str = None, reconstruct_tetrahedrons: bool = True):
-        """Loads the mesh from the hdf5 file"""
+        """Load the mesh from the hdf5 file."""
         if not filename and not self.filename:
             raise FileNotFoundError("Please specify a file to read")
 
@@ -128,7 +131,7 @@ class FluentMesh:
         return
 
     def _update_indexing(self):
-        """Updates the indexing of all cells and faces: index should start from 0"""
+        """Update the indexing of all cells and faces: index should start from 0."""
         for cell_zone in self.cell_zones:
             cell_zone.cells = cell_zone.cells - 1
         for face_zone in self.face_zones:
@@ -136,7 +139,7 @@ class FluentMesh:
         return
 
     def _set_cells_in_cell_zones(self):
-        """Iterates over the cell zones and assigns cells to them"""
+        """Iterate over the cell zones and assigns cells to them."""
         for cell_zone in self.cell_zones:
             zone_cell_ids = np.arange(cell_zone.min_id, cell_zone.max_id, 1)
             mask = np.isin(self.cell_ids, zone_cell_ids)
@@ -145,7 +148,7 @@ class FluentMesh:
         return self.cell_zones
 
     def _open_file(self, filename: str = None):
-        """Opens the file for reading"""
+        """Open the file for reading."""
         if not filename:
             raise ValueError("Please specify input file")
 
@@ -156,18 +159,17 @@ class FluentMesh:
         return self.fid
 
     def _close_file(self):
-        """Closes file"""
+        """Close file."""
         self.fid.close()
 
     def _read_nodes(self):
-        """Reads the node field(s)"""
+        """Read the node field(s)."""
         self.nodes = np.zeros((0, 3), dtype=float)
         for ii in np.array(self.fid["meshes/1/nodes/coords"]):
             self.nodes = np.vstack([self.nodes, np.array(self.fid["meshes/1/nodes/coords/" + ii])])
 
     def _read_cell_zone_info(self) -> List[FluentCellZone]:
-        """Initializes the list of cell zones"""
-
+        """Initialize the list of cell zones."""
         cell_zone_names = (
             np.chararray.tobytes(np.array(self.fid["meshes/1/cells/zoneTopology/name"]))
             .decode()
@@ -192,8 +194,7 @@ class FluentMesh:
         return cell_zones
 
     def _read_face_zone_info(self) -> List[FluentFaceZone]:
-        """Initializes the list of face zones"""
-
+        """Initialize the list of face zones."""
         ids = np.array(self.fid["meshes/1/faces/zoneTopology/id"], dtype=int)
         max_ids = np.array(self.fid["meshes/1/faces/zoneTopology/maxId"], dtype=int)
         min_ids = np.array(self.fid["meshes/1/faces/zoneTopology/minId"], dtype=int)
@@ -221,8 +222,7 @@ class FluentMesh:
         return face_zones
 
     def _read_all_faces_of_face_zones(self):
-        """Reads the faces of the face zone"""
-
+        """Read the faces of the face zone."""
         for face_zone in self.face_zones:
             subdir = "meshes/1/faces/nodes/" + str(face_zone.hdf5_id) + "/nodes"
             subdir2 = "meshes/1/faces/nodes/" + str(face_zone.hdf5_id) + "/nnodes"
@@ -237,8 +237,7 @@ class FluentMesh:
         return self.face_zones
 
     def _read_c0c1_of_face_zones(self):
-        """Reads the cell connectivity of the face zone. Only do for interior cells"""
-
+        """Read the cell connectivity of the face zone. Only do for interior cells."""
         for face_zone in self.face_zones:
             # if face_zone.zone_type != 2 or "interior" not in face_zone.name:
             #     continue
@@ -253,21 +252,19 @@ class FluentMesh:
         return self.face_zones
 
     def _convert_interior_faces_to_tetrahedrons(self):
-        """Uses c0c1 matrix to get tetrahedrons
+        """Use c0c1 matrix to get tetrahedrons.
 
         Notes
         -----
-
         f1: n1 n2 n3 c0 c1
         f2: n3 n1 n4 c0 c1
 
         If f1 and f2 are connected to same face - extract node not occurring in
         f1. The resulting four nodes will make up the tetrahedron
 
-        Do this for all interior faces
+        Do this for all interior faces.
 
         """
-
         self.cells = np.zeros((0, 4), dtype=int)
         self.cell_ids = np.zeros(0, dtype=int)
 
@@ -316,11 +313,10 @@ class FluentMesh:
         return tetrahedrons, cell_ids
 
     def _convert_interior_faces_to_tetrahedrons2(self):
-        """Uses c0c1 matrix to get tetrahedrons
+        """Use c0c1 matrix to get tetrahedrons.
 
         Notes
         -----
-
         f1: n1 n2 n3 c0 c1
         f2: n3 n1 n4 c0 c1
 
@@ -330,7 +326,6 @@ class FluentMesh:
         Do this for all faces.
 
         """
-
         self.cells = np.zeros((0, 4), dtype=int)
         self.cell_ids = np.zeros(0, dtype=int)
 
@@ -375,7 +370,7 @@ class FluentMesh:
 
 
 def _deprecated_fluenthdf5_to_vtk(hdf5_filename: str, vtk_filename: str):
-    """Converts Fluent hdf5 to vtk format
+    """Convert Fluent hdf5 to vtk format.
 
     Parameters
     ----------
@@ -455,7 +450,7 @@ def _deprecated_fluenthdf5_to_vtk(hdf5_filename: str, vtk_filename: str):
 
 
 def _deprecated_get_mesh_group(fid: h5py.File) -> h5py.Group:
-    """Gets mesh group from hdf5 file handle"""
+    """Get mesh group from hdf5 file handle."""
     keys = list(fid.keys())
     if keys[0] != "meshes":
         raise KeyError("No 'meshes' field found")
@@ -463,7 +458,7 @@ def _deprecated_get_mesh_group(fid: h5py.File) -> h5py.Group:
 
 
 def _deprecated_get_face_group(group: h5py.Group) -> h5py.Group:
-    """Gets face zone group"""
+    """Get face zone group."""
 
     def find_faces(name):
         if "faces" in name:
@@ -474,7 +469,7 @@ def _deprecated_get_face_group(group: h5py.Group) -> h5py.Group:
 
 
 def _deprecated_get_face_zone_info(face_group: h5py.Group) -> List:
-    """Gets list of face zone names"""
+    """Get list of face zone names."""
     # get face zone ids
     face_zone_ids = np.array(face_group["zoneTopology/id"])
     # get face zones
@@ -487,8 +482,7 @@ def _deprecated_get_face_zone_info(face_group: h5py.Group) -> List:
 
 
 def _deprecated_get_nodes_from_mesh_group(mesh_group: h5py.Group):
-    """Gets nodes from the mesh group"""
-
+    """Get nodes from the mesh group."""
     nodes = np.empty((0, 3), dtype=float)
     for key in mesh_group["nodes/coords"].keys():
         node_group = np.array(mesh_group["nodes/coords/" + key])
@@ -504,7 +498,7 @@ def _deprecated_face_group_to_face_zones(
     get_all_zones: bool = False,
     get_interior: Optional[bool] = False,
 ) -> dict:
-    """extracts face zones from face group object
+    """Extract face zones from face group object.
 
     Parameters
     ----------
@@ -522,7 +516,6 @@ def _deprecated_face_group_to_face_zones(
     dict
         dictionary with all face zone definitions
     """
-
     # get face definitions of all face zones
     faces_all = np.empty((0, 3))
     faces_zoneid = np.empty((0, 0), dtype=int)
@@ -562,7 +555,7 @@ def _deprecated_face_group_to_face_zones(
 def _deprecated_face_group_to_tetrahedrons(
     face_group: h5py.Group, face_zone_names: List[str]
 ) -> np.array:
-    """ "Converts Fluent's face connectivity matrix to tetrahedron elements.
+    """Convert Fluent's face connectivity matrix to tetrahedron elements.
 
     Notes
     -----
@@ -599,7 +592,6 @@ def _deprecated_face_group_to_tetrahedrons(
     Exception
         Non-triangular faces detected
     """
-
     # get face definitions of all face zones
     faces_all = np.empty((0, 3))
     faces_zoneid = np.empty((0, 0), dtype=int)
@@ -673,7 +665,7 @@ def _deprecated_face_group_to_tetrahedrons(
 def _deprecated_face_group_to_tetrahedrons2(
     face_group: h5py.Group, face_zone_names: List[str]
 ) -> np.array:
-    """ "Converts Fluent's face connectivity matrix to tetrahedron elements.
+    """Convert Fluent's face connectivity matrix to tetrahedron elements.
 
     Notes
     -----
@@ -709,8 +701,8 @@ def _deprecated_face_group_to_tetrahedrons2(
     ------
     Exception
         Non-triangular faces detected
-    """
 
+    """
     # get face definitions of all face zones
     faces_all = np.empty((0, 3))
     faces_zoneids = np.empty((0, 0), dtype=int)
@@ -789,7 +781,13 @@ def _deprecated_face_group_to_tetrahedrons2(
 
 
 def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii"):
-    """Adds name of solid to stl file. Supports only single block"""
+    """Add name of solid to stl file.
+
+    Note
+    ----
+    Supports only single block.
+
+    """
     if file_type == "ascii":
         start_str = "solid"
         end_str = "endsolid"

@@ -3,9 +3,7 @@ import numpy as np
 
 
 class EDPVR:
-    """
-    ref: Klotz, et al. Nature protocols 2.9 (2007): 2152-2158.
-    """
+    """ref: Klotz, et al. Nature protocols 2.9 (2007): 2152-2158."""
 
     # human constant
     An = 27.78  # mmHg

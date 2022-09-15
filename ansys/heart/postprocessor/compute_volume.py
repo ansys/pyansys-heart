@@ -8,7 +8,7 @@ import vtk
 def get_mass_properties(stl_obj):
     """
     From numpy-stl
-    http://www.geometrictools.com/Documentation/PolyhedralMassProperties.pdf
+    http://www.geometrictools.com/Documentation/PolyhedralMassProperties.pdf.
     """
 
     def subexpression(x):
@@ -66,7 +66,7 @@ class STL:
 def get_cavity_volume2(x_m, cavity):
     """
     raw method to compute volume
-    avoid using meshio and vtk, but still needs numpy
+    avoid using meshio and vtk, but still needs numpy.
     Parameters
     ----------
     x_m

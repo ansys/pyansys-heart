@@ -1,4 +1,4 @@
-"""Module containing methods for mesh connectivity"""
+"""Module containing methods for mesh connectivity."""
 
 import copy
 
@@ -9,7 +9,7 @@ import numpy as np
 
 
 def get_faces_tetra(tetra):
-    """Gets faces that make up the tetra"""
+    """Get faces that make up the tetra."""
     num_tetra = tetra.shape[0]
     faces = np.zeros((num_tetra, 3, 4), dtype=int)
     masks = np.array(
@@ -27,7 +27,7 @@ def get_faces_tetra(tetra):
 
 
 def tetra_to_faces(tetra):
-    """Creates list of unique faces from tetrahedrons and returns tetra_face_map"""
+    """Create list of unique faces from tetrahedrons and returns tetra_face_map."""
     faces = get_faces_tetra(tetra)
 
     # reshape to (4*NumTetra, 3)
@@ -59,7 +59,7 @@ def tetra_to_faces(tetra):
 
 
 def face_tetra_connectivity(tetra: np.array):
-    """Computes the tetra-face connectivity tables"""
+    """Compute the tetra-face connectivity tables."""
 
     import time as time
 
@@ -151,7 +151,7 @@ def face_tetra_connectivity(tetra: np.array):
 
 
 def get_face_type(faces: np.array, face_cell_connectivity: np.array) -> np.array:
-    """Establishes face type. Either boundary faces or interior faces
+    """Establish face type. Either boundary faces or interior faces.
 
     Parameters
     ----------
@@ -177,7 +177,7 @@ def get_face_type(faces: np.array, face_cell_connectivity: np.array) -> np.array
 
 
 def get_edges_from_triangles(triangles: np.array) -> np.array:
-    """Generates an array of edges from a array of triangles"""
+    """Generate an array of edges from a array of triangles."""
     num_triangles = triangles.shape[0]
     num_edges = num_triangles * 3
     edges = np.repeat(triangles, 3, axis=0)
@@ -191,7 +191,7 @@ def get_edges_from_triangles(triangles: np.array) -> np.array:
 
 
 def get_free_edges(triangles: np.array, return_free_triangles: bool = False) -> np.array:
-    """Gets the boundary edges that are only referenced once"""
+    """Get the boundary edges that are only referenced once."""
 
     edges = get_edges_from_triangles(triangles)
 
@@ -215,7 +215,7 @@ def get_free_edges(triangles: np.array, return_free_triangles: bool = False) -> 
 def edge_connectivity(
     edges: np.array, return_type: bool = False, sort_closed: bool = False
 ) -> np.ndarray:
-    """Group edges by connectivity
+    """Group edges by connectivity.
 
     Parameters
     ----------
@@ -319,7 +319,7 @@ def edge_connectivity(
 
 
 def remove_triangle_layers_from_trimesh(triangles: np.array, iters: int = 1) -> np.array:
-    """Identifies triangles connected to the boundary, and removes these from the triangle list
+    """Identify triangles connected to the boundary, and removes these from the triangle list.
 
     Parameters
     ----------

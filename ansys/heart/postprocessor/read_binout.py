@@ -1,7 +1,10 @@
+"""Methods for reading LS-DYNA binout file."""
+
 import numpy as np
 
 
 def read_binout(fname):
+    """Read binout file."""
     with open(fname) as ff:
         data = ff.readlines()
 
@@ -21,6 +24,7 @@ def read_binout(fname):
 
 
 def get_error(coord0, coord1):
+    """Get difference in coordinates."""
     dst = np.linalg.norm(coord1 - coord0, axis=1)
     mean = np.mean(dst)
     max = np.max(dst)

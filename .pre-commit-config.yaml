@@ -1,26 +1,26 @@
 repos:
 
-- repo: https://github.com/psf/black
-  rev: 22.3.0
-  hooks:
-  - id: black
+# - repo: https://github.com/psf/black
+#   rev: 22.3.0
+#   hooks:
+#   - id: black
 
-- repo: https://github.com/pycqa/isort
-  rev: 5.10.1
-  hooks:
-  - id: isort
+# - repo: https://github.com/pycqa/isort
+#   rev: 5.10.1
+#   hooks:
+#   - id: isort
 
-- repo: https://gitlab.com/PyCQA/flake8
-  rev: 4.0.1
-  hooks:
-  - id: flake8
+# - repo: https://gitlab.com/PyCQA/flake8
+#   rev: 4.0.1
+#   hooks:
+#   - id: flake8
 
-- repo: https://github.com/codespell-project/codespell
-  rev: v2.1.0
-  hooks:
-  - id: codespell
-    exclude: examples/dyna_decks
-    args: [-L solf]
+# - repo: https://github.com/codespell-project/codespell
+#   rev: v2.1.0
+#   hooks:
+#   - id: codespell
+#     exclude: examples/dyna_decks
+#     args: [-L solf]
 
 # pydocstyle is pretty strict
 - repo: https://github.com/pycqa/pydocstyle
@@ -28,7 +28,11 @@ repos:
   hooks:
   - id: pydocstyle
     additional_dependencies: [toml]
-    # args: ["--convention=numpy", "--add-ignore=D400"]
     args: ["--convention=numpy"]    
-    exclude: "tests/"
-    exclude: "ansys/heart/writer/custom_dynalib_keywords"
+    # exclude these folders: ^(folder_one\/|folder_two\/)
+    exclude: ^(
+      tests\/|
+      examples\/workflow\/|
+      ansys\/heart\/misc\/|
+      ansys\/heart\/writer\/custom_dynalib_keywords\/
+      )

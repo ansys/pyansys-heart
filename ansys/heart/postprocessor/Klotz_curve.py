@@ -1,9 +1,15 @@
+"""Klotz curve module."""
 import matplotlib.pyplot as plt
 import numpy as np
 
 
 class EDPVR:
-    """ref: Klotz, et al. Nature protocols 2.9 (2007): 2152-2158."""
+    """End diastolic pressure-volume relation.
+
+    Note
+    ----
+    Ref: Klotz, et al. Nature protocols 2.9 (2007): 2152-2158.
+    """
 
     # human constant
     An = 27.78  # mmHg
@@ -25,12 +31,15 @@ class EDPVR:
             self.Alpha = self.pm / self.vm**self.Beta
 
     def get_constants(self):
+        """Get constants."""
         return self.Alpha, self.Beta
 
     def get_pressure(self, volume):
+        """Get pressure."""
         return self.Alpha * volume**self.Beta
 
     def get_volume(self, pressure):
+        """Get volume."""
         volume = np.zeros(pressure.shape)
         for i, p in enumerate(pressure):
             volume[i] = (p / self.Alpha) ** (1 / self.Beta)
@@ -40,7 +49,7 @@ class EDPVR:
         return volume
 
     def plot_EDPVR(self):
-
+        """Plot end-diastolic pressure-volume relation."""
         vv = np.linspace(0, 1.1 * self.vm, num=101)
         pp = self.get_pressure(vv)
 

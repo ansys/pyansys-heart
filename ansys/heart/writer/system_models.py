@@ -1,9 +1,12 @@
 """Module contains system model class.
 
+Note
+----
 Valid models include:
 1. Open loop constant pre-after load
 2. Open-loop 3-element Windkessel
 3. Closed loop
+
 """
 
 from ansys.dyna.keywords import keywords
@@ -204,7 +207,9 @@ def define_function_windkessel(
 
     Note
     ----
-    Yields a formatted define function with a constant pre-load and WK afterload."""
+    Yields a formatted define function with a constant pre-load and WK afterload.
+
+    """
     if implicit:
         implicit_flag = 1
     else:

@@ -1,3 +1,5 @@
+"""Module for computing the volume."""
+
 import json
 
 import meshio
@@ -6,9 +8,13 @@ import vtk
 
 
 def get_mass_properties(stl_obj):
-    """
+    """Get mass properties of vtk object.
+
+    Note
+    ----
     From numpy-stl
     http://www.geometrictools.com/Documentation/PolyhedralMassProperties.pdf.
+
     """
 
     def subexpression(x):
@@ -57,6 +63,8 @@ def get_mass_properties(stl_obj):
 
 
 class STL:
+    """STL Class."""
+
     def __init__(self, coord, connect):
         self.x = coord[connect][:, :, 0]
         self.y = coord[connect][:, :, 1]
@@ -64,16 +72,16 @@ class STL:
 
 
 def get_cavity_volume2(x_m, cavity):
-    """
-    raw method to compute volume
-    avoid using meshio and vtk, but still needs numpy.
+    """Compute volume.
+
+    Note
+    ----
+    Raw method to compute volume. Avoids using meshio and vtk, but still needs numpy.
+
     Parameters
     ----------
     x_m
     cavity
-
-    Returns
-    -------
 
     """
     ids, a = np.unique(cavity, return_inverse=True)
@@ -84,6 +92,7 @@ def get_cavity_volume2(x_m, cavity):
 
 
 def get_cavity_volume(name, x_m, cavity):
+    """Get cavity volume."""
     ids, a = np.unique(cavity, return_inverse=True)
     coords = x_m[ids]
     connectivity = a.reshape(cavity.shape)
@@ -97,6 +106,7 @@ def get_cavity_volume(name, x_m, cavity):
 
 
 def compute_stl_volume(f_stl):
+    """Compute cavity volume."""
     reader = vtk.vtkSTLReader()  # noqa
     reader.SetFileName(f_stl)
     reader.Update()
@@ -113,10 +123,11 @@ def update_system_json(nodes_file):
     """
     Update the unstressed cavity volume in the system model settings.
 
-    How to use:
-    run this script under the main simulation directory
-    """
+    Note
+    ----
+    How to use: run this script under the main simulation directory
 
+    """
     # nodes_file = "iter4.guess"
     # BV or 4C
     lv_cavity_file = r"cavity_left_ventricle.segment"

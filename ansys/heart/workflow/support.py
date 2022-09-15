@@ -1,7 +1,4 @@
-"""
-This module provides some useful functions to support workflows.
-
-"""
+"""Provide methods to support workflows."""
 import os
 import pathlib as Path
 
@@ -38,7 +35,6 @@ def run_preprocessor(
     clean_workdir : bool, optional
         Flag indicating whether to clean the working directory, by default True
     """
-
     if not path_to_model:
         path_to_model = os.path.join(work_directory, "heart_model.pickle")
 

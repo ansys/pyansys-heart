@@ -1,3 +1,4 @@
+"""Module for computing paths."""
 import math
 from msilib.schema import Error
 from typing import Union
@@ -29,7 +30,7 @@ def get_closed_path(start_indices: Union[np.array, list], surface: vtk.vtkPolyDa
 
 
 def vtk_geodesic(input: vtk.vtkPolyData, start_idx: int, end_idx: int):
-    """Compute the geodesic path between two vertices on a vtkPolyData surface
+    """Compute the geodesic path between two vertices on a vtkPolyData surface.
 
     Parameters
     ----------
@@ -45,7 +46,6 @@ def vtk_geodesic(input: vtk.vtkPolyData, start_idx: int, end_idx: int):
     np.array(dtype = int)
         Array of indices which define the shortest path from start index to end index
     """
-
     dijkstra = vtk.vtkDijkstraGraphGeodesicPath()  # noqa
     dijkstra.SetInputData(input)
     dijkstra.SetStartVertex(start_idx)
@@ -76,11 +76,10 @@ def order_nodes_edgeloop(node_indices: np.array, node_coords: np.array) -> np.ar
         Reordered list of node indices that form a edge loop
 
     Notes
-    ------
+    -----
     May not work if mesh density is very anisotropic and does
     not change gradually
     """
-
     num_nodes = len(node_indices)
 
     nodes_coords_to_use = node_coords[node_indices, :]
@@ -118,11 +117,13 @@ def sort_edgeloop_anti_clockwise(points_to_sort: np.array, reference_point: np.a
     -------
     bool
         Flag indicating whether the point order should be reversed or not
+
     Note
     ----
     This only uses the first two points in the points array, but uses all
     points to compute the center of the sorted points that make up the edge
     loop
+
     """
     reverse_points = False
 
@@ -143,18 +144,13 @@ def sort_edgeloop_anti_clockwise(points_to_sort: np.array, reference_point: np.a
 
 
 def rodrigues_rot(P, n0, n1):
-    """
-    RODRIGUES ROTATION.
+    """Rodrigues rotation.
 
     Note
     ----
     - Rotate given points based on a starting and ending vector
     - Axis k and angle of rotation theta given by vectors n0,n1
     P_rot = P*cos(theta) + (k x P)*sin(theta) + k*<k,P>*(1-cos(theta))
-    :param P:
-    :param n0:
-    :param n1:
-    :return:
     """
     # If P is only 1d array (coords of single point), fix it to be matrix
     if P.ndim == 1:

@@ -2664,6 +2664,59 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         )
         return
 
+    def _update_solution_controls(
+        self,
+        end_time: float = 800,
+    ):
+        """Adds solution controls, output controls and other solver settings
+        as keywords
+        """
+        # add termination keywords
+        self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=0.0))
+
+        self.kw_database.main.append(keywords.ControlTimestep(dtinit=1.0, dt2ms=1.0))
+        return
+
+    def _update_export_controls(self, dt_output_d3plot: float = 1.0):
+        """Adds solution controls to the main simulation
+
+        Parameters
+        ----------
+        dt_output_d3plot : float, optional
+            Writes full D3PLOT results at this time-step spacing, by default 0.05
+        dt_output_icvout : float, optional
+            Writes control volume results at this time-step spacing, by default 0.001
+        """
+        # frequency of full results
+        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
+
+        return
+
+    def _update_main_db(self):
+
+        return
+
+    def _get_list_of_includes(self):
+        """Gets a list of files to include in main.k. Ommit any empty decks"""
+        for deckname, deck in vars(self.kw_database).items():
+            if deckname == "main":
+                continue
+            # skip if no keywords are present in the deck
+            if len(deck.keywords) == 0:
+                LOGGER.debug("No keywords in deck: {0}".format(deckname))
+                continue
+            self.include_files.append(deckname)
+        return
+
+    def _add_includes(self):
+        """Adds *INCLUDE keywords"""
+        for include_file in self.include_files:
+            filename_to_include = include_file + ".k"
+            self.kw_database.main.append(keywords.Include(filename=filename_to_include))
+
+        return
+
+
     # def _update_use_Purkinje(self):
     #     """Updates the keywords for Purkinje generation"""
 
@@ -2784,59 +2837,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     #                 iedgeid=edge_id_start_right,
     #             )
     #         )
-
-    def _update_solution_controls(
-        self,
-        end_time: float = 800,
-    ):
-        """Adds solution controls, output controls and other solver settings
-        as keywords
-        """
-        # add termination keywords
-        self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=0.0))
-
-        self.kw_database.main.append(keywords.ControlTimestep(dtinit=1.0, dt2ms=1.0))
-        return
-
-    def _update_export_controls(self, dt_output_d3plot: float = 1.0):
-        """Adds solution controls to the main simulation
-
-        Parameters
-        ----------
-        dt_output_d3plot : float, optional
-            Writes full D3PLOT results at this time-step spacing, by default 0.05
-        dt_output_icvout : float, optional
-            Writes control volume results at this time-step spacing, by default 0.001
-        """
-        # frequency of full results
-        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
-
-        return
-
-    def _update_main_db(self):
-
-        return
-
-    def _get_list_of_includes(self):
-        """Gets a list of files to include in main.k. Ommit any empty decks"""
-        for deckname, deck in vars(self.kw_database).items():
-            if deckname == "main":
-                continue
-            # skip if no keywords are present in the deck
-            if len(deck.keywords) == 0:
-                LOGGER.debug("No keywords in deck: {0}".format(deckname))
-                continue
-            self.include_files.append(deckname)
-        return
-
-    def _add_includes(self):
-        """Adds *INCLUDE keywords"""
-        for include_file in self.include_files:
-            filename_to_include = include_file + ".k"
-            self.kw_database.main.append(keywords.Include(filename=filename_to_include))
-
-        return
-
 
 if __name__ == "__main__":
     print("protected")

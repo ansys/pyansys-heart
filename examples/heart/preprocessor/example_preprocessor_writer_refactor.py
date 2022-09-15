@@ -3,6 +3,7 @@ import os
 import pathlib
 
 import ansys.heart.preprocessor.models as models
+from ansys.heart.simulator.simulator import Simulator
 from ansys.heart.simulator.support import run_preprocessor
 import ansys.heart.writer.dynawriter as writers
 
@@ -26,17 +27,13 @@ if __name__ == "__main__":
     write_lsdyna_files = False
     simulator = True
 
-    if simulator:
-        model = models.HeartModel.load_model(path_to_model)
-        sim = Simulator(model)
-        sim.build()
-        # exportdir = os.path.join(
-        #     writer.model.info.workdir, writer.__class__.__name__.lower().replace("dynawriter", ""),
-        # )
+    model = models.HeartModel.load_model(path_to_model)
+    sim = Simulator(model)
 
-        # writer.model.mesh.write_to_vtk(os.path.join(writer.model.info.workdir, "volume_mesh.vtk"))
-        # writer.update()
-        # writer.export(exportdir)
+    file_to_run = os.path.join(workdir, "purkinjegeneration", "main_left_ventricle.k")
+    dynapath = "D:/Fortran/intelMPI/mppdyna_25AUG22"
+
+    sim.run_lsdyna(sim_file=file_to_run, lsdynapath=dynapath, NCPU=1)
 
     if use_preprocessor:
         model = run_preprocessor(
@@ -72,5 +69,4 @@ if __name__ == "__main__":
             )
             writer.update()
             writer.export(exportdir)
-
     pass

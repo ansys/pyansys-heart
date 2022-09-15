@@ -17,5 +17,5 @@
             "source.organizeImports": true
         }
     },
-    "python.sortImports.path": "isort",
+    // "python.sortImports.path": "isort",
 }

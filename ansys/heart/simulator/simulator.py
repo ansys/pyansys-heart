@@ -1,14 +1,15 @@
-import subprocess
-import shutil
-from unittest import case
-import numpy as np
-import pandas as pd
 import os
-import time
-import json
-from pathlib import Path
-from tqdm import tqdm  # for progress bar
-from ansys.heart.writer.dynawriter import *
+import pathlib
+import shutil
+import subprocess
+
+from ansys.heart.custom_logging import LOGGER
+from ansys.heart.preprocessor.models import HeartModel
+import ansys.heart.writer.dynawriter as writers
+
+# from unittest import case
+# from pathlib import Path
+# from tqdm import tqdm  # for progress bar
 
 # class purkinje:
 #     """define purkinje network parameters"""
@@ -37,8 +38,61 @@ class Simulator:
         self.lsdynapath = lsdynapath
         """path of the lsdyna executable"""
 
+    def write_fibers(
+        self,
+        workdir: str,
+        alpha_endocardium: float = -60,
+        alpha_eepicardium: float = 60,
+        beta_endocardium: float = 25,
+        beta_epicardium: float = -65,
+    ):
+        dyna_writer = writers.FiberGenerationDynaWriter(self.model)
+        dyna_writer.update()
+        dyna_writer.export(workdir)
+
+        return
+
+    def write_zeropressureconfiguration(self, workdir: str = ""):
+        dyna_writer = writers.ZeroPressureMechanicsDynaWriter(self.model)
+        dyna_writer.update()
+        dyna_writer.export(workdir)
+        return
+
+    def write_purkinje(
+        self,
+        workdir: str,
+        pointstx: float = 0,  # TODO instanciate this
+        pointsty: float = 0,  # TODO instanciate this
+        pointstz: float = 0,  # TODO instanciate this
+        inodeid: int = 0,  # TODO instanciate this
+        iedgeid: int = 0,  # TODO instanciate this
+        edgelen: float = 2,  # TODO instanciate this
+        ngen: float = 50,
+        nbrinit: int = 8,
+        nsplit: int = 2,
+    ):
+        dyna_writer = writers.PurkinjeGenerationDynaWriter(self.model)
+        dyna_writer.update()
+        dyna_writer.export(workdir)
+        return
+
+    def get_stressfreenodes(workdir: str):
+        """
+        Find the result file after zerop
+        Returns guess file name
+        -------
+        """
+        # TODO check if converged
+        guess_files = []
+        for file in os.listdir(workdir):
+            if file[-5:] == "guess":
+                guess_files.append(file)
+
+        return guess_files[-1]
+
     def build(
         self,
+        path_lsdyna: str,
         path_simulation: str,
         fibers: bool = 0,
         purkinje: bool = 0,
@@ -50,7 +104,7 @@ class Simulator:
         # TODO add getters and setters for fiber angles, purkinje properties, simulation times and
         # other parameters to expose to the user
         path_simulation = os.path.join(self.model.info.path_to_model, "simulation")
-        simulationdynawriter = BaseDynaWriter(self.model)
+        simulationdynawriter = writers.BaseDynaWriter(self.model)
 
         if fibers:
             path_fibers = os.path.join(self.model.info.path_to_model, "fiber_generation")
@@ -122,82 +176,39 @@ class Simulator:
 
         return
 
-    def write_fibers(
-        self,
-        workdir: str,
-        alpha_endocardium: float = -60,
-        alpha_eepicardium: float = 60,
-        beta_endocardium: float = 25,
-        beta_epicardium: float = -65,
+    def run_lsdyna(
+        self, sim_file: str, lsdynapath: str, memory: str = "24m", NCPU: int = 1, options: str = ""
     ):
-        dyna_writer = FiberGenerationDynaWriter(self.model)
-        dyna_writer.update()
-        dyna_writer.export(workdir)
-
-        return
-
-    def write_zeropressureconfiguration(self, workdir: str = ""):
-        dyna_writer = ZeroPressureMechanicsDynaWriter(self.model)
-        dyna_writer.update()
-        dyna_writer.export(workdir)
-        return
-
-    def write_purkinje(
-        self,
-        workdir: str,
-        pointstx: float = 0,  # TODO instanciate this
-        pointsty: float = 0,  # TODO instanciate this
-        pointstz: float = 0,  # TODO instanciate this
-        inodeid: int = 0,  # TODO instanciate this
-        iedgeid: int = 0,  # TODO instanciate this
-        edgelen: float = 2,  # TODO instanciate this
-        ngen: float = 50,
-        nbrinit: int = 8,
-        nsplit: int = 2,
-    ):
-        dyna_writer = PurkinjeGenerationDynaWriter(self.model)
-        dyna_writer.update()
-        dyna_writer.export(workdir)
-        return
-
-    def run_lsdyna(sim_file: str, memory: int, lsdynapath: str, NCPU: int = 1, options: str = ""):
-        """
-        Parameters
-        ----------
-        sim_file: input file for lsdyna
-        NCPU: number of CPUs
-        memory: memory usage (ex. 300M for large models)
-        options: lsdyna additional run options
-
-        Returns
-        -------
-
-        """
-        commands = [
+        os.chdir(pathlib.Path(sim_file).parent)
+        sim_file_wsl = (
+            subprocess.run(["wsl", "wslpath", os.path.basename(sim_file)], capture_output=1)
+            .stdout.decode()
+            .strip()
+        )
+        lsdynapath_wsl = (
+            subprocess.run(["wsl", "wslpath", lsdynapath.replace("\\", "/")], capture_output=1)
+            .stdout.decode()
+            .strip()
+        )
+        run_command = [
+            "wsl",
+            "source",
+            "~/.bashrc",
+            ";",
             "mpirun",
             "-np",
             str(NCPU),
-            lsdynapath,
-            "i=" + sim_file,
-            "memory=",
-            str(memory),
-            options,
+            lsdynapath_wsl,
+            "i=",
+            sim_file_wsl,
         ]
-
-        p = subprocess.run(commands, stdout=subprocess.PIPE)
+        logile = os.path.join(pathlib.Path(sim_file).parent, "logile.log")
+        f = open(logile, "w")
+        LOGGER.info("Running ls-dyna with command:")
+        run_command_display = " ".join([str(s) for s in run_command])
+        LOGGER.info(run_command_display)
+        subprocess.run(run_command, stdout=f)
+        LOGGER.info("Finished")
+        # out = p.stdout
+        # print(out.decode("utf-8"))
         return
-
-    def get_stressfreenodes(workdir: str):
-        """
-        Find the result file after zerop
-        Returns
-        -------
-        """
-        # TODO check if converged
-        guess_files = []
-        for file in os.listdir(workdir):
-            if file[-5:] == "guess":
-                guess_files.append(file)
-
-        return guess_files[-1]
-

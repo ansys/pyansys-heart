@@ -22,9 +22,13 @@ repos:
     exclude: examples/dyna_decks
     args: [-L solf]
 
-# - repo: https://github.com/pycqa/pydocstyle
-#   rev: 6.1.1
-#   hooks:
-#   - id: pydocstyle
-#     additional_dependencies: [toml]
-#     exclude: "tests/"
+# pydocstyle is pretty strict
+- repo: https://github.com/pycqa/pydocstyle
+  rev: 6.1.1
+  hooks:
+  - id: pydocstyle
+    additional_dependencies: [toml]
+    # args: ["--convention=numpy", "--add-ignore=D400"]
+    args: ["--convention=numpy"]    
+    exclude: "tests/"
+    exclude: "ansys/heart/writer/custom_dynalib_keywords"

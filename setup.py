@@ -17,6 +17,7 @@ with io_open(version_file, mode="r") as fd:
 # Get the long description from the README file
 # This is needed for the description on PyPI
 def read(rel_path):
+    """Get long description from the README file."""
     with codecs.open(os.path.join(HERE, rel_path), "r") as fp:
         return fp.read()
 
@@ -62,6 +63,7 @@ setup(
         "Operating System :: OS Independent",
     ],
 )
+"""Setup installation."""
 
 # setup(
 #     name="ansys-heart-lib",

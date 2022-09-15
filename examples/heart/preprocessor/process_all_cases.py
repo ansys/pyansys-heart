@@ -1,4 +1,4 @@
-"""Example to pre-process data from Strocchi2020 and Cristobal2021"""
+"""Example to pre-process data from Strocchi2020 and Cristobal2021."""
 import glob as glob
 import os
 import pathlib
@@ -14,7 +14,6 @@ if __name__ == "__main__":
     """
     Loops over all available cases, databases, and available models
     """
-
     use_preprocessor = True
     write_lsdyna_files = False
 

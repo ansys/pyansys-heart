@@ -16,8 +16,8 @@ def check_int(s):
 
 
 def extract_components_variable_from_cellml_file(cellml_file):
-    # take as input the cell_ml txt file and return the component as a dictionnary,
-    # The dictionnary associates each component to its variables
+    # take as input the cell_ml txt file and return the component as a dictionary,
+    # The dictionary associates each component to its variables
     # ([var_name,unit,initial_value,pub_in_out,priv_in_out])
     with open(cellml_file, "r") as f:
         cellml_lines = f.readlines()
@@ -81,8 +81,8 @@ def extract_components_variable_from_cellml_file(cellml_file):
 
 
 def extract_components_equation_from_cellml_file(cellml_file):
-    # take as input the cell_ml txt file and return the component as a dictionnary,
-    # The dictionnary associates each component to a list where each element
+    # take as input the cell_ml txt file and return the component as a dictionary,
+    # The dictionary associates each component to a list where each element
     # contains the lines corresponding to one equation
     with open(cellml_file, "r") as f:
         cellml_lines = f.readlines()
@@ -128,8 +128,8 @@ def extract_components_equation_from_cellml_file(cellml_file):
 
 
 def extract_unit_from_cellml_file(cellml_file):
-    # take as input the cell_ml txt file and return the component as a dictionnary,
-    # The dictionnary associates each component to a list where each element contains
+    # take as input the cell_ml txt file and return the component as a dictionary,
+    # The dictionary associates each component to a list where each element contains
     # the lines corresponding to one equation
 
     with open(cellml_file, "r") as f:
@@ -171,7 +171,7 @@ def extract_unit_from_cellml_file(cellml_file):
 
 def extract_mapping_from_cellml_file(cellml_file):
     # take as input the cellml txt file
-    # return a dictionnary specifying for each coupled components the shared variables
+    # return a dictionary specifying for each coupled components the shared variables
     # map_cellml([component1,component2])=[[shared_variable_component1,shared_variable_component2],...]
     with open(cellml_file, "r") as f:
         cellml_lines = f.readlines()
@@ -615,50 +615,53 @@ with open(library_name + "_cell.mo", "w") as f:
         f.write("    Modelica.Blocks.Interfaces.RealInput " + i[1] + ";\n")
     f.write("equation\n")
     # write the shared variables between the components
-    for mapp in map_cellml:
-        for var in map_cellml[mapp]:
-            if mapp[1] == "":
+    for mapper in map_cellml:
+        for var in map_cellml[mapper]:
+            if mapper[1] == "":
                 f.write(
                     "   connect("
-                    + replace_lower_case_by_capital(mapp[0])
+                    + replace_lower_case_by_capital(mapper[0])
                     + "."
                     + var[0]
                     + ", "
                     + var[1]
                     + ");\n"
                 )
-            elif var[0] not in comp_var_in_out[mapp[0]] and var[1] not in comp_var_in_out[mapp[1]]:
+            elif (
+                var[0] not in comp_var_in_out[mapper[0]]
+                and var[1] not in comp_var_in_out[mapper[1]]
+            ):
                 f.write(
                     "   connect("
-                    + replace_lower_case_by_capital(mapp[0])
+                    + replace_lower_case_by_capital(mapper[0])
                     + "."
                     + var[0]
                     + ", "
-                    + replace_lower_case_by_capital(mapp[1])
+                    + replace_lower_case_by_capital(mapper[1])
                     + "."
                     + var[1]
                     + ");\n"
                 )
-            elif var[0] in comp_var_in_out[mapp[0]]:
+            elif var[0] in comp_var_in_out[mapper[0]]:
                 f.write(
                     "   connect("
-                    + replace_lower_case_by_capital(mapp[0])
+                    + replace_lower_case_by_capital(mapper[0])
                     + "."
                     + var[0]
                     + "_out, "
-                    + replace_lower_case_by_capital(mapp[1])
+                    + replace_lower_case_by_capital(mapper[1])
                     + "."
                     + var[1]
                     + ");\n"
                 )
-            elif var[1] in comp_var_in_out[mapp[1]]:
+            elif var[1] in comp_var_in_out[mapper[1]]:
                 f.write(
                     "   connect("
-                    + replace_lower_case_by_capital(mapp[0])
+                    + replace_lower_case_by_capital(mapper[0])
                     + "."
                     + var[0]
                     + ", "
-                    + replace_lower_case_by_capital(mapp[1])
+                    + replace_lower_case_by_capital(mapper[1])
                     + "."
                     + var[1]
                     + "_out);\n"

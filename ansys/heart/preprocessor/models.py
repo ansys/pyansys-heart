@@ -1,6 +1,4 @@
-"""Module containing classes for the various heart models which
-can be created with the preprocessor
-"""
+"""Module containing classes for the various heart models."""
 import json
 import os
 
@@ -19,11 +17,11 @@ import numpy as np
 
 
 class ModelInfo:
-    """Contains model information"""
+    """Contains model information."""
 
     @property
     def database(self) -> str:
-        """Name of the database to use"""
+        """Name of the database to use."""
         return self._database
 
     @database.setter
@@ -48,25 +46,25 @@ class ModelInfo:
     ) -> None:
 
         self.database = database
-        """Name of the database to use"""
+        """Name of the database to use."""
         self.workdir = work_directory
-        """Path to the working directory"""
+        """Path to the working directory."""
         self.path_to_original_mesh = path_to_case
-        """Path to the original mesh file"""
+        """Path to the original mesh file."""
         self.path_to_simulation_mesh = path_to_simulation_mesh
-        """Path to simulation(in .vtk format)"""
+        """Path to simulation(in .vtk format)."""
         self.path_to_model = path_to_model
-        """Path to model (in .pickle format)"""
+        """Path to model (in .pickle format)."""
         self.labels_to_ids = LABELS_TO_ID[database]
-        """Dict that maps labels > part/tag id"""
+        """Dict that maps labels > part/tag id."""
         self.ids_to_labels = dict((v, k) for k, v in LABELS_TO_ID[database].items())
-        """Inverted dict that maps part/tag id > labels"""
+        """Inverted dict that maps part/tag id > labels."""
         self.model_type: str = None
-        """Model (geometric) type"""
+        """Model (geometric) type."""
         self.mesh_size: float = mesh_size
-        """Mesh size used for remeshing"""
+        """Mesh size used for remeshing."""
         self.add_blood_pool: bool = add_blood_pool
-        """Flag indicating whether to add blood to the cavities"""
+        """Flag indicating whether to add blood to the cavities."""
 
         pass
 
@@ -75,7 +73,7 @@ class ModelInfo:
         extensions_to_remove: List[str] = [".stl", ".vtk", ".msh.h5"],
         remove_all: bool = False,
     ):
-        """Removes files with extension present in the working directory
+        """Remove files with extension present in the working directory.
 
         Parameters
         ----------
@@ -100,13 +98,13 @@ class ModelInfo:
         return
 
     def create_workdir(self):
-        """Creates the working directory if it doesn't exist"""
+        """Create the working directory if it doesn't exist."""
         if not os.path.isdir(self.workdir):
             os.makedirs(self.workdir)
         return
 
     def dump_info(self, filename: pathlib.Path = None):
-        """Dumps model information to file"""
+        """Dump model information to file."""
         if not filename:
             filename = os.path.join(self.workdir, "model_info.json")
         with open(filename, "w") as file:
@@ -115,11 +113,11 @@ class ModelInfo:
 
 
 class HeartModel:
-    """Parent class for heart models"""
+    """Parent class for heart models."""
 
     @property
     def parts(self) -> List[Part]:
-        """Returns list of parts"""
+        """Return list of parts."""
         parts = []
         for key, value in self.__dict__.items():
             attribute = getattr(self, key)
@@ -129,7 +127,7 @@ class HeartModel:
 
     @property
     def part_names(self) -> List[str]:
-        """Returns list of part names"""
+        """Return list of part names."""
         part_names = []
         for part in self.parts:
             part_names.append(part.name)
@@ -137,42 +135,42 @@ class HeartModel:
 
     @property
     def part_ids(self) -> List[int]:
-        """Returns list of used part ids"""
+        """Return list of used part ids."""
         return [part.pid for part in self.parts]
 
     @property
     def cavities(self) -> List[Cavity]:
-        """Returns list of cavities in the model"""
+        """Return list of cavities in the model."""
         return [part.cavity for part in self.parts if part.cavity]
 
     def __init__(self, info: ModelInfo) -> None:
         self.info = info
-        """Model meta information"""
+        """Model meta information."""
         self.mesh = Mesh()
-        """Modified mesh of the tissue"""
+        """Modified mesh of the tissue."""
         self.mesh_raw = Mesh()
-        """Raw input mesh"""
+        """Raw input mesh."""
 
         self.fluid_mesh = Mesh()
-        """Generated fluid mesh"""
+        """Generated fluid mesh."""
 
         self._add_subparts()
-        """Adds any subparts"""
+        """Add any subparts."""
         self._add_labels_to_parts()
-        """Adds appropriate vtk labels to the parts"""
+        """Add appropriate vtk labels to the parts."""
 
         if not self.info.mesh_size:
             self._set_default_mesh_size()
-            """Sets default mesh size"""
+            """Set default mesh size."""
 
         self.model_type = self.__class__.__name__
-        """Model type"""
+        """Model type."""
         self.info.model_type = self.__class__.__name__
 
         pass
 
     def extract_simulation_mesh(self, clean_up: bool = False):
-        """Updates the model
+        """Update the model.
 
         Examples
         --------
@@ -217,7 +215,7 @@ class HeartModel:
         return
 
     def get_part(self, name: str, by_substring: bool = False):
-        """Gets specific part based on part name"""
+        """Get specific part based on part name."""
         found = False
         for part in self.parts:
             if part.name == name:
@@ -229,12 +227,12 @@ class HeartModel:
             return None
 
     def add_part(self, part_name: str):
-        """Dynamically adds a part as an attribute to the object"""
+        """Dynamically add a part as an attribute to the object."""
         setattr(self, "_".join(part_name.lower().split()), Part(name=part_name))
         return
 
     def remove_part(self, part_name: str):
-        """Removes a part with a specific name from the model"""
+        """Remove a part with a specific name from the model."""
         keys = self.__dict__.keys()
         for key in keys:
             attribute = getattr(self, key)
@@ -245,7 +243,7 @@ class HeartModel:
         return
 
     def print_info(self):
-        """Prints information about the model"""
+        """Print information about the model."""
         if not isinstance(self.mesh.tetrahedrons, np.ndarray):
             LOGGER.info("Nothing to print")
             return
@@ -279,7 +277,7 @@ class HeartModel:
         return
 
     def read_input_mesh(self):
-        """Reads the input mesh defined in ModelInfo"""
+        """Read the input mesh defined in ModelInfo."""
         if not os.path.isfile(self.info.path_to_original_mesh):
             raise ValueError("Please specify a valid path to the input file")
 
@@ -296,7 +294,7 @@ class HeartModel:
         return
 
     def dump_model(self, filename: pathlib.Path = None):
-        """Saves model to file
+        """Save model to file.
 
         Examples
         --------
@@ -321,7 +319,7 @@ class HeartModel:
 
     @staticmethod
     def load_model(filename: pathlib.Path):
-        """Static method to load a preprocessed model from file
+        """Load a preprocessed model from file.
 
         Examples
         --------
@@ -334,13 +332,13 @@ class HeartModel:
         return model
 
     def _set_default_mesh_size(self):
-        """Sets the default mesh size"""
+        """Set the default mesh size."""
         LOGGER.warning("No mesh size given setting default mesh size")
         self.info.mesh_size = 1.5
         return
 
     def _add_labels_to_parts(self):
-        """Uses model definitions to add corresponding vtk labels to the part"""
+        """Use model definitions to add corresponding vtk labels to the part."""
         for part in self.parts:
             if part.name == "Septum":
                 continue
@@ -352,7 +350,7 @@ class HeartModel:
         return
 
     def _add_subparts(self):
-        """Adds subparts to parts of type ventricle"""
+        """Add subparts to parts of type ventricle."""
         for part in self.parts:
             if part.part_type in ["ventricle"]:
                 part._add_myocardium_part()
@@ -362,7 +360,7 @@ class HeartModel:
         return
 
     def _remove_unused_tags(self):
-        """Extract only the tags of interest"""
+        """Extract only the tags of interest."""
         # collect all used tags
         tag_ids = []
         for part in self.parts:
@@ -375,7 +373,7 @@ class HeartModel:
         return
 
     def _get_used_element_ids(self):
-        """Returns array of used element ids"""
+        """Return array of used element ids."""
         element_ids = np.empty(0, dtype=int)
         for part in self.parts:
             element_ids = np.append(element_ids, part.element_ids)
@@ -383,7 +381,7 @@ class HeartModel:
         return element_ids
 
     def _get_endo_epicardial_surfaces(self):
-        """get endo- and epicardial surfaces
+        """Get endo- and epicardial surfaces.
 
         Note
         ----
@@ -508,7 +506,7 @@ class HeartModel:
         return
 
     def _prepare_for_meshing(self):
-        """Prepares the input for volumetric meshing with Fluent meshing
+        """Prepare the input for volumetric meshing with Fluent meshing.
 
         Note
         ----
@@ -516,7 +514,6 @@ class HeartModel:
         These surfaces are written in .stl format which can be imported in Fluent Meshing
 
         """
-
         # establish connectivity of the raw mesh
         self.mesh_raw.establish_connectivity()
         # mark interface pairs - and get all unique interface-pairs
@@ -574,7 +571,7 @@ class HeartModel:
         return
 
     def _remesh(self):
-        """Uses the generated files to remesh the surfaces and volume"""
+        """Use the generated files to remesh the surfaces and volume."""
         LOGGER.info("Remeshing volume...")
         path_mesh_file = os.path.join(self.info.workdir, "fluent_volume_mesh.msh.h5")
 
@@ -646,10 +643,7 @@ class HeartModel:
         return
 
     def _map_data_to_remeshed_volume(self):
-        """Maps the data from the original (volume) mesh to the remeshed (volume) mesh
-        including part-ids
-        """
-
+        """Map the data from the original mesh to the remeshed mesh."""
         # get list of tag ids to keep for mapping
         mapper = self.info.labels_to_ids
         labels = [l for p in self.parts if p.tag_labels for l in p.tag_labels]
@@ -714,7 +708,7 @@ class HeartModel:
         return
 
     def _deprecated_add_volume_mesh_for_blood_pool(self):
-        """Adds a volume mesh for the (interior) blood pool
+        """Add a volume mesh for the (interior) blood pool.
 
         Notes
         -----
@@ -761,7 +755,7 @@ class HeartModel:
         return
 
     def _update_parts(self):
-        """Updates the parts using the (re)meshed volume
+        """Update the parts using the (re)meshed volume.
 
         Notes
         -----
@@ -772,7 +766,6 @@ class HeartModel:
         5. Creates cavities
 
         """
-
         self._extract_septum()
         self._assign_elements_to_parts()
         self._assign_surfaces_to_parts()
@@ -783,7 +776,7 @@ class HeartModel:
         return
 
     def _extract_septum(self):
-        """Separates the septum elements from the left ventricle
+        """Separate the septum elements from the left ventricle.
 
         Note
         ----
@@ -830,7 +823,7 @@ class HeartModel:
         return
 
     def _extract_apex(self):
-        """Extracts the apex for both the endocardium and epicardium of each ventricle
+        """Extract the apex for both the endocardium and epicardium of each ventricle.
 
         Note
         ----
@@ -861,7 +854,7 @@ class HeartModel:
         return
 
     def _assign_elements_to_parts(self):
-        """Gets the element ids of each part and assign these to the Part objects"""
+        """Get the element ids of each part and assign these to the Part objects."""
         # get element ids of each part
         used_element_ids = self._get_used_element_ids()
         for part in self.parts:
@@ -889,8 +882,7 @@ class HeartModel:
             )
 
     def _assign_surfaces_to_parts(self):
-        """Assigns surfaces generated during remeshing to model parts"""
-
+        """Assign surfaces generated during remeshing to model parts."""
         for part in self.parts:
             for surface in part.surfaces:
                 boundary_name = "-".join(surface.name.lower().split())
@@ -904,8 +896,7 @@ class HeartModel:
         return
 
     def _assign_caps_to_parts(self):
-        """Uses connectivity to obtain cap boundaries and adds these to their respective parts"""
-
+        """Use connectivity to obtain cap boundaries and adds these to their respective parts."""
         used_boundary_surface_names = [s.name for p in self.parts for s in p.surfaces]
         remaining_surfaces = list(set(self.mesh.boundary_names) - set(used_boundary_surface_names))
         remaining_surfaces1: List[SurfaceMesh] = []
@@ -1013,9 +1004,7 @@ class HeartModel:
         return
 
     def _assign_cavities_to_parts(self):
-        """Creates cavities based on endocardium surfaces and cap definitions
-        And assigns these to the parts of the model"""
-
+        """Create cavities based on endocardium surfaces and cap definitions."""
         # rename septum to right ventricle endocardium septum
         if isinstance(self, (BiVentricle, FourChamber, FullHeart)):
             part = self.get_part("Right ventricle", True)
@@ -1053,12 +1042,12 @@ class HeartModel:
 
 
 class LeftVentricle(HeartModel):
-    """Model of just the left ventricle"""
+    """Model of just the left ventricle."""
 
     def __init__(self, info: ModelInfo) -> None:
 
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
-        """Left ventricle part"""
+        """Left ventricle part."""
         # remove septum - not used in left ventricle only model
         del self.left_ventricle.septum
 
@@ -1067,37 +1056,37 @@ class LeftVentricle(HeartModel):
 
 
 class BiVentricle(HeartModel):
-    """Model of the left and right ventricle"""
+    """Model of the left and right ventricle."""
 
     def __init__(self, info: ModelInfo) -> None:
 
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
-        """Left ventricle part"""
+        """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
-        """Right ventricle part"""
+        """Right ventricle part."""
         self.septum: Part = Part(name="Septum", part_type="septum")
-        """Septum"""
+        """Septum."""
 
         super().__init__(info)
         pass
 
 
 class FourChamber(HeartModel):
-    """Model of the left/right ventricle and left/right atrium"""
+    """Model of the left/right ventricle and left/right atrium."""
 
     def __init__(self, info: ModelInfo) -> None:
 
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
-        """Left ventricle part"""
+        """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
-        """Right ventricle part"""
+        """Right ventricle part."""
         self.septum: Part = Part(name="Septum", part_type="septum")
-        """Septum"""
+        """Septum."""
 
         self.left_atrium: Part = Part(name="Left atrium", part_type="atrium")
-        """Left atrium part"""
+        """Left atrium part."""
         self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
-        """Right atrium part"""
+        """Right atrium part."""
 
         super().__init__(info)
 
@@ -1105,27 +1094,25 @@ class FourChamber(HeartModel):
 
 
 class FullHeart(HeartModel):
-    """Model of the left/right ventricle,  left/right atrium, aorta
-    and pulmonary artery
-    """
+    """Model of both ventricles, both atria, aorta and pulmonary artery."""
 
     def __init__(self, info: ModelInfo) -> None:
 
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
-        """Left ventricle part"""
+        """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
-        """Right ventricle part"""
+        """Right ventricle part."""
         self.septum: Part = Part(name="Septum", part_type="septum")
-        """Septum"""
+        """Septum."""
         self.left_atrium: Part = Part(name="Left atrium", part_type="atrium")
-        """Left atrium part"""
+        """Left atrium part."""
         self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
-        """Right atrium part"""
+        """Right atrium part."""
 
         self.aorta: Part = Part(name="Aorta", part_type="artery")
-        """Aorta part"""
+        """Aorta part."""
         self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type="artery")
-        """Pulmonary artery part"""
+        """Pulmonary artery part."""
 
         super().__init__(info)
 

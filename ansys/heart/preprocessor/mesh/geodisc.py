@@ -1,3 +1,4 @@
+"""Module for computing paths."""
 import math
 from msilib.schema import Error
 from typing import Union
@@ -8,7 +9,7 @@ from vtk.numpy_interface import dataset_adapter as dsa  # type: ignore
 
 
 def get_closed_path(start_indices: Union[np.array, list], surface: vtk.vtkPolyData) -> np.array:
-    """Gets closed geodesic path on a surface from a list of start indices"""
+    """Get closed geodesic path on a surface from a list of start indices."""
     surf = dsa.WrapDataObject(surface)
 
     end_indices = np.append(start_indices[1:], start_indices[0])
@@ -29,7 +30,7 @@ def get_closed_path(start_indices: Union[np.array, list], surface: vtk.vtkPolyDa
 
 
 def vtk_geodesic(input: vtk.vtkPolyData, start_idx: int, end_idx: int):
-    """Computes the geodesic path between two vertices on a vtkPolyData surface
+    """Compute the geodesic path between two vertices on a vtkPolyData surface.
 
     Parameters
     ----------
@@ -45,7 +46,6 @@ def vtk_geodesic(input: vtk.vtkPolyData, start_idx: int, end_idx: int):
     np.array(dtype = int)
         Array of indices which define the shortest path from start index to end index
     """
-
     dijkstra = vtk.vtkDijkstraGraphGeodesicPath()  # noqa
     dijkstra.SetInputData(input)
     dijkstra.SetStartVertex(start_idx)
@@ -61,9 +61,7 @@ def vtk_geodesic(input: vtk.vtkPolyData, start_idx: int, end_idx: int):
 
 
 def order_nodes_edgeloop(node_indices: np.array, node_coords: np.array) -> np.array:
-    """This orders the node indices such that the ordered
-    set of nodes forms a closed/continuos loop. This uses the closest
-    point as next point in the edge loop
+    """Order node indices to form closed/continuous loop.
 
     Parameters
     ----------
@@ -78,11 +76,10 @@ def order_nodes_edgeloop(node_indices: np.array, node_coords: np.array) -> np.ar
         Reordered list of node indices that form a edge loop
 
     Notes
-    ------
+    -----
     May not work if mesh density is very anisotropic and does
     not change gradually
     """
-
     num_nodes = len(node_indices)
 
     nodes_coords_to_use = node_coords[node_indices, :]
@@ -100,15 +97,14 @@ def order_nodes_edgeloop(node_indices: np.array, node_coords: np.array) -> np.ar
         idx_visited.append(next_idx)
         iters = iters + 1
         if iters > num_nodes:
-            raise Error("More iterations needed than expected - check impementation")
+            raise Error("More iterations needed than expected - check implementation")
 
     # remap to old numbering and return
     return node_indices[idx_visited]
 
 
 def sort_edgeloop_anti_clockwise(points_to_sort: np.array, reference_point: np.array) -> bool:
-    """Sorts the points that form a edgeloop in anti-clockwise
-    direction seen from the reference point.
+    """Sort the points of an edge-loop in anti-clockwise direction.
 
     Parameters
     ----------
@@ -121,11 +117,13 @@ def sort_edgeloop_anti_clockwise(points_to_sort: np.array, reference_point: np.a
     -------
     bool
         Flag indicating whether the point order should be reversed or not
+
     Note
     ----
     This only uses the first two points in the points array, but uses all
     points to compute the center of the sorted points that make up the edge
     loop
+
     """
     reverse_points = False
 
@@ -146,15 +144,13 @@ def sort_edgeloop_anti_clockwise(points_to_sort: np.array, reference_point: np.a
 
 
 def rodrigues_rot(P, n0, n1):
-    """
-    RODRIGUES ROTATION
+    """Rodrigues rotation.
+
+    Note
+    ----
     - Rotate given points based on a starting and ending vector
     - Axis k and angle of rotation theta given by vectors n0,n1
     P_rot = P*cos(theta) + (k x P)*sin(theta) + k*<k,P>*(1-cos(theta))
-    :param P:
-    :param n0:
-    :param n1:
-    :return:
     """
     # If P is only 1d array (coords of single point), fix it to be matrix
     if P.ndim == 1:
@@ -180,9 +176,7 @@ def rodrigues_rot(P, n0, n1):
 
 
 def carttopolar(x, y, x0=0, y0=0):
-    """
-    cartisian to polar coordinate system with origin shift to x0,y0
-    """
+    """Cartisian to polar coordinate system with origin shift to x0,y0."""
     x1 = x - x0
     y1 = y - y0
     r = np.sqrt(x1**2 + y1**2)
@@ -193,9 +187,7 @@ def carttopolar(x, y, x0=0, y0=0):
 
 
 def sort_aniclkwise(xy_list, x0=None, y0=None):
-    """
-    Sort points anti clockwise with x0 y0 as origin
-    """
+    """Sort points anti clockwise with x0 y0 as origin."""
     if x0 is None and y0 is None:
         (x0, y0) = np.mean(xy_list, axis=0).tolist()
     elif x0 is None:
@@ -221,11 +213,12 @@ def sort_aniclkwise(xy_list, x0=None, y0=None):
 
 
 def project_3d_points(p_set):
-    """
-    ref:
+    """Project points on representative plane.
+
+    Note
+    ----
+    Uses SVD to find representative plane:
     https://meshlogic.github.io/posts/jupyter/curve-fitting/fitting-a-circle-to-cluster-of-3d-points/
-    :param p_set:
-    :return:
     """
     # -------------------------------------------------------------------------------
     # (1) Fitting plane by SVD for the mean-centered data

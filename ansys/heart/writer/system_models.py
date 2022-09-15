@@ -1,33 +1,22 @@
-"""Module contains system model class
+"""Module contains system model class.
 
+Note
+----
 Valid models include:
 1. Open loop constant pre-after load
 2. Open-loop 3-element Windkessel
 3. Closed loop
+
 """
 
-# class Windkessel:
-#     """3-Element windkessel"""
-#     def __init__(self, Z, R, C):
-#         """Initializes a three-element windkessel"""
-
-# class SystemParameters:
-#   def __init__) -> None:
-#       pass
-
-
-# class SystemModel:
-#     def __init__(self, system_model_type: str) -> None:
-#         """Initializes a system model instance
-#         """
-
-
-#         return
 from ansys.dyna.keywords import keywords
 
 
 def windkessel_template():
-    """
+    """Windkessel template.
+
+    Note
+    ----
     p_pre          p_fem                 p_art
     o--|Rv|--->|---|FEM|-->|-------|Ra| --- o -----+
                                             |      |
@@ -214,8 +203,13 @@ def define_function_windkessel(
     constants: dict = {"Rv": 5.0e-6, "Ra": 1.0e-5, "Rp": 1.2e-4, "Ca": 2.5e4, "Pven": 2},
     initialvalues: dict = {"part_init": 8},
 ):
-    """Generates a Windkessel define function with given arguments. This function yields a formatted
-    define function with a constant pre-load and WK afterload"""
+    """Generate a Windkessel define function.
+
+    Note
+    ----
+    Yields a formatted define function with a constant pre-load and WK afterload.
+
+    """
     if implicit:
         implicit_flag = 1
     else:

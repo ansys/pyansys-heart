@@ -1,7 +1,7 @@
 """Logging module.
 
 This module supplies a general framework for logging in pyheartlib.
-This is adopted and modified from PyFluent
+This is adopted and modified from PyFluent.
 """
 
 import logging

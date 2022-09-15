@@ -1,3 +1,5 @@
+"""Model definitions."""
+
 # Dictionary of heart parts
 HEART_PARTS = {
     "Left ventricle": {

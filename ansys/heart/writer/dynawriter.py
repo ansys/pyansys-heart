@@ -1,4 +1,9 @@
-"""Contains class for writing dyna keywords based on the HeartModel
+"""Module contain. classes for writing LS-DYNA keywords based.
+
+Note
+----
+Uses a HeartModel (from ansys.heart.preprocessor.models).
+
 """
 import json
 import os
@@ -48,12 +53,10 @@ from vtk.numpy_interface import dataset_adapter as dsa  # noqa
 
 
 class BaseDynaWriter:
-    """BaseDynaWriter class which contains features essential
-    for all relevant LS-DYNA heart models
-    """
+    """Base class that contains essential features for all LS-DYNA heart models."""
 
     def __init__(self, model: HeartModel) -> None:
-        """Initializes writer by loading a HeartModel
+        """Initialize writer by loading a HeartModel.
 
         Parameters
         ----------
@@ -61,21 +64,20 @@ class BaseDynaWriter:
             HeartModel object which contains the necessary
             information for the writer, such as nodes and elements.
         """
-
         self.model = model
-        """Contains model information necessary for creating the LS-DYNA .k files"""
+        """Model information necessary for creating the LS-DYNA .k files."""
 
         self.kw_database = BaseDecks()
 
         # These are general attributes useful for keeping track of ids:
         self.max_node_id: int = 0
-        """Max node id"""
+        """Max node id."""
         self._used_part_ids: List[int] = []
 
         self.section_ids = []
-        """List of used section ids"""
+        """List of used section ids."""
         self.mat_ids = []
-        """List of used mat ids"""
+        """List of used mat ids."""
         # self.volume_mesh = {
         #     "nodes": np.empty(0),
         #     "tetra": np.empty(0),
@@ -83,7 +85,7 @@ class BaseDynaWriter:
         #     "point_data": {},
         # }
         self.volume_mesh = model.mesh
-        """Volume mesh information"""
+        """Volume mesh information."""
 
         # keeps track of some element id offsets
         self.id_offset = {
@@ -93,12 +95,12 @@ class BaseDynaWriter:
             "vector": 0,
             "element": {"solid": 0, "discrete": 0, "shell": 0},
         }
-        """Id offset for several relevant keywords"""
+        """Id offset for several relevant keywords."""
 
-        """List of .k files to include in main. This is derived from the Decks classes"""
+        """List of .k files to include in main. This is derived from the Decks classes."""
         self.include_files = []
 
-        """Load simulation parameters"""
+        """Load simulation parameters."""
         from ansys.heart.writer.parameters import parameters
 
         self.parameters = parameters
@@ -114,7 +116,7 @@ class BaseDynaWriter:
         return
 
     def _update_node_db(self):
-        """Adds nodes to the Node database"""
+        """Add nodes to the Node database."""
         LOGGER.debug("Updating node keywords...")
         node_kw = keywords.Node()
         node_kw = add_nodes_to_kw(self.model.mesh.nodes, node_kw)
@@ -124,10 +126,7 @@ class BaseDynaWriter:
         return
 
     def _update_parts_db(self):
-        """Loops over parts defined in the model and
-        creates keywords
-        """
-
+        """Loop over parts defined in the model and creates keywords."""
         LOGGER.debug("Updating part keywords...")
         # add parts with a dataframe
 
@@ -158,9 +157,12 @@ class BaseDynaWriter:
         return
 
     def _update_solid_elements_db(self):
-        """Creates Solid ortho elements for all cavities.
-        Each cavity contains one myocardium which consists corresponds
-        to one part.
+        """Create Solid ortho elements for all cavities.
+
+        Note
+        ----
+        Each cavity contains one myocardium.
+
         """
         LOGGER.debug("Updating solid element keywords...")
 
@@ -198,8 +200,7 @@ class BaseDynaWriter:
         return
 
     def _update_segmentsets_db(self):
-        """Updates the segment set database"""
-
+        """Update the segment set database."""
         # NOTE 0: add all surfaces as segment sets
         # NOTE 1: need to more robustly check segids that are already used?
 
@@ -209,9 +210,7 @@ class BaseDynaWriter:
             surface_id = self.get_unique_segmentset_id()
             cavity.surface.id = surface_id
             kw = create_segment_set_keyword(
-                segments=cavity.surface.faces + 1,
-                segid=cavity.surface.id,
-                title=cavity.name,
+                segments=cavity.surface.faces + 1, segid=cavity.surface.id, title=cavity.name,
             )
             # append this kw to the segment set database
             self.kw_database.segment_sets.append(kw)
@@ -221,9 +220,7 @@ class BaseDynaWriter:
             for surface in part.surfaces:
                 surface.id = self.get_unique_segmentset_id()
                 kw = create_segment_set_keyword(
-                    segments=surface.faces + 1,
-                    segid=surface.id,
-                    title=surface.name,
+                    segments=surface.faces + 1, segid=surface.id, title=surface.name,
                 )
                 # append this kw to the segment set database
                 self.kw_database.segment_sets.append(kw)
@@ -231,7 +228,7 @@ class BaseDynaWriter:
         return
 
     def _update_nodesets_db(self, remove_duplicates: bool = True):
-        """Updates the node set database"""
+        """Update the node set database."""
         # formats endo, epi- and septum nodeset keywords. Do for all surfaces and caps
 
         surface_ids = [s.id for p in self.model.parts for s in p.surfaces]
@@ -260,7 +257,7 @@ class BaseDynaWriter:
             self.kw_database.node_sets.extend(kws_surface)
 
     def _get_unique_id(self, keyword: str, return_used_ids: bool = False) -> int:
-        """Gets unique id of given keyword
+        """Get unique id of given keyword.
 
         Parameters
         ----------
@@ -288,31 +285,31 @@ class BaseDynaWriter:
             return np.max(used_ids) + 1
 
     def get_unique_part_id(self) -> int:
-        """Suggests a unique non-used part id"""
+        """Suggest a unique non-used part id."""
         return self._get_unique_id("PART")
 
     def get_unique_mat_id(self) -> int:
-        """Suggests a unique non-used material id"""
+        """Suggest a unique non-used material id."""
         return self._get_unique_id("MAT")
 
     def get_unique_section_id(self) -> int:
-        """Suggests a unique non-used section id"""
+        """Suggest a unique non-used section id."""
         return self._get_unique_id("SECTION")
 
     def get_unique_segmentset_id(self) -> int:
-        """Suggests a unique non-used segment set id"""
+        """Suggest a unique non-used segment set id."""
         return self._get_unique_id("SET_SEGMENT")
 
     def get_unique_nodeset_id(self) -> int:
-        """Suggests a unique non-used node set id"""
+        """Suggest a unique non-used node set id."""
         return self._get_unique_id("SET_NODE")
 
     def get_unique_curve_id(self) -> int:
-        """Suggests a unique curve-id"""
+        """Suggest a unique curve-id."""
         return self._get_unique_id("DEFINE_CURVE")
 
     def _get_list_of_includes(self):
-        """Gets a list of files to include in main.k. Omit any empty decks"""
+        """Get a list of files to include in main.k. Omit any empty decks."""
         for deckname, deck in vars(self.kw_database).items():
             if deckname == "main":
                 continue
@@ -324,7 +321,7 @@ class BaseDynaWriter:
         return
 
     def _add_includes(self):
-        """Adds *INCLUDE keywords"""
+        """Add *INCLUDE keywords."""
         for include_file in self.include_files:
             filename_to_include = include_file + ".k"
             self.kw_database.main.append(keywords.Include(filename=filename_to_include))
@@ -332,8 +329,7 @@ class BaseDynaWriter:
         return
 
     def export_databases(self, export_directory: str):
-        """Exports each of non-empty databases to a specified directory"""
-
+        """Export each of non-empty databases to a specified directory."""
         if not export_directory:
             export_directory = self.model.info.working_directory
 
@@ -374,7 +370,7 @@ class BaseDynaWriter:
         return
 
     def _export_cavity_segmentsets(self, export_directory: str):
-        """Exports the cavity segment sets to separate files"""
+        """Export the cavity segment sets to separate files."""
         cavities = [part.cavity for part in self.model.parts if part.cavity]
         for cavity in cavities:
             filepath = os.path.join(
@@ -385,7 +381,7 @@ class BaseDynaWriter:
         return
 
     def _keep_ventricles(self):
-        """Removes any non-ventricular parts"""
+        """Remove any non-ventricular parts."""
         # NOTE: Could move "remove part" method to model
         LOGGER.warning("Just keeping ventricular-parts for fiber generation")
         parts_to_keep = ["Left ventricle", "Right ventricle", "Septum"]
@@ -396,6 +392,7 @@ class BaseDynaWriter:
         return
 
     def get_apex_left(self):
+        """Get apex of left ventricle cavity."""
         # collect relevant node and segment sets.
         # node set: apex, base
         # node set: endocardium, epicardium
@@ -436,7 +433,7 @@ class BaseDynaWriter:
         return node_apex_left
 
     def get_apex_right(self):
-
+        """Get apex of right ventricle cavity."""
         node_apex_right = np.empty(0, dtype=int)
         if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             node_apex_right = self.model.right_ventricle.apex_points[0].node_id
@@ -469,17 +466,16 @@ class BaseDynaWriter:
 
 
 class MechanicsDynaWriter(BaseDynaWriter):
-    """Derived from BaseDynaWriter and derives all keywords relevant
-    for simulations involving mechanics"""
+    """Class for preparing the input for a mechanics LS-DYNA simulation."""
 
     def __init__(self, model: HeartModel, system_model_name: str = "ClosedLoop") -> None:
         super().__init__(model)
 
         self.kw_database = MechanicsDecks()
-        """Collection of keyword decks relevant for mechanics"""
+        """Collection of keyword decks relevant for mechanics."""
 
         self.system_model_name = system_model_name
-        """Name of system model to use"""
+        """Name of system model to use."""
 
         # Depending on the system model specified give list of parameters
 
@@ -487,9 +483,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
     @property
     def system_model_name(self):
-        """System model name. Valid options include:
+        """System model name.
+
+        Note
+        ----
+        Valid options include:
         ["ConstantPreloadWindkesselAfterload",
-        "ClosedLoop]"""
+        "ClosedLoop].
+
+        """
         return self._system_model
 
     @system_model_name.setter
@@ -502,10 +504,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._system_model = value
 
     def update(self):
-        """Formats the keywords and stores these in the
-        respective keyword databases
-        """
-
+        """Update the keyword database."""
         self._update_main_db()
         self._update_node_db()
         self._update_parts_db()
@@ -529,7 +528,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def export(self, export_directory: str):
-        """Writes the model to files"""
+        """Write the model to files."""
         tstart = time.time()
         LOGGER.debug("Writing all LS-DYNA .k files...")
 
@@ -561,10 +560,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _update_main_db(self, add_damping: bool = True):
-        """Updates the main .k file
+        """Update the main .k file.
+
         Note
-        -----
-        Consider using a settings (json?) file as input
+        ----
+        Consider using a settings (json?) file as input.
+
         """
         LOGGER.debug("Updating main keywords...")
 
@@ -595,7 +596,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _update_node_db(self):
-        """Adds nodes to the Node database"""
+        """Add nodes to the NODE database."""
         LOGGER.debug("Updating node keywords...")
         node_kw = keywords.Node()
         node_kw = add_nodes_to_kw(self.model.mesh.nodes, node_kw)
@@ -605,10 +606,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _update_parts_db(self):
-        """Loops over parts defined in the model and
-        creates keywords
-        """
-
+        """Loop over parts defined in the model and create keywords."""
         LOGGER.debug("Updating part keywords...")
         # add parts with a dataframe
 
@@ -639,9 +637,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _update_solid_elements_db(self, add_fibers: bool = True):
-        """Creates Solid ortho elements for all cavities.
-        Each cavity contains one myocardium which consists corresponds
-        to one part.
+        """Create Solid ortho elements for all cavities.
+
+        Note
+        ----
+        Each cavity contains one myocardium.
+
         """
         LOGGER.debug("Updating solid element keywords...")
 
@@ -721,9 +722,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         dtmax: float = 0.01,
         simulation_type: str = "quasi-static",
     ):
-        """Adds solution controls, output controls and other solver settings
-        as keywords
-        """
+        """Add solution controls, output controls and solver settings."""
         # add termination keywords
         self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=dtmin))
 
@@ -758,11 +757,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         time = [0, prefill_time, prefill_time + dtmax, end_time]
         step = [5 * dtmax, 5 * dtmax, dtmin, dtmax]
         kw_curve = create_define_curve_kw(
-            x=time,
-            y=step,
-            curve_name="time step control",
-            curve_id=lcid,
-            lcint=0,
+            x=time, y=step, curve_name="time step control", curve_id=lcid, lcint=0,
         )
         self.kw_database.main.append(kw_curve)
         self.kw_database.main.append(
@@ -782,7 +777,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _add_export_controls(self, dt_output_d3plot: float = 0.05, dt_output_icvout: float = 0.001):
-        """Adds solution controls to the main simulation
+        """Add solution controls to the main simulation.
 
         Parameters
         ----------
@@ -814,11 +809,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         ]
         step = [10 * dt_output_d3plot, 10 * dt_output_d3plot, dt_output_d3plot, dt_output_d3plot]
         kw_curve = create_define_curve_kw(
-            x=time,
-            y=step,
-            curve_name="d3plot out control",
-            curve_id=lcid,
-            lcint=0,
+            x=time, y=step, curve_name="d3plot out control", curve_id=lcid, lcint=0,
         )
 
         self.kw_database.main.append(kw_curve)
@@ -831,7 +822,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _add_damping(self):
-        """Adds damping to the main file"""
+        """Add damping to the main file."""
         lcid_damp = self.get_unique_curve_id()
 
         kw_damp = keywords.DampingGlobal(lcid=lcid_damp)
@@ -849,8 +840,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _update_segmentsets_db(self):
-        """Updates the segment set database"""
-
+        """Update the segment set database."""
         # NOTE 0: add all surfaces as segment sets
         # NOTE 1: need to more robustly check segids that are already used?
 
@@ -860,9 +850,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             surface_id = self.get_unique_segmentset_id()
             cavity.surface.id = surface_id
             kw = create_segment_set_keyword(
-                segments=cavity.surface.faces + 1,
-                segid=cavity.surface.id,
-                title=cavity.name,
+                segments=cavity.surface.faces + 1, segid=cavity.surface.id, title=cavity.name,
             )
             # append this kw to the segment set database
             self.kw_database.segment_sets.append(kw)
@@ -872,9 +860,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             for surface in part.surfaces:
                 surface.id = self.get_unique_segmentset_id()
                 kw = create_segment_set_keyword(
-                    segments=surface.faces + 1,
-                    segid=surface.id,
-                    title=surface.name,
+                    segments=surface.faces + 1, segid=surface.id, title=surface.name,
                 )
                 # append this kw to the segment set database
                 self.kw_database.segment_sets.append(kw)
@@ -885,15 +871,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
             segid = self.get_unique_segmentset_id()
             setattr(cap, "seg_id", segid)
             segset_kw = create_segment_set_keyword(
-                segments=cap.triangles + 1,
-                segid=cap.seg_id,
-                title=cap.name,
+                segments=cap.triangles + 1, segid=cap.seg_id, title=cap.name,
             )
             self.kw_database.segment_sets.append(segset_kw)
         return
 
     def _update_nodesets_db(self, remove_duplicates: bool = True):
-        """Updates the node set database"""
+        """Update the node set database."""
         # formats endo, epi- and septum nodeset keywords. Do for all surfaces and caps
 
         surface_ids = [s.id for p in self.model.parts for s in p.surfaces]
@@ -939,8 +923,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self.kw_database.node_sets.extend(kws_surface)
 
     def _update_material_db(self, add_active: bool = True):
-        """Updates the database of material keywords"""
-
+        """Update the database of material keywords."""
         act_curve_id = self.get_unique_curve_id()
 
         for part in self.model.parts:
@@ -1009,7 +992,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _add_cap_bc(self, bc_type: str):
-        """Adds boundary condition to the cap.
+        """Add boundary condition to the cap.
 
         Parameters
         ----------
@@ -1099,23 +1082,19 @@ class MechanicsDynaWriter(BaseDynaWriter):
             for cap in caps:
                 if cap.name in caps_to_use:
                     self._add_springs_cap_edge(
-                        cap,
-                        part_id,
-                        scale_factor_normal,
-                        scale_factor_radial,
+                        cap, part_id, scale_factor_normal, scale_factor_radial,
                     )
 
         return
 
     def _add_springs_cap_edge(
-        self,
-        cap: Cap,
-        part_id: int,
-        scale_factor_normal: float,
-        scale_factor_radial: float,
+        self, cap: Cap, part_id: int, scale_factor_normal: float, scale_factor_radial: float,
     ):
-        """Adds springs to the cap nodes and appends these
-        to the boundary condition database
+        """Add springs to the cap nodes.
+
+        Note
+        ----
+        Appends these to the boundary condition database.
         """
         # -------------------------------------------------------------------
         LOGGER.debug("Adding spring b.c. for cap: %s" % cap.name)
@@ -1173,9 +1152,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # add sd direction radial to nodes
         sd_orientation_radial_kw = create_define_sd_orientation_kw(
-            vectors=sd_orientations_radial,
-            vector_id_offset=self.id_offset["vector"],
-            iop=0,
+            vectors=sd_orientations_radial, vector_id_offset=self.id_offset["vector"], iop=0,
         )
 
         vector_ids_radial = sd_orientation_radial_kw.vectors["vid"].to_numpy()
@@ -1222,12 +1199,16 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _add_pericardium_bc(self):
-        """Adds the pericardium. Uses the universal ventricular longitudinal coordinate
+        """Add the pericardium.
+
+        Note
+        ----
+        Uses the universal ventricular longitudinal coordinate
         and a sigmoid penalty function. Strocchi et al 2020 doi: 10.1016/j.jbiomech.2020.109645.
         """
 
         def _sigmoid(z):
-            """sigmoid function to scale spring coefficient"""
+            """Sigmoid function to scale spring coefficient."""
             return 1 / (1 + np.exp(-z))
 
         # compute penalty function
@@ -1379,8 +1360,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _update_cap_elements_db(self):
-        """Updates the database of shell elements. Loops over all
-        the defined caps/valves
+        """Update the database of shell elements.
+
+        Note
+        ----
+        Loops over all the defined caps/valves.
         """
         # create part for each closing cap
         # used_partids = get_list_of_used_ids(self.kw_database.parts, "PART")
@@ -1402,11 +1386,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         )
 
         section_kw = keywords.SectionShell(
-            secid=section_id,
-            elform=4,
-            shrf=0.8333,
-            nip=3,
-            t1=self.parameters["Cap"]["Thickness"],
+            secid=section_id, elform=4, shrf=0.8333, nip=3, t1=self.parameters["Cap"]["Thickness"],
         )
 
         self.kw_database.cap_elements.append(material_kw)
@@ -1445,9 +1425,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 continue
 
             shell_kw = create_element_shell_keyword(
-                shells=cap.triangles + 1,
-                part_id=cap.pid,
-                id_offset=shell_id_offset,
+                shells=cap.triangles + 1, part_id=cap.pid, id_offset=shell_id_offset,
             )
 
             self.kw_database.cap_elements.append(shell_kw)
@@ -1457,7 +1435,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _update_controlvolume_db(self):
-        """Prepares the keywords for the control volume feature"""
+        """Prepare the keywords for the control volume feature."""
         # NOTE: Assumes cavity id is reserved for combined
         # segment set
 
@@ -1502,7 +1480,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _update_system_model(self):
-        """Updates json system model settings"""
+        """Update json system model settings."""
         model_type = self.model.info.model_type
 
         # closed loop uses a custom executable
@@ -1513,16 +1491,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
             if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
                 file_path = os.path.join(
-                    Path(__file__).parent.absolute(),
-                    "templates",
-                    "system_model_settings_bv.json",
+                    Path(__file__).parent.absolute(), "templates", "system_model_settings_bv.json",
                 )
 
             elif isinstance(self.model, LeftVentricle):
                 file_path = os.path.join(
-                    Path(__file__).parent.absolute(),
-                    "templates",
-                    "system_model_settings_lv.json",
+                    Path(__file__).parent.absolute(), "templates", "system_model_settings_lv.json",
                 )
 
             fid = open(file_path)
@@ -1581,8 +1555,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _add_enddiastolic_pressure_bc(self, pressure_lv: float = 1, pressure_rv: float = 1):
-        """Adds end diastolic pressure boundary condition on the left and right endocardium"""
-
+        """Add end diastolic pressure boundary condition on the left and right endocardium."""
         # create unit load curve
         load_curve_id = self.get_unique_curve_id()
         load_curve_kw = create_define_curve_kw(
@@ -1616,26 +1589,28 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
 
 class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
-    """Derived from MechanicsDynaWriter and consequently derives all keywords relevant
-    for simulations involving mechanics. This class does not use write the
+    """
+    Class for preparing the input for a stress-free LS-DYNA simulation.
+
+    Note
+    ----
+    Derived from MechanicsDynaWriter and consequently derives all keywords relevant
+    for simulations involving mechanics. This class does not write the
     control volume keywords but adds the keyword for computing the stress
-    free configuration based on left/right cavity pressures instead"""
+    free configuration based on left/right cavity pressures instead.
+
+    """
 
     def __init__(self, model: HeartModel) -> None:
         super().__init__(model)
 
         self.kw_database = MechanicsDecks()
-        """Collection of keyword decks relevant for mechanics"""
+        """Collection of keyword decks relevant for mechanics."""
 
         return
 
     def update(self):
-        """Formats the keywords and stores these in the
-        respective keyword databases. Overwrites the update method
-        of MechanicsDynaWriter such that it yields a valid input deck
-        for a zero-pressure simulation
-        """
-
+        """Update the keyword database."""
         self._update_main_db(add_damping=False)
 
         self.kw_database.main.title = self.model.info.model_type + " zero-pressure"
@@ -1669,7 +1644,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         return
 
     def export(self, export_directory: str):
-        """Writes the model to files"""
+        """Write the model to files."""
         tstart = time.time()
         LOGGER.debug("Writing all LS-DYNA .k files...")
 
@@ -1691,7 +1666,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         return
 
     def _add_export_controls(self, dt_output_d3plot: float = 0.5):
-        """Rewrite method for zerop export
+        """Rewrite method for zerop export.
 
         Parameters
         ----------
@@ -1716,12 +1691,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         return
 
     def _add_solution_controls(self, scale_time=1):
-        """
-        Rewrite method for the zerop simulation
-        Returns
-        -------
-
-        """
+        """Rewrite method for the zerop simulation."""
         self.kw_database.main.append(keywords.ControlTermination(endtim=1.0 * scale_time))
 
         self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
@@ -1758,7 +1728,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         return
 
     def _add_control_reference_configuration(self):
-        """Adds control reference configuration keyword to main"""
+        """Add control reference configuration keyword to main."""
         LOGGER.debug("Adding *CONTROL_REFERENCE_CONFIGURATION to main.k")
         kw = keywords.ControlReferenceConfiguration(maxiter=3, target="nodes.k", method=2, tol=5)
 
@@ -1810,16 +1780,16 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
 
 class FiberGenerationDynaWriter(MechanicsDynaWriter):
+    """Class for preparing the input for a fiber-generation LS-DYNA simulation."""
+
     def __init__(self, model: HeartModel) -> None:
         super().__init__(model)
 
         self.kw_database = FiberGenerationDecks()
-        """Collection of keywords relevant for fiber generation
-        """
+        """Collection of keywords relevant for fiber generation."""
 
     def update(self):
-        """Updates keyword database for Fiber generation: overwrites the inherited function"""
-
+        """Update keyword database for Fiber generation: overwrites the inherited function."""
         ##
         self._update_main_db()  # needs updating
 
@@ -1846,7 +1816,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         return
 
     def export(self, export_directory: str):
-        """Writes the model to files"""
+        """Write the model to files."""
         tstart = time.time()
         LOGGER.debug("Writing all LS-DYNA .k files...")
 
@@ -1865,7 +1835,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         return
 
     def _update_material_db(self):
-        """Adds simple linear elastic and orthotropic EM material for each defined part"""
+        """Add simple linear elastic and orthotropic EM material for each defined part."""
         # collect myocardium and septum parts
         ventricles = [part for part in self.model.parts if "ventricle" in part.name]
         if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
@@ -1901,8 +1871,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             )
 
     def _update_ep_settings(self):
-        """Adds the settings for the electrophysiology solver"""
-
+        """Add the settings for the electrophysiology solver."""
         self.kw_database.ep_settings.append(
             keywords.EmControl(
                 emsol=11, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
@@ -1922,8 +1891,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         return
 
     def _update_create_fibers(self):
-        """Updates the keywords for fiber generation"""
-
+        """Update the keywords for fiber generation."""
         # collect relevant node and segment sets.
         # node set: apex, base
         # node set: endocardium, epicardium
@@ -1986,17 +1954,13 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             LOGGER.warning("Model type %s in development " % self.model.info.model_type)
 
             # Define part set for myocardium
-            part_list1_kw = keywords.SetPartList(
-                sid=1,
-            )
+            part_list1_kw = keywords.SetPartList(sid=1,)
             part_list1_kw.parts._data = myocardium_part_ids
             part_list1_kw.options["TITLE"].active = True
             part_list1_kw.title = "myocardium_all"
 
             self.kw_database.create_fiber.extend(
-                [
-                    part_list1_kw,
-                ]
+                [part_list1_kw,]
             )
 
             # combine node sets endocardium uing *SET_NODE_ADD:
@@ -2077,17 +2041,13 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             septum_part_ids = [self.model.get_part("Septum").pid]
 
             # Define part set for myocardium
-            part_list1_kw = keywords.SetPartList(
-                sid=1,
-            )
+            part_list1_kw = keywords.SetPartList(sid=1,)
             part_list1_kw.parts._data = myocardium_part_ids
             part_list1_kw.options["TITLE"].active = True
             part_list1_kw.title = "myocardium_all"
 
             # Define part set for septum
-            part_list2_kw = keywords.SetPartList(
-                sid=2,
-            )
+            part_list2_kw = keywords.SetPartList(sid=2,)
             part_list2_kw.options["TITLE"].active = True
             part_list2_kw.title = "septum"
             part_list2_kw.parts._data = septum_part_ids
@@ -2207,16 +2167,16 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
 
 class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
+    """Class for preparing the input for a Purkinje LS-DYNA simulation."""
+
     def __init__(self, model: HeartModel) -> None:
         super().__init__(model)
 
         self.kw_database = PurkinjeGenerationDecks()
-        """Collection of keywords relevant for Purkinje generation
-        """
+        """Collection of keywords relevant for Purkinje generation."""
 
     def update(self):
-        """Updates keyword database for Purkinje generation: overwrites the inherited function"""
-
+        """Update keyword database - overwrites the inherited function."""
         ##
         self._update_main_db()  # needs updating
 
@@ -2243,7 +2203,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         return
 
     def export(self, export_directory: str):
-        """Writes the model to files"""
+        """Write the model to files."""
         tstart = time.time()
         LOGGER.debug("Writing all LS-DYNA .k files...")
 
@@ -2262,7 +2222,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         return
 
     def _update_material_db(self):
-        """Adds simple linear elastic material for each defined part"""
+        """Add simple linear elastic material for each defined part."""
         for part in self.model.parts:
             part.element_ids
             em_mat_id = part.pid
@@ -2289,8 +2249,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
             )
 
     def _update_ep_settings(self):
-        """Adds the settings for the electrophysiology solver"""
-
+        """Add the settings for the electrophysiology solver."""
         self.kw_database.ep_settings.append(
             keywords.EmControl(
                 emsol=11, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
@@ -2302,8 +2261,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         return
 
     def _update_create_Purkinje(self):
-        """Updates the keywords for Purkinje generation"""
-
+        """Update the keywords for Purkinje generation."""
         # collect relevant node and segment sets.
         # node set: apex, base
         # node set: endocardium, epicardium
@@ -2474,7 +2432,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         return
 
     def _get_list_of_includes(self):
-        """Gets a list of files to include in main.k. Omit any empty decks"""
+        """Get a list of files to include in main.k. Omit any empty decks."""
         for deckname, deck in vars(self.kw_database).items():
             if deckname == "main_left_ventricle" or deckname == "main_right_ventricle":
                 continue
@@ -2486,7 +2444,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         return
 
     def _add_includes(self):
-        """Adds *INCLUDE keywords"""
+        """Add *INCLUDE keywords."""
         for include_file in self.include_files:
             filename_to_include = include_file + ".k"
             self.kw_database.main_left_ventricle.append(
@@ -2498,16 +2456,16 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
 
 
 class ElectrophysiologyDynaWriter(BaseDynaWriter):
+    """Class for preparing the input for a Electrophysiology LS-DYNA simulation."""
+
     def __init__(self, model: HeartModel) -> None:
         super().__init__(model)
 
         self.kw_database = ElectrophysiologyDecks()
-        """Collection of keywords relevant for Electrophysiology
-        """
+        """Collection of keywords relevant for Electrophysiology."""
 
     def update(self):
-        """Updates keyword database for Electrophysiology: overwrites the inherited function"""
-
+        """Update keyword database for Electrophysiology."""
         ##
         self._update_main_db()
 
@@ -2531,7 +2489,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         return
 
     def export(self, export_directory: str):
-        """Writes the model to files"""
+        """Write the model to files."""
         tstart = time.time()
         LOGGER.debug("Writing all LS-DYNA .k files...")
 
@@ -2550,7 +2508,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         return
 
     def _update_material_db(self):
-        """Adds simple linear elastic material for each defined part"""
+        """Add simple linear elastic material for each defined part."""
         for part in self.model.parts:
             ep_mid = part.pid
             self.kw_database.material.extend(
@@ -2576,7 +2534,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
 
     def _update_cellmodels(self):
-        """Adds simple linear elastic material for each defined part"""
+        """Add simple linear elastic material for each defined part."""
         for part in self.model.parts:
             ep_mid = part.pid
             self.kw_database.cell_models.extend(
@@ -2656,8 +2614,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
 
     def _update_ep_settings(self):
-        """Adds the settings for the electrophysiology solver"""
-
+        """Add the settings for the electrophysiology solver."""
         self.kw_database.ep_settings.append(
             keywords.EmControl(
                 emsol=11, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
@@ -2718,8 +2675,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         return
 
     def _update_solution_controls(
-        self,
-        end_time: float = 800,
+        self, end_time: float = 800,
     ):
         """Adds solution controls, output controls and other solver settings
         as keywords
@@ -2769,9 +2725,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         return
 
-
     # def _update_use_Purkinje(self):
-    #     """Updates the keywords for Purkinje generation"""
+    #     """Updates the keywords for Purkinje generation."""
 
     #     # collect relevant node and segment sets.
     #     # node set: apex, base
@@ -2891,6 +2846,57 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     #                 iedgeid=edge_id_start_right,
     #             )
     #         )
+
+    def _update_solution_controls(
+        self, end_time: float = 800,
+    ):
+        """Add solution controls, output controls and solver settings."""
+        # add termination keywords
+        self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=0.0))
+
+        self.kw_database.main.append(keywords.ControlTimestep(dtinit=1.0, dt2ms=1.0))
+        return
+
+    def _update_export_controls(self, dt_output_d3plot: float = 1.0):
+        """Add solution controls to the main simulation.
+
+        Parameters
+        ----------
+        dt_output_d3plot : float, optional
+            Writes full D3PLOT results at this time-step spacing, by default 0.05
+        dt_output_icvout : float, optional
+            Writes control volume results at this time-step spacing, by default 0.001
+
+        """
+        # frequency of full results
+        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
+
+        return
+
+    def _update_main_db(self):
+
+        return
+
+    def _get_list_of_includes(self):
+        """Get a list of files to include in main.k. Omit any empty decks."""
+        for deckname, deck in vars(self.kw_database).items():
+            if deckname == "main":
+                continue
+            # skip if no keywords are present in the deck
+            if len(deck.keywords) == 0:
+                LOGGER.debug("No keywords in deck: {0}".format(deckname))
+                continue
+            self.include_files.append(deckname)
+        return
+
+    def _add_includes(self):
+        """Add *INCLUDE keywords."""
+        for include_file in self.include_files:
+            filename_to_include = include_file + ".k"
+            self.kw_database.main.append(keywords.Include(filename=filename_to_include))
+
+        return
+
 
 if __name__ == "__main__":
     print("protected")

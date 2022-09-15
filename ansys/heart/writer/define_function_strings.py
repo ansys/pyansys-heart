@@ -1,4 +1,4 @@
-"""Collection of define function strings"""
+"""Collection of define function strings."""
 
 
 function1 = "\n".join(

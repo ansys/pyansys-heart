@@ -1,4 +1,4 @@
-"""Example to pre-process data from Strocchi2020 and Cristobal2021"""
+"""Example to pre-process data from Strocchi2020 and Cristobal2021."""
 import os
 import pathlib
 
@@ -7,15 +7,13 @@ from ansys.heart.workflow.support import run_preprocessor
 import ansys.heart.writer.dynawriter as writers
 
 if __name__ == "__main__":
-
-    """Full Heart example
+    """Full Heart example.
 
     1. Extracts simulation mesh
     2. Writes files for mechanics, zero-pressure, fiber generation, and purkinje
 
     Please change paths
     """
-
     path_to_case = os.path.join(
         pathlib.Path(__file__).parents[3], "downloads\\Strocchi2020\\01\\01.case"
     )

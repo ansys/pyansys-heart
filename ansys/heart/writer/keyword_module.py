@@ -1,5 +1,4 @@
-"""Module that contains some useful methods to help format the keywords
-"""
+"""Module for useful methods to help format LS-DYNA keywords."""
 
 from typing import Union
 
@@ -12,7 +11,7 @@ import pandas as pd
 
 
 def create_node_keyword(nodes: np.array, offset: int = 0) -> keywords.Node:
-    """Creates node keyword from numpy array of nodes
+    """Create node keyword from numpy array of nodes.
 
     Parameters
     ----------
@@ -36,10 +35,13 @@ def create_node_keyword(nodes: np.array, offset: int = 0) -> keywords.Node:
 
 
 def add_nodes_to_kw(nodes: np.array, node_kw: keywords.Node, offset: int = 0) -> keywords.Node:
-    """Adds nodes to an existing node keyword. If nodes are
-    already defined, this adds both the nodes in the previous
+    """Add nodes to an existing *NODE keyword.
+
+    Note
+    ----
+    If nodes are already defined, this adds both the nodes in the previous
     keyword and the specified array of nodes. Automatically computes
-    the index offset incase node_kw.nodes is not empty
+    the index offset in case node_kw.nodes is not empty.
 
     Parameters
     ----------
@@ -50,7 +52,6 @@ def add_nodes_to_kw(nodes: np.array, node_kw: keywords.Node, offset: int = 0) ->
     offset : int
         Node id offset
     """
-
     # get node id of last node:
     if not node_kw.nodes.empty and offset == 0:
         last_nid = node_kw.nodes.iloc[-1, 0]
@@ -74,7 +75,7 @@ def add_nodes_to_kw(nodes: np.array, node_kw: keywords.Node, offset: int = 0) ->
 def create_segment_set_keyword(
     segments: np.array, segid: int = 1, title: str = ""
 ) -> keywords.SetSegment:
-    """Creates a segment set keyword from an array with the segment set definition
+    """Create a segment set keyword from an array with the segment set definition.
 
     Parameters
     ----------
@@ -91,7 +92,6 @@ def create_segment_set_keyword(
     keywords.SetSegment
         Formatted segment set keyword
     """
-
     if segments.shape[1] < 3 or segments.shape[1] > 4:
         raise ValueError("expecting segments to have 3 or 4 columns")
 
@@ -116,7 +116,7 @@ def create_segment_set_keyword(
 def create_node_set_keyword(
     node_ids: np.ndarray, node_set_id: int = 1, title: str = "nodeset-title"
 ) -> custom_keywords.SetNodeList:
-    """Creates node set
+    """Create node set.
 
     Parameters
     ----------
@@ -164,9 +164,12 @@ def create_node_set_keyword(
 def create_element_shell_keyword(
     shells: np.array, part_id: int = 1, id_offset: int = 0
 ) -> keywords.ElementShell:
+    """Create element shell keyword.
 
-    """Creates element shell keyword from a numpy array of
-    elements where each row corresponds to an element.
+    Note
+    ----
+    From a numpy array of elements. Each row corresponds to an element.
+
     """
     num_shells = shells.shape[0]
 
@@ -179,7 +182,7 @@ def create_element_shell_keyword(
         element_type = "quad"
         columns = kw.elements.columns[0:6]
     else:
-        raise ValueError("Uknown type. Check size of shell array")
+        raise ValueError("Unknown type. Check size of shell array")
 
     # create element id array
     element_ids = np.arange(0, num_shells, 1) + 1 + id_offset
@@ -199,7 +202,7 @@ def create_element_solid_ortho_keyword(
     id_offset: int = 0,
     element_type="tetra",
 ) -> keywords.ElementSolidOrtho:
-    """Formats the *ELEMENT_SOLID_ORTHO keyword with the provided input
+    """Format the *ELEMENT_SOLID_ORTHO keyword with the provided input.
 
     Parameters
     ----------
@@ -221,7 +224,6 @@ def create_element_solid_ortho_keyword(
     keywords.ElementSolidOrtho
         Formatted *ELEMENT_SOLID_ORTHO keyword
     """
-
     kw = keywords.ElementSolidOrtho()
 
     df = pd.DataFrame(columns=kw.elements)
@@ -263,7 +265,7 @@ def create_define_curve_kw(
     curve_id: int = 1,
     lcint: int = 15000,
 ) -> keywords.DefineCurve:
-    """Creates define curve from x and y values"""
+    """Create define curve from x and y values."""
     kw = keywords.DefineCurve()
     kw.options["TITLE"].active = True
     kw.title = curve_name
@@ -280,7 +282,7 @@ def create_define_curve_kw(
 def create_define_sd_orientation_kw(
     vectors: np.array, vector_id_offset: int = 0, iop: int = 0
 ) -> keywords.DefineSdOrientation:
-    """Creates define SD orientation keyword
+    """Create define SD orientation keyword.
 
     Parameters
     ----------
@@ -316,7 +318,7 @@ def create_discrete_elements_kw(
     scale_factor: Union[np.array, float],
     element_id_offset: int = 0,
 ) -> keywords.ElementDiscrete:
-    """Creates discrete elements based on the input arguments
+    """Create discrete elements based on the input arguments.
 
     Parameters
     ----------
@@ -362,7 +364,11 @@ def create_discrete_elements_kw(
 
 
 def get_list_of_used_ids(keyword_db: Deck, keyword_str: str) -> np.ndarray:
-    """Gets array of used ids in the database. E.g. for *SECTION, *PART and *MAT ids
+    """Get array of used ids in the database.
+
+    Note
+    ----
+    E.g. for *SECTION, *PART and *MAT ids
 
     Parameters
     ----------
@@ -420,10 +426,13 @@ def get_list_of_used_ids(keyword_db: Deck, keyword_str: str) -> np.ndarray:
 def fast_element_writer(
     element_kw: Union[keywords.ElementSolidOrtho, keywords.ElementSolid], filename: str
 ):
-    """Fast implementation of the element writer. Use this as an alternative to
-    the dynalib writer
-    """
+    """Fast implementation of the element writer.
 
+    Note
+    ----
+    Use this as an alternative to the dynalib writer
+
+    """
     # TODO: generalize this writer
 
     if element_kw.subkeyword == "SOLID":
@@ -501,7 +510,7 @@ def fast_element_writer(
 
 
 def example_performance():
-
+    """Test performance of regular vs. improved keyword writer."""
     import time as time
 
     from ansys.dyna import keywords

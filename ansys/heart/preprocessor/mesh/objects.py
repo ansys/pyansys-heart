@@ -1,5 +1,8 @@
-"""Module that contains classes relevant for the mesh.
-Such as a Mesh object, Part object, Features, etc
+"""
+Module that contains classes relevant for the mesh.
+
+Such as a Mesh object, Part object, Features, etc.
+
 """
 import copy
 import os
@@ -16,7 +19,7 @@ import numpy as np
 
 
 class Mesh:
-    """Mesh class: contains nodal coordinates and element definitions
+    """Mesh class: contains nodal coordinates and element definitions.
 
     Notes
     -----
@@ -26,30 +29,30 @@ class Mesh:
     def __init__(self) -> None:
         # NOTE: Only tetrahedrons supported for the moment
         self.tetrahedrons: np.ndarray = None
-        """Tetrahedral volume elements of the mesh"""
+        """Tetrahedral volume elements of the mesh."""
         self.nodes: np.ndarray = None
-        """Nodes of the mesh"""
+        """Nodes of the mesh."""
         self.cell_data: dict = None
-        """Data per mesh cell/element"""
+        """Data per mesh cell/element."""
         self.point_data: dict = None
-        """Data per mesh point"""
+        """Data per mesh point."""
         self.faces: np.ndarray = None
-        """Faces that make up the tetrahedrons"""
+        """Faces that make up the tetrahedrons."""
         self.face_types: np.ndarray = None
-        """Type of face: 1: interior face, 2: boundary face, 3: interface face"""
+        """Type of face: 1: interior face, 2: boundary face, 3: interface face."""
         self.conn = {"c0": [], "c1": []}
-        """Face-tetra connectivity array"""
+        """Face-tetra connectivity array."""
         # TODO: just store used nodes in interfaces and boundaries
         # and add mapper to map from local to global (volume mesh) node ids
         self.interfaces: List[SurfaceMesh] = []
-        """List of surface meshes that make up the interface between different parts"""
+        """List of surface meshes that make up the interface between different parts."""
         self.boundaries: List[SurfaceMesh] = []
-        """List of boundary surface meshes within the part"""
+        """List of boundary surface meshes within the part."""
         pass
 
     @property
     def part_ids(self):
-        """Array of part ids indicating to which part the tetrahedron belongs
+        """Array of part ids indicating to which part the tetrahedron belongs.
 
         Notes
         -----
@@ -63,11 +66,11 @@ class Mesh:
 
     @property
     def boundary_names(self):
-        """Iterates over boundaries and returns their names"""
+        """Iterate over boundaries and returns their names."""
         return [b.name for b in self.boundaries]
 
     def read_mesh_file(self, filename: pathlib.Path) -> None:
-        """Reads mesh file"""
+        """Read mesh file."""
         mesh_vtk = vtkmethods.vtk_read_mesh_file(filename)
         (
             self.nodes,
@@ -79,7 +82,7 @@ class Mesh:
         return None
 
     def read_mesh_file_cristobal2021(self, filename: pathlib.Path) -> None:
-        """Reads mesh file - but modifies the fields to match data of Strocchi 2020"""
+        """Read mesh file - but modifies the fields to match data of Strocchi 2020."""
         mesh_vtk = vtkmethods.vtk_read_mesh_file(filename)
         name_array_mapping = [
             ["tags", "ID", "cell_data"],
@@ -116,8 +119,7 @@ class Mesh:
         return None
 
     def write_to_vtk(self, filename):
-        """Writes mesh to VTK file"""
-
+        """Write mesh to VTK file."""
         if self.cell_data != None:
             if not isinstance(self.cell_data, dict):
                 raise ValueError("Expecting cell data to be a dictionary")
@@ -146,7 +148,7 @@ class Mesh:
         values: List[int],
         field_name: str,
     ) -> None:
-        """Removes elements that satisfy a certain cell value of a specific field"""
+        """Remove elements that satisfy a certain cell value of a specific field."""
         mask = np.isin(self.cell_data[field_name], values)
         self.tetrahedrons = self.tetrahedrons[mask, :]
         for key in self.cell_data.keys():
@@ -155,7 +157,7 @@ class Mesh:
         return
 
     def establish_connectivity(self):
-        """Establishes the connetivity of the tetrahedrons"""
+        """Establish the connetivity of the tetrahedrons."""
         self.faces, self.conn["c0"], self.conn["c1"] = connect.face_tetra_connectivity(
             self.tetrahedrons
         )
@@ -168,7 +170,7 @@ class Mesh:
     def get_mask_interface_faces(
         self, return_pairs: bool = False
     ) -> typing.Tuple[np.ndarray, List[int]]:
-        """Gets the (interface) faces between two parts"""
+        """Get the (interface) faces between two parts."""
         c0 = self.conn["c0"]
         c1 = self.conn["c1"]
         part_ids = self.part_ids
@@ -201,7 +203,7 @@ class Mesh:
         pairs: List[List[int]],
         pair_names: List[str],
     ) -> None:
-        """Adds the interfaces between the parts to the mesh"""
+        """Add the interfaces between the parts to the mesh."""
         part_ids = self.part_ids
         c0 = self.conn["c0"]
         c1 = self.conn["c1"]
@@ -240,7 +242,7 @@ class Mesh:
             self.interfaces.append(SurfaceMesh(name, faces, self.nodes))
 
     def smooth_interfaces(self):
-        """Smooths the interfaces between the different parts"""
+        """Smooth the interfaces between the different parts."""
         for interface in self.interfaces:
             interface.get_boundary_edges()
             node_ids_smoothed = interface.smooth_boundary_edges()
@@ -256,7 +258,7 @@ class Mesh:
         boundary_names: List[str] = [],
         add_all: bool = False,
     ):
-        """Adds boundary surfaces to the mesh object. One surface per part"""
+        """Add boundary surfaces to the mesh object. One surface per part."""
         part_ids = self.part_ids
         c0 = self.conn["c0"]
         c1 = self.conn["c1"]
@@ -272,7 +274,7 @@ class Mesh:
         return
 
     def get_surface_from_name(self, name: str = None):
-        """Returns a list of surfaces that match the given list of names
+        """Return a list of surfaces that match the given list of names.
 
         Notes
         -----
@@ -289,48 +291,48 @@ class Mesh:
 
 
 class Feature:
-    """Feature class"""
+    """Feature class."""
 
     def __init__(self, name: str = None) -> None:
         self.name = name
-        """Name of feature"""
+        """Name of feature."""
         self.type = None
-        """Type of feature"""
+        """Type of feature."""
         self.nsid: int = None
-        """Node set id associated with feature"""
+        """Node set id associated with feature."""
         self.pid: int = None
-        """Part id associated with the feature"""
+        """Part id associated with the feature."""
 
         pass
 
 
 class BoundaryEdges(Feature):
-    """Edges class"""
+    """Edges class."""
 
     def __init__(self, edges: np.ndarray = None) -> None:
         super().__init__()
         self.type = "edges"
-        """Feature type"""
+        """Feature type."""
 
         self.node_ids = None
-        """List of edges"""
+        """List of edges."""
         self.groups = None
-        """Grouped edges based on connectivity"""
+        """Grouped edges based on connectivity."""
 
 
 class EdgeGroup:
-    """Edge group class, contains info on connected edges"""
+    """Edge group class, contains info on connected edges."""
 
     def __init__(self, edges: np.ndarray = None, type: str = None) -> None:
         self.edges = edges
-        """Edges in edge group"""
+        """Edges in edge group."""
         self.type = type
-        """Type of edge group: 'open' or 'closed'"""
+        """Type of edge group: 'open' or 'closed'."""
         pass
 
 
 class SurfaceMesh(Feature):
-    """Surface class"""
+    """Surface class."""
 
     def __init__(
         self,
@@ -342,40 +344,40 @@ class SurfaceMesh(Feature):
         super().__init__(name)
 
         self.faces = faces
-        """Faces of surface"""
+        """Faces of surface."""
         self.nodes = copy.copy(nodes)  # shallow copy?
-        """Node coordinates"""
+        """Node coordinates."""
         self.type = "surface"
-        """Surface type"""
+        """Surface type."""
         self.boundary_edges: np.ndarray = np.empty((0, 2), dtype=int)
-        """Boundary edges"""
+        """Boundary edges."""
         self.edge_groups: List[EdgeGroup] = []
-        """Edge groups"""
+        """Edge groups."""
         self.id: int = sid
-        """ID of surface"""
+        """ID of surface."""
         self.nsid: int = None
-        """ID of corresponding set of nodes"""
+        """ID of corresponding set of nodes."""
 
     @property
     def node_ids(self):
-        """Global node ids - sorted by earliest occurence"""
+        """Global node ids - sorted by earliest occurrence."""
         _, idx = np.unique(self.faces.flatten(), return_index=True)
         node_ids = self.faces.flatten()[np.sort(idx)]
         return node_ids
 
     @property
     def boundary_nodes(self):
-        """Global node ids of nodes on the boundary of the mesh (if any)"""
+        """Global node ids of nodes on the boundary of the mesh (if any)."""
         _, idx = np.unique(self.boundary_edges.flatten(), return_index=True)
         node_ids = self.boundary_edges.flatten()[np.sort(idx)]
         return node_ids
 
     def compute_centroid(self) -> np.ndarray:
-        """Computes the centroid of the surface"""
+        """Compute the centroid of the surface."""
         return np.mean(self.nodes[np.unique(self.faces), :], axis=0)
 
     def compute_bounding_box(self) -> Union[np.ndarray, float]:
-        """Computes the bounding box of the surface"""
+        """Compute the bounding box of the surface."""
         node_ids = np.unique(self.faces)
         nodes = self.nodes[node_ids, :]
         dim = nodes.shape[1]
@@ -386,7 +388,7 @@ class SurfaceMesh(Feature):
         return bounding_box, volume
 
     def get_boundary_edges(self):
-        """Gets boundary edges (if any) of the surface and groups them by connectivity"""
+        """Get boundary edges (if any) of the surface and groups them by connectivity."""
         write_vtk = False
 
         self.boundary_edges = connect.get_free_edges(self.faces)
@@ -408,13 +410,13 @@ class SurfaceMesh(Feature):
         return self.edge_groups
 
     def separate_connected_regions(self):
-        """Uses vtk to get connected regions and separate into different surfaces"""
+        """Use vtk to get connected regions and separate into different surfaces."""
         region_ids = vtkmethods.get_connected_regions(self.nodes, self.faces)
 
         return region_ids
 
     def smooth_boundary_edges(self, window_size: int = 3) -> np.ndarray:
-        """Smooths the boundary edges if they are closed"""
+        """Smooth the boundary edges if they are closed."""
         if window_size % 2 != 1:
             raise ValueError("Please specify window size to be an uneven number")
 
@@ -453,7 +455,7 @@ class SurfaceMesh(Feature):
         return modified_nodes
 
     def write_to_stl(self, filename: pathlib.Path = None) -> None:
-        """Writes the surface to a vtk file"""
+        """Write the surface to a vtk file."""
         if not filename:
             filename = "_".join(self.name.lower().split()) + ".stl"
         if filename[-4:] != ".stl":
@@ -464,7 +466,7 @@ class SurfaceMesh(Feature):
         return
 
     def write_feature_edges_to_vtk(self, prefix: str = None, per_edge_group: bool = False) -> None:
-        """Writes the feature edges to a vtk file"""
+        """Write the feature edges to a vtk file."""
         edges = np.array((0, 2))
         for ii, edge_group in enumerate(self.edge_groups):
             edges = np.vstack([edges, edge_group.edges])
@@ -483,21 +485,21 @@ class SurfaceMesh(Feature):
 
 
 class Cavity(Feature):
-    """Cavity class"""
+    """Cavity class."""
 
     def __init__(self, surface: SurfaceMesh = None, centroid: np.ndarray = None, name=None) -> None:
         super().__init__(name)
         self.type = "cavity"
-        """Type"""
+        """Type."""
         self.surface: SurfaceMesh = surface
-        """Surface mesh making up the cavity"""
+        """Surface mesh making up the cavity."""
         self.centroid: np.ndarray = centroid
-        """Centroid of the cavity"""
+        """Centroid of the cavity."""
         self.volume: float = None
-        """Volume of the cavity"""
+        """Volume of the cavity."""
 
     def compute_volume(self) -> float:
-        """Computes the volume of the (enclosed) cavity.
+        """Compute the volume of the (enclosed) cavity.
 
         Notes
         -----
@@ -513,30 +515,30 @@ class Cavity(Feature):
         return self.volume
 
     def compute_centroid(self):
-        """Computes the centroid of the cavity"""
+        """Compute the centroid of the cavity."""
         self.centroid = np.mean(self.surface.nodes[np.unique(self.surface.faces), :], axis=0)
         return self.centroid
 
 
 class Cap(Feature):
-    """Cap class"""
+    """Cap class."""
 
     def __init__(self, name: str = None, node_ids: Union[List[int], np.ndarray] = []) -> None:
         super().__init__(name)
         self.node_ids = node_ids
-        """(Global) node ids of the cap"""
+        """(Global) node ids of the cap."""
         self.triangles = None
-        """Triangulation of cap"""
+        """Triangulation of cap."""
         self.normal = None
-        """Normal of cap"""
+        """Normal of cap."""
         self.centroid = None
-        """Centroid of cap"""
+        """Centroid of cap."""
         self.type = "cap"
-        """Type"""
+        """Type."""
         return
 
     def tessellate(self) -> np.ndarray:
-        """Forms triangles with the node ids"""
+        """Form triangles with the node ids."""
         ref_node = self.node_ids[0]
         num_triangles = self.node_ids.shape[0] - 1
         ref_node = np.ones(num_triangles, dtype=int) * ref_node
@@ -549,23 +551,23 @@ class Cap(Feature):
 
 
 class Point(Feature):
-    """Point class. Can be used to collect relevant points in the mesh"""
+    """Point class. Can be used to collect relevant points in the mesh."""
 
     def __init__(self, name: str = None, xyz: np.ndarray = None, node_id: int = None) -> None:
         super().__init__(name)
 
         self.xyz: np.ndarray = xyz
-        """XYZ Coordinates of point"""
+        """XYZ Coordinates of point."""
         self.node_id: int = node_id
-        """Global node id of point"""
+        """Global node id of point."""
 
 
 class Part:
-    """Part class"""
+    """Part class."""
 
     @property
     def _features(self) -> List[Feature]:
-        """Returns list of part features"""
+        """Return list of part features."""
         features = []
         for key, value in self.__dict__.items():
             attribute = getattr(self, key)
@@ -575,6 +577,7 @@ class Part:
 
     @property
     def surfaces(self) -> List[SurfaceMesh]:
+        """List of surfaces belonging to part."""
         surfaces = []
         for key, value in self.__dict__.items():
             if isinstance(value, SurfaceMesh):
@@ -583,6 +586,7 @@ class Part:
 
     @property
     def surface_names(self) -> List[str]:
+        """List of surface names belonging to part."""
         surface_names = []
         for key, value in self.__dict__.items():
             if isinstance(value, SurfaceMesh):
@@ -591,44 +595,43 @@ class Part:
 
     def __init__(self, name: str = None, part_type: str = None) -> None:
         self.name = name
-        """Name of the part"""
+        """Name of the part."""
         self.pid = None
-        """Part ID"""
+        """Part ID."""
         self.mid = None
-        """Material id associated with part"""
+        """Material id associated with part."""
         self.part_type = part_type
-        """Type of the part"""
+        """Type of the part."""
         self.tag_labels = None
-        """VTK tag labels used in this part"""
+        """VTK tag labels used in this part."""
         self.tag_ids = None
-        """VTK tag ids used in this part"""
+        """VTK tag ids used in this part."""
         self.element_ids: np.ndarray = np.empty((0, 4), dtype=int)
-        """Array holding element ids that make up this part"""
+        """Array holding element ids that make up this part."""
         self.caps: List[Cap] = []
-        """List of caps belonging to the part"""
+        """List of caps belonging to the part."""
         self.cavity: Cavity = None
-        """Cavity belonging to the part"""
+        """Cavity belonging to the part."""
 
         if self.part_type in ["ventricle"]:
             self.apex_points: List[Point] = []
-            """Points on apex"""
+            """Points on apex."""
 
         self._add_surfaces()
 
     def _add_surfaces(self):
-        """Adds surfaces to the part"""
-
+        """Add surfaces to the part."""
         if self.part_type in ["ventricle", "atrium"]:
             self.endocardium = SurfaceMesh("{0} endocardium".format(self.name))
-            """Endocardium"""
+            """Endocardium."""
             self.epicardium = SurfaceMesh("{0} epicardium".format(self.name))
-            """Epicardium"""
+            """Epicardium."""
             if self.part_type == "ventricle":
                 self.septum = SurfaceMesh("{0} septum".format(self.name))
-                """Septum surface"""
+                """Septum surface."""
         elif self.part_type in ["artery"]:
             self.wall = SurfaceMesh("{0} wall".format(self.name))
-            """Wall"""
+            """Wall."""
         return
 
     def _add_myocardium_part(self):

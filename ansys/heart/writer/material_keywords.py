@@ -1,9 +1,13 @@
-"""This uses dynalib to create some commonly used material cards and their
-default values. Uses inheritence.
+"""
+Use dynalib to create some commonly used material cards and their default values.
+
+Note
+----
 E.g.:
 Mat295
 Mat077
 MatNull
+
 """
 from ansys.dyna.keywords import keywords
 from ansys.heart.custom_logging import LOGGER
@@ -15,7 +19,7 @@ import pandas as pd
 
 
 class MaterialCap(keywords.MatNull):
-    """Material of the closing cap/valves
+    """Material of the closing cap/valves.
 
     Parameters
     ----------
@@ -28,7 +32,7 @@ class MaterialCap(keywords.MatNull):
 
 
 class MaterialAtrium(custom_keywords.Mat077H):
-    """Material for the atrium
+    """Material for the atrium.
 
     Parameters
     ----------
@@ -49,6 +53,8 @@ class MaterialAtrium(custom_keywords.Mat077H):
 
 
 class MaterialHGOMyocardium(keywords.Mat295):
+    """HGO Material model - derived from Mat295."""
+
     def __init__(self, mid: int = 1, iso_user=None, anisotropy_user=None, active_user=None):
 
         # Default parameters
@@ -114,7 +120,7 @@ def active_curve(
     endtime: float = 15,
     timestep: float = 1e-2,
 ):
-    """Computes various (normalized) curves used for the active module
+    """Compute various (normalized) curves used for the active module.
 
     Parameters
     ----------
@@ -184,7 +190,7 @@ if __name__ == "__main__":
         "itype": -1,
         "mu1": 34.9,
         "alpha1": 2,
-        "Comment": "Shoule be equivalent with MAT_077_H",
+        "Comment": "Should be equivalent with MAT_077_H",
     }
     kw = MaterialHGOMyocardium(mid=1, iso_user=dct_iso2)
     print(kw)

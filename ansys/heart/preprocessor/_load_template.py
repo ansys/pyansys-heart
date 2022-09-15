@@ -14,18 +14,18 @@ _environment = None
 
 
 def get_this_folder():
+    """Get folder of this file."""
     return Path(__file__).parent
 
 
 def get_loader():
+    """Get the loader."""
     template_folder = get_this_folder() / "templates"
     return jinja2.FileSystemLoader(str(template_folder.resolve()))
 
 
 def _jinja_environment():
-    """
-    Returns a shared Jinja environment to create templates from.
-    """
+    """Return a shared Jinja environment to create templates from."""
     global _environment
     if _environment is None:
         _environment = jinja2.Environment(
@@ -43,7 +43,7 @@ def _jinja_environment():
 
 def load_template(*name):
     """
-    Loads a template from the local template directory.
+    Load a template from the local template directory.
 
     Templates can be specified as a single filename, e.g.
     ``load_template('temp.txt')``, or loaded from subdirectories using e.g.

@@ -7,7 +7,7 @@ import ansys.fluent.core as pyfluent
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor import SC_EXE
 from ansys.heart.preprocessor._load_template import load_template
-import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5
+import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401
 from ansys.heart.preprocessor.mesh.objects import Cap
 import gmsh
 import numpy as np

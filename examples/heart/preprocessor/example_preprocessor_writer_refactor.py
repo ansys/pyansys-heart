@@ -21,6 +21,7 @@ if __name__ == "__main__":
         pathlib.Path(__file__).parents[3], "downloads\\Strocchi2020\\01\\01.case"
     )
     workdir = os.path.join(pathlib.Path(path_to_case).parent, "BiVentricle")
+
     path_to_model = os.path.join(workdir, "heart_model.pickle")
 
     use_preprocessor = False
@@ -43,8 +44,7 @@ if __name__ == "__main__":
             path_original_mesh=path_to_case,
             work_directory=workdir,
             path_to_model=path_to_model,
-            mesh_size=1.5,
-            add_blood_pool=False,
+            mesh_size=2.0,
         )
 
     # write LS-DYNA files

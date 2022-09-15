@@ -1,4 +1,4 @@
-name: CI
+name: Styling
 on:
   pull_request:
   push:

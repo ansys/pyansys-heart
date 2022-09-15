@@ -17,3 +17,8 @@ source = ["ansys.heart"]
 
 [tool.coverage.report]
 show_missing = true
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "."
+]

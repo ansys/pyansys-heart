@@ -10,84 +10,6 @@ import numpy as np
 """
 
 
-def _deprecated_fluenthdf5_to_vtk(hdf5_filename: str, vtk_filename: str):
-    """Converts Fluent hdf5 to vtk format
-
-    Parameters
-    ----------
-    hdf5filename : str
-        path to hdf5 file
-    vtkfilename : str
-        path to vtk file
-    """
-    add_surface = False
-
-    fid = h5py.File(hdf5_filename, "r")
-    mesh_group = get_mesh_group(fid)
-    num_cell_zones = len(mesh_group)
-
-    if num_cell_zones > 1:
-        raise NotImplementedError("Writing multiple cell zones not implemented yet")
-
-    for key in mesh_group.keys():
-        cell_zone_id = int(key)
-
-        face_group = get_face_group(mesh_group[key])
-        face_zone_info = get_face_zone_info(face_group)
-        tetrahedrons = face_group_to_tetrahedrons(face_group, face_zone_info[0])
-        face_zones = face_group_to_face_zones(face_group, face_zone_info[0], get_interior=False)
-
-        points = get_nodes_from_mesh_group(mesh_group[key])[0]
-
-        cells = []
-        cell_data = []
-        if add_surface:
-            for _, value in face_zones.items():
-                # logger.info(value)
-                cells.append(("triangle", value["faces"] - 1))
-                zoneids = np.ones(cells[-1][-1].shape[0], dtype=int) * value["zone-id"]
-                cell_data.append(zoneids)
-
-        cells.append(("tetra", tetrahedrons))
-
-        cell_data.append(np.ones(tetrahedrons.shape[0] * cell_zone_id))
-        cell_data = {"zone-id": cell_data}
-
-        # add triangles: disable
-        add_triangles = False  # this may cause some issues
-        if add_triangles:
-            # triangle_zones = ("triangle", [[0, 1, 2], [1, 3, 2]])
-            triangles = np.empty((0, 3))
-            zone_ids_all_triangles = np.empty(0)
-            for zone, value in face_zones.items():
-                num_faces = value["faces"].shape[0]
-                zone_ids = np.ones(num_faces, dtype=int) * value["zone-id"]
-                zone_ids_all_triangles = np.append(zone_ids_all_triangles, zone_ids)
-                triangles = np.vstack([triangles, value["faces"]])
-
-            # put in right format
-            triangles = ("triangle", triangles)
-            # append to cells
-            cells.append(triangles)
-
-            cell_data["zone-id"].append(zone_ids_all_triangles)
-
-        # write file
-        mesh = meshio.Mesh(
-            points=points,
-            cells=cells,
-            # ("triangle", tris-1 ),
-            # ("tetra", tetrahedrons - 1)
-            # ],
-            cell_data=cell_data,
-        )
-        mesh.write(vtk_filename)
-
-    fid.close()
-
-    return tetrahedrons, face_zones, points
-
-
 class FluentCellZone:
     """Class that stores information of the cell zone"""
 
@@ -374,7 +296,8 @@ class FluentMesh:
                 # note: in an edge case we may have an interior face that
                 # is connected to a cell where all the other faces are actually
                 # not of the interior.
-                # as a solution we can collect all faces first and consequently construct the tetrahedrons
+                # as a solution we can collect all faces first and consequently construct
+                # the tetrahedrons
                 face_ids = np.where(np.sum(mask, axis=1) != 1)[0]
                 for face_id in face_ids:
 
@@ -451,7 +374,87 @@ class FluentMesh:
         return tetrahedrons, cell_ids
 
 
-def get_mesh_group(fid: h5py.File) -> h5py.Group:
+def _deprecated_fluenthdf5_to_vtk(hdf5_filename: str, vtk_filename: str):
+    """Converts Fluent hdf5 to vtk format
+
+    Parameters
+    ----------
+    hdf5filename : str
+        path to hdf5 file
+    vtkfilename : str
+        path to vtk file
+    """
+    add_surface = False
+
+    fid = h5py.File(hdf5_filename, "r")
+    mesh_group = _deprecated_get_mesh_group(fid)
+    num_cell_zones = len(mesh_group)
+
+    if num_cell_zones > 1:
+        raise NotImplementedError("Writing multiple cell zones not implemented yet")
+
+    for key in mesh_group.keys():
+        cell_zone_id = int(key)
+
+        face_group = _deprecated_get_face_group(mesh_group[key])
+        face_zone_info = _deprecated_get_face_zone_info(face_group)
+        tetrahedrons = _deprecated_face_group_to_tetrahedrons(face_group, face_zone_info[0])
+        face_zones = _deprecated_face_group_to_face_zones(
+            face_group, face_zone_info[0], get_interior=False
+        )
+
+        points = _deprecated_get_nodes_from_mesh_group(mesh_group[key])[0]
+
+        cells = []
+        cell_data = []
+        if add_surface:
+            for _, value in face_zones.items():
+                # logger.info(value)
+                cells.append(("triangle", value["faces"] - 1))
+                zoneids = np.ones(cells[-1][-1].shape[0], dtype=int) * value["zone-id"]
+                cell_data.append(zoneids)
+
+        cells.append(("tetra", tetrahedrons))
+
+        cell_data.append(np.ones(tetrahedrons.shape[0] * cell_zone_id))
+        cell_data = {"zone-id": cell_data}
+
+        # add triangles: disable
+        add_triangles = False  # this may cause some issues
+        if add_triangles:
+            # triangle_zones = ("triangle", [[0, 1, 2], [1, 3, 2]])
+            triangles = np.empty((0, 3))
+            zone_ids_all_triangles = np.empty(0)
+            for zone, value in face_zones.items():
+                num_faces = value["faces"].shape[0]
+                zone_ids = np.ones(num_faces, dtype=int) * value["zone-id"]
+                zone_ids_all_triangles = np.append(zone_ids_all_triangles, zone_ids)
+                triangles = np.vstack([triangles, value["faces"]])
+
+            # put in right format
+            triangles = ("triangle", triangles)
+            # append to cells
+            cells.append(triangles)
+
+            cell_data["zone-id"].append(zone_ids_all_triangles)
+
+        # write file
+        mesh = meshio.Mesh(
+            points=points,
+            cells=cells,
+            # ("triangle", tris-1 ),
+            # ("tetra", tetrahedrons - 1)
+            # ],
+            cell_data=cell_data,
+        )
+        mesh.write(vtk_filename)
+
+    fid.close()
+
+    return tetrahedrons, face_zones, points
+
+
+def _deprecated_get_mesh_group(fid: h5py.File) -> h5py.Group:
     """Gets meshgroup from hdf5 file handle"""
     keys = list(fid.keys())
     if keys[0] != "meshes":
@@ -459,7 +462,7 @@ def get_mesh_group(fid: h5py.File) -> h5py.Group:
     return fid["meshes"]
 
 
-def get_face_group(group: h5py.Group) -> h5py.Group:
+def _deprecated_get_face_group(group: h5py.Group) -> h5py.Group:
     """Gets face zone group"""
 
     def find_faces(name):
@@ -470,7 +473,7 @@ def get_face_group(group: h5py.Group) -> h5py.Group:
     return face_group
 
 
-def get_face_zone_info(face_group: h5py.Group) -> List:
+def _deprecated_get_face_zone_info(face_group: h5py.Group) -> List:
     """Gets list of face zone names"""
     # get face zone ids
     face_zone_ids = np.array(face_group["zoneTopology/id"])
@@ -483,7 +486,7 @@ def get_face_zone_info(face_group: h5py.Group) -> List:
     return face_zone_names, face_zone_ids, face_zone_types
 
 
-def get_nodes_from_mesh_group(mesh_group: h5py.Group):
+def _deprecated_get_nodes_from_mesh_group(mesh_group: h5py.Group):
     """Gets nodes from the mesh group"""
 
     nodes = np.empty((0, 3), dtype=float)
@@ -495,7 +498,7 @@ def get_nodes_from_mesh_group(mesh_group: h5py.Group):
     return nodes, node_ids
 
 
-def face_group_to_face_zones(
+def _deprecated_face_group_to_face_zones(
     face_group: h5py.Group,
     face_zone_names: List[str],
     get_all_zones: bool = False,
@@ -526,8 +529,8 @@ def face_group_to_face_zones(
     faces_label = []
 
     # checks whether provided list of face zones is present in the face group
-    face_zone_names_1 = get_face_zone_info(face_group)[0]
-    face_zone_ids = get_face_zone_info(face_group)[1]
+    face_zone_names_1 = _deprecated_get_face_zone_info(face_group)[0]
+    face_zone_ids = _deprecated_get_face_zone_info(face_group)[1]
 
     idx_face_zones = []
     for ii, face_zone in enumerate(face_zone_names_1):
@@ -556,7 +559,9 @@ def face_group_to_face_zones(
     return faces_out
 
 
-def face_group_to_tetrahedrons(face_group: h5py.Group, face_zone_names: List[str]) -> np.array:
+def _deprecated_face_group_to_tetrahedrons(
+    face_group: h5py.Group, face_zone_names: List[str]
+) -> np.array:
     """ "Converts Fluent's face connectivity matrix to tetrahedron elements.
 
     Notes
@@ -665,7 +670,9 @@ def face_group_to_tetrahedrons(face_group: h5py.Group, face_zone_names: List[str
     return tetrahedrons - 1
 
 
-def face_group_to_tetrahedrons2(face_group: h5py.Group, face_zone_names: List[str]) -> np.array:
+def _deprecated_face_group_to_tetrahedrons2(
+    face_group: h5py.Group, face_zone_names: List[str]
+) -> np.array:
     """ "Converts Fluent's face connectivity matrix to tetrahedron elements.
 
     Notes
@@ -733,7 +740,8 @@ def face_group_to_tetrahedrons2(face_group: h5py.Group, face_zone_names: List[st
         c0c1 = np.array([face_group[subdir_c0], face_group[subdir_c1]]).T
 
         # np.savetxt(
-        #     "c0c1_func1_{}.txt".format(facezone_name.replace("interior-", "")), c0c1, delimiter=","
+        #     "c0c1_func1_{}.txt".format(
+        # facezone_name.replace("interior-", "")),c0c1, delimiter=","
         # )
 
         # exploit unique to find indices of face pairs
@@ -809,54 +817,3 @@ def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii"):
 
 if __name__ == "__main__":
     print("protected")
-
-    # fluenthdf5_to_vtk(hdf5_filename, "test.vtk")
-
-    # fluenthdf5_to_vtk(hdf5_filename, hdf5_filename.replace(".msh.h5", "_.vtk"))
-
-    import os
-
-    t1 = time.time()
-    hdf5_filename = r"D:\development\pyheart-lib\pyheart-lib\downloads\Strocchi2020\01\BiVentricleRefactored\fluent_volume_mesh.msh.h5"
-    mesh1 = FluentMesh()
-    mesh1.load_mesh(hdf5_filename)
-    t2 = time.time()
-    print("Time elapsed: {}".format(t2 - t1))
-
-    hdf5_filename = r"D:\development\pyheart-lib\pyheart-lib\downloads\Strocchi2020\01\BiVentricleRefactored\fluent_volume_mesh_with_interior.msh.h5"
-    mesh2 = FluentMesh()
-    mesh2.load_mesh(hdf5_filename)
-    t3 = time.time()
-    print("Time elapsed: {:.2f}".format(t3 - t2))
-
-    tetra, face_zones, points = _deprecated_fluenthdf5_to_vtk(hdf5_filename)
-
-    for face_zone in mesh.face_zones:
-        if "interior" in face_zone.name:
-            continue
-        cells = {"triangle": face_zone.faces}
-        meshio_mesh = meshio.Mesh(points=mesh.nodes, cells=cells)
-        meshio_mesh.write(
-            os.path.join(
-                os.path.dirname(hdf5_filename),
-                "faces_of_{0}.stl".format(face_zone.name.replace(":", "-")),
-            )
-        )
-
-    for cell_zone in mesh.cell_zones:
-        cells = {"tetra": cell_zone.cells}
-        meshio_mesh = meshio.Mesh(points=mesh.nodes, cells=cells)
-        meshio_mesh.write(
-            os.path.join(os.path.dirname(hdf5_filename), "volume_of_{}.vtk".format(cell_zone.name))
-        )
-
-    # prints info of hdf5 structure
-    fid = h5py.File(hdf5_filename, "r")
-    fid_w = open("hdf5_02.txt", "a")
-
-    def printname(name):
-        print(name)
-        fid_w.write(name + "\n")
-
-    fid.visit(printname)
-    fid_w.close()

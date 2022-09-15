@@ -68,9 +68,6 @@ class ModelInfo:
         self.add_blood_pool: bool = add_blood_pool
         """Flag indicating whether to add blood to the cavities"""
 
-        if not os.path.isfile(self.path_to_original_mesh):
-            raise FileNotFoundError("%s not found" % self.path_to_original_mesh)
-
         pass
 
     def clean_workdir(
@@ -946,7 +943,7 @@ class HeartModel:
                             # get approximate cavity centroid to check normal of cap
                             cavity_centroid = surface.compute_centroid()
 
-                            cap.tesselate()
+                            cap.tessellate()
                             p1 = (
                                 surf.nodes[cap.triangles[:, 1],] - surf.nodes[cap.triangles[:, 0],]
                             )
@@ -966,7 +963,7 @@ class HeartModel:
                                     "pointing inward"
                                 )
                                 cap.node_ids = np.flip(cap.node_ids)
-                                cap.tesselate()
+                                cap.tessellate()
                                 cap.normal = cap.normal * -1
 
                             cap.centroid = np.mean(surf.nodes[cap.node_ids, :], axis=0)
@@ -996,7 +993,7 @@ class HeartModel:
                     )
                     # note: flip order to make sure normal is pointing inwards
                     cap.node_ids = np.flip(cap_ref[0].node_ids)
-                    cap.tesselate()
+                    cap.tessellate()
 
         # As a consequence we need to add interface region to endocardium of atria or ventricle
         # current approach is to add these to the atria

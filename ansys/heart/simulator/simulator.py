@@ -172,7 +172,8 @@ class Simulator:
         # if not (ep) and (mechanics):
         # write mechanics
         # if ep and mechanics:
-        # TODO add coupling stuff and ignore default Ca2+ mechanics active stress/replaced by EP simulation
+        # TODO add coupling stuff and ignore default
+        # Ca2+ mechanics active stress/replaced by EP simulation
 
         return
 

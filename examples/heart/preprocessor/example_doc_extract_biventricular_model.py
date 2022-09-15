@@ -24,7 +24,10 @@ work_directory = os.path.join(pathlib.Path(__file__).parents[1], "workdir", "bi_
 
 # create model
 info = models.ModelInfo(
-    database="Strocchi2020", path_to_case=case_path, work_directory=work_directory, mesh_size=2.0,
+    database="Strocchi2020",
+    path_to_case=case_path,
+    work_directory=work_directory,
+    mesh_size=2.0,
 )
 
 info.create_workdir()

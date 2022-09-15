@@ -667,7 +667,9 @@ class HeartModel:
         # map uvc arrays
         uvc_array_names = [k for k in self.mesh_raw.point_data.keys() if "uvc" in k]
         target = vtkmethods.vtk_map_continuous_data(
-            source=source, target=target, array_names_to_include=uvc_array_names,
+            source=source,
+            target=target,
+            array_names_to_include=uvc_array_names,
         )
         # map tags
         target = vtkmethods.vtk_map_discrete_cell_data(source, target, data_name="tags")
@@ -676,7 +678,9 @@ class HeartModel:
         remaining_arrays = set(array_names) - set(uvc_array_names + ["tags"])
 
         target = vtkmethods.vtk_map_continuous_data(
-            source=source, target=target, array_names_to_include=remaining_arrays,
+            source=source,
+            target=target,
+            array_names_to_include=remaining_arrays,
         )
 
         # assign cell and point data to mesh object
@@ -936,10 +940,20 @@ class HeartModel:
 
                             cap.tessellate()
                             p1 = (
-                                surf.nodes[cap.triangles[:, 1],] - surf.nodes[cap.triangles[:, 0],]
+                                surf.nodes[
+                                    cap.triangles[:, 1],
+                                ]
+                                - surf.nodes[
+                                    cap.triangles[:, 0],
+                                ]
                             )
                             p2 = (
-                                surf.nodes[cap.triangles[:, 2],] - surf.nodes[cap.triangles[:, 0],]
+                                surf.nodes[
+                                    cap.triangles[:, 2],
+                                ]
+                                - surf.nodes[
+                                    cap.triangles[:, 0],
+                                ]
                             )
                             normals = np.cross(p1, p2)
                             cap_normal = np.mean(normals, axis=0)

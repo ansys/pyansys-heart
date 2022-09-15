@@ -1,3 +1,4 @@
+"""Simulator module."""
 import os
 import pathlib
 import shutil
@@ -19,28 +20,18 @@ import ansys.heart.writer.dynawriter as writers
 
 
 class Simulator:
-    """perform pre-simulation steps prior to final simulation, steps include fiber generation,
-    zeo-pressure geometry and purkinje network generation"""
+    """
+    Perform pre-simulation steps.
 
-    def __init__(
-        self,
-        model: HeartModel,
-        lsdynapath: str = "",
-    ) -> None:
+    Some extra info here
 
-        """Initializes Simulator by loading a HeartModel
+    """
 
-        Parameters
-        ----------
-        model : HeartModel
-            HeartModel object which contains the necessary
-            information for the wowrkflow, such as nodes and elements.
-        """
-
+    def __init__(self, model: HeartModel, lsdynapath: str = "") -> None:
         self.model = model
-        """Heart model"""
+        """Heart model."""
         self.lsdynapath = lsdynapath
-        """path of the lsdyna executable"""
+        """Path of the lsdyna executable."""
 
     def write_fibers(
         self,
@@ -50,6 +41,21 @@ class Simulator:
         beta_endocardium: float = 25,
         beta_epicardium: float = -65,
     ):
+        """_summary_
+
+        Parameters
+        ----------
+        workdir : str
+            _description_
+        alpha_endocardium : float, optional
+            _description_, by default -60
+        alpha_eepicardium : float, optional
+            _description_, by default 60
+        beta_endocardium : float, optional
+            _description_, by default 25
+        beta_epicardium : float, optional
+            _description_, by default -65
+        """
         dyna_writer = writers.FiberGenerationDynaWriter(self.model)
         dyna_writer.update()
         dyna_writer.export(workdir)
@@ -81,10 +87,17 @@ class Simulator:
         return
 
     def get_stressfreenodes(workdir: str):
-        """
-        Find the result file after zerop
-        Returns guess file name
+        """_summary_
+
+        Parameters
+        ----------
+        workdir : str
+            _description_
+
+        Returns
         -------
+        _type_
+            _description_
         """
         # TODO check if converged
         guess_files = []

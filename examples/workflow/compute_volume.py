@@ -88,7 +88,9 @@ def get_cavity_volume(name, x_m, cavity):
     coords = x_m[ids]
     connectivity = a.reshape(cavity.shape)
     meshio.write_points_cells(
-        name + ".stl", coords, [("triangle", connectivity)],
+        name + ".stl",
+        coords,
+        [("triangle", connectivity)],
     )
 
     return compute_stl_volume(name + ".stl")

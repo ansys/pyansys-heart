@@ -85,10 +85,12 @@ def main():
     guess_file = get_zerop_guess_file()
     os.chdir("..")
     shutil.copy2(
-        os.path.join("mechanics", "nodes.k"), os.path.join("mechanics", "nodes_eod.k"),
+        os.path.join("mechanics", "nodes.k"),
+        os.path.join("mechanics", "nodes_eod.k"),
     )
     shutil.copy2(
-        os.path.join("zeropressure", guess_file), os.path.join("mechanics", "nodes.k"),
+        os.path.join("zeropressure", guess_file),
+        os.path.join("mechanics", "nodes.k"),
     )
 
     os.chdir("mechanics")

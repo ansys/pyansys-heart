@@ -2203,7 +2203,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             )
 
     def _update_main_db(self):
-        self.kw_database.main.append(keywords.ControlTimestep(dtinit=1.0, dt2ms=1.0))
+        self.kw_database.main.append(keywords.ControlTimeStep(dtinit=1.0, dt2ms=1.0))
 
         self.kw_database.main.append(keywords.ControlTermination(endtim=10))
 

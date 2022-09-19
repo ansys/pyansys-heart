@@ -2729,7 +2729,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         # add termination keywords
         self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=0.0))
 
-        self.kw_database.main.append(keywords.ControlTimestep(dtinit=1.0, dt2ms=1.0))
+        self.kw_database.main.append(keywords.ControlTimeStep(dtinit=1.0, dt2ms=1.0))
         return
 
     def _update_export_controls(self, dt_output_d3plot: float = 1.0):

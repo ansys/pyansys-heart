@@ -81,13 +81,30 @@ class Simulator:
         nbrinit: int = 8,
         nsplit: int = 2,
     ):
+        """Write purkinje files.
+
+        Parameters
+        ----------
+        workdir : str
+            path where files are dumped
+        pointstx : float, optional
+            _description_, by default 0
+        pointsty : float, optional
+            _description_, by default 0
+        pointstz : float, optional
+            _description_, by default 0
+        nbrinit : int, optional
+            _description_, by default 8
+        nsplit : int, optional
+            _description_, by default 2
+        """
         dyna_writer = writers.PurkinjeGenerationDynaWriter(self.model)
         dyna_writer.update()
         dyna_writer.export(workdir)
         return
 
     def get_stressfreenodes(workdir: str):
-        """get stres free nodes
+        """Get stres free nodes.
 
         Parameters
         ----------

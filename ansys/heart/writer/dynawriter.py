@@ -1751,7 +1751,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.kw_database.main.append(keywords.ControlImplicitSolution())
 
         # add implicit solver controls
-        self.kw_database.main.append(keywords.ControlImplicitSolver())
+        self.kw_database.main.append(custom_keywords.ControlImplicitSolver())
 
         # add binout for post-process
         self.kw_database.main.append(keywords.DatabaseNodout(dt=0.2 * scale_time, binary=1))
@@ -2203,7 +2203,9 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             )
 
     def _update_main_db(self):
-        self.kw_database.main.append(keywords.ControlTimeStep(dtinit=1.0, dt2ms=1.0))
+        self.kw_database.main.append(
+            keywords.ControlTimeStep(dtinit=1.0, dt2ms=1.0, emscl=None, ihdo=None, rmscl=None)
+        )
 
         self.kw_database.main.append(keywords.ControlTermination(endtim=10))
 
@@ -2850,7 +2852,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         # add termination keywords
         self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=0.0))
 
-        self.kw_database.main.append(keywords.ControlTimeStep(dtinit=1.0, dt2ms=1.0))
+        self.kw_database.main.append(
+            keywords.ControlTimeStep(dtinit=1.0, dt2ms=1.0, emscl=None, ihdo=None, rmscl=None)
+        )
         return
 
     def _update_export_controls(self, dt_output_d3plot: float = 1.0):

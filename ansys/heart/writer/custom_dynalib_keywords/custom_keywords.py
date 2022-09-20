@@ -1,4 +1,5 @@
 # flake8: noqa
+from .keywords.control_implicit_solver import ControlImplicitSolver
 from .keywords.em_control_ep import EmControlEp
 from .keywords.em_ep_cellmodel_tomek import EmEpCellmodelTomek
 from .keywords.em_ep_cellmodel_usermat import EmEpCellmodelUsermat

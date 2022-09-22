@@ -82,7 +82,6 @@ class Simulator:
         mechanics: bool = 0,
     ):
         """Build LS-DYNA Heart simulation."""
-
         # TODO add getters and setters for fiber angles, purkinje properties, simulation times and
         # other parameters to expose to the user
         path_simulation = os.path.join(self.model.info.path_to_model, "simulation")

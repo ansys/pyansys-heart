@@ -781,7 +781,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.ControlImplicitSolution())
 
         # add implicit solver controls
-        self.kw_database.main.append(keywords.ControlImplicitSolver())
+        self.kw_database.main.append(custom_keywords.ControlImplicitSolver())
         return
 
     def _add_export_controls(self, dt_output_d3plot: float = 0.05, dt_output_icvout: float = 0.001):
@@ -1750,7 +1750,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.kw_database.main.append(keywords.ControlImplicitSolution())
 
         # add implicit solver controls
-        self.kw_database.main.append(keywords.ControlImplicitSolver())
+        self.kw_database.main.append(custom_keywords.ControlImplicitSolver())
 
         # add binout for post-process
         self.kw_database.main.append(keywords.DatabaseNodout(dt=0.2 * scale_time, binary=1))
@@ -2202,7 +2202,9 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             )
 
     def _update_main_db(self):
-        self.kw_database.main.append(keywords.ControlTimestep(dtinit=1.0, dt2ms=1.0))
+        self.kw_database.main.append(
+            keywords.ControlTimeStep(dtinit=1.0, dt2ms=1.0, emscl=None, ihdo=None, rmscl=None)
+        )
 
         self.kw_database.main.append(keywords.ControlTermination(endtim=10))
 
@@ -2723,9 +2725,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self,
         end_time: float = 800,
     ):
-        """Adds solution controls, output controls and other solver settings
-        as keywords
-        """
+        """Add solution controls and other solver settings as keywords."""
         # add termination keywords
         self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=0.0))
 
@@ -2733,7 +2733,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         return
 
     def _update_export_controls(self, dt_output_d3plot: float = 1.0):
-        """Adds solution controls to the main simulation
+        """Add solution controls to the main simulation.
 
         Parameters
         ----------
@@ -2752,7 +2752,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         return
 
     def _get_list_of_includes(self):
-        """Gets a list of files to include in main.k. Ommit any empty decks"""
+        """Get a list of files to include in main.k. omit any empty decks."""
         for deckname, deck in vars(self.kw_database).items():
             if deckname == "main":
                 continue
@@ -2764,7 +2764,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         return
 
     def _add_includes(self):
-        """Adds *INCLUDE keywords"""
+        """Add *INCLUDE keywords."""
         for include_file in self.include_files:
             filename_to_include = include_file + ".k"
             self.kw_database.main.append(keywords.Include(filename=filename_to_include))
@@ -2901,7 +2901,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         # add termination keywords
         self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=0.0))
 
-        self.kw_database.main.append(keywords.ControlTimestep(dtinit=1.0, dt2ms=1.0))
+        self.kw_database.main.append(
+            keywords.ControlTimeStep(dtinit=1.0, dt2ms=1.0, emscl=None, ihdo=None, rmscl=None)
+        )
         return
 
     def _update_export_controls(self, dt_output_d3plot: float = 1.0):

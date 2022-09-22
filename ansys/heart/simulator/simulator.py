@@ -8,16 +8,6 @@ from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.models import HeartModel
 import ansys.heart.writer.dynawriter as writers
 
-# from unittest import case
-# from pathlib import Path
-# from tqdm import tqdm  # for progress bar
-
-# class purkinje:
-#     """define purkinje network parameters"""
-
-#     def __init__(self, origin_coordinates: np.ndarray[shape=(1,3)]) -> None:
-#         self.origin = origin_coordinates
-
 
 class Simulator:
     """
@@ -33,7 +23,7 @@ class Simulator:
         self.lsdynapath = lsdynapath
         """Path of the lsdyna executable."""
 
-    def write_fibers(
+    def _write_fibers(
         self,
         workdir: str,
         alpha_endocardium: float = -60,
@@ -41,42 +31,27 @@ class Simulator:
         beta_endocardium: float = 25,
         beta_epicardium: float = -65,
     ):
-        """_summary_
-
-        Parameters
-        ----------
-        workdir : str
-            _description_
-        alpha_endocardium : float, optional
-            _description_, by default -60
-        alpha_eepicardium : float, optional
-            _description_, by default 60
-        beta_endocardium : float, optional
-            _description_, by default 25
-        beta_epicardium : float, optional
-            _description_, by default -65
-        """
         dyna_writer = writers.FiberGenerationDynaWriter(self.model)
         dyna_writer.update()
         dyna_writer.export(workdir)
 
         return
 
-    def write_zeropressureconfiguration(self, workdir: str = ""):
+    def _write_zeropressureconfiguration(self, workdir: str = ""):
         dyna_writer = writers.ZeroPressureMechanicsDynaWriter(self.model)
         dyna_writer.update()
         dyna_writer.export(workdir)
         return
 
-    def write_purkinje(
+    def _write_purkinje(
         self,
         workdir: str,
-        pointstx: float = 0,  # TODO instanciate this
-        pointsty: float = 0,  # TODO instanciate this
-        pointstz: float = 0,  # TODO instanciate this
-        inodeid: int = 0,  # TODO instanciate this
-        iedgeid: int = 0,  # TODO instanciate this
-        edgelen: float = 2,  # TODO instanciate this
+        pointstx: float = 0,  # TODO instantiate this
+        pointsty: float = 0,  # TODO instantiate this
+        pointstz: float = 0,  # TODO instantiate this
+        inodeid: int = 0,  # TODO instantiate this
+        iedgeid: int = 0,  # TODO instantiate this
+        edgelen: float = 2,  # TODO instantiate this
         ngen: float = 50,
         nbrinit: int = 8,
         nsplit: int = 2,
@@ -103,19 +78,8 @@ class Simulator:
         dyna_writer.export(workdir)
         return
 
-    def get_stressfreenodes(workdir: str):
-        """Get stres free nodes.
-
-        Parameters
-        ----------
-        workdir : str
-            _description_
-
-        Returns
-        -------
-        _type_
-            _description_
-        """
+    def _get_stressfreenodes(workdir: str):
+        """Get stres free nodes."""
         # TODO check if converged
         guess_files = []
         for file in os.listdir(workdir):
@@ -134,7 +98,7 @@ class Simulator:
         ep: bool = 0,
         mechanics: bool = 0,
     ):
-
+        """Build LS-DYNA Heart simulation."""
         # TODO add getters and setters for fiber angles, purkinje properties, simulation times and
         # other parameters to expose to the user
         path_simulation = os.path.join(self.model.info.path_to_model, "simulation")
@@ -142,14 +106,14 @@ class Simulator:
 
         if fibers:
             path_fibers = os.path.join(self.model.info.path_to_model, "fiber_generation")
-            self.write_fibers(path_fibers)
+            self._write_fibers(path_fibers)
             # run dyna
 
         if zeropressure:
             path_zeropressure = os.path.join(
                 self.model.info.path_to_model, "zeropressure_generation"
             )
-            self.write_zeropressureconfiguration(path_zeropressure)
+            self._write_zeropressureconfiguration(path_zeropressure)
             if fibers:
                 shutil.copy2(
                     os.path.join(path_fibers, "element_solid_ortho.k"),
@@ -157,7 +121,7 @@ class Simulator:
                 )
 
             # run dyna
-            nodes_stressfree = self.get_stressfreenodes(path_zeropressure)
+            nodes_stressfree = self._get_stressfreenodes(path_zeropressure)
             shutil.copy(
                 os.path.join(path_zeropressure, "nodes.k"),
                 os.path.join(path_zeropressure, "nodes_endofdiastole.k"),
@@ -175,7 +139,7 @@ class Simulator:
             # if exist right ventricle:
             simulationdynawriter.model.add_part("Right Purkinje")
             simulationdynawriter.include_files.append("purkinjenetworkRIGHT.k")
-            self.write_purkinje(path_purkinje)
+            self._write_purkinje(path_purkinje)
             if zeropressure:
                 shutil.copy2(
                     os.path.join(path_zeropressure, "nodes.k"),
@@ -214,6 +178,7 @@ class Simulator:
     def run_lsdyna(
         self, sim_file: str, lsdynapath: str, memory: str = "24m", NCPU: int = 1, options: str = ""
     ):
+        """Run LS-DYNA."""
         os.chdir(pathlib.Path(sim_file).parent)
         sim_file_wsl = (
             subprocess.run(["wsl", "wslpath", os.path.basename(sim_file)], capture_output=1)
@@ -237,8 +202,8 @@ class Simulator:
             "i=",
             sim_file_wsl,
         ]
-        logile = os.path.join(pathlib.Path(sim_file).parent, "logile.log")
-        f = open(logile, "w")
+        logfile = os.path.join(pathlib.Path(sim_file).parent, "logfile.log")
+        f = open(logfile, "w")
         LOGGER.info("Running ls-dyna with command:")
         run_command_display = " ".join([str(s) for s in run_command])
         LOGGER.info(run_command_display)

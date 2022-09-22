@@ -1,2 +1,4 @@
 # ignore any ensight files
 workdir_tests/*
+preprocessor/workdir_tests/*
+writer/workdir_tests/*

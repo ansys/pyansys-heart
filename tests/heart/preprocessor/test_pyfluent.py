@@ -10,7 +10,7 @@ import ansys.fluent.core as pyfluent
 
 
 def test_pyfluent():
-    """Test launching pyfluent in meshing mode."""
+    """Launch local pyfluent in meshing mode."""
     try:
         session = pyfluent.launch_fluent(
             meshing_mode=True,

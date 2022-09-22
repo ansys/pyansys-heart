@@ -185,8 +185,8 @@ class Simulator:
             "i=",
             sim_file_wsl,
         ]
-        logile = os.path.join(pathlib.Path(sim_file).parent, "logfile.log")
-        f = open(logile, "w")
+        logfile = os.path.join(pathlib.Path(sim_file).parent, "logfile.log")
+        f = open(logfile, "w")
         LOGGER.info("Running ls-dyna with command:")
         run_command_display = " ".join([str(s) for s in run_command])
         LOGGER.info(run_command_display)

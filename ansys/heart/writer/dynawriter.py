@@ -2752,7 +2752,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         return
 
     def _get_list_of_includes(self):
-        """Get a list of files to include in main.k. ommit any empty decks."""
+        """Get a list of files to include in main.k. omit any empty decks."""
         for deckname, deck in vars(self.kw_database).items():
             if deckname == "main":
                 continue

@@ -7,11 +7,9 @@ from common import compare_caps, compare_cavities, compare_parts, compare_surfac
 from conftest import get_assets_folder, get_workdir
 import pytest
 
-# skip all tests in this file for now
-pytest.skip(allow_module_level=True)
 
-
-# run this fixture first
+# skip all tests in this file if not on windows
+@pytest.skip(allow_module_level=True)
 @pytest.fixture(autouse=True, scope="module")
 def extract_full_heart():
     """Extracts FullHeart model which is similar to the reference model.

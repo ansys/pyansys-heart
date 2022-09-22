@@ -7,8 +7,9 @@ from common import compare_caps, compare_cavities, compare_parts, compare_surfac
 from conftest import get_assets_folder, get_workdir
 import pytest
 
-# skip all tests in this file for now
-pytest.skip(allow_module_level=True)
+
+# if os.name != "nt":
+@pytest.skip(allow_module_level=True)
 
 # run this fixture first
 @pytest.fixture(autouse=True, scope="module")

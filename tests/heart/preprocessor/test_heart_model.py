@@ -8,12 +8,9 @@ from conftest import create_directory, get_workdir
 import numpy as np
 import pytest
 
-pytest.skip(allow_module_level=True)
-
 
 def _get_test_model_info() -> models.ModelInfo:
-    """Gets a test model info and populates it"""
-    # create model info
+    """Get a test model info and populates it."""
     info = models.ModelInfo(
         database="Strocchi2020",
         work_directory=get_workdir(),
@@ -25,7 +22,7 @@ def _get_test_model_info() -> models.ModelInfo:
 
 
 def _get_test_model(model_type: type) -> models.HeartModel:
-    """Gets a test heart model of specific type"""
+    """Get a test heart model of specific type."""
     info = _get_test_model_info()
     model = model_type(info)
     return model
@@ -33,7 +30,7 @@ def _get_test_model(model_type: type) -> models.HeartModel:
 
 @pytest.fixture(autouse=True)
 def cleanup_working_directory_after_tests():
-    """Remove any files that were added during the test"""
+    """Remove any files that were added during the test."""
     # execute before tests
     list_of_files_before = glob.glob(os.path.join(get_workdir(), "*"))
     yield
@@ -45,8 +42,9 @@ def cleanup_working_directory_after_tests():
     return
 
 
+@pytest.mark.skipif(os.name != "nt", reason="Requires Windows")
 def test_model_info_dump():
-    """Tests dumping of model info to json"""
+    """Test dumping of model info to json."""
     info = _get_test_model_info()
     create_directory(get_workdir())
     path_to_model_info = os.path.join(get_workdir(), "model_info.json")
@@ -70,8 +68,9 @@ def test_model_info_dump():
     pass
 
 
+@pytest.mark.skipif(os.name != "nt", reason="Requires Windows")
 def test_dump_model_001():
-    """Tests dumping of model to disk: using path in ModelInfo"""
+    """Test dumping of model to disk: using path in ModelInfo."""
     info = _get_test_model_info()
     info.workdir = get_workdir()
     create_directory(info.workdir)
@@ -85,8 +84,9 @@ def test_dump_model_001():
     assert os.path.isfile(expected_path)
 
 
+@pytest.mark.skipif(os.name != "nt", reason="Requires Windows")
 def test_dump_model_002():
-    """Tests dumping of model to disk: using specific path in ModelInfo"""
+    """Test dumping of model to disk: using specific path in ModelInfo."""
     info = _get_test_model_info()
     info.workdir = get_workdir()
     create_directory(info.workdir)
@@ -100,8 +100,9 @@ def test_dump_model_002():
     assert os.path.isfile(expected_path)
 
 
+@pytest.mark.skipif(os.name != "nt", reason="Requires Windows")
 def test_dump_model_003():
-    """Tests dumping of model to disk: using specific path"""
+    """Test dumping of model to disk: using specific path."""
     info = _get_test_model_info()
     info.workdir = get_workdir()
     create_directory(info.workdir)
@@ -115,8 +116,9 @@ def test_dump_model_003():
     assert os.path.isfile(expected_path)
 
 
+@pytest.mark.skipif(os.name != "nt", reason="Requires Windows")
 def test_model_load():
-    """Tests loading the model from pickled file"""
+    """Test loading model from pickle."""
     model: models.BiVentricle = _get_test_model(models.BiVentricle)
     # populate model
     model.left_ventricle.element_ids = np.array([1, 2, 3, 4], dtype=int)
@@ -154,12 +156,13 @@ def test_model_load():
     pass
 
 
+@pytest.mark.skipif(os.name != "nt", reason="Requires Windows")
 @pytest.mark.parametrize(
     "model_type",
     [models.LeftVentricle, models.BiVentricle, models.FourChamber, models.FullHeart],
 )
 def test_model_part_names(model_type):
-    """Tests whether all parts exist in the models"""
+    """Test whether all parts exist in the model."""
     info = _get_test_model_info()
     model = model_type(info)
 

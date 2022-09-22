@@ -2,7 +2,7 @@ import glob as glob
 import os
 import pathlib
 
-ROOT_FOLDER = os.path.join(pathlib.Path(__file__).parent.parent)
+ROOT_FOLDER = os.path.join(pathlib.Path(__file__).parent)
 
 """
 

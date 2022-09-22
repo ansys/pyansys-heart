@@ -27,9 +27,11 @@ def extract_bi_ventricle():
         "reference_models",
         "strocchi2020",
         "01",
-        "BiVentricleRefactored",
+        "BiVentricle",
         "heart_model.pickle",
     )
+    assert os.path.isfile(path_to_case)
+    assert os.path.isfile(path_to_reference_model)
 
     global reference_model
     reference_model = models.HeartModel.load_model(path_to_reference_model)

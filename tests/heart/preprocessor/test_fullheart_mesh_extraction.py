@@ -28,7 +28,7 @@ def extract_full_heart():
         "reference_models",
         "strocchi2020",
         "01",
-        "FullHeartRefactored",
+        "FullHeart",
         "heart_model.pickle",
     )
 

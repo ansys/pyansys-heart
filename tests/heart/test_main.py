@@ -1,6 +1,57 @@
+import os
+
+import ansys.heart.preprocessor.models as models
+import ansys.heart.writer.dynawriter as writers
+from conftest import compare_string_with_file, get_assets_folder
 import pytest
 
 
-@pytest.mark.skip(reason="Placeholder")
+@pytest.fixture(autouse=True, scope="module")
+def initialize_model():
+    """Load a model that can be converted to LS-DYNA input."""
+    pickle_file = os.path.join(
+        get_assets_folder(),
+        "reference_models",
+        "strocchi2020",
+        "01",
+        "BiVentricle",
+        "heart_model.pickle",
+    )
+    model = models.HeartModel.load_model(pickle_file)
+    assert isinstance(model, models.BiVentricle), "Expecting a BiVentricle model"
+
+    global WRITER_MECHANICS
+    WRITER_MECHANICS = writers.MechanicsDynaWriter(model)
+    WRITER_MECHANICS.update()
+    return
+
+
+# @pytest.mark.skip(reason="Placeholder")
 def test_main():
-    """Test contents of main.k"""
+    """Compare contents of main to a reference file."""
+    ref_folder = os.path.join(get_assets_folder(), "k_files", "mechanics")
+    ref_file = os.path.join(ref_folder, "main.k")
+
+    string_to_test = WRITER_MECHANICS.kw_database.main.write()
+
+    compare_string_with_file(string_to_test, ref_file)
+
+
+def test_parts():
+    """Compare contents of main to a reference file."""
+    ref_folder = os.path.join(get_assets_folder(), "k_files", "mechanics")
+    ref_file = os.path.join(ref_folder, "parts.k")
+
+    string_to_test = WRITER_MECHANICS.kw_database.parts.write()
+
+    compare_string_with_file(string_to_test, ref_file)
+
+
+def test_material():
+    """Compare contents of main to a reference file."""
+    ref_folder = os.path.join(get_assets_folder(), "k_files", "mechanics")
+    ref_file = os.path.join(ref_folder, "material.k")
+
+    string_to_test = WRITER_MECHANICS.kw_database.material.write()
+
+    compare_string_with_file(string_to_test, ref_file)

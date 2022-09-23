@@ -61,7 +61,6 @@ def compare_string_with_file(output: str, reference_file: str) -> None:
     """compare the string in output, with the contents of reference_file
     normalize all line endinges to \\n
     """
-    reference_file: pathlib.Path = get_assets_folder() / reference_file
     output = normalize_line_endings(output)
     ref_contents = read_file(reference_file)
 

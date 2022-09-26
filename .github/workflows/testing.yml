@@ -41,7 +41,7 @@ jobs:
 
       - name: Run preprocessor tests
         run: |
-          python -m pytest tests/heart/preprocessor/test_fluent_mesh_reader.py
+          python -m pytest tests/heart/test_fluent_mesh_reader.py
 
       # - name: Upload coverage to Codecov
       #   uses: codecov/codecov-action@v2

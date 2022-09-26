@@ -2726,7 +2726,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     stimamp=50.0,
                 )
             )
-            
+           
         elif isinstance(self.model, (LeftVentricle)):
             node_apex_left = self.get_apex_left()
 
@@ -2737,7 +2737,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 node_set_id=node_set_id_apex_left,
                 title="apex node left",
             )
-            self.kw_database.node_sets.append(node_set_kw)            
+            self.kw_database.node_sets.append(node_set_kw)           
 
             # TODO add more nodes to initiate wave propagation !!!!
             node_set_id_stimulationnodes = self.get_unique_nodeset_id()

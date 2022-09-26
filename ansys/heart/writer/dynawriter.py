@@ -2025,7 +2025,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             self.kw_database.create_fiber.append(set_add_kw)
 
             node_set_id_base = self.get_unique_nodeset_id()
-            node_set_id_apex = self.get_unique_nodeset_id()
+            node_set_id_apex = self.get_unique_nodeset_id() + 1
 
             # create node-sets for base and apex
             node_set_base_kw = create_node_set_keyword(
@@ -2679,48 +2679,89 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         self.kw_database.ep_settings.append(keywords.EmOutput(mats=1, matf=1, sols=1, solf=1))
 
-        node_apex_left = self.get_apex_left()
-        node_apex_right = self.get_apex_right()
+        if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
+            node_apex_left = self.get_apex_left()
+            node_apex_right = self.get_apex_right()
 
-        node_set_id_apex_left = self.get_unique_nodeset_id()
-        # create node-sets for apex left
-        node_set_kw = create_node_set_keyword(
-            node_ids=[node_apex_left + 1],
-            node_set_id=node_set_id_apex_left,
-            title="apex node left",
-        )
-        self.kw_database.node_sets.append(node_set_kw)
-
-        node_set_id_apex_right = self.get_unique_nodeset_id()
-        # create node-sets for apex right
-        node_set_kw = create_node_set_keyword(
-            node_ids=[node_apex_right + 1],
-            node_set_id=node_set_id_apex_right,
-            title="apex node right",
-        )
-        self.kw_database.node_sets.append(node_set_kw)
-        # TODO add more nodes to initiate wave propagation !!!!
-        node_set_id_stimulationnodes = self.get_unique_nodeset_id()
-        # create node-sets for apex
-        node_set_kw = create_node_set_keyword(
-            node_ids=[node_apex_left + 1, node_apex_right + 1],
-            node_set_id=node_set_id_stimulationnodes,
-            title="Stim nodes",
-        )
-        self.kw_database.node_sets.append(node_set_kw)
-
-        self.kw_database.ep_settings.append(
-            custom_keywords.EmEpTentusscherStimulus(
-                stimid=1,
-                settype=2,
-                setid=node_set_id_stimulationnodes,
-                stimstrt=0.0,
-                stimt=1000.0,
-                stimdur=20.0,
-                stimamp=50.0,
+            node_set_id_apex_left = self.get_unique_nodeset_id()
+            # create node-sets for apex left
+            node_set_kw = create_node_set_keyword(
+                node_ids=[node_apex_left + 1],
+                node_set_id=node_set_id_apex_left,
+                title="apex node left",
             )
-        )
-        return
+            self.kw_database.node_sets.append(node_set_kw)
+
+            node_set_id_apex_right = self.get_unique_nodeset_id()
+            # create node-sets for apex right
+            node_set_kw = create_node_set_keyword(
+                node_ids=[node_apex_right + 1],
+                node_set_id=node_set_id_apex_right,
+                title="apex node right",
+            )
+            
+            self.kw_database.node_sets.append(node_set_kw)
+            # TODO add more nodes to initiate wave propagation !!!!
+            node_set_id_stimulationnodes = self.get_unique_nodeset_id()
+            # create node-sets for apex
+            node_set_kw = create_node_set_keyword(
+                node_ids=[node_apex_left + 1, node_apex_right + 1],
+                node_set_id=node_set_id_stimulationnodes,
+                title="Stim nodes",
+            )
+            node_set_kw = create_node_set_keyword(
+                node_ids=[node_apex_left + 1],
+                node_set_id=node_set_id_stimulationnodes,
+                title="Stim nodes",
+            )
+            
+            self.kw_database.node_sets.append(node_set_kw)
+
+            self.kw_database.ep_settings.append(
+                custom_keywords.EmEpTentusscherStimulus(
+                    stimid=1,
+                    settype=2,
+                    setid=node_set_id_stimulationnodes,
+                    stimstrt=0.0,
+                    stimt=1000.0,
+                    stimdur=20.0,
+                    stimamp=50.0,
+                )
+            )
+        elif isinstance(self.model, (LeftVentricle)):
+            node_apex_left = self.get_apex_left()
+
+            node_set_id_apex_left = self.get_unique_nodeset_id()
+            # create node-sets for apex left
+            node_set_kw = create_node_set_keyword(
+                node_ids=[node_apex_left + 1],
+                node_set_id=node_set_id_apex_left,
+                title="apex node left",
+            )
+            self.kw_database.node_sets.append(node_set_kw)            
+
+            # TODO add more nodes to initiate wave propagation !!!!
+            node_set_id_stimulationnodes = self.get_unique_nodeset_id()
+            # create node-sets for apex
+            node_set_kw = create_node_set_keyword(
+                node_ids=[node_apex_left + 1],
+                node_set_id=node_set_id_stimulationnodes,
+                title="Stim nodes",
+            )
+            
+            self.kw_database.node_sets.append(node_set_kw)
+
+            self.kw_database.ep_settings.append(
+                custom_keywords.EmEpTentusscherStimulus(
+                    stimid=1,
+                    settype=2,
+                    setid=node_set_id_stimulationnodes,
+                    stimstrt=0.0,
+                    stimt=1000.0,
+                    stimdur=20.0,
+                    stimamp=50.0,
+                )
+            )
 
     # def _update_use_Purkinje(self):
     #     """Updates the keywords for Purkinje generation."""

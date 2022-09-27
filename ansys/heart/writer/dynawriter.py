@@ -2708,11 +2708,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 node_set_id=node_set_id_stimulationnodes,
                 title="Stim nodes",
             )
-            node_set_kw = create_node_set_keyword(
-                node_ids=[node_apex_left + 1],
-                node_set_id=node_set_id_stimulationnodes,
-                title="Stim nodes",
-            )
 
             self.kw_database.node_sets.append(node_set_kw)
             self.kw_database.ep_settings.append(

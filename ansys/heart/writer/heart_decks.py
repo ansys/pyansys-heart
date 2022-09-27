@@ -59,6 +59,5 @@ class ElectrophysiologyDecks(BaseDecks):
 
     def __init__(self) -> None:
         super().__init__()
-        self.main = Deck()
         self.cell_models = Deck()
         self.ep_settings = Deck()

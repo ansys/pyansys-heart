@@ -78,7 +78,7 @@ class Simulator:
         dyna_writer.export(workdir)
         return
 
-    def _get_stressfreenodes(workdir: str):
+    def __get_stressfreenodes(workdir: str):
         """Get stres free nodes."""
         # TODO check if converged
         guess_files = []
@@ -121,7 +121,7 @@ class Simulator:
                 )
 
             # TODO run dyna
-            nodes_stressfree = self._get_stressfreenodes(path_zeropressure)
+            nodes_stressfree = self.__get_stressfreenodes(path_zeropressure)
             shutil.copy(
                 os.path.join(path_zeropressure, "nodes.k"),
                 os.path.join(path_zeropressure, "nodes_endofdiastole.k"),

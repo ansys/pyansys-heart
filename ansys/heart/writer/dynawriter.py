@@ -812,8 +812,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         lcid = self.get_unique_curve_id()
         time = [
             0,
+            self.parameters["Material"]["Myocardium"]["Active"]["Prefill"] - dt_output_d3plot,
             self.parameters["Material"]["Myocardium"]["Active"]["Prefill"],
-            self.parameters["Material"]["Myocardium"]["Active"]["Prefill"] + dt_output_d3plot,
             self.parameters["Time"]["End Time"],
         ]
         step = [10 * dt_output_d3plot, 10 * dt_output_d3plot, dt_output_d3plot, dt_output_d3plot]

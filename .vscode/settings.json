@@ -17,5 +17,5 @@
             "source.organizeImports": true
         }
     },
-    "python.sortImports.path": "isort",
+    "python.sortImports.path": "C:\\Users\\kelhouar\\Miniconda3\\envs\\pyheart-lib\\Scripts\\isort.exe",
 }

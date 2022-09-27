@@ -2024,7 +2024,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             self.kw_database.create_fiber.append(set_add_kw)
 
             node_set_id_base = self.get_unique_nodeset_id()
-            node_set_id_apex = self.get_unique_nodeset_id()
+            node_set_id_apex = self.get_unique_nodeset_id() + 1
 
             # create node-sets for base and apex
             node_set_base_kw = create_node_set_keyword(

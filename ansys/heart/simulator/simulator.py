@@ -107,7 +107,7 @@ class Simulator:
         if fibers:
             path_fibers = os.path.join(self.model.info.path_to_model, "fiber_generation")
             self._write_fibers(path_fibers)
-            # run dyna
+            # TODO run dyna
 
         if zeropressure:
             path_zeropressure = os.path.join(
@@ -120,7 +120,7 @@ class Simulator:
                     os.path.join(path_zeropressure, "solid_elements.k"),
                 )
 
-            # run dyna
+            # TODO run dyna
             nodes_stressfree = self._get_stressfreenodes(path_zeropressure)
             shutil.copy(
                 os.path.join(path_zeropressure, "nodes.k"),
@@ -146,7 +146,7 @@ class Simulator:
                     os.path.join(path_purkinje, "nodes.k"),
                 )
             # if exist right ventricle:
-            # run dyna mainLeft
+            # TODO run dyna mainLeft
             shutil.copy2(
                 os.path.join(path_purkinje, "purkinjenetwork.k"),
                 os.path.join(path_purkinje, "purkinjenetworkLEFT.k"),
@@ -155,8 +155,8 @@ class Simulator:
                 os.path.join(path_purkinje, "purkinjenetworkLEFT.k"),
                 os.path.join(path_simulation, "purkinjenetworkLEFT.k"),
             )
-            # if exist right ventricle:
-            # run dyna mainRight
+            # TODO if exist right ventricle:
+            # TODO run dyna mainRight
             shutil.copy2(
                 os.path.join(path_purkinje, "purkinjenetwork.k"),
                 os.path.join(path_purkinje, "purkinjenetworkRIGHT.k"),

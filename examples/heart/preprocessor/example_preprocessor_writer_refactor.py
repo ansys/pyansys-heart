@@ -16,15 +16,15 @@ if __name__ == "__main__":
     Please change paths
     """
     path_to_case = os.path.join(
-        pathlib.Path(__file__).parents[3], "downloads\\Strocchi2020\\02\\02.case"
+        pathlib.Path(__file__).parents[3], "downloads\\Strocchi2020\\01\\01.case"
     )
-    workdir = os.path.join(pathlib.Path(path_to_case).parent, "BiVentricleIssue112")
+    workdir = os.path.join(pathlib.Path(path_to_case).parent, "BiVentricle")
 
     path_to_model = os.path.join(workdir, "heart_model.pickle")
 
     use_preprocessor = False
-    write_lsdyna_files = False
-    simulator = True
+    write_lsdyna_files = True
+    use_simulator = False
 
     if use_preprocessor:
         model = run_preprocessor(
@@ -63,12 +63,13 @@ if __name__ == "__main__":
             writer.update()
             writer.export(exportdir)
 
-    model = models.HeartModel.load_model(path_to_model)
-    sim = Simulator(model)
+    if use_simulator:
+        model = models.HeartModel.load_model(path_to_model)
+        sim = Simulator(model)
 
-    file_to_run = os.path.join(workdir, "purkinjegeneration", "main_left_ventricle.k")
-    dynapath = "D:/Fortran/intelMPI/mppdyna_25AUG22"
+        file_to_run = os.path.join(workdir, "purkinjegeneration", "main_left_ventricle.k")
+        dynapath = "D:/Fortran/intelMPI/mppdyna_25AUG22"
 
-    sim.run_lsdyna(sim_file=file_to_run, lsdynapath=dynapath, NCPU=1)
+        sim.run_lsdyna(sim_file=file_to_run, lsdynapath=dynapath, NCPU=1)
 
     pass

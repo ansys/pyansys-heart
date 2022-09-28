@@ -210,7 +210,9 @@ class BaseDynaWriter:
             surface_id = self.get_unique_segmentset_id()
             cavity.surface.id = surface_id
             kw = create_segment_set_keyword(
-                segments=cavity.surface.faces + 1, segid=cavity.surface.id, title=cavity.name,
+                segments=cavity.surface.faces + 1,
+                segid=cavity.surface.id,
+                title=cavity.name,
             )
             # append this kw to the segment set database
             self.kw_database.segment_sets.append(kw)
@@ -220,7 +222,9 @@ class BaseDynaWriter:
             for surface in part.surfaces:
                 surface.id = self.get_unique_segmentset_id()
                 kw = create_segment_set_keyword(
-                    segments=surface.faces + 1, segid=surface.id, title=surface.name,
+                    segments=surface.faces + 1,
+                    segid=surface.id,
+                    title=surface.name,
                 )
                 # append this kw to the segment set database
                 self.kw_database.segment_sets.append(kw)
@@ -757,7 +761,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
         time = [0, prefill_time, prefill_time + dtmax, end_time]
         step = [5 * dtmax, 5 * dtmax, dtmin, dtmax]
         kw_curve = create_define_curve_kw(
-            x=time, y=step, curve_name="time step control", curve_id=lcid, lcint=0,
+            x=time,
+            y=step,
+            curve_name="time step control",
+            curve_id=lcid,
+            lcint=0,
         )
         self.kw_database.main.append(kw_curve)
         self.kw_database.main.append(
@@ -809,7 +817,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
         ]
         step = [10 * dt_output_d3plot, 10 * dt_output_d3plot, dt_output_d3plot, dt_output_d3plot]
         kw_curve = create_define_curve_kw(
-            x=time, y=step, curve_name="d3plot out control", curve_id=lcid, lcint=0,
+            x=time,
+            y=step,
+            curve_name="d3plot out control",
+            curve_id=lcid,
+            lcint=0,
         )
 
         self.kw_database.main.append(kw_curve)
@@ -850,7 +862,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
             surface_id = self.get_unique_segmentset_id()
             cavity.surface.id = surface_id
             kw = create_segment_set_keyword(
-                segments=cavity.surface.faces + 1, segid=cavity.surface.id, title=cavity.name,
+                segments=cavity.surface.faces + 1,
+                segid=cavity.surface.id,
+                title=cavity.name,
             )
             # append this kw to the segment set database
             self.kw_database.segment_sets.append(kw)
@@ -860,7 +874,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
             for surface in part.surfaces:
                 surface.id = self.get_unique_segmentset_id()
                 kw = create_segment_set_keyword(
-                    segments=surface.faces + 1, segid=surface.id, title=surface.name,
+                    segments=surface.faces + 1,
+                    segid=surface.id,
+                    title=surface.name,
                 )
                 # append this kw to the segment set database
                 self.kw_database.segment_sets.append(kw)
@@ -871,7 +887,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
             segid = self.get_unique_segmentset_id()
             setattr(cap, "seg_id", segid)
             segset_kw = create_segment_set_keyword(
-                segments=cap.triangles + 1, segid=cap.seg_id, title=cap.name,
+                segments=cap.triangles + 1,
+                segid=cap.seg_id,
+                title=cap.name,
             )
             self.kw_database.segment_sets.append(segset_kw)
         return
@@ -1082,13 +1100,20 @@ class MechanicsDynaWriter(BaseDynaWriter):
             for cap in caps:
                 if cap.name in caps_to_use:
                     self._add_springs_cap_edge(
-                        cap, part_id, scale_factor_normal, scale_factor_radial,
+                        cap,
+                        part_id,
+                        scale_factor_normal,
+                        scale_factor_radial,
                     )
 
         return
 
     def _add_springs_cap_edge(
-        self, cap: Cap, part_id: int, scale_factor_normal: float, scale_factor_radial: float,
+        self,
+        cap: Cap,
+        part_id: int,
+        scale_factor_normal: float,
+        scale_factor_radial: float,
     ):
         """Add springs to the cap nodes.
 
@@ -1152,7 +1177,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # add sd direction radial to nodes
         sd_orientation_radial_kw = create_define_sd_orientation_kw(
-            vectors=sd_orientations_radial, vector_id_offset=self.id_offset["vector"], iop=0,
+            vectors=sd_orientations_radial,
+            vector_id_offset=self.id_offset["vector"],
+            iop=0,
         )
 
         vector_ids_radial = sd_orientation_radial_kw.vectors["vid"].to_numpy()
@@ -1386,7 +1413,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
         )
 
         section_kw = keywords.SectionShell(
-            secid=section_id, elform=4, shrf=0.8333, nip=3, t1=self.parameters["Cap"]["Thickness"],
+            secid=section_id,
+            elform=4,
+            shrf=0.8333,
+            nip=3,
+            t1=self.parameters["Cap"]["Thickness"],
         )
 
         self.kw_database.cap_elements.append(material_kw)
@@ -1425,7 +1456,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 continue
 
             shell_kw = create_element_shell_keyword(
-                shells=cap.triangles + 1, part_id=cap.pid, id_offset=shell_id_offset,
+                shells=cap.triangles + 1,
+                part_id=cap.pid,
+                id_offset=shell_id_offset,
             )
 
             self.kw_database.cap_elements.append(shell_kw)
@@ -1491,12 +1524,16 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
             if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
                 file_path = os.path.join(
-                    Path(__file__).parent.absolute(), "templates", "system_model_settings_bv.json",
+                    Path(__file__).parent.absolute(),
+                    "templates",
+                    "system_model_settings_bv.json",
                 )
 
             elif isinstance(self.model, LeftVentricle):
                 file_path = os.path.join(
-                    Path(__file__).parent.absolute(), "templates", "system_model_settings_lv.json",
+                    Path(__file__).parent.absolute(),
+                    "templates",
+                    "system_model_settings_lv.json",
                 )
 
             fid = open(file_path)
@@ -1954,7 +1991,9 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             LOGGER.warning("Model type %s in development " % self.model.info.model_type)
 
             # Define part set for myocardium
-            part_list1_kw = keywords.SetPartList(sid=1,)
+            part_list1_kw = keywords.SetPartList(
+                sid=1,
+            )
             part_list1_kw.parts._data = myocardium_part_ids
             part_list1_kw.options["TITLE"].active = True
             part_list1_kw.title = "myocardium_all"
@@ -2039,13 +2078,17 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             septum_part_ids = [self.model.get_part("Septum").pid]
 
             # Define part set for myocardium
-            part_list1_kw = keywords.SetPartList(sid=1,)
+            part_list1_kw = keywords.SetPartList(
+                sid=1,
+            )
             part_list1_kw.parts._data = myocardium_part_ids
             part_list1_kw.options["TITLE"].active = True
             part_list1_kw.title = "myocardium_all"
 
             # Define part set for septum
-            part_list2_kw = keywords.SetPartList(sid=2,)
+            part_list2_kw = keywords.SetPartList(
+                sid=2,
+            )
             part_list2_kw.options["TITLE"].active = True
             part_list2_kw.title = "septum"
             part_list2_kw.parts._data = septum_part_ids
@@ -2846,7 +2889,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     #         )
 
     def _update_solution_controls(
-        self, end_time: float = 800,
+        self,
+        end_time: float = 800,
     ):
         """Add solution controls, output controls and solver settings."""
         # add termination keywords

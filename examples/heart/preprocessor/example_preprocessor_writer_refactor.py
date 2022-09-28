@@ -47,10 +47,10 @@ if __name__ == "__main__":
     if write_lsdyna_files:
         for writer in (
             writers.ElectrophysiologyDynaWriter(model),
-            # writers.MechanicsDynaWriter(model, "ConstantPreloadWindkesselAfterload"),
-            # writers.ZeroPressureMechanicsDynaWriter(model),
-            # writers.FiberGenerationDynaWriter(model),
-            # writers.PurkinjeGenerationDynaWriter(model),
+            writers.MechanicsDynaWriter(model, "ConstantPreloadWindkesselAfterload"),
+            writers.ZeroPressureMechanicsDynaWriter(model),
+            writers.FiberGenerationDynaWriter(model),
+            writers.PurkinjeGenerationDynaWriter(model),
         ):
             exportdir = os.path.join(
                 writer.model.info.workdir,

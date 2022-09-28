@@ -803,8 +803,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         lcid = self.get_unique_curve_id()
         time = [
             0,
+            self.parameters["Material"]["Myocardium"]["Active"]["Prefill"] - dt_output_d3plot,
             self.parameters["Material"]["Myocardium"]["Active"]["Prefill"],
-            self.parameters["Material"]["Myocardium"]["Active"]["Prefill"] + dt_output_d3plot,
             self.parameters["Time"]["End Time"],
         ]
         step = [10 * dt_output_d3plot, 10 * dt_output_d3plot, dt_output_d3plot, dt_output_d3plot]
@@ -2674,7 +2674,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         return
 
     def _update_solution_controls(
-        self, end_time: float = 800,
+        self,
+        end_time: float = 800,
     ):
         """Add solution controls and other solver settings as keywords."""
         # add termination keywords

@@ -113,12 +113,16 @@ LABELS_TO_ID = {
         "Superior vena cava inlet": 16,
         "Inferior vena cava inlet": 17,
     },
-    "Strocchi2020_simplified": {
-        "Left ventricle myocardium": 1,
-        "Right ventricle myocardium": 2,
-        "Mitral valve plane": 11,
-        "Aortic valve plane": 12,
-        "Pulmonary valve plane": 21,
-        "Tricuspid valve plane": 22,
+    "CasisCalibration": {
+        "Left ventricle myocardium": 100,
+        "Right ventricle myocardium": 101,
+        "Left ventricle endocardium": 1,
+        "Left ventricle epicardium": 2,
+        "Left ventricle myocardium mitral valve": 3,
+        "Left ventricle myocardium aortic valve": 4,
+        "Right ventricle endocardium": 5,
+        "Right ventricle epicardium": 6,
+        "Right ventricle myocardium pulmonary valve": 7,
+        "Right ventricle myocardium tricuspid valve": 8,
     },
 }

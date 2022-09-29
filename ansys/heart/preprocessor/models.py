@@ -27,7 +27,7 @@ class ModelInfo:
 
     @database.setter
     def database(self, value: str):
-        valid_databases = ["Strocchi2020", "Rodero2021"]
+        valid_databases = ["Strocchi2020", "Cristobal2021", "CasisCalibration"]
         if value not in valid_databases:
             raise ValueError(
                 "{0} not a valid database name. Please specify one of the"
@@ -93,11 +93,11 @@ class ModelInfo:
         elif remove_all:
             files = glob.glob(os.path.join(self.workdir, "*.*"))
 
-        for file in files:
-            try:
-                os.remove(file)
-            except:
-                LOGGER.debug(f"Unable to delete: {file}")
+            for file in files:
+                try:
+                    os.remove(file)
+                except:
+                    LOGGER.debug(f"Unable to delete: {file}")
         return
 
     def create_workdir(self) -> None:

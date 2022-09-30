@@ -3,48 +3,47 @@
 import numpy as np
 
 
-def read_binout(fname):
-    """Read binout file."""
+def read_nodout(fname: str) -> list:
+    """
+    Read nodout ASCII file.
+
+    Parameters
+    ----------
+    fname: LSDYNA ASCII nodout file
+
+    Returns
+    -------
+    list of node coordinates
+    """
     with open(fname) as ff:
         data = ff.readlines()
 
     nb = int(data[-1].split()[0])
     x = []
+    time = []
     for il, line in enumerate(data):
         if "x-coor" in line:
             x.append(il)
+        elif "time" in line:
+            t = float(line.split(" ")[-2])
+            time.append(t)
 
-    if len(x) != 3:
-        print("Cannot read BINOUT correctly")
-        exit()
+    time = np.array(time[1::2])
 
-    coord0 = np.loadtxt(data, skiprows=x[0] + 1, max_rows=nb)[:, 10:13]
-    coord1 = np.loadtxt(data, skiprows=x[2] + 1, max_rows=nb)[:, 10:13]
-    return coord0, coord1
-
-
-def get_error(coord0, coord1):
-    """Get difference in coordinates."""
-    dst = np.linalg.norm(coord1 - coord0, axis=1)
-    mean = np.mean(dst)
-    max = np.max(dst)
-    print(max)
-    print(mean)
-    return mean, max
+    result = []
+    for i in range(len(x)):
+        result.append(np.loadtxt(data, skiprows=x[i] + 1, max_rows=nb)[:, 10:13])
+    return time, result
 
 
 if __name__ == "__main__":
     fname = r"nodout"
-    xm, x_end1 = read_binout(fname)
+    time, coords = read_nodout(fname)
     from compute_volume import get_cavity_volume2
 
-    lv_cavity = np.loadtxt("cavity_left_ventricle.segment", delimiter=",", dtype=int)
-    rv_cavity = np.loadtxt("cavity_right_ventricle.segment", delimiter=",", dtype=int)
-    lv0 = get_cavity_volume2(xm, lv_cavity)
-    rv0 = get_cavity_volume2(xm, rv_cavity)
-    lv_ed = get_cavity_volume2(x_end1, lv_cavity)
-    rv_ed = get_cavity_volume2(x_end1, rv_cavity)
-    print(lv0)
-    print(rv0)
-    print(lv_ed)
-    print(rv_ed)
+    lv_cavity = np.loadtxt("left_ventricle.segment", delimiter=",", dtype=int)
+    rv_cavity = np.loadtxt("right_ventricle.segment", delimiter=",", dtype=int)
+    for coord in coords:
+        lv_volume = get_cavity_volume2(coord, lv_cavity)
+        rv_volume = get_cavity_volume2(coord, rv_cavity)
+        print(lv_volume)

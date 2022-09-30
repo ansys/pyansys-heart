@@ -33,6 +33,8 @@ for package in find_namespace_packages(include="ansys*"):
 setup(
     name="ansys-heart-lib",
     packages=packages,
+    package_dir={"": "ansys"},
+    package_data={"heart.preprocessor.templates": ["*"]},
     version=__version__,
     description="Python framework for heart modeling using ansys tools",
     long_description=long_description,

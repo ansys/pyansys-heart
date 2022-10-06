@@ -16,6 +16,7 @@ class PostDevelopCommand(develop):
     def run(self):
         """Post run to install dynalib."""
         develop.run(self)
+        print("Installing dynalib...")
         subprocess.call("git clone https://github.com/pyansys/dynalib.git")
         subprocess.call("pip install -e dynalib")
 

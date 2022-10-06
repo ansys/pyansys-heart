@@ -1,6 +1,6 @@
 """Calibration passive material parameter by Klotz curve."""
 import os
-import pathlib
+import subprocess
 
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.compute_volume import get_cavity_volume2
@@ -12,18 +12,18 @@ import numpy as np
 class PassiveCalibration:
     """Passive calibration."""
 
-    def __init__(self, folder):
+    def __init__(self, work_directory):
         """
         Initialize Passive Calibration class.
 
         Parameters
         ----------
-        folder
+        work_directory
         """
-        nodes_file = os.path.join(folder, "nodes.k")
-        sgm_file = os.path.join(folder, "left_ventricle.segment")
-        # todo: l2a
-        bin_file = os.path.join(folder, "nodout")
+        self.work_directory = work_directory
+
+        nodes_file = os.path.join(work_directory, "nodes.k")
+        sgm_file = os.path.join(work_directory, "left_ventricle.segment")
 
         # load nodes.k: EOD geometry
         data = []
@@ -35,29 +35,45 @@ class PassiveCalibration:
         x_ed = x_ed[x_ed[:, 0].argsort()][:, 1:]
 
         # load left cavity segment
-        lv_cavity = np.loadtxt(sgm_file, delimiter=",", dtype=int)
+        self.lv_cavity = np.loadtxt(sgm_file, delimiter=",", dtype=int)
+
+        # compute Klotz curve
+        self.v_ed = get_cavity_volume2(x_ed, self.lv_cavity)
+        self.p_ed = 2 * 7.5  # 2kPa to  mmHg
+        self.klotz = EDPVR(self.v_ed, self.p_ed)
+
+    def load_results(self):
+        """Load zerop simulation results."""
+        # todo: generalize l2a
+        binout_file = os.path.join(self.work_directory, "iter3.binout0000")
+        subprocess.call(["l2a", binout_file])
+        ndout_file = os.path.join(self.work_directory, "nodout")
 
         # load inflation simulation
-        time, coords = read_nodout(bin_file)
-
-        # compute EOD volume and pressure
-        self.v_ed = get_cavity_volume2(x_ed, lv_cavity)
-        self.p_ed = 2 * 7.5
-
-        self.klotz = EDPVR(self.v_ed, self.p_ed)
+        time, coords = read_nodout(ndout_file)
 
         # compute volume at different simulation time
         self.v_sim = np.zeros(time.shape)
         for i, coord in enumerate(coords):
-            lv_volume = get_cavity_volume2(coord, lv_cavity)
+            lv_volume = get_cavity_volume2(coord, self.lv_cavity)
             self.v_sim[i] = lv_volume
 
+    def compute_error(self):
+        """
+        Compute rsm error between Klotz curve and simulation.
+
+        Returns
+        -------
+        float
+        error
+        """
         self.pressure = np.linspace(0, self.p_ed, num=len(self.v_sim))
         self.v_kz = self.klotz.get_volume(self.pressure)
 
         # RSM error between analytics and simulation
         self.rsm = np.linalg.norm(self.v_sim - self.v_kz)
-        return
+
+        return self.rsm
 
     def plot(self):
         """
@@ -67,16 +83,33 @@ class PassiveCalibration:
         -------
         plot curve
         """
-        plt.plot(self.v_kz, self.pressure, "--o", label="Klotz")
+        vv = np.linspace(0, 1.1 * self.v_ed, num=101)
+        pp = self.klotz.get_pressure(vv)
+        fig = plt.figure()
+        plt.plot(vv, pp, label="Klotz")
+        plt.plot(self.v_kz, self.pressure, "o", label="Klotz")
         plt.plot(self.v_sim, self.pressure, "--*", label="FEM")
-        plt.legend("RSM={0:10.5e}".format(self.rsm))
-        plt.show()
-        return
+        plt.legend()
+        plt.title("RSM={0:10.5e}".format(self.rsm))
+        return fig
+
+    def run_lsdyna(self):
+        """
+        Run lsdyna in wsl.
+
+        Returns
+        -------
+        str
+        wsl output
+        """
+        # TODO: cooperate with simulator.
+        command = ["wsl", "-e", "bash", "-lic", "./run_lsdyna.sh"]
+        run_command_display = " ".join([str(s) for s in command])
+        process = subprocess.run(
+            ["powershell", "-Command", run_command_display], capture_output=True
+        )
+        return process.stdout.decode()
 
 
 if __name__ == "__main__":
-    "test"
-    path_to_case = os.path.join(pathlib.Path(__file__).parents[3], "tests", "heart", "calibration")
-    case = PassiveCalibration(path_to_case)
-    print(case.rsm)
-    case.plot()
+    pass

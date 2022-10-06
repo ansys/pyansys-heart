@@ -9,7 +9,7 @@ How to install
 
 At least two installation modes are provided: user and developer.
 
-For users
+For users (Not yet available!)
 ^^^^^^^^^
 
 User installation can be performed by running:
@@ -60,7 +60,7 @@ need to follow these steps:
 
     .. code:: bash
     
-        python -m pip install --editable ansys-heart-lib
+        python -m pip install --editable pyheart-lib
 
 5. Install additional requirements (if needed):
 

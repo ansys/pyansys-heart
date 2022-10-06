@@ -1,4 +1,5 @@
 """Project installation script."""
+import subprocess
 
 """pyheart-lib setup file."""
 import codecs
@@ -6,6 +7,18 @@ from io import open as io_open
 import os
 
 from setuptools import find_namespace_packages, setup
+from setuptools.command.develop import develop
+
+
+class PostDevelopCommand(develop):
+    """Post-installation for development mode."""
+
+    def run(self):
+        """Post run to install dynalib."""
+        develop.run(self)
+        subprocess.call("git clone https://github.com/pyansys/dynalib.git")
+        subprocess.call("pip install -e dynalib")
+
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 __version__ = None
@@ -30,6 +43,9 @@ for package in find_namespace_packages(include="ansys*"):
     if package.startswith("ansys.heart"):
         packages.append(package)
 
+with open("requirements_build.txt") as f:
+    required = f.read().splitlines()
+
 setup(
     name="ansys-heart-lib",
     packages=packages,
@@ -42,19 +58,9 @@ setup(
     author="ANSYS, Inc.",
     maintainer="PyAnsys developers",
     maintainer_email="pyansys.support@ansys.com",
-    # how to add dynalib?
-    install_requires=[
-        "gmsh==4.10.3",
-        "h5py==3.6.0",
-        "Jinja2==3.1.2",
-        "matplotlib==3.5.2",
-        "meshio==5.3.4",
-        "numpy==1.21.6",
-        "pandas==1.3.5",
-        "scipy==1.7.3",
-        "vtk==9.1.0",
-        "tqdm==4.64.0",
-    ],
+    install_requires=required,
+    # install dynalib
+    cmdclass={"develop": PostDevelopCommand},
     python_requires=">=3.7",
     classifiers=[
         "Development Status :: 4 - Beta",

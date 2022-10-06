@@ -44,9 +44,8 @@ class PassiveCalibration:
 
     def load_results(self):
         """Load zerop simulation results."""
-        # todo: generalize l2a
-        binout_file = os.path.join(self.work_directory, "iter3.binout0000")
-        subprocess.call(["l2a", binout_file])
+        # binout_file = os.path.join(self.work_directory, "iter3.binout0000")
+        # subprocess.call(["l2a", binout_file])
         ndout_file = os.path.join(self.work_directory, "nodout")
 
         # load inflation simulation

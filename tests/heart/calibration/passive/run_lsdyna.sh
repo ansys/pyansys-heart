@@ -5,3 +5,4 @@
 # export ANSYSLI_SERVERS=2325@10.110.4.5
 echo xxx
 mpirun -np 4 mppdyna_d_sse2_linux86_64_intelmmpi i=main.k case
+l2a iter3.binout0000

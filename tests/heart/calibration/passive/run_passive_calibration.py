@@ -1,10 +1,6 @@
 import os
 import pathlib
-import sys
 
-import numpy as np
-
-sys.path.append(r"D:\pyheart-lib")
 from ansys.heart.calibration.passive_calibration import PassiveCalibration
 
 if __name__ == "__main__":
@@ -13,8 +9,8 @@ if __name__ == "__main__":
     Patient specific parameters are defined in material_calibration.k and will be called by main.k
 
     How to run a passive calibration:
-    1. Copy the folder
-    2. adapt venv directory (where is pyheart-lib) in run.bat and in run_passive_calibration.py
+    1. Copy the folder.
+    2. adapt venv directory (where is pyheart-lib) in run.bat
     3. Test LSOPT project with a baseline run:
        "D:\LSOPT\lsopt_2022R1_x64_win\LSOPT_2022R1\lsopt.exe" -b PassiveCalibration.lsopt
     4. Run the previous command without -b
@@ -28,6 +24,7 @@ if __name__ == "__main__":
     print(message)
     case.load_results()
     error = case.compute_error()
-    np.savetxt("result", [error])
+    with open("result", "a") as f:
+        f.write("{0:10.5e}".format(error))
     fig = case.plot()
     fig.savefig("vs.png")

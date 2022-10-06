@@ -1,5 +1,6 @@
 @echo off
 
+@REM virtual environment location
 set "VIRTUAL_ENV=D:\pyheart-lib\.venv"
 
 if defined _OLD_VIRTUAL_PROMPT (

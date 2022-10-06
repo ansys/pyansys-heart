@@ -1,10 +1,9 @@
 *KEYWORD
+*CONTROL_MPP_IO_NODUMP
 *PARAMETER
-rp1,1.5
-rp2,1.5
-$ LSOPT
-$rp1,<<ps1>>
-$rp2,<<ps2>>
+$ LSOPT inputs
+rp1,<<ps1>>
+rp2,<<ps2>>
 $$$ra,1.05
 $$$rb,7.542
 $$$raf,3.465

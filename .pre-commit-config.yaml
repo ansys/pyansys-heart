@@ -20,7 +20,7 @@ repos:
   hooks:
   - id: codespell
 #    exclude: examples/dyna_decks
-    exclude: ^(examples/dyna_decks\/|tests/heart/calibration/case\/)
+    exclude: ^(examples/dyna_decks\/|tests/heart/calibration\/)
     args: [-L solf]
 
 # pydocstyle is pretty strict

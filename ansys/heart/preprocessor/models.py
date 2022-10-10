@@ -776,6 +776,9 @@ class HeartModel:
         self._assign_caps_to_parts()
         self._assign_cavities_to_parts()
         self._extract_apex()
+        #
+        self._compute_left_ventricle_axis()
+        self._compute_left_ventricle_AHA17()
 
         return
 
@@ -1053,6 +1056,158 @@ class HeartModel:
             )
 
         return
+
+    def _compute_left_ventricle_axis(self):
+        """Compute major axis of left ventricle."""
+        if not hasattr(self, "septum"):
+            raise Exception("Model must contain septum part to compute AHA segments.")
+
+        mv_center = self.left_ventricle.caps[1].centroid
+        apex_endo = self.left_ventricle.apex_points[0].xyz
+        apex_epi = self.left_ventricle.apex_points[1].xyz
+
+        elem_septum = self.mesh.tetrahedrons[self.septum.element_ids]
+        node_septum = self.mesh.nodes[np.unique(elem_septum.ravel())]
+        septum_center = np.mean(node_septum, axis=0)
+
+        # long axis
+        hl_axis = np.cross(septum_center - mv_center, septum_center - apex_epi)
+        self.horizontal_long_axis = hl_axis / np.linalg.norm(hl_axis)
+        # LOGGER.info("Plane of horizontal long axis:", self.horizontal_long_axis)
+
+        u = septum_center - apex_epi
+        v = mv_center - apex_epi
+        vl_axis = u - (np.dot(u, v) / np.dot(v, v)) * v
+        self.vertical_long_axis = vl_axis / np.linalg.norm(vl_axis)
+        # LOGGER.info("Plane of vertical long axis:", self.vertical_long_axis)
+
+        # short axis
+        sh_axis = apex_epi - mv_center
+        self.short_axis = sh_axis / np.linalg.norm(sh_axis)
+        # LOGGER.info("Plane of short axis:", self.short_axis)
+
+        return
+
+    def _compute_left_ventricle_AHA17(self):
+        """Compute AHA17 label for left ventricle elements."""
+        self.aha_ids = np.zeros(len(self.mesh.tetrahedrons))
+
+        ele_ids = np.hstack((self.left_ventricle.element_ids, self.septum.element_ids))
+
+        elems = self.mesh.tetrahedrons[ele_ids]
+        nodes = self.mesh.nodes[np.unique(elems.ravel())]
+        _, a = np.unique(elems, return_inverse=True)
+        connect = a.reshape(elems.shape)
+
+        self.aha_ids[ele_ids] = aha_segments(
+            nodes,
+            connect,
+            self.left_ventricle.caps[1].centroid,  # mv center
+            self.left_ventricle.apex_points[1].xyz,  # epi apex
+            self.left_ventricle.apex_points[0].xyz,  # endo apex
+            self.horizontal_long_axis,
+            self.short_axis,
+        )
+        return
+
+
+def aha_segments(nodes, elems, mv_center, apex_ep, apex_ed, hl_axis, sh_axis, seg=17):
+    """
+    AHA 16 or 17 segments.
+
+    ref: https://www.pmod.com/files/download/v34/doc/pcardp/3615.htm
+
+    3 4 9 10 15 are segments for right coronary artery (RCA)
+    .
+    1 2 7 8 13 14 17 are segments for Left Anterior Descending (LAD).
+    5 6 11 12 16 are segments for Left Circumflex (LCX).
+    """
+    from scipy.spatial.transform import Rotation as R
+
+    elem_center = np.mean(nodes[elems], axis=1)
+    label = np.zeros(len(elems))
+
+    axe_60 = R.from_rotvec(np.radians(60) * sh_axis).apply(hl_axis)
+    axe_120 = R.from_rotvec(np.radians(120) * sh_axis).apply(hl_axis)
+    axe_45 = R.from_rotvec(np.radians(45) * sh_axis).apply(hl_axis)
+    axe_135 = R.from_rotvec(np.radians(135) * sh_axis).apply(hl_axis)
+    p1_3 = 1 / 3 * (apex_ep - mv_center) + mv_center
+    p2_3 = 2 / 3 * (apex_ep - mv_center) + mv_center
+
+    for i, n in enumerate(elem_center):
+        # Basal
+        if np.dot(n - p1_3, mv_center - p1_3) >= 0:
+            if np.dot(n - p1_3, axe_60) >= 0:
+                if np.dot(n - p1_3, axe_120) >= 0:
+                    if np.dot(n - p1_3, hl_axis) >= 0:
+                        label[i] = 6
+                    else:
+                        label[i] = 5
+                else:
+                    label[i] = 1
+            else:
+                if np.dot(n - p1_3, hl_axis) <= 0:
+                    if np.dot(n - p1_3, axe_120) >= 0:
+                        label[i] = 4
+                    else:
+                        label[i] = 3
+                else:
+                    label[i] = 2
+        # Mid cavity
+        elif np.dot(n - p2_3, mv_center - p2_3) >= 0:
+            if np.dot(n - p1_3, axe_60) >= 0:
+                if np.dot(n - p1_3, axe_120) >= 0:
+                    if np.dot(n - p1_3, hl_axis) >= 0:
+                        label[i] = 12
+                    else:
+                        label[i] = 11
+                else:
+                    label[i] = 7
+            else:
+                if np.dot(n - p1_3, hl_axis) <= 0:
+                    if np.dot(n - p1_3, axe_120) >= 0:
+                        label[i] = 10
+                    else:
+                        label[i] = 9
+                else:
+                    label[i] = 8
+        # Apical
+        else:
+            if seg == 17:
+                if np.dot(n - apex_ed, apex_ep - apex_ed) >= 0:
+                    label[i] = 17
+                else:
+                    if np.dot(n - p1_3, axe_45) >= 0:
+                        if np.dot(n - p1_3, axe_135) >= 0:
+                            label[i] = 16
+                        else:
+                            label[i] = 13
+                    else:
+                        if np.dot(n - p1_3, axe_135) >= 0:
+                            label[i] = 15
+                        else:
+                            label[i] = 14
+
+            else:
+                if np.dot(n - p1_3, axe_45) >= 0:
+                    if np.dot(n - p1_3, axe_135) >= 0:
+                        label[i] = 16
+                    else:
+                        label[i] = 13
+                else:
+                    if np.dot(n - p1_3, axe_135) >= 0:
+                        label[i] = 15
+                    else:
+                        label[i] = 14
+
+    assert np.all(label != 0)
+
+    # test
+    # import meshio
+    # meshio.write_points_cells("lv_aha17.vtk", nodes,
+    # [("tetra", elems)], cell_data={"Id": [label]})
+
+    return label
 
 
 class LeftVentricle(HeartModel):

@@ -509,9 +509,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
     def update(self):
         """Update the keyword database."""
-        self._update_main_db()
         self._update_node_db()
         self._update_parts_db()
+        self._update_main_db()
         self._update_solid_elements_db(add_fibers=True)
         self._update_segmentsets_db()
         self._update_nodesets_db()
@@ -801,8 +801,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.DatabaseIcvout(dt=dt_output_icvout, binary=2))
         self.kw_database.main.append(keywords.DatabaseAbstat(dt=dt_output_icvout, binary=2))
 
-        self.kw_database.main.append(keywords.DatabaseElout(dt=0.1, binary=2))
-
         self.kw_database.main.append(keywords.DatabaseGlstat(dt=0.1, binary=2))
 
         self.kw_database.main.append(keywords.DatabaseMatsum(dt=0.1, binary=2))
@@ -811,7 +809,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         lcid = self.get_unique_curve_id()
         time = [
             0,
-            self.parameters["Material"]["Myocardium"]["Active"]["Prefill"] - dt_output_d3plot,
+            self.parameters["Material"]["Myocardium"]["Active"]["Prefill"] * 0.99,
             self.parameters["Material"]["Myocardium"]["Active"]["Prefill"],
             self.parameters["Time"]["End Time"],
         ]
@@ -830,6 +828,40 @@ class MechanicsDynaWriter(BaseDynaWriter):
         )
 
         self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
+
+        # control ELOUT file to extract left ventricle's stress/strain
+        if hasattr(self.model, "septum"):
+            self.kw_database.main.append(
+                keywords.SetSolidGeneral(
+                    option="PART", sid=1, e1=self.model.left_ventricle.pid, e2=self.model.septum.pid
+                )
+            )
+        else:
+            self.kw_database.main.append(
+                keywords.SetSolidGeneral(option="PART", sid=1, e1=self.model.left_ventricle.pid)
+            )
+        self.kw_database.main.append(keywords.DatabaseHistorySolidSet(id1=1))
+
+        lcid = self.get_unique_curve_id()
+        time = [
+            0,
+            self.parameters["Time"]["End Time"] * 0.8 * 0.99,
+            self.parameters["Time"]["End Time"] * 0.8,
+            self.parameters["Time"]["End Time"],
+        ]
+        step = [100 * dt_output_d3plot, 100 * dt_output_d3plot, dt_output_d3plot, dt_output_d3plot]
+        kw_curve = create_define_curve_kw(
+            x=time,
+            y=step,
+            curve_name="elout control, only save during the last 20% ",
+            curve_id=lcid,
+            lcint=0,
+        )
+        self.kw_database.main.append(kw_curve)
+
+        self.kw_database.main.append(
+            keywords.DatabaseElout(dt=0.1, binary=2, lcur=lcid, ioopt=1, option1=27)
+        )
 
         return
 

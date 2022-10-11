@@ -1,6 +1,7 @@
 """Methods and classes for postprocessing system model data."""
 import os
 
+from binout_helper import get_icvout
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -12,21 +13,12 @@ class IcvOut:
 
     def __init__(self, fn):
         """Read LSDYNA output parameters."""
-        # get data fields
-        try:
-            from qd.cae.dyna import Binout
+        time, pressure, volume, flow = get_icvout(fn)
 
-            binout = Binout(fn)
-            time = binout.read("icvout", "time")  # s
-            pressure = binout.read("icvout", "ICV_Pressure")  # kPa
-            volume = binout.read("icvout", "ICV_Volume") / 1000  # mL
-            flow = binout.read("icvout", "ICVI_flow_rate") / 1000  # mL/s
-
-        except ImportError:
-            # todo: support ASCII
-            raise ImportError("qd not found. Install qd by 'python -m pip -install qd'")
-            # print("Need to provide ASCII version")
-            # exit()
+        # convert the unit
+        # s, kPa ?
+        volume /= 1000  # mL
+        flow /= 1000  # mL/s
 
         # Fix small bug in LSDYNA Output: Volume is 0 at t0
         # V1 = V0 + dt * (1-gamma) * Q0

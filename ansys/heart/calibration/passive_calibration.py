@@ -3,8 +3,8 @@ import os
 import subprocess
 
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
+from ansys.heart.postprocessor.binout_helper import get_coordinates
 from ansys.heart.postprocessor.compute_volume import get_cavity_volume2
-from ansys.heart.postprocessor.read_binout import read_nodout
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -44,12 +44,10 @@ class PassiveCalibration:
 
     def load_results(self):
         """Load zerop simulation results."""
-        # binout_file = os.path.join(self.work_directory, "iter3.binout0000")
-        # subprocess.call(["l2a", binout_file])
-        ndout_file = os.path.join(self.work_directory, "nodout")
-
         # load inflation simulation
-        time, coords = read_nodout(ndout_file)
+        # todo: filename iter3 is hard coded
+        ndout_file = os.path.join(self.work_directory, "iter3.binout0000")
+        time, coords = get_coordinates(ndout_file)
 
         # compute volume at different simulation time
         self.v_sim = np.zeros(time.shape)

@@ -14,6 +14,7 @@ if __name__ == "__main__":
     3. Test LSOPT project with a baseline run:
        "D:\LSOPT\lsopt_2022R1_x64_win\LSOPT_2022R1\lsopt.exe" -b PassiveCalibration.lsopt
     4. Run the previous command without -b
+
     """
     path_to_case = pathlib.Path(__file__).absolute().parents[0]
 

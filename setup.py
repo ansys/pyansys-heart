@@ -1,5 +1,6 @@
 """Project installation script."""
 import subprocess
+import sys
 
 """pyheart-lib setup file."""
 import codecs
@@ -18,7 +19,11 @@ class PostDevelopCommand(develop):
         develop.run(self)
         print("Installing dynalib...")
         subprocess.call("git clone https://github.com/pyansys/dynalib.git")
-        subprocess.call("pip install -e dynalib")
+        subprocess.call("python -m pip install -e dynalib")
+
+        if sys.version_info.minor == 7 or sys.version_info.minor == 8:
+            print("Installing qd...")
+            subprocess.call("python -m pip install qd")
 
 
 HERE = os.path.abspath(os.path.dirname(__file__))

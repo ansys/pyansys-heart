@@ -62,6 +62,16 @@ need to follow these steps:
     
         python -m pip install --editable pyheart-lib
 
+    Alternatively, use
+
+    .. code:: bash
+
+        python setup.py develop
+
+    which will install dynalib (and qd) automatically.
+
+    Note: qd will be installed only if Python is 3.7 or 3.8.
+
 5. Install additional requirements (if needed):
 
      .. code:: bash

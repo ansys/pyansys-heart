@@ -777,8 +777,8 @@ class HeartModel:
         self._assign_cavities_to_parts()
         self._extract_apex()
         #
-        self._compute_left_ventricle_axis()
-        self._compute_left_ventricle_AHA17()
+        self.compute_left_ventricle_axis()
+        self.compute_left_ventricle_AHA17()
 
         return
 
@@ -1057,7 +1057,7 @@ class HeartModel:
 
         return
 
-    def _compute_left_ventricle_axis(self):
+    def compute_left_ventricle_axis(self):
         """Compute major axis of left ventricle."""
         if not hasattr(self, "septum"):
             raise Exception("Model must contain septum part to compute AHA segments.")
@@ -1088,7 +1088,7 @@ class HeartModel:
 
         return
 
-    def _compute_left_ventricle_AHA17(self):
+    def compute_left_ventricle_AHA17(self):
         """Compute AHA17 label for left ventricle elements."""
         self.aha_ids = np.zeros(len(self.mesh.tetrahedrons))
 
@@ -1108,7 +1108,47 @@ class HeartModel:
             self.horizontal_long_axis,
             self.short_axis,
         )
+        # import meshio
+        # meshio.write_points_cells(
+        #     "bv_aha17.vtk",
+        #     self.mesh.nodes,
+        #     [("tetra", self.mesh.tetrahedrons)],
+        #     cell_data={"aha17": [self.aha_ids] },
+        # )
         return
+
+    def compute_left_ventricle_element_cs(self):
+        """Compute elemental coordinate system for each LV element."""
+        ele_ids = np.where(self.aha_ids != 0)[0]
+        elems = self.mesh.tetrahedrons[ele_ids]
+        elem_center = np.mean(self.mesh.nodes[elems], axis=1)
+
+        # compute longitudinal direction, i.e. short axis
+        e_l = np.tile(self.short_axis, (len(ele_ids), 1))
+
+        # compute radial direction
+        center_offset = elem_center - self.left_ventricle.apex_points[1].xyz
+        e_r = center_offset - (np.sum(e_l * center_offset, axis=1) * e_l.T).T
+        # normalize each row
+        e_r /= np.linalg.norm(e_r, axis=1)[:, np.newaxis]
+
+        # compute circumferential direction
+        e_c = np.cross(e_l, e_r)
+
+        # test
+        import meshio
+
+        nodes = self.mesh.nodes[np.unique(elems.ravel())]
+        _, a = np.unique(elems, return_inverse=True)
+        connect = a.reshape(elems.shape)
+        meshio.write_points_cells(
+            "lv_aha17.vtk",
+            nodes,
+            [("tetra", connect)],
+            cell_data={"e_l": [e_l], "e_r": [e_r], "e_c": [e_c]},
+        )
+
+        return e_l, e_r, e_c
 
 
 def aha_segments(nodes, elems, mv_center, apex_ep, apex_ed, hl_axis, sh_axis, seg=17):

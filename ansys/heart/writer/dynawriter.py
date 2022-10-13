@@ -167,20 +167,17 @@ class BaseDynaWriter:
         LOGGER.debug("Updating solid element keywords...")
 
         # create elements for each part
-        solid_element_count = 0  # keeps track of number of solid elements already defined
-
         for part in self.model.parts:
             tetrahedrons = self.model.mesh.tetrahedrons[part.element_ids, :] + 1
             num_elements = tetrahedrons.shape[0]
 
-            element_ids = np.arange(1, num_elements + 1, 1) + solid_element_count
             part_ids = np.ones(num_elements, dtype=int) * part.pid
 
             # format the element keywords
             kw_elements = keywords.ElementSolid()
             elements = pd.DataFrame(
                 {
-                    "eid": element_ids,
+                    "eid": part.element_ids + 1,
                     "pid": part_ids,
                     "n1": tetrahedrons[:, 0],
                     "n2": tetrahedrons[:, 1],
@@ -195,7 +192,6 @@ class BaseDynaWriter:
             kw_elements.elements = elements
             # add elements to database
             self.kw_database.solid_elements.append(kw_elements)
-            solid_element_count = solid_element_count + num_elements
 
         return
 

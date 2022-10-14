@@ -3,6 +3,7 @@ Methods for reading LS-DYNA binout file.
 
 Note: depend on qd, can be replaced other Ansys's package like by pydpf, lsreader?
 """
+import matplotlib.pyplot as plt
 import numpy as np
 
 try:
@@ -12,11 +13,15 @@ except ImportError:
 
 
 class Elout:
-    """Object of element output."""
+    """
+    Class of element output.
+
+    Read stress and history variables (28) for solid elements.
+    """
 
     def __init__(self, fn):
         """
-        Init Elout object.
+        Init Elout.
 
         Parameters
         ----------
@@ -57,47 +62,64 @@ class Elout:
             return data[:, :, 1:]
 
 
-def get_coordinates(binfile: str):
-    """
-    Read binout file to extract node coordinate.
+class NodOut:
+    """Nodout class."""
 
-    Parameters
-    ----------
-    binfile
+    def __init__(self, fn):
+        """Init NodOut."""
+        self.binout = Binout(fn)
+        self.time = self.binout.read("nodout", "time")
+        self.ids = self.binout.read("nodout", "ids")
 
-    Returns
-    -------
-    time
-    coordinates
-    """
-    data = Binout(binfile)
-    time = data.read("nodout", "time")
-    x_coord = data.read("nodout", "x_coordinate")
-    y_coord = data.read("nodout", "y_coordinate")
-    z_coord = data.read("nodout", "z_coordinate")
-    coords = np.stack((x_coord, y_coord, z_coord), axis=2)
-    return time, coords
+        # Suppose all nodes are saved in order
+        check_ok = np.array_equal(self.ids, np.linspace(1, len(self.ids + 1), num=len(self.ids)))
+        if not check_ok:
+            Exception("Nodout file is not complete, cannot continue...")
+
+    def get_coordinates(self):
+        """Get coordinates."""
+        x_coord = self.binout.read("nodout", "x_coordinate")
+        y_coord = self.binout.read("nodout", "y_coordinate")
+        z_coord = self.binout.read("nodout", "z_coordinate")
+        coords = np.stack((x_coord, y_coord, z_coord), axis=2)
+        return coords
 
 
-def get_icvout(binfile: str):
-    """
-    Read binout file to extract control volume information.
+class IcvOut:
+    """IcvOut class."""
 
-    Parameters
-    ----------
-    binfile
+    def __init__(self, fn):
+        """Init IcvOut."""
+        self.binout = Binout(fn)
+        time = self.binout.read("icvout", "time")  # s
+        pressure = self.binout.read("icvout", "ICV_Pressure")
+        volume = self.binout.read("icvout", "ICV_Volume")
+        flow = self.binout.read("icvout", "ICVI_flow_rate")
 
-    Returns
-    -------
-    time, pressure, volume, flow
-    """
-    binout = Binout(binfile)
-    time = binout.read("icvout", "time")  # s
-    pressure = binout.read("icvout", "ICV_Pressure")
-    volume = binout.read("icvout", "ICV_Volume")
-    flow = binout.read("icvout", "ICVI_flow_rate")
-    return time, pressure, volume, flow
+        # Fix small bug in LSDYNA Output: Volume is 0 at t0
+        # V1 = V0 + dt * (1-gamma) * Q0
+        # negative flow is inflow for the cavity
+        # 0.4 is from 1-gamma
+        if volume[0] == 0:
+            volume[0] = volume[1] + (time[1] - time[0]) * flow[0] * 0.4
+
+        self.time = time
+        self.pressure = pressure.reshape(-1, pressure.ndim)
+        self.flow = flow.reshape(-1, pressure.ndim)
+        self.volume = volume.reshape(-1, pressure.ndim)
 
 
 if __name__ == "__main__":
-    pass
+    a = NodOut("binout0000")
+    from ansys.heart.preprocessor.models import HeartModel
+
+    model = HeartModel.load_model("heart_model.pickle")
+
+    apex_id = model.left_ventricle.apex_points[0].node_id
+    mv_ids = model.left_ventricle.caps[0].node_ids
+    coords = a.get_coordinates()
+    apex = coords[:, apex_id, :]
+    mv_center = np.mean(coords[:, mv_ids, :], axis=1)
+    dst = np.linalg.norm(mv_center - apex, axis=1)
+    plt.plot(a.time, dst)
+    plt.show()

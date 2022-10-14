@@ -1,6 +1,6 @@
-"""compute_myocardial_strain."""
+"""Compute myocardial strain."""
 from ansys.heart.postprocessor.binout_helper import Elout
-from ansys.heart.postprocessor.leftventricle_bulleye import bullseye_plot
+from ansys.heart.postprocessor.bulleye import bullseye_plot
 from ansys.heart.preprocessor.models import HeartModel
 import matplotlib.pyplot as plt
 import numpy as np

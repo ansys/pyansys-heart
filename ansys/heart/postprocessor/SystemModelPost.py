@@ -1,35 +1,11 @@
 """Methods and classes for postprocessing system model data."""
 import os
 
-from binout_helper import get_icvout
+from ansys.heart.postprocessor.binout_helper import IcvOut
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
-
-
-class IcvOut:
-    """ICVOut class."""
-
-    def __init__(self, fn):
-        """Read LSDYNA output parameters."""
-        time, pressure, volume, flow = get_icvout(fn)
-
-        # convert the unit
-        # s, kPa ?
-        volume /= 1000  # mL
-        flow /= 1000  # mL/s
-
-        # Fix small bug in LSDYNA Output: Volume is 0 at t0
-        # V1 = V0 + dt * (1-gamma) * Q0
-        # negative flow is inflow for the cavity
-        # 0.4 is from 1-gamma
-        volume[0] = volume[1] + (time[1] - time[0]) * flow[0] * 0.4
-
-        self.time = time
-        self.pressure = pressure.reshape(-1, pressure.ndim)
-        self.flow = flow.reshape(-1, pressure.ndim)
-        self.volume = volume.reshape(-1, pressure.ndim)
 
 
 class SystemModelPost:
@@ -45,6 +21,8 @@ class SystemModelPost:
         self.cycle_duration = 1  # s
 
         self.bin = IcvOut(os.path.join(self.dir, "binout0000"))
+        self.bin.volume /= 1000  # mL
+        self.bin.flow /= 1000  # mL/time
 
         # Get the initial cavity volume
         self.cavity0 = self.bin.volume[0]

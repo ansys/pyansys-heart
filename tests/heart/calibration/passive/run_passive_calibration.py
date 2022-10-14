@@ -7,6 +7,7 @@ if __name__ == "__main__":
     """
     Run.bat is the main input of LS-OPT, it actives pyheart-lib venv and then run this script.
     Patient specific parameters are defined in material_calibration.k and will be called by main.k
+    Do not forget compute fiber at first.
 
     How to run a passive calibration:
     1. Copy the folder.
@@ -21,8 +22,7 @@ if __name__ == "__main__":
     os.chdir(path_to_case)
 
     case = PassiveCalibration(path_to_case)
-    message = case.run_lsdyna()
-    print(message)
+    case.run_lsdyna()
     case.load_results()
     error = case.compute_error()
     with open("result", "a") as f:

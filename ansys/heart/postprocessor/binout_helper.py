@@ -110,6 +110,7 @@ class IcvOut:
 
 
 if __name__ == "__main__":
+
     a = NodOut("binout0000")
     from ansys.heart.preprocessor.models import HeartModel
 
@@ -121,5 +122,5 @@ if __name__ == "__main__":
     apex = coords[:, apex_id, :]
     mv_center = np.mean(coords[:, mv_ids, :], axis=1)
     dst = np.linalg.norm(mv_center - apex, axis=1)
-    plt.plot(a.time, dst)
+    plt.plot(a.time[2:], dst[2:])
     plt.show()

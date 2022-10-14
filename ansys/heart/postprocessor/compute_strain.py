@@ -99,8 +99,8 @@ if __name__ == "__main__":
     model = HeartModel.load_model("heart_model.pickle")
     res = Elout("binout0000")
 
-    # strain = compute_myocardial_strain(model, res,refrence_time=1)
-    # np.save('strain',strain);exit()
+    strain = compute_myocardial_strain(model, res, refrence_time=1)
+    np.save("strain", strain)
     strain = np.load("strain.npy")
     aha_strain = compute_AHA17_segment_strain(model, res, strain)
 
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     fig, ax = plt.subplots(figsize=(24, 16), nrows=1, ncols=3, subplot_kw=dict(projection="polar"))
     fig.canvas.manager.set_window_title("Left Ventricle Bulls Eyes (AHA)")
     for i in range(3):
-        bullseye_plot(ax[i], aha_strain[i, 2, :])  # at second time step
+        bullseye_plot(ax[i], aha_strain[i, 3, :])  # at second time step
 
     ax[0].set_title("longitudinal")
     ax[1].set_title("radial")

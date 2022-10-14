@@ -92,21 +92,23 @@ class PassiveCalibration:
         return fig
 
     def run_lsdyna(self):
-        """
-        Run lsdyna in wsl.
-
-        Returns
-        -------
-        str
-        wsl output
-        """
+        """Run lsdyna in wsl."""
         # TODO: cooperate with simulator.
         command = ["wsl", "-e", "bash", "-lic", "./run_lsdyna.sh"]
+
         run_command_display = " ".join([str(s) for s in command])
-        process = subprocess.run(
-            ["powershell", "-Command", run_command_display], capture_output=True
+        process = subprocess.Popen(
+            ["powershell", "-Command", run_command_display],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
-        return process.stdout.decode()
+        # stdout, stderr = process.communicate()
+        with open("simulationlog.log", "w") as f:
+            for line in process.stdout:
+                f.write(line.decode())
+
+        if process.returncode != 0:
+            Exception("Simulation error: Check license or input file.")
 
 
 if __name__ == "__main__":

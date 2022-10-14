@@ -1136,17 +1136,17 @@ class HeartModel:
         e_c = np.cross(e_l, e_r)
 
         # test
-        import meshio
-
-        nodes = self.mesh.nodes[np.unique(elems.ravel())]
-        _, a = np.unique(elems, return_inverse=True)
-        connect = a.reshape(elems.shape)
-        meshio.write_points_cells(
-            "lv_aha17.vtk",
-            nodes,
-            [("tetra", connect)],
-            cell_data={"e_l": [e_l], "e_r": [e_r], "e_c": [e_c]},
-        )
+        # import meshio
+        #
+        # nodes = self.mesh.nodes[np.unique(elems.ravel())]
+        # _, a = np.unique(elems, return_inverse=True)
+        # connect = a.reshape(elems.shape)
+        # meshio.write_points_cells(
+        #     "lv_aha17.vtk",
+        #     nodes,
+        #     [("tetra", connect)],
+        #     cell_data={"e_l": [e_l], "e_r": [e_r], "e_c": [e_c]},
+        # )
 
         return e_l, e_r, e_c
 

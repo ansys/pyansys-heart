@@ -1,10 +1,7 @@
 """Simulator module."""
 import os
-import pathlib
 import shutil
-import subprocess
 
-from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.models import HeartModel
 import ansys.heart.writer.dynawriter as writers
 
@@ -173,42 +170,4 @@ class Simulator:
         # TODO add coupling stuff and ignore default
         # Ca2+ mechanics active stress/replaced by EP simulation
 
-        return
-
-    def run_lsdyna(
-        self, sim_file: str, lsdynapath: str, memory: str = "24m", NCPU: int = 1, options: str = ""
-    ):
-        """Run LS-DYNA."""
-        os.chdir(pathlib.Path(sim_file).parent)
-        sim_file_wsl = (
-            subprocess.run(["wsl", "wslpath", os.path.basename(sim_file)], capture_output=1)
-            .stdout.decode()
-            .strip()
-        )
-        lsdynapath_wsl = (
-            subprocess.run(["wsl", "wslpath", lsdynapath.replace("\\", "/")], capture_output=1)
-            .stdout.decode()
-            .strip()
-        )
-        run_command = [
-            "wsl",
-            "source",
-            "~/.bashrc",
-            ";",
-            "mpirun",
-            "-np",
-            str(NCPU),
-            lsdynapath_wsl,
-            "i=",
-            sim_file_wsl,
-        ]
-        logfile = os.path.join(pathlib.Path(sim_file).parent, "logfile.log")
-        f = open(logfile, "w")
-        LOGGER.info("Running ls-dyna with command:")
-        run_command_display = " ".join([str(s) for s in run_command])
-        LOGGER.info(run_command_display)
-        subprocess.run(run_command, stdout=f)
-        LOGGER.info("Finished")
-        # out = p.stdout
-        # print(out.decode("utf-8"))
         return

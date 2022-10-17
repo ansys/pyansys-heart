@@ -1,6 +1,5 @@
 """Calibration passive material parameter by Klotz curve."""
 import os
-import subprocess
 
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.binout_helper import NodOut
@@ -90,25 +89,6 @@ class PassiveCalibration:
         plt.legend()
         plt.title("RSM={0:10.5e}".format(self.rsm))
         return fig
-
-    def run_lsdyna(self):
-        """Run lsdyna in wsl."""
-        # TODO: cooperate with simulator.
-        command = ["wsl", "-e", "bash", "-lic", "./run_lsdyna.sh"]
-
-        run_command_display = " ".join([str(s) for s in command])
-        process = subprocess.Popen(
-            ["powershell", "-Command", run_command_display],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        # stdout, stderr = process.communicate()
-        with open("simulationlog.log", "w") as f:
-            for line in process.stdout:
-                f.write(line.decode())
-
-        if process.returncode != 0:
-            Exception("Simulation error: Check license or input file.")
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@ import os
 import pathlib
 
 from ansys.heart.calibration.passive_calibration import PassiveCalibration
+from ansys.heart.general import run_lsdyna
 
 if __name__ == "__main__":
     """
@@ -22,7 +23,12 @@ if __name__ == "__main__":
     os.chdir(path_to_case)
 
     case = PassiveCalibration(path_to_case)
-    case.run_lsdyna()
+    ncpu = 4
+    lsdynapath = "mppdyna_d_sse2_linux86_64_intelmmpi"
+    sim_file = os.path.join(path_to_case, "main.k")
+    options = "case"
+
+    run_lsdyna(sim_file, lsdynapath, ncpu=ncpu, options="case")
     case.load_results()
     error = case.compute_error()
     with open("result", "a") as f:

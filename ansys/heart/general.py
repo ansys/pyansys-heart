@@ -21,7 +21,7 @@ def check_lsdyna_exe():
         result = str(distutils.spawn.find_executable(LSDYNAPATH))
     elif OS == "wsl":
         p = subprocess.Popen(["wsl", "which", LSDYNAPATH], stdout=subprocess.PIPE)
-        result = p.stdout.read().decode().strip()
+        result = p.stdout.read().decode()
 
     if result.strip() != LSDYNAPATH:
         LOGGER.error("Cannot find LSDYNA executable.")
@@ -67,6 +67,7 @@ def run_lsdyna(sim_file: str, lsdynapath: str = LSDYNAPATH, ncpu: int = NCPU, op
             #     f.write("l2a iter3.binout0000")
 
         command = ["powershell", "-Command", "wsl", "-e", "bash", "-lic", "./run_lsdyna.sh"]
+
     elif OS == "Win":
         command = [lsdynapath, f"ncpu={ncpu}", f"i={sim_file}", f"{options}"]
 

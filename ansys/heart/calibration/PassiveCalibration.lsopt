@@ -30,7 +30,7 @@
           <inputfile basefilename="material_calibration.k">material_calibration.k</inputfile>
           <extrainpfiles>
             
-            <inputfile skip="on">run_passive_calibration.py</inputfile>
+            <inputfile skip="on">run.py</inputfile>
             <inputfile skip="on">boundary_conditions.k</inputfile>
             <inputfile skip="on">cap_elements.k</inputfile>
             <inputfile skip="on">left_ventricle.segment</inputfile>
@@ -42,7 +42,6 @@
             <inputfile skip="on">pericardium.k</inputfile>
             <inputfile skip="on">segment_sets.k</inputfile>
             <inputfile skip="on">solid_elements.k</inputfile>
-            <inputfile skip="on">run_lsdyna.sh</inputfile>
           </extrainpfiles>
           <dynaoptions/>
           <scheduling>

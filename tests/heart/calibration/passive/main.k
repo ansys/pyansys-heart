@@ -87,7 +87,7 @@ $#                                                                      filename
 solid_elements.k                                                                
 *INCLUDE
 $#                                                                      filename
-material_calibration.k                                                                      
+material.k
 *INCLUDE
 $#                                                                      filename
 segment_sets.k                                                                  

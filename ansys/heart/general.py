@@ -3,6 +3,9 @@ import os
 import shutil
 import subprocess
 
+NCPU = 4
+LSDYNAPATH = "mppdyna_d_sse2_linux86_64_intelmmpi"
+
 from ansys.heart.custom_logging import LOGGER
 
 
@@ -17,7 +20,7 @@ def clean_directory(directory: str):
     return
 
 
-def run_lsdyna(sim_file: str, lsdynapath: str, ncpu: int = 4, options=""):
+def run_lsdyna(sim_file: str, lsdynapath: str = LSDYNAPATH, ncpu: int = NCPU, options=""):
     """Run lsdyna in wsl."""
     # extract_binout = False
     # os.chdir(pathlib.Path(sim_file).parent)

@@ -1,11 +1,48 @@
 """Calibration passive material parameter by Klotz curve."""
 import os
+import shutil
+import sys
 
+from ansys.heart.general import run_lsdyna
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.binout_helper import NodOut
-from ansys.heart.postprocessor.compute_volume import get_cavity_volume2
+from ansys.heart.postprocessor.compute_volume import ClosedSurface
 import matplotlib.pyplot as plt
 import numpy as np
+
+
+def create_calibration_folder(target_dir, python_exe: str = ""):
+    """
+    Create necessary files for calibration.
+
+    Parameters
+    ----------
+    target_dir: target folder
+    python_exe: venv path
+
+    """
+    # todo: test if it's a legitimate folder
+    here = os.path.dirname(os.path.realpath(__file__))
+    shutil.copy(
+        os.path.join(here, "PassiveCalibration.lsopt"),
+        os.path.join(target_dir, "PassiveCalibration.lsopt"),
+    )
+
+    shutil.copy(
+        os.path.join(here, "material.k"),
+        os.path.join(target_dir, "material.k"),
+    )
+
+    if python_exe == "":
+        python_exe = f"{sys.prefix}\\Scripts\\python.exe"
+
+    with open(os.path.join(target_dir, "run.bat"), "w") as f:
+        f.write(f"{python_exe} run.py")
+
+    shutil.copy(
+        os.path.join(here, "run.template"),
+        os.path.join(target_dir, "run.py"),
+    )
 
 
 class PassiveCalibration:
@@ -37,7 +74,7 @@ class PassiveCalibration:
         self.lv_cavity = np.loadtxt(sgm_file, delimiter=",", dtype=int)
 
         # compute Klotz curve
-        self.v_ed = get_cavity_volume2(x_ed, self.lv_cavity)
+        self.v_ed = ClosedSurface(x_ed, self.lv_cavity).get_volume()
         self.p_ed = 2 * 7.5  # 2kPa to  mmHg
         self.klotz = EDPVR(self.v_ed, self.p_ed)
 
@@ -52,7 +89,7 @@ class PassiveCalibration:
         # compute volume at different simulation time
         self.v_sim = np.zeros(time.shape)
         for i, coord in enumerate(coords):
-            lv_volume = get_cavity_volume2(coord, self.lv_cavity)
+            lv_volume = ClosedSurface(coord, self.lv_cavity).get_volume()
             self.v_sim[i] = lv_volume
 
     def compute_error(self):
@@ -89,6 +126,16 @@ class PassiveCalibration:
         plt.legend()
         plt.title("RSM={0:10.5e}".format(self.rsm))
         return fig
+
+    def run_one_step_calibration(self):
+        """Run zerop simulation and compare with Klotz curve."""
+        run_lsdyna("main.k", options="case")
+        self.load_results()
+        error = self.compute_error()
+        with open("result", "a") as f:
+            f.write("{0:10.5e}".format(error))
+        fig = self.plot()
+        fig.savefig("vs.png")
 
 
 if __name__ == "__main__":

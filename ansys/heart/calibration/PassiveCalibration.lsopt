@@ -27,7 +27,7 @@
             <position y="104" x="400"/>
           </guidata>
           <command addinputarg="off">${LSPROJHOME}\run.bat</command>
-          <inputfile basefilename="material_calibration.k">material_calibration.k</inputfile>
+          <inputfile basefilename="material.k">material.k</inputfile>
           <extrainpfiles>
             
             <inputfile skip="on">run.py</inputfile>

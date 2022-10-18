@@ -12,10 +12,12 @@ if __name__ == "__main__":
     2. Fiber orientation has been updated (solid_elements.k)
 
     How to:
-    - Test run
-       "D:\LSOPT\lsopt_2022R1_x64_win\LSOPT_2022R1\lsopt.exe" -b PassiveCalibration.lsopt
-    - Run whole calibration without -b
-    - You can clean the LSOPT project with --clean
+    - Configure simulation setup (LSDYNA EXE, ncpu...) in general.py
+    - Run this script
+    - Run the following command in terminal
+        "D:\LSOPT\lsopt_2022R1_x64_win\LSOPT_2022R1\lsopt.exe" -b PassiveCalibration.lsopt
+    - Run calibration without -b
+    - (Option) Clean LSOPT project with --clean
     """
     path_to_case = pathlib.Path(__file__).absolute().parents[3]
     path_to_case = os.path.join(path_to_case, "tests", "heart", "calibration", "passive")

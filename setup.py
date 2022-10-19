@@ -52,6 +52,7 @@ package_data = {
         "fluent_meshing_add_blood_mesh_template.jou",
     ],
     "ansys.heart.preprocessor": ["*.json"],
+    "ansys.heart.writer.templates": ["*.json"],
 }
 
 setup(

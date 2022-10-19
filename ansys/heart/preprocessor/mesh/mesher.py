@@ -4,7 +4,6 @@ import pathlib
 import subprocess
 from typing import List
 
-import ansys.fluent.core as pyfluent
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor import SC_EXE
 from ansys.heart.preprocessor._load_template import load_template
@@ -30,6 +29,8 @@ def mesh_heart_model_by_fluent(
 
     Optionally extracts the blood pool.
     """
+    import ansys.fluent.core as pyfluent
+
     # change directory to directory of stl file
     old_directory = os.getcwd()
     working_directory = path_to_stl_directory

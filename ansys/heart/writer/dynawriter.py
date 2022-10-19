@@ -7,7 +7,6 @@ Uses a HeartModel (from ansys.heart.preprocessor.models).
 """
 import json
 import os
-from pathlib import Path
 import time
 from typing import List
 
@@ -47,6 +46,7 @@ from ansys.heart.writer.keyword_module import (
 from ansys.heart.writer.material_keywords import MaterialAtrium, MaterialHGOMyocardium, active_curve
 import numpy as np
 import pandas as pd
+import pkg_resources
 from vtk.numpy_interface import dataset_adapter as dsa  # noqa
 
 # import commonly used material models
@@ -1523,17 +1523,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 "supports the Closed Loop circulation model!"
             )
             if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-                file_path = os.path.join(
-                    Path(__file__).parent.absolute(),
-                    "templates",
-                    "system_model_settings_bv.json",
+                file_path = pkg_resources.resource_filename(
+                    "ansys.heart.writer", "templates/system_model_settings_bv.json"
                 )
 
             elif isinstance(self.model, LeftVentricle):
-                file_path = os.path.join(
-                    Path(__file__).parent.absolute(),
-                    "templates",
-                    "system_model_settings_lv.json",
+                file_path = pkg_resources.resource_filename(
+                    "ansys.heart.writer", "templates/system_model_settings_lv.json"
                 )
 
             fid = open(file_path)

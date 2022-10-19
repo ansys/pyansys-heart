@@ -10,7 +10,6 @@ from ansys.heart.preprocessor import SC_EXE
 from ansys.heart.preprocessor._load_template import load_template
 import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401
 from ansys.heart.preprocessor.mesh.objects import Cap
-import gmsh
 import numpy as np
 
 _template_directory = os.path.join(pathlib.Path(__file__).parents[1], "templates")
@@ -262,6 +261,11 @@ def _run_gmsh(infile: str, outfile: str, mesh_size):
         infile (str): Path to .stl input file
         outfile (str): path to .vtk output
     """
+    try:
+        import gmsh
+    except:
+        ImportError("GMESH not installed. Install through pip install gmesh")    
+        
     gmsh.initialize()
 
     gmsh.option.setNumber("Mesh.Algorithm", 6)

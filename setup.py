@@ -45,8 +45,13 @@ install_requires = (
 )
 
 # add these files as package data
+# can test if files are indeed added to distribution by: python setup.py sdist bdist_wheel
 package_data = {
-    "": ["ansys/heart/preprocessor/templates/*.jou", "ansys/heart/preprocessor/*.json"],
+    "ansys.heart.preprocessor.templates": [
+        "fluent_meshing_template_improved_2.jou",
+        "fluent_meshing_add_blood_mesh_template.jou",
+    ],
+    "ansys.heart.preprocessor": ["*.json"],
 }
 
 setup(

@@ -17,9 +17,6 @@ class PostDevelopCommand(develop):
     def run(self):
         """Post run to install dynalib."""
         develop.run(self)
-        print("Installing dynalib...")
-        subprocess.call("git clone https://github.com/pyansys/dynalib.git")
-        subprocess.call("python -m pip install -e dynalib")
 
         if sys.version_info.minor == 7 or sys.version_info.minor == 8:
             print("Installing qd...")

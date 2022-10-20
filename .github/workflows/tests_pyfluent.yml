@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   build:
-    name: Style Check
+    name: Tests requiring PyFluent
     runs-on: ubuntu-latest
     steps:
       - name: Checkout project

@@ -34,23 +34,24 @@ need to follow these steps:
         git clone https://github.com/pyansys/pyheart-lib
 
 2. Create a fresh-clean Python environment and activate it. Refer to the
-   official `venv`_ documentation if you require further information:
+   official `venv`_  or `conda`_ documentation if you require further information:
 
+    Through `venv`_:
     .. code:: bash
-
-        # Create a virtual environment (through venv)
+        # Create a virtual environment
         python -m venv .venv
 
-        # Activate it in a POSIX system
+        # Activate environment: 
+        # - in POSIX system:
         source .venv/bin/activate
-
-        # Activate it in Windows CMD environment
+        # - in Windows cmd shell:
         .venv\Scripts\activate.bat
-
-        # Activate it in Windows Powershell
+        # or in Windows powershell
         .venv\Scripts\Activate.ps1
 
-        # Alternatively you can create a new virtual environment with specified Python version through (Ana)conda
+    Through the virtual environment manager `conda`_:
+    .. code:: bash
+        # Create virtual environment with specific python version
         conda create --name my-venv python=3.8
 
         # Activate environment
@@ -84,7 +85,7 @@ need to follow these steps:
     which will install dynalib (and qd) automatically.
 
     Note 1: qd will be installed only if Python is 3.7 or 3.8.
-    Note 2: this option may fail in some cases, please resort back to pip install --editable and manual installation of `dynalib`
+    Note 2: this option may fail in some cases, please resort back to pip install --editable and manual installation of `dynalib`_
 
 5. Install additional requirements (if needed):
 
@@ -155,3 +156,4 @@ Then, you can execute:
 .. _tox: https://tox.wiki/
 .. _venv: https://docs.python.org/3/library/venv.html
 .. _dynalib: https://github.com/pyansys/dynalib
+.. _conda: https://docs.conda.io/en/latest/

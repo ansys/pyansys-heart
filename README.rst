@@ -38,7 +38,7 @@ need to follow these steps:
 
     .. code:: bash
 
-        # Create a virtual environment
+        # Create a virtual environment (through venv)
         python -m venv .venv
 
         # Activate it in a POSIX system
@@ -49,6 +49,13 @@ need to follow these steps:
 
         # Activate it in Windows Powershell
         .venv\Scripts\Activate.ps1
+
+        # Alternatively you can create a new virtual environment with specified Python version through (Ana)conda
+        conda create --name my-venv python=3.8
+
+        # Activate environment
+        conda activate my-venv        
+
 
 3. Make sure you have the latest version of `pip`_:
 
@@ -61,6 +68,12 @@ need to follow these steps:
     .. code:: bash
     
         python -m pip install --editable pyheart-lib
+    
+    Install latest version of dynalib manually by: 
+
+    .. code:: bash 
+
+        pip install git+https://github.com/pyansys/dynalib.git@main
 
     Alternatively, use
 
@@ -70,7 +83,8 @@ need to follow these steps:
 
     which will install dynalib (and qd) automatically.
 
-    Note: qd will be installed only if Python is 3.7 or 3.8.
+    Note 1: qd will be installed only if Python is 3.7 or 3.8.
+    Note 2: this option may fail in some cases, please resort back to pip install --editable and manual installation of `dynalib`
 
 5. Install additional requirements (if needed):
 
@@ -80,13 +94,7 @@ need to follow these steps:
         python -m pip install -r requirements/requirements_doc.txt
         python -m pip install -r requirements/requirements_tests.txt
 
-
-   Download and install `dynalib`_ in development mode in your environment:
-     .. code:: bash
-
-        python -m pip install -e /path/to/dynalib-root
-
-6. Finally, verify your development installation by running:
+6. Finally, verify your development version after installation by running:
 
     .. code:: bash
         

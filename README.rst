@@ -70,10 +70,13 @@ need to follow these steps:
     
         python -m pip install --editable pyheart-lib
     
-    Install latest version of dynalib manually by: 
+    Install version of dynalib manually by: 
 
     .. code:: bash 
+        # latest version
+        pip install git+https://github.com/pyansys/dynalib.git@main
 
+        # or if encountering issues with dynalib you can install a specific working version
         pip install git+https://github.com/pyansys/dynalib.git@afce06ba178888d992ff51838ca521abb824c8ab
 
     Alternatively, use

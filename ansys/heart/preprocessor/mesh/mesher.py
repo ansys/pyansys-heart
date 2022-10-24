@@ -4,7 +4,6 @@ import pathlib
 import subprocess
 from typing import List
 
-import ansys.fluent.core as pyfluent
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor import SC_EXE
 from ansys.heart.preprocessor._load_template import load_template
@@ -12,7 +11,10 @@ import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401
 from ansys.heart.preprocessor.mesh.objects import Cap
 import numpy as np
 
-_template_directory = os.path.join(pathlib.Path(__file__).parents[1], "templates")
+# from pkg_resources import resource_filename
+import pkg_resources
+
+_template_directory = pkg_resources.resource_filename("ansys.heart.preprocessor", "templates")
 
 
 def mesh_heart_model_by_fluent(
@@ -27,14 +29,16 @@ def mesh_heart_model_by_fluent(
 
     Optionally extracts the blood pool.
     """
+    import ansys.fluent.core as pyfluent
+
     # change directory to directory of stl file
     old_directory = os.getcwd()
     working_directory = path_to_stl_directory
     os.chdir(working_directory)
 
     if add_blood_pool:
-        path_to_blood_pool_script = os.path.join(
-            _template_directory, "fluent_meshing_add_blood_mesh_template.jou"
+        path_to_blood_pool_script = pkg_resources.resource_filename(
+            "ansys.heart.preprocessor", "templates/fluent_meshing_add_blood_mesh_template.jou"
         )
         f = open(path_to_blood_pool_script, "r")
         blood_pool_script = "".join(f.readlines())
@@ -261,7 +265,11 @@ def _run_gmsh(infile: str, outfile: str, mesh_size):
         infile (str): Path to .stl input file
         outfile (str): path to .vtk output
     """
-    import gmsh
+
+    try:
+        import gmsh
+    except:
+        ImportError("GMESH not installed. Install through pip install gmesh")
 
     gmsh.initialize()
 

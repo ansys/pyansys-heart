@@ -74,7 +74,7 @@ need to follow these steps:
 
     .. code:: bash 
 
-        pip install git+https://github.com/pyansys/dynalib.git@main
+        pip install git+https://github.com/pyansys/dynalib.git@afce06ba178888d992ff51838ca521abb824c8ab
 
     Alternatively, use
 

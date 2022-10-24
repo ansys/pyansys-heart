@@ -36,7 +36,8 @@ need to follow these steps:
 2. Create a fresh-clean Python environment and activate it. Refer to the
    official `venv`_  or `conda`_ documentation if you require further information:
 
-    Through `venv`_:
+    Through `venv`_
+
     .. code:: bash
         # Create a virtual environment
         python -m venv .venv
@@ -49,7 +50,8 @@ need to follow these steps:
         # or in Windows powershell
         .venv\Scripts\Activate.ps1
 
-    Through the virtual environment manager `conda`_:
+    Through the virtual environment manager `conda`_
+
     .. code:: bash
         # Create virtual environment with specific python version
         conda create --name my-venv python=3.8
@@ -58,7 +60,7 @@ need to follow these steps:
         conda activate my-venv        
 
 
-3. Make sure you have the latest version of `pip`_:
+3. Make sure you have the latest version of `pip`_
 
     .. code:: bash
 
@@ -70,7 +72,7 @@ need to follow these steps:
     
         python -m pip install --editable pyheart-lib
     
-    Install version of dynalib manually by: 
+    Install version of dynalib manually by
 
     .. code:: bash 
         # latest version

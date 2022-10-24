@@ -39,6 +39,7 @@ need to follow these steps:
     Through `venv`_
 
     .. code:: bash
+
         # Create a virtual environment
         python -m venv .venv
 
@@ -53,12 +54,12 @@ need to follow these steps:
     Through the virtual environment manager `conda`_
 
     .. code:: bash
+
         # Create virtual environment with specific python version
         conda create --name my-venv python=3.8
 
         # Activate environment
         conda activate my-venv        
-
 
 3. Make sure you have the latest version of `pip`_
 

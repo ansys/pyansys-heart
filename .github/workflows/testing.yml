@@ -22,7 +22,7 @@ jobs:
       matrix:
 #        os: [windows-latest, macos-latest, ubuntu-latest]
         os: [ubuntu-latest]        
-        python-version: ["3.7"]
+        python-version: ["3.8"]
       fail-fast: false
 
     steps:

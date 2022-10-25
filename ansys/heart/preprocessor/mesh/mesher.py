@@ -265,7 +265,6 @@ def _run_gmsh(infile: str, outfile: str, mesh_size):
         infile (str): Path to .stl input file
         outfile (str): path to .vtk output
     """
-
     try:
         import gmsh
     except:

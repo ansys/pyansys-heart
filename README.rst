@@ -9,7 +9,7 @@ How to install
 
 At least two installation modes are provided: user and developer.
 
-For users
+For users (Not yet available!)
 ^^^^^^^^^
 
 User installation can be performed by running:
@@ -34,23 +34,34 @@ need to follow these steps:
         git clone https://github.com/pyansys/pyheart-lib
 
 2. Create a fresh-clean Python environment and activate it. Refer to the
-   official `venv`_ documentation if you require further information:
+   official `venv`_  or `conda`_ documentation if you require further information:
+
+    Through `venv`_
 
     .. code:: bash
 
         # Create a virtual environment
         python -m venv .venv
 
-        # Activate it in a POSIX system
+        # Activate environment: 
+        # - in POSIX system:
         source .venv/bin/activate
-
-        # Activate it in Windows CMD environment
+        # - in Windows cmd shell:
         .venv\Scripts\activate.bat
-
-        # Activate it in Windows Powershell
+        # or in Windows powershell
         .venv\Scripts\Activate.ps1
 
-3. Make sure you have the latest version of `pip`_:
+    Through the virtual environment manager `conda`_
+
+    .. code:: bash
+
+        # Create virtual environment with specific python version
+        conda create --name my-venv python=3.8
+
+        # Activate environment
+        conda activate my-venv        
+
+3. Make sure you have the latest version of `pip`_
 
     .. code:: bash
 
@@ -60,7 +71,27 @@ need to follow these steps:
 
     .. code:: bash
     
-        python -m pip install --editable ansys-heart-lib
+        python -m pip install --editable pyheart-lib
+    
+    Install version of dynalib manually by
+
+    .. code:: bash 
+        # latest version
+        pip install git+https://github.com/pyansys/dynalib.git@main
+
+        # or if encountering issues with dynalib you can install a specific working version
+        pip install git+https://github.com/pyansys/dynalib.git@afce06ba178888d992ff51838ca521abb824c8ab
+
+    Alternatively, use
+
+    .. code:: bash
+
+        python setup.py develop
+
+    which will install dynalib (and qd) automatically.
+
+    Note 1: qd will be installed only if Python is 3.7 or 3.8.
+    Note 2: this option may fail in some cases, please resort back to pip install --editable and manual installation of `dynalib`_
 
 5. Install additional requirements (if needed):
 
@@ -70,13 +101,7 @@ need to follow these steps:
         python -m pip install -r requirements/requirements_doc.txt
         python -m pip install -r requirements/requirements_tests.txt
 
-
-   Download and install `dynalib`_ in development mode in your environment:
-     .. code:: bash
-
-        python -m pip install -e /path/to/dynalib-root
-
-6. Finally, verify your development installation by running:
+6. Finally, verify your development version after installation by running:
 
     .. code:: bash
         
@@ -137,3 +162,4 @@ Then, you can execute:
 .. _tox: https://tox.wiki/
 .. _venv: https://docs.python.org/3/library/venv.html
 .. _dynalib: https://github.com/pyansys/dynalib
+.. _conda: https://docs.conda.io/en/latest/

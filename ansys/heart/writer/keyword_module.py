@@ -198,8 +198,8 @@ def create_element_solid_ortho_keyword(
     elements: np.array,
     a_vec: np.array,
     d_vec: np.array,
+    e_id: np.array,
     partid: int = 1,
-    id_offset: int = 0,
     element_type="tetra",
 ) -> keywords.ElementSolidOrtho:
     """Format the *ELEMENT_SOLID_ORTHO keyword with the provided input.
@@ -214,8 +214,8 @@ def create_element_solid_ortho_keyword(
         Vector specifying the D direction
     partid : int, optional
         Part id to be used, by default 1
-    id_offset : int, optional
-        Offset of the element number, by default 0
+    e_id : np.array
+        Element ID
     element_type : str, optional
         Type of element to write, by default "tetra"
 
@@ -229,10 +229,10 @@ def create_element_solid_ortho_keyword(
     df = pd.DataFrame(columns=kw.elements)
 
     # prepare element data for dataframe
-    elids = np.arange(1, elements.shape[0] + 1, 1) + id_offset
+    # elids = np.arange(1, elements.shape[0] + 1, 1) + id_offset
     partids = np.ones(elements.shape[0]) * partid
 
-    df["eid"] = elids
+    df["eid"] = e_id
     df["pid"] = partids
 
     if element_type == "tetra":

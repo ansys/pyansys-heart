@@ -1,4 +1,6 @@
 """Project installation script."""
+import subprocess
+import sys
 
 """pyheart-lib setup file."""
 import codecs
@@ -6,6 +8,23 @@ from io import open as io_open
 import os
 
 from setuptools import find_namespace_packages, setup
+from setuptools.command.develop import develop
+
+
+class PostDevelopCommand(develop):
+    """Post-installation for development mode."""
+
+    def run(self):
+        """Post run to install dynalib."""
+        develop.run(self)
+        print("Installing dynalib...")
+        subprocess.call("git clone https://github.com/pyansys/dynalib.git")
+        subprocess.call("python -m pip install -e dynalib")
+
+        if sys.version_info.minor == 7 or sys.version_info.minor == 8:
+            print("Installing qd...")
+            subprocess.call("python -m pip install qd")
+
 
 _THIS_FILE = os.path.abspath(os.path.dirname(__file__))
 __version__ = None
@@ -30,19 +49,8 @@ for package in find_namespace_packages(include="ansys*"):
     if package.startswith("ansys.heart"):
         packages.append(package)
 
-# list of required packages
-install_requires = (
-    [
-        "h5py",
-        "Jinja2>=3.1.2",
-        "meshio==5.3.4",
-        "numpy==1.21.6",
-        # "pandas==1.3.5", pandas can be replaced by dynalib
-        "scipy==1.7.3",
-        "vtk==9.1.0",
-        # "tqdm==4.64.0", # optional?
-    ],
-)
+with open("requirements_build.txt") as f:
+    install_requires = f.read().splitlines()
 
 # add these files as package data
 # can test if files are indeed added to distribution by: python setup.py sdist bdist_wheel
@@ -72,6 +80,8 @@ setup(
     author="ANSYS, Inc.",
     maintainer="PyAnsys developers",
     maintainer_email="pyansys.support@ansys.com",
+    # install dynalib
+    cmdclass={"develop": PostDevelopCommand},
     python_requires=">=3.7",
     classifiers=[
         "Development Status :: 4 - Beta",

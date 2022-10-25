@@ -167,20 +167,17 @@ class BaseDynaWriter:
         LOGGER.debug("Updating solid element keywords...")
 
         # create elements for each part
-        solid_element_count = 0  # keeps track of number of solid elements already defined
-
         for part in self.model.parts:
             tetrahedrons = self.model.mesh.tetrahedrons[part.element_ids, :] + 1
             num_elements = tetrahedrons.shape[0]
 
-            element_ids = np.arange(1, num_elements + 1, 1) + solid_element_count
             part_ids = np.ones(num_elements, dtype=int) * part.pid
 
             # format the element keywords
             kw_elements = keywords.ElementSolid()
             elements = pd.DataFrame(
                 {
-                    "eid": element_ids,
+                    "eid": part.element_ids + 1,
                     "pid": part_ids,
                     "n1": tetrahedrons[:, 0],
                     "n2": tetrahedrons[:, 1],
@@ -195,7 +192,6 @@ class BaseDynaWriter:
             kw_elements.elements = elements
             # add elements to database
             self.kw_database.solid_elements.append(kw_elements)
-            solid_element_count = solid_element_count + num_elements
 
         return
 
@@ -509,9 +505,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
     def update(self):
         """Update the keyword database."""
-        self._update_main_db()
         self._update_node_db()
         self._update_parts_db()
+        self._update_main_db()
         self._update_solid_elements_db(add_fibers=True)
         self._update_segmentsets_db()
         self._update_nodesets_db()
@@ -657,7 +653,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             # add_fibers = False
 
         # create elements for each part
-        solid_element_count = 0  # keeps track of number of solid elements already defined
+        # solid_element_count = 0  # keeps track of number of solid elements already defined
 
         for part in self.model.parts:
             if type(self) == MechanicsDynaWriter:
@@ -673,7 +669,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             tetrahedrons = self.model.mesh.tetrahedrons[part.element_ids, :] + 1
             num_elements = tetrahedrons.shape[0]
 
-            element_ids = np.arange(1, num_elements + 1, 1) + solid_element_count
+            # element_ids = np.arange(1, num_elements + 1, 1) + solid_element_count
             part_ids = np.ones(num_elements, dtype=int) * part.pid
 
             # format the element keywords
@@ -681,7 +677,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 kw_elements = keywords.ElementSolid()
                 elements = pd.DataFrame(
                     {
-                        "eid": element_ids,
+                        "eid": part.element_ids + 1,
                         "pid": part_ids,
                         "n1": tetrahedrons[:, 0],
                         "n2": tetrahedrons[:, 1],
@@ -708,14 +704,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     elements=tetrahedrons,
                     a_vec=fiber,
                     d_vec=sheet,
+                    e_id=part.element_ids + 1,
                     partid=part.pid,
-                    id_offset=solid_element_count,
                     element_type="tetra",
                 )
 
             # add elements to database
             self.kw_database.solid_elements.append(kw_elements)
-            solid_element_count = solid_element_count + num_elements
+            # solid_element_count = solid_element_count + num_elements
 
         return
 
@@ -801,8 +797,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.DatabaseIcvout(dt=dt_output_icvout, binary=2))
         self.kw_database.main.append(keywords.DatabaseAbstat(dt=dt_output_icvout, binary=2))
 
-        self.kw_database.main.append(keywords.DatabaseElout(dt=0.1, binary=2))
-
         self.kw_database.main.append(keywords.DatabaseGlstat(dt=0.1, binary=2))
 
         self.kw_database.main.append(keywords.DatabaseMatsum(dt=0.1, binary=2))
@@ -811,7 +805,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         lcid = self.get_unique_curve_id()
         time = [
             0,
-            self.parameters["Material"]["Myocardium"]["Active"]["Prefill"] - dt_output_d3plot,
+            self.parameters["Material"]["Myocardium"]["Active"]["Prefill"] * 0.99,
             self.parameters["Material"]["Myocardium"]["Active"]["Prefill"],
             self.parameters["Time"]["End Time"],
         ]
@@ -830,6 +824,40 @@ class MechanicsDynaWriter(BaseDynaWriter):
         )
 
         self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
+
+        # control ELOUT file to extract left ventricle's stress/strain
+        if hasattr(self.model, "septum"):
+            self.kw_database.main.append(
+                keywords.SetSolidGeneral(
+                    option="PART", sid=1, e1=self.model.left_ventricle.pid, e2=self.model.septum.pid
+                )
+            )
+        else:
+            self.kw_database.main.append(
+                keywords.SetSolidGeneral(option="PART", sid=1, e1=self.model.left_ventricle.pid)
+            )
+        self.kw_database.main.append(keywords.DatabaseHistorySolidSet(id1=1))
+
+        lcid = self.get_unique_curve_id()
+        time = [
+            0,
+            self.parameters["Time"]["End Time"] * 0.8 * 0.99,
+            self.parameters["Time"]["End Time"] * 0.8,
+            self.parameters["Time"]["End Time"],
+        ]
+        step = [100 * dt_output_d3plot, 100 * dt_output_d3plot, dt_output_d3plot, dt_output_d3plot]
+        kw_curve = create_define_curve_kw(
+            x=time,
+            y=step,
+            curve_name="elout control, only save during the last 20% ",
+            curve_id=lcid,
+            lcint=0,
+        )
+        self.kw_database.main.append(kw_curve)
+
+        self.kw_database.main.append(
+            keywords.DatabaseElout(dt=0.1, binary=2, lcur=lcid, ioopt=1, option1=27)
+        )
 
         return
 

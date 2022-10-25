@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<!DOCTYPE lsoptproject SYSTEM "http://www.lstc.com/dtd/lsopt/7_1_0">
+<lsoptproject version="7.1.0">
+  <head>
+    <title>Run passive calibration</title>
+    <meta name="author" content="Ansys HC"/>
+    <meta name="save_date" content="2022-10-06 13:52:33"/>
+    <meta name="save_exe" content="lsoptui"/>
+    <meta name="save_version" content="2022.1 revision 112447"/>
+    <meta name="save_os" content="win"/>
+  <meta name="dpi" content="96"/></head>
+  <variables>
+    <variable name="x_ps1" value="1" min="0.5" max="2"/>
+    <variable name="x_ps2" value="1" min="0.5" max="2"/>
+  </variables>
+  <samplings>
+    <sampling name="e_Sampling1">
+      <design type="dopt" ppv="3"><basis/><levels tablename=""><level name="x_ps1" numValues="2"/><level name="x_ps2" numValues="2"/></levels></design><edsdconstraints/>
+      <metamodel type="polynomial" update="off" order="quadratic"><ffnnopts><scheduling><resourceref resource="FFBUILDER" units="1"/></scheduling></ffnnopts><rbfopts/><krigingopts/><svropts/><usermmopts/><mopopts/></metamodel>
+      <myvars>
+        <varref src="x_ps1"/>
+        <varref src="x_ps2"/>
+      </myvars>
+      <stages>
+        <stage name="s_Stage1" type="solver_own">
+          <guidata>
+            <position y="104" x="400"/>
+          </guidata>
+          <command addinputarg="off">${LSPROJHOME}\run.bat</command>
+          <inputfile basefilename="material.k">material.k</inputfile>
+          <extrainpfiles>
+            
+            <inputfile skip="on">run.py</inputfile>
+            <inputfile skip="on">boundary_conditions.k</inputfile>
+            <inputfile skip="on">cap_elements.k</inputfile>
+            <inputfile skip="on">left_ventricle.segment</inputfile>
+            <inputfile skip="on">main.k</inputfile>
+            
+            <inputfile skip="on">node_sets.k</inputfile>
+            <inputfile skip="on">nodes.k</inputfile>
+            <inputfile skip="on">parts.k</inputfile>
+            <inputfile skip="on">pericardium.k</inputfile>
+            <inputfile skip="on">segment_sets.k</inputfile>
+            <inputfile skip="on">solid_elements.k</inputfile>
+          </extrainpfiles>
+          <dynaoptions/>
+          <scheduling>
+            <termcriteria>
+              <tcriterion termination="normal" type="stdout">
+                <tc_retcode/>
+                <tc_file/>
+                <tc_line>N o r m a l</tc_line>
+              </tcriterion>
+              <tcriterion termination="error" type="stdout">
+                <tc_retcode/>
+                <tc_file/>
+                <tc_line>E r r o r</tc_line>
+              </tcriterion>
+              <tcriterion termination="abnormal" type="stdout">
+                <tc_retcode/>
+                <tc_file/>
+                <tc_line>A b n o r m a l</tc_line>
+              </tcriterion>
+            </termcriteria>
+            <resourceref resource="USERDEFINED" units="1"/>
+          </scheduling>
+          <myvars><varref src="x_ps2"/><varref src="x_ps1"/>
+            
+            
+          </myvars>
+          <histories/>
+          <multihistories/>
+          <responses><response name="x_result">response_FILE</response></responses>
+          <multiresponses/>
+        </stage>
+      </stages><cmp_metamodels/>
+    </sampling>
+  </samplings>
+  <objectives><objective src="x_result"/></objectives>
+  <constraints/>
+  <resources><resource name="FFBUILDER" limit="12"/><resource name="LSO_EXTRACTOR" limit="12" global="true"/>
+    <resource name="USERDEFINED" limit="1"/>
+  </resources>
+  <task method="metamodel_opt">
+    <optopts/><optalg><gaopts/><asaopts/><psoopts/><lfopopts/><paretoopts/></optalg><mcopts/>
+  </task>
+</lsoptproject>

@@ -713,8 +713,7 @@ class HeartModel:
         return
 
     def _add_nodal_areas(self):
-        """Computes and adds nodal areas to surface nodes."""
-
+        """Compute and add nodal areas to surface nodes."""
         for surface in self.mesh.boundaries:
             vtk_surface = vtkmethods.create_vtk_surface_triangles(
                 points=surface.nodes, triangles=surface.faces

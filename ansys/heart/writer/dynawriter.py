@@ -13,7 +13,6 @@ from typing import List
 from ansys.dyna.keywords import keywords
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.mesh.objects import Cap
-import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.models import (
     BiVentricle,
     FourChamber,
@@ -1295,7 +1294,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         pericardium_nodes = epicardium_nodes[penalty[epicardium_nodes] > 0.001]
 
         spring_stiffness = self.parameters["Pericardium"]["Spring Stiffness"]  # kPA/mm
-        
+
         # use pre-computed nodal areas
         nodal_areas = self.model.mesh.point_data["nodal_areas"][pericardium_nodes]
         # compute scale factor

@@ -1295,22 +1295,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
         pericardium_nodes = epicardium_nodes[penalty[epicardium_nodes] > 0.001]
 
         spring_stiffness = self.parameters["Pericardium"]["Spring Stiffness"]  # kPA/mm
-        # compute nodal areas:
-        # NOTE: can be simplified
-        filename = os.path.join(self.model.info.workdir, "temp_volume_mesh.vtk")
-        self.model.mesh.write_to_vtk(filename)
-        mesh_vtk = vtkmethods.read_vtk_unstructuredgrid_file(filename)
-        os.remove(filename)
-        vtk_surface = vtkmethods.vtk_surface_filter(mesh_vtk, True)
-        nodal_areas = vtkmethods.compute_surface_nodal_area(vtk_surface)
-
-        surface_obj = dsa.WrapDataObject(vtk_surface)
-        surface_global_node_ids = surface_obj.PointData["GlobalPointIds"]
-
-        # select only those nodal areas which match the pericardium node ids
-        idx_select = np.nonzero(pericardium_nodes[:, None] == surface_global_node_ids)[1]
-        nodal_areas = nodal_areas[idx_select]
-
+        
+        # use pre-computed nodal areas
+        nodal_areas = self.model.mesh.point_data["nodal_areas"][pericardium_nodes]
         # compute scale factor
         scale_factors = nodal_areas * penalty[pericardium_nodes]
 

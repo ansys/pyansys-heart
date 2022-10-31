@@ -1186,7 +1186,7 @@ def vtk_compute_cell_area(vtk_surface: vtk.vtkPolyData) -> np.array:
 
 
 def compute_surface_nodal_area(vtk_surface: vtk.vtkPolyData) -> np.array:
-    """Compute the averaged area for each point by averaging.
+    """Computes an average nodal area by summing surface areas of connected elements.
 
     Parameters
     ----------
@@ -1197,6 +1197,11 @@ def compute_surface_nodal_area(vtk_surface: vtk.vtkPolyData) -> np.array:
     -------
     np.array
         Numpy array with nodal areas of length number of points
+
+    Note
+    ----
+    Adds the partial areas of connected elements/cells to each node.
+
     """
     num_points = vtk_surface.GetNumberOfPoints()
     nodal_area = np.zeros(num_points)

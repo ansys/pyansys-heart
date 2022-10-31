@@ -207,6 +207,7 @@ class HeartModel:
         self._remove_unused_tags()
         self._prepare_for_meshing()
         self._remesh()
+        self._add_nodal_areas()
         self._update_parts()
 
         if clean_up:
@@ -709,6 +710,27 @@ class HeartModel:
         # cleanup
         os.remove(filename_original)
         os.remove(filename_remeshed)
+        return
+
+    def _add_nodal_areas(self):
+        """Computes and adds nodal areas to surface nodes."""
+
+        for surface in self.mesh.boundaries:
+            vtk_surface = vtkmethods.create_vtk_surface_triangles(
+                points=surface.nodes, triangles=surface.faces
+            )
+            surface.point_data["nodal_areas"] = vtkmethods.compute_surface_nodal_area(vtk_surface)
+
+        # add nodal areas to volume mesh. Note that nodes can be part of
+        # multiple surfaces - so we need to perform a summation.
+        # interior nodes will have an area of 0.
+        self.mesh.point_data["nodal_areas"] = np.zeros(self.mesh.nodes.shape[0])
+        for surface in self.mesh.boundaries:
+            self.mesh.point_data["nodal_areas"][surface.node_ids] = (
+                self.mesh.point_data["nodal_areas"][surface.node_ids]
+                + surface.point_data["nodal_areas"]
+            )
+        # self.mesh.write_to_vtk(os.path.join(self.info.workdir, "volume_nodal_areas.vtk"))
         return
 
     def _deprecated_add_volume_mesh_for_blood_pool(self):

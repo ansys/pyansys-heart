@@ -207,8 +207,8 @@ class HeartModel:
         self._remove_unused_tags()
         self._prepare_for_meshing()
         self._remesh()
-        self._add_nodal_areas()
         self._update_parts()
+        self._add_nodal_areas()
 
         if clean_up:
             self.info.clean_workdir(["part*.stl", "cavity*.stl"])
@@ -719,6 +719,16 @@ class HeartModel:
                 points=surface.nodes, triangles=surface.faces
             )
             surface.point_data["nodal_areas"] = vtkmethods.compute_surface_nodal_area(vtk_surface)
+
+        # compute nodal areas for explicitly named surfaces
+        for part in self.parts:
+            for surface in part.surfaces:
+                vtk_surface = vtkmethods.create_vtk_surface_triangles(
+                    points=surface.nodes, triangles=surface.faces
+                )
+                surface.point_data["nodal_areas"] = vtkmethods.compute_surface_nodal_area(
+                    vtk_surface
+                )
 
         # add nodal areas to volume mesh. Note that nodes can be part of
         # multiple surfaces - so we need to perform a summation.

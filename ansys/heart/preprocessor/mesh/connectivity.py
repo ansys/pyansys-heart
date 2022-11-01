@@ -4,12 +4,11 @@ import copy
 
 from ansys.heart.custom_logging import LOGGER
 import numpy as np
+from typing import Tuple, Union, Optional
 
-# import tqdm as tqdm
 
-
-def get_faces_tetra(tetra):
-    """Get faces that make up the tetra."""
+def get_faces_tetra(tetra: np.ndarray) -> np.ndarray:
+    """Get faces that make up the tetrahedrons."""
     num_tetra = tetra.shape[0]
     faces = np.zeros((num_tetra, 3, 4), dtype=int)
     masks = np.array(
@@ -26,7 +25,7 @@ def get_faces_tetra(tetra):
     return faces
 
 
-def tetra_to_faces(tetra):
+def tetra_to_faces(tetra: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """Create list of unique faces from tetrahedrons and returns tetra_face_map."""
     faces = get_faces_tetra(tetra)
 
@@ -58,7 +57,7 @@ def tetra_to_faces(tetra):
     return tetra_face_map, unique_faces
 
 
-def face_tetra_connectivity(tetra: np.array):
+def face_tetra_connectivity(tetra: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Compute the tetra-face connectivity tables."""
     import time as time
 
@@ -121,47 +120,25 @@ def face_tetra_connectivity(tetra: np.array):
     c0 = c0[mapper]
     c1 = c1[mapper]
 
-    # print("num cells connected")
-    # print("  " + str(num_cells_connected))
-    # print("c0" + str(c0))
-    # print("c1" + str(c1))
-
-    # NOTE: cell ordering makes sense in the following, but way slower.
-    # c0 = tetra_ids
-    # c1 = tetra_ids[inverse]
-    # c1 = copy.deepcopy(c0)
-    # c1[ num_cells_connected == 1 ] = c0[num_cells_connected == 1]
-    # # populate c1 with a loop
-    # for ii in np.where(num_cells_connected == 2)[0]:
-    #     mask = np.all( faces_sorted[ii,:] == faces_sorted, axis = 1)
-    #     mask[ii] = False
-    #     c1[mask] = c0[ii]
-
-    # # for all interior faces find matching cell
-    # # TODO: How to get c1 efficiently without using a loop
-    # print("num cells connected")
-    # print("  " + str(num_cells_connected))
-    # print("c0" + str(c0))
-    # print("c1" + str(c1))
     t1 = time.time()
     LOGGER.debug("Time elapsed: {:.1f} s".format(t1 - t0))
 
     return faces_1, c0, c1
 
 
-def get_face_type(faces: np.array, face_cell_connectivity: np.array) -> np.array:
+def get_face_type(faces: np.ndarray, face_cell_connectivity: np.ndarray) -> np.ndarray:
     """Establish face type. Either boundary faces or interior faces.
 
     Parameters
     ----------
-    faces : np.array
+    faces : np.ndarray
         Array with face definitions
-    face_cell_connectivity : np.array
+    face_cell_connectivity : np.ndarray
         Array describing to which cells each of the faces is connected to, e.g. np.array([c0, c1])
 
     Returns
     -------
-    np.array
+    np.ndarray
         Type of face. Either interior (face_type = 1) or boundary (face_type = 2)
     """
     interior_face_ids = face_cell_connectivity[:, 0] != face_cell_connectivity[:, 1]
@@ -174,7 +151,7 @@ def get_face_type(faces: np.array, face_cell_connectivity: np.array) -> np.array
     return face_types
 
 
-def get_edges_from_triangles(triangles: np.array) -> np.array:
+def get_edges_from_triangles(triangles: np.ndarray) -> np.ndarray:
     """Generate an array of edges from a array of triangles."""
     num_triangles = triangles.shape[0]
     num_edges = num_triangles * 3
@@ -188,8 +165,25 @@ def get_edges_from_triangles(triangles: np.array) -> np.array:
     return edges
 
 
-def get_free_edges(triangles: np.array, return_free_triangles: bool = False) -> np.array:
-    """Get the boundary edges that are only referenced once."""
+def get_free_edges(
+    triangles: np.ndarray, return_free_triangles: bool = False
+) -> Union[np.ndarray, Optional[Tuple[np.ndarray, np.ndarray]]]:
+    """Get the boundary edges that are only referenced once.
+
+    Parameters
+    ----------
+    triangles : np.ndarray
+        Array of triangles
+    return_free_triangles : bool, optional
+        Flagg indicating whether to return the free triangles, by default False
+
+    Returns
+    -------
+    free_edges : np.ndarray
+        Numpy array with the free edges
+    free_triangles: np.ndarray, optional
+        Numpy array with the triangles that use these free edges
+    """
     edges = get_edges_from_triangles(triangles)
 
     edges_sort = np.sort(edges, axis=1)
@@ -210,7 +204,7 @@ def get_free_edges(triangles: np.array, return_free_triangles: bool = False) -> 
 
 
 def edge_connectivity(
-    edges: np.array, return_type: bool = False, sort_closed: bool = False
+    edges: np.ndarray, return_type: bool = False, sort_closed: bool = False
 ) -> np.ndarray:
     """Group edges by connectivity.
 
@@ -224,6 +218,13 @@ def edge_connectivity(
             "closed": edge group forms closed edge loop
     sort_closed : bool, optional
         Flag indicating whether to sort any closed edge loops, by default False
+
+    Returns
+    -------
+    edge_groups : np.ndarray
+        Grouped edges by connectivity.
+    group_types : list[str], optional
+        Type of edge group. 'open' ended or 'closed'.
 
     Note
     ----
@@ -315,20 +316,20 @@ def edge_connectivity(
         return edge_groups
 
 
-def remove_triangle_layers_from_trimesh(triangles: np.array, iters: int = 1) -> np.array:
-    """Identify triangles connected to the boundary, and removes these from the triangle list.
+def remove_triangle_layers_from_trimesh(triangles: np.ndarray, iters: int = 1) -> np.ndarray:
+    """Identify triangles connected to the boundary, and removes these from the array.
 
     Parameters
     ----------
-    triangles : np.array
-        Array of triangles
+    triangles : np.ndarray
+        Array of triangles.
     iters : int, optional
-        Number of iterations, by default 1
+        Number of iterations, by default 1.
 
     Returns
     -------
-    np.array
-        Reduced set of triangles
+    np.ndarray
+        Reduced set of triangles.
     """
     reduced_triangles = copy.deepcopy(triangles)
     for ii in range(0, iters, 1):
@@ -341,10 +342,6 @@ def remove_triangle_layers_from_trimesh(triangles: np.array, iters: int = 1) -> 
         free_nodes = np.unique(free_edges)
 
         idx_triangles_boundary = np.any(np.isin(reduced_triangles, free_nodes), axis=1)
-        # idx_triangles_boundary = np.any(
-        #     np.all( np.isin(edges, free_edges),
-        #         axis = 1),
-        #     axis = 0 )
 
         LOGGER.debug("Removing {0} connected triangles".format(np.sum(idx_triangles_boundary)))
 

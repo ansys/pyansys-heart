@@ -1,7 +1,7 @@
 """Module for computing paths."""
 import math
 from msilib.schema import Error
-from typing import Union, List
+from typing import List, Union
 
 import numpy as np
 import vtk

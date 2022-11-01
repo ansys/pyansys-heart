@@ -5,7 +5,7 @@ import os
 # import json
 import pathlib
 import pickle
-from typing import List
+from typing import List, Union
 
 from ansys.heart.custom_logging import LOGGER
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
@@ -72,7 +72,7 @@ class ModelInfo:
         self,
         extensions_to_remove: List[str] = [".stl", ".vtk", ".msh.h5"],
         remove_all: bool = False,
-    ):
+    ) -> None:
         """Remove files with extension present in the working directory.
 
         Parameters
@@ -94,16 +94,15 @@ class ModelInfo:
             files = glob.glob(os.path.join(self.workdir, "*.*"))
             for file in files:
                 os.remove(file)
-
         return
 
-    def create_workdir(self):
+    def create_workdir(self) -> None:
         """Create the working directory if it doesn't exist."""
         if not os.path.isdir(self.workdir):
             os.makedirs(self.workdir)
         return
 
-    def dump_info(self, filename: pathlib.Path = None):
+    def dump_info(self, filename: pathlib.Path = None) -> None:
         """Dump model information to file."""
         if not filename:
             filename = os.path.join(self.workdir, "model_info.json")
@@ -169,7 +168,7 @@ class HeartModel:
 
         pass
 
-    def extract_simulation_mesh(self, clean_up: bool = False):
+    def extract_simulation_mesh(self, clean_up: bool = False) -> None:
         """Update the model.
 
         Examples
@@ -214,7 +213,7 @@ class HeartModel:
 
         return
 
-    def get_part(self, name: str, by_substring: bool = False):
+    def get_part(self, name: str, by_substring: bool = False) -> Union[Part, None]:
         """Get specific part based on part name."""
         found = False
         for part in self.parts:
@@ -226,12 +225,12 @@ class HeartModel:
         if not found:
             return None
 
-    def add_part(self, part_name: str):
+    def add_part(self, part_name: str) -> None:
         """Dynamically add a part as an attribute to the object."""
         setattr(self, "_".join(part_name.lower().split()), Part(name=part_name))
         return
 
-    def remove_part(self, part_name: str):
+    def remove_part(self, part_name: str) -> None:
         """Remove a part with a specific name from the model."""
         keys = self.__dict__.keys()
         for key in keys:
@@ -242,7 +241,7 @@ class HeartModel:
                     return
         return
 
-    def print_info(self):
+    def print_info(self) -> None:
         """Print information about the model."""
         if not isinstance(self.mesh.tetrahedrons, np.ndarray):
             LOGGER.info("Nothing to print")
@@ -276,7 +275,7 @@ class HeartModel:
         LOGGER.info("*****************************************")
         return
 
-    def read_input_mesh(self):
+    def read_input_mesh(self) -> None:
         """Read the input mesh defined in ModelInfo."""
         if not os.path.isfile(self.info.path_to_original_mesh):
             raise ValueError("Please specify a valid path to the input file")
@@ -293,7 +292,7 @@ class HeartModel:
             raise KeyError("Expecting a field 'tags' in mesh_raw.cell_data")
         return
 
-    def dump_model(self, filename: pathlib.Path = None):
+    def dump_model(self, filename: pathlib.Path = None) -> None:
         """Save model to file.
 
         Examples
@@ -331,13 +330,13 @@ class HeartModel:
             model = pickle.load(file)
         return model
 
-    def _set_default_mesh_size(self):
+    def _set_default_mesh_size(self) -> None:
         """Set the default mesh size."""
         LOGGER.warning("No mesh size given setting default mesh size")
         self.info.mesh_size = 1.5
         return
 
-    def _add_labels_to_parts(self):
+    def _add_labels_to_parts(self) -> None:
         """Use model definitions to add corresponding vtk labels to the part."""
         for part in self.parts:
             if part.name == "Septum":
@@ -349,17 +348,16 @@ class HeartModel:
                 part.tag_ids.append(LABELS_TO_ID[self.info.database][tag_label])
         return
 
-    def _add_subparts(self):
+    def _add_subparts(self) -> None:
         """Add subparts to parts of type ventricle."""
         for part in self.parts:
             if part.part_type in ["ventricle"]:
                 part._add_myocardium_part()
                 if "Left ventricle" in part.name:
                     part._add_septum_part()
-
         return
 
-    def _remove_unused_tags(self):
+    def _remove_unused_tags(self) -> None:
         """Extract only the tags of interest."""
         # collect all used tags
         tag_ids = []
@@ -367,12 +365,10 @@ class HeartModel:
             if not part.tag_ids:
                 continue
             tag_ids.extend(part.tag_ids)
-
         self.mesh_raw.keep_elements_with_value(tag_ids, "tags")
-
         return
 
-    def _get_used_element_ids(self):
+    def _get_used_element_ids(self) -> np.ndarray:
         """Return array of used element ids."""
         element_ids = np.empty(0, dtype=int)
         for part in self.parts:
@@ -380,7 +376,7 @@ class HeartModel:
 
         return element_ids
 
-    def _get_endo_epicardial_surfaces(self):
+    def _get_endo_epicardial_surfaces(self) -> None:
         """Get endo- and epicardial surfaces.
 
         Note
@@ -505,7 +501,7 @@ class HeartModel:
 
         return
 
-    def _prepare_for_meshing(self):
+    def _prepare_for_meshing(self) -> None:
         """Prepare the input for volumetric meshing with Fluent meshing.
 
         Note
@@ -570,7 +566,7 @@ class HeartModel:
 
         return
 
-    def _remesh(self):
+    def _remesh(self) -> None:
         """Use the generated files to remesh the surfaces and volume."""
         LOGGER.info("Remeshing volume...")
         path_mesh_file = os.path.join(self.info.workdir, "fluent_volume_mesh.msh.h5")
@@ -642,7 +638,7 @@ class HeartModel:
 
         return
 
-    def _map_data_to_remeshed_volume(self):
+    def _map_data_to_remeshed_volume(self) -> None:
         """Map the data from the original mesh to the remeshed mesh."""
         # get list of tag ids to keep for mapping
         mapper = self.info.labels_to_ids
@@ -711,7 +707,7 @@ class HeartModel:
         os.remove(filename_remeshed)
         return
 
-    def _deprecated_add_volume_mesh_for_blood_pool(self):
+    def _deprecated_add_volume_mesh_for_blood_pool(self) -> None:
         """Add a volume mesh for the (interior) blood pool.
 
         Notes
@@ -758,7 +754,7 @@ class HeartModel:
 
         return
 
-    def _update_parts(self):
+    def _update_parts(self) -> None:
         """Update the parts using the (re)meshed volume.
 
         Notes
@@ -779,10 +775,9 @@ class HeartModel:
         #
         self.compute_left_ventricle_axis()
         self.compute_left_ventricle_AHA17()
-
         return
 
-    def _extract_septum(self):
+    def _extract_septum(self) -> None:
         """Separate the septum elements from the left ventricle.
 
         Note
@@ -829,7 +824,7 @@ class HeartModel:
 
         return
 
-    def _extract_apex(self):
+    def _extract_apex(self) -> None:
         """Extract the apex for both the endocardium and epicardium of each ventricle.
 
         Note
@@ -860,7 +855,7 @@ class HeartModel:
 
         return
 
-    def _assign_elements_to_parts(self):
+    def _assign_elements_to_parts(self) -> None:
         """Get the element ids of each part and assign these to the Part objects."""
         # get element ids of each part
         used_element_ids = self._get_used_element_ids()
@@ -888,7 +883,9 @@ class HeartModel:
                 )
             )
 
-    def _assign_surfaces_to_parts(self):
+        return
+
+    def _assign_surfaces_to_parts(self) -> None:
         """Assign surfaces generated during remeshing to model parts."""
         for part in self.parts:
             for surface in part.surfaces:
@@ -902,7 +899,7 @@ class HeartModel:
 
         return
 
-    def _assign_caps_to_parts(self):
+    def _assign_caps_to_parts(self) -> None:
         """Use connectivity to obtain cap boundaries and adds these to their respective parts."""
         used_boundary_surface_names = [s.name for p in self.parts for s in p.surfaces]
         remaining_surfaces = list(set(self.mesh.boundary_names) - set(used_boundary_surface_names))
@@ -1020,7 +1017,7 @@ class HeartModel:
 
         return
 
-    def _assign_cavities_to_parts(self):
+    def _assign_cavities_to_parts(self) -> None:
         """Create cavities based on endocardium surfaces and cap definitions."""
         # rename septum to right ventricle endocardium septum
         if isinstance(self, (BiVentricle, FourChamber, FullHeart)):
@@ -1057,7 +1054,7 @@ class HeartModel:
 
         return
 
-    def compute_left_ventricle_axis(self):
+    def compute_left_ventricle_axis(self) -> None:
         """Compute major axis of left ventricle."""
         if not hasattr(self, "septum"):
             raise Exception("Model must contain septum part to compute AHA segments.")
@@ -1088,7 +1085,7 @@ class HeartModel:
 
         return
 
-    def compute_left_ventricle_AHA17(self):
+    def compute_left_ventricle_AHA17(self) -> None:
         """Compute AHA17 label for left ventricle elements."""
         self.aha_ids = np.zeros(len(self.mesh.tetrahedrons))
 

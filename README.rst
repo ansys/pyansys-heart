@@ -10,7 +10,7 @@ How to install
 At least two installation modes are provided: user and developer.
 
 For users (Not yet available!)
-^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 User installation can be performed by running:
 
@@ -75,10 +75,11 @@ need to follow these steps:
     
     Install version of dynalib manually by
 
-    .. code:: bash 
+    .. code:: bash
+
         # latest version
         pip install git+https://github.com/pyansys/dynalib.git@main
-
+        
         # or if encountering issues with dynalib you can install a specific working version
         pip install git+https://github.com/pyansys/dynalib.git@afce06ba178888d992ff51838ca521abb824c8ab
 

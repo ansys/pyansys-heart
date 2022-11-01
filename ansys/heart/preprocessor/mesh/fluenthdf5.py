@@ -104,7 +104,7 @@ class FluentMesh:
 
         pass
 
-    def load_mesh(self, filename: str = None, reconstruct_tetrahedrons: bool = True):
+    def load_mesh(self, filename: str = None, reconstruct_tetrahedrons: bool = True) -> None:
         """Load the mesh from the hdf5 file."""
         if not filename and not self.filename:
             raise FileNotFoundError("Please specify a file to read")
@@ -130,7 +130,7 @@ class FluentMesh:
         self._close_file()
         return
 
-    def _update_indexing(self):
+    def _update_indexing(self) -> None:
         """Update the indexing of all cells and faces: index should start from 0."""
         for cell_zone in self.cell_zones:
             cell_zone.cells = cell_zone.cells - 1
@@ -138,7 +138,7 @@ class FluentMesh:
             face_zone.faces = face_zone.faces - 1
         return
 
-    def _set_cells_in_cell_zones(self):
+    def _set_cells_in_cell_zones(self) -> List[FluentCellZone]:
         """Iterate over the cell zones and assigns cells to them."""
         for cell_zone in self.cell_zones:
             zone_cell_ids = np.arange(cell_zone.min_id, cell_zone.max_id, 1)
@@ -147,7 +147,7 @@ class FluentMesh:
 
         return self.cell_zones
 
-    def _open_file(self, filename: str = None):
+    def _open_file(self, filename: str = None) -> h5py.File:
         """Open the file for reading."""
         if not filename:
             raise ValueError("Please specify input file")
@@ -158,15 +158,17 @@ class FluentMesh:
         self.fid = h5py.File(filename, "r")
         return self.fid
 
-    def _close_file(self):
+    def _close_file(self) -> None:
         """Close file."""
         self.fid.close()
+        return
 
-    def _read_nodes(self):
+    def _read_nodes(self) -> None:
         """Read the node field(s)."""
         self.nodes = np.zeros((0, 3), dtype=float)
         for ii in np.array(self.fid["meshes/1/nodes/coords"]):
             self.nodes = np.vstack([self.nodes, np.array(self.fid["meshes/1/nodes/coords/" + ii])])
+        return
 
     def _read_cell_zone_info(self) -> List[FluentCellZone]:
         """Initialize the list of cell zones."""
@@ -221,7 +223,7 @@ class FluentMesh:
         self.face_zones = face_zones
         return face_zones
 
-    def _read_all_faces_of_face_zones(self):
+    def _read_all_faces_of_face_zones(self) -> List[FluentFaceZone]:
         """Read the faces of the face zone."""
         for face_zone in self.face_zones:
             subdir = "meshes/1/faces/nodes/" + str(face_zone.hdf5_id) + "/nodes"
@@ -236,22 +238,17 @@ class FluentMesh:
 
         return self.face_zones
 
-    def _read_c0c1_of_face_zones(self):
+    def _read_c0c1_of_face_zones(self) -> List[FluentFaceZone]:
         """Read the cell connectivity of the face zone. Only do for interior cells."""
         for face_zone in self.face_zones:
-            # if face_zone.zone_type != 2 or "interior" not in face_zone.name:
-            #     continue
-
             subdir0 = "meshes/1/faces/c0/" + str(face_zone.hdf5_id)
             subdir1 = "meshes/1/faces/c1/" + str(face_zone.hdf5_id)
-
             c0c1 = np.array([self.fid[subdir0], self.fid[subdir1]], dtype=int).T
-
             face_zone.c0c1 = c0c1
 
         return self.face_zones
 
-    def _convert_interior_faces_to_tetrahedrons(self):
+    def _convert_interior_faces_to_tetrahedrons(self) -> List[np.ndarray, np.ndarray]:
         """Use c0c1 matrix to get tetrahedrons.
 
         Notes
@@ -312,7 +309,7 @@ class FluentMesh:
 
         return tetrahedrons, cell_ids
 
-    def _convert_interior_faces_to_tetrahedrons2(self):
+    def _convert_interior_faces_to_tetrahedrons2(self) -> List[np.ndarray, np.ndarray]:
         """Use c0c1 matrix to get tetrahedrons.
 
         Notes

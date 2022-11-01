@@ -1,14 +1,14 @@
 """Module for computing paths."""
 import math
 from msilib.schema import Error
-from typing import Union
+from typing import Union, List
 
 import numpy as np
 import vtk
 from vtk.numpy_interface import dataset_adapter as dsa  # type: ignore
 
 
-def get_closed_path(start_indices: Union[np.array, list], surface: vtk.vtkPolyData) -> np.array:
+def get_closed_path(start_indices: Union[np.ndarray, list], surface: vtk.vtkPolyData) -> np.ndarray:
     """Get closed geodesic path on a surface from a list of start indices."""
     surf = dsa.WrapDataObject(surface)
 
@@ -29,7 +29,7 @@ def get_closed_path(start_indices: Union[np.array, list], surface: vtk.vtkPolyDa
     return np.array(full_path)
 
 
-def vtk_geodesic(input: vtk.vtkPolyData, start_idx: int, end_idx: int):
+def vtk_geodesic(input: vtk.vtkPolyData, start_idx: int, end_idx: int) -> List[int]:
     """Compute the geodesic path between two vertices on a vtkPolyData surface.
 
     Parameters
@@ -43,7 +43,7 @@ def vtk_geodesic(input: vtk.vtkPolyData, start_idx: int, end_idx: int):
 
     Returns
     -------
-    np.array(dtype = int)
+    ids : List[int]
         Array of indices which define the shortest path from start index to end index
     """
     dijkstra = vtk.vtkDijkstraGraphGeodesicPath()  # noqa
@@ -54,31 +54,28 @@ def vtk_geodesic(input: vtk.vtkPolyData, start_idx: int, end_idx: int):
     ids = []
     for i in range(dijkstra.GetIdList().GetNumberOfIds()):
         ids.append(dijkstra.GetIdList().GetId(i))
-
-    # from vtk_module import write_vtkdata_to_vtkfile
-    # write_vtkdata_to_vtkfile(input, "dijkstrainput.vtk")
     return ids
 
 
-def order_nodes_edgeloop(node_indices: np.array, node_coords: np.array) -> np.array:
+def order_nodes_edgeloop(node_indices: np.ndarray, node_coords: np.ndarray) -> np.ndarray:
     """Order node indices to form closed/continuous loop.
 
     Parameters
     ----------
-    node_indices : np.array
-        Array of node indices
-    node_coords : np.array
-        Array of node coordinates
+    node_indices : np.ndarray
+        Array of node indices.
+    node_coords : np.ndarray
+        Array of node coordinates.
 
     Returns
     -------
-    np.array
-        Reordered list of node indices that form a edge loop
+    np.ndarray
+        Reordered list of node indices that form a edge loop.
 
     Notes
     -----
     May not work if mesh density is very anisotropic and does
-    not change gradually
+    not change gradually.
     """
     num_nodes = len(node_indices)
 
@@ -103,15 +100,15 @@ def order_nodes_edgeloop(node_indices: np.array, node_coords: np.array) -> np.ar
     return node_indices[idx_visited]
 
 
-def sort_edgeloop_anti_clockwise(points_to_sort: np.array, reference_point: np.array) -> bool:
+def sort_edgeloop_anti_clockwise(points_to_sort: np.ndarray, reference_point: np.ndarray) -> bool:
     """Sort the points of an edge-loop in anti-clockwise direction.
 
     Parameters
     ----------
-    points_to_sort : np.array
-        Point coordinates used for sorting
-    reference_point : np.array
-        Reference point
+    points_to_sort : np.bdarray
+        Point coordinates used for sorting.
+    reference_point : np.ndarray
+        Reference point.
 
     Returns
     -------

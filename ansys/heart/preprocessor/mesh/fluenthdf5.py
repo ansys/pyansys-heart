@@ -1,5 +1,5 @@
 """Module containing functions to read/write fluent meshes in HDF5 format."""
-from typing import List
+from typing import List, Tuple
 
 import h5py
 import numpy as np
@@ -245,7 +245,7 @@ class FluentMesh:
 
         return self.face_zones
 
-    def _convert_interior_faces_to_tetrahedrons(self) -> None:
+    def _convert_interior_faces_to_tetrahedrons(self) -> Tuple[np.ndarray, np.ndarray]:
         """Use c0c1 matrix to get tetrahedrons.
 
         Notes
@@ -306,7 +306,7 @@ class FluentMesh:
 
         return tetrahedrons, cell_ids
 
-    def _convert_interior_faces_to_tetrahedrons2(self):
+    def _convert_interior_faces_to_tetrahedrons2(self) -> Tuple[np.ndarray, np.ndarray]:
         """Use c0c1 matrix to get tetrahedrons.
 
         Notes
@@ -363,7 +363,7 @@ class FluentMesh:
         return tetrahedrons, cell_ids
 
 
-def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii"):
+def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii") -> None:
     """Add name of solid to stl file.
 
     Note
@@ -392,7 +392,6 @@ def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii"):
         string_replace = "{:<40}".format(solid_name).encode()
         fid.write(string_replace)
         fid.close()
-
     return
 
 

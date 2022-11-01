@@ -707,53 +707,6 @@ class HeartModel:
         os.remove(filename_remeshed)
         return
 
-    def _deprecated_add_volume_mesh_for_blood_pool(self) -> None:
-        """Add a volume mesh for the (interior) blood pool.
-
-        Notes
-        -----
-        Uses the (fluent) mesh of the tissue as reference, and generates
-        patches from the cap nodes
-        """
-        path_to_input_mesh = os.path.join(self.info.workdir, "fluent_volume_mesh.msh.h5")
-        path_to_output_mesh = path_to_input_mesh.replace(".msh.h5", "_with_interior.msh.h5")
-
-        caps = [c for p in self.parts for c in p.caps]
-
-        mesher._deprecated_mesh_cavity_interior_by_fluent(
-            path_to_input_mesh, path_to_output_mesh, caps, show_gui=True
-        )
-
-        path_mesh_file_vtk = path_to_output_mesh.replace(".msh.h5", ".vtk")
-
-        # read volume mesh input
-        mesh1 = mesher.hdf5.FluentMesh()
-        mesh1.load_mesh(path_to_input_mesh)
-
-        tetra_tissue1 = [cz.cells for cz in mesh1.cell_zones if "heart-tet-cells" in cz.name][0]
-        cell_zone_tissue1 = next(cz for cz in mesh1.cell_zones if "heart-tet-cells" in cz.name)
-
-        tetra_old, face_zones_old, nodes_old = mesher.hdf5._deprecated_fluenthdf5_to_vtk(
-            path_to_input_mesh, path_mesh_file_vtk
-        )
-
-        # read volume mesh output
-        mesh2 = mesher.hdf5.FluentMesh()
-        mesh2.load_mesh(path_to_output_mesh)
-
-        face_zones = mesh2.face_zones
-        tetra = mesh2.cells
-        nodes = mesh2.nodes
-
-        tetra_tissue2 = [cz.cells for cz in mesh2.cell_zones if "heart-tet-cells" in cz.name][0]
-        cell_zone_tissue2 = next(cz for cz in mesh2.cell_zones if "heart-tet-cells" in cz.name)
-
-        tetra, face_zones, nodes = mesher.hdf5._deprecated_fluenthdf5_to_vtk(
-            path_to_output_mesh, path_mesh_file_vtk
-        )
-
-        return
-
     def _update_parts(self) -> None:
         """Update the parts using the (re)meshed volume.
 

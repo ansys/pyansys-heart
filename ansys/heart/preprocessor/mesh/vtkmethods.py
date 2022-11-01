@@ -2,7 +2,7 @@
 import copy
 import os
 from pathlib import Path
-from typing import List, Union, Tuple
+from typing import List, Tuple, Union
 
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.mesh.fluenthdf5 import add_solid_name_to_stl
@@ -238,10 +238,6 @@ def threshold_vtk_data(
         Allowed tolerance for filter, by default 1e-3
     data_type: str, optional
         Type of data to filter. Either "CellData" or "PointsData"
-
-
-    Returns
-    -------
     """
     if data_type not in ["CellData", "PointData"]:
         raise ValueError("Please specify either 'CellData' or 'PointData'")

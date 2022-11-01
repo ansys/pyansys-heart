@@ -1161,11 +1161,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
             if cap.name.split("-")[0] in boundary.name:
                 attached_nodes = boundary.node_ids
                 break
-        # -------------------------------------------------------------------
-
-        # compute nodal areas:
-        # 1. write vtk of volume, 2. read vtk, 3. extract surface, 4. compute nodal areas
-        # NOTE: Should do this only once and not for every cap/valve involved
 
         # use pre-computed nodal area
         nodal_areas = self.model.mesh.point_data["nodal_areas"][boundary.node_ids]
@@ -1174,8 +1169,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         scale_factor_normal *= nodal_areas
         scale_factor_radial *= nodal_areas
 
-        # add part, section discrete, mat spring, sd_orientiation
-        # element discrete
+        # add part, section discrete, mat spring, sd_orientiation, element discrete
 
         # compute the radial components
         sd_orientations_radial = mesh.nodes[attached_nodes, :] - cap.centroid
@@ -1314,8 +1308,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         #     delimiter=",",
         # )
 
-        # keywords
-        # NOTE: Need to be made dynamic
+        # create unique ids for keywords
         part_id = self.get_unique_part_id()
         section_id = self.get_unique_section_id()
         mat_id = self.get_unique_mat_id()

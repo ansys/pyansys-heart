@@ -1,10 +1,7 @@
 """Module containing functions to read/write fluent meshes in HDF5 format."""
-import time
-from typing import List, Optional
+from typing import List
 
-from ansys.heart.custom_logging import LOGGER
 import h5py
-import meshio
 import numpy as np
 
 
@@ -248,7 +245,7 @@ class FluentMesh:
 
         return self.face_zones
 
-    def _convert_interior_faces_to_tetrahedrons(self) -> List[np.ndarray, np.ndarray]:
+    def _convert_interior_faces_to_tetrahedrons(self) -> None:
         """Use c0c1 matrix to get tetrahedrons.
 
         Notes
@@ -309,7 +306,7 @@ class FluentMesh:
 
         return tetrahedrons, cell_ids
 
-    def _convert_interior_faces_to_tetrahedrons2(self) -> List[np.ndarray, np.ndarray]:
+    def _convert_interior_faces_to_tetrahedrons2(self):
         """Use c0c1 matrix to get tetrahedrons.
 
         Notes

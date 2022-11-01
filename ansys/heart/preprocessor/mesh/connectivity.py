@@ -1,10 +1,10 @@
 """Module containing methods for mesh connectivity."""
 
 import copy
+from typing import Optional, Tuple, Union
 
 from ansys.heart.custom_logging import LOGGER
 import numpy as np
-from typing import Tuple, Union, Optional
 
 
 def get_faces_tetra(tetra: np.ndarray) -> np.ndarray:
@@ -175,7 +175,7 @@ def get_free_edges(
     triangles : np.ndarray
         Array of triangles
     return_free_triangles : bool, optional
-        Flagg indicating whether to return the free triangles, by default False
+        Flag indicating whether to return the free triangles, by default False
 
     Returns
     -------

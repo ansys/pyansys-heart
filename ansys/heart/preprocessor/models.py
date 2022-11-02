@@ -208,7 +208,6 @@ class HeartModel:
         self._prepare_for_meshing()
         self._remesh()
         self._update_parts()        
-        self._add_nodal_areas()
 
         if clean_up:
             self.info.clean_workdir(["part*.stl", "cavity*.stl"])

@@ -2,7 +2,7 @@
 import copy
 import os
 from pathlib import Path
-from typing import List, Union
+from typing import List, Optional, Tuple, Union
 
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.mesh.fluenthdf5 import add_solid_name_to_stl
@@ -1216,15 +1216,24 @@ def compute_surface_nodal_area(vtk_surface: vtk.vtkPolyData) -> np.array:
     return nodal_area
 
 
-def add_normals_to_polydata(vtk_polydata: vtk.vtkPolyData) -> vtk.vtkPolyData:
-    """Use the normal filter to add normals to the polydata object.
+def add_normals_to_polydata(
+    vtk_polydata: vtk.vtkPolyData, return_normals: bool = False
+) -> Union[vtk.vtkPolyData, Optional[Tuple[np.ndarray, np.ndarray]]]:
+    """Add normals to the vtk.vtkPolyData object.
 
-    Note
-    ----
-    https://python.hotexamples.com/site/file?hash=
-    0x073485db2b84462230e3bdfe09eaf8ed123d2dc0c8c501190613e23367cbaed1&fullName=telluricpy-master
-    /telluricpy/polydata.py&project=grosenkj/telluricpy
+    Parameters
+    ----------
+    vtk_polydata : vtk.vtkPolyData
+        Input surface.
+    return_normals : bool, optional
+        Return the cell and point normals as numpy arrays, by default False.
 
+    Returns
+    -------
+    vtk_polydata : vtk.vtkPolyData
+        Vtk surface with cell and point normals added.
+    (cell_normals, point_normals) : (np.ndarray, np.ndarray), optional
+        Cell normals and point normals, only provided if return_normals=True
     """
     # compute normals
     normal_filter = vtk.vtkPolyDataNormals()
@@ -1237,7 +1246,11 @@ def add_normals_to_polydata(vtk_polydata: vtk.vtkPolyData) -> vtk.vtkPolyData:
     normal_filter.SetSplitting(0)
     normal_filter.Update()
 
-    return normal_filter.GetOutput()
+    if return_normals:
+        normal_filter_dsa = dsa.WrapDataObject(normal_filter.GetOutput())
+        return np.array(normal_filter_dsa.CellData["Normals"]), np.array(normal_filter_dsa.PointData["Normals"])
+    else:
+        return normal_filter.GetOutput()
 
 
 def extrude_polydata(

@@ -207,7 +207,7 @@ class HeartModel:
         self._remove_unused_tags()
         self._prepare_for_meshing()
         self._remesh()
-        self._update_parts()        
+        self._update_parts()
 
         if clean_up:
             self.info.clean_workdir(["part*.stl", "cavity*.stl"])
@@ -742,8 +742,17 @@ class HeartModel:
         return
 
     def _add_surface_normals(self):
-        """Adds surface normal as point data and cell data."""
-        
+        """Add surface normal as point data and cell data to all 'named' surfaces in the model."""
+        for part in self.parts:
+            for surface in part.surfaces:
+                vtk_surface = vtkmethods.create_vtk_surface_triangles(
+                    points=surface.nodes, triangles=surface.faces
+                )
+                (
+                    surface.cell_data["normals"],
+                    surface.point_data["normals"],
+                ) = vtkmethods.add_normals_to_polydata(vtk_surface, return_normals=True)
+
         return
 
     def _deprecated_add_volume_mesh_for_blood_pool(self):
@@ -818,7 +827,7 @@ class HeartModel:
         #
         self.compute_left_ventricle_axis()
         self.compute_left_ventricle_AHA17()
-        
+
         self._add_nodal_areas()
         self._add_surface_normals()
 

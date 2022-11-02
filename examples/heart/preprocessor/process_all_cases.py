@@ -4,7 +4,7 @@ import os
 import pathlib
 
 import ansys.heart.preprocessor.models as models
-from ansys.heart.workflow.support import run_preprocessor
+from ansys.heart.simulator.support import run_preprocessor
 import ansys.heart.writer.dynawriter as writers
 
 DOWNLOAD_DIR = os.path.join(pathlib.Path(__file__).parents[3], "downloads")

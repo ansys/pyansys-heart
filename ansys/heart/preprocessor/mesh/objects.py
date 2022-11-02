@@ -80,7 +80,7 @@ class Mesh:
 
         return None
 
-    def read_mesh_file_cristobal2021(self, filename: pathlib.Path) -> None:
+    def read_mesh_file_rodero2021(self, filename: pathlib.Path) -> None:
         """Read mesh file - but modifies the fields to match data of Strocchi 2020."""
         mesh_vtk = vtkmethods.vtk_read_mesh_file(filename)
         name_array_mapping = [

@@ -1,4 +1,4 @@
-"""Example to pre-process data from Strocchi2020 and Cristobal2021."""
+"""Example to pre-process data from Strocchi2020 and Rodero2021."""
 import glob as glob
 import os
 import pathlib
@@ -17,7 +17,7 @@ if __name__ == "__main__":
     use_preprocessor = True
     write_lsdyna_files = False
 
-    databases_to_run = ["Strocchi2020", "Cristobal2021"]
+    databases_to_run = ["Strocchi2020", "Rodero2021"]
     models_to_run = (models.LeftVentricle, models.BiVentricle, models.FourChamber, models.FullHeart)
 
     for database in databases_to_run:
@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
             if database == "Strocchi2020":
                 case_path = os.path.join(case_folder, pathlib.Path(case_folder).name + ".case")
-            elif database == "Cristobal2021":
+            elif database == "Rodero2021":
                 case_path = os.path.join(case_folder, pathlib.Path(case_folder).name + ".vtk")
 
             for model_type in models_to_run:

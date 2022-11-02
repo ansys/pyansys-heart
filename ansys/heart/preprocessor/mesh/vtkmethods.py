@@ -1110,7 +1110,9 @@ def add_normals_to_polydata(
 
     if return_normals:
         normal_filter_dsa = dsa.WrapDataObject(normal_filter.GetOutput())
-        return np.array(normal_filter_dsa.CellData["Normals"]), np.array(normal_filter_dsa.PointData["Normals"])
+        return np.array(normal_filter_dsa.CellData["Normals"]), np.array(
+            normal_filter_dsa.PointData["Normals"]
+        )
     else:
         return normal_filter.GetOutput()
 

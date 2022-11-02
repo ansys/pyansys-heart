@@ -709,6 +709,7 @@ class HeartModel:
 
     def _add_nodal_areas(self):
         """Compute and add nodal areas to surface nodes."""
+        LOGGER.debug("Adding nodal areas")
         for surface in self.mesh.boundaries:
             vtk_surface = vtkmethods.create_vtk_surface_triangles(
                 points=surface.nodes, triangles=surface.faces
@@ -739,6 +740,7 @@ class HeartModel:
 
     def _add_surface_normals(self):
         """Add surface normal as point data and cell data to all 'named' surfaces in the model."""
+        LOGGER.debug("Adding normals to all 'named' surfaces")
         for part in self.parts:
             for surface in part.surfaces:
                 vtk_surface = vtkmethods.create_vtk_surface_triangles(
@@ -750,7 +752,6 @@ class HeartModel:
                 ) = vtkmethods.add_normals_to_polydata(vtk_surface, return_normals=True)
 
         return
-
 
     def _update_parts(self):
         """Update the parts using the (re)meshed volume.

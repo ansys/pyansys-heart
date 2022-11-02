@@ -207,7 +207,7 @@ class HeartModel:
         self._remove_unused_tags()
         self._prepare_for_meshing()
         self._remesh()
-        self._update_parts()
+        self._update_parts()        
         self._add_nodal_areas()
 
         if clean_up:
@@ -742,6 +742,11 @@ class HeartModel:
         # self.mesh.write_to_vtk(os.path.join(self.info.workdir, "volume_nodal_areas.vtk"))
         return
 
+    def _add_surface_normals(self):
+        """Adds surface normal as point data and cell data."""
+        
+        return
+
     def _deprecated_add_volume_mesh_for_blood_pool(self):
         """Add a volume mesh for the (interior) blood pool.
 
@@ -799,7 +804,11 @@ class HeartModel:
         3. Assign surfaces to each part
         4. Extracts the closing caps
         5. Creates cavities
-
+        6. Extracts apical points
+        7. Computes left-ventricle axis
+        8. Computes left-ventricle 17 segments
+        9. Adds nodal areas
+        10. Adds surface normals to boundaries
         """
         self._extract_septum()
         self._assign_elements_to_parts()
@@ -810,6 +819,9 @@ class HeartModel:
         #
         self.compute_left_ventricle_axis()
         self.compute_left_ventricle_AHA17()
+        
+        self._add_nodal_areas()
+        self._add_surface_normals()
 
         return
 

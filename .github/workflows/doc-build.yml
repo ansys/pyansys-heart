@@ -33,9 +33,9 @@ jobs:
 
       - name: Build Documentation
         run: |
-          make clean
+          make -C clean
           make -C doc html
-        # make -C doc html SPHINXOPTS="-j auto -W --keep-going"
+# make -C doc html SPHINXOPTS="-j auto -W --keep-going"
       - name: Upload HTML Documentation
         uses: actions/upload-artifact@v2
         with:

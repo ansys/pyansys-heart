@@ -1,0 +1,425 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Pyheart lib &#8212; ansys-heart-lib</title>
+    
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/css/pyansys_sphinx_theme.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    
+        <link href="_static/css/breadcrumbs.css" rel="stylesheet">
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting Started" href="getting_started/index.html" />
+    <link rel="prev" title="Contents" href="index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><style>
+    .navbar-light {
+        background-color: black !important;
+    }
+</style>
+
+<div class="container-xl">
+
+  <div id="navbar-start">
+    
+    
+
+<a class="navbar-brand" href="https://docs.pyansys.com/">
+  <img src="_static/pyansys-logo-black-cropped.png" class="logo" alt="logo">
+</a>
+
+
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon" >
+      <i class="fas fa-bars" style="color:#fff; font-size:28px;"></i>
+    </span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 current active nav-item">
+ <a class="current reference internal nav-link" href="#">
+  Pyheart lib
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="getting_started/index.html">
+  Getting Started
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="user_guide/index.html">
+  User Guide
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="api/index.html">
+  API Reference
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="contributing.html">
+  Contributing
+ </a>
+</li>
+
+    
+</ul>
+      </div>
+      
+    </div>
+
+    
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/pyansys/pyheart" rel="noopener" target="_blank" title="GitHub"><span><i class="fab fa-github-square"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+      </ul>
+      </div>
+      
+    </div>
+    
+  </div>
+</div>
+    </nav>
+    
+    
+        <div class="container-xl">
+    <div class="row">
+        <div class="col-12 col-md-3" id="breadcrumbs-spacer"></div>
+        <div class="col-12 col-md-11 col-xl-9" id="breadcrumbs">
+          
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+    
+        <li class="nav-item nav-item-additional-breadcrumb"><a href="https://docs.pyansys.com/">PyAnsys</a> » </li>
+    
+    
+        <li class="nav-item nav-item-0"><a href="index.html">ansys-heart-lib</a> » </li>
+    
+
+        <li class="nav-item nav-item-this"><a href="">Pyheart lib</a></li> 
+      </ul>
+    </div>
+        </div>
+  </div>
+</div>
+    
+
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar">
+              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    
+    
+    
+    
+  </div>
+</nav>
+              </div>
+              <div class="sidebar-end-items">
+              </div>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            
+              
+              <div class="toc-item">
+                
+<div class="tocsection onthispage mt-5 pt-1 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#how-to-install">
+   How to install
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#for-users-not-yet-available">
+     For users (Not yet available!)
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#for-developers">
+     For developers
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#style-and-testing">
+   Style and Testing
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#documentation">
+   Documentation
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#distributing">
+   Distributing
+  </a>
+ </li>
+</ul>
+
+</nav>
+              </div>
+              
+              <div class="toc-item">
+                
+              </div>
+              
+            
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <section id="pyheart-lib">
+<h1>Pyheart lib<a class="headerlink" href="#pyheart-lib" title="Permalink to this headline">#</a></h1>
+<p>Python framework for heart modeling using Ansys tools</p>
+<section id="how-to-install">
+<h2>How to install<a class="headerlink" href="#how-to-install" title="Permalink to this headline">#</a></h2>
+<p>At least two installation modes are provided: user and developer.</p>
+<section id="for-users-not-yet-available">
+<h3>For users (Not yet available!)<a class="headerlink" href="#for-users-not-yet-available" title="Permalink to this headline">#</a></h3>
+<p>User installation can be performed by running:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python -m pip install ansys-heart-lib
+</pre></div>
+</div>
+</section>
+<section id="for-developers">
+<h3>For developers<a class="headerlink" href="#for-developers" title="Permalink to this headline">#</a></h3>
+<p>Installing Pyheart lib in developer mode allows
+you to modify the source and enhance it.</p>
+<p>Before contributing to the project, please refer to the <a class="reference external" href="https://dev.docs.pyansys.com/">PyAnsys Developer’s guide</a>. You will
+need to follow these steps:</p>
+<ol class="arabic">
+<li><p>Start by cloning this repository:</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/pyansys/pyheart-lib
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Create a fresh-clean Python environment and activate it. Refer to the
+official <a class="reference external" href="https://docs.python.org/3/library/venv.html">venv</a>  or <a class="reference external" href="https://docs.conda.io/en/latest/">conda</a> documentation if you require further information:</p>
+<blockquote>
+<div><p>Through <a class="reference external" href="https://docs.python.org/3/library/venv.html">venv</a></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a virtual environment</span>
+python -m venv .venv
+
+<span class="c1"># Activate environment:</span>
+<span class="c1"># - in POSIX system:</span>
+<span class="nb">source</span> .venv/bin/activate
+<span class="c1"># - in Windows cmd shell:</span>
+.venv<span class="se">\S</span>cripts<span class="se">\a</span>ctivate.bat
+<span class="c1"># or in Windows powershell</span>
+.venv<span class="se">\S</span>cripts<span class="se">\A</span>ctivate.ps1
+</pre></div>
+</div>
+<p>Through the virtual environment manager <a class="reference external" href="https://docs.conda.io/en/latest/">conda</a></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create virtual environment with specific python version</span>
+conda create --name my-venv <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.8
+
+<span class="c1"># Activate environment</span>
+conda activate my-venv
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Make sure you have the latest version of <a class="reference external" href="https://pypi.org/project/pip/">pip</a></p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python -m pip install -U pip
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Install the project in editable mode:</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python -m pip install --editable pyheart-lib
+</pre></div>
+</div>
+<p>Install version of dynalib manually by</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># latest version</span>
+pip install git+https://github.com/pyansys/dynalib.git@main
+
+<span class="c1"># or if encountering issues with dynalib you can install a specific working version</span>
+pip install git+https://github.com/pyansys/dynalib.git@afce06ba178888d992ff51838ca521abb824c8ab
+</pre></div>
+</div>
+<p>Alternatively, use</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python setup.py develop
+</pre></div>
+</div>
+<p>which will install dynalib (and qd) automatically.</p>
+<p>Note 1: qd will be installed only if Python is 3.7 or 3.8.
+Note 2: this option may fail in some cases, please resort back to pip install –editable and manual installation of <a class="reference external" href="https://github.com/pyansys/dynalib">dynalib</a></p>
+</div></blockquote>
+</li>
+<li><p>Install additional requirements (if needed):</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python -m pip install -r requirements/requirements_build_pip.txt
+python -m pip install -r requirements/requirements_doc.txt
+python -m pip install -r requirements/requirements_tests.txt
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Finally, verify your development version after installation by running:</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python -m pip install -r requirements/requirements_tests.txt
+pytest tests -v
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+</section>
+</section>
+<section id="style-and-testing">
+<h2>Style and Testing<a class="headerlink" href="#style-and-testing" title="Permalink to this headline">#</a></h2>
+<p>If required, you can always call the style commands (<a class="reference external" href="https://github.com/psf/black">black</a>, <a class="reference external" href="https://github.com/PyCQA/isort">isort</a>,
+<a class="reference external" href="https://flake8.pycqa.org/en/latest/">flake8</a>…) or unit testing ones (<a class="reference external" href="https://docs.pytest.org/en/stable/">pytest</a>) from the command line. However,
+this does not guarantee that your project is being tested in an isolated
+environment, which is another reason to consider using <a class="reference external" href="https://tox.wiki/">tox</a>.</p>
+</section>
+<section id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">#</a></h2>
+<p>For building documentation, you can either run the usual rules provided in the
+<a class="reference external" href="https://www.sphinx-doc.org/en/master/">Sphinx</a> Makefile, such us:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python -m pip install -r requirements/requirements_doc.txt
+make -C doc/ html
+
+<span class="c1"># subsequently open the documentation with (under Linux):</span>
+your_browser_name doc/html/index.html
+</pre></div>
+</div>
+</section>
+<section id="distributing">
+<h2>Distributing<a class="headerlink" href="#distributing" title="Permalink to this headline">#</a></h2>
+<p>If you would like to create either source or wheel files, start by installing
+the building requirements:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python -m pip install -r requirements/requirements_build.txt
+</pre></div>
+</div>
+<p>Then, you can execute:</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python -m build
+python -m twine check dist/*
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+</section>
+
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+<footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    
+    <div class="footer-item">
+      <p class="copyright">
+    &copy; Copyright (c) 2022 ANSYS, Inc. All rights reserved.<br>
+</p>
+    </div>
+    
+    <div class="footer-item">
+      <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br>
+</p>
+    </div>
+    
+  </div>
+</footer>
+  </body>
+</html>

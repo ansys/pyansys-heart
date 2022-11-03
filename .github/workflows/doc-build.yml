@@ -48,7 +48,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4.3.0
         with:
           token: ${{ steps.get_workflow_token.outputs.token }}
-          # branch: gh-pages
+          branch: gh-pages
           folder: doc/_build/html
           clean: true
 

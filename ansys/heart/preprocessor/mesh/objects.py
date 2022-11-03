@@ -348,6 +348,10 @@ class SurfaceMesh(Feature):
         """ID of surface."""
         self.nsid: int = None
         """ID of corresponding set of nodes."""
+        self.cell_data: dict = {}
+        """Data associated with each face/cell of surface."""
+        self.point_data: dict = {}
+        """Data associated with each point on surface."""
 
     @property
     def node_ids(self) -> np.ndarray:

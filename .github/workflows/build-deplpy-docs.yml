@@ -1,11 +1,9 @@
 name: Build documentation
-on: workflow_dispatch
-  # pull_request:
-  # push:
-  #   tags:
-  #     - "*"
-  #   branches:
-  #     - main
+# runs on schedule or using manual trigger
+on:
+  schedule:  # UTC at 0400
+    - cron:  '0 4 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: write

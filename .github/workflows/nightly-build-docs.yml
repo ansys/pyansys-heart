@@ -32,7 +32,6 @@ jobs:
       - name: Install documentation build requirements
         run: | 
           pip install -r requirements_docs.txt
-          pip install msilib
 
       - name: Build Documentation
         run: |

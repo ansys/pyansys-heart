@@ -1,0 +1,54 @@
+name: Build documentation
+on:
+  pull_request:
+  push:
+    tags:
+      - "*"
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+env:
+  MAIN_PYTHON_VERSION: 3.9
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install package
+        run: pip install -e .
+
+      - name: Install documentation build requirements
+        run: pip install -r requirements_docs.txt
+
+      - name: Build Documentation
+        run: |
+          make -C doc clean
+          make -C doc html
+
+      - name: Upload HTML Documentation
+        uses: actions/upload-artifact@v2
+        with:
+          name: HTML-Documentation
+          path: doc/_build/html
+          retention-days: 7
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@v4.3.0
+        with:
+          branch: gh-pages
+          folder: doc/_build/html
+          clean: true

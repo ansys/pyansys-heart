@@ -33,7 +33,7 @@ jobs:
 
       - name: Build Documentation
         run: |
-          make -C clean
+          make -C doc clean
           make -C doc html
 # make -C doc html SPHINXOPTS="-j auto -W --keep-going"
       - name: Upload HTML Documentation

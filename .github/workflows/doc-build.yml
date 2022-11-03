@@ -14,33 +14,34 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-docs:
-  name: Build Documentation
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@v2
-    - name: Setup Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
+jobs:
+  docs:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
 
-    - name: Install package
-      run: pip install -e .
+      - name: Install package
+        run: pip install -e .
 
-    - name: Install documentation build requirements
-      run: pip install -r requirements_docs.txt
+      - name: Install documentation build requirements
+        run: pip install -r requirements_docs.txt
 
-    - name: Build Documentation
-      run: |
-        make clean
-        make -C doc html
-      # make -C doc html SPHINXOPTS="-j auto -W --keep-going"
-    - name: Upload HTML Documentation
-      uses: actions/upload-artifact@v2
-      with:
-        name: HTML-Documentation
-        path: doc/_build/html
-        retention-days: 7
+      - name: Build Documentation
+        run: |
+          make clean
+          make -C doc html
+        # make -C doc html SPHINXOPTS="-j auto -W --keep-going"
+      - name: Upload HTML Documentation
+        uses: actions/upload-artifact@v2
+        with:
+          name: HTML-Documentation
+          path: doc/_build/html
+          retention-days: 7
 
 
 # jobs:

@@ -13,7 +13,6 @@ from typing import List
 from ansys.dyna.keywords import keywords
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.mesh.objects import Cap
-import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.models import (
     BiVentricle,
     FourChamber,
@@ -1162,31 +1161,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
             if cap.name.split("-")[0] in boundary.name:
                 attached_nodes = boundary.node_ids
                 break
-        # -------------------------------------------------------------------
 
-        # compute nodal areas:
-        # 1. write vtk of volume, 2. read vtk, 3. extract surface, 4. compute nodal areas
-        # NOTE: Should do this only once and not for every cap/valve involved
-        filename = os.path.join(self.model.info.workdir, "temp_volume_mesh.vtk")
-        mesh.write_to_vtk(filename)
-        mesh_vtk = vtkmethods.read_vtk_unstructuredgrid_file(filename)
-        os.remove(filename)
-
-        surface_vtk = vtkmethods.vtk_surface_filter(mesh_vtk, True)
-        nodal_areas = vtkmethods.compute_surface_nodal_area(surface_vtk)
-        surface_obj = dsa.WrapDataObject(surface_vtk)
-        surface_global_node_ids = surface_obj.PointData["GlobalPointIds"]
-
-        # select only those nodal areas which match the cap node ids
-        idx_select = np.nonzero(attached_nodes[:, None] == surface_global_node_ids)[1]
-        nodal_areas = nodal_areas[idx_select]
+        # use pre-computed nodal area
+        nodal_areas = self.model.mesh.point_data["nodal_areas"][boundary.node_ids]
 
         # scaled spring stiffness by nodal area
         scale_factor_normal *= nodal_areas
         scale_factor_radial *= nodal_areas
 
-        # add part, section discrete, mat spring, sd_orientiation
-        # element discrete
+        # add part, section discrete, mat spring, sd_orientiation, element discrete
 
         # compute the radial components
         sd_orientations_radial = mesh.nodes[attached_nodes, :] - cap.centroid
@@ -1305,22 +1288,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
         pericardium_nodes = epicardium_nodes[penalty[epicardium_nodes] > 0.001]
 
         spring_stiffness = self.parameters["Pericardium"]["Spring Stiffness"]  # kPA/mm
-        # compute nodal areas:
-        # NOTE: can be simplified
-        filename = os.path.join(self.model.info.workdir, "temp_volume_mesh.vtk")
-        self.model.mesh.write_to_vtk(filename)
-        mesh_vtk = vtkmethods.read_vtk_unstructuredgrid_file(filename)
-        os.remove(filename)
-        vtk_surface = vtkmethods.vtk_surface_filter(mesh_vtk, True)
-        nodal_areas = vtkmethods.compute_surface_nodal_area(vtk_surface)
 
-        surface_obj = dsa.WrapDataObject(vtk_surface)
-        surface_global_node_ids = surface_obj.PointData["GlobalPointIds"]
-
-        # select only those nodal areas which match the pericardium node ids
-        idx_select = np.nonzero(pericardium_nodes[:, None] == surface_global_node_ids)[1]
-        nodal_areas = nodal_areas[idx_select]
-
+        # use pre-computed nodal areas
+        nodal_areas = self.model.mesh.point_data["nodal_areas"][pericardium_nodes]
         # compute scale factor
         scale_factors = nodal_areas * penalty[pericardium_nodes]
 
@@ -1338,8 +1308,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         #     delimiter=",",
         # )
 
-        # keywords
-        # NOTE: Need to be made dynamic
+        # create unique ids for keywords
         part_id = self.get_unique_part_id()
         section_id = self.get_unique_section_id()
         mat_id = self.get_unique_mat_id()

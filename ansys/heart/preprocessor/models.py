@@ -26,7 +26,7 @@ class ModelInfo:
 
     @database.setter
     def database(self, value: str):
-        valid_databases = ["Strocchi2020", "Cristobal2021"]
+        valid_databases = ["Strocchi2020", "Rodero2021"]
         if value not in valid_databases:
             raise ValueError(
                 "{0} not a valid database name. Please specify one of the"
@@ -280,9 +280,9 @@ class HeartModel:
         if not os.path.isfile(self.info.path_to_original_mesh):
             raise ValueError("Please specify a valid path to the input file")
 
-        if self.info.database == "Cristobal2021":
+        if self.info.database == "Rodero2021":
             LOGGER.warning("Changing data fields of vtk file")
-            self.mesh_raw.read_mesh_file_cristobal2021(self.info.path_to_original_mesh)
+            self.mesh_raw.read_mesh_file_rodero2021(self.info.path_to_original_mesh)
         else:
             self.mesh_raw.read_mesh_file(self.info.path_to_original_mesh)
 
@@ -707,7 +707,53 @@ class HeartModel:
         os.remove(filename_remeshed)
         return
 
-    def _update_parts(self) -> None:
+    def _add_nodal_areas(self):
+        """Compute and add nodal areas to surface nodes."""
+        LOGGER.debug("Adding nodal areas")
+        for surface in self.mesh.boundaries:
+            vtk_surface = vtkmethods.create_vtk_surface_triangles(
+                points=surface.nodes, triangles=surface.faces
+            )
+            surface.point_data["nodal_areas"] = vtkmethods.compute_surface_nodal_area(vtk_surface)
+
+        # compute nodal areas for explicitly named surfaces
+        for part in self.parts:
+            for surface in part.surfaces:
+                vtk_surface = vtkmethods.create_vtk_surface_triangles(
+                    points=surface.nodes, triangles=surface.faces
+                )
+                surface.point_data["nodal_areas"] = vtkmethods.compute_surface_nodal_area(
+                    vtk_surface
+                )
+
+        # add nodal areas to volume mesh. Note that nodes can be part of
+        # multiple surfaces - so we need to perform a summation.
+        # interior nodes will have an area of 0.
+        self.mesh.point_data["nodal_areas"] = np.zeros(self.mesh.nodes.shape[0])
+        for surface in self.mesh.boundaries:
+            self.mesh.point_data["nodal_areas"][surface.node_ids] = (
+                self.mesh.point_data["nodal_areas"][surface.node_ids]
+                + surface.point_data["nodal_areas"]
+            )
+        # self.mesh.write_to_vtk(os.path.join(self.info.workdir, "volume_nodal_areas.vtk"))
+        return
+
+    def _add_surface_normals(self):
+        """Add surface normal as point data and cell data to all 'named' surfaces in the model."""
+        LOGGER.debug("Adding normals to all 'named' surfaces")
+        for part in self.parts:
+            for surface in part.surfaces:
+                vtk_surface = vtkmethods.create_vtk_surface_triangles(
+                    points=surface.nodes, triangles=surface.faces
+                )
+                (
+                    surface.cell_data["normals"],
+                    surface.point_data["normals"],
+                ) = vtkmethods.add_normals_to_polydata(vtk_surface, return_normals=True)
+
+        return
+
+    def _update_parts(self):
         """Update the parts using the (re)meshed volume.
 
         Notes
@@ -717,7 +763,11 @@ class HeartModel:
         3. Assign surfaces to each part
         4. Extracts the closing caps
         5. Creates cavities
-
+        6. Extracts apical points
+        7. Computes left-ventricle axis
+        8. Computes left-ventricle 17 segments
+        9. Adds nodal areas
+        10. Adds surface normals to boundaries
         """
         self._extract_septum()
         self._assign_elements_to_parts()
@@ -728,6 +778,10 @@ class HeartModel:
         #
         self.compute_left_ventricle_axis()
         self.compute_left_ventricle_AHA17()
+
+        self._add_nodal_areas()
+        self._add_surface_normals()
+
         return
 
     def _extract_septum(self) -> None:

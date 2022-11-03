@@ -80,7 +80,7 @@ class Mesh:
 
         return None
 
-    def read_mesh_file_cristobal2021(self, filename: pathlib.Path) -> None:
+    def read_mesh_file_rodero2021(self, filename: pathlib.Path) -> None:
         """Read mesh file - but modifies the fields to match data of Strocchi 2020."""
         mesh_vtk = vtkmethods.vtk_read_mesh_file(filename)
         name_array_mapping = [
@@ -348,6 +348,10 @@ class SurfaceMesh(Feature):
         """ID of surface."""
         self.nsid: int = None
         """ID of corresponding set of nodes."""
+        self.cell_data: dict = {}
+        """Data associated with each face/cell of surface."""
+        self.point_data: dict = {}
+        """Data associated with each point on surface."""
 
     @property
     def node_ids(self) -> np.ndarray:

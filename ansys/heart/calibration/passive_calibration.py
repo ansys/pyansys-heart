@@ -71,26 +71,38 @@ class PassiveCalibration:
         x_ed = x_ed[x_ed[:, 0].argsort()][:, 1:]
 
         # load left cavity segment
-        self.lv_cavity = np.loadtxt(sgm_file, delimiter=",", dtype=int)
+        # change ID index start by 0
+        self.lv_cavity = np.loadtxt(sgm_file, delimiter=",", dtype=int) - 1
 
         # compute Klotz curve
         self.v_ed = ClosedSurface(x_ed, self.lv_cavity).get_volume()
         self.p_ed = 2 * 7.5  # 2kPa to  mmHg
         self.klotz = EDPVR(self.v_ed, self.p_ed)
 
+        self.volume_sim = None
+        self.pressure_sim = None
+
     def load_results(self):
         """Load zerop simulation results."""
         # load inflation simulation
         # todo: filename iter3 is hard coded
-        nodout = NodOut(os.path.join(self.work_directory, "iter3.binout0000"))
+
+        try:
+            nodout = NodOut(os.path.join(self.work_directory, "iter3.binout"))
+        except IOError:
+            nodout = NodOut(os.path.join(self.work_directory, "iter3.binout0000"))
+        finally:
+            Exception("Cannot load binout file")
+
         time = nodout.time
         coords = nodout.get_coordinates()
 
         # compute volume at different simulation time
-        self.v_sim = np.zeros(time.shape)
+        self.pressure_sim = time * self.p_ed
+        self.volume_sim = np.zeros(time.shape)
         for i, coord in enumerate(coords):
             lv_volume = ClosedSurface(coord, self.lv_cavity).get_volume()
-            self.v_sim[i] = lv_volume
+            self.volume_sim[i] = lv_volume
 
     def compute_error(self):
         """
@@ -101,13 +113,12 @@ class PassiveCalibration:
         float
         error
         """
-        self.pressure = np.linspace(0, self.p_ed, num=len(self.v_sim))
-        self.v_kz = self.klotz.get_volume(self.pressure)
+        v_kz = self.klotz.get_volume(self.pressure_sim)
 
         # RSM error between analytics and simulation
-        self.rsm = np.linalg.norm(self.v_sim - self.v_kz)
+        rsm = np.linalg.norm(self.volume_sim - v_kz)
 
-        return self.rsm
+        return rsm
 
     def plot(self):
         """
@@ -121,10 +132,10 @@ class PassiveCalibration:
         pp = self.klotz.get_pressure(vv)
         fig = plt.figure()
         plt.plot(vv, pp, label="Klotz")
-        plt.plot(self.v_kz, self.pressure, "o", label="Klotz")
-        plt.plot(self.v_sim, self.pressure, "--*", label="FEM")
+        plt.plot(self.klotz.get_volume(self.pressure_sim), self.pressure_sim, "o", label="Klotz")
+        plt.plot(self.volume_sim, self.pressure_sim, "--*", label="FEM")
         plt.legend()
-        plt.title("RSM={0:10.5e}".format(self.rsm))
+        plt.title("RSM={0:10.5e}".format(self.compute_error()))
         return fig
 
     def run_one_step_calibration(self):

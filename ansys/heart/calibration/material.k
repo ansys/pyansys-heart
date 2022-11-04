@@ -29,7 +29,7 @@ ANISO             -1         0         1
 $#   theta         a         b
        0.0      0.08      0.76
 $#   ftype      fcid        k1        k2
-         1         0    &af_ps    &
+         1         0    &af_ps    &bf_ps
 $#      xp        yp        zp        a1        a2        a3      macf
                                                                      1
 $#      v1        v2        v3        d1        d2        d3      beta       ref

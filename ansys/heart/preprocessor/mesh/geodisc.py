@@ -1,6 +1,5 @@
 """Module for computing paths."""
 import math
-from msilib.schema import Error
 from typing import List, Union
 
 import numpy as np
@@ -94,7 +93,7 @@ def order_nodes_edgeloop(node_indices: np.ndarray, node_coords: np.ndarray) -> n
         idx_visited.append(next_idx)
         iters = iters + 1
         if iters > num_nodes:
-            raise Error("More iterations needed than expected - check implementation")
+            raise RecursionError("More iterations needed than expected - check implementation")
 
     # remap to old numbering and return
     return node_indices[idx_visited]

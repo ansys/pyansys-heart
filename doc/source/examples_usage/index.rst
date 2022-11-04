@@ -1,5 +1,6 @@
-Examples
-========
+Examples 
+---------
+
 This page contains examples of pyheart-lib usage
 
 Extracting a simulation mesh
@@ -84,7 +85,3 @@ The 4 folders created are about :
         )
         writer.update()
         writer.export(exportdir)
-    
-    
-    
-

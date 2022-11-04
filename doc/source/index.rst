@@ -13,5 +13,6 @@ Contents
    getting_started/index
    user_guide/index
    api/index
+   examples_usage/index
    examples/index
    contributing

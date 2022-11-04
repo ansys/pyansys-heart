@@ -3,7 +3,6 @@ import os
 import subprocess
 
 from ansys.heart.custom_logging import LOGGER
-from ansys.heart.preprocessor import SC_EXE
 from ansys.heart.preprocessor._load_template import load_template
 import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401
 import numpy as np
@@ -81,6 +80,12 @@ def mesh_heart_model_by_fluent(
 
 def _shrink_by_spaceclaim(input, output):
     """Use SpaceClaim shrinkwrapping to wrap surface and create high quality surface mesh."""
+    try:
+        from ansys.heart.preprocessor import SC_EXE
+    except ImportError:
+        LOGGER.error("Failed to import space claim path")
+        return
+
     var_for_template = {
         "input": input,
         "output": output,

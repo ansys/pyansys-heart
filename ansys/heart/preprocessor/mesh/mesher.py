@@ -85,7 +85,7 @@ def _shrink_by_spaceclaim(input, output):
     except ImportError:
         LOGGER.error("Failed to import space claim path")
         return
-    
+
     var_for_template = {
         "input": input,
         "output": output,

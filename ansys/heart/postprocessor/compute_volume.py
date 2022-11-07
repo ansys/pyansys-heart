@@ -17,6 +17,10 @@ class ClosedSurface:
         coord: coordinate can have more nodes than surface mesh.
         surface_mesh: connectivity table of triangles.
         """
+        DeprecationWarning(
+            "ClosedSurface is deprecated: please use SurfaceMesh "
+            "in ansys.heart.preprocessor.mesh.objects"
+        )
         ids, a = np.unique(surface_mesh, return_inverse=True)
         self.coord = coord[ids]
         self.connect = a.reshape(surface_mesh.shape)

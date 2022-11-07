@@ -45,9 +45,11 @@ parameters = {
         "Radial Scale factor": 1.0,
     },
     "Pericardium": {
-        "Penalty function": [0.1, 25],
+        # Strocchi parameter
+        # https://doi.org/10.1016/j.jbiomech.2020.109645
+        "Penalty function": [0.65, 25],
         "Spring Stiffness": 50.0 / scale,
-        "Spring Type": "apex-mitral-direction",
+        # "Spring Type": "apex-mitral-direction",
     },
     "ED pressure": {"Left Ventricle": 2.0 / scale, "Right Ventricle": 0.53333 / scale},
     "Circulation System": {

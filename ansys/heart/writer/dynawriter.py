@@ -13,6 +13,7 @@ from typing import List
 from ansys.dyna.keywords import keywords
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.mesh.objects import Cap
+import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.models import (
     BiVentricle,
     FourChamber,
@@ -1249,17 +1250,16 @@ class MechanicsDynaWriter(BaseDynaWriter):
             """Sigmoid function to scale spring coefficient."""
             return 1 / (1 + np.exp(-z))
 
-        # compute penalty function
+        # compute penalty function from longitudinal coordinate
         uvc_l = self.model.mesh.point_data["uvc_longitudinal"]
-
         if np.any(uvc_l < 0):
             LOGGER.warning(
                 "Negative normalized longitudinal coordinate detected."
                 "Changing {0} negative uvc_l values to 1".format(np.sum((uvc_l < 0))),
             )
-
         uvc_l[uvc_l < 0] = 1
-        penalty = (
+
+        penalty_function = (
             -_sigmoid(
                 (abs(uvc_l) - self.parameters["Pericardium"]["Penalty function"][0])
                 * self.parameters["Pericardium"]["Penalty function"][1]
@@ -1284,84 +1284,76 @@ class MechanicsDynaWriter(BaseDynaWriter):
             LOGGER.warning("Duplicate nodes found in pericardium")
         epicardium_nodes = epicardium_nodes[np.sort(idx)]
 
-        # select only nodes that are on the epicardium and penalty factor > 0.1
-        pericardium_nodes = epicardium_nodes[penalty[epicardium_nodes] > 0.001]
+        # select only nodes for penalty factor > 0.01
+        pericardium_nodes = epicardium_nodes[penalty_function[epicardium_nodes] > 0.01]
+        # select surfaces containing these nodes
+        pericardium_faces = epicardium_faces[
+            np.any(np.isin(epicardium_faces, pericardium_nodes), axis=1)
+        ]
+        # some nodes on the edge must be included
+        pericardium_nodes, a = np.unique(pericardium_faces, return_inverse=True)
 
-        spring_stiffness = self.parameters["Pericardium"]["Spring Stiffness"]  # kPA/mm
+        # build pericardium polydata
+        coord = self.model.mesh.nodes[pericardium_nodes]
+        connect = a.reshape(pericardium_faces.shape)
+        pericardium_polydata = vtkmethods.create_vtk_surface_triangles(coord, connect, clean=False)
+        # vtkmethods.write_vtkdata_to_vtkfile(pericardium_polydata,'pericardium.vtk')
+
+        # compute normal
+        cell_normal, point_normal = vtkmethods.add_normals_to_polydata(
+            pericardium_polydata, return_normals=True
+        )
+        # normal_obj = vtkmethods.add_normals_to_polydata(pericardium_polydata)
+        # vtkmethods.write_vtkdata_to_vtkfile(normal_obj,'normal.vtk')
 
         # use pre-computed nodal areas
         nodal_areas = self.model.mesh.point_data["nodal_areas"][pericardium_nodes]
+        nodal_penalty = penalty_function[pericardium_nodes]
         # compute scale factor
-        scale_factors = nodal_areas * penalty[pericardium_nodes]
+        scale_factors = nodal_areas * nodal_penalty
 
-        # write to file
-        # np.savetxt(
-        #     os.path.join(self.model.info.workdir, "pericardium.txt"),
-        #     np.concatenate(
-        #         (
-        #             self.model.mesh.nodes[pericardium_nodes, :],
-        #             penalty[pericardium_nodes].reshape(-1, 1),
-        #             scale_factors.reshape(-1, 1),
-        #         ),
-        #         axis=1,
-        #     ),
-        #     delimiter=",",
-        # )
+        def __debug():
+            import meshio
+
+            meshio.write_points_cells(
+                "pericardium.vtk",
+                coord,
+                [("triangle", connect)],
+                point_data={"area": nodal_areas, "normal": point_normal, "penalty": nodal_penalty},
+                cell_data={"normal": [cell_normal]},
+            )
+
+        # __debug()
 
         # create unique ids for keywords
         part_id = self.get_unique_part_id()
         section_id = self.get_unique_section_id()
         mat_id = self.get_unique_mat_id()
 
+        # define part
         part_kw = keywords.Part()
         part_kw.parts = pd.DataFrame(
             {"heading": ["Pericardium"], "pid": [part_id], "secid": [section_id], "mid": [mat_id]}
         )
+        # define section
         section_kw = keywords.SectionDiscrete(secid=section_id, cdl=0, tdl=0)
-        mat_kw = keywords.MatSpringElastic(mid=mat_id, k=spring_stiffness)
+        # define material
+        mat_kw = keywords.MatSpringElastic(
+            mid=mat_id, k=(self.parameters["Pericardium"]["Spring Stiffness"])
+        )
 
-        # 1: "omni-directional": equal springs in x,y, and z
-        # 2: "apex-mitral-drection": one spring in apex-mitral valve direction
-        spring_type = self.parameters["Pericardium"]["Spring Type"]
+        # define spring orientations
+        sd_orientation_kw = create_define_sd_orientation_kw(
+            vectors=point_normal, vector_id_offset=self.id_offset["vector"]
+        )
+        # add offset
+        self.id_offset["vector"] = sd_orientation_kw.vectors["vid"].to_numpy()[-1]
+        vector_ids = sd_orientation_kw.vectors["vid"].to_numpy().astype(int)
 
-        if spring_type == "omni-directional":
-            # create three unit vectors
-            sd_orientation_kw = create_define_sd_orientation_kw(
-                vectors=np.eye(3), vector_id_offset=self.id_offset["vector"]
-            )
-
-            self.id_offset["vector"] = sd_orientation_kw.vectors["vid"].to_numpy()[-1]
-            # create discrete elements for each node and for each direction
-            vector_ids = sd_orientation_kw.vectors["vid"].to_numpy()
-            num_nodes = len(pericardium_nodes)
-            vector_ids = np.tile(vector_ids, num_nodes)
-            nodes = np.repeat(pericardium_nodes + 1, 3)
-            nodes = np.vstack([nodes, np.zeros(len(nodes))])
-            nodes = nodes.T
-            scale_factors = np.repeat(scale_factors, 3)
-
-        elif spring_type == "apex-mitral-direction":
-            # get center of mitral valve
-            left_ventricle = self.model.get_part("Left ventricle")
-            apex_node_coordinates = left_ventricle.apex_points[0].xyz
-            # midpoint between aortic and mitral valve
-            center = np.mean([c.centroid for c in left_ventricle.caps], axis=0)
-
-            # define spring orientation from apex to mitral valve
-            orientation = center - apex_node_coordinates
-            orientation /= np.linalg.norm(orientation)
-
-            sd_orientation_kw = create_define_sd_orientation_kw(
-                vectors=orientation, vector_id_offset=self.id_offset["vector"]
-            )
-            self.id_offset["vector"] = sd_orientation_kw.vectors["vid"].to_numpy()[-1]
-
-            vector_ids = sd_orientation_kw.vectors["vid"].to_numpy()
-            num_nodes = len(pericardium_nodes)
-            vector_ids = np.tile(vector_ids, num_nodes)
-            nodes = pericardium_nodes + 1
-            nodes = np.vstack([nodes, np.zeros(len(nodes))])
-            nodes = nodes.T
+        # define spring nodes
+        nodes = pericardium_nodes + 1
+        nodes = np.vstack([nodes, np.zeros(len(nodes))])
+        nodes = nodes.T
 
         # create discrete elements
         discrete_element_kw = create_discrete_elements_kw(

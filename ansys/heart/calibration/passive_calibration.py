@@ -6,7 +6,7 @@ import sys
 from ansys.heart.general import run_lsdyna
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.binout_helper import NodOut
-from ansys.heart.postprocessor.compute_volume import ClosedSurface
+from ansys.heart.preprocessor.mesh.objects import Cavity, SurfaceMesh
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -72,10 +72,14 @@ class PassiveCalibration:
 
         # load left cavity segment
         # change ID index start by 0
-        self.lv_cavity = np.loadtxt(sgm_file, delimiter=",", dtype=int) - 1
+        lv_cavity_faces = np.loadtxt(sgm_file, delimiter=",", dtype=int) - 1
+
+        # create cavity object by using surface mesh
+        self.lv_cavity = Cavity(SurfaceMesh(name="lv_cavity", faces=lv_cavity_faces, nodes=x_ed))
+        self.lv_cavity.compute_volume()
 
         # compute Klotz curve
-        self.v_ed = ClosedSurface(x_ed, self.lv_cavity).get_volume()
+        self.v_ed = self.lv_cavity.volume
         self.p_ed = 2 * 7.5  # 2kPa to  mmHg
         self.klotz = EDPVR(self.v_ed, self.p_ed)
 
@@ -101,8 +105,10 @@ class PassiveCalibration:
         self.pressure_sim = time * self.p_ed
         self.volume_sim = np.zeros(time.shape)
         for i, coord in enumerate(coords):
-            lv_volume = ClosedSurface(coord, self.lv_cavity).get_volume()
-            self.volume_sim[i] = lv_volume
+            self.lv_cavity.surface.nodes = coord
+            self.lv_cavity.compute_volume()
+            self.volume_sim[i] = self.lv_cavity.volume
+            print("Cavity volume: {:f}", self.lv_cavity.volume)
 
     def compute_error(self):
         """

@@ -7,14 +7,12 @@ Uses a HeartModel (from ansys.heart.preprocessor.models).
 """
 import json
 import os
-from pathlib import Path
 import time
 from typing import List
 
 from ansys.dyna.keywords import keywords
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.mesh.objects import Cap
-import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.models import (
     BiVentricle,
     FourChamber,
@@ -23,7 +21,6 @@ from ansys.heart.preprocessor.models import (
     LeftVentricle,
 )
 
-# import missing keywords
 # import missing keywords
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 from ansys.heart.writer.heart_decks import (
@@ -48,6 +45,7 @@ from ansys.heart.writer.keyword_module import (
 from ansys.heart.writer.material_keywords import MaterialAtrium, MaterialHGOMyocardium, active_curve
 import numpy as np
 import pandas as pd
+import pkg_resources
 from vtk.numpy_interface import dataset_adapter as dsa  # noqa
 
 # import commonly used material models
@@ -168,20 +166,17 @@ class BaseDynaWriter:
         LOGGER.debug("Updating solid element keywords...")
 
         # create elements for each part
-        solid_element_count = 0  # keeps track of number of solid elements already defined
-
         for part in self.model.parts:
             tetrahedrons = self.model.mesh.tetrahedrons[part.element_ids, :] + 1
             num_elements = tetrahedrons.shape[0]
 
-            element_ids = np.arange(1, num_elements + 1, 1) + solid_element_count
             part_ids = np.ones(num_elements, dtype=int) * part.pid
 
             # format the element keywords
             kw_elements = keywords.ElementSolid()
             elements = pd.DataFrame(
                 {
-                    "eid": element_ids,
+                    "eid": part.element_ids + 1,
                     "pid": part_ids,
                     "n1": tetrahedrons[:, 0],
                     "n2": tetrahedrons[:, 1],
@@ -196,7 +191,6 @@ class BaseDynaWriter:
             kw_elements.elements = elements
             # add elements to database
             self.kw_database.solid_elements.append(kw_elements)
-            solid_element_count = solid_element_count + num_elements
 
         return
 
@@ -510,9 +504,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
     def update(self):
         """Update the keyword database."""
-        self._update_main_db()
         self._update_node_db()
         self._update_parts_db()
+        self._update_main_db()
         self._update_solid_elements_db(add_fibers=True)
         self._update_segmentsets_db()
         self._update_nodesets_db()
@@ -658,7 +652,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             # add_fibers = False
 
         # create elements for each part
-        solid_element_count = 0  # keeps track of number of solid elements already defined
+        # solid_element_count = 0  # keeps track of number of solid elements already defined
 
         for part in self.model.parts:
             if type(self) == MechanicsDynaWriter:
@@ -674,7 +668,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             tetrahedrons = self.model.mesh.tetrahedrons[part.element_ids, :] + 1
             num_elements = tetrahedrons.shape[0]
 
-            element_ids = np.arange(1, num_elements + 1, 1) + solid_element_count
+            # element_ids = np.arange(1, num_elements + 1, 1) + solid_element_count
             part_ids = np.ones(num_elements, dtype=int) * part.pid
 
             # format the element keywords
@@ -682,7 +676,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 kw_elements = keywords.ElementSolid()
                 elements = pd.DataFrame(
                     {
-                        "eid": element_ids,
+                        "eid": part.element_ids + 1,
                         "pid": part_ids,
                         "n1": tetrahedrons[:, 0],
                         "n2": tetrahedrons[:, 1],
@@ -709,14 +703,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     elements=tetrahedrons,
                     a_vec=fiber,
                     d_vec=sheet,
+                    e_id=part.element_ids + 1,
                     partid=part.pid,
-                    id_offset=solid_element_count,
                     element_type="tetra",
                 )
 
             # add elements to database
             self.kw_database.solid_elements.append(kw_elements)
-            solid_element_count = solid_element_count + num_elements
+            # solid_element_count = solid_element_count + num_elements
 
         return
 
@@ -802,8 +796,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.DatabaseIcvout(dt=dt_output_icvout, binary=2))
         self.kw_database.main.append(keywords.DatabaseAbstat(dt=dt_output_icvout, binary=2))
 
-        self.kw_database.main.append(keywords.DatabaseElout(dt=0.1, binary=2))
-
         self.kw_database.main.append(keywords.DatabaseGlstat(dt=0.1, binary=2))
 
         self.kw_database.main.append(keywords.DatabaseMatsum(dt=0.1, binary=2))
@@ -812,8 +804,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         lcid = self.get_unique_curve_id()
         time = [
             0,
+            self.parameters["Material"]["Myocardium"]["Active"]["Prefill"] * 0.99,
             self.parameters["Material"]["Myocardium"]["Active"]["Prefill"],
-            self.parameters["Material"]["Myocardium"]["Active"]["Prefill"] + dt_output_d3plot,
             self.parameters["Time"]["End Time"],
         ]
         step = [10 * dt_output_d3plot, 10 * dt_output_d3plot, dt_output_d3plot, dt_output_d3plot]
@@ -831,6 +823,40 @@ class MechanicsDynaWriter(BaseDynaWriter):
         )
 
         self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
+
+        # control ELOUT file to extract left ventricle's stress/strain
+        if hasattr(self.model, "septum"):
+            self.kw_database.main.append(
+                keywords.SetSolidGeneral(
+                    option="PART", sid=1, e1=self.model.left_ventricle.pid, e2=self.model.septum.pid
+                )
+            )
+        else:
+            self.kw_database.main.append(
+                keywords.SetSolidGeneral(option="PART", sid=1, e1=self.model.left_ventricle.pid)
+            )
+        self.kw_database.main.append(keywords.DatabaseHistorySolidSet(id1=1))
+
+        lcid = self.get_unique_curve_id()
+        time = [
+            0,
+            self.parameters["Time"]["End Time"] * 0.8 * 0.99,
+            self.parameters["Time"]["End Time"] * 0.8,
+            self.parameters["Time"]["End Time"],
+        ]
+        step = [100 * dt_output_d3plot, 100 * dt_output_d3plot, dt_output_d3plot, dt_output_d3plot]
+        kw_curve = create_define_curve_kw(
+            x=time,
+            y=step,
+            curve_name="elout control, only save during the last 20% ",
+            curve_id=lcid,
+            lcint=0,
+        )
+        self.kw_database.main.append(kw_curve)
+
+        self.kw_database.main.append(
+            keywords.DatabaseElout(dt=0.1, binary=2, lcur=lcid, ioopt=1, option1=27)
+        )
 
         return
 
@@ -1135,31 +1161,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
             if cap.name.split("-")[0] in boundary.name:
                 attached_nodes = boundary.node_ids
                 break
-        # -------------------------------------------------------------------
 
-        # compute nodal areas:
-        # 1. write vtk of volume, 2. read vtk, 3. extract surface, 4. compute nodal areas
-        # NOTE: Should do this only once and not for every cap/valve involved
-        filename = os.path.join(self.model.info.workdir, "temp_volume_mesh.vtk")
-        mesh.write_to_vtk(filename)
-        mesh_vtk = vtkmethods.read_vtk_unstructuredgrid_file(filename)
-        os.remove(filename)
-
-        surface_vtk = vtkmethods.vtk_surface_filter(mesh_vtk, True)
-        nodal_areas = vtkmethods.compute_surface_nodal_area(surface_vtk)
-        surface_obj = dsa.WrapDataObject(surface_vtk)
-        surface_global_node_ids = surface_obj.PointData["GlobalPointIds"]
-
-        # select only those nodal areas which match the cap node ids
-        idx_select = np.nonzero(attached_nodes[:, None] == surface_global_node_ids)[1]
-        nodal_areas = nodal_areas[idx_select]
+        # use pre-computed nodal area
+        nodal_areas = self.model.mesh.point_data["nodal_areas"][boundary.node_ids]
 
         # scaled spring stiffness by nodal area
         scale_factor_normal *= nodal_areas
         scale_factor_radial *= nodal_areas
 
-        # add part, section discrete, mat spring, sd_orientiation
-        # element discrete
+        # add part, section discrete, mat spring, sd_orientiation, element discrete
 
         # compute the radial components
         sd_orientations_radial = mesh.nodes[attached_nodes, :] - cap.centroid
@@ -1278,22 +1288,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
         pericardium_nodes = epicardium_nodes[penalty[epicardium_nodes] > 0.001]
 
         spring_stiffness = self.parameters["Pericardium"]["Spring Stiffness"]  # kPA/mm
-        # compute nodal areas:
-        # NOTE: can be simplified
-        filename = os.path.join(self.model.info.workdir, "temp_volume_mesh.vtk")
-        self.model.mesh.write_to_vtk(filename)
-        mesh_vtk = vtkmethods.read_vtk_unstructuredgrid_file(filename)
-        os.remove(filename)
-        vtk_surface = vtkmethods.vtk_surface_filter(mesh_vtk, True)
-        nodal_areas = vtkmethods.compute_surface_nodal_area(vtk_surface)
 
-        surface_obj = dsa.WrapDataObject(vtk_surface)
-        surface_global_node_ids = surface_obj.PointData["GlobalPointIds"]
-
-        # select only those nodal areas which match the pericardium node ids
-        idx_select = np.nonzero(pericardium_nodes[:, None] == surface_global_node_ids)[1]
-        nodal_areas = nodal_areas[idx_select]
-
+        # use pre-computed nodal areas
+        nodal_areas = self.model.mesh.point_data["nodal_areas"][pericardium_nodes]
         # compute scale factor
         scale_factors = nodal_areas * penalty[pericardium_nodes]
 
@@ -1311,8 +1308,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         #     delimiter=",",
         # )
 
-        # keywords
-        # NOTE: Need to be made dynamic
+        # create unique ids for keywords
         part_id = self.get_unique_part_id()
         section_id = self.get_unique_section_id()
         mat_id = self.get_unique_mat_id()
@@ -1524,17 +1520,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 "supports the Closed Loop circulation model!"
             )
             if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-                file_path = os.path.join(
-                    Path(__file__).parent.absolute(),
-                    "templates",
-                    "system_model_settings_bv.json",
+                file_path = pkg_resources.resource_filename(
+                    "ansys.heart.writer", "templates/system_model_settings_bv.json"
                 )
 
             elif isinstance(self.model, LeftVentricle):
-                file_path = os.path.join(
-                    Path(__file__).parent.absolute(),
-                    "templates",
-                    "system_model_settings_lv.json",
+                file_path = pkg_resources.resource_filename(
+                    "ansys.heart.writer", "templates/system_model_settings_lv.json"
                 )
 
             fid = open(file_path)
@@ -1754,7 +1746,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.kw_database.main.append(custom_keywords.ControlImplicitSolver())
 
         # add binout for post-process
-        self.kw_database.main.append(keywords.DatabaseNodout(dt=0.2 * scale_time, binary=1))
+        self.kw_database.main.append(keywords.DatabaseNodout(dt=0.2 * scale_time, binary=2))
 
         # write for all nodes in nodout
         nodeset_id = self.get_unique_nodeset_id()
@@ -1999,11 +1991,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             part_list1_kw.options["TITLE"].active = True
             part_list1_kw.title = "myocardium_all"
 
-            self.kw_database.create_fiber.extend(
-                [
-                    part_list1_kw,
-                ]
-            )
+            self.kw_database.create_fiber.extend([part_list1_kw])
 
             # combine node sets endocardium uing *SET_NODE_ADD:
             node_set_id_all_endocardium = self.get_unique_nodeset_id()
@@ -2025,7 +2013,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             self.kw_database.create_fiber.append(set_add_kw)
 
             node_set_id_base = self.get_unique_nodeset_id()
-            node_set_id_apex = self.get_unique_nodeset_id()
+            node_set_id_apex = self.get_unique_nodeset_id() + 1
 
             # create node-sets for base and apex
             node_set_base_kw = create_node_set_keyword(
@@ -2585,81 +2573,80 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         """Add simple linear elastic material for each defined part."""
         for part in self.model.parts:
             ep_mid = part.pid
-            self.kw_database.cell_models.extend(
-                [
-                    keywords.EmEpCellmodelTentusscher(
-                        mid=ep_mid,
-                        gas_constant=8314.472,
-                        t=310,
-                        faraday_constant=96485.3415,
-                        cm=0.185,
-                        vc=0.016404,
-                        vsr=0.001094,
-                        vss=0.00005468,
-                        pkna=0.03,
-                        ko=5.4,
-                        nao=140.0,
-                        cao=2.0,
-                        gk1=5.405,
-                        gkr=0.153,
-                        gks=0.392,
-                        gna=14.838,
-                        gbna=0.0002,
-                        gcal=0.0000398,
-                        gbca=0.000592,
-                        gto=0.294,
-                        gpca=0.1238,
-                        gpk=0.0146,
-                        pnak=2.724,
-                        km=1.0,
-                        kmna=40.0,
-                        knaca=1000.0,
-                        ksat=0.1,
-                        alpha=2.5,
-                        gamma=0.35,
-                        kmca=1.38,
-                        kmnai=87.5,
-                        kpca=0.0005,
-                        k1=0.15,
-                        k2=0.045,
-                        k3=0.06,
-                        k4=0.005,
-                        ec=1.5,
-                        maxsr=2.5,
-                        minsr=1.0,
-                        vrel=0.102,
-                        vleak=0.00036,
-                        vxfer=0.0038,
-                        vmaxup=0.006375,
-                        kup=0.00025,
-                        bufc=0.2,
-                        kbufc=0.001,
-                        bufsr=10.0,
-                        kbufsf=0.3,
-                        bufss=0.4,
-                        kbufss=0.00025,
-                        v=-85.23,
-                        ki=136.89,
-                        nai=8.604,
-                        cai=0.000126,
-                        cass=0.00036,
-                        casr=3.64,
-                        rpri=0.9073,
-                        xr1=0.00621,
-                        xr2=0.4712,
-                        xs=0.0095,
-                        m=0.00172,
-                        h=0.7444,
-                        j=0.7045,
-                        d=3.373e-5,
-                        f=0.7888,
-                        f2=0.9755,
-                        fcass=0.9953,
-                        s=0.999998,
-                        r=2.42e-8,
-                    ),
-                ]
+            cell_kw = keywords.EmEpCellmodelTentusscher(
+                mid=ep_mid,
+                gas_constant=8314.472,
+                t=310,
+                faraday_constant=96485.3415,
+                cm=0.185,
+                vc=0.016404,
+                vsr=0.001094,
+                vss=0.00005468,
+                pkna=0.03,
+                ko=5.4,
+                nao=140.0,
+                cao=2.0,
+                gk1=5.405,
+                gkr=0.153,
+                gks=0.392,
+                gna=14.838,
+                gbna=0.0002,
+                gcal=0.0000398,
+                gbca=0.000592,
+                gto=0.294,
+                gpca=0.1238,
+                gpk=0.0146,
+                pnak=2.724,
+                km=1.0,
+                kmna=40.0,
+                knaca=1000.0,
+                ksat=0.1,
+                alpha=2.5,
+                gamma=0.35,
+                kmca=1.38,
+                kmnai=87.5,
+                kpca=0.0005,
+                k1=0.15,
+                k2=0.045,
+                k3=0.06,
+                k4=0.005,
+                ec=1.5,
+                maxsr=2.5,
+                minsr=1.0,
+                vrel=0.102,
+                vleak=0.00036,
+                vxfer=0.0038,
+                vmaxup=0.006375,
+                kup=0.00025,
+                bufc=0.2,
+                kbufc=0.001,
+                bufsr=10.0,
+                kbufsf=0.3,
+                bufss=0.4,
+                kbufss=0.00025,
+                v=-85.23,
+                ki=136.89,
+                nai=8.604,
+                cai=0.000126,
+                cass=0.00036,
+                casr=3.64,
+                rpri=0.9073,
+                xr1=0.00621,
+                xr2=0.4712,
+                xs=0.0095,
+                m=0.00172,
+                h=0.7444,
+                j=0.7045,
+                d=3.373e-5,
+                f=0.7888,
+                f2=0.9755,
+                fcass=0.9953,
+                s=0.999998,
+                r=2.42e-8,
             )
+            cell_kw.gas_constant = 8314.472
+            cell_kw.faraday_constant = 96485.3415
+            self.kw_database.cell_models.extend([cell_kw])
 
     def _update_ep_settings(self):
         """Add the settings for the electrophysiology solver."""
@@ -2679,47 +2666,132 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         self.kw_database.ep_settings.append(keywords.EmOutput(mats=1, matf=1, sols=1, solf=1))
 
-        node_apex_left = self.get_apex_left()
-        node_apex_right = self.get_apex_right()
+        if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
+            node_apex_left = self.get_apex_left()
+            node_apex_right = self.get_apex_right()
 
-        node_set_id_apex_left = self.get_unique_nodeset_id()
-        # create node-sets for apex left
-        node_set_kw = create_node_set_keyword(
-            node_ids=[node_apex_left + 1],
-            node_set_id=node_set_id_apex_left,
-            title="apex node left",
-        )
-        self.kw_database.node_sets.append(node_set_kw)
-
-        node_set_id_apex_right = self.get_unique_nodeset_id()
-        # create node-sets for apex right
-        node_set_kw = create_node_set_keyword(
-            node_ids=[node_apex_right + 1],
-            node_set_id=node_set_id_apex_right,
-            title="apex node right",
-        )
-        self.kw_database.node_sets.append(node_set_kw)
-        # TODO add more nodes to initiate wave propagation !!!!
-        node_set_id_stimulationnodes = self.get_unique_nodeset_id()
-        # create node-sets for apex
-        node_set_kw = create_node_set_keyword(
-            node_ids=[node_apex_left + 1, node_apex_right + 1],
-            node_set_id=node_set_id_stimulationnodes,
-            title="Stim nodes",
-        )
-        self.kw_database.node_sets.append(node_set_kw)
-
-        self.kw_database.ep_settings.append(
-            custom_keywords.EmEpTentusscherStimulus(
-                stimid=1,
-                settype=2,
-                setid=node_set_id_stimulationnodes,
-                stimstrt=0.0,
-                stimt=1000.0,
-                stimdur=20.0,
-                stimamp=50.0,
+            node_set_id_apex_left = self.get_unique_nodeset_id()
+            # create node-sets for apex left
+            node_set_kw = create_node_set_keyword(
+                node_ids=[node_apex_left + 1],
+                node_set_id=node_set_id_apex_left,
+                title="apex node left",
             )
-        )
+            self.kw_database.node_sets.append(node_set_kw)
+
+            node_set_id_apex_right = self.get_unique_nodeset_id()
+            # create node-sets for apex right
+            node_set_kw = create_node_set_keyword(
+                node_ids=[node_apex_right + 1],
+                node_set_id=node_set_id_apex_right,
+                title="apex node right",
+            )
+            self.kw_database.node_sets.append(node_set_kw)
+            # TODO add more nodes to initiate wave propagation !!!!
+            node_set_id_stimulationnodes = self.get_unique_nodeset_id()
+            # create node-sets for apex
+            node_set_kw = create_node_set_keyword(
+                node_ids=[node_apex_left + 1, node_apex_right + 1],
+                node_set_id=node_set_id_stimulationnodes,
+                title="Stim nodes",
+            )
+
+            self.kw_database.node_sets.append(node_set_kw)
+            self.kw_database.ep_settings.append(
+                custom_keywords.EmEpTentusscherStimulus(
+                    stimid=1,
+                    settype=2,
+                    setid=node_set_id_stimulationnodes,
+                    stimstrt=0.0,
+                    stimt=1000.0,
+                    stimdur=20.0,
+                    stimamp=50.0,
+                )
+            )
+
+        elif isinstance(self.model, (LeftVentricle)):
+            node_apex_left = self.get_apex_left()
+
+            node_set_id_apex_left = self.get_unique_nodeset_id()
+            # create node-sets for apex left
+            node_set_kw = create_node_set_keyword(
+                node_ids=[node_apex_left + 1],
+                node_set_id=node_set_id_apex_left,
+                title="apex node left",
+            )
+            self.kw_database.node_sets.append(node_set_kw)
+
+            # TODO add more nodes to initiate wave propagation !!!!
+            node_set_id_stimulationnodes = self.get_unique_nodeset_id()
+            # create node-sets for apex
+            node_set_kw = create_node_set_keyword(
+                node_ids=[node_apex_left + 1],
+                node_set_id=node_set_id_stimulationnodes,
+                title="Stim nodes",
+            )
+
+            self.kw_database.node_sets.append(node_set_kw)
+
+            self.kw_database.ep_settings.append(
+                custom_keywords.EmEpTentusscherStimulus(
+                    stimid=1,
+                    settype=2,
+                    setid=node_set_id_stimulationnodes,
+                    stimstrt=0.0,
+                    stimt=1000.0,
+                    stimdur=20.0,
+                    stimamp=50.0,
+                )
+            )
+
+    def _update_solution_controls(
+        self,
+        end_time: float = 800,
+    ):
+        """Add solution controls and other solver settings as keywords."""
+        # add termination keywords
+        self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=0.0))
+
+        self.kw_database.main.append(keywords.ControlTimeStep(dtinit=1.0, dt2ms=1.0))
+        return
+
+    def _update_export_controls(self, dt_output_d3plot: float = 1.0):
+        """Add solution controls to the main simulation.
+
+        Parameters
+        ----------
+        dt_output_d3plot : float, optional
+            Writes full D3PLOT results at this time-step spacing, by default 0.05
+        dt_output_icvout : float, optional
+            Writes control volume results at this time-step spacing, by default 0.001
+        """
+        # frequency of full results
+        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
+
+        return
+
+    def _update_main_db(self):
+
+        return
+
+    def _get_list_of_includes(self):
+        """Get a list of files to include in main.k. omit any empty decks."""
+        for deckname, deck in vars(self.kw_database).items():
+            if deckname == "main":
+                continue
+            # skip if no keywords are present in the deck
+            if len(deck.keywords) == 0:
+                LOGGER.debug("No keywords in deck: {0}".format(deckname))
+                continue
+            self.include_files.append(deckname)
+        return
+
+    def _add_includes(self):
+        """Add *INCLUDE keywords."""
+        for include_file in self.include_files:
+            filename_to_include = include_file + ".k"
+            self.kw_database.main.append(keywords.Include(filename=filename_to_include))
+
         return
 
     # def _update_use_Purkinje(self):

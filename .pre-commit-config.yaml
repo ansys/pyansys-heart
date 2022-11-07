@@ -19,8 +19,9 @@ repos:
   rev: v2.1.0
   hooks:
   - id: codespell
-    exclude: examples/dyna_decks
-    args: [-L solf]
+#    exclude: examples/dyna_decks
+    exclude: ^(examples/dyna_decks\/|tests/heart/calibration\/)
+    args: [-L solf,"--ignore-words=ignore_words.txt" ]
 
 # pydocstyle is pretty strict
 - repo: https://github.com/pycqa/pydocstyle

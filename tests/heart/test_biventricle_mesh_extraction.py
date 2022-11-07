@@ -8,7 +8,7 @@ if not sys.platform.startswith("win"):
     pytest.skip("Skipping windows-only tests", allow_module_level=True)
 
 import ansys.heart.preprocessor.models as models
-from ansys.heart.workflow.support import run_preprocessor
+from ansys.heart.simulator.support import run_preprocessor
 from common import compare_caps, compare_cavities, compare_parts, compare_surfaces
 from conftest import get_assets_folder, get_workdir
 

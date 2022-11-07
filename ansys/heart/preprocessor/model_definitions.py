@@ -87,7 +87,7 @@ LABELS_TO_ID = {
         "Superior vena cava inlet": 23,
         "Inferior vena cava inlet": 24,
     },
-    "Cristobal2021": {
+    "Rodero2021": {
         "Left ventricle myocardium": 1,
         "Right ventricle myocardium": 2,
         "Left atrium myocardium": 3,

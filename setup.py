@@ -1,4 +1,6 @@
 """Project installation script."""
+import subprocess
+import sys
 
 """pyheart-lib setup file."""
 import codecs
@@ -6,10 +8,27 @@ from io import open as io_open
 import os
 
 from setuptools import find_namespace_packages, setup
+from setuptools.command.develop import develop
 
-HERE = os.path.abspath(os.path.dirname(__file__))
+
+class PostDevelopCommand(develop):
+    """Post-installation for development mode."""
+
+    def run(self):
+        """Post run to install dynalib."""
+        develop.run(self)
+        print("Installing dynalib...")
+        subprocess.call("git clone https://github.com/pyansys/dynalib.git")
+        subprocess.call("python -m pip install -e dynalib")
+
+        if sys.version_info.minor == 7 or sys.version_info.minor == 8:
+            print("Installing qd...")
+            subprocess.call("python -m pip install qd")
+
+
+_THIS_FILE = os.path.abspath(os.path.dirname(__file__))
 __version__ = None
-version_file = os.path.join(HERE, "ansys", "heart", "_version.py")
+version_file = os.path.join(_THIS_FILE, "ansys", "heart", "_version.py")
 with io_open(version_file, mode="r") as fd:
     exec(fd.read())
 
@@ -18,11 +37,11 @@ with io_open(version_file, mode="r") as fd:
 # This is needed for the description on PyPI
 def read(rel_path):
     """Get long description from the README file."""
-    with codecs.open(os.path.join(HERE, rel_path), "r") as fp:
+    with codecs.open(os.path.join(_THIS_FILE, rel_path), "r") as fp:
         return fp.read()
 
 
-with open(os.path.join(HERE, "README.rst"), encoding="utf-8") as f:
+with open(os.path.join(_THIS_FILE, "README.rst"), encoding="utf-8") as f:
     long_description = f.read()
 
 packages = []
@@ -30,31 +49,39 @@ for package in find_namespace_packages(include="ansys*"):
     if package.startswith("ansys.heart"):
         packages.append(package)
 
+with open("requirements_build.txt") as f:
+    install_requires = f.read().splitlines()
+
+# add these files as package data
+# can test if files are indeed added to distribution by: python setup.py sdist bdist_wheel
+package_data = {
+    "ansys.heart.preprocessor.templates": [
+        "fluent_meshing_template_improved_2.jou",
+        "fluent_meshing_add_blood_mesh_template.jou",
+    ],
+    "ansys.heart.preprocessor": ["*.json"],
+    "ansys.heart.writer.templates": ["*.json"],
+}
+
 setup(
     name="ansys-heart-lib",
-    packages=packages,
-    version=__version__,
     description="Python framework for heart modeling using ansys tools",
+    packages=packages,
+    # package_dir={"": "ansys"},
+    include_package_data=True,
+    package_data=package_data,
+    version=__version__,
     long_description=long_description,
+    install_requires=install_requires,
+    tests_require=["pytest"],
     # long_description_content_type='text/x-rst',
     url="https://github.com/pyansys/pyheart-lib",
     license="MIT",
     author="ANSYS, Inc.",
     maintainer="PyAnsys developers",
     maintainer_email="pyansys.support@ansys.com",
-    # how to add dynalib?
-    install_requires=[
-        "gmsh==4.10.3",
-        "h5py==3.6.0",
-        "Jinja2==3.1.2",
-        "matplotlib==3.5.2",
-        "meshio==5.3.4",
-        "numpy==1.21.6",
-        "pandas==1.3.5",
-        "scipy==1.7.3",
-        "vtk==9.1.0",
-        "tqdm==4.64.0",
-    ],
+    # install dynalib
+    cmdclass={"develop": PostDevelopCommand},
     python_requires=">=3.7",
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -64,27 +91,3 @@ setup(
     ],
 )
 """Setup installation."""
-
-# setup(
-#     name="ansys-heart-lib",
-#     version="0.1.dev0",
-#     url="https://github.com/pyansys/pyheart-lib",
-#     author="ANSYS, Inc.",
-#     author_email="pyansys.support@ansys.com",
-#     maintainer="PyAnsys developers",
-#     maintainer_email="pyansys.maintainers@ansys.com",
-#     classifiers=[
-#         "Development Status :: 4 - Beta",
-#         "Programming Language :: Python :: 3",
-#         "License :: OSI Approved :: MIT License",
-#         "Operating System :: OS Independent",
-#     ],
-#     license="MIT",
-#     license_file="LICENSE",
-#     description="Python framework for heart modeling using ansys tools",
-#     long_description=open("README.rst").read(),
-#     install_requires=["importlib-metadata >=4.0"],
-#     python_requires=">=3.8",
-#     packages=find_namespace_packages(where="src", include="ansys*"),
-#     package_dir={"": "src"},
-# )

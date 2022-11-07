@@ -7,8 +7,7 @@ Such as a Mesh object, Part object, Features, etc.
 import copy
 import os
 import pathlib
-import typing
-from typing import List, Union
+from typing import List, Optional, Tuple, Union
 
 from ansys.heart.custom_logging import LOGGER
 import ansys.heart.preprocessor.mesh.connectivity as connect
@@ -23,11 +22,10 @@ class Mesh:
 
     Notes
     -----
-    Only tetrahedrons are supported
+    Only tetrahedrons are supported.
     """
 
     def __init__(self) -> None:
-        # NOTE: Only tetrahedrons supported for the moment
         self.tetrahedrons: np.ndarray = None
         """Tetrahedral volume elements of the mesh."""
         self.nodes: np.ndarray = None
@@ -51,7 +49,7 @@ class Mesh:
         pass
 
     @property
-    def part_ids(self):
+    def part_ids(self) -> np.ndarray:
         """Array of part ids indicating to which part the tetrahedron belongs.
 
         Notes
@@ -61,11 +59,12 @@ class Mesh:
         try:
             value = self.cell_data["tags"].astype(int)
         except (KeyError, NameError):
+            LOGGER.warning("'tags' field not found in self.cell_data")
             value = None
         return value
 
     @property
-    def boundary_names(self):
+    def boundary_names(self) -> List[str]:
         """Iterate over boundaries and returns their names."""
         return [b.name for b in self.boundaries]
 
@@ -81,7 +80,7 @@ class Mesh:
 
         return None
 
-    def read_mesh_file_cristobal2021(self, filename: pathlib.Path) -> None:
+    def read_mesh_file_rodero2021(self, filename: pathlib.Path) -> None:
         """Read mesh file - but modifies the fields to match data of Strocchi 2020."""
         mesh_vtk = vtkmethods.vtk_read_mesh_file(filename)
         name_array_mapping = [
@@ -118,7 +117,7 @@ class Mesh:
 
         return None
 
-    def write_to_vtk(self, filename):
+    def write_to_vtk(self, filename: pathlib.Path) -> None:
         """Write mesh to VTK file."""
         if self.cell_data != None:
             if not isinstance(self.cell_data, dict):
@@ -153,10 +152,9 @@ class Mesh:
         self.tetrahedrons = self.tetrahedrons[mask, :]
         for key in self.cell_data.keys():
             self.cell_data[key] = self.cell_data[key][mask]
-
         return
 
-    def establish_connectivity(self):
+    def establish_connectivity(self) -> None:
         """Establish the connetivity of the tetrahedrons."""
         self.faces, self.conn["c0"], self.conn["c1"] = connect.face_tetra_connectivity(
             self.tetrahedrons
@@ -169,7 +167,7 @@ class Mesh:
 
     def get_mask_interface_faces(
         self, return_pairs: bool = False
-    ) -> typing.Tuple[np.ndarray, List[int]]:
+    ) -> Tuple[np.ndarray, Optional[List[int]]]:
         """Get the (interface) faces between two parts."""
         c0 = self.conn["c0"]
         c1 = self.conn["c1"]
@@ -241,23 +239,16 @@ class Mesh:
             # NOTE: Nodes are shallow copied
             self.interfaces.append(SurfaceMesh(name, faces, self.nodes))
 
-    def smooth_interfaces(self):
+    def smooth_interfaces(self) -> None:
         """Smooth the interfaces between the different parts."""
         for interface in self.interfaces:
             interface.get_boundary_edges()
             node_ids_smoothed = interface.smooth_boundary_edges()
             # make sure nodes of the (volume) mesh are updated
             self.nodes[node_ids_smoothed, :] = interface.nodes[node_ids_smoothed, :]
-        # self.write_to_vtk("smoothed_model.vtk")
-
         return
 
-    def add_boundaries(
-        self,
-        add_part_ids: List[int] = [],
-        boundary_names: List[str] = [],
-        add_all: bool = False,
-    ):
+    def add_boundaries(self, add_part_ids: List[int] = [], boundary_names: List[str] = []) -> None:
         """Add boundary surfaces to the mesh object. One surface per part."""
         part_ids = self.part_ids
         c0 = self.conn["c0"]
@@ -357,16 +348,20 @@ class SurfaceMesh(Feature):
         """ID of surface."""
         self.nsid: int = None
         """ID of corresponding set of nodes."""
+        self.cell_data: dict = {}
+        """Data associated with each face/cell of surface."""
+        self.point_data: dict = {}
+        """Data associated with each point on surface."""
 
     @property
-    def node_ids(self):
+    def node_ids(self) -> np.ndarray:
         """Global node ids - sorted by earliest occurrence."""
         _, idx = np.unique(self.faces.flatten(), return_index=True)
         node_ids = self.faces.flatten()[np.sort(idx)]
         return node_ids
 
     @property
-    def boundary_nodes(self):
+    def boundary_nodes(self) -> np.ndarray:
         """Global node ids of nodes on the boundary of the mesh (if any)."""
         _, idx = np.unique(self.boundary_edges.flatten(), return_index=True)
         node_ids = self.boundary_edges.flatten()[np.sort(idx)]
@@ -376,7 +371,7 @@ class SurfaceMesh(Feature):
         """Compute the centroid of the surface."""
         return np.mean(self.nodes[np.unique(self.faces), :], axis=0)
 
-    def compute_bounding_box(self) -> Union[np.ndarray, float]:
+    def compute_bounding_box(self) -> Tuple[np.ndarray, float]:
         """Compute the bounding box of the surface."""
         node_ids = np.unique(self.faces)
         nodes = self.nodes[node_ids, :]
@@ -387,7 +382,7 @@ class SurfaceMesh(Feature):
         volume = np.prod(np.diff(bounding_box, axis=0))
         return bounding_box, volume
 
-    def get_boundary_edges(self):
+    def get_boundary_edges(self) -> List[EdgeGroup]:
         """Get boundary edges (if any) of the surface and groups them by connectivity."""
         write_vtk = False
 

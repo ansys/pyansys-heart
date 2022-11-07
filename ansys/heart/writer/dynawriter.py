@@ -1746,7 +1746,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.kw_database.main.append(custom_keywords.ControlImplicitSolver())
 
         # add binout for post-process
-        self.kw_database.main.append(keywords.DatabaseNodout(dt=0.2 * scale_time, binary=1))
+        self.kw_database.main.append(keywords.DatabaseNodout(dt=0.2 * scale_time, binary=2))
 
         # write for all nodes in nodout
         nodeset_id = self.get_unique_nodeset_id()

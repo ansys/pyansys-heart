@@ -38,5 +38,5 @@ jobs:
 
       - name: Pull 22.2 Fluent docker image
         run: | 
-          docker pull ghcr.io/pyansys/pyfluent:v22.2.0:-latest
+          docker pull ghcr.io/pyansys/pyfluent:v22.2.0
           docker image prune -f

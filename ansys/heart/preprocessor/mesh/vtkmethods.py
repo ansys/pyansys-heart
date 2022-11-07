@@ -1102,10 +1102,14 @@ def add_normals_to_polydata(
     normal_filter.SetInputData(vtk_polydata)
     normal_filter.ComputeCellNormalsOn()
     normal_filter.ComputePointNormalsOn()
-    normal_filter.AutoOrientNormalsOn()
-    normal_filter.ConsistencyOn()
-    normal_filter.NonManifoldTraversalOff()
-    normal_filter.SetSplitting(0)
+    # normal_filter.AutoOrientNormalsOn()
+    # normal_filter.ConsistencyOff()
+    # normal_filter.NonManifoldTraversalOff()
+    # normal_filter.SetSplitting(0)
+
+    normal_filter.SplittingOff()
+    normal_filter.SetFeatureAngle(30)
+
     normal_filter.Update()
 
     if return_normals:
@@ -1178,7 +1182,9 @@ def find_points_inside_polydata(vtk_surface: vtk.vtkPolyData, points: np.ndarray
     return
 
 
-def create_vtk_surface_triangles(points: np.ndarray, triangles: np.ndarray) -> vtk.vtkPolyData:
+def create_vtk_surface_triangles(
+    points: np.ndarray, triangles: np.ndarray, clean=True
+) -> vtk.vtkPolyData:
     """Create vtkPolyData object from array of points and array of triangles.
 
     Parameters
@@ -1187,6 +1193,9 @@ def create_vtk_surface_triangles(points: np.ndarray, triangles: np.ndarray) -> v
         Nx3 array of point coordinates
     triangles : np.array
         Mx3 array of triangle definitions
+    clean : Boolean, True by default
+        use vtkCleanPolyData Filter to remove unused nodes, etc.
+        But may have unexpected behavior...
 
     Returns
     -------
@@ -1212,15 +1221,18 @@ def create_vtk_surface_triangles(points: np.ndarray, triangles: np.ndarray) -> v
     polydata.Modified()
     # polydata.Update()
 
-    # clean polydata
-    clean_filter = vtk.vtkCleanPolyData()
-    clean_filter.SetInputData(polydata)
-    clean_filter.PointMergingOn()
-    clean_filter.Update()
+    if clean:
+        # clean polydata
+        clean_filter = vtk.vtkCleanPolyData()
+        clean_filter.SetInputData(polydata)
+        clean_filter.PointMergingOn()
+        clean_filter.Update()
 
-    polydata_cleaned = clean_filter.GetOutput()
+        polydata_cleaned = clean_filter.GetOutput()
+        return polydata_cleaned
 
-    return polydata_cleaned
+    else:
+        return polydata
 
 
 def smooth_polydata(vtk_polydata: vtk.vtkPolyData) -> vtk.vtkPolyData:

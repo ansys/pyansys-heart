@@ -30,8 +30,6 @@ jobs:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
 
       - name: Login to GitHub Container Registry
-        run: |
-            echo "Testing username:"
         uses: docker/login-action@v2
         with:
           registry: ghcr.io

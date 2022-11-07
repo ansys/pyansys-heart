@@ -108,7 +108,6 @@ class PassiveCalibration:
             self.lv_cavity.surface.nodes = coord
             self.lv_cavity.compute_volume()
             self.volume_sim[i] = self.lv_cavity.volume
-            print("Cavity volume: {:f}", self.lv_cavity.volume)
 
     def compute_error(self):
         """

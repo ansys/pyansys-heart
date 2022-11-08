@@ -1647,7 +1647,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # for boundary conditions
         # self._update_boundary_conditions_db()
         self._add_cap_bc(bc_type="fix_caps")
-        self._add_pericardium_bc()
+        # self._add_pericardium_bc()
 
         self._update_cap_elements_db()
 
@@ -1659,6 +1659,19 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         # zerop key words
         self._add_control_reference_configuration()
+
+        # export dynain file
+        control_string = (
+            "*SET_PART_LIST_GENERATE\n"
+            "999\n"
+            "1,99999999\n"
+            "*INTERFACE_SPRINGBACK_LSDYNA\n"
+            "999, 999, 3,, , , 1\n"
+            "OPTCARD,, , , 1, 1, 1\n"
+            "*INTERFACE_SPRINGBACK_EXCLUDE\n"
+            "BOUNDARY_SPC_NODE"
+        )
+        self.kw_database.main.append(control_string)
 
         self._get_list_of_includes()
         self._add_includes()

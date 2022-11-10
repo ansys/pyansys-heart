@@ -68,3 +68,7 @@ jobs:
           ls -R
           python -m pytest tests/heart/test_biventricle_mesh_extraction.py
           ls -R
+
+      - name: Check files
+        run: |
+          ls /tests/ -R

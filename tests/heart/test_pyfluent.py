@@ -1,10 +1,4 @@
 """Collection of methods to test pyfluent."""
-import sys
-
-import pytest
-
-# if not sys.platform.startswith("win"):
-#     pytest.skip("Skipping windows-only tests", allow_module_level=True)
 
 import ansys.fluent.core as pyfluent
 
@@ -23,4 +17,4 @@ def test_pyfluent():
         session.exit()
         assert True
     except:
-        assert False, "Failed to launch pyfluent in meshing model."
+        assert False, "Failed to launch pyfluent in meshing mode."

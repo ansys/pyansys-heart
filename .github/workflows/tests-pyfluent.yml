@@ -60,6 +60,11 @@ jobs:
           python -m pytest tests/heart/test_pyfluent.py
 
       - name: Test model generation
+        continue-on-error: true
         run: |
+          echo "Current dir: " $(pwd)
+          printenv          
+          pwd
           ls -R
           python -m pytest tests/heart/test_biventricle_mesh_extraction.py
+          ls -R

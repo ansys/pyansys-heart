@@ -1,23 +1,21 @@
 import os
 import shutil
-import sys
-
-import pytest
-
-if not sys.platform.startswith("win"):
-    pytest.skip("Skipping windows-only tests", allow_module_level=True)
 
 import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.support import run_preprocessor
 from common import compare_caps, compare_cavities, compare_parts, compare_surfaces
 from conftest import get_assets_folder, get_workdir
+import pytest
 
 
 # run this fixture first
 @pytest.fixture(autouse=True, scope="module")
 def extract_bi_ventricle():
-    """Extracts BiVentricular model which is similar to the reference model.
-    Do this once as fixture
+    """Extract BiVentricular model which is similar to the reference model.
+
+    Note
+    ----
+    Do this once as fixture.
     """
 
     assets_folder = get_assets_folder()

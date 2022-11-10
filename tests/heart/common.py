@@ -1,10 +1,13 @@
-"""Some common functions to test parts"""
+"""Some common functions to test parts."""
 import ansys.heart.preprocessor.models as models
 import numpy as np
 
 
 def compare_parts(model: models.HeartModel, reference_model: models.HeartModel):
-    """Tests if parts match that of the reference model
+    """Test if parts match that of the reference model.
+
+    Note
+    ----
     1. tests consistency part names
     2. tests element ids defined in all parts
     """
@@ -28,7 +31,10 @@ def compare_parts(model: models.HeartModel, reference_model: models.HeartModel):
 
 
 def compare_surfaces(model: models.HeartModel, reference_model: models.HeartModel):
-    """Tests if surfaces of the parts match with the reference model
+    """Test if surfaces of the parts match with the reference model.
+
+    Note
+    ----
     1. tests consistency of surface names
     2. tests surface topology (face id and ordering) of surfaces
     """
@@ -55,7 +61,7 @@ def compare_surfaces(model: models.HeartModel, reference_model: models.HeartMode
 
 
 def compare_caps(model: models.HeartModel, reference_model: models.HeartModel):
-    """Tests caps and cap definitions"""
+    """Test caps and cap definitions."""
     assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
     for part in model.parts:
         ref_part = next(
@@ -72,10 +78,12 @@ def compare_caps(model: models.HeartModel, reference_model: models.HeartModel):
 
 
 def compare_cavities(model: models.HeartModel, reference_model: models.HeartModel):
-    """Tests cavities
+    """Test cavities.
+
+    Note
+    ----
     1. Topology of cavity surface
     2. Volume of cavity
-
     """
     assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
     for part in model.parts:

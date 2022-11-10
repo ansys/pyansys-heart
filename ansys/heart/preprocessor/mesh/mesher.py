@@ -66,6 +66,8 @@ def mesh_heart_model_by_fluent(
     import glob
 
     LOGGER.debug("Current directory: {0}".format(os.getcwd()))
+    LOGGER.debug("journal contents:")
+    LOGGER.debug(template.render(var_for_template))
     LOGGER.debug("Files before meshing...:")
     LOGGER.debug(glob.glob("*"))
     session = pyfluent.launch_fluent(
@@ -76,7 +78,7 @@ def mesh_heart_model_by_fluent(
         show_gui=show_gui,
     )
     assert session.check_health() == "SERVING"
-
+    LOGGER.debug("Reading fluent journal file: {0}".format(script))
     session.meshing.tui.file.read_journal(script)
     session.exit()
 

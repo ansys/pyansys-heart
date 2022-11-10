@@ -61,4 +61,5 @@ jobs:
 
       - name: Test model generation
         run: |
+          ls -R
           python -m pytest tests/heart/test_biventricle_mesh_extraction.py

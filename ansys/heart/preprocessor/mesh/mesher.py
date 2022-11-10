@@ -62,6 +62,12 @@ def mesh_heart_model_by_fluent(
 
     # start Fluent session using PyFluent:
     # TODO: Catch errors in session
+    LOGGER.debug("Launching PyFluent...")
+    import glob
+
+    LOGGER.debug("Current directory: {0}".format(os.getcwd()))
+    LOGGER.debug("Files before meshing...:")
+    LOGGER.debug(glob.glob("*"))
     session = pyfluent.launch_fluent(
         meshing_mode=True,
         precision="double",
@@ -69,8 +75,13 @@ def mesh_heart_model_by_fluent(
         start_transcript=False,
         show_gui=show_gui,
     )
+    assert session.check_health() == "SERVING"
+
     session.meshing.tui.file.read_journal(script)
     session.exit()
+
+    LOGGER.debug("Files after meshing...:")
+    LOGGER.debug(glob.glob("*"))
 
     # change back to old directory
     os.chdir(old_directory)

@@ -3,8 +3,8 @@ import sys
 
 import pytest
 
-if not sys.platform.startswith("win"):
-    pytest.skip("Skipping windows-only tests", allow_module_level=True)
+# if not sys.platform.startswith("win"):
+#     pytest.skip("Skipping windows-only tests", allow_module_level=True)
 
 import ansys.fluent.core as pyfluent
 

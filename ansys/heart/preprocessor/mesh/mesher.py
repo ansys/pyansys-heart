@@ -74,7 +74,7 @@ def mesh_heart_model_by_fluent(
         meshing_mode=True,
         precision="double",
         processor_count=num_cpus,
-        start_transcript=False,
+        start_transcript=True,
         show_gui=show_gui,
     )
     assert session.check_health() == "SERVING"

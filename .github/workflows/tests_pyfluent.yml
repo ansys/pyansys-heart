@@ -10,7 +10,7 @@ on:
       - main
 
 env:
-  MAIN_PYTHON_VERSION: 3.7
+  MAIN_PYTHON_VERSION: 3.8
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

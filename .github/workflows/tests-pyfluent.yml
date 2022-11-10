@@ -53,7 +53,7 @@ jobs:
       - name: Start unit testing requiring PyFluent 22.2.0
         run: |
           python -m pytest tests/heart/test_pyfluent.py
-        continue-on-error: true
+#        continue-on-error: true
         env:
           ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
           PYFLUENT_START_INSTANCE: 0

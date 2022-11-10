@@ -1,6 +1,5 @@
 # GitHub workflow for setting up unit-testing involving pyfluent 
-# - use docker to pull Fluent image
-name: Fluent Docker Test
+name: Test model generation
 on:
   pull_request:
   push:
@@ -8,9 +7,15 @@ on:
       - "*"
     branches:
       - main
+  workflow_dispatch:
 
+# Required env variables for pyfluent
 env:
   MAIN_PYTHON_VERSION: 3.8
+  ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
+  PYFLUENT_START_INSTANCE: 0
+  PYFLUENT_LAUNCH_CONTAINER: 1          
+  FLUENT_IMAGE_TAG: v22.2.0            
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -38,7 +43,7 @@ jobs:
 
       - name: Pull 22.2 Fluent docker image
         run: | 
-          docker pull ghcr.io/pyansys/pyfluent:v22.2.0
+          docker pull ghcr.io/pyansys/pyfluent:$FLUENT_IMAGE_TAG
           docker image prune -f
 
       - name: Install package
@@ -53,17 +58,7 @@ jobs:
       - name: Test PyFluent launch
         run: |
           python -m pytest tests/heart/test_pyfluent.py
-        env:
-          ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
-          PYFLUENT_START_INSTANCE: 0
-          PYFLUENT_LAUNCH_CONTAINER: 1          
-          FLUENT_IMAGE_TAG: v22.2.0
 
       - name: Test model generation
         run: |
           python -m pytest tests/heart/test_biventricle_mesh_extraction.py
-        env:
-          ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
-          PYFLUENT_START_INSTANCE: 0
-          PYFLUENT_LAUNCH_CONTAINER: 1          
-          FLUENT_IMAGE_TAG: v22.2.0          

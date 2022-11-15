@@ -1,6 +1,6 @@
 """Module defining the parameters used for creating the LS-DYNA simulation files."""
 # Define the time unit
-time_unit = "s"
+time_unit = "ms"
 
 # Scale parameters by given unit system
 if time_unit == "s":

@@ -1649,7 +1649,8 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self._add_cap_bc(bc_type="fix_caps")
         # self._add_pericardium_bc()
 
-        self._update_cap_elements_db()
+        # Zerop model should only include ventricle parts to export correctly lsda file
+        # self._update_cap_elements_db()
 
         # # Approximate end-diastolic pressures
         pressure_lv = self.parameters["ED pressure"]["Left Ventricle"]  # kPa

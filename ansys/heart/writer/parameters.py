@@ -19,7 +19,7 @@ parameters = {
     "Time": {
         "End Time": 5.0 * scale,
         "dtmin": 0.001 * scale,
-        "dtmax": 0.01 * scale,
+        "dtmax": 0.05 * scale,
         "dt_d3plot": 0.05 * scale,
         "dt_icvout": 0.001 * scale,
     },
@@ -27,7 +27,11 @@ parameters = {
         "Myocardium": {
             "Isotropic": {"rho": 1e-6 * scale, "k1": 2.36 / scale, "k2": 1.75},
             "Anisotropic": {"k1": 0.49 / scale, "k2": 9.01},
-            "Active": {"Tmax": 125 / scale, "ca2ionm": 4.35, "Prefill": 1.0 * scale},
+            "Active": {
+                "Tmax": 125 / scale,
+                "ca2ionm": 4.35,
+                "Prefill": 1.0 * scale,  # no longer used
+            },
         },
         "Atrium": {
             "rho": 1e-6 * scale,

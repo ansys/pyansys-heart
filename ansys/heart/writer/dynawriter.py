@@ -740,32 +740,32 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 "Simulation type not recognized: Please choose " "either quasi-static or static"
             )
 
-        prefill_time = self.parameters["Material"]["Myocardium"]["Active"]["Prefill"]
+        # prefill_time = self.parameters["Material"]["Myocardium"]["Active"]["Prefill"]
         self.kw_database.main.append(
             keywords.ControlImplicitDynamics(
                 imass=imass,
                 gamma=gamma,
                 beta=beta,
                 # active dynamic process only after prefilling
-                tdybir=prefill_time,
+                # tdybir=prefill_time,
             )
         )
 
-        # add auto controls
-        lcid = self.get_unique_curve_id()
-        # tune time step for better compromise between convergence and performance
-        time = [0, prefill_time, prefill_time + dtmax, end_time]
-        step = [5 * dtmax, 5 * dtmax, dtmin, dtmax]
-        kw_curve = create_define_curve_kw(
-            x=time,
-            y=step,
-            curve_name="time step control",
-            curve_id=lcid,
-            lcint=0,
-        )
-        self.kw_database.main.append(kw_curve)
+        # # add auto controls
+        # lcid = self.get_unique_curve_id()
+        # # tune time step for better compromise between convergence and performance
+        # time = [0, prefill_time, prefill_time + dtmax, end_time]
+        # step = [5 * dtmax, 5 * dtmax, dtmin, dtmax]
+        # kw_curve = create_define_curve_kw(
+        #     x=time,
+        #     y=step,
+        #     curve_name="time step control",
+        #     curve_id=lcid,
+        #     lcint=0,
+        # )
+        # self.kw_database.main.append(kw_curve)
         self.kw_database.main.append(
-            keywords.ControlImplicitAuto(iauto=1, dtmin=dtmin, dtmax=-lcid)
+            keywords.ControlImplicitAuto(iauto=1, dtmin=dtmin, dtmax=dtmax)
         )
 
         # add general implicit controls
@@ -801,26 +801,29 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self.kw_database.main.append(keywords.DatabaseMatsum(dt=0.1, binary=2))
 
-        # frequency of full results
-        lcid = self.get_unique_curve_id()
-        time = [
-            0,
-            self.parameters["Material"]["Myocardium"]["Active"]["Prefill"] * 0.99,
-            self.parameters["Material"]["Myocardium"]["Active"]["Prefill"],
-            self.parameters["Time"]["End Time"],
-        ]
-        step = [10 * dt_output_d3plot, 10 * dt_output_d3plot, dt_output_d3plot, dt_output_d3plot]
-        kw_curve = create_define_curve_kw(
-            x=time,
-            y=step,
-            curve_name="d3plot out control",
-            curve_id=lcid,
-            lcint=0,
-        )
+        # # frequency of full results
+        # lcid = self.get_unique_curve_id()
+        # time = [
+        #     0,
+        #     self.parameters["Material"]["Myocardium"]["Active"]["Prefill"] * 0.99,
+        #     self.parameters["Material"]["Myocardium"]["Active"]["Prefill"],
+        #     self.parameters["Time"]["End Time"],
+        # ]
+        # step = [10 * dt_output_d3plot, 10 * dt_output_d3plot, dt_output_d3plot, dt_output_d3plot]
+        # kw_curve = create_define_curve_kw(
+        #     x=time,
+        #     y=step,
+        #     curve_name="d3plot out control",
+        #     curve_id=lcid,
+        #     lcint=0,
+        # )
+        # self.kw_database.main.append(kw_curve)
 
-        self.kw_database.main.append(kw_curve)
         self.kw_database.main.append(
-            keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot, lcdt=lcid, ioopt=1)
+            keywords.DatabaseBinaryD3Plot(
+                dt=dt_output_d3plot,
+                # lcdt=lcid, ioopt=1
+            )
         )
 
         self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
@@ -1031,8 +1034,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             # y scaling
             active_curve_kw.sfo = self.parameters["Material"]["Myocardium"]["Active"]["ca2ionm"]
-            # x offset: prefill duration
-            active_curve_kw.offa = self.parameters["Material"]["Myocardium"]["Active"]["Prefill"]
+            # # x offset: prefill duration
+            # active_curve_kw.offa = self.parameters["Material"]["Myocardium"]["Active"]["Prefill"]
             self.kw_database.material.append(active_curve_kw)
 
         return

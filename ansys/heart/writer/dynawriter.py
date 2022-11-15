@@ -1591,22 +1591,37 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(load_curve_kw)
 
         # create *LOAD_SEGMENT_SETS for each ventricular cavity
-        cavities = [part.cavity for part in self.model.parts if part.cavity]
-        for cavity in cavities:
-            if "atrium" in cavity.name:
-                continue
-
-            if cavity.name == "Left ventricle":
-                scale_factor = pressure_lv
-                seg_id = cavity.surface.id
-            elif cavity.name == "Right ventricle":
-                scale_factor = pressure_rv
-                seg_id = cavity.surface.id
-            load_segset_kw = keywords.LoadSegmentSet(
-                ssid=seg_id, lcid=load_curve_id, sf=scale_factor
-            )
-            self.kw_database.main.append(load_segset_kw)
-
+        # cavities = [part.cavity for part in self.model.parts if part.cavity]
+        # for cavity in cavities:
+        #     if "atrium" in cavity.name:
+        #         continue
+        #
+        #     if cavity.name == "Left ventricle":
+        #         scale_factor = pressure_lv
+        #         seg_id = cavity.surface.id
+        #     elif cavity.name == "Right ventricle":
+        #         scale_factor = pressure_rv
+        #         seg_id = cavity.surface.id
+        #     load_segset_kw = keywords.LoadSegmentSet(
+        #         ssid=seg_id, lcid=load_curve_id, sf=scale_factor
+        #     )
+        #     self.kw_database.main.append(load_segset_kw)
+        for part in self.model.parts:
+            for surface in part.surfaces:
+                if surface.name == "Left ventricle endocardium":
+                    scale_factor = pressure_lv
+                    seg_id = surface.id
+                    load_segset_kw = keywords.LoadSegmentSet(
+                        ssid=seg_id, lcid=load_curve_id, sf=scale_factor
+                    )
+                    self.kw_database.main.append(load_segset_kw)
+                elif surface.name == "Right ventricle endocardium":
+                    scale_factor = pressure_rv
+                    seg_id = surface.id
+                    load_segset_kw = keywords.LoadSegmentSet(
+                        ssid=seg_id, lcid=load_curve_id, sf=scale_factor
+                    )
+                    self.kw_database.main.append(load_segset_kw)
         return
 
 

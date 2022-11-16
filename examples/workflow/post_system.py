@@ -1,24 +1,22 @@
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 import matplotlib.pyplot as plt
-import numpy as np
 
 if __name__ == "__main__":
-    p_ed = np.array([2, 0.5333])
-    v_ed = np.array([172.320, 234.799])
-    base_dir = r"\\LYOTECSPARE4\wye\test_refactor\01\BiVentricleRefactored\mechanics"
-    result = SystemModelPost(base_dir, p_ed, v_ed, closed_loop=False)
+    base_dir = r"full"
+    result = SystemModelPost(base_dir, closed_loop=False)
 
-    fig = result.plot_PV(last_loop=True)
+    fig = result.plot_pv_loop(t_start=3000, t_end=5000)
     # fig.savefig('PV.png')
 
-    fig = result.check_total_volume(plot_all=True)
+    if result.closed_loop:
+        fig = result._check_total_volume(plot_all=True)
 
-    fig = result.plot_pressure_flow_volume("lv", ignore_filling=True, last_loop=True)
-    fig = result.check_prefilling("lv")
-    fig = result.check_output("lv")
+    fig = result.plot_pressure_flow_volume("lv")
+    # fig = result.check_prefilling("lv")
+    fig = result._check_output("lv")
 
     if result.type == "BV":
-        result.plot_pressure_flow_volume("rv", ignore_filling=True, last_loop=True)
-        result.check_prefilling("rv")
-        result.check_output("rv")
+        result.plot_pressure_flow_volume("rv")
+        # result.check_prefilling("rv")
+        result._check_output("rv")
     plt.show()

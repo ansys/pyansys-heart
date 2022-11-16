@@ -8,11 +8,11 @@ from ansys.heart.custom_logging import LOGGER
 
 # --------------------------------------------------------------------------
 NCPU = 4
-# LSDYNAPATH = "/mnt/d/wsl/lsdyna_mpp/mppdyna_d_sse2_linux86_64_intelmmpi"
-# OS = "wsl"
+LSDYNAPATH = "mppdyna_d_sse2_linux86_64_intelmmpi"
+OS = "wsl"
 
-LSDYNAPATH = r"C:\Program Files\ANSYS Inc\v222\ansys\bin\winx64\lsdyna_sp.exe"
-OS = "Win"
+# LSDYNAPATH = r"C:\Program Files\ANSYS Inc\v222\ansys\bin\winx64\lsdyna_sp.exe"
+# OS = "Win"
 
 
 def check_lsdyna_exe():
@@ -25,6 +25,7 @@ def check_lsdyna_exe():
 
     if result.strip() != LSDYNAPATH:
         LOGGER.error("Cannot find LSDYNA executable.")
+        exit()
 
     return
 

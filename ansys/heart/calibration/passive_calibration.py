@@ -98,7 +98,8 @@ class PassiveCalibration:
         finally:
             Exception("Cannot load binout file")
 
-        time = nodout.time
+        # time need to be normalized
+        time = nodout.time / nodout.time[-1]
         coords = nodout.get_coordinates()
 
         # compute volume at different simulation time

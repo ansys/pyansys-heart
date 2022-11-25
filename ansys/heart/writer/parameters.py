@@ -44,7 +44,7 @@ parameters = {
     "Cap": {"Density": 1.0e-6 * scale, "nu": 0.499, "c10": 1000 / scale, "Thickness": 5.0},
     "Global damping": 500.0 / scale,
     "Boundary Condition": {
-        "Valve Spring": {"BV": 5.0 / scale, "4C": 20.0 / scale},
+        "Valve Spring": {"BV": 2.0 / scale, "4C": 20.0 / scale},
         "Normal Scale factor": 0.5,
         "Radial Scale factor": 1.0,
     },

@@ -1292,8 +1292,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
             LOGGER.warning("Duplicate nodes found in pericardium")
         epicardium_nodes = epicardium_nodes[np.sort(idx)]
 
-        # select only nodes for penalty factor > 0.01
-        pericardium_nodes = epicardium_nodes[penalty_function[epicardium_nodes] > 0.01]
+        # select only nodes for penalty factor > 0.0001
+        pericardium_nodes = epicardium_nodes[penalty_function[epicardium_nodes] > 0.0001]
         # select surfaces containing these nodes
         pericardium_faces = epicardium_faces[
             np.any(np.isin(epicardium_faces, pericardium_nodes), axis=1)

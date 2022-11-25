@@ -145,6 +145,7 @@ def mesh_heart_model_by_fluent(
     session.meshing.tui.mesh.zone_names_clean_up()
     session.meshing.tui.mesh.check_mesh()
     session.meshing.tui.mesh.check_quality()
+    session.meshing.tui.boundary.manage.remove_suffix("(*)")
 
     # write to file
     session.meshing.tui.file.write_mesh(path_to_output)

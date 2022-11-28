@@ -1,0 +1,13 @@
+import os
+import pathlib
+
+from ansys.heart.calibration.active_calibration import ActiveCalibration
+
+if __name__ == "__main__":
+    """
+    called by run.bat
+    """
+    path_to_case = pathlib.Path(__file__).absolute().parents[0]
+    os.chdir(path_to_case)
+    case = ActiveCalibration(path_to_case)
+    case.run_one_step_calibration()

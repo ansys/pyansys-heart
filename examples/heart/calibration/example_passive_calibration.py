@@ -1,7 +1,7 @@
 import os.path
 import pathlib
 
-from ansys.heart.calibration.passive_calibration import create_calibration_folder
+from ansys.heart.calibration.passive_calibration import PassiveCalibration
 
 if __name__ == "__main__":
     """
@@ -22,4 +22,4 @@ if __name__ == "__main__":
     path_to_case = pathlib.Path(__file__).absolute().parents[3]
     path_to_case = os.path.join(path_to_case, "tests", "heart", "calibration", "passive")
 
-    create_calibration_folder(path_to_case)
+    PassiveCalibration(path_to_case).create_calibration_folder()

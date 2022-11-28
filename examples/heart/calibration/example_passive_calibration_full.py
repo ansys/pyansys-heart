@@ -2,7 +2,7 @@ import os.path
 import pathlib
 import shutil
 
-from ansys.heart.calibration.passive_calibration import create_calibration_folder
+from ansys.heart.calibration.passive_calibration import PassiveCalibration
 import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.support import run_preprocessor
 import ansys.heart.writer.dynawriter as writers
@@ -10,8 +10,8 @@ import ansys.heart.writer.dynawriter as writers
 if __name__ == "__main__":
 
     os.environ["REMOTING_SERVER_ADDRESS"] = "localhost"
-    use_preprocessor = False
-    write_lsdyna_files = False
+    use_preprocessor = True
+    write_lsdyna_files = True
 
     for i in range(2, 3):
         id = "{0:02d}".format(i)
@@ -59,5 +59,7 @@ if __name__ == "__main__":
             os.path.join(workdir, "zeropressuremechanics_calibration", "solid_elements.k"),
         )
         # create calibration directory
-        create_calibration_folder(os.path.join(workdir, "zeropressuremechanics_calibration"))
+        PassiveCalibration(
+            os.path.join(workdir, "zeropressuremechanics_calibration")
+        ).create_calibration_folder()
         # run lsopt.exe PassiveCalibration.lsopt

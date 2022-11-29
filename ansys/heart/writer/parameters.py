@@ -28,6 +28,7 @@ parameters = {
             "Isotropic": {"rho": 1e-6 * scale, "k1": 2.36 / scale, "k2": 1.75},
             "Anisotropic": {"k1": 0.49 / scale, "k2": 9.01},
             "Active": {
+                "Actype": 1,
                 "Tmax": 125 / scale,
                 "ca2ionm": 4.35,
                 "Prefill": 1.0 * scale,  # no longer used
@@ -57,9 +58,9 @@ parameters = {
     },
     "ED pressure": {"Left Ventricle": 2.0 / scale, "Right Ventricle": 0.53333 / scale},
     "Circulation System": {
-        """
-        Adapt from Martijn's BV closed loop
-        """
+        # """
+        # Adapt from Martijn's BV closed loop
+        # """
         # "Name": "ConstantPreloadWindkesselAfterload",
         # "Left Ventricle": {
         #     "Constant": {
@@ -81,9 +82,9 @@ parameters = {
         #     },
         #     "Initial Value": {"part_init": 2 / scale},
         # },
-        """
-        Strocchi parameters
-        """
+        # """
+        # Strocchi parameters
+        # """
         "Name": "ConstantPreloadWindkesselAfterload",
         "Left Ventricle": {
             "Constant": {

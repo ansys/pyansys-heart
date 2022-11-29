@@ -989,6 +989,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     active_dct = None
                 else:
                     active_dct = {
+                        "actype": self.parameters["Material"]["Myocardium"]["Active"]["Actype"],
                         "taumax": self.parameters["Material"]["Myocardium"]["Active"]["Tmax"],
                         "ca2ionm": self.parameters["Material"]["Myocardium"]["Active"]["ca2ionm"],
                     }
@@ -1024,21 +1025,25 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         if add_active:
             # write and add active curve to material database
-            time_array, active_stress_array = active_curve("Strocchi2020")
-
-            if self.parameters["Unit"]["Time"] == "ms":
-                time_array *= 1000
+            if active_dct["actype"] == 1:
+                time_array, calcium_array = active_curve("constant")
+            elif active_dct["actype"] == 2:
+                time_array, calcium_array = active_curve("Strocchi2020")
 
             active_curve_kw = create_define_curve_kw(
                 x=time_array,
-                y=active_stress_array,
+                y=calcium_array,
                 curve_name="calcium_concentration",
                 curve_id=act_curve_id,
-                lcint=15000,
+                lcint=10000,
             )
 
+            if self.parameters["Unit"]["Time"] == "ms":
+                active_curve_kw.sfa = 1000
             # y scaling
             active_curve_kw.sfo = self.parameters["Material"]["Myocardium"]["Active"]["ca2ionm"]
+
+            # Prefill is remove due to new simulation workflow
             # # x offset: prefill duration
             # active_curve_kw.offa = self.parameters["Material"]["Myocardium"]["Active"]["Prefill"]
             self.kw_database.material.append(active_curve_kw)

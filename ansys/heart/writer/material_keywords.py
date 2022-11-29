@@ -195,14 +195,20 @@ def active_curve(
         time_array = np.append(time_array, period * nb_beats)
         calcium_array = np.append(calcium_array, 0.0)
 
+    elif curve_type == "TrueCalcium":
+        a = np.loadtxt("calcium_from_EP.txt")
+        time_array = a[:, 0] / 1000
+        calcium_array = a[:, 1]
+
     # import matplotlib.pyplot as plt
     # plt.plot(time_array, calcium_array)
     # plt.show()
+
     return time_array, calcium_array
 
 
 if __name__ == "__main__":
-    active_curve(curve_type="constant")
+    active_curve(curve_type="TrueCalcium")
 
     kw = MaterialCap()
     # test

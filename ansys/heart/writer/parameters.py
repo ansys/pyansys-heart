@@ -57,26 +57,53 @@ parameters = {
     },
     "ED pressure": {"Left Ventricle": 2.0 / scale, "Right Ventricle": 0.53333 / scale},
     "Circulation System": {
+        """
+        Adapt from Martijn's BV closed loop
+        """
+        # "Name": "ConstantPreloadWindkesselAfterload",
+        # "Left Ventricle": {
+        #     "Constant": {
+        #         "Rv": 5.0e-6,
+        #         "Ra": 1.0e-5,
+        #         "Rp": 1.2e-4,
+        #         "Ca": 2.5e4 * scale,
+        #         "Pven": None,  # define this later
+        #     },
+        #     "Initial Value": {"part_init": 8 / scale},
+        # },
+        # "Right Ventricle": {
+        #     "Constant": {
+        #         "Rv": 2.5e-6,
+        #         "Ra": 0.35e-5,
+        #         "Rp": 0.15e-4,
+        #         "Ca": 11.25e4 * scale,
+        #         "Pven": None,  # define this later
+        #     },
+        #     "Initial Value": {"part_init": 2 / scale},
+        # },
+        """
+        Strocchi parameters
+        """
         "Name": "ConstantPreloadWindkesselAfterload",
         "Left Ventricle": {
             "Constant": {
-                "Rv": 5.0e-6,
-                "Ra": 1.0e-5,
-                "Rp": 1.2e-4,
-                "Ca": 2.5e4 * scale,
+                "Rv": 6.65e-6,
+                "Ra": 1.729e-5,
+                "Rp": 0.766e-3,
+                "Ca": 6.39e3 * scale,
                 "Pven": None,  # define this later
             },
-            "Initial Value": {"part_init": 8 / scale},
+            "Initial Value": {"part_init": 9.31 / scale},
         },
         "Right Ventricle": {
             "Constant": {
-                "Rv": 2.5e-6,
-                "Ra": 0.35e-5,
-                "Rp": 0.15e-4,
-                "Ca": 11.25e4 * scale,
+                "Rv": 6.65e-6,
+                "Ra": 1.729e-5 * 0.35,
+                "Rp": 0.766e-3 * 0.125,
+                "Ca": 6.39e3 * 4.5 * scale,
                 "Pven": None,  # define this later
             },
-            "Initial Value": {"part_init": 2 / scale},
+            "Initial Value": {"part_init": 1.995 / scale},
         },
     },
 }

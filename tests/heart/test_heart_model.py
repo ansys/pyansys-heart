@@ -1,4 +1,4 @@
-"""Tests high-level heart model class """
+"""Tests shigh-level heart model class. """
 import glob as glob
 import json
 import os
@@ -7,6 +7,11 @@ import ansys.heart.preprocessor.models as models
 from conftest import create_directory, get_workdir
 import numpy as np
 import pytest
+
+if os.name != "nt":
+    skip_test = True
+else:
+    skip_test = False
 
 
 def _get_test_model_info() -> models.ModelInfo:
@@ -42,7 +47,7 @@ def cleanup_working_directory_after_tests():
     return
 
 
-@pytest.mark.skipif(os.name != "nt", reason="Requires Windows")
+@pytest.mark.skipif(skip_test, reason="Requires Windows")
 def test_model_info_dump():
     """Test dumping of model info to json."""
     info = _get_test_model_info()
@@ -68,7 +73,7 @@ def test_model_info_dump():
     pass
 
 
-@pytest.mark.skipif(os.name != "nt", reason="Requires Windows")
+@pytest.mark.skipif(skip_test, reason="Requires Windows")
 def test_dump_model_001():
     """Test dumping of model to disk: using path in ModelInfo."""
     info = _get_test_model_info()
@@ -84,7 +89,7 @@ def test_dump_model_001():
     assert os.path.isfile(expected_path)
 
 
-@pytest.mark.skipif(os.name != "nt", reason="Requires Windows")
+@pytest.mark.skipif(skip_test, reason="Requires Windows")
 def test_dump_model_002():
     """Test dumping of model to disk: using specific path in ModelInfo."""
     info = _get_test_model_info()
@@ -100,7 +105,7 @@ def test_dump_model_002():
     assert os.path.isfile(expected_path)
 
 
-@pytest.mark.skipif(os.name != "nt", reason="Requires Windows")
+@pytest.mark.skipif(skip_test, reason="Requires Windows")
 def test_dump_model_003():
     """Test dumping of model to disk: using specific path."""
     info = _get_test_model_info()
@@ -116,7 +121,7 @@ def test_dump_model_003():
     assert os.path.isfile(expected_path)
 
 
-@pytest.mark.skipif(os.name != "nt", reason="Requires Windows")
+@pytest.mark.skipif(skip_test, reason="Requires Windows")
 def test_model_load():
     """Test loading model from pickle."""
     model: models.BiVentricle = _get_test_model(models.BiVentricle)
@@ -156,7 +161,7 @@ def test_model_load():
     pass
 
 
-@pytest.mark.skipif(os.name != "nt", reason="Requires Windows")
+@pytest.mark.skipif(skip_test, reason="Requires Windows")
 @pytest.mark.parametrize(
     "model_type",
     [models.LeftVentricle, models.BiVentricle, models.FourChamber, models.FullHeart],

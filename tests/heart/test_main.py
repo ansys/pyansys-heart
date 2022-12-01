@@ -26,7 +26,7 @@ def initialize_model():
     return
 
 
-# @pytest.mark.skip(reason="Placeholder")
+@pytest.mark.xfail(reason="Settings in main subject to change")
 def test_main():
     """Compare contents of main to a reference file."""
     ref_folder = os.path.join(get_assets_folder(), "k_files", "mechanics")
@@ -47,6 +47,7 @@ def test_parts():
     compare_string_with_file(string_to_test, ref_file)
 
 
+@pytest.mark.xfail(reason="Material parameters subject to change")
 def test_material():
     """Compare contents of main to a reference file."""
     ref_folder = os.path.join(get_assets_folder(), "k_files", "mechanics")

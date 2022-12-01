@@ -1,9 +1,9 @@
 {
     "_database": "Strocchi2020",
-    "workdir": "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\01\\BiVentricleReferenceModel",
-    "path_to_original_mesh": "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\01\\01.case",
-    "path_to_simulation_mesh": "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\01\\BiVentricleReferenceModel\\simulation_mesh.vtk",
-    "path_to_model": "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\01\\BiVentricleReferenceModel\\heart_model.pickle",
+    "workdir": "d:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\01\\BiVentricle",
+    "path_to_original_mesh": "d:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\01\\01.case",
+    "path_to_simulation_mesh": "d:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\01\\BiVentricle\\simulation_mesh.vtk",
+    "path_to_model": "d:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\01\\BiVentricle\\heart_model.pickle",
     "labels_to_ids": {
         "Left ventricle myocardium": 1,
         "Right ventricle myocardium": 2,
@@ -57,5 +57,6 @@
         "24": "Inferior vena cava inlet"
     },
     "model_type": "BiVentricle",
-    "mesh_size": 2.0
+    "mesh_size": 2.0,
+    "add_blood_pool": false
 }

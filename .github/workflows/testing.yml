@@ -1,4 +1,4 @@
-name: CI
+name: Test preprocessor module
 on:
   pull_request:
   push:

@@ -8,10 +8,11 @@ from conftest import create_directory, get_workdir
 import numpy as np
 import pytest
 
-if os.name != "nt":
-    skip_test = True
-else:
-    skip_test = False
+# if os.name != "nt":
+#     skip_test = True
+# else:
+#     skip_test = False
+skip_test = False
 
 
 def _get_test_model_info() -> models.ModelInfo:

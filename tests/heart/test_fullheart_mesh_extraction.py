@@ -11,14 +11,14 @@ if not sys.platform.startswith("win"):
 import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.support import run_preprocessor
 from common import (
-    compare_cavity_topology,
-    compare_cavity_volume,
-    compare_part_names,
-    compare_surface_names,
-    compare_surface_faces,
-    compare_part_element_ids,
     compare_caps_nodeids,
     compare_caps_num_nodeids,
+    compare_cavity_topology,
+    compare_cavity_volume,
+    compare_part_element_ids,
+    compare_part_names,
+    compare_surface_faces,
+    compare_surface_names,
 )
 from conftest import get_assets_folder, get_workdir
 

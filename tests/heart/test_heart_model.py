@@ -137,17 +137,17 @@ def test_model_load():
     assert isinstance(model1, models.BiVentricle), "Expecting model of type BiVentricle"
 
     # compare contents to original
-    assert np.array_equal(model1.left_ventricle.element_ids == model.left_ventricle.element_ids)
-    assert np.array_equal(model1.right_ventricle.element_ids == model.right_ventricle.element_ids)
+    assert np.array_equal(model1.left_ventricle.element_ids, model.left_ventricle.element_ids)
+    assert np.array_equal(model1.right_ventricle.element_ids, model.right_ventricle.element_ids)
 
     assert np.array_equal(
-        model1.left_ventricle.endocardium.faces == model.left_ventricle.endocardium.faces
+        model1.left_ventricle.endocardium.faces, model.left_ventricle.endocardium.faces
     )
     assert np.array_equal(
-        model1.right_ventricle.endocardium.faces == model.right_ventricle.endocardium.faces
+        model1.right_ventricle.endocardium.faces, model.right_ventricle.endocardium.faces
     )
 
-    assert np.array_equal(model1.mesh.tetrahedrons == model.mesh.tetrahedrons)
+    assert np.array_equal(model1.mesh.tetrahedrons, model.mesh.tetrahedrons)
     assert np.allclose(model1.mesh.nodes, model.mesh.nodes, atol=1e-8)
 
     pass

@@ -1,3 +1,4 @@
+"""Compares generated k-files of mechanics against a reference."""
 import os
 
 import ansys.heart.preprocessor.models as models

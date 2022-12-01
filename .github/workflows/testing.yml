@@ -1,4 +1,4 @@
-name: Test preprocessor module
+name: Tests
 on:
   pull_request:
   push:
@@ -40,10 +40,14 @@ jobs:
           python -m pip install -e .         
           python -m pip install -r requirements_tests.txt
 
-      - name: Run preprocessor tests
+      - name: Run tests preprocessor module
         run: |
           python -m pytest tests/heart/test_fluent_mesh_reader.py
           python -m pytest tests/heart/test_heart_model.py
+
+      - name: Run tests writer module
+        run: |
+          python -m pytest tests/heart/test_k_files_mechanics.py
 
       # - name: Upload coverage to Codecov
       #   uses: codecov/codecov-action@v2

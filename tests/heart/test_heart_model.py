@@ -8,12 +8,6 @@ from conftest import create_directory, get_workdir
 import numpy as np
 import pytest
 
-# if os.name != "nt":
-#     skip_test = True
-# else:
-#     skip_test = False
-skip_test = False
-
 
 def _get_test_model_info() -> models.ModelInfo:
     """Get a test model info and populates it."""
@@ -48,7 +42,6 @@ def cleanup_working_directory_after_tests():
     return
 
 
-@pytest.mark.skipif(skip_test, reason="Requires Windows")
 def test_model_info_dump():
     """Test dumping of model info to json."""
     info = _get_test_model_info()
@@ -74,7 +67,6 @@ def test_model_info_dump():
     pass
 
 
-@pytest.mark.skipif(skip_test, reason="Requires Windows")
 def test_dump_model_001():
     """Test dumping of model to disk: using path in ModelInfo."""
     info = _get_test_model_info()
@@ -90,7 +82,6 @@ def test_dump_model_001():
     assert os.path.isfile(expected_path)
 
 
-@pytest.mark.skipif(skip_test, reason="Requires Windows")
 def test_dump_model_002():
     """Test dumping of model to disk: using specific path in ModelInfo."""
     info = _get_test_model_info()
@@ -106,7 +97,6 @@ def test_dump_model_002():
     assert os.path.isfile(expected_path)
 
 
-@pytest.mark.skipif(skip_test, reason="Requires Windows")
 def test_dump_model_003():
     """Test dumping of model to disk: using specific path."""
     info = _get_test_model_info()
@@ -122,7 +112,6 @@ def test_dump_model_003():
     assert os.path.isfile(expected_path)
 
 
-@pytest.mark.skipif(skip_test, reason="Requires Windows")
 def test_model_load():
     """Test loading model from pickle."""
     model: models.BiVentricle = _get_test_model(models.BiVentricle)
@@ -148,21 +137,22 @@ def test_model_load():
     assert isinstance(model1, models.BiVentricle), "Expecting model of type BiVentricle"
 
     # compare contents to original
-    assert np.all(model1.left_ventricle.element_ids == model.left_ventricle.element_ids)
-    assert np.all(model1.right_ventricle.element_ids == model.right_ventricle.element_ids)
+    assert np.array_equal(model1.left_ventricle.element_ids == model.left_ventricle.element_ids)
+    assert np.array_equal(model1.right_ventricle.element_ids == model.right_ventricle.element_ids)
 
-    assert np.all(model1.left_ventricle.endocardium.faces == model.left_ventricle.endocardium.faces)
-    assert np.all(
+    assert np.array_equal(
+        model1.left_ventricle.endocardium.faces == model.left_ventricle.endocardium.faces
+    )
+    assert np.array_equal(
         model1.right_ventricle.endocardium.faces == model.right_ventricle.endocardium.faces
     )
 
-    assert np.all(model1.mesh.tetrahedrons == model.mesh.tetrahedrons)
+    assert np.array_equal(model1.mesh.tetrahedrons == model.mesh.tetrahedrons)
     assert np.allclose(model1.mesh.nodes, model.mesh.nodes, atol=1e-8)
 
     pass
 
 
-@pytest.mark.skipif(skip_test, reason="Requires Windows")
 @pytest.mark.parametrize(
     "model_type",
     [models.LeftVentricle, models.BiVentricle, models.FourChamber, models.FullHeart],

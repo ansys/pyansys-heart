@@ -45,8 +45,11 @@ jobs:
           python -m pytest tests/heart/test_fluent_mesh_reader.py
           python -m pytest tests/heart/test_heart_model.py
 
-      # dynalib not released yet - so install main
+      # dynalib not released yet - so install main: specify github username and PAT
       - name: Install latest dynalib
+        with:
+          username: ${{ secrets.GH_USERNAME }}
+          password: ${{ secrets.REPO_DOWNLOAD_PAT }}      
         run: |
           python -m pip install git+https://github.com/pyansys/dynalib.git@main
 

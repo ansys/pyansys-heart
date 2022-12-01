@@ -1,9 +1,7 @@
+"""Functional test to determine whether generated fullheart model has all the
+expected features."""
 import os
 import shutil
-import sys
-
-import pytest
-
 
 import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.support import run_preprocessor
@@ -18,6 +16,7 @@ from common import (
     compare_surface_names,
 )
 from conftest import get_assets_folder, get_workdir
+import pytest
 
 
 @pytest.fixture(autouse=True, scope="module")

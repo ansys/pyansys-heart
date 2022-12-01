@@ -65,7 +65,3 @@ jobs:
         continue-on-error: true
         run: |
           python -m pytest tests/heart/test_fullheart_mesh_extraction.py
-
-      - name: Check files
-        run: |
-          ls /tests/ -R

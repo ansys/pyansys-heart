@@ -1,4 +1,5 @@
-"""Functional test to determine whether generated model has certain features."""
+"""Functional test to determine whether generated biventricle model has all the
+expected features."""
 import os
 import shutil
 

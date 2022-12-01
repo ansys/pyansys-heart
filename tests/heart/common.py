@@ -3,40 +3,49 @@ import ansys.heart.preprocessor.models as models
 import numpy as np
 
 
-def compare_parts(model: models.HeartModel, reference_model: models.HeartModel):
+def compare_part_names(model: models.HeartModel, reference_model: models.HeartModel):
     """Test if parts match that of the reference model.
 
     Note
     ----
     1. tests consistency part names
-    2. tests element ids defined in all parts
     """
     assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
 
-    # test part names
     for part_name in model.part_names:
         assert part_name in reference_model.part_names, (
             "Part name: %s does not exist in reference model" % part_name
         )
 
+    pass
+
+
+def compare_part_element_ids(model: models.HeartModel, reference_model: models.HeartModel):
+    """Test if parts match that of the reference model.
+
+    Note
+    ----
+    1. tests element ids defined in all parts
+    """
+    assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
+
     for part in model.parts:
         ref_part = next(
             ref_part for ref_part in reference_model.parts if part.name == ref_part.name
         )
-        assert np.all(part.element_ids == ref_part.element_ids), (
+        assert np.array_equal(part.element_ids == ref_part.element_ids), (
             "%s element-ids do not match with reference model" % part.name
         )
 
     pass
 
 
-def compare_surfaces(model: models.HeartModel, reference_model: models.HeartModel):
+def compare_surface_names(model: models.HeartModel, reference_model: models.HeartModel):
     """Test if surfaces of the parts match with the reference model.
 
     Note
     ----
     1. tests consistency of surface names
-    2. tests surface topology (face id and ordering) of surfaces
     """
 
     for part in model.parts:
@@ -50,17 +59,33 @@ def compare_surfaces(model: models.HeartModel, reference_model: models.HeartMode
                 "%s does not exist in model but exists in reference model" % surface_name
             )
 
+    pass
+
+
+def compare_surface_faces(model: models.HeartModel, reference_model: models.HeartModel):
+    """Test if surfaces of the parts match with the reference model.
+
+    Note
+    ----
+    1. tests surface topology (face id and ordering) of surfaces
+    """
+
+    for part in model.parts:
+        ref_part = next(
+            ref_part for ref_part in reference_model.parts if part.name == ref_part.name
+        )
+
         # check surface contents in reference part
         for ref_surface in ref_part.surfaces:
             surface = next(surface for surface in part.surfaces if surface.name == ref_surface.name)
 
-            assert np.all(surface.faces == ref_surface.faces), (
+            assert np.array_equal(surface.faces == ref_surface.faces), (
                 "Surface topology of reference surface %s is different" % ref_surface.name
             )
     pass
 
 
-def compare_caps(model: models.HeartModel, reference_model: models.HeartModel):
+def compare_caps_nodeids(model: models.HeartModel, reference_model: models.HeartModel):
     """Test caps and cap definitions."""
     assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
     for part in model.parts:
@@ -77,13 +102,27 @@ def compare_caps(model: models.HeartModel, reference_model: models.HeartModel):
     pass
 
 
-def compare_cavities(model: models.HeartModel, reference_model: models.HeartModel):
-    """Test cavities.
+def compare_caps_num_nodeids(model: models.HeartModel, reference_model: models.HeartModel):
+    """Test caps and cap definitions."""
+    assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
+    for part in model.parts:
+        ref_part = next(
+            ref_part for ref_part in reference_model.parts if part.name == ref_part.name
+        )
+
+        for cap in part.caps:
+            ref_cap = next(ref_cap for ref_cap in ref_part.caps if ref_cap.name == cap.name)
+            assert len(cap.node_ids > 50), "%s does not contain more than 50 nodes" % ref_cap.name
+
+    pass
+
+
+def compare_cavity_topology(model: models.HeartModel, reference_model: models.HeartModel):
+    """Test topology of cavities.
 
     Note
     ----
     1. Topology of cavity surface
-    2. Volume of cavity
     """
     assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
     for part in model.parts:
@@ -104,8 +143,26 @@ def compare_cavities(model: models.HeartModel, reference_model: models.HeartMode
             "Cavity faces of part %s do not match" % ref_part.name
         )
 
+    pass
+
+
+def compare_cavity_volume(model: models.HeartModel, reference_model: models.HeartModel):
+    """Test volume of cavities.
+
+    Note
+    ----
+    1. Volume of cavity
+    """
+    assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
+    for part in model.parts:
+        ref_part = next(
+            ref_part for ref_part in reference_model.parts if part.name == ref_part.name
+        )
+        if not part.cavity:
+            continue
+
         assert abs(part.cavity.volume - ref_part.cavity.volume) < 1e-2 * ref_part.cavity.volume, (
-            "Cavity volume of model %s exceeds 1%" % ref_part.name
+            "Difference in cavity volume of model %s exceeds 1%" % ref_part.name
         )
 
     pass

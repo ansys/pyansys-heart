@@ -1,8 +1,8 @@
 """Module contains methods for interaction with Fluent meshing."""
-import os
-import subprocess
 import glob
+import os
 import shutil
+import subprocess
 
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor._load_template import load_template

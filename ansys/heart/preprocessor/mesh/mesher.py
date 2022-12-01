@@ -1,6 +1,8 @@
 """Module contains methods for interaction with Fluent meshing."""
 import os
 import subprocess
+import glob
+import shutil
 
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor._load_template import load_template
@@ -60,16 +62,37 @@ def mesh_heart_model_by_fluent(
 
     num_cpus = 2
 
-    # start Fluent session using PyFluent:
-    # TODO: Catch errors in session
-    LOGGER.debug("Launching PyFluent...")
-    import glob
+    # check whether containerized version of Fluent is used
+    if os.getenv("PYFLUENT_LAUNCH_CONTAINER"):
+        LOGGER.debug("Launching Fluent as container...")
+        uses_container = True
+    else:
+        uses_container = False
 
-    LOGGER.debug("Current directory: {0}".format(os.getcwd()))
-    LOGGER.debug("journal contents:")
-    LOGGER.debug(template.render(var_for_template))
-    LOGGER.debug("Files before meshing...:")
-    LOGGER.debug(glob.glob("*"))
+    # NOTE: when using containerized version - we need to copy all the files
+    # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
+    if uses_container:
+        mounted_volume = pyfluent.EXAMPLES_PATH
+        work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
+        num_cpus = 1
+        show_gui = False
+    else:
+        work_dir_meshing = os.path.abspath(os.path.join(working_directory, "meshing"))
+
+    if os.path.isdir(work_dir_meshing):
+        shutil.rmtree(work_dir_meshing)
+    os.mkdir(work_dir_meshing)
+
+    path_to_output_old = path_to_output
+    path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
+
+    # copy all necessary files to meshing directory
+    files_to_copy = glob.glob("part*.stl") + glob.glob("fluent_meshing.jou")
+    for file in files_to_copy:
+        shutil.copyfile(file, os.path.join(work_dir_meshing, file))
+
+    LOGGER.debug("Starting meshing in directory: {}".format(work_dir_meshing))
+    # start fluent session
     session = pyfluent.launch_fluent(
         meshing_mode=True,
         precision="double",
@@ -87,8 +110,8 @@ def mesh_heart_model_by_fluent(
     add_blood_pool = False
 
     # import files
-    session.meshing.tui.file.import_.cad("no " + working_directory + " part_*.stl yes 40 yes mm")
-    session.meshing.tui.file.start_transcript(os.path.join(os.getcwd(), "fluent_meshing.log"))
+    session.meshing.tui.file.import_.cad("no " + work_dir_meshing + " part_*.stl yes 40 yes mm")
+    session.meshing.tui.file.start_transcript(work_dir_meshing, "fluent_meshing.log")
     session.meshing.tui.objects.merge("'(*) heart")
     session.meshing.tui.objects.labels.create_label_per_zone("heart '(*)")
     session.meshing.tui.diagnostics.face_connectivity.fix_free_faces(
@@ -152,8 +175,9 @@ def mesh_heart_model_by_fluent(
     # session.meshing.tui.file.read_journal(script)
     session.exit()
 
-    LOGGER.debug("Files after meshing...:")
-    LOGGER.debug(glob.glob("*"))
+    shutil.copy(path_to_output, path_to_output_old)
+
+    # shutil.rmtree(work_dir_meshing)
 
     # change back to old directory
     os.chdir(old_directory)

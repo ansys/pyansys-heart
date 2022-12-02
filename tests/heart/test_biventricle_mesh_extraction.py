@@ -5,7 +5,7 @@ import shutil
 
 import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.support import run_preprocessor
-from common import (
+from .common import (
     compare_caps_nodeids,
     compare_caps_num_nodeids,
     compare_cavity_topology,
@@ -15,7 +15,7 @@ from common import (
     compare_surface_faces,
     compare_surface_names,
 )
-from conftest import get_assets_folder, get_workdir
+from .conftest import get_assets_folder, get_workdir
 import pytest
 
 
@@ -75,7 +75,7 @@ def test_part_names():
     pass
 
 
-@pytest.mark.xfail
+@pytest.mark.xfail(reason="Due to slight differences in Fluent element ids may differ")
 def test_part_element_ids():
     compare_part_element_ids(model, reference_model)
     pass

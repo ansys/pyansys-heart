@@ -2,7 +2,7 @@
 import os
 
 from ansys.heart.preprocessor.mesh.fluenthdf5 import FluentMesh
-from conftest import get_assets_folder
+from .conftest import get_assets_folder
 import numpy as np
 import pytest
 

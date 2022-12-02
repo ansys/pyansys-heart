@@ -3,7 +3,7 @@ import os
 
 import ansys.heart.preprocessor.models as models
 import ansys.heart.writer.dynawriter as writers
-from conftest import compare_string_with_file, get_assets_folder
+from .conftest import compare_string_with_file, get_assets_folder
 import pytest
 
 

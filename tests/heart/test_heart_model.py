@@ -4,7 +4,7 @@ import json
 import os
 
 import ansys.heart.preprocessor.models as models
-from conftest import create_directory, get_workdir
+from .conftest import create_directory, get_workdir
 import numpy as np
 import pytest
 

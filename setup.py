@@ -61,6 +61,7 @@ package_data = {
     ],
     "ansys.heart.preprocessor": ["*.json"],
     "ansys.heart.writer.templates": ["*.json"],
+    "ansys.heart.calibration": ["material.k", "PassiveCalibration.lsopt", "run.template"],
 }
 
 setup(

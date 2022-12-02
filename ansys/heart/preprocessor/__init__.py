@@ -36,5 +36,6 @@ elif os.name == "nt" and installed_versions:
 else:
     warnings.warn(
         "No valid Ansys installations found. Valid Ansys installations include: Ansys %s"
-        % supported_versions, Warning
+        % supported_versions,
+        Warning,
     )

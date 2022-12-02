@@ -28,6 +28,20 @@ DOWNLOAD_DIR = PurePath.joinpath(Path(__file__).parents[3], "downloads")
 # download_folder = "d:\\development\\pyheart-lib\\pyheart-lib\\downloads"
 
 
+def format_download_urls():
+    """Format the URLS for all cases."""
+    download_urls = {}
+    for database_name in URLS.keys():
+        download_urls[database_name] = {}
+        url = URLS[database_name]["url"]
+        num_cases = URLS[database_name]["num_cases"]
+        for case_number in range(1, num_cases+1):
+            download_urls[database_name][case_number] = "{:}/files/{:02d}.tar.gz?download=1".format(
+                url, case_number
+            )
+    return download_urls
+
+
 def download_case(
     database: str, case_number: int, download_folder: Path, overwrite: bool = True
 ) -> Path:
@@ -123,6 +137,7 @@ def unzip_all_cases():
 if __name__ == "__main__":
     # download_cases()
     # unzip_cases()
+    download_urls = format_download_urls()
 
     save_path = download_case(
         "Strocchi2020", 3, "d:\\development\\pyheart-lib\\pyheart-lib\\downloads"

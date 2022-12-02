@@ -1,4 +1,4 @@
-name: CI
+name: Tests
 on:
   pull_request:
   push:
@@ -39,11 +39,13 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e .         
           python -m pip install -r requirements_tests.txt
+          python -m pip install git+https://${{ secrets.REPO_DOWNLOAD_PAT }}@github.com/pyansys/dynalib.git@main
 
-      - name: Run preprocessor tests
+      - name: Run tests preprocessor module
         run: |
-          python -m pytest tests/heart/preprocessor/test_fluent_mesh_reader.py
+          python -m pytest tests/heart/test_fluent_mesh_reader.py
+          python -m pytest tests/heart/test_heart_model.py
 
-      # - name: Upload coverage to Codecov
-      #   uses: codecov/codecov-action@v2
-      #   if: matrix.python-version == ${{ env.MAIN_PYTHON_VERSION }}
+      - name: Run tests writer module
+        run: |
+          python -m pytest tests/heart/test_k_files_mechanics.py

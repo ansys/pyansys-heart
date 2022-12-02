@@ -1,5 +1,7 @@
 """Module contains methods for interaction with Fluent meshing."""
+import glob
 import os
+import shutil
 import subprocess
 
 from ansys.heart.custom_logging import LOGGER
@@ -60,17 +62,122 @@ def mesh_heart_model_by_fluent(
 
     num_cpus = 2
 
-    # start Fluent session using PyFluent:
-    # TODO: Catch errors in session
+    # check whether containerized version of Fluent is used
+    if os.getenv("PYFLUENT_LAUNCH_CONTAINER"):
+        LOGGER.debug("Launching Fluent as container...")
+        uses_container = True
+    else:
+        uses_container = False
+
+    # NOTE: when using containerized version - we need to copy all the files
+    # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
+    if uses_container:
+        mounted_volume = pyfluent.EXAMPLES_PATH
+        work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
+        num_cpus = 1
+        show_gui = False
+    else:
+        work_dir_meshing = os.path.abspath(os.path.join(working_directory, "meshing"))
+
+    if os.path.isdir(work_dir_meshing):
+        shutil.rmtree(work_dir_meshing)
+    os.mkdir(work_dir_meshing)
+
+    path_to_output_old = path_to_output
+    path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
+
+    # copy all necessary files to meshing directory
+    files_to_copy = glob.glob("part*.stl") + glob.glob("fluent_meshing.jou")
+    for file in files_to_copy:
+        shutil.copyfile(file, os.path.join(work_dir_meshing, file))
+
+    LOGGER.debug("Starting meshing in directory: {}".format(work_dir_meshing))
+    # start fluent session
     session = pyfluent.launch_fluent(
         meshing_mode=True,
         precision="double",
         processor_count=num_cpus,
-        start_transcript=False,
+        start_transcript=True,
         show_gui=show_gui,
     )
-    session.meshing.tui.file.read_journal(script)
+    assert session.check_health() == "SERVING"
+    session.start_transcript()
+    session._print_transcript
+    # LOGGER.debug("Reading fluent journal file: {0}".format(script))
+    min_size = mesh_size
+    max_size = mesh_size
+    growth_rate_wrap = 1.2
+    add_blood_pool = False
+
+    # import files
+    session.meshing.tui.file.import_.cad("no " + work_dir_meshing + " part_*.stl yes 40 yes mm")
+    session.meshing.tui.file.start_transcript(work_dir_meshing, "fluent_meshing.log")
+    session.meshing.tui.objects.merge("'(*) heart")
+    session.meshing.tui.objects.labels.create_label_per_zone("heart '(*)")
+    session.meshing.tui.diagnostics.face_connectivity.fix_free_faces(
+        "objects '(*) merge-nodes yes 1e-3"
+    )
+    session.meshing.tui.objects.create_intersection_loops("collectively '(*)")
+    session.meshing.tui.boundary.feature.create_edge_zones("(*) fixed-angle 70 yes")
+
+    # set up size field for wrapping
+    session.meshing.tui.size_functions.set_global_controls(min_size, max_size, growth_rate_wrap)
+    session.meshing.tui.scoped_sizing.compute("yes")
+
+    # wrap objects
+    session.meshing.tui.objects.wrap.wrap(
+        "'(*)",
+        "collectively",
+        "wrapped-myocardium",
+        "shrink-wrap",
+        "external",
+        "wrap",
+        "hybrid",
+        0.8,
+    )
+    if add_blood_pool:
+        # if adding blood pool:
+        # ; ------------------------------------------------------------------
+        # ; template script for auto-generating caps for all endocardial parts
+        # ; and extracting blood pool volume
+        # ; This first copies all the endocardial zones and septum and
+        # ; and closes the the cavities based on the free faces
+        # ; Note that the auto-patch utility may not work in all cases.
+        # ; ------------------------------------------------------------------
+        #
+        session.meshing.tui.boundary.modify.auto_patch_holes()
+        raise NotImplementedError("Adding blood pool is not implemented through PyFluent yet")
+        tui = session.meshing.tui
+        tui.objects.delete_all_geom()
+        tui
+
+    # compute volumetric regions
+    session.meshing.tui.objects.volumetric_regions.compute("wrapped-myocardium", "no")
+    session.meshing.tui.objects.volumetric_regions.change_type(
+        "Wrapped-myocardium", "'(*)", "fluid"
+    )
+    session.meshing.tui.objects.volumetric_regions.change_type(
+        "wrapped-myocardium", "(heart)", "solid"
+    )
+
+    # start auto meshing
+    session.meshing.tui.mesh.tet.controls.cell_sizing("size-field")
+    session.meshing.tui.mesh.auto_mesh("wrapped-myocardium", "yes", "pyramids", "tet", "no")
+    session.meshing.tui.mesh.modify.auto_node_move("(*)", "(*)", 0.3, 50, 120, "yes", 5)
+    session.meshing.tui.objects.delete_all_geom()
+    session.meshing.tui.mesh.zone_names_clean_up()
+    session.meshing.tui.mesh.check_mesh()
+    session.meshing.tui.mesh.check_quality()
+    session.meshing.tui.boundary.manage.remove_suffix("(*)")
+
+    # write to file
+    session.meshing.tui.file.write_mesh(path_to_output)
+    # session.meshing.tui.file.read_journal(script)
     session.exit()
+
+    shutil.copy(path_to_output, path_to_output_old)
+
+    # shutil.rmtree(work_dir_meshing)
 
     # change back to old directory
     os.chdir(old_directory)

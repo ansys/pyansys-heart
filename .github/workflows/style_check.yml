@@ -1,4 +1,4 @@
-name: Styling
+name: Style check
 on:
   pull_request:
   push:

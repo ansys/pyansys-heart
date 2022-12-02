@@ -580,7 +580,7 @@ class HeartModel:
             path_mesh_file,
             mesh_size=self.info.mesh_size,
             add_blood_pool=self.info.add_blood_pool,
-            show_gui=True,
+            show_gui=False,
         )
 
         fluent_mesh = mesher.hdf5.FluentMesh()

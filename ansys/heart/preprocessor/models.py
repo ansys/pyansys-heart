@@ -776,7 +776,7 @@ class HeartModel:
         self._assign_cavities_to_parts()
         self._extract_apex()
         #
-        self.compute_left_ventricle_axis()
+        self.compute_left_ventricle_anatomy_axis()
         self.compute_left_ventricle_AHA17()
 
         self._add_nodal_areas()
@@ -1061,34 +1061,36 @@ class HeartModel:
 
         return
 
-    def compute_left_ventricle_axis(self) -> None:
-        """Compute major axis of left ventricle."""
-        if not hasattr(self, "septum"):
-            raise Exception("Model must contain septum part to compute AHA segments.")
+    def compute_left_ventricle_anatomy_axis(self, first_cut_short_axis=0.2):
+        """
+        Compute anatomy axis of left ventricle.
 
+        Parameters
+        ----------
+        first_cut_short_axis: default=0.2, use to avoid cut on aortic valve
+        """
+        av_center = self.left_ventricle.caps[0].centroid
         mv_center = self.left_ventricle.caps[1].centroid
-        apex_endo = self.left_ventricle.apex_points[0].xyz
-        apex_epi = self.left_ventricle.apex_points[1].xyz
+        # apex_endo = self.left_ventricle.apex_points[0].xyz
+        # apex is defined ont epicardium
+        apex = self.left_ventricle.apex_points[1].xyz
 
-        elem_septum = self.mesh.tetrahedrons[self.septum.element_ids]
-        node_septum = self.mesh.nodes[np.unique(elem_septum.ravel())]
-        septum_center = np.mean(node_septum, axis=0)
+        # 4CAV long axis across apex, mitral and aortic valve centers
+        center = np.mean(np.array([av_center, mv_center, apex]), axis=0)
+        normal = np.cross(mv_center - apex, av_center - apex)
+        self.l4cv_axis = {"center": center, "normal": normal / np.linalg.norm(normal)}
 
-        # long axis
-        hl_axis = np.cross(septum_center - mv_center, septum_center - apex_epi)
-        self.horizontal_long_axis = hl_axis / np.linalg.norm(hl_axis)
-        # LOGGER.info("Plane of horizontal long axis:", self.horizontal_long_axis)
-
-        u = septum_center - apex_epi
-        v = mv_center - apex_epi
-        vl_axis = u - (np.dot(u, v) / np.dot(v, v)) * v
-        self.vertical_long_axis = vl_axis / np.linalg.norm(vl_axis)
-        # LOGGER.info("Plane of vertical long axis:", self.vertical_long_axis)
-
-        # short axis
-        sh_axis = apex_epi - mv_center
-        self.short_axis = sh_axis / np.linalg.norm(sh_axis)
+        # short axis: from mitral valve center to apex
+        sh_axis = apex - mv_center
+        # the highest possible but avoid to cut aortic valve
+        center = mv_center + first_cut_short_axis * sh_axis
+        self.short_axis = {"center": center, "normal": sh_axis / np.linalg.norm(sh_axis)}
         # LOGGER.info("Plane of short axis:", self.short_axis)
+
+        # 2CAV long axis
+        center = np.mean(np.array([mv_center, apex]), axis=0)
+        normal = np.cross(self.l4cv_axis["normal"], self.short_axis["normal"])
+        self.l2cv_axis = {"center": center, "normal": normal}
 
         return
 
@@ -1109,7 +1111,7 @@ class HeartModel:
             self.left_ventricle.caps[1].centroid,  # mv center
             self.left_ventricle.apex_points[1].xyz,  # epi apex
             self.left_ventricle.apex_points[0].xyz,  # endo apex
-            self.horizontal_long_axis,
+            self.l4cv_axis,
             self.short_axis,
         )
         # import meshio
@@ -1258,7 +1260,6 @@ class LeftVentricle(HeartModel):
     """Model of just the left ventricle."""
 
     def __init__(self, info: ModelInfo) -> None:
-
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part."""
         # remove septum - not used in left ventricle only model
@@ -1272,7 +1273,6 @@ class BiVentricle(HeartModel):
     """Model of the left and right ventricle."""
 
     def __init__(self, info: ModelInfo) -> None:
-
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
@@ -1288,7 +1288,6 @@ class FourChamber(HeartModel):
     """Model of the left/right ventricle and left/right atrium."""
 
     def __init__(self, info: ModelInfo) -> None:
-
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
@@ -1310,7 +1309,6 @@ class FullHeart(HeartModel):
     """Model of both ventricles, both atria, aorta and pulmonary artery."""
 
     def __init__(self, info: ModelInfo) -> None:
-
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")

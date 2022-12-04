@@ -3,6 +3,7 @@ import os
 
 from ansys.heart.preprocessor.models import HeartModel, ModelInfo
 from conftest import get_assets_folder, get_workdir
+import meshio
 import numpy as np
 import pytest
 
@@ -56,5 +57,26 @@ def test_compute_left_ventricle_anatomy_axis():
     # can be visualized by heart/misc/paraview_marco/plot_anatomy_axis.pvpy
 
     assert np.allclose(
-        test_model.l4cv_axis["normal"], np.array([0.55653251, 0.09943442, 0.82485414])
+        test_model.l4cv_axis["normal"], np.array([-0.55653251, -0.09943442, -0.82485414])
+    )
+
+
+def test_compute_left_ventricle_aha17():
+
+    test_model.compute_left_ventricle_anatomy_axis()
+    test_model.compute_left_ventricle_aha17()
+    assert len(np.where(test_model.aha_ids == 1)[0]) == 10343
+    assert len(np.where(test_model.aha_ids == 7)[0]) == 8100
+    assert len(np.where(test_model.aha_ids == 17)[0]) == 2189
+
+    test_model.compute_left_ventricle_aha17(p_junction=np.array([0.85, 117, 347]))
+    assert len(np.where(test_model.aha_ids == 1)[0]) == 11120
+    assert len(np.where(test_model.aha_ids == 7)[0]) == 9885
+    assert len(np.where(test_model.aha_ids == 17)[0]) == 2189
+
+    meshio.write_points_cells(
+        os.path.join(workdir, "aha17.vtk"),
+        test_model.mesh.nodes,
+        [("tetra", test_model.mesh.tetrahedrons)],
+        cell_data={"aha17": [test_model.aha_ids]},
     )

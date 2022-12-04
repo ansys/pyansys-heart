@@ -14,6 +14,7 @@ from ansys.heart.preprocessor.mesh.objects import Cap, Cavity, Mesh, Part, Point
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.model_definitions import HEART_PARTS, LABELS_TO_ID
 import numpy as np
+from scipy.spatial.transform import Rotation as R
 
 
 class ModelInfo:
@@ -777,7 +778,7 @@ class HeartModel:
         self._extract_apex()
         #
         self.compute_left_ventricle_anatomy_axis()
-        self.compute_left_ventricle_AHA17()
+        self.compute_left_ventricle_aha17()
 
         self._add_nodal_areas()
         self._add_surface_normals()
@@ -1072,12 +1073,12 @@ class HeartModel:
         av_center = self.left_ventricle.caps[0].centroid
         mv_center = self.left_ventricle.caps[1].centroid
         # apex_endo = self.left_ventricle.apex_points[0].xyz
-        # apex is defined ont epicardium
+        # apex is defined on epicardium
         apex = self.left_ventricle.apex_points[1].xyz
 
         # 4CAV long axis across apex, mitral and aortic valve centers
         center = np.mean(np.array([av_center, mv_center, apex]), axis=0)
-        normal = np.cross(mv_center - apex, av_center - apex)
+        normal = np.cross(av_center - apex, mv_center - apex)
         self.l4cv_axis = {"center": center, "normal": normal / np.linalg.norm(normal)}
 
         # short axis: from mitral valve center to apex
@@ -1094,33 +1095,126 @@ class HeartModel:
 
         return
 
-    def compute_left_ventricle_AHA17(self) -> None:
-        """Compute AHA17 label for left ventricle elements."""
-        self.aha_ids = np.zeros(len(self.mesh.tetrahedrons))
+    def compute_left_ventricle_aha17(self, seg=17, p_junction=None) -> None:
+        """
+        Compute AHA17 label for left ventricle elements.
 
-        ele_ids = np.hstack((self.left_ventricle.element_ids, self.septum.element_ids))
+        Parameters
+        ----------
+        seg ::  default 17, or 16 segments
+        p_junction: use CASIS definition for the first cut
+        """
+        self.aha_ids = np.empty(len(self.mesh.tetrahedrons))
+        self.aha_ids[:] = np.nan
 
-        elems = self.mesh.tetrahedrons[ele_ids]
-        nodes = self.mesh.nodes[np.unique(elems.ravel())]
-        _, a = np.unique(elems, return_inverse=True)
-        connect = a.reshape(elems.shape)
+        # get lv elements
+        try:
+            ele_ids = np.hstack((self.left_ventricle.element_ids, self.septum.element_ids))
+        except:  # if no septum exists?
+            ele_ids = np.hstack(self.left_ventricle.element_ids)
 
-        self.aha_ids[ele_ids] = aha_segments(
-            nodes,
-            connect,
-            self.left_ventricle.caps[1].centroid,  # mv center
-            self.left_ventricle.apex_points[1].xyz,  # epi apex
-            self.left_ventricle.apex_points[0].xyz,  # endo apex
-            self.l4cv_axis,
-            self.short_axis,
-        )
-        # import meshio
-        # meshio.write_points_cells(
-        #     "bv_aha17.vtk",
-        #     self.mesh.nodes,
-        #     [("tetra", self.mesh.tetrahedrons)],
-        #     cell_data={"aha17": [self.aha_ids] },
-        # )
+        # left ventricle elements center
+        elem_center = np.mean(self.mesh.nodes[self.mesh.tetrahedrons[ele_ids]], axis=1)
+        label = np.empty(len(elem_center))
+        label[:] = np.nan
+
+        # anatomical points
+        mv_center = self.left_ventricle.caps[1].centroid
+        apex_ed = self.left_ventricle.apex_points[0].xyz
+        apex_ep = self.left_ventricle.apex_points[1].xyz
+
+        # short axis
+        short_axis = self.short_axis["normal"]
+        p_highest = self.short_axis["center"]
+
+        # define reference cut plane
+        if p_junction is not None:
+            # CASIS definition: LV and RV junction point
+            vec = (p_junction - p_highest) / np.linalg.norm(p_junction - p_highest)
+            axe_60 = R.from_rotvec(np.radians(90) * short_axis).apply(vec)
+        else:
+            # default: rotate 60 from long axis
+            axe_60 = R.from_rotvec(np.radians(60) * short_axis).apply(self.l4cv_axis["normal"])
+
+        axe_120 = R.from_rotvec(np.radians(60) * short_axis).apply(axe_60)
+        axe_180 = -R.from_rotvec(np.radians(60) * short_axis).apply(axe_120)
+        axe_45 = R.from_rotvec(np.radians(-15) * short_axis).apply(axe_60)
+        axe_135 = R.from_rotvec(np.radians(90) * short_axis).apply(axe_45)
+
+        p1_3 = 1 / 3 * (apex_ep - p_highest) + p_highest
+        p2_3 = 2 / 3 * (apex_ep - p_highest) + p_highest
+
+        for i, n in enumerate(elem_center):
+            # This part contains valves, do not considered by AHA17
+            if np.dot(n - p_highest, mv_center - p_highest) >= 0:
+                continue
+            # Basal: segment 1 2 3 4 5 6
+            elif np.dot(n - p1_3, mv_center - p1_3) >= 0:
+                if np.dot(n - p1_3, axe_60) >= 0:
+                    if np.dot(n - p1_3, axe_120) >= 0:
+                        if np.dot(n - p1_3, axe_180) >= 0:
+                            label[i] = 6
+                        else:
+                            label[i] = 5
+                    else:
+                        label[i] = 1
+                else:
+                    if np.dot(n - p1_3, axe_180) <= 0:
+                        if np.dot(n - p1_3, axe_120) >= 0:
+                            label[i] = 4
+                        else:
+                            label[i] = 3
+                    else:
+                        label[i] = 2
+            # Mid cavity: segment 7 8 9 10 11 12
+            elif np.dot(n - p2_3, mv_center - p2_3) >= 0:
+                if np.dot(n - p1_3, axe_60) >= 0:
+                    if np.dot(n - p1_3, axe_120) >= 0:
+                        if np.dot(n - p1_3, axe_180) >= 0:
+                            label[i] = 12
+                        else:
+                            label[i] = 11
+                    else:
+                        label[i] = 7
+                else:
+                    if np.dot(n - p1_3, axe_180) <= 0:
+                        if np.dot(n - p1_3, axe_120) >= 0:
+                            label[i] = 10
+                        else:
+                            label[i] = 9
+                    else:
+                        label[i] = 8
+            # Apical
+            else:
+                if seg == 17:
+                    if np.dot(n - apex_ed, apex_ep - apex_ed) >= 0:
+                        label[i] = 17
+                    else:
+                        if np.dot(n - p1_3, axe_45) >= 0:
+                            if np.dot(n - p1_3, axe_135) >= 0:
+                                label[i] = 16
+                            else:
+                                label[i] = 13
+                        else:
+                            if np.dot(n - p1_3, axe_135) >= 0:
+                                label[i] = 15
+                            else:
+                                label[i] = 14
+
+                else:
+                    if np.dot(n - p1_3, axe_45) >= 0:
+                        if np.dot(n - p1_3, axe_135) >= 0:
+                            label[i] = 16
+                        else:
+                            label[i] = 13
+                    else:
+                        if np.dot(n - p1_3, axe_135) >= 0:
+                            label[i] = 15
+                        else:
+                            label[i] = 14
+
+        self.aha_ids[ele_ids] = label
+
         return
 
     def compute_left_ventricle_element_cs(self):
@@ -1155,105 +1249,6 @@ class HeartModel:
         # )
 
         return e_l, e_r, e_c
-
-
-def aha_segments(nodes, elems, mv_center, apex_ep, apex_ed, hl_axis, sh_axis, seg=17):
-    """
-    AHA 16 or 17 segments.
-
-    ref: https://www.pmod.com/files/download/v34/doc/pcardp/3615.htm
-
-    3 4 9 10 15 are segments for right coronary artery (RCA)
-    .
-    1 2 7 8 13 14 17 are segments for Left Anterior Descending (LAD).
-    5 6 11 12 16 are segments for Left Circumflex (LCX).
-    """
-    from scipy.spatial.transform import Rotation as R
-
-    elem_center = np.mean(nodes[elems], axis=1)
-    label = np.zeros(len(elems))
-
-    axe_60 = R.from_rotvec(np.radians(60) * sh_axis).apply(hl_axis)
-    axe_120 = R.from_rotvec(np.radians(120) * sh_axis).apply(hl_axis)
-    axe_45 = R.from_rotvec(np.radians(45) * sh_axis).apply(hl_axis)
-    axe_135 = R.from_rotvec(np.radians(135) * sh_axis).apply(hl_axis)
-    p1_3 = 1 / 3 * (apex_ep - mv_center) + mv_center
-    p2_3 = 2 / 3 * (apex_ep - mv_center) + mv_center
-
-    for i, n in enumerate(elem_center):
-        # Basal
-        if np.dot(n - p1_3, mv_center - p1_3) >= 0:
-            if np.dot(n - p1_3, axe_60) >= 0:
-                if np.dot(n - p1_3, axe_120) >= 0:
-                    if np.dot(n - p1_3, hl_axis) >= 0:
-                        label[i] = 6
-                    else:
-                        label[i] = 5
-                else:
-                    label[i] = 1
-            else:
-                if np.dot(n - p1_3, hl_axis) <= 0:
-                    if np.dot(n - p1_3, axe_120) >= 0:
-                        label[i] = 4
-                    else:
-                        label[i] = 3
-                else:
-                    label[i] = 2
-        # Mid cavity
-        elif np.dot(n - p2_3, mv_center - p2_3) >= 0:
-            if np.dot(n - p1_3, axe_60) >= 0:
-                if np.dot(n - p1_3, axe_120) >= 0:
-                    if np.dot(n - p1_3, hl_axis) >= 0:
-                        label[i] = 12
-                    else:
-                        label[i] = 11
-                else:
-                    label[i] = 7
-            else:
-                if np.dot(n - p1_3, hl_axis) <= 0:
-                    if np.dot(n - p1_3, axe_120) >= 0:
-                        label[i] = 10
-                    else:
-                        label[i] = 9
-                else:
-                    label[i] = 8
-        # Apical
-        else:
-            if seg == 17:
-                if np.dot(n - apex_ed, apex_ep - apex_ed) >= 0:
-                    label[i] = 17
-                else:
-                    if np.dot(n - p1_3, axe_45) >= 0:
-                        if np.dot(n - p1_3, axe_135) >= 0:
-                            label[i] = 16
-                        else:
-                            label[i] = 13
-                    else:
-                        if np.dot(n - p1_3, axe_135) >= 0:
-                            label[i] = 15
-                        else:
-                            label[i] = 14
-
-            else:
-                if np.dot(n - p1_3, axe_45) >= 0:
-                    if np.dot(n - p1_3, axe_135) >= 0:
-                        label[i] = 16
-                    else:
-                        label[i] = 13
-                else:
-                    if np.dot(n - p1_3, axe_135) >= 0:
-                        label[i] = 15
-                    else:
-                        label[i] = 14
-
-    assert np.all(label != 0)
-
-    # test
-    # import meshio
-    # meshio.write_points_cells("lv_aha17.vtk", nodes,
-    # [("tetra", elems)], cell_data={"Id": [label]})
-
-    return label
 
 
 class LeftVentricle(HeartModel):

@@ -20,7 +20,7 @@ def compute_myocardial_strain(model: HeartModel, elout_res: Elout, refrence_time
     """
     # model info
     model.compute_left_ventricle_anatomy_axis()
-    model.compute_left_ventricle_AHA17()
+    model.compute_left_ventricle_aha17()
     e_l, e_r, e_c = model.compute_left_ventricle_element_cs()
 
     # check

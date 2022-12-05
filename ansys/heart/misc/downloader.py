@@ -46,7 +46,11 @@ def _format_download_urls():
 
 
 def download_case(
-    database: str, case_number: int, download_folder: Path, overwrite: bool = True
+    database: str,
+    case_number: int,
+    download_folder: Path,
+    overwrite: bool = True,
+    validate_hash: bool = True,
 ) -> Path:
     """Download a case from the remote repository
 
@@ -102,12 +106,16 @@ def download_case(
 
     wget.download(download_url, save_path)
 
-    is_valid_file = validate_hash_sha256(
-        file_path=save_path,
-        database=database,
-        casenumber=case_number,
-        path_hash_table=PATH_TO_HASHTABLE,
-    )
+    if validate_hash:
+        is_valid_file = validate_hash_sha256(
+            file_path=save_path,
+            database=database,
+            casenumber=case_number,
+            path_hash_table=PATH_TO_HASHTABLE,
+        )
+    else:
+        warnings.warn("Warning, not validating hash. Proceed at own risk")
+        is_valid_file = True
     assert is_valid_file, "File data integrity can not be validated."
 
     return save_path

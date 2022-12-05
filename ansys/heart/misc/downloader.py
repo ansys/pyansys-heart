@@ -172,7 +172,7 @@ def download_all_cases():
     return tar_files
 
 
-def unzip_all_cases(list_of_tar_files: typing.List):
+def unpack_all_cases(list_of_tar_files: typing.List):
     """Un-tar the downloaded cases."""
     for file in tqdm(list_of_tar_files):
         unpack_case(file)

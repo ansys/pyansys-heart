@@ -1688,19 +1688,29 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         # zerop key words
         self._add_control_reference_configuration()
+        #
+        # # export dynain file
+        # control_string = (
+        #     "*SET_PART_LIST_GENERATE\n"
+        #     "999\n"
+        #     "1,99999999\n"
+        #     "*INTERFACE_SPRINGBACK_LSDYNA\n"
+        #     "999, 999, 3,, , , 1\n"
+        #     "OPTCARD,, , , 1, 1, 1\n"
+        #     "*INTERFACE_SPRINGBACK_EXCLUDE\n"
+        #     "BOUNDARY_SPC_NODE"
+        # )
+        # self.kw_database.main.append(control_string)
 
-        # export dynain file
-        control_string = (
-            "*SET_PART_LIST_GENERATE\n"
-            "999\n"
-            "1,99999999\n"
-            "*INTERFACE_SPRINGBACK_LSDYNA\n"
-            "999, 999, 3,, , , 1\n"
-            "OPTCARD,, , , 1, 1, 1\n"
-            "*INTERFACE_SPRINGBACK_EXCLUDE\n"
-            "BOUNDARY_SPC_NODE"
+        self.kw_database.main.append(keywords.SetPartListGenerate(sid=999, b1beg=1, b1end=999999))
+        self.kw_database.main.append(
+            keywords.InterfaceSpringbackLsdyna(
+                psid=999, nshv=999, ftype=3, rflag=1, optc="OPTCARD", ndflag=1, cflag=1, hflag=1
+            )
         )
-        self.kw_database.main.append(control_string)
+        self.kw_database.main.append(
+            keywords.InterfaceSpringbackExclude(kwdname="BOUNDARY_SPC_NODE")
+        )
 
         self._get_list_of_includes()
         self._add_includes()

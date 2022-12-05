@@ -83,8 +83,12 @@ def download_case(
             "Database {0} only has {1} cases".format(database, URLS[database]["num_cases"])
         )
 
-    save_dir = os.path.join(download_folder, "{:>03d}".format(case_number))
-    save_path = os.path.join(save_dir, "{:03d}.tar.gz".format(case_number))
+    if database == "Rodero2021":
+        save_dir = os.path.join(download_folder, database, "{:>02d}".format(case_number))
+    elif database == "Strocchi2020":
+        save_dir = os.path.join(download_folder, database)
+
+    save_path = os.path.join(save_dir, "{:02d}.tar.gz".format(case_number))
 
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
@@ -194,6 +198,10 @@ if __name__ == "__main__":
     save_path = download_case(
         "Rodero2021", 3, "d:\\development\\pyheart-lib\\pyheart-lib\\downloads"
     )
+    
+    save_path = download_case(
+        "Strocchi2020", 3, "d:\\development\\pyheart-lib\\pyheart-lib\\downloads"
+    )    
     unzip_case(save_path)
 
     print("Protected")

@@ -8,11 +8,11 @@ and Cristobal et al 2021.
 
 import os
 from pathlib import Path, PurePath
+import typing
 import warnings
 
 import pkg_resources
 from tqdm import tqdm
-import typing
 
 try:
     import wget  # type: ignore
@@ -170,10 +170,8 @@ def download_all_cases():
 
 def unzip_all_cases(list_of_tar_files: typing.List):
     """Un-tar the downloaded cases."""
-
     for file in tqdm(list_of_tar_files):
         unzip_case(file)
-
     return
 
 

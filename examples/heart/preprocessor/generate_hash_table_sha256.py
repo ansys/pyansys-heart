@@ -1,7 +1,8 @@
-from ansys.heart.misc.downloader import download_case
-import os
-import json
 import hashlib
+import json
+import os
+
+from ansys.heart.misc.downloader import download_case
 
 if __name__ == "__main__":
     """Creates a reference hash table used to check integrity of data files.

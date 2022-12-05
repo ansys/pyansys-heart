@@ -9,8 +9,8 @@ and Cristobal et al 2021.
 import os
 from pathlib import Path, PurePath
 import warnings
-import pkg_resources
 
+import pkg_resources
 from tqdm import tqdm
 
 try:
@@ -66,10 +66,12 @@ def download_case(
     Examples
     --------
     Download case 1 from the public repository (Strocchi2020) of pathological hearts.
-    >>> path_to_case = download_case(database="Strocchi2020", case_bumber=1, download_folder="my/download/folder")
+    >>> path_to_case = download_case(
+        database="Strocchi2020", case_bumber=1, download_folder="my/download/folder")
 
     Download case 1 from the public repository (Rodero2021) of 'healthy' hearts.
-    >>> path_to_case = download_case(database="Rodero2021", case_bumber=1, download_folder="my/download/folder")
+    >>> path_to_case = download_case(
+        database="Rodero2021", case_bumber=1, download_folder="my/download/folder")
     """
 
     if database not in VALID_DATABASES:
@@ -139,7 +141,6 @@ def validate_hash_sha256(
 
 def unzip_case(tar_path: Path):
     """Untar the downloaded tar-ball."""
-    import glob as glob
     import tarfile
 
     tar_ball = tarfile.open(tar_path)

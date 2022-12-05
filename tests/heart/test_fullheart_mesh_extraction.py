@@ -17,7 +17,7 @@ from .common import (
     compare_surface_faces,
     compare_surface_names,
 )
-from .conftest import get_assets_folder, get_workdir, download_asset
+from .conftest import download_asset, get_assets_folder, get_workdir
 
 
 @pytest.fixture(autouse=True, scope="module")

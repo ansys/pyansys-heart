@@ -198,10 +198,10 @@ if __name__ == "__main__":
     save_path = download_case(
         "Rodero2021", 3, "d:\\development\\pyheart-lib\\pyheart-lib\\downloads"
     )
-    
+
     save_path = download_case(
         "Strocchi2020", 3, "d:\\development\\pyheart-lib\\pyheart-lib\\downloads"
-    )    
+    )
     unzip_case(save_path)
 
     print("Protected")

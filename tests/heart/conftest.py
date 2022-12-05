@@ -3,7 +3,7 @@ import os
 import pathlib
 
 ROOT_FOLDER = os.path.join(pathlib.Path(__file__).parent)
-from ansys.heart.misc.downloader import download_case, unzip_case
+from ansys.heart.misc.downloader import download_case, unpack_case
 
 """
 
@@ -34,7 +34,7 @@ def download_asset(database: str = "Strocchi2020", casenumber: int = 1) -> pathl
     if not os.path.isfile(path_to_case):
         print("Downloading asset.")
         path_to_zip = download_case(database, casenumber, download_dir)
-        unzip_case(path_to_zip)
+        unpack_case(path_to_zip)
         if database == "Strocchi2020":
             path_to_case = os.path.join(
                 os.path.dirname(path_to_zip),

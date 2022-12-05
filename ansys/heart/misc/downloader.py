@@ -144,14 +144,18 @@ def validate_hash_sha256(
         return False
 
 
-def unzip_case(tar_path: Path):
+def unpack_case(tar_path: Path):
     """Untar the downloaded tar-ball."""
     import tarfile
 
-    tar_ball = tarfile.open(tar_path)
-    tar_dir = os.path.dirname(tar_path)
-    tar_ball.extractall(path=tar_dir)
-    return
+    try:
+        tar_ball = tarfile.open(tar_path)
+        tar_dir = os.path.dirname(tar_path)
+        tar_ball.extractall(path=tar_dir)
+        return True
+    except:
+        print("Unpacking failed...")
+        return False
 
 
 def download_all_cases():
@@ -171,7 +175,7 @@ def download_all_cases():
 def unzip_all_cases(list_of_tar_files: typing.List):
     """Un-tar the downloaded cases."""
     for file in tqdm(list_of_tar_files):
-        unzip_case(file)
+        unpack_case(file)
     return
 
 
@@ -187,6 +191,6 @@ if __name__ == "__main__":
     save_path = download_case(
         "Strocchi2020", 3, "d:\\development\\pyheart-lib\\pyheart-lib\\downloads"
     )
-    unzip_case(save_path)
+    unpack_case(save_path)
 
     print("Protected")

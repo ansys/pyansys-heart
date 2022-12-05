@@ -1,0 +1,58 @@
+# trace generated using paraview version 5.9.0
+#### import the simple module from the paraview
+from paraview.simple import *  # noqa
+
+#### disable automatic camera reset on 'Show'
+paraview.simple._DisableFirstRenderCameraReset()  # noqa
+import sys
+
+
+def run(d3plot_f, out_f, keep_parts=None, extract_surface=True):
+    # create a new 'LSDynaReader'
+    if keep_parts is None:
+        keep_parts = ['Left ventricle', 'Septum']
+
+    d3plot = LSDynaReader(registrationName='d3plot', FileName=d3plot_f)  # noqa
+    d3plot.SolidArrays = ['UserID', 'Stress', 'EffPlastStrn', 'IntPtData', 'Strain']
+    d3plot.ShellArrays = ['UserID', 'Stress', 'EffPlastStrn', 'StressInnerSurf', 'EffPlastStrnInnerSurf',
+                          'StressOuterSurf', 'EffPlastStrnOuterSurf', 'NormalResultant', 'ShearResultant',
+                          'BendingResultant', 'Thickness', 'ElementMisc', 'StrainInnerSurf', 'StrainOuterSurf',
+                          'InternalEnergy']
+    d3plot.BeamArrays = ['UserID', 'AxialForce', 'ShearResultant', 'BendingResultant', 'TorsionResultant']
+    d3plot.PointArrays = ['Deflected Coordinates', 'Velocity', 'Acceleration', 'UserID']
+
+    # Properties modified on d3plot
+    d3plot.PartArrays = keep_parts
+
+    # create a new 'Merge Blocks'
+    mergeBlocks1 = MergeBlocks(registrationName='MergeBlocks1', Input=d3plot)  # noqa
+
+    # create a new 'Extract Surface'
+    extractSurface1 = ExtractSurface(registrationName='ExtractSurface1', Input=mergeBlocks1)  # noqa
+
+    # save data
+    if extract_surface is True:
+        data = extractSurface1
+    else:
+        data = mergeBlocks1
+
+    SaveData(out_f, proxy=data,  # noqa
+             PointDataArrays=['Acceleration', 'Deflected Coordinates', 'Deflection', 'UserID', 'Velocity'],
+             CellDataArrays=['EffPlastStrn', 'IntPtData', 'Strain', 'Stress', 'UserIds'],
+             FieldDataArrays=['Material Id', 'Name', 'Type'],
+             Writetimestepsasfileseries=1)
+
+
+if __name__ == '__main__':
+
+    # d3plot_file = 'D:/Heart20/last_model/main/d3plot'
+    # out_file = 'D:/Heart20/last_model/s/surface.vtk'
+    d3plot_file = sys.argv[1]
+    out_file = sys.argv[2]
+
+    if len(sys.argv) == 4:
+        extract = bool(int(sys.argv[3]))
+
+    parts = ['Left ventricle', 'Septum']
+
+    run(d3plot_file, out_file, keep_parts=parts, extract_surface=extract)

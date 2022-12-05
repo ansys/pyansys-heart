@@ -1474,6 +1474,7 @@ def vtk_cutter(vtk_polydata: vtk.vtkPolyData, cut_plane) -> vtk.vtkPolyData:
 
     # create cutter
     cutter = vtk.vtkCutter()
+    # cutter.SetNumberOfContours(20) #how to control number of points?
     cutter.SetCutFunction(plane)
     cutter.SetInputData(vtk_polydata)
     cutter.Update()

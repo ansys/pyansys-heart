@@ -32,9 +32,8 @@ def get_test_model():
     path_to_reference_model = os.path.join(
         assets_folder,
         "reference_models",
-        "strocchi2020",
-        "01",
-        "BiVentricleRefactored",
+        "strocchi2020/01",
+        "BiVentricle",
         "heart_model.pickle",
     )
     test_model = test_model.load_model(path_to_reference_model)
@@ -76,6 +75,7 @@ def test_compute_left_ventricle_aha17():
     assert len(np.where(test_model.aha_ids == 17)[0]) == 2189
 
     meshio.write_points_cells(
+        os.path.join(workdir, "aha17.vtk"),
         test_model.mesh.nodes,
         [("tetra", test_model.mesh.tetrahedrons)],
         cell_data={"aha17": [test_model.aha_ids]},

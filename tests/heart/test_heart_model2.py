@@ -105,3 +105,15 @@ def test_compute_left_ventricle_element_cs():
     assert np.allclose(e_l[0], np.array([0.61060497, -0.72221245, -0.32491653]))
     assert np.allclose(e_r[0], np.array([0.07067868, -0.35894692, 0.93067805]))
     assert np.allclose(e_c[0], np.array([-0.78877506, -0.59124132, -0.16812975]))
+
+
+def test_vtk_cutter():
+    import ansys.heart.preprocessor.mesh.vtkmethods as vm
+
+    lv = vm.read_vtk_unstructuredgrid_file(os.path.join(workdir, "model.vtk"))
+    lv_surface = vm.vtk_surface_filter(lv)
+
+    test_model.compute_left_ventricle_anatomy_axis()
+    result = vm.vtk_cutter(lv_surface, test_model.short_axis)
+    vm.write_vtkdata_to_vtkfile(result, os.path.join(workdir, "cut.vtk"))
+    pass

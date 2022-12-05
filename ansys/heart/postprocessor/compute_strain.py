@@ -24,9 +24,9 @@ def compute_myocardial_strain(model: HeartModel, elout_res: Elout, refrence_time
     e_l, e_r, e_c = model.compute_left_ventricle_element_cs()
 
     # check
-    ele_id = np.where(model.aha_ids != 0)[0] + 1
-    if not np.array_equal(np.sort(ele_id), np.sort(elout_res.ids)):
-        Exception("model id cannot match with elout file.")
+    ele_id = np.where(~np.isnan(model.aha_ids))[0] + 1
+    # if not np.array_equal(np.sort(ele_id), np.sort(elout_res.ids)):
+    #     Exception("model id cannot match with elout file.")
 
     indices = np.where(np.in1d(elout_res.ids, ele_id))[0]
     strain = np.zeros((3, len(elout_res.time), len(ele_id)))
@@ -69,25 +69,26 @@ def compute_myocardial_strain(model: HeartModel, elout_res: Elout, refrence_time
     return strain
 
 
-def compute_AHA17_segment_strain(model: HeartModel, elout_res: Elout, element_strain):
+def compute_AHA17_segment_strain(model: HeartModel, element_strain):
     """
     Average elemental strain for AHA17 segments.
 
     Parameters
     ----------
     model
-    elout_res
     element_strain
 
     Returns
     -------
     strain 3 * time * 17
     """
-    aha_strain = np.zeros((3, len(elout_res.time), 17))
+    aha_strain = np.zeros((3, element_strain.shape[1], 17))
+    # get aha17 label for left ventricle elements
+    aha17_label = model.aha_ids[~np.isnan(model.aha_ids)]
     for i in range(1, 18):
-        ele_id = np.where(model.aha_ids == i)[0]
-        indices = np.where(np.in1d(elout_res.ids, ele_id))[0]
+        # get index in strain table
+        indices = np.where(aha17_label == i)[0]
+        # average
         strain_avg = np.mean(element_strain[:, :, indices], axis=2)
         aha_strain[:, :, i - 1] = strain_avg
-
     return aha_strain

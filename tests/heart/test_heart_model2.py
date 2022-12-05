@@ -7,6 +7,8 @@ import meshio
 import numpy as np
 import pytest
 
+test_model: HeartModel
+
 
 @pytest.fixture(autouse=True, scope="module")
 def get_test_model():
@@ -62,7 +64,6 @@ def test_compute_left_ventricle_anatomy_axis():
 
 
 def test_compute_left_ventricle_aha17():
-
     test_model.compute_left_ventricle_anatomy_axis()
     test_model.compute_left_ventricle_aha17()
     assert len(np.where(test_model.aha_ids == 1)[0]) == 10343
@@ -75,8 +76,32 @@ def test_compute_left_ventricle_aha17():
     assert len(np.where(test_model.aha_ids == 17)[0]) == 2189
 
     meshio.write_points_cells(
-        os.path.join(workdir, "aha17.vtk"),
         test_model.mesh.nodes,
         [("tetra", test_model.mesh.tetrahedrons)],
         cell_data={"aha17": [test_model.aha_ids]},
     )
+
+
+def test_compute_left_ventricle_element_cs():
+    test_model.compute_left_ventricle_anatomy_axis()
+    test_model.compute_left_ventricle_aha17()
+    e_l, e_r, e_c = test_model.compute_left_ventricle_element_cs()
+
+    # get only the relevant mesh: lower part of left ventricle
+    ele_ids = np.where(~np.isnan(test_model.aha_ids))[0]
+    elems = test_model.mesh.tetrahedrons[ele_ids]
+    nodes = test_model.mesh.nodes[np.unique(elems.ravel())]
+    _, a = np.unique(elems, return_inverse=True)
+    connect = a.reshape(elems.shape)
+
+    # write in to vtk
+    meshio.write_points_cells(
+        os.path.join(workdir, "lv_lrc_coordinate.vtk"),
+        nodes,
+        [("tetra", connect)],
+        cell_data={"e_l": [e_l], "e_r": [e_r], "e_c": [e_c]},
+    )
+
+    assert np.allclose(e_l[0], np.array([0.61060497, -0.72221245, -0.32491653]))
+    assert np.allclose(e_r[0], np.array([0.07067868, -0.35894692, 0.93067805]))
+    assert np.allclose(e_c[0], np.array([-0.78877506, -0.59124132, -0.16812975]))

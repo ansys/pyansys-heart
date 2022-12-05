@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     for database in databases:
         num_cases = databases[database]
-        download_folder = os.path.join(base_folder, database)
+        download_folder = os.path.join(base_folder)
         try:
             sha256_table[database]
         except (KeyError):
@@ -45,7 +45,7 @@ if __name__ == "__main__":
                 key_exists = False
 
             print("\nDownloading... %d" % ii)
-            path_to_case = download_case(database, ii, download_folder)
+            path_to_case = download_case(database, ii, download_folder, validate_hash=False)
             sha256 = hashlib.sha256(open(path_to_case, "rb").read()).hexdigest()
             sha256_table[database][ii] = sha256
 

@@ -61,6 +61,7 @@ package_data = {
     ],
     "ansys.heart.preprocessor": ["*.json"],
     "ansys.heart.writer.templates": ["*.json"],
+    "ansys.heart.misc.downloader" : ["remote_repo_hash_table_sha256.json"]
 }
 
 setup(

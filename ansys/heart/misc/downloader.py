@@ -9,6 +9,7 @@ and Cristobal et al 2021.
 import os
 from pathlib import Path, PurePath
 import warnings
+import pkg_resources
 
 from tqdm import tqdm
 
@@ -24,8 +25,8 @@ URLS = {
 }
 VALID_DATABASES = list(URLS.keys())
 DOWNLOAD_DIR = PurePath.joinpath(Path(__file__).parents[3], "downloads")
-PATH_TO_HASHTABLE = PurePath.joinpath(
-    Path(__file__).parents[0], "remote_repo_hash_table_sha256.json"
+PATH_TO_HASHTABLE = pkg_resources.resource_filename(
+    "ansys.heart.misc", "remote_repo_hash_table_sha256.json"
 )
 
 
@@ -121,6 +122,13 @@ def validate_hash_sha256(
             sha256_table[key] = {int(k): v for k, v in sha256_table[key].items()}
     else:
         raise FileExistsError("File does not exist")
+
+    try:
+        sha256_table[database][casenumber]
+    except (KeyError):
+        raise KeyError(
+            "{0} : {1} is not yet present in the hash table dictionary".format(database, casenumber)
+        )
 
     sha256 = hashlib.sha256(open(file_path, "rb").read()).hexdigest()
     if sha256 == sha256_table[database][casenumber]:

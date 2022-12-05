@@ -45,6 +45,7 @@ jobs:
         run: |
           python -m pytest tests/heart/test_fluent_mesh_reader.py
           python -m pytest tests/heart/test_heart_model.py
+          python -m pytest tests/heart/test_downloader.py
 
       - name: Run tests writer module
         run: |

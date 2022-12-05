@@ -12,6 +12,7 @@ import warnings
 
 import pkg_resources
 from tqdm import tqdm
+import typing
 
 try:
     import wget  # type: ignore
@@ -30,7 +31,7 @@ PATH_TO_HASHTABLE = pkg_resources.resource_filename(
 )
 
 
-def format_download_urls():
+def _format_download_urls():
     """Format the URLS for all cases."""
     download_urls = {}
     for database_name in URLS.keys():
@@ -95,7 +96,7 @@ def download_case(
 
     if not overwrite and os.path.isfile(save_path):
         warnings.warn("File already exists. Skipping...")
-        return 1
+        return save_path
 
     download_url = "{:}/files/{:02d}.tar.gz?download=1".format(url, case_number)
 
@@ -107,7 +108,7 @@ def download_case(
         casenumber=case_number,
         path_hash_table=PATH_TO_HASHTABLE,
     )
-    assert is_valid_file, "File data integrity can not be validatated."
+    assert is_valid_file, "File data integrity can not be validated."
 
     return save_path
 
@@ -154,38 +155,24 @@ def unzip_case(tar_path: Path):
 
 
 def download_all_cases():
-    """Download cases with URL."""
+    """Download all cases."""
     overwrite_previous = False
+    tar_files = []
     for database_name, subdict in URLS.items():
-        url = subdict["url"]
         num_cases = subdict["num_cases"]
-
-        download_dir = PurePath.joinpath(DOWNLOAD_DIR, database_name)
-        if not os.path.isdir(download_dir):
-            os.makedirs(download_dir)
-        for ii in range(1, num_cases):
-            print("\nDownloading case: {:02d} ...".format(ii))
-            save_path = os.path.join(download_dir, "{:02d}.tar.gz".format(ii))
-            if os.path.isfile(save_path):
-                print("File already exists, skipping")
-                continue
-            download_url = "{:}/files/{:02d}.tar.gz?download=1".format(url, ii)
-            wget.download(download_url, save_path)
-            file_is_valid = validate_hash_sha256(save_path, database_name, ii, PATH_TO_HASHTABLE)
-            assert file_is_valid, "File's integrity could not be validated."
-
-    return
+        download_dir = PurePath.joinpath(DOWNLOAD_DIR)
+        for ii in range(1, num_cases + 1):
+            print("Downloading {0} : {1}".format(database_name, ii))
+            path_to_tar_file = download_case(database_name, ii, download_dir)
+            tar_files = tar_files + path_to_tar_file
+    return tar_files
 
 
-def unzip_all_cases():
+def unzip_all_cases(list_of_tar_files: typing.List):
     """Un-tar the downloaded cases."""
-    import glob as glob
 
-    for database_name, subdict in URLS.items():
-        download_dir = PurePath.joinpath(DOWNLOAD_DIR, database_name)
-        files = glob.glob(os.path.join(download_dir, "*.tar.gz"))
-        for file in tqdm(files):
-            unzip_case(file)
+    for file in tqdm(list_of_tar_files):
+        unzip_case(file)
 
     return
 
@@ -193,7 +180,7 @@ def unzip_all_cases():
 if __name__ == "__main__":
     # download_cases()
     # unzip_cases()
-    download_urls = format_download_urls()
+    download_urls = _format_download_urls()
 
     save_path = download_case(
         "Rodero2021", 3, "d:\\development\\pyheart-lib\\pyheart-lib\\downloads"

@@ -2,7 +2,7 @@ import hashlib
 import json
 import os
 
-from ansys.heart.misc.downloader import format_download_urls, validate_hash_sha256
+from ansys.heart.misc.downloader import _format_download_urls, validate_hash_sha256
 import pytest
 import validators
 
@@ -15,7 +15,7 @@ from .conftest import get_workdir
 )
 def test_download_urls(database_name):
     """Test if URL still valid and exists."""
-    all_download_urls = format_download_urls()
+    all_download_urls = _format_download_urls()
     for case_num in all_download_urls[database_name]:
         url = all_download_urls[database_name][case_num]
         assert validators.url(url), "No valid URL for Case {0} of database {1}".format(

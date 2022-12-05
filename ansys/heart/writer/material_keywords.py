@@ -16,6 +16,7 @@ from ansys.heart.custom_logging import LOGGER
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 import numpy as np
 import pandas as pd
+import pkg_resources
 
 
 class MaterialCap(keywords.MatNull):
@@ -196,7 +197,8 @@ def active_curve(
         calcium_array = np.append(calcium_array, 0.0)
 
     elif curve_type == "TrueCalcium":
-        a = np.loadtxt("calcium_from_EP.txt")
+        file_path = pkg_resources.resource_filename("ansys.heart.writer", "calcium_from_EP.txt")
+        a = np.loadtxt(file_path)
         time_array = a[:, 0] / 1000
         calcium_array = a[:, 1]
 

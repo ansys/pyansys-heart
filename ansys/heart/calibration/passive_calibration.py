@@ -23,7 +23,6 @@ def create_calibration_folder(target_dir, python_exe: str = ""):
 
     """
     # todo: test if it's a legitimate folder
-    here = os.path.dirname(os.path.realpath(__file__))
     file_path = pkg_resources.resource_filename(
         "ansys.heart.calibration", "PassiveCalibration.lsopt"
     )

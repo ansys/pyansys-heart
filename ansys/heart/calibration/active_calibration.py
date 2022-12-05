@@ -5,6 +5,7 @@ import sys
 
 from ansys.heart.general import run_lsdyna
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
+import pkg_resources
 
 
 class ActiveCalibration:
@@ -33,12 +34,12 @@ class ActiveCalibration:
         # todo: test if it's a legitimate folder
         here = os.path.dirname(os.path.realpath(__file__))
         shutil.copy(
-            os.path.join(here, "ActiveCalibration.lsopt"),
+            pkg_resources.resource_filename("ansys.heart.calibration", "ActiveCalibration.lsopt"),
             os.path.join(self.work_directory, "ActiveCalibration.lsopt"),
         )
 
         shutil.copy(
-            os.path.join(here, "material_active.k"),
+            pkg_resources.resource_filename("ansys.heart.calibration", "material_active.k"),
             os.path.join(self.work_directory, "material.k"),
         )
 
@@ -49,7 +50,7 @@ class ActiveCalibration:
             f.write(f"{python_exe} run.py")
 
         shutil.copy(
-            os.path.join(here, "run_active.template"),
+            pkg_resources.resource_filename("ansys.heart.calibration", "run_active.template"),
             os.path.join(self.work_directory, "run.py"),
         )
 

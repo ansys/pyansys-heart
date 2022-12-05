@@ -9,6 +9,7 @@ from ansys.heart.postprocessor.binout_helper import NodOut
 from ansys.heart.preprocessor.mesh.objects import Cavity, SurfaceMesh
 import matplotlib.pyplot as plt
 import numpy as np
+import pkg_resources
 
 
 class PassiveCalibration:
@@ -62,14 +63,13 @@ class PassiveCalibration:
 
         """
         # todo: test if it's a legitimate folder
-        here = os.path.dirname(os.path.realpath(__file__))
         shutil.copy(
-            os.path.join(here, "PassiveCalibration.lsopt"),
+            pkg_resources.resource_filename("ansys.heart.calibration", "PassiveCalibration.lsopt"),
             os.path.join(self.work_directory, "PassiveCalibration.lsopt"),
         )
 
         shutil.copy(
-            os.path.join(here, "material_passive.k"),
+            pkg_resources.resource_filename("ansys.heart.calibration", "material_passive.k"),
             os.path.join(self.work_directory, "material.k"),
         )
 
@@ -80,7 +80,7 @@ class PassiveCalibration:
             f.write(f"{python_exe} run.py")
 
         shutil.copy(
-            os.path.join(here, "run_passive.template"),
+            pkg_resources.resource_filename("ansys.heart.calibration", "run_passive.template"),
             os.path.join(self.work_directory, "run.py"),
         )
 

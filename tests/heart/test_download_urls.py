@@ -18,3 +18,6 @@ def test_download_urls(database_name):
         assert validators.url(url), "No valid URL for Case {0} of database {1}".format(
             case_num, database_name
         )
+
+
+# how to check whether urls still contain the right data?

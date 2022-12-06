@@ -61,7 +61,7 @@ package_data = {
     ],
     "ansys.heart.preprocessor": ["*.json"],
     "ansys.heart.writer.templates": ["*.json"],
-    "ansys.heart.misc.paraview_macro": ["*.pvpy"],
+    "ansys.heart.misc.paraview_marco": ["*.pvpy"],
     "ansys.heart.writer": ["calcium_from_EP.txt"],
     "ansys.heart.calibration": ["*.k", "*.lsopt", "*.template"],
 }

@@ -1070,11 +1070,16 @@ class HeartModel:
         ----------
         first_cut_short_axis: default=0.2, use to avoid cut on aortic valve
         """
-        av_center = self.left_ventricle.caps[0].centroid
-        mv_center = self.left_ventricle.caps[1].centroid
-        # apex_endo = self.left_ventricle.apex_points[0].xyz
+        for cap in self.left_ventricle.caps:
+            if cap.name == "mitral-valve":
+                mv_center = cap.centroid
+            elif cap.name == "aortic-valve":
+                av_center = cap.centroid
+
         # apex is defined on epicardium
-        apex = self.left_ventricle.apex_points[1].xyz
+        for ap in self.left_ventricle.apex_points:
+            if ap.name == "apex epicardium":
+                apex = ap.xyz
 
         # 4CAV long axis across apex, mitral and aortic valve centers
         center = np.mean(np.array([av_center, mv_center, apex]), axis=0)
@@ -1088,10 +1093,13 @@ class HeartModel:
         self.short_axis = {"center": center, "normal": sh_axis / np.linalg.norm(sh_axis)}
         # LOGGER.info("Plane of short axis:", self.short_axis)
 
-        # 2CAV long axis
+        # 2CAV long axis: normal to 4cav axe and pass mv center and apex
         center = np.mean(np.array([mv_center, apex]), axis=0)
-        normal = np.cross(self.l4cv_axis["normal"], self.short_axis["normal"])
-        self.l2cv_axis = {"center": center, "normal": normal}
+        p1 = center + 10 * self.l4cv_axis["normal"]
+        p2 = mv_center
+        p3 = apex
+        normal = np.cross(p1 - p2, p1 - p3)
+        self.l2cv_axis = {"center": center, "normal": normal / np.linalg.norm(normal)}
 
         return
 

@@ -54,5 +54,5 @@ if __name__ == '__main__':
         extract = bool(int(sys.argv[3]))
 
     parts = ['Left ventricle', 'Septum']
-
+    # parts = ['Left ventricle', 'Right ventricle', 'Septum']
     run(d3plot_file, out_file, keep_parts=parts, extract_surface=extract)

@@ -28,7 +28,7 @@ def extract_full_heart():
 
     assets_folder = get_assets_folder()
     path_to_case = os.path.join(assets_folder, "cases", "strocchi2020", "01", "01.case")
-    
+
     if not os.path.isfile():
         path_to_case = download_asset("Strocchi2020", casenumber=1)
 

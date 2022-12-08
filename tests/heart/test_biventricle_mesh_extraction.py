@@ -36,7 +36,6 @@ def extract_bi_ventricle():
     if not os.path.isfile(path_to_case):
         path_to_case = download_asset("Strocchi2020", casenumber=1)
 
-
     # load model to test against
     path_to_reference_model = os.path.join(
         assets_folder,

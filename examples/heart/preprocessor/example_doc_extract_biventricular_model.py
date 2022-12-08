@@ -1,26 +1,20 @@
-"""Extracts a bi-ventricle mesh"""
+"""Extract a bi-ventricle mesh from the public database of 24 pathological hearts
+by Strocchi et al (2020)."""
 
 import os
 import pathlib
 
-import ansys.heart.preprocessor as preproc
+from ansys.heart.misc.downloader import download_case, unpack_case
 import ansys.heart.preprocessor.models as models
 
-# get path to case
-case_path = os.path.join(
-    pathlib.Path(preproc.__file__).parents[3],
-    "tests",
-    "heart",
-    "assets",
-    "cases",
-    "strocchi2020",
-    "01",
-    "01.case",
-)
+# download case from remote repository
+case_num = 1
+case_path: pathlib.Path = download_case(database="Strocchi2020", case_number=case_num)
+unpack_case(case_path)
+case_path = os.path.join(pathlib.Path(case_path).parent, f"{case_num:02d}", f"{case_num:02d}.case")
 
 # specify working directory
 work_directory = os.path.join(pathlib.Path(__file__).parents[1], "workdir", "bi_ventricle_model")
-
 
 # create model
 info = models.ModelInfo(
@@ -30,10 +24,12 @@ info = models.ModelInfo(
     mesh_size=2.0,
 )
 
+# create working directory
 info.create_workdir()
 info.clean_workdir(remove_all=True)
 info.dump_info()
 
+# extract simulation mesh and dump model
 model = models.BiVentricle(info)
 model.extract_simulation_mesh()
 model.print_info()

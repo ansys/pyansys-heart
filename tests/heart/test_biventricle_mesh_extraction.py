@@ -17,7 +17,7 @@ from .common import (
     compare_surface_faces,
     compare_surface_names,
 )
-from .conftest import get_assets_folder, get_workdir
+from .conftest import download_asset, get_assets_folder, get_workdir
 
 
 # run this fixture first
@@ -32,6 +32,10 @@ def extract_bi_ventricle():
 
     assets_folder = get_assets_folder()
     path_to_case = os.path.join(assets_folder, "cases", "strocchi2020", "01", "01.case")
+
+    if not os.path.isfile(path_to_case):
+        path_to_case = download_asset("Strocchi2020", casenumber=1)
+
 
     # load model to test against
     path_to_reference_model = os.path.join(

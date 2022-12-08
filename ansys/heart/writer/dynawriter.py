@@ -1696,8 +1696,8 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # # export dynain file
         # NOTE: generates a new part-set. Use part-set id 999.
         # Please note that choosing 999 as the part-set id is arbitrary,
-        # and defining a new part set after this is triggered will generate
-        # partsetid 999 + 1
+        # and defining a new part set adding this to the main database will
+        # create a part-set id of 999+1
         self.kw_database.main.append(keywords.SetPartListGenerate(sid=999, b1beg=1, b1end=999999))
         self.kw_database.main.append(
             keywords.InterfaceSpringbackLsdyna(

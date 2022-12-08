@@ -44,15 +44,23 @@ def run(d3plot_f, out_f, keep_parts=None, extract_surface=True):
 
 
 if __name__ == '__main__':
+    """
+    input:
+    d3plot_file = 'D:/Heart20/last_model/main/d3plot'
+    output:
+    out_file = 'D:/Heart20/last_model/s/surface.vtk'
+    
+    if extract the surface:
+    extract = True
+    
+    parts to be kept:
+    parts = ['Left ventricle', 'Septum']
+    parts = ['Left ventricle', 'Right ventricle', 'Septum']
+    """
 
-    # d3plot_file = 'D:/Heart20/last_model/main/d3plot'
-    # out_file = 'D:/Heart20/last_model/s/surface.vtk'
     d3plot_file = sys.argv[1]
     out_file = sys.argv[2]
+    extract = bool(int(sys.argv[3]))
+    parts = sys.argv[4].split(";")
 
-    if len(sys.argv) == 4:
-        extract = bool(int(sys.argv[3]))
-
-    parts = ['Left ventricle', 'Septum']
-    # parts = ['Left ventricle', 'Right ventricle', 'Septum']
     run(d3plot_file, out_file, keep_parts=parts, extract_surface=extract)

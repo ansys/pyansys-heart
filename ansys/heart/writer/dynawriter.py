@@ -263,7 +263,7 @@ class BaseDynaWriter:
         ----------
         keyword : str
             Keyword string: valid inputs include:
-            ["SECTION", "PART", "MAT", "SET_SEGMENT", "SET_NODE", "CURVE"]
+            ["SECTION", "PART", "MAT", "SET_SEGMENT", "SET_NODE", "CURVE", ...]
 
         Returns
         -------
@@ -303,6 +303,10 @@ class BaseDynaWriter:
     def get_unique_nodeset_id(self) -> int:
         """Suggest a unique non-used node set id."""
         return self._get_unique_id("SET_NODE")
+
+    def get_unique_partset_id(self) -> int:
+        """Suggest a unique non-used node set id."""
+        return self._get_unique_id("SET_PART")
 
     def get_unique_curve_id(self) -> int:
         """Suggest a unique curve-id."""
@@ -1690,18 +1694,10 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self._add_control_reference_configuration()
         #
         # # export dynain file
-        # control_string = (
-        #     "*SET_PART_LIST_GENERATE\n"
-        #     "999\n"
-        #     "1,99999999\n"
-        #     "*INTERFACE_SPRINGBACK_LSDYNA\n"
-        #     "999, 999, 3,, , , 1\n"
-        #     "OPTCARD,, , , 1, 1, 1\n"
-        #     "*INTERFACE_SPRINGBACK_EXCLUDE\n"
-        #     "BOUNDARY_SPC_NODE"
-        # )
-        # self.kw_database.main.append(control_string)
-
+        # NOTE: generates a new part-set. Use part-set id 999.
+        # Please note that choosing 999 as the part-set id is arbitrary,
+        # and defining a new part set after this is triggered will generate
+        # partsetid 999 + 1
         self.kw_database.main.append(keywords.SetPartListGenerate(sid=999, b1beg=1, b1end=999999))
         self.kw_database.main.append(
             keywords.InterfaceSpringbackLsdyna(

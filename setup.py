@@ -64,6 +64,7 @@ package_data = {
     "ansys.heart.misc.paraview_marco": ["*.pvpy"],
     "ansys.heart.writer": ["calcium_from_EP.txt"],
     "ansys.heart.calibration": ["*.k", "*.lsopt", "*.template"],
+    "ansys.heart.misc.downloader": ["remote_repo_hash_table_sha256.json"],
 }
 
 setup(

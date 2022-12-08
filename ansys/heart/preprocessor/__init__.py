@@ -1,4 +1,5 @@
 import os
+import warnings
 
 if os.name == "nt":
     supported_versions = ["222"]
@@ -9,11 +10,11 @@ if os.name == "nt":
 
 elif os.name == "posix":
     # assert False, "Posix not supported yet"
-    UserWarning("Warning: posix not supported yet")
+    warnings.warn("Checks for posix disabled", Warning)
     pass
 
 if os.name == "posix":
-    UserWarning("Skipping product installation checks")
+    warnings.warn("Skipping product installation checks", Warning)
 
 elif os.name == "nt" and installed_versions:
     # use latest installed version that is supported and has Spaceclaim and Fluent
@@ -27,11 +28,14 @@ elif os.name == "nt" and installed_versions:
             FLUENT_EXE = fluent_exe
             break
 
-    assert os.path.isfile(SC_EXE), "Spaceclaim not found"
-    assert os.path.isfile(FLUENT_EXE), "Fluent not found"
+    if not os.path.isfile(SC_EXE):
+        warnings.warn("Spaceclaim not found", Warning)
+    if not os.path.isfile(FLUENT_EXE):
+        warnings.warn("Fluent not found", Warning)
+
 else:
-    assert False, (
-        "No valid installations found. Valid Ansys installations include: Ansys %s"
-        % supported_versions
+    warnings.warn(
+        "No valid Ansys installations found. Valid Ansys installations include: Ansys %s"
+        % supported_versions,
+        Warning,
     )
-    exit()

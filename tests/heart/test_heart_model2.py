@@ -2,10 +2,11 @@
 import os
 
 from ansys.heart.preprocessor.models import HeartModel, ModelInfo
-from conftest import get_assets_folder, get_workdir
 import meshio
 import numpy as np
 import pytest
+
+from .conftest import get_assets_folder, get_workdir
 
 test_model: HeartModel
 
@@ -112,8 +113,9 @@ def test_vtk_cutter():
 
     lv = vm.read_vtk_unstructuredgrid_file(os.path.join(workdir, "model.vtk"))
     lv_surface = vm.vtk_surface_filter(lv)
-
     test_model.compute_left_ventricle_anatomy_axis()
+
     result = vm.vtk_cutter(lv_surface, test_model.short_axis)
     vm.write_vtkdata_to_vtkfile(result, os.path.join(workdir, "cut.vtk"))
-    pass
+
+    assert result.GetNumberOfCells() == 971

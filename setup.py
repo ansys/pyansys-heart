@@ -61,6 +61,8 @@ package_data = {
     ],
     "ansys.heart.preprocessor": ["*.json"],
     "ansys.heart.writer.templates": ["*.json"],
+    "ansys.heart.writer": ["calcium_from_EP.txt"],
+    "ansys.heart.calibration": ["material.k", "PassiveCalibration.lsopt", "run.template"],
     "ansys.heart.misc.downloader": ["remote_repo_hash_table_sha256.json"],
 }
 

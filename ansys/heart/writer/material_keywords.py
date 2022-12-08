@@ -16,6 +16,7 @@ from ansys.heart.custom_logging import LOGGER
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 import numpy as np
 import pandas as pd
+import pkg_resources
 
 
 class MaterialCap(keywords.MatNull):
@@ -47,7 +48,6 @@ class MaterialAtrium(custom_keywords.Mat077H):
         poisson_ratio: float = 0.499,
         c10: float = 17.46,
     ):
-
         super().__init__(mid=mid, ro=rho, pr=poisson_ratio, n=0, c10=c10)
         return
 
@@ -91,23 +91,40 @@ class MaterialHGOMyocardium(keywords.Mat295):
             self.anisotropic_settings = pd.DataFrame([anisotropy])
 
         if active_user is not None:
-            # Default parameters
-            active = {
-                "acdir": 1,
-                "acthr": 0.1,
-                "sf": 1.0,
-                "ss": 0.02,
-                "sn": 0.02,
-                # parameters of actype 2: GuccioneWaldmanMcCulloch
-                "actype": 2,
-                # "ca2ionm": 4.35,
-                "n": 2,
-                "stf": 0.0,
-                "b": 4.75,
-                "l0": 1.58,
-                "l": 1.78,
-                "eta": 1.45,
-            }
+            if active_user["actype"] == 1:
+                active = {
+                    # "actype": 1,
+                    "acdir": 1,
+                    "acthr": active_user["ca2ionm"] / 2,
+                    "sf": 1.0,
+                    "ss": 0.0,
+                    "sn": 0.0,
+                    "n": 2,
+                    "stf": 0.0,
+                    "b": 4.75,
+                    "l0": 1.58,
+                    "l": 1.85,
+                    "dtmax": 150,  # ms
+                    "mr": 1048.9,  # ms*um^-1
+                    "tr": -1429,  # ms
+                }
+            elif active_user["actype"] == 2:
+                # Default parameters
+                active = {
+                    # "actype": 2,
+                    "acdir": 1,
+                    "acthr": 0.1,
+                    "sf": 1.0,
+                    "ss": 0.02,
+                    "sn": 0.02,
+                    # "ca2ionm": 4.35,
+                    "n": 2,
+                    "stf": 0.0,
+                    "b": 4.75,
+                    "l0": 1.58,
+                    "l": 1.78,
+                    "eta": 1.45,
+                }
             # Update parameters with user's input
             active.update(active_user)
             # transfer into keywords
@@ -155,25 +172,45 @@ def active_curve(
         nCycles = int(np.ceil(endtime / t_end))
 
         time_array = t  # time array
-        active_stress_array = active_stress  # active stress array
+        calcium_array = active_stress  # active stress array
         for ii in range(1, nCycles):
             time_array = np.append(time_array, t + ii * t_end)
-            active_stress_array = np.append(active_stress_array, active_stress)
+            calcium_array = np.append(calcium_array, active_stress)
 
-        # import matplotlib
+    # used for generating multi beats with model actype 1
+    elif curve_type == "constant":
+        nb_beats = 10
+        period = 1.0  # in second
 
-        # matplotlib.use(
-        #     "Qt5Agg"
-        # )  # note: solves unresponsive plotwindow in interactive mode
-        # from matplotlib import pyplot as plt
-        # plt.plot(T, TA, '.-')
-        # plt.show()
+        # define shape pattern
+        value = np.array([0, 1, 1])
+        time = np.array([0, 0.001 * period, 0.9 * period])
 
-    return time_array, active_stress_array
+        # repeat for every period
+        time_array = time
+        for i in range(1, nb_beats):
+            time_array = np.append(time_array, time + period * i)
+        calcium_array = np.tile(value, nb_beats)
+
+        # append last point
+        time_array = np.append(time_array, period * nb_beats)
+        calcium_array = np.append(calcium_array, 0.0)
+
+    elif curve_type == "TrueCalcium":
+        file_path = pkg_resources.resource_filename("ansys.heart.writer", "calcium_from_EP.txt")
+        a = np.loadtxt(file_path)
+        time_array = a[:, 0] / 1000
+        calcium_array = a[:, 1]
+
+    # import matplotlib.pyplot as plt
+    # plt.plot(time_array, calcium_array)
+    # plt.show()
+
+    return time_array, calcium_array
 
 
 if __name__ == "__main__":
-    active_curve()
+    active_curve(curve_type="TrueCalcium")
 
     kw = MaterialCap()
     # test

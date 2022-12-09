@@ -81,8 +81,10 @@ def test_blood_pools():
     assert isinstance(model.fluid_mesh.tetrahedrons, np.ndarray)
     assert isinstance(model.fluid_mesh.nodes, np.ndarray)
     # may be too strict
-    assert np.shape(model.fluid_mesh.tetrahedrons) == (452034, 4)
-    assert np.shape(model.fluid_mesh.nodes) == (126850, 3)
+    assert np.shape(model.fluid_mesh.tetrahedrons)[0] > 450000
+    assert np.shape(model.fluid_mesh.tetrahedrons)[1] == 4
+    assert np.shape(model.fluid_mesh.nodes)[0] == 3
+    assert np.shape(model.fluid_mesh.nodes)[1] > 120000
 
     return
 

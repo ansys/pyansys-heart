@@ -384,7 +384,7 @@ def get_list_of_used_ids(keyword_db: Deck, keyword_str: str) -> np.ndarray:
     """
     ids = np.empty(0, dtype=int)
 
-    valid_kws = ["SECTION", "PART", "MAT", "SET_SEGMENT", "SET_NODE", "DEFINE_CURVE"]
+    valid_kws = ["SECTION", "PART", "MAT", "SET_SEGMENT", "SET_NODE", "DEFINE_CURVE", "SET_PART"]
 
     if keyword_str not in valid_kws:
         raise ValueError("Expecting one of: {0}".format(valid_kws))
@@ -411,6 +411,12 @@ def get_list_of_used_ids(keyword_db: Deck, keyword_str: str) -> np.ndarray:
     if keyword_str == valid_kws[4]:
         for kw in keyword_db.get_kwds_by_type("SET"):
             if "NODE" in kw.subkeyword:
+                ids = np.append(ids, kw.sid)
+
+    # special treatment for node sets
+    if keyword_str == valid_kws[6]:
+        for kw in keyword_db.get_kwds_by_type("SET"):
+            if "PART" in kw.subkeyword:
                 ids = np.append(ids, kw.sid)
 
     if keyword_str == valid_kws[5]:

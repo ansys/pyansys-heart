@@ -98,9 +98,13 @@ class LVContourExporter(D3plotExporter):
             abspath = os.path.join(self.work_dir, self.out_folder, f"model_{i}.vtk")
             self.lv_surfaces.append(read_vtk_polydata_file(abspath))
 
-        # todo
-        self.apex_id = self.model.left_ventricle.apex_points[1].node_id + 1
-        self.mv_ids = self.model.left_ventricle.caps[0].node_ids + 1
+        # get ID of mesh
+        for ap in self.model.left_ventricle.apex_points:
+            if ap.name == "apex epicardium":
+                self.apex_id = ap.node_id + 1
+        for cap in self.model.left_ventricle.caps:
+            if cap.name == "mitral-valve":
+                self.mv_ids = cap.node_ids + 1
 
     def export_contour_to_vtk(self, folder, cutter) -> [vtk.vtkPolyData]:
         """
@@ -148,10 +152,6 @@ class LVContourExporter(D3plotExporter):
         -------
         Coordinates of mitral valve center and apex.
         """
-        # Get node ID of LSDYNA
-        # dyna_apex_id = self.model.left_ventricle.apex_points[1].node_id + 1
-        # dyna_mv_ids = self.model.left_ventricle.caps[0].node_ids + 1
-
         # get node ID of vtk
         dyna_ids = vtk_to_numpy(self.lv_surfaces[0].GetPointData().GetArray("UserID"))
         apex_id = np.where(dyna_ids == self.apex_id)[0][0]

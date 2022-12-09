@@ -60,10 +60,11 @@ def test_contour_exporter():
 def test_lvls():
     exporter = LVContourExporter(d3plot, model)
     p1, p2 = exporter.compute_lvls()
+    print()
     assert np.allclose(
         p1,
         np.array(
-            [[4.14334904, 118.37543478, 391.37136957], [4.11525215, 118.37604765, 391.36476981]]
+            [[14.84525339, 138.85722581, 381.68174194], [14.88606218, 138.8574518, 381.66178657]]
         ),
     )
     assert np.allclose(

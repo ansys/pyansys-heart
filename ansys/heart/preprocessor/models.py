@@ -316,6 +316,49 @@ class HeartModel:
         self.info.dump_info()
         return
 
+    def plot(self, show_edges: bool = True):
+        """Plot all the surfaces in the model.
+
+        Examples
+        --------
+        Import modules and load model.
+        >>> import ansys.heart.preprocessor.models as models
+        >>> model = models.HeartModel.load_model("my_model.pickle")
+        Plot the model
+        >>> model.plot(show_edges=True)
+        """
+        try:
+            import pyvista as pv
+        except (ImportError):
+            LOGGER.warning(
+                "PyVista not found: visualization not supported. Install pyvista with: pip install pyvista"
+            )
+            return
+        try:
+            import matplotlib.pyplot as plt
+        except (ImportError):
+            LOGGER.warning("matplotlib not found. Install matplotlib with: pip install matplotlib")
+            return
+
+        named_surfaces = [s for p in self.parts for s in p.surfaces]
+        color_map = plt.cm.get_cmap("tab20", len(named_surfaces))
+        colors = color_map.colors[:, 0:3]
+        plotter = pv.Plotter()
+        ii = 0
+        for surface in [s for p in self.parts for s in p.surfaces]:
+            surface._to_pyvista_object()
+            actor = plotter.add_mesh(
+                surface._to_pyvista_object(),
+                color=colors[ii, :],
+                show_edges=show_edges,
+                label=surface.name,
+            )
+            plotter.add_legend(face=None, size=(0.25, 0.25), loc="lower left")
+            ii += 1
+
+        plotter.show()
+        return
+
     @staticmethod
     def load_model(filename: pathlib.Path):
         """Load a preprocessed model from file.

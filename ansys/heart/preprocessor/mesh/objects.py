@@ -15,6 +15,7 @@ import ansys.heart.preprocessor.mesh.geodisc as geodisc
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 import meshio
 import numpy as np
+import pyvista as pv
 
 
 class Mesh:
@@ -476,6 +477,36 @@ class SurfaceMesh(Feature):
             filename = "{0}_groupid_edges_{1}.vtk".format(prefix, self.name)
             vtkmethods.write_vtkdata_to_vtkfile(vtk_surf, filename)
 
+        return
+
+    def _to_pyvista_object(self) -> pv.PolyData:
+        """Convert to pyvista polydata.
+
+        Returns
+        -------
+        pv.PolyData
+            pyvista PolyData object
+        """
+        faces = np.hstack([np.ones((self.faces.shape[0], 1), dtype=int) * 3, self.faces])
+        nodes = self.nodes
+        faces = np.reshape(faces, (faces.size))
+        return pv.PolyData(nodes, faces)
+
+    def plot(self, show_edges: bool = True):
+        """Plot the surface mesh with PyVista.
+
+        Parameters
+        ----------
+        show_edges : bool, optional
+            Show edges of the mesh, by default True
+        """
+        surf = self._to_pyvista_object()
+        surf.plot(
+            cpos=[-1, 1, 0.5],
+            show_scalar_bar=False,
+            show_edges=show_edges,
+            line_width=2,
+        )
         return
 
 

@@ -56,10 +56,15 @@ jobs:
         run: |
           python -m pip install -r requirements_tests.txt
 
-      - name: Test biventricle model generation
+      - name: Test biventricle model generation 1
         continue-on-error: true
         run: |
           python -m pytest tests/heart/test_biventricle_mesh_extraction.py
+
+      - name: Test biventricle model generation 2
+        continue-on-error: true
+        run: |
+          python -m pytest tests/heart/test_biventricle_mesh_extraction_with_bloodpool.py
 
       - name: Test full heart model generation
         continue-on-error: true

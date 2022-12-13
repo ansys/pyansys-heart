@@ -330,9 +330,9 @@ class HeartModel:
             return
 
         if plot_raw_mesh:
-            grid: pyvista.UnstructuredGrid = self.mesh_raw._to_pyvista_grid()
+            grid: pyvista.UnstructuredGrid = self.mesh_raw._to_pyvista_object()
         else:
-            grid: pyvista.UnstructuredGrid = self.mesh._to_pyvista_grid()
+            grid: pyvista.UnstructuredGrid = self.mesh._to_pyvista_object()
 
         grid.plot(scalars=color_by, show_edges=show_edges)
         return

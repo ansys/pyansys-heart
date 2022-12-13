@@ -285,8 +285,14 @@ class Mesh:
         else:
             return surfaces
 
-    def _to_pyvista_grid(self) -> pv.UnstructuredGrid:
-        """Convert mesh object into pyvista unstructured grid."""
+    def _to_pyvista_object(self) -> pv.UnstructuredGrid:
+        """Convert mesh object into pyvista unstructured grid object.
+
+        Returns
+        -------
+        pv.UnstructuredGrid
+            Pyvista unstructured grid object.
+        """
         num_tets = self.tetrahedrons.shape[0]
         cells = np.hstack(
             [np.ones((self.tetrahedrons.shape[0], 1), dtype=int) * 4, self.tetrahedrons]
@@ -508,7 +514,7 @@ class SurfaceMesh(Feature):
         return
 
     def _to_pyvista_object(self) -> pv.PolyData:
-        """Convert to pyvista polydata.
+        """Convert to pyvista polydata object.
 
         Returns
         -------

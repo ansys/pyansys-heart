@@ -331,7 +331,8 @@ class HeartModel:
             import pyvista as pv
         except (ImportError):
             LOGGER.warning(
-                "PyVista not found: visualization not supported. Install pyvista with: pip install pyvista"
+                "PyVista not found: visualization not supported."
+                "Install pyvista with: pip install pyvista"
             )
             return
         try:

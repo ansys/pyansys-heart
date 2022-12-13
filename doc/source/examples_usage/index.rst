@@ -10,6 +10,15 @@ mechanics and a system model:
 
 .. literalinclude:: ../../../examples/heart/preprocessor/example_doc_extract_biventricular_model.py
 
+The user can easily visualize the model or parts of the model
+
+.. code::
+    
+    # visualize the entire model
+    model.plot()
+    # plot just the endocardium
+    model.left_ventricle.endocardium.plot()
+
 Pre-process data for heart simulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

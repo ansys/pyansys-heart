@@ -292,7 +292,7 @@ class HeartModel:
             raise KeyError("Expecting a field 'tags' in mesh_raw.cell_data")
         return
 
-    def dump_model(self, filename: pathlib.Path = None) -> None:
+    def dump_model(self, filename: pathlib.Path = None, remove_raw_mesh: bool = True) -> None:
         """Save model to file.
 
         Examples
@@ -310,13 +310,34 @@ class HeartModel:
 
         # cleanup model object for more efficient storage
         # NOTE deleting faces, nodes of surfaces does not affect size
-        self.mesh_raw = None
+        # due to copy-by-reference
+        if remove_raw_mesh:
+            self.mesh_raw = None
+
         with open(filename, "wb") as file:
             pickle.dump(self, file)
         self.info.dump_info()
         return
 
-    def plot(self, show_edges: bool = True):
+    def plot_mesh(
+        self, plot_raw_mesh: bool = False, show_edges: bool = True, color_by: str = "tags"
+    ):
+        """Plot the volume mesh."""
+        try:
+            import pyvista
+        except (ImportError):
+            LOGGER.warning("pyvista not found. Install with: pip install pyvista")
+            return
+
+        if plot_raw_mesh:
+            grid: pyvista.UnstructuredGrid = self.mesh_raw._to_pyvista_grid()
+        else:
+            grid: pyvista.UnstructuredGrid = self.mesh._to_pyvista_grid()
+
+        grid.plot(scalars=color_by, show_edges=show_edges)
+        return
+
+    def plot_surfaces(self, show_edges: bool = True):
         """Plot all the surfaces in the model.
 
         Examples

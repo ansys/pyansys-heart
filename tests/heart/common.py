@@ -33,7 +33,7 @@ def compare_part_element_ids(model: models.HeartModel, reference_model: models.H
         ref_part = next(
             ref_part for ref_part in reference_model.parts if part.name == ref_part.name
         )
-        assert np.array_equal(part.element_ids == ref_part.element_ids), (
+        assert np.array_equal(part.element_ids, ref_part.element_ids), (
             "%s element-ids do not match with reference model" % part.name
         )
 
@@ -79,7 +79,7 @@ def compare_surface_faces(model: models.HeartModel, reference_model: models.Hear
         for ref_surface in ref_part.surfaces:
             surface = next(surface for surface in part.surfaces if surface.name == ref_surface.name)
 
-            assert np.array_equal(surface.faces == ref_surface.faces), (
+            assert np.array_equal(surface.faces, ref_surface.faces), (
                 "Surface topology of reference surface %s is different" % ref_surface.name
             )
     pass
@@ -95,7 +95,7 @@ def compare_caps_nodeids(model: models.HeartModel, reference_model: models.Heart
 
         for cap in part.caps:
             ref_cap = next(ref_cap for ref_cap in ref_part.caps if ref_cap.name == cap.name)
-            assert np.all(ref_cap.node_ids == cap.node_ids), (
+            assert np.array_equal(ref_cap.node_ids, cap.node_ids), (
                 "One or more nodes in %s do not match" % ref_cap.name
             )
 
@@ -139,7 +139,7 @@ def compare_cavity_topology(model: models.HeartModel, reference_model: models.He
             "but model has {2} faces".format(ref_part.name, ref_num_faces, num_faces)
         )
 
-        assert np.all(part.cavity.surface.faces == ref_part.cavity.surface.faces), (
+        assert np.array_equal(part.cavity.surface.faces, ref_part.cavity.surface.faces), (
             "Cavity faces of part %s do not match" % ref_part.name
         )
 

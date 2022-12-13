@@ -13,9 +13,11 @@ mechanics and a system model:
 The user can easily visualize the model or parts of the model
 
 .. code::
-    
+
     # visualize the entire model
-    model.plot()
+    model.plot_mesh(color_by="tags")
+    # plot only surfaces
+    model.plot_surfaces(show_edges=False)
     # plot just the endocardium
     model.left_ventricle.endocardium.plot()
 

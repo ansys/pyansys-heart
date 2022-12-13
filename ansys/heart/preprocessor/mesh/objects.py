@@ -15,7 +15,11 @@ import ansys.heart.preprocessor.mesh.geodisc as geodisc
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 import meshio
 import numpy as np
-import pyvista as pv
+
+try:
+    import pyvista as pv
+except (ImportError):
+    LOGGER.warning("Importing pyvista failed. Install with: pip install pyvista")
 
 
 class Mesh:
@@ -280,6 +284,30 @@ class Mesh:
             return surfaces[0]
         else:
             return surfaces
+
+    def _to_pyvista_grid(self) -> pv.UnstructuredGrid:
+        """Convert mesh object into pyvista unstructured grid."""
+        num_tets = self.tetrahedrons.shape[0]
+        cells = np.hstack(
+            [np.ones((self.tetrahedrons.shape[0], 1), dtype=int) * 4, self.tetrahedrons]
+        ).flatten()
+        celltypes = np.ones(num_tets, dtype=int) * pv.CellType.TETRA
+        points = self.nodes
+        grid = pv.UnstructuredGrid(cells, celltypes, points)
+        # add cell and point data
+        for key, value in self.cell_data.items():
+            if value.size == value.shape[0]:
+                grid.cell_data.set_scalars(name=key, scalars=value)
+            elif len(value.shape) > 1:
+                grid.cell_data.set_vectors(name=key, vectors=value)
+
+        for key, value in self.point_data.items():
+            if value.size == value.shape[0]:
+                grid.point_data.set_array(name=key, data=value)
+            elif len(value.shape) > 1:
+                grid.point_data.set_vectors(name=key, vectors=value)
+
+        return grid
 
 
 class Feature:

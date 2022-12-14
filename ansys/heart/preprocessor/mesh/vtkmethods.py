@@ -12,6 +12,7 @@ import vtk
 from vtk.numpy_interface import dataset_adapter as dsa  # type: ignore # noqa
 from vtk.util import numpy_support as VN  # type: ignore # noqa
 from vtk.util.numpy_support import numpy_to_vtk  # type: ignore # noqa
+import pyvista
 
 
 def read_ensight_file(path_to_ensight: str) -> vtk.vtkUnstructuredGrid:
@@ -1072,6 +1073,43 @@ def compute_surface_nodal_area(vtk_surface: vtk.vtkPolyData) -> np.array:
 
     tris = get_tri_info_from_polydata(vtk_surface)[1]
 
+    for points, area in zip(tris, cell_area):
+        nodal_area[points] += area / 3
+        ii += 1
+    return nodal_area
+
+
+def compute_surface_nodal_area_pyvista(surface: pyvista.PolyData) -> np.array:
+    """Compute an average nodal area by summing surface areas of connected elements.
+
+    Parameters
+    ----------
+    vtk_surface : vtk.vtkPolyData
+        Vtk object describing the object
+
+    Returns
+    -------
+    np.array
+        Numpy array with nodal areas of length number of points
+
+    Note
+    ----
+    Adds the partial areas of connected elements/cells to each node.
+
+    """
+    num_points = surface.n_points
+    nodal_area = np.zeros(num_points)
+    # compute area of all cells
+    n_cells = surface.n_cells
+    cell_area = np.zeros(n_cells)
+    for icell in range(n_cells):
+        cell_area[icell] = surface.GetCell(icell).ComputeArea()
+        # cell_area[icell] = vtk_surface.GetCell(icell).ComputeArea()
+
+    # tris = get_tri_info_from_polydata(surface)[1]
+    tris = np.reshape(surface.faces, (surface.n_faces, 4) )[:, 1:]
+
+    ii = 0
     for points, area in zip(tris, cell_area):
         nodal_area[points] += area / 3
         ii += 1

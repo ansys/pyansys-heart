@@ -16,7 +16,8 @@ env:
   ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
   PYFLUENT_START_INSTANCE: 0
   PYFLUENT_LAUNCH_CONTAINER: 1          
-  FLUENT_IMAGE_TAG: v22.2.0            
+  FLUENT_IMAGE_TAG: v22.2.0
+
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -26,6 +27,7 @@ jobs:
   build:
     name: Tests requiring PyFluent
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout project
         uses: actions/checkout@v2
@@ -44,7 +46,7 @@ jobs:
 
       - name: Pull 22.2 Fluent docker image
         run: | 
-          docker pull ghcr.io/pyansys/pyfluent:$FLUENT_IMAGE_TAG
+          docker pull ghcr.io/pyansys/pyfluent:$FLUENT_IMAGE_TAG          
           docker image prune -f
 
       - name: Install package
@@ -57,16 +59,16 @@ jobs:
           python -m pip install -r requirements_tests.txt
 
       - name: Test biventricle model generation 1
-        continue-on-error: true
+        continue-on-error: false
         run: |
           python -m pytest tests/heart/test_biventricle_mesh_extraction.py
 
       - name: Test biventricle model generation 2
-        continue-on-error: true
+        continue-on-error: false
         run: |
           python -m pytest tests/heart/test_biventricle_mesh_extraction_with_bloodpool.py
 
       - name: Test full heart model generation
-        continue-on-error: true
+        continue-on-error: false
         run: |
           python -m pytest tests/heart/test_fullheart_mesh_extraction.py

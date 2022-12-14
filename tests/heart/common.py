@@ -79,7 +79,7 @@ def compare_surface_faces(model: models.HeartModel, reference_model: models.Hear
         for ref_surface in ref_part.surfaces:
             surface = next(surface for surface in part.surfaces if surface.name == ref_surface.name)
 
-            assert np.array_equal(surface.faces, ref_surface.faces), (
+            assert np.array_equal(surface.triangles, ref_surface.triangles), (
                 "Surface topology of reference surface %s is different" % ref_surface.name
             )
     pass
@@ -132,14 +132,14 @@ def compare_cavity_topology(model: models.HeartModel, reference_model: models.He
         if not part.cavity:
             continue
 
-        ref_num_faces = ref_part.cavity.surface.faces.shape[0]
-        num_faces = part.cavity.surface.faces.shape[0]
+        ref_num_faces = ref_part.cavity.surface.triangles.shape[0]
+        num_faces = part.cavity.surface.triangles.shape[0]
         assert ref_num_faces == num_faces, (
             "Cavity of part {0} has {1} faces in the reference model, "
             "but model has {2} faces".format(ref_part.name, ref_num_faces, num_faces)
         )
 
-        assert np.array_equal(part.cavity.surface.faces, ref_part.cavity.surface.faces), (
+        assert np.array_equal(part.cavity.surface.triangles, ref_part.cavity.surface.triangles), (
             "Cavity faces of part %s do not match" % ref_part.name
         )
 

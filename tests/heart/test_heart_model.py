@@ -120,8 +120,8 @@ def test_model_load():
     model.left_ventricle.element_ids = np.array([1, 2, 3, 4], dtype=int)
     model.right_ventricle.element_ids = np.array([11, 66, 77, 88], dtype=int)
 
-    model.left_ventricle.endocardium.faces = np.array([[1, 2, 3], [1, 2, 4]], dtype=int)
-    model.right_ventricle.endocardium.faces = np.array([[11, 22, 33], [11, 22, 44]], dtype=int)
+    model.left_ventricle.endocardium.triangles = np.array([[1, 2, 3], [1, 2, 4]], dtype=int)
+    model.right_ventricle.endocardium.triangles = np.array([[11, 22, 33], [11, 22, 44]], dtype=int)
 
     model.mesh.tetrahedrons = np.array([[1, 2, 3, 4], [1, 2, 3, 5]], dtype=int)
     model.mesh.nodes = np.array([[0.0, 0.0, 0.1], [1.0, 1.0, 1.1]], dtype=float)
@@ -142,10 +142,10 @@ def test_model_load():
     assert np.array_equal(model1.right_ventricle.element_ids, model.right_ventricle.element_ids)
 
     assert np.array_equal(
-        model1.left_ventricle.endocardium.faces, model.left_ventricle.endocardium.faces
+        model1.left_ventricle.endocardium.triangles, model.left_ventricle.endocardium.triangles
     )
     assert np.array_equal(
-        model1.right_ventricle.endocardium.faces, model.right_ventricle.endocardium.faces
+        model1.right_ventricle.endocardium.triangles, model.right_ventricle.endocardium.triangles
     )
 
     assert np.array_equal(model1.mesh.tetrahedrons, model.mesh.tetrahedrons)

@@ -260,7 +260,9 @@ class HeartModel:
 
             for surface in part.surfaces:
                 LOGGER.info(
-                    "\tsurface: {:} | # faces: {:d}".format(surface.name, surface.faces.shape[0])
+                    "\tsurface: {:} | # faces: {:d}".format(
+                        surface.name, surface.triangles.shape[0]
+                    )
                 )
             for cap in part.caps:
                 LOGGER.info("\tcap: {:} | # nodes {:d}".format(cap.name, len(cap.node_ids)))
@@ -478,7 +480,9 @@ class HeartModel:
             surfaces: List[SurfaceMesh] = []
             for ii, region_id in enumerate(unique_regions):
                 mask = region_ids == region_id
-                surface = SurfaceMesh(faces=boundary.faces[mask, :], nodes=self.mesh_raw.nodes)
+                surface = SurfaceMesh(
+                    triangles=boundary.triangles[mask, :], nodes=self.mesh_raw.nodes
+                )
                 volumes.append(surface.compute_bounding_box()[1])
                 surfaces.append(surface)
 
@@ -494,7 +498,9 @@ class HeartModel:
                     )
                 )
                 for jj, surface in enumerate(surfaces):
-                    LOGGER.warning("\t{0}: num_faces: {1}".format(jj + 1, surface.faces.shape[0]))
+                    LOGGER.warning(
+                        "\t{0}: num_faces: {1}".format(jj + 1, surface.triangles.shape[0])
+                    )
                 LOGGER.warning(
                     "First {0} surfaces have largest bounding box".format(num_expected_regions)
                 )
@@ -531,11 +537,11 @@ class HeartModel:
                 surface_to_copy_to = surfaces_unseparated[np.argmax(num_connected_nodes)]
                 LOGGER.warning(
                     "Copying {0} orphan faces to {1}".format(
-                        orphan_surface.faces.shape[0], surface_to_copy_to.name
+                        orphan_surface.triangles.shape[0], surface_to_copy_to.name
                     )
                 )
-                surface_to_copy_to.faces = np.vstack(
-                    [surface_to_copy_to.faces, orphan_surface.faces]
+                surface_to_copy_to.triangles = np.vstack(
+                    [surface_to_copy_to.triangles, orphan_surface.triangles]
                 )
 
             else:
@@ -544,7 +550,7 @@ class HeartModel:
                 for surface in surfaces_to_add:
                     surface.write_to_stl(os.path.join(self.info.workdir, surface.name + ".stl"))
 
-                if orphan_surface.faces.shape[0] < 5:
+                if orphan_surface.triangles.shape[0] < 5:
                     LOGGER.warning("Deleting orphan surface: consists of less than 5 faces")
                 else:
                     LOGGER.warning(
@@ -679,7 +685,7 @@ class HeartModel:
 
             face_zone_surface_mesh = SurfaceMesh(
                 name=face_zone.name,
-                faces=faces,
+                triangles=faces,
                 nodes=self.mesh.nodes,
                 sid=face_zone.id,
             )
@@ -777,7 +783,7 @@ class HeartModel:
         LOGGER.debug("Adding nodal areas")
         for surface in self.mesh.boundaries:
             vtk_surface = vtkmethods.create_vtk_surface_triangles(
-                points=surface.nodes, triangles=surface.faces
+                points=surface.nodes, triangles=surface.triangles
             )
             surface.point_data["nodal_areas"] = vtkmethods.compute_surface_nodal_area(vtk_surface)
 
@@ -785,7 +791,7 @@ class HeartModel:
         for part in self.parts:
             for surface in part.surfaces:
                 vtk_surface = vtkmethods.create_vtk_surface_triangles(
-                    points=surface.nodes, triangles=surface.faces
+                    points=surface.nodes, triangles=surface.triangles
                 )
                 surface.point_data["nodal_areas"] = vtkmethods.compute_surface_nodal_area(
                     vtk_surface
@@ -809,7 +815,7 @@ class HeartModel:
         for part in self.parts:
             for surface in part.surfaces:
                 vtk_surface = vtkmethods.create_vtk_surface_triangles(
-                    points=surface.nodes, triangles=surface.faces
+                    points=surface.nodes, triangles=surface.triangles
                 )
                 (
                     surface.cell_data["normals"],
@@ -867,7 +873,7 @@ class HeartModel:
 
         # extrude septum surface
         faces_septum = connectivity.remove_triangle_layers_from_trimesh(
-            surface_septum.faces, iters=1
+            surface_septum.triangles, iters=1
         )
 
         septum_surface_vtk = vtkmethods.create_vtk_surface_triangles(self.mesh.nodes, faces_septum)
@@ -964,7 +970,7 @@ class HeartModel:
                 boundary_name = "-".join(surface.name.lower().split())
                 boundary_surface = self.mesh.get_surface_from_name(boundary_name)
                 if boundary_surface:
-                    surface.faces = boundary_surface.faces
+                    surface.triangles = boundary_surface.triangles
                     surface.nodes = boundary_surface.nodes
                 else:
                     LOGGER.warning("Could not find matching surface for: {0}".format(surface.name))
@@ -1085,7 +1091,7 @@ class HeartModel:
             endocardium = next(s for s in part.surfaces if "endocardium" in s.name)
             # append interface faces to endocardium
             for interface in interfaces:
-                endocardium.faces = np.vstack([endocardium.faces, interface.faces])
+                endocardium.triangles = np.vstack([endocardium.triangles, interface.triangles])
 
         return
 
@@ -1106,13 +1112,13 @@ class HeartModel:
 
             surfaces = [s for s in part.surfaces if "endocardium" in s.name]
             for surface in surfaces:
-                cavity_faces = np.vstack([cavity_faces, surface.faces])
+                cavity_faces = np.vstack([cavity_faces, surface.triangles])
 
             for cap in part.caps:
                 cavity_faces = np.vstack([cavity_faces, cap.triangles])
 
             surface = SurfaceMesh(
-                name=part.name + " cavity", faces=cavity_faces, nodes=self.mesh.nodes
+                name=part.name + " cavity", triangles=cavity_faces, nodes=self.mesh.nodes
             )
             part.cavity = Cavity(surface=surface, name=part.name)
             part.cavity.compute_centroid()

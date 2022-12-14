@@ -359,44 +359,46 @@ class EdgeGroup:
         pass
 
 
-class SurfaceMesh(Feature):
+class SurfaceMesh(pv.PolyData, Feature):
     """Surface class."""
 
     @property
     def nodes(self):
         """Node coordinates."""
-        return self._pv_polydata.points
+        return np.array(self.points)
 
     @nodes.setter
-    def nodes(self, value: np.ndarray):
+    def nodes(self, array: np.ndarray):
         try:
-            self._pv_polydata.points = value
+            self.points = array
         except:
             return
 
     @property
-    def faces(self):
+    def triangles(self):
         """Triangular faces of the surface num_faces x 3."""
-        faces = np.reshape(self._pv_polydata.faces, (self._pv_polydata.n_cells, 3 + 1))[:, 1:]
+        faces = np.reshape(self.faces, (self.n_cells, 3 + 1))[:, 1:]
         return faces
 
-    @faces.setter
-    def faces(self, value: np.ndarray):
+    @triangles.setter
+    def triangles(self, value: np.ndarray):
+        # sets faces of PolyData
         try:
             num_faces = value.shape[0]
             faces = np.hstack([np.full((num_faces, 1), 3, dtype=np.int8), value])
-            self._pv_polydata.faces = faces
+            self.faces = faces
         except:
             return
 
     def __init__(
         self,
         name: str = None,
-        faces: np.ndarray = None,
+        triangles: np.ndarray = None,
         nodes: np.ndarray = None,
         sid: int = None,
     ) -> None:
-        super().__init__(name)
+        super().__init__(self)
+        Feature.__init__(self, name)
 
         self.type = "surface"
         """Surface type."""
@@ -408,14 +410,14 @@ class SurfaceMesh(Feature):
         """ID of surface."""
         self.nsid: int = None
         """ID of corresponding set of nodes."""
-        self.cell_data: dict = {}
-        """Data associated with each face/cell of surface."""
-        self.point_data: dict = {}
+        # self.cell_data: dict = {}
+        # """Data associated with each face/cell of surface."""
+        # self.point_data: dict = {}
         """Data associated with each point on surface."""
         self._pv_polydata: pv.PolyData = pv.PolyData()
         """Pyvista representation of the surface mesh."""
 
-        self.faces = faces
+        self.triangles = triangles
         """Triangular faces of the surface num_faces x 3."""
         self.nodes = nodes
         """Node coordinates."""
@@ -423,8 +425,8 @@ class SurfaceMesh(Feature):
     @property
     def node_ids(self) -> np.ndarray:
         """Global node ids - sorted by earliest occurrence."""
-        _, idx = np.unique(self.faces.flatten(), return_index=True)
-        node_ids = self.faces.flatten()[np.sort(idx)]
+        _, idx = np.unique(self.triangles.flatten(), return_index=True)
+        node_ids = self.triangles.flatten()[np.sort(idx)]
         return node_ids
 
     @property
@@ -436,11 +438,11 @@ class SurfaceMesh(Feature):
 
     def compute_centroid(self) -> np.ndarray:
         """Compute the centroid of the surface."""
-        return np.mean(self.nodes[np.unique(self.faces), :], axis=0)
+        return np.mean(self.nodes[np.unique(self.triangles), :], axis=0)
 
     def compute_bounding_box(self) -> Tuple[np.ndarray, float]:
         """Compute the bounding box of the surface."""
-        node_ids = np.unique(self.faces)
+        node_ids = np.unique(self.triangles)
         nodes = self.nodes[node_ids, :]
         dim = nodes.shape[1]
         bounding_box = np.zeros((2, dim))
@@ -453,7 +455,7 @@ class SurfaceMesh(Feature):
         """Get boundary edges (if any) of the surface and groups them by connectivity."""
         write_vtk = False
 
-        self.boundary_edges = connect.get_free_edges(self.faces)
+        self.boundary_edges = connect.get_free_edges(self.triangles)
         edge_groups, group_types = connect.edge_connectivity(
             self.boundary_edges, return_type=True, sort_closed=True
         )
@@ -473,7 +475,7 @@ class SurfaceMesh(Feature):
 
     def separate_connected_regions(self):
         """Use vtk to get connected regions and separate into different surfaces."""
-        region_ids = vtkmethods.get_connected_regions(self.nodes, self.faces)
+        region_ids = vtkmethods.get_connected_regions(self.nodes, self.triangles)
 
         return region_ids
 
@@ -523,7 +525,7 @@ class SurfaceMesh(Feature):
         if filename[-4:] != ".stl":
             filename = filename + ".stl"
 
-        vtk_surface = vtkmethods.create_vtk_surface_triangles(self.nodes, self.faces)
+        vtk_surface = vtkmethods.create_vtk_surface_triangles(self.nodes, self.triangles)
         vtkmethods.vtk_surface_to_stl(vtk_surface, filename, self.name)
         return
 
@@ -553,7 +555,7 @@ class SurfaceMesh(Feature):
         pv.PolyData
             pyvista PolyData object
         """
-        faces = np.hstack([np.ones((self.faces.shape[0], 1), dtype=int) * 3, self.faces])
+        faces = np.hstack([np.ones((self.triangles.shape[0], 1), dtype=int) * 3, self.triangles])
         nodes = self.nodes
         faces = np.reshape(faces, (faces.size))
         polydata = pv.PolyData(nodes, faces)
@@ -567,22 +569,22 @@ class SurfaceMesh(Feature):
 
         return polydata
 
-    def plot(self, show_edges: bool = True):
-        """Plot the surface mesh with PyVista.
+    # def plot(self, show_edges: bool = True):
+    #     """Plot the surface mesh with PyVista.
 
-        Parameters
-        ----------
-        show_edges : bool, optional
-            Show edges of the mesh, by default True
-        """
-        surf = self._to_pyvista_object()
-        surf.plot(
-            cpos=[-1, 1, 0.5],
-            show_scalar_bar=False,
-            show_edges=show_edges,
-            line_width=2,
-        )
-        return
+    #     Parameters
+    #     ----------
+    #     show_edges : bool, optional
+    #         Show edges of the mesh, by default True
+    #     """
+    #     surf = self._to_pyvista_object()
+    #     surf.plot(
+    #         cpos=[-1, 1, 0.5],
+    #         show_scalar_bar=False,
+    #         show_edges=show_edges,
+    #         line_width=2,
+    #     )
+    #     return
 
 
 class Cavity(Feature):
@@ -617,7 +619,7 @@ class Cavity(Feature):
 
     def compute_centroid(self):
         """Compute the centroid of the cavity."""
-        self.centroid = np.mean(self.surface.nodes[np.unique(self.surface.faces), :], axis=0)
+        self.centroid = np.mean(self.surface.nodes[np.unique(self.surface.triangles), :], axis=0)
         return self.centroid
 
 

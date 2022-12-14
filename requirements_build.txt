@@ -10,3 +10,4 @@ vtk>=9.1.0
 tqdm==4.64.0
 wget==3.2
 validators==0.20.0
+pyvista==0.37.0

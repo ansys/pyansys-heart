@@ -301,17 +301,19 @@ class Mesh:
         points = self.nodes
         grid = pv.UnstructuredGrid(cells, celltypes, points)
         # add cell and point data
-        for key, value in self.cell_data.items():
-            if value.size == value.shape[0]:
-                grid.cell_data.set_scalars(name=key, scalars=value)
-            elif len(value.shape) > 1:
-                grid.cell_data.set_vectors(name=key, vectors=value)
+        if self.cell_data:
+            for key, value in self.cell_data.items():
+                if value.size == value.shape[0]:
+                    grid.cell_data.set_scalars(name=key, scalars=value)
+                elif len(value.shape) > 1:
+                    grid.cell_data.set_vectors(name=key, vectors=value)
 
-        for key, value in self.point_data.items():
-            if value.size == value.shape[0]:
-                grid.point_data.set_array(name=key, data=value)
-            elif len(value.shape) > 1:
-                grid.point_data.set_vectors(name=key, vectors=value)
+        if self.point_data:
+            for key, value in self.point_data.items():
+                if value.size == value.shape[0]:
+                    grid.point_data.set_array(name=key, data=value)
+                elif len(value.shape) > 1:
+                    grid.point_data.set_vectors(name=key, vectors=value)
 
         return grid
 
@@ -360,6 +362,33 @@ class EdgeGroup:
 class SurfaceMesh(Feature):
     """Surface class."""
 
+    @property
+    def nodes(self):
+        """Node coordinates."""
+        return self._pv_polydata.points
+
+    @nodes.setter
+    def nodes(self, value: np.ndarray):
+        try:
+            self._pv_polydata.points = value
+        except:
+            return
+
+    @property
+    def faces(self):
+        """Triangular faces of the surface num_faces x 3."""
+        faces = np.reshape(self._pv_polydata.faces, (self._pv_polydata.n_cells, 3 + 1))[:, 1:]
+        return faces
+
+    @faces.setter
+    def faces(self, value: np.ndarray):
+        try:
+            num_faces = value.shape[0]
+            faces = np.hstack([np.full((num_faces, 1), 3, dtype=np.int8), value])
+            self._pv_polydata.faces = faces
+        except:
+            return
+
     def __init__(
         self,
         name: str = None,
@@ -369,10 +398,6 @@ class SurfaceMesh(Feature):
     ) -> None:
         super().__init__(name)
 
-        self.faces = faces
-        """Faces of surface."""
-        self.nodes = copy.copy(nodes)  # shallow copy?
-        """Node coordinates."""
         self.type = "surface"
         """Surface type."""
         self.boundary_edges: np.ndarray = np.empty((0, 2), dtype=int)
@@ -387,6 +412,13 @@ class SurfaceMesh(Feature):
         """Data associated with each face/cell of surface."""
         self.point_data: dict = {}
         """Data associated with each point on surface."""
+        self._pv_polydata: pv.PolyData = pv.PolyData()
+        """Pyvista representation of the surface mesh."""
+
+        self.faces = faces
+        """Triangular faces of the surface num_faces x 3."""
+        self.nodes = nodes
+        """Node coordinates."""
 
     @property
     def node_ids(self) -> np.ndarray:

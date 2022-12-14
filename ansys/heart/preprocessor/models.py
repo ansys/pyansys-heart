@@ -782,30 +782,21 @@ class HeartModel:
         """Compute and add nodal areas to surface nodes."""
         LOGGER.debug("Adding nodal areas")
         for surface in self.mesh.boundaries:
-            vtk_surface = vtkmethods.create_vtk_surface_triangles(
-                points=surface.nodes, triangles=surface.triangles
-            )
-            surface.point_data["nodal_areas"] = vtkmethods.compute_surface_nodal_area(vtk_surface)
+            nodal_areas = vtkmethods.compute_surface_nodal_area_pyvista(surface)
+            surface.point_data["nodal_areas"] = nodal_areas
 
         # compute nodal areas for explicitly named surfaces
         for part in self.parts:
             for surface in part.surfaces:
-                vtk_surface = vtkmethods.create_vtk_surface_triangles(
-                    points=surface.nodes, triangles=surface.triangles
-                )
-                surface.point_data["nodal_areas"] = vtkmethods.compute_surface_nodal_area(
-                    vtk_surface
-                )
+                nodal_areas = vtkmethods.compute_surface_nodal_area_pyvista(surface)
+                surface.point_data["nodal_areas"] = nodal_areas
 
         # add nodal areas to volume mesh. Note that nodes can be part of
         # multiple surfaces - so we need to perform a summation.
         # interior nodes will have an area of 0.
         self.mesh.point_data["nodal_areas"] = np.zeros(self.mesh.nodes.shape[0])
         for surface in self.mesh.boundaries:
-            self.mesh.point_data["nodal_areas"][surface.node_ids] = (
-                self.mesh.point_data["nodal_areas"][surface.node_ids]
-                + surface.point_data["nodal_areas"]
-            )
+            self.mesh.point_data["nodal_areas"] += surface.point_data["nodal_areas"]
         # self.mesh.write_to_vtk(os.path.join(self.info.workdir, "volume_nodal_areas.vtk"))
         return
 
@@ -814,13 +805,9 @@ class HeartModel:
         LOGGER.debug("Adding normals to all 'named' surfaces")
         for part in self.parts:
             for surface in part.surfaces:
-                vtk_surface = vtkmethods.create_vtk_surface_triangles(
-                    points=surface.nodes, triangles=surface.triangles
-                )
-                (
-                    surface.cell_data["normals"],
-                    surface.point_data["normals"],
-                ) = vtkmethods.add_normals_to_polydata(vtk_surface, return_normals=True)
+                surface_with_normals = surface.compute_normals(cell_normals=True, point_normals=True)
+                surface.cell_data["normals"] = surface_with_normals.cell_data["Normals"]
+                surface.point_data["normals"] = surface_with_normals.point_data["Normals"]
 
         return
 

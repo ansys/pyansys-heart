@@ -556,7 +556,16 @@ class SurfaceMesh(Feature):
         faces = np.hstack([np.ones((self.faces.shape[0], 1), dtype=int) * 3, self.faces])
         nodes = self.nodes
         faces = np.reshape(faces, (faces.size))
-        return pv.PolyData(nodes, faces)
+        polydata = pv.PolyData(nodes, faces)
+        if self.cell_data:
+            for key, value in self.cell_data.items():
+                polydata.cell_data[key] = value
+
+        if self.point_data:
+            for key, value in self.point_data.items():
+                polydata.point_data[key] = value
+
+        return polydata
 
     def plot(self, show_edges: bool = True):
         """Plot the surface mesh with PyVista.

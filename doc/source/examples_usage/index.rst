@@ -21,6 +21,30 @@ The user can easily visualize the model or parts of the model
     # plot just the endocardium
     model.left_ventricle.endocardium.plot()
 
+.. jupyter-execute::
+   :hide-code:
+
+   import pyvista
+   pyvista.set_jupyter_backend('pythreejs')
+   pyvista.global_theme.background = 'white'
+   pyvista.global_theme.window_size = [600, 400]
+   pyvista.global_theme.axes.show = False
+   pyvista.global_theme.smooth_shading = True
+   pyvista.global_theme.anti_aliasing = 'fxaa'
+
+
+Here, we download the `Stanford dragon mesh
+<http://graphics.stanford.edu/data/3Dscanrep/>`_, color it according
+to height, and plot it using a web-viewer.  This same example will run
+identically locally.
+
+.. jupyter-execute::
+
+    >>> from pyvista import examples
+    >>> mesh = examples.download_dragon()
+    >>> mesh['scalars'] = mesh.points[:, 1]
+    >>> mesh.plot(cpos='xy', cmap='plasma', pbr=True, metallic=1.0, roughness=0.6, zoom=1.7)
+
 Pre-process data for heart simulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

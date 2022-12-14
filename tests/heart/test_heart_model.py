@@ -113,6 +113,30 @@ def test_dump_model_003():
     assert os.path.isfile(expected_path)
 
 
+def test_dump_read_model_004():
+    """Test dumping and reading of model with data."""
+    info = _get_test_model_info()
+    info.workdir = get_workdir()
+    create_directory(info.workdir)
+    model = models.BiVentricle(info)
+    model.info.path_to_model = os.path.join(model.info.workdir, "heart_model.pickle")
+    model.left_ventricle.endocardium.triangles = np.array([[0, 1, 2]], dtype=int)
+    model.left_ventricle.endocardium.nodes = np.eye(3, 3, dtype=float)
+    model.dump_model(remove_raw_mesh=False)
+
+    assert os.path.isfile(model.info.path_to_model)
+
+    model_loaded: models.BiVentricle = models.HeartModel.load_model(model.info.path_to_model)
+    assert np.array_equal(
+        model_loaded.left_ventricle.endocardium.triangles,
+        model.left_ventricle.endocardium.triangles,
+    )
+    assert np.array_equal(
+        model_loaded.left_ventricle.endocardium.nodes,
+        model.left_ventricle.endocardium.nodes,
+    )
+
+
 def test_model_load():
     """Test loading model from pickle."""
     model: models.BiVentricle = _get_test_model(models.BiVentricle)

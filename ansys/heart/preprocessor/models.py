@@ -393,8 +393,14 @@ class HeartModel:
 
         """
         # NOTE:
+        import vtk
+
+        # to supress vtk errors
+        vtk_logger = vtk.vtkLogger
+        vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_OFF)
         with open(filename, "rb") as file:
             model = pickle.load(file)
+        vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_1)
         return model
 
     def _set_default_mesh_size(self) -> None:
@@ -805,7 +811,9 @@ class HeartModel:
         LOGGER.debug("Adding normals to all 'named' surfaces")
         for part in self.parts:
             for surface in part.surfaces:
-                surface_with_normals = surface.compute_normals(cell_normals=True, point_normals=True)
+                surface_with_normals = surface.compute_normals(
+                    cell_normals=True, point_normals=True
+                )
                 surface.cell_data["normals"] = surface_with_normals.cell_data["Normals"]
                 surface.point_data["normals"] = surface_with_normals.point_data["Normals"]
 

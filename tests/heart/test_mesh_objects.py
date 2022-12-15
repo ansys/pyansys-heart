@@ -64,8 +64,7 @@ def test_surfacemesh_object_assign_001():
 
 def test_mesh_object_read_001():
     """Test if strocchi's case is properly read."""
-    case_file = os.path.join(get_assets_folder(), "cases", "strocchi2020", "01", "01.case")
-    case_file = download_asset(database="Strocchi2021", casenumber=1)
+    case_file = download_asset(database="Strocchi2020", casenumber=1)
     mesh = Mesh()
     mesh.read_mesh_file(case_file)
 
@@ -83,5 +82,6 @@ def test_mesh_object_read_002():
     mesh.read_mesh_file_rodero2021(case_file)
     assert mesh.n_cells == 2477866
     assert mesh.n_points == 493151
+    assert "tags" in mesh.array_names
 
     return

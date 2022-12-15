@@ -45,7 +45,7 @@ def download_asset(database: str = "Strocchi2020", casenumber: int = 1) -> pathl
             download_dir, database, f"{casenumber:02d}", f"{casenumber:02d}.vtk"
         )
         if database == "Strocchi2020":
-            path_to_case.replace(".vtk", ".case")
+            path_to_case = path_to_case.replace(".vtk", ".case")
 
     if not os.path.isfile(path_to_case):
         print("Downloading asset.")

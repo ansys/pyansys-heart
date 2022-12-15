@@ -58,8 +58,10 @@ if __name__ == "__main__":
             os.path.join(workdir, "fibergeneration_calibration", "element_solid_ortho.k"),
             os.path.join(workdir, "zeropressuremechanics_calibration", "solid_elements.k"),
         )
+
         # create calibration directory
         PassiveCalibration(
             os.path.join(workdir, "zeropressuremechanics_calibration")
         ).create_calibration_folder()
+
         # run lsopt.exe PassiveCalibration.lsopt

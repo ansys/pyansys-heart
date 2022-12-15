@@ -555,6 +555,7 @@ class SurfaceMesh(pv.PolyData, Feature):
         pv.PolyData
             pyvista PolyData object
         """
+        DeprecationWarning("_to_pyvista_object is deprecated.")
         faces = np.hstack([np.ones((self.triangles.shape[0], 1), dtype=int) * 3, self.triangles])
         nodes = self.nodes
         faces = np.reshape(faces, (faces.size))
@@ -568,23 +569,6 @@ class SurfaceMesh(pv.PolyData, Feature):
                 polydata.point_data[key] = value
 
         return polydata
-
-    # def plot(self, show_edges: bool = True):
-    #     """Plot the surface mesh with PyVista.
-
-    #     Parameters
-    #     ----------
-    #     show_edges : bool, optional
-    #         Show edges of the mesh, by default True
-    #     """
-    #     surf = self._to_pyvista_object()
-    #     surf.plot(
-    #         cpos=[-1, 1, 0.5],
-    #         show_scalar_bar=False,
-    #         show_edges=show_edges,
-    #         line_width=2,
-    #     )
-    #     return
 
 
 class Cavity(Feature):
@@ -609,13 +593,7 @@ class Cavity(Feature):
         - Writes stl and computes volume from stl
         - Assumes normals are pointing inwards
         """
-        import uuid
-
-        stlname = "cavity_{}.stl".format(uuid.uuid1())
-        self.surface.write_to_stl(stlname)
-        self.volume = vtkmethods.compute_volume_stl(stlname)
-        os.remove(stlname)
-        return self.volume
+        return self.surface.volume
 
     def compute_centroid(self):
         """Compute the centroid of the cavity."""

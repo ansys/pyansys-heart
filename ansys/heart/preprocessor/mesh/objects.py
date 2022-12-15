@@ -311,17 +311,7 @@ class Mesh:
         purkinje.pid = pid
 
         self.beam_network.append(purkinje)
-
-        origin_coordinates= self.nodes[purkinje.node_ids[0],:]
-
-        # TODO put this in writer
-        for boundary in self.boundaries:
-            if boundary.name != None and "endocardium" in boundary.name:
-                distance = np.linalg.norm(origin_coordinates-boundary.nodes,axis=1)
-                if np.min(distance)<1:
-                    purkinje.name = boundary.name+"-"+"purkinje"
-                    purkinje.nsid=boundary.nsid
-
+        
 class Feature:
     """Feature class."""
 

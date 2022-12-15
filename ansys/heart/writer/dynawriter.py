@@ -2340,6 +2340,45 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                 )
                 self.model.left_ventricle.apex_points[0].node_id = node_apex_left
 
+                node_set_id_apex_left = self.get_unique_nodeset_id()
+                # create node-sets for apex
+                node_set_apex_kw = create_node_set_keyword(
+                    node_ids=[node_apex_left + 1],
+                    node_set_id=node_set_id_apex_left,
+                    title="apex node left",
+                )
+
+                self.kw_database.node_sets.append(node_set_apex_kw)
+
+                apex_left_coordinates = self.model.mesh.nodes[node_apex_left, :]
+
+                node_id_start_left = (
+                    self.model.mesh.nodes.shape[0] + 1
+                )  
+
+                edge_id_start_left = self.model.mesh.tetrahedrons.shape[0] + 1
+
+                pid = self.get_unique_part_id()
+                # Purkinje generation parameters
+                self.kw_database.main.append(
+                    custom_keywords.EmEpPurkinjeNetwork2(
+                        purkid=1,
+                        buildnet=1,
+                        ssid=segment_set_ids_endo_left,
+                        mid=pid,
+                        pointstx=apex_left_coordinates[0],
+                        pointsty=apex_left_coordinates[1],
+                        pointstz=apex_left_coordinates[2],
+                        edgelen=2,
+                        ngen=50,
+                        nbrinit=8,
+                        nsplit=2,
+                        inodeid=node_id_start_left,
+                        iedgeid=edge_id_start_left,  # TODO check if beam elements exist in mesh
+                    )
+                )
+
+        # Add right purkinje only in biventricular or 4chamber models
         if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             node_apex_right = self.model.right_ventricle.apex_points[0].node_id
             segment_set_ids_endo_right = self.model.right_ventricle.endocardium.id
@@ -2368,64 +2407,6 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                     )
                 )
                 self.model.right_ventricle.apex_points[0].node_id = node_apex_right
-
-        # check whether apical points are on the endge of the endocardium
-
-        # NOTE: is this still relevant applicable with the new structure?
-        # NOTE: validate node set by removing any nodes that do not occur in either ventricle
-        # tet_ids_ventricles = np.empty((0), dtype=int)
-        # for cavity in self.model._mesh._cavities:
-        #     for element_set in cavity.element_sets:
-        #         if "ventricle" in cavity.name:
-        #             tet_ids_ventricles = np.append(tet_ids_ventricles, element_set["set"])
-        # tetra_ventricles = self.volume_mesh["tetra"][tet_ids_ventricles, :]
-
-        # # remove nodes that occur just in atrial part
-        # mask = np.isin(nodes_base, tetra_ventricles, invert=True)
-        # LOGGER.debug("Removing {0} nodes from base nodes".format(np.sum(mask)))
-        # nodes_base = nodes_base[np.invert(mask)]
-
-        node_set_id_apex_left = self.get_unique_nodeset_id()
-        # create node-sets for apex
-        node_set_apex_kw = create_node_set_keyword(
-            node_ids=[node_apex_left + 1],
-            node_set_id=node_set_id_apex_left,
-            title="apex node left",
-        )
-
-        self.kw_database.node_sets.append(node_set_apex_kw)
-
-        apex_left_coordinates = self.model.mesh.nodes[node_apex_left, :]
-
-        node_id_start_left = (
-            self.model.mesh.nodes.shape[0] + 1
-        )  # TODO seek for max id rather than number of rows
-
-        edge_id_start_left = self.model.mesh.tetrahedrons.shape[0] + 1
-
-        pid = self.get_unique_part_id()
-        # Purkinje generation parameters
-        self.kw_database.main.append(
-            custom_keywords.EmEpPurkinjeNetwork2(
-                purkid=1,
-                buildnet=1,
-                ssid=segment_set_ids_endo_left,
-                mid=pid,
-                pointstx=apex_left_coordinates[0],
-                pointsty=apex_left_coordinates[1],
-                pointstz=apex_left_coordinates[2],
-                edgelen=2,
-                ngen=50,
-                nbrinit=8,
-                nsplit=2,
-                inodeid=node_id_start_left,
-                iedgeid=edge_id_start_left,  # TODO check if beam elements exist in mesh
-            )
-        )
-
-        # Add right purkinje only in biventricular or 4chamber models
-        if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-            LOGGER.warning("Model type %s in development " % self.model.info.model_type)
 
             node_set_id_apex_right = self.get_unique_nodeset_id()
             # create node-sets for apex
@@ -2768,7 +2749,17 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         return
 
     def _update_main_db(self):
-
+        if self.model.mesh.beam_network:
+            for network in self.model.mesh.beam_network:
+                origin_coordinates= self.model.mesh.nodes[network.node_ids[0],:]
+                for boundary in self.model.mesh.boundaries:
+                    if boundary.name != None and "endocardium" in boundary.name:
+                        distance = np.linalg.norm(origin_coordinates-self.model.mesh.nodes[boundary.node_ids,:],axis=1)
+                        if np.min(distance)<1e-3:
+                            network.name = boundary.name+"-"+"purkinje"
+                            network.nsid=boundary.nsid
+                
+                
         return
 
     def _get_list_of_includes(self):

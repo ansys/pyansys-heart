@@ -22,7 +22,7 @@ class EmEpPurkinjeNetwork2(KeywordBase):
                     Field("mid", int, 30, 10, kwargs.get("mid")),
                     Field("nodestart", float, 40, 10, kwargs.get("nodestart")),
                     Field("pointstx", float, 50, 10, kwargs.get("pointstx")),
-                    Field("pointsty", int, 60, 10, kwargs.get("pointsty")),
+                    Field("pointsty", float, 60, 10, kwargs.get("pointsty")),
                     Field("pointstz", float, 70, 10, kwargs.get("pointstz")),
                 ],
             ),
@@ -102,12 +102,12 @@ class EmEpPurkinjeNetwork2(KeywordBase):
         self._cards[0].set_value("pointsty", value)
 
     @property
-    def pointstz(self) -> typing.Optional[int]:
+    def pointstz(self) -> typing.Optional[float]:
         """Get or set the Z coordinate of the tree origin"""  # nopep8
         return self._cards[0].get_value("pointstz")
 
     @pointstz.setter
-    def pointstz(self, value: int) -> None:
+    def pointstz(self, value: float) -> None:
         self._cards[0].set_value("pointstz", value)
 
     @property

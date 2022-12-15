@@ -269,7 +269,7 @@ class HeartModel:
             if part.cavity:
                 LOGGER.info(
                     "\tcavity: {:} | volume: {:.1f} [mm3]".format(
-                        part.cavity.name, part.cavity.volume
+                        part.cavity.name, part.cavity.surface.volume
                     )
                 )
             LOGGER.info("-----------------------------------------")
@@ -317,7 +317,7 @@ class HeartModel:
             self.mesh_raw = None
 
         with open(filename, "wb") as file:
-            pickle.dump(self, file)
+            pickle.dump(self, file)     
         self.info.dump_info()
         return
 

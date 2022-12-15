@@ -22,24 +22,57 @@ except (ImportError):
     LOGGER.warning("Importing pyvista failed. Install with: pip install pyvista")
 
 
-class Mesh:
-    """Mesh class: contains nodal coordinates and element definitions.
+class Mesh(pv.UnstructuredGrid):
+    """Mesh class: inherits from pyvista UnstructuredGrid.
 
     Notes
     -----
     Only tetrahedrons are supported.
+    Additional attributes are added on top of the pyvista UnstructuredGrid class
     """
 
-    def __init__(self) -> None:
-        self.tetrahedrons: np.ndarray = None
-        """Tetrahedral volume elements of the mesh."""
-        self.nodes: np.ndarray = None
-        """Nodes of the mesh."""
-        self.cell_data: dict = None
-        """Data per mesh cell/element."""
-        self.point_data: dict = None
-        """Data per mesh point."""
-        self.faces: np.ndarray = None
+    @property
+    def nodes(self):
+        """Node coordinates."""
+        return np.array(self.points)
+
+    @nodes.setter
+    def nodes(self, array: np.ndarray):
+        try:
+            self.points = array
+        except:
+            LOGGER.warning("Failed to set nodes.")
+            return
+
+    @property
+    def tetrahedrons(self):
+        """Tetrahedrons num_tetra x 4."""
+        return self.cells_dict[pv.CellType.TETRA]
+
+    @tetrahedrons.setter
+    def tetrahedrons(self, value: np.ndarray):
+        # sets tetrahedrons of UnstructuredGrid
+        try:
+            points = self.points
+            celltypes = np.full(value.shape[0], pv.CellType.TETRA, dtype=np.int8)
+            tetra = np.hstack([np.full(len(celltypes), 4)[:, None], value])
+            super().__init__(tetra, celltypes, points)
+        except:
+            LOGGER.warning("Failed to set tetrahedrons.")
+            return
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+        # self.tetrahedrons: np.ndarray = None
+        # """Tetrahedral volume elements of the mesh."""
+        # self.nodes: np.ndarray = None
+        # """Nodes of the mesh."""
+        # self.cell_data: dict = None
+        # """Data per mesh cell/element."""
+        # self.point_data: dict = None
+        # """Data per mesh point."""
+        self.triangles: np.ndarray = None
         """Faces that make up the tetrahedrons."""
         self.face_types: np.ndarray = None
         """Type of face: 1: interior face, 2: boundary face, 3: interface face."""
@@ -75,50 +108,58 @@ class Mesh:
 
     def read_mesh_file(self, filename: pathlib.Path) -> None:
         """Read mesh file."""
-        mesh_vtk = vtkmethods.vtk_read_mesh_file(filename)
-        (
-            self.nodes,
-            self.tetrahedrons,
-            self.cell_data,
-            self.point_data,
-        ) = vtkmethods.get_tetra_info_from_unstructgrid(mesh_vtk, get_all_data=True)
+        mesh = pv.read(filename)
+        # .case gives multiblock
+        if isinstance(mesh, pv.MultiBlock):
+            mesh: pv.UnstructuredGrid = mesh.GetBlock(0)
 
-        return None
+        if not isinstance(mesh, pv.UnstructuredGrid):
+            LOGGER.warning("Failed to read mesh file. Expecting .vtk unstructured grid or .case")
+            return
+
+        self.points = mesh.points
+        self.tetrahedrons = mesh.cells_dict[pv.CellType.TETRA]
+        for key, value in mesh.cell_data.items():
+            self.cell_data[key] = mesh.cell_data[key]
+        for key, value in mesh.point_data.items():
+            self.point_data[key] = mesh.point_data[key]
+
+        return
 
     def read_mesh_file_rodero2021(self, filename: pathlib.Path) -> None:
         """Read mesh file - but modifies the fields to match data of Strocchi 2020."""
-        mesh_vtk = vtkmethods.vtk_read_mesh_file(filename)
+        mesh = pv.read(filename)
+        # .case gives multiblock
+        if isinstance(mesh, pv.MultiBlock):
+            mesh: pv.UnstructuredGrid = mesh.GetBlock(0)
+
+        if not isinstance(mesh, pv.UnstructuredGrid):
+            LOGGER.warning("Failed to read mesh file. Expecting .vtk unstructured grid or .case")
+            return
+
         name_array_mapping = [
-            ["tags", "ID", "cell_data"],
-            ["fiber", "fibres", "cell_data"],
-            ["sheet", "sheets", "cell_data"],
-            ["uvc_longitudinal", "Z.dat", "point_data"],
-            ["uvc_rotational", "PHI.dat", "point_data"],
-            ["uvc_transmural", "RHO.dat", "point_data"],
-            ["uvc_intraventricular", "V.dat", "point_data"],
+            ["tags", "ID", "cell"],
+            ["fiber", "fibres", "cell"],
+            ["sheet", "sheets", "cell"],
+            ["uvc_longitudinal", "Z.dat", "point"],
+            ["uvc_rotational", "PHI.dat", "point"],
+            ["uvc_transmural", "RHO.dat", "point"],
+            ["uvc_intraventricular", "V.dat", "point"],
         ]
 
+        # rename tags in cristobal
         for item in name_array_mapping:
-            mesh_vtk = vtkmethods.rename_vtk_array(
-                mesh_vtk,
-                new_array_name=item[0],
-                old_array_name=item[1],
-                data_type=item[2],
-            )
+            mesh.rename_array(item[1], item[0], item[2])
 
-        (
-            self.nodes,
-            self.tetrahedrons,
-            self.cell_data,
-            self.point_data,
-        ) = vtkmethods.get_tetra_info_from_unstructgrid(mesh_vtk, get_all_data=True)
+        self.points = mesh.points
+        self.tetrahedrons = mesh.cells_dict[pv.CellType.TETRA]
+        for key, value in mesh.cell_data.items():
+            self.cell_data[key] = mesh.cell_data[key]
+        for key, value in mesh.point_data.items():
+            self.point_data[key] = mesh.point_data[key]
 
-        # convert tags into float
-        for key, value in self.cell_data.items():
-            if key == "tags":
-                if np.issubdtype(self.cell_data[key].dtype, np.integer):
-                    LOGGER.debug("Converting cell data '{0}' into floats".format(key))
-                    self.cell_data[key] = np.array(self.cell_data[key], dtype=float)
+        if np.issubdtype(self.cell_data["tags"].dtype, np.integer):
+            self.cell_data["tags"] = np.array(self.cell_data["tags"], dtype=float)
 
         return None
 
@@ -161,12 +202,12 @@ class Mesh:
 
     def establish_connectivity(self) -> None:
         """Establish the connetivity of the tetrahedrons."""
-        self.faces, self.conn["c0"], self.conn["c1"] = connect.face_tetra_connectivity(
+        self.triangles, self.conn["c0"], self.conn["c1"] = connect.face_tetra_connectivity(
             self.tetrahedrons
         )
         # get the face types
         c0c1_matrix = np.array([self.conn["c0"], self.conn["c1"]]).transpose()
-        self.face_types = connect.get_face_type(self.faces, c0c1_matrix)
+        self.face_types = connect.get_face_type(self.triangles, c0c1_matrix)
 
         return
 
@@ -240,7 +281,7 @@ class Mesh:
             )
             pair_mask = np.all(np.array([part_mask1, part_mask2]), axis=0)
 
-            faces = self.faces[pair_mask, :]
+            faces = self.triangles[pair_mask, :]
             # NOTE: Nodes are shallow copied
             self.interfaces.append(SurfaceMesh(name, faces, self.nodes))
 
@@ -264,7 +305,7 @@ class Mesh:
                 np.array([part_ids[c0] == part_id, part_ids[c1] == part_id, self.face_types == 2]),
                 axis=0,
             )
-            boundary_faces = self.faces[boundary_mask, :]
+            boundary_faces = self.triangles[boundary_mask, :]
             self.boundaries.append(SurfaceMesh(boundary_names[ii], boundary_faces, self.nodes))
 
         return

@@ -2403,13 +2403,14 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
 
         edge_id_start_left = self.model.mesh.tetrahedrons.shape[0] + 1
 
+        pid = self.get_unique_part_id()
         # Purkinje generation parameters
-        self.kw_database.main_left_ventricle.append(
-            custom_keywords.EmEpPurkinjeNetwork(
+        self.kw_database.main.append(
+            custom_keywords.EmEpPurkinjeNetwork2(
                 purkid=1,
                 buildnet=1,
                 ssid=segment_set_ids_endo_left,
-                mid=25,
+                mid=pid,
                 pointstx=apex_left_coordinates[0],
                 pointsty=apex_left_coordinates[1],
                 pointstz=apex_left_coordinates[2],
@@ -2443,14 +2444,14 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
             )  # TODO find a solution in dyna to better handle id definition
 
             edge_id_start_right = 2 * self.model.mesh.tetrahedrons.shape[0]
-
+            pid = self.get_unique_part_id()+1
             # Purkinje generation parameters
-            self.kw_database.main_right_ventricle.append(
-                custom_keywords.EmEpPurkinjeNetwork(
+            self.kw_database.main.append(
+                custom_keywords.EmEpPurkinjeNetwork2(
                     purkid=2,
                     buildnet=1,
                     ssid=segment_set_ids_endo_right,
-                    mid=26,
+                    mid=pid,
                     pointstx=apex_right_coordinates[0],
                     pointsty=apex_right_coordinates[1],
                     pointstz=apex_right_coordinates[2],
@@ -2470,7 +2471,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
     def _get_list_of_includes(self):
         """Get a list of files to include in main.k. Omit any empty decks."""
         for deckname, deck in vars(self.kw_database).items():
-            if deckname == "main_left_ventricle" or deckname == "main_right_ventricle":
+            if deckname == "main":
                 continue
             # skip if no keywords are present in the deck
             if len(deck.keywords) == 0:
@@ -2483,16 +2484,12 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         """Add *INCLUDE keywords."""
         for include_file in self.include_files:
             filename_to_include = include_file + ".k"
-            self.kw_database.main_left_ventricle.append(
+            self.kw_database.main.append(
                 keywords.Include(filename=filename_to_include)
             )
-            self.kw_database.main_right_ventricle.append(
-                keywords.Include(filename=filename_to_include)
-            )
-
 
 class ElectrophysiologyDynaWriter(BaseDynaWriter):
-    """Class for preparing the input for a Electrophysiology LS-DYNA simulation."""
+    """Class for preparing the input for an Electrophysiology LS-DYNA simulation."""
 
     def __init__(self, model: HeartModel) -> None:
         super().__init__(model)
@@ -2570,7 +2567,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
 
     def _update_cellmodels(self):
-        """Add simple linear elastic material for each defined part."""
+        """Add cell model for each defined part."""
         for part in self.model.parts:
             ep_mid = part.pid
             cell_kw = keywords.EmEpCellmodelTentusscher(

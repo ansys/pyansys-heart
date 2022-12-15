@@ -10,7 +10,15 @@ from typing import List, Union
 from ansys.heart.custom_logging import LOGGER
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher
-from ansys.heart.preprocessor.mesh.objects import Cap, Cavity, Mesh, Part, Point, SurfaceMesh
+from ansys.heart.preprocessor.mesh.objects import (
+    BeamMesh,
+    Cap,
+    Cavity,
+    Mesh,
+    Part,
+    Point,
+    SurfaceMesh,
+)
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.model_definitions import HEART_PARTS, LABELS_TO_ID
 import numpy as np

@@ -7,6 +7,7 @@ from .keywords.em_ep_createfiberorientation import EmEpCreatefiberorientation
 from .keywords.em_ep_ecg import EmEpEcg
 from .keywords.em_ep_fiberinitial import EmEpFiberinitial
 from .keywords.em_ep_purkinje_network import EmEpPurkinjeNetwork
+from .keywords.em_ep_purkinje_network2 import EmEpPurkinjeNetwork2
 from .keywords.em_ep_tentusscher_stimulus2 import EmEpTentusscherStimulus2
 from .keywords.em_ep_tentusscher_stimulus import EmEpTentusscherStimulus
 from .keywords.em_mat_003 import EmMat003

@@ -49,8 +49,7 @@ class PurkinjeGenerationDecks(BaseDecks):
 
     def __init__(self) -> None:
         super().__init__()
-        self.main_left_ventricle = Deck()
-        self.main_right_ventricle = Deck()
+        self.main = Deck()
         self.ep_settings = Deck()
 
 

@@ -165,27 +165,7 @@ class Mesh(pv.UnstructuredGrid):
 
     def write_to_vtk(self, filename: pathlib.Path) -> None:
         """Write mesh to VTK file."""
-        if self.cell_data != None:
-            if not isinstance(self.cell_data, dict):
-                raise ValueError("Expecting cell data to be a dictionary")
-
-        if self.point_data:
-            if not isinstance(self.point_data, dict):
-                raise ValueError("Expecting point data to be dictionary")
-
-        if isinstance(self.cell_data, dict):
-            cell_data = {}
-            for key, value in self.cell_data.items():
-                cell_data[key] = [self.cell_data[key]]
-        else:
-            cell_data = None
-
-        mesh = meshio.Mesh(self.nodes, [("tetra", self.tetrahedrons)], self.point_data, cell_data)
-
-        if filename[-4:] != ".vtk":
-            filename = filename + ".vtk"
-
-        mesh.write(filename)
+        self.save(filename)
         return
 
     def keep_elements_with_value(

@@ -63,10 +63,10 @@ jobs:
         run: |
           python -m pytest tests/heart/test_biventricle_mesh_extraction.py
 
-      - name: Test biventricle model generation 2
-        continue-on-error: false
-        run: |
-          python -m pytest tests/heart/test_biventricle_mesh_extraction_with_bloodpool.py
+      # - name: Test biventricle model generation 2
+      #   continue-on-error: false
+      #   run: |
+      #     python -m pytest tests/heart/test_biventricle_mesh_extraction_with_bloodpool.py
 
       - name: Test full heart model generation
         continue-on-error: false

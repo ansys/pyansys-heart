@@ -395,7 +395,7 @@ class HeartModel:
         # NOTE:
         import vtk
 
-        # to supress vtk errors
+        # to suppress vtk errors
         vtk_logger = vtk.vtkLogger
         vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_OFF)
         with open(filename, "rb") as file:

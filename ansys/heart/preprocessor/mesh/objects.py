@@ -5,7 +5,6 @@ Such as a Mesh object, Part object, Features, etc.
 
 """
 import copy
-import os
 import pathlib
 from typing import List, Optional, Tuple, Union
 
@@ -13,7 +12,6 @@ from ansys.heart.custom_logging import LOGGER
 import ansys.heart.preprocessor.mesh.connectivity as connect
 import ansys.heart.preprocessor.mesh.geodisc as geodisc
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-import meshio
 import numpy as np
 
 try:

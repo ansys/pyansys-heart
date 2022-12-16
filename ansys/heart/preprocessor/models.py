@@ -317,7 +317,7 @@ class HeartModel:
             self.mesh_raw = None
 
         with open(filename, "wb") as file:
-            pickle.dump(self, file)     
+            pickle.dump(self, file)
         self.info.dump_info()
         return
 
@@ -734,6 +734,7 @@ class HeartModel:
         self.mesh_raw.write_to_vtk(filename_original)
         self.mesh.write_to_vtk(filename_remeshed)
 
+        # NOTE: Can simplify the below using pyvista methods/objects directly
         source = vtkmethods.read_vtk_unstructuredgrid_file(filename_original)
         target = vtkmethods.read_vtk_unstructuredgrid_file(filename_remeshed)
 
@@ -760,9 +761,14 @@ class HeartModel:
         (
             _,
             _,
-            self.mesh.cell_data,
-            self.mesh.point_data,
+            mapped_cell_data,
+            mapped_point_data,
         ) = vtkmethods.get_tetra_info_from_unstructgrid(target)
+        for key, value in mapped_cell_data.items():
+            self.mesh.cell_data[key] = value
+        for key, value in mapped_point_data.items():
+            self.mesh.point_data[key] = value
+
         # self.mesh.part_ids = self.mesh.cell_data["tags"].astype(int)
 
         # For any non-ventricular points assign -100 to uvc coordinates

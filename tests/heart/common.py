@@ -3,17 +3,16 @@ import ansys.heart.preprocessor.models as models
 import numpy as np
 
 
-def compare_part_names(model: models.HeartModel, reference_model: models.HeartModel):
+def compare_part_names(model: models.HeartModel, ref_stats: dict):
     """Test if parts match that of the reference model.
 
     Note
     ----
-    1. tests consistency part names
+    1. tests consistency of part names
     """
-    assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
 
     for part_name in model.part_names:
-        assert part_name in reference_model.part_names, (
+        assert part_name in list(ref_stats["parts"].keys()), (
             "Part name: %s does not exist in reference model" % part_name
         )
 
@@ -40,7 +39,7 @@ def compare_part_element_ids(model: models.HeartModel, reference_model: models.H
     pass
 
 
-def compare_surface_names(model: models.HeartModel, reference_model: models.HeartModel):
+def compare_surface_names(model: models.HeartModel, ref_stats: dict):
     """Test if surfaces of the parts match with the reference model.
 
     Note
@@ -49,12 +48,9 @@ def compare_surface_names(model: models.HeartModel, reference_model: models.Hear
     """
 
     for part in model.parts:
-        ref_part = next(
-            ref_part for ref_part in reference_model.parts if part.name == ref_part.name
-        )
-
-        # check surface names in reference part
-        for surface_name in ref_part.surface_names:
+        # check if surface is in the list of reference surface names
+        ref_surface_names = list(ref_stats["parts"][part.name]["surfaces"].keys())
+        for surface_name in ref_surface_names:
             assert surface_name in part.surface_names, (
                 "%s does not exist in model but exists in reference model" % surface_name
             )
@@ -117,18 +113,16 @@ def compare_caps_num_nodeids(model: models.HeartModel, reference_model: models.H
     pass
 
 
-def compare_cavity_topology(model: models.HeartModel, reference_model: models.HeartModel):
-    """Test topology of cavities.
+def _deprecated_compare_cavity_topology(model: models.HeartModel, ref_stats: dict):
+    """Test number of faces of cavity.
 
     Note
     ----
     1. Topology of cavity surface
     """
-    assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
+    assert isinstance(ref_stats, models.HeartModel), "Expecting model of type HeartModel"
     for part in model.parts:
-        ref_part = next(
-            ref_part for ref_part in reference_model.parts if part.name == ref_part.name
-        )
+        ref_part = next(ref_part for ref_part in ref_stats.parts if part.name == ref_part.name)
         if not part.cavity:
             continue
 
@@ -146,23 +140,21 @@ def compare_cavity_topology(model: models.HeartModel, reference_model: models.He
     pass
 
 
-def compare_cavity_volume(model: models.HeartModel, reference_model: models.HeartModel):
+def compare_cavity_volume(model: models.HeartModel, ref_volumes: dict):
     """Test volume of cavities.
 
     Note
     ----
     1. Volume of cavity
     """
-    assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
+    assert isinstance(model, models.HeartModel), "Expecting model of type HeartModel"
     for part in model.parts:
-        ref_part = next(
-            ref_part for ref_part in reference_model.parts if part.name == ref_part.name
-        )
         if not part.cavity:
             continue
 
-        assert abs(part.cavity.volume - ref_part.cavity.volume) < 1e-2 * ref_part.cavity.volume, (
-            "Difference in cavity volume of model %s exceeds 1%" % ref_part.name
+        ref_volume = ref_volumes["cavity_volumes"][part.name]
+        assert abs(part.cavity.surface.volume - ref_volume) < 1e-2 * ref_volume, (
+            "Difference in cavity volume of model %s exceeds 1%" % part.name
         )
 
     pass

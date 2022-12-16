@@ -11,7 +11,7 @@ import pytest
 from .common import (
     compare_caps_nodeids,
     compare_caps_num_nodeids,
-    compare_cavity_topology,
+    _deprecated_compare_cavity_topology,
     compare_cavity_volume,
     compare_part_element_ids,
     compare_part_names,
@@ -113,7 +113,7 @@ def test_surface_faces():
 
 @pytest.mark.xfail
 def test_cavities_topology():
-    compare_cavity_topology(model, reference_model)
+    _deprecated_compare_cavity_topology(model, reference_model)
     pass
 
 

@@ -20,9 +20,9 @@ if __name__ == "__main__":
         # default.
         path_to_reference_model = (
             "D:\\development\\pyheart-lib\\pyheart-lib\\tests\\heart"
-            "\\assets\\reference_models\\strocchi2020\\01\\BiVentricle\\_old_heart_model.pickle"
+            "\\assets\\reference_models\\strocchi2020\\01\\BiVentricle\\heart_model.pickle"
         )
-    if not os.path.isfie(path_to_reference_model):
+    if not os.path.isfile(path_to_reference_model):
         print("Model not found. Please check path.")
         exit()
 
@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     ref_stats["parts"] = dict.fromkeys([p.name for p in model.parts], {})
     for part in model.parts:
-        ref_stats["parts"][part.name] = {"surfaces": {"name": "", "nfaces": 0}}
+        ref_stats["parts"][part.name] = {"surfaces": {}}
         ref_stats["parts"][part.name] = {"ntetra": 0}
         ref_stats["parts"][part.name]["ntetra"] = part.element_ids.shape[0]
         for surface in part.surfaces:

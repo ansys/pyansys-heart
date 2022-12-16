@@ -18,7 +18,7 @@ from .conftest import download_asset, get_assets_folder, get_workdir
 
 # run this fixture first
 @pytest.fixture(autouse=True, scope="module")
-def extract_bi_ventricle():
+def extract_fullheart():
     """Extract FullHeart model which is similar to the reference model.
 
     Note

@@ -9,13 +9,13 @@ import numpy as np
 import pytest
 
 from .common import (
-    compare_caps_nodeids,
-    compare_caps_num_nodeids,
+    _deprecated_compare_caps_nodeids,
+    _deprecated_compare_caps_num_nodeids,
     _deprecated_compare_cavity_topology,
     compare_cavity_volume,
     compare_part_element_ids,
     compare_part_names,
-    compare_surface_faces,
+    _deprecated_compare_surface_faces,
     compare_surface_names,
 )
 from .conftest import download_asset, get_assets_folder, get_workdir
@@ -107,7 +107,7 @@ def test_surface_names():
 
 @pytest.mark.xfail
 def test_surface_faces():
-    compare_surface_faces(model, reference_model)
+    _deprecated_compare_surface_faces(model, reference_model)
     pass
 
 
@@ -124,10 +124,10 @@ def test_cavities_volumes():
 
 @pytest.mark.xfail
 def test_caps_nodeids():
-    compare_caps_nodeids(model, reference_model)
+    _deprecated_compare_caps_nodeids(model, reference_model)
     pass
 
 
 def test_caps_num_nodeids():
-    compare_caps_num_nodeids(model, reference_model)
+    _deprecated_compare_caps_num_nodeids(model, reference_model)
     pass

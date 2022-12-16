@@ -49,7 +49,11 @@ def compare_surface_names(model: models.HeartModel, ref_stats: dict):
 
     for part in model.parts:
         # check if surface is in the list of reference surface names
-        ref_surface_names = list(ref_stats["parts"][part.name]["surfaces"].keys())
+        try:
+            ref_surface_names = list(ref_stats["parts"][part.name]["surfaces"].keys())
+        except (KeyError):
+            continue
+
         for surface_name in ref_surface_names:
             assert surface_name in part.surface_names, (
                 "%s does not exist in model but exists in reference model" % surface_name
@@ -58,7 +62,74 @@ def compare_surface_names(model: models.HeartModel, ref_stats: dict):
     pass
 
 
-def compare_surface_faces(model: models.HeartModel, reference_model: models.HeartModel):
+def compare_generated_mesh(model: models.HeartModel, ref_stats: dict):
+    """Compares the number of tetrahedrons, faces, etc in the model.
+
+    Note
+    ----
+    Test conditions:
+        Difference num tetrahedrons < 5000
+        Difference num faces < 200
+        Difference num faces of valve boundaries < 50
+    """
+
+    # Compare parts.
+    for part in model.parts:
+        try:
+            ref_num_tetra = ref_stats["parts"][part.name]["ntetra"]
+        except (KeyError):
+            continue
+        assert abs(part.element_ids.shape[0] - ref_num_tetra) < 5000, (
+            "Difference in number of tetrahedrons exceeds allowed value of %d" % 5000
+        )
+
+        for surface in part.surfaces:
+            # surf_name = "-".join(surface.name.lower().split())
+            try:
+                ref_num_faces = ref_stats["parts"][part.name]["surfaces"][surface.name]["nfaces"]
+            except (KeyError):
+                print(surface.name + "not found")
+                continue
+            assert abs(surface.n_faces - ref_num_faces) < 200, (
+                "Difference in number of faces exceeds allowed value of %d" % 200
+            )
+
+    # Compare other boundaries in Mesh
+    for boundary in model.mesh.boundaries:
+        ref_num_faces = ref_stats["mesh"]["boundaries"][boundary.name]["nfaces"]
+
+        if "valve" in boundary.name:
+            allowed_difference = 50
+        else:
+            allowed_difference = 200
+        assert (
+            abs(boundary.n_faces - ref_num_faces) < allowed_difference
+        ), "Boundary: {0} Difference in number of faces exceeds allowed value of {1}".format(
+            boundary.name, allowed_difference
+        )
+
+
+def compare_cavity_volume(model: models.HeartModel, ref_volumes: dict):
+    """Test volume of cavities.
+
+    Note
+    ----
+    1. Volume of cavity
+    """
+    assert isinstance(model, models.HeartModel), "Expecting model of type HeartModel"
+    for part in model.parts:
+        if not part.cavity:
+            continue
+
+        ref_volume = ref_volumes["cavity_volumes"][part.name]
+        assert abs(part.cavity.surface.volume - ref_volume) < 1e-2 * ref_volume, (
+            "Difference in cavity volume of model %s exceeds 1%" % part.name
+        )
+
+    pass
+
+
+def _deprecated_compare_surface_faces(model: models.HeartModel, reference_model: models.HeartModel):
     """Test if surfaces of the parts match with the reference model.
 
     Note
@@ -81,7 +152,7 @@ def compare_surface_faces(model: models.HeartModel, reference_model: models.Hear
     pass
 
 
-def compare_caps_nodeids(model: models.HeartModel, reference_model: models.HeartModel):
+def _deprecated_compare_caps_nodeids(model: models.HeartModel, reference_model: models.HeartModel):
     """Test caps and cap definitions."""
     assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
     for part in model.parts:
@@ -98,7 +169,9 @@ def compare_caps_nodeids(model: models.HeartModel, reference_model: models.Heart
     pass
 
 
-def compare_caps_num_nodeids(model: models.HeartModel, reference_model: models.HeartModel):
+def _deprecated_compare_caps_num_nodeids(
+    model: models.HeartModel, reference_model: models.HeartModel
+):
     """Test caps and cap definitions."""
     assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
     for part in model.parts:
@@ -135,26 +208,6 @@ def _deprecated_compare_cavity_topology(model: models.HeartModel, ref_stats: dic
 
         assert np.array_equal(part.cavity.surface.triangles, ref_part.cavity.surface.triangles), (
             "Cavity faces of part %s do not match" % ref_part.name
-        )
-
-    pass
-
-
-def compare_cavity_volume(model: models.HeartModel, ref_volumes: dict):
-    """Test volume of cavities.
-
-    Note
-    ----
-    1. Volume of cavity
-    """
-    assert isinstance(model, models.HeartModel), "Expecting model of type HeartModel"
-    for part in model.parts:
-        if not part.cavity:
-            continue
-
-        ref_volume = ref_volumes["cavity_volumes"][part.name]
-        assert abs(part.cavity.surface.volume - ref_volume) < 1e-2 * ref_volume, (
-            "Difference in cavity volume of model %s exceeds 1%" % part.name
         )
 
     pass

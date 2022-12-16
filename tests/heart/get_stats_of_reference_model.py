@@ -49,12 +49,12 @@ if __name__ == "__main__":
 
     ref_stats["parts"] = dict.fromkeys([p.name for p in model.parts], {})
     for part in model.parts:
-        ref_stats["parts"][part.name] = {"surfaces": {}}
         ref_stats["parts"][part.name] = {"ntetra": 0}
         ref_stats["parts"][part.name]["ntetra"] = part.element_ids.shape[0]
+        ref_stats["parts"][part.name]["surfaces"] = {}
         for surface in part.surfaces:
-            ref_stats["parts"][part.name]["surfaces"] = {
-                surface.name: {"nfaces": surface.faces.shape[0]}
+            ref_stats["parts"][part.name]["surfaces"][surface.name] = {
+                "nfaces": surface.faces.shape[0]
             }
 
     ref_stats["mesh"] = {"boundaries": {}}

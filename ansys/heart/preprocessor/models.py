@@ -364,12 +364,15 @@ class HeartModel:
             LOGGER.warning("matplotlib not found. Install matplotlib with: pip install matplotlib")
             return
 
-        named_surfaces = [s for p in self.parts for s in p.surfaces]
-        color_map = plt.cm.get_cmap("tab20", len(named_surfaces))
+        surfaces_to_plot = [s for p in self.parts for s in p.surfaces]
+        valves = [b for b in self.mesh.boundaries if "valve" in b.name ]
+        surfaces_to_plot = surfaces_to_plot + valves
+        
+        color_map = plt.cm.get_cmap("tab20", len(surfaces_to_plot))
         colors = color_map.colors[:, 0:3]
         plotter = pv.Plotter()
         ii = 0
-        for surface in [s for p in self.parts for s in p.surfaces]:
+        for surface in surfaces_to_plot:
             surface._to_pyvista_object()
             actor = plotter.add_mesh(
                 surface._to_pyvista_object(),

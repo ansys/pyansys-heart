@@ -2,15 +2,15 @@
 
 Notes
 -----
-Loops over the list of subfolders and compares the .k files. Prints out 
+Loops over the list of subfolders and compares the .k files. Prints out
 the path to the .k file if the contents are not the same.
 """
 
-from tqdm import tqdm
+import glob
+import os
 import pathlib
 
-import os
-import glob
+from tqdm import tqdm
 
 
 def normalize_line_endings(text: str) -> str:
@@ -23,7 +23,7 @@ def read_file(file: pathlib.Path) -> str:
 
 
 if __name__ == "__main__":
-    basedir = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\01"
+    basedir = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\" "Strocchi2020\\01"
     # paths to the main directories for which to compare the .k files.
     dir1 = os.path.join(basedir, "BiVentriclePyVista")
     dir_ref = os.path.join(basedir, "BiVentricle_reference")
@@ -42,7 +42,7 @@ if __name__ == "__main__":
         for file in tqdm(list_of_k_files):
             file_ref = file
             file1 = os.path.join(dir1, subfolder, os.path.basename(file_ref))
-            # commpare the contents of the two files
+            # compare the contents of the two files
             contents = read_file(file1)
             contents_ref = read_file(file_ref)
             if contents != contents_ref:

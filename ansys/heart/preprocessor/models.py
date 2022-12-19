@@ -395,14 +395,19 @@ class HeartModel:
         >>> model = HeartModel.load_model("my_model.pickle")
 
         """
-        # NOTE:
+        # NOTE: need to suppress some vtk errors in pickled pyvista objects.
+        # change the verbosity in the vtk logger and suppress the python logger. 
+        import logging
         import vtk
 
+        logger = logging.getLogger()
+        logger.disabled = True
         # to suppress vtk errors
         vtk_logger = vtk.vtkLogger
         vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_OFF)
         with open(filename, "rb") as file:
             model = pickle.load(file)
+        logger.disabled = False
         vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_1)
         return model
 

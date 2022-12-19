@@ -391,6 +391,7 @@ class SurfaceMesh(pv.PolyData, Feature):
         try:
             self.points = array
         except:
+            LOGGER.warning("Failed to set points.")
             return
 
     @property
@@ -529,7 +530,7 @@ class SurfaceMesh(pv.PolyData, Feature):
                     nodes[ii + offset] = np.mean(nodes[ii : ii + window_size, :], axis=0)
                 nodes = nodes[num_points_to_add:-num_points_to_add]
 
-            self.nodes[node_ids, :] = nodes
+            self.points[node_ids, :] = nodes
 
             modified_nodes = np.append(modified_nodes, node_ids)
 

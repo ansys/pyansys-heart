@@ -97,38 +97,7 @@ def test_cavities_volumes():
     pass
 
 
-@pytest.mark.xfail(reason="Number of faces and tetrahedrons is sensitive to changes.")
+# @pytest.mark.xfail(reason="Number of faces and tetrahedrons is sensitive to changes.")
 def test_mesh():
     """Test the number of tetrahedrons and triangles in the volume mesh and surface meshes"""
     compare_generated_mesh(model, ref_stats)
-
-
-# @pytest.mark.xfail()
-# @pytest.mark.skip()
-# def test_caps_num_nodeids():
-#     _deprecated_compare_caps_num_nodeids(model, ref_stats)
-#     pass
-
-
-# @pytest.mark.xfail(reason="Due to slight differences in Fluent element ids may differ")
-# def test_part_element_ids():
-#     compare_part_element_ids(model, ref_stats)
-#     pass
-
-
-# @pytest.mark.xfail
-# def test_surface_faces():
-#     _deprecated_compare_surface_faces(model, ref_stats)
-#     pass
-
-
-# @pytest.mark.xfail
-# def test_caps_nodeids():
-#     _deprecated_compare_caps_nodeids(model, ref_stats)
-#     pass
-
-
-# @pytest.mark.xfail
-# def test_cavities_topology():
-#     _deprecated_compare_cavity_topology(model, ref_stats)
-#     pass

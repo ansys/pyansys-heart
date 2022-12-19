@@ -68,10 +68,20 @@ def compare_generated_mesh(model: models.HeartModel, ref_stats: dict):
     Note
     ----
     Test conditions:
-        Difference num tetrahedrons < 5000
-        Difference num faces < 200
-        Difference num faces of valve boundaries < 50
+        Difference num tetrahedrons < 100
+        Difference num faces < 10
+        Difference num faces of valve boundaries < 5
     """
+    import os
+
+    if os.name == "nt":
+        allowed_difference1 = 0
+        allowed_difference2 = 0
+        allowed_difference3 = 0
+    else:
+        allowed_difference1 = 100
+        allowed_difference2 = 10
+        allowed_difference3 = 5
 
     # Compare parts.
     for part in model.parts:
@@ -79,8 +89,10 @@ def compare_generated_mesh(model: models.HeartModel, ref_stats: dict):
             ref_num_tetra = ref_stats["parts"][part.name]["ntetra"]
         except (KeyError):
             continue
-        assert abs(part.element_ids.shape[0] - ref_num_tetra) < 5000, (
-            "Difference in number of tetrahedrons exceeds allowed value of %d" % 5000
+        assert (
+            abs(part.element_ids.shape[0] - ref_num_tetra) <= allowed_difference1
+        ), "{0}: Difference in number of tetrahedrons exceeds allowed value of {1}".format(
+            part.name, allowed_difference1
         )
 
         for surface in part.surfaces:
@@ -90,8 +102,10 @@ def compare_generated_mesh(model: models.HeartModel, ref_stats: dict):
             except (KeyError):
                 print(surface.name + "not found")
                 continue
-            assert abs(surface.n_faces - ref_num_faces) < 200, (
-                "Difference in number of faces exceeds allowed value of %d" % 200
+            assert (
+                abs(surface.n_faces - ref_num_faces) <= allowed_difference2
+            ), "Boundary: {0} Difference in number of faces exceeds allowed value of {1}".format(
+                part.name, allowed_difference2
             )
 
     # Compare other boundaries in Mesh
@@ -99,11 +113,11 @@ def compare_generated_mesh(model: models.HeartModel, ref_stats: dict):
         ref_num_faces = ref_stats["mesh"]["boundaries"][boundary.name]["nfaces"]
 
         if "valve" in boundary.name:
-            allowed_difference = 50
+            allowed_difference = allowed_difference3
         else:
-            allowed_difference = 200
+            allowed_difference = allowed_difference2
         assert (
-            abs(boundary.n_faces - ref_num_faces) < allowed_difference
+            abs(boundary.n_faces - ref_num_faces) <= allowed_difference
         ), "Boundary: {0} Difference in number of faces exceeds allowed value of {1}".format(
             boundary.name, allowed_difference
         )

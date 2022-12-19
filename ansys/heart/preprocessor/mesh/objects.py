@@ -269,7 +269,7 @@ class Mesh(pv.UnstructuredGrid):
             interface.get_boundary_edges()
             node_ids_smoothed = interface.smooth_boundary_edges()
             # make sure nodes of the (volume) mesh are updated
-            self.nodes[node_ids_smoothed, :] = interface.nodes[node_ids_smoothed, :]
+            self.points[node_ids_smoothed, :] = interface.nodes[node_ids_smoothed, :]
         return
 
     def add_boundaries(self, add_part_ids: List[int] = [], boundary_names: List[str] = []) -> None:

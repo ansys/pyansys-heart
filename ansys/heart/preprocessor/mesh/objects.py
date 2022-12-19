@@ -36,6 +36,8 @@ class Mesh(pv.UnstructuredGrid):
 
     @nodes.setter
     def nodes(self, array: np.ndarray):
+        if isinstance(array, type(None)):
+            return
         try:
             self.points = array
         except:
@@ -388,6 +390,8 @@ class SurfaceMesh(pv.PolyData, Feature):
 
     @nodes.setter
     def nodes(self, array: np.ndarray):
+        if isinstance(array, type(None)):
+            return
         try:
             self.points = array
         except:

@@ -80,8 +80,8 @@ def compare_generated_mesh(model: models.HeartModel, ref_stats: dict):
         allowed_difference3 = 0
     else:
         allowed_difference1 = 100
-        allowed_difference2 = 10
-        allowed_difference3 = 5
+        allowed_difference2 = 50
+        allowed_difference3 = 10
 
     # Compare parts.
     for part in model.parts:

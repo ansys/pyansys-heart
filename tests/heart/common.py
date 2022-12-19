@@ -90,40 +90,35 @@ def compare_generated_mesh(model: models.HeartModel, ref_stats: dict):
         except (KeyError):
             continue
         difference = abs(part.element_ids.shape[0] - ref_num_tetra)
-        assert (
-            difference <= allowed_difference1
-        ), "{0}: Difference between reference and generated model is {1} exceeds {2}".format(
-            part.name, difference, allowed_difference1
-        )
+        assert difference <= allowed_difference1, (
+            "{0}: Difference between reference and generated model is {1} exceeds {2}"
+        ).format(part.name, difference, allowed_difference1)
 
         for surface in part.surfaces:
             # surf_name = "-".join(surface.name.lower().split())
             try:
-                ref_num_faces = ref_stats["parts"][part.name]["surfaces"][surface.name]["nfaces"]
+                ref_nfaces = ref_stats["parts"][part.name]["surfaces"][surface.name]["nfaces"]
             except (KeyError):
                 print(surface.name + "not found")
                 continue
-            difference = abs(surface.n_faces - ref_num_faces)
-            assert (
-                difference <= allowed_difference2
-            ), "Boundary: {0} Difference between reference and generated model is {1} exceeds {2}".format(
-                part.name, difference, allowed_difference2
-            )
+            difference = abs(surface.n_faces - ref_nfaces)
+            assert difference <= allowed_difference2, (
+                "Boundary: {0} Difference between reference and generated model"
+                " is {1} exceeds {2}"
+            ).format(part.name, difference, allowed_difference2)
 
     # Compare other boundaries in Mesh
     for boundary in model.mesh.boundaries:
-        ref_num_faces = ref_stats["mesh"]["boundaries"][boundary.name]["nfaces"]
+        ref_nfaces = ref_stats["mesh"]["boundaries"][boundary.name]["nfaces"]
 
         if "valve" in boundary.name:
             allowed_difference = allowed_difference3
         else:
             allowed_difference = allowed_difference2
-        difference = abs(boundary.n_faces - ref_num_faces)
-        assert (
-            difference <= allowed_difference
-        ), "Boundary: {0} Difference between reference and generated model is {1} exceeds {2}".format(
-            part.name, difference, allowed_difference2
-        )
+        difference = abs(boundary.n_faces - ref_nfaces)
+        assert difference <= allowed_difference, (
+            "Boundary: {0} Difference between reference and generated model is {1} exceeds {2}"
+        ).format(part.name, difference, allowed_difference2)
 
 
 def compare_cavity_volume(model: models.HeartModel, ref_volumes: dict):

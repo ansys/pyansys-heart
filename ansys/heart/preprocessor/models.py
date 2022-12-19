@@ -396,8 +396,9 @@ class HeartModel:
 
         """
         # NOTE: need to suppress some vtk errors in pickled pyvista objects.
-        # change the verbosity in the vtk logger and suppress the python logger. 
+        # change the verbosity in the vtk logger and suppress the python logger.
         import logging
+
         import vtk
 
         logger = logging.getLogger()

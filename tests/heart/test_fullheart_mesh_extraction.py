@@ -9,9 +9,9 @@ import pytest
 
 from .common import (
     compare_cavity_volume,
+    compare_generated_mesh,
     compare_part_names,
     compare_surface_names,
-    compare_generated_mesh,
 )
 from .conftest import download_asset, get_assets_folder, get_workdir
 

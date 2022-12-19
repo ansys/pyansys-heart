@@ -42,7 +42,9 @@ def test_main():
     compare_string_with_file(string_to_test, ref_file)
 
 
-@pytest.mark.xfail(reason="Uses pickled model. Pickled load will fail if we make changes to the object itself.")
+@pytest.mark.xfail(
+    reason="Uses pickled model. Pickled load will fail if we make changes to the object itself."
+)
 def test_parts():
     """Compare contents of main to a reference file."""
     ref_folder = os.path.join(get_assets_folder(), "k_files", "mechanics")

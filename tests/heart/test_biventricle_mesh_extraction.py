@@ -8,15 +8,10 @@ from ansys.heart.simulator.support import run_preprocessor
 import pytest
 
 from .common import (
-    _deprecated_compare_caps_nodeids,
-    _deprecated_compare_caps_num_nodeids,
-    _deprecated_compare_cavity_topology,
     compare_cavity_volume,
-    compare_part_element_ids,
-    compare_part_names,
-    _deprecated_compare_surface_faces,
-    compare_surface_names,
     compare_generated_mesh,
+    compare_part_names,
+    compare_surface_names,
 )
 from .conftest import download_asset, get_assets_folder, get_workdir
 

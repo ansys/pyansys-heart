@@ -309,8 +309,9 @@ class Mesh:
 
         purkinje = BeamMesh(nodes=nodes,edges=edges)
         purkinje.pid = pid
-
+        purkinje.id = len(self.beam_network)+1
         self.beam_network.append(purkinje)
+
         
 class Feature:
     """Feature class."""

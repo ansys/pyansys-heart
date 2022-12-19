@@ -60,3 +60,4 @@ class ElectrophysiologyDecks(BaseDecks):
         super().__init__()
         self.cell_models = Deck()
         self.ep_settings = Deck()
+        self.beam_networks = Deck()

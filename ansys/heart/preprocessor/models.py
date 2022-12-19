@@ -365,9 +365,9 @@ class HeartModel:
             return
 
         surfaces_to_plot = [s for p in self.parts for s in p.surfaces]
-        valves = [b for b in self.mesh.boundaries if "valve" in b.name ]
+        valves = [b for b in self.mesh.boundaries if "valve" in b.name or "border" in b.name]
         surfaces_to_plot = surfaces_to_plot + valves
-        
+
         color_map = plt.cm.get_cmap("tab20", len(surfaces_to_plot))
         colors = color_map.colors[:, 0:3]
         plotter = pv.Plotter()

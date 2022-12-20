@@ -91,8 +91,8 @@ def add_beams_to_kw(beams: np.array, beam_kw: keywords.ElementBeam, pid: int, of
     """
     # get beam id of last beam:
     if not beam_kw.elements.empty and offset == 0:
-        last_nid = beam_kw.elements.iloc[-1, 0]
-        offset = last_nid
+        last_eid = beam_kw.elements.iloc[-1, 1]
+        offset = last_eid
 
     # create array with beam ids
     eids = np.arange(0, beams.shape[0], 1) + offset + 1

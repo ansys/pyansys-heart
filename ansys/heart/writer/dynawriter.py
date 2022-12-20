@@ -2777,6 +2777,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         if self.model.mesh.beam_network:
             self.kw_database.material.append(keywords.SectionBeam(secid=3,elform=3,a=645))
             self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
+            beams_kw = keywords.ElementBeam()
             for network in self.model.mesh.beam_network:
                 origin_coordinates= self.model.mesh.nodes[network.node_ids[0],:]
                 for boundary in self.model.mesh.boundaries:
@@ -2803,14 +2804,16 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                         # iedgeid=edge_id_start_right,
                     )
                 )
-                
-                self.kw_database.parts.append(keywords.Part(heading=network.name,pid=network.pid,mid=network.pid,secid=3))
+                part_df = pd.DataFrame(
+                    {"heading": [network.name], "pid": [network.pid], "secid": [3], "mid": [network.pid]}
+                )
+                part_kw = keywords.Part()
+                part_kw.parts = part_df
+                self.kw_database.parts.append(part_kw)
                 self.kw_database.material.append(keywords.MatNull(mid=network.pid,ro=1e-11))
                 self.kw_database.material.append(keywords.EmMat001(mid=network.pid,mtype=2,sigma=10))
                 
-                beams_kw = keywords.ElementBeam()
-                beams_kw = add_beams_to_kw(beams=network.edges+1,beam_kw=beams_kw,pid=network.pid)
-                self.kw_database.beam_networks.append(beams_kw)
+                beams_kw = add_beams_to_kw(beams=network.edges+1,beam_kw=beams_kw,pid=network.pid,offset=len(self.model.mesh.tetrahedrons)+len(beams_kw.elements))
                 cell_kw = keywords.EmEpCellmodelTentusscher(
                     mid=network.pid,
                     gas_constant=8314.472,
@@ -2885,6 +2888,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 cell_kw.gas_constant = 8314.472
                 cell_kw.faraday_constant = 96485.3415
                 self.kw_database.cell_models.extend([cell_kw])
+            self.kw_database.beam_networks.append(beams_kw)
 
     def _update_solution_controls(
         self,

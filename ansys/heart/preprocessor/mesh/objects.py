@@ -466,12 +466,7 @@ class SurfaceMesh(pv.PolyData, Feature):
 
     def compute_bounding_box(self) -> Tuple[np.ndarray, float]:
         """Compute the bounding box of the surface."""
-        node_ids = np.unique(self.triangles)
-        nodes = self.nodes[node_ids, :]
-        dim = nodes.shape[1]
-        bounding_box = np.zeros((2, dim))
-        for ii in range(0, dim):
-            bounding_box[:, ii] = np.array([np.min(nodes[:, ii]), np.max(nodes[:, ii])])
+        bounding_box = np.reshape(self.clean().bounds, (3, 2)).T
         volume = np.prod(np.diff(bounding_box, axis=0))
         return bounding_box, volume
 
@@ -548,6 +543,12 @@ class SurfaceMesh(pv.PolyData, Feature):
             filename = "_".join(self.name.lower().split()) + ".stl"
         if filename[-4:] != ".stl":
             filename = filename + ".stl"
+
+        # NOTE: The below should yield the same stls, but somehow fluent meshing
+        # produces a slightly different mesh. Should still be valid though
+        # cleaned = self.clean()
+        # cleaned.save(filename)
+        # vtkmethods.add_solid_name_to_stl(filename, self.name, file_type="binary")
 
         vtk_surface = vtkmethods.create_vtk_surface_triangles(self.nodes, self.triangles)
         vtkmethods.vtk_surface_to_stl(vtk_surface, filename, self.name)

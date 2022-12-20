@@ -483,7 +483,8 @@ class HeartModel:
             num_expected_regions = len(boundary_name_suffix)
 
             LOGGER.debug("Extracting : {} from {}".format(boundary_name_suffix, boundary.name))
-            region_ids = boundary.separate_connected_regions()
+            boundary_conn = boundary.clean().connectivity()
+            region_ids = boundary_conn.cell_data["RegionId"] + 1
 
             unique_regions, counts = np.unique(region_ids, return_counts=True)
 
@@ -735,17 +736,10 @@ class HeartModel:
 
         # get list of all arrays in original mesh
         array_names = list(self.mesh_raw.cell_data.keys()) + list(self.mesh_raw.point_data.keys())
+        array_names1 = self.mesh_raw.array_names
 
-        # write (original) raw mesh and and new mesh to disk
-        filename_original = os.path.join(self.info.workdir, "mesh_raw.vtk")
-        filename_remeshed = os.path.join(self.info.workdir, "mesh.vtk")
-
-        self.mesh_raw.write_to_vtk(filename_original)
-        self.mesh.write_to_vtk(filename_remeshed)
-
-        # NOTE: Can simplify the below using pyvista methods/objects directly
-        source = vtkmethods.read_vtk_unstructuredgrid_file(filename_original)
-        target = vtkmethods.read_vtk_unstructuredgrid_file(filename_remeshed)
+        source = self.mesh_raw  # vtkmethods.read_vtk_unstructuredgrid_file(filename_original)
+        target = self.mesh  # vtkmethods.read_vtk_unstructuredgrid_file(filename_remeshed)
 
         # map uvc arrays
         uvc_array_names = [k for k in self.mesh_raw.point_data.keys() if "uvc" in k]
@@ -794,9 +788,6 @@ class HeartModel:
         self.mesh.write_to_vtk(path_to_simulation_mesh)
         self.info.path_to_simulation_mesh = path_to_simulation_mesh
 
-        # cleanup
-        os.remove(filename_original)
-        os.remove(filename_remeshed)
         return
 
     def _add_nodal_areas(self):

@@ -10,8 +10,6 @@ import glob
 import os
 import pathlib
 
-from tqdm import tqdm
-
 
 def normalize_line_endings(text: str) -> str:
     return text.replace("\r\n", "\n").replace("\r", "\n")
@@ -23,7 +21,7 @@ def read_file(file: pathlib.Path) -> str:
 
 
 if __name__ == "__main__":
-    basedir = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\" "Strocchi2020\\01"
+    basedir = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\01"
     # paths to the main directories for which to compare the .k files.
     dir1 = os.path.join(basedir, "BiVentriclePyVista")
     dir_ref = os.path.join(basedir, "BiVentricle_reference")
@@ -39,13 +37,13 @@ if __name__ == "__main__":
         dir_ref_sub = os.path.join(dir_ref, subfolder)
         print("Checking {0}...".format(subfolder))
         list_of_k_files = glob.glob(os.path.join(dir_ref_sub, "*.k"))
-        for file in tqdm(list_of_k_files):
+        for file in list_of_k_files:
             file_ref = file
             file1 = os.path.join(dir1, subfolder, os.path.basename(file_ref))
             # compare the contents of the two files
             contents = read_file(file1)
             contents_ref = read_file(file_ref)
             if contents != contents_ref:
-                print("*****************")
-                print("Found difference in: {0}.\n".format(file_ref))
-                print("*****************")
+                # print("*****************")
+                print("Found difference in: {0}.".format(file_ref))
+                # print("*****************")

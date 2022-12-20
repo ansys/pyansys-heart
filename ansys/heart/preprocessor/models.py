@@ -324,19 +324,75 @@ class HeartModel:
     def plot_mesh(
         self, plot_raw_mesh: bool = False, show_edges: bool = True, color_by: str = "tags"
     ):
-        """Plot the volume mesh."""
+        """Plot the volume mesh of the heart model.
+
+        Parameters
+        ----------
+        plot_raw_mesh : bool, optional
+            Whether to plot the raw mesh, by default False
+        show_edges : bool, optional
+            Whether to plot the edges, by default True
+        color_by : str, optional
+            Color by cell/point data, by default "tags"
+
+        Example
+        -------
+        >>> import ansys.heart.preprocessor.models as models
+        >>> model = models.HeartModel.load_model("heart_model.pickle")
+        >>> model.plot_mesh(show_edges=True)
+        """
         try:
             import pyvista
         except (ImportError):
             LOGGER.warning("pyvista not found. Install with: pip install pyvista")
             return
 
+        plotter = pyvista.Plotter()
         if plot_raw_mesh:
-            grid: pyvista.UnstructuredGrid = self.mesh_raw._to_pyvista_object()
+            plotter.add_mesh(self.mesh_raw)
         else:
-            grid: pyvista.UnstructuredGrid = self.mesh._to_pyvista_object()
+            plotter.add_mesh(self.mesh)
 
-        grid.plot(scalars=color_by, show_edges=show_edges)
+        plotter.show(show_edges=show_edges, color_by="tags")
+        return
+
+    def plot_fibers(self, plot_raw_mesh: bool = False, n_seed_points: int = 1000):
+        """Plot the mesh and fibers as streamlines.
+
+        Parameters
+        ----------
+        plot_raw_mesh : bool, optional
+            Flag indicating whether to plot the streamlines on the raw mesh, by default False
+        n_seed_points : int, optional
+            Number of seed points. Recommended to use 5000, by default 1000
+
+        Example
+        -------
+        >>> import ansys.heart.preprocessor.models as models
+        >>> model = models.HeartModel.load_model("my_model.pickle")
+        >>> model.plot_fibers(n_seed_points=5000)
+        """
+        try:
+            import pyvista
+        except (ImportError):
+            LOGGER.warning("pyvista not found. Install with: pip install pyvista")
+            return
+        plotter = pyvista.Plotter()
+
+        if plot_raw_mesh:
+            if not isinstance(self.mesh_raw, Mesh):
+                LOGGER.info("Raw mesh not available.")
+                return
+            mesh = self.mesh_raw
+        else:
+            mesh = self.mesh
+
+        mesh = mesh.ctp()
+        streamlines = mesh.streamlines(vectors="fiber", source_radius=75, n_points=n_seed_points)
+        tubes = streamlines.tube()
+        plotter.add_mesh(mesh, opacity=0.5, color="white")
+        plotter.add_mesh(tubes, color="white")
+        plotter.show()
         return
 
     def plot_surfaces(self, show_edges: bool = True):
@@ -373,9 +429,8 @@ class HeartModel:
         plotter = pv.Plotter()
         ii = 0
         for surface in surfaces_to_plot:
-            surface._to_pyvista_object()
-            actor = plotter.add_mesh(
-                surface._to_pyvista_object(),
+            plotter.add_mesh(
+                surface,
                 color=colors[ii, :],
                 show_edges=show_edges,
                 label=surface.name,

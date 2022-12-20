@@ -40,7 +40,7 @@ def clean_directory(directory: str):
     return
 
 
-def run_lsdyna(sim_file: str, lsdynapath: str = LSDYNAPATH, ncpu: int = NCPU, options=""):
+def run_lsdyna(sim_file: str, lsdynapath: str = LSDYNAPATH, ncpu: int = NCPU, options="", OS=OS):
     """Run lsdyna in wsl."""
     # extract_binout = False
     # os.chdir(pathlib.Path(sim_file).parent)

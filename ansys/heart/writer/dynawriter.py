@@ -32,6 +32,7 @@ from ansys.heart.writer.heart_decks import (
     PurkinjeGenerationDecks,
 )
 from ansys.heart.writer.keyword_module import (
+    add_beams_to_kw,
     add_nodes_to_kw,
     create_define_curve_kw,
     create_define_sd_orientation_kw,
@@ -2380,6 +2381,43 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                 )
                 self.model.left_ventricle.apex_points[0].node_id = node_apex_left
 
+                node_set_id_apex_left = self.get_unique_nodeset_id()
+                # create node-sets for apex
+                node_set_apex_kw = create_node_set_keyword(
+                    node_ids=[node_apex_left + 1],
+                    node_set_id=node_set_id_apex_left,
+                    title="apex node left",
+                )
+
+                self.kw_database.node_sets.append(node_set_apex_kw)
+
+                apex_left_coordinates = self.model.mesh.nodes[node_apex_left, :]
+
+                node_id_start_left = self.model.mesh.nodes.shape[0] + 1
+
+                edge_id_start_left = self.model.mesh.tetrahedrons.shape[0] + 1
+
+                pid = self.get_unique_part_id()
+                # Purkinje generation parameters
+                self.kw_database.main.append(
+                    custom_keywords.EmEpPurkinjeNetwork2(
+                        purkid=1,
+                        buildnet=1,
+                        ssid=segment_set_ids_endo_left,
+                        mid=pid,
+                        pointstx=apex_left_coordinates[0],
+                        pointsty=apex_left_coordinates[1],
+                        pointstz=apex_left_coordinates[2],
+                        edgelen=2,
+                        ngen=50,
+                        nbrinit=8,
+                        nsplit=2,
+                        inodeid=node_id_start_left,
+                        iedgeid=edge_id_start_left,  # TODO check if beam elements exist in mesh
+                    )
+                )
+
+        # Add right purkinje only in biventricular or 4chamber models
         if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             node_apex_right = self.model.right_ventricle.apex_points[0].node_id
             segment_set_ids_endo_right = self.model.right_ventricle.endocardium.id
@@ -2409,63 +2447,6 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                 )
                 self.model.right_ventricle.apex_points[0].node_id = node_apex_right
 
-        # check whether apical points are on the endge of the endocardium
-
-        # NOTE: is this still relevant applicable with the new structure?
-        # NOTE: validate node set by removing any nodes that do not occur in either ventricle
-        # tet_ids_ventricles = np.empty((0), dtype=int)
-        # for cavity in self.model._mesh._cavities:
-        #     for element_set in cavity.element_sets:
-        #         if "ventricle" in cavity.name:
-        #             tet_ids_ventricles = np.append(tet_ids_ventricles, element_set["set"])
-        # tetra_ventricles = self.volume_mesh["tetra"][tet_ids_ventricles, :]
-
-        # # remove nodes that occur just in atrial part
-        # mask = np.isin(nodes_base, tetra_ventricles, invert=True)
-        # LOGGER.debug("Removing {0} nodes from base nodes".format(np.sum(mask)))
-        # nodes_base = nodes_base[np.invert(mask)]
-
-        node_set_id_apex_left = self.get_unique_nodeset_id()
-        # create node-sets for apex
-        node_set_apex_kw = create_node_set_keyword(
-            node_ids=[node_apex_left + 1],
-            node_set_id=node_set_id_apex_left,
-            title="apex node left",
-        )
-
-        self.kw_database.node_sets.append(node_set_apex_kw)
-
-        apex_left_coordinates = self.model.mesh.nodes[node_apex_left, :]
-
-        node_id_start_left = (
-            self.model.mesh.nodes.shape[0] + 1
-        )  # TODO seek for max id rather than number of rows
-
-        edge_id_start_left = self.model.mesh.tetrahedrons.shape[0] + 1
-
-        # Purkinje generation parameters
-        self.kw_database.main_left_ventricle.append(
-            custom_keywords.EmEpPurkinjeNetwork(
-                purkid=1,
-                buildnet=1,
-                ssid=segment_set_ids_endo_left,
-                mid=25,
-                pointstx=apex_left_coordinates[0],
-                pointsty=apex_left_coordinates[1],
-                pointstz=apex_left_coordinates[2],
-                edgelen=2,
-                ngen=50,
-                nbrinit=8,
-                nsplit=2,
-                inodeid=node_id_start_left,
-                iedgeid=edge_id_start_left,  # TODO check if beam elements exist in mesh
-            )
-        )
-
-        # Add right purkinje only in biventricular or 4chamber models
-        if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-            LOGGER.warning("Model type %s in development " % self.model.info.model_type)
-
             node_set_id_apex_right = self.get_unique_nodeset_id()
             # create node-sets for apex
             node_set_apex_kw = create_node_set_keyword(
@@ -2483,14 +2464,14 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
             )  # TODO find a solution in dyna to better handle id definition
 
             edge_id_start_right = 2 * self.model.mesh.tetrahedrons.shape[0]
-
+            pid = self.get_unique_part_id() + 1
             # Purkinje generation parameters
-            self.kw_database.main_right_ventricle.append(
-                custom_keywords.EmEpPurkinjeNetwork(
+            self.kw_database.main.append(
+                custom_keywords.EmEpPurkinjeNetwork2(
                     purkid=2,
                     buildnet=1,
                     ssid=segment_set_ids_endo_right,
-                    mid=26,
+                    mid=pid,
                     pointstx=apex_right_coordinates[0],
                     pointsty=apex_right_coordinates[1],
                     pointstz=apex_right_coordinates[2],
@@ -2510,7 +2491,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
     def _get_list_of_includes(self):
         """Get a list of files to include in main.k. Omit any empty decks."""
         for deckname, deck in vars(self.kw_database).items():
-            if deckname == "main_left_ventricle" or deckname == "main_right_ventricle":
+            if deckname == "main":
                 continue
             # skip if no keywords are present in the deck
             if len(deck.keywords) == 0:
@@ -2523,16 +2504,11 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         """Add *INCLUDE keywords."""
         for include_file in self.include_files:
             filename_to_include = include_file + ".k"
-            self.kw_database.main_left_ventricle.append(
-                keywords.Include(filename=filename_to_include)
-            )
-            self.kw_database.main_right_ventricle.append(
-                keywords.Include(filename=filename_to_include)
-            )
+            self.kw_database.main.append(keywords.Include(filename=filename_to_include))
 
 
 class ElectrophysiologyDynaWriter(BaseDynaWriter):
-    """Class for preparing the input for a Electrophysiology LS-DYNA simulation."""
+    """Class for preparing the input for an Electrophysiology LS-DYNA simulation."""
 
     def __init__(self, model: HeartModel) -> None:
         super().__init__(model)
@@ -2555,7 +2531,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self._update_cellmodels()
         self._update_segmentsets_db()
         self._update_nodesets_db()
-
+        self._update_use_Purkinje()
         # update ep settings
         self._update_ep_settings()
 
@@ -2610,7 +2586,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
 
     def _update_cellmodels(self):
-        """Add simple linear elastic material for each defined part."""
+        """Add cell model for each defined part."""
         for part in self.model.parts:
             ep_mid = part.pid
             cell_kw = keywords.EmEpCellmodelTentusscher(
@@ -2834,127 +2810,137 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         return
 
-    # def _update_use_Purkinje(self):
-    #     """Updates the keywords for Purkinje generation."""
+    def _update_use_Purkinje(self):
+        """Update keywords for Purkinje usage."""
+        if self.model.mesh.beam_network:
+            self.kw_database.material.append(keywords.SectionBeam(secid=3, elform=3, a=645))
+            self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
+            beams_kw = keywords.ElementBeam()
+            for network in self.model.mesh.beam_network:
+                origin_coordinates = self.model.mesh.nodes[network.node_ids[0], :]
+                for boundary in self.model.mesh.boundaries:
+                    if boundary.name != None and "endocardium" in boundary.name:
+                        distance = np.linalg.norm(
+                            origin_coordinates - self.model.mesh.nodes[boundary.node_ids, :], axis=1
+                        )
+                        if np.min(distance) < 1e-3:
+                            network.name = boundary.name + "-" + "purkinje"
+                            network.nsid = boundary.nsid
 
-    #     # collect relevant node and segment sets.
-    #     # node set: apex, base
-    #     # node set: endocardium, epicardium
-    #     # NOTE: could be better if basal nodes are extracted in the preprocessor
-    #     # since that would allow you to robustly extract these nodessets using the
-    #     # input data
-    #     # The below is relevant for all models.
-    #     nodes_base = np.empty(0, dtype=int)
-    #     node_apex_left = np.empty(0, dtype=int)
-    #     node_apex_right = np.empty(0, dtype=int)
-    #     edge_id_start_left = np.empty(0, dtype=int)
-    #     edge_id_start_right = np.empty(0, dtype=int)
-    #     for cavity in self.model._mesh._cavities:
-    #         if cavity.name == "Left ventricle":
-    #             node_apex_left = cavity.apex_id["endocardium"]
-    #             for segment_set in cavity.segment_sets:
-    #                 if "endocardium" in segment_set["name"]:
-    #                     segment_set_ids_endo_left = segment_set["id"]
-    #         elif cavity.name == "Right ventricle":
-    #             node_apex_right = cavity.apex_id["endocardium"]
-    #             for segment_set in cavity.segment_sets:
-    #                 if "endocardium" in segment_set["name"] and "septum" not
-    #                       in segment_set["name"]:
-    #                     segment_set_ids_endo_right = segment_set["id"]
+                self.kw_database.main.append(
+                    custom_keywords.EmEpPurkinjeNetwork2(
+                        purkid=2,
+                        buildnet=0,
+                        ssid=network.nsid,
+                        mid=network.pid,
+                        pointstx=origin_coordinates[0],
+                        pointsty=origin_coordinates[1],
+                        pointstz=origin_coordinates[2],
+                        edgelen=2,
+                        ngen=50,
+                        nbrinit=8,
+                        nsplit=2,
+                        # inodeid=node_id_start_right,
+                        # iedgeid=edge_id_start_right,
+                    )
+                )
+                part_df = pd.DataFrame(
+                    {
+                        "heading": [network.name],
+                        "pid": [network.pid],
+                        "secid": [3],
+                        "mid": [network.pid],
+                    }
+                )
+                part_kw = keywords.Part()
+                part_kw.parts = part_df
+                self.kw_database.parts.append(part_kw)
+                self.kw_database.material.append(keywords.MatNull(mid=network.pid, ro=1e-11))
+                self.kw_database.material.append(
+                    keywords.EmMat001(mid=network.pid, mtype=2, sigma=10)
+                )
 
-    #     # validate node set by removing any nodes that do not occur in either ventricle
-    #     # NOTE: can be much more consice
-    #     tet_ids_ventricles = np.empty((0), dtype=int)
-    #     for cavity in self.model._mesh._cavities:
-    #         for element_set in cavity.element_sets:
-    #             if "ventricle" in cavity.name:
-    #                 tet_ids_ventricles = np.append(tet_ids_ventricles, element_set["set"])
-    #     tetra_ventricles = self.volume_mesh["tetra"][tet_ids_ventricles, :]
-
-    #     # remove nodes that occur just in atrial part
-    #     mask = np.isin(nodes_base, tetra_ventricles, invert=True)
-    #     LOGGER.debug("Removing {0} nodes from base nodes".format(np.sum(mask)))
-    #     nodes_base = nodes_base[np.invert(mask)]
-
-    #     node_set_id_apex_left = 201
-    #     # create node-sets for apex
-    #     node_set_apex_kw = create_node_set_keyword(
-    #         node_ids=[node_apex_left + 1],
-    #         node_set_id=node_set_id_apex_left,
-    #         title="apex node left",
-    #     )
-
-    #     self.kw_database.node_sets.extend([node_set_apex_kw])
-
-    #     apex_left_X = self.volume_mesh["nodes"][node_apex_left, 0]
-    #     apex_left_Y = self.volume_mesh["nodes"][node_apex_left, 1]
-    #     apex_left_Z = self.volume_mesh["nodes"][node_apex_left, 2]
-    #     node_id_start_left = (
-    #         self.volume_mesh["nodes"].shape[0] + 1
-    #     )  # TODO seek for max id rather than number of rows
-
-    #     edge_id_start_left = self.volume_mesh["tetra"].shape[0] + 1
-
-    #     # Purkinje generation parameters
-    #     self.kw_database.mainLEFT.append(
-    #         custom_keywords.EmEpPurkinjeNetwork(
-    #             purkid=1,
-    #             buildnet=0,
-    #             ssid=segment_set_ids_endo_left,
-    #             mid=25,
-    #             pointstx=apex_left_X,
-    #             pointsty=apex_left_Y,
-    #             pointstz=apex_left_Z,
-    #             edgelen=2,
-    #             ngen=50,
-    #             nbrinit=8,
-    #             nsplit=2,
-    #             inodeid=node_id_start_left,
-    #             iedgeid=edge_id_start_left,  # TODO check if beam elements exist in mesh
-    #         )
-    #     )
-
-    #     # Add right purkinje only in biventricular or 4chamber models
-    #     if self.model.info.model_type in ["BiVentricle", "FourChamber"]:
-    #         LOGGER.warning("Model type %s in development " % self.model.info.model_type)
-
-    #         node_set_id_apex_right = 202
-    #         # create node-sets for apex
-    #         node_set_apex_kw = create_node_set_keyword(
-    #             node_ids=[node_apex_right + 1],
-    #             node_set_id=node_set_id_apex_right,
-    #             title="apex node right",
-    #         )
-
-    #         self.kw_database.node_sets.extend([node_set_apex_kw])
-
-    #         apex_right_X = self.volume_mesh["nodes"][node_apex_right, 0]
-    #         apex_right_Y = self.volume_mesh["nodes"][node_apex_right, 1]
-    #         apex_right_Z = self.volume_mesh["nodes"][node_apex_right, 2]
-    #         node_id_start_right = (
-    #             2 * self.volume_mesh["nodes"].shape[0]
-    #         )  # TODO find a solution in dyna to better handle id definition
-
-    #         edge_id_start_right = 2 * self.volume_mesh["tetra"].shape[0]
-
-    #         # Purkinje generation parameters
-    #         self.kw_database.mainRIGHT.append(
-    #             custom_keywords.EmEpPurkinjeNetwork(
-    #                 purkid=2,
-    #                 buildnet=0,
-    #                 ssid=segment_set_ids_endo_right,
-    #                 mid=26,
-    #                 pointstx=apex_right_X,
-    #                 pointsty=apex_right_Y,
-    #                 pointstz=apex_right_Z,
-    #                 edgelen=2,
-    #                 ngen=50,
-    #                 nbrinit=8,
-    #                 nsplit=2,
-    #                 inodeid=node_id_start_right,  # TODO check if beam elements exist in mesh
-    #                 iedgeid=edge_id_start_right,
-    #             )
-    #         )
+                beams_kw = add_beams_to_kw(
+                    beams=network.edges + 1,
+                    beam_kw=beams_kw,
+                    pid=network.pid,
+                    offset=len(self.model.mesh.tetrahedrons) + len(beams_kw.elements),
+                )
+                cell_kw = keywords.EmEpCellmodelTentusscher(
+                    mid=network.pid,
+                    gas_constant=8314.472,
+                    t=310,
+                    faraday_constant=96485.3415,
+                    cm=0.185,
+                    vc=0.016404,
+                    vsr=0.001094,
+                    vss=0.00005468,
+                    pkna=0.03,
+                    ko=5.4,
+                    nao=140.0,
+                    cao=2.0,
+                    gk1=5.405,
+                    gkr=0.153,
+                    gks=0.392,
+                    gna=14.838,
+                    gbna=0.0002,
+                    gcal=0.0000398,
+                    gbca=0.000592,
+                    gto=0.294,
+                    gpca=0.1238,
+                    gpk=0.0146,
+                    pnak=2.724,
+                    km=1.0,
+                    kmna=40.0,
+                    knaca=1000.0,
+                    ksat=0.1,
+                    alpha=2.5,
+                    gamma=0.35,
+                    kmca=1.38,
+                    kmnai=87.5,
+                    kpca=0.0005,
+                    k1=0.15,
+                    k2=0.045,
+                    k3=0.06,
+                    k4=0.005,
+                    ec=1.5,
+                    maxsr=2.5,
+                    minsr=1.0,
+                    vrel=0.102,
+                    vleak=0.00036,
+                    vxfer=0.0038,
+                    vmaxup=0.006375,
+                    kup=0.00025,
+                    bufc=0.2,
+                    kbufc=0.001,
+                    bufsr=10.0,
+                    kbufsf=0.3,
+                    bufss=0.4,
+                    kbufss=0.00025,
+                    v=-85.23,
+                    ki=136.89,
+                    nai=8.604,
+                    cai=0.000126,
+                    cass=0.00036,
+                    casr=3.64,
+                    rpri=0.9073,
+                    xr1=0.00621,
+                    xr2=0.4712,
+                    xs=0.0095,
+                    m=0.00172,
+                    h=0.7444,
+                    j=0.7045,
+                    d=3.373e-5,
+                    f=0.7888,
+                    f2=0.9755,
+                    fcass=0.9953,
+                    s=0.999998,
+                    r=2.42e-8,
+                )
+                cell_kw.gas_constant = 8314.472
+                cell_kw.faraday_constant = 96485.3415
+                self.kw_database.cell_models.extend([cell_kw])
+            self.kw_database.beam_networks.append(beams_kw)
 
     def _update_solution_controls(
         self,
@@ -2982,10 +2968,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         """
         # frequency of full results
         self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
-
-        return
-
-    def _update_main_db(self):
 
         return
 

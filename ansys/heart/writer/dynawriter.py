@@ -13,6 +13,7 @@ from typing import List
 from ansys.dyna.keywords import keywords
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.mesh.objects import Cap
+import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.models import (
     BiVentricle,
     FourChamber,
@@ -263,7 +264,7 @@ class BaseDynaWriter:
         ----------
         keyword : str
             Keyword string: valid inputs include:
-            ["SECTION", "PART", "MAT", "SET_SEGMENT", "SET_NODE", "CURVE"]
+            ["SECTION", "PART", "MAT", "SET_SEGMENT", "SET_NODE", "CURVE", ...]
 
         Returns
         -------
@@ -303,6 +304,10 @@ class BaseDynaWriter:
     def get_unique_nodeset_id(self) -> int:
         """Suggest a unique non-used node set id."""
         return self._get_unique_id("SET_NODE")
+
+    def get_unique_partset_id(self) -> int:
+        """Suggest a unique non-used node set id."""
+        return self._get_unique_id("SET_PART")
 
     def get_unique_curve_id(self) -> int:
         """Suggest a unique curve-id."""
@@ -740,32 +745,32 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 "Simulation type not recognized: Please choose " "either quasi-static or static"
             )
 
-        prefill_time = self.parameters["Material"]["Myocardium"]["Active"]["Prefill"]
+        # prefill_time = self.parameters["Material"]["Myocardium"]["Active"]["Prefill"]
         self.kw_database.main.append(
             keywords.ControlImplicitDynamics(
                 imass=imass,
                 gamma=gamma,
                 beta=beta,
                 # active dynamic process only after prefilling
-                tdybir=prefill_time,
+                # tdybir=prefill_time,
             )
         )
 
-        # add auto controls
-        lcid = self.get_unique_curve_id()
-        # tune time step for better compromise between convergence and performance
-        time = [0, prefill_time, prefill_time + dtmax, end_time]
-        step = [5 * dtmax, 5 * dtmax, dtmin, dtmax]
-        kw_curve = create_define_curve_kw(
-            x=time,
-            y=step,
-            curve_name="time step control",
-            curve_id=lcid,
-            lcint=0,
-        )
-        self.kw_database.main.append(kw_curve)
+        # # add auto controls
+        # lcid = self.get_unique_curve_id()
+        # # tune time step for better compromise between convergence and performance
+        # time = [0, prefill_time, prefill_time + dtmax, end_time]
+        # step = [5 * dtmax, 5 * dtmax, dtmin, dtmax]
+        # kw_curve = create_define_curve_kw(
+        #     x=time,
+        #     y=step,
+        #     curve_name="time step control",
+        #     curve_id=lcid,
+        #     lcint=0,
+        # )
+        # self.kw_database.main.append(kw_curve)
         self.kw_database.main.append(
-            keywords.ControlImplicitAuto(iauto=1, dtmin=dtmin, dtmax=-lcid)
+            keywords.ControlImplicitAuto(iauto=1, dtmin=dtmin, dtmax=dtmax)
         )
 
         # add general implicit controls
@@ -801,26 +806,29 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self.kw_database.main.append(keywords.DatabaseMatsum(dt=0.1, binary=2))
 
-        # frequency of full results
-        lcid = self.get_unique_curve_id()
-        time = [
-            0,
-            self.parameters["Material"]["Myocardium"]["Active"]["Prefill"] * 0.99,
-            self.parameters["Material"]["Myocardium"]["Active"]["Prefill"],
-            self.parameters["Time"]["End Time"],
-        ]
-        step = [10 * dt_output_d3plot, 10 * dt_output_d3plot, dt_output_d3plot, dt_output_d3plot]
-        kw_curve = create_define_curve_kw(
-            x=time,
-            y=step,
-            curve_name="d3plot out control",
-            curve_id=lcid,
-            lcint=0,
-        )
+        # # frequency of full results
+        # lcid = self.get_unique_curve_id()
+        # time = [
+        #     0,
+        #     self.parameters["Material"]["Myocardium"]["Active"]["Prefill"] * 0.99,
+        #     self.parameters["Material"]["Myocardium"]["Active"]["Prefill"],
+        #     self.parameters["Time"]["End Time"],
+        # ]
+        # step = [10 * dt_output_d3plot, 10 * dt_output_d3plot, dt_output_d3plot, dt_output_d3plot]
+        # kw_curve = create_define_curve_kw(
+        #     x=time,
+        #     y=step,
+        #     curve_name="d3plot out control",
+        #     curve_id=lcid,
+        #     lcint=0,
+        # )
+        # self.kw_database.main.append(kw_curve)
 
-        self.kw_database.main.append(kw_curve)
         self.kw_database.main.append(
-            keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot, lcdt=lcid, ioopt=1)
+            keywords.DatabaseBinaryD3Plot(
+                dt=dt_output_d3plot,
+                # lcdt=lcid, ioopt=1
+            )
         )
 
         self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
@@ -829,7 +837,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
         if hasattr(self.model, "septum"):
             self.kw_database.main.append(
                 keywords.SetSolidGeneral(
-                    option="PART", sid=1, e1=self.model.left_ventricle.pid, e2=self.model.septum.pid
+                    option="PART",
+                    sid=1,
+                    e1=self.model.left_ventricle.pid,
+                    e2=self.model.septum.pid,
+                    user_comment="create left ventricle + septum set for exporting",
                 )
             )
         else:
@@ -838,25 +850,26 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
         self.kw_database.main.append(keywords.DatabaseHistorySolidSet(id1=1))
 
-        lcid = self.get_unique_curve_id()
-        time = [
-            0,
-            self.parameters["Time"]["End Time"] * 0.8 * 0.99,
-            self.parameters["Time"]["End Time"] * 0.8,
-            self.parameters["Time"]["End Time"],
-        ]
-        step = [100 * dt_output_d3plot, 100 * dt_output_d3plot, dt_output_d3plot, dt_output_d3plot]
-        kw_curve = create_define_curve_kw(
-            x=time,
-            y=step,
-            curve_name="elout control, only save during the last 20% ",
-            curve_id=lcid,
-            lcint=0,
-        )
-        self.kw_database.main.append(kw_curve)
+        # lcid = self.get_unique_curve_id()
+        # time = [
+        #     0,
+        #     self.parameters["Time"]["End Time"] * 0.8 * 0.99,
+        #     self.parameters["Time"]["End Time"] * 0.8,
+        #     self.parameters["Time"]["End Time"],
+        # ]
+        # step = [100 * dt_output_d3plot, 100 * dt_output_d3plot, dt_output_d3plot,
+        #         dt_output_d3plot]
+        # kw_curve = create_define_curve_kw(
+        #     x=time,
+        #     y=step,
+        #     curve_name="elout control, only save during the last 20% ",
+        #     curve_id=lcid,
+        #     lcint=0,
+        # )
+        # self.kw_database.main.append(kw_curve)
 
         self.kw_database.main.append(
-            keywords.DatabaseElout(dt=0.1, binary=2, lcur=lcid, ioopt=1, option1=27)
+            keywords.DatabaseElout(dt=dt_output_d3plot, binary=2, option1=27)
         )
 
         return
@@ -981,6 +994,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     active_dct = None
                 else:
                     active_dct = {
+                        "actype": self.parameters["Material"]["Myocardium"]["Active"]["Actype"],
                         "taumax": self.parameters["Material"]["Myocardium"]["Active"]["Tmax"],
                         "ca2ionm": self.parameters["Material"]["Myocardium"]["Active"]["ca2ionm"],
                     }
@@ -1016,23 +1030,27 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         if add_active:
             # write and add active curve to material database
-            time_array, active_stress_array = active_curve("Strocchi2020")
-
-            if self.parameters["Unit"]["Time"] == "ms":
-                time_array *= 1000
+            if active_dct["actype"] == 1:
+                time_array, calcium_array = active_curve("constant")
+            elif active_dct["actype"] == 2:
+                time_array, calcium_array = active_curve("Strocchi2020")
 
             active_curve_kw = create_define_curve_kw(
                 x=time_array,
-                y=active_stress_array,
+                y=calcium_array,
                 curve_name="calcium_concentration",
                 curve_id=act_curve_id,
-                lcint=15000,
+                lcint=10000,
             )
 
+            if self.parameters["Unit"]["Time"] == "ms":
+                active_curve_kw.sfa = 1000
             # y scaling
             active_curve_kw.sfo = self.parameters["Material"]["Myocardium"]["Active"]["ca2ionm"]
-            # x offset: prefill duration
-            active_curve_kw.offa = self.parameters["Material"]["Myocardium"]["Active"]["Prefill"]
+
+            # Prefill is remove due to new simulation workflow
+            # # x offset: prefill duration
+            # active_curve_kw.offa = self.parameters["Material"]["Myocardium"]["Active"]["Prefill"]
             self.kw_database.material.append(active_curve_kw)
 
         return
@@ -1250,17 +1268,16 @@ class MechanicsDynaWriter(BaseDynaWriter):
             """Sigmoid function to scale spring coefficient."""
             return 1 / (1 + np.exp(-z))
 
-        # compute penalty function
+        # compute penalty function from longitudinal coordinate
         uvc_l = self.model.mesh.point_data["uvc_longitudinal"]
-
         if np.any(uvc_l < 0):
             LOGGER.warning(
                 "Negative normalized longitudinal coordinate detected."
                 "Changing {0} negative uvc_l values to 1".format(np.sum((uvc_l < 0))),
             )
-
         uvc_l[uvc_l < 0] = 1
-        penalty = (
+
+        penalty_function = (
             -_sigmoid(
                 (abs(uvc_l) - self.parameters["Pericardium"]["Penalty function"][0])
                 * self.parameters["Pericardium"]["Penalty function"][1]
@@ -1285,84 +1302,76 @@ class MechanicsDynaWriter(BaseDynaWriter):
             LOGGER.warning("Duplicate nodes found in pericardium")
         epicardium_nodes = epicardium_nodes[np.sort(idx)]
 
-        # select only nodes that are on the epicardium and penalty factor > 0.1
-        pericardium_nodes = epicardium_nodes[penalty[epicardium_nodes] > 0.001]
+        # select only nodes for penalty factor > 0.0001
+        pericardium_nodes = epicardium_nodes[penalty_function[epicardium_nodes] > 0.0001]
+        # select surfaces containing these nodes
+        pericardium_faces = epicardium_faces[
+            np.any(np.isin(epicardium_faces, pericardium_nodes), axis=1)
+        ]
+        # some nodes on the edge must be included
+        pericardium_nodes, a = np.unique(pericardium_faces, return_inverse=True)
 
-        spring_stiffness = self.parameters["Pericardium"]["Spring Stiffness"]  # kPA/mm
+        # build pericardium polydata
+        coord = self.model.mesh.nodes[pericardium_nodes]
+        connect = a.reshape(pericardium_faces.shape)
+        pericardium_polydata = vtkmethods.create_vtk_surface_triangles(coord, connect, clean=False)
+        # vtkmethods.write_vtkdata_to_vtkfile(pericardium_polydata,'pericardium.vtk')
+
+        # compute normal
+        cell_normal, point_normal = vtkmethods.add_normals_to_polydata(
+            pericardium_polydata, return_normals=True
+        )
+        # normal_obj = vtkmethods.add_normals_to_polydata(pericardium_polydata)
+        # vtkmethods.write_vtkdata_to_vtkfile(normal_obj,'normal.vtk')
 
         # use pre-computed nodal areas
         nodal_areas = self.model.mesh.point_data["nodal_areas"][pericardium_nodes]
+        nodal_penalty = penalty_function[pericardium_nodes]
         # compute scale factor
-        scale_factors = nodal_areas * penalty[pericardium_nodes]
+        scale_factors = nodal_areas * nodal_penalty
 
-        # write to file
-        # np.savetxt(
-        #     os.path.join(self.model.info.workdir, "pericardium.txt"),
-        #     np.concatenate(
-        #         (
-        #             self.model.mesh.nodes[pericardium_nodes, :],
-        #             penalty[pericardium_nodes].reshape(-1, 1),
-        #             scale_factors.reshape(-1, 1),
-        #         ),
-        #         axis=1,
-        #     ),
-        #     delimiter=",",
-        # )
+        def __debug():
+            import meshio
+
+            meshio.write_points_cells(
+                "pericardium.vtk",
+                coord,
+                [("triangle", connect)],
+                point_data={"area": nodal_areas, "normal": point_normal, "penalty": nodal_penalty},
+                cell_data={"normal": [cell_normal]},
+            )
+
+        # __debug()
 
         # create unique ids for keywords
         part_id = self.get_unique_part_id()
         section_id = self.get_unique_section_id()
         mat_id = self.get_unique_mat_id()
 
+        # define part
         part_kw = keywords.Part()
         part_kw.parts = pd.DataFrame(
             {"heading": ["Pericardium"], "pid": [part_id], "secid": [section_id], "mid": [mat_id]}
         )
+        # define section
         section_kw = keywords.SectionDiscrete(secid=section_id, cdl=0, tdl=0)
-        mat_kw = keywords.MatSpringElastic(mid=mat_id, k=spring_stiffness)
+        # define material
+        mat_kw = keywords.MatSpringElastic(
+            mid=mat_id, k=(self.parameters["Pericardium"]["Spring Stiffness"])
+        )
 
-        # 1: "omni-directional": equal springs in x,y, and z
-        # 2: "apex-mitral-drection": one spring in apex-mitral valve direction
-        spring_type = self.parameters["Pericardium"]["Spring Type"]
+        # define spring orientations
+        sd_orientation_kw = create_define_sd_orientation_kw(
+            vectors=point_normal, vector_id_offset=self.id_offset["vector"]
+        )
+        # add offset
+        self.id_offset["vector"] = sd_orientation_kw.vectors["vid"].to_numpy()[-1]
+        vector_ids = sd_orientation_kw.vectors["vid"].to_numpy().astype(int)
 
-        if spring_type == "omni-directional":
-            # create three unit vectors
-            sd_orientation_kw = create_define_sd_orientation_kw(
-                vectors=np.eye(3), vector_id_offset=self.id_offset["vector"]
-            )
-
-            self.id_offset["vector"] = sd_orientation_kw.vectors["vid"].to_numpy()[-1]
-            # create discrete elements for each node and for each direction
-            vector_ids = sd_orientation_kw.vectors["vid"].to_numpy()
-            num_nodes = len(pericardium_nodes)
-            vector_ids = np.tile(vector_ids, num_nodes)
-            nodes = np.repeat(pericardium_nodes + 1, 3)
-            nodes = np.vstack([nodes, np.zeros(len(nodes))])
-            nodes = nodes.T
-            scale_factors = np.repeat(scale_factors, 3)
-
-        elif spring_type == "apex-mitral-direction":
-            # get center of mitral valve
-            left_ventricle = self.model.get_part("Left ventricle")
-            apex_node_coordinates = left_ventricle.apex_points[0].xyz
-            # midpoint between aortic and mitral valve
-            center = np.mean([c.centroid for c in left_ventricle.caps], axis=0)
-
-            # define spring orientation from apex to mitral valve
-            orientation = center - apex_node_coordinates
-            orientation /= np.linalg.norm(orientation)
-
-            sd_orientation_kw = create_define_sd_orientation_kw(
-                vectors=orientation, vector_id_offset=self.id_offset["vector"]
-            )
-            self.id_offset["vector"] = sd_orientation_kw.vectors["vid"].to_numpy()[-1]
-
-            vector_ids = sd_orientation_kw.vectors["vid"].to_numpy()
-            num_nodes = len(pericardium_nodes)
-            vector_ids = np.tile(vector_ids, num_nodes)
-            nodes = pericardium_nodes + 1
-            nodes = np.vstack([nodes, np.zeros(len(nodes))])
-            nodes = nodes.T
+        # define spring nodes
+        nodes = pericardium_nodes + 1
+        nodes = np.vstack([nodes, np.zeros(len(nodes))])
+        nodes = nodes.T
 
         # create discrete elements
         discrete_element_kw = create_discrete_elements_kw(
@@ -1600,22 +1609,37 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(load_curve_kw)
 
         # create *LOAD_SEGMENT_SETS for each ventricular cavity
-        cavities = [part.cavity for part in self.model.parts if part.cavity]
-        for cavity in cavities:
-            if "atrium" in cavity.name:
-                continue
-
-            if cavity.name == "Left ventricle":
-                scale_factor = pressure_lv
-                seg_id = cavity.surface.id
-            elif cavity.name == "Right ventricle":
-                scale_factor = pressure_rv
-                seg_id = cavity.surface.id
-            load_segset_kw = keywords.LoadSegmentSet(
-                ssid=seg_id, lcid=load_curve_id, sf=scale_factor
-            )
-            self.kw_database.main.append(load_segset_kw)
-
+        # cavities = [part.cavity for part in self.model.parts if part.cavity]
+        # for cavity in cavities:
+        #     if "atrium" in cavity.name:
+        #         continue
+        #
+        #     if cavity.name == "Left ventricle":
+        #         scale_factor = pressure_lv
+        #         seg_id = cavity.surface.id
+        #     elif cavity.name == "Right ventricle":
+        #         scale_factor = pressure_rv
+        #         seg_id = cavity.surface.id
+        #     load_segset_kw = keywords.LoadSegmentSet(
+        #         ssid=seg_id, lcid=load_curve_id, sf=scale_factor
+        #     )
+        #     self.kw_database.main.append(load_segset_kw)
+        for part in self.model.parts:
+            for surface in part.surfaces:
+                if surface.name == "Left ventricle endocardium":
+                    scale_factor = pressure_lv
+                    seg_id = surface.id
+                    load_segset_kw = keywords.LoadSegmentSet(
+                        ssid=seg_id, lcid=load_curve_id, sf=scale_factor
+                    )
+                    self.kw_database.main.append(load_segset_kw)
+                elif surface.name == "Right ventricle endocardium":
+                    scale_factor = pressure_rv
+                    seg_id = surface.id
+                    load_segset_kw = keywords.LoadSegmentSet(
+                        ssid=seg_id, lcid=load_curve_id, sf=scale_factor
+                    )
+                    self.kw_database.main.append(load_segset_kw)
         return
 
 
@@ -1656,9 +1680,10 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # for boundary conditions
         # self._update_boundary_conditions_db()
         self._add_cap_bc(bc_type="fix_caps")
-        self._add_pericardium_bc()
+        # self._add_pericardium_bc()
 
-        self._update_cap_elements_db()
+        # Zerop model should only include ventricle parts to export correctly lsda file
+        # self._update_cap_elements_db()
 
         # # Approximate end-diastolic pressures
         pressure_lv = self.parameters["ED pressure"]["Left Ventricle"]  # kPa
@@ -1668,6 +1693,21 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         # zerop key words
         self._add_control_reference_configuration()
+        #
+        # # export dynain file
+        # NOTE: generates a new part-set. Use part-set id 999.
+        # Please note that choosing 999 as the part-set id is arbitrary,
+        # and defining a new part set adding this to the main database will
+        # create a part-set id of 999+1
+        self.kw_database.main.append(keywords.SetPartListGenerate(sid=999, b1beg=1, b1end=999999))
+        self.kw_database.main.append(
+            keywords.InterfaceSpringbackLsdyna(
+                psid=999, nshv=999, ftype=3, rflag=1, optc="OPTCARD", ndflag=1, cflag=1, hflag=1
+            )
+        )
+        self.kw_database.main.append(
+            keywords.InterfaceSpringbackExclude(kwdname="BOUNDARY_SPC_NODE")
+        )
 
         self._get_list_of_includes()
         self._add_includes()

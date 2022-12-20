@@ -16,6 +16,11 @@ import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 import meshio
 import numpy as np
 
+try:
+    import pyvista as pv
+except (ImportError):
+    LOGGER.warning("Importing pyvista failed. Install with: pip install pyvista")
+
 
 class Mesh:
     """Mesh class: contains nodal coordinates and element definitions.
@@ -324,6 +329,36 @@ class Mesh:
         purkinje.id = len(self.beam_network) + 1
         self.beam_network.append(purkinje)
 
+    def _to_pyvista_object(self) -> pv.UnstructuredGrid:
+        """Convert mesh object into pyvista unstructured grid object.
+
+        Returns
+        -------
+        pv.UnstructuredGrid
+            Pyvista unstructured grid object.
+        """
+        num_tets = self.tetrahedrons.shape[0]
+        cells = np.hstack(
+            [np.ones((self.tetrahedrons.shape[0], 1), dtype=int) * 4, self.tetrahedrons]
+        ).flatten()
+        celltypes = np.ones(num_tets, dtype=int) * pv.CellType.TETRA
+        points = self.nodes
+        grid = pv.UnstructuredGrid(cells, celltypes, points)
+        # add cell and point data
+        for key, value in self.cell_data.items():
+            if value.size == value.shape[0]:
+                grid.cell_data.set_scalars(name=key, scalars=value)
+            elif len(value.shape) > 1:
+                grid.cell_data.set_vectors(name=key, vectors=value)
+
+        for key, value in self.point_data.items():
+            if value.size == value.shape[0]:
+                grid.point_data.set_array(name=key, data=value)
+            elif len(value.shape) > 1:
+                grid.point_data.set_vectors(name=key, vectors=value)
+
+        return grid
+
 
 class Feature:
     """Feature class."""
@@ -520,6 +555,36 @@ class SurfaceMesh(Feature):
             filename = "{0}_groupid_edges_{1}.vtk".format(prefix, self.name)
             vtkmethods.write_vtkdata_to_vtkfile(vtk_surf, filename)
 
+        return
+
+    def _to_pyvista_object(self) -> pv.PolyData:
+        """Convert to pyvista polydata object.
+
+        Returns
+        -------
+        pv.PolyData
+            pyvista PolyData object
+        """
+        faces = np.hstack([np.ones((self.faces.shape[0], 1), dtype=int) * 3, self.faces])
+        nodes = self.nodes
+        faces = np.reshape(faces, (faces.size))
+        return pv.PolyData(nodes, faces)
+
+    def plot(self, show_edges: bool = True):
+        """Plot the surface mesh with PyVista.
+
+        Parameters
+        ----------
+        show_edges : bool, optional
+            Show edges of the mesh, by default True
+        """
+        surf = self._to_pyvista_object()
+        surf.plot(
+            cpos=[-1, 1, 0.5],
+            show_scalar_bar=False,
+            show_edges=show_edges,
+            line_width=2,
+        )
         return
 
 

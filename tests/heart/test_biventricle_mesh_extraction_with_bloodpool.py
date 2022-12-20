@@ -5,6 +5,7 @@ import shutil
 
 import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.support import run_preprocessor
+import numpy as np
 import pytest
 
 from .common import (
@@ -66,12 +67,26 @@ def extract_bi_ventricle():
         work_directory=workdir,
         path_to_model=path_to_model,
         mesh_size=reference_model.info.mesh_size,
+        add_blood_pool=True,
     )
 
     yield
 
     # cleanup
     shutil.rmtree(workdir)
+
+
+def test_blood_pools():
+    """Test if blood fluid_mesh a mesh."""
+    assert isinstance(model.fluid_mesh.tetrahedrons, np.ndarray)
+    assert isinstance(model.fluid_mesh.nodes, np.ndarray)
+    # may be too strict
+    assert np.shape(model.fluid_mesh.tetrahedrons)[0] > 450000
+    assert np.shape(model.fluid_mesh.tetrahedrons)[1] == 4
+    assert np.shape(model.fluid_mesh.nodes)[0] > 120000
+    assert np.shape(model.fluid_mesh.nodes)[1] == 3
+
+    return
 
 
 def test_part_names():

@@ -107,7 +107,6 @@ def mesh_heart_model_by_fluent(
     min_size = mesh_size
     max_size = mesh_size
     growth_rate_wrap = 1.2
-    add_blood_pool = False
 
     # import files
     session.meshing.tui.file.import_.cad("no " + work_dir_meshing + " part_*.stl yes 40 yes mm")
@@ -135,21 +134,55 @@ def mesh_heart_model_by_fluent(
         "hybrid",
         0.8,
     )
+
     if add_blood_pool:
         # if adding blood pool:
         # ; ------------------------------------------------------------------
-        # ; template script for auto-generating caps for all endocardial parts
+        # ; script for auto-generating caps for all endocardial parts
         # ; and extracting blood pool volume
         # ; This first copies all the endocardial zones and septum and
         # ; and closes the the cavities based on the free faces
         # ; Note that the auto-patch utility may not work in all cases.
         # ; ------------------------------------------------------------------
-        #
-        session.meshing.tui.boundary.modify.auto_patch_holes()
-        raise NotImplementedError("Adding blood pool is not implemented through PyFluent yet")
-        tui = session.meshing.tui
-        tui.objects.delete_all_geom()
-        tui
+        session.meshing.tui.objects.delete_all_geom()
+        session.scheme_eval.scheme_eval(
+            "(define zone-ids-endo (get-face-zones-of-filter '*endocardium*) )"
+        )
+        session.scheme_eval.scheme_eval(
+            "(define zone-id-septum (get-face-zones-of-filter '*septum*) )"
+        )
+        a = session.scheme_eval.scheme_eval(
+            "(define zone-ids-to-copy (append zone-ids-endo zone-id-septum) )"
+        )
+        session.scheme_eval.scheme_eval(
+            '(ti-menu-load-string  ( format #f "/boundary/manage/copy ~a" zone-ids-to-copy) )'
+        )
+        session.scheme_eval.scheme_eval(
+            "(define zone-ids-to-patch (get-unreferenced-face-zones-of-filter '*) )"
+        )
+        session.scheme_eval.scheme_eval(
+            '(ti-menu-load-string  ( format #f "/boundary/modify/auto-patch-holes ~a"'
+            "zone-ids-to-patch) )"
+        )
+        session.scheme_eval.scheme_eval(
+            "(define zone-ids-patch (get-unreferenced-face-zones-of-filter '*patch*) )"
+        )
+        session.meshing.tui.objects.create("valves fluid 3 '(*-patch-*) '() mesh yes")
+
+        # to here:
+        session.meshing.tui.objects.delete_unreferenced_faces_and_edges()
+        session.meshing.tui.objects.labels.create_label_per_zone("valves '(*)")
+        session.meshing.tui.objects.labels.remove_zones("valves valves '(*)")
+        session.meshing.tui.objects.merge("'(wrapped-myocardium valves) wrapped-myocardium")
+        session.meshing.tui.diagnostics.face_connectivity.fix_duplicate_faces(
+            "objects '(wrapped-myocardium)"
+        )
+        session.meshing.tui.boundary.remesh.controls.intersect.remesh_post_intersection("no")
+        session.meshing.tui.boundary.remesh.intersect_all_face_zones("yes 40 0.05 no")
+        session.meshing.tui.boundary.manage.remove_suffix("'(*)")
+        session.meshing.tui.diagnostics.face_connectivity.fix_duplicate_faces(
+            "objects '(wrapped-myocardium)"
+        )
 
     # compute volumetric regions
     session.meshing.tui.objects.volumetric_regions.compute("wrapped-myocardium", "no")

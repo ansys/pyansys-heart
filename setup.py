@@ -55,12 +55,10 @@ with open("requirements_build.txt") as f:
 # add these files as package data
 # can test if files are indeed added to distribution by: python setup.py sdist bdist_wheel
 package_data = {
-    "ansys.heart.preprocessor.templates": [
-        "fluent_meshing_template_improved_2.jou",
-        "fluent_meshing_add_blood_mesh_template.jou",
-    ],
     "ansys.heart.preprocessor": ["*.json"],
     "ansys.heart.writer.templates": ["*.json"],
+    "ansys.heart.writer": ["calcium_from_EP.txt"],
+    "ansys.heart.calibration": ["material.k", "PassiveCalibration.lsopt", "run.template"],
     "ansys.heart.misc.downloader": ["remote_repo_hash_table_sha256.json"],
 }
 

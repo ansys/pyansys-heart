@@ -9,6 +9,7 @@ from ansys.heart.postprocessor.binout_helper import NodOut
 from ansys.heart.preprocessor.mesh.objects import Cavity, SurfaceMesh
 import matplotlib.pyplot as plt
 import numpy as np
+import pkg_resources
 
 
 def create_calibration_folder(target_dir, python_exe: str = ""):
@@ -22,14 +23,17 @@ def create_calibration_folder(target_dir, python_exe: str = ""):
 
     """
     # todo: test if it's a legitimate folder
-    here = os.path.dirname(os.path.realpath(__file__))
+    file_path = pkg_resources.resource_filename(
+        "ansys.heart.calibration", "PassiveCalibration.lsopt"
+    )
     shutil.copy(
-        os.path.join(here, "PassiveCalibration.lsopt"),
+        file_path,
         os.path.join(target_dir, "PassiveCalibration.lsopt"),
     )
 
+    file_path = pkg_resources.resource_filename("ansys.heart.calibration", "material.k")
     shutil.copy(
-        os.path.join(here, "material.k"),
+        file_path,
         os.path.join(target_dir, "material.k"),
     )
 
@@ -39,8 +43,9 @@ def create_calibration_folder(target_dir, python_exe: str = ""):
     with open(os.path.join(target_dir, "run.bat"), "w") as f:
         f.write(f"{python_exe} run.py")
 
+    file_path = pkg_resources.resource_filename("ansys.heart.calibration", "run.template")
     shutil.copy(
-        os.path.join(here, "run.template"),
+        file_path,
         os.path.join(target_dir, "run.py"),
     )
 
@@ -98,7 +103,8 @@ class PassiveCalibration:
         finally:
             Exception("Cannot load binout file")
 
-        time = nodout.time
+        # time need to be normalized
+        time = nodout.time / nodout.time[-1]
         coords = nodout.get_coordinates()
 
         # compute volume at different simulation time

@@ -61,3 +61,10 @@ class ElectrophysiologyDecks(BaseDecks):
         self.cell_models = Deck()
         self.ep_settings = Deck()
         self.beam_networks = Deck()
+
+
+class ElectroMechanicsDecks(ElectrophysiologyDecks, MechanicsDecks):
+    """Useful decks for a electromechanics simulation."""
+
+    def __init__(self) -> None:
+        super().__init__()

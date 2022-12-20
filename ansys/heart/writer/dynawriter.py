@@ -2811,6 +2811,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         return
 
     def _update_use_Purkinje(self):
+        """Update keywords for Purkinje usage.
+        """
         if self.model.mesh.beam_network:
             self.kw_database.material.append(keywords.SectionBeam(secid=3, elform=3, a=645))
             self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))

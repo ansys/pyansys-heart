@@ -52,7 +52,7 @@ class Mesh:
         self.boundaries: List[SurfaceMesh] = []
         """List of boundary surface meshes within the part."""
         self.beam_network: List[BeamMesh] = []
-        """List of boundary surface meshes within the part."""
+        """List of beam networks in the mesh."""
         pass
 
     @property
@@ -603,7 +603,7 @@ class BeamMesh(Feature):
         super().__init__(name)
 
         self.edges = edges
-        """Faces of surface."""
+        """Beams edges."""
         self.nodes = copy.copy(nodes)  # shallow copy?
         """Node coordinates."""
         self.type = "Beam"

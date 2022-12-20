@@ -73,7 +73,7 @@ def add_nodes_to_kw(nodes: np.array, node_kw: keywords.Node, offset: int = 0) ->
 
 
 def add_beams_to_kw(
-    beams: np.array, beam_kw: keywords.ElementBeam, pid: int, offset: int = 0
+    beams: np.ndarray, beam_kw: keywords.ElementBeam, pid: int, offset: int = 0
 ) -> keywords.ElementBeam:
     """Add beams to an existing *ELEMENT_BEAM keyword.
 

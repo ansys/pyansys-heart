@@ -79,7 +79,7 @@ def compare_generated_mesh(model: models.HeartModel, ref_stats: dict):
         allowed_difference2 = 0
         allowed_difference3 = 0
     else:
-        allowed_difference1 = 100
+        allowed_difference1 = 500
         allowed_difference2 = 50
         allowed_difference3 = 10
 

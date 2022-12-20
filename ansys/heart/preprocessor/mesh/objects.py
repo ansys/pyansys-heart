@@ -282,37 +282,49 @@ class Mesh:
         else:
             return surfaces
 
-    def add_purkinje_from_kfile(self,filename: pathlib.Path = None)-> None:
+    def add_purkinje_from_kfile(self, filename: pathlib.Path) -> None:
+        """Read an LS-DYNA file containing purkinje beams and nodes.
+
+        Parameters
+        ----------
+        filename : pathlib.Path, optional
+        """
         # Open file and import beams and created nodes
-        with open(filename, 'r') as file:
+        with open(filename, "r") as file:
             start_nodes = 0
             lines = file.readlines()
         number_of_nodes = len(self.nodes)
         # find line ids delimiting node data and edge data
         start_nodes = np.array(np.where(["*NODE" in line for line in lines]))[0][0]
         end_nodes = np.array(np.where(["*" in line for line in lines]))
-        end_nodes = end_nodes[end_nodes>start_nodes][0]
+        end_nodes = end_nodes[end_nodes > start_nodes][0]
         start_beams = np.array(np.where(["*ELEMENT_BEAM" in line for line in lines]))[0][0]
         end_beams = np.array(np.where(["*" in line for line in lines]))
-        end_beams = end_beams[end_beams>start_beams][0]
+        end_beams = end_beams[end_beams > start_beams][0]
         # load node data
-        node_data = np.loadtxt(filename,skiprows=start_nodes+1,max_rows=end_nodes-start_nodes-1)
-        node_id_start = np.array(node_data[0,0],dtype=int)-1
-        self.nodes = np.append(self.nodes,node_data[:,1:4], axis=0)
+        node_data = np.loadtxt(
+            filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1
+        )
+        node_id_start = np.array(node_data[0, 0], dtype=int) - 1
+        self.nodes = np.append(self.nodes, node_data[:, 1:4], axis=0)
         # load beam data
-        beam_data = np.loadtxt(filename,skiprows=start_beams+1,max_rows=end_beams-start_beams-1,dtype=int)
-        edges = beam_data[:,2:4]-1
-        edges[edges>=node_id_start] = edges[edges>=node_id_start]-node_id_start+number_of_nodes
+        beam_data = np.loadtxt(
+            filename, skiprows=start_beams + 1, max_rows=end_beams - start_beams - 1, dtype=int
+        )
+        edges = beam_data[:, 2:4] - 1
+        edges[edges >= node_id_start] = (
+            edges[edges >= node_id_start] - node_id_start + number_of_nodes
+        )
 
-        nodes = node_data[:,1:4]
-        pid = beam_data[0,1]
+        nodes = node_data[:, 1:4]
+        pid = beam_data[0, 1]
 
-        purkinje = BeamMesh(nodes=nodes,edges=edges)
+        purkinje = BeamMesh(nodes=nodes, edges=edges)
         purkinje.pid = pid
-        purkinje.id = len(self.beam_network)+1
+        purkinje.id = len(self.beam_network) + 1
         self.beam_network.append(purkinje)
 
-        
+
 class Feature:
     """Feature class."""
 
@@ -510,6 +522,7 @@ class SurfaceMesh(Feature):
 
         return
 
+
 class BeamMesh(Feature):
     """Beam class."""
 
@@ -571,6 +584,7 @@ class BeamMesh(Feature):
         )
         vtkmethods.vtk_surface_to_stl(vtk_surface, filename, self.name)
         return
+
 
 class Cavity(Feature):
     """Cavity class."""

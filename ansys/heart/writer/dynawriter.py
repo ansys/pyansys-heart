@@ -31,8 +31,8 @@ from ansys.heart.writer.heart_decks import (
     PurkinjeGenerationDecks,
 )
 from ansys.heart.writer.keyword_module import (
-    add_nodes_to_kw,
     add_beams_to_kw,
+    add_nodes_to_kw,
     create_define_curve_kw,
     create_define_sd_orientation_kw,
     create_discrete_elements_kw,
@@ -2353,9 +2353,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
 
                 apex_left_coordinates = self.model.mesh.nodes[node_apex_left, :]
 
-                node_id_start_left = (
-                    self.model.mesh.nodes.shape[0] + 1
-                )  
+                node_id_start_left = self.model.mesh.nodes.shape[0] + 1
 
                 edge_id_start_left = self.model.mesh.tetrahedrons.shape[0] + 1
 
@@ -2426,7 +2424,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
             )  # TODO find a solution in dyna to better handle id definition
 
             edge_id_start_right = 2 * self.model.mesh.tetrahedrons.shape[0]
-            pid = self.get_unique_part_id()+1
+            pid = self.get_unique_part_id() + 1
             # Purkinje generation parameters
             self.kw_database.main.append(
                 custom_keywords.EmEpPurkinjeNetwork2(
@@ -2466,9 +2464,8 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         """Add *INCLUDE keywords."""
         for include_file in self.include_files:
             filename_to_include = include_file + ".k"
-            self.kw_database.main.append(
-                keywords.Include(filename=filename_to_include)
-            )
+            self.kw_database.main.append(keywords.Include(filename=filename_to_include))
+
 
 class ElectrophysiologyDynaWriter(BaseDynaWriter):
     """Class for preparing the input for an Electrophysiology LS-DYNA simulation."""
@@ -2775,17 +2772,19 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def _update_use_Purkinje(self):
         if self.model.mesh.beam_network:
-            self.kw_database.material.append(keywords.SectionBeam(secid=3,elform=3,a=645))
+            self.kw_database.material.append(keywords.SectionBeam(secid=3, elform=3, a=645))
             self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
             beams_kw = keywords.ElementBeam()
             for network in self.model.mesh.beam_network:
-                origin_coordinates= self.model.mesh.nodes[network.node_ids[0],:]
+                origin_coordinates = self.model.mesh.nodes[network.node_ids[0], :]
                 for boundary in self.model.mesh.boundaries:
                     if boundary.name != None and "endocardium" in boundary.name:
-                        distance = np.linalg.norm(origin_coordinates-self.model.mesh.nodes[boundary.node_ids,:],axis=1)
-                        if np.min(distance)<1e-3:
-                            network.name = boundary.name+"-"+"purkinje"
-                            network.nsid=boundary.nsid
+                        distance = np.linalg.norm(
+                            origin_coordinates - self.model.mesh.nodes[boundary.node_ids, :], axis=1
+                        )
+                        if np.min(distance) < 1e-3:
+                            network.name = boundary.name + "-" + "purkinje"
+                            network.nsid = boundary.nsid
 
                 self.kw_database.main.append(
                     custom_keywords.EmEpPurkinjeNetwork2(
@@ -2800,20 +2799,32 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                         ngen=50,
                         nbrinit=8,
                         nsplit=2,
-                        # inodeid=node_id_start_right,  
+                        # inodeid=node_id_start_right,
                         # iedgeid=edge_id_start_right,
                     )
                 )
                 part_df = pd.DataFrame(
-                    {"heading": [network.name], "pid": [network.pid], "secid": [3], "mid": [network.pid]}
+                    {
+                        "heading": [network.name],
+                        "pid": [network.pid],
+                        "secid": [3],
+                        "mid": [network.pid],
+                    }
                 )
                 part_kw = keywords.Part()
                 part_kw.parts = part_df
                 self.kw_database.parts.append(part_kw)
-                self.kw_database.material.append(keywords.MatNull(mid=network.pid,ro=1e-11))
-                self.kw_database.material.append(keywords.EmMat001(mid=network.pid,mtype=2,sigma=10))
-                
-                beams_kw = add_beams_to_kw(beams=network.edges+1,beam_kw=beams_kw,pid=network.pid,offset=len(self.model.mesh.tetrahedrons)+len(beams_kw.elements))
+                self.kw_database.material.append(keywords.MatNull(mid=network.pid, ro=1e-11))
+                self.kw_database.material.append(
+                    keywords.EmMat001(mid=network.pid, mtype=2, sigma=10)
+                )
+
+                beams_kw = add_beams_to_kw(
+                    beams=network.edges + 1,
+                    beam_kw=beams_kw,
+                    pid=network.pid,
+                    offset=len(self.model.mesh.tetrahedrons) + len(beams_kw.elements),
+                )
                 cell_kw = keywords.EmEpCellmodelTentusscher(
                     mid=network.pid,
                     gas_constant=8314.472,

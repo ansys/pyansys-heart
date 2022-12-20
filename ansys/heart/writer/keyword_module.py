@@ -71,7 +71,10 @@ def add_nodes_to_kw(nodes: np.array, node_kw: keywords.Node, offset: int = 0) ->
 
     return node_kw
 
-def add_beams_to_kw(beams: np.array, beam_kw: keywords.ElementBeam, pid: int, offset: int = 0) -> keywords.ElementBeam:
+
+def add_beams_to_kw(
+    beams: np.array, beam_kw: keywords.ElementBeam, pid: int, offset: int = 0
+) -> keywords.ElementBeam:
     """Add beams to an existing *ELEMENT_BEAM keyword.
 
     Note
@@ -96,9 +99,11 @@ def add_beams_to_kw(beams: np.array, beam_kw: keywords.ElementBeam, pid: int, of
 
     # create array with beam ids
     eids = np.arange(0, beams.shape[0], 1) + offset + 1
-    pid = np.zeros(eids.shape)+pid
+    pid = np.zeros(eids.shape) + pid
     # create dataframe
-    df = pd.DataFrame(data=np.vstack([eids, pid,beams.T]).T, columns=beam_kw.elements.columns[0:4],dtype=int)
+    df = pd.DataFrame(
+        data=np.vstack([eids, pid, beams.T]).T, columns=beam_kw.elements.columns[0:4], dtype=int
+    )
 
     # concatenate old and new dataframe
     df1 = pd.concat([beam_kw.elements, df], axis=0, ignore_index=True, join="outer")
@@ -107,6 +112,7 @@ def add_beams_to_kw(beams: np.array, beam_kw: keywords.ElementBeam, pid: int, of
     beam_kw.elements = df1
 
     return beam_kw
+
 
 def create_segment_set_keyword(
     segments: np.array, segid: int = 1, title: str = ""

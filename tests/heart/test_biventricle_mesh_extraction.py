@@ -94,7 +94,7 @@ def test_cavities_volumes():
 
 
 @pytest.mark.xfail(
-    sys.platform == "linux", "Mesh generation slightly different for Linux version of Fluent"
+    sys.platform == "linux", reason="Mesh generation slightly different for Linux version of Fluent"
 )
 def test_mesh():
     """Test the number of tetrahedrons and triangles in the volume mesh and surface meshes"""

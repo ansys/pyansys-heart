@@ -2825,7 +2825,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         """Update keywords for Purkinje usage."""
         if self.model.mesh.beam_network:
             self.kw_database.parts.append(keywords.SectionBeam(secid=3, elform=3, a=645))
-            self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
+            if self.__class__.__name__ == "ElectroMechanicsDynaWriter":
+                self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=0))
+            else:
+                self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
             beams_kw = keywords.ElementBeam()
             for network in self.model.mesh.beam_network:
                 origin_coordinates = self.model.mesh.nodes[network.node_ids[0], :]

@@ -2,6 +2,7 @@
 expected features."""
 import os
 import shutil
+import sys
 
 import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.support import run_preprocessor
@@ -92,7 +93,9 @@ def test_cavities_volumes():
     pass
 
 
-# @pytest.mark.xfail(reason="Number of faces and tetrahedrons is sensitive to changes.")
+@pytest.mark.xfail(
+    sys.platform == "linux", "Mesh generation slightly different for Linux version of Fluent"
+)
 def test_mesh():
     """Test the number of tetrahedrons and triangles in the volume mesh and surface meshes"""
     compare_generated_mesh(model, ref_stats)

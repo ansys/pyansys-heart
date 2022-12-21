@@ -3083,7 +3083,6 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
     def _update_material_db(self, add_active: bool = True):
         """Update the database of material keywords."""
-
         for part in self.model.parts:
             part.mid = part.pid
             mat_id = part.mid

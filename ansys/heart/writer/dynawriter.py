@@ -2301,7 +2301,6 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
     def _update_material_db(self):
         """Add simple linear elastic material for each defined part."""
         for part in self.model.parts:
-            part.element_ids
             em_mat_id = part.pid
             self.kw_database.material.extend(
                 [
@@ -2309,10 +2308,10 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                     custom_keywords.EmMat003(
                         mid=em_mat_id,
                         mtype=2,
-                        sigma11=5.0e-4,
-                        sigma22=1.0e-4,
-                        sigma33=1.0e-4,
-                        beta=0.14,
+                        sigma11=0.5,
+                        sigma22=0.1,
+                        sigma33=0.1,
+                        beta=140,
                         cm=0.01,
                         aopt=2.0,
                         a1=0,
@@ -2659,10 +2658,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     custom_keywords.EmMat003(
                         mid=ep_mid,
                         mtype=2,
-                        sigma11=5.0e-4,
-                        sigma22=1.0e-4,
-                        sigma33=1.0e-4,
-                        beta=0.14,
+                        sigma11=0.5,
+                        sigma22=0.1,
+                        sigma33=0.1,
+                        beta=140,
                         cm=0.01,
                         aopt=2.0,
                         a1=0,

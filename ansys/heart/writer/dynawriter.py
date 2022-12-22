@@ -2545,10 +2545,14 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         if isinstance(self.model, (FourChamber, FullHeart)):
             # 1,3 - 2,4
             self.model.mesh.establish_connectivity()
-            left_ventricle_atrium = []
-            right_ventricle_atrium = []
-            left_ventricle_atrium_name = "left-ventricle_left-atrium"
-            right_ventricle_atrium_name = "right-ventricle_right-atrium"
+            left_ventricle_left_atrium = []
+            right_ventricle_right_atrium = []
+            left_ventricle_right_atrium = []
+            right_ventricle_left_atrium = []
+            left_ventricle_left_atrium_name = "left-ventricle_left-atrium"
+            right_ventricle_right_atrium_name = "right-ventricle_right-atrium"
+            left_ventricle_right_atrium_name = "left-ventricle_right-atrium"
+            right_ventricle_left_atrium_name = "right-ventricle_left-atrium"
             # Find tag_ids containing left/right atrium/ventricle
             for part in self.model.parts:
                 if part.tag_ids != None:
@@ -2558,30 +2562,62 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                             (tag != None)
                             and ("Left" in tag)
                             and ("myocardium" in tag)
-                            and ("ventricle" in tag or "atrium" in tag)
+                            and ("ventricle" in tag)
                         ):
                             tagid = part.tag_ids[tagnumber]
-                            left_ventricle_atrium.append(tagid)
+                            left_ventricle_left_atrium.append(tagid)
+                            left_ventricle_right_atrium.append(tagid)
                         elif (
                             (tag != None)
                             and ("Right" in tag)
                             and ("myocardium" in tag)
-                            and ("ventricle" in tag or "atrium" in tag)
+                            and ("ventricle" in tag)
                         ):
                             tagid = part.tag_ids[tagnumber]
-                            right_ventricle_atrium.append(tagid)
+                            right_ventricle_right_atrium.append(tagid)
+                            right_ventricle_left_atrium.append(tagid)
+                        elif (
+                            (tag != None)
+                            and ("Left" in tag)
+                            and ("myocardium" in tag)
+                            and ("atrium" in tag)
+                        ):
+                            tagid = part.tag_ids[tagnumber]
+                            left_ventricle_left_atrium.append(tagid)
+                            right_ventricle_left_atrium.append(tagid)
+                        elif (
+                            (tag != None)
+                            and ("Right" in tag)
+                            and ("myocardium" in tag)
+                            and ("atrium" in tag)
+                        ):
+                            tagid = part.tag_ids[tagnumber]
+                            right_ventricle_right_atrium.append(tagid)
+                            left_ventricle_right_atrium.append(tagid)
             # build atrioventricular tag_id pairs
-            left_ventricle_atrium = np.unique(left_ventricle_atrium)
-            right_ventricle_atrium = np.unique(right_ventricle_atrium)
+            left_ventricle_left_atrium = np.unique(left_ventricle_left_atrium)
+            right_ventricle_right_atrium = np.unique(right_ventricle_right_atrium)
+            left_ventricle_right_atrium = np.unique(left_ventricle_right_atrium)
+            right_ventricle_left_atrium = np.unique(right_ventricle_left_atrium)
             # find atrioventricular shared nodes/interfaces
             self.model.mesh.add_interfaces(
-                [left_ventricle_atrium, right_ventricle_atrium],
-                [left_ventricle_atrium_name, right_ventricle_atrium_name],
+                [
+                    left_ventricle_left_atrium,
+                    right_ventricle_right_atrium,
+                    left_ventricle_right_atrium,
+                    right_ventricle_left_atrium,
+                ],
+                [
+                    left_ventricle_left_atrium_name,
+                    right_ventricle_right_atrium_name,
+                    left_ventricle_right_atrium_name,
+                    right_ventricle_left_atrium_name,
+                ],
             )
 
             # duplicate nodes of each interface in atrium side
             for interface in self.model.mesh.interfaces:
-                if interface.name != None and interface.name == left_ventricle_atrium_name:
+                if interface.name != None and interface.name == left_ventricle_left_atrium_name:
                     interface_nids = interface.node_ids
                     tets_atrium = self.model.mesh.tetrahedrons[
                         self.model.left_atrium.element_ids, :
@@ -2605,7 +2641,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                         self.model.mesh.nodes, self.model.mesh.nodes[interface_nids, :], axis=0
                     )
 
-                elif interface.name != None and interface.name == right_ventricle_atrium_name:
+                elif interface.name != None and interface.name == right_ventricle_right_atrium_name:
                     interface_nids = interface.node_ids
                     tets_atrium = self.model.mesh.tetrahedrons[
                         self.model.right_atrium.element_ids, :
@@ -2624,6 +2660,52 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
                     self.model.mesh.tetrahedrons[
                         self.model.right_atrium.element_ids, :
+                    ] = tets_atrium
+                    self.model.mesh.nodes = np.append(
+                        self.model.mesh.nodes, self.model.mesh.nodes[interface_nids, :], axis=0
+                    )
+                elif interface.name != None and interface.name == left_ventricle_right_atrium_name:
+                    interface_nids = interface.node_ids
+                    tets_atrium = self.model.mesh.tetrahedrons[
+                        self.model.right_atrium.element_ids, :
+                    ]
+
+                    nids_tobe_replaced = tets_atrium[np.isin(tets_atrium, interface_nids)]
+                    new_nids = np.array(
+                        list(
+                            map(
+                                lambda id: (np.where(interface_nids == id))[0][0],
+                                nids_tobe_replaced,
+                            )
+                        )
+                    ) + len(self.model.mesh.nodes)
+                    tets_atrium[np.isin(tets_atrium, interface_nids)] = new_nids
+
+                    self.model.mesh.tetrahedrons[
+                        self.model.right_atrium.element_ids, :
+                    ] = tets_atrium
+                    self.model.mesh.nodes = np.append(
+                        self.model.mesh.nodes, self.model.mesh.nodes[interface_nids, :], axis=0
+                    )
+                elif interface.name != None and interface.name == right_ventricle_left_atrium_name:
+                    interface_nids = interface.node_ids
+                    tets_atrium = self.model.mesh.tetrahedrons[
+                        self.model.left_atrium.element_ids, :
+                    ]
+
+                    nids_tobe_replaced = tets_atrium[np.isin(tets_atrium, interface_nids)]
+                    new_nids = np.array(
+                        list(
+                            map(
+                                lambda id: (np.where(interface_nids == id))[0][0],
+                                nids_tobe_replaced,
+                            )
+                        )
+                    ) + len(self.model.mesh.nodes)
+                    tets_atrium[np.isin(tets_atrium, interface_nids)] = new_nids
+
+                    self.model.mesh.tetrahedrons[
+                        self.model.left_atrium.element_ids, :
                     ] = tets_atrium
                     self.model.mesh.nodes = np.append(
                         self.model.mesh.nodes, self.model.mesh.nodes[interface_nids, :], axis=0
@@ -2813,6 +2895,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     stimamp=50.0,
                 )
             )
+            # if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
+            #     self.model.left_atrium.apex_points
 
         elif isinstance(self.model, (LeftVentricle)):
             node_apex_left = self.get_apex_left()

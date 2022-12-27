@@ -2832,14 +2832,17 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             beams_kw = keywords.ElementBeam()
             for network in self.model.mesh.beam_network:
                 origin_coordinates = self.model.mesh.nodes[network.node_ids[0], :]
-                for boundary in self.model.mesh.boundaries:
-                    if boundary.name != None and "endocardium" in boundary.name:
-                        distance = np.linalg.norm(
-                            origin_coordinates - self.model.mesh.nodes[boundary.node_ids, :], axis=1
-                        )
-                        if np.min(distance) < 1e-3:
-                            network.name = boundary.name + "-" + "purkinje"
-                            network.nsid = boundary.nsid
+
+                for part in self.model.parts:
+                    for surface in part.surfaces:
+                        if surface.name != None and "endocardium" in surface.name:
+                            distance = np.linalg.norm(
+                                origin_coordinates - self.model.mesh.nodes[surface.node_ids, :],
+                                axis=1,
+                            )
+                            if np.min(distance) < 1e-3:
+                                network.name = surface.name + "-" + "purkinje"
+                                network.nsid = surface.nsid
 
                 self.kw_database.main.append(
                     custom_keywords.EmEpPurkinjeNetwork2(

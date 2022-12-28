@@ -1868,7 +1868,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         self._update_node_db()  # can stay the same (could move to base class)
         if isinstance(self.model, (FourChamber, FullHeart)):
             self._keep_ventricles()
-
+            self._remove_atrial_nodes_from_ventricles_surfaces()
         self._update_parts_db()  # can stay the same (could move to base class++++++++++++++++++++)
         self._update_solid_elements_db(
             add_fibers=False
@@ -1885,6 +1885,33 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         self._get_list_of_includes()
         self._add_includes()
 
+        return
+
+    def _remove_atrial_nodes_from_ventricles_surfaces(self):
+        """Remove nodes that are part of ventricular surfaces which are not part
+        of ventricular parts."""
+        parts = [
+            part
+            for part in self.model.parts
+            if part.part_type == "ventricle" or part.part_type == "septum"
+        ]
+
+        tet_ids = np.empty((0), dtype=int)
+        for part in parts:
+            tet_ids = np.append(tet_ids, part.element_ids)
+            tets = self.model.mesh.tetrahedrons[tet_ids, :]
+        nids = np.unique(tets)
+        for part in parts:
+            for surface in part.surfaces:
+
+                nodes_to_remove = surface.node_ids[
+                    np.isin(surface.node_ids, nids, assume_unique=True, invert=True)
+                ]
+                faces_to_remove = np.isin(surface.faces, nodes_to_remove)
+                faces_to_remove = (
+                    faces_to_remove[:, 0] | faces_to_remove[:, 1] | faces_to_remove[:, 2]
+                )
+                surface.faces = surface.faces[np.invert(faces_to_remove), :]
         return
 
     def export(self, export_directory: str):
@@ -1972,7 +1999,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         # input data
         # The below is relevant for all models.
         nodes_base = np.empty(0, dtype=int)
-        node_set_ids_endo = []  # relevant for both models
+        node_sets_ids_endo = []  # relevant for both models
         node_sets_ids_epi = []  # relevant for both models
         node_set_ids_epi_and_rseptum = []  # only relevant for bv, 4c and full model
 
@@ -1981,7 +2008,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         septum = self.model.get_part("Septum")
 
         # collect node set ids (already generated previously)
-        node_set_ids_endo = [ventricle.endocardium.nsid for ventricle in ventricles]
+        node_sets_ids_endo = [ventricle.endocardium.nsid for ventricle in ventricles]
         node_sets_ids_epi = [ventricle.epicardium.nsid for ventricle in ventricles]
         node_set_id_lv_endo = self.model.get_part("Left ventricle").endocardium.id
 
@@ -2041,7 +2068,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
             set_add_kw = keywords.SetNodeAdd(sid=node_set_id_all_endocardium)
             set_add_kw.options["TITLE"].active = True
             set_add_kw.title = "all_endocardium_segments"
-            set_add_kw.nodes._data = node_set_ids_endo
+            set_add_kw.nodes._data = node_sets_ids_endo
 
             self.kw_database.create_fiber.append(set_add_kw)
 
@@ -2136,7 +2163,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
 
             set_add_kw.options["TITLE"].active = True
             set_add_kw.title = "all_endocardium_segments"
-            set_add_kw.nodes._data = node_set_ids_endo
+            set_add_kw.nodes._data = node_sets_ids_endo
 
             self.kw_database.create_fiber.append(set_add_kw)
 

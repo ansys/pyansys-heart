@@ -1888,8 +1888,7 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         return
 
     def _remove_atrial_nodes_from_ventricles_surfaces(self):
-        """Remove nodes that are part of ventricular surfaces which are not part
-        of ventricular parts."""
+        """Remove nodes that are part of ventricular surfaces which are not part of ventricular parts."""
         parts = [
             part
             for part in self.model.parts

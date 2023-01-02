@@ -2,12 +2,12 @@ version: 2
 updates:
   - package-ecosystem: "pip" # See documentation for possible values
     directory: "/" # Location of package manifests
-    insecure-external-code-execution: allow
+#    insecure-external-code-execution: allow
     schedule:
-      interval: "daily"
+      interval: "weekly"
     labels:
-      - "Maintenance"
-      - "Dependencies"
+      - "maintenance"
+      - "dependencies"
     ignore:
       - dependency-name: "vtk"
       - dependency-name: "grpcio"
@@ -15,4 +15,4 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"

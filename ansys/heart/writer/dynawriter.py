@@ -334,6 +334,25 @@ class BaseDynaWriter:
 
         return
 
+    def export(self, export_directory: str):
+        """Write the model to files."""
+        tstart = time.time()
+        LOGGER.debug("Writing all LS-DYNA .k files...")
+
+        if not export_directory:
+            export_directory = self.model.info.workdir
+
+        if not os.path.isdir(export_directory):
+            os.makedirs(export_directory)
+
+        # export .k files
+        self.export_databases(export_directory)
+
+        tend = time.time()
+        LOGGER.debug("Time spent writing files: {:.2f} s".format(tend - tstart))
+
+        return
+
     def export_databases(self, export_directory: str):
         """Export each of non-empty databases to a specified directory."""
         if not export_directory:
@@ -1851,7 +1870,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
     #             self.kw_database.main.append(load_segset_kw)
 
 
-class FiberGenerationDynaWriter(MechanicsDynaWriter):
+class FiberGenerationDynaWriter(BaseDynaWriter):
     """Class for preparing the input for a fiber-generation LS-DYNA simulation."""
 
     def __init__(self, model: HeartModel) -> None:
@@ -1869,14 +1888,12 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         if isinstance(self.model, (FourChamber, FullHeart)):
             self._keep_ventricles()
             self._remove_atrial_nodes_from_ventricles_surfaces()
-        self._update_parts_db()  # can stay the same (could move to base class++++++++++++++++++++)
-        self._update_solid_elements_db(
-            add_fibers=False
-        )  # can stay the same (could move to base class)
+        self._update_parts_db()
+        self._update_solid_elements_db()
         self._update_material_db()
 
-        self._update_segmentsets_db()  # can stay the same
-        self._update_nodesets_db()  # can stay the same
+        self._update_segmentsets_db()
+        self._update_nodesets_db()
 
         # # update ep settings
         self._update_ep_settings()
@@ -1911,25 +1928,6 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
                     faces_to_remove[:, 0] | faces_to_remove[:, 1] | faces_to_remove[:, 2]
                 )
                 surface.faces = surface.faces[np.invert(faces_to_remove), :]
-        return
-
-    def export(self, export_directory: str):
-        """Write the model to files."""
-        tstart = time.time()
-        LOGGER.debug("Writing all LS-DYNA .k files...")
-
-        if not export_directory:
-            export_directory = self.model.info.workdir
-
-        if not os.path.isdir(export_directory):
-            os.makedirs(export_directory)
-
-        # export .k files
-        self.export_databases(export_directory)
-
-        tend = time.time()
-        LOGGER.debug("Time spent writing files: {:.2f} s".format(tend - tstart))
-
         return
 
     def _update_material_db(self):
@@ -2007,10 +2005,14 @@ class FiberGenerationDynaWriter(MechanicsDynaWriter):
         septum = self.model.get_part("Septum")
 
         # collect node set ids (already generated previously)
-        node_sets_ids_endo = [ventricle.endocardium.nsid for ventricle in ventricles]
         node_sets_ids_epi = [ventricle.epicardium.nsid for ventricle in ventricles]
-        node_set_id_lv_endo = self.model.get_part("Left ventricle").endocardium.id
+        node_sets_ids_endo = []
+        for ventricle in ventricles:
+            for surface in ventricle.surfaces:
+                if "endocardium" in surface.name:
+                    node_sets_ids_endo.append(surface.nsid)
 
+        node_set_id_lv_endo = self.model.get_part("Left ventricle").endocardium.id
         if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             surfaces = [surface for p in self.model.parts for surface in p.surfaces]
             for surface in surfaces:

@@ -84,6 +84,8 @@ class Mesh(pv.UnstructuredGrid):
         """List of surface meshes that make up the interface between different parts."""
         self.boundaries: List[SurfaceMesh] = []
         """List of boundary surface meshes within the part."""
+        self.beam_network: List[BeamMesh] = []
+        """List of beam networks in the mesh."""
         pass
 
     @property
@@ -305,6 +307,48 @@ class Mesh(pv.UnstructuredGrid):
             return surfaces[0]
         else:
             return surfaces
+
+    def add_purkinje_from_kfile(self, filename: pathlib.Path) -> None:
+        """Read an LS-DYNA file containing purkinje beams and nodes.
+
+        Parameters
+        ----------
+        filename : pathlib.Path, optional
+        """
+        # Open file and import beams and created nodes
+        with open(filename, "r") as file:
+            start_nodes = 0
+            lines = file.readlines()
+        number_of_nodes = len(self.nodes)
+        # find line ids delimiting node data and edge data
+        start_nodes = np.array(np.where(["*NODE" in line for line in lines]))[0][0]
+        end_nodes = np.array(np.where(["*" in line for line in lines]))
+        end_nodes = end_nodes[end_nodes > start_nodes][0]
+        start_beams = np.array(np.where(["*ELEMENT_BEAM" in line for line in lines]))[0][0]
+        end_beams = np.array(np.where(["*" in line for line in lines]))
+        end_beams = end_beams[end_beams > start_beams][0]
+        # load node data
+        node_data = np.loadtxt(
+            filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1
+        )
+        node_id_start = np.array(node_data[0, 0], dtype=int) - 1
+        self.nodes = np.append(self.nodes, node_data[:, 1:4], axis=0)
+        # load beam data
+        beam_data = np.loadtxt(
+            filename, skiprows=start_beams + 1, max_rows=end_beams - start_beams - 1, dtype=int
+        )
+        edges = beam_data[:, 2:4] - 1
+        edges[edges >= node_id_start] = (
+            edges[edges >= node_id_start] - node_id_start + number_of_nodes
+        )
+
+        nodes = node_data[:, 1:4]
+        pid = beam_data[0, 1]
+
+        purkinje = BeamMesh(nodes=nodes, edges=edges)
+        purkinje.pid = pid
+        purkinje.id = len(self.beam_network) + 1
+        self.beam_network.append(purkinje)
 
     def _to_pyvista_object(self) -> pv.UnstructuredGrid:
         """Convert mesh object into pyvista unstructured grid object.
@@ -594,6 +638,69 @@ class SurfaceMesh(pv.PolyData, Feature):
                 polydata.point_data[key] = value
 
         return polydata
+
+
+class BeamMesh(Feature):
+    """Beam class."""
+
+    def __init__(
+        self,
+        name: str = None,
+        edges: np.ndarray = None,
+        nodes: np.ndarray = None,
+        nid: int = None,
+        pid: int = None,
+        nsid: int = None,
+    ) -> None:
+        super().__init__(name)
+
+        self.edges = edges
+        """Beams edges."""
+        self.nodes = copy.copy(nodes)  # shallow copy?
+        """Node coordinates."""
+        self.type = "Beam"
+        """Beam type."""
+        self.id: int = nid
+        """Id of beam network."""
+        self.pid = pid
+        """Part id associated with the network."""
+        self.nsid: int = nsid
+        """ID of corresponding set of nodes."""
+        self.cell_data: dict = {}
+        """Data associated with each edge/beam of the network."""
+        self.point_data: dict = {}
+        """Data associated with each point of the network."""
+
+    @property
+    def node_ids(self) -> np.ndarray:
+        """Global node ids - sorted by earliest occurrence."""
+        _, idx = np.unique(self.edges.flatten(), return_index=True)
+        node_ids = self.edges.flatten()[np.sort(idx)]
+        return node_ids
+
+    def compute_bounding_box(self) -> Tuple[np.ndarray, float]:
+        """Compute the bounding box of the surface."""
+        node_ids = np.unique(self.edges)
+        nodes = self.nodes[node_ids, :]
+        dim = nodes.shape[1]
+        bounding_box = np.zeros((2, dim))
+        for ii in range(0, dim):
+            bounding_box[:, ii] = np.array([np.min(nodes[:, ii]), np.max(nodes[:, ii])])
+        volume = np.prod(np.diff(bounding_box, axis=0))
+        return bounding_box, volume
+
+    def write_to_stl(self, filename: pathlib.Path = None) -> None:
+        """Write the surface to a vtk file."""
+        if not filename:
+            filename = "_".join(self.name.lower().split()) + ".stl"
+        if filename[-4:] != ".stl":
+            filename = filename + ".stl"
+
+        vtk_surface = vtkmethods.create_vtk_surface_triangles(
+            self.nodes, np.array([self.edges, self.edges[:, 1][:, None]])
+        )
+        vtkmethods.vtk_surface_to_stl(vtk_surface, filename, self.name)
+        return
 
 
 class Cavity(Feature):

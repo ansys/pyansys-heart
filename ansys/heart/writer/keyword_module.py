@@ -72,6 +72,48 @@ def add_nodes_to_kw(nodes: np.array, node_kw: keywords.Node, offset: int = 0) ->
     return node_kw
 
 
+def add_beams_to_kw(
+    beams: np.ndarray, beam_kw: keywords.ElementBeam, pid: int, offset: int = 0
+) -> keywords.ElementBeam:
+    """Add beams to an existing *ELEMENT_BEAM keyword.
+
+    Note
+    ----
+    If beams are already defined, this adds both the beams in the previous
+    keyword and the specified array of beams. Automatically computes
+    the index offset in case beam_kw.elements is not empty.
+
+    Parameters
+    ----------
+    beams : np.array
+        Numpy array of beam coordinates to add
+    beam_kw : keywords.beam
+        beam keyword
+    offset : int
+        beam id offset
+    """
+    # get beam id of last beam:
+    if not beam_kw.elements.empty and offset == 0:
+        last_eid = beam_kw.elements.iloc[-1, 1]
+        offset = last_eid
+
+    # create array with beam ids
+    eids = np.arange(0, beams.shape[0], 1) + offset + 1
+    pid = np.zeros(eids.shape) + pid
+    # create dataframe
+    df = pd.DataFrame(
+        data=np.vstack([eids, pid, beams.T]).T, columns=beam_kw.elements.columns[0:4], dtype=int
+    )
+
+    # concatenate old and new dataframe
+    df1 = pd.concat([beam_kw.elements, df], axis=0, ignore_index=True, join="outer")
+
+    beam_kw = keywords.ElementBeam()
+    beam_kw.elements = df1
+
+    return beam_kw
+
+
 def create_segment_set_keyword(
     segments: np.array, segid: int = 1, title: str = ""
 ) -> keywords.SetSegment:

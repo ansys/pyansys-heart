@@ -49,8 +49,7 @@ class PurkinjeGenerationDecks(BaseDecks):
 
     def __init__(self) -> None:
         super().__init__()
-        self.main_left_ventricle = Deck()
-        self.main_right_ventricle = Deck()
+        self.main = Deck()
         self.ep_settings = Deck()
 
 
@@ -61,3 +60,11 @@ class ElectrophysiologyDecks(BaseDecks):
         super().__init__()
         self.cell_models = Deck()
         self.ep_settings = Deck()
+        self.beam_networks = Deck()
+
+
+class ElectroMechanicsDecks(ElectrophysiologyDecks, MechanicsDecks):
+    """Useful decks for a electromechanics simulation."""
+
+    def __init__(self) -> None:
+        super().__init__()

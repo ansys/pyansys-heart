@@ -5,11 +5,11 @@ from ansys.dyna.keywords.lib.card import Card, Field
 from ansys.dyna.keywords.lib.keyword_base import KeywordBase
 
 
-class EmEpPurkinjeNetwork(KeywordBase):
+class EmEpPurkinjeNetwork2(KeywordBase):
     """DYNA EM_EP_PURKINJE_NETWORK keyword"""
 
     keyword = "EM"
-    subkeyword = "EP_PURKINJE_NETWORK"
+    subkeyword = "EP_PURKINJE_NETWORK2"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -20,19 +20,20 @@ class EmEpPurkinjeNetwork(KeywordBase):
                     Field("buildnet", int, 10, 10, kwargs.get("buildnet")),
                     Field("ssid", int, 20, 10, kwargs.get("ssid")),
                     Field("mid", int, 30, 10, kwargs.get("mid")),
-                    Field("pointstx", float, 40, 10, kwargs.get("pointstx")),
-                    Field("pointsty", float, 50, 10, kwargs.get("pointsty")),
-                    Field("pointstz", float, 60, 10, kwargs.get("pointstz")),
-                    Field("edgelen", float, 70, 10, kwargs.get("edgelen", 3)),
+                    Field("nodestart", float, 40, 10, kwargs.get("nodestart")),
+                    Field("pointstx", float, 50, 10, kwargs.get("pointstx")),
+                    Field("pointsty", float, 60, 10, kwargs.get("pointsty")),
+                    Field("pointstz", float, 70, 10, kwargs.get("pointstz")),
                 ],
             ),
             Card(
                 [
-                    Field("ngen", int, 0, 10, kwargs.get("ngen", 30)),
-                    Field("nbrinit", int, 10, 10, kwargs.get("nbrinit", 8)),
-                    Field("nsplit", int, 20, 10, kwargs.get("nsplit", 2)),
-                    Field("inodeid", int, 30, 10, kwargs.get("inodeid")),
-                    Field("iedgeid", int, 40, 10, kwargs.get("iedgeid")),
+                    Field("edgelen", int, 0, 10, kwargs.get("edgelen", 3)),
+                    Field("ngen", int, 10, 10, kwargs.get("ngen", 200)),
+                    Field("nbrinit", int, 20, 10, kwargs.get("nbrinit", 8)),
+                    Field("nsplit", int, 30, 10, kwargs.get("nsplit", 2)),
+                    Field("inodeid", int, 40, 10, kwargs.get("inodeid")),
+                    Field("iedgeid", int, 50, 10, kwargs.get("iedgeid")),
                 ],
             ),
         ]
@@ -74,6 +75,15 @@ class EmEpPurkinjeNetwork(KeywordBase):
         self._cards[0].set_value("mid", value)
 
     @property
+    def nodestart(self) -> typing.Optional[int]:
+        """Get or set the Material ID defined in the *MAT section"""  # nopep8
+        return self._cards[0].get_value("nodestart")
+
+    @nodestart.setter
+    def nodestart(self, value: int) -> None:
+        self._cards[0].set_value("nodestart", value)
+
+    @property
     def pointstx(self) -> typing.Optional[float]:
         """Get or set the X coordinate of the tree origin"""  # nopep8
         return self._cards[0].get_value("pointstx")
@@ -103,11 +113,11 @@ class EmEpPurkinjeNetwork(KeywordBase):
     @property
     def edgelen(self) -> float:
         """Get or set the Edge length"""  # nopep8
-        return self._cards[0].get_value("edgelen")
+        return self._cards[1].get_value("edgelen")
 
     @edgelen.setter
     def edgelen(self, value: float) -> None:
-        self._cards[0].set_value("edgelen", value)
+        self._cards[1].set_value("edgelen", value)
 
     @property
     def ngen(self) -> int:

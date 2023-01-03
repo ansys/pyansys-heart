@@ -260,14 +260,16 @@ class HeartModel:
 
             for surface in part.surfaces:
                 LOGGER.info(
-                    "\tsurface: {:} | # faces: {:d}".format(surface.name, surface.faces.shape[0])
+                    "\tsurface: {:} | # faces: {:d}".format(
+                        surface.name, surface.triangles.shape[0]
+                    )
                 )
             for cap in part.caps:
                 LOGGER.info("\tcap: {:} | # nodes {:d}".format(cap.name, len(cap.node_ids)))
             if part.cavity:
                 LOGGER.info(
                     "\tcavity: {:} | volume: {:.1f} [mm3]".format(
-                        part.cavity.name, part.cavity.volume
+                        part.cavity.name, part.cavity.surface.volume
                     )
                 )
             LOGGER.info("-----------------------------------------")
@@ -322,19 +324,75 @@ class HeartModel:
     def plot_mesh(
         self, plot_raw_mesh: bool = False, show_edges: bool = True, color_by: str = "tags"
     ):
-        """Plot the volume mesh."""
+        """Plot the volume mesh of the heart model.
+
+        Parameters
+        ----------
+        plot_raw_mesh : bool, optional
+            Whether to plot the raw mesh, by default False
+        show_edges : bool, optional
+            Whether to plot the edges, by default True
+        color_by : str, optional
+            Color by cell/point data, by default "tags"
+
+        Example
+        -------
+        >>> import ansys.heart.preprocessor.models as models
+        >>> model = models.HeartModel.load_model("heart_model.pickle")
+        >>> model.plot_mesh(show_edges=True)
+        """
         try:
             import pyvista
         except (ImportError):
             LOGGER.warning("pyvista not found. Install with: pip install pyvista")
             return
 
+        plotter = pyvista.Plotter()
         if plot_raw_mesh:
-            grid: pyvista.UnstructuredGrid = self.mesh_raw._to_pyvista_object()
+            plotter.add_mesh(self.mesh_raw)
         else:
-            grid: pyvista.UnstructuredGrid = self.mesh._to_pyvista_object()
+            plotter.add_mesh(self.mesh)
 
-        grid.plot(scalars=color_by, show_edges=show_edges)
+        plotter.show(show_edges=show_edges, color_by="tags")
+        return
+
+    def plot_fibers(self, plot_raw_mesh: bool = False, n_seed_points: int = 1000):
+        """Plot the mesh and fibers as streamlines.
+
+        Parameters
+        ----------
+        plot_raw_mesh : bool, optional
+            Flag indicating whether to plot the streamlines on the raw mesh, by default False
+        n_seed_points : int, optional
+            Number of seed points. Recommended to use 5000, by default 1000
+
+        Example
+        -------
+        >>> import ansys.heart.preprocessor.models as models
+        >>> model = models.HeartModel.load_model("my_model.pickle")
+        >>> model.plot_fibers(n_seed_points=5000)
+        """
+        try:
+            import pyvista
+        except (ImportError):
+            LOGGER.warning("pyvista not found. Install with: pip install pyvista")
+            return
+        plotter = pyvista.Plotter()
+
+        if plot_raw_mesh:
+            if not isinstance(self.mesh_raw, Mesh):
+                LOGGER.info("Raw mesh not available.")
+                return
+            mesh = self.mesh_raw
+        else:
+            mesh = self.mesh
+
+        mesh = mesh.ctp()
+        streamlines = mesh.streamlines(vectors="fiber", source_radius=75, n_points=n_seed_points)
+        tubes = streamlines.tube()
+        plotter.add_mesh(mesh, opacity=0.5, color="white")
+        plotter.add_mesh(tubes, color="white")
+        plotter.show()
         return
 
     def plot_surfaces(self, show_edges: bool = True):
@@ -362,15 +420,17 @@ class HeartModel:
             LOGGER.warning("matplotlib not found. Install matplotlib with: pip install matplotlib")
             return
 
-        named_surfaces = [s for p in self.parts for s in p.surfaces]
-        color_map = plt.cm.get_cmap("tab20", len(named_surfaces))
+        surfaces_to_plot = [s for p in self.parts for s in p.surfaces]
+        valves = [b for b in self.mesh.boundaries if "valve" in b.name or "border" in b.name]
+        surfaces_to_plot = surfaces_to_plot + valves
+
+        color_map = plt.cm.get_cmap("tab20", len(surfaces_to_plot))
         colors = color_map.colors[:, 0:3]
         plotter = pv.Plotter()
         ii = 0
-        for surface in [s for p in self.parts for s in p.surfaces]:
-            surface._to_pyvista_object()
-            actor = plotter.add_mesh(
-                surface._to_pyvista_object(),
+        for surface in surfaces_to_plot:
+            plotter.add_mesh(
+                surface,
                 color=colors[ii, :],
                 show_edges=show_edges,
                 label=surface.name,
@@ -390,9 +450,21 @@ class HeartModel:
         >>> model = HeartModel.load_model("my_model.pickle")
 
         """
-        # NOTE:
+        # NOTE: need to suppress some vtk errors in pickled pyvista objects.
+        # change the verbosity in the vtk logger and suppress the python logger.
+        import logging
+
+        import vtk
+
+        logger = logging.getLogger()
+        logger.disabled = True
+        # to suppress vtk errors
+        vtk_logger = vtk.vtkLogger
+        vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_OFF)
         with open(filename, "rb") as file:
             model = pickle.load(file)
+        logger.disabled = False
+        vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_1)
         return model
 
     def _set_default_mesh_size(self) -> None:
@@ -466,7 +538,8 @@ class HeartModel:
             num_expected_regions = len(boundary_name_suffix)
 
             LOGGER.debug("Extracting : {} from {}".format(boundary_name_suffix, boundary.name))
-            region_ids = boundary.separate_connected_regions()
+            boundary_conn = boundary.clean().connectivity()
+            region_ids = boundary_conn.cell_data["RegionId"] + 1
 
             unique_regions, counts = np.unique(region_ids, return_counts=True)
 
@@ -478,7 +551,9 @@ class HeartModel:
             surfaces: List[SurfaceMesh] = []
             for ii, region_id in enumerate(unique_regions):
                 mask = region_ids == region_id
-                surface = SurfaceMesh(faces=boundary.faces[mask, :], nodes=self.mesh_raw.nodes)
+                surface = SurfaceMesh(
+                    triangles=boundary.triangles[mask, :], nodes=self.mesh_raw.nodes
+                )
                 volumes.append(surface.compute_bounding_box()[1])
                 surfaces.append(surface)
 
@@ -494,7 +569,9 @@ class HeartModel:
                     )
                 )
                 for jj, surface in enumerate(surfaces):
-                    LOGGER.warning("\t{0}: num_faces: {1}".format(jj + 1, surface.faces.shape[0]))
+                    LOGGER.warning(
+                        "\t{0}: num_faces: {1}".format(jj + 1, surface.triangles.shape[0])
+                    )
                 LOGGER.warning(
                     "First {0} surfaces have largest bounding box".format(num_expected_regions)
                 )
@@ -531,11 +608,11 @@ class HeartModel:
                 surface_to_copy_to = surfaces_unseparated[np.argmax(num_connected_nodes)]
                 LOGGER.warning(
                     "Copying {0} orphan faces to {1}".format(
-                        orphan_surface.faces.shape[0], surface_to_copy_to.name
+                        orphan_surface.triangles.shape[0], surface_to_copy_to.name
                     )
                 )
-                surface_to_copy_to.faces = np.vstack(
-                    [surface_to_copy_to.faces, orphan_surface.faces]
+                surface_to_copy_to.triangles = np.vstack(
+                    [surface_to_copy_to.triangles, orphan_surface.triangles]
                 )
 
             else:
@@ -544,7 +621,7 @@ class HeartModel:
                 for surface in surfaces_to_add:
                     surface.write_to_stl(os.path.join(self.info.workdir, surface.name + ".stl"))
 
-                if orphan_surface.faces.shape[0] < 5:
+                if orphan_surface.triangles.shape[0] < 5:
                     LOGGER.warning("Deleting orphan surface: consists of less than 5 faces")
                 else:
                     LOGGER.warning(
@@ -679,7 +756,7 @@ class HeartModel:
 
             face_zone_surface_mesh = SurfaceMesh(
                 name=face_zone.name,
-                faces=faces,
+                triangles=faces,
                 nodes=self.mesh.nodes,
                 sid=face_zone.id,
             )
@@ -714,16 +791,10 @@ class HeartModel:
 
         # get list of all arrays in original mesh
         array_names = list(self.mesh_raw.cell_data.keys()) + list(self.mesh_raw.point_data.keys())
+        array_names1 = self.mesh_raw.array_names
 
-        # write (original) raw mesh and and new mesh to disk
-        filename_original = os.path.join(self.info.workdir, "mesh_raw.vtk")
-        filename_remeshed = os.path.join(self.info.workdir, "mesh.vtk")
-
-        self.mesh_raw.write_to_vtk(filename_original)
-        self.mesh.write_to_vtk(filename_remeshed)
-
-        source = vtkmethods.read_vtk_unstructuredgrid_file(filename_original)
-        target = vtkmethods.read_vtk_unstructuredgrid_file(filename_remeshed)
+        source = self.mesh_raw  # vtkmethods.read_vtk_unstructuredgrid_file(filename_original)
+        target = self.mesh  # vtkmethods.read_vtk_unstructuredgrid_file(filename_remeshed)
 
         # map uvc arrays
         uvc_array_names = [k for k in self.mesh_raw.point_data.keys() if "uvc" in k]
@@ -748,9 +819,14 @@ class HeartModel:
         (
             _,
             _,
-            self.mesh.cell_data,
-            self.mesh.point_data,
+            mapped_cell_data,
+            mapped_point_data,
         ) = vtkmethods.get_tetra_info_from_unstructgrid(target)
+        for key, value in mapped_cell_data.items():
+            self.mesh.cell_data[key] = value
+        for key, value in mapped_point_data.items():
+            self.mesh.point_data[key] = value
+
         # self.mesh.part_ids = self.mesh.cell_data["tags"].astype(int)
 
         # For any non-ventricular points assign -100 to uvc coordinates
@@ -767,39 +843,27 @@ class HeartModel:
         self.mesh.write_to_vtk(path_to_simulation_mesh)
         self.info.path_to_simulation_mesh = path_to_simulation_mesh
 
-        # cleanup
-        os.remove(filename_original)
-        os.remove(filename_remeshed)
         return
 
     def _add_nodal_areas(self):
         """Compute and add nodal areas to surface nodes."""
         LOGGER.debug("Adding nodal areas")
         for surface in self.mesh.boundaries:
-            vtk_surface = vtkmethods.create_vtk_surface_triangles(
-                points=surface.nodes, triangles=surface.faces
-            )
-            surface.point_data["nodal_areas"] = vtkmethods.compute_surface_nodal_area(vtk_surface)
+            nodal_areas = vtkmethods.compute_surface_nodal_area_pyvista(surface)
+            surface.point_data["nodal_areas"] = nodal_areas
 
         # compute nodal areas for explicitly named surfaces
         for part in self.parts:
             for surface in part.surfaces:
-                vtk_surface = vtkmethods.create_vtk_surface_triangles(
-                    points=surface.nodes, triangles=surface.faces
-                )
-                surface.point_data["nodal_areas"] = vtkmethods.compute_surface_nodal_area(
-                    vtk_surface
-                )
+                nodal_areas = vtkmethods.compute_surface_nodal_area_pyvista(surface)
+                surface.point_data["nodal_areas"] = nodal_areas
 
         # add nodal areas to volume mesh. Note that nodes can be part of
         # multiple surfaces - so we need to perform a summation.
         # interior nodes will have an area of 0.
         self.mesh.point_data["nodal_areas"] = np.zeros(self.mesh.nodes.shape[0])
         for surface in self.mesh.boundaries:
-            self.mesh.point_data["nodal_areas"][surface.node_ids] = (
-                self.mesh.point_data["nodal_areas"][surface.node_ids]
-                + surface.point_data["nodal_areas"]
-            )
+            self.mesh.point_data["nodal_areas"] += surface.point_data["nodal_areas"]
         # self.mesh.write_to_vtk(os.path.join(self.info.workdir, "volume_nodal_areas.vtk"))
         return
 
@@ -808,13 +872,11 @@ class HeartModel:
         LOGGER.debug("Adding normals to all 'named' surfaces")
         for part in self.parts:
             for surface in part.surfaces:
-                vtk_surface = vtkmethods.create_vtk_surface_triangles(
-                    points=surface.nodes, triangles=surface.faces
+                surface_with_normals = surface.compute_normals(
+                    cell_normals=True, point_normals=True
                 )
-                (
-                    surface.cell_data["normals"],
-                    surface.point_data["normals"],
-                ) = vtkmethods.add_normals_to_polydata(vtk_surface, return_normals=True)
+                surface.cell_data["normals"] = surface_with_normals.cell_data["Normals"]
+                surface.point_data["normals"] = surface_with_normals.point_data["Normals"]
 
         return
 
@@ -867,7 +929,7 @@ class HeartModel:
 
         # extrude septum surface
         faces_septum = connectivity.remove_triangle_layers_from_trimesh(
-            surface_septum.faces, iters=1
+            surface_septum.triangles, iters=1
         )
 
         septum_surface_vtk = vtkmethods.create_vtk_surface_triangles(self.mesh.nodes, faces_septum)
@@ -964,7 +1026,7 @@ class HeartModel:
                 boundary_name = "-".join(surface.name.lower().split())
                 boundary_surface = self.mesh.get_surface_from_name(boundary_name)
                 if boundary_surface:
-                    surface.faces = boundary_surface.faces
+                    surface.triangles = boundary_surface.triangles
                     surface.nodes = boundary_surface.nodes
                 else:
                     LOGGER.warning("Could not find matching surface for: {0}".format(surface.name))
@@ -1085,7 +1147,7 @@ class HeartModel:
             endocardium = next(s for s in part.surfaces if "endocardium" in s.name)
             # append interface faces to endocardium
             for interface in interfaces:
-                endocardium.faces = np.vstack([endocardium.faces, interface.faces])
+                endocardium.triangles = np.vstack([endocardium.triangles, interface.triangles])
 
         return
 
@@ -1106,13 +1168,13 @@ class HeartModel:
 
             surfaces = [s for s in part.surfaces if "endocardium" in s.name]
             for surface in surfaces:
-                cavity_faces = np.vstack([cavity_faces, surface.faces])
+                cavity_faces = np.vstack([cavity_faces, surface.triangles])
 
             for cap in part.caps:
                 cavity_faces = np.vstack([cavity_faces, cap.triangles])
 
             surface = SurfaceMesh(
-                name=part.name + " cavity", faces=cavity_faces, nodes=self.mesh.nodes
+                name=part.name + " cavity", triangles=cavity_faces, nodes=self.mesh.nodes
             )
             part.cavity = Cavity(surface=surface, name=part.name)
             part.cavity.compute_centroid()

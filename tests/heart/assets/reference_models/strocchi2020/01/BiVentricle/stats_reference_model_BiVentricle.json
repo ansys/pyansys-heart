@@ -1,0 +1,61 @@
+{
+    "cavity_volumes": {
+        "Left ventricle": 170216.67824164702,
+        "Right ventricle": 234473.5439399417
+    },
+    "parts": {
+        "Left ventricle": {
+            "ntetra": 134067,
+            "surfaces": {
+                "Left ventricle endocardium": {
+                    "nfaces": 8842
+                },
+                "Left ventricle epicardium": {
+                    "nfaces": 11070
+                }
+            }
+        },
+        "Right ventricle": {
+            "ntetra": 64334,
+            "surfaces": {
+                "Right ventricle endocardium septum": {
+                    "nfaces": 2502
+                }
+            }
+        },
+        "Septum": {
+            "ntetra": 34751
+        }
+    },
+    "mesh": {
+        "boundaries": {
+            "left-ventricle-endocardium": {
+                "nfaces": 8842
+            },
+            "left-ventricle-epicardium": {
+                "nfaces": 11070
+            },
+            "left-ventricle-myocardium_aortic-valve-plane": {
+                "nfaces": 141
+            },
+            "left-ventricle-myocardium_mitral-valve-plane": {
+                "nfaces": 136
+            },
+            "right-ventricle-endocardium": {
+                "nfaces": 9357
+            },
+            "right-ventricle-epicardium": {
+                "nfaces": 11480
+            },
+            "right-ventricle-myocardium_pulmonary-valve-plane": {
+                "nfaces": 143
+            },
+            "right-ventricle-myocardium_tricuspid-valve-plane": {
+                "nfaces": 203
+            },
+            "right-ventricle-septum": {
+                "nfaces": 2502
+            }
+        }
+    }
+}

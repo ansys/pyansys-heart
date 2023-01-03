@@ -208,7 +208,7 @@ class BaseDynaWriter:
             surface_id = self.get_unique_segmentset_id()
             cavity.surface.id = surface_id
             kw = create_segment_set_keyword(
-                segments=cavity.surface.faces + 1,
+                segments=cavity.surface.triangles + 1,
                 segid=cavity.surface.id,
                 title=cavity.name,
             )
@@ -220,7 +220,7 @@ class BaseDynaWriter:
             for surface in part.surfaces:
                 surface.id = self.get_unique_segmentset_id()
                 kw = create_segment_set_keyword(
-                    segments=surface.faces + 1,
+                    segments=surface.triangles + 1,
                     segid=surface.id,
                     title=surface.name,
                 )
@@ -382,7 +382,7 @@ class BaseDynaWriter:
             filepath = os.path.join(
                 export_directory, "_".join(cavity.name.lower().split()) + ".segment"
             )
-            np.savetxt(filepath, cavity.surface.faces + 1, delimiter=",", fmt="%d")
+            np.savetxt(filepath, cavity.surface.triangles + 1, delimiter=",", fmt="%d")
 
         return
 
@@ -417,12 +417,14 @@ class BaseDynaWriter:
             endocardium = self.model.left_ventricle.endocardium
             endocardium.get_boundary_edges()
             if np.any(endocardium.boundary_edges == node_apex_left):
-                element_id = np.argwhere(np.any(endocardium.faces == node_apex_left, axis=1))[0][0]
+                element_id = np.argwhere(np.any(endocardium.triangles == node_apex_left, axis=1))[
+                    0
+                ][0]
 
-                node_apex_left = endocardium.faces[element_id, :][
+                node_apex_left = endocardium.triangles[element_id, :][
                     np.argwhere(
                         np.isin(
-                            endocardium.faces[element_id, :],
+                            endocardium.triangles[element_id, :],
                             endocardium.boundary_edges,
                             invert=True,
                         )
@@ -449,12 +451,14 @@ class BaseDynaWriter:
             endocardium = self.model.right_ventricle.endocardium
             endocardium.get_boundary_edges()
             if np.any(endocardium.boundary_edges == node_apex_right):
-                element_id = np.argwhere(np.any(endocardium.faces == node_apex_right, axis=1))[0][0]
+                element_id = np.argwhere(np.any(endocardium.triangles == node_apex_right, axis=1))[
+                    0
+                ][0]
 
-                node_apex_right = endocardium.faces[element_id, :][
+                node_apex_right = endocardium.triangles[element_id, :][
                     np.argwhere(
                         np.isin(
-                            endocardium.faces[element_id, :],
+                            endocardium.triangles[element_id, :],
                             endocardium.boundary_edges,
                             invert=True,
                         )
@@ -904,7 +908,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             surface_id = self.get_unique_segmentset_id()
             cavity.surface.id = surface_id
             kw = create_segment_set_keyword(
-                segments=cavity.surface.faces + 1,
+                segments=cavity.surface.triangles + 1,
                 segid=cavity.surface.id,
                 title=cavity.name,
             )
@@ -916,7 +920,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             for surface in part.surfaces:
                 surface.id = self.get_unique_segmentset_id()
                 kw = create_segment_set_keyword(
-                    segments=surface.faces + 1,
+                    segments=surface.triangles + 1,
                     segid=surface.id,
                     title=surface.name,
                 )
@@ -1295,7 +1299,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         for surface in epicardium_surfaces:
             epicardium_nodes = np.append(epicardium_nodes, surface.node_ids)
-            epicardium_faces = np.vstack([epicardium_faces, surface.faces])
+            epicardium_faces = np.vstack([epicardium_faces, surface.triangles])
 
         # NOTE: some duplicates may exist - fix this in preprocessor
         _, idx, counts = np.unique(epicardium_nodes, return_index=True, return_counts=True)
@@ -2362,12 +2366,14 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
             endocardium = self.model.left_ventricle.endocardium
             endocardium.get_boundary_edges()
             if np.any(endocardium.boundary_edges == node_apex_left):
-                element_id = np.argwhere(np.any(endocardium.faces == node_apex_left, axis=1))[0][0]
+                element_id = np.argwhere(np.any(endocardium.triangles == node_apex_left, axis=1))[
+                    0
+                ][0]
 
-                node_apex_left = endocardium.faces[element_id, :][
+                node_apex_left = endocardium.triangles[element_id, :][
                     np.argwhere(
                         np.isin(
-                            endocardium.faces[element_id, :],
+                            endocardium.triangles[element_id, :],
                             endocardium.boundary_edges,
                             invert=True,
                         )
@@ -2428,12 +2434,14 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
             endocardium = self.model.right_ventricle.endocardium
             endocardium.get_boundary_edges()
             if np.any(endocardium.boundary_edges == node_apex_right):
-                element_id = np.argwhere(np.any(endocardium.faces == node_apex_right, axis=1))[0][0]
+                element_id = np.argwhere(np.any(endocardium.triangles == node_apex_right, axis=1))[
+                    0
+                ][0]
 
-                node_apex_right = endocardium.faces[element_id, :][
+                node_apex_right = endocardium.triangles[element_id, :][
                     np.argwhere(
                         np.isin(
-                            endocardium.faces[element_id, :],
+                            endocardium.triangles[element_id, :],
                             endocardium.boundary_edges,
                             invert=True,
                         )

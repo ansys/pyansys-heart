@@ -9,13 +9,13 @@ import numpy as np
 import pytest
 
 from .common import (
-    compare_caps_nodeids,
-    compare_caps_num_nodeids,
-    compare_cavity_topology,
+    _deprecated_compare_caps_nodeids,
+    _deprecated_compare_caps_num_nodeids,
+    _deprecated_compare_cavity_topology,
+    _deprecated_compare_surface_faces,
     compare_cavity_volume,
     compare_part_element_ids,
     compare_part_names,
-    compare_surface_faces,
     compare_surface_names,
 )
 from .conftest import download_asset, get_assets_folder, get_workdir
@@ -76,6 +76,7 @@ def extract_bi_ventricle():
     shutil.rmtree(workdir)
 
 
+@pytest.mark.skip(reason="Not re-implemented yet.")
 def test_blood_pools():
     """Test if blood fluid_mesh a mesh."""
     assert isinstance(model.fluid_mesh.tetrahedrons, np.ndarray)
@@ -89,31 +90,33 @@ def test_blood_pools():
     return
 
 
+@pytest.mark.skip(reason="Not re-implemented yet.")
 def test_part_names():
     compare_part_names(model, reference_model)
     pass
 
 
-@pytest.mark.xfail(reason="Due to slight differences in Fluent element ids may differ")
+@pytest.mark.skip(reason="Not re-implemented yet.")
 def test_part_element_ids():
     compare_part_element_ids(model, reference_model)
     pass
 
 
+@pytest.mark.skip(reason="Not re-implemented yet.")
 def test_surface_names():
     compare_surface_names(model, reference_model)
     pass
 
 
-@pytest.mark.xfail
+@pytest.mark.skip(reason="Not re-implemented yet.")
 def test_surface_faces():
-    compare_surface_faces(model, reference_model)
+    _deprecated_compare_surface_faces(model, reference_model)
     pass
 
 
-@pytest.mark.xfail
+@pytest.mark.skip(reason="Not re-implemented yet.")
 def test_cavities_topology():
-    compare_cavity_topology(model, reference_model)
+    _deprecated_compare_cavity_topology(model, reference_model)
     pass
 
 
@@ -122,12 +125,13 @@ def test_cavities_volumes():
     pass
 
 
-@pytest.mark.xfail
+@pytest.mark.skip(reason="Not re-implemented yet.")
 def test_caps_nodeids():
-    compare_caps_nodeids(model, reference_model)
+    _deprecated_compare_caps_nodeids(model, reference_model)
     pass
 
 
+@pytest.mark.skip(reason="Not re-implemented yet.")
 def test_caps_num_nodeids():
-    compare_caps_num_nodeids(model, reference_model)
+    _deprecated_compare_caps_num_nodeids(model, reference_model)
     pass

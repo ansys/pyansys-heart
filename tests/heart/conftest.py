@@ -30,7 +30,23 @@ def download_asset(database: str = "Strocchi2020", casenumber: int = 1) -> pathl
     """Download and unpack the requested asset if it is not yet available."""
     download_dir = os.path.join(get_assets_folder(), "cases")
 
-    path_to_case = os.path.join(download_dir, "01", "01.case")
+    path_to_case1 = os.path.join(
+        download_dir, database, f"{casenumber:02d}", f"{casenumber:02d}.case"
+    )
+    path_to_case2 = os.path.join(
+        download_dir, database, f"{casenumber:02d}", f"{casenumber:02d}.vtk"
+    )
+    if os.path.isfile(path_to_case1):
+        path_to_case = path_to_case1
+    if os.path.isfile(path_to_case2):
+        path_to_case = path_to_case2
+    else:
+        path_to_case = os.path.join(
+            download_dir, database, f"{casenumber:02d}", f"{casenumber:02d}.vtk"
+        )
+        if database == "Strocchi2020":
+            path_to_case = path_to_case.replace(".vtk", ".case")
+
     if not os.path.isfile(path_to_case):
         print("Downloading asset.")
         path_to_zip = download_case(database, casenumber, download_dir)

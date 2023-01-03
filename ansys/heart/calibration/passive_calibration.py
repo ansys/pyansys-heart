@@ -80,7 +80,9 @@ class PassiveCalibration:
         lv_cavity_faces = np.loadtxt(sgm_file, delimiter=",", dtype=int) - 1
 
         # create cavity object by using surface mesh
-        self.lv_cavity = Cavity(SurfaceMesh(name="lv_cavity", faces=lv_cavity_faces, nodes=x_ed))
+        self.lv_cavity = Cavity(
+            SurfaceMesh(name="lv_cavity", triangles=lv_cavity_faces, nodes=x_ed)
+        )
         self.lv_cavity.compute_volume()
 
         # compute Klotz curve

@@ -2553,47 +2553,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             right_ventricle_right_atrium_name = "right-ventricle_right-atrium"
             left_ventricle_right_atrium_name = "left-ventricle_right-atrium"
             right_ventricle_left_atrium_name = "right-ventricle_left-atrium"
-            # Find tag_ids containing left/right atrium/ventricle
-            for part in self.model.parts:
-                if part.tag_ids != None:
-                    for tagnumber in range(len(part.tag_ids)):
-                        tag = part.tag_labels[tagnumber]
-                        if (
-                            (tag != None)
-                            and ("Left" in tag)
-                            and ("myocardium" in tag)
-                            and ("ventricle" in tag)
-                        ):
-                            tagid = part.tag_ids[tagnumber]
-                            left_ventricle_left_atrium.append(tagid)
-                            left_ventricle_right_atrium.append(tagid)
-                        elif (
-                            (tag != None)
-                            and ("Right" in tag)
-                            and ("myocardium" in tag)
-                            and ("ventricle" in tag)
-                        ):
-                            tagid = part.tag_ids[tagnumber]
-                            right_ventricle_right_atrium.append(tagid)
-                            right_ventricle_left_atrium.append(tagid)
-                        elif (
-                            (tag != None)
-                            and ("Left" in tag)
-                            and ("myocardium" in tag)
-                            and ("atrium" in tag)
-                        ):
-                            tagid = part.tag_ids[tagnumber]
-                            left_ventricle_left_atrium.append(tagid)
-                            right_ventricle_left_atrium.append(tagid)
-                        elif (
-                            (tag != None)
-                            and ("Right" in tag)
-                            and ("myocardium" in tag)
-                            and ("atrium" in tag)
-                        ):
-                            tagid = part.tag_ids[tagnumber]
-                            right_ventricle_right_atrium.append(tagid)
-                            left_ventricle_right_atrium.append(tagid)
 
             # build atrio-ventricular tag-id pairs
             # labels_to_ids stores the mapping between tag-ids and the corresponding label.

@@ -2594,6 +2594,27 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                             tagid = part.tag_ids[tagnumber]
                             right_ventricle_right_atrium.append(tagid)
                             left_ventricle_right_atrium.append(tagid)
+
+            # build atrio-ventricular tag-id pairs
+            # labels_to_ids stores the mapping between tag-ids and the corresponding label.
+            labels_to_tag_ids = self.model.info.labels_to_ids
+            left_ventricle_left_atrium = [
+                labels_to_tag_ids["Left ventricle myocardium"],
+                labels_to_tag_ids["Left atrium myocardium"],
+            ]
+            right_ventricle_right_atrium = [
+                labels_to_tag_ids["Right ventricle myocardium"],
+                labels_to_tag_ids["Right atrium myocardium"],
+            ]
+            left_ventricle_right_atrium = [
+                labels_to_tag_ids["Left ventricle myocardium"],
+                labels_to_tag_ids["Right atrium myocardium"],
+            ]
+            right_ventricle_left_atrium = [
+                labels_to_tag_ids["Right ventricle myocardium"],
+                labels_to_tag_ids["Left atrium myocardium"],
+            ]
+
             # build atrioventricular tag_id pairs
             left_ventricle_left_atrium = np.unique(left_ventricle_left_atrium)
             right_ventricle_right_atrium = np.unique(right_ventricle_right_atrium)

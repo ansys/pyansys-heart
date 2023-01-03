@@ -26,6 +26,7 @@ from ansys.heart.preprocessor.models import (
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 from ansys.heart.writer.heart_decks import (
     BaseDecks,
+    ElectroMechanicsDecks,
     ElectrophysiologyDecks,
     FiberGenerationDecks,
     MechanicsDecks,
@@ -584,7 +585,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self._add_solution_controls(scale_time=1 * scale_time)
             self._add_export_controls(dt_output_d3plot=0.5 * scale_time)
 
-        elif self.__class__.__name__ == "MechanicsDynaWriter":
+        elif self.__class__.__name__ == "MechanicsDynaWriter" or "ElectroMechanicsDynaWriter":
             self._add_solution_controls(
                 end_time=self.parameters["Time"]["End Time"],
                 dtmin=self.parameters["Time"]["dtmin"],
@@ -2380,41 +2381,41 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                 )
                 self.model.left_ventricle.apex_points[0].node_id = node_apex_left
 
-                node_set_id_apex_left = self.get_unique_nodeset_id()
-                # create node-sets for apex
-                node_set_apex_kw = create_node_set_keyword(
-                    node_ids=[node_apex_left + 1],
-                    node_set_id=node_set_id_apex_left,
-                    title="apex node left",
+            node_set_id_apex_left = self.get_unique_nodeset_id()
+            # create node-sets for apex
+            node_set_apex_kw = create_node_set_keyword(
+                node_ids=[node_apex_left + 1],
+                node_set_id=node_set_id_apex_left,
+                title="apex node left",
+            )
+
+            self.kw_database.node_sets.append(node_set_apex_kw)
+
+            apex_left_coordinates = self.model.mesh.nodes[node_apex_left, :]
+
+            node_id_start_left = self.model.mesh.nodes.shape[0] + 1
+
+            edge_id_start_left = self.model.mesh.tetrahedrons.shape[0] + 1
+
+            pid = self.get_unique_part_id()
+            # Purkinje generation parameters
+            self.kw_database.main.append(
+                custom_keywords.EmEpPurkinjeNetwork2(
+                    purkid=1,
+                    buildnet=1,
+                    ssid=segment_set_ids_endo_left,
+                    mid=pid,
+                    pointstx=apex_left_coordinates[0],
+                    pointsty=apex_left_coordinates[1],
+                    pointstz=apex_left_coordinates[2],
+                    edgelen=2,
+                    ngen=50,
+                    nbrinit=8,
+                    nsplit=2,
+                    inodeid=node_id_start_left,
+                    iedgeid=edge_id_start_left,  # TODO check if beam elements exist in mesh
                 )
-
-                self.kw_database.node_sets.append(node_set_apex_kw)
-
-                apex_left_coordinates = self.model.mesh.nodes[node_apex_left, :]
-
-                node_id_start_left = self.model.mesh.nodes.shape[0] + 1
-
-                edge_id_start_left = self.model.mesh.tetrahedrons.shape[0] + 1
-
-                pid = self.get_unique_part_id()
-                # Purkinje generation parameters
-                self.kw_database.main.append(
-                    custom_keywords.EmEpPurkinjeNetwork2(
-                        purkid=1,
-                        buildnet=1,
-                        ssid=segment_set_ids_endo_left,
-                        mid=pid,
-                        pointstx=apex_left_coordinates[0],
-                        pointsty=apex_left_coordinates[1],
-                        pointstz=apex_left_coordinates[2],
-                        edgelen=2,
-                        ngen=50,
-                        nbrinit=8,
-                        nsplit=2,
-                        inodeid=node_id_start_left,
-                        iedgeid=edge_id_start_left,  # TODO check if beam elements exist in mesh
-                    )
-                )
+            )
 
         # Add right purkinje only in biventricular or 4chamber models
         if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
@@ -2528,6 +2529,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self._update_parts_db()
         self._update_solid_elements_db()
         self._update_material_db()
+        self._update_ep_material_db()
         self._update_cellmodels()
         self._update_segmentsets_db()
         self._update_nodesets_db()
@@ -2711,12 +2713,21 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         return
 
     def _update_material_db(self):
-        """Add simple linear elastic material for each defined part."""
+        """Add simple mechanics material for each defined part."""
         for part in self.model.parts:
             ep_mid = part.pid
             self.kw_database.material.extend(
                 [
                     keywords.MatElastic(mid=ep_mid, ro=1e-6, e=1),
+                ]
+            )
+
+    def _update_ep_material_db(self):
+        """Add EP material for each defined part."""
+        for part in self.model.parts:
+            ep_mid = part.pid
+            self.kw_database.material.extend(
+                [
                     custom_keywords.EmMat003(
                         mid=ep_mid,
                         mtype=2,
@@ -2966,19 +2977,25 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def _update_use_Purkinje(self):
         """Update keywords for Purkinje usage."""
         if self.model.mesh.beam_network:
-            self.kw_database.material.append(keywords.SectionBeam(secid=3, elform=3, a=645))
-            self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
+            self.kw_database.parts.append(keywords.SectionBeam(secid=3, elform=3, a=645))
+            if self.__class__.__name__ == "ElectroMechanicsDynaWriter":
+                self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=0))
+            else:
+                self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
             beams_kw = keywords.ElementBeam()
             for network in self.model.mesh.beam_network:
                 origin_coordinates = self.model.mesh.nodes[network.node_ids[0], :]
-                for boundary in self.model.mesh.boundaries:
-                    if boundary.name != None and "endocardium" in boundary.name:
-                        distance = np.linalg.norm(
-                            origin_coordinates - self.model.mesh.nodes[boundary.node_ids, :], axis=1
-                        )
-                        if np.min(distance) < 1e-3:
-                            network.name = boundary.name + "-" + "purkinje"
-                            network.nsid = boundary.nsid
+
+                for part in self.model.parts:
+                    for surface in part.surfaces:
+                        if surface.name != None and "endocardium" in surface.name:
+                            distance = np.linalg.norm(
+                                origin_coordinates - self.model.mesh.nodes[surface.node_ids, :],
+                                axis=1,
+                            )
+                            if np.min(distance) < 1e-3:
+                                network.name = surface.name + "-" + "purkinje"
+                                network.nsid = surface.nsid
 
                 self.kw_database.main.append(
                     custom_keywords.EmEpPurkinjeNetwork2(
@@ -3141,6 +3158,127 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         for include_file in self.include_files:
             filename_to_include = include_file + ".k"
             self.kw_database.main.append(keywords.Include(filename=filename_to_include))
+
+        return
+
+
+class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWriter):
+    """Class for preparing the input for LS-DYNA electromechanical simulation."""
+
+    def __init__(self, model: HeartModel, system_model_name: str = "ClosedLoop") -> None:
+        super().__init__(model)
+
+        self.kw_database = ElectroMechanicsDecks()
+        """Collection of keyword decks relevant for mechanics."""
+
+        self.system_model_name = system_model_name
+        """Name of system model to use."""
+
+        # Depending on the system model specified give list of parameters
+
+        return
+
+    def update(self):
+        """Update the keyword database."""
+        self._update_node_db()
+        self._update_parts_db()
+        self._update_main_db()
+        self._update_solid_elements_db(add_fibers=True)
+        self._update_segmentsets_db()
+        self._update_nodesets_db()
+        self._update_use_Purkinje()
+        self._update_material_db(add_active=True)
+        self._update_ep_material_db()
+        self._update_cellmodels()
+        self._update_ep_settings()
+        # for boundary conditions
+        self._add_cap_bc(bc_type="springs_caps")
+        self._add_pericardium_bc()
+
+        # # for control volume
+        self._update_cap_elements_db()
+        self._update_controlvolume_db()
+        self._update_system_model()
+
+        self._get_list_of_includes()
+        self._add_includes()
+
+        return
+
+    def export(self, export_directory: str):
+        """Write the model to files."""
+        tstart = time.time()
+        LOGGER.debug("Writing all LS-DYNA .k files...")
+
+        if not export_directory:
+            export_directory = os.path.join(self.model.info.workdir, "electromechanics")
+
+        if not os.path.isdir(export_directory):
+            os.makedirs(export_directory)
+
+        # export .k files
+        self.export_databases(export_directory)
+
+        # add system json in case of closed loop. For open-loop this is already
+        # added in the control volume database
+        if self.system_model_name == "ClosedLoop":
+            # exports system model
+            path_system_model_settings = os.path.join(
+                export_directory, "system_model_settings.json"
+            )
+            with open(path_system_model_settings, "w") as outfile:
+                json.dump(self.system_model_json, indent=4, fp=outfile)
+
+        # export segment sets to separate file
+        self._export_cavity_segmentsets(export_directory)
+
+        tend = time.time()
+        LOGGER.debug("Time spent writing files: {:.2f} s".format(tend - tstart))
+
+        return
+
+    def _update_material_db(self, add_active: bool = True):
+        """Update the database of material keywords."""
+        for part in self.model.parts:
+            part.mid = part.pid
+            mat_id = part.mid
+
+            if "ventricle" in part.name.lower() or "septum" in part.name.lower():
+                if not add_active:
+                    active_dct = None
+                else:
+                    active_dct = {
+                        "actype": self.parameters["Material"]["Myocardium"]["Active"]["Actype"],
+                        "taumax": self.parameters["Material"]["Myocardium"]["Active"]["Tmax"],
+                        "ca2ionm": self.parameters["Material"]["Myocardium"]["Active"]["ca2ionm"],
+                    }
+
+                myocardium_kw = MaterialHGOMyocardium(
+                    mid=part.mid,
+                    iso_user=self.parameters["Material"]["Myocardium"]["Isotropic"],
+                    anisotropy_user=self.parameters["Material"]["Myocardium"]["Anisotropic"],
+                    active_user=active_dct,
+                )
+
+                self.kw_database.material.append(myocardium_kw)
+
+            elif "atrium" in part.name:
+                # add atrium material
+                # atrium_kw = MaterialAtrium(mid=part.mid)
+                atrium_kw = MaterialHGOMyocardium(
+                    mid=part.mid, iso_user=self.parameters["Material"]["Atrium"]
+                )
+
+                self.kw_database.material.append(atrium_kw)
+
+            else:
+                LOGGER.warning("Assuming same material as atrium for: {0}".format(part.name))
+
+                # general_tissue_kw = MaterialAtrium(mid=part.mid)
+                general_tissue_kw = MaterialHGOMyocardium(
+                    mid=part.mid, iso_user=self.parameters["Material"]["Atrium"]
+                )
+                self.kw_database.material.append(general_tissue_kw)
 
         return
 

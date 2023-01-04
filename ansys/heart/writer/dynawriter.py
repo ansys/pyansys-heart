@@ -1725,14 +1725,11 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # create a part-set id of 999+1
         self.kw_database.main.append(keywords.SetPartListGenerate(sid=999, b1beg=1, b1end=999999))
 
-        control_words = keywords.InterfaceSpringbackLsdyna(
-            psid=999, nshv=999, ftype=3, rflag=1, optc="OPTCARD", ndflag=1, cflag=1, hflag=1
+        self.kw_database.main.append(
+            custom_keywords.InterfaceSpringbackLsdyna(
+                psid=999, nshv=999, ftype=3, rflag=1, optc="OPTCARD", ndflag=1, cflag=1, hflag=1
+            )
         )
-        # keep only the first 5 lines
-        # (remove the last 2 lines which are not desirable)
-        control_words = control_words.write().split("\n")[0:5]
-
-        self.kw_database.main.append("\n".join(control_words))
 
         self.kw_database.main.append(
             keywords.InterfaceSpringbackExclude(kwdname="BOUNDARY_SPC_NODE")

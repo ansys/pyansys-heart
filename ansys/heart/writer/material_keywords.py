@@ -90,6 +90,17 @@ class MaterialHGOMyocardium(keywords.Mat295):
             # transfer into keywords
             self.anisotropic_settings = pd.DataFrame([anisotropy])
 
+            # set dummy a/d vectors
+            # these values are indeed replaced by *ELEMENT_SOLID_ORTHO or
+            # by dynain.lsda file if they exist
+            self.a1 = 1.0
+            self.a2 = 0.0
+            self.a3 = 0.0
+
+            self.d1 = 0.0
+            self.d2 = 1.0
+            self.d3 = 0.0
+
         if active_user is not None:
             if active_user["actype"] == 1:
                 active = {
@@ -216,7 +227,7 @@ if __name__ == "__main__":
     # test
     dct_iso = {"rho": 1, "k1": 1, "k2": 1}
     dct_aniso = {"k1": 1, "k2": 2}
-    dct_active = {"acid": 15, "taumax": 125, "ca2ionm": 4.35}
+    dct_active = {"actype": 1, "acid": 15, "taumax": 125, "ca2ionm": 4.35}
     kw = MaterialHGOMyocardium(
         mid=1, iso_user=dct_iso, anisotropy_user=dct_aniso, active_user=dct_active
     )

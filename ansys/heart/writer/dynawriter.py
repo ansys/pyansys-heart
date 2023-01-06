@@ -1724,11 +1724,13 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # and defining a new part set adding this to the main database will
         # create a part-set id of 999+1
         self.kw_database.main.append(keywords.SetPartListGenerate(sid=999, b1beg=1, b1end=999999))
+
         self.kw_database.main.append(
-            keywords.InterfaceSpringbackLsdyna(
+            custom_keywords.InterfaceSpringbackLsdyna(
                 psid=999, nshv=999, ftype=3, rflag=1, optc="OPTCARD", ndflag=1, cflag=1, hflag=1
             )
         )
+
         self.kw_database.main.append(
             keywords.InterfaceSpringbackExclude(kwdname="BOUNDARY_SPC_NODE")
         )

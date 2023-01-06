@@ -12,7 +12,9 @@ class SystemModelPost:
     """
     Class for post-processing system model.
 
-    Note: unit is: ms, kPa, mL
+    Note
+    ----
+    unit: ms, kPa, mL
     """
 
     def __init__(self, dir, closed_loop=False):

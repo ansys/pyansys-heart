@@ -167,7 +167,11 @@ class HeartModel:
         """Model type."""
         self.info.model_type = self.__class__.__name__
 
-        pass
+        """
+        Elemental labels of AHA17 segments.
+        NaN for elements not belong to left ventricle.
+        """
+        self.aha_ids = None
 
     def extract_simulation_mesh(self, clean_up: bool = False) -> None:
         """Update the model.
@@ -1064,7 +1068,7 @@ class HeartModel:
 
     def compute_left_ventricle_anatomy_axis(self, first_cut_short_axis=0.2):
         """
-        Compute anatomy axis of left ventricle.
+        Compute the long and short axes of the left ventricle.
 
         Parameters
         ----------

@@ -11,7 +11,6 @@ from .conftest import get_assets_folder
 
 #
 # todo: only work with Paraview
-
 d3plot: pathlib.Path
 model: HeartModel
 
@@ -19,6 +18,7 @@ model: HeartModel
 @pytest.fixture(autouse=True, scope="module")
 def get_data():
     global model, d3plot
+
     assets_folder = get_assets_folder()
     path_to_reference_model = os.path.join(
         assets_folder,

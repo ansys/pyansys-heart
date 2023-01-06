@@ -1,12 +1,12 @@
 """unit test for HeartModel class"""
 import os
 
-from ansys.heart.preprocessor.models import HeartModel, ModelInfo
+from ansys.heart.preprocessor.models import HeartModel
 import meshio
 import numpy as np
 import pytest
 
-from .conftest import get_assets_folder, get_workdir
+from .conftest import get_assets_folder
 
 test_model: HeartModel
 
@@ -17,16 +17,16 @@ def get_test_model():
 
     global test_model
 
-    # init the model with dummy information
-    test_model = HeartModel(
-        ModelInfo(
-            database="Strocchi2020",
-            work_directory=get_workdir(),
-            path_to_case="path-to-case",
-            path_to_simulation_mesh="path-to-simulation-mesh",
-            mesh_size=2.0,
-        )
-    )
+    # # init the model with dummy information
+    # test_model = HeartModel(
+    #     ModelInfo(
+    #         database="Strocchi2020",
+    #         work_directory=get_workdir(),
+    #         path_to_case="path-to-case",
+    #         path_to_simulation_mesh="path-to-simulation-mesh",
+    #         mesh_size=2.0,
+    #     )
+    # )
 
     # load model information from asset folder
     assets_folder = get_assets_folder()
@@ -37,7 +37,7 @@ def get_test_model():
         "BiVentricle",
         "heart_model.pickle",
     )
-    test_model = test_model.load_model(path_to_reference_model)
+    test_model = HeartModel.load_model(path_to_reference_model)
 
     # if necessary, write tests results in this directory
     global workdir

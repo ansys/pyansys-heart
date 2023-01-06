@@ -6,6 +6,7 @@ Depend on Paraview macro to convert d3plot to vtk.
 """
 import os
 from pathlib import Path
+import shutil
 import subprocess
 
 from ansys.heart.preprocessor.mesh.vtkmethods import (
@@ -22,8 +23,12 @@ import vtk
 from vtk.util.numpy_support import vtk_to_numpy  # noqa
 
 # Paraview path
-# todo
 pvpython = r"C:\Program Files\ParaView 5.9.0-Windows-Python3.8-msvc2017-64bit\bin\pvpython.exe"
+print(f"Try to find: {pvpython}")
+
+if shutil.which(pvpython) is None:
+    print("Cannot find pvpython.exe, make sure Paraview is installed or change the path.")
+    exit()
 # script to convert d3plot to vtk
 pv_script = pkg_resources.resource_filename("ansys.heart.misc.paraview_macro", "d3plot_to_vtk.pvpy")
 

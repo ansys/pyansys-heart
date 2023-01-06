@@ -32,7 +32,6 @@ class ActiveCalibration:
 
         """
         # todo: test if it's a legitimate folder
-        here = os.path.dirname(os.path.realpath(__file__))
         shutil.copy(
             pkg_resources.resource_filename("ansys.heart.calibration", "ActiveCalibration.lsopt"),
             os.path.join(self.work_directory, "ActiveCalibration.lsopt"),

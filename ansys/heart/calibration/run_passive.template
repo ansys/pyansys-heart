@@ -7,7 +7,7 @@ if __name__ == "__main__":
     """
     called by run.bat
     """
-    path_to_case = pathlib.Path(__file__).absolute().parents[0]
-    os.chdir(path_to_case)
-    case = PassiveCalibration(path_to_case)
+    path_to_working_directory = pathlib.Path(__file__).absolute().parents[0]
+    os.chdir(path_to_working_directory)
+    case = PassiveCalibration(path_to_working_directory)
     case.run_one_step_calibration()

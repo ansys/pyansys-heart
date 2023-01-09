@@ -714,7 +714,10 @@ class Cavity(Feature):
         """Surface mesh making up the cavity."""
         self.centroid: np.ndarray = centroid
         """Centroid of the cavity."""
-        self.volume: float = None
+        try:
+            self.volume: float = self.surface.volume
+        except AttributeError:  # surface is not given
+            self.volume = None
         """Volume of the cavity."""
 
     def compute_volume(self) -> float:

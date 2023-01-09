@@ -100,8 +100,7 @@ class IcvOut:
         # V1 = V0 + dt * (1-gamma) * Q0
         # negative flow is inflow for the cavity
         # 0.4 is from 1-gamma
-        if volume[0] == 0:
-            volume[0] = volume[1] + (time[1] - time[0]) * flow[0] * 0.4
+        volume[0] = volume[1] + (time[1] - time[0]) * flow[0] * 0.4
 
         self.time = time
         self.pressure = pressure.reshape(-1, pressure.ndim)
@@ -110,7 +109,6 @@ class IcvOut:
 
 
 if __name__ == "__main__":
-
     a = NodOut("binout0000")
     from ansys.heart.preprocessor.models import HeartModel
 

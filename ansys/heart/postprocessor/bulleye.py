@@ -143,8 +143,8 @@ def bullseye_plot(ax, data, seg_bold=None, cmap=None, norm=None):
     ax.set_xticklabels([])
 
 
-if __name__ == "__main__":
-
+def test():
+    """Test."""
     # Create the fake data
     data = np.arange(17) + 1
 

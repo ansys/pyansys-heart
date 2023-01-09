@@ -45,7 +45,6 @@ class PassiveCalibration:
         self.lv_cavity = Cavity(
             SurfaceMesh(name="lv_cavity", triangles=lv_cavity_faces, nodes=x_ed)
         )
-        self.lv_cavity.compute_volume()
 
         # compute Klotz curve
         self.v_ed = self.lv_cavity.volume
@@ -110,7 +109,6 @@ class PassiveCalibration:
         self.volume_sim = np.zeros(time.shape)
         for i, coord in enumerate(coords):
             self.lv_cavity.surface.nodes = coord
-            self.lv_cavity.compute_volume()
             self.volume_sim[i] = self.lv_cavity.volume
 
         fig = self.plot()

@@ -728,7 +728,9 @@ class Cavity(Feature):
         - Writes stl and computes volume from stl
         - Assumes normals are pointing inwards
         """
-        DeprecationWarning("This method is deprecated")
+        DeprecationWarning(
+            "compute_volume() is deprecated. Use the volume property of this class instead."
+        )
         return self.surface.volume
 
     def compute_centroid(self):

@@ -87,6 +87,7 @@ class PassiveCalibration:
 
         # compute Klotz curve
         self.v_ed = self.lv_cavity.volume
+        # todo: pressure can be read from main.k
         self.p_ed = 2 * 7.5  # 2kPa to  mmHg
         self.klotz = EDPVR(self.v_ed, self.p_ed)
 
@@ -94,16 +95,18 @@ class PassiveCalibration:
         self.pressure_sim = None
 
     def load_results(self):
-        """Load zerop simulation results."""
-        # load inflation simulation
-        # todo: filename iter3 is hard coded
+        """
+        Load zerop simulation results.
 
-        try:
-            nodout = NodOut(os.path.join(self.work_directory, "iter3.binout"))
-        except IOError:
-            nodout = NodOut(os.path.join(self.work_directory, "iter3.binout0000"))
-        finally:
-            Exception("Cannot load binout file")
+        Todo: verify stress free configuration converges.
+        """
+        binout_files = []
+        for f in os.listdir(self.work_directory):
+            if f.split(".")[0][0:4] == "iter" and f.split(".")[1][0:6] == "binout":
+                binout_files.append(f)
+
+        # Load last iteration
+        nodout = NodOut(os.path.join(self.work_directory, binout_files[-1]))
 
         # time need to be normalized
         time = nodout.time / nodout.time[-1]

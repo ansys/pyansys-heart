@@ -640,7 +640,7 @@ class SurfaceMesh(pv.PolyData, Feature):
         return polydata
 
 
-class BeamMesh(Feature):
+class BeamMesh(pv.PolyData, Feature):
     """Beam class."""
 
     def __init__(
@@ -677,30 +677,6 @@ class BeamMesh(Feature):
         _, idx = np.unique(self.edges.flatten(), return_index=True)
         node_ids = self.edges.flatten()[np.sort(idx)]
         return node_ids
-
-    def compute_bounding_box(self) -> Tuple[np.ndarray, float]:
-        """Compute the bounding box of the surface."""
-        node_ids = np.unique(self.edges)
-        nodes = self.nodes[node_ids, :]
-        dim = nodes.shape[1]
-        bounding_box = np.zeros((2, dim))
-        for ii in range(0, dim):
-            bounding_box[:, ii] = np.array([np.min(nodes[:, ii]), np.max(nodes[:, ii])])
-        volume = np.prod(np.diff(bounding_box, axis=0))
-        return bounding_box, volume
-
-    def write_to_stl(self, filename: pathlib.Path = None) -> None:
-        """Write the surface to a vtk file."""
-        if not filename:
-            filename = "_".join(self.name.lower().split()) + ".stl"
-        if filename[-4:] != ".stl":
-            filename = filename + ".stl"
-
-        vtk_surface = vtkmethods.create_vtk_surface_triangles(
-            self.nodes, np.array([self.edges, self.edges[:, 1][:, None]])
-        )
-        vtkmethods.vtk_surface_to_stl(vtk_surface, filename, self.name)
-        return
 
 
 class Cavity(Feature):

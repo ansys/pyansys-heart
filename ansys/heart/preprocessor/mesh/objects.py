@@ -640,8 +640,40 @@ class SurfaceMesh(pv.PolyData, Feature):
         return polydata
 
 
-class BeamMesh(pv.PolyData, Feature):
+class BeamMesh(pv.UnstructuredGrid, Feature):
     """Beam class."""
+
+    @property
+    def nodes(self):
+        """Node coordinates."""
+        return np.array(self.points)
+
+    @nodes.setter
+    def nodes(self, array: np.ndarray):
+        if isinstance(array, type(None)):
+            return
+        try:
+            self.points = array
+        except:
+            LOGGER.warning("Failed to set nodes.")
+            return
+
+    @property
+    def edges(self):
+        """Tetrahedrons num_tetra x 4."""
+        return self.cells_dict[pv.CellType.LINE]
+
+    @edges.setter
+    def edges(self, value: np.ndarray):
+        # sets lines of UnstructuredGrid
+        try:
+            points = self.points
+            celltypes = np.full(value.shape[0], pv.CellType.LINE, dtype=np.int8)
+            lines = np.hstack([np.full(len(celltypes), 2)[:, None], value])
+            super().__init__(lines, celltypes, points)
+        except:
+            LOGGER.warning("Failed to set lines.")
+            return
 
     def __init__(
         self,
@@ -652,7 +684,8 @@ class BeamMesh(pv.PolyData, Feature):
         pid: int = None,
         nsid: int = None,
     ) -> None:
-        super().__init__(name)
+        super().__init__(self)
+        Feature.__init__(self, name)
 
         self.edges = edges
         """Beams edges."""
@@ -666,10 +699,6 @@ class BeamMesh(pv.PolyData, Feature):
         """Part id associated with the network."""
         self.nsid: int = nsid
         """ID of corresponding set of nodes."""
-        self.cell_data: dict = {}
-        """Data associated with each edge/beam of the network."""
-        self.point_data: dict = {}
-        """Data associated with each point of the network."""
 
     @property
     def node_ids(self) -> np.ndarray:

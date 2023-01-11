@@ -1,8 +1,11 @@
 """Test for reading purkinje network as a beam mesh. Uses a mock Mesh object."""
-import pyvista as pv
-from pyvista import examples
+import os
+
+from ansys.heart.preprocessor.mesh.objects import BeamMesh, Mesh
 import numpy as np
-from ansys.heart.preprocessor.mesh.objects import Mesh, BeamMesh
+from pyvista import examples
+
+from .conftest import get_workdir
 
 
 def test_read_purkinje_from_kfile_001():
@@ -20,13 +23,6 @@ def test_read_purkinje_from_kfile_001():
     extra_nodes = [[0.5, 0.5, -1], [0.5, 0.5, -0.5]]
     grid.nodes = np.vstack([grid.points, extra_nodes])
 
-    # construct mesh to compare against
-    beam_mesh = BeamMesh()
-    beam_mesh.pid = 4
-    beam_mesh.id = 1
-    beam_mesh.nodes = grid.nodes
-    beam_mesh.edges = beams
-
     # mock .k file
     keyword = "*KEYWORD\n"
     keyword += "*NODE +\n"
@@ -42,11 +38,19 @@ def test_read_purkinje_from_kfile_001():
     keyword += "*END\n"
 
     # write to disc
-    with open("test_beams.k", "w") as f:
+    temp_k_file = os.path.join(get_workdir(), "test_beams.k")
+    with open(temp_k_file, "w") as f:
         f.write(keyword)
 
+    # construct mesh to compare against
+    beam_mesh = BeamMesh()
+    beam_mesh.pid = 4
+    beam_mesh.id = 1
+    beam_mesh.nodes = grid.nodes
+    beam_mesh.edges = beams
+
     # start test:
-    grid.add_purkinje_from_kfile("test_beams.k")
+    grid.add_purkinje_from_kfile(temp_k_file)
 
     # assert whether result is as expected
     assert grid.beam_network[0] == beam_mesh

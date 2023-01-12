@@ -332,7 +332,6 @@ class Mesh(pv.UnstructuredGrid):
             filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1
         )
         node_id_start = np.array(node_data[0, 0], dtype=int) - 1
-        self.nodes = np.append(self.nodes, node_data[:, 1:4], axis=0)
         # load beam data
         beam_data = np.loadtxt(
             filename, skiprows=start_beams + 1, max_rows=end_beams - start_beams - 1, dtype=int
@@ -344,11 +343,24 @@ class Mesh(pv.UnstructuredGrid):
 
         nodes = node_data[:, 1:4]
         pid = beam_data[0, 1]
+        # add new nodes to existing nodes.
+        nodes = np.vstack([self.nodes, nodes])
 
         purkinje = BeamMesh(nodes=nodes, edges=edges)
         purkinje.pid = pid
         purkinje.id = len(self.beam_network) + 1
         self.beam_network.append(purkinje)
+
+        # Note that if we add the nodes to the mesh object we may will also need to
+        # extend the point data arrays with suitable values.
+
+        # # visualize (debug)
+        # import pyvista
+        # plotter = pyvista.Plotter()
+        # plotter.add_mesh(self, opacity=0.3)
+        # plotter.add_mesh(purkinje)
+        # plotter.show()
+        return
 
     def _to_pyvista_object(self) -> pv.UnstructuredGrid:
         """Convert mesh object into pyvista unstructured grid object.

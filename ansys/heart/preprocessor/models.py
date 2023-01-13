@@ -446,6 +446,31 @@ class HeartModel:
         plotter.show()
         return
 
+    def plot_purkinje(self):
+        """Plot the mesh and Purkinje network."""
+        if not len(self.mesh.beam_network) > 0:
+            LOGGER.info("No Purkinje network to plot.")
+            return
+
+        try:
+            import pyvista as pv
+        except (ImportError):
+            LOGGER.warning(
+                "PyVista not found: visualization not supported."
+                "Install pyvista with: pip install pyvista"
+            )
+            return
+
+        try:
+            plotter = pv.Plotter()
+            plotter.add_mesh(self.mesh, color="w", opacity=0.3)
+            for beams in self.mesh.beam_network:
+                plotter.add_mesh(beams, color="r")
+            plotter.show()
+        except:
+            LOGGER.warning("Failed to plot mesh.")
+        return
+
     @staticmethod
     def load_model(filename: pathlib.Path):
         """Load a preprocessed model from file.

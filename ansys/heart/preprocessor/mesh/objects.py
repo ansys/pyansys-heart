@@ -332,7 +332,6 @@ class Mesh(pv.UnstructuredGrid):
             filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1
         )
         node_id_start = np.array(node_data[0, 0], dtype=int) - 1
-        self.nodes = np.append(self.nodes, node_data[:, 1:4], axis=0)
         # load beam data
         beam_data = np.loadtxt(
             filename, skiprows=start_beams + 1, max_rows=end_beams - start_beams - 1, dtype=int
@@ -344,11 +343,24 @@ class Mesh(pv.UnstructuredGrid):
 
         nodes = node_data[:, 1:4]
         pid = beam_data[0, 1]
+        # add new nodes to existing nodes.
+        nodes = np.vstack([self.nodes, nodes])
 
         purkinje = BeamMesh(nodes=nodes, edges=edges)
         purkinje.pid = pid
         purkinje.id = len(self.beam_network) + 1
         self.beam_network.append(purkinje)
+
+        # Note that if we add the nodes to the mesh object we may will also need to
+        # extend the point data arrays with suitable values.
+
+        # # visualize (debug)
+        # import pyvista
+        # plotter = pyvista.Plotter()
+        # plotter.add_mesh(self, opacity=0.3)
+        # plotter.add_mesh(purkinje)
+        # plotter.show()
+        return
 
     def _to_pyvista_object(self) -> pv.UnstructuredGrid:
         """Convert mesh object into pyvista unstructured grid object.
@@ -640,8 +652,40 @@ class SurfaceMesh(pv.PolyData, Feature):
         return polydata
 
 
-class BeamMesh(Feature):
+class BeamMesh(pv.UnstructuredGrid, Feature):
     """Beam class."""
+
+    @property
+    def nodes(self):
+        """Node coordinates."""
+        return np.array(self.points)
+
+    @nodes.setter
+    def nodes(self, array: np.ndarray):
+        if isinstance(array, type(None)):
+            return
+        try:
+            self.points = array
+        except:
+            LOGGER.warning("Failed to set nodes.")
+            return
+
+    @property
+    def edges(self):
+        """Tetrahedrons num_tetra x 4."""
+        return self.cells_dict[pv.CellType.LINE]
+
+    @edges.setter
+    def edges(self, value: np.ndarray):
+        # sets lines of UnstructuredGrid
+        try:
+            points = self.points
+            celltypes = np.full(value.shape[0], pv.CellType.LINE, dtype=np.int8)
+            lines = np.hstack([np.full(len(celltypes), 2)[:, None], value])
+            super().__init__(lines, celltypes, points)
+        except:
+            LOGGER.warning("Failed to set lines.")
+            return
 
     def __init__(
         self,
@@ -652,7 +696,8 @@ class BeamMesh(Feature):
         pid: int = None,
         nsid: int = None,
     ) -> None:
-        super().__init__(name)
+        super().__init__(self)
+        Feature.__init__(self, name)
 
         self.edges = edges
         """Beams edges."""
@@ -666,10 +711,6 @@ class BeamMesh(Feature):
         """Part id associated with the network."""
         self.nsid: int = nsid
         """ID of corresponding set of nodes."""
-        self.cell_data: dict = {}
-        """Data associated with each edge/beam of the network."""
-        self.point_data: dict = {}
-        """Data associated with each point of the network."""
 
     @property
     def node_ids(self) -> np.ndarray:
@@ -677,30 +718,6 @@ class BeamMesh(Feature):
         _, idx = np.unique(self.edges.flatten(), return_index=True)
         node_ids = self.edges.flatten()[np.sort(idx)]
         return node_ids
-
-    def compute_bounding_box(self) -> Tuple[np.ndarray, float]:
-        """Compute the bounding box of the surface."""
-        node_ids = np.unique(self.edges)
-        nodes = self.nodes[node_ids, :]
-        dim = nodes.shape[1]
-        bounding_box = np.zeros((2, dim))
-        for ii in range(0, dim):
-            bounding_box[:, ii] = np.array([np.min(nodes[:, ii]), np.max(nodes[:, ii])])
-        volume = np.prod(np.diff(bounding_box, axis=0))
-        return bounding_box, volume
-
-    def write_to_stl(self, filename: pathlib.Path = None) -> None:
-        """Write the surface to a vtk file."""
-        if not filename:
-            filename = "_".join(self.name.lower().split()) + ".stl"
-        if filename[-4:] != ".stl":
-            filename = filename + ".stl"
-
-        vtk_surface = vtkmethods.create_vtk_surface_triangles(
-            self.nodes, np.array([self.edges, self.edges[:, 1][:, None]])
-        )
-        vtkmethods.vtk_surface_to_stl(vtk_surface, filename, self.name)
-        return
 
 
 class Cavity(Feature):

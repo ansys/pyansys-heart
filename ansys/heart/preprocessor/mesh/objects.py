@@ -353,6 +353,19 @@ class Mesh(pv.UnstructuredGrid):
 
         # Note that if we add the nodes to the mesh object we may will also need to
         # extend the point data arrays with suitable values.
+        self.nodes = nodes
+        null_value = 0
+        num_data_to_add = node_data.shape[0]
+        for key in self.point_data.keys():
+            data_type = self.point_data[key].dtype
+            if len(self.point_data[key].shape) > 1:
+                raise NotImplementedError(
+                    "Padding multi-dimensional point data arrays not yet supported"
+                )
+            new_point_data = np.append(
+                self.point_data[key], np.ones(num_data_to_add, dtype=data_type) * null_value
+            )
+            self.point_data[key] = new_point_data
 
         # # visualize (debug)
         # import pyvista

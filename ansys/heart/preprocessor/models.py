@@ -354,14 +354,14 @@ class HeartModel:
 
         plotter = pyvista.Plotter()
         if plot_raw_mesh:
-            plotter.add_mesh(self.mesh_raw)
+            plotter.add_mesh(self.mesh_raw, show_edges=show_edges, scalars="tags")
         else:
-            plotter.add_mesh(self.mesh)
+            plotter.add_mesh(self.mesh, show_edges=show_edges, scalars="tags")
 
-        plotter.show(show_edges=show_edges, color_by="tags")
+        plotter.show()
         return
 
-    def plot_fibers(self, plot_raw_mesh: bool = False, n_seed_points: int = 1000):
+    def plot_fibers(self, n_seed_points: int = 1000, plot_raw_mesh: bool = False):
         """Plot the mesh and fibers as streamlines.
 
         Parameters

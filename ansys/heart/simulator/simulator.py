@@ -4,23 +4,20 @@ Options for simulation:
 - EP-only
     with/without fbers
     with/without purkinje
-    
 - Electro-mechanics
     simplified EP (imposed activation)
     coupled electro-mechanics
-
 """
-import os
-import shutil
-import pathlib as Path
-from typing import Literal
 import glob as glob
-import numpy as np
+import os
+import pathlib as Path
+import shutil
+import subprocess
+from typing import Literal
 
 from ansys.heart.preprocessor.models import HeartModel
 import ansys.heart.writer.dynawriter as writers
-import subprocess
-
+import numpy as np
 import pyvista
 
 
@@ -69,7 +66,7 @@ class BaseSimulator:
         pass
 
     def compute_fibers(self):
-        """Computes the fiber direction on the model."""
+        """Compute the fiber direction on the model."""
         print("Computing fiber orientation...")
 
         directory = self._write_fibers()
@@ -102,15 +99,14 @@ class BaseSimulator:
         return
 
     def _run_dyna(self, path_to_input: Path, options: str = ""):
-        """
+        """Run LS-DYNA with path and options.
+
         Parameters
         ----------
-        sim_file: "main.k" in most time
-        option: like 'case' for zerop
-
-        Returns
-        -------
-
+        path_to_input : Path
+            Path to the LS-DYNA simulation file.
+        options : str, optional
+            Additional options to pass to command line, by default ""
         """
         os.chdir(os.path.dirname(path_to_input))
 
@@ -144,7 +140,7 @@ class BaseSimulator:
         beta_endocardium: float = 25,
         beta_epicardium: float = -65,
     ) -> Path:
-        """Writes LS-DYNA files for fiber generation."""
+        """Write LS-DYNA files for fiber generation."""
         export_directory = os.path.join(self.root_directory, "fibergeneration")
         self.directories["fibergeneration"] = export_directory
 
@@ -180,7 +176,7 @@ class EPSimulator(BaseSimulator):
         return
 
     def compute_purkinje(self):
-        """Computes the purkinje network."""
+        """Compute the purkinje network."""
         print("Computing the Purkinje network...")
 
         directory = self._write_purkinje_files()

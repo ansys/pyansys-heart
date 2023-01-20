@@ -57,9 +57,11 @@ if __name__ == "__main__":
     # compute the fiber orientation
     simulator.compute_fibers()
     # visualize computed fibers
-    simulator.model.plot_fibers(n_seed_points=2000)
+    simulator.model.plot_fibers(n_seed_points=5000)
     # compute purkinje network
     simulator.compute_purkinje()
+    # visualize purkinje
+    simulator.model.plot_purkinje()
     # start simulation
     simulator.simulate()
 

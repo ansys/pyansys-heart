@@ -1,10 +1,10 @@
 """Module contains default values for the simulations."""
-from pint import Quantity
-import copy as copy
-from dataclasses import dataclass, asdict
-import yaml, json
+from dataclasses import asdict, dataclass
+import json
 import pathlib
 
+from pint import Quantity
+import yaml
 
 """Generic analysis settings."""
 analysis = {
@@ -95,7 +95,7 @@ parameters = {
 
 
 def remove_units_in_dictionary(d: dict):
-    """Method to replace Quantity with value in a nested dictionary, that is, removes units."""
+    """Replace Quantity with value in a nested dictionary, that is, removes units."""
     for k, v in d.items():
         if isinstance(v, dict):
             remove_units_in_dictionary(v)
@@ -148,7 +148,7 @@ class MaterialSetting(Settings):
 
 @dataclass
 class BoundaryConditions(Settings):
-    """Stores settings/parmaters for boundary conditions."""
+    """Stores settings/parameters for boundary conditions."""
 
     pericardium: dict = None
     """Parameters for pericardium spring b.c."""
@@ -196,7 +196,7 @@ class SimulationSettings:
             raise ValueError(f"Data format {filename.suffix} not supported")
 
         dictionary = asdict(self)
-        dictionary = remove_units_in_dictionary(dictionary)
+        # dictionary = remove_units_in_dictionary(dictionary)
         dictionary = {"Simulation Settings": dictionary}
 
         with open(filename, "w") as f:

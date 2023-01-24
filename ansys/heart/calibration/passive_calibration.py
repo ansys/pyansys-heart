@@ -93,13 +93,11 @@ class PassiveCalibration:
 
         Todo: verify stress free configuration converges.
         """
-        binout_files = []
-        for f in os.listdir(self.work_directory):
-            if f.split(".")[0][0:4] == "iter" and f.split(".")[1][0:6] == "binout":
-                binout_files.append(f)
-
         # Load last iteration
-        nodout = NodOut(os.path.join(self.work_directory, binout_files[-1]))
+        import glob
+
+        binout_files = glob.glob(os.path.join(self.work_directory, "iter*.binout*"))
+        nodout = NodOut(binout_files[-1])
 
         # time need to be normalized
         time = nodout.time / nodout.time[-1]

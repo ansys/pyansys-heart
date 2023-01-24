@@ -714,11 +714,11 @@ class Cavity(Feature):
         """Surface mesh making up the cavity."""
         self.centroid: np.ndarray = centroid
         """Centroid of the cavity."""
-        try:
-            self.volume: float = self.surface.volume
-        except AttributeError:  # surface is not given
-            self.volume = None
+
+    @property
+    def volume(self):
         """Volume of the cavity."""
+        return self.surface.volume
 
     def compute_volume(self) -> float:
         """Compute the volume of the (enclosed) cavity.
@@ -728,6 +728,9 @@ class Cavity(Feature):
         - Writes stl and computes volume from stl
         - Assumes normals are pointing inwards
         """
+        DeprecationWarning(
+            "compute_volume() is deprecated. Use the volume property of this class instead."
+        )
         return self.surface.volume
 
     def compute_centroid(self):

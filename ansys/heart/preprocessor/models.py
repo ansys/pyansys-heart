@@ -1184,8 +1184,7 @@ class HeartModel:
             part.cavity = Cavity(surface=surface, name=part.name)
             part.cavity.compute_centroid()
 
-            volume = part.cavity.compute_volume()
-            LOGGER.debug("Volume of cavity: {0} = {1}".format(part.cavity.name, volume))
+            LOGGER.debug("Volume of cavity: {0} = {1}".format(part.cavity.name, part.cavity.volume))
 
             part.cavity.surface.write_to_stl(
                 os.path.join(self.info.workdir, "-".join(part.cavity.surface.name.lower().split()))

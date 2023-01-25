@@ -1,10 +1,11 @@
-from pint import Quantity
-import json, yaml
-import pathlib
+"""Module that stores settings."""
 from dataclasses import asdict, dataclass
-
+import json
+import pathlib
 
 import ansys.heart.simulator.settings.defaults as defaults
+from pint import Quantity
+import yaml
 
 
 def remove_units_in_dictionary(d: dict):
@@ -135,4 +136,33 @@ SETTINGS = SimulationSettings(
     system=S,
 )
 
-print(SETTINGS)
+# get dimensionality
+def _get_dimensionality(d):
+    dims = []
+    for k, v in d.items():
+        if isinstance(v, dict):
+            dims += _get_dimensionality(v)
+        elif isinstance(v, Quantity):
+            print(k, ":", v)
+            dims.append(v.dimensionality)
+    return dims
+
+
+# get units
+def _get_units(d):
+    units = []
+    for k, v in d.items():
+        if isinstance(v, dict):
+            units += _get_units(v)
+        elif isinstance(v, Quantity):
+            print(k, ":", v)
+            units.append(v.units)
+    return units
+
+
+# get unit-system
+
+_values = _get_dimensionality(asdict(SETTINGS))
+_units = _get_units(asdict(SETTINGS))
+
+_all_units = list(set(_units))

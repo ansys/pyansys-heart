@@ -246,29 +246,21 @@ class MechanicsSimulator(BaseSimulator):
         dynatype: Literal["smp", "intelmpi", "platformmpi"],
         num_cpus: int = 1,
         simulation_directory: Path = "",
+        initial_stress: bool = True,
     ) -> None:
         super().__init__(model, lsdynapath, dynatype, num_cpus, simulation_directory)
 
         # include initial stress by default
-        self._initial_stress = True
+        self.initial_stress = initial_stress
 
         return
-
-    @property
-    def initial_stress(self):
-        """Option to include dynain.lsda file."""
-        return self._initial_stress
-
-    @initial_stress.setter
-    def initial_stress(self, value):
-        self._initial_stress = value
 
     def simulate(self):
         """Launch the main simulation."""
         directory = self._write_main_simulation_files()
         input_file = os.path.join(directory, "main.k")
 
-        if self._initial_stress:
+        if self.initial_stress:
             # get dynain.lsda file from
             dynain_file = glob.glob(
                 os.path.join(self.root_directory, "zeropressure", "iter*.dynain.lsda")
@@ -315,7 +307,7 @@ class MechanicsSimulator(BaseSimulator):
         self.directories["main-mechanics"] = export_directory
 
         dyna_writer = writers.MechanicsDynaWriter(self.model, "ConstantPreloadWindkesselAfterload")
-        dyna_writer.update(with_dynain=self._initial_stress)
+        dyna_writer.update(with_dynain=self.initial_stress)
         dyna_writer.export(export_directory)
 
         return export_directory

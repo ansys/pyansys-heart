@@ -532,12 +532,23 @@ class MechanicsDynaWriter(BaseDynaWriter):
             raise ValueError("System model not valid")
         self._system_model = value
 
-    def update(self):
-        """Update the keyword database."""
-        self._update_node_db()
+    def update(self, with_dynain=False):
+        """
+        Update the keyword database.
+
+        Parameters
+        ----------
+        with_dynain: bool, optional
+            Use dynain.lsda file from stress free configuration computation.
+        """
+        if not with_dynain:
+            self._update_node_db()
+            self._update_solid_elements_db(add_fibers=True)
+        else:
+            self.kw_database.main.append(keywords.Include(filename="dynain.lsda"))
+
         self._update_parts_db()
         self._update_main_db()
-        self._update_solid_elements_db(add_fibers=True)
         self._update_segmentsets_db()
         self._update_nodesets_db()
         self._update_material_db(add_active=True)

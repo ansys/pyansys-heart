@@ -249,35 +249,64 @@ class MechanicsSimulator(BaseSimulator):
     ) -> None:
         super().__init__(model, lsdynapath, dynatype, num_cpus, simulation_directory)
 
+        # include initial stress by default
+        self._initial_stress = True
+
         return
+
+    @property
+    def initial_stress(self):
+        """Option to include dynain.lsda file."""
+        return self._initial_stress
+
+    @initial_stress.setter
+    def initial_stress(self, value):
+        self._initial_stress = value
 
     def simulate(self):
         """Launch the main simulation."""
-        print("Launching main simulation.")
         directory = self._write_main_simulation_files()
         input_file = os.path.join(directory, "main.k")
+
+        if self._initial_stress:
+            # get dynain.lsda file from
+            dynain_file = glob.glob(
+                os.path.join(self.root_directory, "zeropressure", "iter*.dynain.lsda")
+            )[-1]
+            shutil.copy(dynain_file, os.path.join(directory, "dynain.lsda"))
+
+        print("Launching main simulation...")
         self._run_dyna(input_file)
         print("done.")
         return
 
-    def compute_stress_free_configuration(self):
-        """Compute the stress-free configuration of the model."""
-        print("Computing stress-free configuration...")
+    def compute_stress_free_configuration(self, update_mesh=True):
+        """
+        Compute the stress-free configuration of the model.
 
+        Parameters
+        ----------
+        update_mesh: Boolean, optional
+            Update mesh node coordinates after computation.
+        """
         directory = self._write_stress_free_configuration_files()
         input_file = os.path.join(directory, "main.k")
-        self._run_dyna(input_file, options="case")
 
+        print("Computing stress-free configuration...")
+        self._run_dyna(input_file, options="case")
         print("done.")
 
-        Warning("Replace by methods from postprocessing module.")
-        binout_files = glob.glob(os.path.join(directory, "iter*.binout"))
-        iter_files = glob.glob(os.path.join(directory, "iter*.guess"))
-        # read nodes of last iteration. (avoid qd dependency for now.)
-        stress_free_nodes = np.loadtxt(
-            iter_files[-1], skiprows=2, max_rows=self.model.mesh.nodes.shape[0]
-        )
-        self.model.mesh.points = stress_free_nodes[:, 1:]
+        if update_mesh:
+            Warning("Replace by methods from postprocessing module.")
+            binout_files = glob.glob(os.path.join(directory, "iter*.binout"))
+            iter_files = glob.glob(os.path.join(directory, "iter*.guess"))
+
+            # read nodes of last iteration. (avoid qd dependency for now.)
+            stress_free_nodes = np.loadtxt(
+                iter_files[-1], skiprows=2, max_rows=self.model.mesh.nodes.shape[0]
+            )
+
+            self.model.mesh.points = stress_free_nodes[:, 1:]
         return
 
     def _write_main_simulation_files(self):
@@ -286,7 +315,7 @@ class MechanicsSimulator(BaseSimulator):
         self.directories["main-mechanics"] = export_directory
 
         dyna_writer = writers.MechanicsDynaWriter(self.model, "ConstantPreloadWindkesselAfterload")
-        dyna_writer.update()
+        dyna_writer.update(with_dynain=self._initial_stress)
         dyna_writer.export(export_directory)
 
         return export_directory

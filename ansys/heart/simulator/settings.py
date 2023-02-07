@@ -1,17 +1,13 @@
 """Module that stores settings."""
+
+import copy
 from dataclasses import asdict, dataclass
 import json
 import pathlib
-import copy
 
 import ansys.heart.simulator.settings.defaults as defaults
-import yaml
-from typing import List
-
-
 from pint import Quantity, UnitRegistry
-
-
+import yaml
 
 
 class Settings:
@@ -157,9 +153,8 @@ class SimulationSettings:
         self.system = S
 
     def load_defaults(self):
-        """Loads the default simulation settings."""
-
-        # intialize parameters with defaults.
+        """Load the default simulation settings."""
+        # initialize parameters with defaults.
         A = AnalysisSettings()
         A.set_defaults(defaults.analysis)
         M = MaterialSetting()
@@ -174,6 +169,7 @@ class SimulationSettings:
         self.boundary_conditions = BC
         self.system = S
 
+
 def _remove_units_in_dictionary(d: dict):
     """Replace Quantity with value in a nested dictionary, that is, removes units."""
     for k, v in d.items():
@@ -182,6 +178,7 @@ def _remove_units_in_dictionary(d: dict):
         if isinstance(v, Quantity):
             d[k] = d[k].m
     return d
+
 
 def _serialize_quantity(d: dict):
     """Serialize Quantity such that Quantity objects are replaced by <value> <units> string."""
@@ -195,7 +192,6 @@ def _serialize_quantity(d: dict):
 
 def _deserialize_quantity(d: dict, ureg: UnitRegistry):
     """Deserialize Quantity such that string <value> <units> is replaced by Quantity."""
-
     for k, v in d.items():
         if isinstance(v, dict):
             _deserialize_quantity(v, ureg)
@@ -236,7 +232,6 @@ def _get_units(d):
 settings = SimulationSettings()
 settings.load_defaults()
 
-
 # consistent_unit_system = MPa, mm, N, ms, g
 #
 # Length: mm
@@ -257,4 +252,3 @@ _units = _get_units(asdict(settings))
 
 _units = list(set(_units))
 _dimensions = list(set(_dimensions))
-        

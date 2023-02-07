@@ -82,13 +82,13 @@ class SystemModel(Settings):
 class SimulationSettings:
     """Class for keeping track of settings."""
 
-    analysis: AnalysisSettings
+    analysis: AnalysisSettings = None
     """Generic analysis settings."""
-    material: MaterialSetting
+    material: MaterialSetting = None
     """Material settings/configuration."""
-    boundary_conditions: BoundaryConditions
+    boundary_conditions: BoundaryConditions = None
     """Boundary condition specifications."""
-    system: SystemModel
+    system: SystemModel = None
     """System model settings."""
 
     def save(self, filename: pathlib.Path):
@@ -154,6 +154,24 @@ class SimulationSettings:
         self.boundary_conditions = BC
         self.system = S
 
+    def load_defaults(self):
+        """Loads the default simulation settings."""
+
+        # intialize parameters with defaults.
+        A = AnalysisSettings()
+        A.set_defaults(defaults.analysis)
+        M = MaterialSetting()
+        M.set_defaults(defaults.material)
+        BC = BoundaryConditions()
+        BC.set_defaults(defaults.boundary_conditions)
+        S = SystemModel()
+        S.set_defaults(defaults.system_model)
+
+        self.analysis = A
+        self.material = M
+        self.boundary_conditions = BC
+        self.system = S
+
 
 def _remove_units_in_dictionary(d: dict):
     """Replace Quantity with value in a nested dictionary, that is, removes units."""
@@ -202,7 +220,6 @@ def _get_dimensionality(d):
         if isinstance(v, dict):
             dims += _get_dimensionality(v)
         elif isinstance(v, Quantity):
-            print(k, ":", v)
             dims.append(v.dimensionality)
     return dims
 
@@ -214,36 +231,16 @@ def _get_units(d):
         if isinstance(v, dict):
             units += _get_units(v)
         elif isinstance(v, Quantity):
-            print(k, ":", v)
             units.append(v.units)
     return units
 
 
-# intialize parameters with defaults.
-A = AnalysisSettings()
-A.set_defaults(defaults.analysis)
-M = MaterialSetting()
-M.set_defaults(defaults.material)
-BC = BoundaryConditions()
-BC.set_defaults(defaults.boundary_conditions)
-S = SystemModel()
-S.set_defaults(defaults.system_model)
-
-# initialize SETTINGS
-SETTINGS = SimulationSettings(
-    analysis=A,
-    material=M,
-    boundary_conditions=BC,
-    system=S,
-)
-
-# SETTINGS.save("defaults.yml")
-# SETTINGS.save("defaults.json")
-
-# SETTINGS.load("defaults.yml")
+settings = SimulationSettings()
+settings.load_defaults()
 
 # get unit-system
-_dimensions = _get_dimensionality(SETTINGS)
-_units = _get_units(SETTINGS)
+_dimensions = _get_dimensionality(asdict(settings))
+_units = _get_units(asdict(settings))
 
 _all_units = list(set(_units))
+_all_dimensions = list(set(_dimensions))

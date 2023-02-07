@@ -2,30 +2,26 @@
 from dataclasses import asdict, dataclass
 import json
 import pathlib
+import copy
 
 import ansys.heart.simulator.settings.defaults as defaults
-from pint import Quantity
 import yaml
 
+from pint import Quantity, UnitRegistry
 
-def remove_units_in_dictionary(d: dict):
-    """Replace Quantity with value in a nested dictionary, that is, removes units."""
-    for k, v in d.items():
-        if isinstance(v, dict):
-            remove_units_in_dictionary(v)
-        if isinstance(v, Quantity):
-            d[k] = d[k].m
-    return d
+# import pint as pint
 
 
 class Settings:
     """Generic settings class."""
 
     def set_defaults(self, defaults: dict):
-        """Read default settings."""
+        """Read default settings from dictionary."""
         for key, value in self.__dict__.items():
-            if isinstance(value, dict):
-                self.set_defaults(defaults)
+            # if isinstance(value, dict):
+            #     # this is currently not working
+            #     self.set_defaults(defaults)
+            #     print(f"inner: {key}")
             if key in defaults.keys():
                 setattr(self, key, defaults[key])
 
@@ -34,17 +30,17 @@ class Settings:
 class AnalysisSettings(Settings):
     """Class for analysis settings."""
 
-    end_time: Quantity = 0
+    end_time: float = 0
     """End time of the simulation."""
-    dtmin: Quantity = 0
+    dtmin: float = 0
     """Minimum time-step of simulation."""
-    dtmax: Quantity = 0
+    dtmax: float = 0
     """Maximum time-step of simulation."""
-    dt_d3plot: Quantity = 0
+    dt_d3plot: float = 0
     """Time-step of d3plot export."""
-    dt_icvout: Quantity = 0
+    dt_icvout: float = 0
     """Time-step of icvout export."""
-    global_damping: Quantity = 0
+    global_damping: float = 0
     """Global damping constant."""
 
 
@@ -110,33 +106,96 @@ class SimulationSettings:
             raise ValueError(f"Data format {filename.suffix} not supported")
 
         dictionary = asdict(self)
-        # dictionary = remove_units_in_dictionary(dictionary)
+
+        # serialize Quantity objects
+        dictionary = copy.deepcopy(dictionary)
+        _serialize_quantity(dictionary)
         dictionary = {"Simulation Settings": dictionary}
 
         with open(filename, "w") as f:
             if filename.suffix == ".yml":
-                yaml.dump(dictionary, f)
+                yaml.dump(dictionary, f, sort_keys=False)
             elif filename.suffix == ".json":
-                json.dump(dictionary, f, indent=4)
+                json.dump(dictionary, f, indent=4, sort_keys=False)
+
+    def load(self, filename: pathlib.Path):
+        """Load simulation parameters from disk.
+
+        Parameters
+        ----------
+        filename : pathlib.Path
+            Path to .json or .yml with settings.
+        """
+        if not isinstance(filename, pathlib.Path):
+            filename = pathlib.Path(filename)
+        ureg = UnitRegistry()
+        # ureg()
+        # loop over dictionary and try to convert to quantity.
+        with open(filename, "r") as f:
+            if filename.suffix == ".json":
+                data = json.load(f)
+            if filename.suffix == ".yml":
+                data = yaml.load(f, Loader=yaml.SafeLoader)
+        settings = data["Simulation Settings"]
+        _deserialize_quantity(settings, ureg)
+
+        # assign values to each respective attribute
+        A = AnalysisSettings()
+        A.set_defaults(settings["analysis"])
+        M = MaterialSetting()
+        M.set_defaults(settings["material"])
+        BC = BoundaryConditions()
+        BC.set_defaults(settings["boundary_conditions"])
+        S = SystemModel()
+        S.set_defaults(settings["system"])
+
+        self.analysis = A
+        self.material = M
+        self.boundary_conditions = BC
+        self.system = S
 
 
-A = AnalysisSettings()
-A.set_defaults(defaults.analysis)
-M = MaterialSetting()
-M.set_defaults(defaults.material)
-BC = BoundaryConditions()
-BC.set_defaults(defaults.boundary_conditions)
-S = SystemModel()
-S.set_defaults(defaults.system_model)
+def _remove_units_in_dictionary(d: dict):
+    """Replace Quantity with value in a nested dictionary, that is, removes units."""
+    for k, v in d.items():
+        if isinstance(v, dict):
+            _remove_units_in_dictionary(v)
+        if isinstance(v, Quantity):
+            d[k] = d[k].m
+    return d
 
-SETTINGS = SimulationSettings(
-    analysis=A,
-    material=M,
-    boundary_conditions=BC,
-    system=S,
-)
 
-# get dimensionality
+def _serialize_quantity(d: dict):
+    """Serialize Quantity such that Quantity objects are replaced by <value> <units> string."""
+    for k, v in d.items():
+        if isinstance(v, dict):
+            _serialize_quantity(v)
+        if isinstance(v, Quantity):
+            d[k] = str(d[k])
+    return d
+
+
+def _deserialize_quantity(d: dict, ureg: UnitRegistry):
+    """Deserialize Quantity such that string <value> <units> is replaced by Quantity."""
+
+    for k, v in d.items():
+        if isinstance(v, dict):
+            _deserialize_quantity(v, ureg)
+        if isinstance(v, str):
+            # if some condition - try to convert to units
+            # try:
+            if isinstance(d[k], str):
+                try:
+                    float(d[k].split()[0])
+                    q = ureg(d[k])
+                except ValueError:
+                    # failed to convert to quantity
+                    continue
+                d[k] = q
+    return d
+
+
+# some additional methods
 def _get_dimensionality(d):
     dims = []
     for k, v in d.items():
@@ -160,9 +219,31 @@ def _get_units(d):
     return units
 
 
-# get unit-system
+# intialize parameters with defaults.
+A = AnalysisSettings()
+A.set_defaults(defaults.analysis)
+M = MaterialSetting()
+M.set_defaults(defaults.material)
+BC = BoundaryConditions()
+BC.set_defaults(defaults.boundary_conditions)
+S = SystemModel()
+S.set_defaults(defaults.system_model)
 
-_values = _get_dimensionality(asdict(SETTINGS))
-_units = _get_units(asdict(SETTINGS))
+# initialize SETTINGS
+SETTINGS = SimulationSettings(
+    analysis=A,
+    material=M,
+    boundary_conditions=BC,
+    system=S,
+)
+
+# SETTINGS.save("defaults.yml")
+# SETTINGS.save("defaults.json")
+
+# SETTINGS.load("defaults.yml")
+
+# get unit-system
+_dimensions = _get_dimensionality(SETTINGS)
+_units = _get_units(SETTINGS)
 
 _all_units = list(set(_units))

@@ -87,3 +87,11 @@ parameters = {
     "boundary_conditions": boundary_conditions,
     "system_model": system_model,
 }
+# consistent_unit_system = MPa, mm, N, ms, g
+#
+# Length: mm
+# Time: ms
+# Mass: g
+#
+# Force: N [ Mass * Length / Time^2 ] --> [ kg*m / s^2]
+# Pressure/Stress: MPa [ Mass / (Length * Time^2 )] --> [g / (mm * ms^2)]

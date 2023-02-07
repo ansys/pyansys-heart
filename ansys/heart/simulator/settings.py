@@ -6,10 +6,12 @@ import copy
 
 import ansys.heart.simulator.settings.defaults as defaults
 import yaml
+from typing import List
+
 
 from pint import Quantity, UnitRegistry
 
-# import pint as pint
+
 
 
 class Settings:
@@ -172,7 +174,6 @@ class SimulationSettings:
         self.boundary_conditions = BC
         self.system = S
 
-
 def _remove_units_in_dictionary(d: dict):
     """Replace Quantity with value in a nested dictionary, that is, removes units."""
     for k, v in d.items():
@@ -181,7 +182,6 @@ def _remove_units_in_dictionary(d: dict):
         if isinstance(v, Quantity):
             d[k] = d[k].m
     return d
-
 
 def _serialize_quantity(d: dict):
     """Serialize Quantity such that Quantity objects are replaced by <value> <units> string."""
@@ -200,8 +200,6 @@ def _deserialize_quantity(d: dict, ureg: UnitRegistry):
         if isinstance(v, dict):
             _deserialize_quantity(v, ureg)
         if isinstance(v, str):
-            # if some condition - try to convert to units
-            # try:
             if isinstance(d[k], str):
                 try:
                     float(d[k].split()[0])
@@ -238,9 +236,25 @@ def _get_units(d):
 settings = SimulationSettings()
 settings.load_defaults()
 
+
+# consistent_unit_system = MPa, mm, N, ms, g
+#
+# Length: mm
+# Time: ms
+# Mass: g
+#
+# Force: N [ Mass * Length / Time^2 ] --> [ kg*m / s^2]
+# Pressure/Stress: MPa [ Mass / (Length * Time^2 )] --> [g / (mm * ms^2)]
+#
+# get dimensionality of consistent unit system
+# _ureg = UnitRegistry()
+
+# _unit_system = ["MPa", "mm", "N", "ms", "g"]
+
 # get unit-system
 _dimensions = _get_dimensionality(asdict(settings))
 _units = _get_units(asdict(settings))
 
-_all_units = list(set(_units))
-_all_dimensions = list(set(_dimensions))
+_units = list(set(_units))
+_dimensions = list(set(_dimensions))
+        

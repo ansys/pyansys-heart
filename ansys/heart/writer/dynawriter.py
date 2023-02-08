@@ -117,11 +117,15 @@ class BaseDynaWriter:
 
         return
 
-    def _update_node_db(self):
+    def _update_node_db(self, ids=None):
         """Add nodes to the Node database."""
         LOGGER.debug("Updating node keywords...")
         node_kw = keywords.Node()
-        node_kw = add_nodes_to_kw(self.model.mesh.nodes, node_kw)
+        if ids is not None:
+            nodes = np.vstack([ids, self.model.mesh.nodes.T]).T
+            node_kw = add_nodes_to_kw(nodes, node_kw)
+        else:
+            node_kw = add_nodes_to_kw(self.model.mesh.nodes, node_kw)
 
         self.kw_database.nodes.append(node_kw)
 
@@ -378,18 +382,18 @@ class BaseDynaWriter:
                 fid = open(filepath, "a")
                 fid.write("*END")
 
-            elif deckname == "nodes":
-                ids = np.arange(0, self.model.mesh.nodes.shape[0], 1) + 1
-                content = np.hstack((ids.reshape(-1, 1), self.model.mesh.nodes))
-                np.savetxt(
-                    os.path.join(export_directory, "nodes.k"),
-                    content,
-                    fmt="%8d%16.5e%16.5e%16.5e",
-                    header="*KEYWORD\n*NODE\n"
-                    "$#   nid               x               y               z      tc      rc",
-                    footer="*END",
-                    comments="",
-                )
+            # elif deckname == "nodes":
+            #     ids = np.arange(0, self.model.mesh.nodes.shape[0], 1) + 1
+            #     content = np.hstack((ids.reshape(-1, 1), self.model.mesh.nodes))
+            #     np.savetxt(
+            #         os.path.join(export_directory, "nodes.k"),
+            #         content,
+            #         fmt="%8d%16.5e%16.5e%16.5e",
+            #         header="*KEYWORD\n*NODE\n"
+            #         "$#   nid               x               y               z      tc      rc",
+            #         footer="*END",
+            #         comments="",
+            #     )
             else:
                 deck.export_file(filepath)
         return
@@ -635,15 +639,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         return
 
-    def _update_node_db(self):
-        """Add nodes to the NODE database."""
-        LOGGER.debug("Updating node keywords...")
-        node_kw = keywords.Node()
-        node_kw = add_nodes_to_kw(self.model.mesh.nodes, node_kw)
-
-        self.kw_database.nodes.append(node_kw)
-
-        return
+    # def _update_node_db(self):
+    #     """Add nodes to the NODE database."""
+    #     LOGGER.debug("Updating node keywords...")
+    #     node_kw = keywords.Node()
+    #     node_kw = add_nodes_to_kw(self.model.mesh.nodes, node_kw)
+    #
+    #     self.kw_database.nodes.append(node_kw)
+    #
+    #     return
 
     def _update_parts_db(self):
         """Loop over parts defined in the model and create keywords."""
@@ -1901,10 +1905,35 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         ##
         self._update_main_db()  # needs updating
 
-        self._update_node_db()  # can stay the same (could move to base class)
         if isinstance(self.model, (FourChamber, FullHeart)):
+            LOGGER.WARNING(
+                "Atrium present in the model, they will be removed for ventricle fiber generation."
+            )
+
+            parts = [
+                part
+                for part in self.model.parts
+                if part.part_type == "ventricle" or part.part_type == "septum"
+            ]
+            tet_ids = np.empty((0), dtype=int)
+            for part in parts:
+                tet_ids = np.append(tet_ids, part.element_ids)
+                tets = self.model.mesh.tetrahedrons[tet_ids, :]
+            nids = np.unique(tets)
+
+            # remove nodes not attached to ventricle parts
+            self.model.mesh.nodes = self.model.mesh.nodes[nids]
+            self._update_node_db(ids=nids + 1)
+
+            # remove parts not belonged to ventricles
             self._keep_ventricles()
+
+            # remove segment which contains atrial nodes
             self._remove_atrial_nodes_from_ventricles_surfaces()
+
+        else:
+            self._update_node_db()
+
         self._update_parts_db()
         self._update_solid_elements_db()
         self._update_material_db()
@@ -1934,17 +1963,17 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             tet_ids = np.append(tet_ids, part.element_ids)
             tets = self.model.mesh.tetrahedrons[tet_ids, :]
         nids = np.unique(tets)
+
         for part in parts:
             for surface in part.surfaces:
-
                 nodes_to_remove = surface.node_ids[
                     np.isin(surface.node_ids, nids, assume_unique=True, invert=True)
                 ]
-                faces_to_remove = np.isin(surface.faces, nodes_to_remove)
-                faces_to_remove = (
-                    faces_to_remove[:, 0] | faces_to_remove[:, 1] | faces_to_remove[:, 2]
-                )
-                surface.faces = surface.faces[np.invert(faces_to_remove), :]
+
+                faces = surface.faces.reshape(-1, 4)
+                faces_to_remove = np.any(np.isin(faces, nodes_to_remove), axis=1)
+                surface.faces = faces[np.invert(faces_to_remove)].ravel()
+
         return
 
     def _update_material_db(self):

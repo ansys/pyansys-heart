@@ -8,6 +8,7 @@ Options for simulation:
     simplified EP (imposed activation)
     coupled electro-mechanics
 """
+import copy
 import glob as glob
 import os
 import pathlib as Path
@@ -15,10 +16,10 @@ import shutil
 import subprocess
 from typing import Literal
 
+from ansys.heart.misc.element_orth import read_orth_element_kfile
 from ansys.heart.preprocessor.models import HeartModel
 import ansys.heart.writer.dynawriter as writers
 import numpy as np
-import pyvista
 
 
 class BaseSimulator:
@@ -67,9 +68,10 @@ class BaseSimulator:
 
     def compute_fibers(self):
         """Compute the fiber direction on the model."""
+        directory = self._write_fibers()
+
         print("Computing fiber orientation...")
 
-        directory = self._write_fibers()
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
 
@@ -82,19 +84,27 @@ class BaseSimulator:
         # centers.
         # NOTE: How to handle null values?
 
-        # read results.
-        print("Interpolating fibers onto model.mesh")
-        vtk_with_fibers = os.path.join(directory, "vtk_FO_ADvectors.vtk")
-        vtk_with_fibers = pyvista.UnstructuredGrid(vtk_with_fibers)
+        # # read results.
+        # print("Interpolating fibers onto model.mesh")
+        # vtk_with_fibers = os.path.join(directory, "vtk_FO_ADvectors.vtk")
+        # vtk_with_fibers = pyvista.UnstructuredGrid(vtk_with_fibers)
+        #
+        # cell_centers_target = vtk_with_fibers.cell_centers()
+        # cell_centers_source = self.model.mesh.cell_centers()
+        #
+        # cell_centers_source = cell_centers_source.interpolate(cell_centers_target)
+        #
+        # self.model.mesh.cell_data["fiber"] = cell_centers_source.point_data["aVector"]
+        # self.model.mesh.cell_data["sheet"] = cell_centers_source.point_data["dVector"]
+        # print("Done.")
 
-        cell_centers_target = vtk_with_fibers.cell_centers()
-        cell_centers_source = self.model.mesh.cell_centers()
+        print("Assigning fiber orientation to model...")
+        elem_ids, part_ids, connect, fib, sheet = read_orth_element_kfile(
+            os.path.join(directory, "element_solid_ortho.k")
+        )
 
-        cell_centers_source = cell_centers_source.interpolate(cell_centers_target)
-
-        self.model.mesh.cell_data["fiber"] = cell_centers_source.point_data["aVector"]
-        self.model.mesh.cell_data["sheet"] = cell_centers_source.point_data["dVector"]
-        print("Done.")
+        self.model.mesh.cell_data["fiber"][elem_ids - 1] = fib
+        self.model.mesh.cell_data["sheet"][elem_ids - 1] = sheet
 
         return
 
@@ -144,7 +154,7 @@ class BaseSimulator:
         export_directory = os.path.join(self.root_directory, "fibergeneration")
         self.directories["fibergeneration"] = export_directory
 
-        dyna_writer = writers.FiberGenerationDynaWriter(self.model)
+        dyna_writer = writers.FiberGenerationDynaWriter(copy.deepcopy(self.model))
         dyna_writer.update()
         dyna_writer.export(export_directory)
 

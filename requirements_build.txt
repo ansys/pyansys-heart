@@ -11,3 +11,4 @@ tqdm==4.64.0
 wget==3.2
 validators==0.20.0
 pyvista==0.37.0
+pint==0.20.1

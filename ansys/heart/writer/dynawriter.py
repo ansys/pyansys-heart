@@ -130,26 +130,28 @@ class BaseDynaWriter:
     def _update_parts_db(self):
         """Loop over parts defined in the model and creates keywords."""
         LOGGER.debug("Updating part keywords...")
-        # add parts with a dataframe
 
+        # add parts with a dataframe
         section_id = self.get_unique_section_id()
+
         # get list of cavities from model
         for part in self.model.parts:
-            mat_id = self.get_unique_mat_id()
-            # for element_set in cavity.element_sets:
-            part_id = self.get_unique_part_id()
-            part_name = part.name
+            part.pid = self.get_unique_part_id()
+            # material ID = part ID
+            part.mid = part.pid
+
             part_df = pd.DataFrame(
-                {"heading": [part_name], "pid": [part_id], "secid": [section_id], "mid": [mat_id]}
+                {
+                    "heading": [part.name],
+                    "pid": [part.pid],
+                    "secid": [section_id],
+                    "mid": [part.mid],
+                }
             )
             part_kw = keywords.Part()
             part_kw.parts = part_df
 
             self.kw_database.parts.append(part_kw)
-
-            # store part id for future use
-            part.pid = part_id
-            part.mid = mat_id
 
         # set up section solid for cavity myocardium
         section_kw = keywords.SectionSolid(secid=section_id, elform=13)
@@ -631,37 +633,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         node_kw = add_nodes_to_kw(self.model.mesh.nodes, node_kw)
 
         self.kw_database.nodes.append(node_kw)
-
-        return
-
-    def _update_parts_db(self):
-        """Loop over parts defined in the model and create keywords."""
-        LOGGER.debug("Updating part keywords...")
-        # add parts with a dataframe
-
-        section_id = self.get_unique_section_id()
-        # get list of cavities from model
-        for part in self.model.parts:
-            mat_id = self.get_unique_mat_id()
-            # for element_set in cavity.element_sets:
-            part_id = self.get_unique_part_id()
-            part_name = part.name
-            part_df = pd.DataFrame(
-                {"heading": [part_name], "pid": [part_id], "secid": [section_id], "mid": [mat_id]}
-            )
-            part_kw = keywords.Part()
-            part_kw.parts = part_df
-
-            self.kw_database.parts.append(part_kw)
-
-            # store part id for future use
-            part.pid = part_id
-            part.mid = mat_id
-
-        # set up section solid for cavity myocardium
-        section_kw = keywords.SectionSolid(secid=section_id, elform=13)
-
-        self.kw_database.parts.append(section_kw)
 
         return
 

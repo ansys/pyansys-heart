@@ -134,26 +134,28 @@ class BaseDynaWriter:
     def _update_parts_db(self):
         """Loop over parts defined in the model and creates keywords."""
         LOGGER.debug("Updating part keywords...")
-        # add parts with a dataframe
 
+        # add parts with a dataframe
         section_id = self.get_unique_section_id()
+
         # get list of cavities from model
         for part in self.model.parts:
-            mat_id = self.get_unique_mat_id()
-            # for element_set in cavity.element_sets:
-            part_id = self.get_unique_part_id()
-            part_name = part.name
+            part.pid = self.get_unique_part_id()
+            # material ID = part ID
+            part.mid = part.pid
+
             part_df = pd.DataFrame(
-                {"heading": [part_name], "pid": [part_id], "secid": [section_id], "mid": [mat_id]}
+                {
+                    "heading": [part.name],
+                    "pid": [part.pid],
+                    "secid": [section_id],
+                    "mid": [part.mid],
+                }
             )
             part_kw = keywords.Part()
             part_kw.parts = part_df
 
             self.kw_database.parts.append(part_kw)
-
-            # store part id for future use
-            part.pid = part_id
-            part.mid = mat_id
 
         # set up section solid for cavity myocardium
         section_kw = keywords.SectionSolid(secid=section_id, elform=13)
@@ -649,37 +651,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
     #
     #     return
 
-    def _update_parts_db(self):
-        """Loop over parts defined in the model and create keywords."""
-        LOGGER.debug("Updating part keywords...")
-        # add parts with a dataframe
-
-        section_id = self.get_unique_section_id()
-        # get list of cavities from model
-        for part in self.model.parts:
-            mat_id = self.get_unique_mat_id()
-            # for element_set in cavity.element_sets:
-            part_id = self.get_unique_part_id()
-            part_name = part.name
-            part_df = pd.DataFrame(
-                {"heading": [part_name], "pid": [part_id], "secid": [section_id], "mid": [mat_id]}
-            )
-            part_kw = keywords.Part()
-            part_kw.parts = part_df
-
-            self.kw_database.parts.append(part_kw)
-
-            # store part id for future use
-            part.pid = part_id
-            part.mid = mat_id
-
-        # set up section solid for cavity myocardium
-        section_kw = keywords.SectionSolid(secid=section_id, elform=13)
-
-        self.kw_database.parts.append(section_kw)
-
-        return
-
     def _update_solid_elements_db(self, add_fibers: bool = True):
         """Create Solid ortho elements for all cavities.
 
@@ -1025,8 +996,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         act_curve_id = self.get_unique_curve_id()
 
         for part in self.model.parts:
-            part.mid = part.pid
-            mat_id = part.mid
 
             if "ventricle" in part.name.lower() or "septum" in part.name.lower():
                 if not add_active:
@@ -2376,7 +2345,6 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
     def _update_material_db(self):
         """Add simple linear elastic material for each defined part."""
         for part in self.model.parts:
-            part.element_ids
             em_mat_id = part.pid
             self.kw_database.material.extend(
                 [
@@ -3170,8 +3138,6 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
     def _update_material_db(self, add_active: bool = True):
         """Update the database of material keywords."""
         for part in self.model.parts:
-            part.mid = part.pid
-            mat_id = part.mid
 
             if "ventricle" in part.name.lower() or "septum" in part.name.lower():
                 if not add_active:

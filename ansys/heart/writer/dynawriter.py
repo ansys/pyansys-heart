@@ -1906,7 +1906,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         self._update_main_db()  # needs updating
 
         if isinstance(self.model, (FourChamber, FullHeart)):
-            LOGGER.WARNING(
+            LOGGER.warning(
                 "Atrium present in the model, they will be removed for ventricle fiber generation."
             )
 
@@ -2909,6 +2909,11 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
             beams_kw = keywords.ElementBeam()
             for network in self.model.mesh.beam_network:
+                # It is previously defined from purkinje generation step
+                # but needs to reassign part ID here
+                # to make sure no conflict with 4C/full heart case.
+                network.pid = self.get_unique_part_id()
+
                 origin_coordinates = self.model.mesh.nodes[network.node_ids[0], :]
 
                 for part in self.model.parts:

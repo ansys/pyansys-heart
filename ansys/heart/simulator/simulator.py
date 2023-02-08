@@ -178,26 +178,29 @@ class EPSimulator(BaseSimulator):
 
     def simulate(self):
         """Launch the main simulation."""
-        print("Launching main simulation.")
         directory = self._write_main_simulation_files()
+
+        print("Launching main EP simulation...")
+
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
+
         print("done.")
         return
 
     def compute_purkinje(self):
         """Compute the purkinje network."""
-        print("Computing the Purkinje network...")
-
         directory = self._write_purkinje_files()
+
+        print("Computing the Purkinje network...")
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
+        print("done.")
 
+        print("Assign the Purkinje network to the model...")
         purkinje_files = glob.glob(os.path.join(directory, "purkinjeNetwork_*.k"))
         for purkinje_file in purkinje_files:
             self.model.mesh.add_purkinje_from_kfile(purkinje_file)
-
-        print("done.")
 
     def _write_main_simulation_files(self):
         """Write LS-DYNA files that are used to start the main simulation."""
@@ -240,7 +243,7 @@ class EPSimulator(BaseSimulator):
         export_directory = os.path.join(self.root_directory, "purkinjegeneration")
         self.directories["purkinjegeneration"] = export_directory
 
-        dyna_writer = writers.PurkinjeGenerationDynaWriter(self.model)
+        dyna_writer = writers.PurkinjeGenerationDynaWriter(copy.deepcopy(self.model))
         dyna_writer.update()
         dyna_writer.export(export_directory)
         return export_directory
@@ -260,6 +263,7 @@ class MechanicsSimulator(BaseSimulator):
     ) -> None:
         super().__init__(model, lsdynapath, dynatype, num_cpus, simulation_directory)
 
+        """If stress free computation is taken into considered."""
         # include initial stress by default
         self.initial_stress = initial_stress
 
@@ -275,6 +279,8 @@ class MechanicsSimulator(BaseSimulator):
             dynain_file = glob.glob(
                 os.path.join(self.root_directory, "zeropressure", "iter*.dynain.lsda")
             )[-1]
+
+            # todo: handle if lsda file not exist
             shutil.copy(dynain_file, os.path.join(directory, "dynain.lsda"))
 
         print("Launching main simulation...")

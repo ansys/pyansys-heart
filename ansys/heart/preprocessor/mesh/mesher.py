@@ -14,6 +14,8 @@ import pkg_resources
 
 _template_directory = pkg_resources.resource_filename("ansys.heart.preprocessor", "templates")
 
+_fluent_version = "22.2.0"
+
 
 def mesh_heart_model_by_fluent(
     path_to_stl_directory: str,
@@ -99,6 +101,7 @@ def mesh_heart_model_by_fluent(
         processor_count=num_cpus,
         start_transcript=True,
         show_gui=show_gui,
+        product_version=_fluent_version,
     )
     assert session.check_health() == "SERVING"
     session.start_transcript()

@@ -12,6 +12,7 @@ def test_launch_fluent():
             processor_count=1,
             start_transcript=False,
             show_gui=False,
+            product_version="22.2.0",
         )
         assert session.check_health() == "SERVING"
         # try to initialize workflow

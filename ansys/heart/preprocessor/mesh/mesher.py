@@ -113,9 +113,7 @@ def mesh_heart_model_by_fluent(
     session.tui.file.start_transcript(work_dir_meshing, "fluent_meshing.log")
     session.tui.objects.merge("'(*) heart")
     session.tui.objects.labels.create_label_per_zone("heart '(*)")
-    session.tui.diagnostics.face_connectivity.fix_free_faces(
-        "objects '(*) merge-nodes yes 1e-3"
-    )
+    session.tui.diagnostics.face_connectivity.fix_free_faces("objects '(*) merge-nodes yes 1e-3")
     session.tui.objects.create_intersection_loops("collectively '(*)")
     session.tui.boundary.feature.create_edge_zones("(*) fixed-angle 70 yes")
 
@@ -186,12 +184,8 @@ def mesh_heart_model_by_fluent(
 
     # compute volumetric regions
     session.tui.objects.volumetric_regions.compute("wrapped-myocardium", "no")
-    session.tui.objects.volumetric_regions.change_type(
-        "Wrapped-myocardium", "'(*)", "fluid"
-    )
-    session.tui.objects.volumetric_regions.change_type(
-        "wrapped-myocardium", "(heart)", "solid"
-    )
+    session.tui.objects.volumetric_regions.change_type("Wrapped-myocardium", "'(*)", "fluid")
+    session.tui.objects.volumetric_regions.change_type("wrapped-myocardium", "(heart)", "solid")
 
     # start auto meshing
     session.tui.mesh.tet.controls.cell_sizing("size-field")

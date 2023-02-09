@@ -275,13 +275,20 @@ class MechanicsSimulator(BaseSimulator):
         input_file = os.path.join(directory, "main.k")
 
         if self.initial_stress:
-            # get dynain.lsda file from
-            dynain_file = glob.glob(
-                os.path.join(self.root_directory, "zeropressure", "iter*.dynain.lsda")
-            )[-1]
+            try:
+                # get dynain.lsda file from
+                dynain_file = glob.glob(
+                    os.path.join(self.root_directory, "zeropressure", "iter*.dynain.lsda")
+                )[-1]
 
-            # todo: handle if lsda file not exist.
-            shutil.copy(dynain_file, os.path.join(directory, "dynain.lsda"))
+                shutil.copy(dynain_file, os.path.join(directory, "dynain.lsda"))
+            except IndexError:
+                # handle if lsda file not exist.
+                print(
+                    "Cannot find initial stress file, simulation will run without initial stress."
+                )
+                self.initial_stress = False
+                self._write_main_simulation_files()
 
         print("Launching main simulation...")
         self._run_dyna(input_file)

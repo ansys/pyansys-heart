@@ -949,6 +949,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 else:
                     node_ids = cap.node_ids
 
+                if len(node_ids) == 0:
+                    LOGGER.debug(
+                        "Nodes already used. Skipping node set for {0}".format(
+                            part.name + " " + cap.name
+                        )
+                    )
+                    continue
+
                 cap.nsid = node_set_id
                 kw = create_node_set_keyword(node_ids + 1, node_set_id=cap.nsid, title=cap.name)
                 kws_caps.append(kw)

@@ -1,5 +1,4 @@
-"""For the moment this module is not used - but for the moment we keep this for
-potential future use.
+"""parse LSDYNA *ELEMENT_SOLID_ORTHO keywords.
 """
 import numpy as np
 

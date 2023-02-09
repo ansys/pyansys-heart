@@ -87,12 +87,12 @@ class ModelInfo:
         import glob as glob
 
         files = []
-        if not remove_all:            
+        if not remove_all:
             for ext in extensions_to_remove:
                 files += glob.glob(os.path.join(self.workdir, "*" + ext))
         elif remove_all:
             files = glob.glob(os.path.join(self.workdir, "*.*"))
-                        
+
         for file in files:
             try:
                 os.remove(file)

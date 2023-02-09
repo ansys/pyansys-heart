@@ -522,10 +522,10 @@ class BaseDynaWriter:
                 sheet = self.volume_mesh.cell_data["sheet"][part.element_ids]
 
                 # normalize fiber and sheet directions:
-                norm = np.linalg.norm(fiber, axis=1)
-                fiber = fiber / norm[:, None]
-                norm = np.linalg.norm(sheet, axis=1)
-                sheet = sheet / norm[:, None]
+                # norm = np.linalg.norm(fiber, axis=1)
+                # fiber = fiber / norm[:, None]
+                # norm = np.linalg.norm(sheet, axis=1)
+                # sheet = sheet / norm[:, None]
 
                 kw_elements = create_element_solid_ortho_keyword(
                     elements=tetrahedrons,

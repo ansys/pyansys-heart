@@ -86,15 +86,18 @@ class ModelInfo:
         """
         import glob as glob
 
-        if not remove_all:
+        files = []
+        if not remove_all:            
             for ext in extensions_to_remove:
-                files = glob.glob(os.path.join(self.workdir, "*" + ext))
-                for file in files:
-                    os.remove(file)
+                files += glob.glob(os.path.join(self.workdir, "*" + ext))
         elif remove_all:
             files = glob.glob(os.path.join(self.workdir, "*.*"))
-            for file in files:
+                        
+        for file in files:
+            try:
                 os.remove(file)
+            except:
+                LOGGER.debug(f"Unable to delete: {file}")
         return
 
     def create_workdir(self) -> None:

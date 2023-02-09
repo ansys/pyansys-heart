@@ -2303,6 +2303,10 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
 
         self._update_node_db()  # can stay the same (could move to base class)
         if isinstance(self.model, (FourChamber, FullHeart)):
+            LOGGER.warning(
+                "Atrium present in the model, "
+                "they will be removed for ventricle Purkinje generation."
+            )
             self._keep_ventricles()
 
         self._update_parts_db()  # can stay the same (could move to base class++++++++++++++++++++)

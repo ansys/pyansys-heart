@@ -280,7 +280,7 @@ class MechanicsSimulator(BaseSimulator):
                 os.path.join(self.root_directory, "zeropressure", "iter*.dynain.lsda")
             )[-1]
 
-            # todo: handle if lsda file not exist
+            # todo: handle if lsda file not exist.
             shutil.copy(dynain_file, os.path.join(directory, "dynain.lsda"))
 
         print("Launching main simulation...")

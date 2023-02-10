@@ -1,4 +1,4 @@
-"""Module contains default values for the simulations."""
+"""Module contains default values for mechanics simulations."""
 from pint import Quantity
 
 """Generic analysis settings."""

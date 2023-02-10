@@ -45,10 +45,10 @@ class PassiveCalibration:
         self.lv_cavity = Cavity(
             SurfaceMesh(name="lv_cavity", triangles=lv_cavity_faces, nodes=x_ed)
         )
-        self.lv_cavity.compute_volume()
 
         # compute Klotz curve
         self.v_ed = self.lv_cavity.volume
+        # todo: pressure can be read from main.k
         self.p_ed = 2 * 7.5  # 2kPa to  mmHg
         self.klotz = EDPVR(self.v_ed, self.p_ed)
 
@@ -87,16 +87,16 @@ class PassiveCalibration:
         )
 
     def load_results(self):
-        """Load zerop simulation results."""
-        # load inflation simulation
-        # todo: filename iter3 is hard coded
+        """
+        Load zerop simulation results.
 
-        try:
-            nodout = NodOut(os.path.join(self.work_directory, "iter3.binout"))
-        except IOError:
-            nodout = NodOut(os.path.join(self.work_directory, "iter3.binout0000"))
-        finally:
-            Exception("Cannot load binout file")
+        Todo: verify stress free configuration converges.
+        """
+        # Load last iteration
+        import glob
+
+        binout_files = glob.glob(os.path.join(self.work_directory, "iter*.binout*"))
+        nodout = NodOut(binout_files[-1])
 
         # time need to be normalized
         time = nodout.time / nodout.time[-1]
@@ -107,7 +107,6 @@ class PassiveCalibration:
         self.volume_sim = np.zeros(time.shape)
         for i, coord in enumerate(coords):
             self.lv_cavity.surface.nodes = coord
-            self.lv_cavity.compute_volume()
             self.volume_sim[i] = self.lv_cavity.volume
 
         fig = self.plot()

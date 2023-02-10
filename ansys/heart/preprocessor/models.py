@@ -86,15 +86,18 @@ class ModelInfo:
         """
         import glob as glob
 
+        files = []
         if not remove_all:
             for ext in extensions_to_remove:
-                files = glob.glob(os.path.join(self.workdir, "*" + ext))
-                for file in files:
-                    os.remove(file)
+                files += glob.glob(os.path.join(self.workdir, "*" + ext))
         elif remove_all:
             files = glob.glob(os.path.join(self.workdir, "*.*"))
-            for file in files:
+
+        for file in files:
+            try:
                 os.remove(file)
+            except:
+                LOGGER.debug(f"Unable to delete: {file}")
         return
 
     def create_workdir(self) -> None:
@@ -1209,8 +1212,7 @@ class HeartModel:
             part.cavity = Cavity(surface=surface, name=part.name)
             part.cavity.compute_centroid()
 
-            volume = part.cavity.compute_volume()
-            LOGGER.debug("Volume of cavity: {0} = {1}".format(part.cavity.name, volume))
+            LOGGER.debug("Volume of cavity: {0} = {1}".format(part.cavity.name, part.cavity.volume))
 
             part.cavity.surface.write_to_stl(
                 os.path.join(self.info.workdir, "-".join(part.cavity.surface.name.lower().split()))

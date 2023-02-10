@@ -14,6 +14,8 @@ import pkg_resources
 
 _template_directory = pkg_resources.resource_filename("ansys.heart.preprocessor", "templates")
 
+_fluent_version = "22.2.0"
+
 
 def mesh_heart_model_by_fluent(
     path_to_stl_directory: str,
@@ -94,37 +96,40 @@ def mesh_heart_model_by_fluent(
     LOGGER.debug("Starting meshing in directory: {}".format(work_dir_meshing))
     # start fluent session
     session = pyfluent.launch_fluent(
-        meshing_mode=True,
+        mode="meshing",
         precision="double",
         processor_count=num_cpus,
         start_transcript=True,
         show_gui=show_gui,
+        product_version=_fluent_version,
     )
-    assert session.check_health() == "SERVING"
+    if session.check_health() != "SERVING":
+        LOGGER.error("Fluent session failed. Exiting Fluent")
+        session.stop_transcript()
+        session.exit()
+        exit()
+
     session.start_transcript()
-    session._print_transcript
-    # LOGGER.debug("Reading fluent journal file: {0}".format(script))
+
     min_size = mesh_size
     max_size = mesh_size
     growth_rate_wrap = 1.2
 
     # import files
-    session.meshing.tui.file.import_.cad("no " + work_dir_meshing + " part_*.stl yes 40 yes mm")
-    session.meshing.tui.file.start_transcript(work_dir_meshing, "fluent_meshing.log")
-    session.meshing.tui.objects.merge("'(*) heart")
-    session.meshing.tui.objects.labels.create_label_per_zone("heart '(*)")
-    session.meshing.tui.diagnostics.face_connectivity.fix_free_faces(
-        "objects '(*) merge-nodes yes 1e-3"
-    )
-    session.meshing.tui.objects.create_intersection_loops("collectively '(*)")
-    session.meshing.tui.boundary.feature.create_edge_zones("(*) fixed-angle 70 yes")
+    session.tui.file.import_.cad("no " + work_dir_meshing + " part_*.stl yes 40 yes mm")
+    session.tui.file.start_transcript(work_dir_meshing, "fluent_meshing.log")
+    session.tui.objects.merge("'(*) heart")
+    session.tui.objects.labels.create_label_per_zone("heart '(*)")
+    session.tui.diagnostics.face_connectivity.fix_free_faces("objects '(*) merge-nodes yes 1e-3")
+    session.tui.objects.create_intersection_loops("collectively '(*)")
+    session.tui.boundary.feature.create_edge_zones("(*) fixed-angle 70 yes")
 
     # set up size field for wrapping
-    session.meshing.tui.size_functions.set_global_controls(min_size, max_size, growth_rate_wrap)
-    session.meshing.tui.scoped_sizing.compute("yes")
+    session.tui.size_functions.set_global_controls(min_size, max_size, growth_rate_wrap)
+    session.tui.scoped_sizing.compute("yes")
 
     # wrap objects
-    session.meshing.tui.objects.wrap.wrap(
+    session.tui.objects.wrap.wrap(
         "'(*)",
         "collectively",
         "wrapped-myocardium",
@@ -144,7 +149,7 @@ def mesh_heart_model_by_fluent(
         # ; and closes the the cavities based on the free faces
         # ; Note that the auto-patch utility may not work in all cases.
         # ; ------------------------------------------------------------------
-        session.meshing.tui.objects.delete_all_geom()
+        session.tui.objects.delete_all_geom()
         session.scheme_eval.scheme_eval(
             "(define zone-ids-endo (get-face-zones-of-filter '*endocardium*) )"
         )
@@ -167,44 +172,40 @@ def mesh_heart_model_by_fluent(
         session.scheme_eval.scheme_eval(
             "(define zone-ids-patch (get-unreferenced-face-zones-of-filter '*patch*) )"
         )
-        session.meshing.tui.objects.create("valves fluid 3 '(*-patch-*) '() mesh yes")
+        session.tui.objects.create("valves fluid 3 '(*-patch-*) '() mesh yes")
 
         # to here:
-        session.meshing.tui.objects.delete_unreferenced_faces_and_edges()
-        session.meshing.tui.objects.labels.create_label_per_zone("valves '(*)")
-        session.meshing.tui.objects.labels.remove_zones("valves valves '(*)")
-        session.meshing.tui.objects.merge("'(wrapped-myocardium valves) wrapped-myocardium")
-        session.meshing.tui.diagnostics.face_connectivity.fix_duplicate_faces(
+        session.tui.objects.delete_unreferenced_faces_and_edges()
+        session.tui.objects.labels.create_label_per_zone("valves '(*)")
+        session.tui.objects.labels.remove_zones("valves valves '(*)")
+        session.tui.objects.merge("'(wrapped-myocardium valves) wrapped-myocardium")
+        session.tui.diagnostics.face_connectivity.fix_duplicate_faces(
             "objects '(wrapped-myocardium)"
         )
-        session.meshing.tui.boundary.remesh.controls.intersect.remesh_post_intersection("no")
-        session.meshing.tui.boundary.remesh.intersect_all_face_zones("yes 40 0.05 no")
-        session.meshing.tui.boundary.manage.remove_suffix("'(*)")
-        session.meshing.tui.diagnostics.face_connectivity.fix_duplicate_faces(
+        session.tui.boundary.remesh.controls.intersect.remesh_post_intersection("no")
+        session.tui.boundary.remesh.intersect_all_face_zones("yes 40 0.05 no")
+        session.tui.boundary.manage.remove_suffix("'(*)")
+        session.tui.diagnostics.face_connectivity.fix_duplicate_faces(
             "objects '(wrapped-myocardium)"
         )
 
     # compute volumetric regions
-    session.meshing.tui.objects.volumetric_regions.compute("wrapped-myocardium", "no")
-    session.meshing.tui.objects.volumetric_regions.change_type(
-        "Wrapped-myocardium", "'(*)", "fluid"
-    )
-    session.meshing.tui.objects.volumetric_regions.change_type(
-        "wrapped-myocardium", "(heart)", "solid"
-    )
+    session.tui.objects.volumetric_regions.compute("wrapped-myocardium", "no")
+    session.tui.objects.volumetric_regions.change_type("Wrapped-myocardium", "'(*)", "fluid")
+    session.tui.objects.volumetric_regions.change_type("wrapped-myocardium", "(heart)", "solid")
 
     # start auto meshing
-    session.meshing.tui.mesh.tet.controls.cell_sizing("size-field")
-    session.meshing.tui.mesh.auto_mesh("wrapped-myocardium", "yes", "pyramids", "tet", "no")
-    session.meshing.tui.mesh.modify.auto_node_move("(*)", "(*)", 0.3, 50, 120, "yes", 5)
-    session.meshing.tui.objects.delete_all_geom()
-    session.meshing.tui.mesh.zone_names_clean_up()
-    session.meshing.tui.mesh.check_mesh()
-    session.meshing.tui.mesh.check_quality()
-    session.meshing.tui.boundary.manage.remove_suffix("(*)")
+    session.tui.mesh.tet.controls.cell_sizing("size-field")
+    session.tui.mesh.auto_mesh("wrapped-myocardium", "yes", "pyramids", "tet", "no")
+    session.tui.mesh.modify.auto_node_move("(*)", "(*)", 0.3, 50, 120, "yes", 5)
+    session.tui.objects.delete_all_geom()
+    session.tui.mesh.zone_names_clean_up()
+    session.tui.mesh.check_mesh()
+    session.tui.mesh.check_quality()
+    session.tui.boundary.manage.remove_suffix("(*)")
 
     # write to file
-    session.meshing.tui.file.write_mesh(path_to_output)
+    session.tui.file.write_mesh(path_to_output)
     # session.meshing.tui.file.read_journal(script)
     session.exit()
 

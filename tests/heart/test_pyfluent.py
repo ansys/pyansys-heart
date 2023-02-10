@@ -7,15 +7,16 @@ def test_launch_fluent():
     """Launch pyfluent in meshing mode and check health."""
     try:
         session = pyfluent.launch_fluent(
-            meshing_mode=True,
+            mode="meshing",
             precision="double",
             processor_count=1,
             start_transcript=False,
             show_gui=False,
+            product_version="22.2.0",
         )
         assert session.check_health() == "SERVING"
         # try to initialize workflow
-        assert session.meshing.workflow.InitializeWorkflow(
+        assert session.workflow.InitializeWorkflow(
             WorkflowType="Watertight Geometry"
         ), "Failed workflow"
         session.exit()

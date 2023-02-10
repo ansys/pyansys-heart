@@ -1,7 +1,5 @@
 """Module contains default values for fiber generation."""
-from pint import Quantity
+# from pint import Quantity
 
 """Fiber angles."""
-fiber_angles = {
-    
-}
+fiber_angles = {}

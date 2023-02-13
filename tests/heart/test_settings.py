@@ -1,11 +1,15 @@
 """Collection of methods to test the settings module."""
 
-from ansys.heart.simulator.settings.settings1 import settings, _get_consistent_units_str
-from pint import Quantity
-from ansys.heart.simulator.settings.settings1 import SimulationSettings, Analysis
-from .conftest import compare_string_with_file, get_workdir
 import os
 
+from ansys.heart.simulator.settings.settings import (
+    Analysis,
+    SimulationSettings,
+    _get_consistent_units_str,
+)
+from pint import Quantity
+
+from .conftest import compare_string_with_file, get_workdir
 
 REF_STRING_SETTINGS_YML = (
     "Simulation Settings:\n"
@@ -36,6 +40,7 @@ def test_settings_save():
     settings = SimulationSettings(
         mechanics=True, electrophysiology=False, fiber=False, purkinje=False
     )
+
     # fill some dummy data
     settings.mechanics.analysis.end_time = Quantity(1, "s")
     settings.mechanics.analysis.dtmin = Quantity(2, "s")
@@ -57,6 +62,7 @@ def test_settings_load():
     """Test loading of settings from file."""
     # write file-to-load from reference string
     file_path = os.path.join(get_workdir(), "settings.yml")
+
     with open(file_path, "w") as f:
         f.write(REF_STRING_SETTINGS_YML)
 
@@ -92,8 +98,10 @@ def test_get_consistent_units():
 
 
 def test_convert_units():
-    """Test to consistent unit conversion."""
+    """Test consistent unit conversion."""
     settings = Analysis()
+
+    # NOTE: use settings.end_time attribute as dummy.
 
     # s --> ms
     settings.end_time = Quantity(50, "s")

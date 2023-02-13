@@ -286,7 +286,7 @@ class SimulationSettings:
         """Load the default simulation settings."""
         # TODO move to Settings class
         for attr in self.__dict__:
-            if isinstance(attr, Mechanics):
+            if isinstance(getattr(self, attr), Mechanics):
                 A = Analysis()
                 A.set_values(mech_defaults.analysis)
                 M = Material()
@@ -300,17 +300,22 @@ class SimulationSettings:
                 self.mechanics.material = M
                 self.mechanics.boundary_conditions = BC
                 self.mechanics.system = S
-            elif isinstance(attr, (Electrophysiology, Fibers, Purkinje)):
-                raise NotImplementedError(
-                    "Reading EP, Fiber, and Purkinje settings not yet supported."
-                )
+
+            elif isinstance(getattr(self, attr), (Electrophysiology, Fibers, Purkinje)):
+                print("Reading EP, Fiber, and Purkinje settings not yet supported.")
 
     def to_consistent_unit_system(self):
         """Convert all settings to consistent unit-system ["MPa", "mm", "N", "ms", "g"]."""
-        attributes = self.__dict__
+        attributes = [
+            getattr(self, attr)
+            for attr in self.__dict__
+            if isinstance(getattr(self, attr), Settings)
+        ]
+
         for attr in attributes:
             if isinstance(attr, Settings):
                 attr.to_consistent_unit_system()
+        return
 
 
 def _remove_units_from_dictionary(d: dict):
@@ -390,7 +395,12 @@ default_settings.load_defaults()
 # Force: N
 # base_quantitiy / unit mapping
 
-_base_quantity_unit_mapper = {"[time]": "ms", "[length]": "mm", "[mass]": "g"}
+_base_quantity_unit_mapper = {
+    "[time]": "ms",
+    "[length]": "mm",
+    "[mass]": "g",
+    "[substance]": "umol",
+}
 # these are derived quantities:
 _derived = [
     [Quantity(30, "MPa").dimensionality, Quantity(30, "N").dimensionality],
@@ -410,3 +420,18 @@ def _get_consistent_units_str(dimensions: set):
             "{:s}**{:d}".format(_base_quantity_unit_mapper[quantity], dimensions[quantity])
         )
     return "*".join(_to_units)
+
+
+if __name__ == "__main__":
+    print("protected")
+
+    settings = SimulationSettings()
+    settings.load_defaults()
+
+    settings.mechanics.analysis.end_time = Quantity(3, "s")
+    settings.save("settings.yml")
+
+    settings.to_consistent_unit_system()
+    settings.save("settings1.yml")
+
+    settings.load("settings1.yml")

@@ -482,16 +482,18 @@ class BaseDynaWriter:
 
         # create elements for each part
         for part in self.model.parts:
-            LOGGER.warning("Only ventricle elements will include fiber direction.")
-            if "ventricle" in part.name.lower() or "septum" in part.name.lower():
-                add_fibers = True
+            # Atrium do not contain fiber information in any way.
+            if add_fibers:
+                if "ventricle" in part.name.lower() or "septum" in part.name.lower():
+                    part_add_fibers = True
+                else:
+                    part_add_fibers = False
             else:
-                add_fibers = False
+                part_add_fibers = add_fibers
 
             LOGGER.debug(
-                "\tAdding elements for {0} | adding fibers: {1}".format(part.name, add_fibers)
+                "\tAdding elements for {0} | adding fibers: {1}".format(part.name, part_add_fibers)
             )
-
             tetrahedrons = self.model.mesh.tetrahedrons[part.element_ids, :] + 1
             num_elements = tetrahedrons.shape[0]
 
@@ -499,7 +501,7 @@ class BaseDynaWriter:
             part_ids = np.ones(num_elements, dtype=int) * part.pid
 
             # format the element keywords
-            if not add_fibers:
+            if not part_add_fibers:
                 kw_elements = keywords.ElementSolid()
                 elements = pd.DataFrame(
                     {
@@ -517,7 +519,7 @@ class BaseDynaWriter:
                 )
                 kw_elements.elements = elements
 
-            elif add_fibers:
+            elif part_add_fibers:
                 fiber = self.volume_mesh.cell_data["fiber"][part.element_ids]
                 sheet = self.volume_mesh.cell_data["sheet"][part.element_ids]
 

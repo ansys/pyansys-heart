@@ -50,3 +50,7 @@ jobs:
       - name: Run tests writer module
         run: |
           python -m pytest tests/heart/test_k_files_mechanics.py
+
+      - name: Run tests simulator module
+        run: |
+          python -m pytest tests/heart/test_settings.py

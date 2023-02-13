@@ -66,6 +66,9 @@ class Settings:
                     _to_consitent_units(v)
                 elif isinstance(v, Quantity):
                     # print(f"key: {k} | units {v.units}")
+                    if "[substance]" in list(v.dimensionality):
+                        print("Not converting [substance] / [length]^3")
+                        continue
                     d.update({k: v.to(_get_consistent_units_str(v.dimensionality))})
             return
 

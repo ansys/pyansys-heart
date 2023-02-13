@@ -164,45 +164,6 @@ class BaseDynaWriter:
 
         return
 
-    def _update_solid_elements_db(self):
-        """Create Solid ortho elements for all cavities.
-
-        Note
-        ----
-        Each cavity contains one myocardium.
-
-        """
-        LOGGER.debug("Updating solid element keywords...")
-
-        # create elements for each part
-        for part in self.model.parts:
-            tetrahedrons = self.model.mesh.tetrahedrons[part.element_ids, :] + 1
-            num_elements = tetrahedrons.shape[0]
-
-            part_ids = np.ones(num_elements, dtype=int) * part.pid
-
-            # format the element keywords
-            kw_elements = keywords.ElementSolid()
-            elements = pd.DataFrame(
-                {
-                    "eid": part.element_ids + 1,
-                    "pid": part_ids,
-                    "n1": tetrahedrons[:, 0],
-                    "n2": tetrahedrons[:, 1],
-                    "n3": tetrahedrons[:, 2],
-                    "n4": tetrahedrons[:, 3],
-                    "n5": tetrahedrons[:, 3],
-                    "n6": tetrahedrons[:, 3],
-                    "n7": tetrahedrons[:, 3],
-                    "n8": tetrahedrons[:, 3],
-                }
-            )
-            kw_elements.elements = elements
-            # add elements to database
-            self.kw_database.solid_elements.append(kw_elements)
-
-        return
-
     def _update_segmentsets_db(self):
         """Update the segment set database."""
         # NOTE 0: add all surfaces as segment sets
@@ -499,6 +460,90 @@ class BaseDynaWriter:
                 self.model.right_ventricle.apex_points[0].node_id = node_apex_right
         return node_apex_right
 
+    def _update_solid_elements_db(self, add_fibers: bool = True):
+        """
+        Create Solid ortho elements for all cavities.
+
+        Note
+        ----
+        Each cavity contains one myocardium.
+
+        Parameters
+        ----------
+        add_fibers: bool, True
+            if add fiber information into solid element.
+        """
+        LOGGER.debug("Updating solid element keywords...")
+
+        if add_fibers:
+            cell_data_fields = self.model.mesh.cell_data.keys()
+            if "fiber" not in cell_data_fields or "sheet" not in cell_data_fields:
+                raise KeyError("Mechanics writer requires fiber and sheet fields")
+
+        # create elements for each part
+        for part in self.model.parts:
+            # Atrium do not contain fiber information in any way.
+            if add_fibers:
+                if "ventricle" in part.name.lower() or "septum" in part.name.lower():
+                    part_add_fibers = True
+                else:
+                    part_add_fibers = False
+            else:
+                part_add_fibers = add_fibers
+
+            LOGGER.debug(
+                "\tAdding elements for {0} | adding fibers: {1}".format(part.name, part_add_fibers)
+            )
+            tetrahedrons = self.model.mesh.tetrahedrons[part.element_ids, :] + 1
+            num_elements = tetrahedrons.shape[0]
+
+            # element_ids = np.arange(1, num_elements + 1, 1) + solid_element_count
+            part_ids = np.ones(num_elements, dtype=int) * part.pid
+
+            # format the element keywords
+            if not part_add_fibers:
+                kw_elements = keywords.ElementSolid()
+                elements = pd.DataFrame(
+                    {
+                        "eid": part.element_ids + 1,
+                        "pid": part_ids,
+                        "n1": tetrahedrons[:, 0],
+                        "n2": tetrahedrons[:, 1],
+                        "n3": tetrahedrons[:, 2],
+                        "n4": tetrahedrons[:, 3],
+                        "n5": tetrahedrons[:, 3],
+                        "n6": tetrahedrons[:, 3],
+                        "n7": tetrahedrons[:, 3],
+                        "n8": tetrahedrons[:, 3],
+                    }
+                )
+                kw_elements.elements = elements
+
+            elif part_add_fibers:
+                fiber = self.volume_mesh.cell_data["fiber"][part.element_ids]
+                sheet = self.volume_mesh.cell_data["sheet"][part.element_ids]
+
+                # normalize fiber and sheet directions:
+                # norm = np.linalg.norm(fiber, axis=1)
+                # fiber = fiber / norm[:, None]
+                # norm = np.linalg.norm(sheet, axis=1)
+                # sheet = sheet / norm[:, None]
+
+                kw_elements = create_element_solid_ortho_keyword(
+                    elements=tetrahedrons,
+                    a_vec=fiber,
+                    d_vec=sheet,
+                    e_id=part.element_ids + 1,
+                    partid=part.pid,
+                    element_type="tetra",
+                )
+
+            # add elements to database
+            self.kw_database.solid_elements.append(kw_elements)
+            # solid_element_count = solid_element_count + num_elements
+
+        return
+
 
 class MechanicsDynaWriter(BaseDynaWriter):
     """Class for preparing the input for a mechanics LS-DYNA simulation."""
@@ -650,85 +695,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
     #     self.kw_database.nodes.append(node_kw)
     #
     #     return
-
-    def _update_solid_elements_db(self, add_fibers: bool = True):
-        """Create Solid ortho elements for all cavities.
-
-        Note
-        ----
-        Each cavity contains one myocardium.
-
-        """
-        LOGGER.debug("Updating solid element keywords...")
-
-        cell_data_fields = self.model.mesh.cell_data.keys()
-        if "fiber" not in cell_data_fields or "sheet" not in cell_data_fields:
-            raise KeyError("Mechanics writer requires fiber and sheet fields")
-            # logger.warning("Not writing fiber and sheet directions")
-            # add_fibers = False
-
-        # create elements for each part
-        # solid_element_count = 0  # keeps track of number of solid elements already defined
-
-        for part in self.model.parts:
-            if type(self) == MechanicsDynaWriter:
-                if "ventricle" in part.name.lower() or "septum" in part.name.lower():
-                    add_fibers = True
-                else:
-                    add_fibers = False
-
-            LOGGER.debug(
-                "\tAdding elements for {0} | adding fibers: {1}".format(part.name, add_fibers)
-            )
-
-            tetrahedrons = self.model.mesh.tetrahedrons[part.element_ids, :] + 1
-            num_elements = tetrahedrons.shape[0]
-
-            # element_ids = np.arange(1, num_elements + 1, 1) + solid_element_count
-            part_ids = np.ones(num_elements, dtype=int) * part.pid
-
-            # format the element keywords
-            if not add_fibers:
-                kw_elements = keywords.ElementSolid()
-                elements = pd.DataFrame(
-                    {
-                        "eid": part.element_ids + 1,
-                        "pid": part_ids,
-                        "n1": tetrahedrons[:, 0],
-                        "n2": tetrahedrons[:, 1],
-                        "n3": tetrahedrons[:, 2],
-                        "n4": tetrahedrons[:, 3],
-                        "n5": tetrahedrons[:, 3],
-                        "n6": tetrahedrons[:, 3],
-                        "n7": tetrahedrons[:, 3],
-                        "n8": tetrahedrons[:, 3],
-                    }
-                )
-                kw_elements.elements = elements
-
-            elif add_fibers:
-                fiber = self.volume_mesh.cell_data["fiber"][part.element_ids]
-                sheet = self.volume_mesh.cell_data["sheet"][part.element_ids]
-
-                # normalize fiber and sheet directions:
-                norm = np.linalg.norm(fiber, axis=1)
-                fiber = fiber / norm[:, None]
-                norm = np.linalg.norm(sheet, axis=1)
-                sheet = sheet / norm[:, None]
-                kw_elements = create_element_solid_ortho_keyword(
-                    elements=tetrahedrons,
-                    a_vec=fiber,
-                    d_vec=sheet,
-                    e_id=part.element_ids + 1,
-                    partid=part.pid,
-                    element_type="tetra",
-                )
-
-            # add elements to database
-            self.kw_database.solid_elements.append(kw_elements)
-            # solid_element_count = solid_element_count + num_elements
-
-        return
 
     def _add_solution_controls(
         self,
@@ -963,6 +929,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     node_ids = np.setdiff1d(cap.node_ids, used_node_ids)
                 else:
                     node_ids = cap.node_ids
+
+                if len(node_ids) == 0:
+                    LOGGER.debug(
+                        "Nodes already used. Skipping node set for {0}".format(
+                            part.name + " " + cap.name
+                        )
+                    )
+                    continue
 
                 cap.nsid = node_set_id
                 kw = create_node_set_keyword(node_ids + 1, node_set_id=cap.nsid, title=cap.name)
@@ -1680,7 +1654,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         self._update_node_db()
         self._update_parts_db()
-        self._update_solid_elements_db()
+        self._update_solid_elements_db(add_fibers=True)
         self._update_segmentsets_db()
         self._update_nodesets_db()
         self._update_material_db(add_active=False)
@@ -1904,7 +1878,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             self._update_node_db()
 
         self._update_parts_db()
-        self._update_solid_elements_db()
+        self._update_solid_elements_db(add_fibers=False)
         self._update_material_db()
 
         self._update_segmentsets_db()
@@ -2310,9 +2284,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
             self._keep_ventricles()
 
         self._update_parts_db()  # can stay the same (could move to base class++++++++++++++++++++)
-        self._update_solid_elements_db(
-            add_fibers=False
-        )  # can stay the same (could move to base class)
+        self._update_solid_elements_db(add_fibers=False)
         self._update_material_db()
 
         self._update_segmentsets_db()  # can stay the same
@@ -2577,7 +2549,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self._update_node_db()
 
         self._update_parts_db()
-        self._update_solid_elements_db()
+        self._update_solid_elements_db(add_fibers=True)
         self._update_material_db()
         self._update_ep_material_db()
         self._update_cellmodels()
@@ -3070,6 +3042,8 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
     def __init__(self, model: HeartModel, system_model_name: str = "ClosedLoop") -> None:
         super().__init__(model)
 
+        print("Not available yet.")
+        exit()
         self.kw_database = ElectroMechanicsDecks()
         """Collection of keyword decks relevant for mechanics."""
 

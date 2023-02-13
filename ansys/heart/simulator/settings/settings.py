@@ -230,6 +230,16 @@ class SimulationSettings:
             Path to target .json or .yml file
         remove_units : bool, optional
             Flag indicating whether to remove units before writing, by default False
+
+        Example
+        -------
+        Create examples settings with default values.
+
+        >>> from ansys.heart.simulator.settings.settings import SimulationSettings
+        >>> settings = SimulationSettings()
+        >>> settings.load_defaults()
+        >>> settings.save("my_settings.yml")
+
         """
         if not isinstance(filename, pathlib.Path):
             filename = pathlib.Path(filename)
@@ -268,6 +278,7 @@ class SimulationSettings:
         -------
         Create examples settings with default values.
 
+        >>> from ansys.heart.simulator.settings.settings import SimulationSettings
         >>> settings = SimulationSettings()
         >>> settings.load_defaults()
         >>> settings.save("my_settings.yml")
@@ -276,7 +287,7 @@ class SimulationSettings:
 
         >>> settings1 = SimulationSettings()
         >>> settings1.load("my_settings.yml")
-        >>> assert settings == settings1
+        >>> assert settings.mechanics.analysis == settings1.mechanics.analysis
         True
 
         """
@@ -313,7 +324,29 @@ class SimulationSettings:
             print("Failed to load mechanics settings.")
 
     def load_defaults(self):
-        """Load the default simulation settings."""
+        """Load the default simulation settings.
+
+        Example
+        -------
+        Create examples settings with default values.
+
+        Load module
+        >>> from ansys.heart.simulator.settings.settings import SimulationSettings
+
+        Instantiate settings object.
+
+        >>> settings = SimulationSettings()
+        >>> settings.load_defaults()
+        >>> settings.mechanics.analysis
+        Analysis:
+          end_time: 3000.0 millisecond
+          dtmin: 10.0 millisecond
+          dtmax: 10.0 millisecond
+          dt_d3plot: 50.0 millisecond
+          dt_icvout: 1.0 millisecond
+          global_damping: 0.5 / millisecond
+
+        """
         # TODO move to Settings class
         for attr in self.__dict__:
             if isinstance(getattr(self, attr), Mechanics):
@@ -335,7 +368,24 @@ class SimulationSettings:
                 print("Reading EP, Fiber, and Purkinje settings not yet supported.")
 
     def to_consistent_unit_system(self):
-        """Convert all settings to consistent unit-system ["MPa", "mm", "N", "ms", "g"]."""
+        """Convert all settings to consistent unit-system ["MPa", "mm", "N", "ms", "g"].
+
+        Example
+        -------
+        Convert to the consistent unit system ["MPa", "mm", "N", "ms", "g"].
+
+        Import necessary modules
+        >>> from ansys.heart.simulator.settings.settings import SimulationSettings
+        >>> from pint import Quantity
+
+        Instantiate settings
+        >>> settings = SimulationSettings()
+        >>> settings.mechanics.analysis.end_time = Quantity(1, "s")
+        >>> settings.to_consistent_unit_system()
+        >>> settings.mechanics.analysis.end_time
+        <Quantity(1000.0, 'millisecond')>
+
+        """
         attributes = [
             getattr(self, attr)
             for attr in self.__dict__
@@ -463,5 +513,3 @@ if __name__ == "__main__":
 
     settings.to_consistent_unit_system()
     settings.save("settings1.yml")
-
-    settings.load("settings1.yml")

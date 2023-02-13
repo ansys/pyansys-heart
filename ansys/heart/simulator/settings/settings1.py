@@ -1,12 +1,10 @@
 """Module that defines some classes for settings."""
 
 import copy
-from dataclasses import asdict, dataclass, fields, replace
+from dataclasses import asdict, dataclass
 import json
 import pathlib
-from typing import List
 
-import ansys.heart.simulator.settings.defaults as defaults
 from ansys.heart.simulator.settings.defaults import mechanics as mech_defaults
 from pint import Quantity, UnitRegistry
 import yaml
@@ -57,7 +55,7 @@ class Settings:
         ----
         Currently the only supported unit system is ["MPa", "mm", "N", "ms", "g"]
         For instance:
-        Quantity(10, "mm/s") -->
+        Quantity(10, "mm/s") --> Quantity(0.01, "mm/ms")
         """
 
         def _to_consitent_units(d):
@@ -284,20 +282,32 @@ class SimulationSettings:
     def load_defaults(self):
         """Load the default simulation settings."""
         # TODO move to Settings class
-        if hasattr(self, "mechanics"):
-            A = Analysis()
-            A.set_values(mech_defaults.analysis)
-            M = Material()
-            M.set_values(mech_defaults.material)
-            BC = BoundaryConditions()
-            BC.set_values(mech_defaults.boundary_conditions)
-            S = SystemModel()
-            S.set_values(mech_defaults.system_model)
+        for attr in self.__dict__:
+            if isinstance(attr, Mechanics):
+                A = Analysis()
+                A.set_values(mech_defaults.analysis)
+                M = Material()
+                M.set_values(mech_defaults.material)
+                BC = BoundaryConditions()
+                BC.set_values(mech_defaults.boundary_conditions)
+                S = SystemModel()
+                S.set_values(mech_defaults.system_model)
 
-            self.mechanics.analysis = A
-            self.mechanics.material = M
-            self.mechanics.boundary_conditions = BC
-            self.mechanics.system = S
+                self.mechanics.analysis = A
+                self.mechanics.material = M
+                self.mechanics.boundary_conditions = BC
+                self.mechanics.system = S
+            elif isinstance(attr, (Electrophysiology, Fibers, Purkinje)):
+                raise NotImplementedError(
+                    "Reading EP, Fiber, and Purkinje settings not yet supported."
+                )
+
+    def to_consistent_unit_system(self):
+        """Convert all settings to consistent unit-system ["MPa", "mm", "N", "ms", "g"]."""
+        attributes = self.__dict__
+        for attr in attributes:
+            if isinstance(attr, Settings):
+                attr.to_consistent_unit_system()
 
 
 def _remove_units_from_dictionary(d: dict):
@@ -364,8 +374,8 @@ def _get_units(d):
     return units
 
 
-settings = SimulationSettings()
-settings.load_defaults()
+default_settings = SimulationSettings()
+default_settings.load_defaults()
 
 
 # desired consistent unit system is:

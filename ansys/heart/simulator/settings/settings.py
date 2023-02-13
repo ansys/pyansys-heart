@@ -11,9 +11,7 @@ import yaml
 
 
 class AttrDict(dict):
-    """Dictionary subclass whose entries can be accessed by attributes
-    (as well as normally).
-    """
+    """Dict subclass whose entries can be accessed by attributes as well as normally."""
 
     def __init__(self, *args, **kwargs):
         def from_nested_dict(data):
@@ -33,6 +31,7 @@ class Settings:
     """Generic settings class."""
 
     def __repr__(self):
+        """Represent object in as dictionary in YAML style."""
         d = self.serialize()
         d = {self.__class__.__name__: d}
         return yaml.dump(json.loads(json.dumps(d)), sort_keys=False)
@@ -48,7 +47,7 @@ class Settings:
                     setattr(self, key, defaults[key])
 
     def serialize(self, remove_units: bool = False) -> dict:
-        """Serialize the settings, that is formats the Quantity as str(<value> <unit>)"""
+        """Serialize the settings, that is formats the Quantity as str(<value> <unit>)."""
         dictionary = copy.deepcopy(asdict(self))
         _serialize_quantity(dictionary, remove_units)
         return dictionary
@@ -80,21 +79,23 @@ class Settings:
         _to_consitent_units(self)
         return
 
-    def remove_units(self):
-        def _remove_units(d):
+    def _remove_units(self):
+        """Remove all units from Quantity objects."""
+
+        def __remove_units(d):
             units = []
             if isinstance(d, Settings):
                 d = d.__dict__
             for k, v in d.items():
                 if isinstance(v, (dict, AttrDict, Settings)):
-                    units += _remove_units(v)
+                    units += __remove_units(v)
                 elif isinstance(v, Quantity):
                     # print(f"key: {k} | units {v.units}")
                     units.append(v.units)
                     d.update({k: v.m})
             return units
 
-        removed_units = _remove_units(self)
+        removed_units = __remove_units(self)
         return removed_units
 
 
@@ -213,6 +214,7 @@ class SimulationSettings:
         pass
 
     def __repr__(self):
+        """Represent object as list of relevant attribute names."""
         repr_str = "\n  ".join(
             [attr for attr in self.__dict__ if isinstance(getattr(self, attr), Settings)]
         )
@@ -248,19 +250,35 @@ class SimulationSettings:
 
         with open(filename, "w") as f:
             if filename.suffix == ".yml":
-                # NOTE: this supresses writing of tags from AttrDict
+                # NOTE: this suppress writing of tags from AttrDict
                 yaml.dump(json.loads(json.dumps(serialized_settings)), f, sort_keys=False)
 
             elif filename.suffix == ".json":
                 json.dump(serialized_settings, f, indent=4, sort_keys=False)
 
     def load(self, filename: pathlib.Path):
-        """Load simulation parameters from JSON or YAML file.
+        """Load simulation settings.
 
         Parameters
         ----------
         filename : pathlib.Path
-            Path to .json or .yml with settings.
+            Path to yaml or json file.
+
+        Example
+        -------
+        Create examples settings with default values.
+
+        >>> settings = SimulationSettings()
+        >>> settings.load_defaults()
+        >>> settings.save("my_settings.yml")
+
+        Load settings in second SimulationSettings object.
+
+        >>> settings1 = SimulationSettings()
+        >>> settings1.load("my_settings.yml")
+        >>> assert settings == settings1
+        True
+
         """
         if not isinstance(filename, pathlib.Path):
             filename = pathlib.Path(filename)

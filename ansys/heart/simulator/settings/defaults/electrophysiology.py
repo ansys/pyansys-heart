@@ -9,6 +9,4 @@ analysis = {
     "dt_d3plot": Quantity(50.0, "ms"),
 }
 
-boundary_conditions = {
-    "stimulation_position": [0.0, 0.0, 0.0]
-}
+boundary_conditions = {"stimulation_position": [0.0, 0.0, 0.0]}

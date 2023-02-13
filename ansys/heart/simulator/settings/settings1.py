@@ -1,4 +1,4 @@
-"""Module that stores settings."""
+"""Module that defines some classes for settings."""
 
 import copy
 from dataclasses import asdict, dataclass, fields, replace
@@ -10,14 +10,6 @@ import ansys.heart.simulator.settings.defaults as defaults
 from ansys.heart.simulator.settings.defaults import mechanics as mech_defaults
 from pint import Quantity, UnitRegistry
 import yaml
-
-
-def get_factorial(n: int):
-    """recursively gets factorial"""
-    if n < 2:
-        return 1
-    else:
-        return n * get_factorial(n - 1)
 
 
 class AttrDict(dict):
@@ -58,6 +50,30 @@ class Settings:
         _serialize_quantity(dictionary, remove_units)
         return dictionary
 
+    def to_consistent_unit_system(self):
+        """Convert units to consistent unit system.
+
+        Note
+        ----
+        Currently the only supported unit system is ["MPa", "mm", "N", "ms", "g"]
+        For instance:
+        Quantity(10, "mm/s") -->
+        """
+
+        def _to_consitent_units(d):
+            if isinstance(d, Settings):
+                d = d.__dict__
+            for k, v in d.items():
+                if isinstance(v, (dict, AttrDict, Settings)):
+                    _to_consitent_units(v)
+                elif isinstance(v, Quantity):
+                    # print(f"key: {k} | units {v.units}")
+                    d.update({k: v.to(_get_consistent_units_str(v.dimensionality))})
+            return
+
+        _to_consitent_units(self)
+        return
+
     def remove_units(self):
         def _remove_units(d):
             units = []
@@ -73,6 +89,7 @@ class Settings:
             return units
 
         removed_units = _remove_units(self)
+        return removed_units
 
 
 @dataclass
@@ -218,14 +235,14 @@ class SimulationSettings:
 
         with open(filename, "w") as f:
             if filename.suffix == ".yml":
-                # note: this supresses writing of tags from AttrDict
+                # NOTE: this supresses writing of tags from AttrDict
                 yaml.dump(json.loads(json.dumps(serialized_settings)), f, sort_keys=False)
 
             elif filename.suffix == ".json":
                 json.dump(serialized_settings, f, indent=4, sort_keys=False)
 
     def load(self, filename: pathlib.Path):
-        """Load simulation parameters from disk.
+        """Load simulation parameters from JSON or YAML file.
 
         Parameters
         ----------
@@ -284,7 +301,7 @@ class SimulationSettings:
 
 
 def _remove_units_from_dictionary(d: dict):
-    """Replace Quantity with value in a nested dictionary, that is, removes units."""
+    """Replace Quantity with value in a nested dictionary (removes units)."""
     for k, v in d.items():
         if isinstance(v, (dict, AttrDict)):
             _remove_units_from_dictionary(v)
@@ -309,7 +326,7 @@ def _serialize_quantity(d: dict, remove_units: bool = False):
 
 
 def _deserialize_quantity(d: dict, ureg: UnitRegistry):
-    """Deserialize Quantity such that string <value> <units> is replaced by Quantity."""
+    """Deserialize string such that "<value> <units>" is replaced by Quantity(value, units)."""
     for k, v in d.items():
         if isinstance(v, dict):
             _deserialize_quantity(v, ureg)
@@ -350,33 +367,33 @@ def _get_units(d):
 settings = SimulationSettings()
 settings.load_defaults()
 
-settings.mechanics.remove_units()
 
-settings.save("test.yml")
-settings.save("test.json")
-
-# settings.mechanics.analysis.end_time = Quantity(30, "ms")
-# settings.save("test.yml")
-
-settings.load("test.yml")
-
-# consistent_unit_system = MPa, mm, N, ms, g
-#
-# Length: mm
+# desired consistent unit system is:
+# ["MPa", "mm", "N", "ms", "g"]
 # Time: ms
+# Length: mm
 # Mass: g
-#
-# Force: N [ Mass * Length / Time^2 ] --> [ kg*m / s^2]
-# Pressure/Stress: MPa [ Mass / (Length * Time^2 )] --> [g / (mm * ms^2)]
-#
-# get dimensionality of consistent unit system
-# _ureg = UnitRegistry()
+# Pressure: MPa
+# Force: N
+# base_quantitiy / unit mapping
 
-# _unit_system = ["MPa", "mm", "N", "ms", "g"]
+_base_quantity_unit_mapper = {"[time]": "ms", "[length]": "mm", "[mass]": "g"}
+# these are derived quantities:
+_derived = [
+    [Quantity(30, "MPa").dimensionality, Quantity(30, "N").dimensionality],
+    ["MPa", "N"],
+]
 
-# get unit-system
-_dimensions = _get_dimensionality(asdict(settings.mechanics))
-_units = _get_units(asdict(settings.mechanics))
 
-_units = list(set(_units))
-_dimensions = list(set(_dimensions))
+def _get_consistent_units_str(dimensions: set):
+    """Get consistent units formatted as string."""
+    if dimensions in _derived[0]:
+        _to_units = _derived[1][_derived[0].index(dimensions)]
+        return _to_units
+
+    _to_units = []
+    for quantity in dimensions:
+        _to_units.append(
+            "{:s}**{:d}".format(_base_quantity_unit_mapper[quantity], dimensions[quantity])
+        )
+    return "*".join(_to_units)

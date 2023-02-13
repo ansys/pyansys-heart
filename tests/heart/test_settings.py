@@ -103,7 +103,7 @@ def test_convert_units():
 
     # NOTE: use settings.end_time attribute as dummy.
 
-    # s --> ms
+    # s --> ms (*1e3)
     settings.end_time = Quantity(50, "s")
     settings.to_consistent_unit_system()
     assert abs(settings.end_time.m - 50 * 1e3) < 1e-15

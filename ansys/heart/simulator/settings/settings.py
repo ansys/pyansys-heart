@@ -32,6 +32,11 @@ class AttrDict(dict):
 class Settings:
     """Generic settings class."""
 
+    def __repr__(self):
+        d = self.serialize()
+        d = {self.__class__.__name__: d}
+        return yaml.dump(json.loads(json.dumps(d)), sort_keys=False)
+
     def set_values(self, defaults: dict):
         """Read default settings from dictionary."""
         for key, value in self.__dict__.items():
@@ -93,7 +98,7 @@ class Settings:
         return removed_units
 
 
-@dataclass
+@dataclass(repr=False)
 class Analysis(Settings):
     """Class for analysis settings."""
 
@@ -111,7 +116,7 @@ class Analysis(Settings):
     """Global damping constant."""
 
 
-@dataclass
+@dataclass(repr=False)
 class Material(Settings):
     """Class for storing material settings."""
 
@@ -123,7 +128,7 @@ class Material(Settings):
     """Cap material."""
 
 
-@dataclass
+@dataclass(repr=False)
 class BoundaryConditions(Settings):
     """Stores settings/parameters for boundary conditions."""
 
@@ -135,7 +140,7 @@ class BoundaryConditions(Settings):
     """End-diastolic pressure."""
 
 
-@dataclass
+@dataclass(repr=False)
 class SystemModel(Settings):
     """Stores settings/parameters for system model."""
 
@@ -145,7 +150,7 @@ class SystemModel(Settings):
     """Parameters for right ventricle."""
 
 
-@dataclass
+@dataclass(repr=False)
 class Mechanics(Settings):
     """Class for keeping track of settings."""
 
@@ -159,7 +164,7 @@ class Mechanics(Settings):
     """System model settings."""
 
 
-@dataclass
+@dataclass(repr=False)
 class Electrophysiology(Settings):
     """Class for keeping track of electrophysiology settings."""
 
@@ -167,14 +172,14 @@ class Electrophysiology(Settings):
     """Generic analysis settings."""
 
 
-@dataclass
+@dataclass(repr=False)
 class Fibers(Settings):
     """Class for keeping track of fiber settings."""
 
     # what parameters to expose?
 
 
-@dataclass
+@dataclass(repr=False)
 class Purkinje(Settings):
     """Class for keeping track of purkinje settings."""
 
@@ -206,6 +211,13 @@ class SimulationSettings:
             """Settings for Purkinje generation"""
 
         pass
+
+    def __repr__(self):
+        repr_str = "\n  ".join(
+            [attr for attr in self.__dict__ if isinstance(getattr(self, attr), Settings)]
+        )
+        repr_str = self.__class__.__name__ + "\n  " + repr_str
+        return repr_str
 
     def save(self, filename: pathlib.Path, remove_units: bool = False):
         """Save simulation settings to disk.

@@ -195,6 +195,43 @@ class SimulationSettings:
         fiber: bool = True,
         purkinje: bool = True,
     ) -> None:
+        """Initialize Simulation Settings.
+
+        Parameters
+        ----------
+        mechanics : bool, optional
+            Flag indicating whether to add settings for mechanics, by default True
+        electrophysiology : bool, optional
+            Flag indicating whether to add settings for electrophysiology, by default True
+        fiber : bool, optional
+            Flag indicating whether to add settings for fiber generation, by default True
+        purkinje : bool, optional
+            Flag indicating whether to add settings for purkinje generation, by default True
+
+        Example
+        -------
+        Instantiate settings and load defaults
+
+        >>> from ansys.heart.simulator.settings.settings import SimulationSettings
+        >>> settings = SimulationSettings()
+        >>> settings.load_defaults()
+        >>> print(settings)
+        SimulationSettings
+          mechanics
+          electrophysiology
+          fibers
+          purkinje
+
+        >>> print(settings.mechanics.analysis)
+        Analysis:
+          end_time: 3000.0 millisecond
+          dtmin: 10.0 millisecond
+          dtmax: 10.0 millisecond
+          dt_d3plot: 50.0 millisecond
+          dt_icvout: 1.0 millisecond
+          global_damping: 0.5 / millisecond
+
+        """
         if mechanics:
             self.mechanics: Mechanics = Mechanics()
             """Settings for mechanical simulation."""
@@ -504,12 +541,3 @@ def _get_consistent_units_str(dimensions: set):
 
 if __name__ == "__main__":
     print("protected")
-
-    settings = SimulationSettings()
-    settings.load_defaults()
-
-    settings.mechanics.analysis.end_time = Quantity(3, "s")
-    settings.save("settings.yml")
-
-    settings.to_consistent_unit_system()
-    settings.save("settings1.yml")

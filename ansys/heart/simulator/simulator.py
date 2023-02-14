@@ -8,6 +8,7 @@ Options for simulation:
     simplified EP (imposed activation)
     coupled electro-mechanics
 """
+import copy
 import glob as glob
 import os
 import pathlib as Path
@@ -15,10 +16,9 @@ import shutil
 import subprocess
 from typing import Literal
 
+from ansys.heart.misc.element_orth import read_orth_element_kfile
 from ansys.heart.preprocessor.models import HeartModel
 import ansys.heart.writer.dynawriter as writers
-import numpy as np
-import pyvista
 
 
 class BaseSimulator:
@@ -67,9 +67,10 @@ class BaseSimulator:
 
     def compute_fibers(self):
         """Compute the fiber direction on the model."""
+        directory = self._write_fibers()
+
         print("Computing fiber orientation...")
 
-        directory = self._write_fibers()
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
 
@@ -82,19 +83,27 @@ class BaseSimulator:
         # centers.
         # NOTE: How to handle null values?
 
-        # read results.
-        print("Interpolating fibers onto model.mesh")
-        vtk_with_fibers = os.path.join(directory, "vtk_FO_ADvectors.vtk")
-        vtk_with_fibers = pyvista.UnstructuredGrid(vtk_with_fibers)
+        # # read results.
+        # print("Interpolating fibers onto model.mesh")
+        # vtk_with_fibers = os.path.join(directory, "vtk_FO_ADvectors.vtk")
+        # vtk_with_fibers = pyvista.UnstructuredGrid(vtk_with_fibers)
+        #
+        # cell_centers_target = vtk_with_fibers.cell_centers()
+        # cell_centers_source = self.model.mesh.cell_centers()
+        #
+        # cell_centers_source = cell_centers_source.interpolate(cell_centers_target)
+        #
+        # self.model.mesh.cell_data["fiber"] = cell_centers_source.point_data["aVector"]
+        # self.model.mesh.cell_data["sheet"] = cell_centers_source.point_data["dVector"]
+        # print("Done.")
 
-        cell_centers_target = vtk_with_fibers.cell_centers()
-        cell_centers_source = self.model.mesh.cell_centers()
+        print("Assigning fiber orientation to model...")
+        elem_ids, part_ids, connect, fib, sheet = read_orth_element_kfile(
+            os.path.join(directory, "element_solid_ortho.k")
+        )
 
-        cell_centers_source = cell_centers_source.interpolate(cell_centers_target)
-
-        self.model.mesh.cell_data["fiber"] = cell_centers_source.point_data["aVector"]
-        self.model.mesh.cell_data["sheet"] = cell_centers_source.point_data["dVector"]
-        print("Done.")
+        self.model.mesh.cell_data["fiber"][elem_ids - 1] = fib
+        self.model.mesh.cell_data["sheet"][elem_ids - 1] = sheet
 
         return
 
@@ -144,7 +153,7 @@ class BaseSimulator:
         export_directory = os.path.join(self.root_directory, "fibergeneration")
         self.directories["fibergeneration"] = export_directory
 
-        dyna_writer = writers.FiberGenerationDynaWriter(self.model)
+        dyna_writer = writers.FiberGenerationDynaWriter(copy.deepcopy(self.model))
         dyna_writer.update()
         dyna_writer.export(export_directory)
 
@@ -168,26 +177,29 @@ class EPSimulator(BaseSimulator):
 
     def simulate(self):
         """Launch the main simulation."""
-        print("Launching main simulation.")
         directory = self._write_main_simulation_files()
+
+        print("Launching main EP simulation...")
+
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
+
         print("done.")
         return
 
     def compute_purkinje(self):
         """Compute the purkinje network."""
-        print("Computing the Purkinje network...")
-
         directory = self._write_purkinje_files()
+
+        print("Computing the Purkinje network...")
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
+        print("done.")
 
+        print("Assign the Purkinje network to the model...")
         purkinje_files = glob.glob(os.path.join(directory, "purkinjeNetwork_*.k"))
         for purkinje_file in purkinje_files:
             self.model.mesh.add_purkinje_from_kfile(purkinje_file)
-
-        print("done.")
 
     def _write_main_simulation_files(self):
         """Write LS-DYNA files that are used to start the main simulation."""
@@ -230,7 +242,7 @@ class EPSimulator(BaseSimulator):
         export_directory = os.path.join(self.root_directory, "purkinjegeneration")
         self.directories["purkinjegeneration"] = export_directory
 
-        dyna_writer = writers.PurkinjeGenerationDynaWriter(self.model)
+        dyna_writer = writers.PurkinjeGenerationDynaWriter(copy.deepcopy(self.model))
         dyna_writer.update()
         dyna_writer.export(export_directory)
         return export_directory
@@ -246,38 +258,69 @@ class MechanicsSimulator(BaseSimulator):
         dynatype: Literal["smp", "intelmpi", "platformmpi"],
         num_cpus: int = 1,
         simulation_directory: Path = "",
+        initial_stress: bool = True,
     ) -> None:
         super().__init__(model, lsdynapath, dynatype, num_cpus, simulation_directory)
+
+        """If stress free computation is taken into considered."""
+        # include initial stress by default
+        self.initial_stress = initial_stress
 
         return
 
     def simulate(self):
         """Launch the main simulation."""
-        print("Launching main simulation.")
         directory = self._write_main_simulation_files()
         input_file = os.path.join(directory, "main.k")
+
+        if self.initial_stress:
+            try:
+                # get dynain.lsda file from
+                dynain_file = glob.glob(
+                    os.path.join(self.root_directory, "zeropressure", "iter*.dynain.lsda")
+                )[-1]
+
+                shutil.copy(dynain_file, os.path.join(directory, "dynain.lsda"))
+            except IndexError:
+                # handle if lsda file not exist.
+                print(
+                    "Cannot find initial stress file, simulation will run without initial stress."
+                )
+                self.initial_stress = False
+                self._write_main_simulation_files()
+
+        print("Launching main simulation...")
         self._run_dyna(input_file)
         print("done.")
         return
 
-    def compute_stress_free_configuration(self):
-        """Compute the stress-free configuration of the model."""
-        print("Computing stress-free configuration...")
+    def compute_stress_free_configuration(self, update_mesh=True):
+        """
+        Compute the stress-free configuration of the model.
 
+        Parameters
+        ----------
+        update_mesh: Boolean, optional
+            Update mesh node coordinates after computation.
+        """
         directory = self._write_stress_free_configuration_files()
         input_file = os.path.join(directory, "main.k")
-        self._run_dyna(input_file, options="case")
 
+        print("Computing stress-free configuration...")
+        self._run_dyna(input_file, options="case")
         print("done.")
 
-        Warning("Replace by methods from postprocessing module.")
-        binout_files = glob.glob(os.path.join(directory, "iter*.binout"))
-        iter_files = glob.glob(os.path.join(directory, "iter*.guess"))
-        # read nodes of last iteration. (avoid qd dependency for now.)
-        stress_free_nodes = np.loadtxt(
-            iter_files[-1], skiprows=2, max_rows=self.model.mesh.nodes.shape[0]
-        )
-        self.model.mesh.points = stress_free_nodes[:, 1:]
+        if update_mesh:
+            Warning("Replace by methods from postprocessing module.")
+            binout_files = glob.glob(os.path.join(directory, "iter*.binout"))
+            iter_files = glob.glob(os.path.join(directory, "iter*.guess"))
+
+            # read nodes of last iteration. (avoid qd dependency for now.)
+            stress_free_nodes = np.loadtxt(
+                iter_files[-1], skiprows=2, max_rows=self.model.mesh.nodes.shape[0]
+            )
+
+            self.model.mesh.points = stress_free_nodes[:, 1:]
         return
 
     def _write_main_simulation_files(self):
@@ -286,7 +329,7 @@ class MechanicsSimulator(BaseSimulator):
         self.directories["main-mechanics"] = export_directory
 
         dyna_writer = writers.MechanicsDynaWriter(self.model, "ConstantPreloadWindkesselAfterload")
-        dyna_writer.update()
+        dyna_writer.update(with_dynain=self.initial_stress)
         dyna_writer.export(export_directory)
 
         return export_directory
@@ -314,177 +357,3 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
     ) -> None:
         super().__init__(model, lsdynapath, dynatype)
         raise NotImplementedError("Simulator EPMechanicsSimulator not implemented.")
-
-
-class Simulator:
-    """
-    Perform pre-simulation steps.
-
-    Some extra info here
-
-    """
-
-    def __init__(
-        self,
-        model: HeartModel,
-        lsdynapath: Path,
-        lsdyna_type: Literal["smp", "intelmpi"],
-        num_cpus: int = 1,
-    ) -> None:
-        DeprecationWarning("This class is deprecated")
-        self.model = model
-        """Heart model."""
-        self.lsdynapath = lsdynapath
-        """Path of the lsdyna executable."""
-
-    def _write_fibers(
-        self,
-        workdir: str,
-        alpha_endocardium: float = -60,
-        alpha_eepicardium: float = 60,
-        beta_endocardium: float = 25,
-        beta_epicardium: float = -65,
-    ):
-        dyna_writer = writers.FiberGenerationDynaWriter(self.model)
-        dyna_writer.update()
-        dyna_writer.export(workdir)
-
-        return
-
-    def _write_zeropressureconfiguration(self, workdir: str = ""):
-        dyna_writer = writers.ZeroPressureMechanicsDynaWriter(self.model)
-        dyna_writer.update()
-        dyna_writer.export(workdir)
-        return
-
-    def _write_purkinje(
-        self,
-        workdir: str,
-        pointstx: float = 0,  # TODO instantiate this
-        pointsty: float = 0,  # TODO instantiate this
-        pointstz: float = 0,  # TODO instantiate this
-        inodeid: int = 0,  # TODO instantiate this
-        iedgeid: int = 0,  # TODO instantiate this
-        edgelen: float = 2,  # TODO instantiate this
-        ngen: float = 50,
-        nbrinit: int = 8,
-        nsplit: int = 2,
-    ):
-        """Write purkinje files.
-
-        Parameters
-        ----------
-        workdir : str
-            path where files are dumped
-        pointstx : float, optional
-            _description_, by default 0
-        pointsty : float, optional
-            _description_, by default 0
-        pointstz : float, optional
-            _description_, by default 0
-        nbrinit : int, optional
-            _description_, by default 8
-        nsplit : int, optional
-            _description_, by default 2
-        """
-        dyna_writer = writers.PurkinjeGenerationDynaWriter(self.model)
-        dyna_writer.update()
-        dyna_writer.export(workdir)
-        return
-
-    def __get_stressfreenodes(workdir: str):
-        """Get stres free nodes."""
-        # TODO check if converged
-        guess_files = []
-        for file in os.listdir(workdir):
-            if file[-5:] == "guess":
-                guess_files.append(file)
-
-        return guess_files[-1]
-
-    def build(
-        self,
-        path_lsdyna: str,
-        path_simulation: str,
-        fibers: bool = False,
-        purkinje: bool = False,
-        zeropressure: bool = False,
-        ep: bool = False,
-        mechanics: bool = False,
-    ):
-        """Build LS-DYNA Heart simulation."""
-        # TODO add getters and setters for fiber angles, purkinje properties, simulation times and
-        # other parameters to expose to the user
-        path_simulation = os.path.join(self.model.info.path_to_model, "simulation")
-        simulationdynawriter = writers.BaseDynaWriter(self.model)
-
-        if fibers:
-            path_fibers = os.path.join(self.model.info.path_to_model, "fiber_generation")
-            self._write_fibers(path_fibers)
-            # TODO run dyna
-
-        if zeropressure:
-            path_zeropressure = os.path.join(
-                self.model.info.path_to_model, "zeropressure_generation"
-            )
-            self._write_zeropressureconfiguration(path_zeropressure)
-            if fibers:
-                shutil.copy2(
-                    os.path.join(path_fibers, "element_solid_ortho.k"),
-                    os.path.join(path_zeropressure, "solid_elements.k"),
-                )
-
-            # TODO run dyna
-            nodes_stressfree = self.__get_stressfreenodes(path_zeropressure)
-            shutil.copy(
-                os.path.join(path_zeropressure, "nodes.k"),
-                os.path.join(path_zeropressure, "nodes_endofdiastole.k"),
-            )
-            shutil.copy(
-                os.path.join(path_zeropressure, nodes_stressfree),
-                os.path.join(path_zeropressure, "nodes.k"),
-            )
-
-        if purkinje:
-            path_purkinje = os.path.join(self.model.info.path_to_model, "purkinje_generation")
-            # if exist left ventricle:
-            simulationdynawriter.model.add_part("Left Purkinje")
-            simulationdynawriter.include_files.append("purkinjenetworkLEFT.k")
-            # if exist right ventricle:
-            simulationdynawriter.model.add_part("Right Purkinje")
-            simulationdynawriter.include_files.append("purkinjenetworkRIGHT.k")
-            self._write_purkinje(path_purkinje)
-            if zeropressure:
-                shutil.copy2(
-                    os.path.join(path_zeropressure, "nodes.k"),
-                    os.path.join(path_purkinje, "nodes.k"),
-                )
-            # if exist right ventricle:
-            # TODO run dyna mainLeft
-            shutil.copy2(
-                os.path.join(path_purkinje, "purkinjenetwork.k"),
-                os.path.join(path_purkinje, "purkinjenetworkLEFT.k"),
-            )
-            shutil.copy2(
-                os.path.join(path_purkinje, "purkinjenetworkLEFT.k"),
-                os.path.join(path_simulation, "purkinjenetworkLEFT.k"),
-            )
-            # TODO if exist right ventricle:
-            # TODO run dyna mainRight
-            shutil.copy2(
-                os.path.join(path_purkinje, "purkinjenetwork.k"),
-                os.path.join(path_purkinje, "purkinjenetworkRIGHT.k"),
-            )
-            shutil.copy2(
-                os.path.join(path_purkinje, "purkinjenetworkRIGHT.k"),
-                os.path.join(path_simulation, "purkinjenetworkRIGHT.k"),
-            )
-
-        # if (ep) and not (mechanics):
-        # if not (ep) and (mechanics):
-        # write mechanics
-        # if ep and mechanics:
-        # TODO add coupling stuff and ignore default
-        # Ca2+ mechanics active stress/replaced by EP simulation
-
-        return

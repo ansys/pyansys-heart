@@ -19,7 +19,6 @@ from typing import Literal
 from ansys.heart.misc.element_orth import read_orth_element_kfile
 from ansys.heart.preprocessor.models import HeartModel
 import ansys.heart.writer.dynawriter as writers
-import numpy as np
 
 
 class BaseSimulator:

@@ -357,14 +357,14 @@ class HeartModel:
 
         plotter = pyvista.Plotter()
         if plot_raw_mesh:
-            plotter.add_mesh(self.mesh_raw)
+            plotter.add_mesh(self.mesh_raw, show_edges=show_edges, scalars="tags")
         else:
-            plotter.add_mesh(self.mesh)
+            plotter.add_mesh(self.mesh, show_edges=show_edges, scalars="tags")
 
-        plotter.show(show_edges=show_edges, color_by="tags")
+        plotter.show()
         return
 
-    def plot_fibers(self, plot_raw_mesh: bool = False, n_seed_points: int = 1000):
+    def plot_fibers(self, n_seed_points: int = 1000, plot_raw_mesh: bool = False):
         """Plot the mesh and fibers as streamlines.
 
         Parameters
@@ -447,6 +447,31 @@ class HeartModel:
             ii += 1
 
         plotter.show()
+        return
+
+    def plot_purkinje(self):
+        """Plot the mesh and Purkinje network."""
+        if not len(self.mesh.beam_network) > 0:
+            LOGGER.info("No Purkinje network to plot.")
+            return
+
+        try:
+            import pyvista as pv
+        except (ImportError):
+            LOGGER.warning(
+                "PyVista not found: visualization not supported."
+                "Install pyvista with: pip install pyvista"
+            )
+            return
+
+        try:
+            plotter = pv.Plotter()
+            plotter.add_mesh(self.mesh, color="w", opacity=0.3)
+            for beams in self.mesh.beam_network:
+                plotter.add_mesh(beams, color="r")
+            plotter.show()
+        except:
+            LOGGER.warning("Failed to plot mesh.")
         return
 
     @staticmethod

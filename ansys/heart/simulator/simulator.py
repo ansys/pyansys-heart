@@ -18,8 +18,8 @@ from typing import Literal
 
 from ansys.heart.misc.element_orth import read_orth_element_kfile
 from ansys.heart.preprocessor.models import HeartModel
-import ansys.heart.writer.dynawriter as writers
 from ansys.heart.simulator.settings.settings import SimulationSettings
+import ansys.heart.writer.dynawriter as writers
 
 
 class BaseSimulator:
@@ -70,7 +70,7 @@ class BaseSimulator:
         pass
 
     def load_default_settings(self) -> SimulationSettings:
-        """Loads default simulation settings."""
+        """Load default simulation settings."""
         self.settings.load_defaults()
         return self.settings
 

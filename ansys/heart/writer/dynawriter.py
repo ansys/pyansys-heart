@@ -5,6 +5,7 @@ Note
 Uses a HeartModel (from ansys.heart.preprocessor.models).
 
 """
+import copy
 import json
 import os
 import time
@@ -21,6 +22,7 @@ from ansys.heart.preprocessor.models import (
     HeartModel,
     LeftVentricle,
 )
+from ansys.heart.simulator.settings.settings import SimulationSettings
 
 # import missing keywords
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
@@ -49,9 +51,6 @@ from ansys.heart.writer.material_keywords import MaterialAtrium, MaterialHGOMyoc
 import numpy as np
 import pandas as pd
 import pkg_resources
-from ansys.heart.simulator.settings.settings import SimulationSettings
-
-import copy
 
 
 class BaseDynaWriter:
@@ -66,13 +65,13 @@ class BaseDynaWriter:
             HeartModel object which contains the necessary information for the writer,
             such as nodes, elements, and parts
         settings : SimulationSettings, optional
-            Simulation settings used to create the LS-DYNA model. Loads defaults if None, by default None
+            Simulation settings used to create the LS-DYNA model.
+            Loads defaults if None, by default None
 
         Example
         -------
         <Example to be added>
         """
-
         self.model = model
         """Model information necessary for creating the LS-DYNA .k files."""
 
@@ -1296,7 +1295,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         Uses the universal ventricular longitudinal coordinate
         and a sigmoid penalty function. Strocchi et al 2020 doi: 10.1016/j.jbiomech.2020.109645.
         """
-
         boundary_conditions = copy.deepcopy(self.settings.mechanics.boundary_conditions)
         boundary_conditions._remove_units()
         pericardium_settings = boundary_conditions.pericardium
@@ -1699,7 +1697,6 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
     def update(self):
         """Update the keyword database."""
-
         bc_settings = self.settings.mechanics.boundary_conditions
 
         self._update_main_db(add_damping=False)
@@ -1801,7 +1798,6 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
     def _add_solution_controls(self):
         """Rewrite method for the zerop simulation."""
-
         settings = copy.deepcopy(self.settings.stress_free)
         settings._remove_units()
 

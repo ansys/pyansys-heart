@@ -3,8 +3,8 @@ import os
 import pathlib
 
 import ansys.heart.preprocessor.models as models
-from ansys.heart.simulator.simulator import EPSimulator, MechanicsSimulator
 from ansys.heart.simulator.settings.settings import SimulationSettings
+from ansys.heart.simulator.simulator import EPSimulator, MechanicsSimulator
 from ansys.heart.simulator.support import run_preprocessor
 
 # import ansys.heart.writer.dynawriter as writers
@@ -89,9 +89,10 @@ if __name__ == "__main__":
     # ADVANCED example: create array of different settings and use these in simulator.
     settings = SimulationSettings()
     settings.load_defaults()
-    from pint import Quantity
     import copy
     from typing import List
+
+    from pint import Quantity
 
     # prepare list of settings.
     list_of_settings: List[SimulationSettings] = []

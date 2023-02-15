@@ -5,7 +5,6 @@ Such as a Mesh object, Part object, Features, etc.
 
 """
 import copy
-import os
 import pathlib
 from typing import List, Optional, Tuple, Union
 
@@ -13,7 +12,6 @@ from ansys.heart.custom_logging import LOGGER
 import ansys.heart.preprocessor.mesh.connectivity as connect
 import ansys.heart.preprocessor.mesh.geodisc as geodisc
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-import meshio
 import numpy as np
 
 try:
@@ -22,24 +20,59 @@ except (ImportError):
     LOGGER.warning("Importing pyvista failed. Install with: pip install pyvista")
 
 
-class Mesh:
-    """Mesh class: contains nodal coordinates and element definitions.
+class Mesh(pv.UnstructuredGrid):
+    """Mesh class: inherits from pyvista UnstructuredGrid.
 
     Notes
     -----
     Only tetrahedrons are supported.
+    Additional attributes are added on top of the pyvista UnstructuredGrid class
     """
 
-    def __init__(self) -> None:
-        self.tetrahedrons: np.ndarray = None
-        """Tetrahedral volume elements of the mesh."""
-        self.nodes: np.ndarray = None
-        """Nodes of the mesh."""
-        self.cell_data: dict = None
-        """Data per mesh cell/element."""
-        self.point_data: dict = None
-        """Data per mesh point."""
-        self.faces: np.ndarray = None
+    @property
+    def nodes(self):
+        """Node coordinates."""
+        return np.array(self.points)
+
+    @nodes.setter
+    def nodes(self, array: np.ndarray):
+        if isinstance(array, type(None)):
+            return
+        try:
+            self.points = array
+        except:
+            LOGGER.warning("Failed to set nodes.")
+            return
+
+    @property
+    def tetrahedrons(self):
+        """Tetrahedrons num_tetra x 4."""
+        return self.cells_dict[pv.CellType.TETRA]
+
+    @tetrahedrons.setter
+    def tetrahedrons(self, value: np.ndarray):
+        # sets tetrahedrons of UnstructuredGrid
+        try:
+            points = self.points
+            celltypes = np.full(value.shape[0], pv.CellType.TETRA, dtype=np.int8)
+            tetra = np.hstack([np.full(len(celltypes), 4)[:, None], value])
+            super().__init__(tetra, celltypes, points)
+        except:
+            LOGGER.warning("Failed to set tetrahedrons.")
+            return
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+        # self.tetrahedrons: np.ndarray = None
+        # """Tetrahedral volume elements of the mesh."""
+        # self.nodes: np.ndarray = None
+        # """Nodes of the mesh."""
+        # self.cell_data: dict = None
+        # """Data per mesh cell/element."""
+        # self.point_data: dict = None
+        # """Data per mesh point."""
+        self.triangles: np.ndarray = None
         """Faces that make up the tetrahedrons."""
         self.face_types: np.ndarray = None
         """Type of face: 1: interior face, 2: boundary face, 3: interface face."""
@@ -77,76 +110,64 @@ class Mesh:
 
     def read_mesh_file(self, filename: pathlib.Path) -> None:
         """Read mesh file."""
-        mesh_vtk = vtkmethods.vtk_read_mesh_file(filename)
-        (
-            self.nodes,
-            self.tetrahedrons,
-            self.cell_data,
-            self.point_data,
-        ) = vtkmethods.get_tetra_info_from_unstructgrid(mesh_vtk, get_all_data=True)
+        mesh = pv.read(filename)
+        # .case gives multiblock
+        if isinstance(mesh, pv.MultiBlock):
+            mesh: pv.UnstructuredGrid = mesh.GetBlock(0)
 
-        return None
+        if not isinstance(mesh, pv.UnstructuredGrid):
+            LOGGER.warning("Failed to read mesh file. Expecting .vtk unstructured grid or .case")
+            return
+
+        self.points = mesh.points
+        self.tetrahedrons = mesh.cells_dict[pv.CellType.TETRA]
+        for key, value in mesh.cell_data.items():
+            self.cell_data[key] = mesh.cell_data[key]
+        for key, value in mesh.point_data.items():
+            self.point_data[key] = mesh.point_data[key]
+
+        return
 
     def read_mesh_file_rodero2021(self, filename: pathlib.Path) -> None:
         """Read mesh file - but modifies the fields to match data of Strocchi 2020."""
-        mesh_vtk = vtkmethods.vtk_read_mesh_file(filename)
+        mesh = pv.read(filename)
+        # .case gives multiblock
+        if isinstance(mesh, pv.MultiBlock):
+            mesh: pv.UnstructuredGrid = mesh.GetBlock(0)
+
+        if not isinstance(mesh, pv.UnstructuredGrid):
+            LOGGER.warning("Failed to read mesh file. Expecting .vtk unstructured grid or .case")
+            return
+
         name_array_mapping = [
-            ["tags", "ID", "cell_data"],
-            ["fiber", "fibres", "cell_data"],
-            ["sheet", "sheets", "cell_data"],
-            ["uvc_longitudinal", "Z.dat", "point_data"],
-            ["uvc_rotational", "PHI.dat", "point_data"],
-            ["uvc_transmural", "RHO.dat", "point_data"],
-            ["uvc_intraventricular", "V.dat", "point_data"],
+            ["tags", "ID", "cell"],
+            ["fiber", "fibres", "cell"],
+            ["sheet", "sheets", "cell"],
+            ["uvc_longitudinal", "Z.dat", "point"],
+            ["uvc_rotational", "PHI.dat", "point"],
+            ["uvc_transmural", "RHO.dat", "point"],
+            ["uvc_intraventricular", "V.dat", "point"],
         ]
 
+        # rename tags in cristobal
         for item in name_array_mapping:
-            mesh_vtk = vtkmethods.rename_vtk_array(
-                mesh_vtk,
-                new_array_name=item[0],
-                old_array_name=item[1],
-                data_type=item[2],
-            )
+            mesh.rename_array(item[1], item[0], item[2])
 
-        (
-            self.nodes,
-            self.tetrahedrons,
-            self.cell_data,
-            self.point_data,
-        ) = vtkmethods.get_tetra_info_from_unstructgrid(mesh_vtk, get_all_data=True)
+        self.points = mesh.points
+        self.tetrahedrons = mesh.cells_dict[pv.CellType.TETRA]
+        for key, value in mesh.cell_data.items():
+            self.cell_data[key] = mesh.cell_data[key]
+        for key, value in mesh.point_data.items():
+            self.point_data[key] = mesh.point_data[key]
 
-        # convert tags into float
-        for key, value in self.cell_data.items():
-            if key == "tags":
-                if np.issubdtype(self.cell_data[key].dtype, np.integer):
-                    LOGGER.debug("Converting cell data '{0}' into floats".format(key))
-                    self.cell_data[key] = np.array(self.cell_data[key], dtype=float)
+        if np.issubdtype(self.cell_data["tags"].dtype, np.integer):
+            self.cell_data["tags"] = np.array(self.cell_data["tags"], dtype=float)
 
         return None
 
     def write_to_vtk(self, filename: pathlib.Path) -> None:
         """Write mesh to VTK file."""
-        if self.cell_data != None:
-            if not isinstance(self.cell_data, dict):
-                raise ValueError("Expecting cell data to be a dictionary")
-
-        if self.point_data:
-            if not isinstance(self.point_data, dict):
-                raise ValueError("Expecting point data to be dictionary")
-
-        if isinstance(self.cell_data, dict):
-            cell_data = {}
-            for key, value in self.cell_data.items():
-                cell_data[key] = [self.cell_data[key]]
-        else:
-            cell_data = None
-
-        mesh = meshio.Mesh(self.nodes, [("tetra", self.tetrahedrons)], self.point_data, cell_data)
-
-        if filename[-4:] != ".vtk":
-            filename = filename + ".vtk"
-
-        mesh.write(filename)
+        self.save(filename)
         return
 
     def keep_elements_with_value(
@@ -163,12 +184,12 @@ class Mesh:
 
     def establish_connectivity(self) -> None:
         """Establish the connetivity of the tetrahedrons."""
-        self.faces, self.conn["c0"], self.conn["c1"] = connect.face_tetra_connectivity(
+        self.triangles, self.conn["c0"], self.conn["c1"] = connect.face_tetra_connectivity(
             self.tetrahedrons
         )
         # get the face types
         c0c1_matrix = np.array([self.conn["c0"], self.conn["c1"]]).transpose()
-        self.face_types = connect.get_face_type(self.faces, c0c1_matrix)
+        self.face_types = connect.get_face_type(self.triangles, c0c1_matrix)
 
         return
 
@@ -242,7 +263,7 @@ class Mesh:
             )
             pair_mask = np.all(np.array([part_mask1, part_mask2]), axis=0)
 
-            faces = self.faces[pair_mask, :]
+            faces = self.triangles[pair_mask, :]
             # NOTE: Nodes are shallow copied
             self.interfaces.append(SurfaceMesh(name, faces, self.nodes))
 
@@ -252,7 +273,7 @@ class Mesh:
             interface.get_boundary_edges()
             node_ids_smoothed = interface.smooth_boundary_edges()
             # make sure nodes of the (volume) mesh are updated
-            self.nodes[node_ids_smoothed, :] = interface.nodes[node_ids_smoothed, :]
+            self.points[node_ids_smoothed, :] = interface.nodes[node_ids_smoothed, :]
         return
 
     def add_boundaries(self, add_part_ids: List[int] = [], boundary_names: List[str] = []) -> None:
@@ -266,7 +287,7 @@ class Mesh:
                 np.array([part_ids[c0] == part_id, part_ids[c1] == part_id, self.face_types == 2]),
                 axis=0,
             )
-            boundary_faces = self.faces[boundary_mask, :]
+            boundary_faces = self.triangles[boundary_mask, :]
             self.boundaries.append(SurfaceMesh(boundary_names[ii], boundary_faces, self.nodes))
 
         return
@@ -311,7 +332,6 @@ class Mesh:
             filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1
         )
         node_id_start = np.array(node_data[0, 0], dtype=int) - 1
-        self.nodes = np.append(self.nodes, node_data[:, 1:4], axis=0)
         # load beam data
         beam_data = np.loadtxt(
             filename, skiprows=start_beams + 1, max_rows=end_beams - start_beams - 1, dtype=int
@@ -323,11 +343,37 @@ class Mesh:
 
         nodes = node_data[:, 1:4]
         pid = beam_data[0, 1]
+        # add new nodes to existing nodes.
+        nodes = np.vstack([self.nodes, nodes])
 
         purkinje = BeamMesh(nodes=nodes, edges=edges)
         purkinje.pid = pid
         purkinje.id = len(self.beam_network) + 1
         self.beam_network.append(purkinje)
+
+        # Note that if we add the nodes to the mesh object we may will also need to
+        # extend the point data arrays with suitable values.
+        self.nodes = nodes
+        null_value = 0
+        num_data_to_add = node_data.shape[0]
+        for key in self.point_data.keys():
+            data_type = self.point_data[key].dtype
+            if len(self.point_data[key].shape) > 1:
+                raise NotImplementedError(
+                    "Padding multi-dimensional point data arrays not yet supported"
+                )
+            new_point_data = np.append(
+                self.point_data[key], np.ones(num_data_to_add, dtype=data_type) * null_value
+            )
+            self.point_data[key] = new_point_data
+
+        # # visualize (debug)
+        # import pyvista
+        # plotter = pyvista.Plotter()
+        # plotter.add_mesh(self, opacity=0.3)
+        # plotter.add_mesh(purkinje)
+        # plotter.show()
+        return
 
     def _to_pyvista_object(self) -> pv.UnstructuredGrid:
         """Convert mesh object into pyvista unstructured grid object.
@@ -345,17 +391,19 @@ class Mesh:
         points = self.nodes
         grid = pv.UnstructuredGrid(cells, celltypes, points)
         # add cell and point data
-        for key, value in self.cell_data.items():
-            if value.size == value.shape[0]:
-                grid.cell_data.set_scalars(name=key, scalars=value)
-            elif len(value.shape) > 1:
-                grid.cell_data.set_vectors(name=key, vectors=value)
+        if self.cell_data:
+            for key, value in self.cell_data.items():
+                if value.size == value.shape[0]:
+                    grid.cell_data.set_scalars(name=key, scalars=value)
+                elif len(value.shape) > 1:
+                    grid.cell_data.set_vectors(name=key, vectors=value)
 
-        for key, value in self.point_data.items():
-            if value.size == value.shape[0]:
-                grid.point_data.set_array(name=key, data=value)
-            elif len(value.shape) > 1:
-                grid.point_data.set_vectors(name=key, vectors=value)
+        if self.point_data:
+            for key, value in self.point_data.items():
+                if value.size == value.shape[0]:
+                    grid.point_data.set_array(name=key, data=value)
+                elif len(value.shape) > 1:
+                    grid.point_data.set_vectors(name=key, vectors=value)
 
         return grid
 
@@ -401,22 +449,50 @@ class EdgeGroup:
         pass
 
 
-class SurfaceMesh(Feature):
+class SurfaceMesh(pv.PolyData, Feature):
     """Surface class."""
+
+    @property
+    def nodes(self):
+        """Node coordinates."""
+        return np.array(self.points)
+
+    @nodes.setter
+    def nodes(self, array: np.ndarray):
+        if isinstance(array, type(None)):
+            return
+        try:
+            self.points = array
+        except:
+            LOGGER.warning("Failed to set points.")
+            return
+
+    @property
+    def triangles(self):
+        """Triangular faces of the surface num_faces x 3."""
+        faces = np.reshape(self.faces, (self.n_cells, 3 + 1))[:, 1:]
+        return faces
+
+    @triangles.setter
+    def triangles(self, value: np.ndarray):
+        # sets faces of PolyData
+        try:
+            num_faces = value.shape[0]
+            faces = np.hstack([np.full((num_faces, 1), 3, dtype=np.int8), value])
+            self.faces = faces
+        except:
+            return
 
     def __init__(
         self,
         name: str = None,
-        faces: np.ndarray = None,
+        triangles: np.ndarray = None,
         nodes: np.ndarray = None,
         sid: int = None,
     ) -> None:
-        super().__init__(name)
+        super().__init__(self)
+        Feature.__init__(self, name)
 
-        self.faces = faces
-        """Faces of surface."""
-        self.nodes = copy.copy(nodes)  # shallow copy?
-        """Node coordinates."""
         self.type = "surface"
         """Surface type."""
         self.boundary_edges: np.ndarray = np.empty((0, 2), dtype=int)
@@ -427,16 +503,23 @@ class SurfaceMesh(Feature):
         """ID of surface."""
         self.nsid: int = None
         """ID of corresponding set of nodes."""
-        self.cell_data: dict = {}
-        """Data associated with each face/cell of surface."""
-        self.point_data: dict = {}
+        # self.cell_data: dict = {}
+        # """Data associated with each face/cell of surface."""
+        # self.point_data: dict = {}
         """Data associated with each point on surface."""
+        self._pv_polydata: pv.PolyData = pv.PolyData()
+        """Pyvista representation of the surface mesh."""
+
+        self.triangles = triangles
+        """Triangular faces of the surface num_faces x 3."""
+        self.nodes = nodes
+        """Node coordinates."""
 
     @property
     def node_ids(self) -> np.ndarray:
         """Global node ids - sorted by earliest occurrence."""
-        _, idx = np.unique(self.faces.flatten(), return_index=True)
-        node_ids = self.faces.flatten()[np.sort(idx)]
+        _, idx = np.unique(self.triangles.flatten(), return_index=True)
+        node_ids = self.triangles.flatten()[np.sort(idx)]
         return node_ids
 
     @property
@@ -448,16 +531,11 @@ class SurfaceMesh(Feature):
 
     def compute_centroid(self) -> np.ndarray:
         """Compute the centroid of the surface."""
-        return np.mean(self.nodes[np.unique(self.faces), :], axis=0)
+        return np.mean(self.nodes[np.unique(self.triangles), :], axis=0)
 
     def compute_bounding_box(self) -> Tuple[np.ndarray, float]:
         """Compute the bounding box of the surface."""
-        node_ids = np.unique(self.faces)
-        nodes = self.nodes[node_ids, :]
-        dim = nodes.shape[1]
-        bounding_box = np.zeros((2, dim))
-        for ii in range(0, dim):
-            bounding_box[:, ii] = np.array([np.min(nodes[:, ii]), np.max(nodes[:, ii])])
+        bounding_box = np.reshape(self.clean().bounds, (3, 2)).T
         volume = np.prod(np.diff(bounding_box, axis=0))
         return bounding_box, volume
 
@@ -465,7 +543,7 @@ class SurfaceMesh(Feature):
         """Get boundary edges (if any) of the surface and groups them by connectivity."""
         write_vtk = False
 
-        self.boundary_edges = connect.get_free_edges(self.faces)
+        self.boundary_edges = connect.get_free_edges(self.triangles)
         edge_groups, group_types = connect.edge_connectivity(
             self.boundary_edges, return_type=True, sort_closed=True
         )
@@ -485,7 +563,7 @@ class SurfaceMesh(Feature):
 
     def separate_connected_regions(self):
         """Use vtk to get connected regions and separate into different surfaces."""
-        region_ids = vtkmethods.get_connected_regions(self.nodes, self.faces)
+        region_ids = vtkmethods.get_connected_regions(self.nodes, self.triangles)
 
         return region_ids
 
@@ -520,7 +598,7 @@ class SurfaceMesh(Feature):
                     nodes[ii + offset] = np.mean(nodes[ii : ii + window_size, :], axis=0)
                 nodes = nodes[num_points_to_add:-num_points_to_add]
 
-            self.nodes[node_ids, :] = nodes
+            self.points[node_ids, :] = nodes
 
             modified_nodes = np.append(modified_nodes, node_ids)
 
@@ -535,7 +613,13 @@ class SurfaceMesh(Feature):
         if filename[-4:] != ".stl":
             filename = filename + ".stl"
 
-        vtk_surface = vtkmethods.create_vtk_surface_triangles(self.nodes, self.faces)
+        # NOTE: The below should yield the same stls, but somehow fluent meshing
+        # produces a slightly different mesh. Should still be valid though
+        # cleaned = self.clean()
+        # cleaned.save(filename)
+        # vtkmethods.add_solid_name_to_stl(filename, self.name, file_type="binary")
+
+        vtk_surface = vtkmethods.create_vtk_surface_triangles(self.nodes, self.triangles)
         vtkmethods.vtk_surface_to_stl(vtk_surface, filename, self.name)
         return
 
@@ -565,31 +649,56 @@ class SurfaceMesh(Feature):
         pv.PolyData
             pyvista PolyData object
         """
-        faces = np.hstack([np.ones((self.faces.shape[0], 1), dtype=int) * 3, self.faces])
+        DeprecationWarning("_to_pyvista_object is deprecated.")
+        faces = np.hstack([np.ones((self.triangles.shape[0], 1), dtype=int) * 3, self.triangles])
         nodes = self.nodes
         faces = np.reshape(faces, (faces.size))
-        return pv.PolyData(nodes, faces)
+        polydata = pv.PolyData(nodes, faces)
+        if self.cell_data:
+            for key, value in self.cell_data.items():
+                polydata.cell_data[key] = value
 
-    def plot(self, show_edges: bool = True):
-        """Plot the surface mesh with PyVista.
+        if self.point_data:
+            for key, value in self.point_data.items():
+                polydata.point_data[key] = value
 
-        Parameters
-        ----------
-        show_edges : bool, optional
-            Show edges of the mesh, by default True
-        """
-        surf = self._to_pyvista_object()
-        surf.plot(
-            cpos=[-1, 1, 0.5],
-            show_scalar_bar=False,
-            show_edges=show_edges,
-            line_width=2,
-        )
-        return
+        return polydata
 
 
-class BeamMesh(Feature):
+class BeamMesh(pv.UnstructuredGrid, Feature):
     """Beam class."""
+
+    @property
+    def nodes(self):
+        """Node coordinates."""
+        return np.array(self.points)
+
+    @nodes.setter
+    def nodes(self, array: np.ndarray):
+        if isinstance(array, type(None)):
+            return
+        try:
+            self.points = array
+        except:
+            LOGGER.warning("Failed to set nodes.")
+            return
+
+    @property
+    def edges(self):
+        """Tetrahedrons num_tetra x 4."""
+        return self.cells_dict[pv.CellType.LINE]
+
+    @edges.setter
+    def edges(self, value: np.ndarray):
+        # sets lines of UnstructuredGrid
+        try:
+            points = self.points
+            celltypes = np.full(value.shape[0], pv.CellType.LINE, dtype=np.int8)
+            lines = np.hstack([np.full(len(celltypes), 2)[:, None], value])
+            super().__init__(lines, celltypes, points)
+        except:
+            LOGGER.warning("Failed to set lines.")
+            return
 
     def __init__(
         self,
@@ -600,7 +709,8 @@ class BeamMesh(Feature):
         pid: int = None,
         nsid: int = None,
     ) -> None:
-        super().__init__(name)
+        super().__init__(self)
+        Feature.__init__(self, name)
 
         self.edges = edges
         """Beams edges."""
@@ -614,10 +724,6 @@ class BeamMesh(Feature):
         """Part id associated with the network."""
         self.nsid: int = nsid
         """ID of corresponding set of nodes."""
-        self.cell_data: dict = {}
-        """Data associated with each edge/beam of the network."""
-        self.point_data: dict = {}
-        """Data associated with each point of the network."""
 
     @property
     def node_ids(self) -> np.ndarray:
@@ -625,30 +731,6 @@ class BeamMesh(Feature):
         _, idx = np.unique(self.edges.flatten(), return_index=True)
         node_ids = self.edges.flatten()[np.sort(idx)]
         return node_ids
-
-    def compute_bounding_box(self) -> Tuple[np.ndarray, float]:
-        """Compute the bounding box of the surface."""
-        node_ids = np.unique(self.edges)
-        nodes = self.nodes[node_ids, :]
-        dim = nodes.shape[1]
-        bounding_box = np.zeros((2, dim))
-        for ii in range(0, dim):
-            bounding_box[:, ii] = np.array([np.min(nodes[:, ii]), np.max(nodes[:, ii])])
-        volume = np.prod(np.diff(bounding_box, axis=0))
-        return bounding_box, volume
-
-    def write_to_stl(self, filename: pathlib.Path = None) -> None:
-        """Write the surface to a vtk file."""
-        if not filename:
-            filename = "_".join(self.name.lower().split()) + ".stl"
-        if filename[-4:] != ".stl":
-            filename = filename + ".stl"
-
-        vtk_surface = vtkmethods.create_vtk_surface_triangles(
-            self.nodes, np.array([self.edges, self.edges[:, 1][:, None]])
-        )
-        vtkmethods.vtk_surface_to_stl(vtk_surface, filename, self.name)
-        return
 
 
 class Cavity(Feature):
@@ -662,8 +744,11 @@ class Cavity(Feature):
         """Surface mesh making up the cavity."""
         self.centroid: np.ndarray = centroid
         """Centroid of the cavity."""
-        self.volume: float = None
+
+    @property
+    def volume(self):
         """Volume of the cavity."""
+        return self.surface.volume
 
     def compute_volume(self) -> float:
         """Compute the volume of the (enclosed) cavity.
@@ -673,17 +758,14 @@ class Cavity(Feature):
         - Writes stl and computes volume from stl
         - Assumes normals are pointing inwards
         """
-        import uuid
-
-        stlname = "cavity_{}.stl".format(uuid.uuid1())
-        self.surface.write_to_stl(stlname)
-        self.volume = vtkmethods.compute_volume_stl(stlname)
-        os.remove(stlname)
-        return self.volume
+        DeprecationWarning(
+            "compute_volume() is deprecated. Use the volume property of this class instead."
+        )
+        return self.surface.volume
 
     def compute_centroid(self):
         """Compute the centroid of the cavity."""
-        self.centroid = np.mean(self.surface.nodes[np.unique(self.surface.faces), :], axis=0)
+        self.centroid = np.mean(self.surface.nodes[np.unique(self.surface.triangles), :], axis=0)
         return self.centroid
 
 

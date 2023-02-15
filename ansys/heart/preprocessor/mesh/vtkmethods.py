@@ -8,6 +8,7 @@ from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.mesh.fluenthdf5 import add_solid_name_to_stl
 import meshio
 import numpy as np
+import pyvista
 import vtk
 from vtk.numpy_interface import dataset_adapter as dsa  # type: ignore # noqa
 from vtk.util import numpy_support as VN  # type: ignore # noqa
@@ -1078,6 +1079,43 @@ def compute_surface_nodal_area(vtk_surface: vtk.vtkPolyData) -> np.array:
     return nodal_area
 
 
+def compute_surface_nodal_area_pyvista(surface: pyvista.PolyData) -> np.array:
+    """Compute an average nodal area by summing surface areas of connected elements.
+
+    Parameters
+    ----------
+    vtk_surface : vtk.vtkPolyData
+        Vtk object describing the object
+
+    Returns
+    -------
+    np.array
+        Numpy array with nodal areas of length number of points
+
+    Note
+    ----
+    Adds the partial areas of connected elements/cells to each node.
+
+    """
+    num_points = surface.n_points
+    nodal_area = np.zeros(num_points)
+    # compute area of all cells
+    n_cells = surface.n_cells
+    cell_area = np.zeros(n_cells)
+    for icell in range(n_cells):
+        cell_area[icell] = surface.GetCell(icell).ComputeArea()
+        # cell_area[icell] = vtk_surface.GetCell(icell).ComputeArea()
+
+    # tris = get_tri_info_from_polydata(surface)[1]
+    tris = np.reshape(surface.faces, (surface.n_faces, 4))[:, 1:]
+
+    ii = 0
+    for points, area in zip(tris, cell_area):
+        nodal_area[points] += area / 3
+        ii += 1
+    return nodal_area
+
+
 def add_normals_to_polydata(
     vtk_polydata: vtk.vtkPolyData, return_normals: bool = False
 ) -> Union[vtk.vtkPolyData, Optional[Tuple[np.ndarray, np.ndarray]]]:
@@ -1452,6 +1490,34 @@ def append_vtk_polydata_files(files: list, path_to_merged_vtk: str, substrings: 
 
     write_vtkdata_to_vtkfile(append.GetOutput(), path_to_merged_vtk)
     return
+
+
+def vtk_cutter(vtk_polydata: vtk.vtkPolyData, cut_plane) -> vtk.vtkPolyData:
+    """
+    Cut a vtk polydata by a plane.
+
+    Parameters
+    ----------
+    vtk_polydata: vtk polydata
+    cut_plane: dictionary contains key: 'center' and 'normal'
+
+    Returns
+    -------
+    vtkpolydata
+    """
+    # create a plane to cut
+    plane = vtk.vtkPlane()
+    plane.SetOrigin(cut_plane["center"][0], cut_plane["center"][1], cut_plane["center"][2])
+    plane.SetNormal(cut_plane["normal"][0], cut_plane["normal"][1], cut_plane["normal"][2])
+
+    # create cutter
+    cutter = vtk.vtkCutter()
+    # cutter.SetNumberOfContours(20) #how to control number of points?
+    cutter.SetCutFunction(plane)
+    cutter.SetInputData(vtk_polydata)
+    cutter.Update()
+
+    return cutter.GetOutput()
 
 
 if __name__ == "__main__":

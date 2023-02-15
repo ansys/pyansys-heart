@@ -14,6 +14,7 @@ from ansys.heart.preprocessor.mesh.objects import Cap, Cavity, Mesh, Part, Point
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.model_definitions import HEART_PARTS, LABELS_TO_ID
 import numpy as np
+from scipy.spatial.transform import Rotation as R
 
 
 class ModelInfo:
@@ -85,15 +86,18 @@ class ModelInfo:
         """
         import glob as glob
 
+        files = []
         if not remove_all:
             for ext in extensions_to_remove:
-                files = glob.glob(os.path.join(self.workdir, "*" + ext))
-                for file in files:
-                    os.remove(file)
+                files += glob.glob(os.path.join(self.workdir, "*" + ext))
         elif remove_all:
             files = glob.glob(os.path.join(self.workdir, "*.*"))
-            for file in files:
+
+        for file in files:
+            try:
                 os.remove(file)
+            except:
+                LOGGER.debug(f"Unable to delete: {file}")
         return
 
     def create_workdir(self) -> None:
@@ -166,7 +170,11 @@ class HeartModel:
         """Model type."""
         self.info.model_type = self.__class__.__name__
 
-        pass
+        """
+        Elemental labels of AHA17 segments.
+        NaN for elements not belong to left ventricle.
+        """
+        self.aha_ids = None
 
     def extract_simulation_mesh(self, clean_up: bool = False) -> None:
         """Update the model.
@@ -260,14 +268,16 @@ class HeartModel:
 
             for surface in part.surfaces:
                 LOGGER.info(
-                    "\tsurface: {:} | # faces: {:d}".format(surface.name, surface.faces.shape[0])
+                    "\tsurface: {:} | # faces: {:d}".format(
+                        surface.name, surface.triangles.shape[0]
+                    )
                 )
             for cap in part.caps:
                 LOGGER.info("\tcap: {:} | # nodes {:d}".format(cap.name, len(cap.node_ids)))
             if part.cavity:
                 LOGGER.info(
                     "\tcavity: {:} | volume: {:.1f} [mm3]".format(
-                        part.cavity.name, part.cavity.volume
+                        part.cavity.name, part.cavity.surface.volume
                     )
                 )
             LOGGER.info("-----------------------------------------")
@@ -322,19 +332,75 @@ class HeartModel:
     def plot_mesh(
         self, plot_raw_mesh: bool = False, show_edges: bool = True, color_by: str = "tags"
     ):
-        """Plot the volume mesh."""
+        """Plot the volume mesh of the heart model.
+
+        Parameters
+        ----------
+        plot_raw_mesh : bool, optional
+            Whether to plot the raw mesh, by default False
+        show_edges : bool, optional
+            Whether to plot the edges, by default True
+        color_by : str, optional
+            Color by cell/point data, by default "tags"
+
+        Example
+        -------
+        >>> import ansys.heart.preprocessor.models as models
+        >>> model = models.HeartModel.load_model("heart_model.pickle")
+        >>> model.plot_mesh(show_edges=True)
+        """
         try:
             import pyvista
         except (ImportError):
             LOGGER.warning("pyvista not found. Install with: pip install pyvista")
             return
 
+        plotter = pyvista.Plotter()
         if plot_raw_mesh:
-            grid: pyvista.UnstructuredGrid = self.mesh_raw._to_pyvista_object()
+            plotter.add_mesh(self.mesh_raw, show_edges=show_edges, scalars="tags")
         else:
-            grid: pyvista.UnstructuredGrid = self.mesh._to_pyvista_object()
+            plotter.add_mesh(self.mesh, show_edges=show_edges, scalars="tags")
 
-        grid.plot(scalars=color_by, show_edges=show_edges)
+        plotter.show()
+        return
+
+    def plot_fibers(self, n_seed_points: int = 1000, plot_raw_mesh: bool = False):
+        """Plot the mesh and fibers as streamlines.
+
+        Parameters
+        ----------
+        plot_raw_mesh : bool, optional
+            Flag indicating whether to plot the streamlines on the raw mesh, by default False
+        n_seed_points : int, optional
+            Number of seed points. Recommended to use 5000, by default 1000
+
+        Example
+        -------
+        >>> import ansys.heart.preprocessor.models as models
+        >>> model = models.HeartModel.load_model("my_model.pickle")
+        >>> model.plot_fibers(n_seed_points=5000)
+        """
+        try:
+            import pyvista
+        except (ImportError):
+            LOGGER.warning("pyvista not found. Install with: pip install pyvista")
+            return
+        plotter = pyvista.Plotter()
+
+        if plot_raw_mesh:
+            if not isinstance(self.mesh_raw, Mesh):
+                LOGGER.info("Raw mesh not available.")
+                return
+            mesh = self.mesh_raw
+        else:
+            mesh = self.mesh
+
+        mesh = mesh.ctp()
+        streamlines = mesh.streamlines(vectors="fiber", source_radius=75, n_points=n_seed_points)
+        tubes = streamlines.tube()
+        plotter.add_mesh(mesh, opacity=0.5, color="white")
+        plotter.add_mesh(tubes, color="white")
+        plotter.show()
         return
 
     def plot_surfaces(self, show_edges: bool = True):
@@ -362,15 +428,17 @@ class HeartModel:
             LOGGER.warning("matplotlib not found. Install matplotlib with: pip install matplotlib")
             return
 
-        named_surfaces = [s for p in self.parts for s in p.surfaces]
-        color_map = plt.cm.get_cmap("tab20", len(named_surfaces))
+        surfaces_to_plot = [s for p in self.parts for s in p.surfaces]
+        valves = [b for b in self.mesh.boundaries if "valve" in b.name or "border" in b.name]
+        surfaces_to_plot = surfaces_to_plot + valves
+
+        color_map = plt.cm.get_cmap("tab20", len(surfaces_to_plot))
         colors = color_map.colors[:, 0:3]
         plotter = pv.Plotter()
         ii = 0
-        for surface in [s for p in self.parts for s in p.surfaces]:
-            surface._to_pyvista_object()
-            actor = plotter.add_mesh(
-                surface._to_pyvista_object(),
+        for surface in surfaces_to_plot:
+            plotter.add_mesh(
+                surface,
                 color=colors[ii, :],
                 show_edges=show_edges,
                 label=surface.name,
@@ -379,6 +447,31 @@ class HeartModel:
             ii += 1
 
         plotter.show()
+        return
+
+    def plot_purkinje(self):
+        """Plot the mesh and Purkinje network."""
+        if not len(self.mesh.beam_network) > 0:
+            LOGGER.info("No Purkinje network to plot.")
+            return
+
+        try:
+            import pyvista as pv
+        except (ImportError):
+            LOGGER.warning(
+                "PyVista not found: visualization not supported."
+                "Install pyvista with: pip install pyvista"
+            )
+            return
+
+        try:
+            plotter = pv.Plotter()
+            plotter.add_mesh(self.mesh, color="w", opacity=0.3)
+            for beams in self.mesh.beam_network:
+                plotter.add_mesh(beams, color="r")
+            plotter.show()
+        except:
+            LOGGER.warning("Failed to plot mesh.")
         return
 
     @staticmethod
@@ -390,9 +483,21 @@ class HeartModel:
         >>> model = HeartModel.load_model("my_model.pickle")
 
         """
-        # NOTE:
+        # NOTE: need to suppress some vtk errors in pickled pyvista objects.
+        # change the verbosity in the vtk logger and suppress the python logger.
+        import logging
+
+        import vtk
+
+        logger = logging.getLogger()
+        logger.disabled = True
+        # to suppress vtk errors
+        vtk_logger = vtk.vtkLogger
+        vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_OFF)
         with open(filename, "rb") as file:
             model = pickle.load(file)
+        logger.disabled = False
+        vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_1)
         return model
 
     def _set_default_mesh_size(self) -> None:
@@ -466,7 +571,8 @@ class HeartModel:
             num_expected_regions = len(boundary_name_suffix)
 
             LOGGER.debug("Extracting : {} from {}".format(boundary_name_suffix, boundary.name))
-            region_ids = boundary.separate_connected_regions()
+            boundary_conn = boundary.clean().connectivity()
+            region_ids = boundary_conn.cell_data["RegionId"] + 1
 
             unique_regions, counts = np.unique(region_ids, return_counts=True)
 
@@ -478,7 +584,9 @@ class HeartModel:
             surfaces: List[SurfaceMesh] = []
             for ii, region_id in enumerate(unique_regions):
                 mask = region_ids == region_id
-                surface = SurfaceMesh(faces=boundary.faces[mask, :], nodes=self.mesh_raw.nodes)
+                surface = SurfaceMesh(
+                    triangles=boundary.triangles[mask, :], nodes=self.mesh_raw.nodes
+                )
                 volumes.append(surface.compute_bounding_box()[1])
                 surfaces.append(surface)
 
@@ -494,7 +602,9 @@ class HeartModel:
                     )
                 )
                 for jj, surface in enumerate(surfaces):
-                    LOGGER.warning("\t{0}: num_faces: {1}".format(jj + 1, surface.faces.shape[0]))
+                    LOGGER.warning(
+                        "\t{0}: num_faces: {1}".format(jj + 1, surface.triangles.shape[0])
+                    )
                 LOGGER.warning(
                     "First {0} surfaces have largest bounding box".format(num_expected_regions)
                 )
@@ -531,11 +641,11 @@ class HeartModel:
                 surface_to_copy_to = surfaces_unseparated[np.argmax(num_connected_nodes)]
                 LOGGER.warning(
                     "Copying {0} orphan faces to {1}".format(
-                        orphan_surface.faces.shape[0], surface_to_copy_to.name
+                        orphan_surface.triangles.shape[0], surface_to_copy_to.name
                     )
                 )
-                surface_to_copy_to.faces = np.vstack(
-                    [surface_to_copy_to.faces, orphan_surface.faces]
+                surface_to_copy_to.triangles = np.vstack(
+                    [surface_to_copy_to.triangles, orphan_surface.triangles]
                 )
 
             else:
@@ -544,7 +654,7 @@ class HeartModel:
                 for surface in surfaces_to_add:
                     surface.write_to_stl(os.path.join(self.info.workdir, surface.name + ".stl"))
 
-                if orphan_surface.faces.shape[0] < 5:
+                if orphan_surface.triangles.shape[0] < 5:
                     LOGGER.warning("Deleting orphan surface: consists of less than 5 faces")
                 else:
                     LOGGER.warning(
@@ -679,7 +789,7 @@ class HeartModel:
 
             face_zone_surface_mesh = SurfaceMesh(
                 name=face_zone.name,
-                faces=faces,
+                triangles=faces,
                 nodes=self.mesh.nodes,
                 sid=face_zone.id,
             )
@@ -714,16 +824,10 @@ class HeartModel:
 
         # get list of all arrays in original mesh
         array_names = list(self.mesh_raw.cell_data.keys()) + list(self.mesh_raw.point_data.keys())
+        array_names1 = self.mesh_raw.array_names
 
-        # write (original) raw mesh and and new mesh to disk
-        filename_original = os.path.join(self.info.workdir, "mesh_raw.vtk")
-        filename_remeshed = os.path.join(self.info.workdir, "mesh.vtk")
-
-        self.mesh_raw.write_to_vtk(filename_original)
-        self.mesh.write_to_vtk(filename_remeshed)
-
-        source = vtkmethods.read_vtk_unstructuredgrid_file(filename_original)
-        target = vtkmethods.read_vtk_unstructuredgrid_file(filename_remeshed)
+        source = self.mesh_raw  # vtkmethods.read_vtk_unstructuredgrid_file(filename_original)
+        target = self.mesh  # vtkmethods.read_vtk_unstructuredgrid_file(filename_remeshed)
 
         # map uvc arrays
         uvc_array_names = [k for k in self.mesh_raw.point_data.keys() if "uvc" in k]
@@ -748,9 +852,14 @@ class HeartModel:
         (
             _,
             _,
-            self.mesh.cell_data,
-            self.mesh.point_data,
+            mapped_cell_data,
+            mapped_point_data,
         ) = vtkmethods.get_tetra_info_from_unstructgrid(target)
+        for key, value in mapped_cell_data.items():
+            self.mesh.cell_data[key] = value
+        for key, value in mapped_point_data.items():
+            self.mesh.point_data[key] = value
+
         # self.mesh.part_ids = self.mesh.cell_data["tags"].astype(int)
 
         # For any non-ventricular points assign -100 to uvc coordinates
@@ -767,39 +876,27 @@ class HeartModel:
         self.mesh.write_to_vtk(path_to_simulation_mesh)
         self.info.path_to_simulation_mesh = path_to_simulation_mesh
 
-        # cleanup
-        os.remove(filename_original)
-        os.remove(filename_remeshed)
         return
 
     def _add_nodal_areas(self):
         """Compute and add nodal areas to surface nodes."""
         LOGGER.debug("Adding nodal areas")
         for surface in self.mesh.boundaries:
-            vtk_surface = vtkmethods.create_vtk_surface_triangles(
-                points=surface.nodes, triangles=surface.faces
-            )
-            surface.point_data["nodal_areas"] = vtkmethods.compute_surface_nodal_area(vtk_surface)
+            nodal_areas = vtkmethods.compute_surface_nodal_area_pyvista(surface)
+            surface.point_data["nodal_areas"] = nodal_areas
 
         # compute nodal areas for explicitly named surfaces
         for part in self.parts:
             for surface in part.surfaces:
-                vtk_surface = vtkmethods.create_vtk_surface_triangles(
-                    points=surface.nodes, triangles=surface.faces
-                )
-                surface.point_data["nodal_areas"] = vtkmethods.compute_surface_nodal_area(
-                    vtk_surface
-                )
+                nodal_areas = vtkmethods.compute_surface_nodal_area_pyvista(surface)
+                surface.point_data["nodal_areas"] = nodal_areas
 
         # add nodal areas to volume mesh. Note that nodes can be part of
         # multiple surfaces - so we need to perform a summation.
         # interior nodes will have an area of 0.
         self.mesh.point_data["nodal_areas"] = np.zeros(self.mesh.nodes.shape[0])
         for surface in self.mesh.boundaries:
-            self.mesh.point_data["nodal_areas"][surface.node_ids] = (
-                self.mesh.point_data["nodal_areas"][surface.node_ids]
-                + surface.point_data["nodal_areas"]
-            )
+            self.mesh.point_data["nodal_areas"] += surface.point_data["nodal_areas"]
         # self.mesh.write_to_vtk(os.path.join(self.info.workdir, "volume_nodal_areas.vtk"))
         return
 
@@ -808,13 +905,11 @@ class HeartModel:
         LOGGER.debug("Adding normals to all 'named' surfaces")
         for part in self.parts:
             for surface in part.surfaces:
-                vtk_surface = vtkmethods.create_vtk_surface_triangles(
-                    points=surface.nodes, triangles=surface.faces
+                surface_with_normals = surface.compute_normals(
+                    cell_normals=True, point_normals=True
                 )
-                (
-                    surface.cell_data["normals"],
-                    surface.point_data["normals"],
-                ) = vtkmethods.add_normals_to_polydata(vtk_surface, return_normals=True)
+                surface.cell_data["normals"] = surface_with_normals.cell_data["Normals"]
+                surface.point_data["normals"] = surface_with_normals.point_data["Normals"]
 
         return
 
@@ -841,8 +936,8 @@ class HeartModel:
         self._assign_cavities_to_parts()
         self._extract_apex()
         #
-        self.compute_left_ventricle_axis()
-        self.compute_left_ventricle_AHA17()
+        self.compute_left_ventricle_anatomy_axis()
+        self.compute_left_ventricle_aha17()
 
         self._add_nodal_areas()
         self._add_surface_normals()
@@ -867,7 +962,7 @@ class HeartModel:
 
         # extrude septum surface
         faces_septum = connectivity.remove_triangle_layers_from_trimesh(
-            surface_septum.faces, iters=1
+            surface_septum.triangles, iters=1
         )
 
         septum_surface_vtk = vtkmethods.create_vtk_surface_triangles(self.mesh.nodes, faces_septum)
@@ -964,7 +1059,7 @@ class HeartModel:
                 boundary_name = "-".join(surface.name.lower().split())
                 boundary_surface = self.mesh.get_surface_from_name(boundary_name)
                 if boundary_surface:
-                    surface.faces = boundary_surface.faces
+                    surface.triangles = boundary_surface.triangles
                     surface.nodes = boundary_surface.nodes
                 else:
                     LOGGER.warning("Could not find matching surface for: {0}".format(surface.name))
@@ -1085,7 +1180,7 @@ class HeartModel:
             endocardium = next(s for s in part.surfaces if "endocardium" in s.name)
             # append interface faces to endocardium
             for interface in interfaces:
-                endocardium.faces = np.vstack([endocardium.faces, interface.faces])
+                endocardium.triangles = np.vstack([endocardium.triangles, interface.triangles])
 
         return
 
@@ -1106,19 +1201,18 @@ class HeartModel:
 
             surfaces = [s for s in part.surfaces if "endocardium" in s.name]
             for surface in surfaces:
-                cavity_faces = np.vstack([cavity_faces, surface.faces])
+                cavity_faces = np.vstack([cavity_faces, surface.triangles])
 
             for cap in part.caps:
                 cavity_faces = np.vstack([cavity_faces, cap.triangles])
 
             surface = SurfaceMesh(
-                name=part.name + " cavity", faces=cavity_faces, nodes=self.mesh.nodes
+                name=part.name + " cavity", triangles=cavity_faces, nodes=self.mesh.nodes
             )
             part.cavity = Cavity(surface=surface, name=part.name)
             part.cavity.compute_centroid()
 
-            volume = part.cavity.compute_volume()
-            LOGGER.debug("Volume of cavity: {0} = {1}".format(part.cavity.name, volume))
+            LOGGER.debug("Volume of cavity: {0} = {1}".format(part.cavity.name, part.cavity.volume))
 
             part.cavity.surface.write_to_stl(
                 os.path.join(self.info.workdir, "-".join(part.cavity.surface.name.lower().split()))
@@ -1126,165 +1220,153 @@ class HeartModel:
 
         return
 
-    def compute_left_ventricle_axis(self) -> None:
-        """Compute major axis of left ventricle."""
-        if not hasattr(self, "septum"):
-            raise Exception("Model must contain septum part to compute AHA segments.")
+    def compute_left_ventricle_anatomy_axis(self, first_cut_short_axis=0.2):
+        """
+        Compute the long and short axes of the left ventricle.
 
-        mv_center = self.left_ventricle.caps[1].centroid
-        apex_endo = self.left_ventricle.apex_points[0].xyz
-        apex_epi = self.left_ventricle.apex_points[1].xyz
+        Parameters
+        ----------
+        first_cut_short_axis: default=0.2, use to avoid cut on aortic valve
+        """
+        for cap in self.left_ventricle.caps:
+            if cap.name == "mitral-valve":
+                mv_center = cap.centroid
+            elif cap.name == "aortic-valve":
+                av_center = cap.centroid
 
-        elem_septum = self.mesh.tetrahedrons[self.septum.element_ids]
-        node_septum = self.mesh.nodes[np.unique(elem_septum.ravel())]
-        septum_center = np.mean(node_septum, axis=0)
+        # apex is defined on epicardium
+        for ap in self.left_ventricle.apex_points:
+            if ap.name == "apex epicardium":
+                apex = ap.xyz
 
-        # long axis
-        hl_axis = np.cross(septum_center - mv_center, septum_center - apex_epi)
-        self.horizontal_long_axis = hl_axis / np.linalg.norm(hl_axis)
-        # LOGGER.info("Plane of horizontal long axis:", self.horizontal_long_axis)
+        # 4CAV long axis across apex, mitral and aortic valve centers
+        center = np.mean(np.array([av_center, mv_center, apex]), axis=0)
+        normal = np.cross(av_center - apex, mv_center - apex)
+        self.l4cv_axis = {"center": center, "normal": normal / np.linalg.norm(normal)}
 
-        u = septum_center - apex_epi
-        v = mv_center - apex_epi
-        vl_axis = u - (np.dot(u, v) / np.dot(v, v)) * v
-        self.vertical_long_axis = vl_axis / np.linalg.norm(vl_axis)
-        # LOGGER.info("Plane of vertical long axis:", self.vertical_long_axis)
-
-        # short axis
-        sh_axis = apex_epi - mv_center
-        self.short_axis = sh_axis / np.linalg.norm(sh_axis)
+        # short axis: from mitral valve center to apex
+        sh_axis = apex - mv_center
+        # the highest possible but avoid to cut aortic valve
+        center = mv_center + first_cut_short_axis * sh_axis
+        self.short_axis = {"center": center, "normal": sh_axis / np.linalg.norm(sh_axis)}
         # LOGGER.info("Plane of short axis:", self.short_axis)
 
+        # 2CAV long axis: normal to 4cav axe and pass mv center and apex
+        center = np.mean(np.array([mv_center, apex]), axis=0)
+        p1 = center + 10 * self.l4cv_axis["normal"]
+        p2 = mv_center
+        p3 = apex
+        normal = np.cross(p1 - p2, p1 - p3)
+        self.l2cv_axis = {"center": center, "normal": normal / np.linalg.norm(normal)}
+
         return
 
-    def compute_left_ventricle_AHA17(self) -> None:
-        """Compute AHA17 label for left ventricle elements."""
-        self.aha_ids = np.zeros(len(self.mesh.tetrahedrons))
+    def compute_left_ventricle_aha17(self, seg=17, p_junction=None) -> None:
+        """
+        Compute AHA17 label for left ventricle elements.
 
-        ele_ids = np.hstack((self.left_ventricle.element_ids, self.septum.element_ids))
+        Parameters
+        ----------
+        seg ::  default 17, or 16 segments
+        p_junction: use CASIS definition for the first cut
+        """
+        self.aha_ids = np.empty(len(self.mesh.tetrahedrons))
+        self.aha_ids[:] = np.nan
 
-        elems = self.mesh.tetrahedrons[ele_ids]
-        nodes = self.mesh.nodes[np.unique(elems.ravel())]
-        _, a = np.unique(elems, return_inverse=True)
-        connect = a.reshape(elems.shape)
+        # get lv elements
+        try:
+            ele_ids = np.hstack((self.left_ventricle.element_ids, self.septum.element_ids))
+        except:  # if no septum exists?
+            ele_ids = np.hstack(self.left_ventricle.element_ids)
 
-        self.aha_ids[ele_ids] = aha_segments(
-            nodes,
-            connect,
-            self.left_ventricle.caps[1].centroid,  # mv center
-            self.left_ventricle.apex_points[1].xyz,  # epi apex
-            self.left_ventricle.apex_points[0].xyz,  # endo apex
-            self.horizontal_long_axis,
-            self.short_axis,
-        )
-        # import meshio
-        # meshio.write_points_cells(
-        #     "bv_aha17.vtk",
-        #     self.mesh.nodes,
-        #     [("tetra", self.mesh.tetrahedrons)],
-        #     cell_data={"aha17": [self.aha_ids] },
-        # )
-        return
+        # left ventricle elements center
+        elem_center = np.mean(self.mesh.nodes[self.mesh.tetrahedrons[ele_ids]], axis=1)
+        label = np.empty(len(elem_center))
+        label[:] = np.nan
 
-    def compute_left_ventricle_element_cs(self):
-        """Compute elemental coordinate system for each LV element."""
-        ele_ids = np.where(self.aha_ids != 0)[0]
-        elems = self.mesh.tetrahedrons[ele_ids]
-        elem_center = np.mean(self.mesh.nodes[elems], axis=1)
+        # anatomical points
+        mv_center = self.left_ventricle.caps[1].centroid
+        apex_ed = self.left_ventricle.apex_points[0].xyz
+        apex_ep = self.left_ventricle.apex_points[1].xyz
 
-        # compute longitudinal direction, i.e. short axis
-        e_l = np.tile(self.short_axis, (len(ele_ids), 1))
+        # short axis
+        short_axis = self.short_axis["normal"]
+        p_highest = self.short_axis["center"]
 
-        # compute radial direction
-        center_offset = elem_center - self.left_ventricle.apex_points[1].xyz
-        e_r = center_offset - (np.sum(e_l * center_offset, axis=1) * e_l.T).T
-        # normalize each row
-        e_r /= np.linalg.norm(e_r, axis=1)[:, np.newaxis]
-
-        # compute circumferential direction
-        e_c = np.cross(e_l, e_r)
-
-        # test
-        # import meshio
-        #
-        # nodes = self.mesh.nodes[np.unique(elems.ravel())]
-        # _, a = np.unique(elems, return_inverse=True)
-        # connect = a.reshape(elems.shape)
-        # meshio.write_points_cells(
-        #     "lv_aha17.vtk",
-        #     nodes,
-        #     [("tetra", connect)],
-        #     cell_data={"e_l": [e_l], "e_r": [e_r], "e_c": [e_c]},
-        # )
-
-        return e_l, e_r, e_c
-
-
-def aha_segments(nodes, elems, mv_center, apex_ep, apex_ed, hl_axis, sh_axis, seg=17):
-    """
-    AHA 16 or 17 segments.
-
-    ref: https://www.pmod.com/files/download/v34/doc/pcardp/3615.htm
-
-    3 4 9 10 15 are segments for right coronary artery (RCA)
-    .
-    1 2 7 8 13 14 17 are segments for Left Anterior Descending (LAD).
-    5 6 11 12 16 are segments for Left Circumflex (LCX).
-    """
-    from scipy.spatial.transform import Rotation as R
-
-    elem_center = np.mean(nodes[elems], axis=1)
-    label = np.zeros(len(elems))
-
-    axe_60 = R.from_rotvec(np.radians(60) * sh_axis).apply(hl_axis)
-    axe_120 = R.from_rotvec(np.radians(120) * sh_axis).apply(hl_axis)
-    axe_45 = R.from_rotvec(np.radians(45) * sh_axis).apply(hl_axis)
-    axe_135 = R.from_rotvec(np.radians(135) * sh_axis).apply(hl_axis)
-    p1_3 = 1 / 3 * (apex_ep - mv_center) + mv_center
-    p2_3 = 2 / 3 * (apex_ep - mv_center) + mv_center
-
-    for i, n in enumerate(elem_center):
-        # Basal
-        if np.dot(n - p1_3, mv_center - p1_3) >= 0:
-            if np.dot(n - p1_3, axe_60) >= 0:
-                if np.dot(n - p1_3, axe_120) >= 0:
-                    if np.dot(n - p1_3, hl_axis) >= 0:
-                        label[i] = 6
-                    else:
-                        label[i] = 5
-                else:
-                    label[i] = 1
-            else:
-                if np.dot(n - p1_3, hl_axis) <= 0:
-                    if np.dot(n - p1_3, axe_120) >= 0:
-                        label[i] = 4
-                    else:
-                        label[i] = 3
-                else:
-                    label[i] = 2
-        # Mid cavity
-        elif np.dot(n - p2_3, mv_center - p2_3) >= 0:
-            if np.dot(n - p1_3, axe_60) >= 0:
-                if np.dot(n - p1_3, axe_120) >= 0:
-                    if np.dot(n - p1_3, hl_axis) >= 0:
-                        label[i] = 12
-                    else:
-                        label[i] = 11
-                else:
-                    label[i] = 7
-            else:
-                if np.dot(n - p1_3, hl_axis) <= 0:
-                    if np.dot(n - p1_3, axe_120) >= 0:
-                        label[i] = 10
-                    else:
-                        label[i] = 9
-                else:
-                    label[i] = 8
-        # Apical
+        # define reference cut plane
+        if p_junction is not None:
+            # CASIS definition: LV and RV junction point
+            vec = (p_junction - p_highest) / np.linalg.norm(p_junction - p_highest)
+            axe_60 = R.from_rotvec(np.radians(90) * short_axis).apply(vec)
         else:
-            if seg == 17:
-                if np.dot(n - apex_ed, apex_ep - apex_ed) >= 0:
-                    label[i] = 17
+            # default: rotate 60 from long axis
+            axe_60 = R.from_rotvec(np.radians(60) * short_axis).apply(self.l4cv_axis["normal"])
+
+        axe_120 = R.from_rotvec(np.radians(60) * short_axis).apply(axe_60)
+        axe_180 = -R.from_rotvec(np.radians(60) * short_axis).apply(axe_120)
+        axe_45 = R.from_rotvec(np.radians(-15) * short_axis).apply(axe_60)
+        axe_135 = R.from_rotvec(np.radians(90) * short_axis).apply(axe_45)
+
+        p1_3 = 1 / 3 * (apex_ep - p_highest) + p_highest
+        p2_3 = 2 / 3 * (apex_ep - p_highest) + p_highest
+
+        for i, n in enumerate(elem_center):
+            # This part contains valves, do not considered by AHA17
+            if np.dot(n - p_highest, mv_center - p_highest) >= 0:
+                continue
+            # Basal: segment 1 2 3 4 5 6
+            elif np.dot(n - p1_3, mv_center - p1_3) >= 0:
+                if np.dot(n - p1_3, axe_60) >= 0:
+                    if np.dot(n - p1_3, axe_120) >= 0:
+                        if np.dot(n - p1_3, axe_180) >= 0:
+                            label[i] = 6
+                        else:
+                            label[i] = 5
+                    else:
+                        label[i] = 1
+                else:
+                    if np.dot(n - p1_3, axe_180) <= 0:
+                        if np.dot(n - p1_3, axe_120) >= 0:
+                            label[i] = 4
+                        else:
+                            label[i] = 3
+                    else:
+                        label[i] = 2
+            # Mid cavity: segment 7 8 9 10 11 12
+            elif np.dot(n - p2_3, mv_center - p2_3) >= 0:
+                if np.dot(n - p1_3, axe_60) >= 0:
+                    if np.dot(n - p1_3, axe_120) >= 0:
+                        if np.dot(n - p1_3, axe_180) >= 0:
+                            label[i] = 12
+                        else:
+                            label[i] = 11
+                    else:
+                        label[i] = 7
+                else:
+                    if np.dot(n - p1_3, axe_180) <= 0:
+                        if np.dot(n - p1_3, axe_120) >= 0:
+                            label[i] = 10
+                        else:
+                            label[i] = 9
+                    else:
+                        label[i] = 8
+            # Apical
+            else:
+                if seg == 17:
+                    if np.dot(n - apex_ed, apex_ep - apex_ed) >= 0:
+                        label[i] = 17
+                    else:
+                        if np.dot(n - p1_3, axe_45) >= 0:
+                            if np.dot(n - p1_3, axe_135) >= 0:
+                                label[i] = 16
+                            else:
+                                label[i] = 13
+                        else:
+                            if np.dot(n - p1_3, axe_135) >= 0:
+                                label[i] = 15
+                            else:
+                                label[i] = 14
+
                 else:
                     if np.dot(n - p1_3, axe_45) >= 0:
                         if np.dot(n - p1_3, axe_135) >= 0:
@@ -1297,33 +1379,35 @@ def aha_segments(nodes, elems, mv_center, apex_ep, apex_ed, hl_axis, sh_axis, se
                         else:
                             label[i] = 14
 
-            else:
-                if np.dot(n - p1_3, axe_45) >= 0:
-                    if np.dot(n - p1_3, axe_135) >= 0:
-                        label[i] = 16
-                    else:
-                        label[i] = 13
-                else:
-                    if np.dot(n - p1_3, axe_135) >= 0:
-                        label[i] = 15
-                    else:
-                        label[i] = 14
+        self.aha_ids[ele_ids] = label
 
-    assert np.all(label != 0)
+        return
 
-    # test
-    # import meshio
-    # meshio.write_points_cells("lv_aha17.vtk", nodes,
-    # [("tetra", elems)], cell_data={"Id": [label]})
+    def compute_left_ventricle_element_cs(self):
+        """Compute elemental coordinate system for aha17 elements."""
+        ele_ids = np.where(~np.isnan(self.aha_ids))[0]
+        elems = self.mesh.tetrahedrons[ele_ids]
+        elem_center = np.mean(self.mesh.nodes[elems], axis=1)
 
-    return label
+        # compute longitudinal direction, i.e. short axis
+        e_l = np.tile(self.short_axis["normal"], (len(ele_ids), 1))
+
+        # compute radial direction
+        center_offset = elem_center - self.left_ventricle.apex_points[1].xyz
+        e_r = center_offset - (np.sum(e_l * center_offset, axis=1) * e_l.T).T
+        # normalize each row
+        e_r /= np.linalg.norm(e_r, axis=1)[:, np.newaxis]
+
+        # compute circumferential direction
+        e_c = np.cross(e_l, e_r)
+
+        return e_l, e_r, e_c
 
 
 class LeftVentricle(HeartModel):
     """Model of just the left ventricle."""
 
     def __init__(self, info: ModelInfo) -> None:
-
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part."""
         # remove septum - not used in left ventricle only model
@@ -1337,7 +1421,6 @@ class BiVentricle(HeartModel):
     """Model of the left and right ventricle."""
 
     def __init__(self, info: ModelInfo) -> None:
-
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
@@ -1353,7 +1436,6 @@ class FourChamber(HeartModel):
     """Model of the left/right ventricle and left/right atrium."""
 
     def __init__(self, info: ModelInfo) -> None:
-
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
@@ -1375,7 +1457,6 @@ class FullHeart(HeartModel):
     """Model of both ventricles, both atria, aorta and pulmonary artery."""
 
     def __init__(self, info: ModelInfo) -> None:
-
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")

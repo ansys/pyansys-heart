@@ -8,6 +8,9 @@ import pytest
 from .conftest import compare_string_with_file, get_assets_folder
 
 
+# NOTE: Using a pickled reference model won't work when we make
+# changes to the underlying objects. Pickle won't be able to reconstruct
+# the object.
 @pytest.fixture(autouse=True, scope="module")
 def initialize_model():
     """Load a model that can be converted to LS-DYNA input."""
@@ -39,6 +42,9 @@ def test_main():
     compare_string_with_file(string_to_test, ref_file)
 
 
+@pytest.mark.xfail(
+    reason="Uses pickled model. Pickled load will fail if we make changes to the object itself."
+)
 def test_parts():
     """Compare contents of main to a reference file."""
     ref_folder = os.path.join(get_assets_folder(), "k_files", "mechanics")

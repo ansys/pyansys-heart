@@ -47,21 +47,26 @@ def add_nodes_to_kw(nodes: np.array, node_kw: keywords.Node, offset: int = 0) ->
     ----------
     nodes : np.array
         Numpy array of node coordinates to add
+        If (n,3), node ID will be continuous by offset.
+        If (n,4), first column will be node ID.
     node_kw : keywords.Node
         Node keyword
     offset : int
         Node id offset
     """
-    # get node id of last node:
-    if not node_kw.nodes.empty and offset == 0:
-        last_nid = node_kw.nodes.iloc[-1, 0]
-        offset = last_nid
+    if nodes.shape[1] == 4:
+        df = pd.DataFrame(data=nodes, columns=node_kw.nodes.columns[0:4])
+    elif nodes.shape[1] == 3:
+        # get node id of last node:
+        if not node_kw.nodes.empty and offset == 0:
+            last_nid = node_kw.nodes.iloc[-1, 0]
+            offset = last_nid
 
-    # create array with node ids
-    nids = np.arange(0, nodes.shape[0], 1) + offset + 1
+        # create array with node ids
+        nids = np.arange(0, nodes.shape[0], 1) + offset + 1
 
-    # create dataframe
-    df = pd.DataFrame(data=np.vstack([nids, nodes.T]).T, columns=node_kw.nodes.columns[0:4])
+        # create dataframe
+        df = pd.DataFrame(data=np.vstack([nids, nodes.T]).T, columns=node_kw.nodes.columns[0:4])
 
     # concatenate old and new dataframe
     df1 = pd.concat([node_kw.nodes, df], axis=0, ignore_index=True, join="outer")

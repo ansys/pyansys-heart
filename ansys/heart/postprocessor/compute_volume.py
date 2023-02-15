@@ -147,4 +147,4 @@ def update_system_json(nodes_file):
 
 
 if __name__ == "__main__":
-    update_system_json("nodes.k")
+    pass

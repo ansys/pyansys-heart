@@ -113,6 +113,30 @@ def test_dump_model_003():
     assert os.path.isfile(expected_path)
 
 
+def test_dump_read_model_004():
+    """Test dumping and reading of model with data."""
+    info = _get_test_model_info()
+    info.workdir = get_workdir()
+    create_directory(info.workdir)
+    model = models.BiVentricle(info)
+    model.info.path_to_model = os.path.join(model.info.workdir, "heart_model.pickle")
+    model.left_ventricle.endocardium.triangles = np.array([[0, 1, 2]], dtype=int)
+    model.left_ventricle.endocardium.nodes = np.eye(3, 3, dtype=float)
+    model.dump_model(remove_raw_mesh=False)
+
+    assert os.path.isfile(model.info.path_to_model)
+
+    model_loaded: models.BiVentricle = models.HeartModel.load_model(model.info.path_to_model)
+    assert np.array_equal(
+        model_loaded.left_ventricle.endocardium.triangles,
+        model.left_ventricle.endocardium.triangles,
+    )
+    assert np.array_equal(
+        model_loaded.left_ventricle.endocardium.nodes,
+        model.left_ventricle.endocardium.nodes,
+    )
+
+
 def test_model_load():
     """Test loading model from pickle."""
     model: models.BiVentricle = _get_test_model(models.BiVentricle)
@@ -120,8 +144,8 @@ def test_model_load():
     model.left_ventricle.element_ids = np.array([1, 2, 3, 4], dtype=int)
     model.right_ventricle.element_ids = np.array([11, 66, 77, 88], dtype=int)
 
-    model.left_ventricle.endocardium.faces = np.array([[1, 2, 3], [1, 2, 4]], dtype=int)
-    model.right_ventricle.endocardium.faces = np.array([[11, 22, 33], [11, 22, 44]], dtype=int)
+    model.left_ventricle.endocardium.triangles = np.array([[1, 2, 3], [1, 2, 4]], dtype=int)
+    model.right_ventricle.endocardium.triangles = np.array([[11, 22, 33], [11, 22, 44]], dtype=int)
 
     model.mesh.tetrahedrons = np.array([[1, 2, 3, 4], [1, 2, 3, 5]], dtype=int)
     model.mesh.nodes = np.array([[0.0, 0.0, 0.1], [1.0, 1.0, 1.1]], dtype=float)
@@ -142,10 +166,10 @@ def test_model_load():
     assert np.array_equal(model1.right_ventricle.element_ids, model.right_ventricle.element_ids)
 
     assert np.array_equal(
-        model1.left_ventricle.endocardium.faces, model.left_ventricle.endocardium.faces
+        model1.left_ventricle.endocardium.triangles, model.left_ventricle.endocardium.triangles
     )
     assert np.array_equal(
-        model1.right_ventricle.endocardium.faces, model.right_ventricle.endocardium.faces
+        model1.right_ventricle.endocardium.triangles, model.right_ventricle.endocardium.triangles
     )
 
     assert np.array_equal(model1.mesh.tetrahedrons, model.mesh.tetrahedrons)

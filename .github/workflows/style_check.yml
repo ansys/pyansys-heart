@@ -1,11 +1,12 @@
 name: Style check
-on:
+on:  
   pull_request:
   push:
     tags:
       - "*"
     branches:
       - main
+  workflow_dispatch:
 
 env:
   MAIN_PYTHON_VERSION: 3.9

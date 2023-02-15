@@ -2,19 +2,16 @@
 expected features."""
 import os
 import shutil
+import sys
 
 import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.support import run_preprocessor
 import pytest
 
 from .common import (
-    compare_caps_nodeids,
-    compare_caps_num_nodeids,
-    compare_cavity_topology,
     compare_cavity_volume,
-    compare_part_element_ids,
+    compare_generated_mesh,
     compare_part_names,
-    compare_surface_faces,
     compare_surface_names,
 )
 from .conftest import download_asset, get_assets_folder, get_workdir
@@ -36,36 +33,43 @@ def extract_bi_ventricle():
     if not os.path.isfile(path_to_case):
         path_to_case = download_asset("Strocchi2020", casenumber=1)
 
-    # load model to test against
-    path_to_reference_model = os.path.join(
+    # # load model to test against
+    # path_to_reference_stats = os.path.join(
+    #     assets_folder,
+    #     "reference_models",
+    #     "strocchi2020",
+    #     "01",
+    #     "BiVentricle",
+    #     "heart_model.pickle",
+    # )
+    path_to_reference_stats = path_to_reference_stats = os.path.join(
         assets_folder,
         "reference_models",
         "strocchi2020",
         "01",
         "BiVentricle",
-        "heart_model.pickle",
+        "stats_reference_model_BiVentricle.json",
     )
     assert os.path.isfile(path_to_case)
-    assert os.path.isfile(path_to_reference_model)
+    assert os.path.isfile(path_to_reference_stats)
 
-    global reference_model
-    reference_model = models.HeartModel.load_model(path_to_reference_model)
+    global ref_stats
+    import json
 
-    assert isinstance(reference_model, models.BiVentricle), (
-        "Reference model should be of type %s" % models.BiVentricle.__class__.__name__
-    )
+    with open(path_to_reference_stats, "r") as openfile:
+        ref_stats = json.load(openfile)
 
-    workdir = os.path.join(get_workdir(), reference_model.__class__.__name__)
+    workdir = os.path.join(get_workdir(), "BiVentricle")
     path_to_model = os.path.join(workdir, "heart_model.pickle")
 
     global model
     model = run_preprocessor(
-        model_type=reference_model.__class__,
+        model_type=models.BiVentricle,
         database="Strocchi2020",
         path_original_mesh=path_to_case,
         work_directory=workdir,
         path_to_model=path_to_model,
-        mesh_size=reference_model.info.mesh_size,
+        mesh_size=2,
     )
 
     yield
@@ -75,44 +79,23 @@ def extract_bi_ventricle():
 
 
 def test_part_names():
-    compare_part_names(model, reference_model)
-    pass
-
-
-@pytest.mark.xfail(reason="Due to slight differences in Fluent element ids may differ")
-def test_part_element_ids():
-    compare_part_element_ids(model, reference_model)
+    compare_part_names(model, ref_stats)
     pass
 
 
 def test_surface_names():
-    compare_surface_names(model, reference_model)
-    pass
-
-
-@pytest.mark.xfail
-def test_surface_faces():
-    compare_surface_faces(model, reference_model)
-    pass
-
-
-@pytest.mark.xfail
-def test_cavities_topology():
-    compare_cavity_topology(model, reference_model)
+    compare_surface_names(model, ref_stats)
     pass
 
 
 def test_cavities_volumes():
-    compare_cavity_volume(model, reference_model)
+    compare_cavity_volume(model, ref_stats)
     pass
 
 
-@pytest.mark.xfail
-def test_caps_nodeids():
-    compare_caps_nodeids(model, reference_model)
-    pass
-
-
-def test_caps_num_nodeids():
-    compare_caps_num_nodeids(model, reference_model)
-    pass
+@pytest.mark.xfail(
+    sys.platform == "linux", reason="Mesh generation slightly different for Linux version of Fluent"
+)
+def test_mesh():
+    """Test the number of tetrahedrons and triangles in the volume mesh and surface meshes"""
+    compare_generated_mesh(model, ref_stats)

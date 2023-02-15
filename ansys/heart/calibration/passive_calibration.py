@@ -12,44 +12,6 @@ import numpy as np
 import pkg_resources
 
 
-def create_calibration_folder(target_dir, python_exe: str = ""):
-    """
-    Create necessary files for calibration.
-
-    Parameters
-    ----------
-    target_dir: target folder
-    python_exe: venv path
-
-    """
-    # todo: test if it's a legitimate folder
-    file_path = pkg_resources.resource_filename(
-        "ansys.heart.calibration", "PassiveCalibration.lsopt"
-    )
-    shutil.copy(
-        file_path,
-        os.path.join(target_dir, "PassiveCalibration.lsopt"),
-    )
-
-    file_path = pkg_resources.resource_filename("ansys.heart.calibration", "material.k")
-    shutil.copy(
-        file_path,
-        os.path.join(target_dir, "material.k"),
-    )
-
-    if python_exe == "":
-        python_exe = f"{sys.prefix}\\Scripts\\python.exe"
-
-    with open(os.path.join(target_dir, "run.bat"), "w") as f:
-        f.write(f"{python_exe} run.py")
-
-    file_path = pkg_resources.resource_filename("ansys.heart.calibration", "run.template")
-    shutil.copy(
-        file_path,
-        os.path.join(target_dir, "run.py"),
-    )
-
-
 class PassiveCalibration:
     """Passive calibration."""
 
@@ -80,28 +42,61 @@ class PassiveCalibration:
         lv_cavity_faces = np.loadtxt(sgm_file, delimiter=",", dtype=int) - 1
 
         # create cavity object by using surface mesh
-        self.lv_cavity = Cavity(SurfaceMesh(name="lv_cavity", faces=lv_cavity_faces, nodes=x_ed))
-        self.lv_cavity.compute_volume()
+        self.lv_cavity = Cavity(
+            SurfaceMesh(name="lv_cavity", triangles=lv_cavity_faces, nodes=x_ed)
+        )
 
         # compute Klotz curve
         self.v_ed = self.lv_cavity.volume
+        # todo: pressure can be read from main.k
         self.p_ed = 2 * 7.5  # 2kPa to  mmHg
         self.klotz = EDPVR(self.v_ed, self.p_ed)
 
         self.volume_sim = None
         self.pressure_sim = None
 
-    def load_results(self):
-        """Load zerop simulation results."""
-        # load inflation simulation
-        # todo: filename iter3 is hard coded
+    def create_calibration_folder(self, python_exe: str = ""):
+        """
+        Create necessary files for calibration.
 
-        try:
-            nodout = NodOut(os.path.join(self.work_directory, "iter3.binout"))
-        except IOError:
-            nodout = NodOut(os.path.join(self.work_directory, "iter3.binout0000"))
-        finally:
-            Exception("Cannot load binout file")
+        Parameters
+        ----------
+        python_exe: venv path
+
+        """
+        # todo: test if it's a legitimate folder
+        shutil.copy(
+            pkg_resources.resource_filename("ansys.heart.calibration", "PassiveCalibration.lsopt"),
+            os.path.join(self.work_directory, "PassiveCalibration.lsopt"),
+        )
+
+        shutil.copy(
+            pkg_resources.resource_filename("ansys.heart.calibration", "material_passive.k"),
+            os.path.join(self.work_directory, "material.k"),
+        )
+
+        if python_exe == "":
+            python_exe = f"{sys.prefix}\\Scripts\\python.exe"
+
+        with open(os.path.join(self.work_directory, "run.bat"), "w") as f:
+            f.write(f"{python_exe} run.py")
+
+        shutil.copy(
+            pkg_resources.resource_filename("ansys.heart.calibration", "run_passive.template"),
+            os.path.join(self.work_directory, "run.py"),
+        )
+
+    def load_results(self):
+        """
+        Load zerop simulation results.
+
+        Todo: verify stress free configuration converges.
+        """
+        # Load last iteration
+        import glob
+
+        binout_files = glob.glob(os.path.join(self.work_directory, "iter*.binout*"))
+        nodout = NodOut(binout_files[-1])
 
         # time need to be normalized
         time = nodout.time / nodout.time[-1]
@@ -112,10 +107,12 @@ class PassiveCalibration:
         self.volume_sim = np.zeros(time.shape)
         for i, coord in enumerate(coords):
             self.lv_cavity.surface.nodes = coord
-            self.lv_cavity.compute_volume()
             self.volume_sim[i] = self.lv_cavity.volume
 
-    def compute_error(self):
+        fig = self.plot()
+        fig.savefig("vs.png")
+
+    def compute_objective_function(self):
         """
         Compute rsm error between Klotz curve and simulation.
 
@@ -146,18 +143,16 @@ class PassiveCalibration:
         plt.plot(self.klotz.get_volume(self.pressure_sim), self.pressure_sim, "o", label="Klotz")
         plt.plot(self.volume_sim, self.pressure_sim, "--*", label="FEM")
         plt.legend()
-        plt.title("RSM={0:10.5e}".format(self.compute_error()))
+        # plt.title("RSM={0:10.5e}".format(self.compute_objective_function()))
         return fig
 
     def run_one_step_calibration(self):
         """Run zerop simulation and compare with Klotz curve."""
         run_lsdyna("main.k", options="case")
         self.load_results()
-        error = self.compute_error()
+        error = self.compute_objective_function()
         with open("result", "a") as f:
             f.write("{0:10.5e}".format(error))
-        fig = self.plot()
-        fig.savefig("vs.png")
 
 
 if __name__ == "__main__":

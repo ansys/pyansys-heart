@@ -9,22 +9,33 @@ from scipy.interpolate import interp1d
 
 
 class SystemModelPost:
-    """Class for post-processing system model."""
+    """
+    Class for post-processing system model.
 
-    def __init__(self, dir, p_ed, v_ed, closed_loop=False):
+    Note
+    ----
+    unit: ms, kPa, mL
+    """
+
+    def __init__(self, dir, closed_loop=False):
+        """
+        Init.
+
+        Parameters
+        ----------
+        dir: simulation directory
+        closed_loop: if it's a closed loop, default False
+        """
         self.dir = dir
-        self.p_ed = p_ed
-        self.v_ed = v_ed
         self.closed_loop = closed_loop
 
-        self.prefill_duration = 1  # s
-        self.cycle_duration = 1  # s
-
         self.bin = IcvOut(os.path.join(self.dir, "binout0000"))
+        self.bin.pressure *= 1000  # kPa
         self.bin.volume /= 1000  # mL
         self.bin.flow /= 1000  # mL/time
 
         # Get the initial cavity volume
+        # Note: some reasonable difference between LSDYNA volume and vtk volume
         self.cavity0 = self.bin.volume[0]
 
         if self.bin.volume.shape[1] == 1:
@@ -35,6 +46,9 @@ class SystemModelPost:
             print("BV system model")
         else:
             print("Unknown system model")
+
+        self.p_ed = np.array([2, 0.5333])  # kPa
+        self.v_ed = self.cavity0
 
         self.compute_ejection_ratio()
         # todo: check if last loop converge
@@ -49,6 +63,7 @@ class SystemModelPost:
             )
         except IOError:
             print("Only accept default file name constant_preload_windkessel_afterload_*.csv")
+
         #  special fix for Constant pre/after load case
         #  part/pven are not written in Csv files
         if "part" not in self.lv.columns:
@@ -59,6 +74,8 @@ class SystemModelPost:
         for name in self.lv.columns:
             if name[0] == "v" or name[0] == "q":
                 self.lv[name] /= 1000
+            if name[0] == "p":
+                self.lv[name] *= 1000
 
         if self.type == "BV":
             self.rv = pd.read_csv(
@@ -72,18 +89,20 @@ class SystemModelPost:
             for name in self.rv.columns:
                 if name[0] == "v" or name[0] == "q":
                     self.rv[name] /= 1000
+                if name[0] == "p":
+                    self.rv[name] *= 1000
 
-    def compute_ejection_ratio(self):
+    def compute_ejection_ratio(self, cycle_duration=1000):
         """Compute ejection ratio of last loop."""
         # get PV of last loop
-        _, volume = self.get_PV(self.bin.time[-1] - self.cycle_duration)
+        _, volume = self.get_PV(self.bin.time[-1] - cycle_duration)
 
         self.lv_ef = (max(volume[:, 0]) - min(volume[:, 0])) / max(volume[:, 0])
         if self.type == "BV":
             self.rv_ef = (max(volume[:, 1]) - min(volume[:, 1])) / max(volume[:, 1])
         return
 
-    def get_PV(self, t_start=0, t_end=1000):
+    def get_PV(self, t_start=0, t_end=10e10):
         """Get Pressure & volume.
 
         Parameters
@@ -93,31 +112,22 @@ class SystemModelPost:
 
         """
         i_start = np.where(self.bin.time >= t_start)[0][0]
-        try:
-            i_end = np.where(self.bin.time >= t_end)[0][0]
-        except:
-            i_end = len(self.bin.time)
+        i_end = np.where(self.bin.time <= t_end)[0][-1]
 
         volume = self.bin.volume[i_start:i_end, :]
         pressure = self.bin.pressure[i_start:i_end, :]
         return pressure, volume
 
-    def plot_PV(self, ignore_filling=True, last_loop=False):
-        """Plot PV loop.
+    def plot_pv_loop(self, t_start=0, t_end=10e10):
+        """
+        Plot PV loop.
 
         Parameters
         ----------
-        ignore_filling
-        last_loop
-
+        t_start: start time
+        t_end: end time
         """
-        t_s = 0
-        if ignore_filling:
-            t_s = self.prefill_duration
-        if last_loop:
-            t_s = self.bin.time[-1] - self.cycle_duration
-
-        pressure, volume = self.get_PV(t_s)
+        pressure, volume = self.get_PV(t_start, t_end)
 
         fig, axis = plt.subplots()
         fig.suptitle("Pressure Volume Loop")
@@ -142,14 +152,14 @@ class SystemModelPost:
 
         return fig
 
-    def plot_pressure_flow_volume(self, cavity, ignore_filling=True, last_loop=False):
+    def plot_pressure_flow_volume(self, cavity, t_start=0, t_end=10e10):
         """Plot curves.
 
         Parameters
         ----------
-        cavity
-        ignore_filling
-        last_loop
+        cavity: 'lv' or 'rv'
+        t_end: start time
+        t_start: end time
 
         """
         fig, axis = plt.subplots(3, figsize=(8, 4), sharex=True)
@@ -187,12 +197,9 @@ class SystemModelPost:
             flow.append(system[q_name].values)
 
         # define plot x range
-        i_start = 0
-        if ignore_filling:
-            i_start = np.where(time > self.prefill_duration)[0][0]
-        if last_loop:
-            i_start = np.where(time > self.bin.time[-1] - 1.1 * self.cycle_duration)[0][0]
-        axis[0].set_xlim([time[i_start], time[-1]])
+        i_start = np.where(time >= t_start)[0][0]
+        i_end = np.where(time <= t_end)[0][-1]
+        axis[0].set_xlim([time[i_start], time[i_end]])
 
         # find where both valves are closed: iso-volume
         iso_vol = (pressure[0] > pressure[1]) & (pressure[0] < pressure[2])
@@ -224,8 +231,12 @@ class SystemModelPost:
 
         return fig
 
-    def check_prefilling(self, cavity, offset=0.0):
-        """Check prefilling process."""
+    def __check_prefilling(self, cavity, offset=0.0, prefill_duration=1000):
+        """
+        Check prefilling process.
+
+        Obsolete
+        """
         fig, axis = plt.subplots(3, figsize=(8, 4), sharex=True)
 
         if cavity == "lv":
@@ -243,25 +254,25 @@ class SystemModelPost:
             fig.suptitle("Right ventricle: Prefilling Check")
 
         # define the last step
-        i_end = np.where(self.bin.time <= self.prefill_duration + offset)[0][-1] + 1
-        i_end2 = np.where(self.lv["time"] <= self.prefill_duration + offset)[0][-1] + 1
+        i_end = np.where(self.bin.time <= prefill_duration + offset)[0][-1] + 1
+        i_end2 = np.where(self.lv["time"] <= prefill_duration + offset)[0][-1] + 1
 
         axis[0].plot(self.bin.time[0:i_end], self.bin.pressure[0:i_end, id])
         axis[0].plot(self.lv["time"][0:i_end2], pven0[0:i_end2], "--", color="orange")
         axis[0].set_ylabel("Pressure (kPa)")
 
         axis[1].plot(self.bin.time[0:i_end], self.bin.volume[0:i_end, id])
-        axis[1].hlines(self.v_ed[id], 0, self.prefill_duration, linestyles="--", color="orange")
+        axis[1].hlines(self.v_ed[id], 0, prefill_duration, linestyles="--", color="orange")
         axis[1].set_ylabel("Volume (mL)")
 
         axis[2].plot(self.bin.time[0:i_end], self.bin.flow[0:i_end, id])
-        axis[2].hlines(0, 0, self.prefill_duration, linestyles="--", color="orange")
+        axis[2].hlines(0, 0, prefill_duration, linestyles="--", color="orange")
         axis[2].set_ylabel("Flow (mL/s)")
         axis[2].set_xlabel("Time (s)")
 
         return fig
 
-    def check_output(self, cavity="lv"):
+    def _check_output(self, cavity="lv"):
         """Check system states == FEM states."""
         fig, axis = plt.subplots(2, figsize=(8, 4))
 
@@ -299,7 +310,7 @@ class SystemModelPost:
 
         return fig
 
-    def check_total_volume(self, plot_all=False):
+    def _check_total_volume(self, plot_all=False):
         """Check if total volume is constant for a closed loop.
 
         Parameters

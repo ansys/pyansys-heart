@@ -112,9 +112,9 @@ class BaseDynaWriter:
         if not settings:
             self.settings = SimulationSettings()
             """Simulation settings."""
-            LOGGER.warning("No settings provided - loading default values.")            
+            LOGGER.warning("No settings provided - loading default values.")
             self.settings.load_defaults()
-            
+
         else:
             self.settings = settings
             """Simulation settings."""
@@ -595,8 +595,13 @@ class BaseDynaWriter:
 class MechanicsDynaWriter(BaseDynaWriter):
     """Class for preparing the input for a mechanics LS-DYNA simulation."""
 
-    def __init__(self, model: HeartModel, system_model_name: str = "ClosedLoop") -> None:
-        super().__init__(model)
+    def __init__(
+        self,
+        model: HeartModel,
+        settings: SimulationSettings = None,
+        system_model_name: str = "ClosedLoop",
+    ) -> None:
+        super().__init__(model=model, settings=settings)
 
         self.kw_database = MechanicsDecks()
         """Collection of keyword decks relevant for mechanics."""
@@ -1142,13 +1147,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
             mat_id = self.get_unique_mat_id()
 
             if isinstance(self.model, (LeftVentricle, BiVentricle)):
-                spring_stiffness = bc_settings.valve.biventricle.m
+                spring_stiffness = bc_settings.valve["biventricle"].m
 
             elif isinstance(self.model, (FourChamber, FullHeart)):
-                spring_stiffness = bc_settings.valve.fourchamber.m
+                spring_stiffness = bc_settings.valve["fourchamber"].m
 
-            scale_factor_normal = bc_settings.valve.scale_factor.normal
-            scale_factor_radial = bc_settings.valve.scale_factor.radial
+            scale_factor_normal = bc_settings.valve["scale_factor"]["normal"]
+            scale_factor_radial = bc_settings.valve["scale_factor"]["radial"]
 
             part_kw = keywords.Part()
             part_df = pd.DataFrame(
@@ -1445,9 +1450,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         material_kw = MaterialAtrium(
             mid=mat_null_id,
-            rho=material_settings.cap.rho.m,
-            poisson_ratio=material_settings.cap.nu,
-            c10=material_settings.cap.c10,
+            rho=material_settings.cap["rho"].m,
+            poisson_ratio=material_settings.cap["nu"],
+            c10=material_settings.cap["c10"],
         )
 
         section_kw = keywords.SectionShell(
@@ -1455,7 +1460,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             elform=4,
             shrf=0.8333,
             nip=3,
-            t1=material_settings.cap.thickness.m,
+            t1=material_settings.cap["thickness"].m,
         )
 
         self.kw_database.cap_elements.append(material_kw)
@@ -1680,8 +1685,12 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
     """
 
-    def __init__(self, model: HeartModel) -> None:
-        super().__init__(model)
+    def __init__(
+        self,
+        model: HeartModel,
+        settings: SimulationSettings = None,
+    ) -> None:
+        super().__init__(model=model, settings=settings)
 
         self.kw_database = MechanicsDecks()
         """Collection of keyword decks relevant for mechanics."""
@@ -1713,8 +1722,8 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # self._update_cap_elements_db()
 
         # # Approximate end-diastolic pressures
-        pressure_lv = bc_settings.end_diastolic_cavity_pressure.left_ventricle.m
-        pressure_rv = bc_settings.end_diastolic_cavity_pressure.right_ventricle.m
+        pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
+        pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
 
         self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
@@ -1890,8 +1899,8 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 class FiberGenerationDynaWriter(BaseDynaWriter):
     """Class for preparing the input for a fiber-generation LS-DYNA simulation."""
 
-    def __init__(self, model: HeartModel) -> None:
-        super().__init__(model)
+    def __init__(self, model: HeartModel, settings: SimulationSettings = None) -> None:
+        super().__init__(model=model, settings=settings)
 
         self.kw_database = FiberGenerationDecks()
         """Collection of keywords relevant for fiber generation."""
@@ -2317,8 +2326,12 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
 class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
     """Class for preparing the input for a Purkinje LS-DYNA simulation."""
 
-    def __init__(self, model: HeartModel) -> None:
-        super().__init__(model)
+    def __init__(
+        self,
+        model: HeartModel,
+        settings: SimulationSettings = None,
+    ) -> None:
+        super().__init__(model=model, settings=settings)
 
         self.kw_database = PurkinjeGenerationDecks()
         """Collection of keywords relevant for Purkinje generation."""
@@ -2585,8 +2598,8 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
 class ElectrophysiologyDynaWriter(BaseDynaWriter):
     """Class for preparing the input for an Electrophysiology LS-DYNA simulation."""
 
-    def __init__(self, model: HeartModel) -> None:
-        super().__init__(model)
+    def __init__(self, model: HeartModel, settings: SimulationSettings = None) -> None:
+        super().__init__(model=model, settings=settings)
 
         self.kw_database = ElectrophysiologyDecks()
         """Collection of keywords relevant for Electrophysiology."""
@@ -3090,10 +3103,14 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWriter):
     """Class for preparing the input for LS-DYNA electromechanical simulation."""
 
-    def __init__(self, model: HeartModel, system_model_name: str = "ClosedLoop") -> None:
-        super().__init__(model)
+    def __init__(
+        self,
+        model: HeartModel,
+        settings: SimulationSettings = None,
+    ) -> None:
+        super().__init__(model=model, settings=settings)
 
-        print("Not available yet.")
+        raise NotImplementedError("This writer has not been implemented yet.")
         exit()
         self.kw_database = ElectroMechanicsDecks()
         """Collection of keyword decks relevant for mechanics."""

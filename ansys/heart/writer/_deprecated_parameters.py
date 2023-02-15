@@ -11,7 +11,7 @@ else:
     print("Error in unit")
 
 # define simulation parameters
-parameters = {
+_deprecated_parameters = {
     "Unit": {
         "Time": "s" if time_unit == "s" else "ms",
         "Consistent System": "kPa, mm, mN, s, kg" if time_unit == "s" else "MPa, mm, N, ms, g",
@@ -109,12 +109,12 @@ parameters = {
     },
 }
 
-parameters["Circulation System"]["Left Ventricle"]["Constant"]["Pven"] = parameters["ED pressure"][
-    "Left Ventricle"
-]
-parameters["Circulation System"]["Right Ventricle"]["Constant"]["Pven"] = parameters["ED pressure"][
-    "Right Ventricle"
-]
+_deprecated_parameters["Circulation System"]["Left Ventricle"]["Constant"][
+    "Pven"
+] = _deprecated_parameters["ED pressure"]["Left Ventricle"]
+_deprecated_parameters["Circulation System"]["Right Ventricle"]["Constant"][
+    "Pven"
+] = _deprecated_parameters["ED pressure"]["Right Ventricle"]
 
 if __name__ == "__main__":
-    print(parameters)
+    print(_deprecated_parameters)

@@ -49,23 +49,30 @@ from ansys.heart.writer.material_keywords import MaterialAtrium, MaterialHGOMyoc
 import numpy as np
 import pandas as pd
 import pkg_resources
-from vtk.numpy_interface import dataset_adapter as dsa  # noqa
+from ansys.heart.simulator.settings.settings import SimulationSettings
 
-# import commonly used material models
+import copy
 
 
 class BaseDynaWriter:
     """Base class that contains essential features for all LS-DYNA heart models."""
 
-    def __init__(self, model: HeartModel) -> None:
-        """Initialize writer by loading a HeartModel.
+    def __init__(self, model: HeartModel, settings: SimulationSettings = None) -> None:
+        """Initialize writer by loading a HearModel and the desired settings.
 
         Parameters
         ----------
         model : HeartModel
-            HeartModel object which contains the necessary
-            information for the writer, such as nodes and elements.
+            HeartModel object which contains the necessary information for the writer,
+            such as nodes, elements, and parts
+        settings : SimulationSettings, optional
+            Simulation settings used to create the LS-DYNA model. Loads defaults if None, by default None
+
+        Example
+        -------
+        <Example to be added>
         """
+
         self.model = model
         """Model information necessary for creating the LS-DYNA .k files."""
 
@@ -102,10 +109,23 @@ class BaseDynaWriter:
         """List of .k files to include in main. This is derived from the Decks classes."""
         self.include_files = []
 
-        """Load simulation parameters."""
-        from ansys.heart.writer.parameters import parameters
+        if not settings:
+            self.settings = SimulationSettings()
+            """Simulation settings."""
+            LOGGER.warning("No settings provided - loading default values.")            
+            self.settings.load_defaults()
+            
+        else:
+            self.settings = settings
+            """Simulation settings."""
 
-        self.parameters = parameters
+        self.settings.to_consistent_unit_system()
+        self._check_settings()
+
+        """Load simulation parameters."""
+        from ansys.heart.writer._deprecated_parameters import _deprecated_parameters
+
+        self._deprecated_parameters = _deprecated_parameters
 
         if "Improved" in self.model.info.model_type:
             LOGGER.warning(
@@ -114,6 +134,39 @@ class BaseDynaWriter:
                 )
             )
             self.model.info.model_type = self.model.info.model_type.replace("Improved", "")
+
+        return
+
+    def _check_settings(self):
+        """Check if required settings are available."""
+        import ansys.heart.simulator.settings.settings as sett
+
+        subsettings_classes = [
+            getattr(self.settings, attr).__class__
+            for attr in self.settings.__dict__
+            if isinstance(getattr(self.settings, attr), sett.Settings)
+        ]
+
+        if isinstance(self, MechanicsDynaWriter):
+            if not sett.Mechanics in subsettings_classes:
+                raise ValueError("Expecting mechanics settings.")
+
+        elif isinstance(self, FiberGenerationDynaWriter):
+            if not sett.Fibers in subsettings_classes:
+                raise ValueError("Expecting fiber settings.")
+
+        elif isinstance(self, PurkinjeGenerationDynaWriter):
+            if not sett.Purkinje in subsettings_classes:
+                raise ValueError("Expecting Purkinje settings.")
+
+        elif isinstance(self, ElectrophysiologyDynaWriter):
+            if not sett.Electrophysiology in subsettings_classes:
+                raise ValueError("Expecting electrophysiology settings.")
+
+        else:
+            raise NotImplementedError(
+                f"Checking settings for {self.__class__.__name__} not yet implemented."
+            )
 
         return
 
@@ -334,7 +387,6 @@ class BaseDynaWriter:
             filepath = os.path.join(export_directory, deckname + ".k")
             # use fast element writer for solid ortho elements
             if deckname == "solid_elements":
-
                 element_kws = deck.get_kwds_by_type("ELEMENT")
                 if os.path.isfile(filepath):
                     os.remove(filepath)
@@ -662,23 +714,21 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self.kw_database.main.title = self.model.model_type
 
-        if self.__class__.__name__ == "ZeroPressureMechanicsDynaWriter":
-            scale_time = 1
-            if self.parameters["Unit"]["Time"] == "ms":
-                scale_time = 1000
+        if isinstance(self, ZeroPressureMechanicsDynaWriter):
+            settings = self.settings.stress_free
+            self._add_solution_controls()
+            self._add_export_controls(settings.analysis.dt_d3plot.m)
 
-            self._add_solution_controls(scale_time=1 * scale_time)
-            self._add_export_controls(dt_output_d3plot=0.5 * scale_time)
-
-        elif self.__class__.__name__ == "MechanicsDynaWriter" or "ElectroMechanicsDynaWriter":
+        elif isinstance(self, (MechanicsDynaWriter, ElectroMechanicsDynaWriter)):
+            settings = self.settings.mechanics
             self._add_solution_controls(
-                end_time=self.parameters["Time"]["End Time"],
-                dtmin=self.parameters["Time"]["dtmin"],
-                dtmax=self.parameters["Time"]["dtmax"],
+                end_time=settings.analysis.end_time.m,
+                dtmin=settings.analysis.dtmin.m,
+                dtmax=settings.analysis.dtmax.m,
             )
             self._add_export_controls(
-                dt_output_d3plot=self.parameters["Time"]["dt_d3plot"],
-                dt_output_icvout=self.parameters["Time"]["dt_icvout"],
+                dt_output_d3plot=settings.analysis.dt_d3plot.m,
+                dt_output_icvout=settings.analysis.dt_icvout.m,
             )
 
         if add_damping:
@@ -698,9 +748,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
     def _add_solution_controls(
         self,
-        end_time: float = 5,
-        dtmin: float = 0.001,
-        dtmax: float = 0.01,
+        end_time: float = 5000,
+        dtmin: float = 1.0,
+        dtmax: float = 10.0,
         simulation_type: str = "quasi-static",
     ):
         """Add solution controls, output controls and solver settings."""
@@ -858,7 +908,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         kw_damp_curve = create_define_curve_kw(
             x=[0, 10e25],  # to create a constant curve
-            y=self.parameters["Global damping"] * np.array([1, 1]),
+            y=self.settings.mechanics.analysis.global_damping.m * np.array([1, 1]),
             curve_name="damping",
             curve_id=lcid_damp,
             lcint=0,
@@ -969,23 +1019,26 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """Update the database of material keywords."""
         act_curve_id = self.get_unique_curve_id()
 
-        for part in self.model.parts:
+        material_settings = copy.deepcopy(self.settings.mechanics.material)
+        # NOTE: since we remove units, we don't have to access quantities by <var_name>.m
+        material_settings._remove_units()
 
+        for part in self.model.parts:
             if "ventricle" in part.name.lower() or "septum" in part.name.lower():
                 if not add_active:
-                    active_dct = None
+                    active_dict = None
                 else:
-                    active_dct = {
-                        "actype": self.parameters["Material"]["Myocardium"]["Active"]["Actype"],
-                        "taumax": self.parameters["Material"]["Myocardium"]["Active"]["Tmax"],
-                        "ca2ionm": self.parameters["Material"]["Myocardium"]["Active"]["ca2ionm"],
+                    active_dict = {
+                        "actype": material_settings.myocardium["active"]["actype"],
+                        "taumax": material_settings.myocardium["active"]["tmax"],
+                        "ca2ionm": material_settings.myocardium["active"]["ca2ionm"],
                     }
 
                 myocardium_kw = MaterialHGOMyocardium(
                     mid=part.mid,
-                    iso_user=self.parameters["Material"]["Myocardium"]["Isotropic"],
-                    anisotropy_user=self.parameters["Material"]["Myocardium"]["Anisotropic"],
-                    active_user=active_dct,
+                    iso_user=material_settings.myocardium["isotropic"],
+                    anisotropy_user=material_settings.myocardium["anisotropic"],
+                    active_user=active_dict,
                 )
 
                 myocardium_kw.acid = act_curve_id
@@ -996,7 +1049,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 # add atrium material
                 # atrium_kw = MaterialAtrium(mid=part.mid)
                 atrium_kw = MaterialHGOMyocardium(
-                    mid=part.mid, iso_user=self.parameters["Material"]["Atrium"]
+                    mid=part.mid, iso_user=dict(material_settings.atrium)
                 )
 
                 self.kw_database.material.append(atrium_kw)
@@ -1006,15 +1059,17 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
                 # general_tissue_kw = MaterialAtrium(mid=part.mid)
                 general_tissue_kw = MaterialHGOMyocardium(
-                    mid=part.mid, iso_user=self.parameters["Material"]["Atrium"]
+                    # mid=part.mid, iso_user=self._deprecated_parameters["Material"]["Atrium"]
+                    mid=part.mid,
+                    iso_user=dict(material_settings.atrium),
                 )
                 self.kw_database.material.append(general_tissue_kw)
 
         if add_active:
             # write and add active curve to material database
-            if active_dct["actype"] == 1:
+            if material_settings.myocardium["active"]["actype"] == 1:
                 time_array, calcium_array = active_curve("constant")
-            elif active_dct["actype"] == 2:
+            elif material_settings.myocardium["active"]["actype"] == 2:
                 time_array, calcium_array = active_curve("Strocchi2020")
 
             active_curve_kw = create_define_curve_kw(
@@ -1025,10 +1080,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 lcint=10000,
             )
 
-            if self.parameters["Unit"]["Time"] == "ms":
-                active_curve_kw.sfa = 1000
+            active_curve_kw.sfa = 1000
             # y scaling
-            active_curve_kw.sfo = self.parameters["Material"]["Myocardium"]["Active"]["ca2ionm"]
+            active_curve_kw.sfo = material_settings.myocardium["active"]["ca2ionm"]
 
             # Prefill is remove due to new simulation workflow
             # # x offset: prefill duration
@@ -1045,6 +1099,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         bc_type : str
             Boundary condition type. Valid bc's include: ["fix_caps", "springs_caps"].
         """
+        bc_settings = self.settings.mechanics.boundary_conditions
+
         valid_bcs = ["fix_caps", "springs_caps"]
         if bc_type not in valid_bcs:
             raise ValueError("Cap/Valve boundary condition must be of type: %r" % valid_bcs)
@@ -1086,23 +1142,18 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # if bc type is springs -> add springs
         # NOTE add to boundary condition db or separate spring db?
         elif bc_type == "springs_caps":
-
             part_id = self.get_unique_part_id()
             section_id = self.get_unique_section_id()
             mat_id = self.get_unique_mat_id()
 
             if isinstance(self.model, (LeftVentricle, BiVentricle)):
-                spring_stiffness = self.parameters["Boundary Condition"]["Valve Spring"][
-                    "BV"
-                ]  # kPa/mm
+                spring_stiffness = bc_settings.valve.biventricle.m
 
             elif isinstance(self.model, (FourChamber, FullHeart)):
-                spring_stiffness = self.parameters["Boundary Condition"]["Valve Spring"][
-                    "4C"
-                ]  # kPa/mm
+                spring_stiffness = bc_settings.valve.fourchamber.m
 
-            scale_factor_normal = self.parameters["Boundary Condition"]["Normal Scale factor"]
-            scale_factor_radial = self.parameters["Boundary Condition"]["Radial Scale factor"]
+            scale_factor_normal = bc_settings.valve.scale_factor.normal
+            scale_factor_radial = bc_settings.valve.scale_factor.radial
 
             part_kw = keywords.Part()
             part_df = pd.DataFrame(
@@ -1246,6 +1297,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
         and a sigmoid penalty function. Strocchi et al 2020 doi: 10.1016/j.jbiomech.2020.109645.
         """
 
+        boundary_conditions = copy.deepcopy(self.settings.mechanics.boundary_conditions)
+        boundary_conditions._remove_units()
+        pericardium_settings = boundary_conditions.pericardium
+
         def _sigmoid(z):
             """Sigmoid function to scale spring coefficient."""
             return 1 / (1 + np.exp(-z))
@@ -1261,8 +1316,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         penalty_function = (
             -_sigmoid(
-                (abs(uvc_l) - self.parameters["Pericardium"]["Penalty function"][0])
-                * self.parameters["Pericardium"]["Penalty function"][1]
+                (abs(uvc_l) - pericardium_settings["penalty_function"][0])
+                * pericardium_settings["penalty_function"][1]
             )
             + 1
         )
@@ -1338,9 +1393,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # define section
         section_kw = keywords.SectionDiscrete(secid=section_id, cdl=0, tdl=0)
         # define material
-        mat_kw = keywords.MatSpringElastic(
-            mid=mat_id, k=(self.parameters["Pericardium"]["Spring Stiffness"])
-        )
+        mat_kw = keywords.MatSpringElastic(mid=mat_id, k=pericardium_settings["spring_stiffness"])
 
         # define spring orientations
         sd_orientation_kw = create_define_sd_orientation_kw(
@@ -1393,12 +1446,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
         mat_null_id = self.get_unique_mat_id()
 
         # material_kw = MaterialCap(mid=mat_null_id)
+        material_settings = self.settings.mechanics.material
 
         material_kw = MaterialAtrium(
             mid=mat_null_id,
-            rho=self.parameters["Cap"]["Density"],
-            poisson_ratio=self.parameters["Cap"]["nu"],
-            c10=self.parameters["Cap"]["c10"],
+            rho=material_settings.cap.rho.m,
+            poisson_ratio=material_settings.cap.nu,
+            c10=material_settings.cap.c10,
         )
 
         section_kw = keywords.SectionShell(
@@ -1406,7 +1460,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             elform=4,
             shrf=0.8333,
             nip=3,
-            t1=self.parameters["Cap"]["Thickness"],
+            t1=material_settings.cap.thickness.m,
         )
 
         self.kw_database.cap_elements.append(material_kw)
@@ -1505,8 +1559,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """Update json system model settings."""
         model_type = self.model.info.model_type
 
+        system_settings = copy.deepcopy(self.settings.mechanics.system)
+        system_settings._remove_units()
+
         # closed loop uses a custom executable
-        if self.system_model_name == "ClosedLoop":
+        if system_settings.name == "ClosedLoop":
+            raise NotImplementedError("Closed loop circulation not yet supported.")
             LOGGER.warning(
                 "Note that this model type requires a custom executable that "
                 "supports the Closed Loop circulation model!"
@@ -1537,40 +1595,30 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self.system_model_json = sys_settings
 
         # otherwise add the define function
-        elif self.system_model_name == "ConstantPreloadWindkesselAfterload":
+        elif system_settings.name == "ConstantPreloadWindkesselAfterload":
             from ansys.heart.writer.system_models import define_function_windkessel
 
-            if self.system_model_name != self.parameters["Circulation System"]["Name"]:
+            if self.system_model_name != system_settings.name:
                 LOGGER.error("Circulation system parameters cannot be rad from Json")
 
             for cavity in self.model.cavities:
                 if "Left ventricle" in cavity.name:
-
                     define_function_wk = define_function_windkessel(
                         function_id=10,
                         function_name="constant_preload_windkessel_afterload_left",
                         implicit=True,
-                        constants=self.parameters["Circulation System"]["Left Ventricle"][
-                            "Constant"
-                        ],
-                        initialvalues=self.parameters["Circulation System"]["Left Ventricle"][
-                            "Initial Value"
-                        ],
+                        constants=dict(system_settings.left_ventricle["constants"]),
+                        initialvalues=system_settings.left_ventricle["initial_value"]["part"],
                     )
                     self.kw_database.control_volume.append(define_function_wk)
 
                 elif "Right ventricle" in cavity.name:
-
                     define_function_wk = define_function_windkessel(
                         function_id=11,
                         function_name="constant_preload_windkessel_afterload_right",
                         implicit=True,
-                        constants=self.parameters["Circulation System"]["Right Ventricle"][
-                            "Constant"
-                        ],
-                        initialvalues=self.parameters["Circulation System"]["Right Ventricle"][
-                            "Initial Value"
-                        ],
+                        constants=dict(system_settings.right_ventricle["constants"]),
+                        initialvalues=system_settings.right_ventricle["initial_value"]["part"],
                     )
                     self.kw_database.control_volume.append(define_function_wk)
 
@@ -1584,8 +1632,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             [0, 1, 1.001], [0, 1, 0], "unit load curve", load_curve_id, 100
         )
 
-        if self.parameters["Unit"]["Time"] == "ms":
-            load_curve_kw.sfa = 1000  # x scaling: to Millisecond
+        load_curve_kw.sfa = 1000
 
         # append unit curve to main.k
         self.kw_database.main.append(load_curve_kw)
@@ -1648,6 +1695,9 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
     def update(self):
         """Update the keyword database."""
+
+        bc_settings = self.settings.mechanics.boundary_conditions
+
         self._update_main_db(add_damping=False)
 
         self.kw_database.main.title = self.model.info.model_type + " zero-pressure"
@@ -1668,8 +1718,8 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # self._update_cap_elements_db()
 
         # # Approximate end-diastolic pressures
-        pressure_lv = self.parameters["ED pressure"]["Left Ventricle"]  # kPa
-        pressure_rv = self.parameters["ED pressure"]["Right Ventricle"]  # kPa
+        pressure_lv = bc_settings.end_diastolic_cavity_pressure.left_ventricle.m
+        pressure_rv = bc_settings.end_diastolic_cavity_pressure.right_ventricle.m
 
         self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
@@ -1745,9 +1795,13 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         return
 
-    def _add_solution_controls(self, scale_time=1):
+    def _add_solution_controls(self):
         """Rewrite method for the zerop simulation."""
-        self.kw_database.main.append(keywords.ControlTermination(endtim=1.0 * scale_time))
+
+        settings = copy.deepcopy(self.settings.stress_free)
+        settings._remove_units()
+
+        self.kw_database.main.append(keywords.ControlTermination(endtim=settings.analysis.end_time))
 
         self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
         # self.kw_database.main.append(
@@ -1756,12 +1810,14 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         # add auto controls
         self.kw_database.main.append(
-            keywords.ControlImplicitAuto(iauto=1, dtmin=0.01 * scale_time, dtmax=0.1 * scale_time)
+            keywords.ControlImplicitAuto(
+                iauto=1, dtmin=settings.analysis.dtmin, dtmax=settings.analysis.dtmax
+            )
         )
 
         # add general implicit controls
         self.kw_database.main.append(
-            keywords.ControlImplicitGeneral(imflag=1, dt0=0.1 * scale_time)
+            keywords.ControlImplicitGeneral(imflag=1, dt0=settings.analysis.dtmax)
         )
 
         # add implicit solution controls: Defaults are OK?
@@ -1771,7 +1827,9 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.kw_database.main.append(custom_keywords.ControlImplicitSolver())
 
         # add binout for post-process
-        self.kw_database.main.append(keywords.DatabaseNodout(dt=0.2 * scale_time, binary=2))
+        self.kw_database.main.append(
+            keywords.DatabaseNodout(dt=settings.analysis.dt_nodout, binary=2)
+        )
 
         # write for all nodes in nodout
         nodeset_id = self.get_unique_nodeset_id()
@@ -2508,7 +2566,6 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
             )
 
     def _update_main_db(self):
-
         return
 
     def _get_list_of_includes(self):
@@ -2820,7 +2877,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         return
 
     def _update_main_db(self):
-
         return
 
     def _get_list_of_includes(self):
@@ -3115,22 +3171,25 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
     def _update_material_db(self, add_active: bool = True):
         """Update the database of material keywords."""
-        for part in self.model.parts:
+        material_settings = copy.deepcopy(self.settings.mechanics.material)
+        # removes all units from settings, hence <attribute>.m not required anymore to access value.
+        material_settings._remove_units()
 
+        for part in self.model.parts:
             if "ventricle" in part.name.lower() or "septum" in part.name.lower():
                 if not add_active:
                     active_dct = None
                 else:
                     active_dct = {
-                        "actype": self.parameters["Material"]["Myocardium"]["Active"]["Actype"],
-                        "taumax": self.parameters["Material"]["Myocardium"]["Active"]["Tmax"],
-                        "ca2ionm": self.parameters["Material"]["Myocardium"]["Active"]["ca2ionm"],
+                        "actype": material_settings.myocardium["active"]["actype"],
+                        "taumax": material_settings.myocardium["active"]["tmax"],
+                        "ca2ionm": material_settings.myocardium["active"]["ca2ionm"],
                     }
 
                 myocardium_kw = MaterialHGOMyocardium(
                     mid=part.mid,
-                    iso_user=self.parameters["Material"]["Myocardium"]["Isotropic"],
-                    anisotropy_user=self.parameters["Material"]["Myocardium"]["Anisotropic"],
+                    iso_user=material_settings.myocardium["isotropic"],
+                    anisotropy_user=material_settings.myocardium["anisotropic"],
                     active_user=active_dct,
                 )
 
@@ -3140,7 +3199,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
                 # add atrium material
                 # atrium_kw = MaterialAtrium(mid=part.mid)
                 atrium_kw = MaterialHGOMyocardium(
-                    mid=part.mid, iso_user=self.parameters["Material"]["Atrium"]
+                    mid=part.mid, iso_user=dict(material_settings.atrium)
                 )
 
                 self.kw_database.material.append(atrium_kw)
@@ -3150,7 +3209,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
                 # general_tissue_kw = MaterialAtrium(mid=part.mid)
                 general_tissue_kw = MaterialHGOMyocardium(
-                    mid=part.mid, iso_user=self.parameters["Material"]["Atrium"]
+                    mid=part.mid, iso_user=dict(material_settings.atrium)
                 )
                 self.kw_database.material.append(general_tissue_kw)
 

@@ -19,6 +19,7 @@ from typing import Literal
 from ansys.heart.misc.element_orth import read_orth_element_kfile
 from ansys.heart.preprocessor.models import HeartModel
 import ansys.heart.writer.dynawriter as writers
+from ansys.heart.simulator.settings.settings import SimulationSettings
 
 
 class BaseSimulator:
@@ -63,7 +64,15 @@ class BaseSimulator:
 
         self.root_directory = simulation_directory
         """Root simulation directory."""
+
+        self.settings: SimulationSettings = SimulationSettings()
+        """Simulation settings."""
         pass
+
+    def load_default_settings(self) -> SimulationSettings:
+        """Loads default simulation settings."""
+        self.settings.load_defaults()
+        return self.settings
 
     def compute_fibers(self):
         """Compute the fiber direction on the model."""

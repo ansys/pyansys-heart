@@ -122,11 +122,6 @@ class BaseDynaWriter:
         self.settings.to_consistent_unit_system()
         self._check_settings()
 
-        """Load simulation parameters."""
-        from ansys.heart.writer._deprecated_parameters import _deprecated_parameters
-
-        self._deprecated_parameters = _deprecated_parameters
-
         if "Improved" in self.model.info.model_type:
             LOGGER.warning(
                 "Changing model type from : {0} to {1}".format(

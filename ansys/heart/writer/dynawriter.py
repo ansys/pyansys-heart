@@ -592,14 +592,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
         with_dynain: bool, optional
             Use dynain.lsda file from stress free configuration computation.
         """
+        self._update_main_db()
+        self._update_parts_db()
+
         if not with_dynain:
             self._update_node_db()
             self._update_solid_elements_db(add_fibers=True)
         else:
             self.kw_database.main.append(keywords.Include(filename="dynain.lsda"))
 
-        self._update_parts_db()
-        self._update_main_db()
         self._update_segmentsets_db()
         self._update_nodesets_db()
         self._update_material_db(add_active=True)

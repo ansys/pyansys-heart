@@ -1615,7 +1615,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
                         ssid=seg_id, lcid=load_curve_id, sf=scale_factor
                     )
                     self.kw_database.main.append(load_segset_kw)
-                elif surface.name == "Right ventricle endocardium":
+                elif (
+                    surface.name == "Right ventricle endocardium"
+                    or surface.name == "Right ventricle endocardium septum"
+                ):
                     scale_factor = pressure_rv
                     seg_id = surface.id
                     load_segset_kw = keywords.LoadSegmentSet(

@@ -643,14 +643,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
         with_dynain: bool, optional
             Use dynain.lsda file from stress free configuration computation.
         """
+        self._update_main_db()
+        self._update_parts_db()
+
         if not with_dynain:
             self._update_node_db()
             self._update_solid_elements_db(add_fibers=True)
         else:
             self.kw_database.main.append(keywords.Include(filename="dynain.lsda"))
 
-        self._update_parts_db()
-        self._update_main_db()
         self._update_segmentsets_db()
         self._update_nodesets_db()
         self._update_material_db(add_active=True)
@@ -1660,7 +1661,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
                         ssid=seg_id, lcid=load_curve_id, sf=scale_factor
                     )
                     self.kw_database.main.append(load_segset_kw)
-                elif surface.name == "Right ventricle endocardium":
+                elif (
+                    surface.name == "Right ventricle endocardium"
+                    or surface.name == "Right ventricle endocardium septum"
+                ):
                     scale_factor = pressure_rv
                     seg_id = surface.id
                     load_segset_kw = keywords.LoadSegmentSet(

@@ -1451,6 +1451,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
             material_kw = MaterialHGOMyocardium(
                 mid=mat_null_id, iso_user=dict(material_settings.cap)
             )
+        else:
+            if material_settings.cap["type"] != "null":
+                LOGGER.warning("Cap elements will be set as null material.")
+            material_kw = keywords.MatNull(
+                mid=mat_null_id,
+                ro=material_settings.cap["rho"],
+            )
         section_kw = keywords.SectionShell(
             secid=section_id,
             elform=4,

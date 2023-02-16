@@ -38,7 +38,7 @@ if __name__ == "__main__":
             for writer in (
                 writers.FiberGenerationDynaWriter(model),
                 # writers.ZeroPressureMechanicsDynaWriter(model),
-                writers.MechanicsDynaWriter(model, "ConstantPreloadWindkesselAfterload"),
+                writers.MechanicsDynaWriter(model),
             ):
                 exportdir = os.path.join(
                     workdir,

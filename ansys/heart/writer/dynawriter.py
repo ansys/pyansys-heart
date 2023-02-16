@@ -598,14 +598,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self,
         model: HeartModel,
         settings: SimulationSettings = None,
-        system_model_name: str = "ClosedLoop",
     ) -> None:
         super().__init__(model=model, settings=settings)
 
         self.kw_database = MechanicsDecks()
         """Collection of keyword decks relevant for mechanics."""
 
-        self.system_model_name = system_model_name
+        self.system_model_name = self.settings.mechanics.system.name
         """Name of system model to use."""
 
         # Depending on the system model specified give list of parameters

@@ -18,7 +18,9 @@ from typing import Literal
 
 from ansys.heart.misc.element_orth import read_orth_element_kfile
 from ansys.heart.preprocessor.models import HeartModel
+from ansys.heart.simulator.settings.settings import SimulationSettings
 import ansys.heart.writer.dynawriter as writers
+import numpy as np
 
 
 class BaseSimulator:
@@ -63,7 +65,15 @@ class BaseSimulator:
 
         self.root_directory = simulation_directory
         """Root simulation directory."""
+
+        self.settings: SimulationSettings = SimulationSettings()
+        """Simulation settings."""
         pass
+
+    def load_default_settings(self) -> SimulationSettings:
+        """Load default simulation settings."""
+        self.settings.load_defaults()
+        return self.settings
 
     def compute_fibers(self):
         """Compute the fiber direction on the model."""
@@ -71,6 +81,7 @@ class BaseSimulator:
 
         print("Computing fiber orientation...")
 
+        self.settings.save(os.path.join(directory, "simulation_settings.yml"))
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
 
@@ -153,7 +164,7 @@ class BaseSimulator:
         export_directory = os.path.join(self.root_directory, "fibergeneration")
         self.directories["fibergeneration"] = export_directory
 
-        dyna_writer = writers.FiberGenerationDynaWriter(copy.deepcopy(self.model))
+        dyna_writer = writers.FiberGenerationDynaWriter(copy.deepcopy(self.model), self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory)
 
@@ -181,6 +192,7 @@ class EPSimulator(BaseSimulator):
 
         print("Launching main EP simulation...")
 
+        self.settings.save(os.path.join(directory, "simulation_settings.yml"))
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
 
@@ -192,8 +204,11 @@ class EPSimulator(BaseSimulator):
         directory = self._write_purkinje_files()
 
         print("Computing the Purkinje network...")
+
+        self.settings.save(os.path.join(directory, "simulation_settings.yml"))
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
+
         print("done.")
 
         print("Assign the Purkinje network to the model...")
@@ -206,7 +221,7 @@ class EPSimulator(BaseSimulator):
         export_directory = os.path.join(self.root_directory, "main-ep")
         self.directories["main-ep"] = export_directory
 
-        dyna_writer = writers.ElectrophysiologyDynaWriter(self.model)
+        dyna_writer = writers.ElectrophysiologyDynaWriter(self.model, self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory)
 
@@ -242,7 +257,7 @@ class EPSimulator(BaseSimulator):
         export_directory = os.path.join(self.root_directory, "purkinjegeneration")
         self.directories["purkinjegeneration"] = export_directory
 
-        dyna_writer = writers.PurkinjeGenerationDynaWriter(copy.deepcopy(self.model))
+        dyna_writer = writers.PurkinjeGenerationDynaWriter(copy.deepcopy(self.model), self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory)
         return export_directory
@@ -290,7 +305,10 @@ class MechanicsSimulator(BaseSimulator):
                 self._write_main_simulation_files()
 
         print("Launching main simulation...")
+
+        self.settings.save(os.path.join(directory, "simulation_settings.yml"))
         self._run_dyna(input_file)
+
         print("done.")
         return
 
@@ -304,10 +322,13 @@ class MechanicsSimulator(BaseSimulator):
             Update mesh node coordinates after computation.
         """
         directory = self._write_stress_free_configuration_files()
-        input_file = os.path.join(directory, "main.k")
 
         print("Computing stress-free configuration...")
+
+        self.settings.save(os.path.join(directory, "simulation_settings.yml"))
+        input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file, options="case")
+
         print("done.")
 
         if update_mesh:
@@ -328,7 +349,9 @@ class MechanicsSimulator(BaseSimulator):
         export_directory = os.path.join(self.root_directory, "main-mechanics")
         self.directories["main-mechanics"] = export_directory
 
-        dyna_writer = writers.MechanicsDynaWriter(self.model, "ConstantPreloadWindkesselAfterload")
+        dyna_writer = writers.MechanicsDynaWriter(
+            self.model, self.settings, system_model_name="ConstantPreloadWindkesselAfterload"
+        )
         dyna_writer.update(with_dynain=self.initial_stress)
         dyna_writer.export(export_directory)
 
@@ -339,7 +362,7 @@ class MechanicsSimulator(BaseSimulator):
         export_directory = os.path.join(self.root_directory, "zeropressure")
         self.directories["zeropressure"] = export_directory
 
-        dyna_writer = writers.ZeroPressureMechanicsDynaWriter(self.model)
+        dyna_writer = writers.ZeroPressureMechanicsDynaWriter(self.model, self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory)
 

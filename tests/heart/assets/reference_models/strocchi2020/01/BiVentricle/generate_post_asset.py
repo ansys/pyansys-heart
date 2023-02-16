@@ -10,6 +10,6 @@ import ansys.heart.preprocessor.models as models
 import ansys.heart.writer.dynawriter as writers
 
 model = models.HeartModel.load_model("heart_model.pickle")
-writer = writers.MechanicsDynaWriter(model, "ConstantPreloadWindkesselAfterload")
+writer = writers.MechanicsDynaWriter(model)
 writer.update()
 writer.export("post")

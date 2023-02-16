@@ -32,12 +32,13 @@ material = {
         "itype": -1,
         "mu1": Quantity(0.0349, "MPa"),
         "alpha1": 2,
-        "Comment": "Should be equivalent with MAT_077_H",
     },
     "cap": {
+        "type": "stiff",
         "rho": Quantity(0.001, "g/mm^3"),
-        "nu": 0.499,
-        "c10": Quantity(1.0, "MPa"),
+        "itype": -1,
+        "mu1": Quantity(2.0, "MPa"),
+        "alpha1": 2,
         "thickness": Quantity(5.0, "mm"),
     },
 }

@@ -47,7 +47,7 @@ from ansys.heart.writer.keyword_module import (
     fast_element_writer,
     get_list_of_used_ids,
 )
-from ansys.heart.writer.material_keywords import MaterialAtrium, MaterialHGOMyocardium, active_curve
+from ansys.heart.writer.material_keywords import MaterialHGOMyocardium, active_curve
 import numpy as np
 import pandas as pd
 import pkg_resources
@@ -1444,21 +1444,19 @@ class MechanicsDynaWriter(BaseDynaWriter):
         mat_null_id = self.get_unique_mat_id()
 
         # material_kw = MaterialCap(mid=mat_null_id)
-        material_settings = self.settings.mechanics.material
+        material_settings = copy.deepcopy(self.settings.mechanics.material)
+        material_settings._remove_units()
 
-        material_kw = MaterialAtrium(
-            mid=mat_null_id,
-            rho=material_settings.cap["rho"].m,
-            poisson_ratio=material_settings.cap["nu"],
-            c10=material_settings.cap["c10"],
-        )
-
+        if material_settings.cap["type"] == "stiff":
+            material_kw = MaterialHGOMyocardium(
+                mid=mat_null_id, iso_user=dict(material_settings.cap)
+            )
         section_kw = keywords.SectionShell(
             secid=section_id,
             elform=4,
             shrf=0.8333,
             nip=3,
-            t1=material_settings.cap["thickness"].m,
+            t1=material_settings.cap["thickness"],
         )
 
         self.kw_database.cap_elements.append(material_kw)

@@ -69,8 +69,6 @@ class BaseSimulator:
         self.settings: SimulationSettings = SimulationSettings()
         """Simulation settings."""
 
-        # Load default settings
-        self.load_default_settings()
         pass
 
     def load_default_settings(self) -> SimulationSettings:

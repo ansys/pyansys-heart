@@ -16,10 +16,10 @@ material = {
     "myocardium": {
         "isotropic": {
             "rho": Quantity(0.001, "g/mm^3"),
-            "k1": Quantity(0.0023599999999999997, "N/mm"),
+            "k1": Quantity(0.0023599999999999997, "MPa"),
             "k2": Quantity(1.75),
         },
-        "anisotropic": {"k1": Quantity(0.00049, "N/mm"), "k2": Quantity(9.01, "dimensionless")},
+        "anisotropic": {"k1": Quantity(0.00049, "MPa"), "k2": Quantity(9.01, "dimensionless")},
         "active": {
             "actype": 1,
             "tmax": Quantity(0.125, "MPa"),
@@ -30,14 +30,15 @@ material = {
     "atrium": {
         "rho": Quantity(0.001, "g/mm^3"),
         "itype": -1,
-        "mu1": 0.0349,
+        "mu1": Quantity(0.0349, "MPa"),
         "alpha1": 2,
-        "Comment": "Should be equivalent with MAT_077_H",
     },
     "cap": {
+        "type": "null",
         "rho": Quantity(0.001, "g/mm^3"),
-        "nu": 0.499,
-        "c10": 1.0,
+        "itype": -1,
+        "mu1": Quantity(2.0, "MPa"),
+        "alpha1": 2,
         "thickness": Quantity(5.0, "mm"),
     },
 }

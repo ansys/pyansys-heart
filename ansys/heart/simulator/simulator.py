@@ -68,6 +68,7 @@ class BaseSimulator:
 
         self.settings: SimulationSettings = SimulationSettings()
         """Simulation settings."""
+
         pass
 
     def load_default_settings(self) -> SimulationSettings:
@@ -350,7 +351,8 @@ class MechanicsSimulator(BaseSimulator):
         self.directories["main-mechanics"] = export_directory
 
         dyna_writer = writers.MechanicsDynaWriter(
-            self.model, self.settings, system_model_name="ConstantPreloadWindkesselAfterload"
+            self.model,
+            self.settings,
         )
         dyna_writer.update(with_dynain=self.initial_stress)
         dyna_writer.export(export_directory)

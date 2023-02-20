@@ -48,20 +48,32 @@ class EDPVR:
                 volume[i] = self.v0
         return volume
 
-    def plot_EDPVR(self):
-        """Plot end-diastolic pressure-volume relation."""
+    def plot_EDPVR(self, simulation_data=None):
+        """
+        Plot end-diastolic pressure-volume relation.
+
+        Parameters
+        ----------
+        simulation_data: optional, plot if exist.
+        """
         vv = np.linspace(0, 1.1 * self.vm, num=101)
         pp = self.get_pressure(vv)
 
+        fig = plt.figure()
+
         plt.plot(vv, pp, label="Klotz curve")
-        plt.plot(self.v0, 0, "o", label="V0")
-        plt.plot(self.vm, self.pm, "o", label="Vm,Pm")
+        plt.plot(self.v0, 0, "o", label="Klotz V0")
+        plt.plot(self.vm, self.pm, "o", label="V_ED, P_ED")
+
+        if simulation_data is not None:
+            plt.plot(simulation_data[0], simulation_data[1], "--*", label="Simulation")
+
         plt.title("EDVPR", fontsize=14)
         plt.xlabel("Volume (mL)", fontsize=14)
         plt.ylabel("Pressure (mmHg)", fontsize=14)
         plt.legend()
-        plt.show()
-        return
+
+        return fig
 
 
 if __name__ == "__main__":

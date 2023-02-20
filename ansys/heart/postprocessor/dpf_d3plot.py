@@ -27,6 +27,7 @@ class D3plotReader:
 
         self.model = dpf.Model(ds)
         self.results = self.model.results
+        self.time = self.model.metadata.time_freq_support.time_frequencies.data
 
     def get_displacement(self):
         """Get displacement."""

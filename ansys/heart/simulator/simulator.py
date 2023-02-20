@@ -18,6 +18,7 @@ import subprocess
 from typing import Literal
 
 from ansys.heart.misc.element_orth import read_orth_element_kfile
+from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.dpf_d3plot import D3plotReader
 from ansys.heart.preprocessor.mesh.objects import Cavity, SurfaceMesh
 from ansys.heart.preprocessor.models import HeartModel, LeftVentricle
@@ -285,6 +286,9 @@ class MechanicsSimulator(BaseSimulator):
         # include initial stress by default
         self.initial_stress = initial_stress
 
+        """A dictionary save stress free computation information"""
+        self.stress_free_report = None
+
         return
 
     def simulate(self):
@@ -331,6 +335,12 @@ class MechanicsSimulator(BaseSimulator):
         def _post():
             """Post process zeropressure folder."""
             data = D3plotReader(glob.glob(os.path.join(directory, "iter*.d3plot"))[-1])
+            expected_time = self.settings.stress_free.analysis.end_time.to("millisecond").m
+
+            if data.time[-1] != expected_time:
+                Warning("Stress free computation is not converged, skip post process.")
+                return None
+
             stress_free_coord = data.get_initial_coordinates()
             displacements = data.get_displacement()
 
@@ -376,29 +386,57 @@ class MechanicsSimulator(BaseSimulator):
             true_lv_ed_volume = self.model.cavities[0].volume
             volume_error = [(lv_volumes[-1] - true_lv_ed_volume) / true_lv_ed_volume]
 
+            # Klotz curve information
+            # unit is mL and mmHg
+            lv_pr_mmhg = (
+                self.settings.mechanics.boundary_conditions.end_diastolic_cavity_pressure[
+                    "left_ventricle"
+                ]
+                .to("mmHg")
+                .m
+            )
+
+            klotz = EDPVR(true_lv_ed_volume / 1000, lv_pr_mmhg)
+            sim_vol_ml = [v / 1000 for v in lv_volumes]
+            sim_pr = lv_pr_mmhg * data.time / data.time[-1]
+
+            fig = klotz.plot_EDPVR(simulation_data=[sim_vol_ml, sim_pr])
+            fig.savefig(os.path.join(directory, "klotz.png"))
+
             dct = {
-                "True left ventricle volume": true_lv_ed_volume,
-                "Simulation Left ventricle volume": lv_volumes,
+                "Simulation output time (ms)": data.time.tolist(),
+                "Left ventricle EOD pressure (mmHg)": lv_pr_mmhg,
+                "True left ventricle volume (mm3)": true_lv_ed_volume,
+                "Simulation Left ventricle volume (mm3)": lv_volumes,
                 "Convergence": {
-                    "max_error": error_max,
-                    "mean_error": error_mean,
-                    "relative volume error": volume_error,
+                    "max_error (mm)": error_max,
+                    "mean_error (mm)": error_mean,
+                    "relative volume error (100%)": volume_error,
                 },
             }
 
+            # right ventricle exist
             if not isinstance(self.model, LeftVentricle):
                 rv_volumes = _post_cavity("right_ventricle")
                 true_rv_ed_volume = self.model.cavities[1].volume
                 volume_error.append((rv_volumes[-1] - true_rv_ed_volume) / true_rv_ed_volume)
 
+                rv_pr_mmhg = (
+                    self.settings.mechanics.boundary_conditions.end_diastolic_cavity_pressure[
+                        "right_ventricle"
+                    ]
+                    .to("mmHg")
+                    .m
+                )
+                dct["Right ventricle EOD pressure (mmHg)"] = rv_pr_mmhg
                 dct["True right ventricle volume"] = true_rv_ed_volume
                 dct["Simulation Right ventricle volume"] = rv_volumes
 
-            # dump info
-            with open(os.path.join(directory, "Post_report.json"), "w") as f:
-                json.dump(dct, f)
+            return dct
 
-        _post()
+        self.stress_free_report = _post()
+        with open(os.path.join(directory, "Post_report.json"), "w") as f:
+            json.dump(self.stress_free_report, f)
 
         return
 

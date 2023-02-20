@@ -1081,7 +1081,13 @@ class HeartModel:
         # This will find the valve/cap nodes
         for part in self.parts:
             for surface in part.surfaces:
-                surface.get_boundary_edges()
+
+                # special treatment since a part of surface is defined in septum
+                if surface.name == "Right ventricle endocardium":
+                    surface.get_boundary_edges(append_triangles=part.surfaces[2].triangles)
+                else:
+                    surface.get_boundary_edges()
+
                 if not "endocardium" in surface.name:
                     continue
                 for edge_group in surface.edge_groups:

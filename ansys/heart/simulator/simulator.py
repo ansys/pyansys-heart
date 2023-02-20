@@ -10,6 +10,7 @@ Options for simulation:
 """
 import copy
 import glob as glob
+import json
 import os
 import pathlib as Path
 import shutil
@@ -17,7 +18,10 @@ import subprocess
 from typing import Literal
 
 from ansys.heart.misc.element_orth import read_orth_element_kfile
-from ansys.heart.preprocessor.models import HeartModel
+from ansys.heart.postprocessor.Klotz_curve import EDPVR
+from ansys.heart.postprocessor.dpf_d3plot import D3plotReader
+from ansys.heart.preprocessor.mesh.objects import Cavity, SurfaceMesh
+from ansys.heart.preprocessor.models import HeartModel, LeftVentricle
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 import numpy as np
@@ -282,6 +286,9 @@ class MechanicsSimulator(BaseSimulator):
         # include initial stress by default
         self.initial_stress = initial_stress
 
+        """A dictionary save stress free computation information"""
+        self.stress_free_report = None
+
         return
 
     def simulate(self):
@@ -313,15 +320,8 @@ class MechanicsSimulator(BaseSimulator):
         print("done.")
         return
 
-    def compute_stress_free_configuration(self, update_mesh=True):
-        """
-        Compute the stress-free configuration of the model.
-
-        Parameters
-        ----------
-        update_mesh: Boolean, optional
-            Update mesh node coordinates after computation.
-        """
+    def compute_stress_free_configuration(self):
+        """Compute the stress-free configuration of the model."""
         directory = self._write_stress_free_configuration_files()
 
         print("Computing stress-free configuration...")
@@ -332,17 +332,112 @@ class MechanicsSimulator(BaseSimulator):
 
         print("done.")
 
-        if update_mesh:
-            Warning("Replace by methods from postprocessing module.")
-            binout_files = glob.glob(os.path.join(directory, "iter*.binout"))
-            iter_files = glob.glob(os.path.join(directory, "iter*.guess"))
+        def _post():
+            """Post process zeropressure folder."""
+            data = D3plotReader(glob.glob(os.path.join(directory, "iter*.d3plot"))[-1])
+            expected_time = self.settings.stress_free.analysis.end_time.to("millisecond").m
 
-            # read nodes of last iteration. (avoid qd dependency for now.)
-            stress_free_nodes = np.loadtxt(
-                iter_files[-1], skiprows=2, max_rows=self.model.mesh.nodes.shape[0]
+            if data.time[-1] != expected_time:
+                Warning("Stress free computation is not converged, skip post process.")
+                return None
+
+            stress_free_coord = data.get_initial_coordinates()
+            displacements = data.get_displacement()
+
+            # convergence information
+            dst = np.linalg.norm(
+                stress_free_coord + displacements[-1] - self.model.mesh.points, axis=1
+            )
+            error_mean = np.mean(dst)
+            error_max = np.max(dst)
+
+            # geometry information
+            self.model.mesh.save(os.path.join(directory, "True_ED.vtk"))
+            tmp = copy.deepcopy(self.model)
+            tmp.mesh.points = stress_free_coord
+            tmp.mesh.save(os.path.join(directory, "zerop.vtk"))
+            tmp.mesh.points = stress_free_coord + displacements[-1]
+            tmp.mesh.save(os.path.join(directory, "Simu_ED.vtk"))
+
+            def _post_cavity(name: str):
+                """Extract cavity volume."""
+                try:
+                    faces = (
+                        np.loadtxt(
+                            os.path.join(directory, name + ".segment"), delimiter=",", dtype=int
+                        )
+                        - 1
+                    )
+                except FileExistsError:
+                    print(f"Cannot find {name}.segment")
+
+                volumes = []
+                for i, dsp in enumerate(displacements):
+                    cavity_surface = SurfaceMesh(
+                        name=name, triangles=faces, nodes=stress_free_coord + dsp
+                    )
+                    cavity_surface.save(os.path.join(directory, f"{name}_{i}.stl"))
+                    volumes.append(Cavity(cavity_surface).volume)
+
+                return volumes
+
+            # cavity information
+            lv_volumes = _post_cavity("left_ventricle")
+            true_lv_ed_volume = self.model.cavities[0].volume
+            volume_error = [(lv_volumes[-1] - true_lv_ed_volume) / true_lv_ed_volume]
+
+            # Klotz curve information
+            # unit is mL and mmHg
+            lv_pr_mmhg = (
+                self.settings.mechanics.boundary_conditions.end_diastolic_cavity_pressure[
+                    "left_ventricle"
+                ]
+                .to("mmHg")
+                .m
             )
 
-            self.model.mesh.points = stress_free_nodes[:, 1:]
+            klotz = EDPVR(true_lv_ed_volume / 1000, lv_pr_mmhg)
+            sim_vol_ml = [v / 1000 for v in lv_volumes]
+            sim_pr = lv_pr_mmhg * data.time / data.time[-1]
+
+            fig = klotz.plot_EDPVR(simulation_data=[sim_vol_ml, sim_pr])
+            fig.savefig(os.path.join(directory, "klotz.png"))
+
+            dct = {
+                "Simulation output time (ms)": data.time.tolist(),
+                "Left ventricle EOD pressure (mmHg)": lv_pr_mmhg,
+                "True left ventricle volume (mm3)": true_lv_ed_volume,
+                "Simulation Left ventricle volume (mm3)": lv_volumes,
+                "Convergence": {
+                    "max_error (mm)": error_max,
+                    "mean_error (mm)": error_mean,
+                    "relative volume error (100%)": volume_error,
+                },
+            }
+
+            # right ventricle exist
+            if not isinstance(self.model, LeftVentricle):
+                rv_volumes = _post_cavity("right_ventricle")
+                true_rv_ed_volume = self.model.cavities[1].volume
+                volume_error.append((rv_volumes[-1] - true_rv_ed_volume) / true_rv_ed_volume)
+
+                rv_pr_mmhg = (
+                    self.settings.mechanics.boundary_conditions.end_diastolic_cavity_pressure[
+                        "right_ventricle"
+                    ]
+                    .to("mmHg")
+                    .m
+                )
+                dct["Right ventricle EOD pressure (mmHg)"] = rv_pr_mmhg
+                dct["True right ventricle volume"] = true_rv_ed_volume
+                dct["Simulation Right ventricle volume"] = rv_volumes
+
+            return dct
+
+        self.stress_free_report = _post()
+        with open(os.path.join(directory, "Post_report.json"), "w") as f:
+            json.dump(self.stress_free_report, f)
+
         return
 
     def _write_main_simulation_files(self):

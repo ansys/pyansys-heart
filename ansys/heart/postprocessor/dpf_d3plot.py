@@ -27,27 +27,66 @@ class D3plotReader:
 
         # server = dpf.start_local_server()
 
-        ds = dpf.DataSources()
-        ds.set_result_file_path(path, "d3plot")
+        self.ds = dpf.DataSources()
+        self.ds.set_result_file_path(path, "d3plot")
 
-        self.model = dpf.Model(ds)
-        self.results = self.model.results
+        self.model = dpf.Model(self.ds)
+
+        # common
+        self.meshgrid = self.model.metadata.meshed_region.grid
         self.time = self.model.metadata.time_freq_support.time_frequencies.data
 
-    # todo extract history output: F, active stress...
+    def get_initial_coordinates(self):
+        """Get initial coordinates."""
+        return self.model.results.initial_coordinates.eval()[0].data
 
     def get_displacement(self):
         """Get displacement."""
-        displacements = self.results.displacement.on_all_time_freqs
+        displacements = self.model.results.displacement.on_all_time_freqs
         fields = displacements.eval()
         res = []
         for f in fields:
             res.append(f.data)
         return res
 
-    def get_initial_coordinates(self):
-        """Get initial coordinates."""
-        return self.results.initial_coordinates.eval()[0].data
+    def get_history_variable(
+        self,
+        hv_index: List[int],
+        at_frame: int = 0,
+    ):
+        """
+                Get history variables in d3plot.
+
+        Parameters
+        ----------
+        hv_index: List[int]
+         history variables index.
+
+            For example:
+            1-9: Deformation gradient (column-wise storage),see *MAT_295 in LS-DYNA manual
+
+        at_frame: int
+            At frame.
+
+        Returns
+        -------
+            res
+        """
+        if at_frame > self.model.metadata.time_freq_support.n_sets:
+            print("Frame ID too big")
+            exit()
+
+        hist_op = dpf.Operator("lsdyna::d3plot::history_var")
+        time_scoping = dpf.Scoping(ids=[at_frame], location=dpf.locations.time_freq)
+        hist_op.connect(4, self.ds)  # why 4?
+        hist_op.connect(0, time_scoping)  # why 0
+        hist_vars = hist_op.eval()
+
+        res = []
+        for i in hv_index:
+            res.append(hist_vars[i].model)
+
+        return np.array(res)
 
     def export_vtk(
         self,
@@ -67,10 +106,6 @@ class D3plotReader:
         prefix: vtk file prefix, optional
 
         """
-        displacements = self.results.displacement.on_all_time_freqs
-        fields = displacements.eval()
-
-        mesh = self.model.metadata.meshed_region
         mat_ids = self.model.metadata.meshed_region.elements.materials_field.data
 
         if not np.all(np.isin(keep_mat_ids, np.unique(mat_ids))):
@@ -86,9 +121,13 @@ class D3plotReader:
             for id in keep_mat_ids:
                 keep_cells = keep_cells | (mat_ids == id)
 
+        # displacements = self.model.results.displacement.on_all_time_freqs
+        # fields = displacements.eval()
+        fields = self.get_displacement()
+
         for i, field in enumerate(fields):
-            # convert to pyvista grid
-            vista_grid = mesh.grid.copy()
+            # get pyvista grid
+            vista_grid = self.meshgrid.copy()
 
             # deform mesh by displacement
             vista_grid.points += field.data
@@ -116,8 +155,15 @@ class D3plotReader:
 
 
 if __name__ == "__main__":
+    # data = D3plotReader(r"D:\Heart20\healthy20\health03_BV_2mm\simulation\main-mechanics\d3plot")
+    # x = data.get_history_variable(at_frame=4, hv_index=[0])
+    # print(x.shape)
+    # x = data.get_history_variable(at_frame=1, hv_index=[0, 1, 2, 3, 4, 5, 6, 7, 8])
+    # print(x.shape)
+    #
+    # exit()
     data = D3plotReader("D:\Heart20\healthy20\health03_BV_2mm\simulation\zeropressure\iter3.d3plot")
-    # export to vtk:
+    # # export to vtk:
     data.export_vtk(".", keep_mat_ids=[1, 3])
 
 # dpf.operators.serialization.field_to_csv(

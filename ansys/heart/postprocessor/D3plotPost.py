@@ -212,3 +212,142 @@ class LVContourExporter(D3plotExporter):
                 np.array([mv_center[iframe], apex[iframe]]),
                 [("line", np.array([[0, 1]]))],
             )
+
+
+class LVContourExporter2:
+    """Export Left ventricle surface and Post-process."""
+
+    def __init__(self, d3plot_file: str, model: HeartModel):
+        """
+        Init.
+
+        Parameters
+        ----------
+        d3plot_file:
+        model:
+        """
+        self.model = model
+        self.work_dir = Path(d3plot_file).parent.absolute()
+
+        from ansys.heart.postprocessor.dpf_d3plot import D3plotReader
+
+        data = D3plotReader(d3plot_file)
+        self.data = data
+        self.out_folder = "lv_surface"
+        data.export_vtk(
+            os.path.join(self.work_dir, self.out_folder), only_surface=True, keep_mat_ids=[1, 3]
+        )
+        self.nb_frame = len(data.time)
+
+        self.lv_surfaces = []
+        for i in range(self.nb_frame):
+            abspath = os.path.join(self.work_dir, self.out_folder, f"model_{i}.vtk")
+            self.lv_surfaces.append(read_vtk_polydata_file(abspath))
+
+        # get ID of mesh
+        for ap in self.model.left_ventricle.apex_points:
+            if ap.name == "apex epicardium":
+                self.apex_id = ap.node_id
+        for cap in self.model.left_ventricle.caps:
+            if cap.name == "mitral-valve":
+                self.mv_ids = cap.node_ids
+
+    def export_contour_to_vtk(self, folder, cutter) -> [vtk.vtkPolyData]:
+        """
+        Cut and save the contour in vtk.
+
+        Parameters
+        ----------
+        cutter: dict contain 'center' and 'normal'
+        folder: output folder
+
+        Returns
+        -------
+        List of contour data
+        """
+        w_dir = os.path.join(self.work_dir, folder)
+        os.makedirs(w_dir, exist_ok=True)
+        contours = self._get_contours(cutter)
+        for ic, contour in enumerate(contours):
+            write_vtkdata_to_vtkfile(contour, os.path.join(w_dir, f"contour_{ic}.vtk"))
+        return contours
+
+    def _get_contours(self, cut_plane):
+        """
+        Cut.
+
+        Parameters
+        ----------
+        cut_plane: dict
+
+        Returns
+        -------
+        contours
+        """
+        cut_surfaces = []
+        for id, surface in enumerate(self.lv_surfaces):
+            res = vtk_cutter(surface, cut_plane)
+            cut_surfaces.append(res)
+        return cut_surfaces
+
+    def compute_lvls(self):
+        """
+        Compute left ventricle long axis shortening.
+
+        Returns
+        -------
+        Coordinates of mitral valve center and apex.
+        """
+        ic = self.data.get_initial_coordinates()
+        dsp = self.data.get_displacement()
+
+        # get coordinates
+        apex = np.zeros((self.nb_frame, 3))
+        mv_center = np.zeros((self.nb_frame, 3))
+
+        for iframe, d in enumerate(dsp):
+            apex[iframe, :] = ic[self.apex_id] + d[self.apex_id]
+            # coord = np.zeros(3)
+            # for point_id in self.mv_ids:
+            #     coord += (ic[point_id]+d[point_id]) / len(self.mv_ids)
+            coord = ic[self.mv_ids] + d[self.mv_ids]
+            mv_center[iframe, :] = np.mean(coord, axis=0)
+
+        return mv_center, apex
+
+    def plot_lvls(self):
+        """
+        Get lvls figure.
+
+        Returns
+        -------
+        fig: figure handle
+        """
+        mv_center, apex = self.compute_lvls()
+
+        fig, ax = plt.subplots(1)
+        ax.plot(np.linalg.norm(apex - mv_center, axis=1))
+        ax.set_xlabel("Time")
+        ax.set_ylabel("(mm)")
+        ax.set_xticklabels([])
+
+        return fig
+
+    def export_lvls_to_vtk(self, fodler="lvls_vtk"):
+        """
+        Export lvls as vtk Polyline.
+
+        Parameters
+        ----------
+        fodler: out folder
+        """
+        mv_center, apex = self.compute_lvls()
+
+        os.makedirs(os.path.join(self.work_dir, fodler), exist_ok=True)
+
+        for iframe in range(self.nb_frame):
+            meshio.write_points_cells(
+                os.path.join(self.work_dir, fodler, f"lvls_{iframe}.vtk"),
+                np.array([mv_center[iframe], apex[iframe]]),
+                [("line", np.array([[0, 1]]))],
+            )

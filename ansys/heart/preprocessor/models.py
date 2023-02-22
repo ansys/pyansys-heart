@@ -1291,9 +1291,14 @@ class HeartModel:
         label[:] = np.nan
 
         # anatomical points
-        mv_center = self.left_ventricle.caps[1].centroid
-        apex_ed = self.left_ventricle.apex_points[0].xyz
-        apex_ep = self.left_ventricle.apex_points[1].xyz
+        for cap in self.left_ventricle.caps:
+            if cap.name == "mitral-valve":
+                mv_center = cap.centroid
+        for apex in self.left_ventricle.apex_points:
+            if "endocardium" in apex.name:
+                apex_ed = apex.xyz
+            elif "epicardium" in apex.name:
+                apex_ep = apex.xyz
 
         # short axis
         short_axis = self.short_axis["normal"]

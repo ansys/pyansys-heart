@@ -18,7 +18,9 @@ import subprocess
 from typing import Literal
 
 from ansys.heart.misc.element_orth import read_orth_element_kfile
+from ansys.heart.postprocessor.D3plotPost import LVContourExporter
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
+from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 from ansys.heart.postprocessor.dpf_d3plot import D3plotReader
 from ansys.heart.preprocessor.mesh.objects import Cavity, SurfaceMesh
 from ansys.heart.preprocessor.models import HeartModel, LeftVentricle
@@ -318,6 +320,39 @@ class MechanicsSimulator(BaseSimulator):
         self._run_dyna(input_file)
 
         print("done.")
+
+        def _post():
+            os.makedirs(os.path.join(directory, "post"), exist_ok=True)
+
+            system = SystemModelPost(directory)
+            fig = system.plot_pv_loop()
+            fig.savefig(os.path.join(directory, "post", "pv.png"))
+
+            fig = system.plot_pressure_flow_volume(system.lv)
+            fig.savefig(os.path.join(directory, "post", "lv.png"))
+
+            fig = system.plot_pressure_flow_volume(system.rv)
+            fig.savefig(os.path.join(directory, "post", "rv.png"))
+
+            exporter = LVContourExporter(os.path.join(directory, "d3plot"), self.model)
+
+            self.model.compute_left_ventricle_anatomy_axis(first_cut_short_axis=0.2)
+            exporter.export_contour_to_vtk("l4cv", self.model.l4cv_axis)
+            exporter.export_contour_to_vtk("l2cv", self.model.l2cv_axis)
+            normal = self.model.short_axis["normal"]
+            p_start = self.model.short_axis["center"]
+            for ap in self.model.left_ventricle.apex_points:
+                if ap.name == "apex epicardium":
+                    p_end = ap.xyz
+
+            for icut in range(2):
+                p_cut = p_start + (p_end - p_start) * icut / 2
+                cutter = {"center": p_cut, "normal": normal}
+                exporter.export_contour_to_vtk(f"shor_{icut}", cutter)
+
+            exporter.export_lvls_to_vtk("lvls")
+
+        _post()
         return
 
     def compute_stress_free_configuration(self):
@@ -334,6 +369,7 @@ class MechanicsSimulator(BaseSimulator):
 
         def _post():
             """Post process zeropressure folder."""
+            os.makedirs(os.path.join(directory, "post"), exist_ok=True)
             data = D3plotReader(glob.glob(os.path.join(directory, "iter*.d3plot"))[-1])
             expected_time = self.settings.stress_free.analysis.end_time.to("millisecond").m
 
@@ -352,12 +388,12 @@ class MechanicsSimulator(BaseSimulator):
             error_max = np.max(dst)
 
             # geometry information
-            self.model.mesh.save(os.path.join(directory, "True_ED.vtk"))
+            self.model.mesh.save(os.path.join(directory, "post", "True_ED.vtk"))
             tmp = copy.deepcopy(self.model)
             tmp.mesh.points = stress_free_coord
-            tmp.mesh.save(os.path.join(directory, "zerop.vtk"))
+            tmp.mesh.save(os.path.join(directory, "post", "zerop.vtk"))
             tmp.mesh.points = stress_free_coord + displacements[-1]
-            tmp.mesh.save(os.path.join(directory, "Simu_ED.vtk"))
+            tmp.mesh.save(os.path.join(directory, "post", "Simu_ED.vtk"))
 
             def _post_cavity(name: str):
                 """Extract cavity volume."""
@@ -376,7 +412,7 @@ class MechanicsSimulator(BaseSimulator):
                     cavity_surface = SurfaceMesh(
                         name=name, triangles=faces, nodes=stress_free_coord + dsp
                     )
-                    cavity_surface.save(os.path.join(directory, f"{name}_{i}.stl"))
+                    cavity_surface.save(os.path.join(directory, "post", f"{name}_{i}.stl"))
                     volumes.append(Cavity(cavity_surface).volume)
 
                 return volumes
@@ -401,7 +437,7 @@ class MechanicsSimulator(BaseSimulator):
             sim_pr = lv_pr_mmhg * data.time / data.time[-1]
 
             fig = klotz.plot_EDPVR(simulation_data=[sim_vol_ml, sim_pr])
-            fig.savefig(os.path.join(directory, "klotz.png"))
+            fig.savefig(os.path.join(directory, "post", "klotz.png"))
 
             dct = {
                 "Simulation output time (ms)": data.time.tolist(),
@@ -435,7 +471,7 @@ class MechanicsSimulator(BaseSimulator):
             return dct
 
         self.stress_free_report = _post()
-        with open(os.path.join(directory, "Post_report.json"), "w") as f:
+        with open(os.path.join(directory, "post", "Post_report.json"), "w") as f:
             json.dump(self.stress_free_report, f)
 
         return

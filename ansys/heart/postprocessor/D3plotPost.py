@@ -35,11 +35,12 @@ class LVContourExporter:
         model:
         """
         self.model = model
-        self.work_dir = Path(d3plot_file).parent.absolute()
+        self.work_dir = os.path.join(Path(d3plot_file).parent.absolute(), "post")
         self.data = D3plotReader(d3plot_file)
         self.nb_frame = len(self.data.time)
 
         self.out_folder = "lv_surface"
+        os.makedirs(os.path.join(self.work_dir, self.out_folder), exist_ok=True)
         self.data.export_vtk(
             os.path.join(self.work_dir, self.out_folder), only_surface=True, keep_mat_ids=[1, 3]
         )

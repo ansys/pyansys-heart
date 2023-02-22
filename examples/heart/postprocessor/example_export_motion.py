@@ -1,4 +1,4 @@
-from ansys.heart.postprocessor.D3plotPost import LVContourExporter2
+from ansys.heart.postprocessor.D3plotPost import LVContourExporter
 from ansys.heart.preprocessor.models import HeartModel
 import matplotlib.pyplot as plt
 
@@ -12,7 +12,7 @@ if __name__ == "__main__":
 
     d3plot_file = r"D:\Heart20\healthy20\health03_BV_2mm\simulation\main-mechanics\d3plot"
 
-    exporter = LVContourExporter2(d3plot_file, model)
+    exporter = LVContourExporter(d3plot_file, model)
 
     # exporter.export_contour_to_vtk("l4cv", model.l4cv_axis)
     #

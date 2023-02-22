@@ -1,94 +1,55 @@
 """Compute myocardial strain."""
-from ansys.heart.postprocessor.binout_helper import Elout
 from ansys.heart.preprocessor.models import HeartModel
 import numpy as np
 
 
-def compute_myocardial_strain(model: HeartModel, elout_res: Elout, refrence_time=0):
-    """
-    Compute left ventricle myocardial strain.
-
-    Parameters
-    ----------
-    model: HeartModel
-    elout_res: Elout object
-    refrence_time: reference time of strain
-
-    Returns
-    -------
-    strain 3 * time * element
-    """
+def compute_myocardial_strain(model: HeartModel, deformation_gradient, reference=None):
+    """Compute left ventricle myocardial strain."""
     # model info
-    model.compute_left_ventricle_anatomy_axis()
-    model.compute_left_ventricle_aha17()
     e_l, e_r, e_c = model.compute_left_ventricle_element_cs()
+    ele_id = np.where(~np.isnan(model.aha_ids))[0]
 
-    # check
-    ele_id = np.where(~np.isnan(model.aha_ids))[0] + 1
-    # if not np.array_equal(np.sort(ele_id), np.sort(elout_res.ids)):
-    #     Exception("model id cannot match with elout file.")
-
-    indices = np.where(np.in1d(elout_res.ids, ele_id))[0]
-    strain = np.zeros((3, len(elout_res.time), len(ele_id)))
-    def_grad = elout_res.get_history_variable()[:, indices, 0:9]
-
-    # get strain at reference time
-    if refrence_time != 0:
-        ref_index = np.argmin(np.abs(elout_res.time - 1))
-        ref_def_grad = def_grad[ref_index, :, :].reshape(-1, 3, 3).swapaxes(1, 2)
-        ref_def_grad_inv = np.linalg.inv(ref_def_grad)
+    strain = np.zeros((len(ele_id), 3))
+    def_grad = deformation_gradient[ele_id]
+    if reference is not None:
+        pass
 
     # todo: vectorization
-    for i_time in range(len(elout_res.time)):
-        for i_ele in range(len(ele_id)):
-            if refrence_time != 0:
-                # absolute deformation gradient
-                f = def_grad[i_time, i_ele, :].reshape(3, 3).T
-                # deformation gradient based on the reference time
-                ff = np.matmul(ref_def_grad_inv[i_ele], f)
-                right_cauchy_green = np.matmul(ff.T, ff)
+    for i_ele in range(len(ele_id)):
+        if reference is not None:
+            pass
 
-            else:
-                right_cauchy_green = np.matmul(
-                    def_grad[i_time, i_ele, :].reshape(3, 3),
-                    def_grad[i_time, i_ele, :].reshape(3, 3).T,
-                )
+        else:
+            right_cauchy_green = np.matmul(
+                def_grad[i_ele, :].reshape(3, 3),
+                def_grad[i_ele, :].reshape(3, 3).T,
+            )
 
-            # Green Lagrangian strain: E = 0.5*(lambda**2-1)
-            # lambda = sqrt(e*right_cauchy_green*e)
-            strain[0, i_time, i_ele] = 0.5 * (
-                np.matmul(np.matmul(e_l[i_ele].T, right_cauchy_green), e_l[i_ele]) - 1
-            )
-            strain[1, i_time, i_ele] = 0.5 * (
-                np.matmul(np.matmul(e_r[i_ele].T, right_cauchy_green), e_r[i_ele]) - 1
-            )
-            strain[2, i_time, i_ele] = 0.5 * (
-                np.matmul(np.matmul(e_c[i_ele].T, right_cauchy_green), e_c[i_ele]) - 1
-            )
+        # Green Lagrangian strain: E = 0.5*(lambda**2-1)
+        # lambda = sqrt(e*right_cauchy_green*e)
+        strain[i_ele, 0] = 0.5 * (
+            np.matmul(np.matmul(e_l[i_ele].T, right_cauchy_green), e_l[i_ele]) - 1
+        )
+        strain[i_ele, 1] = 0.5 * (
+            np.matmul(np.matmul(e_r[i_ele].T, right_cauchy_green), e_r[i_ele]) - 1
+        )
+        strain[i_ele, 2] = 0.5 * (
+            np.matmul(np.matmul(e_c[i_ele].T, right_cauchy_green), e_c[i_ele]) - 1
+        )
 
     return strain
 
 
 def compute_AHA17_segment_strain(model: HeartModel, element_strain):
-    """
-    Average elemental strain for AHA17 segments.
+    """Average elemental strain for AHA17 segments."""
+    aha_strain = np.zeros((17, 3))
 
-    Parameters
-    ----------
-    model
-    element_strain
-
-    Returns
-    -------
-    strain 3 * time * 17
-    """
-    aha_strain = np.zeros((3, element_strain.shape[1], 17))
     # get aha17 label for left ventricle elements
     aha17_label = model.aha_ids[~np.isnan(model.aha_ids)]
+
     for i in range(1, 18):
         # get index in strain table
         indices = np.where(aha17_label == i)[0]
         # average
-        strain_avg = np.mean(element_strain[:, :, indices], axis=2)
-        aha_strain[:, :, i - 1] = strain_avg
+        aha_strain[i - 1] = np.mean(element_strain[indices, :], axis=0)
     return aha_strain

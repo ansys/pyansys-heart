@@ -6,6 +6,7 @@ Mostly related to the motion.
 import os
 from pathlib import Path
 
+from ansys.heart.postprocessor.dpf_d3plot import D3plotReader
 from ansys.heart.preprocessor.mesh.vtkmethods import (
     read_vtk_polydata_file,
     vtk_cutter,
@@ -17,6 +18,8 @@ import meshio
 import numpy as np
 import vtk
 from vtk.util.numpy_support import vtk_to_numpy  # noqa
+
+from heart.preprocessor.mesh.vtkmethods import vtk_cutter
 
 
 class LVContourExporter:
@@ -33,16 +36,13 @@ class LVContourExporter:
         """
         self.model = model
         self.work_dir = Path(d3plot_file).parent.absolute()
+        self.data = D3plotReader(d3plot_file)
+        self.nb_frame = len(self.data.time)
 
-        from ansys.heart.postprocessor.dpf_d3plot import D3plotReader
-
-        data = D3plotReader(d3plot_file)
-        self.data = data
         self.out_folder = "lv_surface"
-        data.export_vtk(
+        self.data.export_vtk(
             os.path.join(self.work_dir, self.out_folder), only_surface=True, keep_mat_ids=[1, 3]
         )
-        self.nb_frame = len(data.time)
 
         self.lv_surfaces = []
         for i in range(self.nb_frame):
@@ -72,27 +72,13 @@ class LVContourExporter:
         """
         w_dir = os.path.join(self.work_dir, folder)
         os.makedirs(w_dir, exist_ok=True)
-        contours = self._get_contours(cutter)
-        for ic, contour in enumerate(contours):
-            write_vtkdata_to_vtkfile(contour, os.path.join(w_dir, f"contour_{ic}.vtk"))
-        return contours
-
-    def _get_contours(self, cut_plane):
-        """
-        Cut.
-
-        Parameters
-        ----------
-        cut_plane: dict
-
-        Returns
-        -------
-        contours
-        """
         cut_surfaces = []
         for id, surface in enumerate(self.lv_surfaces):
-            res = vtk_cutter(surface, cut_plane)
+            res = vtk_cutter(surface, cutter)
             cut_surfaces.append(res)
+
+        for ic, contour in enumerate(cut_surfaces):
+            write_vtkdata_to_vtkfile(contour, os.path.join(w_dir, f"contour_{ic}.vtk"))
         return cut_surfaces
 
     def compute_lvls(self):
@@ -112,11 +98,7 @@ class LVContourExporter:
 
         for iframe, d in enumerate(dsp):
             apex[iframe, :] = ic[self.apex_id] + d[self.apex_id]
-            # coord = np.zeros(3)
-            # for point_id in self.mv_ids:
-            #     coord += (ic[point_id]+d[point_id]) / len(self.mv_ids)
-            coord = ic[self.mv_ids] + d[self.mv_ids]
-            mv_center[iframe, :] = np.mean(coord, axis=0)
+            mv_center[iframe, :] = np.mean(ic[self.mv_ids] + d[self.mv_ids], axis=0)
 
         return mv_center, apex
 

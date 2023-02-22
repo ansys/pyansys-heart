@@ -84,7 +84,7 @@ class D3plotReader:
 
         res = []
         for i in hv_index:
-            res.append(hist_vars[i].model)
+            res.append(hist_vars[i].data)
 
         return np.array(res)
 

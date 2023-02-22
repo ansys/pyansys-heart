@@ -1,4 +1,6 @@
-"""Methods and classes for postprocessing system model data."""
+"""Module for postprocessing system model data."""
+from dataclasses import dataclass
+import json
 import os
 
 from ansys.heart.postprocessor.binout_helper import IcvOut
@@ -6,6 +8,121 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
+
+
+@dataclass(init=False)
+class Pressure:
+    """System state for pressure."""
+
+    cavity: np.ndarray
+    artery: np.ndarray
+    venous: np.ndarray
+
+
+@dataclass(init=False)
+class Flow:
+    """System state for flow."""
+
+    cavity: np.ndarray
+    artery: np.ndarray
+    venous: np.ndarray
+    peripheral: np.ndarray
+
+
+@dataclass(init=False)
+class Volume:
+    """System state for volume."""
+
+    cavity: np.ndarray
+    artery: np.ndarray
+    venous: np.ndarray
+
+
+@dataclass
+class SystemState:
+    """
+    System state including pressure, flow, volume.
+
+    Notes: future use.
+    """
+
+    pressure: Pressure
+    flow: Flow
+    volume: Volume
+
+
+class ZeroDSystem:
+    """0D circulation system model (for one cavity)."""
+
+    def __init__(self, csv_path, ed_state, name=""):
+        """
+        Init.
+
+        Notes
+        -----
+            # from "ms, MPa, mm^3" to "s, kPa, mL"
+
+        Parameters
+        ----------
+        csv_path: str, csv file path
+        ed_state: List, End of Diastole pressure and volume
+        name: str, system name, like 'left_ventricle'
+
+        """
+        self.name = name
+        self.ed = ed_state
+
+        data = pd.read_csv(csv_path)
+
+        self.time = data["time"].to_numpy() / 1000
+
+        self.pressure = Pressure()
+        self.pressure.cavity = data["pk"].to_numpy() * 1000
+        self.pressure.artery = data["part"].to_numpy() * 1000
+        self.pressure.venous = data["pven"].to_numpy() * 1000
+
+        self.flow = Flow()
+        self.flow.cavity = data["qk"].to_numpy()
+        self.flow.artery = data["qart"].to_numpy()
+        self.flow.venous = data["qven"].to_numpy()
+        self.flow.peripheral = data["qp"].to_numpy()
+
+        self.volume = Volume()
+        self.volume.artery = data["vart"].to_numpy() / 1000
+        # integrate volume of cavity
+        self.volume.cavity = self.integrate_volume(self.ed[1], self.time, self.flow.cavity)
+
+        pass
+
+    @staticmethod
+    def integrate_volume(v0, t, q):
+        """
+        Integrate cavity's volume.
+
+        Note
+        ----
+            Cavity's volume is not evaluated/saved in csv file.
+
+            Use implicit with gamma=0.6
+
+        Parameters
+        ----------
+        v0: float, volume at time of 0
+        t: time array
+        q: flow array
+
+        Returns
+        -------
+            volume array
+        """
+        gamma = 0.6
+
+        v = np.zeros(len(q))
+        v[0] = v0
+        for i in range(1, len(t)):
+            v[i] = v[i - 1] + (t[i] - t[i - 1]) * ((1 - gamma) * q[i - 1] + gamma * q[i])
+
+        return v
 
 
 class SystemModelPost:
@@ -17,106 +134,30 @@ class SystemModelPost:
     unit: ms, kPa, mL
     """
 
-    def __init__(self, dir, closed_loop=False):
+    def __init__(self, dir):
         """
         Init.
 
         Parameters
         ----------
         dir: simulation directory
-        closed_loop: if it's a closed loop, default False
         """
         self.dir = dir
-        self.closed_loop = closed_loop
 
-        self.bin = IcvOut(os.path.join(self.dir, "binout0000"))
-        self.bin.pressure *= 1000  # kPa
-        self.bin.volume /= 1000  # mL
-        self.bin.flow /= 1000  # mL/time
+        # todo: use yaml settings which is general
+        with open(os.path.join(self.dir, "Post_report.json")) as f:
+            dct = json.load(f)
+            lv = dct["Simulation Left ventricle volume (mm3)"][-1] / 1000
+            lp = dct["Left ventricle EOD pressure (mmHg)"] * 0.133322
 
-        # Get the initial cavity volume
-        # Note: some reasonable difference between LSDYNA volume and vtk volume
-        self.cavity0 = self.bin.volume[0]
+            rv = dct["Simulation Right ventricle volume"][-1] / 1000
+            rp = dct["Right ventricle EOD pressure (mmHg)"] * 0.133322
 
-        if self.bin.volume.shape[1] == 1:
-            self.type = "LV"
-            print("LV system model")
-        elif self.bin.volume.shape[1] == 2:
-            self.type = "BV"
-            print("BV system model")
-        else:
-            print("Unknown system model")
+        f = os.path.join(self.dir, "constant_preload_windkessel_afterload_left.csv")
+        self.lv = ZeroDSystem(f, [lp, lv], name="Left ventricle")
 
-        self.p_ed = np.array([2, 0.5333])  # kPa
-        self.v_ed = self.cavity0
-
-        self.compute_ejection_ratio()
-        # todo: check if last loop converge
-
-        self._load_csv()
-
-    def _load_csv(self):
-        """Load system states written from define function."""
-        try:
-            self.lv = pd.read_csv(
-                os.path.join(self.dir, "constant_preload_windkessel_afterload_left.csv")
-            )
-        except IOError:
-            print("Only accept default file name constant_preload_windkessel_afterload_*.csv")
-
-        #  special fix for Constant pre/after load case
-        #  part/pven are not written in Csv files
-        if "part" not in self.lv.columns:
-            self.lv["part"] = 8 * np.ones(len(self.lv["time"]))
-            self.lv["pven"] = 2 * np.ones(len(self.lv["time"]))
-
-        # convert mm^3 to mL
-        for name in self.lv.columns:
-            if name[0] == "v" or name[0] == "q":
-                self.lv[name] /= 1000
-            if name[0] == "p":
-                self.lv[name] *= 1000
-
-        if self.type == "BV":
-            self.rv = pd.read_csv(
-                os.path.join(self.dir, "constant_preload_windkessel_afterload_right.csv")
-            )
-
-            if "part" not in self.rv.columns:
-                self.rv["part"] = 2 * np.ones(len(self.lv["time"]))
-                self.rv["pven"] = 0.5333 * np.ones(len(self.lv["time"]))
-
-            for name in self.rv.columns:
-                if name[0] == "v" or name[0] == "q":
-                    self.rv[name] /= 1000
-                if name[0] == "p":
-                    self.rv[name] *= 1000
-
-    def compute_ejection_ratio(self, cycle_duration=1000):
-        """Compute ejection ratio of last loop."""
-        # get PV of last loop
-        _, volume = self.get_PV(self.bin.time[-1] - cycle_duration)
-
-        self.lv_ef = (max(volume[:, 0]) - min(volume[:, 0])) / max(volume[:, 0])
-        if self.type == "BV":
-            self.rv_ef = (max(volume[:, 1]) - min(volume[:, 1])) / max(volume[:, 1])
-        return
-
-    def get_PV(self, t_start=0, t_end=10e10):
-        """Get Pressure & volume.
-
-        Parameters
-        ----------
-        t_end
-        t_start
-
-        """
-        i_start = np.where(self.bin.time >= t_start)[0][0]
-        i_end = np.where(self.bin.time <= t_end)[0][-1]
-
-        volume = self.bin.volume[i_start:i_end, :]
-        pressure = self.bin.pressure[i_start:i_end, :]
-        return pressure, volume
+        f = os.path.join(self.dir, "constant_preload_windkessel_afterload_right.csv")
+        self.rv = ZeroDSystem(f, [rp, rv], name="Right ventricle")
 
     def plot_pv_loop(self, t_start=0, t_end=10e10):
         """
@@ -127,186 +168,132 @@ class SystemModelPost:
         t_start: start time
         t_end: end time
         """
-        pressure, volume = self.get_PV(t_start, t_end)
+        start = np.where(self.lv.time >= t_start)[0][0]
+        end = np.where(self.lv.time <= t_end)[0][-1]
 
         fig, axis = plt.subplots()
         fig.suptitle("Pressure Volume Loop")
-        axis.plot(
-            volume[:, 0],
-            pressure[:, 0],
-            "b",
-            label="LV,EF={0:.1f}%".format(self.lv_ef * 100),
-        )
-        axis.scatter(self.v_ed[0], self.p_ed[0], facecolor="blue", label="LV@ED")
-        if self.type == "BV":
-            axis.plot(
-                volume[:, 1],
-                pressure[:, 1],
-                "r",
-                label="RV, EF={0:.1f}%".format(self.rv_ef * 100),
-            )
-            axis.scatter(self.v_ed[1], self.p_ed[1], facecolor="red", label="RV@ED")
+
+        def add_pv(cavity, color):
+            v = cavity.volume.cavity[start:end]
+            ef = (max(v) - min(v)) / max(v)
+            p = cavity.pressure.cavity[start:end]
+            axis.plot(v, p, color, label="{0},EF={1:.1f}%".format(cavity.name, ef * 100))
+            axis.scatter(cavity.ed[1], cavity.ed[0], facecolor=color, label=cavity.name + "@ED")
+            return
+
+        add_pv(self.lv, "blue")
+        try:
+            add_pv(self.rv, "red")
+        except:
+            pass
+
         axis.set_xlabel("Volume (mL)")
         axis.set_ylabel("Pressure (kPa)")
+
+        ax2 = axis.twinx()
+        mn, mx = axis.get_ylim()
+        ax2.set_ylim(mn * 7.50062, mx * 7.50062)  # kPa --> mmHg
+        ax2.set_ylabel("(mmHg)")
+
         axis.legend()
 
         return fig
 
-    def plot_pressure_flow_volume(self, cavity, t_start=0, t_end=10e10):
-        """Plot curves.
+    @staticmethod
+    def plot_pressure_flow_volume(cavity: ZeroDSystem, t_start: float = 0, t_end: float = 10e5):
+        """Plot pressure/flow/volume curves.
 
         Parameters
         ----------
-        cavity: 'lv' or 'rv'
+        cavity: ZeroDSystem,
         t_end: start time
         t_start: end time
 
         """
-        fig, axis = plt.subplots(3, figsize=(8, 4), sharex=True)
-
-        if cavity == "lv":
-            system = self.lv
-            id = 0
-            fig.suptitle("Left ventricle: Pressure & Flow & Volume")
-
-        elif cavity == "rv":
-            system = self.rv
-            id = 1
-            fig.suptitle("Right ventricle: Pressure & Flow & Volume")
-
-        p_names = ["pk", "pven", "part"]
-        q_names = ["qk", "qven", "qart"]
-        if "qp" in system.columns:  # add peripheral flow
-            q_names.append("qp")
-
-        if self.type == "BV" and self.closed_loop:  # special case for BV closed loop
-            if cavity == "lv":
-                p_names = ["pvv", "p_pven", "part"]
-                q_names = ["qvv", "q_pven", "qart", "qp"]
-            elif cavity == "rv":
-                p_names = ["pvv", "pven", "p_part"]
-                q_names = ["qvv", "qven", "q_part", "q_pp"]
-
-        time = system["time"].values
-        # prepare pressure and flow
-        pressure = []
-        flow = []
-        for p_name in p_names:
-            pressure.append(system[p_name].values)
-        for q_name in q_names:
-            flow.append(system[q_name].values)
+        fig, axis = plt.subplots(3, figsize=(8, 4), sharex="all")
+        fig.suptitle(f"{cavity.name}: Pressure & Flow & Volume")
 
         # define plot x range
-        i_start = np.where(time >= t_start)[0][0]
-        i_end = np.where(time <= t_end)[0][-1]
-        axis[0].set_xlim([time[i_start], time[i_end]])
+        start = np.where(cavity.time >= t_start)[0][0]
+        end = np.where(cavity.time <= t_end)[0][-1]
+        axis[0].set_xlim([cavity.time[start], cavity.time[end]])
 
         # find where both valves are closed: iso-volume
-        iso_vol = (pressure[0] > pressure[1]) & (pressure[0] < pressure[2])
+        iso_vol = (cavity.pressure.cavity < cavity.pressure.artery) & (
+            cavity.pressure.cavity > cavity.pressure.venous
+        )
         # start and end time when this state change
-        tt = time[np.where(iso_vol[:-1] != iso_vol[1:])[0]]
+        tt = cavity.time[np.where(iso_vol[:-1] != iso_vol[1:])[0]]
         # plot iso-volume phase in grey zone
-        try:  # because reshape can fail
+        try:
             tt = tt.reshape(-1, 2)
-            for i in range(len(tt)):
-                for j in range(3):
-                    axis[j].axvspan(tt[i, 0], tt[i, 1], facecolor="grey", alpha=0.3)
-        except:
-            print("Cannot find iso-volume stage automatically")
+        except ValueError:
+            tt = np.append(tt, 10e5)
+            tt = tt.reshape(-1, 2)
+
+        for i in range(len(tt)):
+            for j in range(3):
+                axis[j].axvspan(tt[i, 0], tt[i, 1], facecolor="grey", alpha=0.3)
 
         # do plot
-        for pname, pp in zip(p_names, pressure):
-            axis[0].plot(time, pp, label=pname)
+        axis[0].plot(cavity.time, cavity.pressure.cavity, label="cavity")
+        axis[0].plot(cavity.time, cavity.pressure.artery, label="artery")
+        axis[0].plot(cavity.time, cavity.pressure.venous, label="venous")
         axis[0].set_ylabel("Pressure (kPa)")
         axis[0].legend()
 
-        for qname, qq in zip(q_names, flow):
-            axis[1].plot(time, qq, label=qname)
+        axis[1].plot(cavity.time, cavity.flow.cavity, label="cavity")
+        axis[1].plot(cavity.time, cavity.flow.artery, label="artery")
+        axis[1].plot(cavity.time, cavity.flow.venous, label="venous")
+        axis[1].plot(cavity.time, cavity.flow.peripheral, label="peripheral")
         axis[1].set_ylabel("Flow (mL/s)")
         axis[1].legend()
 
-        axis[2].plot(self.bin.time, self.bin.volume[:, id], label="Volume")
+        axis[2].plot(cavity.time, cavity.volume.cavity, label="cavity")
+        # axis[2].plot(cavity.time, cavity.volume.artery, label="artery")
         axis[2].set_ylabel("Volume (mL)")
         axis[2].set_xlabel("Time (s)")
-
-        return fig
-
-    def __check_prefilling(self, cavity, offset=0.0, prefill_duration=1000):
-        """
-        Check prefilling process.
-
-        Obsolete
-        """
-        fig, axis = plt.subplots(3, figsize=(8, 4), sharex=True)
-
-        if cavity == "lv":
-            id = 0
-            if self.type == "BV" and self.closed_loop:
-
-                pven0 = self.lv["p_pven"]
-            else:
-                pven0 = self.lv["pven"]
-
-            fig.suptitle("Left ventricle: Prefilling Check ")
-        elif cavity == "rv":
-            id = 1
-            pven0 = self.rv["pven"]
-            fig.suptitle("Right ventricle: Prefilling Check")
-
-        # define the last step
-        i_end = np.where(self.bin.time <= prefill_duration + offset)[0][-1] + 1
-        i_end2 = np.where(self.lv["time"] <= prefill_duration + offset)[0][-1] + 1
-
-        axis[0].plot(self.bin.time[0:i_end], self.bin.pressure[0:i_end, id])
-        axis[0].plot(self.lv["time"][0:i_end2], pven0[0:i_end2], "--", color="orange")
-        axis[0].set_ylabel("Pressure (kPa)")
-
-        axis[1].plot(self.bin.time[0:i_end], self.bin.volume[0:i_end, id])
-        axis[1].hlines(self.v_ed[id], 0, prefill_duration, linestyles="--", color="orange")
-        axis[1].set_ylabel("Volume (mL)")
-
-        axis[2].plot(self.bin.time[0:i_end], self.bin.flow[0:i_end, id])
-        axis[2].hlines(0, 0, prefill_duration, linestyles="--", color="orange")
-        axis[2].set_ylabel("Flow (mL/s)")
-        axis[2].set_xlabel("Time (s)")
-
-        return fig
-
-    def _check_output(self, cavity="lv"):
-        """Check system states == FEM states."""
-        fig, axis = plt.subplots(2, figsize=(8, 4))
-
-        if cavity == "lv":
-            system = self.lv
-            id = 0
-            fig.suptitle("Left ventricle: Output Check ")
-
-        elif cavity == "rv":
-            system = self.rv
-            id = 1
-            fig.suptitle("Right ventricle: Output Check")
-        p_name = "pk"
-        q_name = "qk"
-        if self.type == "BV" and self.closed_loop:
-            p_name = "pvv"
-            q_name = "qvv"
-        axis[0].plot(self.bin.time, self.bin.pressure[:, id], label="P_binout")
-        axis[0].plot(system["time"], system[p_name], "--", label="P_sys")
-        axis[0].legend()
-
-        axis[1].plot(self.bin.time, -self.bin.flow[:, id], label="Q_binout")
-        axis[1].plot(system["time"], system[q_name], "--", label="Q_sys")
-
-        axis[1].set_xlabel("Time (s)")
         axis[1].legend()
 
-        # a special case where cavity volume is integrated in System
-        if "vlv" in system.columns:
-            fig2, axis = plt.subplots(figsize=(8, 4))
-            fig2.suptitle("Cavity Volume Check ")
-            axis.plot(self.bin.time, self.bin.volume[:, id], label="V_binout")
-            axis.plot(system["time"], system["vlv"], "--", label="V_sys")
-            axis.legend()
+        return fig
+
+    def _check_output(self):
+        """
+        Check if system states == FEM states.
+
+        Notes
+        -----
+          Only for debug
+
+          Require qd to read binout
+
+          It's normal that the cavity volume is slight different.
+        """
+        try:
+            self.bin = IcvOut(os.path.join(self.dir, "binout"))
+        except FileExistsError:
+            self.bin = IcvOut(os.path.join(self.dir, "binout0000"))
+
+        self.bin.time /= 1000  # ms ->s
+        self.bin.pressure *= 1000  # MPa -> kPa
+        self.bin.volume /= 1000  # mm^3 -> mL
+        self.bin.flow /= 1  # mm^3/ms ->mL/s
+
+        fig, axis = plt.subplots(3, figsize=(8, 4))
+
+        axis[0].plot(self.bin.time, self.bin.pressure[:, 0], label="pressure_binout")
+        axis[0].plot(self.lv.time, self.lv.pressure.cavity, "--", label="pressure_csv")
+        axis[0].legend()
+
+        axis[1].plot(self.bin.time, self.bin.flow[:, 0], label="flow_binout")
+        axis[1].plot(self.lv.time, -self.lv.flow.cavity, "--", label="flow_csv")
+        axis[1].legend()
+
+        axis[2].plot(self.bin.time, self.bin.volume[:, 0], label="volume_binout")
+        axis[2].plot(self.lv.time, self.lv.volume.cavity, "--", label="volume_csv")
+        axis[2].legend()
+        axis[2].set_xlabel("Time (s)")
 
         return fig
 
@@ -318,8 +305,9 @@ class SystemModelPost:
         plot_all
 
         """
-        if not self.closed_loop:
-            print("Only closed loop can check volume")
+        # if not self.closed_loop:
+        if True:
+            print("future development.")
             return
 
         fig, axis = plt.subplots(figsize=(8, 4))

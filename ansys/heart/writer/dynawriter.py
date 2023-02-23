@@ -893,9 +893,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # )
         # self.kw_database.main.append(kw_curve)
 
-        self.kw_database.main.append(
-            keywords.DatabaseElout(dt=dt_output_d3plot, binary=2, option1=27)
-        )
+        # self.kw_database.main.append(
+        #     keywords.DatabaseElout(dt=dt_output_d3plot, binary=2, option1=27)
+        # )
 
         return
 

@@ -679,6 +679,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """Write the model to files."""
         super().export(export_directory)
 
+        # write cavity name and volume
+        dct = {}
+        for cavity in self.model.cavities:
+            dct[cavity.name] = cavity.volume
+        with open(os.path.join(export_directory, "volumes.json"), "w") as f:
+            json.dump(dct, f)
+
         # todo: Close loop is only available from a customized LSDYNA executable
         # add system json in case of closed loop. For open-loop this is already
         # added in the control volume database

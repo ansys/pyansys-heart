@@ -306,6 +306,10 @@ class MechanicsSimulator(BaseSimulator):
                 )[-1]
 
                 shutil.copy(dynain_file, os.path.join(directory, "dynain.lsda"))
+                shutil.copy(
+                    os.path.join(self.root_directory, "zeropressure", "post", "Post_report.json"),
+                    os.path.join(directory, "Post_report.json"),
+                )
             except IndexError:
                 # handle if lsda file not exist.
                 print(
@@ -419,6 +423,7 @@ class MechanicsSimulator(BaseSimulator):
 
             # cavity information
             lv_volumes = _post_cavity("left_ventricle")
+            # todo: not safe to use list index
             true_lv_ed_volume = self.model.cavities[0].volume
             volume_error = [(lv_volumes[-1] - true_lv_ed_volume) / true_lv_ed_volume]
 

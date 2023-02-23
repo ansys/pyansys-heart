@@ -4,6 +4,7 @@ import json
 import os
 
 from ansys.heart.postprocessor.binout_helper import IcvOut
+from ansys.heart.simulator.settings.settings import SimulationSettings
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -144,14 +145,30 @@ class SystemModelPost:
         """
         self.dir = dir
 
-        # todo: use yaml settings which is general
-        with open(os.path.join(self.dir, "Post_report.json")) as f:
-            dct = json.load(f)
-            lv = dct["Simulation Left ventricle volume (mm3)"][-1] / 1000
-            lp = dct["Left ventricle EOD pressure (mmHg)"] * 0.133322
+        # get EOD pressure
+        s = SimulationSettings()
+        s.load(os.path.join(self.dir, "simulation_settings.yml"))
+        lp = s.mechanics.boundary_conditions.end_diastolic_cavity_pressure.left_ventricle.to(
+            "kilopascal"
+        ).m
+        rp = s.mechanics.boundary_conditions.end_diastolic_cavity_pressure.right_ventricle.to(
+            "kilopascal"
+        ).m
 
-            rv = dct["Simulation Right ventricle volume"][-1] / 1000
-            rp = dct["Right ventricle EOD pressure (mmHg)"] * 0.133322
+        # get EOD volume
+        # todo: get this information from binout:icvout
+        try:
+            # load simulated EOD volume
+            with open(os.path.join(self.dir, "Post_report.json")) as f:
+                dct = json.load(f)
+                lv = dct["Simulation Left ventricle volume (mm3)"][-1] / 1000
+                rv = dct["Simulation Right ventricle volume"][-1] / 1000
+        except FileExistsError:
+            # load Input EOD volume
+            with open(os.path.join(self.dir, "volumes.json")) as f:
+                dct = json.load(f)
+                lv = dct["Left ventricle"] / 1000
+                rv = dct["Right ventricle"] / 1000
 
         f = os.path.join(self.dir, "constant_preload_windkessel_afterload_left.csv")
         self.lv = ZeroDSystem(f, [lp, lv], name="Left ventricle")

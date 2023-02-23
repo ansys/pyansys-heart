@@ -204,6 +204,9 @@ def mesh_heart_model_by_fluent(
     session.tui.mesh.check_quality()
     session.tui.boundary.manage.remove_suffix("(*)")
 
+    # prepare for solve (removes unused nodes, faces, etc.)
+    session.tui.mesh.prepare_for_solve("yes")
+
     # write to file
     session.tui.file.write_mesh(path_to_output)
     # session.meshing.tui.file.read_journal(script)

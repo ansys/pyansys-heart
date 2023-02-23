@@ -6,6 +6,7 @@ import json
 import pathlib
 
 from ansys.heart.simulator.settings.defaults import mechanics as mech_defaults
+from ansys.heart.simulator.settings.defaults import zeropressure as zero_pressure_defaults
 from pint import Quantity, UnitRegistry
 import yaml
 
@@ -145,6 +146,9 @@ class BoundaryConditions(Settings):
 class SystemModel(Settings):
     """Stores settings/parameters for system model."""
 
+    name: str = "ConstantPreloadWindkesselAfterload"
+    """Name of the system model."""
+
     left_ventricle: AttrDict = None
     """Parameters for left ventricle."""
     right_ventricle: AttrDict = None
@@ -163,6 +167,29 @@ class Mechanics(Settings):
     """Boundary condition specifications."""
     system: SystemModel = SystemModel()
     """System model settings."""
+
+
+@dataclass(repr=False)
+class AnalysisZeroPressure(Analysis):
+    """Class for keeping track of zero pressure analysis settings."""
+
+    dt_nodout: Quantity = 0
+    """Time interval of nodeout export."""
+
+    max_iters: int = 3
+    """Maximum iterations for stress-free-configuration algorithm."""
+    method: int = 2
+    """Method to use."""
+    tolerance: float = 5.0
+    """Tolerance to use for iterative algorithm."""
+
+
+@dataclass(repr=False)
+class ZeroPressure(Settings):
+    """Class for keeping track of settings for stress-free-configuration computation."""
+
+    analysis: AnalysisZeroPressure = AnalysisZeroPressure()
+    """Generic analysis settings."""
 
 
 @dataclass(repr=False)
@@ -194,6 +221,7 @@ class SimulationSettings:
         electrophysiology: bool = True,
         fiber: bool = True,
         purkinje: bool = True,
+        stress_free: bool = True,
     ) -> None:
         """Initialize Simulation Settings.
 
@@ -207,6 +235,9 @@ class SimulationSettings:
             Flag indicating whether to add settings for fiber generation, by default True
         purkinje : bool, optional
             Flag indicating whether to add settings for purkinje generation, by default True
+        stress_free : bool, optional
+            Flag indicating whether to add settings for the stress free
+            configuration computation, by default True
 
         Example
         -------
@@ -246,7 +277,11 @@ class SimulationSettings:
 
         if purkinje:
             self.purkinje: Purkinje = Purkinje()
-            """Settings for Purkinje generation"""
+            """Settings for Purkinje generation."""
+
+        if stress_free:
+            self.stress_free: ZeroPressure = ZeroPressure()
+            """Settings for stress free configuration simulation."""
 
         pass
 
@@ -401,8 +436,13 @@ class SimulationSettings:
                 self.mechanics.boundary_conditions = BC
                 self.mechanics.system = S
 
+            if isinstance(getattr(self, attr), ZeroPressure):
+                A = AnalysisZeroPressure()
+                A.set_values(zero_pressure_defaults.analysis)
+                self.stress_free.analysis = A
+
             elif isinstance(getattr(self, attr), (Electrophysiology, Fibers, Purkinje)):
-                print("Reading EP, Fiber, and Purkinje settings not yet supported.")
+                print("Reading EP, Fiber, ZeroPressure, and Purkinje settings not yet supported.")
 
     def to_consistent_unit_system(self):
         """Convert all settings to consistent unit-system ["MPa", "mm", "N", "ms", "g"].
@@ -497,10 +537,6 @@ def _get_units(d):
         elif isinstance(v, Quantity):
             units.append(v.units)
     return units
-
-
-default_settings = SimulationSettings()
-default_settings.load_defaults()
 
 
 # desired consistent unit system is:

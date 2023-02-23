@@ -227,7 +227,7 @@ def define_function_windkessel(
         constants["Ra"],
         constants["Rv"],
         constants["Pven"],
-        initialvalues["part_init"],
+        initialvalues,
         filename_output,
     )
     # format keyword:

@@ -539,11 +539,25 @@ class SurfaceMesh(pv.PolyData, Feature):
         volume = np.prod(np.diff(bounding_box, axis=0))
         return bounding_box, volume
 
-    def get_boundary_edges(self) -> List[EdgeGroup]:
-        """Get boundary edges (if any) of the surface and groups them by connectivity."""
+    def get_boundary_edges(self, append_triangles=None) -> List[EdgeGroup]:
+        """
+        Get boundary edges (if any) of the surface and groups them by connectivity.
+
+        Parameters
+        ----------
+        append_triangles: optional
+            special fix for right ventricle endocardium surface since it needs one part
+            from spetum.
+        """
         write_vtk = False
 
-        self.boundary_edges = connect.get_free_edges(self.triangles)
+        if append_triangles is not None:
+            self.boundary_edges = connect.get_free_edges(
+                np.vstack((self.triangles, append_triangles))
+            )
+        else:
+            self.boundary_edges = connect.get_free_edges(self.triangles)
+
         edge_groups, group_types = connect.edge_connectivity(
             self.boundary_edges, return_type=True, sort_closed=True
         )

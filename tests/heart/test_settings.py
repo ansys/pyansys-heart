@@ -30,6 +30,7 @@ REF_STRING_SETTINGS_YML = (
     "      valve: null\n"
     "      end_diastolic_cavity_pressure: null\n"
     "    system:\n"
+    "      name: ConstantPreloadWindkesselAfterload\n"
     "      left_ventricle: null\n"
     "      right_ventricle: null\n"
 )
@@ -38,7 +39,7 @@ REF_STRING_SETTINGS_YML = (
 def test_settings_save():
     """Test saving of settings to disk."""
     settings = SimulationSettings(
-        mechanics=True, electrophysiology=False, fiber=False, purkinje=False
+        mechanics=True, electrophysiology=False, fiber=False, purkinje=False, stress_free=False
     )
 
     # fill some dummy data

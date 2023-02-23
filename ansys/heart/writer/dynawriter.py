@@ -365,8 +365,8 @@ class BaseDynaWriter:
         # export .k files
         self.export_databases(export_directory)
 
-        # todo: export settings
-        # self.settings.save()
+        # export settings
+        self.settings.save(os.path.join(export_directory, "simulation_settings.yml"))
 
         tend = time.time()
         LOGGER.debug("Time spent writing files: {:.2f} s".format(tend - tstart))

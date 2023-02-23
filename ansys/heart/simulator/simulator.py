@@ -88,7 +88,7 @@ class BaseSimulator:
 
         print("Computing fiber orientation...")
 
-        self.settings.save(os.path.join(directory, "simulation_settings.yml"))
+        # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
 
@@ -199,7 +199,7 @@ class EPSimulator(BaseSimulator):
 
         print("Launching main EP simulation...")
 
-        self.settings.save(os.path.join(directory, "simulation_settings.yml"))
+        # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
 
@@ -212,7 +212,7 @@ class EPSimulator(BaseSimulator):
 
         print("Computing the Purkinje network...")
 
-        self.settings.save(os.path.join(directory, "simulation_settings.yml"))
+        # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
 
@@ -316,7 +316,7 @@ class MechanicsSimulator(BaseSimulator):
 
         print("Launching main simulation...")
 
-        self.settings.save(os.path.join(directory, "simulation_settings.yml"))
+        # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
         self._run_dyna(input_file)
 
         print("done.")
@@ -361,7 +361,7 @@ class MechanicsSimulator(BaseSimulator):
 
         print("Computing stress-free configuration...")
 
-        self.settings.save(os.path.join(directory, "simulation_settings.yml"))
+        # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file, options="case")
 

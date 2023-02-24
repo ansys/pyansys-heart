@@ -20,18 +20,15 @@ from vtk.numpy_interface import dataset_adapter as dsa  # type: ignore # noqa
 
 if __name__ == "__main__":
     """BiVentricle morphed to Casis data."""
-
+    os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
+    os.environ["REMOTING_SERVER_ADDRESS"] = "localhost"
     # merge two vtks
     path_to_lv = os.path.join(
-        pathlib.Path(__file__).parents[3],
-        "downloads",
-        "CasisCalibration",
+        "data",
         "endoepi_LV_tagged.vtk",
     )
     path_to_rv = os.path.join(
-        pathlib.Path(__file__).parents[3],
-        "downloads",
-        "CasisCalibration",
+        "data",
         "Calib_RV_volume_array.vtk",
     )
     folder_name = pathlib.Path(path_to_lv).parent
@@ -113,18 +110,19 @@ if __name__ == "__main__":
             mask = cell_data["tags"] == label_to_id_part[key]
             surface = SurfaceMesh(surface_name, tris[mask, :], nodes=points)
             part_surfaces.append(surface)
-            surface.write_to_vtk(os.path.join(model.info.workdir, surface.name))
+            surface.save(os.path.join(model.info.workdir, surface.name + ".vtk"))
 
         # Add these surfaces to the model
         model.mesh_raw.boundaries = boundary_surfaces
         model.mesh_raw.interfaces = interface_surfaces
         # Start remeshing
-        model._remesh()
+        model._remesh(post_mapping=False)
 
         # split epicardium boundary into 'real' epicardium and septum
         for b in model.mesh.boundaries:
             if "left-ventricle-epicardium" in b.name:
-                region_ids = vtkmethods.get_connected_regions(b.nodes, b.faces)
+                triangles = b.faces.reshape(-1, 4)[:, 1:]
+                region_ids = vtkmethods.get_connected_regions(b.nodes, triangles)
                 unique_region_ids, counts = np.unique(region_ids, return_counts=True)
                 sort_idx = np.argsort(counts)
                 assert len(unique_region_ids) == 2, "Expecting two regions"
@@ -133,24 +131,26 @@ if __name__ == "__main__":
                 mask_epicardium = region_ids == unique_region_ids[1]
                 model.mesh.boundaries.append(
                     SurfaceMesh(
-                        "right-ventricle-septum", faces=b.faces[mask_septum, :], nodes=b.nodes
+                        "right-ventricle-septum", triangles=triangles[mask_septum, :], nodes=b.nodes
                     )
                 )
-                b.faces = b.faces[mask_epicardium, :]
+                a = np.ones((len(triangles[mask_epicardium]), 1), dtype=int) * 3
+                bb = np.hstack((a, triangles[mask_epicardium, :]))
+                b.faces = bb.ravel()
 
         # write boundaries for debugging purposes
         for b in model.mesh.boundaries:
-            b.write_to_stl(os.path.join(model.info.workdir, b.name + ".stl"))
+            b.save(os.path.join(model.info.workdir, b.name + ".stl"))
 
         # update lv and rv parts (assign tet ids to these parts). Use `enclosed by` surface
         # method for that
         temp_vtk_file = os.path.join(model.info.workdir, "volume_mesh_postremesh.vtk")
         model.mesh.write_to_vtk(temp_vtk_file)
         vtk_volume = vtkmethods.read_vtk_unstructuredgrid_file(temp_vtk_file)
-        model.mesh.cell_data = {}
+        # model.mesh.cell_data = {}
         model.mesh.cell_data["tags"] = np.zeros(model.mesh.tetrahedrons.shape[0], dtype=float)
         for surface_part in part_surfaces:
-            vtk_surface = surface_part._to_vtk()
+            vtk_surface = surface_part  # ._to_vtk()
             element_ids_inside = vtkmethods.cell_ids_inside_enclosed_surface(
                 vtk_volume, vtk_surface
             )
@@ -189,7 +189,7 @@ if __name__ == "__main__":
         Prot = rodrigues_rot(model.mesh.nodes - lv_apex, longitudinal_axis, [0, 0, -1])
         Prot[:, 2] = Prot[:, 2] - np.min(Prot, axis=0)[2]
         scaling = Prot[:, 2] / np.max(Prot[:, 2])
-        model.mesh.point_data = {}
+        # model.mesh.point_data = {}
         model.mesh.point_data["uvc_longitudinal"] = scaling
         model.mesh.cell_data["fiber"] = np.tile(
             [0.0, 0.0, 1.0], (model.mesh.tetrahedrons.shape[0], 1)
@@ -216,15 +216,16 @@ if __name__ == "__main__":
         pathlib.Path(path_to_lv).parent, "BiVentricle", "heart_model.pickle"
     )
     model = models.HeartModel.load_model(path_to_model)
+    model._add_nodal_areas()
 
     write_lsdyna_files = True
     if write_lsdyna_files:
         for writer in (
-            # writers.ElectrophysiologyDynaWriter(model),
-            writers.MechanicsDynaWriter(model, "ConstantPreloadWindkesselAfterload"),
+            writers.ElectrophysiologyDynaWriter(model),
+            writers.MechanicsDynaWriter(model),
             writers.ZeroPressureMechanicsDynaWriter(model),
             writers.FiberGenerationDynaWriter(model),
-            # writers.PurkinjeGenerationDynaWriter(model),
+            writers.PurkinjeGenerationDynaWriter(model),
         ):
             exportdir = os.path.join(
                 writer.model.info.workdir,

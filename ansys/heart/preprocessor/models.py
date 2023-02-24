@@ -741,8 +741,15 @@ class HeartModel:
 
         return
 
-    def _remesh(self) -> None:
-        """Use the generated files to remesh the surfaces and volume."""
+    def _remesh(self, post_mapping: bool = True) -> None:
+        """
+        Use the generated files to remesh the surfaces and volume.
+
+        Parameters
+        ----------
+        post_mapping: bool,True
+            Mapping raw mesh data to new mesh
+        """
         LOGGER.info("Remeshing volume...")
         path_mesh_file = os.path.join(self.info.workdir, "fluent_volume_mesh.msh.h5")
 
@@ -809,7 +816,8 @@ class HeartModel:
             self.fluid_mesh.tetrahedrons = tetras_fluid
             self.fluid_mesh.nodes = fluent_mesh.nodes
 
-        self._map_data_to_remeshed_volume()
+        if post_mapping:
+            self._map_data_to_remeshed_volume()
 
         return
 

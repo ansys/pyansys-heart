@@ -2619,7 +2619,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self._update_node_db()
 
         self._update_parts_db()
-        self._update_solid_elements_db(add_fibers=True)
+        self._update_solid_elements_db(add_fibers=False)
         self._update_material_db()
         self._update_ep_material_db()
         self._update_cellmodels()
@@ -2691,6 +2691,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
             # duplicate nodes of each interface in atrium side
             for interface in self.model.mesh.interfaces:
+                # TODO refactor this and avoid big ndarray copies by changing only element ids of interest
                 if interface.name != None and interface.name == left_ventricle_left_atrium_name:
                     interface_nids = interface.node_ids
                     tets_atrium = self.model.mesh.tetrahedrons[
@@ -2708,9 +2709,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     ) + len(self.model.mesh.nodes)
                     tets_atrium[np.isin(tets_atrium, interface_nids)] = new_nids
 
-                    self.model.mesh.tetrahedrons[
-                        self.model.left_atrium.element_ids, :
-                    ] = tets_atrium
+                    tets: np.ndarray = self.model.mesh.tetrahedrons
+                    tets[self.model.left_atrium.element_ids, :] = tets_atrium
+
+                    self.model.mesh.tetrahedrons = tets
                     self.model.mesh.nodes = np.append(
                         self.model.mesh.nodes, self.model.mesh.nodes[interface_nids, :], axis=0
                     )
@@ -2732,9 +2734,11 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     ) + len(self.model.mesh.nodes)
                     tets_atrium[np.isin(tets_atrium, interface_nids)] = new_nids
 
-                    self.model.mesh.tetrahedrons[
-                        self.model.right_atrium.element_ids, :
-                    ] = tets_atrium
+                    tets: np.ndarray = self.model.mesh.tetrahedrons
+                    tets[self.model.right_atrium.element_ids, :] = tets_atrium
+
+                    self.model.mesh.tetrahedrons = tets
+
                     self.model.mesh.nodes = np.append(
                         self.model.mesh.nodes, self.model.mesh.nodes[interface_nids, :], axis=0
                     )
@@ -2755,9 +2759,11 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     ) + len(self.model.mesh.nodes)
                     tets_atrium[np.isin(tets_atrium, interface_nids)] = new_nids
 
-                    self.model.mesh.tetrahedrons[
-                        self.model.right_atrium.element_ids, :
-                    ] = tets_atrium
+                    tets: np.ndarray = self.model.mesh.tetrahedrons
+                    tets[self.model.right_atrium.element_ids, :] = tets_atrium
+
+                    self.model.mesh.tetrahedrons = tets
+
                     self.model.mesh.nodes = np.append(
                         self.model.mesh.nodes, self.model.mesh.nodes[interface_nids, :], axis=0
                     )
@@ -2778,9 +2784,11 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     ) + len(self.model.mesh.nodes)
                     tets_atrium[np.isin(tets_atrium, interface_nids)] = new_nids
 
-                    self.model.mesh.tetrahedrons[
-                        self.model.left_atrium.element_ids, :
-                    ] = tets_atrium
+                    tets: np.ndarray = self.model.mesh.tetrahedrons
+                    tets[self.model.left_atrium.element_ids, :] = tets_atrium
+
+                    self.model.mesh.tetrahedrons = tets
+
                     self.model.mesh.nodes = np.append(
                         self.model.mesh.nodes, self.model.mesh.nodes[interface_nids, :], axis=0
                     )

@@ -101,7 +101,7 @@ def bullseye_plot(ax, data, seg_bold=None, cmap=None, norm=None):
         z = np.ones((128, 2)) * data[i + 6]
         # ax.pcolormesh(theta0, r0, z, cmap=cmap, norm=norm, shading="auto")
 
-        ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[i]), fontsize=12)
+        ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[i + 6]), fontsize=12)
 
         if i + 7 in seg_bold:
             ax.plot(theta0, r0, "-k", lw=linewidth + 2)
@@ -118,7 +118,7 @@ def bullseye_plot(ax, data, seg_bold=None, cmap=None, norm=None):
         z = np.ones((192, 2)) * data[i + 12]
         # ax.pcolormesh(theta0, r0, z, cmap=cmap, norm=norm, shading="auto")
 
-        ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[i]), fontsize=12)
+        ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[i + 12]), fontsize=12)
 
         if i + 13 in seg_bold:
             ax.plot(theta0, r0, "-k", lw=linewidth + 2)

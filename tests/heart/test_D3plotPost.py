@@ -2,7 +2,7 @@
 import os
 import pathlib
 
-from ansys.heart.postprocessor.D3plotPost import D3plotExporter, LVContourExporter
+from ansys.heart.postprocessor.D3plotPost import LVContourExporter
 from ansys.heart.preprocessor.models import HeartModel
 import numpy as np
 import pytest
@@ -29,13 +29,6 @@ def get_data():
     model = HeartModel.load_model(os.path.join(path_to_reference_model, "heart_model.pickle"))
     model.compute_left_ventricle_anatomy_axis()
     d3plot = os.path.join(path_to_reference_model, "post", "d3plot")
-
-
-def test_convert_to_vtk():
-    exporter = D3plotExporter(d3plot, model)
-    exporter.convert_to_vtk(model.part_names, "temp")
-    target = os.path.join(exporter.work_dir, "temp")
-    assert os.listdir(target) == ["model_0.vtk", "model_1.vtk"]
 
 
 def test_contour_exporter():

@@ -1,8 +1,10 @@
 """D3plot parser using Ansys-dpf."""
 import os
 import pathlib as Path
+from typing import List
 
 from ansys.dpf import core as dpf
+import numpy as np
 
 # from ansys.dpf.core.dpf_operator import available_operator_names
 
@@ -20,37 +22,150 @@ class D3plotReader:
             d3plot file path.
         """
         os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
-        server = dpf.start_local_server()
+        # os.environ["ANSYS_DPF_SERVER_CONTEXT"] = "PREMIUM"
+        # dpf.set_default_server_context(dpf.AvailableServerContexts.premium)
 
-        ds = dpf.DataSources()
-        ds.set_result_file_path(path, "d3plot")
+        # server = dpf.start_local_server()
 
-        self.model = dpf.Model(ds)
-        self.results = self.model.results
+        self.ds = dpf.DataSources()
+        self.ds.set_result_file_path(path, "d3plot")
+
+        self.model = dpf.Model(self.ds)
+
+        # common
+        self.meshgrid = self.model.metadata.meshed_region.grid
         self.time = self.model.metadata.time_freq_support.time_frequencies.data
+
+    def get_initial_coordinates(self):
+        """Get initial coordinates."""
+        return self.model.results.initial_coordinates.eval()[0].data
 
     def get_displacement(self):
         """Get displacement."""
-        displacements = self.results.displacement.on_all_time_freqs
+        displacements = self.model.results.displacement.on_all_time_freqs
         fields = displacements.eval()
         res = []
         for f in fields:
             res.append(f.data)
         return res
 
-    def get_initial_coordinates(self):
-        """Get initial coordinates."""
-        return self.results.initial_coordinates.eval()[0].data
+    def get_history_variable(
+        self,
+        hv_index: List[int],
+        at_frame: int = 0,
+    ):
+        """
+                Get history variables in d3plot.
+
+        Parameters
+        ----------
+        hv_index: List[int]
+         history variables index.
+
+            For example:
+            1-9: Deformation gradient (column-wise storage),see *MAT_295 in LS-DYNA manual
+
+        at_frame: int
+            At frame.
+
+        Returns
+        -------
+            res
+        """
+        if at_frame > self.model.metadata.time_freq_support.n_sets:
+            print("Frame ID too big")
+            exit()
+
+        hist_op = dpf.Operator("lsdyna::d3plot::history_var")
+        time_scoping = dpf.Scoping(ids=[at_frame], location=dpf.locations.time_freq)
+        hist_op.connect(4, self.ds)  # why 4?
+        hist_op.connect(0, time_scoping)  # why 0
+        hist_vars = hist_op.eval()
+
+        res = []
+        for i in hv_index:
+            res.append(hist_vars[i].data)
+
+        return np.array(res)
+
+    def export_vtk(
+        self,
+        file_path: str,
+        prefix: str = "model",
+        only_surface: bool = False,
+        keep_mat_ids: List[int] = None,
+    ):
+        """
+        Convert d3plot to vtk.
+
+        Parameters
+        ----------
+        keep_mat_ids: keep cells by material IDs.
+        only_surface: extract surface.
+        file_path: Path
+        prefix: vtk file prefix, optional
+
+        """
+        mat_ids = self.model.metadata.meshed_region.elements.materials_field.data
+
+        if not np.all(np.isin(keep_mat_ids, np.unique(mat_ids))):
+            print("Invalid material IDs, all parts will be saved.")
+            keep_mat_ids = None
+
+        if keep_mat_ids is None:
+            # keep all cells
+            keep_cells = np.ones((len(mat_ids)), dtype=bool)
+        else:
+            # keep cells by material ID
+            keep_cells = np.zeros((len(mat_ids)), dtype=bool)
+            for id in keep_mat_ids:
+                keep_cells = keep_cells | (mat_ids == id)
+
+        # displacements = self.model.results.displacement.on_all_time_freqs
+        # fields = displacements.eval()
+        fields = self.get_displacement()
+
+        for i, field in enumerate(fields):
+            # get pyvista grid
+            vista_grid = self.meshgrid.copy()
+
+            # deform mesh by displacement
+            vista_grid.points += field.data
+
+            # keep cells
+            vista_grid = vista_grid.extract_cells(keep_cells)
+
+            # extract surface
+            if only_surface:
+                vista_grid = vista_grid.extract_surface()
+
+            # export
+            vista_grid.save(os.path.join(file_path, f"{prefix}_{i}.vtk"))
+            # pyvista.save_meshio(os.path.join(file_path, f"{prefix}_{i}.vtk"),vista_grid)
+
+        # This needs Premium dpf licence
+        # op = dpf.operators.serialization.vtk_export(
+        #     export_type=0,
+        #     file_path=os.path.join(file_path,f"{prefix}_{i}.vtk"),
+        #     mesh=mesh,
+        #     # fields1=field,
+        #     # fields2=my_fields2,
+        # ).eval()
+
+        return
 
 
-# # export to vtk:
-# op = dpf.operators.serialization.vtk_export(
-#     export_type=0,
-#     file_path="test.vtk",
-#     mesh=model.metadata.meshed_region,
-#     fields1=fields,
-#     # fields2=my_fields2,
-# ).eval()
+if __name__ == "__main__":
+    # data = D3plotReader(r"D:\Heart20\healthy20\health03_BV_2mm\simulation\main-mechanics\d3plot")
+    # x = data.get_history_variable(at_frame=4, hv_index=[0])
+    # print(x.shape)
+    # x = data.get_history_variable(at_frame=1, hv_index=[0, 1, 2, 3, 4, 5, 6, 7, 8])
+    # print(x.shape)
+    #
+    # exit()
+    data = D3plotReader("D:\Heart20\healthy20\health03_BV_2mm\simulation\zeropressure\iter3.d3plot")
+    # # export to vtk:
+    data.export_vtk(".", keep_mat_ids=[1, 3])
 
 # dpf.operators.serialization.field_to_csv(
 #     file_path="d:\\development\\temp6\\displacements.csv",

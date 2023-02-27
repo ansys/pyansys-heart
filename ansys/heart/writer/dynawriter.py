@@ -353,14 +353,20 @@ class BaseDynaWriter:
         tstart = time.time()
         LOGGER.debug("Writing all LS-DYNA .k files...")
 
+        # is this reachable??
         if not export_directory:
-            export_directory = self.model.info.workdir
+            export_directory = os.path.join(
+                self.model.info.workdir, self.__class__.__name__.lower().replace("dynawriter", "")
+            )
 
         if not os.path.isdir(export_directory):
             os.makedirs(export_directory)
 
         # export .k files
         self.export_databases(export_directory)
+
+        # export settings
+        self.settings.save(os.path.join(export_directory, "simulation_settings.yml"))
 
         tend = time.time()
         LOGGER.debug("Time spent writing files: {:.2f} s".format(tend - tstart))
@@ -671,8 +677,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
     def export(self, export_directory: str):
         """Write the model to files."""
-        tstart = time.time()
-        LOGGER.debug("Writing all LS-DYNA .k files...")
+        super().export(export_directory)
 
         if not export_directory:
             export_directory = os.path.join(self.model.info.workdir, "mechanics")
@@ -685,19 +690,16 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # add system json in case of closed loop. For open-loop this is already
         # added in the control volume database
-        if self.system_model_name == "ClosedLoop":
+        if (
+            self.system_model_name == "ClosedLoop"
+            and self.__class__.__name__ == "MechanicsDynaWriter"
+        ):
             # exports system model
             path_system_model_settings = os.path.join(
                 export_directory, "system_model_settings.json"
             )
             with open(path_system_model_settings, "w") as outfile:
                 json.dump(self.system_model_json, indent=4, fp=outfile)
-
-        # export segment sets to separate file
-        self._export_cavity_segmentsets(export_directory)
-
-        tend = time.time()
-        LOGGER.debug("Time spent writing files: {:.2f} s".format(tend - tstart))
 
         return
 
@@ -893,9 +895,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # )
         # self.kw_database.main.append(kw_curve)
 
-        self.kw_database.main.append(
-            keywords.DatabaseElout(dt=dt_output_d3plot, binary=2, option1=27)
-        )
+        # self.kw_database.main.append(
+        #     keywords.DatabaseElout(dt=dt_output_d3plot, binary=2, option1=27)
+        # )
 
         return
 
@@ -1759,23 +1761,10 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
     def export(self, export_directory: str):
         """Write the model to files."""
-        tstart = time.time()
-        LOGGER.debug("Writing all LS-DYNA .k files...")
-
-        if not export_directory:
-            export_directory = os.path.join(self.model.info.workdir, "zeropressure")
-
-        if not os.path.isdir(export_directory):
-            os.makedirs(export_directory)
-
-        # export .k files
-        self.export_databases(export_directory)
+        super().export(export_directory)
 
         # export segment sets to separate file
         self._export_cavity_segmentsets(export_directory)
-
-        tend = time.time()
-        LOGGER.debug("Time spent writing files: {:.2f} s".format(tend - tstart))
 
         return
 
@@ -2327,6 +2316,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         return
 
 
+# todo: why it's from MechanicsDynaWriter not BaseWriter?
 class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
     """Class for preparing the input for a Purkinje LS-DYNA simulation."""
 
@@ -2366,25 +2356,6 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
 
         self._get_list_of_includes()
         self._add_includes()
-
-        return
-
-    def export(self, export_directory: str):
-        """Write the model to files."""
-        tstart = time.time()
-        LOGGER.debug("Writing all LS-DYNA .k files...")
-
-        if not export_directory:
-            export_directory = self.model.info.workdir
-
-        if not os.path.isdir(export_directory):
-            os.makedirs(export_directory)
-
-        # export .k files
-        self.export_databases(export_directory)
-
-        tend = time.time()
-        LOGGER.debug("Time spent writing files: {:.2f} s".format(tend - tstart))
 
         return
 
@@ -2619,7 +2590,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self._update_node_db()
 
         self._update_parts_db()
-        self._update_solid_elements_db(add_fibers=False)
+        self._update_solid_elements_db(add_fibers=True)
         self._update_material_db()
         self._update_ep_material_db()
         self._update_cellmodels()
@@ -3312,38 +3283,6 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
         self._get_list_of_includes()
         self._add_includes()
-
-        return
-
-    def export(self, export_directory: str):
-        """Write the model to files."""
-        tstart = time.time()
-        LOGGER.debug("Writing all LS-DYNA .k files...")
-
-        if not export_directory:
-            export_directory = os.path.join(self.model.info.workdir, "electromechanics")
-
-        if not os.path.isdir(export_directory):
-            os.makedirs(export_directory)
-
-        # export .k files
-        self.export_databases(export_directory)
-
-        # add system json in case of closed loop. For open-loop this is already
-        # added in the control volume database
-        if self.system_model_name == "ClosedLoop":
-            # exports system model
-            path_system_model_settings = os.path.join(
-                export_directory, "system_model_settings.json"
-            )
-            with open(path_system_model_settings, "w") as outfile:
-                json.dump(self.system_model_json, indent=4, fp=outfile)
-
-        # export segment sets to separate file
-        self._export_cavity_segmentsets(export_directory)
-
-        tend = time.time()
-        LOGGER.debug("Time spent writing files: {:.2f} s".format(tend - tstart))
 
         return
 

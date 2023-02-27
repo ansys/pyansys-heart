@@ -679,14 +679,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """Write the model to files."""
         super().export(export_directory)
 
-        # write cavity name and volume
-        dct = {}
-        for cavity in self.model.cavities:
-            dct[cavity.name] = cavity.volume
-        with open(os.path.join(export_directory, "volumes.json"), "w") as f:
-            json.dump(dct, f)
+        if not export_directory:
+            export_directory = os.path.join(self.model.info.workdir, "mechanics")
 
-        # todo: Close loop is only available from a customized LSDYNA executable
+        if not os.path.isdir(export_directory):
+            os.makedirs(export_directory)
+
+        # export .k files
+        self.export_databases(export_directory)
+
         # add system json in case of closed loop. For open-loop this is already
         # added in the control volume database
         if (
@@ -1992,10 +1993,10 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                     custom_keywords.EmMat003(
                         mid=em_mat_id,
                         mtype=2,
-                        sigma11=5.0e-4,
-                        sigma22=1.0e-4,
-                        sigma33=1.0e-4,
-                        beta=0.14,
+                        sigma11=0.5,
+                        sigma22=0.1,
+                        sigma33=0.1,
+                        beta=140,
                         cm=0.01,
                         aopt=2.0,
                         a1=0,
@@ -2368,10 +2369,10 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                     custom_keywords.EmMat003(
                         mid=em_mat_id,
                         mtype=2,
-                        sigma11=5.0e-4,
-                        sigma22=1.0e-4,
-                        sigma33=1.0e-4,
-                        beta=0.14,
+                        sigma11=0.5,
+                        sigma22=0.1,
+                        sigma33=0.1,
+                        beta=140,
                         cm=0.01,
                         aopt=2.0,
                         a1=0,
@@ -2580,6 +2581,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def update(self):
         """Update keyword database for Electrophysiology."""
+        self._isolate_atria_and_ventricles()
         ##
         self._update_main_db()
 
@@ -2603,6 +2605,184 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         return
 
+    def _isolate_atria_and_ventricles(self):
+        """Add duplicate nodes between atria and ventricles."""
+        if isinstance(self.model, (FourChamber, FullHeart)):
+            # 1,3 - 2,4
+            self.model.mesh.establish_connectivity()
+            left_ventricle_left_atrium = []
+            right_ventricle_right_atrium = []
+            left_ventricle_right_atrium = []
+            right_ventricle_left_atrium = []
+            left_ventricle_left_atrium_name = "left-ventricle_left-atrium"
+            right_ventricle_right_atrium_name = "right-ventricle_right-atrium"
+            left_ventricle_right_atrium_name = "left-ventricle_right-atrium"
+            right_ventricle_left_atrium_name = "right-ventricle_left-atrium"
+
+            # build atrio-ventricular tag-id pairs
+            # labels_to_ids stores the mapping between tag-ids and the corresponding label.
+            labels_to_tag_ids = self.model.info.labels_to_ids
+            left_ventricle_left_atrium = [
+                labels_to_tag_ids["Left ventricle myocardium"],
+                labels_to_tag_ids["Left atrium myocardium"],
+            ]
+            right_ventricle_right_atrium = [
+                labels_to_tag_ids["Right ventricle myocardium"],
+                labels_to_tag_ids["Right atrium myocardium"],
+            ]
+            left_ventricle_right_atrium = [
+                labels_to_tag_ids["Left ventricle myocardium"],
+                labels_to_tag_ids["Right atrium myocardium"],
+            ]
+            right_ventricle_left_atrium = [
+                labels_to_tag_ids["Right ventricle myocardium"],
+                labels_to_tag_ids["Left atrium myocardium"],
+            ]
+
+            # build atrioventricular tag_id pairs
+            left_ventricle_left_atrium = np.unique(left_ventricle_left_atrium)
+            right_ventricle_right_atrium = np.unique(right_ventricle_right_atrium)
+            left_ventricle_right_atrium = np.unique(left_ventricle_right_atrium)
+            right_ventricle_left_atrium = np.unique(right_ventricle_left_atrium)
+            # find atrioventricular shared nodes/interfaces
+            self.model.mesh.add_interfaces(
+                [
+                    left_ventricle_left_atrium,
+                    right_ventricle_right_atrium,
+                    left_ventricle_right_atrium,
+                    right_ventricle_left_atrium,
+                ],
+                [
+                    left_ventricle_left_atrium_name,
+                    right_ventricle_right_atrium_name,
+                    left_ventricle_right_atrium_name,
+                    right_ventricle_left_atrium_name,
+                ],
+            )
+
+            # duplicate nodes of each interface in atrium side
+            for interface in self.model.mesh.interfaces:
+                if interface.name != None and interface.name == left_ventricle_left_atrium_name:
+                    interface_nids = interface.node_ids
+                    tets_atrium = self.model.mesh.tetrahedrons[
+                        self.model.left_atrium.element_ids, :
+                    ]
+
+                    nids_tobe_replaced = tets_atrium[np.isin(tets_atrium, interface_nids)]
+                    new_nids = np.array(
+                        list(
+                            map(
+                                lambda id: (np.where(interface_nids == id))[0][0],
+                                nids_tobe_replaced,
+                            )
+                        )
+                    ) + len(self.model.mesh.nodes)
+                    tets_atrium[np.isin(tets_atrium, interface_nids)] = new_nids
+
+                    # TODO refactor this and avoid big ndarray copies
+                    tets: np.ndarray = self.model.mesh.tetrahedrons
+                    tets[self.model.left_atrium.element_ids, :] = tets_atrium
+
+                    self.model.mesh.tetrahedrons = tets
+                    self.model.mesh.nodes = np.append(
+                        self.model.mesh.nodes, self.model.mesh.nodes[interface_nids, :], axis=0
+                    )
+
+                elif interface.name != None and interface.name == right_ventricle_right_atrium_name:
+                    interface_nids = interface.node_ids
+                    tets_atrium = self.model.mesh.tetrahedrons[
+                        self.model.right_atrium.element_ids, :
+                    ]
+
+                    nids_tobe_replaced = tets_atrium[np.isin(tets_atrium, interface_nids)]
+                    new_nids = np.array(
+                        list(
+                            map(
+                                lambda id: (np.where(interface_nids == id))[0][0],
+                                nids_tobe_replaced,
+                            )
+                        )
+                    ) + len(self.model.mesh.nodes)
+                    tets_atrium[np.isin(tets_atrium, interface_nids)] = new_nids
+
+                    tets: np.ndarray = self.model.mesh.tetrahedrons
+                    tets[self.model.right_atrium.element_ids, :] = tets_atrium
+
+                    self.model.mesh.tetrahedrons = tets
+
+                    self.model.mesh.nodes = np.append(
+                        self.model.mesh.nodes, self.model.mesh.nodes[interface_nids, :], axis=0
+                    )
+                elif interface.name != None and interface.name == left_ventricle_right_atrium_name:
+                    interface_nids = interface.node_ids
+                    tets_atrium = self.model.mesh.tetrahedrons[
+                        self.model.right_atrium.element_ids, :
+                    ]
+
+                    nids_tobe_replaced = tets_atrium[np.isin(tets_atrium, interface_nids)]
+                    new_nids = np.array(
+                        list(
+                            map(
+                                lambda id: (np.where(interface_nids == id))[0][0],
+                                nids_tobe_replaced,
+                            )
+                        )
+                    ) + len(self.model.mesh.nodes)
+                    tets_atrium[np.isin(tets_atrium, interface_nids)] = new_nids
+
+                    tets: np.ndarray = self.model.mesh.tetrahedrons
+                    tets[self.model.right_atrium.element_ids, :] = tets_atrium
+
+                    self.model.mesh.tetrahedrons = tets
+
+                    self.model.mesh.nodes = np.append(
+                        self.model.mesh.nodes, self.model.mesh.nodes[interface_nids, :], axis=0
+                    )
+                elif interface.name != None and interface.name == right_ventricle_left_atrium_name:
+                    interface_nids = interface.node_ids
+                    tets_atrium = self.model.mesh.tetrahedrons[
+                        self.model.left_atrium.element_ids, :
+                    ]
+
+                    nids_tobe_replaced = tets_atrium[np.isin(tets_atrium, interface_nids)]
+                    new_nids = np.array(
+                        list(
+                            map(
+                                lambda id: (np.where(interface_nids == id))[0][0],
+                                nids_tobe_replaced,
+                            )
+                        )
+                    ) + len(self.model.mesh.nodes)
+                    tets_atrium[np.isin(tets_atrium, interface_nids)] = new_nids
+
+                    tets: np.ndarray = self.model.mesh.tetrahedrons
+                    tets[self.model.left_atrium.element_ids, :] = tets_atrium
+
+                    self.model.mesh.tetrahedrons = tets
+
+                    self.model.mesh.nodes = np.append(
+                        self.model.mesh.nodes, self.model.mesh.nodes[interface_nids, :], axis=0
+                    )
+
+    def export(self, export_directory: str):
+        """Write the model to files."""
+        tstart = time.time()
+        LOGGER.debug("Writing all LS-DYNA .k files...")
+
+        if not export_directory:
+            export_directory = self.model.info.workdir
+
+        if not os.path.isdir(export_directory):
+            os.makedirs(export_directory)
+
+        # export .k files
+        self.export_databases(export_directory)
+
+        tend = time.time()
+        LOGGER.debug("Time spent writing files: {:.2f} s".format(tend - tstart))
+
+        return
+
     def _update_material_db(self):
         """Add simple mechanics material for each defined part."""
         for part in self.model.parts:
@@ -2622,10 +2802,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     custom_keywords.EmMat003(
                         mid=ep_mid,
                         mtype=2,
-                        sigma11=5.0e-4,
-                        sigma22=1.0e-4,
-                        sigma33=1.0e-4,
-                        beta=0.14,
+                        sigma11=0.5,
+                        sigma22=0.1,
+                        sigma33=0.1,
+                        beta=140,
                         cm=0.01,
                         aopt=2.0,
                         a1=0,
@@ -2777,6 +2957,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     stimamp=50.0,
                 )
             )
+            # if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
+            #     self.model.left_atrium.apex_points
 
         elif isinstance(self.model, (LeftVentricle)):
             node_apex_left = self.get_apex_left()

@@ -39,8 +39,8 @@ if __name__ == "__main__":
         vtk_rv = vtkmethods.read_vtk_polydata_file(path_to_rv)
 
         # remove capitalization of cell-tags
-        vtk_rv = vtkmethods.rename_vtk_array(vtk_rv, "Cell-tags", "cell-tags")
-        vtkmethods.write_vtkdata_to_vtkfile(vtk_rv, path_to_rv)
+        # vtk_rv = vtkmethods.rename_vtk_array(vtk_rv, "Cell-tags", "cell-tags")
+        # vtkmethods.write_vtkdata_to_vtkfile(vtk_rv, path_to_rv)
 
         # Merge data of both files
         points_1, tris_1, cell_data_1, point_data_1 = vtkmethods.get_tri_info_from_polydata(vtk_lv)
@@ -54,9 +54,9 @@ if __name__ == "__main__":
         for key in cell_data_1.keys():
             cell_data[key] = np.append(cell_data_1[key], cell_data_2[key])
 
-        point_data = {}
-        for key in point_data_1.keys():
-            point_data[key] = np.append(point_data_1[key], point_data_2[key])
+        # point_data = {}
+        # for key in point_data_1.keys():
+        #     point_data[key] = np.append(point_data_1[key], point_data_2[key])
 
         label_to_id = {
             "Left ventricle endocardium": 1,
@@ -134,8 +134,8 @@ if __name__ == "__main__":
                         "right-ventricle-septum", triangles=triangles[mask_septum, :], nodes=b.nodes
                     )
                 )
-                a = np.ones((len(triangles[mask_epicardium]), 1), dtype=int) * 3
-                bb = np.hstack((a, triangles[mask_epicardium, :]))
+                vertex = np.ones((len(triangles[mask_epicardium]), 1), dtype=int) * 3
+                bb = np.hstack((vertex, triangles[mask_epicardium, :]))
                 b.faces = bb.ravel()
 
         # write boundaries for debugging purposes
@@ -144,26 +144,39 @@ if __name__ == "__main__":
 
         # update lv and rv parts (assign tet ids to these parts). Use `enclosed by` surface
         # method for that
-        temp_vtk_file = os.path.join(model.info.workdir, "volume_mesh_postremesh.vtk")
-        model.mesh.write_to_vtk(temp_vtk_file)
-        vtk_volume = vtkmethods.read_vtk_unstructuredgrid_file(temp_vtk_file)
+        # temp_vtk_file = os.path.join(model.info.workdir, "volume_mesh_postremesh.vtk")
+        # model.mesh.write_to_vtk(temp_vtk_file)
+        # vtk_volume = vtkmethods.read_vtk_unstructuredgrid_file(temp_vtk_file)
         # model.mesh.cell_data = {}
-        model.mesh.cell_data["tags"] = np.zeros(model.mesh.tetrahedrons.shape[0], dtype=float)
-        for surface_part in part_surfaces:
-            vtk_surface = surface_part  # ._to_vtk()
-            element_ids_inside = vtkmethods.cell_ids_inside_enclosed_surface(
-                vtk_volume, vtk_surface
-            )
-            if "left" in surface_part.name:
-                model.mesh.cell_data["tags"][element_ids_inside] = 1
-            elif "right" in surface_part.name:
-                model.mesh.cell_data["tags"][element_ids_inside] = 2
+        # model.mesh.cell_data["tags"] = np.zeros(model.mesh.tetrahedrons.shape[0], dtype=float)
+        # for surface_part in part_surfaces:
+        #     # element_ids_inside = vtkmethods.cell_ids_inside_enclosed_surface(
+        #     #     model.mesh, surface_part
+        #     # )
+        #     # print(len(element_ids_inside))
+        #     x = model.mesh.cell_centers().select_enclosed_points(surface_part)['SelectedPoints']
+        #     element_ids_inside = np.where(x == 1)[0]
+        #     if "left" in surface_part.name:
+        #         model.mesh.cell_data["tags"][element_ids_inside] = 1
+        #     elif "right" in surface_part.name:
+        #         model.mesh.cell_data["tags"][element_ids_inside] = 2
+
+        import meshio
+
+        tag1 = np.ones(len(points_1))
+        tag2 = np.ones(len(points_2)) * 2
+        vertex = np.linspace(0, len(points) - 1, num=len(points), dtype=int).reshape(-1, 1)
+        tags = np.hstack((tag1, tag2))
+        meshio.write_points_cells("x.vtk", points, [("vertex", vertex)], cell_data={"tags": [tags]})
+
+        xx = vtkmethods.read_vtk_unstructuredgrid_file("x.vtk")
+        model.mesh = vtkmethods.vtk_map_discrete_cell_data(xx, model.mesh, "tags")
 
         # extract septum
         model._extract_septum()
         for part in model.parts:
             if "Left" in part.name:
-                part.tag_ids = [0, 1]
+                part.tag_ids = [1]
             elif "Right" in part.name:
                 part.tag_ids = [2]
 
@@ -221,11 +234,11 @@ if __name__ == "__main__":
     write_lsdyna_files = True
     if write_lsdyna_files:
         for writer in (
-            writers.ElectrophysiologyDynaWriter(model),
-            writers.MechanicsDynaWriter(model),
-            writers.ZeroPressureMechanicsDynaWriter(model),
             writers.FiberGenerationDynaWriter(model),
-            writers.PurkinjeGenerationDynaWriter(model),
+            #     writers.ElectrophysiologyDynaWriter(model),
+            # writers.MechanicsDynaWriter(model),
+            # writers.ZeroPressureMechanicsDynaWriter(model),
+            # writers.PurkinjeGenerationDynaWriter(model),
         ):
             exportdir = os.path.join(
                 writer.model.info.workdir,

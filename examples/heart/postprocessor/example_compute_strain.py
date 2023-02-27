@@ -1,55 +1,49 @@
-import os
-
-from ansys.heart.postprocessor.binout_helper import Elout
 from ansys.heart.postprocessor.bulleye import bullseye_plot
 from ansys.heart.postprocessor.compute_strain import (
     compute_AHA17_segment_strain,
     compute_myocardial_strain,
 )
+from ansys.heart.postprocessor.dpf_d3plot import D3plotReader
 from ansys.heart.preprocessor.models import HeartModel
 from matplotlib import pyplot as plt
-import numpy as np
 
 if __name__ == "__main__":
-    os.chdir("..\\data")
-    model = HeartModel.load_model("heart_model.pickle")
-    res = Elout("binout0000")
-    strain = compute_myocardial_strain(model, res, refrence_time=0)
-    np.save("strain", strain)
-    #
-    # # write strain into vtk
-    # import meshio
-    #
-    # ele_id = np.where(~np.isnan(model.aha_ids))[0]
-    # elems = model.mesh.tetrahedrons[ele_id]
-    # nodes = model.mesh.nodes[np.unique(elems.ravel())]
-    # _, a = np.unique(elems, return_inverse=True)
-    # connect = a.reshape(elems.shape)
-    #
-    # for i_time in range(len(res.time)):
-    #     meshio.write_points_cells(
-    #         f"strain_{i_time}.vtk",
-    #         nodes,
-    #         [("tetra", connect)],
-    #         cell_data={
-    #             "lrc_strain": [strain[:, i_time, :].T],
-    #         },
-    #     )
-    #
-    strain = np.load("strain.npy")
-    aha_strain = compute_AHA17_segment_strain(model, strain)
+    model: HeartModel
+    model = HeartModel.load_model(r"D:\Heart20\healthy20\health03_BV_2mm\heart_model_bv.pickle")
+    model.compute_left_ventricle_anatomy_axis(first_cut_short_axis=0.2)
+    model.compute_left_ventricle_aha17()
 
-    # plot longitudinal strain for all segment
-    plt.plot(res.time, aha_strain[0, :, :], label=f"segment")
-    plt.title("longitudinal strain")
-    plt.legend()
-    plt.show()
+    d3plot_file = r"D:\Heart20\healthy20\health03_BV_2mm\simulation\main-mechanics\d3plot"
+    data = D3plotReader(d3plot_file)
+    df = data.get_history_variable(hv_index=list(range(9)), at_frame=1)
+    strain = compute_myocardial_strain(model, df.T, reference=None)
+
+    # write strain into vtk
+    import meshio
+    import numpy as np
+
+    ele_id = np.where(~np.isnan(model.aha_ids))[0]
+    elems = model.mesh.tetrahedrons[ele_id]
+    nodes = model.mesh.nodes[np.unique(elems.ravel())]
+    _, a = np.unique(elems, return_inverse=True)
+    connect = a.reshape(elems.shape)
+    meshio.write_points_cells(
+        f"strain_{0}.vtk",
+        nodes,
+        [("tetra", connect)],
+        cell_data={
+            "lrc_strain": [strain],
+            "aha17": [model.aha_ids[model.aha_ids > 0]],
+        },
+    )
+
+    aha_strain = compute_AHA17_segment_strain(model, strain)
 
     # plot bulleye
     fig, ax = plt.subplots(figsize=(24, 16), nrows=1, ncols=3, subplot_kw=dict(projection="polar"))
     fig.canvas.manager.set_window_title("Left Ventricle Bulls Eyes (AHA)")
     for i in range(3):
-        bullseye_plot(ax[i], aha_strain[i, 3, :])  # at second time step
+        bullseye_plot(ax[i], aha_strain[:, i])  # at second time step
 
     ax[0].set_title("longitudinal")
     ax[1].set_title("radial")

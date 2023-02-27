@@ -2691,8 +2691,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
             # duplicate nodes of each interface in atrium side
             for interface in self.model.mesh.interfaces:
-                # TODO refactor this and avoid big ndarray copies by changing only 
-                # element ids of interest
                 if interface.name != None and interface.name == left_ventricle_left_atrium_name:
                     interface_nids = interface.node_ids
                     tets_atrium = self.model.mesh.tetrahedrons[
@@ -2710,6 +2708,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     ) + len(self.model.mesh.nodes)
                     tets_atrium[np.isin(tets_atrium, interface_nids)] = new_nids
 
+                    # TODO refactor this and avoid big ndarray copies
                     tets: np.ndarray = self.model.mesh.tetrahedrons
                     tets[self.model.left_atrium.element_ids, :] = tets_atrium
 

@@ -3,7 +3,6 @@ from dataclasses import dataclass
 import json
 import os
 
-
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import matplotlib.pyplot as plt
 import numpy as np
@@ -287,11 +286,11 @@ class SystemModelPost:
 
           It's normal that the cavity volume is slight different.
         """
+        from ansys.heart.postprocessor.binout_helper import IcvOut
+
         try:
-            from ansys.heart.postprocessor.binout_helper import IcvOut
             self.bin = IcvOut(os.path.join(self.dir, "binout"))
         except FileExistsError:
-            from ansys.heart.postprocessor.binout_helper import IcvOut
             self.bin = IcvOut(os.path.join(self.dir, "binout0000"))
 
         self.bin.time /= 1000  # ms ->s

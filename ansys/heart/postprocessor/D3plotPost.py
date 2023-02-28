@@ -19,8 +19,6 @@ import numpy as np
 import vtk
 from vtk.util.numpy_support import vtk_to_numpy  # noqa
 
-from heart.preprocessor.mesh.vtkmethods import vtk_cutter
-
 
 class LVContourExporter:
     """Export Left ventricle surface and Post-process."""

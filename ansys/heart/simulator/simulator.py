@@ -332,11 +332,12 @@ class MechanicsSimulator(BaseSimulator):
             fig = system.plot_pv_loop()
             fig.savefig(os.path.join(directory, "post", "pv.png"))
 
-            fig = system.plot_pressure_flow_volume(system.lv)
+            fig = system.plot_pressure_flow_volume(system.lv_system)
             fig.savefig(os.path.join(directory, "post", "lv.png"))
 
-            fig = system.plot_pressure_flow_volume(system.rv)
-            fig.savefig(os.path.join(directory, "post", "rv.png"))
+            if not isinstance(self.model, LeftVentricle):
+                fig = system.plot_pressure_flow_volume(system.rv_system)
+                fig.savefig(os.path.join(directory, "post", "rv.png"))
 
             exporter = LVContourExporter(os.path.join(directory, "d3plot"), self.model)
 
@@ -345,7 +346,7 @@ class MechanicsSimulator(BaseSimulator):
             exporter.export_contour_to_vtk("l2cv", self.model.l2cv_axis)
             normal = self.model.short_axis["normal"]
             p_start = self.model.short_axis["center"]
-            for ap in self.model.left_ventricle.apex_points:
+            for ap in self.model.left_ventricle.apex_points:  # use next()?
                 if ap.name == "apex epicardium":
                     p_end = ap.xyz
 

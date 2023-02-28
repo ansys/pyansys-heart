@@ -148,8 +148,9 @@ class SystemModelPost:
         fcsv1 = os.path.join(self.dir, "constant_preload_windkessel_afterload_left.csv")
         try:
             fcsv2 = os.path.join(self.dir, "constant_preload_windkessel_afterload_right.csv")
-        except FileExistsError:
             self.model_type = "BV"
+        except FileExistsError:
+            self.model_type = "LV"
 
         # get EOD pressure
         s = SimulationSettings()

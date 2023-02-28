@@ -3,7 +3,6 @@ from dataclasses import dataclass
 import json
 import os
 
-from ansys.heart.postprocessor.binout_helper import IcvOut
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import matplotlib.pyplot as plt
 import numpy as np
@@ -144,16 +143,28 @@ class SystemModelPost:
         dir: simulation directory
         """
         self.dir = dir
+        self.model_type = "LV"
+
+        fcsv1 = os.path.join(self.dir, "constant_preload_windkessel_afterload_left.csv")
+        try:
+            fcsv2 = os.path.join(self.dir, "constant_preload_windkessel_afterload_right.csv")
+        except FileExistsError:
+            self.model_type = "BV"
 
         # get EOD pressure
         s = SimulationSettings()
         s.load(os.path.join(self.dir, "simulation_settings.yml"))
-        lp = s.mechanics.boundary_conditions.end_diastolic_cavity_pressure.left_ventricle.to(
-            "kilopascal"
-        ).m
-        rp = s.mechanics.boundary_conditions.end_diastolic_cavity_pressure.right_ventricle.to(
-            "kilopascal"
-        ).m
+        l_ed_pressure = (
+            s.mechanics.boundary_conditions.end_diastolic_cavity_pressure.left_ventricle.to(
+                "kilopascal"
+            ).m
+        )
+        if self.model_type == "BV":
+            r_ed_pressure = (
+                s.mechanics.boundary_conditions.end_diastolic_cavity_pressure.right_ventricle.to(
+                    "kilopascal"
+                ).m
+            )
 
         # get EOD volume
         # todo: get this information from binout:icvout
@@ -161,20 +172,22 @@ class SystemModelPost:
             # load simulated EOD volume
             with open(os.path.join(self.dir, "Post_report.json")) as f:
                 dct = json.load(f)
-                lv = dct["Simulation Left ventricle volume (mm3)"][-1] / 1000
-                rv = dct["Simulation Right ventricle volume"][-1] / 1000
+                l_ed_volume = dct["Simulation Left ventricle volume (mm3)"][-1] / 1000
+                if self.model_type == "BV":
+                    r_ed_volume = dct["Simulation Right ventricle volume"][-1] / 1000
         except FileExistsError:
             # load Input EOD volume
             with open(os.path.join(self.dir, "volumes.json")) as f:
                 dct = json.load(f)
-                lv = dct["Left ventricle"] / 1000
-                rv = dct["Right ventricle"] / 1000
+                l_ed_volume = dct["Left ventricle"] / 1000
+                if self.model_type == "BV":
+                    r_ed_volume = dct["Right ventricle"] / 1000
 
-        f = os.path.join(self.dir, "constant_preload_windkessel_afterload_left.csv")
-        self.lv = ZeroDSystem(f, [lp, lv], name="Left ventricle")
-
-        f = os.path.join(self.dir, "constant_preload_windkessel_afterload_right.csv")
-        self.rv = ZeroDSystem(f, [rp, rv], name="Right ventricle")
+        self.lv_system = ZeroDSystem(fcsv1, [l_ed_pressure, l_ed_volume], name="Left ventricle")
+        if self.model_type == "BV":
+            self.rv_system = ZeroDSystem(
+                fcsv2, [r_ed_pressure, r_ed_volume], name="Right ventricle"
+            )
 
     def plot_pv_loop(self, t_start=0, t_end=10e10):
         """
@@ -185,8 +198,8 @@ class SystemModelPost:
         t_start: start time
         t_end: end time
         """
-        start = np.where(self.lv.time >= t_start)[0][0]
-        end = np.where(self.lv.time <= t_end)[0][-1]
+        start = np.where(self.lv_system.time >= t_start)[0][0]
+        end = np.where(self.lv_system.time <= t_end)[0][-1]
 
         fig, axis = plt.subplots()
         fig.suptitle("Pressure Volume Loop")
@@ -199,11 +212,9 @@ class SystemModelPost:
             axis.scatter(cavity.ed[1], cavity.ed[0], facecolor=color, label=cavity.name + "@ED")
             return
 
-        add_pv(self.lv, "blue")
-        try:
-            add_pv(self.rv, "red")
-        except:
-            pass
+        add_pv(self.lv_system, "blue")
+        if self.model_type == "BV":
+            add_pv(self.rv_system, "red")
 
         axis.set_xlabel("Volume (mL)")
         axis.set_ylabel("Pressure (kPa)")
@@ -287,6 +298,8 @@ class SystemModelPost:
 
           It's normal that the cavity volume is slight different.
         """
+        from ansys.heart.postprocessor.binout_helper import IcvOut
+
         try:
             self.bin = IcvOut(os.path.join(self.dir, "binout"))
         except FileExistsError:
@@ -300,15 +313,17 @@ class SystemModelPost:
         fig, axis = plt.subplots(3, figsize=(8, 4))
 
         axis[0].plot(self.bin.time, self.bin.pressure[:, 0], label="pressure_binout")
-        axis[0].plot(self.lv.time, self.lv.pressure.cavity, "--", label="pressure_csv")
+        axis[0].plot(
+            self.lv_system.time, self.lv_system.pressure.cavity, "--", label="pressure_csv"
+        )
         axis[0].legend()
 
         axis[1].plot(self.bin.time, self.bin.flow[:, 0], label="flow_binout")
-        axis[1].plot(self.lv.time, -self.lv.flow.cavity, "--", label="flow_csv")
+        axis[1].plot(self.lv_system.time, -self.lv_system.flow.cavity, "--", label="flow_csv")
         axis[1].legend()
 
         axis[2].plot(self.bin.time, self.bin.volume[:, 0], label="volume_binout")
-        axis[2].plot(self.lv.time, self.lv.volume.cavity, "--", label="volume_csv")
+        axis[2].plot(self.lv_system.time, self.lv_system.volume.cavity, "--", label="volume_csv")
         axis[2].legend()
         axis[2].set_xlabel("Time (s)")
 
@@ -329,36 +344,36 @@ class SystemModelPost:
 
         fig, axis = plt.subplots(figsize=(8, 4))
 
-        if self.type == "LV":
-            vlv = interp1d(self.bin.time, self.bin.volume[:, 0])(self.lv["time"])
-            v_total = vlv + self.lv["vart"] + self.lv["vven"]
+        if self.model_type == "LV":
+            vlv = interp1d(self.bin.time, self.bin.volume[:, 0])(self.lv_system["time"])
+            v_total = vlv + self.lv_system["vart"] + self.lv_system["vven"]
             if plot_all:
-                axis.plot(self.lv["time"], self.lv["vart"], label="vart")
-                axis.plot(self.lv["time"], self.lv["vven"], label="vven")
-                axis.plot(self.lv["time"], vlv, label="vlv")
+                axis.plot(self.lv_system["time"], self.lv_system["vart"], label="vart")
+                axis.plot(self.lv_system["time"], self.lv_system["vven"], label="vven")
+                axis.plot(self.lv_system["time"], vlv, label="vlv")
 
-        elif self.type == "BV":
-            vlv = interp1d(self.bin.time, self.bin.volume[:, 0])(self.lv["time"])
-            vrv = interp1d(self.bin.time, self.bin.volume[:, 1])(self.rv["time"])
+        elif self.model_type == "BV":
+            vlv = interp1d(self.bin.time, self.bin.volume[:, 0])(self.lv_system["time"])
+            vrv = interp1d(self.bin.time, self.bin.volume[:, 1])(self.rv_system["time"])
             v_total = (
                 vlv
-                + self.lv["vart"]
-                + self.lv["vven"]
+                + self.lv_system["vart"]
+                + self.lv_system["vven"]
                 + vrv
-                + self.lv["v_part"]
-                + self.lv["v_pven"]
+                + self.lv_system["v_part"]
+                + self.lv_system["v_pven"]
             )
             if plot_all:
-                axis.plot(self.lv["time"], self.lv["vart"], label="vart")
-                axis.plot(self.lv["time"], self.lv["v_part"], label="v_part")
-                axis.plot(self.lv["time"], self.lv["vven"], label="vven")
-                axis.plot(self.lv["time"], self.lv["v_pven"], label="v_pven")
-                axis.plot(self.lv["time"], vlv, label="vlv")
-                axis.plot(self.lv["time"], vrv, label="vrv")
+                axis.plot(self.lv_system["time"], self.lv_system["vart"], label="vart")
+                axis.plot(self.lv_system["time"], self.lv_system["v_part"], label="v_part")
+                axis.plot(self.lv_system["time"], self.lv_system["vven"], label="vven")
+                axis.plot(self.lv_system["time"], self.lv_system["v_pven"], label="v_pven")
+                axis.plot(self.lv_system["time"], vlv, label="vlv")
+                axis.plot(self.lv_system["time"], vrv, label="vrv")
         variation = abs(max(v_total) - min(v_total)) / max(v_total)
 
         axis.plot(
-            self.lv["time"][1:],
+            self.lv_system["time"][1:],
             v_total[1:],
             label="V_total, var={0:.1f}%".format(variation * 100),
         )

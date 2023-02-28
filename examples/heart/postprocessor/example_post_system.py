@@ -8,5 +8,5 @@ if __name__ == "__main__":
 
     fig = result.plot_pv_loop()
     fig = result.plot_pressure_flow_volume(result.lv)
-    fig = result.plot_pressure_flow_volume(result.rv)
+    fig = result.plot_pressure_flow_volume(result.rv_system)
     plt.show()

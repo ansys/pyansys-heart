@@ -679,15 +679,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """Write the model to files."""
         super().export(export_directory)
 
-        if not export_directory:
-            export_directory = os.path.join(self.model.info.workdir, "mechanics")
+        # write cavity name and volume
+        dct = {}
+        for cavity in self.model.cavities:
+            dct[cavity.name] = cavity.volume
+        with open(os.path.join(export_directory, "volumes.json"), "w") as f:
+            json.dump(dct, f)
 
-        if not os.path.isdir(export_directory):
-            os.makedirs(export_directory)
-
-        # export .k files
-        self.export_databases(export_directory)
-
+        # todo: Close loop is only available from a customized LSDYNA executable
         # add system json in case of closed loop. For open-loop this is already
         # added in the control volume database
         if (

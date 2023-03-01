@@ -76,7 +76,7 @@ if __name__ == "__main__":
 
         # Instantiate model
         info = models.ModelInfo(
-            "CasisCalibration",
+            "LabeledSurface",
             work_directory=os.path.join(pathlib.Path(path_to_lv).parent, "BiVentricle"),
             path_to_case="",
             mesh_size=1.5,

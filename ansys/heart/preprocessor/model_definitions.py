@@ -113,7 +113,7 @@ LABELS_TO_ID = {
         "Superior vena cava inlet": 16,
         "Inferior vena cava inlet": 17,
     },
-    "CasisCalibration": {
+    "LabeledSurface": {
         "Left ventricle myocardium": 100,
         "Right ventricle myocardium": 101,
         "Left ventricle endocardium": 1,

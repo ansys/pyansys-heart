@@ -27,7 +27,7 @@ class ModelInfo:
 
     @database.setter
     def database(self, value: str):
-        valid_databases = ["Strocchi2020", "Cristobal2021", "CasisCalibration"]
+        valid_databases = ["Strocchi2020", "Cristobal2021", "LabeledSurface"]
         if value not in valid_databases:
             raise ValueError(
                 "{0} not a valid database name. Please specify one of the"

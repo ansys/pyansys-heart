@@ -59,7 +59,7 @@
         "Pulmonary valve plane": 21,
         "Tricuspid valve plane": 22
     },
-    "CasisCalibration": {
+    "LabeledSurface": {
         "Left ventricle endocardium": 1,
         "Left ventricle epicardium": 2,
         "Left ventricle myocardium mitral valve": 3,

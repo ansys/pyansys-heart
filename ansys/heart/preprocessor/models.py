@@ -212,8 +212,8 @@ class HeartModel:
 
 
         """
+        # TODO factor in several methods 
         if self.info.database == "LabeledSurface":
-            # TODO factor in several methods 
             input_surface = pv.read(self.info.path_to_original_mesh)
 
             points = input_surface.points

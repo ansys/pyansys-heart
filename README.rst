@@ -122,13 +122,19 @@ environment, which is another reason to consider using `tox`_.
 Documentation
 -------------
 
+Visit the [documentation](https://curly-sniffle-dbf292da.pages.github.io/api/preprocessor/index.html) for a
+detailed description of the library.
 For building documentation, you can either run the usual rules provided in the
 `Sphinx`_ Makefile, such us:
 
 .. code:: bash
 
-    python -m pip install -r requirements_docs.txt
-    make -C doc/ html
+    python -m pip install -r requirements/requirements_doc.txt
+    # Linux
+    make -C doc/ html 
+    # Windows
+    cd doc/
+    make html
 
     # subsequently open the documentation with (under Linux):
     your_browser_name doc/html/index.html

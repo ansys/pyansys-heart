@@ -3,7 +3,7 @@ API Reference
 
 This page contains the API reference for the different modules
 
-.. currentmodule:: ansys.heart.simulator
+.. currentmodule:: ansys.heart
 
 .. autosummary::
    :toctree: _autosummary
@@ -13,6 +13,12 @@ This page contains the API reference for the different modules
    :hidden:
 
    
-   index_preprocessor
-   index_simulator
+   preprocessor/index
 
+   preprocessor/mesh/index
+
+   ..writer/index
+   
+   simulator/index
+
+    ..postprocessor/index

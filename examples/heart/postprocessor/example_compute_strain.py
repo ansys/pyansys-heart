@@ -1,3 +1,4 @@
+"""For information only, example not yet stable"""
 from ansys.heart.postprocessor.bulleye import bullseye_plot
 from ansys.heart.postprocessor.compute_strain import (
     compute_AHA17_segment_strain,
@@ -9,11 +10,11 @@ from matplotlib import pyplot as plt
 
 if __name__ == "__main__":
     model: HeartModel
-    model = HeartModel.load_model(r"D:\Heart20\healthy20\health03_BV_2mm\heart_model_bv.pickle")
+    model = HeartModel.load_model(r"path_to_model.pickle")
     model.compute_left_ventricle_anatomy_axis(first_cut_short_axis=0.2)
     model.compute_left_ventricle_aha17()
 
-    d3plot_file = r"D:\Heart20\healthy20\health03_BV_2mm\simulation\main-mechanics\d3plot"
+    d3plot_file = r"my_path_to_d3plot"
     data = D3plotReader(d3plot_file)
     df = data.get_history_variable(hv_index=list(range(9)), at_frame=1)
     strain = compute_myocardial_strain(model, df.T, reference=None)

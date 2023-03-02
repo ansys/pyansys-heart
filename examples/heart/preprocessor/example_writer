@@ -7,7 +7,8 @@ from ansys.heart.simulator.support import run_preprocessor
 import ansys.heart.writer.dynawriter as writers
 
 if __name__ == "__main__":
-    """Full Heart example.
+    """BiVentricle example.
+    model_type can be changed to BiVentricle or FullHeart or FourChamber model based on user requirements
 
     1. Extracts simulation mesh
     2. Writes files for mechanics, zero-pressure, fiber generation, and purkinje
@@ -26,7 +27,6 @@ if __name__ == "__main__":
 
     if use_preprocessor:
         model = run_preprocessor(
-            # model_type=models.FullHeart,
             model_type=models.BiVentricle,
             database="Strocchi2020",
             path_original_mesh=path_to_case,
@@ -60,3 +60,4 @@ if __name__ == "__main__":
             )
             writer.update()
             writer.export(exportdir)
+print("done")

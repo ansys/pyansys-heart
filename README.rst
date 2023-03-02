@@ -98,15 +98,15 @@ need to follow these steps:
 
      .. code:: bash
 
-        python -m pip install -r requirements/requirements_build_pip.txt
-        python -m pip install -r requirements/requirements_doc.txt
-        python -m pip install -r requirements/requirements_tests.txt
+        python -m pip install -r requirements_build.txt
+        python -m pip install -r requirements_docs.txt
+        python -m pip install -r requirements_tests.txt
 
 6. Finally, verify your development version after installation by running:
 
     .. code:: bash
         
-        python -m pip install -r requirements/requirements_tests.txt
+        python -m pip install -r requirements_tests.txt
         pytest tests -v
 
 
@@ -127,7 +127,7 @@ For building documentation, you can either run the usual rules provided in the
 
 .. code:: bash
 
-    python -m pip install -r requirements/requirements_doc.txt
+    python -m pip install -r requirements_docs.txt
     make -C doc/ html
 
     # subsequently open the documentation with (under Linux):
@@ -141,7 +141,7 @@ the building requirements:
 
 .. code:: bash
 
-    python -m pip install -r requirements/requirements_build.txt
+    python -m pip install -r requirements_build.txt
 
 Then, you can execute:
 

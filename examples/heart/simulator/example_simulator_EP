@@ -3,13 +3,14 @@ import os
 import pathlib
 
 import ansys.heart.preprocessor.models as models
+from ansys.heart.simulator.settings.settings import SimulationSettings
 from ansys.heart.simulator.simulator import EPSimulator, MechanicsSimulator
 from ansys.heart.simulator.support import run_preprocessor
 
 # import ansys.heart.writer.dynawriter as writers
 
 if __name__ == "__main__":
-    """Full Heart example.
+    """BiVentricle example.
 
     1. Extracts simulation mesh
     2. Use simulator class to launch
@@ -28,7 +29,7 @@ if __name__ == "__main__":
     path_to_case = os.path.join(
         pathlib.Path(__file__).parents[3], "downloads\\Strocchi2020\\01\\01.case"
     )
-    workdir = os.path.join(pathlib.Path(path_to_case).parent, "BiVentricleTestSimulator")
+    workdir = os.path.join(pathlib.Path(path_to_case).parent, "BiVentricle")
 
     path_to_model = os.path.join(workdir, "heart_model.pickle")
 
@@ -44,34 +45,28 @@ if __name__ == "__main__":
             mesh_size=2.0,
         )
 
-    # Load model (e.g. when you skip the preprocessor):
-    model: models.BiVentricle = models.HeartModel.load_model(path_to_model)
-
     # specify LS-DYNA path
     lsdyna_path = (
-        r"D:\development\dyna-versions\ls-dyna_smp_d_Dev_97584-g1b99fd817b_winx64_ifort190.exe"
+        r"D:\New folder\mppdyna_d_winx64_msmpi\ls-dyna_mpp_d_Dev_98335-ga3a63fdc77_winx64_ifort190_msmpi.exe"
     )
 
-    # ** EP Simulation **
-    simulator = EPSimulator(model, lsdyna_path, "smp", num_cpus=4)
+    # BASIC examples with defaults:
+
+    # Load model (e.g. when you skip the preprocessor):
+    model: models.BiVentricle = models.HeartModel.load_model(path_to_model)
+    ## instantiate simulator.
+    simulator = EPSimulator(model, lsdyna_path, "smp", num_cpus=1,
+                                  simulation_directory= os.path.join(model.info.workdir, "simulation-EP"))
+    # load default settings
+    simulator.settings.load_defaults()
     # compute the fiber orientation
     simulator.compute_fibers()
     # visualize computed fibers
-    # simulator.model.plot_fibers(n_seed_points=5000)
+    simulator.model.plot_fibers(n_seed_points=2000)
     # compute purkinje network
     simulator.compute_purkinje()
     # visualize purkinje
-    # simulator.model.plot_purkinje()
+    simulator.model.plot_purkinje()
     # start simulation
     simulator.simulate()
-
-    # ** Mechanics simulation (simplified EP and fluids)
-    simulator = MechanicsSimulator(model, lsdyna_path, "smp", num_cpus=4)
-    # compute the fiber orientation
-    simulator.compute_fibers()
-    # visualize computed fibers
-    # simulator.model.plot_fibers(n_seed_points=5000)
-    # compute the stress free configuration
-    simulator.compute_stress_free_configuration()
-    # do the main simulation
-    simulator.simulate()
+print("done")

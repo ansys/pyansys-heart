@@ -430,7 +430,7 @@ def get_info_from_vtk(
         elements = cells_conn.reshape(num_cells, 1 + 1)
         elements = elements[:, 1:]  # remove one column
     else:
-        raise ValueError("Not supporting anything other than tetrahedrons")
+        raise ValueError("Not supporting anything other than tetrahedrons and vertices")
     # np.savetxt("source_points.csv", points, delimiter=",")
     return points, elements, cell_data, point_data
 

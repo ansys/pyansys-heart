@@ -127,7 +127,7 @@ environment, which is another reason to consider using `tox`_.
 Documentation
 -------------
 
-Visit the _documentation for a
+Visit the `documentation`_ for a
 detailed description of the library.
 For building documentation, you can either run the usual rules provided in the
 `Sphinx`_ Makefile, such us:

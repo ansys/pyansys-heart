@@ -217,25 +217,39 @@ class HeartModel:
             input_surface = pv.read(self.info.path_to_original_mesh)
 
             points = input_surface.points
-            tris = input_surface.cells.reshape(-1, 4)[:, 1:]
+            try:  # Unstructure grid
+                tris = input_surface.cells.reshape(-1, 4)[:, 1:]
+            except:  # Polydata
+                tris = input_surface.faces.reshape(-1, 4)[:, 1:]
+            if isinstance(self, LeftVentricle):
+                label_to_id = {
+                    "Left ventricle endocardium": 1,
+                    "Left ventricle epicardium": 2,
+                    "Left ventricle myocardium mitral valve": 3,
+                    "Left ventricle myocardium aortic valve": 4,
+                }
+                self.parts[0].tag_ids = [1]
 
-            label_to_id = {
-                "Left ventricle endocardium": 1,
-                "Left ventricle epicardium": 2,
-                "Left ventricle myocardium mitral valve": 3,
-                "Left ventricle myocardium aortic valve": 4,
-                "Right ventricle endocardium": 5,
-                "Right ventricle epicardium": 6,
-                "Right ventricle myocardium pulmonary valve": 7,
-                "Right ventricle myocardium tricuspid valve": 8,
-                "Right ventricle septum": 9,
-            }
-
-            for part in self.parts:
-                if "Left" in part.name:
-                    part.tag_ids = [1]
-                elif "Right" in part.name:
-                    part.tag_ids = [2]
+            elif isinstance(self, BiVentricle):
+                label_to_id = {
+                    "Left ventricle endocardium": 1,
+                    "Left ventricle epicardium": 2,
+                    "Left ventricle myocardium mitral valve": 3,
+                    "Left ventricle myocardium aortic valve": 4,
+                    "Right ventricle endocardium": 5,
+                    "Right ventricle epicardium": 6,
+                    "Right ventricle myocardium pulmonary valve": 7,
+                    "Right ventricle myocardium tricuspid valve": 8,
+                    "Right ventricle septum": 9,
+                }
+                for part in self.parts:
+                    if "Left" in part.name:
+                        part.tag_ids = [1]
+                    elif "Right" in part.name:
+                        part.tag_ids = [2]
+            else:
+                print("Under development")
+                exit()
 
             # create lists of relevant surfaces for remeshing
             # write stl input for volume meshing
@@ -254,44 +268,47 @@ class HeartModel:
             # Start remeshing
             self._remesh(post_mapping=False)
 
-            # split epicardium boundary into 'real' epicardium and septum
-            for b in self.mesh.boundaries:
-                if "left-ventricle-epicardium" in b.name:
-                    triangles = b.faces.reshape(-1, 4)[:, 1:]
-                    region_ids = vtkmethods.get_connected_regions(b.nodes, triangles)
-                    unique_region_ids, counts = np.unique(region_ids, return_counts=True)
-                    sort_idx = np.argsort(counts)
-                    assert len(unique_region_ids) == 2, "Expecting two regions"
-                    unique_region_ids = unique_region_ids[sort_idx]
-                    mask_septum = region_ids == unique_region_ids[0]
-                    mask_epicardium = region_ids == unique_region_ids[1]
-                    self.mesh.boundaries.append(
-                        SurfaceMesh(
-                            "right-ventricle-septum",
-                            triangles=triangles[mask_septum, :],
-                            nodes=b.nodes,
+            if isinstance(self, BiVentricle):
+                # split epicardium boundary into 'real' epicardium and septum
+                for b in self.mesh.boundaries:
+                    if "left-ventricle-epicardium" in b.name:
+                        triangles = b.faces.reshape(-1, 4)[:, 1:]
+                        region_ids = vtkmethods.get_connected_regions(b.nodes, triangles)
+                        unique_region_ids, counts = np.unique(region_ids, return_counts=True)
+                        sort_idx = np.argsort(counts)
+                        assert len(unique_region_ids) == 2, "Expecting two regions"
+                        unique_region_ids = unique_region_ids[sort_idx]
+                        mask_septum = region_ids == unique_region_ids[0]
+                        mask_epicardium = region_ids == unique_region_ids[1]
+                        self.mesh.boundaries.append(
+                            SurfaceMesh(
+                                "right-ventricle-septum",
+                                triangles=triangles[mask_septum, :],
+                                nodes=b.nodes,
+                            )
                         )
-                    )
-                    vertex = np.ones((len(triangles[mask_epicardium]), 1), dtype=int) * 3
-                    bb = np.hstack((vertex, triangles[mask_epicardium, :]))
-                    b.faces = bb.ravel()
+                        vertex = np.ones((len(triangles[mask_epicardium]), 1), dtype=int) * 3
+                        bb = np.hstack((vertex, triangles[mask_epicardium, :]))
+                        b.faces = bb.ravel()
 
-            # write boundaries for debugging purposes
-            # for b in model.mesh.boundaries:
-            #     b.save(os.path.join(model.info.workdir, b.name + ".stl"))
+                # write boundaries for debugging purposes
+                # for b in model.mesh.boundaries:
+                #     b.save(os.path.join(model.info.workdir, b.name + ".stl"))
 
-            # update lv and rv parts (assign tet ids to these parts)
-            vertex = np.linspace(0, len(points) - 1, num=len(points), dtype=int).reshape(-1, 1)
-            meshio.write_points_cells(
-                "tags.vtk",
-                points,
-                [("vertex", vertex)],
-                cell_data={"tags": [input_surface["tags"]]},
-            )
-            vertex_tags = vtkmethods.read_vtk_unstructuredgrid_file("tags.vtk")
-            os.remove("tags.vtk")
-            self.mesh = vtkmethods.vtk_map_discrete_cell_data(vertex_tags, self.mesh, "tags")
+                # update lv and rv parts (assign tet ids to these parts)
+                vertex = np.linspace(0, len(points) - 1, num=len(points), dtype=int).reshape(-1, 1)
+                meshio.write_points_cells(
+                    "tags.vtk",
+                    points,
+                    [("vertex", vertex)],
+                    cell_data={"tags": [input_surface["tags"]]},
+                )
+                vertex_tags = vtkmethods.read_vtk_unstructuredgrid_file("tags.vtk")
+                os.remove("tags.vtk")
+                self.mesh = vtkmethods.vtk_map_discrete_cell_data(vertex_tags, self.mesh, "tags")
 
+            elif isinstance(self, LeftVentricle):
+                self.mesh.cell_data["tags"] = np.ones(self.mesh.tetrahedrons.shape[0], dtype=float)
             # extract septum
             self._extract_septum()
 
@@ -303,7 +320,8 @@ class HeartModel:
             self._extract_apex()
             self._add_nodal_areas()
 
-            def define_uvc():
+            def _define_uvc():
+                """Temporal method use to compute longitudinal coordinates."""
                 # add uvc coordinates to the self
                 # 0. Compute longitudinal axis with: average cap centroid average apical point
                 # 1. use longitudal axis to compute rotate to
@@ -329,7 +347,7 @@ class HeartModel:
                     [0.0, 1.0, 0.0], (self.mesh.tetrahedrons.shape[0], 1)
                 )
 
-            define_uvc()
+            _define_uvc()
 
             # rename cap
             for part in self.parts:

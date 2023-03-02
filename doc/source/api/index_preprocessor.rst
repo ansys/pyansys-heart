@@ -20,8 +20,6 @@ This page contains the API reference for the preprocessor module
 
    writer/index
 
-   simulator/index
-
    postprocessor/index
 
 

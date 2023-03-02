@@ -8,12 +8,13 @@ import ansys.heart.writer.dynawriter as writers
 
 if __name__ == "__main__":
     """BiVentricle example.
-    model_type can be changed to BiVentricle or FullHeart or FourChamber model based on user requirements
+    model_type can be changed to BiVentricle or FullHeart or FourChamber model based on user
+    requirements
 
     1. Extracts simulation mesh
     2. Writes files for mechanics, zero-pressure, fiber generation, and purkinje
 
-    Please change paths
+    Please change paths according to your workspace
     """
     path_to_case = os.path.join(
         pathlib.Path(__file__).parents[3], "downloads\\Strocchi2020\\01\\01.case"
@@ -25,6 +26,7 @@ if __name__ == "__main__":
     use_preprocessor = True
     write_lsdyna_files = True
 
+    # Preprocesing geometry, remeshing with mesh_size=2
     if use_preprocessor:
         model = run_preprocessor(
             model_type=models.BiVentricle,
@@ -35,13 +37,14 @@ if __name__ == "__main__":
             mesh_size=2.0,
         )
 
-    # write LS-DYNA files
     # Load model (e.g. when you skip the preprocessor):
     model = models.HeartModel.load_model(path_to_model)
     if not isinstance(model, models.HeartModel):
         exit()
     model.info.workdir = workdir
 
+    # Write LS-DYNA k files for mechanics, zero-pressure, fiber generation, and purkinje
+    # generation
     if write_lsdyna_files:
         for writer in (
             writers.ElectrophysiologyDynaWriter(model),
@@ -60,4 +63,4 @@ if __name__ == "__main__":
             )
             writer.update()
             writer.export(exportdir)
-print("done")
+    print("done")

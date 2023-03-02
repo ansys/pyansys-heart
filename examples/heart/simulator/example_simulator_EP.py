@@ -1,29 +1,21 @@
-"""Example to pre-process data from Strocchi2020 and Rodero2021."""
+"""Example to preprocess and run a biventruclar EP simulation."""
 import os
 import pathlib
 
 import ansys.heart.preprocessor.models as models
-from ansys.heart.simulator.settings.settings import SimulationSettings
-from ansys.heart.simulator.simulator import EPSimulator, MechanicsSimulator
+from ansys.heart.simulator.simulator import EPSimulator
 from ansys.heart.simulator.support import run_preprocessor
-
-# import ansys.heart.writer.dynawriter as writers
 
 if __name__ == "__main__":
     """BiVentricle example.
 
     1. Extracts simulation mesh
-    2. Use simulator class to launch
-        1. EP-simulation
+    2. Use simulator class to launch an EP simulation:
             - compute fibers
             - compute purkinje network
             - launch main simulation
-        2. Mechanics-simulation
-            - compute fibers
-            - compute stress-free configuration
-            - launch main simulation
 
-    Please change paths
+    Please change paths according to your workspace
     """
     # extract simulation mesh(es)
     path_to_case = os.path.join(
@@ -46,17 +38,19 @@ if __name__ == "__main__":
         )
 
     # specify LS-DYNA path
-    lsdyna_path = (
-        r"D:\New folder\mppdyna_d_winx64_msmpi\ls-dyna_mpp_d_Dev_98335-ga3a63fdc77_winx64_ifort190_msmpi.exe"
-    )
-
-    # BASIC examples with defaults:
+    lsdyna_path = r"D:\my_path_to_ls_dyna\lsdyna_executable.exe"
 
     # Load model (e.g. when you skip the preprocessor):
     model: models.BiVentricle = models.HeartModel.load_model(path_to_model)
-    ## instantiate simulator.
-    simulator = EPSimulator(model, lsdyna_path, "smp", num_cpus=1,
-                                  simulation_directory= os.path.join(model.info.workdir, "simulation-EP"))
+
+    ## instantiate simulator, please change the dynatype accordingly
+    simulator = EPSimulator(
+        model=model,
+        lsdynapath=lsdyna_path,
+        dynatype="smp",
+        num_cpus=1,
+        simulation_directory=os.path.join(model.info.workdir, "simulation-EP"),
+    )
     # load default settings
     simulator.settings.load_defaults()
     # compute the fiber orientation
@@ -69,4 +63,4 @@ if __name__ == "__main__":
     simulator.model.plot_purkinje()
     # start simulation
     simulator.simulate()
-print("done")
+    print("done")

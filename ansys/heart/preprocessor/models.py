@@ -13,7 +13,9 @@ import ansys.heart.preprocessor.mesh.mesher as mesher
 from ansys.heart.preprocessor.mesh.objects import Cap, Cavity, Mesh, Part, Point, SurfaceMesh
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.model_definitions import HEART_PARTS, LABELS_TO_ID
+import meshio
 import numpy as np
+import pyvista as pv
 from scipy.spatial.transform import Rotation as R
 
 
@@ -210,11 +212,137 @@ class HeartModel:
 
 
         """
-        self.read_input_mesh()
-        self._remove_unused_tags()
-        self._prepare_for_meshing()
-        self._remesh()
-        self._update_parts()
+        if self.info.database == "LabeledSurface":
+
+            input_surface = pv.read(self.info.path_to_original_mesh)
+
+            points = input_surface.points
+            tris = input_surface.cells.reshape(-1, 4)[:, 1:]
+
+            label_to_id = {
+                "Left ventricle endocardium": 1,
+                "Left ventricle epicardium": 2,
+                "Left ventricle myocardium mitral valve": 3,
+                "Left ventricle myocardium aortic valve": 4,
+                "Right ventricle endocardium": 5,
+                "Right ventricle epicardium": 6,
+                "Right ventricle myocardium pulmonary valve": 7,
+                "Right ventricle myocardium tricuspid valve": 8,
+                "Right ventricle septum": 9,
+            }
+
+            for part in self.parts:
+                if "Left" in part.name:
+                    part.tag_ids = [1]
+                elif "Right" in part.name:
+                    part.tag_ids = [2]
+
+            # create lists of relevant surfaces for remeshing
+            # write stl input for volume meshing
+            for key, tagid in label_to_id.items():
+                surface_name = "-".join(key.lower().split())
+                mask = input_surface["cell-tags"] == tagid
+                surface = SurfaceMesh(surface_name, tris[mask, :], nodes=points)
+                surface.write_to_stl(
+                    os.path.join(self.info.workdir, "part_" + surface_name + ".stl")
+                )
+                if "valve" in key or "septum" in key:
+                    self.mesh_raw.boundaries.append(surface)
+                else:
+                    self.mesh_raw.interfaces.append(surface)
+
+            # Start remeshing
+            self._remesh(post_mapping=False)
+
+            # split epicardium boundary into 'real' epicardium and septum
+            for b in self.mesh.boundaries:
+                if "left-ventricle-epicardium" in b.name:
+                    triangles = b.faces.reshape(-1, 4)[:, 1:]
+                    region_ids = vtkmethods.get_connected_regions(b.nodes, triangles)
+                    unique_region_ids, counts = np.unique(region_ids, return_counts=True)
+                    sort_idx = np.argsort(counts)
+                    assert len(unique_region_ids) == 2, "Expecting two regions"
+                    unique_region_ids = unique_region_ids[sort_idx]
+                    mask_septum = region_ids == unique_region_ids[0]
+                    mask_epicardium = region_ids == unique_region_ids[1]
+                    self.mesh.boundaries.append(
+                        SurfaceMesh(
+                            "right-ventricle-septum",
+                            triangles=triangles[mask_septum, :],
+                            nodes=b.nodes,
+                        )
+                    )
+                    vertex = np.ones((len(triangles[mask_epicardium]), 1), dtype=int) * 3
+                    bb = np.hstack((vertex, triangles[mask_epicardium, :]))
+                    b.faces = bb.ravel()
+
+            # write boundaries for debugging purposes
+            # for b in model.mesh.boundaries:
+            #     b.save(os.path.join(model.info.workdir, b.name + ".stl"))
+
+            # update lv and rv parts (assign tet ids to these parts)
+            vertex = np.linspace(0, len(points) - 1, num=len(points), dtype=int).reshape(-1, 1)
+            meshio.write_points_cells(
+                "tags.vtk",
+                points,
+                [("vertex", vertex)],
+                cell_data={"tags": [input_surface["tags"]]},
+            )
+            vertex_tags = vtkmethods.read_vtk_unstructuredgrid_file("tags.vtk")
+            os.remove("tags.vtk")
+            self.mesh = vtkmethods.vtk_map_discrete_cell_data(vertex_tags, self.mesh, "tags")
+
+            # extract septum
+            self._extract_septum()
+
+            # call some additional methods to assign parts, surfaces, caps, etc
+            self._assign_elements_to_parts()
+            self._assign_surfaces_to_parts()
+            self._assign_caps_to_parts()
+            self._assign_cavities_to_parts()
+            self._extract_apex()
+            self._add_nodal_areas()
+
+            def define_uvc():
+                # add uvc coordinates to the self
+                # 0. Compute longitudinal axis with: average cap centroid average apical point
+                # 1. use longitudal axis to compute rotate to
+                # xy plane and compute uvc_l by z-coordinate
+                lv_apex = self.left_ventricle.apex_points[1].xyz
+                mv_centroid = [
+                    c.centroid for p in self.parts for c in p.caps if "mitral" in c.name
+                ][0]
+                longitudinal_axis = lv_apex - mv_centroid
+                # np.savetxt(os.path.join(self.info.workdir, "points.txt"),
+                #            np.vstack([lv_apex,mv_centroid]),delimiter=",")
+                from ansys.heart.preprocessor.mesh.geodisc import rodrigues_rot
+
+                Prot = rodrigues_rot(self.mesh.nodes - lv_apex, longitudinal_axis, [0, 0, -1])
+                Prot[:, 2] = Prot[:, 2] - np.min(Prot, axis=0)[2]
+                scaling = Prot[:, 2] / np.max(Prot[:, 2])
+                # self.mesh.point_data = {}
+                self.mesh.point_data["uvc_longitudinal"] = scaling
+                self.mesh.cell_data["fiber"] = np.tile(
+                    [0.0, 0.0, 1.0], (self.mesh.tetrahedrons.shape[0], 1)
+                )
+                self.mesh.cell_data["sheet"] = np.tile(
+                    [0.0, 1.0, 0.0], (self.mesh.tetrahedrons.shape[0], 1)
+                )
+
+            define_uvc()
+
+            # rename cap
+            for part in self.parts:
+                for cap in part.caps:
+                    cap.name = cap.name.replace("left-ventricle-myocardium-", "")
+                    cap.name = cap.name.replace("right-ventricle-myocardium-", "")
+
+        else:
+            self.read_input_mesh()
+            self._remove_unused_tags()
+            self._prepare_for_meshing()
+            self._remesh()
+            self._update_parts()
 
         if clean_up:
             self.info.clean_workdir(["part*.stl", "cavity*.stl"])

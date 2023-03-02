@@ -212,7 +212,7 @@ class HeartModel:
 
 
         """
-        # TODO factor in several methods 
+        # TODO factor in several methods
         if self.info.database == "LabeledSurface":
             input_surface = pv.read(self.info.path_to_original_mesh)
 

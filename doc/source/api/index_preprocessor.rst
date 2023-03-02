@@ -3,7 +3,7 @@ API Reference
 
 API Reference Preprocessor
 ==========================
-This page contains the API reference for the preprocessor modules
+This page contains the API reference for the preprocessor module
 
 .. currentmodule:: ansys.heart
 
@@ -17,6 +17,12 @@ This page contains the API reference for the preprocessor modules
    preprocessor/index
 
    preprocessor/mesh/index
+
+   writer/index
+
+   simulator/index
+
+   postprocessor/index
 
 
 

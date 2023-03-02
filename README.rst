@@ -83,6 +83,11 @@ need to follow these steps:
         # or if encountering issues with dynalib you can install a specific working version
         pip install git+https://github.com/pyansys/dynalib.git@afce06ba178888d992ff51838ca521abb824c8ab
 
+        # Otherwise you can install it in editable mode:
+        git clone https://github.com/pyansys/dynalib.git
+        cd dynalib
+        pip install -e .
+
     Alternatively, use
 
     .. code:: bash
@@ -122,7 +127,7 @@ environment, which is another reason to consider using `tox`_.
 Documentation
 -------------
 
-Visit the [documentation](https://curly-sniffle-dbf292da.pages.github.io/api/preprocessor/index.html) for a
+Visit the _documentation for a
 detailed description of the library.
 For building documentation, you can either run the usual rules provided in the
 `Sphinx`_ Makefile, such us:
@@ -170,3 +175,4 @@ Then, you can execute:
 .. _venv: https://docs.python.org/3/library/venv.html
 .. _dynalib: https://github.com/pyansys/dynalib
 .. _conda: https://docs.conda.io/en/latest/
+.. _documentation: https://curly-sniffle-dbf292da.pages.github.io/

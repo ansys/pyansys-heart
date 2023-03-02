@@ -1,8 +1,7 @@
-HeartModels
+Mesh objects
 ===========
 
-Module that contains classes relevant for the mesh.
-Such as a Mesh object, Part object, Features, etc.
+Module that contains classes relevant for the Mesh.
 
 .. currentmodule:: ansys.heart.preprocessor.mesh.objects
 

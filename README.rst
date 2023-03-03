@@ -134,7 +134,7 @@ For building documentation, you can either run the usual rules provided in the
 
 .. code:: bash
 
-    python -m pip install -r requirements/requirements_doc.txt
+    python -m pip install -r requirements_docs.txt
     # Linux
     make -C doc/ html 
     # Windows

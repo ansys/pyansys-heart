@@ -14,5 +14,4 @@ Contents
    user_guide/index
    autoapi/index
    examples_usage/index
-   examples/index
    contributing

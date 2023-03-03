@@ -15,8 +15,8 @@ This page contains the API reference for the different modules in pyheart-lib.
    
    preprocessor/index
 
-   ..writer/index
+   writer/index
    
    simulator/index
 
-    ..postprocessor/index
+   postprocessor/index

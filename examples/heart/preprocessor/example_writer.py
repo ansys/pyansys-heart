@@ -26,7 +26,7 @@ if __name__ == "__main__":
     use_preprocessor = True
     write_lsdyna_files = True
 
-    # Preprocesing geometry, remeshing with mesh_size=2
+    # Preprocessing geometry, remeshing with mesh_size=2
     if use_preprocessor:
         model = run_preprocessor(
             model_type=models.BiVentricle,

@@ -58,5 +58,15 @@
         "Aortic valve plane": 12,
         "Pulmonary valve plane": 21,
         "Tricuspid valve plane": 22
+    },
+    "LabeledSurface": {
+        "Left ventricle endocardium": 1,
+        "Left ventricle epicardium": 2,
+        "Left ventricle myocardium mitral valve": 3,
+        "Left ventricle myocardium aortic valve": 4,
+        "Right ventricle endocardium": 5,
+        "Right ventricle epicardium": 6,
+        "Right ventricle myocardium pulmonary valve": 7,
+        "Right ventricle myocardium tricuspid valve": 8,
     }
 }

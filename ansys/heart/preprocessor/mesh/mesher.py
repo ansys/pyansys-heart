@@ -33,6 +33,10 @@ def mesh_heart_model_by_fluent(
     """
     import ansys.fluent.core as pyfluent
 
+    # make sure we are using absolute path
+    path_to_stl_directory = os.path.abspath(path_to_stl_directory)
+    path_to_output = os.path.abspath(path_to_output)
+
     # change directory to directory of stl file
     old_directory = os.getcwd()
     working_directory = path_to_stl_directory

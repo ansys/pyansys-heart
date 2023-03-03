@@ -1,3 +1,6 @@
+"""For information only, not yet stable
+    require previously launched simulation
+    change paths accordingly"""
 from ansys.heart.postprocessor.D3plotPost import LVContourExporter
 from ansys.heart.preprocessor.models import HeartModel
 import matplotlib.pyplot as plt
@@ -5,12 +8,14 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
     """
     Show exporting LV motion in vtk
+    require previously launched simulation
+    change paths accordingly
     """
     model: HeartModel
-    model = HeartModel.load_model(r"D:\Heart20\healthy20\health03_BV_2mm\heart_model_bv.pickle")
+    model = HeartModel.load_model(r"path_to_model.pickle")
     model.compute_left_ventricle_anatomy_axis(first_cut_short_axis=0.2)
 
-    d3plot_file = r"D:\Heart20\healthy20\health03_BV_2mm\simulation\main-mechanics\d3plot"
+    d3plot_file = r"my_path_to_d3plot"
 
     exporter = LVContourExporter(d3plot_file, model)
 

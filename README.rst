@@ -83,6 +83,11 @@ need to follow these steps:
         # or if encountering issues with dynalib you can install a specific working version
         pip install git+https://github.com/pyansys/dynalib.git@afce06ba178888d992ff51838ca521abb824c8ab
 
+        # Otherwise you can install it in editable mode:
+        git clone https://github.com/pyansys/dynalib.git
+        cd dynalib
+        pip install -e .
+
     Alternatively, use
 
     .. code:: bash
@@ -98,15 +103,15 @@ need to follow these steps:
 
      .. code:: bash
 
-        python -m pip install -r requirements/requirements_build_pip.txt
-        python -m pip install -r requirements/requirements_doc.txt
-        python -m pip install -r requirements/requirements_tests.txt
+        python -m pip install -r requirements_build.txt
+        python -m pip install -r requirements_docs.txt
+        python -m pip install -r requirements_tests.txt
 
 6. Finally, verify your development version after installation by running:
 
     .. code:: bash
         
-        python -m pip install -r requirements/requirements_tests.txt
+        python -m pip install -r requirements_tests.txt
         pytest tests -v
 
 
@@ -122,14 +127,14 @@ environment, which is another reason to consider using `tox`_.
 Documentation
 -------------
 
-Visit the [documentation](https://curly-sniffle-dbf292da.pages.github.io/api/preprocessor/index.html) for a
+Visit the `documentation`_ for a
 detailed description of the library.
 For building documentation, you can either run the usual rules provided in the
 `Sphinx`_ Makefile, such us:
 
 .. code:: bash
 
-    python -m pip install -r requirements/requirements_doc.txt
+    python -m pip install -r requirements_docs.txt
     # Linux
     make -C doc/ html 
     # Windows
@@ -147,7 +152,7 @@ the building requirements:
 
 .. code:: bash
 
-    python -m pip install -r requirements/requirements_build.txt
+    python -m pip install -r requirements_build.txt
 
 Then, you can execute:
 
@@ -170,3 +175,4 @@ Then, you can execute:
 .. _venv: https://docs.python.org/3/library/venv.html
 .. _dynalib: https://github.com/pyansys/dynalib
 .. _conda: https://docs.conda.io/en/latest/
+.. _documentation: https://heart.docs.pyansys.com/

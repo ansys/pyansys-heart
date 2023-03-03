@@ -1,8 +1,11 @@
+""" For information only, not yet stable
+    require previously launched simulation
+    change paths accordingly"""
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
-    base_dir = r"D:\Heart20\healthy20\health03_BV_2mm\simulation\main-mechanics"
+    base_dir = r"my_base_directory"
     result = SystemModelPost(base_dir)
     # result._check_output()
 

@@ -3,23 +3,12 @@ Examples
 
 This page contains examples of pyheart-lib usage
 
-Extracting a simulation mesh
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Use the preprocessor to extract the simulation files of a Bi-Ventricular heart model which includes 
-mechanics and a system model:
+Downloading a case
+^^^^^^^^^^^^^^^^^^
+Download and extract a full heart mesh from the public database of 24 pathological hearts
+by Strocchi et al (2020).
 
-.. literalinclude:: ../../../examples/heart/preprocessor/example_doc_extract_biventricular_model.py
-
-The user can easily visualize the model or parts of the model
-
-.. code::
-
-    # visualize the entire model
-    model.plot_mesh(color_by="tags")
-    # plot only surfaces
-    model.plot_surfaces(show_edges=False)
-    # plot just the endocardium
-    model.left_ventricle.endocardium.plot()
+.. literalinclude:: ../../../examples/heart/preprocessor/example_downloader.py
 
 Pre-process data for heart simulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -32,56 +21,72 @@ Import all necessary modules from ansys.heart
 
     import os
     import pathlib
+
     import ansys.heart.preprocessor.models as models
-    from ansys.heart.workflow.support import run_preprocessor
+    from ansys.heart.simulator.support import run_preprocessor
     import ansys.heart.writer.dynawriter as writers
 
 Initialization of working directories
 """""""""""""""""""""""""""""""""""""
 .. code::
 
-    path_to_case = "D:\\Cristobal_cases\\01.vtk"
+    path_to_case = os.path.join(
+        pathlib.Path(__file__).parents[3], "downloads\\Strocchi2020\\01\\01.case"
+    )
     workdir = os.path.join(pathlib.Path(path_to_case).parent, "BiVentricle")
+
     path_to_model = os.path.join(workdir, "heart_model.pickle")
 
-Here we have a case from Cristobal2021 database. It has been downloaded as .vtk file. It also could be a .case file.
-In path_to_case, indicate the path to the downloaded file.
 
-Workdir creates a path to a new folder called "BiVentricle" where the preprocessing results will be downloaded.
+Here we have a case from Strocchi2020 database. 
+The preprocessor creates a path to a new folder called "BiVentricle" where the preprocessing results will be downloaded.
 
-Loop for preprocessing data
-"""""""""""""""""""""""""""
+Preprocessing
+"""""""""""""
 .. code::
 
     model = run_preprocessor(
         model_type=models.BiVentricle,
-        database="Cristobal2021",
+        database="Strocchi2020",
         path_original_mesh=path_to_case,
         work_directory=workdir,
         path_to_model=path_to_model,
         mesh_size=2.0,
     )
 
-run_preprocessor is filled with right parameters like the database corresponding to the case studied, the mesh size and the working directories.
+run_preprocessor is filled with parameters like the database corresponding to the case studied, the mesh size and the working directories.
+
+Loading the model
+"""""""""""""""""
+.. code::
+
+    model = models.HeartModel.load_model(path_to_model)
+    if not isinstance(model, models.HeartModel):
+        exit()
+    model.info.workdir = workdir
+
+Can be performed when a model has already been created by the preprocessor. 
 
 Loop for creating 4 folders containing LS-Dyna files
 """"""""""""""""""""""""""""""""""""""""""""""""""""
 This part uses the dynawriter module to create folders with LS-Dyna files associated.
-The 4 folders created are about :
+The 4 folders created are about:
 
-1. the fiber generation
+1. Electrophysiology
 
-2. the Purkinje network generation
+2. Mechanics
 
-3. the zero-pressure mechanics
+3. Zero pressure configuration computation
 
-4. the complete mechanics
+4. Fiber generation
 
+5. Purkinje generation
 
 .. code::
 
     for writer in (
-        writers.MechanicsDynaWriter(model, "ConstantPreloadWindkesselAfterload"),
+        writers.ElectrophysiologyDynaWriter(model),
+        writers.MechanicsDynaWriter(model),
         writers.ZeroPressureMechanicsDynaWriter(model),
         writers.FiberGenerationDynaWriter(model),
         writers.PurkinjeGenerationDynaWriter(model),
@@ -96,3 +101,31 @@ The 4 folders created are about :
         )
         writer.update()
         writer.export(exportdir)
+    print("done")
+
+Electrophysiology simulation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Example of an electrophysiology simulation comprising: 
+
+1. Fiber orientation computation and plot
+
+2. Purkinje construction and plot
+
+3. Electrophysiology simulation
+
+.. literalinclude:: ../../../examples/heart/simulator/example_simulator_EP.py
+
+
+Mechanics simulation
+^^^^^^^^^^^^^^^^^^^^
+
+Example of a mechanics simulation comprising: 
+
+1. Fiber orientation computation and plot
+
+2. Stress free configuration
+
+3. Mechanics simulation
+
+.. literalinclude:: ../../../examples/heart/simulator/example_simulator_Mechanics.py

@@ -5,7 +5,6 @@ import os
 import pathlib
 
 from ansys.heart.misc.downloader import download_case, unpack_case
-import ansys.heart.preprocessor.models as models
 
 if __name__ == "__main__":
     # download case from remote repository

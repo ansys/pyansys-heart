@@ -3,8 +3,7 @@ import os
 import pathlib
 
 import ansys.heart.preprocessor.models as models
-from ansys.heart.simulator.settings.settings import SimulationSettings
-from ansys.heart.simulator.simulator import EPSimulator, MechanicsSimulator
+from ansys.heart.simulator.simulator import MechanicsSimulator
 from ansys.heart.simulator.support import run_preprocessor
 
 # import ansys.heart.writer.dynawriter as writers

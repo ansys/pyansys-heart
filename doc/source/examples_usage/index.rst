@@ -70,7 +70,7 @@ Can be performed when a model has already been created by the preprocessor.
 Loop for creating 4 folders containing LS-Dyna files
 """"""""""""""""""""""""""""""""""""""""""""""""""""
 This part uses the dynawriter module to create folders with LS-Dyna files associated.
-The 4 folders created are about :
+The 4 folders created are about:
 
 1. Electrophysiology
 
@@ -106,10 +106,26 @@ The 4 folders created are about :
 Electrophysiology simulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Example of an electrophysiology simulation comprising: 
+
+1. Fiber orientation computation and plot
+
+2. Purkinje construction and plot
+
+3. Electrophysiology simulation
+
 .. literalinclude:: ../../../examples/heart/simulator/example_simulator_EP.py
 
 
 Mechanics simulation
 ^^^^^^^^^^^^^^^^^^^^
+
+Example of a mechanics simulation comprising: 
+
+1. Fiber orientation computation and plot
+
+2. Stress free configuration
+
+3. Mechanics simulation
 
 .. literalinclude:: ../../../examples/heart/simulator/example_simulator_Mechanics.py

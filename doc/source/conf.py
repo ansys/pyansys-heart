@@ -18,7 +18,7 @@ LaTeXBuilder.supported_image_types = ["image/png", "image/pdf", "image/svg+xml"]
 
 
 # Project information
-project = "ansys-geometry-core"
+project = "ansys-heart-lib"
 copyright = f"(c) {datetime.now().year} ANSYS, Inc. All rights reserved"
 author = "ANSYS, Inc."
 release = version = __version__
@@ -28,12 +28,12 @@ switcher_version = get_version_match(__version__)
 # Select desired logo, theme, and declare the html title
 html_logo = pyansys_logo_black
 html_theme = "ansys_sphinx_theme"
-html_short_title = html_title = "PyGeometry"
+html_short_title = html_title = "heartlib"
 
 # specify the location of your github repo
 html_context = {
     "github_user": "pyansys",
-    "github_repo": "pygeometry",
+    "github_repo": "pyheart-lib",
     "github_version": "main",
     "doc_path": "doc/source",
 }
@@ -43,7 +43,7 @@ html_theme_options = {
         "version_match": switcher_version,
     },
     "check_switcher": False,
-    "github_url": "https://github.com/pyansys/pygeometry",
+    "github_url": "https://github.com/pyansys/pyheart-lib",
     "show_prev_next": False,
     "show_breadcrumbs": True,
     "collapse_navigation": True,
@@ -54,7 +54,7 @@ html_theme_options = {
     "icon_links": [
         {
             "name": "Support",
-            "url": "https://github.com/pyansys/pygeometry/discussions",
+            "url": "https://github.com/pyansys/pyheartlib/discussions",
             "icon": "fa fa-comment fa-fw",
         },
     ],

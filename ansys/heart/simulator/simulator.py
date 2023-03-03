@@ -29,6 +29,25 @@ import ansys.heart.writer.dynawriter as writers
 import numpy as np
 
 
+def which(program):
+    """Return path if program exists, else None."""
+
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
+
+
 class BaseSimulator:
     """Base class for the simulator."""
 
@@ -65,6 +84,10 @@ class BaseSimulator:
         """Number of cpus to use for simulation."""
         self.directories: dict = {}
         """Dictionary of all defined directories."""
+
+        if which(lsdynapath) is None:
+            print(f"{lsdynapath} not exist")
+            exit()
 
         if simulation_directory == "":
             simulation_directory = os.path.join(self.model.info.workdir, "simulation")

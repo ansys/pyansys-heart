@@ -3,7 +3,7 @@ Simulator
 
 Here you can find methods to run heart simulation workflows or cases using LS-DYNA.
 
-.. automodule:: ansys.heart.simulator
+.. currentmodule:: ansys.heart.simulator
 
 .. toctree::
    :maxdepth: 4

@@ -1,7 +1,7 @@
 API Reference
 -------------
 
-This page contains the API reference for the different modules
+This page contains the API reference for the different modules in pyheart-lib.
 
 .. currentmodule:: ansys.heart
 
@@ -14,8 +14,6 @@ This page contains the API reference for the different modules
 
    
    preprocessor/index
-
-   preprocessor/mesh/index
 
    ..writer/index
    

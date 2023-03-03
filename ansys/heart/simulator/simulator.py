@@ -36,7 +36,7 @@ class BaseSimulator:
         self,
         model: HeartModel,
         lsdynapath: Path,
-        dynatype: Literal["smp", "intelmpi", "platformmpi"],
+        dynatype: Literal["smp", "intelmpi", "platformmpi", "msmpi"],
         num_cpus: int = 1,
         simulation_directory: Path = "",
     ) -> None:
@@ -137,7 +137,7 @@ class BaseSimulator:
         """
         os.chdir(os.path.dirname(path_to_input))
 
-        if self.dynatype in ["intelmpi"]:
+        if self.dynatype in ["intelmpi", "platformmpi", "msmpi"]:
             commands = [
                 "mpirun",
                 "-np",
@@ -156,6 +156,7 @@ class BaseSimulator:
 
         # launch LS-DYNA
         p = subprocess.run(commands, stdout=subprocess.PIPE)
+        print(p.stdout)
 
         os.chdir(self.root_directory)
         return

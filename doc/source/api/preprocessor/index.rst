@@ -37,10 +37,8 @@ FullHeart
 .. autoclass:: ansys.heart.preprocessor.models.FullHeart
    :members:
 
-mesh/index
-
 .. toctree::
    :maxdepth: 4
    :hidden:
 
-   
+   mesh/index

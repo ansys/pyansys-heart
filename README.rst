@@ -175,4 +175,4 @@ Then, you can execute:
 .. _venv: https://docs.python.org/3/library/venv.html
 .. _dynalib: https://github.com/pyansys/dynalib
 .. _conda: https://docs.conda.io/en/latest/
-.. _documentation: https://curly-sniffle-dbf292da.pages.github.io/
+.. _documentation: https://heart.docs.pyansys.com/

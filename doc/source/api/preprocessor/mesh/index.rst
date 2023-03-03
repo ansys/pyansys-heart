@@ -13,47 +13,47 @@ Mesh
 
 Feature
 ------------------
-.. autoclass:: ansys.heart.preprocessor.models.Feature
+.. autoclass:: ansys.heart.preprocessor.mesh.objects.Feature
    :members:
 
 BoundaryEdges
 -------------
-.. autoclass:: ansys.heart.preprocessor.models.BoundaryEdges
+.. autoclass:: ansys.heart.preprocessor.mesh.objects.BoundaryEdges
    :members:
 
 EdgeGroup
 -----------
-.. autoclass:: ansys.heart.preprocessor.models.EdgeGroup
+.. autoclass:: ansys.heart.preprocessor.mesh.objects.EdgeGroup
    :members:
 
 SurfaceMesh
 -----------
-.. autoclass:: ansys.heart.preprocessor.models.SurfaceMesh
+.. autoclass:: ansys.heart.preprocessor.mesh.objects.SurfaceMesh
    :members:
 
 BeamMesh
 ---------
-.. autoclass:: ansys.heart.preprocessor.models.BeamMesh
+.. autoclass:: ansys.heart.preprocessor.mesh.objects.BeamMesh
    :members:
 
 Cavity
 ---------
-.. autoclass:: ansys.heart.preprocessor.models.Cavity
+.. autoclass:: ansys.heart.preprocessor.mesh.objects.Cavity
    :members:
 
 Cap
 ---------
-.. autoclass:: ansys.heart.preprocessor.models.Cap
+.. autoclass:: ansys.heart.preprocessor.mesh.objects.Cap
    :members:
 
 Point
 ---------
-.. autoclass:: ansys.heart.preprocessor.models.Point
+.. autoclass:: ansys.heart.preprocessor.mesh.objects.Point
    :members:
 
 Part
 ---------
-.. autoclass:: ansys.heart.preprocessor.models.Part
+.. autoclass:: ansys.heart.preprocessor.mesh.objects.Part
    :members:
 
 .. toctree::

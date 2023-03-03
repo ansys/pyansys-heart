@@ -1,6 +1,10 @@
 """Sphinx documentation configuration file."""
 from datetime import datetime
+
+# add sys path for sphinx to find the packages/modules
+# NOTE: could be replaced?
 import os
+import sys
 
 abspath = os.path.dirname(os.path.abspath(__file__))
 base_path = os.path.abspath(os.path.join(abspath, "..", ".."))
@@ -69,7 +73,7 @@ numpydoc_validate = True
 numpydoc_validation_checks = {
     "GL06",  # Found unknown section
     "GL07",  # Sections are in the wrong order.
-    # "GL08",  # The object does not have a docstring
+    "GL08",  # The object does not have a docstring
     "GL09",  # Deprecation warning should precede extended summary
     "GL10",  # reST directives {directives} must be followed by two colons
     "SS01",  # No summary found

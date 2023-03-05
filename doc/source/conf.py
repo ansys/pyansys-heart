@@ -48,6 +48,8 @@ extensions = [
     "sphinx_copybutton",
 ]
 
+autodoc_mock_imports = ["dynalib", "ansys.dyna"]
+
 autodoc_member_order = "bysource"
 
 # Intersphinx mapping

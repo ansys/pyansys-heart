@@ -12,6 +12,6 @@ Contents
    introduction
    getting_started/index
    user_guide/index
-   api/index
+   autoapi/index
    examples_usage/index
    contributing

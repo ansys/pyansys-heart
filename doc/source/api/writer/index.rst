@@ -12,12 +12,12 @@ BaseDynaWriter
    :members:
 
 MechanicsDynaWriter
-------------------
+-------------------
 .. autoclass:: ansys.heart.writer.dynawriter.MechanicsDynaWriter
    :members:
 
 ZeroPressureMechanicsDynaWriter
--------------
+-------------------------------
 .. autoclass:: ansys.heart.writer.dynawriter.ZeroPressureMechanicsDynaWriter
    :members:
 
@@ -32,12 +32,12 @@ PurkinjeGenerationDynaWriter
    :members:
 
 ElectrophysiologyDynaWriter
----------
+---------------------------
 .. autoclass:: ansys.heart.writer.dynawriter.ElectrophysiologyDynaWriter
    :members:
 
 ElectroMechanicsDynaWriter
----------
+--------------------------
 .. autoclass:: ansys.heart.writer.dynawriter.ElectroMechanicsDynaWriter
    :members:
 

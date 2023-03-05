@@ -3,7 +3,7 @@ Simulator
 
 Here you can find methods for running LS-DYNA heart models and workflows.
 
-.. currentmodule:: ansys.heart.simulator
+.. currentmodule:: ansys.heart.simulator.simulator
 
 
 BaseSimulator
@@ -17,12 +17,12 @@ EPSimulator
    :members:
 
 MechanicsSimulator
--------------
+------------------
 .. autoclass:: ansys.heart.simulator.simulator.MechanicsSimulator
    :members:
 
 EPMechanicsSimulator
------------
+--------------------
 .. autoclass:: ansys.heart.simulator.simulator.EPMechanicsSimulator
    :members:
 

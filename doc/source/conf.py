@@ -98,20 +98,20 @@ source_suffix = ".rst"
 # The master toctree document.
 master_doc = "index"
 
-# Configuration for Sphinx autoapi
-autoapi_type = "python"
-autoapi_dirs = ["../../ansys/heart"]
-autoapi_options = [
-    "members",
-    "undoc-members",
-    "show-inheritance",
-    "show-module-summary",
-    "special-members",
-]
-autoapi_template_dir = "_autoapi_templates"
-suppress_warnings = ["autoapi.python_import_resolution"]
-exclude_patterns = ["_autoapi_templates/index.rst"]
-autoapi_python_use_implicit_namespaces = True
+# # Configuration for Sphinx autoapi
+# autoapi_type = "python"
+# autoapi_dirs = ["../../ansys/heart"]
+# autoapi_options = [
+#     "members",
+#     "undoc-members",
+#     "show-inheritance",
+#     "show-module-summary",
+#     "special-members",
+# ]
+# autoapi_template_dir = "_autoapi_templates"
+# suppress_warnings = ["autoapi.python_import_resolution"]
+# exclude_patterns = ["_autoapi_templates/index.rst"]
+# autoapi_python_use_implicit_namespaces = True
 
 # # Examples gallery customization
 # nbsphinx_execute = "always"

@@ -3,7 +3,7 @@ Postprocessor
 
 Here you can find methods for postprocessing LS-DYNA simulations.
 
-.. currentmodule:: ansys.heart.postprocessor
+.. currentmodule:: ansys.heart.postprocessor.SystemModelPost
 
 
 Pressure
@@ -14,6 +14,11 @@ Pressure
 Flow
 ----
 .. autoclass:: ansys.heart.postprocessor.SystemModelPost.Flow
+   :members:
+
+Volume
+----
+.. autoclass:: ansys.heart.postprocessor.SystemModelPost.Volume
    :members:
 
 SystemState

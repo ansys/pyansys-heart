@@ -7,7 +7,7 @@ Here you can find methods for running and using the writer to write LS-DYNA file
 
 
 BaseDynaWriter
------------------
+--------------
 .. autoclass:: ansys.heart.writer.dynawriter.BaseDynaWriter
    :members:
 
@@ -22,12 +22,12 @@ ZeroPressureMechanicsDynaWriter
    :members:
 
 FiberGenerationDynaWriter
------------
+-------------------------
 .. autoclass:: ansys.heart.writer.dynawriter.FiberGenerationDynaWriter
    :members:
 
 PurkinjeGenerationDynaWriter
------------
+----------------------------
 .. autoclass:: ansys.heart.writer.dynawriter.PurkinjeGenerationDynaWriter
    :members:
 

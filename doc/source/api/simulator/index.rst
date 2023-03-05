@@ -7,12 +7,12 @@ Here you can find methods for running LS-DYNA heart models and workflows.
 
 
 BaseSimulator
------------------
+-------------
 .. autoclass:: ansys.heart.simulator.simulator.BaseSimulator
    :members:
 
 EPSimulator
-------------------
+-----------
 .. autoclass:: ansys.heart.simulator.simulator.EPSimulator
    :members:
 

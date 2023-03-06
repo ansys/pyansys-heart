@@ -217,17 +217,18 @@ class EPSimulator(BaseSimulator):
 
         return
 
-    def simulate(self):
+    def simulate(self, folder_name="main-ep"):
         """Launch the main simulation."""
-        directory = self._write_main_simulation_files()
+        directory = os.path.join(self.root_directory, folder_name)
+        self._write_main_simulation_files(folder_name)
 
         print("Launching main EP simulation...")
 
-        # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
 
         print("done.")
+
         return
 
     def compute_purkinje(self):
@@ -247,9 +248,9 @@ class EPSimulator(BaseSimulator):
         for purkinje_file in purkinje_files:
             self.model.mesh.add_purkinje_from_kfile(purkinje_file)
 
-    def _write_main_simulation_files(self):
+    def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""
-        export_directory = os.path.join(self.root_directory, "main-ep")
+        export_directory = os.path.join(self.root_directory, folder_name)
         self.directories["main-ep"] = export_directory
 
         dyna_writer = writers.ElectrophysiologyDynaWriter(self.model, self.settings)
@@ -317,10 +318,18 @@ class MechanicsSimulator(BaseSimulator):
 
         return
 
-    def simulate(self):
-        """Launch the main simulation."""
-        directory = self._write_main_simulation_files()
-        input_file = os.path.join(directory, "main.k")
+    def simulate(self, folder_name: str = "main-mechanics"):
+        """
+        Launch the main simulation.
+
+        Parameters
+        ----------
+        folder_name: str
+            main simulation folder name.
+
+        """
+        directory = os.path.join(self.root_directory, folder_name)
+        os.makedirs(directory, exist_ok=True)
 
         if self.initial_stress:
             try:
@@ -340,11 +349,12 @@ class MechanicsSimulator(BaseSimulator):
                     "Cannot find initial stress file, simulation will run without initial stress."
                 )
                 self.initial_stress = False
-                self._write_main_simulation_files()
+
+        self._write_main_simulation_files(folder_name=folder_name)
 
         print("Launching main simulation...")
 
-        # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
+        input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
 
         print("done.")
@@ -506,9 +516,9 @@ class MechanicsSimulator(BaseSimulator):
 
         return
 
-    def _write_main_simulation_files(self):
+    def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""
-        export_directory = os.path.join(self.root_directory, "main-mechanics")
+        export_directory = os.path.join(self.root_directory, folder_name)
         self.directories["main-mechanics"] = export_directory
 
         dyna_writer = writers.MechanicsDynaWriter(

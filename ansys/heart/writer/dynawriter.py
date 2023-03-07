@@ -953,6 +953,22 @@ class MechanicsDynaWriter(BaseDynaWriter):
         for cap in caps:
             segid = self.get_unique_segmentset_id()
             setattr(cap, "seg_id", segid)
+            # # WYE: add a node at center of cap
+            # # Note: should not be applied in ZeropWriter, it will impact dynain file
+            # nid = len(self.model.mesh.nodes) + segid
+            # self.kw_database.segment_sets.append(
+            #     "*NODE\n{0:8d}{1:16f}{2:16f}{3:16f}".format(nid + 1, *cap.centroid)
+            # )
+            # nid_x = cap.triangles[0, 0]
+            # cap.triangles[:, 0] = nid
+            # cap.triangles = np.insert(
+            #     cap.triangles, 0, np.array([nid, nid_x, cap.triangles[0, 1]]), axis=0
+            # )
+            # cap.triangles = np.insert(
+            #     cap.triangles, -1, np.array([nid, cap.triangles[-1, -1], nid_x]), axis=0
+            # )
+            # # END WYE:
+
             segset_kw = create_segment_set_keyword(
                 segments=cap.triangles + 1,
                 segid=cap.seg_id,
@@ -1125,6 +1141,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 "superior-vena-cava",
                 "right-inferior-pulmonary-vein",
                 "right-superior-pulmonary-vein",
+                "left-superior-pulmonary-vein",
+                "left-inferior-pulmonary-vein",
+                "inferior-vena-cava",
             ]
 
         if bc_type == "fix_caps":
@@ -1215,7 +1234,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 break
 
         # use pre-computed nodal area
-        nodal_areas = self.model.mesh.point_data["nodal_areas"][boundary.node_ids]
+        nodal_areas = self.model.mesh.point_data["nodal_areas"][attached_nodes]
 
         # scaled spring stiffness by nodal area
         scale_factor_normal *= nodal_areas

@@ -1160,6 +1160,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 "superior-vena-cava",
                 "right-inferior-pulmonary-vein",
                 "right-superior-pulmonary-vein",
+                "left-superior-pulmonary-vein",
+                "left-inferior-pulmonary-vein",
+                "inferior-vena-cava",
             ]
             if isinstance(self, ZeroPressureMechanicsDynaWriter):
                 caps_to_use.extend(

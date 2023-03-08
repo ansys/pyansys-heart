@@ -1151,9 +1151,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
             caps_to_use = [
                 "mitral-valve",
                 "tricuspid-valve",
-                "aortic-valve",
-                "pulmonary-valve",
             ]
+            if isinstance(self, ZeroPressureMechanicsDynaWriter):
+                caps_to_use.extend(
+                    [
+                        "aortic-valve",
+                        "pulmonary-valve",
+                    ]
+                )
 
         elif isinstance(self.model, (FourChamber, FullHeart)):
             caps_to_use = [
@@ -1260,6 +1265,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # use pre-computed nodal area
         nodal_areas = self.model.mesh.point_data["nodal_areas"][attached_nodes]
+
+        # scaling this node due to large deformation
+        # nodal_areas[np.where(attached_nodes == cap.node_ids[0])[0][0]] *=len(cap.node_ids)
 
         # scaled spring stiffness by nodal area
         scale_factor_normal *= nodal_areas

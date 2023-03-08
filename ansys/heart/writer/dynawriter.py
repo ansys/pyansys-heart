@@ -47,7 +47,11 @@ from ansys.heart.writer.keyword_module import (
     fast_element_writer,
     get_list_of_used_ids,
 )
-from ansys.heart.writer.material_keywords import MaterialHGOMyocardium, active_curve
+from ansys.heart.writer.material_keywords import (
+    MaterialHGOMyocardium,
+    MaterialNeoHook,
+    active_curve,
+)
 import numpy as np
 import pandas as pd
 import pkg_resources
@@ -1067,22 +1071,33 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             elif "atrium" in part.name:
                 # add atrium material
-                # atrium_kw = MaterialAtrium(mid=part.mid)
-                atrium_kw = MaterialHGOMyocardium(
-                    mid=part.mid, iso_user=dict(material_settings.atrium)
-                )
+                if material_settings.atrium["type"] == "NeoHook":
+                    # use MAT77H
+                    atrium_kw = MaterialNeoHook(
+                        mid=part.mid,
+                        rho=material_settings.atrium["rho"],
+                        c10=material_settings.atrium["mu1"] / 2,
+                    )
+                else:
+                    # use MAT295
+                    atrium_kw = MaterialHGOMyocardium(
+                        mid=part.mid, iso_user=dict(material_settings.atrium)
+                    )
 
                 self.kw_database.material.append(atrium_kw)
 
             else:
                 LOGGER.warning("Assuming same material as atrium for: {0}".format(part.name))
 
-                # general_tissue_kw = MaterialAtrium(mid=part.mid)
-                general_tissue_kw = MaterialHGOMyocardium(
-                    # mid=part.mid, iso_user=self._deprecated_parameters["Material"]["Atrium"]
+                general_tissue_kw = MaterialNeoHook(
                     mid=part.mid,
-                    iso_user=dict(material_settings.atrium),
+                    rho=material_settings.atrium["rho"],
+                    c10=material_settings.atrium["mu1"] / 2,
                 )
+                # general_tissue_kw = MaterialHGOMyocardium(
+                #     mid=part.mid,
+                #     iso_user=dict(material_settings.atrium),
+                # )
                 self.kw_database.material.append(general_tissue_kw)
 
         if add_active:

@@ -28,6 +28,7 @@ material = {
         },
     },
     "atrium": {
+        "type": "NeoHook",  # or 'MAT295'
         "rho": Quantity(0.001, "g/mm^3"),
         "itype": -1,
         "mu1": Quantity(0.0349, "MPa"),

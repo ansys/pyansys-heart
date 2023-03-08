@@ -22,7 +22,7 @@ except (ImportError):
 
 URLS = {
     "Strocchi2020": {"url": "https://zenodo.org/record/3890034", "num_cases": 24},
-    "Rodero2021": {"url": "https://zenodo.org/record/4590294", "num_cases": 20},
+    "Cristobal2021": {"url": "https://zenodo.org/record/4590294", "num_cases": 20},
 }
 VALID_DATABASES = list(URLS.keys())
 DOWNLOAD_DIR = PurePath.joinpath(Path(__file__).parents[3], "downloads")
@@ -57,7 +57,7 @@ def download_case(
     Parameters
     ----------
     database : str
-        name of the database. Either Strocchi2020 or Rodero2021
+        name of the database. Either Strocchi2020 or Cristobal2021
     case_number : int
         case number to download
     download_folder : Path
@@ -74,9 +74,9 @@ def download_case(
     >>> path_to_case = download_case(
         database="Strocchi2020", case_number=1, download_folder="my/download/folder")
 
-    Download case 1 from the public repository (Rodero2021) of 'healthy' hearts.
+    Download case 1 from the public repository (Cristobal2021) of 'healthy' hearts.
     >>> path_to_case = download_case(
-        database="Rodero2021", case_number=1, download_folder="my/download/folder")
+        database="Cristobal2021", case_number=1, download_folder="my/download/folder")
     """
 
     if database not in VALID_DATABASES:
@@ -88,7 +88,7 @@ def download_case(
             "Database {0} only has {1} cases".format(database, URLS[database]["num_cases"])
         )
 
-    if database == "Rodero2021":
+    if database == "Cristobal2021":
         save_dir = os.path.join(download_folder, database, "{:>02d}".format(case_number))
     elif database == "Strocchi2020":
         save_dir = os.path.join(download_folder, database)
@@ -193,7 +193,7 @@ if __name__ == "__main__":
     download_urls = _format_download_urls()
 
     save_path = download_case(
-        "Rodero2021", 3, "d:\\development\\pyheart-lib\\pyheart-lib\\downloads"
+        "Cristobal2021", 3, "d:\\development\\pyheart-lib\\pyheart-lib\\downloads"
     )
 
     save_path = download_case(

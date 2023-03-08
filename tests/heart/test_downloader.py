@@ -11,7 +11,7 @@ from .conftest import get_workdir
 
 @pytest.mark.parametrize(
     "database_name",
-    ["Strocchi2020", "Rodero2021"],
+    ["Strocchi2020", "Cristobal2021"],
 )
 def test_download_urls(database_name):
     """Test if URL still valid and exists."""
@@ -47,18 +47,18 @@ def test_validate_hash_function_001():
     path_hash_table = "hash_table.json"
 
     # write dummy hash table
-    hash_table = {"Rodero2021": {1: hashlib.sha256(open(path_file1, "rb").read()).hexdigest()}}
+    hash_table = {"Cristobal2021": {1: hashlib.sha256(open(path_file1, "rb").read()).hexdigest()}}
     with open(path_hash_table, "w") as outfile:
         json.dump(hash_table, outfile, indent=4, ensure_ascii=True)
 
     # hashes of the same file should be the same
     assert validate_hash_sha256(
-        path_file2, "Rodero2021", casenumber=1, path_hash_table=path_hash_table
+        path_file2, "Cristobal2021", casenumber=1, path_hash_table=path_hash_table
     ), "Expecting matching hash function"
 
     # hashes of two different files should be different
     assert not validate_hash_sha256(
-        path_file3, "Rodero2021", casenumber=1, path_hash_table=path_hash_table
+        path_file3, "Cristobal2021", casenumber=1, path_hash_table=path_hash_table
     ), "Expecting non-matching hash function"
 
     # cleanup

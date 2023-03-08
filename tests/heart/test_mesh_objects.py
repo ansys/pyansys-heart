@@ -79,9 +79,9 @@ def test_mesh_object_read_001():
 # @pytest.mark.skipif(skip_test)
 def test_mesh_object_read_002():
     """Test if rodero's case is properly read."""
-    case_file = download_asset(database="Rodero2021", casenumber=1)
+    case_file = download_asset(database="Cristobal2021", casenumber=1)
     mesh = Mesh()
-    mesh.read_mesh_file_rodero2021(case_file)
+    mesh.read_mesh_file_cristobal2021(case_file)
     assert mesh.n_cells == 2477866
     assert mesh.n_points == 493151
     assert "tags" in mesh.array_names

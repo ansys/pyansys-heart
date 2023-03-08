@@ -662,7 +662,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._update_material_db(add_active=True)
 
         # for boundary conditions
-        self._add_cap_bc(bc_type="springs_caps")
+        if isinstance(self.model, (FourChamber, FullHeart)):
+            self._add_cap_bc(bc_type="fix_caps")
+        else:
+            self._add_cap_bc(bc_type="springs_caps")
+
         self._add_pericardium_bc()
 
         # # for control volume
@@ -1141,10 +1145,16 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 "superior-vena-cava",
                 "right-inferior-pulmonary-vein",
                 "right-superior-pulmonary-vein",
-                "left-superior-pulmonary-vein",
-                "left-inferior-pulmonary-vein",
-                "inferior-vena-cava",
             ]
+            if isinstance(self, ZeroPressureMechanicsDynaWriter):
+                caps_to_use.extend(
+                    [
+                        "left-superior-pulmonary-vein",
+                        "left-inferior-pulmonary-vein",
+                        "inferior-vena-cava",
+                        "pulmonary-valve",
+                    ]
+                )
 
         if bc_type == "fix_caps":
             for part in self.model.parts:

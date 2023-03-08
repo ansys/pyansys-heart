@@ -178,8 +178,9 @@ class BaseSimulator:
             ]
 
         # launch LS-DYNA
-        p = subprocess.run(commands, stdout=subprocess.PIPE)
-        print(p.stdout)
+        with subprocess.Popen(commands, stdout=subprocess.PIPE, text=True) as p:
+            for line in p.stdout:
+                print(line.rstrip())
 
         os.chdir(self.root_directory)
         return

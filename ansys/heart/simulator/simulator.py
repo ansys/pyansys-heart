@@ -146,6 +146,8 @@ class BaseSimulator:
         self.model.mesh.cell_data["fiber"][elem_ids - 1] = fib
         self.model.mesh.cell_data["sheet"][elem_ids - 1] = sheet
 
+        # dump the model to reuse fiber information
+        self.model.dump_model(os.path.join(self.root_directory, "model_with_fiber.pickle"))
         return
 
     def _run_dyna(self, path_to_input: Path, options: str = ""):

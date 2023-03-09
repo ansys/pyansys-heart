@@ -29,6 +29,25 @@ import ansys.heart.writer.dynawriter as writers
 import numpy as np
 
 
+def which(program):
+    """Return path if program exists, else None."""
+
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
+
+
 class BaseSimulator:
     """Base class for the simulator."""
 
@@ -36,7 +55,7 @@ class BaseSimulator:
         self,
         model: HeartModel,
         lsdynapath: Path,
-        dynatype: Literal["smp", "intelmpi", "platformmpi"],
+        dynatype: Literal["smp", "intelmpi", "platformmpi", "msmpi"],
         num_cpus: int = 1,
         simulation_directory: Path = "",
     ) -> None:
@@ -65,6 +84,10 @@ class BaseSimulator:
         """Number of cpus to use for simulation."""
         self.directories: dict = {}
         """Dictionary of all defined directories."""
+
+        if which(lsdynapath) is None:
+            print(f"{lsdynapath} not exist")
+            exit()
 
         if simulation_directory == "":
             simulation_directory = os.path.join(self.model.info.workdir, "simulation")
@@ -137,7 +160,7 @@ class BaseSimulator:
         """
         os.chdir(os.path.dirname(path_to_input))
 
-        if self.dynatype in ["intelmpi"]:
+        if self.dynatype in ["intelmpi", "platformmpi", "msmpi"]:
             commands = [
                 "mpirun",
                 "-np",
@@ -156,6 +179,7 @@ class BaseSimulator:
 
         # launch LS-DYNA
         p = subprocess.run(commands, stdout=subprocess.PIPE)
+        print(p.stdout)
 
         os.chdir(self.root_directory)
         return
@@ -193,17 +217,18 @@ class EPSimulator(BaseSimulator):
 
         return
 
-    def simulate(self):
+    def simulate(self, folder_name="main-ep"):
         """Launch the main simulation."""
-        directory = self._write_main_simulation_files()
+        directory = os.path.join(self.root_directory, folder_name)
+        self._write_main_simulation_files(folder_name)
 
         print("Launching main EP simulation...")
 
-        # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
 
         print("done.")
+
         return
 
     def compute_purkinje(self):
@@ -223,9 +248,9 @@ class EPSimulator(BaseSimulator):
         for purkinje_file in purkinje_files:
             self.model.mesh.add_purkinje_from_kfile(purkinje_file)
 
-    def _write_main_simulation_files(self):
+    def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""
-        export_directory = os.path.join(self.root_directory, "main-ep")
+        export_directory = os.path.join(self.root_directory, folder_name)
         self.directories["main-ep"] = export_directory
 
         dyna_writer = writers.ElectrophysiologyDynaWriter(self.model, self.settings)
@@ -293,10 +318,18 @@ class MechanicsSimulator(BaseSimulator):
 
         return
 
-    def simulate(self):
-        """Launch the main simulation."""
-        directory = self._write_main_simulation_files()
-        input_file = os.path.join(directory, "main.k")
+    def simulate(self, folder_name: str = "main-mechanics"):
+        """
+        Launch the main simulation.
+
+        Parameters
+        ----------
+        folder_name: str
+            main simulation folder name.
+
+        """
+        directory = os.path.join(self.root_directory, folder_name)
+        os.makedirs(directory, exist_ok=True)
 
         if self.initial_stress:
             try:
@@ -316,11 +349,12 @@ class MechanicsSimulator(BaseSimulator):
                     "Cannot find initial stress file, simulation will run without initial stress."
                 )
                 self.initial_stress = False
-                self._write_main_simulation_files()
+
+        self._write_main_simulation_files(folder_name=folder_name)
 
         print("Launching main simulation...")
 
-        # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
+        input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
 
         print("done.")
@@ -482,9 +516,9 @@ class MechanicsSimulator(BaseSimulator):
 
         return
 
-    def _write_main_simulation_files(self):
+    def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""
-        export_directory = os.path.join(self.root_directory, "main-mechanics")
+        export_directory = os.path.join(self.root_directory, folder_name)
         self.directories["main-mechanics"] = export_directory
 
         dyna_writer = writers.MechanicsDynaWriter(

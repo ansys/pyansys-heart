@@ -47,7 +47,11 @@ from ansys.heart.writer.keyword_module import (
     fast_element_writer,
     get_list_of_used_ids,
 )
-from ansys.heart.writer.material_keywords import MaterialHGOMyocardium, active_curve
+from ansys.heart.writer.material_keywords import (
+    MaterialHGOMyocardium,
+    MaterialNeoHook,
+    active_curve,
+)
 import numpy as np
 import pandas as pd
 import pkg_resources
@@ -662,7 +666,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._update_material_db(add_active=True)
 
         # for boundary conditions
-        self._add_cap_bc(bc_type="springs_caps")
+        if isinstance(self.model, (FourChamber, FullHeart)):
+            self._add_cap_bc(bc_type="fix_caps")
+        else:
+            self._add_cap_bc(bc_type="springs_caps")
+
         self._add_pericardium_bc()
 
         # # for control volume
@@ -953,6 +961,22 @@ class MechanicsDynaWriter(BaseDynaWriter):
         for cap in caps:
             segid = self.get_unique_segmentset_id()
             setattr(cap, "seg_id", segid)
+            # # WYE: add a node at center of cap
+            # # Note: should not be applied in ZeropWriter, it will impact dynain file
+            # nid = len(self.model.mesh.nodes) + segid
+            # self.kw_database.segment_sets.append(
+            #     "*NODE\n{0:8d}{1:16f}{2:16f}{3:16f}".format(nid + 1, *cap.centroid)
+            # )
+            # nid_x = cap.triangles[0, 0]
+            # cap.triangles[:, 0] = nid
+            # cap.triangles = np.insert(
+            #     cap.triangles, 0, np.array([nid, nid_x, cap.triangles[0, 1]]), axis=0
+            # )
+            # cap.triangles = np.insert(
+            #     cap.triangles, -1, np.array([nid, cap.triangles[-1, -1], nid_x]), axis=0
+            # )
+            # # END WYE:
+
             segset_kw = create_segment_set_keyword(
                 segments=cap.triangles + 1,
                 segid=cap.seg_id,
@@ -1047,22 +1071,33 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             elif "atrium" in part.name:
                 # add atrium material
-                # atrium_kw = MaterialAtrium(mid=part.mid)
-                atrium_kw = MaterialHGOMyocardium(
-                    mid=part.mid, iso_user=dict(material_settings.atrium)
-                )
+                if material_settings.atrium["type"] == "NeoHook":
+                    # use MAT77H
+                    atrium_kw = MaterialNeoHook(
+                        mid=part.mid,
+                        rho=material_settings.atrium["rho"],
+                        c10=material_settings.atrium["mu1"] / 2,
+                    )
+                else:
+                    # use MAT295
+                    atrium_kw = MaterialHGOMyocardium(
+                        mid=part.mid, iso_user=dict(material_settings.atrium)
+                    )
 
                 self.kw_database.material.append(atrium_kw)
 
             else:
                 LOGGER.warning("Assuming same material as atrium for: {0}".format(part.name))
 
-                # general_tissue_kw = MaterialAtrium(mid=part.mid)
-                general_tissue_kw = MaterialHGOMyocardium(
-                    # mid=part.mid, iso_user=self._deprecated_parameters["Material"]["Atrium"]
+                general_tissue_kw = MaterialNeoHook(
                     mid=part.mid,
-                    iso_user=dict(material_settings.atrium),
+                    rho=material_settings.atrium["rho"],
+                    c10=material_settings.atrium["mu1"] / 2,
                 )
+                # general_tissue_kw = MaterialHGOMyocardium(
+                #     mid=part.mid,
+                #     iso_user=dict(material_settings.atrium),
+                # )
                 self.kw_database.material.append(general_tissue_kw)
 
         if add_active:
@@ -1126,6 +1161,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 "right-inferior-pulmonary-vein",
                 "right-superior-pulmonary-vein",
             ]
+            if isinstance(self, ZeroPressureMechanicsDynaWriter):
+                caps_to_use.extend(
+                    [
+                        "left-superior-pulmonary-vein",
+                        "left-inferior-pulmonary-vein",
+                        "inferior-vena-cava",
+                        "pulmonary-valve",
+                    ]
+                )
 
         if bc_type == "fix_caps":
             for part in self.model.parts:
@@ -1215,7 +1259,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 break
 
         # use pre-computed nodal area
-        nodal_areas = self.model.mesh.point_data["nodal_areas"][boundary.node_ids]
+        nodal_areas = self.model.mesh.point_data["nodal_areas"][attached_nodes]
 
         # scaled spring stiffness by nodal area
         scale_factor_normal *= nodal_areas

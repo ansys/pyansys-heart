@@ -1,13 +1,13 @@
 """Calibration passive material parameter by Klotz curve."""
+import json
 import os
 import shutil
 import sys
 
-from ansys.heart.general import run_lsdyna
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
-from ansys.heart.postprocessor.binout_helper import NodOut
-from ansys.heart.preprocessor.mesh.objects import Cavity, SurfaceMesh
-import matplotlib.pyplot as plt
+from ansys.heart.preprocessor.models import HeartModel
+from ansys.heart.simulator.settings import settings
+from ansys.heart.simulator.simulator import MechanicsSimulator
 import numpy as np
 import pkg_resources
 
@@ -15,145 +15,133 @@ import pkg_resources
 class PassiveCalibration:
     """Passive calibration."""
 
-    def __init__(self, work_directory):
+    def __init__(self, work_directory: str, model_path: str):
         """
         Initialize Passive Calibration class.
 
         Parameters
         ----------
-        work_directory
+        work_directory : str
+            work directory.
+        model_path : HeartModel path
+            Fiber information must be saved.
         """
         self.work_directory = work_directory
+        self.model = HeartModel.load_model(model_path)
 
-        nodes_file = os.path.join(work_directory, "nodes.k")
-        sgm_file = os.path.join(work_directory, "left_ventricle.segment")
-
-        # load nodes.k: EOD geometry
-        data = []
-        with open(nodes_file) as f:
-            for line in f.readlines():
-                if line[0] != "*" and line[0] != "$":
-                    data.append(line)
-        x_ed = np.genfromtxt(data, delimiter=[8, 16, 16, 16])
-        x_ed = x_ed[x_ed[:, 0].argsort()][:, 1:]
-
-        # load left cavity segment
-        # change ID index start by 0
-        lv_cavity_faces = np.loadtxt(sgm_file, delimiter=",", dtype=int) - 1
-
-        # create cavity object by using surface mesh
-        self.lv_cavity = Cavity(
-            SurfaceMesh(name="lv_cavity", triangles=lv_cavity_faces, nodes=x_ed)
-        )
-
-        # compute Klotz curve
-        self.v_ed = self.lv_cavity.volume
-        # todo: pressure can be read from main.k
-        self.p_ed = 2 * 7.5  # 2kPa to  mmHg
-        self.klotz = EDPVR(self.v_ed, self.p_ed)
-
-        self.volume_sim = None
-        self.pressure_sim = None
-
-    def create_calibration_folder(self, python_exe: str = ""):
+    @staticmethod
+    def create_calibration_project(
+        work_directory: str,
+        lsdyna_path: str,
+        ncpu: int,
+        dynatype: str,
+        mdoel_path: str,
+        python_exe: str = f"{sys.prefix}\\Scripts\\python.exe",
+    ):
         """
         Create necessary files for calibration.
 
         Parameters
         ----------
-        python_exe: venv path
+        work_directory
+        lsdyna_path
+        ncpu
+        dynatype
+        mdoel_path
+        python_exe
 
         """
-        # todo: test if it's a legitimate folder
+        os.makedirs(work_directory, exist_ok=True)
+        # LSOPT project file
         shutil.copy(
             pkg_resources.resource_filename("ansys.heart.calibration", "PassiveCalibration.lsopt"),
-            os.path.join(self.work_directory, "PassiveCalibration.lsopt"),
+            os.path.join(work_directory, "PassiveCalibration.lsopt"),
         )
 
-        shutil.copy(
-            pkg_resources.resource_filename("ansys.heart.calibration", "material_passive.k"),
-            os.path.join(self.work_directory, "material.k"),
-        )
-
-        if python_exe == "":
-            python_exe = f"{sys.prefix}\\Scripts\\python.exe"
-
-        with open(os.path.join(self.work_directory, "run.bat"), "w") as f:
+        # LSOPT job file
+        with open(os.path.join(work_directory, "run.bat"), "w") as f:
             f.write(f"{python_exe} run.py")
 
-        shutil.copy(
-            pkg_resources.resource_filename("ansys.heart.calibration", "run_passive.template"),
-            os.path.join(self.work_directory, "run.py"),
-        )
-
-    def load_results(self):
-        """
-        Load zerop simulation results.
-
-        Todo: verify stress free configuration converges.
-        """
-        # Load last iteration
-        import glob
-
-        binout_files = glob.glob(os.path.join(self.work_directory, "iter*.binout*"))
-        nodout = NodOut(binout_files[-1])
-
-        # time need to be normalized
-        time = nodout.time / nodout.time[-1]
-        coords = nodout.get_coordinates()
-
-        # compute volume at different simulation time
-        self.pressure_sim = time * self.p_ed
-        self.volume_sim = np.zeros(time.shape)
-        for i, coord in enumerate(coords):
-            self.lv_cavity.surface.nodes = coord
-            self.volume_sim[i] = self.lv_cavity.volume
-
-        fig = self.plot()
-        fig.savefig("vs.png")
-
-    def compute_objective_function(self):
-        """
-        Compute rsm error between Klotz curve and simulation.
-
-        Returns
-        -------
-        float
-        error
-        """
-        v_kz = self.klotz.get_volume(self.pressure_sim)
-
-        # RSM error between analytics and simulation
-        rsm = np.linalg.norm(self.volume_sim - v_kz)
-
-        return rsm
-
-    def plot(self):
-        """
-        Plot Klotz and simulation EDPVR.
-
-        Returns
-        -------
-        plot curve
-        """
-        vv = np.linspace(0, 1.1 * self.v_ed, num=101)
-        pp = self.klotz.get_pressure(vv)
-        fig = plt.figure()
-        plt.plot(vv, pp, label="Klotz")
-        plt.plot(self.klotz.get_volume(self.pressure_sim), self.pressure_sim, "o", label="Klotz")
-        plt.plot(self.volume_sim, self.pressure_sim, "--*", label="FEM")
-        plt.legend()
-        # plt.title("RSM={0:10.5e}".format(self.compute_objective_function()))
-        return fig
-
-    def run_one_step_calibration(self):
-        """Run zerop simulation and compare with Klotz curve."""
-        run_lsdyna("main.k", options="case")
-        self.load_results()
-        error = self.compute_objective_function()
-        with open("result", "a") as f:
-            f.write("{0:10.5e}".format(error))
-
+        # LSOPT job is to run this run.py
+        with open(os.path.join(work_directory, "run.py"), "w") as f:
+            f.write(
+                f"""
+import os
+import pathlib
+from ansys.heart.calibration.passive_calibration import PassiveCalibration
 
 if __name__ == "__main__":
-    pass
+    path_to_working_directory = pathlib.Path(__file__).absolute().parents[0]
+    os.chdir(path_to_working_directory)
+    case = PassiveCalibration(path_to_working_directory,"{mdoel_path}")
+    case.run_one_step_calibration("{lsdyna_path}",{ncpu},"{dynatype}")
+"""
+            )
+
+        # LSOPT input file
+        with open(os.path.join(work_directory, "parameters.k"), "w") as f:
+            f.write("ps1,<<ps1>>\n")
+            f.write("ps2,<<ps2>>\n")
+
+    def run_one_step_calibration(self, lsdyna_path, ncpu, dynatype):
+        """
+        Run zerop pressure simulation.
+
+        Parameters
+        ----------
+        lsdyna_path
+        ncpu
+        dynatype
+
+        """
+        simulator = MechanicsSimulator(
+            self.model,
+            lsdyna_path,
+            dynatype,
+            num_cpus=ncpu,
+            simulation_directory=os.path.join(self.work_directory),
+        )
+        simulator.load_default_settings()
+
+        simulator.settings = self.change_settings(simulator.settings)
+        # run
+        simulator.compute_stress_free_configuration()
+
+        self.define_objective()
+
+    def change_settings(self, setting: settings):
+        """Apply parameters."""
+        with open(os.path.join(self.work_directory, "parameters.k")) as f:
+            l = f.readlines()
+            try:
+                p1 = float(l[0].split()[1])
+                p2 = float(l[1].split()[1])
+            except:
+                p1 = 1
+                p2 = 1
+        setting.mechanics.material.myocardium["isotropic"]["k1"] *= p1
+        setting.mechanics.material.myocardium["isotropic"]["k2"] *= p2
+        setting.mechanics.material.myocardium["anisotropic"]["k1"] *= p1
+        setting.mechanics.material.myocardium["anisotropic"]["k2"] *= p2
+
+        return setting
+
+    def define_objective(self):
+        """Define objective function."""
+        with open(
+            os.path.join(self.work_directory, "zeropressure", "post", "Post_report.json")
+        ) as fjson:
+            dct = json.load(fjson)
+
+        v_ed = dct["True left ventricle volume (mm3)"]
+        p_ed = dct["Left ventricle EOD pressure (mmHg)"]
+        klotz = EDPVR(v_ed / 1000, p_ed)
+
+        v_sim = np.array(dct["Simulation Left ventricle volume (mm3)"]) / 1000
+        p_sim = np.array(dct["Simulation output time (ms)"]) * p_ed / 1000
+
+        v_klotz = klotz.get_volume(p_sim)
+
+        with open(os.path.join(self.work_directory, "result"), "w") as f:
+            error = np.linalg.norm(v_sim - v_klotz)
+            f.write("{0:10.5e}".format(error))

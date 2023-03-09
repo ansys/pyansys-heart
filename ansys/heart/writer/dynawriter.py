@@ -618,7 +618,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """Name of system model to use."""
 
         # Depending on the system model specified give list of parameters
-
+        self.cap_in_zerop = False
+        """
+        If include cap (shell) elements in ZeroPressure.
+        Experimental feature, please do not change it.
+        """
         return
 
     @property
@@ -665,18 +669,23 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._update_nodesets_db()
         self._update_material_db(add_active=True)
 
+        if self.cap_in_zerop:
+            # mesh has been defined in Zerop so saved in dynain file
+            self._update_cap_elements_db(add_mesh=False)
+        else:
+            # define new cap element
+            self._update_cap_elements_db(add_mesh=True)
+
+        # # for control volume
+        self._update_controlvolume_db()
+        self._update_system_model()
+
         # for boundary conditions
         if isinstance(self.model, (FourChamber, FullHeart)):
             self._add_cap_bc(bc_type="fix_caps")
         else:
             self._add_cap_bc(bc_type="springs_caps")
-
         self._add_pericardium_bc()
-
-        # # for control volume
-        self._update_cap_elements_db()
-        self._update_controlvolume_db()
-        self._update_system_model()
 
         self._get_list_of_includes()
         self._add_includes()
@@ -1151,9 +1160,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
             caps_to_use = [
                 "mitral-valve",
                 "tricuspid-valve",
-                "aortic-valve",
-                "pulmonary-valve",
             ]
+            if isinstance(self, ZeroPressureMechanicsDynaWriter):
+                caps_to_use.extend(
+                    [
+                        "aortic-valve",
+                        "pulmonary-valve",
+                    ]
+                )
 
         elif isinstance(self.model, (FourChamber, FullHeart)):
             caps_to_use = [
@@ -1260,6 +1274,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # use pre-computed nodal area
         nodal_areas = self.model.mesh.point_data["nodal_areas"][attached_nodes]
+
+        # scaling this node due to large deformation
+        # nodal_areas[np.where(attached_nodes == cap.node_ids[0])[0][0]] *=len(cap.node_ids)
 
         # scaled spring stiffness by nodal area
         scale_factor_normal *= nodal_areas
@@ -1471,7 +1488,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         return
 
-    def _update_cap_elements_db(self):
+    def _update_cap_elements_db(self, add_mesh=True):
         """Update the database of shell elements.
 
         Note
@@ -1493,8 +1510,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
         material_settings._remove_units()
 
         if material_settings.cap["type"] == "stiff":
-            material_kw = MaterialHGOMyocardium(
-                mid=mat_null_id, iso_user=dict(material_settings.cap)
+            material_kw = MaterialNeoHook(
+                mid=mat_null_id,
+                rho=material_settings.cap["rho"],
+                c10=material_settings.cap["mu1"] / 2,
             )
         else:
             if material_settings.cap["type"] != "null":
@@ -1551,8 +1570,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 part_id=cap.pid,
                 id_offset=shell_id_offset,
             )
-
-            self.kw_database.cap_elements.append(shell_kw)
+            if add_mesh:
+                self.kw_database.cap_elements.append(shell_kw)
 
             shell_id_offset = shell_id_offset + cap.triangles.shape[0]
             cap_names_used.append(cap.name)
@@ -1764,12 +1783,11 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self._update_material_db(add_active=False)
 
         # for boundary conditions
-        # self._update_boundary_conditions_db()
         self._add_cap_bc(bc_type="fix_caps")
-        # self._add_pericardium_bc()
 
-        # Zerop model should only include ventricle parts to export correctly lsda file
-        # self._update_cap_elements_db()
+        if self.cap_in_zerop:
+            # define cap element
+            self._update_cap_elements_db()
 
         # # Approximate end-diastolic pressures
         pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m

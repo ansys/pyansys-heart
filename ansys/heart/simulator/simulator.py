@@ -146,6 +146,8 @@ class BaseSimulator:
         self.model.mesh.cell_data["fiber"][elem_ids - 1] = fib
         self.model.mesh.cell_data["sheet"][elem_ids - 1] = sheet
 
+        # dump the model to reuse fiber information
+        self.model.dump_model(os.path.join(self.root_directory, "model_with_fiber.pickle"))
         return
 
     def _run_dyna(self, path_to_input: Path, options: str = ""):
@@ -178,8 +180,9 @@ class BaseSimulator:
             ]
 
         # launch LS-DYNA
-        p = subprocess.run(commands, stdout=subprocess.PIPE)
-        print(p.stdout)
+        with subprocess.Popen(commands, stdout=subprocess.PIPE, text=True) as p:
+            for line in p.stdout:
+                print(line.rstrip())
 
         os.chdir(self.root_directory)
         return

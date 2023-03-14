@@ -113,12 +113,9 @@ if __name__ == "__main__":
         """Apply parameters."""
         with open(os.path.join(self.work_directory, "parameters.k")) as f:
             l = f.readlines()
-            try:
-                p1 = float(l[0].split()[1])
-                p2 = float(l[1].split()[1])
-            except:
-                p1 = 1
-                p2 = 1
+            p1 = float(l[0].split(",")[1])
+            p2 = float(l[1].split(",")[1])
+
         setting.mechanics.material.myocardium["isotropic"]["k1"] *= p1
         setting.mechanics.material.myocardium["isotropic"]["k2"] *= p2
         setting.mechanics.material.myocardium["anisotropic"]["k1"] *= p1

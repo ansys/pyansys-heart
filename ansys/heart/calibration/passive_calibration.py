@@ -15,7 +15,7 @@ import pkg_resources
 class PassiveCalibration:
     """Passive calibration."""
 
-    def __init__(self, work_directory: str, model_path: str):
+    def __init__(self, work_directory, model_path):
         """
         Initialize Passive Calibration class.
 
@@ -23,8 +23,13 @@ class PassiveCalibration:
         ----------
         work_directory : str
             work directory.
-        model_path : HeartModel path
-            Fiber information must be saved.
+        model_path : str
+            HeartModel path
+        Notes
+        -----
+            Fiber information must be saved in model_path.
+
+            See :func:`heart.simulator.simulator.BaseSimulator.compute_fibers`
         """
         self.work_directory = work_directory
         self.model = HeartModel.load_model(model_path)

@@ -3,6 +3,7 @@ import json
 import os
 import shutil
 import sys
+import textwrap
 
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.preprocessor.models import HeartModel
@@ -70,17 +71,19 @@ class PassiveCalibration:
         # LSOPT job is to run this run.py
         with open(os.path.join(work_directory, "run.py"), "w") as f:
             f.write(
-                f"""
-import os
-import pathlib
-from ansys.heart.calibration.passive_calibration import PassiveCalibration
-
-if __name__ == "__main__":
-    path_to_working_directory = pathlib.Path(__file__).absolute().parents[0]
-    os.chdir(path_to_working_directory)
-    case = PassiveCalibration(path_to_working_directory,r"{mdoel_path}")
-    case.run_one_step_calibration("{lsdyna_path}",{ncpu},"{dynatype}")
-"""
+                textwrap.dedent(
+                    f"""
+            import os
+            import pathlib
+            from ansys.heart.calibration.passive_calibration import PassiveCalibration
+            \n
+            if __name__ == "__main__":
+                path_to_working_directory = pathlib.Path(__file__).absolute().parents[0]
+                os.chdir(path_to_working_directory)
+                case = PassiveCalibration(path_to_working_directory,r"{mdoel_path}")
+                case.run_one_step_calibration("{lsdyna_path}",{ncpu},"{dynatype}")
+            """
+                )
             )
 
         # LSOPT input file

@@ -14,6 +14,7 @@ This page contains the API reference for the pyheart-lib package.
    :maxdepth: 4
    :hidden:
 
+   calibration/index
    preprocessor/index
    writer/index
    simulator/index

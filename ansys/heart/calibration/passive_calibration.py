@@ -103,13 +103,13 @@ if __name__ == "__main__":
         )
         simulator.load_default_settings()
 
-        simulator.settings = self.change_settings(simulator.settings)
+        simulator.settings = self.apply_input_parameter(simulator.settings)
         # run
         simulator.compute_stress_free_configuration()
 
         self.define_objective()
 
-    def change_settings(self, setting: settings):
+    def apply_input_parameter(self, setting: settings):
         """Apply parameters."""
         with open(os.path.join(self.work_directory, "parameters.k")) as f:
             l = f.readlines()

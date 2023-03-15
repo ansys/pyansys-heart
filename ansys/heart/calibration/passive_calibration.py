@@ -109,6 +109,7 @@ class PassiveCalibration:
             num_cpus=ncpu,
             simulation_directory=os.path.join(self.work_directory),
         )
+        # todo  calibrate from a giving settings file
         simulator.load_default_settings()
 
         simulator.settings = self.apply_input_parameter(simulator.settings)
@@ -126,8 +127,16 @@ class PassiveCalibration:
 
         setting.mechanics.material.myocardium["isotropic"]["k1"] *= p1
         setting.mechanics.material.myocardium["isotropic"]["k2"] *= p2
-        setting.mechanics.material.myocardium["anisotropic"]["k1"] *= p1
-        setting.mechanics.material.myocardium["anisotropic"]["k2"] *= p2
+        setting.mechanics.material.myocardium["anisotropic"]["k1f"] *= p1
+        setting.mechanics.material.myocardium["anisotropic"]["k2f"] *= p2
+
+        try:
+            setting.mechanics.material.myocardium["anisotropic"]["k1s"] *= p1
+            setting.mechanics.material.myocardium["anisotropic"]["k2s"] *= p2
+            setting.mechanics.material.myocardium["anisotropic"]["k1fs"] *= p1
+            setting.mechanics.material.myocardium["anisotropic"]["k2fs"] *= p2
+        except:
+            pass
 
         return setting
 

@@ -58,7 +58,7 @@ class MaterialHGOMyocardium(keywords.Mat295):
     def __init__(self, mid: int = 1, iso_user=None, anisotropy_user=None, active_user=None):
 
         # Default parameters
-        base = {"aopt": 2.0, "itype": -3, "beta": 0.0, "nu": 0.499}
+        base = {"aopt": 2.0, "itype": -3, "beta": 0.0}
         # Update parameters with user's input
         base.update(iso_user)
 
@@ -69,26 +69,47 @@ class MaterialHGOMyocardium(keywords.Mat295):
         for k, v in base.items():
             setattr(self, k, v)
         if anisotropy_user is not None:
-            # Default parameters
-            anisotropy = {
-                "theta": 0,
-                "a": 0.08,
-                "b": 0.76,
-                "fcid": 0,
-                "ftype": 1,
-                "atype": -1,
-                "intype": 0,
-                "nf": 1,
-            }
-            self.atype = anisotropy["atype"]
-            self.intype = anisotropy["intype"]
-            self.nf = anisotropy["nf"]
-            self.ftype = anisotropy["ftype"]
 
-            # Update parameters with user's input
-            anisotropy.update(anisotropy_user)
-            # transfer into keywords
-            self.anisotropic_settings = pd.DataFrame([anisotropy])
+            # Default parameters
+            self.atype = -1
+            self.intype = 0
+            self.nf = 1
+            self.ftype = 1
+
+            common_sheet_fiber = {
+                "a": 0.0,
+                "b": 1.0,
+                "fcid": 0,
+                "ftype": self.ftype,
+            }
+
+            # change type if key exist
+            if "k1s" in anisotropy_user.keys():
+                self.nf = 2
+                if "k1fs" in anisotropy_user.keys():
+                    self.intype = 1
+
+            fiber = {
+                "theta": 0,
+                "k1": anisotropy_user["k1f"],
+                "k2": anisotropy_user["k2f"],
+            }
+            fiber.update(common_sheet_fiber)
+
+            if self.nf == 1:
+                self.anisotropic_settings = pd.DataFrame([fiber])
+            elif self.nf == 2:
+                sheet = {
+                    "theta": 90,
+                    "k1": anisotropy_user["k1s"],
+                    "k2": anisotropy_user["k2s"],
+                }
+                sheet.update(common_sheet_fiber)
+                self.anisotropic_settings = pd.DataFrame([fiber, sheet])
+
+            if self.intype == 1:
+                self.coupling_k1 = anisotropy_user["k1fs"]
+                self.coupling_k2 = anisotropy_user["k2fs"]
 
             # set dummy a/d vectors
             # these values are indeed replaced by *ELEMENT_SOLID_ORTHO or
@@ -226,19 +247,11 @@ if __name__ == "__main__":
     kw = MaterialCap()
     # test
     dct_iso = {"rho": 1, "k1": 1, "k2": 1}
-    dct_aniso = {"k1": 1, "k2": 2}
+    dct_aniso = {"k1f": 1, "k2f": 2}
+    dct_aniso.update({"k1s": 1, "k2s": 2})
+    # dct_aniso.update({"k1fs": 1, "k2fs": 2})
     dct_active = {"actype": 1, "acid": 15, "taumax": 125, "ca2ionm": 4.35}
     kw = MaterialHGOMyocardium(
         mid=1, iso_user=dct_iso, anisotropy_user=dct_aniso, active_user=dct_active
     )
-    print(kw)
-
-    dct_iso2 = {
-        "rho": 1e-6,
-        "itype": -1,
-        "mu1": 34.9,
-        "alpha1": 2,
-        "Comment": "Should be equivalent with MAT_077_H",
-    }
-    kw = MaterialHGOMyocardium(mid=1, iso_user=dct_iso2)
     print(kw)

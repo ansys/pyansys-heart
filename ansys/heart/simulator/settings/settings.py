@@ -394,6 +394,7 @@ class SimulationSettings:
             self.mechanics.system = S
 
             attribute_name = "stress_free"
+            _deserialize_quantity(settings[attribute_name], ureg)
             A = AnalysisZeroPressure()
             A.set_values(settings[attribute_name]["analysis"])
             self.stress_free.analysis = A

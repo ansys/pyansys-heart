@@ -392,6 +392,12 @@ class SimulationSettings:
             self.mechanics.material = M
             self.mechanics.boundary_conditions = BC
             self.mechanics.system = S
+
+            attribute_name = "stress_free"
+            A = AnalysisZeroPressure()
+            A.set_values(settings[attribute_name]["analysis"])
+            self.stress_free.analysis = A
+
         except:
             print("Failed to load mechanics settings.")
 

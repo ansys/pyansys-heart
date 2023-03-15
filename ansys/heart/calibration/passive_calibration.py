@@ -127,7 +127,7 @@ class PassiveCalibration:
         else:
             simulator.settings.load(self.settings_file)
 
-        simulator.settings = self.apply_input_parameter(simulator.settings)
+        self.apply_input_parameter(simulator.settings)
         # run
         simulator.compute_stress_free_configuration()
 
@@ -152,8 +152,6 @@ class PassiveCalibration:
             setting.mechanics.material.myocardium["anisotropic"]["k2fs"] *= p2
         except:
             pass
-
-        return setting
 
     def define_objective(self):
         """Define objective function."""

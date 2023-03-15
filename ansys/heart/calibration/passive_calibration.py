@@ -16,7 +16,7 @@ import pkg_resources
 class PassiveCalibration:
     """Passive calibration."""
 
-    def __init__(self, work_directory, model_path):
+    def __init__(self, work_directory, model_path, settings_file=""):
         """
         Initialize Passive Calibration class.
 
@@ -26,14 +26,22 @@ class PassiveCalibration:
             work directory.
         model_path : str
             HeartModel path
+        settings_file : str, optional
+            yaml or json settings file, None will load package default settings
+
         Notes
         -----
             Fiber information must be saved in model_path.
 
             See :func:`heart.simulator.simulator.BaseSimulator.compute_fibers`
+
         """
         self.work_directory = work_directory
         self.model = HeartModel.load_model(model_path)
+        if settings_file == "":
+            self.settings_file = None
+        else:
+            self.settings_file = settings_file
 
     @staticmethod
     def create_calibration_project(
@@ -41,7 +49,8 @@ class PassiveCalibration:
         lsdyna_path: str,
         ncpu: int,
         dynatype: str,
-        mdoel_path: str,
+        model_path: str,
+        settings: str = "",
         python_exe: str = f"{sys.prefix}\\Scripts\\python.exe",
     ):
         """
@@ -49,15 +58,16 @@ class PassiveCalibration:
 
         Parameters
         ----------
+        settings
         work_directory
         lsdyna_path
         ncpu
         dynatype
-        mdoel_path
+        model_path
         python_exe
 
         """
-        os.makedirs(work_directory, exist_ok=True)
+        os.makedirs(work_directory)
         # LSOPT project file
         shutil.copy(
             pkg_resources.resource_filename("ansys.heart.calibration", "PassiveCalibration.lsopt"),
@@ -80,7 +90,9 @@ class PassiveCalibration:
             if __name__ == "__main__":
                 path_to_working_directory = pathlib.Path(__file__).absolute().parents[0]
                 os.chdir(path_to_working_directory)
-                case = PassiveCalibration(path_to_working_directory,r"{mdoel_path}")
+                case = PassiveCalibration(path_to_working_directory,
+                                         r"{model_path}",
+                                         r"{settings}")
                 case.run_one_step_calibration("{lsdyna_path}",{ncpu},"{dynatype}")
             """
                 )
@@ -109,8 +121,11 @@ class PassiveCalibration:
             num_cpus=ncpu,
             simulation_directory=os.path.join(self.work_directory),
         )
-        # todo  calibrate from a giving settings file
-        simulator.load_default_settings()
+
+        if self.settings_file is None:
+            simulator.load_default_settings()
+        else:
+            simulator.settings.load(self.settings_file)
 
         simulator.settings = self.apply_input_parameter(simulator.settings)
         # run

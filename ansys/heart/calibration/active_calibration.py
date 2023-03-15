@@ -148,6 +148,7 @@ class ActiveCalibration:
             p2 = float(l[1].split(",")[1])
         from pint import Quantity
 
+        # dummy input parameters
         setting.mechanics.material.myocardium["active"]["tmax"] = Quantity(p1, "MPa")
         setting.mechanics.material.myocardium["active"]["ss"] = p2
 
@@ -157,7 +158,8 @@ class ActiveCalibration:
         t = s.lv_system.time
         p = s.lv_system.pressure.cavity
 
+        # dummy objective function
         error = (np.max(p) - 20) ** 2
-        print(np.max(p))
+
         with open(os.path.join(self.work_directory, "result"), "w") as f:
             f.write("{0:10.5e}".format(error))

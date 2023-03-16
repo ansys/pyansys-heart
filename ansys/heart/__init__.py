@@ -1,1 +1,1 @@
-"""ansys.heart init."""
+"""Collection of modules for heart modeling."""

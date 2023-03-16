@@ -1,10 +1,7 @@
-"""
-Auto downloads cases.
+"""Auto downloads cases.
 
 Auto downloads cases from the remote repositories of Strocchi et al 2020,
-and Cristobal et al 2021.
-
-"""
+and Cristobal et al 2021."""
 
 import os
 from pathlib import Path, PurePath
@@ -71,12 +68,14 @@ def download_case(
     Examples
     --------
     Download case 1 from the public repository (Strocchi2020) of pathological hearts.
-    >>> path_to_case = download_case(
-        database="Strocchi2020", case_number=1, download_folder="my/download/folder")
+        >>> path_to_case = download_case(
+                database="Strocchi2020", case_number=1, download_folder="my/download/folder"
+            )
 
-    Download case 1 from the public repository (Cristobal2021) of 'healthy' hearts.
-    >>> path_to_case = download_case(
-        database="Cristobal2021", case_number=1, download_folder="my/download/folder")
+    Download case 1 from the public repository (Rodero2021) of 'healthy' hearts.
+        >>> path_to_case = download_case(
+            database="Rodero2021", case_number=1, download_folder="my/download/folder"
+            )
     """
 
     if database not in VALID_DATABASES:

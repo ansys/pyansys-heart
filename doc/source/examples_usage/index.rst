@@ -9,6 +9,7 @@ Download and extract a full heart mesh from the public database of 24 pathologic
 by Strocchi et al (2020).
 
 .. literalinclude:: ../../../examples/heart/preprocessor/example_downloader.py
+.. figure:: ../images/mesh.png
 
 Pre-process data for heart simulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

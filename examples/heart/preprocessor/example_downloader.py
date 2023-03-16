@@ -5,6 +5,7 @@ import os
 import pathlib
 
 from ansys.heart.misc.downloader import download_case, unpack_case
+import pyvista as pv
 
 if __name__ == "__main__":
     # download case from remote repository
@@ -15,5 +16,12 @@ if __name__ == "__main__":
         database=database, case_number=case_num, download_folder=download_folder, overwrite=False
     )
     unpack_case(case_path)
+    mesh_path = os.path.join(
+        pathlib.Path(case_path).parents[0], "%02d" % (case_num,), "%02d.case" % (case_num,)
+    )
+    mesh = pv.read(mesh_path)
 
+    plotter = pv.Plotter()
+    plotter.add_mesh(mesh, color="white")
+    plotter.show()
     print("done")

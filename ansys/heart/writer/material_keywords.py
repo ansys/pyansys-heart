@@ -13,6 +13,7 @@ from ansys.dyna.keywords import keywords
 from ansys.heart.custom_logging import LOGGER
 
 # import custom keywords in separate namespace
+from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 import numpy as np
 import pandas as pd
 import pkg_resources
@@ -31,24 +32,24 @@ class MaterialCap(keywords.MatNull):
         super().__init__(mid=mid, ro=1.04e-6)
 
 
-# class MaterialAtrium(custom_keywords.Mat077H):
-#     """Material for the atrium.
-#
-#     Parameters
-#     ----------
-#     Mat077H : Parent class
-#         Parent class from which this material is derived
-#     """
-#
-#     def __init__(
-#         self,
-#         mid: int = 1,
-#         rho: float = 1e-6,
-#         poisson_ratio: float = 0.499,
-#         c10: float = 17.46,
-#     ):
-#         super().__init__(mid=mid, ro=rho, pr=poisson_ratio, n=0, c10=c10)
-#         return
+class MaterialNeoHook(custom_keywords.Mat077H):
+    """Material for the atrium.
+
+    Parameters
+    ----------
+    Mat077H : Parent class
+        Parent class from which this material is derived
+    """
+
+    def __init__(
+        self,
+        mid: int,
+        rho: float,
+        c10: float,
+        poisson_ratio: float = 0.499,
+    ):
+        super().__init__(mid=mid, ro=rho, pr=poisson_ratio, n=0, c10=c10)
+        return
 
 
 class MaterialHGOMyocardium(keywords.Mat295):

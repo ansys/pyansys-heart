@@ -146,11 +146,9 @@ class SystemModelPost:
         self.model_type = "LV"
 
         fcsv1 = os.path.join(self.dir, "constant_preload_windkessel_afterload_left.csv")
-        try:
-            fcsv2 = os.path.join(self.dir, "constant_preload_windkessel_afterload_right.csv")
+        fcsv2 = os.path.join(self.dir, "constant_preload_windkessel_afterload_right.csv")
+        if os.path.isfile(fcsv2):
             self.model_type = "BV"
-        except FileExistsError:
-            self.model_type = "LV"
 
         # get EOD pressure
         s = SimulationSettings()
@@ -207,7 +205,10 @@ class SystemModelPost:
 
         def add_pv(cavity, color):
             v = cavity.volume.cavity[start:end]
-            ef = (max(v) - min(v)) / max(v)
+            try:
+                ef = (max(v) - min(v)) / max(v)
+            except:
+                ef = 0
             p = cavity.pressure.cavity[start:end]
             axis.plot(v, p, color, label="{0},EF={1:.1f}%".format(cavity.name, ef * 100))
             axis.scatter(cavity.ed[1], cavity.ed[0], facecolor=color, label=cavity.name + "@ED")

@@ -128,7 +128,7 @@ class Mesh(pv.UnstructuredGrid):
 
         return
 
-    def read_mesh_file_rodero2021(self, filename: pathlib.Path) -> None:
+    def read_mesh_file_cristobal2021(self, filename: pathlib.Path) -> None:
         """Read mesh file - but modifies the fields to match data of Strocchi 2020."""
         mesh = pv.read(filename)
         # .case gives multiblock

@@ -10,10 +10,10 @@ if __name__ == "__main__":
     Note
     ----
     Use this script to download all .tar.gz files from both the Strocchi2020 and
-    Rodero2021 public datasets and generate a hash table which is used to
+    Cristobal2021 public datasets and generate a hash table which is used to
     verify file integrity.
     """
-    databases = {"Strocchi2020": 24, "Rodero2021": 20}
+    databases = {"Strocchi2020": 24, "Cristobal2021": 20}
     base_folder = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads"
     path_to_hash_table = os.path.join(base_folder, "remote_repo_hash_table_sha256.json")
     if os.path.isfile(path_to_hash_table):

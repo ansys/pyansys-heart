@@ -1,7 +1,15 @@
 Pyheart lib
 ===========
 
-Python framework for heart modeling using Ansys tools
+Python framework for heart modeling using Ansys tools.
+
+
+Note1: Please read LICENSE file before using this package.
+
+Note2: Fluent 2022R2 is required (for meshing), available on the Ansys Customer Portal.
+
+Note3: Ansys DPF Server is required (for post-process module and calibration module), available on the Ansys Customer Portal.
+
 
 
 How to install
@@ -88,16 +96,6 @@ need to follow these steps:
         cd dynalib
         pip install -e .
 
-    Alternatively, use
-
-    .. code:: bash
-
-        python setup.py develop
-
-    which will install dynalib (and qd) automatically.
-
-    Note 1: qd will be installed only if Python is 3.7 or 3.8.
-    Note 2: this option may fail in some cases, please resort back to pip install --editable and manual installation of `dynalib`_
 
 5. Install additional requirements (if needed):
 

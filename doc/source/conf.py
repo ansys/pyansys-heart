@@ -41,11 +41,18 @@ html_theme_options = {
 
 # Sphinx extensions
 extensions = [
+    "autoapi.extension",
     "sphinx.ext.autodoc",
+    "sphinx_autodoc_typehints",
     "sphinx.ext.autosummary",
     "numpydoc",
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
+    "nbsphinx",
+    "sphinx_gallery.load_style",
+    "myst_parser",
+    "jupyter_sphinx",
+    "sphinx_design",
 ]
 
 autodoc_mock_imports = ["dynalib", "ansys.dyna"]
@@ -75,7 +82,7 @@ numpydoc_validate = True
 numpydoc_validation_checks = {
     "GL06",  # Found unknown section
     "GL07",  # Sections are in the wrong order.
-    "GL08",  # The object does not have a docstring
+    # "GL08",  # The object does not have a docstring
     "GL09",  # Deprecation warning should precede extended summary
     "GL10",  # reST directives {directives} must be followed by two colons
     "SS01",  # No summary found
@@ -100,20 +107,20 @@ source_suffix = ".rst"
 # The master toctree document.
 master_doc = "index"
 
-# # Configuration for Sphinx autoapi
-# autoapi_type = "python"
-# autoapi_dirs = ["../../ansys/heart"]
-# autoapi_options = [
-#     "members",
-#     "undoc-members",
-#     "show-inheritance",
-#     "show-module-summary",
-#     "special-members",
-# ]
-# autoapi_template_dir = "_autoapi_templates"
-# suppress_warnings = ["autoapi.python_import_resolution"]
+# Configuration for Sphinx autoapi
+autoapi_type = "python"
+autoapi_dirs = ["../../ansys/heart"]
+autoapi_options = [
+    "members",
+    "undoc-members",
+    "show-inheritance",
+    "show-module-summary",
+    "special-members",
+]
+autoapi_template_dir = "_autoapi_templates"
+suppress_warnings = ["autoapi.python_import_resolution"]
 # exclude_patterns = ["_autoapi_templates/index.rst"]
-# autoapi_python_use_implicit_namespaces = True
+autoapi_python_use_implicit_namespaces = True
 
 # # Examples gallery customization
 # nbsphinx_execute = "always"
@@ -155,8 +162,8 @@ master_doc = "index"
 #     py_file_loc="{{ env.docname }}.py",
 # )
 
-# typehints_defaults = "comma"
-# simplify_optional_unions = False
+typehints_defaults = "comma"
+simplify_optional_unions = False
 
 # # additional logos for the latex coverpage
 # latex_additional_files = [watermark, ansys_logo_white, ansys_logo_white_cropped]

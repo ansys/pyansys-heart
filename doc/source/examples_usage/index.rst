@@ -1,7 +1,7 @@
 Examples 
----------
+========
 
-This page contains examples of pyheart-lib usage
+This page contains examples of pyheart-lib usage.
 
 Downloading a case
 ^^^^^^^^^^^^^^^^^^

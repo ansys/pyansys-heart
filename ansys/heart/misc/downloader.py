@@ -13,7 +13,7 @@ from tqdm import tqdm
 
 try:
     import wget  # type: ignore
-except ImportError:
+except (ImportError):
     warnings.warn("wget not installed but required. Please install by: pip install wget")
 
 
@@ -139,7 +139,7 @@ def validate_hash_sha256(
 
     try:
         sha256_table[database][casenumber]
-    except KeyError:
+    except (KeyError):
         raise KeyError(
             "{0} : {1} is not yet present in the hash table dictionary".format(database, casenumber)
         )

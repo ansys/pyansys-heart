@@ -1264,8 +1264,22 @@ class HeartModel:
                             cavity_centroid = surface.compute_centroid()
 
                             cap.tessellate()
-                            p1 = surf.nodes[cap.triangles[:, 1],] - surf.nodes[cap.triangles[:, 0],]
-                            p2 = surf.nodes[cap.triangles[:, 2],] - surf.nodes[cap.triangles[:, 0],]
+                            p1 = (
+                                surf.nodes[
+                                    cap.triangles[:, 1],
+                                ]
+                                - surf.nodes[
+                                    cap.triangles[:, 0],
+                                ]
+                            )
+                            p2 = (
+                                surf.nodes[
+                                    cap.triangles[:, 2],
+                                ]
+                                - surf.nodes[
+                                    cap.triangles[:, 0],
+                                ]
+                            )
                             normals = np.cross(p1, p2)
                             cap_normal = np.mean(normals, axis=0)
                             cap_normal = cap_normal / np.linalg.norm(cap_normal)

@@ -23,9 +23,12 @@ material = {
         "anisotropic": {"k1f": Quantity(0.00049, "MPa"), "k2f": Quantity(9.01, "dimensionless")},
         "active": {
             "actype": 1,
+            "heart rate": Quantity(60, "min^-1"),
+            "ss": 0.0,
             "tmax": Quantity(0.125, "MPa"),
             "ca2ionm": Quantity(4.35, "umol/L"),
-            "prefill": Quantity(1000.0, "ms"),
+            "dtmax": Quantity(150.0, "ms"),
+            "tr": Quantity(-1429.0, "ms"),
         },
     },
     "atrium": {

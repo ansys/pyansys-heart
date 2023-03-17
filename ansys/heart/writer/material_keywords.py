@@ -125,20 +125,16 @@ class MaterialHGOMyocardium(keywords.Mat295):
         if active_user is not None:
             if active_user["actype"] == 1:
                 active = {
-                    # "actype": 1,
-                    "acdir": 1,
+                    "acdir": 1,  # active along first/fiber direction
                     "acthr": active_user["ca2ionm"] / 2,
                     "sf": 1.0,
-                    "ss": 0.0,
                     "sn": 0.0,
                     "n": 2,
                     "stf": 0.0,
                     "b": 4.75,
                     "l0": 1.58,
                     "l": 1.85,
-                    "dtmax": 150,  # ms
                     "mr": 1048.9,  # ms*um^-1
-                    "tr": -1429,  # ms
                 }
             elif active_user["actype"] == 2:
                 # Default parameters

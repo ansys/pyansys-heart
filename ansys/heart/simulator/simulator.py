@@ -321,12 +321,14 @@ class MechanicsSimulator(BaseSimulator):
 
         return
 
-    def simulate(self, folder_name: str = "main-mechanics"):
+    def simulate(self, folder_name: str = "main-mechanics", auto_post=True):
         """
         Launch the main simulation.
 
         Parameters
         ----------
+        auto_post : bool
+            if run post-process scripts.
         folder_name: str
             main simulation folder name.
 
@@ -394,7 +396,8 @@ class MechanicsSimulator(BaseSimulator):
 
             exporter.export_lvls_to_vtk("lvls")
 
-        _post()
+        if auto_post:
+            _post()
         return
 
     def compute_stress_free_configuration(self):

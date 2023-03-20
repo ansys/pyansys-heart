@@ -89,3 +89,7 @@ class IVCSimulator(MechanicsSimulator):
         dyna_writer.export(export_directory)
 
         return export_directory
+
+    def simulate(self):
+        """Overload with different parameters."""
+        super(IVCSimulator, self).simulate(folder_name="ivc", auto_post=False)

@@ -25,7 +25,7 @@ material = {
             "actype": 1,
             "heart rate": Quantity(60, "min^-1"),
             "ss": 0.0,
-            "tmax": Quantity(0.125, "MPa"),
+            "taumax": Quantity(0.125, "MPa"),
             "ca2ionm": Quantity(4.35, "umol/L"),
             "dtmax": Quantity(150.0, "ms"),
             "tr": Quantity(-1429.0, "ms"),

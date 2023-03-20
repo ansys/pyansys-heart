@@ -136,7 +136,7 @@ class ActiveCalibration:
 
         self.apply_input_parameter(simulator.settings)
         # run
-        simulator.simulate()
+        simulator.simulate(folder_name="ivc", zerop_folder=self.zerop_path, auto_post=False)
 
         self.define_objective()
 

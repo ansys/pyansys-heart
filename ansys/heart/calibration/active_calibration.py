@@ -1,12 +1,15 @@
 """Calibration active material parameters."""
 import os
+import pathlib
 import shutil
 import sys
 import textwrap
 
 from ansys.heart.calibration.ivc import IVCSimulator
+from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 from ansys.heart.preprocessor.models import HeartModel
 from ansys.heart.simulator.settings import settings
+import numpy as np
 import pkg_resources
 
 
@@ -39,6 +42,13 @@ class ActiveCalibration:
             self.settings_file = None
         else:
             self.settings_file = settings_file
+
+        zerop_folder = os.path.join(pathlib.Path(model_path).parent, "zeropressure")
+        if not os.path.isdir(zerop_folder):
+            print("A zeropressure must be present.")
+            exit()
+        else:
+            self.zerop_path = zerop_folder
 
     @staticmethod
     def create_calibration_project(
@@ -136,8 +146,18 @@ class ActiveCalibration:
             l = f.readlines()
             p1 = float(l[0].split(",")[1])
             p2 = float(l[1].split(",")[1])
-        pass
+        from pint import Quantity
+
+        setting.mechanics.material.myocardium["active"]["tmax"] = Quantity(p1, "MPa")
+        setting.mechanics.material.myocardium["active"]["ss"] = p2
 
     def define_objective(self):
         """Define objective function."""
-        pass
+        s = SystemModelPost(os.path.join(self.work_directory, "ivc"))
+        t = s.lv_system.time
+        p = s.lv_system.pressure.cavity
+
+        error = (np.max(p) - 20) ** 2
+        print(np.max(p))
+        with open(os.path.join(self.work_directory, "result"), "w") as f:
+            f.write("{0:10.5e}".format(error))

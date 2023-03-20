@@ -321,12 +321,15 @@ class MechanicsSimulator(BaseSimulator):
 
         return
 
-    def simulate(self, folder_name: str = "main-mechanics", auto_post=True):
+    def simulate(self, folder_name="main-mechanics", zerop_folder=None, auto_post=True):
         """
         Launch the main simulation.
 
         Parameters
         ----------
+        zerop_folder : str
+            folder contains stress free simulation.
+            Default is "zeropressure" under roo_directory.
         auto_post : bool
             if run post-process scripts.
         folder_name: str
@@ -336,16 +339,17 @@ class MechanicsSimulator(BaseSimulator):
         directory = os.path.join(self.root_directory, folder_name)
         os.makedirs(directory, exist_ok=True)
 
+        if zerop_folder is None:
+            zerop_folder = os.path.join(self.root_directory, "zeropressure")
+
         if self.initial_stress:
             try:
                 # get dynain.lsda file from
-                dynain_file = glob.glob(
-                    os.path.join(self.root_directory, "zeropressure", "iter*.dynain.lsda")
-                )[-1]
+                dynain_file = glob.glob(os.path.join(zerop_folder, "iter*.dynain.lsda"))[-1]
 
                 shutil.copy(dynain_file, os.path.join(directory, "dynain.lsda"))
                 shutil.copy(
-                    os.path.join(self.root_directory, "zeropressure", "post", "Post_report.json"),
+                    os.path.join(zerop_folder, "post", "Post_report.json"),
                     os.path.join(directory, "Post_report.json"),
                 )
             except IndexError:

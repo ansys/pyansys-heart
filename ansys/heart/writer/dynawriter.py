@@ -2966,6 +2966,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
         )
 
+        self.kw_database.ep_settings.append(
+            custom_keywords.EmEpIsoch(idisoch=1, idepol=1, dplthr=-20, irepol=1, rplthr=-40)
+        )
         # use defaults
         self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=5))
 
@@ -3065,21 +3068,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=0.0))
 
         self.kw_database.main.append(keywords.ControlTimeStep(dtinit=1.0, dt2ms=1.0))
-        return
-
-    def _update_export_controls(self, dt_output_d3plot: float = 1.0):
-        """Add solution controls to the main simulation.
-
-        Parameters
-        ----------
-        dt_output_d3plot : float, optional
-            Writes full D3PLOT results at this time-step spacing, by default 0.05
-        dt_output_icvout : float, optional
-            Writes control volume results at this time-step spacing, by default 0.001
-        """
-        # frequency of full results
-        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
-
         return
 
     def _update_main_db(self):
@@ -3248,19 +3236,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 self.kw_database.cell_models.extend([cell_kw])
             self.kw_database.beam_networks.append(beams_kw)
 
-    def _update_solution_controls(
-        self,
-        end_time: float = 800,
-    ):
-        """Add solution controls, output controls and solver settings."""
-        # add termination keywords
-        self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=0.0))
-
-        self.kw_database.main.append(
-            keywords.ControlTimeStep(dtinit=1.0, dt2ms=1.0, emscl=None, ihdo=None, rmscl=None)
-        )
-        return
-
     def _update_export_controls(self, dt_output_d3plot: float = 1.0):
         """Add solution controls to the main simulation.
 
@@ -3274,26 +3249,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         """
         # frequency of full results
         self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
-
-        return
-
-    def _get_list_of_includes(self):
-        """Get a list of files to include in main.k. Omit any empty decks."""
-        for deckname, deck in vars(self.kw_database).items():
-            if deckname == "main":
-                continue
-            # skip if no keywords are present in the deck
-            if len(deck.keywords) == 0:
-                LOGGER.debug("No keywords in deck: {0}".format(deckname))
-                continue
-            self.include_files.append(deckname)
-        return
-
-    def _add_includes(self):
-        """Add *INCLUDE keywords."""
-        for include_file in self.include_files:
-            filename_to_include = include_file + ".k"
-            self.kw_database.main.append(keywords.Include(filename=filename_to_include))
 
         return
 

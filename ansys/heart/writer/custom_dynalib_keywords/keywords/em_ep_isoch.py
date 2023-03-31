@@ -1,6 +1,8 @@
 import typing
+
 from ansys.dyna.keywords.lib.card import Card, Field
 from ansys.dyna.keywords.lib.keyword_base import KeywordBase
+
 
 class EmEpIsoch(KeywordBase):
     """DYNA EM_EP_ISOCH keyword"""
@@ -24,28 +26,28 @@ class EmEpIsoch(KeywordBase):
                         "idepol",
                         int,
                         10,
-                        70,
+                        10,
                         kwargs.get("idepol", 0)
                     ),
                     Field(
                         "dplthr",
                         float,
                         20,
-                        70,
+                        10,
                         kwargs.get("dplthr", 0)
                     ),
                     Field(
                         "irepol",
                         int,
                         30,
-                        70,
+                        10,
                         kwargs.get("irepol", 0)
                     ),
                     Field(
                         "rplthr",
                         float,
                         40,
-                        70,
+                        10,
                         kwargs.get("rplthr", 0)
                     ),
                 ],

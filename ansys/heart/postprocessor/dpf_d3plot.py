@@ -49,6 +49,16 @@ class D3plotReader:
             res.append(f.data)
         return res
 
+    # def get_EP_results(self):
+    #     """Get Electrophysiology results."""
+    #     with open(self., "r") as f:
+    #         lines = f.readlines()
+    #     fields = displacements.eval()
+    #     res = []
+    #     for f in fields:
+    #         res.append(f.data)
+    #     return res
+
     def get_history_variable(
         self,
         hv_index: List[int],

@@ -2969,6 +2969,26 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self.kw_database.ep_settings.append(
             custom_keywords.EmEpIsoch(idisoch=1, idepol=1, dplthr=-20, irepol=1, rplthr=-40)
         )
+        part_ids = [None] * 7
+        part_ids[0 : len(self.model.part_ids)] = self.model.part_ids
+        nsid_all_parts = self.get_unique_nodeset_id()
+        kw = keywords.SetNodeGeneral(
+            title="All nodes",
+            option="PART",
+            sid=nsid_all_parts,
+            e1=part_ids[0],
+            e2=part_ids[1],
+            e3=part_ids[2],
+            e4=part_ids[3],
+            e5=part_ids[4],
+            e6=part_ids[5],
+            e7=part_ids[6],
+        )
+        self.kw_database.node_sets.append(kw)
+
+        self.kw_database.ep_settings.append(
+            keywords.EmDatabaseNodout(outlv=1, dtout=1, nsid=nsid_all_parts)
+        )
         # use defaults
         self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=5))
 

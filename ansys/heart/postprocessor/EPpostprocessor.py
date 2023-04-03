@@ -2,12 +2,11 @@
 import os
 import pathlib as Path
 
-from ansys.heart.preprocessor.mesh.objects import Mesh
 from ansys.heart.preprocessor.models import HeartModel
 import numpy as np
 
 
-class EPpostprocessor():
+class EPpostprocessor:
     """Postprocess Electrophysiology results."""
 
     def __init__(self, results_path: Path, model: HeartModel):
@@ -20,12 +19,10 @@ class EPpostprocessor():
         model : HeartModel
             Heartmodel to be post-processed.
         """
-
         self.mesh = model.mesh
         self.results_path = results_path
         self.times = None
         self.node_ids: np.ndarray = None
-
 
     def read_EP_results(self, type: str = "nodout"):
         """Read Electrophysiology results.

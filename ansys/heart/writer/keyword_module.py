@@ -594,7 +594,6 @@ def example_performance():
     t0 = time.time()
     line_format = ""
     for duplicate_card in kw._cards[0]._cards:
-
         for field in duplicate_card._fields:
             if field.type == float:
                 fmt_append = "{:>" + "{0}.5f".format(field.width) + "}"

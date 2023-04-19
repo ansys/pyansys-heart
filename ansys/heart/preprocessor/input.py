@@ -247,29 +247,14 @@ class InputManager:
 
         pass
 
-    def validate(self):
-        """Validate the given input."""
-        if self.input_volume:
-            self._validate_volume_mesh()
-        if self.input_surface:
-            self._validate_surface_mesh()
-
-        return
-
-    def is_valid_input(self):
-        """Validate if the model has the right surfaces or parts defined for further processing."""
-        is_valid = False
-        try:
-            self._validate_volume_mesh()
-            is_valid = True
-        except:
-            pass
-        try:
-            self._validate_surface_mesh()
-            is_valid = True
-        except:
-            pass
-        return is_valid
+    def __repr__(self):
+        """Represent self."""
+        return (
+            "Input volume mesh:\n"
+            + str(self.input_volume)
+            + "Input surface mesh:\n"
+            + str(self.input_surface)
+        )
 
     def _reorder_part_ids(self, part_name_to_part_id: dict):
         """Reorder the input part ids such that they correspond with SURFACES_PER_HEART_PART."""
@@ -333,6 +318,30 @@ class InputManager:
         # change surface-id such that it always corresponds to the default surface-ids.
         return
 
+    def validate(self):
+        """Validate the given input."""
+        if self.input_volume:
+            self._validate_volume_mesh()
+        if self.input_surface:
+            self._validate_surface_mesh()
+
+        return
+
+    def is_valid_input(self):
+        """Validate if the model has the right surfaces or parts defined for further processing."""
+        is_valid = False
+        try:
+            self._validate_volume_mesh()
+            is_valid = True
+        except:
+            pass
+        try:
+            self._validate_surface_mesh()
+            is_valid = True
+        except:
+            pass
+        return is_valid
+
     def get_required_parts_and_surfaces(self, model_type: str) -> dict:
         """Return a dictionary of the required parts and surfaces for a specific model."""
         parts = _get_required_parts(model_type)
@@ -340,12 +349,3 @@ class InputManager:
         LOGGER.info({"Parts": parts, "Surfaces": surfaces})
 
         return {"Parts": parts, "Surfaces": surfaces}
-
-    def __repr__(self):
-        """Represent self."""
-        return (
-            "Input volume mesh:\n"
-            + str(self.input_volume)
-            + "Input surface mesh:\n"
-            + str(self.input_surface)
-        )

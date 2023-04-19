@@ -1,11 +1,13 @@
 """Test input manager"""
 
-from ansys.heart.preprocessor.input import InputManager
-import tests.heart.conftest as conftest
 import os
-import pyvista as pv
-import numpy as np
 from typing import Union
+
+from ansys.heart.preprocessor.input import InputManager
+import numpy as np
+import pyvista as pv
+
+import tests.heart.conftest as conftest
 
 
 def _is_same_mesh(
@@ -39,6 +41,42 @@ def _create_simple_unstructured_grid() -> pv.UnstructuredGrid:
     ugrid.cell_data.set_scalars([1, 2], "tags")
 
     return ugrid
+
+
+def test_inputs():
+    """Test the different kind of inputs. UnstructuredGrid and PolyData file/object."""
+    # unstructured grid as file or object
+
+    workdir = conftest.get_workdir()
+
+    # UnstructuredGrid as object
+    ugrid = _create_simple_unstructured_grid()
+
+    input = InputManager(ugrid, scalar="tags")
+    assert _is_same_mesh(input.input_volume, ugrid)
+
+    # UnstructuredGrid as vtu file
+    file1 = os.path.join(workdir, "ugrid.vtu")
+    ugrid.save(file1)
+    input = InputManager(file1, scalar="tags")
+    assert _is_same_mesh(input.input_volume, ugrid)
+
+    # Prep PolyData input.
+    polydata = pv.Sphere()
+    polydata.cell_data.set_scalars(np.full(polydata.n_cells, 1), "surface-tags")
+
+    # Polydata as object
+    input = InputManager(polydata, scalar="surface-tags")
+    assert _is_same_mesh(input.input_surface, polydata)
+
+    # Polydata as vtp file
+    file2 = os.path.join(workdir, "polydata.vtp")
+    polydata.save(file2)
+    input = InputManager(file2, scalar="surface-tags")
+    assert _is_same_mesh(input.input_surface, polydata)
+
+    os.remove(file1)
+    os.remove(file2)
 
 
 def test_reorder_part_ids_001():
@@ -106,37 +144,12 @@ def test_reorder_surface_ids_001():
     assert np.all(input.input_surface.cell_data["surface-id"] == ref_ids)
 
 
-def test_inputs():
-    """Test the different kind of inputs. 1: UnstructuredGrid file/object, 2: PolyData file/object"""
-    # unstructured grid as file or object
-
-    workdir = conftest.get_workdir()
-
-    # UnstructuredGrid as object
-    ugrid = _create_simple_unstructured_grid()
-
-    input = InputManager(ugrid, scalar="tags")
-    assert _is_same_mesh(input.input_volume, ugrid)
-
-    # UnstructuredGrid as vtu file
-    file1 = os.path.join(workdir, "ugrid.vtu")
-    ugrid.save(file1)
-    input = InputManager(file1, scalar="tags")
-    assert _is_same_mesh(input.input_volume, ugrid)
+def test_surface_export():
+    """Test the export of surfaces."""
 
     # Prep PolyData input.
-    polydata = pv.Sphere()
-    polydata.cell_data.set_scalars(np.full(polydata.n_cells, 1), "surface-tags")
+    cube = pv.Cube()
+    cube.cell_data.set_scalars([1, 1, 2, 2, 3, 4], "surface-id")
 
-    # Polydata as object
-    input = InputManager(polydata, scalar="surface-tags")
-    assert _is_same_mesh(input.input_surface, polydata)
-
-    # Polydata as vtp file
-    file2 = os.path.join(workdir, "polydata.vtp")
-    polydata.save(file2)
-    input = InputManager(file2, scalar="surface-tags")
-    assert _is_same_mesh(input.input_surface, polydata)
-
-    os.remove(file1)
-    os.remove(file2)
+    input = InputManager(cube)
+    input.export_surfaces(".stl", folder=conftest.get_workdir())

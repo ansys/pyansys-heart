@@ -156,7 +156,7 @@ class InputManager:
         part_name_to_part_id_map: dict = None,
         surface_name_to_surface_id_map: dict = None,
     ) -> None:
-        """Read provided input volume or surface mesh(es).
+        """Read provided input volume or surface mesh.
 
         Parameters
         ----------
@@ -170,6 +170,26 @@ class InputManager:
             Map indicating which part name corresponds to which part id, by default None
         surface_name_to_surface_id_map : dict, optional
             Map indicating which surface name corresponds to which surface id, by default None
+
+        Examples
+        --------
+        Reading a UnstructuredGrid from a file and give the part-name to part-id map
+
+        >>> mesh_file = "unstructured_grid.vtu" # unstructured grid where 'tags'
+        ...                                       cell data represents the part-ids
+        >>> input = InputManager(mesh_file, scalar="tags",
+        ...             part_name_to_part_id_map={"Left ventricle" : 3, "Right ventricle" : 1})
+
+        Reading a surface mesh (PolyData) from a file and explicetly give the surface
+        name to surface-id map
+
+        >>> mesh_file = "surface_mesh.vtk" # PolyData where 'cell-tags' represents the surface-ids
+        >>> input = InputManager(mesh_file, scalar="cell-tags",
+            ...     surface_name_to_surface_id_map = {
+        ...             "left-ventricle-endocardium": 3,
+        ...             "left-ventricle-epicardium": 6,
+        ...             "interface@left-ventricle_aortic-valve": 1,
+        ...             "interface@left-ventricle_mitral-valve": 2})
         """
         # Try to populate these attributes during initialization.
         self.input_volume: pv.UnstructuredGrid = None
@@ -317,6 +337,20 @@ class InputManager:
 
         # change surface-id such that it always corresponds to the default surface-ids.
         return
+
+    def export_surfaces(self, format: str, folder: Union[Path, str] = ".") -> None:
+        """Export the surfaces as separate stls."""
+        from ansys.heart.preprocessor.mesh.misc import add_solid_name_to_stl
+
+        surface_ids = np.unique(self.input_surface.cell_data["surface-id"])
+        id_to_name = _get_surface_id_to_surface_name_map()
+
+        for id in surface_ids:
+            surface = self.input_surface.threshold([id - 1e-3, id + 1e-3], scalars="surface-id")
+            surface_name = id_to_name[id]
+            file_path = os.path.join(folder, surface_name + ".stl")
+            surface.extract_surface().save(file_path)
+            add_solid_name_to_stl(file_path, surface_name, file_type="binary")
 
     def validate(self):
         """Validate the given input."""

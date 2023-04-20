@@ -15,13 +15,14 @@ sys.path.insert(0, base_path)
 
 
 from ansys.heart._version import __version__
-from ansys_sphinx_theme import pyansys_logo_black
+from ansys_sphinx_theme import pyansys_logo_black, get_version_match
 
 # Project information
 project = "ansys-heart-lib"
 copyright = f"(c) {datetime.now().year} ANSYS, Inc. All rights reserved"
 author = "ANSYS, Inc."
 release = version = __version__
+cname = os.getenv("DOCUMENTATION_CNAME", "heart.docs.pyansys.com")
 
 # use the default pyansys logo
 html_logo = pyansys_logo_black
@@ -37,6 +38,11 @@ html_theme_options = {
     "additional_breadcrumbs": [
         ("PyAnsys", "https://docs.pyansys.com/"),
     ],
+    "switcher": {
+        "json_url": f"https://{cname}/versions.json",
+        "version_match": get_version_match(__version__),
+    },
+    "check_switcher": False,
 }
 
 # Sphinx extensions

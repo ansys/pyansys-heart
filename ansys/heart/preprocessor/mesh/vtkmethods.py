@@ -675,7 +675,6 @@ def vtk_remove_arrays(
 
     expected_number_of_arrays = len(except_array_names)
     if remove_all:
-
         if remove_cell_data:
             idx = 0
             while num_cell_data > expected_number_of_arrays:

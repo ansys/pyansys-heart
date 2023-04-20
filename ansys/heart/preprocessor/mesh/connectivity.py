@@ -226,15 +226,14 @@ def edge_connectivity(
     group_types : list[str], optional
         Type of edge group. 'open' ended or 'closed'.
 
-    Note
-    ----
-    Uses an implementation of Dept-first search:
-    https://en.wikipedia.org/wiki/Depth-first_search
+    Notes
+    -----
+    Uses an implementation of Dept-first search: https://en.wikipedia.org/wiki/Depth-first_search
     https://www.educative.io/answers/how-to-implement-depth-first-search-in-python
-
-    Performance is not tested so may not be suitable for large arrays of edges
+    Performance is not tested so may not be suitable for large arrays of edges.
     """
     # Nested in Dept-first search algorithm
+
     def _dfs(visited, graph, node):
         if node not in visited:
             # print(node)
@@ -352,7 +351,6 @@ def remove_triangle_layers_from_trimesh(triangles: np.ndarray, iters: int = 1) -
 
 
 if __name__ == "__main__":
-
     # ************** Simple 2 tetrahedron example *******
     nodes = np.array([[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, -1, 0], [0, 1, 0]], dtype=float)
     tetra = np.array([[0, 1, 2, 3], [0, 1, 2, 4]])

@@ -15,7 +15,7 @@ sys.path.insert(0, base_path)
 
 
 from ansys.heart._version import __version__
-from pyansys_sphinx_theme import pyansys_logo_black
+from ansys_sphinx_theme import pyansys_logo_black
 
 # Project information
 project = "ansys-heart-lib"
@@ -25,7 +25,7 @@ release = version = __version__
 
 # use the default pyansys logo
 html_logo = pyansys_logo_black
-html_theme = "pyansys_sphinx_theme"
+html_theme = "ansys_sphinx_theme"
 
 html_short_title = html_title = "ansys-heart-lib"
 

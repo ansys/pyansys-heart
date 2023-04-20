@@ -32,7 +32,7 @@ if __name__ == "__main__":
         download_folder = os.path.join(base_folder)
         try:
             sha256_table[database]
-        except (KeyError):
+        except KeyError:
             sha256_table[database] = {}
 
         for ii in range(1, num_cases + 1):
@@ -41,7 +41,7 @@ if __name__ == "__main__":
                 key_exists = True
                 print("{0}:{1} Entry already exists".format(database, ii))
                 continue
-            except (KeyError):
+            except KeyError:
                 key_exists = False
 
             print("\nDownloading... %d" % ii)

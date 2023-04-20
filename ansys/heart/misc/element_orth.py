@@ -54,7 +54,6 @@ def read_orth_element_kfile(fn):
 
 
 def write_orth_element_kfile(fname, elem_orth):
-
     with open(fname, "w") as f:
         f.write("*KEYWORDS\n")
         f.write("*ELEMENT_SOLID_ORTHO\n")

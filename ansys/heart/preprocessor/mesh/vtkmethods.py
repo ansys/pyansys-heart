@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
 from ansys.heart.custom_logging import LOGGER
-from ansys.heart.preprocessor.mesh.fluenthdf5 import add_solid_name_to_stl
+from ansys.heart.preprocessor.mesh.misc import add_solid_name_to_stl
 import meshio
 import numpy as np
 import pyvista
@@ -675,7 +675,6 @@ def vtk_remove_arrays(
 
     expected_number_of_arrays = len(except_array_names)
     if remove_all:
-
         if remove_cell_data:
             idx = 0
             while num_cell_data > expected_number_of_arrays:

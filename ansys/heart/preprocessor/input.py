@@ -201,18 +201,18 @@ class InputManager:
         """Input volume mesh."""
         self.input_surface: pv.PolyData = None
         """Input surface."""
-        self.part_id_mapping = (
+        self._part_id_mapping = (
             _get_part_name_to_part_id_map()
             if not part_name_to_part_id_map
             else part_name_to_part_id_map
         )
-        """Mapper that maps part names to part ids."""
-        self.surface_id_mapping = (
+        """Maps part-ids to part-names."""
+        self._surface_id_mapping = (
             _get_surface_name_to_surface_id_map()
             if not surface_name_to_surface_id_map
             else surface_name_to_surface_id_map
         )
-        """Mapper that maps part names to part ids."""
+        """Maps surface-names to surface-ids."""
 
         # try to read the input.
         if isinstance(input, (Path, str)):
@@ -293,7 +293,7 @@ class InputManager:
             )
 
         max_defined_id = np.max(list(_get_part_name_to_part_id_map().values()))
-        self.part_id_mapping = {}
+        self._part_id_mapping = {}
 
         for key, old_id in part_name_to_part_id.items():
             if key not in list(SURFACES_PER_HEART_PART.keys()):
@@ -304,7 +304,7 @@ class InputManager:
 
             mask = old_ids == old_id
             new_ids[mask] = target_id
-            self.part_id_mapping[key] = target_id
+            self._part_id_mapping[key] = target_id
 
         self.input_volume.cell_data["part-id"] = new_ids
 
@@ -317,7 +317,7 @@ class InputManager:
         # reference map
         ref_map = _get_surface_name_to_surface_id_map()
         max_defined_id = max(ref_map.values())
-        self.surface_id_mapping = {}
+        self._surface_id_mapping = {}
 
         if not np.all(np.isin(old_ids, list(surface_name_to_surface_id.values()))):
             raise ValueError(
@@ -333,7 +333,7 @@ class InputManager:
 
             mask = old_ids == old_id
             new_ids[mask] = target_id
-            self.surface_id_mapping[key] = target_id
+            self._surface_id_mapping[key] = target_id
 
         self.input_surface.cell_data["surface-id"] = new_ids
         return

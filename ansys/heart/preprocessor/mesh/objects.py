@@ -16,7 +16,7 @@ import numpy as np
 
 try:
     import pyvista as pv
-except (ImportError):
+except ImportError:
     LOGGER.warning("Importing pyvista failed. Install with: pip install pyvista")
 
 
@@ -589,7 +589,6 @@ class SurfaceMesh(pv.PolyData, Feature):
         # self.write_feature_edges_to_vtk("unsmoothed")
         modified_nodes = np.empty((0), dtype=int)
         for ii, edge_group in enumerate(self.edge_groups):
-
             edges = edge_group.edges
 
             idx = np.unique(edges.flatten(), return_index=True)[1]

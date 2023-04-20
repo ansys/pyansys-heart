@@ -15,7 +15,7 @@ sys.path.insert(0, base_path)
 
 
 from ansys.heart._version import __version__
-from ansys_sphinx_theme import pyansys_logo_black, get_version_match
+from ansys_sphinx_theme import get_version_match, pyansys_logo_black
 
 # Project information
 project = "ansys-heart-lib"

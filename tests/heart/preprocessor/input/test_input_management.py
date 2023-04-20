@@ -91,22 +91,30 @@ def test_reorder_part_ids_001():
     input = InputManager(ugrid)
 
     # first test case.
-    part_name_to_part_id = {"Right ventricle": 1, "Left ventricle": 2}
+    part_name_to_part_id = {"Right ventricle myocardium": 1, "Left ventricle myocardium": 2}
     input.input_volume.cell_data["part-id"] = [1, 2]
     input._reorder_part_ids(part_name_to_part_id)
 
     assert np.all(
         input.input_volume.cell_data["part-id"]
-        == [reference_map["Right ventricle"], reference_map["Left ventricle"]]
+        == [reference_map["Right ventricle myocardium"], reference_map["Left ventricle myocardium"]]
     )
 
     # second test case.
     input.input_volume.cell_data["part-id"] = [1, 2]
-    input._reorder_part_ids({"Aorta": 1, "Pulmonary artery": 2})
+    input._reorder_part_ids({"Aorta wall": 1, "Pulmonary artery wall": 2})
 
     assert np.all(
         input.input_volume.cell_data["part-id"]
-        == [reference_map["Aorta"], reference_map["Pulmonary artery"]]
+        == [reference_map["Aorta wall"], reference_map["Pulmonary artery wall"]]
+    )
+
+    # third test case. With "unknown" name
+    input.input_volume.cell_data["part-id"] = [1, 2]
+    input._reorder_part_ids({"Aorta wall": 1, "Randomly named zone": 2})
+    assert np.all(
+        input.input_volume.cell_data["part-id"]
+        == [reference_map["Aorta wall"], max(reference_map.values()) + 1]
     )
 
     pass
@@ -141,6 +149,39 @@ def test_reorder_surface_ids_001():
     input = InputManager(cube)
 
     input._reorder_surface_ids(test_map)
+    assert np.all(input.input_surface.cell_data["surface-id"] == ref_ids)
+
+
+def test_reorder_surface_ids_002():
+    """Test reordering of surface-ids when unknown surface name given."""
+    from ansys.heart.preprocessor.input import _get_surface_name_to_surface_id_map
+
+    reference_map = _get_surface_name_to_surface_id_map()
+
+    test_map = {
+        "left-ventricle-endocardium": 2,
+        "my-random-surface-name": 4,
+        "interface@left-ventricle_aortic-valve": 1,
+        "interface@left-ventricle_mitral-valve": 3,
+    }
+    # Prep PolyData input.
+    cube = pv.Cube()
+    cube.cell_data.set_scalars([1, 1, 2, 2, 3, 4], "surface-id")
+
+    # ref ids
+    ref_ids = [
+        reference_map["interface@left-ventricle_aortic-valve"],
+        reference_map["interface@left-ventricle_aortic-valve"],
+        reference_map["left-ventricle-endocardium"],
+        reference_map["left-ventricle-endocardium"],
+        reference_map["interface@left-ventricle_mitral-valve"],
+        max(reference_map.values()) + 1,
+    ]
+
+    input = InputManager(cube)
+
+    input._reorder_surface_ids(test_map)
+
     assert np.all(input.input_surface.cell_data["surface-id"] == ref_ids)
 
 

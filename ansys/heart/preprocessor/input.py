@@ -25,7 +25,7 @@ import pyvista as pv
 # hence to create a left-ventricle we need to provide these surfaces. The mesher will
 # then generate the volume mesh for that part.
 SURFACES_PER_HEART_PART = {
-    "Left ventricle": {
+    "Left ventricle myocardium": {
         "id": 1,
         "enclosed_by_surfaces": {
             "left-ventricle-endocardium": 1,
@@ -34,7 +34,7 @@ SURFACES_PER_HEART_PART = {
             "interface@left-ventricle_mitral-valve": 4,
         },
     },
-    "Right ventricle": {
+    "Right ventricle myocardium": {
         "id": 2,
         "enclosed_by_surfaces": {
             "right-ventricle-endocardium": 5,
@@ -43,7 +43,7 @@ SURFACES_PER_HEART_PART = {
             "interface@right-ventricle_pulmonary-valve": 8,
         },
     },
-    "Left atrium": {
+    "Left atrium myocardium": {
         "id": 3,
         "enclosed_by_surfaces": {
             "left-atrium-endocardium": 9,
@@ -55,7 +55,7 @@ SURFACES_PER_HEART_PART = {
             "interface@right-atrium_right-superior-pulmonary-vein-inlet": 15,
         },
     },
-    "Right atrium": {
+    "Right atrium myocardium": {
         "id": 4,
         "enclosed_by_surfaces": {
             "right-atrium-endocardium": 16,
@@ -64,22 +64,27 @@ SURFACES_PER_HEART_PART = {
             "interface@right-atrium_inferior-vena-cava-inlet": 19,
         },
     },
-    "Aorta": {"id": 5, "enclosed_by_surfaces": {"aorta-wall": 20}},
-    "Pulmonary artery": {"id": 6, "enclosed_by_surfaces": {"pulmonary-artery-wall": 21}},
+    "Aorta wall": {"id": 5, "enclosed_by_surfaces": {"aorta-wall": 20}},
+    "Pulmonary artery wall": {"id": 6, "enclosed_by_surfaces": {"pulmonary-artery-wall": 21}},
 }
 
 # the different types of "basee" models supported
 HEART_MODELS = {
-    "LeftVentricle": ["Left ventricle"],
-    "BiVentricle": ["Left ventricle", "Right ventricle"],
-    "FourChamber": ["Left ventricle", "Right ventricle", "Left atrium", "Right atrium"],
+    "LeftVentricle": ["Left ventricle myocardium"],
+    "BiVentricle": ["Left ventricle myocardium", "Right ventricle myocardium"],
+    "FourChamber": [
+        "Left ventricle myocardium",
+        "Right ventricle myocardium",
+        "Left atrium myocardium",
+        "Right atrium myocardium",
+    ],
     "FullHeart": [
-        "Left ventricle",
-        "Right ventricle",
-        "Left atrium",
-        "Right atrium",
-        "Aorta",
-        "Pulmonary artery",
+        "Left ventricle myocardium",
+        "Right ventricle myocardium",
+        "Left atrium myocardium",
+        "Right atrium myocardium",
+        "Aorta wall",
+        "Pulmonary artery wall",
     ],
 }
 
@@ -287,16 +292,22 @@ class InputManager:
                 + "with all defined part-ids",
             )
 
+        max_defined_id = np.max(list(_get_part_name_to_part_id_map().values()))
+        self.part_id_mapping = {}
+
         for key, old_id in part_name_to_part_id.items():
             if key not in list(SURFACES_PER_HEART_PART.keys()):
-                raise NotImplementedError(
-                    "Mapping keys that do not occur in pre-defined heart parts not yet supported."
-                )
-            target_id = SURFACES_PER_HEART_PART[key]["id"]
+                target_id = max_defined_id + 1
+                max_defined_id += 1
+            else:
+                target_id = SURFACES_PER_HEART_PART[key]["id"]
+
             mask = old_ids == old_id
             new_ids[mask] = target_id
+            self.part_id_mapping[key] = target_id
 
         self.input_volume.cell_data["part-id"] = new_ids
+
         return
 
     def _reorder_surface_ids(self, surface_name_to_surface_id: dict):
@@ -305,6 +316,8 @@ class InputManager:
         new_ids = self.input_surface.cell_data["surface-id"]
         # reference map
         ref_map = _get_surface_name_to_surface_id_map()
+        max_defined_id = max(ref_map.values())
+        self.surface_id_mapping = {}
 
         if not np.all(np.isin(old_ids, list(surface_name_to_surface_id.values()))):
             raise ValueError(
@@ -313,12 +326,14 @@ class InputManager:
 
         for key, old_id in surface_name_to_surface_id.items():
             if key not in ref_map.keys():
-                raise NotImplementedError(
-                    "Mapping keys that do not occur in pre-defined surfaces not yet supported."
-                )
-            target_id = ref_map[key]
+                target_id = max_defined_id + 1
+                max_defined_id += 1
+            else:
+                target_id = ref_map[key]
+
             mask = old_ids == old_id
             new_ids[mask] = target_id
+            self.surface_id_mapping[key] = target_id
 
         self.input_surface.cell_data["surface-id"] = new_ids
         return
@@ -383,3 +398,77 @@ class InputManager:
         LOGGER.info({"Parts": parts, "Surfaces": surfaces})
 
         return {"Parts": parts, "Surfaces": surfaces}
+
+
+database_label_mapping = {
+    "Strocchi2020": {
+        "Left ventricle myocardium": 1,
+        "Right ventricle myocardium": 2,
+        "Left atrium myocardium": 3,
+        "Right atrium myocardium": 4,
+        "Aorta wall": 5,
+        "Pulmonary artery wall": 6,
+        "Left atrial appendage border": 7,
+        "Left superior pulmonary vein border": 8,
+        "Left inferior pulmonary vein border": 9,
+        "Right inferior pulmonary vein border": 10,
+        "Right superior pulmonary vein border": 11,
+        "Superior vena cava border": 12,
+        "Inferior vena cava border": 13,
+        "Mitral valve plane": 14,
+        "Tricuspid valve plane": 15,
+        "Aortic valve plane": 16,
+        "Pulmonary valve plane": 17,
+        "Left atrium appendage inlet": 18,
+        "Left superior pulmonary vein inlet": 19,
+        "Left inferior pulmonary vein inlet": 20,
+        "Right inferior pulmonary vein inlet": 21,
+        "Right superior pulmonary vein inlet": 22,
+        "Superior vena cava inlet": 23,
+        "Inferior vena cava inlet": 24,
+    },
+    "Rodero2021": {
+        "Left ventricle myocardium": 1,
+        "Right ventricle myocardium": 2,
+        "Left atrium myocardium": 3,
+        "Right atrium myocardium": 4,
+        "Aorta wall": 5,
+        "Pulmonary artery wall": 6,
+        "Left atrial appendage border": 18,
+        "Left superior pulmonary vein border": 21,
+        "Left inferior pulmonary vein border": 20,
+        "Right inferior pulmonary vein border": 19,
+        "Right superior pulmonary vein border": 22,
+        "Superior vena cava border": 23,
+        "Inferior vena cava border": 24,
+        "Mitral valve plane": 7,
+        "Tricuspid valve plane": 8,
+        "Aortic valve plane": 9,
+        "Pulmonary valve plane": 10,
+        "Left atrium appendage inlet": 11,
+        "Left superior pulmonary vein inlet": 12,
+        "Left inferior pulmonary vein inlet": 13,
+        "Right inferior pulmonary vein inlet": 14,
+        "Right superior pulmonary vein inlet": 15,
+        "Superior vena cava inlet": 16,
+        "Inferior vena cava inlet": 17,
+    },
+    "Strocchi2020_simplified": {
+        "Left ventricle myocardium": 1,
+        "Right ventricle myocardium": 2,
+        "Mitral valve plane": 11,
+        "Aortic valve plane": 12,
+        "Pulmonary valve plane": 21,
+        "Tricuspid valve plane": 22,
+    },
+    "LabeledSurface": {
+        "Left ventricle endocardium": 1,
+        "Left ventricle epicardium": 2,
+        "Left ventricle myocardium mitral valve": 3,
+        "Left ventricle myocardium aortic valve": 4,
+        "Right ventricle endocardium": 5,
+        "Right ventricle epicardium": 6,
+        "Right ventricle myocardium pulmonary valve": 7,
+        "Right ventricle myocardium tricuspid valve": 8,
+    },
+}

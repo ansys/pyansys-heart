@@ -185,7 +185,7 @@ class InputManager:
         >>> input = InputManager(mesh_file, scalar="tags",
         ...             part_name_to_part_id_map={"Left ventricle" : 3, "Right ventricle" : 1})
 
-        Reading a surface mesh (PolyData) from a file and explicetly give the surface
+        Reading a surface mesh (PolyData) from a file and explicitly give the surface
         name to surface-id map
 
         >>> mesh_file = "surface_mesh.vtk" # PolyData where 'cell-tags' represents the surface-ids

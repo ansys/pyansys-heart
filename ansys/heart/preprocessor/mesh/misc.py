@@ -3,6 +3,7 @@
 
 def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii") -> None:
     """Add name of solid to stl file.
+
     Note
     ----
     Supports only single block.

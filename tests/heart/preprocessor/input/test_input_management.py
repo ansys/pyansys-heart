@@ -8,6 +8,7 @@ import numpy as np
 import pyvista as pv
 
 import tests.heart.conftest as conftest
+from tests.heart.preprocessor.common import _create_simple_unstructured_grid
 
 
 def _is_same_mesh(
@@ -27,20 +28,6 @@ def _is_same_mesh(
         assert np.all(object1.faces == object2.faces), "Faces of PolyData not the same."
 
     return True
-
-
-def _create_simple_unstructured_grid() -> pv.UnstructuredGrid:
-    """Create simple unstructured grid."""
-
-    # Prep UnstructuredGrid input.
-    cells = [4, 0, 1, 2, 3, 4, 0, 1, 2, 4]
-    celltypes = [pv.CellType.TETRA, pv.CellType.TETRA]
-    points = [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, -1.0]]
-
-    ugrid = pv.UnstructuredGrid(cells, celltypes, points)
-    ugrid.cell_data.set_scalars([1, 2], "tags")
-
-    return ugrid
 
 
 def test_inputs():

@@ -1,7 +1,7 @@
 """Module containing methods for mesh connectivity."""
 
 import copy
-from typing import Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 from ansys.heart.custom_logging import LOGGER
 import numpy as np
@@ -348,6 +348,75 @@ def remove_triangle_layers_from_trimesh(triangles: np.ndarray, iters: int = 1) -
         reduced_triangles = reduced_triangles[~idx_triangles_boundary, :]
 
     return reduced_triangles
+
+
+def get_surfaces_from_tetmesh(
+    tetras: np.ndarray,
+    return_boundaries: bool = True,
+    return_interfaces: bool = False,
+    part_ids: Union[List[int], np.ndarray] = None,
+) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, np.ndarray]]:
+    """Get the boundary faces and/or interface faces between parts.
+
+    Parameters
+    ----------
+    tetras : np.ndarray
+        Connectivity table of the tetrahedrons.
+    return_boundaries : bool, optional
+        Flag indicating whether to return the boundary faces, by default True
+    return_interfaces : bool, optional
+        Flag indicating whether to return the interface faces, by default False
+    part_ids : Union[List[int], np.ndarray], optional
+        Part ids of the tetrahedrons, by default None
+
+    Returns
+    -------
+    np.ndarray
+        Boundary faces
+    Tuple[np.ndarray, np.ndarray]
+        Interface faces, and interface part pairs
+    Tuple[np.ndarray, np.ndarray, np.ndarray]]
+        Boundary faces, interface faces, and interface part pairs
+    """
+    if return_interfaces and isinstance(part_ids, type(None)):
+        raise ValueError("Specify a list of part ids")
+    if return_interfaces:
+        if isinstance(part_ids, type(None)):
+            raise ValueError("Please give the part_ids of the tetrahedrons.")
+        if not len(part_ids) == tetras.shape[0]:
+            raise IndexError("length of part_ids is not equal to number of tetrahedrons.")
+
+    if not return_interfaces and not return_boundaries:
+        return
+
+    faces, c0, c1 = face_tetra_connectivity(tetras)
+    face_types = get_face_type(faces, np.vstack([c0, c1]).T)
+
+    if return_boundaries:
+        mask_boundary_faces = face_types == 2
+
+    if return_interfaces:
+        mask_interface_faces = np.all(
+            np.vstack([part_ids[c0] != part_ids[c1], face_types == 1]), axis=0
+        )
+        # get interface pairs
+        interface_pairs = np.vstack(
+            [part_ids[c0][mask_interface_faces], part_ids[c1][mask_interface_faces]]
+        )
+        interface_pairs = np.array(interface_pairs, dtype=int)
+        interface_pairs_sorted = np.sort(interface_pairs, axis=0)
+        # get unique pairs
+        part_pairs = np.unique(interface_pairs_sorted, axis=1).transpose()
+        part_pairs = part_pairs.tolist()
+
+    if return_boundaries and return_interfaces:
+        return (faces[mask_boundary_faces, :], faces[mask_interface_faces], np.array(part_pairs))
+
+    elif return_boundaries:
+        return faces[mask_boundary_faces, :]
+
+    elif return_interfaces:
+        return (faces[mask_interface_faces], np.array(part_pairs))
 
 
 if __name__ == "__main__":

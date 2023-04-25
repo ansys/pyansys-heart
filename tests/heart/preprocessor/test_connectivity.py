@@ -1,9 +1,9 @@
 """Tests for the connectivity module."""
 
-import pytest
+from ansys.heart.preprocessor.mesh.connectivity import get_surfaces_from_tetmesh
 import numpy as np
+
 from tests.heart.preprocessor.common import _create_simple_unstructured_grid
-from ansys.heart.preprocessor.mesh.connectivity import get_surfaces_from_tetmesh, get_face_type
 
 
 def test_get_surfaces_from_tetrahedrons():

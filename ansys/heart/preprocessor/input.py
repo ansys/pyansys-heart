@@ -158,8 +158,7 @@ class InputManager:
         self,
         input: Union[Path, str, pv.UnstructuredGrid, pv.PolyData] = None,
         scalar: str = None,
-        part_name_to_part_id_map: dict = None,
-        surface_name_to_surface_id_map: dict = None,
+        name_to_id_map: dict = None,
     ) -> None:
         """Read provided input volume or surface mesh.
 
@@ -171,10 +170,9 @@ class InputManager:
             by default None
         scalar : str, optional
             Scalar array to use for either the part ids or surface ids, by default None
-        part_name_to_part_id_map : dict, optional
-            Map indicating which part name corresponds to which part id, by default None
-        surface_name_to_surface_id_map : dict, optional
-            Map indicating which surface name corresponds to which surface id, by default None
+        name_to_id_map : dict, optional
+            Map indicating which part/surface name corresponds to which part/surface id,
+            by default None
 
         Examples
         --------
@@ -183,14 +181,14 @@ class InputManager:
         >>> mesh_file = "unstructured_grid.vtu" # unstructured grid where 'tags'
         ...                                       cell data represents the part-ids
         >>> input = InputManager(mesh_file, scalar="tags",
-        ...             part_name_to_part_id_map={"Left ventricle" : 3, "Right ventricle" : 1})
+        ...             name_to_id_map={"Left ventricle" : 3, "Right ventricle" : 1})
 
         Reading a surface mesh (PolyData) from a file and explicitly give the surface
         name to surface-id map
 
         >>> mesh_file = "surface_mesh.vtk" # PolyData where 'cell-tags' represents the surface-ids
         >>> input = InputManager(mesh_file, scalar="cell-tags",
-            ...     surface_name_to_surface_id_map = {
+            ...     name_to_id_map = {
         ...             "left-ventricle-endocardium": 3,
         ...             "left-ventricle-epicardium": 6,
         ...             "interface@left-ventricle_aortic-valve": 1,
@@ -202,15 +200,11 @@ class InputManager:
         self.input_surface: pv.PolyData = None
         """Input surface."""
         self._part_id_mapping = (
-            _get_part_name_to_part_id_map()
-            if not part_name_to_part_id_map
-            else part_name_to_part_id_map
+            _get_part_name_to_part_id_map() if not name_to_id_map else name_to_id_map
         )
         """Maps part-ids to part-names."""
         self._surface_id_mapping = (
-            _get_surface_name_to_surface_id_map()
-            if not surface_name_to_surface_id_map
-            else surface_name_to_surface_id_map
+            _get_surface_name_to_surface_id_map() if not name_to_id_map else name_to_id_map
         )
         """Maps surface-names to surface-ids."""
 
@@ -265,10 +259,11 @@ class InputManager:
         self.validate()
 
         # reorder
-        if volume_set and part_name_to_part_id_map:
-            self._reorder_part_ids(part_name_to_part_id_map)
-        if surface_set and surface_name_to_surface_id_map:
-            self._reorder_surface_ids(surface_name_to_surface_id_map)
+        if volume_set and name_to_id_map:
+            self._reorder_part_ids(name_to_id_map)
+
+        if surface_set and name_to_id_map:
+            self._reorder_surface_ids(name_to_id_map)
 
         pass
 
@@ -399,8 +394,15 @@ class InputManager:
 
         return {"Parts": parts, "Surfaces": surfaces}
 
+    def get_input(self):
+        """Return the validated input volume or surface."""
+        if isinstance(self.input_volume, pv.UnstructuredGrid):
+            return self.input_volume
+        elif isinstance(self.input_surface, pv.PolyData):
+            return self.input_surface
 
-database_label_mapping = {
+
+PART_NAME_ID_MAPPING_DATABASES = {
     "Strocchi2020": {
         "Left ventricle myocardium": 1,
         "Right ventricle myocardium": 2,
@@ -461,6 +463,8 @@ database_label_mapping = {
         "Pulmonary valve plane": 21,
         "Tricuspid valve plane": 22,
     },
+}
+SURFACE_NAME_ID_MAPPING_DATABASES = {
     "LabeledSurface": {
         "Left ventricle endocardium": 1,
         "Left ventricle epicardium": 2,

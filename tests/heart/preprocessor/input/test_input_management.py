@@ -66,6 +66,51 @@ def test_inputs():
     os.remove(file2)
 
 
+def test_reorder_ids():
+    """Test reordering surface/part ids."""
+    from ansys.heart.preprocessor.input import (
+        _get_part_name_to_part_id_map,
+        _get_surface_name_to_surface_id_map,
+    )
+
+    reference_map = _get_part_name_to_part_id_map()
+    ugrid = _create_simple_unstructured_grid()
+    ugrid.rename_array("tags", "part-id")
+    ugrid.cell_data["part-id"] = [1, 2]
+    part_name_to_part_id = {"Right ventricle myocardium": 1, "Left ventricle myocardium": 2}
+
+    input = InputManager(ugrid, name_to_id_map=part_name_to_part_id)
+
+    assert np.all(np.equal(input.input_volume.cell_data["part-id"], [2, 1]))
+
+    reference_map = _get_surface_name_to_surface_id_map()
+    test_map = {
+        "left-ventricle-endocardium": 2,
+        "left-ventricle-epicardium": 4,
+        "interface@left-ventricle_aortic-valve": 1,
+        "interface@left-ventricle_mitral-valve": 3,
+    }
+    # Prep PolyData input.
+    cube = pv.Cube()
+    cube.cell_data.set_scalars([1, 1, 2, 2, 3, 4], "surface-id")
+
+    # ref ids
+    ref_ids = [
+        reference_map["interface@left-ventricle_aortic-valve"],
+        reference_map["interface@left-ventricle_aortic-valve"],
+        reference_map["left-ventricle-endocardium"],
+        reference_map["left-ventricle-endocardium"],
+        reference_map["interface@left-ventricle_mitral-valve"],
+        reference_map["left-ventricle-epicardium"],
+    ]
+
+    input = InputManager(cube, name_to_id_map=test_map)
+
+    assert np.all(np.equal(input.input_surface.cell_data["surface-id"], ref_ids))
+
+    return
+
+
 def test_reorder_part_ids_001():
     """Test reorder of part-ids given a part-name to part-id dictionary."""
 

@@ -799,16 +799,22 @@ class Cap(Feature):
         """Type."""
         return
 
-    def tessellate(self) -> np.ndarray:
+    def tessellate(self, points=None) -> np.ndarray:
         """Form triangles with the node ids."""
-        ref_node = self.node_ids[0]
-        num_triangles = self.node_ids.shape[0] - 1
-        ref_node = np.ones(num_triangles, dtype=int) * ref_node
-        tris = []
-        for ii, _ in enumerate(self.node_ids[0:-2]):
-            tri = [self.node_ids[0], self.node_ids[ii + 1], self.node_ids[ii + 2]]
-            tris.append(tri)
-        self.triangles = np.array(tris, dtype=int)
+        if points is None:
+            ref_node = self.node_ids[0]
+            num_triangles = self.node_ids.shape[0] - 1
+            ref_node = np.ones(num_triangles, dtype=int) * ref_node
+            tris = []
+            for ii, _ in enumerate(self.node_ids[0:-2]):
+                tri = [self.node_ids[0], self.node_ids[ii + 1], self.node_ids[ii + 2]]
+                tris.append(tri)
+            self.triangles = np.array(tris, dtype=int)
+        else:
+            from scipy.spatial import Delaunay
+
+            tris = Delaunay(points[:, 0:2]).simplices
+            self.triangles = self.node_ids[tris]
         return self.triangles
 
 

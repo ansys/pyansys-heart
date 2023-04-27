@@ -822,10 +822,16 @@ class MechanicsDynaWriter(BaseDynaWriter):
         )  # imflag=1 means implicit
 
         # add implicit solution controls: Defaults are OK?
-        self.kw_database.main.append(keywords.ControlImplicitSolution())
+        self.kw_database.main.append(
+            keywords.ControlImplicitSolution(
+                dctol=0.002, ectol=1000, abstol=-1e-20, dnorm=1, nlprint=3, nlnorm=4, lsmtd=5
+            )
+        )
 
         # add implicit solver controls
-        self.kw_database.main.append(custom_keywords.ControlImplicitSolver())
+        self.kw_database.main.append(custom_keywords.ControlImplicitSolver(autospc=2))
+
+        self.kw_database.main.append(keywords.ControlAccuracy(osu=1, inn=4, iacc=1))
         return
 
     def _add_export_controls(self, dt_output_d3plot: float = 0.05, dt_output_icvout: float = 0.001):
@@ -942,11 +948,24 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # add closed cavity segment sets
         cavities = [p.cavity for p in self.model.parts if p.cavity]
+
+        # caps = [cap for part in self.model.parts for cap in part.caps]
+        # valve_nodes = []
+        # for cap in caps:
+        #     valve_nodes.extend(cap.node_ids)
+
         for cavity in cavities:
+            segs = cavity.surface.triangles
+
+            # # remove segments related to valve nodes
+            # for n in valve_nodes:
+            #     index = np.argwhere(n == segs)
+            #     segs = np.delete(segs, np.array(index)[:, 0], axis=0)
+
             surface_id = self.get_unique_segmentset_id()
             cavity.surface.id = surface_id
             kw = create_segment_set_keyword(
-                segments=cavity.surface.triangles + 1,
+                segments=segs + 1,
                 segid=cavity.surface.id,
                 title=cavity.name,
             )
@@ -1151,12 +1170,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # create list of cap names where to add the spring b.c
         caps_to_use = []
-        if isinstance(self.model, (LeftVentricle, BiVentricle)):
-            # use all caps:
-            # for cavity in self.model._mesh._cavities:
-            #     for cap in cavity.closing_caps:
-            #         caps_to_use.append(cap.name)
-
+        if isinstance(self.model, LeftVentricle):
+            caps_to_use = [
+                "mitral-valve",
+                "aortic-valve",
+            ]
+        elif isinstance(self.model, BiVentricle):
             caps_to_use = [
                 "mitral-valve",
                 "tricuspid-valve",

@@ -1080,11 +1080,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 if not add_active:
                     active_dict = None
                 else:
-                    active_dict = {
-                        "actype": material_settings.myocardium["active"]["actype"],
-                        "taumax": material_settings.myocardium["active"]["tmax"],
-                        "ca2ionm": material_settings.myocardium["active"]["ca2ionm"],
-                    }
+                    active_dict = material_settings.myocardium["active"]
 
                 myocardium_kw = MaterialHGOMyocardium(
                     mid=part.mid,
@@ -1143,13 +1139,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 lcint=10000,
             )
 
-            active_curve_kw.sfa = 1000
-            # y scaling
+            # x scaling from beat rate
+            active_curve_kw.sfa = 1 / material_settings.myocardium["active"]["heart rate"]
+            # y scaling from Ca2
             active_curve_kw.sfo = material_settings.myocardium["active"]["ca2ionm"]
 
-            # Prefill is remove due to new simulation workflow
-            # # x offset: prefill duration
-            # active_curve_kw.offa = self.parameters["Material"]["Myocardium"]["Active"]["Prefill"]
             self.kw_database.material.append(active_curve_kw)
 
         return

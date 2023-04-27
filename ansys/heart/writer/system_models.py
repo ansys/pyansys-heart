@@ -125,14 +125,14 @@ def windkessel_template():
         "$   Update valve indicator functions\n"
         "    if (pven >= pk )\n"
         "    {{\n"
-        "        chi_mv = 1;\n"
+        "        chi_mv = {9};\n"
         "    }} else\n"
         "    {{\n"
         "        chi_mv = 1.e-16;\n"
         "    }}\n"
         "    if ( pk >= part )\n"
         "    {{\n"
-        "        chi_av = 1;\n"
+        "        chi_av = {9};\n"
         "    }} else {{\n"
         "        chi_av = 1.e-16;\n"
         "    }}\n"
@@ -202,6 +202,7 @@ def define_function_windkessel(
     implicit: bool = True,
     constants: dict = {"Rv": 5.0e-6, "Ra": 1.0e-5, "Rp": 1.2e-4, "Ca": 2.5e4, "Pven": 2},
     initialvalues: dict = {"part_init": 8},
+    ivc=False,
 ):
     """Generate a Windkessel define function.
 
@@ -214,6 +215,13 @@ def define_function_windkessel(
         implicit_flag = 1
     else:
         implicit_flag = 0
+
+    if ivc is False:
+
+        cf = 1
+    else:
+        # IVC: flow can not pass anyway
+        cf = 1e-16
 
     filename_output = function_name + ".csv"
 
@@ -229,6 +237,7 @@ def define_function_windkessel(
         constants["Pven"],
         initialvalues,
         filename_output,
+        cf,
     )
     # format keyword:
     define_function_kw = keywords.DefineFunction(fid=function_id, function=define_function_str)

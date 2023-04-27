@@ -16,15 +16,19 @@ material = {
     "myocardium": {
         "isotropic": {
             "rho": Quantity(0.001, "g/mm^3"),
+            "nu": 0.499,
             "k1": Quantity(0.0023599999999999997, "MPa"),
             "k2": Quantity(1.75),
         },
-        "anisotropic": {"k1": Quantity(0.00049, "MPa"), "k2": Quantity(9.01, "dimensionless")},
+        "anisotropic": {"k1f": Quantity(0.00049, "MPa"), "k2f": Quantity(9.01, "dimensionless")},
         "active": {
             "actype": 1,
-            "tmax": Quantity(0.125, "MPa"),
+            "heart rate": Quantity(60, "min^-1"),
+            "ss": 0.0,
+            "taumax": Quantity(0.125, "MPa"),
             "ca2ionm": Quantity(4.35, "umol/L"),
-            "prefill": Quantity(1000.0, "ms"),
+            "dtmax": Quantity(150.0, "ms"),
+            "tr": Quantity(-1429.0, "ms"),
         },
     },
     "atrium": {

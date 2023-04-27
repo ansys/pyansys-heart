@@ -11,7 +11,6 @@ class FluentCellZone:
     def __init__(
         self, min_id: int = None, max_id: int = None, name: str = None, cid: int = None
     ) -> None:
-
         self.min_id: int = min_id
         """Min cell id of the cell zone: indexing starts at 0."""
         self.max_id: int = max_id
@@ -51,7 +50,6 @@ class FluentFaceZone:
         faces: np.ndarray = None,
         c0c1: np.ndarray = None,
     ) -> None:
-
         self.min_id: int = min_id
         """Min face id of the face zone: indexing starts at 0."""
         self.max_id: int = max_id
@@ -81,7 +79,6 @@ class FluentMesh:
         return [cz.name for cz in self.cell_zones if cz != None]
 
     def __init__(self, filename: str = None) -> None:
-
         self.filename: str = filename
         """Path to file."""
         self.fid: h5py.File = None
@@ -291,7 +288,6 @@ class FluentMesh:
                 # the tetrahedrons
                 face_ids = np.where(np.sum(mask, axis=1) != 1)[0]
                 for face_id in face_ids:
-
                     f1[face_id]
 
                 raise ValueError("The two faces do not seem to be connected with two nodes")

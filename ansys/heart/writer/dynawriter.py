@@ -2851,106 +2851,115 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def _update_ep_material_db(self):
         """Add EP material for each defined part."""
         for part in self.model.parts:
-            ep_mid = part.pid
-            self.kw_database.material.extend(
-                [
-                    custom_keywords.EmMat003(
-                        mid=ep_mid,
-                        mtype=2,
-                        sigma11=0.5,
-                        sigma22=0.1,
-                        sigma33=0.1,
-                        beta=140,
-                        cm=0.01,
-                        aopt=2.0,
-                        a1=0,
-                        a2=0,
-                        a3=1,
-                        d1=0,
-                        d2=-1,
-                        d3=0,
-                    ),
-                ]
-            )
+            if ("atrium" in part.name) or ("ventricle" in part.name) or ("septum" in part.name):
+                ep_mid = part.pid
+                self.kw_database.material.extend(
+                    [
+                        custom_keywords.EmMat003(
+                            mid=ep_mid,
+                            mtype=2,
+                            sigma11=0.5,
+                            sigma22=0.1,
+                            sigma33=0.1,
+                            beta=140,
+                            cm=0.01,
+                            aopt=2.0,
+                            a1=0,
+                            a2=0,
+                            a3=1,
+                            d1=0,
+                            d2=-1,
+                            d3=0,
+                        ),
+                    ]
+                )
+            else:
+                ep_mid = part.pid
+                self.kw_database.material.extend(
+                    [
+                        keywords.EmMat001(mid=ep_mid, mtype=4, sigma=1),
+                    ]
+                )
 
     def _update_cellmodels(self):
         """Add cell model for each defined part."""
         for part in self.model.parts:
-            ep_mid = part.pid
-            cell_kw = keywords.EmEpCellmodelTentusscher(
-                mid=ep_mid,
-                gas_constant=8314.472,
-                t=310,
-                faraday_constant=96485.3415,
-                cm=0.185,
-                vc=0.016404,
-                vsr=0.001094,
-                vss=0.00005468,
-                pkna=0.03,
-                ko=5.4,
-                nao=140.0,
-                cao=2.0,
-                gk1=5.405,
-                gkr=0.153,
-                gks=0.392,
-                gna=14.838,
-                gbna=0.0002,
-                gcal=0.0000398,
-                gbca=0.000592,
-                gto=0.294,
-                gpca=0.1238,
-                gpk=0.0146,
-                pnak=2.724,
-                km=1.0,
-                kmna=40.0,
-                knaca=1000.0,
-                ksat=0.1,
-                alpha=2.5,
-                gamma=0.35,
-                kmca=1.38,
-                kmnai=87.5,
-                kpca=0.0005,
-                k1=0.15,
-                k2=0.045,
-                k3=0.06,
-                k4=0.005,
-                ec=1.5,
-                maxsr=2.5,
-                minsr=1.0,
-                vrel=0.102,
-                vleak=0.00036,
-                vxfer=0.0038,
-                vmaxup=0.006375,
-                kup=0.00025,
-                bufc=0.2,
-                kbufc=0.001,
-                bufsr=10.0,
-                kbufsf=0.3,
-                bufss=0.4,
-                kbufss=0.00025,
-                v=-85.23,
-                ki=136.89,
-                nai=8.604,
-                cai=0.000126,
-                cass=0.00036,
-                casr=3.64,
-                rpri=0.9073,
-                xr1=0.00621,
-                xr2=0.4712,
-                xs=0.0095,
-                m=0.00172,
-                h=0.7444,
-                j=0.7045,
-                d=3.373e-5,
-                f=0.7888,
-                f2=0.9755,
-                fcass=0.9953,
-                s=0.999998,
-                r=2.42e-8,
-            )
-            cell_kw.gas_constant = 8314.472
-            cell_kw.faraday_constant = 96485.3415
-            self.kw_database.cell_models.extend([cell_kw])
+            if ("atrium" in part.name) or ("ventricle" in part.name) or ("septum" in part.name):
+                ep_mid = part.pid
+                cell_kw = keywords.EmEpCellmodelTentusscher(
+                    mid=ep_mid,
+                    gas_constant=8314.472,
+                    t=310,
+                    faraday_constant=96485.3415,
+                    cm=0.185,
+                    vc=0.016404,
+                    vsr=0.001094,
+                    vss=0.00005468,
+                    pkna=0.03,
+                    ko=5.4,
+                    nao=140.0,
+                    cao=2.0,
+                    gk1=5.405,
+                    gkr=0.153,
+                    gks=0.392,
+                    gna=14.838,
+                    gbna=0.0002,
+                    gcal=0.0000398,
+                    gbca=0.000592,
+                    gto=0.294,
+                    gpca=0.1238,
+                    gpk=0.0146,
+                    pnak=2.724,
+                    km=1.0,
+                    kmna=40.0,
+                    knaca=1000.0,
+                    ksat=0.1,
+                    alpha=2.5,
+                    gamma=0.35,
+                    kmca=1.38,
+                    kmnai=87.5,
+                    kpca=0.0005,
+                    k1=0.15,
+                    k2=0.045,
+                    k3=0.06,
+                    k4=0.005,
+                    ec=1.5,
+                    maxsr=2.5,
+                    minsr=1.0,
+                    vrel=0.102,
+                    vleak=0.00036,
+                    vxfer=0.0038,
+                    vmaxup=0.006375,
+                    kup=0.00025,
+                    bufc=0.2,
+                    kbufc=0.001,
+                    bufsr=10.0,
+                    kbufsf=0.3,
+                    bufss=0.4,
+                    kbufss=0.00025,
+                    v=-85.23,
+                    ki=136.89,
+                    nai=8.604,
+                    cai=0.000126,
+                    cass=0.00036,
+                    casr=3.64,
+                    rpri=0.9073,
+                    xr1=0.00621,
+                    xr2=0.4712,
+                    xs=0.0095,
+                    m=0.00172,
+                    h=0.7444,
+                    j=0.7045,
+                    d=3.373e-5,
+                    f=0.7888,
+                    f2=0.9755,
+                    fcass=0.9953,
+                    s=0.999998,
+                    r=2.42e-8,
+                )
+                cell_kw.gas_constant = 8314.472
+                cell_kw.faraday_constant = 96485.3415
+                self.kw_database.cell_models.extend([cell_kw])
 
     def _update_ep_settings(self):
         """Add the settings for the electrophysiology solver."""
@@ -2960,6 +2969,29 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
         )
 
+        self.kw_database.ep_settings.append(
+            custom_keywords.EmEpIsoch(idisoch=1, idepol=1, dplthr=-20, irepol=1, rplthr=-40)
+        )
+        part_ids = [None] * 7
+        part_ids[0 : len(self.model.part_ids)] = self.model.part_ids
+        nsid_all_parts = self.get_unique_nodeset_id()
+        kw = keywords.SetNodeGeneral(
+            title="All nodes",
+            option="PART",
+            sid=nsid_all_parts,
+            e1=part_ids[0],
+            e2=part_ids[1],
+            e3=part_ids[2],
+            e4=part_ids[3],
+            e5=part_ids[4],
+            e6=part_ids[5],
+            e7=part_ids[6],
+        )
+        self.kw_database.node_sets.append(kw)
+
+        self.kw_database.ep_settings.append(
+            keywords.EmDatabaseNodout(outlv=1, dtout=1, nsid=nsid_all_parts)
+        )
         # use defaults
         self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=5))
 
@@ -3059,21 +3091,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=0.0))
 
         self.kw_database.main.append(keywords.ControlTimeStep(dtinit=1.0, dt2ms=1.0))
-        return
-
-    def _update_export_controls(self, dt_output_d3plot: float = 1.0):
-        """Add solution controls to the main simulation.
-
-        Parameters
-        ----------
-        dt_output_d3plot : float, optional
-            Writes full D3PLOT results at this time-step spacing, by default 0.05
-        dt_output_icvout : float, optional
-            Writes control volume results at this time-step spacing, by default 0.001
-        """
-        # frequency of full results
-        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
-
         return
 
     def _update_main_db(self):
@@ -3242,19 +3259,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 self.kw_database.cell_models.extend([cell_kw])
             self.kw_database.beam_networks.append(beams_kw)
 
-    def _update_solution_controls(
-        self,
-        end_time: float = 800,
-    ):
-        """Add solution controls, output controls and solver settings."""
-        # add termination keywords
-        self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=0.0))
-
-        self.kw_database.main.append(
-            keywords.ControlTimeStep(dtinit=1.0, dt2ms=1.0, emscl=None, ihdo=None, rmscl=None)
-        )
-        return
-
     def _update_export_controls(self, dt_output_d3plot: float = 1.0):
         """Add solution controls to the main simulation.
 
@@ -3268,26 +3272,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         """
         # frequency of full results
         self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
-
-        return
-
-    def _get_list_of_includes(self):
-        """Get a list of files to include in main.k. Omit any empty decks."""
-        for deckname, deck in vars(self.kw_database).items():
-            if deckname == "main":
-                continue
-            # skip if no keywords are present in the deck
-            if len(deck.keywords) == 0:
-                LOGGER.debug("No keywords in deck: {0}".format(deckname))
-                continue
-            self.include_files.append(deckname)
-        return
-
-    def _add_includes(self):
-        """Add *INCLUDE keywords."""
-        for include_file in self.include_files:
-            filename_to_include = include_file + ".k"
-            self.kw_database.main.append(keywords.Include(filename=filename_to_include))
 
         return
 

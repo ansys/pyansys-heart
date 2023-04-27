@@ -10,6 +10,7 @@ permissions:
 
 env:
   MAIN_PYTHON_VERSION: 3.9
+  DOCUMENTATION_CNAME: 'heart.docs.pyansys.com'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

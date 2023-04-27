@@ -56,7 +56,6 @@ class MaterialHGOMyocardium(keywords.Mat295):
     """HGO Material model - derived from Mat295."""
 
     def __init__(self, mid: int = 1, iso_user=None, anisotropy_user=None, active_user=None):
-
         # Default parameters
         base = {"aopt": 2.0, "itype": -3, "beta": 0.0}
         # Update parameters with user's input
@@ -176,7 +175,6 @@ def active_curve(
     # T = np.arange( 0, endtime, timestep )
     # NOTE: needs cleaning up
     if curve_type == "Strocchi2020":
-
         # parameters used in Strocchi:
 
         # NOTE: in milliseconds

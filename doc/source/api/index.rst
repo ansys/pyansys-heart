@@ -1,14 +1,7 @@
 API Reference
--------------
+=============
 
-API Reference Preprocessor
-==========================
-This page contains the API reference for the pyheart-lib package.
-
-.. currentmodule:: ansys.heart
-
-.. autosummary::
-   :toctree: _autosummary
+This page contains auto-generated API reference documentation for pyheart-lib.
 
 .. toctree::
    :maxdepth: 4
@@ -22,4 +15,5 @@ This page contains the API reference for the pyheart-lib package.
 
 
 
+   /autoapi/heart/index
 

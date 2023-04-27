@@ -47,7 +47,6 @@ class ModelInfo:
         mesh_size: float = 1.5,
         add_blood_pool: bool = False,
     ) -> None:
-
         self.database = database
         """Name of the database to use."""
         self.workdir = work_directory
@@ -489,15 +488,15 @@ class HeartModel:
         color_by : str, optional
             Color by cell/point data, by default "tags"
 
-        Example
-        -------
+        Examples
+        --------
         >>> import ansys.heart.preprocessor.models as models
         >>> model = models.HeartModel.load_model("heart_model.pickle")
         >>> model.plot_mesh(show_edges=True)
         """
         try:
             import pyvista
-        except (ImportError):
+        except ImportError:
             LOGGER.warning("pyvista not found. Install with: pip install pyvista")
             return
 
@@ -520,15 +519,15 @@ class HeartModel:
         n_seed_points : int, optional
             Number of seed points. Recommended to use 5000, by default 1000
 
-        Example
-        -------
+        Examples
+        --------
         >>> import ansys.heart.preprocessor.models as models
         >>> model = models.HeartModel.load_model("my_model.pickle")
         >>> model.plot_fibers(n_seed_points=5000)
         """
         try:
             import pyvista
-        except (ImportError):
+        except ImportError:
             LOGGER.warning("pyvista not found. Install with: pip install pyvista")
             return
         plotter = pyvista.Plotter()
@@ -562,7 +561,7 @@ class HeartModel:
         """
         try:
             import pyvista as pv
-        except (ImportError):
+        except ImportError:
             LOGGER.warning(
                 "PyVista not found: visualization not supported."
                 "Install pyvista with: pip install pyvista"
@@ -570,7 +569,7 @@ class HeartModel:
             return
         try:
             import matplotlib.pyplot as plt
-        except (ImportError):
+        except ImportError:
             LOGGER.warning("matplotlib not found. Install matplotlib with: pip install matplotlib")
             return
 
@@ -603,7 +602,7 @@ class HeartModel:
 
         try:
             import pyvista as pv
-        except (ImportError):
+        except ImportError:
             LOGGER.warning(
                 "PyVista not found: visualization not supported."
                 "Install pyvista with: pip install pyvista"
@@ -1235,7 +1234,6 @@ class HeartModel:
         # This will find the valve/cap nodes
         for part in self.parts:
             for surface in part.surfaces:
-
                 # special treatment since a part of surface is defined in septum
                 if surface.name == "Right ventricle endocardium":
                     surface.get_boundary_edges(append_triangles=part.surfaces[2].triangles)
@@ -1266,22 +1264,8 @@ class HeartModel:
                             cavity_centroid = surface.compute_centroid()
 
                             cap.tessellate()
-                            p1 = (
-                                surf.nodes[
-                                    cap.triangles[:, 1],
-                                ]
-                                - surf.nodes[
-                                    cap.triangles[:, 0],
-                                ]
-                            )
-                            p2 = (
-                                surf.nodes[
-                                    cap.triangles[:, 2],
-                                ]
-                                - surf.nodes[
-                                    cap.triangles[:, 0],
-                                ]
-                            )
+                            p1 = surf.nodes[cap.triangles[:, 1],] - surf.nodes[cap.triangles[:, 0],]
+                            p2 = surf.nodes[cap.triangles[:, 2],] - surf.nodes[cap.triangles[:, 0],]
                             normals = np.cross(p1, p2)
                             cap_normal = np.mean(normals, axis=0)
                             cap_normal = cap_normal / np.linalg.norm(cap_normal)

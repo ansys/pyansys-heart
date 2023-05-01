@@ -54,13 +54,13 @@ def test_inputs():
 
     # Polydata as object
     input = InputManager(polydata, scalar="surface-tags")
-    assert _is_same_mesh(input.input_surface, polydata)
+    assert _is_same_mesh(input.input_boundary, polydata)
 
     # Polydata as vtp file
     file2 = os.path.join(workdir, "polydata.vtp")
     polydata.save(file2)
     input = InputManager(file2, scalar="surface-tags")
-    assert _is_same_mesh(input.input_surface, polydata)
+    assert _is_same_mesh(input.input_boundary, polydata)
 
     os.remove(file1)
     os.remove(file2)
@@ -69,8 +69,8 @@ def test_inputs():
 def test_reorder_ids():
     """Test reordering surface/part ids."""
     from ansys.heart.preprocessor.input import (
+        _get_boundary_name_to_boundary_id_map,
         _get_part_name_to_part_id_map,
-        _get_surface_name_to_surface_id_map,
     )
 
     reference_map = _get_part_name_to_part_id_map()
@@ -83,7 +83,7 @@ def test_reorder_ids():
 
     assert np.all(np.equal(input.input_volume.cell_data["part-id"], [2, 1]))
 
-    reference_map = _get_surface_name_to_surface_id_map()
+    reference_map = _get_boundary_name_to_boundary_id_map()
     test_map = {
         "left-ventricle-endocardium": 2,
         "left-ventricle-epicardium": 4,
@@ -92,7 +92,7 @@ def test_reorder_ids():
     }
     # Prep PolyData input.
     cube = pv.Cube()
-    cube.cell_data.set_scalars([1, 1, 2, 2, 3, 4], "surface-id")
+    cube.cell_data.set_scalars([1, 1, 2, 2, 3, 4], "boundary-id")
 
     # ref ids
     ref_ids = [
@@ -106,7 +106,7 @@ def test_reorder_ids():
 
     input = InputManager(cube, name_to_id_map=test_map)
 
-    assert np.all(np.equal(input.input_surface.cell_data["surface-id"], ref_ids))
+    assert np.all(np.equal(input.input_boundary.cell_data["boundary-id"], ref_ids))
 
     return
 
@@ -152,11 +152,11 @@ def test_reorder_part_ids_001():
     pass
 
 
-def test_reorder_surface_ids_001():
-    """Test reordering of surface-ids given a surface-name to surface-id dictionary."""
-    from ansys.heart.preprocessor.input import _get_surface_name_to_surface_id_map
+def test_reorder_boundary_ids_001():
+    """Test reordering of boundary-ids given a surface-name to boundary-id dictionary."""
+    from ansys.heart.preprocessor.input import _get_boundary_name_to_boundary_id_map
 
-    reference_map = _get_surface_name_to_surface_id_map()
+    reference_map = _get_boundary_name_to_boundary_id_map()
 
     test_map = {
         "left-ventricle-endocardium": 2,
@@ -166,7 +166,7 @@ def test_reorder_surface_ids_001():
     }
     # Prep PolyData input.
     cube = pv.Cube()
-    cube.cell_data.set_scalars([1, 1, 2, 2, 3, 4], "surface-id")
+    cube.cell_data.set_scalars([1, 1, 2, 2, 3, 4], "boundary-id")
 
     # ref ids
     ref_ids = [
@@ -180,15 +180,15 @@ def test_reorder_surface_ids_001():
 
     input = InputManager(cube)
 
-    input._reorder_surface_ids(test_map)
-    assert np.all(input.input_surface.cell_data["surface-id"] == ref_ids)
+    input._reorder_boundary_ids(test_map)
+    assert np.all(input.input_boundary.cell_data["boundary-id"] == ref_ids)
 
 
-def test_reorder_surface_ids_002():
-    """Test reordering of surface-ids when unknown surface name given."""
-    from ansys.heart.preprocessor.input import _get_surface_name_to_surface_id_map
+def test_reorder_boundary_ids_002():
+    """Test reordering of boundary-ids when unknown surface name given."""
+    from ansys.heart.preprocessor.input import _get_boundary_name_to_boundary_id_map
 
-    reference_map = _get_surface_name_to_surface_id_map()
+    reference_map = _get_boundary_name_to_boundary_id_map()
 
     test_map = {
         "left-ventricle-endocardium": 2,
@@ -198,7 +198,7 @@ def test_reorder_surface_ids_002():
     }
     # Prep PolyData input.
     cube = pv.Cube()
-    cube.cell_data.set_scalars([1, 1, 2, 2, 3, 4], "surface-id")
+    cube.cell_data.set_scalars([1, 1, 2, 2, 3, 4], "boundary-id")
 
     # ref ids
     ref_ids = [
@@ -212,17 +212,17 @@ def test_reorder_surface_ids_002():
 
     input = InputManager(cube)
 
-    input._reorder_surface_ids(test_map)
+    input._reorder_boundary_ids(test_map)
 
-    assert np.all(input.input_surface.cell_data["surface-id"] == ref_ids)
+    assert np.all(input.input_boundary.cell_data["boundary-id"] == ref_ids)
 
 
-def test_surface_export():
+def test_boundary_export():
     """Test the export of surfaces."""
 
     # Prep PolyData input.
     cube = pv.Cube()
-    cube.cell_data.set_scalars([1, 1, 2, 2, 3, 4], "surface-id")
+    cube.cell_data.set_scalars([1, 1, 2, 2, 3, 4], "boundary-id")
 
     input = InputManager(cube)
-    input.export_surfaces(".stl", folder=conftest.get_workdir())
+    input.export_boundaries(".stl", folder=conftest.get_workdir())

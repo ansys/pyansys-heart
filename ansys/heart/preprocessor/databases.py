@@ -1,3 +1,5 @@
+"""Module containing part/boundary name-id mappings."""
+
 PART_NAME_ID_MAPPING_DATABASES = {
     "Strocchi2020": {
         "Left ventricle myocardium": 1,

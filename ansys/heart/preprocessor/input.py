@@ -4,10 +4,10 @@ Notes
 -----
 This module manages the different types of input that can be handled and include:
 1. User specified (volume) mesh.
-2. User specified surface mesh. This will require remeshing.
+2. User specified boundary mesh. This will require remeshing.
 
-Methods are provided to validate the volume and surface mesh objects (pyvista objects),
-and to get the necessary parts or surfaces for each respective model.
+Methods are provided to validate the volume and boundary mesh objects (pyvista objects),
+and to get the necessary parts or boundaries for each respective model.
 """
 
 import copy
@@ -123,26 +123,26 @@ def _get_part_id_to_part_name_map() -> dict:
     return _invert_dict(_get_part_name_to_part_id_map())
 
 
-def _get_surface_name_to_surface_id_map() -> dict:
-    """Get the map that maps the surface name to the surface id."""
+def _get_boundary_name_to_boundary_id_map() -> dict:
+    """Get the map that maps the boundary name to the boundary id."""
     mapper = {}
     for part_name, part_subdict in BOUNDARIES_PER_HEART_PART.items():
         mapper.update(part_subdict["enclosed_by_boundaries"])
     return mapper
 
 
-def _get_surface_id_to_surface_name_map() -> dict:
-    """Get the map that maps the surface name to the surface id."""
-    return _invert_dict(_get_surface_name_to_surface_id_map())
+def _get_boundary_id_to_boundary_name_map() -> dict:
+    """Get the map that maps the boundary name to the boundary id."""
+    return _invert_dict(_get_boundary_name_to_boundary_id_map())
 
 
-def _get_required_surfaces(model_type: str) -> List[str]:
-    """Return a list of surfaces required for the given model."""
+def _get_required_boundaries(model_type: str) -> List[str]:
+    """Return a list of boundaries required for the given model."""
     parts = _get_required_parts(model_type)
-    required_surfaces = []
+    required_boundaries = []
     for p in parts:
-        required_surfaces += BOUNDARIES_PER_HEART_PART[p]["enclosed_by_boundaries"]
-    return required_surfaces
+        required_boundaries += BOUNDARIES_PER_HEART_PART[p]["enclosed_by_boundaries"]
+    return required_boundaries
 
 
 class InputManager:
@@ -154,7 +154,7 @@ class InputManager:
     1. Unstructured grid file or object with part-ids
     2. Multiblock VTK file or object with a single UnstructuredGrid block or
     with multiple PolyData objects
-    3. PolyData file or object with surface-ids
+    3. PolyData file or object with boundary-ids
     """
 
     def __init__(
@@ -163,18 +163,18 @@ class InputManager:
         scalar: str = None,
         name_to_id_map: dict = None,
     ) -> None:
-        """Read provided input volume or surface mesh.
+        """Read provided input volume or boundary mesh.
 
         Parameters
         ----------
         input :  Union[Path, str, pv.UnstructuredGrid, pv.PolyData], optional
-            An input volume mesh or surface mesh, either as a pyvista
+            An input volume mesh or boundary mesh, either as a pyvista
             UnstructuredGrid object, pyvista PolyData object or path to vtk-like file,
             by default None
         scalar : str, optional
-            Scalar array to use for either the part ids or surface ids, by default None
+            Scalar array to use for either the part ids or boundary ids, by default None
         name_to_id_map : dict, optional
-            Map indicating which part/surface name corresponds to which part/surface id,
+            Map indicating which part/boundary name corresponds to which part/boundary id,
             by default None
 
         Examples
@@ -186,10 +186,10 @@ class InputManager:
         >>> input = InputManager(mesh_file, scalar="tags",
         ...             name_to_id_map={"Left ventricle" : 3, "Right ventricle" : 1})
 
-        Reading a surface mesh (PolyData) from a file and explicitly give the surface
-        name to surface-id map
+        Reading a boundary mesh (PolyData) from a file and explicitly give the boundary
+        name to boundary-id map
 
-        >>> mesh_file = "surface_mesh.vtk" # PolyData where 'cell-tags' represents the surface-ids
+        >>> mesh_file = "boundary_mesh.vtk" # PolyData where 'cell-tags' represents the boundary-ids
         >>> input = InputManager(mesh_file, scalar="cell-tags",
             ...     name_to_id_map = {
         ...             "left-ventricle-endocardium": 3,
@@ -200,16 +200,16 @@ class InputManager:
         # Try to populate these attributes during initialization.
         self.input_volume: pv.UnstructuredGrid = None
         """Input volume mesh."""
-        self.input_surface: pv.PolyData = None
-        """Input surface."""
+        self.input_boundary: pv.PolyData = None
+        """Input boundary."""
         self._part_id_mapping = (
             _get_part_name_to_part_id_map() if not name_to_id_map else name_to_id_map
         )
         """Maps part-ids to part-names."""
-        self._surface_id_mapping = (
-            _get_surface_name_to_surface_id_map() if not name_to_id_map else name_to_id_map
+        self._boundary_id_mapping = (
+            _get_boundary_name_to_boundary_id_map() if not name_to_id_map else name_to_id_map
         )
-        """Maps surface-names to surface-ids."""
+        """Maps boundary-names to boundary-ids."""
 
         # try to read the input.
         if isinstance(input, (Path, str)):
@@ -218,10 +218,10 @@ class InputManager:
                 raise FileNotFoundError(f"File {input} not found.")
 
         volume_set = False
-        surface_set = False
+        boundary_set = False
         try:
-            self.input_surface = pv.PolyData(input)
-            surface_set = True
+            self.input_boundary = pv.PolyData(input)
+            boundary_set = True
         except:
             try:
                 self.input_volume = pv.UnstructuredGrid(input)
@@ -229,7 +229,7 @@ class InputManager:
             except:
                 pass
 
-        if not volume_set and not surface_set:
+        if not volume_set and not boundary_set:
             try:
                 multi_block = pv.MultiBlock(input)
                 if len(multi_block) == 1 and isinstance(multi_block[0], pv.UnstructuredGrid):
@@ -243,20 +243,20 @@ class InputManager:
                         if not isinstance(block, pv.PolyData):
                             raise ValueError("Expecting PolyData in MultiBlock with size > 1")
                         if ii == 0:
-                            surface = block
+                            boundary = block
                         else:
-                            surface = surface.merge(block)
-                    surface_set = True
+                            boundary = boundary.merge(block)
+                    boundary_set = True
             except:
-                raise ImportError(f"Failed to load {input} as volume or surface.")
+                raise ImportError(f"Failed to load {input} as volume or boundary.")
 
         # change array names if scalar is given.
         if self.input_volume and scalar:
             LOGGER.debug(f"Renaming {scalar} to part-id")
             self.input_volume.rename_array(scalar, "part-id")
-        if self.input_surface and scalar:
-            LOGGER.debug(f"Renaming {scalar} to surface-id")
-            self.input_surface.rename_array(scalar, "surface-id")
+        if self.input_boundary and scalar:
+            LOGGER.debug(f"Renaming {scalar} to boundary-id")
+            self.input_boundary.rename_array(scalar, "boundary-id")
 
         # validate
         self.validate()
@@ -265,8 +265,8 @@ class InputManager:
         if volume_set and name_to_id_map:
             self._reorder_part_ids(name_to_id_map)
 
-        if surface_set and name_to_id_map:
-            self._reorder_surface_ids(name_to_id_map)
+        if boundary_set and name_to_id_map:
+            self._reorder_boundary_ids(name_to_id_map)
 
         pass
 
@@ -275,12 +275,12 @@ class InputManager:
         return (
             "Input volume mesh:\n"
             + str(self.input_volume)
-            + "Input surface mesh:\n"
-            + str(self.input_surface)
+            + "Input boundary mesh:\n"
+            + str(self.input_boundary)
         )
 
     def _reorder_part_ids(self, part_name_to_part_id: dict):
-        """Reorder the input part ids such that they correspond with SURFACES_PER_HEART_PART."""
+        """Reorder the input part ids such that they correspond with BOUNDARIES_PER_HEART_PART."""
         old_ids = copy.deepcopy(self.input_volume.cell_data["part-id"])
         new_ids = self.input_volume.cell_data["part-id"]
 
@@ -308,21 +308,21 @@ class InputManager:
 
         return
 
-    def _reorder_surface_ids(self, surface_name_to_surface_id: dict):
-        """Reorder the input part ids such that they correspond with SURFACES_PER_HEART_PART."""
-        old_ids = copy.deepcopy(self.input_surface.cell_data["surface-id"])
-        new_ids = self.input_surface.cell_data["surface-id"]
+    def _reorder_boundary_ids(self, boundary_name_to_boundary_id: dict):
+        """Reorder the input part ids such that they correspond with BOUNDARIES_PER_HEART_PART."""
+        old_ids = copy.deepcopy(self.input_boundary.cell_data["boundary-d"])
+        new_ids = self.input_boundary.cell_data["boundary-d"]
         # reference map
-        ref_map = _get_surface_name_to_surface_id_map()
+        ref_map = _get_boundary_name_to_boundary_id_map()
         max_defined_id = max(ref_map.values())
-        self._surface_id_mapping = {}
+        self._boundary_id_mapping = {}
 
-        if not np.all(np.isin(old_ids, list(surface_name_to_surface_id.values()))):
+        if not np.all(np.isin(old_ids, list(boundary_name_to_boundary_id.values()))):
             raise ValueError(
-                "Unable to map all surface ids to surface name: please extend dictionary"
+                "Unable to map all boundary ids to boundary name: please extend dictionary"
             )
 
-        for key, old_id in surface_name_to_surface_id.items():
+        for key, old_id in boundary_name_to_boundary_id.items():
             if key not in ref_map.keys():
                 target_id = max_defined_id + 1
                 max_defined_id += 1
@@ -331,9 +331,9 @@ class InputManager:
 
             mask = old_ids == old_id
             new_ids[mask] = target_id
-            self._surface_id_mapping[key] = target_id
+            self._boundary_id_mapping[key] = target_id
 
-        self.input_surface.cell_data["surface-id"] = new_ids
+        self.input_boundary.cell_data["boundary-d"] = new_ids
         return
 
     def _validate_volume_mesh(self):
@@ -343,39 +343,39 @@ class InputManager:
         # change part-id such that it always corresponds to the default part-ids.
         return
 
-    def _validate_surface_mesh(self):
-        """Perform some validation steps on the surface mesh."""
-        if not "surface-id" in self.input_surface.cell_data.keys():
-            raise KeyError("Missing 'surface-id' in cell-data.")
+    def _validate_boundary_mesh(self):
+        """Perform some validation steps on the boundary mesh."""
+        if not "boundary-d" in self.input_boundary.cell_data.keys():
+            raise KeyError("Missing 'boundary-d' in cell-data.")
 
-        # change surface-id such that it always corresponds to the default surface-ids.
+        # change boundary-id such that it always corresponds to the default boundary-ids.
         return
 
-    def export_surfaces(self, format: str, folder: Union[Path, str] = ".") -> None:
-        """Export the surfaces as separate stls."""
+    def export_boundaries(self, format: str, folder: Union[Path, str] = ".") -> None:
+        """Export the boundaries as separate stls."""
         from ansys.heart.preprocessor.mesh.misc import add_solid_name_to_stl
 
-        surface_ids = np.unique(self.input_surface.cell_data["surface-id"])
-        id_to_name = _get_surface_id_to_surface_name_map()
+        boundary_ids = np.unique(self.input_boundary.cell_data["boundary-d"])
+        id_to_name = _get_boundary_id_to_boundary_name_map()
 
-        for id in surface_ids:
-            surface = self.input_surface.threshold([id - 1e-3, id + 1e-3], scalars="surface-id")
-            surface_name = id_to_name[id]
-            file_path = os.path.join(folder, surface_name + ".stl")
-            surface.extract_surface().save(file_path)
-            add_solid_name_to_stl(file_path, surface_name, file_type="binary")
+        for id in boundary_ids:
+            boundary = self.input_boundary.threshold([id - 1e-3, id + 1e-3], scalars="boundary-d")
+            boundary_name = id_to_name[id]
+            file_path = os.path.join(folder, boundary_name + ".stl")
+            boundary.extract_surface().save(file_path)
+            add_solid_name_to_stl(file_path, boundary_name, file_type="binary")
 
     def validate(self):
         """Validate the given input."""
         if self.input_volume:
             self._validate_volume_mesh()
-        if self.input_surface:
-            self._validate_surface_mesh()
+        if self.input_boundary:
+            self._validate_boundary_mesh()
 
         return
 
     def is_valid_input(self):
-        """Validate if the model has the right surfaces or parts defined for further processing."""
+        """Validate if the model has the proper boundaries or parts defined."""
         is_valid = False
         try:
             self._validate_volume_mesh()
@@ -383,23 +383,23 @@ class InputManager:
         except:
             pass
         try:
-            self._validate_surface_mesh()
+            self._validate_boundary_mesh()
             is_valid = True
         except:
             pass
         return is_valid
 
-    def get_required_parts_and_surfaces(self, model_type: str) -> dict:
-        """Return a dictionary of the required parts and surfaces for a specific model."""
+    def get_required_parts_and_boundaries(self, model_type: str) -> dict:
+        """Return a dictionary of the required parts and boundaries for a specific model."""
         parts = _get_required_parts(model_type)
-        surfaces = _get_required_surfaces(model_type)
-        LOGGER.info({"Parts": parts, "Surfaces": surfaces})
+        boundaries = _get_required_boundaries(model_type)
+        LOGGER.info({"Parts": parts, "Boundaries": boundaries})
 
-        return {"Parts": parts, "Surfaces": surfaces}
+        return {"Parts": parts, "Boundaries": boundaries}
 
     def get_input(self):
-        """Return the validated input volume or surface."""
+        """Return the validated input volume or boundary."""
         if isinstance(self.input_volume, pv.UnstructuredGrid):
             return self.input_volume
-        elif isinstance(self.input_surface, pv.PolyData):
-            return self.input_surface
+        elif isinstance(self.input_boundary, pv.PolyData):
+            return self.input_boundary

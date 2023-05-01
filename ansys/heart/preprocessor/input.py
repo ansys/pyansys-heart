@@ -310,8 +310,8 @@ class InputManager:
 
     def _reorder_boundary_ids(self, boundary_name_to_boundary_id: dict):
         """Reorder the input part ids such that they correspond with BOUNDARIES_PER_HEART_PART."""
-        old_ids = copy.deepcopy(self.input_boundary.cell_data["boundary-d"])
-        new_ids = self.input_boundary.cell_data["boundary-d"]
+        old_ids = copy.deepcopy(self.input_boundary.cell_data["boundary-id"])
+        new_ids = self.input_boundary.cell_data["boundary-id"]
         # reference map
         ref_map = _get_boundary_name_to_boundary_id_map()
         max_defined_id = max(ref_map.values())
@@ -333,7 +333,7 @@ class InputManager:
             new_ids[mask] = target_id
             self._boundary_id_mapping[key] = target_id
 
-        self.input_boundary.cell_data["boundary-d"] = new_ids
+        self.input_boundary.cell_data["boundary-id"] = new_ids
         return
 
     def _validate_volume_mesh(self):
@@ -345,7 +345,7 @@ class InputManager:
 
     def _validate_boundary_mesh(self):
         """Perform some validation steps on the boundary mesh."""
-        if not "boundary-d" in self.input_boundary.cell_data.keys():
+        if not "boundary-id" in self.input_boundary.cell_data.keys():
             raise KeyError("Missing 'boundary-d' in cell-data.")
 
         # change boundary-id such that it always corresponds to the default boundary-ids.
@@ -355,11 +355,11 @@ class InputManager:
         """Export the boundaries as separate stls."""
         from ansys.heart.preprocessor.mesh.misc import add_solid_name_to_stl
 
-        boundary_ids = np.unique(self.input_boundary.cell_data["boundary-d"])
+        boundary_ids = np.unique(self.input_boundary.cell_data["boundary-id"])
         id_to_name = _get_boundary_id_to_boundary_name_map()
 
         for id in boundary_ids:
-            boundary = self.input_boundary.threshold([id - 1e-3, id + 1e-3], scalars="boundary-d")
+            boundary = self.input_boundary.threshold([id - 1e-3, id + 1e-3], scalars="boundary-id")
             boundary_name = id_to_name[id]
             file_path = os.path.join(folder, boundary_name + ".stl")
             boundary.extract_surface().save(file_path)

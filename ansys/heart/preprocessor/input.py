@@ -184,7 +184,7 @@ class InputManager:
         >>> mesh_file = "unstructured_grid.vtu" # unstructured grid where 'tags'
         ...                                       cell data represents the part-ids
         >>> input = InputManager(mesh_file, scalar="tags",
-        ...             name_to_id_map={"Left ventricle" : 3, "Right ventricle" : 1})
+        ...             name_to_id_map={"Left ventricle myocardium" : 3, "Right ventricle myocardium" : 1})
 
         Reading a boundary mesh (PolyData) from a file and explicitly give the boundary
         name to boundary-id map
@@ -340,7 +340,6 @@ class InputManager:
         """Perform some validation steps on the volume mesh."""
         if not "part-id" in self.input_volume.cell_data.keys():
             raise KeyError("Missing 'part-id' array in cell data.")
-        # change part-id such that it always corresponds to the default part-ids.
         return
 
     def _validate_boundary_mesh(self):
@@ -348,7 +347,8 @@ class InputManager:
         if not "boundary-id" in self.input_boundary.cell_data.keys():
             raise KeyError("Missing 'boundary-d' in cell-data.")
 
-        # change boundary-id such that it always corresponds to the default boundary-ids.
+        if not self.input_boundary.is_manifold:
+            raise ImportWarning("Input boundary is has gaps and is not watertight.")
         return
 
     def export_boundaries(self, format: str, folder: Union[Path, str] = ".") -> None:

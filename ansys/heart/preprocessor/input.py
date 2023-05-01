@@ -348,7 +348,7 @@ class InputManager:
             raise KeyError("Missing 'boundary-d' in cell-data.")
 
         if not self.input_boundary.is_manifold:
-            raise ImportWarning("Input boundary is has gaps and is not watertight.")
+            raise ImportWarning("Input boundary has gaps and is not watertight.")
         return
 
     def export_boundaries(self, format: str, folder: Union[Path, str] = ".") -> None:

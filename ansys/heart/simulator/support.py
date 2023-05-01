@@ -57,7 +57,7 @@ def run_preprocessor(
     # instantiate model information
     info = models.ModelInfo(
         database=database,
-        path_to_case=path_original_mesh,
+        _deprecated_path_to_case=path_original_mesh,
         work_directory=work_directory,
         path_to_model=path_to_model,
         add_blood_pool=add_blood_pool,

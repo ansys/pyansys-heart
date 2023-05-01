@@ -15,7 +15,7 @@ def _get_test_model_info() -> models.ModelInfo:
     info = models.ModelInfo(
         database="Strocchi2020",
         work_directory=get_workdir(),
-        path_to_case="path-to-case",
+        _deprecated_path_to_case="path-to-case",
         path_to_simulation_mesh="path-to-simulation-mesh",
         mesh_size=2.0,
     )
@@ -58,7 +58,7 @@ def test_model_info_dump():
     assert info.database == json_data["_database"], "Database not the same"
     assert info.workdir == json_data["workdir"], "Workdir not the same"
     assert (
-        info.path_to_original_mesh == json_data["path_to_original_mesh"]
+        info._deprecated_path_to_original_mesh == json_data["path_to_original_mesh"]
     ), "Path to original mesh not the same"
     assert (
         info.path_to_simulation_mesh == json_data["path_to_simulation_mesh"]

@@ -34,7 +34,7 @@ def test_get_surfaces_from_tetrahedrons():
     ), "Interface faces not the same."
     assert np.all(
         np.equal([1, 1, 1, 2, 2, 2], part_ids_boundary)
-    ), "Boudary part ids not as expected."
+    ), "Boundary part ids not as expected."
     assert np.all(pairs == [test_grid.cell_data["tags"]]), "Pairs not the same."
 
     pass

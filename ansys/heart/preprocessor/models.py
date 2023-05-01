@@ -8,11 +8,22 @@ import pickle
 from typing import List, Union
 
 from ansys.heart.custom_logging import LOGGER
+
+# from ansys.heart.preprocessor.input import database_label_mapping, _get_part_name_to_part_id_map
+import ansys.heart.preprocessor.databases as inp
+from ansys.heart.preprocessor.databases import (
+    PART_NAME_ID_MAPPING_DATABASES,
+    SURFACE_NAME_ID_MAPPING_DATABASES,
+)
+from ansys.heart.preprocessor.input import HEART_MODELS
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher
 from ansys.heart.preprocessor.mesh.objects import Cap, Cavity, Mesh, Part, Point, SurfaceMesh
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-from ansys.heart.preprocessor.model_definitions import HEART_PARTS, LABELS_TO_ID
+from ansys.heart.preprocessor.model_definitions import (
+    _DEPRECATED_HEART_PARTS,
+    _DEPRECATED_LABELS_TO_ID,
+)
 import meshio
 import numpy as np
 import pyvista as pv
@@ -29,7 +40,7 @@ class ModelInfo:
 
     @database.setter
     def database(self, value: str):
-        valid_databases = ["Strocchi2020", "Cristobal2021", "LabeledSurface"]
+        valid_databases = list(inp.PART_NAME_ID_MAPPING_DATABASES.keys()) + [None]
         if value not in valid_databases:
             raise ValueError(
                 "{0} not a valid database name. Please specify one of the"
@@ -39,34 +50,66 @@ class ModelInfo:
 
     def __init__(
         self,
-        database: str,
+        input: Union[pathlib.Path, str, pv.PolyData, pv.UnstructuredGrid],
         work_directory: pathlib.Path,
-        path_to_case: pathlib.Path,
-        path_to_simulation_mesh: pathlib.Path = None,
-        path_to_model: pathlib.Path = None,
+        model_type: Union[str, type] = None,
+        database: str = None,
         mesh_size: float = 1.5,
         add_blood_pool: bool = False,
+        scalar: str = "tags",
+        name_to_id: dict = None,
+        path_to_simulation_mesh: pathlib.Path = None,
+        path_to_model: pathlib.Path = None,
+        _deprecated_path_to_case: pathlib.Path = None,
     ) -> None:
-        self.database = database
-        """Name of the database to use."""
+        self.input = input
+        """Input to the workflow."""
+        self.scalar = scalar
+        """Scalar field name with part/surface ids."""
         self.workdir = work_directory
         """Path to the working directory."""
-        self.path_to_original_mesh = path_to_case
-        """Path to the original mesh file."""
         self.path_to_simulation_mesh = path_to_simulation_mesh
         """Path to simulation(in .vtk format)."""
         self.path_to_model = path_to_model
         """Path to model (in .pickle format)."""
-        self.labels_to_ids = LABELS_TO_ID[database]
-        """Dict that maps labels > part/tag id."""
-        self.ids_to_labels = dict((v, k) for k, v in LABELS_TO_ID[database].items())
-        """Inverted dict that maps part/tag id > labels."""
-        self.model_type: str = None
+
+        self.model_type = model_type
+        """Type of heart model."""
+
         """Model (geometric) type."""
         self.mesh_size: float = mesh_size
         """Mesh size used for remeshing."""
         self.add_blood_pool: bool = add_blood_pool
         """Flag indicating whether to add blood to the cavities."""
+
+        self.database = database
+        """Name of the database to use."""
+
+        if name_to_id != None:
+            self.name_to_id_map = name_to_id
+            """Part/surface name to id."""
+        elif database != None:
+            try:
+                self.name_to_id_map = PART_NAME_ID_MAPPING_DATABASES[self.database]
+            except:
+                self.name_to_id_map = None
+                try:
+                    self.name_to_id_map = SURFACE_NAME_ID_MAPPING_DATABASES[self.database]
+                except:
+                    self.name_to_id_map = None
+                    raise KeyError("Failed to retrieve part/surface name to id from database name.")
+
+        # the below is deprecated.
+        self._deprecated_path_to_original_mesh = _deprecated_path_to_case
+        """Path to the original mesh file."""
+        if database != None:
+            DeprecationWarning("_labels_to_ids is deprecated - please do not use!")
+            self._deprecated_labels_to_ids = _DEPRECATED_LABELS_TO_ID[database]
+            """Dict that maps labels > part/tag id."""
+            self._deprecated_ids_to_labels = dict(
+                (v, k) for k, v in _DEPRECATED_LABELS_TO_ID[database].items()
+            )
+            """Inverted dict that maps part/tag id > labels."""
 
         pass
 
@@ -160,11 +203,11 @@ class HeartModel:
 
         self._add_subparts()
         """Add any subparts."""
-        self._add_labels_to_parts()
+        self._pipeline_method_add_labels_to_parts()
         """Add appropriate vtk labels to the parts."""
 
         if not self.info.mesh_size:
-            self._set_default_mesh_size()
+            self._pipeline_method_set_default_mesh_size()
             """Set default mesh size."""
 
         self.model_type = self.__class__.__name__
@@ -213,7 +256,7 @@ class HeartModel:
         """
         # TODO factor in several methods
         if self.info.database == "LabeledSurface":
-            input_surface = pv.read(self.info.path_to_original_mesh)
+            input_surface = pv.read(self.info._deprecated_path_to_original_mesh)
 
             points = input_surface.points
             try:  # Unstructure grid
@@ -265,7 +308,7 @@ class HeartModel:
                     self.mesh_raw.interfaces.append(surface)
 
             # Start remeshing
-            self._remesh(post_mapping=False)
+            self._pipeline_method_remesh(post_mapping=False)
 
             if isinstance(self, BiVentricle):
                 # split epicardium boundary into 'real' epicardium and septum
@@ -309,15 +352,15 @@ class HeartModel:
             elif isinstance(self, LeftVentricle):
                 self.mesh.cell_data["tags"] = np.ones(self.mesh.tetrahedrons.shape[0], dtype=float)
             # extract septum
-            self._extract_septum()
+            self._pipeline_method_extract_septum()
 
             # call some additional methods to assign parts, surfaces, caps, etc
-            self._assign_elements_to_parts()
-            self._assign_surfaces_to_parts()
-            self._assign_caps_to_parts()
-            self._assign_cavities_to_parts()
-            self._extract_apex()
-            self._add_nodal_areas()
+            self._pipeline_method_assign_elements_to_parts()
+            self._pipeline_method_assign_surfaces_to_parts()
+            self._pipeline_method_assign_caps_to_parts()
+            self._pipeline_method_assign_cavities_to_parts()
+            self._pipeline_method_extract_apex()
+            self._pipeline_method_add_nodal_areas()
 
             def _define_uvc():
                 """Temporal method use to compute longitudinal coordinates."""
@@ -355,11 +398,11 @@ class HeartModel:
                     cap.name = cap.name.replace("right-ventricle-myocardium-", "")
 
         else:
-            self.read_input_mesh()
-            self._remove_unused_tags()
-            self._prepare_for_meshing()
-            self._remesh()
-            self._update_parts()
+            self._deprecated_read_input_mesh()
+            self._pipeline_method_remove_unused_tags()
+            self._pipeline_method_prepare_for_meshing()
+            self._pipeline_method_remesh()
+            self._pipeline_method_update_parts()
 
         if clean_up:
             self.info.clean_workdir(["part*.stl", "cavity*.stl"])
@@ -430,16 +473,19 @@ class HeartModel:
         LOGGER.info("*****************************************")
         return
 
-    def read_input_mesh(self) -> None:
+    def _deprecated_read_input_mesh(self) -> None:
+        DeprecationWarning("This method is deprecated, use the Pipeline/workflow module")
         """Read the input mesh defined in ModelInfo."""
-        if not os.path.isfile(self.info.path_to_original_mesh):
+        if not os.path.isfile(self.info._deprecated_path_to_original_mesh):
             raise ValueError("Please specify a valid path to the input file")
 
         if self.info.database == "Cristobal2021":
             LOGGER.warning("Changing data fields of vtk file")
-            self.mesh_raw.read_mesh_file_cristobal2021(self.info.path_to_original_mesh)
+            self.mesh_raw._deprecated_read_mesh_file_cristobal2021(
+                self.info._deprecated_path_to_original_mesh
+            )
         else:
-            self.mesh_raw.read_mesh_file(self.info.path_to_original_mesh)
+            self.mesh_raw._deprecated_read_mesh_file(self.info._deprecated_path_to_original_mesh)
 
         try:
             self.mesh_raw.cell_data["tags"]
@@ -645,22 +691,22 @@ class HeartModel:
         vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_1)
         return model
 
-    def _set_default_mesh_size(self) -> None:
+    def _pipeline_method_set_default_mesh_size(self) -> None:
         """Set the default mesh size."""
         LOGGER.warning("No mesh size given setting default mesh size")
         self.info.mesh_size = 1.5
         return
 
-    def _add_labels_to_parts(self) -> None:
+    def _pipeline_method_add_labels_to_parts(self) -> None:
         """Use model definitions to add corresponding vtk labels to the part."""
         for part in self.parts:
             if part.name == "Septum":
                 continue
-            part.tag_labels = HEART_PARTS[part.name]["VTKLabels"]
+            part.tag_labels = _DEPRECATED_HEART_PARTS[part.name]["VTKLabels"]
             # add tag ids
             part.tag_ids = []
             for tag_label in part.tag_labels:
-                part.tag_ids.append(LABELS_TO_ID[self.info.database][tag_label])
+                part.tag_ids.append(_DEPRECATED_LABELS_TO_ID[self.info.database][tag_label])
         return
 
     def _add_subparts(self) -> None:
@@ -672,7 +718,7 @@ class HeartModel:
                     part._add_septum_part()
         return
 
-    def _remove_unused_tags(self) -> None:
+    def _pipeline_method_remove_unused_tags(self) -> None:
         """Extract only the tags of interest."""
         # collect all used tags
         tag_ids = []
@@ -691,7 +737,7 @@ class HeartModel:
 
         return element_ids
 
-    def _get_endo_epicardial_surfaces(self) -> None:
+    def _pipeline_method_get_endo_epicardial_surfaces(self) -> None:
         """Get endo- and epicardial surfaces.
 
         Note
@@ -821,7 +867,7 @@ class HeartModel:
 
         return
 
-    def _prepare_for_meshing(self) -> None:
+    def _pipeline_method_prepare_for_meshing(self) -> None:
         """Prepare the input for volumetric meshing with Fluent meshing.
 
         Note
@@ -841,7 +887,10 @@ class HeartModel:
         interface_pairs1 = []
         interface_names = []
         for pair in interface_pairs:
-            labels = [self.info.ids_to_labels[pair[0]], self.info.ids_to_labels[pair[1]]]
+            labels = [
+                self.info._deprecated_ids_to_labels[pair[0]],
+                self.info._deprecated_ids_to_labels[pair[1]],
+            ]
             # skip any interfaces that do not involve a inlet or valve
             if not (
                 np.any(["inlet" in e for e in labels]) or np.any(["valve" in e for e in labels])
@@ -862,12 +911,12 @@ class HeartModel:
             if not part.tag_labels:
                 continue
             labels_to_use = [l for l in part.tag_labels if "inlet" not in l and "valve" not in l]
-            part_ids_use = [self.info.labels_to_ids[l] for l in labels_to_use]
+            part_ids_use = [self.info._deprecated_labels_to_ids[l] for l in labels_to_use]
             part_names = ["-".join(l.split()).lower() for l in labels_to_use]
 
             self.mesh_raw.add_boundaries(part_ids_use, part_names)
 
-        self._get_endo_epicardial_surfaces()
+        self._pipeline_method_get_endo_epicardial_surfaces()
 
         # write interfaces and boundaries to .stl file (input for mesher)
         surfaces_to_skip = [
@@ -886,7 +935,7 @@ class HeartModel:
 
         return
 
-    def _remesh(self, post_mapping: bool = True) -> None:
+    def _pipeline_method_remesh(self, post_mapping: bool = True) -> None:
         """
         Use the generated files to remesh the surfaces and volume.
 
@@ -962,14 +1011,14 @@ class HeartModel:
             self.fluid_mesh.nodes = fluent_mesh.nodes
 
         if post_mapping:
-            self._map_data_to_remeshed_volume()
+            self._pipeline_method_map_data_to_remeshed_volume()
 
         return
 
-    def _map_data_to_remeshed_volume(self) -> None:
+    def _pipeline_method_map_data_to_remeshed_volume(self) -> None:
         """Map the data from the original mesh to the remeshed mesh."""
         # get list of tag ids to keep for mapping
-        mapper = self.info.labels_to_ids
+        mapper = self.info._deprecated_labels_to_ids
         labels = [l for p in self.parts if p.tag_labels for l in p.tag_labels]
         tag_ids = [mapper[l] for l in labels if "valve" not in l and "inlet" not in l]
 
@@ -1016,7 +1065,7 @@ class HeartModel:
         # self.mesh.part_ids = self.mesh.cell_data["tags"].astype(int)
 
         # For any non-ventricular points assign -100 to uvc coordinates
-        mapper = self.info.ids_to_labels
+        mapper = self.info._deprecated_ids_to_labels
         ventricular_tags = [tid for tid in tag_ids if "ventricle" in mapper[tid]]
         mask = np.isin(self.mesh.part_ids, ventricular_tags, invert=True)
         node_ids_to_modify = np.unique(self.mesh.tetrahedrons[mask, :])
@@ -1031,7 +1080,7 @@ class HeartModel:
 
         return
 
-    def _add_nodal_areas(self):
+    def _pipeline_method_add_nodal_areas(self):
         """Compute and add nodal areas to surface nodes."""
         LOGGER.debug("Adding nodal areas")
         for surface in self.mesh.boundaries:
@@ -1053,7 +1102,7 @@ class HeartModel:
         # self.mesh.write_to_vtk(os.path.join(self.info.workdir, "volume_nodal_areas.vtk"))
         return
 
-    def _add_surface_normals(self):
+    def _pipeline_method_add_surface_normals(self):
         """Add surface normal as point data and cell data to all 'named' surfaces in the model."""
         LOGGER.debug("Adding normals to all 'named' surfaces")
         for part in self.parts:
@@ -1066,7 +1115,7 @@ class HeartModel:
 
         return
 
-    def _update_parts(self):
+    def _pipeline_method_update_parts(self):
         """Update the parts using the (re)meshed volume.
 
         Notes
@@ -1082,22 +1131,22 @@ class HeartModel:
         9. Adds nodal areas
         10. Adds surface normals to boundaries
         """
-        self._extract_septum()
-        self._assign_elements_to_parts()
-        self._assign_surfaces_to_parts()
-        self._assign_caps_to_parts()
-        self._assign_cavities_to_parts()
-        self._extract_apex()
+        self._pipeline_method_extract_septum()
+        self._pipeline_method_assign_elements_to_parts()
+        self._pipeline_method_assign_surfaces_to_parts()
+        self._pipeline_method_assign_caps_to_parts()
+        self._pipeline_method_assign_cavities_to_parts()
+        self._pipeline_method_extract_apex()
         #
         self.compute_left_ventricle_anatomy_axis()
         self.compute_left_ventricle_aha17()
 
-        self._add_nodal_areas()
-        self._add_surface_normals()
+        self._pipeline_method_add_nodal_areas()
+        self._pipeline_method_add_surface_normals()
 
         return
 
-    def _extract_septum(self) -> None:
+    def _pipeline_method_extract_septum(self) -> None:
         """Separate the septum elements from the left ventricle.
 
         Note
@@ -1144,7 +1193,7 @@ class HeartModel:
 
         return
 
-    def _extract_apex(self) -> None:
+    def _pipeline_method_extract_apex(self) -> None:
         """Extract the apex for both the endocardium and epicardium of each ventricle.
 
         Note
@@ -1175,7 +1224,7 @@ class HeartModel:
 
         return
 
-    def _assign_elements_to_parts(self) -> None:
+    def _pipeline_method_assign_elements_to_parts(self) -> None:
         """Get the element ids of each part and assign these to the Part objects."""
         # get element ids of each part
         used_element_ids = self._get_used_element_ids()
@@ -1205,7 +1254,7 @@ class HeartModel:
 
         return
 
-    def _assign_surfaces_to_parts(self) -> None:
+    def _pipeline_method_assign_surfaces_to_parts(self) -> None:
         """Assign surfaces generated during remeshing to model parts."""
         for part in self.parts:
             for surface in part.surfaces:
@@ -1219,7 +1268,7 @@ class HeartModel:
 
         return
 
-    def _assign_caps_to_parts(self) -> None:
+    def _pipeline_method_assign_caps_to_parts(self) -> None:
         """Use connectivity to obtain cap boundaries and adds these to their respective parts."""
         used_boundary_surface_names = [s.name for p in self.parts for s in p.surfaces]
         remaining_surfaces = list(set(self.mesh.boundary_names) - set(used_boundary_surface_names))
@@ -1328,7 +1377,7 @@ class HeartModel:
 
         return
 
-    def _assign_cavities_to_parts(self) -> None:
+    def _pipeline_method_assign_cavities_to_parts(self) -> None:
         """Create cavities based on endocardium surfaces and cap definitions."""
         # rename septum to right ventricle endocardium septum
         if isinstance(self, (BiVentricle, FourChamber, FullHeart)):
@@ -1628,7 +1677,9 @@ class FullHeart(HeartModel):
 
 
 if __name__ == "__main__":
-    info = ModelInfo(database="Strocchi2020", work_directory="tmp", path_to_case="test.case")
+    info = ModelInfo(
+        database="Strocchi2020", work_directory="tmp", _deprecated_path_to_case="test.case"
+    )
 
     model = LeftVentricle(info)
     print("LeftVentricle:")

@@ -1495,6 +1495,16 @@ def append_vtk_polydata_files(files: list, path_to_merged_vtk: str, substrings: 
     return
 
 
+def get_cells_with_scalar_value(
+    pv_object: Union[pyvista.PolyData, pyvista.UnstructuredGrid],
+    values_to_keep: np.ndarray,
+    scalar: str,
+) -> Union[pyvista.PolyData, pyvista.UnstructuredGrid]:
+    """Get cells with a specific value."""
+    mask = np.isin(pv_object.cell_data[scalar], values_to_keep)
+    return pv_object.extract_cells(np.argwhere(mask))
+
+
 def vtk_cutter(vtk_polydata: vtk.vtkPolyData, cut_plane) -> vtk.vtkPolyData:
     """
     Cut a vtk polydata by a plane.

@@ -19,10 +19,10 @@ from ansys.heart.custom_logging import LOGGER
 import numpy as np
 import pyvista as pv
 
-# SURFACES_PER_HEART_PART stores the reference id's of the various parts and
-# lists the required surfaces that enclose the part
+# BOUNDARIES_PER_HEART_PART stores the reference id's of the various parts and
+# lists the required boundaries that enclose the part
 # E.g. Left ventricle is enclosed by the endocardium, epicardium, and aortic/mitral valve interfaces
-# hence to create a left-ventricle we need to provide these surfaces. The mesher will
+# hence to create a left-ventricle we need to provide these boundaries. The mesher will
 # then generate the volume mesh for that part.
 BOUNDARIES_PER_HEART_PART = {
     "Left ventricle myocardium": {

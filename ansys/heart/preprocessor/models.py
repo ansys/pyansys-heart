@@ -191,6 +191,11 @@ class HeartModel:
         return [part.cavity for part in self.parts if part.cavity]
 
     def __init__(self, info: ModelInfo) -> None:
+        LOGGER.warning(
+            PendingDeprecationWarning(
+                "' !!! HeartModel will be deprecated and replaced in the future. !!! "
+            ),
+        )
         self.info = info
         """Model meta information."""
         self.mesh = Mesh()

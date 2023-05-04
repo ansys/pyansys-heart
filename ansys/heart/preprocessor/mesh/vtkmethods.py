@@ -495,10 +495,10 @@ def vtk_map_discrete_cell_data(
 
     poly_target = dsa.WrapDataObject(interpolator.GetOutput())
 
-    tags_target = poly_target.PointData["tags"]
+    tags_target = poly_target.PointData[data_name]
 
     # adds the target tags as a cell array to the target
-    add_vtk_array(vtk_object_target, tags_target, name="tags", data_type="cell")
+    add_vtk_array(vtk_object_target, tags_target, name=data_name, data_type="cell")
 
     return vtk_object_target
 

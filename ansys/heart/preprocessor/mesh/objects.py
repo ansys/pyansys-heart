@@ -161,7 +161,7 @@ class Mesh(pv.UnstructuredGrid):
             self.point_data[key] = mesh.point_data[key]
 
         if np.issubdtype(self.cell_data["tags"].dtype, np.integer):
-            self.cell_data["tags"] = np.array(self.cell_data["tags"], dtype=float)
+            self.cell_data["part-id"] = np.array(self.cell_data["tags"], dtype=float)
 
         return None
 
@@ -262,6 +262,10 @@ class Mesh(pv.UnstructuredGrid):
                 == 1
             )
             pair_mask = np.all(np.array([part_mask1, part_mask2]), axis=0)
+
+            # skip if interface has no faces.
+            if not np.any(pair_mask):
+                continue
 
             faces = self.triangles[pair_mask, :]
             # NOTE: Nodes are shallow copied

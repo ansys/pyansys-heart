@@ -50,17 +50,17 @@ class ModelInfo:
 
     def __init__(
         self,
-        input: Union[pathlib.Path, str, pv.PolyData, pv.UnstructuredGrid],
         work_directory: pathlib.Path,
         model_type: Union[str, type] = None,
         database: str = None,
         mesh_size: float = 1.5,
         add_blood_pool: bool = False,
-        scalar: str = "tags",
+        scalar: str = "part-id",
         name_to_id: dict = None,
         path_to_simulation_mesh: pathlib.Path = None,
         path_to_model: pathlib.Path = None,
         _deprecated_path_to_case: pathlib.Path = None,
+        input: Union[pathlib.Path, str, pv.PolyData, pv.UnstructuredGrid] = None,
     ) -> None:
         self.input = input
         """Input to the workflow."""
@@ -343,14 +343,16 @@ class HeartModel:
                     "tags.vtk",
                     points,
                     [("vertex", vertex)],
-                    cell_data={"tags": [input_surface["tags"]]},
+                    cell_data={"part-id": [input_surface["part-id"]]},
                 )
                 vertex_tags = vtkmethods.read_vtk_unstructuredgrid_file("tags.vtk")
                 os.remove("tags.vtk")
-                self.mesh = vtkmethods.vtk_map_discrete_cell_data(vertex_tags, self.mesh, "tags")
+                self.mesh = vtkmethods.vtk_map_discrete_cell_data(vertex_tags, self.mesh, "part-id")
 
             elif isinstance(self, LeftVentricle):
-                self.mesh.cell_data["tags"] = np.ones(self.mesh.tetrahedrons.shape[0], dtype=float)
+                self.mesh.cell_data["part-id"] = np.ones(
+                    self.mesh.tetrahedrons.shape[0], dtype=float
+                )
             # extract septum
             self._pipeline_method_extract_septum()
 
@@ -399,6 +401,12 @@ class HeartModel:
 
         else:
             self._deprecated_read_input_mesh()
+            # rename "part-id" to "part-id"
+            try:
+                self.mesh_raw.rename_array("tags", "part-id", preference="cell")
+            except:
+                raise ValueError("Failed to rename 'tags' cell-data field to 'part-id' field")
+
             self._pipeline_method_remove_unused_tags()
             self._pipeline_method_prepare_for_meshing()
             self._pipeline_method_remesh()
@@ -521,7 +529,7 @@ class HeartModel:
         return
 
     def plot_mesh(
-        self, plot_raw_mesh: bool = False, show_edges: bool = True, color_by: str = "tags"
+        self, plot_raw_mesh: bool = False, show_edges: bool = True, color_by: str = "part-id"
     ):
         """Plot the volume mesh of the heart model.
 
@@ -532,7 +540,7 @@ class HeartModel:
         show_edges : bool, optional
             Whether to plot the edges, by default True
         color_by : str, optional
-            Color by cell/point data, by default "tags"
+            Color by cell/point data, by default "part-id"
 
         Examples
         --------
@@ -548,9 +556,9 @@ class HeartModel:
 
         plotter = pyvista.Plotter()
         if plot_raw_mesh:
-            plotter.add_mesh(self.mesh_raw, show_edges=show_edges, scalars="tags")
+            plotter.add_mesh(self.mesh_raw, show_edges=show_edges, scalars="part-id")
         else:
-            plotter.add_mesh(self.mesh, show_edges=show_edges, scalars="tags")
+            plotter.add_mesh(self.mesh, show_edges=show_edges, scalars="part-id")
 
         plotter.show()
         return
@@ -726,7 +734,7 @@ class HeartModel:
             if not part.tag_ids:
                 continue
             tag_ids.extend(part.tag_ids)
-        self.mesh_raw.keep_elements_with_value(tag_ids, "tags")
+        self.mesh_raw.keep_elements_with_value(tag_ids, "part-id")
         return
 
     def _get_used_element_ids(self) -> np.ndarray:
@@ -1022,7 +1030,7 @@ class HeartModel:
         labels = [l for p in self.parts if p.tag_labels for l in p.tag_labels]
         tag_ids = [mapper[l] for l in labels if "valve" not in l and "inlet" not in l]
 
-        self.mesh_raw.keep_elements_with_value(tag_ids, "tags")
+        self.mesh_raw.keep_elements_with_value(tag_ids, "part-id")
 
         # get list of all arrays in original mesh
         array_names = list(self.mesh_raw.cell_data.keys()) + list(self.mesh_raw.point_data.keys())
@@ -1039,10 +1047,10 @@ class HeartModel:
             array_names_to_include=uvc_array_names,
         )
         # map tags
-        target = vtkmethods.vtk_map_discrete_cell_data(source, target, data_name="tags")
+        target = vtkmethods.vtk_map_discrete_cell_data(source, target, data_name="part-id")
 
         # interpolate remaining fields
-        remaining_arrays = set(array_names) - set(uvc_array_names + ["tags"])
+        remaining_arrays = set(array_names) - set(uvc_array_names + ["part-id"])
 
         target = vtkmethods.vtk_map_continuous_data(
             source=source,
@@ -1062,7 +1070,7 @@ class HeartModel:
         for key, value in mapped_point_data.items():
             self.mesh.point_data[key] = value
 
-        # self.mesh.part_ids = self.mesh.cell_data["tags"].astype(int)
+        # self.mesh.part_ids = self.mesh.cell_data["part-id"].astype(int)
 
         # For any non-ventricular points assign -100 to uvc coordinates
         mapper = self.info._deprecated_ids_to_labels

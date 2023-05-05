@@ -1048,9 +1048,16 @@ class HeartModel:
         # multiple surfaces - so we need to perform a summation.
         # interior nodes will have an area of 0.
         self.mesh.point_data["nodal_areas"] = np.zeros(self.mesh.nodes.shape[0])
-        for surface in self.mesh.boundaries:
-            self.mesh.point_data["nodal_areas"] += surface.point_data["nodal_areas"]
+
+        # for surface in self.mesh.boundaries:
+        #     self.mesh.point_data["nodal_areas"] += surface.point_data["nodal_areas"]
+        # self.mesh.write_to_vtk(os.path.join(self.info.workdir, "volume_nodal_areas1.vtk"))
+        sf = self.mesh.extract_surface(pass_pointid=True)
+        nodal_areas = vtkmethods.compute_surface_nodal_area_pyvista(sf)
+        self.mesh.point_data["nodal_areas"][sf.point_data["vtkOriginalPointIds"]] = nodal_areas
+
         # self.mesh.write_to_vtk(os.path.join(self.info.workdir, "volume_nodal_areas.vtk"))
+
         return
 
     def _add_surface_normals(self):
@@ -1259,13 +1266,26 @@ class HeartModel:
                             name_valve = name_valve.replace("-plane", "").replace("-inlet", "")
 
                             cap = Cap(name=name_valve, node_ids=edge_group.edges[:, 0])
+                            cap.centroid = np.mean(surf.nodes[cap.node_ids, :], axis=0)
+
+                            # tessellation 1 : add a center node
+                            center_id = len(self.mesh.nodes)  # center node ID, 0 based
+                            self.mesh.nodes = np.vstack((self.mesh.nodes, cap.centroid))
+                            cap.tessellate(points=[center_id])
+                            # tessellation 2 :  scipy Delaunay
+                            # cap.tessellate(points=self.mesh.nodes[cap.node_ids])
 
                             # get approximate cavity centroid to check normal of cap
                             cavity_centroid = surface.compute_centroid()
 
-                            cap.tessellate(points=self.mesh.nodes[cap.node_ids])
-                            p1 = surf.nodes[cap.triangles[:, 1],] - surf.nodes[cap.triangles[:, 0],]
-                            p2 = surf.nodes[cap.triangles[:, 2],] - surf.nodes[cap.triangles[:, 0],]
+                            p1 = (
+                                self.mesh.nodes[cap.triangles[:, 1],]
+                                - self.mesh.nodes[cap.triangles[:, 0],]
+                            )
+                            p2 = (
+                                self.mesh.nodes[cap.triangles[:, 2],]
+                                - self.mesh.nodes[cap.triangles[:, 0],]
+                            )
                             normals = np.cross(p1, p2)
                             cap_normal = np.mean(normals, axis=0)
                             cap_normal = cap_normal / np.linalg.norm(cap_normal)
@@ -1282,8 +1302,6 @@ class HeartModel:
                                 # flip segments
                                 cap.triangles[:, [1, 2]] = cap.triangles[:, [2, 1]]
                                 cap.normal = cap.normal * -1
-
-                            cap.centroid = np.mean(surf.nodes[cap.node_ids, :], axis=0)
 
                             part.caps.append(cap)
                             LOGGER.debug("Cap: {0} closes {1}".format(name_valve, surface.name))

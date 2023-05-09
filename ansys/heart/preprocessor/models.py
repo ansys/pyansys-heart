@@ -177,6 +177,9 @@ class HeartModel:
         """
         self.aha_ids = None
 
+        self.cap_centroids: List[Point] = []
+        """Centroid point to create cap shell."""
+
     def extract_simulation_mesh(self, clean_up: bool = False) -> None:
         """Update the model.
 
@@ -1239,6 +1242,7 @@ class HeartModel:
 
         # find intersection between remaining surfaces and part surfaces
         # This will find the valve/cap nodes
+        cap_counter = 0
         for part in self.parts:
             for surface in part.surfaces:
                 # special treatment since a part of surface is defined in septum
@@ -1266,26 +1270,35 @@ class HeartModel:
                             name_valve = name_valve.replace("-plane", "").replace("-inlet", "")
 
                             cap = Cap(name=name_valve, node_ids=edge_group.edges[:, 0])
+                            cap_counter += 1
                             cap.centroid = np.mean(surf.nodes[cap.node_ids, :], axis=0)
 
+                            # # tessellation 0 : pick a node and create segments
+                            # cap.tessellate()
+
                             # tessellation 1 : add a center node
-                            center_id = len(self.mesh.nodes)  # center node ID, 0 based
-                            self.mesh.nodes = np.vstack((self.mesh.nodes, cap.centroid))
-                            cap.tessellate(points=[center_id])
-                            # tessellation 2 :  scipy Delaunay
+                            cap.centroid_id = (
+                                len(self.mesh.nodes) + cap_counter - 1
+                            )  # center node ID, 0 based
+                            self.cap_centroids.append(
+                                Point(
+                                    name=name_valve + "_center",
+                                    xyz=cap.centroid,
+                                    node_id=cap.centroid_id,
+                                )
+                            )
+
+                            cap.tessellate(points=[cap.centroid_id])
+                            p1 = surf.nodes[cap.triangles[:, 1],] - cap.centroid
+                            p2 = surf.nodes[cap.triangles[:, 2],] - cap.centroid
+
+                            # tessellation 2 :scipy Delaunay,not stable if nodes are not in a plane
                             # cap.tessellate(points=self.mesh.nodes[cap.node_ids])
+                            # p1 = surf.nodes[cap.triangles[:, 1]] - surf.nodes[cap.triangles[:, 0]]
+                            # p2 = surf.nodes[cap.triangles[:, 2]] - surf.nodes[cap.triangles[:, 0]]
 
                             # get approximate cavity centroid to check normal of cap
                             cavity_centroid = surface.compute_centroid()
-
-                            p1 = (
-                                self.mesh.nodes[cap.triangles[:, 1],]
-                                - self.mesh.nodes[cap.triangles[:, 0],]
-                            )
-                            p2 = (
-                                self.mesh.nodes[cap.triangles[:, 2],]
-                                - self.mesh.nodes[cap.triangles[:, 0],]
-                            )
                             normals = np.cross(p1, p2)
                             cap_normal = np.mean(normals, axis=0)
                             cap_normal = cap_normal / np.linalg.norm(cap_normal)
@@ -1358,6 +1371,15 @@ class HeartModel:
                     surface.name = surface.name.replace("septum", "endocardium septum")
 
         # construct cavities with endocardium and caps
+
+        if len(self.cap_centroids) == 0:
+            nodes = self.mesh.nodes
+        else:
+            # a center node for each cap has been created, add them into create the cavity
+            nodes = np.vstack((self.mesh.nodes, np.zeros((len(self.cap_centroids), 3))))
+            for cap_center in self.cap_centroids:
+                nodes[cap_center.node_id] = cap_center.xyz
+
         for part in self.parts:
             if "atrium" not in part.name and "ventricle" not in part.name:
                 continue
@@ -1370,9 +1392,7 @@ class HeartModel:
             for cap in part.caps:
                 cavity_faces = np.vstack([cavity_faces, cap.triangles])
 
-            surface = SurfaceMesh(
-                name=part.name + " cavity", triangles=cavity_faces, nodes=self.mesh.nodes
-            )
+            surface = SurfaceMesh(name=part.name + " cavity", triangles=cavity_faces, nodes=nodes)
             part.cavity = Cavity(surface=surface, name=part.name)
             part.cavity.compute_centroid()
 

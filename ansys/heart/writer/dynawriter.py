@@ -1567,6 +1567,16 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
             part_kw.parts = part_info
 
+            # Add center node
+            if cap.centroid is not None:
+                node_kw = keywords.Node()
+                df = pd.DataFrame(
+                    data=np.insert(cap.centroid, 0, cap.centroid_id + 1).reshape(1, -1),
+                    columns=node_kw.nodes.columns[0:4],
+                )
+                node_kw.nodes = df
+                self.kw_database.cap_elements.append(node_kw)
+
             self.kw_database.cap_elements.append(part_kw)
             cap_names_used.append(cap.name)
 

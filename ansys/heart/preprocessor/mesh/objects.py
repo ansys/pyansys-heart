@@ -778,7 +778,8 @@ class Cavity(Feature):
 
     def compute_centroid(self):
         """Compute the centroid of the cavity."""
-        self.centroid = np.mean(self.surface.nodes[np.unique(self.surface.triangles), :], axis=0)
+        # self.centroid = np.mean(self.surface.nodes[np.unique(self.surface.triangles), :], axis=0)
+        self.centroid = self.surface.center
         return self.centroid
 
 
@@ -795,6 +796,8 @@ class Cap(Feature):
         """Normal of cap."""
         self.centroid = None
         """Centroid of cap."""
+        self.centroid_id = None
+        """Centroid of cap ID (in case centroid node is created)."""
         self.type = "cap"
         """Type."""
         return

@@ -410,7 +410,7 @@ class MechanicsSimulator(BaseSimulator):
 
         print("Computing stress-free configuration...")
 
-        # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
+        self.settings.save(Path.Path(directory) / "simulation_settings.yml")
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file, options="case")
 
@@ -429,9 +429,17 @@ class MechanicsSimulator(BaseSimulator):
             stress_free_coord = data.get_initial_coordinates()
             displacements = data.get_displacement()
 
+            if len(self.model.cap_centroids) == 0:
+                nodes = self.model.mesh.nodes
+            else:
+                # a center node for each cap has been created, add them into create the cavity
+                nodes = np.vstack((self.model.mesh.nodes, np.zeros((len(self.model.cap_centroids), 3))))
+                for cap_center in self.model.cap_centroids:
+                    nodes[cap_center.node_id] = cap_center.xyz
+
             # convergence information
             dst = np.linalg.norm(
-                stress_free_coord + displacements[-1] - self.model.mesh.points, axis=1
+                stress_free_coord + displacements[-1] - nodes, axis=1
             )
             error_mean = np.mean(dst)
             error_max = np.max(dst)

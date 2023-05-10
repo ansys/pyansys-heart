@@ -618,7 +618,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """Name of system model to use."""
 
         # Depending on the system model specified give list of parameters
-        self.cap_in_zerop = False
+        self.cap_in_zerop = True
         """
         If include cap (shell) elements in ZeroPressure.
         Experimental feature, please do not change it.
@@ -1551,6 +1551,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         cap_names_used = []
         for cap in caps:
             if cap.name in cap_names_used:
+                # avoid to write mitral valve and triscupid valve twice
                 LOGGER.debug("Already created material for {}: skipping".format(cap.name))
                 continue
 

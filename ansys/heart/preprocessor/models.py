@@ -1269,6 +1269,13 @@ class HeartModel:
                             )
                             name_valve = name_valve.replace("-plane", "").replace("-inlet", "")
 
+                            if "atrium" in part.name:
+                                if "mitral" in name_valve or "tricuspid" in name_valve:
+                                    LOGGER.debug(f'{name_valve} has been create in ventricular parts.')
+                                    # Create dummy cap (only name) and will be filled later
+                                    part.caps.append(Cap(name=name_valve))
+                                    continue
+
                             cap = Cap(name=name_valve, node_ids=edge_group.edges[:, 0])
                             cap_counter += 1
                             cap.centroid = np.mean(surf.nodes[cap.node_ids, :], axis=0)
@@ -1324,8 +1331,8 @@ class HeartModel:
         for part in self.parts:
             if not "atrium" in part.name:
                 continue
-            for cap in part.caps:
-                # replace with cap in ventricle
+            for ic, cap in enumerate(part.caps):
+                # replace with cap in ventricle (mitral and tricuspid valve)
                 cap_ref = [
                     c
                     for p in self.parts
@@ -1333,16 +1340,21 @@ class HeartModel:
                     for c in p.caps
                     if c.name == cap.name
                 ]
+
                 if len(cap_ref) == 1:
+
+                    cap = cap_ref[0]
+                    # note: flip order to make sure normal is pointing inwards
+                    cap.node_ids = np.flip(cap_ref[0].node_ids)
+                    # flip segments
+                    cap.triangles[:, [1, 2]] = cap.triangles[:, [2, 1]]
+
                     LOGGER.debug(
                         "Replacing cap {0} of part{1}: with that of the ventricle".format(
                             cap.name, part.name
                         )
                     )
-                    # note: flip order to make sure normal is pointing inwards
-                    cap.node_ids = np.flip(cap_ref[0].node_ids)
-                    # flip segments
-                    cap.triangles[:, [1, 2]] = cap.triangles[:, [2, 1]]
+                    part.caps[ic]= cap
 
         # As a consequence we need to add interface region to endocardium of atria or ventricle
         # current approach is to add these to the atria

@@ -1528,13 +1528,18 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 rho=material_settings.cap["rho"],
                 c10=material_settings.cap["mu1"] / 2,
             )
-        else:
-            if material_settings.cap["type"] != "null":
-                LOGGER.warning("Cap elements will be set as null material.")
+        elif material_settings.cap["type"] == "null":
             material_kw = keywords.MatNull(
                 mid=mat_null_id,
                 ro=material_settings.cap["rho"],
             )
+        elif material_settings.cap["type"] == "rigid":
+            material_kw = keywords.MatRigid(
+                mid=mat_null_id,
+                ro=material_settings.cap["rho"],
+                e=material_settings.cap["mu1"]*1000
+            )
+
         section_kw = keywords.SectionShell(
             secid=section_id,
             elform=4,

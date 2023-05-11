@@ -618,7 +618,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """Name of system model to use."""
 
         # Depending on the system model specified give list of parameters
-        self.cap_in_zerop = True
+        self.cap_in_zerop = False
         """
         If include cap (shell) elements in ZeroPressure.
         Experimental feature, please do not change it.
@@ -1537,7 +1537,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             material_kw = keywords.MatRigid(
                 mid=mat_null_id,
                 ro=material_settings.cap["rho"],
-                e=material_settings.cap["mu1"]*1000
+                e=material_settings.cap["mu1"] * 1000,
             )
 
         section_kw = keywords.SectionShell(
@@ -1574,7 +1574,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             part_kw.parts = part_info
 
             # Add center node
-            if cap.centroid is not None:
+            if len(self.model.cap_centroids) > 0:
                 node_kw = keywords.Node()
                 df = pd.DataFrame(
                     data=np.insert(cap.centroid, 0, cap.centroid_id + 1).reshape(1, -1),

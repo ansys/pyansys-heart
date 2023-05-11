@@ -1,4 +1,5 @@
 """Module containing classes for the various heart models."""
+import copy
 import json
 import os
 
@@ -1271,7 +1272,9 @@ class HeartModel:
 
                             if "atrium" in part.name:
                                 if "mitral" in name_valve or "tricuspid" in name_valve:
-                                    LOGGER.debug(f'{name_valve} has been create in ventricular parts.')
+                                    LOGGER.debug(
+                                        f"{name_valve} has been create in ventricular parts."
+                                    )
                                     # Create dummy cap (only name) and will be filled later
                                     part.caps.append(Cap(name=name_valve))
                                     continue
@@ -1280,29 +1283,26 @@ class HeartModel:
                             cap_counter += 1
                             cap.centroid = np.mean(surf.nodes[cap.node_ids, :], axis=0)
 
-                            # # tessellation 0 : pick a node and create segments
-                            # cap.tessellate()
+                            # # tessellation 2 : add a center node
+                            # cap.centroid_id = (
+                            #     len(self.mesh.nodes) + cap_counter - 1
+                            # )  # center node ID, 0 based
+                            # self.cap_centroids.append(
+                            #     Point(
+                            #         name=name_valve + "_center",
+                            #         xyz=cap.centroid,
+                            #         node_id=cap.centroid_id,
+                            #     )
+                            # )
+                            #
+                            # cap.tessellate(points=[cap.centroid_id])
+                            # p1 = surf.nodes[cap.triangles[:, 1],] - cap.centroid
+                            # p2 = surf.nodes[cap.triangles[:, 2],] - cap.centroid
 
-                            # tessellation 1 : add a center node
-                            cap.centroid_id = (
-                                len(self.mesh.nodes) + cap_counter - 1
-                            )  # center node ID, 0 based
-                            self.cap_centroids.append(
-                                Point(
-                                    name=name_valve + "_center",
-                                    xyz=cap.centroid,
-                                    node_id=cap.centroid_id,
-                                )
-                            )
-
-                            cap.tessellate(points=[cap.centroid_id])
-                            p1 = surf.nodes[cap.triangles[:, 1],] - cap.centroid
-                            p2 = surf.nodes[cap.triangles[:, 2],] - cap.centroid
-
-                            # tessellation 2 :scipy Delaunay,not stable if nodes are not in a plane
-                            # cap.tessellate(points=self.mesh.nodes[cap.node_ids])
-                            # p1 = surf.nodes[cap.triangles[:, 1]] - surf.nodes[cap.triangles[:, 0]]
-                            # p2 = surf.nodes[cap.triangles[:, 2]] - surf.nodes[cap.triangles[:, 0]]
+                            # tessellation 1 : do not create center node
+                            cap.tessellate()
+                            p1 = surf.nodes[cap.triangles[:, 1]] - surf.nodes[cap.triangles[:, 0]]
+                            p2 = surf.nodes[cap.triangles[:, 2]] - surf.nodes[cap.triangles[:, 0]]
 
                             # get approximate cavity centroid to check normal of cap
                             cavity_centroid = surface.compute_centroid()
@@ -1342,8 +1342,7 @@ class HeartModel:
                 ]
 
                 if len(cap_ref) == 1:
-
-                    cap = cap_ref[0]
+                    cap = copy.deepcopy(cap_ref[0])
                     # note: flip order to make sure normal is pointing inwards
                     cap.node_ids = np.flip(cap_ref[0].node_ids)
                     # flip segments
@@ -1354,7 +1353,7 @@ class HeartModel:
                             cap.name, part.name
                         )
                     )
-                    part.caps[ic]= cap
+                    part.caps[ic] = cap
 
         # As a consequence we need to add interface region to endocardium of atria or ventricle
         # current approach is to add these to the atria

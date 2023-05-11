@@ -805,16 +805,43 @@ class Cap(Feature):
     def tessellate(self, points=None) -> np.ndarray:
         """Form triangles with the node ids."""
         if points is None:
-            ref_node = self.node_ids[0]
-            num_triangles = self.node_ids.shape[0] - 1
-            ref_node = np.ones(num_triangles, dtype=int) * ref_node
-            tris = []
-            for ii, _ in enumerate(self.node_ids[0:-2]):
-                tri = [self.node_ids[0], self.node_ids[ii + 1], self.node_ids[ii + 2]]
-                tris.append(tri)
-            self.triangles = np.array(tris, dtype=int)
+            # #
+            # ref_node = self.node_ids[0]
+            # num_triangles = self.node_ids.shape[0] - 1
+            # ref_node = np.ones(num_triangles, dtype=int) * ref_node
+            # tris = []
+            # for ii, _ in enumerate(self.node_ids[0:-2]):
+            #     tri = [self.node_ids[0], self.node_ids[ii + 1], self.node_ids[ii + 2]]
+            #     tris.append(tri)
+            # self.triangles = np.array(tris, dtype=int)
+            def _new_tesselation(n):
+                # tessellation forwards and backwards to avoid all shells connected to one node
+                ids = np.linspace(0, n - 1, n, dtype=int)
+                tri = np.empty((len(ids) - 2, 3))
+
+                for i in range(n - 2):
+                    if i % 2 == 0:
+                        x = int(i / 2)
+                        tri[i, 0] = ids[-x]
+                        tri[i, 1] = ids[1 + x]
+                        tri[i, 2] = ids[x + 2]
+                    else:
+                        x = -int(np.floor(i / 2))
+                        tri[i, 0] = ids[-x + 2]
+                        tri[i, 1] = ids[x - 1]
+                        if i == 0:
+                            tri[i, 2] = ids[0]
+                        else:
+                            tri[i, 2] = ids[x]
+                return tri.astype(int)
+
+            tris = _new_tesselation(len(self.node_ids))
+            self.triangles = self.node_ids[tris]
+
         elif len(points) == 1:
-            ref_node = points[0]
+            # tessellation with a node at center
+            ref_node = points[0]  # center node
+
             num_triangles = self.node_ids.shape[0] + 1
             tris = [[ref_node, self.node_ids[0], self.node_ids[1]]]
             for ii, _ in enumerate(self.node_ids[0:-2]):
@@ -823,11 +850,11 @@ class Cap(Feature):
             tris.append([ref_node, self.node_ids[-1], self.node_ids[0]])
             self.triangles = np.array(tris, dtype=int)
 
-        else:
-            from scipy.spatial import Delaunay
+        # debug
+        # ele = np.hstack((np.ones((len(tris), 1), int) * 3, tris))
+        # cap = pv.PolyData(points, ele)
+        # cap.plot(show_edges=True)
 
-            tris = Delaunay(points[:, 0:2]).simplices
-            self.triangles = self.node_ids[tris]
         return self.triangles
 
 

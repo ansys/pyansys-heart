@@ -17,6 +17,64 @@ _template_directory = pkg_resources.resource_filename("ansys.heart.preprocessor"
 _fluent_version = "22.2.0"
 
 
+def mesh_from_good_quality_surfaces(
+    model: _InputModel, workdir: Union[str, Path], path_to_output: Union[str, Path]
+):
+    """Generate volume mesh from list of stls using PyFluent."""
+    if not isinstance(model, _InputModel):
+        raise ValueError(f"Expecting input to be of type {str(_InputModel)}")
+
+    model.write_part_boundaries(workdir)
+
+    import ansys.fluent.core as pyfluent
+
+    session = pyfluent.launch_fluent(
+        mode="meshing",
+        precision="double",
+        processor_count=2,
+        start_transcript=True,
+        show_gui=False,
+        product_version=_fluent_version,
+    )
+
+    # import files
+    session.tui.file.import_.cad("no " + workdir + " *.stl yes 40 yes mm")
+    session.tui.file.start_transcript(os.path.join(workdir, "fluent_meshing.log"))
+    session.tui.objects.merge("'(*) heart")
+    session.tui.objects.labels.create_label_per_zone("heart '(*)")
+    session.tui.diagnostics.face_connectivity.fix_free_faces("objects '(*) merge-nodes yes 1e-3")
+    session.tui.objects.create_intersection_loops("collectively '(*)")
+    session.tui.boundary.feature.create_edge_zones("(*) fixed-angle 70 yes")
+    # create size field
+    session.tui.size_functions.set_global_controls(0.02, 0.02, 1.2)
+    session.tui.scoped_sizing.compute("yes")
+
+    # remesh surface
+    session.tui.boundary.remesh.remesh_face_zones_conformally("'(*) '(*) 40 20 yes")
+
+    session.tui.objects.create_new_mesh_object.remesh("'(heart) individually")
+
+    # compute volumes
+    session.tui.objects.volumetric_regions.compute("heart-mesh", "no")
+
+    # start auto meshing
+    session.tui.mesh.tet.controls.cell_sizing("size-field")
+    session.tui.mesh.auto_mesh("heart-mesh", "yes", "pyramids", "tet", "no")
+    session.tui.mesh.modify.auto_node_move("(*)", "(*)", 0.3, 50, 120, "yes", 5)
+    session.tui.objects.delete_all_geom()
+    session.tui.mesh.zone_names_clean_up()
+    session.tui.mesh.check_mesh()
+    session.tui.mesh.check_quality()
+    session.tui.boundary.manage.remove_suffix("(*)")
+
+    session.tui.mesh.prepare_for_solve("yes")
+
+    # write to file
+    session.tui.file.write_mesh(path_to_output)
+    # session.meshing.tui.file.read_journal(script)
+    session.exit()
+
+
 def mesh_heart_model_by_fluent(
     path_to_stl_directory: str,
     path_to_output: str,

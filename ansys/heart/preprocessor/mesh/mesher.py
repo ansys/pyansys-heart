@@ -98,6 +98,8 @@ def mesh_from_good_quality_surfaces(
     # session.meshing.tui.file.read_journal(script)
     session.exit()
 
+    return
+
 
 def mesh_heart_model_by_fluent(
     path_to_stl_directory: str,

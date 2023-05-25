@@ -15,7 +15,8 @@ from ansys.heart.preprocessor.databases import (
     PART_NAME_ID_MAPPING_DATABASES,
     SURFACE_NAME_ID_MAPPING_DATABASES,
 )
-from ansys.heart.preprocessor.input import HEART_MODELS
+
+# from ansys.heart.preprocessor.input import HEART_MODELS
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher
 from ansys.heart.preprocessor.mesh.objects import Cap, Cavity, Mesh, Part, Point, SurfaceMesh

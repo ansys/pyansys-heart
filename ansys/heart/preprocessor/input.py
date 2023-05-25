@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import List, Union
 
 from ansys.heart.custom_logging import LOGGER
+from ansys.heart.preprocessor.mesh.vtkmethods import add_solid_name_to_stl
 import numpy as np
 import pyvista as pv
 
@@ -37,56 +38,284 @@ BOUNDARIES_PER_HEART_PART = {
     "Right ventricle myocardium": {
         "id": 2,
         "enclosed_by_boundaries": {
-            "right-ventricle-endocardium": 5,
-            "right-ventricle-epicardium": 6,
-            "interface@right-ventricle_tricuspid-valve": 7,
-            "interface@right-ventricle_pulmonary-valve": 8,
+            "right-ventricle-endocardium": 6,
+            "right-ventricle-epicardium": 7,
+            "interface@right-ventricle_tricuspid-valve": 8,
+            "interface@right-ventricle_pulmonary-valve": 9,
+        },
+    },
+    "Septum": {
+        "id": 3,
+        "enclosed_by_boundaries": {
+            "left-ventricle-septum": 10,
+            "right-ventricle-septum": 11,
+            "interface@left-ventricle_septum": 12,
         },
     },
     "Left atrium myocardium": {
-        "id": 3,
+        "id": 4,
         "enclosed_by_boundaries": {
-            "left-atrium-endocardium": 9,
-            "left-atrium-epicardium": 10,
-            "interface@left-atrium_left-atrium-appendage-inlet": 11,
-            "interface@left-atrium_left-superior-pulmonary-vein-inlet": 12,
-            "interface@left-atrium_left-inferior-pulmonary-vein-inlet": 13,
-            "interface@right-atrium_right-inferior-pulmonary-vein-inlet": 14,
-            "interface@right-atrium_right-superior-pulmonary-vein-inlet": 15,
+            "left-atrium-endocardium": 13,
+            "left-atrium-epicardium": 14,
+            "interface@left-atrium_left-atrium-appendage-inlet": 15,
+            "interface@left-atrium_left-superior-pulmonary-vein-inlet": 16,
+            "interface@left-atrium_left-inferior-pulmonary-vein-inlet": 17,
+            "interface@right-atrium_right-inferior-pulmonary-vein-inlet": 18,
+            "interface@right-atrium_right-superior-pulmonary-vein-inlet": 19,
         },
     },
     "Right atrium myocardium": {
         "id": 4,
         "enclosed_by_boundaries": {
-            "right-atrium-endocardium": 16,
-            "right-atrium-epicardium": 17,
-            "interface@right-atrium_superior-vena-cava-inlet": 18,
-            "interface@right-atrium_inferior-vena-cava-inlet": 19,
+            "right-atrium-endocardium": 20,
+            "right-atrium-epicardium": 21,
+            "interface@right-atrium_superior-vena-cava-inlet": 22,
+            "interface@right-atrium_inferior-vena-cava-inlet": 23,
         },
     },
-    "Aorta wall": {"id": 5, "enclosed_by_boundaries": {"aorta-wall": 20}},
-    "Pulmonary artery wall": {"id": 6, "enclosed_by_boundaries": {"pulmonary-artery-wall": 21}},
+    "Aorta wall": {"id": 6, "enclosed_by_boundaries": {"aorta-wall": 24}},
+    "Pulmonary artery wall": {"id": 7, "enclosed_by_boundaries": {"pulmonary-artery-wall": 25}},
 }
 
 # the different types of "base" models supported
 HEART_MODELS = {
     "LeftVentricle": ["Left ventricle myocardium"],
-    "BiVentricle": ["Left ventricle myocardium", "Right ventricle myocardium"],
+    "BiVentricle": ["Left ventricle myocardium", "Right ventricle myocardium", "Septum"],
     "FourChamber": [
         "Left ventricle myocardium",
         "Right ventricle myocardium",
+        "Septum",
         "Left atrium myocardium",
         "Right atrium myocardium",
     ],
     "FullHeart": [
         "Left ventricle myocardium",
         "Right ventricle myocardium",
+        "Septum",
         "Left atrium myocardium",
         "Right atrium myocardium",
         "Aorta wall",
         "Pulmonary artery wall",
     ],
 }
+
+
+class _InputBoundary(pv.PolyData):
+    def __init__(
+        self,
+        var_inp=None,
+        faces=None,
+        n_faces=None,
+        lines=None,
+        n_lines=None,
+        strips=None,
+        n_strips=None,
+        deep=False,
+        force_ext=None,
+        force_float=True,
+        id=None,
+        name: str = "",
+    ) -> None:
+        super().__init__(
+            var_inp, faces, n_faces, lines, n_lines, strips, n_strips, deep, force_ext, force_float
+        )
+        self.id = id
+        """ID of boundary."""
+        self.name = name
+        """Name of boundary."""
+
+    @property
+    def triangles(self):
+        """Returns all triangles."""
+        if not self.is_all_triangles:
+            return
+        else:
+            return self.faces.reshape(self.n_cells, 4)[:, 1:]
+
+    def __repr__(self):
+        return f"Name:{self.name}\nid:{self.id}\n{super().__repr__()}"
+
+
+class _InputPart:
+    def __init__(self, name="", id=None, boundaries: List[_InputBoundary] = []) -> None:
+        if not isinstance(boundaries, list):
+            raise TypeError("Boundaries should be a list.")
+        self.name = name
+        """Name of part."""
+        self.id = id
+        """id of part."""
+        self.boundaries: List[_InputBoundary] = boundaries
+        """list of boundaries that enclose the part."""
+        pass
+
+    @property
+    def boundary_ids(self):
+        return [b.id for b in self.boundaries]
+
+    @property
+    def boundary_names(self):
+        return [b.name for b in self.boundaries]
+
+    @property
+    def combined_boundaries(self):
+        """Combined boundaries."""
+        combined = pv.PolyData()
+        for b in self.boundaries:
+            combined += b
+        return combined
+
+    @property
+    def is_manifold(self):
+        """Flag indicating whether the part is manifold (watertight)."""
+        return self.combined_boundaries.is_manifold
+
+    def __repr__(self) -> str:
+        return f"Name: {self.name}\nid:{self.id}\n" + "Number of boundaries:{len(self.boundaries)}"
+
+    def write_boundaries(self, writedir: Union[str, Path] = ".", extension: str = ".stl"):
+        """Write all boundaries of the part."""
+        filenames = []
+        for b in self.boundaries:
+            filename = b.name.lower().replace(" ", "_")
+            filename = os.path.join(writedir, filename + extension)
+            b.save(filename)
+            filenames += filename
+
+
+class _InputModel:
+    """Class to manage the different types of input.
+
+    Notes
+    -----
+    Supported inputs include:
+    1. [NotImplemented] Unstructured grid file or object with part-ids
+    2. [NotImplemented] Multiblock VTK file or object with a single UnstructuredGrid block or
+    with multiple PolyData objects
+    3. PolyData file or object with boundary-ids
+    """
+
+    def __init__(
+        self,
+        input: Union[Path, str, pv.UnstructuredGrid, pv.PolyData] = None,
+        scalar: str = None,
+        part_definitions: dict = None,
+    ) -> None:
+        self.input_polydata: pv.PolyData = None
+        """Input boundary."""
+        self.part_definitions = part_definitions
+        """Part definitions."""
+
+        self._parts: List[_InputPart] = []
+
+        # try to read the input.
+        if isinstance(input, (Path, str)):
+            LOGGER.info(f"Reading {input}...")
+            if not os.path.isfile(input):
+                raise FileNotFoundError(f"File {input} not found.")
+
+        boundary_is_set = False
+        try:
+            self.input_polydata = pv.PolyData(input)
+            boundary_is_set = True
+        except:
+            NotImplementedError(f"Failed to load file {input}. Other file types not supported yet.")
+            return
+
+        if self.input_polydata and scalar:
+            LOGGER.debug(f"Renaming {scalar} to boundary-id")
+            self.input_polydata.rename_array(scalar, "boundary-id")
+
+        if part_definitions == None:
+            raise NotImplementedError("Default part definitions not yet implemented.")
+
+        self._add_parts(part_definitions)
+
+        return
+
+    @property
+    def parts(self):
+        """List of defined parts."""
+        return self._parts
+
+    @property
+    def part_ids(self):
+        """List of part ids."""
+        return [p.id for p in self._parts]
+
+    @property
+    def part_names(self):
+        """List of part names."""
+        return [p.name for p in self._parts]
+
+    @property
+    def boundaries(self):
+        """List of boundaries."""
+        return [b for p in self._parts for b in p.boundaries]
+
+    @property
+    def boundary_names(self):
+        """List of defined boundary names."""
+        return [b.name for b in self.boundaries]
+
+    @property
+    def boundary_ids(self):
+        """List of boundary ids."""
+        return [b.id for b in self.boundaries]
+
+    def __repr__(self):
+        """Represent self."""
+        return "Input boundary mesh:\n" + str(self.input_polydata)
+
+    def _add_parts(self, part_definitions: dict):
+        """Update the list of parts based on the part definitions."""
+        is_visited = np.full(self.input_polydata.n_cells, False)
+
+        for part_name in part_definitions.keys():
+            boundaries = []
+            for boundary_name, boundary_id in part_definitions[part_name][
+                "enclosed_by_boundaries"
+            ].items():
+                mask = np.isin(self.input_polydata["boundary-id"], boundary_id)
+                is_visited[mask] = True
+                polydata = self.input_polydata.extract_cells(mask).extract_surface()
+
+                b = _InputBoundary(polydata, name=boundary_name, id=boundary_id)
+                boundaries.append(b)
+
+            self._parts.append(
+                _InputPart(
+                    name=part_name, id=part_definitions[part_name]["id"], boundaries=boundaries
+                )
+            )
+
+        if not np.all(is_visited):
+            LOGGER.warning("Not all faces are assigned to a boundary.")
+
+        return
+
+    def _validate_if_parts_manifold(self):
+        """Check if all parts are manifold (watertight)."""
+        for p in self.parts:
+            if not p.is_manifold:
+                return False
+        return True
+
+    def write_part_boundaries(
+        self,
+        writedir: Union[str, Path] = ".",
+        extension: str = ".stl",
+        avoid_duplicates: bool = True,
+    ):
+        """Write boundaries of all parts."""
+        saved = []
+        for b in self.boundaries:
+            if avoid_duplicates:
+                if b.id in saved:
+                    continue
+            filename = os.path.join(writedir, b.name.lower().replace(" ", "_") + extension)
+            b.save(filename)
+            add_solid_name_to_stl(filename, b.name, file_type="binary")
+            saved.append(b.id)
 
 
 def _invert_dict(d: dict):
@@ -184,7 +413,8 @@ class InputManager:
         >>> mesh_file = "unstructured_grid.vtu" # unstructured grid where 'tags'
         ...                                       cell data represents the part-ids
         >>> input = InputManager(mesh_file, scalar="tags",
-        ...             name_to_id_map={"Left ventricle myocardium" : 3, "Right ventricle myocardium" : 1})
+        ...             name_to_id_map={"Left ventricle myocardium" : 3,
+        ...                             "Right ventricle myocardium" : 1})
 
         Reading a boundary mesh (PolyData) from a file and explicitly give the boundary
         name to boundary-id map
@@ -217,24 +447,24 @@ class InputManager:
             if not os.path.isfile(input):
                 raise FileNotFoundError(f"File {input} not found.")
 
-        volume_set = False
-        boundary_set = False
+        volume_is_set = False
+        boundary_is_set = False
         try:
             self.input_boundary = pv.PolyData(input)
-            boundary_set = True
+            boundary_is_set = True
         except:
             try:
                 self.input_volume = pv.UnstructuredGrid(input)
-                volume_set = True
+                volume_is_set = True
             except:
                 pass
 
-        if not volume_set and not boundary_set:
+        if not volume_is_set and not boundary_is_set:
             try:
                 multi_block = pv.MultiBlock(input)
                 if len(multi_block) == 1 and isinstance(multi_block[0], pv.UnstructuredGrid):
                     self.input_volume = multi_block[0]
-                    volume_set = True
+                    volume_is_set = True
                 elif len(multi_block) > 0:
                     raise NotImplementedError(
                         "Support for Multi-Block PolyData not yet implemented."
@@ -246,7 +476,7 @@ class InputManager:
                             boundary = block
                         else:
                             boundary = boundary.merge(block)
-                    boundary_set = True
+                    boundary_is_set = True
             except:
                 raise ImportError(f"Failed to load {input} as volume or boundary.")
 
@@ -262,10 +492,10 @@ class InputManager:
         self.validate()
 
         # reorder
-        if volume_set and name_to_id_map:
+        if volume_is_set and name_to_id_map:
             self._reorder_part_ids(name_to_id_map)
 
-        if boundary_set and name_to_id_map:
+        if boundary_is_set and name_to_id_map:
             self._reorder_boundary_ids(name_to_id_map)
 
         pass

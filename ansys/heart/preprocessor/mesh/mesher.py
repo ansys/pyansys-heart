@@ -1,11 +1,14 @@
 """Module contains methods for interaction with Fluent meshing."""
 import glob
 import os
+from pathlib import Path
 import shutil
 import subprocess
+from typing import Union
 
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor._load_template import load_template
+from ansys.heart.preprocessor.input import _InputModel
 import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401
 import numpy as np
 
@@ -18,12 +21,23 @@ _fluent_version = "22.2.0"
 
 
 def mesh_from_good_quality_surfaces(
-    model: _InputModel, workdir: Union[str, Path], path_to_output: Union[str, Path]
+    model: _InputModel,
+    workdir: Union[str, Path],
+    path_to_output: Union[str, Path],
+    mesh_size: float = 2.0,
 ):
-    """Generate volume mesh from list of stls using PyFluent."""
+    """Generate volume mesh from input model."""
     if not isinstance(model, _InputModel):
         raise ValueError(f"Expecting input to be of type {str(_InputModel)}")
 
+    if not os.path.isdir(workdir):
+        os.makedirs(workdir)
+
+    min_size = mesh_size
+    max_size = mesh_size
+    growth_rate = 1.2
+
+    # write all boundaries
     model.write_part_boundaries(workdir)
 
     import ansys.fluent.core as pyfluent
@@ -43,23 +57,33 @@ def mesh_from_good_quality_surfaces(
     session.tui.objects.merge("'(*) heart")
     session.tui.objects.labels.create_label_per_zone("heart '(*)")
     session.tui.diagnostics.face_connectivity.fix_free_faces("objects '(*) merge-nodes yes 1e-3")
+    session.tui.diagnostics.face_connectivity.fix_self_intersections(
+        "objects '(heart) fix-self-intersection"
+    )
     session.tui.objects.create_intersection_loops("collectively '(*)")
     session.tui.boundary.feature.create_edge_zones("(*) fixed-angle 70 yes")
     # create size field
-    session.tui.size_functions.set_global_controls(0.02, 0.02, 1.2)
+    session.tui.size_functions.set_global_controls(min_size, max_size, growth_rate)
     session.tui.scoped_sizing.compute("yes")
 
     # remesh surface
     session.tui.boundary.remesh.remesh_face_zones_conformally("'(*) '(*) 40 20 yes")
 
-    session.tui.objects.create_new_mesh_object.remesh("'(heart) individually")
+    # some diagnostics
+    session.tui.diagnostics.face_connectivity.fix_self_intersections(
+        "objects '(heart) fix-self-intersection"
+    )
+    session.tui.diagnostics.face_connectivity.fix_duplicate_faces("objects '(heart)")
+
+    # convert to mesh object
+    session.tui.objects.change_object_type("'(heart) mesh y")
 
     # compute volumes
-    session.tui.objects.volumetric_regions.compute("heart-mesh", "no")
+    session.tui.objects.volumetric_regions.compute("heart", "no")
 
     # start auto meshing
     session.tui.mesh.tet.controls.cell_sizing("size-field")
-    session.tui.mesh.auto_mesh("heart-mesh", "yes", "pyramids", "tet", "no")
+    session.tui.mesh.auto_mesh("heart", "yes", "pyramids", "tet", "no")
     session.tui.mesh.modify.auto_node_move("(*)", "(*)", 0.3, 50, 120, "yes", 5)
     session.tui.objects.delete_all_geom()
     session.tui.mesh.zone_names_clean_up()

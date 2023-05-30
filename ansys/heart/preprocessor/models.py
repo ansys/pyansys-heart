@@ -1599,7 +1599,149 @@ class FourChamber(HeartModel):
 
         super().__init__(info)
 
-        pass
+    def compute_SA_node(self)->Point:
+        right_atrium_endo: SurfaceMesh = None
+        for surface in self.right_atrium.surfaces:
+            if "endocardium" in surface.name:
+                right_atrium_endo = surface
+
+        for cap in self.right_atrium.caps:
+            if "superior" in cap.name:
+                sup_vcava_centroid = cap.centroid
+                # sup_vcava_nodes = self.mesh.nodes[cap.node_ids, :]
+            elif "inferior" in cap.name:
+                inf_vcava_centroid = cap.centroid
+
+        SA_node = sup_vcava_centroid - (inf_vcava_centroid - sup_vcava_centroid) / 2
+        SA_node = pv.PolyData(self.mesh.nodes[right_atrium_endo.node_ids, :]).find_closest_point(
+            SA_node
+        )
+        SA_node = right_atrium_endo.node_ids[SA_node]
+        SA_node = Point(name="SA_node",xyz=self.mesh.nodes[SA_node,:],node_id=SA_node)
+        self.right_atrium.points.append(SA_node)
+        return SA_node
+
+    def compute_AV_node(self) -> Point:
+        right_atrium_endo: SurfaceMesh = None
+        for surface in self.right_atrium.surfaces:
+            if "endocardium" in surface.name:
+                right_atrium_endo = surface
+
+        for surface in self.right_ventricle.surfaces:
+            if "endocardium" in surface.name and "septum" in surface.name:
+                right_septum = surface
+
+        AV_node = pv.PolyData(self.mesh.points[right_atrium_endo.node_ids, :]).find_closest_point(
+            pv.PolyData(self.mesh.points[right_septum.node_ids, :]).center
+        )
+        AV_node = right_atrium_endo.node_ids[AV_node]
+        AV_node = Point(name="AV_Node",xyz=self.mesh.nodes[AV_node,:],node_id=AV_node)
+        self.right_atrium.points.append(AV_node)
+        return AV_node
+
+    def compute_av_conduction(self):
+        """Compute AtrioVentricular conduction system."""
+
+        for surface in self.right_atrium.surfaces:
+            if "endocardium" in surface.name:
+                right_atrium_endo = surface
+
+        SA_node = self.compute_SA_node().node_id
+        AV_node = self.compute_AV_node().node_id
+
+        path_SAN_AVN = right_atrium_endo.geodesic(SA_node, AV_node)
+        pid = np.max(self.part_ids) + 1
+        edges = path_SAN_AVN["vtkOriginalPointIds"]
+        # duplicate nodes inside lines, connect only origin and end of line
+        edges[1:-1] = len(self.mesh.nodes) + np.linspace(
+            1, len(edges) - 2, len(edges) - 2, dtype=int
+        )
+        edges = np.vstack((edges[:-1], edges[1:])).T
+        self.mesh.add_beam_network(
+            new_nodes=path_SAN_AVN.points[1:-1, :], edges=edges, pid=pid, name="SAN_to_AVN"
+        )
+
+        return
+
+    def compute_His_bundle(self):
+        # TODO add method in Part class to get mesh, refactor part
+        septum_points = np.unique(np.ravel(self.mesh.tetrahedrons[self.septum.element_ids,]))
+        septum_points = pv.PolyData(self.mesh.nodes[septum_points, :])
+
+        # TODO:
+        # Find upper right septal point "URSP"
+        # connect this point with AV node
+        # get total length of bounding box
+        # define HIS as fraction of line (few edge lengths) connecting URSP and septum centroid
+        p = pv.Plotter()
+        heartsurface = self.mesh.extract_surface()
+        p.add_mesh(heartsurface, opacity=0.1)
+        p.add_mesh(septum_points, opacity=0.1)
+        p.add_mesh(np.array(septum_points.center), color="red")
+        p.show()
+
+        return
+
+    def compute_bundle_branches(self):
+        # Project end of his right and left
+        # find geodesic until apex, or seomthing closer belonging to purkinje
+        return
+
+    def compute_Bachman_bundle(self):
+        return
+
+    def compute_cavity_interfaces(self):
+        """Compute AtrioVentricular conduction system."""
+        self.mesh.establish_connectivity()
+        left_ventricle_left_atrium = []
+        right_ventricle_right_atrium = []
+        left_ventricle_right_atrium = []
+        right_ventricle_left_atrium = []
+        left_ventricle_left_atrium_name = "left-ventricle_left-atrium"
+        right_ventricle_right_atrium_name = "right-ventricle_right-atrium"
+        left_ventricle_right_atrium_name = "left-ventricle_right-atrium"
+        right_ventricle_left_atrium_name = "right-ventricle_left-atrium"
+
+        # build atrio-ventricular tag-id pairs
+        # labels_to_ids stores the mapping between tag-ids and the corresponding label.
+        labels_to_tag_ids = self.info.labels_to_ids
+        left_ventricle_left_atrium = [
+            labels_to_tag_ids["Left ventricle myocardium"],
+            labels_to_tag_ids["Left atrium myocardium"],
+        ]
+        right_ventricle_right_atrium = [
+            labels_to_tag_ids["Right ventricle myocardium"],
+            labels_to_tag_ids["Right atrium myocardium"],
+        ]
+        left_ventricle_right_atrium = [
+            labels_to_tag_ids["Left ventricle myocardium"],
+            labels_to_tag_ids["Right atrium myocardium"],
+        ]
+        right_ventricle_left_atrium = [
+            labels_to_tag_ids["Right ventricle myocardium"],
+            labels_to_tag_ids["Left atrium myocardium"],
+        ]
+
+        # build atrioventricular tag_id pairs
+        left_ventricle_left_atrium = np.unique(left_ventricle_left_atrium)
+        right_ventricle_right_atrium = np.unique(right_ventricle_right_atrium)
+        left_ventricle_right_atrium = np.unique(left_ventricle_right_atrium)
+        right_ventricle_left_atrium = np.unique(right_ventricle_left_atrium)
+        # find atrioventricular shared nodes/interfaces
+        self.mesh.add_interfaces(
+            [
+                left_ventricle_left_atrium,
+                right_ventricle_right_atrium,
+                left_ventricle_right_atrium,
+                right_ventricle_left_atrium,
+            ],
+            [
+                left_ventricle_left_atrium_name,
+                right_ventricle_right_atrium_name,
+                left_ventricle_right_atrium_name,
+                right_ventricle_left_atrium_name,
+            ],
+        )
 
 
 class FullHeart(HeartModel):

@@ -251,6 +251,10 @@ class EPSimulator(BaseSimulator):
         for purkinje_file in purkinje_files:
             self.model.mesh.add_purkinje_from_kfile(purkinje_file)
 
+    def compute_conduction_system(self):
+        """Compute the conduction system."""
+        self.model.mesh.compute_av_conduction()
+
     def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)

@@ -877,12 +877,12 @@ class Part:
         """VTK tag ids used in this part."""
         self.element_ids: np.ndarray = np.empty((0, 4), dtype=int)
         """Array holding element ids that make up this part."""
+        self.points: List[Point] = []
+        """Points of interest belonging to the part."""
         self.caps: List[Cap] = []
         """List of caps belonging to the part."""
         self.cavity: Cavity = None
         """Cavity belonging to the part."""
-        self.points: List[Point] = []
-        """Points of interest belonging to the part."""
         if self.part_type in ["ventricle"]:
             self.apex_points: List[Point] = []
             """Points on apex."""

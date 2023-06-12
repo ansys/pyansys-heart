@@ -25,7 +25,7 @@ def mesh_from_good_quality_surfaces(
     workdir: Union[str, Path],
     path_to_output: Union[str, Path],
     mesh_size: float = 2.0,
-):
+) -> Path:
     """Generate volume mesh from input model."""
     if not isinstance(model, _InputModel):
         raise ValueError(f"Expecting input to be of type {str(_InputModel)}")
@@ -36,6 +36,11 @@ def mesh_from_good_quality_surfaces(
     min_size = mesh_size
     max_size = mesh_size
     growth_rate = 1.2
+
+    # clean up any stls in the directory
+    stls = glob.glob(os.path.join(workdir, "*.stl"))
+    for stl in stls:
+        os.remove(stl)
 
     # write all boundaries
     model.write_part_boundaries(workdir)
@@ -98,7 +103,7 @@ def mesh_from_good_quality_surfaces(
     # session.meshing.tui.file.read_journal(script)
     session.exit()
 
-    return
+    return path_to_output
 
 
 def mesh_heart_model_by_fluent(

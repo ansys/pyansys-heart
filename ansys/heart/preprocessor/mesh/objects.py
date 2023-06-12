@@ -165,6 +165,26 @@ class Mesh(pv.UnstructuredGrid):
 
         return None
 
+    def plot_boundaries(self, show_edges: bool = True):
+        """Plot all the boundaries."""
+        try:
+            import matplotlib as mpl
+        except ImportError:
+            LOGGER.error("Failed to import matplotlib. Install with pip install matplotlib.")
+            return
+        import matplotlib as mpl
+
+        cmap = mpl.colormaps["tab20b"]
+
+        plotter = pv.Plotter()
+        for ii, b in enumerate(self.boundaries):
+            plotter.add_mesh(
+                b, show_edges=show_edges, color=cmap(ii / len(self.boundaries)), label=b.name
+            )
+
+        plotter.add_legend(face=None)
+        plotter.show()
+
     def write_to_vtk(self, filename: pathlib.Path) -> None:
         """Write mesh to VTK file."""
         self.save(filename)

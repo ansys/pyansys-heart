@@ -226,7 +226,8 @@ class _InputModel:
             self.input_polydata.rename_array(scalar, "boundary-id")
 
         if part_definitions == None:
-            raise NotImplementedError("Default part definitions not yet implemented.")
+            return
+            # raise NotImplementedError("Default part definitions not yet implemented.")
 
         self._add_parts(part_definitions)
 
@@ -299,6 +300,26 @@ class _InputModel:
             if not p.is_manifold:
                 return False
         return True
+
+    def plot(self, show_edges: bool = True):
+        """Plot all boundaries."""
+        try:
+            import matplotlib as mpl
+        except ImportError:
+            LOGGER.error("Failed to import matplotlib. Install with pip install matplotlib.")
+            return
+        import matplotlib as mpl
+
+        cmap = mpl.colormaps["tab20b"]
+
+        plotter = pv.Plotter()
+        for ii, b in enumerate(self.boundaries):
+            plotter.add_mesh(
+                b, show_edges=show_edges, color=cmap(ii / len(self.boundaries)), label=b.name
+            )
+
+        plotter.add_legend()
+        plotter.show()
 
     def write_part_boundaries(
         self,

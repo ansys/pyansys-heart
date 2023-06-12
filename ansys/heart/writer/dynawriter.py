@@ -15,13 +15,27 @@ from ansys.dyna.keywords import keywords
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-from ansys.heart.preprocessor.models import (
-    BiVentricle,
-    FourChamber,
-    FullHeart,
-    HeartModel,
-    LeftVentricle,
-)
+
+if "USE_OLD_HEART_MODELS" not in os.environ:
+    os.environ["USE_OLD_HEART_MODELS"] = "0"
+
+if os.environ["USE_OLD_HEART_MODELS"] == "1":
+    from ansys.heart.preprocessor.models import (
+        BiVentricle,
+        FourChamber,
+        FullHeart,
+        HeartModel,
+        LeftVentricle,
+    )
+else:
+    from ansys.heart.preprocessor.models_new import (
+        BiVentricle,
+        FourChamber,
+        FullHeart,
+        HeartModel,
+        LeftVentricle,
+    )
+
 from ansys.heart.simulator.settings.settings import SimulationSettings
 
 # import missing keywords

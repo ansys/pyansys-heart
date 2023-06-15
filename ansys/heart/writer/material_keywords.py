@@ -68,7 +68,6 @@ class MaterialHGOMyocardium(keywords.Mat295):
         for k, v in base.items():
             setattr(self, k, v)
         if anisotropy_user is not None:
-
             # Default parameters
             self.atype = -1
             self.intype = 0

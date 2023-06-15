@@ -613,7 +613,7 @@ class HeartModel:
             plotter = pv.Plotter()
             plotter.add_mesh(self.mesh, color="w", opacity=0.3)
             for beams in self.mesh.beam_network:
-                plotter.add_mesh(beams, color=np.random.uniform(size = 3),line_width=3)
+                plotter.add_mesh(beams, color=np.random.uniform(size=3), line_width=3)
             plotter.show()
         except:
             LOGGER.warning("Failed to plot mesh.")
@@ -1657,6 +1657,7 @@ class FourChamber(HeartModel):
         return
 
     def compute_His_conduction(self):
+        """Compute His conduction system."""
         # TODO add method in Part class to get mesh, refactor part
         # https://www.researchgate.net/publication/353154291_Morphometric_analysis_of_the_His
         # _bundle_atrioventricular_fascicle_in_humans_and_other_animal_species_Histological_and
@@ -1742,6 +1743,7 @@ class FourChamber(HeartModel):
         return
 
     def compute_bundle_branches(self):
+        """Compute Buncle branches conduction system."""
         left_endo = self.left_ventricle.endocardium
         right_endo = self.right_ventricle.endocardium + self.right_ventricle.septum
         # TODO redefine "+" pv operator to also merge node ids
@@ -1777,9 +1779,7 @@ class FourChamber(HeartModel):
 
         # build left branch net
         new_nodes = left_bundle_branch.points[0:-1, :]
-        edges = np.concatenate(
-            ([His_end.node_id], left_bundle_branch["vtkOriginalPointIds"])
-        )
+        edges = np.concatenate(([His_end.node_id], left_bundle_branch["vtkOriginalPointIds"]))
         # duplicate nodes inside the line, connect only origin and end of line
         edges[1:-1] = len(self.mesh.nodes) + np.linspace(
             0, len(edges) - 3, len(edges) - 2, dtype=int
@@ -1806,6 +1806,7 @@ class FourChamber(HeartModel):
         return
 
     def compute_Bachman_bundle(self):
+        """Compute Bachman bundle conduction system."""
         return
 
     def compute_cavity_interfaces(self):

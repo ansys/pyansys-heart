@@ -44,14 +44,8 @@ def test_meshing_from_clean():
     if not os.path.isdir(write_dir):
         os.makedirs(write_dir)
 
-    model.write_part_boundaries(write_dir)
-
     mesh_file = os.path.join(write_dir, "test_mesh.msh.h5")
-    mesh_from_good_quality_input_model(
-        model,
-        write_dir,
-        mesh_file,
-    )
+    mesh_from_good_quality_input_model(model, write_dir, mesh_file, mesh_size=0.02)
 
     # check if mesh is as expected.
     mesh = FluentMesh()

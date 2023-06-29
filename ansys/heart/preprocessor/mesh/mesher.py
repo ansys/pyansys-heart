@@ -4,29 +4,56 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
-from typing import Union
+from typing import List, Union
 
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor._load_template import load_template
 from ansys.heart.preprocessor.input import _InputModel
 import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401
+from ansys.heart.preprocessor.mesh.fluenthdf5 import FluentCellZone, FluentMesh
 import numpy as np
 
 # from pkg_resources import resource_filename
 import pkg_resources
+import pyvista as pv
 
 _template_directory = pkg_resources.resource_filename("ansys.heart.preprocessor", "templates")
 
 _fluent_version = "22.2.0"
 
+try:
+    import ansys.fluent.core as pyfluent
+except ImportError:
+    LOGGER.info(
+        "Failed to import PyFluent. Considering installing "
+        "pyfluent with `pip install ansys-fluent-core`."
+    )
 
-def mesh_from_good_quality_surfaces(
+
+def mesh_from_manifold_input_model(
     model: _InputModel,
     workdir: Union[str, Path],
     path_to_output: Union[str, Path],
     mesh_size: float = 2.0,
-) -> Path:
-    """Generate volume mesh from input model."""
+) -> FluentMesh:
+    """Create mesh from good-quality manifold input model.
+
+    Parameters
+    ----------
+    model : _InputModel
+        Input model.
+    workdir : Union[str, Path]
+        Working directory.
+    path_to_output : Union[str, Path]
+        Path to the resulting Fluent mesh file.
+    mesh_size : float, optional
+        Uniform mesh size to use for both wrapping and filling the volume, by default 2.0
+
+    Returns
+    -------
+    FluentMesh
+        The volume mesh with cell and face zones.
+    """
     if not isinstance(model, _InputModel):
         raise ValueError(f"Expecting input to be of type {str(_InputModel)}")
 

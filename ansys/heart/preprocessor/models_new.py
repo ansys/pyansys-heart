@@ -12,7 +12,6 @@ from ansys.heart.preprocessor.input import _InputModel
 
 # from ansys.heart.preprocessor.input import HEART_MODELS
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
-from ansys.heart.preprocessor.mesh.fluenthdf5 import FluentMesh
 import ansys.heart.preprocessor.mesh.mesher as mesher
 from ansys.heart.preprocessor.mesh.objects import Cap, Cavity, Mesh, Part, Point, SurfaceMesh
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
@@ -176,15 +175,12 @@ class HeartModel:
         Uses (Py)Fluent for remeshing.
         """
         path_to_output_model = os.path.join(self.info.workdir, "simulation_mesh.msh.h5")
-        path_remeshed_model = mesher.mesh_from_good_quality_input_model(
+        fluent_mesh = mesher.mesh_from_manifold_input_model(
             model=self._input,
             workdir=self.info.workdir,
             mesh_size=self.info.mesh_size,
             path_to_output=path_to_output_model,
         )
-
-        fluent_mesh = FluentMesh(path_to_output_model)
-        fluent_mesh.load_mesh()
 
         # use part definitions to find which cell zone belongs to which part.
         for input_part in self._input.parts:

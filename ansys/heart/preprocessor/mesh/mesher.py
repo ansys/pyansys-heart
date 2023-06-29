@@ -103,7 +103,191 @@ def mesh_from_good_quality_surfaces(
     # session.meshing.tui.file.read_journal(script)
     session.exit()
 
-    return path_to_output
+    mesh = FluentMesh()
+    mesh.load_mesh(path_to_output)
+
+    return mesh
+
+
+def mesh_from_non_manifold_input_model(
+    model: _InputModel,
+    workdir: Union[str, Path],
+    path_to_output: Union[str, Path],
+    mesh_size: float = 2.0,
+) -> FluentMesh:
+    """Generate mesh from non-manifold poor quality input model.
+
+    Parameters
+    ----------
+    model : _InputModel
+        Input model.
+    workdir : Union[str, Path]
+        Working directory.
+    path_to_output : Union[str, Path]
+        Path to the resulting Fluent mesh file.
+    mesh_size : float, optional
+        Uniform mesh size to use for both wrapping and filling the volume, by default 2.0
+
+    Notes
+    -----
+    Uses Fluent wrapping technology to wrap the individual parts first to create manifold
+    parts. Consequently wrap the entire model and use the manifold parts to split the
+    wrapped model into the different cell zones.
+
+    Returns
+    -------
+    FluentMesh
+        The volume mesh with cell and face zones.
+    """
+    if not isinstance(model, _InputModel):
+        raise ValueError(f"Expecting input to be of type {str(_InputModel)}")
+
+    if not os.path.isdir(workdir):
+        os.makedirs(workdir)
+
+    min_size = mesh_size
+    max_size = mesh_size
+    growth_rate = 1.2
+
+    # clean up any stls in the directory
+    stls = glob.glob(os.path.join(workdir, "*.stl"))
+    for stl in stls:
+        os.remove(stl)
+
+    # write all boundaries
+    model.write_part_boundaries(workdir)
+
+    # launch pyfluent
+    session = pyfluent.launch_fluent(
+        mode="meshing",
+        precision="double",
+        processor_count=2,
+        start_transcript=True,
+        show_gui=False,
+        product_version=_fluent_version,
+    )
+
+    # import stls
+    session.tui.file.import_.cad("no " + workdir + " *.stl yes 40 yes mm")
+    session.tui.file.start_transcript(os.path.join(workdir, "fluent_meshing.log"))
+
+    # each stl is imported as a separate object. Wrap the different collections of stls to create
+    # new surface meshes for each of the parts.
+    session.tui.size_functions.set_global_controls(min_size, max_size, growth_rate)
+    session.tui.scoped_sizing.compute("yes")
+
+    session.tui.objects.extract_edges("'(*) feature 40")
+    for part in model.parts:
+        # wrap object.
+        session.tui.objects.wrap.wrap(
+            "'({0}) collectively {1} shrink-wrap external wrapped hybrid".format(
+                " ".join(part.boundary_names), part.name
+            )
+        )
+        # manage boundary names of wrapped surfaces
+        zone_names = session.scheme_eval.scheme_eval(
+            '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "s*:*"))'
+        )
+        for face_zone in zone_names:
+            old_name = face_zone
+            new_name = part.name + ":" + old_name.split(":")[0]
+            session.tui.boundary.manage.name(old_name + " " + new_name)
+
+    # wrap entire model in one pass so that we can create a single volume mesh.
+    session.tui.objects.wrap.wrap(
+        "'({0}) collectively {1} shrink-wrap external wrapped hybrid".format(
+            " ".join(model.boundary_names), "model"
+        )
+    )
+
+    # rename boundaries accordingly.
+    zone_names = session.scheme_eval.scheme_eval(
+        '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "s*:*"))'
+    )
+    for face_zone in zone_names:
+        old_name = face_zone
+        new_name = "model" + ":" + old_name.split(":")[0]
+        session.tui.boundary.manage.name(old_name + " " + new_name)
+
+    # mesh the entire model in one go.
+    session.tui.objects.volumetric_regions.compute("model")
+    session.tui.mesh.auto_mesh("model")
+
+    # clean up geometry objects
+    session.tui.objects.delete_all_geom()
+
+    # write mesh
+    session.tui.file.write_mesh(path_to_output)
+    session.exit()
+
+    # Update the cell zones such that for each part we have a separate cell zone.
+    mesh = FluentMesh()
+    mesh.load_mesh(path_to_output)
+
+    num_cells = mesh.cell_zones[0].cells.shape[0]
+
+    # convert to unstructured grid.
+    cells = np.hstack([np.ones((num_cells, 1), dtype=int) * 4, mesh.cell_zones[0].cells])
+    celltypes = [pv.CellType.TETRA] * num_cells
+    grid = pv.UnstructuredGrid(cells.flatten(), celltypes, mesh.nodes)
+
+    # represent cell centroids as point cloud assign part-ids to cells.
+    cell_centroids = grid.cell_centers()
+    cell_centroids.point_data.set_scalars(name="part-id", scalars=0)
+
+    for part in model.parts:
+        cell_centroids = cell_centroids.select_enclosed_points(part.combined_boundaries)
+        cell_centroids.point_data["part-id"][
+            cell_centroids.point_data["SelectedPoints"] == 1
+        ] = part.id
+
+    # Use closest-point interpolation to assign part-ids to cell centers that are
+    # not enclosed by any of the wrapped parts
+    cell_centroids["orig_indices"] = np.arange(cell_centroids.n_points, dtype=np.int32)
+    cell_centroids.point_data.remove("SelectedPoints")
+    cell_centroids_1 = cell_centroids.remove_cells(
+        cell_centroids.point_data["part-id"] != 0, inplace=False
+    )
+    orig_indices_1 = cell_centroids_1.point_data["orig_indices"]
+    cell_centroids_2 = cell_centroids.remove_cells(
+        cell_centroids.point_data["part-id"] == 0, inplace=False
+    )
+
+    cell_centroids_1.point_data.remove("part-id")
+    cell_centroids_1 = cell_centroids_1.interpolate(
+        cell_centroids_2, n_points=1, pass_cell_data=False
+    )
+    cell_centroids.point_data["part-id"][orig_indices_1] = cell_centroids_1.point_data["part-id"]
+
+    # assign part-ids to grid
+    grid.cell_data.set_scalars(scalars=cell_centroids.point_data["part-id"], name="part-id")
+
+    # change FluentMesh object accordingly.
+    idx_sorted = np.argsort(np.array(grid.cell_data["part-id"], dtype=int))
+    partids_sorted = np.sort(np.array(grid.cell_data["part-id"], dtype=int))
+
+    new_mesh = mesh
+    new_mesh.cells = new_mesh.cells[idx_sorted]
+    new_mesh.cell_zones: List[FluentCellZone] = []
+
+    for part in model.parts:
+        cell_zone = FluentCellZone(
+            min_id=np.where(partids_sorted == part.id)[0][0],
+            max_id=np.where(partids_sorted == part.id)[0][-1],
+            name=part.name,
+            cid=part.id,
+        )
+        cell_zone.get_cells(new_mesh.cells)
+        new_mesh.cell_zones.append(cell_zone)
+
+    # remove any unused face zones.
+    new_mesh.face_zones = [fz for fz in new_mesh.face_zones if "part" not in fz.name.lower()]
+
+    # rename face zones
+    for fz in new_mesh.face_zones:
+        fz.name = fz.name.replace("model:", "")
+
+    return new_mesh
 
 
 def mesh_heart_model_by_fluent(

@@ -37,7 +37,7 @@ def test_meshing_for_manifold():
         scalar="CellSource",
     )
 
-    write_dir = os.path.join(get_workdir(), "mesher")
+    write_dir = os.path.join(get_workdir(), "mesher1")
 
     clean_directory(write_dir)
 
@@ -109,7 +109,7 @@ def test_meshing_for_non_manifold():
         scalar="surface-id",
     )
 
-    write_dir = os.path.join(get_workdir(), "mesher")
+    write_dir = os.path.join(get_workdir(), "mesher2")
 
     clean_directory(write_dir)
 

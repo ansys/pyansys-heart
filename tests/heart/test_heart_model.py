@@ -58,7 +58,7 @@ def test_model_info_dump():
     assert info.database == json_data["_database"], "Database not the same"
     assert info.workdir == json_data["workdir"], "Workdir not the same"
     assert (
-        info._deprecated_path_to_original_mesh == json_data["path_to_original_mesh"]
+        info._deprecated_path_to_original_mesh == json_data["_deprecated_path_to_original_mesh"]
     ), "Path to original mesh not the same"
     assert (
         info.path_to_simulation_mesh == json_data["path_to_simulation_mesh"]

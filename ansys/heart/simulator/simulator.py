@@ -251,6 +251,10 @@ class EPSimulator(BaseSimulator):
         for purkinje_file in purkinje_files:
             self.model.mesh.add_purkinje_from_kfile(purkinje_file)
 
+    def compute_conduction_system(self):
+        """Compute the conduction system."""
+        self.model.mesh.compute_av_conduction()
+
     def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
@@ -321,12 +325,17 @@ class MechanicsSimulator(BaseSimulator):
 
         return
 
-    def simulate(self, folder_name: str = "main-mechanics"):
+    def simulate(self, folder_name="main-mechanics", zerop_folder=None, auto_post=True):
         """
         Launch the main simulation.
 
         Parameters
         ----------
+        zerop_folder : str
+            folder contains stress free simulation.
+            Default is "zeropressure" under roo_directory.
+        auto_post : bool
+            if run post-process scripts.
         folder_name: str
             main simulation folder name.
 
@@ -334,16 +343,17 @@ class MechanicsSimulator(BaseSimulator):
         directory = os.path.join(self.root_directory, folder_name)
         os.makedirs(directory, exist_ok=True)
 
+        if zerop_folder is None:
+            zerop_folder = os.path.join(self.root_directory, "zeropressure")
+
         if self.initial_stress:
             try:
                 # get dynain.lsda file from
-                dynain_file = glob.glob(
-                    os.path.join(self.root_directory, "zeropressure", "iter*.dynain.lsda")
-                )[-1]
+                dynain_file = glob.glob(os.path.join(zerop_folder, "iter*.dynain.lsda"))[-1]
 
                 shutil.copy(dynain_file, os.path.join(directory, "dynain.lsda"))
                 shutil.copy(
-                    os.path.join(self.root_directory, "zeropressure", "post", "Post_report.json"),
+                    os.path.join(zerop_folder, "post", "Post_report.json"),
                     os.path.join(directory, "Post_report.json"),
                 )
             except IndexError:
@@ -394,7 +404,8 @@ class MechanicsSimulator(BaseSimulator):
 
             exporter.export_lvls_to_vtk("lvls")
 
-        _post()
+        if auto_post:
+            _post()
         return
 
     def compute_stress_free_configuration(self):

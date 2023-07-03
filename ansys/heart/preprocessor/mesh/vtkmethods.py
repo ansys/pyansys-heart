@@ -495,10 +495,10 @@ def vtk_map_discrete_cell_data(
 
     poly_target = dsa.WrapDataObject(interpolator.GetOutput())
 
-    tags_target = poly_target.PointData["tags"]
+    tags_target = poly_target.PointData[data_name]
 
     # adds the target tags as a cell array to the target
-    add_vtk_array(vtk_object_target, tags_target, name="tags", data_type="cell")
+    add_vtk_array(vtk_object_target, tags_target, name=data_name, data_type="cell")
 
     return vtk_object_target
 
@@ -1493,6 +1493,16 @@ def append_vtk_polydata_files(files: list, path_to_merged_vtk: str, substrings: 
 
     write_vtkdata_to_vtkfile(append.GetOutput(), path_to_merged_vtk)
     return
+
+
+def get_cells_with_scalar_value(
+    pv_object: Union[pyvista.PolyData, pyvista.UnstructuredGrid],
+    values_to_keep: np.ndarray,
+    scalar: str,
+) -> Union[pyvista.PolyData, pyvista.UnstructuredGrid]:
+    """Get cells with a specific value."""
+    mask = np.isin(pv_object.cell_data[scalar], values_to_keep)
+    return pv_object.extract_cells(np.argwhere(mask))
 
 
 def vtk_cutter(vtk_polydata: vtk.vtkPolyData, cut_plane) -> vtk.vtkPolyData:

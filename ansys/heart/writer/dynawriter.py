@@ -15,13 +15,27 @@ from ansys.dyna.keywords import keywords
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-from ansys.heart.preprocessor.models import (
-    BiVentricle,
-    FourChamber,
-    FullHeart,
-    HeartModel,
-    LeftVentricle,
-)
+
+if "USE_OLD_HEART_MODELS" not in os.environ:
+    os.environ["USE_OLD_HEART_MODELS"] = "0"
+
+if os.environ["USE_OLD_HEART_MODELS"] == "1":
+    from ansys.heart.preprocessor.models import (
+        BiVentricle,
+        FourChamber,
+        FullHeart,
+        HeartModel,
+        LeftVentricle,
+    )
+else:
+    from ansys.heart.preprocessor.models_new import (
+        BiVentricle,
+        FourChamber,
+        FullHeart,
+        HeartModel,
+        LeftVentricle,
+    )
+
 from ansys.heart.simulator.settings.settings import SimulationSettings
 
 # import missing keywords
@@ -2682,7 +2696,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
             # build atrio-ventricular tag-id pairs
             # labels_to_ids stores the mapping between tag-ids and the corresponding label.
-            labels_to_tag_ids = self.model.info.labels_to_ids
+            labels_to_tag_ids = self.model.info._deprecated_labels_to_ids
             left_ventricle_left_atrium = [
                 labels_to_tag_ids["Left ventricle myocardium"],
                 labels_to_tag_ids["Left atrium myocardium"],

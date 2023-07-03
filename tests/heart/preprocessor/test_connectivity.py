@@ -22,7 +22,7 @@ def test_get_surfaces_from_tetrahedrons():
 
     part_ids = test_grid.cell_data["tags"]
 
-    boundary_faces, interface_faces, pairs = get_surfaces_from_tetmesh(
+    boundary_faces, part_ids_boundary, interface_faces, pairs = get_surfaces_from_tetmesh(
         tets, return_boundaries=True, return_interfaces=True, part_ids=part_ids
     )
 
@@ -32,6 +32,9 @@ def test_get_surfaces_from_tetrahedrons():
     assert np.all(
         np.equal(reference_interface_faces, interface_faces)
     ), "Interface faces not the same."
+    assert np.all(
+        np.equal([1, 1, 1, 2, 2, 2], part_ids_boundary)
+    ), "Boundary part ids not as expected."
     assert np.all(pairs == [test_grid.cell_data["tags"]]), "Pairs not the same."
 
     pass

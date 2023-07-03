@@ -68,7 +68,7 @@ def test_mesh_object_read_001():
     """Test if strocchi's case is properly read."""
     case_file = download_asset(database="Strocchi2020", casenumber=1)
     mesh = Mesh()
-    mesh.read_mesh_file(case_file)
+    mesh._deprecated_read_mesh_file(case_file)
 
     assert mesh.n_cells == 2349414
     assert mesh.n_points == 481066
@@ -81,7 +81,7 @@ def test_mesh_object_read_002():
     """Test if rodero's case is properly read."""
     case_file = download_asset(database="Cristobal2021", casenumber=1)
     mesh = Mesh()
-    mesh.read_mesh_file_cristobal2021(case_file)
+    mesh._deprecated_read_mesh_file_cristobal2021(case_file)
     assert mesh.n_cells == 2477866
     assert mesh.n_points == 493151
     assert "tags" in mesh.array_names

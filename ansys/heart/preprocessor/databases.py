@@ -1,66 +1,6 @@
-"""Model definitions."""
+"""Module containing part/boundary name-id mappings."""
 
-# Dictionary of heart parts
-_DEPRECATED_HEART_PARTS = {
-    "Left ventricle": {
-        "VTKLabels": [
-            "Left ventricle myocardium",
-            "Aortic valve plane",
-            "Mitral valve plane",
-        ]
-    },
-    "Right ventricle": {
-        "VTKLabels": [
-            "Right ventricle myocardium",
-            "Tricuspid valve plane",
-            "Pulmonary valve plane",
-        ]
-    },
-    "Left atrium": {
-        "VTKLabels": [
-            "Left atrium myocardium",
-            "Left atrium appendage inlet",
-            "Left superior pulmonary vein inlet",
-            "Left inferior pulmonary vein inlet",
-            "Right inferior pulmonary vein inlet",
-            "Right superior pulmonary vein inlet",
-            "Left atrial appendage border",
-            "Left superior pulmonary vein border",
-            "Left inferior pulmonary vein border",
-            "Right inferior pulmonary vein border",
-            "Right superior pulmonary vein border",
-        ]
-    },
-    "Right atrium": {
-        "VTKLabels": [
-            "Right atrium myocardium",
-            "Superior vena cava inlet",
-            "Inferior vena cava inlet",
-            "Superior vena cava border",
-            "Inferior vena cava border",
-        ]
-    },
-    "Aorta": {"VTKLabels": ["Aorta wall"]},
-    "Pulmonary artery": {"VTKLabels": ["Pulmonary artery wall"]},
-}
-# List of valid models
-_DEPRECATED_MODELS = {
-    "LeftVentricle": {"Parts": ["Left ventricle"]},
-    "BiVentricle": {"Parts": ["Left ventricle", "Right ventricle"]},
-    "FourChamber": {"Parts": ["Left ventricle", "Right ventricle", "Left atrium", "Right atrium"]},
-    "FullHeart": {
-        "Parts": [
-            "Left ventricle",
-            "Right ventricle",
-            "Left atrium",
-            "Right atrium",
-            "Aorta",
-            "Pulmonary artery",
-        ]
-    },
-}
-# map for mapping labels to ID
-_DEPRECATED_LABELS_TO_ID = {
+PART_NAME_ID_MAPPING_DATABASES = {
     "Strocchi2020": {
         "Left ventricle myocardium": 1,
         "Right ventricle myocardium": 2,
@@ -87,7 +27,7 @@ _DEPRECATED_LABELS_TO_ID = {
         "Superior vena cava inlet": 23,
         "Inferior vena cava inlet": 24,
     },
-    "Cristobal2021": {
+    "Rodero2021": {
         "Left ventricle myocardium": 1,
         "Right ventricle myocardium": 2,
         "Left atrium myocardium": 3,
@@ -113,16 +53,24 @@ _DEPRECATED_LABELS_TO_ID = {
         "Superior vena cava inlet": 16,
         "Inferior vena cava inlet": 17,
     },
+    "Strocchi2020_simplified": {
+        "Left ventricle myocardium": 1,
+        "Right ventricle myocardium": 2,
+        "Mitral valve plane": 11,
+        "Aortic valve plane": 12,
+        "Pulmonary valve plane": 21,
+        "Tricuspid valve plane": 22,
+    },
+}
+SURFACE_NAME_ID_MAPPING_DATABASES = {
     "LabeledSurface": {
-        "Left ventricle myocardium": 100,
-        "Right ventricle myocardium": 101,
         "Left ventricle endocardium": 1,
         "Left ventricle epicardium": 2,
-        "Mitral valve plane": 3,
-        "Aortic valve plane": 4,
+        "Left ventricle myocardium mitral valve": 3,
+        "Left ventricle myocardium aortic valve": 4,
         "Right ventricle endocardium": 5,
         "Right ventricle epicardium": 6,
-        "Pulmonary valve plane": 7,
-        "Tricuspid valve plane": 8,
+        "Right ventricle myocardium pulmonary valve": 7,
+        "Right ventricle myocardium tricuspid valve": 8,
     },
 }

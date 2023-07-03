@@ -143,8 +143,8 @@ class BaseSimulator:
             os.path.join(directory, "element_solid_ortho.k")
         )
 
-        self.model.mesh.cell_data["fiber"][elem_ids - 1] = fib
-        self.model.mesh.cell_data["sheet"][elem_ids - 1] = sheet
+        self.model.mesh.cell_data.set_vectors(fib, name="fiber", deep_copy=True)
+        self.model.mesh.cell_data.set_vectors(sheet, name="sheet", deep_copy=True)
 
         # dump the model to reuse fiber information
         self.model.dump_model(os.path.join(self.root_directory, "model_with_fiber.pickle"))

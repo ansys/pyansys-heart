@@ -394,6 +394,7 @@ def get_surfaces_from_tetmesh(
 
     if return_boundaries:
         mask_boundary_faces = face_types == 2
+        part_ids_boundaries = part_ids[c0][mask_boundary_faces]
 
     if return_interfaces:
         mask_interface_faces = np.all(
@@ -410,10 +411,15 @@ def get_surfaces_from_tetmesh(
         part_pairs = part_pairs.tolist()
 
     if return_boundaries and return_interfaces:
-        return (faces[mask_boundary_faces, :], faces[mask_interface_faces], np.array(part_pairs))
+        return (
+            faces[mask_boundary_faces, :],
+            part_ids_boundaries,
+            faces[mask_interface_faces],
+            np.array(part_pairs),
+        )
 
     elif return_boundaries:
-        return faces[mask_boundary_faces, :]
+        return (faces[mask_boundary_faces, :], part_ids_boundaries)
 
     elif return_interfaces:
         return (faces[mask_interface_faces], np.array(part_pairs))

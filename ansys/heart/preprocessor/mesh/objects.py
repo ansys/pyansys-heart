@@ -97,9 +97,9 @@ class Mesh(pv.UnstructuredGrid):
         This is derived from the "tags" field in cell data
         """
         try:
-            value = self.cell_data["tags"].astype(int)
+            value = self.cell_data["part-id"].astype(int)
         except (KeyError, NameError):
-            LOGGER.warning("'tags' field not found in self.cell_data")
+            LOGGER.warning("'part-id' field not found in self.cell_data")
             value = None
         return value
 
@@ -108,7 +108,7 @@ class Mesh(pv.UnstructuredGrid):
         """Iterate over boundaries and returns their names."""
         return [b.name for b in self.boundaries]
 
-    def read_mesh_file(self, filename: pathlib.Path) -> None:
+    def _deprecated_read_mesh_file(self, filename: pathlib.Path) -> None:
         """Read mesh file."""
         mesh = pv.read(filename)
         # .case gives multiblock
@@ -128,7 +128,7 @@ class Mesh(pv.UnstructuredGrid):
 
         return
 
-    def read_mesh_file_cristobal2021(self, filename: pathlib.Path) -> None:
+    def _deprecated_read_mesh_file_cristobal2021(self, filename: pathlib.Path) -> None:
         """Read mesh file - but modifies the fields to match data of Strocchi 2020."""
         mesh = pv.read(filename)
         # .case gives multiblock
@@ -161,9 +161,29 @@ class Mesh(pv.UnstructuredGrid):
             self.point_data[key] = mesh.point_data[key]
 
         if np.issubdtype(self.cell_data["tags"].dtype, np.integer):
-            self.cell_data["tags"] = np.array(self.cell_data["tags"], dtype=float)
+            self.cell_data["part-id"] = np.array(self.cell_data["tags"], dtype=float)
 
         return None
+
+    def plot_boundaries(self, show_edges: bool = True):
+        """Plot all the boundaries."""
+        try:
+            import matplotlib as mpl
+        except ImportError:
+            LOGGER.error("Failed to import matplotlib. Install with pip install matplotlib.")
+            return
+        import matplotlib as mpl
+
+        cmap = mpl.colormaps["tab20b"]
+
+        plotter = pv.Plotter()
+        for ii, b in enumerate(self.boundaries):
+            plotter.add_mesh(
+                b, show_edges=show_edges, color=cmap(ii / len(self.boundaries)), label=b.name
+            )
+
+        plotter.add_legend(face=None)
+        plotter.show()
 
     def write_to_vtk(self, filename: pathlib.Path) -> None:
         """Write mesh to VTK file."""
@@ -262,6 +282,10 @@ class Mesh(pv.UnstructuredGrid):
                 == 1
             )
             pair_mask = np.all(np.array([part_mask1, part_mask2]), axis=0)
+
+            # skip if interface has no faces.
+            if not np.any(pair_mask):
+                continue
 
             faces = self.triangles[pair_mask, :]
             # NOTE: Nodes are shallow copied

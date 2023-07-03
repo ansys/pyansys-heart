@@ -58,6 +58,11 @@ jobs:
         run: |
           python -m pip install -r requirements_tests.txt
 
+      - name: Test PyFluent launch
+        continue-on-error: false
+        run: |
+          python -m pytest tests/heart/test_pyfluent.py
+
       - name: Test biventricle model generation 1
         continue-on-error: false
         run: |

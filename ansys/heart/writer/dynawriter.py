@@ -772,7 +772,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
     ):
         """Add solution controls, output controls and solver settings."""
         # add termination keywords
-        self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=dtmin))
+        self.kw_database.main.append(keywords.ControlTermination(endtim=end_time))
 
         # add implicit controls
         if simulation_type == "quasi-static":
@@ -821,11 +821,18 @@ class MechanicsDynaWriter(BaseDynaWriter):
             keywords.ControlImplicitGeneral(imflag=1, dt0=dtmax)
         )  # imflag=1 means implicit
 
-        # add implicit solution controls: Defaults are OK?
-        self.kw_database.main.append(keywords.ControlImplicitSolution())
+        # add implicit solution controls
+        # Nil's suggestion
+        self.kw_database.main.append(
+            keywords.ControlImplicitSolution(
+                dctol=0.01, ectol=1e6, rctol=1e3, abstol=-1e-20, dnorm=1, nlnorm=4, lsmtd=5
+            )
+        )
 
         # add implicit solver controls
-        self.kw_database.main.append(custom_keywords.ControlImplicitSolver())
+        self.kw_database.main.append(custom_keywords.ControlImplicitSolver(autospc=2))
+
+        self.kw_database.main.append(keywords.ControlAccuracy(osu=1, inn=4, iacc=1))
         return
 
     def _add_export_controls(self, dt_output_d3plot: float = 0.05, dt_output_icvout: float = 0.001):

@@ -830,11 +830,6 @@ class Cap(Feature):
             tris.append([ref_node, self.node_ids[-1], self.node_ids[0]])
             self.triangles = np.array(tris, dtype=int)
 
-        else:
-            from scipy.spatial import Delaunay
-
-            tris = Delaunay(points[:, 0:2]).simplices
-            self.triangles = self.node_ids[tris]
         return self.triangles
 
 

@@ -1537,7 +1537,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             material_kw = keywords.MatRigid(
                 mid=mat_null_id,
                 ro=material_settings.cap["rho"],
-                e=material_settings.cap["mu1"]*1000
+                e=material_settings.cap["mu1"] * 1000,
             )
 
         section_kw = keywords.SectionShell(
@@ -1573,15 +1573,28 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
             part_kw.parts = part_info
 
-            # Add center node
             if cap.centroid is not None:
-                node_kw = keywords.Node()
-                df = pd.DataFrame(
-                    data=np.insert(cap.centroid, 0, cap.centroid_id + 1).reshape(1, -1),
-                    columns=node_kw.nodes.columns[0:4],
+                if add_mesh:
+                    # Add center node
+                    node_kw = keywords.Node()
+                    df = pd.DataFrame(
+                        data=np.insert(cap.centroid, 0, cap.centroid_id + 1).reshape(1, -1),
+                        columns=node_kw.nodes.columns[0:4],
+                    )
+                    node_kw.nodes = df
+                    self.kw_database.nodes.append(node_kw)
+
+                # center node constraint: average of all edge nodes
+                constraint = keywords.ConstrainedInterpolation(
+                    icid=len(cap_names_used) + 1,
+                    dnid=cap.centroid_id + 1,
+                    ddof="123",
+                    ityp=1,
+                    fgm=1,
+                    inid=cap.nsid,
+                    idof="123",
                 )
-                node_kw.nodes = df
-                self.kw_database.cap_elements.append(node_kw)
+                self.kw_database.cap_elements.append(constraint)
 
             self.kw_database.cap_elements.append(part_kw)
             cap_names_used.append(cap.name)

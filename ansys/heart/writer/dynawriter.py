@@ -1738,7 +1738,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # create unit load curve
         load_curve_id = self.get_unique_curve_id()
         load_curve_kw = create_define_curve_kw(
-            [0, 1, 1.001], [0, 1, 0], "unit load curve", load_curve_id, 100
+            [0, 1, 1.001], [0, 1.0, 1.0], "unit load curve", load_curve_id, 100
         )
 
         load_curve_kw.sfa = 1000
@@ -1747,40 +1747,41 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(load_curve_kw)
 
         # create *LOAD_SEGMENT_SETS for each ventricular cavity
-        # cavities = [part.cavity for part in self.model.parts if part.cavity]
-        # for cavity in cavities:
-        #     if "atrium" in cavity.name:
-        #         continue
-        #
-        #     if cavity.name == "Left ventricle":
-        #         scale_factor = pressure_lv
-        #         seg_id = cavity.surface.id
-        #     elif cavity.name == "Right ventricle":
-        #         scale_factor = pressure_rv
-        #         seg_id = cavity.surface.id
-        #     load_segset_kw = keywords.LoadSegmentSet(
-        #         ssid=seg_id, lcid=load_curve_id, sf=scale_factor
-        #     )
-        #     self.kw_database.main.append(load_segset_kw)
-        for part in self.model.parts:
-            for surface in part.surfaces:
-                if surface.name == "Left ventricle endocardium":
-                    scale_factor = pressure_lv
-                    seg_id = surface.id
-                    load_segset_kw = keywords.LoadSegmentSet(
-                        ssid=seg_id, lcid=load_curve_id, sf=scale_factor
-                    )
-                    self.kw_database.main.append(load_segset_kw)
-                elif (
-                    surface.name == "Right ventricle endocardium"
-                    or surface.name == "Right ventricle endocardium septum"
-                ):
-                    scale_factor = pressure_rv
-                    seg_id = surface.id
-                    load_segset_kw = keywords.LoadSegmentSet(
-                        ssid=seg_id, lcid=load_curve_id, sf=scale_factor
-                    )
-                    self.kw_database.main.append(load_segset_kw)
+        cavities = [part.cavity for part in self.model.parts if part.cavity]
+        for cavity in cavities:
+            if cavity.name == "Left ventricle":
+                load = keywords.LoadSegmentSet(
+                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_lv
+                )
+                self.kw_database.main.append(load)
+            elif cavity.name == "Right ventricle":
+                load = keywords.LoadSegmentSet(
+                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_rv
+                )
+                self.kw_database.main.append(load)
+            else:
+                continue
+
+        # # load only endocardium segment (exclude cap shells)
+        # for part in self.model.parts:
+        #     for surface in part.surfaces:
+        #         if surface.name == "Left ventricle endocardium":
+        #             scale_factor = pressure_lv
+        #             seg_id = surface.id
+        #             load = keywords.LoadSegmentSet(
+        #                 ssid=seg_id, lcid=load_curve_id, sf=scale_factor
+        #             )
+        #             self.kw_database.main.append(load)
+        #         elif (
+        #             surface.name == "Right ventricle endocardium"
+        #             or surface.name == "Right ventricle endocardium septum"
+        #         ):
+        #             scale_factor = pressure_rv
+        #             seg_id = surface.id
+        #             load = keywords.LoadSegmentSet(
+        #                 ssid=seg_id, lcid=load_curve_id, sf=scale_factor
+        #             )
+        #             self.kw_database.main.append(load)
         return
 
 

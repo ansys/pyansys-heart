@@ -217,7 +217,6 @@ def define_function_windkessel(
         implicit_flag = 0
 
     if ivc is False:
-
         cf = 1
     else:
         # IVC: flow can not pass anyway

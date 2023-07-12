@@ -343,19 +343,27 @@ class Mesh(pv.UnstructuredGrid):
 
         nodes = node_data[:, 1:4]
         pid = beam_data[0, 1]
-        # add new nodes to existing nodes.
-        nodes = np.vstack([self.nodes, nodes])
 
-        purkinje = BeamMesh(nodes=nodes, edges=edges)
-        purkinje.pid = pid
-        purkinje.id = len(self.beam_network) + 1
-        self.beam_network.append(purkinje)
+        self.add_beam_network(new_nodes=nodes, edges=edges, pid=pid)
+
+        return
+
+    def add_beam_network(
+        self, new_nodes: np.ndarray = [], edges: np.ndarray = [], pid: int = None, name: str = None
+    ) -> None:
+        """Add beam network."""
+        nodes = np.vstack([self.nodes, new_nodes])  # add new nodes to existing nodes
+        beam_net = BeamMesh(nodes=nodes, edges=edges, pid=pid)
+        beam_net.pid = pid
+        beam_net.id = len(self.beam_network) + 1
+        beam_net.name = name
+        self.beam_network.append(beam_net)
 
         # Note that if we add the nodes to the mesh object we may will also need to
         # extend the point data arrays with suitable values.
         self.nodes = nodes
         null_value = 0
-        num_data_to_add = node_data.shape[0]
+        num_data_to_add = new_nodes.shape[0]
         for key in self.point_data.keys():
             data_type = self.point_data[key].dtype
             if len(self.point_data[key].shape) > 1:
@@ -373,7 +381,6 @@ class Mesh(pv.UnstructuredGrid):
         # plotter.add_mesh(self, opacity=0.3)
         # plotter.add_mesh(purkinje)
         # plotter.show()
-        return
 
     def _to_pyvista_object(self) -> pv.UnstructuredGrid:
         """Convert mesh object into pyvista unstructured grid object.
@@ -889,11 +896,12 @@ class Part:
         """VTK tag ids used in this part."""
         self.element_ids: np.ndarray = np.empty((0, 4), dtype=int)
         """Array holding element ids that make up this part."""
+        self.points: List[Point] = []
+        """Points of interest belonging to the part."""
         self.caps: List[Cap] = []
         """List of caps belonging to the part."""
         self.cavity: Cavity = None
         """Cavity belonging to the part."""
-
         if self.part_type in ["ventricle"]:
             self.apex_points: List[Point] = []
             """Points on apex."""
@@ -922,3 +930,12 @@ class Part:
     def _add_septum_part(self):
         self.septum = Part(name="septum", part_type="septum")
         return
+
+    # def get_mesh(self, mesh: Mesh = None) -> Mesh:
+    #     tets: np.ndarray = mesh.tetrahedrons
+    #     tets = tets[self.element_ids :]
+    #     partmesh = Mesh()
+    #     partmesh.tetrahedrons = tets
+
+    #     partmesh.nodes =
+    #     return partmesh

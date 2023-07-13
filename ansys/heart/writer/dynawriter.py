@@ -1582,7 +1582,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
                         columns=node_kw.nodes.columns[0:4],
                     )
                     node_kw.nodes = df
-                    self.kw_database.nodes.append(node_kw)
+                    # comment the line '*NODE' so nodes.k can be parsed by zerop solver correctly
+                    # otherwise, these nodes will not be updated in iterations
+                    s = "$" + node_kw.write()
+                    self.kw_database.nodes.append(s)
 
                 # center node constraint: average of all edge nodes
                 constraint = keywords.ConstrainedInterpolation(

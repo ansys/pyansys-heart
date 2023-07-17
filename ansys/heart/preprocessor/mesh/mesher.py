@@ -79,7 +79,7 @@ def mesh_from_manifold_input_model(
         precision="double",
         processor_count=2,
         start_transcript=True,
-        show_gui=False,
+        show_gui=True,
         product_version=_fluent_version,
     )
 
@@ -92,6 +92,14 @@ def mesh_from_manifold_input_model(
     session.tui.diagnostics.face_connectivity.fix_self_intersections(
         "objects '(heart) fix-self-intersection"
     )
+    # smooth all zones
+    face_zone_names = session.scheme_eval.scheme_eval(
+        '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "*"))'
+    )
+    for fz in face_zone_names:
+        session.tui.boundary.modify.select_zone(fz)
+        session.tui.boundary.modify.smooth()
+
     session.tui.objects.create_intersection_loops("collectively '(*)")
     session.tui.boundary.feature.create_edge_zones("(*) fixed-angle 70 yes")
     # create size field
@@ -181,6 +189,26 @@ def mesh_from_non_manifold_input_model(
     for stl in stls:
         os.remove(stl)
 
+    # change boundary names to ensure max length is not exceeded
+    boundary_name_map_old_to_new = {}
+    for ii, b in enumerate(model.boundaries):
+        if b.name in boundary_name_map_old_to_new.keys():
+            b.name = boundary_name_map_old_to_new[b.name]
+        else:
+            if "interface" in b.name:
+                tmp_name = "interface{:03d}".format(ii)
+            else:
+                tmp_name = "boundary{:03d}".format(ii)
+            boundary_name_map_old_to_new[b.name] = tmp_name
+            b.name = tmp_name
+
+    # find interface names
+    interface_boundary_names = [
+        new_name
+        for old_name, new_name in boundary_name_map_old_to_new.items()
+        if "interface-" in old_name
+    ]
+
     # write all boundaries
     model.write_part_boundaries(workdir)
 
@@ -190,7 +218,7 @@ def mesh_from_non_manifold_input_model(
         precision="double",
         processor_count=2,
         start_transcript=True,
-        show_gui=False,
+        show_gui=True,
         product_version=_fluent_version,
     )
 
@@ -204,7 +232,9 @@ def mesh_from_non_manifold_input_model(
     session.tui.scoped_sizing.compute("yes")
 
     session.tui.objects.extract_edges("'(*) feature 40")
+    visited_parts = []
     for part in model.parts:
+        LOGGER.info("Wrapping " + part.name + "...")
         # wrap object.
         session.tui.objects.wrap.wrap(
             "'({0}) collectively {1} shrink-wrap external wrapped hybrid".format(
@@ -212,27 +242,56 @@ def mesh_from_non_manifold_input_model(
             )
         )
         # manage boundary names of wrapped surfaces
-        zone_names = session.scheme_eval.scheme_eval(
-            '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "s*:*"))'
+        face_zone_names = session.scheme_eval.scheme_eval(
+            '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "*:*"))'
         )
-        for face_zone in zone_names:
-            old_name = face_zone
+        for face_zone_name in face_zone_names:
+            # Exclude renaming of boundaries that include name of visited parts
+            if any([s + ":" in face_zone_name for s in visited_parts]):
+                continue
+
+            old_name = face_zone_name
             new_name = part.name + ":" + old_name.split(":")[0]
             session.tui.boundary.manage.name(old_name + " " + new_name)
 
+        visited_parts += [part.name]
+
+    LOGGER.info("Wrapping model...")
+    # create a usable material point which is inside the model that can be used for shrink-wrapping
+    material_point = [52, 152, 369.93]
+    session.tui.material_point.create_material_point(
+        "myocardium {:f} {:f} {:f}".format(*material_point)
+    )
+    resolution_factor = 0.25
+
     # wrap entire model in one pass so that we can create a single volume mesh.
+    boundaries_to_use_for_wrapping = session.scheme_eval.scheme_eval(
+        '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "boundary*"))'
+    )
+
     session.tui.objects.wrap.wrap(
-        "'({0}) collectively {1} shrink-wrap external wrapped hybrid".format(
-            " ".join(model.boundary_names), "model"
+        "'({0}) collectively {1} shrink-wrap myocardium hybrid {2}".format(
+            " ".join(boundaries_to_use_for_wrapping), "model", resolution_factor
         )
     )
 
+    # with external material point
+    # session.tui.objects.wrap.wrap(
+    #     "'({0}) collectively {1} shrink-wrap external wrapped hybrid".format(
+    #         " ".join(boundaries_to_use_for_wrapping), "model"
+    #     )
+    # )
+
     # rename boundaries accordingly.
-    zone_names = session.scheme_eval.scheme_eval(
-        '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "s*:*"))'
+    face_zone_names = session.scheme_eval.scheme_eval(
+        '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "*:*"))'
     )
-    for face_zone in zone_names:
-        old_name = face_zone
+    for face_zone_name in face_zone_names:
+        # Exclude renaming of boundaries that include name of visited parts
+        if any([s + ":" in face_zone_name for s in visited_parts]):
+            continue
+
+        old_name = face_zone_name
         new_name = "model" + ":" + old_name.split(":")[0]
         session.tui.boundary.manage.name(old_name + " " + new_name)
 
@@ -263,7 +322,10 @@ def mesh_from_non_manifold_input_model(
     cell_centroids.point_data.set_scalars(name="part-id", scalars=0)
 
     for part in model.parts:
-        cell_centroids = cell_centroids.select_enclosed_points(part.combined_boundaries)
+        LOGGER.warning("Disabled check for manifold surface before computing the enclosed points.")
+        cell_centroids = cell_centroids.select_enclosed_points(
+            part.combined_boundaries, check_surface=False
+        )
         cell_centroids.point_data["part-id"][
             cell_centroids.point_data["SelectedPoints"] == 1
         ] = part.id

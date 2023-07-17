@@ -19,7 +19,7 @@ import pyvista as pv
 
 _template_directory = pkg_resources.resource_filename("ansys.heart.preprocessor", "templates")
 
-_fluent_version = "22.2.0"
+_fluent_version = "23.1.0"
 
 try:
     import ansys.fluent.core as pyfluent

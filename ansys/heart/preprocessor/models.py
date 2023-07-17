@@ -1,4 +1,5 @@
 """Module containing classes for the various heart models."""
+import copy
 import json
 import os
 
@@ -1341,7 +1342,7 @@ class HeartModel:
                 ]
 
                 if len(cap_ref) == 1:
-                    cap = cap_ref[0]
+                    cap = copy.deepcopy(cap_ref[0])
                     # note: flip order to make sure normal is pointing inwards
                     cap.node_ids = np.flip(cap_ref[0].node_ids)
                     # flip segments

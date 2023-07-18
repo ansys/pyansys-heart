@@ -51,17 +51,21 @@ def download_asset(database: str = "Strocchi2020", casenumber: int = 1) -> pathl
         print("Downloading asset.")
         path_to_zip = download_case(database, casenumber, download_dir)
         unpack_case(path_to_zip)
-        if database == "Strocchi2020":
-            path_to_case = os.path.join(
-                os.path.dirname(path_to_zip),
-                path_to_zip.replace(".tar.gz", ""),
-                path_to_zip.replace(".tar.gz", ".case"),
-            )
-        elif database == "Cristobal2021":
-            path_to_case = path_to_zip.replace(".tar.gz", ".vtk")
+
+    #     if database == "Strocchi2020":
+    #         path_to_case = os.path.join(
+    #             os.path.dirname(path_to_zip),
+    #             path_to_zip.replace(".tar.gz", ""),
+    #             path_to_zip.replace(".tar.gz", ".case"),
+    #         )
+    #     elif database == "Cristobal2021":
+    #         path_to_case = path_to_zip.replace(".tar.gz", ".vtk")
+    # else:
+    #     print("Asset already exists. Skip downloading.")
+    if os.path.isfile(path_to_case):
+        return path_to_case
     else:
-        print("Asset already exists. Skip downloading.")
-    return path_to_case
+        raise FileExistsError("File not found.")
 
 
 def get_workdir():

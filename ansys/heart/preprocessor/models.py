@@ -896,7 +896,7 @@ class HeartModel:
             Mapping raw mesh data to new mesh
         """
         LOGGER.info("Remeshing volume...")
-        path_mesh_file = os.path.join(self.info.workdir, "fluent_volume_mesh.msh.h5")
+        path_mesh_file = os.path.join(self.info.workdir, "meshing", "fluent_volume_mesh.msh.h5")
 
         if not self.info.mesh_size:
             LOGGER.warning("No mesh size set: setting to uniform size of 1.5 mm")

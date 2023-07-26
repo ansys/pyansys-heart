@@ -590,7 +590,7 @@ class BaseDynaWriter:
                     a_vec=fiber,
                     d_vec=sheet,
                     e_id=part.element_ids + 1,
-                    partid=part.pid,
+                    part_id=part_ids,
                     element_type="tetra",
                 )
 

@@ -133,11 +133,13 @@ def compare_cavity_volume(model: models.HeartModel, ref_volumes: dict):
         if not part.cavity:
             continue
 
+        # due to issue #340
+        if "ventricle" not in part.name:
+            continue
+
         ref_volume = ref_volumes["cavity_volumes"][part.name]
-        print(part.name)
-        print(part.cavity.surface.volume)
-        assert abs(part.cavity.surface.volume - ref_volume) < 5e-2 * ref_volume, (
-            "Difference in cavity volume of model %s exceeds 5 percent" % part.name
+        assert abs(part.cavity.surface.volume - ref_volume) < 1e-2 * ref_volume, (
+            "Difference in cavity volume of model %s exceeds 1 percent" % part.name
         )
 
     pass

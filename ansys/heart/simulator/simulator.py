@@ -638,12 +638,12 @@ def run_lsdyna(
                 options,
             ]
 
-        # with open("run_lsdyna.sh", "w", newline="\n") as f:
-        #     f.write("#!/usr/bin/env sh\n")
-        #     f.write("echo start lsdyna in wsl...\n")
-        #     f.write(f"mpirun -np {num_cpus} {lsdynapath} i={path_to_input} {options}\n")
+        with open("run_lsdyna.sh", "w", newline="\n") as f:
+            f.write("#!/usr/bin/env sh\n")
+            f.write("echo start lsdyna in wsl...\n")
+            f.write(" ".join([i.strip() for i in commands]))
 
-        commands = ["powershell", "-Command", "wsl", "-e", "bash", "-lic"] + commands
+        commands = ["powershell", "-Command", "wsl", "-e", "bash", "-lic", "./run_lsdyna.sh"]
 
     with subprocess.Popen(commands, stdout=subprocess.PIPE, text=True) as p:
         for line in p.stdout:

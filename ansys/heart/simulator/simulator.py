@@ -565,7 +565,7 @@ def run_lsdyna(
     num_cpus: int = 1,
     OS="windows",
 ):
-    """standalone function for running LS-DYNA.
+    """Standalone function for running LS-DYNA.
 
     Parameters
     ----------

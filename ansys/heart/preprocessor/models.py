@@ -1295,7 +1295,7 @@ class HeartModel:
                                 )
                             )
 
-                            cap.tessellate(points=[cap.centroid_id])
+                            cap.tessellate(center_point_id=[cap.centroid_id])
                             p1 = surf.nodes[cap.triangles[:, 1],] - cap.centroid
                             p2 = surf.nodes[cap.triangles[:, 2],] - cap.centroid
 

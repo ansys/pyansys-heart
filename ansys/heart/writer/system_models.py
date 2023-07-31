@@ -12,6 +12,34 @@ Valid models include:
 from ansys.dyna.keywords import keywords
 
 
+def ed_load_template():
+    """
+    Define function template to apply ED pressure.
+
+    arg0: define function ID
+    arg1: define function name
+    arg2: target pressure
+    arg3: flow if pressure is not reached
+    """
+    template = (
+        "*DEFINE_FUNCTION\n"
+        "{0}\n"
+        "float {1}(float t, float dp, float area) \n"
+        "{{\n"
+        "float flow1;\n"
+        "if (dp <= {2})\n"
+        "{{\n"
+        "flow1= {3};\n"
+        "}} else\n"
+        "{{\n"
+        "flow1= 0.0;\n"
+        "}}\n"
+        "return flow1;\n"
+        "}}"
+    )
+    return template
+
+
 def windkessel_template():
     """Windkessel template.
 

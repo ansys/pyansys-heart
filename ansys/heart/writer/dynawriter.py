@@ -1738,6 +1738,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _add_enddiastolic_pressure_bc2(self, pressure_lv: float = 1, pressure_rv: float = 1):
+        """
+        Apply ED pressure by control volume.
+
+        Notes
+        -----
+        LSDYNA stress reference configuration bug with this load due to define function.
+        """
         cavities = [part.cavity for part in self.model.parts if part.cavity]
         for cavity in cavities:
             if "atrium" in cavity.name:
@@ -1877,7 +1884,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # # Approximate end-diastolic pressures
         pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
         pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
-        self._add_enddiastolic_pressure_bc2(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
+        self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
         # zerop key words
         self._add_control_reference_configuration()

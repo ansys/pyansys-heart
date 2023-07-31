@@ -1,0 +1,82 @@
+"""unit test for post-processing."""
+import os
+import pathlib as Path
+
+from ansys.heart.postprocessor.D3plotPost import LVContourExporter
+from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
+from ansys.heart.preprocessor.models import HeartModel
+import pytest
+
+model: HeartModel
+test_dir: str
+
+
+@pytest.fixture(autouse=True, scope="module")
+def get_data():
+    global test_dir, model
+
+    # TODO: test case in locally saved, need to upload to Github
+
+    test_dir = r"D:\pyheart-lib\test_case\test_lv"
+    model = HeartModel.load_model(Path.Path(test_dir) / "model_with_fiber.pickle")
+    model.compute_left_ventricle_anatomy_axis()
+
+
+def test_mech_post():
+    dct = mech_post(Path.Path(test_dir) / "main-mechanics", model)
+    assert os.path.exists(Path.Path(test_dir) / "main-mechanics" / "post")
+
+
+def test_zerop_post():
+    dct = zerop_post(Path.Path(test_dir) / "zeropressure", model)
+    assert dct["True left ventricle volume (mm3)"] == pytest.approx(288876.8)
+    assert os.path.exists(Path.Path(test_dir) / "zeropressure" / "post")
+
+
+def test_contour_exporter():
+    d3plot = os.path.join(os.path.dirname(test_dir), "main-mechanics", "d3plot")
+    exporter = LVContourExporter(d3plot, model)
+    contours = exporter.export_contour_to_vtk("l4cv", model.l4cv_axis)
+    # exporter.export_contour_to_vtk('l2cv', model.l2cv_axis)
+    #
+    # normal = model.short_axis["normal"]
+    #
+    # p_start = model.short_axis["center"]
+    # for ap in model.left_ventricle.apex_points:
+    #     if ap.name == "apex epicardium":
+    #         p_end = ap.xyz
+    # for icut in range(2):
+    #     p_cut = p_start + (p_end - p_start) * icut / 2
+    #     cutter = {"center": p_cut, "normal": normal}
+    #     exporter.export_contour_to_vtk(f"shor_{icut}",cutter)
+    print()
+    print(contours[0].GetPoint(0))
+    print(contours[1].GetPoint(0))
+    # assert np.allclose(
+    #     np.array(contours[0].GetPoint(0)),
+    #     np.array([7.273597903198675, 128.824467818063, 387.9997416596942]),
+    # )
+    # assert np.allclose(
+    #     np.array(contours[1].GetPoint(0)),
+    #     np.array([7.254521621126342, 128.83922762291593, 388.01083324324804]),
+    #     rtol=0.001,
+    # )
+
+
+def test_lvls():
+    d3plot = os.path.join(os.path.dirname(test_dir), "main-mechanics", "d3plot")
+    exporter = LVContourExporter(d3plot, model)
+    p1, p2 = exporter.compute_lvls()
+    print()
+    # assert np.allclose(
+    #     p1,
+    #     np.array(
+    #         [[14.84525339, 138.85722581, 381.68174194], [14.88606218, 138.8574518, 381.66178657]]
+    #     ),
+    #     rtol=0.001,
+    # )
+    # assert np.allclose(
+    #     p2,
+    #     np.array([[70.7569, 72.7259, 351.93], [70.79526416, 72.73520587, 351.97354634]]),
+    #     rtol=0.001,
+    # )

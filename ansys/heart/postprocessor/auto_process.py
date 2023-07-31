@@ -9,17 +9,18 @@ from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 from ansys.heart.postprocessor.dpf_d3plot import D3plotReader
 from ansys.heart.preprocessor.mesh.objects import Cavity, SurfaceMesh
+from ansys.heart.simulator.settings.settings import SimulationSettings
 import numpy as np
 
 
-def zerop_post(directory, simulator):
+def zerop_post(directory, model):
     """
     Post-process zeropressure folder.
 
     Parameters
     ----------
     directory: where d3plot files locate
-    simulator: Simulator
+    model: Heart model
 
     Returns
     -------
@@ -30,22 +31,24 @@ def zerop_post(directory, simulator):
 
     # read from d3plot
     data = D3plotReader(glob.glob(os.path.join(directory, "iter*.d3plot"))[-1])
+    # read settings file
+    setting = SimulationSettings()
+    setting.load(os.path.join(directory, "simulation_settings.yml"))
 
-    expected_time = simulator.settings.stress_free.analysis.end_time.to("millisecond").m
+    expected_time = setting.stress_free.analysis.end_time.to("millisecond").m
+
     if data.time[-1] != expected_time:
         Warning("Stress free computation is not converged, skip post process.")
         return None
     stress_free_coord = data.get_initial_coordinates()
     displacements = data.get_displacement()
 
-    if len(simulator.model.cap_centroids) == 0:
-        nodes = simulator.model.mesh.nodes
+    if len(model.cap_centroids) == 0:
+        nodes = model.mesh.nodes
     else:
         # a center node for each cap has been created, add them into create the cavity
-        nodes = np.vstack(
-            (simulator.model.mesh.nodes, np.zeros((len(simulator.model.cap_centroids), 3)))
-        )
-        for cap_center in simulator.model.cap_centroids:
+        nodes = np.vstack((model.mesh.nodes, np.zeros((len(model.cap_centroids), 3))))
+        for cap_center in model.cap_centroids:
             nodes[cap_center.node_id] = cap_center.xyz
 
     # convergence information
@@ -54,7 +57,7 @@ def zerop_post(directory, simulator):
     error_max = np.max(dst)
 
     # geometry information
-    temp_mesh = copy.deepcopy(simulator.model.mesh)
+    temp_mesh = copy.deepcopy(model.mesh)
     for key in temp_mesh.point_data.keys():
         temp_mesh.point_data.remove(key)
     for key in temp_mesh.cell_data.keys():
@@ -87,7 +90,7 @@ def zerop_post(directory, simulator):
     # cavity information
     lv_volumes = _post_cavity("left_ventricle")
 
-    for cavity in simulator.model.cavities:
+    for cavity in model.cavities:
         if cavity.name.lower() == "left ventricle":
             true_lv_ed_volume = cavity.volume
 
@@ -96,9 +99,7 @@ def zerop_post(directory, simulator):
     # Klotz curve information
     # unit is mL and mmHg
     lv_pr_mmhg = (
-        simulator.settings.mechanics.boundary_conditions.end_diastolic_cavity_pressure[
-            "left_ventricle"
-        ]
+        setting.mechanics.boundary_conditions.end_diastolic_cavity_pressure["left_ventricle"]
         .to("mmHg")
         .m
     )
@@ -123,18 +124,16 @@ def zerop_post(directory, simulator):
     }
 
     # right ventricle exist
-    if len(simulator.model.cavities) > 1:
+    if len(model.cavities) > 1:
         rv_volumes = _post_cavity("right_ventricle")
-        for cavity in simulator.model.cavities:
+        for cavity in model.cavities:
             if cavity.name.lower() == "right ventricle":
                 true_rv_ed_volume = cavity.volume
 
         volume_error.append((rv_volumes[-1] - true_rv_ed_volume) / true_rv_ed_volume)
 
         rv_pr_mmhg = (
-            simulator.settings.mechanics.boundary_conditions.end_diastolic_cavity_pressure[
-                "right_ventricle"
-            ]
+            setting.mechanics.boundary_conditions.end_diastolic_cavity_pressure["right_ventricle"]
             .to("mmHg")
             .m
         )

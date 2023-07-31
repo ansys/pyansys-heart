@@ -4,10 +4,10 @@ import glob
 import json
 import os
 
-from ansys.heart.postprocessor.D3plotPost import LVContourExporter
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
-from ansys.heart.postprocessor.dpf_d3plot import D3plotReader
+from ansys.heart.postprocessor.dpf_utils import D3plotReader
+from ansys.heart.postprocessor.exporter import LVContourExporter
 from ansys.heart.preprocessor.mesh.objects import Cavity, SurfaceMesh
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import numpy as np

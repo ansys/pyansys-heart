@@ -4,7 +4,7 @@ from ansys.heart.postprocessor.compute_strain import (
     compute_AHA17_segment_strain,
     compute_myocardial_strain,
 )
-from ansys.heart.postprocessor.dpf_d3plot import D3plotReader
+from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.preprocessor.models import HeartModel
 from matplotlib import pyplot as plt
 

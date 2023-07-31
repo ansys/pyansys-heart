@@ -12,7 +12,7 @@ import numpy as np
 class D3plotReader:
     """Use DPF to parse d3plot."""
 
-    def __init__(self, path: Path):
+    def __init__(self, path: Path.Path):
         """
         Initialize D3plotReader.
 

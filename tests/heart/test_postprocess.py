@@ -2,8 +2,9 @@
 import os
 import pathlib as Path
 
-from ansys.heart.postprocessor.D3plotPost import LVContourExporter
 from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
+from ansys.heart.postprocessor.compute_strain import compute_myocardial_strain
+from ansys.heart.postprocessor.exporter import LVContourExporter
 from ansys.heart.preprocessor.models import HeartModel
 import pytest
 
@@ -20,6 +21,18 @@ def get_data():
     test_dir = r"D:\pyheart-lib\test_case\test_lv"
     model = HeartModel.load_model(Path.Path(test_dir) / "model_with_fiber.pickle")
     model.compute_left_ventricle_anatomy_axis()
+    model.compute_left_ventricle_aha17()
+
+
+def test_compute_myocardial_strain():
+    d3plot = Path.Path(test_dir) / "main-mechanics" / "d3plot"
+    from ansys.heart.postprocessor.dpf_utils import D3plotReader
+
+    data = D3plotReader(d3plot)
+    df = data.get_history_variable(hv_index=list(range(9)), at_frame=1)
+    strain = compute_myocardial_strain(model, df.T, reference=None)
+    model.mesh.point_data.set_vectors = (strain, "LRC strain")
+    model.mesh.plot()
 
 
 def test_mech_post():
@@ -34,7 +47,7 @@ def test_zerop_post():
 
 
 def test_contour_exporter():
-    d3plot = os.path.join(os.path.dirname(test_dir), "main-mechanics", "d3plot")
+    d3plot = Path.Path(test_dir) / "main-mechanics" / "d3plot"
     exporter = LVContourExporter(d3plot, model)
     contours = exporter.export_contour_to_vtk("l4cv", model.l4cv_axis)
     # exporter.export_contour_to_vtk('l2cv', model.l2cv_axis)
@@ -64,7 +77,7 @@ def test_contour_exporter():
 
 
 def test_lvls():
-    d3plot = os.path.join(os.path.dirname(test_dir), "main-mechanics", "d3plot")
+    d3plot = Path.Path(test_dir) / "main-mechanics" / "d3plot"
     exporter = LVContourExporter(d3plot, model)
     p1, p2 = exporter.compute_lvls()
     print()

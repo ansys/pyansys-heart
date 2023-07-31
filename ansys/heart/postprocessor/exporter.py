@@ -6,7 +6,7 @@ Mostly related to the motion.
 import os
 from pathlib import Path
 
-from ansys.heart.postprocessor.dpf_d3plot import D3plotReader
+from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.preprocessor.mesh.vtkmethods import (
     read_vtk_polydata_file,
     vtk_cutter,

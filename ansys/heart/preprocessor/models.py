@@ -1053,14 +1053,9 @@ class HeartModel:
         # interior nodes will have an area of 0.
         self.mesh.point_data["nodal_areas"] = np.zeros(self.mesh.nodes.shape[0])
 
-        # for surface in self.mesh.boundaries:
-        #     self.mesh.point_data["nodal_areas"] += surface.point_data["nodal_areas"]
-        # self.mesh.write_to_vtk(os.path.join(self.info.workdir, "volume_nodal_areas1.vtk"))
-        sf = self.mesh.extract_surface(pass_pointid=True)
-        nodal_areas = vtkmethods.compute_surface_nodal_area_pyvista(sf)
-        self.mesh.point_data["nodal_areas"][sf.point_data["vtkOriginalPointIds"]] = nodal_areas
-
-        # self.mesh.write_to_vtk(os.path.join(self.info.workdir, "volume_nodal_areas.vtk"))
+        for surface in self.mesh.boundaries:
+            self.mesh.point_data["nodal_areas"] += surface.point_data["nodal_areas"]
+        self.mesh.write_to_vtk(os.path.join(self.info.workdir, "volume_nodal_areas.vtk"))
 
         return
 

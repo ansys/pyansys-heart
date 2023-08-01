@@ -1,0 +1,69 @@
+"""Example to preprocess and run a FourChamber EP simulation."""
+import os
+import pathlib
+
+import ansys.heart.preprocessor.models as models
+from ansys.heart.simulator.simulator import EPSimulator
+from ansys.heart.simulator.support import run_preprocessor
+
+if __name__ == "__main__":
+    """FourChamber example.
+
+    1. Extracts simulation mesh
+    2. Use simulator class to launch an EP simulation:
+            - compute fibers
+            - compute purkinje network
+            - launch main simulation
+
+    Please change paths according to your workspace
+    """
+    # extract simulation mesh(es)
+    path_to_case = os.path.join(
+        pathlib.Path(__file__).parents[3], "downloads\\Strocchi2020\\01\\01.case"
+    )
+    workdir = os.path.join(pathlib.Path(path_to_case).parent, "FourChamber")
+
+    path_to_model = os.path.join(workdir, "heart_model.pickle")
+
+    use_preprocessor = True
+
+    if use_preprocessor:
+        model = run_preprocessor(
+            model_type=models.FourChamber,
+            database="Strocchi2020",
+            path_original_mesh=path_to_case,
+            work_directory=workdir,
+            path_to_model=path_to_model,
+            mesh_size=2.0,
+        )
+
+    # specify LS-DYNA path
+    lsdyna_path = r"D:\Fortran\intelMPI\mppdyna_27JUL23"
+
+    model: models.FourChamber = models.HeartModel.load_model(path_to_model)
+    ## instantiate simulator, please change the dynatype accordingly
+    simulator = EPSimulator(
+        model=model,
+        lsdynapath=lsdyna_path,
+        dynatype="smp",
+        num_cpus=1,
+        simulation_directory=os.path.join(model.info.workdir, "simulation-EP"),
+        platform="wsl",
+    )
+    # load default settings
+    simulator.settings.load_defaults()
+    # compute the fiber orientation
+    simulator.compute_fibers()
+    # visualize computed fibers
+    simulator.model.plot_fibers(n_seed_points=2000)
+    # compute purkinje network
+    simulator.compute_purkinje()
+    # visualize purkinje
+    model.dump_model()
+    model: models.FourChamber = models.HeartModel.load_model(path_to_model)
+    simulator.model.plot_purkinje()
+
+    simulator.compute_conduction_system()
+    # start simulation
+    simulator.simulate()
+    print("done")

@@ -182,6 +182,13 @@ class HeartModel:
             path_to_output=path_to_output_model,
         )
 
+        # remove empty cell zones
+        num_cell_zones1 = len(fluent_mesh.cell_zones)
+        fluent_mesh.cell_zones = [cz for cz in fluent_mesh.cell_zones if cz.cells.shape[0] > 0]
+        num_cell_zones2 = len(fluent_mesh.cell_zones)
+        if num_cell_zones1 > num_cell_zones2:
+            LOGGER.warning("Removed {0} cell zones".format(num_cell_zones1 - num_cell_zones2))
+
         # use part definitions to find which cell zone belongs to which part.
         for input_part in self._input.parts:
             surface = input_part.combined_boundaries

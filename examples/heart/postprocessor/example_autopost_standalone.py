@@ -9,9 +9,12 @@ if __name__ == "__main__":
     model = HeartModel.load_model(".")
     # Define directory where zeropressure simulation is carried out
     # a folder "post" will be created under it with key simulation results (json, png, vtk...)
+    # use Paraview state file post_zerop2.pvsm, you can easily visualize generated results
     dir = r""
     zerop_post(dir, model)
+
     # Define directory where main mechanical simulation is carried out
     # a folder "post" will be created under it with key simulation results (json, png, vtk...)
+    # use Paraview state file post_main2.pvsm, you can easily visualize generated results
     dir2 = r""
     mech_post(dir2, model)

@@ -863,6 +863,7 @@ class Part:
         return surface_names
 
     def get_point(self, pointname: str) -> Point:
+        """Get point from part."""
         for point in self.points:
             if point.name == pointname:
                 return point

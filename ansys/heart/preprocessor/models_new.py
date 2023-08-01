@@ -795,14 +795,18 @@ class HeartModel:
                 boundary_surface = self.mesh.get_surface_from_name(boundary_name)
                 if "septum" in surface.name:
                     try:
-                        boundary_surface = self.mesh.boundaries[
-                            self.mesh.boundary_names.index("septum")
-                        ]
+                        septum = [b for b in self.mesh.boundaries if "septum" in b.name]
+                        if len(septum) > 1:
+                            LOGGER.warning(
+                                "Multiple candidate boundaries for septum found, using first one."
+                            )
+                        boundary_surface = septum[0]
                     except:
                         boundary_surface = None
                 if boundary_surface:
                     surface.triangles = boundary_surface.triangles
                     surface.nodes = boundary_surface.nodes
+                    surface.id = boundary_surface.id
                 else:
                     LOGGER.warning("Could not find matching surface for: {0}".format(surface.name))
 

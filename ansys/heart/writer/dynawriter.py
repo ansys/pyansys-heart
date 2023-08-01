@@ -441,7 +441,6 @@ class BaseDynaWriter:
 
     def get_apex_left(self):
         """Get apex of left ventricle cavity."""
-        # TODO Move this to the mesh or model class rather than here
         # collect relevant node and segment sets.
         # node set: apex, base
         # node set: endocardium, epicardium
@@ -485,7 +484,6 @@ class BaseDynaWriter:
 
     def get_apex_right(self):
         """Get apex of right ventricle cavity."""
-        # TODO Move this to the mesh or model class rather than here
         node_apex_right = np.empty(0, dtype=int)
         if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             node_apex_right = self.model.right_ventricle.apex_points[0].node_id
@@ -2860,8 +2858,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def _update_ep_material_db(self):
         """Add EP material for each defined part."""
         for part in self.model.parts:
-            partname = part.name.lower()
-            if ("atrium" in partname) or ("ventricle" in partname) or ("septum" in partname):
+            if ("atrium" in part.name) or ("ventricle" in part.name) or ("septum" in part.name):
                 ep_mid = part.pid
                 self.kw_database.material.extend(
                     [
@@ -2894,8 +2891,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def _update_cellmodels(self):
         """Add cell model for each defined part."""
         for part in self.model.parts:
-            partname = part.name.lower()
-            if ("atrium" in partname) or ("ventricle" in partname) or ("septum" in partname):
+            if ("atrium" in part.name) or ("ventricle" in part.name) or ("septum" in part.name):
                 ep_mid = part.pid
                 cell_kw = keywords.EmEpCellmodelTentusscher(
                     mid=ep_mid,
@@ -3004,7 +3000,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             keywords.EmDatabaseNodout(outlv=1, dtout=1, nsid=nsid_all_parts)
         )
         # use defaults
-        self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=1))
+        self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=5))
 
         # max iter should be int
         self.kw_database.ep_settings.append(
@@ -3013,7 +3009,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         self.kw_database.ep_settings.append(keywords.EmOutput(mats=1, matf=1, sols=1, solf=1))
 
-        if isinstance(self.model, (BiVentricle)):
+        if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             node_apex_left = self.get_apex_left()
             node_apex_right = self.get_apex_right()
 
@@ -3039,31 +3035,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             # create node-sets for apex
             node_set_kw = create_node_set_keyword(
                 node_ids=[node_apex_left + 1, node_apex_right + 1],
-                node_set_id=node_set_id_stimulationnodes,
-                title="Stim nodes",
-            )
-
-            self.kw_database.node_sets.append(node_set_kw)
-            self.kw_database.ep_settings.append(
-                custom_keywords.EmEpTentusscherStimulus(
-                    stimid=1,
-                    settype=2,
-                    setid=node_set_id_stimulationnodes,
-                    stimstrt=0.0,
-                    stimt=1000.0,
-                    stimdur=20.0,
-                    stimamp=50.0,
-                )
-            )
-            # if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-            #     self.model.left_atrium.apex_points
-        if isinstance(self.model, (FourChamber, FullHeart)):
-            node_SAN = self.model.right_atrium.get_point("SA_node").node_id
-            # TODO add more nodes to initiate wave propagation !!!!
-            node_set_id_stimulationnodes = self.get_unique_nodeset_id()
-            # create node-sets for apex
-            node_set_kw = create_node_set_keyword(
-                node_ids=[node_SAN + 1],
                 node_set_id=node_set_id_stimulationnodes,
                 title="Stim nodes",
             )
@@ -3168,21 +3139,17 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 network.pid = self.get_unique_part_id()
 
                 origin_coordinates = self.model.mesh.nodes[network.node_ids[0], :]
-                if network.name == None:
-                    node_apex_left = self.model.left_ventricle.apex_points[0].xyz
-                    node_apex_right = self.model.right_ventricle.apex_points[0].xyz
-                    distance = np.linalg.norm(
-                        origin_coordinates - np.array([node_apex_left, node_apex_right]),
-                        axis=1,
-                    )
-                    if np.min(distance[0]) < 1e-3:
-                        network.name = "Left" + "-" + "purkinje"
-                        network.nsid = self.model.left_ventricle.endocardium.id
-                    elif np.min(distance[1]) < 1e-3:
-                        network.name = "Right" + "-" + "purkinje"
-                        network.nsid = self.model.right_ventricle.endocardium.id
-                    else:
-                        LOGGER.error("Point too far from apex")
+
+                for part in self.model.parts:
+                    for surface in part.surfaces:
+                        if surface.name != None and "endocardium" in surface.name:
+                            distance = np.linalg.norm(
+                                origin_coordinates - self.model.mesh.nodes[surface.node_ids, :],
+                                axis=1,
+                            )
+                            if np.min(distance) < 1e-3:
+                                network.name = surface.name + "-" + "purkinje"
+                                network.nsid = surface.nsid
 
                 self.kw_database.main.append(
                     custom_keywords.EmEpPurkinjeNetwork2(

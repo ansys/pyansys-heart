@@ -23,7 +23,7 @@ from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 from ansys.heart.postprocessor.dpf_d3plot import D3plotReader
 from ansys.heart.preprocessor.mesh.objects import Cavity, SurfaceMesh
-from ansys.heart.preprocessor.models import HeartModel, LeftVentricle
+from ansys.heart.preprocessor.models import FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 import numpy as np
@@ -243,7 +243,10 @@ class EPSimulator(BaseSimulator):
 
     def compute_conduction_system(self):
         """Compute the conduction system."""
-        self.model.mesh.compute_av_conduction()
+        if isinstance(self.model, (FourChamber, FullHeart)):
+            self.model.compute_av_conduction()
+            self.model.compute_His_conduction()
+            self.model.compute_bundle_branches()
 
     def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""

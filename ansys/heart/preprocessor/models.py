@@ -1634,7 +1634,7 @@ class FourChamber(HeartModel):
             pv.PolyData(self.mesh.points[right_septum.node_ids, :]).center
         )
         AV_node = right_atrium_endo.node_ids[AV_node]
-        AV_node = Point(name="AV_Node", xyz=self.mesh.nodes[AV_node, :], node_id=AV_node)
+        AV_node = Point(name="AV_node", xyz=self.mesh.nodes[AV_node, :], node_id=AV_node)
         self.right_atrium.points.append(AV_node)
         return AV_node
 
@@ -1646,13 +1646,12 @@ class FourChamber(HeartModel):
 
         path_SAN_AVN = right_atrium_endo.geodesic(SA_node, AV_node)
         edges = path_SAN_AVN["vtkOriginalPointIds"]
-        # duplicate nodes inside the line, connect only origin and end of line
-        edges[1:-1] = len(self.mesh.nodes) + np.linspace(
-            0, len(edges) - 3, len(edges) - 2, dtype=int
-        )
+        # duplicate nodes inside the line, connect only SAN with 3D
+        edges[1:] = len(self.mesh.nodes) + np.linspace(0, len(edges) - 2, len(edges) - 1, dtype=int)
+        self.right_atrium.get_point("AV_node").node_id = edges[-1]
         edges = np.vstack((edges[:-1], edges[1:])).T
         self.mesh.add_beam_network(
-            new_nodes=path_SAN_AVN.points[1:-1, :], edges=edges, name="SAN_to_AVN"
+            new_nodes=path_SAN_AVN.points[1:, :], edges=edges, name="SAN_to_AVN"
         )
         return
 
@@ -1687,7 +1686,6 @@ class FourChamber(HeartModel):
         # TODO automate this in while loop as function of desired total distance
 
         His_septum_end_xyz = His_septum_start_xyz + 4 * beam_length * vector_towards_apex
-
         new_nodes = np.array(
             [
                 His_septum_start_xyz,
@@ -1707,7 +1705,7 @@ class FourChamber(HeartModel):
             node_id=len(new_nodes) + len(self.mesh.nodes) - 1,
         )
         self.septum.points.append(His_septum_end)
-        AV_node = self.right_atrium.get_point("AV_Node")
+        AV_node = self.right_atrium.get_point("AV_node")
         edges = np.concatenate(
             (
                 np.array([(AV_node.node_id)]),

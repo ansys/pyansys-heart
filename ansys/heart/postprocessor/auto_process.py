@@ -6,6 +6,7 @@ import os
 
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
+from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.postprocessor.exporter import LVContourExporter
 from ansys.heart.preprocessor.mesh.objects import Cavity, SurfaceMesh
@@ -188,5 +189,9 @@ def mech_post(directory, model):
         exporter.export_contour_to_vtk(f"shor_{icut}", cutter)
 
     exporter.export_lvls_to_vtk("lvls")
+
+    #
+    aha_strain = AhaStrainCalculator(model, d3plot_file=directory / "d3plot")
+    aha_strain.compute_aha_strain(directory / folder / "lrc_strain", with_vtk=True)
 
     return

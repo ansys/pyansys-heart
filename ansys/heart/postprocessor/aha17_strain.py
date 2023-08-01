@@ -1,4 +1,6 @@
 """Compute myocardial strain."""
+import pathlib
+
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.preprocessor.models import HeartModel
 import matplotlib as mpl
@@ -23,9 +25,26 @@ class AhaStrainCalculator:
 
         self.d3plot = D3plotReader(d3plot_file)
 
-    def compute_aha_strain(self, out_file="AHAstrain.csv"):
-        """Save aha 17 segment strain in csv file."""
+    def compute_aha_strain(self, out_dir, with_vtk=False) -> np.ndarray:
+        """
+        Save aha 17 segment strain in csv file.
+
+        Parameters
+        ----------
+        out_dir: strain csv output directory
+        with_vtk: if write vtk under same directory
+
+        Returns
+        -------
+        np.ndarray
+            17*3 AHA segments LRC strain
+        """
         strain = np.zeros((len(self.d3plot.time), 1 + 17 * 3))
+
+        if with_vtk:
+            vtk_dir = out_dir
+        else:
+            vtk_dir = None
 
         header = "time"
         for aha in range(1, 18):
@@ -33,22 +52,28 @@ class AhaStrainCalculator:
                 header = ",".join([header, "AHA{0:d}_{1:s}".format(aha, dir)])
 
         for i, t in enumerate(self.d3plot.time):
-            aha_lrc = self.compute_aha_strain_once(i)
+            aha_lrc = self.compute_aha_strain_once(i, out_dir=vtk_dir)
             strain[i, 0] = t
             strain[i, 1:] = aha_lrc.ravel()
 
-        np.savetxt(out_file, strain, header=header, delimiter=",", comments="")
+        np.savetxt(
+            pathlib.Path(out_dir) / "AHAstrain.csv",
+            strain,
+            header=header,
+            delimiter=",",
+            comments="",
+        )
 
         return strain
 
-    def compute_aha_strain_once(self, frame=0, save_vtk=True):
+    def compute_aha_strain_once(self, frame=0, out_dir=None):
         """
         Export AHA strain and/or save vtk file for a given frame.
 
         Parameters
         ----------
         frame: int, at frame
-        save_vtk, default:True
+        out_dir: vtk folder, not save as default
 
         Returns
         -------
@@ -56,7 +81,7 @@ class AhaStrainCalculator:
         """
         element_lrc, aha_lrc, element_lrc_averaged = self._compute_myocardial_strain(frame)
 
-        if save_vtk:
+        if out_dir is not None:
             aha_model = self.model.mesh.extract_cells(self._aha_elements)
             aha_model.cell_data["AHA"] = self.model.aha_ids[self._aha_elements]
 
@@ -68,7 +93,7 @@ class AhaStrainCalculator:
 
             aha_model.cell_data.set_vectors(element_lrc, "LRC strain")
             aha_model.cell_data.set_vectors(element_lrc_averaged, "LRC averaged strain")
-            aha_model.save("LRC_{0:d}.vtk".format(frame))
+            aha_model.save(pathlib.Path(out_dir) / "LRC_{0:d}.vtk".format(frame))
 
         return aha_lrc
 

@@ -15,7 +15,7 @@ if __name__ == "__main__":
     aha_calculator = AhaStrainCalculator(model, d3plot_file)
 
     # get LRC strain at time=0 and export to vtk
-    aha_strain0 = aha_calculator.compute_aha_strain_once(frame=0, save_vtk=True)
+    aha_strain0 = aha_calculator.compute_aha_strain_once(frame=0, out_dir=".")
 
     # bulleye plot
     fig, ax = plt.subplots(figsize=(24, 16), nrows=1, ncols=3, subplot_kw=dict(projection="polar"))
@@ -28,4 +28,4 @@ if __name__ == "__main__":
     plt.show()
 
     # export all strain into csv (Long)
-    # aha_strain = aha_calculator.compute_aha_strain(out_file='strain.csv')
+    aha_strain = aha_calculator.compute_aha_strain(out_dir=".", with_vtk=False)

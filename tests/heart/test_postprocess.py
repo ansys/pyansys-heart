@@ -36,7 +36,7 @@ def test_compute_aha_strain():
     d3plot = Path.Path(test_dir) / "main-mechanics" / "d3plot"
 
     s = AhaStrainCalculator(model, d3plot)
-    aha_lrc = s.compute_aha_strain()
+    aha_lrc = s.compute_aha_strain(".")
     assert aha_lrc[1, -1] == pytest.approx(0.08878163)
 
 

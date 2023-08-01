@@ -620,6 +620,31 @@ class HeartModel:
 
         return
 
+    def _sync_input_parts_to_model_parts(self):
+        """Synchronize the input parts to the model parts.
+
+        Note
+        ----
+        Checks:
+            overwrites the default part ids by those given by user.
+        """
+        # unassign any part ids.
+        for p in self.parts:
+            p.pid = None
+
+        for input_part in self._input.parts:
+            try:
+                idx = self.part_names.index(input_part.name)
+                self.parts[idx].pid = input_part.id
+            except ValueError:
+                LOGGER.debug(f"Failed to find a match for: {input_part.name}")
+                continue
+
+        # assign new ids to parts without part id
+        for p in self.parts:
+            if not p.pid:
+                p.pid = max([pid for pid in self.part_ids if pid != None]) + 1
+        return
     def _extract_septum(self) -> None:
         """Separate the septum elements from the left ventricle.
 

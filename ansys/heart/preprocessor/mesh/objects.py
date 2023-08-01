@@ -353,7 +353,7 @@ class Mesh(pv.UnstructuredGrid):
     ) -> None:
         """Add beam network."""
         nodes = np.vstack([self.nodes, new_nodes])  # add new nodes to existing nodes
-        beam_net = BeamMesh(nodes=nodes, edges=edges, pid=pid)
+        beam_net = BeamMesh(nodes=nodes, edges=edges, pid=pid, nsid=-1)
         beam_net.pid = pid
         beam_net.id = len(self.beam_network) + 1
         beam_net.name = name
@@ -495,7 +495,7 @@ class SurfaceMesh(pv.PolyData, Feature):
         name: str = None,
         triangles: np.ndarray = None,
         nodes: np.ndarray = None,
-        sid: int = None,
+        id: int = None,
     ) -> None:
         super().__init__(self)
         Feature.__init__(self, name)
@@ -506,7 +506,7 @@ class SurfaceMesh(pv.PolyData, Feature):
         """Boundary edges."""
         self.edge_groups: List[EdgeGroup] = []
         """Edge groups."""
-        self.id: int = sid
+        self.id: int = id
         """ID of surface."""
         self.nsid: int = None
         """ID of corresponding set of nodes."""
@@ -861,6 +861,13 @@ class Part:
             if isinstance(value, SurfaceMesh):
                 surface_names.append(value.name)
         return surface_names
+
+    def get_point(self, pointname: str) -> Point:
+        for point in self.points:
+            if point.name == pointname:
+                return point
+            else:
+                LOGGER.error("Cannot find point.")
 
     def __init__(self, name: str = None, part_type: str = None) -> None:
         self.name = name

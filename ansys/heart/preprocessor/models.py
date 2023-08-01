@@ -943,7 +943,7 @@ class HeartModel:
                 name=face_zone.name,
                 triangles=faces,
                 nodes=self.mesh.nodes,
-                id=face_zone.id,
+                sid=face_zone.id,
             )
             # face_zone_surface_mesh.write_to_stl(
             #     os.path.join(self.info.workdir, face_zone.name + ".stl")
@@ -1658,7 +1658,7 @@ class FourChamber(HeartModel):
 
     def compute_His_conduction(self):
         """Compute His conduction system."""
-        # TODO add method in Part class to have a get_mesh()
+        # TODO add method in Part class to get mesh, refactor part
         # https://www.researchgate.net/publication/353154291_Morphometric_analysis_of_the_His
         # _bundle_atrioventricular_fascicle_in_humans_and_other_animal_species_Histological_and
         # _immunohistochemical_study
@@ -1680,37 +1680,39 @@ class FourChamber(HeartModel):
         )
         His_septum_start_xyz = self.mesh.nodes[His_septum_start_id, :]
 
-        vector_towards_apex = (septum_center_xyz - His_septum_start_xyz) / np.linalg.norm(
-            septum_center_xyz - His_septum_start_xyz
+        His_septum_start = Point(
+            name="His septum start", xyz=His_septum_start_xyz, node_id=His_septum_start_id
+        )
+        self.septum.points.append(His_septum_start)
+        vector_towards_apex = (septum_center_xyz - His_septum_start.xyz) / np.linalg.norm(
+            septum_center_xyz - His_septum_start.xyz
         )
         beam_length = 0.8
         # TODO automate this in while loop as function of desired total distance
 
-        His_septum_end_xyz = His_septum_start_xyz + 4 * beam_length * vector_towards_apex
+        His_septum_end_xyz = His_septum_start.xyz + 4 * beam_length * vector_towards_apex
 
         new_nodes = np.array(
             [
-                His_septum_start_xyz,
-                His_septum_start_xyz + 1 * beam_length * vector_towards_apex,
-                His_septum_start_xyz + 2 * beam_length * vector_towards_apex,
-                His_septum_start_xyz + 3 * beam_length * vector_towards_apex,
+                His_septum_start.xyz + 1 * beam_length * vector_towards_apex,
+                His_septum_start.xyz + 2 * beam_length * vector_towards_apex,
+                His_septum_start.xyz + 3 * beam_length * vector_towards_apex,
                 His_septum_end_xyz,
             ]
         )
-        His_septum_start = Point(
-            name="His septum start", xyz=His_septum_start_xyz, node_id=len(self.mesh.nodes)
-        )
-        self.septum.points.append(His_septum_start)
         His_septum_end = Point(
             name="His septum end",
             xyz=His_septum_end_xyz,
             node_id=len(new_nodes) + len(self.mesh.nodes) - 1,
         )
         self.septum.points.append(His_septum_end)
-        AV_node = self.right_atrium.get_point("AV_Node")
+        for point in self.right_atrium.points:
+            if "AV_Node" in point.name:
+                AV_node = point
+                break
         edges = np.concatenate(
             (
-                np.array([(AV_node.node_id)]),
+                np.array([(AV_node.node_id), His_septum_start_id]),
                 len(self.mesh.nodes)
                 + np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int),
             )
@@ -1751,7 +1753,10 @@ class FourChamber(HeartModel):
                 (self.right_ventricle.septum.node_ids, self.right_ventricle.endocardium.node_ids)
             )
         )
-        His_end = self.septum.get_point("His septum end")
+        for point in self.septum.points:
+            if "His septum end" in point.name:
+                His_end = point
+                break
 
         left_branch_start = pv.PolyData(self.mesh.points[left_endo_nids, :]).find_closest_point(
             His_end.xyz
@@ -1793,6 +1798,8 @@ class FourChamber(HeartModel):
         )
         edges = np.vstack((edges[:-1], edges[1:])).T
         self.mesh.add_beam_network(new_nodes=new_nodes, edges=edges, name="Right bundle branch")
+
+        self.plot_purkinje()
 
         # Project end of his right and left
         # find geodesic until apex, or seomthing closer belonging to purkinje

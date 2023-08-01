@@ -867,7 +867,8 @@ class Part:
         for point in self.points:
             if point.name == pointname:
                 return point
-        LOGGER.error("Cannot find point.")
+            else:
+                LOGGER.error("Cannot find point.")
 
     def __init__(self, name: str = None, part_type: str = None) -> None:
         self.name = name

@@ -749,7 +749,7 @@ class HeartModel:
         LOGGER.debug("Total num elements: {}".format(summ))
 
         if summ != self.mesh.tetrahedrons.shape[0]:
-            raise ValueError(
+            LOGGER.warning(
                 "{0} elements assigned to parts - but {1} exist in mesh".format(
                     summ, self.mesh.tetrahedrons.shape[0]
                 )

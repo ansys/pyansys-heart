@@ -2,8 +2,8 @@
 import os
 import pathlib as Path
 
+from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
 from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
-from ansys.heart.postprocessor.compute_strain import compute_myocardial_strain
 from ansys.heart.postprocessor.exporter import LVContourExporter
 from ansys.heart.preprocessor.models import HeartModel
 import pytest
@@ -26,13 +26,18 @@ def get_data():
 
 def test_compute_myocardial_strain():
     d3plot = Path.Path(test_dir) / "main-mechanics" / "d3plot"
-    from ansys.heart.postprocessor.dpf_utils import D3plotReader
 
-    data = D3plotReader(d3plot)
-    df = data.get_history_variable(hv_index=list(range(9)), at_frame=1)
-    strain = compute_myocardial_strain(model, df.T, reference=None)
-    model.mesh.point_data.set_vectors = (strain, "LRC strain")
-    model.mesh.plot()
+    s = AhaStrainCalculator(model, d3plot)
+    element_lrc, aha_lrc, element_lrc_averaged = s._compute_myocardial_strain(1)
+    assert aha_lrc[-1, -1] == pytest.approx(0.08878163)
+
+
+def test_compute_aha_strain():
+    d3plot = Path.Path(test_dir) / "main-mechanics" / "d3plot"
+
+    s = AhaStrainCalculator(model, d3plot)
+    aha_lrc = s.compute_aha_strain()
+    assert aha_lrc[1, -1] == pytest.approx(0.08878163)
 
 
 def test_mech_post():

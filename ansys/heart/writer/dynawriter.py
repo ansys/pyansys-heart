@@ -2690,22 +2690,22 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
             # build atrio-ventricular tag-id pairs
             # labels_to_ids stores the mapping between tag-ids and the corresponding label.
-            labels_to_tag_ids = self.model.info._deprecated_labels_to_ids
+            labels_to_tag_ids = self.model.part_name_to_part_id
             left_ventricle_left_atrium = [
-                labels_to_tag_ids["Left ventricle myocardium"],
-                labels_to_tag_ids["Left atrium myocardium"],
+                labels_to_tag_ids["Left ventricle"],
+                labels_to_tag_ids["Left atrium"],
             ]
             right_ventricle_right_atrium = [
-                labels_to_tag_ids["Right ventricle myocardium"],
-                labels_to_tag_ids["Right atrium myocardium"],
+                labels_to_tag_ids["Right ventricle"],
+                labels_to_tag_ids["Right atrium"],
             ]
             left_ventricle_right_atrium = [
-                labels_to_tag_ids["Left ventricle myocardium"],
-                labels_to_tag_ids["Right atrium myocardium"],
+                labels_to_tag_ids["Left ventricle"],
+                labels_to_tag_ids["Right atrium"],
             ]
             right_ventricle_left_atrium = [
-                labels_to_tag_ids["Right ventricle myocardium"],
-                labels_to_tag_ids["Left atrium myocardium"],
+                labels_to_tag_ids["Right ventricle"],
+                labels_to_tag_ids["Left atrium"],
             ]
 
             # build atrioventricular tag_id pairs

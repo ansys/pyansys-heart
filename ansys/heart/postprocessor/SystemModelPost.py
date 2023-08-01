@@ -188,12 +188,36 @@ class SystemModelPost:
                 fcsv2, [r_ed_pressure, r_ed_volume], name="Right ventricle"
             )
 
-    def plot_pv_loop(self, t_start=0, t_end=10e10):
+    def get_ejection_fraction(self, t_start=0, t_end=10e10):
+        """
+        Compute ejection fraction at a given time interval.
+
+        Parameters
+        ----------
+        t_start: start time
+        t_end: end time
+
+        Returns
+        -------
+        Ejection fraction
+        """
+        start = np.where(self.lv_system.time >= t_start)[0][0]
+        end = np.where(self.lv_system.time <= t_end)[0][-1]
+        v = self.lv_system.volume.cavity[start:end]
+        try:
+            ef = (max(v) - min(v)) / max(v)
+        except:
+            ef = 0
+        return ef
+
+    def plot_pv_loop(self, t_start=0, t_end=10e10, show_ed=False, ef=None):
         """
         Plot PV loop.
 
         Parameters
         ----------
+        ef: Default None, else plot ejection fraction in legend.
+        show_ed: Default False, else plot ED state
         t_start: start time
         t_end: end time
         """
@@ -203,15 +227,37 @@ class SystemModelPost:
         fig, axis = plt.subplots()
         fig.suptitle("Pressure Volume Loop")
 
+        axis.set_xlim(
+            [
+                0.95 * np.min(self.lv_system.volume.cavity),
+                1.05 * np.max(self.lv_system.volume.cavity),
+            ]
+        )
+        axis.set_ylim(
+            [
+                0.8 * np.min(self.lv_system.pressure.cavity),
+                1.2 * np.max(self.lv_system.pressure.cavity),
+            ]
+        )
+
         def add_pv(cavity, color):
             v = cavity.volume.cavity[start:end]
-            try:
-                ef = (max(v) - min(v)) / max(v)
-            except:
-                ef = 0
             p = cavity.pressure.cavity[start:end]
-            axis.plot(v, p, color, label="{0},EF={1:.1f}%".format(cavity.name, ef * 100))
-            axis.scatter(cavity.ed[1], cavity.ed[0], facecolor=color, label=cavity.name + "@ED")
+
+            # label
+            label = "{0}".format(cavity.name)
+            if ef is not None:
+                label = "{0},EF={1:.1f}%".format(label, ef * 100)
+
+            # plot
+            axis.plot(v, p, color, label=label)
+
+            # highlight last point
+            if len(v) > 0:  # safety
+                axis.scatter(v[-1], p[-1], facecolor=color)
+
+            if show_ed:
+                axis.scatter(cavity.ed[1], cavity.ed[0], facecolor=color, label=cavity.name + "@ED")
             return
 
         add_pv(self.lv_system, "blue")
@@ -300,7 +346,7 @@ class SystemModelPost:
 
           It's normal that the cavity volume is slight different.
         """
-        from ansys.heart.postprocessor.binout_helper import IcvOut
+        from ansys.heart.postprocessor.deprecated_binout_helper import IcvOut
 
         try:
             self.bin = IcvOut(os.path.join(self.dir, "binout"))

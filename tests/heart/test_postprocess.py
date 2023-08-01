@@ -2,6 +2,7 @@
 import os
 import pathlib as Path
 
+from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
 from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
 from ansys.heart.postprocessor.exporter import LVContourExporter
@@ -99,3 +100,16 @@ def test_lvls():
     #     np.array([[70.7569, 72.7259, 351.93], [70.79526416, 72.73520587, 351.97354634]]),
     #     rtol=0.001,
     # )
+
+
+class TestSystemModelPost:
+    @pytest.fixture
+    def system_model(self):
+        return SystemModelPost(Path.Path(test_dir) / "main-mechanics")
+
+    def test_plot_pv_loop(self, system_model):
+        ef = system_model.get_ejection_fraction(t_start=2, t_end=3)
+        fig = system_model.plot_pv_loop(ef=ef)
+        fig.savefig("pv_{0:d}.png".format(0))
+        assert os.path.isfile("pv_0.png")
+        # ffmpeg -f image2 -i pv_%d.png output.mp4

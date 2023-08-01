@@ -346,7 +346,7 @@ class HeartModel:
         LOGGER.info("*****************************************")
         return
 
-    def dump_model(self, filename: pathlib.Path = None, remove_raw_mesh: bool = True) -> None:
+    def dump_model(self, filename: pathlib.Path = None) -> None:
         """Save model to file.
 
         Examples
@@ -361,12 +361,6 @@ class HeartModel:
             filename = self.info.path_to_model
         else:
             self.info.path_to_model = filename
-
-        # cleanup model object for more efficient storage
-        # NOTE deleting faces, nodes of surfaces does not affect size
-        # due to copy-by-reference
-        if remove_raw_mesh:
-            self.mesh_raw = None
 
         with open(filename, "wb") as file:
             pickle.dump(self, file)
@@ -401,7 +395,7 @@ class HeartModel:
         plotter.show()
         return
 
-    def plot_fibers(self, n_seed_points: int = 1000, plot_raw_mesh: bool = False):
+    def plot_fibers(self, n_seed_points: int = 1000):
         """Plot the mesh and fibers as streamlines.
 
         Parameters
@@ -424,14 +418,7 @@ class HeartModel:
             return
         plotter = pyvista.Plotter()
 
-        if plot_raw_mesh:
-            if not isinstance(self.mesh_raw, Mesh):
-                LOGGER.info("Raw mesh not available.")
-                return
-            mesh = self.mesh_raw
-        else:
-            mesh = self.mesh
-
+        mesh = self.mesh
         mesh = mesh.ctp()
         streamlines = mesh.streamlines(vectors="fiber", source_radius=75, n_points=n_seed_points)
         tubes = streamlines.tube()

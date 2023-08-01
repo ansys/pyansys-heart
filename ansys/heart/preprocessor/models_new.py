@@ -645,6 +645,7 @@ class HeartModel:
             if not p.pid:
                 p.pid = max([pid for pid in self.part_ids if pid != None]) + 1
         return
+
     def _extract_septum(self) -> None:
         """Separate the septum elements from the left ventricle.
 
@@ -657,8 +658,10 @@ class HeartModel:
             return None
 
         surface_septum = [s for s in self.mesh.boundaries if "septum" in s.name]
-        if len(surface_septum) != 1:
+        if len(surface_septum) > 1:
             raise ValueError("Expecting only one surface that contains string: 'septum'")
+        if len(surface_septum) == 0:
+            raise ValueError("No boundary with name: 'septum' found")
         surface_septum = surface_septum[0]
 
         # extrude septum surface

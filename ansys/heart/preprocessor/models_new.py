@@ -129,9 +129,39 @@ class HeartModel:
         return [part.pid for part in self.parts]
 
     @property
+    def surface_names(self) -> List[str]:
+        """Return list of all defined surface names."""
+        return [s.name for p in self.parts for s in p.surfaces]
+
+    @property
+    def surface_ids(self) -> List[str]:
+        """Return list of all defined surface names."""
+        return [s.id for p in self.parts for s in p.surfaces]
+
+    @property
     def cavities(self) -> List[Cavity]:
         """Return list of cavities in the model."""
         return [part.cavity for part in self.parts if part.cavity]
+
+    @property
+    def part_name_to_part_id(self) -> dict:
+        """Dictionary that maps the part name to the part id."""
+        return {p.name: p.pid for p in self.parts}
+
+    @property
+    def part_id_to_part_name(self) -> dict:
+        """Dictionary that maps part id to part name."""
+        return {p.pid: p.name for p in self.parts}
+
+    @property
+    def surface_name_to_surface_id(self) -> dict:
+        """Dictionary that maps surface name to surface id."""
+        return {s.name: s.id for p in self.parts for s in p.surfaces}
+
+    @property
+    def surface_id_to_surface_name(self) -> dict:
+        """Dictionary that maps surface name to surface id."""
+        return {s.id: s.name for p in self.parts for s in p.surfaces}
 
     def __init__(self, info: ModelInfo) -> None:
         self.info = info

@@ -127,8 +127,8 @@ def mesh_from_manifold_input_model(
     session.tui.mesh.modify.auto_node_move("(*)", "(*)", 0.3, 50, 120, "yes", 5)
     session.tui.objects.delete_all_geom()
     session.tui.mesh.zone_names_clean_up()
-    session.tui.mesh.check_mesh()
-    session.tui.mesh.check_quality()
+    # session.tui.mesh.check_mesh()
+    # session.tui.mesh.check_quality()
     session.tui.boundary.manage.remove_suffix("(*)")
 
     session.tui.mesh.prepare_for_solve("yes")

@@ -185,11 +185,29 @@ class HeartModel:
         # use part definitions to find which cell zone belongs to which part.
         for input_part in self._input.parts:
             surface = input_part.combined_boundaries
+
+            if surface.is_manifold:
+                check_surface = True
+            else:
+                check_surface = False
+                LOGGER.warning(
+                    "Part {0} not manifold - disabled surface check.".format(input_part.name)
+                )
+
             for cz in fluent_mesh.cell_zones:
                 # use centroid of first cell to find which input part it belongs to.
                 centroid = pv.PolyData(np.mean(fluent_mesh.nodes[cz.cells[0, :], :], axis=0))
-                if np.all(centroid.select_enclosed_points(surface).point_data["SelectedPoints"]):
+                if np.all(
+                    centroid.select_enclosed_points(surface, check_surface=False).point_data[
+                        "SelectedPoints"
+                    ]
+                ):
                     cz.id = input_part.id
+
+        # Use only cell zones that are inside the parts defined in the input.
+        fluent_mesh.cell_zones = [
+            cz for cz in fluent_mesh.cell_zones if cz.id in self._input.part_ids
+        ]
 
         cells = np.vstack([cz.cells for cz in fluent_mesh.cell_zones])
         part_ids = [[cz.id] * cz.cells.shape[0] for cz in fluent_mesh.cell_zones]

@@ -1143,20 +1143,21 @@ class HeartModel:
 class LeftVentricle(HeartModel):
     """Model of just the left ventricle."""
 
-    def __init__(self, info: ModelInfo) -> None:
+    def __init__(self, info: ModelInfo = None) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part."""
         # remove septum - not used in left ventricle only model
         del self.left_ventricle.septum
 
-        super().__init__(info)
+        if info:
+            super().__init__(info)
         pass
 
 
 class BiVentricle(HeartModel):
     """Model of the left and right ventricle."""
 
-    def __init__(self, info: ModelInfo) -> None:
+    def __init__(self, info: ModelInfo = None) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
@@ -1164,14 +1165,15 @@ class BiVentricle(HeartModel):
         self.septum: Part = Part(name="Septum", part_type="septum")
         """Septum."""
 
-        super().__init__(info)
+        if info:
+            super().__init__(info)
         pass
 
 
 class FourChamber(HeartModel):
     """Model of the left/right ventricle and left/right atrium."""
 
-    def __init__(self, info: ModelInfo) -> None:
+    def __init__(self, info: ModelInfo = None) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
@@ -1184,7 +1186,8 @@ class FourChamber(HeartModel):
         self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
         """Right atrium part."""
 
-        super().__init__(info)
+        if info:
+            super().__init__(info)
 
         pass
 
@@ -1192,7 +1195,7 @@ class FourChamber(HeartModel):
 class FullHeart(HeartModel):
     """Model of both ventricles, both atria, aorta and pulmonary artery."""
 
-    def __init__(self, info: ModelInfo) -> None:
+    def __init__(self, info: ModelInfo = None) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
@@ -1209,7 +1212,8 @@ class FullHeart(HeartModel):
         self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type="artery")
         """Pulmonary artery part."""
 
-        super().__init__(info)
+        if info:
+            super().__init__(info)
 
         pass
 

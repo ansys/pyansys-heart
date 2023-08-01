@@ -4,6 +4,7 @@ Export information from d3plot.
 Mostly related to the motion.
 """
 import os
+import pathlib
 from pathlib import Path
 
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
@@ -12,7 +13,7 @@ from ansys.heart.preprocessor.mesh.vtkmethods import (
     vtk_cutter,
     write_vtkdata_to_vtkfile,
 )
-from ansys.heart.preprocessor.models import HeartModel
+from ansys.heart.preprocessor.models import HeartModel, LeftVentricle
 import matplotlib.pyplot as plt
 import meshio
 import numpy as np
@@ -39,8 +40,14 @@ class LVContourExporter:
 
         self.out_folder = "lv_surface"
         os.makedirs(os.path.join(self.work_dir, self.out_folder), exist_ok=True)
+
+        if isinstance(self.model, LeftVentricle):
+            keep_ids = [1]
+        else:
+            keep_ids = [1, 3]
+
         self.data.export_vtk(
-            os.path.join(self.work_dir, self.out_folder), only_surface=True, keep_mat_ids=[1, 3]
+            os.path.join(self.work_dir, self.out_folder), only_surface=True, keep_mat_ids=keep_ids
         )
 
         self.lv_surfaces = []
@@ -80,7 +87,7 @@ class LVContourExporter:
             write_vtkdata_to_vtkfile(contour, os.path.join(w_dir, f"contour_{ic}.vtk"))
         return cut_surfaces
 
-    def compute_lvls(self):
+    def _compute_lvls(self):
         """
         Compute left ventricle long axis shortening.
 
@@ -109,7 +116,7 @@ class LVContourExporter:
         -------
         fig: figure handle
         """
-        mv_center, apex = self.compute_lvls()
+        mv_center, apex = self._compute_lvls()
 
         fig, ax = plt.subplots(1)
         ax.plot(np.linalg.norm(apex - mv_center, axis=1))
@@ -119,21 +126,33 @@ class LVContourExporter:
 
         return fig
 
-    def export_lvls_to_vtk(self, fodler="lvls_vtk"):
+    def export_lvls_to_vtk(self, folder="lvls_vtk"):
         """
         Export lvls as vtk Polyline.
 
         Parameters
         ----------
-        fodler: out folder
+        folder: out folder
         """
-        mv_center, apex = self.compute_lvls()
+        mv_center, apex = self._compute_lvls()
 
-        os.makedirs(os.path.join(self.work_dir, fodler), exist_ok=True)
+        os.makedirs(os.path.join(self.work_dir, folder), exist_ok=True)
 
         for iframe in range(self.nb_frame):
             meshio.write_points_cells(
-                os.path.join(self.work_dir, fodler, f"lvls_{iframe}.vtk"),
+                os.path.join(self.work_dir, folder, f"lvls_{iframe}.vtk"),
                 np.array([mv_center[iframe], apex[iframe]]),
                 [("line", np.array([[0, 1]]))],
             )
+        # export lvls as csv file
+        dst = np.linalg.norm(apex - mv_center, axis=1)
+        time = self.data.time
+        np.savetxt(
+            pathlib.Path(self.work_dir) / folder / "lvls.csv",
+            np.array([time, dst]).T,
+            header="time,mv_apex dst",
+            delimiter=",",
+            comments="",
+        )
+
+        return dst

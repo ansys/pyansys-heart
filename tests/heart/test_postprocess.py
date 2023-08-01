@@ -84,7 +84,8 @@ def test_contour_exporter():
 def test_lvls():
     d3plot = Path.Path(test_dir) / "main-mechanics" / "d3plot"
     exporter = LVContourExporter(d3plot, model)
-    p1, p2 = exporter.compute_lvls()
+    p1, p2 = exporter._compute_lvls()
+    exporter.export_lvls_to_vtk(folder="lvls")
     print()
     # assert np.allclose(
     #     p1,

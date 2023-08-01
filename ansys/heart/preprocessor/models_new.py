@@ -925,6 +925,32 @@ class HeartModel:
 
         return
 
+    def _validate_surfaces(self):
+        """Validate that none of the surfaces are empty."""
+        is_valid = False
+        invalid_surfaces = [s for p in self.parts for s in p.surfaces if s.n_cells == 0]
+        if len(invalid_surfaces) == 0:
+            is_valid = True
+        else:
+            for invalid_s in invalid_surfaces:
+                LOGGER.debug(f"Surface {invalid_s.name} is empty")
+                is_valid = False
+
+        return is_valid
+
+    def _validate_parts(self):
+        """Validate that none of the parts are empty."""
+        is_valid = False
+        invalid_parts = [p for p in self.parts if p.element_ids.shape[0] == 0]
+        if len(invalid_parts) == 0:
+            is_valid = True
+        else:
+            for invalid_p in invalid_parts:
+                LOGGER.debug(f"Part {invalid_p.name} is empty")
+                is_valid = False
+
+        return is_valid
+
     def _compute_left_ventricle_anatomy_axis(self, first_cut_short_axis=0.2):
         """
         Compute the long and short axes of the left ventricle.

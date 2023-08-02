@@ -6,7 +6,7 @@ Python framework for heart modeling using Ansys tools.
 
 Note1: Please read LICENSE file before using this package.
 
-Note2: Fluent 2022R2 is required (for meshing), available on the Ansys Customer Portal.
+Note2: Fluent 2023R1 is required (for meshing), available on the Ansys Customer Portal.
 
 Note3: Ansys DPF Server is required (for post-process module and calibration module), available on the Ansys Customer Portal.
 

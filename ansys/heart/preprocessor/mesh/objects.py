@@ -785,7 +785,8 @@ class Cavity(Feature):
 
     def compute_centroid(self):
         """Compute the centroid of the cavity."""
-        self.centroid = np.mean(self.surface.nodes[np.unique(self.surface.triangles), :], axis=0)
+        # self.centroid = np.mean(self.surface.nodes[np.unique(self.surface.triangles), :], axis=0)
+        self.centroid = self.surface.center
         return self.centroid
 
 
@@ -802,20 +803,42 @@ class Cap(Feature):
         """Normal of cap."""
         self.centroid = None
         """Centroid of cap."""
+        self.centroid_id = None
+        """Centroid of cap ID (in case centroid node is created)."""
         self.type = "cap"
         """Type."""
         return
 
-    def tessellate(self) -> np.ndarray:
-        """Form triangles with the node ids."""
-        ref_node = self.node_ids[0]
-        num_triangles = self.node_ids.shape[0] - 1
-        ref_node = np.ones(num_triangles, dtype=int) * ref_node
-        tris = []
-        for ii, _ in enumerate(self.node_ids[0:-2]):
-            tri = [self.node_ids[0], self.node_ids[ii + 1], self.node_ids[ii + 2]]
-            tris.append(tri)
-        self.triangles = np.array(tris, dtype=int)
+    def tessellate(self, center_point_id=None) -> np.ndarray:
+        """
+        Form triangles with the node ids.
+
+        Parameters
+        ----------
+        center_point_id: ID of the center point of cap
+
+        Returns
+        -------
+        Mesh connectivity of cap (triangles)
+
+        """
+        if center_point_id is None:
+            tris = []
+            for ii, _ in enumerate(self.node_ids[0:-2]):
+                # first node is reference node
+                tri = [self.node_ids[0], self.node_ids[ii + 1], self.node_ids[ii + 2]]
+                tris.append(tri)
+            self.triangles = np.array(tris, dtype=int)
+        else:
+            ref_node = center_point_id[0]
+            num_triangles = self.node_ids.shape[0] + 1
+            tris = [[ref_node, self.node_ids[0], self.node_ids[1]]]
+            for ii, _ in enumerate(self.node_ids[0:-2]):
+                tri = [ref_node, self.node_ids[ii + 1], self.node_ids[ii + 2]]
+                tris.append(tri)
+            tris.append([ref_node, self.node_ids[-1], self.node_ids[0]])
+            self.triangles = np.array(tris, dtype=int)
+
         return self.triangles
 
 

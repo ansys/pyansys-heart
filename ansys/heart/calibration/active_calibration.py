@@ -149,7 +149,7 @@ class ActiveCalibration:
         from pint import Quantity
 
         # dummy input parameters
-        setting.mechanics.material.myocardium["active"]["tmax"] = Quantity(p1, "MPa")
+        setting.mechanics.material.myocardium["active"]["taumax"] = Quantity(p1, "MPa")
         setting.mechanics.material.myocardium["active"]["ss"] = p2
 
     def define_objective(self):

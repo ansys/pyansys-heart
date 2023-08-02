@@ -600,14 +600,14 @@ class HeartModel:
         10. Adds surface normals to boundaries
         """
         self._sync_input_parts_to_model_parts()
-        
+
         self._extract_septum()
         self._assign_elements_to_parts()
         self._assign_surfaces_to_parts()
 
         self._validate_parts()
         self._validate_surfaces()
-        
+
         self._assign_caps_to_parts()
 
         self._assign_cavities_to_parts()

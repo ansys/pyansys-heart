@@ -48,22 +48,11 @@ def get_input_geom_and_part_defintions_from_public_database(
     mesh_path, model_type: str = "BiVentricle", database: str = "Strocchi2020"
 ):
     """Get the input geometry and part definitiosn from strocchi."""
-
-    import os
-    import pathlib
-
-    from ansys.heart.misc.downloader import download_case, unpack_case
-    from ansys.heart.simulator.support import preprocess_model
-
-    import ansys.heart.preprocessor.models_new as models
-    import pyvista as pv
-    import numpy as np
-
     import copy
 
-    from ansys.heart.preprocessor.mesh.connectivity import (
-        face_tetra_connectivity,
-    )
+    from ansys.heart.preprocessor.mesh.connectivity import face_tetra_connectivity
+    import numpy as np
+    import pyvista as pv
 
     # read database labels
     if database == "Strocchi2020":

@@ -3,7 +3,7 @@ import os
 import pathlib
 
 import ansys.heart.preprocessor.models as models
-from ansys.heart.simulator.support import run_preprocessor
+from ansys.heart.simulator.support import _deprecated_run_preprocessor
 import ansys.heart.writer.dynawriter as writers
 
 if __name__ == "__main__":
@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     # Preprocessing geometry, remeshing with mesh_size=2
     if use_preprocessor:
-        model = run_preprocessor(
+        model = _deprecated_run_preprocessor(
             model_type=models.BiVentricle,
             database="Strocchi2020",
             path_original_mesh=path_to_case,

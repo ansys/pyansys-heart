@@ -79,7 +79,7 @@ def mesh_from_manifold_input_model(
         precision="double",
         processor_count=2,
         start_transcript=True,
-        show_gui=True,
+        show_gui=False,
         product_version=_fluent_version,
     )
 

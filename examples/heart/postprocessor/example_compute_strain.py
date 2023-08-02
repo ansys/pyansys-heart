@@ -19,7 +19,7 @@ if __name__ == "__main__":
     df = data.get_history_variable(hv_index=list(range(9)), at_frame=1)
     strain = compute_myocardial_strain(model, df.T, reference=None)
 
-    # write strain into vtk
+    # write strain into vtk.
     import meshio
     import numpy as np
 

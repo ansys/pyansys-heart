@@ -246,7 +246,7 @@ def create_element_solid_ortho_keyword(
     a_vec: np.array,
     d_vec: np.array,
     e_id: np.array,
-    partid: int = 1,
+    part_id: np.array,
     element_type="tetra",
 ) -> keywords.ElementSolidOrtho:
     """Format the *ELEMENT_SOLID_ORTHO keyword with the provided input.
@@ -259,8 +259,8 @@ def create_element_solid_ortho_keyword(
         Vector specifying the A direction
     d_vec : np.array
         Vector specifying the D direction
-    partid : int, optional
-        Part id to be used, by default 1
+    part_id : np.array
+        Part ids of each element
     e_id : np.array
         Element ID
     element_type : str, optional
@@ -276,11 +276,8 @@ def create_element_solid_ortho_keyword(
     df = pd.DataFrame(columns=kw.elements)
 
     # prepare element data for dataframe
-    # elids = np.arange(1, elements.shape[0] + 1, 1) + id_offset
-    partids = np.ones(elements.shape[0]) * partid
-
     df["eid"] = e_id
-    df["pid"] = partids
+    df["pid"] = part_id
 
     if element_type == "tetra":
         df["n1"] = elements[:, 0]
@@ -594,7 +591,6 @@ def example_performance():
     t0 = time.time()
     line_format = ""
     for duplicate_card in kw._cards[0]._cards:
-
         for field in duplicate_card._fields:
             if field.type == float:
                 fmt_append = "{:>" + "{0}.5f".format(field.width) + "}"

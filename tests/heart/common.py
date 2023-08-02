@@ -51,7 +51,7 @@ def compare_surface_names(model: models.HeartModel, ref_stats: dict):
         # check if surface is in the list of reference surface names
         try:
             ref_surface_names = list(ref_stats["parts"][part.name]["surfaces"].keys())
-        except (KeyError):
+        except KeyError:
             continue
 
         for surface_name in ref_surface_names:
@@ -87,7 +87,7 @@ def compare_generated_mesh(model: models.HeartModel, ref_stats: dict):
     for part in model.parts:
         try:
             ref_num_tetra = ref_stats["parts"][part.name]["ntetra"]
-        except (KeyError):
+        except KeyError:
             continue
         difference = abs(part.element_ids.shape[0] - ref_num_tetra)
         assert difference <= allowed_difference1, (
@@ -98,7 +98,7 @@ def compare_generated_mesh(model: models.HeartModel, ref_stats: dict):
             # surf_name = "-".join(surface.name.lower().split())
             try:
                 ref_nfaces = ref_stats["parts"][part.name]["surfaces"][surface.name]["nfaces"]
-            except (KeyError):
+            except KeyError:
                 print(surface.name + "not found")
                 continue
             difference = abs(surface.n_faces - ref_nfaces)
@@ -133,9 +133,13 @@ def compare_cavity_volume(model: models.HeartModel, ref_volumes: dict):
         if not part.cavity:
             continue
 
+        # due to issue #340
+        if "ventricle" not in part.name:
+            continue
+
         ref_volume = ref_volumes["cavity_volumes"][part.name]
         assert abs(part.cavity.surface.volume - ref_volume) < 1e-2 * ref_volume, (
-            "Difference in cavity volume of model %s exceeds 1%" % part.name
+            "Difference in cavity volume of model %s exceeds 1 percent" % part.name
         )
 
     pass

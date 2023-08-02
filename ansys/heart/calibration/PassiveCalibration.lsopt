@@ -4,19 +4,19 @@
   <head>
     <title>Run passive calibration</title>
     <meta name="author" content="Ansys HC"/>
-    <meta name="save_date" content="2022-11-04 14:13:29"/>
+    <meta name="save_date" content="2023-03-09 15:19:47"/>
     <meta name="save_exe" content="lsoptui"/>
     <meta name="save_version" content="2022.1 revision 112447"/>
     <meta name="save_os" content="win"/>
   <meta name="dpi" content="96"/></head>
   <variables>
-    <variable name="x_ps1" value="1" min="0.5" max="2"/>
-    <variable name="x_ps2" value="1" min="0.5" max="2"/>
+    <variable name="x_ps1" value="0.5" min="0.4" max="0.6"/>
+    <variable name="x_ps2" value="2" min="1.8" max="2.2"/>
   </variables>
   <samplings>
     <sampling name="e_Sampling1">
-      <design type="dopt" ppv="3"><basis/><levels tablename=""><level name="x_ps1" numValues="2"/><level name="x_ps2" numValues="2"/></levels></design><edsdconstraints/>
-      <metamodel type="polynomial" update="off" order="quadratic"><ffnnopts><scheduling><resourceref resource="FFBUILDER" units="1"/></scheduling></ffnnopts><rbfopts/><krigingopts/><svropts/><usermmopts/><mopopts/></metamodel>
+      <design type="maximin_distance" ppv="3" points="3"><basis/><levels tablename=""><level name="x_ps1" numValues="2"/><level name="x_ps2" numValues="2"/></levels></design><edsdconstraints/>
+      <metamodel type="rbf" update="on" order="quadratic"><ffnnopts><scheduling><resourceref resource="FFBUILDER" units="1"/></scheduling></ffnnopts><rbfopts/><krigingopts/><svropts/><usermmopts/><mopopts/></metamodel>
       <myvars>
         <varref src="x_ps1"/>
         <varref src="x_ps2"/>
@@ -27,21 +27,21 @@
             <position y="104" x="400"/>
           </guidata>
           <command addinputarg="off">${LSPROJHOME}\run.bat</command>
-          <inputfile basefilename="material.k">material.k</inputfile>
+          <inputfile basefilename="parameters.k">parameters.k</inputfile>
           <extrainpfiles>
-            
+
             <inputfile skip="on">run.py</inputfile>
-            <inputfile skip="on">boundary_conditions.k</inputfile>
-            <inputfile skip="on">cap_elements.k</inputfile>
-            <inputfile skip="on">left_ventricle.segment</inputfile>
-            <inputfile skip="on">main.k</inputfile>
-            
-            <inputfile skip="on">node_sets.k</inputfile>
-            <inputfile skip="on">nodes.k</inputfile>
-            <inputfile skip="on">parts.k</inputfile>
-            <inputfile skip="on">pericardium.k</inputfile>
-            <inputfile skip="on">segment_sets.k</inputfile>
-            <inputfile skip="on">solid_elements.k</inputfile>
+
+
+
+
+
+
+
+
+
+
+
           </extrainpfiles>
           <dynaoptions/>
           <scheduling>

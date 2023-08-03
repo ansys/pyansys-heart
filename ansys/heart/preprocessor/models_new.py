@@ -831,7 +831,9 @@ class HeartModel:
                 for edge_group in surface.edge_groups:
                     if edge_group.type != "closed":
                         LOGGER.warning(
-                            "Expecting closed group of edges: cavity using {0} may not be watertight!".format(surface.name)
+                            "Assuming closed edge group: cavity with {0} not be watertight!".format(  # noqa: E501
+                                surface.name
+                            )
                         )
                         # continue
 

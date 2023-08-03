@@ -830,8 +830,10 @@ class HeartModel:
                     continue
                 for edge_group in surface.edge_groups:
                     if edge_group.type != "closed":
-                        LOGGER.warning("Expecting closed group of edges")
-                        continue
+                        LOGGER.warning(
+                            "Expecting closed group of edges: cavity using {0} may not be watertight!".format(surface.name)
+                        )
+                        # continue
 
                     for surf in remaining_surfaces1:
                         if "valve" not in surf.name and "inlet" not in surf.name:

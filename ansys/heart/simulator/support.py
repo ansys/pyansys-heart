@@ -21,6 +21,9 @@ def preprocess_model(info: models.ModelInfo, model_type: str = None, clean_workd
     LOGGER.info("## store model in: %s" % info.path_to_model)
     LOGGER.info("##############################")
 
+    if not os.path.isdir(info.workdir):
+        os.makedirs(info.workdir)
+
     if model_type == "BiVentricle":
         model = models.BiVentricle(info)
     elif model_type == "LeftVentricle":
@@ -28,7 +31,7 @@ def preprocess_model(info: models.ModelInfo, model_type: str = None, clean_workd
     elif model_type == "FourChamber":
         model = models.FourChamber(info)
     elif model_type == "FullHeart":
-        model = models.FullHeart
+        model = models.FullHeart(info)
 
     model._input.as_single_polydata.save(os.path.join(info.workdir, "input_polydata.vtp"))
 

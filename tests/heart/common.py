@@ -134,9 +134,9 @@ def compare_cavity_volume(model: models.HeartModel, ref_volumes: dict):
             continue
 
         ref_volume = ref_volumes["cavity_volumes"][part.name]
-        assert abs(part.cavity.surface.volume - ref_volume) < 1e-2 * ref_volume, (
-            "Difference in cavity volume of model %s exceeds 1%" % part.name
-        )
+        assert (
+            abs(part.cavity.surface.volume - ref_volume) < 1e-2 * ref_volume
+        ), f"Difference in cavity volume of part {part.name} exceeds 1%"
 
     pass
 

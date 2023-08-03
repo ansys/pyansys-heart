@@ -77,7 +77,7 @@ def extract_bi_ventricle():
         part_definitions=part_definitions,
         work_directory=workdir,
         mesh_size=1.5,
-    )  # prep strocchi case. --> how?
+    )
 
     model = preprocess_model(info=info, model_type="BiVentricle", clean_workdir=False)
 

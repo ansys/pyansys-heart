@@ -4,8 +4,11 @@ import os
 import shutil
 import sys
 
-import ansys.heart.preprocessor.models as models
-from ansys.heart.simulator.support import run_preprocessor
+import ansys.heart.preprocessor.models_new as models
+from ansys.heart.simulator.support import (
+    get_input_geom_and_part_defintions_from_public_database,
+    preprocess_model,
+)
 import pytest
 
 from .common import (
@@ -54,14 +57,20 @@ def extract_fullheart():
     path_to_model = os.path.join(workdir, "heart_model.pickle")
 
     global model
-    model = run_preprocessor(
-        model_type=models.FullHeart,
-        database="Strocchi2020",
-        path_original_mesh=path_to_case,
-        work_directory=workdir,
-        path_to_model=path_to_model,
-        mesh_size=2,
+
+    input_geom, part_definitions = get_input_geom_and_part_defintions_from_public_database(
+        path_to_case, model_type="", database="Strocchi2020"
     )
+
+    info = models.ModelInfo(
+        input=input_geom,
+        scalar="surface-id",
+        part_definitions=part_definitions,
+        work_directory=workdir,
+        mesh_size=1.5,
+    )
+
+    model = preprocess_model(info=info, model_type="FullHeart", clean_workdir=False)
 
     yield
 

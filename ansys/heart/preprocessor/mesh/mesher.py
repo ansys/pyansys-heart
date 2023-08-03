@@ -20,6 +20,7 @@ import pyvista as pv
 _template_directory = pkg_resources.resource_filename("ansys.heart.preprocessor", "templates")
 
 _fluent_version = "23.1.0"
+_show_fluent_gui = False
 
 try:
     import ansys.fluent.core as pyfluent
@@ -79,7 +80,7 @@ def mesh_from_manifold_input_model(
         precision="double",
         processor_count=2,
         start_transcript=True,
-        show_gui=False,
+        show_gui=_show_fluent_gui,
         product_version=_fluent_version,
     )
 
@@ -218,7 +219,7 @@ def mesh_from_non_manifold_input_model(
         precision="double",
         processor_count=2,
         start_transcript=True,
-        show_gui=True,
+        show_gui=_show_fluent_gui,
         product_version=_fluent_version,
     )
 
@@ -233,6 +234,7 @@ def mesh_from_non_manifold_input_model(
 
     session.tui.objects.extract_edges("'(*) feature 40")
     visited_parts = []
+    used_boundary_names = []
     for part in model.parts:
         LOGGER.info("Wrapping " + part.name + "...")
         # wrap object.
@@ -243,16 +245,29 @@ def mesh_from_non_manifold_input_model(
         )
         # manage boundary names of wrapped surfaces
         face_zone_names = session.scheme_eval.scheme_eval(
-            '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "*:*"))'
+            '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "boundary*:*"))'
         )
+        if not face_zone_names:
+            continue
+
         for face_zone_name in face_zone_names:
-            # Exclude renaming of boundaries that include name of visited parts
-            if any([s + ":" in face_zone_name for s in visited_parts]):
+            old_name = face_zone_name
+
+            # if old name contains part name before delimiter : -> skip this boundary
+            prefix = old_name.split(":")[0]
+            if any([prefix == p.lower() for p in visited_parts]):
+                LOGGER.debug(f"Skip {face_zone_name}")
                 continue
 
-            old_name = face_zone_name
-            new_name = part.name + ":" + old_name.split(":")[0]
+            new_name = part.name + ":" + prefix
+
+            if new_name in used_boundary_names:
+                LOGGER.debug(f"Name of boundary {new_name} already used.")
+                continue
+
             session.tui.boundary.manage.name(old_name + " " + new_name)
+
+            used_boundary_names += [new_name]
 
         visited_parts += [part.name]
 
@@ -284,15 +299,23 @@ def mesh_from_non_manifold_input_model(
 
     # rename boundaries accordingly.
     face_zone_names = session.scheme_eval.scheme_eval(
-        '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "*:*"))'
+        '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "boundary*:*"))'
     )
+    if not face_zone_names:
+        LOGGER.error("Expecting face zones to rename.")
+
     for face_zone_name in face_zone_names:
         # Exclude renaming of boundaries that include name of visited parts
-        if any([s + ":" in face_zone_name for s in visited_parts]):
+        old_name = face_zone_name
+
+        # if old name contains part name before delimiter : -> skip this boundary
+        prefix = old_name.split(":")[0]
+        if any([prefix == p.lower() for p in visited_parts]):
+            LOGGER.debug(f"Skip {face_zone_name}")
             continue
 
-        old_name = face_zone_name
         new_name = "model" + ":" + old_name.split(":")[0]
+
         session.tui.boundary.manage.name(old_name + " " + new_name)
 
     # mesh the entire model in one go.
@@ -372,9 +395,14 @@ def mesh_from_non_manifold_input_model(
     # remove any unused face zones.
     new_mesh.face_zones = [fz for fz in new_mesh.face_zones if "part" not in fz.name.lower()]
 
-    # rename face zones
+    # rename face zones - rename to original input names.
+    boundary_name_map_new_to_old = {v: k for k, v in boundary_name_map_old_to_new.items()}
     for fz in new_mesh.face_zones:
+        if "interior" in fz.name:
+            continue
+
         fz.name = fz.name.replace("model:", "")
+        fz.name = boundary_name_map_new_to_old[fz.name]
 
     return new_mesh
 
@@ -446,6 +474,7 @@ def mesh_heart_model_by_fluent(
         show_gui = False
     else:
         work_dir_meshing = os.path.abspath(os.path.join(working_directory, "meshing"))
+        show_gui = _show_fluent_gui
 
     if os.path.isdir(work_dir_meshing):
         shutil.rmtree(work_dir_meshing)

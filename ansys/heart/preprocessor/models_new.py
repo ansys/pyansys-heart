@@ -871,10 +871,19 @@ class HeartModel:
 
                             cap = Cap(name=name_valve, node_ids=edge_group.edges[:, 0])
 
+                            # add cap centroid.
+                            cap.centroid = np.mean(surf.nodes[cap.node_ids, :], axis=0)
+
+                            # add cap centroid to node list
+                            self.mesh.nodes = np.vstack([self.mesh.nodes, cap.centroid])
+                            surf.nodes = self.mesh.nodes
+                            cap.centroid_id = self.mesh.nodes.shape[0] - 1
+
                             # get approximate cavity centroid to check normal of cap
                             cavity_centroid = surface.compute_centroid()
 
-                            cap.tessellate()
+                            cap.tessellate(use_centroid=True)
+
                             p1 = surf.nodes[cap.triangles[:, 1],] - surf.nodes[cap.triangles[:, 0],]
                             p2 = surf.nodes[cap.triangles[:, 2],] - surf.nodes[cap.triangles[:, 0],]
                             normals = np.cross(p1, p2)
@@ -890,10 +899,10 @@ class HeartModel:
                                     "pointing inward"
                                 )
                                 cap.node_ids = np.flip(cap.node_ids)
-                                cap.tessellate()
+                                cap.tessellate(use_centroid=True)
                                 cap.normal = cap.normal * -1
 
-                            cap.centroid = np.mean(surf.nodes[cap.node_ids, :], axis=0)
+                            self.mesh._sync_nodes_of_surfaces()
 
                             part.caps.append(cap)
                             LOGGER.debug("Cap: {0} closes {1}".format(name_valve, surface.name))
@@ -920,7 +929,7 @@ class HeartModel:
                     )
                     # note: flip order to make sure normal is pointing inwards
                     cap.node_ids = np.flip(cap_ref[0].node_ids)
-                    cap.tessellate()
+                    cap.tessellate(use_centroid=True)
 
         # As a consequence we need to add interface region to endocardium of atria or ventricle
         # current approach is to add these to the atria

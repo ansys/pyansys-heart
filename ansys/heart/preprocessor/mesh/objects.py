@@ -108,6 +108,21 @@ class Mesh(pv.UnstructuredGrid):
         """Iterate over boundaries and returns their names."""
         return [b.name for b in self.boundaries]
 
+    def _sync_nodes_of_surfaces(self):
+        """Synchronize the node array each associated surface.
+
+        Notes
+        -----
+        Temporary until this module is refactored.
+        """
+        for b in self.boundaries:
+            b.nodes = self.nodes
+        for i in self.interfaces:
+            i.nodes = self.nodes
+        for bm in self.beam_network:
+            bm.nodes = self.nodes
+        return
+
     def _deprecated_read_mesh_file(self, filename: pathlib.Path) -> None:
         """Read mesh file."""
         mesh = pv.read(filename)
@@ -828,33 +843,37 @@ class Cap(Feature):
         self.centroid = None
         """Centroid of cap."""
         self.centroid_id = None
-        """Centroid of cap ID (in case centroid node is created)."""
+        """Node id of centroid."""
         self.type = "cap"
         """Type."""
         return
 
-    def tessellate(self, center_point_id=None) -> np.ndarray:
-        """
-        Form triangles with the node ids.
+    def tessellate(self, use_centroid: bool = False) -> np.ndarray:
+        """Tesselate the cap.
 
         Parameters
         ----------
-        center_point_id: ID of the center point of cap
+        use_centroid : bool, optional
+            Uses a central node for tesselation, by default False
 
         Returns
         -------
-        Mesh connectivity of cap (triangles)
-
+        np.ndarray
+            Triangles forming the tesselation.
         """
-        if center_point_id is None:
+        if not use_centroid:
             tris = []
             for ii, _ in enumerate(self.node_ids[0:-2]):
                 # first node is reference node
                 tri = [self.node_ids[0], self.node_ids[ii + 1], self.node_ids[ii + 2]]
                 tris.append(tri)
             self.triangles = np.array(tris, dtype=int)
-        else:
-            ref_node = center_point_id[0]
+        elif use_centroid:
+            if not self.centroid_id:
+                LOGGER.error("Not able to create the tesselation with the cap center.")
+                return None
+
+            ref_node = self.centroid_id
             num_triangles = self.node_ids.shape[0] + 1
             tris = [[ref_node, self.node_ids[0], self.node_ids[1]]]
             for ii, _ in enumerate(self.node_ids[0:-2]):

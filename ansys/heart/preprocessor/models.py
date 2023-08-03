@@ -1,4 +1,5 @@
 """Module containing classes for the various heart models."""
+import copy
 import json
 import os
 
@@ -225,6 +226,9 @@ class HeartModel:
         NaN for elements not belong to left ventricle.
         """
         self.aha_ids = None
+
+        self.cap_centroids: List[Point] = []
+        """Centroid point to create cap shell."""
 
     def extract_simulation_mesh(self, clean_up: bool = False) -> None:
         """Update the model.
@@ -1111,9 +1115,11 @@ class HeartModel:
         # multiple surfaces - so we need to perform a summation.
         # interior nodes will have an area of 0.
         self.mesh.point_data["nodal_areas"] = np.zeros(self.mesh.nodes.shape[0])
+
         for surface in self.mesh.boundaries:
             self.mesh.point_data["nodal_areas"] += surface.point_data["nodal_areas"]
-        # self.mesh.write_to_vtk(os.path.join(self.info.workdir, "volume_nodal_areas.vtk"))
+        self.mesh.write_to_vtk(os.path.join(self.info.workdir, "volume_nodal_areas.vtk"))
+
         return
 
     def _pipeline_method_add_surface_normals(self):
@@ -1295,6 +1301,7 @@ class HeartModel:
 
         # find intersection between remaining surfaces and part surfaces
         # This will find the valve/cap nodes
+        cap_counter = 0
         for part in self.parts:
             for surface in part.surfaces:
                 # special treatment since a part of surface is defined in septum
@@ -1321,14 +1328,42 @@ class HeartModel:
                             )
                             name_valve = name_valve.replace("-plane", "").replace("-inlet", "")
 
+                            if "atrium" in part.name:
+                                if "mitral" in name_valve or "tricuspid" in name_valve:
+                                    LOGGER.debug(
+                                        f"{name_valve} has been create in ventricular parts."
+                                    )
+                                    # Create dummy cap (only name) and will be filled later
+                                    part.caps.append(Cap(name=name_valve))
+                                    continue
+
                             cap = Cap(name=name_valve, node_ids=edge_group.edges[:, 0])
+                            cap_counter += 1
+                            cap.centroid = np.mean(surf.nodes[cap.node_ids, :], axis=0)
+
+                            # # tessellation 0 : pick a node and create segments
+                            # cap.tessellate()
+                            # p1 = surf.nodes[cap.triangles[:, 1]] - surf.nodes[cap.triangles[:, 0]]
+                            # p2 = surf.nodes[cap.triangles[:, 2]] - surf.nodes[cap.triangles[:, 0]]
+
+                            # tessellation 1 : add a center node
+                            cap.centroid_id = (
+                                len(self.mesh.nodes) + cap_counter - 1
+                            )  # center node ID, 0 based
+                            self.cap_centroids.append(
+                                Point(
+                                    name=name_valve + "_center",
+                                    xyz=cap.centroid,
+                                    node_id=cap.centroid_id,
+                                )
+                            )
+
+                            cap.tessellate(center_point_id=[cap.centroid_id])
+                            p1 = surf.nodes[cap.triangles[:, 1],] - cap.centroid
+                            p2 = surf.nodes[cap.triangles[:, 2],] - cap.centroid
 
                             # get approximate cavity centroid to check normal of cap
                             cavity_centroid = surface.compute_centroid()
-
-                            cap.tessellate()
-                            p1 = surf.nodes[cap.triangles[:, 1],] - surf.nodes[cap.triangles[:, 0],]
-                            p2 = surf.nodes[cap.triangles[:, 2],] - surf.nodes[cap.triangles[:, 0],]
                             normals = np.cross(p1, p2)
                             cap_normal = np.mean(normals, axis=0)
                             cap_normal = cap_normal / np.linalg.norm(cap_normal)
@@ -1342,10 +1377,9 @@ class HeartModel:
                                     "pointing inward"
                                 )
                                 cap.node_ids = np.flip(cap.node_ids)
-                                cap.tessellate()
+                                # flip segments
+                                cap.triangles[:, [1, 2]] = cap.triangles[:, [2, 1]]
                                 cap.normal = cap.normal * -1
-
-                            cap.centroid = np.mean(surf.nodes[cap.node_ids, :], axis=0)
 
                             part.caps.append(cap)
                             LOGGER.debug("Cap: {0} closes {1}".format(name_valve, surface.name))
@@ -1355,8 +1389,8 @@ class HeartModel:
         for part in self.parts:
             if not "atrium" in part.name:
                 continue
-            for cap in part.caps:
-                # replace with cap in ventricle
+            for ic, cap in enumerate(part.caps):
+                # replace with cap in ventricle (mitral and tricuspid valve)
                 cap_ref = [
                     c
                     for p in self.parts
@@ -1364,15 +1398,20 @@ class HeartModel:
                     for c in p.caps
                     if c.name == cap.name
                 ]
+
                 if len(cap_ref) == 1:
+                    cap = copy.deepcopy(cap_ref[0])
+                    # note: flip order to make sure normal is pointing inwards
+                    cap.node_ids = np.flip(cap_ref[0].node_ids)
+                    # flip segments
+                    cap.triangles[:, [1, 2]] = cap.triangles[:, [2, 1]]
+
                     LOGGER.debug(
                         "Replacing cap {0} of part{1}: with that of the ventricle".format(
                             cap.name, part.name
                         )
                     )
-                    # note: flip order to make sure normal is pointing inwards
-                    cap.node_ids = np.flip(cap_ref[0].node_ids)
-                    cap.tessellate()
+                    part.caps[ic] = cap
 
         # As a consequence we need to add interface region to endocardium of atria or ventricle
         # current approach is to add these to the atria
@@ -1401,6 +1440,15 @@ class HeartModel:
                     surface.name = surface.name.replace("septum", "endocardium septum")
 
         # construct cavities with endocardium and caps
+
+        if len(self.cap_centroids) == 0:
+            nodes = self.mesh.nodes
+        else:
+            # a center node for each cap has been created, add them into create the cavity
+            nodes = np.vstack((self.mesh.nodes, np.zeros((len(self.cap_centroids), 3))))
+            for cap_center in self.cap_centroids:
+                nodes[cap_center.node_id] = cap_center.xyz
+
         for part in self.parts:
             if "atrium" not in part.name and "ventricle" not in part.name:
                 continue
@@ -1413,9 +1461,7 @@ class HeartModel:
             for cap in part.caps:
                 cavity_faces = np.vstack([cavity_faces, cap.triangles])
 
-            surface = SurfaceMesh(
-                name=part.name + " cavity", triangles=cavity_faces, nodes=self.mesh.nodes
-            )
+            surface = SurfaceMesh(name=part.name + " cavity", triangles=cavity_faces, nodes=nodes)
             part.cavity = Cavity(surface=surface, name=part.name)
             part.cavity.compute_centroid()
 

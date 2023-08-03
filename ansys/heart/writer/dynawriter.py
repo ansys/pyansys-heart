@@ -604,7 +604,7 @@ class BaseDynaWriter:
                     a_vec=fiber,
                     d_vec=sheet,
                     e_id=part.element_ids + 1,
-                    partid=part.pid,
+                    part_id=part_ids,
                     element_type="tetra",
                 )
 
@@ -632,7 +632,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """Name of system model to use."""
 
         # Depending on the system model specified give list of parameters
-        self.cap_in_zerop = False
+        self.cap_in_zerop = True
         """
         If include cap (shell) elements in ZeroPressure.
         Experimental feature, please do not change it.
@@ -786,7 +786,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
     ):
         """Add solution controls, output controls and solver settings."""
         # add termination keywords
-        self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=dtmin))
+        self.kw_database.main.append(keywords.ControlTermination(endtim=end_time))
 
         # add implicit controls
         if simulation_type == "quasi-static":
@@ -835,11 +835,18 @@ class MechanicsDynaWriter(BaseDynaWriter):
             keywords.ControlImplicitGeneral(imflag=1, dt0=dtmax)
         )  # imflag=1 means implicit
 
-        # add implicit solution controls: Defaults are OK?
-        self.kw_database.main.append(keywords.ControlImplicitSolution())
+        # add implicit solution controls
+        # Nil's suggestion
+        self.kw_database.main.append(
+            keywords.ControlImplicitSolution(
+                dctol=0.01, ectol=1e6, rctol=1e3, abstol=-1e-20, dnorm=1, nlnorm=4, lsmtd=5
+            )
+        )
 
         # add implicit solver controls
-        self.kw_database.main.append(custom_keywords.ControlImplicitSolver())
+        self.kw_database.main.append(custom_keywords.ControlImplicitSolver(autospc=2))
+
+        self.kw_database.main.append(keywords.ControlAccuracy(osu=1, inn=4, iacc=1))
         return
 
     def _add_export_controls(self, dt_output_d3plot: float = 0.05, dt_output_icvout: float = 0.001):
@@ -956,11 +963,24 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # add closed cavity segment sets
         cavities = [p.cavity for p in self.model.parts if p.cavity]
+
+        # caps = [cap for part in self.model.parts for cap in part.caps]
+        # valve_nodes = []
+        # for cap in caps:
+        #     valve_nodes.extend(cap.node_ids)
+
         for cavity in cavities:
+            segs = cavity.surface.triangles
+
+            # # remove segments related to valve nodes
+            # for n in valve_nodes:
+            #     index = np.argwhere(n == segs)
+            #     segs = np.delete(segs, np.array(index)[:, 0], axis=0)
+
             surface_id = self.get_unique_segmentset_id()
             cavity.surface.id = surface_id
             kw = create_segment_set_keyword(
-                segments=cavity.surface.triangles + 1,
+                segments=segs + 1,
                 segid=cavity.surface.id,
                 title=cavity.name,
             )
@@ -1159,12 +1179,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # create list of cap names where to add the spring b.c
         caps_to_use = []
-        if isinstance(self.model, (LeftVentricle, BiVentricle)):
-            # use all caps:
-            # for cavity in self.model._mesh._cavities:
-            #     for cap in cavity.closing_caps:
-            #         caps_to_use.append(cap.name)
-
+        if isinstance(self.model, LeftVentricle):
+            caps_to_use = [
+                "mitral-valve",
+                "aortic-valve",
+            ]
+        elif isinstance(self.model, BiVentricle):
             caps_to_use = [
                 "mitral-valve",
                 "tricuspid-valve",
@@ -1523,13 +1543,19 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 rho=material_settings.cap["rho"],
                 c10=material_settings.cap["mu1"] / 2,
             )
-        else:
-            if material_settings.cap["type"] != "null":
-                LOGGER.warning("Cap elements will be set as null material.")
+
+        elif material_settings.cap["type"] == "null":
             material_kw = keywords.MatNull(
                 mid=mat_null_id,
                 ro=material_settings.cap["rho"],
             )
+        elif material_settings.cap["type"] == "rigid":
+            material_kw = keywords.MatRigid(
+                mid=mat_null_id,
+                ro=material_settings.cap["rho"],
+                e=material_settings.cap["mu1"] * 1000,
+            )
+
         section_kw = keywords.SectionShell(
             secid=section_id,
             elform=4,
@@ -1546,6 +1572,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         cap_names_used = []
         for cap in caps:
             if cap.name in cap_names_used:
+                # avoid to write mitral valve and triscupid valve twice
                 LOGGER.debug("Already created material for {}: skipping".format(cap.name))
                 continue
 
@@ -1561,6 +1588,32 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 }
             )
             part_kw.parts = part_info
+
+            if cap.centroid is not None:
+                if add_mesh:
+                    # Add center node
+                    node_kw = keywords.Node()
+                    df = pd.DataFrame(
+                        data=np.insert(cap.centroid, 0, cap.centroid_id + 1).reshape(1, -1),
+                        columns=node_kw.nodes.columns[0:4],
+                    )
+                    node_kw.nodes = df
+                    # comment the line '*NODE' so nodes.k can be parsed by zerop solver correctly
+                    # otherwise, these nodes will not be updated in iterations
+                    s = "$" + node_kw.write()
+                    self.kw_database.nodes.append(s)
+
+                # center node constraint: average of all edge nodes
+                constraint = keywords.ConstrainedInterpolation(
+                    icid=len(cap_names_used) + 1,
+                    dnid=cap.centroid_id + 1,
+                    ddof=123,
+                    ityp=1,
+                    fgm=1,
+                    inid=cap.nsid,
+                    idof=123,
+                )
+                self.kw_database.cap_elements.append(constraint)
 
             self.kw_database.cap_elements.append(part_kw)
             cap_names_used.append(cap.name)
@@ -1704,7 +1757,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # create unit load curve
         load_curve_id = self.get_unique_curve_id()
         load_curve_kw = create_define_curve_kw(
-            [0, 1, 1.001], [0, 1, 0], "unit load curve", load_curve_id, 100
+            [0, 1, 1.001], [0, 1.0, 1.0], "unit load curve", load_curve_id, 100
         )
 
         load_curve_kw.sfa = 1000
@@ -1713,40 +1766,41 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(load_curve_kw)
 
         # create *LOAD_SEGMENT_SETS for each ventricular cavity
-        # cavities = [part.cavity for part in self.model.parts if part.cavity]
-        # for cavity in cavities:
-        #     if "atrium" in cavity.name:
-        #         continue
-        #
-        #     if cavity.name == "Left ventricle":
-        #         scale_factor = pressure_lv
-        #         seg_id = cavity.surface.id
-        #     elif cavity.name == "Right ventricle":
-        #         scale_factor = pressure_rv
-        #         seg_id = cavity.surface.id
-        #     load_segset_kw = keywords.LoadSegmentSet(
-        #         ssid=seg_id, lcid=load_curve_id, sf=scale_factor
-        #     )
-        #     self.kw_database.main.append(load_segset_kw)
-        for part in self.model.parts:
-            for surface in part.surfaces:
-                if surface.name == "Left ventricle endocardium":
-                    scale_factor = pressure_lv
-                    seg_id = surface.id
-                    load_segset_kw = keywords.LoadSegmentSet(
-                        ssid=seg_id, lcid=load_curve_id, sf=scale_factor
-                    )
-                    self.kw_database.main.append(load_segset_kw)
-                elif (
-                    surface.name == "Right ventricle endocardium"
-                    or surface.name == "Right ventricle endocardium septum"
-                ):
-                    scale_factor = pressure_rv
-                    seg_id = surface.id
-                    load_segset_kw = keywords.LoadSegmentSet(
-                        ssid=seg_id, lcid=load_curve_id, sf=scale_factor
-                    )
-                    self.kw_database.main.append(load_segset_kw)
+        cavities = [part.cavity for part in self.model.parts if part.cavity]
+        for cavity in cavities:
+            if cavity.name == "Left ventricle":
+                load = keywords.LoadSegmentSet(
+                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_lv
+                )
+                self.kw_database.main.append(load)
+            elif cavity.name == "Right ventricle":
+                load = keywords.LoadSegmentSet(
+                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_rv
+                )
+                self.kw_database.main.append(load)
+            else:
+                continue
+
+        # # load only endocardium segment (exclude cap shells)
+        # for part in self.model.parts:
+        #     for surface in part.surfaces:
+        #         if surface.name == "Left ventricle endocardium":
+        #             scale_factor = pressure_lv
+        #             seg_id = surface.id
+        #             load = keywords.LoadSegmentSet(
+        #                 ssid=seg_id, lcid=load_curve_id, sf=scale_factor
+        #             )
+        #             self.kw_database.main.append(load)
+        #         elif (
+        #             surface.name == "Right ventricle endocardium"
+        #             or surface.name == "Right ventricle endocardium septum"
+        #         ):
+        #             scale_factor = pressure_rv
+        #             seg_id = surface.id
+        #             load = keywords.LoadSegmentSet(
+        #                 ssid=seg_id, lcid=load_curve_id, sf=scale_factor
+        #             )
+        #             self.kw_database.main.append(load)
         return
 
 

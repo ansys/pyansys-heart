@@ -3,7 +3,7 @@ import glob as glob
 import json
 import os
 
-import ansys.heart.preprocessor.models as models
+import ansys.heart.preprocessor.models_new as models
 import numpy as np
 import pytest
 

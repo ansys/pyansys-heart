@@ -109,7 +109,7 @@ class Mesh(pv.UnstructuredGrid):
         return [b.name for b in self.boundaries]
 
     def _sync_nodes_of_surfaces(self):
-        """Synchronize the node array each associated surface.
+        """Synchronize the node array of each associated surface.
 
         Notes
         -----
@@ -849,17 +849,17 @@ class Cap(Feature):
         return
 
     def tessellate(self, use_centroid: bool = False) -> np.ndarray:
-        """Tesselate the cap.
+        """Tessellate the cap.
 
         Parameters
         ----------
         use_centroid : bool, optional
-            Uses a central node for tesselation, by default False
+            Uses a central node for tessellation, by default False
 
         Returns
         -------
         np.ndarray
-            Triangles forming the tesselation.
+            Triangles forming the tessellation.
         """
         if not use_centroid:
             tris = []

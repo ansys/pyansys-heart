@@ -17,16 +17,16 @@ import shutil
 import subprocess
 from typing import Literal
 
-from ansys.heart.misc.element_orth import read_orth_element_kfile
 from ansys.heart.postprocessor.D3plotPost import LVContourExporter
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 from ansys.heart.postprocessor.dpf_d3plot import D3plotReader
 from ansys.heart.preprocessor.mesh.objects import Cavity, SurfaceMesh
-from ansys.heart.preprocessor.models import HeartModel, LeftVentricle
+from ansys.heart.preprocessor.models_new import HeartModel, LeftVentricle
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 import numpy as np
+import pyvista as pv
 
 
 def which(program):
@@ -124,27 +124,28 @@ class BaseSimulator:
         # centers.
         # NOTE: How to handle null values?
 
-        # # read results.
-        # print("Interpolating fibers onto model.mesh")
-        # vtk_with_fibers = os.path.join(directory, "vtk_FO_ADvectors.vtk")
-        # vtk_with_fibers = pyvista.UnstructuredGrid(vtk_with_fibers)
-        #
-        # cell_centers_target = vtk_with_fibers.cell_centers()
-        # cell_centers_source = self.model.mesh.cell_centers()
-        #
-        # cell_centers_source = cell_centers_source.interpolate(cell_centers_target)
-        #
-        # self.model.mesh.cell_data["fiber"] = cell_centers_source.point_data["aVector"]
-        # self.model.mesh.cell_data["sheet"] = cell_centers_source.point_data["dVector"]
-        # print("Done.")
+        # read results.
+        print("Interpolating fibers onto model.mesh")
+        vtk_with_fibers = os.path.join(directory, "vtk_FO_ADvectors.vtk")
+        vtk_with_fibers = pv.UnstructuredGrid(vtk_with_fibers)
 
-        print("Assigning fiber orientation to model...")
-        elem_ids, part_ids, connect, fib, sheet = read_orth_element_kfile(
-            os.path.join(directory, "element_solid_ortho.k")
-        )
+        cell_centers_target = vtk_with_fibers.cell_centers()
+        cell_centers_source = self.model.mesh.cell_centers()
 
-        self.model.mesh.cell_data.set_vectors(fib, name="fiber", deep_copy=True)
-        self.model.mesh.cell_data.set_vectors(sheet, name="sheet", deep_copy=True)
+        cell_centers_source = cell_centers_source.interpolate(cell_centers_target)
+
+        self.model.mesh.cell_data["fiber"] = cell_centers_source.point_data["aVector"]
+        self.model.mesh.cell_data["sheet"] = cell_centers_source.point_data["dVector"]
+        print("Done.")
+
+        # from ansys.heart.misc.element_orth import read_orth_element_kfile
+        # print("Assigning fiber orientation to model...")
+        # elem_ids, part_ids, connect, fib, sheet = read_orth_element_kfile(
+        #     os.path.join(directory, "element_solid_ortho.k")
+        # )
+
+        # self.model.mesh.cell_data.set_vectors(fib, name="fiber", deep_copy=True)
+        # self.model.mesh.cell_data.set_vectors(sheet, name="sheet", deep_copy=True)
 
         # dump the model to reuse fiber information
         self.model.dump_model(os.path.join(self.root_directory, "model_with_fiber.pickle"))

@@ -36,7 +36,7 @@ def preprocess_model(info: models.ModelInfo, model_type: str = None, clean_workd
     model._input.as_single_polydata.save(os.path.join(info.workdir, "input_polydata.vtp"))
 
     model.load_input()
-    model.mesh_volume()
+    model.mesh_volume(use_wrapper=False)
     model._update_parts()
     model.dump_model()
 

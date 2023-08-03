@@ -20,7 +20,7 @@ import pyvista as pv
 _template_directory = pkg_resources.resource_filename("ansys.heart.preprocessor", "templates")
 
 _fluent_version = "23.1.0"
-_show_fluent_gui = False
+_show_fluent_gui = True
 
 try:
     import ansys.fluent.core as pyfluent
@@ -191,22 +191,32 @@ def mesh_from_non_manifold_input_model(
         os.remove(stl)
 
     # change boundary names to ensure max length is not exceeded
-    boundary_name_map_old_to_new = {}
+    old_to_new_boundary_names = {}
     for ii, b in enumerate(model.boundaries):
-        if b.name in boundary_name_map_old_to_new.keys():
-            b.name = boundary_name_map_old_to_new[b.name]
+        if b.name in old_to_new_boundary_names.keys():
+            b.name = old_to_new_boundary_names[b.name]
         else:
             if "interface" in b.name:
                 tmp_name = "interface{:03d}".format(ii)
             else:
                 tmp_name = "boundary{:03d}".format(ii)
-            boundary_name_map_old_to_new[b.name] = tmp_name
+            old_to_new_boundary_names[b.name] = tmp_name
             b.name = tmp_name
+    new_to_old_boundary_names = {v: k for k, v in old_to_new_boundary_names.items()}
+
+    # change part names to avoid issues such as characters that are now allowed.
+    old_to_new_partnames = {}
+    for ii, p in enumerate(model.parts):
+        old_part_name = p.name
+        new_part_name = "part_{:03d}".format(ii)
+        old_to_new_partnames[old_part_name] = new_part_name
+        p.name = new_part_name
+    new_to_old_partnames = {v: k for k, v in old_to_new_partnames.items()}
 
     # find interface names
     interface_boundary_names = [
         new_name
-        for old_name, new_name in boundary_name_map_old_to_new.items()
+        for old_name, new_name in old_to_new_boundary_names.items()
         if "interface-" in old_name
     ]
 
@@ -235,6 +245,7 @@ def mesh_from_non_manifold_input_model(
     session.tui.objects.extract_edges("'(*) feature 40")
     visited_parts = []
     used_boundary_names = []
+
     for part in model.parts:
         LOGGER.info("Wrapping " + part.name + "...")
         # wrap object.
@@ -273,37 +284,48 @@ def mesh_from_non_manifold_input_model(
 
     LOGGER.info("Wrapping model...")
     # create a usable material point which is inside the model that can be used for shrink-wrapping
-    material_point = [52, 152, 369.93]
-    session.tui.material_point.create_material_point(
-        "myocardium {:f} {:f} {:f}".format(*material_point)
-    )
-    resolution_factor = 0.25
 
     # wrap entire model in one pass so that we can create a single volume mesh.
     boundaries_to_use_for_wrapping = session.scheme_eval.scheme_eval(
         '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "boundary*"))'
+    ) + session.scheme_eval.scheme_eval(
+        '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "interface*"))'
     )
+    boundaries_to_use_for_wrapping = [b for b in boundaries_to_use_for_wrapping if ":" not in b]
 
-    session.tui.objects.wrap.wrap(
-        "'({0}) collectively {1} shrink-wrap myocardium hybrid {2}".format(
-            " ".join(boundaries_to_use_for_wrapping), "model", resolution_factor
-        )
-    )
+    # # with internal material point:
+    # material_point = [0.0, 0.0, 0.0]
+    # session.tui.material_point.create_material_point(
+    #     "myocardium {:f} {:f} {:f}".format(*material_point)
+    # )
+    # resolution_factor = 0.25
 
-    # with external material point
     # session.tui.objects.wrap.wrap(
-    #     "'({0}) collectively {1} shrink-wrap external wrapped hybrid".format(
-    #         " ".join(boundaries_to_use_for_wrapping), "model"
+    #     "'({0}) collectively {1} shrink-wrap myocardium hybrid {2}".format(
+    #         " ".join(boundaries_to_use_for_wrapping), "model", resolution_factor
     #     )
     # )
+
+    # with external material point
+    session.tui.objects.wrap.wrap(
+        "'({0}) collectively {1} shrink-wrap external wrapped hybrid".format(
+            " ".join(boundaries_to_use_for_wrapping), "model"
+        )
+    )
 
     # rename boundaries accordingly.
     face_zone_names = session.scheme_eval.scheme_eval(
         '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "boundary*:*"))'
+    ) + session.scheme_eval.scheme_eval(
+        '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "interface*:*"))'
     )
+    # ignore geom object face zones.
+    face_zone_names = [fz for fz in face_zone_names if ":" in fz]
+
     if not face_zone_names:
         LOGGER.error("Expecting face zones to rename.")
 
+    used_names = []
     for face_zone_name in face_zone_names:
         # Exclude renaming of boundaries that include name of visited parts
         old_name = face_zone_name
@@ -316,11 +338,23 @@ def mesh_from_non_manifold_input_model(
 
         new_name = "model" + ":" + old_name.split(":")[0]
 
+        # find unique name
+        rename_success = False
+        ii = 0
+        while not rename_success:
+            if new_name not in used_names:
+                break
+            else:
+                new_name = new_name = "model" + ":" + old_name.split(":")[0] + "_{:03d}".format(ii)
+            ii += 1
+
         session.tui.boundary.manage.name(old_name + " " + new_name)
+
+        used_names += [new_name]
 
     # mesh the entire model in one go.
     session.tui.objects.volumetric_regions.compute("model")
-    session.tui.mesh.auto_mesh("model")
+    session.tui.mesh.auto_mesh("model yes pyramids tet no")
 
     # clean up geometry objects
     session.tui.objects.delete_all_geom()
@@ -383,6 +417,7 @@ def mesh_from_non_manifold_input_model(
     new_mesh.cell_zones: List[FluentCellZone] = []
 
     for part in model.parts:
+        part.name = new_to_old_partnames[part.name]
         cell_zone = FluentCellZone(
             min_id=np.where(partids_sorted == part.id)[0][0],
             max_id=np.where(partids_sorted == part.id)[0][-1],
@@ -396,13 +431,16 @@ def mesh_from_non_manifold_input_model(
     new_mesh.face_zones = [fz for fz in new_mesh.face_zones if "part" not in fz.name.lower()]
 
     # rename face zones - rename to original input names.
-    boundary_name_map_new_to_old = {v: k for k, v in boundary_name_map_old_to_new.items()}
     for fz in new_mesh.face_zones:
         if "interior" in fz.name:
             continue
-
         fz.name = fz.name.replace("model:", "")
-        fz.name = boundary_name_map_new_to_old[fz.name]
+        if ":" in fz.name:
+            fz.name = fz.name.split(":")[0]
+        try:
+            fz.name = new_to_old_boundary_names[fz.name]
+        except KeyError:
+            LOGGER.debug(f"Failed to rename {fz.name}")
 
     return new_mesh
 

@@ -197,20 +197,40 @@ class HeartModel:
         )
         return
 
-    def mesh_volume(self):
+    def mesh_volume(self, use_wrapper: bool = False):
         """Remesh the input model and fill the volume.
+
+        Parameters
+        ----------
+        use_wrapper : bool, optional
+            Flag for switch to non-manifold mesher, by default False
 
         Notes
         -----
-        Uses (Py)Fluent for remeshing.
+        Note that when the input surfaces are non-manifold the wrapper tries
+        to reconstruct the surface and parts. Inevitably this leads to
+        reconstruction errors. Nevertheless, in some instances this approach is
+        robuster than meshing from a manifold surface.
         """
         path_to_output_model = os.path.join(self.info.workdir, "simulation_mesh.msh.h5")
-        fluent_mesh = mesher.mesh_from_manifold_input_model(
-            model=self._input,
-            workdir=self.info.workdir,
-            mesh_size=self.info.mesh_size,
-            path_to_output=path_to_output_model,
-        )
+
+        if use_wrapper:
+            NotImplementedError("Meshing from non-manifold model not yet available.")
+            return
+
+            fluent_mesh = mesher.mesh_from_non_manifold_input_model(
+                model=self._input,
+                workdir=self.info.workdir,
+                mesh_size=self.info.mesh_size,
+                path_to_output=path_to_output_model,
+            )
+        else:
+            fluent_mesh = mesher.mesh_from_manifold_input_model(
+                model=self._input,
+                workdir=self.info.workdir,
+                mesh_size=self.info.mesh_size,
+                path_to_output=path_to_output_model,
+            )
 
         # remove empty cell zones
         num_cell_zones1 = len(fluent_mesh.cell_zones)

@@ -870,7 +870,7 @@ class Cap(Feature):
             self.triangles = np.array(tris, dtype=int)
         elif use_centroid:
             if not self.centroid_id:
-                LOGGER.error("Not able to create the tesselation with the cap center.")
+                LOGGER.error("Not able to create the tessellation with the cap center.")
                 return None
 
             ref_node = self.centroid_id

@@ -10,7 +10,15 @@ from typing import List, Union
 from ansys.heart.custom_logging import LOGGER
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher
-from ansys.heart.preprocessor.mesh.objects import Cap, Cavity, Mesh, Part, Point, SurfaceMesh
+from ansys.heart.preprocessor.mesh.objects import (
+    BeamMesh,
+    Cap,
+    Cavity,
+    Mesh,
+    Part,
+    Point,
+    SurfaceMesh,
+)
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.model_definitions import HEART_PARTS, LABELS_TO_ID
 import meshio
@@ -1650,30 +1658,76 @@ class FourChamber(HeartModel):
 
         return AV_point
 
-    def compute_av_conduction(self):
-        """Compute AtrioVentricular conduction system."""
+    def compute_av_conduction(self, create_new_nodes=True) -> BeamMesh:
+        """
+        Compute AtrioVentricular conduction system, connect SA node and AV node with beams.
+
+        Notes
+        -----
+        1. with create_new_nodes=True, node ID of AV point will be modified
+        2. todo: multiple paths
+
+        Parameters
+        ----------
+        create_new_nodes: if duplicate news from solid elements.
+        """
+        if not create_new_nodes:
+            raise NotImplementedError
+
         right_atrium_endo = self.right_atrium.endocardium
-        SA_node = self.compute_SA_node().node_id
-        AV_node = self.compute_AV_node().node_id
+
+        try:
+            SA_node = self.right_atrium.get_point("SA_node").node_id
+        except AttributeError:
+            LOGGER.info("SA node is not defined, creating with default option.")
+            SA_node = self.compute_SA_node().node_id
+
+        try:
+            AV_node = self.right_atrium.get_point("AV_node").node_id
+        except AttributeError:
+            LOGGER.info("AV node is not defined, creating with default option.")
+            AV_node = self.compute_AV_node().node_id
 
         path_SAN_AVN = right_atrium_endo.geodesic(SA_node, AV_node)
         edges = path_SAN_AVN["vtkOriginalPointIds"]
-        # duplicate nodes inside the line, connect only SAN with 3D
-        edges[1:] = len(self.mesh.nodes) + np.linspace(0, len(edges) - 2, len(edges) - 1, dtype=int)
-        self.right_atrium.get_point("AV_node").node_id = edges[-1]
-        edges = np.vstack((edges[:-1], edges[1:])).T
-        self.mesh.add_beam_network(
-            new_nodes=path_SAN_AVN.points[1:, :], edges=edges, name="SAN_to_AVN"
-        )
-        return
 
-    def compute_His_conduction(self):
-        """Compute His conduction system."""
-        # TODO add method in Part class to have a get_mesh()
-        # https://www.researchgate.net/publication/353154291_Morphometric_analysis_of_the_His
-        # _bundle_atrioventricular_fascicle_in_humans_and_other_animal_species_Histological_and
-        # _immunohistochemical_study
+        if create_new_nodes:
+            # duplicate nodes inside the line, connect only SA node (the first) with 3D
+            edges[1:] = len(self.mesh.nodes) + np.linspace(
+                0, len(edges) - 2, len(edges) - 1, dtype=int
+            )
+
+            # modify ID of AV point
+            self.right_atrium.get_point("AV_node").node_id = edges[-1]
+
+            # build connectivity table
+            edges = np.vstack((edges[:-1], edges[1:])).T
+
+            # add to mesh
+            beam = self.mesh.add_beam_network(
+                new_nodes=path_SAN_AVN.points[1:, :], edges=edges, name="SAN_to_AVN"
+            )
+
+            return beam
+
+    def compute_His_conduction(self, beam_length=0.8, beam_number=4) -> BeamMesh:
+        """
+        Compute His conduction system.
+
+        Create EP beams from SA node, to the  septum start point then to septum end point.
+
+        Parameters
+        ----------
+        beam_length: size of beam element
+        beam_number: number of beam from septum start to end point
+
+        References
+        ----------
+        https://www.researchgate.net/publication/353154291_Morphometric_analysis_of_the_His_bundle_atrioven
+        tricular_fascicle_in_humans_and_other_animal_species_Histological_and_immunohistochemical_study
         # (1.06 ± 0.6 mm)
+        """
+        # TODO add method in Part class to have a get_mesh()
         septum_point_ids = np.unique(np.ravel(self.mesh.tetrahedrons[self.septum.element_ids,]))
         septum_points = pv.PolyData(self.mesh.nodes[septum_point_ids, :])
 
@@ -1683,40 +1737,49 @@ class FourChamber(HeartModel):
             + self.right_atrium.endocardium
             + self.right_atrium.epicardium
         )
+        # Get a point at septum center
         septum_center_id = septum_point_ids[septum_points.find_closest_point(septum_points.center)]
         septum_center_xyz = self.mesh.nodes[septum_center_id, :]
 
+        # Define septum start point: closest to artria
         His_septum_start_id = self.mesh.find_closest_point(
             atria_surface.points[atria_surface.find_closest_point(septum_center_xyz), :]
         )
         His_septum_start_xyz = self.mesh.nodes[His_septum_start_id, :]
 
-        vector_towards_apex = (septum_center_xyz - His_septum_start_xyz) / np.linalg.norm(
+        # Define septum end point: direction toward apex for a given distance
+        direction_vec = (septum_center_xyz - His_septum_start_xyz) / np.linalg.norm(
             septum_center_xyz - His_septum_start_xyz
         )
-        beam_length = 0.8
-        # TODO automate this in while loop as function of desired total distance
+        distance = beam_number * beam_length
+        His_septum_end_xyz = His_septum_start_xyz + distance * direction_vec
 
-        His_septum_end_xyz = His_septum_start_xyz + 4 * beam_length * vector_towards_apex
-        new_nodes = np.array(
-            [
-                His_septum_start_xyz,
-                His_septum_start_xyz + 1 * beam_length * vector_towards_apex,
-                His_septum_start_xyz + 2 * beam_length * vector_towards_apex,
-                His_septum_start_xyz + 3 * beam_length * vector_towards_apex,
-                His_septum_end_xyz,
-            ]
-        )
+        # create Points
         His_septum_start = Point(
             name="His septum start", xyz=His_septum_start_xyz, node_id=len(self.mesh.nodes)
         )
         self.septum.points.append(His_septum_start)
+
         His_septum_end = Point(
             name="His septum end",
             xyz=His_septum_end_xyz,
-            node_id=len(new_nodes) + len(self.mesh.nodes) - 1,
+            node_id=beam_number + len(self.mesh.nodes),
         )
         self.septum.points.append(His_septum_end)
+
+        # create nodes from start to end
+        new_nodes = np.array(
+            [
+                His_septum_start_xyz,
+                His_septum_end_xyz,
+            ]
+        )
+
+        step = (His_septum_end_xyz - His_septum_start_xyz) / (beam_number + 1)
+        for i in range(1, beam_number):
+            new_nodes = np.insert(new_nodes, i, His_septum_start_xyz + i * step, axis=0)
+
+        # path start from AV point, to septum start point, then to septum end point
         AV_node = self.right_atrium.get_point("AV_node")
         edges = np.concatenate(
             (
@@ -1725,9 +1788,9 @@ class FourChamber(HeartModel):
                 + np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int),
             )
         )
-
-        edges = np.vstack((edges[:-1], edges[1:])).T
-        self.mesh.add_beam_network(new_nodes=new_nodes, edges=edges, name="His")
+        # create beam
+        connect_table = np.vstack((edges[:-1], edges[1:])).T
+        beam = self.mesh.add_beam_network(new_nodes=new_nodes, edges=connect_table, name="His")
 
         # TODO:
         # Find upper right septal point "URSP"
@@ -1748,9 +1811,9 @@ class FourChamber(HeartModel):
 
         # plotter.show()
 
-        return
+        return beam
 
-    def compute_bundle_branches(self):
+    def compute_bundle_branches(self) -> List[BeamMesh]:
         """Compute Buncle branches conduction system."""
         left_endo = self.left_ventricle.endocardium
         right_endo = self.right_ventricle.endocardium + self.right_ventricle.septum
@@ -1790,7 +1853,9 @@ class FourChamber(HeartModel):
             0, len(edges) - 3, len(edges) - 2, dtype=int
         )
         edges = np.vstack((edges[:-1], edges[1:])).T
-        self.mesh.add_beam_network(new_nodes=new_nodes, edges=edges, name="Left bundle branch")
+        left_bundle = self.mesh.add_beam_network(
+            new_nodes=new_nodes, edges=edges, name="Left bundle branch"
+        )
 
         # build right branch net
         new_nodes = right_bundle_branch.points[0:-1, :]
@@ -1802,14 +1867,17 @@ class FourChamber(HeartModel):
             0, len(edges) - 3, len(edges) - 2, dtype=int
         )
         edges = np.vstack((edges[:-1], edges[1:])).T
-        self.mesh.add_beam_network(new_nodes=new_nodes, edges=edges, name="Right bundle branch")
+        right_bundle = self.mesh.add_beam_network(
+            new_nodes=new_nodes, edges=edges, name="Right bundle branch"
+        )
 
         # Project end of his right and left
         # find geodesic until apex, or seomthing closer belonging to purkinje
-        return
+        return [left_bundle, right_bundle]
 
     def compute_Bachman_bundle(self):
         """Compute Bachman bundle conduction system."""
+        raise NotImplementedError
         return
 
     def compute_cavity_interfaces(self):

@@ -1,5 +1,6 @@
 """Test for reading purkinje network as a beam mesh. Uses a mock Mesh object."""
 import os
+import pathlib
 
 from ansys.heart.preprocessor.mesh.objects import BeamMesh, Mesh, Point
 from ansys.heart.preprocessor.models import FourChamber
@@ -10,13 +11,14 @@ from pyvista import examples
 from .conftest import get_workdir
 
 model: FourChamber
+model_dir: pathlib.Path
 
 
 @pytest.fixture(autouse=True, scope="module")
 def get_data():
-    global model
+    global model, model_dir
 
-    model_dir = r"D:\pyheart-lib\test_case\test_4c\heart_model.pickle"
+    model_dir = pathlib.Path(r"D:\pyheart-lib\test_case\test_4c\heart_model.pickle")
     model = FourChamber.load_model(model_dir)
 
 
@@ -88,3 +90,31 @@ def test_compute_AV_node():
     p = model.compute_AV_node()
     target = Point(name="AV_node", xyz=[-8.22263189, 106.95353898, 373.34239855], node_id=26409)
     assert p.node_id == target.node_id
+
+
+def test_compute_av_conduction():
+    beam = model.compute_av_conduction()
+
+    assert np.all(beam.edges[0] == [19705, 66354])
+    assert np.all(beam.edges[-1] == [66388, 66389])
+
+
+def test_compute_His_conduction():
+    # need a fresh model to make sure tests are independent
+    fresh_model: FourChamber = FourChamber.load_model(model_dir)
+    fresh_model.compute_AV_node()
+
+    beam = fresh_model.compute_His_conduction()
+
+    a = fresh_model.septum.get_point("His septum start").node_id
+    b = fresh_model.septum.get_point("His septum end").node_id
+
+    assert a == 66354
+    assert b == 66358
+
+    assert np.all(beam.edges[0] == [26409, 66354])
+    assert np.all(beam.edges[-1] == [66357, 66358])
+
+
+def test_compute_bundle_branches():
+    pass

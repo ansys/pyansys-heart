@@ -20,403 +20,6 @@ except ImportError:
     LOGGER.warning("Importing pyvista failed. Install with: pip install pyvista")
 
 
-class Mesh(pv.UnstructuredGrid):
-    """Mesh class: inherits from pyvista UnstructuredGrid.
-
-    Notes
-    -----
-    Only tetrahedrons are supported.
-    Additional attributes are added on top of the pyvista UnstructuredGrid class
-    """
-
-    @property
-    def nodes(self):
-        """Node coordinates."""
-        return np.array(self.points)
-
-    @nodes.setter
-    def nodes(self, array: np.ndarray):
-        if isinstance(array, type(None)):
-            return
-        try:
-            self.points = array
-        except:
-            LOGGER.warning("Failed to set nodes.")
-            return
-
-    @property
-    def tetrahedrons(self):
-        """Tetrahedrons num_tetra x 4."""
-        return self.cells_dict[pv.CellType.TETRA]
-
-    @tetrahedrons.setter
-    def tetrahedrons(self, value: np.ndarray):
-        # sets tetrahedrons of UnstructuredGrid
-        try:
-            points = self.points
-            celltypes = np.full(value.shape[0], pv.CellType.TETRA, dtype=np.int8)
-            tetra = np.hstack([np.full(len(celltypes), 4)[:, None], value])
-            super().__init__(tetra, celltypes, points)
-        except:
-            LOGGER.warning("Failed to set tetrahedrons.")
-            return
-
-    def __init__(self, *args):
-        super().__init__(*args)
-
-        # self.tetrahedrons: np.ndarray = None
-        # """Tetrahedral volume elements of the mesh."""
-        # self.nodes: np.ndarray = None
-        # """Nodes of the mesh."""
-        # self.cell_data: dict = None
-        # """Data per mesh cell/element."""
-        # self.point_data: dict = None
-        # """Data per mesh point."""
-        self.triangles: np.ndarray = None
-        """Faces that make up the tetrahedrons."""
-        self.face_types: np.ndarray = None
-        """Type of face: 1: interior face, 2: boundary face, 3: interface face."""
-        self.conn = {"c0": [], "c1": []}
-        """Face-tetra connectivity array."""
-        # TODO: just store used nodes in interfaces and boundaries
-        # and add mapper to map from local to global (volume mesh) node ids
-        self.interfaces: List[SurfaceMesh] = []
-        """List of surface meshes that make up the interface between different parts."""
-        self.boundaries: List[SurfaceMesh] = []
-        """List of boundary surface meshes within the part."""
-        self.beam_network: List[BeamMesh] = []
-        """List of beam networks in the mesh."""
-        pass
-
-    @property
-    def part_ids(self) -> np.ndarray:
-        """Array of part ids indicating to which part the tetrahedron belongs.
-
-        Notes
-        -----
-        This is derived from the "tags" field in cell data
-        """
-        try:
-            value = self.cell_data["tags"].astype(int)
-        except (KeyError, NameError):
-            LOGGER.warning("'tags' field not found in self.cell_data")
-            value = None
-        return value
-
-    @property
-    def boundary_names(self) -> List[str]:
-        """Iterate over boundaries and returns their names."""
-        return [b.name for b in self.boundaries]
-
-    def read_mesh_file(self, filename: pathlib.Path) -> None:
-        """Read mesh file."""
-        mesh = pv.read(filename)
-        # .case gives multiblock
-        if isinstance(mesh, pv.MultiBlock):
-            mesh: pv.UnstructuredGrid = mesh.GetBlock(0)
-
-        if not isinstance(mesh, pv.UnstructuredGrid):
-            LOGGER.warning("Failed to read mesh file. Expecting .vtk unstructured grid or .case")
-            return
-
-        self.points = mesh.points
-        self.tetrahedrons = mesh.cells_dict[pv.CellType.TETRA]
-        for key, value in mesh.cell_data.items():
-            self.cell_data[key] = mesh.cell_data[key]
-        for key, value in mesh.point_data.items():
-            self.point_data[key] = mesh.point_data[key]
-
-        return
-
-    def read_mesh_file_cristobal2021(self, filename: pathlib.Path) -> None:
-        """Read mesh file - but modifies the fields to match data of Strocchi 2020."""
-        mesh = pv.read(filename)
-        # .case gives multiblock
-        if isinstance(mesh, pv.MultiBlock):
-            mesh: pv.UnstructuredGrid = mesh.GetBlock(0)
-
-        if not isinstance(mesh, pv.UnstructuredGrid):
-            LOGGER.warning("Failed to read mesh file. Expecting .vtk unstructured grid or .case")
-            return
-
-        name_array_mapping = [
-            ["tags", "ID", "cell"],
-            ["fiber", "fibres", "cell"],
-            ["sheet", "sheets", "cell"],
-            ["uvc_longitudinal", "Z.dat", "point"],
-            ["uvc_rotational", "PHI.dat", "point"],
-            ["uvc_transmural", "RHO.dat", "point"],
-            ["uvc_intraventricular", "V.dat", "point"],
-        ]
-
-        # rename tags in cristobal
-        for item in name_array_mapping:
-            mesh.rename_array(item[1], item[0], item[2])
-
-        self.points = mesh.points
-        self.tetrahedrons = mesh.cells_dict[pv.CellType.TETRA]
-        for key, value in mesh.cell_data.items():
-            self.cell_data[key] = mesh.cell_data[key]
-        for key, value in mesh.point_data.items():
-            self.point_data[key] = mesh.point_data[key]
-
-        if np.issubdtype(self.cell_data["tags"].dtype, np.integer):
-            self.cell_data["tags"] = np.array(self.cell_data["tags"], dtype=float)
-
-        return None
-
-    def write_to_vtk(self, filename: pathlib.Path) -> None:
-        """Write mesh to VTK file."""
-        self.save(filename)
-        return
-
-    def keep_elements_with_value(
-        self,
-        values: List[int],
-        field_name: str,
-    ) -> None:
-        """Remove elements that satisfy a certain cell value of a specific field."""
-        mask = np.isin(self.cell_data[field_name], values)
-        self.tetrahedrons = self.tetrahedrons[mask, :]
-        for key in self.cell_data.keys():
-            self.cell_data[key] = self.cell_data[key][mask]
-        return
-
-    def establish_connectivity(self) -> None:
-        """Establish the connetivity of the tetrahedrons."""
-        self.triangles, self.conn["c0"], self.conn["c1"] = connect.face_tetra_connectivity(
-            self.tetrahedrons
-        )
-        # get the face types
-        c0c1_matrix = np.array([self.conn["c0"], self.conn["c1"]]).transpose()
-        self.face_types = connect.get_face_type(self.triangles, c0c1_matrix)
-
-        return
-
-    def get_mask_interface_faces(
-        self, return_pairs: bool = False
-    ) -> Tuple[np.ndarray, Optional[List[int]]]:
-        """Get the (interface) faces between two parts."""
-        c0 = self.conn["c0"]
-        c1 = self.conn["c1"]
-        part_ids = self.part_ids
-        face_types = self.face_types
-
-        mask_interface_faces = np.all(
-            np.vstack([part_ids[c0] != part_ids[c1], face_types == 1]), axis=0
-        )
-
-        # get interface pairs
-        interface_pairs = np.vstack(
-            [part_ids[c0][mask_interface_faces], part_ids[c1][mask_interface_faces]]
-        )
-        interface_pairs = np.array(interface_pairs, dtype=int)
-        interface_pairs_sorted = np.sort(interface_pairs, axis=0)
-        # get unique pairs
-        part_pairs = np.unique(interface_pairs_sorted, axis=1).transpose()
-        part_pairs = part_pairs.tolist()
-
-        # mark interface faces in type array
-        self.face_types[mask_interface_faces] = 3
-
-        if return_pairs:
-            return mask_interface_faces, part_pairs
-        else:
-            return mask_interface_faces
-
-    def add_interfaces(
-        self,
-        pairs: List[List[int]],
-        pair_names: List[str],
-    ) -> None:
-        """Add the interfaces between the parts to the mesh."""
-        part_ids = self.part_ids
-        c0 = self.conn["c0"]
-        c1 = self.conn["c1"]
-
-        # loop over pairs and add to the list of interfaces
-        for ii, pair in enumerate(pairs):
-            name = pair_names[ii]
-            part_mask1 = (
-                np.sum(
-                    np.array(
-                        [
-                            part_ids[c0] == pair[0],  # mask part 1
-                            part_ids[c1] == pair[0],  # mask part 1
-                        ]
-                    ),
-                    axis=0,
-                )
-                == 1
-            )
-            part_mask2 = (
-                np.sum(
-                    np.array(
-                        [
-                            part_ids[c0] == pair[1],  # mask part 2
-                            part_ids[c1] == pair[1],  # mask part 2
-                        ]
-                    ),
-                    axis=0,
-                )
-                == 1
-            )
-            pair_mask = np.all(np.array([part_mask1, part_mask2]), axis=0)
-
-            faces = self.triangles[pair_mask, :]
-            # NOTE: Nodes are shallow copied
-            self.interfaces.append(SurfaceMesh(name, faces, self.nodes))
-
-    def smooth_interfaces(self) -> None:
-        """Smooth the interfaces between the different parts."""
-        for interface in self.interfaces:
-            interface.get_boundary_edges()
-            node_ids_smoothed = interface.smooth_boundary_edges()
-            # make sure nodes of the (volume) mesh are updated
-            self.points[node_ids_smoothed, :] = interface.nodes[node_ids_smoothed, :]
-        return
-
-    def add_boundaries(self, add_part_ids: List[int] = [], boundary_names: List[str] = []) -> None:
-        """Add boundary surfaces to the mesh object. One surface per part."""
-        part_ids = self.part_ids
-        c0 = self.conn["c0"]
-        c1 = self.conn["c1"]
-
-        for ii, part_id in enumerate(add_part_ids):
-            boundary_mask = np.all(
-                np.array([part_ids[c0] == part_id, part_ids[c1] == part_id, self.face_types == 2]),
-                axis=0,
-            )
-            boundary_faces = self.triangles[boundary_mask, :]
-            self.boundaries.append(SurfaceMesh(boundary_names[ii], boundary_faces, self.nodes))
-
-        return
-
-    def get_surface_from_name(self, name: str = None):
-        """Return a list of surfaces that match the given list of names.
-
-        Notes
-        -----
-        Returns single surface. When multiple matches are found returns list of surfaces
-        """
-        surfaces_search = self.boundaries + self.interfaces
-        surfaces = [s for s in surfaces_search if s.name == name]
-        if len(surfaces) == 0:
-            return None
-        if len(surfaces) == 1:
-            return surfaces[0]
-        else:
-            return surfaces
-
-    def add_purkinje_from_kfile(self, filename: pathlib.Path) -> None:
-        """Read an LS-DYNA file containing purkinje beams and nodes.
-
-        Parameters
-        ----------
-        filename : pathlib.Path
-        """
-        # Open file and import beams and created nodes
-        with open(filename, "r") as file:
-            start_nodes = 0
-            lines = file.readlines()
-        # find line ids delimiting node data and edge data
-        start_nodes = np.array(np.where(["*NODE" in line for line in lines]))[0][0]
-        end_nodes = np.array(np.where(["*" in line for line in lines]))
-        end_nodes = end_nodes[end_nodes > start_nodes][0]
-        start_beams = np.array(np.where(["*ELEMENT_BEAM" in line for line in lines]))[0][0]
-        end_beams = np.array(np.where(["*" in line for line in lines]))
-        end_beams = end_beams[end_beams > start_beams][0]
-        # load node data
-        node_data = np.loadtxt(
-            filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1
-        )
-        node_id_start = np.array(node_data[0, 0], dtype=int) - 1
-        # load beam data
-        beam_data = np.loadtxt(
-            filename, skiprows=start_beams + 1, max_rows=end_beams - start_beams - 1, dtype=int
-        )
-        edges = beam_data[:, 2:4] - 1
-
-        # adjust connectivity table for new created nodes
-        number_of_nodes = len(self.nodes)
-        edges[edges >= node_id_start] = (
-            edges[edges >= node_id_start] - node_id_start + number_of_nodes
-        )
-
-        nodes = node_data[:, 1:4]
-        pid = beam_data[0, 1]
-
-        self.add_beam_network(new_nodes=nodes, edges=edges, pid=pid)
-
-        return
-
-    def add_beam_network(
-        self, new_nodes: np.ndarray = [], edges: np.ndarray = [], pid: int = None, name: str = None
-    ) -> None:
-        """Add beam network."""
-        nodes = np.vstack([self.nodes, new_nodes])  # add new nodes to existing nodes
-        beam_net = BeamMesh(nodes=nodes, edges=edges, pid=pid, nsid=-1)
-        beam_net.pid = pid
-        beam_net.id = len(self.beam_network) + 1
-        beam_net.name = name
-        self.beam_network.append(beam_net)
-
-        # Note that if we add the nodes to the mesh object we may will also need to
-        # extend the point data arrays with suitable values.
-        self.nodes = nodes
-        null_value = 0
-        num_data_to_add = new_nodes.shape[0]
-        for key in self.point_data.keys():
-            data_type = self.point_data[key].dtype
-            if len(self.point_data[key].shape) > 1:
-                raise NotImplementedError(
-                    "Padding multi-dimensional point data arrays not yet supported"
-                )
-            new_point_data = np.append(
-                self.point_data[key], np.ones(num_data_to_add, dtype=data_type) * null_value
-            )
-            self.point_data[key] = new_point_data
-
-        # # visualize (debug)
-        # import pyvista
-        # plotter = pyvista.Plotter()
-        # plotter.add_mesh(self, opacity=0.3)
-        # plotter.add_mesh(purkinje)
-        # plotter.show()
-
-    def _to_pyvista_object(self) -> pv.UnstructuredGrid:
-        """Convert mesh object into pyvista unstructured grid object.
-
-        Returns
-        -------
-        pv.UnstructuredGrid
-            Pyvista unstructured grid object.
-        """
-        num_tets = self.tetrahedrons.shape[0]
-        cells = np.hstack(
-            [np.ones((self.tetrahedrons.shape[0], 1), dtype=int) * 4, self.tetrahedrons]
-        ).flatten()
-        celltypes = np.ones(num_tets, dtype=int) * pv.CellType.TETRA
-        points = self.nodes
-        grid = pv.UnstructuredGrid(cells, celltypes, points)
-        # add cell and point data
-        if self.cell_data:
-            for key, value in self.cell_data.items():
-                if value.size == value.shape[0]:
-                    grid.cell_data.set_scalars(name=key, scalars=value)
-                elif len(value.shape) > 1:
-                    grid.cell_data.set_vectors(name=key, vectors=value)
-
-        if self.point_data:
-            for key, value in self.point_data.items():
-                if value.size == value.shape[0]:
-                    grid.point_data.set_array(name=key, data=value)
-                elif len(value.shape) > 1:
-                    grid.point_data.set_vectors(name=key, vectors=value)
-
-        return grid
-
-
 class Feature:
     """Feature class."""
 
@@ -833,6 +436,404 @@ class Point(Feature):
         """Global node id of point."""
 
 
+class Mesh(pv.UnstructuredGrid):
+    """Mesh class: inherits from pyvista UnstructuredGrid.
+
+    Notes
+    -----
+    Only tetrahedrons are supported.
+    Additional attributes are added on top of the pyvista UnstructuredGrid class
+    """
+
+    @property
+    def nodes(self):
+        """Node coordinates."""
+        return np.array(self.points)
+
+    @nodes.setter
+    def nodes(self, array: np.ndarray):
+        if isinstance(array, type(None)):
+            return
+        try:
+            self.points = array
+        except:
+            LOGGER.warning("Failed to set nodes.")
+            return
+
+    @property
+    def tetrahedrons(self):
+        """Tetrahedrons num_tetra x 4."""
+        return self.cells_dict[pv.CellType.TETRA]
+
+    @tetrahedrons.setter
+    def tetrahedrons(self, value: np.ndarray):
+        # sets tetrahedrons of UnstructuredGrid
+        try:
+            points = self.points
+            celltypes = np.full(value.shape[0], pv.CellType.TETRA, dtype=np.int8)
+            tetra = np.hstack([np.full(len(celltypes), 4)[:, None], value])
+            super().__init__(tetra, celltypes, points)
+        except:
+            LOGGER.warning("Failed to set tetrahedrons.")
+            return
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+        # self.tetrahedrons: np.ndarray = None
+        # """Tetrahedral volume elements of the mesh."""
+        # self.nodes: np.ndarray = None
+        # """Nodes of the mesh."""
+        # self.cell_data: dict = None
+        # """Data per mesh cell/element."""
+        # self.point_data: dict = None
+        # """Data per mesh point."""
+        self.triangles: np.ndarray = None
+        """Faces that make up the tetrahedrons."""
+        self.face_types: np.ndarray = None
+        """Type of face: 1: interior face, 2: boundary face, 3: interface face."""
+        self.conn = {"c0": [], "c1": []}
+        """Face-tetra connectivity array."""
+        # TODO: just store used nodes in interfaces and boundaries
+        # and add mapper to map from local to global (volume mesh) node ids
+        self.interfaces: List[SurfaceMesh] = []
+        """List of surface meshes that make up the interface between different parts."""
+        self.boundaries: List[SurfaceMesh] = []
+        """List of boundary surface meshes within the part."""
+        self.beam_network: List[BeamMesh] = []
+        """List of beam networks in the mesh."""
+        pass
+
+    @property
+    def part_ids(self) -> np.ndarray:
+        """Array of part ids indicating to which part the tetrahedron belongs.
+
+        Notes
+        -----
+        This is derived from the "tags" field in cell data
+        """
+        try:
+            value = self.cell_data["tags"].astype(int)
+        except (KeyError, NameError):
+            LOGGER.warning("'tags' field not found in self.cell_data")
+            value = None
+        return value
+
+    @property
+    def boundary_names(self) -> List[str]:
+        """Iterate over boundaries and returns their names."""
+        return [b.name for b in self.boundaries]
+
+    def read_mesh_file(self, filename: pathlib.Path) -> None:
+        """Read mesh file."""
+        mesh = pv.read(filename)
+        # .case gives multiblock
+        if isinstance(mesh, pv.MultiBlock):
+            mesh: pv.UnstructuredGrid = mesh.GetBlock(0)
+
+        if not isinstance(mesh, pv.UnstructuredGrid):
+            LOGGER.warning("Failed to read mesh file. Expecting .vtk unstructured grid or .case")
+            return
+
+        self.points = mesh.points
+        self.tetrahedrons = mesh.cells_dict[pv.CellType.TETRA]
+        for key, value in mesh.cell_data.items():
+            self.cell_data[key] = mesh.cell_data[key]
+        for key, value in mesh.point_data.items():
+            self.point_data[key] = mesh.point_data[key]
+
+        return
+
+    def read_mesh_file_cristobal2021(self, filename: pathlib.Path) -> None:
+        """Read mesh file - but modifies the fields to match data of Strocchi 2020."""
+        mesh = pv.read(filename)
+        # .case gives multiblock
+        if isinstance(mesh, pv.MultiBlock):
+            mesh: pv.UnstructuredGrid = mesh.GetBlock(0)
+
+        if not isinstance(mesh, pv.UnstructuredGrid):
+            LOGGER.warning("Failed to read mesh file. Expecting .vtk unstructured grid or .case")
+            return
+
+        name_array_mapping = [
+            ["tags", "ID", "cell"],
+            ["fiber", "fibres", "cell"],
+            ["sheet", "sheets", "cell"],
+            ["uvc_longitudinal", "Z.dat", "point"],
+            ["uvc_rotational", "PHI.dat", "point"],
+            ["uvc_transmural", "RHO.dat", "point"],
+            ["uvc_intraventricular", "V.dat", "point"],
+        ]
+
+        # rename tags in cristobal
+        for item in name_array_mapping:
+            mesh.rename_array(item[1], item[0], item[2])
+
+        self.points = mesh.points
+        self.tetrahedrons = mesh.cells_dict[pv.CellType.TETRA]
+        for key, value in mesh.cell_data.items():
+            self.cell_data[key] = mesh.cell_data[key]
+        for key, value in mesh.point_data.items():
+            self.point_data[key] = mesh.point_data[key]
+
+        if np.issubdtype(self.cell_data["tags"].dtype, np.integer):
+            self.cell_data["tags"] = np.array(self.cell_data["tags"], dtype=float)
+
+        return None
+
+    def write_to_vtk(self, filename: pathlib.Path) -> None:
+        """Write mesh to VTK file."""
+        self.save(filename)
+        return
+
+    def keep_elements_with_value(
+        self,
+        values: List[int],
+        field_name: str,
+    ) -> None:
+        """Remove elements that satisfy a certain cell value of a specific field."""
+        mask = np.isin(self.cell_data[field_name], values)
+        self.tetrahedrons = self.tetrahedrons[mask, :]
+        for key in self.cell_data.keys():
+            self.cell_data[key] = self.cell_data[key][mask]
+        return
+
+    def establish_connectivity(self) -> None:
+        """Establish the connetivity of the tetrahedrons."""
+        self.triangles, self.conn["c0"], self.conn["c1"] = connect.face_tetra_connectivity(
+            self.tetrahedrons
+        )
+        # get the face types
+        c0c1_matrix = np.array([self.conn["c0"], self.conn["c1"]]).transpose()
+        self.face_types = connect.get_face_type(self.triangles, c0c1_matrix)
+
+        return
+
+    def get_mask_interface_faces(
+        self, return_pairs: bool = False
+    ) -> Tuple[np.ndarray, Optional[List[int]]]:
+        """Get the (interface) faces between two parts."""
+        c0 = self.conn["c0"]
+        c1 = self.conn["c1"]
+        part_ids = self.part_ids
+        face_types = self.face_types
+
+        mask_interface_faces = np.all(
+            np.vstack([part_ids[c0] != part_ids[c1], face_types == 1]), axis=0
+        )
+
+        # get interface pairs
+        interface_pairs = np.vstack(
+            [part_ids[c0][mask_interface_faces], part_ids[c1][mask_interface_faces]]
+        )
+        interface_pairs = np.array(interface_pairs, dtype=int)
+        interface_pairs_sorted = np.sort(interface_pairs, axis=0)
+        # get unique pairs
+        part_pairs = np.unique(interface_pairs_sorted, axis=1).transpose()
+        part_pairs = part_pairs.tolist()
+
+        # mark interface faces in type array
+        self.face_types[mask_interface_faces] = 3
+
+        if return_pairs:
+            return mask_interface_faces, part_pairs
+        else:
+            return mask_interface_faces
+
+    def add_interfaces(
+        self,
+        pairs: List[List[int]],
+        pair_names: List[str],
+    ) -> None:
+        """Add the interfaces between the parts to the mesh."""
+        part_ids = self.part_ids
+        c0 = self.conn["c0"]
+        c1 = self.conn["c1"]
+
+        # loop over pairs and add to the list of interfaces
+        for ii, pair in enumerate(pairs):
+            name = pair_names[ii]
+            part_mask1 = (
+                np.sum(
+                    np.array(
+                        [
+                            part_ids[c0] == pair[0],  # mask part 1
+                            part_ids[c1] == pair[0],  # mask part 1
+                        ]
+                    ),
+                    axis=0,
+                )
+                == 1
+            )
+            part_mask2 = (
+                np.sum(
+                    np.array(
+                        [
+                            part_ids[c0] == pair[1],  # mask part 2
+                            part_ids[c1] == pair[1],  # mask part 2
+                        ]
+                    ),
+                    axis=0,
+                )
+                == 1
+            )
+            pair_mask = np.all(np.array([part_mask1, part_mask2]), axis=0)
+
+            faces = self.triangles[pair_mask, :]
+            # NOTE: Nodes are shallow copied
+            self.interfaces.append(SurfaceMesh(name, faces, self.nodes))
+
+    def smooth_interfaces(self) -> None:
+        """Smooth the interfaces between the different parts."""
+        for interface in self.interfaces:
+            interface.get_boundary_edges()
+            node_ids_smoothed = interface.smooth_boundary_edges()
+            # make sure nodes of the (volume) mesh are updated
+            self.points[node_ids_smoothed, :] = interface.nodes[node_ids_smoothed, :]
+        return
+
+    def add_boundaries(self, add_part_ids: List[int] = [], boundary_names: List[str] = []) -> None:
+        """Add boundary surfaces to the mesh object. One surface per part."""
+        part_ids = self.part_ids
+        c0 = self.conn["c0"]
+        c1 = self.conn["c1"]
+
+        for ii, part_id in enumerate(add_part_ids):
+            boundary_mask = np.all(
+                np.array([part_ids[c0] == part_id, part_ids[c1] == part_id, self.face_types == 2]),
+                axis=0,
+            )
+            boundary_faces = self.triangles[boundary_mask, :]
+            self.boundaries.append(SurfaceMesh(boundary_names[ii], boundary_faces, self.nodes))
+
+        return
+
+    def get_surface_from_name(self, name: str = None):
+        """Return a list of surfaces that match the given list of names.
+
+        Notes
+        -----
+        Returns single surface. When multiple matches are found returns list of surfaces
+        """
+        surfaces_search = self.boundaries + self.interfaces
+        surfaces = [s for s in surfaces_search if s.name == name]
+        if len(surfaces) == 0:
+            return None
+        if len(surfaces) == 1:
+            return surfaces[0]
+        else:
+            return surfaces
+
+    def add_purkinje_from_kfile(self, filename: pathlib.Path) -> None:
+        """Read an LS-DYNA file containing purkinje beams and nodes.
+
+        Parameters
+        ----------
+        filename : pathlib.Path
+        """
+        # Open file and import beams and created nodes
+        with open(filename, "r") as file:
+            start_nodes = 0
+            lines = file.readlines()
+        # find line ids delimiting node data and edge data
+        start_nodes = np.array(np.where(["*NODE" in line for line in lines]))[0][0]
+        end_nodes = np.array(np.where(["*" in line for line in lines]))
+        end_nodes = end_nodes[end_nodes > start_nodes][0]
+        start_beams = np.array(np.where(["*ELEMENT_BEAM" in line for line in lines]))[0][0]
+        end_beams = np.array(np.where(["*" in line for line in lines]))
+        end_beams = end_beams[end_beams > start_beams][0]
+        # load node data
+        node_data = np.loadtxt(
+            filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1
+        )
+        node_id_start = np.array(node_data[0, 0], dtype=int) - 1
+        # load beam data
+        beam_data = np.loadtxt(
+            filename, skiprows=start_beams + 1, max_rows=end_beams - start_beams - 1, dtype=int
+        )
+        edges = beam_data[:, 2:4] - 1
+
+        # adjust connectivity table for new created nodes
+        number_of_nodes = len(self.nodes)
+        edges[edges >= node_id_start] = (
+            edges[edges >= node_id_start] - node_id_start + number_of_nodes
+        )
+
+        nodes = node_data[:, 1:4]
+        pid = beam_data[0, 1]
+
+        self.add_beam_network(new_nodes=nodes, edges=edges, pid=pid)
+
+        return
+
+    def add_beam_network(
+        self, new_nodes: np.ndarray = [], edges: np.ndarray = [], pid: int = None, name: str = None
+    ) -> BeamMesh:
+        """Add beam network."""
+        nodes = np.vstack([self.nodes, new_nodes])  # add new nodes to existing nodes
+        beam_net = BeamMesh(nodes=nodes, edges=edges, pid=pid, nsid=-1)
+        beam_net.pid = pid
+        beam_net.id = len(self.beam_network) + 1
+        beam_net.name = name
+        self.beam_network.append(beam_net)
+
+        # Note that if we add the nodes to the mesh object we may will also need to
+        # extend the point data arrays with suitable values.
+        self.nodes = nodes
+        null_value = 0
+        num_data_to_add = new_nodes.shape[0]
+        for key in self.point_data.keys():
+            data_type = self.point_data[key].dtype
+            if len(self.point_data[key].shape) > 1:
+                raise NotImplementedError(
+                    "Padding multi-dimensional point data arrays not yet supported"
+                )
+            new_point_data = np.append(
+                self.point_data[key], np.ones(num_data_to_add, dtype=data_type) * null_value
+            )
+            self.point_data[key] = new_point_data
+
+        # # visualize (debug)
+        # import pyvista
+        # plotter = pyvista.Plotter()
+        # plotter.add_mesh(self, opacity=0.3)
+        # plotter.add_mesh(purkinje)
+        # plotter.show()
+        return beam_net
+
+    def _to_pyvista_object(self) -> pv.UnstructuredGrid:
+        """Convert mesh object into pyvista unstructured grid object.
+
+        Returns
+        -------
+        pv.UnstructuredGrid
+            Pyvista unstructured grid object.
+        """
+        num_tets = self.tetrahedrons.shape[0]
+        cells = np.hstack(
+            [np.ones((self.tetrahedrons.shape[0], 1), dtype=int) * 4, self.tetrahedrons]
+        ).flatten()
+        celltypes = np.ones(num_tets, dtype=int) * pv.CellType.TETRA
+        points = self.nodes
+        grid = pv.UnstructuredGrid(cells, celltypes, points)
+        # add cell and point data
+        if self.cell_data:
+            for key, value in self.cell_data.items():
+                if value.size == value.shape[0]:
+                    grid.cell_data.set_scalars(name=key, scalars=value)
+                elif len(value.shape) > 1:
+                    grid.cell_data.set_vectors(name=key, vectors=value)
+
+        if self.point_data:
+            for key, value in self.point_data.items():
+                if value.size == value.shape[0]:
+                    grid.point_data.set_array(name=key, data=value)
+                elif len(value.shape) > 1:
+                    grid.point_data.set_vectors(name=key, vectors=value)
+
+        return grid
+
+
 class Part:
     """Part class."""
 
@@ -869,7 +870,7 @@ class Part:
         for point in self.points:
             if point.name == pointname:
                 return point
-        LOGGER.error("Cannot find point.")
+        LOGGER.error("Cannot find point {0:s}.".format(pointname))
 
     def __init__(self, name: str = None, part_type: str = None) -> None:
         self.name = name

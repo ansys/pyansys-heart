@@ -17,7 +17,7 @@ model_dir: pathlib.Path
 @pytest.fixture(autouse=True, scope="module")
 def get_data():
     global model, model_dir
-
+    # todo: file larger than 100 Mb cannot be added to package
     model_dir = pathlib.Path(r"D:\pyheart-lib\test_case\test_4c\heart_model.pickle")
     model = FourChamber.load_model(model_dir)
 

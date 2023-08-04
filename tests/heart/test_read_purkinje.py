@@ -1,11 +1,23 @@
 """Test for reading purkinje network as a beam mesh. Uses a mock Mesh object."""
 import os
 
-from ansys.heart.preprocessor.mesh.objects import BeamMesh, Mesh
+from ansys.heart.preprocessor.mesh.objects import BeamMesh, Mesh, Point
+from ansys.heart.preprocessor.models import FourChamber
 import numpy as np
+import pytest
 from pyvista import examples
 
 from .conftest import get_workdir
+
+model: FourChamber
+
+
+@pytest.fixture(autouse=True, scope="module")
+def get_data():
+    global model
+
+    model_dir = r"D:\pyheart-lib\test_case\test_4c\heart_model.pickle"
+    model = FourChamber.load_model(model_dir)
 
 
 def test_read_purkinje_from_kfile_001():
@@ -64,3 +76,15 @@ def test_read_purkinje_from_kfile_001():
     beam_mesh2.edges = beams
 
     assert grid.beam_network[1] == beam_mesh2
+
+
+def test_compute_SA_node():
+    p = model.compute_SA_node()
+    target = Point(name="SA_node", xyz=[-49.53661854, 108.12227932, 422.97088272], node_id=19705)
+    assert p.node_id == target.node_id
+
+
+def test_compute_AV_node():
+    p = model.compute_AV_node()
+    target = Point(name="AV_node", xyz=[-8.22263189, 106.95353898, 373.34239855], node_id=26409)
+    assert p.node_id == target.node_id

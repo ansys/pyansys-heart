@@ -1600,43 +1600,55 @@ class FourChamber(HeartModel):
         super().__init__(info)
 
     def compute_SA_node(self) -> Point:
-        """Compute SinoAtrial node."""
-        right_atrium_endo: SurfaceMesh = None
-        for surface in self.right_atrium.surfaces:
-            if "endocardium" in surface.name:
-                right_atrium_endo = surface
+        """
+        Compute SinoAtrial node.
+
+        SinoAtrial node is defined on endocardium surface and
+        between sup vena cave and inf vena cave.
+        """
+        right_atrium_endo = self.right_atrium.endocardium
 
         for cap in self.right_atrium.caps:
             if "superior" in cap.name:
                 sup_vcava_centroid = cap.centroid
-                # sup_vcava_nodes = self.mesh.nodes[cap.node_ids, :]
             elif "inferior" in cap.name:
                 inf_vcava_centroid = cap.centroid
 
-        SA_node = sup_vcava_centroid - (inf_vcava_centroid - sup_vcava_centroid) / 2
-        SA_node = pv.PolyData(self.mesh.nodes[right_atrium_endo.node_ids, :]).find_closest_point(
-            SA_node
+        # define SinoAtrial node at here:
+        target_coord = sup_vcava_centroid - (inf_vcava_centroid - sup_vcava_centroid) / 2
+
+        target_id = pv.PolyData(self.mesh.nodes[right_atrium_endo.node_ids, :]).find_closest_point(
+            target_coord
         )
-        SA_node = right_atrium_endo.node_ids[SA_node]
-        SA_node = Point(name="SA_node", xyz=self.mesh.nodes[SA_node, :], node_id=SA_node)
-        self.right_atrium.points.append(SA_node)
-        return SA_node
+        SA_node_id = right_atrium_endo.node_ids[target_id]
+        SA_point = Point(name="SA_node", xyz=self.mesh.nodes[SA_node_id, :], node_id=SA_node_id)
+        self.right_atrium.points.append(SA_point)
+
+        return SA_point
 
     def compute_AV_node(self) -> Point:
-        """Compute AtrioVentricular node."""
+        """
+        Compute AtrioVentricular node.
+
+        AtrioVentricular node is defined on endocardium surface and closest to septum.
+        """
         right_atrium_endo = self.right_atrium.endocardium
 
         for surface in self.right_ventricle.surfaces:
             if "endocardium" in surface.name and "septum" in surface.name:
                 right_septum = surface
 
-        AV_node = pv.PolyData(self.mesh.points[right_atrium_endo.node_ids, :]).find_closest_point(
-            pv.PolyData(self.mesh.points[right_septum.node_ids, :]).center
-        )
-        AV_node = right_atrium_endo.node_ids[AV_node]
-        AV_node = Point(name="AV_node", xyz=self.mesh.nodes[AV_node, :], node_id=AV_node)
-        self.right_atrium.points.append(AV_node)
-        return AV_node
+        # define AtrioVentricular as the closest point to septum
+        target_coord = pv.PolyData(
+            self.mesh.points[right_atrium_endo.node_ids, :]
+        ).find_closest_point(pv.PolyData(self.mesh.points[right_septum.node_ids, :]).center)
+
+        # assign a point
+        target_id = right_atrium_endo.node_ids[target_coord]
+        AV_point = Point(name="AV_node", xyz=self.mesh.nodes[target_id, :], node_id=target_id)
+        self.right_atrium.points.append(AV_point)
+
+        return AV_point
 
     def compute_av_conduction(self):
         """Compute AtrioVentricular conduction system."""

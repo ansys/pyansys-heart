@@ -10,7 +10,6 @@ Options for simulation:
 """
 import copy
 import glob as glob
-import json
 import os
 import pathlib as Path
 import shutil
@@ -18,15 +17,10 @@ import subprocess
 from typing import Literal
 
 from ansys.heart.misc.element_orth import read_orth_element_kfile
-from ansys.heart.postprocessor.D3plotPost import LVContourExporter
-from ansys.heart.postprocessor.Klotz_curve import EDPVR
-from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
-from ansys.heart.postprocessor.dpf_d3plot import D3plotReader
-from ansys.heart.preprocessor.mesh.objects import Cavity, SurfaceMesh
-from ansys.heart.preprocessor.models import FourChamber, FullHeart, HeartModel, LeftVentricle
+from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
+from ansys.heart.preprocessor.models import HeartModel
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import ansys.heart.writer.dynawriter as writers
-import numpy as np
 
 
 def which(program):
@@ -368,161 +362,23 @@ class MechanicsSimulator(BaseSimulator):
 
         print("done.")
 
-        def _post():
-            os.makedirs(os.path.join(directory, "post"), exist_ok=True)
-
-            system = SystemModelPost(directory)
-            fig = system.plot_pv_loop()
-            fig.savefig(os.path.join(directory, "post", "pv.png"))
-
-            fig = system.plot_pressure_flow_volume(system.lv_system)
-            fig.savefig(os.path.join(directory, "post", "lv.png"))
-
-            if not isinstance(self.model, LeftVentricle):
-                fig = system.plot_pressure_flow_volume(system.rv_system)
-                fig.savefig(os.path.join(directory, "post", "rv.png"))
-
-            exporter = LVContourExporter(os.path.join(directory, "d3plot"), self.model)
-
-            self.model.compute_left_ventricle_anatomy_axis(first_cut_short_axis=0.2)
-            exporter.export_contour_to_vtk("l4cv", self.model.l4cv_axis)
-            exporter.export_contour_to_vtk("l2cv", self.model.l2cv_axis)
-            normal = self.model.short_axis["normal"]
-            p_start = self.model.short_axis["center"]
-            for ap in self.model.left_ventricle.apex_points:  # use next()?
-                if ap.name == "apex epicardium":
-                    p_end = ap.xyz
-
-            for icut in range(2):
-                p_cut = p_start + (p_end - p_start) * icut / 2
-                cutter = {"center": p_cut, "normal": normal}
-                exporter.export_contour_to_vtk(f"shor_{icut}", cutter)
-
-            exporter.export_lvls_to_vtk("lvls")
-
         if auto_post:
-            _post()
+            mech_post(directory, self.model)
         return
 
-    def compute_stress_free_configuration(self):
+    def compute_stress_free_configuration(self, folder_name="zeropressure"):
         """Compute the stress-free configuration of the model."""
-        directory = self._write_stress_free_configuration_files()
+        directory = os.path.join(self.root_directory, folder_name)
+        os.makedirs(directory, exist_ok=True)
+
+        self._write_stress_free_configuration_files(folder_name)
+        self.settings.save(Path.Path(directory) / "simulation_settings.yml")
 
         print("Computing stress-free configuration...")
+        self._run_dyna(os.path.join(directory, "main.k"), options="case")
+        print("Simulation done.")
 
-        # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
-        input_file = os.path.join(directory, "main.k")
-        self._run_dyna(input_file, options="case")
-
-        print("done.")
-
-        def _post():
-            """Post process zeropressure folder."""
-            os.makedirs(os.path.join(directory, "post"), exist_ok=True)
-            data = D3plotReader(glob.glob(os.path.join(directory, "iter*.d3plot"))[-1])
-            expected_time = self.settings.stress_free.analysis.end_time.to("millisecond").m
-
-            if data.time[-1] != expected_time:
-                Warning("Stress free computation is not converged, skip post process.")
-                return None
-
-            stress_free_coord = data.get_initial_coordinates()
-            displacements = data.get_displacement()
-
-            # convergence information
-            dst = np.linalg.norm(
-                stress_free_coord + displacements[-1] - self.model.mesh.points, axis=1
-            )
-            error_mean = np.mean(dst)
-            error_max = np.max(dst)
-
-            # geometry information
-            self.model.mesh.save(os.path.join(directory, "post", "True_ED.vtk"))
-            tmp = copy.deepcopy(self.model)
-            tmp.mesh.points = stress_free_coord
-            tmp.mesh.save(os.path.join(directory, "post", "zerop.vtk"))
-            tmp.mesh.points = stress_free_coord + displacements[-1]
-            tmp.mesh.save(os.path.join(directory, "post", "Simu_ED.vtk"))
-
-            def _post_cavity(name: str):
-                """Extract cavity volume."""
-                try:
-                    faces = (
-                        np.loadtxt(
-                            os.path.join(directory, name + ".segment"), delimiter=",", dtype=int
-                        )
-                        - 1
-                    )
-                except FileExistsError:
-                    print(f"Cannot find {name}.segment")
-
-                volumes = []
-                for i, dsp in enumerate(displacements):
-                    cavity_surface = SurfaceMesh(
-                        name=name, triangles=faces, nodes=stress_free_coord + dsp
-                    )
-                    cavity_surface.save(os.path.join(directory, "post", f"{name}_{i}.stl"))
-                    volumes.append(Cavity(cavity_surface).volume)
-
-                return volumes
-
-            # cavity information
-            lv_volumes = _post_cavity("left_ventricle")
-            # todo: not safe to use list index
-            true_lv_ed_volume = self.model.cavities[0].volume
-            volume_error = [(lv_volumes[-1] - true_lv_ed_volume) / true_lv_ed_volume]
-
-            # Klotz curve information
-            # unit is mL and mmHg
-            lv_pr_mmhg = (
-                self.settings.mechanics.boundary_conditions.end_diastolic_cavity_pressure[
-                    "left_ventricle"
-                ]
-                .to("mmHg")
-                .m
-            )
-
-            klotz = EDPVR(true_lv_ed_volume / 1000, lv_pr_mmhg)
-            sim_vol_ml = [v / 1000 for v in lv_volumes]
-            sim_pr = lv_pr_mmhg * data.time / data.time[-1]
-
-            fig = klotz.plot_EDPVR(simulation_data=[sim_vol_ml, sim_pr])
-            fig.savefig(os.path.join(directory, "post", "klotz.png"))
-
-            dct = {
-                "Simulation output time (ms)": data.time.tolist(),
-                "Left ventricle EOD pressure (mmHg)": lv_pr_mmhg,
-                "True left ventricle volume (mm3)": true_lv_ed_volume,
-                "Simulation Left ventricle volume (mm3)": lv_volumes,
-                "Convergence": {
-                    "max_error (mm)": error_max,
-                    "mean_error (mm)": error_mean,
-                    "relative volume error (100%)": volume_error,
-                },
-            }
-
-            # right ventricle exist
-            if not isinstance(self.model, LeftVentricle):
-                rv_volumes = _post_cavity("right_ventricle")
-                true_rv_ed_volume = self.model.cavities[1].volume
-                volume_error.append((rv_volumes[-1] - true_rv_ed_volume) / true_rv_ed_volume)
-
-                rv_pr_mmhg = (
-                    self.settings.mechanics.boundary_conditions.end_diastolic_cavity_pressure[
-                        "right_ventricle"
-                    ]
-                    .to("mmHg")
-                    .m
-                )
-                dct["Right ventricle EOD pressure (mmHg)"] = rv_pr_mmhg
-                dct["True right ventricle volume"] = true_rv_ed_volume
-                dct["Simulation Right ventricle volume"] = rv_volumes
-
-            return dct
-
-        self.stress_free_report = _post()
-        with open(os.path.join(directory, "post", "Post_report.json"), "w") as f:
-            json.dump(self.stress_free_report, f)
+        self.stress_free_report = zerop_post(directory, self)
 
         return
 
@@ -540,16 +396,16 @@ class MechanicsSimulator(BaseSimulator):
 
         return export_directory
 
-    def _write_stress_free_configuration_files(self) -> Path:
+    def _write_stress_free_configuration_files(self, folder_name) -> Path:
         """Write LS-DYNA files to compute stress-free configuration."""
-        export_directory = os.path.join(self.root_directory, "zeropressure")
+        export_directory = os.path.join(self.root_directory, folder_name)
         self.directories["zeropressure"] = export_directory
 
         dyna_writer = writers.ZeroPressureMechanicsDynaWriter(self.model, self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory)
 
-        return export_directory
+        return
 
 
 class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):

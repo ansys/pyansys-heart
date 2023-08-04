@@ -439,85 +439,6 @@ class BaseDynaWriter:
             self.model.remove_part(part_to_remove)
         return
 
-    def get_apex_left(self):
-        """Get apex of left ventricle cavity."""
-        # TODO Move this to the mesh or model class rather than here
-        # collect relevant node and segment sets.
-        # node set: apex, base
-        # node set: endocardium, epicardium
-        # NOTE: could be better if basal nodes are extracted in the preprocessor
-        # since that would allow you to robustly extract these nodessets using the
-        # input data
-        # The below is relevant for all models.
-        node_apex_left = np.empty(0, dtype=int)
-
-        # apex_points[0]: endocardium, apex_points[1]: epicardium
-        if isinstance(self.model, (LeftVentricle, BiVentricle, FourChamber, FullHeart)):
-            node_apex_left = self.model.left_ventricle.apex_points[0].node_id
-
-            # check whether point is on edge of endocardium - otherwise pick another node in
-            # the same triangle
-            endocardium = self.model.left_ventricle.endocardium
-            endocardium.get_boundary_edges()
-            if np.any(endocardium.boundary_edges == node_apex_left):
-                element_id = np.argwhere(np.any(endocardium.triangles == node_apex_left, axis=1))[
-                    0
-                ][0]
-
-                node_apex_left = endocardium.triangles[element_id, :][
-                    np.argwhere(
-                        np.isin(
-                            endocardium.triangles[element_id, :],
-                            endocardium.boundary_edges,
-                            invert=True,
-                        )
-                    )[0][0]
-                ]
-                LOGGER.warning(
-                    "Node id {0} is on edge of {1}. Picking node id {2}".format(
-                        self.model.left_ventricle.apex_points[0].node_id,
-                        endocardium.name,
-                        node_apex_left,
-                    )
-                )
-                self.model.left_ventricle.apex_points[0].node_id = node_apex_left
-        return node_apex_left
-
-    def get_apex_right(self):
-        """Get apex of right ventricle cavity."""
-        # TODO Move this to the mesh or model class rather than here
-        node_apex_right = np.empty(0, dtype=int)
-        if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-            node_apex_right = self.model.right_ventricle.apex_points[0].node_id
-
-            # check whether point is on edge of endocardium - otherwise pick another node in
-            # the same triangle
-            endocardium = self.model.right_ventricle.endocardium
-            endocardium.get_boundary_edges()
-            if np.any(endocardium.boundary_edges == node_apex_right):
-                element_id = np.argwhere(np.any(endocardium.triangles == node_apex_right, axis=1))[
-                    0
-                ][0]
-
-                node_apex_right = endocardium.triangles[element_id, :][
-                    np.argwhere(
-                        np.isin(
-                            endocardium.triangles[element_id, :],
-                            endocardium.boundary_edges,
-                            invert=True,
-                        )
-                    )[0][0]
-                ]
-                LOGGER.warning(
-                    "Node id {0} is on edge of {1}. Picking node id {2}".format(
-                        self.model.right_ventricle.apex_points[0].node_id,
-                        endocardium.name,
-                        node_apex_right,
-                    )
-                )
-                self.model.right_ventricle.apex_points[0].node_id = node_apex_right
-        return node_apex_right
-
     def _update_solid_elements_db(self, add_fibers: bool = True):
         """
         Create Solid ortho elements for all cavities.
@@ -3013,9 +2934,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         self.kw_database.ep_settings.append(keywords.EmOutput(mats=1, matf=1, sols=1, solf=1))
 
-        if isinstance(self.model, (BiVentricle)):
-            node_apex_left = self.get_apex_left()
-            node_apex_right = self.get_apex_right()
+        if isinstance(self.model, BiVentricle):
+            node_apex_left = self.model.left_ventricle.apex_points[0].node_id
+            node_apex_right = self.model.right_ventricle.apex_points[0].node_id
 
             node_set_id_apex_left = self.get_unique_nodeset_id()
             # create node-sets for apex left
@@ -3083,8 +3004,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             # if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             #     self.model.left_atrium.apex_points
 
-        elif isinstance(self.model, (LeftVentricle)):
-            node_apex_left = self.get_apex_left()
+        elif isinstance(self.model, LeftVentricle):
+            node_apex_left = self.model.left_ventricle.apex_points[0].node_id
 
             node_set_id_apex_left = self.get_unique_nodeset_id()
             # create node-sets for apex left

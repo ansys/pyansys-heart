@@ -1158,14 +1158,17 @@ class HeartModel:
         Note
         ----
         Apex defined as the point furthest from the mid-point between caps/valves
+        If this point is on the edge, another point of the same element will be picked.
 
         """
         ventricles = [p for p in self.parts if "ventricle" in p.name]
         surface_substrings = ["endocardium", "epicardium"]
+
         for ventricle in ventricles:
             # get reference point (center point between two caps)
             cap_centroids = [c.centroid for c in ventricle.caps]
             ref_point = np.mean(np.array(cap_centroids), axis=0)
+
             for surface_substring in surface_substrings:
                 surface = next(s for s in ventricle.surfaces if surface_substring in s.name)
                 apical_node_id = surface.node_ids[
@@ -1173,6 +1176,34 @@ class HeartModel:
                         np.linalg.norm(surface.nodes[surface.node_ids, :] - ref_point, axis=1)
                     )
                 ]
+
+                surface.get_boundary_edges()
+                if np.any(surface.boundary_edges == apical_node_id):
+                    # Apical node is on the edge, need to adjust
+                    element_id = np.argwhere(np.any(surface.triangles == apical_node_id, axis=1))[
+                        0
+                    ][0]
+                    triangle = surface.triangles[element_id, :]
+
+                    # get another point on the same element
+                    apical_node_id = triangle[
+                        np.argwhere(
+                            np.isin(
+                                triangle,
+                                surface.boundary_edges,
+                                invert=True,
+                            )
+                        )[
+                            0
+                        ][0]
+                    ]
+                    LOGGER.warning(
+                        "Initial apical point is on edge of {0}, a close point is picked".format(
+                            surface.name,
+                        )
+                    )
+
+                #     assign apex point
                 ventricle.apex_points.append(
                     Point(
                         name="apex " + surface_substring,

@@ -106,15 +106,30 @@ def test_compute_His_conduction():
 
     beam = fresh_model.compute_His_conduction()
 
+    assert np.all(beam.edges[0] == [26409, 66354])
+    assert np.all(beam.edges[-1] == [66357, 66358])
+
+
+def test__define_hisbundle_start_end_point():
+    fresh_model: FourChamber = FourChamber.load_model(model_dir)
+    fresh_model._define_hisbundle_start_end_point(beam_length=0.8, beam_number=4)
+
     a = fresh_model.septum.get_point("His septum start").node_id
     b = fresh_model.septum.get_point("His septum end").node_id
 
     assert a == 66354
     assert b == 66358
 
-    assert np.all(beam.edges[0] == [26409, 66354])
-    assert np.all(beam.edges[-1] == [66357, 66358])
-
 
 def test_compute_bundle_branches():
-    pass
+    fresh_model: FourChamber = FourChamber.load_model(model_dir)
+    # need His septum end Point
+    fresh_model._define_hisbundle_start_end_point(beam_length=0.8, beam_number=4)
+    left, right = fresh_model.compute_bundle_branches()
+    assert len(left.edges) == 45
+    assert np.all(left.edges[0] == [66358, 66354])
+    assert np.all(left.edges[-1] == [[66397, 7285]])
+
+    assert len(right.edges) == 45
+    assert np.all(right.edges[0] == [66358, 66398])
+    assert np.all(right.edges[-1] == [[66441, 25785]])

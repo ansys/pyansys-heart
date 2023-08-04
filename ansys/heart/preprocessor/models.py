@@ -1727,63 +1727,25 @@ class FourChamber(HeartModel):
         tricular_fascicle_in_humans_and_other_animal_species_Histological_and_immunohistochemical_study
         # (1.06 ± 0.6 mm)
         """
-        # TODO add method in Part class to have a get_mesh()
-        septum_point_ids = np.unique(np.ravel(self.mesh.tetrahedrons[self.septum.element_ids,]))
-        septum_points = pv.PolyData(self.mesh.nodes[septum_point_ids, :])
-
-        atria_surface = pv.PolyData(
-            self.left_atrium.endocardium
-            + self.left_atrium.epicardium
-            + self.right_atrium.endocardium
-            + self.right_atrium.epicardium
-        )
-        # Get a point at septum center
-        septum_center_id = septum_point_ids[septum_points.find_closest_point(septum_points.center)]
-        septum_center_xyz = self.mesh.nodes[septum_center_id, :]
-
-        # Define septum start point: closest to artria
-        His_septum_start_id = self.mesh.find_closest_point(
-            atria_surface.points[atria_surface.find_closest_point(septum_center_xyz), :]
-        )
-        His_septum_start_xyz = self.mesh.nodes[His_septum_start_id, :]
-
-        # Define septum end point: direction toward apex for a given distance
-        direction_vec = (septum_center_xyz - His_septum_start_xyz) / np.linalg.norm(
-            septum_center_xyz - His_septum_start_xyz
-        )
-        distance = beam_number * beam_length
-        His_septum_end_xyz = His_septum_start_xyz + distance * direction_vec
-
-        # create Points
-        His_septum_start = Point(
-            name="His septum start", xyz=His_septum_start_xyz, node_id=len(self.mesh.nodes)
-        )
-        self.septum.points.append(His_septum_start)
-
-        His_septum_end = Point(
-            name="His septum end",
-            xyz=His_septum_end_xyz,
-            node_id=beam_number + len(self.mesh.nodes),
-        )
-        self.septum.points.append(His_septum_end)
+        start_point, end_point = self._define_hisbundle_start_end_point(beam_length, beam_number)
 
         # create nodes from start to end
         new_nodes = np.array(
             [
-                His_septum_start_xyz,
-                His_septum_end_xyz,
+                start_point.xyz,
+                end_point.xyz,
             ]
         )
 
-        step = (His_septum_end_xyz - His_septum_start_xyz) / (beam_number + 1)
+        step = (end_point.xyz - start_point.xyz) / (beam_number + 1)
         for i in range(1, beam_number):
-            new_nodes = np.insert(new_nodes, i, His_septum_start_xyz + i * step, axis=0)
+            new_nodes = np.insert(new_nodes, i, start_point.xyz + i * step, axis=0)
 
         # path start from AV point, to septum start point, then to septum end point
         AV_node = self.right_atrium.get_point("AV_node")
         edges = np.concatenate(
             (
-                np.array([(AV_node.node_id)]),
+                np.array([AV_node.node_id]),
                 len(self.mesh.nodes)
                 + np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int),
             )
@@ -1813,67 +1775,104 @@ class FourChamber(HeartModel):
 
         return beam
 
-    def compute_bundle_branches(self) -> List[BeamMesh]:
+    def _define_hisbundle_start_end_point(self, beam_length, beam_number) -> (Point, Point):
+        # TODO add method in Part class to have a get_mesh()
+        septum_point_ids = np.unique(np.ravel(self.mesh.tetrahedrons[self.septum.element_ids,]))
+        septum_points = pv.PolyData(self.mesh.nodes[septum_point_ids, :])
+        atria_surface = pv.PolyData(
+            self.left_atrium.endocardium
+            + self.left_atrium.epicardium
+            + self.right_atrium.endocardium
+            + self.right_atrium.epicardium
+        )
+        # Get a point at septum center
+        septum_center_id = septum_point_ids[septum_points.find_closest_point(septum_points.center)]
+        septum_center_xyz = self.mesh.nodes[septum_center_id, :]
+
+        # Define septum start point: closest to artria
+        His_septum_start_id = self.mesh.find_closest_point(
+            atria_surface.points[atria_surface.find_closest_point(septum_center_xyz), :]
+        )
+        His_septum_start_xyz = self.mesh.nodes[His_septum_start_id, :]
+        # Define septum end point: direction toward apex for a given distance
+
+        direction_vec = (septum_center_xyz - His_septum_start_xyz) / np.linalg.norm(
+            septum_center_xyz - His_septum_start_xyz
+        )
+        distance = beam_number * beam_length
+        His_septum_end_xyz = His_septum_start_xyz + distance * direction_vec
+        # create Points
+        His_septum_start = Point(
+            name="His septum start", xyz=His_septum_start_xyz, node_id=len(self.mesh.nodes)
+        )
+        self.septum.points.append(His_septum_start)
+        His_septum_end = Point(
+            name="His septum end",
+            xyz=His_septum_end_xyz,
+            node_id=beam_number + len(self.mesh.nodes),
+        )
+        self.septum.points.append(His_septum_end)
+        return His_septum_start, His_septum_end
+
+    def compute_bundle_branches(self) -> (BeamMesh, BeamMesh):
         """Compute Buncle branches conduction system."""
-        left_endo = self.left_ventricle.endocardium
-        right_endo = self.right_ventricle.endocardium + self.right_ventricle.septum
-        # TODO redefine "+" pv operator to also merge node ids
-        left_endo_nids = self.left_ventricle.endocardium.node_ids
+        His_end = self.septum.get_point("His septum end")
+
+        left_bundle = self._compute_bundle_oneside(
+            His_end,
+            self.left_ventricle.endocardium,
+            self.left_ventricle.endocardium.node_ids,
+            side="Left",
+        )
+
+        face = np.hstack(
+            (self.right_ventricle.endocardium.faces, self.right_ventricle.septum.faces)
+        )
+        right_endo = pv.PolyData(self.mesh.points, face)
+
         right_endo_nids = np.unique(
             np.concatenate(
                 (self.right_ventricle.septum.node_ids, self.right_ventricle.endocardium.node_ids)
             )
         )
-        His_end = self.septum.get_point("His septum end")
-
-        left_branch_start = pv.PolyData(self.mesh.points[left_endo_nids, :]).find_closest_point(
-            His_end.xyz
-        )
-        left_branch_start = left_endo_nids[left_branch_start]
-        right_branch_start = pv.PolyData(self.mesh.points[right_endo_nids, :]).find_closest_point(
-            His_end.xyz
-        )
-        right_branch_start = right_endo_nids[right_branch_start]
-
-        left_bundle_branch = left_endo.geodesic(
-            left_endo.find_closest_point(self.mesh.points[left_branch_start, :]),
-            left_endo.find_closest_point(self.left_ventricle.apex_points[0].xyz),
+        right_bundle = self._compute_bundle_oneside(
+            His_end, right_endo, right_endo_nids, side="Right"
         )
 
-        right_bundle_branch = right_endo.geodesic(
-            right_endo.find_closest_point(self.mesh.points[right_branch_start, :]),
-            right_endo.find_closest_point(self.right_ventricle.apex_points[0].xyz),
+        return left_bundle, right_bundle
+
+    def _compute_bundle_oneside(self, His_end: Point, endo_surface, endo_nids, side: str):
+        """Bundle brunch."""
+        start_xyz = pv.PolyData(self.mesh.points[endo_nids, :]).find_closest_point(His_end.xyz)
+        start_id = endo_nids[start_xyz]
+
+        if side == "Left":
+            ventricle = self.left_ventricle
+        elif side == "Right":
+            ventricle = self.right_ventricle
+
+        bundle_branch = endo_surface.geodesic(
+            endo_surface.find_closest_point(self.mesh.points[start_id, :]),
+            endo_surface.find_closest_point(ventricle.apex_points[0].xyz),
         )
 
-        # build left branch net
-        new_nodes = left_bundle_branch.points[0:-1, :]
-        edges = np.concatenate(([His_end.node_id], left_bundle_branch["vtkOriginalPointIds"]))
-        # duplicate nodes inside the line, connect only origin and end of line
+        # build branch net
+        # exclude last (apex) node which belongs to purkinje beam
+        new_nodes = bundle_branch.points[0:-1, :]
+
+        # first node "his septum end" and last node "apex"
+        edges = np.concatenate(([His_end.node_id], bundle_branch["vtkOriginalPointIds"]))
+
+        # duplicate nodes except the two ends
         edges[1:-1] = len(self.mesh.nodes) + np.linspace(
             0, len(edges) - 3, len(edges) - 2, dtype=int
         )
-        edges = np.vstack((edges[:-1], edges[1:])).T
-        left_bundle = self.mesh.add_beam_network(
-            new_nodes=new_nodes, edges=edges, name="Left bundle branch"
-        )
 
-        # build right branch net
-        new_nodes = right_bundle_branch.points[0:-1, :]
-        edges = np.concatenate(
-            ([His_end.node_id], right_endo_nids[right_bundle_branch["vtkOriginalPointIds"]])
-        )
-        # duplicate nodes inside the line, connect only origin and end of line
-        edges[1:-1] = len(self.mesh.nodes) + np.linspace(
-            0, len(edges) - 3, len(edges) - 2, dtype=int
-        )
         edges = np.vstack((edges[:-1], edges[1:])).T
-        right_bundle = self.mesh.add_beam_network(
-            new_nodes=new_nodes, edges=edges, name="Right bundle branch"
+        bundle_beam = self.mesh.add_beam_network(
+            new_nodes=new_nodes, edges=edges, name=side + " bundle branch"
         )
-
-        # Project end of his right and left
-        # find geodesic until apex, or seomthing closer belonging to purkinje
-        return [left_bundle, right_bundle]
+        return bundle_beam
 
     def compute_Bachman_bundle(self):
         """Compute Bachman bundle conduction system."""

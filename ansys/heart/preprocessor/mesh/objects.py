@@ -313,13 +313,12 @@ class Mesh(pv.UnstructuredGrid):
 
         Parameters
         ----------
-        filename : pathlib.Path, optional
+        filename : pathlib.Path
         """
         # Open file and import beams and created nodes
         with open(filename, "r") as file:
             start_nodes = 0
             lines = file.readlines()
-        number_of_nodes = len(self.nodes)
         # find line ids delimiting node data and edge data
         start_nodes = np.array(np.where(["*NODE" in line for line in lines]))[0][0]
         end_nodes = np.array(np.where(["*" in line for line in lines]))
@@ -337,6 +336,9 @@ class Mesh(pv.UnstructuredGrid):
             filename, skiprows=start_beams + 1, max_rows=end_beams - start_beams - 1, dtype=int
         )
         edges = beam_data[:, 2:4] - 1
+
+        # adjust connectivity table for new created nodes
+        number_of_nodes = len(self.nodes)
         edges[edges >= node_id_start] = (
             edges[edges >= node_id_start] - node_id_start + number_of_nodes
         )

@@ -31,6 +31,18 @@ except ImportError:
     )
 
 
+def _get_face_zones_with_filter(pyfluent_session, prefixes: list) -> list:
+    """Get list of available boundaries in Fluent session that use any of the prefixes."""
+    face_zones = []
+    for prefix in prefixes:
+        face_zones_with_prefix = pyfluent_session.scheme_eval.scheme_eval(
+            f'(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "{prefix}"))'
+        )
+        if face_zones_with_prefix:
+            face_zones += face_zones_with_prefix
+    return face_zones
+
+
 def mesh_from_manifold_input_model(
     model: _InputModel,
     workdir: Union[str, Path],
@@ -94,9 +106,8 @@ def mesh_from_manifold_input_model(
         "objects '(heart) fix-self-intersection"
     )
     # smooth all zones
-    face_zone_names = session.scheme_eval.scheme_eval(
-        '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "*"))'
-    )
+    face_zone_names = _get_face_zones_with_filter(session, "*")
+
     for fz in face_zone_names:
         session.tui.boundary.modify.select_zone(fz)
         session.tui.boundary.modify.smooth()
@@ -285,12 +296,12 @@ def mesh_from_non_manifold_input_model(
     LOGGER.info("Wrapping model...")
     # create a usable material point which is inside the model that can be used for shrink-wrapping
 
-    # wrap entire model in one pass so that we can create a single volume mesh.
-    boundaries_to_use_for_wrapping = session.scheme_eval.scheme_eval(
-        '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "boundary*"))'
-    ) + session.scheme_eval.scheme_eval(
-        '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "interface*"))'
+    # wrap entire model in one pass so that we can create a single volume mesh. Use list of prefixes
+    # to select the right boundaries.
+    boundaries_to_use_for_wrapping = _get_face_zones_with_filter(
+        session, prefixes=["boundary*", "interface*"]
     )
+
     boundaries_to_use_for_wrapping = [b for b in boundaries_to_use_for_wrapping if ":" not in b]
 
     # # with internal material point:
@@ -314,11 +325,10 @@ def mesh_from_non_manifold_input_model(
     )
 
     # rename boundaries accordingly.
-    face_zone_names = session.scheme_eval.scheme_eval(
-        '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "boundary*:*"))'
-    ) + session.scheme_eval.scheme_eval(
-        '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "interface*:*"))'
+    face_zone_names = boundaries_to_use_for_wrapping = _get_face_zones_with_filter(
+        session, ["boundary*:*", "interface*:*"]
     )
+
     # ignore geom object face zones.
     face_zone_names = [fz for fz in face_zone_names if ":" in fz]
 

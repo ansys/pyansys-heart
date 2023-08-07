@@ -18,6 +18,7 @@ import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 import numpy as np
 import pyvista as pv
 from scipy.spatial.transform import Rotation as R
+import yaml
 
 
 class ModelInfo:
@@ -94,11 +95,21 @@ class ModelInfo:
 
     def dump_info(self, filename: pathlib.Path = None) -> None:
         """Dump model information to file."""
-        self.input = None
+        if not isinstance(self.input, (str, pathlib.Path)):
+            self.input = None
+
         if not filename:
             filename = os.path.join(self.workdir, "model_info.json")
+
+        extension = os.path.splitext(filename)[1]
         with open(filename, "w") as file:
-            file.write(json.dumps(self.__dict__, indent=4))
+            if extension == ".json":
+                formatted_string = json.dumps(self.__dict__, indent=4)
+            elif extension == ".yml":
+                formatted_string = yaml.dump(self.__dict__, indent=4, sort_keys=False)
+
+            file.write(formatted_string)
+
         return
 
 

@@ -6,6 +6,7 @@ import os
 import ansys.heart.preprocessor.models_new as models
 import numpy as np
 import pytest
+import yaml
 
 from .conftest import create_directory, get_workdir
 
@@ -13,10 +14,14 @@ from .conftest import create_directory, get_workdir
 def _get_test_model_info() -> models.ModelInfo:
     """Get a test model info and populates it."""
     info = models.ModelInfo(
-        database="Strocchi2020",
+        # database="Strocchi2020",
         work_directory=get_workdir(),
-        _deprecated_path_to_case="path-to-case",
+        input="my-polydata.vtp",
         path_to_simulation_mesh="path-to-simulation-mesh",
+        scalar="tags",
+        part_definitions={
+            "Part1": {"id": 1, "enclosed_by_boundaries": {"triangles_001": 0, "triangles_002": 3}},
+        },
         mesh_size=2.0,
     )
     return info
@@ -43,27 +48,33 @@ def cleanup_working_directory_after_tests():
     return
 
 
-def test_model_info_dump():
+@pytest.mark.parametrize("dump_file_type", ["json", "yml"])
+def test_model_info_dump(dump_file_type: str):
     """Test dumping of model info to json."""
     info = _get_test_model_info()
     create_directory(get_workdir())
-    path_to_model_info = os.path.join(get_workdir(), "model_info.json")
 
-    info.dump_info(path_to_model_info)
+    if dump_file_type == "json":
+        path_to_model_info = os.path.join(get_workdir(), "model_info.json")
+        info.dump_info(path_to_model_info)
+    elif dump_file_type == "yml":
+        path_to_model_info = os.path.join(get_workdir(), "model_info.yml")
+        info.dump_info(path_to_model_info)
 
-    path_to_model_info
-    with open(path_to_model_info) as json_file:
-        json_data = json.load(json_file)
+    with open(path_to_model_info) as file:
+        if dump_file_type == "json":
+            data = json.load(file)
+        elif dump_file_type == "yml":
+            data = yaml.load(file, yaml.FullLoader)
 
-    assert info.database == json_data["_database"], "Database not the same"
-    assert info.workdir == json_data["workdir"], "Workdir not the same"
+    assert info.workdir == data["workdir"], "Workdir not the same"
     assert (
-        info._deprecated_path_to_original_mesh == json_data["_deprecated_path_to_original_mesh"]
-    ), "Path to original mesh not the same"
-    assert (
-        info.path_to_simulation_mesh == json_data["path_to_simulation_mesh"]
+        info.path_to_simulation_mesh == data["path_to_simulation_mesh"]
     ), "Path to simulation mesh not the same"
-    assert info.mesh_size == json_data["mesh_size"], "Mesh size not the same"
+    assert info.mesh_size == data["mesh_size"], "Mesh size not the same"
+    assert info.scalar == data["scalar"]
+    assert info.part_definitions == data["part_definitions"]
+    assert info.input == data["input"]
 
     pass
 
@@ -122,7 +133,7 @@ def test_dump_read_model_004():
     model.info.path_to_model = os.path.join(model.info.workdir, "heart_model.pickle")
     model.left_ventricle.endocardium.triangles = np.array([[0, 1, 2]], dtype=int)
     model.left_ventricle.endocardium.nodes = np.eye(3, 3, dtype=float)
-    model.dump_model(remove_raw_mesh=False)
+    model.dump_model()
 
     assert os.path.isfile(model.info.path_to_model)
 

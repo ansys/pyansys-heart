@@ -420,7 +420,7 @@ class Cap(Feature):
         Parameters
         ----------
         use_centroid : bool, optional
-            Uses a central node for tessellation, by default False
+            Use a central node for tessellation, by default False
 
         Returns
         -------
@@ -537,12 +537,12 @@ class Mesh(pv.UnstructuredGrid):
 
         Notes
         -----
-        This is derived from the "tags" field in cell data
+        This is derived from the "part-id" field in cell data
         """
         try:
-            value = self.cell_data["tags"].astype(int)
+            value = self.cell_data["part-id"].astype(int)
         except (KeyError, NameError):
-            LOGGER.warning("'tags' field not found in self.cell_data")
+            LOGGER.warning("'part-id' field not found in self.cell_data")
             value = None
         return value
 

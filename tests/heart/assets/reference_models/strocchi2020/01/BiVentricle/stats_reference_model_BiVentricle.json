@@ -16,7 +16,7 @@
             }
         },
         "Right ventricle": {
-            "ntetra": 64334,
+            "ntetra": 64335,
             "surfaces": {
                 "Right ventricle endocardium septum": {
                     "nfaces": 2502

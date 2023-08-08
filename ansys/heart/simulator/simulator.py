@@ -17,7 +17,7 @@ import subprocess
 from typing import Literal
 
 from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
-from ansys.heart.preprocessor.models_new import HeartModel
+from ansys.heart.preprocessor.models_new import HeartModel, FourChamber, FullHeart
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 import pyvista as pv
@@ -238,7 +238,10 @@ class EPSimulator(BaseSimulator):
 
     def compute_conduction_system(self):
         """Compute the conduction system."""
-        self.model.mesh.compute_av_conduction()
+        if isinstance(self.model, (FourChamber, FullHeart)):
+            self.model.compute_av_conduction()
+            self.model.compute_His_conduction()
+            self.model.compute_bundle_branches()
 
     def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""

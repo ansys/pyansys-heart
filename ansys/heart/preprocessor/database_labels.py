@@ -1,3 +1,4 @@
+"""Labels for each of the supported databases."""
 Strocchi2020 = {
     "Left ventricle myocardium": 1,
     "Right ventricle myocardium": 2,

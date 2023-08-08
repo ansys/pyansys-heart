@@ -9,7 +9,7 @@ from ansys.heart.simulator.support import (
     preprocess_model,
 )
 
-run_extraction = True
+run_extraction = False
 if run_extraction:
     # download case from remote repository
     case_num = 1  # patient number 1
@@ -27,7 +27,7 @@ if run_extraction:
         unpack_case(case_path)
 
     input_geom, part_definitions = get_input_geom_and_part_defintions_from_public_database(
-        mesh_path, model_type="BiVentricle", database="Strocchi2020"
+        mesh_path, model_type="FullHeart", database="Strocchi2020"
     )
 
     info = models.ModelInfo(
@@ -40,7 +40,7 @@ if run_extraction:
         ),
     )
 
-    model = preprocess_model(info, "BiVentricle", clean_workdir=False, use_wrapper=True)
+    model = preprocess_model(info, "FullHeart", clean_workdir=False, use_wrapper=True)
 
 
 import os
@@ -70,16 +70,16 @@ simulator = MechanicsSimulator(
 simulator.settings.load_defaults()
 
 # write files for sanity check.
-simulator._write_fibers()
-simulator._write_stress_free_configuration_files("stressfree")
-simulator._write_main_simulation_files("main-mechanics")
+# simulator._write_fibers()
+# simulator._write_stress_free_configuration_files("stressfree")
+# simulator._write_main_simulation_files("main-mechanics")
 
 # run simulations
 # 1. compute the fiber orientation
 simulator.compute_fibers()
 simulator.model.plot_fibers(n_seed_points=2000)
 # 2. compute the stress free configuration
-simulator.compute_stress_free_configuration()
+# simulator.compute_stress_free_configuration()
 # 3. do the main simulation
 simulator.simulate()
 print("done")

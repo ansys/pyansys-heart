@@ -11,6 +11,8 @@ from ansys.heart.preprocessor._load_template import load_template
 from ansys.heart.preprocessor.input import _InputModel
 import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401
 from ansys.heart.preprocessor.mesh.fluenthdf5 import FluentCellZone, FluentMesh
+from ansys.heart.preprocessor.input import _InputBoundary
+
 import numpy as np
 
 # from pkg_resources import resource_filename
@@ -305,6 +307,7 @@ def mesh_from_non_manifold_input_model(
                 tmp_name = "input_boundary{:03d}".format(ii)
             old_to_new_boundary_names[b.name] = tmp_name
             b.name = tmp_name
+
     new_to_old_boundary_names = {v: k for k, v in old_to_new_boundary_names.items()}
 
     # change part names to avoid issues such as characters that are now allowed.
@@ -384,30 +387,18 @@ def mesh_from_non_manifold_input_model(
         visited_parts += [part.name]
 
     LOGGER.info("Wrapping model...")
-    # create a usable material point which is inside the model that can be used for shrink-wrapping
 
-    # wrap entire model in one pass so that we can create a single volume mesh. Use list of prefixes
-    # to select the right boundaries.
-    boundaries_to_use_for_wrapping = _get_face_zones_with_filter(
-        session, prefixes=["input_boundary*", "input_interface*"]
-    )
-
-    boundaries_to_use_for_wrapping = [b for b in boundaries_to_use_for_wrapping if ":" not in b]
-
-    # with external material point
+    # wrap entire model in one pass so that we can create a single volume mesh. Use list of all
+    # input boundaries are given as input. External material point for meshing.
     session.tui.objects.wrap.wrap(
         "'({0}) collectively {1} shrink-wrap external wrapped hybrid".format(
-            " ".join(boundaries_to_use_for_wrapping), "model"
+            " ".join(model.boundary_names), "model"
         )
     )
 
     # rename boundaries accordingly.
-    face_zone_names = _get_face_zones_with_filter(
-        session, ["input_boundary*:*", "input_interface*:*"]
-    )
-
-    # ignore geom object face zones.
-    face_zone_names = [fz for fz in face_zone_names if ":" in fz]
+    prefixes = [bn + ":*" for bn in model.boundary_names]
+    face_zone_names = _get_face_zones_with_filter(session, prefixes)
 
     if not face_zone_names:
         LOGGER.error("Expecting face zones to rename.")
@@ -416,12 +407,6 @@ def mesh_from_non_manifold_input_model(
     for face_zone_name in face_zone_names:
         # Exclude renaming of boundaries that include name of visited parts
         old_name = face_zone_name
-
-        # if old name contains part name before delimiter : -> skip this boundary
-        prefix = old_name.split(":")[0]
-        if any([prefix == p.lower() for p in visited_parts]):
-            LOGGER.debug(f"Skip {face_zone_name}")
-            continue
 
         new_name = "model" + ":" + old_name.split(":")[0]
 
@@ -468,18 +453,19 @@ def mesh_from_non_manifold_input_model(
 
     # NOTE: should use wrapped surfaces to select part.
     # assign wrapped boundaries to input parts.
-    for part in model.parts:
-        from ansys.heart.preprocessor.input import _InputBoundary
-
-        face_zones_wrapped_part = [fz for fz in mesh.face_zones if part.name in fz.name]
-        part.boundaries = []
-        for fz in face_zones_wrapped_part:
+    for ii, part in enumerate(model.parts):
+        face_zones_wrapped = [fz for fz in mesh.face_zones if part.name in fz.name]
+        # replace with remeshed counterpart.
+        for jj, boundary in enumerate(part.boundaries):
+            for fz in face_zones_wrapped:
+                if boundary.name in fz.name:
+                    break
             remeshed_boundary = _InputBoundary(
                 mesh.nodes,
                 faces=np.hstack([np.ones(fz.faces.shape[0], dtype=int)[:, None] * 3, fz.faces]),
-                id=fz.id,
+                id=boundary.id,
             )
-            part.boundaries += [remeshed_boundary]
+            model.parts[ii].boundaries[jj] = remeshed_boundary
 
     # use individual wrapped parts to identify the parts of the wrapped model.
     for part in model.parts:

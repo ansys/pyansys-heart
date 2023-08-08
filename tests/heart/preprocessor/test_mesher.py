@@ -121,6 +121,7 @@ def test_meshing_for_non_manifold():
     fluent_mesh = mesh_from_non_manifold_input_model(model, write_dir, mesh_file, mesh_size=0.1)
 
     assert len(fluent_mesh.cell_zones) == 2
+    assert sorted([cz.name for cz in fluent_mesh.cell_zones]) == sorted(model.part_names)
     assert sorted(["s1", "s2", "s3", "s4", "s5", "s6", "s8", "s9", "s10", "s11", "s12"]) == sorted(
         [fz.name for fz in fluent_mesh.face_zones if "interior" not in fz.name]
     )

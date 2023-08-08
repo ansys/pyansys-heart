@@ -70,7 +70,9 @@ def extract_fullheart():
         mesh_size=1.5,
     )
 
-    model = preprocess_model(info=info, model_type="FullHeart", clean_workdir=False)
+    model = preprocess_model(
+        info=info, model_type="FullHeart", clean_workdir=False, use_wrapper=True
+    )
 
     yield
 

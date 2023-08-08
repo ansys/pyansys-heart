@@ -651,12 +651,12 @@ class HeartModel:
         if "fiber" not in self.mesh.array_names:
             LOGGER.debug("Adding placeholder for fiber direction.")
             fiber = np.tile([[0.0, 0.0, 1.0]], (self.mesh.n_cells, 1))
-            self.mesh.cell_data.set_vectors(fiber, "fiber")
+            self.mesh.cell_data["fiber"] = fiber
 
         if "sheet" not in self.mesh.array_names:
             LOGGER.debug("Adding placeholder for sheet direction.")
-            fiber = np.tile([[0.0, 1.0, 1.0]], (self.mesh.n_cells, 1))
-            self.mesh.cell_data.set_vectors(fiber, "fiber")
+            sheet = np.tile([[0.0, 1.0, 1.0]], (self.mesh.n_cells, 1))
+            self.mesh.cell_data["sheet"] = sheet
 
         if "uvc_l" not in self.mesh.array_names:
             LOGGER.debug("Add approximate longitudinal coordinates.")

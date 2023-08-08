@@ -77,10 +77,10 @@ def _fluent_mesh_to_vtk_grid(
             [[cz.id] * cz.cells.shape[0] for cz in fluent_mesh.cell_zones], dtype=int
         )
 
-        # convert to unstructured grid.
-        num_cells = fluent_mesh.cells.shape[0]
+        cells = np.vstack([cz.cells for cz in fluent_mesh.cell_zones], dtype=int)
+        num_cells = cells.shape[0]
 
-        cells = np.hstack([np.ones((num_cells, 1), dtype=int) * 4, fluent_mesh.cells])
+        cells = np.hstack([np.ones((num_cells, 1), dtype=int) * 4, cells])
         celltypes = [pv.CellType.TETRA] * num_cells
         grid = pv.UnstructuredGrid(cells.flatten(), celltypes, fluent_mesh.nodes)
 

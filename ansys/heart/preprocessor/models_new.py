@@ -15,6 +15,8 @@ import ansys.heart.preprocessor.mesh.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher
 from ansys.heart.preprocessor.mesh.objects import Cap, Cavity, Mesh, Part, Point, SurfaceMesh
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
+from ansys.heart.preprocessor.mesh.mesher import _fluent_mesh_to_vtk_grid
+
 import numpy as np
 import pyvista as pv
 from scipy.spatial.transform import Rotation as R
@@ -249,41 +251,38 @@ class HeartModel:
         if num_cell_zones1 > num_cell_zones2:
             LOGGER.warning("Removed {0} cell zones".format(num_cell_zones1 - num_cell_zones2))
 
-        # use part definitions to find which cell zone belongs to which part.
-        for input_part in self._input.parts:
-            surface = input_part.combined_boundaries
+        if not use_wrapper:
+            # use part definitions to find which cell zone belongs to which part.
+            for input_part in self._input.parts:
+                surface = input_part.combined_boundaries
 
-            if surface.is_manifold:
-                check_surface = True
-            else:
-                check_surface = False
-                LOGGER.warning(
-                    "Part {0} not manifold - disabled surface check.".format(input_part.name)
-                )
+                if surface.is_manifold:
+                    check_surface = True
+                else:
+                    check_surface = False
+                    LOGGER.warning(
+                        "Part {0} not manifold - disabled surface check.".format(input_part.name)
+                    )
 
-            for cz in fluent_mesh.cell_zones:
-                # use centroid of first cell to find which input part it belongs to.
-                centroid = pv.PolyData(np.mean(fluent_mesh.nodes[cz.cells[0, :], :], axis=0))
-                if np.all(
-                    centroid.select_enclosed_points(surface, check_surface=False).point_data[
-                        "SelectedPoints"
-                    ]
-                ):
-                    cz.id = input_part.id
+                for cz in fluent_mesh.cell_zones:
+                    # use centroid of first cell to find which input part it belongs to.
+                    centroid = pv.PolyData(np.mean(fluent_mesh.nodes[cz.cells[0, :], :], axis=0))
+                    if np.all(
+                        centroid.select_enclosed_points(surface, check_surface=False).point_data[
+                            "SelectedPoints"
+                        ]
+                    ):
+                        cz.id = input_part.id
 
         # Use only cell zones that are inside the parts defined in the input.
         fluent_mesh.cell_zones = [
             cz for cz in fluent_mesh.cell_zones if cz.id in self._input.part_ids
         ]
 
-        cells = np.vstack([cz.cells for cz in fluent_mesh.cell_zones])
-        part_ids = [[cz.id] * cz.cells.shape[0] for cz in fluent_mesh.cell_zones]
-        part_ids = [v for l in part_ids for v in l]
+        vtk_grid = _fluent_mesh_to_vtk_grid(fluent_mesh)
 
-        mesh = Mesh()
-        mesh.nodes = fluent_mesh.nodes
-        mesh.tetrahedrons = cells
-        mesh.cell_data["part-id"] = part_ids
+        mesh = Mesh(vtk_grid)
+        mesh.cell_data["part-id"] = mesh.cell_data["cell-zone-ids"]
 
         # merge some face zones that Fluent split based on connectivity
         fz_names = [fz.name for fz in fluent_mesh.face_zones]
@@ -303,7 +302,7 @@ class HeartModel:
 
         # add surfaces
         mesh.boundaries = [
-            SurfaceMesh(name=fz.name, triangles=fz.faces, nodes=mesh.nodes, sid=fz.id)
+            SurfaceMesh(name=fz.name, triangles=fz.faces, nodes=mesh.nodes, id=fz.id)
             for fz in fluent_mesh.face_zones
             if not "interior" in fz.name
         ]
@@ -801,12 +800,12 @@ class HeartModel:
             summ = summ + part.element_ids.shape[0]
         LOGGER.debug("Total num elements: {}".format(summ))
 
-        if summ != self.mesh.tetrahedrons.shape[0]:
-            LOGGER.warning(
-                "{0} elements assigned to parts - but {1} exist in mesh".format(
-                    summ, self.mesh.tetrahedrons.shape[0]
-                )
+        # if summ != self.mesh.tetrahedrons.shape[0]:
+        LOGGER.debug(
+            "{0} elements assigned to parts - {1} exist in mesh".format(
+                summ, self.mesh.tetrahedrons.shape[0]
             )
+        )
 
         return
 
@@ -1003,7 +1002,7 @@ class HeartModel:
             is_valid = True
         else:
             for invalid_s in invalid_surfaces:
-                LOGGER.debug(f"Surface {invalid_s.name} is empty")
+                LOGGER.error(f"Surface {invalid_s.name} is empty")
                 is_valid = False
 
         return is_valid
@@ -1016,7 +1015,7 @@ class HeartModel:
             is_valid = True
         else:
             for invalid_p in invalid_parts:
-                LOGGER.debug(f"Part {invalid_p.name} is empty")
+                LOGGER.error(f"Part {invalid_p.name} is empty")
                 is_valid = False
 
         return is_valid

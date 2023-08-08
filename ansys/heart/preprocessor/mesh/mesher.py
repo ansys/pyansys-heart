@@ -43,6 +43,77 @@ def _get_face_zones_with_filter(pyfluent_session, prefixes: list) -> list:
     return face_zones
 
 
+def _fluent_mesh_to_vtk_grid(
+    fluent_mesh: FluentMesh, add_cells: bool = True, add_faces: bool = False
+) -> pv.UnstructuredGrid:
+    """Convert fluent mesh object to vtk unstructured grid or polydata.
+
+    Parameters
+    ----------
+    fluent_mesh : FluentMesh
+        Fluent mesh object to convert.
+    add_cells : bool, optional
+        Whether to add cells to the vtk object, by default True
+    add_faces : bool, optional
+        Whether to add faces to the vtk object, by default False
+
+    Returns
+    -------
+    pv.UnstructuredGrid
+        Unstructured grid representation of the fluent mesh.
+    """
+
+    if not isinstance(fluent_mesh, FluentMesh):
+        raise TypeError("Expecting input to be a FluentMesh.")
+
+    if add_cells and add_faces:
+        add_both = True
+    else:
+        add_both = False
+
+    if add_cells:
+        # get cell zone ids.
+        cell_zone_ids = np.hstack(
+            [[cz.id] * cz.cells.shape[0] for cz in fluent_mesh.cell_zones], dtype=int
+        )
+
+        # convert to unstructured grid.
+        num_cells = fluent_mesh.cells.shape[0]
+
+        cells = np.hstack([np.ones((num_cells, 1), dtype=int) * 4, fluent_mesh.cells])
+        celltypes = [pv.CellType.TETRA] * num_cells
+        grid = pv.UnstructuredGrid(cells.flatten(), celltypes, fluent_mesh.nodes)
+
+        grid.cell_data["cell-zone-ids"] = cell_zone_ids
+
+    if add_faces:
+        # add faces.
+        grid_faces = pv.UnstructuredGrid()
+        grid_faces.nodes = fluent_mesh.nodes
+
+        face_zone_ids = np.hstack([[fz.id] * fz.faces.shape[0] for fz in fluent_mesh.face_zones])
+        faces = np.array(np.vstack([fz.faces for fz in fluent_mesh.face_zones]), dtype=int)
+        faces = np.hstack([np.ones((faces.shape[0], 1), dtype=int) * 3, faces])
+
+        grid_faces = pv.UnstructuredGrid(
+            faces.flatten(), [pv.CellType.TRIANGLE] * faces.shape[0], fluent_mesh.nodes
+        )
+        grid_faces.cell_data["face-zone-ids"] = face_zone_ids
+
+    if add_both:
+        # ensure same cell arrays are present but with dummy values.
+        grid_faces.cell_data["cell-zone-ids"] = np.ones(grid_faces.n_cells, dtype=int) * -1
+        grid.cell_data["face-zone-ids"] = np.ones(grid.n_cells, dtype=int) * -1
+
+        return grid + grid_faces
+
+    if add_faces:
+        return grid_faces
+
+    if add_cells:
+        return grid
+
+
 def mesh_from_manifold_input_model(
     model: _InputModel,
     workdir: Union[str, Path],
@@ -208,9 +279,9 @@ def mesh_from_non_manifold_input_model(
             b.name = old_to_new_boundary_names[b.name]
         else:
             if "interface" in b.name:
-                tmp_name = "interface{:03d}".format(ii)
+                tmp_name = "input_interface{:03d}".format(ii)
             else:
-                tmp_name = "boundary{:03d}".format(ii)
+                tmp_name = "input_boundary{:03d}".format(ii)
             old_to_new_boundary_names[b.name] = tmp_name
             b.name = tmp_name
     new_to_old_boundary_names = {v: k for k, v in old_to_new_boundary_names.items()}
@@ -224,12 +295,12 @@ def mesh_from_non_manifold_input_model(
         p.name = new_part_name
     new_to_old_partnames = {v: k for k, v in old_to_new_partnames.items()}
 
-    # find interface names
-    interface_boundary_names = [
-        new_name
-        for old_name, new_name in old_to_new_boundary_names.items()
-        if "interface-" in old_name
-    ]
+    # # find interface names
+    # interface_boundary_names = [
+    #     new_name
+    #     for old_name, new_name in old_to_new_boundary_names.items()
+    #     if "interface-" in old_name
+    # ]
 
     # write all boundaries
     model.write_part_boundaries(workdir)
@@ -266,9 +337,7 @@ def mesh_from_non_manifold_input_model(
             )
         )
         # manage boundary names of wrapped surfaces
-        face_zone_names = session.scheme_eval.scheme_eval(
-            '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "boundary*:*"))'
-        )
+        face_zone_names = _get_face_zones_with_filter(session, ["input_*:*"])
         if not face_zone_names:
             continue
 
@@ -299,7 +368,7 @@ def mesh_from_non_manifold_input_model(
     # wrap entire model in one pass so that we can create a single volume mesh. Use list of prefixes
     # to select the right boundaries.
     boundaries_to_use_for_wrapping = _get_face_zones_with_filter(
-        session, prefixes=["boundary*", "interface*"]
+        session, prefixes=["input_boundary*", "input_interface*"]
     )
 
     boundaries_to_use_for_wrapping = [b for b in boundaries_to_use_for_wrapping if ":" not in b]
@@ -325,8 +394,8 @@ def mesh_from_non_manifold_input_model(
     )
 
     # rename boundaries accordingly.
-    face_zone_names = boundaries_to_use_for_wrapping = _get_face_zones_with_filter(
-        session, ["boundary*:*", "interface*:*"]
+    face_zone_names = _get_face_zones_with_filter(
+        session, ["input_boundary*:*", "input_interface*:*"]
     )
 
     # ignore geom object face zones.
@@ -380,14 +449,16 @@ def mesh_from_non_manifold_input_model(
     num_cells = mesh.cell_zones[0].cells.shape[0]
 
     # convert to unstructured grid.
-    cells = np.hstack([np.ones((num_cells, 1), dtype=int) * 4, mesh.cell_zones[0].cells])
-    celltypes = [pv.CellType.TETRA] * num_cells
-    grid = pv.UnstructuredGrid(cells.flatten(), celltypes, mesh.nodes)
+    # cells = np.hstack([np.ones((num_cells, 1), dtype=int) * 4, mesh.cell_zones[0].cells])
+    # celltypes = [pv.CellType.TETRA] * num_cells
+    # grid = pv.UnstructuredGrid(cells.flatten(), celltypes, mesh.nodes)
+    grid = _fluent_mesh_to_vtk_grid(mesh)
 
     # represent cell centroids as point cloud assign part-ids to cells.
     cell_centroids = grid.cell_centers()
     cell_centroids.point_data.set_scalars(name="part-id", scalars=0)
 
+    # NOTE: should use wrapped surfaces to select part.
     for part in model.parts:
         LOGGER.warning("Disabled check for manifold surface before computing the enclosed points.")
         cell_centroids = cell_centroids.select_enclosed_points(
@@ -416,7 +487,7 @@ def mesh_from_non_manifold_input_model(
     cell_centroids.point_data["part-id"][orig_indices_1] = cell_centroids_1.point_data["part-id"]
 
     # assign part-ids to grid
-    grid.cell_data.set_scalars(scalars=cell_centroids.point_data["part-id"], name="part-id")
+    grid.cell_data["part-id"] = cell_centroids.point_data["part-id"]
 
     # change FluentMesh object accordingly.
     idx_sorted = np.argsort(np.array(grid.cell_data["part-id"], dtype=int))
@@ -429,8 +500,8 @@ def mesh_from_non_manifold_input_model(
     for part in model.parts:
         part.name = new_to_old_partnames[part.name]
         cell_zone = FluentCellZone(
-            min_id=np.where(partids_sorted == part.id)[0][0],
-            max_id=np.where(partids_sorted == part.id)[0][-1],
+            min_id=np.argwhere(partids_sorted == part.id)[0][0],
+            max_id=np.argwhere(partids_sorted == part.id)[-1][0],
             name=part.name,
             cid=part.id,
         )
@@ -452,6 +523,7 @@ def mesh_from_non_manifold_input_model(
         except KeyError:
             LOGGER.debug(f"Failed to rename {fz.name}")
 
+    new_grid = _fluent_mesh_to_vtk_grid(new_mesh)
     return new_mesh
 
 

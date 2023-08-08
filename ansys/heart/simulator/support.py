@@ -6,7 +6,9 @@ from ansys.heart.custom_logging import LOGGER
 import ansys.heart.preprocessor.models_new as models
 
 
-def preprocess_model(info: models.ModelInfo, model_type: str = None, clean_workdir=True):
+def preprocess_model(
+    info: models.ModelInfo, model_type: str = None, clean_workdir=True, use_wrapper: bool = False
+):
     """Preprocess a model using model info as input."""
     path_to_model = os.path.join(info.workdir, "heart_model.pickle")
     info.path_to_model = path_to_model
@@ -33,10 +35,12 @@ def preprocess_model(info: models.ModelInfo, model_type: str = None, clean_workd
     elif model_type == "FullHeart":
         model = models.FullHeart(info)
 
+    model.info.clean_workdir([".stl", ".msh.h5"])
+
     model._input.as_single_polydata.save(os.path.join(info.workdir, "input_polydata.vtp"))
 
     model.load_input()
-    model.mesh_volume(use_wrapper=False)
+    model.mesh_volume(use_wrapper=use_wrapper)
     model._update_parts()
     model.dump_model()
 

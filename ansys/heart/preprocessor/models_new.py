@@ -226,8 +226,7 @@ class HeartModel:
         path_to_output_model = os.path.join(self.info.workdir, "simulation_mesh.msh.h5")
 
         if use_wrapper:
-            NotImplementedError("Meshing from non-manifold model not yet available.")
-            return
+            LOGGER.warning("Meshing from non-manifold model not yet available.")
 
             fluent_mesh = mesher.mesh_from_non_manifold_input_model(
                 model=self._input,

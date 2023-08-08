@@ -40,7 +40,7 @@ if run_extraction:
         ),
     )
 
-    model = preprocess_model(info, "BiVentricle", clean_workdir=False)
+    model = preprocess_model(info, "BiVentricle", clean_workdir=False, use_wrapper=True)
 
 
 import os

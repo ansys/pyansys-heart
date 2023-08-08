@@ -79,7 +79,9 @@ def extract_bi_ventricle():
         mesh_size=1.5,
     )
 
-    model = preprocess_model(info=info, model_type="BiVentricle", clean_workdir=False)
+    model = preprocess_model(
+        info=info, model_type="BiVentricle", clean_workdir=True, use_wrapper=True
+    )
 
     yield
 

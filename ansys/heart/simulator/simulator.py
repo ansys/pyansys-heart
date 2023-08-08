@@ -17,7 +17,7 @@ import subprocess
 from typing import Literal
 
 from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
-from ansys.heart.preprocessor.models_new import HeartModel, FourChamber, FullHeart
+from ansys.heart.preprocessor.models_new import FourChamber, FullHeart, HeartModel
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 import pyvista as pv

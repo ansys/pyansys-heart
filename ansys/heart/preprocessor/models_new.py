@@ -13,10 +13,9 @@ from ansys.heart.preprocessor.input import _InputModel
 # from ansys.heart.preprocessor.input import HEART_MODELS
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher
+from ansys.heart.preprocessor.mesh.mesher import _fluent_mesh_to_vtk_grid
 from ansys.heart.preprocessor.mesh.objects import Cap, Cavity, Mesh, Part, Point, SurfaceMesh
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-from ansys.heart.preprocessor.mesh.mesher import _fluent_mesh_to_vtk_grid
-
 import numpy as np
 import pyvista as pv
 from scipy.spatial.transform import Rotation as R

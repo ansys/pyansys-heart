@@ -48,6 +48,10 @@ def preprocess_model(
     if clean_workdir:
         model.info.clean_workdir([".stl", ".vtk", ".jou", ".log"])
 
+    # save cavities
+    for cavity in model.cavities:
+        cavity.surface.save(os.path.join(model.info.workdir, "cavity_" + cavity.name + ".stl"))
+
     return model
 
 

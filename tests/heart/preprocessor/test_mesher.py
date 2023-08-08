@@ -39,11 +39,11 @@ def test_meshing_for_manifold():
 
     write_dir = os.path.join(get_workdir(), "mesher1")
 
-    clean_directory(write_dir)
-
     # write_dir = r"D:\development\pyheart-lib\pyheart-lib\tests\heart\workdir_tests\mesher"
     if not os.path.isdir(write_dir):
         os.makedirs(write_dir)
+    else:
+        clean_directory(write_dir)
 
     mesh_file = os.path.join(write_dir, "test_mesh.msh.h5")
     mesh = mesh_from_manifold_input_model(model, write_dir, mesh_file, mesh_size=0.02)

@@ -223,6 +223,28 @@ def mesh_from_manifold_input_model(
     mesh = FluentMesh()
     mesh.load_mesh(path_to_output)
 
+    # use part definitions to find which cell zone belongs to which part.
+    for input_part in model.parts:
+        surface = input_part.combined_boundaries
+
+        if surface.is_manifold:
+            check_surface = True
+        else:
+            check_surface = False
+            LOGGER.warning(
+                "Part {0} not manifold - disabled surface check.".format(input_part.name)
+            )
+
+        for cz in mesh.cell_zones:
+            # use centroid of first cell to find which input part it belongs to.
+            centroid = pv.PolyData(np.mean(mesh.nodes[cz.cells[0, :], :], axis=0))
+            if np.all(
+                centroid.select_enclosed_points(surface, check_surface=False).point_data[
+                    "SelectedPoints"
+                ]
+            ):
+                cz.id = input_part.id
+
     return mesh
 
 

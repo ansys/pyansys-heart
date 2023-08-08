@@ -250,29 +250,6 @@ class HeartModel:
         if num_cell_zones1 > num_cell_zones2:
             LOGGER.warning("Removed {0} cell zones".format(num_cell_zones1 - num_cell_zones2))
 
-        if not use_wrapper:
-            # use part definitions to find which cell zone belongs to which part.
-            for input_part in self._input.parts:
-                surface = input_part.combined_boundaries
-
-                if surface.is_manifold:
-                    check_surface = True
-                else:
-                    check_surface = False
-                    LOGGER.warning(
-                        "Part {0} not manifold - disabled surface check.".format(input_part.name)
-                    )
-
-                for cz in fluent_mesh.cell_zones:
-                    # use centroid of first cell to find which input part it belongs to.
-                    centroid = pv.PolyData(np.mean(fluent_mesh.nodes[cz.cells[0, :], :], axis=0))
-                    if np.all(
-                        centroid.select_enclosed_points(surface, check_surface=False).point_data[
-                            "SelectedPoints"
-                        ]
-                    ):
-                        cz.id = input_part.id
-
         # Use only cell zones that are inside the parts defined in the input.
         fluent_mesh.cell_zones = [
             cz for cz in fluent_mesh.cell_zones if cz.id in self._input.part_ids
@@ -284,7 +261,6 @@ class HeartModel:
         mesh.cell_data["part-id"] = mesh.cell_data["cell-zone-ids"]
 
         # merge some face zones that Fluent split based on connectivity
-        fz_names = [fz.name for fz in fluent_mesh.face_zones]
         idx_to_remove = []
         for ii, fz in enumerate(fluent_mesh.face_zones):
             if ":" in fz.name:
@@ -299,7 +275,7 @@ class HeartModel:
             fz for ii, fz in enumerate(fluent_mesh.face_zones) if ii not in idx_to_remove
         ]
 
-        # add surfaces
+        # add face zones to mesh object.
         mesh.boundaries = [
             SurfaceMesh(name=fz.name, triangles=fz.faces, nodes=mesh.nodes, id=fz.id)
             for fz in fluent_mesh.face_zones

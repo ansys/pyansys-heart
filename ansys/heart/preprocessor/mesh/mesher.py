@@ -62,7 +62,6 @@ def _fluent_mesh_to_vtk_grid(
     pv.UnstructuredGrid
         Unstructured grid representation of the fluent mesh.
     """
-
     if not isinstance(fluent_mesh, FluentMesh):
         raise TypeError("Expecting input to be a FluentMesh.")
 
@@ -373,19 +372,6 @@ def mesh_from_non_manifold_input_model(
 
     boundaries_to_use_for_wrapping = [b for b in boundaries_to_use_for_wrapping if ":" not in b]
 
-    # # with internal material point:
-    # material_point = [0.0, 0.0, 0.0]
-    # session.tui.material_point.create_material_point(
-    #     "myocardium {:f} {:f} {:f}".format(*material_point)
-    # )
-    # resolution_factor = 0.25
-
-    # session.tui.objects.wrap.wrap(
-    #     "'({0}) collectively {1} shrink-wrap myocardium hybrid {2}".format(
-    #         " ".join(boundaries_to_use_for_wrapping), "model", resolution_factor
-    #     )
-    # )
-
     # with external material point
     session.tui.objects.wrap.wrap(
         "'({0}) collectively {1} shrink-wrap external wrapped hybrid".format(
@@ -459,8 +445,25 @@ def mesh_from_non_manifold_input_model(
     cell_centroids.point_data.set_scalars(name="part-id", scalars=0)
 
     # NOTE: should use wrapped surfaces to select part.
+    # assign wrapped boundaries to input parts.
     for part in model.parts:
-        LOGGER.warning("Disabled check for manifold surface before computing the enclosed points.")
+        from ansys.heart.preprocessor.input import _InputBoundary
+
+        face_zones_wrapped_part = [fz for fz in mesh.face_zones if part.name in fz.name]
+        part.boundaries = []
+        for fz in face_zones_wrapped_part:
+            remeshed_boundary = _InputBoundary(
+                mesh.nodes,
+                faces=np.hstack([np.ones(fz.faces.shape[0], dtype=int)[:, None] * 3, fz.faces]),
+                id=fz.id,
+            )
+            part.boundaries += [remeshed_boundary]
+
+    # use individual wrapped parts to identify the parts of the wrapped model.
+    for part in model.parts:
+        if not part.is_manifold:
+            LOGGER.warning("Part is not manifold.")
+
         cell_centroids = cell_centroids.select_enclosed_points(
             part.combined_boundaries, check_surface=False
         )

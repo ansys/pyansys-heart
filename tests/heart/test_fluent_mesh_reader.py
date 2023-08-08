@@ -8,19 +8,20 @@ import pytest
 from .conftest import get_assets_folder
 
 FLUENT_BOX = os.path.join(get_assets_folder(), "simple_fluent_meshes", "box.msh.h5")
+FLUENT_DOUBLE_BOX = os.path.join(get_assets_folder(), "simple_fluent_meshes", "double_box.msh.h5")
 
 
 @pytest.fixture(autouse=True, scope="module")
-def _test_mesh():
+def _test_mesh_box():
     mesh = FluentMesh()
     mesh._open_file(FLUENT_BOX)
     yield mesh
     mesh._close_file()
 
 
-def test_read_nodes(_test_mesh):
+def test_read_nodes(_test_mesh_box):
     """Tests reading of the nodes of simple box"""
-    mesh = _test_mesh
+    mesh = _test_mesh_box
     assert isinstance(mesh, FluentMesh)
     mesh._read_nodes()
     expected_nodes = np.array(
@@ -63,9 +64,9 @@ def test_read_nodes(_test_mesh):
     assert np.allclose(mesh.nodes, expected_nodes, atol=1e-8)
 
 
-def test_read_face_zones(_test_mesh):
+def test_read_face_zones(_test_mesh_box):
     """Tests reading face zones. Checks face zone names and defined faces"""
-    mesh = _test_mesh
+    mesh = _test_mesh_box
     assert isinstance(mesh, FluentMesh)
     mesh._read_nodes()
     mesh._read_face_zone_info()
@@ -118,7 +119,7 @@ def test_read_face_zones(_test_mesh):
         assert np.all(expected_face_zones[face_zone.name] == face_zone.faces)
 
 
-def test_read_tetrahedrons(_test_mesh):
+def test_read_tetrahedrons(_test_mesh_box):
     """Tests reading of tetrahedrons on simple box with single cell zone"""
     mesh = FluentMesh()
     mesh.load_mesh(FLUENT_BOX)
@@ -141,3 +142,16 @@ def test_read_tetrahedrons(_test_mesh):
     assert np.all(mesh.cell_zones[0].cells == expected_cells)
     # single cell zone: so all cells in mesh should be in the first cell zone.
     assert np.all(mesh.cells == mesh.cell_zones[0].cells)
+
+
+def test_read_mesh_001():
+    """Test number of cell zones and face zones mesh with multiple cell zones."""
+    mesh = FluentMesh()
+    mesh.load_mesh(FLUENT_DOUBLE_BOX)
+
+    assert mesh.nodes.shape[0] == 14
+    assert len(mesh.cell_zones) == 2
+    assert len(mesh.face_zones) == 13
+    assert len(mesh.cells) == 24
+    assert sum([fz.faces.shape[0] for fz in mesh.face_zones]) == 58
+    assert sum([cz.cells.shape[0] for cz in mesh.cell_zones]) == 24

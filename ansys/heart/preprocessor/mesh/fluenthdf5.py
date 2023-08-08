@@ -32,7 +32,7 @@ class FluentCellZone:
         Requires list of all cells.
 
         """
-        self.cells = all_cells[self.min_id : self.max_id]
+        self.cells = all_cells[self.min_id : self.max_id + 1, :]
         return
 
 

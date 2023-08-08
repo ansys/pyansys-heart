@@ -551,7 +551,22 @@ class Mesh(pv.UnstructuredGrid):
         """Iterate over boundaries and returns their names."""
         return [b.name for b in self.boundaries]
 
-    def read_mesh_file(self, filename: pathlib.Path) -> None:
+    def _sync_nodes_of_surfaces(self):
+        """Synchronize the node array of each associated surface.
+
+        Notes
+        -----
+        Temporary until this module is refactored.
+        """
+        for b in self.boundaries:
+            b.nodes = self.nodes
+        for i in self.interfaces:
+            i.nodes = self.nodes
+        for bm in self.beam_network:
+            bm.nodes = self.nodes
+        return
+
+    def _deprecated_read_mesh_file(self, filename: pathlib.Path) -> None:
         """Read mesh file."""
         mesh = pv.read(filename)
         # .case gives multiblock
@@ -571,7 +586,7 @@ class Mesh(pv.UnstructuredGrid):
 
         return
 
-    def read_mesh_file_cristobal2021(self, filename: pathlib.Path) -> None:
+    def _deprecated_read_mesh_file_cristobal2021(self, filename: pathlib.Path) -> None:
         """Read mesh file - but modifies the fields to match data of Strocchi 2020."""
         mesh = pv.read(filename)
         # .case gives multiblock
@@ -607,6 +622,26 @@ class Mesh(pv.UnstructuredGrid):
             self.cell_data["tags"] = np.array(self.cell_data["tags"], dtype=float)
 
         return None
+
+    def plot_boundaries(self, show_edges: bool = True):
+        """Plot all the boundaries."""
+        try:
+            import matplotlib as mpl
+        except ImportError:
+            LOGGER.error("Failed to import matplotlib. Install with pip install matplotlib.")
+            return
+        import matplotlib as mpl
+
+        cmap = mpl.colormaps["tab20b"]
+
+        plotter = pv.Plotter()
+        for ii, b in enumerate(self.boundaries):
+            plotter.add_mesh(
+                b, show_edges=show_edges, color=cmap(ii / len(self.boundaries)), label=b.name
+            )
+
+        plotter.add_legend(face=None)
+        plotter.show()
 
     def write_to_vtk(self, filename: pathlib.Path) -> None:
         """Write mesh to VTK file."""

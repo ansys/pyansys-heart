@@ -46,7 +46,7 @@ jobs:
           echo "home directory:"
           ls ~/ -l
           docker info | grep "Root Dir"
-          sudo ls /var/lib/docker -l
+          sudo ls /var/lib/docker/overlay2 -l
 
       # - name: Install package
       #   run: |

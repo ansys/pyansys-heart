@@ -36,10 +36,10 @@ jobs:
           username: ${{ secrets.GH_USERNAME }}
           password: ${{ secrets.REPO_DOWNLOAD_PAT }}
 
-      #- name: Pull 23.1 Fluent docker image
-      #  run: | 
-      #    docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG          
-      #    docker image prune -f
+      - name: Pull 23.1 Fluent docker image
+        run: | 
+          docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG          
+          docker image prune -f
 
       - name: List files
         run: |

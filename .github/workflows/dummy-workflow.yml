@@ -46,6 +46,7 @@ jobs:
           echo "home directory:"
           ls ~/ -l
           docker info | grep "Root Dir"
+          ls /var/lib/docker -l
 
       # - name: Install package
       #   run: |

@@ -80,7 +80,7 @@ def extract_bi_ventricle():
     )
 
     model = preprocess_model(
-        info=info, model_type="BiVentricle", clean_workdir=True, use_wrapper=True
+        info=info, model_type="BiVentricle", clean_workdir=True, use_wrapper=False
     )
 
     yield

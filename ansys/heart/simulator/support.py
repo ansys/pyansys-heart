@@ -37,9 +37,10 @@ def preprocess_model(
 
     model.info.clean_workdir([".stl", ".msh.h5"])
 
+    model.load_input()
+
     model._input.as_single_polydata.save(os.path.join(info.workdir, "input_polydata.vtp"))
 
-    model.load_input()
     model.mesh_volume(use_wrapper=use_wrapper)
     model._update_parts()
     model.dump_model()

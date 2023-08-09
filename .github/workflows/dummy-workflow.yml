@@ -36,12 +36,19 @@ jobs:
           username: ${{ secrets.GH_USERNAME }}
           password: ${{ secrets.REPO_DOWNLOAD_PAT }}
 
+      - name: List files 1
+        run: |
+          echo "home directory:"
+          ls ~/ -l
+          docker info | grep "Root Dir"
+          sudo ls /var/lib/docker/overlay2 -l
+
       - name: Pull 23.1 Fluent docker image
         run: | 
           docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG          
           docker image prune -f
 
-      - name: List files
+      - name: List files 2
         run: |
           echo "home directory:"
           ls ~/ -l

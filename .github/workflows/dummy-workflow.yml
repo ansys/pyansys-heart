@@ -36,12 +36,13 @@ jobs:
           username: ${{ secrets.GH_USERNAME }}
           password: ${{ secrets.REPO_DOWNLOAD_PAT }}
 
-      - name: List files 1
+      - name: Inspect if docker image exists
         run: |
           echo "home directory:"
           ls ~/ -l
           docker info | grep "Root Dir"
           sudo ls /var/lib/docker/overlay2 -l
+          docker image inspect ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
 
       - name: Pull 23.1 Fluent docker image
         run: | 
@@ -54,6 +55,7 @@ jobs:
           ls ~/ -l
           docker info | grep "Root Dir"
           sudo ls /var/lib/docker/overlay2 -l
+          docker image inspect ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
 
       # - name: Install package
       #   run: |

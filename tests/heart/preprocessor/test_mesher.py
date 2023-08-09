@@ -1,6 +1,9 @@
 # from conftest import get_workdir, clean_directory
 import os
 
+os.environ["SHOW_FLUENT_GUI"] = "1"
+
+
 from ansys.heart.preprocessor.input import _InputModel
 from ansys.heart.preprocessor.mesh.mesher import (
     mesh_from_manifold_input_model,

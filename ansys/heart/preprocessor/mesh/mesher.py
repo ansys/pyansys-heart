@@ -22,7 +22,13 @@ import pyvista as pv
 _template_directory = pkg_resources.resource_filename("ansys.heart.preprocessor", "templates")
 
 _fluent_version = "23.1.0"
-_show_fluent_gui = True
+
+try:
+    _show_fluent_gui = bool(os.environ["SHOW_FLUENT_GUI"])
+except KeyError:
+    _show_fluent_gui = False
+LOGGER.info(f"Showing Fluent gui: {_show_fluent_gui}")
+
 
 try:
     import ansys.fluent.core as pyfluent

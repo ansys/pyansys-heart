@@ -2,6 +2,8 @@
 import os
 import pathlib
 
+os.environ["SHOW_FLUENT_GUI"] = "0"
+
 from ansys.heart.misc.downloader import download_case, unpack_case
 import ansys.heart.preprocessor.models_new as models
 from ansys.heart.simulator.support import (
@@ -51,7 +53,7 @@ from ansys.heart.simulator.simulator import MechanicsSimulator
 
 pickle_path = (
     "D:\\development\\pyheart-lib\\pyheart-lib\\downloads"
-    + "\\Strocchi2020\\01\\test_new_model_wrapper\\heart_model.pickle"
+    + "\\Strocchi2020\\01\\test_new_model_wrapper\\simulation-mechanics\\model_with_fiber.pickle"
 )
 model = models.HeartModel.load_model(pickle_path)
 
@@ -70,9 +72,9 @@ simulator = MechanicsSimulator(
 simulator.settings.load_defaults()
 
 # write files for sanity check.
-# simulator._write_fibers()
-# simulator._write_stress_free_configuration_files("stressfree")
-# simulator._write_main_simulation_files("main-mechanics")
+simulator._write_fibers()
+simulator._write_stress_free_configuration_files("stressfree")
+simulator._write_main_simulation_files("main-mechanics")
 
 # run simulations
 # 1. compute the fiber orientation

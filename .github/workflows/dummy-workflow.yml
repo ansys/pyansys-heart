@@ -46,7 +46,9 @@ jobs:
 
       - name: List files
         run: |
-          echo ${{github.workspace}}
+          echo "github workspace:"
+          ls -l ${{github.workspace}}
+          ls -l /var/lib/docker
 
       # - name: Pull 23.1 Fluent docker image
       #   run: | 

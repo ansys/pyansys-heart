@@ -1,7 +1,7 @@
 # from conftest import get_workdir, clean_directory
 import os
 
-os.environ["SHOW_FLUENT_GUI"] = "1"
+os.environ["SHOW_FLUENT_GUI"] = "0"
 
 
 from ansys.heart.preprocessor.input import _InputModel

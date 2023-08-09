@@ -4,6 +4,16 @@ import os
 import shutil
 import sys
 
+try:
+    os.environ["GITHUB_JOB"]
+    is_github_job = True
+except KeyError:
+    is_github_job = False
+
+# disable Fluent gui for github job
+if is_github_job:
+    os.environ["SHOW_FLUENT_GUI"] = "0"
+
 import ansys.heart.preprocessor.models_new as models
 from ansys.heart.simulator.support import (
     get_input_geom_and_part_defintions_from_public_database,

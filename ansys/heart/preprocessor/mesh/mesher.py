@@ -8,11 +8,9 @@ from typing import List, Union
 
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor._load_template import load_template
-from ansys.heart.preprocessor.input import _InputModel
+from ansys.heart.preprocessor.input import _InputBoundary, _InputModel
 import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401
 from ansys.heart.preprocessor.mesh.fluenthdf5 import FluentCellZone, FluentMesh
-from ansys.heart.preprocessor.input import _InputBoundary
-
 import numpy as np
 
 # from pkg_resources import resource_filename

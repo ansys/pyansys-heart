@@ -22,7 +22,7 @@ _template_directory = pkg_resources.resource_filename("ansys.heart.preprocessor"
 _fluent_version = "23.1.0"
 
 try:
-    _show_fluent_gui = bool(os.environ["SHOW_FLUENT_GUI"])
+    _show_fluent_gui = bool(int(os.environ["SHOW_FLUENT_GUI"]))
 except KeyError:
     _show_fluent_gui = False
 LOGGER.info(f"Showing Fluent gui: {_show_fluent_gui}")

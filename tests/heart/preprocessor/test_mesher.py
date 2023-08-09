@@ -1,7 +1,15 @@
 # from conftest import get_workdir, clean_directory
 import os
 
-os.environ["SHOW_FLUENT_GUI"] = "0"
+try:
+    os.environ["GITHUB_JOB"]
+    is_github_job = True
+except KeyError:
+    is_github_job = False
+
+# disable Fluent gui for github job
+if is_github_job:
+    os.environ["SHOW_FLUENT_GUI"] = "0"
 
 
 from ansys.heart.preprocessor.input import _InputModel

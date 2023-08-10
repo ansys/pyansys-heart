@@ -76,7 +76,7 @@ def zerop_post(directory, model):
         """Extract cavity volume."""
         try:
             faces = (
-                    np.loadtxt(os.path.join(directory, name + ".segment"), delimiter=",", dtype=int) - 1
+                np.loadtxt(os.path.join(directory, name + ".segment"), delimiter=",", dtype=int) - 1
             )
         except FileExistsError:
             print(f"Cannot find {name}.segment")

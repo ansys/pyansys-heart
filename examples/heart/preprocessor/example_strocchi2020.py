@@ -11,7 +11,7 @@ from ansys.heart.simulator.support import (
     preprocess_model,
 )
 
-run_extraction = False
+run_extraction = True
 if run_extraction:
     # download case from remote repository
     case_num = 1  # patient number 1
@@ -38,7 +38,7 @@ if run_extraction:
         part_definitions=part_definitions,
         work_directory=(
             "D:\\development\\pyheart-lib\\pyheart-lib\\downloads"
-            + "\\Strocchi2020\\01\\test_new_model_wrapper"
+            + "\\Strocchi2020\\01\\test_new_model_wrapper_bv"
         ),
     )
 
@@ -53,7 +53,7 @@ from ansys.heart.simulator.simulator import MechanicsSimulator
 
 pickle_path = (
     "D:\\development\\pyheart-lib\\pyheart-lib\\downloads"
-    + "\\Strocchi2020\\01\\test_new_model_wrapper\\simulation-mechanics\\model_with_fiber.pickle"
+    + "\\Strocchi2020\\01\\test_new_model_wrapper_bv\\simulation-mechanics\\model_with_fiber.pickle"
 )
 model = models.HeartModel.load_model(pickle_path)
 

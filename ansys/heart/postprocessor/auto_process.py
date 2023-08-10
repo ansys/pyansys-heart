@@ -3,6 +3,7 @@ import copy
 import glob
 import json
 import os
+import pathlib
 
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
@@ -75,7 +76,7 @@ def zerop_post(directory, model):
         """Extract cavity volume."""
         try:
             faces = (
-                np.loadtxt(os.path.join(directory, name + ".segment"), delimiter=",", dtype=int) - 1
+                    np.loadtxt(os.path.join(directory, name + ".segment"), delimiter=",", dtype=int) - 1
             )
         except FileExistsError:
             print(f"Cannot find {name}.segment")
@@ -148,7 +149,7 @@ def zerop_post(directory, model):
     return dct
 
 
-def mech_post(directory, model):
+def mech_post(directory: pathlib.Path, model):
     """
     Post-process Main mechanical simulation folder.
 
@@ -203,7 +204,9 @@ def mech_post(directory, model):
     exporter.export_lvls_to_vtk("lvls")
 
     #
+    out_dir = directory / "post" / "lrc_strain"
+    os.makedirs(out_dir, exist_ok=True)
     aha_strain = AhaStrainCalculator(model, d3plot_file=directory / "d3plot")
-    aha_strain.compute_aha_strain(directory / folder / "lrc_strain", with_vtk=True)
+    aha_strain.compute_aha_strain(out_dir, with_vtk=True)
 
     return

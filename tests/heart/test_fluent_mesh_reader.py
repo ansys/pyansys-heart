@@ -137,7 +137,6 @@ def test_read_tetrahedrons(_test_mesh_box):
             [32, 29, 26, 24],
             [32, 25, 29, 24],
             [32, 26, 25, 24],
-            [32, 26, 25, 24],
         ]
     )
     assert np.all(mesh.cell_zones[0].cells == expected_cells)

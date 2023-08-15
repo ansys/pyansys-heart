@@ -96,7 +96,7 @@ Set relevant paths and load four cavity heart model.
 Instantiate EP simulator object.
 
 .. literalinclude:: ../../../examples/heart/simulator/doc_example_EP_simulator_fourchamber.py
-   :start-at: set base working directoy
+   :start-at: set base working directory
    :end-before: load default simulation settings
 
 Load default settings.

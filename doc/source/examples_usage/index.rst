@@ -68,55 +68,65 @@ Loading the model
 
 Can be performed when a model has already been created by the preprocessor. 
 
-Loop for creating 4 folders containing LS-Dyna files
-""""""""""""""""""""""""""""""""""""""""""""""""""""
-This part uses the dynawriter module to create folders with LS-Dyna files associated.
-The 4 folders created are about:
-
-1. Electrophysiology
-
-2. Mechanics
-
-3. Zero pressure configuration computation
-
-4. Fiber generation
-
-5. Purkinje generation
-
-.. code::
-
-    for writer in (
-        writers.ElectrophysiologyDynaWriter(model),
-        writers.MechanicsDynaWriter(model),
-        writers.ZeroPressureMechanicsDynaWriter(model),
-        writers.FiberGenerationDynaWriter(model),
-        writers.PurkinjeGenerationDynaWriter(model),
-    ):
-        exportdir = os.path.join(
-            writer.model.info.workdir,
-            writer.__class__.__name__.lower().replace("dynawriter", ""),
-        )
-
-        writer.model.mesh.write_to_vtk(
-            os.path.join(writer.model.info.workdir, "volume_mesh.vtk")
-        )
-        writer.update()
-        writer.export(exportdir)
-    print("done")
-
 Electrophysiology simulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Example of an electrophysiology simulation comprising: 
+Example of an electrophysiology simulation comprising of: 
 
-1. Fiber orientation computation and plot
+1. Computing the fiber orientation
 
-2. Purkinje construction and plot
+2. Computing and visualizing the Purkinje network
 
-3. Electrophysiology simulation
+3. Computing the conduction system
 
-.. literalinclude:: ../../../examples/heart/simulator/example_simulator_EP.py
+4. Starting the main electrophysiology simulation
 
+Load the required modules
+
+.. literalinclude:: ../../../examples/heart/simulator/doc_example_EP_simulator_fourchamber.py
+   :start-after: import
+   :end-at: ansys.heart.simulator.simulator
+
+Set relevant paths and load four cavity heart model.
+
+.. literalinclude:: ../../../examples/heart/simulator/doc_example_EP_simulator_fourchamber.py
+   :start-at: set working directory and path to model
+   :end-at: raise TypeError("Expecting a FourChamber heart model.")
+
+Instantiate EP simulator object.
+
+.. literalinclude:: ../../../examples/heart/simulator/doc_example_EP_simulator_fourchamber.py
+   :start-at: set base working directoy
+   :end-before: load default simulation settings
+
+Load default settings.
+
+.. literalinclude:: ../../../examples/heart/simulator/doc_example_EP_simulator_fourchamber.py
+   :start-at: load default simulation settings
+   :end-at: simulator.settings.load_defaults()
+
+Compute and visualize fiber orientation.
+
+.. literalinclude:: ../../../examples/heart/simulator/doc_example_EP_simulator_fourchamber.py
+   :start-at: compute fiber orientation
+   :end-at: simulator.model.plot_fibers(n_seed_points=2000)
+
+.. figure:: ../images/fibers.png
+
+Compute and visualize Purkinje network and conduction system.
+
+.. literalinclude:: ../../../examples/heart/simulator/doc_example_EP_simulator_fourchamber.py
+   :start-at: compute purkinje network
+   :end-at: simulator.model.plot_purkinje()
+
+.. figure:: ../images/purkinje.png
+
+Start main electrophysiology simulation
+
+.. literalinclude:: ../../../examples/heart/simulator/doc_example_EP_simulator_fourchamber.py
+   :start-at: start main ep-simulation
+
+Post process the EP simulation
 
 Mechanics simulation
 ^^^^^^^^^^^^^^^^^^^^

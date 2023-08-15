@@ -78,5 +78,11 @@ for beams in simulator.model.mesh.beam_network:
 plotter.camera.roll = -60
 plotter.screenshot(filename)
 
+# create thumbnail image
+filename_thumb = Path(doc_root, "source\\images\\thumbnails\\ep-simulator.png")
+import shutil
+
+shutil.copy(filename, filename_thumb)
+
 # start main ep-simulation
 simulator.simulate()

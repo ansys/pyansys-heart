@@ -8,6 +8,8 @@ you can load a pre-computed heart model, compute the fiber direction, compute th
 purkinje network and conduction system and finally simulate the electrophysiology.
 """
 
+# sphinx_gallery_thumbnail_path = 'images/purkinje.png'
+
 ###############################################################################
 # Example setup
 # -------------

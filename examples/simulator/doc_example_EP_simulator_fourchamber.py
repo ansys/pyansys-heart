@@ -8,8 +8,6 @@ you can load a pre-computed heart model, compute the fiber direction, compute th
 purkinje network and conduction system and finally simulate the electrophysiology.
 """
 
-# sphinx_gallery_thumbnail_path = 'images/purkinje.png'
-
 ###############################################################################
 # Example setup
 # -------------
@@ -20,6 +18,11 @@ purkinje network and conduction system and finally simulate the electrophysiolog
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Import the required modules and set relevant paths, including that of the working
 # directory, model, and ls-dyna executable.
+
+# sphinx_gallery_start_ignore
+# Note that we need to put the thumbnail here to avoid weird rendering in the html page.
+# sphinx_gallery_thumbnail_path = 'images/purkinje.png'
+# sphinx_gallery_end_ignore
 
 import os
 from pathlib import Path

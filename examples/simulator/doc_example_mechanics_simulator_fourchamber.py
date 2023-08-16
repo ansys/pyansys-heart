@@ -8,8 +8,6 @@ you can load a pre-computed heart model, compute the fiber direction, compute th
 stress free configuration, and finally simulate the mechanical model.
 """
 
-# sphinx_gallery_thumbnail_path = 'images/thumbnails/frame_0043.png'
-
 ###############################################################################
 # Example setup
 # -------------
@@ -21,6 +19,11 @@ stress free configuration, and finally simulate the mechanical model.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Import the required modules and set relevant paths, including that of the working
 # directory, model, and ls-dyna executable.
+
+# sphinx_gallery_start_ignore
+# Note that we need to put the thumbnail here to avoid weird rendering in the html page.
+# sphinx_gallery_thumbnail_path = 'images/thumbnails/frame_0043.png'
+# sphinx_gallery_end_ignore
 
 import os
 from pathlib import Path
@@ -89,10 +92,8 @@ simulator.model.plot_fibers(n_seed_points=2000)
 # Compute the stress free configuration
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Compute the stress free configuration. That is, when imaged under diastole
-# we need to approximate the initial stress at $t=0$. The stress free configuration
-# is computed through
-# The action potential will propagate faster through this system
-# compared to the rest of the model.
+# we need to approximate the initial stress at `t=0`. The stress free configuration
+# is computed through Rausch' method.
 
 simulator.compute_stress_free_configuration()
 # plot the updated model.

@@ -1,5 +1,4 @@
 """Module containing classes for the various heart models."""
-import copy
 import json
 import os
 
@@ -1277,7 +1276,6 @@ class HeartModel:
 
         # find intersection between remaining surfaces and part surfaces
         # This will find the valve/cap nodes
-        cap_counter = 0
         for part in self.parts:
             for surface in part.surfaces:
                 # special treatment since a part of surface is defined in septum
@@ -1311,10 +1309,9 @@ class HeartModel:
                                     )
                                     # Create dummy cap (only name) and will be filled later
                                     part.caps.append(Cap(name=name_valve))
-                                    continue
+                                    break
 
                             cap = Cap(name=name_valve, node_ids=edge_group.edges[:, 0])
-                            cap_counter += 1
                             cap.centroid = np.mean(surf.nodes[cap.node_ids, :], axis=0)
 
                             # # tessellation 0 : pick a node and create segments
@@ -1323,8 +1320,8 @@ class HeartModel:
                             # p2 = surf.nodes[cap.triangles[:, 2]] - surf.nodes[cap.triangles[:, 0]]
 
                             # tessellation 1 : add a center node
-                            cap.centroid_id = (
-                                len(self.mesh.nodes) + cap_counter - 1
+                            cap.centroid_id = len(self.mesh.nodes) + len(
+                                self.cap_centroids
                             )  # center node ID, 0 based
                             self.cap_centroids.append(
                                 Point(
@@ -1365,7 +1362,7 @@ class HeartModel:
         for part in self.parts:
             if not "atrium" in part.name:
                 continue
-            for ic, cap in enumerate(part.caps):
+            for cap in part.caps:
                 # replace with cap in ventricle (mitral and tricuspid valve)
                 cap_ref = [
                     c
@@ -1376,18 +1373,17 @@ class HeartModel:
                 ]
 
                 if len(cap_ref) == 1:
-                    cap = copy.deepcopy(cap_ref[0])
+                    cap.centroid_id = cap_ref[0].centroid_id
                     # note: flip order to make sure normal is pointing inwards
                     cap.node_ids = np.flip(cap_ref[0].node_ids)
                     # flip segments
-                    cap.triangles[:, [1, 2]] = cap.triangles[:, [2, 1]]
+                    cap.triangles = cap_ref[0].triangles[:, [0, 2, 1]]
 
                     LOGGER.debug(
                         "Replacing cap {0} of part{1}: with that of the ventricle".format(
                             cap.name, part.name
                         )
                     )
-                    part.caps[ic] = cap
 
         # As a consequence we need to add interface region to endocardium of atria or ventricle
         # current approach is to add these to the atria

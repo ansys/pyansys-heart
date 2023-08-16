@@ -85,6 +85,8 @@ instance/
 
 # Sphinx documentation
 doc/_build/
+# examples gallery is auto-generated: ignore these
+doc/source/examples
 
 # PyBuilder
 .pybuilder/

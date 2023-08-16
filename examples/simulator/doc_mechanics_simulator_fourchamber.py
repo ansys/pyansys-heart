@@ -22,7 +22,7 @@ stress free configuration, and finally simulate the mechanical model.
 
 # sphinx_gallery_start_ignore
 # Note that we need to put the thumbnail here to avoid weird rendering in the html page.
-# sphinx_gallery_thumbnail_path = 'images/thumbnails/frame_0043.png'
+# sphinx_gallery_thumbnail_path = '_static/images/thumbnails/frame_0043.png'
 # sphinx_gallery_end_ignore
 
 import os
@@ -32,14 +32,14 @@ import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.simulator import MechanicsSimulator
 
 # set working directory and path to model.
-workdir = Path(Path(__file__).parents[1], "downloads", "Strocchi2020", "01", "FourChamber")
+workdir = Path(Path(__file__).parents[2], "downloads", "Strocchi2020", "01", "FourChamber")
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 if not os.path.isfile(path_to_model):
     raise FileExistsError(f"{path_to_model} not found")
 
 # specify LS-DYNA path
-lsdyna_path = Path(Path(__file__).parents[3], "dyna-versions", "ls-dyna_smp_d.exe")
+lsdyna_path = Path(Path(__file__).parents[4], "dyna-versions", "ls-dyna_smp_d.exe")
 
 if not os.path.isfile(lsdyna_path):
     raise FileExistsError(f"{lsdyna_path} not found.")
@@ -84,7 +84,7 @@ simulator.compute_fibers()
 simulator.model.plot_fibers(n_seed_points=2000)
 
 ###############################################################################
-# .. image:: /images/fibers.png
+# .. image:: _static/images/fibers.png
 #   :width: 400pt
 #   :align: center
 
@@ -100,7 +100,7 @@ simulator.compute_stress_free_configuration()
 simulator.model.plot_mesh(show_edges=True)
 
 ###############################################################################
-# .. image:: /images/stress_free.png
+# .. image:: _static/images/stress_free.png
 #   :width: 400pt
 #   :align: center
 

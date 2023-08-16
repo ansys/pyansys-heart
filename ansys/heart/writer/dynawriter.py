@@ -585,6 +585,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         if not with_dynain:
             self._update_node_db()
             self._update_solid_elements_db(add_fibers=True)
+            # no zerop exists, cap mesh need to be written
+            self.cap_in_zerop = False
         else:
             self.kw_database.main.append(keywords.Include(filename="dynain.lsda"))
 

@@ -22,7 +22,7 @@ stress free configuration, and finally simulate the mechanical model.
 
 # sphinx_gallery_start_ignore
 # Note that we need to put the thumbnail here to avoid weird rendering in the html page.
-# sphinx_gallery_thumbnail_path = '_static/images/thumbnails/frame_0043.png'
+# sphinx_gallery_thumbnail_path = '/_static/images/thumbnails/frame_0043.png'
 # sphinx_gallery_end_ignore
 
 import os
@@ -84,7 +84,7 @@ simulator.compute_fibers()
 simulator.model.plot_fibers(n_seed_points=2000)
 
 ###############################################################################
-# .. image:: _static/images/fibers.png
+# .. image:: /_static/images/fibers.png
 #   :width: 400pt
 #   :align: center
 
@@ -100,7 +100,7 @@ simulator.compute_stress_free_configuration()
 simulator.model.plot_mesh(show_edges=True)
 
 ###############################################################################
-# .. image:: _static/images/stress_free.png
+# .. image:: /_static/images/stress_free.png
 #   :width: 400pt
 #   :align: center
 

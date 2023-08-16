@@ -15,7 +15,7 @@ and process that case into a simulation-ready four chamber heart model.
 # directory and generated model
 
 # sphinx_gallery_start_ignore
-# sphinx_gallery_thumbnail_path = '_static/images/four_chamber_mesh.png'
+# sphinx_gallery_thumbnail_path = '/_static/images/four_chamber_mesh.png'
 # sphinx_gallery_end_ignore
 
 import os

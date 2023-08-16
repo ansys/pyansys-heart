@@ -17,7 +17,7 @@ purkinje network and conduction system and finally simulate the electrophysiolog
 # the required modules, load a heart model and set up the simulator.
 #
 # Perform the required imports
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Import the required modules and set relevant paths, including that of the working
 # directory, model, and ls-dyna executable.
 
@@ -28,14 +28,14 @@ import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.simulator import EPSimulator
 
 # set working directory and path to model.
-workdir = Path(Path(__file__).parents[3], "downloads", "Strocchi2020", "01", "FourChamber")
+workdir = Path(Path(__file__).parents[1], "downloads", "Strocchi2020", "01", "FourChamber")
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 if not os.path.isfile(path_to_model):
     raise FileExistsError(f"{path_to_model} not found")
 
 # specify LS-DYNA path
-lsdyna_path = Path(Path(__file__).parents[5], "dyna-versions", "ls-dyna_smp_d.exe")
+lsdyna_path = Path(Path(__file__).parents[3], "dyna-versions", "ls-dyna_smp_d.exe")
 
 if not os.path.isfile(lsdyna_path):
     raise FileExistsError(f"{lsdyna_path} not found.")

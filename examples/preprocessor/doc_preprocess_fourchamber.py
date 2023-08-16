@@ -20,8 +20,9 @@ and process that case into a simulation-ready four chamber heart model.
 
 import os
 from pathlib import Path
-import ansys.heart.preprocessor.models as models
+
 from ansys.heart.misc.downloader import download_case, unpack_case
+import ansys.heart.preprocessor.models as models
 
 # sphinx_gallery_start_ignore
 os.environ["USE_OLD_HEART_MODELS"] = "1"
@@ -118,7 +119,7 @@ model.left_ventricle.endocardium.plot(show_edges=True, color="r")
 import pyvista as pv
 
 cavities = pv.PolyData()
-for ii, c in enumerate(model.cavities):
+for c in model.cavities:
     cavities += c.surface
 cavities.plot(show_edges=True)
 

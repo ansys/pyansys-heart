@@ -41,6 +41,7 @@ class LVContourExporter:
         self.out_folder = "lv_surface"
         os.makedirs(os.path.join(self.work_dir, self.out_folder), exist_ok=True)
 
+        # todo get ID dynamically by part.pid or mid
         if isinstance(self.model, LeftVentricle):
             keep_ids = [1]
         else:

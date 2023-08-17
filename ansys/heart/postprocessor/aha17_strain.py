@@ -18,7 +18,9 @@ class AhaStrainCalculator:
         Parameters
         ----------
         model: HeartModel
+            Heart model object.
         d3plot_file: Path.Path
+            d3plot header file path.
         """
         self.model = model
         self._aha_elements = np.where(~np.isnan(model.aha_ids))[0]
@@ -31,7 +33,7 @@ class AhaStrainCalculator:
         Parameters
         ----------
         out_dir : str
-            Output directory where the segements are saved.
+            Output directory where the segments are saved.
         with_vtk : bool, optional
             Flag indicating whether to save the VTK file, by default False
 
@@ -67,18 +69,21 @@ class AhaStrainCalculator:
 
         return strain
 
-    def compute_aha_strain_once(self, frame=0, out_dir=None):
+    def compute_aha_strain_once(self, frame: int = 0, out_dir: pathlib.Path = None) -> np.ndarray:
         """
         Export AHA strain and/or save vtk file for a given frame.
 
         Parameters
         ----------
-        frame: int, at frame
-        out_dir: vtk folder, not save as default
+        frame: int
+            at this frame, by default 0.
+        out_dir: pathlib.Path
+            folder where vtk files are saved, by default not save.
 
         Returns
         -------
-        AHA LRC strain matrix (17 * 3)
+        np.ndarry
+            AHA LRC strain matrix (17 * 3)
         """
         element_lrc, aha_lrc, element_lrc_averaged = self._compute_myocardial_strain(frame)
 

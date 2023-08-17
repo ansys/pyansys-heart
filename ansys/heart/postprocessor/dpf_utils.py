@@ -60,17 +60,19 @@ class D3plotReader:
         Parameters
         ----------
         hv_index: List[int]
-         history variables index.
-
-            For example:
-            1-9: Deformation gradient (column-wise storage),see *MAT_295 in LS-DYNA manual
-
-        at_frame: int
-            At frame.
+            History variables index.
+        at_frame: int, optional
+            At this frame, by default 0.
 
         Returns
         -------
-            res
+        np.ndarray
+            History variables data.
+
+        Notes
+        -----
+        d3plot.get_history_variable(hv_index=list(range(9)), at_frame=at_frame)
+        to get Deformation gradient (column-wise storage),see *MAT_295 in LS-DYNA manual.
         """
         if at_frame > self.model.metadata.time_freq_support.n_sets:
             print("Frame ID too big")
@@ -156,19 +158,4 @@ class D3plotReader:
 
 
 if __name__ == "__main__":
-    # data = D3plotReader(r"D:\Heart20\healthy20\health03_BV_2mm\simulation\main-mechanics\d3plot")
-    # x = data.get_history_variable(at_frame=4, hv_index=[0])
-    # print(x.shape)
-    # x = data.get_history_variable(at_frame=1, hv_index=[0, 1, 2, 3, 4, 5, 6, 7, 8])
-    # print(x.shape)
-    #
-    # exit()
-    data = D3plotReader("D:\Heart20\healthy20\health03_BV_2mm\simulation\zeropressure\iter3.d3plot")
-    # # export to vtk:
-    data.export_vtk(".", keep_mat_ids=[1, 3])
-
-# dpf.operators.serialization.field_to_csv(
-#     file_path="d:\\development\\temp6\\displacements.csv",
-#     field_or_fields_container=fields,
-#     # my_storage_type=0
-# ).eval()
+    pass

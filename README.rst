@@ -1,24 +1,71 @@
+###########
 Pyheart lib
-===========
+###########
+|pyansys| |python| |MIT|
 
-Python framework for heart modeling using Ansys tools.
+.. |pyansys| image:: https://img.shields.io/badge/Py-Ansys-ffc107.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAABDklEQVQ4jWNgoDfg5mD8vE7q/3bpVyskbW0sMRUwofHD7Dh5OBkZGBgW7/3W2tZpa2tLQEOyOzeEsfumlK2tbVpaGj4N6jIs1lpsDAwMJ278sveMY2BgCA0NFRISwqkhyQ1q/Nyd3zg4OBgYGNjZ2ePi4rB5loGBhZnhxTLJ/9ulv26Q4uVk1NXV/f///////69du4Zdg78lx//t0v+3S88rFISInD59GqIH2esIJ8G9O2/XVwhjzpw5EAam1xkkBJn/bJX+v1365hxxuCAfH9+3b9/+////48cPuNehNsS7cDEzMTAwMMzb+Q2u4dOnT2vWrMHu9ZtzxP9vl/69RVpCkBlZ3N7enoDXBwEAAA+YYitOilMVAAAAAElFTkSuQmCC
+   :target: https://docs.pyansys.com/
+   :alt: PyAnsys
+
+.. |python| image:: https://img.shields.io/badge/Python-3.8-blue
+   :target: https://pypi.org/project/pyheartlib/
+   :alt: Python
+
+.. |MIT| image:: https://img.shields.io/badge/license-MIT-yellow
+   :target: https://opensource.org/license/mit/
+   :alt: MIT
+
+Pyheart lib is a python framework for heart modeling using Ansys tools.
+
+Note: Please read LICENSE file before using this package.
 
 
-Note1: Please read LICENSE file before using this package.
+Prerequisites
+=============
 
-Note2: Fluent 2022R2 is required (for meshing), available on the Ansys Customer Portal.
+Operation system
+----------------
 
-Note3: Ansys DPF Server is required (for post-process module and calibration module), available on the Ansys Customer Portal.
+- Windows 10
+- Linux Ubuntu
 
+Python
+------
 
+Officially Python 3.8 version. Before starting the installation run ``python --version`` and check that it fits with the supported versions.
+
+Software
+--------
+
+  .. list-table:: Required flagship products
+    :widths: 300 200 300
+    :header-rows: 1
+
+    * - Product
+      - Versions
+      - Link to download
+
+    * - Ansys Fluent
+      - R22.2
+      - `Ansys Customer Portal`_
+
+    * - Ansys DPF Server
+      - 2023 R2-pre1
+      - `DPF`_
+
+    * - Ansys LSDYNA
+      - ???
+      - ?
+
+Notes: Fluent is required for meshing and Ansys DPF Server for post-process module and calibration module
 
 How to install
---------------
+==============
 
 At least two installation modes are provided: user and developer.
 
 For users (Not yet available!)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------
 
 User installation can be performed by running:
 
@@ -27,7 +74,7 @@ User installation can be performed by running:
     python -m pip install ansys-heart-lib
 
 For developers
-^^^^^^^^^^^^^^
+--------------
 
 Installing Pyheart lib in developer mode allows
 you to modify the source and enhance it.
@@ -114,7 +161,7 @@ need to follow these steps:
 
 
 Style and Testing
------------------
+=================
 
 If required, you can always call the style commands (`black`_, `isort`_,
 `flake8`_...) or unit testing ones (`pytest`_) from the command line. However,
@@ -123,7 +170,7 @@ environment, which is another reason to consider using `tox`_.
 
 
 Documentation
--------------
+=============
 
 Visit the `documentation`_ for a
 detailed description of the library.
@@ -143,7 +190,7 @@ For building documentation, you can either run the usual rules provided in the
     your_browser_name doc/html/index.html
 
 Distributing
-------------
+============
 
 If you would like to create either source or wheel files, start by installing
 the building requirements:
@@ -161,6 +208,8 @@ Then, you can execute:
 
 
 .. LINKS AND REFERENCES
+.. _Ansys Customer Portal: https://support.ansys.com/Home/HomePage
+.. _dpf: https://download.ansys.com/Others/DPF%20Pre-Release
 .. _black: https://github.com/psf/black
 .. _flake8: https://flake8.pycqa.org/en/latest/
 .. _isort: https://github.com/PyCQA/isort

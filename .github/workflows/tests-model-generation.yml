@@ -63,6 +63,18 @@ jobs:
         run: |
           python -m pytest tests/heart/test_pyfluent.py
 
+      - name: Cache large files
+        id: cache-strocchi
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-strocchi
+        with:
+          # cache the case file that will be downloaded in tests/heart/assets/cases/Strocchi2020
+          path: /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/Strocchi2020
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+
       - name: Test biventricle model generation 1
         continue-on-error: false
         run: |

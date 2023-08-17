@@ -15,66 +15,78 @@ Pyheart lib
    :target: https://opensource.org/license/mit/
    :alt: MIT
 
-Pyheart lib is a python framework for heart modeling using Ansys tools.
+Pyheart lib is a `Python`_ framework for heart modeling using Ansys tools.
 
-Note: Please read LICENSE file before using this package.
+.. Note::
+    
+    Please read LICENSE file before using this package.
 
 
 Prerequisites
 =============
 
-Operation system
+Operating system
 ----------------
 
 - Windows 10
 - Linux Ubuntu
 
-Python
-------
 
-Officially Python 3.8 version. Before starting the installation run ``python --version`` and check that it fits with the supported versions.
+Ansys tools
+-----------
+
+This framework was developed and tested under Python 3.8 version. Before starting the installation run ``python --version`` and check that it fits with the supported versions.
 
 Software
 --------
 
-  .. list-table:: Required flagship products
-    :widths: 300 200 300
+  .. list-table:: Required Ansys products
+    :widths: 200 300 200 400
     :header-rows: 1
 
     * - Product
       - Versions
+      - Scope
       - Link to download
 
     * - Ansys Fluent
-      - R22.2
+      - R22 R2
+      - Pre-processor
       - `Ansys Customer Portal`_
 
     * - Ansys DPF Server
-      - 2023 R2-pre1
-      - `DPF`_
+      - R24 R1-pre0    
+      - Post-processor      
+      - `DPF-Server`_
 
-    * - Ansys LSDYNA
-      - ???
-      - ?
+    * - Ansys LSDYNA      
+      - DEV-97584 or greater
+      - Simulator
+      - Contact us for latest working version
 
-Notes: Fluent is required for meshing and Ansys DPF Server for post-process module and calibration module
+.. note::
+    Fluent is required for meshing and the Ansys DPF Server for post-processing electrophysiology
+    and mechanical results. Currently we advice to use the pre-release version of `DPF-Server` since support
+    for `d3plot` is updated frequently.
 
 How to install
 ==============
 
-At least two installation modes are provided: user and developer.
+In user mode
+------------
 
-For users (Not yet available!)
-------------------------------
+.. warning:: 
+    
+    Installing as user-only is not yet supported.
 
-User installation can be performed by running:
+.. User installation can be performed by running:
 
-.. code:: bash
+.. .. code:: bash
 
-    python -m pip install ansys-heart-lib
+..     python -m pip install ansys-heart-lib
 
-For developers
---------------
+In editable mode
+----------------
 
 Installing Pyheart lib in developer mode allows
 you to modify the source and enhance it.
@@ -86,12 +98,15 @@ need to follow these steps:
 
     .. code:: bash
 
-        git clone https://github.com/pyansys/pyheart-lib
+        git clone https://github.com/ansys/pyheart-lib
+   
+   Since this is a private repository you may need to provide your github username.
+   Alternatively you can download and unpack the zip file from `pyheart-lib`_
 
-2. Create a fresh-clean Python environment and activate it. Refer to the
+2. Create a fresh-clean Python environment and activate it. Make sure you use one of the supported Python versions. Refer to the
    official `venv`_  or `conda`_ documentation if you require further information:
 
-    Through `venv`_
+   Through `venv`_:
 
     .. code:: bash
 
@@ -99,60 +114,60 @@ need to follow these steps:
         python -m venv .venv
 
         # Activate environment: 
-        # - in POSIX system:
+
+        # POSIX systems:
         source .venv/bin/activate
-        # - in Windows cmd shell:
+
+        # Windows cmd shell:
         .venv\Scripts\activate.bat
+
         # or in Windows powershell
         .venv\Scripts\Activate.ps1
 
-    Through the virtual environment manager `conda`_
+   Through the virtual environment manager `conda`_
 
     .. code:: bash
 
-        # Create virtual environment with specific python version
+        # Create virtual environment with a given Python version
         conda create --name my-venv python=3.8
 
-        # Activate environment
-        conda activate my-venv        
+        # Activate the environment
+        conda activate my-venv    
 
-3. Make sure you have the latest version of `pip`_
+3. Make sure you have the latest version of `pip`_ installed in your virtual environment.
 
     .. code:: bash
 
         python -m pip install -U pip
 
-4. Install the project in editable mode:
+4. Install the project in editable mode by pointing to the right location:
 
     .. code:: bash
     
-        python -m pip install --editable pyheart-lib
+        python -m pip install --editable .
     
-    Install version of dynalib manually by
+   Install a version of dynalib into your virtual environment.
 
     .. code:: bash
         
         # latest version
         pip install git+https://github.com/pyansys/dynalib.git@main
 
-        # or if encountering issues with dynalib you can install a specific working version
-        pip install git+https://github.com/pyansys/dynalib.git@afce06ba178888d992ff51838ca521abb824c8ab
+   or if encountering issues with dynalib you can install a specific version
 
-        # Otherwise you can install it in editable mode:
-        git clone https://github.com/pyansys/dynalib.git
-        cd dynalib
-        pip install -e .
+        pip install git+https://github.com/pyansys/dynalib.git@afce06ba178888d992ff51838ca521abb824c8ab
 
 
 5. Install additional requirements (if needed):
 
      .. code:: bash
 
-        python -m pip install -r requirements_build.txt
+        # dependencies for local doc building
         python -m pip install -r requirements_docs.txt
+        # dependencies needed for (unit) testing
         python -m pip install -r requirements_tests.txt
 
-6. Finally, verify your development version after installation by running:
+6. You may verify your development version by running all or a set of unit-tests:
 
     .. code:: bash
         
@@ -173,21 +188,25 @@ Documentation
 =============
 
 Visit the `documentation`_ for a
-detailed description of the library.
+detailed description of the library or for specific examples.
+
 For building documentation, you can either run the usual rules provided in the
 `Sphinx`_ Makefile, such us:
 
 .. code:: bash
 
+    # install any dependencies for building the documentation.
     python -m pip install -r requirements_docs.txt
+
     # Linux
     make -C doc/ html 
+
     # Windows
     cd doc/
-    make html
+    make.bat html
 
-    # subsequently open the documentation with (under Linux):
-    your_browser_name doc/html/index.html
+subsequently open the documentation by opening `doc/html/index.html`:
+    
 
 Distributing
 ============
@@ -201,15 +220,17 @@ the building requirements:
 
 Then, you can execute:
 
-    .. code:: bash
+.. code:: bash
 
-        python -m build
-        python -m twine check dist/*
+    python -m build
+    python -m twine check dist/*
 
 
 .. LINKS AND REFERENCES
+.. _Python: https://www.python.org/
+.. _pyheart-lib: https://github.com/ansys/pyheart-lib
 .. _Ansys Customer Portal: https://support.ansys.com/Home/HomePage
-.. _dpf: https://download.ansys.com/Others/DPF%20Pre-Release
+.. _dpf-server: https://download.ansys.com/Others/DPF%20Pre-Release
 .. _black: https://github.com/psf/black
 .. _flake8: https://flake8.pycqa.org/en/latest/
 .. _isort: https://github.com/PyCQA/isort

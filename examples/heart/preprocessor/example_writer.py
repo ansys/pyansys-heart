@@ -1,13 +1,13 @@
 """Example to pre-process data from Strocchi2020 and Cristobal2021."""
 import os
-import pathlib 
+import pathlib
 
 import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.support import run_preprocessor
 import ansys.heart.writer.dynawriter as writers
 
-PROJECT_DIRECTORY =  pathlib.Path(__file__).absolute().parents[3]
-PATH_TO_CASE =  os.path.join(PROJECT_DIRECTORY, "downloads\\Strocchi2020\\01\\01.case")
+PROJECT_DIRECTORY = pathlib.Path(__file__).absolute().parents[3]
+PATH_TO_CASE = os.path.join(PROJECT_DIRECTORY, "downloads\\Strocchi2020\\01\\01.case")
 WORKING_DIRECTORY = os.path.join(pathlib.Path(PATH_TO_CASE).parent, "BiVentricle")
 
 if __name__ == "__main__":
@@ -16,7 +16,8 @@ if __name__ == "__main__":
     requirements
 
     1. Extracts simulation mesh and creates "heart_model.pickle"
-    2. Writes files for mechanics, zero-pressure, fiber generation, and purkinje using "heart_model.pickle" file
+    2. Writes files for mechanics, zero-pressure, fiber generation,
+    and purkinje using "heart_model.pickle" file
 
     Please change paths according to your workspace
     """

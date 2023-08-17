@@ -6,8 +6,8 @@ import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.simulator import EPSimulator
 from ansys.heart.simulator.support import run_preprocessor
 
-PROJECT_DIRECTORY =  pathlib.Path(__file__).absolute().parents[3]
-PATH_TO_CASE =  os.path.join(PROJECT_DIRECTORY, "downloads\\Strocchi2020\\01\\01.case")
+PROJECT_DIRECTORY = pathlib.Path(__file__).absolute().parents[3]
+PATH_TO_CASE = os.path.join(PROJECT_DIRECTORY, "downloads\\Strocchi2020\\01\\01.case")
 WORKING_DIRECTORY = os.path.join(pathlib.Path(PATH_TO_CASE).parent, "BiVentricle")
 
 # Specify LS-DYNA path

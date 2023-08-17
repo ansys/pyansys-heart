@@ -21,7 +21,7 @@ purkinje network and conduction system and finally simulate the electrophysiolog
 
 # sphinx_gallery_start_ignore
 # Note that we need to put the thumbnail here to avoid weird rendering in the html page.
-# sphinx_gallery_thumbnail_path = '/_static/images/purkinje.png'
+# sphinx_gallery_thumbnail_path = '_static/images/purkinje.png'
 # sphinx_gallery_end_ignore
 
 import os

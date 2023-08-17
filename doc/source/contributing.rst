@@ -2,12 +2,11 @@
 Contribute
 ==========
 
-Overall guidance on contributing to a PyAnsys repository appears in
-`Contribute <https://dev.docs.pyansys.com/>`_
-in the *PyAnsys Developer's Guide*. Ensure that you are thoroughly familiar
-with this guide before attempting to contribute to pyheart-lib.
+Overall guidance on contributing to a PyAnsys repository appears in the *PyAnsys Developer's Guide*, see:
+`Contribute <https://dev.docs.pyansys.com/>`_. Ensure that you are thoroughly familiar
+with this guide before attempting to contribute to `pyheart-lib <https://github.com/ansys/pyheart-lib>`_.
  
-The following contribution information is specific to pyheart-lib.
+The following contribution information is specific to `pyheart-lib <https://github.com/ansys/pyheart-lib>`_.
 
 Clone the repository
 --------------------
@@ -23,7 +22,7 @@ development mode by running this code:
 
 Post issues
 -----------
-Use the `pyheart-lib Issues <https://github.com/pyansys/pyheart-lib/issues>`_
+Use the `pyheart-lib Issues <https://github.com/ansys/pyheart-lib/issues>`_
 page to submit questions, report bugs, and request new features.
 
 To reach the PyAnsys support team, email `pyansys.support@ansys.com <pyansys.support@ansys.com>`_.
@@ -31,4 +30,4 @@ To reach the PyAnsys support team, email `pyansys.support@ansys.com <pyansys.sup
 View documentation
 ------------------
 Documentation for the latest stable release of pyheart-lib is hosted at
-`pyheart-lib Documentation <https://heart.docs.pyansys.com/>`_.  
+https://heart.docs.pyansys.com/.  

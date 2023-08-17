@@ -3,10 +3,13 @@
    Provide any documentation specific to your online documentation
    here.
 
-Contents
-========
+PyHeart lib |version|
+=====================
+
+.. include:: ../../README.rst
 
 .. toctree::
+   :hidden:
    :maxdepth: 2
 
    getting_started/index

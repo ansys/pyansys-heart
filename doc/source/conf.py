@@ -109,7 +109,11 @@ autosectionlabel_maxdepth = 4
 # ---------------------------------- #
 autoapi_type = "python"
 autoapi_ignore = []
-autoapi_dirs = ["../../ansys/heart"]
+autoapi_dirs = [
+    "../../ansys/heart/preprocessor",
+    "../../ansys/heart/simulator",
+    "../../ansys/heart/postprocessor",
+]
 autoapi_options = [
     "members",
     "undoc-members",

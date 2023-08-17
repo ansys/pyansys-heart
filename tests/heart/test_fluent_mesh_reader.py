@@ -135,6 +135,9 @@ def test_read_tetrahedrons(_test_mesh):
             [32, 27, 25, 26],
             [32, 29, 26, 24],
             [32, 25, 29, 24],
+            [32, 26, 25, 24],
         ]
     )
     assert np.all(mesh.cell_zones[0].cells == expected_cells)
+    # single cell zone: so all cells in mesh should be in the first cell zone.
+    assert np.all(mesh.cells == mesh.cell_zones[0].cells)

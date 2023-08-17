@@ -89,13 +89,13 @@ def mesh_heart_model_by_fluent(
         shutil.rmtree(work_dir_meshing)
     os.mkdir(work_dir_meshing)
 
-    # path_to_output_old = path_to_output
-    # path_to_output = os.path.join(work_dir_meshing, "fluent_volume_mesh.msh.h5")
+    path_to_output_old = path_to_output
+    path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
 
     # copy all necessary files to meshing directory
     files_to_copy = glob.glob("part*.stl") + glob.glob("fluent_meshing.jou")
     for file in files_to_copy:
-        shutil.move(file, os.path.join(work_dir_meshing, file))
+        shutil.copyfile(file, os.path.join(work_dir_meshing, file))
 
     LOGGER.debug("Starting meshing in directory: {}".format(work_dir_meshing))
     # start fluent session
@@ -216,7 +216,7 @@ def mesh_heart_model_by_fluent(
     # session.meshing.tui.file.read_journal(script)
     session.exit()
 
-    # shutil.copy(path_to_output, path_to_output_old)
+    shutil.copy(path_to_output, path_to_output_old)
 
     # shutil.rmtree(work_dir_meshing)
 

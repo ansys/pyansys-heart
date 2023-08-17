@@ -44,6 +44,7 @@ extensions = [
     "autoapi.extension",
     "sphinx_autodoc_typehints",
     "sphinx_gallery.gen_gallery",
+    "sphinxcontrib.video",
 ]
 
 sphinx_gallery_conf = {

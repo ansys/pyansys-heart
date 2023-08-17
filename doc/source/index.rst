@@ -9,10 +9,8 @@ Contents
 .. toctree::
    :maxdepth: 2
 
-   ..
-      introduction
    getting_started/index
    user_guide/index
    autoapi/index
-   examples_usage/index
+   examples/index
    contributing

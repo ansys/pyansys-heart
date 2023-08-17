@@ -43,10 +43,10 @@ jobs:
           mkdir -p ~/image-cache
 
       - name: Cache Fluent docker image
-          uses: actions/cache@v3
-          with:
-              path: ~/image-cache
-              key: image-cache-${{ runner.os }}
+        uses: actions/cache@v3
+        with:
+          path: ~/image-cache
+          key: image-cache-${{ runner.os }}
 
       # Login to Github container registry and pull Fluent image. if image-cach doesn't exist
       - name: Login to GitHub Container Registry

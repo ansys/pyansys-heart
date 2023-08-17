@@ -111,7 +111,7 @@ zerop_post(zerop_folder, model)
 # You can show and export inflation animation
 
 ###############################################################################
-# .. video:: /pyheart-lib/doc/source/_static/inflation.mp4
+# .. video:: ../../_static/images/inflation.mp4
 #   :width: 300
 #   :autoplay:
 #   :loop:

@@ -15,7 +15,7 @@ and process that case into a simulation-ready four chamber heart model.
 # directory and generated model
 
 # sphinx_gallery_start_ignore
-# sphinx_gallery_thumbnail_path = '/_static/images/four_chamber_mesh.png'
+# sphinx_gallery_thumbnail_path = '_static/images/four_chamber_mesh.png'
 # sphinx_gallery_end_ignore
 
 import os
@@ -103,7 +103,7 @@ print(f"Volume of LV cavity: {model.left_atrium.cavity.volume} mm^3")
 model.plot_mesh(show_edges=False)
 
 ###############################################################################
-# .. image:: /_static/images/four_chamber_mesh.png
+# .. image:: _static/images/four_chamber_mesh.png
 #   :width: 400pt
 #   :align: center
 
@@ -111,7 +111,7 @@ model.plot_mesh(show_edges=False)
 model.left_ventricle.endocardium.plot(show_edges=True, color="r")
 
 ###############################################################################
-# .. image:: /_static/images/four_chamber_lv_endocardium.png
+# .. image:: _static/images/four_chamber_lv_endocardium.png
 #   :width: 400pt
 #   :align: center
 
@@ -124,7 +124,7 @@ for c in model.cavities:
 cavities.plot(show_edges=True)
 
 ###############################################################################
-# .. image:: /_static/images/four_chamber_cavities.png
+# .. image:: _static/images/four_chamber_cavities.png
 #   :width: 400pt
 #   :align: center
 

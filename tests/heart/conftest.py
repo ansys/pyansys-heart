@@ -52,13 +52,13 @@ def download_asset(database: str = "Strocchi2020", casenumber: int = 1) -> pathl
         path_to_zip = download_case(database, casenumber, download_dir)
         unpack_case(path_to_zip)
 
-    # remove .vtk file to reduce size (relevant for Github cache)
-    if database == "Strocchi2020":
-        path_to_vtk = path_to_case.replace(".case", "-350um.vtk")
-        if "GITHUB_JOB" in list(os.environ.keys()):
-            if os.path.isfile(path_to_vtk):
-                print(f"Removing .vtk file {path_to_vtk}")
-                os.remove(path_to_vtk)
+    # # remove .vtk file to reduce size (relevant for Github cache)
+    # if database == "Strocchi2020":
+    #     path_to_vtk = path_to_case.replace(".case", "-350um.vtk")
+    #     if "GITHUB_JOB" in list(os.environ.keys()):
+    #         if os.path.isfile(path_to_vtk):
+    #             print(f"Removing .vtk file {path_to_vtk}")
+    #             os.remove(path_to_vtk)
 
     if os.path.isfile(path_to_case):
         return path_to_case

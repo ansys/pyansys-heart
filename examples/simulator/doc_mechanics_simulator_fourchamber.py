@@ -84,7 +84,7 @@ simulator.compute_fibers()
 simulator.model.plot_fibers(n_seed_points=2000)
 
 ###############################################################################
-# .. image:: _static/images/fibers.png
+# .. image:: /_static/images/fibers.png
 #   :width: 400pt
 #   :align: center
 
@@ -100,7 +100,7 @@ simulator.compute_stress_free_configuration()
 simulator.model.plot_mesh(show_edges=True)
 
 ###############################################################################
-# .. image:: _static/images/stress_free.png
+# .. image:: /_static/images/stress_free.png
 #   :width: 400pt
 #   :align: center
 

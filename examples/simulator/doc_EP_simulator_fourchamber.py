@@ -82,7 +82,7 @@ simulator.compute_fibers()
 simulator.model.plot_fibers(n_seed_points=2000)
 
 ###############################################################################
-# .. image:: _static/images/fibers.png
+# .. image:: /_static/images/fibers.png
 #   :width: 400pt
 #   :align: center
 
@@ -98,7 +98,7 @@ simulator.compute_conduction_system()
 simulator.model.plot_purkinje()
 
 ###############################################################################
-# .. image:: _static/images/purkinje.png
+# .. image:: /_static/images/purkinje.png
 #   :width: 400pt
 #   :align: center
 

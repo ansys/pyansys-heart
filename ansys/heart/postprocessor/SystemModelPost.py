@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import json
 import os
 
+from ansys.heart.custom_logging import LOGGER
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import matplotlib.pyplot as plt
 import numpy as np
@@ -207,7 +208,8 @@ class SystemModelPost:
         try:
             ef = (max(v) - min(v)) / max(v)
         except:
-            ef = 0
+            ef = None
+            LOGGER.warning("Failed to compute ejection fraction.")
         return ef
 
     def plot_pv_loop(self, t_start=0, t_end=10e10, show_ed=False, ef=None):

@@ -52,7 +52,7 @@ from ansys.heart.writer.material_keywords import (
     MaterialNeoHook,
     active_curve,
 )
-from ansys.heart.writer.system_models import define_function_windkessel, ed_load_template
+from ansys.heart.writer.system_models import _ed_load_template, define_function_windkessel
 import numpy as np
 import pandas as pd
 import pkg_resources
@@ -1772,7 +1772,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self.kw_database.main.append(cvi_kw)
 
             # define define function
-            definefunction_str = ed_load_template()
+            definefunction_str = _ed_load_template()
             self.kw_database.main.append(
                 definefunction_str.format(
                     cvi_kw.lcid_, "flow_" + cavity.name.replace(" ", "_"), pressure, -200

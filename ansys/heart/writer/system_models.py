@@ -12,7 +12,7 @@ Valid models include:
 from ansys.dyna.keywords import keywords
 
 
-def ed_load_template():
+def _ed_load_template():
     """
     Define function template to apply ED pressure.
 
@@ -245,7 +245,8 @@ def define_function_windkessel(
     implicit : bool, optional
         Flag indicating whether in implicit or explicit, by default True
     constants : dict, optional
-        Constants of the Windkessel model, by default {"Rv": 5.0e-6, "Ra": 1.0e-5, "Rp": 1.2e-4, "Ca": 2.5e4, "Pven": 2}
+        Constants of the Windkessel model,
+        by default {"Rv": 5.0e-6, "Ra": 1.0e-5, "Rp": 1.2e-4, "Ca": 2.5e4, "Pven": 2}
     initialvalues : _type_, optional
         Initial value of arterial pressure, by default {"part_init": 8}
     ivc : bool, optional

@@ -20,6 +20,445 @@ except ImportError:
     LOGGER.warning("Importing pyvista failed. Install with: pip install pyvista")
 
 
+class Feature:
+    """Feature class."""
+
+    def __init__(self, name: str = None) -> None:
+        self.name = name
+        """Name of feature."""
+        self.type = None
+        """Type of feature."""
+        self.nsid: int = None
+        """Node set id associated with feature."""
+        self.pid: int = None
+        """Part id associated with the feature."""
+
+        pass
+
+
+class BoundaryEdges(Feature):
+    """Edges class."""
+
+    def __init__(self, edges: np.ndarray = None) -> None:
+        super().__init__()
+        self.type = "edges"
+        """Feature type."""
+
+        self.node_ids = None
+        """List of edges."""
+        self.groups = None
+        """Grouped edges based on connectivity."""
+
+
+class EdgeGroup:
+    """Edge group class, contains info on connected edges."""
+
+    def __init__(self, edges: np.ndarray = None, type: str = None) -> None:
+        self.edges = edges
+        """Edges in edge group."""
+        self.type = type
+        """Type of edge group: 'open' or 'closed'."""
+        pass
+
+
+class SurfaceMesh(pv.PolyData, Feature):
+    """Surface class."""
+
+    @property
+    def nodes(self):
+        """Node coordinates."""
+        return np.array(self.points)
+
+    @nodes.setter
+    def nodes(self, array: np.ndarray):
+        if isinstance(array, type(None)):
+            return
+        try:
+            self.points = array
+        except:
+            LOGGER.warning("Failed to set points.")
+            return
+
+    @property
+    def triangles(self):
+        """Triangular faces of the surface num_faces x 3."""
+        faces = np.reshape(self.faces, (self.n_cells, 3 + 1))[:, 1:]
+        return faces
+
+    @triangles.setter
+    def triangles(self, value: np.ndarray):
+        # sets faces of PolyData
+        try:
+            num_faces = value.shape[0]
+            faces = np.hstack([np.full((num_faces, 1), 3, dtype=np.int8), value])
+            self.faces = faces
+        except:
+            return
+
+    def __init__(
+        self,
+        name: str = None,
+        triangles: np.ndarray = None,
+        nodes: np.ndarray = None,
+        id: int = None,
+    ) -> None:
+        super().__init__(self)
+        Feature.__init__(self, name)
+
+        self.type = "surface"
+        """Surface type."""
+        self.boundary_edges: np.ndarray = np.empty((0, 2), dtype=int)
+        """Boundary edges."""
+        self.edge_groups: List[EdgeGroup] = []
+        """Edge groups."""
+        self.id: int = id
+        """ID of surface."""
+        self.nsid: int = None
+        """ID of corresponding set of nodes."""
+        # self.cell_data: dict = {}
+        # """Data associated with each face/cell of surface."""
+        # self.point_data: dict = {}
+        """Data associated with each point on surface."""
+        self._pv_polydata: pv.PolyData = pv.PolyData()
+        """Pyvista representation of the surface mesh."""
+
+        self.triangles = triangles
+        """Triangular faces of the surface num_faces x 3."""
+        self.nodes = nodes
+        """Node coordinates."""
+
+    @property
+    def node_ids(self) -> np.ndarray:
+        """Global node ids - sorted by earliest occurrence."""
+        _, idx = np.unique(self.triangles.flatten(), return_index=True)
+        node_ids = self.triangles.flatten()[np.sort(idx)]
+        return node_ids
+
+    @property
+    def boundary_nodes(self) -> np.ndarray:
+        """Global node ids of nodes on the boundary of the mesh (if any)."""
+        _, idx = np.unique(self.boundary_edges.flatten(), return_index=True)
+        node_ids = self.boundary_edges.flatten()[np.sort(idx)]
+        return node_ids
+
+    def compute_centroid(self) -> np.ndarray:
+        """Compute the centroid of the surface."""
+        return np.mean(self.nodes[np.unique(self.triangles), :], axis=0)
+
+    def compute_bounding_box(self) -> Tuple[np.ndarray, float]:
+        """Compute the bounding box of the surface."""
+        bounding_box = np.reshape(self.clean().bounds, (3, 2)).T
+        volume = np.prod(np.diff(bounding_box, axis=0))
+        return bounding_box, volume
+
+    def get_boundary_edges(self, append_triangles=None) -> List[EdgeGroup]:
+        """
+        Get boundary edges (if any) of the surface and groups them by connectivity.
+
+        Parameters
+        ----------
+        append_triangles: optional
+            special fix for right ventricle endocardium surface since it needs one part
+            from spetum.
+        """
+        write_vtk = False
+
+        if append_triangles is not None:
+            self.boundary_edges = connect.get_free_edges(
+                np.vstack((self.triangles, append_triangles))
+            )
+        else:
+            self.boundary_edges = connect.get_free_edges(self.triangles)
+
+        edge_groups, group_types = connect.edge_connectivity(
+            self.boundary_edges, return_type=True, sort_closed=True
+        )
+
+        for ii, edge_group in enumerate(edge_groups):
+            group = EdgeGroup(edges=edge_group, type=group_types[ii])
+            self.edge_groups.append(group)
+
+            if write_vtk:
+                tris = np.vstack([edge_group[:, 0], edge_group.T]).T
+                vtk_surf = vtkmethods.create_vtk_surface_triangles(self.nodes, tris)
+                vtkmethods.write_vtkdata_to_vtkfile(
+                    vtk_surf, "edges_{0}_{1}.vtk".format(ii, self.name)
+                )
+
+        return self.edge_groups
+
+    def separate_connected_regions(self):
+        """Use vtk to get connected regions and separate into different surfaces."""
+        region_ids = vtkmethods.get_connected_regions(self.nodes, self.triangles)
+
+        return region_ids
+
+    def smooth_boundary_edges(self, window_size: int = 3) -> np.ndarray:
+        """Smooth the boundary edges if they are closed."""
+        if window_size % 2 != 1:
+            raise ValueError("Please specify window size to be an uneven number")
+
+        # self.write_feature_edges_to_vtk("unsmoothed")
+        modified_nodes = np.empty((0), dtype=int)
+        for ii, edge_group in enumerate(self.edge_groups):
+            edges = edge_group.edges
+
+            idx = np.unique(edges.flatten(), return_index=True)[1]
+            idx = np.sort(idx)  # maintain order
+            node_ids = edges.flatten()[idx]
+            nodes = copy.deepcopy(self.nodes[node_ids, :])
+            # project points onto plane
+            nodes = geodisc.project_3d_points(nodes)[0]
+
+            # self.write_feature_edges_to_vtk("projected")
+
+            if edge_group.type == "closed":
+                # use a window average method to smooth edges nodes
+                num_points_to_add = int((window_size - 1) / 2)
+                nodes = np.concatenate(
+                    (nodes[-num_points_to_add:], nodes, nodes[0:num_points_to_add])
+                )
+                offset = num_points_to_add
+                for ii, node in enumerate(nodes[:-num_points_to_add]):
+                    nodes[ii + offset] = np.mean(nodes[ii : ii + window_size, :], axis=0)
+                nodes = nodes[num_points_to_add:-num_points_to_add]
+
+            self.points[node_ids, :] = nodes
+
+            modified_nodes = np.append(modified_nodes, node_ids)
+
+        # self.write_feature_edges_to_vtk("smoothed")
+
+        return modified_nodes
+
+    def write_to_stl(self, filename: pathlib.Path = None) -> None:
+        """Write the surface to a vtk file."""
+        if not filename:
+            filename = "_".join(self.name.lower().split()) + ".stl"
+        if filename[-4:] != ".stl":
+            filename = filename + ".stl"
+
+        # NOTE: The below should yield the same stls, but somehow fluent meshing
+        # produces a slightly different mesh. Should still be valid though
+        # cleaned = self.clean()
+        # cleaned.save(filename)
+        # vtkmethods.add_solid_name_to_stl(filename, self.name, file_type="binary")
+
+        vtk_surface = vtkmethods.create_vtk_surface_triangles(self.nodes, self.triangles)
+        vtkmethods.vtk_surface_to_stl(vtk_surface, filename, self.name)
+        return
+
+    def write_feature_edges_to_vtk(self, prefix: str = None, per_edge_group: bool = False) -> None:
+        """Write the feature edges to a vtk file."""
+        edges = np.array((0, 2))
+        for ii, edge_group in enumerate(self.edge_groups):
+            edges = np.vstack([edges, edge_group.edges])
+            if per_edge_group:
+                tris = np.vstack([edge_group.edges[:, 0], edge_group.edges.T]).T
+                vtk_surf = vtkmethods.create_vtk_surface_triangles(self.nodes, tris)
+                filename = "{0}_groupid_{1}_edges_{2}.vtk".format(prefix, ii, self.name)
+                vtkmethods.write_vtkdata_to_vtkfile(vtk_surf, filename)
+        if not per_edge_group:
+            tris = np.vstack([edges[:, 0], edges.T]).T
+            vtk_surf = vtkmethods.create_vtk_surface_triangles(self.nodes, tris)
+            filename = "{0}_groupid_edges_{1}.vtk".format(prefix, self.name)
+            vtkmethods.write_vtkdata_to_vtkfile(vtk_surf, filename)
+
+        return
+
+    def _to_pyvista_object(self) -> pv.PolyData:
+        """Convert to pyvista polydata object.
+
+        Returns
+        -------
+        pv.PolyData
+            pyvista PolyData object
+        """
+        DeprecationWarning("_to_pyvista_object is deprecated.")
+        faces = np.hstack([np.ones((self.triangles.shape[0], 1), dtype=int) * 3, self.triangles])
+        nodes = self.nodes
+        faces = np.reshape(faces, (faces.size))
+        polydata = pv.PolyData(nodes, faces)
+        if self.cell_data:
+            for key, value in self.cell_data.items():
+                polydata.cell_data[key] = value
+
+        if self.point_data:
+            for key, value in self.point_data.items():
+                polydata.point_data[key] = value
+
+        return polydata
+
+
+class BeamMesh(pv.UnstructuredGrid, Feature):
+    """Beam class."""
+
+    @property
+    def nodes(self):
+        """Node coordinates."""
+        return np.array(self.points)
+
+    @nodes.setter
+    def nodes(self, array: np.ndarray):
+        if isinstance(array, type(None)):
+            return
+        try:
+            self.points = array
+        except:
+            LOGGER.warning("Failed to set nodes.")
+            return
+
+    @property
+    def edges(self):
+        """Tetrahedrons num_tetra x 4."""
+        return self.cells_dict[pv.CellType.LINE]
+
+    @edges.setter
+    def edges(self, value: np.ndarray):
+        # sets lines of UnstructuredGrid
+        try:
+            points = self.points
+            celltypes = np.full(value.shape[0], pv.CellType.LINE, dtype=np.int8)
+            lines = np.hstack([np.full(len(celltypes), 2)[:, None], value])
+            super().__init__(lines, celltypes, points)
+        except:
+            LOGGER.warning("Failed to set lines.")
+            return
+
+    def __init__(
+        self,
+        name: str = None,
+        edges: np.ndarray = None,
+        nodes: np.ndarray = None,
+        nid: int = None,
+        pid: int = None,
+        nsid: int = None,
+    ) -> None:
+        super().__init__(self)
+        Feature.__init__(self, name)
+
+        self.edges = edges
+        """Beams edges."""
+        self.nodes = copy.copy(nodes)  # shallow copy?
+        """Node coordinates."""
+        self.type = "Beam"
+        """Beam type."""
+        self.id: int = nid
+        """Id of beam network."""
+        self.pid = pid
+        """Part id associated with the network."""
+        self.nsid: int = nsid
+        """ID of corresponding set of nodes."""
+
+    @property
+    def node_ids(self) -> np.ndarray:
+        """Global node ids - sorted by earliest occurrence."""
+        _, idx = np.unique(self.edges.flatten(), return_index=True)
+        node_ids = self.edges.flatten()[np.sort(idx)]
+        return node_ids
+
+
+class Cavity(Feature):
+    """Cavity class."""
+
+    def __init__(self, surface: SurfaceMesh = None, centroid: np.ndarray = None, name=None) -> None:
+        super().__init__(name)
+        self.type = "cavity"
+        """Type."""
+        self.surface: SurfaceMesh = surface
+        """Surface mesh making up the cavity."""
+        self.centroid: np.ndarray = centroid
+        """Centroid of the cavity."""
+
+    @property
+    def volume(self):
+        """Volume of the cavity."""
+        return self.surface.volume
+
+    def compute_volume(self) -> float:
+        """Compute the volume of the (enclosed) cavity.
+
+        Notes
+        -----
+        - Writes stl and computes volume from stl
+        - Assumes normals are pointing inwards
+        """
+        DeprecationWarning(
+            "compute_volume() is deprecated. Use the volume property of this class instead."
+        )
+        return self.surface.volume
+
+    def compute_centroid(self):
+        """Compute the centroid of the cavity."""
+        # self.centroid = np.mean(self.surface.nodes[np.unique(self.surface.triangles), :], axis=0)
+        self.centroid = self.surface.center
+        return self.centroid
+
+
+class Cap(Feature):
+    """Cap class."""
+
+    def __init__(self, name: str = None, node_ids: Union[List[int], np.ndarray] = []) -> None:
+        super().__init__(name)
+        self.node_ids = node_ids
+        """(Global) node ids of the cap."""
+        self.triangles = None
+        """Triangulation of cap."""
+        self.normal = None
+        """Normal of cap."""
+        self.centroid = None
+        """Centroid of cap."""
+        self.centroid_id = None
+        """Centroid of cap ID (in case centroid node is created)."""
+        self.type = "cap"
+        """Type."""
+        return
+
+    def tessellate(self, center_point_id=None) -> np.ndarray:
+        """
+        Form triangles with the node ids.
+
+        Parameters
+        ----------
+        center_point_id: ID of the center point of cap
+
+        Returns
+        -------
+        Mesh connectivity of cap (triangles)
+
+        """
+        if center_point_id is None:
+            tris = []
+            for ii, _ in enumerate(self.node_ids[0:-2]):
+                # first node is reference node
+                tri = [self.node_ids[0], self.node_ids[ii + 1], self.node_ids[ii + 2]]
+                tris.append(tri)
+            self.triangles = np.array(tris, dtype=int)
+        else:
+            ref_node = center_point_id[0]
+            num_triangles = self.node_ids.shape[0] + 1
+            tris = [[ref_node, self.node_ids[0], self.node_ids[1]]]
+            for ii, _ in enumerate(self.node_ids[0:-2]):
+                tri = [ref_node, self.node_ids[ii + 1], self.node_ids[ii + 2]]
+                tris.append(tri)
+            tris.append([ref_node, self.node_ids[-1], self.node_ids[0]])
+            self.triangles = np.array(tris, dtype=int)
+
+        return self.triangles
+
+
+class Point(Feature):
+    """Point class. Can be used to collect relevant points in the mesh."""
+
+    def __init__(self, name: str = None, xyz: np.ndarray = None, node_id: int = None) -> None:
+        super().__init__(name)
+
+        self.xyz: np.ndarray = xyz
+        """XYZ Coordinates of point."""
+        self.node_id: int = node_id
+        """Global node id of point."""
+
+
 class Mesh(pv.UnstructuredGrid):
     """Mesh class: inherits from pyvista UnstructuredGrid.
 
@@ -313,13 +752,12 @@ class Mesh(pv.UnstructuredGrid):
 
         Parameters
         ----------
-        filename : pathlib.Path, optional
+        filename : pathlib.Path
         """
         # Open file and import beams and created nodes
         with open(filename, "r") as file:
             start_nodes = 0
             lines = file.readlines()
-        number_of_nodes = len(self.nodes)
         # find line ids delimiting node data and edge data
         start_nodes = np.array(np.where(["*NODE" in line for line in lines]))[0][0]
         end_nodes = np.array(np.where(["*" in line for line in lines]))
@@ -337,6 +775,9 @@ class Mesh(pv.UnstructuredGrid):
             filename, skiprows=start_beams + 1, max_rows=end_beams - start_beams - 1, dtype=int
         )
         edges = beam_data[:, 2:4] - 1
+
+        # adjust connectivity table for new created nodes
+        number_of_nodes = len(self.nodes)
         edges[edges >= node_id_start] = (
             edges[edges >= node_id_start] - node_id_start + number_of_nodes
         )
@@ -350,10 +791,10 @@ class Mesh(pv.UnstructuredGrid):
 
     def add_beam_network(
         self, new_nodes: np.ndarray = [], edges: np.ndarray = [], pid: int = None, name: str = None
-    ) -> None:
+    ) -> BeamMesh:
         """Add beam network."""
         nodes = np.vstack([self.nodes, new_nodes])  # add new nodes to existing nodes
-        beam_net = BeamMesh(nodes=nodes, edges=edges, pid=pid)
+        beam_net = BeamMesh(nodes=nodes, edges=edges, pid=pid, nsid=-1)
         beam_net.pid = pid
         beam_net.id = len(self.beam_network) + 1
         beam_net.name = name
@@ -381,6 +822,7 @@ class Mesh(pv.UnstructuredGrid):
         # plotter.add_mesh(self, opacity=0.3)
         # plotter.add_mesh(purkinje)
         # plotter.show()
+        return beam_net
 
     def _to_pyvista_object(self) -> pv.UnstructuredGrid:
         """Convert mesh object into pyvista unstructured grid object.
@@ -415,422 +857,6 @@ class Mesh(pv.UnstructuredGrid):
         return grid
 
 
-class Feature:
-    """Feature class."""
-
-    def __init__(self, name: str = None) -> None:
-        self.name = name
-        """Name of feature."""
-        self.type = None
-        """Type of feature."""
-        self.nsid: int = None
-        """Node set id associated with feature."""
-        self.pid: int = None
-        """Part id associated with the feature."""
-
-        pass
-
-
-class BoundaryEdges(Feature):
-    """Edges class."""
-
-    def __init__(self, edges: np.ndarray = None) -> None:
-        super().__init__()
-        self.type = "edges"
-        """Feature type."""
-
-        self.node_ids = None
-        """List of edges."""
-        self.groups = None
-        """Grouped edges based on connectivity."""
-
-
-class EdgeGroup:
-    """Edge group class, contains info on connected edges."""
-
-    def __init__(self, edges: np.ndarray = None, type: str = None) -> None:
-        self.edges = edges
-        """Edges in edge group."""
-        self.type = type
-        """Type of edge group: 'open' or 'closed'."""
-        pass
-
-
-class SurfaceMesh(pv.PolyData, Feature):
-    """Surface class."""
-
-    @property
-    def nodes(self):
-        """Node coordinates."""
-        return np.array(self.points)
-
-    @nodes.setter
-    def nodes(self, array: np.ndarray):
-        if isinstance(array, type(None)):
-            return
-        try:
-            self.points = array
-        except:
-            LOGGER.warning("Failed to set points.")
-            return
-
-    @property
-    def triangles(self):
-        """Triangular faces of the surface num_faces x 3."""
-        faces = np.reshape(self.faces, (self.n_cells, 3 + 1))[:, 1:]
-        return faces
-
-    @triangles.setter
-    def triangles(self, value: np.ndarray):
-        # sets faces of PolyData
-        try:
-            num_faces = value.shape[0]
-            faces = np.hstack([np.full((num_faces, 1), 3, dtype=np.int8), value])
-            self.faces = faces
-        except:
-            return
-
-    def __init__(
-        self,
-        name: str = None,
-        triangles: np.ndarray = None,
-        nodes: np.ndarray = None,
-        sid: int = None,
-    ) -> None:
-        super().__init__(self)
-        Feature.__init__(self, name)
-
-        self.type = "surface"
-        """Surface type."""
-        self.boundary_edges: np.ndarray = np.empty((0, 2), dtype=int)
-        """Boundary edges."""
-        self.edge_groups: List[EdgeGroup] = []
-        """Edge groups."""
-        self.id: int = sid
-        """ID of surface."""
-        self.nsid: int = None
-        """ID of corresponding set of nodes."""
-        # self.cell_data: dict = {}
-        # """Data associated with each face/cell of surface."""
-        # self.point_data: dict = {}
-        """Data associated with each point on surface."""
-        self._pv_polydata: pv.PolyData = pv.PolyData()
-        """Pyvista representation of the surface mesh."""
-
-        self.triangles = triangles
-        """Triangular faces of the surface num_faces x 3."""
-        self.nodes = nodes
-        """Node coordinates."""
-
-    @property
-    def node_ids(self) -> np.ndarray:
-        """Global node ids - sorted by earliest occurrence."""
-        _, idx = np.unique(self.triangles.flatten(), return_index=True)
-        node_ids = self.triangles.flatten()[np.sort(idx)]
-        return node_ids
-
-    @property
-    def boundary_nodes(self) -> np.ndarray:
-        """Global node ids of nodes on the boundary of the mesh (if any)."""
-        _, idx = np.unique(self.boundary_edges.flatten(), return_index=True)
-        node_ids = self.boundary_edges.flatten()[np.sort(idx)]
-        return node_ids
-
-    def compute_centroid(self) -> np.ndarray:
-        """Compute the centroid of the surface."""
-        return np.mean(self.nodes[np.unique(self.triangles), :], axis=0)
-
-    def compute_bounding_box(self) -> Tuple[np.ndarray, float]:
-        """Compute the bounding box of the surface."""
-        bounding_box = np.reshape(self.clean().bounds, (3, 2)).T
-        volume = np.prod(np.diff(bounding_box, axis=0))
-        return bounding_box, volume
-
-    def get_boundary_edges(self, append_triangles=None) -> List[EdgeGroup]:
-        """
-        Get boundary edges (if any) of the surface and groups them by connectivity.
-
-        Parameters
-        ----------
-        append_triangles: optional
-            special fix for right ventricle endocardium surface since it needs one part
-            from spetum.
-        """
-        write_vtk = False
-
-        if append_triangles is not None:
-            self.boundary_edges = connect.get_free_edges(
-                np.vstack((self.triangles, append_triangles))
-            )
-        else:
-            self.boundary_edges = connect.get_free_edges(self.triangles)
-
-        edge_groups, group_types = connect.edge_connectivity(
-            self.boundary_edges, return_type=True, sort_closed=True
-        )
-
-        for ii, edge_group in enumerate(edge_groups):
-            group = EdgeGroup(edges=edge_group, type=group_types[ii])
-            self.edge_groups.append(group)
-
-            if write_vtk:
-                tris = np.vstack([edge_group[:, 0], edge_group.T]).T
-                vtk_surf = vtkmethods.create_vtk_surface_triangles(self.nodes, tris)
-                vtkmethods.write_vtkdata_to_vtkfile(
-                    vtk_surf, "edges_{0}_{1}.vtk".format(ii, self.name)
-                )
-
-        return self.edge_groups
-
-    def separate_connected_regions(self):
-        """Use vtk to get connected regions and separate into different surfaces."""
-        region_ids = vtkmethods.get_connected_regions(self.nodes, self.triangles)
-
-        return region_ids
-
-    def smooth_boundary_edges(self, window_size: int = 3) -> np.ndarray:
-        """Smooth the boundary edges if they are closed."""
-        if window_size % 2 != 1:
-            raise ValueError("Please specify window size to be an uneven number")
-
-        # self.write_feature_edges_to_vtk("unsmoothed")
-        modified_nodes = np.empty((0), dtype=int)
-        for ii, edge_group in enumerate(self.edge_groups):
-            edges = edge_group.edges
-
-            idx = np.unique(edges.flatten(), return_index=True)[1]
-            idx = np.sort(idx)  # maintain order
-            node_ids = edges.flatten()[idx]
-            nodes = copy.deepcopy(self.nodes[node_ids, :])
-            # project points onto plane
-            nodes = geodisc.project_3d_points(nodes)[0]
-
-            # self.write_feature_edges_to_vtk("projected")
-
-            if edge_group.type == "closed":
-                # use a window average method to smooth edges nodes
-                num_points_to_add = int((window_size - 1) / 2)
-                nodes = np.concatenate(
-                    (nodes[-num_points_to_add:], nodes, nodes[0:num_points_to_add])
-                )
-                offset = num_points_to_add
-                for ii, node in enumerate(nodes[:-num_points_to_add]):
-                    nodes[ii + offset] = np.mean(nodes[ii : ii + window_size, :], axis=0)
-                nodes = nodes[num_points_to_add:-num_points_to_add]
-
-            self.points[node_ids, :] = nodes
-
-            modified_nodes = np.append(modified_nodes, node_ids)
-
-        # self.write_feature_edges_to_vtk("smoothed")
-
-        return modified_nodes
-
-    def write_to_stl(self, filename: pathlib.Path = None) -> None:
-        """Write the surface to a vtk file."""
-        if not filename:
-            filename = "_".join(self.name.lower().split()) + ".stl"
-        if filename[-4:] != ".stl":
-            filename = filename + ".stl"
-
-        # NOTE: The below should yield the same stls, but somehow fluent meshing
-        # produces a slightly different mesh. Should still be valid though
-        # cleaned = self.clean()
-        # cleaned.save(filename)
-        # vtkmethods.add_solid_name_to_stl(filename, self.name, file_type="binary")
-
-        vtk_surface = vtkmethods.create_vtk_surface_triangles(self.nodes, self.triangles)
-        vtkmethods.vtk_surface_to_stl(vtk_surface, filename, self.name)
-        return
-
-    def write_feature_edges_to_vtk(self, prefix: str = None, per_edge_group: bool = False) -> None:
-        """Write the feature edges to a vtk file."""
-        edges = np.array((0, 2))
-        for ii, edge_group in enumerate(self.edge_groups):
-            edges = np.vstack([edges, edge_group.edges])
-            if per_edge_group:
-                tris = np.vstack([edge_group.edges[:, 0], edge_group.edges.T]).T
-                vtk_surf = vtkmethods.create_vtk_surface_triangles(self.nodes, tris)
-                filename = "{0}_groupid_{1}_edges_{2}.vtk".format(prefix, ii, self.name)
-                vtkmethods.write_vtkdata_to_vtkfile(vtk_surf, filename)
-        if not per_edge_group:
-            tris = np.vstack([edges[:, 0], edges.T]).T
-            vtk_surf = vtkmethods.create_vtk_surface_triangles(self.nodes, tris)
-            filename = "{0}_groupid_edges_{1}.vtk".format(prefix, self.name)
-            vtkmethods.write_vtkdata_to_vtkfile(vtk_surf, filename)
-
-        return
-
-    def _to_pyvista_object(self) -> pv.PolyData:
-        """Convert to pyvista polydata object.
-
-        Returns
-        -------
-        pv.PolyData
-            pyvista PolyData object
-        """
-        DeprecationWarning("_to_pyvista_object is deprecated.")
-        faces = np.hstack([np.ones((self.triangles.shape[0], 1), dtype=int) * 3, self.triangles])
-        nodes = self.nodes
-        faces = np.reshape(faces, (faces.size))
-        polydata = pv.PolyData(nodes, faces)
-        if self.cell_data:
-            for key, value in self.cell_data.items():
-                polydata.cell_data[key] = value
-
-        if self.point_data:
-            for key, value in self.point_data.items():
-                polydata.point_data[key] = value
-
-        return polydata
-
-
-class BeamMesh(pv.UnstructuredGrid, Feature):
-    """Beam class."""
-
-    @property
-    def nodes(self):
-        """Node coordinates."""
-        return np.array(self.points)
-
-    @nodes.setter
-    def nodes(self, array: np.ndarray):
-        if isinstance(array, type(None)):
-            return
-        try:
-            self.points = array
-        except:
-            LOGGER.warning("Failed to set nodes.")
-            return
-
-    @property
-    def edges(self):
-        """Tetrahedrons num_tetra x 4."""
-        return self.cells_dict[pv.CellType.LINE]
-
-    @edges.setter
-    def edges(self, value: np.ndarray):
-        # sets lines of UnstructuredGrid
-        try:
-            points = self.points
-            celltypes = np.full(value.shape[0], pv.CellType.LINE, dtype=np.int8)
-            lines = np.hstack([np.full(len(celltypes), 2)[:, None], value])
-            super().__init__(lines, celltypes, points)
-        except:
-            LOGGER.warning("Failed to set lines.")
-            return
-
-    def __init__(
-        self,
-        name: str = None,
-        edges: np.ndarray = None,
-        nodes: np.ndarray = None,
-        nid: int = None,
-        pid: int = None,
-        nsid: int = None,
-    ) -> None:
-        super().__init__(self)
-        Feature.__init__(self, name)
-
-        self.edges = edges
-        """Beams edges."""
-        self.nodes = copy.copy(nodes)  # shallow copy?
-        """Node coordinates."""
-        self.type = "Beam"
-        """Beam type."""
-        self.id: int = nid
-        """Id of beam network."""
-        self.pid = pid
-        """Part id associated with the network."""
-        self.nsid: int = nsid
-        """ID of corresponding set of nodes."""
-
-    @property
-    def node_ids(self) -> np.ndarray:
-        """Global node ids - sorted by earliest occurrence."""
-        _, idx = np.unique(self.edges.flatten(), return_index=True)
-        node_ids = self.edges.flatten()[np.sort(idx)]
-        return node_ids
-
-
-class Cavity(Feature):
-    """Cavity class."""
-
-    def __init__(self, surface: SurfaceMesh = None, centroid: np.ndarray = None, name=None) -> None:
-        super().__init__(name)
-        self.type = "cavity"
-        """Type."""
-        self.surface: SurfaceMesh = surface
-        """Surface mesh making up the cavity."""
-        self.centroid: np.ndarray = centroid
-        """Centroid of the cavity."""
-
-    @property
-    def volume(self):
-        """Volume of the cavity."""
-        return self.surface.volume
-
-    def compute_volume(self) -> float:
-        """Compute the volume of the (enclosed) cavity.
-
-        Notes
-        -----
-        - Writes stl and computes volume from stl
-        - Assumes normals are pointing inwards
-        """
-        DeprecationWarning(
-            "compute_volume() is deprecated. Use the volume property of this class instead."
-        )
-        return self.surface.volume
-
-    def compute_centroid(self):
-        """Compute the centroid of the cavity."""
-        self.centroid = np.mean(self.surface.nodes[np.unique(self.surface.triangles), :], axis=0)
-        return self.centroid
-
-
-class Cap(Feature):
-    """Cap class."""
-
-    def __init__(self, name: str = None, node_ids: Union[List[int], np.ndarray] = []) -> None:
-        super().__init__(name)
-        self.node_ids = node_ids
-        """(Global) node ids of the cap."""
-        self.triangles = None
-        """Triangulation of cap."""
-        self.normal = None
-        """Normal of cap."""
-        self.centroid = None
-        """Centroid of cap."""
-        self.type = "cap"
-        """Type."""
-        return
-
-    def tessellate(self) -> np.ndarray:
-        """Form triangles with the node ids."""
-        ref_node = self.node_ids[0]
-        num_triangles = self.node_ids.shape[0] - 1
-        ref_node = np.ones(num_triangles, dtype=int) * ref_node
-        tris = []
-        for ii, _ in enumerate(self.node_ids[0:-2]):
-            tri = [self.node_ids[0], self.node_ids[ii + 1], self.node_ids[ii + 2]]
-            tris.append(tri)
-        self.triangles = np.array(tris, dtype=int)
-        return self.triangles
-
-
-class Point(Feature):
-    """Point class. Can be used to collect relevant points in the mesh."""
-
-    def __init__(self, name: str = None, xyz: np.ndarray = None, node_id: int = None) -> None:
-        super().__init__(name)
-
-        self.xyz: np.ndarray = xyz
-        """XYZ Coordinates of point."""
-        self.node_id: int = node_id
-        """Global node id of point."""
-
-
 class Part:
     """Part class."""
 
@@ -861,6 +887,13 @@ class Part:
             if isinstance(value, SurfaceMesh):
                 surface_names.append(value.name)
         return surface_names
+
+    def get_point(self, pointname: str) -> Point:
+        """Get point from part."""
+        for point in self.points:
+            if point.name == pointname:
+                return point
+        LOGGER.error("Cannot find point {0:s}.".format(pointname))
 
     def __init__(self, name: str = None, part_type: str = None) -> None:
         self.name = name

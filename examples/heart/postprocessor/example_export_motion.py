@@ -1,7 +1,7 @@
 """For information only, not yet stable
     require previously launched simulation
     change paths accordingly"""
-from ansys.heart.postprocessor.D3plotPost import LVContourExporter
+from ansys.heart.postprocessor.exporter import LVContourExporter
 from ansys.heart.preprocessor.models import HeartModel
 import matplotlib.pyplot as plt
 

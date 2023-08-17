@@ -43,7 +43,13 @@ extensions = [
     "sphinx_copybutton",
     "autoapi.extension",
     "sphinx_autodoc_typehints",
+    "sphinx_gallery.gen_gallery",
 ]
+
+sphinx_gallery_conf = {
+    "examples_dirs": "../../examples",  # path to your example scripts
+    "gallery_dirs": "examples",  # path where the gallery generated outputs are to be saved
+}
 
 autodoc_mock_imports = ["dynalib", "ansys.dyna"]
 

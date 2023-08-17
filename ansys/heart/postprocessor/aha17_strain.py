@@ -25,19 +25,20 @@ class AhaStrainCalculator:
 
         self.d3plot = D3plotReader(d3plot_file)
 
-    def compute_aha_strain(self, out_dir, with_vtk=False) -> np.ndarray:
-        """
-        Save aha 17 segment strain in csv file.
+    def compute_aha_strain(self, out_dir: str, with_vtk: bool = False) -> np.ndarray:
+        """Compute and save AHA 17 segment strain values.
 
         Parameters
         ----------
-        out_dir: strain csv output directory
-        with_vtk: if write vtk under same directory
+        out_dir : str
+            Output directory where the segements are saved.
+        with_vtk : bool, optional
+            Flag indicating whether to save the VTK file, by default False
 
         Returns
         -------
         np.ndarray
-            17*3 AHA segments LRC strain
+            Average strain values for each of the 17 segments.
         """
         strain = np.zeros((len(self.d3plot.time), 1 + 17 * 3))
 

@@ -93,16 +93,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}
 
-      - if: ${{ steps.cache-strocchi.outputs.cache-hit == 'true' }}
         name: Cache file check
         continue-on-error: true
-        run: ls /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/Strocchi2020 -l
+        run: ls -R -lh /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases
 
       - name: Test biventricle model generation 1
         continue-on-error: false
         run: |
           python -m pytest tests/heart/test_biventricle_mesh_extraction.py
-          ls /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/Strocchi2020 -l
+          ls -R -lh /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases
 
       # - name: Test biventricle model generation 2
       #   continue-on-error: false

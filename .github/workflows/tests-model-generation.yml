@@ -39,7 +39,8 @@ jobs:
 
       # make folder to store image cache.
       - name: Make image directory
-        run: mkdir -p ~/image-cache
+        run: |
+          mkdir -p ~/image-cache
 
       - name: Cache Fluent docker image
           uses: actions/cache@v3

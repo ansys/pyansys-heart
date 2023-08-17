@@ -4,13 +4,29 @@ Pyheart lib
 Python framework for heart modeling using Ansys tools.
 
 
-Note1: Please read LICENSE file before using this package.
+- Please read LICENSE file before using this package.
 
-Note2: Fluent 2022R2 is required (for meshing), available on the Ansys Customer Portal.
+- Fluent 2022R2 is required (for meshing), available on the Ansys Customer Portal.
 
-Note3: Ansys DPF Server is required (for post-process module and calibration module), available on the Ansys Customer Portal.
+- Ansys DPF Server is required (for post-process module and calibration module), available on the Ansys Customer Portal.
 
 
+Prerequisites
+-------------
+
+Required products
+
++-------------------+----------------+-------------+----------------+
+| Product           | Version        | Status      | Scope          |
++-------------------+----------------+-------------+----------------+
+| Ansys Fluent      | R22.2          | Stable      | Pre-processor  |
++-------------------+----------------+-------------+----------------+
+| Ansys LS-DYNA     | DEV-97584      | Dev         | Simulator      |
++-------------------+----------------+-------------+----------------+
+| Ansys DPF Server  | `R24.1.pre0`_  | 05 Oct 2020 | Post-processor |
++-------------------+----------------+-------------+----------------+
+
+.. _R24.1.pre0: https://download.ansys.com/Others/DPF%20Pre-Release
 
 How to install
 --------------

@@ -26,9 +26,14 @@ def get_assets_folder():
     return os.path.join(ROOT_FOLDER, "assets")
 
 
-def download_asset(database: str = "Strocchi2020", casenumber: int = 1) -> pathlib.Path:
+def download_asset(
+    database: str = "Strocchi2020", casenumber: int = 1, clean_folder: bool = False
+) -> pathlib.Path:
     """Download and unpack the requested asset if it is not yet available."""
     download_dir = os.path.join(get_assets_folder(), "cases")
+
+    if database != "Strocchi2020":
+        raise ValueError("Only Strocchi2020 supported for tests.")
 
     path_to_case1 = os.path.join(
         download_dir, database, f"{casenumber:02d}", f"{casenumber:02d}.case"
@@ -56,10 +61,12 @@ def download_asset(database: str = "Strocchi2020", casenumber: int = 1) -> pathl
     if database == "Strocchi2020":
         path_to_vtk = path_to_case.replace(".case", "-350um.vtk")
 
-    if "GITHUB_JOB" in list(os.environ.keys()):
+    if clean_folder:
         if os.path.isfile(path_to_vtk):
             print(f"Removing .vtk file {path_to_vtk}")
             os.remove(path_to_vtk)
+
+        if os.path.isfile(path_to_zip):
             os.remove(path_to_zip)
 
     if os.path.isfile(path_to_case):

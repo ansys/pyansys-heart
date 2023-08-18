@@ -35,31 +35,27 @@ def download_asset(
     if database != "Strocchi2020":
         raise ValueError("Only Strocchi2020 supported for tests.")
 
-    path_to_case1 = os.path.join(
-        download_dir, database, f"{casenumber:02d}", f"{casenumber:02d}.case"
-    )
-    path_to_case2 = os.path.join(
-        download_dir, database, f"{casenumber:02d}", f"{casenumber:02d}.vtk"
-    )
-    if os.path.isfile(path_to_case1):
-        path_to_case = path_to_case1
-    if os.path.isfile(path_to_case2):
-        path_to_case = path_to_case2
-    else:
-        path_to_case = os.path.join(
-            download_dir, database, f"{casenumber:02d}", f"{casenumber:02d}.vtk"
+    # find case name recursively.
+    if database == "Strocchi2020":
+        case_path = os.path.join(
+            os.path.dirname(path_to_zip),
+            "{:02d}".format(casenumber),
+            "{:02d}.case".format(casenumber),
         )
-        if database == "Strocchi2020":
-            path_to_case = path_to_case.replace(".vtk", ".case")
+    elif database == "Rodero2021":
+        case_path = os.path.join(os.path.dirname(path_to_zip), "{:02d}.case".format(casenumber))
 
-    if not os.path.isfile(path_to_case):
-        print("Downloading asset.")
-        path_to_zip = download_case(database, casenumber, download_dir)
-        unpack_case(path_to_zip)
+    if os.path.isfile(case_path):
+        print("File already exists...")
+        return case_path
+
+    print("Downloading asset.")
+    path_to_zip = download_case(database, casenumber, download_dir)
+    unpack_case(path_to_zip)
 
     # remove .vtk file to reduce size (relevant for Github cache)
     if database == "Strocchi2020":
-        path_to_vtk = path_to_case.replace(".case", "-350um.vtk")
+        path_to_vtk = case_path.replace(".case", "-350um.vtk")
 
     if clean_folder:
         if os.path.isfile(path_to_vtk):
@@ -69,8 +65,8 @@ def download_asset(
         if os.path.isfile(path_to_zip):
             os.remove(path_to_zip)
 
-    if os.path.isfile(path_to_case):
-        return path_to_case
+    if os.path.isfile(case_path):
+        return case_path
     else:
         raise FileExistsError("File not found.")
 

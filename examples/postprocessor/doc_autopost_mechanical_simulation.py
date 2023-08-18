@@ -69,6 +69,7 @@ for it, tt in enumerate(np.linspace(0.001, 3, 60)):
 # .. video:: ../../_static/images/pvloop.mp4
 #   :width: 400
 #   :loop:
+#   :class: center
 
 ###############################################################################
 # Export left ventricle contour
@@ -168,3 +169,4 @@ mech_post(meca_folder, model)
 # .. video:: ../../_static/images/main_meca.mp4
 #   :width: 600
 #   :loop:
+#   :class: center

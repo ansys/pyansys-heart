@@ -94,6 +94,9 @@ numpydoc_validation_checks = {
 # static path
 html_static_path = ["_static"]
 
+# custom css file
+html_css_files = ["custom.css"]
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 

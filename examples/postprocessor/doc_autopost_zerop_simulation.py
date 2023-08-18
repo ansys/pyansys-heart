@@ -117,3 +117,4 @@ zerop_post(zerop_folder, model)
 # .. video:: ../../_static/images/inflation.mp4
 #   :width: 300
 #   :loop:
+#   :class: center

@@ -15,11 +15,14 @@ This example shows you how to use post process script after mechanical simulatio
 # sphinx_gallery_thumbnail_path = '_static/images/thumbnails/pv.png'
 # sphinx_gallery_end_ignore
 import os
+import pathlib
 
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
+from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
 from ansys.heart.postprocessor.auto_process import mech_post
 from ansys.heart.postprocessor.exporter import LVContourExporter
 import ansys.heart.preprocessor.models as models
+import matplotlib.pyplot as plt
 import numpy as np
 import pyvista as pv
 
@@ -27,7 +30,7 @@ import pyvista as pv
 # Set relevant paths
 # ~~~~~~~~~~~~~~~~~~
 
-path_to_model = r"D:\pyheart-lib\test_case\test_lv\model_with_fiber.pickle"
+path_to_model = r"your-model-file"
 
 if not os.path.isfile(path_to_model):
     raise FileExistsError(f"{path_to_model} not found")
@@ -36,7 +39,7 @@ if not os.path.isfile(path_to_model):
 model: models.LeftVentricle = models.HeartModel.load_model(path_to_model)
 
 # set simulation path
-meca_folder = r"D:\pyheart-lib\test_case\test_lv\main-mechanics"
+meca_folder = pathlib.Path(r"your-simulation_folder")
 
 ###############################################################################
 # Create PV loop
@@ -44,7 +47,7 @@ meca_folder = r"D:\pyheart-lib\test_case\test_lv\main-mechanics"
 # Pressure-volume loop figure is an important metric for heart function
 system = SystemModelPost(meca_folder)
 fig = system.plot_pv_loop()
-fig.savefig("pv.png")
+plt.show()
 
 ###############################################################################
 # .. image:: /_static/images/pv.png
@@ -56,7 +59,7 @@ for it, tt in enumerate(np.linspace(0.001, 3, 60)):
     # assume heart beat once per 1s
     fig = system.plot_pv_loop(t_start=0, t_end=tt)
     fig.savefig("pv_{0:d}.png".format(it))
-
+    fig.close()
 ###############################################################################
 # An animation  can be created by
 
@@ -93,10 +96,61 @@ plotter.show()
 #   :align: center
 
 ###############################################################################
-# myocardium wall strain
+# Myocardium wall strain
 # ~~~~~~~~~~~~~~~~~~~~~~
 # Compute left ventricle strain in longitudinal, radial, circumferential directions
-# todo
+
+# in case they are not pre-computed
+model.compute_left_ventricle_anatomy_axis()
+model.compute_left_ventricle_aha17()
+
+aha_evaluator = AhaStrainCalculator(model, d3plot_file=meca_folder / "d3plot")
+# get LRC strain at a given time and export a file named LRC_10.vtk
+strain17_at10 = aha_evaluator.compute_aha_strain_once(frame=10, out_dir=".")
+
+# show generated vtk
+aha = pv.read(r"LRC_10.vtk")
+aha.set_active_scalars("AHA")
+aha.plot()
+
+###############################################################################
+# .. image:: /_static/images/aha17.png
+#   :width: 400pt
+#   :align: center
+
+# bulleye plot for strain
+fig, ax = plt.subplots(figsize=(24, 16), nrows=1, ncols=3, subplot_kw=dict(projection="polar"))
+fig.canvas.manager.set_window_title("Left Ventricle Bulls Eyes (AHA)")
+for i in range(3):
+    aha_evaluator.bullseye_plot(ax[i], strain17_at10[:, i])
+ax[0].set_title("longitudinal")
+ax[1].set_title("radial")
+ax[2].set_title("circumferential")
+plt.show()
+
+###############################################################################
+# .. image:: /_static/images/aha17_strain.png
+#   :width: 400pt
+#   :align: center
+
+# get strain for all simulation frames (this will take a while)
+strain_table = aha_evaluator.compute_aha_strain(out_dir=".", with_vtk=False)
+
+# plot
+l_strain_base = np.mean(strain_table[:, 1:19:3], axis=1)
+l_strain_mid = np.mean(strain_table[:, 19:37:3], axis=1)
+l_strain_apical = np.mean(strain_table[:, 37::3], axis=1)
+
+plt.plot(strain_table[:, 0], l_strain_base, label="Longitudinal strain @Basal")
+plt.plot(strain_table[:, 0], l_strain_mid, label="Longitudinal strain @MidCavity")
+plt.plot(strain_table[:, 0], l_strain_apical, label="Longitudinal strain @Apical")
+plt.legend()
+plt.show()
+
+###############################################################################
+# .. image:: /_static/images/l_strain_curve.png
+#   :width: 400pt
+#   :align: center
 
 ###############################################################################
 # Run with default process scripts

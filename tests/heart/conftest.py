@@ -26,42 +26,55 @@ def get_assets_folder():
     return os.path.join(ROOT_FOLDER, "assets")
 
 
-def download_asset(database: str = "Strocchi2020", casenumber: int = 1) -> pathlib.Path:
+def download_asset(
+    database: str = "Strocchi2020", casenumber: int = 1, clean_folder: bool = False
+) -> pathlib.Path:
     """Download and unpack the requested asset if it is not yet available."""
     download_dir = os.path.join(get_assets_folder(), "cases")
 
-    path_to_case1 = os.path.join(
-        download_dir, database, f"{casenumber:02d}", f"{casenumber:02d}.case"
-    )
-    path_to_case2 = os.path.join(
-        download_dir, database, f"{casenumber:02d}", f"{casenumber:02d}.vtk"
-    )
-    if os.path.isfile(path_to_case1):
-        path_to_case = path_to_case1
-    if os.path.isfile(path_to_case2):
-        path_to_case = path_to_case2
-    else:
-        path_to_case = os.path.join(
-            download_dir, database, f"{casenumber:02d}", f"{casenumber:02d}.vtk"
-        )
-        if database == "Strocchi2020":
-            path_to_case = path_to_case.replace(".vtk", ".case")
+    if database != "Strocchi2020":
+        raise ValueError("Only Strocchi2020 supported for tests.")
 
-    if not os.path.isfile(path_to_case):
-        print("Downloading asset.")
-        path_to_zip = download_case(database, casenumber, download_dir)
-        unpack_case(path_to_zip)
-        if database == "Strocchi2020":
-            path_to_case = os.path.join(
-                os.path.dirname(path_to_zip),
-                path_to_zip.replace(".tar.gz", ""),
-                path_to_zip.replace(".tar.gz", ".case"),
-            )
-        elif database == "Cristobal2021":
-            path_to_case = path_to_zip.replace(".tar.gz", ".vtk")
+    # find case name recursively.
+    if database == "Strocchi2020":
+        case_path = os.path.join(
+            download_dir,
+            database,
+            "{:02d}".format(casenumber),
+            "{:02d}.case".format(casenumber),
+        )
+    elif database == "Rodero2021":
+        case_path = os.path.join(
+            download_dir,
+            database,
+            "{:02d}".format(casenumber),
+            "{:02d}.vtk".format(casenumber),
+        )
+
+    if os.path.isfile(case_path):
+        print("File already exists...")
+        return case_path
+
+    print("Downloading asset.")
+    path_to_zip = download_case(database, casenumber, download_dir)
+    unpack_case(path_to_zip)
+
+    # remove .vtk file to reduce size (relevant for Github cache)
+    if database == "Strocchi2020":
+        path_to_vtk = case_path.replace(".case", "-350um.vtk")
+
+    if clean_folder:
+        if os.path.isfile(path_to_vtk):
+            print(f"Removing .vtk file {path_to_vtk}")
+            os.remove(path_to_vtk)
+
+        if os.path.isfile(path_to_zip):
+            os.remove(path_to_zip)
+
+    if os.path.isfile(case_path):
+        return case_path
     else:
-        print("Asset already exists. Skip downloading.")
-    return path_to_case
+        raise FileExistsError("File not found.")
 
 
 def get_workdir():

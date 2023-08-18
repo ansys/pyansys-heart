@@ -38,12 +38,18 @@ def download_asset(
     # find case name recursively.
     if database == "Strocchi2020":
         case_path = os.path.join(
-            os.path.dirname(download_dir),
+            download_dir,
+            database,
             "{:02d}".format(casenumber),
             "{:02d}.case".format(casenumber),
         )
     elif database == "Rodero2021":
-        case_path = os.path.join(os.path.dirname(download_dir), "{:02d}.case".format(casenumber))
+        case_path = os.path.join(
+            download_dir,
+            database,
+            "{:02d}".format(casenumber),
+            "{:02d}.vtk".format(casenumber),
+        )
 
     if os.path.isfile(case_path):
         print("File already exists...")

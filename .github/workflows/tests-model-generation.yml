@@ -52,7 +52,7 @@ jobs:
         id: cache-fluent-image
         with:
           path: ~/image-cache
-          key: image-cache-${{ runner.os }}-v${{ env.RESET_FLUENT_IMAGE_CACHE }}-${{ github.sha }}
+          key: image-cache-${{ runner.os }}-v${{ env.RESET_FLUENT_IMAGE_CACHE }}
           restore-keys: |
             image-cache-${{ runner.os }}-v${{ env.RESET_FLUENT_IMAGE_CACHE }}
 

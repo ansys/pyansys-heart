@@ -48,9 +48,11 @@ jobs:
       - name: Cache Fluent docker image
         uses: actions/cache@v3
         id: cache-fluent-image
+        env:
+          cache-name: fluent
         with:
           path: ~/image-cache
-          key: image-cache-${{ runner.os }}-build-${{ env.cache-name }}
+          key: image-cache-${{ runner.os }}-${{ env.cache-name }}
 
       # Login to Github container registry and pull Fluent image. if image-cach doesn't exist
       - name: Login to GitHub Container Registry
@@ -104,10 +106,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}
 
-      - name: Cache file check
-        continue-on-error: true
-        run: ls -R -lh /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/Strocchi2020
-
       - name: Test biventricle model generation 1
         continue-on-error: false
         run: |
@@ -119,7 +117,13 @@ jobs:
       #   run: |
       #     python -m pytest tests/heart/test_biventricle_mesh_extraction_with_bloodpool.py
 
-      - name: Test full heart model generation
-        continue-on-error: false
+      # - name: Test full heart model generation
+      #   continue-on-error: false
+      #   run: |
+      #     python -m pytest tests/heart/test_fullheart_mesh_extraction.py
+
+      - name: Cached files check
+        continue-on-error: true
         run: |
-          python -m pytest tests/heart/test_fullheart_mesh_extraction.py
+          ls -R -lh /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/Strocchi2020
+          ls -R -lh ~/image-cache

@@ -61,8 +61,14 @@ jobs:
       - name: Pull 22.2 Fluent docker image
         if: steps.image-cache.outputs.cache-hit != 'true'
         run: | 
+          echo "Available disk space before:"
+          df -h
+          echo "*********************"
           docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG          
           docker image prune -f
+          echo "Available disk space after:"
+          df -h
+          echo "*********************"          
           docker save -o ~/image-cache/fluent.tar ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
 
       - name: Load cached Fluent docker image

@@ -110,13 +110,13 @@ jobs:
         run: |
           python -m pytest tests/heart/test_pyfluent.py
 
-      - name: Cache large files
-        id: cache-strocchi
-        uses: actions/cache@v3
-        with:
-          # cache the case file that will be downloaded in tests/heart/assets/cases/Strocchi2020
-          path: /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/Strocchi2020
-          key: cache-strocchi-${{ runner.os }}-v${{ env.RESET_STROCCHI_CACHE }}-${{ github.sha }}
+      # - name: Cache large files
+      #   id: cache-strocchi
+      #   uses: actions/cache@v3
+      #   with:
+      #     # cache the case file that will be downloaded in tests/heart/assets/cases/Strocchi2020
+      #     path: /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/Strocchi2020
+      #     key: cache-strocchi-${{ runner.os }}-v${{ env.RESET_STROCCHI_CACHE }}-${{ github.sha }}
           #restore-keys: |
           #    cache-strocchi-${{ runner.os }}-v${{ env.RESET_STROCCHI_CACHE }}
 
@@ -136,8 +136,8 @@ jobs:
       #   run: |
       #     python -m pytest tests/heart/test_fullheart_mesh_extraction.py
 
-      - name: Cached files check
-        continue-on-error: true
-        run: |
-          ls -R -lh /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/Strocchi2020
-          ls -R -lh ~/image-cache
+      # - name: Cached files check
+      #   continue-on-error: true
+      #   run: |
+      #     ls -R -lh /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/Strocchi2020
+      #     ls -R -lh ~/image-cache

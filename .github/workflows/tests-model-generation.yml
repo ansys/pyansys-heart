@@ -71,6 +71,7 @@ jobs:
           df -h
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo rm -rf /usr/local/lib/android
           echo "After:"
           df -h
 
@@ -83,13 +84,14 @@ jobs:
           df -h
           echo "*********************"        
           echo "Compressing Fluent docker image..."
-          docker save -o ~/image-cache/fluent.tar ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
+          docker save ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG | gzip > ~/image-cache/fluent.tar.gz
 
       - name: Load cached Fluent docker image
         if: steps.cache-fluent-image.outputs.cache-hit == 'true'
         run: |
           echo "Loading docker image from compressed file."
-          docker load -i ~/image-cache/fluent.tar
+          docker import ~/image-cache/fluent.tar.gz
+
          
       - name: Install package
         run: |

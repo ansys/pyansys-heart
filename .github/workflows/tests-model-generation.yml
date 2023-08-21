@@ -65,6 +65,15 @@ jobs:
           username: ${{ secrets.GH_USERNAME }}
           password: ${{ secrets.REPO_DOWNLOAD_PAT }}
 
+      - name: Free up disk space
+        run: |
+          echo "Before:"
+          df -h
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          echo "After:"
+          df -h
+
       - name: Pull 22.2 Fluent docker image
         if: steps.cache-fluent-image.outputs.cache-hit != 'true'
         run: | 

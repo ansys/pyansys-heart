@@ -66,6 +66,7 @@ jobs:
           password: ${{ secrets.REPO_DOWNLOAD_PAT }}
 
       - name: Free up disk space
+        if: steps.cache-fluent-image.outputs.cache-hit != 'true'
         run: |
           echo "Before:"
           df -h

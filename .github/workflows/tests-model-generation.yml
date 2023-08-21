@@ -106,11 +106,11 @@ jobs:
           #restore-keys: |
           #    cache-strocchi-${{ runner.os }}-v${{ env.RESET_STROCCHI_CACHE }}
 
-      # - name: Test biventricle model generation 1
-      #   continue-on-error: false
-      #   run: |
-      #     python -m pytest tests/heart/test_biventricle_mesh_extraction.py
-      #     ls -R -lh /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/
+     - name: Test biventricle model generation 1
+       continue-on-error: false
+       run: |
+         python -m pytest tests/heart/test_biventricle_mesh_extraction.py
+         ls -R -lh /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/
 
       # - name: Test biventricle model generation 2
       #   continue-on-error: false

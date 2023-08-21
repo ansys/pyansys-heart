@@ -50,13 +50,11 @@ jobs:
       - name: Cache Fluent docker image
         uses: actions/cache@v3
         id: cache-fluent-image
-        env:
-          cache-name: fluent
         with:
           path: ~/image-cache
-          key: image-cache-${{ runner.os }}-{{ env.RESET_STROCCHI_CACHE }}-${{ github.sha }}
+          key: image-cache-${{ runner.os }}-v${{ env.RESET_FLUENT_CACHE }}-${{ github.sha }}
           restore-keys: |
-            image-cache-${{ runner.os }}-{{ env.RESET_STROCCHI_CACHE }}
+            image-cache-${{ runner.os }}-v${{ env.RESET_FLUENT_CACHE }}
 
       # Login to Github container registry and pull Fluent image. if image-cach doesn't exist
       - name: Login to GitHub Container Registry
@@ -101,14 +99,12 @@ jobs:
       - name: Cache large files
         id: cache-strocchi
         uses: actions/cache@v3
-        env:
-          cache-name: cache-strocchi
         with:
           # cache the case file that will be downloaded in tests/heart/assets/cases/Strocchi2020
           path: /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/Strocchi2020
-          key: cache-strocchi-${{ runner.os }}-{{ env.RESET_FLUENT_IMAGE_CACHE }}-${{ github.sha }}
+          key: cache-strocchi-${{ runner.os }}-v${{ env.RESET_FLUENT_IMAGE_CACHE }}-${{ github.sha }}
           restore-keys: |
-            cache-strocchi-${{ runner.os }}-{{ env.RESET_FLUENT_IMAGE_CACHE }}
+              cache-strocchi-${{ runner.os }}-v${{ env.RESET_STROCCHI_CACHE }}
 
       # - name: Test biventricle model generation 1
       #   continue-on-error: false

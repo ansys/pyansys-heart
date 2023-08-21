@@ -83,14 +83,12 @@ jobs:
           df -h
           echo "*********************"        
           echo "Compressing Fluent docker image..."
-#          docker save ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG | gzip > ~/image-cache/fluent.tar.gz
           docker save -o ~/image-cache/fluent.tar ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
 
       - name: Load cached Fluent docker image
         if: steps.cache-fluent-image.outputs.cache-hit == 'true'
         run: |
           echo "Loading docker image from compressed file."
-#          docker load -i ~/image-cache/fluent.tar.gz  
           docker load -i ~/image-cache/fluent.tar
          
       - name: Install package

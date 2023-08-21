@@ -56,7 +56,7 @@ jobs:
 
       # Login to Github container registry and pull Fluent image. if image-cach doesn't exist
       - name: Login to GitHub Container Registry
-        if: steps.image-cache.outputs.cache-hit != 'true'
+        if: steps.cache-fluent-image.outputs.cache-hit != 'true'
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
@@ -64,7 +64,7 @@ jobs:
           password: ${{ secrets.REPO_DOWNLOAD_PAT }}
 
       - name: Pull 22.2 Fluent docker image
-        if: steps.image-cache.outputs.cache-hit != 'true'
+        if: steps.cache-fluent-image.outputs.cache-hit != 'true'
         run: | 
           docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG          
           docker image prune -f
@@ -75,7 +75,7 @@ jobs:
       #    docker save -o ~/image-cache/fluent.tar ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
 
       - name: Load cached Fluent docker image
-        if: steps.image-cache.outputs.cache-hit == 'true'
+        if: steps.cache-fluent-image.outputs.cache-hit == 'true'
         run: |
           docker load < ~/image-cache/fluent.tar.gz  
       #    load -i ~/image-cache/fluent.tar

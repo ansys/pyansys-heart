@@ -5,7 +5,7 @@
    :alt: PyAnsys
 
 .. |python| image:: https://img.shields.io/badge/Python-3.8-blue
-   :target: https://pypi.org/project/pyheartlib/
+   :target: https://www.python.org/downloads/release/python-380/
    :alt: Python
 
 .. |MIT| image:: https://img.shields.io/badge/license-MIT-yellow

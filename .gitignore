@@ -14,8 +14,8 @@ __pycache__/
 *.zip
 
 # images
-*.png
-*.PNG
+ *.png
+ *.PNG
 
 # text files
 *.dat

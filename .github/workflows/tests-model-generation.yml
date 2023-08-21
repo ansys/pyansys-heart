@@ -88,6 +88,7 @@ jobs:
           docker save ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG | gzip -1 > ~/image-cache/fluent.tar.gz
           echo "Available disk space after compress:"
           df -h
+          ls -h ~/image-cache
 
       - name: Load cached Fluent docker image
         if: steps.cache-fluent-image.outputs.cache-hit == 'true'

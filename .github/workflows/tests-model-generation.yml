@@ -17,6 +17,8 @@ env:
   PYFLUENT_START_INSTANCE: 0
   PYFLUENT_LAUNCH_CONTAINER: 1          
   FLUENT_IMAGE_TAG: v22.2.0
+  RESET_STROCCHI_CACHE: 0
+  RESET_FLUENT_IMAGE_CACHE: 0
 
 
 concurrency:
@@ -52,7 +54,9 @@ jobs:
           cache-name: fluent
         with:
           path: ~/image-cache
-          key: image-cache-${{ runner.os }}-${{ env.cache-name }}
+          key: image-cache-${{ runner.os }}-{{ env.RESET_STROCCHI_CACHE }}-${{ github.sha }}
+          restore-keys: |
+            image-cache-${{ runner.os }}-{{ env.RESET_STROCCHI_CACHE }}
 
       # Login to Github container registry and pull Fluent image. if image-cach doesn't exist
       - name: Login to GitHub Container Registry
@@ -102,9 +106,9 @@ jobs:
         with:
           # cache the case file that will be downloaded in tests/heart/assets/cases/Strocchi2020
           path: /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/Strocchi2020
-          key: ${{ runner.os }}-build-${{ env.cache-name }}
+          key: cache-strocchi-${{ runner.os }}-{{ env.RESET_FLUENT_IMAGE_CACHE }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}
+            cache-strocchi-${{ runner.os }}-{{ env.RESET_FLUENT_IMAGE_CACHE }}
 
       # - name: Test biventricle model generation 1
       #   continue-on-error: false

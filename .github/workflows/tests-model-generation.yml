@@ -91,7 +91,7 @@ jobs:
         run: |
           echo "Loading docker image from compressed file."
       #    docker load -i ~/image-cache/fluent.tar.gz  
-          load -i ~/image-cache/fluent.tar
+          docker load -i ~/image-cache/fluent.tar
          
       - name: Install package
         run: |

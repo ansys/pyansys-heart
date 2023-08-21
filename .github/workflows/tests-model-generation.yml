@@ -37,7 +37,7 @@ jobs:
         with:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
 
-      make folder to store image cache.
+      # make folder to store image cache.
       - name: Make image directory
         run: |
           mkdir -p ~/image-cache

@@ -30,7 +30,7 @@ import pyvista as pv
 # Set relevant paths
 # ~~~~~~~~~~~~~~~~~~
 
-path_to_model = r"your-model-file"
+path_to_model = r"D:\pyheart-lib\test_case\test_lv\model_with_fiber.pickle"
 
 if not os.path.isfile(path_to_model):
     raise FileExistsError(f"{path_to_model} not found")
@@ -39,7 +39,7 @@ if not os.path.isfile(path_to_model):
 model: models.LeftVentricle = models.HeartModel.load_model(path_to_model)
 
 # set simulation path
-meca_folder = pathlib.Path(r"your-simulation_folder")
+meca_folder = pathlib.Path(r"D:\pyheart-lib\test_case\test_lv\main-mechanics")
 
 ###############################################################################
 # Create PV loop
@@ -59,7 +59,7 @@ for it, tt in enumerate(np.linspace(0.001, 3, 60)):
     # assume heart beat once per 1s
     fig = system.plot_pv_loop(t_start=0, t_end=tt)
     fig.savefig("pv_{0:d}.png".format(it))
-    fig.close()
+    plt.close()
 ###############################################################################
 # An animation  can be created by
 

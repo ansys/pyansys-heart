@@ -94,7 +94,8 @@ jobs:
         if: steps.cache-fluent-image.outputs.cache-hit == 'true'
         run: |
           echo "Loading docker image from compressed file."
-          docker import ~/image-cache/fluent.tar.gz
+          docker load -i ~/image-cache/fluent.tar.gz
+          docker image list
 
          
       - name: Install package

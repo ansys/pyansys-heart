@@ -3,7 +3,7 @@
 name: Test model generation
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: ['opened', 'edited', 'reopened', 'synchronize', 'ready_for_review']
   push:
     tags:
       - "*"
@@ -24,9 +24,8 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-jobs:
+jobs:  
   build:
-# Don't run on draft PR's
     if: github.event.pull_request.draft == false
     name: Tests requiring PyFluent
     runs-on: ubuntu-latest

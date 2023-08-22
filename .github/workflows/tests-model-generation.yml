@@ -25,6 +25,8 @@ concurrency:
 
 jobs:
   build:
+# Don't run on draft PR's
+    if: github.event.pull_request.draft == false
     name: Tests requiring PyFluent
     runs-on: ubuntu-latest
     timeout-minutes: 30

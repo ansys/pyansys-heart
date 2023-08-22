@@ -99,6 +99,7 @@ jobs:
           sudo rm -rf /usr/share/dotnet        
           sudo rm -rf /usr/local/lib/android  
           df -h
+          docker image list
           docker load -i ~/image-cache/fluent.tar
           docker image list
 

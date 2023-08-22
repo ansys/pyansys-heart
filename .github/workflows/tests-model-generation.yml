@@ -94,6 +94,10 @@ jobs:
         if: steps.cache-fluent-image.outputs.cache-hit == 'true'
         run: |
           echo "Loading docker image from compressed file."
+          echo "Free disk space:"
+          df -h
+          sudo rm -rf /usr/share/dotnet          
+          df -h
           docker load -i ~/image-cache/fluent.tar
           docker image list
 

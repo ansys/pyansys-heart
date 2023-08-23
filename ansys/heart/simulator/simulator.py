@@ -379,7 +379,7 @@ class MechanicsSimulator(BaseSimulator):
         self._run_dyna(os.path.join(directory, "main.k"), options="case")
         LOGGER.info("Simulation done.")
 
-        self.stress_free_report = zerop_post(directory, self)
+        self.stress_free_report = zerop_post(directory, self.model)
 
         return
 

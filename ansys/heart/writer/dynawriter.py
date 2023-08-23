@@ -3069,12 +3069,17 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             # if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             #     self.model.left_atrium.apex_points
         if isinstance(self.model, (FourChamber, FullHeart)):
-            node_SAN = self.model.right_atrium.get_point("SA_node").node_id
+            node_apex_left = self.model.left_ventricle.apex_points[0].node_id
+            node_apex_right = self.model.right_ventricle.apex_points[0].node_id
+            stim_nodes = np.array([node_apex_left, node_apex_right])
+
+            if self.model.right_atrium.get_point("SA_node") != None:
+                stim_nodes = self.model.right_atrium.get_point("SA_node").node_id
             # TODO add more nodes to initiate wave propagation !!!!
             node_set_id_stimulationnodes = self.get_unique_nodeset_id()
             # create node-sets for apex
             node_set_kw = create_node_set_keyword(
-                node_ids=[node_SAN + 1],
+                node_ids=stim_nodes + 1,
                 node_set_id=node_set_id_stimulationnodes,
                 title="Stim nodes",
             )

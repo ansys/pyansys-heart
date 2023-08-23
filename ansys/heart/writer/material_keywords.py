@@ -151,6 +151,13 @@ class MaterialHGOMyocardium(keywords.Mat295):
                     "l": 1.78,
                     "eta": 1.45,
                 }
+            elif active_user["actype"] == 3:
+                active = {
+                    "acdir": 1,
+                    "sf": 1.0,
+                    "ss": 0.02,
+                    "sn": 0.02,
+                }
             # Update parameters with user's input
             active.update(active_user)
             # transfer into keywords

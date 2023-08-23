@@ -994,7 +994,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             self.kw_database.node_sets.extend(kws_surface)
 
-    def _update_material_db(self, add_active: bool = True):
+    def _update_material_db(self, add_active: bool = True, em_couple: bool = False):
         """Update the database of material keywords."""
         act_curve_id = self.get_unique_curve_id()
 
@@ -1009,14 +1009,27 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 else:
                     active_dict = material_settings.myocardium["active"]
 
+                # todo hard coded EM coupling parameters
+                if em_couple:
+                    active_dict = {
+                        "actype": 3,
+                        "acthr": 2e-4,
+                        "ca2ionm": 1e-3,  # ca2+50 indeed
+                        "n": 2,
+                        "sigmax": 0.125,
+                        "f": 0,
+                        "l": 1.9,
+                        "eta": 1.45,
+                    }
+
                 myocardium_kw = MaterialHGOMyocardium(
                     mid=part.mid,
                     iso_user=material_settings.myocardium["isotropic"],
                     anisotropy_user=material_settings.myocardium["anisotropic"],
                     active_user=active_dict,
                 )
-
-                myocardium_kw.acid = act_curve_id
+                if not em_couple:
+                    myocardium_kw.acid = act_curve_id
 
                 self.kw_database.material.append(myocardium_kw)
 
@@ -1051,7 +1064,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 # )
                 self.kw_database.material.append(general_tissue_kw)
 
-        if add_active:
+        if add_active and not em_couple:
             # write and add active curve to material database
             if material_settings.myocardium["active"]["actype"] == 1:
                 time_array, calcium_array = active_curve("constant")
@@ -3335,91 +3348,56 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         model: HeartModel,
         settings: SimulationSettings = None,
     ) -> None:
-        super().__init__(model=model, settings=settings)
+        BaseDynaWriter.__init__(self, model=model, settings=settings)
 
-        raise NotImplementedError("This writer has not been implemented yet.")
-        exit()
         self.kw_database = ElectroMechanicsDecks()
         """Collection of keyword decks relevant for mechanics."""
 
-        self.system_model_name = system_model_name
+        self.system_model_name = self.settings.mechanics.system.name
         """Name of system model to use."""
 
         # Depending on the system model specified give list of parameters
+        self.cap_in_zerop = False
+        """
+        If include cap (shell) elements in ZeroPressure.
+        Experimental feature, please do not change it.
+        """
 
-        return
-
-    def update(self):
+    def update(self, with_dynain=False):
         """Update the keyword database."""
-        self._update_node_db()
-        self._update_parts_db()
-        self._update_main_db()
-        self._update_solid_elements_db(add_fibers=True)
-        self._update_segmentsets_db()
-        self._update_nodesets_db()
-        self._update_use_Purkinje()
-        self._update_material_db(add_active=True)
-        self._update_ep_material_db()
+        MechanicsDynaWriter.update(self, with_dynain=with_dynain)
+
+        self._isolate_atria_and_ventricles()
+
+        if self.model.mesh.beam_network:
+            self._update_use_Purkinje()
+            LOGGER.error("Not supported")
+            exit()
+
         self._update_cellmodels()
+        self.kw_database.main.append(keywords.Include(filename="cell_models.k"))
+
         self._update_ep_settings()
-        # for boundary conditions
-        self._add_cap_bc(bc_type="springs_caps")
-        self._add_pericardium_bc()
 
-        # # for control volume
-        self._update_cap_elements_db()
-        self._update_controlvolume_db()
-        self._update_system_model()
-
-        self._get_list_of_includes()
-        self._add_includes()
+        # todo coupling parameters
+        coupling_str = (
+            "*EM_CONTROL_TIMESTEP\n"
+            "$   TSTYPE   DTCONST      LCID    FACTOR     DTMIN     DTMAX\n"
+            "         1       1.0\n"
+            "*EM_CONTROL_COUPLING\n"
+            "$    THCPL     SMCPL    THLCID    SMLCID\n"
+            "                   0\n"
+        )
+        self.kw_database.ep_settings.append("$ EM-MECA coupling control\n")
+        self.kw_database.ep_settings.append(coupling_str)
+        self.kw_database.main.append(keywords.Include(filename="ep_settings.k"))
 
         return
 
     def _update_material_db(self, add_active: bool = True):
         """Update the database of material keywords."""
-        material_settings = copy.deepcopy(self.settings.mechanics.material)
-        # removes all units from settings, hence <attribute>.m not required anymore to access value.
-        material_settings._remove_units()
-
-        for part in self.model.parts:
-            if "ventricle" in part.name.lower() or "septum" in part.name.lower():
-                if not add_active:
-                    active_dct = None
-                else:
-                    active_dct = {
-                        "actype": material_settings.myocardium["active"]["actype"],
-                        "taumax": material_settings.myocardium["active"]["tmax"],
-                        "ca2ionm": material_settings.myocardium["active"]["ca2ionm"],
-                    }
-
-                myocardium_kw = MaterialHGOMyocardium(
-                    mid=part.mid,
-                    iso_user=material_settings.myocardium["isotropic"],
-                    anisotropy_user=material_settings.myocardium["anisotropic"],
-                    active_user=active_dct,
-                )
-
-                self.kw_database.material.append(myocardium_kw)
-
-            elif "atrium" in part.name:
-                # add atrium material
-                # atrium_kw = MaterialAtrium(mid=part.mid)
-                atrium_kw = MaterialHGOMyocardium(
-                    mid=part.mid, iso_user=dict(material_settings.atrium)
-                )
-
-                self.kw_database.material.append(atrium_kw)
-
-            else:
-                LOGGER.warning("Assuming same material as atrium for: {0}".format(part.name))
-
-                # general_tissue_kw = MaterialAtrium(mid=part.mid)
-                general_tissue_kw = MaterialHGOMyocardium(
-                    mid=part.mid, iso_user=dict(material_settings.atrium)
-                )
-                self.kw_database.material.append(general_tissue_kw)
-
+        MechanicsDynaWriter._update_material_db(self, add_active=add_active, em_couple=True)
+        ElectrophysiologyDynaWriter._update_ep_material_db(self)
         return
 
 

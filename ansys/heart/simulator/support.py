@@ -234,6 +234,10 @@ def get_input_geom_and_part_defintions_from_public_database(
         del part_definitions1["Aorta"]
         del part_definitions1["Pulmonary artery"]
 
+    if model_type == "FourChamber":
+        del part_definitions1["Aorta"]
+        del part_definitions1["Pulmonary artery"]
+
     return (geom_all_int, part_definitions1)
 
 

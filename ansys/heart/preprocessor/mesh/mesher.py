@@ -436,6 +436,9 @@ def mesh_from_non_manifold_input_model(
     session.tui.objects.delete_all_geom()
 
     # write mesh
+    if os.path.isfile(path_to_output):
+        os.remove(path_to_output)
+
     session.tui.file.write_mesh(path_to_output)
     session.exit()
 
@@ -459,6 +462,9 @@ def mesh_from_non_manifold_input_model(
     # assign wrapped boundaries to input parts.
     for ii, part in enumerate(model.parts):
         face_zones_wrapped = [fz for fz in mesh.face_zones if part.name in fz.name]
+        if len(face_zones_wrapped) == 0:
+            LOGGER.error(f"Did not find any wrapped face zones for {part.name}")
+
         # replace with remeshed counterpart.
         for jj, boundary in enumerate(part.boundaries):
             for fz in face_zones_wrapped:
@@ -494,8 +500,22 @@ def mesh_from_non_manifold_input_model(
     cell_centroids_2 = cell_centroids.remove_cells(
         cell_centroids.point_data["part-id"] == 0, inplace=False
     )
+    try:
+        cell_centroids_2.point_data.remove("orig_indices")
+    except:
+        KeyError
+    try:
+        cell_centroids_2.point_data.remove("cell-zone-ids")
+    except:
+        KeyError
+    try:
+        cell_centroids_2.cell_data.remove("cell-zone-ids")
+    except:
+        KeyError
 
     cell_centroids_1.point_data.remove("part-id")
+    cell_centroids_1.cell_data.remove("cell-zone-ids")
+
     cell_centroids_1 = cell_centroids_1.interpolate(
         cell_centroids_2, n_points=1, pass_cell_data=False
     )
@@ -503,6 +523,9 @@ def mesh_from_non_manifold_input_model(
 
     # assign part-ids to grid
     grid.cell_data["part-id"] = cell_centroids.point_data["part-id"]
+
+    if np.any(grid.cell_data["part-id"] == 0):
+        raise ValueError("Invalid mesh, not all elements assigned to a part.")
 
     # change FluentMesh object accordingly.
     idx_sorted = np.argsort(np.array(grid.cell_data["part-id"], dtype=int))

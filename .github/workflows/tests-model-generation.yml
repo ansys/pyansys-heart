@@ -37,7 +37,20 @@ jobs:
         with:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
 
+      # make folder to store image cache.
+      # - name: Make image directory
+      #   run: |
+      #     mkdir -p ~/image-cache
+
+      # - name: Cache Fluent docker image
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: ~/image-cache
+      #     key: image-cache-${{ runner.os }}
+
+      # Login to Github container registry and pull Fluent image. if image-cach doesn't exist
       - name: Login to GitHub Container Registry
+        # if: steps.image-cache.outputs.cache-hit != 'true'
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
@@ -48,6 +61,12 @@ jobs:
         run: | 
           docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG          
           docker image prune -f
+      #     docker save -o ~/image-cache/fluent.tar ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
+
+      # - name: Load cached Fluent docker image
+      #   if: steps.image-cache.outputs.cache-hit == 'true'
+      #   run: |
+      #     load -i ~/image-cache/fluent.tar
 
       - name: Install package
         run: |
@@ -67,11 +86,27 @@ jobs:
       #   continue-on-error: false
       #   run: |
       #     python -m pytest tests/heart/preprocessor/test_mesher.py
+      - name: Cache large files
+        id: cache-strocchi
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-strocchi
+        with:
+          # cache the case file that will be downloaded in tests/heart/assets/cases/Strocchi2020
+          path: /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/Strocchi2020
+          key: ${{ runner.os }}-build-${{ env.cache-name }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}
+
+      - name: Cache file check
+        continue-on-error: true
+        run: ls -R -lh /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/Strocchi2020
 
       - name: Test biventricle model generation 1
         continue-on-error: false
         run: |
           python -m pytest tests/heart/test_biventricle_mesh_extraction.py
+          ls -R -lh /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/
 
       # - name: Test biventricle model generation 2
       #   continue-on-error: false

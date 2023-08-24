@@ -1,7 +1,7 @@
 """Module contains system model class.
 
-Note
-----
+Notes
+-----
 Valid models include:
 1. Open loop constant pre-after load
 2. Open-loop 3-element Windkessel
@@ -12,11 +12,41 @@ Valid models include:
 from ansys.dyna.keywords import keywords
 
 
+def _ed_load_template():
+    """
+    Define function template to apply ED pressure.
+
+    Notes
+    -----
+    arg0: define function ID
+    arg1: define function name
+    arg2: target pressure
+    arg3: flow if pressure is not reached
+    """
+    template = (
+        "*DEFINE_FUNCTION\n"
+        "{0}\n"
+        "float {1}(float t, float dp, float area) \n"
+        "{{\n"
+        "float flow1;\n"
+        "if (dp <= {2})\n"
+        "{{\n"
+        "flow1= {3};\n"
+        "}} else\n"
+        "{{\n"
+        "flow1= 0.0;\n"
+        "}}\n"
+        "return flow1;\n"
+        "}}"
+    )
+    return template
+
+
 def windkessel_template():
     """Windkessel template.
 
-    Note
-    ----
+    Notes
+    -----
     p_pre          p_fem                 p_art
     o--|Rv|--->|---|FEM|-->|-------|Ra| --- o -----+
                                             |      |
@@ -206,10 +236,26 @@ def define_function_windkessel(
 ):
     """Generate a Windkessel define function.
 
-    Note
-    ----
-    Yields a formatted define function with a constant pre-load and WK afterload.
+    Parameters
+    ----------
+    function_id : int, optional
+        Function ID that defines the interaction between control volumes, by default 10
+    function_name : str, optional
+        Name of the function, by default "constant_preload_windkessel_after_load"
+    implicit : bool, optional
+        Flag indicating whether in implicit or explicit, by default True
+    constants : dict, optional
+        Constants of the Windkessel model,
+        by default {"Rv": 5.0e-6, "Ra": 1.0e-5, "Rp": 1.2e-4, "Ca": 2.5e4, "Pven": 2}
+    initialvalues : _type_, optional
+        Initial value of arterial pressure, by default {"part_init": 8}
+    ivc : bool, optional
+        _description_, by default False
 
+    Returns
+    -------
+    str
+        Formatted keyword for the define function.
     """
     if implicit:
         implicit_flag = 1

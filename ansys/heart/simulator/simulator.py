@@ -16,6 +16,8 @@ import shutil
 import subprocess
 from typing import Literal
 
+from ansys.heart.custom_logging import LOGGER
+from ansys.heart.misc.element_orth import read_orth_element_kfile
 from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
 from ansys.heart.preprocessor.models_new import FourChamber, FullHeart, HeartModel
 from ansys.heart.simulator.settings.settings import SimulationSettings
@@ -84,7 +86,7 @@ class BaseSimulator:
         self.platform = platform
         """Operating System."""
         if which(lsdynapath) is None:
-            print(f"{lsdynapath} not exist")
+            LOGGER.error(f"{lsdynapath} not exist")
             exit()
 
         if simulation_directory == "":
@@ -107,13 +109,13 @@ class BaseSimulator:
         """Compute the fiber direction on the model."""
         directory = self._write_fibers()
 
-        print("Computing fiber orientation...")
+        LOGGER.info("Computing fiber orientation...")
 
         # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(path_to_input=input_file)
 
-        print("done.")
+        LOGGER.info("done.")
 
         # interpolate new fibers onto model.mesh
         # Number of cells/points or element/node ordering may not be the same
@@ -136,11 +138,10 @@ class BaseSimulator:
         self.model.mesh.cell_data["sheet"] = cell_centers_source.point_data["dVector"]
         print("Done.")
 
-        # from ansys.heart.misc.element_orth import read_orth_element_kfile
-        # print("Assigning fiber orientation to model...")
-        # elem_ids, part_ids, connect, fib, sheet = read_orth_element_kfile(
-        #     os.path.join(directory, "element_solid_ortho.k")
-        # )
+        LOGGER.info("Assigning fiber orientation to model...")
+        elem_ids, part_ids, connect, fib, sheet = read_orth_element_kfile(
+            os.path.join(directory, "element_solid_ortho.k")
+        )
 
         # self.model.mesh.cell_data.set_vectors(fib, name="fiber", deep_copy=True)
         # self.model.mesh.cell_data.set_vectors(sheet, name="sheet", deep_copy=True)
@@ -210,12 +211,12 @@ class EPSimulator(BaseSimulator):
         directory = os.path.join(self.root_directory, folder_name)
         self._write_main_simulation_files(folder_name)
 
-        print("Launching main EP simulation...")
+        LOGGER.info("Launching main EP simulation...")
 
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
 
-        print("done.")
+        LOGGER.info("done.")
 
         return
 
@@ -223,15 +224,15 @@ class EPSimulator(BaseSimulator):
         """Compute the purkinje network."""
         directory = self._write_purkinje_files()
 
-        print("Computing the Purkinje network...")
+        LOGGER.info("Computing the Purkinje network...")
 
         # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
 
-        print("done.")
+        LOGGER.info("done.")
 
-        print("Assign the Purkinje network to the model...")
+        LOGGER.info("Assign the Purkinje network to the model...")
         purkinje_files = glob.glob(os.path.join(directory, "purkinjeNetwork_*.k"))
         for purkinje_file in purkinje_files:
             self.model.mesh.add_purkinje_from_kfile(purkinje_file)
@@ -349,19 +350,19 @@ class MechanicsSimulator(BaseSimulator):
                 )
             except IndexError:
                 # handle if lsda file not exist.
-                print(
+                LOGGER.warning(
                     "Cannot find initial stress file, simulation will run without initial stress."
                 )
                 self.initial_stress = False
 
         self._write_main_simulation_files(folder_name=folder_name)
 
-        print("Launching main simulation...")
+        LOGGER.info("Launching main simulation...")
 
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
 
-        print("done.")
+        LOGGER.info("done.")
 
         if auto_post:
             mech_post(directory, self.model)
@@ -375,9 +376,9 @@ class MechanicsSimulator(BaseSimulator):
         self._write_stress_free_configuration_files(folder_name)
         self.settings.save(Path.Path(directory) / "simulation_settings.yml")
 
-        print("Computing stress-free configuration...")
+        LOGGER.info("Computing stress-free configuration...")
         self._run_dyna(os.path.join(directory, "main.k"), options="case")
-        print("Simulation done.")
+        LOGGER.info("Simulation done.")
 
         self.stress_free_report = zerop_post(directory, self)
 
@@ -507,7 +508,7 @@ def run_lsdyna(
 
     with subprocess.Popen(commands, stdout=subprocess.PIPE, text=True) as p:
         for line in p.stdout:
-            print(line.rstrip())
+            LOGGER.info(line.rstrip())
 
     os.chdir(simulation_directory)
     return

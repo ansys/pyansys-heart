@@ -66,6 +66,7 @@ from ansys.heart.writer.material_keywords import (
     MaterialNeoHook,
     active_curve,
 )
+from ansys.heart.writer.system_models import _ed_load_template, define_function_windkessel
 import numpy as np
 import pandas as pd
 import pkg_resources
@@ -599,6 +600,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         if not with_dynain:
             self._update_node_db()
             self._update_solid_elements_db(add_fibers=True)
+            # no zerop exists, cap mesh need to be written
+            self.cap_in_zerop = False
         else:
             self.kw_database.main.append(keywords.Include(filename="dynain.lsda"))
 
@@ -1647,8 +1650,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # otherwise add the define function
         elif system_settings.name == "ConstantPreloadWindkesselAfterload":
-            from ansys.heart.writer.system_models import define_function_windkessel
-
             if self.system_model_name != system_settings.name:
                 LOGGER.error("Circulation system parameters cannot be rad from Json")
 
@@ -1673,6 +1674,51 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     )
                     self.kw_database.control_volume.append(define_function_wk)
 
+        return
+
+    def _add_enddiastolic_pressure_bc2(self, pressure_lv: float = 1, pressure_rv: float = 1):
+        """
+        Apply ED pressure by control volume.
+
+        Notes
+        -----
+        LSDYNA stress reference configuration bug with this load due to define function.
+        """
+        cavities = [part.cavity for part in self.model.parts if part.cavity]
+        for cavity in cavities:
+            if "atrium" in cavity.name:
+                continue
+
+            # create CV
+            cv_kw = keywords.DefineControlVolume()
+            cv_kw.id = cavity.surface.id
+            cv_kw.sid = cavity.surface.id
+            self.kw_database.main.append(cv_kw)
+
+            # define CV interaction
+            cvi_kw = keywords.DefineControlVolumeInteraction()
+            cvi_kw.id = cavity.surface.id
+            cvi_kw.cvid1 = cavity.surface.id
+            cvi_kw.cvid2 = 0  # ambient
+
+            if "Left ventricle" in cavity.name:
+                cvi_kw.lcid_ = 10
+                pressure = pressure_lv
+            elif "Right ventricle" in cavity.name:
+                cvi_kw.lcid_ = 11
+                pressure = pressure_rv
+
+            self.kw_database.main.append(cvi_kw)
+
+            # define define function
+            definefunction_str = _ed_load_template()
+            self.kw_database.main.append(
+                definefunction_str.format(
+                    cvi_kw.lcid_, "flow_" + cavity.name.replace(" ", "_"), pressure, -200
+                )
+            )
+
+        self.kw_database.main.append(keywords.DatabaseIcvout(dt=10, binary=2))
         return
 
     def _add_enddiastolic_pressure_bc(self, pressure_lv: float = 1, pressure_rv: float = 1):
@@ -1777,7 +1823,6 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # # Approximate end-diastolic pressures
         pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
         pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
-
         self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
         # zerop key words
@@ -1789,7 +1834,6 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # and defining a new part set adding this to the main database will
         # create a part-set id of 999+1
         self.kw_database.main.append(keywords.SetPartListGenerate(sid=999, b1beg=1, b1end=999999))
-
         self.kw_database.main.append(
             custom_keywords.InterfaceSpringbackLsdyna(
                 psid=999, nshv=999, ftype=3, rflag=1, optc="OPTCARD", ndflag=1, cflag=1, hflag=1
@@ -1799,7 +1843,6 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.kw_database.main.append(
             keywords.InterfaceSpringbackExclude(kwdname="BOUNDARY_SPC_NODE")
         )
-
         self._get_list_of_includes()
         self._add_includes()
 

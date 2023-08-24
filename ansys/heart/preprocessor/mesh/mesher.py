@@ -85,8 +85,8 @@ def _fluent_mesh_to_vtk_grid(
     if add_cells:
         # get cell zone ids.
         LOGGER.debug(f"Number of cell zones: {len(fluent_mesh.cell_zones)}")
-        LOGGER.debug(print([[cz.id] * cz.cells.shape[0] for cz in fluent_mesh.cell_zones]))
-        cell_zone_ids = np.hstack(
+
+        cell_zone_ids = np.concatenate(
             [[cz.id] * cz.cells.shape[0] for cz in fluent_mesh.cell_zones], dtype=int
         )
 
@@ -156,8 +156,6 @@ def mesh_from_manifold_input_model(
 
     if not os.path.isdir(workdir):
         os.makedirs(workdir)
-
-    import ansys.fluent.core as pyfluent
 
     # NOTE: when using containerized version - we need to copy all the files
     # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)

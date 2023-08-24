@@ -440,6 +440,8 @@ def mesh_from_non_manifold_input_model(
 
         visited_parts += [part.name]
 
+    print(_get_face_zones_with_filter(session, ["*"]))
+
     LOGGER.info("Wrapping model...")
 
     # wrap entire model in one pass so that we can create a single volume mesh. Use list of all

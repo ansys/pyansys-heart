@@ -3384,6 +3384,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
         MechanicsDynaWriter.update(self, with_dynain=with_dynain)
 
+        # todo: not ready for 4 chamber model
         self._isolate_atria_and_ventricles()
 
         if self.model.mesh.beam_network:
@@ -3406,7 +3407,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
             "$    THCPL     SMCPL    THLCID    SMLCID\n"
             "                   0\n"
         )
-        self.kw_database.ep_settings.append("$ EM-MECA coupling control\n")
+        self.kw_database.ep_settings.append("$ EM-MECA coupling control")
         self.kw_database.ep_settings.append(coupling_str)
         self.kw_database.main.append(keywords.Include(filename="ep_settings.k"))
 

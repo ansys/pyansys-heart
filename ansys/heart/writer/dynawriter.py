@@ -2008,6 +2008,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             nids = np.unique(tets)
 
             # remove nodes not attached to ventricle parts
+            # note: because self.model is a copy of heat model, so we can do this kind of operation
             self.model.mesh.nodes = self.model.mesh.nodes[nids]
             self._update_node_db(ids=nids + 1)
 
@@ -3179,11 +3180,13 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def _update_use_Purkinje(self):
         """Update keywords for Purkinje usage."""
         if self.model.mesh.beam_network:
-            self.kw_database.parts.append(keywords.SectionBeam(secid=3, elform=3, a=645))
-            if self.__class__.__name__ == "ElectroMechanicsDynaWriter":
-                self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=0))
-            else:
-                self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
+            sid = self.get_unique_section_id()
+            self.kw_database.parts.append(keywords.SectionBeam(secid=sid, elform=3, a=645))
+            # if self.__class__.__name__ == "ElectroMechanicsDynaWriter":
+            #     self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=0))
+            # else:
+            # todo Karim verify
+            #     self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
             beams_kw = keywords.ElementBeam()
             for network in self.model.mesh.beam_network:
                 # It is previously defined from purkinje generation step
@@ -3192,21 +3195,26 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 network.pid = self.get_unique_part_id()
 
                 origin_coordinates = self.model.mesh.nodes[network.node_ids[0], :]
-                if network.name == None:
-                    node_apex_left = self.model.left_ventricle.apex_points[0].xyz
-                    node_apex_right = self.model.right_ventricle.apex_points[0].xyz
-                    distance = np.linalg.norm(
-                        origin_coordinates - np.array([node_apex_left, node_apex_right]),
-                        axis=1,
-                    )
-                    if np.min(distance[0]) < 1e-3:
+
+                if network.name == None:  # todo this should be written in model class
+                    if isinstance(self.model, LeftVentricle):
                         network.name = "Left" + "-" + "purkinje"
                         network.nsid = self.model.left_ventricle.endocardium.id
-                    elif np.min(distance[1]) < 1e-3:
-                        network.name = "Right" + "-" + "purkinje"
-                        network.nsid = self.model.right_ventricle.endocardium.id
                     else:
-                        LOGGER.error("Point too far from apex")
+                        node_apex_left = self.model.left_ventricle.apex_points[0].xyz
+                        node_apex_right = self.model.right_ventricle.apex_points[0].xyz
+                        distance = np.linalg.norm(
+                            origin_coordinates - np.array([node_apex_left, node_apex_right]),
+                            axis=1,
+                        )
+                        if np.min(distance[0]) < 1e-3:
+                            network.name = "Left" + "-" + "purkinje"
+                            network.nsid = self.model.left_ventricle.endocardium.id
+                        elif np.min(distance[1]) < 1e-3:
+                            network.name = "Right" + "-" + "purkinje"
+                            network.nsid = self.model.right_ventricle.endocardium.id
+                        else:
+                            LOGGER.error("Point too far from apex")
 
                 self.kw_database.main.append(
                     custom_keywords.EmEpPurkinjeNetwork2(
@@ -3229,7 +3237,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     {
                         "heading": [network.name],
                         "pid": [network.pid],
-                        "secid": [3],
+                        "secid": [sid],
                         "mid": [network.pid],
                     }
                 )
@@ -3365,14 +3373,24 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
     def update(self, with_dynain=False):
         """Update the keyword database."""
+        # todo: temporal fix for node IDs
+        caps = [cap for part in self.model.parts for cap in part.caps]
+        for ic, cap in enumerate(caps):
+            if cap.centroid_id is not None:
+                cap.centroid_id = len(self.model.mesh.nodes) + ic  # center node ID, 0 based
+                cap.triangles[:, 0] = cap.centroid_id
+
+        self.model._assign_cavities_to_parts()
+
         MechanicsDynaWriter.update(self, with_dynain=with_dynain)
 
         self._isolate_atria_and_ventricles()
 
         if self.model.mesh.beam_network:
             self._update_use_Purkinje()
-            LOGGER.error("Not supported")
-            exit()
+            self.kw_database.main.append(keywords.Include(filename="beam_networks.k"))
+            # LOGGER.error("Not supported")
+            # exit()
 
         self._update_cellmodels()
         self.kw_database.main.append(keywords.Include(filename="cell_models.k"))

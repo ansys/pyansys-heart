@@ -1708,10 +1708,12 @@ class FourChamber(HeartModel):
         return SA_point
 
     def compute_AV_node(self) -> Point:
-        """
-        Compute AtrioVentricular node.
+        """Compute Atrio-Ventricular node.
 
-        AtrioVentricular node is defined on endocardium surface and closest to septum.
+        Returns
+        -------
+        Point
+            returns the AV node.
         """
         right_atrium_endo = self.right_atrium.endocardium
 
@@ -1743,7 +1745,7 @@ class FourChamber(HeartModel):
         # create_new_nodes: if duplicate news from solid elements.
 
     def compute_av_conduction(self, create_new_nodes=True) -> BeamMesh:
-        """Compute Atrio-Ventricular conduction.
+        """Compute Atrio-Ventricular conduction by means of beams following a geodesic path.
 
         Parameters
         ----------
@@ -1867,6 +1869,7 @@ class FourChamber(HeartModel):
         return beam
 
     def _define_hisbundle_start_end_point(self, beam_length, beam_number) -> (Point, Point):
+        """Defines start and end points of the bundle of His."""
         # TODO add method in Part class to have a get_mesh()
         septum_point_ids = np.unique(np.ravel(self.mesh.tetrahedrons[self.septum.element_ids,]))
         septum_points = pv.PolyData(self.mesh.nodes[septum_point_ids, :])

@@ -84,6 +84,8 @@ def _fluent_mesh_to_vtk_grid(
 
     if add_cells:
         # get cell zone ids.
+        LOGGER.debug(f"Number of cell zones: {len(fluent_mesh.cell_zones)}")
+        LOGGER.debug(print([[cz.id] * cz.cells.shape[0] for cz in fluent_mesh.cell_zones]))
         cell_zone_ids = np.hstack(
             [[cz.id] * cz.cells.shape[0] for cz in fluent_mesh.cell_zones], dtype=int
         )
@@ -451,6 +453,8 @@ def mesh_from_non_manifold_input_model(
             " ".join(model.boundary_names), "model"
         )
     )
+
+    print(_get_face_zones_with_filter(session, ["*"]))
 
     # rename boundaries accordingly.
     prefixes = [bn + ":*" for bn in model.boundary_names]

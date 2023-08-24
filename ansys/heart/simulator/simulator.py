@@ -417,10 +417,39 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         model: HeartModel,
         lsdynapath: Path,
         dynatype: Literal["smp", "intelmpi", "platformmpi"],
+        num_cpus: int = 1,
+        simulation_directory: Path = "",
+        initial_stress: bool = True,
         platform: Literal["windows", "wsl", "linux"] = "windows",
     ) -> None:
-        super().__init__(model, lsdynapath, dynatype, platform=platform)
-        raise NotImplementedError("Simulator EPMechanicsSimulator not implemented.")
+        MechanicsSimulator.__init__(
+            self, model, lsdynapath, dynatype, num_cpus, simulation_directory, platform=platform
+        )
+
+    def simulate(self, folder_name="ep_meca"):
+        """Launch the main simulation."""
+        directory = os.path.join(self.root_directory, folder_name)
+        self._write_main_simulation_files(folder_name)
+
+        LOGGER.info("Launching EP-MECA simulation...")
+
+        input_file = os.path.join(directory, "main.k")
+        # self._run_dyna(input_file)
+
+        LOGGER.info("done.")
+
+        return
+
+    def _write_main_simulation_files(self, folder_name):
+        """Write LS-DYNA files that are used to start the main simulation."""
+        export_directory = os.path.join(self.root_directory, folder_name)
+        self.directories["main-coupling"] = export_directory
+
+        dyna_writer = writers.ElectroMechanicsDynaWriter(self.model, self.settings)
+        dyna_writer.update()
+        dyna_writer.export(export_directory)
+
+        return export_directory
 
 
 def run_lsdyna(

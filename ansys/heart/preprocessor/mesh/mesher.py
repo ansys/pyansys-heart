@@ -27,6 +27,12 @@ except KeyError:
     _show_fluent_gui = False
 LOGGER.info(f"Showing Fluent gui: {_show_fluent_gui}")
 
+# check whether containerized version of Fluent is used
+if os.getenv("PYFLUENT_LAUNCH_CONTAINER"):
+    _uses_container = True
+else:
+    _uses_container = False
+
 
 try:
     import ansys.fluent.core as pyfluent
@@ -149,19 +155,37 @@ def mesh_from_manifold_input_model(
     if not os.path.isdir(workdir):
         os.makedirs(workdir)
 
+    import ansys.fluent.core as pyfluent
+
+    # NOTE: when using containerized version - we need to copy all the files
+    # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
+    if _uses_container:
+        mounted_volume = pyfluent.EXAMPLES_PATH
+        work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
+        num_cpus = 1
+        show_gui = False
+    else:
+        work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
+        show_gui = _show_fluent_gui
+
+    if os.path.isdir(work_dir_meshing):
+        shutil.rmtree(work_dir_meshing)
+    os.mkdir(work_dir_meshing)
+
+    path_to_output_old = path_to_output
+    path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
+
     min_size = mesh_size
     max_size = mesh_size
     growth_rate = 1.2
 
     # clean up any stls in the directory
-    stls = glob.glob(os.path.join(workdir, "*.stl"))
+    stls = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
     for stl in stls:
         os.remove(stl)
 
     # write all boundaries
-    model.write_part_boundaries(workdir)
-
-    import ansys.fluent.core as pyfluent
+    model.write_part_boundaries(work_dir_meshing)
 
     session = pyfluent.launch_fluent(
         mode="meshing",
@@ -173,8 +197,8 @@ def mesh_from_manifold_input_model(
     )
 
     # import files
-    session.tui.file.import_.cad("no " + workdir + " *.stl yes 40 yes mm")
-    session.tui.file.start_transcript(os.path.join(workdir, "fluent_meshing.log"))
+    session.tui.file.import_.cad("no " + work_dir_meshing + " *.stl yes 40 yes mm")
+    session.tui.file.start_transcript(os.path.join(work_dir_meshing, "fluent_meshing.log"))
     session.tui.objects.merge("'(*) heart")
     session.tui.objects.labels.create_label_per_zone("heart '(*)")
     session.tui.diagnostics.face_connectivity.fix_free_faces("objects '(*) merge-nodes yes 1e-3")
@@ -225,6 +249,10 @@ def mesh_from_manifold_input_model(
     session.tui.file.write_mesh(path_to_output)
     # session.meshing.tui.file.read_journal(script)
     session.exit()
+
+    shutil.copy(path_to_output, path_to_output_old)
+
+    path_to_output = path_to_output_old
 
     mesh = FluentMesh()
     mesh.load_mesh(path_to_output)

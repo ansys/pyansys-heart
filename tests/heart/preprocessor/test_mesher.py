@@ -60,9 +60,9 @@ def test_meshing_for_manifold():
     mesh = mesh_from_manifold_input_model(model, write_dir, mesh_file, mesh_size=0.02)
 
     assert len(mesh.cell_zones) == 3
-    assert ["triangles_001", "triangles_002", "triangles_003", "triangles_004"] == [
-        fz.name for fz in mesh.face_zones if "interior" not in fz.name
-    ]
+    assert ["triangles_001", "triangles_002", "triangles_003", "triangles_004"] == sorted(
+        [fz.name for fz in mesh.face_zones if "interior" not in fz.name]
+    )
 
     os.remove(mesh_file)
 

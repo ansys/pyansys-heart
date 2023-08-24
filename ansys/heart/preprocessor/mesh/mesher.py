@@ -172,7 +172,7 @@ def mesh_from_manifold_input_model(
         shutil.rmtree(work_dir_meshing)
     os.mkdir(work_dir_meshing)
 
-    LOGGER.debug(f"Path to output: {work_dir_meshing}")
+    LOGGER.debug(f"Path to meshing directory: {work_dir_meshing}")
 
     path_to_output_old = path_to_output
     path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
@@ -253,9 +253,6 @@ def mesh_from_manifold_input_model(
     session.exit()
 
     shutil.copy(path_to_output, path_to_output_old)
-
-    LOGGER.debug(f"Path to output: {path_to_output}")
-    LOGGER.debug(f"Path to output: {path_to_output_old}")
 
     path_to_output = path_to_output_old
 

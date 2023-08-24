@@ -172,6 +172,8 @@ def mesh_from_manifold_input_model(
         shutil.rmtree(work_dir_meshing)
     os.mkdir(work_dir_meshing)
 
+    LOGGER.debug(f"Path to output: {work_dir_meshing}")
+
     path_to_output_old = path_to_output
     path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
 
@@ -252,6 +254,9 @@ def mesh_from_manifold_input_model(
 
     shutil.copy(path_to_output, path_to_output_old)
 
+    LOGGER.debug(f"Path to output: {path_to_output}")
+    LOGGER.debug(f"Path to output: {path_to_output_old}")
+
     path_to_output = path_to_output_old
 
     mesh = FluentMesh()
@@ -318,12 +323,32 @@ def mesh_from_non_manifold_input_model(
     if not os.path.isdir(workdir):
         os.makedirs(workdir)
 
+    import ansys.fluent.core as pyfluent
+
+    # NOTE: when using containerized version - we need to copy all the files
+    # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
+    if _uses_container:
+        mounted_volume = pyfluent.EXAMPLES_PATH
+        work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
+        num_cpus = 1
+        show_gui = False
+    else:
+        work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
+        show_gui = _show_fluent_gui
+
+    if os.path.isdir(work_dir_meshing):
+        shutil.rmtree(work_dir_meshing)
+    os.mkdir(work_dir_meshing)
+
+    path_to_output_old = path_to_output
+    path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
+
     min_size = mesh_size
     max_size = mesh_size
     growth_rate = 1.2
 
     # clean up any stls in the directory
-    stls = glob.glob(os.path.join(workdir, "*.stl"))
+    stls = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
     for stl in stls:
         os.remove(stl)
 
@@ -359,7 +384,7 @@ def mesh_from_non_manifold_input_model(
     # ]
 
     # write all boundaries
-    model.write_part_boundaries(workdir)
+    model.write_part_boundaries(work_dir_meshing)
 
     # launch pyfluent
     session = pyfluent.launch_fluent(
@@ -372,8 +397,8 @@ def mesh_from_non_manifold_input_model(
     )
 
     # import stls
-    session.tui.file.import_.cad("no " + workdir + " *.stl yes 40 yes mm")
-    session.tui.file.start_transcript(os.path.join(workdir, "fluent_meshing.log"))
+    session.tui.file.import_.cad("no " + work_dir_meshing + " *.stl yes 40 yes mm")
+    session.tui.file.start_transcript(os.path.join(work_dir_meshing, "fluent_meshing.log"))
 
     # each stl is imported as a separate object. Wrap the different collections of stls to create
     # new surface meshes for each of the parts.
@@ -469,6 +494,10 @@ def mesh_from_non_manifold_input_model(
 
     session.tui.file.write_mesh(path_to_output)
     session.exit()
+
+    shutil.copy(path_to_output, path_to_output_old)
+
+    path_to_output = path_to_output_old
 
     # Update the cell zones such that for each part we have a separate cell zone.
     mesh = FluentMesh()

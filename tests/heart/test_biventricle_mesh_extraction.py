@@ -81,6 +81,9 @@ def extract_bi_ventricle():
         path_to_case, model_type="BiVentricle", database="Strocchi2020"
     )
 
+    print(input_geom)
+    print(part_definitions)
+
     info = models.ModelInfo(
         input=input_geom,
         scalar="surface-id",

@@ -94,7 +94,11 @@ simulator.model.plot_fibers(n_seed_points=2000)
 # compared to the rest of the model.
 
 simulator.compute_purkinje()
+
+# by calling this method, stimulation will at Atrioventricular node
+# if you skip it, stimulation will at apex nodes of two ventricles
 simulator.compute_conduction_system()
+
 simulator.model.plot_purkinje()
 
 ###############################################################################

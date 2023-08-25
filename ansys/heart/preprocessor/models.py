@@ -1708,7 +1708,10 @@ class FourChamber(HeartModel):
         return SA_point
 
     def compute_AV_node(self) -> Point:
-        """Compute Atrio-Ventricular node.
+        """
+        Compute Atrio-Ventricular node.
+
+        AtrioVentricular node is defined on endocardium surface and closest to septum.
 
         Returns
         -------

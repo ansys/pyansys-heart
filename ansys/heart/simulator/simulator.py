@@ -434,7 +434,7 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         LOGGER.info("Launching EP-MECA simulation...")
 
         input_file = os.path.join(directory, "main.k")
-        # self._run_dyna(input_file)
+        self._run_dyna(input_file)
 
         LOGGER.info("done.")
 

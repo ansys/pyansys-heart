@@ -78,6 +78,10 @@ simulator.settings.load_defaults()
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Compute fiber orientation and plot the computed fibers on the entire model.
 
+###############################################################################
+# .. warning::
+#    Atrial fiber orientation is approximated by apex-base direction, the development is undergoing.
+
 simulator.compute_fibers()
 simulator.model.plot_fibers(n_seed_points=2000)
 
@@ -109,3 +113,12 @@ simulator.model.plot_purkinje()
 # and purkinje network to set up and run the LS-DYNA model.
 
 simulator.simulate()
+
+###############################################################################
+# We can plot transmembrane potential in LS-PrePost
+
+###############################################################################
+# .. video:: ../../_static/images/ep_4cv.mp4
+#   :width: 600
+#   :loop:
+#   :class: center

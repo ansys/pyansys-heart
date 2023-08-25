@@ -470,7 +470,7 @@ def run_lsdyna(
                 options,
             ]
     elif platform == "wsl":
-        path_to_input = (
+        path_to_input_wsl = (
             subprocess.run(["wsl", "wslpath", os.path.basename(path_to_input)], capture_output=1)
             .stdout.decode()
             .strip()
@@ -487,13 +487,13 @@ def run_lsdyna(
                 "-np",
                 str(num_cpus),
                 lsdynapath,
-                "i=" + path_to_input,
+                "i=" + path_to_input_wsl,
                 options,
             ]
         elif dynatype in ["smp"]:
             commands = [
                 lsdynapath,
-                "i=" + path_to_input,
+                "i=" + path_to_input_wsl,
                 "ncpu=" + str(num_cpus),
                 options,
             ]

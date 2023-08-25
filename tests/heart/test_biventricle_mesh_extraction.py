@@ -4,6 +4,8 @@ import os
 import shutil
 import sys
 
+from ansys.heart.custom_logging import LOGGER
+
 try:
     os.environ["GITHUB_JOB"]
     is_github_job = True
@@ -81,8 +83,8 @@ def extract_bi_ventricle():
         path_to_case, model_type="BiVentricle", database="Strocchi2020"
     )
 
-    print(input_geom)
-    print(part_definitions)
+    LOGGER.debug(input_geom)
+    LOGGER.debug(part_definitions)
 
     info = models.ModelInfo(
         input=input_geom,

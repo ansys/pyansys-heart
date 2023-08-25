@@ -110,4 +110,17 @@ simulator.model.plot_mesh(show_edges=True)
 # Start the main mechanical simulation. This uses the previously computed fiber orientation
 # and stress free configuration and runs the final LS-DYNA heart model.
 
+###############################################################################
+# .. warning::
+#    In 4-chamber model, atria is passive and only to provide realistic boundary conditions.
+
 simulator.simulate()
+
+###############################################################################
+# We can plot deformation and active stress (history variable 22) in LS-PrePost
+
+###############################################################################
+# .. video:: ../../_static/images/meca_4cv.mp4
+#   :width: 600
+#   :loop:
+#   :class: center

@@ -1869,7 +1869,7 @@ class FourChamber(HeartModel):
         return beam
 
     def _define_hisbundle_start_end_point(self, beam_length, beam_number) -> (Point, Point):
-        """Defines start and end points of the bundle of His."""
+        """Define start and end points of the bundle of His."""
         # TODO add method in Part class to have a get_mesh()
         septum_point_ids = np.unique(np.ravel(self.mesh.tetrahedrons[self.septum.element_ids,]))
         septum_points = pv.PolyData(self.mesh.nodes[septum_point_ids, :])

@@ -129,11 +129,15 @@ def get_input_geom_and_part_defintions_from_public_database(
             name="surface-id", scalars=np.ones(pd.n_cells, dtype=int) * surface_id
         )
 
+        LOGGER.debug(pd)
+
         polydatas += [pd]
 
     all_p = pv.PolyData()
     for p in polydatas:
         all_p += p
+
+    LOGGER.debug(all_p)
 
     # re-compute tag to label dict
     tag_to_label = {v: "-".join(k.split(" ")) for k, v in labels.items()}

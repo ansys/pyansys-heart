@@ -133,8 +133,9 @@ def get_input_geom_and_part_defintions_from_public_database(
 
         polydatas += [pd]
 
-    all_p = pv.PolyData()
-    for p in polydatas:
+    # combine polydata's into one.
+    all_p = polydatas[0]
+    for p in polydatas[1:]:
         all_p += p
 
     LOGGER.debug(all_p)

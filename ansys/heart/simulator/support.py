@@ -129,7 +129,7 @@ def get_input_geom_and_part_defintions_from_public_database(
             name="surface-id", scalars=np.ones(pd.n_cells, dtype=int) * surface_id
         )
 
-        LOGGER.debug(pd)
+        # LOGGER.debug(pd)
 
         polydatas += [pd]
 
@@ -138,6 +138,7 @@ def get_input_geom_and_part_defintions_from_public_database(
     for p in polydatas[1:]:
         all_p += p
 
+    LOGGER.debug("*2*")
     LOGGER.debug(all_p)
 
     # re-compute tag to label dict
@@ -193,7 +194,17 @@ def get_input_geom_and_part_defintions_from_public_database(
     # geom_all.set_scalars(name="surface-id", geom_all.cell_data[])
     geom_all.rename_array("tags", "surface-id")
     geom_all.cell_data["surface-id"] = np.array(geom_all.cell_data["surface-id"], dtype=np.int32)
+
+    LOGGER.debug("*3*")
+    print(geom_all)
+
+    LOGGER.debug("*4*")
+    print(all_p)
+
     geom_all_int = geom_all + all_p
+
+    LOGGER.debug("*5*")
+    print(geom_all_int)
 
     # extract tag-id and also those of interface. These make up the part.
     # form part definitions:

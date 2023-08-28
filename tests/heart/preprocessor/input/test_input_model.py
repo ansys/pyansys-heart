@@ -1,18 +1,20 @@
 """Test input manager"""
 
-import os
-from typing import Union
-import pytest
 import glob as glob
-
-
-from ansys.heart.preprocessor.input import _InputModel, _InputPart, _InputBoundary
-import numpy as np
-import pyvista as pv
+import os
 import shutil
+from typing import Union
+
+from ansys.heart.preprocessor.input import _InputModel
+
+# from ansys.heart.preprocessor.input import _InputBoundary, _InputPart
+import numpy as np
+import pytest
+import pyvista as pv
 
 import tests.heart.conftest as conftest
-from tests.heart.preprocessor.common import _create_simple_unstructured_grid
+
+# from tests.heart.preprocessor.common import _create_simple_unstructured_grid
 
 
 def _is_same_mesh(

@@ -191,7 +191,9 @@ def get_input_geom_and_part_defintions_from_public_database(
 
     label_to_tag = {v: k for k, v in new_tag_to_label.items()}
 
-    geom_all.cell_data["surface-id"] = np.array(geom_all.cell_data["tags"], dtype=np.int32)
+    geom_all.cell_data.set_scalars(
+        name="surface-id", scalars=np.array(geom_all.cell_data["tags"], dtype=np.int64)
+    )
     geom_all.cell_data.remove("tags")
 
     LOGGER.debug("*3*")

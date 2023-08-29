@@ -3,6 +3,7 @@ from ansys.heart.preprocessor.mesh.vtkmethods import get_cells_with_scalar_value
 import numpy as np
 import pyvista as pv
 from pyvista import examples
+import pytest
 
 
 def test_get_cells_with_scalar_value():
@@ -32,3 +33,17 @@ def test_set_get_cell_point_data():
     sphere.cell_data["surface-id-2"] = np.ones(sphere.n_cells, dtype=int)
     assert "surface-id-2" in list(sphere.cell_data.keys())
     assert np.all(sphere.cell_data["surface-id-2"] == np.ones(sphere.n_cells, dtype=int))
+
+
+@pytest.mark.parametrize("datatype", [np.int64, np.int32, int])
+def test_add_polydata(datatype):
+    """Test adding polydata's with scalar data"""
+    sphere1 = pv.Sphere(radius=5)
+    sphere1.cell_data.set_scalars(scalars=np.ones(sphere1.n_cells, dtype=int), name="region")
+
+    sphere2 = pv.Sphere(radius=10)
+    sphere2.cell_data.set_scalars(scalars=np.zeros(sphere1.n_cells, dtype=datatype), name="region")
+
+    sphere: pv.PolyData = sphere1 + sphere2
+
+    assert "region" in list(sphere.cell_data.keys())

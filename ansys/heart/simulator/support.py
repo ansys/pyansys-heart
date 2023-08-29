@@ -194,7 +194,7 @@ def get_input_geom_and_part_defintions_from_public_database(
     # geom_all.set_scalars(name="surface-id", geom_all.cell_data[])
     # geom_all.rename_array("tags", "surface-id", preference="cell")
     tags = copy.deepcopy(geom_all.cell_data["tags"])
-    geom_all.cell_data.set_scalars(name="surface-id", scalars=np.array(tags, dtype=np.int32))
+    geom_all.cell_data.set_scalars(name="surface-id", scalars=np.array(tags, dtype=np.int64))
 
     LOGGER.debug("*3*")
     LOGGER.debug(geom_all.cell_data)

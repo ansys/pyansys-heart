@@ -191,10 +191,10 @@ def get_input_geom_and_part_defintions_from_public_database(
 
     label_to_tag = {v: k for k, v in new_tag_to_label.items()}
 
-    geom_all.cell_data.set_scalars(
-        name="surface-id", scalars=np.array(geom_all.cell_data["tags"], dtype=np.int64)
-    )
-    geom_all.cell_data.remove("tags")
+    # geom_all.set_scalars(name="surface-id", geom_all.cell_data[])
+    # geom_all.rename_array("tags", "surface-id", preference="cell")
+    tags = copy.deepcopy(geom_all.cell_data["tags"])
+    geom_all.cell_data.set_scalars(name="surface-id", scalars=np.array(tags, dtype=np.int32))
 
     LOGGER.debug("*3*")
     LOGGER.debug(geom_all.cell_data)
@@ -205,7 +205,7 @@ def get_input_geom_and_part_defintions_from_public_database(
     geom_all_int = geom_all + all_p
 
     LOGGER.debug("*5*")
-    LOGGER.debug(geom_all_int)
+    LOGGER.debug(geom_all_int.cell_data)
 
     # extract tag-id and also those of interface. These make up the part.
     # form part definitions:

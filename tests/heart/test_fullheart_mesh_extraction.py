@@ -2,7 +2,6 @@
 expected features."""
 import os
 import shutil
-import sys
 
 try:
     os.environ["GITHUB_JOB"]

@@ -2,7 +2,6 @@
 expected features."""
 import os
 import shutil
-import sys
 
 from ansys.heart.custom_logging import LOGGER
 

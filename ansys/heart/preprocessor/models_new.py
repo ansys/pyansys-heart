@@ -568,8 +568,7 @@ class HeartModel:
                 if surface.n_cells == 0:
                     LOGGER.debug(f"Skipping {surface.name} no cells in surface.")
                     continue
-                
-            
+
                 nodal_areas = vtkmethods.compute_surface_nodal_area_pyvista(surface)
                 surface.point_data["nodal_areas"] = nodal_areas
 

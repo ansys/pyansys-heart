@@ -1,6 +1,17 @@
 # from conftest import get_workdir, clean_directory
 import os
 
+try:
+    os.environ["GITHUB_JOB"]
+    is_github_job = True
+except KeyError:
+    is_github_job = False
+
+# disable Fluent gui for github job
+if is_github_job:
+    os.environ["SHOW_FLUENT_GUI"] = "0"
+
+
 from ansys.heart.preprocessor.input import _InputModel
 from ansys.heart.preprocessor.mesh.mesher import (
     mesh_from_manifold_input_model,
@@ -39,19 +50,19 @@ def test_meshing_for_manifold():
 
     write_dir = os.path.join(get_workdir(), "mesher1")
 
-    clean_directory(write_dir)
-
     # write_dir = r"D:\development\pyheart-lib\pyheart-lib\tests\heart\workdir_tests\mesher"
     if not os.path.isdir(write_dir):
         os.makedirs(write_dir)
+    else:
+        clean_directory(write_dir)
 
     mesh_file = os.path.join(write_dir, "test_mesh.msh.h5")
     mesh = mesh_from_manifold_input_model(model, write_dir, mesh_file, mesh_size=0.02)
 
     assert len(mesh.cell_zones) == 3
-    assert ["triangles_001", "triangles_002", "triangles_003", "triangles_004"] == [
-        fz.name for fz in mesh.face_zones if "interior" not in fz.name
-    ]
+    assert ["triangles_001", "triangles_002", "triangles_003", "triangles_004"] == sorted(
+        [fz.name for fz in mesh.face_zones if "interior" not in fz.name]
+    )
 
     os.remove(mesh_file)
 
@@ -121,9 +132,10 @@ def test_meshing_for_non_manifold():
     fluent_mesh = mesh_from_non_manifold_input_model(model, write_dir, mesh_file, mesh_size=0.1)
 
     assert len(fluent_mesh.cell_zones) == 2
-    assert ["s1", "s2", "s3", "s4", "s5", "s6", "s8", "s9", "s10", "s11", "s12"] == [
-        fz.name for fz in fluent_mesh.face_zones if "interior" not in fz.name
-    ]
+    assert sorted([cz.name for cz in fluent_mesh.cell_zones]) == sorted(model.part_names)
+    assert sorted(["s1", "s2", "s3", "s4", "s5", "s6", "s8", "s9", "s10", "s11", "s12"]) == sorted(
+        [fz.name for fz in fluent_mesh.face_zones if "interior" not in fz.name]
+    )
 
     os.remove(mesh_file)
 

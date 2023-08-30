@@ -32,7 +32,7 @@ class FluentCellZone:
         Requires list of all cells.
 
         """
-        self.cells = all_cells[self.min_id : self.max_id]
+        self.cells = all_cells[self.min_id : self.max_id + 1, :]
         return
 
 
@@ -130,12 +130,14 @@ class FluentMesh:
             cell_zone.cells = cell_zone.cells - 1
         for face_zone in self.face_zones:
             face_zone.faces = face_zone.faces - 1
+
+        self.cells = self.cells - 1
         return
 
     def _set_cells_in_cell_zones(self) -> List[FluentCellZone]:
         """Iterate over the cell zones and assigns cells to them."""
         for cell_zone in self.cell_zones:
-            zone_cell_ids = np.arange(cell_zone.min_id, cell_zone.max_id, 1)
+            zone_cell_ids = np.arange(cell_zone.min_id, cell_zone.max_id + 1, 1)
             mask = np.isin(self.cell_ids, zone_cell_ids)
             cell_zone.cells = self.cells[mask, :]
 

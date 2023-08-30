@@ -4,7 +4,7 @@ import os
 import shutil
 
 import ansys.heart.preprocessor.models as models
-from ansys.heart.simulator.support import run_preprocessor
+from ansys.heart.simulator.support import _deprecated_run_preprocessor
 import numpy as np
 import pytest
 
@@ -60,7 +60,7 @@ def extract_bi_ventricle():
     path_to_model = os.path.join(workdir, "heart_model.pickle")
 
     global model
-    model = run_preprocessor(
+    model = _deprecated_run_preprocessor(
         model_type=reference_model.__class__,
         database="Strocchi2020",
         path_original_mesh=path_to_case,

@@ -1,6 +1,17 @@
 """Collection of methods to test pyfluent."""
+import os
 
 import ansys.fluent.core as pyfluent
+
+try:
+    os.environ["GITHUB_JOB"]
+    is_github_job = True
+except KeyError:
+    is_github_job = False
+
+# disable Fluent gui for github job
+if is_github_job:
+    os.environ["SHOW_FLUENT_GUI"] = "0"
 
 
 def test_launch_fluent():
@@ -12,7 +23,7 @@ def test_launch_fluent():
             processor_count=1,
             start_transcript=False,
             show_gui=False,
-            product_version="22.2.0",
+            product_version="23.1.0",
         )
         assert session.check_health() == "SERVING"
         # try to initialize workflow

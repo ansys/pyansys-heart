@@ -13,11 +13,13 @@ from ansys.heart.preprocessor.input import _InputModel
 # from ansys.heart.preprocessor.input import HEART_MODELS
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher
+from ansys.heart.preprocessor.mesh.mesher import _fluent_mesh_to_vtk_grid
 from ansys.heart.preprocessor.mesh.objects import Cap, Cavity, Mesh, Part, Point, SurfaceMesh
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 import numpy as np
 import pyvista as pv
 from scipy.spatial.transform import Rotation as R
+import yaml
 
 
 class ModelInfo:
@@ -94,11 +96,21 @@ class ModelInfo:
 
     def dump_info(self, filename: pathlib.Path = None) -> None:
         """Dump model information to file."""
-        self.input = None
+        if not isinstance(self.input, (str, pathlib.Path)):
+            self.input = None
+
         if not filename:
             filename = os.path.join(self.workdir, "model_info.json")
+
+        extension = os.path.splitext(filename)[1]
         with open(filename, "w") as file:
-            file.write(json.dumps(self.__dict__, indent=4))
+            if extension == ".json":
+                formatted_string = json.dumps(self.__dict__, indent=4)
+            elif extension == ".yml":
+                formatted_string = yaml.dump(self.__dict__, indent=4, sort_keys=False)
+
+            file.write(formatted_string)
+
         return
 
 
@@ -129,9 +141,39 @@ class HeartModel:
         return [part.pid for part in self.parts]
 
     @property
+    def surface_names(self) -> List[str]:
+        """Return list of all defined surface names."""
+        return [s.name for p in self.parts for s in p.surfaces]
+
+    @property
+    def surface_ids(self) -> List[str]:
+        """Return list of all defined surface names."""
+        return [s.id for p in self.parts for s in p.surfaces]
+
+    @property
     def cavities(self) -> List[Cavity]:
         """Return list of cavities in the model."""
         return [part.cavity for part in self.parts if part.cavity]
+
+    @property
+    def part_name_to_part_id(self) -> dict:
+        """Dictionary that maps the part name to the part id."""
+        return {p.name: p.pid for p in self.parts}
+
+    @property
+    def part_id_to_part_name(self) -> dict:
+        """Dictionary that maps part id to part name."""
+        return {p.pid: p.name for p in self.parts}
+
+    @property
+    def surface_name_to_surface_id(self) -> dict:
+        """Dictionary that maps surface name to surface id."""
+        return {s.name: s.id for p in self.parts for s in p.surfaces}
+
+    @property
+    def surface_id_to_surface_name(self) -> dict:
+        """Dictionary that maps surface name to surface id."""
+        return {s.id: s.name for p in self.parts for s in p.surfaces}
 
     def __init__(self, info: ModelInfo) -> None:
         self.info = info
@@ -167,41 +209,58 @@ class HeartModel:
         )
         return
 
-    def mesh_volume(self):
+    def mesh_volume(self, use_wrapper: bool = False):
         """Remesh the input model and fill the volume.
+
+        Parameters
+        ----------
+        use_wrapper : bool, optional
+            Flag for switch to non-manifold mesher, by default False
 
         Notes
         -----
-        Uses (Py)Fluent for remeshing.
+        Note that when the input surfaces are non-manifold the wrapper tries
+        to reconstruct the surface and parts. Inevitably this leads to
+        reconstruction errors. Nevertheless, in some instances this approach is
+        robuster than meshing from a manifold surface.
         """
         path_to_output_model = os.path.join(self.info.workdir, "simulation_mesh.msh.h5")
-        fluent_mesh = mesher.mesh_from_manifold_input_model(
-            model=self._input,
-            workdir=self.info.workdir,
-            mesh_size=self.info.mesh_size,
-            path_to_output=path_to_output_model,
-        )
 
-        # use part definitions to find which cell zone belongs to which part.
-        for input_part in self._input.parts:
-            surface = input_part.combined_boundaries
-            for cz in fluent_mesh.cell_zones:
-                # use centroid of first cell to find which input part it belongs to.
-                centroid = pv.PolyData(np.mean(fluent_mesh.nodes[cz.cells[0, :], :], axis=0))
-                if np.all(centroid.select_enclosed_points(surface).point_data["SelectedPoints"]):
-                    cz.id = input_part.id
+        if use_wrapper:
+            LOGGER.warning("Meshing from non-manifold model not yet available.")
 
-        cells = np.vstack([cz.cells for cz in fluent_mesh.cell_zones])
-        part_ids = [[cz.id] * cz.cells.shape[0] for cz in fluent_mesh.cell_zones]
-        part_ids = [v for l in part_ids for v in l]
+            fluent_mesh = mesher.mesh_from_non_manifold_input_model(
+                model=self._input,
+                workdir=self.info.workdir,
+                mesh_size=self.info.mesh_size,
+                path_to_output=path_to_output_model,
+            )
+        else:
+            fluent_mesh = mesher.mesh_from_manifold_input_model(
+                model=self._input,
+                workdir=self.info.workdir,
+                mesh_size=self.info.mesh_size,
+                path_to_output=path_to_output_model,
+            )
 
-        mesh = Mesh()
-        mesh.nodes = fluent_mesh.nodes
-        mesh.tetrahedrons = cells
-        mesh.cell_data["part-id"] = part_ids
+        # remove empty cell zones
+        num_cell_zones1 = len(fluent_mesh.cell_zones)
+        fluent_mesh.cell_zones = [cz for cz in fluent_mesh.cell_zones if cz.cells.shape[0] > 0]
+        num_cell_zones2 = len(fluent_mesh.cell_zones)
+        if num_cell_zones1 > num_cell_zones2:
+            LOGGER.warning("Removed {0} cell zones".format(num_cell_zones1 - num_cell_zones2))
+
+        # Use only cell zones that are inside the parts defined in the input.
+        fluent_mesh.cell_zones = [
+            cz for cz in fluent_mesh.cell_zones if cz.id in self._input.part_ids
+        ]
+
+        vtk_grid = _fluent_mesh_to_vtk_grid(fluent_mesh)
+
+        mesh = Mesh(vtk_grid)
+        mesh.cell_data["part-id"] = mesh.cell_data["cell-zone-ids"]
 
         # merge some face zones that Fluent split based on connectivity
-        fz_names = [fz.name for fz in fluent_mesh.face_zones]
         idx_to_remove = []
         for ii, fz in enumerate(fluent_mesh.face_zones):
             if ":" in fz.name:
@@ -216,9 +275,9 @@ class HeartModel:
             fz for ii, fz in enumerate(fluent_mesh.face_zones) if ii not in idx_to_remove
         ]
 
-        # add surfaces
+        # add face zones to mesh object.
         mesh.boundaries = [
-            SurfaceMesh(name=fz.name, triangles=fz.faces, nodes=mesh.nodes, sid=fz.id)
+            SurfaceMesh(name=fz.name, triangles=fz.faces, nodes=mesh.nodes, id=fz.id)
             for fz in fluent_mesh.face_zones
             if not "interior" in fz.name
         ]
@@ -291,7 +350,7 @@ class HeartModel:
         LOGGER.info("*****************************************")
         return
 
-    def dump_model(self, filename: pathlib.Path = None, remove_raw_mesh: bool = True) -> None:
+    def dump_model(self, filename: pathlib.Path = None) -> None:
         """Save model to file.
 
         Examples
@@ -306,12 +365,6 @@ class HeartModel:
             filename = self.info.path_to_model
         else:
             self.info.path_to_model = filename
-
-        # cleanup model object for more efficient storage
-        # NOTE deleting faces, nodes of surfaces does not affect size
-        # due to copy-by-reference
-        if remove_raw_mesh:
-            self.mesh_raw = None
 
         with open(filename, "wb") as file:
             pickle.dump(self, file)
@@ -346,7 +399,7 @@ class HeartModel:
         plotter.show()
         return
 
-    def plot_fibers(self, n_seed_points: int = 1000, plot_raw_mesh: bool = False):
+    def plot_fibers(self, n_seed_points: int = 1000):
         """Plot the mesh and fibers as streamlines.
 
         Parameters
@@ -369,14 +422,7 @@ class HeartModel:
             return
         plotter = pyvista.Plotter()
 
-        if plot_raw_mesh:
-            if not isinstance(self.mesh_raw, Mesh):
-                LOGGER.info("Raw mesh not available.")
-                return
-            mesh = self.mesh_raw
-        else:
-            mesh = self.mesh
-
+        mesh = self.mesh
         mesh = mesh.ctp()
         streamlines = mesh.streamlines(vectors="fiber", source_radius=75, n_points=n_seed_points)
         tubes = streamlines.tube()
@@ -516,6 +562,13 @@ class HeartModel:
         # compute nodal areas for explicitly named surfaces
         for part in self.parts:
             for surface in part.surfaces:
+                if surface.n_points == 0:
+                    LOGGER.debug(f"Skipping {surface.name} no points in surface")
+                    continue
+                if surface.n_cells == 0:
+                    LOGGER.debug(f"Skipping {surface.name} no cells in surface.")
+                    continue
+
                 nodal_areas = vtkmethods.compute_surface_nodal_area_pyvista(surface)
                 surface.point_data["nodal_areas"] = nodal_areas
 
@@ -557,9 +610,15 @@ class HeartModel:
         9. Adds nodal areas
         10. Adds surface normals to boundaries
         """
+        self._sync_input_parts_to_model_parts()
+
         self._extract_septum()
         self._assign_elements_to_parts()
         self._assign_surfaces_to_parts()
+
+        self._validate_parts()
+        self._validate_surfaces()
+
         self._assign_caps_to_parts()
 
         self._assign_cavities_to_parts()
@@ -574,12 +633,12 @@ class HeartModel:
         if "fiber" not in self.mesh.array_names:
             LOGGER.debug("Adding placeholder for fiber direction.")
             fiber = np.tile([[0.0, 0.0, 1.0]], (self.mesh.n_cells, 1))
-            self.mesh.cell_data.set_vectors(fiber, "fiber")
+            self.mesh.cell_data["fiber"] = fiber
 
         if "sheet" not in self.mesh.array_names:
             LOGGER.debug("Adding placeholder for sheet direction.")
-            fiber = np.tile([[0.0, 1.0, 1.0]], (self.mesh.n_cells, 1))
-            self.mesh.cell_data.set_vectors(fiber, "fiber")
+            sheet = np.tile([[0.0, 1.0, 1.0]], (self.mesh.n_cells, 1))
+            self.mesh.cell_data["sheet"] = sheet
 
         if "uvc_l" not in self.mesh.array_names:
             LOGGER.debug("Add approximate longitudinal coordinates.")
@@ -595,6 +654,32 @@ class HeartModel:
 
         return
 
+    def _sync_input_parts_to_model_parts(self):
+        """Synchronize the input parts to the model parts.
+
+        Note
+        ----
+        Checks:
+            overwrites the default part ids by those given by user.
+        """
+        # unassign any part ids.
+        for p in self.parts:
+            p.pid = None
+
+        for input_part in self._input.parts:
+            try:
+                idx = self.part_names.index(input_part.name)
+                self.parts[idx].pid = input_part.id
+            except ValueError:
+                LOGGER.debug(f"Failed to find a match for: {input_part.name}")
+                continue
+
+        # assign new ids to parts without part id
+        for p in self.parts:
+            if not p.pid:
+                p.pid = max([pid for pid in self.part_ids if pid != None]) + 1
+        return
+
     def _extract_septum(self) -> None:
         """Separate the septum elements from the left ventricle.
 
@@ -607,8 +692,10 @@ class HeartModel:
             return None
 
         surface_septum = [s for s in self.mesh.boundaries if "septum" in s.name]
-        if len(surface_septum) != 1:
+        if len(surface_septum) > 1:
             raise ValueError("Expecting only one surface that contains string: 'septum'")
+        if len(surface_septum) == 0:
+            raise ValueError("No boundary with name: 'septum' found")
         surface_septum = surface_septum[0]
 
         # extrude septum surface
@@ -695,12 +782,12 @@ class HeartModel:
             summ = summ + part.element_ids.shape[0]
         LOGGER.debug("Total num elements: {}".format(summ))
 
-        if summ != self.mesh.tetrahedrons.shape[0]:
-            raise ValueError(
-                "{0} elements assigned to parts - but {1} exist in mesh".format(
-                    summ, self.mesh.tetrahedrons.shape[0]
-                )
+        # if summ != self.mesh.tetrahedrons.shape[0]:
+        LOGGER.debug(
+            "{0} elements assigned to parts - {1} exist in mesh".format(
+                summ, self.mesh.tetrahedrons.shape[0]
             )
+        )
 
         return
 
@@ -712,14 +799,18 @@ class HeartModel:
                 boundary_surface = self.mesh.get_surface_from_name(boundary_name)
                 if "septum" in surface.name:
                     try:
-                        boundary_surface = self.mesh.boundaries[
-                            self.mesh.boundary_names.index("septum")
-                        ]
+                        septum = [b for b in self.mesh.boundaries if "septum" in b.name]
+                        if len(septum) > 1:
+                            LOGGER.warning(
+                                "Multiple candidate boundaries for septum found, using first one."
+                            )
+                        boundary_surface = septum[0]
                     except:
                         boundary_surface = None
                 if boundary_surface:
                     surface.triangles = boundary_surface.triangles
                     surface.nodes = boundary_surface.nodes
+                    surface.id = boundary_surface.id
                 else:
                     LOGGER.warning("Could not find matching surface for: {0}".format(surface.name))
 
@@ -750,8 +841,12 @@ class HeartModel:
                     continue
                 for edge_group in surface.edge_groups:
                     if edge_group.type != "closed":
-                        LOGGER.warning("Expecting closed group of edges")
-                        continue
+                        LOGGER.warning(
+                            "Assuming closed edge group: cavity with {0} not be watertight!".format(  # noqa: E501
+                                surface.name
+                            )
+                        )
+                        # continue
 
                     for surf in remaining_surfaces1:
                         if "valve" not in surf.name and "inlet" not in surf.name:
@@ -767,10 +862,19 @@ class HeartModel:
 
                             cap = Cap(name=name_valve, node_ids=edge_group.edges[:, 0])
 
+                            # add cap centroid.
+                            cap.centroid = np.mean(surf.nodes[cap.node_ids, :], axis=0)
+
+                            # add cap centroid to node list
+                            self.mesh.nodes = np.vstack([self.mesh.nodes, cap.centroid])
+                            surf.nodes = self.mesh.nodes
+                            cap.centroid_id = self.mesh.nodes.shape[0] - 1
+
                             # get approximate cavity centroid to check normal of cap
                             cavity_centroid = surface.compute_centroid()
 
-                            cap.tessellate()
+                            cap.tessellate(use_centroid=True)
+
                             p1 = surf.nodes[cap.triangles[:, 1],] - surf.nodes[cap.triangles[:, 0],]
                             p2 = surf.nodes[cap.triangles[:, 2],] - surf.nodes[cap.triangles[:, 0],]
                             normals = np.cross(p1, p2)
@@ -786,10 +890,10 @@ class HeartModel:
                                     "pointing inward"
                                 )
                                 cap.node_ids = np.flip(cap.node_ids)
-                                cap.tessellate()
+                                cap.tessellate(use_centroid=True)
                                 cap.normal = cap.normal * -1
 
-                            cap.centroid = np.mean(surf.nodes[cap.node_ids, :], axis=0)
+                            self.mesh._sync_nodes_of_surfaces()
 
                             part.caps.append(cap)
                             LOGGER.debug("Cap: {0} closes {1}".format(name_valve, surface.name))
@@ -816,7 +920,7 @@ class HeartModel:
                     )
                     # note: flip order to make sure normal is pointing inwards
                     cap.node_ids = np.flip(cap_ref[0].node_ids)
-                    cap.tessellate()
+                    cap.tessellate(use_centroid=True)
 
         # As a consequence we need to add interface region to endocardium of atria or ventricle
         # current approach is to add these to the atria
@@ -871,6 +975,32 @@ class HeartModel:
             )
 
         return
+
+    def _validate_surfaces(self):
+        """Validate that none of the surfaces are empty."""
+        is_valid = False
+        invalid_surfaces = [s for p in self.parts for s in p.surfaces if s.n_cells == 0]
+        if len(invalid_surfaces) == 0:
+            is_valid = True
+        else:
+            for invalid_s in invalid_surfaces:
+                LOGGER.error(f"Surface {invalid_s.name} is empty")
+                is_valid = False
+
+        return is_valid
+
+    def _validate_parts(self):
+        """Validate that none of the parts are empty."""
+        is_valid = False
+        invalid_parts = [p for p in self.parts if p.element_ids.shape[0] == 0]
+        if len(invalid_parts) == 0:
+            is_valid = True
+        else:
+            for invalid_p in invalid_parts:
+                LOGGER.error(f"Part {invalid_p.name} is empty")
+                is_valid = False
+
+        return is_valid
 
     def _compute_left_ventricle_anatomy_axis(self, first_cut_short_axis=0.2):
         """
@@ -1064,20 +1194,21 @@ class HeartModel:
 class LeftVentricle(HeartModel):
     """Model of just the left ventricle."""
 
-    def __init__(self, info: ModelInfo) -> None:
+    def __init__(self, info: ModelInfo = None) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part."""
         # remove septum - not used in left ventricle only model
         del self.left_ventricle.septum
 
-        super().__init__(info)
+        if info:
+            super().__init__(info)
         pass
 
 
 class BiVentricle(HeartModel):
     """Model of the left and right ventricle."""
 
-    def __init__(self, info: ModelInfo) -> None:
+    def __init__(self, info: ModelInfo = None) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
@@ -1085,14 +1216,15 @@ class BiVentricle(HeartModel):
         self.septum: Part = Part(name="Septum", part_type="septum")
         """Septum."""
 
-        super().__init__(info)
+        if info:
+            super().__init__(info)
         pass
 
 
 class FourChamber(HeartModel):
     """Model of the left/right ventricle and left/right atrium."""
 
-    def __init__(self, info: ModelInfo) -> None:
+    def __init__(self, info: ModelInfo = None) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
@@ -1105,7 +1237,8 @@ class FourChamber(HeartModel):
         self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
         """Right atrium part."""
 
-        super().__init__(info)
+        if info:
+            super().__init__(info)
 
         pass
 
@@ -1113,7 +1246,7 @@ class FourChamber(HeartModel):
 class FullHeart(HeartModel):
     """Model of both ventricles, both atria, aorta and pulmonary artery."""
 
-    def __init__(self, info: ModelInfo) -> None:
+    def __init__(self, info: ModelInfo = None) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
@@ -1130,7 +1263,8 @@ class FullHeart(HeartModel):
         self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type="artery")
         """Pulmonary artery part."""
 
-        super().__init__(info)
+        if info:
+            super().__init__(info)
 
         pass
 

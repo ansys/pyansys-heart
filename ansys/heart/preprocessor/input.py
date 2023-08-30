@@ -263,6 +263,14 @@ class _InputModel:
         """List of boundary ids."""
         return [b.id for b in self.boundaries]
 
+    @property
+    def as_single_polydata(self):
+        """Combine all given boundaries into single polydata."""
+        all_boundaries = pv.PolyData()
+        for b in self.boundaries:
+            all_boundaries += b
+        return all_boundaries
+
     def __repr__(self):
         """Represent self."""
         return "Input boundary mesh:\n" + str(self.input_polydata)

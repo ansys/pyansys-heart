@@ -8,7 +8,7 @@ from typing import List, Union
 
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor._load_template import load_template
-from ansys.heart.preprocessor.input import _InputModel
+from ansys.heart.preprocessor.input import _InputBoundary, _InputModel
 import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401
 from ansys.heart.preprocessor.mesh.fluenthdf5 import FluentCellZone, FluentMesh
 import numpy as np
@@ -19,7 +19,20 @@ import pyvista as pv
 
 _template_directory = pkg_resources.resource_filename("ansys.heart.preprocessor", "templates")
 
-_fluent_version = "22.2.0"
+_fluent_version = "23.1.0"
+
+try:
+    _show_fluent_gui = bool(int(os.environ["SHOW_FLUENT_GUI"]))
+except KeyError:
+    _show_fluent_gui = False
+LOGGER.info(f"Showing Fluent gui: {_show_fluent_gui}")
+
+# check whether containerized version of Fluent is used
+if os.getenv("PYFLUENT_LAUNCH_CONTAINER"):
+    _uses_container = True
+else:
+    _uses_container = False
+
 
 try:
     import ansys.fluent.core as pyfluent
@@ -28,6 +41,95 @@ except ImportError:
         "Failed to import PyFluent. Considering installing "
         "pyfluent with `pip install ansys-fluent-core`."
     )
+
+
+def _get_face_zones_with_filter(pyfluent_session, prefixes: list) -> list:
+    """Get list of available boundaries in Fluent session that use any of the prefixes."""
+    face_zones = []
+    for prefix in prefixes:
+        face_zones_with_prefix = pyfluent_session.scheme_eval.scheme_eval(
+            f'(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "{prefix}"))'
+        )
+        if face_zones_with_prefix:
+            face_zones += face_zones_with_prefix
+    return face_zones
+
+
+def _fluent_mesh_to_vtk_grid(
+    fluent_mesh: FluentMesh, add_cells: bool = True, add_faces: bool = False
+) -> pv.UnstructuredGrid:
+    """Convert fluent mesh object to vtk unstructured grid or polydata.
+
+    Parameters
+    ----------
+    fluent_mesh : FluentMesh
+        Fluent mesh object to convert.
+    add_cells : bool, optional
+        Whether to add cells to the vtk object, by default True
+    add_faces : bool, optional
+        Whether to add faces to the vtk object, by default False
+
+    Returns
+    -------
+    pv.UnstructuredGrid
+        Unstructured grid representation of the fluent mesh.
+    """
+    if not isinstance(fluent_mesh, FluentMesh):
+        raise TypeError("Expecting input to be a FluentMesh.")
+
+    if add_cells and add_faces:
+        add_both = True
+    else:
+        add_both = False
+
+    if add_cells:
+        # get cell zone ids.
+        LOGGER.debug(f"Number of cell zones: {len(fluent_mesh.cell_zones)}")
+
+        cell_zone_ids = np.concatenate(
+            [[cz.id] * cz.cells.shape[0] for cz in fluent_mesh.cell_zones], dtype=int
+        )
+
+        cells = np.empty((0, fluent_mesh.cell_zones[0].cells.shape[1]), dtype=int)
+        for cz in fluent_mesh.cell_zones:
+            cells = np.vstack([cells, cz.cells])
+
+        num_cells = cells.shape[0]
+
+        cells = np.hstack([np.ones((num_cells, 1), dtype=int) * 4, cells])
+        celltypes = [pv.CellType.TETRA] * num_cells
+        grid = pv.UnstructuredGrid(cells.flatten(), celltypes, fluent_mesh.nodes)
+
+        grid.cell_data["cell-zone-ids"] = cell_zone_ids
+
+    if add_faces:
+        # add faces.
+        grid_faces = pv.UnstructuredGrid()
+        grid_faces.nodes = fluent_mesh.nodes
+
+        face_zone_ids = np.concatenate(
+            [[fz.id] * fz.faces.shape[0] for fz in fluent_mesh.face_zones]
+        )
+        faces = np.array(np.concatenate([fz.faces for fz in fluent_mesh.face_zones]), dtype=int)
+        faces = np.hstack([np.ones((faces.shape[0], 1), dtype=int) * 3, faces])
+
+        grid_faces = pv.UnstructuredGrid(
+            faces.flatten(), [pv.CellType.TRIANGLE] * faces.shape[0], fluent_mesh.nodes
+        )
+        grid_faces.cell_data["face-zone-ids"] = face_zone_ids
+
+    if add_both:
+        # ensure same cell arrays are present but with dummy values.
+        grid_faces.cell_data["cell-zone-ids"] = np.ones(grid_faces.n_cells, dtype=int) * -1
+        grid.cell_data["face-zone-ids"] = np.ones(grid.n_cells, dtype=int) * -1
+
+        return grid + grid_faces
+
+    if add_faces:
+        return grid_faces
+
+    if add_cells:
+        return grid
 
 
 def mesh_from_manifold_input_model(
@@ -60,38 +162,63 @@ def mesh_from_manifold_input_model(
     if not os.path.isdir(workdir):
         os.makedirs(workdir)
 
+    # NOTE: when using containerized version - we need to copy all the files
+    # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
+    if _uses_container:
+        mounted_volume = pyfluent.EXAMPLES_PATH
+        work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
+        num_cpus = 1
+        show_gui = False
+    else:
+        work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
+        show_gui = _show_fluent_gui
+
+    if os.path.isdir(work_dir_meshing):
+        shutil.rmtree(work_dir_meshing)
+    os.mkdir(work_dir_meshing)
+
+    LOGGER.debug(f"Path to meshing directory: {work_dir_meshing}")
+
+    path_to_output_old = path_to_output
+    path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
+
     min_size = mesh_size
     max_size = mesh_size
     growth_rate = 1.2
 
     # clean up any stls in the directory
-    stls = glob.glob(os.path.join(workdir, "*.stl"))
+    stls = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
     for stl in stls:
         os.remove(stl)
 
     # write all boundaries
-    model.write_part_boundaries(workdir)
-
-    import ansys.fluent.core as pyfluent
+    model.write_part_boundaries(work_dir_meshing)
 
     session = pyfluent.launch_fluent(
         mode="meshing",
         precision="double",
         processor_count=2,
         start_transcript=True,
-        show_gui=False,
+        show_gui=_show_fluent_gui,
         product_version=_fluent_version,
     )
 
     # import files
-    session.tui.file.import_.cad("no " + workdir + " *.stl yes 40 yes mm")
-    session.tui.file.start_transcript(os.path.join(workdir, "fluent_meshing.log"))
+    session.tui.file.import_.cad("no " + work_dir_meshing + " *.stl yes 40 yes mm")
+    session.tui.file.start_transcript(os.path.join(work_dir_meshing, "fluent_meshing.log"))
     session.tui.objects.merge("'(*) heart")
     session.tui.objects.labels.create_label_per_zone("heart '(*)")
     session.tui.diagnostics.face_connectivity.fix_free_faces("objects '(*) merge-nodes yes 1e-3")
     session.tui.diagnostics.face_connectivity.fix_self_intersections(
         "objects '(heart) fix-self-intersection"
     )
+    # smooth all zones
+    face_zone_names = _get_face_zones_with_filter(session, "*")
+
+    for fz in face_zone_names:
+        session.tui.boundary.modify.select_zone(fz)
+        session.tui.boundary.modify.smooth()
+
     session.tui.objects.create_intersection_loops("collectively '(*)")
     session.tui.boundary.feature.create_edge_zones("(*) fixed-angle 70 yes")
     # create size field
@@ -119,8 +246,8 @@ def mesh_from_manifold_input_model(
     session.tui.mesh.modify.auto_node_move("(*)", "(*)", 0.3, 50, 120, "yes", 5)
     session.tui.objects.delete_all_geom()
     session.tui.mesh.zone_names_clean_up()
-    session.tui.mesh.check_mesh()
-    session.tui.mesh.check_quality()
+    # session.tui.mesh.check_mesh()
+    # session.tui.mesh.check_quality()
     session.tui.boundary.manage.remove_suffix("(*)")
 
     session.tui.mesh.prepare_for_solve("yes")
@@ -130,8 +257,34 @@ def mesh_from_manifold_input_model(
     # session.meshing.tui.file.read_journal(script)
     session.exit()
 
+    shutil.copy(path_to_output, path_to_output_old)
+
+    path_to_output = path_to_output_old
+
     mesh = FluentMesh()
     mesh.load_mesh(path_to_output)
+
+    # use part definitions to find which cell zone belongs to which part.
+    for input_part in model.parts:
+        surface = input_part.combined_boundaries
+
+        if surface.is_manifold:
+            check_surface = True
+        else:
+            check_surface = False
+            LOGGER.warning(
+                "Part {0} not manifold - disabled surface check.".format(input_part.name)
+            )
+
+        for cz in mesh.cell_zones:
+            # use centroid of first cell to find which input part it belongs to.
+            centroid = pv.PolyData(np.mean(mesh.nodes[cz.cells[0, :], :], axis=0))
+            if np.all(
+                centroid.select_enclosed_points(surface, check_surface=False).point_data[
+                    "SelectedPoints"
+                ]
+            ):
+                cz.id = input_part.id
 
     return mesh
 
@@ -172,17 +325,68 @@ def mesh_from_non_manifold_input_model(
     if not os.path.isdir(workdir):
         os.makedirs(workdir)
 
+    import ansys.fluent.core as pyfluent
+
+    # NOTE: when using containerized version - we need to copy all the files
+    # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
+    if _uses_container:
+        mounted_volume = pyfluent.EXAMPLES_PATH
+        work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
+        num_cpus = 1
+        show_gui = False
+    else:
+        work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
+        show_gui = _show_fluent_gui
+
+    if os.path.isdir(work_dir_meshing):
+        shutil.rmtree(work_dir_meshing)
+    os.mkdir(work_dir_meshing)
+
+    path_to_output_old = path_to_output
+    path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
+
     min_size = mesh_size
     max_size = mesh_size
     growth_rate = 1.2
 
     # clean up any stls in the directory
-    stls = glob.glob(os.path.join(workdir, "*.stl"))
+    stls = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
     for stl in stls:
         os.remove(stl)
 
+    # change boundary names to ensure max length is not exceeded
+    old_to_new_boundary_names = {}
+    for ii, b in enumerate(model.boundaries):
+        if b.name in old_to_new_boundary_names.keys():
+            b.name = old_to_new_boundary_names[b.name]
+        else:
+            if "interface" in b.name:
+                tmp_name = "input_interface{:03d}".format(ii)
+            else:
+                tmp_name = "input_boundary{:03d}".format(ii)
+            old_to_new_boundary_names[b.name] = tmp_name
+            b.name = tmp_name
+
+    new_to_old_boundary_names = {v: k for k, v in old_to_new_boundary_names.items()}
+
+    # change part names to avoid issues such as characters that are now allowed.
+    old_to_new_partnames = {}
+    for ii, p in enumerate(model.parts):
+        old_part_name = p.name
+        new_part_name = "part_{:03d}".format(ii)
+        old_to_new_partnames[old_part_name] = new_part_name
+        p.name = new_part_name
+    new_to_old_partnames = {v: k for k, v in old_to_new_partnames.items()}
+
+    # # find interface names
+    # interface_boundary_names = [
+    #     new_name
+    #     for old_name, new_name in old_to_new_boundary_names.items()
+    #     if "interface-" in old_name
+    # ]
+
     # write all boundaries
-    model.write_part_boundaries(workdir)
+    model.write_part_boundaries(work_dir_meshing)
 
     # launch pyfluent
     session = pyfluent.launch_fluent(
@@ -190,13 +394,13 @@ def mesh_from_non_manifold_input_model(
         precision="double",
         processor_count=2,
         start_transcript=True,
-        show_gui=False,
+        show_gui=_show_fluent_gui,
         product_version=_fluent_version,
     )
 
     # import stls
-    session.tui.file.import_.cad("no " + workdir + " *.stl yes 40 yes mm")
-    session.tui.file.start_transcript(os.path.join(workdir, "fluent_meshing.log"))
+    session.tui.file.import_.cad("no " + work_dir_meshing + " *.stl yes 40 yes mm")
+    session.tui.file.start_transcript(os.path.join(work_dir_meshing, "fluent_meshing.log"))
 
     # each stl is imported as a separate object. Wrap the different collections of stls to create
     # new surface meshes for each of the parts.
@@ -204,7 +408,11 @@ def mesh_from_non_manifold_input_model(
     session.tui.scoped_sizing.compute("yes")
 
     session.tui.objects.extract_edges("'(*) feature 40")
+    visited_parts = []
+    used_boundary_names = []
+
     for part in model.parts:
+        LOGGER.info("Wrapping " + part.name + "...")
         # wrap object.
         session.tui.objects.wrap.wrap(
             "'({0}) collectively {1} shrink-wrap external wrapped hybrid".format(
@@ -212,40 +420,90 @@ def mesh_from_non_manifold_input_model(
             )
         )
         # manage boundary names of wrapped surfaces
-        zone_names = session.scheme_eval.scheme_eval(
-            '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "s*:*"))'
-        )
-        for face_zone in zone_names:
-            old_name = face_zone
-            new_name = part.name + ":" + old_name.split(":")[0]
+        face_zone_names = _get_face_zones_with_filter(session, ["input_*:*"])
+        if not face_zone_names:
+            continue
+
+        for face_zone_name in face_zone_names:
+            old_name = face_zone_name
+
+            # if old name contains part name before delimiter : -> skip this boundary
+            prefix = old_name.split(":")[0]
+            if any([prefix == p.lower() for p in visited_parts]):
+                LOGGER.debug(f"Skip {face_zone_name}")
+                continue
+
+            new_name = part.name + ":" + prefix
+
+            if new_name in used_boundary_names:
+                LOGGER.debug(f"Name of boundary {new_name} already used.")
+                continue
+
             session.tui.boundary.manage.name(old_name + " " + new_name)
 
-    # wrap entire model in one pass so that we can create a single volume mesh.
+            used_boundary_names += [new_name]
+
+        visited_parts += [part.name]
+
+    print(_get_face_zones_with_filter(session, ["*"]))
+
+    LOGGER.info("Wrapping model...")
+
+    # wrap entire model in one pass so that we can create a single volume mesh. Use list of all
+    # input boundaries are given as input. External material point for meshing.
     session.tui.objects.wrap.wrap(
         "'({0}) collectively {1} shrink-wrap external wrapped hybrid".format(
             " ".join(model.boundary_names), "model"
         )
     )
 
+    print(_get_face_zones_with_filter(session, ["*"]))
+
     # rename boundaries accordingly.
-    zone_names = session.scheme_eval.scheme_eval(
-        '(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "s*:*"))'
-    )
-    for face_zone in zone_names:
-        old_name = face_zone
+    prefixes = [bn + ":*" for bn in model.boundary_names]
+    face_zone_names = _get_face_zones_with_filter(session, prefixes)
+
+    if not face_zone_names:
+        LOGGER.error("Expecting face zones to rename.")
+
+    used_names = []
+    for face_zone_name in face_zone_names:
+        # Exclude renaming of boundaries that include name of visited parts
+        old_name = face_zone_name
+
         new_name = "model" + ":" + old_name.split(":")[0]
+
+        # find unique name
+        rename_success = False
+        ii = 0
+        while not rename_success:
+            if new_name not in used_names:
+                break
+            else:
+                new_name = new_name = "model" + ":" + old_name.split(":")[0] + "_{:03d}".format(ii)
+            ii += 1
+
         session.tui.boundary.manage.name(old_name + " " + new_name)
+
+        used_names += [new_name]
 
     # mesh the entire model in one go.
     session.tui.objects.volumetric_regions.compute("model")
-    session.tui.mesh.auto_mesh("model")
+    session.tui.mesh.auto_mesh("model yes pyramids tet no")
 
     # clean up geometry objects
     session.tui.objects.delete_all_geom()
 
     # write mesh
+    if os.path.isfile(path_to_output):
+        os.remove(path_to_output)
+
     session.tui.file.write_mesh(path_to_output)
     session.exit()
+
+    shutil.copy(path_to_output, path_to_output_old)
+
+    path_to_output = path_to_output_old
 
     # Update the cell zones such that for each part we have a separate cell zone.
     mesh = FluentMesh()
@@ -254,16 +512,42 @@ def mesh_from_non_manifold_input_model(
     num_cells = mesh.cell_zones[0].cells.shape[0]
 
     # convert to unstructured grid.
-    cells = np.hstack([np.ones((num_cells, 1), dtype=int) * 4, mesh.cell_zones[0].cells])
-    celltypes = [pv.CellType.TETRA] * num_cells
-    grid = pv.UnstructuredGrid(cells.flatten(), celltypes, mesh.nodes)
+    # cells = np.hstack([np.ones((num_cells, 1), dtype=int) * 4, mesh.cell_zones[0].cells])
+    # celltypes = [pv.CellType.TETRA] * num_cells
+    # grid = pv.UnstructuredGrid(cells.flatten(), celltypes, mesh.nodes)
+    grid = _fluent_mesh_to_vtk_grid(mesh)
 
     # represent cell centroids as point cloud assign part-ids to cells.
     cell_centroids = grid.cell_centers()
     cell_centroids.point_data.set_scalars(name="part-id", scalars=0)
 
+    # NOTE: should use wrapped surfaces to select part.
+    # assign wrapped boundaries to input parts.
+    for ii, part in enumerate(model.parts):
+        face_zones_wrapped = [fz for fz in mesh.face_zones if part.name in fz.name]
+        if len(face_zones_wrapped) == 0:
+            LOGGER.error(f"Did not find any wrapped face zones for {part.name}")
+
+        # replace with remeshed counterpart.
+        for jj, boundary in enumerate(part.boundaries):
+            for fz in face_zones_wrapped:
+                if boundary.name in fz.name:
+                    break
+            remeshed_boundary = _InputBoundary(
+                mesh.nodes,
+                faces=np.hstack([np.ones(fz.faces.shape[0], dtype=int)[:, None] * 3, fz.faces]),
+                id=boundary.id,
+            )
+            model.parts[ii].boundaries[jj] = remeshed_boundary
+
+    # use individual wrapped parts to identify the parts of the wrapped model.
     for part in model.parts:
-        cell_centroids = cell_centroids.select_enclosed_points(part.combined_boundaries)
+        if not part.is_manifold:
+            LOGGER.warning("Part is not manifold.")
+
+        cell_centroids = cell_centroids.select_enclosed_points(
+            part.combined_boundaries, check_surface=False
+        )
         cell_centroids.point_data["part-id"][
             cell_centroids.point_data["SelectedPoints"] == 1
         ] = part.id
@@ -279,15 +563,32 @@ def mesh_from_non_manifold_input_model(
     cell_centroids_2 = cell_centroids.remove_cells(
         cell_centroids.point_data["part-id"] == 0, inplace=False
     )
+    try:
+        cell_centroids_2.point_data.remove("orig_indices")
+    except:
+        KeyError
+    try:
+        cell_centroids_2.point_data.remove("cell-zone-ids")
+    except:
+        KeyError
+    try:
+        cell_centroids_2.cell_data.remove("cell-zone-ids")
+    except:
+        KeyError
 
     cell_centroids_1.point_data.remove("part-id")
+    cell_centroids_1.cell_data.remove("cell-zone-ids")
+
     cell_centroids_1 = cell_centroids_1.interpolate(
         cell_centroids_2, n_points=1, pass_cell_data=False
     )
     cell_centroids.point_data["part-id"][orig_indices_1] = cell_centroids_1.point_data["part-id"]
 
     # assign part-ids to grid
-    grid.cell_data.set_scalars(scalars=cell_centroids.point_data["part-id"], name="part-id")
+    grid.cell_data["part-id"] = cell_centroids.point_data["part-id"]
+
+    if np.any(grid.cell_data["part-id"] == 0):
+        raise ValueError("Invalid mesh, not all elements assigned to a part.")
 
     # change FluentMesh object accordingly.
     idx_sorted = np.argsort(np.array(grid.cell_data["part-id"], dtype=int))
@@ -298,9 +599,10 @@ def mesh_from_non_manifold_input_model(
     new_mesh.cell_zones: List[FluentCellZone] = []
 
     for part in model.parts:
+        part.name = new_to_old_partnames[part.name]
         cell_zone = FluentCellZone(
-            min_id=np.where(partids_sorted == part.id)[0][0],
-            max_id=np.where(partids_sorted == part.id)[0][-1],
+            min_id=np.argwhere(partids_sorted == part.id)[0][0],
+            max_id=np.argwhere(partids_sorted == part.id)[-1][0],
             name=part.name,
             cid=part.id,
         )
@@ -310,10 +612,19 @@ def mesh_from_non_manifold_input_model(
     # remove any unused face zones.
     new_mesh.face_zones = [fz for fz in new_mesh.face_zones if "part" not in fz.name.lower()]
 
-    # rename face zones
+    # rename face zones - rename to original input names.
     for fz in new_mesh.face_zones:
+        if "interior" in fz.name:
+            continue
         fz.name = fz.name.replace("model:", "")
+        if ":" in fz.name:
+            fz.name = fz.name.split(":")[0]
+        try:
+            fz.name = new_to_old_boundary_names[fz.name]
+        except KeyError:
+            LOGGER.debug(f"Failed to rename {fz.name}")
 
+    new_grid = _fluent_mesh_to_vtk_grid(new_mesh)
     return new_mesh
 
 
@@ -384,6 +695,7 @@ def mesh_heart_model_by_fluent(
         show_gui = False
     else:
         work_dir_meshing = os.path.abspath(os.path.join(working_directory, "meshing"))
+        show_gui = _show_fluent_gui
 
     if os.path.isdir(work_dir_meshing):
         shutil.rmtree(work_dir_meshing)

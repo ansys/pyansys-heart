@@ -3,6 +3,7 @@
 name: Test model generation
 on:
   pull_request:
+    types: ['opened', 'edited', 'reopened', 'synchronize', 'ready_for_review']
   push:
     tags:
       - "*"
@@ -23,8 +24,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-jobs:
+jobs:  
   build:
+    if: github.event.pull_request.draft == false
     name: Tests requiring PyFluent
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -49,6 +51,12 @@ jobs:
         run: | 
           docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG          
           docker image prune -f
+      #     docker save -o ~/image-cache/fluent.tar ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
+
+      # - name: Load cached Fluent docker image
+      #   if: steps.image-cache.outputs.cache-hit == 'true'
+      #   run: |
+      #     load -i ~/image-cache/fluent.tar
 
       - name: Install package
         run: |

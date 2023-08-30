@@ -933,6 +933,7 @@ class Part:
             if point.name == pointname:
                 return point
         LOGGER.error("Cannot find point {0:s}.".format(pointname))
+        return None
 
     def __init__(self, name: str = None, part_type: str = None) -> None:
         self.name = name

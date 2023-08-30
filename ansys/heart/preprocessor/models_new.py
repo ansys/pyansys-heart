@@ -562,6 +562,14 @@ class HeartModel:
         # compute nodal areas for explicitly named surfaces
         for part in self.parts:
             for surface in part.surfaces:
+                if surface.n_points == 0:
+                    LOGGER.debug(f"Skipping {surface.name} no points in surface")
+                    continue
+                if surface.n_cells == 0:
+                    LOGGER.debug(f"Skipping {surface.name} no cells in surface.")
+                    continue
+                
+            
                 nodal_areas = vtkmethods.compute_surface_nodal_area_pyvista(surface)
                 surface.point_data["nodal_areas"] = nodal_areas
 

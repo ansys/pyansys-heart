@@ -7,7 +7,7 @@ import pathlib
 import pickle
 from typing import List, Union
 
-from ansys.heart.custom_logging import LOGGER
+from ansys.heart.core import LOG as LOGGER
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher
 from ansys.heart.preprocessor.mesh.objects import (
@@ -640,7 +640,7 @@ class HeartModel:
 
         """
         # NOTE: need to suppress some vtk errors in pickled pyvista objects.
-        # change the verbosity in the vtk logger and suppress the python logger.
+        # change the verbosity in the vtk loggerger and suppress the python logger.
         import logging
 
         import vtk

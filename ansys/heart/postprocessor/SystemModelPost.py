@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import json
 import os
 
-from ansys.heart.custom_logging import LOGGER
+from ansys.heart.core import LOG as LOGGER
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import matplotlib.pyplot as plt
 import numpy as np
@@ -389,7 +389,7 @@ class SystemModelPost:
         """
         # if not self.closed_loop:
         if True:
-            print("future development.")
+            LOGGER.error("future development.")
             return
 
         fig, axis = plt.subplots(figsize=(8, 4))

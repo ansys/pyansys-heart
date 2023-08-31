@@ -12,7 +12,6 @@ import time
 from typing import List
 
 from ansys.dyna.keywords import keywords
-from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.models import (
@@ -25,6 +24,7 @@ from ansys.heart.preprocessor.models import (
 from ansys.heart.simulator.settings.settings import SimulationSettings
 
 # import missing keywords
+from ansys.heart.core import LOG as LOGGER
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 from ansys.heart.writer.heart_decks import (
     BaseDecks,

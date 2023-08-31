@@ -5,6 +5,7 @@ import json
 import os
 import pathlib
 
+from ansys.heart.core import LOG as LOGGER
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
@@ -79,7 +80,7 @@ def zerop_post(directory, model):
                 np.loadtxt(os.path.join(directory, name + ".segment"), delimiter=",", dtype=int) - 1
             )
         except FileExistsError:
-            print(f"Cannot find {name}.segment")
+            LOGGER.warning(f"Cannot find {name}.segment")
 
         volumes = []
         for i, dsp in enumerate(displacements):

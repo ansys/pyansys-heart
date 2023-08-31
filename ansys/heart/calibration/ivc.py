@@ -4,7 +4,7 @@ import os
 import pathlib as Path
 from typing import Literal
 
-from ansys.heart.custom_logging import LOGGER
+from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.models import HeartModel
 from ansys.heart.simulator.settings.settings import SimulationSettings
 from ansys.heart.simulator.simulator import MechanicsSimulator

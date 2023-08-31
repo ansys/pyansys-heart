@@ -4,9 +4,10 @@ import pathlib as Path
 from typing import List
 
 from ansys.dpf import core as dpf
-import numpy as np
 
 # from ansys.dpf.core.dpf_operator import available_operator_names
+from ansys.heart.core import LOG as LOGGER
+import numpy as np
 
 
 class D3plotReader:
@@ -75,7 +76,7 @@ class D3plotReader:
         to get Deformation gradient (column-wise storage),see *MAT_295 in LS-DYNA manual.
         """
         if at_frame > self.model.metadata.time_freq_support.n_sets:
-            print("Frame ID too big")
+            LOGGER.warning("Frame ID too big")
             exit()
 
         hist_op = dpf.Operator("lsdyna::d3plot::history_var")
@@ -111,7 +112,7 @@ class D3plotReader:
         mat_ids = self.model.metadata.meshed_region.elements.materials_field.data
 
         if not np.all(np.isin(keep_mat_ids, np.unique(mat_ids))):
-            print("Invalid material IDs, all parts will be saved.")
+            LOGGER.warning("Invalid material IDs, all parts will be saved.")
             keep_mat_ids = None
 
         if keep_mat_ids is None:

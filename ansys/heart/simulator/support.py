@@ -2,7 +2,7 @@
 import os
 import pathlib as Path
 
-from ansys.heart.custom_logging import LOGGER
+from ansys.heart.core import LOG as LOGGER
 import ansys.heart.preprocessor.models as models
 
 

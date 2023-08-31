@@ -8,7 +8,7 @@ import copy
 import pathlib
 from typing import List, Optional, Tuple, Union
 
-from ansys.heart.custom_logging import LOGGER
+from ansys.heart.core import LOG as LOGGER
 import ansys.heart.preprocessor.mesh.connectivity as connect
 import ansys.heart.preprocessor.mesh.geodisc as geodisc
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods

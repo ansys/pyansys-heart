@@ -4,7 +4,7 @@ import os
 import shutil
 import subprocess
 
-from ansys.heart.custom_logging import LOGGER
+from ansys.heart.core import LOG as LOGGER
 
 # --------------------------------------------------------------------------
 NCPU = 4

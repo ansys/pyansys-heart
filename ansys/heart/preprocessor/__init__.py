@@ -39,3 +39,10 @@ else:
         % supported_versions,
         Warning,
     )
+
+import os
+
+from ansys.heart.core import LOG
+
+LOG.setLevel("DEBUG")
+LOG.log_to_file(os.path.join(os.getcwd(), "preprocessor.log"))

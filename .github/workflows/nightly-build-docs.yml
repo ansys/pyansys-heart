@@ -35,6 +35,8 @@ jobs:
         with:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
           check-links: false
+          # By default, also '-W --keep-going'... we should eventually solve the warnings in the build process.
+          sphinxopts: '-j auto'
 
   doc-deploy-dev:
     name: "Deploy development documentation"

@@ -28,10 +28,10 @@ def extract_bi_ventricle():
     """
 
     assets_folder = get_assets_folder()
-    path_to_case = os.path.join(assets_folder, "cases", "strocchi2020", "01", "01.case")
+    # path_to_case = os.path.join(assets_folder, "cases", "Strocchi2020", "01", "01.case")
+    # path_to_case = os.path.join(assets_folder, "cases", "Rodero2021", "01", "01.vtk")
 
-    if not os.path.isfile(path_to_case):
-        path_to_case = download_asset("Strocchi2020", casenumber=1)
+    path_to_case = download_asset("Strocchi2020", casenumber=1, clean_folder=True)
 
     # # load model to test against
     # path_to_reference_stats = os.path.join(

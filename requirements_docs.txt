@@ -9,3 +9,4 @@ sphinx-copybutton
 sphinx-autodoc-typehints
 sphinx-autoapi
 nbsphinx
+sphinxcontrib-video

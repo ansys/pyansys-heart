@@ -3,11 +3,13 @@ import copy
 import glob
 import json
 import os
+import pathlib
 
-from ansys.heart.postprocessor.D3plotPost import LVContourExporter
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
-from ansys.heart.postprocessor.dpf_d3plot import D3plotReader
+from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
+from ansys.heart.postprocessor.dpf_utils import D3plotReader
+from ansys.heart.postprocessor.exporter import LVContourExporter
 from ansys.heart.preprocessor.mesh.objects import Cavity, SurfaceMesh
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import numpy as np
@@ -147,7 +149,7 @@ def zerop_post(directory, model):
     return dct
 
 
-def mech_post(directory, model):
+def mech_post(directory: pathlib.Path, model):
     """
     Post-process Main mechanical simulation folder.
 
@@ -171,6 +173,18 @@ def mech_post(directory, model):
         fig = system.plot_pressure_flow_volume(system.rv_system)
         fig.savefig(os.path.join(directory, folder, "rv.png"))
 
+    #
+    out_dir = directory / "post" / "pv"
+    os.makedirs(out_dir, exist_ok=True)
+    time = D3plotReader(directory / "d3plot").time / 1000  # to second
+    for it, tt in enumerate(time):
+        # assume heart beat once per 1s
+        ef = system.get_ejection_fraction(t_start=time[-1] - 1, t_end=time[-1])
+        fig = system.plot_pv_loop(t_start=0, t_end=tt, ef=ef)
+        fig.savefig(out_dir / "pv_{0:d}.png".format(it))
+    # build video with command
+    # ffmpeg -f image2 -i pv_%d.png output.mp4
+
     exporter = LVContourExporter(os.path.join(directory, "d3plot"), model)
 
     model.compute_left_ventricle_anatomy_axis(first_cut_short_axis=0.2)
@@ -188,5 +202,11 @@ def mech_post(directory, model):
         exporter.export_contour_to_vtk(f"shor_{icut}", cutter)
 
     exporter.export_lvls_to_vtk("lvls")
+
+    #
+    out_dir = directory / "post" / "lrc_strain"
+    os.makedirs(out_dir, exist_ok=True)
+    aha_strain = AhaStrainCalculator(model, d3plot_file=directory / "d3plot")
+    aha_strain.compute_aha_strain(out_dir, with_vtk=True)
 
     return

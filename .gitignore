@@ -14,8 +14,8 @@ __pycache__/
 *.zip
 
 # images
-*.png
-*.PNG
+ *.png
+ *.PNG
 
 # text files
 *.dat
@@ -85,6 +85,8 @@ instance/
 
 # Sphinx documentation
 doc/_build/
+# examples gallery is auto-generated: ignore these
+doc/source/examples
 
 # PyBuilder
 .pybuilder/
@@ -175,4 +177,5 @@ examples/heart/preprocessor/example_preprocessor_writer_refactor_martijn.py
 examples/heart/preprocessor/compare_formatting.py
 /dynalib/
 /examples/wye/
+test_case
 examples/heart/simulator/local_examples.py

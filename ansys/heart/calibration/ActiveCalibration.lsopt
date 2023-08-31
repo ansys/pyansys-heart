@@ -51,14 +51,14 @@
                 <tc_file/>
                 <tc_line>N o r m a l</tc_line>
               </tcriterion>
-              
-              
+
+
             </termcriteria>
             <resourceref resource="USERDEFINED" units="1"/>
           </scheduling>
           <myvars><varref src="x_ps2"/><varref src="x_ps1"/>
-            
-            
+
+
           </myvars>
           <histories/>
           <multihistories/>

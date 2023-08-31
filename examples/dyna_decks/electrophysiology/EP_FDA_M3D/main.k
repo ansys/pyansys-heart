@@ -2,10 +2,10 @@ $-----------------------------------------------------------------------------
 $
 $ Example provided by Pierre (LSTC)
 $X 1. Run file as is.
-$X    Requires LS-DYNA MPP Dev 142100 (or higher) with double precision 
+$X    Requires LS-DYNA MPP Dev 142100 (or higher) with double precision
 $X
 $X------------------------------------------------------------------------------
-$# UNITS: (Dimensionless) 
+$# UNITS: (Dimensionless)
 $X------------------------------------------------------------------------------
 *KEYWORD
 *TITLE
@@ -21,12 +21,12 @@ $
 $ --- struc ---
 $
 R       dt    0.0025
-R  dt_plot       0.1     
+R  dt_plot       0.1
 $
 $ --- conductivity ---
 $
-R      s11 0.1114533 
-R      s22 0.1215854 
+R      s11 0.1114533
+R      s22 0.1215854
 R      s33 0.0303964
 $
 $ --- material constants ---

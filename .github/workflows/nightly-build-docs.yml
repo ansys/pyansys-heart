@@ -31,7 +31,7 @@ jobs:
         run: pip install -e .
 
       - name: Install documentation build requirements
-        run: | 
+        run: |
           pip install -r requirements_docs.txt
 
       - name: Build Documentation

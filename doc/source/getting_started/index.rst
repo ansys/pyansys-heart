@@ -2,7 +2,7 @@ Getting Started
 ===============
 
 .. include:: ../../../README.rst
-    
+
 .. Getting Started
 .. ===============
 
@@ -29,7 +29,7 @@ Getting Started
 .. Installing Pyheart lib in developer mode allows
 .. you to modify the source and enhance it.
 
-.. Before contributing to the project, please refer to the `PyAnsys Developer's guide`_. You will 
+.. Before contributing to the project, please refer to the `PyAnsys Developer's guide`_. You will
 .. need to follow these steps:
 
 .. 1. Start by cloning this repository:
@@ -48,7 +48,7 @@ Getting Started
 ..         # Create a virtual environment
 ..         python -m venv .venv
 
-..         # Activate environment: 
+..         # Activate environment:
 ..         # - in POSIX system:
 ..         source .venv/bin/activate
 ..         # - in Windows cmd shell:
@@ -64,7 +64,7 @@ Getting Started
 ..         conda create --name my-venv python=3.8
 
 ..         # Activate environment
-..         conda activate my-venv        
+..         conda activate my-venv
 
 .. 3. Make sure you have the latest version of `pip`_
 
@@ -75,13 +75,13 @@ Getting Started
 .. 4. Install the project in editable mode:
 
 ..     .. code:: bash
-    
+
 ..         python -m pip install --editable pyheart-lib
-    
+
 ..     Install version of dynalib manually by
 
 ..     .. code:: bash
-        
+
 ..         # latest version
 ..         pip install git+https://github.com/pyansys/dynalib.git@main
 
@@ -115,7 +115,7 @@ Getting Started
 .. 6. Finally, verify your development version after installation by running:
 
 ..     .. code:: bash
-        
+
 ..         python -m pip install -r requirements_tests.txt
 ..         pytest tests -v
 
@@ -141,7 +141,7 @@ Getting Started
 
 ..     python -m pip install -r requirements_docs.txt
 ..     # Linux
-..     make -C doc/ html 
+..     make -C doc/ html
 ..     # Windows
 ..     cd doc/
 ..     make html

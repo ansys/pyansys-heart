@@ -29,6 +29,20 @@ repos:
   hooks:
   - id: pydocstyle
     additional_dependencies: [toml]
-    args: ["--convention=numpy"]    
+    args: ["--convention=numpy"]
     # exclude these folders: ^(folder_one\/|folder_two\/)
     exclude: ^(tests\/|examples\/|ansys\/heart\/misc\/|ansys\/heart\/writer\/custom_dynalib_keywords\/|.*__init__.py)
+
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+    - id: check-merge-conflict
+    - id: debug-statements
+    - id: check-yaml
+    - id: trailing-whitespace
+
+# this validates our github workflow files
+- repo: https://github.com/python-jsonschema/check-jsonschema
+  rev: 0.24.1
+  hooks:
+    - id: check-github-workflows

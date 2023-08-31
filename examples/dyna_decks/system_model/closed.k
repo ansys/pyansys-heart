@@ -54,7 +54,7 @@ $   initial pressure
 $   initial volume
           vart = Va0 + Ca * part;
           vven = Vv0 + Cv * pven;
-$   initial flow		  
+$   initial flow
           qp = part / Rp;
     }
 
@@ -133,7 +133,7 @@ $   Note: we write at every call of t, write states for time t
     if (icall == 0){
         f_bug=fopen(fn_bug, "w");
         fprintf(f_bug, "icall,is_new_dt,time,dp,pk,part,pven");
-        fprintf(f_bug, ",qart,qp,qven,qk,vart,vven\n");      
+        fprintf(f_bug, ",qart,qp,qven,qk,vart,vven\n");
         fprintf(f_bug, "%d,%d,%.6e,%.6e,",icall,is_new_dt,t,dp);
         fprintf(f_bug, "%.6e,%.6e,%.6e,",pk,part,pven);
         fprintf(f_bug, "%.6e,%.6e,%.6e,%.6e,",qart,qp,qven,qk);
@@ -155,7 +155,7 @@ $   Note: we write at the first call of t, write the states for time t_old
     if (icall == 0){
         f_data=fopen(fn_data, "w");
         fprintf(f_data, "icall,time,pk,part,pven");
-        fprintf(f_data, ",qart,qp,qven,qk,vart,vven\n"); 
+        fprintf(f_data, ",qart,qp,qven,qk,vart,vven\n");
         fclose(f_data);
      }
     else if ( is_new_dt ) {
@@ -165,14 +165,14 @@ $   Note: we write at the first call of t, write the states for time t_old
         fprintf(f_data, "%.6e,%.6e,%.6e,%.6e,",qart2,qp2,qven2,qk2);
         fprintf(f_data, "%.6e,%.6e\n",vart2,vven2);
         fclose(f_data);
-$       
+$
         t_old = t;
     }
-    
+
 $   Update counters
     t_last = t;
     icall = icall + 1;
-    
+
 $   LSDYNA defines outflow as positive
     return -qk;
 }

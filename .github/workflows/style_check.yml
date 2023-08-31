@@ -1,5 +1,5 @@
 name: Style check
-on:  
+on:
   pull_request:
   push:
     tags:
@@ -36,5 +36,5 @@ jobs:
         run: |
           pre-commit install
       - name: Run pre-commit
-        run: |          
+        run: |
           pre-commit run --all-files || ( git status --short ; git diff ; exit 1 )

@@ -16,7 +16,7 @@ env:
   MAIN_PYTHON_VERSION: 3.8
   ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
   PYFLUENT_START_INSTANCE: 0
-  PYFLUENT_LAUNCH_CONTAINER: 1          
+  PYFLUENT_LAUNCH_CONTAINER: 1
   FLUENT_IMAGE_TAG: v22.2.0
 
 
@@ -24,7 +24,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-jobs:  
+jobs:
   build:
     if: github.event.pull_request.draft == false
     name: Tests requiring PyFluent
@@ -61,8 +61,8 @@ jobs:
 
       - name: Pull 22.2 Fluent docker image
         # if: steps.image-cache.outputs.cache-hit != 'true'
-        run: | 
-          docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG          
+        run: |
+          docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
           docker image prune -f
       #     docker save -o ~/image-cache/fluent.tar ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
 
@@ -74,7 +74,7 @@ jobs:
       - name: Install package
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e .         
+          python -m pip install -e .
 
       - name: Install testing dependencies
         run: |

@@ -92,7 +92,7 @@ class Settings:
                 if isinstance(v, (dict, AttrDict, Settings)):
                     units += __remove_units(v)
                 elif isinstance(v, Quantity):
-                    # logger(f"key: {k} | units {v.units}")
+                    # LOGGER.debug(f"key: {k} | units {v.units}")
                     units.append(v.units)
                     d.update({k: v.m})
             return units
@@ -401,7 +401,7 @@ class SimulationSettings:
             self.stress_free.analysis = A
 
         except:
-            logger("Failed to load mechanics settings.")
+            LOGGER.error("Failed to load mechanics settings.")
 
     def load_defaults(self):
         """Load the default simulation settings.
@@ -450,7 +450,9 @@ class SimulationSettings:
                 self.stress_free.analysis = A
 
             elif isinstance(getattr(self, attr), (Electrophysiology, Fibers, Purkinje)):
-                logger("Reading EP, Fiber, ZeroPressure, and Purkinje settings not yet supported.")
+                LOGGER.warning(
+                    "Reading EP, Fiber, ZeroPressure, and Purkinje settings not yet supported."
+                )
 
     def to_consistent_unit_system(self):
         """Convert all settings to consistent unit-system ["MPa", "mm", "N", "ms", "g"].
@@ -584,4 +586,4 @@ def _get_consistent_units_str(dimensions: set):
 
 
 if __name__ == "__main__":
-    logger("protected")
+    LOGGER.debug("protected")

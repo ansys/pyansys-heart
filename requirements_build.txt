@@ -14,3 +14,7 @@ validators==0.20.0
 pint==0.20.1
 pyyaml==6.0
 pyvista==0.41.1
+trame-vtk==2.5.8
+trame == 3.2.4
+trame-vuetify == 2.3.1
+nest_asyncio == 23.2.1

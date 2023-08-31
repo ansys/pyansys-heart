@@ -486,7 +486,8 @@ class HeartModel:
         return
 
     def plot_mesh(
-        self, plot_raw_mesh: bool = False, show_edges: bool = True, color_by: str = "tags"
+        self, plot_raw_mesh: bool = False, show_edges: bool = True, color_by: str = "tags",
+        show: bool = True, export_html: bool = False, html_file_name: str = ""
     ):
         """Plot the volume mesh of the heart model.
 
@@ -498,6 +499,12 @@ class HeartModel:
             Whether to plot the edges, by default True
         color_by : str, optional
             Color by cell/point data, by default "tags"
+        show : bool, optional
+            Whether to plot the result, by default True
+        export_html : bool, optional
+            Export the plot as html file, by default False
+        html_file_name : str, optional
+            File name of the html file, bu default ""
 
         Examples
         --------
@@ -517,10 +524,17 @@ class HeartModel:
         else:
             plotter.add_mesh(self.mesh, show_edges=show_edges, scalars="tags")
 
-        plotter.show()
+        if export_html == True:
+            if html_file_name[-5:]==".html":
+                plotter.export_html(html_file_name)
+            else:         
+                LOGGER.warning("Error in html file name")
+        if show == True:
+            plotter.show()
         return
 
-    def plot_fibers(self, n_seed_points: int = 1000, plot_raw_mesh: bool = False):
+    def plot_fibers(self, n_seed_points: int = 1000, plot_raw_mesh: bool = False, show: bool = True,
+                    export_html: bool = False, html_file_name: str = ""):
         """Plot the mesh and fibers as streamlines.
 
         Parameters
@@ -529,6 +543,12 @@ class HeartModel:
             Flag indicating whether to plot the streamlines on the raw mesh, by default False
         n_seed_points : int, optional
             Number of seed points. Recommended to use 5000, by default 1000
+        show : bool, optional
+            Whether to plot the result, by default True
+        export_html : bool, optional
+            Export the plot as html file, by default False
+        html_file_name : str, optional
+            File name of the html file, bu default ""
 
         Examples
         --------
@@ -553,14 +573,32 @@ class HeartModel:
 
         mesh = mesh.ctp()
         streamlines = mesh.streamlines(vectors="fiber", source_radius=75, n_points=n_seed_points)
-        tubes = streamlines.tube()
         plotter.add_mesh(mesh, opacity=0.5, color="white")
-        plotter.add_mesh(tubes, color="white")
-        plotter.show()
+        plotter.add_mesh(streamlines, render_lines_as_tubes = True, line_width = 6, color="white")
+
+        if export_html == True:
+            if html_file_name[-5:]==".html":
+                plotter.export_html(html_file_name)
+            else:         
+                LOGGER.warning("Error in html file name")
+        if show == True:
+            plotter.show()
         return
 
-    def plot_surfaces(self, show_edges: bool = True):
+    def plot_surfaces(self, show_edges: bool = True, show: bool = True, 
+                      export_html: bool = False, html_file_name: str = ""):
         """Plot all the surfaces in the model.
+        
+        Parameters
+        ----------
+        show_edges : bool, optional
+            Whether to plot the edges, by default True
+        show : bool, optional
+            Whether to plot the result, by default True
+        export_html : bool, optional
+            Export the plot as html file, by default False
+        html_file_name : str, optional
+            File name of the html file, by default ""
 
         Examples
         --------
@@ -601,12 +639,29 @@ class HeartModel:
             )
             plotter.add_legend(face=None, size=(0.25, 0.25), loc="lower left")
             ii += 1
-
-        plotter.show()
+ 
+        if export_html == True:
+            if html_file_name[-5:]==".html":
+                plotter.export_html(html_file_name)
+            else:         
+                LOGGER.warning("Error in html file name")
+        if show == True:
+            plotter.show()
         return
 
-    def plot_purkinje(self):
-        """Plot the mesh and Purkinje network."""
+    def plot_purkinje(self, show: bool = True, export_html: bool = False, html_file_name: str = ""):
+        """Plot the mesh and Purkinje network.
+        
+        Parameters
+        ----------
+        show : bool, optional
+            Whether to plot the result, by default True
+        export_html : bool, optional
+            Export the plot as html file, by default False
+        html_file_name : str, optional
+            File name of the html file, by default ""
+
+        """
         if not len(self.mesh.beam_network) > 0:
             LOGGER.info("No Purkinje network to plot.")
             return
@@ -625,7 +680,14 @@ class HeartModel:
             plotter.add_mesh(self.mesh, color="w", opacity=0.3)
             for beams in self.mesh.beam_network:
                 plotter.add_mesh(beams, color=np.random.uniform(size=3), line_width=3)
-            plotter.show()
+                
+            if export_html == True:
+                if html_file_name[-5:]==".html":
+                    plotter.export_html(html_file_name)
+                else:         
+                    LOGGER.warning("Error in html file name")
+            if show == True:
+                plotter.show()
         except:
             LOGGER.warning("Failed to plot mesh.")
         return

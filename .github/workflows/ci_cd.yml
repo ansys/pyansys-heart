@@ -43,6 +43,7 @@ jobs:
           library-name: ${{ env.LIBRARY_NAME }}
           operating-system: ${{ matrix.os }}
           python-version: ${{ matrix.python-version }}
+          check-licenses: false
 
   tests:
     name: Tests

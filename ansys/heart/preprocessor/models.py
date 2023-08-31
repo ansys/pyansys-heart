@@ -1669,6 +1669,16 @@ class HeartModel:
 
         return set1, set2, set3
 
+    def _compute_uvc_apex_set(self, radius=3):
+        """Todo Only for LeftVentricle."""
+        import scipy.spatial as spatial
+
+        point_tree = spatial.cKDTree(self.mesh.points)
+        set = point_tree.query_ball_point(self.parts[0].apex_points[1].xyz, radius)
+
+        print(set)
+        return set
+
 
 class LeftVentricle(HeartModel):
     """Model of just the left ventricle."""

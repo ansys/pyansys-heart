@@ -44,6 +44,7 @@ extensions = [
     "autoapi.extension",
     "sphinx_autodoc_typehints",
     "sphinx_gallery.gen_gallery",
+    "sphinxcontrib.video",
 ]
 
 sphinx_gallery_conf = {
@@ -93,6 +94,9 @@ numpydoc_validation_checks = {
 # static path
 html_static_path = ["_static"]
 
+# custom css file
+html_css_files = ["custom.css"]
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
@@ -109,7 +113,11 @@ autosectionlabel_maxdepth = 4
 # ---------------------------------- #
 autoapi_type = "python"
 autoapi_ignore = []
-autoapi_dirs = ["../../ansys/heart"]
+autoapi_dirs = [
+    "../../ansys/heart/preprocessor",
+    "../../ansys/heart/simulator",
+    "../../ansys/heart/postprocessor",
+]
 autoapi_options = [
     "members",
     "undoc-members",

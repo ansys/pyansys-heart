@@ -1709,9 +1709,14 @@ class FourChamber(HeartModel):
 
     def compute_AV_node(self) -> Point:
         """
-        Compute AtrioVentricular node.
+        Compute Atrio-Ventricular node.
 
         AtrioVentricular node is defined on endocardium surface and closest to septum.
+
+        Returns
+        -------
+        Point
+            returns the AV node.
         """
         right_atrium_endo = self.right_atrium.endocardium
 
@@ -1731,18 +1736,34 @@ class FourChamber(HeartModel):
 
         return AV_point
 
-    def compute_av_conduction(self, create_new_nodes=True) -> BeamMesh:
-        """
-        Compute AtrioVentricular conduction system, connect SA node and AV node with beams.
+        #
 
-        Notes
-        -----
-        1. with create_new_nodes=True, node ID of AV point will be modified
-        2. todo: multiple paths
+        # Notes
+        # -----
+        # 1. with create_new_nodes=True, node ID of AV point will be modified
+        # 2. todo: multiple paths
+
+        # Parameters
+        # ----------
+        # create_new_nodes: if duplicate news from solid elements.
+
+    def compute_av_conduction(self, create_new_nodes=True) -> BeamMesh:
+        """Compute Atrio-Ventricular conduction by means of beams following a geodesic path.
 
         Parameters
         ----------
-        create_new_nodes: if duplicate news from solid elements.
+        create_new_nodes : bool, optional
+            Duplicate nodes found of the computed geodesic path, by default True
+
+        Returns
+        -------
+        BeamMesh
+            Beam mesh.
+
+        Raises
+        ------
+        NotImplementedError
+            Not implemented error.
         """
         if not create_new_nodes:
             raise NotImplementedError
@@ -1784,23 +1805,25 @@ class FourChamber(HeartModel):
             return beam
 
     def compute_His_conduction(self, beam_length=0.8, beam_number=4) -> BeamMesh:
-        """
-        Compute His conduction system.
-
-        Create EP beams from SA node, to the  septum start point then to septum end point.
+        """Compute His bundle conduction.
 
         Parameters
         ----------
-        beam_length: size of beam element
-        beam_number: number of beam from septum start to end point
+        beam_length : float, optional
+            beam length, by default 0.8
+        beam_number : int, optional
+            beam number, by default 4
 
-        References
-        ----------
-        https://www.researchgate.net/publication/353154291_Morphometric_analysis_of_the_His_bundle_atrioven
-        tricular_fascicle_in_humans_and_other_animal_species_Histological_and_immunohistochemical_study
-        # (1.06 ± 0.6 mm)
+        Returns
+        -------
+        BeamMesh
+            Beam mesh
         """
         start_point, end_point = self._define_hisbundle_start_end_point(beam_length, beam_number)
+
+        # https://www.researchgate.net/publication/353154291_Morphometric_analysis_of_the_His_bundle_atrioven
+        # tricular_fascicle_in_humans_and_other_animal_species_Histological_and_immunohistochemical_study
+        # # (1.06 ± 0.6 mm)
 
         # create nodes from start to end
         new_nodes = np.array(
@@ -1849,6 +1872,7 @@ class FourChamber(HeartModel):
         return beam
 
     def _define_hisbundle_start_end_point(self, beam_length, beam_number) -> (Point, Point):
+        """Define start and end points of the bundle of His."""
         # TODO add method in Part class to have a get_mesh()
         septum_point_ids = np.unique(np.ravel(self.mesh.tetrahedrons[self.septum.element_ids,]))
         septum_points = pv.PolyData(self.mesh.nodes[septum_point_ids, :])

@@ -219,6 +219,15 @@ class EPSimulator(BaseSimulator):
 
         return
 
+    def compute_uc(self):
+        """Compute universal coordinates."""
+        directory = self._write_uc_files()
+        LOGGER.info("Computing the universal coordinates...")
+        input_file = os.path.join(directory, "main.k")
+        self._run_dyna(input_file)
+
+        LOGGER.info("done.")
+
     def compute_purkinje(self):
         """Compute the purkinje network."""
         directory = self._write_purkinje_files()
@@ -252,6 +261,18 @@ class EPSimulator(BaseSimulator):
         dyna_writer.update()
         dyna_writer.export(export_directory)
 
+        return export_directory
+
+    def _write_uc_files(self) -> Path:
+        """Write universal coordinates files."""
+        export_directory = os.path.join(self.root_directory, "universalcoordinates")
+        self.directories["universalcoordinates"] = export_directory
+
+        dyna_writer = writers.UniversalCoordinatesDynaWriter(
+            copy.deepcopy(self.model), self.settings
+        )
+        dyna_writer.update()
+        dyna_writer.export(export_directory)
         return export_directory
 
     def _write_purkinje_files(

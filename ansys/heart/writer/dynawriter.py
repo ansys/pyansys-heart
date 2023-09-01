@@ -3428,5 +3428,105 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         return
 
 
+class UniversalCoordinatesDynaWriter(ElectrophysiologyDynaWriter):
+    """Class for preparing the input for computing the universal coordinates."""
+
+    def __init__(self, model: HeartModel, settings: SimulationSettings = None) -> None:
+        super().__init__(model=model, settings=settings)
+
+        self.kw_database = ElectrophysiologyDecks()
+        """Collection of keywords relevant for universal coordinates."""
+
+    def update(self):
+        """Update keyword database for Electrophysiology."""
+        self._isolate_atria_and_ventricles()
+        self._update_main_db()
+        self._update_solution_controls(end_time=4.0)
+        self._update_export_controls()
+        self._update_node_db()
+
+        self._update_parts_db()
+        self._update_solid_elements_db(add_fibers=True)
+        self._update_material_db()
+        self._update_ep_material_db()
+        self._update_segmentsets_db()
+        self._update_nodesets_db()
+        # update ep settings
+        self._update_ep_settings()
+
+        self._get_list_of_includes()
+        self._add_includes()
+
+        return
+
+    def _update_ep_material_db(self):
+        """Add EP material for each defined part."""
+        for part in self.model.parts:
+            partname = part.name.lower()
+            if ("atrium" in partname) or ("ventricle" in partname) or ("septum" in partname):
+                ep_mid = part.pid
+                self.kw_database.material.extend(
+                    [
+                        keywords.EmMat001(mid=ep_mid, mtype=4, sigma=1),
+                    ]
+                )
+
+    def _update_ep_settings(self):
+        """Add the settings for the electrophysiology solver."""
+        self.kw_database.ep_settings.append(
+            keywords.EmControl(emsol=3, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None)
+        )
+
+        node_sets_ids_endo = []
+        node_sets_ids_epi = []
+
+        # list of ventricular parts
+        atria = [part for part in self.model.parts if "atrium" in part.name]
+
+        # collect node set ids (already generated previously)
+        node_sets_ids_epi = [atrium.epicardium.nsid for atrium in atria]
+        node_sets_ids_endo = [atrium.endocardium.nsid for atrium in atria]
+
+        node_set_id_atrium_endocardium = self.get_unique_nodeset_id()
+        set_add_kw = keywords.SetNodeAdd(sid=node_set_id_atrium_endocardium)
+        set_add_kw.options["TITLE"].active = True
+        set_add_kw.title = "atrium_endocardium_segments"
+        set_add_kw.nodes._data = node_sets_ids_endo
+
+        self.kw_database.ep_settings.append(set_add_kw)
+
+        # combine node sets epicardium:
+        node_set_id_atrium_epicardium = self.get_unique_nodeset_id()
+        set_add_kw = keywords.SetNodeAdd(sid=node_set_id_atrium_epicardium)
+        set_add_kw.options["TITLE"].active = True
+        set_add_kw.title = "atrium_epicardium_segments"
+        set_add_kw.nodes._data = node_sets_ids_epi
+
+        self.kw_database.ep_settings.append(set_add_kw)
+
+        bc_atria_endo = keywords.EmBoundaryPrescribed(
+            bpid=1,
+            bptype=3,
+            settype=1,
+            setid=node_set_id_atrium_endocardium,
+            val=0,
+            birtht=0.0001,
+            deatht=1.0001,
+        )
+
+        bc_atria_epi = keywords.EmBoundaryPrescribed(
+            bpid=1,
+            bptype=3,
+            settype=1,
+            setid=node_set_id_atrium_epicardium,
+            val=1,
+            birtht=0.0001,
+            deatht=1.0001,
+        )
+        self.kw_database.ep_settings.append(
+            keywords.EmControl(emsol=3, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None)
+        )
+
+
 if __name__ == "__main__":
     print("protected")

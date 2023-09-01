@@ -1,7 +1,7 @@
 # Contributing
 
 We absolutely welcome any code contributions and we hope that this
-guide will facilitate an understanding of the PyUnits code
+guide will facilitate an understanding of the PyHeart-lib code
 repository. It is important to note that while the PyUnits software
 package is maintained by ANSYS and any submissions will be reviewed
 thoroughly before merging, we still seek to foster a community that can

@@ -2,7 +2,7 @@
 
 We absolutely welcome any code contributions and we hope that this
 guide will facilitate an understanding of the PyHeart-lib code
-repository. It is important to note that while the PyUnits software
+repository. It is important to note that while the PyHeart-lib software
 package is maintained by ANSYS and any submissions will be reviewed
 thoroughly before merging, we still seek to foster a community that can
 support user questions and develop new features to make this software

@@ -161,7 +161,8 @@ class BaseDynaWriter:
         elif isinstance(self, ElectrophysiologyDynaWriter):
             if not sett.Electrophysiology in subsettings_classes:
                 raise ValueError("Expecting electrophysiology settings.")
-
+        elif isinstance(self, UHCWriter):
+            pass
         else:
             raise NotImplementedError(
                 f"Checking settings for {self.__class__.__name__} not yet implemented."
@@ -3426,6 +3427,58 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
                 self.kw_database.material.append(general_tissue_kw)
 
         return
+
+
+class UHCWriter(BaseDynaWriter):
+    """Universal Heart Coordinate Writer."""
+
+    def __init__(self, model):
+        """Write thermal input to set up a Laplace dirichlet problem."""
+        super().__init__(model=model)
+
+    def update(self):
+        """Update keyword database."""
+        self._update_node_db()
+
+        for part in self.model.parts:
+            part.pid = 1
+        self._update_solid_elements_db(add_fibers=False)
+
+        self.kw_database.main.append(keywords.Comment())
+        template_file = os.path.join(__file__, "..", "templates", "uhc.k")
+        content = open(template_file).readlines()
+        self.kw_database.main.append("".join(content))
+
+        # todo : only consider LV
+        # apex-base
+        apex_set = self.model._compute_uvc_apex_set()
+        kw = create_node_set_keyword(apex_set + 1, node_set_id=2, title="apex")
+        self.kw_database.node_sets.append(kw)
+        for cap in self.model.parts[0].caps:
+            if "mitral" in cap.name:
+                base_set = cap.node_ids
+        kw = create_node_set_keyword(base_set + 1, node_set_id=1, title="base")
+        self.kw_database.node_sets.append(kw)
+
+        # Rotation
+        rot_start, rot_end, septum = self.model._compute_uvc_rotation_bc()
+        kw = create_node_set_keyword(rot_start + 1, node_set_id=100, title="rotation:-pi")
+        self.kw_database.node_sets.append(kw)
+        kw = create_node_set_keyword(rot_end + 1, node_set_id=200, title="rotation:pi")
+        self.kw_database.node_sets.append(kw)
+        kw = create_node_set_keyword(septum + 1, node_set_id=300, title="rotation:0")
+        self.kw_database.node_sets.append(kw)
+
+        for surf in self.model.parts[0].surfaces:
+            if "endo" in surf.name:
+                endo_set = surf.node_ids
+            if "epi" in surf.name:
+                epi_set = surf.node_ids
+
+        kw = create_node_set_keyword(endo_set + 1, node_set_id=20, title="endo")
+        self.kw_database.node_sets.append(kw)
+        kw = create_node_set_keyword(epi_set + 1, node_set_id=30, title="epi")
+        self.kw_database.node_sets.append(kw)
 
 
 if __name__ == "__main__":

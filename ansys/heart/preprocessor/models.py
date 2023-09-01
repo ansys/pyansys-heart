@@ -1655,17 +1655,17 @@ class HeartModel:
         v0 = np.tile(self.l4cv_axis["normal"], (len(free_wall_center["point_ids"]), 1))
 
         dot = np.einsum("ij,ij->i", v0, vn)  # dot product row by row
-        set1 = free_wall_center["point_ids"][dot >= 0]  # pi
-        set2 = free_wall_center["point_ids"][dot < 0]  # -pi
+        set1 = free_wall_center["point_ids"][dot >= 0]  # -pi
+        set2 = free_wall_center["point_ids"][dot < 0]  # pi
         set3 = np.setdiff1d(septum_center["point_ids"], free_wall_center["point_ids"])  # 0
 
         # visu
-        mesh["bc"] = np.zeros(mesh.n_points)
-        mesh["bc"][set1] = 1
-        mesh["bc"][set2] = -1
-        mesh["bc"][set3] = 2
-        mesh.set_active_scalars("bc")
-        mesh.plot()
+        # mesh["bc"] = np.zeros(mesh.n_points)
+        # mesh["bc"][set1] = 1
+        # mesh["bc"][set2] = -1
+        # mesh["bc"][set3] = 2
+        # mesh.set_active_scalars("bc")
+        # mesh.plot()
 
         return set1, set2, set3
 
@@ -1677,7 +1677,7 @@ class HeartModel:
         set = point_tree.query_ball_point(self.parts[0].apex_points[1].xyz, radius)
 
         print(set)
-        return set
+        return np.array(set)
 
 
 class LeftVentricle(HeartModel):

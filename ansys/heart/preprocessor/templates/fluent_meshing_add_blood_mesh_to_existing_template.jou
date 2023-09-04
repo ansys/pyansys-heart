@@ -1,5 +1,5 @@
 ;; JINJA template to add blood mesh to existing solid mesh of heart model
-;; uses cap definitions (dictionary with cap name and formatted node ids) as input 
+;; uses cap definitions (dictionary with cap name and formatted node ids) as input
 ;; Note. nodes should be formatted as a single string: '"bnXXX" "bnYYY" "bnZZZ"'
 ;
 ; some useful scheme variables:
@@ -14,7 +14,7 @@
 ; Creating: {{cap_name}}
 ; -----------------------------
 /boundary/modify/create "{{cap_name}}" wall
-(define zone-id 
+(define zone-id
 	( get-unreferenced-face-zones-of-filter '{{cap_name}}*) )
 ; triangulate edge loop
 (%tg-poly-triangulate-loop '(
@@ -48,12 +48,12 @@
 ; recompute volumetric regions
 /size-functions/compute yes
 /objects/volumetric-regions/compute "wrapped-myocardium" no yes
-; remesh 
+; remesh
 /mesh/auto-mesh "wrapped-myocardium" yes pyramids tet no
 ;
 /mesh/prepare-for-solve yes
 ;
 ; save new mesh:
-( ti-menu-load-string 				
+( ti-menu-load-string
 	(format #f "/file/write-mesh ~a ok" my-output-mesh )
 )

@@ -1,9 +1,15 @@
 repos:
 
 - repo: https://github.com/psf/black
-  rev: 23.3.0
+  rev: 23.7.0
   hooks:
   - id: black
+
+- repo: https://github.com/adamchainz/blacken-docs
+  rev: 1.16.0
+  hooks:
+  - id: blacken-docs
+    additional_dependencies: [black==23.7.0]
 
 - repo: https://github.com/pycqa/isort
   rev: 5.12.0
@@ -11,7 +17,7 @@ repos:
   - id: isort
 
 - repo: https://github.com/PyCQA/flake8
-  rev: 6.0.0
+  rev: 6.1.0
   hooks:
   - id: flake8
 
@@ -29,6 +35,20 @@ repos:
   hooks:
   - id: pydocstyle
     additional_dependencies: [toml]
-    args: ["--convention=numpy"]    
+    args: ["--convention=numpy"]
     # exclude these folders: ^(folder_one\/|folder_two\/)
     exclude: ^(tests\/|examples\/|ansys\/heart\/misc\/|ansys\/heart\/writer\/custom_dynalib_keywords\/|.*__init__.py)
+
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+    - id: check-merge-conflict
+    - id: debug-statements
+    - id: check-yaml
+    - id: trailing-whitespace
+
+# this validates our github workflow files
+- repo: https://github.com/python-jsonschema/check-jsonschema
+  rev: 0.24.1
+  hooks:
+    - id: check-github-workflows

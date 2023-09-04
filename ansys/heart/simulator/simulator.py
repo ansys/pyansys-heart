@@ -18,7 +18,7 @@ from typing import Literal
 
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.misc.element_orth import read_orth_element_kfile
-from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
+from ansys.heart.postprocessor.auto_process import export_uhc, mech_post, zerop_post
 from ansys.heart.preprocessor.models import FourChamber, FullHeart, HeartModel
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import ansys.heart.writer.dynawriter as writers
@@ -152,7 +152,7 @@ class BaseSimulator:
     def compute_uhc(self):
         """Compute universal 'heart' coordinates system."""
         if isinstance(self.model, (FourChamber, FullHeart)):
-            raise NotImplementedError("Karim will do it ;)")
+            raise NotImplementedError("todo")
 
         export_directory = os.path.join(self.root_directory, "uhc")
         self.directories["uhc"] = export_directory
@@ -167,6 +167,7 @@ class BaseSimulator:
         self._run_dyna(path_to_input=input_file, options="case")
 
         LOGGER.info("done.")
+        export_uhc(export_directory)
 
     def _run_dyna(self, path_to_input: Path, options: str = ""):
         """Run LS-DYNA with path and options.

@@ -210,3 +210,24 @@ def mech_post(directory: pathlib.Path, model):
     aha_strain.compute_aha_strain(out_dir, with_vtk=True)
 
     return
+
+
+def export_uhc(directory):
+    """Export UHC from d3plot files."""
+    data = D3plotReader(os.path.join(directory, "UVC_LONGITUDIANL.d3plot"))
+    grid = data.model.metadata.meshed_region.grid
+    t = data.model.results.temperature.on_last_time_freq.eval()[0].data
+    grid["longitudinal"] = t[::3]
+
+    data = D3plotReader(os.path.join(directory, "UVC_TRANSMURAL.d3plot"))
+    t = data.model.results.temperature.on_last_time_freq.eval()[0].data
+    grid["transmural"] = t[::3]
+
+    data = D3plotReader(os.path.join(directory, "UVC_ROTATIONAL.d3plot"))
+    t = data.model.results.temperature.on_last_time_freq.eval()[0].data
+    grid["rotational"] = t[::3]
+
+    grid.set_active_scalars("transmural")
+    # grid.plot()
+    grid.save(os.path.join(directory, "uhc.vtk"))
+    return

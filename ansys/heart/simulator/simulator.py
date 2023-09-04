@@ -167,6 +167,7 @@ class BaseSimulator:
         self._run_dyna(path_to_input=input_file, options="case")
 
         LOGGER.info("done.")
+
         export_uhc(export_directory)
 
     def _run_dyna(self, path_to_input: Path, options: str = ""):

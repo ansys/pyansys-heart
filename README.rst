@@ -148,11 +148,11 @@ need to follow these steps:
     .. code:: bash
         
         # latest version
-        pip install git+https://github.com/pyansys/dynalib.git@main
+        pip install git+https://github.com/ansys/dynalib.git@main
 
    or if encountering issues with dynalib you can install a specific version
 
-        pip install git+https://github.com/pyansys/dynalib.git@afce06ba178888d992ff51838ca521abb824c8ab
+        pip install git+https://github.com/ansys/dynalib.git@afce06ba178888d992ff51838ca521abb824c8ab
 
 
 5. Install additional requirements (if needed):
@@ -268,6 +268,6 @@ PyHeart-lib makes no commercial claim over any Ansys products whatsoever. This l
 .. _pip: https://pypi.org/project/pip/
 .. _tox: https://tox.wiki/
 .. _venv: https://docs.python.org/3/library/venv.html
-.. _dynalib: https://github.com/pyansys/dynalib
+.. _dynalib: https://github.com/ansys/dynalib
 .. _conda: https://docs.conda.io/en/latest/
 .. _documentation: https://heart.docs.pyansys.com/

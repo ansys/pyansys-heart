@@ -719,13 +719,10 @@ def mesh_heart_model_by_fluent(
         show_gui=show_gui,
         product_version=_fluent_version,
     )
-    if session.check_health() != "SERVING":
+    if session.health_check_service.status() != "SERVING":
         LOGGER.error("Fluent session failed. Exiting Fluent")
-        session.stop_transcript()
         session.exit()
         exit()
-
-    session.start_transcript()
 
     min_size = mesh_size
     max_size = mesh_size

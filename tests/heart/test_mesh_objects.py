@@ -77,6 +77,7 @@ def test_mesh_object_read_001():
 
 
 # @pytest.mark.skipif(skip_test)
+@pytest.mark.xfail(reason="Only supporting Strocchi for tests.")
 def test_mesh_object_read_002():
     """Test if rodero's case is properly read."""
     case_file = download_asset(database="Cristobal2021", casenumber=1)

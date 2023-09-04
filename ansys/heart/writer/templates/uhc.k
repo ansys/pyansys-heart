@@ -45,7 +45,7 @@ $
 *MAT_THERMAL_ISOTROPIC
 $     tmid       tro     tgrlc    tgmult      tlat      hlat
          1    1.0e-9
-$       hc        tc		 
+$       hc        tc
     1.0000       1.0
 $
 $======================== NODE/ELEMENT/SET DEFINITIONS ==========================

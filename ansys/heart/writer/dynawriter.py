@@ -3450,14 +3450,18 @@ class UHCWriter(BaseDynaWriter):
         content = open(template_file).readlines()
         self.kw_database.main.append("".join(content))
 
-        # todo : only consider LV
-        # apex-base
+        # apex
         apex_set = self.model._compute_uvc_apex_set()
         kw = create_node_set_keyword(apex_set + 1, node_set_id=2, title="apex")
         self.kw_database.node_sets.append(kw)
-        for cap in self.model.parts[0].caps:
-            if "mitral" in cap.name:
-                base_set = cap.node_ids
+        # base
+        base_set = np.array([])
+        for part in self.model.parts:
+            if "ventricle" in part.name:
+                for cap in part.caps:
+                    if ("mitral" in cap.name) or ("tricuspid" in cap.name):
+                        base_set = np.append(base_set, cap.node_ids)
+
         kw = create_node_set_keyword(base_set + 1, node_set_id=1, title="base")
         self.kw_database.node_sets.append(kw)
 
@@ -3470,11 +3474,21 @@ class UHCWriter(BaseDynaWriter):
         kw = create_node_set_keyword(septum + 1, node_set_id=300, title="rotation:0")
         self.kw_database.node_sets.append(kw)
 
-        for surf in self.model.parts[0].surfaces:
-            if "endo" in surf.name:
-                endo_set = surf.node_ids
-            if "epi" in surf.name:
-                epi_set = surf.node_ids
+        # Trans-mural
+        endo_set = np.array([])
+        epi_set = np.array([])
+        for part in self.model.parts:
+            if "ventricle" in part.name:
+                for surf in part.surfaces:
+                    if "endocardium" in surf.name:
+                        endo_set = np.append(endo_set, surf.node_ids)
+                    if "epicardium" in surf.name:
+                        epi_set = np.append(epi_set, surf.node_ids)
+
+        # avoid re constraint node
+        endo_set = np.unique(endo_set.astype(int))
+        epi_set = np.unique(epi_set.astype(int))
+        epi_set = np.setdiff1d(epi_set, endo_set)
 
         kw = create_node_set_keyword(endo_set + 1, node_set_id=20, title="endo")
         self.kw_database.node_sets.append(kw)

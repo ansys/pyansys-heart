@@ -3444,6 +3444,7 @@ class UHCWriter(BaseDynaWriter):
             part.pid = 1
         self._update_solid_elements_db(add_fibers=False)
 
+        # main is from template
         self.kw_database.main.append(keywords.Comment())
         template_file = os.path.join(__file__, "..", "templates", "uhc.k")
         content = open(template_file).readlines()

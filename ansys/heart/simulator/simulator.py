@@ -149,6 +149,25 @@ class BaseSimulator:
         self.model.dump_model(os.path.join(self.root_directory, "model_with_fiber.pickle"))
         return
 
+    def compute_uhc(self):
+        """Compute universal 'heart' coordinates system."""
+        if isinstance(self.model, (FourChamber, FullHeart)):
+            raise NotImplementedError("Karim will do it ;)")
+
+        export_directory = os.path.join(self.root_directory, "uhc")
+        self.directories["uhc"] = export_directory
+
+        dyna_writer = writers.UHCWriter(copy.deepcopy(self.model))
+        dyna_writer.update()
+        dyna_writer.export(export_directory)
+
+        LOGGER.info("Computing universal heart coordinates...")
+
+        input_file = os.path.join(export_directory, "main.k")
+        self._run_dyna(path_to_input=input_file)
+
+        LOGGER.info("done.")
+
     def _run_dyna(self, path_to_input: Path, options: str = ""):
         """Run LS-DYNA with path and options.
 

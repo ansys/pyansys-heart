@@ -164,7 +164,7 @@ class BaseSimulator:
         LOGGER.info("Computing universal heart coordinates...")
 
         input_file = os.path.join(export_directory, "main.k")
-        self._run_dyna(path_to_input=input_file)
+        self._run_dyna(path_to_input=input_file, options="case")
 
         LOGGER.info("done.")
 

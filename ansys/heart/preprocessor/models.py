@@ -1676,7 +1676,7 @@ class HeartModel:
         point_tree = spatial.cKDTree(self.mesh.points)
         set = point_tree.query_ball_point(self.parts[0].apex_points[1].xyz, radius)
 
-        print(set)
+        # print(set)
         return np.array(set)
 
 

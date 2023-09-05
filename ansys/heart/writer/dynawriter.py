@@ -3429,7 +3429,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         return
 
 
-class UHCWriter(BaseDynaWriter):
+class UHCWriter(ElectrophysiologyDynaWriter):
     """Universal Heart Coordinate Writer."""
 
     def __init__(self, model):
@@ -3438,24 +3438,83 @@ class UHCWriter(BaseDynaWriter):
 
     def update(self):
         """Update keyword database."""
+        self._isolate_atria_and_ventricles()
         self._update_node_db()
         self._update_parts_db()
-
         self._update_solid_elements_db(add_fibers=False)
+        self._update_main_db()
+        self._update_segmentsets_db()
+        self._update_nodesets_db()
+        # longitudinal uc
+        apex_sid = self._create_apex_nodeset()
+        self.kw_database.boundary_conditions.append(
+            keywords.BoundaryTemperatureNode(nid=apex_sid, lcid=0, cmult=0, tdeath=1, tbirth=0)
+        )
+        base_sid = self._create_base_nodeset()
+        self.kw_database.boundary_conditions.append(
+            keywords.BoundaryTemperatureNode(nid=base_sid, lcid=0, cmult=1, tdeath=1, tbirth=0)
+        )
 
-        self.kw_database.main.append(keywords.ControlSolution(soln=1))
-        self.kw_database.main.append(keywords.ControlThermalSolver(atype=0, ptype=0, solver=11))
-        self.kw_database.main.append(keywords.ControlTermination(endtim=1))
-        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=1.0))
-        self.kw_database.main.append(keywords.DatabaseGlstat(dt=1.0))
-        self.kw_database.main.append(keywords.DatabaseMatsum(dt=1.0))
-        self.kw_database.main.append(keywords.DatabaseTprint(dt=1.0))
-        self.kw_database.main.append(keywords.SectionSolid(secid=1, elform=1))
-        self.kw_database.main.append(keywords.MatThermalIsotropic(tmid=1, tro=1e-9, hc=1, tc=1))
+        # transmural uc
+        ventricular_endo_sid = self._create_surface_nodeset(
+            surftype="endocardium", cavity_type="ventricle"
+        )
+        self.kw_database.boundary_conditions.append(
+            keywords.BoundaryTemperatureNode(
+                nid=ventricular_endo_sid, lcid=0, cmult=0, tdeath=1, tbirth=0
+            )
+        )
+        ventricular_epi_sid = self._create_surface_nodeset(
+            surftype="epicardium", cavity_type="ventricle"
+        )
+        self.kw_database.boundary_conditions.append(
+            keywords.BoundaryTemperatureNode(
+                nid=ventricular_epi_sid, lcid=0, cmult=1, tdeath=1, tbirth=0
+            )
+        )
+
+        # rotational uc
+        [sid_minus_pi, sid_plus_pi, sid_zero] = self._create_rotational_nodesets()
+        self.kw_database.boundary_conditions.append(
+            keywords.BoundaryTemperatureNode(
+                nid=sid_minus_pi, lcid=0, cmult=-3.14, tdeath=1, tbirth=0
+            )
+        )
+        self.kw_database.boundary_conditions.append(
+            keywords.BoundaryTemperatureNode(
+                nid=sid_plus_pi, lcid=0, cmult=3.14, tdeath=1, tbirth=0
+            )
+        )
+        self.kw_database.boundary_conditions.append(
+            keywords.BoundaryTemperatureNode(nid=sid_zero, lcid=0, cmult=0, tdeath=1, tbirth=0)
+        )
+
+        # atrial uc
+        atrial_endo_sid = self._create_surface_nodeset(surftype="endocardium", cavity_type="atrium")
+        self.kw_database.boundary_conditions.append(
+            keywords.BoundaryTemperatureNode(
+                nid=atrial_endo_sid, lcid=0, cmult=0, tdeath=1, tbirth=0
+            )
+        )
+        atrial_epi_sid = self._create_surface_nodeset(surftype="epicardium", cavity_type="atrium")
+        self.kw_database.boundary_conditions.append(
+            keywords.BoundaryTemperatureNode(
+                nid=atrial_epi_sid, lcid=0, cmult=1, tdeath=1, tbirth=0
+            )
+        )
+
+        self._get_list_of_includes()
+        self._add_includes()
+
+    def _create_apex_nodeset(self):
         # apex
         apex_set = self.model._compute_uvc_apex_set()
-        kw = create_node_set_keyword(apex_set + 1, node_set_id=2, title="apex")
+        sid = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(apex_set + 1, node_set_id=sid, title="apex")
         self.kw_database.node_sets.append(kw)
+        return sid
+
+    def _create_base_nodeset(self):
         # base
         base_set = np.array([])
         for part in self.model.parts:
@@ -3463,39 +3522,54 @@ class UHCWriter(BaseDynaWriter):
                 for cap in part.caps:
                     if ("mitral" in cap.name) or ("tricuspid" in cap.name):
                         base_set = np.append(base_set, cap.node_ids)
+        sid = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(base_set + 1, node_set_id=sid, title="base")
+        self.kw_database.node_sets.append(kw)
+        return sid
 
-        kw = create_node_set_keyword(base_set + 1, node_set_id=1, title="base")
-        self.kw_database.node_sets.append(kw)
-
-        # Rotation
-        rot_start, rot_end, septum = self.model._compute_uvc_rotation_bc()
-        kw = create_node_set_keyword(rot_start + 1, node_set_id=100, title="rotation:-pi")
-        self.kw_database.node_sets.append(kw)
-        kw = create_node_set_keyword(rot_end + 1, node_set_id=200, title="rotation:pi")
-        self.kw_database.node_sets.append(kw)
-        kw = create_node_set_keyword(septum + 1, node_set_id=300, title="rotation:0")
-        self.kw_database.node_sets.append(kw)
-
-        # Trans-mural
-        endo_set = np.array([])
-        epi_set = np.array([])
+    def _create_surface_nodeset(self, surftype: str, cavity_type: str):
+        nodeset = np.array([])
         for part in self.model.parts:
-            if "ventricle" in part.name:
+            if cavity_type in part.name:
                 for surf in part.surfaces:
-                    if "endocardium" in surf.name:
-                        endo_set = np.append(endo_set, surf.node_ids)
-                    if "epicardium" in surf.name:
-                        epi_set = np.append(epi_set, surf.node_ids)
-
-        # avoid re constraint node
-        endo_set = np.unique(endo_set.astype(int))
-        epi_set = np.unique(epi_set.astype(int))
-        epi_set = np.setdiff1d(epi_set, endo_set)
-
-        kw = create_node_set_keyword(endo_set + 1, node_set_id=20, title="endo")
+                    if surftype in surf.name:
+                        nodeset = np.append(nodeset, surf.node_ids)
+        nodeset = np.unique(nodeset.astype(int))
+        sid = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(
+            nodeset + 1, node_set_id=sid, title=cavity_type + " " + surftype + " all"
+        )
         self.kw_database.node_sets.append(kw)
-        kw = create_node_set_keyword(epi_set + 1, node_set_id=30, title="epi")
+        return sid
+
+    def _create_rotational_nodesets(self):
+        rot_start, rot_end, septum = self.model._compute_uvc_rotation_bc()
+        sid_minus_pi = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(rot_start + 1, node_set_id=sid_minus_pi, title="rotation:-pi")
         self.kw_database.node_sets.append(kw)
+        sid_plus_pi = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(rot_end + 1, node_set_id=sid_plus_pi, title="rotation:pi")
+        self.kw_database.node_sets.append(kw)
+        sid_zero = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(septum + 1, node_set_id=sid_zero, title="rotation:0")
+        self.kw_database.node_sets.append(kw)
+        return [sid_minus_pi, sid_plus_pi, sid_zero]
+
+    def _update_main_db(self):
+        for part in self.model.parts:
+            partname = part.name.lower()
+            if ("atrium" in partname) or ("ventricle" in partname) or ("septum" in partname):
+                mid = part.pid
+                self.kw_database.parts.append(
+                    keywords.MatThermalIsotropic(tmid=mid, tro=1e-9, hc=1, tc=1)
+                )
+        self.kw_database.main.append(keywords.ControlSolution(soln=1))
+        self.kw_database.main.append(keywords.ControlThermalSolver(atype=0, ptype=0, solver=11))
+        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=1.0))
+        self.kw_database.main.append(keywords.DatabaseGlstat(dt=1.0))
+        self.kw_database.main.append(keywords.DatabaseMatsum(dt=1.0))
+        self.kw_database.main.append(keywords.DatabaseTprint(dt=1.0))
+        self.kw_database.main.append(keywords.ControlTermination(endtim=5))
 
 
 if __name__ == "__main__":

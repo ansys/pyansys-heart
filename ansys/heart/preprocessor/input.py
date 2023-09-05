@@ -230,6 +230,7 @@ class _InputModel:
             # raise NotImplementedError("Default part definitions not yet implemented.")
 
         self._add_parts(part_definitions)
+        self._validate_input()
 
         return
 
@@ -297,8 +298,12 @@ class _InputModel:
                 )
             )
 
+        # truncate input.
         if not np.all(is_visited):
-            LOGGER.warning("Not all faces are assigned to a boundary.")
+            LOGGER.warning(
+                "Not all faces are assigned to a boundary. Removing unused faces from input."
+            )
+            self.input_polydata = self.input_polydata.extract_cells(is_visited)
 
         return
 
@@ -308,6 +313,17 @@ class _InputModel:
             if not p.is_manifold:
                 return False
         return True
+
+    def _validate_input(self):
+        """Validate whether the provided scalars or list of scalars yield non-empty meshes."""
+        if len(self.parts) == 0:
+            LOGGER.warning("No parts defined, nothing to validate.")
+            return None
+        for part in self.parts:
+            for b in part.boundaries:
+                if not np.any(np.isin(self.input_polydata.cell_data["boundary-id"], b.id)):
+                    raise ValueError(f"Boundary {b.name} with scalar {b.id} is empty.")
+        return
 
     def plot(self, show_edges: bool = True):
         """Plot all boundaries."""

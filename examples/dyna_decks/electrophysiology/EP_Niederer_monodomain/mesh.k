@@ -5,7 +5,7 @@ $# Created on Aug-15-2017 (11:41:29)
 $#                                                                         title
 LS-DYNA keyword deck by LS-PrePost
 *SET_NODE_LIST
-$#     sid       da1       da2       da3       da4    solver      
+$#     sid       da1       da2       da3       da4    solver
          1       0.0       0.0       0.0       0.0MECH
 $#    nid1      nid2      nid3      nid4      nid5      nid6      nid7      nid8
          1         2         3         4        16        17        18        19
@@ -17,7 +17,7 @@ $#    nid1      nid2      nid3      nid4      nid5      nid6      nid7      nid8
       1846      1847      1848      1849      1861      1862      1863      1864
       1876      1877      1878      1879      1891      1892      1893      1894
 *SET_NODE_LIST
-$#     sid       da1       da2       da3       da4    solver      
+$#     sid       da1       da2       da3       da4    solver
          2       0.0       0.0       0.0       0.0MECH
 $#    nid1      nid2      nid3      nid4      nid5      nid6      nid7      nid8
       1771      1772      1773      1774      1786      1787      1788      1789
@@ -34,7 +34,7 @@ $#    nid1      nid2      nid3      nid4      nid5      nid6      nid7      nid8
       4261      4262      4263      4264      4276      4277      4278      4279
       4291      4292      4293      4294         0         0         0         0
 *SET_NODE_LIST
-$#     sid       da1       da2       da3       da4    solver      
+$#     sid       da1       da2       da3       da4    solver
          3       0.0       0.0       0.0       0.0MECH
 $#    nid1      nid2      nid3      nid4      nid5      nid6      nid7      nid8
        616       617         2         1        16       631        17         0
@@ -3401,7 +3401,7 @@ $#   eid     pid      n1      n2      n3      n4      n5      n6      n7      n8
     3359       1    3673    3674    3689    3688    4288    4289    4304    4303
     3360       1    3674    3675    3690    3689    4289    4290    4305    4304
 *NODE
-$#   nid               x               y               z      tc      rc  
+$#   nid               x               y               z      tc      rc
        1             0.0             0.0             0.0       0       0
        2             0.5             0.0             0.0       0       0
        3             1.0             0.0             0.0       0       0

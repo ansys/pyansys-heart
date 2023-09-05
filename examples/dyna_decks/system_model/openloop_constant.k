@@ -9,28 +9,28 @@ $   Only used for Euler Implicit
 
 $   physical constants
     float Ra, Rv;
-    Ra = (13.332 / 83333)/10;	
+    Ra = (13.332 / 83333)/10;
     Rv = (0.4 / 83333);
-	
+
 $   constant pre/afterload:
     float pven, part;
-    pven = 2;  
-    part = 8;				
+    pven = 2;
+    part = 8;
 
 $   physical variables
-    float chi_av, chi_mv; 
+    float chi_av, chi_mv;
     float pk, qk, qven, qart;
 
 $   only for save data purpose
     float pk2, qk2, qven2, qart2;
-	
+
 $   time related variables
     int icall=0, is_new_dt=0;
 $   t: current time (input)
 $   t_last: time of the last call
 $   t_old: time of the last step
     float t_last=0.0, t_old=0.0, dt;
-	
+
 $   determine if function call is at start of timestep:
     if ( t-t_last > 1e-9 ) {
         is_new_dt = 1;
@@ -42,7 +42,7 @@ $   determine if function call is at start of timestep:
     } else
     {
         is_new_dt = 0;
-    }	
+    }
     if ( is_new_dt ) {
 $   Save system states of last time step (at t_old)
 $   The converged pressure value of last time step (at t_old)
@@ -52,7 +52,7 @@ $   The converged pressure value of last time step (at t_old)
         qven2 = qven;
         qk2 = qk;
     }
-	
+
     if (Implicit){
 $   LSDYNA will integrate cavity volume implicitly: V^t = V^t_old+dt*Q^t
 $   LSDYNA's input dp is interpolated by dp=(1-r)*p^t_old+r*p^t+1_i
@@ -64,7 +64,7 @@ $   We retreive firstly p^t at this iteration
 $   LSDYNA will integrate cavity volume explicitly: V^t = V^t_old+dt*Q^t_old
         pk = pk2;
     }
-	
+
 $   Update valve indicator functions
     if (pven >= pk )
     {
@@ -83,8 +83,8 @@ $   Update valve indicator functions
 $   compute flow: In - Out
     qven = chi_mv * ( ( pven - pk ) / Rv );
     qart = chi_av * ( ( pk  - part) / Ra );
-    qk  = qven - qart;  
- 
+    qk  = qven - qart;
+
 $   write data to file
 $   Note: we write at the first call of t, write the states for time t_old
     char fn_data[] = "circulation_model.csv";
@@ -92,7 +92,7 @@ $   Note: we write at the first call of t, write the states for time t_old
     if (icall == 0){
         f_data=fopen(fn_data, "w");
         fprintf(f_data, "icall,time,pk,part,pven");
-        fprintf(f_data, ",qart,qven,qk\n"); 
+        fprintf(f_data, ",qart,qven,qk\n");
         fclose(f_data);
      }
     else if ( is_new_dt ) {
@@ -101,14 +101,14 @@ $   Note: we write at the first call of t, write the states for time t_old
         fprintf(f_data, "%.6e,%.6e,%.6e,",pk2,part,pven);
         fprintf(f_data, "%.6e,%.6e,%.6e\n",qart2,qven2,qk2);
         fclose(f_data);
-$       
+$
         t_old = t;
     }
-    
+
 $   Update counters
     t_last = t;
     icall = icall + 1;
-    
+
 $   LSDYNA defines outflow as positive
     return -qk;
 }

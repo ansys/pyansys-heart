@@ -1,20 +1,20 @@
 *KEYWORD
 *PART
 $#                                                             heading
-Left ventricle                                                        
+Left ventricle
 $#     pid     secid       mid     eosid      hgid      grav    adpopt      tmid
-         1         1         1                                                  
+         1         1         1
 *PART
 $#                                                             heading
-Right ventricle                                                       
+Right ventricle
 $#     pid     secid       mid     eosid      hgid      grav    adpopt      tmid
-         2         1         1                                                  
+         2         1         1
 *PART
 $#                                                             heading
-Septum                                                                
+Septum
 $#     pid     secid       mid     eosid      hgid      grav    adpopt      tmid
-         3         1         1                                                  
+         3         1         1
 *SECTION_SOLID
 $#   secid    elform       aet                                  cohoff   gaskeit
-         1        13         0                                                  
+         1        13         0
 *END

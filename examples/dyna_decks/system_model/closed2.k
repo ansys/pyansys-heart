@@ -22,7 +22,7 @@ $   physical constants
 	Vv0 = 3.0e6;
 	Vlv0 = 79234;
 	Vtot = Vlv0+Va0+Ca*8+Vv0+Cv*2;
-	
+
 $   physical variables
     float chi_av, chi_mv;
     float pk, part, pven;
@@ -49,10 +49,10 @@ $   initial volume
           vart = Va0 + Ca * part;
           vlv = Vlv0;
           vven = Vtot-vlv-vart;
-          pven = (vven-Vv0) / Cv;		  
-$   initial flow		  
+          pven = (vven-Vv0) / Cv;
+$   initial flow
           qp = part / Rp;
-$   initial values for system update 		  
+$   initial values for system update
 		  vart2 = vart;
 		  vlv2 = vlv;
 		  part2 = part;
@@ -88,7 +88,7 @@ $   The converged pressure value of last time step (at t_old)
         qven2 = qven;
         qk2 = qk;
     }
-	
+
     if (Implicit){
 $   Use pressure at t to update flow at t
 $   LSDYNA's input dp is interpolated by dp=(1-r)*p^t_old+r*p^t+1_i
@@ -134,8 +134,8 @@ $   Euler implicit to update other Volume
 	vven = Vtot-vlv-vart;
 	part = (vart-Va0) / Ca;
 	pven = (vven-Vv0) / Cv;
-	qp = (part-pven) / Rp;			 
-	
+	qp = (part-pven) / Rp;
+
 $   used to debug
 $   Note: we write at every call of t, write states for time t
     char fn_bug[] = "circulation_model_debug.csv";
@@ -143,7 +143,7 @@ $   Note: we write at every call of t, write states for time t
     if (icall == 0){
         f_bug=fopen(fn_bug, "w");
         fprintf(f_bug, "icall,is_new_dt,time,dp,pk,part,pven");
-        fprintf(f_bug, ",qart,qp,qven,qk,vart,vven\n");      
+        fprintf(f_bug, ",qart,qp,qven,qk,vart,vven\n");
         fprintf(f_bug, "%d,%d,%.6e,%.6e,",icall,is_new_dt,t,dp);
         fprintf(f_bug, "%.6e,%.6e,%.6e,",pk,part,pven);
         fprintf(f_bug, "%.6e,%.6e,%.6e,%.6e,",qart,qp,qven,qk);
@@ -175,14 +175,14 @@ $   Note: we write at the first call of t, write the states for time t_old
         fprintf(f_data, "%.6e,%.6e,%.6e,%.6e,",qart2,qp2,qven2,qk2);
         fprintf(f_data, "%.6e,%.6e,%.6e\n",vart2,vven2,vlv2);
         fclose(f_data);
-$       
+$
         t_old = t;
     }
-    
+
 $   Update counters
     t_last = t;
     icall = icall + 1;
-    
+
 $   LSDYNA defines outflow as positive
     return -qk;
 }

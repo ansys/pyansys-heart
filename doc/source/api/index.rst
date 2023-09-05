@@ -1,4 +1,4 @@
-API Reference
+API reference
 =============
 
 This page contains auto-generated API reference documentation for pyheart-lib.

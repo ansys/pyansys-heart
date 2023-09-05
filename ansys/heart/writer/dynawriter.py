@@ -3439,17 +3439,19 @@ class UHCWriter(BaseDynaWriter):
     def update(self):
         """Update keyword database."""
         self._update_node_db()
+        self._update_parts_db()
 
-        for part in self.model.parts:
-            part.pid = 1
         self._update_solid_elements_db(add_fibers=False)
 
-        # main is from template
-        self.kw_database.main.append(keywords.Comment())
-        template_file = os.path.join(__file__, "..", "templates", "uhc.k")
-        content = open(template_file).readlines()
-        self.kw_database.main.append("".join(content))
-
+        self.kw_database.main.append(keywords.ControlSolution(soln=1))
+        self.kw_database.main.append(keywords.ControlThermalSolver(atype=0, ptype=0, solver=11))
+        self.kw_database.main.append(keywords.ControlTermination(endtim=1))
+        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=1.0))
+        self.kw_database.main.append(keywords.DatabaseGlstat(dt=1.0))
+        self.kw_database.main.append(keywords.DatabaseMatsum(dt=1.0))
+        self.kw_database.main.append(keywords.DatabaseTprint(dt=1.0))
+        self.kw_database.main.append(keywords.SectionSolid(secid=1, elform=1))
+        self.kw_database.main.append(keywords.MatThermalIsotropic(tmid=1, tro=1e-9, hc=1, tc=1))
         # apex
         apex_set = self.model._compute_uvc_apex_set()
         kw = create_node_set_keyword(apex_set + 1, node_set_id=2, title="apex")

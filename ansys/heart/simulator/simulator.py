@@ -171,6 +171,7 @@ class BaseSimulator:
             dirname = "uhc" + "-" + part_type + "-" + coordinate_type
             export_directory = os.path.join(self.root_directory, dirname)
             self.directories[dirname] = export_directory
+            # Dyna writer
             dyna_writer = writers.UHCWriter(
                 copy.deepcopy(self.model),
                 part_type=part_type,
@@ -188,7 +189,7 @@ class BaseSimulator:
 
             LOGGER.info("done.")
 
-            read_uhc(export_directory, part_type=part_type, coordinate_type=coordinate_type)
+            grid = read_uhc(export_directory, part_type=part_type, coordinate_type=coordinate_type)
 
     def _run_dyna(self, path_to_input: Path, options: str = ""):
         """Run LS-DYNA with path and options.

@@ -245,4 +245,4 @@ def read_uhc(
             grid.save(os.path.join(directory, "uvc-" + coordinate_type + ".vtk"))
             grid.set_active_scalars(coordinate_type)
 
-    return
+    return grid

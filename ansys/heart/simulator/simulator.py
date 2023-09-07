@@ -18,7 +18,7 @@ from typing import Literal
 
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.misc.element_orth import read_orth_element_kfile
-from ansys.heart.postprocessor.auto_process import export_uhc, mech_post, zerop_post
+from ansys.heart.postprocessor.auto_process import mech_post, read_uhc, zerop_post
 from ansys.heart.preprocessor.models import FourChamber, FullHeart, HeartModel
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import ansys.heart.writer.dynawriter as writers
@@ -149,26 +149,41 @@ class BaseSimulator:
         self.model.dump_model(os.path.join(self.root_directory, "model_with_fiber.pickle"))
         return
 
-    def compute_uhc(self):
+    def compute_uhc(
+        self,
+    ):
         """Compute universal 'heart' coordinates system."""
-        if isinstance(self.model, (FourChamber, FullHeart)):
-            raise NotImplementedError("todo")
+        if isinstance(self.model, (FullHeart)):
+            raise NotImplementedError("Not yet tested for the full heart")
+        coordinate_type = "all"
+        for part_type in ["atrium", "ventricle"]:
+            # for coordinate_type in ["apico-basal", "transmural", "rotational"]:
+            #     if not (
+            #         part_type == "atrium"
+            #         and (coordinate_type == "apico-basal" or coordinate_type == "rotational")
+            #     ):
 
-        export_directory = os.path.join(self.root_directory, "uhc")
-        self.directories["uhc"] = export_directory
+            dirname = "uhc" + "-" + part_type + "-" + coordinate_type
+            export_directory = os.path.join(self.root_directory, dirname)
+            self.directories[dirname] = export_directory
+            # dyna_writer = writers.UHCWriter(
+            #     copy.deepcopy(self.model),
+            #     part_type=part_type,
+            #     coordinate_type=coordinate_type,
+            # )
+            # dyna_writer.update()
+            # dyna_writer.export(export_directory)
 
-        dyna_writer = writers.UHCWriter(copy.deepcopy(self.model))
-        dyna_writer.update()
-        dyna_writer.export(export_directory)
+            # LOGGER.info(
+            #     "Computing universal " + part_type + " " + coordinate_type + " coordinates..."
+            # )
 
-        LOGGER.info("Computing universal heart coordinates...")
+            # input_file = os.path.join(export_directory, "main.k")
+            # self._run_dyna(path_to_input=input_file)
 
-        input_file = os.path.join(export_directory, "main.k")
-        self._run_dyna(path_to_input=input_file, options="case")
+            LOGGER.info("done.")
 
-        LOGGER.info("done.")
-
-        export_uhc(export_directory)
+            read_uhc(export_directory, coordinate_type=coordinate_type)
 
     def _run_dyna(self, path_to_input: Path, options: str = ""):
         """Run LS-DYNA with path and options.

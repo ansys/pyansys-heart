@@ -162,12 +162,9 @@ class BaseSimulator:
             part_types = ["ventricle"]
 
         for part_type in part_types:
+            # In the ventricular case, you can also solve systems indepandantly by using the
+            # following for loop:
             # for coordinate_type in ["apico-basal", "transmural", "rotational"]:
-            #     if not (
-            #         part_type == "atrium"
-            #         and (coordinate_type == "apico-basal" or coordinate_type == "rotational")
-            #     ):
-
             dirname = "uhc" + "-" + part_type + "-" + coordinate_type
             export_directory = os.path.join(self.root_directory, dirname)
             self.directories[dirname] = export_directory

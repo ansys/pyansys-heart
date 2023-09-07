@@ -213,22 +213,36 @@ def mech_post(directory: pathlib.Path, model):
     return
 
 
-def read_uhc(directory, coordinate_type: Literal["transmural", "apico-basal", "rotational", "all"]):
+def read_uhc(
+    directory,
+    part_type: Literal["atrium", "ventricle"],
+    coordinate_type: Literal["transmural", "apico-basal", "rotational", "all"],
+):
     """Read UHC from d3plot files."""
     data = D3plotReader(os.path.join(directory, "d3plot"))
     grid = data.model.metadata.meshed_region.grid
-    if coordinate_type == "all":
-        t = data.model.results.temperature.on_last_time_freq.eval()[0].data
-        grid["transmural"] = t[::3]
-        grid["apico-basal"] = t[::3]
-        grid["rotational"] = t[::3]
+    if part_type == "atrium":
+        grid["transmural"] = data.model.results.temperature.on_last_time_freq.eval()[0].data[::3]
         grid.set_active_scalars("transmural")
-    else:
-        data = D3plotReader(os.path.join(directory, "d3plot"))
-        t = data.model.results.temperature.on_last_time_freq.eval()[0].data
-        grid[coordinate_type] = t[::3]
+        grid.save(os.path.join(directory, "uac.vtk"))
+    if part_type == "ventricle":
+        if coordinate_type == "all":
+            grid["transmural"] = data.model.results.temperature.on_all_time_freqs.eval()[1].data[
+                ::3
+            ]
+            grid["apico-basal"] = data.model.results.temperature.on_all_time_freqs.eval()[2].data[
+                ::3
+            ]
+            grid["rotational"] = data.model.results.temperature.on_all_time_freqs.eval()[3].data[
+                ::3
+            ]
+            grid.set_active_scalars("transmural")
+            grid.save(os.path.join(directory, "uvc.vtk"))
+        else:
+            data = D3plotReader(os.path.join(directory, "d3plot"))
+            t = data.model.results.temperature.on_last_time_freq.eval()[0].data
+            grid[coordinate_type] = t[::3]
+            grid.save(os.path.join(directory, "uvc-" + coordinate_type + ".vtk"))
+            grid.set_active_scalars(coordinate_type)
 
-        grid.set_active_scalars(coordinate_type)
-        # grid.plot()
-        # grid.save(os.path.join(directory, "uhc.vtk"))
     return

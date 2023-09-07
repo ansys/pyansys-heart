@@ -153,10 +153,15 @@ class BaseSimulator:
         self,
     ):
         """Compute universal 'heart' coordinates system."""
+        coordinate_type = "all"
         if isinstance(self.model, (FullHeart)):
             raise NotImplementedError("Not yet tested for the full heart")
-        coordinate_type = "all"
-        for part_type in ["atrium", "ventricle"]:
+        if isinstance(self.model, (FourChamber)):
+            part_types = ["atrium", "ventricle"]
+        else:
+            part_types = ["ventricle"]
+
+        for part_type in part_types:
             # for coordinate_type in ["apico-basal", "transmural", "rotational"]:
             #     if not (
             #         part_type == "atrium"
@@ -181,9 +186,9 @@ class BaseSimulator:
             # input_file = os.path.join(export_directory, "main.k")
             # self._run_dyna(path_to_input=input_file)
 
-            LOGGER.info("done.")
+            # LOGGER.info("done.")
 
-            read_uhc(export_directory, coordinate_type=coordinate_type)
+            read_uhc(export_directory, part_type=part_type, coordinate_type=coordinate_type)
 
     def _run_dyna(self, path_to_input: Path, options: str = ""):
         """Run LS-DYNA with path and options.

@@ -77,24 +77,41 @@ simulator.compute_uhc()
 #   :align: center
 
 ###############################################################################
-# Visualization
-# ~~~~~~~~~~~~~
+# Visualization of UVCs
+# ~~~~~~~~~~~~~~~~~~~~~
 
-data = pv.read(os.path.join(workdir, "simulation", "uhc", "uhc.vtk"))
+data_ventricles = pv.read(os.path.join(workdir, "simulation", "uhc-ventricle-all", "uvc.vtk"))
 
 plotter = pv.Plotter(shape=(1, 3))
 
 plotter.subplot(0, 0)
-plotter.add_mesh(data, scalars="longitudinal")
+plotter.add_mesh(data_ventricles, scalars="apico-basal")
 
 plotter.subplot(0, 1)
-plotter.add_mesh(copy.copy(data), scalars="transmural")
+plotter.add_mesh(copy.copy(data_ventricles), scalars="transmural")
 
 plotter.subplot(0, 2)
-plotter.add_mesh(copy.copy(data), scalars="rotational")
+plotter.add_mesh(copy.copy(data_ventricles), scalars="rotational")
 plotter.show()
 
 ###############################################################################
 # .. image:: /_static/images/uvc_result.png
+#   :width: 600pt
+#   :align: center
+
+
+###############################################################################
+# Visualization of UACs
+# ~~~~~~~~~~~~~~~~~~~~~
+
+data_atria = pv.read(os.path.join(workdir, "simulation", "uhc-atrium-all", "uac.vtk"))
+
+plotter = pv.Plotter()
+plotter.add_mesh(data_atria, scalars="transmural")
+plotter.show()
+
+
+###############################################################################
+# .. image:: /_static/images/uac_result.png
 #   :width: 600pt
 #   :align: center

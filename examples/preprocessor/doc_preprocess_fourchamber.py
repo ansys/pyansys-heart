@@ -30,10 +30,14 @@ os.environ["USE_OLD_HEART_MODELS"] = "1"
 
 # specify necessary paths.
 # Note that we need to cast the paths to strings to facilitate serialization.
-case_file = str(Path(Path(__file__).parents[2], "downloads", "Strocchi2020", "01", "01.case"))
-download_folder = str(Path(Path(__file__).parents[2], "downloads"))
-workdir = str(Path(Path(__file__).parents[2], "downloads", "Strocchi2020", "01", "FourChamber"))
-path_to_model = str(Path(workdir, "heart_model.pickle"))
+case_file = str(
+    Path(Path(__file__).parents[2], "downloads", "Strocchi2020", "01", "01.case").resolve()
+)
+download_folder = str(Path(Path(__file__).parents[2], "downloads").resolve())
+workdir = str(
+    Path(Path(__file__).parents[2], "downloads", "Strocchi2020", "01", "FourChamber").resolve()
+)
+path_to_model = str(Path(workdir, "heart_model.pickle").resolve())
 
 ###############################################################################
 # Download the case

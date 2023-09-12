@@ -452,6 +452,14 @@ class BaseDynaWriter:
             self.model.remove_part(part_to_remove)
         return
 
+    def _keep_parts(self, parts_to_keep: List[str]):
+        """Remove parts by a list of part names."""
+        parts_to_remove = [part for part in self.model.part_names if part not in parts_to_keep]
+        for part_to_remove in parts_to_remove:
+            LOGGER.warning("Removing: {}".format(part_to_remove))
+            self.model.remove_part(part_to_remove)
+        return
+
     def _update_solid_elements_db(self, add_fibers: bool = True):
         """
         Create Solid ortho elements for all cavities.
@@ -3459,7 +3467,8 @@ class UHCWriter(BaseDynaWriter):
             or self.coordinate_type == "apico-basal"
             or self.coordinate_type == "rotational"
         ):
-            self._keep_ventricles()
+            parts_to_keep = ["Left ventricle", "Right ventricle", "Septum"]
+            self._keep_parts(parts_to_keep)
         self._update_node_db()
         self._update_parts_db()
         self._update_solid_elements_db(add_fibers=False)

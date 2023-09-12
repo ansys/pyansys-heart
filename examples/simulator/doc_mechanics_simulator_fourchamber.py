@@ -29,7 +29,7 @@ import os
 from pathlib import Path
 
 import ansys.heart.preprocessor.models as models
-from ansys.heart.simulator.simulator import MechanicsSimulator
+from ansys.heart.simulator.simulator import MechanicsSimulator, DynaSettings
 
 # set working directory and path to model.
 workdir = Path(Path(__file__).parents[2], "downloads", "Strocchi2020", "01", "FourChamber")
@@ -56,16 +56,20 @@ model.info.workdir = str(workdir)
 ###############################################################################
 # Instantiate the simulator object
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# instantiate simulator. Change options where necessary. Note that you may need
-# to configure your environment variables if you choose `mpp`.
+# instantiate your DynaSettings and Simulator objects.
+# Change options where necessary. Note that you may need# to configure your environment
+# variables if you choose `mpp`.
+
+dyna_settings = DynaSettings(
+    lsdyna_path=lsdyna_path,
+    dynatype="smp",
+    num_cpus=4,
+)
 
 simulator = MechanicsSimulator(
     model=model,
-    lsdynapath=lsdyna_path,
-    dynatype="smp",
-    num_cpus=4,
+    dyna_settings=dyna_settings,
     simulation_directory=os.path.join(workdir, "simulation-mechanics"),
-    platform="windows",
 )
 
 ###############################################################################

@@ -9,13 +9,12 @@ Options for simulation:
     coupled electro-mechanics
 """
 import copy
-import yaml
 import glob as glob
 import os
 import pathlib as Path
 import shutil
 import subprocess
-from typing import Literal, List
+from typing import List, Literal
 
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.misc.element_orth import read_orth_element_kfile
@@ -23,6 +22,7 @@ from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
 from ansys.heart.preprocessor.models import FourChamber, FullHeart, HeartModel
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import ansys.heart.writer.dynawriter as writers
+import yaml
 
 
 def which(program):
@@ -107,7 +107,6 @@ class DynaSettings:
         List[str]
             List of strings of each of the commands.
         """
-
         lsdyna_path = self.lsdyna_path
 
         if self.platform == "windows" or self.platform == "linux":
@@ -176,7 +175,7 @@ class DynaSettings:
         return commands
 
     def __repr__(self):
-        """String representation of self."""
+        """Represent self as string."""
         return yaml.dump(vars(self), allow_unicode=True, default_flow_style=False)
 
 
@@ -189,7 +188,7 @@ class BaseSimulator:
         dynasettings: DynaSettings = None,
         simulation_directory: Path = "",
     ) -> None:
-        """Initialize BaseSimulator
+        """Initialize BaseSimulator.
 
         Parameters
         ----------
@@ -551,11 +550,10 @@ def run_lsdyna(
     path_to_input : Path
         Input file for LS-DYNA.
     settings : DynaSettings, optional
-        LS-DYNA settings, such as path to executable, executable type, platform, etc, by default None
+        LS-DYNA settings, such as path to executable, executable type, platform, by default None
     simulation_directory : Path, optional
         Directory where to simulate, by default None
     """
-
     if not settings:
         LOGGER.info("Using default LS-DYNA settings.")
         settings = DynaSettings()

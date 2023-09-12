@@ -28,7 +28,7 @@ import os
 from pathlib import Path
 
 import ansys.heart.preprocessor.models as models
-from ansys.heart.simulator.simulator import EPSimulator, DynaSettings
+from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
 
 # set working directory and path to model.
 workdir = Path(Path(__file__).parents[2], "downloads", "Strocchi2020", "01", "FourChamber")
@@ -55,7 +55,7 @@ model.info.workdir = str(workdir)
 ###############################################################################
 # Instantiate the simulator object
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# instantiate DynaSettings appropiately.
+# instantiate DynaSettings appropriately.
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path,
     dynatype="smp",

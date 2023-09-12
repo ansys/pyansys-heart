@@ -1,5 +1,5 @@
-import pytest
 from ansys.heart.simulator.simulator import DynaSettings
+import pytest
 
 
 @pytest.mark.parametrize(
@@ -87,7 +87,7 @@ def test_get_dyna_commands_002(dynatype, platform):
 )
 @pytest.mark.parametrize("platform", ["windows", "linux", "wsl"])
 def test_get_dyna_commands_003(dynatype, platform):
-    """Test if get commands returns right command line arguments if dyna and mpi options are given."""
+    """Test if get commands returns right command line arguments if dyna and mpi options present."""
     # define mock data
     settings = DynaSettings(
         lsdyna_path="my-dyna-path.exe",

@@ -8,12 +8,15 @@ import pytest
         "smp",
         "intelmpi",
         "platformmpi",
-        pytest.param("msmpi", marks=pytest.mark.xfail(reason="MSMPI not yet supported")),
+        "msmpi",
     ],
 )
 @pytest.mark.parametrize("platform", ["windows", "linux", "wsl"])
 def test_get_dyna_commands_001(dynatype, platform):
     """Test if get commands returns right command line if no additional options are given."""
+    if dynatype == "msmpi" and platform != "windows":
+        pytest.skip("MSMPI and %s are not compatible and does not make sense to test." % platform)
+
     # define mock data
     settings = DynaSettings(
         lsdyna_path="my-dyna-path.exe",
@@ -29,8 +32,10 @@ def test_get_dyna_commands_001(dynatype, platform):
     else:
         if dynatype == "smp":
             expected = ["my-dyna-path.exe", "i=path-to-input.k", "ncpu=2"]
-        elif dynatype in ["intelmpi", "platformmpi", "msmpi"]:
+        elif dynatype in ["intelmpi", "platformmpi"]:
             expected = ["mpirun", "-np", "2", "my-dyna-path.exe", "i=path-to-input.k"]
+        elif dynatype == "msmpi":
+            expected = ["mpiexec", "-np", "2", "my-dyna-path.exe", "i=path-to-input.k"]
 
     assert commands == expected
 
@@ -41,12 +46,15 @@ def test_get_dyna_commands_001(dynatype, platform):
         "smp",
         "intelmpi",
         "platformmpi",
-        pytest.param("msmpi", marks=pytest.mark.xfail(reason="MSMPI not yet supported")),
+        "msmpi",
     ],
 )
 @pytest.mark.parametrize("platform", ["windows", "linux", "wsl"])
 def test_get_dyna_commands_002(dynatype, platform):
     """Test if get commands returns right command line arguments if dyna options are given"""
+    if dynatype == "msmpi" and platform != "windows":
+        pytest.skip("MSMPI and %s are not compatible and does not make sense to test." % platform)
+
     # define mock data
     settings = DynaSettings(
         lsdyna_path="my-dyna-path.exe",
@@ -63,9 +71,18 @@ def test_get_dyna_commands_002(dynatype, platform):
     else:
         if dynatype == "smp":
             expected = ["my-dyna-path.exe", "i=path-to-input.k", "ncpu=2", "memory=1000"]
-        elif dynatype in ["intelmpi", "platformmpi", "msmpi"]:
+        elif dynatype in ["intelmpi", "platformmpi"]:
             expected = [
                 "mpirun",
+                "-np",
+                "2",
+                "my-dyna-path.exe",
+                "i=path-to-input.k",
+                "memory=1000",
+            ]
+        elif dynatype == "msmpi":
+            expected = [
+                "mpiexec",
                 "-np",
                 "2",
                 "my-dyna-path.exe",
@@ -82,12 +99,15 @@ def test_get_dyna_commands_002(dynatype, platform):
         "smp",
         "intelmpi",
         "platformmpi",
-        pytest.param("msmpi", marks=pytest.mark.xfail(reason="MSMPI not yet supported")),
+        "msmpi",
     ],
 )
 @pytest.mark.parametrize("platform", ["windows", "linux", "wsl"])
 def test_get_dyna_commands_003(dynatype, platform):
     """Test if get commands returns right command line arguments if dyna and mpi options present."""
+    if dynatype == "msmpi" and platform != "windows":
+        pytest.skip("MSMPI and %s are not compatible and does not make sense to test." % platform)
+
     # define mock data
     settings = DynaSettings(
         lsdyna_path="my-dyna-path.exe",
@@ -105,9 +125,19 @@ def test_get_dyna_commands_003(dynatype, platform):
     else:
         if dynatype == "smp":
             expected = ["my-dyna-path.exe", "i=path-to-input.k", "ncpu=2", "memory=1000"]
-        elif dynatype in ["intelmpi", "platformmpi", "msmpi"]:
+        elif dynatype in ["intelmpi", "platformmpi"]:
             expected = [
                 "mpirun",
+                "-hostfile myhostfile",
+                "-np",
+                "2",
+                "my-dyna-path.exe",
+                "i=path-to-input.k",
+                "memory=1000",
+            ]
+        elif dynatype == "msmpi":
+            expected = [
+                "mpiexec",
                 "-hostfile myhostfile",
                 "-np",
                 "2",

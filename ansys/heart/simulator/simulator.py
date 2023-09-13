@@ -50,7 +50,7 @@ class DynaSettings:
     def __init__(
         self,
         lsdyna_path: Path,
-        dynatype: Literal["smp", "intelmpi", "platformmpi"] = "intelmpi",
+        dynatype: Literal["smp", "intelmpi", "platformmpi", "msmpi"] = "intelmpi",
         num_cpus: int = 1,
         platform: Literal["windows", "wsl", "linux"] = "windows",
         dyna_options: str = "",
@@ -85,7 +85,7 @@ class DynaSettings:
         self.dyna_options = dyna_options
         """Additional command line options for dyna."""
 
-        if dynatype in ["intelmpi", "platformmpi"]:
+        if dynatype in ["intelmpi", "platformmpi", "msmpi"]:
             self.mpi_options = mpi_options
             """additional mpi options."""
         elif dynatype == "smp":
@@ -110,7 +110,7 @@ class DynaSettings:
         lsdyna_path = self.lsdyna_path
 
         if self.platform == "windows" or self.platform == "linux":
-            if self.dynatype in ["intelmpi", "platformmpi", "msmpi"]:
+            if self.dynatype in ["intelmpi", "platformmpi"]:
                 commands = [
                     "mpirun",
                     self.mpi_options,
@@ -127,6 +127,17 @@ class DynaSettings:
                     "ncpu=" + str(self.num_cpus),
                     self.dyna_options,
                 ]
+        if self.platform == "windows" and self.dynatype == "msmpi":
+            commands = [
+                "mpiexec",
+                self.mpi_options,
+                "-np",
+                str(self.num_cpus),
+                lsdyna_path,
+                "i=" + path_to_input,
+                self.dyna_options,
+            ]
+
         elif self.platform == "wsl":
             path_to_input_wsl = (
                 subprocess.run(

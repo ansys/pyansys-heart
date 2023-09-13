@@ -32,7 +32,7 @@ if not os.path.isfile(path_to_model):
     raise FileExistsError(f"{path_to_model} not found")
 
 # specify LS-DYNA path
-lsdyna_path = Path(Path(__file__).parents[4], "dyna-versions", "ls-dyna_smp_d.exe")
+lsdyna_path = Path(Path(__file__).parents[4], "dyna-versions", "ls-dyna_msmpi_d.exe")
 
 if not os.path.isfile(lsdyna_path):
     raise FileExistsError(f"{lsdyna_path} not found.")
@@ -51,7 +51,7 @@ model.info.workdir = str(workdir)
 simulator = BaseSimulator(
     model=model,
     lsdynapath=lsdyna_path,
-    dynatype="smp",
+    dynatype="msmpi",
     num_cpus=1,
     simulation_directory=os.path.join(workdir, "simulation"),
     platform="windows",

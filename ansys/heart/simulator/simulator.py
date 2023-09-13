@@ -153,29 +153,23 @@ class BaseSimulator:
         self,
     ):
         """Compute universal 'heart' coordinates system."""
-        coordinate_type = "all"
         if isinstance(self.model, (FullHeart)):
             raise NotImplementedError("Not yet tested for the full heart")
-        part_type = "ventricle"
         LOGGER.info("Computing universal ventricular coordinates...")
-        for coordinate_type in ["apico-basal", "transmural", "rotational"]:
-            dirname = "uvc"
-            export_directory = os.path.join(self.root_directory, dirname)
-            self.directories[dirname] = export_directory
-            # Dyna writer
-            dyna_writer = writers.UHCWriter(
-                copy.deepcopy(self.model),
-                coordinate_type=coordinate_type,
-            )
-            dyna_writer.update()
-            dyna_writer.export(export_directory)
+        dirname = "uvc"
+        export_directory = os.path.join(self.root_directory, dirname)
+        self.directories[dirname] = export_directory
+        # Dyna writer
+        dyna_writer = writers.UHCWriter(
+            copy.deepcopy(self.model),
+        )
+        dyna_writer.update()
+        dyna_writer.export(export_directory)
 
-            LOGGER.info("Computing " + coordinate_type + " coordinates...")
+        input_file = os.path.join(export_directory, "main.k")
+        self._run_dyna(path_to_input=input_file, options="case")
 
-            input_file = os.path.join(export_directory, "main.k")
-            self._run_dyna(path_to_input=input_file, options="jobid=" + coordinate_type)
-
-            LOGGER.info("done.")
+        LOGGER.info("done.")
 
         grid = read_uvc(export_directory)
 

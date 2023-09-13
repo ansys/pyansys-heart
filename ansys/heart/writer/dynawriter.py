@@ -9,7 +9,6 @@ import copy
 import json
 import os
 import time
-from typing import List, Literal
 
 from ansys.dyna.keywords import keywords
 from ansys.heart.custom_logging import LOGGER
@@ -3454,21 +3453,15 @@ class UHCWriter(BaseDynaWriter):
     def __init__(
         self,
         model,
-        coordinate_type: Literal["transmural", "apico-basal", "rotational"],
     ):
         """Write thermal input to set up a Laplace dirichlet problem."""
         super().__init__(model=model)
-        self.coordinate_type = coordinate_type
 
     def update(self):
         """Update keyword database."""
-        if (
-            self.coordinate_type == "transmural"
-            or self.coordinate_type == "apico-basal"
-            or self.coordinate_type == "rotational"
-        ):
-            parts_to_keep = ["Left ventricle", "Right ventricle", "Septum"]
-            self._keep_parts(parts_to_keep)
+        parts_to_keep = ["Left ventricle", "Right ventricle", "Septum"]
+        self._keep_parts(parts_to_keep)
+
         self._update_node_db()
         self._update_parts_db()
         self._update_solid_elements_db(add_fibers=False)
@@ -3476,40 +3469,48 @@ class UHCWriter(BaseDynaWriter):
         self._update_segmentsets_db()
         self._update_nodesets_db()
 
-        self._update_uvc_conditions()
+        self._update_uvc_bc()
         self._update_main_db()
         self._get_list_of_includes()
         self._add_includes()
 
-    def _update_uvc_conditions(self):
+    def _update_uvc_bc(self):
+        self.kw_database.main.append(keywords.Case(caseid=1, jobid="transmural"))
+        self.kw_database.main.append(keywords.Case(caseid=2, jobid="apico-basal"))
+        self.kw_database.main.append(keywords.Case(caseid=3, jobid="rotational"))
+
         # transmural uvc
-        if self.coordinate_type == "transmural":
-            ventricular_endo_sid = self._create_surface_nodeset(
-                surftype="endocardium", cavity_type="ventricle"
-            )
-            ventricular_epi_sid = self._create_surface_nodeset(
-                surftype="epicardium", cavity_type="ventricle"
-            )
-            self._define_Laplace_Dirichlet_bc(
-                set_ids=[ventricular_endo_sid, ventricular_epi_sid],
-                bc_values=[0, 1],
-            )
+        self.kw_database.boundary_conditions.append("*CASE_BEGIN_1")
+        ventricular_endo_sid = self._create_surface_nodeset(
+            surftype="endocardium", cavity_type="ventricle"
+        )
+        ventricular_epi_sid = self._create_surface_nodeset(
+            surftype="epicardium", cavity_type="ventricle"
+        )
+        self._define_Laplace_Dirichlet_bc(
+            set_ids=[ventricular_endo_sid, ventricular_epi_sid],
+            bc_values=[0, 1],
+        )
+        self.kw_database.boundary_conditions.append("*CASE_END_1")
+
         # apicobasal uvc
-        elif self.coordinate_type == "apico-basal":
-            apex_sid = self._create_apex_nodeset()
-            base_sid = self._create_base_nodeset()
-            self._define_Laplace_Dirichlet_bc(
-                set_ids=[apex_sid, base_sid],
-                bc_values=[0, 1],
-            )
+        self.kw_database.boundary_conditions.append("*CASE_BEGIN_2")
+        apex_sid = self._create_apex_nodeset()
+        base_sid = self._create_base_nodeset()
+        self._define_Laplace_Dirichlet_bc(
+            set_ids=[apex_sid, base_sid],
+            bc_values=[0, 1],
+        )
+        self.kw_database.boundary_conditions.append("*CASE_END_2")
 
         # rotational uc
-        elif self.coordinate_type == "rotational":
-            [sid_minus_pi, sid_plus_pi, sid_zero] = self._create_rotational_nodesets()
-            self._define_Laplace_Dirichlet_bc(
-                set_ids=[sid_minus_pi, sid_plus_pi, sid_zero],
-                bc_values=[-3.14, 3.14, 0],
-            )
+        self.kw_database.boundary_conditions.append("*CASE_BEGIN_3")
+        [sid_minus_pi, sid_plus_pi, sid_zero] = self._create_rotational_nodesets()
+        self._define_Laplace_Dirichlet_bc(
+            set_ids=[sid_minus_pi, sid_plus_pi, sid_zero],
+            bc_values=[-3.14, 3.14, 0],
+        )
+        self.kw_database.boundary_conditions.append("*CASE_END_3")
 
     def _create_apex_nodeset(self):
         # apex

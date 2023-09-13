@@ -117,3 +117,24 @@ def test_get_dyna_commands_003(dynatype, platform):
             ]
 
     assert commands == expected
+
+
+def test_set_env_variables():
+    """Test setting environment variables."""
+
+    import os
+
+    if os.getenv("MPI_ROOT"):
+        del os.environ["MPI_ROOT"]
+
+    settings = DynaSettings(
+        lsdyna_path="my-dyna-path.exe",
+        dynatype="intelmpi",
+        num_cpus=2,
+        platform="windows",
+    )
+    settings._set_env_variables()
+
+    assert os.getenv("MPI_ROOT")
+
+    pass

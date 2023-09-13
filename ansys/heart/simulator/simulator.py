@@ -186,12 +186,12 @@ class DynaSettings:
         return commands
 
     def _set_env_variables(self):
-        """Try to set environment variables for MPI run using Ansys installation root directories.
+        r"""Try to set environment variables for MPI run using Ansys installation root directories.
 
         Notes
         -----
         This is based on lsdynaintelvar.bat and lsdynamsvar.bat in
-        ANSYS Inc\\v231\\ansys\\bin\\winx64\\lsprepost48\\LS-Run 1.0
+        ANSYS Inc\v231\ansys\bin\winx64\lsprepost48\LS-Run 1.0
         and requires you to install the MPI libraries with the Ansys installer.
         """
         # get latest installed Ansys version

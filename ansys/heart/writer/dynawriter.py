@@ -9,6 +9,7 @@ import copy
 import json
 import os
 import time
+from typing import List
 
 from ansys.dyna.keywords import keywords
 from ansys.heart.custom_logging import LOGGER
@@ -3475,12 +3476,12 @@ class UHCWriter(BaseDynaWriter):
         self._add_includes()
 
     def _update_uvc_bc(self):
-        self.kw_database.main.append(keywords.Case(caseid=1, jobid="transmural"))
-        self.kw_database.main.append(keywords.Case(caseid=2, jobid="apico-basal"))
-        self.kw_database.main.append(keywords.Case(caseid=3, jobid="rotational"))
+        self.kw_database.main.append(keywords.Case(caseid=1, jobid="transmural", scid1=1))
+        self.kw_database.main.append(keywords.Case(caseid=2, jobid="apico-basal", scid1=2))
+        self.kw_database.main.append(keywords.Case(caseid=3, jobid="rotational", scid1=3))
 
         # transmural uvc
-        self.kw_database.boundary_conditions.append("*CASE_BEGIN_1")
+        self.kw_database.main.append("*CASE_BEGIN_1")
         ventricular_endo_sid = self._create_surface_nodeset(
             surftype="endocardium", cavity_type="ventricle"
         )
@@ -3491,26 +3492,26 @@ class UHCWriter(BaseDynaWriter):
             set_ids=[ventricular_endo_sid, ventricular_epi_sid],
             bc_values=[0, 1],
         )
-        self.kw_database.boundary_conditions.append("*CASE_END_1")
+        self.kw_database.main.append("*CASE_END_1")
 
         # apicobasal uvc
-        self.kw_database.boundary_conditions.append("*CASE_BEGIN_2")
+        self.kw_database.main.append("*CASE_BEGIN_2")
         apex_sid = self._create_apex_nodeset()
         base_sid = self._create_base_nodeset()
         self._define_Laplace_Dirichlet_bc(
             set_ids=[apex_sid, base_sid],
             bc_values=[0, 1],
         )
-        self.kw_database.boundary_conditions.append("*CASE_END_2")
+        self.kw_database.main.append("*CASE_END_2")
 
         # rotational uc
-        self.kw_database.boundary_conditions.append("*CASE_BEGIN_3")
+        self.kw_database.main.append("*CASE_BEGIN_3")
         [sid_minus_pi, sid_plus_pi, sid_zero] = self._create_rotational_nodesets()
         self._define_Laplace_Dirichlet_bc(
             set_ids=[sid_minus_pi, sid_plus_pi, sid_zero],
             bc_values=[-3.14, 3.14, 0],
         )
-        self.kw_database.boundary_conditions.append("*CASE_END_3")
+        self.kw_database.main.append("*CASE_END_3")
 
     def _create_apex_nodeset(self):
         # apex
@@ -3567,7 +3568,7 @@ class UHCWriter(BaseDynaWriter):
         bc_values: List[float],
     ):
         for sid, value in zip(set_ids, bc_values):
-            self.kw_database.boundary_conditions.append(
+            self.kw_database.main.append(
                 keywords.BoundaryTemperatureSet(
                     nsid=sid,
                     lcid=0,

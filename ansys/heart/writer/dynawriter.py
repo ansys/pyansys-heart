@@ -3031,9 +3031,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         )
         self.kw_database.node_sets.append(kw)
 
-        self.kw_database.ep_settings.append(
-            keywords.EmDatabaseNodout(outlv=1, dtout=1, nsid=nsid_all_parts)
-        )
         # use defaults
         self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=1))
 

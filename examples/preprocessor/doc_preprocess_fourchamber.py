@@ -135,7 +135,7 @@ cavities.plot(show_edges=True)
 # sphinx_gallery_start_ignore
 # Generate static images for docs.
 #
-docs_images_folder = Path(Path(__file__).parents[2], "doc", "source", "_static", "images")
+docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", "_static", "images")
 
 # Full mesh
 filename = Path(docs_images_folder, "four_chamber_mesh.png")

@@ -1932,7 +1932,7 @@ class FourChamber(HeartModel):
         septum_center_id = septum_point_ids[septum_points.find_closest_point(septum_points.center)]
         septum_center_xyz = self.mesh.nodes[septum_center_id, :]
 
-        # Define septum start point: closest to artria
+        # Define septum start point: closest to atria
         His_septum_start_id = self.mesh.find_closest_point(
             atria_surface.points[atria_surface.find_closest_point(septum_center_xyz), :]
         )

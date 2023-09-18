@@ -41,7 +41,7 @@ if not os.path.isfile(path_to_model):
     raise FileExistsError(f"{path_to_model} not found")
 
 # specify LS-DYNA path
-lsdyna_path = Path(Path(__file__).resolve().parents[4], "dyna-versions", "ls-dyna_smp_d.exe")
+lsdyna_path = "ls-dyna_smp_d.exe"
 
 if not os.path.isfile(lsdyna_path):
     raise FileExistsError(f"{lsdyna_path} not found.")

@@ -34,7 +34,7 @@ if not os.path.isfile(path_to_model):
     raise FileExistsError(f"{path_to_model} not found")
 
 # specify LS-DYNA path
-lsdyna_path = Path('/data/pace/hpc_scratch_vol2/ferraa20/Software/LS-DYNA', 'ls-dyna_mpp_d_DEV-103678-gc56144f443_x86_CentOS54_ifort190_sse2_impi2021')
+lsdyna_path = "ls-dyna_smp_d.exe"
 
 
 if not os.path.isfile(lsdyna_path):

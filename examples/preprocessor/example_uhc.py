@@ -24,7 +24,9 @@ from ansys.heart.simulator.simulator import BaseSimulator
 import pyvista as pv
 
 # set working directory and path to model.
-workdir = Path(Path(__file__).parents[2], "downloads", "Strocchi2020", "01", "FourChamber")
+workdir = Path(
+    Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "FourChamber"
+)
 
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
@@ -32,7 +34,8 @@ if not os.path.isfile(path_to_model):
     raise FileExistsError(f"{path_to_model} not found")
 
 # specify LS-DYNA path
-lsdyna_path = Path(Path(__file__).parents[4], "dyna-versions", "ls-dyna_smp_d.exe")
+lsdyna_path = "ls-dyna_smp_d.exe"
+
 
 if not os.path.isfile(lsdyna_path):
     raise FileExistsError(f"{lsdyna_path} not found.")

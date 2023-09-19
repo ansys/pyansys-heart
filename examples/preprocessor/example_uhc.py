@@ -25,7 +25,7 @@ import pyvista as pv
 
 # set working directory and path to model.
 workdir = Path(
-    Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "FourChamber"
+    Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "BiVentricle"
 )
 
 path_to_model = os.path.join(workdir, "heart_model.pickle")

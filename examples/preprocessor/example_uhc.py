@@ -25,7 +25,7 @@ import pyvista as pv
 
 # set working directory and path to model.
 workdir = Path(
-    Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "FourChamber"
+    Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "BiVentricle"
 )
 
 path_to_model = os.path.join(workdir, "heart_model.pickle")
@@ -65,7 +65,7 @@ simulator = BaseSimulator(
 # ~~~~~~~~~~~
 # Compute UHC using Laplace Dirichlet method.
 
-simulator.compute_uhc()
+simulator.compute_uvc()
 
 ###############################################################################
 # .. note::
@@ -83,7 +83,7 @@ simulator.compute_uhc()
 # Visualization of UVCs
 # ~~~~~~~~~~~~~~~~~~~~~
 
-data_ventricles = pv.read(os.path.join(workdir, "simulation", "uhc-ventricle-all", "uvc.vtk"))
+data_ventricles = pv.read(os.path.join(workdir, "simulation", "uvc", "uvc.vtk"))
 
 plotter = pv.Plotter(shape=(1, 3))
 
@@ -99,22 +99,5 @@ plotter.show()
 
 ###############################################################################
 # .. image:: /_static/images/uvc_result.png
-#   :width: 600pt
-#   :align: center
-
-
-###############################################################################
-# Visualization of UACs
-# ~~~~~~~~~~~~~~~~~~~~~
-
-data_atria = pv.read(os.path.join(workdir, "simulation", "uhc-atrium-all", "uac.vtk"))
-
-plotter = pv.Plotter()
-plotter.add_mesh(data_atria, scalars="transmural")
-plotter.show()
-
-
-###############################################################################
-# .. image:: /_static/images/uac_result.png
 #   :width: 600pt
 #   :align: center

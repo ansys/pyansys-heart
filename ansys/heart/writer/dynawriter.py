@@ -3461,14 +3461,15 @@ class UHCWriter(BaseDynaWriter):
         self._keep_parts(parts_to_keep)
 
         self._update_node_db()
-        self._update_parts_db()
+        self._update_parts_materials_db()
         self._update_solid_elements_db(add_fibers=False)
 
-        self._update_segmentsets_db()
-        self._update_nodesets_db()
+        # self._update_segmentsets_db()
+        # self._update_nodesets_db()
 
-        self._update_uvc_bc()
         self._update_main_db()
+        self._update_uvc_bc()
+
         self._get_list_of_includes()
         self._add_includes()
 
@@ -3478,6 +3479,7 @@ class UHCWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.Case(caseid=3, jobid="rotational", scid1=3))
 
         # transmural uvc
+        # todo Check no re constraint node
         self.kw_database.main.append("*CASE_BEGIN_1")
         ventricular_endo_sid = self._create_surface_nodeset(
             surftype="endocardium", cavity_type="ventricle"
@@ -3506,7 +3508,7 @@ class UHCWriter(BaseDynaWriter):
         [sid_minus_pi, sid_plus_pi, sid_zero] = self._create_rotational_nodesets()
         self._define_Laplace_Dirichlet_bc(
             set_ids=[sid_minus_pi, sid_plus_pi, sid_zero],
-            bc_values=[-3.14, 3.14, 0],
+            bc_values=[-np.pi, np.pi, 0],
         )
         self.kw_database.main.append("*CASE_END_3")
 
@@ -3574,7 +3576,7 @@ class UHCWriter(BaseDynaWriter):
             )
         return
 
-    def _update_parts_db(self):
+    def _update_parts_materials_db(self):
         """Loop over parts defined in the model and creates keywords."""
         LOGGER.debug("Updating part keywords...")
 
@@ -3598,16 +3600,15 @@ class UHCWriter(BaseDynaWriter):
             )
             part_kw = keywords.Part()
             part_kw.parts = part_df
-
             self.kw_database.parts.append(part_kw)
-            partname = (part.name).lower()
-            if ("atrium" in partname) or ("ventricle" in partname) or ("septum" in partname):
-                self.kw_database.parts.append(
-                    keywords.MatThermalIsotropic(tmid=part.mid, tro=1e-9, hc=1, tc=1)
-                )
-        # set up section solid for cavity myocardium
-        section_kw = keywords.SectionSolid(secid=section_id, elform=13)
 
+            # set up material
+            self.kw_database.parts.append(
+                keywords.MatThermalIsotropic(tmid=part.mid, tro=1e-9, hc=1, tc=1)
+            )
+
+        # set up section solid
+        section_kw = keywords.SectionSolid(secid=section_id, elform=10)
         self.kw_database.parts.append(section_kw)
 
         return

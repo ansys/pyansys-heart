@@ -153,12 +153,15 @@ class BaseSimulator:
         self,
     ):
         """Compute universal 'heart' coordinates system."""
-        if isinstance(self.model, (FullHeart)):
+        if isinstance(self.model, FullHeart):
             raise NotImplementedError("Not yet tested for the full heart")
+
         LOGGER.info("Computing universal ventricular coordinates...")
+
         dirname = "uvc"
         export_directory = os.path.join(self.root_directory, dirname)
         self.directories[dirname] = export_directory
+
         # Dyna writer
         dyna_writer = writers.UHCWriter(
             copy.deepcopy(self.model),

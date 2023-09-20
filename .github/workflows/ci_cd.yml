@@ -77,6 +77,7 @@ jobs:
           python -m pytest tests/heart/test_fluent_mesh_reader.py
           python -m pytest tests/heart/test_heart_model.py
           python -m pytest tests/heart/test_downloader.py
+          python -m pytest tests/heart/simulator/test_dyna_settings.py
 
       - name: Run tests writer module
         run: |

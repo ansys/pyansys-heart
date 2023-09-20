@@ -181,7 +181,7 @@ class BaseSimulator:
 
         grid = read_uvc(export_directory)
 
-    def compute_atrial_fiber(self):
+    def compute_left_atrial_fiber(self):
         """Compute atrial fiber."""
         if not isinstance(self.model, (FullHeart, FourChamber)):
             raise NotImplementedError("Model type is not compatible")

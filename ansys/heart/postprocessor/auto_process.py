@@ -4,6 +4,7 @@ import glob
 import json
 import os
 import pathlib
+from typing import List
 
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
@@ -260,28 +261,28 @@ def orthogonalization(grid):
     return grid
 
 
+def get_gradient(directory, field_list: List[str]):
+    """Read thermal fields from d3plot and compute gradient."""
+    data = D3plotReader(os.path.join(directory, field_list[0] + ".d3plot"))
+    grid = data.model.metadata.meshed_region.grid
+
+    for name in field_list:
+        data = D3plotReader(os.path.join(directory, name + ".d3plot"))
+        t = data.model.results.temperature.on_last_time_freq.eval()[0].data
+        grid[name] = t[::3]
+        grid.set_active_scalars(name)
+
+    grid = grid.point_data_to_cell_data()
+    for name in field_list:
+        res = grid.compute_derivative(scalars=name, gradient="grad_" + name)["grad_" + name]
+        grid["grad_" + name] = res
+    # grid.save(os.path.join(directory, "res.vtk"))
+
+    return grid
+
+
 def compute_la_fiber_cs(directory):
     """Compute left atrium fibers coordinate system."""
-
-    def get_field(directory):
-        """Read thermal fields from d3plot."""
-        data = D3plotReader(os.path.join(directory, "la_trans.d3plot"))
-        grid = data.model.metadata.meshed_region.grid
-
-        list = ["trans", "ab", "v", "r"]
-        for name in list:
-            data = D3plotReader(os.path.join(directory, "la_" + name + ".d3plot"))
-            t = data.model.results.temperature.on_last_time_freq.eval()[0].data
-            grid[name] = t[::3]
-            grid.set_active_scalars(name)
-
-        grid = grid.point_data_to_cell_data()
-        for name in list:
-            res = grid.compute_derivative(scalars=name, gradient="grad_" + name)["grad_" + name]
-            grid["grad_" + name] = res
-        # grid.save(os.path.join(directory, "res.vtk"))
-
-        return grid
 
     def bundle_selection(grid):
         """Left atrium bundle selection."""
@@ -314,7 +315,7 @@ def compute_la_fiber_cs(directory):
 
         return grid
 
-    grid = get_field(directory)
+    grid = get_gradient(directory, field_list=["trans", "ab", "v", "r"])
 
     grid.save("x.vtk")
     grid = pv.read("x.vtk")

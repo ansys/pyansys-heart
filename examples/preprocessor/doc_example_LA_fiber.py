@@ -1,6 +1,6 @@
 """
-Generate atrial fiber
----------------------
+Atrial fiber
+------------
 This examples shows how to generate fibers with Laplace-Dirichlet-Rule-Based-Method
 """
 ###############################################################################
@@ -62,7 +62,7 @@ simulator = BaseSimulator(
 # Compute fibers
 # ~~~~~~~~~~~~~~
 
-la = simulator.compute_atrial_fiber()
+la = simulator.compute_left_atrial_fiber()
 
 ###############################################################################
 # Plot bundle selection results

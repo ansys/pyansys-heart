@@ -9,7 +9,7 @@ import copy
 import json
 import os
 import time
-from typing import List
+from typing import List, Literal
 
 from ansys.dyna.keywords import keywords
 from ansys.heart.custom_logging import LOGGER
@@ -42,6 +42,8 @@ from ansys.heart.writer.keyword_module import (
     create_discrete_elements_kw,
     create_element_shell_keyword,
     create_element_solid_ortho_keyword,
+    create_elemetn_solid_keyword,
+    create_node_keyword,
     create_node_set_keyword,
     create_segment_set_keyword,
     fast_element_writer,
@@ -56,6 +58,7 @@ from ansys.heart.writer.system_models import _ed_load_template, define_function_
 import numpy as np
 import pandas as pd
 import pkg_resources
+import pyvista as pv
 
 
 class BaseDynaWriter:
@@ -3448,18 +3451,153 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 class UHCWriter(BaseDynaWriter):
     """Universal Heart Coordinate Writer."""
 
-    def __init__(
-        self,
-        model,
-    ):
-        """Write thermal input to set up a Laplace dirichlet problem."""
+    def __init__(self, model, type: Literal["uvc", "la_fiber", "ra_fiber"]):
+        """
+        Write thermal input to set up a Laplace dirichlet problem.
+
+        Parameters
+        ----------
+        model: Heart Model
+            Heart model to simulate.
+        type : Literal[]
+            Type of simulation to setup.
+        """
         super().__init__(model=model)
+        if type == "uvc":
+            parts_to_keep = ["Left ventricle", "Right ventricle", "Septum"]
+            self._keep_parts(parts_to_keep)
+
+        elif type == "la_fiber":
+            for part in model.parts:
+                part.caps = []
+                for surface in part.surfaces:
+                    surface.edge_groups = []
+            model.cap_centroids = []
+
+            model._assign_surfaces_to_parts()
+            model._assign_caps_to_parts(unique_mitral_tricuspid_valve=False)
+
+            mesh = copy.deepcopy(model.mesh)
+            for k in mesh.point_data.keys():
+                mesh.point_data.remove(k)
+            for k in mesh.cell_data.keys():
+                mesh.cell_data.remove(k)
+            mesh["cell_ids"] = np.arange(0, mesh.n_cells, dtype=int)
+            mesh["point_ids"] = np.arange(0, mesh.n_points, dtype=int)
+
+            for part in model.parts:
+                if part.name != "Left atrium":
+                    model.remove_part(part_name=part.name)
+            la = mesh.extract_cells(model.parts[0].element_ids)
+
+            node_kw = create_node_keyword(la.points)
+            self.kw_database.nodes.append(node_kw)
+
+            self._update_parts_materials_db()
+
+            kw_elements = create_elemetn_solid_keyword(
+                la.cells.reshape(-1, 5)[:, 1:] + 1,
+                np.arange(1, la.n_cells + 1, dtype=int),
+                self.model.parts[0].pid,
+            )
+            self.kw_database.solid_elements.append(kw_elements)
+
+            self._update_main_db()
+
+            la = self.update_left_atrium_fiber_bc(la)
+            # la.save('la.vtk')
+
+            self._get_list_of_includes()
+            self._add_includes()
+
+        elif type == "ra_fiber":
+            pass
+
+    def update_left_atrium_fiber_bc(self, la: pv.UnstructuredGrid):
+        """Define boundary condition."""
+        # ID map:
+        # RIP 1 LAP 2 RSP 3 MV 4 LIP 5 LSP 6 ENDO 7 EPI 8
+
+        id_sorter = np.argsort(la["point_ids"])
+        ids_edges = []
+        for i, cap in enumerate(self.model.parts[0].caps):
+            # node IDs in LA volume mesh
+            ids_sub = id_sorter[np.searchsorted(la["point_ids"], cap.node_ids, sorter=id_sorter)]
+
+            if "right" in cap.name:
+                if "inferior" in cap.name:
+                    set_id = 1
+                elif "superior" in cap.name:
+                    set_id = 3
+            elif "left" in cap.name:
+                if "appendage" in cap.name:
+                    set_id = 2
+                elif "inferior" in cap.name:
+                    set_id = 5
+                elif "superior" in cap.name:
+                    set_id = 6
+            elif "mitral" in cap.name:
+                set_id = 4
+
+            kw = create_node_set_keyword(ids_sub + 1, node_set_id=set_id, title=cap.name)
+            self.kw_database.node_sets.append(kw)
+
+            ids_edges.extend(ids_sub)
+            la[cap.name] = np.zeros(la.n_points, dtype=int)
+            la[cap.name][ids_sub] = i + 1
+
+        # endo nodes  ID
+        ids_endo = id_sorter[
+            np.searchsorted(
+                la["point_ids"], self.model.parts[0].surfaces[0].node_ids, sorter=id_sorter
+            )
+        ]
+        la["endo"] = np.zeros(la.n_points, dtype=int)
+        la["endo"][ids_endo] = 1
+
+        kw = create_node_set_keyword(ids_endo + 1, node_set_id=7, title="endo")
+        self.kw_database.node_sets.append(kw)
+
+        # epi cannot use from surface because new free surface exposed
+        ids_surface = la.extract_surface()["vtkOriginalPointIds"]
+        ids_epi = np.setdiff1d(ids_surface, ids_endo)
+        ids_epi = np.setdiff1d(ids_epi, ids_edges)
+        la["epi"] = np.zeros(la.n_points, dtype=int)
+        la["epi"][ids_epi] = 1
+
+        kw = create_node_set_keyword(ids_epi + 1, node_set_id=8, title="epi")
+        self.kw_database.node_sets.append(kw)
+
+        #
+        self.kw_database.main.append(keywords.Case(caseid=1, jobid="la_trans", scid1=1))
+        self.kw_database.main.append(keywords.Case(caseid=2, jobid="la_ab", scid1=2))
+        self.kw_database.main.append(keywords.Case(caseid=3, jobid="la_v", scid1=3))
+        self.kw_database.main.append(keywords.Case(caseid=4, jobid="la_r", scid1=4))
+
+        self.kw_database.main.append("*CASE_BEGIN_1")
+        self._define_Laplace_Dirichlet_bc(set_ids=[7, 8], bc_values=[0, 1])
+        self.kw_database.main.append("*CASE_END_1")
+
+        self.kw_database.main.append("*CASE_BEGIN_2")
+        self._define_Laplace_Dirichlet_bc(
+            set_ids=[1, 3, 4, 5, 6, 2], bc_values=[2.0, 2.0, 1.0, 0.0, 0.0, -1.0]
+        )
+        self.kw_database.main.append("*CASE_END_2")
+
+        self.kw_database.main.append("*CASE_BEGIN_3")
+        self._define_Laplace_Dirichlet_bc(set_ids=[1, 3, 5, 6], bc_values=[1.0, 1.0, 0.0, 0.0])
+        self.kw_database.main.append("*CASE_END_3")
+
+        self.kw_database.main.append("*CASE_BEGIN_4")
+        self._define_Laplace_Dirichlet_bc(
+            set_ids=[4, 1, 2, 3, 5, 6], bc_values=[1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        )
+        self.kw_database.main.append("*CASE_END_4")
+
+        return la
 
     def update(self):
         """Update keyword database."""
-        parts_to_keep = ["Left ventricle", "Right ventricle", "Septum"]
-        self._keep_parts(parts_to_keep)
-
         self._update_node_db()
         self._update_parts_materials_db()
         self._update_solid_elements_db(add_fibers=False)

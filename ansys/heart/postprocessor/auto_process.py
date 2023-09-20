@@ -13,6 +13,7 @@ from ansys.heart.postprocessor.exporter import LVContourExporter
 from ansys.heart.preprocessor.mesh.objects import Cavity, SurfaceMesh
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import numpy as np
+import pyvista as pv
 
 
 def zerop_post(directory, model):
@@ -232,3 +233,95 @@ def read_uvc(
     grid.set_active_scalars("transmural")
     grid.save(os.path.join(directory, "uvc.vtk"))
     return grid
+
+
+def orthogonalization(grid):
+    """Gram–Schmidt orthogonalization."""
+    # grid = pv.read(os.path.join(directory, "res2.vtk"))
+    norm = np.linalg.norm(grid["grad_trans"], axis=1)
+    bad_cells = np.argwhere(norm == 0).ravel()
+
+    print(
+        f"{len(bad_cells)} cells has null gradient in trans direction, they are replaced by [1,0,0]"
+    )
+    print("These cells should only at valve regions and can be checked from vtk file")
+
+    grad_trans_new = grid["grad_trans"]
+    grad_trans_new[bad_cells] = np.array([[1, 0, 0]]).repeat(len(bad_cells), axis=0)
+    norm = np.linalg.norm(grad_trans_new, axis=1)
+    grid["e_t"] = grad_trans_new / norm[:, None]
+
+    k_e = np.einsum("ij,ij->i", grid["k"], grid["e_t"])
+    en = grid["k"] - np.einsum("i,ij->ij", k_e, grid["e_t"])
+    norm = np.linalg.norm(en, axis=1)
+    grid["e_n"] = en / norm[:, None]
+
+    grid["e_l"] = np.cross(grid["e_n"], grid["e_t"])
+    return grid
+
+
+def compute_la_fiber_cs(directory):
+    """Compute left atrium fibers coordinate system."""
+
+    def get_field(directory):
+        """Read thermal fields from d3plot."""
+        data = D3plotReader(os.path.join(directory, "la_trans.d3plot"))
+        grid = data.model.metadata.meshed_region.grid
+
+        list = ["trans", "ab", "v", "r"]
+        for name in list:
+            data = D3plotReader(os.path.join(directory, "la_" + name + ".d3plot"))
+            t = data.model.results.temperature.on_last_time_freq.eval()[0].data
+            grid[name] = t[::3]
+            grid.set_active_scalars(name)
+
+        grid = grid.point_data_to_cell_data()
+        for name in list:
+            res = grid.compute_derivative(scalars=name, gradient="grad_" + name)["grad_" + name]
+            grid["grad_" + name] = res
+        # grid.save(os.path.join(directory, "res.vtk"))
+
+        return grid
+
+    def bundle_selection(grid):
+        """Left atrium bundle selection."""
+        # grid = pv.read(os.path.join(directory, "res.vtk"))
+
+        # bundle selection
+        tau_mv = 0.65
+        tau_lpv = 0.65
+        tau_rpv = 0.1
+
+        grid["k"] = np.zeros((grid.n_cells, 3))
+        grid["bundle"] = np.zeros(grid.n_cells, dtype=int)
+
+        mask_mv = grid["r"] >= tau_mv
+        grid["k"][mask_mv] = grid["grad_r"][mask_mv]
+        grid["bundle"][mask_mv] = 1
+
+        mask = np.invert(mask_mv) & (grid["v"] > tau_lpv)
+        grid["k"][mask] = grid["grad_v"][mask]
+        grid["bundle"][mask] = 2
+
+        mask = np.invert(mask_mv) & (grid["v"] < tau_rpv)
+        grid["k"][mask] = grid["grad_v"][mask]
+        grid["bundle"][mask] = 3
+
+        mask = grid["bundle"] == 0
+        grid["k"][mask] = grid["grad_ab"][mask]
+
+        # grid.save(os.path.join(directory, "res2.vtk"))
+
+        return grid
+
+    grid = get_field(directory)
+
+    grid.save("x.vtk")
+    grid = pv.read("x.vtk")
+
+    grid = bundle_selection(grid)
+
+    grid.save("x.vtk")
+    grid = pv.read("x.vtk")
+
+    return orthogonalization(grid)

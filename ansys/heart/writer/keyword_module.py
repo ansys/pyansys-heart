@@ -241,6 +241,51 @@ def create_element_shell_keyword(
     return kw
 
 
+def create_elemetn_solid_keyword(
+    elements: np.array,
+    e_id: np.array,
+    part_id: np.array,
+    element_type="tetra",
+) -> keywords.ElementSolid:
+    """Format the *ELEMENT_SOLID keyword with the provided input.
+
+    Parameters
+    ----------
+    elements : np.array
+        Numpy array of ints with element definition
+    part_id : np.array
+        Part ids of each element
+    e_id : np.array
+        Element ID
+    element_type : str, optional
+        Type of element to write, by default "tetra"
+
+    Returns
+    -------
+    keywords.ElementSolid
+        Formatted *ELEMENT_SOLID keyword
+    """
+    kw = keywords.ElementSolid()
+    df = pd.DataFrame(columns=kw.elements)
+
+    # prepare element data for dataframe
+    df["eid"] = e_id
+    df["pid"] = part_id
+    if element_type == "tetra":
+        df["n1"] = elements[:, 0]
+        df["n2"] = elements[:, 1]
+        df["n3"] = elements[:, 2]
+        df["n4"] = elements[:, 3]
+        df["n5"] = elements[:, 3]
+        df["n6"] = elements[:, 3]
+        df["n7"] = elements[:, 3]
+        df["n8"] = elements[:, 3]
+
+        kw.elements = df
+
+        return kw
+
+
 def create_element_solid_ortho_keyword(
     elements: np.array,
     a_vec: np.array,

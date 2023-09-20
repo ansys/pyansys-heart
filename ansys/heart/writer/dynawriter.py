@@ -9,7 +9,7 @@ import copy
 import json
 import os
 import time
-from typing import List, Literal
+from typing import List
 
 from ansys.dyna.keywords import keywords
 from ansys.heart.custom_logging import LOGGER
@@ -446,6 +446,14 @@ class BaseDynaWriter:
         # NOTE: Could move "remove part" method to model
         LOGGER.warning("Just keeping atrial-parts")
         parts_to_keep = [part for part in self.model.part_names if "atrium" in part.lower()]
+        parts_to_remove = [part for part in self.model.part_names if part not in parts_to_keep]
+        for part_to_remove in parts_to_remove:
+            LOGGER.warning("Removing: {}".format(part_to_remove))
+            self.model.remove_part(part_to_remove)
+        return
+
+    def _keep_parts(self, parts_to_keep: List[str]):
+        """Remove parts by a list of part names."""
         parts_to_remove = [part for part in self.model.part_names if part not in parts_to_keep]
         for part_to_remove in parts_to_remove:
             LOGGER.warning("Removing: {}".format(part_to_remove))
@@ -3443,95 +3451,66 @@ class UHCWriter(BaseDynaWriter):
     def __init__(
         self,
         model,
-        part_type: Literal[
-            "ventricle",
-            "atrium",
-        ],
-        coordinate_type: Literal["transmural", "apico-basal", "rotational", "all"],
     ):
         """Write thermal input to set up a Laplace dirichlet problem."""
         super().__init__(model=model)
-        self.part_type = part_type
-        self.coordinate_type = coordinate_type
-        self.nb_solves = 0
 
     def update(self):
         """Update keyword database."""
-        if self.part_type == "ventricle":
-            self._keep_ventricles()
-        if self.part_type == "atrium":
-            self._keep_atria()
+        parts_to_keep = ["Left ventricle", "Right ventricle", "Septum"]
+        self._keep_parts(parts_to_keep)
+
         self._update_node_db()
-        self._update_parts_db()
+        self._update_parts_materials_db()
         self._update_solid_elements_db(add_fibers=False)
 
-        self._update_segmentsets_db()
-        self._update_nodesets_db()
+        # self._update_segmentsets_db()
+        # self._update_nodesets_db()
 
-        self._update_boundary_conditions()
         self._update_main_db()
+        self._update_uvc_bc()
+
         self._get_list_of_includes()
         self._add_includes()
 
-    def _update_boundary_conditions(self):
-        # transmural uc
-        if (self.part_type == "ventricle") and (
-            self.coordinate_type == "transmural" or self.coordinate_type == "all"
-        ):
-            ventricular_endo_sid = self._create_surface_nodeset(
-                surftype="endocardium", cavity_type="ventricle"
-            )
-            ventricular_epi_sid = self._create_surface_nodeset(
-                surftype="epicardium", cavity_type="ventricle"
-            )
-            self._define_Laplace_Dirichlet_bc(
-                set_ids=[ventricular_endo_sid, ventricular_epi_sid],
-                bc_values=[0, 1],
-                tbirth=0.001 + self.nb_solves,
-                tdeath=1.001 + self.nb_solves,
-            )
+    def _update_uvc_bc(self):
+        self.kw_database.main.append(keywords.Case(caseid=1, jobid="transmural", scid1=1))
+        self.kw_database.main.append(keywords.Case(caseid=2, jobid="apico-basal", scid1=2))
+        self.kw_database.main.append(keywords.Case(caseid=3, jobid="rotational", scid1=3))
 
-        # longitudinal uc
-        if (self.part_type == "ventricle") and (
-            self.coordinate_type == "apico-basal" or self.coordinate_type == "all"
-        ):
-            apex_sid = self._create_apex_nodeset()
-            base_sid = self._create_base_nodeset()
-            self._define_Laplace_Dirichlet_bc(
-                set_ids=[apex_sid, base_sid],
-                bc_values=[0, 1],
-                tbirth=0.001 + self.nb_solves,
-                tdeath=1.001 + self.nb_solves,
-            )
+        # transmural uvc
+        # todo Check no re constraint node
+        self.kw_database.main.append("*CASE_BEGIN_1")
+        ventricular_endo_sid = self._create_surface_nodeset(
+            surftype="endocardium", cavity_type="ventricle"
+        )
+        ventricular_epi_sid = self._create_surface_nodeset(
+            surftype="epicardium", cavity_type="ventricle"
+        )
+        self._define_Laplace_Dirichlet_bc(
+            set_ids=[ventricular_endo_sid, ventricular_epi_sid],
+            bc_values=[0, 1],
+        )
+        self.kw_database.main.append("*CASE_END_1")
+
+        # apicobasal uvc
+        self.kw_database.main.append("*CASE_BEGIN_2")
+        apex_sid = self._create_apex_nodeset()
+        base_sid = self._create_base_nodeset()
+        self._define_Laplace_Dirichlet_bc(
+            set_ids=[apex_sid, base_sid],
+            bc_values=[0, 1],
+        )
+        self.kw_database.main.append("*CASE_END_2")
 
         # rotational uc
-        if (self.part_type == "ventricle") and (
-            self.coordinate_type == "rotational" or self.coordinate_type == "all"
-        ):
-            [sid_minus_pi, sid_plus_pi, sid_zero] = self._create_rotational_nodesets()
-            self._define_Laplace_Dirichlet_bc(
-                set_ids=[sid_minus_pi, sid_plus_pi, sid_zero],
-                bc_values=[-3.14, 3.14, 0],
-                tbirth=0.001 + self.nb_solves,
-                tdeath=1.001 + self.nb_solves,
-            )
-
-        # atrial uc
-        if (self.part_type == "atrium") and (
-            self.coordinate_type == "transmural" or self.coordinate_type == "all"
-        ):
-            atrial_endo_sid = self._create_surface_nodeset(
-                surftype="endocardium", cavity_type="atrium"
-            )
-            atrial_epi_sid = self._create_surface_nodeset(
-                surftype="epicardium", cavity_type="atrium"
-            )
-            self._define_Laplace_Dirichlet_bc(
-                set_ids=[atrial_endo_sid, atrial_epi_sid],
-                bc_values=[0, 1],
-                tbirth=0.001 + self.nb_solves,
-                tdeath=1.001 + self.nb_solves,
-            )
+        self.kw_database.main.append("*CASE_BEGIN_3")
+        [sid_minus_pi, sid_plus_pi, sid_zero] = self._create_rotational_nodesets()
+        self._define_Laplace_Dirichlet_bc(
+            set_ids=[sid_minus_pi, sid_plus_pi, sid_zero],
+            bc_values=[-np.pi, np.pi, 0],
+        )
+        self.kw_database.main.append("*CASE_END_3")
 
     def _create_apex_nodeset(self):
         # apex
@@ -3586,19 +3565,18 @@ class UHCWriter(BaseDynaWriter):
         self,
         set_ids: List[int],
         bc_values: List[float],
-        tbirth: float = 0,
-        tdeath: float = 1,
     ):
         for sid, value in zip(set_ids, bc_values):
-            self.kw_database.boundary_conditions.append(
+            self.kw_database.main.append(
                 keywords.BoundaryTemperatureSet(
-                    nsid=sid, lcid=0, cmult=value, tdeath=tdeath, tbirth=tbirth
+                    nsid=sid,
+                    lcid=0,
+                    cmult=value,
                 ),
             )
-        self.nb_solves = self.nb_solves + 1
         return
 
-    def _update_parts_db(self):
+    def _update_parts_materials_db(self):
         """Loop over parts defined in the model and creates keywords."""
         LOGGER.debug("Updating part keywords...")
 
@@ -3622,29 +3600,27 @@ class UHCWriter(BaseDynaWriter):
             )
             part_kw = keywords.Part()
             part_kw.parts = part_df
-
             self.kw_database.parts.append(part_kw)
-            partname = (part.name).lower()
-            if ("atrium" in partname) or ("ventricle" in partname) or ("septum" in partname):
-                self.kw_database.parts.append(
-                    keywords.MatThermalIsotropic(tmid=part.mid, tro=1e-9, hc=1, tc=1)
-                )
-        # set up section solid for cavity myocardium
-        section_kw = keywords.SectionSolid(secid=section_id, elform=13)
 
+            # set up material
+            self.kw_database.parts.append(
+                keywords.MatThermalIsotropic(tmid=part.mid, tro=1e-9, hc=1, tc=1)
+            )
+
+        # set up section solid
+        section_kw = keywords.SectionSolid(secid=section_id, elform=10)
         self.kw_database.parts.append(section_kw)
 
         return
 
     def _update_main_db(self):
         self.kw_database.main.append(keywords.ControlSolution(soln=1))
-        self.kw_database.main.append(keywords.ControlThermalSolver(atype=1, ptype=0, solver=11))
-        self.kw_database.main.append(keywords.ControlThermalTimestep(ts=0, its=1, tmin=1, tmax=1))
+        self.kw_database.main.append(keywords.ControlThermalSolver(atype=0, ptype=0, solver=11))
         self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=1.0))
         self.kw_database.main.append(keywords.DatabaseGlstat(dt=1.0))
         self.kw_database.main.append(keywords.DatabaseMatsum(dt=1.0))
         self.kw_database.main.append(keywords.DatabaseTprint(dt=1.0))
-        self.kw_database.main.append(keywords.ControlTermination(endtim=self.nb_solves, dtmin=1.0))
+        self.kw_database.main.append(keywords.ControlTermination(endtim=1, dtmin=1.0))
 
 
 if __name__ == "__main__":

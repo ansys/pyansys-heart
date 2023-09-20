@@ -18,7 +18,7 @@ from typing import Literal
 
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.misc.element_orth import read_orth_element_kfile
-from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
+from ansys.heart.postprocessor.auto_process import mech_post, read_uvc, zerop_post
 from ansys.heart.preprocessor.models_new import FourChamber, FullHeart, HeartModel
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import ansys.heart.writer.dynawriter as writers
@@ -149,6 +149,33 @@ class BaseSimulator:
         # dump the model to reuse fiber information
         self.model.dump_model(os.path.join(self.root_directory, "model_with_fiber.pickle"))
         return
+
+    def compute_uvc(
+        self,
+    ):
+        """Compute universal 'heart' coordinates system."""
+        if isinstance(self.model, FullHeart):
+            raise NotImplementedError("Not yet tested for the full heart")
+
+        LOGGER.info("Computing universal ventricular coordinates...")
+
+        dirname = "uvc"
+        export_directory = os.path.join(self.root_directory, dirname)
+        self.directories[dirname] = export_directory
+
+        # Dyna writer
+        dyna_writer = writers.UHCWriter(
+            copy.deepcopy(self.model),
+        )
+        dyna_writer.update()
+        dyna_writer.export(export_directory)
+
+        input_file = os.path.join(export_directory, "main.k")
+        self._run_dyna(path_to_input=input_file, options="case")
+
+        LOGGER.info("done.")
+
+        grid = read_uvc(export_directory)
 
     def _run_dyna(self, path_to_input: Path, options: str = ""):
         """Run LS-DYNA with path and options.

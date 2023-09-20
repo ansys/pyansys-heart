@@ -1,4 +1,4 @@
-from ansys.heart.simulator.simulator import DynaSettings
+from ansys.heart.simulator.settings.settings import DynaSettings
 import pytest
 
 

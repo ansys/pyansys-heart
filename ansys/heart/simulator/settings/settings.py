@@ -610,9 +610,9 @@ class DynaSettings:
         platform : Literal[&quot;windows&quot;, &quot;wsl&quot;, &quot;linux&quot;], optional
             Platform, by default "windows"
         dyna_options : str, optional
-            Additional command line options, by default ""
+            Additional command line options, by default ''
         mpi_options : str, optional
-            Additional mpi options, by default ""
+            Additional mpi options, by default ''
         """
         self.lsdyna_path: pathlib.Path = lsdyna_path
         """Path to LS-DYNA executable."""
@@ -635,7 +635,6 @@ class DynaSettings:
         return
 
     def get_commands(self, path_to_input: pathlib.Path) -> List[str]:
-        # """Get command line arguments from the defined settings."""
         """Get command line arguments from the defined settings.
 
         Parameters

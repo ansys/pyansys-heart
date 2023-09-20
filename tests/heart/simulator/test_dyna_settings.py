@@ -1,5 +1,11 @@
 from ansys.heart.simulator.settings.settings import DynaSettings
 import pytest
+import os
+
+if os.getenv("GITHUB_ACTIONS"):
+    is_gh_action = True
+else:
+    is_gh_action = False
 
 
 @pytest.mark.parametrize(
@@ -149,6 +155,7 @@ def test_get_dyna_commands_003(dynatype, platform):
     assert commands == expected
 
 
+@pytest.mark.xfail(is_gh_action, reason="No Ansys installation expected on Github runner.")
 def test_set_env_variables():
     """Test setting environment variables."""
 

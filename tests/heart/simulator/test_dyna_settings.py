@@ -1,11 +1,17 @@
+import os
+import sys
+
 from ansys.heart.simulator.settings.settings import DynaSettings
 import pytest
-import os
 
 if os.getenv("GITHUB_ACTIONS"):
     is_gh_action = True
 else:
     is_gh_action = False
+if "win" in sys.platform:
+    is_windows = True
+else:
+    is_windows = False
 
 
 @pytest.mark.parametrize(
@@ -17,7 +23,17 @@ else:
         "msmpi",
     ],
 )
-@pytest.mark.parametrize("platform", ["windows", "linux", "wsl"])
+@pytest.mark.parametrize(
+    "platform",
+    [
+        "windows",
+        "linux",
+        pytest.param(
+            "wsl",
+            marks=pytest.mark.xfail(not is_windows, reason="WSL Only valid argument on Windows"),
+        ),
+    ],
+)
 def test_get_dyna_commands_001(dynatype, platform):
     """Test if get commands returns right command line if no additional options are given."""
     if dynatype == "msmpi" and platform != "windows":
@@ -55,7 +71,17 @@ def test_get_dyna_commands_001(dynatype, platform):
         "msmpi",
     ],
 )
-@pytest.mark.parametrize("platform", ["windows", "linux", "wsl"])
+@pytest.mark.parametrize(
+    "platform",
+    [
+        "windows",
+        "linux",
+        pytest.param(
+            "wsl",
+            marks=pytest.mark.xfail(not is_windows, reason="WSL Only valid argument on Windows"),
+        ),
+    ],
+)
 def test_get_dyna_commands_002(dynatype, platform):
     """Test if get commands returns right command line arguments if dyna options are given"""
     if dynatype == "msmpi" and platform != "windows":
@@ -108,7 +134,17 @@ def test_get_dyna_commands_002(dynatype, platform):
         "msmpi",
     ],
 )
-@pytest.mark.parametrize("platform", ["windows", "linux", "wsl"])
+@pytest.mark.parametrize(
+    "platform",
+    [
+        "windows",
+        "linux",
+        pytest.param(
+            "wsl",
+            marks=pytest.mark.xfail(not is_windows, reason="WSL Only valid argument on Windows"),
+        ),
+    ],
+)
 def test_get_dyna_commands_003(dynatype, platform):
     """Test if get commands returns right command line arguments if dyna and mpi options present."""
     if dynatype == "msmpi" and platform != "windows":

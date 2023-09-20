@@ -3511,13 +3511,79 @@ class UHCWriter(BaseDynaWriter):
 
             self._update_main_db()
 
-            target_atrium = self.update_left_atrium_fiber_bc(target_atrium)
+            target_atrium = self.update_atrium_fiber_bc(target_atrium)
             # target_atrium.save('la.vtk')
 
             self._get_list_of_includes()
             self._add_includes()
 
-    def update_left_atrium_fiber_bc(self, left_atrium: pv.UnstructuredGrid):
+    def update_right_atrium_fiber_bc(self, right_atrium: pv.UnstructuredGrid):
+        """."""
+        # RAA 10 TOP 11 TV_S 12 TV_W 13
+        import scipy.spatial as spatial
+
+        tree = spatial.cKDTree(right_atrium.points)
+        raa_ids = np.array(tree.query_ball_point(np.array([-50, 106, 425]), 1.5))
+
+        kw = create_node_set_keyword(raa_ids + 1, node_set_id=11, title="raa")
+        self.kw_database.node_sets.append(kw)
+
+        for cap in self.model.parts[0].caps:
+            if "tricuspid" in cap.name:
+                tv_center = cap.centroid
+            elif "superior" in cap.name:
+                svc_center = cap.centroid
+            elif "inferior" in cap.name:
+                ivc_center = cap.centroid
+        cut_center = np.vstack((tv_center, svc_center, ivc_center)).mean(axis=0)
+        cut_normal = np.cross(svc_center - tv_center, ivc_center - tv_center)
+
+        right_atrium["cell_ids_tmp"] = np.arange(0, right_atrium.n_cells, dtype=int)
+        right_atrium["point_ids_tmp"] = np.arange(0, right_atrium.n_points, dtype=int)
+        slice = right_atrium.slice(origin=cut_center, normal=cut_normal)
+        crinkled = right_atrium.extract_cells(np.unique(slice["cell_ids_tmp"]))
+        x = crinkled.connectivity()
+        # todo: not always 0
+        mask = x.point_data["RegionId"] == 0
+        top_ids = x["point_ids_tmp"][mask]
+        # top_ids =crinkled.connectivity(largest=True)["point_ids_tmp"]
+
+        kw = create_node_set_keyword(top_ids + 1, node_set_id=10, title="top")
+        self.kw_database.node_sets.append(kw)
+        right_atrium["top"] = np.zeros(right_atrium.n_points)
+        right_atrium["top"][top_ids] = 1
+
+        #
+        id_sorter = np.argsort(right_atrium["point_ids"])
+        septum, free_wall = right_atrium.clip(
+            origin=cut_center, normal=cut_normal, crinkle=True, return_clipped=True
+        )
+        # ids in full mesh
+        tv_s_ids = septum["point_ids"][np.where(septum["tricuspid-valve"] == 1)]
+
+        tv_s_ids_sub = id_sorter[
+            np.searchsorted(right_atrium["point_ids"], tv_s_ids, sorter=id_sorter)
+        ]
+        right_atrium["tv_s"] = np.zeros(right_atrium.n_points)
+        right_atrium["tv_s"][tv_s_ids_sub] = 1
+
+        kw = create_node_set_keyword(tv_s_ids_sub + 1, node_set_id=12, title="tv_s")
+        self.kw_database.node_sets.append(kw)
+
+        tv_w_ids = free_wall["point_ids"][np.where(free_wall["tricuspid-valve"] == 1)]
+        tv_w_ids_sub = id_sorter[
+            np.searchsorted(right_atrium["point_ids"], tv_w_ids, sorter=id_sorter)
+        ]
+        # remove re constraint nodes
+        tv_w_ids_sub = np.setdiff1d(tv_w_ids_sub, tv_s_ids_sub)
+
+        right_atrium["tv_w"] = np.zeros(right_atrium.n_points)
+        right_atrium["tv_w"][tv_w_ids_sub] = 1
+
+        kw = create_node_set_keyword(tv_w_ids_sub + 1, node_set_id=13, title="tv_w")
+        self.kw_database.node_sets.append(kw)
+
+    def update_atrium_fiber_bc(self, atrium: pv.UnstructuredGrid):
         """Define boundary condition."""
 
         def get_nodeset_id_by_cap_name(cap):
@@ -3537,14 +3603,22 @@ class UHCWriter(BaseDynaWriter):
                     set_id = 6
             elif "mitral" in cap.name:
                 set_id = 4
+            elif "tricuspid" in cap.name:
+                set_id = 7
+            elif "vena" in cap.name:
+                if "superior" in cap.name:
+                    set_id = 8
+                elif "inferior" in cap.name:
+                    set_id = 9
+
             return set_id
 
-        id_sorter = np.argsort(left_atrium["point_ids"])
+        id_sorter = np.argsort(atrium["point_ids"])
         ids_edges = []
         for i, cap in enumerate(self.model.parts[0].caps):
             # node IDs in LA volume mesh
             ids_sub = id_sorter[
-                np.searchsorted(left_atrium["point_ids"], cap.node_ids, sorter=id_sorter)
+                np.searchsorted(atrium["point_ids"], cap.node_ids, sorter=id_sorter)
             ]
             set_id = get_nodeset_id_by_cap_name(cap)
 
@@ -3552,58 +3626,88 @@ class UHCWriter(BaseDynaWriter):
             self.kw_database.node_sets.append(kw)
 
             ids_edges.extend(ids_sub)
-            left_atrium[cap.name] = np.zeros(left_atrium.n_points, dtype=int)
-            left_atrium[cap.name][ids_sub] = i + 1
+            atrium[cap.name] = np.zeros(atrium.n_points, dtype=int)
+            atrium[cap.name][ids_sub] = i + 1
 
         # endo nodes  ID
         ids_endo = id_sorter[
             np.searchsorted(
-                left_atrium["point_ids"], self.model.parts[0].surfaces[0].node_ids, sorter=id_sorter
+                atrium["point_ids"], self.model.parts[0].surfaces[0].node_ids, sorter=id_sorter
             )
         ]
-        left_atrium["endo"] = np.zeros(left_atrium.n_points, dtype=int)
-        left_atrium["endo"][ids_endo] = 1
+        atrium["endo"] = np.zeros(atrium.n_points, dtype=int)
+        atrium["endo"][ids_endo] = 1
 
-        kw = create_node_set_keyword(ids_endo + 1, node_set_id=7, title="endo")
+        kw = create_node_set_keyword(ids_endo + 1, node_set_id=100, title="endo")
         self.kw_database.node_sets.append(kw)
 
         # epi cannot use from surface because new free surface exposed
-        ids_surface = left_atrium.extract_surface()["vtkOriginalPointIds"]
+        ids_surface = atrium.extract_surface()["vtkOriginalPointIds"]
         ids_epi = np.setdiff1d(ids_surface, ids_endo)
         ids_epi = np.setdiff1d(ids_epi, ids_edges)
-        left_atrium["epi"] = np.zeros(left_atrium.n_points, dtype=int)
-        left_atrium["epi"][ids_epi] = 1
+        atrium["epi"] = np.zeros(atrium.n_points, dtype=int)
+        atrium["epi"][ids_epi] = 1
 
-        kw = create_node_set_keyword(ids_epi + 1, node_set_id=8, title="epi")
+        kw = create_node_set_keyword(ids_epi + 1, node_set_id=200, title="epi")
         self.kw_database.node_sets.append(kw)
 
         #
-        self.kw_database.main.append(keywords.Case(caseid=1, jobid="trans", scid1=1))
-        self.kw_database.main.append(keywords.Case(caseid=2, jobid="ab", scid1=2))
-        self.kw_database.main.append(keywords.Case(caseid=3, jobid="v", scid1=3))
-        self.kw_database.main.append(keywords.Case(caseid=4, jobid="r", scid1=4))
+        if self.type == "la_fiber":
+            self.kw_database.main.append(keywords.Case(caseid=1, jobid="trans", scid1=1))
+            self.kw_database.main.append(keywords.Case(caseid=2, jobid="ab", scid1=2))
+            self.kw_database.main.append(keywords.Case(caseid=3, jobid="v", scid1=3))
+            self.kw_database.main.append(keywords.Case(caseid=4, jobid="r", scid1=4))
 
-        self.kw_database.main.append("*CASE_BEGIN_1")
-        self._define_Laplace_Dirichlet_bc(set_ids=[7, 8], bc_values=[0, 1])
-        self.kw_database.main.append("*CASE_END_1")
+            self.kw_database.main.append("*CASE_BEGIN_1")
+            self._define_Laplace_Dirichlet_bc(set_ids=[100, 200], bc_values=[0, 1])
+            self.kw_database.main.append("*CASE_END_1")
 
-        self.kw_database.main.append("*CASE_BEGIN_2")
-        self._define_Laplace_Dirichlet_bc(
-            set_ids=[1, 3, 4, 5, 6, 2], bc_values=[2.0, 2.0, 1.0, 0.0, 0.0, -1.0]
-        )
-        self.kw_database.main.append("*CASE_END_2")
+            self.kw_database.main.append("*CASE_BEGIN_2")
+            self._define_Laplace_Dirichlet_bc(
+                set_ids=[1, 3, 4, 5, 6, 2], bc_values=[2.0, 2.0, 1.0, 0.0, 0.0, -1.0]
+            )
+            self.kw_database.main.append("*CASE_END_2")
 
-        self.kw_database.main.append("*CASE_BEGIN_3")
-        self._define_Laplace_Dirichlet_bc(set_ids=[1, 3, 5, 6], bc_values=[1.0, 1.0, 0.0, 0.0])
-        self.kw_database.main.append("*CASE_END_3")
+            self.kw_database.main.append("*CASE_BEGIN_3")
+            self._define_Laplace_Dirichlet_bc(set_ids=[1, 3, 5, 6], bc_values=[1.0, 1.0, 0.0, 0.0])
+            self.kw_database.main.append("*CASE_END_3")
 
-        self.kw_database.main.append("*CASE_BEGIN_4")
-        self._define_Laplace_Dirichlet_bc(
-            set_ids=[4, 1, 2, 3, 5, 6], bc_values=[1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        )
-        self.kw_database.main.append("*CASE_END_4")
+            self.kw_database.main.append("*CASE_BEGIN_4")
+            self._define_Laplace_Dirichlet_bc(
+                set_ids=[4, 1, 2, 3, 5, 6], bc_values=[1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            )
+            self.kw_database.main.append("*CASE_END_4")
+        elif self.type == "ra_fiber":
+            self.update_right_atrium_fiber_bc(atrium)
+            self.kw_database.main.append(keywords.Case(caseid=1, jobid="trans", scid1=1))
+            self.kw_database.main.append(keywords.Case(caseid=2, jobid="ab", scid1=2))
+            self.kw_database.main.append(keywords.Case(caseid=3, jobid="v", scid1=3))
+            self.kw_database.main.append(keywords.Case(caseid=4, jobid="r", scid1=4))
+            self.kw_database.main.append(keywords.Case(caseid=5, jobid="w", scid1=5))
 
-        return left_atrium
+            self.kw_database.main.append("*CASE_BEGIN_1")
+            self._define_Laplace_Dirichlet_bc(set_ids=[100, 200], bc_values=[0, 1])
+            self.kw_database.main.append("*CASE_END_1")
+
+            self.kw_database.main.append("*CASE_BEGIN_2")
+            self._define_Laplace_Dirichlet_bc(
+                set_ids=[9, 7, 8, 11], bc_values=[2.0, 1.0, 0.0, -1.0]
+            )
+            self.kw_database.main.append("*CASE_END_2")
+
+            self.kw_database.main.append("*CASE_BEGIN_3")
+            self._define_Laplace_Dirichlet_bc(set_ids=[9, 8, 11], bc_values=[1.0, 0.0, 0.0])
+            self.kw_database.main.append("*CASE_END_3")
+
+            self.kw_database.main.append("*CASE_BEGIN_4")
+            self._define_Laplace_Dirichlet_bc(set_ids=[7, 10], bc_values=[1.0, 0.0])
+            self.kw_database.main.append("*CASE_END_4")
+
+            self.kw_database.main.append("*CASE_BEGIN_5")
+            self._define_Laplace_Dirichlet_bc(set_ids=[12, 13], bc_values=[1.0, -1.0])
+            self.kw_database.main.append("*CASE_END_5")
+
+        return atrium
 
     def update(self):
         """Update keyword database."""

@@ -62,6 +62,8 @@ simulator = BaseSimulator(
 # Compute fibers
 # ~~~~~~~~~~~~~~
 
+ra = simulator.compute_right_atrial_fiber()
+exit()
 la = simulator.compute_left_atrial_fiber()
 
 ###############################################################################

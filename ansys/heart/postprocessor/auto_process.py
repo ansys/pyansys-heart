@@ -326,3 +326,14 @@ def compute_la_fiber_cs(directory):
     grid = pv.read("x.vtk")
 
     return orthogonalization(grid)
+
+
+def compute_ra_fiber_cs(directory):
+    """Compute right atrium fibers coordinate system."""
+
+    def bundle_selection(grid):
+        """Left atrium bundle selection."""
+        pass
+
+    grid = get_gradient(directory, field_list=["trans", "ab", "v", "r", "w"])
+    grid.save("x.vtk")

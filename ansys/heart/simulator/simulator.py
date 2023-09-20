@@ -20,6 +20,7 @@ from ansys.heart.custom_logging import LOGGER
 from ansys.heart.misc.element_orth import read_orth_element_kfile
 from ansys.heart.postprocessor.auto_process import (
     compute_la_fiber_cs,
+    compute_ra_fiber_cs,
     mech_post,
     read_uvc,
     zerop_post,
@@ -181,30 +182,46 @@ class BaseSimulator:
 
         grid = read_uvc(export_directory)
 
+    def compute_right_atrial_fiber(self):
+        """Compute atrial fiber."""
+        LOGGER.info("Computing RA fiber...")
+
+        export_directory = self.run_laplace_problem("ra_fiber")
+        compute_ra_fiber_cs(export_directory)
+
+        la_pv = 0
+        LOGGER.info("Generating fibers done.")
+
+        return la_pv
+
     def compute_left_atrial_fiber(self):
         """Compute atrial fiber."""
-        if not isinstance(self.model, (FullHeart, FourChamber)):
-            raise NotImplementedError("Model type is not compatible")
-
         LOGGER.info("Computing LA fiber...")
 
-        dirname = "la_fiber"
-        export_directory = os.path.join(self.root_directory, dirname)
-        self.directories[dirname] = export_directory
-
-        dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type="la_fiber")
-        # dyna_writer.update()
-        dyna_writer.export(export_directory)
-
-        input_file = os.path.join(export_directory, "main.k")
-        self._run_dyna(path_to_input=input_file, options="case")
-
-        LOGGER.info("Solving laplace-dirichlet done.")
+        export_directory = self.run_laplace_problem("la_fiber")
 
         la_pv = compute_la_fiber_cs(export_directory)
         LOGGER.info("Generating fibers done.")
 
         return la_pv
+
+    def run_laplace_problem(self, type):
+        """."""
+        if not isinstance(self.model, (FullHeart, FourChamber)):
+            raise NotImplementedError("Model type is not compatible")
+
+        export_directory = os.path.join(self.root_directory, type)
+
+        dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type=type)
+        # dyna_writer.update()
+        dyna_writer.export(export_directory)
+
+        input_file = os.path.join(export_directory, "main.k")
+        # self._run_dyna(path_to_input=input_file, options="case")
+
+        LOGGER.info("Solving laplace-dirichlet done.")
+
+        return export_directory
 
     def _run_dyna(self, path_to_input: Path, options: str = ""):
         """Run LS-DYNA with path and options.

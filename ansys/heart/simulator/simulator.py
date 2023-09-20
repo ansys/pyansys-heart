@@ -486,7 +486,12 @@ class EPSimulator(BaseSimulator):
 
         # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
         input_file = os.path.join(directory, "main.k")
+
+        LOGGER.debug("Compute Purkinje network on 1 cpu.")
+        orig_num_cpus = self.dyna_settings.num_cpus
+        self.dyna_settings.num_cpus = 1
         self._run_dyna(input_file)
+        self.dyna_settings.num_cpus = orig_num_cpus
 
         LOGGER.info("done.")
 

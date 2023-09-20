@@ -59,15 +59,17 @@ model.info.workdir = str(workdir)
 # Instantiate the simulator object
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # instantiate your DynaSettings and Simulator objects.
-# Change options where necessary. Note that you may need# to configure your environment
+# Change options where necessary. Note that you may need to configure your environment
 # variables if you choose `mpp`.
 
+# instantiate dyna settings object
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path,
     dynatype="smp",
     num_cpus=4,
 )
 
+# instantiate simulator object
 simulator = MechanicsSimulator(
     model=model,
     dyna_settings=dyna_settings,

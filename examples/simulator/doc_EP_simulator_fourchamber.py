@@ -58,7 +58,9 @@ model.info.workdir = str(workdir)
 ###############################################################################
 # Instantiate the simulator object
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# instantiate DynaSettings appropriately.
+# instantiate the simulator and settings appropriately.
+
+# instantaiate dyna settings of choice
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path,
     dynatype="smp",

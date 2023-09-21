@@ -8,19 +8,19 @@ import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.support import run_preprocessor
 import pytest
 
-from .common import (
+from tests.heart.common import (
     compare_cavity_volume,
     compare_generated_mesh,
     compare_part_names,
     compare_surface_names,
 )
-from .conftest import download_asset, get_assets_folder, get_workdir
+from tests.heart.conftest import download_asset, get_assets_folder, get_workdir
 
 
 # run this fixture first
 @pytest.fixture(autouse=True, scope="module")
-def extract_fullheart():
-    """Extract FullHeart model which is similar to the reference model.
+def extract_bi_ventricle():
+    """Extract BiVentricular model which is similar to the reference model.
 
     Note
     ----
@@ -28,18 +28,27 @@ def extract_fullheart():
     """
 
     assets_folder = get_assets_folder()
-    path_to_case = os.path.join(assets_folder, "cases", "strocchi2020", "01", "01.case")
+    # path_to_case = os.path.join(assets_folder, "cases", "Strocchi2020", "01", "01.case")
+    # path_to_case = os.path.join(assets_folder, "cases", "Rodero2021", "01", "01.vtk")
 
-    if not os.path.isfile(path_to_case):
-        path_to_case = download_asset("Strocchi2020", casenumber=1)
+    path_to_case = download_asset("Strocchi2020", casenumber=1, clean_folder=True)
 
+    # # load model to test against
+    # path_to_reference_stats = os.path.join(
+    #     assets_folder,
+    #     "reference_models",
+    #     "strocchi2020",
+    #     "01",
+    #     "BiVentricle",
+    #     "heart_model.pickle",
+    # )
     path_to_reference_stats = path_to_reference_stats = os.path.join(
         assets_folder,
         "reference_models",
         "strocchi2020",
         "01",
-        "FullHeart",
-        "stats_reference_model_FullHeart.json",
+        "BiVentricle",
+        "stats_reference_model_BiVentricle.json",
     )
     assert os.path.isfile(path_to_case)
     assert os.path.isfile(path_to_reference_stats)
@@ -50,12 +59,12 @@ def extract_fullheart():
     with open(path_to_reference_stats, "r") as openfile:
         ref_stats = json.load(openfile)
 
-    workdir = os.path.join(get_workdir(), "FullHeart")
+    workdir = os.path.join(get_workdir(), "BiVentricle")
     path_to_model = os.path.join(workdir, "heart_model.pickle")
 
     global model
     model = run_preprocessor(
-        model_type=models.FullHeart,
+        model_type=models.BiVentricle,
         database="Strocchi2020",
         path_original_mesh=path_to_case,
         work_directory=workdir,

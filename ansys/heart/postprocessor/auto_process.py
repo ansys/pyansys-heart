@@ -271,7 +271,7 @@ def get_gradient(directory, field_list: List[str]):
         t = data.model.results.temperature.on_last_time_freq.eval()[0].data
         grid[name] = t[::3]
         grid.set_active_scalars(name)
-
+    # todo : gradient method
     grid = grid.point_data_to_cell_data()
     for name in field_list:
         res = grid.compute_derivative(scalars=name, gradient="grad_" + name)["grad_" + name]
@@ -333,7 +333,99 @@ def compute_ra_fiber_cs(directory):
 
     def bundle_selection(grid):
         """Left atrium bundle selection."""
-        pass
+        tao_tv = 0.9
+        tao_raw = 0.55
+        tao_ct_minus = -0.18
+        tao_ct_plus = -0.1
+        tao_icv = 0.9
+        tao_scv = 0.1
+        tao_ib = 0.35
+        tao_ras = 0.135
+
+        trans = grid["trans"]
+        ab = grid["ab"]
+        v = grid["v"]
+        r = grid["r"]
+        w = grid["w"]
+
+        trans_grad = grid["grad_trans"]
+        ab_grad = grid["grad_ab"]
+        v_grad = grid["grad_v"]
+        r_grad = grid["grad_r"]
+        w_grad = grid["grad_w"]
+        tag = np.zeros(ab.shape)
+        k = np.zeros(ab_grad.shape)
+
+        tv = 1
+        icv = 2
+        scv = 3
+        raw = 4
+        ct = 5
+        ib = 6
+        ras = 7
+        raw_ist_raa = 8
+
+        for i in range(grid.n_cells):
+            if r[i] >= tao_tv:
+                k[i] = r_grad[i]
+                tag[i] = tv
+            else:
+                if r[i] < tao_raw:
+                    if tao_ct_minus <= w[i] <= tao_ct_plus:
+                        k[i] = w_grad[i]
+                        tag[i] = ct
+                    elif w[i] < tao_ct_minus:
+                        if v[i] >= tao_icv or v[i] <= tao_scv:
+                            k[i] = v_grad[i]
+                            if v[i] >= tao_icv:
+                                tag[i] = icv
+                            if v[i] <= tao_scv:
+                                tag[i] = scv
+                        else:
+                            k[i] = ab_grad[i]
+                            tag[i] = raw
+                    else:
+                        if v[i] >= tao_icv or v[i] <= tao_scv:
+                            k[i] = v_grad[i]
+                            if v[i] >= tao_icv:
+                                tag[i] = icv
+                            if v[i] <= tao_scv:
+                                tag[i] = scv
+                        else:
+                            if w[i] < tao_ib:
+                                k[i] = v_grad[i]
+                                tag[i] = ib
+                            elif w[i] > tao_ras:
+                                k[i] = r_grad[i]
+                                tag[i] = ras
+                            else:
+                                k[i] = w_grad[i]
+                                tag[i] = ras
+                else:
+                    if v[i] >= tao_icv or v[i] <= tao_scv:
+                        k[i] = v_grad[i]
+                        if v[i] >= tao_icv:
+                            tag[i] = icv
+                        if v[i] <= tao_scv:
+                            tag[i] = scv
+                    else:
+                        if w[i] >= 0:
+                            k[i] = r_grad[i]
+                            tag[i] = ras
+                        else:
+                            k[i] = ab_grad[i]
+                            tag[i] = raw_ist_raa
+
+        grid["k"] = k
+        grid["bundle"] = tag.astype(int)
+
+        return grid
 
     grid = get_gradient(directory, field_list=["trans", "ab", "v", "r", "w"])
     grid.save("x.vtk")
+    grid = bundle_selection(grid)
+
+    grid.save("x.vtk")
+    grid = pv.read("x.vtk")
+
+    return orthogonalization(grid)

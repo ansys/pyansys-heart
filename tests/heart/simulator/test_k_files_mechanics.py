@@ -1,4 +1,6 @@
 """Compares generated k-files of mechanics against a reference."""
+import pytest
+
 pytestmark = pytest.mark.local
 
 import os

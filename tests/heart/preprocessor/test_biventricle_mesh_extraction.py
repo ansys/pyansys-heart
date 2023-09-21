@@ -78,7 +78,10 @@ def extract_bi_ventricle():
     yield
 
     # cleanup
-    shutil.rmtree(workdir)
+    try:
+        shutil.rmtree(workdir)
+    except:
+        print("Failed to cleanup.")
 
 
 def test_part_names():

@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 from pyvista import examples
 
-from .conftest import get_workdir
+from tests.heart.conftest import get_workdir
 
 model: FourChamber
 model_dir: pathlib.Path

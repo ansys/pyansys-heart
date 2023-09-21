@@ -1,4 +1,6 @@
 """Compares generated k-files of mechanics against a reference."""
+pytestmark = pytest.mark.local
+
 import os
 
 import ansys.heart.preprocessor.models as models
@@ -6,8 +8,6 @@ import ansys.heart.writer.dynawriter as writers
 import pytest
 
 from tests.heart.conftest import compare_string_with_file, get_assets_folder
-
-pytestmark = pytest.mark.local
 
 
 # NOTE: Using a pickled reference model won't work when we make

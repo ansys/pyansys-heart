@@ -5,8 +5,6 @@ pytestmark = pytest.mark.local
 
 import os
 
-import ansys.heart.preprocessor.models as models
-import ansys.heart.writer.dynawriter as writers
 import pytest
 
 from tests.heart.conftest import compare_string_with_file, get_assets_folder
@@ -28,6 +26,9 @@ def initialize_model():
     )
     model = models.HeartModel.load_model(pickle_file)
     assert isinstance(model, models.BiVentricle), "Expecting a BiVentricle model"
+
+    import ansys.heart.writer.dynawriter as writers
+    import ansys.heart.preprocessor.models as models
 
     global WRITER_MECHANICS
     WRITER_MECHANICS = writers.MechanicsDynaWriter(model)

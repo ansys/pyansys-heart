@@ -9,9 +9,9 @@ version = "0.1.dev0"
 description = "Python framework for heart modeling using ANSYS tools."
 readme = "README.rst"
 requires-python = ">=3.8,<4"
-license = {file = "LICENSE"}
-authors = [{name = "ANSYS, Inc.", email = "pyansys.core@ansys.com"}]
-maintainers = [{name = "ANSYS, Inc.", email = "pyansys.core@ansys.com"}]
+license = { file = "LICENSE" }
+authors = [{ name = "ANSYS, Inc.", email = "pyansys.core@ansys.com" }]
+maintainers = [{ name = "ANSYS, Inc.", email = "pyansys.core@ansys.com" }]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
@@ -32,7 +32,7 @@ dependencies = [
     "Jinja2==3.1.2",
     "matplotlib==3.7.1",
     "meshio==5.3.4",
-    "numpy<=1.24.2",
+    "numpy<=1.26.0",
     "pandas<=1.5.3",
     "scipy<=1.10.0",
     "vtk>=9.1.0",
@@ -43,6 +43,7 @@ dependencies = [
     "pyvista==0.38.1",
 ]
 
+# Optional dependencies:
 [project.optional-dependencies]
 doc = [
     "ansys-sphinx-theme==0.10.3",
@@ -59,9 +60,7 @@ doc = [
     "sphinxcontrib-video",
 ]
 
-tests = [
-    "pytest==7.4.0",
-]
+tests = ["pytest==7.4.0"]
 
 [project.urls]
 Source = "https://github.com/ansys/pyheart-lib"
@@ -90,6 +89,4 @@ source = ["ansys.heart"]
 show_missing = true
 
 [tool.pytest.ini_options]
-pythonpath = [
-  "."
-]
+pythonpath = ["."]

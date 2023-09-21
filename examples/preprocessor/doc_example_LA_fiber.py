@@ -61,10 +61,8 @@ simulator = BaseSimulator(
 ###############################################################################
 # Compute fibers
 # ~~~~~~~~~~~~~~
-
-ra = simulator.compute_right_atrial_fiber()
-exit()
 la = simulator.compute_left_atrial_fiber()
+ra = simulator.compute_right_atrial_fiber()
 
 ###############################################################################
 # Plot bundle selection results
@@ -77,6 +75,13 @@ la.plot()
 #   :width: 400pt
 #   :align: center
 
+ra.set_active_scalars("bundle")
+ra.plot()
+
+###############################################################################
+# .. image:: /_static/images/ra_bundle.png
+#   :width: 400pt
+#   :align: center
 ###############################################################################
 # Plot fibers
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -90,5 +95,18 @@ plotter.show()
 
 ###############################################################################
 # .. image:: /_static/images/la_fiber.png
+#   :width: 400pt
+#   :align: center
+
+plotter = pv.Plotter()
+mesh = ra.ctp()
+streamlines = mesh.streamlines(vectors="e_l", source_radius=50, n_points=50000)
+tubes = streamlines.tube()
+plotter.add_mesh(mesh, opacity=0.5, color="white")
+plotter.add_mesh(tubes, color="red")
+plotter.show()
+
+###############################################################################
+# .. image:: /_static/images/ra_fiber.png
 #   :width: 400pt
 #   :align: center

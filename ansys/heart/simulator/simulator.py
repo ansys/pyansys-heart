@@ -187,12 +187,11 @@ class BaseSimulator:
         LOGGER.info("Computing RA fiber...")
 
         export_directory = self.run_laplace_problem("ra_fiber")
-        compute_ra_fiber_cs(export_directory)
+        ra_pv = compute_ra_fiber_cs(export_directory)
 
-        la_pv = 0
         LOGGER.info("Generating fibers done.")
 
-        return la_pv
+        return ra_pv
 
     def compute_left_atrial_fiber(self):
         """Compute atrial fiber."""
@@ -217,7 +216,7 @@ class BaseSimulator:
         dyna_writer.export(export_directory)
 
         input_file = os.path.join(export_directory, "main.k")
-        # self._run_dyna(path_to_input=input_file, options="case")
+        self._run_dyna(path_to_input=input_file, options="case")
 
         LOGGER.info("Solving laplace-dirichlet done.")
 

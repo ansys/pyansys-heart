@@ -3522,6 +3522,7 @@ class UHCWriter(BaseDynaWriter):
         # RAA 10 TOP 11 TV_S 12 TV_W 13
         import scipy.spatial as spatial
 
+        # todo define RAA point
         tree = spatial.cKDTree(right_atrium.points)
         raa_ids = np.array(tree.query_ball_point(np.array([-50, 106, 425]), 1.5))
 
@@ -3543,7 +3544,7 @@ class UHCWriter(BaseDynaWriter):
         slice = right_atrium.slice(origin=cut_center, normal=cut_normal)
         crinkled = right_atrium.extract_cells(np.unique(slice["cell_ids_tmp"]))
         x = crinkled.connectivity()
-        # todo: not always 0
+        # todo: not always 0?
         mask = x.point_data["RegionId"] == 0
         top_ids = x["point_ids_tmp"][mask]
         # top_ids =crinkled.connectivity(largest=True)["point_ids_tmp"]

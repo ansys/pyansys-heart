@@ -13,6 +13,8 @@ from tests.heart.conftest import get_workdir
 model: FourChamber
 model_dir: pathlib.Path
 
+pytestmark = pytest.mark.local
+
 
 @pytest.fixture(autouse=True, scope="module")
 def get_data():

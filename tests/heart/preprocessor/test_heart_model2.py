@@ -11,6 +11,9 @@ from tests.heart.conftest import get_assets_folder
 test_model: HeartModel
 
 
+pytestmark = pytest.mark.local
+
+
 @pytest.fixture(autouse=True, scope="module")
 def get_test_model():
     """Load a model for tests."""

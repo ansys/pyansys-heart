@@ -13,6 +13,9 @@ model: HeartModel
 test_dir: str
 
 
+pytestmark = pytest.mark.local
+
+
 @pytest.fixture(autouse=True, scope="module")
 def get_data():
     global test_dir, model

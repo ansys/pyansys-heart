@@ -16,6 +16,9 @@ from tests.heart.common import (
 )
 from tests.heart.conftest import download_asset, get_assets_folder, get_workdir
 
+# marks all tests with the 'requires_fluent' tag after this line
+pytestmark = pytest.mark.requires_fluent
+
 
 # run this fixture first
 @pytest.fixture(autouse=True, scope="module")

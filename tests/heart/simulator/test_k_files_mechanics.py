@@ -7,6 +7,8 @@ import pytest
 
 from tests.heart.conftest import compare_string_with_file, get_assets_folder
 
+pytestmark = pytest.mark.local
+
 
 # NOTE: Using a pickled reference model won't work when we make
 # changes to the underlying objects. Pickle won't be able to reconstruct

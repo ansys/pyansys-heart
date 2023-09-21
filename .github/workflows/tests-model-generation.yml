@@ -83,7 +83,7 @@ jobs:
       - name: Test PyFluent launch
         continue-on-error: false
         run: |
-          python -m pytest tests/heart/test_pyfluent.py
+          python -m pytest tests/heart/preprocessor/test_pyfluent.py
 
       - name: Cache large files
         id: cache-strocchi

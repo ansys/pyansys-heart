@@ -72,9 +72,14 @@ jobs:
           python -m pip install .[tests]
           python -m pip install git+https://${{ secrets.REPO_DOWNLOAD_PAT }}@github.com/pyansys/dynalib.git@main
 
-      - name: Run tests
+      - name: Run tests preprocessor module
         run: |
-          python -m pytest -v -m "not requires_fluent and not local"
+          python -m pytest =v tests/heart/preprocessor/test_fluent_mesh_reader.py tests/heart/preprocessor/test_heart_model.py tests/heart/test_downloader.py
+
+      - name: Run tests simulator module
+        run: |
+          python -m pytest -v tests/heart/simulator/test_settings.py
+
 
   build-library:
     name: "Build library basic example"

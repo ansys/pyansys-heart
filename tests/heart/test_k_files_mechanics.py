@@ -5,7 +5,7 @@ import ansys.heart.preprocessor.models as models
 import ansys.heart.writer.dynawriter as writers
 import pytest
 
-from .conftest import compare_string_with_file, get_assets_folder
+from tests.heart.conftest import compare_string_with_file, get_assets_folder
 
 
 # NOTE: Using a pickled reference model won't work when we make

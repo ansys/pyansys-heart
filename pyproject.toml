@@ -90,3 +90,4 @@ show_missing = true
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+testpaths = ["tests"]

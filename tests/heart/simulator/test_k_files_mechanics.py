@@ -17,8 +17,8 @@ from tests.heart.conftest import compare_string_with_file, get_assets_folder
 def initialize_model():
     """Load a model that can be converted to LS-DYNA input."""
 
-    import ansys.heart.writer.dynawriter as writers
     import ansys.heart.preprocessor.models as models
+    import ansys.heart.writer.dynawriter as writers
 
     pickle_file = os.path.join(
         get_assets_folder(),

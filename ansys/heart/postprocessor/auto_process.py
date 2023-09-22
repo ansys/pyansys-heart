@@ -320,16 +320,19 @@ def compute_la_fiber_cs(directory):
         return grid
 
     grid = get_gradient(directory, field_list=["trans", "ab", "v", "r"])
-    # sometimes, pv object broken with pass directly
-    grid.save("x.vtk")
-    grid = pv.read("x.vtk")
+    # sometimes, pv object broken when pass directly
+    grid.save("la_fiber.vtk")
+    grid = pv.read("la_fiber.vtk")
 
     grid = bundle_selection(grid)
 
-    grid.save("x.vtk")
-    grid = pv.read("x.vtk")
+    grid.save("la_fiber.vtk")
+    grid = pv.read("la_fiber.vtk")
 
-    return orthogonalization(grid)
+    grid = orthogonalization(grid)
+    grid.save("la_fiber.vtk")
+
+    return grid
 
 
 def compute_ra_fiber_cs(directory):
@@ -428,12 +431,15 @@ def compute_ra_fiber_cs(directory):
 
     grid = get_gradient(directory, field_list=["trans", "ab", "v", "r", "w"])
 
-    grid.save("x.vtk")
-    grid = pv.read("x.vtk")
+    grid.save("ra_fiber.vtk")
+    grid = pv.read("ra_fiber.vtk")
 
     grid = bundle_selection(grid)
 
-    grid.save("x.vtk")
-    grid = pv.read("x.vtk")
+    grid.save("ra_fiber.vtk")
+    grid = pv.read("ra_fiber.vtk")
 
-    return orthogonalization(grid)
+    grid = orthogonalization(grid)
+    grid.save("ra_fiber.vtk")
+
+    return grid

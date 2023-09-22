@@ -3762,8 +3762,8 @@ class UHCWriter(BaseDynaWriter):
             for surf in part.surfaces:
                 if "endocardium" in surf.name:
                     endo_set.extend(surf.node_ids)
-                elif "epicardium" in surf.name:
-                    epi_set.extend(surf.node_ids)
+                # elif "epicardium" in surf.name:
+                #     epi_set.extend(surf.node_ids)
 
         # map IDs to sub mesh
         endo_set_new = id_sorter[
@@ -3775,11 +3775,15 @@ class UHCWriter(BaseDynaWriter):
         kw = create_node_set_keyword(endo_set_new + 1, node_set_id=endo_sid, title="endo")
         self.kw_database.node_sets.append(kw)
 
-        epi_set_new = id_sorter[
-            np.searchsorted(self.target["point_ids"], epi_set, sorter=id_sorter)
-        ]
-        epi_set_new = np.unique(epi_set_new)
-        epi_set_new = np.setdiff1d(epi_set_new, endo_set_new)
+        # epi_set_new = id_sorter[
+        #     np.searchsorted(self.target["point_ids"], epi_set, sorter=id_sorter)
+        # ]
+        # epi_set_new = np.unique(epi_set_new)
+        # epi_set_new = np.setdiff1d(epi_set_new, endo_set_new)
+
+        # epi cannot use directly Surface because new free surface exposed
+        ids_surface = self.target.extract_surface()["vtkOriginalPointIds"]
+        epi_set_new = np.setdiff1d(ids_surface, endo_set_new)
 
         epi_sid = self.get_unique_nodeset_id()
         kw = create_node_set_keyword(epi_set_new + 1, node_set_id=epi_sid, title="epi")

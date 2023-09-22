@@ -29,6 +29,7 @@ from ansys.heart.preprocessor.models import FourChamber, FullHeart, HeartModel
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 import numpy as np
+import pyvista as pv
 
 
 def which(program):
@@ -156,9 +157,7 @@ class BaseSimulator:
         self.model.dump_model(os.path.join(self.root_directory, "model_with_fiber.pickle"))
         return
 
-    def compute_uvc(
-        self,
-    ):
+    def compute_uvc(self) -> pv.UnstructuredGrid:
         """Compute universal 'heart' coordinates system."""
         if isinstance(self.model, FullHeart):
             raise NotImplementedError("Not yet tested for the full heart")
@@ -183,34 +182,84 @@ class BaseSimulator:
 
         grid = read_uvc(export_directory)
 
-    def compute_right_atrial_fiber(self, appendage: List[float]):
-        """Compute atrial fiber."""
+    def compute_right_atrial_fiber(self, appendage: List[float]) -> pv.UnstructuredGrid:
+        """
+        Compute right atrium fiber with LDRBD method.
+
+        Parameters
+        ----------
+        appendage
+            Right atrium appendage apex coordinates.
+
+        Returns
+        -------
+            right atrium UnstructuredGrid with related information.
+        """
         LOGGER.info("Computing RA fiber...")
+        export_directory = os.path.join(self.root_directory, "ra_fiber")
 
-        export_directory = self.run_laplace_problem("ra_fiber", raa=np.array(appendage))
+        target = self.run_laplace_problem(export_directory, "ra_fiber", raa=np.array(appendage))
         ra_pv = compute_ra_fiber_cs(export_directory)
-
         LOGGER.info("Generating fibers done.")
+
+        # arrays that save ID map to full model
+        ra_pv["cell_ids"] = target["cell_ids"]
+        ra_pv["point_ids"] = target["point_ids"]
+
+        LOGGER.info("Assigning fibers to full model...")
+
+        # cell IDs in full model mesh
+        ids = ra_pv["cell_ids"]
+        self.model.mesh.cell_data["fiber"][ids] = ra_pv["e_l"]
+        self.model.mesh.cell_data["sheet"][ids] = ra_pv["e_t"]
 
         return ra_pv
 
-    def compute_left_atrial_fiber(self):
-        """Compute atrial fiber."""
+    def compute_left_atrial_fiber(self) -> pv.UnstructuredGrid:
+        """
+        Compute left atrium fiber with LDRBD method.
+
+        Returns
+        -------
+            right atrium UnstructuredGrid with related information.
+
+        """
         LOGGER.info("Computing LA fiber...")
+        export_directory = os.path.join(self.root_directory, "la_fiber")
 
-        export_directory = self.run_laplace_problem("la_fiber")
-
+        target = self.run_laplace_problem(export_directory, "la_fiber")
         la_pv = compute_la_fiber_cs(export_directory)
         LOGGER.info("Generating fibers done.")
 
+        # arrays that save ID map to full model
+        la_pv["cell_ids"] = target["cell_ids"]
+        la_pv["point_ids"] = target["point_ids"]
+
+        LOGGER.info("Assigning fibers to full model...")
+
+        # cell IDs in full model mesh
+        ids = la_pv["cell_ids"]
+        self.model.mesh.cell_data["fiber"][ids] = la_pv["e_l"]
+        self.model.mesh.cell_data["sheet"][ids] = la_pv["e_t"]
+
         return la_pv
 
-    def run_laplace_problem(self, type, **kwargs):
-        """."""
-        if not isinstance(self.model, (FullHeart, FourChamber)):
-            raise NotImplementedError("Model type is not compatible")
+    def run_laplace_problem(self, export_directory, type, **kwargs):
+        """
+        Run Laplace-Dirichlet (thermal) problem in LSDYNA.
 
-        export_directory = os.path.join(self.root_directory, type)
+        Parameters
+        ----------
+        export_directory: str
+            LSDYNA directory
+        type: str
+            Simulation type.
+        kwargs
+
+        Returns
+        -------
+            UnstructuredGrid with array to map data back to full mesh.
+        """
         if type == "ra_fiber":
             for key, value in kwargs.items():
                 if key == "raa":
@@ -218,6 +267,7 @@ class BaseSimulator:
             dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, raa=value)
         else:
             dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type)
+
         # dyna_writer.update()
         dyna_writer.export(export_directory)
 
@@ -226,7 +276,7 @@ class BaseSimulator:
 
         LOGGER.info("Solving laplace-dirichlet done.")
 
-        return export_directory
+        return dyna_writer.target
 
     def _run_dyna(self, path_to_input: Path, options: str = ""):
         """Run LS-DYNA with path and options.

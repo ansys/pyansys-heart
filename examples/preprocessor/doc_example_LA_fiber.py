@@ -19,6 +19,7 @@ from pathlib import Path
 
 import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.simulator import BaseSimulator
+import numpy as np
 import pyvista as pv
 
 # set working directory and path to model.
@@ -33,7 +34,6 @@ if not os.path.isfile(path_to_model):
 
 # specify LS-DYNA path
 lsdyna_path = r"ls-dyna_smp_d_Dev_97584-g1b99fd817b_winx64_ifort190.exe"
-
 
 # if not os.path.isfile(lsdyna_path):
 #     raise FileExistsError(f"{lsdyna_path} not found.")
@@ -57,6 +57,10 @@ simulator = BaseSimulator(
     simulation_directory=os.path.join(workdir, "simulation"),
     platform="windows",
 )
+
+# remove fiber/sheet information if already exists
+model.mesh.cell_data["fiber"] = np.zeros((model.mesh.n_cells, 3))
+model.mesh.cell_data["sheet"] = np.zeros((model.mesh.n_cells, 3))
 
 ###############################################################################
 # Compute atrial fibers
@@ -87,9 +91,10 @@ ra.plot()
 # .. image:: /_static/images/ra_bundle.png
 #   :width: 400pt
 #   :align: center
+
 ###############################################################################
 # Plot fibers
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~
 plotter = pv.Plotter()
 mesh = la.ctp()
 streamlines = mesh.streamlines(vectors="e_l", source_radius=50, n_points=50000)
@@ -113,5 +118,22 @@ plotter.show()
 
 ###############################################################################
 # .. image:: /_static/images/ra_fiber.png
+#   :width: 400pt
+#   :align: center
+
+###############################################################################
+
+# Atrial fibers are automatically assigned to heart model after computation.
+
+plotter = pv.Plotter()
+mesh = model.mesh.ctp()
+streamlines = mesh.streamlines(vectors="fiber", source_radius=100, n_points=50000)
+tubes = streamlines.tube()
+plotter.add_mesh(mesh, opacity=0.5, color="white")
+plotter.add_mesh(tubes, color="red")
+plotter.show()
+
+###############################################################################
+# .. image:: /_static/images/atrial_fiber_assign.png
 #   :width: 400pt
 #   :align: center

@@ -3460,7 +3460,7 @@ class UHCWriter(BaseDynaWriter):
         model: Heart Model
             Heart model to simulate.
         type : Literal[]
-            Type of simulation to setup.
+            Type of simulation to set up.
         """
         super().__init__(model=model)
         self.type = type
@@ -3477,6 +3477,18 @@ class UHCWriter(BaseDynaWriter):
 
         if self.type == "uvc":
             self._keep_parts(parts_to_keep)
+
+            elems_to_keep = []
+            elems_to_keep.extend(model.parts[0].element_ids)
+            elems_to_keep.extend(model.parts[0].element_ids)
+            elems_to_keep.extend(model.parts[0].element_ids)
+
+            model.mesh.clear_data()
+            model.mesh["cell_ids"] = np.arange(0, model.mesh.n_cells, dtype=int)
+            model.mesh["point_ids"] = np.arange(0, model.mesh.n_points, dtype=int)
+
+            self.target = model.mesh.extract_cells(elems_to_keep)
+
             return
 
         else:
@@ -3490,31 +3502,28 @@ class UHCWriter(BaseDynaWriter):
             model._assign_caps_to_parts(unique_mitral_tricuspid_valve=False)
             self._keep_parts(parts_to_keep)
 
-            mesh = copy.deepcopy(model.mesh)
-            for k in mesh.point_data.keys():
-                mesh.point_data.remove(k)
-            for k in mesh.cell_data.keys():
-                mesh.cell_data.remove(k)
-            mesh["cell_ids"] = np.arange(0, mesh.n_cells, dtype=int)
-            mesh["point_ids"] = np.arange(0, mesh.n_points, dtype=int)
+            model.mesh.clear_data()
+            model.mesh["cell_ids"] = np.arange(0, model.mesh.n_cells, dtype=int)
+            model.mesh["point_ids"] = np.arange(0, model.mesh.n_points, dtype=int)
 
-            target_atrium = mesh.extract_cells(model.parts[0].element_ids)
+            target = model.mesh.extract_cells(model.parts[0].element_ids)
+            self.target = target
 
-            node_kw = create_node_keyword(target_atrium.points)
+            node_kw = create_node_keyword(target.points)
             self.kw_database.nodes.append(node_kw)
 
             self._update_parts_materials_db()
 
             kw_elements = create_elemetn_solid_keyword(
-                target_atrium.cells.reshape(-1, 5)[:, 1:] + 1,
-                np.arange(1, target_atrium.n_cells + 1, dtype=int),
+                target.cells.reshape(-1, 5)[:, 1:] + 1,
+                np.arange(1, target.n_cells + 1, dtype=int),
                 self.model.parts[0].pid,
             )
             self.kw_database.solid_elements.append(kw_elements)
 
             self._update_main_db()
 
-            target_atrium = self.update_atrium_fiber_bc(target_atrium)
+            target = self.update_atrium_fiber_bc(target)
             # target_atrium.save('la.vtk')
 
             self._get_list_of_includes()
@@ -3577,7 +3586,8 @@ class UHCWriter(BaseDynaWriter):
 
         # Find tricuspid_wall and tricuspid_septum
         id_sorter = np.argsort(atrium["point_ids"])
-        septum, free_wall = atrium.clip(
+        # need a copied object to do clip, atrium will be corrupted otherwise
+        septum, free_wall = copy.deepcopy(atrium).clip(
             origin=cut_center, normal=cut_normal, crinkle=True, return_clipped=True
         )
         # ids in full mesh

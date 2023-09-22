@@ -2,7 +2,7 @@
 
 UHC example
 --------------------
-This example shows how to compute universal heart coordinate for a BiVentricle heart model.
+This example shows how to compute universal heart coordinate for ventricles.
 """
 ###############################################################################
 # Perform the required imports
@@ -34,11 +34,10 @@ if not os.path.isfile(path_to_model):
     raise FileExistsError(f"{path_to_model} not found")
 
 # specify LS-DYNA path
-lsdyna_path = r"ls-dyna_smp_d_Dev_97584-g1b99fd817b_winx64_ifort190.exe"
+lsdyna_path = r"ls-dyna_smp"
 
-
-# if not os.path.isfile(lsdyna_path):
-#     raise FileExistsError(f"{lsdyna_path} not found.")
+if not os.path.isfile(lsdyna_path):
+    raise FileExistsError(f"{lsdyna_path} not found.")
 
 # load heart model.
 model: models.BiVentricle = models.HeartModel.load_model(path_to_model)
@@ -102,5 +101,16 @@ plotter.show()
 #   :width: 600pt
 #   :align: center
 
+###############################################################################
+# Assign data to full model
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# UVC is assigned back to full model automatically
+# Atrial points are with NaN
 model.mesh.set_active_scalars("apico-basal")
 model.mesh.plot()
+
+###############################################################################
+# .. image:: /_static/images/uvc_assign.png
+#   :width: 600pt
+#   :align: center

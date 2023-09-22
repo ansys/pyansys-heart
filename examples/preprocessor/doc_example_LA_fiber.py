@@ -59,10 +59,15 @@ simulator = BaseSimulator(
 )
 
 ###############################################################################
-# Compute fibers
-# ~~~~~~~~~~~~~~
+# Compute atrial fibers
+# ~~~~~~~~~~~~~~~~~~~~~
+
+# Compute left atrium fiber
 la = simulator.compute_left_atrial_fiber()
-ra = simulator.compute_right_atrial_fiber()
+
+# Appendage apex point should be manually given to compute right atrium fiber
+appendage_apex = [-50, 106, 425]
+ra = simulator.compute_right_atrial_fiber(appendage_apex)
 
 ###############################################################################
 # Plot bundle selection results

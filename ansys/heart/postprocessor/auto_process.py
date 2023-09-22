@@ -333,6 +333,7 @@ def compute_ra_fiber_cs(directory):
 
     def bundle_selection(grid):
         """Left atrium bundle selection."""
+        # Ideal RA geometry
         tao_tv = 0.9
         tao_raw = 0.55
         tao_ct_minus = -0.18

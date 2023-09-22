@@ -3451,7 +3451,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 class UHCWriter(BaseDynaWriter):
     """Universal Heart Coordinate Writer."""
 
-    def __init__(self, model, type: Literal["uvc", "la_fiber", "ra_fiber"]):
+    def __init__(self, model, type: Literal["uvc", "la_fiber", "ra_fiber"], **kwargs):
         """
         Write thermal input to set up a Laplace dirichlet problem.
 
@@ -3471,6 +3471,9 @@ class UHCWriter(BaseDynaWriter):
             parts_to_keep = ["Left atrium"]
         elif self.type == "ra_fiber":
             parts_to_keep = ["Right atrium"]
+            for key, value in kwargs.items():
+                if key == "raa":
+                    self.right_appendage_apex = value
 
         if self.type == "uvc":
             self._keep_parts(parts_to_keep)
@@ -3517,18 +3520,33 @@ class UHCWriter(BaseDynaWriter):
             self._get_list_of_includes()
             self._add_includes()
 
-    def update_right_atrium_fiber_bc(self, right_atrium: pv.UnstructuredGrid):
-        """."""
-        # RAA 10 TOP 11 TV_S 12 TV_W 13
+    def additional_right_atrium_bc(self, atrium: pv.UnstructuredGrid):
+        """
+        Find additional node sets for right atrium.
+
+        Find appendage, top, tricuspid wall and septum node set.
+
+        Parameters
+        ----------
+        atrium : pv.UnstructuredGrid
+            right atrium pyvista object
+        """
+        # Find appendage apex
         import scipy.spatial as spatial
 
-        # todo define RAA point
-        tree = spatial.cKDTree(right_atrium.points)
-        raa_ids = np.array(tree.query_ball_point(np.array([-50, 106, 425]), 1.5))
+        tree = spatial.cKDTree(atrium.points)
+        # radius = 1.5 mm
+        raa_ids = np.array(tree.query_ball_point(self.right_appendage_apex, 1.5))
+        if len(raa_ids) == 0:
+            LOGGER.error("No node is identified as right atrium appendage apex.")
+            exit()
 
         kw = create_node_set_keyword(raa_ids + 1, node_set_id=11, title="raa")
         self.kw_database.node_sets.append(kw)
+        atrium["raa"] = np.zeros(atrium.n_points)
+        atrium["raa"][raa_ids] = 1
 
+        # Find top
         for cap in self.model.parts[0].caps:
             if "tricuspid" in cap.name:
                 tv_center = cap.centroid
@@ -3539,47 +3557,46 @@ class UHCWriter(BaseDynaWriter):
         cut_center = np.vstack((tv_center, svc_center, ivc_center)).mean(axis=0)
         cut_normal = np.cross(svc_center - tv_center, ivc_center - tv_center)
 
-        right_atrium["cell_ids_tmp"] = np.arange(0, right_atrium.n_cells, dtype=int)
-        right_atrium["point_ids_tmp"] = np.arange(0, right_atrium.n_points, dtype=int)
-        slice = right_atrium.slice(origin=cut_center, normal=cut_normal)
-        crinkled = right_atrium.extract_cells(np.unique(slice["cell_ids_tmp"]))
+        atrium["cell_ids_tmp"] = np.arange(0, atrium.n_cells, dtype=int)
+        atrium["point_ids_tmp"] = np.arange(0, atrium.n_points, dtype=int)
+        slice = atrium.slice(origin=cut_center, normal=cut_normal)
+        crinkled = atrium.extract_cells(np.unique(slice["cell_ids_tmp"]))
         x = crinkled.connectivity()
-        # todo: not always 0?
+        # Normally top part is the largest part, Region Id should be 0
         mask = x.point_data["RegionId"] == 0
         top_ids = x["point_ids_tmp"][mask]
-        # top_ids =crinkled.connectivity(largest=True)["point_ids_tmp"]
 
+        atrium.cell_data.remove("cell_ids_tmp")
+        atrium.point_data.remove("point_ids_tmp")
+
+        # assign
         kw = create_node_set_keyword(top_ids + 1, node_set_id=10, title="top")
         self.kw_database.node_sets.append(kw)
-        right_atrium["top"] = np.zeros(right_atrium.n_points)
-        right_atrium["top"][top_ids] = 1
+        atrium["top"] = np.zeros(atrium.n_points)
+        atrium["top"][top_ids] = 1
 
-        #
-        id_sorter = np.argsort(right_atrium["point_ids"])
-        septum, free_wall = right_atrium.clip(
+        # Find tricuspid_wall and tricuspid_septum
+        id_sorter = np.argsort(atrium["point_ids"])
+        septum, free_wall = atrium.clip(
             origin=cut_center, normal=cut_normal, crinkle=True, return_clipped=True
         )
         # ids in full mesh
         tv_s_ids = septum["point_ids"][np.where(septum["tricuspid-valve"] == 1)]
 
-        tv_s_ids_sub = id_sorter[
-            np.searchsorted(right_atrium["point_ids"], tv_s_ids, sorter=id_sorter)
-        ]
-        right_atrium["tv_s"] = np.zeros(right_atrium.n_points)
-        right_atrium["tv_s"][tv_s_ids_sub] = 1
+        tv_s_ids_sub = id_sorter[np.searchsorted(atrium["point_ids"], tv_s_ids, sorter=id_sorter)]
+        atrium["tv_s"] = np.zeros(atrium.n_points)
+        atrium["tv_s"][tv_s_ids_sub] = 1
 
         kw = create_node_set_keyword(tv_s_ids_sub + 1, node_set_id=12, title="tv_s")
         self.kw_database.node_sets.append(kw)
 
         tv_w_ids = free_wall["point_ids"][np.where(free_wall["tricuspid-valve"] == 1)]
-        tv_w_ids_sub = id_sorter[
-            np.searchsorted(right_atrium["point_ids"], tv_w_ids, sorter=id_sorter)
-        ]
+        tv_w_ids_sub = id_sorter[np.searchsorted(atrium["point_ids"], tv_w_ids, sorter=id_sorter)]
         # remove re constraint nodes
         tv_w_ids_sub = np.setdiff1d(tv_w_ids_sub, tv_s_ids_sub)
 
-        right_atrium["tv_w"] = np.zeros(right_atrium.n_points)
-        right_atrium["tv_w"][tv_w_ids_sub] = 1
+        atrium["tv_w"] = np.zeros(atrium.n_points)
+        atrium["tv_w"][tv_w_ids_sub] = 1
 
         kw = create_node_set_keyword(tv_w_ids_sub + 1, node_set_id=13, title="tv_w")
         self.kw_database.node_sets.append(kw)
@@ -3589,7 +3606,7 @@ class UHCWriter(BaseDynaWriter):
 
         def get_nodeset_id_by_cap_name(cap):
             # ID map:
-            # RIP 1 LAP 2 RSP 3 MV 4 LIP 5 LSP 6 ENDO 7 EPI 8
+            # RIP 1 LAP 2 RSP 3 MV 4 LIP 5 LSP 6 TV 7 SVC 8 IVC 9
             if "right" in cap.name:
                 if "inferior" in cap.name:
                     set_id = 1
@@ -3630,29 +3647,30 @@ class UHCWriter(BaseDynaWriter):
             atrium[cap.name] = np.zeros(atrium.n_points, dtype=int)
             atrium[cap.name][ids_sub] = i + 1
 
-        # endo nodes  ID
+        # endo nodes ID
         ids_endo = id_sorter[
             np.searchsorted(
                 atrium["point_ids"], self.model.parts[0].surfaces[0].node_ids, sorter=id_sorter
             )
         ]
+
         atrium["endo"] = np.zeros(atrium.n_points, dtype=int)
         atrium["endo"][ids_endo] = 1
-
         kw = create_node_set_keyword(ids_endo + 1, node_set_id=100, title="endo")
         self.kw_database.node_sets.append(kw)
 
-        # epi cannot use from surface because new free surface exposed
+        # epi node ID
+        # epi cannot use directly Surface because new free surface exposed
         ids_surface = atrium.extract_surface()["vtkOriginalPointIds"]
         ids_epi = np.setdiff1d(ids_surface, ids_endo)
         ids_epi = np.setdiff1d(ids_epi, ids_edges)
+
         atrium["epi"] = np.zeros(atrium.n_points, dtype=int)
         atrium["epi"][ids_epi] = 1
-
         kw = create_node_set_keyword(ids_epi + 1, node_set_id=200, title="epi")
         self.kw_database.node_sets.append(kw)
 
-        #
+        # set BC in DYNA case
         if self.type == "la_fiber":
             self.kw_database.main.append(keywords.Case(caseid=1, jobid="trans", scid1=1))
             self.kw_database.main.append(keywords.Case(caseid=2, jobid="ab", scid1=2))
@@ -3678,8 +3696,10 @@ class UHCWriter(BaseDynaWriter):
                 set_ids=[4, 1, 2, 3, 5, 6], bc_values=[1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
             )
             self.kw_database.main.append("*CASE_END_4")
+
         elif self.type == "ra_fiber":
-            self.update_right_atrium_fiber_bc(atrium)
+            self.additional_right_atrium_bc(atrium)
+
             self.kw_database.main.append(keywords.Case(caseid=1, jobid="trans", scid1=1))
             self.kw_database.main.append(keywords.Case(caseid=2, jobid="ab", scid1=2))
             self.kw_database.main.append(keywords.Case(caseid=3, jobid="v", scid1=3))

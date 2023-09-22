@@ -14,7 +14,7 @@ import os
 import pathlib as Path
 import shutil
 import subprocess
-from typing import Literal
+from typing import List, Literal
 
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.misc.element_orth import read_orth_element_kfile
@@ -28,6 +28,7 @@ from ansys.heart.postprocessor.auto_process import (
 from ansys.heart.preprocessor.models import FourChamber, FullHeart, HeartModel
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import ansys.heart.writer.dynawriter as writers
+import numpy as np
 
 
 def which(program):
@@ -182,11 +183,11 @@ class BaseSimulator:
 
         grid = read_uvc(export_directory)
 
-    def compute_right_atrial_fiber(self):
+    def compute_right_atrial_fiber(self, appendage: List[float]):
         """Compute atrial fiber."""
         LOGGER.info("Computing RA fiber...")
 
-        export_directory = self.run_laplace_problem("ra_fiber")
+        export_directory = self.run_laplace_problem("ra_fiber", raa=np.array(appendage))
         ra_pv = compute_ra_fiber_cs(export_directory)
 
         LOGGER.info("Generating fibers done.")
@@ -204,14 +205,19 @@ class BaseSimulator:
 
         return la_pv
 
-    def run_laplace_problem(self, type):
+    def run_laplace_problem(self, type, **kwargs):
         """."""
         if not isinstance(self.model, (FullHeart, FourChamber)):
             raise NotImplementedError("Model type is not compatible")
 
         export_directory = os.path.join(self.root_directory, type)
-
-        dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type=type)
+        if type == "ra_fiber":
+            for key, value in kwargs.items():
+                if key == "raa":
+                    break
+            dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, raa=value)
+        else:
+            dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type)
         # dyna_writer.update()
         dyna_writer.export(export_directory)
 

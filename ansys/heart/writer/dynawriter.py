@@ -3754,19 +3754,39 @@ class UHCWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.Case(caseid=3, jobid="rotational", scid1=3))
 
         # transmural uvc
+        id_sorter = np.argsort(self.target["point_ids"])
 
-        ventricular_endo_sid = self._create_surface_nodeset(
-            surftype="endocardium", cavity_type="ventricle"
-        )
-        ventricular_epi_sid = self._create_surface_nodeset(
-            surftype="epicardium", cavity_type="ventricle"
-        )
+        endo_set = []
+        epi_set = []
+        for part in self.model.parts:
+            for surf in part.surfaces:
+                if "endocardium" in surf.name:
+                    endo_set.extend(surf.node_ids)
+                elif "epicardium" in surf.name:
+                    epi_set.extend(surf.node_ids)
+
+        # map IDs to sub mesh
+        endo_set_new = id_sorter[
+            np.searchsorted(self.target["point_ids"], endo_set, sorter=id_sorter)
+        ]
+        endo_set_new = np.unique(endo_set_new)
+
+        endo_sid = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(endo_set_new + 1, node_set_id=endo_sid, title="endo")
+        self.kw_database.node_sets.append(kw)
+
+        epi_set_new = id_sorter[
+            np.searchsorted(self.target["point_ids"], epi_set, sorter=id_sorter)
+        ]
+        epi_set_new = np.unique(epi_set_new)
+        epi_set_new = np.setdiff1d(epi_set_new, endo_set_new)
+
+        epi_sid = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(epi_set_new + 1, node_set_id=epi_sid, title="epi")
+        self.kw_database.node_sets.append(kw)
 
         self.kw_database.main.append("*CASE_BEGIN_1")
-        self._define_Laplace_Dirichlet_bc(
-            set_ids=[ventricular_endo_sid, ventricular_epi_sid],
-            bc_values=[0, 1],
-        )
+        self._define_Laplace_Dirichlet_bc(set_ids=[endo_sid, epi_sid], bc_values=[0, 1])
         self.kw_database.main.append("*CASE_END_1")
 
         # apicobasal uvc
@@ -3841,7 +3861,7 @@ class UHCWriter(BaseDynaWriter):
 
     def _create_rotational_nodesets(self):
         # Find nodes on target mesh
-        rot_start, rot_end, septum = self.model._compute_uvc_rotation_bc(self.target)
+        rot_start, rot_end, septum = self.model._compute_uvc_rotation_bc(copy.deepcopy(self.target))
 
         sid_minus_pi = self.get_unique_nodeset_id()
         kw = create_node_set_keyword(rot_start + 1, node_set_id=sid_minus_pi, title="rotation:-pi")

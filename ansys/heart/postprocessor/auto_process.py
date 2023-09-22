@@ -238,23 +238,26 @@ def read_uvc(
 
 def orthogonalization(grid):
     """Gram–Schmidt orthogonalization."""
-    # grid = pv.read(os.path.join(directory, "res2.vtk"))
     norm = np.linalg.norm(grid["grad_trans"], axis=1)
     bad_cells = np.argwhere(norm == 0).ravel()
 
     print(
-        f"{len(bad_cells)} cells has null gradient in trans direction, they are replaced by [1,0,0]"
+        f"{len(bad_cells)} cells has null gradient in trans direction."
+        f" They should only at valve regions and can be checked from vtk file."
     )
-    print("These cells should only at valve regions and can be checked from vtk file")
 
-    grad_trans_new = grid["grad_trans"]
-    grad_trans_new[bad_cells] = np.array([[1, 0, 0]]).repeat(len(bad_cells), axis=0)
-    norm = np.linalg.norm(grad_trans_new, axis=1)
-    grid["e_t"] = grad_trans_new / norm[:, None]
+    # grad_trans_new = grid["grad_trans"]
+    # grad_trans_new[bad_cells] = np.array([[1, 0, 0]]).repeat(len(bad_cells), axis=0)
+    # norm = np.linalg.norm(grad_trans_new, axis=1)
+    # grid["e_t"] = grad_trans_new / norm[:, None]
+
+    norm = np.where(norm != 0, norm, 1)
+    grid["e_t"] = grid["grad_trans"] / norm[:, None]
 
     k_e = np.einsum("ij,ij->i", grid["k"], grid["e_t"])
     en = grid["k"] - np.einsum("i,ij->ij", k_e, grid["e_t"])
     norm = np.linalg.norm(en, axis=1)
+    norm = np.where(norm != 0, norm, 1)
     grid["e_n"] = en / norm[:, None]
 
     grid["e_l"] = np.cross(grid["e_n"], grid["e_t"])
@@ -271,7 +274,8 @@ def get_gradient(directory, field_list: List[str]):
         t = data.model.results.temperature.on_last_time_freq.eval()[0].data
         grid[name] = t[::3]
         grid.set_active_scalars(name)
-    # todo : gradient method
+
+    # note vtk gradient method shows warning/error for some cells
     grid = grid.point_data_to_cell_data()
     for name in field_list:
         res = grid.compute_derivative(scalars=name, gradient="grad_" + name)["grad_" + name]
@@ -316,7 +320,7 @@ def compute_la_fiber_cs(directory):
         return grid
 
     grid = get_gradient(directory, field_list=["trans", "ab", "v", "r"])
-
+    # sometimes, pv object broken with pass directly
     grid.save("x.vtk")
     grid = pv.read("x.vtk")
 
@@ -423,7 +427,10 @@ def compute_ra_fiber_cs(directory):
         return grid
 
     grid = get_gradient(directory, field_list=["trans", "ab", "v", "r", "w"])
+
     grid.save("x.vtk")
+    grid = pv.read("x.vtk")
+
     grid = bundle_selection(grid)
 
     grid.save("x.vtk")

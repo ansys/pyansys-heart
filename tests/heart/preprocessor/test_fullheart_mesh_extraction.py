@@ -8,13 +8,16 @@ import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.support import run_preprocessor
 import pytest
 
-from .common import (
+from tests.heart.common import (
     compare_cavity_volume,
     compare_generated_mesh,
     compare_part_names,
     compare_surface_names,
 )
-from .conftest import download_asset, get_assets_folder, get_workdir
+from tests.heart.conftest import download_asset, get_assets_folder, get_workdir
+
+# marks all tests with the 'requires_fluent' tag after this line
+pytestmark = pytest.mark.requires_fluent
 
 
 # run this fixture first
@@ -66,7 +69,10 @@ def extract_fullheart():
     yield
 
     # cleanup
-    shutil.rmtree(workdir)
+    try:
+        shutil.rmtree(workdir)
+    except:
+        print("Failed to cleanup.")
 
 
 def test_part_names():

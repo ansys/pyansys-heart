@@ -1,5 +1,4 @@
 """Module containing classes for the various heart models."""
-import copy
 import json
 import os
 
@@ -1641,9 +1640,8 @@ class HeartModel:
 
         return e_l, e_r, e_c
 
-    def _compute_uvc_rotation_bc(self):
-        """Todo Only for LeftVentricle."""
-        mesh = copy.deepcopy(self.mesh)
+    def _compute_uvc_rotation_bc(self, mesh: pv.UnstructuredGrid):
+        """Select node set on long axis plane."""
         mesh["cell_ids"] = np.arange(0, mesh.n_cells, dtype=int)
         mesh["point_ids"] = np.arange(0, mesh.n_points, dtype=int)
         slice = mesh.slice(origin=self.l4cv_axis["center"], normal=self.l4cv_axis["normal"])

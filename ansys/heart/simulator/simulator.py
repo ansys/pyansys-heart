@@ -159,28 +159,31 @@ class BaseSimulator:
 
     def compute_uvc(self) -> pv.UnstructuredGrid:
         """Compute universal 'heart' coordinates system."""
-        if isinstance(self.model, FullHeart):
-            raise NotImplementedError("Not yet tested for the full heart")
-
         LOGGER.info("Computing universal ventricular coordinates...")
 
-        dirname = "uvc"
-        export_directory = os.path.join(self.root_directory, dirname)
-        self.directories[dirname] = export_directory
+        type = "uvc"
+        export_directory = os.path.join(self.root_directory, type)
 
-        # Dyna writer
-        dyna_writer = writers.UHCWriter(
-            copy.deepcopy(self.model),
-        )
-        dyna_writer.update()
-        dyna_writer.export(export_directory)
-
-        input_file = os.path.join(export_directory, "main.k")
-        self._run_dyna(path_to_input=input_file, options="case")
-
-        LOGGER.info("done.")
-
+        target = self.run_laplace_problem(export_directory, type)
         grid = read_uvc(export_directory)
+
+        grid["cell_ids"] = target["cell_ids"]
+        grid["point_ids"] = target["point_ids"]
+
+        LOGGER.info("Assigning data to full model...")
+
+        ids = grid["point_ids"]
+        self.model.mesh["apico-basal"] = np.zeros(self.model.mesh.n_points)
+        self.model.mesh["apico-basal"][:] = np.nan
+        self.model.mesh["transmural"] = np.zeros(self.model.mesh.n_points)
+        self.model.mesh["transmural"][:] = np.nan
+        self.model.mesh["rotational"] = np.zeros(self.model.mesh.n_points)
+        self.model.mesh["rotational"][:] = np.nan
+        self.model.mesh["apico-basal"][ids] = grid["apico-basal"]
+        self.model.mesh["transmural"][ids] = grid["transmural"]
+        self.model.mesh["rotational"][ids] = grid["rotational"]
+
+        return grid
 
     def compute_right_atrial_fiber(self, appendage: List[float]) -> pv.UnstructuredGrid:
         """
@@ -268,7 +271,7 @@ class BaseSimulator:
         else:
             dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type)
 
-        # dyna_writer.update()
+        dyna_writer.update()
         dyna_writer.export(export_directory)
 
         input_file = os.path.join(export_directory, "main.k")

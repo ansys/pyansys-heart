@@ -3465,23 +3465,25 @@ class UHCWriter(BaseDynaWriter):
         super().__init__(model=model)
         self.type = type
 
+        # remove unnecessary parts
         if self.type == "uvc":
             parts_to_keep = ["Left ventricle", "Right ventricle", "Septum"]
+            self._keep_parts(parts_to_keep)
         elif self.type == "la_fiber":
             parts_to_keep = ["Left atrium"]
         elif self.type == "ra_fiber":
             parts_to_keep = ["Right atrium"]
+            #  A manual point for RA fiber
             for key, value in kwargs.items():
                 if key == "raa":
                     self.right_appendage_apex = value
 
+        # remove unnecessary mesh
         if self.type == "uvc":
-            self._keep_parts(parts_to_keep)
-
             elems_to_keep = []
             elems_to_keep.extend(model.parts[0].element_ids)
-            elems_to_keep.extend(model.parts[0].element_ids)
-            elems_to_keep.extend(model.parts[0].element_ids)
+            elems_to_keep.extend(model.parts[1].element_ids)
+            elems_to_keep.extend(model.parts[2].element_ids)
 
             model.mesh.clear_data()
             model.mesh["cell_ids"] = np.arange(0, model.mesh.n_cells, dtype=int)
@@ -3489,45 +3491,23 @@ class UHCWriter(BaseDynaWriter):
 
             self.target = model.mesh.extract_cells(elems_to_keep)
 
-            return
-
-        else:
+        elif self.type == "la_fiber" or self.type == "ra_fiber":
+            # In original model, mitral/tricuspid valves are assigned with ventricle parts
+            # so we need to update caps information at first
             for part in model.parts:
                 part.caps = []
                 for surface in part.surfaces:
                     surface.edge_groups = []
             model.cap_centroids = []
-
             model._assign_surfaces_to_parts()
             model._assign_caps_to_parts(unique_mitral_tricuspid_valve=False)
-            self._keep_parts(parts_to_keep)
 
+            self._keep_parts(parts_to_keep)
             model.mesh.clear_data()
             model.mesh["cell_ids"] = np.arange(0, model.mesh.n_cells, dtype=int)
             model.mesh["point_ids"] = np.arange(0, model.mesh.n_points, dtype=int)
 
-            target = model.mesh.extract_cells(model.parts[0].element_ids)
-            self.target = target
-
-            node_kw = create_node_keyword(target.points)
-            self.kw_database.nodes.append(node_kw)
-
-            self._update_parts_materials_db()
-
-            kw_elements = create_elemetn_solid_keyword(
-                target.cells.reshape(-1, 5)[:, 1:] + 1,
-                np.arange(1, target.n_cells + 1, dtype=int),
-                self.model.parts[0].pid,
-            )
-            self.kw_database.solid_elements.append(kw_elements)
-
-            self._update_main_db()
-
-            target = self.update_atrium_fiber_bc(target)
-            # target_atrium.save('la.vtk')
-
-            self._get_list_of_includes()
-            self._add_includes()
+            self.target = model.mesh.extract_cells(model.parts[0].element_ids)
 
     def additional_right_atrium_bc(self, atrium: pv.UnstructuredGrid):
         """
@@ -3742,15 +3722,28 @@ class UHCWriter(BaseDynaWriter):
 
     def update(self):
         """Update keyword database."""
-        self._update_node_db()
+        # nodes
+        node_kw = create_node_keyword(self.target.points)
+        self.kw_database.nodes.append(node_kw)
+
+        # part and mat
         self._update_parts_materials_db()
-        self._update_solid_elements_db(add_fibers=False)
 
-        # self._update_segmentsets_db()
-        # self._update_nodesets_db()
+        # elems
+        kw_elements = create_elemetn_solid_keyword(
+            self.target.cells.reshape(-1, 5)[:, 1:] + 1,
+            np.arange(1, self.target.n_cells + 1, dtype=int),
+            self.model.parts[0].pid,
+        )
+        self.kw_database.solid_elements.append(kw_elements)
 
+        # main
         self._update_main_db()
-        self._update_uvc_bc()
+
+        if self.type == "uvc":
+            self._update_uvc_bc()
+        elif self.type == "la_fiber" or self.type == "ra_fiber":
+            self.update_atrium_fiber_bc(self.target)
 
         self._get_list_of_includes()
         self._add_includes()
@@ -3761,14 +3754,15 @@ class UHCWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.Case(caseid=3, jobid="rotational", scid1=3))
 
         # transmural uvc
-        # todo Check no re constraint node
-        self.kw_database.main.append("*CASE_BEGIN_1")
+
         ventricular_endo_sid = self._create_surface_nodeset(
             surftype="endocardium", cavity_type="ventricle"
         )
         ventricular_epi_sid = self._create_surface_nodeset(
             surftype="epicardium", cavity_type="ventricle"
         )
+
+        self.kw_database.main.append("*CASE_BEGIN_1")
         self._define_Laplace_Dirichlet_bc(
             set_ids=[ventricular_endo_sid, ventricular_epi_sid],
             bc_values=[0, 1],
@@ -3776,29 +3770,31 @@ class UHCWriter(BaseDynaWriter):
         self.kw_database.main.append("*CASE_END_1")
 
         # apicobasal uvc
-        self.kw_database.main.append("*CASE_BEGIN_2")
         apex_sid = self._create_apex_nodeset()
         base_sid = self._create_base_nodeset()
-        self._define_Laplace_Dirichlet_bc(
-            set_ids=[apex_sid, base_sid],
-            bc_values=[0, 1],
-        )
+
+        self.kw_database.main.append("*CASE_BEGIN_2")
+        self._define_Laplace_Dirichlet_bc(set_ids=[apex_sid, base_sid], bc_values=[0, 1])
         self.kw_database.main.append("*CASE_END_2")
 
         # rotational uc
-        self.kw_database.main.append("*CASE_BEGIN_3")
         [sid_minus_pi, sid_plus_pi, sid_zero] = self._create_rotational_nodesets()
+
+        self.kw_database.main.append("*CASE_BEGIN_3")
         self._define_Laplace_Dirichlet_bc(
-            set_ids=[sid_minus_pi, sid_plus_pi, sid_zero],
-            bc_values=[-np.pi, np.pi, 0],
+            set_ids=[sid_minus_pi, sid_plus_pi, sid_zero], bc_values=[-np.pi, np.pi, 0]
         )
         self.kw_database.main.append("*CASE_END_3")
 
     def _create_apex_nodeset(self):
         # apex
         apex_set = self.model._compute_uvc_apex_set()
+        id_sorter = np.argsort(self.target["point_ids"])
+        ids_submesh = id_sorter[
+            np.searchsorted(self.target["point_ids"], apex_set, sorter=id_sorter)
+        ]
         sid = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(apex_set + 1, node_set_id=sid, title="apex")
+        kw = create_node_set_keyword(ids_submesh + 1, node_set_id=sid, title="apex")
         self.kw_database.node_sets.append(kw)
         return sid
 
@@ -3806,16 +3802,22 @@ class UHCWriter(BaseDynaWriter):
         # base
         base_set = np.array([])
         for part in self.model.parts:
-            if "ventricle" in part.name:
-                for cap in part.caps:
-                    if ("mitral" in cap.name) or ("tricuspid" in cap.name):
-                        base_set = np.append(base_set, cap.node_ids)
+            for cap in part.caps:
+                if ("mitral" in cap.name) or ("tricuspid" in cap.name):
+                    base_set = np.append(base_set, cap.node_ids)
+
+        id_sorter = np.argsort(self.target["point_ids"])
+        ids_submesh = id_sorter[
+            np.searchsorted(self.target["point_ids"], base_set, sorter=id_sorter)
+        ]
         sid = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(base_set + 1, node_set_id=sid, title="base")
+        kw = create_node_set_keyword(ids_submesh + 1, node_set_id=sid, title="base")
         self.kw_database.node_sets.append(kw)
         return sid
 
     def _create_surface_nodeset(self, surftype: str, cavity_type: str):
+        id_sorter = np.argsort(self.target["point_ids"])
+
         nodeset = np.array([])
         for part in self.model.parts:
             if cavity_type in part.name:
@@ -3823,15 +3825,24 @@ class UHCWriter(BaseDynaWriter):
                     if surftype in surf.name:
                         nodeset = np.append(nodeset, surf.node_ids)
         nodeset = np.unique(nodeset.astype(int))
+
+        # map IDs to sub mesh
+        ids_submesh = id_sorter[
+            np.searchsorted(self.target["point_ids"], nodeset, sorter=id_sorter)
+        ]
+
         sid = self.get_unique_nodeset_id()
         kw = create_node_set_keyword(
-            nodeset + 1, node_set_id=sid, title=cavity_type + " " + surftype + " all"
+            ids_submesh + 1, node_set_id=sid, title=cavity_type + " " + surftype + " all"
         )
         self.kw_database.node_sets.append(kw)
+
         return sid
 
     def _create_rotational_nodesets(self):
-        rot_start, rot_end, septum = self.model._compute_uvc_rotation_bc()
+        # Find nodes on target mesh
+        rot_start, rot_end, septum = self.model._compute_uvc_rotation_bc(self.target)
+
         sid_minus_pi = self.get_unique_nodeset_id()
         kw = create_node_set_keyword(rot_start + 1, node_set_id=sid_minus_pi, title="rotation:-pi")
         self.kw_database.node_sets.append(kw)

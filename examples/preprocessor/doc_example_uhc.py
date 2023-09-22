@@ -25,7 +25,7 @@ import pyvista as pv
 
 # set working directory and path to model.
 workdir = Path(
-    Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "BiVentricle"
+    Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "FourChamber"
 )
 
 path_to_model = os.path.join(workdir, "heart_model.pickle")
@@ -34,11 +34,11 @@ if not os.path.isfile(path_to_model):
     raise FileExistsError(f"{path_to_model} not found")
 
 # specify LS-DYNA path
-lsdyna_path = "ls-dyna_smp_d.exe"
+lsdyna_path = r"ls-dyna_smp_d_Dev_97584-g1b99fd817b_winx64_ifort190.exe"
 
 
-if not os.path.isfile(lsdyna_path):
-    raise FileExistsError(f"{lsdyna_path} not found.")
+# if not os.path.isfile(lsdyna_path):
+#     raise FileExistsError(f"{lsdyna_path} not found.")
 
 # load heart model.
 model: models.BiVentricle = models.HeartModel.load_model(path_to_model)
@@ -101,3 +101,6 @@ plotter.show()
 # .. image:: /_static/images/uvc_result.png
 #   :width: 600pt
 #   :align: center
+
+model.mesh.set_active_scalars("apico-basal")
+model.mesh.plot()

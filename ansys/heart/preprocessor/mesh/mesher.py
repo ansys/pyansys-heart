@@ -204,8 +204,8 @@ def mesh_from_manifold_input_model(
     )
 
     # import files
-    session.tui.file.import_.cad("no " + work_dir_meshing + " *.stl yes 40 yes mm")
-    session.tui.file.start_transcript(os.path.join(work_dir_meshing, "fluent_meshing.log"))
+    session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
+    session.tui.file.start_transcript('"' + os.path.join(work_dir_meshing, "fluent_meshing.log") + '"')
     session.tui.objects.merge("'(*) heart")
     session.tui.objects.labels.create_label_per_zone("heart '(*)")
     session.tui.diagnostics.face_connectivity.fix_free_faces("objects '(*) merge-nodes yes 1e-3")
@@ -253,11 +253,13 @@ def mesh_from_manifold_input_model(
     session.tui.mesh.prepare_for_solve("yes")
 
     # write to file
-    session.tui.file.write_mesh(path_to_output)
+    
+    session.tui.file.write_mesh('"' + path_to_output + '"')
     # session.meshing.tui.file.read_journal(script)
     session.exit()
 
-    shutil.copy(path_to_output, path_to_output_old)
+    if path_to_output != path_to_output_old:
+        shutil.copy(path_to_output, path_to_output_old)
 
     path_to_output = path_to_output_old
 
@@ -399,13 +401,13 @@ def mesh_from_non_manifold_input_model(
     )
 
     # import stls
-    session.tui.file.import_.cad("no " + work_dir_meshing + " *.stl yes 40 yes mm")
-    session.tui.file.start_transcript(os.path.join(work_dir_meshing, "fluent_meshing.log"))
+    session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
+    session.tui.file.start_transcript('"' + os.path.join(work_dir_meshing, 'fluent_meshing.log"'))
 
     # each stl is imported as a separate object. Wrap the different collections of stls to create
     # new surface meshes for each of the parts.
     session.tui.size_functions.set_global_controls(min_size, max_size, growth_rate)
-    session.tui.scoped_sizing.compute("yes")
+    session.tui.scoped_sizing.compute('"yes"')
 
     session.tui.objects.extract_edges("'(*) feature 40")
     visited_parts = []
@@ -498,7 +500,7 @@ def mesh_from_non_manifold_input_model(
     if os.path.isfile(path_to_output):
         os.remove(path_to_output)
 
-    session.tui.file.write_mesh(path_to_output)
+    session.tui.file.write_mesh('"' + path_to_output + '"')
     session.exit()
 
     shutil.copy(path_to_output, path_to_output_old)

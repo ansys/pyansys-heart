@@ -457,7 +457,9 @@ def run_lsdyna(
 
     os.chdir(os.path.dirname(path_to_input))
 
-    with subprocess.Popen([os.path.expandvars(c) for c in commands], stdout=subprocess.PIPE, text=True) as p:
+    with subprocess.Popen(
+        [os.path.expandvars(c) for c in commands], stdout=subprocess.PIPE, text=True
+    ) as p:
         for line in p.stdout:
             LOGGER.info(line.rstrip())
 

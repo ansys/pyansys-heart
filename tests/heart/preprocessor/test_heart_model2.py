@@ -6,9 +6,12 @@ import meshio
 import numpy as np
 import pytest
 
-from .conftest import get_assets_folder
+from tests.heart.conftest import get_assets_folder
 
 test_model: HeartModel
+
+
+pytestmark = pytest.mark.local
 
 
 @pytest.fixture(autouse=True, scope="module")
@@ -49,6 +52,7 @@ def get_test_model():
     #     shutil.rmtree(workdir)
 
 
+@pytest.mark.xfail(reason="Test uses local data.")
 def test_compute_left_ventricle_anatomy_axis():
     test_model.compute_left_ventricle_anatomy_axis()
     print()
@@ -63,6 +67,7 @@ def test_compute_left_ventricle_anatomy_axis():
     )
 
 
+@pytest.mark.xfail(reason="Test uses local data.")
 def test_compute_left_ventricle_aha17():
     test_model.compute_left_ventricle_anatomy_axis()
     test_model.compute_left_ventricle_aha17()
@@ -83,6 +88,7 @@ def test_compute_left_ventricle_aha17():
     )
 
 
+@pytest.mark.xfail(reason="Test uses local data.")
 def test_compute_left_ventricle_element_cs():
     test_model.compute_left_ventricle_anatomy_axis()
     test_model.compute_left_ventricle_aha17()
@@ -108,6 +114,7 @@ def test_compute_left_ventricle_element_cs():
     assert np.allclose(e_c[0], np.array([-0.78877506, -0.59124132, -0.16812975]))
 
 
+@pytest.mark.xfail(reason="Test uses local data.")
 def test_vtk_cutter():
     import ansys.heart.preprocessor.mesh.vtkmethods as vm
 

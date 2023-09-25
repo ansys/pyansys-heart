@@ -5,7 +5,7 @@ from ansys.heart.preprocessor.mesh.fluenthdf5 import FluentMesh
 import numpy as np
 import pytest
 
-from .conftest import get_assets_folder
+from tests.heart.conftest import get_assets_folder
 
 FLUENT_BOX = os.path.join(get_assets_folder(), "simple_fluent_meshes", "box.msh.h5")
 

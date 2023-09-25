@@ -169,6 +169,14 @@ need to follow these steps:
     .. code:: bash
 
         python -m pip install .[tests]
+
+        # run quick tests
+        python -m pytest -v -m "not requires_fluent and not local"
+
+        # run tests requiring Fluent
+        python -m pytest -v -m requires_fluent
+
+        # run all tests
         pytest tests -v
 
 

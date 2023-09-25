@@ -1,11 +1,13 @@
 """Compares generated k-files of mechanics against a reference."""
-import os
-
-import ansys.heart.preprocessor.models as models
-import ansys.heart.writer.dynawriter as writers
 import pytest
 
-from .conftest import compare_string_with_file, get_assets_folder
+pytestmark = pytest.mark.local
+
+import os
+
+import pytest
+
+from tests.heart.conftest import compare_string_with_file, get_assets_folder
 
 
 # NOTE: Using a pickled reference model won't work when we make
@@ -14,6 +16,10 @@ from .conftest import compare_string_with_file, get_assets_folder
 @pytest.fixture(autouse=True, scope="module")
 def initialize_model():
     """Load a model that can be converted to LS-DYNA input."""
+
+    import ansys.heart.preprocessor.models as models
+    import ansys.heart.writer.dynawriter as writers
+
     pickle_file = os.path.join(
         get_assets_folder(),
         "reference_models",

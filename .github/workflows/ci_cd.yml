@@ -74,19 +74,14 @@ jobs:
 
       - name: Run tests preprocessor module
         run: |
-          python -m pytest tests/heart/test_fluent_mesh_reader.py
-          python -m pytest tests/heart/test_heart_model.py
-          python -m pytest tests/heart/test_downloader.py
-          python -m pytest tests/heart/preprocessor/input/test_input_model.py
-          python -m pytest tests/heart/preprocessor/test_vtk_methods.py          
-
-      - name: Run tests writer module
-        run: |
-          python -m pytest tests/heart/test_k_files_mechanics.py
+          python -m pytest -v tests/heart/preprocessor/test_fluent_mesh_reader.py tests/heart/preprocessor/test_heart_model.py tests/heart/test_downloader.py
+          python -m pytest -v tests/heart/preprocessor/input/test_input_model.py
+          python -m pytest -v tests/heart/preprocessor/test_vtk_methods.py          
 
       - name: Run tests simulator module
         run: |
-          python -m pytest tests/heart/test_settings.py
+          python -m pytest -v tests/heart/simulator/test_settings.py
+
 
   build-library:
     name: "Build library basic example"

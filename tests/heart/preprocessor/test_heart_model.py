@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 import yaml
 
-from .conftest import create_directory, get_workdir
+from tests.heart.conftest import create_directory, get_workdir
 
 
 def _get_test_model_info() -> models.ModelInfo:

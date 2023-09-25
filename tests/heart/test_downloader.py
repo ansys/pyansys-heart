@@ -6,7 +6,7 @@ from ansys.heart.misc.downloader import _format_download_urls, validate_hash_sha
 import pytest
 import validators
 
-from .conftest import get_workdir
+from tests.heart.conftest import get_workdir
 
 
 @pytest.mark.parametrize(

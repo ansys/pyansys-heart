@@ -70,7 +70,7 @@ jobs:
       - name: Test PyFluent launch
         continue-on-error: false
         run: |
-          python -m pytest tests/heart/test_pyfluent.py
+          python -m pytest -v tests/heart/preprocessor/test_pyfluent.py
 
       - name: Test PyFluent on simple meshes
         continue-on-error: false
@@ -89,22 +89,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}
 
-      - name: Cache file check
-        continue-on-error: true
-        run: ls -R -lh /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/Strocchi2020
-
-      - name: Test biventricle model generation 1
+      - name: Test model generation
         continue-on-error: false
         run: |
-          python -m pytest tests/heart/test_biventricle_mesh_extraction.py
-          ls -R -lh /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/
-
-      # - name: Test biventricle model generation 2
-      #   continue-on-error: false
-      #   run: |
-      #     python -m pytest tests/heart/test_biventricle_mesh_extraction_with_bloodpool.py
-
-      - name: Test full heart model generation
-        continue-on-error: false
-        run: |
-          python -m pytest tests/heart/test_fullheart_mesh_extraction.py
+          #  Run all tests that require fluent
+          python -m pytest -v -m "requires_fluent and not local"

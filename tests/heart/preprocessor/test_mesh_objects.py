@@ -5,7 +5,7 @@ import numpy as np
 import pytest  # noqa F401
 import pyvista as pv  # noqa F401
 
-from .conftest import download_asset, get_assets_folder  # noqa F401
+from tests.heart.conftest import download_asset, get_assets_folder  # noqa F401
 
 skip_test = os.name != "nt"
 

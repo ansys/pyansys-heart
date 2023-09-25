@@ -2,6 +2,10 @@
 import os
 
 import ansys.fluent.core as pyfluent
+import pytest
+
+# marks all tests with the 'requires_fluent' tag after this line
+pytestmark = pytest.mark.requires_fluent
 
 try:
     os.environ["GITHUB_JOB"]

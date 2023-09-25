@@ -193,7 +193,7 @@ For building documentation, you can either run the usual rules provided in the
 .. code:: bash
 
     # install any dependencies for building the documentation.
-    python -m pip install .[docs]
+    python -m pip install .[doc]
 
     # Linux
     make -C doc/ html

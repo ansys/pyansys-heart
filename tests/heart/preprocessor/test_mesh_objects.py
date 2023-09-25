@@ -5,7 +5,7 @@ import numpy as np
 import pytest  # noqa F401
 import pyvista as pv  # noqa F401
 
-from .conftest import download_asset, get_assets_folder  # noqa F401
+from tests.heart.conftest import download_asset, get_assets_folder  # noqa F401
 
 skip_test = os.name != "nt"
 
@@ -77,7 +77,7 @@ def test_mesh_object_read_001():
 
 
 # @pytest.mark.skipif(skip_test)
-@pytest.mark.xfail(reason="Only strocchi2020 supported for tests.")
+@pytest.mark.xfail(reason="Only supporting Strocchi for tests.")
 def test_mesh_object_read_002():
     """Test if rodero's case is properly read."""
     case_file = download_asset(database="Cristobal2021", casenumber=1)

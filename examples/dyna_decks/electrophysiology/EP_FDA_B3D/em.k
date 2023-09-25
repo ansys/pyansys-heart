@@ -11,7 +11,7 @@ $    emsol     numls  emdtinit   emdtmax   emtinit    emtend  ncyclFem  ncyclBem
 *EM_CONTROL_TIMESTEP
 $--------1---------2---------3---------4---------5---------6---------7---------8
 $   TSTYPE   DTCONST      LCID    FACTOR     DTMIN     DTMAX
-         1       &dt                    
+         1       &dt
 *EM_SOLVER_FEM
 $--------1---------2---------3---------4---------5---------6---------7---------8
 $   relTol   maxIter solveType   precond   uselast
@@ -52,7 +52,7 @@ $    matid  numState funcVsDer potVslion                                  iwrite
          1         3         1         0                                       1
 $ define functions for d/dt as a function of (V,u1,u2,u3,...)
 $     dVdt     du1dt     du2dt     du3dt     du4dt     du5dt     du6dt     du7dt
-       200       201       202       203     
+       200       201       202       203
 $ define functions for u(t=0,x) as a function of (x,y,z)
 $      V_0      u1_0      u2_0      u3_0      u4_0      u5_0      u6_0      u7_0
        300       301       302       303
@@ -62,7 +62,7 @@ $    matid  numState
          2         3
 $ define functions for d/dt as a function of (V,u1,u2,u3,...)
 $     dVdt     du1dt     du2dt     du3dt     du4dt     du5dt     du6dt     du7dt
-       200       201       202       203     
+       200       201       202       203
 $ define functions for u(t=0,x) as a function of (x,y,z)
 $      V_0      u1_0      u2_0      u3_0      u4_0      u5_0      u6_0      u7_0
        300       301       302       303
@@ -73,9 +73,9 @@ float dVdt(
             float ksi, float Cm,
             float V, float u1, float u2, float u3, float u4,
             float u5, float u6, float u7)
-{ 
+{
   ksi=3;
-  Cm=2;	
+  Cm=2;
   float beta;
 $  beta=1.;
   beta=-2.518854;
@@ -93,7 +93,7 @@ float du1dt(
             float u5, float u6, float u7)
 {
   ksi=3;
-  Cm=2;	
+  Cm=2;
   float ddt;
   ddt=(u1+u3-V)**2.*u2**2.;
   ddt=ddt+0.5*(u1+u3-V)*u2**2.*(V-u3);
@@ -106,9 +106,9 @@ float du2dt(
             float ksi, float Cm,
             float V, float u1, float u2, float u3, float u4,
             float u5, float u6, float u7)
-{ 
+{
   ksi=3;
-  Cm=2;	
+  Cm=2;
   float ddt;
   ddt=-(u1+u3-V)*u2**3.;
   return ddt;
@@ -122,7 +122,7 @@ float du3dt(
             float u5, float u6, float u7)
 {
   ksi=3;
-  Cm=2;	
+  Cm=2;
   float ddt;
   ddt=0.;
   return ddt;
@@ -132,7 +132,7 @@ $ ****************************************************************************
 300
 float V_0(
             float time, float x, float y, float z)
-{ 
+{
   float init;
   float F;
   float pi;
@@ -140,7 +140,7 @@ float V_0(
 $  F=pi*z;
   F=cos(pi*x)*cos(2.*pi*y)*cos(3.*pi*z);
   init=sqrt(1.+time)*F;
-$ printf("fonctionF %f",F);	
+$ printf("fonctionF %f",F);
   return F;
 }
 $ ****************************************************************************
@@ -148,7 +148,7 @@ $ ****************************************************************************
 301
 float u1_0(
             float time, float x, float y, float z)
-{ 
+{
   float init;
   float F;
   float G;
@@ -164,7 +164,7 @@ $ ****************************************************************************
 302
 float u2_0(
             float time, float x, float y, float z)
-{ 
+{
   float init;
   float F;
   float G;
@@ -180,7 +180,7 @@ $ ****************************************************************************
 303
 float u3_0(
             float time, float x, float y, float z)
-{ 
+{
   float init;
   float F;
   float G;

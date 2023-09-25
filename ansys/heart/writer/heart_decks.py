@@ -24,6 +24,10 @@ class BaseDecks:
 
         return
 
+    def add_deck(self, deckname: str):
+        """Add deck by filename."""
+        setattr(self, deckname, Deck())
+
 
 class MechanicsDecks(BaseDecks):
     """Useful decks for a mechanics simulation."""

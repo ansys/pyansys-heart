@@ -30,9 +30,13 @@ os.environ["USE_OLD_HEART_MODELS"] = "1"
 
 # specify necessary paths.
 # Note that we need to cast the paths to strings to facilitate serialization.
-case_file = str(Path(Path(__file__).parents[2], "downloads", "Strocchi2020", "01", "01.case"))
-download_folder = str(Path(Path(__file__).parents[2], "downloads"))
-workdir = str(Path(Path(__file__).parents[2], "downloads", "Strocchi2020", "01", "FourChamber"))
+case_file = str(
+    Path(Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "01.case")
+)
+download_folder = str(Path(Path(__file__).resolve().parents[2], "downloads"))
+workdir = str(
+    Path(Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "FourChamber")
+)
 path_to_model = str(Path(workdir, "heart_model.pickle"))
 
 ###############################################################################
@@ -131,7 +135,7 @@ cavities.plot(show_edges=True)
 # sphinx_gallery_start_ignore
 # Generate static images for docs.
 #
-docs_images_folder = Path(Path(__file__).parents[2], "doc", "source", "_static", "images")
+docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", "_static", "images")
 
 # Full mesh
 filename = Path(docs_images_folder, "four_chamber_mesh.png")

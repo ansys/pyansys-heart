@@ -6,7 +6,7 @@ Here you can find methods to calibrate LS-DYNA simulations.
 .. currentmodule:: ansys.heart.calibration
 
 
-Passive Calibration
+Passive calibration
 -------------------
 .. autoclass:: ansys.heart.calibration.passive_calibration.PassiveCalibration
    :members:

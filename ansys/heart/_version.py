@@ -15,8 +15,11 @@ Print the version
 
 """
 
-# major, minor, patch
-version_info = 0, 2, "dev0"
+try:
+    import importlib.metadata as importlib_metadata
+except ModuleNotFoundError:  # pragma: no cover
+    import importlib_metadata
 
-# Nice string for the version
-__version__ = ".".join(map(str, version_info))
+# Read from the pyproject.toml
+# major, minor, patch
+__version__ = importlib_metadata.version("ansys-heart-lib")

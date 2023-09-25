@@ -15,7 +15,7 @@
 Pyheart lib is a `Python`_ framework for heart modeling using Ansys tools.
 
 .. Note::
-    
+
     Please read LICENSE file before using this package.
 
 
@@ -52,11 +52,11 @@ Software
       - `Ansys Customer Portal`_
 
     * - Ansys DPF Server
-      - R24 R1-pre0    
-      - Post-processor      
+      - R24 R1-pre0
+      - Post-processor
       - `DPF-Server`_
 
-    * - Ansys LSDYNA      
+    * - Ansys LSDYNA
       - DEV-97584 or greater
       - Simulator
       - Contact us for latest working version
@@ -72,8 +72,8 @@ How to install
 In user mode
 ------------
 
-.. warning:: 
-    
+.. warning::
+
     Installing as user-only is not yet supported.
 
 .. User installation can be performed by running:
@@ -88,7 +88,7 @@ In editable mode
 Installing Pyheart lib in developer mode allows
 you to modify the source and enhance it.
 
-Before contributing to the project, please refer to the `PyAnsys Developer's guide`_. You will 
+Before contributing to the project, please refer to the `PyAnsys Developer's guide`_. You will
 need to follow these steps:
 
 1. Start by cloning this repository:
@@ -96,7 +96,7 @@ need to follow these steps:
     .. code:: bash
 
         git clone https://github.com/ansys/pyheart-lib
-   
+
    Since this is a private repository you may need to provide your github username.
    Alternatively you can download and unpack the zip file from `pyheart-lib`_
 
@@ -110,7 +110,7 @@ need to follow these steps:
         # Create a virtual environment
         python -m venv .venv
 
-        # Activate environment: 
+        # Activate environment:
 
         # POSIX systems:
         source .venv/bin/activate
@@ -129,7 +129,7 @@ need to follow these steps:
         conda create --name my-venv python=3.8
 
         # Activate the environment
-        conda activate my-venv    
+        conda activate my-venv
 
 3. Make sure you have the latest version of `pip`_ installed in your virtual environment.
 
@@ -140,13 +140,13 @@ need to follow these steps:
 4. Install the project in editable mode by pointing to the right location:
 
     .. code:: bash
-    
+
         python -m pip install --editable .
-    
+
    Install a version of dynalib into your virtual environment.
 
     .. code:: bash
-        
+
         # latest version
         pip install git+https://github.com/ansys/dynalib.git@main
 
@@ -160,15 +160,23 @@ need to follow these steps:
      .. code:: bash
 
         # dependencies for local doc building
-        python -m pip install -r requirements_docs.txt
+        python -m pip install .[doc]
         # dependencies needed for (unit) testing
-        python -m pip install -r requirements_tests.txt
+        python -m pip install .[tests]
 
 6. You may verify your development version by running all or a set of unit-tests:
 
     .. code:: bash
-        
-        python -m pip install -r requirements_tests.txt
+
+        python -m pip install .[tests]
+
+        # run quick tests
+        python -m pytest -v -m "not requires_fluent and not local"
+
+        # run tests requiring Fluent
+        python -m pytest -v -m requires_fluent
+
+        # run all tests
         pytest tests -v
 
 
@@ -193,40 +201,32 @@ For building documentation, you can either run the usual rules provided in the
 .. code:: bash
 
     # install any dependencies for building the documentation.
-    python -m pip install -r requirements_docs.txt
+    python -m pip install .[docs]
 
     # Linux
-    make -C doc/ html 
+    make -C doc/ html
 
     # Windows
     cd doc/
     make.bat html
 
 subsequently open the documentation by opening `doc/html/index.html`:
-    
+
 
 Distributing
 ============
 
-If you would like to create either source or wheel files, start by installing
-the building requirements:
+If you would like to create either source or wheel files, you can execute:
 
 .. code:: bash
 
-    python -m pip install -r requirements_build.txt
-
-Then, you can execute:
-
-.. code:: bash
-
-    python -m build
-    python -m twine check dist/*
+    python -m pip install .
 
 
 Licensing terms
 ===============
 
-PyHeart-lib is licensed under the MIT license: 
+PyHeart-lib is licensed under the MIT license:
 
     MIT License
 

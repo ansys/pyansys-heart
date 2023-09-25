@@ -2,7 +2,7 @@ $-----------------------------------------------------------------------------
 $
 $ Example provided by Pierre (LSTC)
 $X 1. Run file as is.
-$X    Requires LS-DYNA MPP Dev 142100 (or higher) with double precision 
+$X    Requires LS-DYNA MPP Dev 142100 (or higher) with double precision
 $X
 $X-----------------------------------------------------------------------------
 $# UNITS: (Dimensionless)

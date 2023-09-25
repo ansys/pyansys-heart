@@ -13,6 +13,9 @@ model: HeartModel
 test_dir: str
 
 
+pytestmark = pytest.mark.local
+
+
 @pytest.fixture(autouse=True, scope="module")
 def get_data():
     global test_dir, model
@@ -25,6 +28,7 @@ def get_data():
     model.compute_left_ventricle_aha17()
 
 
+@pytest.mark.xfail(reason="Test requires local data.")
 def test_compute_myocardial_strain():
     d3plot = Path.Path(test_dir) / "main-mechanics" / "d3plot"
 
@@ -33,6 +37,7 @@ def test_compute_myocardial_strain():
     assert aha_lrc[-1, -1] == pytest.approx(0.08878163)
 
 
+@pytest.mark.xfail(reason="Test requires local data.")
 def test_compute_aha_strain():
     d3plot = Path.Path(test_dir) / "main-mechanics" / "d3plot"
 
@@ -41,17 +46,20 @@ def test_compute_aha_strain():
     assert aha_lrc[1, -1] == pytest.approx(0.08878163)
 
 
+@pytest.mark.xfail(reason="Test requires local data.")
 def test_mech_post():
     dct = mech_post(Path.Path(test_dir) / "main-mechanics", model)
     assert os.path.exists(Path.Path(test_dir) / "main-mechanics" / "post")
 
 
+@pytest.mark.xfail(reason="Test requires local data.")
 def test_zerop_post():
     dct = zerop_post(Path.Path(test_dir) / "zeropressure", model)
     assert dct["True left ventricle volume (mm3)"] == pytest.approx(288876.8)
     assert os.path.exists(Path.Path(test_dir) / "zeropressure" / "post")
 
 
+@pytest.mark.xfail(reason="Test requires local data.")
 def test_contour_exporter():
     d3plot = Path.Path(test_dir) / "main-mechanics" / "d3plot"
     exporter = LVContourExporter(d3plot, model)
@@ -82,6 +90,7 @@ def test_contour_exporter():
     # )
 
 
+@pytest.mark.xfail(reason="Test requires local data.")
 def test_lvls():
     d3plot = Path.Path(test_dir) / "main-mechanics" / "d3plot"
     exporter = LVContourExporter(d3plot, model)
@@ -107,6 +116,7 @@ class TestSystemModelPost:
     def system_model(self):
         return SystemModelPost(Path.Path(test_dir) / "main-mechanics")
 
+    @pytest.mark.xfail(reason="Test requires local data.")
     def test_plot_pv_loop(self, system_model):
         ef = system_model.get_ejection_fraction(t_start=2, t_end=3)
         fig = system_model.plot_pv_loop(ef=ef)

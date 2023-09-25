@@ -9,7 +9,7 @@ from ansys.heart.simulator.settings.settings import (
 )
 from pint import Quantity
 
-from .conftest import compare_string_with_file, get_workdir
+from tests.heart.conftest import compare_string_with_file, get_workdir
 
 REF_STRING_SETTINGS_YML = (
     "Simulation Settings:\n"

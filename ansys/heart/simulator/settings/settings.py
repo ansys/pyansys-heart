@@ -725,7 +725,7 @@ class DynaSettings:
         # remove empty strings from commands
         commands = [c for c in commands if c != ""]
 
-        # expand any variables if any
+        # expand any environment variables if any
         commands = [os.path.expandvars(c) for c in commands]
 
         return commands

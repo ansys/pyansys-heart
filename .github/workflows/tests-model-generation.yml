@@ -16,7 +16,7 @@ env:
   MAIN_PYTHON_VERSION: 3.8
   ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
   PYFLUENT_START_INSTANCE: 0
-  PYFLUENT_LAUNCH_CONTAINER: 1          
+  PYFLUENT_LAUNCH_CONTAINER: 1
   FLUENT_IMAGE_TAG: v23.1.0
 
 
@@ -48,8 +48,8 @@ jobs:
           password: ${{ secrets.REPO_DOWNLOAD_PAT }}
 
       - name: Pull 23.1 Fluent docker image
-        run: | 
-          docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG          
+        run: |
+          docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
           docker image prune -f
       #     docker save -o ~/image-cache/fluent.tar ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
 

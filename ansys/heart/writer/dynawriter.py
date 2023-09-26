@@ -3225,24 +3225,31 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                             network.nsid = self.model.right_ventricle.endocardium.id
                         else:
                             LOGGER.error("Point too far from apex")
+                elif network.name == "SAN_to_AVN":
+                    network.nsid = self.model.right_atrium.endocardium.id
+                elif network.name == "Left bundle branch":
+                    network.nsid = self.model.left_ventricle.cavity.surface.id
+                elif network.name == "Right bundle branch":
+                    network.nsid = self.model.right_ventricle.cavity.surface.id
 
-                self.kw_database.main.append(
-                    custom_keywords.EmEpPurkinjeNetwork2(
-                        purkid=2,
-                        buildnet=0,
-                        ssid=network.nsid,
-                        mid=network.pid,
-                        pointstx=origin_coordinates[0],
-                        pointsty=origin_coordinates[1],
-                        pointstz=origin_coordinates[2],
-                        edgelen=2,
-                        ngen=50,
-                        nbrinit=8,
-                        nsplit=2,
-                        # inodeid=node_id_start_right,
-                        # iedgeid=edge_id_start_right,
+                if network.name != "His":
+                    self.kw_database.main.append(
+                        custom_keywords.EmEpPurkinjeNetwork2(
+                            purkid=2,
+                            buildnet=0,
+                            ssid=network.nsid,
+                            mid=network.pid,
+                            pointstx=origin_coordinates[0],
+                            pointsty=origin_coordinates[1],
+                            pointstz=origin_coordinates[2],
+                            edgelen=2,
+                            ngen=50,
+                            nbrinit=8,
+                            nsplit=2,
+                            # inodeid=node_id_start_right,
+                            # iedgeid=edge_id_start_right,
+                        )
                     )
-                )
                 part_df = pd.DataFrame(
                     {
                         "heading": [network.name],
@@ -3385,7 +3392,6 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         """Update the keyword database."""
         """todo
         active atria material
-        EM_EP_CREATEFIBERORIENTATION, SSID=-1 lead to crash
         His bundle bifurcation, first two nodes at same locations
         First element of left/right bundle belong to His bundle"""
         duplicate_nodes_pair = self._isolate_atria_and_ventricles()

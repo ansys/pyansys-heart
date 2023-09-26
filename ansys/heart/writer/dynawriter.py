@@ -3375,21 +3375,18 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         """Update the keyword database."""
         """todo
         connect duplicated nodes between ventricle and atrium
-        better atria fiber
-        atria segment bug due to center node ID
-        constraint node bug due to center node ID
         active atria material
         EM_EP_CREATEFIBERORIENTATION, SSID=-1 lead to crash
         His bundle bifurcation, first two nodes at same locations
         First element of left/right bundle belong to His bundle"""
-        # todo: temporal fix for node IDs
-        # bug here, not functional for 4C case since mitral/triscupid caps are used twice
-        caps = [cap for part in self.model.parts for cap in part.caps]
-        for ic, cap in enumerate(caps):
-            if cap.centroid_id is not None:
-                cap.centroid_id = len(self.model.mesh.nodes) + ic  # center node ID, 0 based
-                cap.triangles[:, 0] = cap.centroid_id
-
+        # Re compute caps since mesh is changed
+        for part in self.model.parts:
+            part.caps = []
+            for surface in part.surfaces:
+                surface.edge_groups = []
+        self.model.cap_centroids = []
+        self.model._assign_surfaces_to_parts()
+        self.model._assign_caps_to_parts()
         self.model._assign_cavities_to_parts()
 
         MechanicsDynaWriter.update(self, with_dynain=with_dynain)

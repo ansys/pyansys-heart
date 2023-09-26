@@ -46,12 +46,16 @@ except ImportError:
 def _get_face_zones_with_filter(pyfluent_session, prefixes: list) -> list:
     """Get list of available boundaries in Fluent session that use any of the prefixes."""
     face_zones = []
+    # get unique prefixes
+    prefixes = list(set(prefixes))
     for prefix in prefixes:
         face_zones_with_prefix = pyfluent_session.scheme_eval.scheme_eval(
             f'(tgapi-util-convert-zone-ids-to-name-strings (get-face-zones-of-filter "{prefix}"))'
         )
         if face_zones_with_prefix:
             face_zones += face_zones_with_prefix
+    # get only unique and avoid duplicates:
+    face_zones = list(set(face_zones))
     return face_zones
 
 

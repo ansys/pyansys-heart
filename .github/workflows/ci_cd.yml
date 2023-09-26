@@ -75,6 +75,7 @@ jobs:
       - name: Run tests preprocessor module
         run: |
           python -m pytest -v tests/heart/preprocessor/test_fluent_mesh_reader.py tests/heart/preprocessor/test_heart_model.py tests/heart/test_downloader.py
+          python -m pytest -v tests/heart/simulator/test_dyna_settings.py
           python -m pytest -v tests/heart/preprocessor/input/test_input_model.py
           python -m pytest -v tests/heart/preprocessor/test_vtk_methods.py
 

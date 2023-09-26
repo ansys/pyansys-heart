@@ -2750,6 +2750,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
 
             # duplicate nodes of each interface in atrium side
+            old_nodes = []
+            new_nodes = []
             for interface in self.model.mesh.interfaces:
                 if interface.name != None and interface.name == left_ventricle_left_atrium_name:
                     interface_nids = interface.node_ids
@@ -2767,6 +2769,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                         )
                     ) + len(self.model.mesh.nodes)
                     tets_atrium[np.isin(tets_atrium, interface_nids)] = new_nids
+                    old_nodes.extend(nids_tobe_replaced)
+                    new_nodes.extend(new_nids)
 
                     # TODO refactor this and avoid big ndarray copies
                     tets: np.ndarray = self.model.mesh.tetrahedrons
@@ -2793,7 +2797,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                         )
                     ) + len(self.model.mesh.nodes)
                     tets_atrium[np.isin(tets_atrium, interface_nids)] = new_nids
-
+                    old_nodes.extend(nids_tobe_replaced)
+                    new_nodes.extend(new_nids)
                     tets: np.ndarray = self.model.mesh.tetrahedrons
                     tets[self.model.right_atrium.element_ids, :] = tets_atrium
 
@@ -2818,6 +2823,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                         )
                     ) + len(self.model.mesh.nodes)
                     tets_atrium[np.isin(tets_atrium, interface_nids)] = new_nids
+                    old_nodes.extend(nids_tobe_replaced)
+                    new_nodes.extend(new_nids)
 
                     tets: np.ndarray = self.model.mesh.tetrahedrons
                     tets[self.model.right_atrium.element_ids, :] = tets_atrium
@@ -2843,6 +2850,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                         )
                     ) + len(self.model.mesh.nodes)
                     tets_atrium[np.isin(tets_atrium, interface_nids)] = new_nids
+                    old_nodes.extend(nids_tobe_replaced)
+                    new_nodes.extend(new_nids)
 
                     tets: np.ndarray = self.model.mesh.tetrahedrons
                     tets[self.model.left_atrium.element_ids, :] = tets_atrium
@@ -2852,6 +2861,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     self.model.mesh.nodes = np.append(
                         self.model.mesh.nodes, self.model.mesh.nodes[interface_nids, :], axis=0
                     )
+        return (np.array(old_nodes), np.array(new_nodes))
 
     def export(self, export_directory: str):
         """Write the model to files."""
@@ -3374,11 +3384,12 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
     def update(self, with_dynain=False):
         """Update the keyword database."""
         """todo
-        connect duplicated nodes between ventricle and atrium
         active atria material
         EM_EP_CREATEFIBERORIENTATION, SSID=-1 lead to crash
         His bundle bifurcation, first two nodes at same locations
         First element of left/right bundle belong to His bundle"""
+        duplicate_nodes_pair = self._isolate_atria_and_ventricles()
+
         # Re compute caps since mesh is changed
         for part in self.model.parts:
             part.caps = []
@@ -3391,8 +3402,17 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
         MechanicsDynaWriter.update(self, with_dynain=with_dynain)
 
-        # todo: not ready for 4 chamber model
-        self._isolate_atria_and_ventricles()
+        sid_offset = self.get_unique_nodeset_id()  # slow and move out of loop
+        count = 0
+        for x, y in zip(duplicate_nodes_pair[0], duplicate_nodes_pair[1]):
+            sid = sid_offset + count
+            count += 1
+            kw = keywords.SetNodeList(sid=sid, nid1=x + 1, nid2=y + 1)
+            self.kw_database.duplicate_nodes.append(kw)
+            kw = keywords.ConstrainedTiedNodes(nsid=sid, eppf=1.0e25, etype=1)
+            self.kw_database.duplicate_nodes.append(kw)
+
+        self.kw_database.main.append(keywords.Include(filename="duplicate_nodes.k"))
 
         if self.model.mesh.beam_network:
             self._update_use_Purkinje()

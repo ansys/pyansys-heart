@@ -68,3 +68,4 @@ class ElectroMechanicsDecks(ElectrophysiologyDecks, MechanicsDecks):
 
     def __init__(self) -> None:
         super().__init__()
+        self.duplicate_nodes = Deck()

@@ -1934,12 +1934,17 @@ class FourChamber(HeartModel):
         new_nodes = bundle_branch.points[0:-1, :]
 
         # first node "his septum end" and last node "apex"
-        edges = np.concatenate(([His_end.node_id], bundle_branch["vtkOriginalPointIds"]))
+        edges = bundle_branch["vtkOriginalPointIds"]
 
-        # duplicate nodes except the two ends
-        edges[1:-1] = len(self.mesh.nodes) + np.linspace(
-            0, len(edges) - 3, len(edges) - 2, dtype=int
+        # duplicate nodes except the end
+        edges[0:-1] = len(self.mesh.nodes) + np.linspace(
+            0, len(edges) - 2, len(edges) - 1, dtype=int
         )
+        for net in self.mesh.beam_network:
+            if net.name == "His":
+                LOGGER.info("Adding bifurcation edge to His Bundle.")
+                net.edges = np.vstack((net.edges, np.array([His_end.node_id, edges[0]])))
+                net.name = "His"
 
         edges = np.vstack((edges[:-1], edges[1:])).T
         bundle_beam = self.mesh.add_beam_network(

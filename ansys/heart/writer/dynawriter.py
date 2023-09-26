@@ -3206,7 +3206,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
                 origin_coordinates = self.model.mesh.nodes[network.node_ids[0], :]
 
-                if network.name == None:  # todo this should be written in model class
+                if network.name is None:  # todo this should be written in model class
                     if isinstance(self.model, LeftVentricle):
                         network.name = "Left" + "-" + "purkinje"
                         network.nsid = self.model.left_ventricle.endocardium.id
@@ -3266,12 +3266,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     keywords.EmMat001(mid=network.pid, mtype=2, sigma=10)
                 )
 
-                beams_kw = add_beams_to_kw(
-                    beams=network.edges + 1,
-                    beam_kw=beams_kw,
-                    pid=network.pid,
-                    offset=len(self.model.mesh.tetrahedrons) + len(beams_kw.elements),
-                )
                 cell_kw = keywords.EmEpCellmodelTentusscher(
                     mid=network.pid,
                     gas_constant=8314.472,
@@ -3346,6 +3340,14 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 cell_kw.gas_constant = 8314.472
                 cell_kw.faraday_constant = 96485.3415
                 self.kw_database.cell_models.extend([cell_kw])
+
+                # mesh
+                beams_kw = add_beams_to_kw(
+                    beams=network.edges + 1,
+                    beam_kw=beams_kw,
+                    pid=network.pid,
+                    offset=len(self.model.mesh.tetrahedrons) + len(beams_kw.elements),
+                )
             self.kw_database.beam_networks.append(beams_kw)
 
     def _update_export_controls(self, dt_output_d3plot: float = 1.0):
@@ -3390,10 +3392,11 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
     def update(self, with_dynain=False):
         """Update the keyword database."""
-        """todo
+        """
+        todo
         active atria material
         His bundle bifurcation, first two nodes at same locations
-        First element of left/right bundle belong to His bundle"""
+        """
         duplicate_nodes_pair = self._isolate_atria_and_ventricles()
 
         # Re compute caps since mesh is changed

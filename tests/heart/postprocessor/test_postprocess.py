@@ -22,7 +22,7 @@ def get_data():
 
     # TODO: test case in locally saved, need to upload to Github
 
-    test_dir = r"D:\pyheart-lib\test_case\test_lv"
+    test_dir = r"D:\PyAnsys-Heart\test_case\test_lv"
     model = HeartModel.load_model(Path.Path(test_dir) / "model_with_fiber.pickle")
     model.compute_left_ventricle_anatomy_axis()
     model.compute_left_ventricle_aha17()

@@ -20,7 +20,7 @@ pytestmark = pytest.mark.local
 def get_data():
     global model, model_dir
     # todo: file larger than 100 Mb cannot be added to package
-    model_dir = pathlib.Path(r"D:\pyheart-lib\test_case\test_4c\heart_model.pickle")
+    model_dir = pathlib.Path(r"D:\PyAnsys-Heart\test_case\test_4c\heart_model.pickle")
     model = FourChamber.load_model(model_dir)
 
 

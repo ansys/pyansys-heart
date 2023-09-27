@@ -63,10 +63,10 @@ doc = [
 tests = ["pytest==7.4.0"]
 
 [project.urls]
-Source = "https://github.com/ansys/pyheart-lib"
-Issues = "https://github.com/ansys/pyheart-lib/issues"
+Source = "https://github.com/ansys/PyAnsys-Heart"
+Issues = "https://github.com/ansys/PyAnsys-Heart/issues"
 Documentation = "https://heart.docs.pyansys.com/"
-Releases = "https://github.com/ansys/pyheart-lib/releases"
+Releases = "https://github.com/ansys/PyAnsys-Heart/releases"
 
 [tool.flit.module]
 name = "ansys.heart"

@@ -95,7 +95,7 @@ need to follow these steps:
 
     .. code:: bash
 
-        git clone https://github.com/ansys/PyAnsys-Heart
+        git clone https://github.com/ansys/pyansys-heart
 
    Since this is a private repository you may need to provide your github username.
    Alternatively you can download and unpack the zip file from `PyAnsys-Heart`_

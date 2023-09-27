@@ -620,6 +620,7 @@ class HeartModel:
         self._validate_surfaces()
 
         self._assign_caps_to_parts()
+        self._validate_cap_names()
 
         self._assign_cavities_to_parts()
         self._extract_apex()
@@ -974,6 +975,29 @@ class HeartModel:
                 os.path.join(self.info.workdir, "-".join(part.cavity.surface.name.lower().split()))
             )
 
+        return
+
+    def _validate_cap_names(self):
+        """Validate that caps are attached to right part."""
+        for part in self.parts:
+            cap_names = [c.name for c in part.caps]
+            if part.name == "Left ventricle":
+                expected_names = ["mitral", "aortic"]
+            elif part.name == "Right ventricle":
+                expected_names = ["pulmonary", "tricuspid"]
+            elif part.name == "Left atrium":
+                expected_names = []
+            elif part.name == "Right atrium":
+                expected_names = []
+                
+            valid_cap_names = True
+            for cn in cap_names:
+                for en in expected_names:
+                    if en in cn:
+                        # LOGGER.debug("Breaking...")                        
+                        break                    
+                    LOGGER.error("Part: {0}. Cap name is {1}, but expecting cap names to contain one of {2}".format(part.name, cn, expected_names))
+                    valid_cap_names = False                            
         return
 
     def _validate_surfaces(self):

@@ -239,6 +239,84 @@ def test_write_to_polydata():
     ]
     return
 
+def test_input_uniqueness():
+    """Test model validator."""
+    polydata = pv.Sphere()
+    polydata.cell_data.set_scalars(np.full(polydata.n_cells, 1), "boundary-id")
+    polydata.cell_data["boundary-id"][0:100] = 2
+    polydata.cell_data["boundary-id"][10:180] = 3
+    polydata.cell_data["boundary-id"][180:200] = 4
+
+    # Not unique due to same boundary id but different name.
+    model = _InputModel(
+        polydata,
+        part_definitions={
+            "sphere1": {
+                "id": 1,
+                "enclosed_by_boundaries": {"shells1": 1, "shells2": 2},
+            },
+            "sphere2": {
+                "id": 2,
+                "enclosed_by_boundaries": {"shells3": 3, "shells4": 2},
+            },
+        },
+    )    
+    
+    assert model._validate_uniqueness() == False
+    
+    # Not unique due to same boundary id but same name.
+    model = _InputModel(
+        polydata,
+        part_definitions={
+            "sphere1": {
+                "id": 1,
+                "enclosed_by_boundaries": {"shells1": 1, "shells2": 2},
+            },
+            "sphere2": {
+                "id": 2,
+                "enclosed_by_boundaries": {"shells3": 3, "shells2": 4},
+            },
+        },
+    )    
+    
+    assert model._validate_uniqueness() == False
+
+
+    # Unique due to unique id and name
+    model = _InputModel(
+        polydata,
+        part_definitions={
+            "sphere1": {
+                "id": 1,
+                "enclosed_by_boundaries": {"shells1": 1, "shells2": 2},
+            },
+            "sphere2": {
+                "id": 2,
+                "enclosed_by_boundaries": {"shells3": 3, "shells4": 4},
+            },
+        },
+    )    
+    
+    assert model._validate_uniqueness() == True
+    
+    # Unique due to unique id and name
+    model = _InputModel(
+        polydata,
+        part_definitions={
+            "sphere1": {
+                "id": 1,
+                "enclosed_by_boundaries": {"shells1": 1, "shells2": 2},
+            },
+            "sphere2": {
+                "id": 2,
+                "enclosed_by_boundaries": {"shells3": 3, "shells2": 2},
+            },
+        },
+    )    
+    
+    assert model._validate_uniqueness() == True    
+    
+    return
 
 @pytest.mark.xfail
 def test_simpleware_data():

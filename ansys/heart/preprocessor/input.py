@@ -14,6 +14,7 @@ import copy
 import os
 from pathlib import Path
 from typing import List, Union
+import yaml
 
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.preprocessor.mesh.vtkmethods import add_solid_name_to_stl
@@ -231,6 +232,7 @@ class _InputModel:
 
         self._add_parts(part_definitions)
         self._validate_input()
+        self._validate_uniqueness()
 
         return
 
@@ -274,7 +276,7 @@ class _InputModel:
 
     def __repr__(self):
         """Represent self."""
-        return "Input boundary mesh:\n" + str(self.input_polydata)
+        return "Input boundary mesh:\n" + str(self.input_polydata) + yaml.dump(self.part_definitions)
 
     def _add_parts(self, part_definitions: dict):
         """Update the list of parts based on the part definitions."""
@@ -313,6 +315,31 @@ class _InputModel:
             if not p.is_manifold:
                 return False
         return True
+
+    def _validate_uniqueness(self):
+        """Validates whether there are any boundaries with duplicate ids or names."""
+        is_valid = True
+        # check id to name map
+        mapper = {}
+        for b in self.boundaries:
+            if b.id not in list(mapper.keys()):
+                mapper[b.id] = b.name
+            else:
+                if b.name != mapper[b.id]:
+                    LOGGER.error("Boundary with id {0} has name {1} but expecting name {2}".format(b.id, b.name, mapper[b.id]))
+                    is_valid = False
+        # repeat for name to id map
+        mapper = {}
+        for b in self.boundaries:
+            if b.name not in list(mapper.keys()):
+                mapper[b.name] = b.id
+            else:
+                if b.id != mapper[b.name]:
+                    LOGGER.error("Boundary with name {0} has id {1} but expecting id {2}".format(b.name, b.id, mapper[b.name]))
+                    is_valid = False
+        if not is_valid:
+            LOGGER.warning("Please specify unique boundary name/id combination.") 
+        return is_valid
 
     def _validate_input(self):
         """Validate whether the provided scalars or list of scalars yield non-empty meshes."""

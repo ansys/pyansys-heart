@@ -202,14 +202,15 @@ def mesh_from_manifold_input_model(
         mode="meshing",
         precision="double",
         processor_count=2,
-        start_transcript=True,
+        start_transcript=False,
         show_gui=_show_fluent_gui,
         product_version=_fluent_version,
     )
 
+    session.transcript.start(os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout = False)
+
     # import files
     session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
-    session.tui.file.start_transcript('"' + os.path.join(work_dir_meshing, "fluent_meshing.log") + '"')
     session.tui.objects.merge("'(*) heart")
     session.tui.objects.labels.create_label_per_zone("heart '(*)")
     session.tui.diagnostics.face_connectivity.fix_free_faces("objects '(*) merge-nodes yes 1e-3")
@@ -399,14 +400,15 @@ def mesh_from_non_manifold_input_model(
         mode="meshing",
         precision="double",
         processor_count=2,
-        start_transcript=True,
+        start_transcript=False,
         show_gui=_show_fluent_gui,
         product_version=_fluent_version,
     )
 
-    # import stls
+    session.transcript.start(os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout = False)
+    
+    # import stls    
     session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
-    session.tui.file.start_transcript('"' + os.path.join(work_dir_meshing, 'fluent_meshing.log"'))
 
     # each stl is imported as a separate object. Wrap the different collections of stls to create
     # new surface meshes for each of the parts.

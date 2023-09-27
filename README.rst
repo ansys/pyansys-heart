@@ -255,7 +255,7 @@ PyAnsys-Heart makes no commercial claim over any Ansys products whatsoever. This
 
 .. LINKS AND REFERENCES
 .. _Python: https://www.python.org/
-.. _PyAnsys-Heart: https://github.com/ansys/PyAnsys-Heart
+.. _PyAnsys-Heart: https://github.com/ansys/pyansys-heart
 .. _Ansys Customer Portal: https://support.ansys.com/Home/HomePage
 .. _dpf-server: https://download.ansys.com/Others/DPF%20Pre-Release
 .. _black: https://github.com/psf/black

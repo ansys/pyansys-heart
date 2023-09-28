@@ -1783,7 +1783,7 @@ class FourChamber(HeartModel):
 
             return beam
 
-    def compute_His_conduction(self, beam_length=0.8, beam_number=4) -> BeamMesh:
+    def compute_His_conduction(self, beam_length=2.0, beam_number=1) -> BeamMesh:
         """
         Compute His conduction system.
 
@@ -1874,6 +1874,10 @@ class FourChamber(HeartModel):
         )
         distance = beam_number * beam_length
         His_septum_end_xyz = His_septum_start_xyz + distance * direction_vec
+
+        x = septum_point_ids[septum_points.find_closest_point(His_septum_end_xyz)]
+        His_septum_end_xyz = self.mesh.nodes[x, :]
+
         # create Points
         His_septum_start = Point(
             name="His septum start", xyz=His_septum_start_xyz, node_id=len(self.mesh.nodes)

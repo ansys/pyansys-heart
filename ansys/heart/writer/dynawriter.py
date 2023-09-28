@@ -1003,7 +1003,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         material_settings._remove_units()
 
         for part in self.model.parts:
-            if "ventricle" in part.name.lower() or "septum" in part.name.lower():
+            if em_couple or "ventricle" in part.name.lower() or "septum" in part.name.lower():
                 if not add_active:
                     active_dict = None
                 else:

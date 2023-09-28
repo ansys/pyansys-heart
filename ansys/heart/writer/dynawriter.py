@@ -3269,7 +3269,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 if network.name != "His":
                     self.kw_database.main.append(
                         custom_keywords.EmEpPurkinjeNetwork2(
-                            purkid=2,
+                            purkid=network.pid,
                             buildnet=0,
                             ssid=network.nsid,
                             mid=network.pid,
@@ -3284,6 +3284,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                             # iedgeid=edge_id_start_right,
                         )
                     )
+
                 part_df = pd.DataFrame(
                     {
                         "heading": [network.name],

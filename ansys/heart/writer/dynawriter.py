@@ -2694,6 +2694,40 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         return
 
+    def _isolate_atria_and_ventricles2(self):
+        v_ele = np.hstack(
+            (self.model.left_ventricle.element_ids, self.model.right_ventricle.element_ids)
+        )
+        a_ele = np.hstack((self.model.left_atrium.element_ids, self.model.right_atrium.element_ids))
+
+        ventricles = self.model.mesh.extract_cells(v_ele)
+        atrial = self.model.mesh.extract_cells(a_ele)
+
+        interface_nids = np.intersect1d(
+            ventricles["vtkOriginalPointIds"], atrial["vtkOriginalPointIds"]
+        )
+
+        sets = []
+        new_coords = np.array([])
+        tets: np.ndarray = self.model.mesh.tetrahedrons
+        nid_offset = len(self.model.mesh.nodes)
+        cnt = 0
+        for old_nid in interface_nids:
+            set = np.array([old_nid])
+            ele_ids = np.where(np.any(np.isin(tets, old_nid), axis=1))[0]
+            for ele_id in ele_ids[1:]:
+                new_id = nid_offset + cnt
+                cnt += 1
+                set = np.append(set, new_id)
+                new_coords = np.append(new_coords, self.model.mesh.nodes[old_nid, :])
+                tets[ele_id][tets[ele_id] == old_nid] = new_id
+            sets.append(set)
+
+        self.model.mesh.nodes = np.vstack((self.model.mesh.nodes, new_coords.reshape(-1, 3)))
+        self.model.mesh.tetrahedrons = tets
+
+        return sets
+
     def _isolate_atria_and_ventricles(self):
         """Add duplicate nodes between atria and ventricles."""
         if isinstance(self.model, (FourChamber, FullHeart)):
@@ -3397,7 +3431,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         active atria material
         His bundle bifurcation, first two nodes at same locations
         """
-        duplicate_nodes_pair = self._isolate_atria_and_ventricles()
+        constraint_nodeset = self._isolate_atria_and_ventricles2()
 
         # Re compute caps since mesh is changed
         for part in self.model.parts:
@@ -3413,10 +3447,10 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
         sid_offset = self.get_unique_nodeset_id()  # slow and move out of loop
         count = 0
-        for x, y in zip(duplicate_nodes_pair[0], duplicate_nodes_pair[1]):
+        for set in constraint_nodeset:
             sid = sid_offset + count
             count += 1
-            kw = keywords.SetNodeList(sid=sid, nid1=x + 1, nid2=y + 1)
+            kw = create_node_set_keyword(set + 1, node_set_id=sid, title="tied_" + str(set[0] + 1))
             self.kw_database.duplicate_nodes.append(kw)
             kw = keywords.ConstrainedTiedNodes(nsid=sid, eppf=1.0e25, etype=1)
             self.kw_database.duplicate_nodes.append(kw)

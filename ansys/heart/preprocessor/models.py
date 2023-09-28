@@ -1957,59 +1957,6 @@ class FourChamber(HeartModel):
         raise NotImplementedError
         return
 
-    def compute_cavity_interfaces(self):
-        """Compute AtrioVentricular conduction system."""
-        self.mesh.establish_connectivity()
-        left_ventricle_left_atrium = []
-        right_ventricle_right_atrium = []
-        left_ventricle_right_atrium = []
-        right_ventricle_left_atrium = []
-        left_ventricle_left_atrium_name = "left-ventricle_left-atrium"
-        right_ventricle_right_atrium_name = "right-ventricle_right-atrium"
-        left_ventricle_right_atrium_name = "left-ventricle_right-atrium"
-        right_ventricle_left_atrium_name = "right-ventricle_left-atrium"
-
-        # build atrio-ventricular tag-id pairs
-        # labels_to_ids stores the mapping between tag-ids and the corresponding label.
-        labels_to_tag_ids = self.info.labels_to_ids
-        left_ventricle_left_atrium = [
-            labels_to_tag_ids["Left ventricle myocardium"],
-            labels_to_tag_ids["Left atrium myocardium"],
-        ]
-        right_ventricle_right_atrium = [
-            labels_to_tag_ids["Right ventricle myocardium"],
-            labels_to_tag_ids["Right atrium myocardium"],
-        ]
-        left_ventricle_right_atrium = [
-            labels_to_tag_ids["Left ventricle myocardium"],
-            labels_to_tag_ids["Right atrium myocardium"],
-        ]
-        right_ventricle_left_atrium = [
-            labels_to_tag_ids["Right ventricle myocardium"],
-            labels_to_tag_ids["Left atrium myocardium"],
-        ]
-
-        # build atrioventricular tag_id pairs
-        left_ventricle_left_atrium = np.unique(left_ventricle_left_atrium)
-        right_ventricle_right_atrium = np.unique(right_ventricle_right_atrium)
-        left_ventricle_right_atrium = np.unique(left_ventricle_right_atrium)
-        right_ventricle_left_atrium = np.unique(right_ventricle_left_atrium)
-        # find atrioventricular shared nodes/interfaces
-        self.mesh.add_interfaces(
-            [
-                left_ventricle_left_atrium,
-                right_ventricle_right_atrium,
-                left_ventricle_right_atrium,
-                right_ventricle_left_atrium,
-            ],
-            [
-                left_ventricle_left_atrium_name,
-                right_ventricle_right_atrium_name,
-                left_ventricle_right_atrium_name,
-                right_ventricle_left_atrium_name,
-            ],
-        )
-
 
 class FullHeart(HeartModel):
     """Model of both ventricles, both atria, aorta and pulmonary artery."""

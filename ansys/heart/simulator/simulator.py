@@ -14,7 +14,7 @@ import os
 import pathlib as Path
 import shutil
 import subprocess
-from typing import List, Literal
+from typing import List
 
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.misc.element_orth import read_orth_element_kfile
@@ -26,7 +26,7 @@ from ansys.heart.postprocessor.auto_process import (
     zerop_post,
 )
 from ansys.heart.preprocessor.models import FourChamber, FullHeart, HeartModel
-from ansys.heart.simulator.settings.settings import SimulationSettings
+from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 import numpy as np
 import pyvista as pv
@@ -57,11 +57,8 @@ class BaseSimulator:
     def __init__(
         self,
         model: HeartModel,
-        lsdynapath: Path,
-        dynatype: Literal["smp", "intelmpi", "platformmpi", "msmpi"] = "smp",
-        num_cpus: int = 1,
+        dynasettings: DynaSettings = None,
         simulation_directory: Path = "",
-        platform: Literal["windows", "wsl", "linux"] = "windows",
     ) -> None:
         """Initialize BaseSimulator.
 
@@ -69,31 +66,26 @@ class BaseSimulator:
         ----------
         model : HeartModel
             Heart model to simulate.
-        lsdynapath : Path
-            Path to LS-DYNA executable.
-        dynatype : Literal[&quot;smp&quot;, &quot;intelmpi&quot;, &quot;platformmpi&quot;]
-            Type of LS-DYNA executable. shared memory parallel or massively parallel process.
-        num_cpus : int, optional
-            Number of cpu's to use for simulation, by default 1
+        dynasettings : DynaSettings
+            Settings used for launching LS-DYNA.
         simulation_directory : Path, optional
-            Directory of simulation, by default defined by information in HeartModel.
-        platform : str, by default "windows"
-            Operating system.
+            Directory in which to start the simulation, by default ""
         """
         self.model: HeartModel = model
         """HeartModel to simulate."""
-        self.lsdynapath = lsdynapath
-        """Path to LS-DYNA executable."""
-        self.dynatype = dynatype
-        """LS-DYNA Type"""
-        self.num_cpus = num_cpus
-        """Number of cpus to use for simulation."""
+        if not dynasettings:
+            LOGGER.warning("Setting default LS-DYNA settings.")
+            self.dyna_settings = DynaSettings()
+        else:
+            self.dyna_settings: DynaSettings = dynasettings
+            """Contains the settings to launch LS-DYNA."""
+
         self.directories: dict = {}
         """Dictionary of all defined directories."""
-        self.platform = platform
+
         """Operating System."""
-        if which(lsdynapath) is None:
-            LOGGER.error(f"{lsdynapath} not exist")
+        if which(self.dyna_settings.lsdyna_path) is None:
+            LOGGER.error(f"{self.dyna_settings.lsdyna_path} not exist")
             exit()
 
         if simulation_directory == "":
@@ -291,15 +283,18 @@ class BaseSimulator:
         options : str, optional
             Additional options to pass to command line, by default ""
         """
+        if options != "":
+            old_options = copy.deepcopy(self.dyna_settings.dyna_options)
+            self.dyna_settings.dyna_options = self.dyna_settings.dyna_options + " " + options
+
         run_lsdyna(
-            lsdynapath=self.lsdynapath,
             path_to_input=path_to_input,
+            settings=self.dyna_settings,
             simulation_directory=self.root_directory,
-            options=options,
-            dynatype=self.dynatype,
-            num_cpus=self.num_cpus,
-            platform=self.platform,
         )
+
+        if options != "":
+            self.dyna_settings.dyna_options = old_options
 
     def _write_fibers(
         self,
@@ -325,15 +320,10 @@ class EPSimulator(BaseSimulator):
     def __init__(
         self,
         model: HeartModel,
-        lsdynapath: Path,
-        dynatype: Literal["smp", "intelmpi", "platformmpi"],
-        num_cpus: int = 1,
+        dyna_settings: DynaSettings,
         simulation_directory: Path = "",
-        platform: Literal["windows", "wsl", "linux"] = "windows",
     ) -> None:
-        super().__init__(
-            model, lsdynapath, dynatype, num_cpus, simulation_directory, platform=platform
-        )
+        super().__init__(model, dyna_settings, simulation_directory)
 
         return
 
@@ -359,7 +349,12 @@ class EPSimulator(BaseSimulator):
 
         # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
         input_file = os.path.join(directory, "main.k")
+
+        LOGGER.debug("Compute Purkinje network on 1 cpu.")
+        orig_num_cpus = self.dyna_settings.num_cpus
+        self.dyna_settings.num_cpus = 1
         self._run_dyna(input_file)
+        self.dyna_settings.num_cpus = orig_num_cpus
 
         LOGGER.info("done.")
 
@@ -428,16 +423,11 @@ class MechanicsSimulator(BaseSimulator):
     def __init__(
         self,
         model: HeartModel,
-        lsdynapath: Path,
-        dynatype: Literal["smp", "intelmpi", "platformmpi"],
-        num_cpus: int = 1,
+        dyna_settings: DynaSettings,
         simulation_directory: Path = "",
         initial_stress: bool = True,
-        platform: Literal["windows", "wsl", "linux"] = "windows",
     ) -> None:
-        super().__init__(
-            model, lsdynapath, dynatype, num_cpus, simulation_directory, platform=platform
-        )
+        super().__init__(model, dyna_settings, simulation_directory)
 
         """If stress free computation is taken into considered."""
         # include initial stress by default
@@ -544,98 +534,34 @@ class MechanicsSimulator(BaseSimulator):
 class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
     """Coupled EP-mechanics simulator with computed Electrophysiology."""
 
-    def __init__(
-        self,
-        model: HeartModel,
-        lsdynapath: Path,
-        dynatype: Literal["smp", "intelmpi", "platformmpi"],
-        platform: Literal["windows", "wsl", "linux"] = "windows",
-    ) -> None:
-        super().__init__(model, lsdynapath, dynatype, platform=platform)
+    def __init__(self, model: HeartModel, dyna_settings: DynaSettings) -> None:
+        super().__init__(model, dyna_settings)
         raise NotImplementedError("Simulator EPMechanicsSimulator not implemented.")
 
 
 def run_lsdyna(
-    lsdynapath: Path,
     path_to_input: Path,
-    simulation_directory: Path = "",
-    options: str = "",
-    dynatype: str = "intelmpi",
-    num_cpus: int = 1,
-    platform="windows",
+    settings: DynaSettings = None,
+    simulation_directory: Path = None,
 ):
     """Standalone function for running LS-DYNA.
 
     Parameters
     ----------
-    lsdynapath : Path
-        Lsdyna path.
     path_to_input : Path
-        Path to input.
+        Input file for LS-DYNA.
+    settings : DynaSettings, optional
+        LS-DYNA settings, such as path to executable, executable type, platform, by default None
     simulation_directory : Path, optional
-        Simulation directory, by default"".
-    options : str, optional
-        Options, by default "".
-    dynatype : str, optional
-        Dynatype, by default "intelmpi".
-    num_cpus : int, optional
-        number of cpus, by default 1.
-    platform : str
-        Operating system, by default "windows".
+        Directory where to simulate, by default None
     """
+    if not settings:
+        LOGGER.info("Using default LS-DYNA settings.")
+        settings = DynaSettings()
+
+    commands = settings.get_commands(path_to_input)
+
     os.chdir(os.path.dirname(path_to_input))
-    if platform == "windows" or platform == "linux":
-        if dynatype in ["intelmpi", "platformmpi", "msmpi"]:
-            commands = [
-                "mpirun",
-                "-np",
-                str(num_cpus),
-                lsdynapath,
-                "i=" + path_to_input,
-                options,
-            ]
-        elif dynatype in ["smp"]:
-            commands = [
-                lsdynapath,
-                "i=" + path_to_input,
-                "ncpu=" + str(num_cpus),
-                options,
-            ]
-    elif platform == "wsl":
-        path_to_input_wsl = (
-            subprocess.run(["wsl", "wslpath", os.path.basename(path_to_input)], capture_output=1)
-            .stdout.decode()
-            .strip()
-        )
-        lsdynapath = (
-            subprocess.run(["wsl", "wslpath", str(lsdynapath).replace("\\", "/")], capture_output=1)
-            .stdout.decode()
-            .strip()
-        )
-
-        if dynatype in ["intelmpi", "platformmpi", "msmpi"]:
-            commands = [
-                "mpirun",
-                "-np",
-                str(num_cpus),
-                lsdynapath,
-                "i=" + path_to_input_wsl,
-                options,
-            ]
-        elif dynatype in ["smp"]:
-            commands = [
-                lsdynapath,
-                "i=" + path_to_input_wsl,
-                "ncpu=" + str(num_cpus),
-                options,
-            ]
-
-        with open("run_lsdyna.sh", "w", newline="\n") as f:
-            f.write("#!/usr/bin/env sh\n")
-            f.write("echo start lsdyna in wsl...\n")
-            f.write(" ".join([i.strip() for i in commands]))
-
-        commands = ["powershell", "-Command", "wsl", "-e", "bash", "-lic", "./run_lsdyna.sh"]
 
     with subprocess.Popen(commands, stdout=subprocess.PIPE, text=True) as p:
         for line in p.stdout:

@@ -320,7 +320,7 @@ def compute_la_fiber_cs(directory):
         return grid
 
     grid = get_gradient(directory, field_list=["trans", "ab", "v", "r"])
-    # sometimes, pv object broken when pass directly
+    # TODO sometimes, pv object broken when pass directly
     grid.save("la_fiber.vtk")
     grid = pv.read("la_fiber.vtk")
 

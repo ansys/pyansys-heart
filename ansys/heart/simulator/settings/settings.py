@@ -715,7 +715,8 @@ class DynaSettings:
                     self.dyna_options,
                 ]
 
-            with open("run_lsdyna.sh", "w", newline="\n") as f:
+            path_to_run_script = os.path.join(pathlib.Path(path_to_input).parent, "run_lsdyna.sh")
+            with open(path_to_run_script, "w", newline="\n") as f:
                 f.write("#!/usr/bin/env sh\n")
                 f.write("echo start lsdyna in wsl...\n")
                 f.write(" ".join([i.strip() for i in commands]))

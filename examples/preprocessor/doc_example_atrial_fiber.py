@@ -18,7 +18,7 @@ import os
 from pathlib import Path
 
 import ansys.heart.preprocessor.models as models
-from ansys.heart.simulator.simulator import BaseSimulator
+from ansys.heart.simulator.simulator import BaseSimulator, DynaSettings
 import numpy as np
 import pyvista as pv
 
@@ -49,13 +49,17 @@ model.info.workdir = str(workdir)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # instantiate simulator. Change options where necessary.
 
-simulator = BaseSimulator(
-    model=model,
-    lsdynapath=lsdyna_path,
+# instantaiate dyna settings of choice
+dyna_settings = DynaSettings(
+    lsdyna_path=lsdyna_path,
     dynatype="smp",
     num_cpus=1,
+)
+
+simulator = BaseSimulator(
+    model=model,
+    dyna_settings=dyna_settings,
     simulation_directory=os.path.join(workdir, "simulation"),
-    platform="windows",
 )
 
 # remove fiber/sheet information if already exists

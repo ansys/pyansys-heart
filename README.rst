@@ -169,6 +169,14 @@ need to follow these steps:
     .. code:: bash
 
         python -m pip install .[tests]
+
+        # run quick tests
+        python -m pytest -v -m "not requires_fluent and not local"
+
+        # run tests requiring Fluent
+        python -m pytest -v -m requires_fluent
+
+        # run all tests
         pytest tests -v
 
 
@@ -193,7 +201,7 @@ For building documentation, you can either run the usual rules provided in the
 .. code:: bash
 
     # install any dependencies for building the documentation.
-    python -m pip install .[docs]
+    python -m pip install .[doc]
 
     # Linux
     make -C doc/ html

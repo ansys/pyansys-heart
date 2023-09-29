@@ -57,7 +57,7 @@ class BaseSimulator:
     def __init__(
         self,
         model: HeartModel,
-        dynasettings: DynaSettings = None,
+        dyna_settings: DynaSettings = None,
         simulation_directory: Path = "",
     ) -> None:
         """Initialize BaseSimulator.
@@ -66,18 +66,18 @@ class BaseSimulator:
         ----------
         model : HeartModel
             Heart model to simulate.
-        dynasettings : DynaSettings
+        dyna_settings : DynaSettings
             Settings used for launching LS-DYNA.
         simulation_directory : Path, optional
             Directory in which to start the simulation, by default ""
         """
         self.model: HeartModel = model
         """HeartModel to simulate."""
-        if not dynasettings:
+        if not dyna_settings:
             LOGGER.warning("Setting default LS-DYNA settings.")
             self.dyna_settings = DynaSettings()
         else:
-            self.dyna_settings: DynaSettings = dynasettings
+            self.dyna_settings: DynaSettings = dyna_settings
             """Contains the settings to launch LS-DYNA."""
 
         self.directories: dict = {}

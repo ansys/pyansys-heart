@@ -1,5 +1,4 @@
 """Module containing classes for the various heart models."""
-import copy
 import json
 import os
 
@@ -1264,8 +1263,15 @@ class HeartModel:
 
         return
 
-    def _assign_caps_to_parts(self) -> None:
-        """Use connectivity to obtain cap boundaries and adds these to their respective parts."""
+    def _assign_caps_to_parts(self, unique_mitral_tricuspid_valve=True) -> None:
+        """
+        Use connectivity to obtain cap boundaries and adds these to their respective parts.
+
+        Parameters
+        ----------
+        unique_mitral_tricuspid_valve
+        If True, mitral/tricuspid valves defined for ventricles are also used for atrium.
+        """
         used_boundary_surface_names = [s.name for p in self.parts for s in p.surfaces]
         remaining_surfaces = list(set(self.mesh.boundary_names) - set(used_boundary_surface_names))
         remaining_surfaces1: List[SurfaceMesh] = []
@@ -1303,14 +1309,14 @@ class HeartModel:
                             )
                             name_valve = name_valve.replace("-plane", "").replace("-inlet", "")
 
-                            if "atrium" in part.name:
-                                if "mitral" in name_valve or "tricuspid" in name_valve:
-                                    LOGGER.debug(
-                                        f"{name_valve} has been create in ventricular parts."
-                                    )
-                                    # Create dummy cap (only name) and will be filled later
-                                    part.caps.append(Cap(name=name_valve))
-                                    break
+                            # if unique_mitral_tricuspid_valve and "atrium" in part.name:
+                            #     if "mitral" in name_valve or "tricuspid" in name_valve:
+                            #         LOGGER.debug(
+                            #             f"{name_valve} has been create in ventricular parts."
+                            #         )
+                            #         # Create dummy cap (only name) and will be filled later
+                            #         part.caps.append(Cap(name=name_valve))
+                            #         break
 
                             cap = Cap(name=name_valve, node_ids=edge_group.edges[:, 0])
                             cap.centroid = np.mean(surf.nodes[cap.node_ids, :], axis=0)
@@ -1358,48 +1364,48 @@ class HeartModel:
                             part.caps.append(cap)
                             LOGGER.debug("Cap: {0} closes {1}".format(name_valve, surface.name))
                             break
+        if unique_mitral_tricuspid_valve:
+            # replace caps of atria by caps of ventricle
+            for part in self.parts:
+                if not "atrium" in part.name:
+                    continue
+                for cap in part.caps:
+                    # replace with cap in ventricle (mitral and tricuspid valve)
+                    cap_ref = [
+                        c
+                        for p in self.parts
+                        if "ventricle" in p.name
+                        for c in p.caps
+                        if c.name == cap.name
+                    ]
 
-        # replace caps of atria by caps of ventricle
-        for part in self.parts:
-            if not "atrium" in part.name:
-                continue
-            for cap in part.caps:
-                # replace with cap in ventricle (mitral and tricuspid valve)
-                cap_ref = [
-                    c
-                    for p in self.parts
-                    if "ventricle" in p.name
-                    for c in p.caps
-                    if c.name == cap.name
-                ]
+                    if len(cap_ref) == 1:
+                        cap.centroid_id = cap_ref[0].centroid_id
+                        # note: flip order to make sure normal is pointing inwards
+                        cap.node_ids = np.flip(cap_ref[0].node_ids)
+                        # flip segments
+                        cap.triangles = cap_ref[0].triangles[:, [0, 2, 1]]
 
-                if len(cap_ref) == 1:
-                    cap.centroid_id = cap_ref[0].centroid_id
-                    # note: flip order to make sure normal is pointing inwards
-                    cap.node_ids = np.flip(cap_ref[0].node_ids)
-                    # flip segments
-                    cap.triangles = cap_ref[0].triangles[:, [0, 2, 1]]
-
-                    LOGGER.debug(
-                        "Replacing cap {0} of part{1}: with that of the ventricle".format(
-                            cap.name, part.name
+                        LOGGER.debug(
+                            "Replacing cap {0} of part{1}: with that of the ventricle".format(
+                                cap.name, part.name
+                            )
                         )
-                    )
 
-        # As a consequence we need to add interface region to endocardium of atria or ventricle
-        # current approach is to add these to the atria
-        for part in self.parts:
-            if "Left atrium" in part.name:
-                interface_name = "mitral-valve-plane"
-            elif "Right atrium" in part.name:
-                interface_name = "tricuspid-valve-plane"
-            else:
-                continue
-            interfaces = [s for s in remaining_surfaces1 if interface_name in s.name]
-            endocardium = next(s for s in part.surfaces if "endocardium" in s.name)
-            # append interface faces to endocardium
-            for interface in interfaces:
-                endocardium.triangles = np.vstack([endocardium.triangles, interface.triangles])
+            # As a consequence we need to add interface region to endocardium of atria or ventricle
+            # current approach is to add these to the atria
+            for part in self.parts:
+                if "Left atrium" in part.name:
+                    interface_name = "mitral-valve-plane"
+                elif "Right atrium" in part.name:
+                    interface_name = "tricuspid-valve-plane"
+                else:
+                    continue
+                interfaces = [s for s in remaining_surfaces1 if interface_name in s.name]
+                endocardium = next(s for s in part.surfaces if "endocardium" in s.name)
+                # append interface faces to endocardium
+                for interface in interfaces:
+                    endocardium.triangles = np.vstack([endocardium.triangles, interface.triangles])
 
         return
 
@@ -1634,9 +1640,8 @@ class HeartModel:
 
         return e_l, e_r, e_c
 
-    def _compute_uvc_rotation_bc(self):
-        """Todo Only for LeftVentricle."""
-        mesh = copy.deepcopy(self.mesh)
+    def _compute_uvc_rotation_bc(self, mesh: pv.UnstructuredGrid):
+        """Select node set on long axis plane."""
         mesh["cell_ids"] = np.arange(0, mesh.n_cells, dtype=int)
         mesh["point_ids"] = np.arange(0, mesh.n_points, dtype=int)
         slice = mesh.slice(origin=self.l4cv_axis["center"], normal=self.l4cv_axis["normal"])

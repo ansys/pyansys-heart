@@ -14,13 +14,22 @@ import os
 import pathlib as Path
 import shutil
 import subprocess
+from typing import List
 
 from ansys.heart.custom_logging import LOGGER
 from ansys.heart.misc.element_orth import read_orth_element_kfile
-from ansys.heart.postprocessor.auto_process import mech_post, read_uvc, zerop_post
+from ansys.heart.postprocessor.auto_process import (
+    compute_la_fiber_cs,
+    compute_ra_fiber_cs,
+    mech_post,
+    read_uvc,
+    zerop_post,
+)
 from ansys.heart.preprocessor.models import FourChamber, FullHeart, HeartModel
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
+import numpy as np
+import pyvista as pv
 
 
 def which(program):
@@ -48,7 +57,7 @@ class BaseSimulator:
     def __init__(
         self,
         model: HeartModel,
-        dynasettings: DynaSettings = None,
+        dyna_settings: DynaSettings = None,
         simulation_directory: Path = "",
     ) -> None:
         """Initialize BaseSimulator.
@@ -57,18 +66,18 @@ class BaseSimulator:
         ----------
         model : HeartModel
             Heart model to simulate.
-        dynasettings : DynaSettings
+        dyna_settings : DynaSettings
             Settings used for launching LS-DYNA.
         simulation_directory : Path, optional
             Directory in which to start the simulation, by default ""
         """
         self.model: HeartModel = model
         """HeartModel to simulate."""
-        if not dynasettings:
+        if not dyna_settings:
             LOGGER.warning("Setting default LS-DYNA settings.")
             self.dyna_settings = DynaSettings()
         else:
-            self.dyna_settings: DynaSettings = dynasettings
+            self.dyna_settings: DynaSettings = dyna_settings
             """Contains the settings to launch LS-DYNA."""
 
         self.directories: dict = {}
@@ -140,32 +149,129 @@ class BaseSimulator:
         self.model.dump_model(os.path.join(self.root_directory, "model_with_fiber.pickle"))
         return
 
-    def compute_uvc(
-        self,
-    ):
+    def compute_uvc(self) -> pv.UnstructuredGrid:
         """Compute universal 'heart' coordinates system."""
-        if isinstance(self.model, FullHeart):
-            raise NotImplementedError("Not yet tested for the full heart")
-
         LOGGER.info("Computing universal ventricular coordinates...")
 
-        dirname = "uvc"
-        export_directory = os.path.join(self.root_directory, dirname)
-        self.directories[dirname] = export_directory
+        type = "uvc"
+        export_directory = os.path.join(self.root_directory, type)
 
-        # Dyna writer
-        dyna_writer = writers.UHCWriter(
-            copy.deepcopy(self.model),
-        )
+        target = self.run_laplace_problem(export_directory, type)
+        grid = read_uvc(export_directory)
+
+        grid["cell_ids"] = target["cell_ids"]
+        grid["point_ids"] = target["point_ids"]
+
+        LOGGER.info("Assigning data to full model...")
+
+        ids = grid["point_ids"]
+        self.model.mesh["apico-basal"] = np.zeros(self.model.mesh.n_points)
+        self.model.mesh["apico-basal"][:] = np.nan
+        self.model.mesh["transmural"] = np.zeros(self.model.mesh.n_points)
+        self.model.mesh["transmural"][:] = np.nan
+        self.model.mesh["rotational"] = np.zeros(self.model.mesh.n_points)
+        self.model.mesh["rotational"][:] = np.nan
+        self.model.mesh["apico-basal"][ids] = grid["apico-basal"]
+        self.model.mesh["transmural"][ids] = grid["transmural"]
+        self.model.mesh["rotational"][ids] = grid["rotational"]
+
+        return grid
+
+    def compute_right_atrial_fiber(self, appendage: List[float]) -> pv.UnstructuredGrid:
+        """
+        Compute right atrium fiber with LDRBD method.
+
+        Parameters
+        ----------
+        appendage
+            Right atrium appendage apex coordinates.
+
+        Returns
+        -------
+            right atrium UnstructuredGrid with related information.
+        """
+        LOGGER.info("Computing RA fiber...")
+        export_directory = os.path.join(self.root_directory, "ra_fiber")
+
+        target = self.run_laplace_problem(export_directory, "ra_fiber", raa=np.array(appendage))
+        ra_pv = compute_ra_fiber_cs(export_directory)
+        LOGGER.info("Generating fibers done.")
+
+        # arrays that save ID map to full model
+        ra_pv["cell_ids"] = target["cell_ids"]
+        ra_pv["point_ids"] = target["point_ids"]
+
+        LOGGER.info("Assigning fibers to full model...")
+
+        # cell IDs in full model mesh
+        ids = ra_pv["cell_ids"]
+        self.model.mesh.cell_data["fiber"][ids] = ra_pv["e_l"]
+        self.model.mesh.cell_data["sheet"][ids] = ra_pv["e_t"]
+
+        return ra_pv
+
+    def compute_left_atrial_fiber(self) -> pv.UnstructuredGrid:
+        """
+        Compute left atrium fiber with LDRBD method.
+
+        Returns
+        -------
+            right atrium UnstructuredGrid with related information.
+
+        """
+        LOGGER.info("Computing LA fiber...")
+        export_directory = os.path.join(self.root_directory, "la_fiber")
+        # TODO only return cell ids and point ids
+        target = self.run_laplace_problem(export_directory, "la_fiber")
+        la_pv = compute_la_fiber_cs(export_directory)
+        LOGGER.info("Generating fibers done.")
+
+        # arrays that save ID map to full model
+        la_pv["cell_ids"] = target["cell_ids"]
+        la_pv["point_ids"] = target["point_ids"]
+
+        LOGGER.info("Assigning fibers to full model...")
+
+        # cell IDs in full model mesh
+        ids = la_pv["cell_ids"]
+        self.model.mesh.cell_data["fiber"][ids] = la_pv["e_l"]
+        self.model.mesh.cell_data["sheet"][ids] = la_pv["e_t"]
+
+        return la_pv
+
+    def run_laplace_problem(self, export_directory, type, **kwargs):
+        """
+        Run Laplace-Dirichlet (thermal) problem in LSDYNA.
+
+        Parameters
+        ----------
+        export_directory: str
+            LSDYNA directory
+        type: str
+            Simulation type.
+        kwargs
+
+        Returns
+        -------
+            UnstructuredGrid with array to map data back to full mesh.
+        """
+        if type == "ra_fiber":
+            for key, value in kwargs.items():
+                if key == "raa":
+                    break
+            dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, raa=value)
+        else:
+            dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type)
+
         dyna_writer.update()
         dyna_writer.export(export_directory)
 
         input_file = os.path.join(export_directory, "main.k")
         self._run_dyna(path_to_input=input_file, options="case")
 
-        LOGGER.info("done.")
+        LOGGER.info("Solving laplace-dirichlet done.")
 
-        grid = read_uvc(export_directory)
+        return dyna_writer.target
 
     def _run_dyna(self, path_to_input: Path, options: str = ""):
         """Run LS-DYNA with path and options.

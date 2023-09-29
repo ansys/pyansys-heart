@@ -8,7 +8,7 @@ This example shows how to compute universal heart coordinate for ventricles.
 # Perform the required imports
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Import the required modules and set relevant paths, including that of the working
-# directory, model, and ls-dyna executable.
+# directory, model, and ls-dyna executable (uses DEV-104373-g6d20c20aee).
 
 # sphinx_gallery_start_ignore
 # Note that we need to put the thumbnail here to avoid weird rendering in the html page.

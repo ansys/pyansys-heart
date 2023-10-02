@@ -38,7 +38,7 @@ dependencies = [
     "vtk>=9.1.0",
     "tqdm==4.66.1",
     "wget==3.2",
-    "validators==0.20.0",
+    "validators==0.22.0",
     "pint==0.20.1",
     "pyvista==0.38.1",
 ]

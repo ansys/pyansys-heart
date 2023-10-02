@@ -3453,7 +3453,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
             count += 1
             kw = create_node_set_keyword(set + 1, node_set_id=sid, title="tied_" + str(set[0] + 1))
             self.kw_database.duplicate_nodes.append(kw)
-            kw = keywords.ConstrainedTiedNodes(nsid=sid, eppf=1.0e25, etype=1)
+            kw = keywords.ConstrainedTiedNodesFailure(nsid=sid, eppf=1.0e25, etype=1)
             self.kw_database.duplicate_nodes.append(kw)
 
         self.kw_database.main.append(keywords.Include(filename="duplicate_nodes.k"))

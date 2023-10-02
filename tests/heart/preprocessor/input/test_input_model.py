@@ -239,6 +239,7 @@ def test_write_to_polydata():
     ]
     return
 
+
 def test_input_uniqueness():
     """Test model validator."""
     polydata = pv.Sphere()
@@ -260,10 +261,10 @@ def test_input_uniqueness():
                 "enclosed_by_boundaries": {"shells3": 3, "shells4": 2},
             },
         },
-    )    
-    
+    )
+
     assert model._validate_uniqueness() == False
-    
+
     # Not unique due to same boundary id but same name.
     model = _InputModel(
         polydata,
@@ -277,10 +278,9 @@ def test_input_uniqueness():
                 "enclosed_by_boundaries": {"shells3": 3, "shells2": 4},
             },
         },
-    )    
-    
-    assert model._validate_uniqueness() == False
+    )
 
+    assert model._validate_uniqueness() == False
 
     # Unique due to unique id and name
     model = _InputModel(
@@ -295,10 +295,10 @@ def test_input_uniqueness():
                 "enclosed_by_boundaries": {"shells3": 3, "shells4": 4},
             },
         },
-    )    
-    
+    )
+
     assert model._validate_uniqueness() == True
-    
+
     # Unique due to unique id and name
     model = _InputModel(
         polydata,
@@ -312,11 +312,12 @@ def test_input_uniqueness():
                 "enclosed_by_boundaries": {"shells3": 3, "shells2": 2},
             },
         },
-    )    
-    
-    assert model._validate_uniqueness() == True    
-    
+    )
+
+    assert model._validate_uniqueness() == True
+
     return
+
 
 @pytest.mark.xfail
 def test_simpleware_data():

@@ -177,9 +177,16 @@ def get_input_geom_and_part_defintions_from_public_database(
                 names = ["endocardium", "epicardium"]
             elif len(sub_sub_geoms) > 3 and "left-ventricle" in label:
                 LOGGER.debug("More surfaces than expected. Naming largest three")
-                names = ["unknown-surface"]*(len(sub_sub_geoms)-3) + ["septum", "endocardium", "epicardium"]
+                names = ["unknown-surface"] * (len(sub_sub_geoms) - 3) + [
+                    "septum",
+                    "endocardium",
+                    "epicardium",
+                ]
             elif len(sub_sub_geoms) > 2:
-                names = ["unknown-surface"]*(len(sub_sub_geoms)-2) + ["endocardium", "epicardium"]
+                names = ["unknown-surface"] * (len(sub_sub_geoms) - 2) + [
+                    "endocardium",
+                    "epicardium",
+                ]
 
             # update dictionary and geometry cell data
             for ii, sub in enumerate(sub_sub_geoms):

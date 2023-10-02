@@ -989,15 +989,18 @@ class HeartModel:
                 expected_names = []
             elif part.name == "Right atrium":
                 expected_names = []
-                
+
             valid_cap_names = True
             for cn in cap_names:
                 for en in expected_names:
                     if en in cn:
-                        # LOGGER.debug("Breaking...")                        
-                        break                    
-                    LOGGER.error("Part: {0}. Cap name is {1}, but expecting cap names to contain one of {2}".format(part.name, cn, expected_names))
-                    valid_cap_names = False                            
+                        # LOGGER.debug("Breaking...")
+                        break
+                    LOGGER.error(
+                        "Part: {0}. Cap name is {1}, but expecting cap names"
+                        "to contain one of {2}".format(part.name, cn, expected_names)
+                    )
+                    valid_cap_names = False
         return
 
     def _validate_surfaces(self):

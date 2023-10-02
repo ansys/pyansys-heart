@@ -207,7 +207,9 @@ def mesh_from_manifold_input_model(
         product_version=_fluent_version,
     )
 
-    session.transcript.start(os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout = False)
+    session.transcript.start(
+        os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
+    )
 
     # import files
     session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
@@ -258,7 +260,7 @@ def mesh_from_manifold_input_model(
     session.tui.mesh.prepare_for_solve("yes")
 
     # write to file
-    
+
     session.tui.file.write_mesh('"' + path_to_output + '"')
     # session.meshing.tui.file.read_journal(script)
     session.exit()
@@ -405,9 +407,11 @@ def mesh_from_non_manifold_input_model(
         product_version=_fluent_version,
     )
 
-    session.transcript.start(os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout = False)
-    
-    # import stls    
+    session.transcript.start(
+        os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
+    )
+
+    # import stls
     session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
 
     # each stl is imported as a separate object. Wrap the different collections of stls to create

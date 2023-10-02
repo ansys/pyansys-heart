@@ -19,7 +19,7 @@ if __name__ == "__main__":
     except:
         # default.
         path_to_reference_model = (
-            "D:\\development\\pyheart-lib\\pyheart-lib\\tests\\heart"
+            "D:\\development\\PyAnsys-Heart\\PyAnsys-Heart\\tests\\heart"
             "\\assets\\reference_models\\strocchi2020\\01\\BiVentricle\\heart_model.pickle"
         )
     if not os.path.isfile(path_to_reference_model):

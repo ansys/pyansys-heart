@@ -1,9 +1,9 @@
 {
     "_database": "Strocchi2020",
-    "workdir": "d:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\01\\BiVentricle",
-    "path_to_original_mesh": "d:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\01\\01.case",
-    "path_to_simulation_mesh": "d:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\01\\BiVentricle\\simulation_mesh.vtk",
-    "path_to_model": "d:\\development\\pyheart-lib\\pyheart-lib\\downloads\\Strocchi2020\\01\\BiVentricle\\heart_model.pickle",
+    "workdir": "d:\\development\\PyAnsys-Heart\\PyAnsys-Heart\\downloads\\Strocchi2020\\01\\BiVentricle",
+    "path_to_original_mesh": "d:\\development\\PyAnsys-Heart\\PyAnsys-Heart\\downloads\\Strocchi2020\\01\\01.case",
+    "path_to_simulation_mesh": "d:\\development\\PyAnsys-Heart\\PyAnsys-Heart\\downloads\\Strocchi2020\\01\\BiVentricle\\simulation_mesh.vtk",
+    "path_to_model": "d:\\development\\PyAnsys-Heart\\PyAnsys-Heart\\downloads\\Strocchi2020\\01\\BiVentricle\\heart_model.pickle",
     "labels_to_ids": {
         "Left ventricle myocardium": 1,
         "Right ventricle myocardium": 2,

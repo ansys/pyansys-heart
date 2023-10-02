@@ -1,6 +1,6 @@
 """Logging module.
 
-This module supplies a general framework for logging in pyheartlib.
+This module supplies a general framework for logging in PyAnsys-Heart.
 This is adopted and modified from PyFluent.
 """
 

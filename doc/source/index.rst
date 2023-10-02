@@ -3,7 +3,7 @@
    Provide any documentation specific to your online documentation
    here.
 
-PyHeart lib |version|
+PyAnsys-Heart |version|
 =====================
 
 .. include:: ../../README.rst

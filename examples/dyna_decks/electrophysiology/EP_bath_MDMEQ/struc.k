@@ -6,7 +6,7 @@ $   endtim
 *CONTROL_TIMESTEP
 $--------1---------2---------3---------4---------5---------6---------7---------8
 $   dtinit                                   dt2ms      lctm
-       &dt                                     &dt         3 
+       &dt                                     &dt         3
 *DEFINE_CURVE
 3
 0.,&dt
@@ -14,17 +14,17 @@ $   dtinit                                   dt2ms      lctm
 *DATABASE_BINARY_D3PLOT
 $--------1---------2---------3---------4---------5---------6---------7---------8
 $       dt
-  &dt_plot                  
+  &dt_plot
 *PART
 $--------1---------2---------3---------4---------5---------6---------7---------8
 cellule
 $      pid     secid     matid     eosid      hgid      grav    adpopt      tmid
-         1         1         1    
+         1         1         1
 *PART
 $--------1---------2---------3---------4---------5---------6---------7---------8
 cellule
 $      pid     secid     matid     eosid      hgid      grav    adpopt      tmid
-         2         1         2                                               
+         2         1         2
 *SECTION_SOLID
 $--------1---------2---------3---------4---------5---------6---------7---------8
 $      sid    elform

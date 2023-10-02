@@ -1,6 +1,6 @@
 $# LS-DYNA Keyword file created by LS-PrePost(R) V4.6.7 - 09May2019
 $# Created on Oct-2-2019 (15:56:47)
-*KEYWORD  
+*KEYWORD
 *ELEMENT_SOLID
 $#   eid     pid      n1      n2      n3      n4      n5      n6      n7      n8
        1       1       1       2      23      22     442     443     464     463
@@ -8004,7 +8004,7 @@ $#   eid     pid      n1      n2      n3      n4      n5      n6      n7      n8
     7999       1    8797    8798    8819    8818    9238    9239    9260    9259
     8000       1    8798    8799    8820    8819    9239    9240    9261    9260
 *NODE
-$#   nid               x               y               z      tc      rc  
+$#   nid               x               y               z      tc      rc
        1             0.0             0.0             0.0       0       0
        2            0.05             0.0             0.0       0       0
        3             0.1             0.0             0.0       0       0

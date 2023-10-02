@@ -29,17 +29,19 @@ import os
 from pathlib import Path
 
 import ansys.heart.preprocessor.models as models
-from ansys.heart.simulator.simulator import MechanicsSimulator
+from ansys.heart.simulator.simulator import DynaSettings, MechanicsSimulator
 
 # set working directory and path to model.
-workdir = Path(Path(__file__).parents[2], "downloads", "Strocchi2020", "01", "FourChamber")
+workdir = Path(
+    Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "FourChamber"
+)
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 if not os.path.isfile(path_to_model):
     raise FileExistsError(f"{path_to_model} not found")
 
 # specify LS-DYNA path
-lsdyna_path = Path(Path(__file__).parents[4], "dyna-versions", "ls-dyna_smp_d.exe")
+lsdyna_path = "ls-dyna_smp_d.exe"
 
 if not os.path.isfile(lsdyna_path):
     raise FileExistsError(f"{lsdyna_path} not found.")
@@ -56,16 +58,22 @@ model.info.workdir = str(workdir)
 ###############################################################################
 # Instantiate the simulator object
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# instantiate simulator. Change options where necessary. Note that you may need
-# to configure your environment variables if you choose `mpp`.
+# instantiate your DynaSettings and Simulator objects.
+# Change options where necessary. Note that you may need to configure your environment
+# variables if you choose `mpp`.
 
-simulator = MechanicsSimulator(
-    model=model,
-    lsdynapath=lsdyna_path,
+# instantiate dyna settings object
+dyna_settings = DynaSettings(
+    lsdyna_path=lsdyna_path,
     dynatype="smp",
     num_cpus=4,
+)
+
+# instantiate simulator object
+simulator = MechanicsSimulator(
+    model=model,
+    dyna_settings=dyna_settings,
     simulation_directory=os.path.join(workdir, "simulation-mechanics"),
-    platform="windows",
 )
 
 ###############################################################################
@@ -110,4 +118,17 @@ simulator.model.plot_mesh(show_edges=True)
 # Start the main mechanical simulation. This uses the previously computed fiber orientation
 # and stress free configuration and runs the final LS-DYNA heart model.
 
+###############################################################################
+# .. warning::
+#    In 4-chamber model, atria is passive and only to provide realistic boundary conditions.
+
 simulator.simulate()
+
+###############################################################################
+# We can plot deformation and active stress (history variable 22) in LS-PrePost
+
+###############################################################################
+# .. video:: ../../_static/images/meca_4cv.mp4
+#   :width: 600
+#   :loop:
+#   :class: center

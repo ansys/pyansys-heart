@@ -23,7 +23,7 @@
             "ven" : 1.10e-6,
             "per" : 1.49e-4,
 
-            "pulm_art" : 2.48e-6, 
+            "pulm_art" : 2.48e-6,
             "pulm_ven" : 2.18e-6,
             "pulm_per" : 1.78e-5
         },
@@ -33,7 +33,7 @@
 
             "pulm_art" : 4.59e4,
             "pulm_ven" : 1.53e4
-            
+
         },
         "Volumes": {
             "total" :5e6

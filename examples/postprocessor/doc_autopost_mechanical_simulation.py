@@ -30,7 +30,7 @@ import pyvista as pv
 # Set relevant paths
 # ~~~~~~~~~~~~~~~~~~
 
-path_to_model = r"D:\pyheart-lib\test_case\test_lv\model_with_fiber.pickle"
+path_to_model = r"D:\pyansys-heart\test_case\test_lv\model_with_fiber.pickle"
 
 if not os.path.isfile(path_to_model):
     raise FileExistsError(f"{path_to_model} not found")
@@ -39,7 +39,7 @@ if not os.path.isfile(path_to_model):
 model: models.LeftVentricle = models.HeartModel.load_model(path_to_model)
 
 # set simulation path
-meca_folder = pathlib.Path(r"D:\pyheart-lib\test_case\test_lv\main-mechanics")
+meca_folder = pathlib.Path(r"D:\pyansys-heart\test_case\test_lv\main-mechanics")
 
 ###############################################################################
 # Create PV loop

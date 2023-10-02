@@ -3115,7 +3115,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
             # if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             #     self.model.left_atrium.apex_points
-
+            self.kw_database.main.append(keywords.EmPointSet(psid=1, pstype=0))
+            self.kw_database.main.append(keywords.EmEpEkg(ekgid=1, psid=1))
         elif isinstance(self.model, LeftVentricle):
             node_apex_left = self.model.left_ventricle.apex_points[0].node_id
 

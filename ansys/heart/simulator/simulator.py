@@ -537,16 +537,12 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
     def __init__(
         self,
         model: HeartModel,
-        lsdynapath: Path,
-        dynatype: Literal["smp", "intelmpi", "platformmpi"],
-        num_cpus: int = 1,
+        dyna_settings: DynaSettings,
         simulation_directory: Path = "",
-        initial_stress: bool = True,
-        platform: Literal["windows", "wsl", "linux"] = "windows",
     ) -> None:
-        MechanicsSimulator.__init__(
-            self, model, lsdynapath, dynatype, num_cpus, simulation_directory, platform=platform
-        )
+        MechanicsSimulator.__init__(self, model, dyna_settings, simulation_directory)
+
+        return
 
     def simulate(self, folder_name="ep_meca"):
         """Launch the main simulation."""

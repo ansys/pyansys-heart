@@ -343,18 +343,24 @@ class EPSimulator(BaseSimulator):
 
     def compute_purkinje(self):
         """Compute the purkinje network."""
-        directory = self._write_purkinje_files()
+        directory = os.path.join(self.root_directory, "purkinjegeneration")
+        self.directories["purkinjegeneration"] = directory
+
+        self._write_purkinje_files(directory)
 
         LOGGER.info("Computing the Purkinje network...")
 
         # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
-        input_file = os.path.join(directory, "main.k")
 
         LOGGER.debug("Compute Purkinje network on 1 cpu.")
         orig_num_cpus = self.dyna_settings.num_cpus
         self.dyna_settings.num_cpus = 1
+
+        input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
+
         self.dyna_settings.num_cpus = orig_num_cpus
+        LOGGER.debug(f"Set number of cpus back to {orig_num_cpus}.")
 
         LOGGER.info("done.")
 
@@ -383,6 +389,7 @@ class EPSimulator(BaseSimulator):
 
     def _write_purkinje_files(
         self,
+        export_directory,
         pointstx: float = 0,  # TODO instantiate this
         pointsty: float = 0,  # TODO instantiate this
         pointstz: float = 0,  # TODO instantiate this
@@ -408,13 +415,10 @@ class EPSimulator(BaseSimulator):
         nsplit : int, optional
             _description_, by default 2
         """
-        export_directory = os.path.join(self.root_directory, "purkinjegeneration")
-        self.directories["purkinjegeneration"] = export_directory
-
         dyna_writer = writers.PurkinjeGenerationDynaWriter(copy.deepcopy(self.model), self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory)
-        return export_directory
+        return
 
 
 class MechanicsSimulator(BaseSimulator):

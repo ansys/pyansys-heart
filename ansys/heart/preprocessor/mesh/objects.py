@@ -916,6 +916,12 @@ class Part:
         self.caps: List[Cap] = []
         """List of caps belonging to the part."""
         self.cavity: Cavity = None
+
+        self.has_fiber: bool = False
+        """If this part has fiber/sheet data."""
+        self.is_active: bool = False
+        """If active stress will be established."""
+
         """Cavity belonging to the part."""
         if self.part_type in ["ventricle"]:
             self.apex_points: List[Point] = []

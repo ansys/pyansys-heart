@@ -137,6 +137,15 @@ class BaseDynaWriter:
             )
             self.model.info.model_type = self.model.info.model_type.replace("Improved", "")
 
+        if not hasattr(self.model.parts[0], "has_fiber"):
+            LOGGER.warning("Part doesn't contain 'has_fiber', default value will be added.")
+            for part in self.model.parts:
+                if part.part_type == "ventricle" or part.part_type == "septum":
+                    part.has_fiber = True
+                    part.is_active = True
+                else:
+                    part.has_fiber = False
+                    part.is_active = False
         return
 
     def _check_settings(self):
@@ -465,16 +474,12 @@ class BaseDynaWriter:
 
     def _update_solid_elements_db(self, add_fibers: bool = True):
         """
-        Create Solid ortho elements for all cavities.
-
-        Note
-        ----
-        Each cavity contains one myocardium.
+        Create Solid (ortho) elements for all parts.
 
         Parameters
         ----------
         add_fibers: bool, True
-            if add fiber information into solid element.
+            if add fiber in general.
         """
         LOGGER.debug("Updating solid element keywords...")
 
@@ -485,14 +490,10 @@ class BaseDynaWriter:
 
         # create elements for each part
         for part in self.model.parts:
-            # Atrium do not contain fiber information in any way.
-            if add_fibers:
-                if "ventricle" in part.name.lower() or "septum" in part.name.lower():
-                    part_add_fibers = True
-                else:
-                    part_add_fibers = False
+            if add_fibers and part.has_fiber:
+                part_add_fibers = True
             else:
-                part_add_fibers = add_fibers
+                part_add_fibers = False
 
             LOGGER.debug(
                 "\tAdding elements for {0} | adding fibers: {1}".format(part.name, part_add_fibers)
@@ -1025,68 +1026,63 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # NOTE: since we remove units, we don't have to access quantities by <var_name>.m
         material_settings._remove_units()
 
-        for part in self.model.parts:
-            if em_couple or "ventricle" in part.name.lower() or "septum" in part.name.lower():
-                if not add_active:
-                    active_dict = None
-                else:
-                    active_dict = material_settings.myocardium["active"]
-
+        if not add_active:
+            active_dict = None
+        else:
+            if em_couple:
                 # todo hard coded EM coupling parameters
-                if em_couple:
-                    active_dict = {
-                        "actype": 3,
-                        "acthr": 2e-4,
-                        "ca2ionm": 1e-3,  # ca2+50 indeed
-                        "n": 2,
-                        "sigmax": 0.125,
-                        "f": 0,
-                        "l": 1.9,
-                        "eta": 1.45,
-                    }
+                active_dict = {
+                    "actype": 3,
+                    "acthr": 2e-4,
+                    "ca2ionm": 1e-3,  # ca2+50 indeed
+                    "n": 2,
+                    "sigmax": 0.125,
+                    "f": 0,
+                    "l": 1.9,
+                    "eta": 1.45,
+                }
+            else:
+                active_dict = material_settings.myocardium["active"]
 
-                myocardium_kw = MaterialHGOMyocardium(
-                    mid=part.mid,
-                    iso_user=material_settings.myocardium["isotropic"],
-                    anisotropy_user=material_settings.myocardium["anisotropic"],
-                    active_user=active_dict,
-                )
-                if not em_couple:
-                    myocardium_kw.acid = act_curve_id
+        for part in self.model.parts:
+            if part.has_fiber:
+                if part.is_active:
+                    material_kw = MaterialHGOMyocardium(
+                        mid=part.mid,
+                        iso_user=material_settings.myocardium["isotropic"],
+                        anisotropy_user=material_settings.myocardium["anisotropic"],
+                        active_user=active_dict,
+                    )
 
-                self.kw_database.material.append(myocardium_kw)
+                    if not em_couple:
+                        material_kw.acid = act_curve_id
 
-            elif "atrium" in part.name:
-                # add atrium material
+                else:
+                    material_kw = MaterialHGOMyocardium(
+                        mid=part.mid,
+                        iso_user=material_settings.myocardium["isotropic"],
+                        anisotropy_user=material_settings.myocardium["anisotropic"],
+                        active_user=None,
+                    )
+
+            else:
+                # add isotropic material
                 if material_settings.atrium["type"] == "NeoHook":
                     # use MAT77H
-                    atrium_kw = MaterialNeoHook(
+                    material_kw = MaterialNeoHook(
                         mid=part.mid,
                         rho=material_settings.atrium["rho"],
                         c10=material_settings.atrium["mu1"] / 2,
                     )
                 else:
-                    # use MAT295
-                    atrium_kw = MaterialHGOMyocardium(
+                    # use MAT295, should have the same behavior
+                    material_kw = MaterialHGOMyocardium(
                         mid=part.mid, iso_user=dict(material_settings.atrium)
                     )
 
-                self.kw_database.material.append(atrium_kw)
+            self.kw_database.material.append(material_kw)
 
-            else:
-                LOGGER.warning("Assuming same material as atrium for: {0}".format(part.name))
-
-                general_tissue_kw = MaterialNeoHook(
-                    mid=part.mid,
-                    rho=material_settings.atrium["rho"],
-                    c10=material_settings.atrium["mu1"] / 2,
-                )
-                # general_tissue_kw = MaterialHGOMyocardium(
-                #     mid=part.mid,
-                #     iso_user=dict(material_settings.atrium),
-                # )
-                self.kw_database.material.append(general_tissue_kw)
-
+        # Add Ca2+ curve if necessary
         if add_active and not em_couple:
             # write and add active curve to material database
             if material_settings.myocardium["active"]["actype"] == 1:
@@ -2945,7 +2941,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 ep_mid = part.pid
                 self.kw_database.material.extend(
                     [
-                        keywords.EmMat001(mid=ep_mid, mtype=4, sigma=1),
+                        keywords.EmMat001(mid=ep_mid, mtype=1, sigma=1),
                     ]
                 )
 
@@ -3449,6 +3445,8 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         self.model.add_part("Isolation atrial")
         isolation = self.model.get_part("Isolation atrial")
         isolation.element_ids = interface_eids
+        isolation.has_fiber = True
+        isolation.is_active = False
 
     def _duplicate_ventricle_atrial_nodes_tie(self):
         """Test feature, not working with mpp < DEV104400."""
@@ -3513,6 +3511,10 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         His bundle bifurcation, first two nodes at same locations
         """
         if isinstance(self.model, (FourChamber, FullHeart)):
+            self.model.left_atrium.has_fiber = True
+            self.model.left_atrium.is_active = True
+            self.model.right_atrium.has_fiber = True
+            self.model.right_atrium.is_active = True
             # self._duplicate_ventricle_atrial_nodes_tie()
             self._create_isolation_part()
 

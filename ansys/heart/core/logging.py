@@ -101,7 +101,9 @@ CRITICAL = logging.CRITICAL
 
 ## Formatting
 
-STDOUT_MSG_FORMAT = "%(asctime)s - %(levelname)s - %(instance_name)s - %(module)s - %(funcName)s - %(message)s"
+STDOUT_MSG_FORMAT = (
+    "%(asctime)s - %(levelname)s - %(instance_name)s - %(module)s - %(funcName)s - %(message)s"
+)
 
 DATEFORMAT = "%Y/%m/%d %H:%M:%S"
 

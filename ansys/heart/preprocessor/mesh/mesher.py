@@ -116,8 +116,10 @@ def mesh_heart_model_by_fluent(
     max_size = mesh_size
     growth_rate_wrap = 1.2
 
-    session.transcript.start(os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout = False)
-    
+    session.transcript.start(
+        os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
+    )
+
     # import files
     session.tui.file.import_.cad("no " + work_dir_meshing + " part_*.stl yes 40 yes mm")
     # session.transcript.start

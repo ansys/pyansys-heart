@@ -16,7 +16,7 @@ import shutil
 import subprocess
 from typing import Literal
 
-from ansys.heart.core import LOG as LOGGER
+from ansys.heart import LOG as LOGGER
 from ansys.heart.misc.element_orth import read_orth_element_kfile
 from ansys.heart.postprocessor.auto_process import mech_post, read_uvc, zerop_post
 from ansys.heart.preprocessor.models import FourChamber, FullHeart, HeartModel

@@ -5,7 +5,7 @@ import json
 import os
 import pathlib
 
-from ansys.heart.core import LOG as LOGGER
+from ansys.heart import LOG as LOGGER
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator

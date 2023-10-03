@@ -4,7 +4,7 @@ import os
 import shutil
 import subprocess
 
-from ansys.heart.core import LOG as LOGGER
+from ansys.heart import LOG as LOGGER
 from ansys.heart.preprocessor._load_template import load_template
 import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401
 import numpy as np

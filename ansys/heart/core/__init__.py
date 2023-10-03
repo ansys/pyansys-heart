@@ -1,6 +1,6 @@
-import logging
+# import logging
 
-from ansys.heart.core.logging import Logger
+# from ansys.heart.core.logging import Logger
 
-LOG = Logger(level=logging.DEBUG, to_file=False, to_stdout=True)
-LOG.debug("Loaded logging module as LOG")
+# LOG = Logger(level=logging.DEBUG, to_file=False, to_stdout=True)
+# LOG.debug("Loaded logging module as LOG")

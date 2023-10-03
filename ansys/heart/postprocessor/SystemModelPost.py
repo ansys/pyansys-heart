@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import json
 import os
 
-from ansys.heart.core import LOG as LOGGER
+from ansys.heart import LOG as LOGGER
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import matplotlib.pyplot as plt
 import numpy as np

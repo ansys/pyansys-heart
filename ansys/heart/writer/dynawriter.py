@@ -14,7 +14,7 @@ from typing import List
 from ansys.dyna.keywords import keywords
 
 # import missing keywords
-from ansys.heart.core import LOG as LOGGER
+from ansys.heart import LOG as LOGGER
 from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.models import (

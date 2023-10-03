@@ -1,7 +1,7 @@
 """Compute myocardial strain."""
 import pathlib
 
-from ansys.heart.core import LOG as LOGGER
+from ansys.heart import LOG as LOGGER
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.preprocessor.models import HeartModel
 import matplotlib as mpl

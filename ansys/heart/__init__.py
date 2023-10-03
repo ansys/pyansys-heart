@@ -1,8 +1,7 @@
 """Collection of modules for heart modeling."""
-# import os
+import logging
 
-# from ansys.heart.core import LOG
+from ansys.heart.core.logging import Logger
 
-# LOG.setLevel("DEBUG")
-# LOG.log_to_stdout("DEBUG")
-# LOG.log_to_file(os.path.join(os.getcwd(), "pyheart.log"))
+LOG = Logger(level=logging.DEBUG, to_file=False, to_stdout=True)
+LOG.debug("Loaded logging module as LOG")

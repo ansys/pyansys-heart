@@ -8,7 +8,7 @@ import pathlib
 import pickle
 from typing import List, Union
 
-from ansys.heart.core import LOG as LOGGER
+from ansys.heart import LOG as LOGGER
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher
 from ansys.heart.preprocessor.mesh.objects import (

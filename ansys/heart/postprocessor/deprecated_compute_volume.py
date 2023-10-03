@@ -1,7 +1,7 @@
 """Module for computing the volume."""
 import json
 
-from ansys.heart.core import LOG as LOGGER
+from ansys.heart import LOG as LOGGER
 import meshio
 import numpy as np
 

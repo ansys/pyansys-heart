@@ -3,7 +3,7 @@
 import copy
 from typing import Optional, Tuple, Union
 
-from ansys.heart.core import LOG as LOGGER
+from ansys.heart import LOG as LOGGER
 import numpy as np
 
 

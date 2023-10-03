@@ -8,7 +8,7 @@ from pathlib import Path, PurePath
 import typing
 import warnings
 
-from ansys.heart.core import LOG as LOGGER
+from ansys.heart import LOG as LOGGER
 import pkg_resources
 from tqdm import tqdm
 

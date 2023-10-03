@@ -5,7 +5,7 @@ from dataclasses import asdict, dataclass
 import json
 import pathlib
 
-from ansys.heart.core import LOG as LOGGER
+from ansys.heart import LOG as LOGGER
 from ansys.heart.simulator.settings.defaults import mechanics as mech_defaults
 from ansys.heart.simulator.settings.defaults import zeropressure as zero_pressure_defaults
 from pint import Quantity, UnitRegistry

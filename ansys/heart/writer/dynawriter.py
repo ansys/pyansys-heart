@@ -2717,40 +2717,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         return
 
-    def _isolate_atria_and_ventricles2(self):
-        v_ele = np.hstack(
-            (self.model.left_ventricle.element_ids, self.model.right_ventricle.element_ids)
-        )
-        a_ele = np.hstack((self.model.left_atrium.element_ids, self.model.right_atrium.element_ids))
-
-        ventricles = self.model.mesh.extract_cells(v_ele)
-        atrial = self.model.mesh.extract_cells(a_ele)
-
-        interface_nids = np.intersect1d(
-            ventricles["vtkOriginalPointIds"], atrial["vtkOriginalPointIds"]
-        )
-
-        sets = []
-        new_coords = np.array([])
-        tets: np.ndarray = self.model.mesh.tetrahedrons
-        nid_offset = len(self.model.mesh.nodes)
-        cnt = 0
-        for old_nid in interface_nids:
-            set = np.array([old_nid])
-            ele_ids = np.where(np.any(np.isin(tets, old_nid), axis=1))[0]
-            for ele_id in ele_ids[1:]:
-                new_id = nid_offset + cnt
-                cnt += 1
-                set = np.append(set, new_id)
-                new_coords = np.append(new_coords, self.model.mesh.nodes[old_nid, :])
-                tets[ele_id][tets[ele_id] == old_nid] = new_id
-            sets.append(set)
-
-        self.model.mesh.nodes = np.vstack((self.model.mesh.nodes, new_coords.reshape(-1, 3)))
-        self.model.mesh.tetrahedrons = tets
-
-        return sets
-
     def _isolate_atria_and_ventricles(self):
         """Add duplicate nodes between atria and ventricles."""
         if isinstance(self.model, (FourChamber, FullHeart)):
@@ -3450,6 +3416,61 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         Experimental feature, please do not change it.
         """
 
+    def _duplicate_ventricle_atrial_nodes_tie(self):
+        """Test feature, not working with mpp < DEV104400."""
+        # find interface nodes between ventricles and atrial
+        v_ele = np.hstack(
+            (self.model.left_ventricle.element_ids, self.model.right_ventricle.element_ids)
+        )
+        a_ele = np.hstack((self.model.left_atrium.element_ids, self.model.right_atrium.element_ids))
+
+        ventricles = self.model.mesh.extract_cells(v_ele)
+        atrial = self.model.mesh.extract_cells(a_ele)
+
+        interface_nids = np.intersect1d(
+            ventricles["vtkOriginalPointIds"], atrial["vtkOriginalPointIds"]
+        )
+
+        # duplicate these nodes and update mesh
+        sets = []
+        new_coords = np.array([])
+        tets: np.ndarray = self.model.mesh.tetrahedrons
+        nid_offset = len(self.model.mesh.nodes)
+        cnt = 0
+
+        for old_nid in interface_nids:
+            set = np.array([old_nid])
+            ele_ids = np.where(np.any(np.isin(tets, old_nid), axis=1))[
+                0
+            ]  # Ids of elements on this interface node
+            for ele_id in ele_ids[1:]:
+                # first element will keep the original node,
+                # other elements will take duplicated nodes (update mesh)
+                new_id = nid_offset + cnt
+                new_coords = np.append(new_coords, self.model.mesh.nodes[old_nid, :])
+                tets[ele_id][tets[ele_id] == old_nid] = new_id
+                set = np.append(set, new_id)
+                cnt += 1
+            sets.append(set)
+
+        self.model.mesh.nodes = np.vstack((self.model.mesh.nodes, new_coords.reshape(-1, 3)))
+        self.model.mesh.tetrahedrons = tets
+
+        # tie duplicated nodes
+        sid_offset = self.get_unique_nodeset_id()  # slow and move out of loop
+        sid_offset = 100
+        count = 0
+        for set in sets:
+            sid = sid_offset + count
+            count += 1
+            kw = create_node_set_keyword(set + 1, node_set_id=sid, title="tied_" + str(set[0] + 1))
+            self.kw_database.duplicate_nodes.append(kw)
+            kw = keywords.ConstrainedTiedNodesFailure(nsid=sid, eppf=1.0e25, etype=1)
+            self.kw_database.duplicate_nodes.append(kw)
+
+        # self.kw_database.main.append(keywords.Include(filename="duplicate_nodes.k"))
+        return
+
     def update(self, with_dynain=False):
         """Update the keyword database."""
         """
@@ -3457,7 +3478,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         active atria material
         His bundle bifurcation, first two nodes at same locations
         """
-        constraint_nodeset = self._isolate_atria_and_ventricles2()
+        # self._duplicate_ventricle_atrial_nodes_tie()
 
         # Re compute caps since mesh is changed
         for part in self.model.parts:
@@ -3470,18 +3491,6 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         self.model._assign_cavities_to_parts()
 
         MechanicsDynaWriter.update(self, with_dynain=with_dynain)
-
-        sid_offset = self.get_unique_nodeset_id()  # slow and move out of loop
-        count = 0
-        for set in constraint_nodeset:
-            sid = sid_offset + count
-            count += 1
-            kw = create_node_set_keyword(set + 1, node_set_id=sid, title="tied_" + str(set[0] + 1))
-            self.kw_database.duplicate_nodes.append(kw)
-            kw = keywords.ConstrainedTiedNodesFailure(nsid=sid, eppf=1.0e25, etype=1)
-            self.kw_database.duplicate_nodes.append(kw)
-
-        self.kw_database.main.append(keywords.Include(filename="duplicate_nodes.k"))
 
         if self.model.mesh.beam_network:
             self._update_use_Purkinje()

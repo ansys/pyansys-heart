@@ -3416,6 +3416,40 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         Experimental feature, please do not change it.
         """
 
+    def _create_isolation_part(self):
+        """Create a new part to isolate between ventricles and atrial."""
+        # find interface nodes between ventricles and atrial
+        v_ele = np.hstack(
+            (self.model.left_ventricle.element_ids, self.model.right_ventricle.element_ids)
+        )
+        a_ele = np.hstack((self.model.left_atrium.element_ids, self.model.right_atrium.element_ids))
+
+        ventricles = self.model.mesh.extract_cells(v_ele)
+        atrial = self.model.mesh.extract_cells(a_ele)
+
+        interface_nids = np.intersect1d(
+            ventricles["vtkOriginalPointIds"], atrial["vtkOriginalPointIds"]
+        )
+
+        interface_eids = np.where(
+            np.any(np.isin(self.model.mesh.tetrahedrons, interface_nids), axis=1)
+        )[0]
+        # interface elements on atrial part
+        interface_eids = np.intersect1d(interface_eids, a_ele)
+
+        # remove these elements from atrial parts
+        self.model.left_atrium.element_ids = np.setdiff1d(
+            self.model.left_atrium.element_ids, interface_eids
+        )
+        self.model.right_atrium.element_ids = np.setdiff1d(
+            self.model.right_atrium.element_ids, interface_eids
+        )
+
+        # create a new part
+        self.model.add_part("Isolation atrial")
+        isolation = self.model.get_part("Isolation atrial")
+        isolation.element_ids = interface_eids
+
     def _duplicate_ventricle_atrial_nodes_tie(self):
         """Test feature, not working with mpp < DEV104400."""
         # find interface nodes between ventricles and atrial
@@ -3478,7 +3512,9 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         active atria material
         His bundle bifurcation, first two nodes at same locations
         """
-        # self._duplicate_ventricle_atrial_nodes_tie()
+        if isinstance(self.model, (FourChamber, FullHeart)):
+            # self._duplicate_ventricle_atrial_nodes_tie()
+            self._create_isolation_part()
 
         # Re compute caps since mesh is changed
         for part in self.model.parts:

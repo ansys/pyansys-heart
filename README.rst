@@ -12,7 +12,7 @@
    :target: https://opensource.org/license/mit/
    :alt: MIT
 
-Pyheart lib is a `Python`_ framework for heart modeling using Ansys tools.
+PyAnsys-Heart is a `Python`_ framework for heart modeling using Ansys tools.
 
 .. Note::
 
@@ -85,7 +85,7 @@ In user mode
 In editable mode
 ----------------
 
-Installing Pyheart lib in developer mode allows
+Installing PyAnsys-Heart in developer mode allows
 you to modify the source and enhance it.
 
 Before contributing to the project, please refer to the `PyAnsys Developer's guide`_. You will
@@ -95,10 +95,10 @@ need to follow these steps:
 
     .. code:: bash
 
-        git clone https://github.com/ansys/pyheart-lib
+        git clone https://github.com/ansys/pyansys-heart
 
    Since this is a private repository you may need to provide your github username.
-   Alternatively you can download and unpack the zip file from `pyheart-lib`_
+   Alternatively you can download and unpack the zip file from `PyAnsys-Heart`_
 
 2. Create a fresh-clean Python environment and activate it. Make sure you use one of the supported Python versions. Refer to the
    official `venv`_  or `conda`_ documentation if you require further information:
@@ -169,6 +169,14 @@ need to follow these steps:
     .. code:: bash
 
         python -m pip install .[tests]
+
+        # run quick tests
+        python -m pytest -v -m "not requires_fluent and not local"
+
+        # run tests requiring Fluent
+        python -m pytest -v -m requires_fluent
+
+        # run all tests
         pytest tests -v
 
 
@@ -193,7 +201,7 @@ For building documentation, you can either run the usual rules provided in the
 .. code:: bash
 
     # install any dependencies for building the documentation.
-    python -m pip install .[docs]
+    python -m pip install .[doc]
 
     # Linux
     make -C doc/ html
@@ -218,7 +226,7 @@ If you would like to create either source or wheel files, you can execute:
 Licensing terms
 ===============
 
-PyHeart-lib is licensed under the MIT license:
+PyAnsys-Heart is licensed under the MIT license:
 
     MIT License
 
@@ -242,12 +250,12 @@ PyHeart-lib is licensed under the MIT license:
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 
-PyHeart-lib makes no commercial claim over any Ansys products whatsoever. This library extends the functionality of the listed Ansys products by adding a Python interface without changing the core behavior or licensing of the original products. This library requires legally licensed copies of the involved Ansys products.
+PyAnsys-Heart makes no commercial claim over any Ansys products whatsoever. This library extends the functionality of the listed Ansys products by adding a Python interface without changing the core behavior or licensing of the original products. This library requires legally licensed copies of the involved Ansys products.
 
 
 .. LINKS AND REFERENCES
 .. _Python: https://www.python.org/
-.. _pyheart-lib: https://github.com/ansys/pyheart-lib
+.. _PyAnsys-Heart: https://github.com/ansys/pyansys-heart
 .. _Ansys Customer Portal: https://support.ansys.com/Home/HomePage
 .. _dpf-server: https://download.ansys.com/Others/DPF%20Pre-Release
 .. _black: https://github.com/psf/black

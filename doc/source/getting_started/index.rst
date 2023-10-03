@@ -26,7 +26,7 @@ Getting started
 .. For developers
 .. ^^^^^^^^^^^^^^
 
-.. Installing Pyheart lib in developer mode allows
+.. Installing PyAnsys-Heart in developer mode allows
 .. you to modify the source and enhance it.
 
 .. Before contributing to the project, please refer to the `PyAnsys Developer's guide`_. You will
@@ -36,7 +36,7 @@ Getting started
 
 ..     .. code:: bash
 
-..         git clone https://github.com/pyansys/pyheart-lib
+..         git clone https://github.com/pyansys/PyAnsys-Heart
 
 .. 2. Create a fresh-clean Python environment and activate it. Refer to the
 ..    official `venv`_  or `conda`_ documentation if you require further information:
@@ -76,7 +76,7 @@ Getting started
 
 ..     .. code:: bash
 
-..         python -m pip install --editable pyheart-lib
+..         python -m pip install --editable PyAnsys-Heart
 
 ..     Install version of dynalib manually by
 

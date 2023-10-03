@@ -20,7 +20,7 @@ html_short_title = html_title = "ansys-heart-lib"
 
 # specify the location of your github repo
 html_theme_options = {
-    "github_url": "https://github.com/pyansys/pyheart",
+    "github_url": "https://github.com/pyansys/PyAnsys-Heart",
     "show_prev_next": False,
     "show_breadcrumbs": True,
     "additional_breadcrumbs": [

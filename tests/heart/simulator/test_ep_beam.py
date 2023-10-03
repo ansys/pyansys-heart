@@ -8,20 +8,23 @@ import numpy as np
 import pytest
 from pyvista import examples
 
-from .conftest import get_workdir
+from tests.heart.conftest import get_workdir
 
 model: FourChamber
 model_dir: pathlib.Path
+
+pytestmark = pytest.mark.local
 
 
 @pytest.fixture(autouse=True, scope="module")
 def get_data():
     global model, model_dir
     # todo: file larger than 100 Mb cannot be added to package
-    model_dir = pathlib.Path(r"D:\pyheart-lib\test_case\test_4c\heart_model.pickle")
+    model_dir = pathlib.Path(r"D:\PyAnsys-Heart\test_case\test_4c\heart_model.pickle")
     model = FourChamber.load_model(model_dir)
 
 
+@pytest.mark.xfail(reason="Test uses local data.")
 def test_read_purkinje_from_kfile_001():
     """Test reading Purkinje from .k files."""
 
@@ -80,18 +83,21 @@ def test_read_purkinje_from_kfile_001():
     assert grid.beam_network[1] == beam_mesh2
 
 
+@pytest.mark.xfail(reason="Test uses local data.")
 def test_compute_SA_node():
     p = model.compute_SA_node()
     target = Point(name="SA_node", xyz=[-49.53661854, 108.12227932, 422.97088272], node_id=19705)
     assert p.node_id == target.node_id
 
 
+@pytest.mark.xfail(reason="Test uses local data.")
 def test_compute_AV_node():
     p = model.compute_AV_node()
     target = Point(name="AV_node", xyz=[-8.22263189, 106.95353898, 373.34239855], node_id=26409)
     assert p.node_id == target.node_id
 
 
+@pytest.mark.xfail(reason="Test uses local data.")
 def test_compute_av_conduction():
     beam = model.compute_av_conduction()
 
@@ -99,6 +105,7 @@ def test_compute_av_conduction():
     assert np.all(beam.edges[-1] == [66388, 66389])
 
 
+@pytest.mark.xfail(reason="Test uses local data.")
 def test_compute_His_conduction():
     # need a fresh model to make sure tests are independent
     fresh_model: FourChamber = FourChamber.load_model(model_dir)
@@ -110,6 +117,7 @@ def test_compute_His_conduction():
     assert np.all(beam.edges[-1] == [66357, 66358])
 
 
+@pytest.mark.xfail(reason="Test uses local data.")
 def test__define_hisbundle_start_end_point():
     fresh_model: FourChamber = FourChamber.load_model(model_dir)
     fresh_model._define_hisbundle_start_end_point(beam_length=0.8, beam_number=4)
@@ -121,6 +129,7 @@ def test__define_hisbundle_start_end_point():
     assert b == 66358
 
 
+@pytest.mark.xfail(reason="Test uses local data.")
 def test_compute_bundle_branches():
     fresh_model: FourChamber = FourChamber.load_model(model_dir)
     # need His septum end Point

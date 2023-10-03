@@ -29,7 +29,7 @@ import os
 from pathlib import Path
 
 import ansys.heart.preprocessor.models as models
-from ansys.heart.simulator.simulator import MechanicsSimulator
+from ansys.heart.simulator.simulator import DynaSettings, MechanicsSimulator
 
 # set working directory and path to model.
 workdir = Path(
@@ -58,16 +58,22 @@ model.info.workdir = str(workdir)
 ###############################################################################
 # Instantiate the simulator object
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# instantiate simulator. Change options where necessary. Note that you may need
-# to configure your environment variables if you choose `mpp`.
+# instantiate your DynaSettings and Simulator objects.
+# Change options where necessary. Note that you may need to configure your environment
+# variables if you choose `mpp`.
 
-simulator = MechanicsSimulator(
-    model=model,
-    lsdynapath=lsdyna_path,
+# instantiate dyna settings object
+dyna_settings = DynaSettings(
+    lsdyna_path=lsdyna_path,
     dynatype="smp",
     num_cpus=4,
+)
+
+# instantiate simulator object
+simulator = MechanicsSimulator(
+    model=model,
+    dyna_settings=dyna_settings,
     simulation_directory=os.path.join(workdir, "simulation-mechanics"),
-    platform="windows",
 )
 
 ###############################################################################

@@ -101,7 +101,9 @@ CRITICAL = logging.CRITICAL
 
 ## Formatting
 
-STDOUT_MSG_FORMAT = "%(levelname)s - %(instance_name)s -  %(module)s - %(funcName)s - %(message)s"
+STDOUT_MSG_FORMAT = "%(asctime)s - %(levelname)s - %(instance_name)s - %(module)s - %(funcName)s - %(message)s"
+
+DATEFORMAT = "%Y/%m/%d %H:%M:%S"
 
 FILE_MSG_FORMAT = STDOUT_MSG_FORMAT
 
@@ -231,7 +233,7 @@ class _PyheartFormatter(logging.Formatter):
     def __init__(
         self,
         fmt: str = STDOUT_MSG_FORMAT,
-        datefmt: Optional[str] = None,
+        datefmt: Optional[str] = DATEFORMAT,
         style: Literal["%", "{", "$"] = "%",
         validate: bool = True,
         defaults: Optional[Mapping[str, Any]] = None,
@@ -461,16 +463,16 @@ class Logger:
     def _add_heart_instance_logger(
         self,
         name: Optional[str],
-        mapdl_instance: "_MapdlCore",
+        heart_instance: "_MapdlCore",
         level: Optional[LOG_LEVEL_TYPE],
     ) -> logging.Logger:
         if isinstance(name, str):
             instance_logger = PyheartCustomAdapter(
-                self._make_child_logger(name, level), mapdl_instance
+                self._make_child_logger(name, level), heart_instance
             )
         elif not name:  # pragma: no cover
             instance_logger = PyheartCustomAdapter(
-                self._make_child_logger("NO_NAMED_YET", level), mapdl_instance
+                self._make_child_logger("NO_NAMED_YET", level), heart_instance
             )
         else:
             raise ValueError("You can only input 'str' classes to this method.")

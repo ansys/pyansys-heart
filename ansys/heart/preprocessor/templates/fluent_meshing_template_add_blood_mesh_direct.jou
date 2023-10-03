@@ -13,16 +13,16 @@
 (define zone-ids-to-copy (append zone-ids-endo zone-id-septum) )
 (ti-menu-load-string  ( format #f "/boundary/manage/copy ~a"
 							zone-ids-to-copy
-						 ) )						 
+						 ) )
 ; auto patch holes on this boundary
 ; Note: auto patch doesn't always work -> why?x
 (define zone-ids-to-patch (get-unreferenced-face-zones-of-filter '*) )
 (ti-menu-load-string  ( format #f "/boundary/modify/auto-patch-holes ~a"
 							zone-ids-to-patch
-						 ) )						 
+						 ) )
 (define zone-ids-patch (get-unreferenced-face-zones-of-filter '*patch*) )
 
-; create object with only the patches 
+; create object with only the patches
 (ti-menu-load-string (format #f "/objects/create valves fluid , ~a , mesh yes"
 						zone-ids-patch ) )
 /objects/delete-unreferenced-faces-and-edges
@@ -32,7 +32,7 @@
 ;							zone-ids-to-patch
 ;						 ) )
 ; delete the rest of the unreferenced zones
-;(for-each 
+;(for-each
 ;    (lambda (x)
 ;	    (ti-menu-load-string ( format #f /boundary/modify/select
 

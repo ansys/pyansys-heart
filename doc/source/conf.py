@@ -20,7 +20,7 @@ html_short_title = html_title = "ansys-heart-lib"
 
 # specify the location of your github repo
 html_theme_options = {
-    "github_url": "https://github.com/pyansys/pyheart",
+    "github_url": "https://github.com/pyansys/PyAnsys-Heart",
     "show_prev_next": False,
     "show_breadcrumbs": True,
     "additional_breadcrumbs": [
@@ -43,7 +43,14 @@ extensions = [
     "sphinx_copybutton",
     "autoapi.extension",
     "sphinx_autodoc_typehints",
+    "sphinx_gallery.gen_gallery",
+    "sphinxcontrib.video",
 ]
+
+sphinx_gallery_conf = {
+    "examples_dirs": "../../examples",  # path to your example scripts
+    "gallery_dirs": "examples",  # path where the gallery generated outputs are to be saved
+}
 
 autodoc_mock_imports = ["dynalib", "ansys.dyna"]
 
@@ -87,6 +94,9 @@ numpydoc_validation_checks = {
 # static path
 html_static_path = ["_static"]
 
+# custom css file
+html_css_files = ["custom.css"]
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
@@ -103,7 +113,11 @@ autosectionlabel_maxdepth = 4
 # ---------------------------------- #
 autoapi_type = "python"
 autoapi_ignore = []
-autoapi_dirs = ["../../ansys/heart"]
+autoapi_dirs = [
+    "../../ansys/heart/preprocessor",
+    "../../ansys/heart/simulator",
+    "../../ansys/heart/postprocessor",
+]
 autoapi_options = [
     "members",
     "undoc-members",

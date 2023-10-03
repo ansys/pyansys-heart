@@ -14,13 +14,22 @@ import os
 import pathlib as Path
 import shutil
 import subprocess
-from typing import Literal
+from typing import List
 
+from ansys.heart.custom_logging import LOGGER
 from ansys.heart.misc.element_orth import read_orth_element_kfile
-from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
-from ansys.heart.preprocessor.models import HeartModel
-from ansys.heart.simulator.settings.settings import SimulationSettings
+from ansys.heart.postprocessor.auto_process import (
+    compute_la_fiber_cs,
+    compute_ra_fiber_cs,
+    mech_post,
+    read_uvc,
+    zerop_post,
+)
+from ansys.heart.preprocessor.models import FourChamber, FullHeart, HeartModel
+from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
+import numpy as np
+import pyvista as pv
 
 
 def which(program):
@@ -48,11 +57,8 @@ class BaseSimulator:
     def __init__(
         self,
         model: HeartModel,
-        lsdynapath: Path,
-        dynatype: Literal["smp", "intelmpi", "platformmpi", "msmpi"] = "smp",
-        num_cpus: int = 1,
+        dyna_settings: DynaSettings = None,
         simulation_directory: Path = "",
-        platform: Literal["windows", "wsl", "linux"] = "windows",
     ) -> None:
         """Initialize BaseSimulator.
 
@@ -60,31 +66,26 @@ class BaseSimulator:
         ----------
         model : HeartModel
             Heart model to simulate.
-        lsdynapath : Path
-            Path to LS-DYNA executable.
-        dynatype : Literal[&quot;smp&quot;, &quot;intelmpi&quot;, &quot;platformmpi&quot;]
-            Type of LS-DYNA executable. shared memory parallel or massively parallel process.
-        num_cpus : int, optional
-            Number of cpu's to use for simulation, by default 1
+        dyna_settings : DynaSettings
+            Settings used for launching LS-DYNA.
         simulation_directory : Path, optional
-            Directory of simulation, by default defined by information in HeartModel.
-        platform : str, by default "windows"
-            Operating system.
+            Directory in which to start the simulation, by default ""
         """
         self.model: HeartModel = model
         """HeartModel to simulate."""
-        self.lsdynapath = lsdynapath
-        """Path to LS-DYNA executable."""
-        self.dynatype = dynatype
-        """LS-DYNA Type"""
-        self.num_cpus = num_cpus
-        """Number of cpus to use for simulation."""
+        if not dyna_settings:
+            LOGGER.warning("Setting default LS-DYNA settings.")
+            self.dyna_settings = DynaSettings()
+        else:
+            self.dyna_settings: DynaSettings = dyna_settings
+            """Contains the settings to launch LS-DYNA."""
+
         self.directories: dict = {}
         """Dictionary of all defined directories."""
-        self.platform = platform
+
         """Operating System."""
-        if which(lsdynapath) is None:
-            print(f"{lsdynapath} not exist")
+        if which(self.dyna_settings.lsdyna_path) is None:
+            LOGGER.error(f"{self.dyna_settings.lsdyna_path} not exist")
             exit()
 
         if simulation_directory == "":
@@ -107,13 +108,13 @@ class BaseSimulator:
         """Compute the fiber direction on the model."""
         directory = self._write_fibers()
 
-        print("Computing fiber orientation...")
+        LOGGER.info("Computing fiber orientation...")
 
         # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(path_to_input=input_file)
 
-        print("done.")
+        LOGGER.info("done.")
 
         # interpolate new fibers onto model.mesh
         # Number of cells/points or element/node ordering may not be the same
@@ -136,7 +137,7 @@ class BaseSimulator:
         # self.model.mesh.cell_data["sheet"] = cell_centers_source.point_data["dVector"]
         # print("Done.")
 
-        print("Assigning fiber orientation to model...")
+        LOGGER.info("Assigning fiber orientation to model...")
         elem_ids, part_ids, connect, fib, sheet = read_orth_element_kfile(
             os.path.join(directory, "element_solid_ortho.k")
         )
@@ -148,6 +149,130 @@ class BaseSimulator:
         self.model.dump_model(os.path.join(self.root_directory, "model_with_fiber.pickle"))
         return
 
+    def compute_uvc(self) -> pv.UnstructuredGrid:
+        """Compute universal 'heart' coordinates system."""
+        LOGGER.info("Computing universal ventricular coordinates...")
+
+        type = "uvc"
+        export_directory = os.path.join(self.root_directory, type)
+
+        target = self.run_laplace_problem(export_directory, type)
+        grid = read_uvc(export_directory)
+
+        grid["cell_ids"] = target["cell_ids"]
+        grid["point_ids"] = target["point_ids"]
+
+        LOGGER.info("Assigning data to full model...")
+
+        ids = grid["point_ids"]
+        self.model.mesh["apico-basal"] = np.zeros(self.model.mesh.n_points)
+        self.model.mesh["apico-basal"][:] = np.nan
+        self.model.mesh["transmural"] = np.zeros(self.model.mesh.n_points)
+        self.model.mesh["transmural"][:] = np.nan
+        self.model.mesh["rotational"] = np.zeros(self.model.mesh.n_points)
+        self.model.mesh["rotational"][:] = np.nan
+        self.model.mesh["apico-basal"][ids] = grid["apico-basal"]
+        self.model.mesh["transmural"][ids] = grid["transmural"]
+        self.model.mesh["rotational"][ids] = grid["rotational"]
+
+        return grid
+
+    def compute_right_atrial_fiber(self, appendage: List[float]) -> pv.UnstructuredGrid:
+        """
+        Compute right atrium fiber with LDRBD method.
+
+        Parameters
+        ----------
+        appendage
+            Right atrium appendage apex coordinates.
+
+        Returns
+        -------
+            right atrium UnstructuredGrid with related information.
+        """
+        LOGGER.info("Computing RA fiber...")
+        export_directory = os.path.join(self.root_directory, "ra_fiber")
+
+        target = self.run_laplace_problem(export_directory, "ra_fiber", raa=np.array(appendage))
+        ra_pv = compute_ra_fiber_cs(export_directory)
+        LOGGER.info("Generating fibers done.")
+
+        # arrays that save ID map to full model
+        ra_pv["cell_ids"] = target["cell_ids"]
+        ra_pv["point_ids"] = target["point_ids"]
+
+        LOGGER.info("Assigning fibers to full model...")
+
+        # cell IDs in full model mesh
+        ids = ra_pv["cell_ids"]
+        self.model.mesh.cell_data["fiber"][ids] = ra_pv["e_l"]
+        self.model.mesh.cell_data["sheet"][ids] = ra_pv["e_t"]
+
+        return ra_pv
+
+    def compute_left_atrial_fiber(self) -> pv.UnstructuredGrid:
+        """
+        Compute left atrium fiber with LDRBD method.
+
+        Returns
+        -------
+            right atrium UnstructuredGrid with related information.
+
+        """
+        LOGGER.info("Computing LA fiber...")
+        export_directory = os.path.join(self.root_directory, "la_fiber")
+        # TODO only return cell ids and point ids
+        target = self.run_laplace_problem(export_directory, "la_fiber")
+        la_pv = compute_la_fiber_cs(export_directory)
+        LOGGER.info("Generating fibers done.")
+
+        # arrays that save ID map to full model
+        la_pv["cell_ids"] = target["cell_ids"]
+        la_pv["point_ids"] = target["point_ids"]
+
+        LOGGER.info("Assigning fibers to full model...")
+
+        # cell IDs in full model mesh
+        ids = la_pv["cell_ids"]
+        self.model.mesh.cell_data["fiber"][ids] = la_pv["e_l"]
+        self.model.mesh.cell_data["sheet"][ids] = la_pv["e_t"]
+
+        return la_pv
+
+    def run_laplace_problem(self, export_directory, type, **kwargs):
+        """
+        Run Laplace-Dirichlet (thermal) problem in LSDYNA.
+
+        Parameters
+        ----------
+        export_directory: str
+            LSDYNA directory
+        type: str
+            Simulation type.
+        kwargs
+
+        Returns
+        -------
+            UnstructuredGrid with array to map data back to full mesh.
+        """
+        if type == "ra_fiber":
+            for key, value in kwargs.items():
+                if key == "raa":
+                    break
+            dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, raa=value)
+        else:
+            dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type)
+
+        dyna_writer.update()
+        dyna_writer.export(export_directory)
+
+        input_file = os.path.join(export_directory, "main.k")
+        self._run_dyna(path_to_input=input_file, options="case")
+
+        LOGGER.info("Solving laplace-dirichlet done.")
+
+        return dyna_writer.target
+
     def _run_dyna(self, path_to_input: Path, options: str = ""):
         """Run LS-DYNA with path and options.
 
@@ -158,15 +283,18 @@ class BaseSimulator:
         options : str, optional
             Additional options to pass to command line, by default ""
         """
+        if options != "":
+            old_options = copy.deepcopy(self.dyna_settings.dyna_options)
+            self.dyna_settings.dyna_options = self.dyna_settings.dyna_options + " " + options
+
         run_lsdyna(
-            lsdynapath=self.lsdynapath,
             path_to_input=path_to_input,
+            settings=self.dyna_settings,
             simulation_directory=self.root_directory,
-            options=options,
-            dynatype=self.dynatype,
-            num_cpus=self.num_cpus,
-            platform=self.platform,
         )
+
+        if options != "":
+            self.dyna_settings.dyna_options = old_options
 
     def _write_fibers(
         self,
@@ -192,15 +320,10 @@ class EPSimulator(BaseSimulator):
     def __init__(
         self,
         model: HeartModel,
-        lsdynapath: Path,
-        dynatype: Literal["smp", "intelmpi", "platformmpi"],
-        num_cpus: int = 1,
+        dyna_settings: DynaSettings,
         simulation_directory: Path = "",
-        platform: Literal["windows", "wsl", "linux"] = "windows",
     ) -> None:
-        super().__init__(
-            model, lsdynapath, dynatype, num_cpus, simulation_directory, platform=platform
-        )
+        super().__init__(model, dyna_settings, simulation_directory)
 
         return
 
@@ -209,12 +332,12 @@ class EPSimulator(BaseSimulator):
         directory = os.path.join(self.root_directory, folder_name)
         self._write_main_simulation_files(folder_name)
 
-        print("Launching main EP simulation...")
+        LOGGER.info("Launching main EP simulation...")
 
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
 
-        print("done.")
+        LOGGER.info("done.")
 
         return
 
@@ -222,22 +345,30 @@ class EPSimulator(BaseSimulator):
         """Compute the purkinje network."""
         directory = self._write_purkinje_files()
 
-        print("Computing the Purkinje network...")
+        LOGGER.info("Computing the Purkinje network...")
 
         # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
         input_file = os.path.join(directory, "main.k")
+
+        LOGGER.debug("Compute Purkinje network on 1 cpu.")
+        orig_num_cpus = self.dyna_settings.num_cpus
+        self.dyna_settings.num_cpus = 1
         self._run_dyna(input_file)
+        self.dyna_settings.num_cpus = orig_num_cpus
 
-        print("done.")
+        LOGGER.info("done.")
 
-        print("Assign the Purkinje network to the model...")
+        LOGGER.info("Assign the Purkinje network to the model...")
         purkinje_files = glob.glob(os.path.join(directory, "purkinjeNetwork_*.k"))
         for purkinje_file in purkinje_files:
             self.model.mesh.add_purkinje_from_kfile(purkinje_file)
 
     def compute_conduction_system(self):
         """Compute the conduction system."""
-        self.model.mesh.compute_av_conduction()
+        if isinstance(self.model, (FourChamber, FullHeart)):
+            self.model.compute_av_conduction()
+            self.model.compute_His_conduction()
+            self.model.compute_bundle_branches()
 
     def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""
@@ -292,16 +423,11 @@ class MechanicsSimulator(BaseSimulator):
     def __init__(
         self,
         model: HeartModel,
-        lsdynapath: Path,
-        dynatype: Literal["smp", "intelmpi", "platformmpi"],
-        num_cpus: int = 1,
+        dyna_settings: DynaSettings,
         simulation_directory: Path = "",
         initial_stress: bool = True,
-        platform: Literal["windows", "wsl", "linux"] = "windows",
     ) -> None:
-        super().__init__(
-            model, lsdynapath, dynatype, num_cpus, simulation_directory, platform=platform
-        )
+        super().__init__(model, dyna_settings, simulation_directory)
 
         """If stress free computation is taken into considered."""
         # include initial stress by default
@@ -345,19 +471,19 @@ class MechanicsSimulator(BaseSimulator):
                 )
             except IndexError:
                 # handle if lsda file not exist.
-                print(
+                LOGGER.warning(
                     "Cannot find initial stress file, simulation will run without initial stress."
                 )
                 self.initial_stress = False
 
         self._write_main_simulation_files(folder_name=folder_name)
 
-        print("Launching main simulation...")
+        LOGGER.info("Launching main simulation...")
 
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
 
-        print("done.")
+        LOGGER.info("done.")
 
         if auto_post:
             mech_post(directory, self.model)
@@ -371,11 +497,11 @@ class MechanicsSimulator(BaseSimulator):
         self._write_stress_free_configuration_files(folder_name)
         self.settings.save(Path.Path(directory) / "simulation_settings.yml")
 
-        print("Computing stress-free configuration...")
+        LOGGER.info("Computing stress-free configuration...")
         self._run_dyna(os.path.join(directory, "main.k"), options="case")
-        print("Simulation done.")
+        LOGGER.info("Simulation done.")
 
-        self.stress_free_report = zerop_post(directory, self)
+        self.stress_free_report = zerop_post(directory, self.model)
 
         return
 
@@ -408,102 +534,38 @@ class MechanicsSimulator(BaseSimulator):
 class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
     """Coupled EP-mechanics simulator with computed Electrophysiology."""
 
-    def __init__(
-        self,
-        model: HeartModel,
-        lsdynapath: Path,
-        dynatype: Literal["smp", "intelmpi", "platformmpi"],
-        platform: Literal["windows", "wsl", "linux"] = "windows",
-    ) -> None:
-        super().__init__(model, lsdynapath, dynatype, platform=platform)
+    def __init__(self, model: HeartModel, dyna_settings: DynaSettings) -> None:
+        super().__init__(model, dyna_settings)
         raise NotImplementedError("Simulator EPMechanicsSimulator not implemented.")
 
 
 def run_lsdyna(
-    lsdynapath: Path,
     path_to_input: Path,
-    simulation_directory: Path = "",
-    options: str = "",
-    dynatype: str = "intelmpi",
-    num_cpus: int = 1,
-    platform="windows",
+    settings: DynaSettings = None,
+    simulation_directory: Path = None,
 ):
     """Standalone function for running LS-DYNA.
 
     Parameters
     ----------
-    lsdynapath : Path
-        Lsdyna path.
     path_to_input : Path
-        Path to input.
+        Input file for LS-DYNA.
+    settings : DynaSettings, optional
+        LS-DYNA settings, such as path to executable, executable type, platform, by default None
     simulation_directory : Path, optional
-        Simulation directory, by default"".
-    options : str, optional
-        Options, by default "".
-    dynatype : str, optional
-        Dynatype, by default "intelmpi".
-    num_cpus : int, optional
-        number of cpus, by default 1.
-    platform : str
-        Operating system, by default "windows".
+        Directory where to simulate, by default None
     """
+    if not settings:
+        LOGGER.info("Using default LS-DYNA settings.")
+        settings = DynaSettings()
+
+    commands = settings.get_commands(path_to_input)
+
     os.chdir(os.path.dirname(path_to_input))
-    if platform == "windows" or platform == "linux":
-        if dynatype in ["intelmpi", "platformmpi", "msmpi"]:
-            commands = [
-                "mpirun",
-                "-np",
-                str(num_cpus),
-                lsdynapath,
-                "i=" + path_to_input,
-                options,
-            ]
-        elif dynatype in ["smp"]:
-            commands = [
-                lsdynapath,
-                "i=" + path_to_input,
-                "ncpu=" + str(num_cpus),
-                options,
-            ]
-    elif platform == "wsl":
-        path_to_input = (
-            subprocess.run(["wsl", "wslpath", os.path.basename(path_to_input)], capture_output=1)
-            .stdout.decode()
-            .strip()
-        )
-        lsdynapath = (
-            subprocess.run(["wsl", "wslpath", str(lsdynapath).replace("\\", "/")], capture_output=1)
-            .stdout.decode()
-            .strip()
-        )
-
-        if dynatype in ["intelmpi", "platformmpi", "msmpi"]:
-            commands = [
-                "mpirun",
-                "-np",
-                str(num_cpus),
-                lsdynapath,
-                "i=" + path_to_input,
-                options,
-            ]
-        elif dynatype in ["smp"]:
-            commands = [
-                lsdynapath,
-                "i=" + path_to_input,
-                "ncpu=" + str(num_cpus),
-                options,
-            ]
-
-        with open("run_lsdyna.sh", "w", newline="\n") as f:
-            f.write("#!/usr/bin/env sh\n")
-            f.write("echo start lsdyna in wsl...\n")
-            f.write(" ".join([i.strip() for i in commands]))
-
-        commands = ["powershell", "-Command", "wsl", "-e", "bash", "-lic", "./run_lsdyna.sh"]
 
     with subprocess.Popen(commands, stdout=subprocess.PIPE, text=True) as p:
         for line in p.stdout:
-            print(line.rstrip())
+            LOGGER.info(line.rstrip())
 
     os.chdir(simulation_directory)
     return

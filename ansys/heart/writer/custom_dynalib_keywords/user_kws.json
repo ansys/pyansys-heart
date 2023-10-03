@@ -1,4 +1,4 @@
-{ 
+{
     "USER_LOADING_SET" : [
     {
       "fields": [
@@ -25,7 +25,7 @@
           "position": 20,
           "width": 10,
           "help": "Load curve, a function of time. Its current value, crv, is passed to user subroutine LOADSETUD."
-        },      
+        },
         {
             "name": "CID",
             "type": "integer",
@@ -57,7 +57,7 @@
             "position": 60,
             "width": 10,
             "help": "Scale factor of loading magnitude, when LTYPE"
-        },         
+        },
         {
             "name": "IDULS",
             "type": "integer",
@@ -79,7 +79,7 @@
           "position": 0,
           "width": 10,
           "help": "This is the Nth user input parameter"
-        },        
+        },
         {
             "name": "PARM2",
             "type": "real",
@@ -135,8 +135,8 @@
             "position": 70,
             "width": 10,
             "help": "This is the Nth user input parameter"
-        }                                
+        }
       ]
     }
-  ] 
+  ]
 }

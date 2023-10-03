@@ -192,11 +192,11 @@ if __name__ == "__main__":
     download_urls = _format_download_urls()
 
     save_path = download_case(
-        "Cristobal2021", 3, "d:\\development\\pyheart-lib\\pyheart-lib\\downloads"
+        "Cristobal2021", 3, "d:\\development\\PyAnsys-Heart\\PyAnsys-Heart\\downloads"
     )
 
     save_path = download_case(
-        "Strocchi2020", 3, "d:\\development\\pyheart-lib\\pyheart-lib\\downloads"
+        "Strocchi2020", 3, "d:\\development\\PyAnsys-Heart\\PyAnsys-Heart\\downloads"
     )
     unpack_case(save_path)
 

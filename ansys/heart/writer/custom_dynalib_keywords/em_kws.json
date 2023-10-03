@@ -1,4 +1,4 @@
-{  
+{
   "EM_CONTROL_EP": [
     {
       "fields": [
@@ -25,7 +25,7 @@
           "position": 20,
           "width": 10,
           "help": "ID of the Laplace system that is solved in the apicobasal direction"
-        }        
+        }
       ]
     }
   ],
@@ -63,7 +63,7 @@
           "position": 30,
           "width": 10,
           "help": "helical angle with respect to the counterclockwise circumferential direction in the heart when looking from the base towards the apex. If a negative value is entered, a *DEFINE_FUNCTION will be expected. See remark 1- for available parameters"
-        },     
+        },
         {
           "name": "beta",
           "type": "real",
@@ -87,7 +87,7 @@
           "position": 60,
           "width": 10,
           "help": "Selects whether the run is stopped after creating fibers: Eq. 0: do not stop after fiber creation. Eq 1: stop after fiber creation"
-        }         
+        }
       ]
     }
   ],
@@ -148,7 +148,7 @@
           "position": 50,
           "width": 10,
           "help": "Surface to volume ratio."
-        },        
+        },
         {
           "name": "CM",
           "type": "real",
@@ -156,7 +156,7 @@
           "position": 60,
           "width": 10,
           "help": "Membrane capacitance"
-        }                
+        }
       ]
     },
     {
@@ -374,7 +374,7 @@
           "position": 20,
           "width": 10,
           "help": "Phi mid > epicardium"
-        }        
+        }
       ]
     }
   ],
@@ -388,7 +388,7 @@
           "position": 0,
           "width": 10,
           "help": "Material ID. A unique number must be specified (see *PART)."
-        }       
+        }
       ]
     }
   ],

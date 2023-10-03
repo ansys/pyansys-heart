@@ -3,7 +3,7 @@
         "Left ventricle": 170237.86075802075,
         "Right ventricle": 234170.68800602882,
         "Left atrium": 90698.65723923675,
-        "Right atrium": 104644.82212679752
+        "Right atrium": 196885.82212679752
     },
     "parts": {
         "Left ventricle": {
@@ -32,7 +32,7 @@
             }
         },
         "Septum": {
-            "ntetra": 35065,
+            "ntetra": 35066,
             "surfaces": {}
         },
         "Left atrium": {

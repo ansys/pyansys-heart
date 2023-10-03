@@ -6,6 +6,14 @@ import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.simulator import EPSimulator
 from ansys.heart.simulator.support import run_preprocessor
 
+PROJECT_DIRECTORY = pathlib.Path(__file__).absolute().parents[3]
+PATH_TO_CASE = os.path.join(PROJECT_DIRECTORY, "downloads\\Strocchi2020\\01\\01.case")
+WORKING_DIRECTORY = os.path.join(pathlib.Path(PATH_TO_CASE).parent, "BiVentricle")
+
+# Specify LS-DYNA path
+# LSDYNA_PATH = rf"my_path_to_ls_dyna\lsdyna_executable.exe"
+LSDYNA_PATH = rf"D:\LSDYNA\ls-dyna_smp_d_Dev_97584-g1b99fd817b_winx64_ifort190.exe"
+
 if __name__ == "__main__":
     """BiVentricle example.
 
@@ -18,12 +26,8 @@ if __name__ == "__main__":
     Please change paths according to your workspace
     """
     # extract simulation mesh(es)
-    path_to_case = os.path.join(
-        pathlib.Path(__file__).parents[3], "downloads\\Strocchi2020\\01\\01.case"
-    )
-    workdir = os.path.join(pathlib.Path(path_to_case).parent, "BiVentricle")
 
-    path_to_model = os.path.join(workdir, "heart_model.pickle")
+    path_to_model = os.path.join(WORKING_DIRECTORY, "heart_model.pickle")
 
     use_preprocessor = False
 
@@ -31,14 +35,11 @@ if __name__ == "__main__":
         model = run_preprocessor(
             model_type=models.BiVentricle,
             database="Strocchi2020",
-            path_original_mesh=path_to_case,
-            work_directory=workdir,
+            path_original_mesh=PATH_TO_CASE,
+            work_directory=WORKING_DIRECTORY,
             path_to_model=path_to_model,
             mesh_size=2.0,
         )
-
-    # specify LS-DYNA path
-    lsdyna_path = r"D:\my_path_to_ls_dyna\lsdyna_executable.exe"
 
     # Load model (e.g. when you skip the preprocessor):
     model: models.BiVentricle = models.HeartModel.load_model(path_to_model)
@@ -46,21 +47,21 @@ if __name__ == "__main__":
     ## instantiate simulator, please change the dynatype accordingly
     simulator = EPSimulator(
         model=model,
-        lsdynapath=lsdyna_path,
+        lsdynapath=LSDYNA_PATH,
         dynatype="smp",
-        num_cpus=1,
+        num_cpus=20,
         simulation_directory=os.path.join(model.info.workdir, "simulation-EP"),
     )
     # load default settings
     simulator.settings.load_defaults()
-    # compute the fiber orientation
-    simulator.compute_fibers()
-    # visualize computed fibers
-    simulator.model.plot_fibers(n_seed_points=2000)
-    # compute purkinje network
-    simulator.compute_purkinje()
-    # visualize purkinje
-    simulator.model.plot_purkinje()
-    # start simulation
+    # # compute the fiber orientation
+    # simulator.compute_fibers()
+    # # visualize computed fibers
+    # simulator.model.plot_fibers(n_seed_points=2000)
+    # # compute purkinje network
+    # simulator.compute_purkinje()
+    # # visualize purkinje
+    # simulator.model.plot_purkinje()
+    # # start simulation
     simulator.simulate()
     print("done")

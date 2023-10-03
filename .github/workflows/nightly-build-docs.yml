@@ -17,39 +17,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  docs:
-    name: Build Documentation
+  doc-style:
+    name: Documentation Style Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - name: "Running documentation style checks"
+        uses: ansys/actions/doc-style@v4
         with:
-          python-version: 3.8
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install package
-        run: pip install -e .
-
-      - name: Install documentation build requirements
-        run: | 
-          pip install -r requirements_docs.txt
-
-      - name: Build Documentation
-        run: |
-          make -C doc clean
-          make -C doc html
-
-      - name: Upload HTML Documentation
-        uses: actions/upload-artifact@v3
+  doc-build:
+    name: "Build documentation"
+    runs-on: ubuntu-latest
+    needs: [doc-style]
+    steps:
+      - uses: ansys/actions/doc-build@v4
         with:
-          name: HTML-Documentation
-          path: doc/_build/html
-          retention-days: 7
+          python-version: ${{ env.MAIN_PYTHON_VERSION }}
+          check-links: false
+          # By default, also '-W --keep-going'... we should eventually solve the warnings in the build process.
+          sphinxopts: '-j auto'
 
-      - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@v4.4.1
+  doc-deploy-dev:
+    name: "Deploy development documentation"
+    runs-on: ubuntu-latest
+    needs: doc-build
+    steps:
+      - uses: ansys/actions/doc-deploy-dev@v4
         with:
-          repository-name: pyansys/pyheart-lib
-          branch: gh-pages
-          folder: doc/_build/html
-          clean: true
+          cname: ${{ env.DOCUMENTATION_CNAME }}
+          token: ${{ secrets.GITHUB_TOKEN }}

@@ -1637,9 +1637,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 "supports the Closed Loop circulation model!"
             )
             if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-                file_path = resource_path("ansys.heart.writer","templates/system_model_settings_bv.json")
+                file_path = resource_path(
+                    "ansys.heart.writer", "templates/system_model_settings_bv.json"
+                )
             elif isinstance(self.model, LeftVentricle):
-                file_path = resource_path("ansys.heart.writer", "templates/system_model_settings_lv.json")
+                file_path = resource_path(
+                    "ansys.heart.writer", "templates/system_model_settings_lv.json"
+                )
 
             fid = open(file_path)
             sys_settings = json.load(fid)

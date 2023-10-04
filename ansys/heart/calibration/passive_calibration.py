@@ -71,7 +71,7 @@ class PassiveCalibration:
         os.makedirs(work_directory)
         # LSOPT project file
         shutil.copy(
-            resource_path("ansys.heart.calibration", "PassiveCalibration.lsopt"),
+            resource_path("ansys.heart.calibration", "PassiveCalibration.lsopt").__enter__(),
             os.path.join(work_directory, "PassiveCalibration.lsopt"),
         )
 

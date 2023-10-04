@@ -7,14 +7,12 @@ import subprocess
 
 LOGGER = logging.getLogger("pyheart_global.preprocessor")
 # from importlib.resources import files
-from importlib.resources import path as resource_path
 
 from ansys.heart.preprocessor._load_template import load_template
 import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401
 import numpy as np
 
-_template_directory = resource_path("ansys.heart.preprocessor", "templates")
-
+_template_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "..\\templates"))
 
 _fluent_version = "22.2.0"
 

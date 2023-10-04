@@ -1639,11 +1639,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
             if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
                 file_path = resource_path(
                     "ansys.heart.writer", "templates/system_model_settings_bv.json"
-                )
+                ).__enter__()
             elif isinstance(self.model, LeftVentricle):
                 file_path = resource_path(
                     "ansys.heart.writer", "templates/system_model_settings_lv.json"
-                )
+                ).__enter__()
 
             fid = open(file_path)
             sys_settings = json.load(fid)

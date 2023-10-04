@@ -26,7 +26,9 @@ URLS = {
 VALID_DATABASES = list(URLS.keys())
 DOWNLOAD_DIR = PurePath.joinpath(Path(__file__).parents[3], "downloads")
 
-PATH_TO_HASHTABLE = resource_path("ansys.heart.misc", "remote_repo_hash_table_sha256.json")
+PATH_TO_HASHTABLE = resource_path(
+    "ansys.heart.misc", "remote_repo_hash_table_sha256.json"
+).__enter__()
 
 
 def _format_download_urls():

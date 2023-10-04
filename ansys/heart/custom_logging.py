@@ -14,6 +14,9 @@ from typing import Any
 class Logger:
     """Logger class.
 
+    .. deprecated:: 0.1.0
+    Use :func:`ansys.heart.core.logging` instead.
+
     Methods
     -------
     set_level(level)

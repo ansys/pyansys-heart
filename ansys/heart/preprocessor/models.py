@@ -1,5 +1,8 @@
 """Module containing classes for the various heart models."""
 import json
+
+# from ansys.heart import LOG as LOGGER
+import logging
 import os
 
 # import json
@@ -7,7 +10,7 @@ import pathlib
 import pickle
 from typing import List, Union
 
-from ansys.heart.custom_logging import LOGGER
+LOGGER = logging.getLogger("pyheart_global.preprocessor")
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher
 from ansys.heart.preprocessor.mesh.objects import (
@@ -640,20 +643,26 @@ class HeartModel:
 
         """
         # NOTE: need to suppress some vtk errors in pickled pyvista objects.
-        # change the verbosity in the vtk logger and suppress the python logger.
+        # change the verbosity in the vtk loggerger and suppress the python logger.
+        import copy
         import logging
 
         import vtk
 
-        logger = logging.getLogger()
-        logger.disabled = True
+        logger = copy.deepcopy(logging.getLogger("pyheart_global"))
+        # setting propagate to False is workaround for VTK changing log behavior
+        logger.propagate = False
+
         # to suppress vtk errors
         vtk_logger = vtk.vtkLogger
         vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_OFF)
         with open(filename, "rb") as file:
             model = pickle.load(file)
-        logger.disabled = False
-        vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_1)
+
+        # logger = logging.getLogger("pyheart_global.preprocessor")
+
+        # logger.disabled = False
+        # vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_1)
         return model
 
     def _set_default_mesh_size(self) -> None:

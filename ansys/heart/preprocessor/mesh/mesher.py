@@ -1,10 +1,11 @@
 """Module contains methods for interaction with Fluent meshing."""
 import glob
+import logging
 import os
 import shutil
 import subprocess
 
-from ansys.heart.custom_logging import LOGGER
+LOGGER = logging.getLogger("pyheart_global.preprocessor")
 from ansys.heart.preprocessor._load_template import load_template
 import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401
 import numpy as np
@@ -103,7 +104,7 @@ def mesh_heart_model_by_fluent(
         mode="meshing",
         precision="double",
         processor_count=num_cpus,
-        start_transcript=True,
+        start_transcript=False,
         show_gui=show_gui,
         product_version=_fluent_version,
     )
@@ -116,9 +117,13 @@ def mesh_heart_model_by_fluent(
     max_size = mesh_size
     growth_rate_wrap = 1.2
 
+    session.transcript.start(
+        os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
+    )
+
     # import files
     session.tui.file.import_.cad("no " + work_dir_meshing + " part_*.stl yes 40 yes mm")
-    session.tui.file.start_transcript(work_dir_meshing, "fluent_meshing.log")
+    # session.transcript.start
     session.tui.objects.merge("'(*) heart")
     session.tui.objects.labels.create_label_per_zone("heart '(*)")
     session.tui.diagnostics.face_connectivity.fix_free_faces("objects '(*) merge-nodes yes 1e-3")

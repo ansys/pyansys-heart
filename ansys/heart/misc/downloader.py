@@ -8,13 +8,14 @@ from pathlib import Path, PurePath
 import typing
 import warnings
 
+from ansys.heart import LOG as LOGGER
 import pkg_resources
 from tqdm import tqdm
 
 try:
     import wget  # type: ignore
 except ImportError:
-    warnings.warn("wget not installed but required. Please install by: pip install wget")
+    LOGGER.warning("wget not installed but required. Please install by: pip install wget")
 
 
 URLS = {
@@ -161,7 +162,7 @@ def unpack_case(tar_path: Path):
         tar_ball.extractall(path=tar_dir)
         return True
     except:
-        print("Unpacking failed...")
+        LOGGER.error("Unpacking failed...")
         return False
 
 
@@ -173,7 +174,7 @@ def download_all_cases():
         num_cases = subdict["num_cases"]
         download_dir = PurePath.joinpath(DOWNLOAD_DIR)
         for ii in range(1, num_cases + 1):
-            print("Downloading {0} : {1}".format(database_name, ii))
+            LOGGER.info("Downloading {0} : {1}".format(database_name, ii))
             path_to_tar_file = download_case(database_name, ii, download_dir)
             tar_files = tar_files + path_to_tar_file
     return tar_files
@@ -200,4 +201,4 @@ if __name__ == "__main__":
     )
     unpack_case(save_path)
 
-    print("Protected")
+    LOGGER.info("Protected")

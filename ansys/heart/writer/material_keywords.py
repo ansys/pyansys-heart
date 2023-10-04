@@ -9,8 +9,11 @@ Mat077
 MatNull
 
 """
+import logging
+
 from ansys.dyna.keywords import keywords
-from ansys.heart.custom_logging import LOGGER
+
+LOGGER = logging.getLogger("pyheart_global.writer")
 
 # import custom keywords in separate namespace
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords

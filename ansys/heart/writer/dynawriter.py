@@ -7,12 +7,16 @@ Uses a HeartModel (from ansys.heart.preprocessor.models).
 """
 import copy
 import json
+
+# import missing keywords
+import logging
 import os
 import time
 from typing import List, Literal
 
 from ansys.dyna.keywords import keywords
-from ansys.heart.custom_logging import LOGGER
+
+LOGGER = logging.getLogger("pyheart_global.writer")
 from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.models import (
@@ -23,8 +27,6 @@ from ansys.heart.preprocessor.models import (
     LeftVentricle,
 )
 from ansys.heart.simulator.settings.settings import SimulationSettings
-
-# import missing keywords
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 from ansys.heart.writer.heart_decks import (
     BaseDecks,

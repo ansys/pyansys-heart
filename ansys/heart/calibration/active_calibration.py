@@ -5,6 +5,7 @@ import shutil
 import sys
 import textwrap
 
+from ansys.heart import LOG as LOGGER
 from ansys.heart.calibration.ivc import IVCSimulator
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 from ansys.heart.preprocessor.models import HeartModel
@@ -45,7 +46,7 @@ class ActiveCalibration:
 
         zerop_folder = os.path.join(pathlib.Path(model_path).parent, "zeropressure")
         if not os.path.isdir(zerop_folder):
-            print("A zeropressure must be present.")
+            LOGGER.error("A zeropressure must be present.")
             exit()
         else:
             self.zerop_path = zerop_folder

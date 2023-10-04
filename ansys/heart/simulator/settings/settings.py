@@ -3,7 +3,9 @@
 import copy
 from dataclasses import asdict, dataclass
 import json
+import os
 import pathlib
+from typing import List, Literal
 
 from ansys.heart import LOG as LOGGER
 from ansys.heart.simulator.settings.defaults import mechanics as mech_defaults
@@ -583,6 +585,251 @@ def _get_consistent_units_str(dimensions: set):
             "{:s}**{:d}".format(_base_quantity_unit_mapper[quantity], dimensions[quantity])
         )
     return "*".join(_to_units)
+
+
+class DynaSettings:
+    """Class for collecting, managing and validating LS-DYNA settings."""
+
+    def __init__(
+        self,
+        lsdyna_path: pathlib.Path,
+        dynatype: Literal["smp", "intelmpi", "platformmpi", "msmpi"] = "intelmpi",
+        num_cpus: int = 1,
+        platform: Literal["windows", "wsl", "linux"] = "windows",
+        dyna_options: str = "",
+        mpi_options: str = "",
+    ):
+        """Initialize Dyna settings.
+
+        Parameters
+        ----------
+        lsdyna_path : Path
+            Path to LS-DYNA
+        dynatype : Literal[&quot;smp&quot;, &quot;intelmpi&quot;, &quot;platformmpi&quot;]
+            Type of LS-DYNA executable. Shared Memory Parallel or Massively Parallel Processing
+        num_cpus : int, optional
+            Number of CPU's requested, by default 1
+        platform : Literal[&quot;windows&quot;, &quot;wsl&quot;, &quot;linux&quot;], optional
+            Platform, by default "windows"
+        dyna_options : str, optional
+            Additional command line options, by default ''
+        mpi_options : str, optional
+            Additional mpi options, by default ''
+        """
+        self.lsdyna_path: pathlib.Path = lsdyna_path
+        """Path to LS-DYNA executable."""
+        self.dynatype: str = dynatype
+        """Type of dyna executable."""
+        self.num_cpus: int = num_cpus
+        """Number of CPU's requested."""
+        self.platform: str = platform
+        """Platform on which dyna is executed."""
+
+        self.dyna_options = dyna_options
+        """Additional command line options for dyna."""
+
+        if dynatype in ["intelmpi", "platformmpi", "msmpi"]:
+            self.mpi_options = mpi_options
+            """additional mpi options."""
+        elif dynatype == "smp":
+            self.mpi_options = ""
+
+        return
+
+    def get_commands(self, path_to_input: pathlib.Path) -> List[str]:
+        """Get command line arguments from the defined settings.
+
+        Parameters
+        ----------
+        path_to_input : pathlib.Path
+            Path to the LS-DYNA input file.
+
+        Returns
+        -------
+        List[str]
+            List of strings of each of the commands.
+        """
+        import subprocess
+
+        lsdyna_path = self.lsdyna_path
+
+        if self.platform == "windows" or self.platform == "linux":
+            if self.dynatype in ["intelmpi", "platformmpi"]:
+                commands = [
+                    "mpirun",
+                    self.mpi_options,
+                    "-np",
+                    str(self.num_cpus),
+                    lsdyna_path,
+                    "i=" + path_to_input,
+                    self.dyna_options,
+                ]
+            elif self.dynatype in ["smp"]:
+                commands = [
+                    lsdyna_path,
+                    "i=" + path_to_input,
+                    "ncpu=" + str(self.num_cpus),
+                    self.dyna_options,
+                ]
+        if self.platform == "windows" and self.dynatype == "msmpi":
+            commands = [
+                "mpiexec",
+                self.mpi_options,
+                "-np",
+                str(self.num_cpus),
+                lsdyna_path,
+                "i=" + path_to_input,
+                self.dyna_options,
+            ]
+
+        elif self.platform == "wsl":
+            path_to_input_wsl = (
+                subprocess.run(
+                    ["wsl", "wslpath", os.path.basename(path_to_input)], capture_output=1
+                )
+                .stdout.decode()
+                .strip()
+            )
+            # redefines LS-DYNA path.
+            lsdyna_path = (
+                subprocess.run(
+                    ["wsl", "wslpath", str(lsdyna_path).replace("\\", "/")], capture_output=1
+                )
+                .stdout.decode()
+                .strip()
+            )
+
+            if self.dynatype in ["intelmpi", "platformmpi", "msmpi"]:
+                commands = [
+                    "mpirun",
+                    self.mpi_options,
+                    "-np",
+                    str(self.num_cpus),
+                    lsdyna_path,
+                    "i=" + path_to_input_wsl,
+                    self.dyna_options,
+                ]
+            elif self.dynatype in ["smp"]:
+                commands = [
+                    lsdyna_path,
+                    "i=" + path_to_input_wsl,
+                    "ncpu=" + str(self.num_cpus),
+                    self.dyna_options,
+                ]
+
+            with open("run_lsdyna.sh", "w", newline="\n") as f:
+                f.write("#!/usr/bin/env sh\n")
+                f.write("echo start lsdyna in wsl...\n")
+                f.write(" ".join([i.strip() for i in commands]))
+
+            commands = ["powershell", "-Command", "wsl", "-e", "bash", "-lic", "./run_lsdyna.sh"]
+
+        # remove empty strings from commands
+        commands = [c for c in commands if c != ""]
+
+        # expand any environment variables if any
+        commands = [os.path.expandvars(c) for c in commands]
+
+        return commands
+
+    def _set_env_variables(self):
+        r"""Try to set environment variables for MPI run using Ansys installation root directories.
+
+        Notes
+        -----
+        This is based on lsdynaintelvar.bat and lsdynamsvar.bat in
+        ANSYS Inc\v231\ansys\bin\winx64\lsprepost48\LS-Run 1.0
+        and requires you to install the MPI libraries with the Ansys installer.
+        """
+        # get latest installed Ansys version
+        env_variables = list(os.environ.keys())
+        ansys_env_roots = sorted([k for k in env_variables if "AWP_ROOT" in k])
+        ansys_env_roots.reverse()
+
+        if self.platform == "windows":
+            platform = "winx64"
+        elif self.platform == "linux":
+            platform = "linx64"
+
+        if self.dynatype in "intelmpi":
+            INTEL_CMP_REV = "2019.5.281"
+            INTEL_MKL_REV = "2020.0.166"
+            INTEL_MPI_REV = "2018.3.210"
+
+            if os.getenv("MPI_ROOT"):
+                LOGGER.warning(
+                    "MPI_ROOT already defined. Not trying to automatically set MPI env variables."
+                )
+                return
+
+            for root in ansys_env_roots:
+                mpi_root = os.path.join(
+                    os.getenv(root), "commonfiles", "MPI", "Intel", INTEL_MPI_REV, platform
+                )
+                mpi_path = os.path.join(mpi_root, "bin")
+                mkl_path = os.path.join(os.getenv(root), "tp", "IntelMKL", INTEL_MKL_REV, platform)
+                cmp_path = os.path.join(
+                    os.getenv(root), "tp", "IntelCompiler", INTEL_CMP_REV, platform
+                )
+                for p in [mpi_root, mpi_path, mkl_path, cmp_path]:
+                    if not os.path.isdir(p):
+                        LOGGER.debug("Failed to set env variables with %s " % root)
+                        continue
+
+                LOGGER.info("Setting MPI environment variable MPI_ROOT to %s" % mpi_root)
+                LOGGER.info("Adding %s to PATH" % [mpi_path, mkl_path, cmp_path])
+
+                os.environ["MPI_ROOT"] = mpi_root
+                os.environ["PATH"] = (
+                    ";".join([mpi_path, mkl_path, cmp_path]) + ";" + os.environ["PATH"]
+                )
+                os.environ["I_MPI_AUTH_METHOD"] = "delegate"
+                os.environ["KMP_AFFINITY"] = "verbose"
+                break
+
+        elif self.dynatype == "msmpi" and self.platform == "windows":
+            INTEL_CMP_REV = "2019.5.281"
+            INTEL_MKL_REV = "2020.0.166"
+            MS_MPI_REV = "10.1.12498.18"
+
+            if os.getenv("MPI_ROOT"):
+                LOGGER.warning(
+                    "MPI_ROOT already defined. Not trying to automatically set MPI env variables."
+                )
+                return
+
+            for root in ansys_env_roots:
+                mpi_root = os.path.join(
+                    os.getenv(root), "commonfiles", "MPI", "Microsoft", MS_MPI_REV, platform
+                )
+                mpi_path = os.path.join(mpi_root, "bin")
+                mkl_path = os.path.join(os.getenv(root), "tp", "IntelMKL", INTEL_MKL_REV, platform)
+                cmp_path = os.path.join(
+                    os.getenv(root), "tp", "IntelCompiler", INTEL_CMP_REV, platform
+                )
+                for p in [mpi_root, mpi_path, mkl_path, cmp_path]:
+                    if not os.path.isdir(p):
+                        LOGGER.debug("Failed to set env variables with %s " % root)
+                        continue
+
+                LOGGER.info("Setting MPI environment variable MPI_ROOT to %s" % mpi_root)
+                LOGGER.info("Adding %s to PATH" % [mpi_path, mkl_path, cmp_path])
+
+                os.environ["MPI_ROOT"] = mpi_root
+                os.environ["PATH"] = (
+                    ";".join([mpi_path, mkl_path, cmp_path]) + ";" + os.environ["PATH"]
+                )
+                break
+
+        elif self.dynatype == "platformmpi":
+            LOGGER.error("Automatically setting env variables for platform mpi not implemented yet")
+            return
+
+        return
+
+    def __repr__(self):
+        """Represent self as string."""
+        return yaml.dump(vars(self), allow_unicode=True, default_flow_style=False)
 
 
 if __name__ == "__main__":

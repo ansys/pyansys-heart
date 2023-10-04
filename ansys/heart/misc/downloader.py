@@ -3,13 +3,14 @@
 Auto downloads cases from the remote repositories of Strocchi et al 2020,
 and Cristobal et al 2021."""
 
+# from importlib.resources import files
+from importlib.resources import path as resource_path
 import os
 from pathlib import Path, PurePath
 import typing
 import warnings
 
 from ansys.heart import LOG as LOGGER
-import pkg_resources
 from tqdm import tqdm
 
 try:
@@ -24,9 +25,8 @@ URLS = {
 }
 VALID_DATABASES = list(URLS.keys())
 DOWNLOAD_DIR = PurePath.joinpath(Path(__file__).parents[3], "downloads")
-PATH_TO_HASHTABLE = pkg_resources.resource_filename(
-    "ansys.heart.misc", "remote_repo_hash_table_sha256.json"
-)
+
+PATH_TO_HASHTABLE = resource_path("ansys.heart.misc", "remote_repo_hash_table_sha256.json")
 
 
 def _format_download_urls():

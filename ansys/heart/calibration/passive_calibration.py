@@ -1,4 +1,6 @@
 """Calibration passive material parameter by Klotz curve."""
+# from importlib.resources import files
+from importlib.resources import path as resource_path
 import json
 import os
 import shutil
@@ -10,7 +12,6 @@ from ansys.heart.preprocessor.models import HeartModel
 from ansys.heart.simulator.settings import settings
 from ansys.heart.simulator.simulator import MechanicsSimulator
 import numpy as np
-import pkg_resources
 
 
 class PassiveCalibration:
@@ -70,7 +71,7 @@ class PassiveCalibration:
         os.makedirs(work_directory)
         # LSOPT project file
         shutil.copy(
-            pkg_resources.resource_filename("ansys.heart.calibration", "PassiveCalibration.lsopt"),
+            resource_path("ansys.heart.calibration", "PassiveCalibration.lsopt"),
             os.path.join(work_directory, "PassiveCalibration.lsopt"),
         )
 

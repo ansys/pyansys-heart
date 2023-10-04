@@ -6,14 +6,15 @@ import shutil
 import subprocess
 
 LOGGER = logging.getLogger("pyheart_global.preprocessor")
+# from importlib.resources import files
+from importlib.resources import path as resource_path
+
 from ansys.heart.preprocessor._load_template import load_template
 import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401
 import numpy as np
 
-# from pkg_resources import resource_filename
-import pkg_resources
+_template_directory = resource_path("ansys.heart.preprocessor", "templates")
 
-_template_directory = pkg_resources.resource_filename("ansys.heart.preprocessor", "templates")
 
 _fluent_version = "22.2.0"
 
@@ -44,8 +45,8 @@ def mesh_heart_model_by_fluent(
     os.chdir(working_directory)
 
     if add_blood_pool:
-        path_to_blood_pool_script = pkg_resources.resource_filename(
-            "ansys.heart.preprocessor", "templates/fluent_meshing_add_blood_mesh_template.jou"
+        path_to_blood_pool_script = os.path.join(
+            _template_directory, "fluent_meshing_add_blood_mesh_template.jou"
         )
         f = open(path_to_blood_pool_script, "r")
         blood_pool_script = "".join(f.readlines())

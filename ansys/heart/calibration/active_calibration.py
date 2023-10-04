@@ -1,4 +1,6 @@
 """Calibration active material parameters."""
+# from importlib.resources import files
+from importlib.resources import path as resource_path
 import os
 import pathlib
 import shutil
@@ -11,7 +13,6 @@ from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 from ansys.heart.preprocessor.models import HeartModel
 from ansys.heart.simulator.settings import settings
 import numpy as np
-import pkg_resources
 
 
 class ActiveCalibration:
@@ -77,8 +78,9 @@ class ActiveCalibration:
         """
         os.makedirs(work_directory)
         # LSOPT project file
+
         shutil.copy(
-            pkg_resources.resource_filename("ansys.heart.calibration", "ActiveCalibration.lsopt"),
+            resource_path("ansys.heart.calibration", "ActiveCalibration.lsopt").__enter__(),
             os.path.join(work_directory, "ActiveCalibration.lsopt"),
         )
 

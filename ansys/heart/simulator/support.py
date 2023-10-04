@@ -1,8 +1,8 @@
 """Provide methods to support workflows."""
+import logging
 import os
 import pathlib as Path
 
-import logging
 LOGGER = logging.getLogger("pyheart_global.simulator")
 import ansys.heart.preprocessor.models as models
 

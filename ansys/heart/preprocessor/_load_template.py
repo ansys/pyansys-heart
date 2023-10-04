@@ -1,12 +1,12 @@
 #
 # Methods to configure jinja2 and load templates.
 #
+# import preprocessing
+import logging
 import os
 from pathlib import Path
 import posixpath
 
-# import preprocessing
-import logging
 LOGGER = logging.getLogger("pyheart_global.preprocessor")
 import jinja2
 

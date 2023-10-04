@@ -5,10 +5,10 @@ Such as a Mesh object, Part object, Features, etc.
 
 """
 import copy
+import logging
 import pathlib
 from typing import List, Optional, Tuple, Union
 
-import logging
 LOGGER = logging.getLogger("pyheart_global.preprocessor")
 import ansys.heart.preprocessor.mesh.connectivity as connect
 import ansys.heart.preprocessor.mesh.geodisc as geodisc

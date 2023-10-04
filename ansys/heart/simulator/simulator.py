@@ -10,12 +10,12 @@ Options for simulation:
 """
 import copy
 import glob as glob
+import logging
 import os
 import pathlib as Path
 import shutil
 import subprocess
 
-import logging
 LOGGER = logging.getLogger("pyheart_global.simulator")
 from ansys.heart.misc.element_orth import read_orth_element_kfile
 from ansys.heart.postprocessor.auto_process import mech_post, read_uvc, zerop_post

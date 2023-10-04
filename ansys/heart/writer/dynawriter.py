@@ -7,14 +7,15 @@ Uses a HeartModel (from ansys.heart.preprocessor.models).
 """
 import copy
 import json
+
+# import missing keywords
+import logging
 import os
 import time
 from typing import List
 
 from ansys.dyna.keywords import keywords
 
-# import missing keywords
-import logging
 LOGGER = logging.getLogger("pyheart_global.writer")
 from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods

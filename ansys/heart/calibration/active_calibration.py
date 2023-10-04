@@ -5,8 +5,8 @@ import shutil
 import sys
 import textwrap
 
-from ansys.heart.calibration.ivc import IVCSimulator
 from ansys.heart import LOG as LOGGER
+from ansys.heart.calibration.ivc import IVCSimulator
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 from ansys.heart.preprocessor.models import HeartModel
 from ansys.heart.simulator.settings import settings

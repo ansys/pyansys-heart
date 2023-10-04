@@ -1,10 +1,10 @@
 """Module contains methods for interaction with Fluent meshing."""
 import glob
+import logging
 import os
 import shutil
 import subprocess
 
-import logging
 LOGGER = logging.getLogger("pyheart_global.preprocessor")
 from ansys.heart.preprocessor._load_template import load_template
 import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401

@@ -1,9 +1,9 @@
 """Module containing methods for mesh connectivity."""
 
 import copy
+import logging
 from typing import Optional, Tuple, Union
 
-import logging
 LOGGER = logging.getLogger("pyheart_global.preprocessor")
 import numpy as np
 

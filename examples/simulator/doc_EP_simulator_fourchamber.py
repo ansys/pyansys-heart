@@ -42,7 +42,6 @@ if not os.path.isfile(path_to_model):
 
 # specify LS-DYNA path
 lsdyna_path = "ls-dyna_smp_d.exe"
-lsdyna_path = r"D:\development\dyna-versions\smp_104373\ls-dyna_smp_d_Dev_104373-g6d20c20aee_winx64_ifort190.exe"
 
 if not os.path.isfile(lsdyna_path):
     raise FileExistsError(f"{lsdyna_path} not found.")

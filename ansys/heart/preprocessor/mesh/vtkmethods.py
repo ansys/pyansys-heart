@@ -4,7 +4,8 @@ import os
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
-from ansys.heart import LOG as LOGGER
+import logging
+LOGGER = logging.getLogger("pyheart_global.preprocessor")
 from ansys.heart.preprocessor.mesh.fluenthdf5 import add_solid_name_to_stl
 import meshio
 import numpy as np

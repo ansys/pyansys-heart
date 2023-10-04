@@ -3,7 +3,8 @@
 import copy
 from typing import Optional, Tuple, Union
 
-from ansys.heart import LOG as LOGGER
+import logging
+LOGGER = logging.getLogger("pyheart_global.preprocessor")
 import numpy as np
 
 

@@ -6,7 +6,8 @@ from pathlib import Path
 import posixpath
 
 # import preprocessing
-from ansys.heart import LOG as LOGGER
+import logging
+LOGGER = logging.getLogger("pyheart_global.preprocessor")
 import jinja2
 
 # Shared Jinja environment

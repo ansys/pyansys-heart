@@ -519,7 +519,7 @@ class HeartModel:
             plotter.add_mesh(self.mesh, show_edges=show_edges, scalars="tags")
 
         plotter.show()
-        return
+        return 
 
     def plot_fibers(self, n_seed_points: int = 1000, plot_raw_mesh: bool = False):
         """Plot the mesh and fibers as streamlines.
@@ -1706,7 +1706,65 @@ class BiVentricle(HeartModel):
 
         super().__init__(info)
         pass
+    
 
+    # def define_ECG_coordinates(self,heart_template:vtktype,list_of_points: [Point()])->[Point()]:
+    def define_ECG_coordinates(self, move_points: pv.core.pointset.UnstructuredGrid, electrodes_points: [Point()]) -> [Point()]:
+    # def define_ECG_coordinates(self):
+        # print("works!!!")
+        from scipy.optimize import minimize
+        from scipy.spatial.transform import Rotation
+        
+        # Extract cap centroids from the left and right ventricles
+        fix_points = [cap.centroid for cap in self.left_ventricle.caps]
+        fix_points += [cap.centroid for cap in self.right_ventricle.caps]
+
+        # Extract apex coordinates from the left and right ventricles
+        fix_points += [apex.xyz for apex in self.left_ventricle.apex_points]
+        fix_points += [apex.xyz for apex in self.right_ventricle.apex_points]
+
+        # Convert the list of points to a NumPy array
+        fix_points = np.array(fix_points)
+        # moving_model = heart_template
+
+        # Define the initial transformation parameters
+        random_quaternion = Rotation.random().as_quat()
+        initial_params = np.zeros(7)
+        initial_params[:3] = np.random.rand(3)  # Random translation
+        initial_params[3:] = random_quaternion
+
+        # Constrain quaternion components to ensure they remain valid
+        constraints = ({'type': 'eq', 'fun': lambda params: 1.0 - np.sum(params[3:] ** 2)})
+
+        # Define the rigid transform function
+        def rigid_transform(params, points):
+            translation = params[:3]
+            quaternion = params[3:]
+            quaternion /= np.linalg.norm(quaternion)
+            rotation_matrix = Rotation.from_quat(quaternion).as_matrix()
+            transformed_points = np.dot(points - translation, rotation_matrix.T)
+            return transformed_points
+
+        # Define the objective function
+        def objective_function(params, fixed_points, moving_points):
+            transformed_points = rigid_transform(params, moving_points)
+            distance = np.sum(np.square(transformed_points - fixed_points))
+            return distance
+
+        # 进行最小化优化
+        result = minimize(objective_function, initial_params, args=(fix_points, move_points), method='L-BFGS-B', constraints=constraints)
+
+        # 获取最优参数
+        optimal_params = result.x
+
+        # 获取刚性变换后的移动模型点云
+        transformed_electrodes = rigid_transform(optimal_params, electrodes_points)
+        
+        return transformed_electrodes
+
+
+    
+    
 
 class FourChamber(HeartModel):
     """Model of the left/right ventricle and left/right atrium."""

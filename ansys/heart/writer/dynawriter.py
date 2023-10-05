@@ -17,6 +17,9 @@ from typing import List, Literal
 from ansys.dyna.keywords import keywords
 
 LOGGER = logging.getLogger("pyheart_global.writer")
+# from importlib.resources import files
+from importlib.resources import path as resource_path
+
 from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.models import (
@@ -59,7 +62,6 @@ from ansys.heart.writer.material_keywords import (
 from ansys.heart.writer.system_models import _ed_load_template, define_function_windkessel
 import numpy as np
 import pandas as pd
-import pkg_resources
 import pyvista as pv
 
 
@@ -1635,14 +1637,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 "supports the Closed Loop circulation model!"
             )
             if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-                file_path = pkg_resources.resource_filename(
+                file_path = resource_path(
                     "ansys.heart.writer", "templates/system_model_settings_bv.json"
-                )
-
+                ).__enter__()
             elif isinstance(self.model, LeftVentricle):
-                file_path = pkg_resources.resource_filename(
+                file_path = resource_path(
                     "ansys.heart.writer", "templates/system_model_settings_lv.json"
-                )
+                ).__enter__()
 
             fid = open(file_path)
             sys_settings = json.load(fid)

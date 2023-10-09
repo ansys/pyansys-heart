@@ -53,7 +53,7 @@ jobs:
       # Login to Github container registry and pull Fluent image. if image-cach doesn't exist
       - name: Login to GitHub Container Registry
         # if: steps.image-cache.outputs.cache-hit != 'true'
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ secrets.GH_USERNAME }}
@@ -83,7 +83,7 @@ jobs:
       - name: Test PyFluent launch
         continue-on-error: false
         run: |
-          python -m pytest tests/heart/test_pyfluent.py
+          python -m pytest -v tests/heart/preprocessor/test_pyfluent.py
 
       - name: Cache large files
         id: cache-strocchi
@@ -92,27 +92,13 @@ jobs:
           cache-name: cache-strocchi
         with:
           # cache the case file that will be downloaded in tests/heart/assets/cases/Strocchi2020
-          path: /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/Strocchi2020
+          path: /home/runner/work/PyAnsys-Heart/PyAnsys-Heart/tests/heart/assets/cases/Strocchi2020
           key: ${{ runner.os }}-build-${{ env.cache-name }}
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}
 
-      - name: Cache file check
-        continue-on-error: true
-        run: ls -R -lh /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/Strocchi2020
-
-      - name: Test biventricle model generation 1
+      - name: Test model generation
         continue-on-error: false
         run: |
-          python -m pytest tests/heart/test_biventricle_mesh_extraction.py
-          ls -R -lh /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/
-
-      # - name: Test biventricle model generation 2
-      #   continue-on-error: false
-      #   run: |
-      #     python -m pytest tests/heart/test_biventricle_mesh_extraction_with_bloodpool.py
-
-      - name: Test full heart model generation
-        continue-on-error: false
-        run: |
-          python -m pytest tests/heart/test_fullheart_mesh_extraction.py
+          #  Run all tests that require fluent
+          python -m pytest -v -m "requires_fluent and not local"

@@ -2,13 +2,13 @@
 
 UHC example
 --------------------
-This example shows how to compute universal heart coordinate for a BiVentricle heart model.
+This example shows how to compute universal heart coordinate for ventricles.
 """
 ###############################################################################
 # Perform the required imports
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Import the required modules and set relevant paths, including that of the working
-# directory, model, and ls-dyna executable.
+# directory, model, and ls-dyna executable (uses DEV-104373-g6d20c20aee).
 
 # sphinx_gallery_start_ignore
 # Note that we need to put the thumbnail here to avoid weird rendering in the html page.
@@ -20,12 +20,12 @@ import os
 from pathlib import Path
 
 import ansys.heart.preprocessor.models as models
-from ansys.heart.simulator.simulator import BaseSimulator
+from ansys.heart.simulator.simulator import BaseSimulator, DynaSettings
 import pyvista as pv
 
 # set working directory and path to model.
 workdir = Path(
-    Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "BiVentricle"
+    Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "FourChamber"
 )
 
 path_to_model = os.path.join(workdir, "heart_model.pickle")
@@ -34,8 +34,7 @@ if not os.path.isfile(path_to_model):
     raise FileExistsError(f"{path_to_model} not found")
 
 # specify LS-DYNA path
-lsdyna_path = "ls-dyna_smp_d.exe"
-
+lsdyna_path = r"ls-dyna_smp"
 
 if not os.path.isfile(lsdyna_path):
     raise FileExistsError(f"{lsdyna_path} not found.")
@@ -51,13 +50,17 @@ model.info.workdir = str(workdir)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # instantiate simulator. Change options where necessary.
 
-simulator = BaseSimulator(
-    model=model,
-    lsdynapath=lsdyna_path,
+# instantaiate dyna settings of choice
+dyna_settings = DynaSettings(
+    lsdyna_path=lsdyna_path,
     dynatype="smp",
     num_cpus=1,
+)
+
+simulator = BaseSimulator(
+    model=model,
+    dyna_settings=dyna_settings,
     simulation_directory=os.path.join(workdir, "simulation"),
-    platform="windows",
 )
 
 ###############################################################################
@@ -99,5 +102,19 @@ plotter.show()
 
 ###############################################################################
 # .. image:: /_static/images/uvc_result.png
+#   :width: 600pt
+#   :align: center
+
+###############################################################################
+# Assign data to full model
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# UVC is assigned back to full model automatically
+# Atrial points are with NaN
+model.mesh.set_active_scalars("apico-basal")
+model.mesh.plot()
+
+###############################################################################
+# .. image:: /_static/images/uvc_assign.png
 #   :width: 600pt
 #   :align: center

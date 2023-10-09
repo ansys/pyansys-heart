@@ -40,6 +40,39 @@ class D3plotReader:
         """Get initial coordinates."""
         return self.model.results.initial_coordinates.eval()[0].data
 
+    def plot_activation_times(self):
+        """Plot activation time."""
+        time_ids = self.model.metadata.time_freq_support.time_frequencies.scoping.ids
+        time_scoping = dpf.Scoping(ids=[time_ids[-1]], location=dpf.locations.time_freq)
+
+        op = dpf.Operator("lsdyna::ms::results")  # ls dyna EP operator
+        op.inputs.data_sources(self.ds)
+        op.inputs.time_scoping(time_scoping)
+        fields_container = op.eval()
+        activation_time_field = fields_container[10]
+        activation_time_field.plot()
+
+        # sub_fields_container: dpf.FieldsContainer = dpf.operators.utility.extract_sub_fc(
+        #     fields_container=full_fields_container,
+        #     label_space={"variable_id": 129},
+        # ).eval()
+        # sub_fields_container.animate()
+        # print(self.model.operator())
+
+        # type(self.model.results.displacement.eval())
+        # # op.inputs.time_scoping=time_scoping
+        # # op.inputs.data_sources=self.ds
+        # full_fields_container = op.eval()
+        # op.inputs.data_sources
+        # sub_fields_container = dpf.operators.utility.extract_sub_fc(
+        #     fields_container=full_fields_container,
+        #     label_space={"variable_id": 129},
+        # ).eval()
+
+        # res = []
+
+        return
+
     def get_displacement(self):
         """Get displacement."""
         displacements = self.model.results.displacement.on_all_time_freqs

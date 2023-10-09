@@ -519,7 +519,7 @@ class HeartModel:
             plotter.add_mesh(self.mesh, show_edges=show_edges, scalars="tags")
 
         plotter.show()
-        return 
+        return
 
     def plot_fibers(self, n_seed_points: int = 1000, plot_raw_mesh: bool = False):
         """Plot the mesh and fibers as streamlines.
@@ -1703,10 +1703,26 @@ class BiVentricle(HeartModel):
         """Right ventricle part."""
         self.septum: Part = Part(name="Septum", part_type="septum")
         """Septum."""
+        # self.electrodes = [Part(name=f"Electrode {i+1}", part_type="electrode") for i in range(10)]
+        self.electrodes = {}
+
+        """List of ten electrodes."""
 
         super().__init__(info)
         pass
     
+    def _add_electrode_positions(self, electrode_positions: np.ndarray) -> None:
+        """Add electrode positions to the electrodes list."""
+        self.electrodes = {
+            f"V{i+1}": position.tolist() for i, position in enumerate(electrode_positions[:6])
+        }
+        self.electrodes.update({
+            "RA": electrode_positions[6].tolist(),
+            "LA": electrode_positions[7].tolist(),
+            "RL": electrode_positions[8].tolist(),
+            "LL": electrode_positions[9].tolist(),
+        })
+
 
     # def define_ECG_coordinates(self,heart_template:vtktype,list_of_points: [Point()])->[Point()]:
     def define_ECG_coordinates(self, move_points: pv.core.pointset.UnstructuredGrid, electrodes_points: [Point()]) -> [Point()]:
@@ -1751,15 +1767,14 @@ class BiVentricle(HeartModel):
             distance = np.sum(np.square(transformed_points - fixed_points))
             return distance
 
-        # 进行最小化优化
         result = minimize(objective_function, initial_params, args=(fix_points, move_points), method='L-BFGS-B', constraints=constraints)
 
-        # 获取最优参数
         optimal_params = result.x
 
-        # 获取刚性变换后的移动模型点云
         transformed_electrodes = rigid_transform(optimal_params, electrodes_points)
         
+        self._add_electrode_positions(transformed_electrodes)
+
         return transformed_electrodes
 
 

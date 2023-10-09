@@ -1,8 +1,10 @@
+"""Example to pre-process data from Strocchi2020 and Cristobal2021."""
 import os
 from pathlib import Path
 
-from ansys.heart.misc.downloader import download_case, unpack_case
 import ansys.heart.preprocessor.models as models
+import ansys.heart.writer.dynawriter as writers
+from ansys.heart.misc.downloader import download_case, unpack_case
 
 import pyvista
 import numpy as np
@@ -12,7 +14,7 @@ from vtkmodules.vtkCommonDataModel import vtkIterativeClosestPointTransform
 
 os.environ["USE_OLD_HEART_MODELS"] = "1"
 
-# __file__ = r"c:\Users\xuhu\pyheart-lib\examples\preprocessor\doc_ECG_coordinates,py"
+# __file__ = r"c:\Users\xuhu\pyheart-lib\examples\preprocessor\doc_ECG_coordinates.py"
 
 case_file = str(
     Path(Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "01.case")
@@ -88,16 +90,45 @@ electrode_positions = np.array([
 
 transformed_electrodes = model.define_ECG_coordinates(move_points, electrode_positions)
 
-print(model.electrodes)
+# plotter = pyvista.Plotter()
 
-plotter = pyvista.Plotter()
+# plotter.add_mesh(model.mesh,color="red", opacity=0.3)
+# # p2.add_mesh(electrode_positions, color="blue", opacity=0.3)
+# # p2.add_mesh(model.mesh, color="red", opacity=0.3)
+# plotter.add_mesh(transformed_electrodes, color="blue", opacity=1)
 
-plotter.add_mesh(model.mesh,color="red", opacity=0.3)
-# p2.add_mesh(electrode_positions, color="blue", opacity=0.3)
-# p2.add_mesh(model.mesh, color="red", opacity=0.3)
-plotter.add_mesh(transformed_electrodes, color="blue", opacity=1)
+# # Set the background color and show the plotter
+# plotter.background_color = "white"
+# plotter.show()
 
-# Set the background color and show the plotter
-plotter.background_color = "white"
-plotter.show()
 
+
+PROJECT_DIRECTORY = Path(__file__).absolute().parents[3]
+PATH_TO_CASE = os.path.join(PROJECT_DIRECTORY, "downloads\\Strocchi2020\\01\\01.case")
+WORKING_DIRECTORY = os.path.join(Path(PATH_TO_CASE).parent, "BiVentricle")
+
+write_lsdyna_files = True
+
+
+if write_lsdyna_files:
+    for writer in (
+        writers.ElectrophysiologyDynaWriter(model),
+    ):
+        exportdir = os.path.join(
+            writer.model.info.workdir,
+            "ECG",
+            writer.__class__.__name__.lower().replace("dynawriter", ""),
+        )
+
+        writer.update()
+
+        writer.export(exportdir)
+
+        writer.export_databases(
+            os.path.join(writer.model.info.workdir, "ECG")
+        )
+
+        writer.model.mesh.save(os.path.join(writer.model.info.workdir, "r.vtk"))
+        # writer.model.mesh.write_to_vtk(
+        #     os.path.join(writer.model.info.workdir, ".....vtk")
+        # )

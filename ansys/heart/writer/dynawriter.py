@@ -3083,6 +3083,16 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     stimamp=50.0,
                 )
             )
+            i = 0
+
+            self.model.electrodes.items
+            for _, position_list in self.model.electrodes.items():
+                x, y, z = position_list
+                self.kw_database.main.append(keywords.EmPointSet(psid=i, pstype=0, vx=x, vy=y, vz=z))
+                i += 1
+
+            self.kw_database.main.append(keywords.EmEpEkg(ekgid=1, psid=1))
+
             # if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             #     self.model.left_atrium.apex_points
         if isinstance(self.model, (FourChamber, FullHeart)):
@@ -3115,8 +3125,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
             # if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             #     self.model.left_atrium.apex_points
-            self.kw_database.main.append(keywords.EmPointSet(psid=1, pstype=0))
-            self.kw_database.main.append(keywords.EmEpEkg(ekgid=1, psid=1))
+            
         elif isinstance(self.model, LeftVentricle):
             node_apex_left = self.model.left_ventricle.apex_points[0].node_id
 

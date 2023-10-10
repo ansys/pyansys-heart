@@ -237,7 +237,7 @@ def read_uvc(
     return grid
 
 
-def orthogonalization(grid):
+def orthogonalization(grid) -> pv.UnstructuredGrid:
     """Gram–Schmidt orthogonalization."""
     norm = np.linalg.norm(grid["grad_trans"], axis=1)
     bad_cells = np.argwhere(norm == 0).ravel()
@@ -265,7 +265,7 @@ def orthogonalization(grid):
     return grid
 
 
-def get_gradient(directory, field_list: List[str]):
+def get_gradient(directory, field_list: List[str]) -> pv.UnstructuredGrid:
     """Read thermal fields from d3plot and compute gradient."""
     data = D3plotReader(os.path.join(directory, field_list[0] + ".d3plot"))
     grid = data.model.metadata.meshed_region.grid
@@ -274,22 +274,24 @@ def get_gradient(directory, field_list: List[str]):
         data = D3plotReader(os.path.join(directory, name + ".d3plot"))
         t = data.model.results.temperature.on_last_time_freq.eval()[0].data
         grid[name] = t[::3]
-        grid.set_active_scalars(name)
+        # grid.set_active_scalars(name)
 
     # note vtk gradient method shows warning/error for some cells
-    grid = grid.point_data_to_cell_data()
+    grid2 = grid.point_data_to_cell_data()
     for name in field_list:
-        res = grid.compute_derivative(scalars=name, gradient="grad_" + name)["grad_" + name]
-        grid["grad_" + name] = res
-    # grid.save(os.path.join(directory, "res.vtk"))
+        derivative = grid2.compute_derivative(scalars=name, preference="cell")
+        res = derivative["gradient"]
+        grid2["grad_" + name] = res
 
-    return grid
+    grid2.save("gradient.vtk")
+
+    return grid2
 
 
-def compute_la_fiber_cs(directory):
+def compute_la_fiber_cs(directory) -> pv.UnstructuredGrid:
     """Compute left atrium fibers coordinate system."""
 
-    def bundle_selection(grid):
+    def bundle_selection(grid) -> pv.UnstructuredGrid:
         """Left atrium bundle selection."""
         # grid = pv.read(os.path.join(directory, "res.vtk"))
 
@@ -322,8 +324,7 @@ def compute_la_fiber_cs(directory):
 
     grid = get_gradient(directory, field_list=["trans", "ab", "v", "r"])
     # TODO sometimes, pv object broken when pass directly
-    grid.save("la_fiber.vtk")
-    grid = pv.read("la_fiber.vtk")
+    grid = pv.read("gradient.vtk")
 
     grid = bundle_selection(grid)
 
@@ -336,10 +337,10 @@ def compute_la_fiber_cs(directory):
     return grid
 
 
-def compute_ra_fiber_cs(directory):
+def compute_ra_fiber_cs(directory) -> pv.UnstructuredGrid:
     """Compute right atrium fibers coordinate system."""
 
-    def bundle_selection(grid):
+    def bundle_selection(grid) -> pv.UnstructuredGrid:
         """Left atrium bundle selection."""
         # Ideal RA geometry
         tao_tv = 0.9
@@ -432,8 +433,7 @@ def compute_ra_fiber_cs(directory):
 
     grid = get_gradient(directory, field_list=["trans", "ab", "v", "r", "w"])
 
-    grid.save("ra_fiber.vtk")
-    grid = pv.read("ra_fiber.vtk")
+    grid = pv.read("gradient.vtk")
 
     grid = bundle_selection(grid)
 

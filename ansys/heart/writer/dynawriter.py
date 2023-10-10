@@ -3550,9 +3550,21 @@ class UHCWriter(BaseDynaWriter):
         atrium["point_ids_tmp"] = np.arange(0, atrium.n_points, dtype=int)
         slice = atrium.slice(origin=cut_center, normal=cut_normal)
         crinkled = atrium.extract_cells(np.unique(slice["cell_ids_tmp"]))
+
+        # After cut, select the top region
         x = crinkled.connectivity()
-        # Normally top part is the largest part, Region Id should be 0
-        mask = x.point_data["RegionId"] == 0
+        if np.max(x.point_data["RegionId"]) != 2:
+            LOGGER.error("Cannot find top node set for right atrium.")
+            exit()
+        for i in range(3):
+            share_nodes = np.any(
+                np.logical_and(x.point_data["tricuspid-valve"] == 1, x.point_data["RegionId"] == i)
+            )
+            # This region has no shared node with tricuspid valve
+            if not share_nodes:
+                mask = x.point_data["RegionId"] == i
+                break
+
         top_ids = x["point_ids_tmp"][mask]
 
         atrium.cell_data.remove("cell_ids_tmp")

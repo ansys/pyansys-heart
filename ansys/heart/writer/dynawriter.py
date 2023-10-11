@@ -3086,15 +3086,31 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     stimamp=50.0,
                 )
             )
-            i = 0
 
-            self.model.electrodes.items
-            for _, position_list in self.model.electrodes.items():
+            psid = 1
+            pstype = 0
+
+            # EM_POINT_SET
+            em_point_set_content = "*EM_POINT_SET\n"
+            em_point_set_content += "$#    psid    pstype        vx        vy        vz\n"
+            em_point_set_content += f"{psid:>10d}{pstype:>10d}\n"
+            em_point_set_content += "$#     pid         x         y         z       pos"
+
+            self.kw_database.main.append(em_point_set_content)
+
+            for idx, (_, position_list) in enumerate(self.model.electrodes.items(), start=1):
                 x, y, z = position_list
-                self.kw_database.main.append(keywords.EmPointSet(psid=i, pstype=0, vx=x, vy=y, vz=z))
-                i += 1
+                position_str = f"{idx:>10d} {str(f'{x:9.6f}')[:9]} {str(f'{y:9.6f}')[:9]} {str(f'{z:9.6f}')[:9]}"
 
-            self.kw_database.main.append(keywords.EmEpEkg(ekgid=1, psid=1))
+                self.kw_database.main.append(position_str)
+
+            # EM_EP_EKG
+            em_ep_ekg_content = "*EM_EP_EKG\n"
+            em_ep_ekg_content += "$#   ekgid      psid\n"
+            em_ep_ekg_content += f"{1:>10d}{psid:>10d}\n" 
+
+            self.kw_database.main.append(em_ep_ekg_content)
+
 
             # if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             #     self.model.left_atrium.apex_points

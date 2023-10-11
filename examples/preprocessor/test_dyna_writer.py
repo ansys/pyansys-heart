@@ -5,12 +5,13 @@ from pathlib import Path
 import ansys.heart.preprocessor.models as models
 import ansys.heart.writer.dynawriter as writers
 from ansys.heart.misc.downloader import download_case, unpack_case
-
+from ansys.heart.simulator.simulator import run_lsdyna
 import pyvista
 import numpy as np
 import vtk
 
 from vtkmodules.vtkCommonDataModel import vtkIterativeClosestPointTransform
+from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
 
 os.environ["USE_OLD_HEART_MODELS"] = "1"
 
@@ -32,34 +33,25 @@ if not os.path.isfile(case_file):
     )
     unpack_case(path_to_downloaded_file)
 
+# info = models.ModelInfo(
+#     database="Strocchi2020",
+#     path_to_case=case_file,
+#     work_directory=workdir,
+#     path_to_model=path_to_model,
+#     add_blood_pool=False,
+#     mesh_size=1.5,
+# )
 
-info = models.ModelInfo(
-    database="Strocchi2020",
-    path_to_case=case_file,
-    work_directory=workdir,
-    path_to_model=path_to_model,
-    add_blood_pool=False,
-    mesh_size=1.5,
-)
 
+# # create the working directory
+# info.create_workdir()
+# # clean the working directory
+# info.clean_workdir(extensions_to_remove=[".stl", ".vtk", ".msh.h5"])
+# # dump information to stdout
+# info.dump_info()
 
-# create the working directory
-info.create_workdir()
-# clean the working directory
-info.clean_workdir(extensions_to_remove=[".stl", ".vtk", ".msh.h5"])
-# dump information to stdout
-info.dump_info()
+model: models.BiVentricle = models.BiVentricle.load_model(path_to_model)
 
-# instantiate a four chamber model
-model = models.BiVentricle(info)
-
-# extract the simulation mesh
-model.extract_simulation_mesh()
-
-# dump the model to disk for future use
-model.dump_model(path_to_model)
-# print the resulting information
-model.print_info()
 
 move_points = np.array([
     [81.90321388, 57.90000882, 205.76663367], # mitral-valve
@@ -114,21 +106,47 @@ if write_lsdyna_files:
     for writer in (
         writers.ElectrophysiologyDynaWriter(model),
     ):
-        exportdir = os.path.join(
-            writer.model.info.workdir,
-            "ECG",
-            writer.__class__.__name__.lower().replace("dynawriter", ""),
-        )
-
+        # exportdir = os.path.join(
+        #     writer.model.info.workdir,
+        #     "ECG",
+        #     writer.__class__.__name__.lower().replace("dynawriter", ""),
+        # )
+        
         writer.update()
 
-        writer.export(exportdir)
+        # writer.export(exportdir)
 
         writer.export_databases(
             os.path.join(writer.model.info.workdir, "ECG")
         )
 
-        writer.model.mesh.save(os.path.join(writer.model.info.workdir, "r.vtk"))
+        # writer.model.mesh.save(os.path.join(writer.model.info.workdir, "ECG", "electrode result.vtk"))
         # writer.model.mesh.write_to_vtk(
         #     os.path.join(writer.model.info.workdir, ".....vtk")
         # )
+
+
+
+
+# # specify LS-DYNA path
+# lsdyna_path = r"C:\temporary\1\test\ls-dyna_smp_d_Dev_103633-gcc846f4b4e_winx64_ifort190.exe"
+
+# if not os.path.isfile(lsdyna_path):
+#     raise FileExistsError(f"{lsdyna_path} not found.")
+
+# dyna_settings = DynaSettings(
+#     lsdyna_path=lsdyna_path,
+#     dynatype="smp",
+#     num_cpus=1,
+# )
+
+# run_lsdyna(
+#     path_to_input = os.path.join(
+#         writer.model.info.workdir, 
+#         "ECG", 
+#         "main.k"
+#     ),
+#     settings = dyna_settings,
+#     simulation_directory = os.path.join(workdir, "ECG", "simulation-EP"),
+# )
+

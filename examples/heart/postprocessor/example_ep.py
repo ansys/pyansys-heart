@@ -10,7 +10,7 @@ if __name__ == "__main__":
     results_path = r"path_to_simulation_results"
 
     postproc = EPpostprocessor(results_path=results_path, model=model)
-    postproc.read_EP_results()
+    postproc.read_EP_nodout()
 
     pl = pv.Plotter()
     pl.add_mesh(postproc.mesh, scalars="activation_time")

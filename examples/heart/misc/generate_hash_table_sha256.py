@@ -14,7 +14,7 @@ if __name__ == "__main__":
     verify file integrity.
     """
     databases = {"Strocchi2020": 24, "Cristobal2021": 20}
-    base_folder = "D:\\development\\pyheart-lib\\pyheart-lib\\downloads"
+    base_folder = "D:\\development\\PyAnsys-Heart\\PyAnsys-Heart\\downloads"
     path_to_hash_table = os.path.join(base_folder, "remote_repo_hash_table_sha256.json")
     if os.path.isfile(path_to_hash_table):
         # read

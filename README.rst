@@ -12,10 +12,10 @@
    :target: https://opensource.org/license/mit/
    :alt: MIT
 
-Pyheart lib is a `Python`_ framework for heart modeling using Ansys tools.
+PyAnsys-Heart is a `Python`_ framework for heart modeling using Ansys tools.
 
 .. Note::
-    
+
     Please read LICENSE file before using this package.
 
 
@@ -52,11 +52,11 @@ Software
       - `Ansys Customer Portal`_
 
     * - Ansys DPF Server
-      - R24 R1-pre0    
-      - Post-processor      
+      - R24 R1-pre0
+      - Post-processor
       - `DPF-Server`_
 
-    * - Ansys LSDYNA      
+    * - Ansys LSDYNA
       - DEV-97584 or greater
       - Simulator
       - Contact us for latest working version
@@ -72,8 +72,8 @@ How to install
 In user mode
 ------------
 
-.. warning:: 
-    
+.. warning::
+
     Installing as user-only is not yet supported.
 
 .. User installation can be performed by running:
@@ -85,20 +85,20 @@ In user mode
 In editable mode
 ----------------
 
-Installing Pyheart lib in developer mode allows
+Installing PyAnsys-Heart in developer mode allows
 you to modify the source and enhance it.
 
-Before contributing to the project, please refer to the `PyAnsys Developer's guide`_. You will 
+Before contributing to the project, please refer to the `PyAnsys Developer's guide`_. You will
 need to follow these steps:
 
 1. Start by cloning this repository:
 
     .. code:: bash
 
-        git clone https://github.com/ansys/pyheart-lib
-   
+        git clone https://github.com/ansys/pyansys-heart
+
    Since this is a private repository you may need to provide your github username.
-   Alternatively you can download and unpack the zip file from `pyheart-lib`_
+   Alternatively you can download and unpack the zip file from `PyAnsys-Heart`_
 
 2. Create a fresh-clean Python environment and activate it. Make sure you use one of the supported Python versions. Refer to the
    official `venv`_  or `conda`_ documentation if you require further information:
@@ -110,7 +110,7 @@ need to follow these steps:
         # Create a virtual environment
         python -m venv .venv
 
-        # Activate environment: 
+        # Activate environment:
 
         # POSIX systems:
         source .venv/bin/activate
@@ -129,7 +129,7 @@ need to follow these steps:
         conda create --name my-venv python=3.8
 
         # Activate the environment
-        conda activate my-venv    
+        conda activate my-venv
 
 3. Make sure you have the latest version of `pip`_ installed in your virtual environment.
 
@@ -140,19 +140,19 @@ need to follow these steps:
 4. Install the project in editable mode by pointing to the right location:
 
     .. code:: bash
-    
+
         python -m pip install --editable .
-    
+
    Install a version of dynalib into your virtual environment.
 
     .. code:: bash
-        
+
         # latest version
-        pip install git+https://github.com/pyansys/dynalib.git@main
+        pip install git+https://github.com/ansys/dynalib.git@main
 
    or if encountering issues with dynalib you can install a specific version
 
-        pip install git+https://github.com/pyansys/dynalib.git@afce06ba178888d992ff51838ca521abb824c8ab
+        pip install git+https://github.com/ansys/dynalib.git@afce06ba178888d992ff51838ca521abb824c8ab
 
 
 5. Install additional requirements (if needed):
@@ -160,15 +160,23 @@ need to follow these steps:
      .. code:: bash
 
         # dependencies for local doc building
-        python -m pip install -r requirements_docs.txt
+        python -m pip install .[doc]
         # dependencies needed for (unit) testing
-        python -m pip install -r requirements_tests.txt
+        python -m pip install .[tests]
 
 6. You may verify your development version by running all or a set of unit-tests:
 
     .. code:: bash
-        
-        python -m pip install -r requirements_tests.txt
+
+        python -m pip install .[tests]
+
+        # run quick tests
+        python -m pytest -v -m "not requires_fluent and not local"
+
+        # run tests requiring Fluent
+        python -m pytest -v -m requires_fluent
+
+        # run all tests
         pytest tests -v
 
 
@@ -193,40 +201,32 @@ For building documentation, you can either run the usual rules provided in the
 .. code:: bash
 
     # install any dependencies for building the documentation.
-    python -m pip install -r requirements_docs.txt
+    python -m pip install .[doc]
 
     # Linux
-    make -C doc/ html 
+    make -C doc/ html
 
     # Windows
     cd doc/
     make.bat html
 
 subsequently open the documentation by opening `doc/html/index.html`:
-    
+
 
 Distributing
 ============
 
-If you would like to create either source or wheel files, start by installing
-the building requirements:
+If you would like to create either source or wheel files, you can execute:
 
 .. code:: bash
 
-    python -m pip install -r requirements_build.txt
-
-Then, you can execute:
-
-.. code:: bash
-
-    python -m build
-    python -m twine check dist/*
+    python -m pip install .
 
 
 Licensing terms
 ===============
 
-PyHeart-lib is licensed under the MIT license: 
+PyAnsys-Heart is licensed under the MIT license:
 
     MIT License
 
@@ -250,12 +250,12 @@ PyHeart-lib is licensed under the MIT license:
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 
-PyHeart-lib makes no commercial claim over any Ansys products whatsoever. This library extends the functionality of the listed Ansys products by adding a Python interface without changing the core behavior or licensing of the original products. This library requires legally licensed copies of the involved Ansys products.
+PyAnsys-Heart makes no commercial claim over any Ansys products whatsoever. This library extends the functionality of the listed Ansys products by adding a Python interface without changing the core behavior or licensing of the original products. This library requires legally licensed copies of the involved Ansys products.
 
 
 .. LINKS AND REFERENCES
 .. _Python: https://www.python.org/
-.. _pyheart-lib: https://github.com/ansys/pyheart-lib
+.. _PyAnsys-Heart: https://github.com/ansys/pyansys-heart
 .. _Ansys Customer Portal: https://support.ansys.com/Home/HomePage
 .. _dpf-server: https://download.ansys.com/Others/DPF%20Pre-Release
 .. _black: https://github.com/psf/black
@@ -268,6 +268,6 @@ PyHeart-lib makes no commercial claim over any Ansys products whatsoever. This l
 .. _pip: https://pypi.org/project/pip/
 .. _tox: https://tox.wiki/
 .. _venv: https://docs.python.org/3/library/venv.html
-.. _dynalib: https://github.com/pyansys/dynalib
+.. _dynalib: https://github.com/ansys/dynalib
 .. _conda: https://docs.conda.io/en/latest/
 .. _documentation: https://heart.docs.pyansys.com/

@@ -1,16 +1,18 @@
 """Calibration active material parameters."""
+# from importlib.resources import files
+from importlib.resources import path as resource_path
 import os
 import pathlib
 import shutil
 import sys
 import textwrap
 
+from ansys.heart import LOG as LOGGER
 from ansys.heart.calibration.ivc import IVCSimulator
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 from ansys.heart.preprocessor.models import HeartModel
 from ansys.heart.simulator.settings import settings
 import numpy as np
-import pkg_resources
 
 
 class ActiveCalibration:
@@ -45,7 +47,7 @@ class ActiveCalibration:
 
         zerop_folder = os.path.join(pathlib.Path(model_path).parent, "zeropressure")
         if not os.path.isdir(zerop_folder):
-            print("A zeropressure must be present.")
+            LOGGER.error("A zeropressure must be present.")
             exit()
         else:
             self.zerop_path = zerop_folder
@@ -76,8 +78,9 @@ class ActiveCalibration:
         """
         os.makedirs(work_directory)
         # LSOPT project file
+
         shutil.copy(
-            pkg_resources.resource_filename("ansys.heart.calibration", "ActiveCalibration.lsopt"),
+            resource_path("ansys.heart.calibration", "ActiveCalibration.lsopt").__enter__(),
             os.path.join(work_directory, "ActiveCalibration.lsopt"),
         )
 

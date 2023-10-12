@@ -21,7 +21,7 @@ $#       l       eta
 $#      xp        yp        zp        a1        a2        a3      macf
                                                                      1
 $#      v1        v2        v3        d1        d2        d3      beta       ref
-                                                                                
+
 *MAT_295
 $#     mid       rho      aopt
          2     1e-06       2.0
@@ -44,7 +44,7 @@ $#       l       eta
 $#      xp        yp        zp        a1        a2        a3      macf
                                                                      1
 $#      v1        v2        v3        d1        d2        d3      beta       ref
-                                                                                
+
 *MAT_295
 $#     mid       rho      aopt
          3     1e-06       2.0
@@ -67,10 +67,10 @@ $#       l       eta
 $#      xp        yp        zp        a1        a2        a3      macf
                                                                      1
 $#      v1        v2        v3        d1        d2        d3      beta       ref
-                                                                                
+
 *DEFINE_CURVE_TITLE
 $#                                                                         title
-calcium_concentration                                                           
+calcium_concentration
 $#    lcid      sidr       sfa       sfo      offa      offo    dattyp     lcint
          4         0       1.0      4.35       1.0       0.0         0     15000
 $#                a1                  o1

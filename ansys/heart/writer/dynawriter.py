@@ -7,12 +7,19 @@ Uses a HeartModel (from ansys.heart.preprocessor.models).
 """
 import copy
 import json
+
+# import missing keywords
+import logging
 import os
 import time
-from typing import List
+from typing import List, Literal
 
 from ansys.dyna.keywords import keywords
-from ansys.heart.custom_logging import LOGGER
+
+LOGGER = logging.getLogger("pyheart_global.writer")
+# from importlib.resources import files
+from importlib.resources import path as resource_path
+
 from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.models import (
@@ -23,8 +30,6 @@ from ansys.heart.preprocessor.models import (
     LeftVentricle,
 )
 from ansys.heart.simulator.settings.settings import SimulationSettings
-
-# import missing keywords
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 from ansys.heart.writer.heart_decks import (
     BaseDecks,
@@ -42,6 +47,8 @@ from ansys.heart.writer.keyword_module import (
     create_discrete_elements_kw,
     create_element_shell_keyword,
     create_element_solid_ortho_keyword,
+    create_elemetn_solid_keyword,
+    create_node_keyword,
     create_node_set_keyword,
     create_segment_set_keyword,
     fast_element_writer,
@@ -55,7 +62,7 @@ from ansys.heart.writer.material_keywords import (
 from ansys.heart.writer.system_models import _ed_load_template, define_function_windkessel
 import numpy as np
 import pandas as pd
-import pkg_resources
+import pyvista as pv
 
 
 class BaseDynaWriter:
@@ -161,7 +168,8 @@ class BaseDynaWriter:
         elif isinstance(self, ElectrophysiologyDynaWriter):
             if not sett.Electrophysiology in subsettings_classes:
                 raise ValueError("Expecting electrophysiology settings.")
-
+        elif isinstance(self, UHCWriter):
+            pass
         else:
             raise NotImplementedError(
                 f"Checking settings for {self.__class__.__name__} not yet implemented."
@@ -434,6 +442,25 @@ class BaseDynaWriter:
         # NOTE: Could move "remove part" method to model
         LOGGER.warning("Just keeping ventricular-parts for fiber generation")
         parts_to_keep = ["Left ventricle", "Right ventricle", "Septum"]
+        parts_to_remove = [part for part in self.model.part_names if part not in parts_to_keep]
+        for part_to_remove in parts_to_remove:
+            LOGGER.warning("Removing: {}".format(part_to_remove))
+            self.model.remove_part(part_to_remove)
+        return
+
+    def _keep_atria(self):
+        """Remove any non-atrial parts."""
+        # NOTE: Could move "remove part" method to model
+        LOGGER.warning("Just keeping atrial-parts")
+        parts_to_keep = [part for part in self.model.part_names if "atrium" in part.lower()]
+        parts_to_remove = [part for part in self.model.part_names if part not in parts_to_keep]
+        for part_to_remove in parts_to_remove:
+            LOGGER.warning("Removing: {}".format(part_to_remove))
+            self.model.remove_part(part_to_remove)
+        return
+
+    def _keep_parts(self, parts_to_keep: List[str]):
+        """Remove parts by a list of part names."""
         parts_to_remove = [part for part in self.model.part_names if part not in parts_to_keep]
         for part_to_remove in parts_to_remove:
             LOGGER.warning("Removing: {}".format(part_to_remove))
@@ -1610,14 +1637,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 "supports the Closed Loop circulation model!"
             )
             if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-                file_path = pkg_resources.resource_filename(
+                file_path = resource_path(
                     "ansys.heart.writer", "templates/system_model_settings_bv.json"
-                )
-
+                ).__enter__()
             elif isinstance(self.model, LeftVentricle):
-                file_path = pkg_resources.resource_filename(
+                file_path = resource_path(
                     "ansys.heart.writer", "templates/system_model_settings_lv.json"
-                )
+                ).__enter__()
 
             fid = open(file_path)
             sys_settings = json.load(fid)
@@ -3011,9 +3037,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         )
         self.kw_database.node_sets.append(kw)
 
-        self.kw_database.ep_settings.append(
-            keywords.EmDatabaseNodout(outlv=1, dtout=1, nsid=nsid_all_parts)
-        )
         # use defaults
         self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=1))
 
@@ -3069,12 +3092,17 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             # if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             #     self.model.left_atrium.apex_points
         if isinstance(self.model, (FourChamber, FullHeart)):
-            node_SAN = self.model.right_atrium.get_point("SA_node").node_id
+            node_apex_left = self.model.left_ventricle.apex_points[0].node_id
+            node_apex_right = self.model.right_ventricle.apex_points[0].node_id
+            stim_nodes = np.array([node_apex_left, node_apex_right])
+
+            if self.model.right_atrium.get_point("SA_node") != None:
+                stim_nodes = self.model.right_atrium.get_point("SA_node").node_id
             # TODO add more nodes to initiate wave propagation !!!!
             node_set_id_stimulationnodes = self.get_unique_nodeset_id()
             # create node-sets for apex
             node_set_kw = create_node_set_keyword(
-                node_ids=[node_SAN + 1],
+                node_ids=stim_nodes + 1,
                 node_set_id=node_set_id_stimulationnodes,
                 title="Stim nodes",
             )
@@ -3421,6 +3449,510 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
                 self.kw_database.material.append(general_tissue_kw)
 
         return
+
+
+class UHCWriter(BaseDynaWriter):
+    """Universal Heart Coordinate Writer."""
+
+    def __init__(self, model, type: Literal["uvc", "la_fiber", "ra_fiber"], **kwargs):
+        """
+        Write thermal input to set up a Laplace dirichlet problem.
+
+        Parameters
+        ----------
+        model: Heart Model
+            Heart model to simulate.
+        type : Literal[]
+            Type of simulation to set up.
+        """
+        super().__init__(model=model)
+        self.type = type
+
+        # remove unnecessary parts
+        if self.type == "uvc":
+            parts_to_keep = ["Left ventricle", "Right ventricle", "Septum"]
+            self._keep_parts(parts_to_keep)
+        elif self.type == "la_fiber":
+            parts_to_keep = ["Left atrium"]
+        elif self.type == "ra_fiber":
+            parts_to_keep = ["Right atrium"]
+            #  A manual point for RA fiber
+            for key, value in kwargs.items():
+                if key == "raa":
+                    self.right_appendage_apex = value
+
+        # remove unnecessary mesh
+        if self.type == "uvc":
+            elems_to_keep = []
+            elems_to_keep.extend(model.parts[0].element_ids)
+            elems_to_keep.extend(model.parts[1].element_ids)
+            elems_to_keep.extend(model.parts[2].element_ids)
+
+            model.mesh.clear_data()
+            model.mesh["cell_ids"] = np.arange(0, model.mesh.n_cells, dtype=int)
+            model.mesh["point_ids"] = np.arange(0, model.mesh.n_points, dtype=int)
+
+            self.target = model.mesh.extract_cells(elems_to_keep)
+
+        elif self.type == "la_fiber" or self.type == "ra_fiber":
+            # In original model, mitral/tricuspid valves are assigned with ventricle parts
+            # so we need to update caps information at first
+            for part in model.parts:
+                part.caps = []
+                for surface in part.surfaces:
+                    surface.edge_groups = []
+            model.cap_centroids = []
+            model._assign_surfaces_to_parts()
+            model._assign_caps_to_parts(unique_mitral_tricuspid_valve=False)
+
+            self._keep_parts(parts_to_keep)
+            model.mesh.clear_data()
+            model.mesh["cell_ids"] = np.arange(0, model.mesh.n_cells, dtype=int)
+            model.mesh["point_ids"] = np.arange(0, model.mesh.n_points, dtype=int)
+
+            self.target = model.mesh.extract_cells(model.parts[0].element_ids)
+
+    def additional_right_atrium_bc(self, atrium: pv.UnstructuredGrid):
+        """
+        Find additional node sets for right atrium.
+
+        Find appendage, top, tricuspid wall and septum node set.
+
+        Parameters
+        ----------
+        atrium : pv.UnstructuredGrid
+            right atrium pyvista object
+        """
+        # Find appendage apex
+        import scipy.spatial as spatial
+
+        tree = spatial.cKDTree(atrium.points)
+        # radius = 1.5 mm
+        raa_ids = np.array(tree.query_ball_point(self.right_appendage_apex, 1.5))
+        if len(raa_ids) == 0:
+            LOGGER.error("No node is identified as right atrium appendage apex.")
+            exit()
+
+        kw = create_node_set_keyword(raa_ids + 1, node_set_id=11, title="raa")
+        self.kw_database.node_sets.append(kw)
+        atrium["raa"] = np.zeros(atrium.n_points)
+        atrium["raa"][raa_ids] = 1
+
+        # Find top
+        for cap in self.model.parts[0].caps:
+            if "tricuspid" in cap.name:
+                tv_center = cap.centroid
+            elif "superior" in cap.name:
+                svc_center = cap.centroid
+            elif "inferior" in cap.name:
+                ivc_center = cap.centroid
+        cut_center = np.vstack((tv_center, svc_center, ivc_center)).mean(axis=0)
+        cut_normal = np.cross(svc_center - tv_center, ivc_center - tv_center)
+
+        atrium["cell_ids_tmp"] = np.arange(0, atrium.n_cells, dtype=int)
+        atrium["point_ids_tmp"] = np.arange(0, atrium.n_points, dtype=int)
+        slice = atrium.slice(origin=cut_center, normal=cut_normal)
+        crinkled = atrium.extract_cells(np.unique(slice["cell_ids_tmp"]))
+
+        # After cut, select the top region
+        x = crinkled.connectivity()
+        if np.max(x.point_data["RegionId"]) != 2:
+            LOGGER.error("Cannot find top node set for right atrium.")
+            exit()
+        for i in range(3):
+            share_nodes = np.any(
+                np.logical_and(x.point_data["tricuspid-valve"] == 1, x.point_data["RegionId"] == i)
+            )
+            # This region has no shared node with tricuspid valve
+            if not share_nodes:
+                mask = x.point_data["RegionId"] == i
+                break
+
+        top_ids = x["point_ids_tmp"][mask]
+
+        atrium.cell_data.remove("cell_ids_tmp")
+        atrium.point_data.remove("point_ids_tmp")
+
+        # assign
+        kw = create_node_set_keyword(top_ids + 1, node_set_id=10, title="top")
+        self.kw_database.node_sets.append(kw)
+        atrium["top"] = np.zeros(atrium.n_points)
+        atrium["top"][top_ids] = 1
+
+        # Find tricuspid_wall and tricuspid_septum
+        id_sorter = np.argsort(atrium["point_ids"])
+        # need a copied object to do clip, atrium will be corrupted otherwise
+        septum, free_wall = copy.deepcopy(atrium).clip(
+            origin=cut_center, normal=cut_normal, crinkle=True, return_clipped=True
+        )
+        # ids in full mesh
+        tv_s_ids = septum["point_ids"][np.where(septum["tricuspid-valve"] == 1)]
+
+        tv_s_ids_sub = id_sorter[np.searchsorted(atrium["point_ids"], tv_s_ids, sorter=id_sorter)]
+        atrium["tv_s"] = np.zeros(atrium.n_points)
+        atrium["tv_s"][tv_s_ids_sub] = 1
+
+        kw = create_node_set_keyword(tv_s_ids_sub + 1, node_set_id=12, title="tv_s")
+        self.kw_database.node_sets.append(kw)
+
+        tv_w_ids = free_wall["point_ids"][np.where(free_wall["tricuspid-valve"] == 1)]
+        tv_w_ids_sub = id_sorter[np.searchsorted(atrium["point_ids"], tv_w_ids, sorter=id_sorter)]
+        # remove re constraint nodes
+        tv_w_ids_sub = np.setdiff1d(tv_w_ids_sub, tv_s_ids_sub)
+
+        atrium["tv_w"] = np.zeros(atrium.n_points)
+        atrium["tv_w"][tv_w_ids_sub] = 1
+
+        kw = create_node_set_keyword(tv_w_ids_sub + 1, node_set_id=13, title="tv_w")
+        self.kw_database.node_sets.append(kw)
+
+    def update_atrium_fiber_bc(self, atrium: pv.UnstructuredGrid):
+        """Define boundary condition."""
+
+        def get_nodeset_id_by_cap_name(cap):
+            # ID map:
+            # RIP 1 LAP 2 RSP 3 MV 4 LIP 5 LSP 6 TV 7 SVC 8 IVC 9
+            if "right" in cap.name:
+                if "inferior" in cap.name:
+                    set_id = 1
+                elif "superior" in cap.name:
+                    set_id = 3
+            elif "left" in cap.name:
+                if "appendage" in cap.name:
+                    set_id = 2
+                elif "inferior" in cap.name:
+                    set_id = 5
+                elif "superior" in cap.name:
+                    set_id = 6
+            elif "mitral" in cap.name:
+                set_id = 4
+            elif "tricuspid" in cap.name:
+                set_id = 7
+            elif "vena" in cap.name:
+                if "superior" in cap.name:
+                    set_id = 8
+                elif "inferior" in cap.name:
+                    set_id = 9
+
+            return set_id
+
+        id_sorter = np.argsort(atrium["point_ids"])
+        ids_edges = []
+        for i, cap in enumerate(self.model.parts[0].caps):
+            # node IDs in LA volume mesh
+            ids_sub = id_sorter[
+                np.searchsorted(atrium["point_ids"], cap.node_ids, sorter=id_sorter)
+            ]
+            set_id = get_nodeset_id_by_cap_name(cap)
+
+            kw = create_node_set_keyword(ids_sub + 1, node_set_id=set_id, title=cap.name)
+            self.kw_database.node_sets.append(kw)
+
+            ids_edges.extend(ids_sub)
+            atrium[cap.name] = np.zeros(atrium.n_points, dtype=int)
+            atrium[cap.name][ids_sub] = i + 1
+
+        # endo nodes ID
+        ids_endo = id_sorter[
+            np.searchsorted(
+                atrium["point_ids"], self.model.parts[0].surfaces[0].node_ids, sorter=id_sorter
+            )
+        ]
+
+        atrium["endo"] = np.zeros(atrium.n_points, dtype=int)
+        atrium["endo"][ids_endo] = 1
+        kw = create_node_set_keyword(ids_endo + 1, node_set_id=100, title="endo")
+        self.kw_database.node_sets.append(kw)
+
+        # epi node ID
+        # epi cannot use directly Surface because new free surface exposed
+        ids_surface = atrium.extract_surface()["vtkOriginalPointIds"]
+        ids_epi = np.setdiff1d(ids_surface, ids_endo)
+        ids_epi = np.setdiff1d(ids_epi, ids_edges)
+
+        atrium["epi"] = np.zeros(atrium.n_points, dtype=int)
+        atrium["epi"][ids_epi] = 1
+        kw = create_node_set_keyword(ids_epi + 1, node_set_id=200, title="epi")
+        self.kw_database.node_sets.append(kw)
+
+        # set BC in DYNA case
+        if self.type == "la_fiber":
+            self.kw_database.main.append(keywords.Case(caseid=1, jobid="trans", scid1=1))
+            self.kw_database.main.append(keywords.Case(caseid=2, jobid="ab", scid1=2))
+            self.kw_database.main.append(keywords.Case(caseid=3, jobid="v", scid1=3))
+            self.kw_database.main.append(keywords.Case(caseid=4, jobid="r", scid1=4))
+
+            self.kw_database.main.append("*CASE_BEGIN_1")
+            self._define_Laplace_Dirichlet_bc(set_ids=[100, 200], bc_values=[0, 1])
+            self.kw_database.main.append("*CASE_END_1")
+
+            self.kw_database.main.append("*CASE_BEGIN_2")
+            self._define_Laplace_Dirichlet_bc(
+                set_ids=[1, 3, 4, 5, 6, 2], bc_values=[2.0, 2.0, 1.0, 0.0, 0.0, -1.0]
+            )
+            self.kw_database.main.append("*CASE_END_2")
+
+            self.kw_database.main.append("*CASE_BEGIN_3")
+            self._define_Laplace_Dirichlet_bc(set_ids=[1, 3, 5, 6], bc_values=[1.0, 1.0, 0.0, 0.0])
+            self.kw_database.main.append("*CASE_END_3")
+
+            self.kw_database.main.append("*CASE_BEGIN_4")
+            self._define_Laplace_Dirichlet_bc(
+                set_ids=[4, 1, 2, 3, 5, 6], bc_values=[1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            )
+            self.kw_database.main.append("*CASE_END_4")
+
+        elif self.type == "ra_fiber":
+            self.additional_right_atrium_bc(atrium)
+
+            self.kw_database.main.append(keywords.Case(caseid=1, jobid="trans", scid1=1))
+            self.kw_database.main.append(keywords.Case(caseid=2, jobid="ab", scid1=2))
+            self.kw_database.main.append(keywords.Case(caseid=3, jobid="v", scid1=3))
+            self.kw_database.main.append(keywords.Case(caseid=4, jobid="r", scid1=4))
+            self.kw_database.main.append(keywords.Case(caseid=5, jobid="w", scid1=5))
+
+            self.kw_database.main.append("*CASE_BEGIN_1")
+            self._define_Laplace_Dirichlet_bc(set_ids=[100, 200], bc_values=[0, 1])
+            self.kw_database.main.append("*CASE_END_1")
+
+            self.kw_database.main.append("*CASE_BEGIN_2")
+            self._define_Laplace_Dirichlet_bc(
+                set_ids=[9, 7, 8, 11], bc_values=[2.0, 1.0, 0.0, -1.0]
+            )
+            self.kw_database.main.append("*CASE_END_2")
+
+            self.kw_database.main.append("*CASE_BEGIN_3")
+            self._define_Laplace_Dirichlet_bc(set_ids=[9, 8, 11], bc_values=[1.0, 0.0, 0.0])
+            self.kw_database.main.append("*CASE_END_3")
+
+            self.kw_database.main.append("*CASE_BEGIN_4")
+            self._define_Laplace_Dirichlet_bc(set_ids=[7, 10], bc_values=[1.0, 0.0])
+            self.kw_database.main.append("*CASE_END_4")
+
+            self.kw_database.main.append("*CASE_BEGIN_5")
+            self._define_Laplace_Dirichlet_bc(set_ids=[12, 13], bc_values=[1.0, -1.0])
+            self.kw_database.main.append("*CASE_END_5")
+
+        return atrium
+
+    def update(self):
+        """Update keyword database."""
+        # nodes
+        node_kw = create_node_keyword(self.target.points)
+        self.kw_database.nodes.append(node_kw)
+
+        # part and mat
+        self._update_parts_materials_db()
+
+        # elems
+        kw_elements = create_elemetn_solid_keyword(
+            self.target.cells.reshape(-1, 5)[:, 1:] + 1,
+            np.arange(1, self.target.n_cells + 1, dtype=int),
+            self.model.parts[0].pid,
+        )
+        self.kw_database.solid_elements.append(kw_elements)
+
+        # main
+        self._update_main_db()
+
+        if self.type == "uvc":
+            self._update_uvc_bc()
+        elif self.type == "la_fiber" or self.type == "ra_fiber":
+            self.update_atrium_fiber_bc(self.target)
+
+        self._get_list_of_includes()
+        self._add_includes()
+
+    def _update_uvc_bc(self):
+        self.kw_database.main.append(keywords.Case(caseid=1, jobid="transmural", scid1=1))
+        self.kw_database.main.append(keywords.Case(caseid=2, jobid="apico-basal", scid1=2))
+        self.kw_database.main.append(keywords.Case(caseid=3, jobid="rotational", scid1=3))
+
+        # transmural uvc
+        id_sorter = np.argsort(self.target["point_ids"])
+
+        endo_set = []
+        epi_set = []
+        for part in self.model.parts:
+            for surf in part.surfaces:
+                if "endocardium" in surf.name:
+                    endo_set.extend(surf.node_ids)
+                # elif "epicardium" in surf.name:
+                #     epi_set.extend(surf.node_ids)
+
+        # map IDs to sub mesh
+        endo_set_new = id_sorter[
+            np.searchsorted(self.target["point_ids"], endo_set, sorter=id_sorter)
+        ]
+        endo_set_new = np.unique(endo_set_new)
+
+        endo_sid = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(endo_set_new + 1, node_set_id=endo_sid, title="endo")
+        self.kw_database.node_sets.append(kw)
+
+        # epi_set_new = id_sorter[
+        #     np.searchsorted(self.target["point_ids"], epi_set, sorter=id_sorter)
+        # ]
+        # epi_set_new = np.unique(epi_set_new)
+        # epi_set_new = np.setdiff1d(epi_set_new, endo_set_new)
+
+        # epi cannot use directly Surface because new free surface exposed
+        ids_surface = self.target.extract_surface()["vtkOriginalPointIds"]
+        epi_set_new = np.setdiff1d(ids_surface, endo_set_new)
+
+        epi_sid = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(epi_set_new + 1, node_set_id=epi_sid, title="epi")
+        self.kw_database.node_sets.append(kw)
+
+        self.kw_database.main.append("*CASE_BEGIN_1")
+        self._define_Laplace_Dirichlet_bc(set_ids=[endo_sid, epi_sid], bc_values=[0, 1])
+        self.kw_database.main.append("*CASE_END_1")
+
+        # apicobasal uvc
+        apex_sid = self._create_apex_nodeset()
+        base_sid = self._create_base_nodeset()
+
+        self.kw_database.main.append("*CASE_BEGIN_2")
+        self._define_Laplace_Dirichlet_bc(set_ids=[apex_sid, base_sid], bc_values=[0, 1])
+        self.kw_database.main.append("*CASE_END_2")
+
+        # rotational uc
+        [sid_minus_pi, sid_plus_pi, sid_zero] = self._create_rotational_nodesets()
+
+        self.kw_database.main.append("*CASE_BEGIN_3")
+        self._define_Laplace_Dirichlet_bc(
+            set_ids=[sid_minus_pi, sid_plus_pi, sid_zero], bc_values=[-np.pi, np.pi, 0]
+        )
+        self.kw_database.main.append("*CASE_END_3")
+
+    def _create_apex_nodeset(self):
+        # apex
+        apex_set = self.model._compute_uvc_apex_set()
+        id_sorter = np.argsort(self.target["point_ids"])
+        ids_submesh = id_sorter[
+            np.searchsorted(self.target["point_ids"], apex_set, sorter=id_sorter)
+        ]
+        sid = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(ids_submesh + 1, node_set_id=sid, title="apex")
+        self.kw_database.node_sets.append(kw)
+        return sid
+
+    def _create_base_nodeset(self):
+        # base
+        base_set = np.array([])
+        for part in self.model.parts:
+            for cap in part.caps:
+                if ("mitral" in cap.name) or ("tricuspid" in cap.name):
+                    base_set = np.append(base_set, cap.node_ids)
+
+        id_sorter = np.argsort(self.target["point_ids"])
+        ids_submesh = id_sorter[
+            np.searchsorted(self.target["point_ids"], base_set, sorter=id_sorter)
+        ]
+        sid = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(ids_submesh + 1, node_set_id=sid, title="base")
+        self.kw_database.node_sets.append(kw)
+        return sid
+
+    def _create_surface_nodeset(self, surftype: str, cavity_type: str):
+        id_sorter = np.argsort(self.target["point_ids"])
+
+        nodeset = np.array([])
+        for part in self.model.parts:
+            if cavity_type in part.name:
+                for surf in part.surfaces:
+                    if surftype in surf.name:
+                        nodeset = np.append(nodeset, surf.node_ids)
+        nodeset = np.unique(nodeset.astype(int))
+
+        # map IDs to sub mesh
+        ids_submesh = id_sorter[
+            np.searchsorted(self.target["point_ids"], nodeset, sorter=id_sorter)
+        ]
+
+        sid = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(
+            ids_submesh + 1, node_set_id=sid, title=cavity_type + " " + surftype + " all"
+        )
+        self.kw_database.node_sets.append(kw)
+
+        return sid
+
+    def _create_rotational_nodesets(self):
+        # Find nodes on target mesh
+        rot_start, rot_end, septum = self.model._compute_uvc_rotation_bc(copy.deepcopy(self.target))
+
+        sid_minus_pi = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(rot_start + 1, node_set_id=sid_minus_pi, title="rotation:-pi")
+        self.kw_database.node_sets.append(kw)
+        sid_plus_pi = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(rot_end + 1, node_set_id=sid_plus_pi, title="rotation:pi")
+        self.kw_database.node_sets.append(kw)
+        sid_zero = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(septum + 1, node_set_id=sid_zero, title="rotation:0")
+        self.kw_database.node_sets.append(kw)
+        return [sid_minus_pi, sid_plus_pi, sid_zero]
+
+    def _define_Laplace_Dirichlet_bc(
+        self,
+        set_ids: List[int],
+        bc_values: List[float],
+    ):
+        for sid, value in zip(set_ids, bc_values):
+            self.kw_database.main.append(
+                keywords.BoundaryTemperatureSet(
+                    nsid=sid,
+                    lcid=0,
+                    cmult=value,
+                ),
+            )
+        return
+
+    def _update_parts_materials_db(self):
+        """Loop over parts defined in the model and creates keywords."""
+        LOGGER.debug("Updating part keywords...")
+
+        # add parts with a dataframe
+        section_id = self.get_unique_section_id()
+
+        # get list of cavities from model
+        for part in self.model.parts:
+            part.pid = self.get_unique_part_id()
+            # material ID = part ID
+            part.mid = part.pid
+
+            part_df = pd.DataFrame(
+                {
+                    "heading": [part.name],
+                    "pid": [part.pid],
+                    "secid": [section_id],
+                    "mid": [0],
+                    "tmid": [part.mid],
+                }
+            )
+            part_kw = keywords.Part()
+            part_kw.parts = part_df
+            self.kw_database.parts.append(part_kw)
+
+            # set up material
+            self.kw_database.parts.append(
+                keywords.MatThermalIsotropic(tmid=part.mid, tro=1e-9, hc=1, tc=1)
+            )
+
+        # set up section solid
+        section_kw = keywords.SectionSolid(secid=section_id, elform=10)
+        self.kw_database.parts.append(section_kw)
+
+        return
+
+    def _update_main_db(self):
+        self.kw_database.main.append(keywords.ControlSolution(soln=1))
+        self.kw_database.main.append(keywords.ControlThermalSolver(atype=0, ptype=0, solver=11))
+        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=1.0))
+        self.kw_database.main.append(keywords.DatabaseGlstat(dt=1.0))
+        self.kw_database.main.append(keywords.DatabaseMatsum(dt=1.0))
+        self.kw_database.main.append(keywords.DatabaseTprint(dt=1.0))
+        self.kw_database.main.append(keywords.ControlTermination(endtim=1, dtmin=1.0))
 
 
 if __name__ == "__main__":

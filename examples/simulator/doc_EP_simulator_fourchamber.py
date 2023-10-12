@@ -28,17 +28,20 @@ import os
 from pathlib import Path
 
 import ansys.heart.preprocessor.models as models
-from ansys.heart.simulator.simulator import EPSimulator
+from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
 
 # set working directory and path to model.
-workdir = Path(Path(__file__).parents[2], "downloads", "Strocchi2020", "01", "FourChamber")
+workdir = Path(
+    Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "FourChamber"
+)
+
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 if not os.path.isfile(path_to_model):
     raise FileExistsError(f"{path_to_model} not found")
 
 # specify LS-DYNA path
-lsdyna_path = Path(Path(__file__).parents[4], "dyna-versions", "ls-dyna_smp_d.exe")
+lsdyna_path = "ls-dyna_smp_d.exe"
 
 if not os.path.isfile(lsdyna_path):
     raise FileExistsError(f"{lsdyna_path} not found.")
@@ -55,15 +58,20 @@ model.info.workdir = str(workdir)
 ###############################################################################
 # Instantiate the simulator object
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# instantiate simulator. Change options where necessary.
+# instantiate the simulator and settings appropriately.
 
-simulator = EPSimulator(
-    model=model,
-    lsdynapath=lsdyna_path,
+# instantaiate dyna settings of choice
+dyna_settings = DynaSettings(
+    lsdyna_path=lsdyna_path,
     dynatype="smp",
     num_cpus=1,
+)
+
+# instantiate simulator. Change options where necessary.
+simulator = EPSimulator(
+    model=model,
+    dyna_settings=dyna_settings,
     simulation_directory=os.path.join(workdir, "simulation-EP"),
-    platform="windows",
 )
 
 ###############################################################################
@@ -77,6 +85,10 @@ simulator.settings.load_defaults()
 # Compute the fiber orientation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Compute fiber orientation and plot the computed fibers on the entire model.
+
+###############################################################################
+# .. warning::
+#    Atrial fiber orientation is approximated by apex-base direction, the development is undergoing.
 
 simulator.compute_fibers()
 simulator.model.plot_fibers(n_seed_points=2000)
@@ -94,7 +106,11 @@ simulator.model.plot_fibers(n_seed_points=2000)
 # compared to the rest of the model.
 
 simulator.compute_purkinje()
+
+# by calling this method, stimulation will at Atrioventricular node
+# if you skip it, stimulation will at apex nodes of two ventricles
 simulator.compute_conduction_system()
+
 simulator.model.plot_purkinje()
 
 ###############################################################################
@@ -109,3 +125,12 @@ simulator.model.plot_purkinje()
 # and purkinje network to set up and run the LS-DYNA model.
 
 simulator.simulate()
+
+###############################################################################
+# We can plot transmembrane potential in LS-PrePost
+
+###############################################################################
+# .. video:: ../../_static/images/ep_4cv.mp4
+#   :width: 600
+#   :loop:
+#   :class: center

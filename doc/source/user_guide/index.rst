@@ -1,3 +1,3 @@
-User Guide
+User guide
 ==========
-This section will contain a basic user guide for `pyheart-lib <https://github.com/ansys/pyheart-lib>`_
+This section can contain a basic user guide for `PyAnsys-Heart <https://github.com/ansys/PyAnsys-Heart>`_

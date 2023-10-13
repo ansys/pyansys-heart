@@ -7,12 +7,19 @@ Uses a HeartModel (from ansys.heart.preprocessor.models).
 """
 import copy
 import json
+
+# import missing keywords
+import logging
 import os
 import time
 from typing import List, Literal
 
 from ansys.dyna.keywords import keywords
-from ansys.heart.custom_logging import LOGGER
+
+LOGGER = logging.getLogger("pyheart_global.writer")
+# from importlib.resources import files
+from importlib.resources import path as resource_path
+
 from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.models import (
@@ -23,8 +30,6 @@ from ansys.heart.preprocessor.models import (
     LeftVentricle,
 )
 from ansys.heart.simulator.settings.settings import SimulationSettings
-
-# import missing keywords
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 from ansys.heart.writer.heart_decks import (
     BaseDecks,
@@ -57,7 +62,6 @@ from ansys.heart.writer.material_keywords import (
 from ansys.heart.writer.system_models import _ed_load_template, define_function_windkessel
 import numpy as np
 import pandas as pd
-import pkg_resources
 import pyvista as pv
 
 
@@ -1642,14 +1646,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 "supports the Closed Loop circulation model!"
             )
             if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-                file_path = pkg_resources.resource_filename(
+                file_path = resource_path(
                     "ansys.heart.writer", "templates/system_model_settings_bv.json"
-                )
-
+                ).__enter__()
             elif isinstance(self.model, LeftVentricle):
-                file_path = pkg_resources.resource_filename(
+                file_path = resource_path(
                     "ansys.heart.writer", "templates/system_model_settings_lv.json"
-                )
+                ).__enter__()
 
             fid = open(file_path)
             sys_settings = json.load(fid)
@@ -3665,9 +3668,21 @@ class UHCWriter(BaseDynaWriter):
         atrium["point_ids_tmp"] = np.arange(0, atrium.n_points, dtype=int)
         slice = atrium.slice(origin=cut_center, normal=cut_normal)
         crinkled = atrium.extract_cells(np.unique(slice["cell_ids_tmp"]))
+
+        # After cut, select the top region
         x = crinkled.connectivity()
-        # Normally top part is the largest part, Region Id should be 0
-        mask = x.point_data["RegionId"] == 0
+        if np.max(x.point_data["RegionId"]) != 2:
+            LOGGER.error("Cannot find top node set for right atrium.")
+            exit()
+        for i in range(3):
+            share_nodes = np.any(
+                np.logical_and(x.point_data["tricuspid-valve"] == 1, x.point_data["RegionId"] == i)
+            )
+            # This region has no shared node with tricuspid valve
+            if not share_nodes:
+                mask = x.point_data["RegionId"] == i
+                break
+
         top_ids = x["point_ids_tmp"][mask]
 
         atrium.cell_data.remove("cell_ids_tmp")

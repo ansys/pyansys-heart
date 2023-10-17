@@ -40,9 +40,17 @@ ep_folder = (
 
 
 postproc = EPpostprocessor(results_path=ep_folder)
-activation_time_field = postproc.get_activation_times()
-activation_time_field.plot()
 
+activation_time_field = postproc.get_activation_times()
+
+activation_time_field.plot()
+activation_time_data = activation_time_field.data_as_list
+total_acctivation_time = max(activation_time_data) - min(activation_time_data)
+print("Total activation time: " + str(total_acctivation_time))
+
+vm, times = postproc.get_transmembrane_potential(node_id=[0, 1, 100], plot=True)
+print("done")
+# postproc.animate_transmembrane_potentials()
 start_time = 0
 endtime = 100
 

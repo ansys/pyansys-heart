@@ -4,6 +4,7 @@ import pathlib as Path
 
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.preprocessor.models import HeartModel
+import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -24,9 +25,10 @@ class EPpostprocessor:
         self.fields = None
         self.model = model
 
-    def load_all_ep_fields(self):
+    def load_ep_fields(self):
         """Load all EP fields."""
-        self.fields = self.reader.get_ep_fields()
+        if self.fields == None:
+            self.fields = self.reader.get_ep_fields()
 
     def get_activation_times(self, at_step: int = None):
         """Get activation times field."""
@@ -38,12 +40,26 @@ class EPpostprocessor:
         field = self.reader.get_ep_fields(at_step=step)[10]
         return field
 
-    # def get_transmembrane_potentials(self, at_step: int = 0):
-    #     # field = self.fields.get_field({"domain_id": 3, "time": at_step, "variable_id": 126})
-    #     return field
+    def get_transmembrane_potential(self, node_id=None, plot: bool = False):
+        """Get transmembrane potential."""
+        self.load_ep_fields()
+        times = self.reader.get_timesteps()
+        vm = np.zeros((len(times), len(node_id)))
+        for time_id in range(1, len(times) + 1):
+            vm[time_id - 1, :] = self.fields.get_field({"variable_id": 126, "time": time_id}).data[
+                node_id
+            ]
+        if plot == True:
+            plt.plot(times, vm, label="node 0")
+            plt.xlabel("time (ms)")
+            plt.ylabel("vm (mV)")
+        return vm, times
 
-    # def animate_transmembrane(self, start_time, endtime):
-    #     return
+    def animate_transmembrane_potentials(self):
+        """Animate transmembrane potential."""
+        self.load_ep_fields()
+        tmp_fc = self.reader.get_transmembrane_potentials_fc(self.fields)
+        tmp_fc.animate()
 
     def read_EP_nodout(self):
         """Read Electrophysiology results."""

@@ -1038,7 +1038,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 active_dict = {
                     "actype": 3,
                     "acthr": 2e-4,
-                    "ca2ionm": 1e-3,  # ca2+50 indeed
+                    "ca2ion50": 1e-3,
                     "n": 2,
                     "sigmax": 0.125,
                     "f": 0,
@@ -1060,6 +1060,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
                     if not em_couple:
                         material_kw.acid = act_curve_id
+                    else:
+                        # TODO dynalib bug, ca2ion50 is not written
+                        # this is a tempo fix
+                        s = list(material_kw.write())
+                        s[684:694] = f"{active_dict['ca2ion50']:10f}"
+                        material_kw = "".join(s)
 
                 else:
                     material_kw = MaterialHGOMyocardium(

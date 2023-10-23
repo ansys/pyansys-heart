@@ -1,6 +1,7 @@
 """Compute myocardial strain."""
 import pathlib
 
+from ansys.heart import LOG as LOGGER
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.preprocessor.models import HeartModel
 import matplotlib as mpl
@@ -119,7 +120,7 @@ class AhaStrainCalculator:
         return3: [nelem * 3] elemental LRC strain averaged from AHA17
         """
         if reference is not None:
-            print("Not implemented")
+            LOGGER.warning("Not implemented")
             exit()
 
         deformation_gradient = self.d3plot.get_history_variable(

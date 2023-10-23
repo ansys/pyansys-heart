@@ -1,6 +1,7 @@
 """Module for computing the volume."""
 import json
 
+from ansys.heart import LOG as LOGGER
 import meshio
 import numpy as np
 
@@ -128,8 +129,8 @@ def update_system_json(nodes_file):
     rv_cavity = np.loadtxt(rv_cavity_file, delimiter=",", dtype=int)
     lv_volume = ClosedSurface.get_volume(x_m, lv_cavity)
     rv_volume = ClosedSurface(x_m, rv_cavity)
-    print(lv_volume)
-    print(rv_volume)
+    LOGGER.info("Left ventricular volume %f" % lv_volume)
+    LOGGER.info("Right ventricular volume %f" % rv_volume)
 
     json_file = r"system_model_settings.json"
     with open(json_file) as f:

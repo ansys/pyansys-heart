@@ -6,6 +6,7 @@ from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.preprocessor.models import HeartModel
 import matplotlib.pyplot as plt
 import numpy as np
+import pyvista as pv
 
 
 class EPpostprocessor:
@@ -44,7 +45,11 @@ class EPpostprocessor:
         """Get transmembrane potential."""
         self.load_ep_fields()
         times = self.reader.get_timesteps()
+        if node_id == None:
+            nnodes = len(self.reader.meshgrid.points)
+            node_id = np.int64(np.linspace(0, nnodes - 1, nnodes))
         vm = np.zeros((len(times), len(node_id)))
+
         for time_id in range(1, len(times) + 1):
             vm[time_id - 1, :] = self.fields.get_field({"variable_id": 126, "time": time_id}).data[
                 node_id
@@ -55,11 +60,11 @@ class EPpostprocessor:
             plt.ylabel("vm (mV)")
         return vm, times
 
-    def animate_transmembrane_potentials(self):
-        """Animate transmembrane potential."""
-        self.load_ep_fields()
-        tmp_fc = self.reader.get_transmembrane_potentials_fc(self.fields)
-        tmp_fc.animate()
+    # def animate_transmembrane_potentials(self):
+    #     """Animate transmembrane potential."""
+    #     self.load_ep_fields()
+    #     tmp_fc = self.reader.get_transmembrane_potentials_fc(self.fields)
+    #     tmp_fc.animate()
 
     def read_EP_nodout(self):
         """Read Electrophysiology results."""
@@ -94,6 +99,40 @@ class EPpostprocessor:
         )
         self.activation_time = np.array(list(act_t))
         self._assign_pointdata(pointdata=self.activation_time, node_ids=self.node_ids)
+
+    def create_post_folder(self, path: Path = None):
+        """Create Postprocessing folder."""
+        if path == None:
+            post_path = os.path.join(os.path.dirname(self.reader.ds.result_files[0]), "post")
+        else:
+            post_path = path
+        isExist = os.path.exists(post_path)
+        if not isExist:
+            # Create a new directory because it does not exist
+            os.makedirs(post_path)
+        return post_path
+
+    def export_transmembrane_to_vtk(self, animate: bool = False):
+        """Animate transmembrane potentials and export to vtk."""
+        vm, times = self.get_transmembrane_potential()
+        # Creating scene and loading the mesh
+        post_path = self.create_post_folder()
+        grid = self.reader.meshgrid.copy()
+        if animate == True:
+            p = pv.Plotter()
+            p.add_mesh(grid, scalars=vm[0, :])
+            p.show(interactive_update=True)
+
+        for i in range(vm.shape[0]):
+            # TODO vtk is not optimal for scalar fields with
+            # non moving meshes, consider using ROM format
+            grid.point_data["transemembrane_potential"] = vm[i, :]
+            grid.save(post_path + "\\vm_" + str(i) + ".vtk")
+            if animate == True:
+                p.update_scalars(vm[i, :])
+                p.update()
+
+        return
 
     def _assign_pointdata(self, pointdata: np.ndarray, node_ids: np.ndarray):
         result = np.zeros(self.mesh.n_points)

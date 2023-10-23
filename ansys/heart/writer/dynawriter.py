@@ -3208,20 +3208,24 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
                 origin_coordinates = self.model.mesh.nodes[network.node_ids[0], :]
                 if network.name == None:
-                    node_apex_left = self.model.left_ventricle.apex_points[0].xyz
-                    node_apex_right = self.model.right_ventricle.apex_points[0].xyz
-                    distance = np.linalg.norm(
-                        origin_coordinates - np.array([node_apex_left, node_apex_right]),
-                        axis=1,
-                    )
-                    if np.min(distance[0]) < 1e-3:
+                    if isinstance(self.model, LeftVentricle):
                         network.name = "Left" + "-" + "purkinje"
                         network.nsid = self.model.left_ventricle.endocardium.id
-                    elif np.min(distance[1]) < 1e-3:
-                        network.name = "Right" + "-" + "purkinje"
-                        network.nsid = self.model.right_ventricle.endocardium.id
                     else:
-                        LOGGER.error("Point too far from apex")
+                        node_apex_left = self.model.left_ventricle.apex_points[0].xyz
+                        node_apex_right = self.model.right_ventricle.apex_points[0].xyz
+                        distance = np.linalg.norm(
+                            origin_coordinates - np.array([node_apex_left, node_apex_right]),
+                            axis=1,
+                        )
+                        if np.min(distance[0]) < 1e-3:
+                            network.name = "Left" + "-" + "purkinje"
+                            network.nsid = self.model.left_ventricle.endocardium.id
+                        elif np.min(distance[1]) < 1e-3:
+                            network.name = "Right" + "-" + "purkinje"
+                            network.nsid = self.model.right_ventricle.endocardium.id
+                        else:
+                            LOGGER.error("Point too far from apex")
 
                 self.kw_database.main.append(
                     custom_keywords.EmEpPurkinjeNetwork2(

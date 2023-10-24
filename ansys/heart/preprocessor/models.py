@@ -1318,14 +1318,14 @@ class HeartModel:
                             )
                             name_valve = name_valve.replace("-plane", "").replace("-inlet", "")
 
-                            # if unique_mitral_tricuspid_valve and "atrium" in part.name:
-                            #     if "mitral" in name_valve or "tricuspid" in name_valve:
-                            #         LOGGER.debug(
-                            #             f"{name_valve} has been create in ventricular parts."
-                            #         )
-                            #         # Create dummy cap (only name) and will be filled later
-                            #         part.caps.append(Cap(name=name_valve))
-                            #         break
+                            if unique_mitral_tricuspid_valve and "atrium" in part.name:
+                                if "mitral" in name_valve or "tricuspid" in name_valve:
+                                    LOGGER.debug(
+                                        f"{name_valve} has been create in ventricular parts."
+                                    )
+                                    # Create dummy cap (only name) and will be filled later
+                                    part.caps.append(Cap(name=name_valve))
+                                    break
 
                             cap = Cap(name=name_valve, node_ids=edge_group.edges[:, 0])
                             cap.centroid = np.mean(surf.nodes[cap.node_ids, :], axis=0)

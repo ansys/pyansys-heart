@@ -1475,7 +1475,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             material_kw = keywords.MatRigid(
                 mid=mat_null_id,
                 ro=material_settings.cap["rho"],
-                e=material_settings.cap["mu1"] * 1000,
+                e=1.0,  # MPa
             )
 
         section_kw = keywords.SectionShell(
@@ -1483,7 +1483,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             elform=4,
             shrf=0.8333,
             nip=3,
-            t1=material_settings.cap["thickness"],
+            t1=1,  # mm
         )
 
         self.kw_database.cap_elements.append(material_kw)

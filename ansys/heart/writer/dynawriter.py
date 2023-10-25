@@ -1077,7 +1077,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
 
             # x scaling from beat rate
-            active_curve_kw.sfa = 1 / material_settings.myocardium["active"]["heart rate"]
+            active_curve_kw.sfa = material_settings.myocardium["active"]["beat_time"]
             # y scaling from Ca2
             active_curve_kw.sfo = material_settings.myocardium["active"]["ca2ionm"]
 

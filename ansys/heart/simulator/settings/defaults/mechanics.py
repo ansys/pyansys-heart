@@ -1,13 +1,18 @@
 """Module contains default values for mechanics simulations."""
 from pint import Quantity
 
+heart = {
+    "cycles": 3,
+    "beat_time": Quantity(800, "ms"),
+}
+
 """Generic analysis settings."""
 analysis = {
-    "end_time": Quantity(3000.0, "ms"),
+    "end_time": heart["cycles"] * heart["beat_time"],
     "dtmin": Quantity(10.0, "ms"),
     "dtmax": Quantity(10.0, "ms"),
     "dt_d3plot": Quantity(50.0, "ms"),
-    "dt_icvout": Quantity(1.0, "ms"),
+    "dt_icvout": Quantity(10.0, "ms"),
     "global_damping": Quantity(0.1, "1/ms"),
 }
 
@@ -23,7 +28,7 @@ material = {
         "anisotropic": {"k1f": Quantity(0.00049, "MPa"), "k2f": Quantity(9.01, "dimensionless")},
         "active": {
             "actype": 1,
-            "heart rate": Quantity(60, "min^-1"),
+            "beat_time": heart["beat_time"],
             "ss": 0.0,
             "taumax": Quantity(0.125, "MPa"),
             "ca2ionm": Quantity(4.35, "umol/L"),

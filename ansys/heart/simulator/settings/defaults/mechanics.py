@@ -11,7 +11,7 @@ analysis = {
     "end_time": heart["cycles"] * heart["beat_time"],
     "dtmin": Quantity(10.0, "ms"),
     "dtmax": Quantity(10.0, "ms"),
-    "dt_d3plot": Quantity(50.0, "ms"),
+    "dt_d3plot": heart["beat_time"] / 20,
     "dt_icvout": Quantity(10.0, "ms"),
     "global_damping": Quantity(0.1, "1/ms"),
 }

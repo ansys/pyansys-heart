@@ -644,10 +644,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._update_system_model()
 
         # for boundary conditions
-        if isinstance(self.model, (FourChamber, FullHeart)):
-            self._add_cap_bc(bc_type="fix_caps")
-        else:
-            self._add_cap_bc(bc_type="springs_caps")
+        self._add_cap_bc(bc_type="springs_caps")
         self._add_pericardium_bc()
 
         self._get_list_of_includes()
@@ -1110,14 +1107,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
             caps_to_use = [
                 "mitral-valve",
                 "tricuspid-valve",
+                "aortic-valve",
+                "pulmonary-valve",
             ]
-            if isinstance(self, ZeroPressureMechanicsDynaWriter):
-                caps_to_use.extend(
-                    [
-                        "aortic-valve",
-                        "pulmonary-valve",
-                    ]
-                )
 
         elif isinstance(self.model, (FourChamber, FullHeart)):
             caps_to_use = [
@@ -1128,9 +1120,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
             if isinstance(self, ZeroPressureMechanicsDynaWriter):
                 caps_to_use.extend(
                     [
-                        "left-superior-pulmonary-vein",
-                        "left-inferior-pulmonary-vein",
-                        "inferior-vena-cava",
                         "pulmonary-valve",
                     ]
                 )
@@ -1154,11 +1143,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             section_id = self.get_unique_section_id()
             mat_id = self.get_unique_mat_id()
 
-            if isinstance(self.model, (LeftVentricle, BiVentricle)):
-                spring_stiffness = bc_settings.valve["biventricle"].m
-
-            elif isinstance(self.model, (FourChamber, FullHeart)):
-                spring_stiffness = bc_settings.valve["fourchamber"].m
+            spring_stiffness = bc_settings.valve["stiffness"].m
 
             scale_factor_normal = bc_settings.valve["scale_factor"]["normal"]
             scale_factor_radial = bc_settings.valve["scale_factor"]["radial"]

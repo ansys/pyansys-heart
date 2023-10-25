@@ -66,8 +66,7 @@ material = {
 boundary_conditions = {
     "pericardium": {"penalty_function": [0.65, 25], "spring_stiffness": Quantity(0.05, "MPa/mm")},
     "valve": {
-        "biventricle": Quantity(0.002, "MPa/mm"),
-        "fourchamber": Quantity(0.02, "MPa/mm"),
+        "stiffness": Quantity(0.002, "MPa/mm"),
         "scale_factor": {"normal": 0.5, "radial": 1.0},
     },
     "end_diastolic_cavity_pressure": {

@@ -750,21 +750,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
         )
 
-        # # add auto controls
-        # lcid = self.get_unique_curve_id()
-        # # tune time step for better compromise between convergence and performance
-        # time = [0, prefill_time, prefill_time + dtmax, end_time]
-        # step = [5 * dtmax, 5 * dtmax, dtmin, dtmax]
-        # kw_curve = create_define_curve_kw(
-        #     x=time,
-        #     y=step,
-        #     curve_name="time step control",
-        #     curve_id=lcid,
-        #     lcint=0,
-        # )
-        # self.kw_database.main.append(kw_curve)
+        self.kw_database.main.append("$$ Disable auto step due 0D model $$")
         self.kw_database.main.append(
-            keywords.ControlImplicitAuto(iauto=1, dtmin=dtmin, dtmax=dtmax)
+            keywords.ControlImplicitAuto(iauto=0, dtmin=dtmin, dtmax=dtmax)
         )
 
         # add general implicit controls
@@ -773,10 +761,18 @@ class MechanicsDynaWriter(BaseDynaWriter):
         )  # imflag=1 means implicit
 
         # add implicit solution controls
-        # Nil's suggestion
+
         self.kw_database.main.append(
             keywords.ControlImplicitSolution(
-                dctol=0.01, ectol=1e6, rctol=1e3, abstol=-1e-20, dnorm=1, nlnorm=4, lsmtd=5
+                maxref=35,
+                dctol=0.02,
+                ectol=1e6,
+                rctol=1e3,
+                abstol=-1e-20,
+                dnorm=1,
+                diverg=2,
+                lstol=-0.9,
+                lsmtd=5,
             )
         )
 

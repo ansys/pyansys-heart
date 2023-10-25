@@ -25,8 +25,9 @@ reference:
     for actype=2
     TODO
     for actype=3
-    prescribed active stress
     TODO
+    prescribed active stress
+    https://doi.org/10.1371/journal.pone.0235145
 """
 
 material = {

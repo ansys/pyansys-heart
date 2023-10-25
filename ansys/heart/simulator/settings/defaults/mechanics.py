@@ -8,7 +8,7 @@ analysis = {
     "dtmax": Quantity(10.0, "ms"),
     "dt_d3plot": Quantity(50.0, "ms"),
     "dt_icvout": Quantity(1.0, "ms"),
-    "global_damping": Quantity(0.5, "1/ms"),
+    "global_damping": Quantity(0.1, "1/ms"),
 }
 
 """Material settings."""

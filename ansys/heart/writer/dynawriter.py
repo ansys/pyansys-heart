@@ -608,6 +608,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
             Use dynain.lsda file from stress free configuration computation.
         """
         self._update_main_db()
+
+        self._add_damping()
+
         self._update_parts_db()
 
         if not with_dynain:
@@ -672,14 +675,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         return
 
-    def _update_main_db(self, add_damping: bool = True):
-        """Update the main .k file.
-
-        Note
-        ----
-        Consider using a settings (json?) file as input.
-
-        """
+    def _update_main_db(self):
+        """Update the main .k file."""
         LOGGER.debug("Updating main keywords...")
 
         self.kw_database.main.title = self.model.model_type
@@ -700,9 +697,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 dt_output_d3plot=settings.analysis.dt_d3plot.m,
                 dt_output_icvout=settings.analysis.dt_icvout.m,
             )
-
-        if add_damping:
-            self._add_damping()
 
         return
 
@@ -886,10 +880,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
         kw_damp_curve = create_define_curve_kw(
             x=[0, 10e25],  # to create a constant curve
             y=self.settings.mechanics.analysis.global_damping.m * np.array([1, 1]),
-            curve_name="damping",
+            curve_name="global damping",
             curve_id=lcid_damp,
             lcint=0,
         )
+        self.kw_database.main.append("$$ unit: [ms^-1]")
         self.kw_database.main.append(kw_damp)
         self.kw_database.main.append(kw_damp_curve)
 
@@ -1814,7 +1809,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         """Update the keyword database."""
         bc_settings = self.settings.mechanics.boundary_conditions
 
-        self._update_main_db(add_damping=False)
+        self._update_main_db()
 
         self.kw_database.main.title = self.model.info.model_type + " zero-pressure"
 
@@ -3390,6 +3385,8 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         self._update_node_db()
         self._update_parts_db()
         self._update_main_db()
+        self._add_damping()
+
         self._update_solid_elements_db(add_fibers=True)
         self._update_segmentsets_db()
         self._update_nodesets_db()

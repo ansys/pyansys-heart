@@ -1525,17 +1525,17 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     s = "$" + node_kw.write()
                     self.kw_database.nodes.append(s)
 
-                # center node constraint: average of all edge nodes
-                constraint = keywords.ConstrainedInterpolation(
-                    icid=len(cap_names_used) + 1,
-                    dnid=cap.centroid_id + 1,
-                    ddof=123,
-                    ityp=1,
-                    fgm=1,
-                    inid=cap.nsid,
-                    idof=123,
-                )
-                self.kw_database.cap_elements.append(constraint)
+                # # # center node constraint: average of all edge nodes
+                # # constraint = keywords.ConstrainedInterpolation(
+                # #     icid=len(cap_names_used) + 1,
+                # #     dnid=cap.centroid_id + 1,
+                # #     ddof=123,
+                # #     ityp=1,
+                # #     fgm=1,
+                # #     inid=cap.nsid,
+                # #     idof=123,
+                # # )
+                # # self.kw_database.cap_elements.append(constraint)
 
             self.kw_database.cap_elements.append(part_kw)
             cap_names_used.append(cap.name)

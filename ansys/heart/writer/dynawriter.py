@@ -857,20 +857,24 @@ class MechanicsDynaWriter(BaseDynaWriter):
     def _add_damping(self):
         """Add damping to the main file."""
         lcid_damp = self.get_unique_curve_id()
-
+        # mass damping
         kw_damp = keywords.DampingGlobal(lcid=lcid_damp)
 
         kw_damp_curve = create_define_curve_kw(
             x=[0, 10e25],  # to create a constant curve
             y=self.settings.mechanics.analysis.global_damping.m * np.array([1, 1]),
-            curve_name="global damping",
+            curve_name="global damping [ms^-1]",
             curve_id=lcid_damp,
             lcint=0,
         )
-        self.kw_database.main.append("$$ unit: [ms^-1]")
         self.kw_database.main.append(kw_damp)
         self.kw_database.main.append(kw_damp_curve)
 
+        # stiff damping
+        for part in self.model.parts:
+            self.kw_database.main.append(f"$$ {part.name} stiffness damping [ms]")
+            kw = keywords.DampingPartStiffness(pid=part.pid, coef=-0.2)
+            self.kw_database.main.append(kw)
         return
 
     def _update_segmentsets_db(self):

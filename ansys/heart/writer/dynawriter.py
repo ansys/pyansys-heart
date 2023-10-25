@@ -1892,6 +1892,22 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         # self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
 
+        # add binout for post-process
+        settings = copy.deepcopy(self.settings.stress_free)
+        settings._remove_units()
+
+        self.kw_database.main.append(
+            keywords.DatabaseNodout(dt=settings.analysis.dt_nodout, binary=2)
+        )
+
+        # write for all nodes in nodout
+        nodeset_id = self.get_unique_nodeset_id()
+        kw = keywords.SetNodeGeneral(option="ALL", sid=nodeset_id)
+        self.kw_database.main.append(kw)
+
+        kw = keywords.DatabaseHistoryNodeSet(id1=nodeset_id)
+        self.kw_database.main.append(kw)
+
         return
 
     def _add_solution_controls(self):
@@ -1902,11 +1918,8 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.kw_database.main.append(keywords.ControlTermination(endtim=settings.analysis.end_time))
 
         self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
-        # self.kw_database.main.append(
-        #     keywords.ControlImplicitDynamics(imass=1, gamma=0.6, beta=0.38)
-        # )
 
-        # add auto controls
+        # add auto step controls
         self.kw_database.main.append(
             keywords.ControlImplicitAuto(
                 iauto=1, dtmin=settings.analysis.dtmin, dtmax=settings.analysis.dtmax
@@ -1918,24 +1931,15 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
             keywords.ControlImplicitGeneral(imflag=1, dt0=settings.analysis.dtmax)
         )
 
-        # add implicit solution controls: Defaults are OK?
+        # add implicit solution controls
         self.kw_database.main.append(keywords.ControlImplicitSolution())
 
         # add implicit solver controls
         self.kw_database.main.append(custom_keywords.ControlImplicitSolver())
 
-        # add binout for post-process
-        self.kw_database.main.append(
-            keywords.DatabaseNodout(dt=settings.analysis.dt_nodout, binary=2)
-        )
+        # accuracy control
+        self.kw_database.main.append(keywords.ControlAccuracy(osu=1, inn=4, iacc=1))
 
-        # write for all nodes in nodout
-        nodeset_id = self.get_unique_nodeset_id()
-        kw = keywords.SetNodeGeneral(option="ALL", sid=nodeset_id)
-
-        self.kw_database.main.append(kw)
-        kw = keywords.DatabaseHistoryNodeSet(id1=nodeset_id)
-        self.kw_database.main.append(kw)
         return
 
     def _add_control_reference_configuration(self):

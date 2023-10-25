@@ -17,6 +17,18 @@ analysis = {
 }
 
 """Material settings."""
+"""
+reference:
+    for actype=1:
+    https://doi.org/10.1152/ajpheart.01226.2004
+    https://doi.org/10.1152/japplphysiol.00255.2014
+    for actype=2
+    TODO
+    for actype=3
+    prescribed active stress
+    TODO
+"""
+
 material = {
     "myocardium": {
         "isotropic": {
@@ -29,11 +41,9 @@ material = {
         "active": {
             "actype": 1,
             "beat_time": heart["beat_time"],
-            "ss": 0.0,
             "taumax": Quantity(0.125, "MPa"),
-            "ca2ionm": Quantity(4.35, "umol/L"),
-            "dtmax": Quantity(150.0, "ms"),
-            "tr": Quantity(-1429.0, "ms"),
+            "ss": 0.0,
+            "sn": 0.0,
         },
     },
     "atrium": {

@@ -682,6 +682,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """Update the main .k file."""
         LOGGER.debug("Updating main keywords...")
 
+        self.kw_database.main.append("$$- Unit system: g-mm-ms-N-MPa-mJ -$$")
         self.kw_database.main.title = self.model.model_type
 
         if isinstance(self, ZeroPressureMechanicsDynaWriter):

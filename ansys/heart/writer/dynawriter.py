@@ -830,44 +830,24 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
 
-        # control ELOUT file to extract left ventricle's stress/strain
-        if hasattr(self.model, "septum"):
-            self.kw_database.main.append(
-                keywords.SetSolidGeneral(
-                    option="PART",
-                    sid=1,
-                    e1=self.model.left_ventricle.pid,
-                    e2=self.model.septum.pid,
-                    user_comment="create left ventricle + septum set for exporting",
-                )
-            )
-        else:
-            self.kw_database.main.append(
-                keywords.SetSolidGeneral(option="PART", sid=1, e1=self.model.left_ventricle.pid)
-            )
-        self.kw_database.main.append(keywords.DatabaseHistorySolidSet(id1=1))
+        # remove, aha strain is computed from d3plot
 
-        # lcid = self.get_unique_curve_id()
-        # time = [
-        #     0,
-        #     self.parameters["Time"]["End Time"] * 0.8 * 0.99,
-        #     self.parameters["Time"]["End Time"] * 0.8,
-        #     self.parameters["Time"]["End Time"],
-        # ]
-        # step = [100 * dt_output_d3plot, 100 * dt_output_d3plot, dt_output_d3plot,
-        #         dt_output_d3plot]
-        # kw_curve = create_define_curve_kw(
-        #     x=time,
-        #     y=step,
-        #     curve_name="elout control, only save during the last 20% ",
-        #     curve_id=lcid,
-        #     lcint=0,
-        # )
-        # self.kw_database.main.append(kw_curve)
-
-        # self.kw_database.main.append(
-        #     keywords.DatabaseElout(dt=dt_output_d3plot, binary=2, option1=27)
-        # )
+        # # control ELOUT file to extract left ventricle's stress/strain
+        # if hasattr(self.model, "septum"):
+        #     self.kw_database.main.append(
+        #         keywords.SetSolidGeneral(
+        #             option="PART",
+        #             sid=1,
+        #             e1=self.model.left_ventricle.pid,
+        #             e2=self.model.septum.pid,
+        #             user_comment="create left ventricle + septum set for exporting",
+        #         )
+        #     )
+        # else:
+        #     self.kw_database.main.append(
+        #         keywords.SetSolidGeneral(option="PART", sid=1, e1=self.model.left_ventricle.pid)
+        #     )
+        # self.kw_database.main.append(keywords.DatabaseHistorySolidSet(id1=1))
 
         return
 

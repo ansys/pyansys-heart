@@ -117,8 +117,12 @@ class BaseDynaWriter:
         }
         """Id offset for several relevant keywords."""
 
+        id = self.id_offset["part"]
         for part in self.model.parts:
-            part.pid = self.get_unique_part_id()
+            id += 1
+            # cannot use get_unique_part_id() because it checks in Deck()
+            # part.pid = self.get_unique_part_id()
+            part.pid = id
         """Assign part id for heart parts."""
 
         """List of .k files to include in main. This is derived from the Decks classes."""

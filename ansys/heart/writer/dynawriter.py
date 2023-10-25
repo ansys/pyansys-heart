@@ -774,6 +774,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 diverg=2,
                 lstol=-0.9,
                 lsmtd=5,
+                d3itctl=1,
             )
         )
 
@@ -829,7 +830,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
         )
 
-        self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
+        self.kw_database.main.append(
+            keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0, resplt=1)
+        )
 
         # remove, aha strain is computed from d3plot
 

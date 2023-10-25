@@ -117,6 +117,10 @@ class BaseDynaWriter:
         }
         """Id offset for several relevant keywords."""
 
+        for part in self.model.parts:
+            part.pid = self.get_unique_part_id()
+        """Assign part id for heart parts."""
+
         """List of .k files to include in main. This is derived from the Decks classes."""
         self.include_files = []
 
@@ -200,7 +204,6 @@ class BaseDynaWriter:
 
         # get list of cavities from model
         for part in self.model.parts:
-            part.pid = self.get_unique_part_id()
             # material ID = part ID
             part.mid = part.pid
 
@@ -3902,7 +3905,7 @@ class UHCWriter(BaseDynaWriter):
 
         # get list of cavities from model
         for part in self.model.parts:
-            part.pid = self.get_unique_part_id()
+            # part.pid = self.get_unique_part_id()
             # material ID = part ID
             part.mid = part.pid
 

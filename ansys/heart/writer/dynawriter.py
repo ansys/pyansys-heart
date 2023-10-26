@@ -1174,6 +1174,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             caps = [cap for part in self.model.parts for cap in part.caps]
             for cap in caps:
                 if cap.name in caps_to_use:
+                    self.kw_database.boundary_conditions.append(f"$$ spring at {cap.name}$$")
                     self._add_springs_cap_edge(
                         cap,
                         part_id,
@@ -1199,31 +1200,19 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # -------------------------------------------------------------------
         LOGGER.debug("Adding spring b.c. for cap: %s" % cap.name)
 
-        # NOTE: may want to extent the node ids to include adjacent nodes
-        # num_nodes_edge = len(cap.node_ids)
-        mesh = self.model.mesh
-        #
-        # attached_nodes = cap.node_ids
-        #
-        for boundary in mesh.boundaries:
-            if cap.name.split("-")[0] in boundary.name:
-                attached_nodes = boundary.node_ids
-                break
+        attached_nodes = cap.node_ids
 
         # use pre-computed nodal area
         nodal_areas = self.model.mesh.point_data["nodal_areas"][attached_nodes]
-
-        # scaling this node due to large deformation
-        # nodal_areas[np.where(attached_nodes == cap.node_ids[0])[0][0]] *=len(cap.node_ids)
 
         # scaled spring stiffness by nodal area
         scale_factor_normal *= nodal_areas
         scale_factor_radial *= nodal_areas
 
-        # add part, section discrete, mat spring, sd_orientiation, element discrete
+        # add sd_orientiation, element discrete
 
         # compute the radial components
-        sd_orientations_radial = mesh.nodes[attached_nodes, :] - cap.centroid
+        sd_orientations_radial = self.model.mesh.nodes[attached_nodes, :] - cap.centroid
 
         # normalize
         norms = np.linalg.norm(sd_orientations_radial, axis=1)
@@ -1247,12 +1236,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
         vector_ids_radial = sd_orientation_radial_kw.vectors["vid"].to_numpy()
         self.id_offset["vector"] = vector_ids_radial[-1]
 
-        # create discrete elements for normal direction
+        ## create discrete elements
         nodes_discrete_elements = np.array(
             [attached_nodes + 1, np.zeros(len(attached_nodes))], dtype=int
         ).T
         vector_ids_normal = np.ones(len(attached_nodes), dtype=int) * vector_id_normal
 
+        #  for normal direction
         discrete_element_normal_kw = create_discrete_elements_kw(
             nodes=nodes_discrete_elements,
             part_id=part_id,
@@ -1265,7 +1255,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             "eid"
         ].to_numpy()[-1]
 
-        # discrete elements for radial direction
+        #  for radial direction
         discrete_element_radial_kw = create_discrete_elements_kw(
             nodes=nodes_discrete_elements,
             part_id=part_id,

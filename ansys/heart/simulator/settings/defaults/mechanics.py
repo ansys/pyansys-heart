@@ -81,8 +81,52 @@ boundary_conditions = {
 }
 
 """System model parameters."""
-# 3wk model found in: https://doi.org/10.1016/j.jbiomech.2020.109645
+# 2wk model, with parameters deduced in a physiological range
+co = Quantity(5, "L/min")
+tau = Quantity(2, "s")
+pee = Quantity(100, "mmHg")
+
+rp = 0.97 * pee / co
+ca = tau / rp
+ra = 0.03 * rp
+rv = 0.2 * ra
+
 system_model = {
+    "name": "ConstantPreloadWindkesselAfterload",
+    "left_ventricle": {
+        "constants": {
+            # preload resistance
+            "Rv": rv,
+            # Z: after load diode resistance
+            "Ra": ra,
+            # R
+            "Rp": rp,
+            # C
+            "Ca": ca,
+            # constant preload, i.e. ED pressure
+            "Pven": boundary_conditions["end_diastolic_cavity_pressure"]["left_ventricle"],
+        },
+        "initial_value": {"part": Quantity(70.0, "mmHg")},
+    },
+    "right_ventricle": {
+        "constants": {
+            # preload resistance
+            "Rv": rv * 0.5,
+            # Z: after load diode resistance
+            "Ra": ra * 0.35,
+            # R
+            "Rp": rp * 0.125,
+            # C
+            "Ca": ca * 4.5,
+            # constant preload, i.e. ED pressure
+            "Pven": boundary_conditions["end_diastolic_cavity_pressure"]["left_ventricle"],
+        },
+        "initial_value": {"part": Quantity(15.0, "mmHg")},
+    },
+}
+
+# 3wk model found in: https://doi.org/10.1016/j.jbiomech.2020.109645
+system_model3 = {
     "name": "ConstantPreloadWindkesselAfterload",
     "left_ventricle": {
         "constants": {

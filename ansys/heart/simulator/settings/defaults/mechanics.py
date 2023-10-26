@@ -71,32 +71,47 @@ boundary_conditions = {
         "scale_factor": {"normal": 0.5, "radial": 1.0},
     },
     "end_diastolic_cavity_pressure": {
+        # Sack ?
         "left_ventricle": Quantity(0.002, "MPa"),
         "right_ventricle": Quantity(0.0005333299999999999, "MPa"),
+        # # https://doi.org/10.1016/j.jbiomech.2020.109645
+        # "left_ventricle": Quantity(18.0, "mmHg"),
+        # "right_ventricle": Quantity(9.54, "mmHg"),
     },
 }
 
 """System model parameters."""
+# 3wk model found in: https://doi.org/10.1016/j.jbiomech.2020.109645
 system_model = {
     "name": "ConstantPreloadWindkesselAfterload",
     "left_ventricle": {
         "constants": {
-            "Rv": Quantity(6.65e-06, "MPa/(mm^3/ms)"),
-            "Ra": Quantity(1.729e-05, "MPa/(mm^3/ms)"),
-            "Rp": Quantity(0.000766, "MPa/(mm^3/ms)"),
-            "Ca": Quantity(6390000.0, "mm^3/MPa"),
-            "Pven": Quantity(0.002, "MPa"),
+            # Diode resistance
+            "Rv": Quantity(0.05, "mmHg*s/mL"),
+            # Z
+            "Ra": Quantity(0.13, "mmHg*s/mL"),
+            # R
+            "Rp": Quantity(5.76, "mmHg*s/mL"),
+            # C
+            "Ca": Quantity(0.85, "mL/mmHg"),
+            # constant preload, i.e. ED pressure
+            "Pven": boundary_conditions["end_diastolic_cavity_pressure"]["left_ventricle"],
         },
-        "initial_value": {"part": Quantity(0.00931, "MPa")},
+        "initial_value": {"part": Quantity(70.0, "mmHg")},
     },
     "right_ventricle": {
         "constants": {
-            "Rv": Quantity(6.65e-06, "MPa/(mm^3/ms)"),
-            "Ra": Quantity(6.0514999999999996e-06, "MPa/(mm^3/ms)"),
-            "Rp": Quantity(9.575e-05, "MPa/(mm^3/ms)"),
-            "Ca": Quantity(28755000.0, "mm^3/MPa"),
-            "Pven": Quantity(0.0005333299999999999, "MPa"),
+            # Diode resistance
+            "Rv": Quantity(0.05, "mmHg*s/mL"),
+            # Z
+            "Ra": Quantity(0.13 * 0.35, "mmHg*s/mL"),
+            # R
+            "Rp": Quantity(5.76 * 0.125, "mmHg*s/mL"),
+            # C
+            "Ca": Quantity(0.85 * 4.5, "mL/mmHg"),
+            # constant preload, i.e. ED pressure
+            "Pven": boundary_conditions["end_diastolic_cavity_pressure"]["left_ventricle"],
         },
-        "initial_value": {"part": Quantity(0.0019950000000000002, "MPa")},
+        "initial_value": {"part": Quantity(15.0, "mmHg")},
     },
 }

@@ -1299,6 +1299,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
         boundary_conditions._remove_units()
         pericardium_settings = boundary_conditions.pericardium
 
+        penalty_c0 = pericardium_settings["penalty_function"][0]
+        penalty_c1 = pericardium_settings["penalty_function"][1]
+        self.kw_database.pericardium.append(f"$$ penalty with {penalty_c0}, {penalty_c1} $$")
+
         def _sigmoid(z):
             """Sigmoid function to scale spring coefficient."""
             return 1 / (1 + np.exp(-z))
@@ -1312,13 +1316,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
         uvc_l[uvc_l < 0] = 1
 
-        penalty_function = (
-            -_sigmoid(
-                (abs(uvc_l) - pericardium_settings["penalty_function"][0])
-                * pericardium_settings["penalty_function"][1]
-            )
-            + 1
-        )
+        penalty_function = -_sigmoid((abs(uvc_l) - penalty_c0) * penalty_c1) + 1
 
         # collect all pericardium nodes:
         epicardium_nodes = np.empty(0, dtype=int)
@@ -1365,16 +1363,21 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # compute scale factor
         scale_factors = nodal_areas * nodal_penalty
 
-        def __debug():
-            import meshio
+        # def __debug():
+        #     import meshio
 
-            meshio.write_points_cells(
-                "pericardium.vtk",
-                coord,
-                [("triangle", connect)],
-                point_data={"area": nodal_areas, "normal": point_normal, "penalty": nodal_penalty},
-                cell_data={"normal": [cell_normal]},
-            )
+        #     meshio.write_points_cells(
+        #         "pericardium.vtk",
+        #         coord,
+        #         [("triangle", connect)],
+        #         point_data={
+        #             "area": nodal_areas,
+        #             "normal": point_normal,
+        #             "penalty": nodal_penalty,
+        #             "stiff": nodal_areas * nodal_penalty,
+        #         },
+        #         cell_data={"normal": [cell_normal]},
+        #     )
 
         # __debug()
 

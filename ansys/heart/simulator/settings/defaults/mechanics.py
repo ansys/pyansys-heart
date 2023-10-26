@@ -63,8 +63,9 @@ material = {
 }
 
 """Boundary condition settings."""
+# pericardium: https://doi.org/10.1016/j.jbiomech.2020.109645
 boundary_conditions = {
-    "pericardium": {"penalty_function": [0.65, 25], "spring_stiffness": Quantity(0.05, "MPa/mm")},
+    "pericardium": {"penalty_function": [0.25, 25], "spring_stiffness": Quantity(0.05, "MPa/mm")},
     "valve": {
         "stiffness": Quantity(0.002, "MPa/mm"),
         "scale_factor": {"normal": 0.5, "radial": 1.0},

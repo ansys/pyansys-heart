@@ -71,9 +71,9 @@ boundary_conditions = {
         "scale_factor": {"normal": 0.5, "radial": 1.0},
     },
     "end_diastolic_cavity_pressure": {
-        # Sack ?
-        "left_ventricle": Quantity(0.002, "MPa"),
-        "right_ventricle": Quantity(0.0005333299999999999, "MPa"),
+        ## https://doi.org/10.3389/fphys.2018.00539
+        "left_ventricle": Quantity(15, "mmHg"),
+        "right_ventricle": Quantity(4, "mmHg"),
         # # https://doi.org/10.1016/j.jbiomech.2020.109645
         # "left_ventricle": Quantity(18.0, "mmHg"),
         # "right_ventricle": Quantity(9.54, "mmHg"),
@@ -119,7 +119,7 @@ system_model = {
             # C
             "Ca": ca * 4.5,
             # constant preload, i.e. ED pressure
-            "Pven": boundary_conditions["end_diastolic_cavity_pressure"]["left_ventricle"],
+            "Pven": boundary_conditions["end_diastolic_cavity_pressure"]["right_ventricle"],
         },
         "initial_value": {"part": Quantity(15.0, "mmHg")},
     },
@@ -154,7 +154,7 @@ system_model3 = {
             # C
             "Ca": Quantity(0.85 * 4.5, "mL/mmHg"),
             # constant preload, i.e. ED pressure
-            "Pven": boundary_conditions["end_diastolic_cavity_pressure"]["left_ventricle"],
+            "Pven": boundary_conditions["end_diastolic_cavity_pressure"]["right_ventricle"],
         },
         "initial_value": {"part": Quantity(15.0, "mmHg")},
     },

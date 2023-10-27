@@ -140,7 +140,7 @@ class MaterialHGOMyocardium(keywords.Mat295):
                     "l": 1.85,
                     "mr": 1048.9,  # ms*um^-1
                     "dtmax": 150.0,
-                    "tr": -1429.0,
+                    "tr": -1629.0,  # the original paper do no consider initial stretch
                 }
             elif active_user["actype"] == 2:
                 # Default parameters

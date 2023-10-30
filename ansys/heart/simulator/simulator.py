@@ -551,15 +551,17 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
 
     def simulate(self, folder_name="ep_meca"):
         """Launch the main simulation."""
-        directory = os.path.join(self.root_directory, folder_name)
-        self._write_main_simulation_files(folder_name)
+        # MechanicalSimulator handle dynain file from zerop
+        MechanicsSimulator.simulate(self, folder_name=folder_name)
+        # directory = os.path.join(self.root_directory, folder_name)
+        # self._write_main_simulation_files(folder_name)
 
-        LOGGER.info("Launching EP-MECA simulation...")
+        # LOGGER.info("Launching EP-MECA simulation...")
 
-        input_file = os.path.join(directory, "main.k")
-        self._run_dyna(input_file)
+        # input_file = os.path.join(directory, "main.k")
+        # self._run_dyna(input_file)
 
-        LOGGER.info("done.")
+        # LOGGER.info("done.")
 
         return
 
@@ -569,7 +571,7 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         self.directories["main-coupling"] = export_directory
 
         dyna_writer = writers.ElectroMechanicsDynaWriter(self.model, self.settings)
-        dyna_writer.update()
+        dyna_writer.update(with_dynain=self.initial_stress)
         dyna_writer.export(export_directory)
 
         return export_directory

@@ -3385,7 +3385,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         """Name of system model to use."""
 
         # Depending on the system model specified give list of parameters
-        self.cap_in_zerop = False
+        self.cap_in_zerop = True
         """
         If include cap (shell) elements in ZeroPressure.
         Experimental feature, please do not change it.

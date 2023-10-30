@@ -129,7 +129,8 @@ class MaterialHGOMyocardium(keywords.Mat295):
             if active_user["actype"] == 1:
                 active = {
                     "acdir": 1,  # active along first/fiber direction
-                    "acthr": active_user["ca2ionm"] / 2,
+                    "ca2ionm": 4.35,
+                    "acthr": 1.0,
                     "sf": 1.0,
                     "sn": 0.0,
                     "n": 2,
@@ -138,6 +139,8 @@ class MaterialHGOMyocardium(keywords.Mat295):
                     "l0": 1.58,
                     "l": 1.85,
                     "mr": 1048.9,  # ms*um^-1
+                    "dtmax": 150.0,
+                    "tr": -1629.0,  # the original paper do no consider initial stretch
                 }
             elif active_user["actype"] == 2:
                 # Default parameters

@@ -342,12 +342,19 @@ class EPSimulator(BaseSimulator):
 
         return
 
-    def compute_purkinje(self):
-        """Compute the purkinje network."""
+    def compute_purkinje(self, after_zerop=False):
+        """
+        Compute the purkinje network.
+
+        Parameters
+        ----------
+        after_zerop : bool, optional
+            If generate purkinje network on guessed end of diastol, by default False
+        """
         directory = os.path.join(self.root_directory, "purkinjegeneration")
         self.directories["purkinjegeneration"] = directory
 
-        self._write_purkinje_files(directory)
+        self._write_purkinje_files(directory, after_zerop=after_zerop)
 
         LOGGER.info("Computing the Purkinje network...")
 
@@ -391,32 +398,14 @@ class EPSimulator(BaseSimulator):
     def _write_purkinje_files(
         self,
         export_directory,
-        pointstx: float = 0,  # TODO instantiate this
-        pointsty: float = 0,  # TODO instantiate this
-        pointstz: float = 0,  # TODO instantiate this
-        inodeid: int = 0,  # TODO instantiate this
-        iedgeid: int = 0,  # TODO instantiate this
-        edgelen: float = 2,  # TODO instantiate this
-        ngen: float = 50,
-        nbrinit: int = 8,
-        nsplit: int = 2,
+        after_zerop=False,
     ) -> Path:
-        """Write purkinje files.
+        """Write purkinje files."""
+        model = copy.deepcopy(self.model)
+        if after_zerop:
+            model.mesh.points = np.array(self.stress_free_report["guess_ed_coord"])
 
-        Parameters
-        ----------
-        pointstx : float, optional
-            _description_, by default 0
-        pointsty : float, optional
-            _description_, by default 0
-        pointstz : float, optional
-            _description_, by default 0
-        nbrinit : int, optional
-            _description_, by default 8
-        nsplit : int, optional
-            _description_, by default 2
-        """
-        dyna_writer = writers.PurkinjeGenerationDynaWriter(copy.deepcopy(self.model), self.settings)
+        dyna_writer = writers.PurkinjeGenerationDynaWriter(model, self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory)
         return

@@ -42,7 +42,6 @@ if not os.path.isfile(case_file):
 #     mesh_size=1.5,
 # )
 
-
 # # create the working directory
 # info.create_workdir()
 # # clean the working directory
@@ -94,7 +93,6 @@ transformed_electrodes = model.define_ECG_coordinates(move_points, electrode_pos
 # plotter.show()
 
 
-
 PROJECT_DIRECTORY = Path(__file__).absolute().parents[3]
 PATH_TO_CASE = os.path.join(PROJECT_DIRECTORY, "downloads\\Strocchi2020\\01\\01.case")
 WORKING_DIRECTORY = os.path.join(Path(PATH_TO_CASE).parent, "BiVentricle")
@@ -106,47 +104,34 @@ if write_lsdyna_files:
     for writer in (
         writers.ElectrophysiologyDynaWriter(model),
     ):
-        # exportdir = os.path.join(
-        #     writer.model.info.workdir,
-        #     "ECG",
-        #     writer.__class__.__name__.lower().replace("dynawriter", ""),
-        # )
-        
-        writer.update()
 
-        # writer.export(exportdir)
+        writer.update()
 
         writer.export_databases(
             os.path.join(writer.model.info.workdir, "ECG")
         )
 
-        # writer.model.mesh.save(os.path.join(writer.model.info.workdir, "ECG", "electrode result.vtk"))
-        # writer.model.mesh.write_to_vtk(
-        #     os.path.join(writer.model.info.workdir, ".....vtk")
-        # )
 
-
-
-
-# # specify LS-DYNA path
+# specify LS-DYNA path
 # lsdyna_path = r"C:\temporary\1\test\ls-dyna_smp_d_Dev_103633-gcc846f4b4e_winx64_ifort190.exe"
+lsdyna_path = r"C:\Users\xuhu\lsdyna_smp_d_winx64\Other_version\mppdyna_d_winx64_msmpi\ls-dyna_mpp_d_Dev_104815-gc8c2d50328_winx64_ifort190_msmpi.exe"
 
-# if not os.path.isfile(lsdyna_path):
-#     raise FileExistsError(f"{lsdyna_path} not found.")
+if not os.path.isfile(lsdyna_path):
+    raise FileExistsError(f"{lsdyna_path} not found.")
 
-# dyna_settings = DynaSettings(
-#     lsdyna_path=lsdyna_path,
-#     dynatype="smp",
-#     num_cpus=1,
-# )
+dyna_settings = DynaSettings(
+    lsdyna_path=lsdyna_path,
+    dynatype="smp",
+    num_cpus=1,
+)
 
-# run_lsdyna(
-#     path_to_input = os.path.join(
-#         writer.model.info.workdir, 
-#         "ECG", 
-#         "main.k"
-#     ),
-#     settings = dyna_settings,
-#     simulation_directory = os.path.join(workdir, "ECG", "simulation-EP"),
-# )
+run_lsdyna(
+    path_to_input = os.path.join(
+        writer.model.info.workdir, 
+        "ECG", 
+        "main.k"
+    ),
+    settings = dyna_settings,
+    simulation_directory = os.path.join(workdir, "ECG"),
+)
 

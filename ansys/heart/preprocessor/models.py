@@ -1708,7 +1708,6 @@ class BiVentricle(HeartModel):
         """Right ventricle part."""
         self.septum: Part = Part(name="Septum", part_type="septum")
         """Septum."""
-        # self.electrodes = [Part(name=f"Electrode {i+1}", part_type="electrode") for i in range(10)]
         self.electrodes = {}
 
         """List of ten electrodes."""
@@ -1729,10 +1728,7 @@ class BiVentricle(HeartModel):
         })
 
 
-    # def define_ECG_coordinates(self,heart_template:vtktype,list_of_points: [Point()])->[Point()]:
     def define_ECG_coordinates(self, move_points: pv.core.pointset.UnstructuredGrid, electrodes_points: [Point()]) -> [Point()]:
-    # def define_ECG_coordinates(self):
-        # print("works!!!")
         from scipy.optimize import minimize
         from scipy.spatial.transform import Rotation
         
@@ -1746,7 +1742,6 @@ class BiVentricle(HeartModel):
 
         # Convert the list of points to a NumPy array
         fix_points = np.array(fix_points)
-        # moving_model = heart_template
 
         # Define the initial transformation parameters
         random_quaternion = Rotation.random().as_quat()

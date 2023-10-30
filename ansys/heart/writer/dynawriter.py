@@ -3016,22 +3016,22 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self.kw_database.ep_settings.append(
             custom_keywords.EmEpIsoch(idisoch=1, idepol=1, dplthr=-20, irepol=1, rplthr=-40)
         )
-        part_ids = [None] * 7
-        part_ids[0 : len(self.model.part_ids)] = self.model.part_ids
-        nsid_all_parts = self.get_unique_nodeset_id()
-        kw = keywords.SetNodeGeneral(
-            title="All nodes",
-            option="PART",
-            sid=nsid_all_parts,
-            e1=part_ids[0],
-            e2=part_ids[1],
-            e3=part_ids[2],
-            e4=part_ids[3],
-            e5=part_ids[4],
-            e6=part_ids[5],
-            e7=part_ids[6],
-        )
-        self.kw_database.node_sets.append(kw)
+        # part_ids = [None] * 7
+        # part_ids[0 : len(self.model.part_ids)] = self.model.part_ids
+        # nsid_all_parts = self.get_unique_nodeset_id()
+        # kw = keywords.SetNodeGeneral(
+        #     title="All nodes",
+        #     option="PART",
+        #     sid=nsid_all_parts,
+        #     e1=part_ids[0],
+        #     e2=part_ids[1],
+        #     e3=part_ids[2],
+        #     e4=part_ids[3],
+        #     e5=part_ids[4],
+        #     e6=part_ids[5],
+        #     e7=part_ids[6],
+        # )
+        # self.kw_database.node_sets.append(kw)
 
         # use defaults
         self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=1))
@@ -3043,115 +3043,45 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         self.kw_database.ep_settings.append(keywords.EmOutput(mats=1, matf=1, sols=1, solf=1))
 
+        # define stimulation node set
+        # TODO add more nodes to initiate wave propagation !!!!
         if isinstance(self.model, BiVentricle):
             node_apex_left = self.model.left_ventricle.apex_points[0].node_id
             node_apex_right = self.model.right_ventricle.apex_points[0].node_id
+            stim_nodes = np.array([node_apex_left, node_apex_right])
 
-            node_set_id_apex_left = self.get_unique_nodeset_id()
-            # create node-sets for apex left
-            node_set_kw = create_node_set_keyword(
-                node_ids=[node_apex_left + 1],
-                node_set_id=node_set_id_apex_left,
-                title="apex node left",
-            )
-            self.kw_database.node_sets.append(node_set_kw)
-
-            node_set_id_apex_right = self.get_unique_nodeset_id()
-            # create node-sets for apex right
-            node_set_kw = create_node_set_keyword(
-                node_ids=[node_apex_right + 1],
-                node_set_id=node_set_id_apex_right,
-                title="apex node right",
-            )
-            self.kw_database.node_sets.append(node_set_kw)
-            # TODO add more nodes to initiate wave propagation !!!!
-            node_set_id_stimulationnodes = self.get_unique_nodeset_id()
-            # create node-sets for apex
-            node_set_kw = create_node_set_keyword(
-                node_ids=[node_apex_left + 1, node_apex_right + 1],
-                node_set_id=node_set_id_stimulationnodes,
-                title="Stim nodes",
-            )
-
-            self.kw_database.node_sets.append(node_set_kw)
-            self.kw_database.ep_settings.append(
-                custom_keywords.EmEpTentusscherStimulus(
-                    stimid=1,
-                    settype=2,
-                    setid=node_set_id_stimulationnodes,
-                    stimstrt=0.0,
-                    stimt=1000.0,
-                    stimdur=20.0,
-                    stimamp=50.0,
-                )
-            )
-            # if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-            #     self.model.left_atrium.apex_points
-        if isinstance(self.model, (FourChamber, FullHeart)):
+        elif isinstance(self.model, (FourChamber, FullHeart)):
             node_apex_left = self.model.left_ventricle.apex_points[0].node_id
             node_apex_right = self.model.right_ventricle.apex_points[0].node_id
             stim_nodes = np.array([node_apex_left, node_apex_right])
 
             if self.model.right_atrium.get_point("SA_node") != None:
                 stim_nodes = self.model.right_atrium.get_point("SA_node").node_id
-            # TODO add more nodes to initiate wave propagation !!!!
-            node_set_id_stimulationnodes = self.get_unique_nodeset_id()
-            # create node-sets for apex
-            node_set_kw = create_node_set_keyword(
-                node_ids=stim_nodes + 1,
-                node_set_id=node_set_id_stimulationnodes,
-                title="Stim nodes",
-            )
-
-            self.kw_database.node_sets.append(node_set_kw)
-            self.kw_database.ep_settings.append(
-                custom_keywords.EmEpTentusscherStimulus(
-                    stimid=1,
-                    settype=2,
-                    setid=node_set_id_stimulationnodes,
-                    stimstrt=0.0,
-                    stimt=1000.0,
-                    stimdur=20.0,
-                    stimamp=50.0,
-                )
-            )
-            # if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-            #     self.model.left_atrium.apex_points
 
         elif isinstance(self.model, LeftVentricle):
-            node_apex_left = self.model.left_ventricle.apex_points[0].node_id
+            stim_nodes = np.array(self.model.left_ventricle.apex_points[0].node_id)
 
-            node_set_id_apex_left = self.get_unique_nodeset_id()
-            # create node-sets for apex left
-            node_set_kw = create_node_set_keyword(
-                node_ids=[node_apex_left + 1],
-                node_set_id=node_set_id_apex_left,
-                title="apex node left",
+        # create node-sets for stim nodes
+        node_set_id_stimulationnodes = self.get_unique_nodeset_id()
+        node_set_kw = create_node_set_keyword(
+            node_ids=[node_apex_left + 1],
+            node_set_id=node_set_id_stimulationnodes,
+            title="Stim nodes",
+        )
+        self.kw_database.node_sets.append(node_set_kw)
+
+        # stimulation
+        self.kw_database.ep_settings.append(
+            custom_keywords.EmEpTentusscherStimulus(
+                stimid=1,
+                settype=2,
+                setid=node_set_id_stimulationnodes,
+                stimstrt=0.0,
+                stimt=800.0,
+                stimdur=20.0,
+                stimamp=50.0,
             )
-            self.kw_database.node_sets.append(node_set_kw)
-
-            # TODO add more nodes to initiate wave propagation !!!!
-            node_set_id_stimulationnodes = self.get_unique_nodeset_id()
-            # create node-sets for apex
-            node_set_kw = create_node_set_keyword(
-                node_ids=[node_apex_left + 1],
-                node_set_id=node_set_id_stimulationnodes,
-                title="Stim nodes",
-            )
-
-            self.kw_database.node_sets.append(node_set_kw)
-
-            self.kw_database.ep_settings.append(
-                custom_keywords.EmEpTentusscherStimulus(
-                    stimid=1,
-                    settype=2,
-                    setid=node_set_id_stimulationnodes,
-                    stimstrt=0.0,
-                    stimt=1000.0,
-                    stimdur=20.0,
-                    stimamp=50.0,
-                )
-            )
+        )
 
     def _update_solution_controls(
         self,

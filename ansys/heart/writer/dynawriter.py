@@ -3043,6 +3043,30 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         self.kw_database.ep_settings.append(keywords.EmOutput(mats=1, matf=1, sols=1, solf=1))
 
+        # define apex node set (for PurkinjeGenerationDynaWriter())
+        if isinstance(self.model, LeftVentricle):
+            node_apex_left = self.model.left_ventricle.apex_points[0].node_id
+            node_set_id_apex_left = self.get_unique_nodeset_id()
+
+            # create node-sets for apex left
+            node_set_kw = create_node_set_keyword(
+                node_ids=[node_apex_left + 1],
+                node_set_id=node_set_id_apex_left,
+                title="apex node left",
+            )
+            self.kw_database.node_sets.append(node_set_kw)
+
+        else:
+            node_apex_right = self.model.right_ventricle.apex_points[0].node_id
+            node_set_id_apex_right = self.get_unique_nodeset_id()
+
+            # create node-sets for apex right
+            node_set_kw = create_node_set_keyword(
+                node_ids=[node_apex_right + 1],
+                node_set_id=node_set_id_apex_right,
+                title="apex node right",
+            )
+
         # define stimulation node set
         # TODO add more nodes to initiate wave propagation !!!!
         if isinstance(self.model, BiVentricle):

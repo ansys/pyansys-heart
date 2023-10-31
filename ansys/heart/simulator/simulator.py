@@ -423,12 +423,12 @@ class MechanicsSimulator(BaseSimulator):
     ) -> None:
         super().__init__(model, dyna_settings, simulation_directory)
 
+        self.initial_stress = initial_stress
         """If stress free computation is taken into considered."""
         # include initial stress by default
-        self.initial_stress = initial_stress
 
-        """A dictionary save stress free computation information"""
         self.stress_free_report = None
+        """A dictionary save stress free computation information"""
 
         return
 

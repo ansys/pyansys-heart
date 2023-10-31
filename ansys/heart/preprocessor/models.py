@@ -1864,13 +1864,11 @@ class FourChamber(HeartModel):
 
             return beam
 
-    def compute_His_conduction(self, beam_length=0.8, beam_number=4) -> BeamMesh:
+    def compute_His_conduction(self, beam_number=4) -> BeamMesh:
         """Compute His bundle conduction.
 
         Parameters
         ----------
-        beam_length : float, optional
-            beam length, by default 0.8
         beam_number : int, optional
             beam number, by default 4
 
@@ -1879,7 +1877,7 @@ class FourChamber(HeartModel):
         BeamMesh
             Beam mesh
         """
-        start_point, end_point = self._define_hisbundle_start_end_point(beam_length, beam_number)
+        start_point, end_point = self._define_hisbundle_start_end_point(beam_number)
 
         # https://www.researchgate.net/publication/353154291_Morphometric_analysis_of_the_His_bundle_atrioven
         # tricular_fascicle_in_humans_and_other_animal_species_Histological_and_immunohistochemical_study
@@ -1931,7 +1929,7 @@ class FourChamber(HeartModel):
 
         return beam
 
-    def _define_hisbundle_start_end_point(self, beam_length, beam_number) -> (Point, Point):
+    def _define_hisbundle_start_end_point(self, beam_number) -> (Point, Point):
         """
         Define start and end points of the bundle of His.
 
@@ -1950,7 +1948,8 @@ class FourChamber(HeartModel):
         His_septum_start_xyz = self.mesh.nodes[His_septum_start_id, :]
 
         # Define end point:  a random close point
-        pointcloud_id = septum_pointcloud.find_closest_point(AV_node.xyz, n=10)
+        n = 50
+        pointcloud_id = septum_pointcloud.find_closest_point(AV_node.xyz, n=n)[n - 1]
 
         His_septum_end_id = septum_point_ids[pointcloud_id]
         His_septum_end_xyz = self.mesh.nodes[His_septum_end_id, :]

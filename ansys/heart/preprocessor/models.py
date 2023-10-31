@@ -1932,43 +1932,42 @@ class FourChamber(HeartModel):
         return beam
 
     def _define_hisbundle_start_end_point(self, beam_length, beam_number) -> (Point, Point):
-        """Define start and end points of the bundle of His."""
-        # TODO add method in Part class to have a get_mesh()
+        """
+        Define start and end points of the bundle of His.
+
+        Start point: create a point in septum, it's closest to AV node.
+        End point: create a point in septum, it's close to AV node but randomly chosen.
+        """
+        AV_node = self.right_atrium.get_point("AV_node")
+
         septum_point_ids = np.unique(np.ravel(self.mesh.tetrahedrons[self.septum.element_ids,]))
-        septum_points = pv.PolyData(self.mesh.nodes[septum_point_ids, :])
-        atria_surface = pv.PolyData(
-            self.left_atrium.endocardium
-            + self.left_atrium.epicardium
-            + self.right_atrium.endocardium
-            + self.right_atrium.epicardium
-        )
-        # Get a point at septum center
-        septum_center_id = septum_point_ids[septum_points.find_closest_point(septum_points.center)]
-        septum_center_xyz = self.mesh.nodes[septum_center_id, :]
+        septum_pointcloud = pv.PolyData(self.mesh.nodes[septum_point_ids, :])
 
-        # Define septum start point: closest to artria
-        His_septum_start_id = self.mesh.find_closest_point(
-            atria_surface.points[atria_surface.find_closest_point(septum_center_xyz), :]
-        )
+        # Define start point: closest to artria
+        pointcloud_id = septum_pointcloud.find_closest_point(AV_node.xyz)
+
+        His_septum_start_id = septum_point_ids[pointcloud_id]
         His_septum_start_xyz = self.mesh.nodes[His_septum_start_id, :]
-        # Define septum end point: direction toward apex for a given distance
 
-        direction_vec = (septum_center_xyz - His_septum_start_xyz) / np.linalg.norm(
-            septum_center_xyz - His_septum_start_xyz
-        )
-        distance = beam_number * beam_length
-        His_septum_end_xyz = His_septum_start_xyz + distance * direction_vec
+        # Define end point:  a random close point
+        pointcloud_id = septum_pointcloud.find_closest_point(AV_node.xyz, n=10)
+
+        His_septum_end_id = septum_point_ids[pointcloud_id]
+        His_septum_end_xyz = self.mesh.nodes[His_septum_end_id, :]
+
         # create Points
         His_septum_start = Point(
             name="His septum start", xyz=His_septum_start_xyz, node_id=len(self.mesh.nodes)
         )
         self.septum.points.append(His_septum_start)
+
         His_septum_end = Point(
             name="His septum end",
             xyz=His_septum_end_xyz,
             node_id=beam_number + len(self.mesh.nodes),
         )
         self.septum.points.append(His_septum_end)
+
         return His_septum_start, His_septum_end
 
     def compute_bundle_branches(self) -> (BeamMesh, BeamMesh):

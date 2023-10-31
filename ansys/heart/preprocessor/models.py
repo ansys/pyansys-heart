@@ -2092,12 +2092,25 @@ class FullHeart(FourChamber):
     """Model of both ventricles, both atria, aorta and pulmonary artery."""
 
     def __init__(self, info: ModelInfo) -> None:
-        super().__init__(info)
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
+        """Left ventricle part."""
+        self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
+        """Right ventricle part."""
+        self.septum: Part = Part(name="Septum", part_type="septum")
+        """Septum."""
+        self.left_atrium: Part = Part(name="Left atrium", part_type="atrium")
+        """Left atrium part."""
+        self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
+        """Right atrium part."""
 
         self.aorta: Part = Part(name="Aorta", part_type="artery")
         """Aorta part."""
         self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type="artery")
         """Pulmonary artery part."""
+
+        HeartModel.__init__(self, info)
+        # super().__init__(info)
+
         pass
 
 

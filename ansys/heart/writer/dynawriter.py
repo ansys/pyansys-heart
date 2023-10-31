@@ -2859,7 +2859,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     self.model.mesh.nodes = np.append(
                         self.model.mesh.nodes, self.model.mesh.nodes[interface_nids, :], axis=0
                     )
-        return (np.array(old_nodes), np.array(new_nodes))
 
     def export(self, export_directory: str):
         """Write the model to files."""

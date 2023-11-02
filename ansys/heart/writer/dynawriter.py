@@ -3024,6 +3024,13 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def _update_ep_settings(self):
         """Add the settings for the electrophysiology solver."""
+        if self.__class__.__name__ == "ElectroMechanicsDynaWriter":
+            # coupling enabled
+            self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=0))
+        else:
+            # coupling off
+            self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
+
         self.kw_database.ep_settings.append(
             keywords.EmControl(
                 emsol=11, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
@@ -3163,11 +3170,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         if self.model.mesh.beam_network:
             sid = self.get_unique_section_id()
             self.kw_database.parts.append(keywords.SectionBeam(secid=sid, elform=3, a=645))
-            # if self.__class__.__name__ == "ElectroMechanicsDynaWriter":
-            #     self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=0))
-            # else:
-            # todo Karim verify
-            #     self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
+
             beams_kw = keywords.ElementBeam()
             for network in self.model.mesh.beam_network:
                 # It is previously defined from purkinje generation step

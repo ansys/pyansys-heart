@@ -3173,6 +3173,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         sid = self.get_unique_section_id()
         self.kw_database.beam_networks.append(keywords.SectionBeam(secid=sid, elform=3, a=645))
 
+        beam_id_offset = 0
         for network in self.model.mesh.beam_network:
             ## do not write His Bundle when coupling, it leads to crash
             if self.__class__.__name__ == "ElectroMechanicsDynaWriter" and network.name == "His":
@@ -3252,7 +3253,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
             # cell model
             cell_kw = self.create_Tentusscher_kw(network.pid)
-            self.kw_database.beam_networks.extend([cell_kw])
+            self.kw_database.beam_networks.append(cell_kw)
 
             # mesh
             beams_kw = keywords.ElementBeam()
@@ -3260,8 +3261,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 beams=network.edges + 1,
                 beam_kw=beams_kw,
                 pid=network.pid,
-                offset=len(self.model.mesh.tetrahedrons) + len(beams_kw.elements),
+                offset=beam_id_offset,
             )
+            beam_id_offset += len(network.edges)
             self.kw_database.beam_networks.append(beams_kw)
 
     def _update_export_controls(self, dt_output_d3plot: float = 1.0):

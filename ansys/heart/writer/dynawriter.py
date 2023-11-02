@@ -2669,18 +2669,20 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def update(self):
         """Update keyword database for Electrophysiology."""
         self._isolate_atria_and_ventricles()
+
         ##
         self._update_main_db()
-
         self._update_solution_controls()
         self._update_export_controls()
-        self._update_node_db()
 
+        self._update_node_db()
         self._update_parts_db()
         self._update_solid_elements_db(add_fibers=True)
+
         self._update_dummy_material_db()
         self._update_ep_material_db()
         self._update_cellmodels()
+
         self._update_segmentsets_db()
         self._update_nodesets_db()
 
@@ -3015,27 +3017,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self.kw_database.ep_settings.append(
             custom_keywords.EmEpIsoch(idisoch=1, idepol=1, dplthr=-20, irepol=1, rplthr=-40)
         )
-        # part_ids = [None] * 7
-        # part_ids[0 : len(self.model.part_ids)] = self.model.part_ids
-        # nsid_all_parts = self.get_unique_nodeset_id()
-        # kw = keywords.SetNodeGeneral(
-        #     title="All nodes",
-        #     option="PART",
-        #     sid=nsid_all_parts,
-        #     e1=part_ids[0],
-        #     e2=part_ids[1],
-        #     e3=part_ids[2],
-        #     e4=part_ids[3],
-        #     e5=part_ids[4],
-        #     e6=part_ids[5],
-        #     e7=part_ids[6],
-        # )
-        # self.kw_database.node_sets.append(kw)
 
         # use defaults
         self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=1))
 
-        # max iter should be int
         self.kw_database.ep_settings.append(
             keywords.EmSolverFem(reltol=1e-6, maxite=int(1e4), precon=2)
         )
@@ -3112,9 +3097,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         end_time: float = 800,
     ):
         """Add solution controls and other solver settings as keywords."""
-        # add termination keywords
         self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=0.0))
-
         self.kw_database.main.append(keywords.ControlTimeStep(dtinit=1.0, dt2ms=1.0))
         return
 
@@ -3139,7 +3122,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
             origin_coordinates = self.model.mesh.nodes[network.node_ids[0], :]
 
-            if network.name is None:  # todo this should be written in model class
+            if network.name is None:
+                # TODO: assign a name
                 if isinstance(self.model, LeftVentricle):
                     network.name = "Left" + "-" + "purkinje"
                     network.nsid = self.model.left_ventricle.endocardium.id
@@ -3170,6 +3154,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
             # write
             self.kw_database.beam_networks.append(f"$$ {network.name} $$")
+
             self.kw_database.beam_networks.append(
                 custom_keywords.EmEpPurkinjeNetwork2(
                     purkid=network.pid,
@@ -3228,7 +3213,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             Writes full D3PLOT results at this time-step spacing, by default 0.05
 
         """
-        # frequency of full results
         self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
 
         return

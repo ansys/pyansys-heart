@@ -2661,6 +2661,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     """Class for preparing the input for an Electrophysiology LS-DYNA simulation."""
 
     def __init__(self, model: HeartModel, settings: SimulationSettings = None) -> None:
+        if isinstance(model, FourChamber):
+            model._create_isolation_part()
+
         super().__init__(model=model, settings=settings)
 
         self.kw_database = ElectrophysiologyDecks()
@@ -2668,7 +2671,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def update(self):
         """Update keyword database for Electrophysiology."""
-        self._isolate_atria_and_ventricles()
+        # self._isolate_atria_and_ventricles()
 
         ##
         self._update_main_db()
@@ -3226,6 +3229,9 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         model: HeartModel,
         settings: SimulationSettings = None,
     ) -> None:
+        if isinstance(model, FourChamber):
+            model._create_isolation_part()
+
         BaseDynaWriter.__init__(self, model=model, settings=settings)
 
         self.kw_database = ElectroMechanicsDecks()
@@ -3241,43 +3247,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         Experimental feature, please do not change it.
         """
 
-    def _create_isolation_part(self):
-        """Create a new part to isolate between ventricles and atrial."""
-        # find interface nodes between ventricles and atrial
-        v_ele = np.hstack(
-            (self.model.left_ventricle.element_ids, self.model.right_ventricle.element_ids)
-        )
-        a_ele = np.hstack((self.model.left_atrium.element_ids, self.model.right_atrium.element_ids))
-
-        ventricles = self.model.mesh.extract_cells(v_ele)
-        atrial = self.model.mesh.extract_cells(a_ele)
-
-        interface_nids = np.intersect1d(
-            ventricles["vtkOriginalPointIds"], atrial["vtkOriginalPointIds"]
-        )
-
-        interface_eids = np.where(
-            np.any(np.isin(self.model.mesh.tetrahedrons, interface_nids), axis=1)
-        )[0]
-        # interface elements on atrial part
-        interface_eids = np.intersect1d(interface_eids, a_ele)
-
-        # remove these elements from atrial parts
-        self.model.left_atrium.element_ids = np.setdiff1d(
-            self.model.left_atrium.element_ids, interface_eids
-        )
-        self.model.right_atrium.element_ids = np.setdiff1d(
-            self.model.right_atrium.element_ids, interface_eids
-        )
-
-        # create a new part
-        self.model.add_part("Isolation atrial")
-        isolation = self.model.get_part("Isolation atrial")
-        isolation.element_ids = interface_eids
-        isolation.has_fiber = True
-        isolation.is_active = False
-
-    def _duplicate_ventricle_atrial_nodes_tie(self):
+    def __duplicate_ventricle_atrial_nodes_tie(self):
         """Test feature, not working with mpp < DEV104400."""
         # find interface nodes between ventricles and atrial
         v_ele = np.hstack(
@@ -3334,18 +3304,12 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
     def update(self, with_dynain=False):
         """Update the keyword database."""
-        """
-        todo
-        active atria material
-        His bundle bifurcation, first two nodes at same locations
-        """
         if isinstance(self.model, (FourChamber, FullHeart)):
             self.model.left_atrium.has_fiber = True
             self.model.left_atrium.is_active = True
             self.model.right_atrium.has_fiber = True
             self.model.right_atrium.is_active = True
             # self._duplicate_ventricle_atrial_nodes_tie()
-            self._create_isolation_part()
 
         # Re compute caps since mesh is changed
         # TODO not compatible with zerop

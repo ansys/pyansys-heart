@@ -2039,6 +2039,36 @@ class FourChamber(HeartModel):
         raise NotImplementedError
         return
 
+    def _create_isolation_part(self):
+        """Create a new part to isolate between ventricles and atrial."""
+        # find interface nodes between ventricles and atrial
+        v_ele = np.hstack((self.left_ventricle.element_ids, self.right_ventricle.element_ids))
+        a_ele = np.hstack((self.left_atrium.element_ids, self.right_atrium.element_ids))
+
+        ventricles = self.mesh.extract_cells(v_ele)
+        atrial = self.mesh.extract_cells(a_ele)
+
+        interface_nids = np.intersect1d(
+            ventricles["vtkOriginalPointIds"], atrial["vtkOriginalPointIds"]
+        )
+
+        interface_eids = np.where(np.any(np.isin(self.mesh.tetrahedrons, interface_nids), axis=1))[
+            0
+        ]
+        # interface elements on atrial part
+        interface_eids = np.intersect1d(interface_eids, a_ele)
+
+        # remove these elements from atrial parts
+        self.left_atrium.element_ids = np.setdiff1d(self.left_atrium.element_ids, interface_eids)
+        self.right_atrium.element_ids = np.setdiff1d(self.right_atrium.element_ids, interface_eids)
+
+        # create a new part
+        self.add_part("Isolation atrial")
+        isolation = self.get_part("Isolation atrial")
+        isolation.element_ids = interface_eids
+        isolation.has_fiber = True
+        isolation.is_active = False
+
 
 class FullHeart(FourChamber):
     """Model of both ventricles, both atria, aorta and pulmonary artery."""
@@ -2069,21 +2099,21 @@ class FullHeart(FourChamber):
 if __name__ == "__main__":
     info = ModelInfo(database="Strocchi2020", work_directory="tmp", path_to_case="test.case")
 
-    model = LeftVentricle(info)
+    self = LeftVentricle(info)
     print("LeftVentricle:")
-    model.print_info()
-    model.remove_part("Left ventricle")
+    self.print_info()
+    self.remove_part("Left ventricle")
 
-    model = BiVentricle(info)
+    self = BiVentricle(info)
     print("BiVentricle:")
-    model.print_info()
+    self.print_info()
 
-    model = FourChamber(info)
+    self = FourChamber(info)
     print("FourChamber:")
-    model.print_info()
+    self.print_info()
 
-    model = FullHeart(info)
+    self = FullHeart(info)
     print("FullHeart:")
-    model.print_info()
+    self.print_info()
 
-    print(model.part_names)
+    print(self.part_names)

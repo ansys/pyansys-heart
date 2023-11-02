@@ -2691,6 +2691,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         # update ep settings
         self._update_ep_settings()
+        self._update_stimulation()
 
         self._get_list_of_includes()
         self._add_includes()
@@ -3041,6 +3042,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         self.kw_database.ep_settings.append(keywords.EmOutput(mats=1, matf=1, sols=1, solf=1))
 
+    def _update_stimulation(self):
         # # define apex node set
         # node_apex_left = self.model.left_ventricle.apex_points[0].node_id
         # node_set_id_apex_left = self.get_unique_nodeset_id()
@@ -3090,7 +3092,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             node_set_id=node_set_id_stimulationnodes,
             title="Stim nodes",
         )
-        self.kw_database.node_sets.append(node_set_kw)
+        self.kw_database.ep_settings.append(node_set_kw)
 
         # stimulation
         self.kw_database.ep_settings.append(
@@ -3385,6 +3387,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         self.kw_database.main.append(keywords.Include(filename="cell_models.k"))
 
         self._update_ep_settings()
+        self._update_stimulation()
 
         # todo coupling parameters
         coupling_str = (

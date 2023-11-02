@@ -2678,7 +2678,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         self._update_parts_db()
         self._update_solid_elements_db(add_fibers=True)
-        self._update_material_db()
+        self._update_dummy_material_db()
         self._update_ep_material_db()
         self._update_cellmodels()
         self._update_segmentsets_db()
@@ -2865,67 +2865,43 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                         self.model.mesh.nodes, self.model.mesh.nodes[interface_nids, :], axis=0
                     )
 
-    def export(self, export_directory: str):
-        """Write the model to files."""
-        tstart = time.time()
-        LOGGER.debug("Writing all LS-DYNA .k files...")
-
-        if not export_directory:
-            export_directory = self.model.info.workdir
-
-        if not os.path.isdir(export_directory):
-            os.makedirs(export_directory)
-
-        # export .k files
-        self.export_databases(export_directory)
-
-        tend = time.time()
-        LOGGER.debug("Time spent writing files: {:.2f} s".format(tend - tstart))
-
-        return
-
-    def _update_material_db(self):
+    def _update_dummy_material_db(self):
         """Add simple mechanics material for each defined part."""
         for part in self.model.parts:
             ep_mid = part.pid
-            self.kw_database.material.extend(
-                [
-                    keywords.MatElastic(mid=ep_mid, ro=1e-6, e=1),
-                ]
+            self.kw_database.material.append(
+                keywords.MatElastic(mid=ep_mid, ro=1e-6, e=1),
             )
 
     def _update_ep_material_db(self):
         """Add EP material for each defined part."""
         for part in self.model.parts:
+            self.kw_database.material.append(f"$$ {part.name} $$")
             partname = part.name.lower()
             if ("atrium" in partname) or ("ventricle" in partname) or ("septum" in partname):
                 ep_mid = part.pid
-                self.kw_database.material.extend(
-                    [
-                        custom_keywords.EmMat003(
-                            mid=ep_mid,
-                            mtype=2,
-                            sigma11=0.5,
-                            sigma22=0.1,
-                            sigma33=0.1,
-                            beta=140,
-                            cm=0.01,
-                            aopt=2.0,
-                            a1=0,
-                            a2=0,
-                            a3=1,
-                            d1=0,
-                            d2=-1,
-                            d3=0,
-                        ),
-                    ]
+                self.kw_database.material.append(
+                    custom_keywords.EmMat003(
+                        mid=ep_mid,
+                        mtype=2,
+                        sigma11=0.5,
+                        sigma22=0.1,
+                        sigma33=0.1,
+                        beta=140,
+                        cm=0.01,
+                        aopt=2.0,
+                        a1=0,
+                        a2=0,
+                        a3=1,
+                        d1=0,
+                        d2=-1,
+                        d3=0,
+                    ),
                 )
             else:
                 ep_mid = part.pid
-                self.kw_database.material.extend(
-                    [
-                        keywords.EmMat001(mid=ep_mid, mtype=1, sigma=1),
-                    ]
+                self.kw_database.material.append(
+                    keywords.EmMat001(mid=ep_mid, mtype=1, sigma=1),
                 )
 
     def _update_cellmodels(self):
@@ -3141,27 +3117,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         return
 
     def _update_main_db(self):
-        return
-
-    def _get_list_of_includes(self):
-        """Get a list of files to include in main.k. omit any empty decks."""
-        for deckname, deck in vars(self.kw_database).items():
-            if deckname == "main":
-                continue
-            # skip if no keywords are present in the deck
-            if len(deck.keywords) == 0:
-                LOGGER.debug("No keywords in deck: {0}".format(deckname))
-                continue
-            self.include_files.append(deckname)
-        return
-
-    def _add_includes(self):
-        """Add *INCLUDE keywords."""
-        for include_file in self.include_files:
-            filename_to_include = include_file + ".k"
-            self.kw_database.main.append(keywords.Include(filename=filename_to_include))
-
-        return
+        pass
 
     def _update_use_Purkinje(self):
         """Update keywords for Purkinje usage."""
@@ -3170,7 +3126,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         beam_id_offset = 0
         for network in self.model.mesh.beam_network:
-            ## do not write His Bundle when coupling, it leads to crash
+            ## TODO do not write His Bundle when coupling, it leads to crash
             if self.__class__.__name__ == "ElectroMechanicsDynaWriter" and network.name == "His":
                 continue
 
@@ -3261,15 +3217,13 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             beam_id_offset += len(network.edges)
             self.kw_database.beam_networks.append(beams_kw)
 
-    def _update_export_controls(self, dt_output_d3plot: float = 1.0):
+    def _update_export_controls(self, dt_output_d3plot: float = 10.0):
         """Add solution controls to the main simulation.
 
         Parameters
         ----------
         dt_output_d3plot : float, optional
             Writes full D3PLOT results at this time-step spacing, by default 0.05
-        dt_output_icvout : float, optional
-            Writes control volume results at this time-step spacing, by default 0.001
 
         """
         # frequency of full results

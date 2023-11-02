@@ -3171,9 +3171,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def _update_use_Purkinje(self):
         """Update keywords for Purkinje usage."""
         sid = self.get_unique_section_id()
-        self.kw_database.parts.append(keywords.SectionBeam(secid=sid, elform=3, a=645))
+        self.kw_database.beam_networks.append(keywords.SectionBeam(secid=sid, elform=3, a=645))
 
-        beams_kw = keywords.ElementBeam()
         for network in self.model.mesh.beam_network:
             ## do not write His Bundle when coupling, it leads to crash
             if self.__class__.__name__ == "ElectroMechanicsDynaWriter" and network.name == "His":
@@ -3216,7 +3215,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 network.nsid = -1
 
             # write
-            self.kw_database.main.append(
+            self.kw_database.beam_networks.append(f"$$ {network.name} $$")
+            self.kw_database.beam_networks.append(
                 custom_keywords.EmEpPurkinjeNetwork2(
                     purkid=network.pid,
                     buildnet=0,
@@ -3244,22 +3244,25 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
             part_kw = keywords.Part()
             part_kw.parts = part_df
-            self.kw_database.parts.append(part_kw)
-            self.kw_database.material.append(keywords.MatNull(mid=network.pid, ro=1e-11))
-            self.kw_database.material.append(keywords.EmMat001(mid=network.pid, mtype=2, sigma=10))
+            self.kw_database.beam_networks.append(part_kw)
+            self.kw_database.beam_networks.append(keywords.MatNull(mid=network.pid, ro=1e-11))
+            self.kw_database.beam_networks.append(
+                keywords.EmMat001(mid=network.pid, mtype=2, sigma=10)
+            )
 
             # cell model
             cell_kw = self.create_Tentusscher_kw(network.pid)
-            self.kw_database.cell_models.extend([cell_kw])
+            self.kw_database.beam_networks.extend([cell_kw])
 
             # mesh
+            beams_kw = keywords.ElementBeam()
             beams_kw = add_beams_to_kw(
                 beams=network.edges + 1,
                 beam_kw=beams_kw,
                 pid=network.pid,
                 offset=len(self.model.mesh.tetrahedrons) + len(beams_kw.elements),
             )
-        self.kw_database.beam_networks.append(beams_kw)
+            self.kw_database.beam_networks.append(beams_kw)
 
     def _update_export_controls(self, dt_output_d3plot: float = 1.0):
         """Add solution controls to the main simulation.

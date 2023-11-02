@@ -3364,6 +3364,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
             self._create_isolation_part()
 
         # Re compute caps since mesh is changed
+        # TODO not compatible with zerop
         for part in self.model.parts:
             part.caps = []
             for surface in part.surfaces:

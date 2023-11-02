@@ -3105,7 +3105,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         # create node-sets for stim nodes
         node_set_id_stimulationnodes = self.get_unique_nodeset_id()
         node_set_kw = create_node_set_keyword(
-            node_ids=[stim_nodes + 1],
+            node_ids=stim_nodes + 1,
             node_set_id=node_set_id_stimulationnodes,
             title="Stim nodes",
         )

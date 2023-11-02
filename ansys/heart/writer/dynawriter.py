@@ -2685,6 +2685,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self._update_nodesets_db()
 
         if self.model.mesh.beam_network:
+            # with smcoupl=1, coupling is disabled
+            self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
             self._update_use_Purkinje()
 
         # update ep settings
@@ -3027,13 +3029,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def _update_ep_settings(self):
         """Add the settings for the electrophysiology solver."""
-        if self.__class__.__name__ == "ElectroMechanicsDynaWriter":
-            # coupling enabled
-            self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=0))
-        else:
-            # coupling off
-            self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
-
         self.kw_database.ep_settings.append(
             keywords.EmControl(
                 emsol=11, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
@@ -3425,6 +3420,8 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         MechanicsDynaWriter.update(self, with_dynain=with_dynain)
 
         if self.model.mesh.beam_network:
+            # Coupling enabled, EP beam nodes follow the motion of surfaces
+            self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=0))
             self._update_use_Purkinje()
             self.kw_database.main.append(keywords.Include(filename="beam_networks.k"))
             # LOGGER.error("Not supported")

@@ -2683,7 +2683,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self._update_cellmodels()
         self._update_segmentsets_db()
         self._update_nodesets_db()
-        self._update_use_Purkinje()
+
+        if self.model.mesh.beam_network:
+            self._update_use_Purkinje()
+
         # update ep settings
         self._update_ep_settings()
 
@@ -3167,92 +3170,96 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def _update_use_Purkinje(self):
         """Update keywords for Purkinje usage."""
-        if self.model.mesh.beam_network:
-            sid = self.get_unique_section_id()
-            self.kw_database.parts.append(keywords.SectionBeam(secid=sid, elform=3, a=645))
+        sid = self.get_unique_section_id()
+        self.kw_database.parts.append(keywords.SectionBeam(secid=sid, elform=3, a=645))
 
-            beams_kw = keywords.ElementBeam()
-            for network in self.model.mesh.beam_network:
-                # It is previously defined from purkinje generation step
-                # but needs to reassign part ID here
-                # to make sure no conflict with 4C/full heart case.
-                network.pid = self.get_unique_part_id()
+        beams_kw = keywords.ElementBeam()
+        for network in self.model.mesh.beam_network:
+            ## do not write His Bundle when coupling, it leads to crash
+            if self.__class__.__name__ == "ElectroMechanicsDynaWriter" and network.name == "His":
+                continue
 
-                origin_coordinates = self.model.mesh.nodes[network.node_ids[0], :]
+            # It is previously defined from purkinje generation step
+            # but needs to reassign part ID here
+            # to make sure no conflict with 4C/full heart case.
+            network.pid = self.get_unique_part_id()
 
-                if network.name is None:  # todo this should be written in model class
-                    if isinstance(self.model, LeftVentricle):
+            origin_coordinates = self.model.mesh.nodes[network.node_ids[0], :]
+
+            if network.name is None:  # todo this should be written in model class
+                if isinstance(self.model, LeftVentricle):
+                    network.name = "Left" + "-" + "purkinje"
+                    network.nsid = self.model.left_ventricle.endocardium.id
+                else:
+                    node_apex_left = self.model.left_ventricle.apex_points[0].xyz
+                    node_apex_right = self.model.right_ventricle.apex_points[0].xyz
+                    distance = np.linalg.norm(
+                        origin_coordinates - np.array([node_apex_left, node_apex_right]),
+                        axis=1,
+                    )
+                    if np.min(distance[0]) < 1e-3:
                         network.name = "Left" + "-" + "purkinje"
                         network.nsid = self.model.left_ventricle.endocardium.id
+                    elif np.min(distance[1]) < 1e-3:
+                        network.name = "Right" + "-" + "purkinje"
+                        network.nsid = self.model.right_ventricle.endocardium.id
                     else:
-                        node_apex_left = self.model.left_ventricle.apex_points[0].xyz
-                        node_apex_right = self.model.right_ventricle.apex_points[0].xyz
-                        distance = np.linalg.norm(
-                            origin_coordinates - np.array([node_apex_left, node_apex_right]),
-                            axis=1,
-                        )
-                        if np.min(distance[0]) < 1e-3:
-                            network.name = "Left" + "-" + "purkinje"
-                            network.nsid = self.model.left_ventricle.endocardium.id
-                        elif np.min(distance[1]) < 1e-3:
-                            network.name = "Right" + "-" + "purkinje"
-                            network.nsid = self.model.right_ventricle.endocardium.id
-                        else:
-                            LOGGER.error("Point too far from apex")
-                elif network.name == "SAN_to_AVN":
-                    network.nsid = self.model.right_atrium.endocardium.id
-                elif network.name == "Left bundle branch":
-                    network.nsid = self.model.left_ventricle.cavity.surface.id
-                elif network.name == "Right bundle branch":
-                    network.nsid = self.model.right_ventricle.cavity.surface.id
+                        LOGGER.error("Point too far from apex")
+            elif network.name == "SAN_to_AVN":
+                network.nsid = self.model.right_atrium.endocardium.id
+            elif network.name == "Left bundle branch":
+                network.nsid = self.model.left_ventricle.cavity.surface.id
+            elif network.name == "Right bundle branch":
+                network.nsid = self.model.right_ventricle.cavity.surface.id
+            # His bundle is inside of surface, no segment will associated
+            elif network.name == "His":
+                network.nsid = -1
 
-                if network.name != "His":
-                    self.kw_database.main.append(
-                        custom_keywords.EmEpPurkinjeNetwork2(
-                            purkid=network.pid,
-                            buildnet=0,
-                            ssid=network.nsid,
-                            mid=network.pid,
-                            pointstx=origin_coordinates[0],
-                            pointsty=origin_coordinates[1],
-                            pointstz=origin_coordinates[2],
-                            edgelen=2,
-                            ngen=50,
-                            nbrinit=8,
-                            nsplit=2,
-                            # inodeid=node_id_start_right,
-                            # iedgeid=edge_id_start_right,
-                        )
-                    )
-
-                part_df = pd.DataFrame(
-                    {
-                        "heading": [network.name],
-                        "pid": [network.pid],
-                        "secid": [sid],
-                        "mid": [network.pid],
-                    }
+            # write
+            self.kw_database.main.append(
+                custom_keywords.EmEpPurkinjeNetwork2(
+                    purkid=network.pid,
+                    buildnet=0,
+                    ssid=network.nsid,
+                    mid=network.pid,
+                    pointstx=origin_coordinates[0],
+                    pointsty=origin_coordinates[1],
+                    pointstz=origin_coordinates[2],
+                    edgelen=2,
+                    ngen=50,
+                    nbrinit=8,
+                    nsplit=2,
+                    # inodeid=node_id_start_right,
+                    # iedgeid=edge_id_start_right,
                 )
-                part_kw = keywords.Part()
-                part_kw.parts = part_df
-                self.kw_database.parts.append(part_kw)
-                self.kw_database.material.append(keywords.MatNull(mid=network.pid, ro=1e-11))
-                self.kw_database.material.append(
-                    keywords.EmMat001(mid=network.pid, mtype=2, sigma=10)
-                )
+            )
 
-                # cell model
-                cell_kw = self.create_Tentusscher_kw(network.pid)
-                self.kw_database.cell_models.extend([cell_kw])
+            part_df = pd.DataFrame(
+                {
+                    "heading": [network.name],
+                    "pid": [network.pid],
+                    "secid": [sid],
+                    "mid": [network.pid],
+                }
+            )
+            part_kw = keywords.Part()
+            part_kw.parts = part_df
+            self.kw_database.parts.append(part_kw)
+            self.kw_database.material.append(keywords.MatNull(mid=network.pid, ro=1e-11))
+            self.kw_database.material.append(keywords.EmMat001(mid=network.pid, mtype=2, sigma=10))
 
-                # mesh
-                beams_kw = add_beams_to_kw(
-                    beams=network.edges + 1,
-                    beam_kw=beams_kw,
-                    pid=network.pid,
-                    offset=len(self.model.mesh.tetrahedrons) + len(beams_kw.elements),
-                )
-            self.kw_database.beam_networks.append(beams_kw)
+            # cell model
+            cell_kw = self.create_Tentusscher_kw(network.pid)
+            self.kw_database.cell_models.extend([cell_kw])
+
+            # mesh
+            beams_kw = add_beams_to_kw(
+                beams=network.edges + 1,
+                beam_kw=beams_kw,
+                pid=network.pid,
+                offset=len(self.model.mesh.tetrahedrons) + len(beams_kw.elements),
+            )
+        self.kw_database.beam_networks.append(beams_kw)
 
     def _update_export_controls(self, dt_output_d3plot: float = 1.0):
         """Add solution controls to the main simulation.

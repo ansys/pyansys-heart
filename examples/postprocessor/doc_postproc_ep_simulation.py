@@ -26,7 +26,6 @@ ep_folder = os.path.join(
 
 postproc = EPpostprocessor(results_path=ep_folder)
 
-
 ###############################################################################
 # Activation times
 # ~~~~~~~~~~~~~~~~

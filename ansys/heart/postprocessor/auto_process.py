@@ -14,6 +14,7 @@ from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.postprocessor.exporter import LVContourExporter
 from ansys.heart.preprocessor.mesh.objects import Cavity, SurfaceMesh
 from ansys.heart.simulator.settings.settings import SimulationSettings
+import matplotlib.pyplot as plt
 import numpy as np
 import pyvista as pv
 
@@ -166,7 +167,7 @@ def mech_post(directory: pathlib.Path, model):
     os.makedirs(os.path.join(directory, folder), exist_ok=True)
 
     system = SystemModelPost(directory)
-    fig = system.plot_pv_loop()
+    fig = system.plot_pv_loop(show_ed=True)
     fig.savefig(os.path.join(directory, folder, "pv.png"))
 
     fig = system.plot_pressure_flow_volume(system.lv_system)
@@ -183,8 +184,9 @@ def mech_post(directory: pathlib.Path, model):
     for it, tt in enumerate(time):
         # assume heart beat once per 1s
         ef = system.get_ejection_fraction(t_start=time[-1] - 1, t_end=time[-1])
-        fig = system.plot_pv_loop(t_start=0, t_end=tt, ef=ef)
+        fig = system.plot_pv_loop(t_start=0, t_end=tt, ef=ef, show_ed=False)
         fig.savefig(out_dir / "pv_{0:d}.png".format(it))
+        plt.close()
     # build video with command
     # ffmpeg -f image2 -i pv_%d.png output.mp4
 

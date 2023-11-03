@@ -1926,13 +1926,11 @@ class FourChamber(HeartModel):
 
             return beam
 
-    def compute_His_conduction(self, beam_length=0.8, beam_number=4) -> BeamMesh:
+    def compute_His_conduction(self, beam_number=4) -> BeamMesh:
         """Compute His bundle conduction.
 
         Parameters
         ----------
-        beam_length : float, optional
-            beam length, by default 0.8
         beam_number : int, optional
             beam number, by default 4
 
@@ -1941,7 +1939,7 @@ class FourChamber(HeartModel):
         BeamMesh
             Beam mesh
         """
-        start_point, end_point = self._define_hisbundle_start_end_point(beam_length, beam_number)
+        start_point, end_point = self._define_hisbundle_start_end_point(beam_number)
 
         # https://www.researchgate.net/publication/353154291_Morphometric_analysis_of_the_His_bundle_atrioven
         # tricular_fascicle_in_humans_and_other_animal_species_Histological_and_immunohistochemical_study
@@ -1993,44 +1991,44 @@ class FourChamber(HeartModel):
 
         return beam
 
-    def _define_hisbundle_start_end_point(self, beam_length, beam_number) -> (Point, Point):
-        """Define start and end points of the bundle of His."""
-        # TODO add method in Part class to have a get_mesh()
+    def _define_hisbundle_start_end_point(self, beam_number) -> (Point, Point):
+        """
+        Define start and end points of the bundle of His.
+
+        Start point: create a point in septum, it's closest to AV node.
+        End point: create a point in septum, it's close to AV node but randomly chosen.
+        """
+        AV_node = self.right_atrium.get_point("AV_node")
+
         septum_point_ids = np.unique(np.ravel(self.mesh.tetrahedrons[self.septum.element_ids,]))
-        septum_points = pv.PolyData(self.mesh.nodes[septum_point_ids, :])
-        atria_surface = pv.PolyData(
-            self.left_atrium.endocardium
-            + self.left_atrium.epicardium
-            + self.right_atrium.endocardium
-            + self.right_atrium.epicardium
-        )
-        # Get a point at septum center
-        septum_center_id = septum_point_ids[septum_points.find_closest_point(septum_points.center)]
-        septum_center_xyz = self.mesh.nodes[septum_center_id, :]
+        septum_pointcloud = pv.PolyData(self.mesh.nodes[septum_point_ids, :])
 
-        # Define septum start point: closest to artria
-        His_septum_start_id = self.mesh.find_closest_point(
-            atria_surface.points[atria_surface.find_closest_point(septum_center_xyz), :]
-        )
+        # Define start point: closest to artria
+        pointcloud_id = septum_pointcloud.find_closest_point(AV_node.xyz)
+
+        His_septum_start_id = septum_point_ids[pointcloud_id]
         His_septum_start_xyz = self.mesh.nodes[His_septum_start_id, :]
-        # Define septum end point: direction toward apex for a given distance
 
-        direction_vec = (septum_center_xyz - His_septum_start_xyz) / np.linalg.norm(
-            septum_center_xyz - His_septum_start_xyz
-        )
-        distance = beam_number * beam_length
-        His_septum_end_xyz = His_septum_start_xyz + distance * direction_vec
+        # Define end point:  a random close point
+        n = 50
+        pointcloud_id = septum_pointcloud.find_closest_point(AV_node.xyz, n=n)[n - 1]
+
+        His_septum_end_id = septum_point_ids[pointcloud_id]
+        His_septum_end_xyz = self.mesh.nodes[His_septum_end_id, :]
+
         # create Points
         His_septum_start = Point(
             name="His septum start", xyz=His_septum_start_xyz, node_id=len(self.mesh.nodes)
         )
         self.septum.points.append(His_septum_start)
+
         His_septum_end = Point(
             name="His septum end",
             xyz=His_septum_end_xyz,
             node_id=beam_number + len(self.mesh.nodes),
         )
         self.septum.points.append(His_septum_end)
+
         return His_septum_start, His_septum_end
 
     def compute_bundle_branches(self) -> (BeamMesh, BeamMesh):
@@ -2152,7 +2150,7 @@ class FourChamber(HeartModel):
         )
 
 
-class FullHeart(HeartModel):
+class FullHeart(FourChamber):
     """Model of both ventricles, both atria, aorta and pulmonary artery."""
 
     def __init__(self, info: ModelInfo) -> None:
@@ -2172,7 +2170,8 @@ class FullHeart(HeartModel):
         self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type="artery")
         """Pulmonary artery part."""
 
-        super().__init__(info)
+        HeartModel.__init__(self, info)
+        # super().__init__(info)
 
         pass
 

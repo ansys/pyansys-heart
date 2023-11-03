@@ -1,17 +1,35 @@
 """Module contains default values for mechanics simulations."""
 from pint import Quantity
 
+heart = {
+    "cycles": 3,
+    "beat_time": Quantity(800, "ms"),
+}
+
 """Generic analysis settings."""
 analysis = {
-    "end_time": Quantity(3000.0, "ms"),
+    "end_time": heart["cycles"] * heart["beat_time"],
     "dtmin": Quantity(10.0, "ms"),
     "dtmax": Quantity(10.0, "ms"),
-    "dt_d3plot": Quantity(50.0, "ms"),
-    "dt_icvout": Quantity(1.0, "ms"),
-    "global_damping": Quantity(0.5, "1/ms"),
+    "dt_d3plot": heart["beat_time"] / 20,
+    "dt_icvout": Quantity(10.0, "ms"),
+    "global_damping": Quantity(0.1, "1/ms"),
 }
 
 """Material settings."""
+"""
+reference:
+    for actype=1:
+    https://doi.org/10.1152/ajpheart.01226.2004
+    https://doi.org/10.1152/japplphysiol.00255.2014
+    for actype=2
+    TODO
+    for actype=3
+    TODO
+    prescribed active stress
+    https://doi.org/10.1371/journal.pone.0235145
+"""
+
 material = {
     "myocardium": {
         "isotropic": {
@@ -23,12 +41,10 @@ material = {
         "anisotropic": {"k1f": Quantity(0.00049, "MPa"), "k2f": Quantity(9.01, "dimensionless")},
         "active": {
             "actype": 1,
-            "heart rate": Quantity(60, "min^-1"),
-            "ss": 0.0,
+            "beat_time": heart["beat_time"],
             "taumax": Quantity(0.125, "MPa"),
-            "ca2ionm": Quantity(4.35, "umol/L"),
-            "dtmax": Quantity(150.0, "ms"),
-            "tr": Quantity(-1429.0, "ms"),
+            "ss": 0.0,
+            "sn": 0.0,
         },
     },
     "atrium": {
@@ -38,51 +54,108 @@ material = {
         "mu1": Quantity(0.0349, "MPa"),
         "alpha1": 2,
     },
+    # null cap: center node is fixed
+    # rigid cap: more difficult to converge
     "cap": {
         "type": "null",
         "rho": Quantity(0.001, "g/mm^3"),
-        "itype": -1,
-        "mu1": Quantity(2.0, "MPa"),
-        "alpha1": 2,
-        "thickness": Quantity(5.0, "mm"),
     },
 }
 
 """Boundary condition settings."""
+# pericardium: https://doi.org/10.1016/j.jbiomech.2020.109645
 boundary_conditions = {
-    "pericardium": {"penalty_function": [0.65, 25], "spring_stiffness": Quantity(0.05, "MPa/mm")},
+    "pericardium": {"penalty_function": [0.25, 25], "spring_stiffness": Quantity(0.05, "MPa/mm")},
     "valve": {
-        "biventricle": Quantity(0.002, "MPa/mm"),
-        "fourchamber": Quantity(0.02, "MPa/mm"),
+        "stiffness": Quantity(0.002, "MPa/mm"),
         "scale_factor": {"normal": 0.5, "radial": 1.0},
     },
     "end_diastolic_cavity_pressure": {
-        "left_ventricle": Quantity(0.002, "MPa"),
-        "right_ventricle": Quantity(0.0005333299999999999, "MPa"),
+        ## https://doi.org/10.3389/fphys.2018.00539
+        "left_ventricle": Quantity(15, "mmHg"),
+        "right_ventricle": Quantity(4, "mmHg"),
+        # # https://doi.org/10.1016/j.jbiomech.2020.109645
+        # "left_ventricle": Quantity(18.0, "mmHg"),
+        # "right_ventricle": Quantity(9.54, "mmHg"),
     },
 }
 
 """System model parameters."""
+# 2wk model, with parameters deduced in a physiological range
+co = Quantity(5, "L/min")
+tau = Quantity(2, "s")
+pee = Quantity(100, "mmHg")
+
+rp = 0.97 * pee / co
+ca = tau / rp
+ra = 0.03 * rp
+rv = 0.2 * ra
+
 system_model = {
     "name": "ConstantPreloadWindkesselAfterload",
     "left_ventricle": {
         "constants": {
-            "Rv": Quantity(6.65e-06, "MPa/(mm^3/ms)"),
-            "Ra": Quantity(1.729e-05, "MPa/(mm^3/ms)"),
-            "Rp": Quantity(0.000766, "MPa/(mm^3/ms)"),
-            "Ca": Quantity(6390000.0, "mm^3/MPa"),
-            "Pven": Quantity(0.002, "MPa"),
+            # preload resistance
+            "Rv": rv,
+            # Z: after load diode resistance
+            "Ra": ra,
+            # R
+            "Rp": rp,
+            # C
+            "Ca": ca,
+            # constant preload, i.e. ED pressure
+            "Pven": boundary_conditions["end_diastolic_cavity_pressure"]["left_ventricle"],
         },
-        "initial_value": {"part": Quantity(0.00931, "MPa")},
+        "initial_value": {"part": Quantity(70.0, "mmHg")},
     },
     "right_ventricle": {
         "constants": {
-            "Rv": Quantity(6.65e-06, "MPa/(mm^3/ms)"),
-            "Ra": Quantity(6.0514999999999996e-06, "MPa/(mm^3/ms)"),
-            "Rp": Quantity(9.575e-05, "MPa/(mm^3/ms)"),
-            "Ca": Quantity(28755000.0, "mm^3/MPa"),
-            "Pven": Quantity(0.0005333299999999999, "MPa"),
+            # preload resistance
+            "Rv": rv * 0.5,
+            # Z: after load diode resistance
+            "Ra": ra * 0.35,
+            # R
+            "Rp": rp * 0.125,
+            # C
+            "Ca": ca * 4.5,
+            # constant preload, i.e. ED pressure
+            "Pven": boundary_conditions["end_diastolic_cavity_pressure"]["right_ventricle"],
         },
-        "initial_value": {"part": Quantity(0.0019950000000000002, "MPa")},
+        "initial_value": {"part": Quantity(15.0, "mmHg")},
+    },
+}
+
+# 3wk model found in: https://doi.org/10.1016/j.jbiomech.2020.109645
+system_model3 = {
+    "name": "ConstantPreloadWindkesselAfterload",
+    "left_ventricle": {
+        "constants": {
+            # Diode resistance
+            "Rv": Quantity(0.05, "mmHg*s/mL"),
+            # Z
+            "Ra": Quantity(0.13, "mmHg*s/mL"),
+            # R
+            "Rp": Quantity(5.76, "mmHg*s/mL"),
+            # C
+            "Ca": Quantity(0.85, "mL/mmHg"),
+            # constant preload, i.e. ED pressure
+            "Pven": boundary_conditions["end_diastolic_cavity_pressure"]["left_ventricle"],
+        },
+        "initial_value": {"part": Quantity(70.0, "mmHg")},
+    },
+    "right_ventricle": {
+        "constants": {
+            # Diode resistance
+            "Rv": Quantity(0.05, "mmHg*s/mL"),
+            # Z
+            "Ra": Quantity(0.13 * 0.35, "mmHg*s/mL"),
+            # R
+            "Rp": Quantity(5.76 * 0.125, "mmHg*s/mL"),
+            # C
+            "Ca": Quantity(0.85 * 4.5, "mL/mmHg"),
+            # constant preload, i.e. ED pressure
+            "Pven": boundary_conditions["end_diastolic_cavity_pressure"]["right_ventricle"],
+        },
+        "initial_value": {"part": Quantity(15.0, "mmHg")},
     },
 }

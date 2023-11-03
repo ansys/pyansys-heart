@@ -117,6 +117,14 @@ class BaseDynaWriter:
         }
         """Id offset for several relevant keywords."""
 
+        id = self.id_offset["part"]
+        for part in self.model.parts:
+            id += 1
+            # cannot use get_unique_part_id() because it checks in Deck()
+            # part.pid = self.get_unique_part_id()
+            part.pid = id
+        """Assign part id for heart parts."""
+
         """List of .k files to include in main. This is derived from the Decks classes."""
         self.include_files = []
 
@@ -200,7 +208,6 @@ class BaseDynaWriter:
 
         # get list of cavities from model
         for part in self.model.parts:
-            part.pid = self.get_unique_part_id()
             # material ID = part ID
             part.mid = part.pid
 
@@ -608,6 +615,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
             Use dynain.lsda file from stress free configuration computation.
         """
         self._update_main_db()
+
+        self._add_damping()
+
         self._update_parts_db()
 
         if not with_dynain:
@@ -634,10 +644,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._update_system_model()
 
         # for boundary conditions
-        if isinstance(self.model, (FourChamber, FullHeart)):
-            self._add_cap_bc(bc_type="fix_caps")
-        else:
-            self._add_cap_bc(bc_type="springs_caps")
+        self._add_cap_bc(bc_type="springs_caps")
         self._add_pericardium_bc()
 
         self._get_list_of_includes()
@@ -672,16 +679,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         return
 
-    def _update_main_db(self, add_damping: bool = True):
-        """Update the main .k file.
-
-        Note
-        ----
-        Consider using a settings (json?) file as input.
-
-        """
+    def _update_main_db(self):
+        """Update the main .k file."""
         LOGGER.debug("Updating main keywords...")
 
+        self.kw_database.main.append("$$- Unit system: g-mm-ms-N-MPa-mJ -$$")
         self.kw_database.main.title = self.model.model_type
 
         if isinstance(self, ZeroPressureMechanicsDynaWriter):
@@ -700,9 +702,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 dt_output_d3plot=settings.analysis.dt_d3plot.m,
                 dt_output_icvout=settings.analysis.dt_icvout.m,
             )
-
-        if add_damping:
-            self._add_damping()
 
         return
 
@@ -752,21 +751,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
         )
 
-        # # add auto controls
-        # lcid = self.get_unique_curve_id()
-        # # tune time step for better compromise between convergence and performance
-        # time = [0, prefill_time, prefill_time + dtmax, end_time]
-        # step = [5 * dtmax, 5 * dtmax, dtmin, dtmax]
-        # kw_curve = create_define_curve_kw(
-        #     x=time,
-        #     y=step,
-        #     curve_name="time step control",
-        #     curve_id=lcid,
-        #     lcint=0,
-        # )
-        # self.kw_database.main.append(kw_curve)
+        self.kw_database.main.append("$$ Disable auto step due 0D model $$")
         self.kw_database.main.append(
-            keywords.ControlImplicitAuto(iauto=1, dtmin=dtmin, dtmax=dtmax)
+            keywords.ControlImplicitAuto(iauto=0, dtmin=dtmin, dtmax=dtmax)
         )
 
         # add general implicit controls
@@ -775,10 +762,19 @@ class MechanicsDynaWriter(BaseDynaWriter):
         )  # imflag=1 means implicit
 
         # add implicit solution controls
-        # Nil's suggestion
+
         self.kw_database.main.append(
             keywords.ControlImplicitSolution(
-                dctol=0.01, ectol=1e6, rctol=1e3, abstol=-1e-20, dnorm=1, nlnorm=4, lsmtd=5
+                maxref=35,
+                dctol=0.02,
+                ectol=1e6,
+                rctol=1e3,
+                abstol=-1e-20,
+                dnorm=1,
+                diverg=2,
+                lstol=-0.9,
+                lsmtd=5,
+                d3itctl=1,
             )
         )
 
@@ -834,65 +830,52 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
         )
 
-        self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
+        self.kw_database.main.append(
+            keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0, resplt=1)
+        )
 
-        # control ELOUT file to extract left ventricle's stress/strain
-        if hasattr(self.model, "septum"):
-            self.kw_database.main.append(
-                keywords.SetSolidGeneral(
-                    option="PART",
-                    sid=1,
-                    e1=self.model.left_ventricle.pid,
-                    e2=self.model.septum.pid,
-                    user_comment="create left ventricle + septum set for exporting",
-                )
-            )
-        else:
-            self.kw_database.main.append(
-                keywords.SetSolidGeneral(option="PART", sid=1, e1=self.model.left_ventricle.pid)
-            )
-        self.kw_database.main.append(keywords.DatabaseHistorySolidSet(id1=1))
+        # remove, aha strain is computed from d3plot
 
-        # lcid = self.get_unique_curve_id()
-        # time = [
-        #     0,
-        #     self.parameters["Time"]["End Time"] * 0.8 * 0.99,
-        #     self.parameters["Time"]["End Time"] * 0.8,
-        #     self.parameters["Time"]["End Time"],
-        # ]
-        # step = [100 * dt_output_d3plot, 100 * dt_output_d3plot, dt_output_d3plot,
-        #         dt_output_d3plot]
-        # kw_curve = create_define_curve_kw(
-        #     x=time,
-        #     y=step,
-        #     curve_name="elout control, only save during the last 20% ",
-        #     curve_id=lcid,
-        #     lcint=0,
-        # )
-        # self.kw_database.main.append(kw_curve)
-
-        # self.kw_database.main.append(
-        #     keywords.DatabaseElout(dt=dt_output_d3plot, binary=2, option1=27)
-        # )
+        # # control ELOUT file to extract left ventricle's stress/strain
+        # if hasattr(self.model, "septum"):
+        #     self.kw_database.main.append(
+        #         keywords.SetSolidGeneral(
+        #             option="PART",
+        #             sid=1,
+        #             e1=self.model.left_ventricle.pid,
+        #             e2=self.model.septum.pid,
+        #             user_comment="create left ventricle + septum set for exporting",
+        #         )
+        #     )
+        # else:
+        #     self.kw_database.main.append(
+        #         keywords.SetSolidGeneral(option="PART", sid=1, e1=self.model.left_ventricle.pid)
+        #     )
+        # self.kw_database.main.append(keywords.DatabaseHistorySolidSet(id1=1))
 
         return
 
     def _add_damping(self):
         """Add damping to the main file."""
         lcid_damp = self.get_unique_curve_id()
-
+        # mass damping
         kw_damp = keywords.DampingGlobal(lcid=lcid_damp)
 
         kw_damp_curve = create_define_curve_kw(
             x=[0, 10e25],  # to create a constant curve
             y=self.settings.mechanics.analysis.global_damping.m * np.array([1, 1]),
-            curve_name="damping",
+            curve_name="global damping [ms^-1]",
             curve_id=lcid_damp,
             lcint=0,
         )
         self.kw_database.main.append(kw_damp)
         self.kw_database.main.append(kw_damp_curve)
 
+        # stiff damping
+        for part in self.model.parts:
+            self.kw_database.main.append(f"$$ {part.name} stiffness damping [ms]")
+            kw = keywords.DampingPartStiffness(pid=part.pid, coef=-0.2)
+            self.kw_database.main.append(kw)
         return
 
     def _update_segmentsets_db(self):
@@ -1094,9 +1077,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
 
             # x scaling from beat rate
-            active_curve_kw.sfa = 1 / material_settings.myocardium["active"]["heart rate"]
+            active_curve_kw.sfa = material_settings.myocardium["active"]["beat_time"]
             # y scaling from Ca2
-            active_curve_kw.sfo = material_settings.myocardium["active"]["ca2ionm"]
+            active_curve_kw.sfo = myocardium_kw.ca2ionm
 
             self.kw_database.material.append(active_curve_kw)
 
@@ -1127,14 +1110,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
             caps_to_use = [
                 "mitral-valve",
                 "tricuspid-valve",
+                "aortic-valve",
+                "pulmonary-valve",
             ]
-            if isinstance(self, ZeroPressureMechanicsDynaWriter):
-                caps_to_use.extend(
-                    [
-                        "aortic-valve",
-                        "pulmonary-valve",
-                    ]
-                )
 
         elif isinstance(self.model, (FourChamber, FullHeart)):
             caps_to_use = [
@@ -1145,9 +1123,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
             if isinstance(self, ZeroPressureMechanicsDynaWriter):
                 caps_to_use.extend(
                     [
-                        "left-superior-pulmonary-vein",
-                        "left-inferior-pulmonary-vein",
-                        "inferior-vena-cava",
                         "pulmonary-valve",
                     ]
                 )
@@ -1171,11 +1146,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             section_id = self.get_unique_section_id()
             mat_id = self.get_unique_mat_id()
 
-            if isinstance(self.model, (LeftVentricle, BiVentricle)):
-                spring_stiffness = bc_settings.valve["biventricle"].m
-
-            elif isinstance(self.model, (FourChamber, FullHeart)):
-                spring_stiffness = bc_settings.valve["fourchamber"].m
+            spring_stiffness = bc_settings.valve["stiffness"].m
 
             scale_factor_normal = bc_settings.valve["scale_factor"]["normal"]
             scale_factor_radial = bc_settings.valve["scale_factor"]["radial"]
@@ -1203,6 +1174,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             caps = [cap for part in self.model.parts for cap in part.caps]
             for cap in caps:
                 if cap.name in caps_to_use:
+                    self.kw_database.boundary_conditions.append(f"$$ spring at {cap.name}$$")
                     self._add_springs_cap_edge(
                         cap,
                         part_id,
@@ -1228,31 +1200,19 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # -------------------------------------------------------------------
         LOGGER.debug("Adding spring b.c. for cap: %s" % cap.name)
 
-        # NOTE: may want to extent the node ids to include adjacent nodes
-        # num_nodes_edge = len(cap.node_ids)
-        mesh = self.model.mesh
-        #
-        # attached_nodes = cap.node_ids
-        #
-        for boundary in mesh.boundaries:
-            if cap.name.split("-")[0] in boundary.name:
-                attached_nodes = boundary.node_ids
-                break
+        attached_nodes = cap.node_ids
 
         # use pre-computed nodal area
         nodal_areas = self.model.mesh.point_data["nodal_areas"][attached_nodes]
-
-        # scaling this node due to large deformation
-        # nodal_areas[np.where(attached_nodes == cap.node_ids[0])[0][0]] *=len(cap.node_ids)
 
         # scaled spring stiffness by nodal area
         scale_factor_normal *= nodal_areas
         scale_factor_radial *= nodal_areas
 
-        # add part, section discrete, mat spring, sd_orientiation, element discrete
+        # add sd_orientiation, element discrete
 
         # compute the radial components
-        sd_orientations_radial = mesh.nodes[attached_nodes, :] - cap.centroid
+        sd_orientations_radial = self.model.mesh.nodes[attached_nodes, :] - cap.centroid
 
         # normalize
         norms = np.linalg.norm(sd_orientations_radial, axis=1)
@@ -1276,12 +1236,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
         vector_ids_radial = sd_orientation_radial_kw.vectors["vid"].to_numpy()
         self.id_offset["vector"] = vector_ids_radial[-1]
 
-        # create discrete elements for normal direction
+        ## create discrete elements
         nodes_discrete_elements = np.array(
             [attached_nodes + 1, np.zeros(len(attached_nodes))], dtype=int
         ).T
         vector_ids_normal = np.ones(len(attached_nodes), dtype=int) * vector_id_normal
 
+        #  for normal direction
         discrete_element_normal_kw = create_discrete_elements_kw(
             nodes=nodes_discrete_elements,
             part_id=part_id,
@@ -1294,7 +1255,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             "eid"
         ].to_numpy()[-1]
 
-        # discrete elements for radial direction
+        #  for radial direction
         discrete_element_radial_kw = create_discrete_elements_kw(
             nodes=nodes_discrete_elements,
             part_id=part_id,
@@ -1328,6 +1289,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
         boundary_conditions._remove_units()
         pericardium_settings = boundary_conditions.pericardium
 
+        penalty_c0 = pericardium_settings["penalty_function"][0]
+        penalty_c1 = pericardium_settings["penalty_function"][1]
+        self.kw_database.pericardium.append(f"$$ penalty with {penalty_c0}, {penalty_c1} $$")
+
         def _sigmoid(z):
             """Sigmoid function to scale spring coefficient."""
             return 1 / (1 + np.exp(-z))
@@ -1341,13 +1306,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
         uvc_l[uvc_l < 0] = 1
 
-        penalty_function = (
-            -_sigmoid(
-                (abs(uvc_l) - pericardium_settings["penalty_function"][0])
-                * pericardium_settings["penalty_function"][1]
-            )
-            + 1
-        )
+        penalty_function = -_sigmoid((abs(uvc_l) - penalty_c0) * penalty_c1) + 1
 
         # collect all pericardium nodes:
         epicardium_nodes = np.empty(0, dtype=int)
@@ -1394,16 +1353,21 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # compute scale factor
         scale_factors = nodal_areas * nodal_penalty
 
-        def __debug():
-            import meshio
+        # def __debug():
+        #     import meshio
 
-            meshio.write_points_cells(
-                "pericardium.vtk",
-                coord,
-                [("triangle", connect)],
-                point_data={"area": nodal_areas, "normal": point_normal, "penalty": nodal_penalty},
-                cell_data={"normal": [cell_normal]},
-            )
+        #     meshio.write_points_cells(
+        #         "pericardium.vtk",
+        #         coord,
+        #         [("triangle", connect)],
+        #         point_data={
+        #             "area": nodal_areas,
+        #             "normal": point_normal,
+        #             "penalty": nodal_penalty,
+        #             "stiff": nodal_areas * nodal_penalty,
+        #         },
+        #         cell_data={"normal": [cell_normal]},
+        #     )
 
         # __debug()
 
@@ -1492,7 +1456,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             material_kw = keywords.MatRigid(
                 mid=mat_null_id,
                 ro=material_settings.cap["rho"],
-                e=material_settings.cap["mu1"] * 1000,
+                e=1.0,  # MPa
             )
 
         section_kw = keywords.SectionShell(
@@ -1500,7 +1464,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             elform=4,
             shrf=0.8333,
             nip=3,
-            t1=material_settings.cap["thickness"],
+            t1=1,  # mm
         )
 
         self.kw_database.cap_elements.append(material_kw)
@@ -1542,17 +1506,17 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     s = "$" + node_kw.write()
                     self.kw_database.nodes.append(s)
 
-                # center node constraint: average of all edge nodes
-                constraint = keywords.ConstrainedInterpolation(
-                    icid=len(cap_names_used) + 1,
-                    dnid=cap.centroid_id + 1,
-                    ddof=123,
-                    ityp=1,
-                    fgm=1,
-                    inid=cap.nsid,
-                    idof=123,
-                )
-                self.kw_database.cap_elements.append(constraint)
+                # # # center node constraint: average of all edge nodes
+                # # constraint = keywords.ConstrainedInterpolation(
+                # #     icid=len(cap_names_used) + 1,
+                # #     dnid=cap.centroid_id + 1,
+                # #     ddof=123,
+                # #     ityp=1,
+                # #     fgm=1,
+                # #     inid=cap.nsid,
+                # #     idof=123,
+                # # )
+                # # self.kw_database.cap_elements.append(constraint)
 
             self.kw_database.cap_elements.append(part_kw)
             cap_names_used.append(cap.name)
@@ -1814,7 +1778,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         """Update the keyword database."""
         bc_settings = self.settings.mechanics.boundary_conditions
 
-        self._update_main_db(add_damping=False)
+        self._update_main_db()
 
         self.kw_database.main.title = self.model.info.model_type + " zero-pressure"
 
@@ -1892,6 +1856,22 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         # self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
 
+        # add binout for post-process
+        settings = copy.deepcopy(self.settings.stress_free)
+        settings._remove_units()
+
+        self.kw_database.main.append(
+            keywords.DatabaseNodout(dt=settings.analysis.dt_nodout, binary=2)
+        )
+
+        # write for all nodes in nodout
+        nodeset_id = self.get_unique_nodeset_id()
+        kw = keywords.SetNodeGeneral(option="ALL", sid=nodeset_id)
+        self.kw_database.main.append(kw)
+
+        kw = keywords.DatabaseHistoryNodeSet(id1=nodeset_id)
+        self.kw_database.main.append(kw)
+
         return
 
     def _add_solution_controls(self):
@@ -1902,11 +1882,8 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.kw_database.main.append(keywords.ControlTermination(endtim=settings.analysis.end_time))
 
         self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
-        # self.kw_database.main.append(
-        #     keywords.ControlImplicitDynamics(imass=1, gamma=0.6, beta=0.38)
-        # )
 
-        # add auto controls
+        # add auto step controls
         self.kw_database.main.append(
             keywords.ControlImplicitAuto(
                 iauto=1, dtmin=settings.analysis.dtmin, dtmax=settings.analysis.dtmax
@@ -1918,24 +1895,15 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
             keywords.ControlImplicitGeneral(imflag=1, dt0=settings.analysis.dtmax)
         )
 
-        # add implicit solution controls: Defaults are OK?
+        # add implicit solution controls
         self.kw_database.main.append(keywords.ControlImplicitSolution())
 
         # add implicit solver controls
         self.kw_database.main.append(custom_keywords.ControlImplicitSolver())
 
-        # add binout for post-process
-        self.kw_database.main.append(
-            keywords.DatabaseNodout(dt=settings.analysis.dt_nodout, binary=2)
-        )
+        # accuracy control
+        self.kw_database.main.append(keywords.ControlAccuracy(osu=1, inn=4, iacc=1))
 
-        # write for all nodes in nodout
-        nodeset_id = self.get_unique_nodeset_id()
-        kw = keywords.SetNodeGeneral(option="ALL", sid=nodeset_id)
-
-        self.kw_database.main.append(kw)
-        kw = keywords.DatabaseHistoryNodeSet(id1=nodeset_id)
-        self.kw_database.main.append(kw)
         return
 
     def _add_control_reference_configuration(self):
@@ -3208,20 +3176,24 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
                 origin_coordinates = self.model.mesh.nodes[network.node_ids[0], :]
                 if network.name == None:
-                    node_apex_left = self.model.left_ventricle.apex_points[0].xyz
-                    node_apex_right = self.model.right_ventricle.apex_points[0].xyz
-                    distance = np.linalg.norm(
-                        origin_coordinates - np.array([node_apex_left, node_apex_right]),
-                        axis=1,
-                    )
-                    if np.min(distance[0]) < 1e-3:
+                    if isinstance(self.model, LeftVentricle):
                         network.name = "Left" + "-" + "purkinje"
                         network.nsid = self.model.left_ventricle.endocardium.id
-                    elif np.min(distance[1]) < 1e-3:
-                        network.name = "Right" + "-" + "purkinje"
-                        network.nsid = self.model.right_ventricle.endocardium.id
                     else:
-                        LOGGER.error("Point too far from apex")
+                        node_apex_left = self.model.left_ventricle.apex_points[0].xyz
+                        node_apex_right = self.model.right_ventricle.apex_points[0].xyz
+                        distance = np.linalg.norm(
+                            origin_coordinates - np.array([node_apex_left, node_apex_right]),
+                            axis=1,
+                        )
+                        if np.min(distance[0]) < 1e-3:
+                            network.name = "Left" + "-" + "purkinje"
+                            network.nsid = self.model.left_ventricle.endocardium.id
+                        elif np.min(distance[1]) < 1e-3:
+                            network.name = "Right" + "-" + "purkinje"
+                            network.nsid = self.model.right_ventricle.endocardium.id
+                        else:
+                            LOGGER.error("Point too far from apex")
 
                 self.kw_database.main.append(
                     custom_keywords.EmEpPurkinjeNetwork2(
@@ -3338,7 +3310,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 self.kw_database.cell_models.extend([cell_kw])
             self.kw_database.beam_networks.append(beams_kw)
 
-    def _update_export_controls(self, dt_output_d3plot: float = 5.0):
+    def _update_export_controls(self, dt_output_d3plot: float = 10.0):
         """Add solution controls to the main simulation.
 
         Parameters
@@ -3382,6 +3354,8 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         self._update_node_db()
         self._update_parts_db()
         self._update_main_db()
+        self._add_damping()
+
         self._update_solid_elements_db(add_fibers=True)
         self._update_segmentsets_db()
         self._update_nodesets_db()
@@ -3917,7 +3891,7 @@ class UHCWriter(BaseDynaWriter):
 
         # get list of cavities from model
         for part in self.model.parts:
-            part.pid = self.get_unique_part_id()
+            # part.pid = self.get_unique_part_id()
             # material ID = part ID
             part.mid = part.pid
 

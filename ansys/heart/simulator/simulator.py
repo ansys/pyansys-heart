@@ -487,7 +487,7 @@ class MechanicsSimulator(BaseSimulator):
         LOGGER.info("done.")
 
         if auto_post:
-            mech_post(directory, self.model)
+            mech_post(Path.Path(directory), self.model)
         return
 
     def compute_stress_free_configuration(self, folder_name="zeropressure"):

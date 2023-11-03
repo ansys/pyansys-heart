@@ -33,22 +33,6 @@ if not os.path.isfile(case_file):
     )
     unpack_case(path_to_downloaded_file)
 
-# info = models.ModelInfo(
-#     database="Strocchi2020",
-#     path_to_case=case_file,
-#     work_directory=workdir,
-#     path_to_model=path_to_model,
-#     add_blood_pool=False,
-#     mesh_size=1.5,
-# )
-
-# # create the working directory
-# info.create_workdir()
-# # clean the working directory
-# info.clean_workdir(extensions_to_remove=[".stl", ".vtk", ".msh.h5"])
-# # dump information to stdout
-# info.dump_info()
-
 model: models.BiVentricle = models.BiVentricle.load_model(path_to_model)
 
 
@@ -80,22 +64,6 @@ electrode_positions = np.array([
 
 
 transformed_electrodes = model.define_ECG_coordinates(move_points, electrode_positions)
-
-# plotter = pyvista.Plotter()
-
-# plotter.add_mesh(model.mesh,color="red", opacity=0.3)
-# # p2.add_mesh(electrode_positions, color="blue", opacity=0.3)
-# # p2.add_mesh(model.mesh, color="red", opacity=0.3)
-# plotter.add_mesh(transformed_electrodes, color="blue", opacity=1)
-
-# # Set the background color and show the plotter
-# plotter.background_color = "white"
-# plotter.show()
-
-
-PROJECT_DIRECTORY = Path(__file__).absolute().parents[3]
-PATH_TO_CASE = os.path.join(PROJECT_DIRECTORY, "downloads\\Strocchi2020\\01\\01.case")
-WORKING_DIRECTORY = os.path.join(Path(PATH_TO_CASE).parent, "BiVentricle")
 
 write_lsdyna_files = True
 

@@ -26,7 +26,7 @@ from ansys.heart.postprocessor.auto_process import (
     read_uvc,
     zerop_post,
 )
-from ansys.heart.preprocessor.models import FourChamber, FullHeart, HeartModel
+from ansys.heart.preprocessor.models import FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 import numpy as np
@@ -373,9 +373,13 @@ class EPSimulator(BaseSimulator):
         LOGGER.info("done.")
 
         LOGGER.info("Assign the Purkinje network to the model...")
-        purkinje_files = glob.glob(os.path.join(directory, "purkinjeNetwork_*.k"))
-        for purkinje_file in purkinje_files:
-            self.model.mesh.add_purkinje_from_kfile(purkinje_file)
+
+        purkinje_k_file = os.path.join(directory, "purkinjeNetwork_001.k")
+        self.model.mesh.add_purkinje_from_kfile(purkinje_k_file, "Left-purkinje")
+
+        if not isinstance(self.model, LeftVentricle):
+            purkinje_k_file = os.path.join(directory, "purkinjeNetwork_002.k")
+            self.model.mesh.add_purkinje_from_kfile(purkinje_k_file, "Right-purkinje")
 
     def compute_conduction_system(self):
         """Compute the conduction system."""

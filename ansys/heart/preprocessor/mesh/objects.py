@@ -748,12 +748,15 @@ class Mesh(pv.UnstructuredGrid):
         else:
             return surfaces
 
-    def add_purkinje_from_kfile(self, filename: pathlib.Path) -> None:
+    def add_purkinje_from_kfile(self, filename: pathlib.Path, name: str) -> None:
         """Read an LS-DYNA file containing purkinje beams and nodes.
 
         Parameters
         ----------
         filename : pathlib.Path
+
+        name : str
+            beamnet name
         """
         # Open file and import beams and created nodes
         with open(filename, "r") as file:
@@ -786,7 +789,7 @@ class Mesh(pv.UnstructuredGrid):
         nodes = node_data[:, 1:4]
         pid = beam_data[0, 1]
 
-        self.add_beam_network(new_nodes=nodes, edges=edges, pid=pid)
+        self.add_beam_network(new_nodes=nodes, edges=edges, pid=pid, name=name)
 
         return
 

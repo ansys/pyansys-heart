@@ -3123,28 +3123,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             # to make sure no conflict with 4C/full heart case.
             network.pid = self.get_unique_part_id()
 
-            origin_coordinates = self.model.mesh.nodes[network.node_ids[0], :]
-
-            if network.name is None:
-                # TODO: assign a name
-                if isinstance(self.model, LeftVentricle):
-                    network.name = "Left" + "-" + "purkinje"
-                    network.nsid = self.model.left_ventricle.endocardium.id
-                else:
-                    node_apex_left = self.model.left_ventricle.apex_points[0].xyz
-                    node_apex_right = self.model.right_ventricle.apex_points[0].xyz
-                    distance = np.linalg.norm(
-                        origin_coordinates - np.array([node_apex_left, node_apex_right]),
-                        axis=1,
-                    )
-                    if np.min(distance[0]) < 1e-3:
-                        network.name = "Left" + "-" + "purkinje"
-                        network.nsid = self.model.left_ventricle.endocardium.id
-                    elif np.min(distance[1]) < 1e-3:
-                        network.name = "Right" + "-" + "purkinje"
-                        network.nsid = self.model.right_ventricle.endocardium.id
-                    else:
-                        LOGGER.error("Point too far from apex")
+            if network.name == "Left-purkinje":
+                network.nsid = self.model.left_ventricle.endocardium.id
+            elif network.name == "Right-purkinje":
+                network.nsid = self.model.right_ventricle.endocardium.id
             elif network.name == "SAN_to_AVN":
                 network.nsid = self.model.right_atrium.endocardium.id
             elif network.name == "Left bundle branch":
@@ -3154,10 +3136,14 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             # His bundle is inside of surface, no segment will associated
             elif network.name == "His":
                 network.nsid = -1
+            else:
+                LOGGER.error(f"Unknown network name for {network.name}.")
+                exit()
 
             # write
             self.kw_database.beam_networks.append(f"$$ {network.name} $$")
 
+            origin_coordinates = self.model.mesh.nodes[network.node_ids[0], :]
             self.kw_database.beam_networks.append(
                 custom_keywords.EmEpPurkinjeNetwork2(
                     purkid=network.pid,

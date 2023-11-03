@@ -15,9 +15,6 @@ import pathlib
 from ansys.heart.postprocessor.EPpostprocessor import EPpostprocessor
 
 # set ep results folder
-ep_folder = (
-    r"D:\REPOS\pyheart-lib\downloads\Strocchi2020\01\FourChamber\simulation-EP\main-ep\d3plot"
-)
 ep_folder = os.path.join(
     pathlib.Path(__file__).absolute().parents[2],
     "downloads\\Strocchi2020\\01\FourChamber\\simulation-EP\\main-ep\\d3plot",
@@ -36,7 +33,7 @@ postproc = EPpostprocessor(results_path=ep_folder)
 # Get activation times and plot the field
 
 activation_time_field = postproc.get_activation_times()
-activation_time_field.plot()
+activation_time_field.plot(show_edges=False)
 ###############################################################################
 # .. image:: /_static/images/ep_post_activationtime.png
 #   :width: 300pt
@@ -45,11 +42,11 @@ activation_time_field.plot()
 # Compute total activation time
 activation_time_data = activation_time_field.data_as_list
 total_acctivation_time = max(activation_time_data) - min(activation_time_data)
-print("Total activation time: " + str(total_acctivation_time))
+print("Total activation time: " + str(total_acctivation_time) + " ms")
 
 ###############################################################################
 # Transmembrane potentials
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~
 # Get transmembrane potentials on list of nodes and plot
 vm, times = postproc.get_transmembrane_potential(node_id=[0, 1, 100], plot=True)
 ###############################################################################

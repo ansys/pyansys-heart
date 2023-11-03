@@ -58,6 +58,7 @@ class EPpostprocessor:
             plt.plot(times, vm, label="node 0")
             plt.xlabel("time (ms)")
             plt.ylabel("vm (mV)")
+            plt.show(block=True)
         return vm, times
 
     # def animate_transmembrane_potentials(self):
@@ -116,7 +117,6 @@ class EPpostprocessor:
         """Animate transmembrane potentials and export to vtk."""
         vm, times = self.get_transmembrane_potential()
         # Creating scene and loading the mesh
-        post_path = self.create_post_folder()
         grid = self.reader.meshgrid.copy()
         p = pv.Plotter()
         p.add_mesh(grid, scalars=vm[0, :])

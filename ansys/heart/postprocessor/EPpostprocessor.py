@@ -112,26 +112,36 @@ class EPpostprocessor:
             os.makedirs(post_path)
         return post_path
 
-    def export_transmembrane_to_vtk(self, animate: bool = False):
+    def animate_transmembrane(self):
         """Animate transmembrane potentials and export to vtk."""
         vm, times = self.get_transmembrane_potential()
         # Creating scene and loading the mesh
         post_path = self.create_post_folder()
         grid = self.reader.meshgrid.copy()
-        if animate == True:
-            p = pv.Plotter()
-            p.add_mesh(grid, scalars=vm[0, :])
-            p.show(interactive_update=True)
+        p = pv.Plotter()
+        p.add_mesh(grid, scalars=vm[0, :])
+        p.show(interactive_update=True)
+
+        for i in range(vm.shape[0]):
+            grid.point_data["transemembrane_potential"] = vm[i, :]
+            grid.save(post_path + "\\vm_" + str(i) + ".vtk")
+            p.update_scalars(vm[i, :])
+            p.update()
+
+        return
+
+    def export_transmembrane_to_vtk(self):
+        """Export transmembrane potentials to vtk."""
+        vm, times = self.get_transmembrane_potential()
+        # Creating scene and loading the mesh
+        post_path = self.create_post_folder()
+        grid = self.reader.meshgrid.copy()
 
         for i in range(vm.shape[0]):
             # TODO vtk is not optimal for scalar fields with
             # non moving meshes, consider using ROM format
             grid.point_data["transemembrane_potential"] = vm[i, :]
             grid.save(post_path + "\\vm_" + str(i) + ".vtk")
-            if animate == True:
-                p.update_scalars(vm[i, :])
-                p.update()
-
         return
 
     def _assign_pointdata(self, pointdata: np.ndarray, node_ids: np.ndarray):

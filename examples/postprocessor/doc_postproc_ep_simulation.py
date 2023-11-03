@@ -9,13 +9,19 @@ This example shows you how to post process an EP simulation.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Import the required modules
 
+import os
+import pathlib
+
 from ansys.heart.postprocessor.EPpostprocessor import EPpostprocessor
 
 # set ep results folder
 ep_folder = (
     r"D:\REPOS\pyheart-lib\downloads\Strocchi2020\01\FourChamber\simulation-EP\main-ep\d3plot"
 )
-
+ep_folder = os.path.join(
+    pathlib.Path(__file__).absolute().parents[2],
+    "downloads\\Strocchi2020\\01\FourChamber\\simulation-EP\\main-ep\\d3plot",
+)
 ###############################################################################
 # Instantiate the Postprocessor
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -52,4 +58,5 @@ vm, times = postproc.get_transmembrane_potential(node_id=[0, 1, 100], plot=True)
 #   :align: center
 
 # Animate and export in vtk format
-postproc.export_transmembrane_to_vtk(animate=True)
+postproc.export_transmembrane_to_vtk()
+postproc.animate_transmembrane()

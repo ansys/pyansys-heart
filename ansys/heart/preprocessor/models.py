@@ -1843,19 +1843,19 @@ class FourChamber(HeartModel):
             AV_node = self.compute_AV_node().node_id
 
         path_SAN_AVN = right_atrium_endo.geodesic(SA_node, AV_node)
-        edges = path_SAN_AVN["vtkOriginalPointIds"]
+        point_ids = path_SAN_AVN["vtkOriginalPointIds"]
 
         if create_new_nodes:
             # duplicate nodes inside the line, connect only SA node (the first) with 3D
-            edges[1:] = len(self.mesh.nodes) + np.linspace(
-                0, len(edges) - 2, len(edges) - 1, dtype=int
+            point_ids[1:] = len(self.mesh.nodes) + np.linspace(
+                0, len(point_ids) - 2, len(point_ids) - 1, dtype=int
             )
 
             # modify ID of AV point
-            self.right_atrium.get_point("AV_node").node_id = edges[-1]
+            self.right_atrium.get_point("AV_node").node_id = point_ids[-1]
 
             # build connectivity table
-            edges = np.vstack((edges[:-1], edges[1:])).T
+            edges = np.vstack((point_ids[:-1], point_ids[1:])).T
 
             # add to mesh
             beam = self.mesh.add_beam_network(
@@ -1897,7 +1897,7 @@ class FourChamber(HeartModel):
 
         # path start from AV point, to septum start point, then to septum end point
         AV_node = self.right_atrium.get_point("AV_node")
-        edges = np.concatenate(
+        point_ids = np.concatenate(
             (
                 np.array([AV_node.node_id]),
                 len(self.mesh.nodes)
@@ -1905,8 +1905,8 @@ class FourChamber(HeartModel):
             )
         )
         # create beam
-        connect_table = np.vstack((edges[:-1], edges[1:])).T
-        beam = self.mesh.add_beam_network(new_nodes=new_nodes, edges=connect_table, name="His")
+        edges = np.vstack((point_ids[:-1], point_ids[1:])).T
+        beam = self.mesh.add_beam_network(new_nodes=new_nodes, edges=edges, name="His")
 
         # TODO:
         # Find upper right septal point "URSP"
@@ -2016,19 +2016,19 @@ class FourChamber(HeartModel):
         new_nodes = bundle_branch.points[0:-1, :]
 
         # first node "his septum end" and last node "apex"
-        edges = bundle_branch["vtkOriginalPointIds"]
+        point_ids = bundle_branch["vtkOriginalPointIds"]
 
         # duplicate nodes except the end
-        edges[0:-1] = len(self.mesh.nodes) + np.linspace(
-            0, len(edges) - 2, len(edges) - 1, dtype=int
+        point_ids[0:-1] = len(self.mesh.nodes) + np.linspace(
+            0, len(point_ids) - 2, len(point_ids) - 1, dtype=int
         )
         for net in self.mesh.beam_network:
             if net.name == "His":
                 LOGGER.info("Adding bifurcation edge to His Bundle.")
-                net.edges = np.vstack((net.edges, np.array([His_end.node_id, edges[0]])))
+                net.edges = np.vstack((net.edges, np.array([His_end.node_id, point_ids[0]])))
                 net.name = "His"
 
-        edges = np.vstack((edges[:-1], edges[1:])).T
+        edges = np.vstack((point_ids[:-1], point_ids[1:])).T
         bundle_beam = self.mesh.add_beam_network(
             new_nodes=new_nodes, edges=edges, name=side + " bundle branch"
         )

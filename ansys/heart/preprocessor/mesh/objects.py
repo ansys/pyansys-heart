@@ -331,7 +331,6 @@ class BeamMesh(pv.UnstructuredGrid, Feature):
         name: str = None,
         edges: np.ndarray = None,
         nodes: np.ndarray = None,
-        nid: int = None,
         pid: int = None,
         nsid: int = None,
     ) -> None:
@@ -342,14 +341,11 @@ class BeamMesh(pv.UnstructuredGrid, Feature):
         """Beams edges."""
         self.nodes = copy.copy(nodes)  # shallow copy?
         """Node coordinates."""
-        self.type = "Beam"
-        """Beam type."""
-        self.id: int = nid
-        """Id of beam network."""
+
         self.pid = pid
         """Part id associated with the network."""
         self.nsid: int = nsid
-        """ID of corresponding set of nodes."""
+        """Surface id associated with the network."""
 
     @property
     def node_ids(self) -> np.ndarray:
@@ -800,7 +796,6 @@ class Mesh(pv.UnstructuredGrid):
         nodes = np.vstack([self.nodes, new_nodes])  # add new nodes to existing nodes
         beam_net = BeamMesh(nodes=nodes, edges=edges, pid=pid, nsid=-1)
         beam_net.pid = pid
-        beam_net.id = len(self.beam_network) + 1
         beam_net.name = name
         self.beam_network.append(beam_net)
 

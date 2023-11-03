@@ -3310,7 +3310,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 self.kw_database.cell_models.extend([cell_kw])
             self.kw_database.beam_networks.append(beams_kw)
 
-    def _update_export_controls(self, dt_output_d3plot: float = 1.0):
+    def _update_export_controls(self, dt_output_d3plot: float = 10.0):
         """Add solution controls to the main simulation.
 
         Parameters

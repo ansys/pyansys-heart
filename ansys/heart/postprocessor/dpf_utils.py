@@ -41,6 +41,82 @@ class D3plotReader:
         """Get initial coordinates."""
         return self.model.results.initial_coordinates.eval()[0].data
 
+    def get_timesteps(self):
+        """Get list of timesteps."""
+        return self.model.metadata.time_freq_support.time_frequencies.data_as_list
+
+    def get_ep_fields(self, at_step: int = None) -> dpf.FieldsContainer:
+        """Get EP fields container."""
+        fields = dpf.FieldsContainer()
+
+        time_ids = (
+            self.model.metadata.time_freq_support.time_frequencies.scoping.ids
+            if at_step == None
+            else [at_step]
+        )
+
+        time_scoping = dpf.Scoping(ids=time_ids, location=dpf.locations.time_freq)
+        # to get time steps:
+        # self.model.metadata.time_freq_support.time_frequencies.data_as_list
+
+        op = dpf.Operator("lsdyna::ms::results")  # ls dyna EP operator
+        op.inputs.data_sources(self.ds)
+        op.inputs.time_scoping(time_scoping)
+        fields = op.eval()
+        return fields
+        # activation_time_field = fields_container[10]
+
+        # use to know which variable to use:
+        # lsdyna::ms::result_info_provider
+
+        # sub_fields_container: dpf.FieldsContainer = dpf.operators.utility.extract_sub_fc(
+        #     fields_container=full_fields_container,
+        #     label_space={"variable_id": 129},
+        # ).eval()
+        # sub_fields_container.animate()
+        # print(self.model.operator())
+        return
+
+    def get_transmembrane_potentials_fc(self, fc: dpf.FieldsContainer) -> dpf.FieldsContainer:
+        """Get sub field container."""
+        op = dpf.operators.utility.extract_sub_fc(
+            fields_container=fc,
+            label_space={"variable_id": 126},
+        )
+        return op.eval()
+
+        # activation_time_field = fields_container[10]
+
+        # use to know which variable to use:
+        # lsdyna::ms::result_info_provider
+
+        # sub_fields_container: dpf.FieldsContainer = dpf.operators.utility.extract_sub_fc(
+        #     fields_container=full_fields_container,
+        #     label_space={"variable_id": 129},
+        # ).eval()
+        # sub_fields_container.animate()
+        # print(self.model.operator())
+        return
+
+    def print_lsdyna_ms_results(self):
+        """Print available ms results."""
+        #  Elemental Electrical Conductivity(domain Id: 1, Variable Id: 33)
+        #  Elemental Scalar Potential(domain Id: 2, Variable Id: 32)
+        #  Elemental Current Density(domain Id: 2, Variable Id: 1013)
+        #  Elemental Electric Field(domain Id: 2, Variable Id: 1014)
+        #  Elemental Ohm Heating Power(domain Id: 2, Variable Id: 35)
+        #  Elemental Volumic Ohm Power(domain Id: 2, Variable Id: 100)
+        #  Elemental Electrical Conductivity(domain Id: 2, Variable Id: 33)
+        #  Nodal Ep Transmembrane Pot(domain Id: 3, Variable Id: 126)
+        #  Nodal Ep Extra Cell Pot(domain Id: 3, Variable Id: 127)
+        #  Nodal Ep Intra Cell Pot(domain Id: 3, Variable Id: 128)
+        #  Nodal Ep Active. Time(domain Id: 3, Variable Id: 129)
+        #  Nodal Ep Ca2+ Concentration(domain Id: 3, Variable Id: 130)
+        #  Nodal (Domain Id: 3, Variable Id: 139)
+        op = dpf.Operator("lsdyna::ms::result_info_provider")  # ls dyna EP operator
+        op.inputs.data_sources(self.ds)
+        print(op.eval())
+
     def get_displacement(self):
         """Get displacement."""
         displacements = self.model.results.displacement.on_all_time_freqs

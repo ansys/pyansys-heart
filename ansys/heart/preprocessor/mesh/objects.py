@@ -294,6 +294,9 @@ class SurfaceMesh(pv.PolyData, Feature):
 class BeamMesh(pv.UnstructuredGrid, Feature):
     """Beam class."""
 
+    all_beam_nodes = []
+    # beam nodes array
+
     @property
     def nodes(self):
         """Node coordinates."""
@@ -331,19 +334,25 @@ class BeamMesh(pv.UnstructuredGrid, Feature):
         name: str = None,
         edges: np.ndarray = None,
         nodes: np.ndarray = None,
+        beam_nodes_mask: np.ndarray = None,
         pid: int = None,
-        nsid: int = None,
+        nsid: int = -1,
     ) -> None:
         super().__init__(self)
         Feature.__init__(self, name)
 
         self.edges = edges
         """Beams edges."""
+
         self.nodes = copy.copy(nodes)  # shallow copy?
         """Node coordinates."""
 
+        self.beam_nodes_mask = beam_nodes_mask
+        """True for beam nodes, False for solid nodes."""
+
         self.pid = pid
         """Part id associated with the network."""
+
         self.nsid: int = nsid
         """Surface id associated with the network."""
 
@@ -520,8 +529,6 @@ class Mesh(pv.UnstructuredGrid):
         """List of surface meshes that make up the interface between different parts."""
         self.boundaries: List[SurfaceMesh] = []
         """List of boundary surface meshes within the part."""
-        self.beam_network: List[BeamMesh] = []
-        """List of beam networks in the mesh."""
         pass
 
     @property
@@ -743,85 +750,6 @@ class Mesh(pv.UnstructuredGrid):
             return surfaces[0]
         else:
             return surfaces
-
-    def add_purkinje_from_kfile(self, filename: pathlib.Path, name: str) -> None:
-        """Read an LS-DYNA file containing purkinje beams and nodes.
-
-        Parameters
-        ----------
-        filename : pathlib.Path
-
-        name : str
-            beamnet name
-        """
-        # Open file and import beams and created nodes
-        with open(filename, "r") as file:
-            start_nodes = 0
-            lines = file.readlines()
-        # find line ids delimiting node data and edge data
-        start_nodes = np.array(np.where(["*NODE" in line for line in lines]))[0][0]
-        end_nodes = np.array(np.where(["*" in line for line in lines]))
-        end_nodes = end_nodes[end_nodes > start_nodes][0]
-        start_beams = np.array(np.where(["*ELEMENT_BEAM" in line for line in lines]))[0][0]
-        end_beams = np.array(np.where(["*" in line for line in lines]))
-        end_beams = end_beams[end_beams > start_beams][0]
-        # load node data
-        node_data = np.loadtxt(
-            filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1
-        )
-        node_id_start = np.array(node_data[0, 0], dtype=int) - 1
-        # load beam data
-        beam_data = np.loadtxt(
-            filename, skiprows=start_beams + 1, max_rows=end_beams - start_beams - 1, dtype=int
-        )
-        edges = beam_data[:, 2:4] - 1
-
-        # adjust connectivity table for new created nodes
-        number_of_nodes = len(self.nodes)
-        edges[edges >= node_id_start] = (
-            edges[edges >= node_id_start] - node_id_start + number_of_nodes
-        )
-
-        nodes = node_data[:, 1:4]
-        pid = beam_data[0, 1]
-
-        self.add_beam_network(new_nodes=nodes, edges=edges, pid=pid, name=name)
-
-        return
-
-    def add_beam_network(
-        self, new_nodes: np.ndarray = [], edges: np.ndarray = [], pid: int = None, name: str = None
-    ) -> BeamMesh:
-        """Add beam network."""
-        nodes = np.vstack([self.nodes, new_nodes])  # add new nodes to existing nodes
-        beam_net = BeamMesh(nodes=nodes, edges=edges, pid=pid, nsid=-1)
-        beam_net.pid = pid
-        beam_net.name = name
-        self.beam_network.append(beam_net)
-
-        # Note that if we add the nodes to the mesh object we may will also need to
-        # extend the point data arrays with suitable values.
-        self.nodes = nodes
-        null_value = 0
-        num_data_to_add = new_nodes.shape[0]
-        for key in self.point_data.keys():
-            data_type = self.point_data[key].dtype
-            if len(self.point_data[key].shape) > 1:
-                raise NotImplementedError(
-                    "Padding multi-dimensional point data arrays not yet supported"
-                )
-            new_point_data = np.append(
-                self.point_data[key], np.ones(num_data_to_add, dtype=data_type) * null_value
-            )
-            self.point_data[key] = new_point_data
-
-        # # visualize (debug)
-        # import pyvista
-        # plotter = pyvista.Plotter()
-        # plotter.add_mesh(self, opacity=0.3)
-        # plotter.add_mesh(purkinje)
-        # plotter.show()
-        return beam_net
 
     def _to_pyvista_object(self) -> pv.UnstructuredGrid:
         """Convert mesh object into pyvista unstructured grid object.

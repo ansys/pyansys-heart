@@ -191,6 +191,78 @@ class HeartModel:
         self.cap_centroids: List[Point] = []
         """Centroid point to create cap shell."""
 
+        self.beam_network: List[BeamMesh] = []
+        """List of beam networks in the mesh."""
+
+    def add_purkinje_from_kfile(self, filename: pathlib.Path, name: str) -> None:
+        """Read an LS-DYNA file containing purkinje beams and nodes.
+
+        Parameters
+        ----------
+        filename : pathlib.Path
+
+        name : str
+            beamnet name
+        """
+        # Open file and import beams and created nodes
+        with open(filename, "r") as file:
+            start_nodes = 0
+            lines = file.readlines()
+        # find line ids delimiting node data and edge data
+        start_nodes = np.array(np.where(["*NODE" in line for line in lines]))[0][0]
+        end_nodes = np.array(np.where(["*" in line for line in lines]))
+        end_nodes = end_nodes[end_nodes > start_nodes][0]
+        start_beams = np.array(np.where(["*ELEMENT_BEAM" in line for line in lines]))[0][0]
+        end_beams = np.array(np.where(["*" in line for line in lines]))
+        end_beams = end_beams[end_beams > start_beams][0]
+
+        # load node data
+        node_data = np.loadtxt(
+            filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1
+        )
+        new_ids = node_data[:, 0].astype(int) - 1
+        beam_nodes = node_data[:, 1:4]
+
+        # load beam data
+        beam_data = np.loadtxt(
+            filename, skiprows=start_beams + 1, max_rows=end_beams - start_beams - 1, dtype=int
+        )
+        edges = beam_data[:, 2:4] - 1
+        pid = beam_data[0, 1]
+
+        mask = np.isin(edges, new_ids)  # True for new created nodes
+        edges[mask] -= new_ids[0]  # beam nodes id start from 0
+
+        # TODO a separate function to support external purkinje
+        ## offset beam nodes ID from global mesh (not consider caps)
+        edges[mask] += len(self.mesh.nodes) + len(BeamMesh.all_beam_nodes)
+
+        if len(BeamMesh.all_beam_nodes) == 0:
+            BeamMesh.all_beam_nodes = beam_nodes
+        else:
+            BeamMesh.all_beam_nodes = np.vstack((BeamMesh.all_beam_nodes, beam_nodes))
+
+        # nodes is just for pyvista plot, edges used in writer will be offsetted
+        # TODO only save necessary nodes, cells, and with a 'global id' array
+        beam_net = BeamMesh(
+            nodes=np.vstack((self.mesh.nodes, BeamMesh.all_beam_nodes)),
+            edges=edges,
+            beam_nodes_mask=mask,
+        )
+        beam_net.pid = pid
+        beam_net.name = name
+        self.beam_network.append(beam_net)
+
+        # visualize (debug)
+        # import pyvista
+
+        # plotter = pyvista.Plotter()
+        # plotter.add_mesh(self, opacity=0.3)
+        # plotter.add_mesh(beam_net)
+        # plotter.show()
+
+        return
+
     def extract_simulation_mesh(self, clean_up: bool = False) -> None:
         """Update the model.
 
@@ -1700,6 +1772,9 @@ class LeftVentricle(HeartModel):
     def __init__(self, info: ModelInfo) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part."""
+
+        self.left_ventricle.has_fiber = True
+        self.left_ventricle.is_active = True
         # remove septum - not used in left ventricle only model
         del self.left_ventricle.septum
 
@@ -1717,6 +1792,13 @@ class BiVentricle(HeartModel):
         """Right ventricle part."""
         self.septum: Part = Part(name="Septum", part_type="septum")
         """Septum."""
+
+        self.left_ventricle.has_fiber = True
+        self.left_ventricle.is_active = True
+        self.right_ventricle.has_fiber = True
+        self.right_ventricle.is_active = True
+        self.septum.has_fiber = True
+        self.septum.is_active = True
 
         super().__init__(info)
         pass
@@ -1737,6 +1819,18 @@ class FourChamber(HeartModel):
         """Left atrium part."""
         self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
         """Right atrium part."""
+
+        self.left_ventricle.has_fiber = True
+        self.left_ventricle.is_active = True
+        self.right_ventricle.has_fiber = True
+        self.right_ventricle.is_active = True
+        self.septum.has_fiber = True
+        self.septum.is_active = True
+
+        self.left_atrium.has_fiber = False
+        self.left_atrium.is_active = False
+        self.right_atrium.has_fiber = False
+        self.right_atrium.is_active = False
 
         super().__init__(info)
 
@@ -2089,6 +2183,22 @@ class FullHeart(FourChamber):
         """Aorta part."""
         self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type="artery")
         """Pulmonary artery part."""
+
+        self.left_ventricle.has_fiber = True
+        self.left_ventricle.is_active = True
+        self.right_ventricle.has_fiber = True
+        self.right_ventricle.is_active = True
+        self.septum.has_fiber = True
+        self.septum.is_active = True
+
+        self.left_atrium.has_fiber = False
+        self.left_atrium.is_active = False
+        self.right_atrium.has_fiber = False
+        self.right_atrium.is_active = False
+        self.aorta.has_fiber = False
+        self.aorta.is_active = False
+        self.pulmonary_artery.has_fiber = False
+        self.pulmonary_artery.is_active = False
 
         HeartModel.__init__(self, info)
         # super().__init__(info)

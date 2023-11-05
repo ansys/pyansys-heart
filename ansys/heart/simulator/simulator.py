@@ -375,11 +375,11 @@ class EPSimulator(BaseSimulator):
         LOGGER.info("Assign the Purkinje network to the model...")
 
         purkinje_k_file = os.path.join(directory, "purkinjeNetwork_001.k")
-        self.model.mesh.add_purkinje_from_kfile(purkinje_k_file, "Left-purkinje")
+        self.model.add_purkinje_from_kfile(purkinje_k_file, "Left-purkinje")
 
         if not isinstance(self.model, LeftVentricle):
             purkinje_k_file = os.path.join(directory, "purkinjeNetwork_002.k")
-            self.model.mesh.add_purkinje_from_kfile(purkinje_k_file, "Right-purkinje")
+            self.model.add_purkinje_from_kfile(purkinje_k_file, "Right-purkinje")
 
     def compute_conduction_system(self):
         """Compute the conduction system."""

@@ -149,15 +149,6 @@ class BaseDynaWriter:
             )
             self.model.info.model_type = self.model.info.model_type.replace("Improved", "")
 
-        if not hasattr(self.model.parts[0], "has_fiber"):
-            LOGGER.warning("Part doesn't contain 'has_fiber', default value will be added.")
-            for part in self.model.parts:
-                if part.part_type == "ventricle" or part.part_type == "septum":
-                    part.has_fiber = True
-                    part.is_active = True
-                else:
-                    part.has_fiber = False
-                    part.is_active = False
         return
 
     def _check_settings(self):
@@ -2689,7 +2680,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self._update_segmentsets_db()
         self._update_nodesets_db()
 
-        if self.model.mesh.beam_network:
+        if self.model.beam_network:
             # with smcoupl=1, coupling is disabled
             self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
             self._update_use_Purkinje()
@@ -3112,8 +3103,32 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         sid = self.get_unique_section_id()
         self.kw_database.beam_networks.append(keywords.SectionBeam(secid=sid, elform=3, a=645))
 
-        beam_id_offset = 0
-        for network in self.model.mesh.beam_network:
+        if self.__class__.__name__ == "ElectroMechanicsDynaWriter":
+            # id offset due to cap center nodes
+            beam_node_id_offset = len(self.model.cap_centroids)
+            # id offset due to spring type elements
+            beam_elem_id_offset = self.id_offset["element"]["discrete"]
+        else:
+            beam_node_id_offset = 0
+            beam_elem_id_offset = 0  # no beam elements introduced before
+
+        # write beam nodes
+        new_nodes = self.model.beam_network[0].all_beam_nodes
+        ids = (
+            np.linspace(
+                len(self.model.mesh.nodes),
+                len(self.model.mesh.nodes) + len(new_nodes) - 1,
+                len(new_nodes),
+                dtype=int,
+            )
+            + 1  # dyna start by 1
+            + beam_node_id_offset  # apply node offset
+        )
+        nodes_table = np.hstack((ids.reshape(-1, 1), new_nodes))
+        kw = add_nodes_to_kw(nodes_table, keywords.Node())
+        self.kw_database.beam_networks.append(kw)
+
+        for network in self.model.beam_network:
             ## TODO do not write His Bundle when coupling, it leads to crash
             if self.__class__.__name__ == "ElectroMechanicsDynaWriter" and network.name == "His":
                 continue
@@ -3143,7 +3158,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             # write
             self.kw_database.beam_networks.append(f"$$ {network.name} $$")
 
-            origin_coordinates = self.model.mesh.nodes[network.node_ids[0], :]
+            origin_coordinates = [0, 0, 0]  # self.model.mesh.nodes[network.node_ids[0], :]
             self.kw_database.beam_networks.append(
                 custom_keywords.EmEpPurkinjeNetwork2(
                     purkid=network.pid,
@@ -3183,14 +3198,18 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             self.kw_database.beam_networks.append(cell_kw)
 
             # mesh
+            # apply offset for beam connectivity
+            connect = network.edges
+            connect[network.beam_nodes_mask] += beam_node_id_offset
+
             beams_kw = keywords.ElementBeam()
             beams_kw = add_beams_to_kw(
-                beams=network.edges + 1,
+                beams=connect + 1,
                 beam_kw=beams_kw,
                 pid=network.pid,
-                offset=beam_id_offset,
+                offset=beam_elem_id_offset,
             )
-            beam_id_offset += len(network.edges)
+            beam_elem_id_offset += len(network.edges)
             self.kw_database.beam_networks.append(beams_kw)
 
     def _update_export_controls(self, dt_output_d3plot: float = 10.0):
@@ -3310,7 +3329,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
         MechanicsDynaWriter.update(self, with_dynain=with_dynain)
 
-        if self.model.mesh.beam_network:
+        if self.model.beam_network:
             # Coupling enabled, EP beam nodes follow the motion of surfaces
             self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=0))
             self._update_use_Purkinje()

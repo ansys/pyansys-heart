@@ -2051,9 +2051,10 @@ class FourChamber(HeartModel):
 
         # finally
         mask = np.ones(edges.shape, dtype=bool)
-        mask[0, 0] = False  # SA point at solid
+        mask[0, 0] = False  # AV point at previous, not offset in creation
 
         beam_net = self.add_beam_net(new_nodes, edges, mask, pid=0, name="His")
+        beam_net.beam_nodes_mask[0, 0] = True  # offset in writer
 
         # TODO:
         # Find upper right septal point "URSP"
@@ -2130,11 +2131,11 @@ class FourChamber(HeartModel):
         edges = np.vstack((point_ids[:-1], point_ids[1:])).T
 
         mask = np.ones(edges.shape, dtype=bool)
-        mask[0, 0] = False  # His end point exists
-        mask[-1, -1] = False  # Apex point exists
+        mask[0, 0] = False  # His end point of previous, not offset at creation
+        mask[-1, -1] = False  # Apex point at solid
 
         beam_net = self.add_beam_net(new_nodes, edges, mask, pid=0, name=side + " bundle branch")
-
+        beam_net.beam_nodes_mask[0, 0] = True
         return beam_net
 
     def compute_Bachman_bundle(self):

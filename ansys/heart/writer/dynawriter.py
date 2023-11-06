@@ -3158,7 +3158,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             # write
             self.kw_database.beam_networks.append(f"$$ {network.name} $$")
 
-            origin_coordinates = [0, 0, 0]  # self.model.mesh.nodes[network.node_ids[0], :]
+            origin_coordinates = network.nodes[network.edges[0, 0]]
             self.kw_database.beam_networks.append(
                 custom_keywords.EmEpPurkinjeNetwork2(
                     purkid=network.pid,

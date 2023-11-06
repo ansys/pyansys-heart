@@ -246,30 +246,33 @@ class HeartModel:
 
         beam = self.add_beam_net(beam_nodes, edges, mask, pid=pid, name=name)
 
-        return
+        return beam
 
     def add_beam_net(
         self, beam_nodes: np.ndarray, edges: np.ndarray, mask: np.ndarray, pid=0, name: str = None
-    ):
-        """Add.
+    ) -> BeamMesh:
+        """Add a BeamMesh object on the model.
 
         Parameters
         ----------
         beam_nodes : np.ndarray
-            _description_
+            new nodes coordinates.
         edges : np.ndarray
-            _description_
+            beam elements connectivity
+            If `mask` is true, it's Id of `beam_nodes` (start by 0),
+            it will be offset when creating BeamMesh object.
+            If `mask` is false, it's Id of existed nodes, it will not be offset.
         mask : np.ndarray
-            _description_
+            with the same shape of `edges`
         pid : int, optional
-            _description_, by default 0
+            part Id, will be reassigned when writing, by default 0
         name : str, optional
-            _description_, by default None
+            name, by default None
 
         Returns
         -------
-        _type_
-            _description_
+        BeamMesh
+            BeamMesh object
         """
         edges[mask] += len(self.mesh.nodes) + len(BeamMesh.all_beam_nodes)
 

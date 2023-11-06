@@ -344,7 +344,7 @@ class BeamMesh(pv.UnstructuredGrid, Feature):
         self.edges = edges
         """Beams edges."""
 
-        self.nodes = copy.copy(nodes)  # shallow copy?
+        self.nodes = nodes
         """Node coordinates."""
 
         self.beam_nodes_mask = beam_nodes_mask
@@ -355,13 +355,6 @@ class BeamMesh(pv.UnstructuredGrid, Feature):
 
         self.nsid: int = nsid
         """Surface id associated with the network."""
-
-    @property
-    def node_ids(self) -> np.ndarray:
-        """Global node ids - sorted by earliest occurrence."""
-        _, idx = np.unique(self.edges.flatten(), return_index=True)
-        node_ids = self.edges.flatten()[np.sort(idx)]
-        return node_ids
 
 
 class Cavity(Feature):

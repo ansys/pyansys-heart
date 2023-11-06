@@ -381,8 +381,15 @@ class EPSimulator(BaseSimulator):
             purkinje_k_file = os.path.join(directory, "purkinjeNetwork_002.k")
             self.model.add_purkinje_from_kfile(purkinje_k_file, "Right-purkinje")
 
-    def compute_conduction_system(self):
+    def compute_conduction_system(self, after_zerop=False):
         """Compute the conduction system."""
+        if after_zerop:
+            new_nodes = np.array(self.stress_free_report["guess_ed_coord"])[:-11]
+            self.model.mesh.points = new_nodes
+            for part in self.model.parts:
+                for surface in part.surfaces:
+                    surface.nodes = new_nodes
+
         if isinstance(self.model, FourChamber):
             SA_node = self.model.compute_SA_node()
             AV_node = self.model.compute_AV_node()

@@ -2118,7 +2118,7 @@ class FourChamber(HeartModel):
 
         bundle_branch = endo_surface.geodesic(
             endo_surface.find_closest_point(start_coord),
-            endo_surface.find_closest_point(ventricle.apex_points[0].xyz),
+            endo_surface.find_closest_point(self.mesh.points[ventricle.apex_points[0].node_id]),
         )
 
         # exclude first and last (apex) node which belongs to purkinje beam

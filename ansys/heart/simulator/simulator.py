@@ -538,7 +538,11 @@ class MechanicsSimulator(BaseSimulator):
         export_directory = os.path.join(self.root_directory, folder_name)
         self.directories["zeropressure"] = export_directory
 
-        dyna_writer = writers.ZeroPressureMechanicsDynaWriter(self.model, self.settings)
+        model = copy.deepcopy(self.model)
+        if isinstance(model, FourChamber) and type(self) == EPMechanicsSimulator:
+            model._create_isolation_part()
+
+        dyna_writer = writers.ZeroPressureMechanicsDynaWriter(model, self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory)
 

@@ -3309,23 +3309,11 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
     def update(self, with_dynain=False):
         """Update the keyword database."""
-        if isinstance(self.model, (FourChamber, FullHeart)):
+        if isinstance(self.model, FourChamber):
             self.model.left_atrium.has_fiber = True
             self.model.left_atrium.is_active = True
             self.model.right_atrium.has_fiber = True
             self.model.right_atrium.is_active = True
-            # self._duplicate_ventricle_atrial_nodes_tie()
-
-        # Re compute caps since mesh is changed
-        # TODO not compatible with zerop
-        for part in self.model.parts:
-            part.caps = []
-            for surface in part.surfaces:
-                surface.edge_groups = []
-        self.model.cap_centroids = []
-        self.model._assign_surfaces_to_parts()
-        self.model._assign_caps_to_parts()
-        self.model._assign_cavities_to_parts()
 
         MechanicsDynaWriter.update(self, with_dynain=with_dynain)
 
@@ -3334,8 +3322,6 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
             self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=0))
             self._update_use_Purkinje()
             self.kw_database.main.append(keywords.Include(filename="beam_networks.k"))
-            # LOGGER.error("Not supported")
-            # exit()
 
         self._update_cellmodels()
         self.kw_database.main.append(keywords.Include(filename="cell_models.k"))
@@ -3343,7 +3329,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         self._update_ep_settings()
         self._update_stimulation()
 
-        # todo coupling parameters
+        # coupling parameters
         coupling_str = (
             "*EM_CONTROL_TIMESTEP\n"
             "$   TSTYPE   DTCONST      LCID    FACTOR     DTMIN     DTMAX\n"

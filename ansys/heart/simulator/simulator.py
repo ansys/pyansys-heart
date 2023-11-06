@@ -562,15 +562,6 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         """Launch the main simulation."""
         # MechanicalSimulator handle dynain file from zerop
         MechanicsSimulator.simulate(self, folder_name=folder_name)
-        # directory = os.path.join(self.root_directory, folder_name)
-        # self._write_main_simulation_files(folder_name)
-
-        # LOGGER.info("Launching EP-MECA simulation...")
-
-        # input_file = os.path.join(directory, "main.k")
-        # self._run_dyna(input_file)
-
-        # LOGGER.info("done.")
 
         return
 

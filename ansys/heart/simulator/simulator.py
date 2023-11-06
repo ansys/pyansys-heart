@@ -324,9 +324,6 @@ class EPSimulator(BaseSimulator):
         dyna_settings: DynaSettings,
         simulation_directory: Path = "",
     ) -> None:
-        if isinstance(model, FourChamber) and "Isolation atrial" not in model.part_names:
-            model._create_isolation_part()
-
         super().__init__(model, dyna_settings, simulation_directory)
 
         return
@@ -557,9 +554,6 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         dyna_settings: DynaSettings,
         simulation_directory: Path = "",
     ) -> None:
-        if isinstance(model, FourChamber) and "Isolation atrial" not in model.part_names:
-            model._create_isolation_part()
-
         MechanicsSimulator.__init__(self, model, dyna_settings, simulation_directory)
 
         return

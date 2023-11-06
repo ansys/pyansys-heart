@@ -2652,6 +2652,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     """Class for preparing the input for an Electrophysiology LS-DYNA simulation."""
 
     def __init__(self, model: HeartModel, settings: SimulationSettings = None) -> None:
+        if isinstance(model, FourChamber):
+            model._create_isolation_part()
+
         super().__init__(model=model, settings=settings)
 
         self.kw_database = ElectrophysiologyDecks()
@@ -3262,6 +3265,9 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         model: HeartModel,
         settings: SimulationSettings = None,
     ) -> None:
+        if isinstance(model, FourChamber):
+            model._create_isolation_part()
+
         BaseDynaWriter.__init__(self, model=model, settings=settings)
 
         self.kw_database = ElectroMechanicsDecks()

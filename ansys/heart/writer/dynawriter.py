@@ -3086,6 +3086,37 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
         )
 
+        # TODO: His bundle is removed for EPMECA model due to unfinished development in LSDYNA
+        if self.__class__.__name__ == "ElectroMechanicsDynaWriter" and isinstance(
+            self.model, FourChamber
+        ):
+            second_stim_nodes = self.get_unique_nodeset_id()
+            stim_nodes = []
+            beam_node_id_offset = len(self.model.cap_centroids)
+            for network in self.model.beam_network:
+                if network.name == "Left bundle branch" or network.name == "Right bundle branch":
+                    stim_nodes.append(network.edges[0, 0] + beam_node_id_offset)
+
+            self.kw_database.ep_settings.append("$$ second stimulation at Left/Right bundle. $$")
+            node_set_kw = create_node_set_keyword(
+                node_ids=np.array(stim_nodes) + 1,
+                node_set_id=second_stim_nodes,
+                title="origin of left/right bundle",
+            )
+            self.kw_database.ep_settings.append(node_set_kw)
+
+            self.kw_database.ep_settings.append(
+                custom_keywords.EmEpTentusscherStimulus(
+                    stimid=2,
+                    settype=2,
+                    setid=second_stim_nodes,
+                    stimstrt=90.0,  # 90ms delay
+                    stimt=800.0,
+                    stimdur=20.0,
+                    stimamp=50.0,
+                )
+            )
+
     def _update_solution_controls(
         self,
         end_time: float = 800,

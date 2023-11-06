@@ -233,8 +233,33 @@ class HeartModel:
         mask = np.isin(edges, new_ids)  # True for new created nodes
         edges[mask] -= new_ids[0]  # beam nodes id start from 0
 
-        # TODO a separate function to support external purkinje
-        ## offset beam nodes ID from global mesh (not consider caps)
+        beam = self.add_beam_net(beam_nodes, edges, mask, pid=pid, name=name)
+
+        return
+
+    def add_beam_net(
+        self, beam_nodes: np.ndarray, edges: np.ndarray, mask: np.ndarray, pid=0, name: str = None
+    ):
+        """Add.
+
+        Parameters
+        ----------
+        beam_nodes : np.ndarray
+            _description_
+        edges : np.ndarray
+            _description_
+        mask : np.ndarray
+            _description_
+        pid : int, optional
+            _description_, by default 0
+        name : str, optional
+            _description_, by default None
+
+        Returns
+        -------
+        _type_
+            _description_
+        """
         edges[mask] += len(self.mesh.nodes) + len(BeamMesh.all_beam_nodes)
 
         if len(BeamMesh.all_beam_nodes) == 0:
@@ -253,15 +278,15 @@ class HeartModel:
         beam_net.name = name
         self.beam_network.append(beam_net)
 
-        # visualize (debug)
+        # # visualize (debug)
         # import pyvista
 
         # plotter = pyvista.Plotter()
-        # plotter.add_mesh(self, opacity=0.3)
+        # plotter.add_mesh(self.mesh, opacity=0.3)
         # plotter.add_mesh(beam_net)
         # plotter.show()
 
-        return
+        return beam_net
 
     def extract_simulation_mesh(self, clean_up: bool = False) -> None:
         """Update the model.
@@ -1865,7 +1890,7 @@ class FourChamber(HeartModel):
         """
         Compute Atrio-Ventricular node.
 
-        AtrioVentricular node is defined on endocardium surface and closest to septum.
+        AtrioVentricular node is on right artrium endocardium surface and closest to septum.
 
         Returns
         -------
@@ -1925,53 +1950,40 @@ class FourChamber(HeartModel):
         right_atrium_endo = self.right_atrium.endocardium
 
         try:
-            SA_node = self.right_atrium.get_point("SA_node").node_id
+            SA_id = self.right_atrium.get_point("SA_node").node_id
         except AttributeError:
             LOGGER.info("SA node is not defined, creating with default option.")
-            SA_node = self.compute_SA_node().node_id
+            SA_id = self.compute_SA_node().node_id
 
         try:
-            AV_node = self.right_atrium.get_point("AV_node").node_id
+            AV_id = self.right_atrium.get_point("AV_node").node_id
         except AttributeError:
             LOGGER.info("AV node is not defined, creating with default option.")
-            AV_node = self.compute_AV_node().node_id
+            AV_id = self.compute_AV_node().node_id
 
-        path_SAN_AVN = right_atrium_endo.geodesic(SA_node, AV_node)
-        point_ids = path_SAN_AVN["vtkOriginalPointIds"]
+        path_SAN_AVN = right_atrium_endo.geodesic(SA_id, AV_id)
 
-        if create_new_nodes:
-            # duplicate nodes inside the line, connect only SA node (the first) with 3D
-            point_ids[1:] = len(self.mesh.nodes) + np.linspace(
-                0, len(point_ids) - 2, len(point_ids) - 1, dtype=int
-            )
+        # duplicate nodes inside the line, connect only SA node (the first) with 3D
+        beam_nodes = path_SAN_AVN.points[1:, :]
 
-            # modify ID of AV point
-            self.right_atrium.get_point("AV_node").node_id = point_ids[-1]
+        # build connectivity table
+        point_ids = np.linspace(0, len(beam_nodes) - 1, len(beam_nodes), dtype=int)
+        point_ids = np.insert(point_ids, 0, SA_id)
 
-            # build connectivity table
-            edges = np.vstack((point_ids[:-1], point_ids[1:])).T
+        edges = np.vstack((point_ids[:-1], point_ids[1:])).T
 
-            # add to mesh
-            beam = self.mesh.add_beam_network(
-                new_nodes=path_SAN_AVN.points[1:, :], edges=edges, name="SAN_to_AVN"
-            )
+        mask = np.ones(edges.shape, dtype=bool)
+        mask[0, 0] = False  # SA point at solid
 
-            return beam
+        beam_net = self.add_beam_net(beam_nodes, edges, mask, pid=0, name="SAN_to_AVN")
 
-    def compute_His_conduction(self, beam_number=4) -> BeamMesh:
-        """Compute His bundle conduction.
+        return beam_net
 
-        Parameters
-        ----------
-        beam_number : int, optional
-            beam number, by default 4
+    def compute_His_conduction(self):
+        """Compute His bundle conduction."""
+        beam_number = 4
 
-        Returns
-        -------
-        BeamMesh
-            Beam mesh
-        """
-        start_point, end_point = self._define_hisbundle_start_end_point(beam_number)
+        start_coord, bifurcation_coord = self._define_hisbundle_start_bifurcation()
 
         # https://www.researchgate.net/publication/353154291_Morphometric_analysis_of_the_His_bundle_atrioven
         # tricular_fascicle_in_humans_and_other_animal_species_Histological_and_immunohistochemical_study
@@ -1980,27 +1992,54 @@ class FourChamber(HeartModel):
         # create nodes from start to end
         new_nodes = np.array(
             [
-                start_point.xyz,
-                end_point.xyz,
+                start_coord,
+                bifurcation_coord,
             ]
         )
 
-        step = (end_point.xyz - start_point.xyz) / (beam_number + 1)
+        step = (bifurcation_coord - start_coord) / (beam_number + 1)
         for i in range(1, beam_number):
-            new_nodes = np.insert(new_nodes, i, start_point.xyz + i * step, axis=0)
+            new_nodes = np.insert(new_nodes, i, start_coord + i * step, axis=0)
 
         # path start from AV point, to septum start point, then to septum end point
-        AV_node = self.right_atrium.get_point("AV_node")
+        for beam in self.beam_network:
+            if beam.name == "SAN_to_AVN":
+                av_id = beam.edges[-1, -1]
+                break
         point_ids = np.concatenate(
             (
-                np.array([AV_node.node_id]),
-                len(self.mesh.nodes)
-                + np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int),
+                np.array([av_id]),
+                +np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int),
             )
         )
         # create beam
         edges = np.vstack((point_ids[:-1], point_ids[1:])).T
-        beam = self.mesh.add_beam_network(new_nodes=new_nodes, edges=edges, name="His")
+
+        # find end on left endo
+        temp_id = pv.PolyData(
+            self.mesh.points[self.left_ventricle.endocardium.node_ids, :]
+        ).find_closest_point(bifurcation_coord)
+        his_end_left_id = self.left_ventricle.endocardium.node_ids[temp_id]
+        his_end_left_coord = self.mesh.points[his_end_left_id, :]
+
+        new_nodes = np.vstack((new_nodes, his_end_left_coord))
+        edges = np.vstack((edges, [point_ids[-1], point_ids[-1] + 1]))
+
+        # find end on right endo (must on the septum endo)
+        temp_id = pv.PolyData(
+            self.mesh.points[self.right_ventricle.septum.node_ids, :]
+        ).find_closest_point(bifurcation_coord)
+        his_end_right_id = self.right_ventricle.septum.node_ids[temp_id]
+        his_end_right_coord = self.mesh.points[his_end_right_id, :]
+
+        new_nodes = np.vstack((new_nodes, his_end_right_coord))
+        edges = np.vstack((edges, [point_ids[-1], point_ids[-1] + 2]))
+
+        # finally
+        mask = np.ones(edges.shape, dtype=bool)
+        mask[0, 0] = False  # SA point at solid
+
+        beam_net = self.add_beam_net(new_nodes, edges, mask, pid=0, name="His")
 
         # TODO:
         # Find upper right septal point "URSP"
@@ -2021,9 +2060,9 @@ class FourChamber(HeartModel):
 
         # plotter.show()
 
-        return beam
+        return beam_net, [his_end_left_coord, his_end_right_coord]
 
-    def _define_hisbundle_start_end_point(self, beam_number) -> (Point, Point):
+    def _define_hisbundle_start_bifurcation(self):
         """
         Define start and end points of the bundle of His.
 
@@ -2038,95 +2077,51 @@ class FourChamber(HeartModel):
         # Define start point: closest to artria
         pointcloud_id = septum_pointcloud.find_closest_point(AV_node.xyz)
 
-        His_septum_start_id = septum_point_ids[pointcloud_id]
-        His_septum_start_xyz = self.mesh.nodes[His_septum_start_id, :]
+        His_start_id = septum_point_ids[pointcloud_id]
+        His_start = self.mesh.nodes[His_start_id, :]
 
         # Define end point:  a random close point
         n = 50
         pointcloud_id = septum_pointcloud.find_closest_point(AV_node.xyz, n=n)[n - 1]
 
-        His_septum_end_id = septum_point_ids[pointcloud_id]
-        His_septum_end_xyz = self.mesh.nodes[His_septum_end_id, :]
+        His_bifurcation_id = septum_point_ids[pointcloud_id]
+        His_bifurcation = self.mesh.nodes[His_bifurcation_id, :]
 
-        # create Points
-        His_septum_start = Point(
-            name="His septum start", xyz=His_septum_start_xyz, node_id=len(self.mesh.nodes)
-        )
-        self.septum.points.append(His_septum_start)
+        return His_start, His_bifurcation
 
-        His_septum_end = Point(
-            name="His septum end",
-            xyz=His_septum_end_xyz,
-            node_id=beam_number + len(self.mesh.nodes),
-        )
-        self.septum.points.append(His_septum_end)
-
-        return His_septum_start, His_septum_end
-
-    def compute_bundle_branches(self) -> (BeamMesh, BeamMesh):
-        """Compute Buncle branches conduction system."""
-        His_end = self.septum.get_point("His septum end")
-
-        left_bundle = self._compute_bundle_oneside(
-            His_end,
-            self.left_ventricle.endocardium,
-            self.left_ventricle.endocardium.node_ids,
-            side="Left",
-        )
-
-        face = np.hstack(
-            (self.right_ventricle.endocardium.faces, self.right_ventricle.septum.faces)
-        )
-        right_endo = pv.PolyData(self.mesh.points, face)
-
-        right_endo_nids = np.unique(
-            np.concatenate(
-                (self.right_ventricle.septum.node_ids, self.right_ventricle.endocardium.node_ids)
-            )
-        )
-        right_bundle = self._compute_bundle_oneside(
-            His_end, right_endo, right_endo_nids, side="Right"
-        )
-
-        return left_bundle, right_bundle
-
-    def _compute_bundle_oneside(self, His_end: Point, endo_surface, endo_nids, side: str):
+    def compute_left_right_bundle(self, start_coord, start_id, side: str):
         """Bundle brunch."""
-        start_xyz = pv.PolyData(self.mesh.points[endo_nids, :]).find_closest_point(His_end.xyz)
-        start_id = endo_nids[start_xyz]
-
         if side == "Left":
             ventricle = self.left_ventricle
+            endo_surface = self.left_ventricle.endocardium
         elif side == "Right":
             ventricle = self.right_ventricle
+            face = np.hstack(
+                (self.right_ventricle.endocardium.faces, self.right_ventricle.septum.faces)
+            )
+            endo_surface = pv.PolyData(self.mesh.points, face)
 
         bundle_branch = endo_surface.geodesic(
-            endo_surface.find_closest_point(self.mesh.points[start_id, :]),
+            endo_surface.find_closest_point(start_coord),
             endo_surface.find_closest_point(ventricle.apex_points[0].xyz),
         )
 
-        # build branch net
-        # exclude last (apex) node which belongs to purkinje beam
-        new_nodes = bundle_branch.points[0:-1, :]
+        # exclude first and last (apex) node which belongs to purkinje beam
+        new_nodes = bundle_branch.points[1:-1, :]
 
-        # first node "his septum end" and last node "apex"
-        point_ids = bundle_branch["vtkOriginalPointIds"]
-
-        # duplicate nodes except the end
-        point_ids[0:-1] = len(self.mesh.nodes) + np.linspace(
-            0, len(point_ids) - 2, len(point_ids) - 1, dtype=int
-        )
-        for net in self.mesh.beam_network:
-            if net.name == "His":
-                LOGGER.info("Adding bifurcation edge to His Bundle.")
-                net.edges = np.vstack((net.edges, np.array([His_end.node_id, point_ids[0]])))
-                net.name = "His"
+        point_ids = np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int)
+        point_ids = np.insert(point_ids, 0, start_id)
+        point_ids = np.append(point_ids, ventricle.apex_points[0].node_id)
 
         edges = np.vstack((point_ids[:-1], point_ids[1:])).T
-        bundle_beam = self.mesh.add_beam_network(
-            new_nodes=new_nodes, edges=edges, name=side + " bundle branch"
-        )
-        return bundle_beam
+
+        mask = np.ones(edges.shape, dtype=bool)
+        mask[0, 0] = False  # His end point exists
+        mask[-1, -1] = False  # Apex point exists
+
+        beam_net = self.add_beam_net(new_nodes, edges, mask, pid=0, name=side + " bundle branch")
+
+        return beam_net
 
     def compute_Bachman_bundle(self):
         """Compute Bachman bundle conduction system."""

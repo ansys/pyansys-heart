@@ -26,7 +26,7 @@ from ansys.heart.postprocessor.auto_process import (
     read_uvc,
     zerop_post,
 )
-from ansys.heart.preprocessor.models import FourChamber, FullHeart, HeartModel, LeftVentricle
+from ansys.heart.preprocessor.models import FourChamber, HeartModel, LeftVentricle
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 import numpy as np
@@ -383,10 +383,26 @@ class EPSimulator(BaseSimulator):
 
     def compute_conduction_system(self):
         """Compute the conduction system."""
-        if isinstance(self.model, (FourChamber, FullHeart)):
-            self.model.compute_av_conduction()
-            self.model.compute_His_conduction()
-            self.model.compute_bundle_branches()
+        if isinstance(self.model, FourChamber):
+            SA_node = self.model.compute_SA_node()
+            AV_node = self.model.compute_AV_node()
+
+            av_beam = self.model.compute_av_conduction()
+            # AV_node.xyz
+            # av_beam.edges[-1,-1]
+            his_beam, his_ends_coords = self.model.compute_His_conduction()
+
+            left_bundle_beam = self.model.compute_left_right_bundle(
+                his_ends_coords[0],
+                his_beam.edges[-2, 1],
+                side="Left",
+            )
+
+            right_bundle_beam = self.model.compute_left_right_bundle(
+                his_ends_coords[1],
+                his_beam.edges[-1, 1],
+                side="Right",
+            )
 
     def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""

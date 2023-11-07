@@ -235,12 +235,13 @@ class HeartModel:
             apex = self.left_ventricle.apex_points[0]
         elif "right" in name.lower():
             apex = self.right_ventricle.apex_points[0]
-        if np.linalg.norm(apex.xyz - beam_nodes[0]) < 1e-3:  # verify at same location
-            to_be_replaced_id = new_ids[0]
-            new_ids = new_ids[1:]  # remove this point
-            beam_nodes = beam_nodes[1:]  # remove this point
-            edges[edges == to_be_replaced_id] = apex.node_id  # replace by apex Id
 
+        to_be_replaced_id = new_ids[0]
+        new_ids = new_ids[1:]  # remove this point
+        beam_nodes = beam_nodes[1:]  # remove this point
+        edges[edges == to_be_replaced_id] = apex.node_id  # replace by apex Id
+
+        #
         mask = np.isin(edges, new_ids)  # True for new created nodes
         edges[mask] -= new_ids[0]  # beam nodes id start from 0
 

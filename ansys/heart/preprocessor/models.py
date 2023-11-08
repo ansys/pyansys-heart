@@ -230,16 +230,22 @@ class HeartModel:
         edges = beam_data[:, 2:4] - 1
         pid = beam_data[0, 1]
 
-        # replace origin (new created beam mesh) of purkinje by apex point (on solid mesh)
-        if "left" in name.lower():
-            apex = self.left_ventricle.apex_points[0]
-        elif "right" in name.lower():
-            apex = self.right_ventricle.apex_points[0]
+        # TODO: physically, this is not fully understood: Merging the end of bundle branch, the
+        # origin of Purkinje and the apex of myiocardium seems logical, but it has more chance
+        # the EP wave will not be triggered.
+        # so I remove it, it means: end of bundle branch connect to apex, origin of Purkinje
+        # is another point on the same location.
 
-        to_be_replaced_id = new_ids[0]
-        new_ids = new_ids[1:]  # remove this point
-        beam_nodes = beam_nodes[1:]  # remove this point
-        edges[edges == to_be_replaced_id] = apex.node_id  # replace by apex Id
+        # # replace origin (new created beam mesh) of purkinje by apex point (on solid mesh)
+        # if "left" in name.lower():
+        #     apex = self.left_ventricle.apex_points[0]
+        # elif "right" in name.lower():
+        #     apex = self.right_ventricle.apex_points[0]
+
+        # to_be_replaced_id = new_ids[0]
+        # new_ids = new_ids[1:]  # remove this point
+        # beam_nodes = beam_nodes[1:]  # remove this point
+        # edges[edges == to_be_replaced_id] = apex.node_id  # replace by apex Id
 
         #
         mask = np.isin(edges, new_ids)  # True for new created nodes

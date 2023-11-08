@@ -1035,14 +1035,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     if not em_couple:
                         material_kw.acid = act_curve_id
 
-                    # fixed by https://github.com/ansys/dynalib/pull/309
-                    # else:
-                    #     # TODO dynalib bug, ca2ion50 is not written
-                    #     # this is a tempo fix
-                    #     s = list(material_kw.write())
-                    #     s[684:694] = f"{active_dict['ca2ion50']:10f}"
-                    #     material_kw = "".join(s)
-
                 else:
                     material_kw = MaterialHGOMyocardium(
                         mid=part.mid,

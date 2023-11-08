@@ -222,7 +222,7 @@ class BaseSimulator:
         """
         LOGGER.info("Computing LA fiber...")
         export_directory = os.path.join(self.root_directory, "la_fiber")
-        # TODO only return cell ids and point ids
+
         target = self.run_laplace_problem(export_directory, "la_fiber")
         la_pv = compute_la_fiber_cs(export_directory)
         LOGGER.info("Generating fibers done.")

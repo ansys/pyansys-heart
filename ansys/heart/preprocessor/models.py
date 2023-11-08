@@ -2093,7 +2093,12 @@ class FourChamber(HeartModel):
         """
         AV_node = self.right_atrium.get_point("AV_node")
 
-        septum_point_ids = np.unique(np.ravel(self.mesh.tetrahedrons[self.septum.element_ids,]))
+        septum_point_ids = np.unique(np.ravel(self.mesh.tetrahedrons[self.septum.element_ids]))
+
+        # remove nodes on surface, to make sure His bundle nodes are inside of septum
+        septum_point_ids = np.setdiff1d(septum_point_ids, self.left_ventricle.endocardium.node_ids)
+        septum_point_ids = np.setdiff1d(septum_point_ids, self.right_ventricle.septum.node_ids)
+
         septum_pointcloud = pv.PolyData(self.mesh.nodes[septum_point_ids, :])
 
         # Define start point: closest to artria

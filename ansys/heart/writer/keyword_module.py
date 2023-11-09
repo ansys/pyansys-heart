@@ -535,8 +535,12 @@ def fast_element_writer(
     elif element_kw.subkeyword == "SOLID_ORTHO":
         writer = "solid_ortho_writer"
 
-    elements = element_kw.elements.drop("n9", axis=1)
-    elements = elements.drop("n10", axis=1)
+    # remove columns n9 and n10 if they exist
+    try:
+        elements = element_kw.elements.drop("n9", axis=1)
+        elements = elements.drop("n10", axis=1)
+    except KeyError:
+        print()
 
     elements = element_kw.elements.to_numpy()
     headers = list(element_kw.elements.columns)

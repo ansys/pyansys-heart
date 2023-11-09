@@ -3039,8 +3039,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         #     )
 
         # define stimulation node set
-        # TODO add more nodes to initiate wave propagation !!!!
-        if isinstance(self.model, BiVentricle):
+        if isinstance(self.model, LeftVentricle):
+            stim_nodes = np.array(self.model.left_ventricle.apex_points[0].node_id)
+
+        elif isinstance(self.model, BiVentricle):
             node_apex_left = self.model.left_ventricle.apex_points[0].node_id
             node_apex_right = self.model.right_ventricle.apex_points[0].node_id
             stim_nodes = np.array([node_apex_left, node_apex_right])
@@ -3051,10 +3053,21 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             stim_nodes = np.array([node_apex_left, node_apex_right])
 
             if self.model.right_atrium.get_point("SA_node") != None:
-                stim_nodes = self.model.right_atrium.get_point("SA_node").node_id
+                # Active SA node (belong to both solid and beam)
+                stim_nodes = [self.model.right_atrium.get_point("SA_node").node_id]
 
-        elif isinstance(self.model, LeftVentricle):
-            stim_nodes = np.array(self.model.left_ventricle.apex_points[0].node_id)
+                #  add more nodes to initiate wave propagation
+                # id offset due to cap center nodes TODO do once
+                if self.__class__.__name__ == "ElectroMechanicsDynaWriter":
+                    beam_node_id_offset = len(self.model.cap_centroids)
+                else:
+                    beam_node_id_offset = 0
+
+                for beam in self.model.beam_network:
+                    if beam.name == "SAN_to_AVN":
+                        stim_nodes.append(network.edges[1, 0] + beam_node_id_offset)
+                        stim_nodes.append(network.edges[2, 0] + beam_node_id_offset)
+                        stim_nodes.append(network.edges[3, 0] + beam_node_id_offset)
 
         # create node-sets for stim nodes
         node_set_id_stimulationnodes = self.get_unique_nodeset_id()
@@ -3088,6 +3101,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             for network in self.model.beam_network:
                 if network.name == "Left bundle branch" or network.name == "Right bundle branch":
                     stim_nodes.append(network.edges[0, 0] + beam_node_id_offset)
+                    stim_nodes.append(network.edges[1, 0] + beam_node_id_offset)
+                    stim_nodes.append(network.edges[2, 0] + beam_node_id_offset)
 
             self.kw_database.ep_settings.append("$$ second stimulation at Left/Right bundle. $$")
             node_set_kw = create_node_set_keyword(

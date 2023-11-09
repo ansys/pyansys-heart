@@ -3228,7 +3228,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             self.kw_database.beam_networks.append(part_kw)
             self.kw_database.beam_networks.append(keywords.MatNull(mid=network.pid, ro=1e-11))
             self.kw_database.beam_networks.append(
-                keywords.EmMat001(mid=network.pid, mtype=2, sigma=10)
+                keywords.EmMat001(mid=network.pid, mtype=2, sigma=3)
             )
 
             # cell model

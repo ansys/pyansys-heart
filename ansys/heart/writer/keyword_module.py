@@ -542,7 +542,8 @@ def fast_element_writer(
     except KeyError:
         print()
 
-    elements = element_kw.elements.to_numpy()
+    elements = element_kw.elements
+    elements = elements.to_numpy()
     headers = list(element_kw.elements.columns)
 
     if writer == "solid_ortho_writer":

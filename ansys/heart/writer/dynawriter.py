@@ -3063,8 +3063,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 else:
                     beam_node_id_offset = 0
 
-                for beam in self.model.beam_network:
-                    if beam.name == "SAN_to_AVN":
+                for network in self.model.beam_network:
+                    if network.name == "SAN_to_AVN":
                         stim_nodes.append(network.edges[1, 0] + beam_node_id_offset)
                         stim_nodes.append(network.edges[2, 0] + beam_node_id_offset)
                         stim_nodes.append(network.edges[3, 0] + beam_node_id_offset)
@@ -3072,7 +3072,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         # create node-sets for stim nodes
         node_set_id_stimulationnodes = self.get_unique_nodeset_id()
         node_set_kw = create_node_set_keyword(
-            node_ids=stim_nodes + 1,
+            node_ids=np.array(stim_nodes) + 1,
             node_set_id=node_set_id_stimulationnodes,
             title="Stim nodes",
         )

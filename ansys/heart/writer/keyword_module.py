@@ -536,13 +536,13 @@ def fast_element_writer(
         writer = "solid_ortho_writer"
 
     # remove columns n9 and n10 if they exist
+    elements = element_kw.elements
     try:
-        elements = element_kw.elements.drop("n9", axis=1)
+        elements = elements.drop("n9", axis=1)
         elements = elements.drop("n10", axis=1)
     except KeyError:
         print()
 
-    elements = element_kw.elements
     elements = elements.to_numpy()
     headers = list(element_kw.elements.columns)
 

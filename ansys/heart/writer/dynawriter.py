@@ -3566,7 +3566,7 @@ class UHCWriter(BaseDynaWriter):
         atrium["tv_s"] = np.zeros(atrium.n_points)
         atrium["tv_s"][tv_s_ids_sub] = 1
 
-        kw = create_node_set_keyword(tv_s_ids_sub + 1, node_set_id=12, title="tv_s")
+        kw = create_node_set_keyword(tv_s_ids_sub + 1, node_set_id=12, title="tv_septum")
         self.kw_database.node_sets.append(kw)
 
         tv_w_ids = free_wall["point_ids"][np.where(free_wall["tricuspid-valve"] == 1)]
@@ -3577,7 +3577,7 @@ class UHCWriter(BaseDynaWriter):
         atrium["tv_w"] = np.zeros(atrium.n_points)
         atrium["tv_w"][tv_w_ids_sub] = 1
 
-        kw = create_node_set_keyword(tv_w_ids_sub + 1, node_set_id=13, title="tv_w")
+        kw = create_node_set_keyword(tv_w_ids_sub + 1, node_set_id=13, title="tv_wall")
         self.kw_database.node_sets.append(kw)
 
     def update_atrium_fiber_bc(self, atrium: pv.UnstructuredGrid):
@@ -3611,20 +3611,22 @@ class UHCWriter(BaseDynaWriter):
             return set_id
 
         id_sorter = np.argsort(atrium["point_ids"])
-        ids_edges = []
-        for i, cap in enumerate(self.model.parts[0].caps):
-            # node IDs in LA volume mesh
+        ids_edges = []  # all nodes belong to valves
+        for cap in self.model.parts[0].caps:
+            # get node IDs for atrium mesh
             ids_sub = id_sorter[
                 np.searchsorted(atrium["point_ids"], cap.node_ids, sorter=id_sorter)
             ]
+            # create node set
             set_id = get_nodeset_id_by_cap_name(cap)
-
             kw = create_node_set_keyword(ids_sub + 1, node_set_id=set_id, title=cap.name)
             self.kw_database.node_sets.append(kw)
 
             ids_edges.extend(ids_sub)
+
+            # Add info to pyvista object (RA fiber use this)
             atrium[cap.name] = np.zeros(atrium.n_points, dtype=int)
-            atrium[cap.name][ids_sub] = i + 1
+            atrium[cap.name][ids_sub] = 1
 
         # endo nodes ID
         ids_endo = id_sorter[

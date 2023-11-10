@@ -3495,16 +3495,21 @@ class UHCWriter(BaseDynaWriter):
         # After cut, select the top region
         x = crinkled.connectivity()
         if np.max(x.point_data["RegionId"]) != 2:
+            # Should only have 3 parts
             LOGGER.error("Cannot find top node set for right atrium.")
             exit()
+
+        # compare closest point with TV nodes, top region should be far with TV node set
+        tv_tree = spatial.cKDTree(atrium.points[atrium.point_data["tricuspid-valve"] == 1])
+        min_dst = -1.0
         for i in range(3):
-            share_nodes = np.any(
-                np.logical_and(x.point_data["tricuspid-valve"] == 1, x.point_data["RegionId"] == i)
-            )
-            # This region has no shared node with tricuspid valve
-            if not share_nodes:
-                mask = x.point_data["RegionId"] == i
-                break
+            current_min_dst = np.min(tv_tree.query(x.points[x.point_data["RegionId"] == i])[0])
+            if current_min_dst > min_dst:
+                min_dst = current_min_dst
+                top_region_id = i
+
+        # This region is the top
+        mask = x.point_data["RegionId"] == top_region_id
 
         top_ids = x["point_ids_tmp"][mask]
 
@@ -3530,7 +3535,7 @@ class UHCWriter(BaseDynaWriter):
         atrium["tv_s"] = np.zeros(atrium.n_points)
         atrium["tv_s"][tv_s_ids_sub] = 1
 
-        kw = create_node_set_keyword(tv_s_ids_sub + 1, node_set_id=12, title="tv_s")
+        kw = create_node_set_keyword(tv_s_ids_sub + 1, node_set_id=12, title="tv_septum")
         self.kw_database.node_sets.append(kw)
 
         tv_w_ids = free_wall["point_ids"][np.where(free_wall["tricuspid-valve"] == 1)]
@@ -3541,7 +3546,7 @@ class UHCWriter(BaseDynaWriter):
         atrium["tv_w"] = np.zeros(atrium.n_points)
         atrium["tv_w"][tv_w_ids_sub] = 1
 
-        kw = create_node_set_keyword(tv_w_ids_sub + 1, node_set_id=13, title="tv_w")
+        kw = create_node_set_keyword(tv_w_ids_sub + 1, node_set_id=13, title="tv_wall")
         self.kw_database.node_sets.append(kw)
 
     def update_atrium_fiber_bc(self, atrium: pv.UnstructuredGrid):
@@ -3575,20 +3580,22 @@ class UHCWriter(BaseDynaWriter):
             return set_id
 
         id_sorter = np.argsort(atrium["point_ids"])
-        ids_edges = []
-        for i, cap in enumerate(self.model.parts[0].caps):
-            # node IDs in LA volume mesh
+        ids_edges = []  # all nodes belong to valves
+        for cap in self.model.parts[0].caps:
+            # get node IDs for atrium mesh
             ids_sub = id_sorter[
                 np.searchsorted(atrium["point_ids"], cap.node_ids, sorter=id_sorter)
             ]
+            # create node set
             set_id = get_nodeset_id_by_cap_name(cap)
-
             kw = create_node_set_keyword(ids_sub + 1, node_set_id=set_id, title=cap.name)
             self.kw_database.node_sets.append(kw)
 
             ids_edges.extend(ids_sub)
+
+            # Add info to pyvista object (RA fiber use this)
             atrium[cap.name] = np.zeros(atrium.n_points, dtype=int)
-            atrium[cap.name][ids_sub] = i + 1
+            atrium[cap.name][ids_sub] = 1
 
         # endo nodes ID
         ids_endo = id_sorter[

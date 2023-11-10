@@ -1121,12 +1121,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 "right-superior-pulmonary-vein",
             ]
             if isinstance(self, ZeroPressureMechanicsDynaWriter):
-                caps_to_use = [
-                    "mitral-valve",
-                    "tricuspid-valve",
-                    "aortic-valve",
-                    "pulmonary-valve",
-                ]
+                # add additional constraint to avoid rotation
+                caps_to_use.extend(["pulmonary-valve", "left-atrium-appendage"])
 
         if bc_type == "fix_caps":
             for part in self.model.parts:

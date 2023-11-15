@@ -1709,8 +1709,9 @@ class BiVentricle(HeartModel):
         self.septum: Part = Part(name="Septum", part_type="septum")
         """Septum."""
         self.electrodes = {}
-
         """List of ten electrodes."""
+        self.PCA_model = self.PCA_model()
+        """Inner class: PCA_model."""
 
         super().__init__(info)
         pass
@@ -1726,9 +1727,11 @@ class BiVentricle(HeartModel):
             "RL": electrode_positions[8].tolist(),
             "LL": electrode_positions[9].tolist(),
         })
+        return
 
 
     def define_ECG_coordinates(self, move_points: pv.core.pointset.UnstructuredGrid, electrodes_points: [Point()]) -> [Point()]:
+        """ECG coordinates caculated from valencia template (registration of the heart of Valencia template to the patient's heart). """
         from scipy.optimize import minimize
         from scipy.spatial.transform import Rotation
         
@@ -1777,8 +1780,351 @@ class BiVentricle(HeartModel):
 
         return transformed_electrodes
 
+    def _rigid_registration(self, fix_points: pv.core.pointset.UnstructuredGrid):
+        """Get the transfered anatomical points and param of transfer matrix
+        (registration of the patient's heart to the heart of Valencia template). """
+        from scipy.optimize import minimize
+        from scipy.spatial.transform import Rotation
+        
+        # Extract cap centroids from the left and right ventricles
+        move_points = [cap.centroid for cap in self.left_ventricle.caps]
+        move_points += [cap.centroid for cap in self.right_ventricle.caps]
 
+        # Extract apex coordinates from the left and right ventricles
+        move_points += [apex.xyz for apex in self.left_ventricle.apex_points]
+        move_points += [apex.xyz for apex in self.right_ventricle.apex_points]
+
+        # Convert the list of points to a NumPy array
+        move_points = np.array(move_points)
+
+        # Define the initial transformation parameters
+        random_quaternion = Rotation.random().as_quat()
+        initial_params = np.zeros(7)
+        initial_params[:3] = np.random.rand(3)  # Random translation
+        initial_params[3:] = random_quaternion
+
+        # Constrain quaternion components to ensure they remain valid
+        constraints = ({'type': 'eq', 'fun': lambda params: 1.0 - np.sum(params[3:] ** 2)})
+
+        # Define the rigid transform function
+        def rigid_transform(params, points):
+            translation = params[:3]
+            quaternion = params[3:]
+            quaternion /= np.linalg.norm(quaternion)
+            rotation_matrix = Rotation.from_quat(quaternion).as_matrix()
+            transformed_points = np.dot(points - translation, rotation_matrix.T)
+            return transformed_points
+
+        # Define the objective function
+        def objective_function(params, fixed_points, moving_points):
+            transformed_points = rigid_transform(params, moving_points)
+            distance = np.sum(np.square(transformed_points - fixed_points))
+            return distance
+
+        result = minimize(objective_function, initial_params, args=(fix_points, move_points), method='L-BFGS-B', constraints=constraints)
+
+        optimal_params = result.x
+
+        transfered_anatomical_points = rigid_transform(optimal_params, move_points)
+
+        return optimal_params, transfered_anatomical_points
     
+    def define_ECG_coordinates_with_PCA_model(self, torso_mat_file_path: str,  torso_evalues_mat_file_path: str, torso_evectors_mat_file_path: str, save_file: bool, transfered_heart_mesh_file_path: str) -> [Point()]:
+        """Register BiV Model into the PCA torso and return PCA-related electordes"""
+        pca_torso_model = self.PCA_model
+        pca_torso_model.initialize_PCA_model(torso_mat_file_path, torso_evalues_mat_file_path, torso_evectors_mat_file_path)
+        
+        transformed_mesh = pca_torso_model.register_to_pca(model=self, registration_type=1,save=save_file, filename=transfered_heart_mesh_file_path)
+        self.mesh = transformed_mesh
+        
+        if pca_torso_model.electrodes:
+            electrodes_xyz = np.array([])
+            for _, index in pca_torso_model.electrodes.items():
+                electrode_point = np.array(pca_torso_model.body[index])
+                if electrodes_xyz.size == 0:
+                    electrodes_xyz = electrode_point
+                else:
+                    electrodes_xyz = np.vstack((electrodes_xyz, electrode_point))
+        
+        self._add_electrode_positions(electrodes_xyz)
+
+        return electrodes_xyz
+
+    class PCA_model:
+        def __init__(self) -> None:
+            self.body = {}
+            self.evectors = {}
+            self.evalues = {}
+            self.electrodes = {}
+            self.anatomical_points = {}
+
+            self.heart_case_id_of_reference: str = '01'
+            self.registration_matrix_file_path = r'C:\Users\xuhu\pyheart-lib\examples\preprocessor\PCA_data\combined_transform_matrix.csv'
+            self.electrode_file_path = r'C:\Users\xuhu\pyheart-lib\examples\preprocessor\PCA_data\PCA_electrodes.csv'
+            
+        def initialize_PCA_model(self, meanshape_file: str, eigenvalue_file: str, eignevectors_file: str) -> None:
+            self._read_pca_data(meanshape_file, eigenvalue_file, eignevectors_file)
+            self._define_electrodes()
+            
+            '''Can this part be optimized? use a save file to input anatomical points for the PCA model'''
+            original_anatomical_points = self._extract_anatomical_points_of_reference()
+            self._caculate_heart_anatomical_points(
+                self.registration_matrix_file_path, 
+                original_anatomical_points
+                )
+            return
+
+        def _read_pca_data(self, path_to_vtk_file: str, path_to_evalues: str, path_to_evectors: str) -> None:
+            '''
+            read/import 3 .mat file 
+            SAVE all the data in dictionary: rearranging data for evectors(x1 x2 x3....y1 y2 y3... z1 z2 z3...)
+            '''
+            # 1st step: you will use the 3 ones created manually and focusing on the torso (store it in PCA data folder)
+            # Later we will manage all/specific one PCA from the website (matlab)
+            from scipy.io import loadmat
+
+            body_data = loadmat(path_to_vtk_file)['points']
+            evectors_data = loadmat(path_to_evectors)['evectors']
+            evalues_data = loadmat(path_to_evalues)['evalues']
+
+            self.body = {i: body_data[i, :] for i in range(body_data.shape[0])}
+
+            num_points = evectors_data.shape[0]
+            num_cols = evectors_data.shape[1]
+
+            # Rearranging data
+            for i in range(num_points):
+                x_values = evectors_data[i, :num_cols // 3]
+                y_values = evectors_data[i, num_cols // 3: 2 * num_cols // 3]
+                z_values = evectors_data[i, 2 * num_cols // 3:]
+                self.evectors[i] = np.column_stack((x_values, y_values, z_values))
+
+            self.evalues = {i: evalues_data[0, i] for i in range(evalues_data.size)}
+            return
+
+        def _define_electrodes(self) -> None:
+            '''Define 10 electrodes for the PCA model( SAVE only the index in dictionary )'''
+            import pandas as pd
+
+            csv_data = pd.read_csv(self.electrode_file_path)
+            electrode_positions = csv_data[['Points_0', 'Points_1', 'Points_2']].values
+            
+            # find the closest point -> define electrodes' references
+            for i, position in enumerate(electrode_positions):
+                min_distance = float('inf')
+                closest_index = None
+
+                for index, point in self.body.items():
+                    distance = np.sum((np.array(point) - position) ** 2)
+                    if distance < min_distance:
+                        min_distance = distance
+                        closest_index = index
+
+                electrode_name = "V" + str(i + 1) if i < 6 else ["RA", "LA", "RL", "LL"][i - 6]
+                self.electrodes[electrode_name] = closest_index
+            return
+
+        def _extract_anatomical_points_of_reference(self) -> [Point()]:
+            '''Can this part be optimized? use a save file to input anatomical points for the PCA model'''
+            import os
+            from pathlib import Path
+
+            import ansys.heart.preprocessor.models as models
+            import ansys.heart.writer.dynawriter as writers
+            from ansys.heart.misc.downloader import download_case, unpack_case
+            from ansys.heart.simulator.simulator import run_lsdyna
+            import pyvista
+            import numpy as np
+            import vtk
+
+            from vtkmodules.vtkCommonDataModel import vtkIterativeClosestPointTransform
+            from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
+
+            os.environ["USE_OLD_HEART_MODELS"] = "1"
+
+            __file__ = r"c:\Users\xuhu\pyheart-lib\examples\preprocessor\doc_ECG_coordinates.py"
+
+            case_file = str(
+                Path(Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", self.heart_case_id_of_reference, "01.case")
+            )
+            download_folder = str(Path(Path(__file__).resolve().parents[2], "downloads"))
+            workdir = str(
+                Path(Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", self.heart_case_id_of_reference, "Biv")
+            )
+            path_to_model = str(Path(workdir, "heart_model.pickle"))
+
+
+            if not os.path.isfile(case_file):
+                path_to_downloaded_file = download_case(
+                    "Strocchi2020", 1, download_folder=download_folder, overwrite=False
+                )
+                unpack_case(path_to_downloaded_file)
+
+            model: models.BiVentricle = models.BiVentricle.load_model(path_to_model)
+            move_points = np.array([
+                [81.90321388, 57.90000882, 205.76663367], # mitral-valve
+                [94.35242091, 75.99022315, 213.31654731], # aortic-valve
+                [67.14045655, 102.49380179, 216.20654707], # tricuspid-valve
+                [121.58912558, 89.76497459, 223.29557159], # pulmonary-valve
+                [70.87069056682236, 84.83837198547876, 295.6765864478138], # left endo
+                [70.54655746919204, 84.50457846174797, 297.2737993295601], # left epi
+                [76.04229182019685, 66.53094359081156, 297.7182142431582], # right endo
+                [75.08606835375224, 66.33759424571653, 302.2811669120656], # right epi   
+            ])
+
+            _, template_anatomical_points = model._rigid_registration(move_points)
+
+            return template_anatomical_points
+            
+        def _caculate_heart_anatomical_points(self, registration_matrix_file_path, anatomical_points_template) -> None:
+            '''Can this part be optimized? use a save file to input anatomical points for the PCA model'''
+            registration_matrix = np.loadtxt(registration_matrix_file_path, delimiter=',')
+
+            ones = np.ones((anatomical_points_template.shape[0], 1))
+            anatomical_points_homogeneous = np.hstack((anatomical_points_template, ones))
+            # Apply transfer matrix to anatomical points
+            transformed_anatomical_points = registration_matrix @ anatomical_points_homogeneous.T
+
+            # Conversion from xxx yyy zzz format back to xyz xyz xyz coordinates
+            transformed_anatomical_points = transformed_anatomical_points.T[:, :3]
+            self.anatomical_points = transformed_anatomical_points
+            
+            return
+
+        def get_deformed_model(self, coef_modes_csv: str, save: bool, filename: str):
+            # return polydata, and if save == True, save the polydata as vtk using filename
+            ...
+
+        def _rigid_transformation_scipy(self, fix_points, moving_points, moving_model):
+            from scipy.optimize import minimize
+            from scipy.spatial.transform import Rotation
+
+            # Define the initial transformation parameters
+            random_quaternion = Rotation.random().as_quat()
+            initial_params = np.zeros(7)
+            initial_params[:3] = np.random.rand(3)  # Random translation
+            initial_params[3:] = random_quaternion
+
+            # Constrain quaternion components
+            constraints = ({'type': 'eq', 'fun': lambda params: 1.0 - np.sum(params[3:] ** 2)})
+
+            # rigid transform function
+            def rigid_transform(params, points):
+                translation = params[:3]
+                quaternion = params[3:]
+                quaternion /= np.linalg.norm(quaternion)
+                rotation_matrix = Rotation.from_quat(quaternion).as_matrix()
+                transformed_points = np.dot(points - translation, rotation_matrix.T)
+                return transformed_points
+
+            # function to calculate the optimized parameter
+            def objective_function(params, fixed_points, moving_points):
+                transformed_points = rigid_transform(params, moving_points)
+                distance = np.sum(np.square(transformed_points - fixed_points))
+                return distance
+            
+            # Get the optimized parameters
+            result = minimize(
+                objective_function, 
+                initial_params, 
+                args=(fix_points, moving_points), 
+                method='L-BFGS-B', 
+                constraints=constraints)
+            optimal_params = result.x
+
+            transformed_model = moving_model.copy()
+            transformed_model.points = rigid_transform(optimal_params, moving_model.points)
+
+            return transformed_model
+
+        def register_to_pca(self, model, registration_type: int, save: bool, filename: str):
+            '''register the patient's heart to the PCA model, return registered_mesh'''
+            # another way to save transfered mesh: new_mesh = PCA_model.register_to_pca 
+
+            moving_points = [cap.centroid for cap in model.left_ventricle.caps]
+            moving_points += [cap.centroid for cap in model.right_ventricle.caps]
+
+            # Extract apex coordinates from the left and right ventricles
+            moving_points += [apex.xyz for apex in model.left_ventricle.apex_points]
+            moving_points += [apex.xyz for apex in model.right_ventricle.apex_points]
+
+            fix_points = self.anatomical_points
+
+            moving_model = model.mesh
+
+            if registration_type == 1:
+                transformed_mesh = self._rigid_transformation_scipy(fix_points, moving_points, moving_model)
+            # elif registration_type == 2:
+            #     transformed_mesh = self._rigid_transformation_landmark(fix_points, moving_points, moving_model)
+            else:
+                raise ValueError("Unsupported registration type")
+
+            if save:
+                transformed_mesh.save(filename)
+            
+            return transformed_mesh
+        
+        def save_all_to_vtk(self, save_file_path: str, body: bool, electrodes: bool, anatomical_points: bool) -> None:
+            '''remove?'''
+            import pyvista
+
+            if body:
+                body_points = np.array(list(self.body.values()))
+                body_polydata = pyvista.PolyData(body_points)
+                body_polydata.save(save_file_path + '_body.vtk')
+
+            if electrodes:
+                electrodes_xyz = pyvista.PolyData()
+                for _, index in self.electrodes.items():
+                    electrode_point = np.array(self.body[index])
+                    electrode_polydata = pyvista.PolyData(electrode_point)
+                    electrodes_xyz += electrode_polydata
+                electrodes_xyz.save(save_file_path + '_electrodes.vtk')
+
+            if anatomical_points:
+                anatomical_point_polydata = pyvista.PolyData(np.array(self.anatomical_points))
+                anatomical_point_polydata.save(save_file_path + '_anatomical_points.vtk')
+            return
+        
+        def display_model(self, show_torso: bool, show_electrodes: bool, show_anatomical_points: bool) -> None:
+            '''remove?'''
+            import pyvista as pv
+
+            electrode_colors = {
+                "V1": 'red',
+                "V2": 'coral',
+                "V3": 'orange',
+                "V4": 'gold',
+                "V5": 'yellow',
+                "V6": 'lightgreen',
+                "RA": 'green',
+                "LA": 'turquoise',
+                "LL": 'blue',
+                "RL": 'purple',
+            }
+
+            if show_torso:
+                body_points = np.array(list(self.body.values()))
+                body_polydata = pv.PolyData(body_points)
+                plotter.add_mesh(body_polydata, color='white', label='Torso')
+
+            if show_electrodes:
+                for name, index in self.electrodes.items():
+                    electrode_point = np.array(self.body[index])
+                    electrode_polydata = pv.PolyData(electrode_point)
+                    color = electrode_colors.get(name, 'grey')
+                    plotter.add_mesh(electrode_polydata, color=color, point_size=10, label=name)
+
+            if show_anatomical_points:
+                anatomical_point_polydata = pv.PolyData(np.array(self.anatomical_points))
+                plotter.add_mesh(anatomical_point_polydata, color='green', point_size=10, label=name)
+            
+            plotter = pv.Plotter()
+            plotter.add_legend()
+            plotter.camera_position = 'xz'
+            plotter.show()
+
+            return
     
 
 class FourChamber(HeartModel):

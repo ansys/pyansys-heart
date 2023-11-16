@@ -50,6 +50,7 @@ if not os.path.isfile(lsdyna_path):
 # load four chamber heart model.
 model: models.FourChamber = models.HeartModel.load_model(path_to_model)
 
+# Define electrode positions and add them to model
 electrodes = [
     Point(name="V1", xyz=[76.53798632905277, 167.67667039945263, 384.3139099410445]),
     Point(name="V2", xyz=[64.97540262482013, 134.94983038904573, 330.4783062379255]),
@@ -63,6 +64,7 @@ electrodes = [
     Point(name="LL", xyz=[157.56391664248335, -81.66615972595032, 354.17867264210076]),
 ]
 model.electrodes = electrodes
+
 
 if not isinstance(model, models.FourChamber):
     raise TypeError("Expecting a FourChamber heart model.")

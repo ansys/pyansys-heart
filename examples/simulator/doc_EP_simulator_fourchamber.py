@@ -27,6 +27,7 @@ purkinje network and conduction system and finally simulate the electrophysiolog
 import os
 from pathlib import Path
 
+from ansys.heart.preprocessor.mesh.objects import Point
 import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
 
@@ -40,14 +41,28 @@ path_to_model = os.path.join(workdir, "heart_model.pickle")
 if not os.path.isfile(path_to_model):
     raise FileExistsError(f"{path_to_model} not found")
 
-# specify LS-DYNA path
-lsdyna_path = "ls-dyna_smp_d.exe"
+# specify LS-DYNA path (last tested working versions is DEV-104399)
+lsdyna_path = r"ls-dyna_msmpi.exe"
 
 if not os.path.isfile(lsdyna_path):
     raise FileExistsError(f"{lsdyna_path} not found.")
 
 # load four chamber heart model.
 model: models.FourChamber = models.HeartModel.load_model(path_to_model)
+
+electrodes = [
+    Point(name="V1", xyz=[76.53798632905277, 167.67667039945263, 384.3139099410445]),
+    Point(name="V2", xyz=[64.97540262482013, 134.94983038904573, 330.4783062379255]),
+    Point(name="V3", xyz=[81.20629301587647, 107.06245851801455, 320.58645260857344]),
+    Point(name="V4", xyz=[85.04956217691463, 59.54502732121309, 299.2838953724169]),
+    Point(name="V5", xyz=[42.31377680589025, 27.997010728192166, 275.7620409440143]),
+    Point(name="V6", xyz=[-10.105919604515957, -7.176987485426985, 270.46379012676135]),
+    Point(name="RA", xyz=[-29.55095501940962, 317.12543912177983, 468.91891094294414]),
+    Point(name="LA", xyz=[-100.27895839242505, 135.64520460914244, 222.56688206809142]),
+    Point(name="RL", xyz=[203.38825799615842, 56.19020893502452, 538.5052677637375]),
+    Point(name="LL", xyz=[157.56391664248335, -81.66615972595032, 354.17867264210076]),
+]
+model.electrodes = electrodes
 
 if not isinstance(model, models.FourChamber):
     raise TypeError("Expecting a FourChamber heart model.")
@@ -63,7 +78,7 @@ model.info.workdir = str(workdir)
 # instantaiate dyna settings of choice
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path,
-    dynatype="smp",
+    dynatype="msmpi",
     num_cpus=1,
 )
 

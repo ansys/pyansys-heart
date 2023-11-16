@@ -108,7 +108,7 @@ print(f"Volume of LV cavity: {model.left_atrium.cavity.volume} mm^3")
 model.plot_mesh(show_edges=False)
 
 ###############################################################################
-# .. image:: /_static/images/four_full_heart_mesh.png
+# .. image:: /_static/images/full_heart_mesh.png
 #   :width: 400pt
 #   :align: center
 

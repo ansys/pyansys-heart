@@ -1818,7 +1818,8 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         caps = [cap for part in self.model.parts for cap in part.caps]
         for cap in caps:
-            save_part_ids.append(cap.pid)
+            if cap.pid != None:  # MV,TV for atrial parts get None
+                save_part_ids.append(cap.pid)
 
         ids = np.hstack((save_part_ids, np.zeros(8 - len(save_part_ids) % 8, dtype=int))).reshape(
             -1, 8

@@ -144,6 +144,10 @@ class EPpostprocessor:
             grid.save(post_path + "\\vm_" + str(i) + ".vtk")
         return
 
+    def compute_ECGs():
+        """Compute ECGs."""
+        return
+
     def _assign_pointdata(self, pointdata: np.ndarray, node_ids: np.ndarray):
         result = np.zeros(self.mesh.n_points)
         result[node_ids - 1] = pointdata

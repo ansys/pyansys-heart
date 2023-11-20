@@ -1122,7 +1122,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             ]
             if isinstance(self, ZeroPressureMechanicsDynaWriter):
                 # add additional constraint to avoid rotation
-                caps_to_use.extend(["pulmonary-valve", "left-atrium-appendage"])
+                caps_to_use.extend(["pulmonary-valve"])
 
         if bc_type == "fix_caps":
             for part in self.model.parts:
@@ -1274,7 +1274,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         return
 
-    def _add_pericardium_bc(self):
+    def _add_pericardium_bc(self, scale=1.0):
         """Add the pericardium.
 
         Note
@@ -1380,8 +1380,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
         )
         # define section
         section_kw = keywords.SectionDiscrete(secid=section_id, cdl=0, tdl=0)
+
         # define material
-        mat_kw = keywords.MatSpringElastic(mid=mat_id, k=pericardium_settings["spring_stiffness"])
+        k = pericardium_settings["spring_stiffness"] * scale
+        mat_kw = keywords.MatSpringElastic(mid=mat_id, k=k)
 
         # define spring orientations
         sd_orientation_kw = create_define_sd_orientation_kw(
@@ -1793,6 +1795,10 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
             # define cap element
             self._update_cap_elements_db()
 
+        if isinstance(self.model, FourChamber):
+            # add a small constraint to avoid rotation
+            self._add_pericardium_bc(scale=0.01)
+
         # # Approximate end-diastolic pressures
         pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
         pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
@@ -1806,7 +1812,26 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # Please note that choosing 999 as the part-set id is arbitrary,
         # and defining a new part set adding this to the main database will
         # create a part-set id of 999+1
-        self.kw_database.main.append(keywords.SetPartListGenerate(sid=999, b1beg=1, b1end=999999))
+        save_part_ids = []
+        for part in self.model.parts:
+            save_part_ids.append(part.pid)
+
+        caps = [cap for part in self.model.parts for cap in part.caps]
+        for cap in caps:
+            if cap.pid != None:  # MV,TV for atrial parts get None
+                save_part_ids.append(cap.pid)
+
+        ids = np.hstack((save_part_ids, np.zeros(8 - len(save_part_ids) % 8, dtype=int))).reshape(
+            -1, 8
+        )
+
+        # self.kw_database.main.append(keywords.SetPartList(sid=999,??))
+
+        self.kw_database.main.append(
+            keywords.SetPartListGenerate(
+                sid=999, b1beg=min(save_part_ids), b1end=max(save_part_ids)
+            )
+        )
         self.kw_database.main.append(
             custom_keywords.InterfaceSpringbackLsdyna(
                 psid=999, nshv=999, ftype=3, rflag=1, optc="OPTCARD", ndflag=1, cflag=1, hflag=1

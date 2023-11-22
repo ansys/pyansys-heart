@@ -728,7 +728,7 @@ class HeartModel:
 
     def plot_purkinje(self):
         """Plot the mesh and Purkinje network."""
-        if not len(self.mesh.beam_network) > 0:
+        if not len(self.beam_network) > 0:
             LOGGER.info("No Purkinje network to plot.")
             return
 
@@ -744,7 +744,7 @@ class HeartModel:
         try:
             plotter = pv.Plotter()
             plotter.add_mesh(self.mesh, color="w", opacity=0.3)
-            for beams in self.mesh.beam_network:
+            for beams in self.beam_network:
                 plotter.add_mesh(beams, color=np.random.uniform(size=3), line_width=3)
             plotter.show()
         except:

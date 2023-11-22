@@ -15,7 +15,7 @@ import os
 import pathlib as Path
 import shutil
 import subprocess
-from typing import List
+from typing import List, Literal
 
 LOGGER = logging.getLogger("pyheart_global.simulator")
 from ansys.heart.misc.element_orth import read_orth_element_kfile
@@ -26,7 +26,7 @@ from ansys.heart.postprocessor.auto_process import (
     read_uvc,
     zerop_post,
 )
-from ansys.heart.preprocessor.models import FourChamber, FullHeart, HeartModel
+from ansys.heart.preprocessor.models import FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 import numpy as np
@@ -105,49 +105,35 @@ class BaseSimulator:
         self.settings.load_defaults()
         return self.settings
 
-    def compute_fibers(self):
-        """Compute the fiber direction on the model."""
-        directory = self._write_fibers()
+    def compute_fibers(self, method: Literal["LSDYNA", "D-RBM", "B-RBM"] = "LSDYNA"):
+        """Compute the fiber direction on the model.
 
+        Parameters
+        ----------
+        method : List[&quot;LSDYNA&quot;, &quot;D, optional
+            _description_, by default "LSDYNA"
+        """
         LOGGER.info("Computing fiber orientation...")
 
-        # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
-        input_file = os.path.join(directory, "main.k")
-        self._run_dyna(path_to_input=input_file)
+        if method == "LSDYNA":
+            directory = self._write_fibers()
+            input_file = os.path.join(directory, "main.k")
+            self._run_dyna(path_to_input=input_file)
+            LOGGER.info("done.")
 
-        LOGGER.info("done.")
+            LOGGER.info("Assigning fiber orientation to model...")
+            elem_ids, part_ids, connect, fib, sheet = read_orth_element_kfile(
+                os.path.join(directory, "element_solid_ortho.k")
+            )
 
-        # interpolate new fibers onto model.mesh
-        # Number of cells/points or element/node ordering may not be the same
-        # especially in the case of a full-heart model where we do not use
-        # the full heart to compute the fibers. Hence, interpolate using the cell
-        # centers.
-        # NOTE: How to handle null values?
+            self.model.mesh.cell_data["fiber"][elem_ids - 1] = fib
+            self.model.mesh.cell_data["sheet"][elem_ids - 1] = sheet
 
-        # # read results.
-        # print("Interpolating fibers onto model.mesh")
-        # vtk_with_fibers = os.path.join(directory, "vtk_FO_ADvectors.vtk")
-        # vtk_with_fibers = pyvista.UnstructuredGrid(vtk_with_fibers)
-        #
-        # cell_centers_target = vtk_with_fibers.cell_centers()
-        # cell_centers_source = self.model.mesh.cell_centers()
-        #
-        # cell_centers_source = cell_centers_source.interpolate(cell_centers_target)
-        #
-        # self.model.mesh.cell_data["fiber"] = cell_centers_source.point_data["aVector"]
-        # self.model.mesh.cell_data["sheet"] = cell_centers_source.point_data["dVector"]
-        # print("Done.")
-
-        LOGGER.info("Assigning fiber orientation to model...")
-        elem_ids, part_ids, connect, fib, sheet = read_orth_element_kfile(
-            os.path.join(directory, "element_solid_ortho.k")
-        )
-
-        self.model.mesh.cell_data["fiber"][elem_ids - 1] = fib
-        self.model.mesh.cell_data["sheet"][elem_ids - 1] = sheet
-
-        # dump the model to reuse fiber information
-        self.model.dump_model(os.path.join(self.root_directory, "model_with_fiber.pickle"))
+        else:
+            if isinstance(self.model, LeftVentricle):
+                LOGGER.error(f"{method} cannot run for only left ventricle.")
+                exit()
+            self.run_laplace_problem(self.root_directory, type=method)
         return
 
     def compute_uvc(self) -> pv.UnstructuredGrid:

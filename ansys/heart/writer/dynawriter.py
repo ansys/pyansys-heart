@@ -3428,7 +3428,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 class UHCWriter(BaseDynaWriter):
     """Universal Heart Coordinate Writer."""
 
-    def __init__(self, model, type: Literal["uvc", "la_fiber", "ra_fiber"], **kwargs):
+    def __init__(self, model, type: Literal["uvc", "la_fiber", "ra_fiber", "D-RBM"], **kwargs):
         """
         Write thermal input to set up a Laplace dirichlet problem.
 
@@ -3443,7 +3443,7 @@ class UHCWriter(BaseDynaWriter):
         self.type = type
 
         # remove unnecessary parts
-        if self.type == "uvc":
+        if self.type == "uvc" or self.type == "D-RBM":
             parts_to_keep = ["Left ventricle", "Right ventricle", "Septum"]
             self._keep_parts(parts_to_keep)
         elif self.type == "la_fiber":
@@ -3456,7 +3456,7 @@ class UHCWriter(BaseDynaWriter):
                     self.right_appendage_apex = value
 
         # remove unnecessary mesh
-        if self.type == "uvc":
+        if self.type == "uvc" or self.type == "D-RBM":
             elems_to_keep = []
             elems_to_keep.extend(model.parts[0].element_ids)
             elems_to_keep.extend(model.parts[1].element_ids)
@@ -3740,9 +3740,155 @@ class UHCWriter(BaseDynaWriter):
             self._update_uvc_bc()
         elif self.type == "la_fiber" or self.type == "ra_fiber":
             self.update_atrium_fiber_bc(self.target)
+        elif self.type == "D-RBM":
+            self._update_drbm_bc()
 
         self._get_list_of_includes()
         self._add_includes()
+
+    def _update_drbm_bc(self):
+        for part in self.model.parts:
+            for cap in part.caps:
+                if "mitral" in cap.name.lower():
+                    mv_nodes = cap.node_ids
+                elif "aortic" in cap.name.lower():
+                    av_nodes = cap.node_ids
+                elif "tricuspid" in cap.name.lower():
+                    tv_nodes = cap.node_ids
+                elif "pulmonary" in cap.name.lower():
+                    pv_nodes = cap.node_ids
+        rings_nodes = np.hstack((mv_nodes, av_nodes, pv_nodes, tv_nodes))
+
+        lv_endo_nodes = self.model.get_part("Left ventricle").endocardium.node_ids
+        lv_endo_nodes = np.unique(lv_endo_nodes)
+        lv_endo_nodes = np.setdiff1d(lv_endo_nodes, rings_nodes)
+        rv_endo_nodes = np.hstack(
+            (
+                self.model.get_part("Right ventricle").endocardium.node_ids,
+                self.model.get_part("Right ventricle").surfaces[2].node_ids,  # TODO
+            )
+        )
+        rv_endo_nodes = np.unique(rv_endo_nodes)
+        rv_endo_nodes = np.setdiff1d(rv_endo_nodes, rings_nodes)
+
+        epi_nodes = np.hstack(
+            (
+                self.model.get_part("Left ventricle").epicardium.node_ids,
+                self.model.get_part("Right ventricle").epicardium.node_ids,
+            )
+        )
+        epi_nodes = np.unique(epi_nodes)
+        epi_nodes = np.setdiff1d(epi_nodes, np.hstack((lv_endo_nodes, rv_endo_nodes)))
+        epi_nodes = np.setdiff1d(epi_nodes, rings_nodes)
+
+        la_node = self.model.get_part("Left ventricle").apex_points[1].node_id  # TODO
+        ra_node = self.model.get_part("Right ventricle").apex_points[1].node_id
+
+        # ids of sub mesh
+        sorter = np.argsort(self.target["point_ids"])
+
+        lv_endo_nodes = sorter[
+            np.searchsorted(self.target["point_ids"], lv_endo_nodes, sorter=sorter)
+        ]
+        lv_endo_nodeset_id = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(
+            lv_endo_nodes + 1, node_set_id=lv_endo_nodeset_id, title="lv endo"
+        )
+        self.kw_database.node_sets.append(kw)
+
+        rv_endo_nodes = sorter[
+            np.searchsorted(self.target["point_ids"], rv_endo_nodes, sorter=sorter)
+        ]
+        rv_endo_nodeset_id = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(
+            rv_endo_nodes + 1, node_set_id=rv_endo_nodeset_id, title="rv endo"
+        )
+        self.kw_database.node_sets.append(kw)
+
+        epi_nodes = sorter[np.searchsorted(self.target["point_ids"], epi_nodes, sorter=sorter)]
+        epi_nodes = np.unique(epi_nodes)  # TODO
+        epi_nodeset_id = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(epi_nodes + 1, node_set_id=epi_nodeset_id, title="epi")
+        self.kw_database.node_sets.append(kw)
+
+        mv_nodes = sorter[np.searchsorted(self.target["point_ids"], mv_nodes, sorter=sorter)]
+        mv_nodeset_id = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(mv_nodes + 1, node_set_id=mv_nodeset_id, title="mv")
+        self.kw_database.node_sets.append(kw)
+
+        av_nodes = sorter[np.searchsorted(self.target["point_ids"], av_nodes, sorter=sorter)]
+        av_nodeset_id = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(av_nodes + 1, node_set_id=av_nodeset_id, title="av")
+        self.kw_database.node_sets.append(kw)
+
+        tv_nodes = sorter[np.searchsorted(self.target["point_ids"], tv_nodes, sorter=sorter)]
+        tv_nodeset_id = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(tv_nodes + 1, node_set_id=tv_nodeset_id, title="tv")
+        self.kw_database.node_sets.append(kw)
+
+        pv_nodes = sorter[np.searchsorted(self.target["point_ids"], pv_nodes, sorter=sorter)]
+        pv_nodeset_id = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(pv_nodes + 1, node_set_id=pv_nodeset_id, title="pv")
+        self.kw_database.node_sets.append(kw)
+
+        la_node = sorter[np.searchsorted(self.target["point_ids"], la_node, sorter=sorter)]
+        la_nodeset_id = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(la_node + 1, node_set_id=la_nodeset_id, title="left apex")
+        self.kw_database.node_sets.append(kw)
+
+        ra_node = sorter[np.searchsorted(self.target["point_ids"], ra_node, sorter=sorter)]
+        ra_nodeset_id = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(ra_node + 1, node_set_id=ra_nodeset_id, title="right apex")
+        self.kw_database.node_sets.append(kw)
+
+        self.kw_database.main.append(keywords.Case(caseid=1, jobid="transmural", scid1=1))
+        self.kw_database.main.append("*CASE_BEGIN_1")
+        self._define_Laplace_Dirichlet_bc(
+            set_ids=[lv_endo_nodeset_id, rv_endo_nodeset_id, epi_nodeset_id], bc_values=[2, -1, 0]
+        )
+        self.kw_database.main.append("*CASE_END_1")
+
+        self.kw_database.main.append(keywords.Case(caseid=2, jobid="ab_l", scid1=2))
+
+        self.kw_database.main.append("*CASE_BEGIN_2")
+        self._define_Laplace_Dirichlet_bc(set_ids=[mv_nodeset_id, la_nodeset_id], bc_values=[1, 0])
+        self.kw_database.main.append("*CASE_END_2")
+
+        self.kw_database.main.append(keywords.Case(caseid=3, jobid="ab_r", scid1=3))
+        self.kw_database.main.append("*CASE_BEGIN_3")
+        self._define_Laplace_Dirichlet_bc(set_ids=[tv_nodeset_id, la_nodeset_id], bc_values=[1, 0])
+        self.kw_database.main.append("*CASE_END_3")
+
+        self.kw_database.main.append(keywords.Case(caseid=4, jobid="ot_l", scid1=4))
+        self.kw_database.main.append("*CASE_BEGIN_4")
+        self._define_Laplace_Dirichlet_bc(set_ids=[av_nodeset_id, la_nodeset_id], bc_values=[1, 0])
+        self.kw_database.main.append("*CASE_END_4")
+
+        self.kw_database.main.append(keywords.Case(caseid=5, jobid="ot_r", scid1=5))
+        self.kw_database.main.append("*CASE_BEGIN_5")
+        self._define_Laplace_Dirichlet_bc(set_ids=[pv_nodeset_id, la_nodeset_id], bc_values=[1, 0])
+        self.kw_database.main.append("*CASE_END_5")
+
+        self.kw_database.main.append(keywords.Case(caseid=6, jobid="w_l", scid1=6))
+        self.kw_database.main.append("*CASE_BEGIN_6")
+        self._define_Laplace_Dirichlet_bc(
+            set_ids=[mv_nodeset_id, la_nodeset_id, av_nodeset_id], bc_values=[1, 1, 0]
+        )
+        self.kw_database.main.append("*CASE_END_6")
+
+        self.kw_database.main.append(keywords.Case(caseid=7, jobid="w_r", scid1=7))
+        self.kw_database.main.append("*CASE_BEGIN_7")
+        self._define_Laplace_Dirichlet_bc(
+            set_ids=[tv_nodeset_id, ra_nodeset_id, pv_nodeset_id], bc_values=[1, 1, 0]
+        )
+        self.kw_database.main.append("*CASE_END_7")
+
+        self.kw_database.main.append(keywords.Case(caseid=8, jobid="lr", scid1=8))
+        self.kw_database.main.append("*CASE_BEGIN_8")
+        self._define_Laplace_Dirichlet_bc(
+            set_ids=[lv_endo_nodeset_id, rv_endo_nodeset_id], bc_values=[1, -1]
+        )
+        self.kw_database.main.append("*CASE_END_8")
 
     def _update_uvc_bc(self):
         self.kw_database.main.append(keywords.Case(caseid=1, jobid="transmural", scid1=1))
@@ -3833,30 +3979,6 @@ class UHCWriter(BaseDynaWriter):
         sid = self.get_unique_nodeset_id()
         kw = create_node_set_keyword(ids_submesh + 1, node_set_id=sid, title="base")
         self.kw_database.node_sets.append(kw)
-        return sid
-
-    def _create_surface_nodeset(self, surftype: str, cavity_type: str):
-        id_sorter = np.argsort(self.target["point_ids"])
-
-        nodeset = np.array([])
-        for part in self.model.parts:
-            if cavity_type in part.name:
-                for surf in part.surfaces:
-                    if surftype in surf.name:
-                        nodeset = np.append(nodeset, surf.node_ids)
-        nodeset = np.unique(nodeset.astype(int))
-
-        # map IDs to sub mesh
-        ids_submesh = id_sorter[
-            np.searchsorted(self.target["point_ids"], nodeset, sorter=id_sorter)
-        ]
-
-        sid = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(
-            ids_submesh + 1, node_set_id=sid, title=cavity_type + " " + surftype + " all"
-        )
-        self.kw_database.node_sets.append(kw)
-
         return sid
 
     def _create_rotational_nodesets(self):

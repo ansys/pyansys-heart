@@ -144,9 +144,17 @@ class EPpostprocessor:
             grid.save(post_path + "\\vm_" + str(i) + ".vtk")
         return
 
-    def compute_ECGs():
-        """Compute ECGs."""
-        return
+    # def compute_ECGs(self, electrodes: np.ndarray):
+    #     """Compute ECGs."""
+    #     for electrode in len(electrodes):
+    #         # r = electrode - get element centroids
+    #         # distances = np.linalg.norm(r)
+    #         # gradients = get vm gradient on elem centroids
+    #         # volumes = get element volumes
+    #         # q1 = r / (np.power(distances, 3) * 4 * np.pi)
+    #         # ECGi = q1 .gradients(t) x volumes
+
+    #     return
 
     def _assign_pointdata(self, pointdata: np.ndarray, node_ids: np.ndarray):
         result = np.zeros(self.mesh.n_points)

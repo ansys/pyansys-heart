@@ -290,6 +290,99 @@ def get_gradient(directory, field_list: List[str]) -> pv.UnstructuredGrid:
     return grid2
 
 
+def compute_ventricle_fiber_by_drbm(directory) -> pv.UnstructuredGrid:
+    """TODO.
+
+    Parameters
+    ----------
+    directory : _type_
+        _description_
+
+    Returns
+    -------
+    pv.UnstructuredGrid
+        _description_
+    """
+    grid = get_gradient(
+        directory, field_list=["trans", "ab_l", "ab_r", "ot_l", "ot_r", "w_l", "w_r", "lr"]
+    )
+
+    grid = pv.read("gradient.vtk")
+
+    # compute normal / apico-basal
+    left_mask = grid["lr"] > 0
+    right_mask = grid["lr"] < 0
+    k = np.zeros((grid.n_cells, 3))
+    w_l = np.tile(grid["w_l"], (3, 1)).T
+    w_r = np.tile(grid["w_r"], (3, 1)).T
+    result = w_l * grid["grad_ab_l"] + (np.ones((grid.n_cells, 3)) - w_l) * grid["grad_ot_l"]
+    k[left_mask] = result[left_mask]
+    result = w_r * grid["grad_ab_r"] + (np.ones((grid.n_cells, 3)) - w_r) * grid["grad_ot_r"]
+    k[right_mask] = result[right_mask]
+    label = np.zeros(grid.n_cells, dtype=int)
+    label[left_mask] = 1
+    label[right_mask] = 2
+    grid.cell_data["label"] = label
+    grid.cell_data["k"] = k
+
+    #
+    grid = orthogonalization(grid)
+
+    d_l = grid["trans"] / 2
+    d_r = np.absolute(grid["trans"])
+
+    def compute_rotation_angle(left, right, outflow_tracts):
+        consider_ot = True
+
+        if consider_ot:
+            w_l = grid["w_l"]
+            w_r = grid["w_r"]
+        else:
+            w_l = np.ones(grid.n_cells)
+            w_r = np.ones(grid.n_cells)
+
+        ro_endo_left = w_l * left[0] + (1 - w_l) * outflow_tracts[0]
+        ro_epi_left = w_l * left[1] + (1 - w_l) * outflow_tracts[1]
+
+        ro_endo_right = w_r * right[0] + (1 - w_r) * outflow_tracts[0]
+        ro_epi_right = w_r * right[1] + (1 - w_r) * outflow_tracts[1]
+
+        alpha_l = ro_epi_left * (np.ones(grid.n_cells) - d_l) + ro_endo_left * d_l
+        alpha_r = ro_epi_right * (np.ones(grid.n_cells) - d_r) + ro_endo_right * d_r
+
+        alpha = np.zeros(grid.n_cells)
+        alpha[left_mask] = alpha_l[left_mask]
+        alpha[right_mask] = alpha_r[right_mask]
+
+        return alpha
+
+    alpha = compute_rotation_angle([-60, 60], [90, -25], [90, 0])
+    beta = compute_rotation_angle([-20, 20], [0, 20], [0, 0])
+
+    grid.cell_data["alpha"] = alpha
+    grid.cell_data["beta"] = beta
+
+    # apply rotation
+    grid.cell_data["fiber"] = np.zeros((grid.n_cells, 3))
+    grid.cell_data["sheet normal"] = np.zeros((grid.n_cells, 3))
+    grid.cell_data["transverse"] = np.zeros((grid.n_cells, 3))
+
+    for i in range(grid.n_cells):
+        q = np.array([grid["e_l"][i], grid["e_n"][i], grid["e_t"][i]]).T
+        a = alpha[i] * np.pi / 180
+        b = beta[i] * np.pi / 180
+        r1 = np.array([[np.cos(a), -np.sin(a), 0], [np.sin(a), np.cos(a), 0], [0, 0, 1]])
+        r2 = np.array([[1, 0, 0], [0, np.cos(b), np.sin(b)], [0, -np.sin(b), np.cos(b)]])
+        qq = np.matmul(np.matmul(q, r1), r2)
+        grid.cell_data["fiber"][i] = qq[:, 0]
+        grid.cell_data["sheet normal"][i] = qq[:, 1]
+        grid.cell_data["transverse"][i] = qq[:, 2]
+
+    grid.save("gradient2.vtk")
+
+    return grid
+
+
 def compute_la_fiber_cs(directory) -> pv.UnstructuredGrid:
     """Compute left atrium fibers coordinate system."""
 

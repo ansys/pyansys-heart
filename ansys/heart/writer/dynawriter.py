@@ -3841,7 +3841,7 @@ class UHCWriter(BaseDynaWriter):
         kw = create_node_set_keyword(ra_node + 1, node_set_id=ra_nodeset_id, title="right apex")
         self.kw_database.node_sets.append(kw)
 
-        self.kw_database.main.append(keywords.Case(caseid=1, jobid="transmural", scid1=1))
+        self.kw_database.main.append(keywords.Case(caseid=1, jobid="trans", scid1=1))
         self.kw_database.main.append("*CASE_BEGIN_1")
         self._define_Laplace_Dirichlet_bc(
             set_ids=[lv_endo_nodeset_id, rv_endo_nodeset_id, epi_nodeset_id], bc_values=[2, -1, 0]

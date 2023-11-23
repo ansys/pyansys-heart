@@ -22,6 +22,7 @@ from ansys.heart.misc.element_orth import read_orth_element_kfile
 from ansys.heart.postprocessor.auto_process import (
     compute_la_fiber_cs,
     compute_ra_fiber_cs,
+    compute_ventricle_fiber_by_drbm,
     mech_post,
     read_uvc,
     zerop_post,
@@ -133,7 +134,11 @@ class BaseSimulator:
             if isinstance(self.model, LeftVentricle):
                 LOGGER.error(f"{method} cannot run for only left ventricle.")
                 exit()
-            self.run_laplace_problem(self.root_directory, type=method)
+            export_directory = os.path.join(self.root_directory, method)
+            target = self.run_laplace_problem(export_directory, type=method)
+            grid = compute_ventricle_fiber_by_drbm(export_directory)
+            # TODO: assignment
+            # a / d from LSDYNA =? fiber sheet normal/transverse
         return
 
     def compute_uvc(self) -> pv.UnstructuredGrid:

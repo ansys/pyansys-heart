@@ -191,6 +191,9 @@ class HeartModel:
         self.cap_centroids: List[Point] = []
         """Centroid point to create cap shell."""
 
+        self.electrodes: List[Point] = []
+        """Electrodes positions for ECG computing."""
+
     def extract_simulation_mesh(self, clean_up: bool = False) -> None:
         """Update the model.
 

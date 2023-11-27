@@ -38,7 +38,7 @@ class EPpostprocessor:
             if at_step == None
             else [at_step]
         )
-        field = self.reader.get_ep_fields(at_step=step)[10]
+        field = self.reader.get_ep_fields(at_step=step).get_field({"variable_id": 129})
         return field
 
     def get_transmembrane_potential(self, node_id=None, plot: bool = False):
@@ -133,7 +133,6 @@ class EPpostprocessor:
     def export_transmembrane_to_vtk(self):
         """Export transmembrane potentials to vtk."""
         vm, times = self.get_transmembrane_potential()
-        # Creating scene and loading the mesh
         post_path = self.create_post_folder()
         grid = self.reader.meshgrid.copy()
 
@@ -144,17 +143,45 @@ class EPpostprocessor:
             grid.save(post_path + "\\vm_" + str(i) + ".vtk")
         return
 
-    # def compute_ECGs(self, electrodes: np.ndarray):
-    #     """Compute ECGs."""
-    #     for electrode in len(electrodes):
-    #         # r = electrode - get element centroids
-    #         # distances = np.linalg.norm(r)
-    #         # gradients = get vm gradient on elem centroids
-    #         # volumes = get element volumes
-    #         # q1 = r / (np.power(distances, 3) * 4 * np.pi)
-    #         # ECGi = q1 .gradients(t) x volumes
+    def compute_ECGs(self, electrodes: np.ndarray):
+        """Compute ECGs."""
+        grid = self.reader.meshgrid
+        grid = grid.compute_cell_sizes(length=False, area=False, volume=True)
+        cell_volumes = grid.cell_data["Volume"]
+        centroids = grid.cell_centers()
+        vm, times = self.get_transmembrane_potential()
+        ECGs = np.zeros([vm.shape[0], electrodes.shape[0]])
 
-    #     return
+        for time_step in range(vm.shape[0]):
+            grid.point_data["vmi"] = vm[time_step, :]
+            grid = grid.compute_derivative(scalars="vmi")
+            grid = grid.point_data_to_cell_data()
+
+            for electrode_id in range(electrodes.shape[0]):
+                electrode = electrodes[electrode_id, :]
+                r_vector = centroids.points - electrode
+                distances = np.linalg.norm(r_vector, axis=1)
+                integral = sum(
+                    sum(
+                        np.transpose(
+                            r_vector
+                            * grid.cell_data["gradient"]
+                            / (np.power(distances[:, None], 3) * 4 * np.pi)
+                        )
+                    )
+                    * cell_volumes
+                )
+                ECGs[time_step, electrode_id] = integral
+            # testing:
+            # grid.point_data["testgrad"] = grid.points[:, 0]
+            # grid = grid.compute_derivative(scalars="testgrad")
+            # grid = grid.point_data_to_cell_data()
+
+            # gradients = get vm gradient on elem centroids
+            # volumes = get element volumes
+            # q1 = r / (np.power(distances, 3) * 4 * np.pi)
+            # ECGi = q1 .gradients(t) x volumes
+        return ECGs, times
 
     def _assign_pointdata(self, pointdata: np.ndarray, node_ids: np.ndarray):
         result = np.zeros(self.mesh.n_points)

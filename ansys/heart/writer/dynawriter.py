@@ -2983,6 +2983,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 mid_id,
                 epi_id,
             ) = self._create_myocardial_nodeset_layers()
+            self._add_Tentusscher_keyword(-endo_id)
+            self._add_Tentusscher_keyword(-mid_id)
+            self._add_Tentusscher_keyword(-epi_id)
 
     def _create_myocardial_nodeset_layers(
         self, percent_endo=0.17, percent_mid=0.41, percent_epi=0.42
@@ -3017,6 +3020,83 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         )
         self.kw_database.node_sets.append(node_set_kw)
         return endo_nodeset_id, mid_nodeset_id, epi_nodeset_id
+
+    def _add_Tentusscher_keyword(self, matid):
+        cell_kw = keywords.EmEpCellmodelTentusscher(
+            mid=matid,
+            gas_constant=8314.472,
+            t=310,
+            faraday_constant=96485.3415,
+            cm=0.185,
+            vc=0.016404,
+            vsr=0.001094,
+            vss=0.00005468,
+            pkna=0.03,
+            ko=5.4,
+            nao=140.0,
+            cao=2.0,
+            gk1=5.405,
+            gkr=0.153,
+            gks=0.392,
+            gna=14.838,
+            gbna=0.0002,
+            gcal=0.0000398,
+            gbca=0.000592,
+            gto=0.294,
+            gpca=0.1238,
+            gpk=0.0146,
+            pnak=2.724,
+            km=1.0,
+            kmna=40.0,
+            knaca=1000.0,
+            ksat=0.1,
+            alpha=2.5,
+            gamma=0.35,
+            kmca=1.38,
+            kmnai=87.5,
+            kpca=0.0005,
+            k1=0.15,
+            k2=0.045,
+            k3=0.06,
+            k4=0.005,
+            ec=1.5,
+            maxsr=2.5,
+            minsr=1.0,
+            vrel=0.102,
+            vleak=0.00036,
+            vxfer=0.0038,
+            vmaxup=0.006375,
+            kup=0.00025,
+            bufc=0.2,
+            kbufc=0.001,
+            bufsr=10.0,
+            kbufsf=0.3,
+            bufss=0.4,
+            kbufss=0.00025,
+            v=-85.23,
+            ki=136.89,
+            nai=8.604,
+            cai=0.000126,
+            cass=0.00036,
+            casr=3.64,
+            rpri=0.9073,
+            xr1=0.00621,
+            xr2=0.4712,
+            xs=0.0095,
+            m=0.00172,
+            h=0.7444,
+            j=0.7045,
+            d=3.373e-5,
+            f=0.7888,
+            f2=0.9755,
+            fcass=0.9953,
+            s=0.999998,
+            r=2.42e-8,
+        )
+        cell_kw.gas_constant = 8314.472
+        cell_kw.faraday_constant = 96485.3415
+        self.kw_database.cell_models.append(cell_kw)
+        return
 
     def _update_ep_settings(self):
         """Add the settings for the electrophysiology solver."""

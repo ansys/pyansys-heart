@@ -1,6 +1,8 @@
 """Module containing classes for the various heart models."""
-import copy
 import json
+
+# from ansys.heart import LOG as LOGGER
+import logging
 import os
 
 # import json
@@ -8,7 +10,7 @@ import pathlib
 import pickle
 from typing import List, Union
 
-from ansys.heart.custom_logging import LOGGER
+LOGGER = logging.getLogger("pyheart_global.preprocessor")
 
 # from ansys.heart.preprocessor.input import database_label_mapping, _get_part_name_to_part_id_map
 import ansys.heart.preprocessor.databases as inp
@@ -701,20 +703,26 @@ class HeartModel:
 
         """
         # NOTE: need to suppress some vtk errors in pickled pyvista objects.
-        # change the verbosity in the vtk logger and suppress the python logger.
+        # change the verbosity in the vtk loggerger and suppress the python logger.
+        import copy
         import logging
 
         import vtk
 
-        logger = logging.getLogger()
-        logger.disabled = True
+        logger = copy.deepcopy(logging.getLogger("pyheart_global"))
+        # setting propagate to False is workaround for VTK changing log behavior
+        logger.propagate = False
+
         # to suppress vtk errors
         vtk_logger = vtk.vtkLogger
         vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_OFF)
         with open(filename, "rb") as file:
             model = pickle.load(file)
-        logger.disabled = False
-        vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_1)
+
+        # logger = logging.getLogger("pyheart_global.preprocessor")
+
+        # logger.disabled = False
+        # vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_1)
         return model
 
     def _pipeline_method_set_default_mesh_size(self) -> None:
@@ -1327,8 +1335,15 @@ class HeartModel:
 
         return
 
-    def _pipeline_method_assign_caps_to_parts(self) -> None:
-        """Use connectivity to obtain cap boundaries and adds these to their respective parts."""
+    def _pipeline_method_assign_caps_to_parts(self, unique_mitral_tricuspid_valve=True) -> None:
+        """
+        Use connectivity to obtain cap boundaries and adds these to their respective parts.
+
+        Parameters
+        ----------
+        unique_mitral_tricuspid_valve
+        If True, mitral/tricuspid valves defined for ventricles are also used for atrium.
+        """
         used_boundary_surface_names = [s.name for p in self.parts for s in p.surfaces]
         remaining_surfaces = list(set(self.mesh.boundary_names) - set(used_boundary_surface_names))
         remaining_surfaces1: List[SurfaceMesh] = []
@@ -1366,7 +1381,7 @@ class HeartModel:
                             )
                             name_valve = name_valve.replace("-plane", "").replace("-inlet", "")
 
-                            if "atrium" in part.name:
+                            if unique_mitral_tricuspid_valve and "atrium" in part.name:
                                 if "mitral" in name_valve or "tricuspid" in name_valve:
                                     LOGGER.debug(
                                         f"{name_valve} has been create in ventricular parts."
@@ -1421,48 +1436,48 @@ class HeartModel:
                             part.caps.append(cap)
                             LOGGER.debug("Cap: {0} closes {1}".format(name_valve, surface.name))
                             break
+        if unique_mitral_tricuspid_valve:
+            # replace caps of atria by caps of ventricle
+            for part in self.parts:
+                if not "atrium" in part.name:
+                    continue
+                for cap in part.caps:
+                    # replace with cap in ventricle (mitral and tricuspid valve)
+                    cap_ref = [
+                        c
+                        for p in self.parts
+                        if "ventricle" in p.name
+                        for c in p.caps
+                        if c.name == cap.name
+                    ]
 
-        # replace caps of atria by caps of ventricle
-        for part in self.parts:
-            if not "atrium" in part.name:
-                continue
-            for cap in part.caps:
-                # replace with cap in ventricle (mitral and tricuspid valve)
-                cap_ref = [
-                    c
-                    for p in self.parts
-                    if "ventricle" in p.name
-                    for c in p.caps
-                    if c.name == cap.name
-                ]
+                    if len(cap_ref) == 1:
+                        cap.centroid_id = cap_ref[0].centroid_id
+                        # note: flip order to make sure normal is pointing inwards
+                        cap.node_ids = np.flip(cap_ref[0].node_ids)
+                        # flip segments
+                        cap.triangles = cap_ref[0].triangles[:, [0, 2, 1]]
 
-                if len(cap_ref) == 1:
-                    cap.centroid_id = cap_ref[0].centroid_id
-                    # note: flip order to make sure normal is pointing inwards
-                    cap.node_ids = np.flip(cap_ref[0].node_ids)
-                    # flip segments
-                    cap.triangles = cap_ref[0].triangles[:, [0, 2, 1]]
-
-                    LOGGER.debug(
-                        "Replacing cap {0} of part{1}: with that of the ventricle".format(
-                            cap.name, part.name
+                        LOGGER.debug(
+                            "Replacing cap {0} of part{1}: with that of the ventricle".format(
+                                cap.name, part.name
+                            )
                         )
-                    )
 
-        # As a consequence we need to add interface region to endocardium of atria or ventricle
-        # current approach is to add these to the atria
-        for part in self.parts:
-            if "Left atrium" in part.name:
-                interface_name = "mitral-valve-plane"
-            elif "Right atrium" in part.name:
-                interface_name = "tricuspid-valve-plane"
-            else:
-                continue
-            interfaces = [s for s in remaining_surfaces1 if interface_name in s.name]
-            endocardium = next(s for s in part.surfaces if "endocardium" in s.name)
-            # append interface faces to endocardium
-            for interface in interfaces:
-                endocardium.triangles = np.vstack([endocardium.triangles, interface.triangles])
+            # As a consequence we need to add interface region to endocardium of atria or ventricle
+            # current approach is to add these to the atria
+            for part in self.parts:
+                if "Left atrium" in part.name:
+                    interface_name = "mitral-valve-plane"
+                elif "Right atrium" in part.name:
+                    interface_name = "tricuspid-valve-plane"
+                else:
+                    continue
+                interfaces = [s for s in remaining_surfaces1 if interface_name in s.name]
+                endocardium = next(s for s in part.surfaces if "endocardium" in s.name)
+                # append interface faces to endocardium
+                for interface in interfaces:
+                    endocardium.triangles = np.vstack([endocardium.triangles, interface.triangles])
 
         return
 
@@ -1697,9 +1712,8 @@ class HeartModel:
 
         return e_l, e_r, e_c
 
-    def _compute_uvc_rotation_bc(self):
-        """Todo Only for LeftVentricle."""
-        mesh = copy.deepcopy(self.mesh)
+    def _compute_uvc_rotation_bc(self, mesh: pv.UnstructuredGrid):
+        """Select node set on long axis plane."""
         mesh["cell_ids"] = np.arange(0, mesh.n_cells, dtype=int)
         mesh["point_ids"] = np.arange(0, mesh.n_points, dtype=int)
         slice = mesh.slice(origin=self.l4cv_axis["center"], normal=self.l4cv_axis["normal"])
@@ -1902,13 +1916,11 @@ class FourChamber(HeartModel):
 
             return beam
 
-    def compute_His_conduction(self, beam_length=0.8, beam_number=4) -> BeamMesh:
+    def compute_His_conduction(self, beam_number=4) -> BeamMesh:
         """Compute His bundle conduction.
 
         Parameters
         ----------
-        beam_length : float, optional
-            beam length, by default 0.8
         beam_number : int, optional
             beam number, by default 4
 
@@ -1917,7 +1929,7 @@ class FourChamber(HeartModel):
         BeamMesh
             Beam mesh
         """
-        start_point, end_point = self._define_hisbundle_start_end_point(beam_length, beam_number)
+        start_point, end_point = self._define_hisbundle_start_end_point(beam_number)
 
         # https://www.researchgate.net/publication/353154291_Morphometric_analysis_of_the_His_bundle_atrioven
         # tricular_fascicle_in_humans_and_other_animal_species_Histological_and_immunohistochemical_study
@@ -1969,44 +1981,44 @@ class FourChamber(HeartModel):
 
         return beam
 
-    def _define_hisbundle_start_end_point(self, beam_length, beam_number) -> (Point, Point):
-        """Define start and end points of the bundle of His."""
-        # TODO add method in Part class to have a get_mesh()
+    def _define_hisbundle_start_end_point(self, beam_number) -> (Point, Point):
+        """
+        Define start and end points of the bundle of His.
+
+        Start point: create a point in septum, it's closest to AV node.
+        End point: create a point in septum, it's close to AV node but randomly chosen.
+        """
+        AV_node = self.right_atrium.get_point("AV_node")
+
         septum_point_ids = np.unique(np.ravel(self.mesh.tetrahedrons[self.septum.element_ids,]))
-        septum_points = pv.PolyData(self.mesh.nodes[septum_point_ids, :])
-        atria_surface = pv.PolyData(
-            self.left_atrium.endocardium
-            + self.left_atrium.epicardium
-            + self.right_atrium.endocardium
-            + self.right_atrium.epicardium
-        )
-        # Get a point at septum center
-        septum_center_id = septum_point_ids[septum_points.find_closest_point(septum_points.center)]
-        septum_center_xyz = self.mesh.nodes[septum_center_id, :]
+        septum_pointcloud = pv.PolyData(self.mesh.nodes[septum_point_ids, :])
 
-        # Define septum start point: closest to artria
-        His_septum_start_id = self.mesh.find_closest_point(
-            atria_surface.points[atria_surface.find_closest_point(septum_center_xyz), :]
-        )
+        # Define start point: closest to artria
+        pointcloud_id = septum_pointcloud.find_closest_point(AV_node.xyz)
+
+        His_septum_start_id = septum_point_ids[pointcloud_id]
         His_septum_start_xyz = self.mesh.nodes[His_septum_start_id, :]
-        # Define septum end point: direction toward apex for a given distance
 
-        direction_vec = (septum_center_xyz - His_septum_start_xyz) / np.linalg.norm(
-            septum_center_xyz - His_septum_start_xyz
-        )
-        distance = beam_number * beam_length
-        His_septum_end_xyz = His_septum_start_xyz + distance * direction_vec
+        # Define end point:  a random close point
+        n = 50
+        pointcloud_id = septum_pointcloud.find_closest_point(AV_node.xyz, n=n)[n - 1]
+
+        His_septum_end_id = septum_point_ids[pointcloud_id]
+        His_septum_end_xyz = self.mesh.nodes[His_septum_end_id, :]
+
         # create Points
         His_septum_start = Point(
             name="His septum start", xyz=His_septum_start_xyz, node_id=len(self.mesh.nodes)
         )
         self.septum.points.append(His_septum_start)
+
         His_septum_end = Point(
             name="His septum end",
             xyz=His_septum_end_xyz,
             node_id=beam_number + len(self.mesh.nodes),
         )
         self.septum.points.append(His_septum_end)
+
         return His_septum_start, His_septum_end
 
     def compute_bundle_branches(self) -> (BeamMesh, BeamMesh):
@@ -2128,7 +2140,7 @@ class FourChamber(HeartModel):
         )
 
 
-class FullHeart(HeartModel):
+class FullHeart(FourChamber):
     """Model of both ventricles, both atria, aorta and pulmonary artery."""
 
     def __init__(self, info: ModelInfo) -> None:
@@ -2148,7 +2160,8 @@ class FullHeart(HeartModel):
         self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type="artery")
         """Pulmonary artery part."""
 
-        super().__init__(info)
+        HeartModel.__init__(self, info)
+        # super().__init__(info)
 
         pass
 

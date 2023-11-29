@@ -85,7 +85,7 @@ jobs:
           cache-name: cache-strocchi
         with:
           # cache the case file that will be downloaded in tests/heart/assets/cases/Strocchi2020
-          path: /home/runner/work/pyheart-lib/pyheart-lib/tests/heart/assets/cases/Strocchi2020
+          path: /home/runner/work/PyAnsys-Heart/PyAnsys-Heart/tests/heart/assets/cases/Strocchi2020
           key: ${{ runner.os }}-build-${{ env.cache-name }}
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}

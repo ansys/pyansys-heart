@@ -7,7 +7,7 @@ import os
 import pathlib
 from typing import List, Literal
 
-from ansys.heart.custom_logging import LOGGER as LOGGER
+from ansys.heart import LOG as LOGGER
 from ansys.heart.simulator.settings.defaults import mechanics as mech_defaults
 from ansys.heart.simulator.settings.defaults import zeropressure as zero_pressure_defaults
 from pint import Quantity, UnitRegistry
@@ -75,7 +75,7 @@ class Settings:
                 elif isinstance(v, Quantity):
                     # print(f"key: {k} | units {v.units}")
                     if "[substance]" in list(v.dimensionality):
-                        print("Not converting [substance] / [length]^3")
+                        LOGGER.warning("Not converting [substance] / [length]^3")
                         continue
                     d.update({k: v.to(_get_consistent_units_str(v.dimensionality))})
             return
@@ -94,7 +94,7 @@ class Settings:
                 if isinstance(v, (dict, AttrDict, Settings)):
                     units += __remove_units(v)
                 elif isinstance(v, Quantity):
-                    # print(f"key: {k} | units {v.units}")
+                    # LOGGER.debug(f"key: {k} | units {v.units}")
                     units.append(v.units)
                     d.update({k: v.m})
             return units
@@ -403,7 +403,7 @@ class SimulationSettings:
             self.stress_free.analysis = A
 
         except:
-            print("Failed to load mechanics settings.")
+            LOGGER.error("Failed to load mechanics settings.")
 
     def load_defaults(self):
         """Load the default simulation settings.
@@ -452,7 +452,9 @@ class SimulationSettings:
                 self.stress_free.analysis = A
 
             elif isinstance(getattr(self, attr), (Electrophysiology, Fibers, Purkinje)):
-                print("Reading EP, Fiber, ZeroPressure, and Purkinje settings not yet supported.")
+                LOGGER.warning(
+                    "Reading EP, Fiber, ZeroPressure, and Purkinje settings not yet supported."
+                )
 
     def to_consistent_unit_system(self):
         """Convert all settings to consistent unit-system ["MPa", "mm", "N", "ms", "g"].
@@ -715,7 +717,8 @@ class DynaSettings:
                     self.dyna_options,
                 ]
 
-            with open("run_lsdyna.sh", "w", newline="\n") as f:
+            path_to_run_script = os.path.join(pathlib.Path(path_to_input).parent, "run_lsdyna.sh")
+            with open(path_to_run_script, "w", newline="\n") as f:
                 f.write("#!/usr/bin/env sh\n")
                 f.write("echo start lsdyna in wsl...\n")
                 f.write(" ".join([i.strip() for i in commands]))
@@ -831,4 +834,4 @@ class DynaSettings:
 
 
 if __name__ == "__main__":
-    print("protected")
+    LOGGER.debug("protected")

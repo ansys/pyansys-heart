@@ -202,7 +202,7 @@ def test_model_part_names(model_type):
         assert model.part_names == ["Left ventricle"]
     elif isinstance(model, models.BiVentricle):
         assert model.part_names == ["Left ventricle", "Right ventricle", "Septum"]
-    elif isinstance(model, models.FourChamber):
+    elif type(model) == models.FourChamber:
         assert model.part_names == [
             "Left ventricle",
             "Right ventricle",
@@ -210,7 +210,7 @@ def test_model_part_names(model_type):
             "Left atrium",
             "Right atrium",
         ]
-    elif isinstance(model, models.FullHeart):
+    elif type(model) == models.FullHeart:
         assert model.part_names == [
             "Left ventricle",
             "Right ventricle",

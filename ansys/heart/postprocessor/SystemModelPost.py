@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import json
 import os
 
-from ansys.heart.custom_logging import LOGGER
+from ansys.heart import LOG as LOGGER
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import matplotlib.pyplot as plt
 import numpy as np
@@ -202,17 +202,22 @@ class SystemModelPost:
         -------
         Ejection fraction
         """
+        ef = [None, None]
         start = np.where(self.lv_system.time >= t_start)[0][0]
         end = np.where(self.lv_system.time <= t_end)[0][-1]
-        v = self.lv_system.volume.cavity[start:end]
+        vl = self.lv_system.volume.cavity[start:end]
         try:
-            ef = (max(v) - min(v)) / max(v)
+            ef[0] = (max(vl) - min(vl)) / max(vl)
         except:
-            ef = None
+            ef[0] = None
             LOGGER.warning("Failed to compute ejection fraction.")
+        if self.model_type == "BV":
+            vr = self.rv_system.volume.cavity[start:end]
+            ef[1] = (max(vr) - min(vr)) / max(vr)
+
         return ef
 
-    def plot_pv_loop(self, t_start=0, t_end=10e10, show_ed=False, ef=None):
+    def plot_pv_loop(self, t_start=0, t_end=10e10, show_ed=True, ef=[None, None]):
         """
         Plot PV loop.
 
@@ -228,21 +233,34 @@ class SystemModelPost:
 
         fig, axis = plt.subplots()
         fig.suptitle("Pressure Volume Loop")
+        if self.model_type == "LV":
+            axis.set_xlim(
+                [
+                    0.95 * np.min(self.lv_system.volume.cavity),
+                    1.05 * np.max(self.lv_system.volume.cavity),
+                ]
+            )
+            axis.set_ylim(
+                [
+                    0.8 * np.min(self.lv_system.pressure.cavity),
+                    1.2 * np.max(self.lv_system.pressure.cavity),
+                ]
+            )
+        else:
+            axis.set_xlim(
+                [
+                    0.95 * np.min(self.lv_system.volume.cavity),
+                    1.05 * np.max(self.rv_system.volume.cavity),
+                ]
+            )
+            axis.set_ylim(
+                [
+                    0.8 * np.min(self.rv_system.pressure.cavity),
+                    1.2 * np.max(self.lv_system.pressure.cavity),
+                ]
+            )
 
-        axis.set_xlim(
-            [
-                0.95 * np.min(self.lv_system.volume.cavity),
-                1.05 * np.max(self.lv_system.volume.cavity),
-            ]
-        )
-        axis.set_ylim(
-            [
-                0.8 * np.min(self.lv_system.pressure.cavity),
-                1.2 * np.max(self.lv_system.pressure.cavity),
-            ]
-        )
-
-        def add_pv(cavity, color):
+        def add_pv(cavity, color, ef=None):
             v = cavity.volume.cavity[start:end]
             p = cavity.pressure.cavity[start:end]
 
@@ -254,17 +272,16 @@ class SystemModelPost:
             # plot
             axis.plot(v, p, color, label=label)
 
-            # highlight last point
-            if len(v) > 0:  # safety
-                axis.scatter(v[-1], p[-1], facecolor=color)
-
             if show_ed:
                 axis.scatter(cavity.ed[1], cavity.ed[0], facecolor=color, label=cavity.name + "@ED")
+            else:  # highlight last point
+                if len(v) > 0:  # safety
+                    axis.scatter(v[-1], p[-1], facecolor=color)
             return
 
-        add_pv(self.lv_system, "blue")
+        add_pv(self.lv_system, "blue", ef=ef[0])
         if self.model_type == "BV":
-            add_pv(self.rv_system, "red")
+            add_pv(self.rv_system, "red", ef=ef[1])
 
         axis.set_xlabel("Volume (mL)")
         axis.set_ylabel("Pressure (kPa)")
@@ -389,7 +406,7 @@ class SystemModelPost:
         """
         # if not self.closed_loop:
         if True:
-            print("future development.")
+            LOGGER.error("future development.")
             return
 
         fig, axis = plt.subplots(figsize=(8, 4))

@@ -9,14 +9,19 @@ Mat077
 MatNull
 
 """
+import logging
+
 from ansys.dyna.keywords import keywords
-from ansys.heart.custom_logging import LOGGER
+
+LOGGER = logging.getLogger("pyheart_global.writer")
+
+# from importlib.resources import files
+from importlib.resources import path as resource_path
 
 # import custom keywords in separate namespace
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 import numpy as np
 import pandas as pd
-import pkg_resources
 
 
 class MaterialCap(keywords.MatNull):
@@ -124,7 +129,8 @@ class MaterialHGOMyocardium(keywords.Mat295):
             if active_user["actype"] == 1:
                 active = {
                     "acdir": 1,  # active along first/fiber direction
-                    "acthr": active_user["ca2ionm"] / 2,
+                    "ca2ionm": 4.35,
+                    "acthr": 1.0,
                     "sf": 1.0,
                     "sn": 0.0,
                     "n": 2,
@@ -133,6 +139,8 @@ class MaterialHGOMyocardium(keywords.Mat295):
                     "l0": 1.58,
                     "l": 1.85,
                     "mr": 1048.9,  # ms*um^-1
+                    "dtmax": 150.0,
+                    "tr": -1629.0,  # the original paper do no consider initial stretch
                 }
             elif active_user["actype"] == 2:
                 # Default parameters
@@ -222,7 +230,7 @@ def active_curve(
         calcium_array = np.append(calcium_array, 0.0)
 
     elif curve_type == "TrueCalcium":
-        file_path = pkg_resources.resource_filename("ansys.heart.writer", "calcium_from_EP.txt")
+        file_path = resource_path("ansys.heart.writer", "calcium_from_EP.txt").__enter__()
         a = np.loadtxt(file_path)
         time_array = a[:, 0] / 1000
         calcium_array = a[:, 1]

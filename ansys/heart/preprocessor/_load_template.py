@@ -1,12 +1,13 @@
 #
 # Methods to configure jinja2 and load templates.
 #
+# import preprocessing
+import logging
 import os
 from pathlib import Path
 import posixpath
 
-# import preprocessing
-from ansys.heart.custom_logging import LOGGER
+LOGGER = logging.getLogger("pyheart_global.preprocessor")
 import jinja2
 
 # Shared Jinja environment

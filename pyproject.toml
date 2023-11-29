@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 # Check https://flit.readthedocs.io/en/latest/pyproject_toml.html for all available sections
-name = "ansys-heart-lib"
+name = "pyansys-heart"
 version = "0.1.dev0"
 description = "Python framework for heart modeling using ANSYS tools."
 readme = "README.rst"
@@ -52,7 +52,7 @@ doc = [
     "numpydoc==1.5.0",
     "nbsphinx==0.9.3",
     "Sphinx==7.2.2",
-    "sphinx-autoapi==2.1.1",
+    "sphinx-autoapi==3.0.0",
     "sphinx-autodoc-typehints==1.24.0",
     "sphinx-copybutton==0.5.2",
     "sphinx-gallery==0.14.0",
@@ -63,10 +63,10 @@ doc = [
 tests = ["pytest==7.4.0"]
 
 [project.urls]
-Source = "https://github.com/ansys/pyheart-lib"
-Issues = "https://github.com/ansys/pyheart-lib/issues"
+Source = "https://github.com/ansys/pyansys-heart"
+Issues = "https://github.com/ansys/pyansys-heart/issues"
 Documentation = "https://heart.docs.pyansys.com/"
-Releases = "https://github.com/ansys/pyheart-lib/releases"
+Releases = "https://github.com/ansys/pyansys-heart/releases"
 
 [tool.flit.module]
 name = "ansys.heart"

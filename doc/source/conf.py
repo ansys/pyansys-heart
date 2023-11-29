@@ -6,7 +6,7 @@ from ansys.heart._version import __version__
 from ansys_sphinx_theme import get_version_match, pyansys_logo_black
 
 # Project information
-project = "ansys-heart-lib"
+project = "pyansys-heart"
 copyright = f"(c) {datetime.now().year} ANSYS, Inc. All rights reserved"
 author = "ANSYS, Inc."
 release = version = __version__
@@ -16,11 +16,11 @@ cname = os.getenv("DOCUMENTATION_CNAME", "heart.docs.pyansys.com")
 html_logo = pyansys_logo_black
 html_theme = "ansys_sphinx_theme"
 
-html_short_title = html_title = "ansys-heart-lib"
+html_short_title = html_title = "pyansys-heart"
 
 # specify the location of your github repo
 html_theme_options = {
-    "github_url": "https://github.com/pyansys/pyheart",
+    "github_url": "https://github.com/ansys/pyansys-heart",
     "show_prev_next": False,
     "show_breadcrumbs": True,
     "additional_breadcrumbs": [

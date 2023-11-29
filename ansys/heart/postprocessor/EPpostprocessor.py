@@ -162,6 +162,7 @@ class EPpostprocessor:
                 r_vector = centroids.points - electrode
                 distances = np.linalg.norm(r_vector, axis=1)
                 # TODO add conductivity tensor in the calculation (necessary?)
+                # TODO add method to handle beam gradients as well
                 integral = sum(
                     sum(
                         np.transpose(

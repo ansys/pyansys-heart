@@ -2977,6 +2977,46 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 cell_kw.gas_constant = 8314.472
                 cell_kw.faraday_constant = 96485.3415
                 self.kw_database.cell_models.extend([cell_kw])
+        if "uvc_transmural" in self.model.mesh.point_data.keys():
+            (
+                endo_id,
+                mid_id,
+                epi_id,
+            ) = self._create_myocardial_nodeset_layers()
+
+    def _create_myocardial_nodeset_layers(
+        self, percent_endo=0.17, percent_mid=0.41, percent_epi=0.42
+    ):
+        values = self.model.mesh.point_data["uvc_transmural"]
+        # Values from experimental data, see:
+        # https://www.frontiersin.org/articles/10.3389/fphys.2019.00580/full
+        th_endo = percent_endo
+        th_mid = percent_endo + percent_mid
+        endo_nodes = (np.nonzero(np.logical_and(values >= 0, values < th_endo)))[0]
+        mid_nodes = (np.nonzero(np.logical_and(values >= th_endo, values < th_mid)))[0]
+        epi_nodes = (np.nonzero(np.logical_and(values >= th_mid, values < 1)))[0]
+        endo_nodeset_id = self.get_unique_nodeset_id()
+        node_set_kw = create_node_set_keyword(
+            node_ids=endo_nodes + 1,
+            node_set_id=endo_nodeset_id,
+            title="Layer-Endo",
+        )
+        self.kw_database.node_sets.append(node_set_kw)
+        mid_nodeset_id = self.get_unique_nodeset_id()
+        node_set_kw = create_node_set_keyword(
+            node_ids=mid_nodes + 1,
+            node_set_id=mid_nodeset_id,
+            title="Layer-Mid",
+        )
+        self.kw_database.node_sets.append(node_set_kw)
+        epi_nodeset_id = self.get_unique_nodeset_id()
+        node_set_kw = create_node_set_keyword(
+            node_ids=epi_nodes + 1,
+            node_set_id=epi_nodeset_id,
+            title="Layer-Epi",
+        )
+        self.kw_database.node_sets.append(node_set_kw)
+        return endo_nodeset_id, mid_nodeset_id, epi_nodeset_id
 
     def _update_ep_settings(self):
         """Add the settings for the electrophysiology solver."""

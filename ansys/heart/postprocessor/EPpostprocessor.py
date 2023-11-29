@@ -161,6 +161,7 @@ class EPpostprocessor:
                 electrode = electrodes[electrode_id, :]
                 r_vector = centroids.points - electrode
                 distances = np.linalg.norm(r_vector, axis=1)
+                # TODO add conductivity tensor in the calculation (necessary?)
                 integral = sum(
                     sum(
                         np.transpose(
@@ -181,6 +182,13 @@ class EPpostprocessor:
             # volumes = get element volumes
             # q1 = r / (np.power(distances, 3) * 4 * np.pi)
             # ECGi = q1 .gradients(t) x volumes
+        return ECGs, times
+
+    def read_ECGs(self, path: Path):
+        """Read ECG text file produced by LS-DYNA simulation."""
+        data = np.loadtxt(path, skiprows=4)
+        times = data[:, 0]
+        ECGs = data[:, 1:11]
         return ECGs, times
 
     def _assign_pointdata(self, pointdata: np.ndarray, node_ids: np.ndarray):

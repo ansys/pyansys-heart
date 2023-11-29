@@ -1,5 +1,6 @@
 # from conftest import get_workdir, clean_directory
 import os
+import pytest
 
 try:
     os.environ["GITHUB_JOB"]
@@ -11,6 +12,7 @@ except KeyError:
 if is_github_job:
     os.environ["SHOW_FLUENT_GUI"] = "0"
 
+pytestmark = pytest.mark.requires_fluent
 
 from ansys.heart.preprocessor.input import _InputModel
 from ansys.heart.preprocessor.mesh.mesher import (

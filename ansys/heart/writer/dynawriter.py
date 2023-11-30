@@ -1135,11 +1135,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 "right-superior-pulmonary-vein",
             ]
             if isinstance(self, ZeroPressureMechanicsDynaWriter):
-                caps_to_use.extend(
-                    [
-                        "pulmonary-valve",
-                    ]
-                )
+                # add additional constraint to avoid rotation
+                caps_to_use.extend(["pulmonary-valve"])
 
         if bc_type == "fix_caps":
             for part in self.model.parts:
@@ -1291,7 +1288,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         return
 
-    def _add_pericardium_bc(self):
+    def _add_pericardium_bc(self, scale=1.0):
         """Add the pericardium.
 
         Note
@@ -1397,8 +1394,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
         )
         # define section
         section_kw = keywords.SectionDiscrete(secid=section_id, cdl=0, tdl=0)
+
         # define material
-        mat_kw = keywords.MatSpringElastic(mid=mat_id, k=pericardium_settings["spring_stiffness"])
+        k = pericardium_settings["spring_stiffness"] * scale
+        mat_kw = keywords.MatSpringElastic(mid=mat_id, k=k)
 
         # define spring orientations
         sd_orientation_kw = create_define_sd_orientation_kw(
@@ -1810,6 +1809,10 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
             # define cap element
             self._update_cap_elements_db()
 
+        if isinstance(self.model, FourChamber):
+            # add a small constraint to avoid rotation
+            self._add_pericardium_bc(scale=0.01)
+
         # # Approximate end-diastolic pressures
         pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
         pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
@@ -1823,7 +1826,26 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # Please note that choosing 999 as the part-set id is arbitrary,
         # and defining a new part set adding this to the main database will
         # create a part-set id of 999+1
-        self.kw_database.main.append(keywords.SetPartListGenerate(sid=999, b1beg=1, b1end=999999))
+        save_part_ids = []
+        for part in self.model.parts:
+            save_part_ids.append(part.pid)
+
+        caps = [cap for part in self.model.parts for cap in part.caps]
+        for cap in caps:
+            if cap.pid != None:  # MV,TV for atrial parts get None
+                save_part_ids.append(cap.pid)
+
+        ids = np.hstack((save_part_ids, np.zeros(8 - len(save_part_ids) % 8, dtype=int))).reshape(
+            -1, 8
+        )
+
+        # self.kw_database.main.append(keywords.SetPartList(sid=999,??))
+
+        self.kw_database.main.append(
+            keywords.SetPartListGenerate(
+                sid=999, b1beg=min(save_part_ids), b1end=max(save_part_ids)
+            )
+        )
         self.kw_database.main.append(
             custom_keywords.InterfaceSpringbackLsdyna(
                 psid=999, nshv=999, ftype=3, rflag=1, optc="OPTCARD", ndflag=1, cflag=1, hflag=1
@@ -2682,7 +2704,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self._update_use_Purkinje()
         # update ep settings
         self._update_ep_settings()
-
+        if len(self.model.electrodes) != 0:
+            self._update_ECG_coordinates()
         self._get_list_of_includes()
         self._add_includes()
 
@@ -3138,6 +3161,36 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     stimamp=50.0,
                 )
             )
+
+    def _update_ECG_coordinates(self):
+        """Add ECG computation content."""
+        # TODO replace strings by custom dyna keyword
+        # TODO handle dynamic numbering of point set ids "psid'
+        psid = 1
+        pstype = 0
+
+        # EM_POINT_SET
+        em_point_set_content = "*EM_POINT_SET\n"
+        em_point_set_content += "$#    psid    pstype        vx        vy        vz\n"
+        em_point_set_content += f"{psid:>10d}{pstype:>10d}\n"
+        em_point_set_content += "$#     pid         x         y         z       pos"
+
+        self.kw_database.ep_settings.append(em_point_set_content)
+
+        for index, point in enumerate(self.model.electrodes):
+            x, y, z = point.xyz
+            position_str = (
+                f"{index:>10d} {str(f'{x:9.6f}')[:9]} {str(f'{y:9.6f}')[:9]} {str(f'{z:9.6f}')[:9]}"
+            )
+
+            self.kw_database.ep_settings.append(position_str)
+
+        # EM_EP_EKG
+        em_ep_ekg_content = "*EM_EP_EKG\n"
+        em_ep_ekg_content += "$#   ekgid      psid\n"
+        em_ep_ekg_content += f"{1:>10d}{psid:>10d}\n"
+
+        self.kw_database.ep_settings.append(em_ep_ekg_content)
 
     def _update_solution_controls(
         self,

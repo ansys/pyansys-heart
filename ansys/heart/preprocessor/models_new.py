@@ -83,11 +83,11 @@ class ModelInfo:
         elif remove_all:
             files = glob.glob(os.path.join(self.workdir, "*.*"))
 
-            for file in files:
-                try:
-                    os.remove(file)
-                except:
-                    LOGGER.debug(f"Unable to delete: {file}")
+        for file in files:
+            try:
+                os.remove(file)
+            except:
+                LOGGER.debug(f"Unable to delete: {file}")
         return
 
     def create_workdir(self) -> None:

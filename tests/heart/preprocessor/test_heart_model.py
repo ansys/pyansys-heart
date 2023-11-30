@@ -142,7 +142,7 @@ def test_dump_read_model_004():
     )
 
 
-# @pytest.mark.skipif(is_gh_action, reason="Workaround for github fail")
+@pytest.mark.skipif(is_gh_action, reason="Workaround for github fail")
 def test_model_load():
     """Test loading model from pickle."""
     model: models.BiVentricle = _get_test_model(models.BiVentricle)
@@ -158,28 +158,28 @@ def test_model_load():
 
     # dump model to disk
     path_to_heart_model = os.path.join(get_workdir(), "heart_model.pickle")
-    # model.dump_model(path_to_heart_model)
+    model.dump_model(path_to_heart_model)
 
-    # assert os.path.isfile(path_to_heart_model), "File does not exist"
+    assert os.path.isfile(path_to_heart_model), "File does not exist"
 
-    # # load model
-    # model1 = models.HeartModel.load_model(path_to_heart_model)
+    # load model
+    model1 = models.HeartModel.load_model(path_to_heart_model)
 
-    # assert isinstance(model1, models.BiVentricle), "Expecting model of type BiVentricle"
+    assert isinstance(model1, models.BiVentricle), "Expecting model of type BiVentricle"
 
-    # # compare contents to original
-    # assert np.array_equal(model1.left_ventricle.element_ids, model.left_ventricle.element_ids)
-    # assert np.array_equal(model1.right_ventricle.element_ids, model.right_ventricle.element_ids)
+    # compare contents to original
+    assert np.array_equal(model1.left_ventricle.element_ids, model.left_ventricle.element_ids)
+    assert np.array_equal(model1.right_ventricle.element_ids, model.right_ventricle.element_ids)
 
-    # assert np.array_equal(
-    #     model1.left_ventricle.endocardium.triangles, model.left_ventricle.endocardium.triangles
-    # )
-    # assert np.array_equal(
-    #     model1.right_ventricle.endocardium.triangles, model.right_ventricle.endocardium.triangles
-    # )
+    assert np.array_equal(
+        model1.left_ventricle.endocardium.triangles, model.left_ventricle.endocardium.triangles
+    )
+    assert np.array_equal(
+        model1.right_ventricle.endocardium.triangles, model.right_ventricle.endocardium.triangles
+    )
 
-    # assert np.array_equal(model1.mesh.tetrahedrons, model.mesh.tetrahedrons)
-    # assert np.allclose(model1.mesh.nodes, model.mesh.nodes, atol=1e-8)
+    assert np.array_equal(model1.mesh.tetrahedrons, model.mesh.tetrahedrons)
+    assert np.allclose(model1.mesh.nodes, model.mesh.nodes, atol=1e-8)
 
     pass
 

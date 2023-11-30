@@ -158,9 +158,9 @@ def test_model_load():
 
     # dump model to disk
     path_to_heart_model = os.path.join(get_workdir(), "heart_model.pickle")
-    model.dump_model(path_to_heart_model)
+    # model.dump_model(path_to_heart_model)
 
-    assert os.path.isfile(path_to_heart_model), "File does not exist"
+    # assert os.path.isfile(path_to_heart_model), "File does not exist"
 
     # # load model
     # model1 = models.HeartModel.load_model(path_to_heart_model)

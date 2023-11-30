@@ -1,7 +1,7 @@
 """
 
-Mechanics-simulator example
----------------------------
+Full-heart mechanics
+--------------------
 This example shows you how to consume a preprocessed full heart model and
 set it up for the main mechanical simulation. This examples demonstrates how
 you can load a pre-computed heart model, compute the fiber direction, compute the
@@ -118,17 +118,4 @@ simulator.model.plot_mesh(show_edges=True)
 # Start the main mechanical simulation. This uses the previously computed fiber orientation
 # and stress free configuration and runs the final LS-DYNA heart model.
 
-###############################################################################
-# .. warning::
-#    In 4-chamber model, atria is passive and only there to provide realistic boundary conditions.
-
 simulator.simulate()
-
-###############################################################################
-# We can plot deformation and active stress (history variable 22) in LS-PrePost
-
-###############################################################################
-# .. video:: ../../_static/images/full_heart_rodero_01_mech.mp4
-#   :width: 600
-#   :loop:
-#   :class: center

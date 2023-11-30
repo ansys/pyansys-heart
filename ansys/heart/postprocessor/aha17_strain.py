@@ -133,7 +133,7 @@ class AhaStrainCalculator:
         aha_strain = np.zeros((17, 3))
 
         # model info
-        e_l, e_r, e_c = self.model.compute_left_ventricle_element_cs()
+        e_l, e_r, e_c = self.model._compute_left_ventricle_element_cs()
         # todo: vectorization
         for i_ele in range(len(self._aha_elements)):
             if reference is not None:

@@ -14,6 +14,7 @@ from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.postprocessor.exporter import LVContourExporter
 from ansys.heart.preprocessor.mesh.objects import Cavity, SurfaceMesh
 from ansys.heart.simulator.settings.settings import SimulationSettings
+from ansys.heart.preprocessor.models import HeartModel
 import matplotlib.pyplot as plt
 import numpy as np
 import pyvista as pv
@@ -49,13 +50,7 @@ def zerop_post(directory, model):
     stress_free_coord = data.get_initial_coordinates()
     displacements = data.get_displacement()
 
-    if len(model.cap_centroids) == 0:
-        nodes = model.mesh.nodes
-    else:
-        # a center node for each cap has been created, add them into create the cavity
-        nodes = np.vstack((model.mesh.nodes, np.zeros((len(model.cap_centroids), 3))))
-        for cap_center in model.cap_centroids:
-            nodes[cap_center.node_id] = cap_center.xyz
+    nodes = model.mesh.nodes
 
     # convergence information
     dst = np.linalg.norm(stress_free_coord + displacements[-1] - nodes, axis=1)
@@ -153,7 +148,7 @@ def zerop_post(directory, model):
     return dct
 
 
-def mech_post(directory: pathlib.Path, model):
+def mech_post(directory: pathlib.Path, model: HeartModel):
     """
     Post-process Main mechanical simulation folder.
 
@@ -163,6 +158,7 @@ def mech_post(directory: pathlib.Path, model):
     model: HeartModel
 
     """
+    directory = pathlib.Path(directory)
     folder = "post"
     os.makedirs(os.path.join(directory, folder), exist_ok=True)
 
@@ -191,8 +187,8 @@ def mech_post(directory: pathlib.Path, model):
     # ffmpeg -f image2 -i pv_%d.png output.mp4
 
     exporter = LVContourExporter(os.path.join(directory, "d3plot"), model)
-
-    model.compute_left_ventricle_anatomy_axis(first_cut_short_axis=0.2)
+    
+    model._compute_left_ventricle_anatomy_axis(first_cut_short_axis=0.2)
     exporter.export_contour_to_vtk("l4cv", model.l4cv_axis)
     exporter.export_contour_to_vtk("l2cv", model.l2cv_axis)
     normal = model.short_axis["normal"]

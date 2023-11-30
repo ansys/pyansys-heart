@@ -2903,16 +2903,16 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             partname = part.name.lower()
             if ("atrium" in partname) or ("ventricle" in partname) or ("septum" in partname):
                 ep_mid = part.pid
-                self._add_Tentusscher_keyword_epi()
+                self._add_Tentusscher_keyword_epi(matid=ep_mid)
         if "uvc_transmural" in self.model.mesh.point_data.keys():
             (
                 endo_id,
                 mid_id,
                 epi_id,
             ) = self._create_myocardial_nodeset_layers()
-            self._add_Tentusscher_keyword_endo(-endo_id)
-            self._add_Tentusscher_keyword_mid(-mid_id)
-            self._add_Tentusscher_keyword_epi(-epi_id)
+            self._add_Tentusscher_keyword_endo(matid=-endo_id)
+            self._add_Tentusscher_keyword_mid(matid=-mid_id)
+            self._add_Tentusscher_keyword_epi(matid=-epi_id)
 
     def _create_myocardial_nodeset_layers(
         self, percent_endo=0.17, percent_mid=0.41, percent_epi=0.42
@@ -3466,7 +3466,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     pid=network.pid,
                     offset=len(self.model.mesh.tetrahedrons) + len(beams_kw.elements),
                 )
-                self._add_Tentusscher_keyword_epi()
+                self._add_Tentusscher_keyword_endo(matid=network.pid)
             self.kw_database.beam_networks.append(beams_kw)
 
     def _update_export_controls(self, dt_output_d3plot: float = 10.0):

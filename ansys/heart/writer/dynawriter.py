@@ -2062,9 +2062,9 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                     custom_keywords.EmMat003(
                         mid=em_mat_id,
                         mtype=2,
-                        sigma11=0.5,
-                        sigma22=0.1,
-                        sigma33=0.1,
+                        sigma11=self.settings.electrophysiology.sigma11,
+                        sigma22=self.settings.electrophysiology.sigma22,
+                        sigma33=self.settings.electrophysiology.sigma33,
                         beta=140,
                         cm=0.01,
                         aopt=2.0,
@@ -2438,9 +2438,9 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                     custom_keywords.EmMat003(
                         mid=em_mat_id,
                         mtype=2,
-                        sigma11=0.5,
-                        sigma22=0.1,
-                        sigma33=0.1,
+                        sigma11=self.settings.electrophysiology.sigma11,
+                        sigma22=self.settings.electrophysiology.sigma22,
+                        sigma33=self.settings.electrophysiology.sigma33,
                         beta=140,
                         cm=0.01,
                         aopt=2.0,
@@ -2539,7 +2539,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                     pointstx=apex_left_coordinates[0],
                     pointsty=apex_left_coordinates[1],
                     pointstz=apex_left_coordinates[2],
-                    edgelen=2,
+                    edgelen=self.settings.purkinje.edgelen,
                     ngen=50,
                     nbrinit=8,
                     nsplit=2,
@@ -2608,7 +2608,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                     pointstx=apex_right_coordinates[0],
                     pointsty=apex_right_coordinates[1],
                     pointstz=apex_right_coordinates[2],
-                    edgelen=2,
+                    edgelen=self.settings.purkinje.edgelen,
                     ngen=50,
                     nbrinit=8,
                     nsplit=2,
@@ -2874,9 +2874,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                         custom_keywords.EmMat003(
                             mid=ep_mid,
                             mtype=2,
-                            sigma11=0.5,
-                            sigma22=0.1,
-                            sigma33=0.1,
+                            sigma11=self.settings.electrophysiology.sigma11,
+                            sigma22=self.settings.electrophysiology.sigma22,
+                            sigma33=self.settings.electrophysiology.sigma33,
                             beta=140,
                             cm=0.01,
                             aopt=2.0,
@@ -2893,7 +2893,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 ep_mid = part.pid
                 self.kw_database.material.extend(
                     [
-                        keywords.EmMat001(mid=ep_mid, mtype=4, sigma=1),
+                        keywords.EmMat001(mid=ep_mid, mtype=4, sigma=self.settings.purkinje.sigma),
                     ]
                 )
 
@@ -3235,7 +3235,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                         pointstx=origin_coordinates[0],
                         pointsty=origin_coordinates[1],
                         pointstz=origin_coordinates[2],
-                        edgelen=2,
+                        edgelen=self.settings.purkinje.edgelen,
                         ngen=50,
                         nbrinit=8,
                         nsplit=2,
@@ -3256,7 +3256,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 self.kw_database.parts.append(part_kw)
                 self.kw_database.material.append(keywords.MatNull(mid=network.pid, ro=1e-11))
                 self.kw_database.material.append(
-                    keywords.EmMat001(mid=network.pid, mtype=2, sigma=10)
+                    keywords.EmMat001(mid=network.pid, mtype=2, sigma=self.settings.purkinje.sigma)
                 )
 
                 beams_kw = add_beams_to_kw(

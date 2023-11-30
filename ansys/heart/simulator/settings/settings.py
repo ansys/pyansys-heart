@@ -198,7 +198,9 @@ class ZeroPressure(Settings):
 @dataclass(repr=False)
 class Electrophysiology(Settings):
     """Class for keeping track of electrophysiology settings."""
-
+    sigma11 : float = 0.2
+    sigma22 : float = 0.2
+    sigma33 : float = 0.2
     analysis: Analysis = Analysis()
     """Generic analysis settings."""
 
@@ -213,7 +215,8 @@ class Fibers(Settings):
 @dataclass(repr=False)
 class Purkinje(Settings):
     """Class for keeping track of purkinje settings."""
-
+    edgelen : int = 2
+    sigma : float = 0.2
 
 class SimulationSettings:
     """Class for keeping track of settings."""
@@ -455,6 +458,23 @@ class SimulationSettings:
                 LOGGER.warning(
                     "Reading EP, Fiber, ZeroPressure, and Purkinje settings not yet supported."
                 )
+
+    def load_with_EP_params(self, Purkinje_edgelen: int, sigmaX: int, ratio: int, ratio2: int):
+            EP_A = Analysis()
+            EP_A.set_values(mech_defaults.analysis)
+            EP = Electrophysiology()
+            self.electrophysiology.sigma11 = sigmaX
+            self.electrophysiology.sigma22 = ratio * sigmaX
+            self.electrophysiology.sigma33 = ratio * sigmaX
+            self.electrophysiology.analysis = EP_A
+
+            P = Purkinje()
+            purkinje_network_settings = {
+                "edgelen": Purkinje_edgelen,
+                "sigma": ratio2 * sigmaX
+            }
+            P.set_values(purkinje_network_settings)
+            self.purkinje = P
 
     def to_consistent_unit_system(self):
         """Convert all settings to consistent unit-system ["MPa", "mm", "N", "ms", "g"].

@@ -330,7 +330,15 @@ class EPSimulator(BaseSimulator):
 
     def simulate(self, folder_name="main-ep"):
         """Launch the main simulation."""
-        directory = os.path.join(self.root_directory, folder_name)
+        directory = os.path.join(
+            self.root_directory, 
+            folder_name,
+            str(self.settings.electrophysiology.sigma11)[:3] + '_' +
+            str(self.settings.electrophysiology.sigma22)[:3] + '_' +
+            str(self.settings.electrophysiology.sigma33)[:3] + '_' +
+            str(self.settings.purkinje.edgelen) + '_' +
+            str(self.settings.purkinje.sigma)[:3]
+        )
         self._write_main_simulation_files(folder_name)
 
         LOGGER.info("Launching main EP simulation...")
@@ -373,7 +381,15 @@ class EPSimulator(BaseSimulator):
 
     def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""
-        export_directory = os.path.join(self.root_directory, folder_name)
+        export_directory = os.path.join(
+            self.root_directory, 
+            folder_name,
+            str(self.settings.electrophysiology.sigma11)[:3] + '_' +
+            str(self.settings.electrophysiology.sigma22)[:3] + '_' +
+            str(self.settings.electrophysiology.sigma33)[:3] + '_' +
+            str(self.settings.purkinje.edgelen) + '_' +
+            str(self.settings.purkinje.sigma)[:3]
+        )
         self.directories["main-ep"] = export_directory
 
         dyna_writer = writers.ElectrophysiologyDynaWriter(self.model, self.settings)
@@ -409,7 +425,15 @@ class EPSimulator(BaseSimulator):
         nsplit : int, optional
             _description_, by default 2
         """
-        export_directory = os.path.join(self.root_directory, "purkinjegeneration")
+        export_directory = os.path.join(
+            self.root_directory, 
+            "purkinjegeneration", 
+            str(self.settings.electrophysiology.sigma11)[:3] + '_' +
+            str(self.settings.electrophysiology.sigma22)[:3] + '_' +
+            str(self.settings.electrophysiology.sigma33)[:3] + '_' +
+            str(self.settings.purkinje.edgelen) + '_' +
+            str(self.settings.purkinje.sigma)[:3]
+        )
         self.directories["purkinjegeneration"] = export_directory
 
         dyna_writer = writers.PurkinjeGenerationDynaWriter(copy.deepcopy(self.model), self.settings)

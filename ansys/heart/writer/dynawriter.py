@@ -2703,6 +2703,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self._update_ep_settings()
         self._update_stimulation()
 
+        if len(self.model.electrodes) != 0:
+            self._update_ECG_coordinates()
+
         self._get_list_of_includes()
         self._add_includes()
 
@@ -3145,6 +3148,36 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     stimamp=50.0,
                 )
             )
+
+    def _update_ECG_coordinates(self):
+        """Add ECG computation content."""
+        # TODO replace strings by custom dyna keyword
+        # TODO handle dynamic numbering of point set ids "psid'
+        psid = 1
+        pstype = 0
+
+        # EM_POINT_SET
+        em_point_set_content = "*EM_POINT_SET\n"
+        em_point_set_content += "$#    psid    pstype        vx        vy        vz\n"
+        em_point_set_content += f"{psid:>10d}{pstype:>10d}\n"
+        em_point_set_content += "$#     pid         x         y         z       pos"
+
+        self.kw_database.ep_settings.append(em_point_set_content)
+
+        for index, point in enumerate(self.model.electrodes):
+            x, y, z = point.xyz
+            position_str = (
+                f"{index:>10d} {str(f'{x:9.6f}')[:9]} {str(f'{y:9.6f}')[:9]} {str(f'{z:9.6f}')[:9]}"
+            )
+
+            self.kw_database.ep_settings.append(position_str)
+
+        # EM_EP_EKG
+        em_ep_ekg_content = "*EM_EP_EKG\n"
+        em_ep_ekg_content += "$#   ekgid      psid\n"
+        em_ep_ekg_content += f"{1:>10d}{psid:>10d}\n"
+
+        self.kw_database.ep_settings.append(em_ep_ekg_content)
 
     def _update_solution_controls(
         self,

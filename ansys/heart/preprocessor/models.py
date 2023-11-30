@@ -194,6 +194,9 @@ class HeartModel:
         self.beam_network: List[BeamMesh] = []
         """List of beam networks in the mesh."""
 
+        self.electrodes: List[Point] = []
+        """Electrodes positions for ECG computing."""
+
     def add_purkinje_from_kfile(self, filename: pathlib.Path, name: str) -> None:
         """Read an LS-DYNA file containing purkinje beams and nodes.
 

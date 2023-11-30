@@ -42,6 +42,10 @@ download_folder = str(Path(Path(__file__).resolve().parents[2], "downloads"))
 workdir = str(
     Path(Path(__file__).resolve().parents[2], "downloads", "Rodero2021", "01", "FullHeartNew")
 )
+
+if not os.path.isdir(workdir):
+    os.makedirs(workdir)
+
 path_to_model = str(Path(workdir, "heart_model.pickle"))
 
 ###############################################################################
@@ -70,7 +74,7 @@ else:
     # otherwise get the input geometry and part definitions
     input_geom, part_definitions = get_input_geom_and_part_defintions_from_public_database(
         file_path, model_type="FullHeart", database="Rodero2021"
-    )    
+    )
     # save for future use.
     input_geom.save(path_to_input)
     with open(path_to_part_definitions, "w") as f:

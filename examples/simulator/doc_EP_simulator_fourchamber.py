@@ -99,6 +99,15 @@ simulator = EPSimulator(
 simulator.settings.load_defaults()
 
 ###############################################################################
+# Compute Universal Ventricular Coordinates
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# The transmural coordinate is used to define the endo, mid and epi layers.
+
+###############################################################################
+
+simulator.compute_uvc()
+
+###############################################################################
 # Compute the fiber orientation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Compute fiber orientation and plot the computed fibers on the entire model.

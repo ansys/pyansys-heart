@@ -143,15 +143,20 @@ class HeartModel:
         return [part.pid for part in self.parts]
 
     @property
+    def surfaces(self) -> List[SurfaceMesh]:
+        """Return list of all defined surfaces."""
+        return [s for p in self.parts for s in p.surfaces]
+
+    @property
     def surface_names(self) -> List[str]:
         """Return list of all defined surface names."""
-        return [s.name for p in self.parts for s in p.surfaces]
+        return [s.name for s in self.surfaces]
 
     @property
     def surface_ids(self) -> List[str]:
         """Return list of all defined surface names."""
-        return [s.id for p in self.parts for s in p.surfaces]
-
+        return [s.id for s in self.surfaces]
+    
     @property
     def cavities(self) -> List[Cavity]:
         """Return list of cavities in the model."""
@@ -588,13 +593,20 @@ class HeartModel:
         return
 
     def _add_surface_normals(self):
-        """Add surface normal as point data and cell data to all 'named' surfaces in the model."""
+        """Add surface normal as point data and cell data to all 'named' surfaces in the model.
+        
+        Notes
+        -----
+        Note that we need to flip the normals due to the convention that Fluent Meshing uses. 
+        That is, normals point into the meshed domain.         
+        """
         LOGGER.debug("Adding normals to all 'named' surfaces")
+        LOGGER.warning("Flipping normals.")
         for part in self.parts:
             for surface in part.surfaces:
                 surface_with_normals = surface.compute_normals(
-                    cell_normals=True, point_normals=True
-                )
+                    cell_normals=True, point_normals=True, inplace=True, flip_normals=True
+                )                
                 surface.cell_data["normals"] = surface_with_normals.cell_data["Normals"]
                 surface.point_data["normals"] = surface_with_normals.point_data["Normals"]
 
@@ -628,14 +640,14 @@ class HeartModel:
         self._assign_caps_to_parts()
         self._validate_cap_names()
 
+        self._add_nodal_areas()
+        self._add_surface_normals()
+        
         self._assign_cavities_to_parts()
         self._extract_apex()
 
         self._compute_left_ventricle_anatomy_axis()
         self._compute_left_ventricle_aha17()
-
-        self._add_nodal_areas()
-        self._add_surface_normals()
 
         if "fiber" not in self.mesh.array_names:
             LOGGER.debug("Adding placeholder for fiber direction.")

@@ -1,13 +1,15 @@
 """Module containing classes for the various heart models."""
 import json
 import os
+import logging
+import copy
 
 # import json
 import pathlib
 import pickle
 from typing import List, Union
 
-from ansys.heart.custom_logging import LOGGER
+LOGGER = logging.getLogger("pyheart_global.preprocessor")
 from ansys.heart.preprocessor.input import _InputModel
 
 # from ansys.heart.preprocessor.input import HEART_MODELS
@@ -516,6 +518,10 @@ class HeartModel:
         import logging
 
         import vtk
+        
+        logger = copy.deepcopy(logging.getLogger("pyheart_global"))
+        # setting propagate to False is workaround for VTK changing log behavior
+        logger.propagate = False        
 
         logger = logging.getLogger()
         logger.disabled = True
@@ -817,8 +823,14 @@ class HeartModel:
 
         return
 
-    def _assign_caps_to_parts(self) -> None:
-        """Use connectivity to obtain cap boundaries and adds these to their respective parts."""
+    def _assign_caps_to_parts(self, unique_mitral_tricuspid_valve=True) -> None:
+        """Use connectivity to obtain cap boundaries and add these to their respective parts.
+
+        Parameters
+        ----------
+        unique_mitral_tricuspid_valve : bool, optional
+            Unique mitral/tricuspid valve defined, by default True
+        """
         used_boundary_surface_names = [s.name for p in self.parts for s in p.surfaces]
         remaining_surfaces = list(set(self.mesh.boundary_names) - set(used_boundary_surface_names))
         remaining_surfaces1: List[SurfaceMesh] = []
@@ -1217,6 +1229,49 @@ class HeartModel:
 
         return e_l, e_r, e_c
 
+    def _compute_uvc_rotation_bc(self, mesh: pv.UnstructuredGrid):
+        """Select node set on long axis plane."""
+        mesh["cell_ids"] = np.arange(0, mesh.n_cells, dtype=int)
+        mesh["point_ids"] = np.arange(0, mesh.n_points, dtype=int)
+        slice = mesh.slice(origin=self.l4cv_axis["center"], normal=self.l4cv_axis["normal"])
+        crinkled = mesh.extract_cells(np.unique(slice["cell_ids"]))
+        free_wall_center, septum_center = crinkled.clip(
+            origin=self.l2cv_axis["center"],
+            normal=-self.l2cv_axis["normal"],
+            crinkle=True,
+            return_clipped=True,
+        )
+
+        rotation_mesh = mesh.remove_cells(free_wall_center["cell_ids"])
+        print(f"{mesh.n_points - rotation_mesh.n_points} nodes are removed from clip.")
+
+        vn = mesh.points[free_wall_center["point_ids"]] - self.l4cv_axis["center"]
+        v0 = np.tile(self.l4cv_axis["normal"], (len(free_wall_center["point_ids"]), 1))
+
+        dot = np.einsum("ij,ij->i", v0, vn)  # dot product row by row
+        set1 = free_wall_center["point_ids"][dot >= 0]  # -pi
+        set2 = free_wall_center["point_ids"][dot < 0]  # pi
+        set3 = np.setdiff1d(septum_center["point_ids"], free_wall_center["point_ids"])  # 0
+
+        # visu
+        # mesh["bc"] = np.zeros(mesh.n_points)
+        # mesh["bc"][set1] = 1
+        # mesh["bc"][set2] = -1
+        # mesh["bc"][set3] = 2
+        # mesh.set_active_scalars("bc")
+        # mesh.plot()
+
+        return set1, set2, set3
+
+    def _compute_uvc_apex_set(self, radius=3):
+        """Todo Only for LeftVentricle."""
+        import scipy.spatial as spatial
+
+        point_tree = spatial.cKDTree(self.mesh.points)
+        set = point_tree.query_ball_point(self.parts[0].apex_points[1].xyz, radius)
+
+        # print(set)
+        return np.array(set)
 
 class LeftVentricle(HeartModel):
     """Model of just the left ventricle."""

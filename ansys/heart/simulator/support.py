@@ -85,6 +85,9 @@ def get_input_geom_and_part_defintions_from_public_database(
         raise TypeError("Expecting unstructured grid. Check inputs.")
     else:
         mesh: pv.UnstructuredGrid = mesh
+        
+    if database == "Rodero2021":
+        mesh.rename_array("ID", "tags",preference="cell")
 
     # remove caps and spaces in keys
     labels = {"-".join(k.lower().split()): v for k, v in database_labels.items()}

@@ -70,6 +70,8 @@ def get_input_geom_and_part_defintions_from_public_database(
     # read database labels
     if database == "Strocchi2020":
         from ansys.heart.preprocessor.database_labels import Strocchi2020 as database_labels
+    elif database == "Rodero2021":
+        from ansys.heart.preprocessor.database_labels import Rodero2021 as database_labels
     else:
         print("No other databases included yet.")
         return

@@ -21,7 +21,7 @@ except ImportError:
 
 URLS = {
     "Strocchi2020": {"url": "https://zenodo.org/record/3890034", "num_cases": 24},
-    "Cristobal2021": {"url": "https://zenodo.org/record/4590294", "num_cases": 20},
+    "Rodero2021": {"url": "https://zenodo.org/record/4590294", "num_cases": 20},
 }
 VALID_DATABASES = list(URLS.keys())
 DOWNLOAD_DIR = PurePath.joinpath(Path(__file__).parents[3], "downloads")
@@ -90,7 +90,7 @@ def download_case(
             "Database {0} only has {1} cases".format(database, URLS[database]["num_cases"])
         )
 
-    if database == "Cristobal2021":
+    if database == "Rodero2021":
         save_dir = os.path.join(download_folder, database, "{:>02d}".format(case_number))
     elif database == "Strocchi2020":
         save_dir = os.path.join(download_folder, database)
@@ -195,7 +195,7 @@ if __name__ == "__main__":
     download_urls = _format_download_urls()
 
     save_path = download_case(
-        "Cristobal2021", 3, "d:\\development\\PyAnsys-Heart\\PyAnsys-Heart\\downloads"
+        "Rodero2021", 3, "d:\\development\\PyAnsys-Heart\\PyAnsys-Heart\\downloads"
     )
 
     save_path = download_case(

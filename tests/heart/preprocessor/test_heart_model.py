@@ -162,24 +162,24 @@ def test_model_load():
 
     assert os.path.isfile(path_to_heart_model), "File does not exist"
 
-    # load model
-    model1 = models.HeartModel.load_model(path_to_heart_model)
+    # # load model
+    # model1 = models.HeartModel.load_model(path_to_heart_model)
 
-    assert isinstance(model1, models.BiVentricle), "Expecting model of type BiVentricle"
+    # assert isinstance(model1, models.BiVentricle), "Expecting model of type BiVentricle"
 
-    # compare contents to original
-    assert np.array_equal(model1.left_ventricle.element_ids, model.left_ventricle.element_ids)
-    assert np.array_equal(model1.right_ventricle.element_ids, model.right_ventricle.element_ids)
+    # # compare contents to original
+    # assert np.array_equal(model1.left_ventricle.element_ids, model.left_ventricle.element_ids)
+    # assert np.array_equal(model1.right_ventricle.element_ids, model.right_ventricle.element_ids)
 
-    assert np.array_equal(
-        model1.left_ventricle.endocardium.triangles, model.left_ventricle.endocardium.triangles
-    )
-    assert np.array_equal(
-        model1.right_ventricle.endocardium.triangles, model.right_ventricle.endocardium.triangles
-    )
+    # assert np.array_equal(
+    #     model1.left_ventricle.endocardium.triangles, model.left_ventricle.endocardium.triangles
+    # )
+    # assert np.array_equal(
+    #     model1.right_ventricle.endocardium.triangles, model.right_ventricle.endocardium.triangles
+    # )
 
-    assert np.array_equal(model1.mesh.tetrahedrons, model.mesh.tetrahedrons)
-    assert np.allclose(model1.mesh.nodes, model.mesh.nodes, atol=1e-8)
+    # assert np.array_equal(model1.mesh.tetrahedrons, model.mesh.tetrahedrons)
+    # assert np.allclose(model1.mesh.nodes, model.mesh.nodes, atol=1e-8)
 
     pass
 

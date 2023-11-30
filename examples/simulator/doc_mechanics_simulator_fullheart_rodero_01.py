@@ -63,10 +63,9 @@ model.info.workdir = str(workdir)
 # instantiate dyna settings object
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path,
-    dynatype="msmpi",
+    dynatype="smp",
     num_cpus=10,
 )
-dyna_settings._set_env_variables()
 
 # instantiate simulator object
 simulator = MechanicsSimulator(
@@ -89,7 +88,7 @@ simulator.settings.load_defaults()
 
 simulator.compute_fibers()
 
-# Plot the resulting fiber orientation
+# # Plot the resulting fiber orientation
 simulator.model.plot_fibers(n_seed_points=2000)
 
 ###############################################################################

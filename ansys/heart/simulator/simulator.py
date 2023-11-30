@@ -333,11 +333,11 @@ class EPSimulator(BaseSimulator):
         directory = os.path.join(
             self.root_directory, 
             folder_name,
-            str(self.settings.electrophysiology.sigma11)[:3] + '_' +
-            str(self.settings.electrophysiology.sigma22)[:3] + '_' +
-            str(self.settings.electrophysiology.sigma33)[:3] + '_' +
-            str(self.settings.purkinje.edgelen) + '_' +
-            str(self.settings.purkinje.sigma)[:3]
+            str(self.settings.electrophysiology.sigma11)[:4] + '_' +
+            str(self.settings.electrophysiology.sigma22)[:4] + '_' +
+            str(self.settings.electrophysiology.sigma33)[:4] + '_' +
+            str(self.settings.purkinje.edgelen)[:4] + '_' +
+            str(self.settings.purkinje.sigma)[:4]
         )
         self._write_main_simulation_files(folder_name)
 
@@ -384,11 +384,11 @@ class EPSimulator(BaseSimulator):
         export_directory = os.path.join(
             self.root_directory, 
             folder_name,
-            str(self.settings.electrophysiology.sigma11)[:3] + '_' +
-            str(self.settings.electrophysiology.sigma22)[:3] + '_' +
-            str(self.settings.electrophysiology.sigma33)[:3] + '_' +
-            str(self.settings.purkinje.edgelen) + '_' +
-            str(self.settings.purkinje.sigma)[:3]
+            str(self.settings.electrophysiology.sigma11)[:4] + '_' +
+            str(self.settings.electrophysiology.sigma22)[:4] + '_' +
+            str(self.settings.electrophysiology.sigma33)[:4] + '_' +
+            str(self.settings.purkinje.edgelen)[:4] + '_' +
+            str(self.settings.purkinje.sigma)[:4]
         )
         self.directories["main-ep"] = export_directory
 
@@ -428,11 +428,11 @@ class EPSimulator(BaseSimulator):
         export_directory = os.path.join(
             self.root_directory, 
             "purkinjegeneration", 
-            str(self.settings.electrophysiology.sigma11)[:3] + '_' +
-            str(self.settings.electrophysiology.sigma22)[:3] + '_' +
-            str(self.settings.electrophysiology.sigma33)[:3] + '_' +
-            str(self.settings.purkinje.edgelen) + '_' +
-            str(self.settings.purkinje.sigma)[:3]
+            str(self.settings.electrophysiology.sigma11)[:4] + '_' +
+            str(self.settings.electrophysiology.sigma22)[:4] + '_' +
+            str(self.settings.electrophysiology.sigma33)[:4] + '_' +
+            str(self.settings.purkinje.edgelen)[:4] + '_' +
+            str(self.settings.purkinje.sigma)[:4]
         )
         self.directories["purkinjegeneration"] = export_directory
 

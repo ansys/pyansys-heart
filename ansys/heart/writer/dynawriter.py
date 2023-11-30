@@ -2990,14 +2990,14 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def _create_myocardial_nodeset_layers(
         self, percent_endo=0.17, percent_mid=0.41, percent_epi=0.42
     ):
-        values = self.model.mesh.point_data["uvc_transmural"]
+        values = self.model.mesh.point_data["transmural"]
         # Values from experimental data, see:
         # https://www.frontiersin.org/articles/10.3389/fphys.2019.00580/full
         th_endo = percent_endo
         th_mid = percent_endo + percent_mid
         endo_nodes = (np.nonzero(np.logical_and(values >= 0, values < th_endo)))[0]
         mid_nodes = (np.nonzero(np.logical_and(values >= th_endo, values < th_mid)))[0]
-        epi_nodes = (np.nonzero(np.logical_and(values >= th_mid, values < 1)))[0]
+        epi_nodes = (np.nonzero(np.logical_and(values >= th_mid, values <= 1)))[0]
         endo_nodeset_id = self.get_unique_nodeset_id()
         node_set_kw = create_node_set_keyword(
             node_ids=endo_nodes + 1,

@@ -978,7 +978,7 @@ class HeartModel:
             fluid_cell_zones = [
                 cz for cz in fluent_mesh.cell_zones if "heart-tet-cells" not in cz.name
             ]
-            tetras_fluid = np.empty((0, 4))
+            tetras_fluid = np.empty((0, 4), dtype=int)
             for cell_zone in fluid_cell_zones:
                 tetras_fluid = np.vstack([tetras_fluid, cell_zone.cells])
             self.fluid_mesh.tetrahedrons = tetras_fluid

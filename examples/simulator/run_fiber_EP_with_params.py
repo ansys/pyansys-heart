@@ -98,6 +98,6 @@ for index, row in parameters_df.iterrows():
     
     simulator.compute_conduction_system()
 
-    simulator.model.plot_purkinje()
+    # simulator.model.plot_purkinje()
 
     simulator.simulate()

@@ -2026,10 +2026,18 @@ class FourChamber(HeartModel):
             new_nodes = np.insert(new_nodes, i, start_coord + i * step, axis=0)
 
         # path start from AV point, to septum start point, then to septum end point
+        av_id = None
         for beam in self.beam_network:
             if beam.name == "SAN_to_AVN":
                 av_id = beam.edges[-1, -1]
                 break
+
+        if av_id is None:
+            LOGGER.error(
+                "Unable to find the last node of SAN_to_AVN branch, you need to define it."
+            )
+            exit()
+
         point_ids = np.concatenate(
             (
                 np.array([av_id]),

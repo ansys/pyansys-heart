@@ -1121,11 +1121,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 "right-superior-pulmonary-vein",
             ]
             if isinstance(self, ZeroPressureMechanicsDynaWriter):
-                caps_to_use.extend(
-                    [
-                        "pulmonary-valve",
-                    ]
-                )
+                # add additional constraint to avoid rotation
+                caps_to_use.extend(["pulmonary-valve"])
 
         if bc_type == "fix_caps":
             for part in self.model.parts:
@@ -1277,7 +1274,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         return
 
-    def _add_pericardium_bc(self):
+    def _add_pericardium_bc(self, scale=1.0):
         """Add the pericardium.
 
         Note
@@ -1383,8 +1380,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
         )
         # define section
         section_kw = keywords.SectionDiscrete(secid=section_id, cdl=0, tdl=0)
+
         # define material
-        mat_kw = keywords.MatSpringElastic(mid=mat_id, k=pericardium_settings["spring_stiffness"])
+        k = pericardium_settings["spring_stiffness"] * scale
+        mat_kw = keywords.MatSpringElastic(mid=mat_id, k=k)
 
         # define spring orientations
         sd_orientation_kw = create_define_sd_orientation_kw(
@@ -1796,6 +1795,10 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
             # define cap element
             self._update_cap_elements_db()
 
+        if isinstance(self.model, FourChamber):
+            # add a small constraint to avoid rotation
+            self._add_pericardium_bc(scale=0.01)
+
         # # Approximate end-diastolic pressures
         pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
         pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
@@ -1809,7 +1812,26 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # Please note that choosing 999 as the part-set id is arbitrary,
         # and defining a new part set adding this to the main database will
         # create a part-set id of 999+1
-        self.kw_database.main.append(keywords.SetPartListGenerate(sid=999, b1beg=1, b1end=999999))
+        save_part_ids = []
+        for part in self.model.parts:
+            save_part_ids.append(part.pid)
+
+        caps = [cap for part in self.model.parts for cap in part.caps]
+        for cap in caps:
+            if cap.pid != None:  # MV,TV for atrial parts get None
+                save_part_ids.append(cap.pid)
+
+        ids = np.hstack((save_part_ids, np.zeros(8 - len(save_part_ids) % 8, dtype=int))).reshape(
+            -1, 8
+        )
+
+        # self.kw_database.main.append(keywords.SetPartList(sid=999,??))
+
+        self.kw_database.main.append(
+            keywords.SetPartListGenerate(
+                sid=999, b1beg=min(save_part_ids), b1end=max(save_part_ids)
+            )
+        )
         self.kw_database.main.append(
             custom_keywords.InterfaceSpringbackLsdyna(
                 psid=999, nshv=999, ftype=3, rflag=1, optc="OPTCARD", ndflag=1, cflag=1, hflag=1
@@ -2903,80 +2925,281 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             partname = part.name.lower()
             if ("atrium" in partname) or ("ventricle" in partname) or ("septum" in partname):
                 ep_mid = part.pid
-                cell_kw = keywords.EmEpCellmodelTentusscher(
-                    mid=ep_mid,
-                    gas_constant=8314.472,
-                    t=310,
-                    faraday_constant=96485.3415,
-                    cm=0.185,
-                    vc=0.016404,
-                    vsr=0.001094,
-                    vss=0.00005468,
-                    pkna=0.03,
-                    ko=5.4,
-                    nao=140.0,
-                    cao=2.0,
-                    gk1=5.405,
-                    gkr=0.153,
-                    gks=0.392,
-                    gna=14.838,
-                    gbna=0.0002,
-                    gcal=0.0000398,
-                    gbca=0.000592,
-                    gto=0.294,
-                    gpca=0.1238,
-                    gpk=0.0146,
-                    pnak=2.724,
-                    km=1.0,
-                    kmna=40.0,
-                    knaca=1000.0,
-                    ksat=0.1,
-                    alpha=2.5,
-                    gamma=0.35,
-                    kmca=1.38,
-                    kmnai=87.5,
-                    kpca=0.0005,
-                    k1=0.15,
-                    k2=0.045,
-                    k3=0.06,
-                    k4=0.005,
-                    ec=1.5,
-                    maxsr=2.5,
-                    minsr=1.0,
-                    vrel=0.102,
-                    vleak=0.00036,
-                    vxfer=0.0038,
-                    vmaxup=0.006375,
-                    kup=0.00025,
-                    bufc=0.2,
-                    kbufc=0.001,
-                    bufsr=10.0,
-                    kbufsf=0.3,
-                    bufss=0.4,
-                    kbufss=0.00025,
-                    v=-85.23,
-                    ki=136.89,
-                    nai=8.604,
-                    cai=0.000126,
-                    cass=0.00036,
-                    casr=3.64,
-                    rpri=0.9073,
-                    xr1=0.00621,
-                    xr2=0.4712,
-                    xs=0.0095,
-                    m=0.00172,
-                    h=0.7444,
-                    j=0.7045,
-                    d=3.373e-5,
-                    f=0.7888,
-                    f2=0.9755,
-                    fcass=0.9953,
-                    s=0.999998,
-                    r=2.42e-8,
-                )
-                cell_kw.gas_constant = 8314.472
-                cell_kw.faraday_constant = 96485.3415
-                self.kw_database.cell_models.extend([cell_kw])
+                self._add_Tentusscher_keyword_epi(matid=ep_mid)
+        if "uvc_transmural" in self.model.mesh.point_data.keys():
+            (
+                endo_id,
+                mid_id,
+                epi_id,
+            ) = self._create_myocardial_nodeset_layers()
+            self._add_Tentusscher_keyword_endo(matid=-endo_id)
+            self._add_Tentusscher_keyword_mid(matid=-mid_id)
+            self._add_Tentusscher_keyword_epi(matid=-epi_id)
+
+    def _create_myocardial_nodeset_layers(
+        self, percent_endo=0.17, percent_mid=0.41, percent_epi=0.42
+    ):
+        values = self.model.mesh.point_data["transmural"]
+        # Values from experimental data, see:
+        # https://www.frontiersin.org/articles/10.3389/fphys.2019.00580/full
+        th_endo = percent_endo
+        th_mid = percent_endo + percent_mid
+        endo_nodes = (np.nonzero(np.logical_and(values >= 0, values < th_endo)))[0]
+        mid_nodes = (np.nonzero(np.logical_and(values >= th_endo, values < th_mid)))[0]
+        epi_nodes = (np.nonzero(np.logical_and(values >= th_mid, values <= 1)))[0]
+        endo_nodeset_id = self.get_unique_nodeset_id()
+        node_set_kw = create_node_set_keyword(
+            node_ids=endo_nodes + 1,
+            node_set_id=endo_nodeset_id,
+            title="Layer-Endo",
+        )
+        self.kw_database.node_sets.append(node_set_kw)
+        mid_nodeset_id = self.get_unique_nodeset_id()
+        node_set_kw = create_node_set_keyword(
+            node_ids=mid_nodes + 1,
+            node_set_id=mid_nodeset_id,
+            title="Layer-Mid",
+        )
+        self.kw_database.node_sets.append(node_set_kw)
+        epi_nodeset_id = self.get_unique_nodeset_id()
+        node_set_kw = create_node_set_keyword(
+            node_ids=epi_nodes + 1,
+            node_set_id=epi_nodeset_id,
+            title="Layer-Epi",
+        )
+        self.kw_database.node_sets.append(node_set_kw)
+        return endo_nodeset_id, mid_nodeset_id, epi_nodeset_id
+
+    def _add_Tentusscher_keyword_epi(self, matid):
+        cell_kw = keywords.EmEpCellmodelTentusscher(
+            mid=matid,
+            gas_constant=8314.472,
+            t=310,
+            faraday_constant=96485.3415,
+            cm=0.185,
+            vc=0.016404,
+            vsr=0.001094,
+            vss=0.00005468,
+            pkna=0.03,
+            ko=5.4,
+            nao=140.0,
+            cao=2.0,
+            gk1=5.405,
+            gkr=0.153,
+            gks=0.392,
+            gna=14.838,
+            gbna=0.0002,
+            gcal=0.0000398,
+            gbca=0.000592,
+            gto=0.294,
+            gpca=0.1238,
+            gpk=0.0146,
+            pnak=2.724,
+            km=1.0,
+            kmna=40.0,
+            knaca=1000.0,
+            ksat=0.1,
+            alpha=2.5,
+            gamma=0.35,
+            kmca=1.38,
+            kmnai=87.5,
+            kpca=0.0005,
+            k1=0.15,
+            k2=0.045,
+            k3=0.06,
+            k4=0.005,
+            ec=1.5,
+            maxsr=2.5,
+            minsr=1.0,
+            vrel=0.102,
+            vleak=0.00036,
+            vxfer=0.0038,
+            vmaxup=0.006375,
+            kup=0.00025,
+            bufc=0.2,
+            kbufc=0.001,
+            bufsr=10.0,
+            kbufsf=0.3,
+            bufss=0.4,
+            kbufss=0.00025,
+            v=-85.23,
+            ki=136.89,
+            nai=8.604,
+            cai=0.000126,
+            cass=0.00036,
+            casr=3.64,
+            rpri=0.9073,
+            xr1=0.00621,
+            xr2=0.4712,
+            xs=0.0095,
+            m=0.00172,
+            h=0.7444,
+            j=0.7045,
+            d=3.373e-5,
+            f=0.7888,
+            f2=0.9755,
+            fcass=0.9953,
+            s=0.999998,
+            r=2.42e-8,
+        )
+        cell_kw.gas_constant = 8314.472
+        cell_kw.faraday_constant = 96485.3415
+        self.kw_database.cell_models.append(cell_kw)
+        return
+
+    def _add_Tentusscher_keyword_endo(self, matid):
+        cell_kw = keywords.EmEpCellmodelTentusscher(
+            mid=matid,
+            gas_constant=8314.472,
+            t=310,
+            faraday_constant=96485.3415,
+            cm=0.185,
+            vc=0.016404,
+            vsr=0.001094,
+            vss=0.00005468,
+            pkna=0.03,
+            ko=5.4,
+            nao=140.0,
+            cao=2.0,
+            gk1=5.405,
+            gkr=0.153,
+            gks=0.392,
+            gna=14.838,
+            gbna=0.0002,
+            gcal=0.0000398,
+            gbca=0.000592,
+            gto=0.073,
+            gpca=0.1238,
+            gpk=0.0146,
+            pnak=2.724,
+            km=1.0,
+            kmna=40.0,
+            knaca=1000.0,
+            ksat=0.1,
+            alpha=2.5,
+            gamma=0.35,
+            kmca=1.38,
+            kmnai=87.5,
+            kpca=0.0005,
+            k1=0.15,
+            k2=0.045,
+            k3=0.06,
+            k4=0.005,
+            ec=1.5,
+            maxsr=2.5,
+            minsr=1.0,
+            vrel=0.102,
+            vleak=0.00036,
+            vxfer=0.0038,
+            vmaxup=0.006375,
+            kup=0.00025,
+            bufc=0.2,
+            kbufc=0.001,
+            bufsr=10.0,
+            kbufsf=0.3,
+            bufss=0.4,
+            kbufss=0.00025,
+            v=-86.709,
+            ki=138.4,
+            nai=10.355,
+            cai=0.00013,
+            cass=0.00036,
+            casr=3.715,
+            rpri=0.9068,
+            xr1=0.00448,
+            xr2=0.476,
+            xs=0.0087,
+            m=0.00155,
+            h=0.7573,
+            j=0.7225,
+            d=3.164e-5,
+            f=0.8009,
+            f2=0.9778,
+            fcass=0.9953,
+            s=0.3212,
+            r=2.235e-8,
+        )
+        cell_kw.gas_constant = 8314.472
+        cell_kw.faraday_constant = 96485.3415
+        self.kw_database.cell_models.append(cell_kw)
+        return
+
+    def _add_Tentusscher_keyword_mid(self, matid):
+        cell_kw = keywords.EmEpCellmodelTentusscher(
+            mid=matid,
+            gas_constant=8314.472,
+            t=310,
+            faraday_constant=96485.3415,
+            cm=0.185,
+            vc=0.016404,
+            vsr=0.001094,
+            vss=0.00005468,
+            pkna=0.03,
+            ko=5.4,
+            nao=140.0,
+            cao=2.0,
+            gk1=5.405,
+            gkr=0.153,
+            gks=0.098,
+            gna=14.838,
+            gbna=0.0002,
+            gcal=0.0000398,
+            gbca=0.000592,
+            gto=0.294,
+            gpca=0.1238,
+            gpk=0.0146,
+            pnak=2.724,
+            km=1.0,
+            kmna=40.0,
+            knaca=1000.0,
+            ksat=0.1,
+            alpha=2.5,
+            gamma=0.35,
+            kmca=1.38,
+            kmnai=87.5,
+            kpca=0.0005,
+            k1=0.15,
+            k2=0.045,
+            k3=0.06,
+            k4=0.005,
+            ec=1.5,
+            maxsr=2.5,
+            minsr=1.0,
+            vrel=0.102,
+            vleak=0.00042,
+            vxfer=0.0038,
+            vmaxup=0.006375,
+            kup=0.00025,
+            bufc=0.2,
+            kbufc=0.001,
+            bufsr=10.0,
+            kbufsf=0.3,
+            bufss=0.4,
+            kbufss=0.00025,
+            v=-85.423,
+            ki=138.52,
+            nai=10.132,
+            cai=0.000153,
+            cass=0.00036,
+            casr=4.272,
+            rpri=0.8978,
+            xr1=0.0165,
+            xr2=0.473,
+            xs=0.0174,
+            m=0.00165,
+            h=0.749,
+            j=0.6788,
+            d=3.288e-5,
+            f=0.7026,
+            f2=0.9526,
+            fcass=0.9942,
+            s=0.999998,
+            r=2.347e-8,
+        )
+        cell_kw.gas_constant = 8314.472
+        cell_kw.faraday_constant = 96485.3415
+        self.kw_database.cell_models.append(cell_kw)
+        return
 
     def _update_ep_settings(self):
         """Add the settings for the electrophysiology solver."""
@@ -3265,80 +3488,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     pid=network.pid,
                     offset=len(self.model.mesh.tetrahedrons) + len(beams_kw.elements),
                 )
-                cell_kw = keywords.EmEpCellmodelTentusscher(
-                    mid=network.pid,
-                    gas_constant=8314.472,
-                    t=310,
-                    faraday_constant=96485.3415,
-                    cm=0.185,
-                    vc=0.016404,
-                    vsr=0.001094,
-                    vss=0.00005468,
-                    pkna=0.03,
-                    ko=5.4,
-                    nao=140.0,
-                    cao=2.0,
-                    gk1=5.405,
-                    gkr=0.153,
-                    gks=0.392,
-                    gna=14.838,
-                    gbna=0.0002,
-                    gcal=0.0000398,
-                    gbca=0.000592,
-                    gto=0.294,
-                    gpca=0.1238,
-                    gpk=0.0146,
-                    pnak=2.724,
-                    km=1.0,
-                    kmna=40.0,
-                    knaca=1000.0,
-                    ksat=0.1,
-                    alpha=2.5,
-                    gamma=0.35,
-                    kmca=1.38,
-                    kmnai=87.5,
-                    kpca=0.0005,
-                    k1=0.15,
-                    k2=0.045,
-                    k3=0.06,
-                    k4=0.005,
-                    ec=1.5,
-                    maxsr=2.5,
-                    minsr=1.0,
-                    vrel=0.102,
-                    vleak=0.00036,
-                    vxfer=0.0038,
-                    vmaxup=0.006375,
-                    kup=0.00025,
-                    bufc=0.2,
-                    kbufc=0.001,
-                    bufsr=10.0,
-                    kbufsf=0.3,
-                    bufss=0.4,
-                    kbufss=0.00025,
-                    v=-85.23,
-                    ki=136.89,
-                    nai=8.604,
-                    cai=0.000126,
-                    cass=0.00036,
-                    casr=3.64,
-                    rpri=0.9073,
-                    xr1=0.00621,
-                    xr2=0.4712,
-                    xs=0.0095,
-                    m=0.00172,
-                    h=0.7444,
-                    j=0.7045,
-                    d=3.373e-5,
-                    f=0.7888,
-                    f2=0.9755,
-                    fcass=0.9953,
-                    s=0.999998,
-                    r=2.42e-8,
-                )
-                cell_kw.gas_constant = 8314.472
-                cell_kw.faraday_constant = 96485.3415
-                self.kw_database.cell_models.extend([cell_kw])
+                self._add_Tentusscher_keyword_endo(matid=network.pid)
             self.kw_database.beam_networks.append(beams_kw)
 
     def _update_export_controls(self, dt_output_d3plot: float = 10.0):

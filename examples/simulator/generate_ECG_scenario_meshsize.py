@@ -2,19 +2,6 @@ import os
 from pathlib import Path
 
 from ansys.heart.misc.downloader import download_case, unpack_case
-import ansys.heart.preprocessor.models as models
-from ansys.heart.preprocessor.mesh.objects import Point
-
-import pyvista
-import numpy as np
-import vtk
-import sys
-
-import ansys.heart.writer.dynawriter as writers
-from vtkmodules.vtkCommonDataModel import vtkIterativeClosestPointTransform
-
-from ansys.heart.simulator.simulator import DynaSettings, run_lsdyna
-
 
 os.environ["USE_OLD_HEART_MODELS"] = "1"
 
@@ -24,7 +11,13 @@ case_file = str(
 download_folder = str(Path(Path(__file__).resolve().parents[2], "downloads"))
 
 workdir = str(
-    Path(Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "biventricle_scenario_0.25")
+    Path(
+        Path(__file__).resolve().parents[2],
+        "downloads",
+        "Strocchi2020",
+        "01",
+        "biventricle_scenario_0.25",
+    )
 )
 
 path_to_model = os.path.join(workdir, "heart_model.pickle")

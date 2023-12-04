@@ -27,7 +27,7 @@ classifiers = [
 dependencies = [
     "importlib-metadata >=4.0",
     "ansys-fluent-core==0.16.0",
-    "ansys-dpf-core==0.7.2",
+    "ansys-dpf-core==0.10.0",
     "h5py>=3.6.0",
     "Jinja2==3.1.2",
     "matplotlib==3.7.1",
@@ -40,7 +40,7 @@ dependencies = [
     "wget==3.2",
     "validators==0.20.0",
     "pint==0.20.1",
-    "pyvista==0.38.1",
+    "pyvista>=0.42.1",
 ]
 
 # Optional dependencies:
@@ -58,6 +58,9 @@ doc = [
     "sphinx-gallery==0.14.0",
     "sphinx_design==0.5.0",
     "sphinxcontrib-video",
+    "black",
+    "isort",
+    "pre-commit",
 ]
 
 tests = ["pytest==7.4.0"]

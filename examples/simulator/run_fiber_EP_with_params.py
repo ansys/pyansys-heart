@@ -1,11 +1,11 @@
 import os
-import pandas as pd
-
 from pathlib import Path
 
 from ansys.heart.preprocessor.mesh.objects import Point
 import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
+import pandas as pd
+
 # __file__ = r"C:\Users\xuhu\pyheart-lib\examples\simulator\test.ipynb"
 
 # set working directory and path to model.
@@ -19,7 +19,7 @@ if not os.path.isfile(path_to_model):
     raise FileExistsError(f"{path_to_model} not found")
 
 # specify LS-DYNA path (last tested working versions is DEV-104399)
-lsdyna_path = r"C:\Users\xuhu\lsdyna_smp_d_winx64\Other_version\mppdyna_d_winx64_msmpi\ls-dyna_mpp_d_Dev_104815-gc8c2d50328_winx64_ifort190_msmpi.exe"
+lsdyna_path = r"D:\dyna-versions\xuanyao.exe"
 
 if not os.path.isfile(lsdyna_path):
     raise FileExistsError(f"{lsdyna_path} not found.")
@@ -63,24 +63,26 @@ dyna_settings = DynaSettings(
 )
 
 
-param_file_path = r'C:\Users\xuhu\pyheart-lib\examples\simulator\parameter_combinations.csv'
+param_file_path = Path(Path(__file__).resolve().parent, "parameter_combinations.csv")
 parameters_df = pd.read_csv(param_file_path)
+
+simulator = EPSimulator(
+    model=model,
+    dyna_settings=dyna_settings,
+    simulation_directory=os.path.join(workdir, "simulation-EP"),
+)
+simulator.compute_uvc()
 
 for index, row in parameters_df.iterrows():
     # instantiate simulator. Change options where necessary.
-    simulator = EPSimulator(
-        model=model,
-        dyna_settings=dyna_settings,
-        simulation_directory=os.path.join(workdir, "simulation-EP"),
-    )
 
     simulator.settings.load_defaults()
 
     simulator.settings.load_with_EP_params(
-        Purkinje_edgelen=row['Purkinje_edgelen'], 
-        sigmaX=row['SigmaX'], 
-        ratio=row['Ratio'], 
-        ratio2=row['Ratio2']
+        Purkinje_edgelen=row["Purkinje_edgelen"],
+        sigmaX=row["SigmaX"],
+        ratio=row["Ratio"],
+        ratio2=row["Ratio2"],
     )
 
     print(simulator.settings.electrophysiology.sigma11)
@@ -89,13 +91,12 @@ for index, row in parameters_df.iterrows():
     print(simulator.settings.purkinje.edgelen)
     print(simulator.settings.purkinje.sigma)
 
-
     # # simulator.compute_fibers()
     # # simulator.model.plot_fibers(n_seed_points=2000)
     # # print('sucesss 5555555555')
 
     simulator.compute_purkinje()
-    
+
     simulator.compute_conduction_system()
 
     # simulator.model.plot_purkinje()

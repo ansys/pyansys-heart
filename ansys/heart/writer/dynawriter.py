@@ -2669,17 +2669,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         if isinstance(model, FourChamber):
             model._create_isolation_part()
         if model.info.add_blood_pool == True:
-            model.add_part("Blood")
-            blood = model.get_part("Blood")
-            blood.element_ids = np.linspace(
-                model.mesh.number_of_cells,
-                model.mesh.number_of_cells + model.fluid_mesh.number_of_cells - 1,
-                model.fluid_mesh.number_of_cells,
-                dtype=int,
-            )
-            model.mesh.tetrahedrons = np.vstack(
-                (model.mesh.tetrahedrons, model.fluid_mesh.tetrahedrons)
-            )
+            model._create_blood_part()
 
         super().__init__(model=model, settings=settings)
 

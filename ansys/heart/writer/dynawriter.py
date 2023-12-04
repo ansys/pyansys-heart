@@ -2668,6 +2668,18 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def __init__(self, model: HeartModel, settings: SimulationSettings = None) -> None:
         if isinstance(model, FourChamber):
             model._create_isolation_part()
+        if model.info.add_blood_pool == True:
+            model.add_part("Blood")
+            blood = model.get_part("Blood")
+            blood.element_ids = np.linspace(
+                model.mesh.number_of_cells,
+                model.mesh.number_of_cells + model.fluid_mesh.number_of_cells - 1,
+                model.fluid_mesh.number_of_cells,
+                dtype=int,
+            )
+            model.mesh.tetrahedrons = np.vstack(
+                (model.mesh.tetrahedrons, model.fluid_mesh.tetrahedrons)
+            )
 
         super().__init__(model=model, settings=settings)
 
@@ -2930,7 +2942,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         # different cell models for endo/mid/epi layer
         # TODO:  this will override previous definition?
         #        what's the situation at setptum? and at atrial?
-        if "uvc_transmural" in self.model.mesh.point_data.keys():
+        if "transmural" in self.model.mesh.point_data.keys():
             (
                 endo_id,
                 mid_id,

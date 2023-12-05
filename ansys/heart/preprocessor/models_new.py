@@ -16,7 +16,7 @@ from ansys.heart.preprocessor.input import _InputModel
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher
 from ansys.heart.preprocessor.mesh.mesher import _fluent_mesh_to_vtk_grid
-from ansys.heart.preprocessor.mesh.objects import Cap, Cavity, Mesh, Part, Point, SurfaceMesh
+from ansys.heart.preprocessor.mesh.objects import Cap, Cavity, Mesh, BeamMesh, Part, Point, SurfaceMesh
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 import numpy as np
 import pyvista as pv
@@ -1336,8 +1336,346 @@ class FourChamber(HeartModel):
 
         pass
 
+    def compute_SA_node(self) -> Point:
+        """
+        Compute SinoAtrial node.
 
-class FullHeart(HeartModel):
+        SinoAtrial node is defined on endocardium surface and
+        between sup vena cave and inf vena cave.
+        """
+        right_atrium_endo = self.right_atrium.endocardium
+
+        for cap in self.right_atrium.caps:
+            if "superior" in cap.name:
+                sup_vcava_centroid = cap.centroid
+            elif "inferior" in cap.name:
+                inf_vcava_centroid = cap.centroid
+
+        # define SinoAtrial node at here:
+        target_coord = sup_vcava_centroid - (inf_vcava_centroid - sup_vcava_centroid) / 2
+
+        target_id = pv.PolyData(self.mesh.nodes[right_atrium_endo.node_ids, :]).find_closest_point(
+            target_coord
+        )
+        SA_node_id = right_atrium_endo.node_ids[target_id]
+        SA_point = Point(name="SA_node", xyz=self.mesh.nodes[SA_node_id, :], node_id=SA_node_id)
+        self.right_atrium.points.append(SA_point)
+
+        return SA_point
+
+    def compute_AV_node(self) -> Point:
+        """
+        Compute Atrio-Ventricular node.
+
+        AtrioVentricular node is defined on endocardium surface and closest to septum.
+
+        Returns
+        -------
+        Point
+            returns the AV node.
+        """
+        right_atrium_endo = self.right_atrium.endocardium
+
+        for surface in self.right_ventricle.surfaces:
+            if "endocardium" in surface.name and "septum" in surface.name:
+                right_septum = surface
+
+        # define AtrioVentricular as the closest point to septum
+        target_coord = pv.PolyData(
+            self.mesh.points[right_atrium_endo.node_ids, :]
+        ).find_closest_point(pv.PolyData(self.mesh.points[right_septum.node_ids, :]).center)
+
+        # assign a point
+        target_id = right_atrium_endo.node_ids[target_coord]
+        AV_point = Point(name="AV_node", xyz=self.mesh.nodes[target_id, :], node_id=target_id)
+        self.right_atrium.points.append(AV_point)
+
+        return AV_point
+
+    def compute_av_conduction(self, create_new_nodes=True) -> BeamMesh:
+        """Compute Atrio-Ventricular conduction by means of beams following a geodesic path.
+
+        Parameters
+        ----------
+        create_new_nodes : bool, optional
+            Duplicate nodes found of the computed geodesic path, by default True
+
+        Returns
+        -------
+        BeamMesh
+            Beam mesh.
+
+        Raises
+        ------
+        NotImplementedError
+            Not implemented error.
+        """
+        if not create_new_nodes:
+            raise NotImplementedError
+
+        right_atrium_endo = self.right_atrium.endocardium
+
+        try:
+            SA_node = self.right_atrium.get_point("SA_node").node_id
+        except AttributeError:
+            LOGGER.info("SA node is not defined, creating with default option.")
+            SA_node = self.compute_SA_node().node_id
+
+        try:
+            AV_node = self.right_atrium.get_point("AV_node").node_id
+        except AttributeError:
+            LOGGER.info("AV node is not defined, creating with default option.")
+            AV_node = self.compute_AV_node().node_id
+
+        path_SAN_AVN = right_atrium_endo.geodesic(SA_node, AV_node)
+        edges = path_SAN_AVN["vtkOriginalPointIds"]
+
+        if create_new_nodes:
+            # duplicate nodes inside the line, connect only SA node (the first) with 3D
+            edges[1:] = len(self.mesh.nodes) + np.linspace(
+                0, len(edges) - 2, len(edges) - 1, dtype=int
+            )
+
+            # modify ID of AV point
+            self.right_atrium.get_point("AV_node").node_id = edges[-1]
+
+            # build connectivity table
+            edges = np.vstack((edges[:-1], edges[1:])).T
+
+            # add to mesh
+            beam = self.mesh.add_beam_network(
+                new_nodes=path_SAN_AVN.points[1:, :], edges=edges, name="SAN_to_AVN"
+            )
+
+            return beam
+
+    def compute_His_conduction(self, beam_number=4) -> BeamMesh:
+        """Compute His bundle conduction.
+
+        Parameters
+        ----------
+        beam_number : int, optional
+            beam number, by default 4
+
+        Returns
+        -------
+        BeamMesh
+            Beam mesh
+            
+        Notes
+        -----
+        https://www.researchgate.net/publication/353154291_Morphometric_analysis_of_the_His_bundle_atrioven
+        tricular_fascicle_in_humans_and_other_animal_species_Histological_and_immunohistochemical_study
+        (1.06 ± 0.6 mm)
+        """
+        start_point, end_point = self._define_hisbundle_start_end_point(beam_number)
+
+        # create nodes from start to end
+        new_nodes = np.array(
+            [
+                start_point.xyz,
+                end_point.xyz,
+            ]
+        )
+
+        step = (end_point.xyz - start_point.xyz) / (beam_number + 1)
+        for i in range(1, beam_number):
+            new_nodes = np.insert(new_nodes, i, start_point.xyz + i * step, axis=0)
+
+        # path start from AV point, to septum start point, then to septum end point
+        AV_node = self.right_atrium.get_point("AV_node")
+        edges = np.concatenate(
+            (
+                np.array([AV_node.node_id]),
+                len(self.mesh.nodes)
+                + np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int),
+            )
+        )
+        # create beam
+        connect_table = np.vstack((edges[:-1], edges[1:])).T
+        beam = self.mesh.add_beam_network(new_nodes=new_nodes, edges=connect_table, name="His")
+
+        # TODO:
+        # Find upper right septal point "URSP"
+        # connect this point with AV node
+        # get total length of bounding box
+        # define HIS as fraction of line (few edge lengths) connecting URSP and septum centroid
+
+        # plotter = pv.Plotter()
+        # heartsurface = self.mesh.extract_surface()
+        # plotter.add_mesh(heartsurface, opacity=0.01, color="w")
+        # plotter.add_mesh(self.mesh.beam_network[0], opacity=0.1, line_width=4)
+        # plotter.add_mesh(self.mesh.beam_network[1], opacity=0.1, color="k", line_width=4)
+        # plotter.add_mesh(new_nodes[0, :], opacity=0.1, color="r")
+        # plotter.add_mesh(new_nodes[0, :], opacity=0.1, color="r")
+        # plotter.add_mesh(new_nodes[1, :], opacity=0.1, color="r")
+        # plotter.add_mesh(self.mesh.nodes[AV_node.node_id, :], opacity=0.1, color="r")
+        # plotter.add_mesh(self.mesh.nodes[His_septum_start_id, :], opacity=0.1, color="r")
+
+        # plotter.show()
+
+        return beam
+
+    def _define_hisbundle_start_end_point(self, beam_number) -> (Point, Point):
+        """
+        Define start and end points of the bundle of His.
+
+        Start point: create a point in septum, it's closest to AV node.
+        End point: create a point in septum, it's close to AV node but randomly chosen.
+        """
+        AV_node = self.right_atrium.get_point("AV_node")
+
+        septum_point_ids = np.unique(np.ravel(self.mesh.tetrahedrons[self.septum.element_ids,]))
+        septum_pointcloud = pv.PolyData(self.mesh.nodes[septum_point_ids, :])
+
+        # Define start point: closest to artria
+        pointcloud_id = septum_pointcloud.find_closest_point(AV_node.xyz)
+
+        His_septum_start_id = septum_point_ids[pointcloud_id]
+        His_septum_start_xyz = self.mesh.nodes[His_septum_start_id, :]
+
+        # Define end point:  a random close point
+        n = 50
+        pointcloud_id = septum_pointcloud.find_closest_point(AV_node.xyz, n=n)[n - 1]
+
+        His_septum_end_id = septum_point_ids[pointcloud_id]
+        His_septum_end_xyz = self.mesh.nodes[His_septum_end_id, :]
+
+        # create Points
+        His_septum_start = Point(
+            name="His septum start", xyz=His_septum_start_xyz, node_id=len(self.mesh.nodes)
+        )
+        self.septum.points.append(His_septum_start)
+
+        His_septum_end = Point(
+            name="His septum end",
+            xyz=His_septum_end_xyz,
+            node_id=beam_number + len(self.mesh.nodes),
+        )
+        self.septum.points.append(His_septum_end)
+
+        return His_septum_start, His_septum_end
+
+    def compute_bundle_branches(self) -> (BeamMesh, BeamMesh):
+        """Compute Buncle branches conduction system."""
+        His_end = self.septum.get_point("His septum end")
+
+        left_bundle = self._compute_bundle_oneside(
+            His_end,
+            self.left_ventricle.endocardium,
+            self.left_ventricle.endocardium.node_ids,
+            side="Left",
+        )
+
+        face = np.hstack(
+            (self.right_ventricle.endocardium.faces, self.right_ventricle.septum.faces)
+        )
+        right_endo = pv.PolyData(self.mesh.points, face)
+
+        right_endo_nids = np.unique(
+            np.concatenate(
+                (self.right_ventricle.septum.node_ids, self.right_ventricle.endocardium.node_ids)
+            )
+        )
+        right_bundle = self._compute_bundle_oneside(
+            His_end, right_endo, right_endo_nids, side="Right"
+        )
+
+        return left_bundle, right_bundle
+
+    def _compute_bundle_oneside(self, His_end: Point, endo_surface, endo_nids, side: str):
+        """Bundle brunch."""
+        start_xyz = pv.PolyData(self.mesh.points[endo_nids, :]).find_closest_point(His_end.xyz)
+        start_id = endo_nids[start_xyz]
+
+        if side == "Left":
+            ventricle = self.left_ventricle
+        elif side == "Right":
+            ventricle = self.right_ventricle
+
+        bundle_branch = endo_surface.geodesic(
+            endo_surface.find_closest_point(self.mesh.points[start_id, :]),
+            endo_surface.find_closest_point(ventricle.apex_points[0].xyz),
+        )
+
+        # build branch net
+        # exclude last (apex) node which belongs to purkinje beam
+        new_nodes = bundle_branch.points[0:-1, :]
+
+        # first node "his septum end" and last node "apex"
+        edges = np.concatenate(([His_end.node_id], bundle_branch["vtkOriginalPointIds"]))
+
+        # duplicate nodes except the two ends
+        edges[1:-1] = len(self.mesh.nodes) + np.linspace(
+            0, len(edges) - 3, len(edges) - 2, dtype=int
+        )
+
+        edges = np.vstack((edges[:-1], edges[1:])).T
+        bundle_beam = self.mesh.add_beam_network(
+            new_nodes=new_nodes, edges=edges, name=side + " bundle branch"
+        )
+        return bundle_beam
+
+    def compute_Bachman_bundle(self):
+        """Compute Bachman bundle conduction system."""
+        raise NotImplementedError
+        return
+
+    def compute_cavity_interfaces(self):
+        """Compute AtrioVentricular conduction system."""
+        self.mesh.establish_connectivity()
+        left_ventricle_left_atrium = []
+        right_ventricle_right_atrium = []
+        left_ventricle_right_atrium = []
+        right_ventricle_left_atrium = []
+        left_ventricle_left_atrium_name = "left-ventricle_left-atrium"
+        right_ventricle_right_atrium_name = "right-ventricle_right-atrium"
+        left_ventricle_right_atrium_name = "left-ventricle_right-atrium"
+        right_ventricle_left_atrium_name = "right-ventricle_left-atrium"
+
+        # build atrio-ventricular tag-id pairs
+        # labels_to_ids stores the mapping between tag-ids and the corresponding label.
+        labels_to_tag_ids = self.info.labels_to_ids
+        left_ventricle_left_atrium = [
+            labels_to_tag_ids["Left ventricle myocardium"],
+            labels_to_tag_ids["Left atrium myocardium"],
+        ]
+        right_ventricle_right_atrium = [
+            labels_to_tag_ids["Right ventricle myocardium"],
+            labels_to_tag_ids["Right atrium myocardium"],
+        ]
+        left_ventricle_right_atrium = [
+            labels_to_tag_ids["Left ventricle myocardium"],
+            labels_to_tag_ids["Right atrium myocardium"],
+        ]
+        right_ventricle_left_atrium = [
+            labels_to_tag_ids["Right ventricle myocardium"],
+            labels_to_tag_ids["Left atrium myocardium"],
+        ]
+
+        # build atrioventricular tag_id pairs
+        left_ventricle_left_atrium = np.unique(left_ventricle_left_atrium)
+        right_ventricle_right_atrium = np.unique(right_ventricle_right_atrium)
+        left_ventricle_right_atrium = np.unique(left_ventricle_right_atrium)
+        right_ventricle_left_atrium = np.unique(right_ventricle_left_atrium)
+        # find atrioventricular shared nodes/interfaces
+        self.mesh.add_interfaces(
+            [
+                left_ventricle_left_atrium,
+                right_ventricle_right_atrium,
+                left_ventricle_right_atrium,
+                right_ventricle_left_atrium,
+            ],
+            [
+                left_ventricle_left_atrium_name,
+                right_ventricle_right_atrium_name,
+                left_ventricle_right_atrium_name,
+                right_ventricle_left_atrium_name,
+            ],
+        )
+
+
+class FullHeart(FourChamber):
     """Model of both ventricles, both atria, aorta and pulmonary artery."""
 
     def __init__(self, info: ModelInfo = None) -> None:

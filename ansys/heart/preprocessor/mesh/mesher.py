@@ -459,7 +459,7 @@ def mesh_from_non_manifold_input_model(
 
         visited_parts += [part.name]
 
-    print(_get_face_zones_with_filter(session, ["*"]))
+    # print(_get_face_zones_with_filter(session, ["*"]))
 
     LOGGER.info("Wrapping model...")
 
@@ -471,7 +471,7 @@ def mesh_from_non_manifold_input_model(
         )
     )
 
-    print(_get_face_zones_with_filter(session, ["*"]))
+    # print(_get_face_zones_with_filter(session, ["*"]))
 
     # rename boundaries accordingly.
     prefixes = [bn + ":*" for bn in model.boundary_names]

@@ -148,7 +148,6 @@ def get_input_geom_and_part_defintions_from_public_database(
     tag_to_label = {v: "-".join(k.split(" ")) for k, v in labels.items()}
 
     # mesh as multiple parts
-    part_definitions = {}
     geom_all = mesh.extract_geometry()
 
     tag_offset = max(tag_to_label.keys()) + 1
@@ -237,18 +236,25 @@ def get_input_geom_and_part_defintions_from_public_database(
         if "myocardium" in k or "aorta" in k or "ventricle" in k or "pulmonary-artery" in k
     }
 
+    # rename:
     part_definitions1["Left ventricle"] = part_definitions1.pop("left-ventricle-myocardium")
     part_definitions1["Right ventricle"] = part_definitions1.pop("right-ventricle-myocardium")
     part_definitions1["Left atrium"] = part_definitions1.pop("left-atrium-myocardium")
     part_definitions1["Right atrium"] = part_definitions1.pop("right-atrium-myocardium")
     part_definitions1["Aorta"] = part_definitions1.pop("aorta-wall")
     part_definitions1["Pulmonary artery"] = part_definitions1.pop("pulmonary-artery-wall")
-    # add pulmonary artery.
-
+    
+    # rename septum
     part_definitions1["Left ventricle"]["enclosed_by_boundaries"][
         "right-ventricle-septum"
     ] = part_definitions1["Left ventricle"]["enclosed_by_boundaries"].pop("left-ventricle-septum")
 
+    # remove left atrial septal inlet boundary
+    try:
+        del part_definitions1["Left atrium"]["enclosed_by_boundaries"]["left-atrium-appendage-inlet"]
+    except KeyError:
+        pass
+    
     if model_type == "BiVentricle":
         del part_definitions1["Left atrium"]
         del part_definitions1["Right atrium"]

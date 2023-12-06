@@ -476,16 +476,12 @@ class BaseDynaWriter:
 
     def _update_solid_elements_db(self, add_fibers: bool = True):
         """
-        Create Solid ortho elements for all cavities.
-
-        Note
-        ----
-        Each cavity contains one myocardium.
+        Create Solid (ortho) elements for all parts.
 
         Parameters
         ----------
         add_fibers: bool, True
-            if add fiber information into solid element.
+            if add fiber in general.
         """
         LOGGER.debug("Updating solid element keywords...")
 
@@ -496,14 +492,10 @@ class BaseDynaWriter:
 
         # create elements for each part
         for part in self.model.parts:
-            # Atrium do not contain fiber information in any way.
-            if add_fibers:
-                if "ventricle" in part.name.lower() or "septum" in part.name.lower():
-                    part_add_fibers = True
-                else:
-                    part_add_fibers = False
+            if add_fibers and part.has_fiber:
+                part_add_fibers = True
             else:
-                part_add_fibers = add_fibers
+                part_add_fibers = False
 
             LOGGER.debug(
                 "\tAdding elements for {0} | adding fibers: {1}".format(part.name, part_add_fibers)
@@ -1004,7 +996,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             self.kw_database.node_sets.extend(kws_surface)
 
-    def _update_material_db(self, add_active: bool = True):
+    def _update_material_db(self, add_active: bool = True, em_couple: bool = False):
         """Update the database of material keywords."""
         act_curve_id = self.get_unique_curve_id()
 
@@ -1012,56 +1004,64 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # NOTE: since we remove units, we don't have to access quantities by <var_name>.m
         material_settings._remove_units()
 
+        if not add_active:
+            active_dict = None
+        else:
+            if em_couple:
+                # todo hard coded EM coupling parameters
+                active_dict = {
+                    "actype": 3,
+                    "acthr": 2e-4,
+                    "ca2ion50": 1e-3,
+                    "n": 2,
+                    "sigmax": 0.125,
+                    "f": 0,
+                    "l": 1.9,
+                    "eta": 1.45,
+                }
+            else:
+                active_dict = material_settings.myocardium["active"]
+
         for part in self.model.parts:
-            if "ventricle" in part.name.lower() or "septum" in part.name.lower():
-                if not add_active:
-                    active_dict = None
+            if part.has_fiber:
+                if part.is_active:
+                    material_kw = MaterialHGOMyocardium(
+                        mid=part.mid,
+                        iso_user=material_settings.myocardium["isotropic"],
+                        anisotropy_user=material_settings.myocardium["anisotropic"],
+                        active_user=active_dict,
+                    )
+
+                    if not em_couple:
+                        material_kw.acid = act_curve_id
+
                 else:
-                    active_dict = material_settings.myocardium["active"]
+                    material_kw = MaterialHGOMyocardium(
+                        mid=part.mid,
+                        iso_user=material_settings.myocardium["isotropic"],
+                        anisotropy_user=material_settings.myocardium["anisotropic"],
+                        active_user=None,
+                    )
 
-                myocardium_kw = MaterialHGOMyocardium(
-                    mid=part.mid,
-                    iso_user=material_settings.myocardium["isotropic"],
-                    anisotropy_user=material_settings.myocardium["anisotropic"],
-                    active_user=active_dict,
-                )
-
-                myocardium_kw.acid = act_curve_id
-
-                self.kw_database.material.append(myocardium_kw)
-
-            elif "atrium" in part.name:
-                # add atrium material
+            else:
+                # add isotropic material
                 if material_settings.atrium["type"] == "NeoHook":
                     # use MAT77H
-                    atrium_kw = MaterialNeoHook(
+                    material_kw = MaterialNeoHook(
                         mid=part.mid,
                         rho=material_settings.atrium["rho"],
                         c10=material_settings.atrium["mu1"] / 2,
                     )
                 else:
-                    # use MAT295
-                    atrium_kw = MaterialHGOMyocardium(
+                    # use MAT295, should have the same behavior
+                    material_kw = MaterialHGOMyocardium(
                         mid=part.mid, iso_user=dict(material_settings.atrium)
                     )
 
-                self.kw_database.material.append(atrium_kw)
+            self.kw_database.material.append(material_kw)
 
-            else:
-                LOGGER.warning("Assuming same material as atrium for: {0}".format(part.name))
-
-                general_tissue_kw = MaterialNeoHook(
-                    mid=part.mid,
-                    rho=material_settings.atrium["rho"],
-                    c10=material_settings.atrium["mu1"] / 2,
-                )
-                # general_tissue_kw = MaterialHGOMyocardium(
-                #     mid=part.mid,
-                #     iso_user=dict(material_settings.atrium),
-                # )
-                self.kw_database.material.append(general_tissue_kw)
-
-        if add_active:
+        # Add Ca2+ curve if necessary
+        if add_active and not em_couple:
             # write and add active curve to material database
             if material_settings.myocardium["active"]["actype"] == 1:
                 time_array, calcium_array = active_curve("constant")
@@ -1079,7 +1079,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             # x scaling from beat rate
             active_curve_kw.sfa = material_settings.myocardium["active"]["beat_time"]
             # y scaling from Ca2
-            active_curve_kw.sfo = myocardium_kw.ca2ionm
+            active_curve_kw.sfo = material_kw.ca2ionm
 
             self.kw_database.material.append(active_curve_kw)
 
@@ -2011,6 +2011,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             nids = np.unique(tets)
 
             # remove nodes not attached to ventricle parts
+            # note: because self.model is a copy of heat model, so we can do this kind of operation
             self.model.mesh.nodes = self.model.mesh.nodes[nids]
             self._update_node_db(ids=nids + 1)
 
@@ -2665,6 +2666,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     """Class for preparing the input for an Electrophysiology LS-DYNA simulation."""
 
     def __init__(self, model: HeartModel, settings: SimulationSettings = None) -> None:
+        if isinstance(model, FourChamber):
+            model._create_isolation_part()
+
         super().__init__(model=model, settings=settings)
 
         self.kw_database = ElectrophysiologyDecks()
@@ -2672,26 +2676,36 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def update(self):
         """Update keyword database for Electrophysiology."""
-        self._isolate_atria_and_ventricles()
+        # self._isolate_atria_and_ventricles()
+
         ##
         self._update_main_db()
-
         self._update_solution_controls()
         self._update_export_controls()
-        self._update_node_db()
 
+        self._update_node_db()
         self._update_parts_db()
         self._update_solid_elements_db(add_fibers=True)
-        self._update_material_db()
+
+        self._update_dummy_material_db()
         self._update_ep_material_db()
         self._update_cellmodels()
+
         self._update_segmentsets_db()
         self._update_nodesets_db()
-        self._update_use_Purkinje()
+
+        if self.model.beam_network:
+            # with smcoupl=1, coupling is disabled
+            self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
+            self._update_use_Purkinje()
+
         # update ep settings
         self._update_ep_settings()
+        self._update_stimulation()
+
         if len(self.model.electrodes) != 0:
             self._update_ECG_coordinates()
+
         self._get_list_of_includes()
         self._add_includes()
 
@@ -2753,6 +2767,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
 
             # duplicate nodes of each interface in atrium side
+            old_nodes = []
+            new_nodes = []
             for interface in self.model.mesh.interfaces:
                 if interface.name != None and interface.name == left_ventricle_left_atrium_name:
                     interface_nids = interface.node_ids
@@ -2770,6 +2786,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                         )
                     ) + len(self.model.mesh.nodes)
                     tets_atrium[np.isin(tets_atrium, interface_nids)] = new_nids
+                    old_nodes.extend(nids_tobe_replaced)
+                    new_nodes.extend(new_nids)
 
                     # TODO refactor this and avoid big ndarray copies
                     tets: np.ndarray = self.model.mesh.tetrahedrons
@@ -2796,7 +2814,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                         )
                     ) + len(self.model.mesh.nodes)
                     tets_atrium[np.isin(tets_atrium, interface_nids)] = new_nids
-
+                    old_nodes.extend(nids_tobe_replaced)
+                    new_nodes.extend(new_nids)
                     tets: np.ndarray = self.model.mesh.tetrahedrons
                     tets[self.model.right_atrium.element_ids, :] = tets_atrium
 
@@ -2821,6 +2840,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                         )
                     ) + len(self.model.mesh.nodes)
                     tets_atrium[np.isin(tets_atrium, interface_nids)] = new_nids
+                    old_nodes.extend(nids_tobe_replaced)
+                    new_nodes.extend(new_nids)
 
                     tets: np.ndarray = self.model.mesh.tetrahedrons
                     tets[self.model.right_atrium.element_ids, :] = tets_atrium
@@ -2846,6 +2867,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                         )
                     ) + len(self.model.mesh.nodes)
                     tets_atrium[np.isin(tets_atrium, interface_nids)] = new_nids
+                    old_nodes.extend(nids_tobe_replaced)
+                    new_nodes.extend(new_nids)
 
                     tets: np.ndarray = self.model.mesh.tetrahedrons
                     tets[self.model.left_atrium.element_ids, :] = tets_atrium
@@ -2856,67 +2879,43 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                         self.model.mesh.nodes, self.model.mesh.nodes[interface_nids, :], axis=0
                     )
 
-    def export(self, export_directory: str):
-        """Write the model to files."""
-        tstart = time.time()
-        LOGGER.debug("Writing all LS-DYNA .k files...")
-
-        if not export_directory:
-            export_directory = self.model.info.workdir
-
-        if not os.path.isdir(export_directory):
-            os.makedirs(export_directory)
-
-        # export .k files
-        self.export_databases(export_directory)
-
-        tend = time.time()
-        LOGGER.debug("Time spent writing files: {:.2f} s".format(tend - tstart))
-
-        return
-
-    def _update_material_db(self):
+    def _update_dummy_material_db(self):
         """Add simple mechanics material for each defined part."""
         for part in self.model.parts:
             ep_mid = part.pid
-            self.kw_database.material.extend(
-                [
-                    keywords.MatElastic(mid=ep_mid, ro=1e-6, e=1),
-                ]
+            self.kw_database.material.append(
+                keywords.MatElastic(mid=ep_mid, ro=1e-6, e=1),
             )
 
     def _update_ep_material_db(self):
         """Add EP material for each defined part."""
         for part in self.model.parts:
+            self.kw_database.material.append(f"$$ {part.name} $$")
             partname = part.name.lower()
             if ("atrium" in partname) or ("ventricle" in partname) or ("septum" in partname):
                 ep_mid = part.pid
-                self.kw_database.material.extend(
-                    [
-                        custom_keywords.EmMat003(
-                            mid=ep_mid,
-                            mtype=2,
-                            sigma11=self.settings.electrophysiology.sigma11,
-                            sigma22=self.settings.electrophysiology.sigma22,
-                            sigma33=self.settings.electrophysiology.sigma33,
-                            beta=140,
-                            cm=0.01,
-                            aopt=2.0,
-                            a1=0,
-                            a2=0,
-                            a3=1,
-                            d1=0,
-                            d2=-1,
-                            d3=0,
-                        ),
-                    ]
+                self.kw_database.material.append(
+                    custom_keywords.EmMat003(
+                        mid=ep_mid,
+                        mtype=2,
+                        sigma11=0.5,
+                        sigma22=0.1,
+                        sigma33=0.1,
+                        beta=140,
+                        cm=0.01,
+                        aopt=2.0,
+                        a1=0,
+                        a2=0,
+                        a3=1,
+                        d1=0,
+                        d2=-1,
+                        d3=0,
+                    ),
                 )
             else:
                 ep_mid = part.pid
-                self.kw_database.material.extend(
-                    [
-                        keywords.EmMat001(mid=ep_mid, mtype=4, sigma=self.settings.purkinje.sigma),
-                    ]
+                self.kw_database.material.append(
+                    keywords.EmMat001(mid=ep_mid, mtype=1, sigma=1),
                 )
 
     def _update_cellmodels(self):
@@ -2925,7 +2924,12 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             partname = part.name.lower()
             if ("atrium" in partname) or ("ventricle" in partname) or ("septum" in partname):
                 ep_mid = part.pid
+                # One cell model for myocardium, default value is epi layer parameters
                 self._add_Tentusscher_keyword_epi(matid=ep_mid)
+
+        # different cell models for endo/mid/epi layer
+        # TODO:  this will override previous definition?
+        #        what's the situation at setptum? and at atrial?
         if "uvc_transmural" in self.model.mesh.point_data.keys():
             (
                 endo_id,
@@ -3212,138 +3216,122 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self.kw_database.ep_settings.append(
             custom_keywords.EmEpIsoch(idisoch=1, idepol=1, dplthr=-20, irepol=1, rplthr=-40)
         )
-        part_ids = [None] * 7
-        part_ids[0 : len(self.model.part_ids)] = self.model.part_ids
-        nsid_all_parts = self.get_unique_nodeset_id()
-        kw = keywords.SetNodeGeneral(
-            title="All nodes",
-            option="PART",
-            sid=nsid_all_parts,
-            e1=part_ids[0],
-            e2=part_ids[1],
-            e3=part_ids[2],
-            e4=part_ids[3],
-            e5=part_ids[4],
-            e6=part_ids[5],
-            e7=part_ids[6],
-        )
-        self.kw_database.node_sets.append(kw)
 
         # use defaults
         self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=1))
 
-        # max iter should be int
         self.kw_database.ep_settings.append(
             keywords.EmSolverFem(reltol=1e-6, maxite=int(1e4), precon=2)
         )
 
         self.kw_database.ep_settings.append(keywords.EmOutput(mats=1, matf=1, sols=1, solf=1))
 
-        if isinstance(self.model, BiVentricle):
+    def _update_stimulation(self):
+        # # define apex node set
+        # node_apex_left = self.model.left_ventricle.apex_points[0].node_id
+        # node_set_id_apex_left = self.get_unique_nodeset_id()
+
+        # # create node-sets for apex left
+        # node_set_kw = create_node_set_keyword(
+        #     node_ids=[node_apex_left + 1],
+        #     node_set_id=node_set_id_apex_left,
+        #     title="apex node left",
+        # )
+        # self.kw_database.node_sets.append(node_set_kw)
+
+        # # right ventricle apex
+        # if not isinstance(self.model, LeftVentricle):
+        #     node_apex_right = self.model.right_ventricle.apex_points[0].node_id
+        #     node_set_id_apex_right = self.get_unique_nodeset_id()
+
+        #     # create node-sets for apex right
+        #     node_set_kw = create_node_set_keyword(
+        #         node_ids=[node_apex_right + 1],
+        #         node_set_id=node_set_id_apex_right,
+        #         title="apex node right",
+        #     )
+
+        # define stimulation node set
+        if isinstance(self.model, LeftVentricle):
+            stim_nodes = np.array(self.model.left_ventricle.apex_points[0].node_id)
+
+        elif isinstance(self.model, BiVentricle):
             node_apex_left = self.model.left_ventricle.apex_points[0].node_id
             node_apex_right = self.model.right_ventricle.apex_points[0].node_id
+            stim_nodes = np.array([node_apex_left, node_apex_right])
 
-            node_set_id_apex_left = self.get_unique_nodeset_id()
-            # create node-sets for apex left
-            node_set_kw = create_node_set_keyword(
-                node_ids=[node_apex_left + 1],
-                node_set_id=node_set_id_apex_left,
-                title="apex node left",
-            )
-            self.kw_database.node_sets.append(node_set_kw)
-
-            node_set_id_apex_right = self.get_unique_nodeset_id()
-            # create node-sets for apex right
-            node_set_kw = create_node_set_keyword(
-                node_ids=[node_apex_right + 1],
-                node_set_id=node_set_id_apex_right,
-                title="apex node right",
-            )
-            self.kw_database.node_sets.append(node_set_kw)
-            # TODO add more nodes to initiate wave propagation !!!!
-            node_set_id_stimulationnodes = self.get_unique_nodeset_id()
-            # create node-sets for apex
-            node_set_kw = create_node_set_keyword(
-                node_ids=[node_apex_left + 1, node_apex_right + 1],
-                node_set_id=node_set_id_stimulationnodes,
-                title="Stim nodes",
-            )
-
-            self.kw_database.node_sets.append(node_set_kw)
-            self.kw_database.ep_settings.append(
-                custom_keywords.EmEpTentusscherStimulus(
-                    stimid=1,
-                    settype=2,
-                    setid=node_set_id_stimulationnodes,
-                    stimstrt=0.0,
-                    stimt=1000.0,
-                    stimdur=20.0,
-                    stimamp=50.0,
-                )
-            )
-            # if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-            #     self.model.left_atrium.apex_points
-        if isinstance(self.model, (FourChamber, FullHeart)):
+        elif isinstance(self.model, (FourChamber, FullHeart)):
             node_apex_left = self.model.left_ventricle.apex_points[0].node_id
             node_apex_right = self.model.right_ventricle.apex_points[0].node_id
             stim_nodes = np.array([node_apex_left, node_apex_right])
 
             if self.model.right_atrium.get_point("SA_node") != None:
-                stim_nodes = self.model.right_atrium.get_point("SA_node").node_id
-            # TODO add more nodes to initiate wave propagation !!!!
-            node_set_id_stimulationnodes = self.get_unique_nodeset_id()
-            # create node-sets for apex
-            node_set_kw = create_node_set_keyword(
-                node_ids=stim_nodes + 1,
-                node_set_id=node_set_id_stimulationnodes,
-                title="Stim nodes",
-            )
+                # Active SA node (belong to both solid and beam)
+                stim_nodes = [self.model.right_atrium.get_point("SA_node").node_id]
 
-            self.kw_database.node_sets.append(node_set_kw)
+                #  add more nodes to initiate wave propagation
+                # id offset due to cap center nodes TODO do once
+                if self.__class__.__name__ == "ElectroMechanicsDynaWriter":
+                    beam_node_id_offset = len(self.model.cap_centroids)
+                else:
+                    beam_node_id_offset = 0
+
+                for network in self.model.beam_network:
+                    if network.name == "SAN_to_AVN":
+                        stim_nodes.append(network.edges[1, 0] + beam_node_id_offset)
+                        stim_nodes.append(network.edges[2, 0] + beam_node_id_offset)
+                        stim_nodes.append(network.edges[3, 0] + beam_node_id_offset)
+
+        # create node-sets for stim nodes
+        node_set_id_stimulationnodes = self.get_unique_nodeset_id()
+        node_set_kw = create_node_set_keyword(
+            node_ids=np.array(stim_nodes) + 1,
+            node_set_id=node_set_id_stimulationnodes,
+            title="Stim nodes",
+        )
+        self.kw_database.ep_settings.append(node_set_kw)
+
+        # stimulation
+        self.kw_database.ep_settings.append(
+            custom_keywords.EmEpTentusscherStimulus(
+                stimid=1,
+                settype=2,
+                setid=node_set_id_stimulationnodes,
+                stimstrt=0.0,
+                stimt=800.0,
+                stimdur=20.0,
+                stimamp=50.0,
+            )
+        )
+
+        # TODO: His bundle is removed for EPMECA model due to unfinished development in LSDYNA
+        if self.__class__.__name__ == "ElectroMechanicsDynaWriter" and isinstance(
+            self.model, FourChamber
+        ):
+            second_stim_nodes = self.get_unique_nodeset_id()
+            stim_nodes = []
+            beam_node_id_offset = len(self.model.cap_centroids)
+            for network in self.model.beam_network:
+                if network.name == "Left bundle branch" or network.name == "Right bundle branch":
+                    stim_nodes.append(network.edges[0, 0] + beam_node_id_offset)
+                    stim_nodes.append(network.edges[1, 0] + beam_node_id_offset)
+                    stim_nodes.append(network.edges[2, 0] + beam_node_id_offset)
+
+            self.kw_database.ep_settings.append("$$ second stimulation at Left/Right bundle. $$")
+            node_set_kw = create_node_set_keyword(
+                node_ids=np.array(stim_nodes) + 1,
+                node_set_id=second_stim_nodes,
+                title="origin of left/right bundle",
+            )
+            self.kw_database.ep_settings.append(node_set_kw)
+
             self.kw_database.ep_settings.append(
                 custom_keywords.EmEpTentusscherStimulus(
-                    stimid=1,
+                    stimid=2,
                     settype=2,
-                    setid=node_set_id_stimulationnodes,
-                    stimstrt=0.0,
-                    stimt=1000.0,
-                    stimdur=20.0,
-                    stimamp=50.0,
-                )
-            )
-            # if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-            #     self.model.left_atrium.apex_points
-
-        elif isinstance(self.model, LeftVentricle):
-            node_apex_left = self.model.left_ventricle.apex_points[0].node_id
-
-            node_set_id_apex_left = self.get_unique_nodeset_id()
-            # create node-sets for apex left
-            node_set_kw = create_node_set_keyword(
-                node_ids=[node_apex_left + 1],
-                node_set_id=node_set_id_apex_left,
-                title="apex node left",
-            )
-            self.kw_database.node_sets.append(node_set_kw)
-
-            # TODO add more nodes to initiate wave propagation !!!!
-            node_set_id_stimulationnodes = self.get_unique_nodeset_id()
-            # create node-sets for apex
-            node_set_kw = create_node_set_keyword(
-                node_ids=[node_apex_left + 1],
-                node_set_id=node_set_id_stimulationnodes,
-                title="Stim nodes",
-            )
-
-            self.kw_database.node_sets.append(node_set_kw)
-
-            self.kw_database.ep_settings.append(
-                custom_keywords.EmEpTentusscherStimulus(
-                    stimid=1,
-                    settype=2,
-                    setid=node_set_id_stimulationnodes,
-                    stimstrt=0.0,
-                    stimt=1000.0,
+                    setid=second_stim_nodes,
+                    stimstrt=90.0,  # 90ms delay
+                    stimt=800.0,
                     stimdur=20.0,
                     stimamp=50.0,
                 )
@@ -3384,111 +3372,125 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         end_time: float = 800,
     ):
         """Add solution controls and other solver settings as keywords."""
-        # add termination keywords
         self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=0.0))
-
         self.kw_database.main.append(keywords.ControlTimeStep(dtinit=1.0, dt2ms=1.0))
         return
 
     def _update_main_db(self):
-        return
-
-    def _get_list_of_includes(self):
-        """Get a list of files to include in main.k. omit any empty decks."""
-        for deckname, deck in vars(self.kw_database).items():
-            if deckname == "main":
-                continue
-            # skip if no keywords are present in the deck
-            if len(deck.keywords) == 0:
-                LOGGER.debug("No keywords in deck: {0}".format(deckname))
-                continue
-            self.include_files.append(deckname)
-        return
-
-    def _add_includes(self):
-        """Add *INCLUDE keywords."""
-        for include_file in self.include_files:
-            filename_to_include = include_file + ".k"
-            self.kw_database.main.append(keywords.Include(filename=filename_to_include))
-
-        return
+        pass
 
     def _update_use_Purkinje(self):
         """Update keywords for Purkinje usage."""
-        if self.model.mesh.beam_network:
-            self.kw_database.parts.append(keywords.SectionBeam(secid=3, elform=3, a=645))
-            if self.__class__.__name__ == "ElectroMechanicsDynaWriter":
-                self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=0))
+        sid = self.get_unique_section_id()
+        self.kw_database.beam_networks.append(keywords.SectionBeam(secid=sid, elform=3, a=645))
+
+        if self.__class__.__name__ == "ElectroMechanicsDynaWriter":
+            # id offset due to cap center nodes
+            beam_node_id_offset = len(self.model.cap_centroids)
+            # id offset due to spring type elements
+            beam_elem_id_offset = self.id_offset["element"]["discrete"]
+        else:
+            beam_node_id_offset = 0
+            beam_elem_id_offset = 0  # no beam elements introduced before
+
+        # write beam nodes
+        new_nodes = self.model.beam_network[0].all_beam_nodes
+        ids = (
+            np.linspace(
+                len(self.model.mesh.nodes),
+                len(self.model.mesh.nodes) + len(new_nodes) - 1,
+                len(new_nodes),
+                dtype=int,
+            )
+            + 1  # dyna start by 1
+            + beam_node_id_offset  # apply node offset
+        )
+        nodes_table = np.hstack((ids.reshape(-1, 1), new_nodes))
+        kw = add_nodes_to_kw(nodes_table, keywords.Node())
+        self.kw_database.beam_networks.append(kw)
+
+        for network in self.model.beam_network:
+            ## TODO do not write His Bundle when coupling, it leads to crash
+            if self.__class__.__name__ == "ElectroMechanicsDynaWriter" and network.name == "His":
+                continue
+
+            # It is previously defined from purkinje generation step
+            # but needs to reassign part ID here
+            # to make sure no conflict with 4C/full heart case.
+            network.pid = self.get_unique_part_id()
+
+            if network.name == "Left-purkinje":
+                network.nsid = self.model.left_ventricle.endocardium.id
+            elif network.name == "Right-purkinje":
+                network.nsid = self.model.right_ventricle.endocardium.id
+            elif network.name == "SAN_to_AVN":
+                network.nsid = self.model.right_atrium.endocardium.id
+            elif network.name == "Left bundle branch":
+                network.nsid = self.model.left_ventricle.cavity.surface.id
+            elif network.name == "Right bundle branch":
+                network.nsid = self.model.right_ventricle.cavity.surface.id
+            # His bundle is inside of surface, no segment will associated
+            elif network.name == "His":
+                network.nsid = -1
             else:
-                self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
+                LOGGER.error(f"Unknown network name for {network.name}.")
+                exit()
+
+            # write
+            self.kw_database.beam_networks.append(f"$$ {network.name} $$")
+
+            origin_coordinates = network.nodes[network.edges[0, 0]]
+            self.kw_database.beam_networks.append(
+                custom_keywords.EmEpPurkinjeNetwork2(
+                    purkid=network.pid,
+                    buildnet=0,
+                    ssid=network.nsid,
+                    mid=network.pid,
+                    pointstx=origin_coordinates[0],
+                    pointsty=origin_coordinates[1],
+                    pointstz=origin_coordinates[2],
+                    edgelen=2,
+                    ngen=50,
+                    nbrinit=8,
+                    nsplit=2,
+                    # inodeid=node_id_start_right,
+                    # iedgeid=edge_id_start_right,
+                )
+            )
+
+            part_df = pd.DataFrame(
+                {
+                    "heading": [network.name],
+                    "pid": [network.pid],
+                    "secid": [sid],
+                    "mid": [network.pid],
+                }
+            )
+            part_kw = keywords.Part()
+            part_kw.parts = part_df
+            self.kw_database.beam_networks.append(part_kw)
+            self.kw_database.beam_networks.append(keywords.MatNull(mid=network.pid, ro=1e-11))
+            self.kw_database.beam_networks.append(
+                keywords.EmMat001(mid=network.pid, mtype=2, sigma=3)
+            )
+
+            # cell model
+            # use endo property
+            self._add_Tentusscher_keyword_endo(matid=network.pid)
+
+            # mesh
+            # apply offset for beam connectivity
+            connect = network.edges
+            connect[network.beam_nodes_mask] += beam_node_id_offset
+
             beams_kw = keywords.ElementBeam()
-            for network in self.model.mesh.beam_network:
-                # It is previously defined from purkinje generation step
-                # but needs to reassign part ID here
-                # to make sure no conflict with 4C/full heart case.
-                network.pid = self.get_unique_part_id()
-
-                origin_coordinates = self.model.mesh.nodes[network.node_ids[0], :]
-                if network.name == None:
-                    if isinstance(self.model, LeftVentricle):
-                        network.name = "Left" + "-" + "purkinje"
-                        network.nsid = self.model.left_ventricle.endocardium.id
-                    else:
-                        node_apex_left = self.model.left_ventricle.apex_points[0].xyz
-                        node_apex_right = self.model.right_ventricle.apex_points[0].xyz
-                        distance = np.linalg.norm(
-                            origin_coordinates - np.array([node_apex_left, node_apex_right]),
-                            axis=1,
-                        )
-                        if np.min(distance[0]) < 1e-3:
-                            network.name = "Left" + "-" + "purkinje"
-                            network.nsid = self.model.left_ventricle.endocardium.id
-                        elif np.min(distance[1]) < 1e-3:
-                            network.name = "Right" + "-" + "purkinje"
-                            network.nsid = self.model.right_ventricle.endocardium.id
-                        else:
-                            LOGGER.error("Point too far from apex")
-
-                self.kw_database.main.append(
-                    custom_keywords.EmEpPurkinjeNetwork2(
-                        purkid=2,
-                        buildnet=0,
-                        ssid=network.nsid,
-                        mid=network.pid,
-                        pointstx=origin_coordinates[0],
-                        pointsty=origin_coordinates[1],
-                        pointstz=origin_coordinates[2],
-                        edgelen=self.settings.purkinje.edgelen,
-                        ngen=10000,
-                        nbrinit=8,
-                        nsplit=2,
-                        # inodeid=node_id_start_right,
-                        # iedgeid=edge_id_start_right,
-                    )
-                )
-                part_df = pd.DataFrame(
-                    {
-                        "heading": [network.name],
-                        "pid": [network.pid],
-                        "secid": [3],
-                        "mid": [network.pid],
-                    }
-                )
-                part_kw = keywords.Part()
-                part_kw.parts = part_df
-                self.kw_database.parts.append(part_kw)
-                self.kw_database.material.append(keywords.MatNull(mid=network.pid, ro=1e-11))
-                self.kw_database.material.append(
-                    keywords.EmMat001(mid=network.pid, mtype=2, sigma=self.settings.purkinje.sigma)
-                )
-
-                beams_kw = add_beams_to_kw(
-                    beams=network.edges + 1,
-                    beam_kw=beams_kw,
-                    pid=network.pid,
-                    offset=len(self.model.mesh.tetrahedrons) + len(beams_kw.elements),
-                )
-                self._add_Tentusscher_keyword_endo(matid=network.pid)
+            beams_kw = add_beams_to_kw(
+                beams=connect + 1,
+                beam_kw=beams_kw,
+                pid=network.pid,
+                offset=beam_elem_id_offset,
+            )
+            beam_elem_id_offset += len(network.edges)
             self.kw_database.beam_networks.append(beams_kw)
 
     def _update_export_controls(self, dt_output_d3plot: float = 10.0):
@@ -3498,11 +3500,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         ----------
         dt_output_d3plot : float, optional
             Writes full D3PLOT results at this time-step spacing, by default 0.05
-        dt_output_icvout : float, optional
-            Writes control volume results at this time-step spacing, by default 0.001
 
         """
-        # frequency of full results
         self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
 
         return
@@ -3516,93 +3515,120 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         model: HeartModel,
         settings: SimulationSettings = None,
     ) -> None:
-        super().__init__(model=model, settings=settings)
+        if isinstance(model, FourChamber):
+            model._create_isolation_part()
 
-        raise NotImplementedError("This writer has not been implemented yet.")
-        exit()
+        BaseDynaWriter.__init__(self, model=model, settings=settings)
+
         self.kw_database = ElectroMechanicsDecks()
         """Collection of keyword decks relevant for mechanics."""
 
-        self.system_model_name = system_model_name
+        self.system_model_name = self.settings.mechanics.system.name
         """Name of system model to use."""
 
         # Depending on the system model specified give list of parameters
+        self.cap_in_zerop = True
+        """
+        If include cap (shell) elements in ZeroPressure.
+        Experimental feature, please do not change it.
+        """
 
+    def __duplicate_ventricle_atrial_nodes_tie(self):
+        """Test feature, not working with mpp < DEV104400."""
+        # find interface nodes between ventricles and atrial
+        v_ele = np.hstack(
+            (self.model.left_ventricle.element_ids, self.model.right_ventricle.element_ids)
+        )
+        a_ele = np.hstack((self.model.left_atrium.element_ids, self.model.right_atrium.element_ids))
+
+        ventricles = self.model.mesh.extract_cells(v_ele)
+        atrial = self.model.mesh.extract_cells(a_ele)
+
+        interface_nids = np.intersect1d(
+            ventricles["vtkOriginalPointIds"], atrial["vtkOriginalPointIds"]
+        )
+
+        # duplicate these nodes and update mesh
+        sets = []
+        new_coords = np.array([])
+        tets: np.ndarray = self.model.mesh.tetrahedrons
+        nid_offset = len(self.model.mesh.nodes)
+        cnt = 0
+
+        for old_nid in interface_nids:
+            set = np.array([old_nid])
+            ele_ids = np.where(np.any(np.isin(tets, old_nid), axis=1))[
+                0
+            ]  # Ids of elements on this interface node
+            for ele_id in ele_ids[1:]:
+                # first element will keep the original node,
+                # other elements will take duplicated nodes (update mesh)
+                new_id = nid_offset + cnt
+                new_coords = np.append(new_coords, self.model.mesh.nodes[old_nid, :])
+                tets[ele_id][tets[ele_id] == old_nid] = new_id
+                set = np.append(set, new_id)
+                cnt += 1
+            sets.append(set)
+
+        self.model.mesh.nodes = np.vstack((self.model.mesh.nodes, new_coords.reshape(-1, 3)))
+        self.model.mesh.tetrahedrons = tets
+
+        # tie duplicated nodes
+        sid_offset = self.get_unique_nodeset_id()  # slow and move out of loop
+        sid_offset = 100
+        count = 0
+        for set in sets:
+            sid = sid_offset + count
+            count += 1
+            kw = create_node_set_keyword(set + 1, node_set_id=sid, title="tied_" + str(set[0] + 1))
+            self.kw_database.duplicate_nodes.append(kw)
+            kw = keywords.ConstrainedTiedNodesFailure(nsid=sid, eppf=1.0e25, etype=1)
+            self.kw_database.duplicate_nodes.append(kw)
+
+        # self.kw_database.main.append(keywords.Include(filename="duplicate_nodes.k"))
         return
 
-    def update(self):
+    def update(self, with_dynain=False):
         """Update the keyword database."""
-        self._update_node_db()
-        self._update_parts_db()
-        self._update_main_db()
-        self._add_damping()
+        if isinstance(self.model, FourChamber):
+            self.model.left_atrium.has_fiber = True
+            self.model.left_atrium.is_active = True
+            self.model.right_atrium.has_fiber = True
+            self.model.right_atrium.is_active = True
 
-        self._update_solid_elements_db(add_fibers=True)
-        self._update_segmentsets_db()
-        self._update_nodesets_db()
-        self._update_use_Purkinje()
-        self._update_material_db(add_active=True)
-        self._update_ep_material_db()
+        MechanicsDynaWriter.update(self, with_dynain=with_dynain)
+
+        if self.model.beam_network:
+            # Coupling enabled, EP beam nodes follow the motion of surfaces
+            self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=0))
+            self._update_use_Purkinje()
+            self.kw_database.main.append(keywords.Include(filename="beam_networks.k"))
+
         self._update_cellmodels()
+        self.kw_database.main.append(keywords.Include(filename="cell_models.k"))
+
         self._update_ep_settings()
-        # for boundary conditions
-        self._add_cap_bc(bc_type="springs_caps")
-        self._add_pericardium_bc()
+        self._update_stimulation()
 
-        # # for control volume
-        self._update_cap_elements_db()
-        self._update_controlvolume_db()
-        self._update_system_model()
-
-        self._get_list_of_includes()
-        self._add_includes()
+        # coupling parameters
+        coupling_str = (
+            "*EM_CONTROL_TIMESTEP\n"
+            "$   TSTYPE   DTCONST      LCID    FACTOR     DTMIN     DTMAX\n"
+            "         1       1.0\n"
+            "*EM_CONTROL_COUPLING\n"
+            "$    THCPL     SMCPL    THLCID    SMLCID\n"
+            "                   0\n"
+        )
+        self.kw_database.ep_settings.append("$ EM-MECA coupling control")
+        self.kw_database.ep_settings.append(coupling_str)
+        self.kw_database.main.append(keywords.Include(filename="ep_settings.k"))
 
         return
 
     def _update_material_db(self, add_active: bool = True):
         """Update the database of material keywords."""
-        material_settings = copy.deepcopy(self.settings.mechanics.material)
-        # removes all units from settings, hence <attribute>.m not required anymore to access value.
-        material_settings._remove_units()
-
-        for part in self.model.parts:
-            if "ventricle" in part.name.lower() or "septum" in part.name.lower():
-                if not add_active:
-                    active_dct = None
-                else:
-                    active_dct = {
-                        "actype": material_settings.myocardium["active"]["actype"],
-                        "taumax": material_settings.myocardium["active"]["tmax"],
-                        "ca2ionm": material_settings.myocardium["active"]["ca2ionm"],
-                    }
-
-                myocardium_kw = MaterialHGOMyocardium(
-                    mid=part.mid,
-                    iso_user=material_settings.myocardium["isotropic"],
-                    anisotropy_user=material_settings.myocardium["anisotropic"],
-                    active_user=active_dct,
-                )
-
-                self.kw_database.material.append(myocardium_kw)
-
-            elif "atrium" in part.name:
-                # add atrium material
-                # atrium_kw = MaterialAtrium(mid=part.mid)
-                atrium_kw = MaterialHGOMyocardium(
-                    mid=part.mid, iso_user=dict(material_settings.atrium)
-                )
-
-                self.kw_database.material.append(atrium_kw)
-
-            else:
-                LOGGER.warning("Assuming same material as atrium for: {0}".format(part.name))
-
-                # general_tissue_kw = MaterialAtrium(mid=part.mid)
-                general_tissue_kw = MaterialHGOMyocardium(
-                    mid=part.mid, iso_user=dict(material_settings.atrium)
-                )
-                self.kw_database.material.append(general_tissue_kw)
-
+        MechanicsDynaWriter._update_material_db(self, add_active=add_active, em_couple=True)
+        ElectrophysiologyDynaWriter._update_ep_material_db(self)
         return
 
 

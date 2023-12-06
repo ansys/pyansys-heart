@@ -191,8 +191,126 @@ class HeartModel:
         self.cap_centroids: List[Point] = []
         """Centroid point to create cap shell."""
 
+        self.beam_network: List[BeamMesh] = []
+        """List of beam networks in the mesh."""
+
         self.electrodes: List[Point] = []
         """Electrodes positions for ECG computing."""
+
+    def add_purkinje_from_kfile(self, filename: pathlib.Path, name: str) -> None:
+        """Read an LS-DYNA file containing purkinje beams and nodes.
+
+        Parameters
+        ----------
+        filename : pathlib.Path
+
+        name : str
+            beamnet name
+        """
+        # Open file and import beams and created nodes
+        with open(filename, "r") as file:
+            start_nodes = 0
+            lines = file.readlines()
+        # find line ids delimiting node data and edge data
+        start_nodes = np.array(np.where(["*NODE" in line for line in lines]))[0][0]
+        end_nodes = np.array(np.where(["*" in line for line in lines]))
+        end_nodes = end_nodes[end_nodes > start_nodes][0]
+        start_beams = np.array(np.where(["*ELEMENT_BEAM" in line for line in lines]))[0][0]
+        end_beams = np.array(np.where(["*" in line for line in lines]))
+        end_beams = end_beams[end_beams > start_beams][0]
+
+        # load node data
+        node_data = np.loadtxt(
+            filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1
+        )
+        new_ids = node_data[:, 0].astype(int) - 1
+        beam_nodes = node_data[:, 1:4]
+
+        # load beam data
+        beam_data = np.loadtxt(
+            filename, skiprows=start_beams + 1, max_rows=end_beams - start_beams - 1, dtype=int
+        )
+        edges = beam_data[:, 2:4] - 1
+        pid = beam_data[0, 1]
+
+        # TODO: physically, this is not fully understood: Merging the end of bundle branch, the
+        # origin of Purkinje and the apex of myiocardium seems logical, but it has more chance
+        # the EP wave will not be triggered.
+        # so I remove it, it means: end of bundle branch connect to apex, origin of Purkinje
+        # is another point on the same location.
+
+        # # replace origin (new created beam mesh) of purkinje by apex point (on solid mesh)
+        # if "left" in name.lower():
+        #     apex = self.left_ventricle.apex_points[0]
+        # elif "right" in name.lower():
+        #     apex = self.right_ventricle.apex_points[0]
+
+        # to_be_replaced_id = new_ids[0]
+        # new_ids = new_ids[1:]  # remove this point
+        # beam_nodes = beam_nodes[1:]  # remove this point
+        # edges[edges == to_be_replaced_id] = apex.node_id  # replace by apex Id
+
+        #
+        mask = np.isin(edges, new_ids)  # True for new created nodes
+        edges[mask] -= new_ids[0]  # beam nodes id start from 0
+
+        beam = self.add_beam_net(beam_nodes, edges, mask, pid=pid, name=name)
+
+        return beam
+
+    def add_beam_net(
+        self, beam_nodes: np.ndarray, edges: np.ndarray, mask: np.ndarray, pid=0, name: str = None
+    ) -> BeamMesh:
+        """Add a BeamMesh object on the model.
+
+        Parameters
+        ----------
+        beam_nodes : np.ndarray
+            new nodes coordinates.
+        edges : np.ndarray
+            beam elements connectivity
+            If `mask` is true, it's Id of `beam_nodes` (start by 0),
+            it will be offset when creating BeamMesh object.
+            If `mask` is false, it's Id of existed nodes, it will not be offset.
+        mask : np.ndarray
+            with the same shape of `edges`
+        pid : int, optional
+            part Id, will be reassigned when writing, by default 0
+        name : str, optional
+            name, by default None
+
+        Returns
+        -------
+        BeamMesh
+            BeamMesh object
+        """
+        edges[mask] += len(self.mesh.nodes) + len(BeamMesh.all_beam_nodes)
+
+        if len(BeamMesh.all_beam_nodes) == 0:
+            BeamMesh.all_beam_nodes = beam_nodes
+        else:
+            BeamMesh.all_beam_nodes = np.vstack((BeamMesh.all_beam_nodes, beam_nodes))
+
+        # nodes is just for pyvista plot, edges used in writer will be offsetted
+        # TODO only save necessary nodes, cells, and with a 'global id' array
+        beam_net = BeamMesh(
+            nodes=np.vstack((self.mesh.nodes, BeamMesh.all_beam_nodes)),
+            edges=edges,
+            beam_nodes_mask=mask,
+        )
+        beam_net.pid = pid
+        beam_net.name = name
+        self.beam_network.append(beam_net)
+
+        # # visualize (debug)
+        # import pyvista
+
+        # plotter = pyvista.Plotter()
+        # plotter.add_mesh(self.mesh, opacity=0.3)
+        # plotter.add_mesh(beam_net)
+        # plotter.show()
+
+        return beam_net
 
     def extract_simulation_mesh(self, clean_up: bool = False) -> None:
         """Update the model.
@@ -613,7 +731,7 @@ class HeartModel:
 
     def plot_purkinje(self):
         """Plot the mesh and Purkinje network."""
-        if not len(self.mesh.beam_network) > 0:
+        if not len(self.beam_network) > 0:
             LOGGER.info("No Purkinje network to plot.")
             return
 
@@ -629,7 +747,7 @@ class HeartModel:
         try:
             plotter = pv.Plotter()
             plotter.add_mesh(self.mesh, color="w", opacity=0.3)
-            for beams in self.mesh.beam_network:
+            for beams in self.beam_network:
                 plotter.add_mesh(beams, color=np.random.uniform(size=3), line_width=3)
             plotter.show()
         except:
@@ -978,7 +1096,7 @@ class HeartModel:
             fluid_cell_zones = [
                 cz for cz in fluent_mesh.cell_zones if "heart-tet-cells" not in cz.name
             ]
-            tetras_fluid = np.empty((0, 4))
+            tetras_fluid = np.empty((0, 4), dtype=int)
             for cell_zone in fluid_cell_zones:
                 tetras_fluid = np.vstack([tetras_fluid, cell_zone.cells])
             self.fluid_mesh.tetrahedrons = tetras_fluid
@@ -1703,6 +1821,9 @@ class LeftVentricle(HeartModel):
     def __init__(self, info: ModelInfo) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
         """Left ventricle part."""
+
+        self.left_ventricle.has_fiber = True
+        self.left_ventricle.is_active = True
         # remove septum - not used in left ventricle only model
         del self.left_ventricle.septum
 
@@ -1720,6 +1841,13 @@ class BiVentricle(HeartModel):
         """Right ventricle part."""
         self.septum: Part = Part(name="Septum", part_type="septum")
         """Septum."""
+
+        self.left_ventricle.has_fiber = True
+        self.left_ventricle.is_active = True
+        self.right_ventricle.has_fiber = True
+        self.right_ventricle.is_active = True
+        self.septum.has_fiber = True
+        self.septum.is_active = True
 
         super().__init__(info)
         pass
@@ -1740,6 +1868,18 @@ class FourChamber(HeartModel):
         """Left atrium part."""
         self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
         """Right atrium part."""
+
+        self.left_ventricle.has_fiber = True
+        self.left_ventricle.is_active = True
+        self.right_ventricle.has_fiber = True
+        self.right_ventricle.is_active = True
+        self.septum.has_fiber = True
+        self.septum.is_active = True
+
+        self.left_atrium.has_fiber = False
+        self.left_atrium.is_active = False
+        self.right_atrium.has_fiber = False
+        self.right_atrium.is_active = False
 
         super().__init__(info)
 
@@ -1774,7 +1914,7 @@ class FourChamber(HeartModel):
         """
         Compute Atrio-Ventricular node.
 
-        AtrioVentricular node is defined on endocardium surface and closest to septum.
+        AtrioVentricular node is on right artrium endocardium surface and closest to septum.
 
         Returns
         -------
@@ -1834,53 +1974,40 @@ class FourChamber(HeartModel):
         right_atrium_endo = self.right_atrium.endocardium
 
         try:
-            SA_node = self.right_atrium.get_point("SA_node").node_id
+            SA_id = self.right_atrium.get_point("SA_node").node_id
         except AttributeError:
             LOGGER.info("SA node is not defined, creating with default option.")
-            SA_node = self.compute_SA_node().node_id
+            SA_id = self.compute_SA_node().node_id
 
         try:
-            AV_node = self.right_atrium.get_point("AV_node").node_id
+            AV_id = self.right_atrium.get_point("AV_node").node_id
         except AttributeError:
             LOGGER.info("AV node is not defined, creating with default option.")
-            AV_node = self.compute_AV_node().node_id
+            AV_id = self.compute_AV_node().node_id
 
-        path_SAN_AVN = right_atrium_endo.geodesic(SA_node, AV_node)
-        edges = path_SAN_AVN["vtkOriginalPointIds"]
+        path_SAN_AVN = right_atrium_endo.geodesic(SA_id, AV_id)
 
-        if create_new_nodes:
-            # duplicate nodes inside the line, connect only SA node (the first) with 3D
-            edges[1:] = len(self.mesh.nodes) + np.linspace(
-                0, len(edges) - 2, len(edges) - 1, dtype=int
-            )
+        # duplicate nodes inside the line, connect only SA node (the first) with 3D
+        beam_nodes = path_SAN_AVN.points[1:, :]
 
-            # modify ID of AV point
-            self.right_atrium.get_point("AV_node").node_id = edges[-1]
+        # build connectivity table
+        point_ids = np.linspace(0, len(beam_nodes) - 1, len(beam_nodes), dtype=int)
+        point_ids = np.insert(point_ids, 0, SA_id)
 
-            # build connectivity table
-            edges = np.vstack((edges[:-1], edges[1:])).T
+        edges = np.vstack((point_ids[:-1], point_ids[1:])).T
 
-            # add to mesh
-            beam = self.mesh.add_beam_network(
-                new_nodes=path_SAN_AVN.points[1:, :], edges=edges, name="SAN_to_AVN"
-            )
+        mask = np.ones(edges.shape, dtype=bool)
+        mask[0, 0] = False  # SA point at solid
 
-            return beam
+        beam_net = self.add_beam_net(beam_nodes, edges, mask, pid=0, name="SAN_to_AVN")
 
-    def compute_His_conduction(self, beam_number=4) -> BeamMesh:
-        """Compute His bundle conduction.
+        return beam_net
 
-        Parameters
-        ----------
-        beam_number : int, optional
-            beam number, by default 4
+    def compute_His_conduction(self):
+        """Compute His bundle conduction."""
+        beam_number = 4
 
-        Returns
-        -------
-        BeamMesh
-            Beam mesh
-        """
-        start_point, end_point = self._define_hisbundle_start_end_point(beam_number)
+        start_coord, bifurcation_coord = self._define_hisbundle_start_bifurcation()
 
         # https://www.researchgate.net/publication/353154291_Morphometric_analysis_of_the_His_bundle_atrioven
         # tricular_fascicle_in_humans_and_other_animal_species_Histological_and_immunohistochemical_study
@@ -1889,27 +2016,63 @@ class FourChamber(HeartModel):
         # create nodes from start to end
         new_nodes = np.array(
             [
-                start_point.xyz,
-                end_point.xyz,
+                start_coord,
+                bifurcation_coord,
             ]
         )
 
-        step = (end_point.xyz - start_point.xyz) / (beam_number + 1)
+        step = (bifurcation_coord - start_coord) / (beam_number + 1)
         for i in range(1, beam_number):
-            new_nodes = np.insert(new_nodes, i, start_point.xyz + i * step, axis=0)
+            new_nodes = np.insert(new_nodes, i, start_coord + i * step, axis=0)
 
         # path start from AV point, to septum start point, then to septum end point
-        AV_node = self.right_atrium.get_point("AV_node")
-        edges = np.concatenate(
+        av_id = None
+        for beam in self.beam_network:
+            if beam.name == "SAN_to_AVN":
+                av_id = beam.edges[-1, -1]
+                break
+
+        if av_id is None:
+            LOGGER.error(
+                "Unable to find the last node of SAN_to_AVN branch, you need to define it."
+            )
+            exit()
+
+        point_ids = np.concatenate(
             (
-                np.array([AV_node.node_id]),
-                len(self.mesh.nodes)
-                + np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int),
+                np.array([av_id]),
+                +np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int),
             )
         )
         # create beam
-        connect_table = np.vstack((edges[:-1], edges[1:])).T
-        beam = self.mesh.add_beam_network(new_nodes=new_nodes, edges=connect_table, name="His")
+        edges = np.vstack((point_ids[:-1], point_ids[1:])).T
+
+        # find end on left endo
+        temp_id = pv.PolyData(
+            self.mesh.points[self.left_ventricle.endocardium.node_ids, :]
+        ).find_closest_point(bifurcation_coord)
+        his_end_left_id = self.left_ventricle.endocardium.node_ids[temp_id]
+        his_end_left_coord = self.mesh.points[his_end_left_id, :]
+
+        new_nodes = np.vstack((new_nodes, his_end_left_coord))
+        edges = np.vstack((edges, [point_ids[-1], point_ids[-1] + 1]))
+
+        # find end on right endo (must on the septum endo)
+        temp_id = pv.PolyData(
+            self.mesh.points[self.right_ventricle.septum.node_ids, :]
+        ).find_closest_point(bifurcation_coord)
+        his_end_right_id = self.right_ventricle.septum.node_ids[temp_id]
+        his_end_right_coord = self.mesh.points[his_end_right_id, :]
+
+        new_nodes = np.vstack((new_nodes, his_end_right_coord))
+        edges = np.vstack((edges, [point_ids[-1], point_ids[-1] + 2]))
+
+        # finally
+        mask = np.ones(edges.shape, dtype=bool)
+        mask[0, 0] = False  # AV point at previous, not offset in creation
+
+        beam_net = self.add_beam_net(new_nodes, edges, mask, pid=0, name="His")
+        beam_net.beam_nodes_mask[0, 0] = True  # offset in writer
 
         # TODO:
         # Find upper right septal point "URSP"
@@ -1930,9 +2093,9 @@ class FourChamber(HeartModel):
 
         # plotter.show()
 
-        return beam
+        return beam_net, [his_end_left_coord, his_end_right_coord]
 
-    def _define_hisbundle_start_end_point(self, beam_number) -> (Point, Point):
+    def _define_hisbundle_start_bifurcation(self):
         """
         Define start and end points of the bundle of His.
 
@@ -1941,154 +2104,97 @@ class FourChamber(HeartModel):
         """
         AV_node = self.right_atrium.get_point("AV_node")
 
-        septum_point_ids = np.unique(np.ravel(self.mesh.tetrahedrons[self.septum.element_ids,]))
+        septum_point_ids = np.unique(np.ravel(self.mesh.tetrahedrons[self.septum.element_ids]))
+
+        # remove nodes on surface, to make sure His bundle nodes are inside of septum
+        septum_point_ids = np.setdiff1d(septum_point_ids, self.left_ventricle.endocardium.node_ids)
+        septum_point_ids = np.setdiff1d(septum_point_ids, self.right_ventricle.septum.node_ids)
+
         septum_pointcloud = pv.PolyData(self.mesh.nodes[septum_point_ids, :])
 
         # Define start point: closest to artria
         pointcloud_id = septum_pointcloud.find_closest_point(AV_node.xyz)
 
-        His_septum_start_id = septum_point_ids[pointcloud_id]
-        His_septum_start_xyz = self.mesh.nodes[His_septum_start_id, :]
+        His_start_id = septum_point_ids[pointcloud_id]
+        His_start = self.mesh.nodes[His_start_id, :]
 
         # Define end point:  a random close point
         n = 50
         pointcloud_id = septum_pointcloud.find_closest_point(AV_node.xyz, n=n)[n - 1]
 
-        His_septum_end_id = septum_point_ids[pointcloud_id]
-        His_septum_end_xyz = self.mesh.nodes[His_septum_end_id, :]
+        His_bifurcation_id = septum_point_ids[pointcloud_id]
+        His_bifurcation = self.mesh.nodes[His_bifurcation_id, :]
 
-        # create Points
-        His_septum_start = Point(
-            name="His septum start", xyz=His_septum_start_xyz, node_id=len(self.mesh.nodes)
-        )
-        self.septum.points.append(His_septum_start)
+        return His_start, His_bifurcation
 
-        His_septum_end = Point(
-            name="His septum end",
-            xyz=His_septum_end_xyz,
-            node_id=beam_number + len(self.mesh.nodes),
-        )
-        self.septum.points.append(His_septum_end)
-
-        return His_septum_start, His_septum_end
-
-    def compute_bundle_branches(self) -> (BeamMesh, BeamMesh):
-        """Compute Buncle branches conduction system."""
-        His_end = self.septum.get_point("His septum end")
-
-        left_bundle = self._compute_bundle_oneside(
-            His_end,
-            self.left_ventricle.endocardium,
-            self.left_ventricle.endocardium.node_ids,
-            side="Left",
-        )
-
-        face = np.hstack(
-            (self.right_ventricle.endocardium.faces, self.right_ventricle.septum.faces)
-        )
-        right_endo = pv.PolyData(self.mesh.points, face)
-
-        right_endo_nids = np.unique(
-            np.concatenate(
-                (self.right_ventricle.septum.node_ids, self.right_ventricle.endocardium.node_ids)
-            )
-        )
-        right_bundle = self._compute_bundle_oneside(
-            His_end, right_endo, right_endo_nids, side="Right"
-        )
-
-        return left_bundle, right_bundle
-
-    def _compute_bundle_oneside(self, His_end: Point, endo_surface, endo_nids, side: str):
+    def compute_left_right_bundle(self, start_coord, start_id, side: str):
         """Bundle brunch."""
-        start_xyz = pv.PolyData(self.mesh.points[endo_nids, :]).find_closest_point(His_end.xyz)
-        start_id = endo_nids[start_xyz]
-
         if side == "Left":
             ventricle = self.left_ventricle
+            endo_surface = self.left_ventricle.endocardium
         elif side == "Right":
             ventricle = self.right_ventricle
+            face = np.hstack(
+                (self.right_ventricle.endocardium.faces, self.right_ventricle.septum.faces)
+            )
+            endo_surface = pv.PolyData(self.mesh.points, face)
 
         bundle_branch = endo_surface.geodesic(
-            endo_surface.find_closest_point(self.mesh.points[start_id, :]),
-            endo_surface.find_closest_point(ventricle.apex_points[0].xyz),
+            endo_surface.find_closest_point(start_coord),
+            endo_surface.find_closest_point(self.mesh.points[ventricle.apex_points[0].node_id]),
         )
 
-        # build branch net
-        # exclude last (apex) node which belongs to purkinje beam
-        new_nodes = bundle_branch.points[0:-1, :]
+        # exclude first and last (apex) node which belongs to purkinje beam
+        new_nodes = bundle_branch.points[1:-1, :]
 
-        # first node "his septum end" and last node "apex"
-        edges = np.concatenate(([His_end.node_id], bundle_branch["vtkOriginalPointIds"]))
+        point_ids = np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int)
+        point_ids = np.insert(point_ids, 0, start_id)
+        point_ids = np.append(point_ids, ventricle.apex_points[0].node_id)
 
-        # duplicate nodes except the two ends
-        edges[1:-1] = len(self.mesh.nodes) + np.linspace(
-            0, len(edges) - 3, len(edges) - 2, dtype=int
-        )
+        edges = np.vstack((point_ids[:-1], point_ids[1:])).T
 
-        edges = np.vstack((edges[:-1], edges[1:])).T
-        bundle_beam = self.mesh.add_beam_network(
-            new_nodes=new_nodes, edges=edges, name=side + " bundle branch"
-        )
-        return bundle_beam
+        mask = np.ones(edges.shape, dtype=bool)
+        mask[0, 0] = False  # His end point of previous, not offset at creation
+        mask[-1, -1] = False  # Apex point at solid
+
+        beam_net = self.add_beam_net(new_nodes, edges, mask, pid=0, name=side + " bundle branch")
+        beam_net.beam_nodes_mask[0, 0] = True
+        return beam_net
 
     def compute_Bachman_bundle(self):
         """Compute Bachman bundle conduction system."""
         raise NotImplementedError
         return
 
-    def compute_cavity_interfaces(self):
-        """Compute AtrioVentricular conduction system."""
-        self.mesh.establish_connectivity()
-        left_ventricle_left_atrium = []
-        right_ventricle_right_atrium = []
-        left_ventricle_right_atrium = []
-        right_ventricle_left_atrium = []
-        left_ventricle_left_atrium_name = "left-ventricle_left-atrium"
-        right_ventricle_right_atrium_name = "right-ventricle_right-atrium"
-        left_ventricle_right_atrium_name = "left-ventricle_right-atrium"
-        right_ventricle_left_atrium_name = "right-ventricle_left-atrium"
+    def _create_isolation_part(self):
+        """Create a new part to isolate between ventricles and atrial."""
+        # find interface nodes between ventricles and atrial
+        v_ele = np.hstack((self.left_ventricle.element_ids, self.right_ventricle.element_ids))
+        a_ele = np.hstack((self.left_atrium.element_ids, self.right_atrium.element_ids))
 
-        # build atrio-ventricular tag-id pairs
-        # labels_to_ids stores the mapping between tag-ids and the corresponding label.
-        labels_to_tag_ids = self.info.labels_to_ids
-        left_ventricle_left_atrium = [
-            labels_to_tag_ids["Left ventricle myocardium"],
-            labels_to_tag_ids["Left atrium myocardium"],
-        ]
-        right_ventricle_right_atrium = [
-            labels_to_tag_ids["Right ventricle myocardium"],
-            labels_to_tag_ids["Right atrium myocardium"],
-        ]
-        left_ventricle_right_atrium = [
-            labels_to_tag_ids["Left ventricle myocardium"],
-            labels_to_tag_ids["Right atrium myocardium"],
-        ]
-        right_ventricle_left_atrium = [
-            labels_to_tag_ids["Right ventricle myocardium"],
-            labels_to_tag_ids["Left atrium myocardium"],
-        ]
+        ventricles = self.mesh.extract_cells(v_ele)
+        atrial = self.mesh.extract_cells(a_ele)
 
-        # build atrioventricular tag_id pairs
-        left_ventricle_left_atrium = np.unique(left_ventricle_left_atrium)
-        right_ventricle_right_atrium = np.unique(right_ventricle_right_atrium)
-        left_ventricle_right_atrium = np.unique(left_ventricle_right_atrium)
-        right_ventricle_left_atrium = np.unique(right_ventricle_left_atrium)
-        # find atrioventricular shared nodes/interfaces
-        self.mesh.add_interfaces(
-            [
-                left_ventricle_left_atrium,
-                right_ventricle_right_atrium,
-                left_ventricle_right_atrium,
-                right_ventricle_left_atrium,
-            ],
-            [
-                left_ventricle_left_atrium_name,
-                right_ventricle_right_atrium_name,
-                left_ventricle_right_atrium_name,
-                right_ventricle_left_atrium_name,
-            ],
+        interface_nids = np.intersect1d(
+            ventricles["vtkOriginalPointIds"], atrial["vtkOriginalPointIds"]
         )
+
+        interface_eids = np.where(np.any(np.isin(self.mesh.tetrahedrons, interface_nids), axis=1))[
+            0
+        ]
+        # interface elements on atrial part
+        interface_eids = np.intersect1d(interface_eids, a_ele)
+
+        # remove these elements from atrial parts
+        self.left_atrium.element_ids = np.setdiff1d(self.left_atrium.element_ids, interface_eids)
+        self.right_atrium.element_ids = np.setdiff1d(self.right_atrium.element_ids, interface_eids)
+
+        # create a new part
+        self.add_part("Isolation atrial")
+        isolation = self.get_part("Isolation atrial")
+        isolation.element_ids = interface_eids
+        isolation.has_fiber = True
+        isolation.is_active = False
 
 
 class FullHeart(FourChamber):
@@ -2111,6 +2217,22 @@ class FullHeart(FourChamber):
         self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type="artery")
         """Pulmonary artery part."""
 
+        self.left_ventricle.has_fiber = True
+        self.left_ventricle.is_active = True
+        self.right_ventricle.has_fiber = True
+        self.right_ventricle.is_active = True
+        self.septum.has_fiber = True
+        self.septum.is_active = True
+
+        self.left_atrium.has_fiber = False
+        self.left_atrium.is_active = False
+        self.right_atrium.has_fiber = False
+        self.right_atrium.is_active = False
+        self.aorta.has_fiber = False
+        self.aorta.is_active = False
+        self.pulmonary_artery.has_fiber = False
+        self.pulmonary_artery.is_active = False
+
         HeartModel.__init__(self, info)
         # super().__init__(info)
 
@@ -2120,21 +2242,21 @@ class FullHeart(FourChamber):
 if __name__ == "__main__":
     info = ModelInfo(database="Strocchi2020", work_directory="tmp", path_to_case="test.case")
 
-    model = LeftVentricle(info)
+    self = LeftVentricle(info)
     print("LeftVentricle:")
-    model.print_info()
-    model.remove_part("Left ventricle")
+    self.print_info()
+    self.remove_part("Left ventricle")
 
-    model = BiVentricle(info)
+    self = BiVentricle(info)
     print("BiVentricle:")
-    model.print_info()
+    self.print_info()
 
-    model = FourChamber(info)
+    self = FourChamber(info)
     print("FourChamber:")
-    model.print_info()
+    self.print_info()
 
-    model = FullHeart(info)
+    self = FullHeart(info)
     print("FullHeart:")
-    model.print_info()
+    self.print_info()
 
-    print(model.part_names)
+    print(self.part_names)

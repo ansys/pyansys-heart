@@ -255,6 +255,15 @@ def get_input_geom_and_part_defintions_from_public_database(
     except KeyError:
         pass
     
+    # add veins and pulmonary veins to left and right atrium
+    for key, value in database_labels.items():
+        if "pulmonary vein border" in key or "appendage border" in key:
+            part_definitions1["Left atrium"]["enclosed_by_boundaries"][key] = value
+            
+    for key, value in database_labels.items():
+        if "vena cava border" in key:
+            part_definitions1["Right atrium"]["enclosed_by_boundaries"][key] = value    
+    
     if model_type == "BiVentricle":
         del part_definitions1["Left atrium"]
         del part_definitions1["Right atrium"]

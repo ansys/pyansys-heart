@@ -19,7 +19,7 @@ if not os.path.isfile(path_to_model):
     raise FileExistsError(f"{path_to_model} not found")
 
 # specify LS-DYNA path (last tested working versions is DEV-104399)
-lsdyna_path = r"D:\dyna-versions\xuanyao.exe"
+lsdyna_path = r"C:\Users\xuhu\lsdyna_smp_d_winx64\Other_version\mppdyna_d_winx64_msmpi\ls-dyna_mpp_d_Dev_104815-gc8c2d50328_winx64_ifort190_msmpi.exe"
 
 if not os.path.isfile(lsdyna_path):
     raise FileExistsError(f"{lsdyna_path} not found.")
@@ -71,34 +71,65 @@ simulator = EPSimulator(
     dyna_settings=dyna_settings,
     simulation_directory=os.path.join(workdir, "simulation-EP"),
 )
+
 simulator.compute_uvc()
+# simulator.compute_fibers()
+simulator.compute_purkinje()
 
-for index, row in parameters_df.iterrows():
-    # instantiate simulator. Change options where necessary.
+simulator.compute_conduction_system()
+simulator.dyna_settings.num_cpus=20
 
-    simulator.settings.load_defaults()
+simulator.simulate()
 
-    simulator.settings.load_with_EP_params(
-        Purkinje_edgelen=row["Purkinje_edgelen"],
-        sigmaX=row["SigmaX"],
-        ratio=row["Ratio"],
-        ratio2=row["Ratio2"],
-    )
+# for index, row in parameters_df.iterrows():
+#     simulator.dyna_settings.num_cpus=1 
+#     # instantiate simulator. Change options where necessary.
 
-    print(simulator.settings.electrophysiology.sigma11)
-    print(simulator.settings.electrophysiology.sigma22)
-    print(simulator.settings.electrophysiology.sigma33)
-    print(simulator.settings.purkinje.edgelen)
-    print(simulator.settings.purkinje.sigma)
+#     my_simulation_directory = os.path.join(
+#         workdir, 
+#         "simulation-EP",
+#         str(row["Purkinje_edgelen"])[:4]
+#         + "_"
+#         + str(row["SigmaX"])[:4]
+#         + "_"
+#         + str(row["Ratio"])[:4]
+#         + "_"
+#         + str(row["Ratio2"])[:4],
+#     )
+#     simulator.root_directory = my_simulation_directory
+#     print("simulator.root_directory:", simulator.root_directory)
 
-    # # simulator.compute_fibers()
-    # # simulator.model.plot_fibers(n_seed_points=2000)
-    # # print('sucesss 5555555555')
+#     simulator.settings.load_defaults()
 
-    simulator.compute_purkinje()
+#     simulator.settings.load_with_EP_params(
+#         Purkinje_edgelen=row["Purkinje_edgelen"],
+#         sigmaX=row["SigmaX"],
+#         ratio=row["Ratio"],
+#         ratio2=row["Ratio2"],
+#     )
 
-    simulator.compute_conduction_system()
+#     print(simulator.settings.electrophysiology.sigma11)
+#     print(simulator.settings.electrophysiology.sigma22)
+#     print(simulator.settings.electrophysiology.sigma33)
+#     print(simulator.settings.purkinje.edgelen)
+#     print(simulator.settings.purkinje.sigma)
 
-    # simulator.model.plot_purkinje()
+#     simulator.compute_purkinje()
 
-    simulator.simulate()
+#     simulator.compute_conduction_system()
+
+#     # save_path = os.path.join(
+#     #     self.se, 
+#     #     "simulation-EP",
+#     #     str(row["Purkinje_edgelen"])[:4]
+#     #     + "_"
+#     #     + str(row["SigmaX"])[:4]
+#     #     + "_"
+#     #     + str(row["Ratio"])[:4]
+#     #     + "_"
+#     #     + str(row["Ratio2"])[:4],
+#     # )
+#     # simulator.model.save_purkinje()
+
+#     simulator.dyna_settings.num_cpus=20
+#     simulator.simulate()

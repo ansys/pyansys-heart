@@ -26,7 +26,7 @@ from ansys.heart.postprocessor.auto_process import (
     read_uvc,
     zerop_post,
 )
-from ansys.heart.preprocessor.models import FourChamber, HeartModel, LeftVentricle
+from ansys.heart.preprocessor.models import FourChamber, FullHeart, HeartModel
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 import numpy as np
@@ -222,7 +222,7 @@ class BaseSimulator:
         """
         LOGGER.info("Computing LA fiber...")
         export_directory = os.path.join(self.root_directory, "la_fiber")
-
+        # TODO only return cell ids and point ids
         target = self.run_laplace_problem(export_directory, "la_fiber")
         la_pv = compute_la_fiber_cs(export_directory)
         LOGGER.info("Generating fibers done.")
@@ -330,19 +330,7 @@ class EPSimulator(BaseSimulator):
 
     def simulate(self, folder_name="main-ep"):
         """Launch the main simulation."""
-        directory = os.path.join(
-            self.root_directory,
-            folder_name,
-            str(self.settings.electrophysiology.sigma11)[:4]
-            + "_"
-            + str(self.settings.electrophysiology.sigma22)[:4]
-            + "_"
-            + str(self.settings.electrophysiology.sigma33)[:4]
-            + "_"
-            + str(self.settings.purkinje.edgelen)[:4]
-            + "_"
-            + str(self.settings.purkinje.sigma)[:4],
-        )
+        directory = os.path.join(self.root_directory, folder_name)
         self._write_main_simulation_files(folder_name)
 
         LOGGER.info("Launching main EP simulation...")
@@ -354,90 +342,38 @@ class EPSimulator(BaseSimulator):
 
         return
 
-    def compute_purkinje(self, after_zerop=False):
-        """
-        Compute the purkinje network.
-
-        Parameters
-        ----------
-        after_zerop : bool, optional
-            If generate purkinje network on guessed end of diastol, by default False
-        """
-        directory = os.path.join(self.root_directory, "purkinjegeneration")
-        self.directories["purkinjegeneration"] = directory
-
-        self._write_purkinje_files(directory, after_zerop=after_zerop)
+    def compute_purkinje(self):
+        """Compute the purkinje network."""
+        directory = self._write_purkinje_files()
 
         LOGGER.info("Computing the Purkinje network...")
 
         # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
+        input_file = os.path.join(directory, "main.k")
 
         LOGGER.debug("Compute Purkinje network on 1 cpu.")
         orig_num_cpus = self.dyna_settings.num_cpus
         self.dyna_settings.num_cpus = 1
-
-        input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
-
         self.dyna_settings.num_cpus = orig_num_cpus
-        LOGGER.debug(f"Set number of cpus back to {orig_num_cpus}.")
 
         LOGGER.info("done.")
 
         LOGGER.info("Assign the Purkinje network to the model...")
+        purkinje_files = glob.glob(os.path.join(directory, "purkinjeNetwork_*.k"))
+        for purkinje_file in purkinje_files:
+            self.model.mesh.add_purkinje_from_kfile(purkinje_file)
 
-        purkinje_k_file = os.path.join(directory, "purkinjeNetwork_001.k")
-        self.model.add_purkinje_from_kfile(purkinje_k_file, "Left-purkinje")
-
-        if not isinstance(self.model, LeftVentricle):
-            purkinje_k_file = os.path.join(directory, "purkinjeNetwork_002.k")
-            self.model.add_purkinje_from_kfile(purkinje_k_file, "Right-purkinje")
-
-    def compute_conduction_system(self, after_zerop=False):
+    def compute_conduction_system(self):
         """Compute the conduction system."""
-        if after_zerop:
-            new_nodes = np.array(self.stress_free_report["guess_ed_coord"])[:-11]
-            self.model.mesh.points = new_nodes
-            for part in self.model.parts:
-                for surface in part.surfaces:
-                    surface.nodes = new_nodes
-
-        if isinstance(self.model, FourChamber):
-            SA_node = self.model.compute_SA_node()
-            AV_node = self.model.compute_AV_node()
-
-            av_beam = self.model.compute_av_conduction()
-            # AV_node.xyz
-            # av_beam.edges[-1,-1]
-            his_beam, his_ends_coords = self.model.compute_His_conduction()
-
-            left_bundle_beam = self.model.compute_left_right_bundle(
-                his_ends_coords[0],
-                his_beam.edges[-2, 1],
-                side="Left",
-            )
-
-            right_bundle_beam = self.model.compute_left_right_bundle(
-                his_ends_coords[1],
-                his_beam.edges[-1, 1],
-                side="Right",
-            )
+        if isinstance(self.model, (FourChamber, FullHeart)):
+            self.model.compute_av_conduction()
+            self.model.compute_His_conduction()
+            self.model.compute_bundle_branches()
 
     def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""
-        export_directory = os.path.join(
-            self.root_directory,
-            folder_name,
-            str(self.settings.electrophysiology.sigma11)[:4]
-            + "_"
-            + str(self.settings.electrophysiology.sigma22)[:4]
-            + "_"
-            + str(self.settings.electrophysiology.sigma33)[:4]
-            + "_"
-            + str(self.settings.purkinje.edgelen)[:4]
-            + "_"
-            + str(self.settings.purkinje.sigma)[:4],
-        )
+        export_directory = os.path.join(self.root_directory, folder_name)
         self.directories["main-ep"] = export_directory
 
         dyna_writer = writers.ElectrophysiologyDynaWriter(self.model, self.settings)
@@ -448,18 +384,38 @@ class EPSimulator(BaseSimulator):
 
     def _write_purkinje_files(
         self,
-        export_directory,
-        after_zerop=False,
+        pointstx: float = 0,  # TODO instantiate this
+        pointsty: float = 0,  # TODO instantiate this
+        pointstz: float = 0,  # TODO instantiate this
+        inodeid: int = 0,  # TODO instantiate this
+        iedgeid: int = 0,  # TODO instantiate this
+        edgelen: float = 2,  # TODO instantiate this
+        ngen: float = 50,
+        nbrinit: int = 8,
+        nsplit: int = 2,
     ) -> Path:
-        """Write purkinje files."""
-        model = copy.deepcopy(self.model)
-        if after_zerop:
-            model.mesh.points = np.array(self.stress_free_report["guess_ed_coord"])
+        """Write purkinje files.
 
-        dyna_writer = writers.PurkinjeGenerationDynaWriter(model, self.settings)
+        Parameters
+        ----------
+        pointstx : float, optional
+            _description_, by default 0
+        pointsty : float, optional
+            _description_, by default 0
+        pointstz : float, optional
+            _description_, by default 0
+        nbrinit : int, optional
+            _description_, by default 8
+        nsplit : int, optional
+            _description_, by default 2
+        """
+        export_directory = os.path.join(self.root_directory, "purkinjegeneration")
+        self.directories["purkinjegeneration"] = export_directory
+
+        dyna_writer = writers.PurkinjeGenerationDynaWriter(copy.deepcopy(self.model), self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory)
-        return
+        return export_directory
 
 
 class MechanicsSimulator(BaseSimulator):
@@ -474,12 +430,12 @@ class MechanicsSimulator(BaseSimulator):
     ) -> None:
         super().__init__(model, dyna_settings, simulation_directory)
 
-        self.initial_stress = initial_stress
         """If stress free computation is taken into considered."""
         # include initial stress by default
+        self.initial_stress = initial_stress
 
-        self.stress_free_report = None
         """A dictionary save stress free computation information"""
+        self.stress_free_report = None
 
         return
 
@@ -569,11 +525,7 @@ class MechanicsSimulator(BaseSimulator):
         export_directory = os.path.join(self.root_directory, folder_name)
         self.directories["zeropressure"] = export_directory
 
-        model = copy.deepcopy(self.model)
-        if isinstance(model, FourChamber) and type(self) == EPMechanicsSimulator:
-            model._create_isolation_part()
-
-        dyna_writer = writers.ZeroPressureMechanicsDynaWriter(model, self.settings)
+        dyna_writer = writers.ZeroPressureMechanicsDynaWriter(self.model, self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory)
 
@@ -583,33 +535,9 @@ class MechanicsSimulator(BaseSimulator):
 class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
     """Coupled EP-mechanics simulator with computed Electrophysiology."""
 
-    def __init__(
-        self,
-        model: HeartModel,
-        dyna_settings: DynaSettings,
-        simulation_directory: Path = "",
-    ) -> None:
-        MechanicsSimulator.__init__(self, model, dyna_settings, simulation_directory)
-
-        return
-
-    def simulate(self, folder_name="ep_meca"):
-        """Launch the main simulation."""
-        # MechanicalSimulator handle dynain file from zerop
-        MechanicsSimulator.simulate(self, folder_name=folder_name)
-
-        return
-
-    def _write_main_simulation_files(self, folder_name):
-        """Write LS-DYNA files that are used to start the main simulation."""
-        export_directory = os.path.join(self.root_directory, folder_name)
-        self.directories["main-coupling"] = export_directory
-
-        dyna_writer = writers.ElectroMechanicsDynaWriter(self.model, self.settings)
-        dyna_writer.update(with_dynain=self.initial_stress)
-        dyna_writer.export(export_directory)
-
-        return export_directory
+    def __init__(self, model: HeartModel, dyna_settings: DynaSettings) -> None:
+        super().__init__(model, dyna_settings)
+        raise NotImplementedError("Simulator EPMechanicsSimulator not implemented.")
 
 
 def run_lsdyna(

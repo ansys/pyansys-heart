@@ -1037,6 +1037,8 @@ class HeartModel:
             for invalid_s in invalid_surfaces:
                 LOGGER.error(f"Surface {invalid_s.name} is empty")
                 is_valid = False
+                
+        # self._sync_epicardium_with_part()
 
         return is_valid
 
@@ -1052,6 +1054,18 @@ class HeartModel:
                 is_valid = False
 
         return is_valid
+
+    def _sync_epicardium_with_part(self):
+        """Clean epicardial surfaces such that these do not use nodes that do not belong to the part."""
+        for part in self.parts:
+            node_ids_part = np.unique(self.mesh.tetrahedrons[part.element_ids,:])
+            for surface in part.surfaces:
+                if "epicardium" in surface.name:
+                    mask = np.invert( np.all( np.isin(surface.triangles, node_ids_part), axis = 1 ) )
+                    surface.cell_data["mask"] = np.array(mask, dtype=int)
+                    surface.remove_cells(mask, inplace=True)                               
+        return
+        
 
     def _compute_left_ventricle_anatomy_axis(self, first_cut_short_axis=0.2):
         """

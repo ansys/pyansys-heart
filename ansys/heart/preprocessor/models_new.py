@@ -16,7 +16,15 @@ from ansys.heart.preprocessor.input import _InputModel
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher
 from ansys.heart.preprocessor.mesh.mesher import _fluent_mesh_to_vtk_grid
-from ansys.heart.preprocessor.mesh.objects import Cap, Cavity, Mesh, BeamMesh, Part, Point, SurfaceMesh
+from ansys.heart.preprocessor.mesh.objects import (
+    Cap,
+    Cavity,
+    Mesh,
+    BeamMesh,
+    Part,
+    Point,
+    SurfaceMesh,
+)
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 import numpy as np
 import pyvista as pv
@@ -156,7 +164,7 @@ class HeartModel:
     def surface_ids(self) -> List[str]:
         """Return list of all defined surface names."""
         return [s.id for s in self.surfaces]
-    
+
     @property
     def cavities(self) -> List[Cavity]:
         """Return list of cavities in the model."""
@@ -206,6 +214,9 @@ class HeartModel:
 
         self.aha_ids = None
         """American Heart Association ID's."""
+
+        self.electrodes: List[Point] = []
+        """Electrodes positions for ECG computing."""
 
     def load_input(self):
         """Use the content in model info to load the input model."""
@@ -523,10 +534,10 @@ class HeartModel:
         import logging
 
         import vtk
-        
+
         logger = copy.deepcopy(logging.getLogger("pyheart_global"))
         # setting propagate to False is workaround for VTK changing log behavior
-        logger.propagate = False        
+        logger.propagate = False
 
         logger = logging.getLogger()
         logger.disabled = True
@@ -594,11 +605,11 @@ class HeartModel:
 
     def _add_surface_normals(self):
         """Add surface normal as point data and cell data to all 'named' surfaces in the model.
-        
+
         Notes
         -----
-        Note that we need to flip the normals due to the convention that Fluent Meshing uses. 
-        That is, normals point into the meshed domain.         
+        Note that we need to flip the normals due to the convention that Fluent Meshing uses.
+        That is, normals point into the meshed domain.
         """
         LOGGER.debug("Adding normals to all 'named' surfaces")
         LOGGER.warning("Flipping normals.")
@@ -606,7 +617,7 @@ class HeartModel:
             for surface in part.surfaces:
                 surface_with_normals = surface.compute_normals(
                     cell_normals=True, point_normals=True, inplace=True, flip_normals=True
-                )                
+                )
                 surface.cell_data["normals"] = surface_with_normals.cell_data["Normals"]
                 surface.point_data["normals"] = surface_with_normals.point_data["Normals"]
 
@@ -642,7 +653,7 @@ class HeartModel:
 
         self._add_nodal_areas()
         self._add_surface_normals()
-        
+
         self._assign_cavities_to_parts()
         self._extract_apex()
 
@@ -1037,8 +1048,8 @@ class HeartModel:
             for invalid_s in invalid_surfaces:
                 LOGGER.error(f"Surface {invalid_s.name} is empty")
                 is_valid = False
-                
-        # self._sync_epicardium_with_part()
+
+        self._sync_epicardium_with_part()
 
         return is_valid
 
@@ -1057,15 +1068,20 @@ class HeartModel:
 
     def _sync_epicardium_with_part(self):
         """Clean epicardial surfaces such that these do not use nodes that do not belong to the part."""
+        import pyvista as pv
+
         for part in self.parts:
-            node_ids_part = np.unique(self.mesh.tetrahedrons[part.element_ids,:])
+            node_ids_part = np.unique(self.mesh.tetrahedrons[part.element_ids, :])
             for surface in part.surfaces:
                 if "epicardium" in surface.name:
-                    mask = np.invert( np.all( np.isin(surface.triangles, node_ids_part), axis = 1 ) )
-                    surface.cell_data["mask"] = np.array(mask, dtype=int)
-                    surface.remove_cells(mask, inplace=True)                               
+                    mask = np.all(np.isin(surface.triangles, node_ids_part), axis=1)
+                    surface = SurfaceMesh(
+                        name=surface.name,
+                        triangles=surface.triangles[mask, :],
+                        nodes=surface.points,
+                    )
+
         return
-        
 
     def _compute_left_ventricle_anatomy_axis(self, first_cut_short_axis=0.2):
         """
@@ -1299,6 +1315,7 @@ class HeartModel:
         # print(set)
         return np.array(set)
 
+
 class LeftVentricle(HeartModel):
     """Model of just the left ventricle."""
 
@@ -1475,7 +1492,7 @@ class FourChamber(HeartModel):
         -------
         BeamMesh
             Beam mesh
-            
+
         Notes
         -----
         https://www.researchgate.net/publication/353154291_Morphometric_analysis_of_the_His_bundle_atrioven

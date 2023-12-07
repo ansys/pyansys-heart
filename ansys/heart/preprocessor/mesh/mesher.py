@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import subprocess
 from typing import List, Union
+
 LOGGER = logging.getLogger("pyheart_global.preprocessor")
 # from importlib.resources import files
 
@@ -59,6 +60,48 @@ def _get_face_zones_with_filter(pyfluent_session, prefixes: list) -> list:
     # get only unique and avoid duplicates:
     face_zones = list(set(face_zones))
     return face_zones
+
+
+def _organize_connected_regions(grid: pv.UnstructuredGrid, scalar: str = "part-id"):
+    """Ensure that cells that belong to same part are connected."""
+    import copy as copy
+
+    part_ids = np.unique(grid.cell_data[scalar])
+    grid.cell_data["orig-cell-ids"] = np.arange(0, grid.n_cells, dtype=int)
+
+    grid1 = copy.deepcopy(grid)
+
+    tets = grid.cells_dict[10]
+
+    # get a list of orphan cells
+    orphan_cell_ids = []
+    for part_id in part_ids:
+        mask = np.invert(grid1.cell_data[scalar] == part_id)
+        grid2 = grid1.remove_cells(mask, inplace=False)
+        conn = grid2.connectivity()
+
+        if len(np.unique(conn.cell_data["RegionId"])) == 0:
+            continue
+        # for each region, find to what "main" region it is connected.
+        # use point
+        for region in np.unique(conn.cell_data["RegionId"])[1:]:
+            orphan_cell_ids = conn.cell_data["orig-cell-ids"][conn.cell_data["RegionId"] == region]
+            point_ids = np.array([grid1.get_cell(id).point_ids for id in orphan_cell_ids]).flatten()
+
+            mask = np.isin(tets, point_ids)
+            connected_cell_id = np.argwhere(
+                np.all(np.vstack([np.sum(mask, axis=1) > 1, np.sum(mask, axis=1) < 4]), axis=0)
+            )[0]
+
+            grid.cell_data["part-id"][orphan_cell_ids] = grid.cell_data["part-id"][
+                connected_cell_id
+            ]
+
+        # orphan_cell_ids += list(conn.cell_data["orig-cell-ids"][conn.cell_data["RegionId"] > 0])
+
+    # for each orphan cell
+
+    return grid
 
 
 def _fluent_mesh_to_vtk_grid(
@@ -403,7 +446,7 @@ def mesh_from_non_manifold_input_model(
     session = pyfluent.launch_fluent(
         mode="meshing",
         precision="double",
-        processor_count=2,
+        processor_count=4,
         start_transcript=False,
         show_gui=_show_fluent_gui,
         product_version=_fluent_version,
@@ -600,6 +643,9 @@ def mesh_from_non_manifold_input_model(
 
     # assign part-ids to grid
     grid.cell_data["part-id"] = cell_centroids.point_data["part-id"]
+
+    # TODO Enesure that parts are continous and well connected.
+    grid = _organize_connected_regions(grid, scalar="part-id")
 
     if np.any(grid.cell_data["part-id"] == 0):
         raise ValueError("Invalid mesh, not all elements assigned to a part.")

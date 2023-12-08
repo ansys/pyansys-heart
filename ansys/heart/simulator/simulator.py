@@ -106,17 +106,35 @@ class BaseSimulator:
         self.settings.load_defaults()
         return self.settings
 
-    def compute_fibers(self, method: Literal["LSDYNA", "D-RBM", "B-RBM"] = "LSDYNA"):
+    def compute_fibers(
+        self,
+        method: Literal["LSDYNA", "D-RBM", "B-RBM"] = "LSDYNA",
+        rotation_angles={
+            "left alpha": [-60, 60],
+            "right alpha": [90, -25],
+            "left beta": [-20, 20],
+            "right beta": [0, 20],
+            "outflow alpha": [90, 0],
+            "outflow beta": [0, 0],
+        },
+    ):
         """Compute the fiber direction on the model.
 
         Parameters
         ----------
-        method : List[&quot;LSDYNA&quot;, &quot;D, optional
-            _description_, by default "LSDYNA"
+        method : Literal[&quot;LSDYNA&quot;, &quot;D, optional
+            method used to compute ventricle fibers, by default "LSDYNA"
+        rotation_angles : dict, optional
+            rotation angles, by default
+            { "left alpha": [-60, 60], "right alpha": [90, -25],
+            "left beta": [-20, 20], "right beta": [0, 20],
+            "outflow alpha": [90, 0], "outflow beta": [0, 0], }
         """
         LOGGER.info("Computing fiber orientation...")
 
         if method == "LSDYNA":
+            # TODO use angles
+            LOGGER.warning("rotation_angles are not used in LSDYNA method.")
             directory = self._write_fibers()
             input_file = os.path.join(directory, "main.k")
             self._run_dyna(path_to_input=input_file)
@@ -131,12 +149,17 @@ class BaseSimulator:
             self.model.mesh.cell_data["sheet"][elem_ids - 1] = sheet
 
         else:
+            if method == "B-RBM":  # TODO
+                LOGGER.error(f"{method} not implemented")
+                exit()
+
             if isinstance(self.model, LeftVentricle):
                 LOGGER.error(f"{method} cannot run for only left ventricle.")
                 exit()
+
             export_directory = os.path.join(self.root_directory, method)
-            target = self.run_laplace_problem(export_directory, type=method)
-            grid = compute_ventricle_fiber_by_drbm(export_directory)
+            target = self._run_laplace_problem(export_directory, type=method)
+            grid = compute_ventricle_fiber_by_drbm(export_directory, rotation_angles)
 
             # arrays that save ID map to full model
             grid["cell_ids"] = target["cell_ids"]
@@ -156,7 +179,7 @@ class BaseSimulator:
         type = "uvc"
         export_directory = os.path.join(self.root_directory, type)
 
-        target = self.run_laplace_problem(export_directory, type)
+        target = self._run_laplace_problem(export_directory, type)
         grid = read_uvc(export_directory)
 
         grid["cell_ids"] = target["cell_ids"]
@@ -193,7 +216,7 @@ class BaseSimulator:
         LOGGER.info("Computing RA fiber...")
         export_directory = os.path.join(self.root_directory, "ra_fiber")
 
-        target = self.run_laplace_problem(export_directory, "ra_fiber", raa=np.array(appendage))
+        target = self._run_laplace_problem(export_directory, "ra_fiber", raa=np.array(appendage))
         ra_pv = compute_ra_fiber_cs(export_directory)
         LOGGER.info("Generating fibers done.")
 
@@ -222,7 +245,7 @@ class BaseSimulator:
         LOGGER.info("Computing LA fiber...")
         export_directory = os.path.join(self.root_directory, "la_fiber")
 
-        target = self.run_laplace_problem(export_directory, "la_fiber")
+        target = self._run_laplace_problem(export_directory, "la_fiber")
         la_pv = compute_la_fiber_cs(export_directory)
         LOGGER.info("Generating fibers done.")
 
@@ -239,7 +262,7 @@ class BaseSimulator:
 
         return la_pv
 
-    def run_laplace_problem(self, export_directory, type, **kwargs):
+    def _run_laplace_problem(self, export_directory, type, **kwargs):
         """
         Run Laplace-Dirichlet (thermal) problem in LSDYNA.
 
@@ -267,7 +290,7 @@ class BaseSimulator:
         dyna_writer.export(export_directory)
 
         input_file = os.path.join(export_directory, "main.k")
-        self._run_dyna(path_to_input=input_file, options="case")
+        # self._run_dyna(path_to_input=input_file, options="case")
 
         LOGGER.info("Solving laplace-dirichlet done.")
 

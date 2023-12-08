@@ -292,18 +292,20 @@ def get_gradient(directory, field_list: List[str]) -> pv.UnstructuredGrid:
     return grid2
 
 
-def compute_ventricle_fiber_by_drbm(directory) -> pv.UnstructuredGrid:
-    """TODO.
+def compute_ventricle_fiber_by_drbm(directory: str, angles: dict) -> pv.UnstructuredGrid:
+    """D-RBM method described in https://doi.org/10.1016/j.cma.2020.113468.
 
     Parameters
     ----------
-    directory : _type_
-        _description_
+    directory : str
+        folder to find d3plot
+    angles : dict
+        rotation angle alpha and beta
 
     Returns
     -------
     pv.UnstructuredGrid
-        _description_
+        object with vectors
     """
     grid = get_gradient(
         directory, field_list=["trans", "ab_l", "ab_r", "ot_l", "ot_r", "w_l", "w_r", "lr"]
@@ -358,8 +360,12 @@ def compute_ventricle_fiber_by_drbm(directory) -> pv.UnstructuredGrid:
 
         return alpha
 
-    alpha = compute_rotation_angle([-60, 60], [90, -25], [90, 0])
-    beta = compute_rotation_angle([-20, 20], [0, 20], [0, 0])
+    # alpha = compute_rotation_angle([-60, 60], [90, -25], [90, 0])
+    # beta = compute_rotation_angle([-20, 20], [0, 20], [0, 0])
+    alpha = compute_rotation_angle(
+        angles["left alpha"], angles["right alpha"], angles["outflow alpha"]
+    )
+    beta = compute_rotation_angle(angles["left beta"], angles["right beta"], angles["outflow beta"])
 
     grid.cell_data["alpha"] = alpha
     grid.cell_data["beta"] = beta

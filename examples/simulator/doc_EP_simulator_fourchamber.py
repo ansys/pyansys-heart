@@ -41,7 +41,7 @@ path_to_model = os.path.join(workdir, "heart_model.pickle")
 if not os.path.isfile(path_to_model):
     raise FileExistsError(f"{path_to_model} not found")
 
-# specify LS-DYNA path (last tested working versions is DEV-104399)
+# specify LS-DYNA path (last tested working versions is intelmpi-linux-DEV-106117)
 lsdyna_path = r"ls-dyna_msmpi.exe"
 
 if not os.path.isfile(lsdyna_path):

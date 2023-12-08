@@ -2705,7 +2705,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self._update_ep_settings()
         self._update_stimulation()
 
-        if len(self.model.electrodes) != 0:
+        if self.model.info.add_blood_pool == True:
+            self._update_blood_settings()
+
+        if hasattr(self.model, "electrodes") and len(self.model.electrodes) != 0:
             self._update_ECG_coordinates()
 
         self._get_list_of_includes()
@@ -2917,7 +2920,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             else:
                 ep_mid = part.pid
                 self.kw_database.material.append(
-                    keywords.EmMat001(mid=ep_mid, mtype=1, sigma=1),
+                    custom_keywords.EmMat001(mid=ep_mid, mtype=1, sigma=1),
                 )
 
     def _update_cellmodels(self):
@@ -3339,6 +3342,32 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 )
             )
 
+    def _update_blood_settings(self):
+        """Update blood settings."""
+        if self.model.info.add_blood_pool == True:
+            dirichlet_bc_nid = self.get_unique_nodeset_id()
+            apex = self.model.left_ventricle.apex_points[0].node_id
+            node_set_kw = create_node_set_keyword(
+                node_ids=apex + 1,
+                node_set_id=dirichlet_bc_nid,
+                title="Dirichlet extracellular potential BC",
+            )
+            self.kw_database.node_sets.append(node_set_kw)
+            self.kw_database.ep_settings.append(
+                custom_keywords.EmBoundaryPrescribed(
+                    bpid=1,
+                    bptype=1,
+                    settype=2,
+                    setid=dirichlet_bc_nid,
+                    val=0,
+                    sys=0,
+                )
+            )
+            for deckname, deck in vars(self.kw_database).items():
+                for kw in deck.keywords:
+                    if "EM_MAT" in kw.get_title():
+                        kw.lambda_ = 0.2
+
     def _update_ECG_coordinates(self):
         """Add ECG computation content."""
         # TODO replace strings by custom dyna keyword
@@ -3473,7 +3502,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             self.kw_database.beam_networks.append(part_kw)
             self.kw_database.beam_networks.append(keywords.MatNull(mid=network.pid, ro=1e-11))
             self.kw_database.beam_networks.append(
-                keywords.EmMat001(mid=network.pid, mtype=2, sigma=3)
+                custom_keywords.EmMat001(mid=network.pid, mtype=2, sigma=3)
             )
 
             # cell model

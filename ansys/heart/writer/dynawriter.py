@@ -3364,6 +3364,11 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 )
             )
             for deckname, deck in vars(self.kw_database).items():
+                # lambda_ is the equal anisotropy ratio in the monodomain model.
+                # In dyna: lambda_= sigma_i/sigma_e and sigma_i=(1.+lambda)*sigmaElement.
+                # when lambda_ is not empty, it activates the computation of extracellular
+                # potentials: div((sigma_i+sigma_e) . grad(phi_e)) = div(sigma_i . grad(v))
+                # or div(((1.+lambda)*sigmaElement) . grad(phi_e)) = div(sigmaElement . grad(v))
                 for kw in deck.keywords:
                     if "EM_MAT" in kw.get_title():
                         kw.lambda_ = 0.2

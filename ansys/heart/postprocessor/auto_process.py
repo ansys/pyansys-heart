@@ -362,21 +362,31 @@ def compute_ventricle_fiber_by_drbm(directory) -> pv.UnstructuredGrid:
     grid.cell_data["alpha"] = alpha
     grid.cell_data["beta"] = beta
 
-    # apply rotation
+    #
     grid.cell_data["fiber"] = np.zeros((grid.n_cells, 3))
-    grid.cell_data["sheet normal"] = np.zeros((grid.n_cells, 3))
-    grid.cell_data["transverse"] = np.zeros((grid.n_cells, 3))
+
+    # use f,n,s in Quateroni, it's n, cross fiber
+    # use FTS in Bayer, it's S, sheet normal
+    grid.cell_data["cross-fiber"] = np.zeros((grid.n_cells, 3))
+
+    # use f,n,s in Quateroni, it's s, sheet
+    # use FTS in Bayer, it's T, transverse
+    grid.cell_data["sheet"] = np.zeros((grid.n_cells, 3))
 
     for i in range(grid.n_cells):
         q = np.array([grid["e_l"][i], grid["e_n"][i], grid["e_t"][i]]).T
+        # rotate alpha around e_t
         a = alpha[i] * np.pi / 180
+        rot1 = np.array([[np.cos(a), -np.sin(a), 0], [np.sin(a), np.cos(a), 0], [0, 0, 1]])
+        # rotate beta around e_l
         b = beta[i] * np.pi / 180
-        r1 = np.array([[np.cos(a), -np.sin(a), 0], [np.sin(a), np.cos(a), 0], [0, 0, 1]])
-        r2 = np.array([[1, 0, 0], [0, np.cos(b), np.sin(b)], [0, -np.sin(b), np.cos(b)]])
-        qq = np.matmul(np.matmul(q, r1), r2)
+        rot2 = np.array([[1, 0, 0], [0, np.cos(b), np.sin(b)], [0, -np.sin(b), np.cos(b)]])
+        # apply rotation
+        qq = np.matmul(np.matmul(q, rot1), rot2)
+
         grid.cell_data["fiber"][i] = qq[:, 0]
-        grid.cell_data["sheet normal"][i] = qq[:, 1]
-        grid.cell_data["transverse"][i] = qq[:, 2]
+        grid.cell_data["cross-fiber"][i] = qq[:, 1]
+        grid.cell_data["sheet"][i] = qq[:, 2]
 
     grid.save("gradient2.vtk")
 

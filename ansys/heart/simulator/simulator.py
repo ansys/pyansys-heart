@@ -137,8 +137,16 @@ class BaseSimulator:
             export_directory = os.path.join(self.root_directory, method)
             target = self.run_laplace_problem(export_directory, type=method)
             grid = compute_ventricle_fiber_by_drbm(export_directory)
-            # TODO: assignment
-            # a / d from LSDYNA =? fiber sheet normal/transverse
+
+            # arrays that save ID map to full model
+            grid["cell_ids"] = target["cell_ids"]
+
+            LOGGER.info("Assigning fibers to full model...")
+
+            # cell IDs in full model mesh
+            ids = grid["cell_ids"]
+            self.model.mesh.cell_data["fiber"][ids] = grid["fiber"]
+            self.model.mesh.cell_data["sheet"][ids] = grid["sheet"]
         return
 
     def compute_uvc(self) -> pv.UnstructuredGrid:

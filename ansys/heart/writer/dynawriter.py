@@ -3765,7 +3765,8 @@ class UHCWriter(BaseDynaWriter):
         rv_endo_nodes = np.hstack(
             (
                 self.model.get_part("Right ventricle").endocardium.node_ids,
-                self.model.get_part("Right ventricle").surfaces[2].node_ids,  # TODO
+                # TODO: make sure its septium
+                self.model.get_part("Right ventricle").surfaces[2].node_ids,
             )
         )
         rv_endo_nodes = np.unique(rv_endo_nodes)
@@ -3781,7 +3782,8 @@ class UHCWriter(BaseDynaWriter):
         epi_nodes = np.setdiff1d(epi_nodes, np.hstack((lv_endo_nodes, rv_endo_nodes)))
         epi_nodes = np.setdiff1d(epi_nodes, rings_nodes)
 
-        la_node = self.model.get_part("Left ventricle").apex_points[1].node_id  # TODO
+        # TODO make sure they are from epi
+        la_node = self.model.get_part("Left ventricle").apex_points[1].node_id
         ra_node = self.model.get_part("Right ventricle").apex_points[1].node_id
 
         # ids of sub mesh

@@ -13,7 +13,7 @@ def scale_lhs_samples(samples, ranges):
     ).T
 
 
-def generate_lhs_combinations(num_samples=5):
+def generate_lhs_combinations(num_samples=50):
     """num_samples: number of samples for each parameter."""
     ranges = [(0.5, 2), (0.2, 1), (3, 10), (5, 10)]
     lhs_samples = lhs(len(ranges), samples=num_samples)
@@ -28,5 +28,5 @@ print("combinations", combinations)
 print("nbr combination:", len(combinations))
 
 df = pd.DataFrame(combinations, columns=["Purkinje_edgelen", "SigmaX", "Ratio", "Ratio2"])
-csv_file_path = r"C:\Users\xuhu\pyheart-lib\examples\simulator\parameter_combinations.csv"
+csv_file_path = r".\parameter_combinations.csv"
 df.to_csv(csv_file_path, index=False)

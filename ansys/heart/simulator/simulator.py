@@ -26,7 +26,7 @@ from ansys.heart.postprocessor.auto_process import (
     read_uvc,
     zerop_post,
 )
-from ansys.heart.preprocessor.models_new import FourChamber, FullHeart, HeartModel
+from ansys.heart.preprocessor.models_new import LeftVentricle, FourChamber, FullHeart, HeartModel
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 import numpy as np

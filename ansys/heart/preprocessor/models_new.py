@@ -514,7 +514,7 @@ class HeartModel:
             plotter = pv.Plotter()
             plotter.add_mesh(self.mesh, color="w", opacity=0.3)
             for beams in self.mesh.beam_network:
-                plotter.add_mesh(beams, color="r")
+                plotter.add_mesh(beams, color="r", line_width=2)
             plotter.show()
         except:
             LOGGER.warning("Failed to plot mesh.")
@@ -1588,45 +1588,37 @@ class FourChamber(HeartModel):
         return His_septum_start, His_septum_end
 
     def compute_bundle_branches(self) -> (BeamMesh, BeamMesh):
-        """Compute Buncle branches conduction system."""
+        """Compute Bundle branches conduction system."""
         His_end = self.septum.get_point("His septum end")
 
         left_bundle = self._compute_bundle_oneside(
             His_end,
             self.left_ventricle.endocardium,
-            self.left_ventricle.endocardium.node_ids,
             side="Left",
         )
 
-        face = np.hstack(
-            (self.right_ventricle.endocardium.faces, self.right_ventricle.septum.faces)
-        )
-        right_endo = pv.PolyData(self.mesh.points, face)
+        # right_endo = pv.PolyData(self.mesh.points, face)
+        right_endo = self.right_ventricle.cavity.surface
 
-        right_endo_nids = np.unique(
-            np.concatenate(
-                (self.right_ventricle.septum.node_ids, self.right_ventricle.endocardium.node_ids)
-            )
-        )
-        right_bundle = self._compute_bundle_oneside(
-            His_end, right_endo, right_endo_nids, side="Right"
-        )
+        right_bundle = self._compute_bundle_oneside(His_end, right_endo, side="Right")
 
         return left_bundle, right_bundle
 
-    def _compute_bundle_oneside(self, His_end: Point, endo_surface, endo_nids, side: str):
-        """Bundle brunch."""
-        start_xyz = pv.PolyData(self.mesh.points[endo_nids, :]).find_closest_point(His_end.xyz)
-        start_id = endo_nids[start_xyz]
+    def _compute_bundle_oneside(self, His_end: Point, endo_surface: SurfaceMesh, side: str):
+        """Bundle branch."""
+        endo_surface.point_data["original_ids"] = np.arange(0, endo_surface.n_points)
+
+        clean_endo_surface = endo_surface.clean()
+        start_id = clean_endo_surface.find_closest_point(His_end.xyz)
 
         if side == "Left":
             ventricle = self.left_ventricle
         elif side == "Right":
             ventricle = self.right_ventricle
 
-        bundle_branch = endo_surface.geodesic(
-            endo_surface.find_closest_point(self.mesh.points[start_id, :]),
-            endo_surface.find_closest_point(ventricle.apex_points[0].xyz),
+        bundle_branch = clean_endo_surface.geodesic(
+            start_id,
+            clean_endo_surface.find_closest_point(ventricle.apex_points[0].xyz),
         )
 
         # build branch net
@@ -1634,7 +1626,13 @@ class FourChamber(HeartModel):
         new_nodes = bundle_branch.points[0:-1, :]
 
         # first node "his septum end" and last node "apex"
-        edges = np.concatenate(([His_end.node_id], bundle_branch["vtkOriginalPointIds"]))
+        # map back to original node ids.
+        edges = np.concatenate(
+            (
+                [His_end.node_id],
+                clean_endo_surface["original_ids"][bundle_branch["vtkOriginalPointIds"]],
+            )
+        )
 
         # duplicate nodes except the two ends
         edges[1:-1] = len(self.mesh.nodes) + np.linspace(

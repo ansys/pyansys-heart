@@ -272,6 +272,7 @@ class BaseDynaWriter:
 
         # for each surface in each part add the respective node-set
         # Use same ID as surface
+        # TODO check if database already contains nodesets (there will be duplicates otherwise)
         used_node_ids = np.empty(0, dtype=int)
 
         for part in self.model.parts:
@@ -2691,10 +2692,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         self._update_dummy_material_db()
         self._update_ep_material_db()
-        self._update_cellmodels()
 
         self._update_segmentsets_db()
         self._update_nodesets_db()
+        self._update_cellmodels()
 
         if self.model.beam_network:
             # with smcoupl=1, coupling is disabled
@@ -2918,6 +2919,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     ),
                 )
             else:
+                # non conductive bodies (mtype=1)
                 ep_mid = part.pid
                 self.kw_database.material.append(
                     custom_keywords.EmMat001(mid=ep_mid, mtype=1, sigma=1),
@@ -3369,9 +3371,14 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 # when lambda_ is not empty, it activates the computation of extracellular
                 # potentials: div((sigma_i+sigma_e) . grad(phi_e)) = div(sigma_i . grad(v))
                 # or div(((1.+lambda)*sigmaElement) . grad(phi_e)) = div(sigmaElement . grad(v))
+                blood_pid = self.model.get_part("Blood").pid
                 for kw in deck.keywords:
+                    # activate extracellular potential solve
                     if "EM_MAT" in kw.get_title():
                         kw.lambda_ = 0.2
+                        # set blood as conductor
+                        if kw.mid == blood_pid:
+                            kw.mtype = 4
 
     def _update_ECG_coordinates(self):
         """Add ECG computation content."""

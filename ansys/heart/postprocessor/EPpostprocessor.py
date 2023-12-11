@@ -116,6 +116,7 @@ class EPpostprocessor:
     def animate_transmembrane(self):
         """Animate transmembrane potentials and export to vtk."""
         vm, times = self.get_transmembrane_potential()
+        post_path = self.create_post_folder()
         # Creating scene and loading the mesh
         grid = self.reader.meshgrid.copy()
         p = pv.Plotter()
@@ -123,7 +124,7 @@ class EPpostprocessor:
         p.show(interactive_update=True)
 
         for i in range(vm.shape[0]):
-            grid.point_data["transemembrane_potential"] = vm[i, :]
+            grid.point_data["transmembrane_potential"] = vm[i, :]
             grid.save(post_path + "\\vm_" + str(i) + ".vtk")
             p.update_scalars(vm[i, :])
             p.update()

@@ -9,6 +9,10 @@ This example shows you how to post process an EP simulation.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Import the required modules
 
+# sphinx_gallery_start_ignore
+# sphinx_gallery_thumbnail_path = '/_static/images/ep_post_activationtime.png'
+# sphinx_gallery_end_ignore
+
 import os
 import pathlib
 

@@ -49,11 +49,12 @@ def zerop_post(directory, model):
         return None
     stress_free_coord = data.get_initial_coordinates()
     displacements = data.get_displacement()
+    guess_ed_coord = stress_free_coord + displacements[-1]
 
     nodes = model.mesh.nodes
 
     # convergence information
-    dst = np.linalg.norm(stress_free_coord + displacements[-1] - nodes, axis=1)
+    dst = np.linalg.norm(guess_ed_coord - nodes, axis=1)
     error_mean = np.mean(dst)
     error_max = np.max(dst)
 
@@ -123,6 +124,7 @@ def zerop_post(directory, model):
             "relative volume error (100%)": volume_error,
         },
     }
+    dct["guess_ed_coord"] = guess_ed_coord.tolist()
 
     # right ventricle exist
     if len(model.cavities) > 1:

@@ -30,44 +30,18 @@ if not os.path.isfile(case_file):
     )
     unpack_case(path_to_downloaded_file)
 
+model: models.BiVentricle = models.BiVentricle.load_model(path_to_model)
 
-info = models.ModelInfo(
-    database="Strocchi2020",
-    path_to_case=case_file,
-    work_directory=workdir,
-    path_to_model=path_to_model,
-    add_blood_pool=False,
-    mesh_size=1.5,
-)
-
-
-# create the working directory
-info.create_workdir()
-# clean the working directory
-info.clean_workdir(extensions_to_remove=[".stl", ".vtk", ".msh.h5"])
-# dump information to stdout
-info.dump_info()
-
-# instantiate a four chamber model
-model = models.BiVentricle(info)
-
-# extract the simulation mesh
-model.extract_simulation_mesh()
-
-# dump the model to disk for future use
-model.dump_model(path_to_model)
-# print the resulting information
-model.print_info()
 
 move_points = np.array([
-    [81.90321388, 57.90000882, 205.76663367], # mitral-valve
-    [94.35242091, 75.99022315, 213.31654731], # aortic-valve
-    [67.14045655, 102.49380179, 216.20654707], # tricuspid-valve
-    [121.58912558, 89.76497459, 223.29557159], # pulmonary-valve
-    [70.87069056682236, 84.83837198547876, 295.6765864478138], # left endo
-    [70.54655746919204, 84.50457846174797, 297.2737993295601], # left epi
-    [76.04229182019685, 66.53094359081156, 297.7182142431582], # right endo
-    [75.08606835375224, 66.33759424571653, 302.2811669120656], # right epi   
+    [94.35242091,75.99022315,213.31654731], # mitral-valve
+    [81.90321388,57.90000882,205.76663367], # aortic-valve
+    [121.58912558,89.76497459,223.29557159], # tricuspid-valve
+    [67.14045655,102.49380179,216.20654707], # pulmonary-valve
+    [76.04229182019685,66.53094359081156,297.7182142431582], # left endo
+    [75.08606835375224,66.33759424571653,302.2811669120656], # left epi
+    [70.87069056682236,84.83837198547876,295.6765864478138], # right endo
+    [70.54655746919204,84.50457846174797,297.2737993295601], # right epi   
 ])
 
 electrode_positions = np.array([
@@ -85,6 +59,31 @@ electrode_positions = np.array([
     ]
 ])
 
+# # Create a vtkPoints object and add the points to it
+# vtk_points = vtk.vtkPoints()
+# for point in np.concatenate((move_points, electrode_positions)):
+#     vtk_points.InsertNextPoint(point.tolist())
+
+# # Create a vtkPolyData object
+# poly_data = vtk.vtkPolyData()
+# poly_data.SetPoints(vtk_points)
+
+# # Write the poly_data to a VTK file
+# writer = vtk.vtkPolyDataWriter()
+# writer.SetFileName(r"C:\Users\xuhu\OneDrive - ANSYS, Inc\Desktop\Temp\Pyansys-heart\test_p.vtk")
+# writer.SetInputData(poly_data)
+# writer.Write()
+
+# plotter = pyvista.Plotter()
+
+# plotter.add_mesh(move_points,color="red")
+# # p2.add_mesh(electrode_positions, color="blue", opacity=0.3)
+# # p2.add_mesh(model.mesh, color="red", opacity=0.3)
+# plotter.add_mesh(electrode_positions, color="blue")
+
+# # Set the background color and show the plotter
+# plotter.background_color = "white"
+# plotter.show()
 
 transformed_electrodes = model.define_ECG_coordinates(move_points, electrode_positions)
 
@@ -101,3 +100,35 @@ plotter.add_mesh(transformed_electrodes, color="blue", opacity=1)
 plotter.background_color = "white"
 plotter.show()
 
+
+# Create a vtkPoints object and add the points to it
+# vtk_points = vtk.vtkPoints()
+# for point in np.concatenate((transformed_electrodes)):
+#     vtk_points.InsertNextPoint(point.tolist())
+
+# # Create a vtkPolyData object
+# poly_data = vtk.vtkPolyData()
+# poly_data.SetPoints(transformed_electrodes)
+
+# # Write the poly_data to a VTK file
+# writer = vtk.vtkPolyDataWriter()
+# writer.SetFileName(r"C:\Users\xuhu\OneDrive - ANSYS, Inc\Desktop\Temp\Pyansys-heart\test_p.vtk")
+# writer.SetInputData(poly_data)
+# writer.Write()
+
+
+'''
+# ECG positions for Strocchi heart:
+electrode_positions = np.array([
+    [-29.893285751342773, 27.112899780273438, 373.30865478515625],   # V1
+    [33.68170928955078, 30.09606170654297, 380.5427551269531],       # V2
+    [56.33562469482422, 29.499839782714844, 355.533935546875],       # V3
+    [100.25729370117188, 43.61333465576172, 331.07635498046875],     # V4
+    [140.29800415039062, 81.36004638671875, 349.69970703125],        # V5
+    [167.9899139404297, 135.89862060546875, 366.18634033203125],     # V6
+    [-176.06332397460938, 57.632076263427734, 509.14202880859375],   # RA
+    [133.84518432617188, 101.44053649902344, 534.9176635742188],     # LA
+    [-103.60343933105469, 64.02100372314453, 160.0018310546875],     # RL
+    [128.9441375732422, 92.85327911376953, 173.07363891601562]       # LL
+])
+'''

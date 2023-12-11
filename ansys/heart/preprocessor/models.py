@@ -786,7 +786,7 @@ class HeartModel:
             File name of the html file, by default ""
             
         """
-        if not len(self.mesh.beam_network) > 0:
+        if not len(self.beam_network) > 0:
             LOGGER.info("No Purkinje network to plot.")
             return
 

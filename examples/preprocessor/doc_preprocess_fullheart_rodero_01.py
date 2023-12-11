@@ -66,10 +66,11 @@ path_to_part_definitions = os.path.join(workdir, "part_definitions.json")
 if os.path.isfile(path_to_input):
     # load the existing input model.
     import pyvista as pv
+
     input_geom = pv.PolyData(path_to_input)
     with open(path_to_part_definitions, "r") as f:
         part_definitions = json.load(f)
-    
+
 else:
     # otherwise get the input geometry and part definitions
     input_geom, part_definitions = get_input_geom_and_part_defintions_from_public_database(
@@ -78,7 +79,7 @@ else:
     # save for future use.
     input_geom.save(path_to_input)
     with open(path_to_part_definitions, "w") as f:
-        json.dump(part_definitions, f, indent=True)    
+        json.dump(part_definitions, f, indent=True)
 
 
 info = models.ModelInfo(
@@ -120,6 +121,8 @@ model.print_info()
 
 # clean working directory
 model.info.clean_workdir([".stl", ".vtk", ".jou", ".log"])
+
+model.mesh.save(os.path.join(model.info.workdir, "simulation_model.vtu"))
 
 # save cavities
 for cavity in model.cavities:

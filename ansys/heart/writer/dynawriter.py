@@ -2694,6 +2694,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self._update_ep_material_db()
 
         self._update_segmentsets_db()
+
+        # TODO check if no existing node set ids conflict with surface ids
+        # For now, new node sets should be created after calling
+        # self._update_nodesets_db()
         self._update_nodesets_db()
         self._update_cellmodels()
 
@@ -2899,6 +2903,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             self.kw_database.material.append(f"$$ {part.name} $$")
             partname = part.name.lower()
             if ("atrium" in partname) or ("ventricle" in partname) or ("septum" in partname):
+                # Electrically "active" tissue (mtype=1)
                 ep_mid = part.pid
                 self.kw_database.material.append(
                     custom_keywords.EmMat003(
@@ -2919,10 +2924,12 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     ),
                 )
             else:
-                # non conductive bodies (mtype=1)
+                # Electrically non-active tissue (mtype=4)
+                # These bodies are still conductive bodies
+                # in the xtracellular space
                 ep_mid = part.pid
                 self.kw_database.material.append(
-                    custom_keywords.EmMat001(mid=ep_mid, mtype=1, sigma=1),
+                    custom_keywords.EmMat001(mid=ep_mid, mtype=4, sigma=1),
                 )
 
     def _update_cellmodels(self):
@@ -3376,9 +3383,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     # activate extracellular potential solve
                     if "EM_MAT" in kw.get_title():
                         kw.lambda_ = 0.2
-                        # set blood as conductor
-                        if kw.mid == blood_pid:
-                            kw.mtype = 4
 
     def _update_ECG_coordinates(self):
         """Add ECG computation content."""

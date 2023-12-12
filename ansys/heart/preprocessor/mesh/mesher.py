@@ -63,23 +63,24 @@ def _get_face_zones_with_filter(pyfluent_session, prefixes: list) -> list:
 
 def _organize_connected_regions(grid: pv.UnstructuredGrid, scalar: str = "part-id"):
     """Ensure that cells that belong to same part are connected."""
-    import copy as copy
-
+    LOGGER.debug("Re-organize connected regions.")
     part_ids = np.unique(grid.cell_data[scalar])
-    grid.cell_data["orig-cell-ids"] = np.arange(0, grid.n_cells, dtype=int)
+    grid.cell_data.set_scalars(np.arange(0, grid.n_cells, dtype=int), name="orig-cell-ids")
 
-    grid1 = copy.deepcopy(grid)
+    # grid1 = grid.copy(deep=False)
+    grid1 = grid.copy(deep=True)
 
     tets = grid.cells_dict[10]
 
     # get a list of orphan cells
     orphan_cell_ids = []
     for part_id in part_ids:
-        mask = np.invert(grid1.cell_data[scalar] == part_id)
-        grid2 = grid1.remove_cells(mask, inplace=False)
+        mask = grid1.cell_data[scalar] == part_id
+        grid2 = grid1.extract_cells(mask)
+
         conn = grid2.connectivity()
 
-        if len(np.unique(conn.cell_data["RegionId"])) == 0:
+        if np.unique(conn.cell_data["RegionId"]).shape == (1,):
             continue
         # for each region, find to what "main" region it is connected.
         # use point
@@ -641,7 +642,7 @@ def mesh_from_non_manifold_input_model(
     cell_centroids.point_data["part-id"][orig_indices_1] = cell_centroids_1.point_data["part-id"]
 
     # assign part-ids to grid
-    grid.cell_data["part-id"] = cell_centroids.point_data["part-id"]
+    grid.cell_data["part-id"] = np.array(cell_centroids.point_data["part-id"], dtype=int)
 
     # Ensure that parts are continuous and well connected.
     grid = _organize_connected_regions(grid, scalar="part-id")

@@ -73,63 +73,77 @@ simulator = EPSimulator(
 )
 
 simulator.compute_uvc()
-# simulator.compute_fibers()
-simulator.compute_purkinje()
+simulator.compute_fibers()
+# simulator.compute_purkinje()
 
-simulator.compute_conduction_system()
-simulator.dyna_settings.num_cpus=20
+# simulator.compute_conduction_system()
+# simulator.dyna_settings.num_cpus=20
 
-simulator.simulate()
+# simulator.simulate()
 
-# for index, row in parameters_df.iterrows():
-#     simulator.dyna_settings.num_cpus=1 
-#     # instantiate simulator. Change options where necessary.
+for index, row in parameters_df.iterrows():
+    simulator.dyna_settings.num_cpus=1 
+    # instantiate simulator. Change options where necessary.
 
-#     my_simulation_directory = os.path.join(
-#         workdir, 
-#         "simulation-EP",
-#         str(row["Purkinje_edgelen"])[:4]
-#         + "_"
-#         + str(row["SigmaX"])[:4]
-#         + "_"
-#         + str(row["Ratio"])[:4]
-#         + "_"
-#         + str(row["Ratio2"])[:4],
-#     )
-#     simulator.root_directory = my_simulation_directory
-#     print("simulator.root_directory:", simulator.root_directory)
+    my_simulation_directory = os.path.join(
+        workdir, 
+        "simulation-EP",
+        str(row["Purkinje_edgelen"])[:4]
+        + "_"
+        + str(row["SigmaX"])[:4]
+        + "_"
+        + str(row["Ratio"])[:4]
+        + "_"
+        + str(row["Ratio2"])[:4],
+    )
+    simulator.root_directory = my_simulation_directory
+    print("simulator.root_directory:", simulator.root_directory)
 
-#     simulator.settings.load_defaults()
+    simulator.settings.load_defaults()
 
-#     simulator.settings.load_with_EP_params(
-#         Purkinje_edgelen=row["Purkinje_edgelen"],
-#         sigmaX=row["SigmaX"],
-#         ratio=row["Ratio"],
-#         ratio2=row["Ratio2"],
-#     )
+    simulator.settings.load_with_EP_params(
+        Purkinje_edgelen=row["Purkinje_edgelen"],
+        sigmaX=row["SigmaX"],
+        ratio=row["Ratio"],
+        ratio2=row["Ratio2"],
+    )
 
-#     print(simulator.settings.electrophysiology.sigma11)
-#     print(simulator.settings.electrophysiology.sigma22)
-#     print(simulator.settings.electrophysiology.sigma33)
-#     print(simulator.settings.purkinje.edgelen)
-#     print(simulator.settings.purkinje.sigma)
+    print(simulator.settings.electrophysiology.sigma11)
+    print(simulator.settings.electrophysiology.sigma22)
+    print(simulator.settings.electrophysiology.sigma33)
+    print(simulator.settings.purkinje.edgelen)
+    print(simulator.settings.purkinje.sigma)
 
-#     simulator.compute_purkinje()
+    simulator.compute_purkinje()
 
-#     simulator.compute_conduction_system()
+    simulator.compute_conduction_system()
 
-#     # save_path = os.path.join(
-#     #     self.se, 
-#     #     "simulation-EP",
-#     #     str(row["Purkinje_edgelen"])[:4]
-#     #     + "_"
-#     #     + str(row["SigmaX"])[:4]
-#     #     + "_"
-#     #     + str(row["Ratio"])[:4]
-#     #     + "_"
-#     #     + str(row["Ratio2"])[:4],
-#     # )
-#     # simulator.model.save_purkinje()
+    # save_path = os.path.join(
+    #     self.se, 
+    #     "simulation-EP",
+    #     str(row["Purkinje_edgelen"])[:4]
+    #     + "_"
+    #     + str(row["SigmaX"])[:4]
+    #     + "_"
+    #     + str(row["Ratio"])[:4]
+    #     + "_"
+    #     + str(row["Ratio2"])[:4],
+    # )
+    # simulator.model.save_purkinje()
+    my_simulation_directory = os.path.join(
+        workdir, 
+        "simulation-EP",
+        str(row["Purkinje_edgelen"])[:4]
+        + "_"
+        + str(row["SigmaX"])[:4]
+        + "_"
+        + str(row["Ratio"])[:4]
+        + "_"
+        + str(row["Ratio2"])[:4],
+    )
+    simulator.root_directory = my_simulation_directory
+    print("simulator.root_directory:", simulator.root_directory)
 
-#     simulator.dyna_settings.num_cpus=20
-#     simulator.simulate()
+    simulator.dyna_settings.num_cpus=20
+    
+    simulator.simulate()

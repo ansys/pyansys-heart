@@ -559,8 +559,6 @@ class Mesh(pv.UnstructuredGrid):
             b.nodes = self.nodes
         for i in self.interfaces:
             i.nodes = self.nodes
-        for bm in self.beam_network:
-            bm.nodes = self.nodes
         return
 
     def _deprecated_read_mesh_file(self, filename: pathlib.Path) -> None:

@@ -4,7 +4,6 @@ import logging
 import os
 from pathlib import Path
 import shutil
-import subprocess
 from typing import List, Union
 
 LOGGER = logging.getLogger("pyheart_global.preprocessor")
@@ -644,7 +643,7 @@ def mesh_from_non_manifold_input_model(
     # assign part-ids to grid
     grid.cell_data["part-id"] = cell_centroids.point_data["part-id"]
 
-    # TODO Enesure that parts are continous and well connected.
+    # Ensure that parts are continuous and well connected.
     grid = _organize_connected_regions(grid, scalar="part-id")
 
     if np.any(grid.cell_data["part-id"] == 0):

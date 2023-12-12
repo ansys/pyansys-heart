@@ -83,7 +83,7 @@ def extract_fullheart():
     )
 
     model = preprocess_model(
-        info=info, model_type="FullHeart", clean_workdir=False, use_wrapper=False
+        info=info, model_type="FullHeart", clean_workdir=False, use_wrapper=True
     )
 
     yield

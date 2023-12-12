@@ -163,18 +163,18 @@ def unpack_case(tar_path: Path):
         tar_dir = os.path.dirname(tar_path)
         tar_ball.extractall(path=tar_dir)
         # look for file and return path
-        try: 
+        try:
             # NOTE *.case priority over *.vtk. Take first hit as file.
             # this may not be desired behavior.
             for root, dirs, files in os.walk(tar_dir):
                 for file in files:
-                    if file.endswith(".case"):                        
+                    if file.endswith(".case"):
                         return os.path.join(root, file)
-                    
+
             for root, dirs, files in os.walk(tar_dir):
                 for file in files:
-                    if file.endswith(".vtk"):                        
-                        return os.path.join(root, file)                    
+                    if file.endswith(".vtk"):
+                        return os.path.join(root, file)
         except:
             return
     except:

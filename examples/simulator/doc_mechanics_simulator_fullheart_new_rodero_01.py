@@ -32,9 +32,7 @@ import ansys.heart.preprocessor.models_new as models
 from ansys.heart.simulator.simulator import DynaSettings, MechanicsSimulator
 
 # set working directory and path to model.
-workdir = Path(
-    Path(__file__).resolve().parents[2], "downloads", "Rodero2021", "01", "FullHeartNew"
-)
+workdir = Path(Path(__file__).resolve().parents[2], "downloads", "Rodero2021", "01", "FullHeartNew")
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 if not os.path.isfile(path_to_model):
@@ -42,7 +40,7 @@ if not os.path.isfile(path_to_model):
 
 # specify LS-DYNA path
 lsdyna_path = "ls-dyna_smp_d.exe"
-lsdyna_path = r"D:\mhoeijma\dyna-versions\daily_builds\26102023\mppdyna_d_sse2_linux86_64_intelmpi\mppdyna_d_sse2_linux86_64_intelmmpi_105630"
+lsdyna_path = r"D:\mhoeijma\dyna-versions\daily_builds\26102023\mppdyna_d_sse2_linux86_64_intelmpi\mppdyna_d_sse2_linux86_64_intelmmpi_105630"  # noqa E501
 
 if not os.path.isfile(lsdyna_path):
     raise FileExistsError(f"{lsdyna_path} not found.")
@@ -105,7 +103,6 @@ simulator.model.mesh.save(os.path.join(simulator.model.info.workdir, "model_mesh
 # Compute the stress free configuration. That is, when imaged under diastole
 # we need to approximate the initial stress at `t=0`. The stress free configuration
 # is computed through Rausch' method.
-# simulator._write_stress_free_configuration_files(os.path.join(simulator.model.info.workdir, "stress-free"))
 simulator.compute_stress_free_configuration()
 simulator.model.mesh.save(os.path.join(simulator.model.info.workdir, "model_mesh_post_zerop.vtu"))
 # plot the updated model.

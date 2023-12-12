@@ -18,16 +18,13 @@ and process that case into a simulation-ready four chamber heart model.
 # sphinx_gallery_thumbnail_path = '_static/images/four_chamber_mesh.png'
 # sphinx_gallery_end_ignore
 
+import json
 import os
 from pathlib import Path
-import json
 
 from ansys.heart.misc.downloader import download_case, unpack_case
 import ansys.heart.preprocessor.models_new as models
-from ansys.heart.simulator.support import (
-    get_input_geom_and_part_defintions_from_public_database,
-    preprocess_model,
-)
+from ansys.heart.simulator.support import get_input_geom_and_part_defintions_from_public_database
 
 # sphinx_gallery_start_ignore
 os.environ["USE_OLD_HEART_MODELS"] = "0"
@@ -115,6 +112,26 @@ model.mesh_volume(use_wrapper=True)
 model._update_parts()
 # dump the model to disk
 model.dump_model()
+
+model.compute_SA_node()
+model.compute_AV_node()
+
+av_beam = model.compute_av_conduction()
+# AV_node.xyz
+# av_beam.edges[-1,-1]
+his_beam, his_ends_coords = model.compute_His_conduction()
+
+left_bundle_beam = model.compute_left_right_bundle(
+    his_ends_coords[0],
+    his_beam.edges[-2, 1],
+    side="Left",
+)
+
+right_bundle_beam = model.compute_left_right_bundle(
+    his_ends_coords[1],
+    his_beam.edges[-1, 1],
+    side="Right",
+)
 
 # print some info about the processed model.
 model.print_info()

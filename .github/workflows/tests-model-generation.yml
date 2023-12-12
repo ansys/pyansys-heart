@@ -76,7 +76,7 @@ jobs:
       - name: Test PyFluent on simple meshes
         continue-on-error: false
         run: |
-          python -m pytest tests/heart/preprocessor/test_mesher.py
+          python -m pytest -p no:faulthandler tests/heart/preprocessor/test_mesher.py
 
       - name: Cache large files
         id: cache-strocchi

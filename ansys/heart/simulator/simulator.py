@@ -26,8 +26,7 @@ from ansys.heart.postprocessor.auto_process import (
     read_uvc,
     zerop_post,
 )
-
-from ansys.heart.preprocessor.models_new import FourChamber, FullHeart, HeartModel
+from ansys.heart.preprocessor.models_new import FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 import numpy as np
@@ -391,7 +390,7 @@ class EPSimulator(BaseSimulator):
                 for surface in part.surfaces:
                     surface.nodes = new_nodes
 
-        if isinstance(self.model, FourChamber):
+        if isinstance(self.model, FourChamber, FullHeart):
             SA_node = self.model.compute_SA_node()
             AV_node = self.model.compute_AV_node()
 

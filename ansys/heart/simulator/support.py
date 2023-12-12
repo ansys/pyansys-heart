@@ -85,9 +85,9 @@ def get_input_geom_and_part_defintions_from_public_database(
         raise TypeError("Expecting unstructured grid. Check inputs.")
     else:
         mesh: pv.UnstructuredGrid = mesh
-        
+
     if database == "Rodero2021":
-        mesh.rename_array("ID", "tags",preference="cell")
+        mesh.rename_array("ID", "tags", preference="cell")
 
     # remove caps and spaces in keys
     labels = {"-".join(k.lower().split()): v for k, v in database_labels.items()}
@@ -243,7 +243,7 @@ def get_input_geom_and_part_defintions_from_public_database(
     part_definitions1["Right atrium"] = part_definitions1.pop("right-atrium-myocardium")
     part_definitions1["Aorta"] = part_definitions1.pop("aorta-wall")
     part_definitions1["Pulmonary artery"] = part_definitions1.pop("pulmonary-artery-wall")
-    
+
     # rename septum
     part_definitions1["Left ventricle"]["enclosed_by_boundaries"][
         "right-ventricle-septum"
@@ -251,19 +251,21 @@ def get_input_geom_and_part_defintions_from_public_database(
 
     # remove left atrial septal inlet boundary
     try:
-        del part_definitions1["Left atrium"]["enclosed_by_boundaries"]["left-atrium-appendage-inlet"]
+        del part_definitions1["Left atrium"]["enclosed_by_boundaries"][
+            "left-atrium-appendage-inlet"
+        ]
     except KeyError:
         pass
-    
+
     # add veins and pulmonary veins to left and right atrium
     for key, value in database_labels.items():
         if "pulmonary vein border" in key or "appendage border" in key:
             part_definitions1["Left atrium"]["enclosed_by_boundaries"][key] = value
-            
+
     for key, value in database_labels.items():
         if "vena cava border" in key:
-            part_definitions1["Right atrium"]["enclosed_by_boundaries"][key] = value    
-    
+            part_definitions1["Right atrium"]["enclosed_by_boundaries"][key] = value
+
     if model_type == "BiVentricle":
         del part_definitions1["Left atrium"]
         del part_definitions1["Right atrium"]

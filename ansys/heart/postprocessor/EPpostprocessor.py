@@ -89,7 +89,7 @@ class EPpostprocessor:
 
         grid = self.reader.meshgrid.copy()
         p = pv.Plotter()
-        if type(field) is np.ndarray or list:
+        if type(field) is np.ndarray or type(field) is list:
             p.add_mesh(grid, scalars=field)
         elif type(field) is dpf.field.Field:
             p.add_mesh(grid, scalars=field.data_as_list)

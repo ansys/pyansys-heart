@@ -2,6 +2,7 @@
 import os
 import pathlib as Path
 
+from ansys.heart.custom_logging import LOGGER
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.preprocessor.models import HeartModel
 from typing import Union
@@ -63,14 +64,22 @@ class EPpostprocessor:
             plt.show(block=True)
         return vm, times
 
-    def plot_static_field(self, field: Union[dpf.field.Field, np.ndarray]):
+    def plot_static_field(self, field: Union[dpf.field.Field, np.ndarray], show: bool = True, export_html: bool = False, html_file_name: str = ""):
         grid = self.reader.meshgrid.copy()
         p = pv.Plotter()
         if type(field) is np.ndarray:
             p.add_mesh(grid, scalars=field)
         elif type(field) is dpf.field.Field:
             p.add_mesh(grid, scalars=field.data_as_list)
-        p.show()
+            
+        if export_html == True:
+            if html_file_name[-5:]==".html":
+                p.export_html(html_file_name)
+                LOGGER.info("html file written - %s" %html_file_name)
+            else:         
+                LOGGER.warning("Error in html file name")
+        if show == True:
+            p.show()
         
     # def animate_transmembrane_potentials(self):
     #     """Animate transmembrane potential."""

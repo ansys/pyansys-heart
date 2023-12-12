@@ -390,7 +390,7 @@ class EPSimulator(BaseSimulator):
                 for surface in part.surfaces:
                     surface.nodes = new_nodes
 
-        if isinstance(self.model, FourChamber, FullHeart):
+        if isinstance(self.model, (FourChamber, FullHeart)):
             SA_node = self.model.compute_SA_node()
             AV_node = self.model.compute_AV_node()
 

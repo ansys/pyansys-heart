@@ -1,8 +1,8 @@
 """Module containing classes for the various heart models."""
-import json
-import os
-import logging
 import copy
+import json
+import logging
+import os
 
 # import json
 import pathlib
@@ -17,10 +17,10 @@ import ansys.heart.preprocessor.mesh.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher
 from ansys.heart.preprocessor.mesh.mesher import _fluent_mesh_to_vtk_grid
 from ansys.heart.preprocessor.mesh.objects import (
+    BeamMesh,
     Cap,
     Cavity,
     Mesh,
-    BeamMesh,
     Part,
     Point,
     SurfaceMesh,
@@ -1190,9 +1190,7 @@ class HeartModel:
         return is_valid
 
     def _sync_epicardium_with_part(self):
-        """Clean epicardial surfaces such that these do not use nodes that do not belong to the part."""
-        import pyvista as pv
-
+        """Clean epicardial surfaces such that these use only nodes of part."""
         for part in self.parts:
             node_ids_part = np.unique(self.mesh.tetrahedrons[part.element_ids, :])
             for surface in part.surfaces:

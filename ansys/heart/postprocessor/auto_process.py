@@ -13,8 +13,8 @@ from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.postprocessor.exporter import LVContourExporter
 from ansys.heart.preprocessor.mesh.objects import Cavity, SurfaceMesh
-from ansys.heart.simulator.settings.settings import SimulationSettings
 from ansys.heart.preprocessor.models import HeartModel
+from ansys.heart.simulator.settings.settings import SimulationSettings
 import matplotlib.pyplot as plt
 import numpy as np
 import pyvista as pv
@@ -189,7 +189,7 @@ def mech_post(directory: pathlib.Path, model: HeartModel):
     # ffmpeg -f image2 -i pv_%d.png output.mp4
 
     exporter = LVContourExporter(os.path.join(directory, "d3plot"), model)
-    
+
     model._compute_left_ventricle_anatomy_axis(first_cut_short_axis=0.2)
     exporter.export_contour_to_vtk("l4cv", model.l4cv_axis)
     exporter.export_contour_to_vtk("l2cv", model.l2cv_axis)

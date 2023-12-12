@@ -754,6 +754,18 @@ class HeartModel:
             LOGGER.warning("Failed to plot mesh.")
         return
 
+    def _create_blood_part(self):
+        """Create blood part."""
+        self.add_part("Blood")
+        blood = self.get_part("Blood")
+        blood.element_ids = np.linspace(
+            self.mesh.number_of_cells,
+            self.mesh.number_of_cells + self.fluid_mesh.number_of_cells - 1,
+            self.fluid_mesh.number_of_cells,
+            dtype=int,
+        )
+        self.mesh.tetrahedrons = np.vstack((self.mesh.tetrahedrons, self.fluid_mesh.tetrahedrons))
+
     @staticmethod
     def load_model(filename: pathlib.Path):
         """Load a preprocessed model from file.

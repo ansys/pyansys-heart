@@ -27,7 +27,7 @@ classifiers = [
 dependencies = [
     "importlib-metadata >=4.0",
     "ansys-fluent-core==0.16.0",
-    "ansys-dpf-core==0.9.0",
+    "ansys-dpf-core==0.10.0",
     "h5py>=3.6.0",
     "Jinja2==3.1.2",
     "matplotlib==3.7.1",
@@ -40,11 +40,11 @@ dependencies = [
     "wget==3.2",
     "validators==0.20.0",
     "pint==0.20.1",
-    "pyvista==0.41.1",
-    "trame-vtk==2.5.8",
-    "trame == 3.2.4",
-    "trame-vuetify == 2.3.1",
-    "nest_asyncio == 1.5.7",
+    "pyvista==0.43.0",
+    "trame==3.3.0",
+    "trame-vtk==2.6.2",
+    "trame-vuetify==2.3.1",
+    "nest_asyncio == 1.5.8",
 ]
 
 # Optional dependencies:

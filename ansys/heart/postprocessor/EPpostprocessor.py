@@ -2,8 +2,11 @@
 import os
 import pathlib as Path
 
+from ansys.heart.custom_logging import LOGGER
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.preprocessor.models import HeartModel
+from typing import Union
+from ansys.dpf import core as dpf
 import matplotlib.pyplot as plt
 import numpy as np
 import pyvista as pv
@@ -61,6 +64,45 @@ class EPpostprocessor:
             plt.show(block=True)
         return vm, times
 
+    def plot_static_field(self, field: Union[dpf.field.Field, np.ndarray, list], show: bool = True, export_html: bool = False, html_file_name: str = ""):
+        """
+        Plot the volume mesh of the heart model with the field
+
+        Parameters
+        ----------
+        field: Union[dpf.field.Field, np.ndarray] 
+            fields to plot on the mesh
+        show : bool, optional
+            Whether to plot the result, by default True
+        export_html : bool, optional
+            Export the plot as html file, by default False
+        html_file_name : str, optional
+            File name of the html file, by default ""
+
+        Examples
+        --------
+        >>> postproc = EPpostprocessor(results_path=ep_folder)
+        >>> activation_time_field = postproc.get_activation_times()
+        >>> postproc.plot_static_field(activation_time_field) 
+        >>> postproc.plot_static_field(vm[50,:], show=False, export_html=True, html_file_name="os.getcwd()+"\\field.html"")
+        """
+
+        grid = self.reader.meshgrid.copy()
+        p = pv.Plotter()
+        if type(field) is np.ndarray or type(field) is list:
+            p.add_mesh(grid, scalars=field)
+        elif type(field) is dpf.field.Field:
+            p.add_mesh(grid, scalars=field.data_as_list)
+            
+        if export_html == True:
+            if html_file_name[-5:]==".html":
+                p.export_html(html_file_name)
+                LOGGER.info("html file written - %s" %html_file_name)
+            else:         
+                LOGGER.warning("Error in html file name")
+        if show == True:
+            p.show()
+        
     # def animate_transmembrane_potentials(self):
     #     """Animate transmembrane potential."""
     #     self.load_ep_fields()
@@ -116,6 +158,7 @@ class EPpostprocessor:
     def animate_transmembrane(self):
         """Animate transmembrane potentials and export to vtk."""
         vm, times = self.get_transmembrane_potential()
+        post_path = self.create_post_folder()
         # Creating scene and loading the mesh
         grid = self.reader.meshgrid.copy()
         p = pv.Plotter()
@@ -123,7 +166,7 @@ class EPpostprocessor:
         p.show(interactive_update=True)
 
         for i in range(vm.shape[0]):
-            grid.point_data["transemembrane_potential"] = vm[i, :]
+            grid.point_data["transmembrane_potential"] = vm[i, :]
             grid.save(post_path + "\\vm_" + str(i) + ".vtk")
             p.update_scalars(vm[i, :])
             p.update()

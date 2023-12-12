@@ -36,7 +36,7 @@ postproc = EPpostprocessor(results_path=ep_folder)
 # Get activation times and plot the field
 
 activation_time_field = postproc.get_activation_times()
-activation_time_field.plot(show_edges=False)
+postproc.plot_static_field(activation_time_field)
 ###############################################################################
 # .. image:: /_static/images/ep_post_activationtime.png
 #   :width: 300pt

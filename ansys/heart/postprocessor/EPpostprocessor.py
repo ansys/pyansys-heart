@@ -153,7 +153,7 @@ class EPpostprocessor:
         for i in range(vm.shape[0]):
             # TODO vtk is not optimal for scalar fields with
             # non moving meshes, consider using ROM format
-            grid.point_data["transemembrane_potential"] = vm[i, :]
+            grid.point_data["transmembrane_potential"] = vm[i, :]
             grid.save(post_path + "\\vm_" + str(i) + ".vtk")
         return
 

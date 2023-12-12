@@ -4,6 +4,8 @@ import pathlib as Path
 
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.preprocessor.models import HeartModel
+from typing import Union
+from ansys.dpf import core as dpf
 import matplotlib.pyplot as plt
 import numpy as np
 import pyvista as pv
@@ -61,6 +63,15 @@ class EPpostprocessor:
             plt.show(block=True)
         return vm, times
 
+    def plot_static_field(self, field: Union[dpf.field.Field, np.ndarray]):
+        grid = self.reader.meshgrid.copy()
+        p = pv.Plotter()
+        if type(field) is np.ndarray:
+            p.add_mesh(grid, scalars=field)
+        elif type(field) is dpf.field.Field:
+            p.add_mesh(grid, scalars=field.data_as_list)
+        p.show()
+        
     # def animate_transmembrane_potentials(self):
     #     """Animate transmembrane potential."""
     #     self.load_ep_fields()

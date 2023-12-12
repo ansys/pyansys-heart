@@ -3989,9 +3989,8 @@ class UHCWriter(BaseDynaWriter):
         epi_nodes = np.setdiff1d(epi_nodes, np.hstack((lv_endo_nodes, rv_endo_nodes)))
         epi_nodes = np.setdiff1d(epi_nodes, rings_nodes)
 
-        # TODO make sure they are from epi
-        la_node = self.model.get_part("Left ventricle").apex_points[1].node_id
-        ra_node = self.model.get_part("Right ventricle").apex_points[1].node_id
+        la_node = self.model._compute_uvc_apex_set(side="left")
+        ra_node = self.model._compute_uvc_apex_set(side="right")
 
         # ids of sub mesh
         sorter = np.argsort(self.target["point_ids"])
@@ -4065,7 +4064,7 @@ class UHCWriter(BaseDynaWriter):
 
         self.kw_database.main.append(keywords.Case(caseid=3, jobid="ab_r", scid1=3))
         self.kw_database.main.append("*CASE_BEGIN_3")
-        self._define_Laplace_Dirichlet_bc(set_ids=[tv_nodeset_id, la_nodeset_id], bc_values=[1, 0])
+        self._define_Laplace_Dirichlet_bc(set_ids=[tv_nodeset_id, ra_nodeset_id], bc_values=[1, 0])
         self.kw_database.main.append("*CASE_END_3")
 
         self.kw_database.main.append(keywords.Case(caseid=4, jobid="ot_l", scid1=4))
@@ -4075,7 +4074,7 @@ class UHCWriter(BaseDynaWriter):
 
         self.kw_database.main.append(keywords.Case(caseid=5, jobid="ot_r", scid1=5))
         self.kw_database.main.append("*CASE_BEGIN_5")
-        self._define_Laplace_Dirichlet_bc(set_ids=[pv_nodeset_id, la_nodeset_id], bc_values=[1, 0])
+        self._define_Laplace_Dirichlet_bc(set_ids=[pv_nodeset_id, ra_nodeset_id], bc_values=[1, 0])
         self.kw_database.main.append("*CASE_END_5")
 
         self.kw_database.main.append(keywords.Case(caseid=6, jobid="w_l", scid1=6))

@@ -8,7 +8,7 @@ import os
 # import json
 import pathlib
 import pickle
-from typing import List, Union
+from typing import List, Literal, Union
 
 LOGGER = logging.getLogger("pyheart_global.preprocessor")
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
@@ -1804,15 +1804,21 @@ class HeartModel:
 
         return set1, set2, set3
 
-    def _compute_uvc_apex_set(self, radius=3):
-        """Todo Only for LeftVentricle."""
+    def _compute_uvc_apex_set(self, side: Literal["left", "right", "both"] = "left", radius=3):
         import scipy.spatial as spatial
 
         point_tree = spatial.cKDTree(self.mesh.points)
-        set = point_tree.query_ball_point(self.parts[0].apex_points[1].xyz, radius)
-
-        # print(set)
-        return np.array(set)
+        if side == "left":
+            ventricle = self.get_part("Left ventricle")
+            set = point_tree.query_ball_point(ventricle.apex_points[1].xyz, radius)
+            return np.array(set)
+        else:
+            ventricle = self.get_part("Right ventricle")
+            set2 = point_tree.query_ball_point(ventricle.apex_points[1].xyz, radius)
+            if side == "right":
+                return np.array(set2)
+            elif side == "both":
+                return np.array(set.extend(set2))
 
 
 class LeftVentricle(HeartModel):

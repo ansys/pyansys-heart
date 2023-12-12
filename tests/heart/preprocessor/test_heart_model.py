@@ -3,12 +3,13 @@ import glob as glob
 import json
 import os
 
+import ansys.heart.preprocessor.models_new as models
+
 if os.getenv("GITHUB_ACTIONS"):
     is_gh_action = True
 else:
     is_gh_action = False
 
-import ansys.heart.preprocessor.models_new as models
 import numpy as np
 import pytest
 import yaml

@@ -64,7 +64,7 @@ class EPpostprocessor:
             plt.show(block=True)
         return vm, times
 
-    def plot_static_field(self, field: Union[dpf.field.Field, np.ndarray], show: bool = True, export_html: bool = False, html_file_name: str = ""):
+    def plot_static_field(self, field: Union[dpf.field.Field, np.ndarray, list], show: bool = True, export_html: bool = False, html_file_name: str = ""):
         """
         Plot the volume mesh of the heart model with the field
 
@@ -89,7 +89,7 @@ class EPpostprocessor:
 
         grid = self.reader.meshgrid.copy()
         p = pv.Plotter()
-        if type(field) is np.ndarray:
+        if type(field) is np.ndarray or list:
             p.add_mesh(grid, scalars=field)
         elif type(field) is dpf.field.Field:
             p.add_mesh(grid, scalars=field.data_as_list)

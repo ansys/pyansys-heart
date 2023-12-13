@@ -25,6 +25,26 @@ dyna_settings = DynaSettings(
 # dyna_settings._set_env_variables()
 #############################################################
 
+# right atrium appendage apex is manually selected
+right_appendage_apex = {
+    "Cristobal2021": {
+        "1": [39, 29, 98],
+        "2": [40, 38, 101],
+        "3": [40, 57, 98],
+        "4": [35, 34, 101],
+        "5": [30, 32, 86],
+        # ...
+    },
+    "Strocchi2020": {
+        "1": [-33, 82, 417],
+        "2": [-35, 84, -169],
+        "3": [-63, 76, 184],
+        "4": [-27, 107, 279],
+        "5": [-23, 67, 231],
+        # ...
+    },
+}
+
 
 def main(args):
     # input
@@ -84,9 +104,14 @@ def main(args):
             simulator.compute_fibers()
 
             if isinstance(model, models.FourChamber):
-                raise NotImplementedError("We need right appendage apex point...")
+                try:
+                    coord = right_appendage_apex[database][str(id)]
+                except KeyError:
+                    print(f"raa coordinate need to be defined for case {id} of {database}")
+                    exit()
+
                 simulator.compute_left_atrial_fiber()
-                simulator.compute_right_atrial_fiber(appendage=[39, 29, 98])
+                simulator.compute_right_atrial_fiber(appendage=coord)
 
                 simulator.model.left_atrium.has_fiber = True
                 simulator.model.left_atrium.is_active = True

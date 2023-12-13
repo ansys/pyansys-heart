@@ -30,8 +30,7 @@ def main(args):
     # input
     database = args.database
     cases = args.case
-    types = [args.type]
-    size = args.meshsize
+    folder = args.folder
     simulation = args.simulation
 
     #
@@ -42,64 +41,63 @@ def main(args):
         case_str = "{0:02d}".format(id)
         root = os.path.join(root_folder, database, case_str)
 
-        for model_type in types:
-            workdir = os.path.join(root, f"{model_type}_{size}")
-            path_to_model = str(Path(workdir, "heart_model.pickle"))
+        workdir = os.path.join(root, f"{folder}")
+        path_to_model = str(Path(workdir, "heart_model.pickle"))
 
-            model = models.HeartModel.load_model(path_to_model)
+        model = models.HeartModel.load_model(path_to_model)
 
-            # instantiate simulator object
-            if simulation == "meca":
-                simulator = MechanicsSimulator(
-                    model=model,
-                    dyna_settings=dyna_settings,
-                    simulation_directory=os.path.join(workdir, simu_folder),
-                )
-                simulator.settings.load_defaults()
+        # instantiate simulator object
+        if simulation == "meca":
+            simulator = MechanicsSimulator(
+                model=model,
+                dyna_settings=dyna_settings,
+                simulation_directory=os.path.join(workdir, simu_folder),
+            )
+            simulator.settings.load_defaults()
 
-                simulator.compute_fibers()
-                simulator.compute_stress_free_configuration()
-                simulator.simulate()
+            simulator.compute_fibers()
+            simulator.compute_stress_free_configuration()
+            simulator.simulate()
 
-            elif simulation == "ep":
-                simulator = EPSimulator(
-                    model=model,
-                    dyna_settings=dyna_settings,
-                    simulation_directory=os.path.join(workdir, simu_folder),
-                )
-                simulator.settings.load_defaults()
-                #
-                simulator.compute_fibers()
-                simulator.compute_purkinje()
-                if isinstance(model, models.FourChamber):
-                    simulator.compute_conduction_system()
-                simulator.simulate()
+        elif simulation == "ep":
+            simulator = EPSimulator(
+                model=model,
+                dyna_settings=dyna_settings,
+                simulation_directory=os.path.join(workdir, simu_folder),
+            )
+            simulator.settings.load_defaults()
+            #
+            simulator.compute_fibers()
+            simulator.compute_purkinje()
+            if isinstance(model, models.FourChamber):
+                simulator.compute_conduction_system()
+            simulator.simulate()
 
-            elif simulation == "epmeca":
-                simulator = EPMechanicsSimulator(
-                    model=model,
-                    dyna_settings=dyna_settings,
-                    simulation_directory=os.path.join(workdir, simu_folder),
-                )
-                simulator.settings.load_defaults()
-                #
-                if isinstance(model, models.FourChamber):
-                    raise NotImplementedError("We need right appendage apex point...")
-                    simulator.compute_left_atrial_fiber()
-                    simulator.compute_right_atrial_fiber(appendage=[39, 29, 98])
+        elif simulation == "epmeca":
+            simulator = EPMechanicsSimulator(
+                model=model,
+                dyna_settings=dyna_settings,
+                simulation_directory=os.path.join(workdir, simu_folder),
+            )
+            simulator.settings.load_defaults()
+            #
+            if isinstance(model, models.FourChamber):
+                raise NotImplementedError("We need right appendage apex point...")
+                simulator.compute_left_atrial_fiber()
+                simulator.compute_right_atrial_fiber(appendage=[39, 29, 98])
 
-                    simulator.model.left_atrium.has_fiber = True
-                    simulator.model.left_atrium.is_active = True
-                    simulator.model.right_atrium.has_fiber = True
-                    simulator.model.right_atrium.is_active = True
+                simulator.model.left_atrium.has_fiber = True
+                simulator.model.left_atrium.is_active = True
+                simulator.model.right_atrium.has_fiber = True
+                simulator.model.right_atrium.is_active = True
 
-                simulator.compute_stress_free_configuration()
+            simulator.compute_stress_free_configuration()
 
-                simulator.compute_purkinje(after_zerop=True)
-                if isinstance(model, models.FourChamber):
-                    simulator.compute_conduction_system(after_zerop=True)
+            simulator.compute_purkinje(after_zerop=True)
+            if isinstance(model, models.FourChamber):
+                simulator.compute_conduction_system(after_zerop=True)
 
-                simulator.simulate()
+            simulator.simulate()
 
 
 if __name__ == "__main__":
@@ -121,9 +119,7 @@ if __name__ == "__main__":
         type=lambda x: [int(val) for val in x.split(",")],
         default=[1],
     )
-    parser.add_argument("--type", help="Heart model type", choices=["lv", "bv", "fh"], default="fh")
-
-    parser.add_argument("--meshsize", help="Mesh Size", type=float, default=2.0)
+    parser.add_argument("--folder", help="Folder of heart model type", type=str, required=True)
 
     parser.add_argument(
         "--simulation", help="simulaton type", choices=["meca", "ep", "epmeca"], default="ep"

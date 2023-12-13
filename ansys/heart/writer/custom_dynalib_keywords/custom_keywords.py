@@ -1,5 +1,6 @@
 # flake8: noqa
 from .keywords.control_implicit_solver import ControlImplicitSolver
+from .keywords.em_boundary_prescribed import EmBoundaryPrescribed
 from .keywords.em_control_ep import EmControlEp
 from .keywords.em_ep_cellmodel_tomek import EmEpCellmodelTomek
 from .keywords.em_ep_cellmodel_usermat import EmEpCellmodelUsermat
@@ -11,6 +12,7 @@ from .keywords.em_ep_purkinje_network2 import EmEpPurkinjeNetwork2
 from .keywords.em_ep_purkinje_network import EmEpPurkinjeNetwork
 from .keywords.em_ep_tentusscher_stimulus2 import EmEpTentusscherStimulus2
 from .keywords.em_ep_tentusscher_stimulus import EmEpTentusscherStimulus
+from .keywords.em_mat_001 import EmMat001
 from .keywords.em_mat_003 import EmMat003
 from .keywords.interface_springback_lsdyna import InterfaceSpringbackLsdyna
 from .keywords.mat_077h import Mat077H

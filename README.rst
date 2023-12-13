@@ -150,9 +150,10 @@ need to follow these steps:
         # latest version
         pip install git+https://github.com/ansys/dynalib.git@main
 
-   or if encountering issues with dynalib you can install a specific version
+   or if encountering issues with dynalib you can install a specific version.
+   We recommend using the latest compatible version:
 
-        pip install git+https://github.com/ansys/dynalib.git@afce06ba178888d992ff51838ca521abb824c8ab
+        pip install git+https://github.com/ansys/dynalib.git@61f8e5db7c27e395941b22071e0bd938b1f099fc
 
 
 5. Install additional requirements (if needed):

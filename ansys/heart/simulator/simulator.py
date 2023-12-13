@@ -385,11 +385,11 @@ class EPSimulator(BaseSimulator):
         """Compute the conduction system."""
         if after_zerop:
             new_nodes = np.array(self.stress_free_report["guess_ed_coord"])[:-11]
-            self.model.mesh.points = new_nodes
+            self.model.mesh.points[:-11,:] = new_nodes 
             for part in self.model.parts:
                 for surface in part.surfaces:
                     surface.nodes = new_nodes
-
+        
         if isinstance(self.model, (FourChamber, FullHeart)):
             SA_node = self.model.compute_SA_node()
             AV_node = self.model.compute_AV_node()

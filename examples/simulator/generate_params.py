@@ -1,71 +1,5 @@
-# # def generate_full_factorial_combinations(values):
-# #     """
-# #     Generates a combination of parameters based on a full factorial design.
-
-# #     :param values: list of values for each parameter.
-# #     :return: Array of parameter combinations.
-# #     """
-# #     # Calculate the number of levels for each parameter
-# #     levels = [len(vals) for vals in values]
-
-# #     # Generate full factorial design matrix
-# #     design = fullfact(levels)
-
-# #     # Conversion of design matrices to actual parameter values
-# #     scaled_design = np.array([[values[j][int(i)] for j, i in enumerate(row)] for row in design])
-
-# #     return scaled_design
-
-# # Define parameter
-# Purkinje_edgelen_values = [1, 2, 3]
-# Purkinje_nsplit_values = [1, 2, 3]
-# EP_sigma_values = [0.1, 0.2, 0.3, 0.4, 0.5] # sigma11 sigma22 sigma33
-# Fiber_alpha_beta_values = [-100, -101, -102, -103] #alpha_beta_values
-
-# # values = [
-# #     Purkinje_edgelen_values,
-# #     Purkinje_nsplit_values,
-# #     EP_sigma_values,
-# #     EP_sigma_values,
-# #     EP_sigma_values,
-# #     Fiber_alpha_beta_values,
-# #     Fiber_alpha_beta_values
-# # ]
-
-# combinations = [
-#     (edgelen, nsplit, sigma11, sigma22, sigma33, alpha, beta)
-#     for edgelen in Purkinje_edgelen_values
-#     for nsplit in Purkinje_nsplit_values
-#     for sigma11 in EP_sigma_values
-#     for sigma22 in EP_sigma_values
-#     for sigma33 in EP_sigma_values
-#     for alpha in Fiber_alpha_beta_values
-#     for beta in Fiber_alpha_beta_values
-# ]
-
-# print('combinations', combinations)
-# print('nbr combination:', len(combinations))
-
-
-# import pandas as pd
-
-# df = pd.DataFrame(
-#     combinations,
-#     columns=[
-#         "Purkinje_edgelen",
-#         "Purkinje_nsplit",
-#         "EP_sigma11",
-#         "EP_sigma22",
-#         "EP_sigma33",
-#         "fiber_alpha",
-#         "fiber_beta",
-#     ],
-# )
-# csv_file_path = r'C:\Users\xuhu\pyheart-lib\examples\simulator\parameter_combinations.csv'
-# df.to_csv(csv_file_path, index=False)
-
-
 import numpy as np
+import pandas as pd
 from pyDOE import lhs
 
 
@@ -79,24 +13,56 @@ def scale_lhs_samples(samples, ranges):
     ).T
 
 
-def generate_lhs_combinations(num_samples=5):
-    """
-    param num_samples: number of samples for each parameter.
-    """
-    ranges = [(0.5, 2), (0.2, 1), (3, 10), (5, 10)]
+def generate_lhs_combinations(num_samples=5000):
+    """num_samples: number of samples for each parameter."""
+    # ranges = [(0.5, 2), (0.2, 1), (3, 10), (5, 10)]
+    '''
+    purkinje edgelength: [0.5, 2]
+    sigmaX values: 0.2
+    ratio = 1
+    ratio2 (in keywords.EmMat001): [5,10] (such that: sigmaPurkinje=ratio2 * sigmaX)
+    '''
+
+    ranges = [(0.5, 2), (5, 10)]
+
     lhs_samples = lhs(len(ranges), samples=num_samples)
     scaled_samples = scale_lhs_samples(lhs_samples, ranges)
 
     return scaled_samples
 
+def plot_DoE_with_two_params():
+    '''verification the algorithm of DoE points generated: normalization'''
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    plt.figure(figsize=(10, 6))
+
+    # Plotting the data
+    plt.scatter(df['Purkinje_edgelen'], df['Ratio2'])
+    plt.title('Scatter Plot of Purkinje Edge Length vs. Ratio2')
+    plt.xlabel('Purkinje Edge Length')
+    plt.ylabel('Ratio2')
+    plt.grid(True)
+    plt.show()
 
 combinations = generate_lhs_combinations()
 
 print("combinations", combinations)
 print("nbr combination:", len(combinations))
 
-import pandas as pd
+'''
+purkinje edgelength: [0.5, 2]
+sigmaX values: [0.2,1]
+ratio = [3,10] (such that: sigmaY=sigmaZ=ratio * sigmaX)
+ratio2 (in keywords.EmMat001): [5,10] (such that: sigmaPurkinje=ratio2 * sigmaX)
+'''
 
-df = pd.DataFrame(combinations, columns=["Purkinje_edgelen", "SigmaX", "Ratio", "Ratio2"])
-csv_file_path = r"C:\Users\xuhu\pyheart-lib\examples\simulator\parameter_combinations.csv"
-df.to_csv(csv_file_path, index=False)
+# df = pd.DataFrame(combinations, columns=["Purkinje_edgelen", "SigmaX", "Ratio", "Ratio2"])
+df = pd.DataFrame(combinations, columns=["Purkinje_edgelen", "Ratio2"])
+
+# csv_file_path = r"./two_parameter_combinations.csv"
+# csv_file_path = r"D:\xuhu\pyansys-heart\examples\simulator\two_parameter_combinations.csv"
+# df.to_csv(csv_file_path, index=False)
+
+
+plot_DoE_with_two_params()

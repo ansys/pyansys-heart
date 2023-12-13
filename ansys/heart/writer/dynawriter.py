@@ -2689,10 +2689,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         self._update_dummy_material_db()
         self._update_ep_material_db()
-        self._update_cellmodels()
 
         self._update_segmentsets_db()
         self._update_nodesets_db()
+        self._update_cellmodels()
 
         if self.model.beam_network:
             # with smcoupl=1, coupling is disabled

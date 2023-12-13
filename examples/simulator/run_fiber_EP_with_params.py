@@ -62,8 +62,7 @@ dyna_settings = DynaSettings(
     num_cpus=1,
 )
 
-
-param_file_path = Path(Path(__file__).resolve().parent, "parameter_combinations.csv")
+param_file_path = Path(Path(__file__).resolve().parent, "two_parameter_combinations.csv")
 parameters_df = pd.read_csv(param_file_path)
 
 simulator = EPSimulator(
@@ -85,17 +84,26 @@ for index, row in parameters_df.iterrows():
     simulator.dyna_settings.num_cpus=1 
     # instantiate simulator. Change options where necessary.
 
+    # my_simulation_directory = os.path.join(
+    #     workdir, 
+    #     "simulation-EP",
+    #     str(row["Purkinje_edgelen"])[:4]
+    #     + "_"
+    #     + str(row["SigmaX"])[:4]
+    #     + "_"
+    #     + str(row["Ratio"])[:4]
+    #     + "_"
+    #     + str(row["Ratio2"])[:4],
+    # )
+
     my_simulation_directory = os.path.join(
         workdir, 
         "simulation-EP",
         str(row["Purkinje_edgelen"])[:4]
         + "_"
-        + str(row["SigmaX"])[:4]
-        + "_"
-        + str(row["Ratio"])[:4]
-        + "_"
         + str(row["Ratio2"])[:4],
     )
+
     simulator.root_directory = my_simulation_directory
     print("simulator.root_directory:", simulator.root_directory)
 
@@ -103,8 +111,8 @@ for index, row in parameters_df.iterrows():
 
     simulator.settings.load_with_EP_params(
         Purkinje_edgelen=row["Purkinje_edgelen"],
-        sigmaX=row["SigmaX"],
-        ratio=row["Ratio"],
+        sigmaX=0.2,
+        ratio=1,
         ratio2=row["Ratio2"],
     )
 
@@ -130,20 +138,21 @@ for index, row in parameters_df.iterrows():
     #     + str(row["Ratio2"])[:4],
     # )
     # simulator.model.save_purkinje()
-    my_simulation_directory = os.path.join(
-        workdir, 
-        "simulation-EP",
-        str(row["Purkinje_edgelen"])[:4]
-        + "_"
-        + str(row["SigmaX"])[:4]
-        + "_"
-        + str(row["Ratio"])[:4]
-        + "_"
-        + str(row["Ratio2"])[:4],
-    )
-    simulator.root_directory = my_simulation_directory
-    print("simulator.root_directory:", simulator.root_directory)
+    # my_simulation_directory = os.path.join(
+    #     workdir, 
+    #     "simulation-EP",
+    #     str(row["Purkinje_edgelen"])[:4]
+    #     + "_"
+    #     + str(row["SigmaX"])[:4]
+    #     + "_"
+    #     + str(row["Ratio"])[:4]
+    #     + "_"
+    #     + str(row["Ratio2"])[:4],
+    # )
+    # simulator.root_directory = my_simulation_directory
+    # print("simulator.root_directory:", simulator.root_directory)
 
     simulator.dyna_settings.num_cpus=20
-    
-    simulator.simulate()
+    simulator._write_main_simulation_files(folder_name="main-ep")
+
+    # simulator.simulate()

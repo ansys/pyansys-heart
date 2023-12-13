@@ -492,10 +492,8 @@ class MechanicsSimulator(BaseSimulator):
                 )
             except IndexError:
                 # handle if lsda file not exist.
-                LOGGER.warning(
-                    "Cannot find initial stress file, simulation will run without initial stress."
-                )
-                self.initial_stress = False
+                LOGGER.warning(f"Cannot find dynain file in {zerop_folder}.")
+                exit()
 
         self._write_main_simulation_files(folder_name=folder_name)
 

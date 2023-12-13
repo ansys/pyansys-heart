@@ -81,6 +81,8 @@ def main(args):
             )
             simulator.settings.load_defaults()
             #
+            simulator.compute_fibers()
+
             if isinstance(model, models.FourChamber):
                 raise NotImplementedError("We need right appendage apex point...")
                 simulator.compute_left_atrial_fiber()

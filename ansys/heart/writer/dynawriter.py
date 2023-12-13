@@ -3272,7 +3272,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 #  add more nodes to initiate wave propagation
                 # id offset due to cap center nodes TODO do once
                 if self.__class__.__name__ == "ElectroMechanicsDynaWriter":
-                    beam_node_id_offset = len(self.model.cap_centroids)
+                    beam_node_id_offset = 0 
                 else:
                     beam_node_id_offset = 0
 
@@ -3306,11 +3306,11 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         # TODO: His bundle is removed for EPMECA model due to unfinished development in LSDYNA
         if self.__class__.__name__ == "ElectroMechanicsDynaWriter" and isinstance(
-            self.model, FourChamber
+            self.model, (FourChamber, FullHeart)
         ):
             second_stim_nodes = self.get_unique_nodeset_id()
             stim_nodes = []
-            beam_node_id_offset = len(self.model.cap_centroids)
+            beam_node_id_offset = 0 
             for network in self.model.beam_network:
                 if network.name == "Left bundle branch" or network.name == "Right bundle branch":
                     stim_nodes.append(network.edges[0, 0] + beam_node_id_offset)
@@ -3386,7 +3386,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         if self.__class__.__name__ == "ElectroMechanicsDynaWriter":
             # id offset due to cap center nodes
-            beam_node_id_offset = len(self.model.cap_centroids)
+            beam_node_id_offset = 0 # NOTE: nodes already added to underlying mesh - no offset requried
             # id offset due to spring type elements
             beam_elem_id_offset = self.id_offset["element"]["discrete"]
         else:

@@ -43,29 +43,43 @@ class EPpostprocessor:
 
     def get_transmembrane_potential(self, node_id=None, plot: bool = False):
         """Get transmembrane potential."""
+        phi, times = self._get_ep_field(node_id=node_id, plot=plot, variable_id=126)
+        return phi, times
+
+    def get_extracellular_potential(self, node_id=None, plot: bool = False):
+        """Get extracellular potential."""
+        phi, times = self._get_ep_field(variable_id=127, node_id=node_id, plot=plot)
+        return phi, times
+
+    def get_intracellular_potential(self, node_id=None, plot: bool = False):
+        """Get intracellular potential."""
+        phi, times = self._get_ep_field(variable_id=128, node_id=node_id, plot=plot)
+        return phi, times
+
+    def get_calcium(self, node_id=None, plot: bool = False):
+        """Get calcium concentration."""
+        phi, times = self._get_ep_field(variable_id=130, node_id=node_id, plot=plot)
+        return phi, times
+
+    def _get_ep_field(self, variable_id: int, node_id=None, plot: bool = False):
+        """Get EP field."""
         self.load_ep_fields()
         times = self.reader.get_timesteps()
         if node_id == None:
             nnodes = len(self.reader.meshgrid.points)
             node_id = np.int64(np.linspace(0, nnodes - 1, nnodes))
-        vm = np.zeros((len(times), len(node_id)))
+        phi = np.zeros((len(times), len(node_id)))
 
         for time_id in range(1, len(times) + 1):
-            vm[time_id - 1, :] = self.fields.get_field({"variable_id": 126, "time": time_id}).data[
-                node_id
-            ]
+            phi[time_id - 1, :] = self.fields.get_field(
+                {"variable_id": variable_id, "time": time_id}
+            ).data[node_id]
         if plot == True:
-            plt.plot(times, vm, label="node 0")
+            plt.plot(times, phi, label="node 0")
             plt.xlabel("time (ms)")
-            plt.ylabel("vm (mV)")
+            plt.ylabel("phi (mV)")
             plt.show(block=True)
-        return vm, times
-
-    # def animate_transmembrane_potentials(self):
-    #     """Animate transmembrane potential."""
-    #     self.load_ep_fields()
-    #     tmp_fc = self.reader.get_transmembrane_potentials_fc(self.fields)
-    #     tmp_fc.animate()
+        return phi, times
 
     def read_EP_nodout(self):
         """Read Electrophysiology results."""
@@ -139,7 +153,7 @@ class EPpostprocessor:
         for i in range(vm.shape[0]):
             # TODO vtk is not optimal for scalar fields with
             # non moving meshes, consider using ROM format
-            grid.point_data["transemembrane_potential"] = vm[i, :]
+            grid.point_data["transmembrane_potential"] = vm[i, :]
             grid.save(post_path + "\\vm_" + str(i) + ".vtk")
         return
 

@@ -272,6 +272,7 @@ class BaseDynaWriter:
 
         # for each surface in each part add the respective node-set
         # Use same ID as surface
+        # TODO check if database already contains nodesets (there will be duplicates otherwise)
         used_node_ids = np.empty(0, dtype=int)
 
         for part in self.model.parts:
@@ -2668,6 +2669,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def __init__(self, model: HeartModel, settings: SimulationSettings = None) -> None:
         if isinstance(model, FourChamber):
             model._create_isolation_part()
+        if model.info.add_blood_pool == True:
+            model._create_blood_part()
 
         super().__init__(model=model, settings=settings)
 
@@ -2689,10 +2692,14 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         self._update_dummy_material_db()
         self._update_ep_material_db()
-        self._update_cellmodels()
 
         self._update_segmentsets_db()
+
+        # TODO check if no existing node set ids conflict with surface ids
+        # For now, new node sets should be created after calling
+        # self._update_nodesets_db()
         self._update_nodesets_db()
+        self._update_cellmodels()
 
         if self.model.beam_network:
             # with smcoupl=1, coupling is disabled
@@ -2703,7 +2710,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self._update_ep_settings()
         self._update_stimulation()
 
-        if len(self.model.electrodes) != 0:
+        if self.model.info.add_blood_pool == True:
+            self._update_blood_settings()
+
+        if hasattr(self.model, "electrodes") and len(self.model.electrodes) != 0:
             self._update_ECG_coordinates()
 
         self._get_list_of_includes()
@@ -2893,6 +2903,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             self.kw_database.material.append(f"$$ {part.name} $$")
             partname = part.name.lower()
             if ("atrium" in partname) or ("ventricle" in partname) or ("septum" in partname):
+                # Electrically "active" tissue (mtype=1)
                 ep_mid = part.pid
                 self.kw_database.material.append(
                     custom_keywords.EmMat003(
@@ -2913,9 +2924,12 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     ),
                 )
             else:
+                # Electrically non-active tissue (mtype=4)
+                # These bodies are still conductive bodies
+                # in the xtracellular space
                 ep_mid = part.pid
                 self.kw_database.material.append(
-                    keywords.EmMat001(mid=ep_mid, mtype=1, sigma=1),
+                    custom_keywords.EmMat001(mid=ep_mid, mtype=4, sigma=1),
                 )
 
     def _update_cellmodels(self):
@@ -2930,7 +2944,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         # different cell models for endo/mid/epi layer
         # TODO:  this will override previous definition?
         #        what's the situation at setptum? and at atrial?
-        if "uvc_transmural" in self.model.mesh.point_data.keys():
+        if "transmural" in self.model.mesh.point_data.keys():
             (
                 endo_id,
                 mid_id,
@@ -3337,6 +3351,39 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 )
             )
 
+    def _update_blood_settings(self):
+        """Update blood settings."""
+        if self.model.info.add_blood_pool == True:
+            dirichlet_bc_nid = self.get_unique_nodeset_id()
+            apex = self.model.left_ventricle.apex_points[0].node_id
+            node_set_kw = create_node_set_keyword(
+                node_ids=apex + 1,
+                node_set_id=dirichlet_bc_nid,
+                title="Dirichlet extracellular potential BC",
+            )
+            self.kw_database.node_sets.append(node_set_kw)
+            self.kw_database.ep_settings.append(
+                custom_keywords.EmBoundaryPrescribed(
+                    bpid=1,
+                    bptype=1,
+                    settype=2,
+                    setid=dirichlet_bc_nid,
+                    val=0,
+                    sys=0,
+                )
+            )
+            for deckname, deck in vars(self.kw_database).items():
+                # lambda_ is the equal anisotropy ratio in the monodomain model.
+                # In dyna: lambda_= sigma_i/sigma_e and sigma_i=(1.+lambda)*sigmaElement.
+                # when lambda_ is not empty, it activates the computation of extracellular
+                # potentials: div((sigma_i+sigma_e) . grad(phi_e)) = div(sigma_i . grad(v))
+                # or div(((1.+lambda)*sigmaElement) . grad(phi_e)) = div(sigmaElement . grad(v))
+                blood_pid = self.model.get_part("Blood").pid
+                for kw in deck.keywords:
+                    # activate extracellular potential solve
+                    if "EM_MAT" in kw.get_title():
+                        kw.lambda_ = 0.2
+
     def _update_ECG_coordinates(self):
         """Add ECG computation content."""
         # TODO replace strings by custom dyna keyword
@@ -3471,7 +3518,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             self.kw_database.beam_networks.append(part_kw)
             self.kw_database.beam_networks.append(keywords.MatNull(mid=network.pid, ro=1e-11))
             self.kw_database.beam_networks.append(
-                keywords.EmMat001(mid=network.pid, mtype=2, sigma=3)
+                custom_keywords.EmMat001(mid=network.pid, mtype=2, sigma=3)
             )
 
             # cell model
@@ -4015,7 +4062,8 @@ class UHCWriter(BaseDynaWriter):
 
     def _create_apex_nodeset(self):
         # apex
-        apex_set = self.model._compute_uvc_apex_set()
+        # select a region within 1 cm, this seems consistent with Strocchi database
+        apex_set = self.model._compute_uvc_apex_set(radius=10)
         id_sorter = np.argsort(self.target["point_ids"])
         ids_submesh = id_sorter[
             np.searchsorted(self.target["point_ids"], apex_set, sorter=id_sorter)
@@ -4030,8 +4078,9 @@ class UHCWriter(BaseDynaWriter):
         base_set = np.array([])
         for part in self.model.parts:
             for cap in part.caps:
-                if ("mitral" in cap.name) or ("tricuspid" in cap.name):
-                    base_set = np.append(base_set, cap.node_ids)
+                #  Strocchi database use only mv and tv
+                # if ("mitral" in cap.name) or ("tricuspid" in cap.name):
+                base_set = np.append(base_set, cap.node_ids)
 
         id_sorter = np.argsort(self.target["point_ids"])
         ids_submesh = id_sorter[

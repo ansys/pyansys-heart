@@ -43,7 +43,6 @@ dependencies = [
     "pyvista==0.38.1",
 ]
 
-
 # Optional dependencies:
 [project.optional-dependencies]
 doc = [

@@ -406,17 +406,9 @@ class BaseDynaWriter:
             LOGGER.info("Writing: {}".format(deckname))
 
             filepath = os.path.join(export_directory, deckname + ".k")
-            # use fast element writer for solid ortho elements
-            # if deckname == "solid_elements":
-            #     element_kws = deck.get_kwds_by_type("ELEMENT")
-            #     if os.path.isfile(filepath):
-            #         os.remove(filepath)
 
-            #     element_kws.export_file(filepath)
-            #     fid = open(filepath, "a")
-            #     fid.write("*END")
             deck.export_file(filepath)
-            
+
         return
 
     def _export_cavity_segmentsets(self, export_directory: str):

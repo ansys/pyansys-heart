@@ -1723,6 +1723,16 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_rv
                 )
                 self.kw_database.main.append(load)
+            elif cavity.name == "Left atrium":
+                load = keywords.LoadSegmentSet(
+                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_lv
+                )
+                self.kw_database.main.append(load)
+            elif cavity.name == "Right atrium":
+                load = keywords.LoadSegmentSet(
+                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_rv
+                )
+                self.kw_database.main.append(load)
             else:
                 continue
 

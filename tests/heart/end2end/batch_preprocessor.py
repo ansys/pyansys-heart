@@ -98,7 +98,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--type",
-        help="Heart model type: lv: left-ventricular model, bv: biventricular model, fh: full heart model",
+        help="Heart model type: lv: left-ventricular model, bv: biventricular model, "
+        + "fh: full heart model",
         choices=["lv", "bv", "fh"],
         default="fh",
     )

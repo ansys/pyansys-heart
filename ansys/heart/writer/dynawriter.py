@@ -51,7 +51,6 @@ from ansys.heart.writer.keyword_module import (
     create_node_keyword,
     create_node_set_keyword,
     create_segment_set_keyword,
-    fast_element_writer,
     get_list_of_used_ids,
 )
 from ansys.heart.writer.material_keywords import (

@@ -32,9 +32,6 @@ def main(args):
     root_folder = args.root
 
     #############################################################
-    os.environ["USE_OLD_HEART_MODELS"] = args.heartversion
-
-    #############################################################
     # package import
     import ansys.heart.preprocessor.models as models
     from ansys.heart.simulator.simulator import (
@@ -136,14 +133,15 @@ if __name__ == "__main__":
     # Define command-line arguments
     parser.add_argument(
         "--heartversion",
-        help="Heart model version.",
+        help="Heart model version. 0: Uses HeartModels from old version of models.py,"
+        + "1: Uses HeartModels from new version of models.py (models_new.py)",
         type=str,
-        default="1",
+        default="0",
     )
 
     parser.add_argument(
         "--root",
-        help="Root folder. The script will look for cases relative to this part.",
+        help="Root folder. The script will look for cases relative to this folder.",
         default="D:\\ansysdev",
     )
 
@@ -174,6 +172,12 @@ if __name__ == "__main__":
     )
     # Parse the command-line arguments
     args = parser.parse_args()
+
+    # set right environment variable
+    if args.heartversion == "0":
+        os.environ["USE_OLD_HEART_MODELS"] = "1"
+    else:
+        os.environ["USE_OLD_HEART_MODELS"] = "0"
 
     # Call the main function with parsed arguments
     main(args)

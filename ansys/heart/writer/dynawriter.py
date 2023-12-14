@@ -1446,24 +1446,33 @@ class MechanicsDynaWriter(BaseDynaWriter):
         material_settings = copy.deepcopy(self.settings.mechanics.material)
         material_settings._remove_units()
 
-        if material_settings.cap["type"] == "stiff":
-            material_kw = MaterialNeoHook(
-                mid=mat_null_id,
-                rho=material_settings.cap["rho"],
-                c10=material_settings.cap["mu1"] / 2,
-            )
-
-        elif material_settings.cap["type"] == "null":
-            material_kw = keywords.MatNull(
-                mid=mat_null_id,
-                ro=material_settings.cap["rho"],
-            )
-        elif material_settings.cap["type"] == "rigid":
+        # caps are rigid in zerop
+        if type(self) == ZeroPressureMechanicsDynaWriter:
             material_kw = keywords.MatRigid(
                 mid=mat_null_id,
                 ro=material_settings.cap["rho"],
                 e=1.0,  # MPa
             )
+
+        else:
+            if material_settings.cap["type"] == "stiff":
+                material_kw = MaterialNeoHook(
+                    mid=mat_null_id,
+                    rho=material_settings.cap["rho"],
+                    c10=material_settings.cap["mu1"] / 2,
+                )
+
+            elif material_settings.cap["type"] == "null":
+                material_kw = keywords.MatNull(
+                    mid=mat_null_id,
+                    ro=material_settings.cap["rho"],
+                )
+            elif material_settings.cap["type"] == "rigid":
+                material_kw = keywords.MatRigid(
+                    mid=mat_null_id,
+                    ro=material_settings.cap["rho"],
+                    e=1.0,  # MPa
+                )
 
         section_kw = keywords.SectionShell(
             secid=section_id,

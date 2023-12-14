@@ -6,8 +6,6 @@ import ansys.heart.preprocessor.models as models
 
 #############################################################
 os.environ["USE_OLD_HEART_MODELS"] = "1"
-root_folder = r"D:\ansysdev"
-#############################################################
 
 
 def main(args):
@@ -16,6 +14,7 @@ def main(args):
     cases = args.case
     types = [args.type]
     size = args.meshsize
+    root_folder = args.root
 
     #
     if database == "Strocchi2020":
@@ -23,11 +22,12 @@ def main(args):
     elif database == "Cristobal2021":
         extension = "vtk"
 
-    #
     for id in cases:
         case_str = "{0:02d}".format(id)
         root = os.path.join(root_folder, database, case_str)
         case_file = os.path.join(root, case_str + "." + extension)
+
+        print("Path to case file: %s" % case_file)
 
         for model_type in types:
             workdir = os.path.join(root, f"{model_type}_{size}")
@@ -69,6 +69,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="EndToEnd Test: Batch run preprocessor")
 
     # Define command-line arguments
+    parser.add_argument(
+        "--root",
+        help="Root folder. The script will look for cases relative to this part.",
+        default="D:\\ansysdev",
+    )
+
     parser.add_argument(
         "--database",
         help="Cristobal2021 or Strocchi2020",

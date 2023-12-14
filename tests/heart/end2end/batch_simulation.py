@@ -12,18 +12,7 @@ from ansys.heart.simulator.simulator import (
 
 #############################################################
 os.environ["USE_OLD_HEART_MODELS"] = "1"
-root_folder = r"D:\ansysdev"
 
-#############################################################
-##  instantiate dyna settings object
-dyna_settings = DynaSettings(
-    lsdyna_path=r"D:\ansysdev\lsdyna_mpp\mppdyna_d_sse2_linux86_64_intelmmpi_105630",
-    dynatype="intelmpi",
-    num_cpus=6,
-    platform="wsl",
-)
-# dyna_settings._set_env_variables()
-#############################################################
 
 # right atrium appendage apex is manually selected
 right_appendage_apex = {
@@ -52,6 +41,18 @@ def main(args):
     cases = args.case
     folder = args.folder
     simulation = args.simulation
+    root_folder = args.root
+
+    #############################################################
+    ##  instantiate dyna settings object
+    dyna_settings = DynaSettings(
+        lsdyna_path=args.lsdynapath,
+        dynatype="intelmpi",
+        num_cpus=6,
+        platform="wsl",
+    )
+    # dyna_settings._set_env_variables()
+    #############################################################
 
     #
     simu_folder = "end2end"
@@ -132,6 +133,18 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="EndToEnd Test: Batch run simulation")
 
     # Define command-line arguments
+    parser.add_argument(
+        "--root",
+        help="Root folder. The script will look for cases relative to this part.",
+        default="D:\\ansysdev",
+    )
+
+    parser.add_argument(
+        "--lsdynapath",
+        help="Path to LS-DYNA",
+        default=r"D:\ansysdev\lsdyna_mpp\mppdyna_d_sse2_linux86_64_intelmmpi_105630",
+    )
+
     parser.add_argument(
         "--database",
         help="Cristobal2021 or Strocchi2020",

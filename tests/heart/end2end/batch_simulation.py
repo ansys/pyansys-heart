@@ -2,10 +2,6 @@ import argparse
 import os
 from pathlib import Path
 
-#############################################################
-os.environ["USE_OLD_HEART_MODELS"] = "1"
-
-
 # right atrium appendage apex is manually selected
 right_appendage_apex = {
     "Cristobal2021": {
@@ -34,6 +30,9 @@ def main(args):
     folder = args.folder
     simulation = args.simulation
     root_folder = args.root
+
+    #############################################################
+    os.environ["USE_OLD_HEART_MODELS"] = args.heartversion
 
     #############################################################
     # package import
@@ -135,6 +134,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="EndToEnd Test: Batch run simulation")
 
     # Define command-line arguments
+    parser.add_argument(
+        "--heartversion",
+        help="Heart model version.",
+        type=str,
+        default="1",
+    )
+
     parser.add_argument(
         "--root",
         help="Root folder. The script will look for cases relative to this part.",

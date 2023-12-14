@@ -2,9 +2,6 @@ import argparse
 import os
 from pathlib import Path
 
-#############################################################
-os.environ["USE_OLD_HEART_MODELS"] = "1"
-
 
 def main(args):
     # input
@@ -14,6 +11,10 @@ def main(args):
     size = args.meshsize
     root_folder = args.root
 
+    #############################################################
+    os.environ["USE_OLD_HEART_MODELS"] = args.heartversion
+
+    #############################################################
     # package import
     import ansys.heart.preprocessor.models as models
 
@@ -70,6 +71,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="EndToEnd Test: Batch run preprocessor")
 
     # Define command-line arguments
+    parser.add_argument(
+        "--heartversion",
+        help="Heart model version.",
+        type=str,
+        default="1",
+    )
+
     parser.add_argument(
         "--root",
         help="Root folder. The script will look for cases relative to this part.",

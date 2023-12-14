@@ -2,14 +2,6 @@ import argparse
 import os
 from pathlib import Path
 
-import ansys.heart.preprocessor.models as models
-from ansys.heart.simulator.simulator import (
-    DynaSettings,
-    EPMechanicsSimulator,
-    EPSimulator,
-    MechanicsSimulator,
-)
-
 #############################################################
 os.environ["USE_OLD_HEART_MODELS"] = "1"
 
@@ -42,6 +34,16 @@ def main(args):
     folder = args.folder
     simulation = args.simulation
     root_folder = args.root
+
+    #############################################################
+    # package import
+    import ansys.heart.preprocessor.models as models
+    from ansys.heart.simulator.simulator import (
+        DynaSettings,
+        EPMechanicsSimulator,
+        EPSimulator,
+        MechanicsSimulator,
+    )
 
     #############################################################
     ##  instantiate dyna settings object

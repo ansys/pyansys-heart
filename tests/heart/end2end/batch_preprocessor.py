@@ -2,8 +2,6 @@ import argparse
 import os
 from pathlib import Path
 
-import ansys.heart.preprocessor.models as models
-
 #############################################################
 os.environ["USE_OLD_HEART_MODELS"] = "1"
 
@@ -15,6 +13,9 @@ def main(args):
     types = [args.type]
     size = args.meshsize
     root_folder = args.root
+
+    # package import
+    import ansys.heart.preprocessor.models as models
 
     #
     if database == "Strocchi2020":

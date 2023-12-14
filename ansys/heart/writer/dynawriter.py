@@ -636,6 +636,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._update_controlvolume_db()
         self._update_system_model()
 
+        # no control volume for atrial, constant pressure instead
+        bc_settings = self.settings.mechanics.boundary_conditions
+        pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
+        pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
+        self._add_constant_atrial_pressure(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
+
         # for boundary conditions
         self._add_cap_bc(bc_type="springs_caps")
         self._add_pericardium_bc()
@@ -1757,6 +1763,31 @@ class MechanicsDynaWriter(BaseDynaWriter):
         #             )
         #             self.kw_database.main.append(load)
         return
+
+    def _add_constant_atrial_pressure(self, pressure_lv: float = 1, pressure_rv: float = 1):
+        """Missing circulation model for atrial cavity, apply constant ED pressure."""
+        # create unit load curve
+        load_curve_id = self.get_unique_curve_id()
+        load_curve_kw = create_define_curve_kw(
+            [0, 1e20], [1.0, 1.0], "constant load curve", load_curve_id, 100
+        )
+
+        # append unit curve to main.k
+        self.kw_database.main.append(load_curve_kw)
+
+        # create *LOAD_SEGMENT_SETS for each ventricular cavity
+        cavities = [part.cavity for part in self.model.parts if part.cavity]
+        for cavity in cavities:
+            if cavity.name == "Left atrium":
+                load = keywords.LoadSegmentSet(
+                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_lv
+                )
+                self.kw_database.main.append(load)
+            elif cavity.name == "Right atrium":
+                load = keywords.LoadSegmentSet(
+                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_rv
+                )
+                self.kw_database.main.append(load)
 
 
 class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):

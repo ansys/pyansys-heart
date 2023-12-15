@@ -2086,11 +2086,11 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                     custom_keywords.EmMat003(
                         mid=em_mat_id,
                         mtype=2,
-                        sigma11=0.5,
-                        sigma22=0.1,
-                        sigma33=0.1,
-                        beta=140,
-                        cm=0.01,
+                        sigma11=self.settings.electrophysiology.sigma_fiber,
+                        sigma22=self.settings.electrophysiology.sigma_sheet,
+                        sigma33=self.settings.electrophysiology.sigma_sheet_normal,
+                        beta=self.settings.electrophysiology.beta,
+                        cm=self.settings.electrophysiology.cm,
                         aopt=2.0,
                         a1=0,
                         a2=0,
@@ -2263,13 +2263,29 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             )
 
             # define functions:
-            from ansys.heart.writer.define_function_strings import function1, function2, function3
+            from ansys.heart.writer.define_function_strings import (
+                function_alpha,
+                function_beta,
+                function_beta_septum,
+            )
 
             self.kw_database.create_fiber.append(
-                keywords.DefineFunction(fid=101, function=function1)
+                keywords.DefineFunction(
+                    fid=101,
+                    function=function_alpha(
+                        alpha_endo=self.settings.fibers.alpha_endo,
+                        alpha_epi=self.settings.fibers.alpha_epi,
+                    ),
+                )
             )
             self.kw_database.create_fiber.append(
-                keywords.DefineFunction(fid=102, function=function2)
+                keywords.DefineFunction(
+                    fid=102,
+                    function=function_beta(
+                        beta_endo=self.settings.fibers.beta_endo,
+                        beta_epi=self.settings.fibers.beta_epi,
+                    ),
+                )
             )
 
         elif isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
@@ -2385,16 +2401,38 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             )
 
             # define functions:
-            from ansys.heart.writer.define_function_strings import function1, function2, function3
+            from ansys.heart.writer.define_function_strings import (
+                function_alpha,
+                function_beta,
+                function_beta_septum,
+            )
 
             self.kw_database.create_fiber.append(
-                keywords.DefineFunction(fid=101, function=function1)
+                keywords.DefineFunction(
+                    fid=101,
+                    function=function_alpha(
+                        alpha_endo=self.settings.fibers.alpha_endo,
+                        alpha_epi=self.settings.fibers.alpha_epi,
+                    ),
+                )
             )
             self.kw_database.create_fiber.append(
-                keywords.DefineFunction(fid=102, function=function2)
+                keywords.DefineFunction(
+                    fid=102,
+                    function=function_beta(
+                        beta_endo=self.settings.fibers.beta_endo,
+                        beta_epi=self.settings.fibers.beta_epi,
+                    ),
+                )
             )
             self.kw_database.create_fiber.append(
-                keywords.DefineFunction(fid=103, function=function3)
+                keywords.DefineFunction(
+                    fid=103,
+                    function=function_beta_septum(
+                        beta_endo=self.settings.fibers.beta_endo_septum,
+                        beta_epi=self.settings.fibers.beta_epi_septum,
+                    ),
+                )
             )
 
     def _update_main_db(self):
@@ -2462,11 +2500,11 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                     custom_keywords.EmMat003(
                         mid=em_mat_id,
                         mtype=2,
-                        sigma11=0.5,
-                        sigma22=0.1,
-                        sigma33=0.1,
-                        beta=140,
-                        cm=0.01,
+                        sigma11=self.settings.electrophysiology.sigma_fiber,
+                        sigma22=self.settings.electrophysiology.sigma_sheet,
+                        sigma33=self.settings.electrophysiology.sigma_sheet_normal,
+                        beta=self.settings.electrophysiology.beta,
+                        cm=self.settings.electrophysiology.cm,
                         aopt=2.0,
                         a1=0,
                         a2=0,
@@ -2563,12 +2601,16 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                     pointstx=apex_left_coordinates[0],
                     pointsty=apex_left_coordinates[1],
                     pointstz=apex_left_coordinates[2],
-                    edgelen=2,
+                    edgelen=self.settings.purkinje.edgelen,
                     ngen=50,
-                    nbrinit=8,
-                    nsplit=2,
+                    nbrinit=self.settings.purkinje.nbrinit,
+                    nsplit=self.settings.purkinje.nsplit,
                     inodeid=node_id_start_left,
                     iedgeid=edge_id_start_left,  # TODO check if beam elements exist in mesh
+                    pmjtype=self.settings.purkinje.pmjtype,
+                    pmjradius=self.settings.purkinje.pmjradius,
+                    pmjrestype=self.settings.purkinje.pmjrestype,
+                    pmjres=self.settings.purkinje.pmjres,
                 )
             )
 
@@ -2632,12 +2674,16 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                     pointstx=apex_right_coordinates[0],
                     pointsty=apex_right_coordinates[1],
                     pointstz=apex_right_coordinates[2],
-                    edgelen=2,
+                    edgelen=self.settings.purkinje.edgelen,
                     ngen=50,
-                    nbrinit=8,
-                    nsplit=2,
+                    nbrinit=self.settings.purkinje.nbrinit,
+                    nsplit=self.settings.purkinje.nsplit,
                     inodeid=node_id_start_right,  # TODO check if beam elements exist in mesh
                     iedgeid=edge_id_start_right,
+                    pmjtype=self.settings.purkinje.pmjtype,
+                    pmjradius=self.settings.purkinje.pmjradius,
+                    pmjrestype=self.settings.purkinje.pmjrestype,
+                    pmjres=self.settings.purkinje.pmjres,
                 )
             )
 
@@ -2909,11 +2955,11 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     custom_keywords.EmMat003(
                         mid=ep_mid,
                         mtype=2,
-                        sigma11=0.5,
-                        sigma22=0.1,
-                        sigma33=0.1,
-                        beta=140,
-                        cm=0.01,
+                        sigma11=self.settings.electrophysiology.sigma_fiber,
+                        sigma22=self.settings.electrophysiology.sigma_sheet,
+                        sigma33=self.settings.electrophysiology.sigma_sheet_normal,
+                        beta=self.settings.electrophysiology.beta,
+                        cm=self.settings.electrophysiology.cm,
                         aopt=2.0,
                         a1=0,
                         a2=0,
@@ -2929,7 +2975,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 # in the xtracellular space
                 ep_mid = part.pid
                 self.kw_database.material.append(
-                    custom_keywords.EmMat001(mid=ep_mid, mtype=4, sigma=1),
+                    custom_keywords.EmMat001(
+                        mid=ep_mid, mtype=4, sigma=self.settings.electrophysiology.sigma_passive
+                    ),
                 )
 
     def _update_cellmodels(self):
@@ -3496,12 +3544,14 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     pointstx=origin_coordinates[0],
                     pointsty=origin_coordinates[1],
                     pointstz=origin_coordinates[2],
-                    edgelen=2,
+                    edgelen=self.settings.purkinje.edgelen,
                     ngen=50,
-                    nbrinit=8,
-                    nsplit=2,
-                    # inodeid=node_id_start_right,
-                    # iedgeid=edge_id_start_right,
+                    nbrinit=self.settings.purkinje.nbrinit,
+                    nsplit=self.settings.purkinje.nsplit,
+                    pmjtype=self.settings.purkinje.pmjtype,
+                    pmjradius=self.settings.purkinje.pmjradius,
+                    pmjrestype=self.settings.purkinje.pmjrestype,
+                    pmjres=self.settings.purkinje.pmjres,
                 )
             )
 
@@ -3518,7 +3568,13 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             self.kw_database.beam_networks.append(part_kw)
             self.kw_database.beam_networks.append(keywords.MatNull(mid=network.pid, ro=1e-11))
             self.kw_database.beam_networks.append(
-                custom_keywords.EmMat001(mid=network.pid, mtype=2, sigma=3)
+                custom_keywords.EmMat001(
+                    mid=network.pid,
+                    mtype=2,
+                    sigma=self.settings.purkinje.sigma,
+                    beta=self.settings.purkinje.beta,
+                    cm=self.settings.purkinje.cm,
+                )
             )
 
             # cell model

@@ -36,6 +36,14 @@ class EmEpPurkinjeNetwork2(KeywordBase):
                     Field("iedgeid", int, 50, 10, kwargs.get("iedgeid")),
                 ],
             ),
+            Card(
+                [
+                    Field("pmjtype", int, 0, 10, kwargs.get("pmjtype", 1)),
+                    Field("pmjradius", float, 10, 10, kwargs.get("pmjradius", 0.7)),
+                    Field("pmjrestype", int, 20, 10, kwargs.get("pmjrestype", 1)),
+                    Field("pmjres", float, 30, 10, kwargs.get("pmjres", 1)),
+                ],
+            ),
         ]
 
     @property
@@ -163,3 +171,48 @@ class EmEpPurkinjeNetwork2(KeywordBase):
     @iedgeid.setter
     def iedgeid(self, value: int) -> None:
         self._cards[1].set_value("iedgeid", value)
+
+    @property
+    def pmjtype(self) -> typing.Optional[int]:
+        """Purkinje muscle junction type:
+        Eq. 0: The resistance of the beam is given by R = 1/sigma * L where L is the beam length.
+        Eq. 1: Connect beam leaves to the closest solid node.
+        Eq. 2: Connect beam leaves with solid nodes within a disk.
+        Eq. 3: Connect all beam nodes with the closest solid nodes.
+        Eq. 4: Connect all beam nodes with the solid nodes within a disk.
+        """  # nopep8
+        return self._cards[2].get_value("pmjtype")
+
+    @pmjtype.setter
+    def pmjtype(self, value: int) -> None:
+        self._cards[2].set_value("pmjtype", value)
+
+    @property
+    def pmjradius(self) -> typing.Optional[float]:
+        """Radius of the disk connecting beam nodes with solid nodes."""  # nopep8
+        return self._cards[2].get_value("pmjradius")
+
+    @pmjradius.setter
+    def pmjradius(self, value: float) -> None:
+        self._cards[2].set_value("pmjradius", value)
+
+    @property
+    def pmjrestype(self) -> typing.Optional[int]:
+        """Purkinje muscle junction resistance type:
+        Eq. 0: Apply resistance to each beam.
+        Eq. 1: Apply global resistance and distribute it among beams.
+        """  # nopep8
+        return self._cards[2].get_value("pmjrestype")
+
+    @pmjrestype.setter
+    def pmjrestype(self, value: int) -> None:
+        self._cards[2].set_value("pmjrestype", value)
+
+    @property
+    def pmjres(self) -> typing.Optional[float]:
+        """Beam resistance value."""  # nopep8
+        return self._cards[2].get_value("pmjres")
+
+    @pmjres.setter
+    def pmjres(self, value: float) -> None:
+        self._cards[2].set_value("pmjres", value)

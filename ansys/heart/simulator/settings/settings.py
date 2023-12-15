@@ -199,6 +199,12 @@ class ZeroPressure(Settings):
 class Electrophysiology(Settings):
     """Class for keeping track of electrophysiology settings."""
 
+    sigma_fiber: float = 0.5
+    sigma_sheet: float = 0.1
+    sigma_sheet_normal: float = 0.1
+    sigma_passive: float = 1
+    beta: float = 140
+    cm: float = 0.01
     analysis: Analysis = Analysis()
     """Generic analysis settings."""
 
@@ -207,12 +213,29 @@ class Electrophysiology(Settings):
 class Fibers(Settings):
     """Class for keeping track of fiber settings."""
 
+    alpha_endo: float = -60
+    alpha_epi: float = 60
+    beta_endo: float = -65
+    beta_epi: float = 25
+    beta_endo_septum: float = -65
+    beta_epi_septum: float = 25
     # what parameters to expose?
 
 
 @dataclass(repr=False)
 class Purkinje(Settings):
     """Class for keeping track of purkinje settings."""
+
+    sigma: float = 0.2  # conductivity
+    beta: float = 140
+    cm: float = 0.01
+    edgelen: int = 2  # edge length
+    nbrinit: int = 8  # number number of beams from origin point
+    nsplit: int = 2  # number of splits at each leaf
+    pmjtype: int = 1  # Purkinje muscle junction type
+    pmjradius: float = 0.7  # Purkinje muscle junction radius
+    pmjrestype: int = 1  # Purkinje muscle junction resistance type
+    pmjres: float = 1  # Purkinje muscle junction resistance value
 
 
 class SimulationSettings:

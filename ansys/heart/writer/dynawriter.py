@@ -1154,6 +1154,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             scale_factor_normal = bc_settings.valve["scale_factor"]["normal"]
             scale_factor_radial = bc_settings.valve["scale_factor"]["radial"]
+            if type(self) == ZeroPressureMechanicsDynaWriter:
+                scale_factor_normal *= 1e6
+                scale_factor_radial *= 1e6
 
             part_kw = keywords.Part()
             part_df = pd.DataFrame(
@@ -1838,17 +1841,16 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self._update_segmentsets_db()
         self._update_nodesets_db()
         self._update_material_db(add_active=False)
-
-        # for boundary conditions
-        if isinstance(self.model, FourChamber):
-            # add a small constraint to avoid rotation
-            self._add_pericardium_bc(scale=0.01)
-        else:
-            self._add_cap_bc(bc_type="fix_caps")
-
         if self.cap_in_zerop:
             # define cap element
             self._update_cap_elements_db()
+
+        # TODO: it should be after cap creation, or it will be written in dynain
+        # for boundary conditions
+        self._add_cap_bc(bc_type="springs_caps")
+        if isinstance(self.model, FourChamber):
+            # add a small constraint to avoid rotation
+            self._add_pericardium_bc(scale=0.01)
 
         # # Approximate end-diastolic pressures
         pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m

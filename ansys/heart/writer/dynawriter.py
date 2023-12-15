@@ -4118,7 +4118,8 @@ class UHCWriter(BaseDynaWriter):
 
     def _create_apex_nodeset(self):
         # apex
-        apex_set = self.model._compute_uvc_apex_set()
+        # select a region within 1 cm, this seems consistent with Strocchi database
+        apex_set = self.model._compute_uvc_apex_set(radius=10)
         id_sorter = np.argsort(self.target["point_ids"])
         ids_submesh = id_sorter[
             np.searchsorted(self.target["point_ids"], apex_set, sorter=id_sorter)
@@ -4133,8 +4134,9 @@ class UHCWriter(BaseDynaWriter):
         base_set = np.array([])
         for part in self.model.parts:
             for cap in part.caps:
-                if ("mitral" in cap.name) or ("tricuspid" in cap.name):
-                    base_set = np.append(base_set, cap.node_ids)
+                #  Strocchi database use only mv and tv
+                # if ("mitral" in cap.name) or ("tricuspid" in cap.name):
+                base_set = np.append(base_set, cap.node_ids)
 
         id_sorter = np.argsort(self.target["point_ids"])
         ids_submesh = id_sorter[

@@ -8,7 +8,7 @@ name = "pyansys-heart"
 version = "0.1.dev0"
 description = "Python framework for heart modeling using ANSYS tools."
 readme = "README.rst"
-requires-python = ">=3.8,<4"
+requires-python = ">=3.9,<4"
 license = { file = "LICENSE" }
 authors = [{ name = "ANSYS, Inc.", email = "pyansys.core@ansys.com" }]
 maintainers = [{ name = "ANSYS, Inc.", email = "pyansys.core@ansys.com" }]
@@ -30,7 +30,7 @@ dependencies = [
     "ansys-dpf-core==0.10.0",
     "h5py>=3.6.0",
     "Jinja2==3.1.2",
-    "matplotlib==3.7.1",
+    "matplotlib==3.8.2",
     "meshio==5.3.4",
     "numpy<=1.26.0",
     "pandas<=1.5.3",
@@ -38,7 +38,7 @@ dependencies = [
     "vtk>=9.1.0",
     "tqdm==4.66.1",
     "wget==3.2",
-    "validators==0.20.0",
+    "validators==0.22.0",
     "pint==0.20.1",
     "pyvista==0.43.0",
 ]
@@ -49,7 +49,7 @@ doc = [
     "ansys-sphinx-theme==0.10.3",
     "jupyter_sphinx==0.4.0",
     "myst-parser==2.0.0",
-    "numpydoc==1.5.0",
+    "numpydoc==1.6.0",
     "nbsphinx==0.9.3",
     "Sphinx==7.2.2",
     "sphinx-autoapi==3.0.0",

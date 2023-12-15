@@ -1840,7 +1840,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self._update_material_db(add_active=False)
 
         # for boundary conditions
-        self._add_cap_bc(bc_type="fix_caps")
+        # self._add_cap_bc(bc_type="fix_caps")
 
         if self.cap_in_zerop:
             # define cap element

@@ -761,7 +761,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         )  # imflag=1 means implicit
 
         # add implicit solution controls
-
         self.kw_database.main.append(
             keywords.ControlImplicitSolution(
                 maxref=35,
@@ -1965,14 +1964,25 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         # add general implicit controls
         self.kw_database.main.append(
-            keywords.ControlImplicitGeneral(imflag=1, dt0=settings.analysis.dtmax)
+            keywords.ControlImplicitGeneral(imflag=1, dt0=settings.analysis.dtmin)
         )
 
         # add implicit solution controls
-        self.kw_database.main.append(keywords.ControlImplicitSolution())
+        self.kw_database.main.append(
+            keywords.ControlImplicitSolution(
+                maxref=35,
+                dctol=0.01,
+                ectol=1e6,
+                rctol=1e3,
+                abstol=-1e-20,
+                dnorm=1,
+                diverg=2,
+                lsmtd=5,
+            )
+        )
 
         # add implicit solver controls
-        self.kw_database.main.append(custom_keywords.ControlImplicitSolver())
+        self.kw_database.main.append(custom_keywords.ControlImplicitSolver(autospc=2))
 
         # accuracy control
         self.kw_database.main.append(keywords.ControlAccuracy(osu=1, inn=4, iacc=1))

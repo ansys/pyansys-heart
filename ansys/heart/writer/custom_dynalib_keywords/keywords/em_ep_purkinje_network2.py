@@ -199,8 +199,7 @@ class EmEpPurkinjeNetwork2(KeywordBase):
     @property
     def pmjrestype(self) -> typing.Optional[int]:
         """Purkinje muscle junction resistance type:
-        Eq. 0: Apply resistance to each beam.
-        Eq. 1: Apply global resistance and distribute it among beams.
+        Eq. 1: Apply resistance to each beam.
         """  # nopep8
         return self._cards[2].get_value("pmjrestype")
 

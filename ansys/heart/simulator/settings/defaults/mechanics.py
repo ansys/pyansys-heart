@@ -75,7 +75,7 @@ material = {
     # null cap: center node is fixed
     # rigid cap: more difficult to converge
     "cap": {
-        "type": "rigid",
+        "type": "null",
         "rho": Quantity(0.001, "g/mm^3"),
     },
 }

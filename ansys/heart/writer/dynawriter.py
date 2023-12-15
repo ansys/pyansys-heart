@@ -1151,12 +1151,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
             mat_id = self.get_unique_mat_id()
 
             spring_stiffness = bc_settings.valve["stiffness"].m
+            if type(self) == ZeroPressureMechanicsDynaWriter:
+                spring_stiffness *= 1e16
 
             scale_factor_normal = bc_settings.valve["scale_factor"]["normal"]
             scale_factor_radial = bc_settings.valve["scale_factor"]["radial"]
-            if type(self) == ZeroPressureMechanicsDynaWriter:
-                scale_factor_normal *= 1e6
-                scale_factor_radial *= 1e6
 
             part_kw = keywords.Part()
             part_df = pd.DataFrame(

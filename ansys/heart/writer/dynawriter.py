@@ -1840,15 +1840,15 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self._update_material_db(add_active=False)
 
         # for boundary conditions
-        # self._add_cap_bc(bc_type="fix_caps")
+        if isinstance(self.model, FourChamber):
+            # add a small constraint to avoid rotation
+            self._add_pericardium_bc(scale=0.01)
+        else:
+            self._add_cap_bc(bc_type="fix_caps")
 
         if self.cap_in_zerop:
             # define cap element
             self._update_cap_elements_db()
-
-        if isinstance(self.model, FourChamber):
-            # add a small constraint to avoid rotation
-            self._add_pericardium_bc(scale=0.01)
 
         # # Approximate end-diastolic pressures
         pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m

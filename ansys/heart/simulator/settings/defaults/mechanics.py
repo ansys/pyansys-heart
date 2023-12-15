@@ -32,13 +32,31 @@ reference:
 
 material = {
     "myocardium": {
+        # # Sack et.al
+        # "isotropic": {
+        #     "rho": Quantity(0.001, "g/mm^3"),
+        #     "nu": 0.49,
+        #     "k1": Quantity(1.05e-3, "MPa"),
+        #     "k2": Quantity(7.542),
+        # },
+        # "anisotropic": {
+        #     "k1f": Quantity(3.465e-3, "MPa"),
+        #     "k2f": Quantity(14.472, "dimensionless"),
+        #     "k1f": Quantity(0.481e-3, "MPa"),
+        #     "k2f": Quantity(12.548, "dimensionless"),
+        #     "k1f": Quantity(0.283, "MPa"),
+        #     "k2f": Quantity(3.088, "dimensionless"),
+        # },
         "isotropic": {
             "rho": Quantity(0.001, "g/mm^3"),
             "nu": 0.499,
             "k1": Quantity(0.0023599999999999997, "MPa"),
             "k2": Quantity(1.75),
         },
-        "anisotropic": {"k1f": Quantity(0.00049, "MPa"), "k2f": Quantity(9.01, "dimensionless")},
+        "anisotropic": {
+            "k1f": Quantity(0.00049, "MPa"),
+            "k2f": Quantity(9.01, "dimensionless"),
+        },
         "active": {
             "actype": 1,
             "beat_time": heart["beat_time"],
@@ -57,7 +75,7 @@ material = {
     # null cap: center node is fixed
     # rigid cap: more difficult to converge
     "cap": {
-        "type": "null",
+        "type": "rigid",
         "rho": Quantity(0.001, "g/mm^3"),
     },
 }

@@ -51,6 +51,7 @@ from ansys.heart.writer.keyword_module import (
     create_node_keyword,
     create_node_set_keyword,
     create_segment_set_keyword,
+    fast_element_writer,
     get_list_of_used_ids,
 )
 from ansys.heart.writer.material_keywords import (
@@ -406,7 +407,16 @@ class BaseDynaWriter:
 
             filepath = os.path.join(export_directory, deckname + ".k")
 
-            deck.export_file(filepath)
+            if deckname == "solid_elements":
+                if os.path.isfile(filepath):
+                    os.remove(filepath)
+                for element_kw in deck.keywords:
+                    fast_element_writer(element_kw, filepath)
+                with open(filepath, "a") as f:
+                    f.write("*END\n")
+                    
+            else:
+                deck.export_file(filepath)
 
         return
 

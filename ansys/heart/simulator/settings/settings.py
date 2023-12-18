@@ -226,16 +226,28 @@ class Fibers(Settings):
 class Purkinje(Settings):
     """Class for keeping track of purkinje settings."""
 
-    sigma: float = 0.2  # conductivity
+    sigma: float = 0.2  # TODO: use Quantity for all attributes
+    """Conductivity."""
     beta: float = 140
+    """Surface to volume ratio."""
     cm: float = 0.01
-    edgelen: int = 2  # edge length
-    nbrinit: int = 8  # number number of beams from origin point
-    nsplit: int = 2  # number of splits at each leaf
-    pmjtype: int = 1  # Purkinje muscle junction type
-    pmjradius: float = 0.7  # Purkinje muscle junction radius
-    pmjrestype: int = 1  # Purkinje muscle junction resistance type
-    pmjres: float = 1  # Purkinje muscle junction resistance value
+    """Membrane capacitance."""
+    edgelen: int = 2
+    """Edge length."""
+    ngen: int = 50
+    """Number of generations."""
+    nbrinit: int = 8
+    """Number of beams from origin point."""
+    nsplit: int = 2
+    """Number of splits at each leaf."""
+    pmjtype: int = 1
+    """Purkinje muscle junction type."""
+    pmjradius: float = 0.7
+    """Purkinje muscle junction radius."""
+    pmjrestype: int = 1
+    """Purkinje muscle junction resistance type."""
+    pmjres: float = 1
+    """Purkinje muscle junction resistance value."""
 
 
 class SimulationSettings:

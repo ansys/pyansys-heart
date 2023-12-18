@@ -9,7 +9,6 @@ Options for simulation:
     coupled electro-mechanics
 """
 import copy
-import glob as glob
 import logging
 import os
 import pathlib as Path
@@ -483,7 +482,7 @@ class MechanicsSimulator(BaseSimulator):
         if self.initial_stress:
             try:
                 # get dynain.lsda file from
-                dynain_file = glob.glob(os.path.join(zerop_folder, "iter*.dynain.lsda"))[-1]
+                dynain_file = os.path.join(zerop_folder, "iter3.dynain.lsda")
 
                 shutil.copy(dynain_file, os.path.join(directory, "dynain.lsda"))
                 shutil.copy(
@@ -492,10 +491,8 @@ class MechanicsSimulator(BaseSimulator):
                 )
             except IndexError:
                 # handle if lsda file not exist.
-                LOGGER.warning(
-                    "Cannot find initial stress file, simulation will run without initial stress."
-                )
-                self.initial_stress = False
+                LOGGER.warning("Cannot find initial stress file iter3.dynain.lsda")
+                exit()
 
         self._write_main_simulation_files(folder_name=folder_name)
 

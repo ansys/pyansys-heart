@@ -1080,7 +1080,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             # x scaling from beat rate
             active_curve_kw.sfa = material_settings.myocardium["active"]["beat_time"]
             # y scaling from Ca2
-            active_curve_kw.sfo = material_kw.ca2ionm
+            active_curve_kw.sfo = 4.35  # same with material ca2ionmax
 
             self.kw_database.material.append(active_curve_kw)
 
@@ -3795,6 +3795,15 @@ class UHCWriter(BaseDynaWriter):
             model.mesh["point_ids"] = np.arange(0, model.mesh.n_points, dtype=int)
 
             self.target = model.mesh.extract_cells(model.parts[0].element_ids)
+
+        if self.type == "la_fiber":
+            if 6 != len(self.model.parts[0].caps):
+                LOGGER.error("Input left atrium is not suitable for set up BC.")
+                exit(-1)
+        elif self.type == "ra_fiber":
+            if 3 != len(self.model.parts[0].caps):
+                LOGGER.error("Input left atrium is not suitable for set up BC.")
+                exit(-1)
 
     def additional_right_atrium_bc(self, atrium: pv.UnstructuredGrid):
         """

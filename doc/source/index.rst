@@ -4,7 +4,7 @@
    here.
 
 PyAnsys-Heart |version|
-=====================
+=======================
 
 .. include:: ../../README.rst
 

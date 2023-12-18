@@ -1080,7 +1080,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             # x scaling from beat rate
             active_curve_kw.sfa = material_settings.myocardium["active"]["beat_time"]
             # y scaling from Ca2
-            active_curve_kw.sfo = material_kw.ca2ionm
+            active_curve_kw.sfo = 4.35  # same with material ca2ionmax
 
             self.kw_database.material.append(active_curve_kw)
 
@@ -3740,6 +3740,15 @@ class UHCWriter(BaseDynaWriter):
 
             self.target = model.mesh.extract_cells(model.parts[0].element_ids)
 
+        if self.type == "la_fiber":
+            if 6 != len(self.model.parts[0].caps):
+                LOGGER.error("Input left atrium is not suitable for set up BC.")
+                exit(-1)
+        elif self.type == "ra_fiber":
+            if 3 != len(self.model.parts[0].caps):
+                LOGGER.error("Input left atrium is not suitable for set up BC.")
+                exit(-1)
+
     def additional_right_atrium_bc(self, atrium: pv.UnstructuredGrid):
         """
         Find additional node sets for right atrium.
@@ -4062,7 +4071,8 @@ class UHCWriter(BaseDynaWriter):
 
     def _create_apex_nodeset(self):
         # apex
-        apex_set = self.model._compute_uvc_apex_set()
+        # select a region within 1 cm, this seems consistent with Strocchi database
+        apex_set = self.model._compute_uvc_apex_set(radius=10)
         id_sorter = np.argsort(self.target["point_ids"])
         ids_submesh = id_sorter[
             np.searchsorted(self.target["point_ids"], apex_set, sorter=id_sorter)
@@ -4077,8 +4087,9 @@ class UHCWriter(BaseDynaWriter):
         base_set = np.array([])
         for part in self.model.parts:
             for cap in part.caps:
-                if ("mitral" in cap.name) or ("tricuspid" in cap.name):
-                    base_set = np.append(base_set, cap.node_ids)
+                #  Strocchi database use only mv and tv
+                # if ("mitral" in cap.name) or ("tricuspid" in cap.name):
+                base_set = np.append(base_set, cap.node_ids)
 
         id_sorter = np.argsort(self.target["point_ids"])
         ids_submesh = id_sorter[

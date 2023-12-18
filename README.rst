@@ -4,8 +4,8 @@
    :target: https://docs.pyansys.com/
    :alt: PyAnsys
 
-.. |python| image:: https://img.shields.io/badge/Python-3.8-blue
-   :target: https://www.python.org/downloads/release/python-380/
+.. |python| image:: https://img.shields.io/badge/Python-3.9-blue
+   :target: https://www.python.org/downloads/release/python-390/
    :alt: Python
 
 .. |MIT| image:: https://img.shields.io/badge/license-MIT-yellow
@@ -32,7 +32,7 @@ Operating system
 Ansys tools
 -----------
 
-This framework was developed and tested under Python 3.8 version. Before starting the installation run ``python --version`` and check that it fits with the supported versions.
+This framework was developed and tested under Python 3.9 version. Before starting the installation run ``python --version`` and check that it fits with the supported versions.
 
 Software
 --------
@@ -64,7 +64,7 @@ Software
 .. note::
     Fluent is required for meshing and the Ansys DPF Server for post-processing electrophysiology
     and mechanical results. Currently we advice to use the pre-release version of `DPF-Server`_ since support
-    for `d3plot` result files is updated frequently.
+    for `d3plot` result files is updated frequently. See `install-DPF-Server-`_ for installation guide.
 
 How to install
 ==============
@@ -126,7 +126,7 @@ need to follow these steps:
     .. code:: bash
 
         # Create virtual environment with a given Python version
-        conda create --name my-venv python=3.8
+        conda create --name my-venv python=3.9
 
         # Activate the environment
         conda activate my-venv
@@ -272,3 +272,4 @@ PyAnsys-Heart makes no commercial claim over any Ansys products whatsoever. This
 .. _dynalib: https://github.com/ansys/dynalib
 .. _conda: https://docs.conda.io/en/latest/
 .. _documentation: https://heart.docs.pyansys.com/
+.. _install-DPF-Server-: https://dpf.docs.pyansys.com/version/stable/getting_started/index.html#install-dpf-server

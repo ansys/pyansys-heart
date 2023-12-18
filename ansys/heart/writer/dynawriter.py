@@ -3740,6 +3740,15 @@ class UHCWriter(BaseDynaWriter):
 
             self.target = model.mesh.extract_cells(model.parts[0].element_ids)
 
+        if self.type == "la_fiber":
+            if 6 != len(self.model.parts[0].caps):
+                LOGGER.error("Input left atrium is not suitable for set up BC.")
+                exit(-1)
+        elif self.type == "ra_fiber":
+            if 3 != len(self.model.parts[0].caps):
+                LOGGER.error("Input left atrium is not suitable for set up BC.")
+                exit(-1)
+
     def additional_right_atrium_bc(self, atrium: pv.UnstructuredGrid):
         """
         Find additional node sets for right atrium.

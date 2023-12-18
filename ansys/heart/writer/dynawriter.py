@@ -414,7 +414,7 @@ class BaseDynaWriter:
                     fast_element_writer(element_kw, filepath)
                 with open(filepath, "a") as f:
                     f.write("*END\n")
-                    
+
             else:
                 deck.export_file(filepath)
 

@@ -112,8 +112,11 @@ def mesh_heart_model_by_fluent(
         session.exit()
         exit()
 
-    min_size = mesh_size
+    # some controls size field
     max_size = mesh_size
+    min_size = mesh_size
+    proximity_size = min_size  # appendage region is reconstructed with this size.
+    cells_per_gap = 3
     growth_rate_wrap = 1.2
 
     session.transcript.start(
@@ -131,6 +134,20 @@ def mesh_heart_model_by_fluent(
 
     # set up size field for wrapping
     session.tui.size_functions.set_global_controls(min_size, max_size, growth_rate_wrap)
+    session.tui.scoped_sizing.create(
+        "appendage-proximity",
+        "proximity",
+        "face-zone",
+        "yes",
+        "no",
+        "*myocardium*appendage*",
+        proximity_size,
+        max_size,
+        growth_rate_wrap,
+        cells_per_gap,
+        "face-face",
+    )
+    session.tui.scoped_sizing.write(os.path.join(path_to_stl_directory, "size-field.szcontrol"))
     session.tui.scoped_sizing.compute("yes")
 
     # wrap objects

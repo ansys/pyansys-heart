@@ -4062,7 +4062,7 @@ class UHCWriter(BaseDynaWriter):
     def _create_apex_nodeset(self):
         # apex
         # select a region within 1 cm, this seems consistent with Strocchi database
-        apex_set = self.model._compute_uvc_apex_set(radius=10)
+        apex_set = self.model.get_apex_node_set(radius=10)
         # get local ID
         ids_submesh = np.where(np.isin(self.target["point_ids"], apex_set))[0]
 

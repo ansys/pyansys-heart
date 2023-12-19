@@ -1633,7 +1633,7 @@ class HeartModel:
         return
 
     def _validate_cavities(self):
-        """Validate whether the cavities form a closed surface"""
+        """Validate whether the cavities form a closed surface."""
         non_manifold_cavities = [
             cavity.name for cavity in self.cavities if not cavity.surface.is_manifold
         ]

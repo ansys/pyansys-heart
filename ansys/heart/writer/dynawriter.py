@@ -3894,7 +3894,7 @@ class UHCWriter(BaseDynaWriter):
             atrium[cap.name][ids_sub] = 1
 
         # endo nodes ID
-        ids_endo = np.where(np.isin(atrium["point_ids"], self.model.parts[0].surfaces[0].node_ids))[
+        ids_endo = np.where(np.isin(atrium["point_ids"], self.model.parts[0].endocardium.node_ids))[
             0
         ]
 

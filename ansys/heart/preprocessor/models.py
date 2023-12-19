@@ -1082,6 +1082,9 @@ class HeartModel:
         else:
             flip_face_order = True
 
+        for fz in fluent_mesh.face_zones:
+            LOGGER.debug("Available face zones in Fluent mesh: %s " % fz.name)
+
         for face_zone in fluent_mesh.face_zones:
             # don't create surfaces for interior face zones
             if "interior" in face_zone.name or face_zone.zone_type != 3:
@@ -1250,6 +1253,10 @@ class HeartModel:
         self._add_nodal_areas()
         self._add_surface_normals()
 
+        if not self._validate_cavities():
+            LOGGER.error("One or more cavities are not manifold (closed)")
+            exit()
+
         return
 
     def _extract_septum(self) -> None:
@@ -1414,7 +1421,13 @@ class HeartModel:
         unique_mitral_tricuspid_valve
         If True, mitral/tricuspid valves defined for ventricles are also used for atrium.
         """
-        used_boundary_surface_names = [s.name for p in self.parts for s in p.surfaces]
+        appendage_boundaries = [b for b in self.mesh.boundaries if "appendage" in b.name]
+        for b in appendage_boundaries:
+            LOGGER.debug("Appendage boundaries: %s" % b.name)
+
+        used_boundary_surface_names = [
+            "-".join(s.name.lower().split()) for p in self.parts for s in p.surfaces
+        ]
         remaining_surfaces = list(set(self.mesh.boundary_names) - set(used_boundary_surface_names))
         remaining_surfaces1: List[SurfaceMesh] = []
         for surface in self.mesh.boundaries:
@@ -1435,77 +1448,102 @@ class HeartModel:
 
                 if not "endocardium" in surface.name:
                     continue
+
                 for edge_group in surface.edge_groups:
                     if edge_group.type != "closed":
                         raise ValueError("Expecting closed group of edges")
 
-                    for surf in remaining_surfaces1:
-                        if "valve" not in surf.name and "inlet" not in surf.name:
+                    # loop over all other surfaces to find connected surface. We only need
+                    # this to find the cap name.
+
+                    # find closest boundary.
+                    remaining_surfaces_centers = np.array(
+                        [surf.clean().center for surf in remaining_surfaces1]
+                    )
+
+                    edge_loop_center = np.mean(
+                        surface.nodes[np.unique(edge_group.edges), :], axis=0
+                    )
+
+                    surface_index_match = np.argmin(
+                        np.linalg.norm(remaining_surfaces_centers - edge_loop_center, axis=1)
+                    )
+
+                    surf_matched = remaining_surfaces1[surface_index_match]
+
+                    # candidate names for the valve (depends what interface is used)
+                    candidate_names = surf_matched.name.split("_")
+
+                    name_valve = next(
+                        candidate
+                        for candidate in candidate_names
+                        if "valve" in candidate or "inlet" in candidate
+                    )
+                    name_valve = name_valve.replace("-plane", "")
+                    name_valve = name_valve.replace("-inlet", "")
+
+                    LOGGER.debug("Assigning {1} to {0}".format(surface.name, name_valve))
+
+                    # for surf in remaining_surfaces1:
+                    #     if "valve" not in surf.name and "inlet" not in surf.name:
+                    #         continue
+                    #     if "myocardium" not in surf.name:
+                    #         continue
+
+                    # if np.any(np.isin(edge_group.edges, surf.boundary_edges)):
+
+                    if unique_mitral_tricuspid_valve and "atrium" in part.name:
+                        if "mitral" in name_valve or "tricuspid" in name_valve:
+                            LOGGER.debug(f"{name_valve} has been created in ventricular parts.")
+                            # Create dummy cap (only name) and will be filled later
+                            part.caps.append(Cap(name=name_valve))
                             continue
-                        if "myocardium" not in surf.name:
-                            continue
 
-                        if np.any(np.isin(edge_group.edges, surf.boundary_edges)):
-                            name_valve = next(
-                                n for n in surf.name.split("_") if "valve" in n or "inlet" in n
-                            )
-                            name_valve = name_valve.replace("-plane", "").replace("-inlet", "")
+                    cap = Cap(name=name_valve, node_ids=edge_group.edges[:, 0])
+                    cap.centroid = np.mean(surface.nodes[cap.node_ids, :], axis=0)
 
-                            if unique_mitral_tricuspid_valve and "atrium" in part.name:
-                                if "mitral" in name_valve or "tricuspid" in name_valve:
-                                    LOGGER.debug(
-                                        f"{name_valve} has been create in ventricular parts."
-                                    )
-                                    # Create dummy cap (only name) and will be filled later
-                                    part.caps.append(Cap(name=name_valve))
-                                    break
+                    # # tessellation 0 : pick a node and create segments
+                    # cap.tessellate()
+                    # p1 = surf.nodes[cap.triangles[:, 1]] - surf.nodes[cap.triangles[:, 0]]
+                    # p2 = surf.nodes[cap.triangles[:, 2]] - surf.nodes[cap.triangles[:, 0]]
 
-                            cap = Cap(name=name_valve, node_ids=edge_group.edges[:, 0])
-                            cap.centroid = np.mean(surf.nodes[cap.node_ids, :], axis=0)
+                    # tessellation 1 : add a center node
+                    cap.centroid_id = len(self.mesh.nodes) + len(
+                        self.cap_centroids
+                    )  # center node ID, 0 based
+                    self.cap_centroids.append(
+                        Point(
+                            name=name_valve + "_center",
+                            xyz=cap.centroid,
+                            node_id=cap.centroid_id,
+                        )
+                    )
 
-                            # # tessellation 0 : pick a node and create segments
-                            # cap.tessellate()
-                            # p1 = surf.nodes[cap.triangles[:, 1]] - surf.nodes[cap.triangles[:, 0]]
-                            # p2 = surf.nodes[cap.triangles[:, 2]] - surf.nodes[cap.triangles[:, 0]]
+                    cap.tessellate(center_point_id=[cap.centroid_id])
+                    p1 = surface.nodes[cap.triangles[:, 1],] - cap.centroid
+                    p2 = surface.nodes[cap.triangles[:, 2],] - cap.centroid
 
-                            # tessellation 1 : add a center node
-                            cap.centroid_id = len(self.mesh.nodes) + len(
-                                self.cap_centroids
-                            )  # center node ID, 0 based
-                            self.cap_centroids.append(
-                                Point(
-                                    name=name_valve + "_center",
-                                    xyz=cap.centroid,
-                                    node_id=cap.centroid_id,
-                                )
-                            )
+                    # get approximate cavity centroid to check normal of cap
+                    cavity_centroid = surface.compute_centroid()
+                    normals = np.cross(p1, p2)
+                    cap_normal = np.mean(normals, axis=0)
+                    cap_normal = cap_normal / np.linalg.norm(cap_normal)
+                    cap.normal = cap_normal
+                    cap_centroid = np.mean(surface.nodes[cap.node_ids, :], axis=0)
+                    d1 = np.linalg.norm(cap_centroid + cap_normal - cavity_centroid)
+                    d2 = np.linalg.norm(cap_centroid - cap_normal - cavity_centroid)
+                    if d1 > d2:
+                        LOGGER.debug(
+                            "Flipping order of nodes on cap to ensure normal " "pointing inward"
+                        )
+                        cap.node_ids = np.flip(cap.node_ids)
+                        # flip segments
+                        cap.triangles[:, [1, 2]] = cap.triangles[:, [2, 1]]
+                        cap.normal = cap.normal * -1
 
-                            cap.tessellate(center_point_id=[cap.centroid_id])
-                            p1 = surf.nodes[cap.triangles[:, 1],] - cap.centroid
-                            p2 = surf.nodes[cap.triangles[:, 2],] - cap.centroid
+                    part.caps.append(cap)
+                    # LOGGER.debug("Cap: {0} closes {1}".format(name_valve, surface.name))
 
-                            # get approximate cavity centroid to check normal of cap
-                            cavity_centroid = surface.compute_centroid()
-                            normals = np.cross(p1, p2)
-                            cap_normal = np.mean(normals, axis=0)
-                            cap_normal = cap_normal / np.linalg.norm(cap_normal)
-                            cap.normal = cap_normal
-                            cap_centroid = np.mean(surf.nodes[cap.node_ids, :], axis=0)
-                            d1 = np.linalg.norm(cap_centroid + cap_normal - cavity_centroid)
-                            d2 = np.linalg.norm(cap_centroid - cap_normal - cavity_centroid)
-                            if d1 > d2:
-                                LOGGER.debug(
-                                    "Flipping order of nodes on cap to ensure normal "
-                                    "pointing inward"
-                                )
-                                cap.node_ids = np.flip(cap.node_ids)
-                                # flip segments
-                                cap.triangles[:, [1, 2]] = cap.triangles[:, [2, 1]]
-                                cap.normal = cap.normal * -1
-
-                            part.caps.append(cap)
-                            LOGGER.debug("Cap: {0} closes {1}".format(name_valve, surface.name))
-                            break
         if unique_mitral_tricuspid_valve:
             # replace caps of atria by caps of ventricle
             for part in self.parts:
@@ -1593,6 +1631,18 @@ class HeartModel:
             )
 
         return
+
+    def _validate_cavities(self):
+        """Validate whether the cavities form a closed surface"""
+        non_manifold_cavities = [
+            cavity.name for cavity in self.cavities if not cavity.surface.is_manifold
+        ]
+
+        if len(non_manifold_cavities) > 0:
+            LOGGER.debug("Cavity %s not manifold" % non_manifold_cavities)
+            return False
+        else:
+            return True
 
     def compute_left_ventricle_anatomy_axis(self, first_cut_short_axis=0.2):
         """

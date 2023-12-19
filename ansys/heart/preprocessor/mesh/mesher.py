@@ -22,7 +22,7 @@ def mesh_heart_model_by_fluent(
     path_to_output: str,
     mesh_size: float = 2.0,
     add_blood_pool: bool = False,
-    show_gui: bool = False,
+    show_gui: bool = True,
 ):
     """
     Use Fluent meshing to wrap the surface and create tetrahedral volume mesh.
@@ -134,19 +134,20 @@ def mesh_heart_model_by_fluent(
 
     # set up size field for wrapping
     session.tui.size_functions.set_global_controls(min_size, max_size, growth_rate_wrap)
-    session.tui.scoped_sizing.create(
-        "appendage-proximity",
-        "proximity",
-        "face-zone",
-        "yes",
-        "no",
-        "*myocardium*appendage*",
-        proximity_size,
-        max_size,
-        growth_rate_wrap,
-        cells_per_gap,
-        "face-face",
-    )
+    if glob.glob(os.path.join(path_to_stl_directory, "*myocardium*appendage*")) != []:
+        session.tui.scoped_sizing.create(
+            "appendage-proximity",
+            "proximity",
+            "face-zone",
+            "yes",
+            "no",
+            "*myocardium*appendage*",
+            proximity_size,
+            max_size,
+            growth_rate_wrap,
+            cells_per_gap,
+            "face-face",
+        )
     session.tui.scoped_sizing.write(os.path.join(path_to_stl_directory, "size-field.szcontrol"))
     session.tui.scoped_sizing.compute("yes")
 

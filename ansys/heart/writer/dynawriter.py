@@ -3878,7 +3878,6 @@ class UHCWriter(BaseDynaWriter):
         atrium["top"][top_ids] = 1
 
         # Find tricuspid_wall and tricuspid_septum
-        id_sorter = np.argsort(atrium["point_ids"])
         # need a copied object to do clip, atrium will be corrupted otherwise
         septum, free_wall = copy.deepcopy(atrium).clip(
             origin=cut_center, normal=cut_normal, crinkle=True, return_clipped=True
@@ -3886,7 +3885,7 @@ class UHCWriter(BaseDynaWriter):
         # ids in full mesh
         tv_s_ids = septum["point_ids"][np.where(septum["tricuspid-valve"] == 1)]
 
-        tv_s_ids_sub = id_sorter[np.searchsorted(atrium["point_ids"], tv_s_ids, sorter=id_sorter)]
+        tv_s_ids_sub = np.where(np.isin(atrium["point_ids"], tv_s_ids))[0]
         atrium["tv_s"] = np.zeros(atrium.n_points)
         atrium["tv_s"][tv_s_ids_sub] = 1
 
@@ -3894,7 +3893,7 @@ class UHCWriter(BaseDynaWriter):
         self.kw_database.node_sets.append(kw)
 
         tv_w_ids = free_wall["point_ids"][np.where(free_wall["tricuspid-valve"] == 1)]
-        tv_w_ids_sub = id_sorter[np.searchsorted(atrium["point_ids"], tv_w_ids, sorter=id_sorter)]
+        tv_w_ids_sub = np.where(np.isin(atrium["point_ids"], tv_w_ids))[0]
         # remove re constraint nodes
         tv_w_ids_sub = np.setdiff1d(tv_w_ids_sub, tv_s_ids_sub)
 
@@ -3938,9 +3937,7 @@ class UHCWriter(BaseDynaWriter):
         ids_edges = []  # all nodes belong to valves
         for cap in self.model.parts[0].caps:
             # get node IDs for atrium mesh
-            ids_sub = id_sorter[
-                np.searchsorted(atrium["point_ids"], cap.node_ids, sorter=id_sorter)
-            ]
+            ids_sub = np.where(np.isin(atrium["point_ids"], cap.node_ids))[0]
             # create node set
             set_id = get_nodeset_id_by_cap_name(cap)
             kw = create_node_set_keyword(ids_sub + 1, node_set_id=set_id, title=cap.name)
@@ -3953,10 +3950,8 @@ class UHCWriter(BaseDynaWriter):
             atrium[cap.name][ids_sub] = 1
 
         # endo nodes ID
-        ids_endo = id_sorter[
-            np.searchsorted(
-                atrium["point_ids"], self.model.parts[0].surfaces[0].node_ids, sorter=id_sorter
-            )
+        ids_endo = np.where(np.isin(atrium["point_ids"], self.model.parts[0].endocardium.node_ids))[
+            0
         ]
 
         atrium["endo"] = np.zeros(atrium.n_points, dtype=int)
@@ -4069,8 +4064,6 @@ class UHCWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.Case(caseid=3, jobid="rotational", scid1=3))
 
         # transmural uvc
-        id_sorter = np.argsort(self.target["point_ids"])
-
         endo_set = []
         epi_set = []
         for part in self.model.parts:
@@ -4081,10 +4074,7 @@ class UHCWriter(BaseDynaWriter):
                 #     epi_set.extend(surf.node_ids)
 
         # map IDs to sub mesh
-        endo_set_new = id_sorter[
-            np.searchsorted(self.target["point_ids"], endo_set, sorter=id_sorter)
-        ]
-        endo_set_new = np.unique(endo_set_new)
+        endo_set_new = np.where(np.isin(self.target["point_ids"], endo_set))[0]
 
         endo_sid = self.get_unique_nodeset_id()
         kw = create_node_set_keyword(endo_set_new + 1, node_set_id=endo_sid, title="endo")
@@ -4128,11 +4118,10 @@ class UHCWriter(BaseDynaWriter):
     def _create_apex_nodeset(self):
         # apex
         # select a region within 1 cm, this seems consistent with Strocchi database
-        apex_set = self.model._compute_uvc_apex_set(radius=10)
-        id_sorter = np.argsort(self.target["point_ids"])
-        ids_submesh = id_sorter[
-            np.searchsorted(self.target["point_ids"], apex_set, sorter=id_sorter)
-        ]
+        apex_set = self.model.get_apex_node_set(radius=10)
+        # get local ID
+        ids_submesh = np.where(np.isin(self.target["point_ids"], apex_set))[0]
+
         sid = self.get_unique_nodeset_id()
         kw = create_node_set_keyword(ids_submesh + 1, node_set_id=sid, title="apex")
         self.kw_database.node_sets.append(kw)
@@ -4146,19 +4135,15 @@ class UHCWriter(BaseDynaWriter):
                 #  Strocchi database use only mv and tv
                 # if ("mitral" in cap.name) or ("tricuspid" in cap.name):
                 base_set = np.append(base_set, cap.node_ids)
+        # get local ID
+        ids_submesh = np.where(np.isin(self.target["point_ids"], base_set))[0]
 
-        id_sorter = np.argsort(self.target["point_ids"])
-        ids_submesh = id_sorter[
-            np.searchsorted(self.target["point_ids"], base_set, sorter=id_sorter)
-        ]
         sid = self.get_unique_nodeset_id()
         kw = create_node_set_keyword(ids_submesh + 1, node_set_id=sid, title="base")
         self.kw_database.node_sets.append(kw)
         return sid
 
     def _create_surface_nodeset(self, surftype: str, cavity_type: str):
-        id_sorter = np.argsort(self.target["point_ids"])
-
         nodeset = np.array([])
         for part in self.model.parts:
             if cavity_type in part.name:
@@ -4168,9 +4153,7 @@ class UHCWriter(BaseDynaWriter):
         nodeset = np.unique(nodeset.astype(int))
 
         # map IDs to sub mesh
-        ids_submesh = id_sorter[
-            np.searchsorted(self.target["point_ids"], nodeset, sorter=id_sorter)
-        ]
+        ids_submesh = np.where(np.isin(self.target["point_ids"], nodeset))[0]
 
         sid = self.get_unique_nodeset_id()
         kw = create_node_set_keyword(

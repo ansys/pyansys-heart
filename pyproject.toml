@@ -18,7 +18,6 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Information Analysis",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -27,7 +26,6 @@ classifiers = [
 dependencies = [
     "importlib-metadata >=4.0",
     "ansys-fluent-core==0.16.0",
-    "ansys-dpf-core==0.10.0",
     "ansys-dpf-core==0.10.0",
     "h5py>=3.6.0",
     "Jinja2==3.1.2",

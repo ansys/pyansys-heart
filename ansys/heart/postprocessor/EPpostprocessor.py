@@ -38,34 +38,48 @@ class EPpostprocessor:
             if at_step == None
             else [at_step]
         )
-        field = self.reader.get_ep_fields(at_step=step)[10]
+        field = self.reader.get_ep_fields(at_step=step).get_field({"variable_id": 129})
         return field
 
     def get_transmembrane_potential(self, node_id=None, plot: bool = False):
         """Get transmembrane potential."""
+        phi, times = self._get_ep_field(node_id=node_id, plot=plot, variable_id=126)
+        return phi, times
+
+    def get_extracellular_potential(self, node_id=None, plot: bool = False):
+        """Get extracellular potential."""
+        phi, times = self._get_ep_field(variable_id=127, node_id=node_id, plot=plot)
+        return phi, times
+
+    def get_intracellular_potential(self, node_id=None, plot: bool = False):
+        """Get intracellular potential."""
+        phi, times = self._get_ep_field(variable_id=128, node_id=node_id, plot=plot)
+        return phi, times
+
+    def get_calcium(self, node_id=None, plot: bool = False):
+        """Get calcium concentration."""
+        phi, times = self._get_ep_field(variable_id=130, node_id=node_id, plot=plot)
+        return phi, times
+
+    def _get_ep_field(self, variable_id: int, node_id=None, plot: bool = False):
+        """Get EP field."""
         self.load_ep_fields()
         times = self.reader.get_timesteps()
         if node_id == None:
             nnodes = len(self.reader.meshgrid.points)
             node_id = np.int64(np.linspace(0, nnodes - 1, nnodes))
-        vm = np.zeros((len(times), len(node_id)))
+        phi = np.zeros((len(times), len(node_id)))
 
         for time_id in range(1, len(times) + 1):
-            vm[time_id - 1, :] = self.fields.get_field({"variable_id": 126, "time": time_id}).data[
-                node_id
-            ]
+            phi[time_id - 1, :] = self.fields.get_field(
+                {"variable_id": variable_id, "time": time_id}
+            ).data[node_id]
         if plot == True:
-            plt.plot(times, vm, label="node 0")
+            plt.plot(times, phi, label="node 0")
             plt.xlabel("time (ms)")
-            plt.ylabel("vm (mV)")
+            plt.ylabel("phi (mV)")
             plt.show(block=True)
-        return vm, times
-
-    # def animate_transmembrane_potentials(self):
-    #     """Animate transmembrane potential."""
-    #     self.load_ep_fields()
-    #     tmp_fc = self.reader.get_transmembrane_potentials_fc(self.fields)
-    #     tmp_fc.animate()
+        return phi, times
 
     def read_EP_nodout(self):
         """Read Electrophysiology results."""
@@ -133,16 +147,64 @@ class EPpostprocessor:
     def export_transmembrane_to_vtk(self):
         """Export transmembrane potentials to vtk."""
         vm, times = self.get_transmembrane_potential()
-        # Creating scene and loading the mesh
         post_path = self.create_post_folder()
         grid = self.reader.meshgrid.copy()
 
         for i in range(vm.shape[0]):
             # TODO vtk is not optimal for scalar fields with
             # non moving meshes, consider using ROM format
-            grid.point_data["transemembrane_potential"] = vm[i, :]
+            grid.point_data["transmembrane_potential"] = vm[i, :]
             grid.save(post_path + "\\vm_" + str(i) + ".vtk")
         return
+
+    def compute_ECGs(self, electrodes: np.ndarray):
+        """Compute ECGs."""
+        grid = self.reader.meshgrid
+        grid = grid.compute_cell_sizes(length=False, area=False, volume=True)
+        cell_volumes = grid.cell_data["Volume"]
+        centroids = grid.cell_centers()
+        vm, times = self.get_transmembrane_potential()
+        ECGs = np.zeros([vm.shape[0], electrodes.shape[0]])
+
+        for time_step in range(vm.shape[0]):
+            grid.point_data["vmi"] = vm[time_step, :]
+            grid = grid.compute_derivative(scalars="vmi")
+            grid = grid.point_data_to_cell_data()
+
+            for electrode_id in range(electrodes.shape[0]):
+                electrode = electrodes[electrode_id, :]
+                r_vector = centroids.points - electrode
+                distances = np.linalg.norm(r_vector, axis=1)
+                # TODO add conductivity tensor in the calculation (necessary?)
+                # TODO add method to handle beam gradients as well
+                integral = sum(
+                    sum(
+                        np.transpose(
+                            r_vector
+                            * grid.cell_data["gradient"]
+                            / (np.power(distances[:, None], 3) * 4 * np.pi)
+                        )
+                    )
+                    * cell_volumes
+                )
+                ECGs[time_step, electrode_id] = integral
+            # testing:
+            # grid.point_data["testgrad"] = grid.points[:, 0]
+            # grid = grid.compute_derivative(scalars="testgrad")
+            # grid = grid.point_data_to_cell_data()
+
+            # gradients = get vm gradient on elem centroids
+            # volumes = get element volumes
+            # q1 = r / (np.power(distances, 3) * 4 * np.pi)
+            # ECGi = q1 .gradients(t) x volumes
+        return ECGs, times
+
+    def read_ECGs(self, path: Path):
+        """Read ECG text file produced by LS-DYNA simulation."""
+        data = np.loadtxt(path, skiprows=4)
+        times = data[:, 0]
+        ECGs = data[:, 1:11]
+        return ECGs, times
 
     def _assign_pointdata(self, pointdata: np.ndarray, node_ids: np.ndarray):
         result = np.zeros(self.mesh.n_points)

@@ -27,6 +27,7 @@ purkinje network and conduction system and finally simulate the electrophysiolog
 import os
 from pathlib import Path
 
+from ansys.heart.preprocessor.mesh.objects import Point
 import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
 
@@ -40,14 +41,31 @@ path_to_model = os.path.join(workdir, "heart_model.pickle")
 if not os.path.isfile(path_to_model):
     raise FileExistsError(f"{path_to_model} not found")
 
-# specify LS-DYNA path
-lsdyna_path = "ls-dyna_smp_d.exe"
+# specify LS-DYNA path (last tested working versions is intelmpi-linux-DEV-106117)
+lsdyna_path = r"ls-dyna_msmpi.exe"
 
 if not os.path.isfile(lsdyna_path):
     raise FileExistsError(f"{lsdyna_path} not found.")
 
 # load four chamber heart model.
 model: models.FourChamber = models.HeartModel.load_model(path_to_model)
+
+# Define electrode positions and add them to model (correspond to patient 01 only)
+# Positions were defined using a template torso geometry.
+electrodes = [
+    Point(name="V1", xyz=[-29.893285751342773, 27.112899780273438, 373.30865478515625]),
+    Point(name="V2", xyz=[33.68170928955078, 30.09606170654297, 380.5427551269531]),
+    Point(name="V3", xyz=[56.33562469482422, 29.499839782714844, 355.533935546875]),
+    Point(name="V4", xyz=[100.25729370117188, 43.61333465576172, 331.07635498046875]),
+    Point(name="V5", xyz=[140.29800415039062, 81.36004638671875, 349.69970703125]),
+    Point(name="V6", xyz=[167.9899139404297, 135.89862060546875, 366.18634033203125]),
+    Point(name="RA", xyz=[-176.06332397460938, 57.632076263427734, 509.14202880859375]),
+    Point(name="LA", xyz=[133.84518432617188, 101.44053649902344, 534.9176635742188]),
+    Point(name="RL", xyz=[203.38825799615842, 56.19020893502452, 538.5052677637375]),
+    Point(name="LL", xyz=[128.9441375732422, 92.85327911376953, 173.07363891601562]),
+]
+model.electrodes = electrodes
+
 
 if not isinstance(model, models.FourChamber):
     raise TypeError("Expecting a FourChamber heart model.")
@@ -63,7 +81,7 @@ model.info.workdir = str(workdir)
 # instantaiate dyna settings of choice
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path,
-    dynatype="smp",
+    dynatype="msmpi",
     num_cpus=1,
 )
 
@@ -80,6 +98,15 @@ simulator = EPSimulator(
 # Here we load the default settings.
 
 simulator.settings.load_defaults()
+
+###############################################################################
+# Compute Universal Ventricular Coordinates
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# The transmural coordinate is used to define the endo, mid and epi layers.
+
+###############################################################################
+
+simulator.compute_uvc()
 
 ###############################################################################
 # Compute the fiber orientation

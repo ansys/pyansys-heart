@@ -1,12 +1,37 @@
 """Module contains default values for electrophysiology simulations."""
 from pint import Quantity
 
-"""Generic analysis settings."""
-analysis = {
-    "end_time": Quantity(3000.0, "ms"),
-    "dtmin": Quantity(10.0, "ms"),
-    "dtmax": Quantity(10.0, "ms"),
-    "dt_d3plot": Quantity(50.0, "ms"),
+heart = {
+    "cycles": 1,
+    "beat_time": Quantity(800, "ms"),
 }
 
-boundary_conditions = {"stimulation_position": [0.0, 0.0, 0.0]}
+"""Generic analysis settings."""
+analysis = {
+    "end_time": heart["cycles"] * heart["beat_time"],
+    "dtmin": Quantity(0.0, "ms"),
+    "dtmax": Quantity(1.0, "ms"),
+    "dt_d3plot": Quantity(10, "ms"),
+}
+
+
+"""Material settings."""
+material = {
+    "myocardium": {
+        "sigma_fiber": Quantity(0.5, "dimensionless"),  # mS/mm
+        "sigma_sheet": Quantity(0.1, "dimensionless"),  # mS/mm
+        "sigma_sheet_normal": Quantity(0.1, "dimensionless"),  # mS/mm
+        "sigma_passive": Quantity(1.0, "dimensionless"),  # mS/mm
+        "beta": Quantity(140, "1/mm"),
+        "cm": Quantity(0.01, "dimensionless"),  # uF/mm^2
+        "lambda": Quantity(0.2, "dimensionless"),
+    },
+    "beam": {
+        "sigma": Quantity(10, "mS/mm"),  # mS/mm
+        "beta": Quantity(140, "1/mm"),
+        "cm": Quantity(0.01, "uF/mm^2"),  # uF/mm^2
+        "lambda": Quantity(0.2, "dimensionless"),
+        "pmjrestype": Quantity(1),
+        "pmjres": Quantity(0.001, "dimensionless"),  # 1/mS
+    },
+}

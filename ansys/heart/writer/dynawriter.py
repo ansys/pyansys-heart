@@ -637,10 +637,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._update_system_model()
 
         # no control volume for atrial, constant pressure instead
-        bc_settings = self.settings.mechanics.boundary_conditions
-        pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
-        pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
-        self._add_constant_atrial_pressure(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
+        if isinstance(self.model, FourChamber):
+            bc_settings = self.settings.mechanics.boundary_conditions
+            pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
+            pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
+            self._add_constant_atrial_pressure(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
         # for boundary conditions
         self._add_cap_bc(bc_type="springs_caps")

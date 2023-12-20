@@ -341,15 +341,8 @@ class EPSimulator(BaseSimulator):
 
         return
 
-    def compute_purkinje(self, after_zerop=True):
-        """
-        Compute the purkinje network.
-
-        Parameters
-        ----------
-        after_zerop : bool, optional
-            If generate purkinje network on guessed end of diastol, by default True
-        """
+    def compute_purkinje(self):
+        """Compute the purkinje network."""
         directory = os.path.join(self.root_directory, "purkinjegeneration")
         self.directories["purkinjegeneration"] = directory
 
@@ -380,7 +373,7 @@ class EPSimulator(BaseSimulator):
             purkinje_k_file = os.path.join(directory, "purkinjeNetwork_002.k")
             self.model.add_purkinje_from_kfile(purkinje_k_file, "Right-purkinje")
 
-    def compute_conduction_system(self, after_zerop=True):
+    def compute_conduction_system(self):
         """Compute the conduction system."""
         if isinstance(self.model, FourChamber):
             SA_node = self.model.compute_SA_node()

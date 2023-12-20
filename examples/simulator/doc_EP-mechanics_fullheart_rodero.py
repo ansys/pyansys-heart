@@ -60,7 +60,7 @@ model.info.workdir = str(workdir)
 # instantaiate dyna settings of choice
 lsdyna_path = r"mppdyna_d_sse2_linux86_64_intelmmpi_105630"
 dyna_settings = DynaSettings(
-    lsdyna_path=lsdyna_path, dynatype="intelmpi", num_cpus=8, platform="wsl"
+    lsdyna_path=lsdyna_path, dynatype="intelmpi", num_cpus=8
 )
 
 # instantiate simulator object

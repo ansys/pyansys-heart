@@ -636,6 +636,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._update_controlvolume_db()
         self._update_system_model()
 
+        # no control volume for atrial, constant pressure instead
+        if isinstance(self.model, FourChamber):
+            bc_settings = self.settings.mechanics.boundary_conditions
+            pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
+            pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
+            self._add_constant_atrial_pressure(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
+
         # for boundary conditions
         self._add_cap_bc(bc_type="springs_caps")
         self._add_pericardium_bc()
@@ -1145,6 +1152,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
             mat_id = self.get_unique_mat_id()
 
             spring_stiffness = bc_settings.valve["stiffness"].m
+            if type(self) == ZeroPressureMechanicsDynaWriter:
+                spring_stiffness *= 1e16
 
             scale_factor_normal = bc_settings.valve["scale_factor"]["normal"]
             scale_factor_radial = bc_settings.valve["scale_factor"]["radial"]
@@ -1440,24 +1449,33 @@ class MechanicsDynaWriter(BaseDynaWriter):
         material_settings = copy.deepcopy(self.settings.mechanics.material)
         material_settings._remove_units()
 
-        if material_settings.cap["type"] == "stiff":
-            material_kw = MaterialNeoHook(
-                mid=mat_null_id,
-                rho=material_settings.cap["rho"],
-                c10=material_settings.cap["mu1"] / 2,
-            )
-
-        elif material_settings.cap["type"] == "null":
-            material_kw = keywords.MatNull(
-                mid=mat_null_id,
-                ro=material_settings.cap["rho"],
-            )
-        elif material_settings.cap["type"] == "rigid":
+        # caps are rigid in zerop
+        if type(self) == ZeroPressureMechanicsDynaWriter:
             material_kw = keywords.MatRigid(
                 mid=mat_null_id,
                 ro=material_settings.cap["rho"],
                 e=1.0,  # MPa
             )
+
+        else:
+            if material_settings.cap["type"] == "stiff":
+                material_kw = MaterialNeoHook(
+                    mid=mat_null_id,
+                    rho=material_settings.cap["rho"],
+                    c10=material_settings.cap["mu1"] / 2,
+                )
+
+            elif material_settings.cap["type"] == "null":
+                material_kw = keywords.MatNull(
+                    mid=mat_null_id,
+                    ro=material_settings.cap["rho"],
+                )
+            elif material_settings.cap["type"] == "rigid":
+                material_kw = keywords.MatRigid(
+                    mid=mat_null_id,
+                    ro=material_settings.cap["rho"],
+                    e=1.0,  # MPa
+                )
 
         section_kw = keywords.SectionShell(
             secid=section_id,
@@ -1723,6 +1741,16 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_rv
                 )
                 self.kw_database.main.append(load)
+            elif cavity.name == "Left atrium":
+                load = keywords.LoadSegmentSet(
+                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_lv
+                )
+                self.kw_database.main.append(load)
+            elif cavity.name == "Right atrium":
+                load = keywords.LoadSegmentSet(
+                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_rv
+                )
+                self.kw_database.main.append(load)
             else:
                 continue
 
@@ -1747,6 +1775,31 @@ class MechanicsDynaWriter(BaseDynaWriter):
         #             )
         #             self.kw_database.main.append(load)
         return
+
+    def _add_constant_atrial_pressure(self, pressure_lv: float = 1, pressure_rv: float = 1):
+        """Missing circulation model for atrial cavity, apply constant ED pressure."""
+        # create unit load curve
+        load_curve_id = self.get_unique_curve_id()
+        load_curve_kw = create_define_curve_kw(
+            [0, 1e20], [1.0, 1.0], "constant load curve", load_curve_id, 100
+        )
+
+        # append unit curve to main.k
+        self.kw_database.main.append(load_curve_kw)
+
+        # create *LOAD_SEGMENT_SETS for each ventricular cavity
+        cavities = [part.cavity for part in self.model.parts if part.cavity]
+        for cavity in cavities:
+            if cavity.name == "Left atrium":
+                load = keywords.LoadSegmentSet(
+                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_lv
+                )
+                self.kw_database.main.append(load)
+            elif cavity.name == "Right atrium":
+                load = keywords.LoadSegmentSet(
+                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_rv
+                )
+                self.kw_database.main.append(load)
 
 
 class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
@@ -1788,14 +1841,13 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self._update_segmentsets_db()
         self._update_nodesets_db()
         self._update_material_db(add_active=False)
-
-        # for boundary conditions
-        self._add_cap_bc(bc_type="fix_caps")
-
         if self.cap_in_zerop:
             # define cap element
             self._update_cap_elements_db()
 
+        # TODO: it should be after cap creation, or it will be written in dynain
+        # for boundary conditions
+        self._add_cap_bc(bc_type="springs_caps")
         if isinstance(self.model, FourChamber):
             # add a small constraint to avoid rotation
             self._add_pericardium_bc(scale=0.01)
@@ -1919,10 +1971,21 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         )
 
         # add implicit solution controls
-        self.kw_database.main.append(keywords.ControlImplicitSolution())
+        self.kw_database.main.append(
+            keywords.ControlImplicitSolution(
+                maxref=35,
+                dctol=0.01,
+                ectol=1e6,
+                rctol=1e3,
+                abstol=-1e-20,
+                dnorm=1,
+                diverg=2,
+                lsmtd=5,
+            )
+        )
 
         # add implicit solver controls
-        self.kw_database.main.append(custom_keywords.ControlImplicitSolver())
+        self.kw_database.main.append(custom_keywords.ControlImplicitSolver(autospc=2))
 
         # accuracy control
         self.kw_database.main.append(keywords.ControlAccuracy(osu=1, inn=4, iacc=1))

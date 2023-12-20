@@ -53,6 +53,8 @@ def main(args):
                 model = models.BiVentricle(info)
             elif model_type == "fh":
                 model = models.FullHeart(info)
+            elif model_type == "4c":
+                model = models.FourChamber(info)
 
             # extract the simulation mesh
             model.extract_simulation_mesh()
@@ -100,7 +102,7 @@ if __name__ == "__main__":
         "--type",
         help="Heart model type: lv: left-ventricular model, bv: biventricular model, "
         + "fh: full heart model",
-        choices=["lv", "bv", "fh"],
+        choices=["lv", "bv", "4c", "fh"],
         default="fh",
     )
 

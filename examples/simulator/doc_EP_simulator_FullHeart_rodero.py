@@ -27,9 +27,9 @@ purkinje network and conduction system and finally simulate the electrophysiolog
 import os
 from pathlib import Path
 
+from ansys.heart.preprocessor.mesh.objects import Point
 import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
-from ansys.heart.preprocessor.mesh.objects import Point
 
 # set working directory and path to model.
 workdir = Path(Path(__file__).resolve().parents[2], "downloads", "Cristobal2021", "01", "FullHeart")

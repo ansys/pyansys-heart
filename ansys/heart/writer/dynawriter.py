@@ -406,32 +406,18 @@ class BaseDynaWriter:
             LOGGER.info("Writing: {}".format(deckname))
 
             filepath = os.path.join(export_directory, deckname + ".k")
-            # use fast element writer for solid ortho elements
+
             if deckname == "solid_elements":
-                element_kws = deck.get_kwds_by_type("ELEMENT")
                 if os.path.isfile(filepath):
                     os.remove(filepath)
-
-                for element_kw in element_kws:
+                for element_kw in deck.keywords:
                     fast_element_writer(element_kw, filepath)
+                with open(filepath, "a") as f:
+                    f.write("*END\n")
 
-                fid = open(filepath, "a")
-                fid.write("*END")
-
-            # elif deckname == "nodes":
-            #     ids = np.arange(0, self.model.mesh.nodes.shape[0], 1) + 1
-            #     content = np.hstack((ids.reshape(-1, 1), self.model.mesh.nodes))
-            #     np.savetxt(
-            #         os.path.join(export_directory, "nodes.k"),
-            #         content,
-            #         fmt="%8d%16.5e%16.5e%16.5e",
-            #         header="*KEYWORD\n*NODE\n"
-            #         "$#   nid               x               y               z      tc      rc",
-            #         footer="*END",
-            #         comments="",
-            #     )
             else:
                 deck.export_file(filepath)
+
         return
 
     def _export_cavity_segmentsets(self, export_directory: str):

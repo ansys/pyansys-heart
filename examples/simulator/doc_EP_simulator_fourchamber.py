@@ -106,7 +106,7 @@ simulator.settings.load_defaults()
 
 ###############################################################################
 
-simulator.compute_uvc()
+simulator.compute_uhc()
 
 ###############################################################################
 # Compute the fiber orientation

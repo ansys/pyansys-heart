@@ -149,7 +149,7 @@ class BaseSimulator:
         self.model.dump_model(os.path.join(self.root_directory, "model_with_fiber.pickle"))
         return
 
-    def compute_uvc(self) -> pv.UnstructuredGrid:
+    def compute_uhc(self) -> pv.UnstructuredGrid:
         """Compute universal 'heart' coordinates system."""
         LOGGER.info("Computing universal ventricular coordinates...")
 

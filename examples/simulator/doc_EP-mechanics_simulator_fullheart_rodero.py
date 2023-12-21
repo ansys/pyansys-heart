@@ -63,6 +63,11 @@ path_to_model = str(Path(workdir, "heart_model.pickle"))
 # ~~~~~~~~~~~~~~~~~~~~~~~~
 # Set the right database to which this case belongs, and set other relevant
 # information such as the desired mesh size.
+#
+# .. note::
+#    The example was tested with a constant mesh size of 2.0, the stress-free
+#    step may not converge when refining the mesh size.
+
 info = models.ModelInfo(
     database="Cristobal2021",
     path_to_case=case_file,
@@ -147,7 +152,7 @@ simulator.settings.mechanics.analysis.dt_d3plot = Quantity(10, "ms")
 simulator.model.dump_model(os.path.join(workdir, "heart_fib_beam.pickle"))
 
 ###############################################################################
-# .. warning::
+# .. note::
 #    A constant pressure is prescribed to the atria.
 #    No circulation system is coupled with the atria.
 

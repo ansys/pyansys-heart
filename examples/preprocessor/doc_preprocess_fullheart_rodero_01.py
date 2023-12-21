@@ -35,7 +35,7 @@ case_file = str(
 )
 download_folder = str(Path(Path(__file__).resolve().parents[2], "downloads"))
 workdir = str(
-    Path(Path(__file__).resolve().parents[2], "downloads", "Cristobal2021", "01", "FullHeart")
+    Path(Path(__file__).resolve().parents[2], "downloads", "Cristobal2021", "01", "FullHeart2.0")
 )
 
 path_to_model = str(Path(workdir, "heart_model.pickle"))
@@ -61,7 +61,7 @@ info = models.ModelInfo(
     path_to_case=case_file,
     work_directory=workdir,
     path_to_model=path_to_model,
-    mesh_size=1.5,
+    mesh_size=2.0,
 )
 
 # create the working directory

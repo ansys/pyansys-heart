@@ -29,6 +29,19 @@ import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.simulator import DynaSettings, EPMechanicsSimulator
 from pint import Quantity
 
+###############################################################################
+# Example setup
+# -------------
+# Perform the required imports
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Import the required modules and set relevant paths, including that of the working
+# directory and generated model
+
+# sphinx_gallery_start_ignore
+# sphinx_gallery_thumbnail_path = '_static/images/four_chamber_mesh.png'
+# sphinx_gallery_end_ignore
+
+
 # sphinx_gallery_start_ignore
 os.environ["USE_OLD_HEART_MODELS"] = "1"
 # sphinx_gallery_end_ignore
@@ -40,17 +53,51 @@ case_file = str(
 )
 download_folder = str(Path(Path(__file__).resolve().parents[2], "downloads"))
 workdir = str(
-    Path(Path(__file__).resolve().parents[2], "downloads", "Cristobal2021", "01", "FullHeart")
+    Path(Path(__file__).resolve().parents[2], "downloads", "Cristobal2021", "01", "FullHeart2.0")
 )
+
 path_to_model = str(Path(workdir, "heart_model.pickle"))
 
+##############################################################################
+# Set required information
+# ~~~~~~~~~~~~~~~~~~~~~~~~
+# Set the right database to which this case belongs, and set other relevant
+# information such as the desired mesh size.
+info = models.ModelInfo(
+    database="Cristobal2021",
+    path_to_case=case_file,
+    work_directory=workdir,
+    path_to_model=path_to_model,
+    mesh_size=2.0,
+)
+
+# create the working directory
+info.create_workdir()
+# clean the working directory
+info.clean_workdir(extensions_to_remove=[".stl", ".vtk", ".msh.h5"])
+# dump information to stdout
+info.dump_info()
 
 ###############################################################################
-# load full heart model.
-model: models.FullHeart = models.HeartModel.load_model(path_to_model)
+# Initialize the heart model
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Initialize the desired heart model, and invoke the main method to
+# extract the simulation mesh and dump the model to disk. This will extract
+# the relevant parts and features from the original model and remesh
+# the entire surface and volume. Relevant anatomical features that are extracted include
+# the endocardium, epicardium, apex, and valve annuli
 
-# set base working directory
-model.info.workdir = str(workdir)
+# instantiate a four chamber model
+model = models.FullHeart(info)
+
+# extract the simulation mesh
+model.extract_simulation_mesh()
+
+# dump the model to disk for future use
+model.dump_model(path_to_model)
+
+# print information regarding the generated model
+model.print_info()
 
 ###############################################################################
 # Instantiate the simulator object
@@ -59,9 +106,7 @@ model.info.workdir = str(workdir)
 
 # instantaiate dyna settings of choice
 lsdyna_path = r"mppdyna_d_sse2_linux86_64_intelmmpi_105630"
-dyna_settings = DynaSettings(
-    lsdyna_path=lsdyna_path, dynatype="intelmpi", num_cpus=8
-)
+dyna_settings = DynaSettings(lsdyna_path=lsdyna_path, dynatype="intelmpi", num_cpus=8)
 
 # instantiate simulator object
 simulator = EPMechanicsSimulator(
@@ -70,9 +115,10 @@ simulator = EPMechanicsSimulator(
     simulation_directory=os.path.join(workdir, "ep-mechanics"),
 )
 
+# load default simulation settings
 simulator.settings.load_defaults()
 
-# compute fibers
+# compute fiber orientation in the ventricles and atria
 simulator.compute_fibers()
 simulator.compute_left_atrial_fiber()
 simulator.compute_right_atrial_fiber(appendage=[39, 29, 98])
@@ -84,10 +130,10 @@ simulator.model.left_atrium.is_active = True
 simulator.model.right_atrium.has_fiber = True
 simulator.model.right_atrium.is_active = True
 
-# stress-free-configuration
+# Estimate the stress-free-configuration
 simulator.compute_stress_free_configuration()
 
-# Compute conduction system
+# Compute the conduction system
 simulator.compute_purkinje()
 simulator.compute_conduction_system()
 
@@ -102,8 +148,8 @@ simulator.model.dump_model(os.path.join(workdir, "heart_fib_beam.pickle"))
 
 ###############################################################################
 # .. warning::
-#    Atrial is underlying a constant (End-of-Diastolic) pressure
-#    No circulation system is couple with atrial parts.
+#    A constant pressure is prescribed to the atria.
+#    No circulation system is coupled with the atria.
 
 # start main simulation
 simulator.simulate()

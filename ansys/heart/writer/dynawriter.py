@@ -3368,15 +3368,18 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         )
 
         # TODO: His bundle is removed for EPMECA model due to unfinished development in LSDYNA
+        # instead we directly stimulate the apical points with a delay.
         if type(self) == ElectroMechanicsDynaWriter and isinstance(self.model, FourChamber):
             second_stim_nodes = self.get_unique_nodeset_id()
-            stim_nodes = []
             beam_node_id_offset = len(self.model.cap_centroids)
-            for network in self.model.beam_network:
-                if network.name == "Left bundle branch" or network.name == "Right bundle branch":
-                    stim_nodes.append(network.edges[-1, -1] + beam_node_id_offset)
-                    # stim_nodes.append(network.edges[1, 0] + beam_node_id_offset)
-                    # stim_nodes.append(network.edges[2, 0] + beam_node_id_offset)
+            # get apical points
+            stim_nodes = [
+                apex.node_id
+                for p in self.model.parts
+                if "ventricle" in p.name
+                for apex in p.apex_points
+                if "endocardium" in apex.name
+            ]
 
             self.kw_database.ep_settings.append("$$ second stimulation at Left/Right bundle. $$")
             node_set_kw = create_node_set_keyword(

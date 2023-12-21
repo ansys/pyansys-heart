@@ -2972,14 +2972,22 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                         d3=0,
                     ),
                 )
+            elif "isolation" in partname:
+                # assign insulator material to isolation layer.
+                ep_mid = part.pid
+                self.kw_database.material.append(
+                    custom_keywords.EmMat001(mid=ep_mid, mtype=1, sigma=1),
+                )
             else:
                 # Electrically non-active tissue (mtype=4)
                 # These bodies are still conductive bodies
-                # in the xtracellular space
+                # in the extra-cellular space
                 ep_mid = part.pid
                 self.kw_database.material.append(
                     custom_keywords.EmMat001(mid=ep_mid, mtype=4, sigma=1),
                 )
+                
+        return
 
     def _update_cellmodels(self):
         """Add cell model for each defined part."""

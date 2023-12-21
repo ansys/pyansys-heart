@@ -40,7 +40,7 @@ if not os.path.isfile(lsdyna_path):
     raise FileExistsError(f"{lsdyna_path} not found.")
 
 # load heart model.
-model: models.BiVentricle = models.HeartModel.load_model(path_to_model)
+model: models.FourChamber = models.HeartModel.load_model(path_to_model)
 
 # set base working directory
 model.info.workdir = str(workdir)
@@ -68,14 +68,14 @@ simulator = BaseSimulator(
 # ~~~~~~~~~~~
 # Compute UHC using Laplace Dirichlet method.
 
-simulator.compute_uvc()
+simulator.compute_uhc()
 
 ###############################################################################
 # .. note::
 #    There are several definitions for UHC (see https://github.com/KIT-IBT/Cobiveco).
 #    Here, a simple approach is taken and the
 #    Dirichlet conditions are shown below. At rotational direction, the start (pi), end (-pi)
-#    and middle (0) points are defined from 4CV long axis cut view.
+#    and middle (0) points are defined from four-cavity long axis cut view.
 
 ###############################################################################
 # .. image:: /_static/images/uvc_bc.png

@@ -1,7 +1,7 @@
 """
 
-EP-simulator example
---------------------
+Four-chamber EP-simulator example
+---------------------------------
 This example shows you how to consume a four-cavity heart model and
 set it up for the main electropysiology simulation. This examples demonstrates how
 you can load a pre-computed heart model, compute the fiber direction, compute the
@@ -106,7 +106,7 @@ simulator.settings.load_defaults()
 
 ###############################################################################
 
-simulator.compute_uvc()
+simulator.compute_uhc()
 
 ###############################################################################
 # Compute the fiber orientation

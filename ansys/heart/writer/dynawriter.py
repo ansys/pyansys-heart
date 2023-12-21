@@ -406,32 +406,18 @@ class BaseDynaWriter:
             LOGGER.info("Writing: {}".format(deckname))
 
             filepath = os.path.join(export_directory, deckname + ".k")
-            # use fast element writer for solid ortho elements
+
             if deckname == "solid_elements":
-                element_kws = deck.get_kwds_by_type("ELEMENT")
                 if os.path.isfile(filepath):
                     os.remove(filepath)
-
-                for element_kw in element_kws:
+                for element_kw in deck.keywords:
                     fast_element_writer(element_kw, filepath)
+                with open(filepath, "a") as f:
+                    f.write("*END\n")
 
-                fid = open(filepath, "a")
-                fid.write("*END")
-
-            # elif deckname == "nodes":
-            #     ids = np.arange(0, self.model.mesh.nodes.shape[0], 1) + 1
-            #     content = np.hstack((ids.reshape(-1, 1), self.model.mesh.nodes))
-            #     np.savetxt(
-            #         os.path.join(export_directory, "nodes.k"),
-            #         content,
-            #         fmt="%8d%16.5e%16.5e%16.5e",
-            #         header="*KEYWORD\n*NODE\n"
-            #         "$#   nid               x               y               z      tc      rc",
-            #         footer="*END",
-            #         comments="",
-            #     )
             else:
                 deck.export_file(filepath)
+
         return
 
     def _export_cavity_segmentsets(self, export_directory: str):
@@ -3399,7 +3385,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
                 #  add more nodes to initiate wave propagation
                 # id offset due to cap center nodes TODO do once
-                if self.__class__.__name__ == "ElectroMechanicsDynaWriter":
+                if type(self) == ElectroMechanicsDynaWriter:
                     beam_node_id_offset = len(self.model.cap_centroids)
                 else:
                     beam_node_id_offset = 0
@@ -3407,8 +3393,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 for network in self.model.beam_network:
                     if network.name == "SAN_to_AVN":
                         stim_nodes.append(network.edges[1, 0] + beam_node_id_offset)
-                        stim_nodes.append(network.edges[2, 0] + beam_node_id_offset)
-                        stim_nodes.append(network.edges[3, 0] + beam_node_id_offset)
+                        # stim_nodes.append(network.edges[2, 0] + beam_node_id_offset)
+                        # stim_nodes.append(network.edges[3, 0] + beam_node_id_offset)
 
         # create node-sets for stim nodes
         node_set_id_stimulationnodes = self.get_unique_nodeset_id()
@@ -3433,17 +3419,15 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         )
 
         # TODO: His bundle is removed for EPMECA model due to unfinished development in LSDYNA
-        if self.__class__.__name__ == "ElectroMechanicsDynaWriter" and isinstance(
-            self.model, FourChamber
-        ):
+        if type(self) == ElectroMechanicsDynaWriter and isinstance(self.model, FourChamber):
             second_stim_nodes = self.get_unique_nodeset_id()
             stim_nodes = []
             beam_node_id_offset = len(self.model.cap_centroids)
             for network in self.model.beam_network:
                 if network.name == "Left bundle branch" or network.name == "Right bundle branch":
-                    stim_nodes.append(network.edges[0, 0] + beam_node_id_offset)
-                    stim_nodes.append(network.edges[1, 0] + beam_node_id_offset)
-                    stim_nodes.append(network.edges[2, 0] + beam_node_id_offset)
+                    stim_nodes.append(network.edges[-1, -1] + beam_node_id_offset)
+                    # stim_nodes.append(network.edges[1, 0] + beam_node_id_offset)
+                    # stim_nodes.append(network.edges[2, 0] + beam_node_id_offset)
 
             self.kw_database.ep_settings.append("$$ second stimulation at Left/Right bundle. $$")
             node_set_kw = create_node_set_keyword(

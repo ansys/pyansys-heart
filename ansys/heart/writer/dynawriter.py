@@ -2986,7 +2986,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 self.kw_database.material.append(
                     custom_keywords.EmMat001(mid=ep_mid, mtype=4, sigma=1),
                 )
-                
+
         return
 
     def _update_cellmodels(self):

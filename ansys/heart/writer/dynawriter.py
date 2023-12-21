@@ -2049,7 +2049,6 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
 
     def __init__(self, model: HeartModel, settings: SimulationSettings = None) -> None:
         super().__init__(model=model, settings=settings)
-        self.settings.electrophysiology._remove_units()
         self.kw_database = FiberGenerationDecks()
         """Collection of keywords relevant for fiber generation."""
 
@@ -2149,11 +2148,11 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                     custom_keywords.EmMat003(
                         mid=em_mat_id,
                         mtype=2,
-                        sigma11=material_settings.myocardium["sigma_fiber"],
-                        sigma22=material_settings.myocardium["sigma_sheet"],
-                        sigma33=material_settings.myocardium["sigma_sheet_normal"],
-                        beta=material_settings.myocardium["beta"],
-                        cm=material_settings.myocardium["cm"],
+                        sigma11=material_settings.myocardium["sigma_fiber"].m,
+                        sigma22=material_settings.myocardium["sigma_sheet"].m,
+                        sigma33=material_settings.myocardium["sigma_sheet_normal"].m,
+                        beta=material_settings.myocardium["beta"].m,
+                        cm=material_settings.myocardium["cm"].m,
                         aopt=2.0,
                         a1=0,
                         a2=0,
@@ -2336,8 +2335,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                 keywords.DefineFunction(
                     fid=101,
                     function=function_alpha(
-                        alpha_endo=self.settings.fibers.alpha_endo,
-                        alpha_epi=self.settings.fibers.alpha_epi,
+                        alpha_endo=self.settings.fibers.alpha_endo.m,
+                        alpha_epi=self.settings.fibers.alpha_epi.m,
                     ),
                 )
             )
@@ -2345,8 +2344,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                 keywords.DefineFunction(
                     fid=102,
                     function=function_beta(
-                        beta_endo=self.settings.fibers.beta_endo,
-                        beta_epi=self.settings.fibers.beta_epi,
+                        beta_endo=self.settings.fibers.beta_endo.m,
+                        beta_epi=self.settings.fibers.beta_epi.m,
                     ),
                 )
             )
@@ -2474,8 +2473,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                 keywords.DefineFunction(
                     fid=101,
                     function=function_alpha(
-                        alpha_endo=self.settings.fibers.alpha_endo,
-                        alpha_epi=self.settings.fibers.alpha_epi,
+                        alpha_endo=self.settings.fibers.alpha_endo.m,
+                        alpha_epi=self.settings.fibers.alpha_epi.m,
                     ),
                 )
             )
@@ -2483,8 +2482,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                 keywords.DefineFunction(
                     fid=102,
                     function=function_beta(
-                        beta_endo=self.settings.fibers.beta_endo,
-                        beta_epi=self.settings.fibers.beta_epi,
+                        beta_endo=self.settings.fibers.beta_endo.m,
+                        beta_epi=self.settings.fibers.beta_epi.m,
                     ),
                 )
             )
@@ -2492,8 +2491,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                 keywords.DefineFunction(
                     fid=103,
                     function=function_beta_septum(
-                        beta_endo=self.settings.fibers.beta_endo_septum,
-                        beta_epi=self.settings.fibers.beta_epi_septum,
+                        beta_endo=self.settings.fibers.beta_endo_septum.m,
+                        beta_epi=self.settings.fibers.beta_epi_septum.m,
                     ),
                 )
             )
@@ -2520,8 +2519,6 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         settings: SimulationSettings = None,
     ) -> None:
         super().__init__(model=model, settings=settings)
-        self.settings.electrophysiology._remove_units()
-        self.settings.purkinje._remove_units()
         self.kw_database = PurkinjeGenerationDecks()
         """Collection of keywords relevant for Purkinje generation."""
 
@@ -2565,11 +2562,11 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                     custom_keywords.EmMat003(
                         mid=em_mat_id,
                         mtype=2,
-                        sigma11=material_settings.myocardium["sigma_fiber"],
-                        sigma22=material_settings.myocardium["sigma_sheet"],
-                        sigma33=material_settings.myocardium["sigma_sheet_normal"],
-                        beta=material_settings.myocardium["beta"],
-                        cm=material_settings.myocardium["cm"],
+                        sigma11=material_settings.myocardium["sigma_fiber"].m,
+                        sigma22=material_settings.myocardium["sigma_sheet"].m,
+                        sigma33=material_settings.myocardium["sigma_sheet_normal"].m,
+                        beta=material_settings.myocardium["beta"].m,
+                        cm=material_settings.myocardium["cm"].m,
                         aopt=2.0,
                         a1=0,
                         a2=0,
@@ -2666,16 +2663,16 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                     pointstx=apex_left_coordinates[0],
                     pointsty=apex_left_coordinates[1],
                     pointstz=apex_left_coordinates[2],
-                    edgelen=self.settings.purkinje.edgelen,
-                    ngen=self.settings.purkinje.ngen,
-                    nbrinit=self.settings.purkinje.nbrinit,
-                    nsplit=self.settings.purkinje.nsplit,
+                    edgelen=self.settings.purkinje.edgelen.m,
+                    ngen=self.settings.purkinje.ngen.m,
+                    nbrinit=self.settings.purkinje.nbrinit.m,
+                    nsplit=self.settings.purkinje.nsplit.m,
                     inodeid=node_id_start_left,
                     iedgeid=edge_id_start_left,  # TODO check if beam elements exist in mesh
-                    pmjtype=self.settings.purkinje.pmjtype,
-                    pmjradius=self.settings.purkinje.pmjradius,
-                    pmjrestype=self.settings.electrophysiology.material.beam["pmjrestype"],
-                    pmjres=self.settings.electrophysiology.material.beam["pmjres"],
+                    pmjtype=self.settings.purkinje.pmjtype.m,
+                    pmjradius=self.settings.purkinje.pmjradius.m,
+                    pmjrestype=self.settings.electrophysiology.material.beam["pmjrestype"].m,
+                    pmjres=self.settings.electrophysiology.material.beam["pmjres"].m,
                 )
             )
 
@@ -2739,16 +2736,16 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                     pointstx=apex_right_coordinates[0],
                     pointsty=apex_right_coordinates[1],
                     pointstz=apex_right_coordinates[2],
-                    edgelen=self.settings.purkinje.edgelen,
-                    ngen=self.settings.purkinje.ngen,
-                    nbrinit=self.settings.purkinje.nbrinit,
-                    nsplit=self.settings.purkinje.nsplit,
+                    edgelen=self.settings.purkinje.edgelen.m,
+                    ngen=self.settings.purkinje.ngen.m,
+                    nbrinit=self.settings.purkinje.nbrinit.m,
+                    nsplit=self.settings.purkinje.nsplit.m,
                     inodeid=node_id_start_right,  # TODO check if beam elements exist in mesh
                     iedgeid=edge_id_start_right,
-                    pmjtype=self.settings.purkinje.pmjtype,
-                    pmjradius=self.settings.purkinje.pmjradius,
-                    pmjrestype=self.settings.electrophysiology.material.beam["pmjrestype"],
-                    pmjres=self.settings.electrophysiology.material.beam["pmjres"],
+                    pmjtype=self.settings.purkinje.pmjtype.m,
+                    pmjradius=self.settings.purkinje.pmjradius.m,
+                    pmjrestype=self.settings.electrophysiology.material.beam["pmjrestype"].m,
+                    pmjres=self.settings.electrophysiology.material.beam["pmjres"].m,
                 )
             )
 
@@ -2784,8 +2781,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             model._create_blood_part()
 
         super().__init__(model=model, settings=settings)
-        self.settings.electrophysiology._remove_units()
-        self.settings.purkinje._remove_units()
         self.kw_database = ElectrophysiologyDecks()
         """Collection of keywords relevant for Electrophysiology."""
 
@@ -3022,11 +3017,11 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     custom_keywords.EmMat003(
                         mid=ep_mid,
                         mtype=2,
-                        sigma11=material_settings.myocardium["sigma_fiber"],
-                        sigma22=material_settings.myocardium["sigma_sheet"],
-                        sigma33=material_settings.myocardium["sigma_sheet_normal"],
-                        beta=material_settings.myocardium["beta"],
-                        cm=material_settings.myocardium["cm"],
+                        sigma11=material_settings.myocardium["sigma_fiber"].m,
+                        sigma22=material_settings.myocardium["sigma_sheet"].m,
+                        sigma33=material_settings.myocardium["sigma_sheet_normal"].m,
+                        beta=material_settings.myocardium["beta"].m,
+                        cm=material_settings.myocardium["cm"].m,
                         aopt=2.0,
                         a1=0,
                         a2=0,
@@ -3045,7 +3040,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     custom_keywords.EmMat001(
                         mid=ep_mid,
                         mtype=4,
-                        sigma=self.settings.electrophysiology.material.myocardium["sigma_passive"],
+                        sigma=self.settings.electrophysiology.material.myocardium[
+                            "sigma_passive"
+                        ].m,
                     ),
                 )
 
@@ -3498,7 +3495,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 for kw in deck.keywords:
                     # activate extracellular potential solve
                     if "EM_MAT" in kw.get_title():
-                        kw.lambda_ = self.settings.electrophysiology.material.myocardium["lambda"]
+                        kw.lambda_ = self.settings.electrophysiology.material.myocardium["lambda"].m
 
     def _update_ECG_coordinates(self):
         """Add ECG computation content."""
@@ -3536,14 +3533,14 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         """Add solution controls and other solver settings as keywords."""
         self.kw_database.main.append(
             keywords.ControlTermination(
-                endtim=self.settings.electrophysiology.analysis.end_time,
-                dtmin=self.settings.electrophysiology.analysis.dtmin,
+                endtim=self.settings.electrophysiology.analysis.end_time.m,
+                dtmin=self.settings.electrophysiology.analysis.dtmin.m,
             )
         )
         self.kw_database.main.append(
             keywords.ControlTimeStep(
-                dtinit=self.settings.electrophysiology.analysis.dtmax,
-                dt2ms=self.settings.electrophysiology.analysis.dtmax,
+                dtinit=self.settings.electrophysiology.analysis.dtmax.m,
+                dt2ms=self.settings.electrophysiology.analysis.dtmax.m,
             )
         )
         return
@@ -3621,14 +3618,14 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     pointstx=origin_coordinates[0],
                     pointsty=origin_coordinates[1],
                     pointstz=origin_coordinates[2],
-                    edgelen=self.settings.purkinje.edgelen,
-                    ngen=self.settings.purkinje.ngen,
-                    nbrinit=self.settings.purkinje.nbrinit,
-                    nsplit=self.settings.purkinje.nsplit,
-                    pmjtype=self.settings.purkinje.pmjtype,
-                    pmjradius=self.settings.purkinje.pmjradius,
-                    pmjrestype=self.settings.electrophysiology.material.beam["pmjrestype"],
-                    pmjres=self.settings.electrophysiology.material.beam["pmjres"],
+                    edgelen=self.settings.purkinje.edgelen.m,
+                    ngen=self.settings.purkinje.ngen.m,
+                    nbrinit=self.settings.purkinje.nbrinit.m,
+                    nsplit=self.settings.purkinje.nsplit.m,
+                    pmjtype=self.settings.purkinje.pmjtype.m,
+                    pmjradius=self.settings.purkinje.pmjradius.m,
+                    pmjrestype=self.settings.electrophysiology.material.beam["pmjrestype"].m,
+                    pmjres=self.settings.electrophysiology.material.beam["pmjres"].m,
                 )
             )
 
@@ -3649,9 +3646,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 custom_keywords.EmMat001(
                     mid=network.pid,
                     mtype=2,
-                    sigma=beam_material["sigma"],
-                    beta=beam_material["beta"],
-                    cm=beam_material["cm"],
+                    sigma=beam_material["sigma"].m,
+                    beta=beam_material["beta"].m,
+                    cm=beam_material["cm"].m,
                 )
             )
 
@@ -3677,7 +3674,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def _update_export_controls(self):
         """Add solution controls to the main simulation."""
         self.kw_database.main.append(
-            keywords.DatabaseBinaryD3Plot(dt=self.settings.electrophysiology.analysis.dt_d3plot)
+            keywords.DatabaseBinaryD3Plot(dt=self.settings.electrophysiology.analysis.dt_d3plot.m)
         )
 
         return

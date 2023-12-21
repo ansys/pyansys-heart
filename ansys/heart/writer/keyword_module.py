@@ -541,12 +541,16 @@ def fast_element_writer(
         elements = elements.drop("n9", axis=1)
         elements = elements.drop("n10", axis=1)
     except KeyError:
-        print()
+        pass
 
-    elements = elements.to_numpy()
+    elements_np = elements.to_numpy()
     headers = list(element_kw.elements.columns)
 
     if writer == "solid_ortho_writer":
+        # explicitly cast to ints and floats
+        elements = np.array(elements_np[:, 0:10], dtype=int)
+        elements_advectors = np.array(elements_np[:, 10:], dtype=float)
+
         # create list of formatted strings
         list_formatted_strings = []
         line_format = (
@@ -559,7 +563,7 @@ def fast_element_writer(
             + "{:16e}" * 3  # sheet vector
             + "\n"
         )
-        for element in elements:
+        for ii, element in enumerate(elements):
             line_format_str = line_format.format(
                 element[0],
                 element[1],
@@ -571,12 +575,12 @@ def fast_element_writer(
                 element[7],
                 element[8],
                 element[9],
-                element[10],
-                element[11],
-                element[12],
-                element[13],
-                element[14],
-                element[15],
+                elements_advectors[ii][0],
+                elements_advectors[ii][1],
+                elements_advectors[ii][2],
+                elements_advectors[ii][3],
+                elements_advectors[ii][4],
+                elements_advectors[ii][5],
             )
             list_formatted_strings.append(line_format_str)
 
@@ -588,7 +592,11 @@ def fast_element_writer(
 
     elif writer == "solid_writer":
         list_formatted_strings = []
-        line_format = "{:8d}" * 2 + "\n" + "{:8d}" * 8 + "\n"  # element ID and part ID  # node IDs
+        # explicitly cast to ints
+        elements = np.array(elements_np[:, 0:10], dtype=int)
+        line_format = (
+            "{:8d}" * 2 + "\n" + "{:8d}" * 8 + "\n"
+        )  # element ID and part ID. n1, n2, n3, ...
         for element in elements:
             line_format_str = line_format.format(
                 element[0],

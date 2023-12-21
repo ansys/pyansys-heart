@@ -1,14 +1,8 @@
 """
 
-Four-chamber mechanics example
-------------------------------
-
-.. note::
-   Note that this example may yield unrealistically high deformation around
-   the aortic valve annulus. Try to use the full-heart simulator example instead.
-
-
-This example shows you how to consume a four-cavity heart model and
+Full-heart mechanics
+--------------------
+This example shows you how to consume a preprocessed full heart model and
 set it up for the main mechanical simulation. This examples demonstrates how
 you can load a pre-computed heart model, compute the fiber direction, compute the
 stress free configuration, and finally simulate the mechanical model.
@@ -26,11 +20,6 @@ stress free configuration, and finally simulate the mechanical model.
 # Import the required modules and set relevant paths, including that of the working
 # directory, model, and ls-dyna executable.
 
-# sphinx_gallery_start_ignore
-# Note that we need to put the thumbnail here to avoid weird rendering in the html page.
-# sphinx_gallery_thumbnail_path = '_static/images/thumbnails/frame_0043.png'
-# sphinx_gallery_end_ignore
-
 import os
 from pathlib import Path
 
@@ -38,9 +27,7 @@ import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.simulator import DynaSettings, MechanicsSimulator
 
 # set working directory and path to model.
-workdir = Path(
-    Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "FourChamber"
-)
+workdir = Path(Path(__file__).resolve().parents[2], "downloads", "Cristobal2021", "01", "FullHeart")
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 if not os.path.isfile(path_to_model):
@@ -53,9 +40,9 @@ if not os.path.isfile(lsdyna_path):
     raise FileExistsError(f"{lsdyna_path} not found.")
 
 # load four chamber heart model.
-model: models.FourChamber = models.HeartModel.load_model(path_to_model)
+model: models.FullHeart = models.HeartModel.load_model(path_to_model)
 
-if not isinstance(model, models.FourChamber):
+if not isinstance(model, models.FullHeart):
     raise TypeError("Expecting a FourChamber heart model.")
 
 # set base working directory
@@ -66,13 +53,13 @@ model.info.workdir = str(workdir)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # instantiate your DynaSettings and Simulator objects.
 # Change options where necessary. Note that you may need to configure your environment
-# variables if you choose `mpp`.
+# variables if you choose to use a `mpi` version of LS-DYNA.
 
 # instantiate dyna settings object
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path,
     dynatype="smp",
-    num_cpus=4,
+    num_cpus=10,
 )
 
 # instantiate simulator object
@@ -95,10 +82,12 @@ simulator.settings.load_defaults()
 # Compute fiber orientation and plot the computed fibers on the entire model.
 
 simulator.compute_fibers()
+
+# # Plot the resulting fiber orientation
 simulator.model.plot_fibers(n_seed_points=2000)
 
 ###############################################################################
-# .. image:: /_static/images/fibers.png
+# .. image:: /_static/images/full_heart_rodero_01_fibers.png
 #   :width: 400pt
 #   :align: center
 
@@ -114,7 +103,7 @@ simulator.compute_stress_free_configuration()
 simulator.model.plot_mesh(show_edges=True)
 
 ###############################################################################
-# .. image:: /_static/images/stress_free.png
+# .. image:: /_static/images/full_heart_rodero_01_stress_free.png
 #   :width: 400pt
 #   :align: center
 
@@ -124,17 +113,4 @@ simulator.model.plot_mesh(show_edges=True)
 # Start the main mechanical simulation. This uses the previously computed fiber orientation
 # and stress free configuration and runs the final LS-DYNA heart model.
 
-###############################################################################
-# .. warning::
-#    In 4-chamber model, atria is passive and only to provide realistic boundary conditions.
-
 simulator.simulate()
-
-###############################################################################
-# We can plot deformation and active stress (history variable 22) in LS-PrePost
-
-###############################################################################
-# .. video:: ../../_static/images/meca_4cv.mp4
-#   :width: 600
-#   :loop:
-#   :class: center

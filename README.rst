@@ -57,7 +57,7 @@ Software
       - `DPF-Server`_
 
     * - Ansys LSDYNA
-      - DEV-97584 or greater
+      - DEV-105630 or greater
       - Simulator
       - Contact us for latest working version
 
@@ -153,7 +153,7 @@ need to follow these steps:
    or if encountering issues with dynalib you can install a specific version.
    We recommend using the latest compatible version:
 
-        pip install git+https://github.com/ansys/dynalib.git@61f8e5db7c27e395941b22071e0bd938b1f099fc
+        pip install git+https://github.com/ansys/dynalib.git@4986714d9dfc7fa0d8e95f86c5c8c687fd3c9e7e
 
 
 5. Install additional requirements (if needed):
@@ -161,15 +161,15 @@ need to follow these steps:
      .. code:: bash
 
         # dependencies for local doc building
-        python -m pip install .[doc]
+        python -m pip install -e .[doc]
         # dependencies needed for (unit) testing
-        python -m pip install .[tests]
+        python -m pip install -e .[tests]
 
-6. You may verify your development version by running all or a set of unit-tests:
+6. You may verify your development version by running all or a set of tests:
 
     .. code:: bash
 
-        python -m pip install .[tests]
+        python -m pip install -e .[tests]
 
         # run quick tests
         python -m pytest -v -m "not requires_fluent and not local"
@@ -185,7 +185,8 @@ Style and Testing
 =================
 
 If required, you can always call the style commands (`black`_, `isort`_,
-`flake8`_...) or unit testing ones (`pytest`_) from the command line. However,
+`flake8`_...) or unit testing ones (`pytest`_) from the command line. Alternatively, you can
+use `pre-commit`_, which will ensure that all style requirements are met. However,
 this does not guarantee that your project is being tested in an isolated
 environment, which is another reason to consider using `tox`_.
 
@@ -262,6 +263,7 @@ PyAnsys-Heart makes no commercial claim over any Ansys products whatsoever. This
 .. _black: https://github.com/psf/black
 .. _flake8: https://flake8.pycqa.org/en/latest/
 .. _isort: https://github.com/PyCQA/isort
+.. _pre-commit: https://pre-commit.com/
 .. _PyAnsys Developer's guide: https://dev.docs.pyansys.com/
 .. _pre-commit: https://pre-commit.com/
 .. _pytest: https://docs.pytest.org/en/stable/

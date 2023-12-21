@@ -149,7 +149,7 @@ class BaseSimulator:
         self.model.dump_model(os.path.join(self.root_directory, "model_with_fiber.pickle"))
         return
 
-    def compute_uvc(self) -> pv.UnstructuredGrid:
+    def compute_uhc(self) -> pv.UnstructuredGrid:
         """Compute universal 'heart' coordinates system."""
         LOGGER.info("Computing universal ventricular coordinates...")
 
@@ -341,19 +341,12 @@ class EPSimulator(BaseSimulator):
 
         return
 
-    def compute_purkinje(self, after_zerop=False):
-        """
-        Compute the purkinje network.
-
-        Parameters
-        ----------
-        after_zerop : bool, optional
-            If generate purkinje network on guessed end of diastol, by default False
-        """
+    def compute_purkinje(self):
+        """Compute the purkinje network."""
         directory = os.path.join(self.root_directory, "purkinjegeneration")
         self.directories["purkinjegeneration"] = directory
 
-        self._write_purkinje_files(directory, after_zerop=after_zerop)
+        self._write_purkinje_files(directory)
 
         LOGGER.info("Computing the Purkinje network...")
 
@@ -380,15 +373,8 @@ class EPSimulator(BaseSimulator):
             purkinje_k_file = os.path.join(directory, "purkinjeNetwork_002.k")
             self.model.add_purkinje_from_kfile(purkinje_k_file, "Right-purkinje")
 
-    def compute_conduction_system(self, after_zerop=False):
+    def compute_conduction_system(self):
         """Compute the conduction system."""
-        if after_zerop:
-            new_nodes = np.array(self.stress_free_report["guess_ed_coord"])[:-11]
-            self.model.mesh.points = new_nodes
-            for part in self.model.parts:
-                for surface in part.surfaces:
-                    surface.nodes = new_nodes
-
         if isinstance(self.model, FourChamber):
             SA_node = self.model.compute_SA_node()
             AV_node = self.model.compute_AV_node()
@@ -424,13 +410,9 @@ class EPSimulator(BaseSimulator):
     def _write_purkinje_files(
         self,
         export_directory,
-        after_zerop=False,
     ) -> Path:
         """Write purkinje files."""
         model = copy.deepcopy(self.model)
-        if after_zerop:
-            model.mesh.points = np.array(self.stress_free_report["guess_ed_coord"])
-
         dyna_writer = writers.PurkinjeGenerationDynaWriter(model, self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory)
@@ -520,6 +502,19 @@ class MechanicsSimulator(BaseSimulator):
         LOGGER.info("Simulation done.")
 
         self.stress_free_report = zerop_post(directory, self.model)
+
+        # replace node coordinates by computed ED geometry
+        LOGGER.info("Updating nodes after stress-free.")
+
+        # Note: cap center node will be added into mesh.points
+        n_caps = len(self.model.cap_centroids)
+        guess_ed_coords = np.array(self.stress_free_report["guess_ed_coord"])[:-n_caps]
+        self.model.mesh.points = guess_ed_coords
+
+        # Note: synchronization
+        for part in self.model.parts:
+            for surface in part.surfaces:
+                surface.nodes = guess_ed_coords
 
         return
 

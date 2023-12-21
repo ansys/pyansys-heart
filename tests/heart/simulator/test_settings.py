@@ -2,16 +2,19 @@
 
 import os
 
+from ansys.heart.simulator.settings.defaults import fibers as fibers_defaults
 from ansys.heart.simulator.settings.settings import (
     Analysis,
+    Fibers,
     SimulationSettings,
     _get_consistent_units_str,
 )
+import numpy as np
 from pint import Quantity
 
 from tests.heart.conftest import compare_string_with_file, get_workdir
 
-REF_STRING_SETTINGS_YML = (
+REF_STRING_SETTINGS_YML_MECHANICS = (
     "Simulation Settings:\n"
     "  mechanics:\n"
     "    analysis:\n"
@@ -35,8 +38,25 @@ REF_STRING_SETTINGS_YML = (
     "      right_ventricle: null\n"
 )
 
+REF_STRING_SETTINGS_YML_EP = (
+    "Simulation Settings:\n"
+    "  electrophysiology:\n"
+    "    material:\n"
+    "      myocardium: null\n"
+    "      atrium: null\n"
+    "      cap: null\n"
+    "      beam: null\n"
+    "    analysis:\n"
+    "      end_time: 1 second\n"
+    "      dtmin: 2 second\n"
+    "      dtmax: 3 second\n"
+    "      dt_d3plot: 4 second\n"
+    "      dt_icvout: 5 millisecond\n"
+    "      global_damping: 0\n"
+)
 
-def test_settings_save():
+
+def test_settings_save_001():
     """Test saving of settings to disk."""
     settings = SimulationSettings(
         mechanics=True, electrophysiology=False, fiber=False, purkinje=False, stress_free=False
@@ -53,7 +73,31 @@ def test_settings_save():
     file_path = os.path.join(get_workdir(), "settings.yml")
     settings.save(file_path)
 
-    compare_string_with_file(REF_STRING_SETTINGS_YML, file_path)
+    compare_string_with_file(REF_STRING_SETTINGS_YML_MECHANICS, file_path)
+
+    os.remove(file_path)
+    pass
+
+
+def test_settings_save_002():
+    """Test saving of EP settings to disk."""
+    settings = SimulationSettings(
+        mechanics=False, electrophysiology=True, fiber=False, purkinje=False, stress_free=False
+    )
+
+    # fill some dummy data
+    settings.electrophysiology.analysis.end_time = Quantity(1, "s")
+    settings.electrophysiology.analysis.dtmin = Quantity(2, "s")
+    settings.electrophysiology.analysis.dtmax = Quantity(3, "s")
+    settings.electrophysiology.analysis.dt_d3plot = Quantity(4, "s")
+    settings.electrophysiology.analysis.dt_icvout = Quantity(5, "ms")
+
+    # settings.electrophysiology.material.beam["sigma"] = Quantity(1, "mS")
+
+    file_path = os.path.join(get_workdir(), "settings_ep.yml")
+    settings.save(file_path)
+
+    compare_string_with_file(REF_STRING_SETTINGS_YML_EP, file_path)
 
     os.remove(file_path)
     pass
@@ -65,7 +109,7 @@ def test_settings_load():
     file_path = os.path.join(get_workdir(), "settings.yml")
 
     with open(file_path, "w") as f:
-        f.write(REF_STRING_SETTINGS_YML)
+        f.write(REF_STRING_SETTINGS_YML_MECHANICS)
 
     # load settings
     settings = SimulationSettings()
@@ -98,7 +142,7 @@ def test_get_consistent_units():
     assert _get_consistent_units_str(q.dimensionality) == "N"
 
 
-def test_convert_units():
+def test_convert_units_001():
     """Test consistent unit conversion."""
     settings = Analysis()
 
@@ -123,3 +167,20 @@ def test_convert_units():
     settings.end_time = Quantity(1e12, "kg / m^4 / s")
     settings.to_consistent_unit_system()
     assert abs(settings.end_time.m - 1.0) < 1e-15
+
+
+def test_convert_units_002():
+    """Test consistent unit conversion."""
+    settings = Fibers()
+    settings.alpha_endo = Quantity(10, "radian")
+
+    # radian --> degree
+    settings.to_consistent_unit_system()
+    assert abs(settings.alpha_endo.m - 10 * 180 / np.pi) < 1e-15
+
+
+def test_settings_set_defaults():
+    """Check if defaults properly set."""
+    settings = Fibers()
+    settings.set_values(fibers_defaults.angles)
+    assert settings.alpha_endo.m == -60

@@ -38,7 +38,7 @@ from pint import Quantity
 # directory and generated model
 
 # sphinx_gallery_start_ignore
-# sphinx_gallery_thumbnail_path = '_static/images/four_chamber_mesh.png'
+# sphinx_gallery_thumbnail_path = '/_static/images/full_heart_mesh.png'
 # sphinx_gallery_end_ignore
 
 

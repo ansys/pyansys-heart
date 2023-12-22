@@ -1,7 +1,13 @@
 """
 
-Mechanics-simulator example
---------------------
+Four-chamber mechanics example
+------------------------------
+
+.. note::
+   Note that this example may yield unrealistically high deformation around
+   the aortic valve annulus. Try to use the full-heart simulator example instead.
+
+
 This example shows you how to consume a four-cavity heart model and
 set it up for the main mechanical simulation. This examples demonstrates how
 you can load a pre-computed heart model, compute the fiber direction, compute the

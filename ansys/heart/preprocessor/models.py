@@ -754,6 +754,18 @@ class HeartModel:
             LOGGER.warning("Failed to plot mesh.")
         return
 
+    def _create_blood_part(self):
+        """Create blood part."""
+        self.add_part("Blood")
+        blood = self.get_part("Blood")
+        blood.element_ids = np.linspace(
+            self.mesh.number_of_cells,
+            self.mesh.number_of_cells + self.fluid_mesh.number_of_cells - 1,
+            self.fluid_mesh.number_of_cells,
+            dtype=int,
+        )
+        self.mesh.tetrahedrons = np.vstack((self.mesh.tetrahedrons, self.fluid_mesh.tetrahedrons))
+
     @staticmethod
     def load_model(filename: pathlib.Path):
         """Load a preprocessed model from file.
@@ -1804,15 +1816,46 @@ class HeartModel:
 
         return set1, set2, set3
 
-    def _compute_uvc_apex_set(self, radius=3):
-        """Todo Only for LeftVentricle."""
+    def get_apex_node_set(
+        self,
+        part: ["left", "right"] = "left",
+        option: ["endocardium", "epicardium", "myocardium"] = "epicardium",
+        radius: float = 3,
+    ) -> np.ndarray:
+        """Get a node set around apex point.
+
+        Parameters
+        ----------
+        part : left&quot;, &quot;right&quot;], optional
+            on which part, by default "left"
+        option : endocardium&quot;, &quot;epicardium&quot;, &quot;myocardium&quot;], optional
+            on surface or in mesh, by default "epicardium"
+        radius : float, optional
+            search in radius, by default 3
+
+        Returns
+        -------
+        np.ndarray
+            apex node set
+        """
         import scipy.spatial as spatial
 
-        point_tree = spatial.cKDTree(self.mesh.points)
-        set = point_tree.query_ball_point(self.parts[0].apex_points[1].xyz, radius)
+        if part == "left":
+            part: Part = self.left_ventricle
+        elif part == "right":
+            part: Part = self.right_ventricle
 
-        # print(set)
-        return np.array(set)
+        point_cloud = self.mesh.points
+        point_tree = spatial.cKDTree(point_cloud)
+        apex_xyz = part.apex_points[1].xyz  # always from apex at epicardium
+        apex_set = point_tree.query_ball_point(apex_xyz, radius)
+
+        if option == "myocardium":
+            return np.array(apex_set)
+        elif option == "endocardium":
+            return np.intersect1d(part.endocardium.node_ids, apex_set)
+        elif option == "epicardium":
+            return np.intersect1d(part.epicardium.node_ids, apex_set)
 
 
 class LeftVentricle(HeartModel):

@@ -8,7 +8,10 @@ import pathlib
 from typing import List, Literal
 
 from ansys.heart import LOG as LOGGER
+from ansys.heart.simulator.settings.defaults import electrophysiology as ep_defaults
+from ansys.heart.simulator.settings.defaults import fibers as fibers_defaults
 from ansys.heart.simulator.settings.defaults import mechanics as mech_defaults
+from ansys.heart.simulator.settings.defaults import purkinje as purkinje_defaults
 from ansys.heart.simulator.settings.defaults import zeropressure as zero_pressure_defaults
 from pint import Quantity, UnitRegistry
 import yaml
@@ -134,6 +137,21 @@ class Material(Settings):
 
 
 @dataclass(repr=False)
+class EpMaterial(Settings):
+    """Class for storing ep material settings."""
+
+    myocardium: AttrDict = None
+    """Myocardium material."""
+    atrium: AttrDict = None
+    """Atrial material."""
+    cap: AttrDict = None
+    """Cap material."""
+    beam: AttrDict = None
+    """beam material."""
+    # TODO consider 'other', e.g passive conductor, soft tissue...?
+
+
+@dataclass(repr=False)
 class BoundaryConditions(Settings):
     """Stores settings/parameters for boundary conditions."""
 
@@ -199,9 +217,14 @@ class ZeroPressure(Settings):
 class Electrophysiology(Settings):
     """Class for keeping track of electrophysiology settings."""
 
+<<<<<<< HEAD
     sigma11: float = 0.2
     sigma22: float = 0.2
     sigma33: float = 0.2
+=======
+    material: EpMaterial = EpMaterial()
+    """Material settings/configuration."""
+>>>>>>> 779ffec99321ee8352501252141140bc9eeeecf2
     analysis: Analysis = Analysis()
     """Generic analysis settings."""
 
@@ -210,15 +233,41 @@ class Electrophysiology(Settings):
 class Fibers(Settings):
     """Class for keeping track of fiber settings."""
 
-    # what parameters to expose?
+    alpha_endo: Quantity = 0
+    "Helical angle in endocardium."
+    alpha_epi: Quantity = 0
+    "Helical angle in epicardium."
+    beta_endo: Quantity = 0
+    "Angle to the outward transmural axis of the heart in endocardium."
+    beta_epi: Quantity = 0
+    "Angle to the outward transmural axis of the heart in epicardium."
+    beta_endo_septum: Quantity = 0
+    "Angle to the outward transmural axis of the heart in left septum."
+    beta_epi_septum: Quantity = 0
+    "Angle to the outward transmural axis of the heart in right septum."
 
 
 @dataclass(repr=False)
 class Purkinje(Settings):
     """Class for keeping track of purkinje settings."""
 
+<<<<<<< HEAD
     edgelen: int = 2
     sigma: float = 0.2
+=======
+    edgelen: Quantity = 0
+    """Edge length."""
+    ngen: Quantity = 0
+    """Number of generations."""
+    nbrinit: Quantity = 0
+    """Number of beams from origin point."""
+    nsplit: Quantity = 0
+    """Number of splits at each leaf."""
+    pmjtype: Quantity = 0
+    """Purkinje muscle junction type."""
+    pmjradius: Quantity = 0
+    """Purkinje muscle junction radius."""
+>>>>>>> 779ffec99321ee8352501252141140bc9eeeecf2
 
 
 class SimulationSettings:
@@ -457,10 +506,19 @@ class SimulationSettings:
                 A.set_values(zero_pressure_defaults.analysis)
                 self.stress_free.analysis = A
 
-            elif isinstance(getattr(self, attr), (Electrophysiology, Fibers, Purkinje)):
-                LOGGER.warning(
-                    "Reading EP, Fiber, ZeroPressure, and Purkinje settings not yet supported."
-                )
+            if isinstance(getattr(self, attr), Electrophysiology):
+                A = Analysis()
+                A.set_values(ep_defaults.analysis)
+                M = EpMaterial()
+                M.set_values(ep_defaults.material)
+                self.electrophysiology.analysis = A
+                self.electrophysiology.material = M
+                # TODO add stim params, monodomain/bidomain/eikonal,cellmodel
+            # TODO add settings for purkinje  fibers and epmecha
+            if isinstance(getattr(self, attr), Fibers):
+                self.fibers.set_values(fibers_defaults.angles)
+            if isinstance(getattr(self, attr), Purkinje):
+                self.purkinje.set_values(purkinje_defaults.build)
 
     def load_with_EP_params(self, Purkinje_edgelen: int, sigmaX: int, ratio: int, ratio2: int):
         """Load EP parameters."""
@@ -586,11 +644,19 @@ _base_quantity_unit_mapper = {
     "[length]": "mm",
     "[mass]": "g",
     "[substance]": "umol",
+    "[current]": "mA",
 }
 # these are derived quantities:
 _derived = [
-    [Quantity(30, "MPa").dimensionality, Quantity(30, "N").dimensionality],
-    ["MPa", "N"],
+    [
+        # TODO support degrees and solve dimensionless-degree conflict
+        Quantity(30, "MPa").dimensionality,
+        Quantity(30, "N").dimensionality,
+        Quantity(30, "mS/mm").dimensionality,
+        Quantity(30, "uF/mm^2").dimensionality,
+        Quantity(30, "1/mS").dimensionality,
+    ],
+    ["MPa", "N", "mS/mm", "uF/mm^2", "1/mS"],
 ]
 
 

@@ -623,14 +623,14 @@ _base_quantity_unit_mapper = {
 # these are derived quantities:
 _derived = [
     [
+        # TODO support degrees and solve dimensionless-degree conflict
         Quantity(30, "MPa").dimensionality,
         Quantity(30, "N").dimensionality,
         Quantity(30, "mS/mm").dimensionality,
         Quantity(30, "uF/mm^2").dimensionality,
         Quantity(30, "1/mS").dimensionality,
-        Quantity(30, "degree").dimensionality,
     ],
-    ["MPa", "N", "mS/mm", "uF/mm^2", "1/mS", "degree"],
+    ["MPa", "N", "mS/mm", "uF/mm^2", "1/mS"],
 ]
 
 

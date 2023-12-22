@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 from ansys.heart.misc.downloader import download_case, unpack_case
+import ansys.heart.preprocessor.models as models
 
 os.environ["USE_OLD_HEART_MODELS"] = "1"
 
@@ -16,7 +17,7 @@ workdir = str(
         "downloads",
         "Strocchi2020",
         "01",
-        "biventricle_scenario_0.25",
+        "biventricle_scenario_2",
     )
 )
 
@@ -40,7 +41,7 @@ info = models.ModelInfo(
     path_to_model=path_to_model,
     # path_to_simulation_mesh=path_to_simulation_mesh,
     add_blood_pool=False,
-    mesh_size=0.25,
+    mesh_size=2,
 )
 
 # create the working directory

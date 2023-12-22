@@ -13,17 +13,13 @@ def scale_lhs_samples(samples, ranges):
     ).T
 
 
-def generate_lhs_combinations(num_samples=5000):
+def generate_lhs_combinations(num_samples=150):
     """num_samples: number of samples for each parameter."""
-    # ranges = [(0.5, 2), (0.2, 1), (3, 10), (5, 10)]
     '''
-    purkinje edgelength: [0.5, 2]
-    sigmaX values: 0.2
-    ratio = 1
-    ratio2 (in keywords.EmMat001): [5,10] (such that: sigmaPurkinje=ratio2 * sigmaX)
+    sigmaX values: (0.2, 2)
+    ratio2 (in keywords.EmMat001): [1,10] (such that: sigmaPurkinje=ratio2 * sigmaX)
     '''
-
-    ranges = [(0.5, 2), (5, 10)]
+    ranges = [(0.2, 2), (1, 10)]
 
     lhs_samples = lhs(len(ranges), samples=num_samples)
     scaled_samples = scale_lhs_samples(lhs_samples, ranges)
@@ -38,9 +34,8 @@ def plot_DoE_with_two_params():
     plt.figure(figsize=(10, 6))
 
     # Plotting the data
-    plt.scatter(df['Purkinje_edgelen'], df['Ratio2'])
-    plt.title('Scatter Plot of Purkinje Edge Length vs. Ratio2')
-    plt.xlabel('Purkinje Edge Length')
+    plt.scatter(df['sigmaX'], df['Ratio2'])
+    plt.xlabel('sigmaX')
     plt.ylabel('Ratio2')
     plt.grid(True)
     plt.show()
@@ -50,19 +45,11 @@ combinations = generate_lhs_combinations()
 print("combinations", combinations)
 print("nbr combination:", len(combinations))
 
-'''
-purkinje edgelength: [0.5, 2]
-sigmaX values: [0.2,1]
-ratio = [3,10] (such that: sigmaY=sigmaZ=ratio * sigmaX)
-ratio2 (in keywords.EmMat001): [5,10] (such that: sigmaPurkinje=ratio2 * sigmaX)
-'''
-
 # df = pd.DataFrame(combinations, columns=["Purkinje_edgelen", "SigmaX", "Ratio", "Ratio2"])
-df = pd.DataFrame(combinations, columns=["Purkinje_edgelen", "Ratio2"])
+df = pd.DataFrame(combinations, columns=["sigmaX", "Ratio2"])
 
-# csv_file_path = r"./two_parameter_combinations.csv"
-# csv_file_path = r"D:\xuhu\pyansys-heart\examples\simulator\two_parameter_combinations.csv"
-# df.to_csv(csv_file_path, index=False)
-
+csv_file_path = r"./two_parameter_combinations.csv"
+csv_file_path = r"D:\xuhu\pyansys-heart\examples\simulator\two_parameter_combinations150.csv"
+df.to_csv(csv_file_path, index=False)
 
 plot_DoE_with_two_params()

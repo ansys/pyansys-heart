@@ -2898,7 +2898,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     custom_keywords.EmMat003(
                         mid=ep_mid,
                         mtype=2,
-                        sigma11=0.5,
+                        sigma11=self.settings.electrophysiology.sigma11,
                         sigma22=0.1,
                         sigma33=0.1,
                         beta=140,
@@ -2915,7 +2915,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             else:
                 ep_mid = part.pid
                 self.kw_database.material.append(
-                    keywords.EmMat001(mid=ep_mid, mtype=1, sigma=1),
+                    keywords.EmMat001(mid=ep_mid, mtype=1, sigma=self.settings.purkinje.sigma),
                 )
 
     def _update_cellmodels(self):
@@ -3471,7 +3471,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             self.kw_database.beam_networks.append(part_kw)
             self.kw_database.beam_networks.append(keywords.MatNull(mid=network.pid, ro=1e-11))
             self.kw_database.beam_networks.append(
-                keywords.EmMat001(mid=network.pid, mtype=2, sigma=3)
+                keywords.EmMat001(mid=network.pid, mtype=2, sigma=self.settings.purkinje.sigma)
             )
 
             # cell model

@@ -24,7 +24,7 @@ jobs:
     name: "Code style"
     runs-on: ubuntu-latest
     steps:
-      - uses: ansys/actions/code-style@v4
+      - uses: ansys/actions/code-style@v5
         with:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
 
@@ -38,7 +38,7 @@ jobs:
         os: [ubuntu-latest, windows-latest]
         python-version: ['3.9', '3.10', '3.11']
     steps:
-      - uses: ansys/actions/build-wheelhouse@v4
+      - uses: ansys/actions/build-wheelhouse@v5
         with:
           library-name: ${{ env.LIBRARY_NAME }}
           operating-system: ${{ matrix.os }}
@@ -87,7 +87,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [tests]
     steps:
-      - uses: ansys/actions/build-library@v4
+      - uses: ansys/actions/build-library@v5
         with:
           library-name: ${{ env.LIBRARY_NAME }}
           python-version: ${{ env.MAIN_PYTHON_VERSION }}

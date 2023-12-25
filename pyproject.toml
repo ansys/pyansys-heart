@@ -60,7 +60,7 @@ doc = [
     "sphinxcontrib-video",
 ]
 
-tests = ["pytest==7.4.0"]
+tests = ["pytest==7.4.3"]
 
 [project.urls]
 Source = "https://github.com/ansys/pyansys-heart"

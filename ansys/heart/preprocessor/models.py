@@ -2232,6 +2232,20 @@ class FourChamber(HeartModel):
         self.left_atrium.element_ids = np.setdiff1d(self.left_atrium.element_ids, interface_eids)
         self.right_atrium.element_ids = np.setdiff1d(self.right_atrium.element_ids, interface_eids)
 
+        # find orphan elements of atrial parts and assign to isolation part
+        self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
+        for atrium in [self.left_atrium, self.right_atrium]:
+            clean_obj = self.mesh.extract_cells(atrium.element_ids).connectivity(largest=True)
+            connected_cells = clean_obj["cell_ids"]
+            orphan_cells = np.setdiff1d(atrium.element_ids, connected_cells)
+
+            # keeep largest connected part for atrial
+            atrium.element_ids = connected_cells
+
+            # get orphan cells and set to isolation part
+            LOGGER.warning(f"{len(orphan_cells)} orphan cells are found and re-assigned.")
+            np.append(interface_eids, orphan_cells)
+
         # create a new part
         self.add_part("Isolation atrial")
         isolation = self.get_part("Isolation atrial")

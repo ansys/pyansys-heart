@@ -185,12 +185,18 @@ class BaseDynaWriter:
 
         return
 
-    def _update_node_db(self, ids=None):
-        """Add nodes to the Node database."""
+    def _update_node_db(self, ids: np.ndarray = None):
+        """Update node database.
+
+        Parameters
+        ----------
+        ids : np.ndarray, optional
+            0-based ids of nodes to write, by default None
+        """
         LOGGER.debug("Updating node keywords...")
         node_kw = keywords.Node()
         if ids is not None:
-            nodes = np.vstack([ids, self.model.mesh.nodes.T]).T
+            nodes = np.vstack([ids + 1, self.model.mesh.nodes[ids, :].T]).T
             node_kw = add_nodes_to_kw(nodes, node_kw)
         else:
             node_kw = add_nodes_to_kw(self.model.mesh.nodes, node_kw)
@@ -263,9 +269,22 @@ class BaseDynaWriter:
 
         return
 
-    def _update_nodesets_db(self, remove_duplicates: bool = True):
-        """Update the node set database."""
-        # formats endo, epi- and septum nodeset keywords. Do for all surfaces and caps
+    def _update_nodesets_db(
+        self, remove_duplicates: bool = True, remove_one_node_from_cell: bool = False
+    ):
+        """Update the node set database.
+
+        Parameters
+        ----------
+        remove_duplicates : bool, optional
+            Remove nodes if they are used in other nodeset, by default True
+        remove_one_node_from_cell : bool, optional
+            Remove a node if a cell has all nodes in nodeset, by default False
+        Note
+        ----
+            In FiberGenerationWriter, we do not allow all nodes of same element in one nodeset.
+        """
+        # formats endo, epi- and septum nodeset keywords, do for all surfaces
 
         surface_ids = [s.id for p in self.model.parts for s in p.surfaces]
         node_set_id = np.max(surface_ids) + 1
@@ -282,6 +301,31 @@ class BaseDynaWriter:
                     node_ids = np.setdiff1d(surface.node_ids, used_node_ids)
                 else:
                     node_ids = surface.node_ids
+                if remove_one_node_from_cell:
+                    # make sure not all nodes of the same elements are in the surface
+                    node_mask = np.zeros(self.model.mesh.number_of_points, dtype=int)
+                    # tag surface nodes with value 1
+                    node_mask[node_ids] = 1
+
+                    cell_mask = np.array(
+                        [
+                            node_mask[self.model.mesh.tetrahedrons[:, 0]],
+                            node_mask[self.model.mesh.tetrahedrons[:, 1]],
+                            node_mask[self.model.mesh.tetrahedrons[:, 2]],
+                            node_mask[self.model.mesh.tetrahedrons[:, 3]],
+                        ]
+                    )
+                    # cells with all nodes in surface are those whose
+                    # all nodes are tagged with value 1
+                    issue_cells = np.where(np.sum(cell_mask, axis=0) == 4)[0]
+                    nodes_toremove = self.model.mesh.tetrahedrons[issue_cells, :][:, 0]
+                    node_ids = np.setdiff1d(node_ids, nodes_toremove)
+
+                    for cell in issue_cells:
+                        LOGGER.warning(
+                            f"All nodes of cell {cell+1} are in nodeset of {surface.name},"
+                            " N1 is removed."
+                        )
 
                 kw = create_node_set_keyword(
                     node_ids + 1, node_set_id=surface.id, title=surface.name
@@ -2059,10 +2103,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                 tets = self.model.mesh.tetrahedrons[tet_ids, :]
             nids = np.unique(tets)
 
-            # remove nodes not attached to ventricle parts
-            # note: because self.model is a copy of heat model, so we can do this kind of operation
-            self.model.mesh.nodes = self.model.mesh.nodes[nids]
-            self._update_node_db(ids=nids + 1)
+            #  only write nodes attached to ventricle parts
+            self._update_node_db(ids=nids)
 
             # remove parts not belonged to ventricles
             self._keep_ventricles()
@@ -2078,7 +2120,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         self._update_material_db()
 
         self._update_segmentsets_db()
-        self._update_nodesets_db()
+        self._update_nodesets_db(remove_one_node_from_cell=True)
 
         # # update ep settings
         self._update_ep_settings()
@@ -2337,8 +2379,6 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             )
 
         elif isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-            LOGGER.warning("Model type %s under development " % self.model.info.model_type)
-
             septum_part_ids = [self.model.get_part("Septum").pid]
 
             # Define part set for myocardium

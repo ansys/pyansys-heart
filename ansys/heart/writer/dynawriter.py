@@ -185,12 +185,18 @@ class BaseDynaWriter:
 
         return
 
-    def _update_node_db(self, ids=None):
-        """Add nodes to the Node database."""
+    def _update_node_db(self, ids: np.ndarray = None):
+        """Update node database.
+
+        Parameters
+        ----------
+        ids : np.ndarray, optional
+            0-based ids of nodes to write, by default None
+        """
         LOGGER.debug("Updating node keywords...")
         node_kw = keywords.Node()
         if ids is not None:
-            nodes = np.vstack([ids, self.model.mesh.nodes.T]).T
+            nodes = np.vstack([ids + 1, self.model.mesh.nodes[ids, :].T]).T
             node_kw = add_nodes_to_kw(nodes, node_kw)
         else:
             node_kw = add_nodes_to_kw(self.model.mesh.nodes, node_kw)
@@ -263,9 +269,22 @@ class BaseDynaWriter:
 
         return
 
-    def _update_nodesets_db(self, remove_duplicates: bool = True):
-        """Update the node set database."""
-        # formats endo, epi- and septum nodeset keywords. Do for all surfaces and caps
+    def _update_nodesets_db(
+        self, remove_duplicates: bool = True, remove_one_node_from_cell: bool = False
+    ):
+        """Update the node set database.
+
+        Parameters
+        ----------
+        remove_duplicates : bool, optional
+            Remove nodes if they are used in other nodeset, by default True
+        remove_one_node_from_cell : bool, optional
+            Remove a node if a cell has all nodes in nodeset, by default False
+        Note
+        ----
+            In FiberGenerationWriter, we do not allow all nodes of same element in one nodeset.
+        """
+        # formats endo, epi- and septum nodeset keywords, do for all surfaces
 
         surface_ids = [s.id for p in self.model.parts for s in p.surfaces]
         node_set_id = np.max(surface_ids) + 1
@@ -282,6 +301,31 @@ class BaseDynaWriter:
                     node_ids = np.setdiff1d(surface.node_ids, used_node_ids)
                 else:
                     node_ids = surface.node_ids
+                if remove_one_node_from_cell:
+                    # make sure not all nodes of the same elements are in the surface
+                    node_mask = np.zeros(self.model.mesh.number_of_points, dtype=int)
+                    # tag surface nodes with value 1
+                    node_mask[node_ids] = 1
+
+                    cell_mask = np.array(
+                        [
+                            node_mask[self.model.mesh.tetrahedrons[:, 0]],
+                            node_mask[self.model.mesh.tetrahedrons[:, 1]],
+                            node_mask[self.model.mesh.tetrahedrons[:, 2]],
+                            node_mask[self.model.mesh.tetrahedrons[:, 3]],
+                        ]
+                    )
+                    # cells with all nodes in surface are those whose
+                    # all nodes are tagged with value 1
+                    issue_cells = np.where(np.sum(cell_mask, axis=0) == 4)[0]
+                    nodes_toremove = self.model.mesh.tetrahedrons[issue_cells, :][:, 0]
+                    node_ids = np.setdiff1d(node_ids, nodes_toremove)
+
+                    for cell in issue_cells:
+                        LOGGER.warning(
+                            f"All nodes of cell {cell+1} are in nodeset of {surface.name},"
+                            " N1 is removed."
+                        )
 
                 kw = create_node_set_keyword(
                     node_ids + 1, node_set_id=surface.id, title=surface.name
@@ -2035,7 +2079,6 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
 
     def __init__(self, model: HeartModel, settings: SimulationSettings = None) -> None:
         super().__init__(model=model, settings=settings)
-
         self.kw_database = FiberGenerationDecks()
         """Collection of keywords relevant for fiber generation."""
 
@@ -2060,10 +2103,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                 tets = self.model.mesh.tetrahedrons[tet_ids, :]
             nids = np.unique(tets)
 
-            # remove nodes not attached to ventricle parts
-            # note: because self.model is a copy of heat model, so we can do this kind of operation
-            self.model.mesh.nodes = self.model.mesh.nodes[nids]
-            self._update_node_db(ids=nids + 1)
+            #  only write nodes attached to ventricle parts
+            self._update_node_db(ids=nids)
 
             # remove parts not belonged to ventricles
             self._keep_ventricles()
@@ -2079,7 +2120,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         self._update_material_db()
 
         self._update_segmentsets_db()
-        self._update_nodesets_db()
+        self._update_nodesets_db(remove_one_node_from_cell=True)
 
         # # update ep settings
         self._update_ep_settings()
@@ -2125,7 +2166,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             parts = ventricles + [septum]
         else:
             parts = ventricles
-
+        material_settings = self.settings.electrophysiology.material
         for part in parts:
             element_ids = part.element_ids
             em_mat_id = self.get_unique_mat_id()
@@ -2135,11 +2176,11 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                     custom_keywords.EmMat003(
                         mid=em_mat_id,
                         mtype=2,
-                        sigma11=0.5,
-                        sigma22=0.1,
-                        sigma33=0.1,
-                        beta=140,
-                        cm=0.01,
+                        sigma11=material_settings.myocardium["sigma_fiber"].m,
+                        sigma22=material_settings.myocardium["sigma_sheet"].m,
+                        sigma33=material_settings.myocardium["sigma_sheet_normal"].m,
+                        beta=material_settings.myocardium["beta"].m,
+                        cm=material_settings.myocardium["cm"].m,
                         aopt=2.0,
                         a1=0,
                         a2=0,
@@ -2312,18 +2353,32 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             )
 
             # define functions:
-            from ansys.heart.writer.define_function_strings import function1, function2, function3
+            from ansys.heart.writer.define_function_strings import (
+                function_alpha,
+                function_beta,
+                function_beta_septum,
+            )
 
             self.kw_database.create_fiber.append(
-                keywords.DefineFunction(fid=101, function=function1)
+                keywords.DefineFunction(
+                    fid=101,
+                    function=function_alpha(
+                        alpha_endo=self.settings.fibers.alpha_endo.m,
+                        alpha_epi=self.settings.fibers.alpha_epi.m,
+                    ),
+                )
             )
             self.kw_database.create_fiber.append(
-                keywords.DefineFunction(fid=102, function=function2)
+                keywords.DefineFunction(
+                    fid=102,
+                    function=function_beta(
+                        beta_endo=self.settings.fibers.beta_endo.m,
+                        beta_epi=self.settings.fibers.beta_epi.m,
+                    ),
+                )
             )
 
         elif isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-            LOGGER.warning("Model type %s under development " % self.model.info.model_type)
-
             septum_part_ids = [self.model.get_part("Septum").pid]
 
             # Define part set for myocardium
@@ -2434,16 +2489,38 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             )
 
             # define functions:
-            from ansys.heart.writer.define_function_strings import function1, function2, function3
+            from ansys.heart.writer.define_function_strings import (
+                function_alpha,
+                function_beta,
+                function_beta_septum,
+            )
 
             self.kw_database.create_fiber.append(
-                keywords.DefineFunction(fid=101, function=function1)
+                keywords.DefineFunction(
+                    fid=101,
+                    function=function_alpha(
+                        alpha_endo=self.settings.fibers.alpha_endo.m,
+                        alpha_epi=self.settings.fibers.alpha_epi.m,
+                    ),
+                )
             )
             self.kw_database.create_fiber.append(
-                keywords.DefineFunction(fid=102, function=function2)
+                keywords.DefineFunction(
+                    fid=102,
+                    function=function_beta(
+                        beta_endo=self.settings.fibers.beta_endo.m,
+                        beta_epi=self.settings.fibers.beta_epi.m,
+                    ),
+                )
             )
             self.kw_database.create_fiber.append(
-                keywords.DefineFunction(fid=103, function=function3)
+                keywords.DefineFunction(
+                    fid=103,
+                    function=function_beta_septum(
+                        beta_endo=self.settings.fibers.beta_endo_septum.m,
+                        beta_epi=self.settings.fibers.beta_epi_septum.m,
+                    ),
+                )
             )
 
     def _update_main_db(self):
@@ -2468,7 +2545,6 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
         settings: SimulationSettings = None,
     ) -> None:
         super().__init__(model=model, settings=settings)
-
         self.kw_database = PurkinjeGenerationDecks()
         """Collection of keywords relevant for Purkinje generation."""
 
@@ -2503,6 +2579,7 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
 
     def _update_material_db(self):
         """Add simple linear elastic material for each defined part."""
+        material_settings = self.settings.electrophysiology.material
         for part in self.model.parts:
             em_mat_id = part.pid
             self.kw_database.material.extend(
@@ -2511,11 +2588,11 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                     custom_keywords.EmMat003(
                         mid=em_mat_id,
                         mtype=2,
-                        sigma11=0.5,
-                        sigma22=0.1,
-                        sigma33=0.1,
-                        beta=140,
-                        cm=0.01,
+                        sigma11=material_settings.myocardium["sigma_fiber"].m,
+                        sigma22=material_settings.myocardium["sigma_sheet"].m,
+                        sigma33=material_settings.myocardium["sigma_sheet_normal"].m,
+                        beta=material_settings.myocardium["beta"].m,
+                        cm=material_settings.myocardium["cm"].m,
                         aopt=2.0,
                         a1=0,
                         a2=0,
@@ -2612,12 +2689,16 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                     pointstx=apex_left_coordinates[0],
                     pointsty=apex_left_coordinates[1],
                     pointstz=apex_left_coordinates[2],
-                    edgelen=2,
-                    ngen=50,
-                    nbrinit=8,
-                    nsplit=2,
+                    edgelen=self.settings.purkinje.edgelen.m,
+                    ngen=self.settings.purkinje.ngen.m,
+                    nbrinit=self.settings.purkinje.nbrinit.m,
+                    nsplit=self.settings.purkinje.nsplit.m,
                     inodeid=node_id_start_left,
                     iedgeid=edge_id_start_left,  # TODO check if beam elements exist in mesh
+                    pmjtype=self.settings.purkinje.pmjtype.m,
+                    pmjradius=self.settings.purkinje.pmjradius.m,
+                    pmjrestype=self.settings.electrophysiology.material.beam["pmjrestype"].m,
+                    pmjres=self.settings.electrophysiology.material.beam["pmjres"].m,
                 )
             )
 
@@ -2681,12 +2762,16 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
                     pointstx=apex_right_coordinates[0],
                     pointsty=apex_right_coordinates[1],
                     pointstz=apex_right_coordinates[2],
-                    edgelen=2,
-                    ngen=50,
-                    nbrinit=8,
-                    nsplit=2,
+                    edgelen=self.settings.purkinje.edgelen.m,
+                    ngen=self.settings.purkinje.ngen.m,
+                    nbrinit=self.settings.purkinje.nbrinit.m,
+                    nsplit=self.settings.purkinje.nsplit.m,
                     inodeid=node_id_start_right,  # TODO check if beam elements exist in mesh
                     iedgeid=edge_id_start_right,
+                    pmjtype=self.settings.purkinje.pmjtype.m,
+                    pmjradius=self.settings.purkinje.pmjradius.m,
+                    pmjrestype=self.settings.electrophysiology.material.beam["pmjrestype"].m,
+                    pmjres=self.settings.electrophysiology.material.beam["pmjres"].m,
                 )
             )
 
@@ -2722,7 +2807,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             model._create_blood_part()
 
         super().__init__(model=model, settings=settings)
-
         self.kw_database = ElectrophysiologyDecks()
         """Collection of keywords relevant for Electrophysiology."""
 
@@ -2948,6 +3032,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def _update_ep_material_db(self):
         """Add EP material for each defined part."""
+        material_settings = self.settings.electrophysiology.material
         for part in self.model.parts:
             self.kw_database.material.append(f"$$ {part.name} $$")
             partname = part.name.lower()
@@ -2958,11 +3043,11 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     custom_keywords.EmMat003(
                         mid=ep_mid,
                         mtype=2,
-                        sigma11=0.5,
-                        sigma22=0.1,
-                        sigma33=0.1,
-                        beta=140,
-                        cm=0.01,
+                        sigma11=material_settings.myocardium["sigma_fiber"].m,
+                        sigma22=material_settings.myocardium["sigma_sheet"].m,
+                        sigma33=material_settings.myocardium["sigma_sheet_normal"].m,
+                        beta=material_settings.myocardium["beta"].m,
+                        cm=material_settings.myocardium["cm"].m,
                         aopt=2.0,
                         a1=0,
                         a2=0,
@@ -2984,7 +3069,13 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 # in the extra-cellular space
                 ep_mid = part.pid
                 self.kw_database.material.append(
-                    custom_keywords.EmMat001(mid=ep_mid, mtype=4, sigma=1),
+                    custom_keywords.EmMat001(
+                        mid=ep_mid,
+                        mtype=4,
+                        sigma=self.settings.electrophysiology.material.myocardium[
+                            "sigma_passive"
+                        ].m,
+                    ),
                 )
 
         return
@@ -3436,11 +3527,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 # when lambda_ is not empty, it activates the computation of extracellular
                 # potentials: div((sigma_i+sigma_e) . grad(phi_e)) = div(sigma_i . grad(v))
                 # or div(((1.+lambda)*sigmaElement) . grad(phi_e)) = div(sigmaElement . grad(v))
-                blood_pid = self.model.get_part("Blood").pid
                 for kw in deck.keywords:
                     # activate extracellular potential solve
                     if "EM_MAT" in kw.get_title():
-                        kw.lambda_ = 0.2
+                        kw.lambda_ = self.settings.electrophysiology.material.myocardium["lambda"].m
 
     def _update_ECG_coordinates(self):
         """Add ECG computation content."""
@@ -3474,11 +3564,20 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def _update_solution_controls(
         self,
-        end_time: float = 800,
     ):
         """Add solution controls and other solver settings as keywords."""
-        self.kw_database.main.append(keywords.ControlTermination(endtim=end_time, dtmin=0.0))
-        self.kw_database.main.append(keywords.ControlTimeStep(dtinit=1.0, dt2ms=1.0))
+        self.kw_database.main.append(
+            keywords.ControlTermination(
+                endtim=self.settings.electrophysiology.analysis.end_time.m,
+                dtmin=self.settings.electrophysiology.analysis.dtmin.m,
+            )
+        )
+        self.kw_database.main.append(
+            keywords.ControlTimeStep(
+                dtinit=self.settings.electrophysiology.analysis.dtmax.m,
+                dt2ms=self.settings.electrophysiology.analysis.dtmax.m,
+            )
+        )
         return
 
     def _update_main_db(self):
@@ -3554,12 +3653,14 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     pointstx=origin_coordinates[0],
                     pointsty=origin_coordinates[1],
                     pointstz=origin_coordinates[2],
-                    edgelen=2,
-                    ngen=50,
-                    nbrinit=8,
-                    nsplit=2,
-                    # inodeid=node_id_start_right,
-                    # iedgeid=edge_id_start_right,
+                    edgelen=self.settings.purkinje.edgelen.m,
+                    ngen=self.settings.purkinje.ngen.m,
+                    nbrinit=self.settings.purkinje.nbrinit.m,
+                    nsplit=self.settings.purkinje.nsplit.m,
+                    pmjtype=self.settings.purkinje.pmjtype.m,
+                    pmjradius=self.settings.purkinje.pmjradius.m,
+                    pmjrestype=self.settings.electrophysiology.material.beam["pmjrestype"].m,
+                    pmjres=self.settings.electrophysiology.material.beam["pmjres"].m,
                 )
             )
 
@@ -3575,8 +3676,15 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             part_kw.parts = part_df
             self.kw_database.beam_networks.append(part_kw)
             self.kw_database.beam_networks.append(keywords.MatNull(mid=network.pid, ro=1e-11))
+            beam_material = self.settings.electrophysiology.material.beam
             self.kw_database.beam_networks.append(
-                custom_keywords.EmMat001(mid=network.pid, mtype=2, sigma=3)
+                custom_keywords.EmMat001(
+                    mid=network.pid,
+                    mtype=2,
+                    sigma=beam_material["sigma"].m,
+                    beta=beam_material["beta"].m,
+                    cm=beam_material["cm"].m,
+                )
             )
 
             # cell model
@@ -3598,16 +3706,11 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             beam_elem_id_offset += len(network.edges)
             self.kw_database.beam_networks.append(beams_kw)
 
-    def _update_export_controls(self, dt_output_d3plot: float = 10.0):
-        """Add solution controls to the main simulation.
-
-        Parameters
-        ----------
-        dt_output_d3plot : float, optional
-            Writes full D3PLOT results at this time-step spacing, by default 0.05
-
-        """
-        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
+    def _update_export_controls(self):
+        """Add solution controls to the main simulation."""
+        self.kw_database.main.append(
+            keywords.DatabaseBinaryD3Plot(dt=self.settings.electrophysiology.analysis.dt_d3plot.m)
+        )
 
         return
 

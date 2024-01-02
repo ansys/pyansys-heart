@@ -25,6 +25,23 @@ class EmMat001(KeywordBase):
                     Field("rdltype", int, 70, 10, kwargs.get("rdltype", 0)),
                 ],
             ),
+            Card(
+                [
+                    Field("empty", float, 0, 10, kwargs.get("empty", None)),
+                    Field("freq", float, 10, 10, kwargs.get("freq", None)),
+                    Field("epsrr", float, 20, 10, kwargs.get("epsrr", None)),
+                    Field("eosid2", int, 30, 10, kwargs.get("eosid2", None)),
+                    Field("epsri", float, 40, 10, kwargs.get("epsri", None)),
+                    Field("eosid3", int, 50, 10, kwargs.get("eosid3", None)),
+                    Field("eps0", float, 60, 10, kwargs.get("eps0", None)),
+                ],
+            ),
+            Card(
+                [
+                    Field("beta", float, 0, 10, kwargs.get("beta", 140)),
+                    Field("cm", float, 10, 10, kwargs.get("cm", 0.01)),
+                ],
+            ),
         ]
 
     @property
@@ -111,3 +128,75 @@ class EmMat001(KeywordBase):
         if value not in [0, 1, 2, 3, 4, 5]:
             raise Exception("""rdltype must be one of {0,1,2,3,4,5}""")
         self._cards[0].set_value("rdltype", value)
+
+    @property
+    def freq(self) -> typing.Optional[float]:
+        """freq."""  # nopep8
+        return self._cards[1].get_value("freq")
+
+    @freq.setter
+    def freq(self, value: float) -> None:
+        self._cards[1].set_value("freq", value)
+
+    @property
+    def epsrr(self) -> typing.Optional[float]:
+        """epsri."""  # nopep8
+        return self._cards[1].get_value("epsrr")
+
+    @epsrr.setter
+    def epsrr(self, value: float) -> None:
+        self._cards[1].set_value("epsrr", value)
+
+    @property
+    def eosid2(self) -> typing.Optional[int]:
+        """eosid2."""  # nopep8
+        return self._cards[1].get_value("eosid2")
+
+    @eosid2.setter
+    def eosid2(self, value: int) -> None:
+        self._cards[1].set_value("eosid2", value)
+
+    @property
+    def epsri(self) -> typing.Optional[float]:
+        """epsri."""  # nopep8
+        return self._cards[1].get_value("epsri")
+
+    @epsri.setter
+    def epsri(self, value: float) -> None:
+        self._cards[1].set_value("epsri", value)
+
+    @property
+    def eosid3(self) -> typing.Optional[int]:
+        """eosid3."""  # nopep8
+        return self._cards[1].get_value("eosid3")
+
+    @eosid3.setter
+    def eosid3(self, value: int) -> None:
+        self._cards[1].set_value("eosid3", value)
+
+    @property
+    def eps0(self) -> typing.Optional[float]:
+        """eps0."""  # nopep8
+        return self._cards[1].get_value("eps0")
+
+    @eps0.setter
+    def eps0(self, value: float) -> None:
+        self._cards[1].set_value("eps0", value)
+
+    @property
+    def beta(self) -> typing.Optional[float]:
+        """Surface to volume ratio."""  # nopep8
+        return self._cards[2].get_value("beta")
+
+    @beta.setter
+    def beta(self, value: float) -> None:
+        self._cards[2].set_value("beta", value)
+
+    @property
+    def cm(self) -> typing.Optional[float]:
+        """Membrane capacitance."""  # nopep8
+        return self._cards[2].get_value("cm")
+
+    @cm.setter
+    def cm(self, value: float) -> None:
+        self._cards[2].set_value("cm", value)

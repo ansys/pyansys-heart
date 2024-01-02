@@ -178,6 +178,11 @@ def test_convert_units_002():
     settings.to_consistent_unit_system()
     assert abs(settings.alpha_endo.m - 10 * 180 / np.pi) < 1e-15
 
+    settings.alpha_endo = Quantity(10, "dimensionless")
+    # dimensionless --> dimensionless
+    settings.to_consistent_unit_system()
+    assert abs(settings.alpha_endo.m - 10) < 1e-15
+
 
 def test_settings_set_defaults():
     """Check if defaults properly set."""

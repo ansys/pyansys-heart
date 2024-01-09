@@ -360,6 +360,99 @@ class FluentMesh:
 
         return tetrahedrons, cell_ids
 
+    # NOTE: no typehint due to lazy import of pyvista
+    def _to_vtk(self, add_cells: bool = True, add_faces: bool = False):
+        """Convert mesh to vtk unstructured grid or polydata.
+
+        Parameters
+        ----------
+        add_cells : bool, optional
+            Whether to add cells to the vtk object, by default True
+        add_faces : bool, optional
+            Whether to add faces to the vtk object, by default False
+
+        Returns
+        -------
+        pv.UnstructuredGrid
+            Unstructured grid representation of the fluent mesh.
+        """
+        try:
+            import pyvista as pv
+        except ImportError:
+            print("Failed to import pyvista. Try installing pyvista with `pip install pyvista`.")
+
+        if add_cells and add_faces:
+            add_both = True
+        else:
+            add_both = False
+
+        if add_cells:
+            # get cell zone ids.
+            print(f"Number of cell zones: {len(self.cell_zones)}")
+
+            cell_zone_ids = np.concatenate(
+                [[cz.id] * cz.cells.shape[0] for cz in self.cell_zones], dtype=int
+            )
+
+            cells = np.empty((0, self.cell_zones[0].cells.shape[1]), dtype=int)
+            for cz in self.cell_zones:
+                cells = np.vstack([cells, cz.cells])
+
+            num_cells = cells.shape[0]
+
+            cells = np.hstack([np.ones((num_cells, 1), dtype=int) * 4, cells])
+            celltypes = [pv.CellType.TETRA] * num_cells
+            grid = pv.UnstructuredGrid(cells.flatten(), celltypes, self.nodes)
+
+            grid.cell_data["cell-zone-ids"] = cell_zone_ids
+
+        if add_faces:
+            # add faces.
+            grid_faces = pv.UnstructuredGrid()
+            grid_faces.nodes = self.nodes
+
+            face_zone_ids = np.concatenate([[fz.id] * fz.faces.shape[0] for fz in self.face_zones])
+            faces = np.array(np.concatenate([fz.faces for fz in self.face_zones]), dtype=int)
+            faces = np.hstack([np.ones((faces.shape[0], 1), dtype=int) * 3, faces])
+
+            grid_faces = pv.UnstructuredGrid(
+                faces.flatten(), [pv.CellType.TRIANGLE] * faces.shape[0], self.nodes
+            )
+            grid_faces.cell_data["face-zone-ids"] = face_zone_ids
+
+        if add_both:
+            # ensure same cell arrays are present but with dummy values.
+            grid_faces.cell_data["cell-zone-ids"] = np.ones(grid_faces.n_cells, dtype=int) * -1
+            grid.cell_data["face-zone-ids"] = np.ones(grid.n_cells, dtype=int) * -1
+
+            return grid + grid_faces
+
+        if add_faces:
+            return grid_faces
+
+        if add_cells:
+            return grid
+
+    def _fix_negative_cells(self):
+        """Rorder base face in cells that have a negative cell volume.
+
+        Notes
+        -----
+        For a positive volume the base face (n1, n2, n3) needs to point in direction
+        of n4. Hence, swapping the order to (n3, n2, n1) fixes negative cell volumes.
+        """
+
+        grid = self._to_vtk(add_cells=True, add_faces=False)
+        grid = grid.compute_cell_sizes(length=False, area=False, volume=True)
+        negative_cells = np.argwhere(grid.cell_data["Volume"] <= 0).flatten()
+
+        if negative_cells.shape[0] == 0:
+            return
+
+        reordered_cells = self.cells[:, [2, 1, 0, 3]]
+        self.cells[negative_cells, :] = reordered_cells[negative_cells, :]
+        return
+
 
 def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii") -> None:
     """Add name of solid to stl file.

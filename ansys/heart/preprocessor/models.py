@@ -1068,6 +1068,7 @@ class HeartModel:
 
         fluent_mesh = mesher.hdf5.FluentMesh()
         fluent_mesh.load_mesh(path_mesh_file)
+        fluent_mesh._fix_negative_cells()
 
         tissue_cell_zone = next(cz for cz in fluent_mesh.cell_zones if "heart-tet-cells" in cz.name)
         tetra_tissue = tissue_cell_zone.cells
@@ -1076,13 +1077,6 @@ class HeartModel:
         self.mesh.tetrahedrons = tetra_tissue
         self.mesh.nodes = fluent_mesh.nodes
 
-        cell_volume = self.mesh.compute_cell_sizes()["Volume"]
-        bad_cell_id = np.where(cell_volume < 0)[0]
-        tetra_tissue[bad_cell_id, 0], tetra_tissue[bad_cell_id, 1] = (
-            tetra_tissue[bad_cell_id, 1],
-            tetra_tissue[bad_cell_id, 0],
-        )
-        self.mesh.tetrahedrons = tetra_tissue
         # ensures normals pointing into the cavity
         # NOTE: not sure what determines the ordering when adding the blood pool
         # E.g. the normals of the endo AND epicardium are now pointing inwards with

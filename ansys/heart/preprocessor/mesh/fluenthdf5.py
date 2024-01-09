@@ -441,7 +441,6 @@ class FluentMesh:
         For a positive volume the base face (n1, n2, n3) needs to point in direction
         of n4. Hence, swapping the order to (n3, n2, n1) fixes negative cell volumes.
         """
-
         grid = self._to_vtk(add_cells=True, add_faces=False)
         grid = grid.compute_cell_sizes(length=False, area=False, volume=True)
         negative_cells = np.argwhere(grid.cell_data["Volume"] <= 0).flatten()

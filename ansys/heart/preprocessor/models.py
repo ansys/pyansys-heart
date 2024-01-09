@@ -1048,23 +1048,27 @@ class HeartModel:
         post_mapping: bool,True
             Mapping raw mesh data to new mesh
         """
-        LOGGER.info("Remeshing volume...")
         path_mesh_file = os.path.join(self.info.workdir, "fluent_volume_mesh.msh.h5")
+        if os.path.exists(path_mesh_file):
+            LOGGER.info("Fluent mesh file detected and will be used.")
+        else:
+            LOGGER.info("Remeshing volume with Fluent")
 
-        if not self.info.mesh_size:
-            LOGGER.warning("No mesh size set: setting to uniform size of 1.5 mm")
-            self.info.mesh_size = 1.5
+            if not self.info.mesh_size:
+                LOGGER.warning("No mesh size set: setting to uniform size of 1.5 mm")
+                self.info.mesh_size = 1.5
 
-        mesher.mesh_heart_model_by_fluent(
-            self.info.workdir,
-            path_mesh_file,
-            mesh_size=self.info.mesh_size,
-            add_blood_pool=self.info.add_blood_pool,
-            show_gui=False,
-        )
+            mesher.mesh_heart_model_by_fluent(
+                self.info.workdir,
+                path_mesh_file,
+                mesh_size=self.info.mesh_size,
+                add_blood_pool=self.info.add_blood_pool,
+                show_gui=False,
+            )
 
         fluent_mesh = mesher.hdf5.FluentMesh()
         fluent_mesh.load_mesh(path_mesh_file)
+        fluent_mesh._fix_negative_cells()
 
         tissue_cell_zone = next(cz for cz in fluent_mesh.cell_zones if "heart-tet-cells" in cz.name)
         tetra_tissue = tissue_cell_zone.cells

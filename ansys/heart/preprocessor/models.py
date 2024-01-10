@@ -308,6 +308,10 @@ class HeartModel:
 
         self.beam_network.append(beam_net)
 
+        # sync across beam networks
+        for beams in self.beam_network:
+            beams._all_beam_nodes = np.copy(BeamMesh.all_beam_nodes)
+
         # # visualize (debug)
         # import pyvista
 

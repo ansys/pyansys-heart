@@ -357,7 +357,7 @@ class BeamMesh(pv.UnstructuredGrid, Feature):
         """Surface id associated with the network."""
 
         self._all_beam_nodes: np.ndarray = np.empty((0, 3))
-        """Temporary attributes to save all previously created beam nodes."""
+        """Temporary attribute to save all previously created beam nodes."""
 
 
 class Cavity(Feature):

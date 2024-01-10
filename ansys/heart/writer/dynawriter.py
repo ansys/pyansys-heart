@@ -3598,9 +3598,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             beam_elem_id_offset = 0  # no beam elements introduced before
 
         # write beam nodes
-
-        # Note: the las beam_network saves all bam nodes
-        new_nodes = self.model.beam_network[-1]._all_beam_nodes
+        new_nodes = self.model.beam_network[0].all_beam_nodes
         ids = (
             np.linspace(
                 len(self.model.mesh.nodes),

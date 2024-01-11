@@ -3,14 +3,12 @@ import glob
 import logging
 import os
 import shutil
-import subprocess
 
 LOGGER = logging.getLogger("pyheart_global.preprocessor")
 # from importlib.resources import files
 
 from ansys.heart.preprocessor._load_template import load_template
 import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401
-import numpy as np
 
 _template_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "..\\templates"))
 
@@ -224,79 +222,6 @@ def mesh_heart_model_by_fluent(
     # change back to old directory
     os.chdir(old_directory)
 
-    return
-
-
-def _shrink_by_spaceclaim(input, output):
-    """Use SpaceClaim shrinkwrapping to wrap surface and create high quality surface mesh."""
-    try:
-        from ansys.heart.preprocessor import SC_EXE
-    except ImportError:
-        LOGGER.error("Failed to import space claim path")
-        return
-
-    var_for_template = {
-        "input": input,
-        "output": output,
-    }
-    posixpath_template = str(os.path.join(_template_directory, "spaceclaim_shrink"))
-    template = load_template("spaceclaim_shrink")
-
-    script = "spaceclaim_shrink.py"
-
-    with open(script, "w") as f:
-        f.write(template.render(var_for_template))
-
-    options = ["/Headless=False", "/Splash=False", "/ExitAfterScript=True"]
-    subprocess.call([SC_EXE, "/RunScript=" + script, *options])
-
-    return
-
-
-def _run_gmsh(infile: str, outfile: str, mesh_size):
-    """Run GMESH with specified in/output file and target mesh size.
-
-    Arguments
-    ---------
-        infile (str): Path to .stl input file
-        outfile (str): path to .vtk output
-    """
-    try:
-        import gmsh
-    except:
-        ImportError("GMESH not installed. Install through pip install gmesh")
-
-    gmsh.initialize()
-
-    gmsh.option.setNumber("Mesh.Algorithm", 6)
-    gmsh.option.setNumber("Mesh.MeshSizeMin", mesh_size)
-    gmsh.option.setNumber("Mesh.MeshSizeMax", mesh_size)
-
-    # load STL file
-    gmsh.merge(infile)
-
-    # split input surface mesh based on an angle threshold of 40 degrees between
-    # triangles, and generate new discrete surfaces suitable for reparametrization
-    gmsh.model.mesh.classifySurfaces(90 * np.pi / 180.0, True, True)
-
-    # create a geometry (through reparametrization) for all discrete curves and
-    # discrete surfaces
-    gmsh.model.mesh.createGeometry()
-
-    # add a volume
-    s = gmsh.model.getEntities(2)
-    l = gmsh.model.geo.addSurfaceLoop([s[i][1] for i in range(len(s))])
-    gmsh.model.geo.addVolume([l])
-
-    gmsh.model.geo.synchronize()
-    gmsh.model.mesh.generate(3)
-
-    gmsh.write(outfile)
-    gmsh.finalize()
-    # if '-nopopup' not in sys.argv:
-    #     gmsh.fltk.run()
-    #
-    # gmsh.finalize()
     return
 
 

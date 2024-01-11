@@ -1,7 +1,7 @@
 """Auto downloads cases.
 
 Auto downloads cases from the remote repositories of Strocchi et al 2020,
-and Cristobal et al 2021."""
+and Rodero et al 2021."""
 
 # from importlib.resources import files
 from importlib.resources import path as resource_path
@@ -21,7 +21,6 @@ except ImportError:
 
 URLS = {
     "Strocchi2020": {"url": "https://zenodo.org/record/3890034", "num_cases": 24},
-    "Cristobal2021": {"url": "https://zenodo.org/record/4590294", "num_cases": 20},
     "Rodero2021": {"url": "https://zenodo.org/record/4590294", "num_cases": 20},
 }
 VALID_DATABASES = list(URLS.keys())
@@ -58,7 +57,7 @@ def download_case(
     Parameters
     ----------
     database : str
-        name of the database. Either Strocchi2020 or Cristobal2021
+        name of the database. Either Strocchi2020 or Rodero2021
     case_number : int
         case number to download
     download_folder : Path
@@ -81,6 +80,13 @@ def download_case(
             database="Rodero2021", case_number=1, download_folder="my/download/folder"
             )
     """
+
+    if database == "Cristobal2021":
+        LOGGER.warning(
+            "Cristobal2021 is deprecated: Cristobal2021 was renamed to Rodero2021.",
+            stacklevel=2,
+        )
+    print(database)
 
     if database not in VALID_DATABASES:
         raise ValueError("Database not valid, please specify valid database: %s" % VALID_DATABASES)

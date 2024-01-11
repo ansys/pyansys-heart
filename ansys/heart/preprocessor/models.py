@@ -40,7 +40,7 @@ class ModelInfo:
 
     @database.setter
     def database(self, value: str):
-        valid_databases = ["Strocchi2020", "Cristobal2021", "LabeledSurface"]
+        valid_databases = ["Strocchi2020", "Rodero2021", "LabeledSurface"]
         if value not in valid_databases:
             raise ValueError(
                 "{0} not a valid database name. Please specify one of the"
@@ -580,9 +580,9 @@ class HeartModel:
         if not os.path.isfile(self.info.path_to_original_mesh):
             raise ValueError("Please specify a valid path to the input file")
 
-        if self.info.database == "Cristobal2021":
+        if self.info.database == "Rodero2021":
             LOGGER.warning("Changing data fields of vtk file")
-            self.mesh_raw.read_mesh_file_cristobal2021(self.info.path_to_original_mesh)
+            self.mesh_raw.read_mesh_file_rodero2021(self.info.path_to_original_mesh)
         else:
             self.mesh_raw.read_mesh_file(self.info.path_to_original_mesh)
 

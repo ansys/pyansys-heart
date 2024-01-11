@@ -18,7 +18,7 @@ def main(args):
     #
     if database == "Strocchi2020":
         extension = "case"
-    elif database == "Cristobal2021":
+    elif database == "Rodero2021":
         extension = "vtk"
 
     for id in cases:
@@ -87,8 +87,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--database",
         help="Database to use.",
-        choices=["Cristobal2021", "Strocchi2020"],
-        default="Cristobal2021",
+        choices=["Rodero2021", "Strocchi2020"],
+        default="Rodero2021",
     )
 
     # Use nargs='+' to accept a list of float values for option2

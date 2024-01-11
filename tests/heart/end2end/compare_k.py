@@ -33,8 +33,8 @@ def compare(folder1, folder2):
 
 
 if __name__ == "__main__":
-    folder1 = r"D:\ansysdev\Cristobal2021\01\meca_fh\writer_zerop0"
-    folder2 = r"D:\ansysdev\Cristobal2021\01\meca_fh\writer_zerop"
+    folder1 = r"D:\ansysdev\Rodero2021\01\meca_fh\writer_zerop0"
+    folder2 = r"D:\ansysdev\Rodero2021\01\meca_fh\writer_zerop"
 
     print("*****************")
     compare(folder1, folder2)

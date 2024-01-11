@@ -1,4 +1,4 @@
-"""Example to pre-process data from Strocchi2020 and Cristobal2021."""
+"""Example to pre-process data from Strocchi2020 and Rodero2021."""
 import os
 import pathlib
 

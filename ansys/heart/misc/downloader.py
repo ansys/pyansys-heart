@@ -22,6 +22,7 @@ except ImportError:
 URLS = {
     "Strocchi2020": {"url": "https://zenodo.org/record/3890034", "num_cases": 24},
     "Cristobal2021": {"url": "https://zenodo.org/record/4590294", "num_cases": 20},
+    "Rodero2021": {"url": "https://zenodo.org/record/4590294", "num_cases": 20},
 }
 VALID_DATABASES = list(URLS.keys())
 DOWNLOAD_DIR = PurePath.joinpath(Path(__file__).parents[3], "downloads")
@@ -90,7 +91,7 @@ def download_case(
             "Database {0} only has {1} cases".format(database, URLS[database]["num_cases"])
         )
 
-    if database == "Cristobal2021":
+    if database == "Cristobal2021" or database == "Rodero2021":
         save_dir = os.path.join(download_folder, database, "{:>02d}".format(case_number))
     elif database == "Strocchi2020":
         save_dir = os.path.join(download_folder, database)
@@ -116,9 +117,11 @@ def download_case(
             path_hash_table=PATH_TO_HASHTABLE,
         )
     else:
-        warnings.warn("Warning, not validating hash. Proceed at own risk")
+        LOGGER.warning("Not validating hash. Proceed at own risk")
         is_valid_file = True
-    assert is_valid_file, "File data integrity can not be validated."
+    if not is_valid_file:
+        LOGGER.error("File data integrity can not be validated.")
+        os.remove(save_path)
 
     return save_path
 
@@ -190,17 +193,4 @@ def unpack_all_cases(list_of_tar_files: typing.List):
 
 
 if __name__ == "__main__":
-    # download_cases()
-    # unzip_cases()
-    download_urls = _format_download_urls()
-
-    save_path = download_case(
-        "Cristobal2021", 3, "d:\\development\\PyAnsys-Heart\\PyAnsys-Heart\\downloads"
-    )
-
-    save_path = download_case(
-        "Strocchi2020", 3, "d:\\development\\PyAnsys-Heart\\PyAnsys-Heart\\downloads"
-    )
-    unpack_case(save_path)
-
     LOGGER.info("Protected")

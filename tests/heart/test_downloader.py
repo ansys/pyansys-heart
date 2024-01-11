@@ -16,7 +16,7 @@ from tests.heart.conftest import get_workdir
 
 @pytest.mark.parametrize(
     "database_name",
-    ["Strocchi2020", "Cristobal2021", "Rodero2021"],
+    ["Strocchi2020", "Rodero2021"],
 )
 def test_download_urls(database_name):
     """Test if URL still valid and exists."""

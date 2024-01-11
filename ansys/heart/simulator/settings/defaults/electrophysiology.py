@@ -19,8 +19,8 @@ analysis = {
 material = {
     "myocardium": {
         "sigma_fiber": Quantity(0.5, "mS/mm"),  # mS/mm
-        "sigma_sheet": Quantity(0.1, "mS/mm"),  # mS/mm
-        "sigma_sheet_normal": Quantity(0.1, "mS/mm"),  # mS/mm
+        "sigma_sheet": Quantity(0.2, "mS/mm"),  # mS/mm
+        "sigma_sheet_normal": Quantity(0.2, "mS/mm"),  # mS/mm
         "sigma_passive": Quantity(1.0, "mS/mm"),  # mS/mm
         "beta": Quantity(140, "1/mm"),
         "cm": Quantity(0.01, "uF/mm^2"),  # uF/mm^2

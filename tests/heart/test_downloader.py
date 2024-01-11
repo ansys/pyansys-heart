@@ -4,9 +4,9 @@ import os
 
 from ansys.heart.misc.downloader import (
     _format_download_urls,
-    validate_hash_sha256,
     download_case,
     unpack_case,
+    validate_hash_sha256,
 )
 import pytest
 import validators

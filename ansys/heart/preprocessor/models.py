@@ -300,7 +300,17 @@ class HeartModel:
         )
         beam_net.pid = pid
         beam_net.name = name
+
+        # class variable BeamMesh.all_beam_nodes is not saved in pickle
+        #
+        # only the last created beam_network holds all previously created
+        beam_net._all_beam_nodes = np.copy(BeamMesh.all_beam_nodes)
+
         self.beam_network.append(beam_net)
+
+        # sync across beam networks
+        for beams in self.beam_network:
+            beams._all_beam_nodes = np.copy(BeamMesh.all_beam_nodes)
 
         # # visualize (debug)
         # import pyvista

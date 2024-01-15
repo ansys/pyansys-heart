@@ -450,6 +450,9 @@ class FluentMesh:
 
         reordered_cells = self.cells[:, [2, 1, 0, 3]]
         self.cells[negative_cells, :] = reordered_cells[negative_cells, :]
+        
+        # update cell zones with reordered cells
+        self._set_cells_in_cell_zones()
         return
 
 

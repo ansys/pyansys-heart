@@ -55,7 +55,7 @@ jobs:
     # Deploy release documentation when creating a new tag
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags')
     runs-on: ubuntu-latest
-    needs: doc-build
+    needs: doc-build # TODO: runs after release actions
     steps:
       - uses: ansys/actions/doc-deploy-stable@v5
         with:

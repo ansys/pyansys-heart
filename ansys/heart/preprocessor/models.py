@@ -2258,7 +2258,7 @@ class FourChamber(HeartModel):
 
             # get orphan cells and set to isolation part
             LOGGER.warning(f"{len(orphan_cells)} orphan cells are found and re-assigned.")
-            np.append(interface_eids, orphan_cells)
+            interface_eids = np.append(interface_eids, orphan_cells)
 
         # create a new part
         self.add_part("Isolation atrial")

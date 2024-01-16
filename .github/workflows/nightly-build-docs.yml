@@ -40,10 +40,24 @@ jobs:
 
   doc-deploy-dev:
     name: "Deploy development documentation"
+    # Deploy development only when merging or pushing to the 'main' branch
+    if: github.event_name == 'push' && !contains(github.ref, 'refs/tags')
     runs-on: ubuntu-latest
     needs: doc-build
     steps:
       - uses: ansys/actions/doc-deploy-dev@v5
+        with:
+          cname: ${{ env.DOCUMENTATION_CNAME }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  doc-deploy-stable:
+    name: "Deploy stable documentation"
+    # Deploy release documentation when creating a new tag
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags')
+    runs-on: ubuntu-latest
+    needs: doc-build # TODO: runs after release actions
+    steps:
+      - uses: ansys/actions/doc-deploy-stable@v5
         with:
           cname: ${{ env.DOCUMENTATION_CNAME }}
           token: ${{ secrets.GITHUB_TOKEN }}

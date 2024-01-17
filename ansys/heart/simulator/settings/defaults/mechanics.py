@@ -60,7 +60,7 @@ material = {
         "active": {
             "actype": 1,
             "beat_time": heart["beat_time"],
-            "taumax": Quantity(0.080, "MPa"),
+            "taumax": Quantity(0.125, "MPa"),
             "ss": 0.0,
             "sn": 0.0,
         },

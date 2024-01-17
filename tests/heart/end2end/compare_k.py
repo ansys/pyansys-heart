@@ -69,7 +69,7 @@ def compare(folder1: str, folder2: str, ignore: list = []) -> bool:
     print("*** Summary ****")
     print(summary_str)
     print("****************")
-    
+
     # if any are not found or do not match return False
     if len(not_found + failed) != 0:
         return False
@@ -94,4 +94,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print("****************")
-    compare(args.folder1, args.folder2, args.ignore)    
+    compare(args.folder1, args.folder2, args.ignore)

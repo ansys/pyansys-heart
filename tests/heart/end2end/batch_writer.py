@@ -9,7 +9,7 @@ root_folder = r"D:\ansysdev"
 
 # right atrium appendage apex is manually selected
 right_appendage_apex = {
-    "Cristobal2021": {
+    "Rodero2021": {
         "1": [39, 29, 98],
         "2": [40, 38, 101],
         "3": [40, 57, 98],
@@ -93,9 +93,9 @@ if __name__ == "__main__":
     # Define command-line arguments
     parser.add_argument(
         "--database",
-        help="Cristobal2021 or Strocchi2020",
-        choices=["Cristobal2021", "Strocchi2020"],
-        default="Cristobal2021",
+        help="Rodero2021 or Strocchi2020",
+        choices=["Rodero2021", "Strocchi2020"],
+        default="Rodero2021",
     )
 
     # Use nargs='+' to accept a list of float values for option2

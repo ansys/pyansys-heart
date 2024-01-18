@@ -91,3 +91,5 @@ show_missing = true
 pythonpath = ["."]
 testpaths = ["tests"]
 markers = ["requires_fluent", "local"]
+tmp_path_retention_count = 0           # do not keep the temporary path that is created
+tmp_path_retention_policy = "none"     # directories always removed, regardless of outcome

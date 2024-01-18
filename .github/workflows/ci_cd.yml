@@ -110,4 +110,3 @@ jobs:
         uses: ansys/actions/release-github@v5
         with:
           library-name: ${{ env.LIBRARY_NAME }}
-  

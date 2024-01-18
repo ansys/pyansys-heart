@@ -28,6 +28,15 @@ jobs:
         with:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
 
+  doc-style:
+    name: Documentation Style Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Running documentation style checks"
+        uses: ansys/actions/doc-style@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
   smoke-tests:
     name: "Build and Smoke tests"
     runs-on: ${{ matrix.os }}
@@ -44,6 +53,30 @@ jobs:
           operating-system: ${{ matrix.os }}
           python-version: ${{ matrix.python-version }}
           check-licenses: false
+
+  doc-build:
+    name: "Build documentation"
+    runs-on: ubuntu-latest
+    needs: [doc-style]
+    steps:
+      - uses: ansys/actions/doc-build@v5
+        with:
+          python-version: ${{ env.MAIN_PYTHON_VERSION }}
+          check-links: false
+          # By default, also '-W --keep-going'... we should eventually solve the warnings in the build process.
+          sphinxopts: '-j auto'
+
+  doc-deploy-dev:
+    name: "Deploy development documentation"
+    # Deploy development only when merging or pushing to the 'main' branch
+    if: github.event_name == 'push' && !contains(github.ref, 'refs/tags')
+    runs-on: ubuntu-latest
+    needs: doc-build
+    steps:
+      - uses: ansys/actions/doc-deploy-dev@v5
+        with:
+          cname: ${{ env.DOCUMENTATION_CNAME }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   tests:
     name: Tests
@@ -110,3 +143,15 @@ jobs:
         uses: ansys/actions/release-github@v5
         with:
           library-name: ${{ env.LIBRARY_NAME }}
+
+  doc-deploy-stable:
+    name: "Deploy stable documentation"
+    # Deploy release documentation when creating a new tag
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags')
+    runs-on: ubuntu-latest
+    needs: doc-build # TODO: runs after release actions
+    steps:
+      - uses: ansys/actions/doc-deploy-stable@v5
+        with:
+          cname: ${{ env.DOCUMENTATION_CNAME }}
+          token: ${{ secrets.GITHUB_TOKEN }}

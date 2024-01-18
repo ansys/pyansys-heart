@@ -1046,13 +1046,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
             active_dict = None
         else:
             if em_couple:
-                # todo hard coded EM coupling parameters
+                # TODO: hard coded EM coupling parameters
                 active_dict = {
                     "actype": 3,
                     "acthr": 2e-4,
                     "ca2ion50": 1e-3,
                     "n": 2,
-                    "sigmax": 0.125,
+                    "sigmax": 0.08,
                     "f": 0,
                     "l": 1.9,
                     "eta": 1.45,

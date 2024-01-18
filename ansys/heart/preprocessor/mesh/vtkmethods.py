@@ -2,12 +2,10 @@
 import copy
 import logging
 import os
-from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
 LOGGER = logging.getLogger("pyheart_global.preprocessor")
 from ansys.heart.preprocessor.mesh.fluenthdf5 import add_solid_name_to_stl
-import meshio
 import numpy as np
 import pyvista
 import vtk
@@ -53,22 +51,6 @@ def read_vtk_polydata_file(path_to_vtk: str) -> vtk.vtkPolyData:
     return reader.GetOutput()
 
 
-def vtk_read_mesh_file(path_to_mesh: str) -> vtk.vtkUnstructuredGrid():
-    """Read either ensight format or vtk format into vtk polydata."""
-    mesh_extension = Path(path_to_mesh).suffix
-
-    # reads .case (ensight):
-    if mesh_extension == ".case":
-        LOGGER.debug("Reading ensight file...{0}".format(path_to_mesh))
-        vtk_data = read_ensight_file(path_to_mesh)
-    # reads .vtk
-    elif mesh_extension == ".vtk":
-        LOGGER.debug("Reading vtk file...{0}".format(path_to_mesh))
-        vtk_data = read_vtk_unstructuredgrid_file(path_to_mesh)
-
-    return vtk_data
-
-
 def write_vtkdata_to_vtkfile(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData], fname: str):
     """Write a vtk unstructured grid object to vtk file."""
     writer = vtk.vtkDataSetWriter()
@@ -102,11 +84,6 @@ def vtk_surface_to_stl(
         add_solid_name_to_stl(filename, solid_name, "binary")
 
     return
-
-
-def get_vtk_points(vtk_object: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData]) -> np.ndarray:
-    """Return the points of a vtk unstructured grid or polydata object."""
-    return VN.vtk_to_numpy(vtk_object.GetPoints().GetData())
 
 
 def get_tetra_info_from_unstructgrid(
@@ -268,42 +245,6 @@ def threshold_vtk_data(
     return result, ids
 
 
-def threshold_vtk_data_integers(
-    vtk_ugrid: vtk.vtkUnstructuredGrid,
-    ints_for_thresholding: list,
-    data_name: str,
-) -> Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]:
-    """Threshold the vtk object using integers."""
-    # find integer groups
-    tag_diff = np.diff(ints_for_thresholding, prepend=ints_for_thresholding[0])
-    slice_locs = np.where(tag_diff != 1)[0]
-
-    tag_groups = []
-    for ii, start_idx in enumerate(slice_locs[:]):
-        if ii < len(slice_locs) - 1:
-            end_idx = slice_locs[ii + 1]
-            tag_groups.append(ints_for_thresholding[start_idx:end_idx])
-        else:
-            tag_groups.append(ints_for_thresholding[start_idx:])
-
-    # use thresholding to extract tag groups and combine into vtk object.
-    append_filter = vtk.vtkAppendFilter()
-    # appendFilter.MergePointsOn() # avoids duplicate points
-    for int_group in tag_groups:
-        vtk_tmp, _ = threshold_vtk_data(
-            vtk_ugrid,
-            lower_limit=int_group[0],
-            upper_limit=int_group[-1],
-            data_name=data_name,
-        )
-        append_filter.AddInputData(vtk_tmp)
-
-    # update with all appended data
-    append_filter.Update()
-
-    return append_filter.GetOutput()
-
-
 def vtk_surface_filter(
     vtk_grid: vtk.vtkUnstructuredGrid, keep_global_ids: bool = False
 ) -> vtk.vtkPolyData:
@@ -324,65 +265,6 @@ def vtk_surface_filter(
         surface.Update()
 
     return surface.GetOutput()
-
-
-def get_surface_info(surface: vtk.vtkPolyData) -> dict:
-    """Get data from a vtk polydata surface object (filter)."""
-    surface_data = {
-        "points": VN.vtk_to_numpy(surface.GetPoints().GetData()),
-        "connect": (VN.vtk_to_numpy(surface.GetPolys().GetConnectivityArray())).reshape(-1, 3),
-        "ids_to_volume": VN.vtk_to_numpy(surface.GetPointData().GetGlobalIds()),
-    }
-    return surface_data
-
-
-def convert_vtk_into_tetra_only(path_to_vtkfile: str):
-    """Extract tetrahedrons from the source vtk file."""
-    mesh = meshio.read(path_to_vtkfile)
-    points = mesh.points
-    elems = mesh.get_cells_type("tetra")
-    meshio.write_points_cells(path_to_vtkfile, points, [("tetra", elems)])
-
-    LOGGER.debug("Number of nodes generated: {0}".format(len(points)))
-    LOGGER.debug("Number of elements generated: {0}".format(len(elems)))
-    return
-
-
-def get_vtk_data_field(
-    vtk_grid: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid],
-    field_name: str,
-    data_type: str,
-) -> np.ndarray:
-    """Get data field from vtk polydata or unstructured grid object.
-
-    Parameters
-    ----------
-    vtk_grid : Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]
-        Vtk object from which to extract the data
-    field_name : str
-        Name of data field
-    data_type : str
-        Type of data to extract - either cell_data or point_data
-
-    Returns
-    -------
-    np.array
-        Numpy array of data field
-
-    Raises
-    ------
-    ValueError
-        Specified wrong data type
-    """
-    if data_type not in ["cell_data", "point_data"]:
-        raise ValueError("Expecting cell_data or point_data ")
-
-    if data_type == "cell_data":
-        data = VN.vtk_to_numpy(vtk_grid.GetCellData().GetArray(field_name))
-    elif data_type == "point_data":
-        data = VN.vtk_to_numpy(vtk_grid.GetPointData().GetArray(field_name))
-
-    return data
 
 
 def get_info_from_vtk(
@@ -774,63 +656,6 @@ def add_vtk_array(
     return
 
 
-def rename_vtk_array(
-    vtkobject: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid],
-    old_array_name: str,
-    new_array_name: str,
-    data_type: str = "both",
-) -> Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]:
-    """Rename cell or point array of vtk object.
-
-    Parameters
-    ----------
-    vtkobject : Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]
-        vtk object
-    old_array_name : str
-        Old name of the data array
-    new_array_name : str
-        New name of the data array
-    data_type : str, optional
-        Data types to search. Allowed options include: "cell_data", "point_data" or "both",
-        by default "both"
-    """
-    num_cell_data = vtkobject.GetCellData().GetNumberOfArrays()
-    num_point_data = vtkobject.GetPointData().GetNumberOfArrays()
-
-    replaced = 0
-
-    # replace cell data names
-    if data_type == "cell_data" or data_type == "both":
-        for ii in range(num_cell_data):
-            vtk_array = vtkobject.GetCellData().GetArray(ii)
-            array_name = vtkobject.GetCellData().GetArray(ii).GetName()
-            if array_name == old_array_name:
-                LOGGER.debug(
-                    "Replacing old cell data name '{0}' with new name: '{1}'".format(
-                        array_name, new_array_name
-                    )
-                )
-                vtkobject.GetCellData().GetArray(ii).SetName(new_array_name)
-                replaced += 1
-
-    # replace point data names
-    if data_type == "point_data" or data_type == "both":
-        for ii in range(num_point_data):
-            array_name = vtkobject.GetPointData().GetArrayName(ii)
-            if array_name == old_array_name:
-                LOGGER.debug(
-                    "Replacing old point data name '{0}' with new name: '{1}'".format(
-                        array_name, new_array_name
-                    )
-                )
-                vtkobject.GetPointData().GetArray(ii).SetName(new_array_name)
-                replaced += 1
-    if replaced == 0:
-        LOGGER.debug("No array names replaced")
-
-    return vtkobject
-
-
 def create_vtk_polydata_from_points(points: np.ndarray) -> vtk.vtkPolyData:
     """Create VTK PolyData object from set of points.
 
@@ -889,148 +714,6 @@ def remove_duplicate_nodes(
     return unique_nodes, elements
 
 
-def find_duplicate_elements(elements_ref: np.ndarray, elements: np.ndarray) -> np.ndarray:
-    """Find duplicate elements.
-
-    Parameters
-    ----------
-    elements_ref : np.ndarray
-        Array of reference elements - these are not changed
-    elements : np.ndarray
-        Array of elements where to check if any is already defined in the reference element array
-
-    Returns
-    -------
-    duplicate_indices : np.ndarray
-        Indices of the elements that are already defined in the reference array
-    """
-    if elements.shape[1] != elements_ref.shape[1]:
-        raise ValueError("Element dimension not the same - check if 2nd dimension is consistent")
-
-    elements_sort = np.sort(elements)
-    elements_ref_sort = np.sort(elements_ref)
-
-    # TODO: can this be improved?
-    mask = np.zeros((elements_sort.shape[0], elements_ref_sort.shape[0]), dtype=bool)
-    for ii, element in enumerate(elements_sort):
-        mask[ii, :] = np.all(element == elements_ref_sort, axis=1)
-
-    duplicate_indices = np.where(np.any(mask, axis=1))[0]
-
-    return duplicate_indices
-
-
-def compute_volume_stl(stl_name: str) -> float:
-    """Compute the volume of a vtk PolyData Object."""
-    # this avoids having to write the stl first, but directly
-    # computes the volume from the polydata
-    reader = vtk.vtkSTLReader()  # noqa
-    reader.SetFileName(stl_name)
-    reader.Update()
-    # if not isinstance(vtk_object, vtk.vtkPolyData ):
-    #     raise TypeError("Expecting poly data object ")
-
-    mass_property = vtk.vtkMassProperties()  # noqa
-    mass_property.SetInputData(reader.GetOutput())
-    mass_property.Update()
-    volume = mass_property.GetVolume()  # mm3
-
-    return float(volume)
-
-
-def vtk_unstructured_grid_to_numpy(vtk_object: vtk.vtkUnstructuredGrid):
-    """[BROKEN] Extract cells and points from an arbitrary unstructured grid.
-
-    Parameters
-    ----------
-    vtk_object : vtk.vtkUnstructuredGrid
-        Vtk object of the unstructured grid
-
-    Raises
-    ------
-    ValueError
-        _description_
-
-    Notes
-    -----
-    This is not supported yet
-    """
-    vtk_data = dsa.WrapDataObject(vtk_object)
-
-    cells = vtk_data.Cells
-    num_cells = len(vtk_data.CellTypes)
-    cell_types = vtk_data.CellTypes
-
-    supported_cell_types = {
-        vtk.VTK_VERTEX: {"name": "vertex", "num_nodes": 1},
-        vtk.VTK_TRIANGLE: {"name": "triangle", "num_nodes": 3},
-        vtk.VTK_TETRA: {"name": "tetra", "num_nodes": 4},
-    }
-
-    cell_num_nodes = copy.deepcopy(np.array(cell_types))
-    cell_num_nodes[cell_types == 10] = 4
-    num_nodes_per_cell = 4
-    # determine cell locations
-    indices = np.arange(0, cells.shape[0], 1)
-    indices_to_remove = np.arange(0, cells.shape[0], 5)
-
-    np.delete(indices, indices_to_remove)
-
-    np.unique(cell_types, return_index=True, return_counts=True)
-
-    # find the start indices of the different (continuous) cell blocks
-    num_detected_cell_types = len(np.unique(cell_types))
-    if num_detected_cell_types > 1:
-        start_indices_cellblock = np.where(np.diff(cell_types) != 0)[0] + 1
-        start_indices_cellblock = np.append(0, start_indices_cellblock)
-        end_indices_block = np.append(start_indices_cellblock[1:], len(cells))
-
-    elif num_detected_cell_types == 1:
-        start_indices_cellblock = np.array([0], dtype=int)
-        end_indices_cellblock = np.array([len(cell_types)], dtype=int)
-
-    num_blocks = len(start_indices_cellblock)
-
-    all_cells = np.ones((num_cells, 5), dtype=int) * np.nan  # array with all cells
-
-    offset = 0
-    offset1 = 0
-
-    cell_types_all = np.ones(num_cells) * np.nan
-
-    for block in range(0, num_blocks):
-        # get cell type
-        cell_type = cell_types[start_indices_cellblock[block]]
-        num_nodes_per_cell = supported_cell_types[cell_type]["num_nodes"]
-
-        LOGGER.debug("\tReading {0} block".format(supported_cell_types[cell_type]["name"]))
-
-        start_idx = start_indices_cellblock[block] + offset
-        end_idx = end_indices_cellblock[block] * (num_nodes_per_cell + 1) + offset
-
-        cell_types_all[start_idx:end_idx] = cell_type
-
-        num_cells_in_block = (end_idx - start_idx) / (num_nodes_per_cell + 1)
-
-        if not num_cells_in_block.is_integer():
-            raise ValueError("Number of cells is not an integer value ")
-        else:
-            num_cells_in_block = int(num_cells_in_block)
-
-        cells_np = np.reshape(
-            cells[start_idx:end_idx],
-            (num_cells_in_block, num_nodes_per_cell + 1),
-        )
-        cells_np = cells_np[:, 1:]
-
-        all_cells[offset1 : num_cells_in_block + offset1, 0:num_nodes_per_cell] = cells_np
-
-        offset = offset + (end_idx - start_idx) + 1
-        offset1 = offset1 + num_cells_in_block + 1
-
-    return
-
-
 def vtk_compute_cell_area(vtk_surface: vtk.vtkPolyData) -> np.ndarray:
     """Compute area of each surface element in a polydata object.
 
@@ -1052,38 +735,7 @@ def vtk_compute_cell_area(vtk_surface: vtk.vtkPolyData) -> np.ndarray:
     return cell_area
 
 
-def compute_surface_nodal_area(vtk_surface: vtk.vtkPolyData) -> np.array:
-    """Compute an average nodal area by summing surface areas of connected elements.
-
-    Parameters
-    ----------
-    vtk_surface : vtk.vtkPolyData
-        Vtk object describing the object
-
-    Returns
-    -------
-    np.array
-        Numpy array with nodal areas of length number of points
-
-    Note
-    ----
-    Adds the partial areas of connected elements/cells to each node.
-
-    """
-    num_points = vtk_surface.GetNumberOfPoints()
-    nodal_area = np.zeros(num_points)
-    cell_area = vtk_compute_cell_area(vtk_surface)
-    ii = 0
-
-    tris = get_tri_info_from_polydata(vtk_surface)[1]
-
-    for points, area in zip(tris, cell_area):
-        nodal_area[points] += area / 3
-        ii += 1
-    return nodal_area
-
-
-def compute_surface_nodal_area_pyvista(surface: pyvista.PolyData) -> np.array:
+def compute_surface_nodal_area_pyvista(surface: pyvista.PolyData) -> np.ndarray:
     """Compute an average nodal area by summing surface areas of connected elements.
 
     Parameters
@@ -1206,22 +858,6 @@ def extrude_polydata(
     extruded_polydata = extrude.GetOutput()
 
     return extruded_polydata
-
-
-def find_points_inside_polydata(vtk_surface: vtk.vtkPolyData, points: np.ndarray):
-    """Return indices of points that are inside the polydata object."""
-    # set points
-    tolerance = 1e-4
-    points = vtk.vtkPolyData()
-    points.SetPoints(points)
-
-    # mark points with filter
-    enclosed_points_filter = vtk.vtkSelectEnclosedPoints()
-    enclosed_points_filter.SetSurfaceData(vtk_surface)
-    enclosed_points_filter.SetInputData(points)
-    enclosed_points_filter.SetTolerance(tolerance)
-    enclosed_points_filter.Update()
-    return
 
 
 def create_vtk_surface_triangles(
@@ -1428,72 +1064,6 @@ def mark_elements_inside_surfaces(
         cell_tags[cell_id] = cell_tags[closed_cell_id]
 
     return cell_tags
-
-
-def convert_to_polydata(vtk_ugrid: vtk.vtkUnstructuredGrid) -> vtk.vtkPolyData:
-    """Use geometry filter to convert unstructured grid to polydata object.
-
-    Parameters
-    ----------
-    vtk_ugrid : vtk.vtkUnstructuredGrid
-        Unstructured grid object
-
-    Returns
-    -------
-    vtk.vtkPolyData
-        Polydata object
-    """
-    geom = vtk.vtkGeometryFilter()
-    geom.SetInputData(vtk_ugrid)
-    geom.Update()
-    return geom.GetOutput()
-
-
-def append_vtk_polydata_files(files: list, path_to_merged_vtk: str, substrings: List[str] = []):
-    """Append a list of polydata vtk files into a single vtk file.
-
-    Parameters
-    ----------
-    files : list
-        List of vtk files of PolyData type
-    path_to_merged_vtk : str
-        Path to output vtk
-    substrings : List[str], Optional
-        Tags the cells using this list of substrings. Default []
-    """
-    from ansys.heart.preprocessor.mesh.vtkmethods import add_vtk_array
-    import vtk
-
-    # append vtk surfaces
-    reader = vtk.vtkPolyDataReader()
-    append = vtk.vtkAppendPolyData()
-    for file in files:
-        if not os.path.isfile(file):
-            print("File not found...")
-            continue
-        reader.SetFileName(file)
-        reader.Update()
-        polydata = vtk.vtkPolyData()
-        polydata.ShallowCopy(reader.GetOutput())
-
-        # add cell data based on any substrings that are found
-        if substrings != []:
-            cell_tag = 0
-            for ii, substring in enumerate(substrings):
-                if substring in Path(file).name:
-                    cell_tag = ii + 1
-
-            cell_tags = np.ones(polydata.GetNumberOfCells()) * cell_tag
-            add_vtk_array(
-                polydata=polydata, data=cell_tags, name="tags", data_type="cell", array_type=int
-            )
-
-        append.AddInputData(polydata)
-
-    append.Update()
-
-    write_vtkdata_to_vtkfile(append.GetOutput(), path_to_merged_vtk)
-    return
 
 
 def vtk_cutter(vtk_polydata: vtk.vtkPolyData, cut_plane) -> vtk.vtkPolyData:

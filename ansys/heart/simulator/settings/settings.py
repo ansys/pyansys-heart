@@ -1,7 +1,7 @@
 """Module that defines some classes for settings."""
 
 import copy
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 import json
 import os
 import pathlib
@@ -110,17 +110,17 @@ class Settings:
 class Analysis(Settings):
     """Class for analysis settings."""
 
-    end_time: Quantity = 0
+    end_time: Quantity = Quantity(0, "s")
     """End time of the simulation."""
-    dtmin: Quantity = 0
+    dtmin: Quantity = Quantity(0, "s")
     """Minimum time-step of simulation."""
-    dtmax: Quantity = 0
+    dtmax: Quantity = Quantity(0, "s")
     """Maximum time-step of simulation."""
-    dt_d3plot: Quantity = 0
+    dt_d3plot: Quantity = Quantity(0, "s")
     """Time-step of d3plot export."""
-    dt_icvout: Quantity = 0
+    dt_icvout: Quantity = Quantity(0, "s")
     """Time-step of icvout export."""
-    global_damping: Quantity = 0
+    global_damping: Quantity = Quantity(0, "1/s")
     """Global damping constant."""
 
 
@@ -180,13 +180,13 @@ class SystemModel(Settings):
 class Mechanics(Settings):
     """Class for keeping track of settings."""
 
-    analysis: Analysis = Analysis()
+    analysis: Analysis = field(default_factory=lambda: Analysis())
     """Generic analysis settings."""
-    material: Material = Material()
+    material: Material = field(default_factory=lambda: Material())
     """Material settings/configuration."""
-    boundary_conditions: BoundaryConditions = BoundaryConditions()
+    boundary_conditions: BoundaryConditions = field(default_factory=lambda: BoundaryConditions())
     """Boundary condition specifications."""
-    system: SystemModel = SystemModel()
+    system: SystemModel = field(default_factory=lambda: SystemModel())
     """System model settings."""
 
 
@@ -209,7 +209,7 @@ class AnalysisZeroPressure(Analysis):
 class ZeroPressure(Settings):
     """Class for keeping track of settings for stress-free-configuration computation."""
 
-    analysis: AnalysisZeroPressure = AnalysisZeroPressure()
+    analysis: AnalysisZeroPressure = field(default_factory=lambda: AnalysisZeroPressure())
     """Generic analysis settings."""
 
 
@@ -217,9 +217,9 @@ class ZeroPressure(Settings):
 class Electrophysiology(Settings):
     """Class for keeping track of electrophysiology settings."""
 
-    material: EpMaterial = EpMaterial()
+    material: EpMaterial = field(default_factory=lambda: EpMaterial())
     """Material settings/configuration."""
-    analysis: Analysis = Analysis()
+    analysis: Analysis = field(default_factory=lambda: Analysis())
     """Generic analysis settings."""
 
 

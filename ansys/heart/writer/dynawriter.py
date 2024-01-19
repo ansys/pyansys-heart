@@ -1878,9 +1878,10 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # TODO: it should be after cap creation, or it will be written in dynain
         # for boundary conditions
         self._add_cap_bc(bc_type="springs_caps")
-        if isinstance(self.model, FourChamber):
-            # add a small constraint to avoid rotation
-            self._add_pericardium_bc(scale=0.01)
+        # if isinstance(self.model, FourChamber):
+        #     # add a small constraint to avoid rotation
+        #     self._add_pericardium_bc(scale=0.01)
+        self._add_pericardium_bc(scale=0.01)
 
         # # Approximate end-diastolic pressures
         pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
@@ -3876,8 +3877,9 @@ class UHCWriter(BaseDynaWriter):
         if self.type == "uvc":
             elems_to_keep = []
             elems_to_keep.extend(model.parts[0].element_ids)
-            elems_to_keep.extend(model.parts[1].element_ids)
-            elems_to_keep.extend(model.parts[2].element_ids)
+            if not isinstance(model, LeftVentricle):
+                elems_to_keep.extend(model.parts[1].element_ids)
+                elems_to_keep.extend(model.parts[2].element_ids)
 
             model.mesh.clear_data()
             model.mesh["cell_ids"] = np.arange(0, model.mesh.n_cells, dtype=int)
@@ -3888,13 +3890,13 @@ class UHCWriter(BaseDynaWriter):
         elif self.type == "la_fiber" or self.type == "ra_fiber":
             # In original model, mitral/tricuspid valves are assigned with ventricle parts
             # so we need to update caps information at first
-            for part in model.parts:
-                part.caps = []
-                for surface in part.surfaces:
-                    surface.edge_groups = []
-            model.cap_centroids = []
-            model._assign_surfaces_to_parts()
-            model._assign_caps_to_parts(unique_mitral_tricuspid_valve=False)
+            # for part in model.parts:
+            #     part.caps = []
+            #     for surface in part.surfaces:
+            #         surface.edge_groups = []
+            # model.cap_centroids = []
+            # model._assign_surfaces_to_parts()
+            # model._assign_caps_to_parts(unique_mitral_tricuspid_valve=False)
 
             self._keep_parts(parts_to_keep)
             model.mesh.clear_data()
@@ -3903,14 +3905,14 @@ class UHCWriter(BaseDynaWriter):
 
             self.target = model.mesh.extract_cells(model.parts[0].element_ids)
 
-        if self.type == "la_fiber":
-            if 6 != len(self.model.parts[0].caps):
-                LOGGER.error("Input left atrium is not suitable for set up BC.")
-                exit(-1)
-        elif self.type == "ra_fiber":
-            if 3 != len(self.model.parts[0].caps):
-                LOGGER.error("Input left atrium is not suitable for set up BC.")
-                exit(-1)
+        # if self.type == "la_fiber":
+        #     if 6 != len(self.model.parts[0].caps):
+        #         LOGGER.error("Input left atrium is not suitable for set up BC.")
+        #         exit(-1)
+        # elif self.type == "ra_fiber":
+        #     if 3 != len(self.model.parts[0].caps):
+        #         LOGGER.error("Input left atrium is not suitable for set up BC.")
+        #         exit(-1)
 
     def additional_right_atrium_bc(self, atrium: pv.UnstructuredGrid):
         """
@@ -4037,14 +4039,28 @@ class UHCWriter(BaseDynaWriter):
                     set_id = 8
                 elif "inferior" in cap.name:
                     set_id = 9
+            elif "coronary" in cap.name:
+                return 999
 
             return set_id
+
+        if self.type == "la_fiber":
+            import scipy.spatial as spatial
+
+            tree = spatial.cKDTree(atrium.points)
+            # radius = 1.5 mm
+            laa_ids = np.array(tree.query_ball_point([149, 94, 91], 1.5))
+            kw = create_node_set_keyword(laa_ids + 1, node_set_id=2, title="left atrium appendage")
+            self.kw_database.node_sets.append(kw)
 
         id_sorter = np.argsort(atrium["point_ids"])
         ids_edges = []  # all nodes belong to valves
         for cap in self.model.parts[0].caps:
             # get node IDs for atrium mesh
             ids_sub = np.where(np.isin(atrium["point_ids"], cap.node_ids))[0]
+            if len(ids_sub) == 0:
+                LOGGER.error(f"cannot find node list for {cap.name}")
+                exit()
             # create node set
             set_id = get_nodeset_id_by_cap_name(cap)
             kw = create_node_set_keyword(ids_sub + 1, node_set_id=set_id, title=cap.name)

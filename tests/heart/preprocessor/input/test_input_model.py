@@ -9,7 +9,6 @@ from ansys.heart.preprocessor.input import _InputModel
 
 # from ansys.heart.preprocessor.input import _InputBoundary, _InputPart
 import numpy as np
-import pytest
 import pyvista as pv
 
 import tests.heart.conftest as conftest

@@ -31,11 +31,11 @@ os.environ["USE_OLD_HEART_MODELS"] = "1"
 # specify necessary paths.
 # Note that we need to cast the paths to strings to facilitate serialization.
 case_file = str(
-    Path(Path(__file__).resolve().parents[2], "downloads", "Cristobal2021", "01", "01.vtk")
+    Path(Path(__file__).resolve().parents[2], "downloads", "Rodero2021", "01", "01.vtk")
 )
 download_folder = str(Path(Path(__file__).resolve().parents[2], "downloads"))
 workdir = str(
-    Path(Path(__file__).resolve().parents[2], "downloads", "Cristobal2021", "01", "FullHeart2.0")
+    Path(Path(__file__).resolve().parents[2], "downloads", "Rodero2021", "01", "FullHeart2.0")
 )
 
 path_to_model = str(Path(workdir, "heart_model.pickle"))
@@ -47,7 +47,7 @@ path_to_model = str(Path(workdir, "heart_model.pickle"))
 # not yet available. This model will be used as input for the preprocessor.
 if not os.path.isfile(case_file):
     path_to_downloaded_file = download_case(
-        "Cristobal2021", 1, download_folder=download_folder, overwrite=False
+        "Rodero2021", 1, download_folder=download_folder, overwrite=False
     )
     unpack_case(path_to_downloaded_file)
 
@@ -57,7 +57,7 @@ if not os.path.isfile(case_file):
 # Set the right database to which this case belongs, and set other relevant
 # information such as the desired mesh size.
 info = models.ModelInfo(
-    database="Cristobal2021",
+    database="Rodero2021",
     path_to_case=case_file,
     work_directory=workdir,
     path_to_model=path_to_model,

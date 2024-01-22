@@ -32,7 +32,7 @@ def download_asset(
     """Download and unpack the requested asset if it is not yet available."""
     download_dir = os.path.join(get_assets_folder(), "cases")
 
-    if database != "Strocchi2020":
+    if database not in ["Strocchi2020", "Rodero2021"]:
         raise ValueError("Only Strocchi2020 supported for tests.")
 
     # find case name recursively.
@@ -62,6 +62,8 @@ def download_asset(
     # remove .vtk file to reduce size (relevant for Github cache)
     if database == "Strocchi2020":
         path_to_vtk = case_path.replace(".case", "-350um.vtk")
+    elif database == "Rodero2021":
+        path_to_vtk = case_path
 
     if clean_folder:
         if os.path.isfile(path_to_vtk):

@@ -3,8 +3,7 @@
 Notes
 -----
 This module manages the different types of input that can be handled and include:
-1. User specified (volume) mesh.
-2. User specified boundary mesh. This will require remeshing.
+1. User specified boundary mesh. This will require remeshing.
 
 Methods are provided to validate the volume and boundary mesh objects (pyvista objects),
 and to get the necessary parts or boundaries for each respective model.

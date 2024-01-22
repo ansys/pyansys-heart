@@ -110,28 +110,31 @@ class FluentMesh:
 
         self._read_nodes()
         self._read_face_zone_info()
-        self._read_cell_zone_info()
-
         self._read_all_faces_of_face_zones()
 
         if reconstruct_tetrahedrons:
+            self._read_cell_zone_info()
             self._read_c0c1_of_face_zones()
             self._convert_interior_faces_to_tetrahedrons2()
             self._set_cells_in_cell_zones()
+            self._update_indexing_cells()
 
-        self._update_indexing()
+        self._update_indexing_faces()
 
         self._close_file()
         return
 
-    def _update_indexing(self) -> None:
-        """Update the indexing of all cells and faces: index should start from 0."""
+    def _update_indexing_cells(self) -> None:
+        """Update the indexing of all cells: index should start from 0."""
         for cell_zone in self.cell_zones:
             cell_zone.cells = cell_zone.cells - 1
+        self.cells = self.cells - 1
+        return
+
+    def _update_indexing_faces(self) -> None:
+        """Update the indexing of all faces: index should start from 0."""
         for face_zone in self.face_zones:
             face_zone.faces = face_zone.faces - 1
-
-        self.cells = self.cells - 1
         return
 
     def _set_cells_in_cell_zones(self) -> List[FluentCellZone]:

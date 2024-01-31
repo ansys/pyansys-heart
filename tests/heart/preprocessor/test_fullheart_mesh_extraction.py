@@ -14,7 +14,15 @@ from tests.heart.common import (
     compare_part_names,
     compare_surface_names,
 )
+from ansys.heart.writer.dynawriter import (
+    ElectrophysiologyDynaWriter,
+    MechanicsDynaWriter,
+    ZeroPressureMechanicsDynaWriter,
+    FiberGenerationDynaWriter,
+    PurkinjeGenerationDynaWriter,
+)
 from tests.heart.conftest import download_asset, get_assets_folder, get_workdir
+from tests.heart.end2end.compare_k import compare
 
 # marks all tests with the 'requires_fluent' tag after this line
 pytestmark = pytest.mark.requires_fluent
@@ -70,7 +78,8 @@ def extract_fullheart():
 
     # cleanup
     try:
-        shutil.rmtree(workdir)
+        # shutil.rmtree(workdir)
+        print()
     except:
         print("Failed to cleanup.")
 
@@ -96,3 +105,42 @@ def test_cavities_volumes():
 def test_mesh():
     """Test the number of tetrahedrons and triangles in the volume mesh and surface meshes"""
     compare_generated_mesh(model, ref_stats)
+
+
+@pytest.mark.parametrize(
+    "writer_class",
+    [
+        ElectrophysiologyDynaWriter,
+        MechanicsDynaWriter,
+        ZeroPressureMechanicsDynaWriter,
+        FiberGenerationDynaWriter,
+        PurkinjeGenerationDynaWriter,
+    ],
+)
+@pytest.mark.xfail(
+    sys.platform == "linux", reason="Mesh generation slightly different for Linux version of Fluent"
+)
+def test_writers(writer_class):
+    """Test whether all writers yield the same .k files as the reference model.
+
+    Notes
+    -----
+    This skips over most .k files that contain mesh related info.
+    """
+    writer = writer_class(model)
+    ref_folder = os.path.join(
+        get_assets_folder(),
+        "reference_models",
+        "strocchi2020",
+        "01",
+        "FullHeart",
+        "k_files",
+        writer_class.__name__,
+    )
+    to_test_folder = os.path.join(get_workdir(), "fullheart", writer_class.__name__)
+    writer.update()
+    writer.export(to_test_folder)
+
+    assert compare(ref_folder, to_test_folder)
+
+    return

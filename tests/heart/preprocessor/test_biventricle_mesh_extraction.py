@@ -5,6 +5,15 @@ import shutil
 import sys
 
 import ansys.heart.preprocessor.models as models
+from ansys.heart.writer.dynawriter import (
+    ElectrophysiologyDynaWriter,
+    MechanicsDynaWriter,
+    ZeroPressureMechanicsDynaWriter,
+    FiberGenerationDynaWriter,
+    PurkinjeGenerationDynaWriter,
+)
+from tests.heart.end2end.compare_k import compare
+
 from ansys.heart.simulator.support import run_preprocessor
 import pytest
 
@@ -105,3 +114,41 @@ def test_cavities_volumes():
 def test_mesh():
     """Test the number of tetrahedrons and triangles in the volume mesh and surface meshes"""
     compare_generated_mesh(model, ref_stats)
+
+
+# functional tests to determine whether any change was made to
+# LS-DYNA input.
+@pytest.mark.parametrize(
+    "writer_class",
+    [
+        ElectrophysiologyDynaWriter,
+        MechanicsDynaWriter,
+        ZeroPressureMechanicsDynaWriter,
+        FiberGenerationDynaWriter,
+        PurkinjeGenerationDynaWriter,
+    ],
+)
+def test_writers(writer_class):
+    """Test whether all writers yield the same .k files as the reference model.
+
+    Notes
+    -----
+    This skips over most .k files that contain mesh related info.
+    """
+    writer = writer_class(model)
+    ref_folder = os.path.join(
+        get_assets_folder(),
+        "reference_models",
+        "strocchi2020",
+        "01",
+        "BiVentricle",
+        "k_files",
+        writer_class.__name__,
+    )
+    to_test_folder = os.path.join(get_workdir(), "biventricle", writer_class.__name__)
+    writer.update()
+    writer.export(to_test_folder)
+
+    assert compare(ref_folder, to_test_folder)
+
+    return

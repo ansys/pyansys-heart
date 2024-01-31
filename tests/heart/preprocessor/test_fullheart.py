@@ -6,6 +6,13 @@ import sys
 
 import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.support import run_preprocessor
+from ansys.heart.writer.dynawriter import (
+    ElectrophysiologyDynaWriter,
+    FiberGenerationDynaWriter,
+    MechanicsDynaWriter,
+    PurkinjeGenerationDynaWriter,
+    ZeroPressureMechanicsDynaWriter,
+)
 import pytest
 
 from tests.heart.common import (
@@ -13,13 +20,6 @@ from tests.heart.common import (
     compare_generated_mesh,
     compare_part_names,
     compare_surface_names,
-)
-from ansys.heart.writer.dynawriter import (
-    ElectrophysiologyDynaWriter,
-    MechanicsDynaWriter,
-    ZeroPressureMechanicsDynaWriter,
-    FiberGenerationDynaWriter,
-    PurkinjeGenerationDynaWriter,
 )
 from tests.heart.conftest import download_asset, get_assets_folder, get_workdir
 from tests.heart.end2end.compare_k import compare
@@ -78,7 +78,7 @@ def extract_fullheart():
 
     # cleanup
     try:
-        # shutil.rmtree(workdir)
+        shutil.rmtree(workdir)
         print()
     except:
         print("Failed to cleanup.")

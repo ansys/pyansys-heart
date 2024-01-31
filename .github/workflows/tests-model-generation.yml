@@ -102,4 +102,4 @@ jobs:
         continue-on-error: false
         run: |
           #  Run all tests that require fluent
-          python -m pytest -v -m "requires_fluent and not local"
+          python -m pytest -v -rxXs -m "requires_fluent and not local"

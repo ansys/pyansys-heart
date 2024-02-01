@@ -22,7 +22,7 @@ import os
 from pathlib import Path
 
 from ansys.heart.misc.downloader import download_case, unpack_case
-import ansys.heart.preprocessor.models as models
+import ansys.heart.preprocessor.models.v0_1.models as models
 
 # sphinx_gallery_start_ignore
 os.environ["USE_OLD_HEART_MODELS"] = "1"

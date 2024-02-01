@@ -29,7 +29,7 @@ right_appendage_apex = {
 
 
 def main(args):
-    import ansys.heart.preprocessor.models as models
+    import ansys.heart.preprocessor.models.v0_1.models as models
     import ansys.heart.writer.dynawriter as writers
 
     # input

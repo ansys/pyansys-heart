@@ -3,7 +3,7 @@ import os
 import pathlib as Path
 
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
-from ansys.heart.preprocessor.models import HeartModel
+from ansys.heart.preprocessor.models.v0_1.models import HeartModel
 import matplotlib.pyplot as plt
 import numpy as np
 import pyvista as pv

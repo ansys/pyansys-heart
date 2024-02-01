@@ -1,5 +1,5 @@
 from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
-from ansys.heart.preprocessor.models import HeartModel
+from ansys.heart.preprocessor.models.v0_1.models import HeartModel
 
 if __name__ == "__main__":
     """

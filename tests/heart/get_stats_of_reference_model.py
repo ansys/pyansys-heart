@@ -7,7 +7,7 @@ Example
 import os
 import sys
 
-import ansys.heart.preprocessor.models as models
+import ansys.heart.preprocessor.models.v0_1.models as models
 
 if __name__ == "__main__":
     """

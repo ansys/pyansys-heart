@@ -547,6 +547,18 @@ class Mesh(pv.UnstructuredGrid):
         """Iterate over boundaries and returns their names."""
         return [b.name for b in self.boundaries]
 
+    def _sync_nodes_of_surfaces(self):
+        """Synchronize the node array of each associated surface.
+        Notes
+        -----
+        Temporary until this module is refactored.
+        """
+        for b in self.boundaries:
+            b.nodes = self.nodes
+        for i in self.interfaces:
+            i.nodes = self.nodes
+        return
+
     def read_mesh_file(self, filename: pathlib.Path) -> None:
         """Read mesh file."""
         mesh = pv.read(filename)

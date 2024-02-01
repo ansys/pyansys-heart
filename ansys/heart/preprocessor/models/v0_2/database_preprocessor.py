@@ -1,9 +1,8 @@
+"""Some helper methods to process cases from Strocchi and Rodero databases."""
+
 import logging
-import os
-import pathlib as Path
 
 LOGGER = logging.getLogger("pyheart_global.simulator")
-import ansys.heart.preprocessor.models.v0_2.models as models
 
 
 def get_input_geom_and_part_defintions_from_public_database(
@@ -18,9 +17,13 @@ def get_input_geom_and_part_defintions_from_public_database(
 
     # read database labels
     if database == "Strocchi2020":
-        from ansys.heart.preprocessor.models.v0_2.database_labels_to_id import Strocchi2020 as database_labels
+        from ansys.heart.preprocessor.models.v0_2.database_labels_to_id import (
+            Strocchi2020 as database_labels,
+        )
     elif database == "Rodero2021":
-        from ansys.heart.preprocessor.models.v0_2.database_labels_to_id import Rodero2021 as database_labels
+        from ansys.heart.preprocessor.models.v0_2.database_labels_to_id import (
+            Rodero2021 as database_labels,
+        )
     else:
         print("No other databases included yet.")
         return

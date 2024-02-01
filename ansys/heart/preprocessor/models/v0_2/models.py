@@ -10,7 +10,7 @@ import pickle
 from typing import List, Union
 
 LOGGER = logging.getLogger("pyheart_global.preprocessor")
-from ansys.heart.preprocessor.input import _InputModel
+from ansys.heart.preprocessor.models.v0_2.input import _InputModel
 
 # from ansys.heart.preprocessor.input import HEART_MODELS
 import ansys.heart.preprocessor.mesh.connectivity as connectivity

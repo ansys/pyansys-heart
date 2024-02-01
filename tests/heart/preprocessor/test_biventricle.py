@@ -1,11 +1,20 @@
 """Functional test to determine whether generated biventricle model has all the
 expected features."""
+import glob
 import os
+import pathlib
 import shutil
 import sys
 
 import ansys.heart.preprocessor.models.v0_1.models as models
 from ansys.heart.simulator.support import run_preprocessor
+from ansys.heart.writer.dynawriter import (
+    ElectrophysiologyDynaWriter,
+    FiberGenerationDynaWriter,
+    MechanicsDynaWriter,
+    PurkinjeGenerationDynaWriter,
+    ZeroPressureMechanicsDynaWriter,
+)
 import pytest
 
 from tests.heart.common import (
@@ -15,6 +24,7 @@ from tests.heart.common import (
     compare_surface_names,
 )
 from tests.heart.conftest import download_asset, get_assets_folder, get_workdir
+from tests.heart.end2end.compare_k import read_file
 
 # marks all tests with the 'requires_fluent' tag after this line
 pytestmark = pytest.mark.requires_fluent
@@ -105,3 +115,50 @@ def test_cavities_volumes():
 def test_mesh():
     """Test the number of tetrahedrons and triangles in the volume mesh and surface meshes"""
     compare_generated_mesh(model, ref_stats)
+
+
+# functional tests to determine whether any change was made to
+# LS-DYNA input.
+@pytest.mark.parametrize(
+    "writer_class",
+    [
+        ElectrophysiologyDynaWriter,
+        MechanicsDynaWriter,
+        ZeroPressureMechanicsDynaWriter,
+        FiberGenerationDynaWriter,
+        PurkinjeGenerationDynaWriter,
+    ],
+)
+@pytest.mark.xfail(
+    sys.platform == "linux", reason="Mesh generation slightly different for Linux version of Fluent"
+)
+def test_writers(writer_class):
+    """Test whether all writers yield the same .k files as the reference model.
+
+    Notes
+    -----
+    This skips over most .k files that contain mesh related info.
+    """
+    writer = writer_class(model)
+    ref_folder = os.path.join(
+        get_assets_folder(),
+        "reference_models",
+        "strocchi2020",
+        "01",
+        "BiVentricle",
+        "k_files",
+        writer_class.__name__,
+    )
+    to_test_folder = os.path.join(get_workdir(), "biventricle", writer_class.__name__)
+    writer.update()
+    writer.export(to_test_folder)
+
+    ref_files = glob.glob(os.path.join(ref_folder, "*.k"))
+    # compare each of the reference files to the files that were generated.
+    for ref_file in ref_files:
+        file_to_compare = os.path.join(to_test_folder, pathlib.Path(ref_file).name)
+        assert read_file(ref_file) == read_file(
+            file_to_compare
+        ), f"File {pathlib.Path(ref_file).name} does not match."
+
+    return

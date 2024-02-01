@@ -10,9 +10,10 @@ LOGGER = logging.getLogger("pyheart_global.preprocessor")
 # from importlib.resources import files
 
 from ansys.heart.preprocessor._load_template import load_template
+
 try:
     from ansys.heart.preprocessor.input import _InputBoundary, _InputModel
-except (ImportError):
+except ImportError:
     LOGGER.debug("Failed to import _InputBoundary, _InputModel")
 
 import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401

@@ -787,8 +787,8 @@ class HeartModel:
         self._assign_cavities_to_parts()
         self._extract_apex()
 
-        self._compute_left_ventricle_anatomy_axis()
-        self._compute_left_ventricle_aha17()
+        self.compute_left_ventricle_anatomy_axis()
+        self.compute_left_ventricle_aha17()
 
         if "fiber" not in self.mesh.array_names:
             LOGGER.debug("Adding placeholder for fiber direction.")
@@ -1067,7 +1067,7 @@ class HeartModel:
                             # get approximate cavity centroid to check normal of cap
                             cavity_centroid = surface.compute_centroid()
 
-                            cap.tessellate(use_centroid=True)
+                            cap.tessellate1(use_centroid=True)
 
                             p1 = surf.nodes[cap.triangles[:, 1],] - surf.nodes[cap.triangles[:, 0],]
                             p2 = surf.nodes[cap.triangles[:, 2],] - surf.nodes[cap.triangles[:, 0],]
@@ -1084,7 +1084,7 @@ class HeartModel:
                                     "pointing inward"
                                 )
                                 cap.node_ids = np.flip(cap.node_ids)
-                                cap.tessellate(use_centroid=True)
+                                cap.tessellate1(use_centroid=True)
                                 cap.normal = cap.normal * -1
 
                             self.mesh._sync_nodes_of_surfaces()
@@ -1114,7 +1114,7 @@ class HeartModel:
                     )
                     # note: flip order to make sure normal is pointing inwards
                     cap.node_ids = np.flip(cap_ref[0].node_ids)
-                    cap.tessellate(use_centroid=True)
+                    cap.tessellate1(use_centroid=True)
 
         # As a consequence we need to add interface region to endocardium of atria or ventricle
         # current approach is to add these to the atria

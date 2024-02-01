@@ -10,7 +10,15 @@ import textwrap
 from ansys.heart import LOG as LOGGER
 from ansys.heart.calibration.ivc import IVCSimulator
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
-from ansys.heart.preprocessor.models.v0_1.models import HeartModel
+
+heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
+if heart_version == "v0.2":
+    from ansys.heart.preprocessor.models.v0_2.models import HeartModel
+elif heart_version == "v0.1" or not heart_version:
+    from ansys.heart.preprocessor.models.v0_1.models import (
+        HeartModel,
+    )
+
 from ansys.heart.simulator.settings import settings
 import numpy as np
 

@@ -23,7 +23,7 @@ from ansys.heart.preprocessor.mesh.objects import (
     SurfaceMesh,
 )
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-from ansys.heart.preprocessor.model_definitions import HEART_PARTS, LABELS_TO_ID
+from ansys.heart.preprocessor.models.v0_1.model_definitions import HEART_PARTS, LABELS_TO_ID
 import meshio
 import numpy as np
 import pyvista as pv
@@ -635,7 +635,7 @@ class HeartModel:
 
         Examples
         --------
-        >>> import ansys.heart.preprocessor.models as models
+        >>> import ansys.heart.preprocessor.models.v0_1.models as models
         >>> model = models.HeartModel.load_model("heart_model.pickle")
         >>> model.plot_mesh(show_edges=True)
         """
@@ -666,7 +666,7 @@ class HeartModel:
 
         Examples
         --------
-        >>> import ansys.heart.preprocessor.models as models
+        >>> import ansys.heart.preprocessor.models.v0_1.models as models
         >>> model = models.HeartModel.load_model("my_model.pickle")
         >>> model.plot_fibers(n_seed_points=5000)
         """
@@ -699,7 +699,7 @@ class HeartModel:
         Examples
         --------
         Import modules and load model.
-        >>> import ansys.heart.preprocessor.models as models
+        >>> import ansys.heart.preprocessor.models.v0_1.models as models
         >>> model = models.HeartModel.load_model("my_model.pickle")
         Plot the model
         >>> model.plot(show_edges=True)

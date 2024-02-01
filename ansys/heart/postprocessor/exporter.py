@@ -13,7 +13,7 @@ from ansys.heart.preprocessor.mesh.vtkmethods import (
     vtk_cutter,
     write_vtkdata_to_vtkfile,
 )
-from ansys.heart.preprocessor.models import HeartModel, LeftVentricle
+from ansys.heart.preprocessor.models.v0_1.models import HeartModel, LeftVentricle
 import matplotlib.pyplot as plt
 import meshio
 import numpy as np

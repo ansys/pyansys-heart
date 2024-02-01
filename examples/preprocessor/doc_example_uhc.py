@@ -19,7 +19,7 @@ import copy
 import os
 from pathlib import Path
 
-import ansys.heart.preprocessor.models as models
+import ansys.heart.preprocessor.models.v0_1.models as models
 from ansys.heart.simulator.simulator import BaseSimulator, DynaSettings
 import pyvista as pv
 

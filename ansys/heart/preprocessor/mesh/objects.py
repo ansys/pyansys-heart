@@ -549,6 +549,7 @@ class Mesh(pv.UnstructuredGrid):
 
     def _sync_nodes_of_surfaces(self):
         """Synchronize the node array of each associated surface.
+
         Notes
         -----
         Temporary until this module is refactored.

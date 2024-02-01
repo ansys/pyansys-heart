@@ -28,7 +28,7 @@ import os
 from pathlib import Path
 
 from ansys.heart.preprocessor.mesh.objects import Point
-import ansys.heart.preprocessor.models as models
+import ansys.heart.preprocessor.models.v0_1.models as models
 from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
 
 # set working directory and path to model.

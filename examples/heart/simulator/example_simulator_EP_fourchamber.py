@@ -2,7 +2,7 @@
 import os
 import pathlib
 
-import ansys.heart.preprocessor.models as models
+import ansys.heart.preprocessor.models.v0_1.models as models
 from ansys.heart.simulator.simulator import EPSimulator
 from ansys.heart.simulator.support import run_preprocessor
 

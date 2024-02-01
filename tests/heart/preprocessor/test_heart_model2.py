@@ -1,7 +1,7 @@
 """unit test for HeartModel class"""
 import os
 
-from ansys.heart.preprocessor.models import HeartModel
+from ansys.heart.preprocessor.models.v0_1.models import HeartModel
 import meshio
 import numpy as np
 import pytest

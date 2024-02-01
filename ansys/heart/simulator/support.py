@@ -4,7 +4,7 @@ import os
 import pathlib as Path
 
 LOGGER = logging.getLogger("pyheart_global.simulator")
-import ansys.heart.preprocessor.models as models
+import ansys.heart.preprocessor.models.v0_1.models as models
 
 
 def run_preprocessor(

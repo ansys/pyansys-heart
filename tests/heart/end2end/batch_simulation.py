@@ -33,7 +33,7 @@ def main(args):
 
     #############################################################
     # package import
-    import ansys.heart.preprocessor.models as models
+    import ansys.heart.preprocessor.models.v0_1.models as models
     from ansys.heart.simulator.simulator import (
         DynaSettings,
         EPMechanicsSimulator,

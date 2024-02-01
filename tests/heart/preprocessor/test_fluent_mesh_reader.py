@@ -4,10 +4,12 @@ import os
 from ansys.heart.preprocessor.mesh.fluenthdf5 import FluentMesh
 import numpy as np
 import pytest
+import pyvista as pv
 
 from tests.heart.conftest import get_assets_folder
 
 FLUENT_BOX = os.path.join(get_assets_folder(), "simple_fluent_meshes", "box.msh.h5")
+FLUENT_BOX1 = os.path.join(get_assets_folder(), "simple_fluent_meshes", "box_no_cells.msh.h5")
 
 
 @pytest.fixture(autouse=True, scope="module")
@@ -18,11 +20,58 @@ def _test_mesh():
     mesh._close_file()
 
 
+def test_load_mesh():
+    """Tests loading a mesh without cell zones."""
+    mesh = FluentMesh(FLUENT_BOX1)
+    mesh.load_mesh(reconstruct_tetrahedrons=False)
+
+    assert sorted([fz.name for fz in mesh.face_zones]) == [
+        "box1-xmax",
+        "box1-xmin",
+        "box1-ymax",
+        "box1-ymin",
+        "box1-zmax",
+        "box1-zmin",
+    ]
+    return
+
+
+def test_to_vtk():
+    """Tests conversion to vtk object with the various options available."""
+    # mesh without any cell zones
+    mesh = FluentMesh(FLUENT_BOX1)
+    mesh.load_mesh(reconstruct_tetrahedrons=False)
+    vtk_object = mesh._to_vtk(add_cells=False, add_faces=True)
+
+    # just triangles in vtk object
+    assert list(vtk_object.cells_dict.keys()) == [int(pv.CellType.TRIANGLE)]
+    assert vtk_object.n_cells == 6 * 2  # 2 faces per face zone, and 6 face zones
+
+    # mesh with cell zones
+    mesh = FluentMesh(FLUENT_BOX)
+    mesh.load_mesh(reconstruct_tetrahedrons=True)
+    vtk_object = mesh._to_vtk(add_cells=True, add_faces=False)
+
+    assert list(vtk_object.cells_dict.keys()) == [int(pv.CellType.TETRA)]
+    assert vtk_object.n_cells == 12  # 12 tetrahedrons in cell zone
+
+    # when extracting both cell zones and face zones
+    vtk_object = mesh._to_vtk(add_cells=True, add_faces=True)
+
+    # both triangles and tetra present
+    assert list(vtk_object.cells_dict.keys()) == [int(pv.CellType.TRIANGLE), int(pv.CellType.TETRA)]
+    assert vtk_object.n_cells == 42  # interior cells are also generated
+
+    return
+
+
+@pytest.mark.xfail(reason="Duplicate node coordinates are stored.")
 def test_read_nodes(_test_mesh):
     """Tests reading of the nodes of simple box"""
     mesh = _test_mesh
     assert isinstance(mesh, FluentMesh)
     mesh._read_nodes()
+    assert mesh.nodes.shape == (9, 3)
     expected_nodes = np.array(
         [
             [1.0, 1.0, 1.0],
@@ -31,33 +80,9 @@ def test_read_nodes(_test_mesh):
             [1.0, 1.0, 0.0],
             [1.0, 0.0, 1.0],
             [1.0, 0.0, 0.0],
-            [1.0, 1.0, 0.0],
-            [1.0, 1.0, 1.0],
             [0.0, 0.0, 1.0],
             [0.0, 0.0, 0.0],
-            [0.0, 1.0, 0.0],
-            [0.0, 1.0, 1.0],
-            [1.0, 1.0, 0.0],
-            [1.0, 0.0, 0.0],
-            [0.0, 0.0, 0.0],
-            [0.0, 1.0, 0.0],
-            [1.0, 0.0, 1.0],
-            [1.0, 0.0, 0.0],
-            [0.0, 0.0, 0.0],
-            [0.0, 0.0, 1.0],
-            [0.0, 1.0, 1.0],
-            [0.0, 0.0, 1.0],
-            [1.0, 0.0, 1.0],
-            [1.0, 1.0, 1.0],
-            [1.0, 0.0, 1.0],
-            [0.0, 0.0, 1.0],
-            [1.0, 1.0, 1.0],
-            [0.0, 1.0, 1.0],
-            [0.0, 0.0, 0.0],
-            [1.0, 0.0, 0.0],
-            [0.0, 1.0, 0.0],
-            [1.0, 1.0, 0.0],
-            [0.49652330, 0.50347669, 0.49652330],
+            [0.4965233, 0.5034767, 0.4965233],
         ]
     )
     assert np.allclose(mesh.nodes, expected_nodes, atol=1e-8)

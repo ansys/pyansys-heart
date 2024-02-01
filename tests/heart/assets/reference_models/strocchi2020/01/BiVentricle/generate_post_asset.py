@@ -6,7 +6,7 @@ d3plot is used as reference to test Post-process module
 
 wye
 """
-import ansys.heart.preprocessor.models as models
+import ansys.heart.preprocessor.models.v0_1.models as models
 import ansys.heart.writer.dynawriter as writers
 
 model = models.HeartModel.load_model("heart_model.pickle")

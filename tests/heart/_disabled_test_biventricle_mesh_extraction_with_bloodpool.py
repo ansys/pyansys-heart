@@ -3,7 +3,7 @@ expected features."""
 import os
 import shutil
 
-import ansys.heart.preprocessor.models as models
+import ansys.heart.preprocessor.models.v0_1.models as models
 from ansys.heart.simulator.support import run_preprocessor
 import numpy as np
 import pytest

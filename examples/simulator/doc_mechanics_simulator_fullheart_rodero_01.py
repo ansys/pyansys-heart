@@ -23,7 +23,7 @@ stress free configuration, and finally simulate the mechanical model.
 import os
 from pathlib import Path
 
-import ansys.heart.preprocessor.models as models
+import ansys.heart.preprocessor.models.v0_1.models as models
 from ansys.heart.simulator.simulator import DynaSettings, MechanicsSimulator
 
 # set working directory and path to model.

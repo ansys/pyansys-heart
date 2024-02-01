@@ -22,7 +22,7 @@ from importlib.resources import path as resource_path
 
 from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-from ansys.heart.preprocessor.models import (
+from ansys.heart.preprocessor.models.v0_1.models import (
     BiVentricle,
     FourChamber,
     FullHeart,

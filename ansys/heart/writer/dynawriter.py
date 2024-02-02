@@ -1479,6 +1479,21 @@ class MechanicsDynaWriter(BaseDynaWriter):
         material_settings = copy.deepcopy(self.settings.mechanics.material)
         material_settings._remove_units()
 
+        def _add_linear_constraint(id: int, slave_id: int, master_ids: List[int]) -> list:
+            res = []
+            for dof in range(1, 4):
+                # center node
+                k = keywords.ConstrainedLinearGlobal(
+                    licd=3 * id + dof, nid=slave_id, dof=dof, coef=1.0
+                )
+                r = k.dumps() + "\n"
+                # edge nodes
+                for m_id in master_ids:
+                    # r += f"{m_id}, {dof}, -{1/len(master_ids)}\n"
+                    r += "{0:10d}{1:10d}{2:10.5f}\n".format(m_id, dof, -1 / len(master_ids))
+                res.append(r[:-1])  # remove \n
+            return res
+
         # caps are rigid in zerop
         if type(self) == ZeroPressureMechanicsDynaWriter:
             material_kw = keywords.MatRigid(
@@ -1554,7 +1569,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     s = "$" + node_kw.write()
                     self.kw_database.nodes.append(s)
 
-                # # # center node constraint: average of all edge nodes
+                    # center node constraint: average form edge nodes
+                    n = len(cap.node_ids) // 7  # select n+1 node for interpolation
+                    constraint_list = _add_linear_constraint(
+                        len(cap_names_used), cap.centroid_id + 1, cap.node_ids[::n] + 1
+                    )
+                    self.kw_database.cap_elements.extend(constraint_list)
+
+                # # # do not work with mpp
                 # # constraint = keywords.ConstrainedInterpolation(
                 # #     icid=len(cap_names_used) + 1,
                 # #     dnid=cap.centroid_id + 1,

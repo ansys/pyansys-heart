@@ -3964,7 +3964,7 @@ class UHCWriter(BaseDynaWriter):
             exit()
 
         # compare closest point with TV nodes, top region should be far with TV node set
-        tv_tree = spatial.cKDTree(atrium.points[atrium.point_data["tricuspid-valve"] == 1])
+        tv_tree = spatial.cKDTree(atrium.points[atrium.point_data["tricuspid-valve2"] == 1])
         min_dst = -1.0
         for i in range(3):
             current_min_dst = np.min(tv_tree.query(x.points[x.point_data["RegionId"] == i])[0])
@@ -3992,7 +3992,7 @@ class UHCWriter(BaseDynaWriter):
             origin=cut_center, normal=cut_normal, crinkle=True, return_clipped=True
         )
         # ids in full mesh
-        tv_s_ids = septum["point_ids"][np.where(septum["tricuspid-valve"] == 1)]
+        tv_s_ids = septum["point_ids"][np.where(septum["tricuspid-valve2"] == 1)]
 
         tv_s_ids_sub = np.where(np.isin(atrium["point_ids"], tv_s_ids))[0]
         atrium["tv_s"] = np.zeros(atrium.n_points)
@@ -4001,7 +4001,7 @@ class UHCWriter(BaseDynaWriter):
         kw = create_node_set_keyword(tv_s_ids_sub + 1, node_set_id=12, title="tv_septum")
         self.kw_database.node_sets.append(kw)
 
-        tv_w_ids = free_wall["point_ids"][np.where(free_wall["tricuspid-valve"] == 1)]
+        tv_w_ids = free_wall["point_ids"][np.where(free_wall["tricuspid-valve2"] == 1)]
         tv_w_ids_sub = np.where(np.isin(atrium["point_ids"], tv_w_ids))[0]
         # remove re constraint nodes
         tv_w_ids_sub = np.setdiff1d(tv_w_ids_sub, tv_s_ids_sub)

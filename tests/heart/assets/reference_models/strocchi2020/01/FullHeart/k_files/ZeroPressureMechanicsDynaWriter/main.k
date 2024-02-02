@@ -86,14 +86,16 @@ $# maxiter                                                                target
          3nodes.k                                                               
 $#  method      step       tol
          2       1.0       5.0
-*SET_PART_LIST_GENERATE
+*SET_PART_LIST
 $#     sid       da1       da2       da3       da4    solver
-       999       0.0       0.0       0.0       0.0MECH      
-$#   b1beg     b1end     b2beg     b2end     b3beg     b3end     b4beg     b4end
-         1        19                                                            
+         1       0.0       0.0       0.0       0.0MECH      
+$#   parts     parts     parts     parts     parts     parts     parts     parts
+         1         2         3         4         5         6         7         8
+         9        10        11        12        13        14        15        16
+        17        18
 *INTERFACE_SPRINGBACK_LSDYNA
 $#    psid      nshv     ftype              ftensr    nthhsv     rflag   intstrn
-       999       999         3                   0                   1          
+         1       999         3                   0                   1          
 $#    optc      sldo      ncyc    fsplit    ndflag     cflag     hflag
 OPTCARD            0                   0         1         1         1
 *INTERFACE_SPRINGBACK_EXCLUDE

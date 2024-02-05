@@ -1924,7 +1924,14 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         partset_id = self.get_unique_partset_id()
         kw = keywords.SetPartList(sid=partset_id)
-        kw.parts._data = save_part_ids
+        # kw.parts._data = save_part_ids
+        # NOTE: when len(save_part_ids) = 8/16, dynalib bugs
+        str = "\n"
+        for i, id in enumerate(save_part_ids):
+            str += "{0:10d}".format(id)
+            if (i + 1) % 8 == 0:
+                str += "\n"
+        kw = kw.write() + str
 
         self.kw_database.main.append(kw)
 

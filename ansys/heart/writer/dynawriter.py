@@ -3866,6 +3866,10 @@ class UHCWriter(BaseDynaWriter):
             self._keep_parts(parts_to_keep)
         elif self.type == "la_fiber":
             parts_to_keep = ["Left atrium"]
+            #  A manual point for LA fiber
+            for key, value in kwargs.items():
+                if key == "laa":
+                    self.left_appendage_apex = value
         elif self.type == "ra_fiber":
             parts_to_keep = ["Right atrium"]
             #  A manual point for RA fiber
@@ -4060,6 +4064,15 @@ class UHCWriter(BaseDynaWriter):
             # Add info to pyvista object (RA fiber use this)
             atrium[cap.name] = np.zeros(atrium.n_points, dtype=int)
             atrium[cap.name][ids_sub] = 1
+
+        if self.type == "la_fiber" and hasattr(self, "left_appendage_apex"):
+            import scipy.spatial as spatial
+
+            tree = spatial.cKDTree(atrium.points)
+            # radius = 1.5 mm
+            laa_ids = np.array(tree.query_ball_point(self.left_appendage_apex, 1.5))
+            kw = create_node_set_keyword(laa_ids + 1, node_set_id=2, title="left atrium appendage")
+            self.kw_database.node_sets.append(kw)
 
         # endo nodes ID
         ids_endo = np.where(np.isin(atrium["point_ids"], self.model.parts[0].endocardium.node_ids))[

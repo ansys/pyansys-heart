@@ -1062,6 +1062,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 active_dict = material_settings.myocardium["active"]
 
         for part in self.model.parts:
+            if part.name == "simpleware valves":
+                material_kw = keywords.MatRigid(
+                    mid=part.mid,
+                    ro=material_settings.cap["rho"],
+                    e=1.0,  # MPa
+                )
+                self.kw_database.material.append(material_kw)
+                continue
+
             if part.has_fiber:
                 if part.is_active:
                     material_kw = MaterialHGOMyocardium(

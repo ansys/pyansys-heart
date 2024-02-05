@@ -5,6 +5,7 @@ Note
 Uses a HeartModel (from ansys.heart.preprocessor.models).
 
 """
+
 import copy
 import json
 
@@ -3903,9 +3904,12 @@ class UHCWriter(BaseDynaWriter):
         # remove unnecessary mesh
         if self.type == "uvc":
             elems_to_keep = []
-            elems_to_keep.extend(model.parts[0].element_ids)
-            elems_to_keep.extend(model.parts[1].element_ids)
-            elems_to_keep.extend(model.parts[2].element_ids)
+            if isinstance(self.model, LeftVentricle):
+                elems_to_keep.extend(model.parts[0].element_ids)
+            else:
+                elems_to_keep.extend(model.parts[0].element_ids)
+                elems_to_keep.extend(model.parts[1].element_ids)
+                elems_to_keep.extend(model.parts[2].element_ids)
 
             model.mesh.clear_data()
             model.mesh["cell_ids"] = np.arange(0, model.mesh.n_cells, dtype=int)
@@ -3931,14 +3935,14 @@ class UHCWriter(BaseDynaWriter):
 
             self.target = model.mesh.extract_cells(model.parts[0].element_ids)
 
-        if self.type == "la_fiber":
-            if 6 != len(self.model.parts[0].caps):
-                LOGGER.error("Input left atrium is not suitable for set up BC.")
-                exit(-1)
-        elif self.type == "ra_fiber":
-            if 3 != len(self.model.parts[0].caps):
-                LOGGER.error("Input left atrium is not suitable for set up BC.")
-                exit(-1)
+        # if self.type == "la_fiber":
+        #     if 6 != len(self.model.parts[0].caps):
+        #         LOGGER.error("Input left atrium is not suitable for set up BC.")
+        #         exit(-1)
+        # elif self.type == "ra_fiber":
+        #     if 3 != len(self.model.parts[0].caps):
+        #         LOGGER.error("Input left atrium is not suitable for set up BC.")
+        #         exit(-1)
 
     def additional_right_atrium_bc(self, atrium: pv.UnstructuredGrid):
         """
@@ -4065,7 +4069,8 @@ class UHCWriter(BaseDynaWriter):
                     set_id = 8
                 elif "inferior" in cap.name:
                     set_id = 9
-
+            else:
+                set_id = 99
             return set_id
 
         id_sorter = np.argsort(atrium["point_ids"])

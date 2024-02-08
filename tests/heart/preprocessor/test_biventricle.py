@@ -1,5 +1,6 @@
 """Functional test to determine whether generated biventricle model has all the
 expected features."""
+
 import glob
 import os
 import pathlib
@@ -75,6 +76,21 @@ def extract_bi_ventricle():
     workdir = os.path.join(get_workdir(), "BiVentricle")
     path_to_model = os.path.join(workdir, "heart_model.pickle")
 
+    # copy mesh file
+    if not os.path.isdir(workdir):
+        os.makedirs(workdir)
+    shutil.copyfile(
+        os.path.join(
+            assets_folder,
+            "reference_models",
+            "strocchi2020",
+            "01",
+            "BiVentricle",
+            "fluent_volume_mesh.msh.h5",
+        ),
+        os.path.join(workdir, "fluent_volume_mesh.msh.h5"),
+    )
+
     global model
     model = run_preprocessor(
         model_type=models.BiVentricle,
@@ -83,6 +99,7 @@ def extract_bi_ventricle():
         work_directory=workdir,
         path_to_model=path_to_model,
         mesh_size=2,
+        skip_meshing=True,
     )
 
     yield

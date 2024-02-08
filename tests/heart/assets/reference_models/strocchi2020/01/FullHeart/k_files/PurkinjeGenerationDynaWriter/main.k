@@ -3,14 +3,14 @@
 $#  purkid  buildnet      ssid       mid nodestart  pointstx  pointsty  pointstz
          1         1         3         4           66.736682 75.576275 353.68325
 $# edgelen      ngen   nbrinit    nsplit   inodeid   iedgeid
-         2        50         8         2     69654    303878
+         2        50         8         2     69755    304528
 $# pmjtype pmjradiuspmjrestype    pmjres
          1       0.7         1     0.001
 *EM_EP_PURKINJE_NETWORK2
 $#  purkid  buildnet      ssid       mid nodestart  pointstx  pointsty  pointstz
          2         1         5         5           45.553674 77.017271 333.74565
 $# edgelen      ngen   nbrinit    nsplit   inodeid   iedgeid
-         2        50         8         2    139306    607754
+         2        50         8         2    139508    609054
 $# pmjtype pmjradiuspmjrestype    pmjres
          1       0.7         1     0.001
 *INCLUDE

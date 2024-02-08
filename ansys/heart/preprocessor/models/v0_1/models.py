@@ -322,7 +322,7 @@ class HeartModel:
 
         return beam_net
 
-    def extract_simulation_mesh(self, clean_up: bool = False) -> None:
+    def extract_simulation_mesh(self, clean_up: bool = False, skip_meshing: bool = False) -> None:
         """Update the model.
 
         Examples
@@ -503,7 +503,7 @@ class HeartModel:
             self.read_input_mesh()
             self._remove_unused_tags()
             self._prepare_for_meshing()
-            self._remesh()
+            self._remesh(skip_meshing=skip_meshing)
             self._update_parts()
 
         if clean_up:
@@ -1049,7 +1049,7 @@ class HeartModel:
 
         return
 
-    def _remesh(self, post_mapping: bool = True) -> None:
+    def _remesh(self, post_mapping: bool = True, skip_meshing: bool = False) -> None:
         """
         Use the generated files to remesh the surfaces and volume.
 
@@ -1059,7 +1059,7 @@ class HeartModel:
             Mapping raw mesh data to new mesh
         """
         path_mesh_file = os.path.join(self.info.workdir, "fluent_volume_mesh.msh.h5")
-        if os.path.exists(path_mesh_file):
+        if os.path.exists(path_mesh_file) and skip_meshing:
             LOGGER.info("Fluent mesh file detected and will be used.")
         else:
             LOGGER.info("Remeshing volume with Fluent")

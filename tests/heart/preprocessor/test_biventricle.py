@@ -146,9 +146,6 @@ def test_mesh():
         PurkinjeGenerationDynaWriter,
     ],
 )
-@pytest.mark.xfail(
-    sys.platform == "linux", reason="Mesh generation slightly different for Linux version of Fluent"
-)
 def test_writers(writer_class):
     """Test whether all writers yield the same .k files as the reference model.
 

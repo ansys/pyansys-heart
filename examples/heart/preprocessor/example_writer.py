@@ -1,8 +1,8 @@
-"""Example to pre-process data from Strocchi2020 and Cristobal2021."""
+"""Example to pre-process data from Strocchi2020 and Rodero2021."""
 import os
 import pathlib
 
-import ansys.heart.preprocessor.models as models
+import ansys.heart.preprocessor.models.v0_1.models as models
 from ansys.heart.simulator.support import run_preprocessor
 import ansys.heart.writer.dynawriter as writers
 

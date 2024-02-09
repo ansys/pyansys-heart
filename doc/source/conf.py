@@ -3,7 +3,7 @@ from datetime import datetime
 import os
 
 from ansys.heart._version import __version__
-from ansys_sphinx_theme import get_version_match, pyansys_logo_black
+from ansys_sphinx_theme import ansys_favicon, get_version_match, pyansys_logo_black
 
 # Project information
 project = "pyansys-heart"
@@ -17,6 +17,7 @@ html_logo = pyansys_logo_black
 html_theme = "ansys_sphinx_theme"
 
 html_short_title = html_title = "pyansys-heart"
+html_favicon = ansys_favicon
 
 # specify the location of your github repo
 html_theme_options = {

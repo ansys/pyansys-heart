@@ -1,14 +1,17 @@
 """Module that defines some classes for settings."""
 
 import copy
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 import json
 import os
 import pathlib
 from typing import List, Literal
 
 from ansys.heart import LOG as LOGGER
+from ansys.heart.simulator.settings.defaults import electrophysiology as ep_defaults
+from ansys.heart.simulator.settings.defaults import fibers as fibers_defaults
 from ansys.heart.simulator.settings.defaults import mechanics as mech_defaults
+from ansys.heart.simulator.settings.defaults import purkinje as purkinje_defaults
 from ansys.heart.simulator.settings.defaults import zeropressure as zero_pressure_defaults
 from pint import Quantity, UnitRegistry
 import yaml
@@ -72,7 +75,7 @@ class Settings:
             for k, v in d.items():
                 if isinstance(v, (dict, AttrDict, Settings)):
                     _to_consitent_units(v)
-                elif isinstance(v, Quantity):
+                elif isinstance(v, Quantity) and not (v.unitless):
                     # print(f"key: {k} | units {v.units}")
                     if "[substance]" in list(v.dimensionality):
                         LOGGER.warning("Not converting [substance] / [length]^3")
@@ -107,17 +110,17 @@ class Settings:
 class Analysis(Settings):
     """Class for analysis settings."""
 
-    end_time: Quantity = 0
+    end_time: Quantity = Quantity(0, "s")
     """End time of the simulation."""
-    dtmin: Quantity = 0
+    dtmin: Quantity = Quantity(0, "s")
     """Minimum time-step of simulation."""
-    dtmax: Quantity = 0
+    dtmax: Quantity = Quantity(0, "s")
     """Maximum time-step of simulation."""
-    dt_d3plot: Quantity = 0
+    dt_d3plot: Quantity = Quantity(0, "s")
     """Time-step of d3plot export."""
-    dt_icvout: Quantity = 0
+    dt_icvout: Quantity = Quantity(0, "s")
     """Time-step of icvout export."""
-    global_damping: Quantity = 0
+    global_damping: Quantity = Quantity(0, "1/s")
     """Global damping constant."""
 
 
@@ -131,6 +134,21 @@ class Material(Settings):
     """Atrial material."""
     cap: AttrDict = None
     """Cap material."""
+
+
+@dataclass(repr=False)
+class EpMaterial(Settings):
+    """Class for storing ep material settings."""
+
+    myocardium: AttrDict = None
+    """Myocardium material."""
+    atrium: AttrDict = None
+    """Atrial material."""
+    cap: AttrDict = None
+    """Cap material."""
+    beam: AttrDict = None
+    """beam material."""
+    # TODO consider 'other', e.g passive conductor, soft tissue...?
 
 
 @dataclass(repr=False)
@@ -162,13 +180,13 @@ class SystemModel(Settings):
 class Mechanics(Settings):
     """Class for keeping track of settings."""
 
-    analysis: Analysis = Analysis()
+    analysis: Analysis = field(default_factory=lambda: Analysis())
     """Generic analysis settings."""
-    material: Material = Material()
+    material: Material = field(default_factory=lambda: Material())
     """Material settings/configuration."""
-    boundary_conditions: BoundaryConditions = BoundaryConditions()
+    boundary_conditions: BoundaryConditions = field(default_factory=lambda: BoundaryConditions())
     """Boundary condition specifications."""
-    system: SystemModel = SystemModel()
+    system: SystemModel = field(default_factory=lambda: SystemModel())
     """System model settings."""
 
 
@@ -191,7 +209,7 @@ class AnalysisZeroPressure(Analysis):
 class ZeroPressure(Settings):
     """Class for keeping track of settings for stress-free-configuration computation."""
 
-    analysis: AnalysisZeroPressure = AnalysisZeroPressure()
+    analysis: AnalysisZeroPressure = field(default_factory=lambda: AnalysisZeroPressure())
     """Generic analysis settings."""
 
 
@@ -199,7 +217,9 @@ class ZeroPressure(Settings):
 class Electrophysiology(Settings):
     """Class for keeping track of electrophysiology settings."""
 
-    analysis: Analysis = Analysis()
+    material: EpMaterial = field(default_factory=lambda: EpMaterial())
+    """Material settings/configuration."""
+    analysis: Analysis = field(default_factory=lambda: Analysis())
     """Generic analysis settings."""
 
 
@@ -207,12 +227,36 @@ class Electrophysiology(Settings):
 class Fibers(Settings):
     """Class for keeping track of fiber settings."""
 
-    # what parameters to expose?
+    alpha_endo: Quantity = 0
+    "Helical angle in endocardium."
+    alpha_epi: Quantity = 0
+    "Helical angle in epicardium."
+    beta_endo: Quantity = 0
+    "Angle to the outward transmural axis of the heart in endocardium."
+    beta_epi: Quantity = 0
+    "Angle to the outward transmural axis of the heart in epicardium."
+    beta_endo_septum: Quantity = 0
+    "Angle to the outward transmural axis of the heart in left septum."
+    beta_epi_septum: Quantity = 0
+    "Angle to the outward transmural axis of the heart in right septum."
 
 
 @dataclass(repr=False)
 class Purkinje(Settings):
     """Class for keeping track of purkinje settings."""
+
+    edgelen: Quantity = 0
+    """Edge length."""
+    ngen: Quantity = 0
+    """Number of generations."""
+    nbrinit: Quantity = 0
+    """Number of beams from origin point."""
+    nsplit: Quantity = 0
+    """Number of splits at each leaf."""
+    pmjtype: Quantity = 0
+    """Purkinje muscle junction type."""
+    pmjradius: Quantity = 0
+    """Purkinje muscle junction radius."""
 
 
 class SimulationSettings:
@@ -451,10 +495,19 @@ class SimulationSettings:
                 A.set_values(zero_pressure_defaults.analysis)
                 self.stress_free.analysis = A
 
-            elif isinstance(getattr(self, attr), (Electrophysiology, Fibers, Purkinje)):
-                LOGGER.warning(
-                    "Reading EP, Fiber, ZeroPressure, and Purkinje settings not yet supported."
-                )
+            if isinstance(getattr(self, attr), Electrophysiology):
+                A = Analysis()
+                A.set_values(ep_defaults.analysis)
+                M = EpMaterial()
+                M.set_values(ep_defaults.material)
+                self.electrophysiology.analysis = A
+                self.electrophysiology.material = M
+                # TODO add stim params, monodomain/bidomain/eikonal,cellmodel
+            # TODO add settings for purkinje  fibers and epmecha
+            if isinstance(getattr(self, attr), Fibers):
+                self.fibers.set_values(fibers_defaults.angles)
+            if isinstance(getattr(self, attr), Purkinje):
+                self.purkinje.set_values(purkinje_defaults.build)
 
     def to_consistent_unit_system(self):
         """Convert all settings to consistent unit-system ["MPa", "mm", "N", "ms", "g"].
@@ -565,11 +618,19 @@ _base_quantity_unit_mapper = {
     "[length]": "mm",
     "[mass]": "g",
     "[substance]": "umol",
+    "[current]": "mA",
 }
 # these are derived quantities:
 _derived = [
-    [Quantity(30, "MPa").dimensionality, Quantity(30, "N").dimensionality],
-    ["MPa", "N"],
+    [
+        Quantity(30, "MPa").dimensionality,
+        Quantity(30, "N").dimensionality,
+        Quantity(30, "mS/mm").dimensionality,
+        Quantity(30, "uF/mm^2").dimensionality,
+        Quantity(30, "1/mS").dimensionality,
+        Quantity(30, "degree").dimensionality,
+    ],
+    ["MPa", "N", "mS/mm", "uF/mm^2", "1/mS", "degree"],
 ]
 
 

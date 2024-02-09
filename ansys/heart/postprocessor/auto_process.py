@@ -246,9 +246,9 @@ def orthogonalization(grid) -> pv.UnstructuredGrid:
     norm = np.linalg.norm(grid["grad_trans"], axis=1)
     bad_cells = np.argwhere(norm == 0).ravel()
 
-    print(
-        f"{len(bad_cells)} cells has null gradient in trans direction."
-        f" They should only at valve regions and can be checked from vtk file."
+    LOGGER.debug(
+        f"{len(bad_cells)} cells have null gradient in transmural direction."
+        f" This should only be at valve regions and can be checked from the vtk file."
     )
 
     # grad_trans_new = grid["grad_trans"]

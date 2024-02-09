@@ -1,4 +1,4 @@
-"""Version of ansys-dyna-keywords library.
+"""Version of pyansys-heart library.
 
 On the ``main`` branch, use 'dev0' to denote a development version.
 For example:

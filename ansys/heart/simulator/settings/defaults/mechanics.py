@@ -2,16 +2,16 @@
 from pint import Quantity
 
 heart = {
-    "cycles": 3,
+    "cycles": 1,
     "beat_time": Quantity(800, "ms"),
 }
 
 """Generic analysis settings."""
 analysis = {
     "end_time": heart["cycles"] * heart["beat_time"],
-    "dtmin": Quantity(10.0, "ms"),
-    "dtmax": Quantity(10.0, "ms"),
-    "dt_d3plot": heart["beat_time"] / 20,
+    "dtmin": Quantity(1.0, "ms"),
+    "dtmax": Quantity(1.0, "ms"),
+    "dt_d3plot": heart["beat_time"] / 40,
     "dt_icvout": Quantity(10.0, "ms"),
     "global_damping": Quantity(0.1, "1/ms"),
 }
@@ -32,13 +32,31 @@ reference:
 
 material = {
     "myocardium": {
+        # # Sack et.al
+        # "isotropic": {
+        #     "rho": Quantity(0.001, "g/mm^3"),
+        #     "nu": 0.49,
+        #     "k1": Quantity(1.05e-3, "MPa"),
+        #     "k2": Quantity(7.542),
+        # },
+        # "anisotropic": {
+        #     "k1f": Quantity(3.465e-3, "MPa"),
+        #     "k2f": Quantity(14.472, "dimensionless"),
+        #     "k1f": Quantity(0.481e-3, "MPa"),
+        #     "k2f": Quantity(12.548, "dimensionless"),
+        #     "k1f": Quantity(0.283, "MPa"),
+        #     "k2f": Quantity(3.088, "dimensionless"),
+        # },
         "isotropic": {
             "rho": Quantity(0.001, "g/mm^3"),
             "nu": 0.499,
             "k1": Quantity(0.0023599999999999997, "MPa"),
             "k2": Quantity(1.75),
         },
-        "anisotropic": {"k1f": Quantity(0.00049, "MPa"), "k2f": Quantity(9.01, "dimensionless")},
+        "anisotropic": {
+            "k1f": Quantity(0.00049, "MPa"),
+            "k2f": Quantity(9.01, "dimensionless"),
+        },
         "active": {
             "actype": 1,
             "beat_time": heart["beat_time"],
@@ -72,8 +90,8 @@ boundary_conditions = {
     },
     "end_diastolic_cavity_pressure": {
         ## https://doi.org/10.3389/fphys.2018.00539
-        "left_ventricle": Quantity(15, "mmHg"),
-        "right_ventricle": Quantity(4, "mmHg"),
+        "left_ventricle": Quantity(15, "mmHg"),  # the same for left atrium if exist
+        "right_ventricle": Quantity(8, "mmHg"),  # the same for right atrium if exist
         # # https://doi.org/10.1016/j.jbiomech.2020.109645
         # "left_ventricle": Quantity(18.0, "mmHg"),
         # "right_ventricle": Quantity(9.54, "mmHg"),

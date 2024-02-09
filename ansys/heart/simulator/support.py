@@ -4,7 +4,7 @@ import os
 import pathlib as Path
 
 LOGGER = logging.getLogger("pyheart_global.simulator")
-import ansys.heart.preprocessor.models as models
+import ansys.heart.preprocessor.models.v0_1.models as models
 
 
 def run_preprocessor(
@@ -24,7 +24,7 @@ def run_preprocessor(
     model_type : models.HeartModel
         Type of model. Valid values include: LeftVentricle, BiVentricle, FourChamber, FullHeart
     database : str
-        Name of the database. Either "Strocchi2020" or "Cristobal2021"
+        Name of the database. Either "Strocchi2020" or "Rodero2021"
     path_original_mesh : Path
         Path to the input mesh file
     work_directory : Path

@@ -1,4 +1,5 @@
 """Script used to post process simulations automatically."""
+
 import copy
 import glob
 import json
@@ -13,7 +14,7 @@ from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.postprocessor.exporter import LVContourExporter
 from ansys.heart.preprocessor.mesh.objects import Cavity, SurfaceMesh
-from ansys.heart.simulator.settings.settings import SimulationSettings
+from ansys.heart.simulator.settings.settings import AtrialFiber, SimulationSettings
 import matplotlib.pyplot as plt
 import numpy as np
 import pyvista as pv
@@ -292,7 +293,7 @@ def get_gradient(directory, field_list: List[str]) -> pv.UnstructuredGrid:
     return grid2
 
 
-def compute_la_fiber_cs(directory) -> pv.UnstructuredGrid:
+def compute_la_fiber_cs(directory: str, settings: AtrialFiber) -> pv.UnstructuredGrid:
     """Compute left atrium fibers coordinate system."""
 
     def bundle_selection(grid) -> pv.UnstructuredGrid:
@@ -300,9 +301,9 @@ def compute_la_fiber_cs(directory) -> pv.UnstructuredGrid:
         # grid = pv.read(os.path.join(directory, "res.vtk"))
 
         # bundle selection
-        tau_mv = 0.65
-        tau_lpv = 0.65
-        tau_rpv = 0.1
+        tau_mv = settings.tau_mv  # 0.65
+        tau_lpv = settings.tau_lpv  # 0.65
+        tau_rpv = settings.tau_rpv  # 0.1
 
         grid["k"] = np.zeros((grid.n_cells, 3))
         grid["bundle"] = np.zeros(grid.n_cells, dtype=int)
@@ -311,11 +312,11 @@ def compute_la_fiber_cs(directory) -> pv.UnstructuredGrid:
         grid["k"][mask_mv] = grid["grad_r"][mask_mv]
         grid["bundle"][mask_mv] = 1
 
-        mask = np.invert(mask_mv) & (grid["v"] > tau_lpv)
+        mask = np.invert(mask_mv) & (grid["v"] < tau_lpv)
         grid["k"][mask] = grid["grad_v"][mask]
         grid["bundle"][mask] = 2
 
-        mask = np.invert(mask_mv) & (grid["v"] < tau_rpv)
+        mask = np.invert(mask_mv) & (grid["v"] > tau_rpv)
         grid["k"][mask] = grid["grad_v"][mask]
         grid["bundle"][mask] = 3
 
@@ -341,20 +342,19 @@ def compute_la_fiber_cs(directory) -> pv.UnstructuredGrid:
     return grid
 
 
-def compute_ra_fiber_cs(directory) -> pv.UnstructuredGrid:
+def compute_ra_fiber_cs(directory: str, settings: AtrialFiber) -> pv.UnstructuredGrid:
     """Compute right atrium fibers coordinate system."""
 
     def bundle_selection(grid) -> pv.UnstructuredGrid:
         """Left atrium bundle selection."""
-        # Ideal RA geometry
-        tao_tv = 0.9
-        tao_raw = 0.55
-        tao_ct_minus = -0.18
-        tao_ct_plus = -0.1
-        tao_icv = 0.9
-        tao_scv = 0.1
-        tao_ib = 0.35
-        tao_ras = 0.135
+        tao_tv = settings.tau_tv  # 0.9
+        tao_raw = settings.tau_raw  # 0.55
+        tao_ct_minus = settings.tau_ct_minus  # -0.18
+        tao_ct_plus = settings.tau_ct_plus  # -0.1
+        tao_icv = settings.tau_icv  # 0.9
+        tao_scv = settings.tau_scv  # 0.1
+        tao_ib = settings.tau_ib  # 0.35
+        tao_ras = settings.tau_ras  # 0.135
 
         trans = grid["trans"]
         ab = grid["ab"]

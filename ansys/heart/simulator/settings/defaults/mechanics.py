@@ -57,15 +57,16 @@ material = {
             "k1f": Quantity(0.00049, "MPa"),
             "k2f": Quantity(9.01, "dimensionless"),
         },
+        # no effect if EM coupled
         "active": {
-            "actype": 1,
+            "actype": 1,  # or 3
             "beat_time": heart["beat_time"],
             "taumax": Quantity(0.125, "MPa"),
             "ss": 0.0,
             "sn": 0.0,
         },
     },
-    "atrium": {
+    "passive": {
         "type": "NeoHook",  # or 'MAT295'
         "rho": Quantity(0.001, "g/mm^3"),
         "itype": -1,

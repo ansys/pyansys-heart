@@ -1083,45 +1083,49 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             else:
                 # add isotropic material
-                if material_settings.atrium["type"] == "NeoHook":
+                if material_settings.passive["type"] == "NeoHook":
                     # use MAT77H
                     material_kw = MaterialNeoHook(
                         mid=part.mid,
-                        rho=material_settings.atrium["rho"],
-                        c10=material_settings.atrium["mu1"] / 2,
+                        rho=material_settings.passive["rho"],
+                        c10=material_settings.passive["mu1"] / 2,
                     )
                 else:
                     # use MAT295, should have the same behavior
                     material_kw = MaterialHGOMyocardium(
-                        mid=part.mid, iso_user=dict(material_settings.atrium)
+                        mid=part.mid, iso_user=dict(material_settings.passive)
                     )
 
             self.kw_database.material.append(material_kw)
 
         # Add Ca2+ curve if necessary
         if add_active and not em_couple:
-            # write and add active curve to material database
-            if material_settings.myocardium["active"]["actype"] == 1:
-                time_array, calcium_array = active_curve("constant")
-            elif material_settings.myocardium["active"]["actype"] == 2:
-                time_array, calcium_array = active_curve("Strocchi2020")
-
-            active_curve_kw = create_define_curve_kw(
-                x=time_array,
-                y=calcium_array,
-                curve_name="calcium_concentration",
-                curve_id=act_curve_id,
-                lcint=10000,
-            )
-
-            # x scaling from beat rate
-            active_curve_kw.sfa = material_settings.myocardium["active"]["beat_time"]
-            # y scaling from Ca2
-            active_curve_kw.sfo = 4.35  # same with material ca2ionmax
-
-            self.kw_database.material.append(active_curve_kw)
+            kw = self.add_active_curve(act_curve_id, material_settings)
+            self.kw_database.material.append(kw)
 
         return
+
+    @staticmethod
+    def add_active_curve(act_curve_id, material_settings):
+        """Add Active curve to material database."""
+        if material_settings.myocardium["active"]["actype"] == 1:
+            time_array, calcium_array = active_curve("constant")
+        elif material_settings.myocardium["active"]["actype"] == 2:
+            time_array, calcium_array = active_curve("Strocchi2020")
+
+        curve_kw = create_define_curve_kw(
+            x=time_array,
+            y=calcium_array,
+            curve_name="calcium_concentration",
+            curve_id=act_curve_id,
+            lcint=10000,
+        )
+
+        # x scaling from beat rate
+        curve_kw.sfa = material_settings.myocardium["active"]["beat_time"]
+        # y scaling from Ca2
+        curve_kw.sfo = 4.35  # same with material ca2ionmax
+        return curve_kw
 
     def _add_cap_bc(self, bc_type: str):
         """Add boundary condition to the cap.

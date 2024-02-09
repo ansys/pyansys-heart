@@ -431,7 +431,9 @@ def compute_ra_fiber_cs(
         raw = 4
         ct = 5
         ib = 6
-        ras = 7
+        ras_top = 7
+        ras_center = 9
+        ras_bottom = 10
         raw_ist_raa = 8
 
         for i in range(grid.n_cells):
@@ -466,10 +468,10 @@ def compute_ra_fiber_cs(
                                 tag[i] = ib
                             elif w[i] > tao_ras:
                                 k[i] = r_grad[i]
-                                tag[i] = ras
+                                tag[i] = ras_center
                             else:
                                 k[i] = w_grad[i]
-                                tag[i] = ras
+                                tag[i] = ras_top
                 else:
                     if v[i] >= tao_icv or v[i] <= tao_scv:
                         k[i] = v_grad[i]
@@ -480,7 +482,7 @@ def compute_ra_fiber_cs(
                     else:
                         if w[i] >= 0:
                             k[i] = r_grad[i]
-                            tag[i] = ras
+                            tag[i] = ras_bottom
                         else:
                             k[i] = ab_grad[i]
                             tag[i] = raw_ist_raa

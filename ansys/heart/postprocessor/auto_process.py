@@ -293,8 +293,42 @@ def get_gradient(directory, field_list: List[str]) -> pv.UnstructuredGrid:
     return grid2
 
 
-def compute_la_fiber_cs(directory: str, settings: AtrialFiber) -> pv.UnstructuredGrid:
-    """Compute left atrium fibers coordinate system."""
+def _update_trans_by_normal(grid: pv.UnstructuredGrid, surface: pv.PolyData):
+    """Use surface normal to replace gradient of transmural direction."""
+    with_normals = surface.clean().compute_normals()
+
+    from scipy import spatial
+
+    tree = spatial.cKDTree(with_normals.cell_centers().points)
+
+    cell_center = grid.cell_centers().points
+    d, t = tree.query(cell_center, 1)
+    # print(max(d))
+    grid["grad_trans"] = with_normals.cell_data["Normals"][t]
+
+    return grid
+
+
+def compute_la_fiber_cs(
+    directory: str, settings: AtrialFiber, endo_surface: pv.PolyData = None
+) -> pv.UnstructuredGrid:
+    """Compute left atrium fibers coordinate system.
+
+    Parameters
+    ----------
+    directory : str
+        directory of d3plot files.
+    settings : AtrialFiber
+        Atrial fiber settings.
+    endo_surface : pv.PolyData, optional
+        _description_, by default None
+        If given, normal direction will be updated by surface normal instead of Laplace solution.
+
+    Returns
+    -------
+    pv.UnstructuredGrid
+        pv object with fiber coordinates system.
+    """
 
     def bundle_selection(grid) -> pv.UnstructuredGrid:
         """Left atrium bundle selection."""
@@ -329,7 +363,10 @@ def compute_la_fiber_cs(directory: str, settings: AtrialFiber) -> pv.Unstructure
 
     grid = get_gradient(directory, field_list=["trans", "ab", "v", "r"])
     # TODO sometimes, pv object broken when pass directly
+
     grid = pv.read("gradient.vtk")
+    if endo_surface is not None:
+        grid = _update_trans_by_normal(grid, endo_surface)
 
     grid = bundle_selection(grid)
 
@@ -342,8 +379,26 @@ def compute_la_fiber_cs(directory: str, settings: AtrialFiber) -> pv.Unstructure
     return grid
 
 
-def compute_ra_fiber_cs(directory: str, settings: AtrialFiber) -> pv.UnstructuredGrid:
-    """Compute right atrium fibers coordinate system."""
+def compute_ra_fiber_cs(
+    directory: str, settings: AtrialFiber, endo_surface: pv.PolyData = None
+) -> pv.UnstructuredGrid:
+    """Compute right atrium fibers coordinate system.
+
+    Parameters
+    ----------
+    directory : str
+        directory of d3plot files.
+    settings : AtrialFiber
+        Atrial fiber settings.
+    endo_surface : pv.PolyData, optional
+        _description_, by default None
+        If given, normal direction will be updated by surface normal instead of Laplace solution.
+
+    Returns
+    -------
+    pv.UnstructuredGrid
+        pv object with fiber coordinates system.
+    """
 
     def bundle_selection(grid) -> pv.UnstructuredGrid:
         """Left atrium bundle selection."""
@@ -436,8 +491,10 @@ def compute_ra_fiber_cs(directory: str, settings: AtrialFiber) -> pv.Unstructure
         return grid
 
     grid = get_gradient(directory, field_list=["trans", "ab", "v", "r", "w"])
-
     grid = pv.read("gradient.vtk")
+
+    if endo_surface is not None:
+        grid = _update_trans_by_normal(grid, endo_surface)
 
     grid = bundle_selection(grid)
 

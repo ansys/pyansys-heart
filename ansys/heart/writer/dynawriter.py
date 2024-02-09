@@ -5,6 +5,7 @@ Note
 Uses a HeartModel (from ansys.heart.preprocessor.models).
 
 """
+
 import copy
 import json
 
@@ -4131,8 +4132,9 @@ class UHCWriter(BaseDynaWriter):
             self._define_Laplace_Dirichlet_bc(set_ids=[7, 10], bc_values=[1.0, 0.0])
             self.kw_database.main.append("*CASE_END_4")
 
+            # Differently with article, we add Gamma_top = 0 to enforce BC
             self.kw_database.main.append("*CASE_BEGIN_5")
-            self._define_Laplace_Dirichlet_bc(set_ids=[12, 13], bc_values=[1.0, -1.0])
+            self._define_Laplace_Dirichlet_bc(set_ids=[12, 13, 10], bc_values=[1.0, -1.0, 0.0])
             self.kw_database.main.append("*CASE_END_5")
 
         return atrium

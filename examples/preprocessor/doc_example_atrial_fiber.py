@@ -51,9 +51,7 @@ model.info.workdir = str(workdir)
 
 # instantaiate dyna settings of choice
 dyna_settings = DynaSettings(
-    lsdyna_path=lsdyna_path,
-    dynatype="smp",
-    num_cpus=1,
+    lsdyna_path=lsdyna_path, dynatype="intelmpi", num_cpus=4, platform="wsl"
 )
 
 simulator = BaseSimulator(
@@ -61,6 +59,8 @@ simulator = BaseSimulator(
     dyna_settings=dyna_settings,
     simulation_directory=os.path.join(workdir, "simulation"),
 )
+
+simulator.settings.load_defaults()
 
 # remove fiber/sheet information if already exists
 model.mesh.cell_data["fiber"] = np.zeros((model.mesh.n_cells, 3))

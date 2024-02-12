@@ -329,6 +329,7 @@ def compute_ventricle_fiber_by_drbm(directory: str, angles: dict) -> pv.Unstruct
     grid.cell_data["label"] = label
     grid.cell_data["k"] = k
 
+    grid.cell_data["grad_trans"][right_mask] *= -1.0
     #
     grid = orthogonalization(grid)
 
@@ -336,7 +337,7 @@ def compute_ventricle_fiber_by_drbm(directory: str, angles: dict) -> pv.Unstruct
     d_r = np.absolute(grid["trans"])
 
     def compute_rotation_angle(left, right, outflow_tracts):
-        consider_ot = True
+        consider_ot = False
 
         if consider_ot:
             w_l = grid["w_l"]

@@ -4203,8 +4203,8 @@ class UHCWriter(BaseDynaWriter):
         epi_nodes = np.setdiff1d(epi_nodes, np.hstack((lv_endo_nodes, rv_endo_nodes)))
         epi_nodes = np.setdiff1d(epi_nodes, rings_nodes)
 
-        la_node = self.model._compute_uvc_apex_set(side="left")
-        ra_node = self.model._compute_uvc_apex_set(side="right")
+        la_node = self.model.get_apex_node_set(part="left")
+        ra_node = self.model.get_apex_node_set(part="right")
 
         # ids of sub mesh
         sorter = np.argsort(self.target["point_ids"])

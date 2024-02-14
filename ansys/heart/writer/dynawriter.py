@@ -1481,19 +1481,21 @@ class MechanicsDynaWriter(BaseDynaWriter):
         material_settings._remove_units()
 
         def _add_linear_constraint(id: int, slave_id: int, master_ids: List[int]) -> list:
-            res = []
+            lin_constraint_kws = []
+
             for dof in range(1, 4):
-                # center node
-                k = keywords.ConstrainedLinearGlobal(
-                    licd=3 * id + dof, nid=slave_id, dof=dof, coef=1.0
-                )
-                r = k.write() + "\n"
-                # edge nodes
+                kw = custom_keywords.ConstrainedLinearGlobal(licd=3 * id + dof)
+                data = np.empty((0, 3))
+                data = np.vstack([data, [slave_id, dof, 1.0]])
+
                 for m_id in master_ids:
-                    # r += f"{m_id}, {dof}, -{1/len(master_ids)}\n"
-                    r += "{0:10d}{1:10d}{2:10.5f}\n".format(m_id, dof, -1 / len(master_ids))
-                res.append(r[:-1])  # remove \n
-            return res
+                    data = np.vstack([data, [m_id, dof, -1 / len(master_ids)]])
+
+                kw.linear_constraints = pd.DataFrame(columns=["nid", "dof", "coef"], data=data)
+
+                lin_constraint_kws.append(kw)
+
+            return lin_constraint_kws
 
         # caps are rigid in zerop
         if type(self) == ZeroPressureMechanicsDynaWriter:
@@ -1571,7 +1573,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     self.kw_database.nodes.append(s)
 
                 if isinstance(self, MechanicsDynaWriter):
-                    # center node constraint: average form edge nodes
+                    # center node constraint: average of edge nodes
                     n = len(cap.node_ids) // 7  # select n+1 node for interpolation
                     constraint_list = _add_linear_constraint(
                         len(cap_names_used), cap.centroid_id + 1, cap.node_ids[::n] + 1

@@ -1,4 +1,5 @@
 # flake8: noqa
+from .keywords.constrained_linear_global import ConstrainedLinearGlobal
 from .keywords.control_implicit_solver import ControlImplicitSolver
 from .keywords.em_boundary_prescribed import EmBoundaryPrescribed
 from .keywords.em_control_ep import EmControlEp

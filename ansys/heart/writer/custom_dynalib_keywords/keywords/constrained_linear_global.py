@@ -1,8 +1,9 @@
 import typing
+
 from ansys.dyna.keywords.lib.card import Card, Field
 from ansys.dyna.keywords.lib.duplicate_card import DuplicateCard
 from ansys.dyna.keywords.lib.keyword_base import KeywordBase
-from ansys.dyna.keywords.lib.option import Option, Options
+
 
 class ConstrainedLinearGlobal(KeywordBase):
     """DYNA CONSTRAINED_LINEAR_GLOBAL keyword"""
@@ -15,13 +16,7 @@ class ConstrainedLinearGlobal(KeywordBase):
         self._cards = [
             Card(
                 [
-                    Field(
-                        "licd",
-                        int,
-                        0,
-                        10,
-                        kwargs.get("licd")
-                    ),
+                    Field("licd", int, 0, 10, kwargs.get("licd")),
                 ],
             ),
             DuplicateCard(
@@ -44,11 +39,10 @@ class ConstrainedLinearGlobal(KeywordBase):
         """sets linear constraints from the dataframe df"""
         self._cards[1].table = df
 
-
     @property
     def licd(self) -> typing.Optional[int]:
-        """Get or set the Linear constraint definition ID. This ID can be used to identify a set to which this constraint is a member.
-        """ # nopep8
+        """Get or set the Linear constraint definition ID. This ID can be used
+        to identify a set to which this constraint is a member."""  # nopep8
         return self._cards[0].get_value("licd")
 
     @licd.setter

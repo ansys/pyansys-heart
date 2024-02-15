@@ -1111,8 +1111,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """Add Active curve to material database."""
         if material_settings.myocardium["active"]["actype"] == 1:
             time_array, calcium_array = active_curve("constant")
-        elif material_settings.myocardium["active"]["actype"] == 2:
-            time_array, calcium_array = active_curve("Strocchi2020")
+        elif material_settings.myocardium["active"]["actype"] == 3:
+            time_array, calcium_array = active_curve("Strocchi2020", endtime=2.4)
+            # work around with threshold
+            calcium_array[1:] += 1e-6
 
         curve_kw = create_define_curve_kw(
             x=time_array,
@@ -1122,10 +1124,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
             lcint=10000,
         )
 
-        # x scaling from beat rate
-        curve_kw.sfa = material_settings.myocardium["active"]["beat_time"]
-        # y scaling from Ca2
-        curve_kw.sfo = 4.35  # same with material ca2ionmax
+        if material_settings.myocardium["active"]["actype"] == 1:
+            # x scaling from beat rate
+            curve_kw.sfa = material_settings.myocardium["active"]["beat_time"]
+            # y scaling from Ca2
+            curve_kw.sfo = 4.35  # same with material ca2ionmax
         return curve_kw
 
     def _add_cap_bc(self, bc_type: str):

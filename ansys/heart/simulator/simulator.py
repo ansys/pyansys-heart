@@ -8,6 +8,7 @@ Options for simulation:
     simplified EP (imposed activation)
     coupled electro-mechanics
 """
+
 import copy
 import logging
 import os
@@ -194,7 +195,11 @@ class BaseSimulator:
         export_directory = os.path.join(self.root_directory, "ra_fiber")
 
         target = self.run_laplace_problem(export_directory, "ra_fiber", raa=np.array(appendage))
-        ra_pv = compute_ra_fiber_cs(export_directory)
+
+        endo_surface = self.model.right_atrium.endocardium
+        ra_pv = compute_ra_fiber_cs(
+            export_directory, self.settings.atrial_fibers, endo_surface=endo_surface
+        )
         LOGGER.info("Generating fibers done.")
 
         # arrays that save ID map to full model
@@ -222,8 +227,13 @@ class BaseSimulator:
         LOGGER.info("Computing LA fiber...")
         export_directory = os.path.join(self.root_directory, "la_fiber")
 
-        target = self.run_laplace_problem(export_directory, "la_fiber", laa=appendage)
-        la_pv = compute_la_fiber_cs(export_directory)
+        target = self.run_laplace_problem(export_directory, "la_fiber")
+
+        endo_surface = self.model.left_atrium.endocardium
+        la_pv = compute_la_fiber_cs(
+            export_directory, self.settings.atrial_fibers, endo_surface=endo_surface
+        )
+
         LOGGER.info("Generating fibers done.")
 
         # arrays that save ID map to full model

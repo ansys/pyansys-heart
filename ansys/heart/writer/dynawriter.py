@@ -1316,47 +1316,46 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _add_pericardium_bc(self, scale=1.0):
-        """Add the pericardium.
-
-        Note
-        ----
-        Uses the universal ventricular longitudinal coordinate
-        and a sigmoid penalty function. Strocchi et al 2020 doi: 10.1016/j.jbiomech.2020.109645.
-        """
+        """Add the pericardium."""
         boundary_conditions = copy.deepcopy(self.settings.mechanics.boundary_conditions)
-        boundary_conditions._remove_units()
-        pericardium_settings = boundary_conditions.pericardium
+        robin_settings = boundary_conditions.robin
 
         # collect all pericardium nodes:
-        epicardium_nodes, point_normal = self.get_applied_nodes()
+        epicardium_nodes, point_normal = self._get_applied_nodes(apply="ventricle")
 
         # use pre-computed nodal areas
         nodal_areas = self.model.mesh.point_data["nodal_areas"][epicardium_nodes]
         # penalty
-        penalty_function = self._get_longitudinal_penalty(pericardium_settings)
+        penalty_function = self._get_longitudinal_penalty(robin_settings["ventricle"])
         nodal_penalty = penalty_function[epicardium_nodes]
 
         # compute scale factor
         scale_factors = nodal_areas * nodal_penalty
 
-        k = scale * pericardium_settings["spring_stiffness"]
+        # debug = pv.PointGrid(self.model.mesh.points[epicardium_nodes])
+        # debug.point_data["stiff"] = scale_factors
+        # debug.point_data["normal"] = point_normal
+        # debug.save("pericardium.vtk")
 
+        k = scale * robin_settings["ventricle"]["stiffness"].to("MPa/mm").m
         mask = penalty_function[epicardium_nodes] > 0.0001
-        pericardium_nodes = epicardium_nodes[mask]
-        point_normal = point_normal[mask]
-        scale_factors = scale_factors[mask]
+        self._write_discret_elements(
+            "spring", k, epicardium_nodes[mask], point_normal[mask], scale_factors[mask]
+        )
+        dc = robin_settings["ventricle"]["damper"].to("MPa/mm*ms").m
+        self._write_discret_elements("damper", dc, epicardium_nodes, point_normal, nodal_areas)
 
-        debug = pv.PointGrid(self.model.mesh.points[epicardium_nodes])
-        debug.point_data["stiff"] = scale_factors
-        debug.point_data["normal"] = point_normal
-        debug.save("pericardium.vtk")
-
-        self._write_robin_spring(k, pericardium_nodes, point_normal, scale_factors)
-
+        if isinstance(self.model, FourChamber):
+            epicardium_nodes, point_normal = self._get_applied_nodes(apply="atrial")
+            nodal_areas = self.model.mesh.point_data["nodal_areas"][epicardium_nodes]
+            k = robin_settings["atrial"]["stiffness"].to("MPa/mm").m
+            self._write_discret_elements("spring", k, epicardium_nodes, point_normal, nodal_areas)
+            dc = robin_settings["atrial"]["damper"].to("MPa/mm*ms").m
+            self._write_discret_elements("damper", dc, epicardium_nodes, point_normal, nodal_areas)
         return
 
-    def get_applied_nodes(self, apply: Literal["ventricle", "atrial"] = "ventricle"):
-        """Extract nodes to which apply Robin BC.
+    def _get_applied_nodes(self, apply: Literal["ventricle", "atrial"] = "ventricle"):
+        """Extract epicardium nodes to apply Robin BC.
 
         Parameters
         ----------
@@ -1396,7 +1395,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return epicardium_nodes, point_normal
 
     def _get_longitudinal_penalty(self, pericardium_settings):
-        """Apply penalty function on pericardium nodes."""
+        """
+        Use the universal ventricular longitudinal coordinate and a sigmoid penalty function.
+
+        Strocchi et al 2020 doi: 10.1016/j.jbiomech.2020.109645.
+        """
         penalty_c0 = pericardium_settings["penalty_function"][0]
         penalty_c1 = pericardium_settings["penalty_function"][1]
         self.kw_database.pericardium.append(f"$$ penalty with {penalty_c0}, {penalty_c1} $$")
@@ -1417,22 +1420,27 @@ class MechanicsDynaWriter(BaseDynaWriter):
         penalty_function = -_sigmoid((abs(uvc_l) - penalty_c0) * penalty_c1) + 1
         return penalty_function
 
-    def _write_robin_spring(self, gloabl_stiff, nodes, directions, local_stiff):
+    def _write_discret_elements(
+        self, type: Literal["spring", "damper"], global_fact, nodes, directions, local_stiff
+    ):
         # create unique ids for keywords
         part_id = self.get_unique_part_id()
         section_id = self.get_unique_section_id()
         mat_id = self.get_unique_mat_id()
 
+        # define material
+        if type == "spring":
+            mat_kw = keywords.MatSpringElastic(mid=mat_id, k=global_fact)
+        elif type == "damper":
+            mat_kw = keywords.MatDamperViscous(mid=mat_id, dc=global_fact)
+
         # define part
         part_kw = keywords.Part()
         part_kw.parts = pd.DataFrame(
-            {"heading": ["Pericardium"], "pid": [part_id], "secid": [section_id], "mid": [mat_id]}
+            {"heading": [f"{type}"], "pid": [part_id], "secid": [section_id], "mid": [mat_id]}
         )
         # define section
         section_kw = keywords.SectionDiscrete(secid=section_id, cdl=0, tdl=0)
-
-        # define material
-        mat_kw = keywords.MatSpringElastic(mid=mat_id, k=gloabl_stiff)
 
         # define spring orientations
         sd_orientation_kw = create_define_sd_orientation_kw(

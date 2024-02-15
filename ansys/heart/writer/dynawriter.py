@@ -1927,12 +1927,8 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         # zerop key words
         self._add_control_reference_configuration()
-        #
-        # # export dynain file
-        # NOTE: generates a new part-set. Use part-set id 999.
-        # Please note that choosing 999 as the part-set id is arbitrary,
-        # and defining a new part set adding this to the main database will
-        # create a part-set id of 999+1
+
+        # export dynain file
         save_part_ids = []
         for part in self.model.parts:
             save_part_ids.append(part.pid)
@@ -1942,26 +1938,36 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
             if cap.pid != None:  # MV,TV for atrial parts get None
                 save_part_ids.append(cap.pid)
 
-        ids = np.hstack((save_part_ids, np.zeros(8 - len(save_part_ids) % 8, dtype=int))).reshape(
-            -1, 8
-        )
+        partset_id = self.get_unique_partset_id()
+        kw = keywords.SetPartList(sid=partset_id)
+        # kw.parts._data = save_part_ids
+        # NOTE: when len(save_part_ids) = 8/16, dynalib bugs
+        str = "\n"
+        for i, id in enumerate(save_part_ids):
+            str += "{0:10d}".format(id)
+            if (i + 1) % 8 == 0:
+                str += "\n"
+        kw = kw.write() + str
 
-        # self.kw_database.main.append(keywords.SetPartList(sid=999,??))
+        self.kw_database.main.append(kw)
 
-        self.kw_database.main.append(
-            keywords.SetPartListGenerate(
-                sid=999, b1beg=min(save_part_ids), b1end=max(save_part_ids)
-            )
-        )
         self.kw_database.main.append(
             custom_keywords.InterfaceSpringbackLsdyna(
-                psid=999, nshv=999, ftype=3, rflag=1, optc="OPTCARD", ndflag=1, cflag=1, hflag=1
+                psid=partset_id,
+                nshv=999,
+                ftype=3,
+                rflag=1,
+                optc="OPTCARD",
+                ndflag=1,
+                cflag=1,
+                hflag=1,
             )
         )
 
         self.kw_database.main.append(
             keywords.InterfaceSpringbackExclude(kwdname="BOUNDARY_SPC_NODE")
         )
+
         self._get_list_of_includes()
         self._add_includes()
 
@@ -2035,7 +2041,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         # add general implicit controls
         self.kw_database.main.append(
-            keywords.ControlImplicitGeneral(imflag=1, dt0=settings.analysis.dtmax)
+            keywords.ControlImplicitGeneral(imflag=1, dt0=settings.analysis.dtmin)
         )
 
         # add implicit solution controls

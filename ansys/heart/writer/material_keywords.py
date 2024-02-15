@@ -221,8 +221,8 @@ def active_curve(
         calcium_array0 = 1 / (1 - 0.99 * active_stress) - 1
         calcium_array = np.copy(calcium_array0)
         for ii in range(1, nCycles):
-            time_array = np.append(time_array, t + ii * t_end)
-            calcium_array = np.append(calcium_array, calcium_array0)
+            time_array = np.append(time_array, t[1:] + ii * t_end)
+            calcium_array = np.append(calcium_array, calcium_array0[1:])
 
     # used for generating multi beats with model actype 1
     elif curve_type == "constant":

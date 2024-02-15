@@ -8,13 +8,14 @@ Options for simulation:
     simplified EP (imposed activation)
     coupled electro-mechanics
 """
+
 import copy
 import logging
 import os
 import pathlib as Path
 import shutil
 import subprocess
-from typing import List
+from typing import List, Literal
 
 LOGGER = logging.getLogger("pyheart_global.simulator")
 from ansys.heart.misc.element_orth import read_orth_element_kfile
@@ -194,7 +195,11 @@ class BaseSimulator:
         export_directory = os.path.join(self.root_directory, "ra_fiber")
 
         target = self.run_laplace_problem(export_directory, "ra_fiber", raa=np.array(appendage))
-        ra_pv = compute_ra_fiber_cs(export_directory)
+
+        endo_surface = self.model.right_atrium.endocardium
+        ra_pv = compute_ra_fiber_cs(
+            export_directory, self.settings.atrial_fibers, endo_surface=endo_surface
+        )
         LOGGER.info("Generating fibers done.")
 
         # arrays that save ID map to full model
@@ -210,7 +215,7 @@ class BaseSimulator:
 
         return ra_pv
 
-    def compute_left_atrial_fiber(self) -> pv.UnstructuredGrid:
+    def compute_left_atrial_fiber(self, appendage: List[float] = None) -> pv.UnstructuredGrid:
         """
         Compute left atrium fiber with LDRBD method.
 
@@ -223,7 +228,12 @@ class BaseSimulator:
         export_directory = os.path.join(self.root_directory, "la_fiber")
 
         target = self.run_laplace_problem(export_directory, "la_fiber")
-        la_pv = compute_la_fiber_cs(export_directory)
+
+        endo_surface = self.model.left_atrium.endocardium
+        la_pv = compute_la_fiber_cs(
+            export_directory, self.settings.atrial_fibers, endo_surface=endo_surface
+        )
+
         LOGGER.info("Generating fibers done.")
 
         # arrays that save ID map to full model
@@ -239,7 +249,9 @@ class BaseSimulator:
 
         return la_pv
 
-    def run_laplace_problem(self, export_directory, type, **kwargs):
+    def run_laplace_problem(
+        self, export_directory, type: Literal["uvc", "la_fiber", "ra_fiber"], **kwargs
+    ):
         """
         Run Laplace-Dirichlet (thermal) problem in LSDYNA.
 
@@ -260,6 +272,11 @@ class BaseSimulator:
                 if key == "raa":
                     break
             dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, raa=value)
+        elif type == "la_fiber":
+            for key, value in kwargs.items():
+                if key == "laa":
+                    break
+            dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, laa=value)
         else:
             dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type)
 

@@ -5,6 +5,7 @@ Note
 Uses a HeartModel (from ansys.heart.preprocessor.models).
 
 """
+
 import copy
 import json
 
@@ -1483,6 +1484,23 @@ class MechanicsDynaWriter(BaseDynaWriter):
         material_settings = copy.deepcopy(self.settings.mechanics.material)
         material_settings._remove_units()
 
+        def _add_linear_constraint(id: int, slave_id: int, master_ids: List[int]) -> list:
+            lin_constraint_kws = []
+
+            for dof in range(1, 4):
+                kw = custom_keywords.ConstrainedLinearGlobal(licd=3 * id + dof)
+                data = np.empty((0, 3))
+                data = np.vstack([data, [slave_id, dof, 1.0]])
+
+                for m_id in master_ids:
+                    data = np.vstack([data, [m_id, dof, -1 / len(master_ids)]])
+
+                kw.linear_constraints = pd.DataFrame(columns=["nid", "dof", "coef"], data=data)
+
+                lin_constraint_kws.append(kw)
+
+            return lin_constraint_kws
+
         # caps are rigid in zerop
         if type(self) == ZeroPressureMechanicsDynaWriter:
             material_kw = keywords.MatRigid(
@@ -1558,7 +1576,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     s = "$" + node_kw.write()
                     self.kw_database.nodes.append(s)
 
-                # # # center node constraint: average of all edge nodes
+                if type(self) == MechanicsDynaWriter:
+                    # center node constraint: average of edge nodes
+                    n = len(cap.node_ids) // 7  # select n+1 node for interpolation
+                    constraint_list = _add_linear_constraint(
+                        len(cap_names_used), cap.centroid_id + 1, cap.node_ids[::n] + 1
+                    )
+                    self.kw_database.cap_elements.extend(constraint_list)
+
+                # # # do not work with mpp
                 # # constraint = keywords.ConstrainedInterpolation(
                 # #     icid=len(cap_names_used) + 1,
                 # #     dnid=cap.centroid_id + 1,
@@ -1893,12 +1919,8 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         # zerop key words
         self._add_control_reference_configuration()
-        #
-        # # export dynain file
-        # NOTE: generates a new part-set. Use part-set id 999.
-        # Please note that choosing 999 as the part-set id is arbitrary,
-        # and defining a new part set adding this to the main database will
-        # create a part-set id of 999+1
+
+        # export dynain file
         save_part_ids = []
         for part in self.model.parts:
             save_part_ids.append(part.pid)
@@ -1908,26 +1930,36 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
             if cap.pid != None:  # MV,TV for atrial parts get None
                 save_part_ids.append(cap.pid)
 
-        ids = np.hstack((save_part_ids, np.zeros(8 - len(save_part_ids) % 8, dtype=int))).reshape(
-            -1, 8
-        )
+        partset_id = self.get_unique_partset_id()
+        kw = keywords.SetPartList(sid=partset_id)
+        # kw.parts._data = save_part_ids
+        # NOTE: when len(save_part_ids) = 8/16, dynalib bugs
+        str = "\n"
+        for i, id in enumerate(save_part_ids):
+            str += "{0:10d}".format(id)
+            if (i + 1) % 8 == 0:
+                str += "\n"
+        kw = kw.write() + str
 
-        # self.kw_database.main.append(keywords.SetPartList(sid=999,??))
+        self.kw_database.main.append(kw)
 
-        self.kw_database.main.append(
-            keywords.SetPartListGenerate(
-                sid=999, b1beg=min(save_part_ids), b1end=max(save_part_ids)
-            )
-        )
         self.kw_database.main.append(
             custom_keywords.InterfaceSpringbackLsdyna(
-                psid=999, nshv=999, ftype=3, rflag=1, optc="OPTCARD", ndflag=1, cflag=1, hflag=1
+                psid=partset_id,
+                nshv=999,
+                ftype=3,
+                rflag=1,
+                optc="OPTCARD",
+                ndflag=1,
+                cflag=1,
+                hflag=1,
             )
         )
 
         self.kw_database.main.append(
             keywords.InterfaceSpringbackExclude(kwdname="BOUNDARY_SPC_NODE")
         )
+
         self._get_list_of_includes()
         self._add_includes()
 
@@ -2001,7 +2033,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         # add general implicit controls
         self.kw_database.main.append(
-            keywords.ControlImplicitGeneral(imflag=1, dt0=settings.analysis.dtmax)
+            keywords.ControlImplicitGeneral(imflag=1, dt0=settings.analysis.dtmin)
         )
 
         # add implicit solution controls
@@ -3869,6 +3901,10 @@ class UHCWriter(BaseDynaWriter):
             self._keep_parts(parts_to_keep)
         elif self.type == "la_fiber":
             parts_to_keep = ["Left atrium"]
+            #  A manual point for LA fiber
+            for key, value in kwargs.items():
+                if key == "laa":
+                    self.left_appendage_apex = value
         elif self.type == "ra_fiber":
             parts_to_keep = ["Right atrium"]
             #  A manual point for RA fiber
@@ -3879,9 +3915,12 @@ class UHCWriter(BaseDynaWriter):
         # remove unnecessary mesh
         if self.type == "uvc":
             elems_to_keep = []
-            elems_to_keep.extend(model.parts[0].element_ids)
-            elems_to_keep.extend(model.parts[1].element_ids)
-            elems_to_keep.extend(model.parts[2].element_ids)
+            if isinstance(self.model, LeftVentricle):
+                elems_to_keep.extend(model.parts[0].element_ids)
+            else:
+                elems_to_keep.extend(model.parts[0].element_ids)
+                elems_to_keep.extend(model.parts[1].element_ids)
+                elems_to_keep.extend(model.parts[2].element_ids)
 
             model.mesh.clear_data()
             model.mesh["cell_ids"] = np.arange(0, model.mesh.n_cells, dtype=int)
@@ -3907,14 +3946,14 @@ class UHCWriter(BaseDynaWriter):
 
             self.target = model.mesh.extract_cells(model.parts[0].element_ids)
 
-        if self.type == "la_fiber":
-            if 6 != len(self.model.parts[0].caps):
-                LOGGER.error("Input left atrium is not suitable for set up BC.")
-                exit(-1)
-        elif self.type == "ra_fiber":
-            if 3 != len(self.model.parts[0].caps):
-                LOGGER.error("Input left atrium is not suitable for set up BC.")
-                exit(-1)
+        # if self.type == "la_fiber":
+        #     if 6 != len(self.model.parts[0].caps):
+        #         LOGGER.error("Input left atrium is not suitable for set up BC.")
+        #         exit(-1)
+        # elif self.type == "ra_fiber":
+        #     if 3 != len(self.model.parts[0].caps):
+        #         LOGGER.error("Input left atrium is not suitable for set up BC.")
+        #         exit(-1)
 
     def additional_right_atrium_bc(self, atrium: pv.UnstructuredGrid):
         """
@@ -4041,7 +4080,8 @@ class UHCWriter(BaseDynaWriter):
                     set_id = 8
                 elif "inferior" in cap.name:
                     set_id = 9
-
+            else:
+                set_id = 99
             return set_id
 
         id_sorter = np.argsort(atrium["point_ids"])
@@ -4059,6 +4099,15 @@ class UHCWriter(BaseDynaWriter):
             # Add info to pyvista object (RA fiber use this)
             atrium[cap.name] = np.zeros(atrium.n_points, dtype=int)
             atrium[cap.name][ids_sub] = 1
+
+        if self.type == "la_fiber" and hasattr(self, "left_appendage_apex"):
+            import scipy.spatial as spatial
+
+            tree = spatial.cKDTree(atrium.points)
+            # radius = 1.5 mm
+            laa_ids = np.array(tree.query_ball_point(self.left_appendage_apex, 1.5))
+            kw = create_node_set_keyword(laa_ids + 1, node_set_id=2, title="left atrium appendage")
+            self.kw_database.node_sets.append(kw)
 
         # endo nodes ID
         ids_endo = np.where(np.isin(atrium["point_ids"], self.model.parts[0].endocardium.node_ids))[
@@ -4135,8 +4184,9 @@ class UHCWriter(BaseDynaWriter):
             self._define_Laplace_Dirichlet_bc(set_ids=[7, 10], bc_values=[1.0, 0.0])
             self.kw_database.main.append("*CASE_END_4")
 
+            # Differently with article, we add Gamma_top = 0 to enforce BC
             self.kw_database.main.append("*CASE_BEGIN_5")
-            self._define_Laplace_Dirichlet_bc(set_ids=[12, 13], bc_values=[1.0, -1.0])
+            self._define_Laplace_Dirichlet_bc(set_ids=[12, 13, 10], bc_values=[1.0, -1.0, 0.0])
             self.kw_database.main.append("*CASE_END_5")
 
         return atrium

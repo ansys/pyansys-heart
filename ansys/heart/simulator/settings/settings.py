@@ -242,6 +242,28 @@ class Fibers(Settings):
 
 
 @dataclass(repr=False)
+class AtrialFiber(Settings):
+    """
+    Class for keeping track of atrial fiber settings.
+
+    Default parameters are from doi.org/10.1016/j.cma.2020.113468 for idealized geometry.
+    """
+
+    tau_mv: float = 0
+    tau_lpv: float = 0
+    tau_rpv: float = 0
+
+    tau_tv: float = 0
+    tau_raw: float = 0
+    tau_ct_minus: float = 0
+    tau_ct_plus: float = 0
+    tau_icv: float = 0
+    tau_scv: float = 0
+    tau_ib: float = 0
+    tau_ras: float = 0
+
+
+@dataclass(repr=False)
 class Purkinje(Settings):
     """Class for keeping track of purkinje settings."""
 
@@ -320,6 +342,7 @@ class SimulationSettings:
 
         if fiber:
             self.fibers: Fibers = Fibers()
+            self.atrial_fibers: AtrialFiber = AtrialFiber()
             """Settings for fiber generation."""
 
         if purkinje:
@@ -508,6 +531,9 @@ class SimulationSettings:
                 self.fibers.set_values(fibers_defaults.angles)
             if isinstance(getattr(self, attr), Purkinje):
                 self.purkinje.set_values(purkinje_defaults.build)
+            if isinstance(getattr(self, attr), AtrialFiber):
+                self.atrial_fibers.set_values(fibers_defaults.la_bundle)
+                self.atrial_fibers.set_values(fibers_defaults.ra_bundle)
 
     def to_consistent_unit_system(self):
         """Convert all settings to consistent unit-system ["MPa", "mm", "N", "ms", "g"].

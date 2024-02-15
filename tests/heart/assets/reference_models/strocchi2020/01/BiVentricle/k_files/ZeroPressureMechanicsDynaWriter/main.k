@@ -7,13 +7,15 @@ $#  endtim    endcyc     dtmin    endeng    endmas     nosol
     1000.0         0       0.0       0.0     1e+08         0
 *CONTROL_IMPLICIT_DYNAMICS
 $#   imass     gamma      beta    tdybir    tdydth    tdybur     irate     alpha
-         0       0.5      0.25       0.0     1e+28     1e+28         0       0.0
+         0       0.5      0.25       0.0     1e+28     1e+28         0       0.0
+
 *CONTROL_IMPLICIT_AUTO
 $#   iauto    iteopt    itewin     dtmin     dtmax     dtexp     kfail    kcycle
-         1        11         5      10.0     100.0                              
+         1        11         5      10.0     100.0                              
+
 *CONTROL_IMPLICIT_GENERAL
 $#  imflag       dt0    imform      nsbs       igs     cnstn      form    zero_v
-         1     100.0         2         1         2         0         0         0
+         1      10.0         2         1         2         0         0         0
 *CONTROL_IMPLICIT_SOLUTION
 $#  nsolvr    ilimit    maxref     dctol     ectol     rctol     lstol    abstol
         12        11        35      0.01 1000000.0    1000.0       0.9    -1e-20
@@ -80,14 +82,13 @@ $# maxiter                                                                target
          3nodes.k                                                               
 $#  method      step       tol
          2       1.0       5.0
-*SET_PART_LIST_GENERATE
+*SET_PART_LIST
 $#     sid       da1       da2       da3       da4    solver
-       999       0.0       0.0       0.0       0.0MECH      
-$#   b1beg     b1end     b2beg     b2end     b3beg     b3end     b4beg     b4end
-         1         7                                                            
+         1       0.0       0.0       0.0       0.0MECH      
+         1         2         3         4         5         6         7
 *INTERFACE_SPRINGBACK_LSDYNA
 $#    psid      nshv     ftype              ftensr    nthhsv     rflag   intstrn
-       999       999         3                   0                   1          
+         1       999         3                   0                   1          
 $#    optc      sldo      ncyc    fsplit    ndflag     cflag     hflag
 OPTCARD            0                   0         1         1         1
 *INTERFACE_SPRINGBACK_EXCLUDE

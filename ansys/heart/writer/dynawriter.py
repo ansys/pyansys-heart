@@ -1480,6 +1480,23 @@ class MechanicsDynaWriter(BaseDynaWriter):
         material_settings = copy.deepcopy(self.settings.mechanics.material)
         material_settings._remove_units()
 
+        def _add_linear_constraint(id: int, slave_id: int, master_ids: List[int]) -> list:
+            lin_constraint_kws = []
+
+            for dof in range(1, 4):
+                kw = custom_keywords.ConstrainedLinearGlobal(licd=3 * id + dof)
+                data = np.empty((0, 3))
+                data = np.vstack([data, [slave_id, dof, 1.0]])
+
+                for m_id in master_ids:
+                    data = np.vstack([data, [m_id, dof, -1 / len(master_ids)]])
+
+                kw.linear_constraints = pd.DataFrame(columns=["nid", "dof", "coef"], data=data)
+
+                lin_constraint_kws.append(kw)
+
+            return lin_constraint_kws
+
         # caps are rigid in zerop
         if type(self) == ZeroPressureMechanicsDynaWriter:
             material_kw = keywords.MatRigid(
@@ -1555,7 +1572,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     s = "$" + node_kw.write()
                     self.kw_database.nodes.append(s)
 
-                # # # center node constraint: average of all edge nodes
+                if type(self) == MechanicsDynaWriter:
+                    # center node constraint: average of edge nodes
+                    n = len(cap.node_ids) // 7  # select n+1 node for interpolation
+                    constraint_list = _add_linear_constraint(
+                        len(cap_names_used), cap.centroid_id + 1, cap.node_ids[::n] + 1
+                    )
+                    self.kw_database.cap_elements.extend(constraint_list)
+
+                # # # do not work with mpp
                 # # constraint = keywords.ConstrainedInterpolation(
                 # #     icid=len(cap_names_used) + 1,
                 # #     dnid=cap.centroid_id + 1,
@@ -3866,6 +3891,10 @@ class UHCWriter(BaseDynaWriter):
             self._keep_parts(parts_to_keep)
         elif self.type == "la_fiber":
             parts_to_keep = ["Left atrium"]
+            #  A manual point for LA fiber
+            for key, value in kwargs.items():
+                if key == "laa":
+                    self.left_appendage_apex = value
         elif self.type == "ra_fiber":
             parts_to_keep = ["Right atrium"]
             #  A manual point for RA fiber
@@ -3876,9 +3905,12 @@ class UHCWriter(BaseDynaWriter):
         # remove unnecessary mesh
         if self.type == "uvc":
             elems_to_keep = []
-            elems_to_keep.extend(model.parts[0].element_ids)
-            elems_to_keep.extend(model.parts[1].element_ids)
-            elems_to_keep.extend(model.parts[2].element_ids)
+            if isinstance(self.model, LeftVentricle):
+                elems_to_keep.extend(model.parts[0].element_ids)
+            else:
+                elems_to_keep.extend(model.parts[0].element_ids)
+                elems_to_keep.extend(model.parts[1].element_ids)
+                elems_to_keep.extend(model.parts[2].element_ids)
 
             model.mesh.clear_data()
             model.mesh["cell_ids"] = np.arange(0, model.mesh.n_cells, dtype=int)
@@ -3904,14 +3936,14 @@ class UHCWriter(BaseDynaWriter):
 
             self.target = model.mesh.extract_cells(model.parts[0].element_ids)
 
-        if self.type == "la_fiber":
-            if 6 != len(self.model.parts[0].caps):
-                LOGGER.error("Input left atrium is not suitable for set up BC.")
-                exit(-1)
-        elif self.type == "ra_fiber":
-            if 3 != len(self.model.parts[0].caps):
-                LOGGER.error("Input left atrium is not suitable for set up BC.")
-                exit(-1)
+        # if self.type == "la_fiber":
+        #     if 6 != len(self.model.parts[0].caps):
+        #         LOGGER.error("Input left atrium is not suitable for set up BC.")
+        #         exit(-1)
+        # elif self.type == "ra_fiber":
+        #     if 3 != len(self.model.parts[0].caps):
+        #         LOGGER.error("Input left atrium is not suitable for set up BC.")
+        #         exit(-1)
 
     def additional_right_atrium_bc(self, atrium: pv.UnstructuredGrid):
         """
@@ -4038,7 +4070,8 @@ class UHCWriter(BaseDynaWriter):
                     set_id = 8
                 elif "inferior" in cap.name:
                     set_id = 9
-
+            else:
+                set_id = 99
             return set_id
 
         id_sorter = np.argsort(atrium["point_ids"])
@@ -4056,6 +4089,15 @@ class UHCWriter(BaseDynaWriter):
             # Add info to pyvista object (RA fiber use this)
             atrium[cap.name] = np.zeros(atrium.n_points, dtype=int)
             atrium[cap.name][ids_sub] = 1
+
+        if self.type == "la_fiber" and hasattr(self, "left_appendage_apex"):
+            import scipy.spatial as spatial
+
+            tree = spatial.cKDTree(atrium.points)
+            # radius = 1.5 mm
+            laa_ids = np.array(tree.query_ball_point(self.left_appendage_apex, 1.5))
+            kw = create_node_set_keyword(laa_ids + 1, node_set_id=2, title="left atrium appendage")
+            self.kw_database.node_sets.append(kw)
 
         # endo nodes ID
         ids_endo = np.where(np.isin(atrium["point_ids"], self.model.parts[0].endocardium.node_ids))[

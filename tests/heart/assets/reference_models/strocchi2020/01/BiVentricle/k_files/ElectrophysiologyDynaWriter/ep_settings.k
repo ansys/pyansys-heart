@@ -20,7 +20,7 @@ Stim nodes
 $#     sid       da1       da2       da3       da4    solver
          8       0.0       0.0       0.0       0.0MECH      
 $#      n1        n2        n3        n4        n5        n6        n7        n8
-      4271     13412                                                            
+      4257     13410                                                            
 *EM_EP_TENTUSSCHER_STIMULUS
 $#  stimid   settype     setid
          1         2         8

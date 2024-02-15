@@ -110,10 +110,6 @@ $$ Pulmonary artery stiffness damping [ms]
 *DAMPING_PART_STIFFNESS
 $#     pid      coef
          7      -0.2
-$$ Isolation atrial stiffness damping [ms]
-*DAMPING_PART_STIFFNESS
-$#     pid      coef
-         8      -0.2
 *DEFINE_CURVE_TITLE
 $#                                                                         title
 constant load curve                                                             

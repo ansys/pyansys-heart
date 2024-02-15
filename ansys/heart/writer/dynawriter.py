@@ -1321,7 +1321,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         robin_settings = boundary_conditions.robin
 
         # collect all pericardium nodes:
-        epicardium_nodes, point_normal = self._get_applied_nodes(apply="ventricle")
+        epicardium_nodes, point_normal = self._get_epicardium_nodes(apply="ventricle")
 
         # use pre-computed nodal areas
         nodal_areas = self.model.mesh.point_data["nodal_areas"][epicardium_nodes]
@@ -1346,7 +1346,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._write_discret_elements("damper", dc, epicardium_nodes, point_normal, nodal_areas)
 
         if isinstance(self.model, FourChamber):
-            epicardium_nodes, point_normal = self._get_applied_nodes(apply="atrial")
+            epicardium_nodes, point_normal = self._get_epicardium_nodes(apply="atrial")
             nodal_areas = self.model.mesh.point_data["nodal_areas"][epicardium_nodes]
             k = robin_settings["atrial"]["stiffness"].to("MPa/mm").m
             self._write_discret_elements("spring", k, epicardium_nodes, point_normal, nodal_areas)
@@ -1354,13 +1354,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self._write_discret_elements("damper", dc, epicardium_nodes, point_normal, nodal_areas)
         return
 
-    def _get_applied_nodes(self, apply: Literal["ventricle", "atrial"] = "ventricle"):
+    def _get_epicardium_nodes(self, apply: Literal["ventricle", "atrial"] = "ventricle"):
         """Extract epicardium nodes to apply Robin BC.
 
         Parameters
         ----------
         apply : Literal[&quot;ventricle&quot;, &quot;atrial&quot;], optional
             Apply to which part, by default "ventricle"
+
+        TODO: move to model
 
         Returns
         -------

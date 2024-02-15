@@ -43,8 +43,23 @@ material = {
         #     "k2f": Quantity(14.472, "dimensionless"),
         #     "k1s": Quantity(0.481e-3, "MPa"),
         #     "k2s": Quantity(12.548, "dimensionless"),
-        #     "k1fs": Quantity(0.283, "MPa"),
+        #     "k1fs": Quantity(0.283e-3, "MPa"),
         #     "k2fs": Quantity(3.088, "dimensionless"),
+        # },
+        # # ambit
+        # "isotropic": {
+        #     "rho": Quantity(0.001, "g/mm^3"),
+        #     "nu": 0.49,
+        #     "k1": Quantity(0.059e-3, "MPa"),
+        #     "k2": Quantity(8.023),
+        # },
+        # "anisotropic": {
+        #     "k1f": Quantity(18.472e-3, "MPa"),
+        #     "k2f": Quantity(16.026, "dimensionless"),
+        #     "k1s": Quantity(2.481e-3, "MPa"),
+        #     "k2s": Quantity(11.120, "dimensionless"),
+        #     "k1fs": Quantity(0.216e-3, "MPa"),
+        #     "k2fs": Quantity(11.436, "dimensionless"),
         # },
         "isotropic": {
             "rho": Quantity(0.001, "g/mm^3"),

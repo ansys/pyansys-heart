@@ -163,7 +163,7 @@ class MaterialHGOMyocardium(keywords.Mat295):
             elif active_user["actype"] == 3:
                 active = {
                     "acdir": 1,
-                    "acthr": 0.0,
+                    "acthr": 1e-7,
                     "sf": 1.0,
                     "ss": 0.02,
                     "sn": 0.02,
@@ -196,11 +196,11 @@ def active_curve(
     # T = np.arange( 0, endtime, timestep )
     # NOTE: needs cleaning up
     if curve_type == "Strocchi2020":
-        # parameters used in Strocchi:
-        t_end = 0.8
-        tau_r = 0.130
-        tau_d = 0.100
-        tau_dur = 0.550
+        # parameters used in Strocchi in ms
+        t_end = 800
+        tau_r = 130
+        tau_d = 100
+        tau_dur = 550
         tau_emd = 0.0  # EM coupling delay
         t_act = 0.0  # activation time from Eikonel model
 

@@ -155,8 +155,8 @@ class PCA_model:
         self.evalues = {}
 
         self.heart_case_id_of_reference: str = '01'
-        self.registration_matrix_file_path = r'D:\xuhu\humanshape\PCA_model_registration\combined_transform_matrix.csv'
-        self.electrode_file_path = r'D:\xuhu\humanshape\PCA_model_registration\PCA_electrodes.csv'
+        # self.registration_matrix_file_path = r'D:\xuhu\humanshape\PCA_model_registration\combined_transform_matrix.csv'
+        self.electrode_file_path = r"D:\Data\SSM_Input\input\PCA_electrodes.csv"
         
         # only if input data is meanshape: may be used later (_extract_torso), not needed at the moment
         # self.torso = None
@@ -166,6 +166,7 @@ class PCA_model:
         self.anatomical_points = {}
 
     def initialize_PCA_model(self, meanshape_file, eigenvalue_file, eignevectors_file):
+        # READ pca DATA
         self._read_pca_data(meanshape_file, eigenvalue_file, eignevectors_file)
         self._define_electrodes()        
         # original_anatomical_points = self._extract_anatomical_points_of_reference()

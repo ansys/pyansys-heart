@@ -85,10 +85,8 @@ from copy import copy
 from datetime import datetime
 import logging
 import sys
-
-# from types import TracebackType
-# from typing import Type
-from typing import Any, Dict, Literal, Mapping, MutableMapping, Optional, Union, cast
+from types import TracebackType
+from typing import Any, Dict, Literal, Mapping, MutableMapping, Optional, Type, Union, cast
 
 ## Default configuration
 LOG_LEVEL = logging.DEBUG
@@ -471,21 +469,21 @@ class Logger:
         else:
             raise KeyError(f"There is no instances with name {key}.")
 
-    def add_handling_uncaught_expections(self, logger):
-        """
-        Redirect the output of an exception to a logger.
+    def add_handling_uncaught_expections(self, logger: logging.Logger):
+        """Redirect the output of an exception to the logger."""
 
-        Parameters
-        ----------
-        logger : str
-            Name of the logger.
-        """
-
-        def handle_exception(exc_type, exc_value, exc_traceback):
+        def handle_exception(
+            exc_type: Type[BaseException],
+            exc_value: BaseException,
+            exc_traceback: Optional[TracebackType],
+        ):
             if issubclass(exc_type, KeyboardInterrupt):
                 sys.__excepthook__(exc_type, exc_value, exc_traceback)
                 return
-            logger.critical("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+            logger.critical(
+                "Uncaught exception",
+                exc_info=(exc_type, exc_value, exc_traceback),
+            )
 
         sys.excepthook = handle_exception
 

@@ -1,4 +1,5 @@
 """Compute myocardial strain."""
+
 import pathlib
 
 import matplotlib as mpl

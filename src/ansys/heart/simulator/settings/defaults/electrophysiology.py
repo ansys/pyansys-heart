@@ -1,4 +1,5 @@
 """Module contains default values for electrophysiology simulations."""
+
 from pint import Quantity
 
 heart = {

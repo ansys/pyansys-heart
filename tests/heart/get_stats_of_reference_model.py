@@ -4,6 +4,7 @@ Example
 -------
 >>> python -m get_stats_of_reference_model heart_model.pickle
 """
+
 import os
 import sys
 

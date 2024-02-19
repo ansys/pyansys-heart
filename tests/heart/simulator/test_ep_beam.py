@@ -1,4 +1,5 @@
 """Test for reading purkinje network as a beam mesh. Uses a mock Mesh object."""
+
 import os
 import pathlib
 

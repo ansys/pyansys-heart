@@ -1,4 +1,5 @@
 """Some common functions to test parts."""
+
 import numpy as np
 
 import ansys.heart.preprocessor.models.v0_1.models as models

@@ -1,4 +1,5 @@
 """Module for postprocessing system model data."""
+
 from dataclasses import dataclass
 import json
 import os

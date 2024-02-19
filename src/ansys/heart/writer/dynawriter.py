@@ -1688,14 +1688,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
             sys_settings = json.load(fid)
 
             # update the volumes
-            sys_settings["SystemModelInitialValues"]["UnstressedVolumes"][
-                "lv"
-            ] = self.model.get_part("Left ventricle").cavity.volume
+            sys_settings["SystemModelInitialValues"]["UnstressedVolumes"]["lv"] = (
+                self.model.get_part("Left ventricle").cavity.volume
+            )
 
             if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-                sys_settings["SystemModelInitialValues"]["UnstressedVolumes"][
-                    "rv"
-                ] = self.model.get_part("Right ventricle").cavity.volume
+                sys_settings["SystemModelInitialValues"]["UnstressedVolumes"]["rv"] = (
+                    self.model.get_part("Right ventricle").cavity.volume
+                )
 
             self.system_model_json = sys_settings
 

@@ -1,4 +1,5 @@
 """Module containing some general methods."""
+
 import distutils.spawn
 import os
 import shutil

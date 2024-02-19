@@ -1,4 +1,5 @@
 """Module contains default values for zero-pressure/stress-free-configuration simulations."""
+
 from pint import Quantity
 
 """Generic analysis settings."""

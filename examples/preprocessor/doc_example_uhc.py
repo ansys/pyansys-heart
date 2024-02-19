@@ -4,6 +4,7 @@ UHC example
 --------------------
 This example shows how to compute universal heart coordinate for ventricles.
 """
+
 ###############################################################################
 # Perform the required imports
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

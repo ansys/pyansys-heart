@@ -1,6 +1,7 @@
 """ For information only, not yet stable
     require previously launched simulation
     change paths accordingly"""
+
 import matplotlib.pyplot as plt
 
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost

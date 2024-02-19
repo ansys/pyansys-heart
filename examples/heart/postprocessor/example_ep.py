@@ -1,4 +1,5 @@
 """For information only, example not yet stable"""
+
 import pyvista as pv
 
 from ansys.heart.postprocessor.EPpostprocessor import EPpostprocessor

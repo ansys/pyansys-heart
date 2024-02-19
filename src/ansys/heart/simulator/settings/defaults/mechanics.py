@@ -1,4 +1,5 @@
 """Module contains default values for mechanics simulations."""
+
 from pint import Quantity
 
 heart = {

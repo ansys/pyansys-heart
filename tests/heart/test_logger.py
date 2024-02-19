@@ -1,4 +1,5 @@
 """"Testing of log module."""
+
 import logging as deflogging  # Default logging module
 import re
 from typing import Callable

@@ -1,4 +1,5 @@
 """D3plot parser using Ansys-dpf."""
+
 import os
 import pathlib as Path
 from typing import List

@@ -18,7 +18,7 @@ cname = os.getenv("DOCUMENTATION_CNAME", "heart.docs.pyansys.com")
 html_logo = pyansys_logo_black
 html_theme = "ansys_sphinx_theme"
 
-html_short_title = html_title = "pyansys-heart"
+html_short_title = html_title = "PyAnsys Heart"
 html_favicon = ansys_favicon
 
 # specify the location of your github repo

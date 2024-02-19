@@ -1,13 +1,13 @@
 """Logging module.
 
-The logging module supplies a general framework for logging in PyHeart-lib.
+The logging module supplies a general framework for logging in PyAnsys Heart-lib.
 This module is built upon `logging <https://docs.python.org/3/library/logging.html>`_ library
 and it does not intend to replace it rather provide a way to interact between
-``logging`` and PyHeart.
+``logging`` and PyAnsys Heart.
 
 The loggers used in the module include the name of the instance which
 is intended to be unique. This name is printed in all the active
-outputs and it is used to track the different PyHeart modules.
+outputs and it is used to track the different PyAnsys Heart modules.
 
 
 Usage
@@ -15,8 +15,8 @@ Usage
 
 Global logger
 ~~~~~~~~~~~~~
-There is a global logger named ``pyheart_global`` which is created at
-``ansys.pyheart.core.__init__``.  If you want to use this global logger,
+There is a global logger named ``PyAnsys Heart_global`` which is created at
+``ansys.PyAnsys Heart.core.__init__``.  If you want to use this global logger,
 you must call at the top of your module:
 
 .. code:: python
@@ -85,12 +85,14 @@ from copy import copy
 from datetime import datetime
 import logging
 import sys
-from types import TracebackType
-from typing import Any, Dict, Literal, Mapping, MutableMapping, Optional, Type, Union, cast
+
+# from types import TracebackType
+# from typing import Type
+from typing import Any, Dict, Literal, Mapping, MutableMapping, Optional, Union, cast
 
 ## Default configuration
 LOG_LEVEL = logging.DEBUG
-FILE_NAME = "pyheart.log"
+FILE_NAME = "PyAnsys Heart.log"
 
 # For convenience
 DEBUG = logging.DEBUG
@@ -132,18 +134,18 @@ string_to_loglevel: Dict[LOG_LEVEL_STRING_TYPE, int] = {
 }
 
 
-class PyheartCustomAdapter(logging.LoggerAdapter):
-    """Custom logging adapter for PyHeart.
+class PyAnsysHeartCustomAdapter(logging.LoggerAdapter):
+    """Custom logging adapter for PyAnsys Heart.
 
     Notes
     -----
-    This is key to keep the reference to the PyHeart instance name dynamic.
+    This is key to keep the reference to the PyAnsys Heart instance name dynamic.
 
     If we use the standard approach which is supplying ``extra`` input
-    to the logger, we would need to keep inputting PyHeart instances
+    to the logger, we would need to keep inputting PyAnsys Heart instances
     every time we do a log.
 
-    Using adapters we just need to specify the PyHeart instance we refer
+    Using adapters we just need to specify the PyAnsys Heart instance we refer
     to once.
     """
 
@@ -204,7 +206,7 @@ class PyheartCustomAdapter(logging.LoggerAdapter):
         self.level = level
 
 
-class _PyheartPercentStyle(logging.PercentStyle):
+class _PyAnsysHeartPercentStyle(logging.PercentStyle):
     def __init__(self, fmt, *, defaults=None):
         self._fmt = fmt or self.default_format
         self._defaults = defaults
@@ -229,7 +231,7 @@ class _PyheartPercentStyle(logging.PercentStyle):
         return STDOUT_MSG_FORMAT % values
 
 
-class _PyheartFormatter(logging.Formatter):
+class _PyAnsysHeartFormatter(logging.Formatter):
     """Customized ``Formatter`` class used to overwrite the defaults format styles."""
 
     def __init__(
@@ -245,7 +247,7 @@ class _PyheartFormatter(logging.Formatter):
         else:
             # 3.8: The validate parameter was added
             super().__init__(fmt, datefmt, style, validate)
-        self._style = _PyheartPercentStyle(fmt, defaults=defaults)  # overwriting
+        self._style = _PyAnsysHeartPercentStyle(fmt, defaults=defaults)  # overwriting
 
 
 class InstanceFilter(logging.Filter):
@@ -261,7 +263,7 @@ class InstanceFilter(logging.Filter):
 
 
 class Logger:
-    """Logger used for each PyHeart session.
+    """Logger used for each PyAnsys Heart session.
 
     Notes
     -----
@@ -284,14 +286,14 @@ class Logger:
 
     Examples
     --------
-    Demonstrate logger usage from a pyheart instance. This is automatically
-    created when creating an pyheart instance.
+    Demonstrate logger usage from a PyAnsys Heart instance. This is automatically
+    created when creating an PyAnsys Heart instance.
 
-    Import the global pyheart logger and add a file output handler.
+    Import the global PyAnsys Heart logger and add a file output handler.
 
     >>> import os
     >>> from ansys.heart.core import LOG
-    >>> file_path = os.path.join(os.getcwd(), 'pyheart.log')
+    >>> file_path = os.path.join(os.getcwd(), 'PyAnsys Heart.log')
     >>> LOG.log_to_file(file_path)
 
     """
@@ -308,7 +310,7 @@ class Logger:
         to_stdout: bool = True,
         filename: str = FILE_NAME,
     ):
-        """Initialize main logger class for PyHeart.
+        """Initialize main logger class for PyAnsys Heart.
 
         Parameters
         ----------
@@ -320,10 +322,10 @@ class Logger:
             To output the logs to the standard output, which is the
             command line. By default ``True``.
         filename : str, optional
-            Name of the output file. By default ``pyheart.log``.
+            Name of the output file. By default ``PyAnsys Heart.log``.
         """
         # create default main logger
-        self.logger: logging.Logger = logging.getLogger("pyheart_global")
+        self.logger: logging.Logger = logging.getLogger("PyAnsys Heart_global")
         self.logger.addFilter(InstanceFilter())
         if isinstance(level, str):
             level = cast(LOG_LEVEL_STRING_TYPE, level.upper())
@@ -357,17 +359,17 @@ class Logger:
         ----------
         filename : str, optional
             Name of the file where the logs are recorded. By default
-            ``'pyheart.log'``.
+            ``'PyAnsys Heart.log'``.
         level : str or int, optional
             Level of logging. By default ``'DEBUG'``.
 
         Examples
         --------
-        Write to ``pyheart.log`` in the current working directory.
+        Write to ``PyAnsys Heart.log`` in the current working directory.
 
         >>> from ansys.heart.core import LOG
         >>> import os
-        >>> file_path = os.path.join(os.getcwd(), 'pyheart.log')
+        >>> file_path = os.path.join(os.getcwd(), 'PyAnsys Heart.log')
         >>> LOG.log_to_file(file_path)
 
         """
@@ -441,7 +443,7 @@ class Logger:
         """Add a child logger to the main logger.
 
         This logger is more general than an instance logger which is designed to
-        track the state of the pyheart instances.
+        track the state of the PyAnsys Heart instances.
 
         If the logging level is in the arguments, a new logger with a reference
         to the ``_global`` logger handlers is created instead of a child.
@@ -462,115 +464,52 @@ class Logger:
         self._instances[name] = self._make_child_logger(name, level)
         return self._instances[name]
 
-    def _add_heart_instance_logger(
-        self,
-        name: Optional[str],
-        heart_instance: "_MapdlCore",
-        level: Optional[LOG_LEVEL_TYPE],
-    ) -> logging.Logger:
-        if isinstance(name, str):
-            instance_logger = PyheartCustomAdapter(
-                self._make_child_logger(name, level), heart_instance
-            )
-        elif not name:  # pragma: no cover
-            instance_logger = PyheartCustomAdapter(
-                self._make_child_logger("NO_NAMED_YET", level), heart_instance
-            )
+    def __getitem__(self, key):
+        """Overload the access method by item for the ``Logger`` class."""
+        if key in self._instances.keys():
+            return self._instances[key]
         else:
-            raise ValueError("You can only input 'str' classes to this method.")
+            raise KeyError(f"There is no instances with name {key}.")
 
-        return instance_logger
+    def add_handling_uncaught_expections(self, logger):
+        """
+        Redirect the output of an exception to a logger.
 
-    # def add_instance_logger(
-    #     self,
-    #     name: str,
-    #     mapdl_instance: "_MapdlCore",
-    #     level: Optional[LOG_LEVEL_TYPE] = None,
-    # ) -> logging.Logger:
-    #     """Create a logger for a MAPDL instance.
+        Parameters
+        ----------
+        logger : str
+            Name of the logger.
+        """
 
-    #     The MAPDL instance logger is a logger with an adapter which add the
-    #     contextual information such as MAPDL instance name. This logger is
-    #     returned and you can use it to log events as a normal logger. It is also
-    #     stored in the ``_instances`` field.
-
-    #     Parameters
-    #     ----------
-    #     name : str
-    #         Name for the new logger
-    #     mapdl_instance : ansys.mapdl.core.mapdl._MapdlCore
-    #         Mapdl instance object. This should contain the attribute ``name``.
-
-    #     Returns
-    #     -------
-    #     ansys.mapdl.core.logging.PymapdlCustomAdapter
-    #         Logger adapter customized to add MAPDL information to the
-    #         logs.  You can use this class to log events in the same
-    #         way you would with the logger class.
-
-    #     Raises
-    #     ------
-    #     Exception
-    #         You can only input strings as ``name`` to this method.
-    #     """
-    #     count_ = 0
-    #     new_name = name
-    #     while new_name in logging.root.manager.__dict__.keys():
-    #         count_ += 1
-    #         new_name = name + "_" + str(count_)
-
-    #     self._instances[new_name] = self._add_mapdl_instance_logger(new_name,
-    #                            mapdl_instance, level)
-    #     return self._instances[new_name]
-
-    # def __getitem__(self, key: str):
-    #     if key in self._instances.keys():
-    #         return self._instances[key]
-    #     else:
-    #         raise KeyError(f"There is no instances with name {key}")
-
-    def add_handling_uncaught_expections(self, logger: logging.Logger):
-        """Redirect the output of an exception to the logger."""
-
-        def handle_exception(
-            exc_type: Type[BaseException],
-            exc_value: BaseException,
-            exc_traceback: Optional[TracebackType],
-        ):
+        def handle_exception(exc_type, exc_value, exc_traceback):
             if issubclass(exc_type, KeyboardInterrupt):
                 sys.__excepthook__(exc_type, exc_value, exc_traceback)
                 return
-            logger.critical(
-                "Uncaught exception",
-                exc_info=(exc_type, exc_value, exc_traceback),
-            )
+            logger.critical("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
         sys.excepthook = handle_exception
 
 
-def addfile_handler(
-    logger: Union[Logger, logging.Logger],
-    filename: str = FILE_NAME,
-    level: LOG_LEVEL_TYPE = LOG_LEVEL,
-    write_headers: bool = False,
-):
-    """Add a file handler to the input.
+def addfile_handler(logger, filename=FILE_NAME, level=LOG_LEVEL, write_headers=False):
+    """
+    Add a file handler to the input.
 
     Parameters
     ----------
-    logger : logging.Logger or logging.Logger
-        Logger where to add the file handler.
-    filename : str, optional
-        Name of the output file. By default FILE_NAME
-    level : str or int, optional
-        Level of log recording. By default LOG_LEVEL
-    write_headers : bool, optional
-        Record the headers to the file. By default False
+    logger : logging.Logger
+        Logger to add the file handler to.
+    filename : str, default: "pyconv-de.log"
+        Name of the output file.
+    level : int, default: 10
+        Level of logging. The default is ``10``, in which case the
+        ``logging.DEBUG`` level is used.
+    write_headers : bool, default: False
+        Whether to write the headers to the file.
 
     Returns
     -------
-    logger
-        Return the logger or Logger object.
+    Logger
+        :class:`Logger` or :class:`logging.Logger` object.
     """
     file_handler = logging.FileHandler(filename)
     file_handler.setLevel(level)
@@ -591,30 +530,28 @@ def addfile_handler(
     return logger
 
 
-def add_stdout_handler(
-    logger: Union[Logger, logging.Logger],
-    level: LOG_LEVEL_TYPE = LOG_LEVEL,
-    write_headers: bool = False,
-):
-    """Add a file handler to the logger.
+def add_stdout_handler(logger, level=LOG_LEVEL, write_headers=False):
+    """
+    Add a standout handler to the logger.
 
     Parameters
     ----------
-    logger : logging.Logger or logging.Logger
-        Logger where to add the file handler.
-    level : str or int, optional
-        Level of log recording. By default ``logging.DEBUG``.
-    write_headers : bool, optional
-        Record the headers to the file. By default ``False``.
+    logger : logging.Logger
+        Logger to add the file handler to.
+    level : int, default: 10
+        Level of logging. The default is ``10``, in which case the
+        ``logging.DEBUG`` level is used.
+    write_headers : bool, default: False
+        Whether to write headers to the file.
 
     Returns
     -------
-    logger
-        The logger or Logger object.
+    Logger
+        :class:`Logger` or :class:`logging.Logger` object.
     """
     std_out_handler = logging.StreamHandler()
     std_out_handler.setLevel(level)
-    std_out_handler.setFormatter(_PyheartFormatter(STDOUT_MSG_FORMAT))
+    std_out_handler.setFormatter(_PyAnsysHeartFormatter(STDOUT_MSG_FORMAT))
 
     if isinstance(logger, Logger):
         logger.std_out_handler = std_out_handler
@@ -627,3 +564,11 @@ def add_stdout_handler(
         std_out_handler.stream.write(DEFAULT_STDOUT_HEADER)
 
     return logger
+
+
+# ===============================================================
+# Finally define logger
+# ===============================================================
+
+LOG = Logger(level=logging.INFO, to_file=False, to_stdout=True)
+LOG.debug("Loaded logging module as LOG")

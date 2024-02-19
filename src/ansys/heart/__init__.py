@@ -7,7 +7,7 @@ except ModuleNotFoundError:  # pragma: no cover
 
 import logging
 
-from ansys.heart.core.logging import Logger
+from ansys.heart.core.logger import Logger
 
 __version__ = importlib_metadata.version("pyansys-heart")
 """The version of pyansys-heart."""

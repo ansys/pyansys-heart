@@ -3,6 +3,10 @@ import os
 import pathlib
 
 ROOT_FOLDER = os.path.join(pathlib.Path(__file__).parent)
+import logging as deflogging
+
+import pytest
+
 from ansys.heart.misc.downloader import download_case, unpack_case
 
 """
@@ -137,3 +141,42 @@ def remove_keys_from_dict(dictionary: dict, exclude_keys=[]):
     """Removes specific keys from the dictionary"""
     new_d = {k: dictionary[k] for k in set(list(dictionary.keys())) - set(exclude_keys)}
     return new_d
+
+
+@pytest.fixture
+def fake_record():
+    def inner_fake_record(
+        logger,
+        msg="This is a message",
+        instance_name="172.1.1.1:52000",
+        handler_index=0,
+        name_logger=None,
+        level=deflogging.DEBUG,
+        filename="fn",
+        lno=0,
+        args=(),
+        exc_info=None,
+        extra={},
+    ):
+        sinfo = None
+        if not name_logger:
+            name_logger = logger.name
+
+        if "instance_name" not in extra.keys():
+            extra["instance_name"] = instance_name
+
+        record = logger.makeRecord(
+            name_logger,
+            level,
+            filename,
+            lno,
+            msg,
+            args=args,
+            exc_info=exc_info,
+            extra=extra,
+            sinfo=sinfo,
+        )
+        handler = logger.handlers[handler_index]
+        return handler.format(record)
+
+    return inner_fake_record

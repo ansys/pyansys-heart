@@ -1,7 +1,7 @@
 API reference
 =============
 
-This page contains auto-generated API reference documentation for PyAnsys-Heart.
+This page contains auto-generated API reference documentation for PyAnsys Heart.
 
 .. toctree::
    :maxdepth: 4

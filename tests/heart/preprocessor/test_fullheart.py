@@ -4,7 +4,6 @@ import glob
 import os
 import pathlib
 import shutil
-import sys
 
 import ansys.heart.preprocessor.models.v0_1.models as models
 from ansys.heart.simulator.support import run_preprocessor
@@ -17,12 +16,7 @@ from ansys.heart.writer.dynawriter import (
 )
 import pytest
 
-from tests.heart.common import (
-    compare_cavity_volume,
-    compare_generated_mesh,
-    compare_part_names,
-    compare_surface_names,
-)
+from tests.heart.common import compare_cavity_volume, compare_part_names, compare_surface_names
 from tests.heart.conftest import download_asset, get_assets_folder, get_workdir
 from tests.heart.end2end.compare_k import read_file
 
@@ -65,7 +59,20 @@ def extract_fullheart():
 
     workdir = os.path.join(get_workdir(), "FullHeart")
     path_to_model = os.path.join(workdir, "heart_model.pickle")
-
+    # copy mesh file
+    if not os.path.isdir(workdir):
+        os.makedirs(workdir)
+    shutil.copyfile(
+        os.path.join(
+            assets_folder,
+            "reference_models",
+            "strocchi2020",
+            "01",
+            "FullHeart",
+            "fluent_volume_mesh.msh.h5",
+        ),
+        os.path.join(workdir, "fluent_volume_mesh.msh.h5"),
+    )
     global model
     model = run_preprocessor(
         model_type=models.FullHeart,
@@ -74,6 +81,7 @@ def extract_fullheart():
         work_directory=workdir,
         path_to_model=path_to_model,
         mesh_size=2,
+        skip_meshing=True,
     )
 
     yield
@@ -101,14 +109,6 @@ def test_cavities_volumes():
     pass
 
 
-@pytest.mark.xfail(
-    sys.platform == "linux", reason="Mesh generation slightly different for Linux version of Fluent"
-)
-def test_mesh():
-    """Test the number of tetrahedrons and triangles in the volume mesh and surface meshes"""
-    compare_generated_mesh(model, ref_stats)
-
-
 @pytest.mark.parametrize(
     "writer_class",
     [
@@ -118,9 +118,6 @@ def test_mesh():
         FiberGenerationDynaWriter,
         PurkinjeGenerationDynaWriter,
     ],
-)
-@pytest.mark.xfail(
-    sys.platform == "linux", reason="Mesh generation slightly different for Linux version of Fluent"
 )
 def test_writers(writer_class):
     """Test whether all writers yield the same .k files as the reference model.

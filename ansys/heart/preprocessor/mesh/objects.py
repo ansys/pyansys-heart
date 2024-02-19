@@ -569,12 +569,18 @@ class Mesh(pv.UnstructuredGrid):
 
         Notes
         -----
-        This is derived from the "tags" field in cell data
+        This is derived from the "part-id" field in cell data
         """
+        # NOTE "tags" should be removed.
         try:
             value = self.cell_data["tags"].astype(int)
         except (KeyError, NameError):
             LOGGER.warning("'tags' field not found in self.cell_data")
+            value = None
+        try:
+            value = self.cell_data["part-id"].astype(int)
+        except (KeyError, NameError):
+            LOGGER.warning("'part-id' field not found in self.cell_data")
             value = None
         return value
 

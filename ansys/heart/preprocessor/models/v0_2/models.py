@@ -62,6 +62,9 @@ class ModelInfo:
         """Mesh size used for remeshing."""
         self.add_blood_pool: bool = add_blood_pool
         """Flag indicating whether to add blood to the cavities."""
+        
+        self.model_type: str = ""
+        """Deprecated dummy value of model type."""
 
         pass
 

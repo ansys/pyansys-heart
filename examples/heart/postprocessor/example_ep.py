@@ -1,7 +1,8 @@
 """For information only, example not yet stable"""
+import pyvista as pv
+
 from ansys.heart.postprocessor.EPpostprocessor import EPpostprocessor
 from ansys.heart.preprocessor.models.v0_1.models import HeartModel
-import pyvista as pv
 
 if __name__ == "__main__":
     model: HeartModel

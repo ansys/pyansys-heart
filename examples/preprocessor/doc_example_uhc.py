@@ -19,9 +19,10 @@ import copy
 import os
 from pathlib import Path
 
+import pyvista as pv
+
 import ansys.heart.preprocessor.models.v0_1.models as models
 from ansys.heart.simulator.simulator import BaseSimulator, DynaSettings
-import pyvista as pv
 
 # set working directory and path to model.
 workdir = Path(

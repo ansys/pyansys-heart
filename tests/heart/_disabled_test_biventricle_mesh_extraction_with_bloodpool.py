@@ -4,11 +4,10 @@ expected features."""
 import os
 import shutil
 
-import numpy as np
-import pytest
-
 import ansys.heart.preprocessor.models.v0_1.models as models
 from ansys.heart.simulator.support import run_preprocessor
+import numpy as np
+import pytest
 
 from .common import (
     _deprecated_compare_caps_nodeids,

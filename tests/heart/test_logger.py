@@ -4,10 +4,9 @@ import logging as deflogging  # Default logging module
 import re
 from typing import Callable
 
-import pytest
-
 import ansys.heart.core.logger as logger
 from ansys.heart.core.logger import LOG  # Global logger
+import pytest
 
 ## Notes
 # Use the next fixtures for:

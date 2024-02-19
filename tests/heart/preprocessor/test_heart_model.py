@@ -9,10 +9,10 @@ if os.getenv("GITHUB_ACTIONS"):
 else:
     is_gh_action = False
 
+import ansys.heart.preprocessor.models.v0_1.models as models
 import numpy as np
 import pytest
 
-import ansys.heart.preprocessor.models.v0_1.models as models
 from tests.heart.conftest import create_directory, get_workdir
 
 

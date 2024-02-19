@@ -1,8 +1,7 @@
 """Some common functions to test parts."""
 
-import numpy as np
-
 import ansys.heart.preprocessor.models.v0_1.models as models
+import numpy as np
 
 
 def compare_part_names(model: models.HeartModel, ref_stats: dict):

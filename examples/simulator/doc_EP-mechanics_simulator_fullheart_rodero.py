@@ -25,10 +25,9 @@ set it up for a coupled electromechanical simulation.
 import os
 from pathlib import Path
 
-from pint import Quantity
-
 import ansys.heart.preprocessor.models.v0_1.models as models
 from ansys.heart.simulator.simulator import DynaSettings, EPMechanicsSimulator
+from pint import Quantity
 
 ###############################################################################
 # Example setup

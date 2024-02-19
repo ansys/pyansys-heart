@@ -1,10 +1,10 @@
 import os
 
+from ansys.heart.preprocessor.mesh.objects import Mesh, SurfaceMesh
 import numpy as np
 import pytest  # noqa F401
 import pyvista as pv  # noqa F401
 
-from ansys.heart.preprocessor.mesh.objects import Mesh, SurfaceMesh
 from tests.heart.conftest import download_asset, get_assets_folder  # noqa F401
 
 skip_test = os.name != "nt"

@@ -7,8 +7,6 @@ import pathlib
 import shutil
 import sys
 
-import pytest
-
 import ansys.heart.preprocessor.models.v0_1.models as models
 from ansys.heart.simulator.support import run_preprocessor
 from ansys.heart.writer.dynawriter import (
@@ -18,6 +16,8 @@ from ansys.heart.writer.dynawriter import (
     PurkinjeGenerationDynaWriter,
     ZeroPressureMechanicsDynaWriter,
 )
+import pytest
+
 from tests.heart.common import (
     compare_cavity_volume,
     compare_generated_mesh,

@@ -1,9 +1,8 @@
 """Example show how to compute myocardium strain"""
 
-from matplotlib import pyplot as plt
-
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
 from ansys.heart.preprocessor.models.v0_1.models import HeartModel
+from matplotlib import pyplot as plt
 
 if __name__ == "__main__":
     model: HeartModel

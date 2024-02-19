@@ -2,11 +2,11 @@
 
 import os
 
+from ansys.heart.preprocessor.models.v0_1.models import HeartModel
 import meshio
 import numpy as np
 import pytest
 
-from ansys.heart.preprocessor.models.v0_1.models import HeartModel
 from tests.heart.conftest import get_assets_folder
 
 test_model: HeartModel

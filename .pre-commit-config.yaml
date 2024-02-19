@@ -1,5 +1,4 @@
 repos:
-
 - repo: https://github.com/psf/black
   rev: 23.7.0
   hooks:
@@ -25,11 +24,9 @@ repos:
   rev: v2.2.4
   hooks:
   - id: codespell
-#    exclude: examples/dyna_decks
     exclude: ^(examples/dyna_decks\/|tests/heart/assets\/)
-    args: [-L solf,"--ignore-words=ignore_words.txt" ]
+    args: [-L solf, "--ignore-words=ignore_words.txt"]
 
-# pydocstyle is pretty strict
 - repo: https://github.com/pycqa/pydocstyle
   rev: 6.3.0
   hooks:
@@ -45,17 +42,16 @@ repos:
         .*__init__.py
       )
 
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
-    hooks:
-    - id: check-merge-conflict
-    - id: debug-statements
-    - id: check-yaml
-    - id: trailing-whitespace
-      exclude: ^(tests/heart/assets\/)
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.4.0
+  hooks:
+  - id: check-merge-conflict
+  - id: debug-statements
+  - id: check-yaml
+  - id: trailing-whitespace
+    exclude: ^(tests/heart/assets\/)
 
-# this validates our github workflow files
 - repo: https://github.com/python-jsonschema/check-jsonschema
   rev: 0.24.1
   hooks:
-    - id: check-github-workflows
+  - id: check-github-workflows

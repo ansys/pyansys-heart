@@ -1,4 +1,4 @@
-|pyansys| |python| |MIT|
+|pyansys| |python| |MIT| |black| |pre-commit|
 
 .. |pyansys| image:: https://img.shields.io/badge/Py-Ansys-ffc107.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAABDklEQVQ4jWNgoDfg5mD8vE7q/3bpVyskbW0sMRUwofHD7Dh5OBkZGBgW7/3W2tZpa2tLQEOyOzeEsfumlK2tbVpaGj4N6jIs1lpsDAwMJ278sveMY2BgCA0NFRISwqkhyQ1q/Nyd3zg4OBgYGNjZ2ePi4rB5loGBhZnhxTLJ/9ulv26Q4uVk1NXV/f///////69du4Zdg78lx//t0v+3S88rFISInD59GqIH2esIJ8G9O2/XVwhjzpw5EAam1xkkBJn/bJX+v1365hxxuCAfH9+3b9/+////48cPuNehNsS7cDEzMTAwMMzb+Q2u4dOnT2vWrMHu9ZtzxP9vl/69RVpCkBlZ3N7enoDXBwEAAA+YYitOilMVAAAAAElFTkSuQmCC
    :target: https://docs.pyansys.com/
@@ -11,6 +11,14 @@
 .. |MIT| image:: https://img.shields.io/badge/license-MIT-yellow
    :target: https://opensource.org/license/mit/
    :alt: MIT
+
+.. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg?style=flat
+   :target: https://github.com/psf/black
+   :alt: Black
+
+.. |pre-commit| image:: https://results.pre-commit.ci/badge/github/ansys/pyansys-geometry/main.svg
+   :target: https://results.pre-commit.ci/latest/github/ansys/pyansys-geometry/main
+   :alt: pre-commit.ci
 
 PyAnsys-Heart is a `Python`_ framework for heart modeling using Ansys tools.
 
@@ -191,29 +199,20 @@ this does not guarantee that your project is being tested in an isolated
 environment, which is another reason to consider using `tox`_.
 
 
-Documentation
-=============
+Documentation and issues
+========================
+Documentation for the latest stable release of PyAnsys Heart is hosted at `documentation`_.
 
-Visit the `documentation`_ for a
-detailed description of the library or for specific examples.
+In the upper right corner of the documentation's title bar, there is an option for switching from
+viewing the documentation for the latest stable release to viewing the documentation for the
+development version or previously released versions.
 
-For building documentation, you can either run the usual rules provided in the
-`Sphinx`_ Makefile, such us:
+On the `PyAnsys Heart Issues <https://github.com/ansys/pyansys-heart/issues>`_ page,
+you can create issues to report bugs and request new features. On the `PyAnsys Heart Discussions
+<https://github.com/ansys/pyansys-heart/discussions>`_ page or the `Discussions <https://discuss.ansys.com/>`_
+page on the Ansys Developer portal, you can post questions, share ideas, and get community feedback.
 
-.. code:: bash
-
-    # install any dependencies for building the documentation.
-    python -m pip install .[doc]
-
-    # Linux
-    make -C doc/ html
-
-    # Windows
-    cd doc/
-    make.bat html
-
-subsequently open the documentation by opening `doc/html/index.html`:
-
+To reach the project support team, email `pyansys.core@ansys.com <mailto:pyansys.core@ansys.com>`_.
 
 Distributing
 ============
@@ -225,34 +224,14 @@ If you would like to create either source or wheel files, you can execute:
     python -m pip install .
 
 
-Licensing terms
-===============
+License
+=======
 
-PyAnsys-Heart is licensed under the MIT license:
-
-    MIT License
-
-    Copyright (c) 2023 ANSYS, Inc. All rights reserved.
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE.
-
-PyAnsys-Heart makes no commercial claim over any Ansys products whatsoever. This library extends the functionality of the listed Ansys products by adding a Python interface without changing the core behavior or licensing of the original products. This library requires legally licensed copies of the involved Ansys products.
+PyAnsys-Heart is licensed under the MIT license. Please refer to the `LICENSE` file for more information.
+PyAnsys-Heart makes no commercial claim over any Ansys products whatsoever.
+This library extends the functionality of the listed Ansys products by adding a Python interface
+without changing the core behavior or licensing of the original products. This library requires
+legally licensed copies of the involved Ansys products.
 
 
 .. LINKS AND REFERENCES

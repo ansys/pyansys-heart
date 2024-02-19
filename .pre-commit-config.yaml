@@ -25,7 +25,7 @@ repos:
   hooks:
   - id: codespell
     exclude: ^(examples/dyna_decks\/|tests/heart/assets\/)
-    args: [-L solf, "--ignore-words=ignore_words.txt"]
+    args: [-L solf, "--ignore-words", "doc/styles/Vocab/ANSYS/accept.txt", "-w"]
 
 - repo: https://github.com/pycqa/pydocstyle
   rev: 6.3.0

@@ -3,3 +3,6 @@ Ansys
 ansys
 PyHeart
 pyheart
+propt
+hist
+vart

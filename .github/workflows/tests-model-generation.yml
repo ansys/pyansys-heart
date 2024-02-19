@@ -45,7 +45,7 @@ jobs:
       #     mkdir -p ~/image-cache
 
       # - name: Cache Fluent docker image
-      #   uses: actions/cache@v3
+      #   uses: actions/cache@v4
       #   with:
       #     path: ~/image-cache
       #     key: image-cache-${{ runner.os }}
@@ -88,7 +88,7 @@ jobs:
 
       - name: Cache large files
         id: cache-strocchi
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: cache-strocchi
         with:

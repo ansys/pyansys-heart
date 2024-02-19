@@ -4,7 +4,7 @@ import os
 
 from ansys_sphinx_theme import ansys_favicon, get_version_match, pyansys_logo_black
 
-from ansys.heart._version import __version__
+from ansys.heart import __version__
 
 # Project information
 project = "pyansys-heart"
@@ -116,9 +116,9 @@ autosectionlabel_maxdepth = 4
 autoapi_type = "python"
 autoapi_ignore = []
 autoapi_dirs = [
-    "../../ansys/heart/preprocessor",
-    "../../ansys/heart/simulator",
-    "../../ansys/heart/postprocessor",
+    "../../src/ansys/heart/preprocessor",
+    "../../src/ansys/heart/simulator",
+    "../../src/ansys/heart/postprocessor",
 ]
 autoapi_options = [
     "members",

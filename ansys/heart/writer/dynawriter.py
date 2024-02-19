@@ -1323,17 +1323,92 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _add_pericardium_bc(self, scale=1.0):
-        """Add the pericardium.
-
-        Note
-        ----
-        Uses the universal ventricular longitudinal coordinate
-        and a sigmoid penalty function. Strocchi et al 2020 doi: 10.1016/j.jbiomech.2020.109645.
-        """
+        """Add the pericardium."""
         boundary_conditions = copy.deepcopy(self.settings.mechanics.boundary_conditions)
-        boundary_conditions._remove_units()
-        pericardium_settings = boundary_conditions.pericardium
+        robin_settings = boundary_conditions.robin
 
+        # collect all pericardium nodes:
+        epicardium_nodes, point_normal = self._get_epicardium_nodes(apply="ventricle")
+
+        # use pre-computed nodal areas
+        nodal_areas = self.model.mesh.point_data["nodal_areas"][epicardium_nodes]
+        # penalty
+        penalty_function = self._get_longitudinal_penalty(robin_settings["ventricle"])
+        nodal_penalty = penalty_function[epicardium_nodes]
+
+        # compute scale factor
+        scale_factors = nodal_areas * nodal_penalty
+
+        # debug = pv.PointGrid(self.model.mesh.points[epicardium_nodes])
+        # debug.point_data["stiff"] = scale_factors
+        # debug.point_data["normal"] = point_normal
+        # debug.save("pericardium.vtk")
+
+        k = scale * robin_settings["ventricle"]["stiffness"].to("MPa/mm").m
+        mask = penalty_function[epicardium_nodes] > 0.0001
+        self._write_discret_elements(
+            "spring", k, epicardium_nodes[mask], point_normal[mask], scale_factors[mask]
+        )
+        dc = robin_settings["ventricle"]["damper"].to("MPa/mm*ms").m
+        self._write_discret_elements("damper", dc, epicardium_nodes, point_normal, nodal_areas)
+
+        if isinstance(self.model, FourChamber):
+            epicardium_nodes, point_normal = self._get_epicardium_nodes(apply="atrial")
+            nodal_areas = self.model.mesh.point_data["nodal_areas"][epicardium_nodes]
+            k = robin_settings["atrial"]["stiffness"].to("MPa/mm").m
+            self._write_discret_elements("spring", k, epicardium_nodes, point_normal, nodal_areas)
+            dc = robin_settings["atrial"]["damper"].to("MPa/mm*ms").m
+            self._write_discret_elements("damper", dc, epicardium_nodes, point_normal, nodal_areas)
+        return
+
+    def _get_epicardium_nodes(self, apply: Literal["ventricle", "atrial"] = "ventricle"):
+        """Extract epicardium nodes to apply Robin BC.
+
+        Parameters
+        ----------
+        apply : Literal[&quot;ventricle&quot;, &quot;atrial&quot;], optional
+            Apply to which part, by default "ventricle"
+
+        TODO: move to model
+
+        Returns
+        -------
+            node list and their normal vectors
+        """
+        epicardium_faces = np.empty((0, 3), dtype=int)
+
+        LOGGER.debug(f"Collecting epicardium nodesets of {apply}:")
+        if apply == "ventricle":
+            targets = [part for part in self.model.parts if "ventricle" in part.name]
+        elif apply == "atrial":
+            targets = [part for part in self.model.parts if "atrium" in part.name]
+
+        epicardium_surfaces = [ventricle.epicardium for ventricle in targets]
+
+        for surface in epicardium_surfaces:
+            epicardium_faces = np.vstack([epicardium_faces, surface.triangles])
+
+        # some nodes on the edge must be included
+        epicardium_nodes, a = np.unique(epicardium_faces, return_inverse=True)
+
+        # build pericardium polydata
+        coord = self.model.mesh.nodes[epicardium_nodes]
+        connect = a.reshape(epicardium_faces.shape)
+        pericardium_polydata = vtkmethods.create_vtk_surface_triangles(coord, connect, clean=False)
+        # vtkmethods.write_vtkdata_to_vtkfile(pericardium_polydata,'pericardium.vtk')
+
+        # compute normal
+        _, point_normal = vtkmethods.add_normals_to_polydata(
+            pericardium_polydata, return_normals=True
+        )
+        return epicardium_nodes, point_normal
+
+    def _get_longitudinal_penalty(self, pericardium_settings):
+        """
+        Use the universal ventricular longitudinal coordinate and a sigmoid penalty function.
+
+        Strocchi et al 2020 doi: 10.1016/j.jbiomech.2020.109645.
+        """
         penalty_c0 = pericardium_settings["penalty_function"][0]
         penalty_c1 = pericardium_settings["penalty_function"][1]
         self.kw_database.pericardium.append(f"$$ penalty with {penalty_c0}, {penalty_c1} $$")
@@ -1352,106 +1427,47 @@ class MechanicsDynaWriter(BaseDynaWriter):
         uvc_l[uvc_l < 0] = 1
 
         penalty_function = -_sigmoid((abs(uvc_l) - penalty_c0) * penalty_c1) + 1
+        return penalty_function
 
-        # collect all pericardium nodes:
-        epicardium_nodes = np.empty(0, dtype=int)
-        epicardium_faces = np.empty((0, 3), dtype=int)
-        LOGGER.debug("Collecting epicardium nodesets of ventricles:")
-        ventricles = [part for part in self.model.parts if "ventricle" in part.name]
-        epicardium_surfaces = [ventricle.epicardium for ventricle in ventricles]
-
-        for surface in epicardium_surfaces:
-            epicardium_nodes = np.append(epicardium_nodes, surface.node_ids)
-            epicardium_faces = np.vstack([epicardium_faces, surface.triangles])
-
-        # NOTE: some duplicates may exist - fix this in preprocessor
-        _, idx, counts = np.unique(epicardium_nodes, return_index=True, return_counts=True)
-        if np.any(counts > 1):
-            LOGGER.warning("Duplicate nodes found in pericardium")
-        epicardium_nodes = epicardium_nodes[np.sort(idx)]
-
-        # select only nodes for penalty factor > 0.0001
-        pericardium_nodes = epicardium_nodes[penalty_function[epicardium_nodes] > 0.0001]
-        # select surfaces containing these nodes
-        pericardium_faces = epicardium_faces[
-            np.any(np.isin(epicardium_faces, pericardium_nodes), axis=1)
-        ]
-        # some nodes on the edge must be included
-        pericardium_nodes, a = np.unique(pericardium_faces, return_inverse=True)
-
-        # build pericardium polydata
-        coord = self.model.mesh.nodes[pericardium_nodes]
-        connect = a.reshape(pericardium_faces.shape)
-        pericardium_polydata = vtkmethods.create_vtk_surface_triangles(coord, connect, clean=False)
-        # vtkmethods.write_vtkdata_to_vtkfile(pericardium_polydata,'pericardium.vtk')
-
-        # compute normal
-        cell_normal, point_normal = vtkmethods.add_normals_to_polydata(
-            pericardium_polydata, return_normals=True
-        )
-        # normal_obj = vtkmethods.add_normals_to_polydata(pericardium_polydata)
-        # vtkmethods.write_vtkdata_to_vtkfile(normal_obj,'normal.vtk')
-
-        # use pre-computed nodal areas
-        nodal_areas = self.model.mesh.point_data["nodal_areas"][pericardium_nodes]
-        nodal_penalty = penalty_function[pericardium_nodes]
-        # compute scale factor
-        scale_factors = nodal_areas * nodal_penalty
-
-        # def __debug():
-        #     import meshio
-
-        #     meshio.write_points_cells(
-        #         "pericardium.vtk",
-        #         coord,
-        #         [("triangle", connect)],
-        #         point_data={
-        #             "area": nodal_areas,
-        #             "normal": point_normal,
-        #             "penalty": nodal_penalty,
-        #             "stiff": nodal_areas * nodal_penalty,
-        #         },
-        #         cell_data={"normal": [cell_normal]},
-        #     )
-
-        # __debug()
-
+    def _write_discret_elements(
+        self, type: Literal["spring", "damper"], global_fact, nodes, directions, local_stiff
+    ):
         # create unique ids for keywords
         part_id = self.get_unique_part_id()
         section_id = self.get_unique_section_id()
         mat_id = self.get_unique_mat_id()
 
+        # define material
+        if type == "spring":
+            mat_kw = keywords.MatSpringElastic(mid=mat_id, k=global_fact)
+        elif type == "damper":
+            mat_kw = keywords.MatDamperViscous(mid=mat_id, dc=global_fact)
+
         # define part
         part_kw = keywords.Part()
         part_kw.parts = pd.DataFrame(
-            {"heading": ["Pericardium"], "pid": [part_id], "secid": [section_id], "mid": [mat_id]}
+            {"heading": [f"{type}"], "pid": [part_id], "secid": [section_id], "mid": [mat_id]}
         )
         # define section
         section_kw = keywords.SectionDiscrete(secid=section_id, cdl=0, tdl=0)
 
-        # define material
-        k = pericardium_settings["spring_stiffness"] * scale
-        mat_kw = keywords.MatSpringElastic(mid=mat_id, k=k)
-
         # define spring orientations
         sd_orientation_kw = create_define_sd_orientation_kw(
-            vectors=point_normal, vector_id_offset=self.id_offset["vector"]
+            vectors=directions, vector_id_offset=self.id_offset["vector"]
         )
         # add offset
         self.id_offset["vector"] = sd_orientation_kw.vectors["vid"].to_numpy()[-1]
         vector_ids = sd_orientation_kw.vectors["vid"].to_numpy().astype(int)
 
         # define spring nodes
-        nodes = pericardium_nodes + 1
-        nodes = np.vstack([nodes, np.zeros(len(nodes))])
-        nodes = nodes.T
+        nodes_table = np.vstack([nodes + 1, np.zeros(len(nodes))]).T
 
         # create discrete elements
         discrete_element_kw = create_discrete_elements_kw(
-            nodes=nodes,
+            nodes=nodes_table,
             part_id=part_id,
             vector_ids=vector_ids,
-            scale_factor=scale_factors,
+            scale_factor=local_stiff,
             element_id_offset=self.id_offset["element"]["discrete"],
         )
         # add offset
@@ -1463,8 +1479,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.pericardium.append(mat_kw)
         self.kw_database.pericardium.append(sd_orientation_kw)
         self.kw_database.pericardium.append(discrete_element_kw)
-
-        return
 
     def _update_cap_elements_db(self, add_mesh=True):
         """Update the database of shell elements.

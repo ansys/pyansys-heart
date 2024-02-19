@@ -29,7 +29,7 @@ REF_STRING_SETTINGS_YML_MECHANICS = (
     "      atrium: null\n"
     "      cap: null\n"
     "    boundary_conditions:\n"
-    "      pericardium: null\n"
+    "      robin: null\n"
     "      valve: null\n"
     "      end_diastolic_cavity_pressure: null\n"
     "    system:\n"

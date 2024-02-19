@@ -88,23 +88,6 @@ $#     mid        ro        pr         n        nv         g      sigf       ref
          7     0.001     0.499         0                                     0.0
 $#     c10       c01       c11       c20       c02       c30    therml
    0.01745                                                            
-*MAT_295
-$#     mid       rho      aopt
-         8     0.001       2.0
-$#   title     itype      beta        nu
-ISO               -3       0.0     0.499
-$#      k1        k2
-   0.00236      1.75
-$#   title     atype    intype        nf
-ANISO             -1         0         1
-$#   theta         a         b
-       0.0       0.0       1.0
-$#   ftype      fcid        k1        k2
-         1         0   0.00049      9.01
-$#      xp        yp        zp        a1        a2        a3      macf    unused
-                                     1.0       0.0       0.0         1          
-$#      v1        v2        v3        d1        d2        d3      beta       ref
-                                     0.0       1.0       0.0                    
 *DEFINE_CURVE_TITLE
 $#                                                                         title
 calcium_concentration                                                           

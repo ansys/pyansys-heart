@@ -155,8 +155,8 @@ class EpMaterial(Settings):
 class BoundaryConditions(Settings):
     """Stores settings/parameters for boundary conditions."""
 
-    pericardium: AttrDict = None
-    """Parameters for pericardium spring b.c."""
+    robin: AttrDict = None
+    """Parameters for pericardium spring/damper b.c."""
     valve: AttrDict = None
     """Parameters for valve spring b.c."""
     end_diastolic_cavity_pressure: AttrDict = None

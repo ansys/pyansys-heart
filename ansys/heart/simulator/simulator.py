@@ -227,7 +227,7 @@ class BaseSimulator:
         LOGGER.info("Computing LA fiber...")
         export_directory = os.path.join(self.root_directory, "la_fiber")
 
-        target = self.run_laplace_problem(export_directory, "la_fiber")
+        target = self.run_laplace_problem(export_directory, "la_fiber", laa=np.array(appendage))
 
         endo_surface = self.model.left_atrium.endocardium
         la_pv = compute_la_fiber_cs(

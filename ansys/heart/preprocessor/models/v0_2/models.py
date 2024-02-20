@@ -62,7 +62,7 @@ class ModelInfo:
         """Mesh size used for remeshing."""
         self.add_blood_pool: bool = add_blood_pool
         """Flag indicating whether to add blood to the cavities."""
-        
+
         self.model_type: str = ""
         """Deprecated dummy value of model type."""
 
@@ -190,6 +190,11 @@ class HeartModel:
     def surface_id_to_surface_name(self) -> dict:
         """Dictionary that maps surface name to surface id."""
         return {s.id: s.name for p in self.parts for s in p.surfaces}
+
+    @property
+    def cap_centroids(self):
+        """Return list of cap centroids."""
+        return np.array([c.centroid for p in self.parts for c in p.caps])
 
     def __init__(self, info: ModelInfo) -> None:
         self.info = info
@@ -1823,6 +1828,8 @@ class FourChamber(HeartModel):
                 (self.right_ventricle.endocardium.faces, self.right_ventricle.septum.faces)
             )
             endo_surface = pv.PolyData(self.mesh.points, face)
+
+        endo_surface = endo_surface.clean()
 
         bundle_branch = endo_surface.geodesic(
             endo_surface.find_closest_point(start_coord),

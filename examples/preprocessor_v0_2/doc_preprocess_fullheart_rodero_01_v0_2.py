@@ -7,7 +7,7 @@ and process that case into a simulation-ready four chamber heart model.
 """
 import os
 
-os.environ["ANSYS_HEART_MODEL_VERSION"]="v0.2"
+os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
 
 
 ###############################################################################
@@ -22,14 +22,13 @@ os.environ["ANSYS_HEART_MODEL_VERSION"]="v0.2"
 # sphinx_gallery_thumbnail_path = '_static/images/four_chamber_mesh.png'
 # sphinx_gallery_end_ignore
 
-from pathlib import Path
 import json
+from pathlib import Path
 
-from ansys.heart.misc.downloader import download_case, unpack_case
-import ansys.heart.preprocessor.models.v0_2.models as models
 from ansys.heart.preprocessor.models.v0_2.database_preprocessor import (
     get_input_geom_and_part_defintions_from_public_database,
 )
+import ansys.heart.preprocessor.models.v0_2.models as models
 
 # specify necessary paths.
 # Note that we need to cast the paths to strings to facilitate serialization.
@@ -37,7 +36,7 @@ from ansys.heart.preprocessor.models.v0_2.database_preprocessor import (
 #     Path(Path(__file__).resolve().parents[2], "downloads", "Rodero2021", "01", "01.vtk")
 # )
 # download_folder = str(Path(Path(__file__).resolve().parents[2], "downloads"))
-file_path = r"D:\development\pyansys-heart\downloads\Rodero2021\01\01.vtk"
+file_path = r"pyansys-heart\downloads\Rodero2021\01\01.vtk"
 
 workdir = str(
     Path(Path(__file__).resolve().parents[2], "downloads", "Rodero2021", "01", "FullHeart_v0_2")
@@ -54,10 +53,11 @@ path_to_part_definitions = os.path.join(workdir, "part_definitions.json")
 if os.path.isfile(path_to_input):
     # load the existing input model.
     import pyvista as pv
+
     input_geom = pv.PolyData(path_to_input)
     with open(path_to_part_definitions, "r") as f:
         part_definitions = json.load(f)
-    
+
 else:
     # otherwise get the input geometry and part definitions
     input_geom, part_definitions = get_input_geom_and_part_defintions_from_public_database(
@@ -66,7 +66,7 @@ else:
     # save for future use.
     input_geom.save(path_to_input)
     with open(path_to_part_definitions, "w") as f:
-        json.dump(part_definitions, f, indent=True)    
+        json.dump(part_definitions, f, indent=True)
 
 
 info = models.ModelInfo(
@@ -114,5 +114,3 @@ model.info.clean_workdir([".stl", ".vtk", ".jou", ".log"])
 # save cavities
 for cavity in model.cavities:
     cavity.surface.save(os.path.join(model.info.workdir, "cavity_" + cavity.name + ".stl"))
-
-

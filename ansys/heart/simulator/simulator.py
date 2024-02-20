@@ -227,7 +227,7 @@ class BaseSimulator:
         LOGGER.info("Computing LA fiber...")
         export_directory = os.path.join(self.root_directory, "la_fiber")
 
-        target = self.run_laplace_problem(export_directory, "la_fiber", laa=appendage)
+        target = self.run_laplace_problem(export_directory, "la_fiber", laa=np.array(appendage))
 
         endo_surface = self.model.left_atrium.endocardium
         la_pv = compute_la_fiber_cs(
@@ -276,10 +276,7 @@ class BaseSimulator:
             for key, value in kwargs.items():
                 if key == "laa":
                     break
-            if value is None:
-                dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type)
-            else:
-                dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, laa=value)
+            dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, laa=value)
         else:
             dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type)
 

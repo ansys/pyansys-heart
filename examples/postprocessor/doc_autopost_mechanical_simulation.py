@@ -155,7 +155,7 @@ plt.show()
 
 ###############################################################################
 # Run with default process scripts
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # All above steps are encapsulated in one script:
 
 mech_post(meca_folder, model)

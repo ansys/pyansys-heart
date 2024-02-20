@@ -23,7 +23,7 @@ development mode by running this code:
 Post issues
 -----------
 Use the `PyAnsys Heart Issues <https://github.com/ansys/pyansys-heart/issues>`_
-page to submit questions, report bugs, and request new features.When possible, you
+page to submit questions, report bugs, and request new features. When possible, you
 should use these issue templates:
 
 * Bug, problem, error: For filing a bug report

@@ -1,4 +1,4 @@
 Getting started
 ===============
 
-The following instructions will help you get started with the project.
+The following instructions can be used to get started with the project.

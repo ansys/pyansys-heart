@@ -45,13 +45,13 @@ dependencies = [
 # Optional dependencies:
 [project.optional-dependencies]
 doc = [
-    "ansys-sphinx-theme==0.10.3",
-    "jupyter_sphinx==0.4.0",
+    "ansys-sphinx-theme==0.14.0",
+    "jupyter_sphinx==0.5.3",
     "myst-parser==2.0.0",
     "numpydoc==1.6.0",
     "nbsphinx==0.9.3",
-    "Sphinx==7.2.2",
-    "sphinx-autoapi==3.0.0",
+    "sphinx==7.2.6",
+    "sphinx-autoapi==3.1.a2",
     "sphinx-autodoc-typehints==1.24.0",
     "sphinx-copybutton==0.5.2",
     "sphinx-gallery==0.14.0",

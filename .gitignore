@@ -89,6 +89,7 @@ doc/_build/
 doc/source/examples
 doc/source/api/_autosummary*
 doc/source/api/preprocessor/_autosummary*
+doc/source/api/*
 
 # PyBuilder
 .pybuilder/

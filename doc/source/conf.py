@@ -2,9 +2,15 @@
 
 from datetime import datetime
 import os
+from pathlib import Path
 
 from ansys.heart import __version__
-from ansys_sphinx_theme import ansys_favicon, get_version_match, pyansys_logo_black
+from ansys_sphinx_theme import (
+    ansys_favicon,
+    get_autoapi_templates_dir_relative_path,
+    get_version_match,
+    pyansys_logo_black,
+)
 
 # Project information
 project = "pyansys-heart"
@@ -47,6 +53,7 @@ extensions = [
     "sphinx_autodoc_typehints",
     "sphinx_gallery.gen_gallery",
     "sphinxcontrib.video",
+    "sphinx_design",
 ]
 
 sphinx_gallery_conf = {
@@ -114,17 +121,18 @@ autosectionlabel_maxdepth = 4
 ## Configuration for Sphinx autoapi ##
 # ---------------------------------- #
 autoapi_type = "python"
-autoapi_ignore = []
+autoapi_ignore = [
+    "*writer*",
+    "*calibration*",
+    "*misc*",
+]
 # autoapi_dirs = [
 #     "../../src/ansys/heart/preprocessor",
 #     "../../src/ansys/heart/simulator",
 #     "../../src/ansys/heart/postprocessor",
 # ]
-autoapi_dirs = [
-    "../../ansys/heart/preprocessor",
-    "../../ansys/heart/simulator",
-    "../../ansys/heart/postprocessor",
-]
+autoapi_dirs = ["../../ansys"]
+autoapi_root = "api"
 autoapi_options = [
     "members",
     "undoc-members",
@@ -132,10 +140,12 @@ autoapi_options = [
     "show-module-summary",
     "special-members",
 ]
-autoapi_template_dir = "_autoapi_templates"
+autoapi_template_dir = get_autoapi_templates_dir_relative_path(Path(__file__))
 suppress_warnings = ["autoapi.python_import_resolution"]
 # exclude_patterns = ["_autoapi_templates/index.rst"]
 autoapi_python_use_implicit_namespaces = True
+autoapi_keep_files = True
+
 
 typehints_defaults = "comma"
 simplify_optional_unions = False

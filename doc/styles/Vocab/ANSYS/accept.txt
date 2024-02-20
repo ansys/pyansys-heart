@@ -7,4 +7,6 @@ propt
 hist
 vart
 API
-P[p]yA[a]nsys H[h]eart
+(?i)pyansys
+(?i)ansys
+(?i)heart

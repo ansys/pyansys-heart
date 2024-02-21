@@ -133,10 +133,12 @@ class PassiveCalibration:
 
         Parameters
         ----------
-        lsdyna_path
-        ncpu
-        dynatype
-
+        lsdyna_path: str
+            path to lsdyna executable
+        ncpu: int
+            number of cpus
+        dynatype: str
+            type of lsdyna
         """
         simulator = MechanicsSimulator(
             self.model,

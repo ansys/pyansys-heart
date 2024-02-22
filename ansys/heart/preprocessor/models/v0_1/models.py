@@ -11,6 +11,8 @@ import pickle
 from typing import List, Union
 
 LOGGER = logging.getLogger("pyheart_global.preprocessor")
+LOGGER.warning("Models v0.1 will be deprecated in the future. Use v0.2 instead.")
+
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher
 from ansys.heart.preprocessor.mesh.objects import (

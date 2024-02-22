@@ -1122,6 +1122,8 @@ class HeartModel:
                     )
                     # note: flip order to make sure normal is pointing inwards
                     cap.node_ids = np.flip(cap_ref[0].node_ids)
+                    cap.centroid = cap_ref[0].centroid
+                    cap.centroid_id = cap_ref[0].centroid_id
                     cap.tessellate1(use_centroid=True)
 
         # As a consequence we need to add interface region to endocardium of atria or ventricle

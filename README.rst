@@ -9,7 +9,7 @@
    :alt: Python
 
 .. |MIT| image:: https://img.shields.io/badge/license-MIT-yellow
-   :target: https://opensource.org/license/mit/
+   :target: https://opensource.org/blog/license/mit
    :alt: MIT
 
 .. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg?style=flat

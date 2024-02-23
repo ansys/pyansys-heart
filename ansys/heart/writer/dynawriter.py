@@ -1112,7 +1112,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         if material_settings.myocardium["active"]["actype"] == 1:
             time_array, calcium_array = active_curve("constant")
         elif material_settings.myocardium["active"]["actype"] == 3:
-            time_array, calcium_array = active_curve("Strocchi2020", endtime=2400)
+            time_array, calcium_array = active_curve("Strocchi2020", endtime=8000)
             # work around with threshold
             calcium_array[1:] += 1e-6
 

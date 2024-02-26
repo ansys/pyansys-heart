@@ -90,7 +90,9 @@ if __name__ == "__main__":
         "--folder2", help="Sets second folder to compare against.", type=str, required=True
     )
 
-    parser.add_argument("--ignore", nargs="+", help="k-file names to ignore.", required=False, default=[])
+    parser.add_argument(
+        "--ignore", nargs="+", help="k-file names to ignore.", required=False, default=[]
+    )
 
     args = parser.parse_args()
 

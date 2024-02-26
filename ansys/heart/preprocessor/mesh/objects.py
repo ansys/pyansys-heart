@@ -574,11 +574,13 @@ class Mesh(pv.UnstructuredGrid):
         # NOTE "tags" should be removed.
         try:
             value = self.cell_data["tags"].astype(int)
+            return value
         except (KeyError, NameError):
             LOGGER.warning("'tags' field not found in self.cell_data")
             value = None
         try:
             value = self.cell_data["part-id"].astype(int)
+            return value
         except (KeyError, NameError):
             LOGGER.warning("'part-id' field not found in self.cell_data")
             value = None

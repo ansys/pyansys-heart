@@ -41,6 +41,7 @@ elif heart_version == "v0.1" or not heart_version:
         HeartModel,
         LeftVentricle,
     )
+    heart_version == "v0.1"
 
 from ansys.heart.simulator.settings.settings import SimulationSettings
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords

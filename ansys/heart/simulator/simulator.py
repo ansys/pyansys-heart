@@ -36,6 +36,7 @@ elif heart_version == "v0.1" or not heart_version:
         HeartModel,
         LeftVentricle,
     )
+    heart_version = "v0.1"
 
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers

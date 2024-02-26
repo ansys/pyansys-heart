@@ -519,9 +519,12 @@ class MechanicsSimulator(BaseSimulator):
     def compute_stress_free_configuration(self, folder_name="zeropressure", overwrite: bool = True):
         """Compute the stress-free configuration of the model."""
         directory = os.path.join(self.root_directory, folder_name)
-        os.makedirs(directory, exist_ok=True,)
+        os.makedirs(
+            directory,
+            exist_ok=True,
+        )
 
-        if overwrite or len(os.listdir(directory))==0:
+        if overwrite or len(os.listdir(directory)) == 0:
             self._write_stress_free_configuration_files(folder_name)
             self.settings.save(Path.Path(directory) / "simulation_settings.yml")
 
@@ -538,7 +541,7 @@ class MechanicsSimulator(BaseSimulator):
 
         # Note: cap center node will be added into mesh.points
         if heart_version == "v0.1":
-            n_caps = len(self.model.cap_centroids)        
+            n_caps = len(self.model.cap_centroids)
             guess_ed_coords = np.array(self.stress_free_report["guess_ed_coord"])[:-n_caps]
         elif heart_version == "v0.2":
             guess_ed_coords = np.array(self.stress_free_report["guess_ed_coord"])

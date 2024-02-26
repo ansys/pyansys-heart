@@ -7,6 +7,10 @@ import os
 import pathlib
 from typing import List
 
+heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
+if not heart_version:
+    heart_version="v0.1"
+
 from ansys.heart import LOG as LOGGER
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
@@ -51,7 +55,7 @@ def zerop_post(directory, model):
     displacements = data.get_displacement()
     guess_ed_coord = stress_free_coord + displacements[-1]
 
-    if len(model.cap_centroids) == 0:
+    if len(model.cap_centroids) == 0 or heart_version=="v0.2":
         nodes = model.mesh.nodes
     else:
         # a center node for each cap has been created, add them into create the cavity

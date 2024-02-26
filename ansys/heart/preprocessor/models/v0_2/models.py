@@ -194,7 +194,11 @@ class HeartModel:
     @property
     def cap_centroids(self):
         """Return list of cap centroids."""
-        return np.array([c.centroid for p in self.parts for c in p.caps])
+        return [
+            Point(name=c.name + "_center", xyz=c.centroid, node_id=c.centroid_id)
+            for p in self.parts
+            for c in p.caps
+        ]
 
     def __init__(self, info: ModelInfo) -> None:
         self.info = info

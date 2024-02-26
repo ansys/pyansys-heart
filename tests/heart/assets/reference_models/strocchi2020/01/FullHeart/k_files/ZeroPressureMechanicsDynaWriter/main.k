@@ -7,12 +7,10 @@ $#  endtim    endcyc     dtmin    endeng    endmas     nosol
     1000.0         0       0.0       0.0     1e+08         0
 *CONTROL_IMPLICIT_DYNAMICS
 $#   imass     gamma      beta    tdybir    tdydth    tdybur     irate     alpha
-         0       0.5      0.25       0.0     1e+28     1e+28         0       0.0
-
+         0       0.5      0.25       0.0     1e+28     1e+28         0       0.0
 *CONTROL_IMPLICIT_AUTO
 $#   iauto    iteopt    itewin     dtmin     dtmax     dtexp     kfail    kcycle
-         1        11         5      10.0     100.0                              
-
+         1        11         5      10.0     100.0                              
 *CONTROL_IMPLICIT_GENERAL
 $#  imflag       dt0    imform      nsbs       igs     cnstn      form    zero_v
          1      10.0         2         1         2         0         0         0
@@ -93,7 +91,7 @@ $#     sid       da1       da2       da3       da4    solver
          1       0.0       0.0       0.0       0.0MECH      
          1         2         3         4         5         6         7         8
          9        10        11        12        13        14        15        16
-        17        18        19
+        17        18
 *INTERFACE_SPRINGBACK_LSDYNA
 $#    psid      nshv     ftype              ftensr    nthhsv     rflag   intstrn
          1       999         3                   0                   1          

@@ -1,4 +1,5 @@
 """Module contains default values for mechanics simulations."""
+
 from pint import Quantity
 
 heart = {
@@ -81,9 +82,20 @@ material = {
 }
 
 """Boundary condition settings."""
-# pericardium: https://doi.org/10.1016/j.jbiomech.2020.109645
 boundary_conditions = {
-    "pericardium": {"penalty_function": [0.25, 25], "spring_stiffness": Quantity(0.05, "MPa/mm")},
+    "robin": {
+        # pericardium: https://doi.org/10.1016/j.jbiomech.2020.109645
+        "ventricle": {
+            "penalty_function": [0.25, 25],
+            "stiffness": Quantity(0.05, "MPa/mm"),
+            "damper": Quantity(0.005, "kPa*s/mm"),
+        },
+        # from ambit
+        "atrial": {
+            "stiffness": Quantity(0.075e-3, "MPa/mm"),
+            "damper": Quantity(0.005, "kPa*s/mm"),
+        },
+    },
     "valve": {
         "stiffness": Quantity(0.002, "MPa/mm"),
         "scale_factor": {"normal": 0.5, "radial": 1.0},

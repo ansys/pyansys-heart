@@ -24,7 +24,11 @@ from importlib.resources import path as resource_path
 from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 
+global heart_version
 heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
+if not heart_version:
+    heart_version = "v0.1"
+
 if heart_version == "v0.2":
     from ansys.heart.preprocessor.models.v0_2.models import (
         BiVentricle,
@@ -33,7 +37,7 @@ if heart_version == "v0.2":
         HeartModel,
         LeftVentricle,
     )
-elif heart_version == "v0.1" or not heart_version:
+elif heart_version == "v0.1":
     from ansys.heart.preprocessor.models.v0_1.models import (
         BiVentricle,
         FourChamber,
@@ -41,7 +45,7 @@ elif heart_version == "v0.1" or not heart_version:
         HeartModel,
         LeftVentricle,
     )
-    heart_version == "v0.1"
+
 
 from ansys.heart.simulator.settings.settings import SimulationSettings
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords

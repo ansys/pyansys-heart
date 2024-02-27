@@ -27,15 +27,13 @@ from ansys.heart.postprocessor.auto_process import (
     zerop_post,
 )
 
+global heart_version
 heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
 if heart_version == "v0.2":
     from ansys.heart.preprocessor.models.v0_2.models import FourChamber, HeartModel, LeftVentricle
 elif heart_version == "v0.1" or not heart_version:
-    from ansys.heart.preprocessor.models.v0_1.models import (
-        FourChamber,
-        HeartModel,
-        LeftVentricle,
-    )
+    from ansys.heart.preprocessor.models.v0_1.models import FourChamber, HeartModel, LeftVentricle
+
     heart_version = "v0.1"
 
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings

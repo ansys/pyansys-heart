@@ -23,13 +23,30 @@ from importlib.resources import path as resource_path
 
 from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-from ansys.heart.preprocessor.models.v0_1.models import (
-    BiVentricle,
-    FourChamber,
-    FullHeart,
-    HeartModel,
-    LeftVentricle,
-)
+
+global heart_version
+heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
+if not heart_version:
+    heart_version = "v0.1"
+
+if heart_version == "v0.2":
+    from ansys.heart.preprocessor.models.v0_2.models import (
+        BiVentricle,
+        FourChamber,
+        FullHeart,
+        HeartModel,
+        LeftVentricle,
+    )
+elif heart_version == "v0.1":
+    from ansys.heart.preprocessor.models.v0_1.models import (
+        BiVentricle,
+        FourChamber,
+        FullHeart,
+        HeartModel,
+        LeftVentricle,
+    )
+
+
 from ansys.heart.simulator.settings.settings import SimulationSettings
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 from ansys.heart.writer.heart_decks import (
@@ -1573,18 +1590,20 @@ class MechanicsDynaWriter(BaseDynaWriter):
             part_kw.parts = part_info
 
             if cap.centroid is not None:
-                if add_mesh:
-                    # Add center node
-                    node_kw = keywords.Node()
-                    df = pd.DataFrame(
-                        data=np.insert(cap.centroid, 0, cap.centroid_id + 1).reshape(1, -1),
-                        columns=node_kw.nodes.columns[0:4],
-                    )
-                    node_kw.nodes = df
-                    # comment the line '*NODE' so nodes.k can be parsed by zerop solver correctly
-                    # otherwise, these nodes will not be updated in iterations
-                    s = "$" + node_kw.write()
-                    self.kw_database.nodes.append(s)
+                # cap centroids already added to mesh for v0.2
+                if heart_version == "v0.1":
+                    if add_mesh:
+                        # Add center node
+                        node_kw = keywords.Node()
+                        df = pd.DataFrame(
+                            data=np.insert(cap.centroid, 0, cap.centroid_id + 1).reshape(1, -1),
+                            columns=node_kw.nodes.columns[0:4],
+                        )
+                        node_kw.nodes = df
+                        # comment the line '*NODE' so nodes.k can be parsed by zerop solver
+                        # correctly otherwise, these nodes will not be updated in iterations
+                        s = "$" + node_kw.write()
+                        self.kw_database.nodes.append(s)
 
                 if type(self) == MechanicsDynaWriter:
                     # center node constraint: average of edge nodes

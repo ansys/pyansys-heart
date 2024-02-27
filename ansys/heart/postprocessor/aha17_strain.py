@@ -1,9 +1,18 @@
 """Compute myocardial strain."""
+import os
 import pathlib
 
 from ansys.heart import LOG as LOGGER
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
-from ansys.heart.preprocessor.models.v0_1.models import HeartModel
+
+heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
+if heart_version == "v0.2":
+    from ansys.heart.preprocessor.models.v0_2.models import HeartModel
+elif heart_version == "v0.1" or not heart_version:
+    from ansys.heart.preprocessor.models.v0_1.models import (
+        HeartModel,
+    )
+
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 import numpy as np

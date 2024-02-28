@@ -34,7 +34,7 @@ class ANISO:
         _fcid: int = 0
 
     atype: int = -1
-    fiber: List[HGO_Fiber] = None
+    fibers: List[HGO_Fiber] = None
 
     k1fs: Optional[float] = None
     k2fs: Optional[float] = None
@@ -45,19 +45,19 @@ class ANISO:
     def __post_init__(self):
         """Check and deduce other parameters from input."""
         # create a default one if not given
-        if self.fiber is None:
-            self.fiber = [self.HGO_Fiber()]
+        if self.fibers is None:
+            self.fibers = [self.HGO_Fiber()]
 
         # check if legal
-        if len(self.fiber) != 1 and len(self.fiber) != 2:
+        if len(self.fibers) != 1 and len(self.fibers) != 2:
             print("No. of fiber must be 1 or 2.")
             exit()
 
         # deduce input
-        self.nf = len(self.fiber)
+        self.nf = len(self.fibers)
 
         if self.k1fs is not None and self.k2fs is not None:
-            if len(self.fiber) == 2:
+            if len(self.fibers) == 2:
                 self.intype = 1
             else:
                 print("One fiber cannot have interaction.")
@@ -65,9 +65,9 @@ class ANISO:
         else:
             self.intype = 0
 
-        self.fiber[0]._theta = 0.0
+        self.fibers[0]._theta = 0.0
         if self.nf > 1:
-            self.fiber[1]._theta = 90.0
+            self.fibers[1]._theta = 90.0
 
     def __repr__(self):
         """Make sure print contains field in __post_init__."""
@@ -113,9 +113,10 @@ class ActiveModel3(ActiveModel):
 class ACTIVE:
     """Active module of *mat295."""
 
+    acid: int = None  # not used
+    actype: int = None  # defined by curve
+    acthr: float = None  # defined by curve
     acdir: int = 1
-    acid: int = None
-    acthr: float = None
     sf: float = 1.0
     ss: float = 0.0
     sn: float = 0.0
@@ -138,20 +139,20 @@ class ACTIVE:
 class MAT295:
     """Hold data for *mat295."""
 
-    rho: float = 0.001
+    rho: float
+    iso: ISO
     aopt: float = 2.0
-
-    iso: ISO = ISO()
-    aniso: Optional[ANISO] = ANISO()
-    active: Optional[ACTIVE] = ACTIVE()
+    aniso: Optional[ANISO] = None
+    active: Optional[ACTIVE] = None
 
 
+@dataclass
 class NeoHookean:
     """Passive isotropic material."""
 
     rho: float
     c10: float  # mu/2
-    nnu: float = 0.499
+    nu: float = 0.499
 
 
 import dataclasses
@@ -177,7 +178,7 @@ class _MaterialHGOMyocardium(keywords.Mat295):
             self.atype = mat.aniso.atype
             self.intype = mat.aniso.intype
             self.nf = mat.aniso.nf
-            self.ftype = mat.aniso.fiber[0]._ftype  # not used but must be defined
+            self.ftype = mat.aniso.fibers[0]._ftype  # not used but must be defined
 
             self.a1 = mat.aniso.vec_a[0]
             self.a2 = mat.aniso.vec_a[1]
@@ -188,15 +189,15 @@ class _MaterialHGOMyocardium(keywords.Mat295):
             self.d3 = mat.aniso.vec_d[2]
 
             fiber_sheet = []
-            for i in range(len(mat.aniso.fiber)):
+            for i in range(len(mat.aniso.fibers)):
                 dct = {
-                    "theta": mat.aniso.fiber[i]._theta,
-                    "a": mat.aniso.fiber[i].a,
-                    "b": mat.aniso.fiber[i].b,
-                    "ftype": mat.aniso.fiber[i]._ftype,
-                    "fcid": mat.aniso.fiber[i]._fcid,
-                    "k1": mat.aniso.fiber[i].k1,
-                    "k2": mat.aniso.fiber[i].k2,
+                    "theta": mat.aniso.fibers[i]._theta,
+                    "a": mat.aniso.fibers[i].a,
+                    "b": mat.aniso.fibers[i].b,
+                    "ftype": mat.aniso.fibers[i]._ftype,
+                    "fcid": mat.aniso.fibers[i]._fcid,
+                    "k1": mat.aniso.fibers[i].k1,
+                    "k2": mat.aniso.fibers[i].k2,
                 }
                 fiber_sheet.append(dct)
             self.anisotropic_settings = pd.DataFrame(fiber_sheet)
@@ -207,8 +208,6 @@ class _MaterialHGOMyocardium(keywords.Mat295):
 
         # active
         if not ignore_active and mat.active is not None:
-            setattr(self, "actype", mat.active.actype)
-
             for field in dataclasses.fields(mat.active):
                 if field.type is ActiveModel:  # nested data of active model
                     for nested_f in dataclasses.fields(mat.active.model):
@@ -222,7 +221,7 @@ class _MaterialHGOMyocardium(keywords.Mat295):
                     setattr(self, name, value)
 
 
-m = MAT295()
+m = MAT295(rho=1, iso=ISO(), aniso=ANISO(), active=ACTIVE())
 print(m)
 kw = _MaterialHGOMyocardium(1, m)
 print(kw)

@@ -1,7 +1,6 @@
 from ansys.heart.preprocessor.material.curve import ActiveCurve, Strocchi_active, constant_ca2
+import ansys.heart.preprocessor.material.material as M
 import numpy as np
-
-# import ansys.heart.preprocessor.material.material as M
 import pytest
 
 
@@ -39,3 +38,41 @@ class TestCa2Curve:
         with pytest.raises(ValueError) as e:
             bad = ActiveCurve(constant_ca2(), threshold=-0.1, type="ca2")
             assert str(e.value) == "Threshold must cross ca2+ curve at least once"
+
+
+def test_iso():
+    iso = M.ISO(k1=1, k2=2)
+    assert iso.itype == -3
+
+
+def test_aniso():
+    fiber = M.ANISO.HGO_Fiber(k1=1, k2=2)
+    sheet = M.ANISO.HGO_Fiber(k1=1, k2=2)
+    aniso = M.ANISO(fibers=[fiber, sheet])
+    assert aniso.nf == 2
+    assert aniso.intype == 0
+    assert fiber._theta == 0.0
+    assert sheet._theta == 90.0
+
+    aniso = M.ANISO(fibers=[fiber, sheet], k1fs=1, k2fs=2)
+    assert aniso.intype == 1
+
+
+def test_active():
+    a = M.ACTIVE(ca2_curve=ActiveCurve(Strocchi_active(), type="ca2", threshold=0.1))
+    assert a.actype == 1
+    assert a.acthr == 0.1
+
+
+def test_mat295():
+    m = M.MAT295(rho=1, iso=M.ISO())
+    assert m.aniso == None
+    assert m.active == None
+
+    m.aniso = M.ANISO()
+    assert m.aniso != None
+
+
+def test_neohookean():
+    m = M.NeoHookean(rho=1, c10=1)
+    assert m.nu == 0.499

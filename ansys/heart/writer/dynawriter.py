@@ -23,13 +23,30 @@ from importlib.resources import path as resource_path
 
 from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-from ansys.heart.preprocessor.models.v0_1.models import (
-    BiVentricle,
-    FourChamber,
-    FullHeart,
-    HeartModel,
-    LeftVentricle,
-)
+
+global heart_version
+heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
+if not heart_version:
+    heart_version = "v0.1"
+
+if heart_version == "v0.2":
+    from ansys.heart.preprocessor.models.v0_2.models import (
+        BiVentricle,
+        FourChamber,
+        FullHeart,
+        HeartModel,
+        LeftVentricle,
+    )
+elif heart_version == "v0.1":
+    from ansys.heart.preprocessor.models.v0_1.models import (
+        BiVentricle,
+        FourChamber,
+        FullHeart,
+        HeartModel,
+        LeftVentricle,
+    )
+
+
 from ansys.heart.simulator.settings.settings import SimulationSettings
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 from ansys.heart.writer.heart_decks import (
@@ -1084,45 +1101,52 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             else:
                 # add isotropic material
-                if material_settings.atrium["type"] == "NeoHook":
+                if material_settings.passive["type"] == "NeoHook":
                     # use MAT77H
                     material_kw = MaterialNeoHook(
                         mid=part.mid,
-                        rho=material_settings.atrium["rho"],
-                        c10=material_settings.atrium["mu1"] / 2,
+                        rho=material_settings.passive["rho"],
+                        c10=material_settings.passive["mu1"] / 2,
                     )
                 else:
                     # use MAT295, should have the same behavior
                     material_kw = MaterialHGOMyocardium(
-                        mid=part.mid, iso_user=dict(material_settings.atrium)
+                        mid=part.mid, iso_user=dict(material_settings.passive)
                     )
 
             self.kw_database.material.append(material_kw)
 
         # Add Ca2+ curve if necessary
         if add_active and not em_couple:
-            # write and add active curve to material database
-            if material_settings.myocardium["active"]["actype"] == 1:
-                time_array, calcium_array = active_curve("constant")
-            elif material_settings.myocardium["active"]["actype"] == 2:
-                time_array, calcium_array = active_curve("Strocchi2020")
-
-            active_curve_kw = create_define_curve_kw(
-                x=time_array,
-                y=calcium_array,
-                curve_name="calcium_concentration",
-                curve_id=act_curve_id,
-                lcint=10000,
-            )
-
-            # x scaling from beat rate
-            active_curve_kw.sfa = material_settings.myocardium["active"]["beat_time"]
-            # y scaling from Ca2
-            active_curve_kw.sfo = 4.35  # same with material ca2ionmax
-
-            self.kw_database.material.append(active_curve_kw)
+            kw = self.add_active_curve(act_curve_id, material_settings)
+            self.kw_database.material.append(kw)
 
         return
+
+    @staticmethod
+    def add_active_curve(act_curve_id, material_settings):
+        """Add Active curve to material database."""
+        if material_settings.myocardium["active"]["actype"] == 1:
+            time_array, calcium_array = active_curve("constant")
+        elif material_settings.myocardium["active"]["actype"] == 3:
+            time_array, calcium_array = active_curve("Strocchi2020", endtime=8000)
+            # work around with threshold
+            calcium_array[1:] += 1e-6
+
+        curve_kw = create_define_curve_kw(
+            x=time_array,
+            y=calcium_array,
+            curve_name="calcium_concentration",
+            curve_id=act_curve_id,
+            lcint=10000,
+        )
+
+        if material_settings.myocardium["active"]["actype"] == 1:
+            # x scaling from beat rate
+            curve_kw.sfa = material_settings.myocardium["active"]["beat_time"]
+            # y scaling from Ca2
+            curve_kw.sfo = 4.35  # same with material ca2ionmax
+        return curve_kw
 
     def _add_cap_bc(self, bc_type: str):
         """Add boundary condition to the cap.
@@ -1573,18 +1597,20 @@ class MechanicsDynaWriter(BaseDynaWriter):
             part_kw.parts = part_info
 
             if cap.centroid is not None:
-                if add_mesh:
-                    # Add center node
-                    node_kw = keywords.Node()
-                    df = pd.DataFrame(
-                        data=np.insert(cap.centroid, 0, cap.centroid_id + 1).reshape(1, -1),
-                        columns=node_kw.nodes.columns[0:4],
-                    )
-                    node_kw.nodes = df
-                    # comment the line '*NODE' so nodes.k can be parsed by zerop solver correctly
-                    # otherwise, these nodes will not be updated in iterations
-                    s = "$" + node_kw.write()
-                    self.kw_database.nodes.append(s)
+                # cap centroids already added to mesh for v0.2
+                if heart_version == "v0.1":
+                    if add_mesh:
+                        # Add center node
+                        node_kw = keywords.Node()
+                        df = pd.DataFrame(
+                            data=np.insert(cap.centroid, 0, cap.centroid_id + 1).reshape(1, -1),
+                            columns=node_kw.nodes.columns[0:4],
+                        )
+                        node_kw.nodes = df
+                        # comment the line '*NODE' so nodes.k can be parsed by zerop solver
+                        # correctly otherwise, these nodes will not be updated in iterations
+                        s = "$" + node_kw.write()
+                        self.kw_database.nodes.append(s)
 
                 if type(self) == MechanicsDynaWriter:
                     # center node constraint: average of edge nodes

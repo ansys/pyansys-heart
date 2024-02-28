@@ -1,6 +1,9 @@
 """Material module."""
+
 from dataclasses import dataclass
 from typing import List, Optional
+
+from ansys.heart.preprocessor.material.curve import ActiveCurve, constant_ca2
 
 
 @dataclass
@@ -111,12 +114,13 @@ class ACTIVE:
     """Active module of *mat295."""
 
     acdir: int = 1
-    acid: int = None  #  TODO Curve() or empty is EM coupled
+    acid: int = None
     acthr: float = None
     sf: float = 1.0
     ss: float = 0.0
     sn: float = 0.0
     model: ActiveModel = ActiveModel1()
+    ca2_curve: ActiveCurve = ActiveCurve(constant_ca2(), threshold=0.1, type="ca2")
 
     def __post_init__(self):
         """Deduce actype."""
@@ -126,6 +130,8 @@ class ACTIVE:
             self.actype = 3
         else:
             print("Unknown actype.")
+
+        self.acthr = self.ca2_curve.threshold
 
 
 @dataclass
@@ -140,6 +146,14 @@ class MAT295:
     active: Optional[ACTIVE] = ACTIVE()
 
 
+class NeoHookean:
+    """Passive isotropic material."""
+
+    rho: float
+    c10: float  # mu/2
+    nnu: float = 0.499
+
+
 import dataclasses
 
 from ansys.dyna.keywords import keywords
@@ -148,9 +162,8 @@ import pandas as pd
 
 class _MaterialHGOMyocardium(keywords.Mat295):
     def __init__(self, id: int, mat: MAT295, ignore_active: bool = False):
-        super().__init__(
-            mid=id,
-        )
+        # 1st line
+        super().__init__(mid=id)
         setattr(self, "rho", mat.rho)
         setattr(self, "aopt", mat.aopt)
 

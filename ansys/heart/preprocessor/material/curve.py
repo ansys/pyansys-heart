@@ -1,5 +1,7 @@
 """Module for active stress curve."""
+import logging
 
+LOGGER = logging.getLogger("pyheart_global.simulator")
 from typing import Literal
 
 import matplotlib.pyplot as plt
@@ -121,14 +123,19 @@ class ActiveCurve:
             type of curve, by default "ca2"
         threshold : float, optional
             threshold of des/active active stress, by default 0.5e-6.
-            Not used if type=='stress'
         n : int, optional
             No. of heart beat will be written for LS-DYNA, by default 5
+
+        Note
+        ----
+        - If type=='stress', threshold is always 0.5e-6 and ca2+ will be shifted up with 1.0e-6
+        except t=0. This ensures a continuous activation during simulation.
         """
         self.type = type
         self.n_beat = n
+
         if type == "stress":
-            print("Threshold is not necessary")
+            LOGGER.warning("Threshold will be reset.")
             threshold = 0.5e-6
         self.threshold = threshold
 
@@ -179,7 +186,7 @@ class ActiveCurve:
 
     def _stress_to_ca2(self, stress):
         if np.min(stress) < 0 or np.max(stress) > 1.0:
-            print("Not possible")
+            LOGGER.error("Stress curve is not between 0-1.")
             exit()
 
         # assuming actype=3, eta=0; n=1; Ca2+50=1

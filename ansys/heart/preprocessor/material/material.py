@@ -1,5 +1,9 @@
 """Material module."""
 
+import logging
+
+LOGGER = logging.getLogger("pyheart_global.simulator")
+
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -50,7 +54,7 @@ class ANISO:
 
         # check if legal
         if len(self.fibers) != 1 and len(self.fibers) != 2:
-            print("No. of fiber must be 1 or 2.")
+            LOGGER.error("No. of fiber must be 1 or 2.")
             exit()
 
         # deduce input
@@ -60,7 +64,7 @@ class ANISO:
             if len(self.fibers) == 2:
                 self.intype = 1
             else:
-                print("One fiber cannot have interaction.")
+                LOGGER.error("One fiber cannot have interaction.")
                 exit()
         else:
             self.intype = 0
@@ -130,7 +134,7 @@ class ACTIVE:
         elif isinstance(self.model, ActiveModel3):
             self.actype = 3
         else:
-            print("Unknown actype.")
+            LOGGER.error("Unknown actype.")
 
         self.acthr = self.ca2_curve.threshold
 
@@ -221,7 +225,6 @@ class _MaterialHGOMyocardium(keywords.Mat295):
                     setattr(self, name, value)
 
 
-m = MAT295(rho=1, iso=ISO(), aniso=ANISO(), active=ACTIVE())
-print(m)
-kw = _MaterialHGOMyocardium(1, m)
-print(kw)
+if __name__ == "__main__":
+    m = MAT295(rho=1, iso=ISO(), aniso=ANISO(), active=ACTIVE())
+    kw = _MaterialHGOMyocardium(1, m)

@@ -16,8 +16,12 @@ from ansys.dyna.keywords import keywords
 
 LOGGER = logging.getLogger("pyheart_global.writer")
 
+import dataclasses
+
 # from importlib.resources import files
 from importlib.resources import path as resource_path
+
+from ansys.heart.preprocessor.material.material import MAT295, ActiveModel
 
 # import custom keywords in separate namespace
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
@@ -179,6 +183,79 @@ class MaterialHGOMyocardium(keywords.Mat295):
             # transfer into keywords
             for k, v in active.items():
                 setattr(self, k, v)
+
+
+class MaterialHGOMyocardium2(keywords.Mat295):
+    """Rewrite dynalib Mat295."""
+
+    def __init__(self, id: int, mat: MAT295, ignore_active: bool = False):
+        """Init a keyword of *mat295.
+
+        Parameters
+        ----------
+        id : int
+            material ID
+        mat : MAT295
+            material data
+        ignore_active : bool, optional
+            IF igonre active module (e.g. for stress-free), by default False
+        """
+        # 1st line
+        super().__init__(mid=id)
+        setattr(self, "rho", mat.rho)
+        setattr(self, "aopt", mat.aopt)
+
+        # iso
+        for field in dataclasses.fields(mat.iso):
+            value = getattr(mat.iso, field.name)
+            setattr(self, field.name, value)
+
+        # aniso
+        if mat.aniso is not None:
+            self.atype = mat.aniso.atype
+            self.intype = mat.aniso.intype
+            self.nf = mat.aniso.nf
+            self.ftype = mat.aniso.fibers[0]._ftype  # not used but must be defined
+
+            self.a1 = mat.aniso.vec_a[0]
+            self.a2 = mat.aniso.vec_a[1]
+            self.a3 = mat.aniso.vec_a[2]
+
+            self.d1 = mat.aniso.vec_d[0]
+            self.d2 = mat.aniso.vec_d[1]
+            self.d3 = mat.aniso.vec_d[2]
+
+            fiber_sheet = []
+            for i in range(len(mat.aniso.fibers)):
+                dct = {
+                    "theta": mat.aniso.fibers[i]._theta,
+                    "a": mat.aniso.fibers[i].a,
+                    "b": mat.aniso.fibers[i].b,
+                    "ftype": mat.aniso.fibers[i]._ftype,
+                    "fcid": mat.aniso.fibers[i]._fcid,
+                    "k1": mat.aniso.fibers[i].k1,
+                    "k2": mat.aniso.fibers[i].k2,
+                }
+                fiber_sheet.append(dct)
+            self.anisotropic_settings = pd.DataFrame(fiber_sheet)
+
+            if mat.aniso.intype == 1:
+                self.coupling_k1 = mat.aniso.k1fs
+                self.coupling_k2 = mat.aniso.k2fs
+
+        # active
+        if not ignore_active and mat.active is not None:
+            for field in dataclasses.fields(mat.active):
+                if field.type is ActiveModel:  # nested data of active model
+                    for nested_f in dataclasses.fields(mat.active.model):
+                        name = nested_f.name
+                        value = getattr(mat.active.model, name)
+                        setattr(self, name, value)
+                else:
+                    # acdir, acid ....
+                    name = field.name
+                    value = getattr(mat.active, name)
+                    setattr(self, name, value)
 
 
 def active_curve(

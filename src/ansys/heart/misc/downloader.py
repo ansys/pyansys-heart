@@ -10,8 +10,9 @@ from pathlib import Path, PurePath
 import typing
 import warnings
 
-from ansys.heart import LOG as LOGGER
 from tqdm import tqdm
+
+from ansys.heart import LOG as LOGGER
 
 try:
     import wget  # type: ignore

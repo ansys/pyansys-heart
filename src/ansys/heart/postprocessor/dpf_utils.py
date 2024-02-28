@@ -4,10 +4,10 @@ import pathlib as Path
 from typing import List
 
 from ansys.dpf import core as dpf
+import numpy as np
 
 # from ansys.dpf.core.dpf_operator import available_operator_names
 from ansys.heart import LOG as LOGGER
-import numpy as np
 
 
 class D3plotReader:

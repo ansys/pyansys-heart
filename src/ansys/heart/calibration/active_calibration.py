@@ -19,8 +19,9 @@ elif heart_version == "v0.1" or not heart_version:
         HeartModel,
     )
 
-from ansys.heart.simulator.settings import settings
 import numpy as np
+
+from ansys.heart.simulator.settings import settings
 
 
 class ActiveCalibration:

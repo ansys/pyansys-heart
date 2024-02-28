@@ -15,14 +15,14 @@ if is_github_job:
 
 pytestmark = pytest.mark.requires_fluent
 
+import numpy as np
+import pyvista as pv
+
 from ansys.heart.preprocessor.mesh.mesher import (
     mesh_from_manifold_input_model,
     mesh_from_non_manifold_input_model,
 )
 from ansys.heart.preprocessor.models.v0_2.input import _InputModel
-import numpy as np
-import pyvista as pv
-
 from tests.heart.conftest import clean_directory, get_workdir
 
 

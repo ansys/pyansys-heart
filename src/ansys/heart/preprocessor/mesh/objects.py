@@ -10,10 +10,11 @@ import pathlib
 from typing import List, Optional, Tuple, Union
 
 LOGGER = logging.getLogger("pyheart_global.preprocessor")
+import numpy as np
+
 import ansys.heart.preprocessor.mesh.connectivity as connect
 import ansys.heart.preprocessor.mesh.geodisc as geodisc
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-import numpy as np
 
 try:
     import pyvista as pv

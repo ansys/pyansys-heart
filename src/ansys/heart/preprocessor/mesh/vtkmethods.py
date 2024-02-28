@@ -5,13 +5,14 @@ import os
 from typing import List, Optional, Tuple, Union
 
 LOGGER = logging.getLogger("pyheart_global.preprocessor")
-from ansys.heart.preprocessor.mesh.fluenthdf5 import add_solid_name_to_stl
 import numpy as np
 import pyvista
 import vtk
 from vtk.numpy_interface import dataset_adapter as dsa  # type: ignore # noqa
 from vtk.util import numpy_support as VN  # type: ignore # noqa
 from vtk.util.numpy_support import numpy_to_vtk  # type: ignore # noqa
+
+from ansys.heart.preprocessor.mesh.fluenthdf5 import add_solid_name_to_stl
 
 
 def read_ensight_file(path_to_ensight: str) -> vtk.vtkUnstructuredGrid:

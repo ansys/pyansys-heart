@@ -7,6 +7,12 @@ import os
 import pathlib
 from pathlib import Path
 
+import matplotlib.pyplot as plt
+import meshio
+import numpy as np
+import vtk
+from vtk.util.numpy_support import vtk_to_numpy  # noqa
+
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.preprocessor.mesh.vtkmethods import (
     read_vtk_polydata_file,
@@ -14,11 +20,6 @@ from ansys.heart.preprocessor.mesh.vtkmethods import (
     write_vtkdata_to_vtkfile,
 )
 from ansys.heart.preprocessor.models.v0_1.models import HeartModel, LeftVentricle
-import matplotlib.pyplot as plt
-import meshio
-import numpy as np
-import vtk
-from vtk.util.numpy_support import vtk_to_numpy  # noqa
 
 
 class LVContourExporter:

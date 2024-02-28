@@ -14,10 +14,11 @@ elif heart_version == "v0.1" or not heart_version:
         HeartModel,
     )
 
+from pint import Quantity
+
 from ansys.heart.simulator.settings.settings import SimulationSettings
 from ansys.heart.simulator.simulator import MechanicsSimulator
 from ansys.heart.writer.dynawriter import MechanicsDynaWriter
-from pint import Quantity
 
 
 class IVCWriter(MechanicsDynaWriter):

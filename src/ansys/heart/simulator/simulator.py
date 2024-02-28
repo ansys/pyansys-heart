@@ -36,10 +36,11 @@ elif heart_version == "v0.1" or not heart_version:
 
     heart_version = "v0.1"
 
-from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
-import ansys.heart.writer.dynawriter as writers
 import numpy as np
 import pyvista as pv
+
+from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
+import ansys.heart.writer.dynawriter as writers
 
 
 def which(program):

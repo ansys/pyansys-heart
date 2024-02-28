@@ -46,6 +46,9 @@ elif heart_version == "v0.1":
         LeftVentricle,
     )
 
+import numpy as np
+import pandas as pd
+import pyvista as pv
 
 from ansys.heart.simulator.settings.settings import SimulationSettings
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
@@ -78,9 +81,6 @@ from ansys.heart.writer.material_keywords import (
     active_curve,
 )
 from ansys.heart.writer.system_models import _ed_load_template, define_function_windkessel
-import numpy as np
-import pandas as pd
-import pyvista as pv
 
 
 class BaseDynaWriter:

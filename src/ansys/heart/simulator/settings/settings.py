@@ -7,14 +7,15 @@ import os
 import pathlib
 from typing import List, Literal
 
+from pint import Quantity, UnitRegistry
+import yaml
+
 from ansys.heart import LOG as LOGGER
 from ansys.heart.simulator.settings.defaults import electrophysiology as ep_defaults
 from ansys.heart.simulator.settings.defaults import fibers as fibers_defaults
 from ansys.heart.simulator.settings.defaults import mechanics as mech_defaults
 from ansys.heart.simulator.settings.defaults import purkinje as purkinje_defaults
 from ansys.heart.simulator.settings.defaults import zeropressure as zero_pressure_defaults
-from pint import Quantity, UnitRegistry
-import yaml
 
 
 class AttrDict(dict):

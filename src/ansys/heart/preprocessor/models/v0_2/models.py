@@ -10,6 +10,11 @@ import pickle
 from typing import List, Union
 
 LOGGER = logging.getLogger("pyheart_global.preprocessor")
+import numpy as np
+import pyvista as pv
+from scipy.spatial.transform import Rotation as R
+import yaml
+
 # from ansys.heart.preprocessor.input import HEART_MODELS
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher
@@ -24,10 +29,6 @@ from ansys.heart.preprocessor.mesh.objects import (
 )
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.models.v0_2.input import _InputModel
-import numpy as np
-import pyvista as pv
-from scipy.spatial.transform import Rotation as R
-import yaml
 
 
 class ModelInfo:

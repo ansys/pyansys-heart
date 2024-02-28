@@ -19,10 +19,11 @@ LOGGER = logging.getLogger("pyheart_global.writer")
 # from importlib.resources import files
 from importlib.resources import path as resource_path
 
-# import custom keywords in separate namespace
-from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 import numpy as np
 import pandas as pd
+
+# import custom keywords in separate namespace
+from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 
 
 class MaterialCap(keywords.MatNull):

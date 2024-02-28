@@ -3,12 +3,13 @@ from dataclasses import dataclass
 import json
 import os
 
-from ansys.heart import LOG as LOGGER
-from ansys.heart.simulator.settings.settings import SimulationSettings
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
+
+from ansys.heart import LOG as LOGGER
+from ansys.heart.simulator.settings.settings import SimulationSettings
 
 
 @dataclass(init=False)

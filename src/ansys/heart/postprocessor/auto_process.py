@@ -11,6 +11,10 @@ heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
 if not heart_version:
     heart_version = "v0.1"
 
+import matplotlib.pyplot as plt
+import numpy as np
+import pyvista as pv
+
 from ansys.heart import LOG as LOGGER
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
@@ -19,9 +23,6 @@ from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.postprocessor.exporter import LVContourExporter
 from ansys.heart.preprocessor.mesh.objects import Cavity, SurfaceMesh
 from ansys.heart.simulator.settings.settings import AtrialFiber, SimulationSettings
-import matplotlib.pyplot as plt
-import numpy as np
-import pyvista as pv
 
 
 def zerop_post(directory, model):

@@ -13,6 +13,11 @@ from typing import List, Union
 LOGGER = logging.getLogger("pyheart_global.preprocessor")
 LOGGER.warning("Models v0.1 will be deprecated in the future. Use v0.2 instead.")
 
+import meshio
+import numpy as np
+import pyvista as pv
+from scipy.spatial.transform import Rotation as R
+
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher
 from ansys.heart.preprocessor.mesh.objects import (
@@ -26,10 +31,6 @@ from ansys.heart.preprocessor.mesh.objects import (
 )
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.models.v0_1.model_definitions import HEART_PARTS, LABELS_TO_ID
-import meshio
-import numpy as np
-import pyvista as pv
-from scipy.spatial.transform import Rotation as R
 
 
 class ModelInfo:

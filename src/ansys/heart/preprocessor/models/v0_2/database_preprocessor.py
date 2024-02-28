@@ -11,9 +11,10 @@ def get_input_geom_and_part_defintions_from_public_database(
     """Get the input geometry and part definitiosn from strocchi."""
     import copy
 
-    from ansys.heart.preprocessor.mesh.connectivity import face_tetra_connectivity
     import numpy as np
     import pyvista as pv
+
+    from ansys.heart.preprocessor.mesh.connectivity import face_tetra_connectivity
 
     # read database labels
     if database == "Strocchi2020":

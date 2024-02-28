@@ -76,3 +76,8 @@ def test_mat295():
 def test_neohookean():
     m = M.NeoHookean(rho=1, c10=1)
     assert m.nu == 0.499
+
+
+def test_dummy():
+    m = M.MechaMaterialModel.DummyMaterial()
+    # nothing need to be tested

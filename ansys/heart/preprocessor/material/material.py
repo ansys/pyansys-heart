@@ -140,7 +140,20 @@ class ACTIVE:
 
 
 @dataclass
-class MAT295:
+class MechaMaterialModel:
+    """Base class for all mechanical material model."""
+
+    pass
+
+    @dataclass
+    class DummyMaterial:
+        """Just for initialization."""
+
+        pass
+
+
+@dataclass
+class MAT295(MechaMaterialModel):
     """Hold data for *mat295."""
 
     rho: float
@@ -151,7 +164,7 @@ class MAT295:
 
 
 @dataclass
-class NeoHookean:
+class NeoHookean(MechaMaterialModel):
     """Passive isotropic material."""
 
     rho: float

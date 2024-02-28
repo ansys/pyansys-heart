@@ -62,7 +62,7 @@ class MaterialNeoHook(custom_keywords.Mat077H):
         return
 
 
-class MaterialHGOMyocardium(keywords.Mat295):
+class _Depracated_MaterialHGOMyocardium(keywords.Mat295):
     """HGO Material model - derived from Mat295."""
 
     def __init__(self, mid: int = 1, iso_user=None, anisotropy_user=None, active_user=None):
@@ -334,16 +334,4 @@ def active_curve(
 
 
 if __name__ == "__main__":
-    active_curve(curve_type="TrueCalcium")
-
-    kw = MaterialCap()
-    # test
-    dct_iso = {"rho": 1, "k1": 1, "k2": 1}
-    dct_aniso = {"k1f": 1, "k2f": 2}
-    dct_aniso.update({"k1s": 1, "k2s": 2})
-    # dct_aniso.update({"k1fs": 1, "k2fs": 2})
-    dct_active = {"actype": 1, "acid": 15, "taumax": 125, "ca2ionm": 4.35}
-    kw = MaterialHGOMyocardium(
-        mid=1, iso_user=dct_iso, anisotropy_user=dct_aniso, active_user=dct_active
-    )
-    print(kw)
+    pass

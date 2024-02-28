@@ -120,7 +120,7 @@ class ActiveModel:
 class ACTIVE:
     """Active module of *mat295."""
 
-    acid: int = None  # not used
+    acid: int = None  # defined in writer
     actype: int = None  # defined by curve
     acthr: float = None  # defined by curve
     acdir: int = 1

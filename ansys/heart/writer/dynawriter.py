@@ -21,6 +21,7 @@ LOGGER = logging.getLogger("pyheart_global.writer")
 # from importlib.resources import files
 from importlib.resources import path as resource_path
 
+from ansys.heart.preprocessor.material.material import MAT295, MechaMaterialModel, NeoHookean
 from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 
@@ -45,7 +46,6 @@ elif heart_version == "v0.1":
         HeartModel,
         LeftVentricle,
     )
-
 
 from ansys.heart.simulator.settings.settings import SimulationSettings
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
@@ -73,8 +73,9 @@ from ansys.heart.writer.keyword_module import (
     get_list_of_used_ids,
 )
 from ansys.heart.writer.material_keywords import (
-    MaterialHGOMyocardium,
+    MaterialHGOMyocardium2,
     MaterialNeoHook,
+    _Depracated_MaterialHGOMyocardium,
     active_curve,
 )
 from ansys.heart.writer.system_models import _ed_load_template, define_function_windkessel
@@ -158,6 +159,20 @@ class BaseDynaWriter:
 
         self.settings.to_consistent_unit_system()
         self._check_settings()
+
+        # assign material for part if it's empty
+        myocardium, neohookean = self.settings.get_meca_material()
+        for part in self.model.parts:
+            if isinstance(part.meca_material, MechaMaterialModel.DummyMaterial):
+                LOGGER.info(f"Material of {part.name} will be assigned automatically.")
+                if part.has_fiber:
+                    if part.is_active:
+                        part.meca_material = myocardium
+                    else:
+                        part.meca_material = copy.deepcopy(myocardium)
+                        part.meca_material.active = None
+                elif not part.has_fiber:
+                    part.meca_material = neohookean
 
         if "Improved" in self.model.info.model_type:
             LOGGER.warning(
@@ -1053,6 +1068,43 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self.kw_database.node_sets.extend(kws_surface)
 
     def _update_material_db(self, add_active: bool = True, em_couple: bool = False):
+        for part in self.model.parts:
+            material = part.meca_material
+
+            if isinstance(material, MAT295):
+                if material.active is not None:
+                    # obtain ca2+ curve
+                    x, y = material.active.ca2_curve.dyna_input
+
+                    cid = self.get_unique_curve_id()
+                    curve_kw = create_define_curve_kw(
+                        x=x,
+                        y=y,
+                        curve_name=f"ca2+ of {part.name}",
+                        curve_id=cid,
+                        lcint=10000,
+                    )
+
+                    # curve is written even if not used
+                    self.kw_database.material.append(curve_kw)
+                    # assign curve id
+                    material.active.acid = cid if not em_couple else None
+
+                material_kw = MaterialHGOMyocardium2(
+                    id=part.mid, mat=material, ignore_active=not add_active
+                )
+
+                self.kw_database.material.append(material_kw)
+
+            elif isinstance(material, NeoHookean):
+                material_kw = MaterialNeoHook(
+                    mid=part.mid,
+                    rho=material.rho,
+                    c10=material.c10,
+                )
+                self.kw_database.material.append(material_kw)
+
+    def _deprecated_update_material_db(self, add_active: bool = True, em_couple: bool = False):
         """Update the database of material keywords."""
         act_curve_id = self.get_unique_curve_id()
 
@@ -1081,7 +1133,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         for part in self.model.parts:
             if part.has_fiber:
                 if part.is_active:
-                    material_kw = MaterialHGOMyocardium(
+                    material_kw = _Depracated_MaterialHGOMyocardium(
                         mid=part.mid,
                         iso_user=material_settings.myocardium["isotropic"],
                         anisotropy_user=material_settings.myocardium["anisotropic"],
@@ -1092,7 +1144,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                         material_kw.acid = act_curve_id
 
                 else:
-                    material_kw = MaterialHGOMyocardium(
+                    material_kw = _Depracated_MaterialHGOMyocardium(
                         mid=part.mid,
                         iso_user=material_settings.myocardium["isotropic"],
                         anisotropy_user=material_settings.myocardium["anisotropic"],
@@ -1110,7 +1162,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     )
                 else:
                     # use MAT295, should have the same behavior
-                    material_kw = MaterialHGOMyocardium(
+                    material_kw = _Depracated_MaterialHGOMyocardium(
                         mid=part.mid, iso_user=dict(material_settings.passive)
                     )
 

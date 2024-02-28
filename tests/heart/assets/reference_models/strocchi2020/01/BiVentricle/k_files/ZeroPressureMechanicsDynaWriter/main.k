@@ -7,12 +7,10 @@ $#  endtim    endcyc     dtmin    endeng    endmas     nosol
     1000.0         0       0.0       0.0     1e+08         0
 *CONTROL_IMPLICIT_DYNAMICS
 $#   imass     gamma      beta    tdybir    tdydth    tdybur     irate     alpha
-         0       0.5      0.25       0.0     1e+28     1e+28         0       0.0
-
+         0       0.5      0.25       0.0     1e+28     1e+28         0       0.0
 *CONTROL_IMPLICIT_AUTO
 $#   iauto    iteopt    itewin     dtmin     dtmax     dtexp     kfail    kcycle
-         1        11         5      10.0     100.0                              
-
+         1        11         5      10.0     100.0                              
 *CONTROL_IMPLICIT_GENERAL
 $#  imflag       dt0    imform      nsbs       igs     cnstn      form    zero_v
          1      10.0         2         1         2         0         0         0
@@ -66,17 +64,17 @@ $#     id1       id2       id3       id4       id5       id6       id7       id8
 $#                                                                         title
 unit load curve                                                                 
 $#    lcid      sidr       sfa       sfo      offa      offo    dattyp     lcint
-         1         0    1000.0       1.0       0.0       0.0         0       100
+         4         0    1000.0       1.0       0.0       0.0         0       100
 $#                a1                  o1
                  0.0                 0.0
                  1.0                 1.0
  1.00099999999999989                 1.0
 *LOAD_SEGMENT_SET
 $#    ssid      lcid        sf        at
-         1         10.00199984       0.0
+         1         40.00199984       0.0
 *LOAD_SEGMENT_SET
 $#    ssid      lcid        sf        at
-         2         10.00106658       0.0
+         2         40.00106658       0.0
 *CONTROL_REFERENCE_CONFIGURATION
 $# maxiter                                                                target
          3nodes.k                                                               

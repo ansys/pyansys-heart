@@ -107,8 +107,13 @@ class ActiveModel:
     class Model3:
         """Hold data for active model 3."""
 
-        # TODO
         t0: float = None
+        ca2ion50: float = 1.0
+        n: float = 1.0
+        f: float = 0.0
+        l: float = 1.0  # no effect if eta=0
+        eta: float = 0.0
+        sigmax: float = None
 
 
 @dataclass

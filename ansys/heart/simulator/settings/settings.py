@@ -130,8 +130,8 @@ class Material(Settings):
 
     myocardium: AttrDict = None
     """Myocardium material."""
-    atrium: AttrDict = None
-    """Atrial material."""
+    passive: AttrDict = None
+    """Passive material, e.g. vessel wall."""
     cap: AttrDict = None
     """Cap material."""
 

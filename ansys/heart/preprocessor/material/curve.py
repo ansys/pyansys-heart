@@ -1,7 +1,7 @@
 """Module for active stress curve."""
 import logging
 
-LOGGER = logging.getLogger("pyheart_global.simulator")
+LOGGER = logging.getLogger("pyheart_global.material")
 from typing import Literal
 
 import matplotlib.pyplot as plt

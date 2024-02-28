@@ -2,7 +2,7 @@
 
 import logging
 
-LOGGER = logging.getLogger("pyheart_global.simulator")
+LOGGER = logging.getLogger("pyheart_global.material")
 
 from dataclasses import dataclass
 from typing import List, Optional

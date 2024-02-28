@@ -78,6 +78,8 @@ def test_neohookean():
     assert m.nu == 0.499
 
 
-def test_dummy():
+def test_dummy(capsys):
     m = M.MechaMaterialModel.DummyMaterial()
-    # nothing need to be tested
+    print(m)
+    captured = capsys.readouterr()
+    assert captured.out == "Material is empty.\n"

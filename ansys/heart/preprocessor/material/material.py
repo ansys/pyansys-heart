@@ -82,35 +82,33 @@ class ANISO:
 
 @dataclass
 class ActiveModel:
-    """Abstract class for active models."""
+    """Abstract class for different active models."""
 
     pass
 
+    @dataclass
+    class Model1:
+        """Hold data for active model 1."""
 
-@dataclass
-class ActiveModel1(ActiveModel):
-    """Hold data for active model 1."""
+        t0: float = None
+        ca2ion: float = None
+        ca2ionm: float = 4.35
+        n: int = 2
+        taumax: float = 0.125
+        stf: float = 0.0
+        b: float = 4.75
+        l0: float = 1.58
+        l: float = 1.85
+        dtmax: float = 150
+        mr: float = 1048.9
+        tr: float = -1629.0
 
-    t0: float = None
-    ca2ion: float = None
-    ca2ionm: float = 4.35
-    n: int = 2
-    taumax: float = 0.125
-    stf: float = 0.0
-    b: float = 4.75
-    l0: float = 1.58
-    l: float = 1.85
-    dtmax: float = 150
-    mr: float = 1048.9
-    tr: float = -1629.0
+    @dataclass
+    class Model3:
+        """Hold data for active model 3."""
 
-
-@dataclass
-class ActiveModel3(ActiveModel):
-    """Hold data for active model 3."""
-
-    # TODO
-    t0: float = None
+        # TODO
+        t0: float = None
 
 
 @dataclass
@@ -124,14 +122,14 @@ class ACTIVE:
     sf: float = 1.0
     ss: float = 0.0
     sn: float = 0.0
-    model: ActiveModel = ActiveModel1()
+    model: ActiveModel = ActiveModel.Model1()
     ca2_curve: ActiveCurve = ActiveCurve(constant_ca2(), threshold=0.1, type="ca2")
 
     def __post_init__(self):
         """Deduce actype."""
-        if isinstance(self.model, ActiveModel1):
+        if isinstance(self.model, ActiveModel.Model1):
             self.actype = 1
-        elif isinstance(self.model, ActiveModel3):
+        elif isinstance(self.model, ActiveModel.Model3):
             self.actype = 3
         else:
             LOGGER.error("Unknown actype.")
@@ -150,6 +148,10 @@ class MechaMaterialModel:
         """Just for initialization."""
 
         pass
+
+        def __repr__(self):
+            """Print a message."""
+            return "Material is empty."
 
 
 @dataclass

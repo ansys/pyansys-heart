@@ -185,9 +185,16 @@ class MaterialHGOMyocardium(keywords.Mat295):
             elif active_user["actype"] == 3:
                 active = {
                     "acdir": 1,
+                    "acthr": 1e-7,
                     "sf": 1.0,
                     "ss": 0.02,
                     "sn": 0.02,
+                    "ca2ion50": 1.0,
+                    "n": 1.0,
+                    "f": 0.0,
+                    "l": 1.0,  # no effect
+                    "eta": 0.0,
+                    "sigmax": active_user["taumax"],
                 }
             # Update parameters with user's input
             active.update(active_user)
@@ -199,7 +206,6 @@ class MaterialHGOMyocardium(keywords.Mat295):
 def active_curve(
     curve_type: str = "Strocchi2020",
     endtime: float = 15,
-    timestep: float = 1e-2,
 ):
     """Compute various (normalized) curves used for the active module.
 
@@ -212,33 +218,33 @@ def active_curve(
     # T = np.arange( 0, endtime, timestep )
     # NOTE: needs cleaning up
     if curve_type == "Strocchi2020":
-        # parameters used in Strocchi:
-
-        # NOTE: in milliseconds
-        LOGGER.warning("End-time set to 1000 ms: Strocchi uses 800 ms")
-        t_end = 1000  # note in Strocchi this seems to be 800 ms actually
-        t = np.arange(0, t_end, timestep * 1e3)
-        # Tpeak = 125
+        # parameters used in Strocchi in ms
+        t_end = 800
         tau_r = 130
         tau_d = 100
-        t_dur = 550
+        tau_dur = 550
+        tau_emd = 0.0  # EM coupling delay
+        t_act = 0.0  # activation time from Eikonel model
 
-        # this is normalized in y: that is Tpeak is not used
-        active_stress = (np.tanh(t / tau_r)) ** 2 * (np.tanh((t_dur - t) / tau_d)) ** 2
-        active_stress[t > t_dur] = 0
+        # Active tension
+        t = np.linspace(0, t_end, 1001)
+        active_stress = np.zeros(t.shape)
+        ts = t - t_act - tau_emd
+        for i, tt in enumerate(ts):
+            if 0 < tt < tau_dur:
+                active_stress[i] = np.tanh(tt / tau_r) ** 2 * np.tanh((tau_dur - tt) / tau_d) ** 2
 
         # repeat dataset nCycles times:
-        t = t / 1000  # to seconds
-        t_end = t_end / 1000
-
         # number of cycles to return
         nCycles = int(np.ceil(endtime / t_end))
 
         time_array = t  # time array
-        calcium_array = active_stress  # active stress array
+        # mock calcium array
+        calcium_array0 = 1 / (1 - 0.99 * active_stress) - 1
+        calcium_array = np.copy(calcium_array0)
         for ii in range(1, nCycles):
-            time_array = np.append(time_array, t + ii * t_end)
-            calcium_array = np.append(calcium_array, active_stress)
+            time_array = np.append(time_array, t[1:] + ii * t_end)
+            calcium_array = np.append(calcium_array, calcium_array0[1:])
 
     # used for generating multi beats with model actype 1
     elif curve_type == "constant":

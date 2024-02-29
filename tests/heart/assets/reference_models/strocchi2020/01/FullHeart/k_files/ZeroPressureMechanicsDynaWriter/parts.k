@@ -34,11 +34,6 @@ $#                                                             heading
 Pulmonary artery                                                      
 $#     pid     secid       mid     eosid      hgid      grav    adpopt      tmid
          7         1         7                                                  
-*PART
-$#                                                             heading
-Isolation atrial                                                      
-$#     pid     secid       mid     eosid      hgid      grav    adpopt      tmid
-         8         1         8                                                  
 *SECTION_SOLID
 $#   secid    elform       aet    unused    unused    unused    cohoff   gaskeit
          1        13         0                                                  

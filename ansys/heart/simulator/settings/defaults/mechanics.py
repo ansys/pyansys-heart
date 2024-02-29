@@ -45,12 +45,11 @@ reference:
     for actype=1:
     https://doi.org/10.1152/ajpheart.01226.2004
     https://doi.org/10.1152/japplphysiol.00255.2014
-    for actype=2
-    TODO
     for actype=3
-    TODO
-    prescribed active stress
+    fiber stretch dependency is removed
+    prescribed active stress in
     https://doi.org/10.1371/journal.pone.0235145
+    HB must be 800ms
 """
 
 material = {
@@ -65,10 +64,25 @@ material = {
         # "anisotropic": {
         #     "k1f": Quantity(3.465e-3, "MPa"),
         #     "k2f": Quantity(14.472, "dimensionless"),
-        #     "k1f": Quantity(0.481e-3, "MPa"),
-        #     "k2f": Quantity(12.548, "dimensionless"),
-        #     "k1f": Quantity(0.283, "MPa"),
-        #     "k2f": Quantity(3.088, "dimensionless"),
+        #     "k1s": Quantity(0.481e-3, "MPa"),
+        #     "k2s": Quantity(12.548, "dimensionless"),
+        #     "k1fs": Quantity(0.283e-3, "MPa"),
+        #     "k2fs": Quantity(3.088, "dimensionless"),
+        # },
+        # # ambit
+        # "isotropic": {
+        #     "rho": Quantity(0.001, "g/mm^3"),
+        #     "nu": 0.49,
+        #     "k1": Quantity(0.059e-3, "MPa"),
+        #     "k2": Quantity(8.023),
+        # },
+        # "anisotropic": {
+        #     "k1f": Quantity(18.472e-3, "MPa"),
+        #     "k2f": Quantity(16.026, "dimensionless"),
+        #     "k1s": Quantity(2.481e-3, "MPa"),
+        #     "k2s": Quantity(11.120, "dimensionless"),
+        #     "k1fs": Quantity(0.216e-3, "MPa"),
+        #     "k2fs": Quantity(11.436, "dimensionless"),
         # },
         "isotropic": {
             "rho": Quantity(0.001, "g/mm^3"),
@@ -80,15 +94,16 @@ material = {
             "k1f": Quantity(0.00049, "MPa"),
             "k2f": Quantity(9.01, "dimensionless"),
         },
+        # no effect if EM coupled
         "active": {
-            "actype": 1,
+            "actype": 1,  # or 3
             "beat_time": heart["beat_time"],
             "taumax": Quantity(0.125, "MPa"),
             "ss": 0.0,
             "sn": 0.0,
         },
     },
-    "atrium": {
+    "passive": {
         "type": "NeoHook",  # or 'MAT295'
         "rho": Quantity(0.001, "g/mm^3"),
         "itype": -1,
@@ -104,9 +119,20 @@ material = {
 }
 
 """Boundary condition settings."""
-# pericardium: https://doi.org/10.1016/j.jbiomech.2020.109645
 boundary_conditions = {
-    "pericardium": {"penalty_function": [0.25, 25], "spring_stiffness": Quantity(0.05, "MPa/mm")},
+    "robin": {
+        # pericardium: https://doi.org/10.1016/j.jbiomech.2020.109645
+        "ventricle": {
+            "penalty_function": [0.25, 25],
+            "stiffness": Quantity(0.05, "MPa/mm"),
+            "damper": Quantity(0.005, "kPa*s/mm"),
+        },
+        # from ambit
+        "atrial": {
+            "stiffness": Quantity(0.075e-3, "MPa/mm"),
+            "damper": Quantity(0.005, "kPa*s/mm"),
+        },
+    },
     "valve": {
         "stiffness": Quantity(0.002, "MPa/mm"),
         "scale_factor": {"normal": 0.5, "radial": 1.0},

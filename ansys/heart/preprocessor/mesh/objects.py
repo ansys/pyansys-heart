@@ -439,6 +439,42 @@ class Cap(Feature):
         """Type."""
         return
 
+    def tessellate1(self, use_centroid: bool = False) -> np.ndarray:
+        """Tessellate the cap.
+
+        Parameters
+        ----------
+        use_centroid : bool, optional
+            Use a central node for tessellation, by default False
+
+        Returns
+        -------
+        np.ndarray
+            Triangles forming the tessellation.
+        """
+        if not use_centroid:
+            tris = []
+            for ii, _ in enumerate(self.node_ids[0:-2]):
+                # first node is reference node
+                tri = [self.node_ids[0], self.node_ids[ii + 1], self.node_ids[ii + 2]]
+                tris.append(tri)
+            self.triangles = np.array(tris, dtype=int)
+        elif use_centroid:
+            if not self.centroid_id:
+                LOGGER.error("Not able to create the tessellation with the cap center.")
+                return None
+
+            ref_node = self.centroid_id
+            num_triangles = self.node_ids.shape[0] + 1
+            tris = [[ref_node, self.node_ids[0], self.node_ids[1]]]
+            for ii, _ in enumerate(self.node_ids[0:-2]):
+                tri = [ref_node, self.node_ids[ii + 1], self.node_ids[ii + 2]]
+                tris.append(tri)
+            tris.append([ref_node, self.node_ids[-1], self.node_ids[0]])
+            self.triangles = np.array(tris, dtype=int)
+
+        return self.triangles
+
     def tessellate(self, center_point_id=None) -> np.ndarray:
         """
         Form triangles with the node ids.
@@ -556,12 +592,20 @@ class Mesh(pv.UnstructuredGrid):
 
         Notes
         -----
-        This is derived from the "tags" field in cell data
+        This is derived from the "part-id" field in cell data
         """
+        # NOTE "tags" should be removed.
         try:
             value = self.cell_data["tags"].astype(int)
+            return value
         except (KeyError, NameError):
             LOGGER.warning("'tags' field not found in self.cell_data")
+            value = None
+        try:
+            value = self.cell_data["part-id"].astype(int)
+            return value
+        except (KeyError, NameError):
+            LOGGER.warning("'part-id' field not found in self.cell_data")
             value = None
         return value
 
@@ -569,6 +613,19 @@ class Mesh(pv.UnstructuredGrid):
     def boundary_names(self) -> List[str]:
         """Iterate over boundaries and returns their names."""
         return [b.name for b in self.boundaries]
+
+    def _sync_nodes_of_surfaces(self):
+        """Synchronize the node array of each associated surface.
+
+        Notes
+        -----
+        Temporary until this module is refactored.
+        """
+        for b in self.boundaries:
+            b.nodes = self.nodes
+        for i in self.interfaces:
+            i.nodes = self.nodes
+        return
 
     def read_mesh_file(self, filename: pathlib.Path) -> None:
         """Read mesh file."""
@@ -592,6 +649,7 @@ class Mesh(pv.UnstructuredGrid):
 
     def read_mesh_file_rodero2021(self, filename: pathlib.Path) -> None:
         """Read mesh file - but modifies the fields to match data of Strocchi 2020."""
+        LOGGER.warning("This method will be deprecated in the future.")
         mesh = pv.read(filename)
         # .case gives multiblock
         if isinstance(mesh, pv.MultiBlock):

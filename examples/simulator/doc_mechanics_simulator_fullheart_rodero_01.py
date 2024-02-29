@@ -52,20 +52,8 @@ from ansys.heart.simulator.simulator import DynaSettings, MechanicsSimulator
 workdir = Path(Path(__file__).resolve().parents[2], "downloads", "Rodero2021", "01", "FullHeart")
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
-if not os.path.isfile(path_to_model):
-    raise FileExistsError(f"{path_to_model} not found")
-
-# specify LS-DYNA path
-lsdyna_path = "ls-dyna_smp_d.exe"
-
-if not os.path.isfile(lsdyna_path):
-    raise FileExistsError(f"{lsdyna_path} not found.")
-
 # load four chamber heart model.
 model: models.FullHeart = models.HeartModel.load_model(path_to_model)
-
-if not isinstance(model, models.FullHeart):
-    raise TypeError("Expecting a FourChamber heart model.")
 
 # set base working directory
 model.info.workdir = str(workdir)
@@ -78,10 +66,12 @@ model.info.workdir = str(workdir)
 # variables if you choose to use a `mpi` version of LS-DYNA.
 
 # instantiate dyna settings object
+lsdyna_path = "lsdyna_smp"
+# instantiate dyna settings object
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path,
     dynatype="smp",
-    num_cpus=10,
+    num_cpus=4,
 )
 
 # instantiate simulator object

@@ -62,6 +62,8 @@ def test_active():
     a = M.ACTIVE(ca2_curve=ActiveCurve(Strocchi_active(), type="ca2", threshold=0.1))
     assert a.actype == 1
     assert a.acthr == 0.1
+    assert a.model.l == 1.85
+    assert a.ca2_curve.type == "ca2"
 
 
 def test_mat295():

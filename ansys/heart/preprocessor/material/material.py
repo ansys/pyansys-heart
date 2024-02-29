@@ -4,7 +4,7 @@ import logging
 
 LOGGER = logging.getLogger("pyheart_global.material")
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional
 
 from ansys.heart.preprocessor.material.curve import ActiveCurve, constant_ca2
@@ -127,8 +127,10 @@ class ACTIVE:
     sf: float = 1.0
     ss: float = 0.0
     sn: float = 0.0
-    model: ActiveModel = ActiveModel.Model1()
-    ca2_curve: ActiveCurve = ActiveCurve(constant_ca2(), threshold=0.1, type="ca2")
+    model: ActiveModel = field(default_factory=ActiveModel.Model1)
+    ca2_curve: ActiveCurve = field(
+        default_factory=lambda: ActiveCurve(constant_ca2(), threshold=0.1, type="ca2")
+    )
 
     def __post_init__(self):
         """Deduce actype."""

@@ -1,5 +1,6 @@
 """Functional test to determine whether generated biventricle model has all the
 expected features."""
+import copy
 import glob
 import os
 import pathlib
@@ -126,7 +127,7 @@ def test_writers(writer_class):
     -----
     This skips over most .k files that contain mesh related info.
     """
-    writer = writer_class(model)
+    writer = writer_class(copy.deepcopy(model))
     ref_folder = os.path.join(
         get_assets_folder(),
         "reference_models",

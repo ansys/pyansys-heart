@@ -30,9 +30,6 @@ import pathlib
 from typing import List
 
 heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
-if not heart_version:
-    heart_version = "v0.1"
-
 from ansys.heart import LOG as LOGGER
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
@@ -44,6 +41,9 @@ from ansys.heart.simulator.settings.settings import AtrialFiber, SimulationSetti
 import matplotlib.pyplot as plt
 import numpy as np
 import pyvista as pv
+
+if not heart_version:
+    heart_version = "v0.1"
 
 
 def zerop_post(directory, model):

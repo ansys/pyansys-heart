@@ -171,8 +171,9 @@ class D3plotReader:
 
         Notes
         -----
-        d3plot.get_history_variable(hv_index=list(range(9)), at_frame=at_frame)
-        to get Deformation gradient (column-wise storage),see *MAT_295 in LS-DYNA manual.
+        d3plot.get_history_variable(hv_index=list(range(9)), at_frame=at_frame) to
+        get Deformation gradient (column-wise storage),see *MAT_295 in LS-DYNA manual.
+
         """
         if at_frame > self.model.metadata.time_freq_support.n_sets:
             LOGGER.warning("Frame ID too big")

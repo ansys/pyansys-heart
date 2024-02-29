@@ -43,7 +43,6 @@ html_theme_options = {
 
 # Sphinx extensions
 extensions = [
-    "sphinx.ext.autosectionlabel",
     "numpydoc",
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
@@ -132,11 +131,10 @@ autoapi_options = [
     "special-members",
 ]
 autoapi_template_dir = get_autoapi_templates_dir_relative_path(Path(__file__))
-suppress_warnings = ["autoapi.python_import_resolution"]
-# exclude_patterns = ["_autoapi_templates/index.rst"]
+suppress_warnings = ["autoapi.python_import_resolution", "autosectionlabel.*"]
 autoapi_python_use_implicit_namespaces = True
 autoapi_keep_files = True
-
+autoapi_own_page_level = "class"
 
 typehints_defaults = "comma"
 simplify_optional_unions = False

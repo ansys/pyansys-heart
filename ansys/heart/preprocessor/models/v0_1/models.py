@@ -65,6 +65,7 @@ class ModelInfo:
 
     @database.setter
     def database(self, value: str):
+        """Set the database name."""
         valid_databases = ["Strocchi2020", "Rodero2021", "LabeledSurface"]
         if value not in valid_databases:
             raise ValueError(
@@ -83,6 +84,7 @@ class ModelInfo:
         mesh_size: float = 1.5,
         add_blood_pool: bool = False,
     ) -> None:
+        """Initialize the ModelInfo object."""
         self.database = database
         """Name of the database to use."""
         self.workdir = work_directory
@@ -184,6 +186,7 @@ class HeartModel:
         return [part.cavity for part in self.parts if part.cavity]
 
     def __init__(self, info: ModelInfo) -> None:
+        """Initialize the HeartModel object."""
         self.info = info
         """Model meta information."""
         self.mesh = Mesh()

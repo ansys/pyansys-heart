@@ -43,6 +43,8 @@ class AttrDict(dict):
     """Dict subclass whose entries can be accessed by attributes as well as normally."""
 
     def __init__(self, *args, **kwargs):
+        """Construct nested AttrDicts from nested dictionaries."""
+
         def from_nested_dict(data):
             """Construct nested AttrDicts from nested dictionaries."""
             if not isinstance(data, dict):
@@ -92,6 +94,7 @@ class Settings:
         """
 
         def _to_consitent_units(d):
+            """Convert units to consistent unit system."""
             if isinstance(d, Settings):
                 d = d.__dict__
             for k, v in d.items():
@@ -632,6 +635,7 @@ def _deserialize_quantity(d: dict, ureg: UnitRegistry):
 
 # some additional methods
 def _get_dimensionality(d):
+    """Get dimensionality of Quantity objects in a nested dictionary."""
     dims = []
     for k, v in d.items():
         if isinstance(v, (dict, AttrDict)):
@@ -643,6 +647,7 @@ def _get_dimensionality(d):
 
 # get units
 def _get_units(d):
+    """Get units of Quantity objects in a nested dictionary."""
     units = []
     for k, v in d.items():
         if isinstance(v, (dict, AttrDict)):

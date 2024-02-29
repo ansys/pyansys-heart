@@ -1,4 +1,6 @@
-|pyansys| |python| |MIT| |black| |pre-commit|
+PyAnsys heart
+=============
+|pyansys| |python| |GH-CI| |MIT| |black| |pre-commit|
 
 .. |pyansys| image:: https://img.shields.io/badge/Py-Ansys-ffc107.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAABDklEQVQ4jWNgoDfg5mD8vE7q/3bpVyskbW0sMRUwofHD7Dh5OBkZGBgW7/3W2tZpa2tLQEOyOzeEsfumlK2tbVpaGj4N6jIs1lpsDAwMJ278sveMY2BgCA0NFRISwqkhyQ1q/Nyd3zg4OBgYGNjZ2ePi4rB5loGBhZnhxTLJ/9ulv26Q4uVk1NXV/f///////69du4Zdg78lx//t0v+3S88rFISInD59GqIH2esIJ8G9O2/XVwhjzpw5EAam1xkkBJn/bJX+v1365hxxuCAfH9+3b9/+////48cPuNehNsS7cDEzMTAwMMzb+Q2u4dOnT2vWrMHu9ZtzxP9vl/69RVpCkBlZ3N7enoDXBwEAAA+YYitOilMVAAAAAElFTkSuQmCC
    :target: https://docs.pyansys.com/
@@ -7,6 +9,10 @@
 .. |python| image:: https://img.shields.io/badge/Python-3.9-blue
    :target: https://www.python.org/downloads/release/python-390/
    :alt: Python
+
+.. |GH-CI| image:: https://github.com/ansys/pyansys-geometry/actions/workflows/ci_cd.yml/badge.svg
+   :target: https://github.com/ansys/pyansys-geometry/actions/workflows/ci_cd.yml
+   :alt: GH-CI
 
 .. |MIT| image:: https://img.shields.io/badge/license-MIT-yellow
    :target: https://opensource.org/blog/license/mit
@@ -20,7 +26,7 @@
    :target: https://results.pre-commit.ci/latest/github/ansys/pyansys-geometry/main
    :alt: pre-commit.ci
 
-PyAnsys-Heart is a `Python`_ framework for heart modeling using Ansys tools.
+PyAnsys Heart is a `Python`_ framework for heart modeling using Ansys tools.
 
 .. Note::
 
@@ -28,22 +34,22 @@ PyAnsys-Heart is a `Python`_ framework for heart modeling using Ansys tools.
 
 
 Prerequisites
-=============
+--------------
 
 Operating system
-----------------
+^^^^^^^^^^^^^^^^
 
 - Windows 10
 - Linux Ubuntu
 
 
 Ansys tools
------------
+^^^^^^^^^^^
 
 This framework was developed and tested under Python 3.9 version. Before starting the installation run ``python --version`` and check that it fits with the supported versions.
 
 Software
---------
+^^^^^^^^
 
   .. list-table:: Required Ansys products
     :widths: 200 300 200 400
@@ -70,15 +76,16 @@ Software
       - Contact us for latest working version
 
 .. note::
+
     Fluent is required for meshing and the Ansys DPF Server for post-processing electrophysiology
     and mechanical results. Currently we advice to use the pre-release version of `DPF-Server`_ since support
     for `d3plot` result files is updated frequently. See `install-DPF-Server-`_ for installation guide.
 
 How to install
-==============
+--------------
 
 In user mode
-------------
+^^^^^^^^^^^^
 
 .. warning::
 
@@ -91,7 +98,7 @@ In user mode
 ..     python -m pip install ansys-heart-lib
 
 In editable mode
-----------------
+^^^^^^^^^^^^^^^^
 
 Installing PyAnsys-Heart in developer mode allows
 you to modify the source and enhance it.
@@ -190,7 +197,7 @@ need to follow these steps:
 
 
 Style and Testing
-=================
+-----------------
 
 If required, you can always call the style commands (`black`_, `isort`_,
 `flake8`_...) or unit testing ones (`pytest`_) from the command line. Alternatively, you can
@@ -200,7 +207,7 @@ environment, which is another reason to consider using `tox`_.
 
 
 Documentation and issues
-========================
+------------------------
 Documentation for the latest stable release of PyAnsys Heart is hosted at `documentation`_.
 
 In the upper right corner of the documentation's title bar, there is an option for switching from
@@ -214,20 +221,11 @@ page on the Ansys Developer portal, you can post questions, share ideas, and get
 
 To reach the project support team, email `pyansys.core@ansys.com <mailto:pyansys.core@ansys.com>`_.
 
-Distributing
-============
-
-If you would like to create either source or wheel files, you can execute:
-
-.. code:: bash
-
-    python -m pip install .
-
 
 License
-=======
+-------
 
-PyAnsys-Heart is licensed under the MIT license. Please refer to the `LICENSE` file for more information.
+PyAnsys Heart is licensed under the MIT license. Please refer to the `LICENSE` file for more information.
 PyAnsys-Heart makes no commercial claim over any Ansys products whatsoever.
 This library extends the functionality of the listed Ansys products by adding a Python interface
 without changing the core behavior or licensing of the original products. This library requires

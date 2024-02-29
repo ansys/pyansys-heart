@@ -1,4 +1,5 @@
 """Module containing classes for the various heart models."""
+
 import copy
 import json
 import logging
@@ -556,6 +557,35 @@ class HeartModel:
         plotter = pyvista.Plotter()
         plotter.add_mesh(self.mesh, show_edges=show_edges, scalars=color_by)
 
+        plotter.show()
+        return
+
+    def plot_part(self, part: Part):
+        """Plot a part in mesh.
+
+        Parameters
+        ----------
+        part : Part
+            part to highlight in mesh
+
+        Examples
+        --------
+        >>> import ansys.heart.preprocessor.models as models
+        >>> model = models.HeartModel.load_model("my_model.pickle")
+        >>> model.part(model.left_ventricle)
+        """
+        try:
+            import pyvista
+        except ImportError:
+            LOGGER.warning("pyvista not found. Install with: pip install pyvista")
+            return
+
+        mesh = self.mesh
+
+        plotter = pyvista.Plotter()
+        plotter.add_mesh(mesh, opacity=0.5, color="white")
+        part = mesh.extract_cells(part.element_ids)
+        plotter.add_mesh(part, opacity=0.95, color="red")
         plotter.show()
         return
 

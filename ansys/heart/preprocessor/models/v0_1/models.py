@@ -1,4 +1,5 @@
 """Module containing classes for the various heart models."""
+
 import json
 
 # from ansys.heart import LOG as LOGGER
@@ -323,6 +324,43 @@ class HeartModel:
         # plotter.show()
 
         return beam_net
+
+    def create_part_by_ids(
+        self, eids: List[int], name: str, type="myocardium"
+    ) -> Union[None, Part]:
+        """Create a new part by element ids.
+
+        Parameters
+        ----------
+        eids : List[int]
+            element id list
+        name : str
+            part name
+        type : str, optional
+            part type, by default "myocardium"
+
+        Returns
+        -------
+        Union[None, Part]
+           return the part if succeed
+        """
+        if len(eids) == 0:
+            LOGGER.error(f"Element list is empty to create {name}")
+            return None
+
+        for part in self.parts:
+            try:
+                part.element_ids = np.setdiff1d(part.element_ids, eids)
+            except:
+                LOGGER.error(f"Failed to create part {name}")
+                return None
+
+        self.add_part(name)
+        new_part = self.get_part(name)
+        new_part.part_type = type
+        new_part.element_ids = eids
+
+        return new_part
 
     def extract_simulation_mesh(self, clean_up: bool = False, skip_meshing: bool = False) -> None:
         """Update the model.
@@ -655,6 +693,35 @@ class HeartModel:
 
         plotter.show()
         return
+
+    def plot_part(self, part: Part, _offscreen=False) -> pv.Plotter:
+        """Plot a part in mesh.
+
+        Parameters
+        ----------
+        part : Part
+            part to highlight in mesh
+
+        Examples
+        --------
+        >>> import ansys.heart.preprocessor.models.v0_1.models as models
+        >>> model = models.HeartModel.load_model("my_model.pickle")
+        >>> model.part(model.left_ventricle)
+        """
+        try:
+            import pyvista
+        except ImportError:
+            LOGGER.warning("pyvista not found. Install with: pip install pyvista")
+            return
+
+        mesh = self.mesh
+
+        plotter = pyvista.Plotter(_offscreen)
+        plotter.add_mesh(mesh, opacity=0.5, color="white")
+        part = mesh.extract_cells(part.element_ids)
+        plotter.add_mesh(part, opacity=0.95, color="red")
+        plotter.show()
+        return plotter
 
     def plot_fibers(self, n_seed_points: int = 1000, plot_raw_mesh: bool = False):
         """Plot the mesh and fibers as streamlines.

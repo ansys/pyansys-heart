@@ -76,7 +76,7 @@ Software
     - Simulator
     - Contact us for latest working version
 
-.. note::
+.. Note::
 
     Fluent is required for meshing and the Ansys DPF Server for post-processing electrophysiology
     and mechanical results. Currently we advice to use the pre-release version of `DPF-Server`_ since support

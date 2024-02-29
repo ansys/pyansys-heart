@@ -32,8 +32,8 @@ import pytest
 
 """
 
-Note
-----
+Notes
+-----
 Note for VS Code/conda users: for the moment it seems that for proper pytest discovery in
 VS Code's native testing framework you need to install pyfluent into the
 base virtual environment.

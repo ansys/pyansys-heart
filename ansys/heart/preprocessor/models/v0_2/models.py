@@ -852,8 +852,8 @@ class HeartModel:
     def _sync_input_parts_to_model_parts(self):
         """Synchronize the input parts to the model parts.
 
-        Note
-        ----
+        Notes
+        -----
         Checks:
             overwrites the default part ids by those given by user.
         """
@@ -878,8 +878,8 @@ class HeartModel:
     def _extract_septum(self) -> None:
         """Separate the septum elements from the left ventricle.
 
-        Note
-        ----
+        Notes
+        -----
         Uses the septum surface of the right ventricle
         """
         if not isinstance(self, (BiVentricle, FourChamber, FullHeart)):
@@ -928,8 +928,8 @@ class HeartModel:
     def _extract_apex(self) -> None:
         """Extract the apex for both the endocardium and epicardium of each ventricle.
 
-        Note
-        ----
+        Notes
+        -----
         Apex defined as the point furthest from the mid-point between caps/valves
 
         """

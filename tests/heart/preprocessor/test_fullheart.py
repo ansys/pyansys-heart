@@ -51,9 +51,8 @@ pytestmark = pytest.mark.requires_fluent
 @pytest.fixture(autouse=True, scope="module")
 def extract_fullheart():
     """Extract FullHeart model which is similar to the reference model.
-
-    Note
-    ----
+    Notes
+    -----
     Do this once as fixture.
     """
 

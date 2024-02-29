@@ -58,8 +58,8 @@ pytestmark = pytest.mark.requires_fluent
 def extract_bi_ventricle():
     """Extract BiVentricular model which is similar to the reference model.
 
-    Note
-    ----
+    Notes
+    -----
     Do this once as fixture.
     """
 

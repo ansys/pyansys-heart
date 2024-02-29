@@ -882,8 +882,8 @@ class HeartModel:
     def _get_endo_epicardial_surfaces(self) -> None:
         """Get endo- and epicardial surfaces.
 
-        Note
-        ----
+        Notes
+        -----
         Also obtains the septum in case of a BiVentricle, FourChamber or FullHeart model
 
         """
@@ -1012,8 +1012,8 @@ class HeartModel:
     def _prepare_for_meshing(self) -> None:
         """Prepare the input for volumetric meshing with Fluent meshing.
 
-        Note
-        ----
+        Notes
+        -----
         Extracts boundary surfaces of the part and the interface surfaces between parts.
         These surfaces are written in .stl format which can be imported in Fluent Meshing
 
@@ -1294,8 +1294,8 @@ class HeartModel:
     def _extract_septum(self) -> None:
         """Separate the septum elements from the left ventricle.
 
-        Note
-        ----
+        Notes
+        -----
         Uses the septum surface of the right ventricle
         """
         if not isinstance(self, (BiVentricle, FourChamber, FullHeart)):
@@ -1341,8 +1341,8 @@ class HeartModel:
     def _extract_apex(self) -> None:
         """Extract the apex for both the endocardium and epicardium of each ventricle.
 
-        Note
-        ----
+        Notes
+        -----
         Apex defined as the point furthest from the mid-point between caps/valves
         If this point is on the edge, another point of the same element will be picked.
 

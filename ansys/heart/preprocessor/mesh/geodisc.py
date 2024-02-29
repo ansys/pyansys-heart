@@ -137,8 +137,8 @@ def sort_edgeloop_anti_clockwise(points_to_sort: np.ndarray, reference_point: np
     bool
         Flag indicating whether the point order should be reversed or not
 
-    Note
-    ----
+    Notes
+    -----
     This only uses the first two points in the points array, but uses all
     points to compute the center of the sorted points that make up the edge
     loop

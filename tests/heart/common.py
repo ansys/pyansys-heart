@@ -29,8 +29,8 @@ import numpy as np
 def compare_part_names(model: models.HeartModel, ref_stats: dict):
     """Test if parts match that of the reference model.
 
-    Note
-    ----
+    Notes
+    -----
     1. tests consistency of part names
     """
 
@@ -45,8 +45,8 @@ def compare_part_names(model: models.HeartModel, ref_stats: dict):
 def compare_part_element_ids(model: models.HeartModel, reference_model: models.HeartModel):
     """Test if parts match that of the reference model.
 
-    Note
-    ----
+    Notes
+    -----
     1. tests element ids defined in all parts
     """
     assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
@@ -65,8 +65,8 @@ def compare_part_element_ids(model: models.HeartModel, reference_model: models.H
 def compare_surface_names(model: models.HeartModel, ref_stats: dict):
     """Test if surfaces of the parts match with the reference model.
 
-    Note
-    ----
+    Notes
+    -----
     1. tests consistency of surface names
     """
 
@@ -88,8 +88,8 @@ def compare_surface_names(model: models.HeartModel, ref_stats: dict):
 def compare_generated_mesh(model: models.HeartModel, ref_stats: dict):
     """Compares the number of tetrahedrons, faces, etc in the model.
 
-    Note
-    ----
+    Notes
+    -----
     Test conditions:
         Difference num tetrahedrons < 100
         Difference num faces < 10
@@ -147,8 +147,8 @@ def compare_generated_mesh(model: models.HeartModel, ref_stats: dict):
 def compare_cavity_volume(model: models.HeartModel, ref_volumes: dict):
     """Test volume of cavities.
 
-    Note
-    ----
+    Notes
+    -----
     1. Volume of cavity
     """
     assert isinstance(model, models.HeartModel), "Expecting model of type HeartModel"
@@ -167,8 +167,8 @@ def compare_cavity_volume(model: models.HeartModel, ref_volumes: dict):
 def _deprecated_compare_surface_faces(model: models.HeartModel, reference_model: models.HeartModel):
     """Test if surfaces of the parts match with the reference model.
 
-    Note
-    ----
+    Notes
+    -----
     1. tests surface topology (face id and ordering) of surfaces
     """
 
@@ -224,8 +224,8 @@ def _deprecated_compare_caps_num_nodeids(
 def _deprecated_compare_cavity_topology(model: models.HeartModel, ref_stats: dict):
     """Test number of faces of cavity.
 
-    Note
-    ----
+    Notes
+    -----
     1. Topology of cavity surface
     """
     assert isinstance(ref_stats, models.HeartModel), "Expecting model of type HeartModel"

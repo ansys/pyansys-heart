@@ -29,8 +29,8 @@ from ansys.heart.misc.downloader import download_case
 if __name__ == "__main__":
     """Creates a reference hash table used to check integrity of data files.
 
-    Note
-    ----
+    Notes
+    -----
     Use this script to download all .tar.gz files from both the Strocchi2020 and
     Rodero2021 public datasets and generate a hash table which is used to
     verify file integrity.

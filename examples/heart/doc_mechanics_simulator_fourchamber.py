@@ -25,9 +25,11 @@
 Four-chamber mechanics example
 ------------------------------
 
-.. note::
-   Note that this example may yield unrealistically high deformation around
-   the aortic valve annulus. Try to use the full-heart simulator example instead.
+Notes
+-----
+
+Note that this example may yield unrealistically high deformation around
+the aortic valve annulus. Try to use the full-heart simulator example instead.
 
 
 This example shows you how to consume a four-cavity heart model and

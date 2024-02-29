@@ -644,8 +644,8 @@ def mesh_heart_model_by_fluent(
     """
     Use Fluent meshing to wrap the surface and create tetrahedral volume mesh.
 
-    Note
-    ----
+    Notes
+    -----
     Optionally extracts the blood pool.
     """
     import ansys.fluent.core as pyfluent

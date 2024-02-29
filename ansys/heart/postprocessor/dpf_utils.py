@@ -155,7 +155,7 @@ class D3plotReader:
         at_frame: int = 0,
     ):
         """
-                Get history variables in d3plot.
+        Get history variables in d3plot.
 
         Parameters
         ----------

@@ -29,8 +29,8 @@ import numpy as np
 class EDPVR:
     """End diastolic pressure-volume relation.
 
-    Note
-    ----
+    Notes
+    -----
     Ref: Klotz, et al. Nature protocols 2.9 (2007): 2152-2158.
     """
 

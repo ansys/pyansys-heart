@@ -56,8 +56,8 @@ class ClosedSurface:
     def get_volume(self):
         """Compute volume.
 
-        Note
-        ----
+        Notes
+        -----
         From numpy-stl
         http://www.geometrictools.com/Documentation/PolyhedralMassProperties.pdf.
 
@@ -129,8 +129,8 @@ def update_system_json(nodes_file):
     """
     Update the unstressed cavity volume in the system model settings.
 
-    Note
-    ----
+    Notes
+    -----
     How to use: run this script under the main simulation directory
 
     """

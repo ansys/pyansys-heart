@@ -93,14 +93,14 @@ def download_case(
     Examples
     --------
     Download case 1 from the public repository (Strocchi2020) of pathological hearts.
-        >>> path_to_case = download_case(
-                database="Strocchi2020", case_number=1, download_folder="my/download/folder"
-            )
+    >>> path_to_case = download_case(
+            database="Strocchi2020", case_number=1, download_folder="my/download/folder"
+        )
 
     Download case 1 from the public repository (Rodero2021) of 'healthy' hearts.
-        >>> path_to_case = download_case(
-            database="Rodero2021", case_number=1, download_folder="my/download/folder"
-            )
+    >>> path_to_case = download_case(
+        database="Rodero2021", case_number=1, download_folder="my/download/folder"
+        )
     """
 
     if database == "Cristobal2021":

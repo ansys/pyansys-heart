@@ -27,6 +27,8 @@ import numpy as np
 
 
 def read_orth_element_kfile(fn):
+    """Read *ELEMENT_SOLID_ORTHO keywords from file."""
+
     def get_number_of_elements(file):
         lines = open(file).readlines()
         n = 0
@@ -77,6 +79,7 @@ def read_orth_element_kfile(fn):
 
 
 def write_orth_element_kfile(fname, elem_orth):
+    """Write *ELEMENT_SOLID_ORTHO keywords to file."""
     with open(fname, "w") as f:
         f.write("*KEYWORDS\n")
         f.write("*ELEMENT_SOLID_ORTHO\n")
@@ -93,10 +96,7 @@ def write_orth_element_kfile(fname, elem_orth):
 def modify_ids_orth_elements():
     """
     Part ID is different from FiberGeneration module to simulation modules
-    This script is to change them
-    Returns
-    -------
-
+    This script is to change them to be consistent.
     """
     elem_ids, part_ids, connect, fib, sheet = read_orth_element_kfile("solid_elements.k")
     # Septum is a part of LV

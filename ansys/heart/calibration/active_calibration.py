@@ -64,10 +64,9 @@ class ActiveCalibration:
 
         Notes
         -----
-            Fiber information must be saved in model_path.
+        Fiber information must be saved in model_path.
 
-            See :func:`heart.simulator.simulator.BaseSimulator.compute_fibers`
-
+        See :func:`heart.simulator.simulator.BaseSimulator.compute_fibers`
         """
         self.work_directory = work_directory
         self.model = HeartModel.load_model(model_path)
@@ -98,14 +97,20 @@ class ActiveCalibration:
 
         Parameters
         ----------
-        settings
-        work_directory
-        lsdyna_path
-        ncpu
-        dynatype
-        model_path
-        python_exe
-
+        settings : str
+            settings file
+        work_directory : str
+            work directory
+        lsdyna_path : str
+            path to lsdyna
+        ncpu : int
+            number of cpu
+        dynatype : str
+            dynatype
+        model_path : str
+            model path
+        python_exe : str
+            python executable path
         """
         os.makedirs(work_directory)
         # LSOPT project file
@@ -146,13 +151,16 @@ class ActiveCalibration:
 
     def run_one_step_calibration(self, lsdyna_path, ncpu, dynatype):
         """
-        Run zerop pressure simulation.
+        Run zero pressure simulation.
 
         Parameters
         ----------
-        lsdyna_path
-        ncpu
-        dynatype
+        lsdyna_path : str
+            path to lsdyna
+        ncpu : int
+            number of cpu
+        dynatype : str
+            dynatype
 
         """
         simulator = IVCSimulator(

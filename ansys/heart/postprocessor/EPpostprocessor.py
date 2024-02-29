@@ -238,6 +238,7 @@ class EPpostprocessor:
         return ECGs, times
 
     def _assign_pointdata(self, pointdata: np.ndarray, node_ids: np.ndarray):
+        """Assign point data to mesh."""
         result = np.zeros(self.mesh.n_points)
         result[node_ids - 1] = pointdata
         self.mesh.point_data["activation_time"] = result

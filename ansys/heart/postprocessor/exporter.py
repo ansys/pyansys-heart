@@ -49,7 +49,7 @@ class LVContourExporter:
 
     def __init__(self, d3plot_file: str, model: HeartModel):
         """
-        Init.
+        Init LVContourExporter.
 
         Parameters
         ----------

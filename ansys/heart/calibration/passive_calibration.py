@@ -90,13 +90,20 @@ class PassiveCalibration:
 
         Parameters
         ----------
-        settings
-        work_directory
-        lsdyna_path
-        ncpu
-        dynatype
-        model_path
-        python_exe
+        settings : str
+            settings file
+        work_directory : str
+            work directory
+        lsdyna_path : str
+            path to lsdyna
+        ncpu : int
+            number of cpu
+        dynatype : str
+            dynatype
+        model_path : str
+            model path
+        python_exe : str
+            python executable path
 
         """
         os.makedirs(work_directory)

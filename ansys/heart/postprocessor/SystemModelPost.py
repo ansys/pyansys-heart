@@ -67,7 +67,9 @@ class SystemState:
     """
     System state including pressure, flow, volume.
 
-    Notes: future use.
+    Notes
+    -----
+    future development
     """
 
     pressure: Pressure
@@ -80,11 +82,11 @@ class ZeroDSystem:
 
     def __init__(self, csv_path, ed_state, name=""):
         """
-        Init.
+        Initialize ZeroDSystem.
 
         Notes
         -----
-            # from "ms, MPa, mm^3" to "s, kPa, mL"
+        # from "ms, MPa, mm^3" to "s, kPa, mL"
 
         Parameters
         ----------
@@ -123,11 +125,10 @@ class ZeroDSystem:
         """
         Integrate cavity's volume.
 
-        Note
-        ----
-            Cavity's volume is not evaluated/saved in csv file.
-
-            Use implicit with gamma=0.6
+        Notes
+        -----
+        Cavity's volume is not evaluated/saved in csv file.
+        Use implicit with gamma=0.6
 
         Parameters
         ----------
@@ -153,14 +154,14 @@ class SystemModelPost:
     """
     Class for post-processing system model.
 
-    Note
-    ----
+    Notes
+    -----
     unit: ms, kPa, mL
     """
 
     def __init__(self, dir):
         """
-        Init.
+        Initialize SystemModelPost.
 
         Parameters
         ----------
@@ -382,11 +383,9 @@ class SystemModelPost:
 
         Notes
         -----
-          Only for debug
-
-          Require qd to read binout
-
-          It's normal that the cavity volume is slight different.
+        Only for debug
+        Require qd to read binout
+        It's normal that the cavity volume is slight different.
         """
         from ansys.heart.postprocessor.deprecated_binout_helper import IcvOut
 

@@ -10,7 +10,7 @@ $#co_or_a1        a2        a3        v1        v2        v3
 $#   secid    elform      shrf       nip     propt   qr_irid     icomp     setyp
          2         4    0.8333         3       1.0         0         0         1
 $#      t1        t2        t3        t4      nloc     marea      idof    edgset
-       1.0       0.0       0.0       0.0       0.0       0.0       0.0         0
+       1.0       0.0       0.0       0.0       0.0       0.0       0.0         0
 *PART
 $#                                                             heading
 mitral-valve                                                          

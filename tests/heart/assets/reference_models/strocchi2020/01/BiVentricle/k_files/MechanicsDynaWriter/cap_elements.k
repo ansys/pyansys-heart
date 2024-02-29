@@ -6,7 +6,7 @@ $#     mid        ro        pc        mu     terod     cerod        ym        pr
 $#   secid    elform      shrf       nip     propt   qr_irid     icomp     setyp
          2         4    0.8333         3       1.0         0         0         1
 $#      t1        t2        t3        t4      nloc     marea      idof    edgset
-       1.0       0.0       0.0       0.0       0.0       0.0       0.0         0
+       1.0       0.0       0.0       0.0       0.0       0.0       0.0         0
 *CONSTRAINED_LINEAR_GLOBAL
 $#    licd
          1

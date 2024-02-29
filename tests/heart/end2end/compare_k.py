@@ -13,9 +13,6 @@ import pathlib
 
 
 def normalize_line_endings(text: str) -> str:
-    # ignore empty line
-    text.replace("\n\n", "\n")
-
     return text.replace("\r\n", "\n").replace("\r", "\n")
 
 

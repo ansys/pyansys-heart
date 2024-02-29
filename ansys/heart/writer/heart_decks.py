@@ -28,8 +28,8 @@ from ansys.dyna.keywords import Deck
 class BaseDecks:
     """Class where each attribute corresponds to its respective deck.
 
-    Note
-    ----
+    Notes
+    -----
     Used to distinguish between each of the decks.
     This base class defines some commonly used decks.
     """

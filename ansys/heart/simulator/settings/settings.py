@@ -84,8 +84,8 @@ class Settings:
     def to_consistent_unit_system(self):
         """Convert units to consistent unit system.
 
-        Note
-        ----
+        Notes
+        -----
         Currently the only supported unit system is ["MPa", "mm", "N", "ms", "g"]
         For instance:
         Quantity(10, "mm/s") --> Quantity(0.01, "mm/ms")
@@ -330,8 +330,8 @@ class SimulationSettings:
             Flag indicating whether to add settings for the stress free
             configuration computation, by default True
 
-        Example
-        -------
+        Examples
+        --------
         Instantiate settings and load defaults
 
         >>> from ansys.heart.simulator.settings.settings import SimulationSettings
@@ -395,8 +395,8 @@ class SimulationSettings:
         remove_units : bool, optional
             Flag indicating whether to remove units before writing, by default False
 
-        Example
-        -------
+        Examples
+        --------
         Create examples settings with default values.
 
         >>> from ansys.heart.simulator.settings.settings import SimulationSettings
@@ -438,8 +438,8 @@ class SimulationSettings:
         filename : pathlib.Path
             Path to yaml or json file.
 
-        Example
-        -------
+        Examples
+        --------
         Create examples settings with default values.
 
         >>> from ansys.heart.simulator.settings.settings import SimulationSettings
@@ -497,8 +497,8 @@ class SimulationSettings:
     def load_defaults(self):
         """Load the default simulation settings.
 
-        Example
-        -------
+        Examples
+        --------
         Create examples settings with default values.
 
         Load module
@@ -560,8 +560,8 @@ class SimulationSettings:
     def to_consistent_unit_system(self):
         """Convert all settings to consistent unit-system ["MPa", "mm", "N", "ms", "g"].
 
-        Example
-        -------
+        Examples
+        --------
         Convert to the consistent unit system ["MPa", "mm", "N", "ms", "g"].
 
         Import necessary modules

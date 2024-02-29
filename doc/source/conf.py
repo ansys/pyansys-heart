@@ -43,8 +43,6 @@ html_theme_options = {
 
 # Sphinx extensions
 extensions = [
-    "sphinx.ext.autodoc",
-    "sphinx.ext.autosummary",
     "sphinx.ext.autosectionlabel",
     "numpydoc",
     "sphinx.ext.intersphinx",
@@ -60,10 +58,6 @@ sphinx_gallery_conf = {
     "examples_dirs": "../../examples",  # path to your example scripts
     "gallery_dirs": "examples",  # path where the gallery generated outputs are to be saved
 }
-
-autodoc_mock_imports = ["dynalib", "ansys.dyna"]
-
-autodoc_member_order = "bysource"
 
 # Intersphinx mapping
 intersphinx_mapping = {
@@ -114,9 +108,6 @@ source_suffix = ".rst"
 
 # The master toctree document.
 master_doc = "index"
-
-# Generate section labels up to four levels deep
-autosectionlabel_maxdepth = 4
 
 ## Configuration for Sphinx autoapi ##
 # ---------------------------------- #

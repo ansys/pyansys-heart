@@ -1,4 +1,4 @@
-PyAnsys heart
+PyAnsys Heart
 =============
 |pyansys| |python| |GH-CI| |MIT| |black| |pre-commit|
 
@@ -52,29 +52,29 @@ installation run ``python --version`` and check that it fits with the supported 
 Software
 ^^^^^^^^
 
-  .. list-table:: Required Ansys products
-    :widths: 200 300 200 400
-    :header-rows: 1
+.. list-table:: Required Ansys products
+  :widths: 200 300 200 400
+  :header-rows: 1
 
-    * - Product
-      - Versions
-      - Scope
-      - Link to download
+  * - Product
+    - Versions
+    - Scope
+    - Link to download
 
-    * - Ansys Fluent
-      - R22 R2
-      - Pre-processor
-      - `Ansys Customer Portal`_
+  * - Ansys Fluent
+    - R22 R2
+    - Pre-processor
+    - `Ansys Customer Portal`_
 
-    * - Ansys DPF Server
-      - R24 R1-pre0
-      - Post-processor
-      - `DPF-Server`_
+  * - Ansys DPF Server
+    - R24 R1-pre0
+    - Post-processor
+    - `DPF-Server`_
 
-    * - Ansys LSDYNA
-      - DEV-105630 or greater
-      - Simulator
-      - Contact us for latest working version
+  * - Ansys LSDYNA
+    - DEV-105630 or greater
+    - Simulator
+    - Contact us for latest working version
 
 .. note::
 

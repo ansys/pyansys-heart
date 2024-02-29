@@ -22,8 +22,8 @@
 
 """Module contain. classes for writing LS-DYNA keywords based.
 
-Note
-----
+Notes
+-----
 Uses a HeartModel (from ansys.heart.preprocessor.models).
 
 """
@@ -122,7 +122,7 @@ class BaseDynaWriter:
 
         Example
         -------
-        <Example to be added>
+        TODO: add example
         """
         self.model = model
         """Model information necessary for creating the LS-DYNA .k files."""
@@ -320,8 +320,9 @@ class BaseDynaWriter:
             Remove nodes if they are used in other nodeset, by default True
         remove_one_node_from_cell : bool, optional
             Remove a node if a cell has all nodes in nodeset, by default False
-        Note
-        ----
+
+        Notes
+        -----
             In FiberGenerationWriter, we do not allow all nodes of same element in one nodeset.
         """
         # formats endo, epi- and septum nodeset keywords, do for all surfaces
@@ -650,8 +651,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
     def system_model_name(self):
         """System model name.
 
-        Note
-        ----
+        Notes
+        -----
         Valid options include:
         ["ConstantPreloadWindkesselAfterload",
         "ClosedLoop].
@@ -1277,8 +1278,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
     ):
         """Add springs to the cap nodes.
 
-        Note
-        ----
+        Notes
+        -----
         Appends these to the boundary condition database.
         """
         # -------------------------------------------------------------------
@@ -1522,8 +1523,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
     def _update_cap_elements_db(self, add_mesh=True):
         """Update the database of shell elements.
 
-        Note
-        ----
+        Notes
+        -----
         Loops over all the defined caps/valves.
         """
         # create part for each closing cap
@@ -1924,8 +1925,8 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
     """
     Class for preparing the input for a stress-free LS-DYNA simulation.
 
-    Note
-    ----
+    Notes
+    -----
     Derived from MechanicsDynaWriter and consequently derives all keywords relevant
     for simulations involving mechanics. This class does not write the
     control volume keywords but adds the keyword for computing the stress

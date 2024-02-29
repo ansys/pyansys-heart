@@ -165,8 +165,8 @@ def sort_edgeloop_anti_clockwise(points_to_sort: np.ndarray, reference_point: np
 def rodrigues_rot(P, n0, n1):
     """Rodrigues rotation.
 
-    Note
-    ----
+    Notes
+    -----
     - Rotate given points based on a starting and ending vector
     - Axis k and angle of rotation theta given by vectors n0,n1
     P_rot = P*cos(theta) + (k x P)*sin(theta) + k*<k,P>*(1-cos(theta))
@@ -234,8 +234,8 @@ def sort_aniclkwise(xy_list, x0=None, y0=None):
 def project_3d_points(p_set):
     """Project points on representative plane.
 
-    Note
-    ----
+    Notes
+    -----
     Uses SVD to find representative plane:
     https://meshlogic.github.io/posts/jupyter/curve-fitting/fitting-a-circle-to-cluster-of-3d-points/
     """

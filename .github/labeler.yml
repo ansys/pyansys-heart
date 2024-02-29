@@ -3,9 +3,10 @@ documentation:
   - any-glob-to-any-file: 'docs/source/**/*'
 maintenance:
 - changed-files:
-  - any-glob-to-any-file: '.github/**/*'
-  - any-glob-to-any-file: '.flake8'
-  - any-glob-to-any-file: 'pyproject.toml'
+  - any-glob-to-any-file: ['.github/**/*', '.flake8/', 'pyproject.toml']
 testing:
 - changed-files:
   - any-glob-to-any-file:  'tests/*'
+dependencies:
+- changed-files:
+  - any-glob-to-any-file: 'pyproject.toml'

@@ -23,8 +23,8 @@
 """
 Use dynalib to create some commonly used material cards and their default values.
 
-Note
-----
+Notes
+-----
 E.g.:
 Mat295
 Mat077

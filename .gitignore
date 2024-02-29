@@ -87,8 +87,6 @@ instance/
 doc/_build/
 # examples gallery is auto-generated: ignore these
 doc/source/examples
-doc/source/api/_autosummary*
-doc/source/api/preprocessor/_autosummary*
 doc/source/api/*
 
 # PyBuilder

@@ -50,8 +50,8 @@ class FluentCellZone:
     def get_cells(self, all_cells: np.ndarray) -> None:
         """Select the cells between min and max id.
 
-        Note
-        ----
+        Notes
+        -----
         Requires list of all cells.
 
         """
@@ -485,8 +485,8 @@ class FluentMesh:
 def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii") -> None:
     """Add name of solid to stl file.
 
-    Note
-    ----
+    Notes
+    -----
     Supports only single block.
 
     """

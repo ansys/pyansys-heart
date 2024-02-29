@@ -45,7 +45,7 @@ class AhaStrainCalculator:
 
     def __init__(self, model: HeartModel, d3plot_file):
         """
-        Init.
+        Initialize AHA strain calculator.
 
         Parameters
         ----------

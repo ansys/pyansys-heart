@@ -349,8 +349,8 @@ def vtk_map_discrete_cell_data(
     """
     Map discrete values from a source to a target.
 
-    Note
-    ----
+    Notes
+    -----
     Uses linear interpolation with
     1 closest point. Note that this computes the centroids of the cells first, creates
     a new vtk poly data object as point cloud and uses that for interpolating the target
@@ -417,11 +417,6 @@ def vtk_map_continuous_data(
 ) -> Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]:
     """Map cell and point data from source to target.
 
-    Note
-    ----
-    Makes use of VoronoiKernel and mapping cell to point data
-    consequently point data is mapped back to the cell.
-
     Parameters
     ----------
     input : Union[vtk.PolyData, vtk.UnstructuredGrid]
@@ -434,8 +429,11 @@ def vtk_map_continuous_data(
 
     Notes
     -----
-        Modifies the underlying data of the target vtk object and overwrites if
-        a data field with the same name is already present.
+    Makes use of VoronoiKernel and mapping cell to point data
+    consequently point data is mapped back to the cell.
+
+    Modifies the underlying data of the target vtk object and overwrites if
+    a data field with the same name is already present.
     """
     # NOTE: could use AddExcludeArray to exclude specific arrays from the interpolation
 
@@ -691,6 +689,7 @@ def create_vtk_polydata_from_points(points: np.ndarray) -> vtk.vtkPolyData:
     -------
     vtk.vtkPolyData
         vtkPolyData object
+
     Notes
     -----
     To visualize in ParaView render the points as Gaussian Points
@@ -771,8 +770,8 @@ def compute_surface_nodal_area_pyvista(surface: pyvista.PolyData) -> np.ndarray:
     np.array
         Numpy array with nodal areas of length number of points
 
-    Note
-    ----
+    Notes
+    -----
     Adds the partial areas of connected elements/cells to each node.
 
     """

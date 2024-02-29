@@ -10,8 +10,8 @@ PyAnsys heart
    :target: https://www.python.org/downloads/release/python-390/
    :alt: Python
 
-.. |GH-CI| image:: https://github.com/ansys/pyansys-geometry/actions/workflows/ci_cd.yml/badge.svg
-   :target: https://github.com/ansys/pyansys-geometry/actions/workflows/ci_cd.yml
+.. |GH-CI| image:: https://github.com/ansys/pyansys-heart/actions/workflows/ci_cd.yml/badge.svg
+   :target: https://github.com/ansys/pyansys-heart/actions/workflows/ci_cd.yml
    :alt: GH-CI
 
 .. |MIT| image:: https://img.shields.io/badge/license-MIT-yellow
@@ -22,8 +22,8 @@ PyAnsys heart
    :target: https://github.com/psf/black
    :alt: Black
 
-.. |pre-commit| image:: https://results.pre-commit.ci/badge/github/ansys/pyansys-geometry/main.svg
-   :target: https://results.pre-commit.ci/latest/github/ansys/pyansys-geometry/main
+.. |pre-commit| image:: https://results.pre-commit.ci/badge/github/ansys/pyansys-heart/main.svg
+   :target: https://results.pre-commit.ci/latest/github/ansys/pyansys-heart/main
    :alt: pre-commit.ci
 
 PyAnsys Heart is a `Python`_ framework for heart modeling using Ansys tools.
@@ -46,7 +46,8 @@ Operating system
 Ansys tools
 ^^^^^^^^^^^
 
-This framework was developed and tested under Python 3.9 version. Before starting the installation run ``python --version`` and check that it fits with the supported versions.
+This framework was developed and tested under Python 3.9 version. Before starting the
+installation run ``python --version`` and check that it fits with the supported versions.
 
 Software
 ^^^^^^^^
@@ -100,7 +101,7 @@ In user mode
 In editable mode
 ^^^^^^^^^^^^^^^^
 
-Installing PyAnsys-Heart in developer mode allows
+Installing PyAnsys Heart in developer mode allows
 you to modify the source and enhance it.
 
 Before contributing to the project, please refer to the `PyAnsys Developer's guide`_. You will
@@ -113,10 +114,11 @@ need to follow these steps:
         git clone https://github.com/ansys/pyansys-heart
 
    Since this is a private repository you may need to provide your github username.
-   Alternatively you can download and unpack the zip file from `PyAnsys-Heart`_
+   Alternatively you can download and unpack the zip file from `PyAnsys Heart`_
 
-2. Create a fresh-clean Python environment and activate it. Make sure you use one of the supported Python versions. Refer to the
-   official `venv`_  or `conda`_ documentation if you require further information:
+2. Create a fresh-clean Python environment and activate it. Make sure you use one of
+   the supported Python versions. Refer to the official `venv`_  or `conda`_ documentation
+   if you require further information:
 
    Through `venv`_:
 
@@ -226,7 +228,7 @@ License
 -------
 
 PyAnsys Heart is licensed under the MIT license. Please refer to the `LICENSE` file for more information.
-PyAnsys-Heart makes no commercial claim over any Ansys products whatsoever.
+PyAnsys Heart makes no commercial claim over any Ansys products whatsoever.
 This library extends the functionality of the listed Ansys products by adding a Python interface
 without changing the core behavior or licensing of the original products. This library requires
 legally licensed copies of the involved Ansys products.
@@ -234,7 +236,7 @@ legally licensed copies of the involved Ansys products.
 
 .. LINKS AND REFERENCES
 .. _Python: https://www.python.org/
-.. _PyAnsys-Heart: https://github.com/ansys/pyansys-heart
+.. _PyAnsys Heart: https://github.com/ansys/pyansys-heart
 .. _Ansys Customer Portal: https://support.ansys.com/Home/HomePage
 .. _dpf-server: https://download.ansys.com/Others/DPF%20Pre-Release
 .. _black: https://github.com/psf/black

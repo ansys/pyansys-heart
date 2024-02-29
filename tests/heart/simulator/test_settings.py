@@ -27,7 +27,7 @@ REF_STRING_SETTINGS_YML_MECHANICS = (
     "      global_damping: 0.33 / second\n"
     "    material:\n"
     "      myocardium: null\n"
-    "      atrium: null\n"
+    "      passive: null\n"
     "      cap: null\n"
     "    boundary_conditions:\n"
     "      robin: null\n"

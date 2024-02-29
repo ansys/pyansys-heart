@@ -1,4 +1,5 @@
 """Module for active stress curve."""
+
 import logging
 
 LOGGER = logging.getLogger("pyheart_global.material")
@@ -46,7 +47,7 @@ def Strocchi_active(t_end=800, t_act=0) -> tuple[np.ndarray, np.ndarray]:
     return _stress()
 
 
-def sofa_active(t_end=1000) -> tuple[np.ndarray, np.ndarray]:
+def Kumaraswamy_active(t_end=1000) -> tuple[np.ndarray, np.ndarray]:
     """
     Active stress in  Gaëtan Desrues doi.org/10.1007/978-3-030-78710-3_43.
 
@@ -162,27 +163,32 @@ class ActiveCurve:
         """Return x,y input for k files."""
         return self._repeat((self.time, self.ca2))
 
-    def _plot_helper(self, name):
-        plt.legend()
-        plt.title(name)
-        plt.xlabel("time")
-        plt.ylabel(name)
-
     def plot_time_vs_ca2(self):
         """Plot Ca2+ with threshold."""
-        plt.plot(self.time, self.ca2, label="Ca2+")
-        plt.hlines(
-            self.threshold, xmin=self.time[0], xmax=self.time[-1], label="threshold", colors="red"
-        )
-        self._plot_helper("Ca2")
-        plt.show()
+        fig, ax = plt.subplots(figsize=(8, 4))
+        t, v = self._repeat((self.time, self.ca2))
+        ax.plot(t, v, label="Ca2+")
+        ax.hlines(self.threshold, xmin=t[0], xmax=t[-1], label="threshold", colors="red")
+        ax.set_xlabel("time (ms)")
+        ax.set_ylabel("Ca2+")
+        # ax.set_title('Ca2+')
+        ax.legend()
+        return fig
 
-    def _plot_time_vs_stress(self):
+    def plot_time_vs_stress(self):
+        """Plot stress."""
         if self.stress is None:
-            self._estimate_stress()
-        plt.plot(self.time, self.stress)
-        self._plot_helper("stress")
-        plt.show()
+            LOGGER.error("Only support stress curve.")
+            # self._estimate_stress() # TODO
+            return None
+        t, v = self._repeat((self.time, self.stress))
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax.plot(t, v)
+        ax.set_xlabel("time (ms)")
+        ax.set_ylabel("Normalized active stress")
+        # ax.set_title('Ca2+')
+        # ax.legend()
+        return fig
 
     def _stress_to_ca2(self, stress):
         if np.min(stress) < 0 or np.max(stress) > 1.0:
@@ -238,4 +244,4 @@ if __name__ == "__main__":
     a = ActiveCurve(constant_ca2(), threshold=0.1, type="ca2")
     # a = Ca2Curve(unit_constant_ca2(), type="ca2")
     a.plot_time_vs_ca2()
-    a._plot_time_vs_stress()
+    a.plot_time_vs_stress()

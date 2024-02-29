@@ -28,7 +28,7 @@ docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", 
 
 ###############################################################################
 # .. note::
-#    Unit system of LS-DYNA is ["MPa", "mm", "N", "ms", "g"]
+#    Unit system of used in LS-DYNA is ["MPa", "mm", "N", "ms", "g"]
 
 
 ###############################################################################
@@ -153,6 +153,10 @@ heartmodel: models.FullHeart = models.HeartModel.load_model(
 # Print default material and you should see
 # Material is empty.
 print(heartmodel.left_ventricle.meca_material)
+
+###############################################################################
+# .. note::
+#    If no material is set before writing k files, default material from ```settings``` will be set.
 
 # Assign the material we juste created
 heartmodel.left_ventricle.meca_material = active_mat

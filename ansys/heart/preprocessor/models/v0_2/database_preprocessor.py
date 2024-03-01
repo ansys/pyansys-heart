@@ -181,11 +181,12 @@ def get_input_geom_and_part_defintions_from_public_database(
             "enclosed_by_boundaries": enclosed_by_boundaries,
         }
 
-    # truncate part definitions to just left, right ventricle/atrium and arteries.
+    # remove plane and inlet parts from the part definitions.
     part_definitions1 = {
         k: v
         for k, v in part_definitions.items()
-        if "myocardium" in k or "aorta" in k or "ventricle" in k or "pulmonary-artery" in k
+        # if "myocardium" in k or "aorta" in k or "ventricle" in k or "pulmonary-artery" in k
+        if not any(x in k for x in ["plane", "inlet"])
     }
 
     # rename:
@@ -195,6 +196,24 @@ def get_input_geom_and_part_defintions_from_public_database(
     part_definitions1["Right atrium"] = part_definitions1.pop("right-atrium-myocardium")
     part_definitions1["Aorta"] = part_definitions1.pop("aorta-wall")
     part_definitions1["Pulmonary artery"] = part_definitions1.pop("pulmonary-artery-wall")
+
+    # merge border/vein parts into atria
+    part_merge_map = {
+        "Left atrium": [
+            "left-atrial-appendage-border",
+            "left-superior-pulmonary-vein-border",
+            "left-inferior-pulmonary-vein-border",
+            "right-inferior-pulmonary-vein-border",
+            "right-superior-pulmonary-vein-border",
+        ],
+        "Right atrium": ["superior-vena-cava-border", "inferior-vena-cava-border"],
+    }
+    for target_part, source_parts in part_merge_map.items():
+        for source_part in source_parts:
+            part_definitions1[target_part]["enclosed_by_boundaries"].update(
+                part_definitions1[source_part]["enclosed_by_boundaries"]
+            )
+            del part_definitions1[source_part]
 
     # rename septum
     part_definitions1["Left ventricle"]["enclosed_by_boundaries"][
@@ -208,15 +227,6 @@ def get_input_geom_and_part_defintions_from_public_database(
         ]
     except KeyError:
         pass
-
-    # add veins and pulmonary veins to left and right atrium
-    for key, value in database_labels.items():
-        if "pulmonary vein border" in key or "appendage border" in key:
-            part_definitions1["Left atrium"]["enclosed_by_boundaries"][key] = value
-
-    for key, value in database_labels.items():
-        if "vena cava border" in key:
-            part_definitions1["Right atrium"]["enclosed_by_boundaries"][key] = value
 
     if model_type == "BiVentricle":
         del part_definitions1["Left atrium"]

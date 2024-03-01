@@ -262,7 +262,7 @@ def mesh_from_manifold_input_model(
                     "SelectedPoints"
                 ]
             ):
-                cz.id = input_part.id    
+                cz.id = input_part.id
 
     return mesh
 

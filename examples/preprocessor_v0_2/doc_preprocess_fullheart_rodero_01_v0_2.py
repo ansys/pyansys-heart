@@ -25,9 +25,7 @@ os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
 import json
 from pathlib import Path
 
-from ansys.heart.preprocessor.models.v0_2.database_preprocessor import (
-    get_input_geom_and_part_defintions_from_public_database,
-)
+from ansys.heart.preprocessor.models.v0_2.database_preprocessor import get_compatible_input
 import ansys.heart.preprocessor.models.v0_2.models as models
 
 # specify necessary paths.
@@ -60,7 +58,7 @@ if os.path.isfile(path_to_input):
 
 else:
     # otherwise get the input geometry and part definitions
-    input_geom, part_definitions = get_input_geom_and_part_defintions_from_public_database(
+    input_geom, part_definitions = get_compatible_input(
         file_path, model_type="FullHeart", database="Rodero2021"
     )
     # save for future use.

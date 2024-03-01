@@ -400,7 +400,7 @@ def _smooth_boundary_edges(
 
 
 def get_compatible_input(
-    mesh_path: str, model_type: str = "BiVentricle", database: str = "Rodero2021"
+    mesh_path: str, model_type: str = "FullHeart", database: str = "Rodero2021"
 ) -> Tuple[pv.PolyData, dict]:
     """Extract a preprocessor compatible input surface.
 
@@ -409,7 +409,7 @@ def get_compatible_input(
     mesh_path : str
         Path to the input mesh (UnstructuredGrid or MultiBlock)
     model_type : str, optional
-        Type of model to extract, by default "BiVentricle"
+        Type of model to extract, by default "FullHeart"
     database : str, optional
         Database name, by default "Rodero2021"
 

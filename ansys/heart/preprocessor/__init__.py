@@ -61,5 +61,3 @@ else:
         % supported_versions,
         Warning,
     )
-
-import os

@@ -263,6 +263,7 @@ def mesh_from_manifold_input_model(
 
     mesh = FluentMesh()
     mesh.load_mesh(path_to_output)
+    mesh._fix_negative_cells()
 
     # use part definitions to find which cell zone belongs to which part.
     for input_part in model.parts:
@@ -511,6 +512,7 @@ def mesh_from_non_manifold_input_model(
     # Update the cell zones such that for each part we have a separate cell zone.
     mesh = FluentMesh()
     mesh.load_mesh(path_to_output)
+    mesh._fix_negative_cells()
 
     num_cells = mesh.cell_zones[0].cells.shape[0]
 

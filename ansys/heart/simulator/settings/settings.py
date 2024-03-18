@@ -574,7 +574,7 @@ class SimulationSettings:
                 attr.to_consistent_unit_system()
         return
 
-    def get_meca_material(self) -> tuple[MAT295, NeoHookean]:
+    def get_mechanical_material(self) -> tuple[MAT295, NeoHookean]:
         """Load material data from settings.
 
         Returns

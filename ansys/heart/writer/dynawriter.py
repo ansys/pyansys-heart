@@ -161,7 +161,7 @@ class BaseDynaWriter:
         self._check_settings()
 
         # assign material for part if it's empty
-        myocardium, neohookean = self.settings.get_meca_material()
+        myocardium, neohookean = self.settings.get_mechanical_material()
         for part in self.model.parts:
             if isinstance(part.meca_material, MechanicalMaterialModel.DummyMaterial):
                 LOGGER.info(f"Material of {part.name} will be assigned automatically.")

@@ -10,7 +10,7 @@ import pathlib
 from typing import List, Optional, Tuple, Union
 
 LOGGER = logging.getLogger("pyheart_global.preprocessor")
-from ansys.heart.preprocessor.material.material import MechaMaterialModel
+from ansys.heart.preprocessor.material.material import MechanicalMaterialModel
 import ansys.heart.preprocessor.mesh.connectivity as connect
 import ansys.heart.preprocessor.mesh.geodisc as geodisc
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
@@ -904,7 +904,7 @@ class Part:
         self.is_active: bool = False
         """If active stress will be established."""
 
-        self.meca_material: MechaMaterialModel = MechaMaterialModel.DummyMaterial()
+        self.meca_material: MechanicalMaterialModel = MechanicalMaterialModel.DummyMaterial()
         """Material model will be assiggned in Simulator."""
 
         """Cavity belonging to the part."""

@@ -21,7 +21,7 @@ LOGGER = logging.getLogger("pyheart_global.writer")
 # from importlib.resources import files
 from importlib.resources import path as resource_path
 
-from ansys.heart.preprocessor.material.material import MAT295, MechaMaterialModel, NeoHookean
+from ansys.heart.preprocessor.material.material import MAT295, MechanicalMaterialModel, NeoHookean
 from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 
@@ -163,7 +163,7 @@ class BaseDynaWriter:
         # assign material for part if it's empty
         myocardium, neohookean = self.settings.get_meca_material()
         for part in self.model.parts:
-            if isinstance(part.meca_material, MechaMaterialModel.DummyMaterial):
+            if isinstance(part.meca_material, MechanicalMaterialModel.DummyMaterial):
                 LOGGER.info(f"Material of {part.name} will be assigned automatically.")
                 if part.has_fiber:
                     if part.is_active:

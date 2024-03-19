@@ -325,9 +325,7 @@ class HeartModel:
 
         return beam_net
 
-    def create_part_by_ids(
-        self, eids: List[int], name: str, type="myocardium"
-    ) -> Union[None, Part]:
+    def create_part_by_ids(self, eids: List[int], name: str) -> Union[None, Part]:
         """Create a new part by element ids.
 
         Parameters
@@ -336,8 +334,6 @@ class HeartModel:
             element id list
         name : str
             part name
-        type : str, optional
-            part type, by default "myocardium"
 
         Returns
         -------
@@ -357,7 +353,7 @@ class HeartModel:
 
         self.add_part(name)
         new_part = self.get_part(name)
-        new_part.part_type = type
+        new_part.part_type = "myocardium"
         new_part.element_ids = eids
 
         return new_part

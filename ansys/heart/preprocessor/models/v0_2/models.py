@@ -236,6 +236,39 @@ class HeartModel:
 
         return
 
+    def create_part_by_ids(self, eids: List[int], name: str) -> Union[None, Part]:
+        """Create a new part by element ids.
+
+        Parameters
+        ----------
+        eids : List[int]
+            element id list
+        name : str
+            part name
+
+        Returns
+        -------
+        Union[None, Part]
+           return the part if succeed
+        """
+        if len(eids) == 0:
+            LOGGER.error(f"Element list is empty to create {name}")
+            return None
+
+        for part in self.parts:
+            try:
+                part.element_ids = np.setdiff1d(part.element_ids, eids)
+            except:
+                LOGGER.error(f"Failed to create part {name}")
+                return None
+
+        self.add_part(name)
+        new_part = self.get_part(name)
+        new_part.part_type = "myocardium"
+        new_part.element_ids = eids
+
+        return new_part
+
     def add_purkinje_from_kfile(self, filename: pathlib.Path, name: str) -> None:
         """Read an LS-DYNA file containing purkinje beams and nodes.
 

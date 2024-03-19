@@ -11,8 +11,12 @@ This example show you how to create a mechanical material and assign it to a hea
 import os
 from pathlib import Path
 
-from ansys.heart.preprocessor.material.curve import ActiveCurve, Kumaraswamy_active, constant_ca2
-from ansys.heart.preprocessor.material.material import (
+from ansys.heart.simulator.settings.material.curve import (
+    ActiveCurve,
+    Kumaraswamy_active,
+    constant_ca2,
+)
+from ansys.heart.simulator.settings.material.material import (
     ACTIVE,
     ANISO,
     ISO,

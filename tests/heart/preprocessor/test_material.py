@@ -1,5 +1,5 @@
-from ansys.heart.preprocessor.material.curve import ActiveCurve, Strocchi_active, constant_ca2
-import ansys.heart.preprocessor.material.material as M
+from ansys.heart.simulator.settings.material.curve import ActiveCurve, Strocchi_active, constant_ca2
+import ansys.heart.simulator.settings.material.material as M
 import numpy as np
 import pytest
 

@@ -21,7 +21,7 @@ import dataclasses
 # from importlib.resources import files
 from importlib.resources import path as resource_path
 
-from ansys.heart.preprocessor.material.material import MAT295, ActiveModel
+from ansys.heart.simulator.settings.material.material import MAT295, ActiveModel
 
 # import custom keywords in separate namespace
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords

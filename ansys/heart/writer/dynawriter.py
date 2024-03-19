@@ -21,9 +21,13 @@ LOGGER = logging.getLogger("pyheart_global.writer")
 # from importlib.resources import files
 from importlib.resources import path as resource_path
 
-from ansys.heart.preprocessor.material.material import MAT295, MechanicalMaterialModel, NeoHookean
 from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
+from ansys.heart.simulator.settings.material.material import (
+    MAT295,
+    MechanicalMaterialModel,
+    NeoHookean,
+)
 
 global heart_version
 heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")

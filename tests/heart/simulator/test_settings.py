@@ -213,7 +213,7 @@ def test_get_meca_material(default_settings):
     default_settings.mechanics.material.myocardium["isotropic"]["rho"] = Quantity(8000, "kg/m^3")
     default_settings.to_consistent_unit_system()
 
-    m1, m2 = default_settings.get_meca_material()
+    m1, m2 = default_settings.get_mechanical_material()
     # test default value
     assert m1.active.actype == 1
     assert m2.c10 == pytest.approx(0.0349 / 2, 1e-9)

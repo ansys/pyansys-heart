@@ -89,13 +89,14 @@ def _organize_connected_regions(grid: pv.UnstructuredGrid, scalar: str = "part-i
             point_ids = np.array([grid1.get_cell(id).point_ids for id in orphan_cell_ids]).flatten()
 
             mask = np.isin(tets, point_ids)
-            connected_cell_id = np.argwhere(
+            connected_cell_ids = np.argwhere(
                 np.all(np.vstack([np.sum(mask, axis=1) > 1, np.sum(mask, axis=1) < 4]), axis=0)
-            )[0]
+            ).flatten()
+            unique_ids, counts = np.unique(grid.cell_data["part-id"][connected_cell_ids], return_counts=True)
+            if unique_ids.shape[0] > 1:
+                LOGGER.debug("More than 1 candidate.")
 
-            grid.cell_data["part-id"][orphan_cell_ids] = grid.cell_data["part-id"][
-                connected_cell_id
-            ]
+            grid.cell_data["part-id"][orphan_cell_ids] = unique_ids[np.argmax(counts)]
 
         # orphan_cell_ids += list(conn.cell_data["orig-cell-ids"][conn.cell_data["RegionId"] > 0])
 

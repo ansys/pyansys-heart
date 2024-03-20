@@ -21,6 +21,7 @@ from ansys.heart.preprocessor.mesh.objects import (
     Part,
     Point,
     SurfaceMesh,
+    _create_line,
 )
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.models.v0_1.model_definitions import HEART_PARTS, LABELS_TO_ID
@@ -2007,7 +2008,7 @@ class FourChamber(HeartModel):
         # ----------
         # create_new_nodes: if duplicate news from solid elements.
 
-    def compute_av_conduction(self, create_new_nodes=True) -> BeamMesh:
+    def compute_av_conduction(self, create_new_nodes=True, beam_length: float = 1.5) -> BeamMesh:
         """Compute Atrio-Ventricular conduction by means of beams following a geodesic path.
 
         Parameters
@@ -2044,13 +2045,13 @@ class FourChamber(HeartModel):
 
         path_SAN_AVN = right_atrium_endo.geodesic(SA_id, AV_id)
 
-        # duplicate nodes inside the line, connect only SA node (the first) with 3D
         beam_nodes = path_SAN_AVN.points[1:, :]
+        beam_nodes = _refine_line(beam_nodes, beam_length=beam_length)
 
-        # build connectivity table
+        # duplicate nodes inside the line, connect only SA node (the first) with 3D
         point_ids = np.linspace(0, len(beam_nodes) - 1, len(beam_nodes), dtype=int)
         point_ids = np.insert(point_ids, 0, SA_id)
-
+        # build connectivity table
         edges = np.vstack((point_ids[:-1], point_ids[1:])).T
 
         mask = np.ones(edges.shape, dtype=bool)
@@ -2060,27 +2061,14 @@ class FourChamber(HeartModel):
 
         return beam_net
 
-    def compute_His_conduction(self):
+    def compute_His_conduction(self, beam_length: float = 1.5):
         """Compute His bundle conduction."""
-        beam_number = 4
 
         start_coord, bifurcation_coord = self._define_hisbundle_start_bifurcation()
 
         # https://www.researchgate.net/publication/353154291_Morphometric_analysis_of_the_His_bundle_atrioven
         # tricular_fascicle_in_humans_and_other_animal_species_Histological_and_immunohistochemical_study
         # # (1.06 ± 0.6 mm)
-
-        # create nodes from start to end
-        new_nodes = np.array(
-            [
-                start_coord,
-                bifurcation_coord,
-            ]
-        )
-
-        step = (bifurcation_coord - start_coord) / (beam_number + 1)
-        for i in range(1, beam_number):
-            new_nodes = np.insert(new_nodes, i, start_coord + i * step, axis=0)
 
         # path start from AV point, to septum start point, then to septum end point
         av_id = None
@@ -2095,12 +2083,25 @@ class FourChamber(HeartModel):
             )
             exit()
 
+        # create nodes from start to end
+        new_nodes = np.array(
+            [
+                self.right_atrium.get_point("AV_node").xyz,
+                start_coord,
+                bifurcation_coord,
+            ]
+        )
+
+        new_nodes = _refine_line(new_nodes, beam_length=beam_length)
+        new_nodes = new_nodes[1:, :]
+
         point_ids = np.concatenate(
             (
                 np.array([av_id]),
                 +np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int),
             )
         )
+        bifurcation_id = point_ids[-1]
         # create beam
         edges = np.vstack((point_ids[:-1], point_ids[1:])).T
 
@@ -2111,9 +2112,23 @@ class FourChamber(HeartModel):
         his_end_left_id = self.left_ventricle.endocardium.node_ids[temp_id]
         his_end_left_coord = self.mesh.points[his_end_left_id, :]
 
-        new_nodes = np.vstack((new_nodes, his_end_left_coord))
-        edges = np.vstack((edges, [point_ids[-1], point_ids[-1] + 1]))
+        left_his = np.array([bifurcation_coord, his_end_left_coord])
+        left_his = _refine_line(left_his, beam_length=beam_length)
+        new_nodes = np.vstack((new_nodes, left_his[1:, :]))
 
+        left_his_point_ids = np.concatenate(
+            (
+                np.array([bifurcation_id]),
+                bifurcation_id
+                + 1
+                + np.linspace(0, len(left_his[1:, :]) - 1, len(left_his[1:, :]), dtype=int),
+            )
+        )
+
+        edges = np.vstack(
+            (edges, np.column_stack((left_his_point_ids[:-1], left_his_point_ids[1:])))
+        )
+        position_id_His_end_left = np.argwhere(edges == left_his_point_ids[-1])[0]
         # find end on right endo (must on the septum endo)
         temp_id = pv.PolyData(
             self.mesh.points[self.right_ventricle.septum.node_ids, :]
@@ -2121,9 +2136,22 @@ class FourChamber(HeartModel):
         his_end_right_id = self.right_ventricle.septum.node_ids[temp_id]
         his_end_right_coord = self.mesh.points[his_end_right_id, :]
 
-        new_nodes = np.vstack((new_nodes, his_end_right_coord))
-        edges = np.vstack((edges, [point_ids[-1], point_ids[-1] + 2]))
+        right_his = np.array([bifurcation_coord, his_end_right_coord])
+        right_his = _refine_line(right_his, beam_length=beam_length)
+        new_nodes = np.vstack((new_nodes, right_his[1:, :]))
+        right_his_point_ids = np.concatenate(
+            (
+                np.array([bifurcation_id]),
+                left_his_point_ids[-1]
+                + 1
+                + np.linspace(0, len(right_his[1:, :]) - 1, len(right_his[1:, :]), dtype=int),
+            )
+        )
 
+        edges = np.vstack(
+            (edges, np.column_stack((right_his_point_ids[:-1], right_his_point_ids[1:])))
+        )
+        position_id_His_end_right = np.argwhere(edges == right_his_point_ids[-1])[0]
         # finally
         mask = np.ones(edges.shape, dtype=bool)
         mask[0, 0] = False  # AV point at previous, not offset in creation
@@ -2149,8 +2177,13 @@ class FourChamber(HeartModel):
         # plotter.add_mesh(self.mesh.nodes[His_septum_start_id, :], opacity=0.1, color="r")
 
         # plotter.show()
-
-        return beam_net, [his_end_left_coord, his_end_right_coord]
+        return Point(
+            xyz=his_end_left_coord,
+            node_id=beam_net.edges[position_id_His_end_left[0], position_id_His_end_left[1]],
+        ), Point(
+            xyz=his_end_right_coord,
+            node_id=beam_net.edges[position_id_His_end_right[0], position_id_His_end_right[1]],
+        )
 
     def _define_hisbundle_start_bifurcation(self):
         """
@@ -2184,7 +2217,7 @@ class FourChamber(HeartModel):
 
         return His_start, His_bifurcation
 
-    def compute_left_right_bundle(self, start_coord, start_id, side: str):
+    def compute_left_right_bundle(self, start_coord, start_id, side: str, beam_length: float = 1.5):
         """Bundle brunch."""
         if side == "Left":
             ventricle = self.left_ventricle
@@ -2201,12 +2234,17 @@ class FourChamber(HeartModel):
             endo_surface.find_closest_point(self.mesh.points[ventricle.apex_points[0].node_id]),
         )
 
+        new_nodes = bundle_branch.points
+        new_nodes = _refine_line(new_nodes, beam_length=beam_length)
         # exclude first and last (apex) node which belongs to purkinje beam
-        new_nodes = bundle_branch.points[1:-1, :]
-
+        new_nodes = new_nodes[1:-1, :]
         point_ids = np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int)
         point_ids = np.insert(point_ids, 0, start_id)
-        point_ids = np.append(point_ids, ventricle.apex_points[0].node_id)
+        apex = ventricle.apex_points[0].node_id
+        for network in self.beam_network:
+            if network.name == side + "-purkinje":
+                apex = network.edges[0, 0]
+        point_ids = np.append(point_ids, apex)
 
         edges = np.vstack((point_ids[:-1], point_ids[1:])).T
 
@@ -2216,6 +2254,8 @@ class FourChamber(HeartModel):
 
         beam_net = self.add_beam_net(new_nodes, edges, mask, pid=0, name=side + " bundle branch")
         beam_net.beam_nodes_mask[0, 0] = True
+        beam_net.beam_nodes_mask[-1, -1] = True
+
         return beam_net
 
     def compute_Bachman_bundle(self):
@@ -2308,6 +2348,16 @@ class FullHeart(FourChamber):
         # super().__init__(info)
 
         pass
+
+
+def _refine_line(nodes: np.array, beam_length: float):
+    new_nodes = [nodes[0, :]]
+    for beam_id in range(len(nodes) - 1):
+        point_start = nodes[beam_id, :]
+        point_end = nodes[beam_id + 1, :]
+        points = _create_line(point_start, point_end, beam_length=beam_length)
+        new_nodes = np.vstack((new_nodes, points[1:, :]))
+    return new_nodes
 
 
 if __name__ == "__main__":

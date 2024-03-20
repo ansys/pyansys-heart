@@ -358,6 +358,20 @@ class EPSimulator(BaseSimulator):
 
         return
 
+    def simulate_conduction(self, folder_name="main-ep-onlybeams"):
+        """Launch the main simulation."""
+        directory = os.path.join(self.root_directory, folder_name)
+        self._write_main_conduction_simulation_files(folder_name)
+
+        LOGGER.info("Launching main EP simulation...")
+
+        input_file = os.path.join(directory, "main.k")
+        self._run_dyna(input_file)
+
+        LOGGER.info("done.")
+
+        return
+
     def compute_purkinje(self):
         """Compute the purkinje network."""
         directory = os.path.join(self.root_directory, "purkinjegeneration")
@@ -393,24 +407,23 @@ class EPSimulator(BaseSimulator):
     def compute_conduction_system(self):
         """Compute the conduction system."""
         if isinstance(self.model, FourChamber):
+            beam_length = self.settings.purkinje.edgelen.m
             SA_node = self.model.compute_SA_node()
             AV_node = self.model.compute_AV_node()
 
-            av_beam = self.model.compute_av_conduction()
+            av_beam = self.model.compute_av_conduction(beam_length=beam_length)
             # AV_node.xyz
             # av_beam.edges[-1,-1]
-            his_beam, his_ends_coords = self.model.compute_His_conduction()
+            point_his_left, point_his_right = self.model.compute_His_conduction(
+                beam_length=beam_length
+            )
 
             left_bundle_beam = self.model.compute_left_right_bundle(
-                his_ends_coords[0],
-                his_beam.edges[-2, 1],
-                side="Left",
+                point_his_left.xyz, point_his_left.node_id, side="Left", beam_length=beam_length
             )
 
             right_bundle_beam = self.model.compute_left_right_bundle(
-                his_ends_coords[1],
-                his_beam.edges[-1, 1],
-                side="Right",
+                point_his_right.xyz, point_his_right.node_id, side="Right", beam_length=beam_length
             )
 
     def _write_main_simulation_files(self, folder_name):
@@ -419,6 +432,17 @@ class EPSimulator(BaseSimulator):
         self.directories["main-ep"] = export_directory
 
         dyna_writer = writers.ElectrophysiologyDynaWriter(self.model, self.settings)
+        dyna_writer.update()
+        dyna_writer.export(export_directory)
+
+        return export_directory
+
+    def _write_main_conduction_simulation_files(self, folder_name):
+        """Write LS-DYNA files that are used to start the main simulation."""
+        export_directory = os.path.join(self.root_directory, folder_name)
+        self.directories["main-ep"] = export_directory
+
+        dyna_writer = writers.ElectrophysiologyBeamsDynaWriter(self.model, self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory)
 

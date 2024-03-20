@@ -3,7 +3,7 @@ from pint import Quantity
 
 """Construction parameters."""
 build = {
-    "edgelen": Quantity(0.5, "mm"),
+    "edgelen": Quantity(1.5, "mm"),
     "ngen": Quantity(200, "dimensionless"),
     "nbrinit": Quantity(3, "dimensionless"),
     "nsplit": Quantity(2, "dimensionless"),

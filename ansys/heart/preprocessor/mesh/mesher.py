@@ -128,6 +128,10 @@ def mesh_from_manifold_input_model(
     FluentMesh
         The volume mesh with cell and face zones.
     """
+    smooth_boundaries = False
+    fix_intersections = False
+    auto_improve_nodes = False
+    
     if not isinstance(model, _InputModel):
         raise ValueError(f"Expecting input to be of type {str(_InputModel)}")
 
@@ -184,15 +188,19 @@ def mesh_from_manifold_input_model(
     session.tui.objects.merge("'(*) heart")
     session.tui.objects.labels.create_label_per_zone("heart '(*)")
     session.tui.diagnostics.face_connectivity.fix_free_faces("objects '(*) merge-nodes yes 1e-3")
-    session.tui.diagnostics.face_connectivity.fix_self_intersections(
-        "objects '(heart) fix-self-intersection"
-    )
+    
+    if fix_intersections:
+        session.tui.diagnostics.face_connectivity.fix_self_intersections(
+            "objects '(heart) fix-self-intersection"
+        )
+        
     # smooth all zones
     face_zone_names = _get_face_zones_with_filter(session, "*")
 
-    for fz in face_zone_names:
-        session.tui.boundary.modify.select_zone(fz)
-        session.tui.boundary.modify.smooth()
+    if smooth_boundaries:
+        for fz in face_zone_names:
+            session.tui.boundary.modify.select_zone(fz)
+            session.tui.boundary.modify.smooth()
 
     session.tui.objects.create_intersection_loops("collectively '(*)")
     session.tui.boundary.feature.create_edge_zones("(*) fixed-angle 70 yes")
@@ -204,9 +212,10 @@ def mesh_from_manifold_input_model(
     session.tui.boundary.remesh.remesh_face_zones_conformally("'(*) '(*) 40 20 yes")
 
     # some diagnostics
-    session.tui.diagnostics.face_connectivity.fix_self_intersections(
-        "objects '(heart) fix-self-intersection"
-    )
+    if fix_intersections:
+        session.tui.diagnostics.face_connectivity.fix_self_intersections(
+            "objects '(heart) fix-self-intersection"
+        )
     session.tui.diagnostics.face_connectivity.fix_duplicate_faces("objects '(heart)")
 
     # convert to mesh object
@@ -218,7 +227,10 @@ def mesh_from_manifold_input_model(
     # start auto meshing
     session.tui.mesh.tet.controls.cell_sizing("size-field")
     session.tui.mesh.auto_mesh("heart", "yes", "pyramids", "tet", "no")
-    session.tui.mesh.modify.auto_node_move("(*)", "(*)", 0.3, 50, 120, "yes", 5)
+    
+    if auto_improve_nodes:
+        session.tui.mesh.modify.auto_node_move("(*)", "(*)", 0.3, 50, 120, "yes", 5)
+    
     session.tui.objects.delete_all_geom()
     session.tui.mesh.zone_names_clean_up()
     # session.tui.mesh.check_mesh()

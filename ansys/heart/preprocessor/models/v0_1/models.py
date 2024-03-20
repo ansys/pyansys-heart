@@ -2063,7 +2063,6 @@ class FourChamber(HeartModel):
 
     def compute_His_conduction(self, beam_length: float = 1.5):
         """Compute His bundle conduction."""
-
         start_coord, bifurcation_coord = self._define_hisbundle_start_bifurcation()
 
         # https://www.researchgate.net/publication/353154291_Morphometric_analysis_of_the_His_bundle_atrioven

@@ -92,7 +92,9 @@ def _organize_connected_regions(grid: pv.UnstructuredGrid, scalar: str = "part-i
             connected_cell_ids = np.argwhere(
                 np.all(np.vstack([np.sum(mask, axis=1) > 1, np.sum(mask, axis=1) < 4]), axis=0)
             ).flatten()
-            unique_ids, counts = np.unique(grid.cell_data["part-id"][connected_cell_ids], return_counts=True)
+            unique_ids, counts = np.unique(
+                grid.cell_data["part-id"][connected_cell_ids], return_counts=True
+            )
             if unique_ids.shape[0] > 1:
                 LOGGER.debug("More than 1 candidate.")
 
@@ -132,7 +134,7 @@ def mesh_from_manifold_input_model(
     smooth_boundaries = False
     fix_intersections = False
     auto_improve_nodes = False
-    
+
     if not isinstance(model, _InputModel):
         raise ValueError(f"Expecting input to be of type {str(_InputModel)}")
 
@@ -189,12 +191,12 @@ def mesh_from_manifold_input_model(
     session.tui.objects.merge("'(*) heart")
     session.tui.objects.labels.create_label_per_zone("heart '(*)")
     session.tui.diagnostics.face_connectivity.fix_free_faces("objects '(*) merge-nodes yes 1e-3")
-    
+
     if fix_intersections:
         session.tui.diagnostics.face_connectivity.fix_self_intersections(
             "objects '(heart) fix-self-intersection"
         )
-        
+
     # smooth all zones
     face_zone_names = _get_face_zones_with_filter(session, "*")
 
@@ -228,10 +230,10 @@ def mesh_from_manifold_input_model(
     # start auto meshing
     session.tui.mesh.tet.controls.cell_sizing("size-field")
     session.tui.mesh.auto_mesh("heart", "yes", "pyramids", "tet", "no")
-    
+
     if auto_improve_nodes:
         session.tui.mesh.modify.auto_node_move("(*)", "(*)", 0.3, 50, 120, "yes", 5)
-    
+
     session.tui.objects.delete_all_geom()
     session.tui.mesh.zone_names_clean_up()
     # session.tui.mesh.check_mesh()

@@ -370,7 +370,7 @@ class EPSimulator(BaseSimulator):
 
         return
 
-    def simulate_conduction(self, folder_name="main-ep-onlybeams"):
+    def _simulate_conduction(self, folder_name="main-ep-onlybeams"):
         """Launch the main simulation."""
         directory = os.path.join(self.root_directory, folder_name)
         self._write_main_conduction_simulation_files(folder_name)

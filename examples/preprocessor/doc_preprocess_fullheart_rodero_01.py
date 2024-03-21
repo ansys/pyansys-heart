@@ -24,10 +24,6 @@ from pathlib import Path
 from ansys.heart.misc.downloader import download_case, unpack_case
 import ansys.heart.preprocessor.models.v0_1.models as models
 
-# sphinx_gallery_start_ignore
-os.environ["USE_OLD_HEART_MODELS"] = "1"
-# sphinx_gallery_end_ignore
-
 # specify necessary paths.
 # Note that we need to cast the paths to strings to facilitate serialization.
 case_file = str(
@@ -35,7 +31,7 @@ case_file = str(
 )
 download_folder = str(Path(Path(__file__).resolve().parents[2], "downloads"))
 workdir = str(
-    Path(Path(__file__).resolve().parents[2], "downloads", "Rodero2021", "01", "FullHeart2.0")
+    Path(Path(__file__).resolve().parents[2], "downloads", "Rodero2021", "01", "FullHeart")
 )
 
 path_to_model = str(Path(workdir, "heart_model.pickle"))

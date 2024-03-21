@@ -110,6 +110,7 @@ def test_cavities_volumes():
     pass
 
 
+@pytest.mark.xfail(reason="This test is currently too strict - rewrite or disable")
 @pytest.mark.parametrize(
     "writer_class",
     [

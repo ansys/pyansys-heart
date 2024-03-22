@@ -1,5 +1,18 @@
 """Some common functions to test parts."""
-import ansys.heart.preprocessor.models.v0_1.models as models
+import os
+
+global heart_version
+
+heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
+if not heart_version:
+    heart_version = "v0.1"
+
+if heart_version == "v0.2":
+    import ansys.heart.preprocessor.models.v0_2.models as models
+
+elif heart_version == "v0.1":
+    import ansys.heart.preprocessor.models.v0_1.models as models
+
 import numpy as np
 
 

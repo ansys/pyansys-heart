@@ -28,8 +28,7 @@ from tests.heart.conftest import get_assets_folder, get_workdir
 from tests.heart.end2end.compare_k import read_file
 
 # marks all tests with the 'requires_fluent' tag after this line
-pytestmark = pytest.mark.requires_fluent
-pytestmark = pytest.mark.models_v2
+pytestmark = [pytest.mark.requires_fluent, pytest.mark.models_v2]
 
 
 # run this fixture first

@@ -102,7 +102,7 @@ jobs:
         continue-on-error: false
         run: |
           #  Run all model v0.2 tests that require fluent
-          python -m pytest -v -rxXs -m "requires_fluent and models_v2"
+          python -m pytest -v -rxXs -m "models_v2"
 
       - name: Test model generation v0.1
         continue-on-error: false

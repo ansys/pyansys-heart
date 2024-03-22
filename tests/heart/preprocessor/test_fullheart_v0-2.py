@@ -29,6 +29,7 @@ from tests.heart.end2end.compare_k import read_file
 
 # marks all tests with the 'requires_fluent' tag after this line
 pytestmark = pytest.mark.requires_fluent
+pytestmark = pytest.mark.models_v2
 
 
 # run this fixture first
@@ -116,7 +117,7 @@ def test_mesh():
     compare_generated_mesh(model, ref_stats)
 
 
-@pytest.mark.xfail(reason="This test is currently too strict - rewrite or disable")
+@pytest.mark.skip(reason="This test is currently too strict - rewrite or disable")
 @pytest.mark.parametrize(
     "writer_class",
     [

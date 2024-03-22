@@ -98,8 +98,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}
 
-      - name: Test model generation
+      - name: Test model generation v0.2
+        continue-on-error: false
+        run: |
+          #  Run all model v0.2 tests that require fluent
+          python -m pytest -v -rxXs -m "requires_fluent and models_v2"
+
+      - name: Test model generation v0.1
         continue-on-error: false
         run: |
           #  Run all tests that require fluent
-          python -m pytest -v -rxXs -m "requires_fluent and not local"
+          python -m pytest -v -rxXs -m "requires_fluent and not local and not models_v2"

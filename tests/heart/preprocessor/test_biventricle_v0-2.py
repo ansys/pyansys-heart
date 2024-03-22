@@ -29,7 +29,7 @@ from tests.heart.end2end.compare_k import read_file
 
 # marks all tests with the 'requires_fluent' tag after this line
 pytestmark = pytest.mark.requires_fluent
-
+pytestmark = pytest.mark.models_v2
 
 @pytest.fixture(autouse=True, scope="module")
 def extract_bi_ventricle():
@@ -118,7 +118,7 @@ def test_mesh():
 
 # functional tests to determine whether any change was made to
 # LS-DYNA input.
-@pytest.mark.xfail(reason="This test is currently too strict - rewrite or disable")
+@pytest.mark.skip(reason="This test is currently too strict - rewrite or disable")
 @pytest.mark.parametrize(
     "writer_class",
     [

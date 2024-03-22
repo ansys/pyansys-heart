@@ -31,6 +31,7 @@ from tests.heart.end2end.compare_k import read_file
 pytestmark = pytest.mark.requires_fluent
 pytestmark = pytest.mark.models_v2
 
+
 @pytest.fixture(autouse=True, scope="module")
 def extract_bi_ventricle():
     """Extract BiVentricular model which is similar to the reference model.

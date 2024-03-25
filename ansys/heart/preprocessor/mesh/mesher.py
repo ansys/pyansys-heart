@@ -154,7 +154,7 @@ def mesh_from_manifold_input_model(
 
     if os.path.isdir(work_dir_meshing):
         shutil.rmtree(work_dir_meshing)
-    os.mkdir(work_dir_meshing)
+    os.makedirs(work_dir_meshing)
 
     LOGGER.debug(f"Path to meshing directory: {work_dir_meshing}")
 
@@ -333,7 +333,7 @@ def mesh_from_non_manifold_input_model(
 
     if os.path.isdir(work_dir_meshing):
         shutil.rmtree(work_dir_meshing)
-    os.mkdir(work_dir_meshing)
+    os.makedirs(work_dir_meshing)
 
     path_to_output_old = path_to_output
     path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")

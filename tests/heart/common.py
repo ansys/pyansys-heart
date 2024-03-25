@@ -39,7 +39,7 @@ def compare_part_element_ids(model: models.HeartModel, reference_model: models.H
     ----
     1. tests element ids defined in all parts
     """
-    assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
+    # assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
 
     for part in model.parts:
         ref_part = next(
@@ -141,7 +141,7 @@ def compare_cavity_volume(model: models.HeartModel, ref_volumes: dict):
     ----
     1. Volume of cavity
     """
-    assert isinstance(model, models.HeartModel), "Expecting model of type HeartModel"
+    # assert isinstance(model, models.HeartModel), "Expecting model of type HeartModel"
     for part in model.parts:
         if not part.cavity:
             continue

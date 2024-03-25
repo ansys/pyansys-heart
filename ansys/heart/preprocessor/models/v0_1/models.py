@@ -2126,6 +2126,66 @@ class FourChamber(HeartModel):
 
         return beam_net
 
+    def _create_His_side(
+        self, side: str, new_nodes, edges, beam_length, bifurcation_coord, bifurcation_id
+    ):
+        """Create His side after bifucation
+
+        Parameters
+        ----------
+        side : str
+            Side of His.
+        new_nodes : _type_
+            list of new created nodes.
+        edges : _type_
+            list of new created edges.
+        beam_length : _type_
+            beam length.
+        bifurcation_coord : _type_
+            His bifurcation point coordinates.
+        bifurcation_id : _type_
+            bifurcation point id.
+
+        Returns
+        -------
+        _type_
+            _description_
+        """
+        if side.lower() == "left":
+            endo = self.left_ventricle.endocardium
+        elif side.lower() == "right":
+            endo = self.right_ventricle.septum
+
+        temp_id = pv.PolyData(self.mesh.points[endo.node_ids, :]).find_closest_point(
+            bifurcation_coord
+        )
+        his_end_id = endo.node_ids[temp_id]
+        his_end_coord = self.mesh.points[his_end_id, :]
+
+        side_his = np.array([bifurcation_coord, his_end_coord])
+        side_his = _refine_line(side_his, beam_length=beam_length)
+        new_nodes = np.vstack((new_nodes, side_his[1:, :]))
+
+        side_his_point_ids = np.concatenate(
+            (
+                np.array([bifurcation_id]),
+                edges[-1, -1]
+                + 1
+                + np.linspace(0, len(side_his[1:, :]) - 1, len(side_his[1:, :]), dtype=int),
+            )
+        )
+
+        edges = np.vstack(
+            (edges, np.column_stack((side_his_point_ids[:-1], side_his_point_ids[1:])))
+        )
+        position_id_His_end = np.argwhere(edges == side_his_point_ids[-1])[0]
+        return (
+            position_id_His_end,
+            his_end_coord,
+            new_nodes,
+            edges,
+        )
+
     def compute_His_conduction(self, beam_length: float = 1.5):
         """Compute His bundle conduction."""
         start_coord, bifurcation_coord = self._define_hisbundle_start_bifurcation()
@@ -2169,53 +2229,22 @@ class FourChamber(HeartModel):
         # create beam
         edges = np.vstack((point_ids[:-1], point_ids[1:])).T
 
-        # find end on left endo
-        temp_id = pv.PolyData(
-            self.mesh.points[self.left_ventricle.endocardium.node_ids, :]
-        ).find_closest_point(bifurcation_coord)
-        his_end_left_id = self.left_ventricle.endocardium.node_ids[temp_id]
-        his_end_left_coord = self.mesh.points[his_end_left_id, :]
-
-        left_his = np.array([bifurcation_coord, his_end_left_coord])
-        left_his = _refine_line(left_his, beam_length=beam_length)
-        new_nodes = np.vstack((new_nodes, left_his[1:, :]))
-
-        left_his_point_ids = np.concatenate(
-            (
-                np.array([bifurcation_id]),
-                bifurcation_id
-                + 1
-                + np.linspace(0, len(left_his[1:, :]) - 1, len(left_his[1:, :]), dtype=int),
-            )
+        position_id_His_end_left, his_end_left_coord, new_nodes, edges = self._create_His_side(
+            side="left",
+            new_nodes=new_nodes,
+            edges=edges,
+            beam_length=beam_length,
+            bifurcation_coord=bifurcation_coord,
+            bifurcation_id=bifurcation_id,
         )
-
-        edges = np.vstack(
-            (edges, np.column_stack((left_his_point_ids[:-1], left_his_point_ids[1:])))
+        position_id_His_end_right, his_end_right_coord, new_nodes, edges = self._create_His_side(
+            side="right",
+            new_nodes=new_nodes,
+            edges=edges,
+            beam_length=beam_length,
+            bifurcation_coord=bifurcation_coord,
+            bifurcation_id=bifurcation_id,
         )
-        position_id_His_end_left = np.argwhere(edges == left_his_point_ids[-1])[0]
-        # find end on right endo (must on the septum endo)
-        temp_id = pv.PolyData(
-            self.mesh.points[self.right_ventricle.septum.node_ids, :]
-        ).find_closest_point(bifurcation_coord)
-        his_end_right_id = self.right_ventricle.septum.node_ids[temp_id]
-        his_end_right_coord = self.mesh.points[his_end_right_id, :]
-
-        right_his = np.array([bifurcation_coord, his_end_right_coord])
-        right_his = _refine_line(right_his, beam_length=beam_length)
-        new_nodes = np.vstack((new_nodes, right_his[1:, :]))
-        right_his_point_ids = np.concatenate(
-            (
-                np.array([bifurcation_id]),
-                left_his_point_ids[-1]
-                + 1
-                + np.linspace(0, len(right_his[1:, :]) - 1, len(right_his[1:, :]), dtype=int),
-            )
-        )
-
-        edges = np.vstack(
-            (edges, np.column_stack((right_his_point_ids[:-1], right_his_point_ids[1:])))
-        )
-        position_id_His_end_right = np.argwhere(edges == right_his_point_ids[-1])[0]
         # finally
         mask = np.ones(edges.shape, dtype=bool)
         mask[0, 0] = False  # AV point at previous, not offset in creation

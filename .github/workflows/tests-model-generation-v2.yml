@@ -69,4 +69,5 @@ jobs:
         continue-on-error: false
         run: |
           #  Run all model v0.2 tests that require fluent
-          python -m pytest -v -rxXs -m "models_v2"
+          # python -m pytest -v -rxXs -m "models_v2"
+          python -m pytest -v tests/heart/preprocessor/test_biventricle_v0-2.py

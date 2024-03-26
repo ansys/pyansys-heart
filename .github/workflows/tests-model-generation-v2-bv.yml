@@ -1,6 +1,6 @@
 # GitHub workflow for functional tests
 # Tests consistencty of model being generated
-name: Test model generation-v2
+name: Test model generation-v2-bv
 on:
   pull_request:
     types: ['opened', 'edited', 'reopened', 'synchronize', 'ready_for_review']
@@ -63,16 +63,9 @@ jobs:
         run: |
           python -m pip install .[tests]
 
-      # - name: Test model generation v0.2 - bi-ventricle
-      #   env:
-      #     ANSYS_HEART_MODEL_VERSION: "v0.2"
-      #   continue-on-error: false
-      #   run: |
-      #     python -m pytest -v tests/heart/preprocessor/test_biventricle_v0-2.py
-
-      - name: Test model generation v0.2 full-heart
+      - name: Test model generation v0.2 - bi-ventricle
         env:
           ANSYS_HEART_MODEL_VERSION: "v0.2"
         continue-on-error: false
         run: |
-          python -m pytest -v tests/heart/preprocessor/test_fullheart_v0-2.py
+          python -m pytest -v tests/heart/preprocessor/test_biventricle_v0-2.py

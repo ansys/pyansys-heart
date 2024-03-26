@@ -916,7 +916,7 @@ class HeartModel:
                 p.pid = max([pid for pid in self.part_ids if pid != None]) + 1
         return
 
-    def _extract_septum(self) -> None:
+    def _extract_septum(self, num_layers_to_remove: int = 1) -> None:
         """Separate the septum elements from the left ventricle.
 
         Note
@@ -936,7 +936,7 @@ class HeartModel:
 
         # extrude septum surface
         faces_septum = connectivity.remove_triangle_layers_from_trimesh(
-            surface_septum.triangles, iters=1
+            surface_septum.triangles, iters=num_layers_to_remove
         )
 
         septum_surface_vtk = vtkmethods.create_vtk_surface_triangles(self.mesh.nodes, faces_septum)

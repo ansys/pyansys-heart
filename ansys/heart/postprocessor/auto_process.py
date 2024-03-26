@@ -229,17 +229,18 @@ def read_uvc(
 ):
     """Read UVC from d3plot files."""
     data = D3plotReader(os.path.join(directory, "apico-basal.d3plot"))
-    grid = data.model.metadata.meshed_region.grid
+    grid: pv.UnstructuredGrid = data.model.metadata.meshed_region.grid
 
     t = data.model.results.temperature.on_last_time_freq.eval()[0].data
-    grid["apico-basal"] = t[::3]
+    grid.point_data["apico-basal"] = np.array(t, dtype=float)
+
     data = D3plotReader(os.path.join(directory, "transmural.d3plot"))
     t = data.model.results.temperature.on_last_time_freq.eval()[0].data
-    grid["transmural"] = t[::3]
+    grid.point_data["transmural"] = np.array(t, dtype=float)
 
     data = D3plotReader(os.path.join(directory, "rotational.d3plot"))
     t = data.model.results.temperature.on_last_time_freq.eval()[0].data
-    grid["rotational"] = t[::3]
+    grid.point_data["rotational"] = np.array(t, dtype=float)
 
     grid.set_active_scalars("transmural")
     grid.save(os.path.join(directory, "uvc.vtk"))

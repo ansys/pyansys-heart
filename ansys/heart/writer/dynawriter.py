@@ -841,6 +841,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 lstol=-0.9,
                 lsmtd=5,
                 d3itctl=1,
+                nlprint=3
             )
         )
 

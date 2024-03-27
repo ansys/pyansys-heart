@@ -224,26 +224,26 @@ def mech_post(directory: pathlib.Path, model):
     return
 
 
-def read_uvc(
-    directory,
-):
+def read_uvc(directory):
     """Read UVC from d3plot files."""
     data = D3plotReader(os.path.join(directory, "apico-basal.d3plot"))
     grid: pv.UnstructuredGrid = data.model.metadata.meshed_region.grid
 
-    t = data.model.results.temperature.on_last_time_freq.eval()[0].data
-    grid.point_data["apico-basal"] = np.array(t, dtype=float)
-
-    data = D3plotReader(os.path.join(directory, "transmural.d3plot"))
-    t = data.model.results.temperature.on_last_time_freq.eval()[0].data
-    grid.point_data["transmural"] = np.array(t, dtype=float)
-
-    data = D3plotReader(os.path.join(directory, "rotational.d3plot"))
-    t = data.model.results.temperature.on_last_time_freq.eval()[0].data
-    grid.point_data["rotational"] = np.array(t, dtype=float)
+    for field_name in ["apico-basal", "transmural", "rotational"]:
+        data = D3plotReader(os.path.join(directory, field_name + ".d3plot"))
+        t = data.model.results.temperature.on_last_time_freq.eval()[0].data
+        if len(t) == grid.n_points:
+            t = t
+        elif len(t) == 3 * grid.n_points:
+            t = t[::3]
+        else:
+            LOGGER.error("Failed to read d3plot in UVC")
+            exit()
+        grid.point_data[field_name] = np.array(t, dtype=float)
 
     grid.set_active_scalars("transmural")
     grid.save(os.path.join(directory, "uvc.vtk"))
+
     return grid
 
 
@@ -283,7 +283,15 @@ def get_gradient(directory, field_list: List[str]) -> pv.UnstructuredGrid:
     for name in field_list:
         data = D3plotReader(os.path.join(directory, name + ".d3plot"))
         t = data.model.results.temperature.on_last_time_freq.eval()[0].data
-        grid[name] = t[::3]
+        if len(t) == grid.n_points:
+            t = t
+        elif len(t) == 3 * grid.n_points:
+            t = t[::3]
+        else:
+            LOGGER.error("Failed to read d3plot.")
+            exit()
+
+        grid[name] = t
         # grid.set_active_scalars(name)
 
     # note vtk gradient method shows warning/error for some cells

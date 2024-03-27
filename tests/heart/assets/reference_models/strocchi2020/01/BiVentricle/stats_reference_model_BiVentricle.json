@@ -5,56 +5,56 @@
     },
     "parts": {
         "Left ventricle": {
-            "ntetra": 134067,
+            "ntetra": 133831,
             "surfaces": {
                 "Left ventricle endocardium": {
-                    "nfaces": 8842
+                    "nfaces": 8824
                 },
                 "Left ventricle epicardium": {
-                    "nfaces": 11070
+                    "nfaces": 11040
                 }
             }
         },
         "Right ventricle": {
-            "ntetra": 64335,
+            "ntetra": 64517,
             "surfaces": {
                 "Right ventricle endocardium septum": {
-                    "nfaces": 2502
+                    "nfaces": 2516
                 }
             }
         },
         "Septum": {
-            "ntetra": 34751
+            "ntetra": 34778
         }
     },
     "mesh": {
         "boundaries": {
             "left-ventricle-endocardium": {
-                "nfaces": 8842
+                "nfaces": 8824
             },
             "left-ventricle-epicardium": {
-                "nfaces": 11070
+                "nfaces": 11040
             },
             "left-ventricle-myocardium_aortic-valve-plane": {
-                "nfaces": 141
+                "nfaces": 143
             },
             "left-ventricle-myocardium_mitral-valve-plane": {
                 "nfaces": 136
             },
             "right-ventricle-endocardium": {
-                "nfaces": 9357
+                "nfaces": 9407
             },
             "right-ventricle-epicardium": {
-                "nfaces": 11480
+                "nfaces": 11435
             },
             "right-ventricle-myocardium_pulmonary-valve-plane": {
-                "nfaces": 143
+                "nfaces": 144
             },
             "right-ventricle-myocardium_tricuspid-valve-plane": {
-                "nfaces": 203
+                "nfaces": 205
             },
             "right-ventricle-septum": {
-                "nfaces": 2502
+                "nfaces": 2516
             }
         }
     }

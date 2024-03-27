@@ -28,7 +28,7 @@ from tests.heart.conftest import get_assets_folder, get_workdir
 from tests.heart.end2end.compare_k import read_file
 
 # marks all tests with the 'requires_fluent' tag after this line
-pytestmark = [pytest.mark.requires_fluent, pytest.mark.models_v2]
+pytest.mark.requires_fluent
 
 
 @pytest.fixture(autouse=True, scope="module")
@@ -95,21 +95,25 @@ def extract_bi_ventricle():
         print("Failed to cleanup.")
 
 
+@pytest.mark.models_v2
 def test_part_names():
     compare_part_names(model, ref_stats)
     pass
 
 
+@pytest.mark.models_v2
 def test_surface_names():
     compare_surface_names(model, ref_stats)
     pass
 
 
+@pytest.mark.models_v2
 def test_cavities_volumes():
     compare_cavity_volume(model, ref_stats)
     pass
 
 
+@pytest.mark.models_v2
 @pytest.mark.xfail(reason="Comparing against v0.1 model - uses different meshing method(s)")
 def test_mesh():
     """Test the number of tetrahedrons and triangles in the volume mesh and surface meshes"""
@@ -118,6 +122,7 @@ def test_mesh():
 
 # functional tests to determine whether any change was made to
 # LS-DYNA input.
+@pytest.mark.models_v2
 @pytest.mark.skip(reason="This test is currently too strict - rewrite or disable")
 @pytest.mark.parametrize(
     "writer_class",

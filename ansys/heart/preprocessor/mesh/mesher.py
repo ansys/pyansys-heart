@@ -7,19 +7,12 @@ import shutil
 from typing import List, Union
 
 LOGGER = logging.getLogger("pyheart_global.preprocessor")
-# from importlib.resources import files
 
-from ansys.heart.preprocessor._load_template import load_template
 import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401
 from ansys.heart.preprocessor.mesh.fluenthdf5 import FluentCellZone, FluentMesh
 from ansys.heart.preprocessor.models.v0_2.input import _InputBoundary, _InputModel
 import numpy as np
-
-# from pkg_resources import resource_filename
-import pkg_resources
 import pyvista as pv
-
-_template_directory = pkg_resources.resource_filename("ansys.heart.preprocessor", "templates")
 
 _fluent_version = "22.2.0"
 
@@ -653,30 +646,6 @@ def mesh_heart_model_by_fluent(
     working_directory = path_to_stl_directory
     os.chdir(working_directory)
 
-    if add_blood_pool:
-        path_to_blood_pool_script = os.path.join(
-            _template_directory, "fluent_meshing_add_blood_mesh_template.jou"
-        )
-        f = open(path_to_blood_pool_script, "r")
-        blood_pool_script = "".join(f.readlines())
-        f.close()
-    else:
-        blood_pool_script = ""
-
-    var_for_template = {
-        "work_directory": working_directory,
-        "output_path": path_to_output,
-        "mesh_size": mesh_size,
-        "blood_pool_script": blood_pool_script,
-    }
-
-    template = load_template("fluent_meshing_template_improved_2.jou")
-
-    script = os.path.join(path_to_stl_directory, "fluent_meshing.jou")
-
-    with open(script, "w") as f:
-        f.write(template.render(var_for_template))
-
     num_cpus = 2
 
     # check whether containerized version of Fluent is used
@@ -705,7 +674,7 @@ def mesh_heart_model_by_fluent(
     path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
 
     # copy all necessary files to meshing directory
-    files_to_copy = glob.glob("part*.stl") + glob.glob("fluent_meshing.jou")
+    files_to_copy = glob.glob("part*.stl")
     for file in files_to_copy:
         shutil.copyfile(file, os.path.join(work_dir_meshing, file))
 
@@ -773,7 +742,7 @@ def mesh_heart_model_by_fluent(
         session.scheme_eval.scheme_eval(
             "(define zone-id-septum (get-face-zones-of-filter '*septum*) )"
         )
-        a = session.scheme_eval.scheme_eval(
+        session.scheme_eval.scheme_eval(
             "(define zone-ids-to-copy (append zone-ids-endo zone-id-septum) )"
         )
         session.scheme_eval.scheme_eval(
@@ -830,8 +799,6 @@ def mesh_heart_model_by_fluent(
     session.exit()
 
     shutil.copy(path_to_output, path_to_output_old)
-
-    # shutil.rmtree(work_dir_meshing)
 
     # change back to old directory
     os.chdir(old_directory)

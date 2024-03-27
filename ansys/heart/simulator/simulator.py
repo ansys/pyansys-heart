@@ -194,7 +194,7 @@ class BaseSimulator:
         type = "uvc"
         export_directory = os.path.join(self.root_directory, type)
 
-        target = self._run_laplace_problem(export_directory, type)
+        target = self.run_laplace_problem(export_directory, type)
         grid = read_uvc(export_directory)
 
         grid["cell_ids"] = target["cell_ids"]

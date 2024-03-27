@@ -2129,7 +2129,7 @@ class FourChamber(HeartModel):
     def _create_His_side(
         self, side: str, new_nodes, edges, beam_length, bifurcation_coord, bifurcation_id
     ):
-        """Create His side after bifucation
+        """Create His side after bifucation.
 
         Parameters
         ----------

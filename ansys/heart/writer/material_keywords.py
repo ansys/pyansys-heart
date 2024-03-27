@@ -9,14 +9,19 @@ Mat077
 MatNull
 
 """
+
 import logging
 
 from ansys.dyna.keywords import keywords
 
 LOGGER = logging.getLogger("pyheart_global.writer")
 
+import dataclasses
+
 # from importlib.resources import files
 from importlib.resources import path as resource_path
+
+from ansys.heart.simulator.settings.material.material import MAT295, ActiveModel
 
 # import custom keywords in separate namespace
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
@@ -60,123 +65,79 @@ class MaterialNeoHook(custom_keywords.Mat077H):
 class MaterialHGOMyocardium(keywords.Mat295):
     """HGO Material model - derived from Mat295."""
 
-    def __init__(self, mid: int = 1, iso_user=None, anisotropy_user=None, active_user=None):
-        # Default parameters
-        base = {"aopt": 2.0, "itype": -3, "beta": 0.0}
-        # Update parameters with user's input
-        base.update(iso_user)
+    def __init__(self, id: int, mat: MAT295, ignore_active: bool = False):
+        """Init a keyword of *mat295.
 
-        # initialize isotropic module
-        super().__init__(
-            mid=mid,
-        )
-        for k, v in base.items():
-            setattr(self, k, v)
-        if anisotropy_user is not None:
-            # Default parameters
-            self.atype = -1
-            self.intype = 0
-            self.nf = 1
-            self.ftype = 1
+        Parameters
+        ----------
+        id : int
+            material ID
+        mat : MAT295
+            material data
+        ignore_active : bool, optional
+            IF igonre active module (e.g. for stress-free), by default False
+        """
+        # 1st line
+        super().__init__(mid=id)
+        setattr(self, "rho", mat.rho)
+        setattr(self, "aopt", mat.aopt)
 
-            common_sheet_fiber = {
-                "a": 0.0,
-                "b": 1.0,
-                "fcid": 0,
-                "ftype": self.ftype,
-            }
+        # iso
+        for field in dataclasses.fields(mat.iso):
+            value = getattr(mat.iso, field.name)
+            setattr(self, field.name, value)
 
-            # change type if key exist
-            if "k1s" in anisotropy_user.keys():
-                self.nf = 2
-                if "k1fs" in anisotropy_user.keys():
-                    self.intype = 1
+        # aniso
+        if mat.aniso is not None:
+            self.atype = mat.aniso.atype
+            self.intype = mat.aniso.intype
+            self.nf = mat.aniso.nf
+            self.ftype = mat.aniso.fibers[0]._ftype  # not used but must be defined
 
-            fiber = {
-                "theta": 0,
-                "k1": anisotropy_user["k1f"],
-                "k2": anisotropy_user["k2f"],
-            }
-            fiber.update(common_sheet_fiber)
+            self.a1 = mat.aniso.vec_a[0]
+            self.a2 = mat.aniso.vec_a[1]
+            self.a3 = mat.aniso.vec_a[2]
 
-            if self.nf == 1:
-                self.anisotropic_settings = pd.DataFrame([fiber])
-            elif self.nf == 2:
-                sheet = {
-                    "theta": 90,
-                    "k1": anisotropy_user["k1s"],
-                    "k2": anisotropy_user["k2s"],
+            self.d1 = mat.aniso.vec_d[0]
+            self.d2 = mat.aniso.vec_d[1]
+            self.d3 = mat.aniso.vec_d[2]
+
+            fiber_sheet = []
+            for i in range(len(mat.aniso.fibers)):
+                dct = {
+                    "theta": mat.aniso.fibers[i]._theta,
+                    "a": mat.aniso.fibers[i].a,
+                    "b": mat.aniso.fibers[i].b,
+                    "ftype": mat.aniso.fibers[i]._ftype,
+                    "fcid": mat.aniso.fibers[i]._fcid,
+                    "k1": mat.aniso.fibers[i].k1,
+                    "k2": mat.aniso.fibers[i].k2,
                 }
-                sheet.update(common_sheet_fiber)
-                self.anisotropic_settings = pd.DataFrame([fiber, sheet])
+                fiber_sheet.append(dct)
+            self.anisotropic_settings = pd.DataFrame(fiber_sheet)
 
-            if self.intype == 1:
-                self.coupling_k1 = anisotropy_user["k1fs"]
-                self.coupling_k2 = anisotropy_user["k2fs"]
+            if mat.aniso.intype == 1:
+                self.coupling_k1 = mat.aniso.k1fs
+                self.coupling_k2 = mat.aniso.k2fs
 
-            # set dummy a/d vectors
-            # these values are indeed replaced by *ELEMENT_SOLID_ORTHO or
-            # by dynain.lsda file if they exist
-            self.a1 = 1.0
-            self.a2 = 0.0
-            self.a3 = 0.0
-
-            self.d1 = 0.0
-            self.d2 = 1.0
-            self.d3 = 0.0
-
-        if active_user is not None:
-            if active_user["actype"] == 1:
-                active = {
-                    "acdir": 1,  # active along first/fiber direction
-                    "ca2ionm": 4.35,
-                    "acthr": 1.0,
-                    "sf": 1.0,
-                    "sn": 0.0,
-                    "n": 2,
-                    "stf": 0.0,
-                    "b": 4.75,
-                    "l0": 1.58,
-                    "l": 1.85,
-                    "mr": 1048.9,  # ms*um^-1
-                    "dtmax": 150.0,
-                    "tr": -1629.0,  # the original paper do no consider initial stretch
-                }
-            elif active_user["actype"] == 2:
-                # Default parameters
-                active = {
-                    # "actype": 2,
-                    "acdir": 1,
-                    "acthr": 0.1,
-                    "sf": 1.0,
-                    "ss": 0.02,
-                    "sn": 0.02,
-                    # "ca2ionm": 4.35,
-                    "n": 2,
-                    "stf": 0.0,
-                    "b": 4.75,
-                    "l0": 1.58,
-                    "l": 1.78,
-                    "eta": 1.45,
-                }
-            elif active_user["actype"] == 3:
-                active = {
-                    "acdir": 1,
-                    "sf": 1.0,
-                    "ss": 0.02,
-                    "sn": 0.02,
-                }
-            # Update parameters with user's input
-            active.update(active_user)
-            # transfer into keywords
-            for k, v in active.items():
-                setattr(self, k, v)
+        # active
+        if not ignore_active and mat.active is not None:
+            for field in dataclasses.fields(mat.active):
+                if field.type is ActiveModel:  # nested data of active model
+                    for nested_f in dataclasses.fields(mat.active.model):
+                        name = nested_f.name
+                        value = getattr(mat.active.model, name)
+                        setattr(self, name, value)
+                else:
+                    # acdir, acid ....
+                    name = field.name
+                    value = getattr(mat.active, name)
+                    setattr(self, name, value)
 
 
 def active_curve(
     curve_type: str = "Strocchi2020",
     endtime: float = 15,
-    timestep: float = 1e-2,
 ):
     """Compute various (normalized) curves used for the active module.
 
@@ -189,33 +150,33 @@ def active_curve(
     # T = np.arange( 0, endtime, timestep )
     # NOTE: needs cleaning up
     if curve_type == "Strocchi2020":
-        # parameters used in Strocchi:
-
-        # NOTE: in milliseconds
-        LOGGER.warning("End-time set to 1000 ms: Strocchi uses 800 ms")
-        t_end = 1000  # note in Strocchi this seems to be 800 ms actually
-        t = np.arange(0, t_end, timestep * 1e3)
-        # Tpeak = 125
+        # parameters used in Strocchi in ms
+        t_end = 800
         tau_r = 130
         tau_d = 100
-        t_dur = 550
+        tau_dur = 550
+        tau_emd = 0.0  # EM coupling delay
+        t_act = 0.0  # activation time from Eikonel model
 
-        # this is normalized in y: that is Tpeak is not used
-        active_stress = (np.tanh(t / tau_r)) ** 2 * (np.tanh((t_dur - t) / tau_d)) ** 2
-        active_stress[t > t_dur] = 0
+        # Active tension
+        t = np.linspace(0, t_end, 1001)
+        active_stress = np.zeros(t.shape)
+        ts = t - t_act - tau_emd
+        for i, tt in enumerate(ts):
+            if 0 < tt < tau_dur:
+                active_stress[i] = np.tanh(tt / tau_r) ** 2 * np.tanh((tau_dur - tt) / tau_d) ** 2
 
         # repeat dataset nCycles times:
-        t = t / 1000  # to seconds
-        t_end = t_end / 1000
-
         # number of cycles to return
         nCycles = int(np.ceil(endtime / t_end))
 
         time_array = t  # time array
-        calcium_array = active_stress  # active stress array
+        # mock calcium array
+        calcium_array0 = 1 / (1 - 0.99 * active_stress) - 1
+        calcium_array = np.copy(calcium_array0)
         for ii in range(1, nCycles):
-            time_array = np.append(time_array, t + ii * t_end)
-            calcium_array = np.append(calcium_array, active_stress)
+            time_array = np.append(time_array, t[1:] + ii * t_end)
+            calcium_array = np.append(calcium_array, calcium_array0[1:])
 
     # used for generating multi beats with model actype 1
     elif curve_type == "constant":
@@ -250,16 +211,4 @@ def active_curve(
 
 
 if __name__ == "__main__":
-    active_curve(curve_type="TrueCalcium")
-
-    kw = MaterialCap()
-    # test
-    dct_iso = {"rho": 1, "k1": 1, "k2": 1}
-    dct_aniso = {"k1f": 1, "k2f": 2}
-    dct_aniso.update({"k1s": 1, "k2s": 2})
-    # dct_aniso.update({"k1fs": 1, "k2fs": 2})
-    dct_active = {"actype": 1, "acid": 15, "taumax": 125, "ca2ionm": 4.35}
-    kw = MaterialHGOMyocardium(
-        mid=1, iso_user=dct_iso, anisotropy_user=dct_aniso, active_user=dct_active
-    )
-    print(kw)
+    pass

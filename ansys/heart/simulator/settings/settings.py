@@ -13,6 +13,15 @@ from ansys.heart.simulator.settings.defaults import fibers as fibers_defaults
 from ansys.heart.simulator.settings.defaults import mechanics as mech_defaults
 from ansys.heart.simulator.settings.defaults import purkinje as purkinje_defaults
 from ansys.heart.simulator.settings.defaults import zeropressure as zero_pressure_defaults
+from ansys.heart.simulator.settings.material.curve import ActiveCurve, Strocchi_active, constant_ca2
+from ansys.heart.simulator.settings.material.material import (
+    ACTIVE,
+    ANISO,
+    ISO,
+    MAT295,
+    ActiveModel,
+    NeoHookean,
+)
 from pint import Quantity, UnitRegistry
 import yaml
 
@@ -130,8 +139,8 @@ class Material(Settings):
 
     myocardium: AttrDict = None
     """Myocardium material."""
-    atrium: AttrDict = None
-    """Atrial material."""
+    passive: AttrDict = None
+    """Passive material, e.g. vessel wall."""
     cap: AttrDict = None
     """Cap material."""
 
@@ -155,8 +164,8 @@ class EpMaterial(Settings):
 class BoundaryConditions(Settings):
     """Stores settings/parameters for boundary conditions."""
 
-    pericardium: AttrDict = None
-    """Parameters for pericardium spring b.c."""
+    robin: AttrDict = None
+    """Parameters for pericardium spring/damper b.c."""
     valve: AttrDict = None
     """Parameters for valve spring b.c."""
     end_diastolic_cavity_pressure: AttrDict = None
@@ -242,6 +251,28 @@ class Fibers(Settings):
 
 
 @dataclass(repr=False)
+class AtrialFiber(Settings):
+    """
+    Class for keeping track of atrial fiber settings.
+
+    Default parameters are from doi.org/10.1016/j.cma.2020.113468 for idealized geometry.
+    """
+
+    tau_mv: float = 0
+    tau_lpv: float = 0
+    tau_rpv: float = 0
+
+    tau_tv: float = 0
+    tau_raw: float = 0
+    tau_ct_minus: float = 0
+    tau_ct_plus: float = 0
+    tau_icv: float = 0
+    tau_scv: float = 0
+    tau_ib: float = 0
+    tau_ras: float = 0
+
+
+@dataclass(repr=False)
 class Purkinje(Settings):
     """Class for keeping track of purkinje settings."""
 
@@ -320,6 +351,7 @@ class SimulationSettings:
 
         if fiber:
             self.fibers: Fibers = Fibers()
+            self.atrial_fibers: AtrialFiber = AtrialFiber()
             """Settings for fiber generation."""
 
         if purkinje:
@@ -508,6 +540,9 @@ class SimulationSettings:
                 self.fibers.set_values(fibers_defaults.angles)
             if isinstance(getattr(self, attr), Purkinje):
                 self.purkinje.set_values(purkinje_defaults.build)
+            if isinstance(getattr(self, attr), AtrialFiber):
+                self.atrial_fibers.set_values(fibers_defaults.la_bundle)
+                self.atrial_fibers.set_values(fibers_defaults.ra_bundle)
 
     def to_consistent_unit_system(self):
         """Convert all settings to consistent unit-system ["MPa", "mm", "N", "ms", "g"].
@@ -538,6 +573,75 @@ class SimulationSettings:
             if isinstance(attr, Settings):
                 attr.to_consistent_unit_system()
         return
+
+    def get_mechanical_material(self) -> tuple[MAT295, NeoHookean]:
+        """Load material data from settings.
+
+        Returns
+        -------
+        tuple[MAT295, NeoHookean]
+            MAT295 will be assigned for active/passive parts with fibers.
+            NeoHookean will be assigned for isotropic parts.
+
+        Note
+        ----
+        Materials will be automatically assigned for parts if their maerial is not defined.
+        """
+        try:
+            myo_mat: MAT295 = _read_myocardium_from_settings(self.mechanics.material.myocardium)
+        except KeyError:
+            LOGGER.error("Cannot create myocardium material from settings.")
+            exit()
+        try:
+            passive_mat: NeoHookean = _read_passive_from_settings(self.mechanics.material.passive)
+        except KeyError:
+            LOGGER.error("Cannot create passive material from settings.")
+            exit()
+
+        return myo_mat, passive_mat
+
+
+def _read_passive_from_settings(mat: AttrDict) -> NeoHookean:
+    rho = mat["rho"].m
+    mu = mat["mu1"].m
+    return NeoHookean(rho=rho, c10=mu / 2)
+
+
+def _read_myocardium_from_settings(mat: AttrDict) -> MAT295:
+    rho = mat["isotropic"]["rho"].m
+
+    iso = ISO(nu=mat["isotropic"]["nu"], k1=mat["isotropic"]["k1"].m, k2=mat["isotropic"]["k2"].m)
+
+    fibers = [ANISO.HGO_Fiber(k1=mat["anisotropic"]["k1f"].m, k2=mat["anisotropic"]["k2f"].m)]
+
+    if "k1s" in mat["anisotropic"]:
+        sheet = ANISO.HGO_Fiber(k1=mat["anisotropic"]["k1s"].m, k2=mat["anisotropic"]["k2s"].m)
+        fibers.append(sheet)
+
+    if "k1fs" in mat["anisotropic"]:
+        k1fs, k2fs = mat["anisotropic"]["k1fs"].m, mat["anisotropic"]["k2fs"].m
+    else:
+        k1fs, k2fs = None, None
+    aniso = ANISO(fibers=fibers, k1fs=k1fs, k2fs=k2fs)
+
+    max = mat["active"]["taumax"].m
+    bt = mat["active"]["beat_time"].m
+
+    if mat["active"]["actype"] == 1:
+        ac_mdoel = ActiveModel.Model1(taumax=max)
+        curve = ActiveCurve(constant_ca2(tb=bt), threshold=0.1, type="ca2")
+    elif mat["active"]["actype"] == 3:
+        ac_mdoel = ActiveModel.Model3(sigmax=max)
+        curve = ActiveCurve(Strocchi_active(t_end=bt), type="stress")
+
+    active = ACTIVE(
+        ss=mat["active"]["ss"],
+        sn=mat["active"]["sn"],
+        model=ac_mdoel,
+        ca2_curve=curve,
+    )
+
+    return MAT295(rho=rho, iso=iso, aniso=aniso, active=active)
 
 
 def _remove_units_from_dictionary(d: dict):

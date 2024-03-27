@@ -9,6 +9,7 @@ Options for simulation:
     coupled electro-mechanics
 """
 
+
 import copy
 import logging
 import os
@@ -27,7 +28,16 @@ from ansys.heart.postprocessor.auto_process import (
     read_uvc,
     zerop_post,
 )
-from ansys.heart.preprocessor.models.v0_1.models import FourChamber, HeartModel, LeftVentricle
+
+global heart_version
+heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
+if heart_version == "v0.2":
+    from ansys.heart.preprocessor.models.v0_2.models import FourChamber, HeartModel, LeftVentricle
+elif heart_version == "v0.1" or not heart_version:
+    from ansys.heart.preprocessor.models.v0_1.models import FourChamber, HeartModel, LeftVentricle
+
+    heart_version = "v0.1"
+
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 import numpy as np
@@ -221,8 +231,12 @@ class BaseSimulator:
         LOGGER.info("Computing RA fiber...")
         export_directory = os.path.join(self.root_directory, "ra_fiber")
 
-        target = self._run_laplace_problem(export_directory, "ra_fiber", raa=np.array(appendage))
-        ra_pv = compute_ra_fiber_cs(export_directory)
+        target = self.run_laplace_problem(export_directory, "ra_fiber", raa=np.array(appendage))
+
+        endo_surface = self.model.right_atrium.endocardium
+        ra_pv = compute_ra_fiber_cs(
+            export_directory, self.settings.atrial_fibers, endo_surface=endo_surface
+        )
         LOGGER.info("Generating fibers done.")
 
         # arrays that save ID map to full model
@@ -238,7 +252,7 @@ class BaseSimulator:
 
         return ra_pv
 
-    def compute_left_atrial_fiber(self) -> pv.UnstructuredGrid:
+    def compute_left_atrial_fiber(self, appendage: List[float] = None) -> pv.UnstructuredGrid:
         """
         Compute left atrium fiber with LDRBD method.
 
@@ -250,8 +264,13 @@ class BaseSimulator:
         LOGGER.info("Computing LA fiber...")
         export_directory = os.path.join(self.root_directory, "la_fiber")
 
-        target = self._run_laplace_problem(export_directory, "la_fiber")
-        la_pv = compute_la_fiber_cs(export_directory)
+        target = self.run_laplace_problem(export_directory, "la_fiber", laa=appendage)
+
+        endo_surface = self.model.left_atrium.endocardium
+        la_pv = compute_la_fiber_cs(
+            export_directory, self.settings.atrial_fibers, endo_surface=endo_surface
+        )
+
         LOGGER.info("Generating fibers done.")
 
         # arrays that save ID map to full model
@@ -267,7 +286,9 @@ class BaseSimulator:
 
         return la_pv
 
-    def _run_laplace_problem(self, export_directory, type, **kwargs):
+    def run_laplace_problem(
+        self, export_directory, type: Literal["uvc", "la_fiber", "ra_fiber"], **kwargs
+    ):
         """
         Run Laplace-Dirichlet (thermal) problem in LSDYNA.
 
@@ -288,6 +309,14 @@ class BaseSimulator:
                 if key == "raa":
                     break
             dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, raa=value)
+        elif type == "la_fiber":
+            for key, value in kwargs.items():
+                if key == "laa":
+                    break
+            if value is None:
+                dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type)
+            else:
+                dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, laa=value)
         else:
             dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type)
 
@@ -517,17 +546,23 @@ class MechanicsSimulator(BaseSimulator):
             mech_post(Path.Path(directory), self.model)
         return
 
-    def compute_stress_free_configuration(self, folder_name="zeropressure"):
+    def compute_stress_free_configuration(self, folder_name="zeropressure", overwrite: bool = True):
         """Compute the stress-free configuration of the model."""
         directory = os.path.join(self.root_directory, folder_name)
-        os.makedirs(directory, exist_ok=True)
+        os.makedirs(
+            directory,
+            exist_ok=True,
+        )
 
-        self._write_stress_free_configuration_files(folder_name)
-        self.settings.save(Path.Path(directory) / "simulation_settings.yml")
+        if overwrite or len(os.listdir(directory)) == 0:
+            self._write_stress_free_configuration_files(folder_name)
+            self.settings.save(Path.Path(directory) / "simulation_settings.yml")
 
-        LOGGER.info("Computing stress-free configuration...")
-        self._run_dyna(os.path.join(directory, "main.k"), options="case")
-        LOGGER.info("Simulation done.")
+            LOGGER.info("Computing stress-free configuration...")
+            self._run_dyna(os.path.join(directory, "main.k"), options="case")
+            LOGGER.info("Simulation done.")
+        else:
+            LOGGER.info(f"Re-using existing results in {directory}")
 
         self.stress_free_report = zerop_post(directory, self.model)
 
@@ -535,8 +570,11 @@ class MechanicsSimulator(BaseSimulator):
         LOGGER.info("Updating nodes after stress-free.")
 
         # Note: cap center node will be added into mesh.points
-        n_caps = len(self.model.cap_centroids)
-        guess_ed_coords = np.array(self.stress_free_report["guess_ed_coord"])[:-n_caps]
+        if heart_version == "v0.1":
+            n_caps = len(self.model.cap_centroids)
+            guess_ed_coords = np.array(self.stress_free_report["guess_ed_coord"])[:-n_caps]
+        elif heart_version == "v0.2":
+            guess_ed_coords = np.array(self.stress_free_report["guess_ed_coord"])
         self.model.mesh.points = guess_ed_coords
 
         # Note: synchronization

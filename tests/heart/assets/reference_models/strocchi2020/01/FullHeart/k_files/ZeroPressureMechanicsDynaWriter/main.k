@@ -13,7 +13,7 @@ $#   iauto    iteopt    itewin     dtmin     dtmax     dtexp     kfail    kcycle
          1        11         5      10.0     100.0                              
 *CONTROL_IMPLICIT_GENERAL
 $#  imflag       dt0    imform      nsbs       igs     cnstn      form    zero_v
-         1     100.0         2         1         2         0         0         0
+         1      10.0         2         1         2         0         0         0
 *CONTROL_IMPLICIT_SOLUTION
 $#  nsolvr    ilimit    maxref     dctol     ectol     rctol     lstol    abstol
         12        11        35      0.01 1000000.0    1000.0       0.9    -1e-20
@@ -64,36 +64,37 @@ $#     id1       id2       id3       id4       id5       id6       id7       id8
 $#                                                                         title
 unit load curve                                                                 
 $#    lcid      sidr       sfa       sfo      offa      offo    dattyp     lcint
-         1         0    1000.0       1.0       0.0       0.0         0       100
+         4         0    1000.0       1.0       0.0       0.0         0       100
 $#                a1                  o1
                  0.0                 0.0
                  1.0                 1.0
  1.00099999999999989                 1.0
 *LOAD_SEGMENT_SET
 $#    ssid      lcid        sf        at
-         1         10.00199984       0.0
+         1         40.00199984       0.0
 *LOAD_SEGMENT_SET
 $#    ssid      lcid        sf        at
-         2         10.00106658       0.0
+         2         40.00106658       0.0
 *LOAD_SEGMENT_SET
 $#    ssid      lcid        sf        at
-         3         10.00199984       0.0
+         3         40.00199984       0.0
 *LOAD_SEGMENT_SET
 $#    ssid      lcid        sf        at
-         4         10.00106658       0.0
+         4         40.00106658       0.0
 *CONTROL_REFERENCE_CONFIGURATION
 $# maxiter                                                                target
          3nodes.k                                                               
 $#  method      step       tol
          2       1.0       5.0
-*SET_PART_LIST_GENERATE
+*SET_PART_LIST
 $#     sid       da1       da2       da3       da4    solver
-       999       0.0       0.0       0.0       0.0MECH      
-$#   b1beg     b1end     b2beg     b2end     b3beg     b3end     b4beg     b4end
-         1        19                                                            
+         1       0.0       0.0       0.0       0.0MECH      
+         1         2         3         4         5         6         7         8
+         9        10        11        12        13        14        15        16
+        17        18
 *INTERFACE_SPRINGBACK_LSDYNA
 $#    psid      nshv     ftype              ftensr    nthhsv     rflag   intstrn
-       999       999         3                   0                   1          
+         1       999         3                   0                   1          
 $#    optc      sldo      ncyc    fsplit    ndflag     cflag     hflag
 OPTCARD            0                   0         1         1         1
 *INTERFACE_SPRINGBACK_EXCLUDE

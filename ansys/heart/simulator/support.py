@@ -16,6 +16,7 @@ def run_preprocessor(
     mesh_size: float = 2.0,
     add_blood_pool: bool = False,
     clean_workdir: bool = True,
+    skip_meshing: bool = False,
 ):
     """Run the preprocessor with the given input arguments.
 
@@ -35,6 +36,9 @@ def run_preprocessor(
         Size used for remeshing the volume, by default 2.0
     clean_workdir : bool, optional
         Flag indicating whether to clean the working directory, by default True
+    skip_meshing : bool, optional
+        Skip fluent meshing, (only for testing), by default False
+
     """
     if not path_to_model:
         path_to_model = os.path.join(work_directory, "heart_model.pickle")
@@ -66,7 +70,8 @@ def run_preprocessor(
 
     info.mesh_size = mesh_size
 
-    info.clean_workdir(remove_all=True)
+    if not skip_meshing:
+        info.clean_workdir(remove_all=True)
     info.create_workdir()
     info.dump_info()
 
@@ -82,7 +87,7 @@ def run_preprocessor(
     elif model_type == models.FullHeart:
         model = models.FullHeart(info)
 
-    model.extract_simulation_mesh()
+    model.extract_simulation_mesh(skip_meshing=skip_meshing)
     model.dump_model(path_to_model)
     model.print_info()
     if clean_workdir:

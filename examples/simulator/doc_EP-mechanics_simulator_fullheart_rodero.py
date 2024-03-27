@@ -41,11 +41,6 @@ from pint import Quantity
 # sphinx_gallery_thumbnail_path = '/_static/images/full_heart_mesh.png'
 # sphinx_gallery_end_ignore
 
-
-# sphinx_gallery_start_ignore
-os.environ["USE_OLD_HEART_MODELS"] = "1"
-# sphinx_gallery_end_ignore
-
 # specify necessary paths.
 # Note that we need to cast the paths to strings to facilitate serialization.
 case_file = str(

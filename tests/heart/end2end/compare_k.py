@@ -13,7 +13,8 @@ import pathlib
 
 
 def normalize_line_endings(text: str) -> str:
-    return text.replace("\r\n", "\n").replace("\r", "\n")
+    # ignore empty line
+    return text.replace("\r\n", "\n").replace("\r", "\n").replace("\n\n", "\n")
 
 
 def read_file(file: pathlib.Path) -> str:
@@ -27,6 +28,7 @@ def compare(folder1: str, folder2: str, ignore: list = []) -> bool:
 
     if len(list_of_k_files) == 0:
         print("No k-files found in {0}".format(folder1))
+        return
 
     ignored = []
     not_found = []
@@ -89,7 +91,9 @@ if __name__ == "__main__":
         "--folder2", help="Sets second folder to compare against.", type=str, required=True
     )
 
-    parser.add_argument("--ignore", nargs="+", help="k-file names to ignore.", required=False)
+    parser.add_argument(
+        "--ignore", nargs="+", help="k-file names to ignore.", required=False, default=[]
+    )
 
     args = parser.parse_args()
 

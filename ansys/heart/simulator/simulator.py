@@ -8,6 +8,7 @@ Options for simulation:
     simplified EP (imposed activation)
     coupled electro-mechanics
 """
+
 import copy
 import logging
 import os
@@ -110,7 +111,7 @@ class BaseSimulator:
         method: Literal["LSDYNA", "D-RBM", "B-RBM"] = "LSDYNA",
         rotation_angles={
             "left alpha": [-60, 60],
-            "right alpha": [90, -25],
+            "right alpha": [90, 60],
             "left beta": [-20, 20],
             "right beta": [0, 20],
             "outflow alpha": [90, 0],
@@ -125,9 +126,14 @@ class BaseSimulator:
             method used to compute ventricle fibers, by default "LSDYNA"
         rotation_angles : dict, optional
             rotation angles, by default
-            { "left alpha": [-60, 60], "right alpha": [90, -25],
+            { "left alpha": [-60, 60], "right alpha": [90, 60],
             "left beta": [-20, 20], "right beta": [0, 20],
             "outflow alpha": [90, 0], "outflow beta": [0, 0], }
+
+        Note
+        ----
+        alpha_epi_r is set to 60 to be consistent as alpha_epi_l.
+        In the original paper, this value is -25.
         """
         LOGGER.info("Computing fiber orientation...")
 

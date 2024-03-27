@@ -96,7 +96,7 @@ model.dump_model(os.path.join(workdir, "with_lsdyna_fibers.pickle"))
 # Define rotation angle for fibers, from endo to epi
 rotation_angles = {
     "left alpha": [-60, 60],
-    "right alpha": [90, -25],
+    "right alpha": [90, 60],
     "left beta": [-20, 20],
     "right beta": [0, 20],
     "outflow alpha": [90, 0],  # special parameters for D-RBM

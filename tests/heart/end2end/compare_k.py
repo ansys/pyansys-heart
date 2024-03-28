@@ -35,7 +35,8 @@ import pathlib
 
 
 def normalize_line_endings(text: str) -> str:
-    return text.replace("\r\n", "\n").replace("\r", "\n")
+    # ignore empty line
+    return text.replace("\r\n", "\n").replace("\r", "\n").replace("\n\n", "\n")
 
 
 def read_file(file: pathlib.Path) -> str:

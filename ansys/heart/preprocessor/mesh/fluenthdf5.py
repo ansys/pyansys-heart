@@ -414,8 +414,6 @@ class FluentMesh:
 
         if add_cells:
             # get cell zone ids.
-            print(f"Number of cell zones: {len(self.cell_zones)}")
-
             cell_zone_ids = np.concatenate(
                 [[cz.id] * cz.cells.shape[0] for cz in self.cell_zones], dtype=int
             )

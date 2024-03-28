@@ -33,6 +33,7 @@ from ansys.heart.simulator.settings.settings import (
 )
 import numpy as np
 from pint import Quantity
+import pytest
 
 from tests.heart.conftest import compare_string_with_file, get_workdir
 
@@ -48,7 +49,7 @@ REF_STRING_SETTINGS_YML_MECHANICS = (
     "      global_damping: 0.33 / second\n"
     "    material:\n"
     "      myocardium: null\n"
-    "      atrium: null\n"
+    "      passive: null\n"
     "      cap: null\n"
     "    boundary_conditions:\n"
     "      robin: null\n"
@@ -211,3 +212,32 @@ def test_settings_set_defaults():
     settings = Fibers()
     settings.set_values(fibers_defaults.angles)
     assert settings.alpha_endo.m == -60
+
+
+@pytest.fixture(autouse=True)
+def default_settings():
+    settings = SimulationSettings(
+        mechanics=True, electrophysiology=False, fiber=False, purkinje=False, stress_free=False
+    )
+    settings.load_defaults()
+    return settings
+
+
+def test_load_defaults(default_settings):
+    default_settings.to_consistent_unit_system()
+
+    assert default_settings.mechanics.material.myocardium["isotropic"]["rho"].m == pytest.approx(
+        0.001, 1e-9
+    )
+
+
+def test_get_meca_material(default_settings):
+    default_settings.mechanics.material.myocardium["isotropic"]["rho"] = Quantity(8000, "kg/m^3")
+    default_settings.to_consistent_unit_system()
+
+    m1, m2 = default_settings.get_mechanical_material()
+    # test default value
+    assert m1.active.actype == 1
+    assert m2.c10 == pytest.approx(0.0349 / 2, 1e-9)
+    # test modified value
+    assert m1.rho == pytest.approx(0.008, 1e-9)

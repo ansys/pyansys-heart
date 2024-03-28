@@ -36,6 +36,7 @@ LOGGER = logging.getLogger("pyheart_global.preprocessor")
 import ansys.heart.preprocessor.mesh.connectivity as connect
 import ansys.heart.preprocessor.mesh.geodisc as geodisc
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
+from ansys.heart.simulator.settings.material.material import MechanicalMaterialModel
 import numpy as np
 
 try:
@@ -925,6 +926,9 @@ class Part:
         """If this part has fiber/sheet data."""
         self.is_active: bool = False
         """If active stress will be established."""
+
+        self.meca_material: MechanicalMaterialModel = MechanicalMaterialModel.DummyMaterial()
+        """Material model will be assiggned in Simulator."""
 
         """Cavity belonging to the part."""
         if self.part_type in ["ventricle"]:

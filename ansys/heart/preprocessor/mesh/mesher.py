@@ -30,19 +30,12 @@ import shutil
 from typing import List, Union
 
 LOGGER = logging.getLogger("pyheart_global.preprocessor")
-# from importlib.resources import files
 
-from ansys.heart.preprocessor._load_template import load_template
 import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401
 from ansys.heart.preprocessor.mesh.fluenthdf5 import FluentCellZone, FluentMesh
 from ansys.heart.preprocessor.models.v0_2.input import _InputBoundary, _InputModel
 import numpy as np
-
-# from pkg_resources import resource_filename
-import pkg_resources
 import pyvista as pv
-
-_template_directory = pkg_resources.resource_filename("ansys.heart.preprocessor", "templates")
 
 _fluent_version = "22.2.0"
 
@@ -112,13 +105,16 @@ def _organize_connected_regions(grid: pv.UnstructuredGrid, scalar: str = "part-i
             point_ids = np.array([grid1.get_cell(id).point_ids for id in orphan_cell_ids]).flatten()
 
             mask = np.isin(tets, point_ids)
-            connected_cell_id = np.argwhere(
+            connected_cell_ids = np.argwhere(
                 np.all(np.vstack([np.sum(mask, axis=1) > 1, np.sum(mask, axis=1) < 4]), axis=0)
-            )[0]
+            ).flatten()
+            unique_ids, counts = np.unique(
+                grid.cell_data["part-id"][connected_cell_ids], return_counts=True
+            )
+            if unique_ids.shape[0] > 1:
+                LOGGER.debug("More than 1 candidate.")
 
-            grid.cell_data["part-id"][orphan_cell_ids] = grid.cell_data["part-id"][
-                connected_cell_id
-            ]
+            grid.cell_data["part-id"][orphan_cell_ids] = unique_ids[np.argmax(counts)]
 
         # orphan_cell_ids += list(conn.cell_data["orig-cell-ids"][conn.cell_data["RegionId"] > 0])
 
@@ -151,6 +147,10 @@ def mesh_from_manifold_input_model(
     FluentMesh
         The volume mesh with cell and face zones.
     """
+    smooth_boundaries = False
+    fix_intersections = False
+    auto_improve_nodes = False
+
     if not isinstance(model, _InputModel):
         raise ValueError(f"Expecting input to be of type {str(_InputModel)}")
 
@@ -170,7 +170,7 @@ def mesh_from_manifold_input_model(
 
     if os.path.isdir(work_dir_meshing):
         shutil.rmtree(work_dir_meshing)
-    os.mkdir(work_dir_meshing)
+    os.makedirs(work_dir_meshing)
 
     LOGGER.debug(f"Path to meshing directory: {work_dir_meshing}")
 
@@ -207,15 +207,19 @@ def mesh_from_manifold_input_model(
     session.tui.objects.merge("'(*) heart")
     session.tui.objects.labels.create_label_per_zone("heart '(*)")
     session.tui.diagnostics.face_connectivity.fix_free_faces("objects '(*) merge-nodes yes 1e-3")
-    session.tui.diagnostics.face_connectivity.fix_self_intersections(
-        "objects '(heart) fix-self-intersection"
-    )
+
+    if fix_intersections:
+        session.tui.diagnostics.face_connectivity.fix_self_intersections(
+            "objects '(heart) fix-self-intersection"
+        )
+
     # smooth all zones
     face_zone_names = _get_face_zones_with_filter(session, "*")
 
-    for fz in face_zone_names:
-        session.tui.boundary.modify.select_zone(fz)
-        session.tui.boundary.modify.smooth()
+    if smooth_boundaries:
+        for fz in face_zone_names:
+            session.tui.boundary.modify.select_zone(fz)
+            session.tui.boundary.modify.smooth()
 
     session.tui.objects.create_intersection_loops("collectively '(*)")
     session.tui.boundary.feature.create_edge_zones("(*) fixed-angle 70 yes")
@@ -227,9 +231,10 @@ def mesh_from_manifold_input_model(
     session.tui.boundary.remesh.remesh_face_zones_conformally("'(*) '(*) 40 20 yes")
 
     # some diagnostics
-    session.tui.diagnostics.face_connectivity.fix_self_intersections(
-        "objects '(heart) fix-self-intersection"
-    )
+    if fix_intersections:
+        session.tui.diagnostics.face_connectivity.fix_self_intersections(
+            "objects '(heart) fix-self-intersection"
+        )
     session.tui.diagnostics.face_connectivity.fix_duplicate_faces("objects '(heart)")
 
     # convert to mesh object
@@ -241,7 +246,10 @@ def mesh_from_manifold_input_model(
     # start auto meshing
     session.tui.mesh.tet.controls.cell_sizing("size-field")
     session.tui.mesh.auto_mesh("heart", "yes", "pyramids", "tet", "no")
-    session.tui.mesh.modify.auto_node_move("(*)", "(*)", 0.3, 50, 120, "yes", 5)
+
+    if auto_improve_nodes:
+        session.tui.mesh.modify.auto_node_move("(*)", "(*)", 0.3, 50, 120, "yes", 5)
+
     session.tui.objects.delete_all_geom()
     session.tui.mesh.zone_names_clean_up()
     # session.tui.mesh.check_mesh()
@@ -341,7 +349,7 @@ def mesh_from_non_manifold_input_model(
 
     if os.path.isdir(work_dir_meshing):
         shutil.rmtree(work_dir_meshing)
-    os.mkdir(work_dir_meshing)
+    os.makedirs(work_dir_meshing)
 
     path_to_output_old = path_to_output
     path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
@@ -661,30 +669,6 @@ def mesh_heart_model_by_fluent(
     working_directory = path_to_stl_directory
     os.chdir(working_directory)
 
-    if add_blood_pool:
-        path_to_blood_pool_script = os.path.join(
-            _template_directory, "fluent_meshing_add_blood_mesh_template.jou"
-        )
-        f = open(path_to_blood_pool_script, "r")
-        blood_pool_script = "".join(f.readlines())
-        f.close()
-    else:
-        blood_pool_script = ""
-
-    var_for_template = {
-        "work_directory": working_directory,
-        "output_path": path_to_output,
-        "mesh_size": mesh_size,
-        "blood_pool_script": blood_pool_script,
-    }
-
-    template = load_template("fluent_meshing_template_improved_2.jou")
-
-    script = os.path.join(path_to_stl_directory, "fluent_meshing.jou")
-
-    with open(script, "w") as f:
-        f.write(template.render(var_for_template))
-
     num_cpus = 2
 
     # check whether containerized version of Fluent is used
@@ -713,7 +697,7 @@ def mesh_heart_model_by_fluent(
     path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
 
     # copy all necessary files to meshing directory
-    files_to_copy = glob.glob("part*.stl") + glob.glob("fluent_meshing.jou")
+    files_to_copy = glob.glob("part*.stl")
     for file in files_to_copy:
         shutil.copyfile(file, os.path.join(work_dir_meshing, file))
 
@@ -781,7 +765,7 @@ def mesh_heart_model_by_fluent(
         session.scheme_eval.scheme_eval(
             "(define zone-id-septum (get-face-zones-of-filter '*septum*) )"
         )
-        a = session.scheme_eval.scheme_eval(
+        session.scheme_eval.scheme_eval(
             "(define zone-ids-to-copy (append zone-ids-endo zone-id-septum) )"
         )
         session.scheme_eval.scheme_eval(
@@ -838,8 +822,6 @@ def mesh_heart_model_by_fluent(
     session.exit()
 
     shutil.copy(path_to_output, path_to_output_old)
-
-    # shutil.rmtree(work_dir_meshing)
 
     # change back to old directory
     os.chdir(old_directory)

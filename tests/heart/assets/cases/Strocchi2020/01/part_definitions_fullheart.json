@@ -1,0 +1,103 @@
+{
+ "Left ventricle": {
+  "id": 1,
+  "enclosed_by_boundaries": {
+   "interface_left-ventricle-myocardium_right-ventricle-myocardium": 25,
+   "interface_left-ventricle-myocardium_left-atrium-myocardium": 26,
+   "interface_left-ventricle-myocardium_right-atrium-myocardium": 27,
+   "interface_left-ventricle-myocardium_aorta-wall": 28,
+   "interface_left-ventricle-myocardium_mitral-valve-plane": 29,
+   "interface_left-ventricle-myocardium_aortic-valve-plane": 30,
+   "left-ventricle-endocardium": 67,
+   "left-ventricle-epicardium": 68,
+   "right-ventricle-septum": 66
+  }
+ },
+ "Right ventricle": {
+  "id": 2,
+  "enclosed_by_boundaries": {
+   "interface_left-ventricle-myocardium_right-ventricle-myocardium": 25,
+   "interface_right-ventricle-myocardium_right-atrium-myocardium": 31,
+   "interface_right-ventricle-myocardium_aorta-wall": 32,
+   "interface_right-ventricle-myocardium_pulmonary-artery-wall": 33,
+   "interface_right-ventricle-myocardium_tricuspid-valve-plane": 34,
+   "interface_right-ventricle-myocardium_pulmonary-valve-plane": 35,
+   "right-ventricle-endocardium": 69,
+   "right-ventricle-epicardium": 70
+  }
+ },
+ "Left atrium": {
+  "id": 3,
+  "enclosed_by_boundaries": {
+   "interface_left-ventricle-myocardium_left-atrium-myocardium": 26,
+   "interface_left-atrium-myocardium_right-atrium-myocardium": 36,
+   "interface_left-atrium-myocardium_aorta-wall": 37,
+   "interface_left-atrium-myocardium_left-atrial-appendage-border": 38,
+   "interface_left-atrium-myocardium_left-superior-pulmonary-vein-border": 39,
+   "interface_left-atrium-myocardium_left-inferior-pulmonary-vein-border": 40,
+   "interface_left-atrium-myocardium_right-inferior-pulmonary-vein-border": 41,
+   "interface_left-atrium-myocardium_right-superior-pulmonary-vein-border": 42,
+   "interface_left-atrium-myocardium_superior-vena-cava-border": 43,
+   "interface_left-atrium-myocardium_mitral-valve-plane": 44,
+   "interface_left-atrium-myocardium_left-atrium-appendage-inlet": 45,
+   "interface_left-atrium-myocardium_left-superior-pulmonary-vein-inlet": 46,
+   "interface_left-atrium-myocardium_left-inferior-pulmonary-vein-inlet": 47,
+   "interface_left-atrium-myocardium_right-inferior-pulmonary-vein-inlet": 48,
+   "interface_left-atrium-myocardium_right-superior-pulmonary-vein-inlet": 49,
+   "interface_left-atrial-appendage-border_left-atrium-appendage-inlet": 59,
+   "left-atrium-endocardium": 71,
+   "left-atrium-epicardium": 72,
+   "left-atrial-appendage-border": 7,
+   "left-superior-pulmonary-vein-border": 8,
+   "interface_left-superior-pulmonary-vein-border_left-superior-pulmonary-vein-inlet": 60,
+   "left-inferior-pulmonary-vein-border": 9,
+   "interface_left-inferior-pulmonary-vein-border_left-inferior-pulmonary-vein-inlet": 61,
+   "right-inferior-pulmonary-vein-border": 10,
+   "interface_right-inferior-pulmonary-vein-border_right-inferior-pulmonary-vein-inlet": 62,
+   "right-superior-pulmonary-vein-border": 11,
+   "interface_right-superior-pulmonary-vein-border_right-superior-pulmonary-vein-inlet": 63
+  }
+ },
+ "Right atrium": {
+  "id": 4,
+  "enclosed_by_boundaries": {
+   "interface_left-ventricle-myocardium_right-atrium-myocardium": 27,
+   "interface_right-ventricle-myocardium_right-atrium-myocardium": 31,
+   "interface_left-atrium-myocardium_right-atrium-myocardium": 36,
+   "interface_right-atrium-myocardium_aorta-wall": 50,
+   "interface_right-atrium-myocardium_superior-vena-cava-border": 51,
+   "interface_right-atrium-myocardium_inferior-vena-cava-border": 52,
+   "interface_right-atrium-myocardium_tricuspid-valve-plane": 53,
+   "interface_right-atrium-myocardium_superior-vena-cava-inlet": 54,
+   "interface_right-atrium-myocardium_inferior-vena-cava-inlet": 55,
+   "right-atrium-endocardium": 73,
+   "right-atrium-epicardium": 74,
+   "superior-vena-cava-border": 12,
+   "interface_left-atrium-myocardium_superior-vena-cava-border": 43,
+   "interface_superior-vena-cava-border_superior-vena-cava-inlet": 64,
+   "inferior-vena-cava-border": 13,
+   "interface_inferior-vena-cava-border_inferior-vena-cava-inlet": 65
+  }
+ },
+ "Aorta": {
+  "id": 5,
+  "enclosed_by_boundaries": {
+   "aorta-wall": 5,
+   "interface_left-ventricle-myocardium_aorta-wall": 28,
+   "interface_right-ventricle-myocardium_aorta-wall": 32,
+   "interface_left-atrium-myocardium_aorta-wall": 37,
+   "interface_right-atrium-myocardium_aorta-wall": 50,
+   "interface_aorta-wall_pulmonary-artery-wall": 56,
+   "interface_aorta-wall_aortic-valve-plane": 57
+  }
+ },
+ "Pulmonary artery": {
+  "id": 6,
+  "enclosed_by_boundaries": {
+   "pulmonary-artery-wall": 6,
+   "interface_right-ventricle-myocardium_pulmonary-artery-wall": 33,
+   "interface_aorta-wall_pulmonary-artery-wall": 56,
+   "interface_pulmonary-artery-wall_pulmonary-valve-plane": 58
+  }
+ }
+}

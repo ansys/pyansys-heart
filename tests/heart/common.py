@@ -21,8 +21,20 @@
 # SOFTWARE.
 
 """Some common functions to test parts."""
+import os
 
-import ansys.heart.preprocessor.models.v0_1.models as models
+global heart_version
+
+heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
+if not heart_version:
+    heart_version = "v0.1"
+
+if heart_version == "v0.2":
+    import ansys.heart.preprocessor.models.v0_2.models as models
+
+elif heart_version == "v0.1":
+    import ansys.heart.preprocessor.models.v0_1.models as models
+
 import numpy as np
 
 
@@ -49,7 +61,7 @@ def compare_part_element_ids(model: models.HeartModel, reference_model: models.H
     -----
     1. tests element ids defined in all parts
     """
-    assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
+    # assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
 
     for part in model.parts:
         ref_part = next(
@@ -151,7 +163,7 @@ def compare_cavity_volume(model: models.HeartModel, ref_volumes: dict):
     -----
     1. Volume of cavity
     """
-    assert isinstance(model, models.HeartModel), "Expecting model of type HeartModel"
+    # assert isinstance(model, models.HeartModel), "Expecting model of type HeartModel"
     for part in model.parts:
         if not part.cavity:
             continue

@@ -45,6 +45,11 @@ from importlib.resources import path as resource_path
 
 from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
+from ansys.heart.simulator.settings.material.material import (
+    MAT295,
+    MechanicalMaterialModel,
+    NeoHookean,
+)
 
 global heart_version
 heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
@@ -67,7 +72,6 @@ elif heart_version == "v0.1":
         HeartModel,
         LeftVentricle,
     )
-
 
 from ansys.heart.simulator.settings.settings import SimulationSettings
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
@@ -180,6 +184,20 @@ class BaseDynaWriter:
 
         self.settings.to_consistent_unit_system()
         self._check_settings()
+
+        # assign material for part if it's empty
+        myocardium, neohookean = self.settings.get_mechanical_material()
+        for part in self.model.parts:
+            if isinstance(part.meca_material, MechanicalMaterialModel.DummyMaterial):
+                LOGGER.info(f"Material of {part.name} will be assigned automatically.")
+                if part.has_fiber:
+                    if part.is_active:
+                        part.meca_material = myocardium
+                    else:
+                        part.meca_material = copy.deepcopy(myocardium)
+                        part.meca_material.active = None
+                elif not part.has_fiber:
+                    part.meca_material = neohookean
 
         if "Improved" in self.model.info.model_type:
             LOGGER.warning(
@@ -1076,75 +1094,41 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self.kw_database.node_sets.extend(kws_surface)
 
     def _update_material_db(self, add_active: bool = True, em_couple: bool = False):
-        """Update the database of material keywords."""
-        act_curve_id = self.get_unique_curve_id()
-
-        material_settings = copy.deepcopy(self.settings.mechanics.material)
-        # NOTE: since we remove units, we don't have to access quantities by <var_name>.m
-        material_settings._remove_units()
-
-        if not add_active:
-            active_dict = None
-        else:
-            if em_couple:
-                # TODO: hard coded EM coupling parameters
-                active_dict = {
-                    "actype": 3,
-                    "acthr": 2e-4,
-                    "ca2ion50": 1e-3,
-                    "n": 2,
-                    "sigmax": 0.08,
-                    "f": 0,
-                    "l": 1.9,
-                    "eta": 1.45,
-                }
-            else:
-                active_dict = material_settings.myocardium["active"]
-
         for part in self.model.parts:
-            if part.has_fiber:
-                if part.is_active:
-                    material_kw = MaterialHGOMyocardium(
-                        mid=part.mid,
-                        iso_user=material_settings.myocardium["isotropic"],
-                        anisotropy_user=material_settings.myocardium["anisotropic"],
-                        active_user=active_dict,
+            material = part.meca_material
+
+            if isinstance(material, MAT295):
+                if material.active is not None:
+                    # obtain ca2+ curve
+                    x, y = material.active.ca2_curve.dyna_input
+
+                    cid = self.get_unique_curve_id()
+                    curve_kw = create_define_curve_kw(
+                        x=x,
+                        y=y,
+                        curve_name=f"ca2+ of {part.name}",
+                        curve_id=cid,
+                        lcint=10000,
                     )
 
-                    if not em_couple:
-                        material_kw.acid = act_curve_id
+                    # curve is written even if not used
+                    self.kw_database.material.append(curve_kw)
+                    # assign curve id
+                    material.active.acid = cid if not em_couple else None
 
-                else:
-                    material_kw = MaterialHGOMyocardium(
-                        mid=part.mid,
-                        iso_user=material_settings.myocardium["isotropic"],
-                        anisotropy_user=material_settings.myocardium["anisotropic"],
-                        active_user=None,
-                    )
+                material_kw = MaterialHGOMyocardium(
+                    id=part.mid, mat=material, ignore_active=not add_active
+                )
 
-            else:
-                # add isotropic material
-                if material_settings.passive["type"] == "NeoHook":
-                    # use MAT77H
-                    material_kw = MaterialNeoHook(
-                        mid=part.mid,
-                        rho=material_settings.passive["rho"],
-                        c10=material_settings.passive["mu1"] / 2,
-                    )
-                else:
-                    # use MAT295, should have the same behavior
-                    material_kw = MaterialHGOMyocardium(
-                        mid=part.mid, iso_user=dict(material_settings.passive)
-                    )
+                self.kw_database.material.append(material_kw)
 
-            self.kw_database.material.append(material_kw)
-
-        # Add Ca2+ curve if necessary
-        if add_active and not em_couple:
-            kw = self.add_active_curve(act_curve_id, material_settings)
-            self.kw_database.material.append(kw)
-
-        return
+            elif isinstance(material, NeoHookean):
+                material_kw = MaterialNeoHook(
+                    mid=part.mid,
+                    rho=material.rho,
+                    c10=material.c10,
+                )
+                self.kw_database.material.append(material_kw)
 
     @staticmethod
     def add_active_curve(act_curve_id, material_settings):

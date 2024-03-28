@@ -51,6 +51,8 @@ extensions = [
     "sphinx_gallery.gen_gallery",
     "sphinxcontrib.video",
     "sphinx_design",
+    "sphinx_jinja",
+    "sphinx.ext.autodoc",
 ]
 
 sphinx_gallery_conf = {
@@ -138,3 +140,15 @@ autoapi_own_page_level = "class"
 
 typehints_defaults = "comma"
 simplify_optional_unions = False
+
+def prepare_jinja_env(jinja_env) -> None:
+    """
+    Customize the jinja env.
+    Notes
+    -----
+    See https://jinja.palletsprojects.com/en/3.0.x/api/#jinja2.Environment
+    """
+    jinja_env.globals["project_name"] = project
+
+
+autoapi_prepare_jinja_env = prepare_jinja_env

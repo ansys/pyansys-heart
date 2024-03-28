@@ -36,7 +36,9 @@ import os
 from pathlib import Path
 from typing import List, Union
 
-from ansys.heart.custom_logging import LOGGER
+from ansys.heart.core.logger import Logger
+
+LOGGER = Logger()
 from ansys.heart.preprocessor.mesh.vtkmethods import add_solid_name_to_stl
 import numpy as np
 import pyvista as pv

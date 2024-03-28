@@ -141,12 +141,15 @@ autoapi_own_page_level = "class"
 typehints_defaults = "comma"
 simplify_optional_unions = False
 
+
 def prepare_jinja_env(jinja_env) -> None:
     """
     Customize the jinja env.
+
     Notes
     -----
     See https://jinja.palletsprojects.com/en/3.0.x/api/#jinja2.Environment
+
     """
     jinja_env.globals["project_name"] = project
 

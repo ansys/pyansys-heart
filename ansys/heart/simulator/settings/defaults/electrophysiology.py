@@ -27,7 +27,7 @@ material = {
         "lambda": Quantity(0.2, "dimensionless"),
     },
     "beam": {
-        "sigma": Quantity(10, "mS/mm"),  # mS/mm
+        "sigma": Quantity(1, "mS/mm"),  # mS/mm
         "beta": Quantity(140, "1/mm"),
         "cm": Quantity(0.01, "uF/mm^2"),  # uF/mm^2
         "lambda": Quantity(0.2, "dimensionless"),

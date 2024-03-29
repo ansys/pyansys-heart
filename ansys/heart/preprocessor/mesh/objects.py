@@ -937,6 +937,34 @@ class Part:
         self.septum = Part(name="septum", part_type="septum")
         return
 
+
+def _create_line(point_start: np.array, point_end: np.array, beam_length: float):
+    """Create points in a line defined by a start point and an end point.
+
+    Parameters
+    ----------
+    point_start : np.array
+        Start Point.
+    point_end : np.array
+        End point.
+    beam_length : float
+        Beam length.
+
+    Returns
+    -------
+    points:
+        List of created points.
+    """
+    line_vector = point_end - point_start
+    line_length = np.linalg.norm(line_vector)
+    n_points = int(np.round(line_length / beam_length)) + 1
+    points = np.zeros([n_points, 3])
+    # beams = np.zeros([n_points - 1, 2])
+    points = np.linspace(point_start, point_end, n_points)
+    # beams[:, 0] = np.linspace(0, n_points - 2, n_points - 1, dtype=int)
+    # beams[:, 1] = np.linspace(0, n_points - 2, n_points - 1, dtype=int) + 1
+    return points
+
     # def get_mesh(self, mesh: Mesh = None) -> Mesh:
     #     tets: np.ndarray = mesh.tetrahedrons
     #     tets = tets[self.element_ids :]

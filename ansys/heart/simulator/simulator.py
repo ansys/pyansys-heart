@@ -17,6 +17,9 @@ import shutil
 import subprocess
 from typing import List, Literal
 
+from ansys.heart.preprocessor.mesh.objects import Part
+from ansys.heart.simulator.settings.material.material import NeoHookean
+
 LOGGER = logging.getLogger("pyheart_global.simulator")
 from ansys.heart.misc.element_orth import read_orth_element_kfile
 from ansys.heart.postprocessor.auto_process import (
@@ -492,6 +495,44 @@ class MechanicsSimulator(BaseSimulator):
         """A dictionary save stress free computation information"""
 
         return
+
+    def create_stiff_ventricle_base(
+        self, threshold: float = 0.9, stiff_material=NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+    ) -> Part:
+        """Create a stiff base part from uvc longitudinal value.
+
+        Parameters
+        ----------
+        threshold : float, optional
+            uvc_l larger than threshold will be set as stiff base, by default 0.9
+        stiff_material : _type_, optional
+            material to assign, by default NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+
+        Returns
+        -------
+        Part
+            stiff base part
+        """
+        try:
+            v = self.model.mesh.point_data_to_cell_data()["apico-basal"]
+        except:
+            self.compute_uhc()
+            v = self.model.mesh.point_data_to_cell_data()["apico-basal"]
+
+        eids = np.intersect1d(np.where(v > threshold)[0], self.model.left_ventricle.element_ids)
+        if not isinstance(self.model, LeftVentricle):
+            # uvc-L of RV is generally smaller, *1.05 to be comparable with LV
+            eid_r = np.intersect1d(
+                np.where(v > threshold * 1.05)[0], self.model.right_ventricle.element_ids
+            )
+            eids = np.hstack((eids, eid_r))
+
+        part: Part = self.model.create_part_by_ids(eids, "base")
+        part.has_fiber = False
+        part.is_active = False
+        part.meca_material = stiff_material
+
+        return part
 
     def simulate(self, folder_name="main-mechanics", zerop_folder=None, auto_post=True):
         """

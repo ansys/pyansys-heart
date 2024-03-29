@@ -85,7 +85,7 @@ material = {
         "type": "NeoHook",  # or 'MAT295'
         "rho": Quantity(0.001, "g/mm^3"),
         "itype": -1,
-        "mu1": Quantity(0.0349, "MPa"),
+        "mu1": Quantity(0.1, "MPa"),
         "alpha1": 2,
     },
     # null cap: center node is fixed

@@ -3773,6 +3773,165 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         return
 
 
+class ElectrophysiologyBeamsDynaWriter(ElectrophysiologyDynaWriter):
+    """Class for preparing the input for an Electrophysiology LS-DYNA simulation with beams only."""
+
+    def __init__(self, model: HeartModel, settings: SimulationSettings = None) -> None:
+        super().__init__(model=model, settings=settings)
+        self.kw_database = ElectrophysiologyDecks()
+        """Collection of keywords relevant for Electrophysiology."""
+
+    def update(self):
+        """Update keyword database for Electrophysiology."""
+        # self._isolate_atria_and_ventricles()
+
+        ##
+        self._update_main_db()
+        self._update_solution_controls()
+        self._update_export_controls()
+
+        self._update_node_db()
+
+        if self.model.beam_network:
+            # with smcoupl=1, coupling is disabled
+            self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
+            self._update_use_Purkinje()
+
+        # update ep settings
+        self._update_ep_settings()
+        self._update_stimulation()
+
+        self._get_list_of_includes()
+        self._add_includes()
+
+        return
+
+    def _update_use_Purkinje(self):
+        """Update keywords for Purkinje usage."""
+        sid = self.get_unique_section_id()
+        self.kw_database.beam_networks.append(keywords.SectionBeam(secid=sid, elform=3, a=645))
+
+        if self.__class__.__name__ == "ElectroMechanicsDynaWriter":
+            # id offset due to cap center nodes
+            beam_node_id_offset = len(self.model.cap_centroids)
+            # id offset due to spring type elements
+            beam_elem_id_offset = self.id_offset["element"]["discrete"]
+        else:
+            beam_node_id_offset = 0
+            beam_elem_id_offset = 0  # no beam elements introduced before
+
+        # write beam nodes
+
+        # Note: the las beam_network saves all bam nodes
+        new_nodes = self.model.beam_network[-1]._all_beam_nodes
+        ids = (
+            np.linspace(
+                len(self.model.mesh.nodes),
+                len(self.model.mesh.nodes) + len(new_nodes) - 1,
+                len(new_nodes),
+                dtype=int,
+            )
+            + 1  # dyna start by 1
+            + beam_node_id_offset  # apply node offset
+        )
+        nodes_table = np.hstack((ids.reshape(-1, 1), new_nodes))
+        kw = add_nodes_to_kw(nodes_table, keywords.Node())
+        self.kw_database.beam_networks.append(kw)
+
+        for network in self.model.beam_network:
+            ## TODO do not write His Bundle when coupling, it leads to crash
+            if self.__class__.__name__ == "ElectroMechanicsDynaWriter" and network.name == "His":
+                continue
+
+            # It is previously defined from purkinje generation step
+            # but needs to reassign part ID here
+            # to make sure no conflict with 4C/full heart case.
+            network.pid = self.get_unique_part_id()
+
+            if network.name == "Left-purkinje":
+                network.nsid = self.model.left_ventricle.endocardium.id
+            elif network.name == "Right-purkinje":
+                network.nsid = self.model.right_ventricle.endocardium.id
+            elif network.name == "SAN_to_AVN":
+                network.nsid = self.model.right_atrium.endocardium.id
+            elif network.name == "Left bundle branch":
+                network.nsid = self.model.left_ventricle.cavity.surface.id
+            elif network.name == "Right bundle branch":
+                network.nsid = self.model.right_ventricle.cavity.surface.id
+            # His bundle is inside of surface, no segment will associated
+            elif network.name == "His":
+                network.nsid = -1
+            else:
+                LOGGER.error(f"Unknown network name for {network.name}.")
+                exit()
+            network.nsid = -1
+            # write
+            self.kw_database.beam_networks.append(f"$$ {network.name} $$")
+
+            origin_coordinates = network.nodes[network.edges[0, 0]]
+            self.kw_database.beam_networks.append(
+                custom_keywords.EmEpPurkinjeNetwork2(
+                    purkid=network.pid,
+                    buildnet=0,
+                    ssid=network.nsid,
+                    mid=network.pid,
+                    pointstx=origin_coordinates[0],
+                    pointsty=origin_coordinates[1],
+                    pointstz=origin_coordinates[2],
+                    edgelen=self.settings.purkinje.edgelen.m,
+                    ngen=self.settings.purkinje.ngen.m,
+                    nbrinit=self.settings.purkinje.nbrinit.m,
+                    nsplit=self.settings.purkinje.nsplit.m,
+                    pmjtype=self.settings.purkinje.pmjtype.m,
+                    pmjradius=self.settings.purkinje.pmjradius.m,
+                    pmjrestype=self.settings.electrophysiology.material.beam["pmjrestype"].m,
+                    pmjres=self.settings.electrophysiology.material.beam["pmjres"].m,
+                )
+            )
+
+            part_df = pd.DataFrame(
+                {
+                    "heading": [network.name],
+                    "pid": [network.pid],
+                    "secid": [sid],
+                    "mid": [network.pid],
+                }
+            )
+            part_kw = keywords.Part()
+            part_kw.parts = part_df
+            self.kw_database.beam_networks.append(part_kw)
+            self.kw_database.beam_networks.append(keywords.MatNull(mid=network.pid, ro=1e-11))
+            beam_material = self.settings.electrophysiology.material.beam
+            self.kw_database.beam_networks.append(
+                custom_keywords.EmMat001(
+                    mid=network.pid,
+                    mtype=2,
+                    sigma=beam_material["sigma"].m,
+                    beta=beam_material["beta"].m,
+                    cm=beam_material["cm"].m,
+                )
+            )
+
+            # cell model
+            # use endo property
+            self._add_Tentusscher_keyword_endo(matid=network.pid)
+
+            # mesh
+            # apply offset for beam connectivity
+            connect = network.edges
+            connect[network.beam_nodes_mask] += beam_node_id_offset
+
+            beams_kw = keywords.ElementBeam()
+            beams_kw = add_beams_to_kw(
+                beams=connect + 1,
+                beam_kw=beams_kw,
+                pid=network.pid,
+                offset=beam_elem_id_offset,
+            )
+            beam_elem_id_offset += len(network.edges)
+            self.kw_database.beam_networks.append(beams_kw)
+
+
 class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWriter):
     """Class for preparing the input for LS-DYNA electromechanical simulation."""
 

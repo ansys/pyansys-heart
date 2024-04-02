@@ -1089,10 +1089,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
                         lcint=10000,
                     )
 
-                    # curve is written even if not used
-                    self.kw_database.material.append(curve_kw)
-                    # assign curve id
-                    material.active.acid = cid if not em_couple else None
+                    if not em_couple:
+                        self.kw_database.material.append(curve_kw)
+                        material.active.acid = cid
 
                 material_kw = MaterialHGOMyocardium(
                     id=part.mid, mat=material, ignore_active=not add_active

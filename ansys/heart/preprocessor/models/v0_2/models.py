@@ -1080,13 +1080,13 @@ class HeartModel:
 
         return
 
-    def _assign_caps_to_parts(self, unique_mitral_tricuspid_valve=True) -> None:
+    def _assign_caps_to_parts(self, join_ventricles_with_atria: bool =False) -> None:
         """Use connectivity to obtain cap boundaries and add these to their respective parts.
 
         Parameters
         ----------
-        unique_mitral_tricuspid_valve : bool, optional
-            Unique mitral/tricuspid valve defined, by default True
+        join_ventricles_with_atria : bool, optional
+            Flag indicating whether to join the ventricle with atrial cavities, by default False
         """
         used_boundary_surface_names = [s.name for p in self.parts for s in p.surfaces]
         remaining_surfaces = list(set(self.mesh.boundary_names) - set(used_boundary_surface_names))
@@ -1170,44 +1170,45 @@ class HeartModel:
                             break
 
         # replace caps of atria by caps of ventricle
-        for part in self.parts:
-            if not "atrium" in part.name:
-                continue
-            for cap in part.caps:
-                # replace with cap in ventricle
-                cap_ref = [
-                    c
-                    for p in self.parts
-                    if "ventricle" in p.name
-                    for c in p.caps
-                    if c.name == cap.name
-                ]
-                if len(cap_ref) == 1:
-                    LOGGER.debug(
-                        "Replacing cap {0} of part{1}: with that of the ventricle".format(
-                            cap.name, part.name
+        if join_ventricles_with_atria:
+            for part in self.parts:
+                if not "atrium" in part.name:
+                    continue
+                for cap in part.caps:
+                    # replace with cap in ventricle
+                    cap_ref = [
+                        c
+                        for p in self.parts
+                        if "ventricle" in p.name
+                        for c in p.caps
+                        if c.name == cap.name
+                    ]
+                    if len(cap_ref) == 1:
+                        LOGGER.debug(
+                            "Replacing cap {0} of part{1}: with that of the ventricle".format(
+                                cap.name, part.name
+                            )
                         )
-                    )
-                    # note: flip order to make sure normal is pointing inwards
-                    cap.node_ids = np.flip(cap_ref[0].node_ids)
-                    cap.centroid = cap_ref[0].centroid
-                    cap.centroid_id = cap_ref[0].centroid_id
-                    cap.tessellate1(use_centroid=True)
+                        # note: flip order to make sure normal is pointing inwards
+                        cap.node_ids = np.flip(cap_ref[0].node_ids)
+                        cap.centroid = cap_ref[0].centroid
+                        cap.centroid_id = cap_ref[0].centroid_id
+                        cap.tessellate1(use_centroid=True)
 
-        # As a consequence we need to add interface region to endocardium of atria or ventricle
-        # current approach is to add these to the atria
-        for part in self.parts:
-            if "Left atrium" in part.name:
-                interface_name = "mitral-valve-plane"
-            elif "Right atrium" in part.name:
-                interface_name = "tricuspid-valve-plane"
-            else:
-                continue
-            interfaces = [s for s in remaining_surfaces1 if interface_name in s.name]
-            endocardium = next(s for s in part.surfaces if "endocardium" in s.name)
-            # append interface faces to endocardium
-            for interface in interfaces:
-                endocardium.triangles = np.vstack([endocardium.triangles, interface.triangles])
+            # As a consequence we need to add interface region to endocardium of atria or ventricle
+            # current approach is to add these to the atria
+            for part in self.parts:
+                if "Left atrium" in part.name:
+                    interface_name = "mitral-valve-plane"
+                elif "Right atrium" in part.name:
+                    interface_name = "tricuspid-valve-plane"
+                else:
+                    continue
+                interfaces = [s for s in remaining_surfaces1 if interface_name in s.name]
+                endocardium = next(s for s in part.surfaces if "endocardium" in s.name)
+                # append interface faces to endocardium
+                for interface in interfaces:
+                    endocardium.triangles = np.vstack([endocardium.triangles, interface.triangles])
 
         return
 

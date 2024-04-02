@@ -4116,7 +4116,8 @@ class UHCWriter(BaseDynaWriter):
                 part.caps = []
                 for surface in part.surfaces:
                     surface.edge_groups = []
-            model.cap_centroids = []
+            if heart_version == "v0.1":
+                model.cap_centroids = []
             model._assign_surfaces_to_parts()
             model._assign_caps_to_parts(unique_mitral_tricuspid_valve=False)
 

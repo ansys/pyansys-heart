@@ -278,7 +278,7 @@ def orthogonalization(grid) -> pv.UnstructuredGrid:
 def get_gradient(directory, field_list: List[str]) -> pv.UnstructuredGrid:
     """Read thermal fields from d3plot and compute gradient."""
     data = D3plotReader(os.path.join(directory, field_list[0] + ".d3plot"))
-    grid: pv.UnstructuredGrid  = data.model.metadata.meshed_region.grid
+    grid: pv.UnstructuredGrid = data.model.metadata.meshed_region.grid
 
     for name in field_list:
         data = D3plotReader(os.path.join(directory, name + ".d3plot"))

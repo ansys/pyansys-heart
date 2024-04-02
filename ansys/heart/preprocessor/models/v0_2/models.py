@@ -1080,7 +1080,7 @@ class HeartModel:
 
         return
 
-    def _assign_caps_to_parts(self, join_ventricles_with_atria: bool =False) -> None:
+    def _assign_caps_to_parts(self, join_ventricles_with_atria: bool = False) -> None:
         """Use connectivity to obtain cap boundaries and add these to their respective parts.
 
         Parameters

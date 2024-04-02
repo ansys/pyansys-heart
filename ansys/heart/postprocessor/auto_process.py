@@ -278,7 +278,7 @@ def orthogonalization(grid) -> pv.UnstructuredGrid:
 def get_gradient(directory, field_list: List[str]) -> pv.UnstructuredGrid:
     """Read thermal fields from d3plot and compute gradient."""
     data = D3plotReader(os.path.join(directory, field_list[0] + ".d3plot"))
-    grid = data.model.metadata.meshed_region.grid
+    grid: pv.UnstructuredGrid  = data.model.metadata.meshed_region.grid
 
     for name in field_list:
         data = D3plotReader(os.path.join(directory, name + ".d3plot"))
@@ -291,8 +291,8 @@ def get_gradient(directory, field_list: List[str]) -> pv.UnstructuredGrid:
             LOGGER.error("Failed to read d3plot.")
             exit()
 
-        grid[name] = t
-        # grid.set_active_scalars(name)
+        # force a deep copy
+        grid.point_data[name] = copy.deepcopy(t)
 
     # note vtk gradient method shows warning/error for some cells
     grid2 = grid.point_data_to_cell_data()

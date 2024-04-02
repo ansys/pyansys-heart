@@ -4062,7 +4062,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 class UHCWriter(BaseDynaWriter):
     """Universal Heart Coordinate Writer."""
 
-    def __init__(self, model, type: Literal["uvc", "la_fiber", "ra_fiber"], **kwargs):
+    def __init__(self, model: HeartModel, type: Literal["uvc", "la_fiber", "ra_fiber"], **kwargs):
         """
         Write thermal input to set up a Laplace dirichlet problem.
 
@@ -4119,7 +4119,10 @@ class UHCWriter(BaseDynaWriter):
             if heart_version == "v0.1":
                 model.cap_centroids = []
             model._assign_surfaces_to_parts()
-            model._assign_caps_to_parts(unique_mitral_tricuspid_valve=False)
+            if heart_version == "v0.1":
+                model._assign_caps_to_parts(unique_mitral_tricuspid_valve=False)
+            elif heart_version == "v0.2":
+                model._assign_caps_to_parts()
 
             self._keep_parts(parts_to_keep)
             model.mesh.clear_data()

@@ -83,8 +83,6 @@ def Kumaraswamy_active(t_end=1000) -> tuple[np.ndarray, np.ndarray]:
 def constant_ca2(tb: float = 800, ca2ionm: float = 4.35) -> tuple[np.ndarray, np.ndarray]:
     """Constant ca2 curve for Active model 1.
 
-    First and last value set to 0 for crossing threshold at each beat
-
     Parameters
     ----------
     tb : float, optional
@@ -99,8 +97,11 @@ def constant_ca2(tb: float = 800, ca2ionm: float = 4.35) -> tuple[np.ndarray, np
     """
     t = np.linspace(0, tb, 101)
     v = np.ones((101)) * ca2ionm
+    # set to 0 so across threshold at start of beat
     v[0:1] = 0
-    v[-1:] = 0
+    # set to below threshold at the last 95% of period
+    # eg. active stress will be disabled at 760ms with tb of 800ms
+    v[-5:] = 0
     return (t, v)
 
 

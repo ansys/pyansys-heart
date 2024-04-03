@@ -1,5 +1,4 @@
 """D3plot parser using Ansys-dpf."""
-from math import ceil
 import os
 import pathlib as Path
 

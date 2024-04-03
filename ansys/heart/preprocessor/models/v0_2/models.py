@@ -237,6 +237,10 @@ class HeartModel:
 
         return
 
+    def __repr__(self):
+        """Represent self as string."""
+        return yaml.dump(self.summary(), sort_keys=False)
+
     def create_part_by_ids(self, eids: List[int], name: str) -> Union[None, Part]:
         """Create a new part by element ids.
 
@@ -508,6 +512,13 @@ class HeartModel:
                     delattr(self, key)
                     return
         return
+
+    def summary(self) -> dict:
+        """Get summary information of the model as a ditionary."""
+        from ansys.heart.preprocessor.helpers import model_summary
+
+        summary = model_summary(self)
+        return summary
 
     def print_info(self) -> None:
         """Print information about the model."""

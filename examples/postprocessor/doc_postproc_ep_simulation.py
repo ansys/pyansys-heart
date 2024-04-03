@@ -46,6 +46,10 @@ ECGs, times = postproc.read_ECGs(
 
 ECGs12 = postproc.compute_12_lead_ECGs(ECGs=ECGs, times=times, plot=True)
 
+###############################################################################
+# .. image:: /_static/images/ep_post_12LeadECGs.png
+#   :width: 300pt
+#   :align: center
 
 ###############################################################################
 # Activation times

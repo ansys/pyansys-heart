@@ -232,6 +232,7 @@ class EPpostprocessor:
         -------
         np.ndarray
             12-Lead ECGs in this order:
+            "I" "II" "III" "aVR" "aVL" "aVF" "V1" "V2" "V3" "V4" "V5" "V6"
         """
         RA = ECGs[:, 6]
         LA = ECGs[:, 7]
@@ -253,48 +254,45 @@ class EPpostprocessor:
         LA = ECGs[:, 7] - Vwct
         # RL = ECGs[8, :] - Vwct
         LL = ECGs[:, 9] - Vwct
-        ECGs = np.vstack((I, II, III, aVR, aVL, aVF, V1, V2, V3, V4, V5, V6))
+        ECGs12 = np.vstack((I, II, III, aVR, aVL, aVF, V1, V2, V3, V4, V5, V6))
         if plot:
             t = times
-            plt.subplot(3, 4, 1)
-            plt.plot(t, I)
-            plt.ylabel("I")
-            plt.subplot(3, 4, 5)
-            plt.plot(t, II)
-            plt.ylabel("II")
-            plt.subplot(3, 4, 9)
-            plt.plot(t, III)
-            plt.ylabel("III")
-            plt.subplot(3, 4, 2)
-            plt.plot(t, aVR)
-            plt.ylabel("aVR")
-            plt.subplot(3, 4, 6)
-            plt.plot(t, aVL)
-            plt.ylabel("aVL")
-            plt.subplot(3, 4, 10)
-            plt.plot(t, aVF)
-            plt.ylabel("aVF")
-            plt.subplot(3, 4, 3)
-            plt.plot(t, V1)
-            plt.ylabel("V1")
-            plt.subplot(3, 4, 7)
-            plt.plot(t, V2)
-            plt.ylabel("V2")
-            plt.subplot(3, 4, 11)
-            plt.plot(t, V3)
-            plt.ylabel("V3")
-            plt.subplot(3, 4, 4)
-            plt.plot(t, V4)
-            plt.ylabel("V4")
-            plt.subplot(3, 4, 8)
-            plt.plot(t, V5)
-            plt.ylabel("V5")
-            plt.subplot(3, 4, 12)
-            plt.plot(t, V6)
-            plt.ylabel("V6")
+            fig, axes = plt.subplots(nrows=3, ncols=4, layout="tight")
+            axes[0, 0].plot(t, I)
+            axes[0, 0].set_ylabel("I")
+            axes[1, 0].plot(t, II)
+            axes[1, 0].set_ylabel("II")
+            axes[2, 0].plot(t, III)
+            axes[2, 0].set_ylabel("III")
+            axes[0, 1].plot(t, aVR)
+            axes[0, 1].set_ylabel("aVR")
+            axes[1, 1].plot(t, aVL)
+            axes[1, 1].set_ylabel("aVL")
+            axes[2, 1].plot(t, aVF)
+            axes[2, 1].set_ylabel("aVF")
+            axes[0, 2].plot(t, V1)
+            axes[0, 2].set_ylabel("V1")
+            axes[1, 2].plot(t, V2)
+            axes[1, 2].set_ylabel("V2")
+            axes[2, 2].plot(t, V3)
+            axes[2, 2].set_ylabel("V3")
+            axes[0, 3].plot(t, V4)
+            axes[0, 3].set_ylabel("V4")
+            axes[1, 3].plot(t, V5)
+            axes[1, 3].set_ylabel("V5")
+            axes[2, 3].plot(t, V6)
+            axes[2, 3].set_ylabel("V6")
+            plt.setp(plt.gcf().get_axes(), xticks=[0, 200, 400, 600, 800], yticks=[])
+            fig.add_subplot(111, frameon=False)
+            plt.tick_params(
+                labelcolor="none", which="both", top=False, bottom=False, left=False, right=False
+            )
+            plt.xlabel("time (ms)")
+            post_path = self.create_post_folder()
+            filename = os.path.join(post_path, "12LeadECGs.png")
+            plt.savefig(fname=filename, format="png")
             plt.show(block=True)
-            # self._plot_12LeadECGs(ECGs)
-        return ECGs
+        return ECGs12
 
     def _assign_pointdata(self, pointdata: np.ndarray, node_ids: np.ndarray):
         result = np.zeros(self.mesh.n_points)

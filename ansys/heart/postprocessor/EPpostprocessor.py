@@ -1,7 +1,8 @@
 """D3plot parser using Ansys-dpf."""
+from math import ceil
 import os
 import pathlib as Path
-from math import ceil
+
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 
 heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")

@@ -315,10 +315,39 @@ class ConductionSystem:
 
         return beam_net
 
-    def compute_Bachman_bundle(self):
+    def compute_Bachman_bundle(self, start_coord, end_coord, beam_length: float = 1.5):
         """Compute Bachman bundle conduction system."""
-        raise NotImplementedError
-        return
+        la_epi = self.m.left_atrium.epicardium
+        ra_epi = self.m.right_atrium.epicardium
+        epi = la_epi.merge(ra_epi)
+
+        path = epi.geodesic(
+            epi.find_closest_point(start_coord),  # SA
+            epi.find_closest_point(end_coord),  # on left atrium
+        )
+
+        beam_nodes = _refine_line(path.points, beam_length=beam_length)[1:-1, :]
+
+        # duplicate nodes inside the line, connect only SA node (the first) with 3D
+        point_ids = np.linspace(0, len(beam_nodes) - 1, len(beam_nodes), dtype=int)
+
+        # get SA epicardium node ID in mesh
+        target_id = pv.PolyData(self.m.mesh.nodes[ra_epi.node_ids, :]).find_closest_point(
+            start_coord
+        )
+        id = ra_epi.node_ids[target_id]
+        point_ids = np.insert(point_ids, 0, id)
+        # TODO: consider end point is a solid point too?
+        # build connectivity table
+        edges = np.vstack((point_ids[:-1], point_ids[1:])).T
+
+        mask = np.ones(edges.shape, dtype=bool)
+        mask[0, 0] = False  # Start point at solid
+        mask[-1, -1] = False  # End point at solid
+
+        beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="Bachman bundle")
+
+        return beam_net
 
 
 if __name__ == "__main__":
@@ -327,7 +356,7 @@ if __name__ == "__main__":
     )
 
     test = ConductionSystem(model)
-    test.compute_SA_node([-48, 136, 393])
+    test.compute_SA_node([-66, 131, 365])
     test.compute_AV_node()
 
     test.compute_av_conduction()
@@ -339,4 +368,7 @@ if __name__ == "__main__":
 
     test.compute_left_right_bundle(a.xyz, a.node_id, side="Left")
     test.compute_left_right_bundle(b.xyz, b.node_id, side="Right")
+    test.compute_Bachman_bundle(
+        start_coord=np.array([-66, 131, 365]), end_coord=np.array([-21, 176, 389])
+    )
     model.plot_purkinje()

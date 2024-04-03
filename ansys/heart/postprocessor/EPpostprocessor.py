@@ -1,7 +1,7 @@
 """D3plot parser using Ansys-dpf."""
 import os
 import pathlib as Path
-
+from math import ceil
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 
 heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
@@ -213,6 +213,88 @@ class EPpostprocessor:
         times = data[:, 0]
         ECGs = data[:, 1:11]
         return ECGs, times
+
+    def compute_12_lead_ECGs(
+        self, ECGs: np.ndarray, times: np.ndarray, plot: bool = True
+    ) -> np.ndarray:
+        """Compute 12-Lead ECGs from 10 electrodes.
+
+        Parameters
+        ----------
+        ECGs : np.ndarray
+            mxn array containing ECGs, where m is the number of time steps
+            and n the 10 electrodes in this order:
+            "V1" "V2" "V3" "V4" "V5" "V6" "RA" "LA" "RL" "LL"
+        plot : bool, optional
+            plot option, by default True
+
+        Returns
+        -------
+        np.ndarray
+            12-Lead ECGs in this order:
+        """
+        RA = ECGs[:, 6]
+        LA = ECGs[:, 7]
+        LL = ECGs[:, 9]
+        I = LA - RA
+        II = LL - RA
+        III = LL - LA
+        aVR = RA - (LA + LL) / 2
+        aVL = LA - (LL + RA) / 2
+        aVF = LL - (RA + LA) / 2
+        Vwct = (LA + RA + LL) / 3
+        V1 = ECGs[:, 0] - Vwct
+        V2 = ECGs[:, 1] - Vwct
+        V3 = ECGs[:, 2] - Vwct
+        V4 = ECGs[:, 3] - Vwct
+        V5 = ECGs[:, 4] - Vwct
+        V6 = ECGs[:, 5] - Vwct
+        RA = ECGs[:, 6] - Vwct
+        LA = ECGs[:, 7] - Vwct
+        # RL = ECGs[8, :] - Vwct
+        LL = ECGs[:, 9] - Vwct
+        ECGs = np.vstack((I, II, III, aVR, aVL, aVF, V1, V2, V3, V4, V5, V6))
+        if plot:
+            t = times
+            plt.subplot(3, 4, 1)
+            plt.plot(t, I)
+            plt.ylabel("I")
+            plt.subplot(3, 4, 5)
+            plt.plot(t, II)
+            plt.ylabel("II")
+            plt.subplot(3, 4, 9)
+            plt.plot(t, III)
+            plt.ylabel("III")
+            plt.subplot(3, 4, 2)
+            plt.plot(t, aVR)
+            plt.ylabel("aVR")
+            plt.subplot(3, 4, 6)
+            plt.plot(t, aVL)
+            plt.ylabel("aVL")
+            plt.subplot(3, 4, 10)
+            plt.plot(t, aVF)
+            plt.ylabel("aVF")
+            plt.subplot(3, 4, 3)
+            plt.plot(t, V1)
+            plt.ylabel("V1")
+            plt.subplot(3, 4, 7)
+            plt.plot(t, V2)
+            plt.ylabel("V2")
+            plt.subplot(3, 4, 11)
+            plt.plot(t, V3)
+            plt.ylabel("V3")
+            plt.subplot(3, 4, 4)
+            plt.plot(t, V4)
+            plt.ylabel("V4")
+            plt.subplot(3, 4, 8)
+            plt.plot(t, V5)
+            plt.ylabel("V5")
+            plt.subplot(3, 4, 12)
+            plt.plot(t, V6)
+            plt.ylabel("V6")
+            plt.show(block=True)
+            # self._plot_12LeadECGs(ECGs)
+        return ECGs
 
     def _assign_pointdata(self, pointdata: np.ndarray, node_ids: np.ndarray):
         result = np.zeros(self.mesh.n_points)

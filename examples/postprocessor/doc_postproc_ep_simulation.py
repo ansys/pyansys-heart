@@ -30,6 +30,27 @@ ep_folder = os.path.join(
 
 postproc = EPpostprocessor(results_path=ep_folder)
 
+
+###############################################################################
+# 12-LEAD ECGs
+# ~~~~~~~~~~~~~~~~
+# Plot 12-Lead ECGs
+
+ECGs, times = postproc.read_ECGs(
+    os.path.join(
+        pathlib.Path(__file__).absolute().parents[2],
+        "downloads\\Strocchi2020\\01\FourChamber\\simulation-EP\\main-ep\\em_EKG_001.dat",
+    )
+)
+
+
+ECGs12 = postproc.compute_12_lead_ECGs(ECGs=ECGs, times=times, plot=True)
+
+###############################################################################
+# .. image:: /_static/images/ep_post_12LeadECGs.png
+#   :width: 300pt
+#   :align: center
+
 ###############################################################################
 # Activation times
 # ~~~~~~~~~~~~~~~~

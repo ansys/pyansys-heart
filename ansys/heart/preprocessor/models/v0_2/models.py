@@ -1140,7 +1140,10 @@ class HeartModel:
                                 n for n in surf.name.split("_") if "valve" in n or "inlet" in n
                             )
                             name_valve = name_valve.replace("-plane", "").replace("-inlet", "")
-                            if "atrium" in part.name:
+                            if (
+                                name_valve in ["mitral-valve", "tricuspid-valve"]
+                                and "atrium" in part.name
+                            ):
                                 name_valve = name_valve + "-atrium"
 
                             cap = Cap(name=name_valve, node_ids=edge_group.edges[:, 0])

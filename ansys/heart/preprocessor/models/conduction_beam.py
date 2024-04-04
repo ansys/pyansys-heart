@@ -1,5 +1,8 @@
 """Module containing class for creating conduxtion system."""
+
 import os
+
+import networkx as nx
 
 heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
 if not heart_version:
@@ -12,11 +15,39 @@ elif heart_version == "v0.1":
 
 import logging
 
-from ansys.heart.preprocessor.mesh.objects import BeamMesh, Point, _create_line
+from ansys.heart.preprocessor.mesh.objects import BeamMesh, Point, SurfaceMesh
 import pyvista as pv
 
 LOGGER = logging.getLogger("pyheart_global.preprocessor")
 import numpy as np
+
+
+def _create_line(point_start: np.array, point_end: np.array, beam_length: float):
+    """Create points in a line defined by a start point and an end point.
+
+    Parameters
+    ----------
+    point_start : np.array
+        Start Point.
+    point_end : np.array
+        End point.
+    beam_length : float
+        Beam length.
+
+    Returns
+    -------
+    points:
+        List of created points.
+    """
+    line_vector = point_end - point_start
+    line_length = np.linalg.norm(line_vector)
+    n_points = int(np.round(line_length / beam_length)) + 1
+    points = np.zeros([n_points, 3])
+    # beams = np.zeros([n_points - 1, 2])
+    points = np.linspace(point_start, point_end, n_points)
+    # beams[:, 0] = np.linspace(0, n_points - 2, n_points - 1, dtype=int)
+    # beams[:, 1] = np.linspace(0, n_points - 2, n_points - 1, dtype=int) + 1
+    return points
 
 
 def _refine_line(nodes: np.array, beam_length: float):
@@ -181,13 +212,18 @@ class ConductionSystem:
             exit()
 
         # create nodes from start to end
-        new_nodes = np.array(
-            [
-                self.m.right_atrium.get_point("AV_node").xyz,
-                bifurcation_coord,
-            ]
+        # new_nodes = np.array(
+        #     [
+        #         self.m.right_atrium.get_point("AV_node").xyz,
+        #         bifurcation_coord,
+        #     ]
+        # )
+        sgmt_top, nodes = self.find_path(
+            self.m.mesh,
+            self.m.right_atrium.get_point("AV_node").xyz,
+            bifurcation_coord,
         )
-
+        new_nodes = self.m.mesh.points[nodes]
         new_nodes = _refine_line(new_nodes, beam_length=beam_length)
         new_nodes = new_nodes[1:, :]
 
@@ -201,7 +237,13 @@ class ConductionSystem:
         # create beam
         edges = np.vstack((point_ids[:-1], point_ids[1:])).T
 
-        position_id_His_end_left, his_end_left_coord, new_nodes, edges = self.m._create_His_side(
+        (
+            position_id_His_end_left,
+            his_end_left_coord,
+            new_nodes,
+            edges,
+            sgmt_left,
+        ) = self._create_His_side(
             side="left",
             new_nodes=new_nodes,
             edges=edges,
@@ -209,7 +251,13 @@ class ConductionSystem:
             bifurcation_coord=bifurcation_coord,
             bifurcation_id=bifurcation_id,
         )
-        position_id_His_end_right, his_end_right_coord, new_nodes, edges = self._create_His_side(
+        (
+            position_id_His_end_right,
+            his_end_right_coord,
+            new_nodes,
+            edges,
+            sgmt_right,
+        ) = self._create_His_side(
             side="right",
             new_nodes=new_nodes,
             edges=edges,
@@ -224,6 +272,15 @@ class ConductionSystem:
         beam_net = self.m.add_beam_net(new_nodes, edges, mask, pid=0, name="His")
         beam_net.beam_nodes_mask[0, 0] = True  # offset in writer
 
+        #
+
+        surf = SurfaceMesh(
+            "his_bundle_segment",
+            np.vstack((sgmt_top, sgmt_left, sgmt_right)),
+            self.m.mesh.points,
+        )
+        self.m.mesh.boundaries.append(surf)
+
         return Point(
             xyz=his_end_left_coord,
             node_id=beam_net.edges[position_id_His_end_left[0], position_id_His_end_left[1]],
@@ -231,6 +288,89 @@ class ConductionSystem:
             xyz=his_end_right_coord,
             node_id=beam_net.edges[position_id_His_end_right[0], position_id_His_end_right[1]],
         )
+
+    @staticmethod
+    def find_path(
+        mesh: pv.UnstructuredGrid, start: np.ndarray, end: np.ndarray, return_segment=True
+    ):
+        """Find shortes path between two nodes.
+
+        Notes
+        -----
+        Unlike geodesic, this method search path inside of 3D mesh.
+
+        Parameters
+        ----------
+        mesh : pv.UnstructuredGrid
+            Must be with tetra cells.
+        start : np.ndarray
+            Start point coordinates.
+        end : np.ndarray
+            End point coordinates
+        return_segment : bool, optional
+            Return a segment on which the path relies, by default True
+        """
+
+        def _mesh_to_nx_graph(mesh):
+            # convert tetra mesh to graph
+            G = nx.Graph()
+            # Add nodes
+            for i, point in enumerate(mesh.points):
+                G.add_node(i, pos=tuple(point))
+            # Assume all cells are tetra
+            cells = np.array(mesh.cells).reshape(-1, 5)[:, 1:]
+            # Add edges
+            for cell in cells:
+                G.add_edge(cell[0], cell[1])
+                G.add_edge(cell[1], cell[2])
+                G.add_edge(cell[2], cell[0])
+                G.add_edge(cell[0], cell[3])
+                G.add_edge(cell[1], cell[3])
+                G.add_edge(cell[2], cell[3])
+            return G
+
+        # do the search in a small region for efficiency
+        center = 0.5 * (start + end)
+        radius = 3 * np.linalg.norm(start - center)
+        sphere = pv.Sphere(center=center, radius=radius)
+
+        # extract region
+        cell_center = mesh.cell_centers()
+        ids = np.where(cell_center.select_enclosed_points(sphere)["SelectedPoints"])[0]
+        mesh.point_data["temp_ids"] = np.linspace(0, mesh.n_points - 1, mesh.n_points, dtype=int)
+        sub_mesh = mesh.extract_cells(ids)
+
+        # search shortes path across cells
+        source_id = sub_mesh.find_closest_point(start)
+        target_id = sub_mesh.find_closest_point(end)
+        graph = _mesh_to_nx_graph(sub_mesh)
+        # ids in submesh
+        path = nx.shortest_path(graph, source=source_id, target=target_id)
+        # ids in mesh
+        path2 = sub_mesh["temp_ids"][path]
+
+        if return_segment:
+            tetras = sub_mesh.cells.reshape(-1, 5)[:, 1:]
+            triangles = np.vstack(
+                (
+                    tetras[:, [0, 1, 2]],
+                    tetras[:, [0, 1, 3]],
+                    tetras[:, [0, 2, 3]],
+                    tetras[:, [1, 2, 3]],
+                )
+            )
+            segment = []
+            for i, j in zip(path[0:-1], path[1:]):
+                for tri in triangles:
+                    if i in tri and j in tri:
+                        segment.append(tri)
+                        break
+            segment = np.array(segment)
+            segment2 = sub_mesh["temp_ids"][segment]
+
+            return segment2, path2
+        else:
+            return path2
 
     def _create_His_side(
         self, side: str, new_nodes, edges, beam_length, bifurcation_coord, bifurcation_id
@@ -249,7 +389,10 @@ class ConductionSystem:
         his_end_id = endo.node_ids[temp_id]
         his_end_coord = self.m.mesh.points[his_end_id, :]
 
-        side_his = np.array([bifurcation_coord, his_end_coord])
+        # side_his = np.array([bifurcation_coord, his_end_coord])
+        sgmt, nodes = self.find_path(self.m.mesh, bifurcation_coord, his_end_coord)
+        side_his = self.m.mesh.points[nodes]
+
         side_his = _refine_line(side_his, beam_length=beam_length)
         new_nodes = np.vstack((new_nodes, side_his[1:, :]))
 
@@ -266,12 +409,7 @@ class ConductionSystem:
             (edges, np.column_stack((side_his_point_ids[:-1], side_his_point_ids[1:])))
         )
         position_id_His_end = np.argwhere(edges == side_his_point_ids[-1])[0]
-        return (
-            position_id_His_end,
-            his_end_coord,
-            new_nodes,
-            edges,
-        )
+        return (position_id_His_end, his_end_coord, new_nodes, edges, sgmt)
 
     def compute_left_right_bundle(self, start_coord, start_id, side: str, beam_length: float = 1.5):
         """Bundle brunch."""
@@ -326,7 +464,7 @@ class ConductionSystem:
             epi.find_closest_point(end_coord),  # on left atrium
         )
 
-        beam_nodes = _refine_line(path.points, beam_length=beam_length)[1:-1, :]
+        beam_nodes = _refine_line(path.points, beam_length=beam_length)[1:, :]
 
         # duplicate nodes inside the line, connect only SA node (the first) with 3D
         point_ids = np.linspace(0, len(beam_nodes) - 1, len(beam_nodes), dtype=int)
@@ -343,7 +481,7 @@ class ConductionSystem:
 
         mask = np.ones(edges.shape, dtype=bool)
         mask[0, 0] = False  # Start point at solid
-        mask[-1, -1] = False  # End point at solid
+        # mask[-1, -1] = False  # End point at solid
 
         beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="Bachman bundle")
 
@@ -372,3 +510,9 @@ if __name__ == "__main__":
         start_coord=np.array([-66, 131, 365]), end_coord=np.array([-21, 176, 389])
     )
     model.plot_purkinje()
+
+    p = pv.Plotter()
+    p.add_mesh(model.mesh, opacity=0.2)
+    p.add_mesh(model.mesh.boundaries[-1], opacity=0.8, show_edges=True)
+    p.add_mesh(model.beam_network[1], line_width=2, color="red")
+    p.show()

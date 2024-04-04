@@ -153,6 +153,7 @@ def compare_cavity_volume(model: models.HeartModel, ref_volumes: dict):
 
     pass
 
+
 def compare_part_names_2(model: models.HeartModel, ref_stats: dict):
     """Test if parts match that of the reference model.
 

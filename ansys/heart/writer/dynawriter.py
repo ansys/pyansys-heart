@@ -32,7 +32,7 @@ from ansys.heart.simulator.settings.material.material import (
 global heart_version
 heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
 if not heart_version:
-    heart_version = "v0.2"
+    heart_version = "v0.1"
 
 if heart_version == "v0.2":
     from ansys.heart.preprocessor.models.v0_2.models import (

@@ -32,7 +32,7 @@ from ansys.heart.simulator.settings.material.material import (
 global heart_version
 heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
 if not heart_version:
-    heart_version = "v0.1"
+    heart_version = "v0.2"
 
 if heart_version == "v0.2":
     from ansys.heart.preprocessor.models.v0_2.models import (
@@ -3693,9 +3693,22 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 network.nsid = self.model.left_ventricle.cavity.surface.id
             elif network.name == "Right bundle branch":
                 network.nsid = self.model.right_ventricle.cavity.surface.id
-            # His bundle is inside of surface, no segment will associated
             elif network.name == "His":
-                network.nsid = -1
+                name = "his_bundle_segment"
+                surface = next(
+                    surface for surface in self.model.mesh.boundaries if surface.name == name
+                )
+
+                surface.id = self.get_unique_segmentset_id()
+                kw = create_segment_set_keyword(
+                    segments=surface.triangles + 1,
+                    segid=surface.id,
+                    title=name,
+                )
+                # append this kw to the segment set database
+                self.kw_database.segment_sets.append(kw)
+
+                network.nsid = surface.id
             else:
                 LOGGER.error(f"Unknown network name for {network.name}.")
                 exit()

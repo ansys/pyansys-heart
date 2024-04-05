@@ -38,7 +38,7 @@ elif heart_version == "v0.1" or not heart_version:
     from ansys.heart.preprocessor.models.v0_1.models import FourChamber, HeartModel, LeftVentricle
 
     heart_version = "v0.1"
-
+from ansys.heart.preprocessor.models.conduction_beam import ConductionSystem
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 import numpy as np
@@ -423,23 +423,18 @@ class EPSimulator(BaseSimulator):
         """Compute the conduction system."""
         if isinstance(self.model, FourChamber):
             beam_length = self.settings.purkinje.edgelen.m
-            SA_node = self.model.compute_SA_node()
-            AV_node = self.model.compute_AV_node()
-
-            av_beam = self.model.compute_av_conduction(beam_length=beam_length)
-            # AV_node.xyz
-            # av_beam.edges[-1,-1]
-            point_his_left, point_his_right = self.model.compute_His_conduction(
-                beam_length=beam_length
+            cs = ConductionSystem(self.model)
+            cs.compute_SA_node()
+            cs.compute_AV_node()
+            cs.compute_av_conduction(beam_length=beam_length)
+            left, right = cs.compute_His_conduction(beam_length=beam_length)
+            cs.compute_left_right_bundle(
+                left.xyz, left.node_id, side="Left", beam_length=beam_length
             )
-
-            left_bundle_beam = self.model.compute_left_right_bundle(
-                point_his_left.xyz, point_his_left.node_id, side="Left", beam_length=beam_length
+            cs.compute_left_right_bundle(
+                right.xyz, right.node_id, side="Right", beam_length=beam_length
             )
-
-            right_bundle_beam = self.model.compute_left_right_bundle(
-                point_his_right.xyz, point_his_right.node_id, side="Right", beam_length=beam_length
-            )
+            return
 
     def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""

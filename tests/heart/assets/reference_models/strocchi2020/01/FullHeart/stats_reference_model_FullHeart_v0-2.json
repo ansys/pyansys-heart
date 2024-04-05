@@ -1,0 +1,139 @@
+{
+    "GENERAL": {
+        "total_num_tets": 252919,
+        "total_num_nodes": 204674
+    },
+    "PARTS": {
+        "Left ventricle": {
+            "num_tets": 98677,
+            "SURFACES": {
+                "Left ventricle endocardium": {
+                    "num_faces": 9004
+                },
+                "Left ventricle epicardium": {
+                    "num_faces": 9350
+                }
+            },
+            "CAPS": {
+                "mitral-valve": {
+                    "num_nodes": 75
+                },
+                "aortic-valve": {
+                    "num_nodes": 55
+                }
+            }
+        },
+        "Right ventricle": {
+            "num_tets": 58114,
+            "SURFACES": {
+                "Right ventricle endocardium": {
+                    "num_faces": 9409
+                },
+                "Right ventricle epicardium": {
+                    "num_faces": 10111
+                },
+                "Right ventricle endocardium septum": {
+                    "num_faces": 2489
+                }
+            },
+            "CAPS": {
+                "tricuspid-valve": {
+                    "num_nodes": 101
+                },
+                "pulmonary-valve": {
+                    "num_nodes": 67
+                }
+            }
+        },
+        "Septum": {
+            "num_tets": 24085,
+            "SURFACES": {},
+            "CAPS": {}
+        },
+        "Left atrium": {
+            "num_tets": 22812,
+            "SURFACES": {
+                "Left atrium endocardium": {
+                    "num_faces": 5150
+                },
+                "Left atrium epicardium": {
+                    "num_faces": 4620
+                }
+            },
+            "CAPS": {
+                "mitral-valve": {
+                    "num_nodes": 65
+                },
+                "left-atrium-appendage": {
+                    "num_nodes": 51
+                },
+                "left-superior-pulmonary-vein": {
+                    "num_nodes": 30
+                },
+                "left-inferior-pulmonary-vein": {
+                    "num_nodes": 34
+                },
+                "right-inferior-pulmonary-vein": {
+                    "num_nodes": 39
+                },
+                "right-superior-pulmonary-vein": {
+                    "num_nodes": 31
+                }
+            }
+        },
+        "Right atrium": {
+            "num_tets": 33622,
+            "SURFACES": {
+                "Right atrium endocardium": {
+                    "num_faces": 9130
+                },
+                "Right atrium epicardium": {
+                    "num_faces": 8414
+                }
+            },
+            "CAPS": {
+                "tricuspid-valve": {
+                    "num_nodes": 108
+                },
+                "superior-vena-cava": {
+                    "num_nodes": 42
+                },
+                "inferior-vena-cava": {
+                    "num_nodes": 38
+                }
+            }
+        },
+        "Aorta": {
+            "num_tets": 10294,
+            "SURFACES": {
+                "Aorta wall": {
+                    "num_faces": 3808
+                }
+            },
+            "CAPS": {}
+        },
+        "Pulmonary artery": {
+            "num_tets": 5315,
+            "SURFACES": {
+                "Pulmonary artery wall": {
+                    "num_faces": 1680
+                }
+            },
+            "CAPS": {}
+        }
+    },
+    "CAVITIES": {
+        "Left ventricle": {
+            "volume": 170531.50068485987
+        },
+        "Right ventricle": {
+            "volume": 234200.6386548778
+        },
+        "Left atrium": {
+            "volume": 88685.06988690743
+        },
+        "Right atrium": {
+            "volume": 191524.51164321208
+        }
+    }
+}

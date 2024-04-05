@@ -453,36 +453,39 @@ class ConductionSystem:
 
         return beam_net
 
+    @staticmethod
+    def _get_closest_point_id(surface: pv.PolyData, point):
+        # Surface contains all mesh node, find_closest_point could be wrong
+        cell_id = surface.find_closest_cell(point)
+        return surface.get_cell(cell_id).point_ids[0]
+
     def compute_Bachman_bundle(self, start_coord, end_coord, beam_length: float = 1.5):
         """Compute Bachman bundle conduction system."""
         la_epi = self.m.left_atrium.epicardium
         ra_epi = self.m.right_atrium.epicardium
+
+        start_id = self._get_closest_point_id(la_epi, start_coord)
+        end_id = self._get_closest_point_id(ra_epi, end_coord)
+
         epi = la_epi.merge(ra_epi)
+        path = epi.geodesic(start_id, end_id)
 
-        path = epi.geodesic(
-            epi.find_closest_point(start_coord),  # SA
-            epi.find_closest_point(end_coord),  # on left atrium
-        )
-
-        beam_nodes = _refine_line(path.points, beam_length=beam_length)[1:, :]
-
-        # duplicate nodes inside the line, connect only SA node (the first) with 3D
+        #
+        beam_nodes = _refine_line(path.points, beam_length=beam_length)[1:-1, :]
         point_ids = np.linspace(0, len(beam_nodes) - 1, len(beam_nodes), dtype=int)
+        point_ids = np.insert(point_ids, 0, start_id)
+        point_ids = np.append(point_ids, end_id)
 
-        # get SA epicardium node ID in mesh
-        target_id = pv.PolyData(self.m.mesh.nodes[ra_epi.node_ids, :]).find_closest_point(
-            start_coord
-        )
-        id = ra_epi.node_ids[target_id]
-        point_ids = np.insert(point_ids, 0, id)
-        # TODO: consider end point is a solid point too?
         # build connectivity table
         edges = np.vstack((point_ids[:-1], point_ids[1:])).T
 
         mask = np.ones(edges.shape, dtype=bool)
         mask[0, 0] = False  # Start point at solid
-        # mask[-1, -1] = False  # End point at solid
+        mask[-1, 1] = False  # End point at solid
 
+        tri = np.vstack((la_epi.triangles, ra_epi.triangles))
+        surface = SurfaceMesh("Bachman segment", tri, self.m.mesh.nodes)
+        self.m.mesh.boundaries.append(surface)
         beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="Bachman bundle")
 
         return beam_net
@@ -494,10 +497,12 @@ if __name__ == "__main__":
     )
 
     test = ConductionSystem(model)
-    test.compute_SA_node([-66, 131, 365])
+    sa_point = test.compute_SA_node([-71, 102, 394])
     test.compute_AV_node()
 
-    test.compute_av_conduction()
+    test.compute_av_conduction(
+        # midpoints=[[-74, 90, 388], [70, 111, 372]]
+    )
 
     # a,b =model.compute_His_conduction()
     a, b = test.compute_His_conduction()
@@ -506,13 +511,6 @@ if __name__ == "__main__":
 
     test.compute_left_right_bundle(a.xyz, a.node_id, side="Left")
     test.compute_left_right_bundle(b.xyz, b.node_id, side="Right")
-    test.compute_Bachman_bundle(
-        start_coord=np.array([-66, 131, 365]), end_coord=np.array([-21, 176, 389])
-    )
-    model.plot_purkinje()
+    test.compute_Bachman_bundle(start_coord=sa_point.xyz, end_coord=np.array([-34, 163, 413]))
 
-    p = pv.Plotter()
-    p.add_mesh(model.mesh, opacity=0.2)
-    p.add_mesh(model.mesh.boundaries[-1], opacity=0.8, show_edges=True)
-    p.add_mesh(model.beam_network[1], line_width=2, color="red")
-    p.show()
+    model.plot_purkinje()

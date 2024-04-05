@@ -3510,6 +3510,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                         stim_nodes.append(network.edges[1, 0] + beam_node_id_offset)
                         # stim_nodes.append(network.edges[2, 0] + beam_node_id_offset)
                         # stim_nodes.append(network.edges[3, 0] + beam_node_id_offset)
+                    elif network.name == "Bachman bundle":
+                        stim_nodes.append(network.edges[0, 0])  # SA node on epi, solid node
+                        stim_nodes.append(network.edges[1, 0] + beam_node_id_offset)
 
         # create node-sets for stim nodes
         node_set_id_stimulationnodes = self.get_unique_nodeset_id()
@@ -3667,20 +3670,12 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             elif network.name == "His":
                 # His bundle are inside of 3d mesh
                 # need to create the segment on which beam elements rely
-                name = "his_bundle_segment"
-                surface = next(
-                    surface for surface in self.model.mesh.boundaries if surface.name == name
-                )
-
-                surface.id = self.get_unique_segmentset_id()
-                kw = create_segment_set_keyword(
-                    segments=surface.triangles + 1,
-                    segid=surface.id,
-                    title=name,
-                )
-                # append this kw to the segment set database
-                self.kw_database.segment_sets.append(kw)
-
+                surface = self._add_segment_from_boundary(name="his_bundle_segment")
+                network.nsid = surface.id
+            elif network.name == "Bachman bundle":
+                # His bundle are inside of 3d mesh
+                # need to create the segment on which beam elements rely
+                surface = self._add_segment_from_boundary(name="Bachman segment")
                 network.nsid = surface.id
             else:
                 LOGGER.error(f"Unknown network name for {network.name}.")
@@ -3751,6 +3746,20 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
             beam_elem_id_offset += len(network.edges)
             self.kw_database.beam_networks.append(beams_kw)
+
+    def _add_segment_from_boundary(self, name: str):
+        surface = next(surface for surface in self.model.mesh.boundaries if surface.name == name)
+
+        surface.id = self.get_unique_segmentset_id()
+        kw = create_segment_set_keyword(
+            segments=surface.triangles + 1,
+            segid=surface.id,
+            title=surface.name,
+        )
+        # append this kw to the segment set database
+        self.kw_database.segment_sets.append(kw)
+
+        return surface
 
     def _update_export_controls(self):
         """Add solution controls to the main simulation."""

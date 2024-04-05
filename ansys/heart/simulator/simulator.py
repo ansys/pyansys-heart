@@ -434,7 +434,11 @@ class EPSimulator(BaseSimulator):
             cs.compute_left_right_bundle(
                 right.xyz, right.node_id, side="Right", beam_length=beam_length
             )
-            return
+            cs.compute_Bachman_bundle(
+                start_coord=self.model.right_atrium.get_point("SA_node").xyz,
+                end_coord=np.array([-34, 163, 413]),  # TODO strocchi 01
+            )
+            return cs
 
     def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""

@@ -88,7 +88,6 @@ model.mesh.cell_data["sheet"] = np.zeros((model.mesh.n_cells, 3))
 ###############################################################################
 # Compute atrial fibers
 # ~~~~~~~~~~~~~~~~~~~~~
-
 # Compute left atrium fiber direction
 la = simulator.compute_left_atrial_fiber()
 

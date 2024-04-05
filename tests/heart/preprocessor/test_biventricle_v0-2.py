@@ -41,10 +41,10 @@ from ansys.heart.writer.dynawriter import (
 import pytest
 
 from tests.heart.common import (
-    compare_cavity_volume,
-    compare_generated_mesh,
-    compare_part_names,
-    compare_surface_names,
+    compare_cavity_volume_2,
+    compare_generated_mesh_2,
+    compare_part_names_2,
+    compare_surface_names_2,
 )
 from tests.heart.conftest import get_assets_folder, get_workdir
 from tests.heart.end2end.compare_k import read_file
@@ -77,7 +77,7 @@ def extract_bi_ventricle():
         "strocchi2020",
         "01",
         "BiVentricle",
-        "stats_reference_model_BiVentricle.json",
+        "stats_reference_model_BiVentricle_v0-2.json",
     )
 
     assert os.path.isfile(path_to_input_vtp)
@@ -119,19 +119,19 @@ def extract_bi_ventricle():
 
 @pytest.mark.models_v2
 def test_part_names():
-    compare_part_names(model, ref_stats)
+    compare_part_names_2(model, ref_stats)
     pass
 
 
 @pytest.mark.models_v2
 def test_surface_names():
-    compare_surface_names(model, ref_stats)
+    compare_surface_names_2(model, ref_stats)
     pass
 
 
 @pytest.mark.models_v2
 def test_cavities_volumes():
-    compare_cavity_volume(model, ref_stats)
+    compare_cavity_volume_2(model, ref_stats)
     pass
 
 
@@ -139,7 +139,7 @@ def test_cavities_volumes():
 @pytest.mark.xfail(reason="Comparing against v0.1 model - uses different meshing method(s)")
 def test_mesh():
     """Test the number of tetrahedrons and triangles in the volume mesh and surface meshes"""
-    compare_generated_mesh(model, ref_stats)
+    compare_generated_mesh_2(model, ref_stats)
 
 
 # functional tests to determine whether any change was made to

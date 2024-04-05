@@ -50,7 +50,7 @@ class EmEpPurkinjeNetwork2(KeywordBase):
             ),
             Card(
                 [
-                    Field("edgelen", int, 0, 10, kwargs.get("edgelen", 3)),
+                    Field("edgelen", float, 0, 10, kwargs.get("edgelen", 3)),
                     Field("ngen", int, 10, 10, kwargs.get("ngen", 200)),
                     Field("nbrinit", int, 20, 10, kwargs.get("nbrinit", 8)),
                     Field("nsplit", int, 30, 10, kwargs.get("nsplit", 2)),

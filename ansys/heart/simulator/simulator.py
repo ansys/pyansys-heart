@@ -40,6 +40,9 @@ import shutil
 import subprocess
 from typing import List, Literal
 
+from ansys.heart.preprocessor.mesh.objects import Part
+from ansys.heart.simulator.settings.material.material import NeoHookean
+
 LOGGER = logging.getLogger("pyheart_global.simulator")
 from ansys.heart.misc.element_orth import read_orth_element_kfile
 from ansys.heart.postprocessor.auto_process import (
@@ -399,6 +402,20 @@ class EPSimulator(BaseSimulator):
 
         return
 
+    def _simulate_conduction(self, folder_name="main-ep-onlybeams"):
+        """Launch the main simulation."""
+        directory = os.path.join(self.root_directory, folder_name)
+        self._write_main_conduction_simulation_files(folder_name)
+
+        LOGGER.info("Launching main EP simulation...")
+
+        input_file = os.path.join(directory, "main.k")
+        self._run_dyna(input_file)
+
+        LOGGER.info("done.")
+
+        return
+
     def compute_purkinje(self):
         """Compute the purkinje network."""
         directory = os.path.join(self.root_directory, "purkinjegeneration")
@@ -434,24 +451,23 @@ class EPSimulator(BaseSimulator):
     def compute_conduction_system(self):
         """Compute the conduction system."""
         if isinstance(self.model, FourChamber):
+            beam_length = self.settings.purkinje.edgelen.m
             SA_node = self.model.compute_SA_node()
             AV_node = self.model.compute_AV_node()
 
-            av_beam = self.model.compute_av_conduction()
+            av_beam = self.model.compute_av_conduction(beam_length=beam_length)
             # AV_node.xyz
             # av_beam.edges[-1,-1]
-            his_beam, his_ends_coords = self.model.compute_His_conduction()
+            point_his_left, point_his_right = self.model.compute_His_conduction(
+                beam_length=beam_length
+            )
 
             left_bundle_beam = self.model.compute_left_right_bundle(
-                his_ends_coords[0],
-                his_beam.edges[-2, 1],
-                side="Left",
+                point_his_left.xyz, point_his_left.node_id, side="Left", beam_length=beam_length
             )
 
             right_bundle_beam = self.model.compute_left_right_bundle(
-                his_ends_coords[1],
-                his_beam.edges[-1, 1],
-                side="Right",
+                point_his_right.xyz, point_his_right.node_id, side="Right", beam_length=beam_length
             )
 
     def _write_main_simulation_files(self, folder_name):
@@ -460,6 +476,17 @@ class EPSimulator(BaseSimulator):
         self.directories["main-ep"] = export_directory
 
         dyna_writer = writers.ElectrophysiologyDynaWriter(self.model, self.settings)
+        dyna_writer.update()
+        dyna_writer.export(export_directory)
+
+        return export_directory
+
+    def _write_main_conduction_simulation_files(self, folder_name):
+        """Write LS-DYNA files that are used to start the main simulation."""
+        export_directory = os.path.join(self.root_directory, folder_name)
+        self.directories["main-ep"] = export_directory
+
+        dyna_writer = writers.ElectrophysiologyBeamsDynaWriter(self.model, self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory)
 
@@ -497,6 +524,44 @@ class MechanicsSimulator(BaseSimulator):
         """A dictionary save stress free computation information"""
 
         return
+
+    def create_stiff_ventricle_base(
+        self, threshold: float = 0.9, stiff_material=NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+    ) -> Part:
+        """Create a stiff base part from uvc longitudinal value.
+
+        Parameters
+        ----------
+        threshold : float, optional
+            uvc_l larger than threshold will be set as stiff base, by default 0.9
+        stiff_material : _type_, optional
+            material to assign, by default NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+
+        Returns
+        -------
+        Part
+            stiff base part
+        """
+        try:
+            v = self.model.mesh.point_data_to_cell_data()["apico-basal"]
+        except:
+            self.compute_uhc()
+            v = self.model.mesh.point_data_to_cell_data()["apico-basal"]
+
+        eids = np.intersect1d(np.where(v > threshold)[0], self.model.left_ventricle.element_ids)
+        if not isinstance(self.model, LeftVentricle):
+            # uvc-L of RV is generally smaller, *1.05 to be comparable with LV
+            eid_r = np.intersect1d(
+                np.where(v > threshold * 1.05)[0], self.model.right_ventricle.element_ids
+            )
+            eids = np.hstack((eids, eid_r))
+
+        part: Part = self.model.create_part_by_ids(eids, "base")
+        part.has_fiber = False
+        part.is_active = False
+        part.meca_material = stiff_material
+
+        return part
 
     def simulate(self, folder_name="main-mechanics", zerop_folder=None, auto_post=True):
         """

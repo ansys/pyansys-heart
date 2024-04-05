@@ -44,6 +44,7 @@ from ansys.heart.preprocessor.mesh.objects import (
     Part,
     Point,
     SurfaceMesh,
+    _create_line,
 )
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.models.v0_2.input import _InputModel
@@ -257,6 +258,10 @@ class HeartModel:
         """Electrodes positions for ECG computing."""
 
         return
+
+    def __repr__(self):
+        """Represent self as string."""
+        return yaml.dump(self.summary(), sort_keys=False)
 
     def create_part_by_ids(self, eids: List[int], name: str) -> Union[None, Part]:
         """Create a new part by element ids.
@@ -529,6 +534,13 @@ class HeartModel:
                     delattr(self, key)
                     return
         return
+
+    def summary(self) -> dict:
+        """Get summary information of the model as a ditionary."""
+        from ansys.heart.preprocessor.helpers import model_summary
+
+        summary = model_summary(self)
+        return summary
 
     def print_info(self) -> None:
         """Print information about the model."""
@@ -1101,13 +1113,13 @@ class HeartModel:
 
         return
 
-    def _assign_caps_to_parts(self, unique_mitral_tricuspid_valve=True) -> None:
+    def _assign_caps_to_parts(self, join_ventricles_with_atria: bool = False) -> None:
         """Use connectivity to obtain cap boundaries and add these to their respective parts.
 
         Parameters
         ----------
-        unique_mitral_tricuspid_valve : bool, optional
-            Unique mitral/tricuspid valve defined, by default True
+        join_ventricles_with_atria : bool, optional
+            Flag indicating whether to join the ventricle with atrial cavities, by default False
         """
         used_boundary_surface_names = [s.name for p in self.parts for s in p.surfaces]
         remaining_surfaces = list(set(self.mesh.boundary_names) - set(used_boundary_surface_names))
@@ -1150,6 +1162,11 @@ class HeartModel:
                                 n for n in surf.name.split("_") if "valve" in n or "inlet" in n
                             )
                             name_valve = name_valve.replace("-plane", "").replace("-inlet", "")
+                            if (
+                                name_valve in ["mitral-valve", "tricuspid-valve"]
+                                and "atrium" in part.name
+                            ):
+                                name_valve = name_valve + "-atrium"
 
                             cap = Cap(name=name_valve, node_ids=edge_group.edges[:, 0])
 
@@ -1191,44 +1208,45 @@ class HeartModel:
                             break
 
         # replace caps of atria by caps of ventricle
-        for part in self.parts:
-            if not "atrium" in part.name:
-                continue
-            for cap in part.caps:
-                # replace with cap in ventricle
-                cap_ref = [
-                    c
-                    for p in self.parts
-                    if "ventricle" in p.name
-                    for c in p.caps
-                    if c.name == cap.name
-                ]
-                if len(cap_ref) == 1:
-                    LOGGER.debug(
-                        "Replacing cap {0} of part{1}: with that of the ventricle".format(
-                            cap.name, part.name
+        if join_ventricles_with_atria:
+            for part in self.parts:
+                if not "atrium" in part.name:
+                    continue
+                for cap in part.caps:
+                    # replace with cap in ventricle
+                    cap_ref = [
+                        c
+                        for p in self.parts
+                        if "ventricle" in p.name
+                        for c in p.caps
+                        if c.name == cap.name
+                    ]
+                    if len(cap_ref) == 1:
+                        LOGGER.debug(
+                            "Replacing cap {0} of part{1}: with that of the ventricle".format(
+                                cap.name, part.name
+                            )
                         )
-                    )
-                    # note: flip order to make sure normal is pointing inwards
-                    cap.node_ids = np.flip(cap_ref[0].node_ids)
-                    cap.centroid = cap_ref[0].centroid
-                    cap.centroid_id = cap_ref[0].centroid_id
-                    cap.tessellate1(use_centroid=True)
+                        # note: flip order to make sure normal is pointing inwards
+                        cap.node_ids = np.flip(cap_ref[0].node_ids)
+                        cap.centroid = cap_ref[0].centroid
+                        cap.centroid_id = cap_ref[0].centroid_id
+                        cap.tessellate1(use_centroid=True)
 
-        # As a consequence we need to add interface region to endocardium of atria or ventricle
-        # current approach is to add these to the atria
-        for part in self.parts:
-            if "Left atrium" in part.name:
-                interface_name = "mitral-valve-plane"
-            elif "Right atrium" in part.name:
-                interface_name = "tricuspid-valve-plane"
-            else:
-                continue
-            interfaces = [s for s in remaining_surfaces1 if interface_name in s.name]
-            endocardium = next(s for s in part.surfaces if "endocardium" in s.name)
-            # append interface faces to endocardium
-            for interface in interfaces:
-                endocardium.triangles = np.vstack([endocardium.triangles, interface.triangles])
+            # As a consequence we need to add interface region to endocardium of atria or ventricle
+            # current approach is to add these to the atria
+            for part in self.parts:
+                if "Left atrium" in part.name:
+                    interface_name = "mitral-valve-plane"
+                elif "Right atrium" in part.name:
+                    interface_name = "tricuspid-valve-plane"
+                else:
+                    continue
+                interfaces = [s for s in remaining_surfaces1 if interface_name in s.name]
+                endocardium = next(s for s in part.surfaces if "endocardium" in s.name)
+                # append interface faces to endocardium
+                for interface in interfaces:
+                    endocardium.triangles = np.vstack([endocardium.triangles, interface.triangles])
 
         return
 
@@ -1731,7 +1749,7 @@ class FourChamber(HeartModel):
 
         return AV_point
 
-    def compute_av_conduction(self, create_new_nodes=True) -> BeamMesh:
+    def compute_av_conduction(self, create_new_nodes=True, beam_length: float = 1.5) -> BeamMesh:
         """Compute Atrio-Ventricular conduction by means of beams following a geodesic path.
 
         Parameters
@@ -1768,13 +1786,13 @@ class FourChamber(HeartModel):
 
         path_SAN_AVN = right_atrium_endo.geodesic(SA_id, AV_id)
 
-        # duplicate nodes inside the line, connect only SA node (the first) with 3D
         beam_nodes = path_SAN_AVN.points[1:, :]
+        beam_nodes = _refine_line(beam_nodes, beam_length=beam_length)
 
-        # build connectivity table
+        # duplicate nodes inside the line, connect only SA node (the first) with 3D
         point_ids = np.linspace(0, len(beam_nodes) - 1, len(beam_nodes), dtype=int)
         point_ids = np.insert(point_ids, 0, SA_id)
-
+        # build connectivity table
         edges = np.vstack((point_ids[:-1], point_ids[1:])).T
 
         mask = np.ones(edges.shape, dtype=bool)
@@ -1784,27 +1802,73 @@ class FourChamber(HeartModel):
 
         return beam_net
 
-    def compute_His_conduction(self):
-        """Compute His bundle conduction."""
-        beam_number = 4
+    def _create_His_side(
+        self, side: str, new_nodes, edges, beam_length, bifurcation_coord, bifurcation_id
+    ):
+        """Create His side after bifucation.
 
+        Parameters
+        ----------
+        side : str
+            Side of His.
+        new_nodes : _type_
+            list of new created nodes.
+        edges : _type_
+            list of new created edges.
+        beam_length : _type_
+            beam length.
+        bifurcation_coord : _type_
+            His bifurcation point coordinates.
+        bifurcation_id : _type_
+            bifurcation point id.
+
+        Returns
+        -------
+        _type_
+            _description_
+        """
+        if side.lower() == "left":
+            endo = self.left_ventricle.endocardium
+        elif side.lower() == "right":
+            endo = self.right_ventricle.septum
+
+        temp_id = pv.PolyData(self.mesh.points[endo.node_ids, :]).find_closest_point(
+            bifurcation_coord
+        )
+        his_end_id = endo.node_ids[temp_id]
+        his_end_coord = self.mesh.points[his_end_id, :]
+
+        side_his = np.array([bifurcation_coord, his_end_coord])
+        side_his = _refine_line(side_his, beam_length=beam_length)
+        new_nodes = np.vstack((new_nodes, side_his[1:, :]))
+
+        side_his_point_ids = np.concatenate(
+            (
+                np.array([bifurcation_id]),
+                edges[-1, -1]
+                + 1
+                + np.linspace(0, len(side_his[1:, :]) - 1, len(side_his[1:, :]), dtype=int),
+            )
+        )
+
+        edges = np.vstack(
+            (edges, np.column_stack((side_his_point_ids[:-1], side_his_point_ids[1:])))
+        )
+        position_id_His_end = np.argwhere(edges == side_his_point_ids[-1])[0]
+        return (
+            position_id_His_end,
+            his_end_coord,
+            new_nodes,
+            edges,
+        )
+
+    def compute_His_conduction(self, beam_length: float = 1.5):
+        """Compute His bundle conduction."""
         start_coord, bifurcation_coord = self._define_hisbundle_start_bifurcation()
 
         # https://www.researchgate.net/publication/353154291_Morphometric_analysis_of_the_His_bundle_atrioven
         # tricular_fascicle_in_humans_and_other_animal_species_Histological_and_immunohistochemical_study
         # # (1.06 ± 0.6 mm)
-
-        # create nodes from start to end
-        new_nodes = np.array(
-            [
-                start_coord,
-                bifurcation_coord,
-            ]
-        )
-
-        step = (bifurcation_coord - start_coord) / (beam_number + 1)
-        for i in range(1, beam_number):
-            new_nodes = np.insert(new_nodes, i, start_coord + i * step, axis=0)
 
         # path start from AV point, to septum start point, then to septum end point
         av_id = None
@@ -1819,35 +1883,44 @@ class FourChamber(HeartModel):
             )
             exit()
 
+        # create nodes from start to end
+        new_nodes = np.array(
+            [
+                self.right_atrium.get_point("AV_node").xyz,
+                start_coord,
+                bifurcation_coord,
+            ]
+        )
+
+        new_nodes = _refine_line(new_nodes, beam_length=beam_length)
+        new_nodes = new_nodes[1:, :]
+
         point_ids = np.concatenate(
             (
                 np.array([av_id]),
                 +np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int),
             )
         )
+        bifurcation_id = point_ids[-1]
         # create beam
         edges = np.vstack((point_ids[:-1], point_ids[1:])).T
 
-        # find end on left endo
-        temp_id = pv.PolyData(
-            self.mesh.points[self.left_ventricle.endocardium.node_ids, :]
-        ).find_closest_point(bifurcation_coord)
-        his_end_left_id = self.left_ventricle.endocardium.node_ids[temp_id]
-        his_end_left_coord = self.mesh.points[his_end_left_id, :]
-
-        new_nodes = np.vstack((new_nodes, his_end_left_coord))
-        edges = np.vstack((edges, [point_ids[-1], point_ids[-1] + 1]))
-
-        # find end on right endo (must on the septum endo)
-        temp_id = pv.PolyData(
-            self.mesh.points[self.right_ventricle.septum.node_ids, :]
-        ).find_closest_point(bifurcation_coord)
-        his_end_right_id = self.right_ventricle.septum.node_ids[temp_id]
-        his_end_right_coord = self.mesh.points[his_end_right_id, :]
-
-        new_nodes = np.vstack((new_nodes, his_end_right_coord))
-        edges = np.vstack((edges, [point_ids[-1], point_ids[-1] + 2]))
-
+        position_id_His_end_left, his_end_left_coord, new_nodes, edges = self._create_His_side(
+            side="left",
+            new_nodes=new_nodes,
+            edges=edges,
+            beam_length=beam_length,
+            bifurcation_coord=bifurcation_coord,
+            bifurcation_id=bifurcation_id,
+        )
+        position_id_His_end_right, his_end_right_coord, new_nodes, edges = self._create_His_side(
+            side="right",
+            new_nodes=new_nodes,
+            edges=edges,
+            beam_length=beam_length,
+            bifurcation_coord=bifurcation_coord,
+            bifurcation_id=bifurcation_id,
+        )
         # finally
         mask = np.ones(edges.shape, dtype=bool)
         mask[0, 0] = False  # AV point at previous, not offset in creation
@@ -1873,8 +1946,13 @@ class FourChamber(HeartModel):
         # plotter.add_mesh(self.mesh.nodes[His_septum_start_id, :], opacity=0.1, color="r")
 
         # plotter.show()
-
-        return beam_net, [his_end_left_coord, his_end_right_coord]
+        return Point(
+            xyz=his_end_left_coord,
+            node_id=beam_net.edges[position_id_His_end_left[0], position_id_His_end_left[1]],
+        ), Point(
+            xyz=his_end_right_coord,
+            node_id=beam_net.edges[position_id_His_end_right[0], position_id_His_end_right[1]],
+        )
 
     def _define_hisbundle_start_bifurcation(self):
         """
@@ -1908,7 +1986,7 @@ class FourChamber(HeartModel):
 
         return His_start, His_bifurcation
 
-    def compute_left_right_bundle(self, start_coord, start_id, side: str):
+    def compute_left_right_bundle(self, start_coord, start_id, side: str, beam_length: float = 1.5):
         """Bundle brunch."""
         if side == "Left":
             ventricle = self.left_ventricle
@@ -1920,19 +1998,22 @@ class FourChamber(HeartModel):
             )
             endo_surface = pv.PolyData(self.mesh.points, face)
 
-        endo_surface = endo_surface.clean()
-
         bundle_branch = endo_surface.geodesic(
             endo_surface.find_closest_point(start_coord),
             endo_surface.find_closest_point(self.mesh.points[ventricle.apex_points[0].node_id]),
         )
 
+        new_nodes = bundle_branch.points
+        new_nodes = _refine_line(new_nodes, beam_length=beam_length)
         # exclude first and last (apex) node which belongs to purkinje beam
-        new_nodes = bundle_branch.points[1:-1, :]
-
+        new_nodes = new_nodes[1:-1, :]
         point_ids = np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int)
         point_ids = np.insert(point_ids, 0, start_id)
-        point_ids = np.append(point_ids, ventricle.apex_points[0].node_id)
+        apex = ventricle.apex_points[0].node_id
+        for network in self.beam_network:
+            if network.name == side + "-purkinje":
+                apex = network.edges[0, 0]
+        point_ids = np.append(point_ids, apex)
 
         edges = np.vstack((point_ids[:-1], point_ids[1:])).T
 
@@ -1942,6 +2023,8 @@ class FourChamber(HeartModel):
 
         beam_net = self.add_beam_net(new_nodes, edges, mask, pid=0, name=side + " bundle branch")
         beam_net.beam_nodes_mask[0, 0] = True
+        beam_net.beam_nodes_mask[-1, -1] = True
+
         return beam_net
 
     def compute_Bachman_bundle(self):
@@ -2034,6 +2117,16 @@ class FullHeart(FourChamber):
             super().__init__(info)
 
         pass
+
+
+def _refine_line(nodes: np.array, beam_length: float):
+    new_nodes = [nodes[0, :]]
+    for beam_id in range(len(nodes) - 1):
+        point_start = nodes[beam_id, :]
+        point_end = nodes[beam_id + 1, :]
+        points = _create_line(point_start, point_end, beam_length=beam_length)
+        new_nodes = np.vstack((new_nodes, points[1:, :]))
+    return new_nodes
 
 
 if __name__ == "__main__":

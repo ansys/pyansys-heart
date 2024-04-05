@@ -246,25 +246,26 @@ def mech_post(directory: pathlib.Path, model):
     return
 
 
-def read_uvc(
-    directory,
-):
+def read_uvc(directory):
     """Read UVC from d3plot files."""
     data = D3plotReader(os.path.join(directory, "apico-basal.d3plot"))
-    grid = data.model.metadata.meshed_region.grid
+    grid: pv.UnstructuredGrid = data.model.metadata.meshed_region.grid
 
-    t = data.model.results.temperature.on_last_time_freq.eval()[0].data
-    grid["apico-basal"] = t[::3]
-    data = D3plotReader(os.path.join(directory, "transmural.d3plot"))
-    t = data.model.results.temperature.on_last_time_freq.eval()[0].data
-    grid["transmural"] = t[::3]
-
-    data = D3plotReader(os.path.join(directory, "rotational.d3plot"))
-    t = data.model.results.temperature.on_last_time_freq.eval()[0].data
-    grid["rotational"] = t[::3]
+    for field_name in ["apico-basal", "transmural", "rotational"]:
+        data = D3plotReader(os.path.join(directory, field_name + ".d3plot"))
+        t = data.model.results.temperature.on_last_time_freq.eval()[0].data
+        if len(t) == grid.n_points:
+            t = t
+        elif len(t) == 3 * grid.n_points:
+            t = t[::3]
+        else:
+            LOGGER.error("Failed to read d3plot in UVC")
+            exit()
+        grid.point_data[field_name] = np.array(t, dtype=float)
 
     grid.set_active_scalars("transmural")
     grid.save(os.path.join(directory, "uvc.vtk"))
+
     return grid
 
 
@@ -299,13 +300,21 @@ def orthogonalization(grid) -> pv.UnstructuredGrid:
 def get_gradient(directory, field_list: List[str]) -> pv.UnstructuredGrid:
     """Read thermal fields from d3plot and compute gradient."""
     data = D3plotReader(os.path.join(directory, field_list[0] + ".d3plot"))
-    grid = data.model.metadata.meshed_region.grid
+    grid: pv.UnstructuredGrid = data.model.metadata.meshed_region.grid
 
     for name in field_list:
         data = D3plotReader(os.path.join(directory, name + ".d3plot"))
         t = data.model.results.temperature.on_last_time_freq.eval()[0].data
-        grid[name] = t[::3]
-        # grid.set_active_scalars(name)
+        if len(t) == grid.n_points:
+            t = t
+        elif len(t) == 3 * grid.n_points:
+            t = t[::3]
+        else:
+            LOGGER.error("Failed to read d3plot.")
+            exit()
+
+        # force a deep copy
+        grid.point_data[name] = copy.deepcopy(t)
 
     # note vtk gradient method shows warning/error for some cells
     grid2 = grid.point_data_to_cell_data()

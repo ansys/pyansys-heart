@@ -22,7 +22,6 @@ from ansys.heart.preprocessor.mesh.objects import (
     Part,
     Point,
     SurfaceMesh,
-    _create_line,
 )
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.models.v0_2.input import _InputModel
@@ -1756,16 +1755,6 @@ class FullHeart(FourChamber):
             super().__init__(info)
 
         pass
-
-
-def _refine_line(nodes: np.array, beam_length: float):
-    new_nodes = [nodes[0, :]]
-    for beam_id in range(len(nodes) - 1):
-        point_start = nodes[beam_id, :]
-        point_end = nodes[beam_id + 1, :]
-        points = _create_line(point_start, point_end, beam_length=beam_length)
-        new_nodes = np.vstack((new_nodes, points[1:, :]))
-    return new_nodes
 
 
 if __name__ == "__main__":

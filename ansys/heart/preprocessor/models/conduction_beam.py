@@ -464,8 +464,8 @@ class ConductionSystem:
         la_epi = self.m.left_atrium.epicardium
         ra_epi = self.m.right_atrium.epicardium
 
-        start_id = self._get_closest_point_id(la_epi, start_coord)
-        end_id = self._get_closest_point_id(ra_epi, end_coord)
+        start_id = self._get_closest_point_id(ra_epi, start_coord)
+        end_id = self._get_closest_point_id(la_epi, end_coord)
 
         epi = la_epi.merge(ra_epi)
         path = epi.geodesic(start_id, end_id)
@@ -497,7 +497,7 @@ if __name__ == "__main__":
     )
 
     test = ConductionSystem(model)
-    sa_point = test.compute_SA_node([-71, 102, 394])
+    sa_point = test.compute_SA_node()
     test.compute_AV_node()
 
     test.compute_av_conduction(

@@ -3093,7 +3093,12 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         for part in self.model.parts:
             self.kw_database.material.append(f"$$ {part.name} $$")
             partname = part.name.lower()
-            if ("atrium" in partname) or ("ventricle" in partname) or ("septum" in partname):
+            if (
+                ("atrium" in partname)
+                or ("ventricle" in partname)
+                or ("septum" in partname)
+                or ("base" in partname)
+            ):
                 # Electrically "active" tissue (mtype=1)
                 ep_mid = part.pid
                 self.kw_database.material.append(
@@ -3523,40 +3528,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
         )
 
-        # TODO: His bundle is removed for EPMECA model due to unfinished development in LSDYNA
-        # instead we directly stimulate the apical points with a delay.
-        if type(self) == ElectroMechanicsDynaWriter and isinstance(self.model, FourChamber):
-            second_stim_nodes = self.get_unique_nodeset_id()
-            beam_node_id_offset = len(self.model.cap_centroids)
-            # get apical points
-            stim_nodes = [
-                apex.node_id
-                for p in self.model.parts
-                if "ventricle" in p.name
-                for apex in p.apex_points
-                if "endocardium" in apex.name
-            ]
-
-            self.kw_database.ep_settings.append("$$ second stimulation at Left/Right bundle. $$")
-            node_set_kw = create_node_set_keyword(
-                node_ids=np.array(stim_nodes) + 1,
-                node_set_id=second_stim_nodes,
-                title="origin of left/right bundle",
-            )
-            self.kw_database.ep_settings.append(node_set_kw)
-
-            self.kw_database.ep_settings.append(
-                custom_keywords.EmEpTentusscherStimulus(
-                    stimid=2,
-                    settype=2,
-                    setid=second_stim_nodes,
-                    stimstrt=90.0,  # 90ms delay
-                    stimt=800.0,
-                    stimdur=20.0,
-                    stimamp=50.0,
-                )
-            )
-
     def _update_blood_settings(self):
         """Update blood settings."""
         if self.model.info.add_blood_pool == True:
@@ -3673,11 +3644,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self.kw_database.beam_networks.append(kw)
 
         for network in self.model.beam_network:
-            ## TODO do not write His Bundle when coupling, it leads to crash
-            if self.__class__.__name__ == "ElectroMechanicsDynaWriter" and network.name == "His":
-                continue
-
-            # It is previously defined from purkinje generation step
+            # pid is previously defined from purkinje generation step
             # but needs to reassign part ID here
             # to make sure no conflict with 4C/full heart case.
             network.pid = self.get_unique_part_id()
@@ -3693,6 +3660,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             elif network.name == "Right bundle branch":
                 network.nsid = self.model.right_ventricle.cavity.surface.id
             elif network.name == "His":
+                # His bundle are inside of 3d mesh
+                # need to create the segment on which beam elements rely
                 name = "his_bundle_segment"
                 surface = next(
                     surface for surface in self.model.mesh.boundaries if surface.name == name
@@ -4202,7 +4171,7 @@ class UHCWriter(BaseDynaWriter):
             exit()
 
         # compare closest point with TV nodes, top region should be far with TV node set
-        tv_tree = spatial.cKDTree(atrium.points[atrium.point_data["tricuspid-valve"] == 1])
+        tv_tree = spatial.cKDTree(atrium.points[atrium.point_data["tricuspid-valve-atrium"] == 1])
         min_dst = -1.0
         for i in range(3):
             current_min_dst = np.min(tv_tree.query(x.points[x.point_data["RegionId"] == i])[0])
@@ -4230,7 +4199,7 @@ class UHCWriter(BaseDynaWriter):
             origin=cut_center, normal=cut_normal, crinkle=True, return_clipped=True
         )
         # ids in full mesh
-        tv_s_ids = septum["point_ids"][np.where(septum["tricuspid-valve"] == 1)]
+        tv_s_ids = septum["point_ids"][np.where(septum["tricuspid-valve-atrium"] == 1)]
 
         tv_s_ids_sub = np.where(np.isin(atrium["point_ids"], tv_s_ids))[0]
         atrium["tv_s"] = np.zeros(atrium.n_points)
@@ -4239,7 +4208,7 @@ class UHCWriter(BaseDynaWriter):
         kw = create_node_set_keyword(tv_s_ids_sub + 1, node_set_id=12, title="tv_septum")
         self.kw_database.node_sets.append(kw)
 
-        tv_w_ids = free_wall["point_ids"][np.where(free_wall["tricuspid-valve"] == 1)]
+        tv_w_ids = free_wall["point_ids"][np.where(free_wall["tricuspid-valve-atrium"] == 1)]
         tv_w_ids_sub = np.where(np.isin(atrium["point_ids"], tv_w_ids))[0]
         # remove re constraint nodes
         tv_w_ids_sub = np.setdiff1d(tv_w_ids_sub, tv_s_ids_sub)

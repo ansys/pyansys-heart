@@ -353,7 +353,7 @@ class HeartModel:
 
         self.add_part(name)
         new_part = self.get_part(name)
-        new_part.part_type = "myocardium"
+        new_part.part_type = ""
         new_part.element_ids = eids
 
         return new_part
@@ -2005,11 +2005,27 @@ class FourChamber(HeartModel):
 
         super().__init__(info)
 
-    def _create_isolation_part(self):
-        """Create a new part to isolate between ventricles and atrial."""
+    def _create_isolation_part(self) -> Part:
+        """
+        Extract a layer of element to isolate between ventricles and atrium.
+
+        Notes
+        -----
+        These elements are initially belong to atrium.
+
+        Returns
+        -------
+        Part
+            Part of isolation elements.
+        """
         # find interface nodes between ventricles and atrial
-        v_ele = np.hstack((self.left_ventricle.element_ids, self.right_ventricle.element_ids))
-        a_ele = np.hstack((self.left_atrium.element_ids, self.right_atrium.element_ids))
+        v_ele = np.array([], dtype=int)
+        a_ele = np.array([], dtype=int)
+        for part in self.parts:
+            if part.part_type == "ventricle":
+                v_ele = np.append(v_ele, part.element_ids)
+            elif part.part_type == "atrium":
+                a_ele = np.append(a_ele, part.element_ids)
 
         ventricles = self.mesh.extract_cells(v_ele)
         atrial = self.mesh.extract_cells(a_ele)
@@ -2043,11 +2059,12 @@ class FourChamber(HeartModel):
             interface_eids = np.append(interface_eids, orphan_cells)
 
         # create a new part
-        self.add_part("Isolation atrial")
-        isolation = self.get_part("Isolation atrial")
-        isolation.element_ids = interface_eids
+        isolation: Part = self.create_part_by_ids(interface_eids, "Isolation atrial")
+        isolation.part_type = "atrial"
         isolation.has_fiber = True
         isolation.is_active = False
+
+        return isolation
 
 
 class FullHeart(FourChamber):

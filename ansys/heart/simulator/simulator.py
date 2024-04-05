@@ -523,6 +523,7 @@ class MechanicsSimulator(BaseSimulator):
             eids = np.hstack((eids, eid_r))
 
         part: Part = self.model.create_part_by_ids(eids, "base")
+        part.part_type = "ventricle"
         part.has_fiber = False
         part.is_active = False
         part.meca_material = stiff_material

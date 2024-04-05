@@ -3146,7 +3146,12 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         """Add cell model for each defined part."""
         for part in self.model.parts:
             partname = part.name.lower()
-            if ("atrium" in partname) or ("ventricle" in partname) or ("septum" in partname):
+            if (
+                ("atrium" in partname)
+                or ("ventricle" in partname)
+                or ("septum" in partname)
+                or ("base" in partname)
+            ):
                 ep_mid = part.pid
                 # One cell model for myocardium, default value is epi layer parameters
                 self._add_Tentusscher_keyword_epi(matid=ep_mid)

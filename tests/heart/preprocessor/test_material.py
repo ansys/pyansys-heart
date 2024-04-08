@@ -66,6 +66,21 @@ def test_active():
     assert a.ca2_curve.type == "ca2"
 
 
+def test_active_couple():
+    active_model = M.ActiveModel.Model3(
+        ca2ion50=0.001,
+        n=2,
+        f=0.0,
+        l=1.9,
+        eta=1.45,
+        sigmax=0.125,  # MPa
+    )
+    assert active_model.f == 0.0
+    active = M.ACTIVE(sf=1.0, ss=0.0, sn=0.0, acthr=0.0002, model=active_model, ca2_curve=None)
+    assert active.acthr == 0.0002
+    assert active.acdir == 1
+
+
 def test_mat295():
     m = M.MAT295(rho=1, iso=M.ISO())
     assert m.aniso == None

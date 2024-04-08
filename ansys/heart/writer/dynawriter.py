@@ -24,7 +24,9 @@ from importlib.resources import path as resource_path
 from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.simulator.settings.material.material import (
+    ACTIVE,
     MAT295,
+    ActiveModel,
     MechanicalMaterialModel,
     NeoHookean,
 )
@@ -162,20 +164,6 @@ class BaseDynaWriter:
 
         self.settings.to_consistent_unit_system()
         self._check_settings()
-
-        # assign material for part if it's empty
-        myocardium, neohookean = self.settings.get_mechanical_material()
-        for part in self.model.parts:
-            if isinstance(part.meca_material, MechanicalMaterialModel.DummyMaterial):
-                LOGGER.info(f"Material of {part.name} will be assigned automatically.")
-                if part.has_fiber:
-                    if part.is_active:
-                        part.meca_material = myocardium
-                    else:
-                        part.meca_material = copy.deepcopy(myocardium)
-                        part.meca_material.active = None
-                elif not part.has_fiber:
-                    part.meca_material = neohookean
 
         if "Improved" in self.model.info.model_type:
             LOGGER.warning(
@@ -1072,6 +1060,39 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self.kw_database.node_sets.extend(kws_surface)
 
     def _update_material_db(self, add_active: bool = True, em_couple: bool = False):
+        # assign material for part if it's empty
+        myocardium, neohookean = self.settings.get_mechanical_material()
+
+        for part in self.model.parts:
+            if isinstance(part.meca_material, MechanicalMaterialModel.DummyMaterial):
+                LOGGER.info(f"Material of {part.name} will be assigned automatically.")
+                if part.has_fiber:
+                    if part.is_active:
+                        part.meca_material = copy.deepcopy(myocardium)
+                        if em_couple:
+                            model3 = ActiveModel.Model3(
+                                ca2ion50=0.001,
+                                n=2,
+                                f=0.0,
+                                l=1.9,
+                                eta=1.45,
+                                sigmax=0.125,  # MPa
+                            )
+                            coupled_active = ACTIVE(
+                                sf=1.0,
+                                ss=0.0,
+                                sn=0.0,
+                                acthr=0.0002,
+                                model=model3,
+                                ca2_curve=None,
+                            )
+                            part.meca_material.active = coupled_active
+                    else:
+                        part.meca_material = copy.deepcopy(myocardium)
+                        part.meca_material.active = None
+                elif not part.has_fiber:
+                    part.meca_material = neohookean
+        # write
         for part in self.model.parts:
             material = part.meca_material
 
@@ -1089,7 +1110,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                         lcint=10000,
                     )
 
-                    if not em_couple:
+                    if not em_couple:  # write ca2+ curve
                         self.kw_database.material.append(curve_kw)
                         material.active.acid = cid
 

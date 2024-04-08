@@ -88,3 +88,29 @@ def test_mesh_object_read_002():
     assert "tags" in mesh.array_names
 
     return
+
+def test_add_nodes():
+    """Test adding points/nodes to the Mesh object."""
+    # test data:
+    points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    tetrahedron = np.array([[0, 1, 2, 3]])
+
+    mesh = Mesh()
+    mesh.tetrahedrons = tetrahedron
+    mesh.nodes = points
+    mesh.point_data["test-data"] = np.ones(mesh.n_points, dtype=float)
+    
+    # add a node
+    mesh.nodes = np.vstack([points, [0, 0.5, 0.5]])
+    
+    # test adding nodes
+    assert mesh.point_data["test-data"].shape[0] == mesh.nodes.shape[0]    
+    
+    # test removing nodes
+    mesh.nodes = points[0:-1,:]
+    assert mesh.point_data["test-data"].shape[0] == mesh.nodes.shape[0]
+
+    # test assigning same number of nodes
+    mesh.nodes = points*1e-3
+    
+    assert mesh.point_data["test-data"].shape[0] == mesh.nodes.shape[0]

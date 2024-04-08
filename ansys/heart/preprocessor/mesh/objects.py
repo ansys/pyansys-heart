@@ -517,17 +517,21 @@ class Mesh(pv.UnstructuredGrid):
         if isinstance(array, type(None)):
             return
         try:
-            self.points = array
             num_extra_points = array.shape[0] - self.points.shape[0]
-            if self.points.shape[0] < array.shape[0]:
+            self.points = array
+            if num_extra_points > 0:
                 for key in self.point_data.keys():
                     dtype = self.point_data[key].dtype
                     self.point_data[key] = np.append(
                         self.point_data[key], np.empty(num_extra_points, dtype) * np.nan
                     )
-            elif self.points.shape[0] > array.shape[0]:
-                for key in self.point_data.keys():
-                    self.point_data[key] = self.point_data[key][0:num_extra_points]
+            elif num_extra_points < 0:
+                raise NotImplementedError(
+                    "Assigning less nodes than the original not implemented yet."
+                )
+
+                # for key in self.point_data.keys():
+                #     self.point_data[key] = self.point_data[key][0:num_extra_points]
 
         except:
             LOGGER.warning("Failed to set nodes.")

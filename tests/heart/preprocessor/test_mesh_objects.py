@@ -99,19 +99,16 @@ def test_add_nodes():
     mesh = Mesh()
     mesh.tetrahedrons = tetrahedron
     mesh.nodes = points
-    mesh.point_data["test-data"] = np.ones(mesh.n_points, dtype=float)
-
-    # add a node
-    mesh.nodes = np.vstack([points, [0, 0.5, 0.5]])
+    mesh.point_data["data-scalar"] = np.ones(mesh.n_points, dtype=float)
+    mesh.point_data["data-vector"] = np.ones((mesh.n_points, 3), dtype=float)
 
     # test adding nodes
-    assert mesh.point_data["test-data"].shape[0] == mesh.nodes.shape[0]
-
-    # test removing nodes
-    # mesh.nodes = points[0:-1,:]
-    # assert mesh.point_data["test-data"].shape[0] == mesh.nodes.shape[0]
+    mesh.nodes = np.vstack([points, [0, 0.5, 0.5]])
+    assert mesh.point_data["data-scalar"].shape[0] == mesh.nodes.shape[0]
+    assert mesh.point_data["data-vector"].shape[0] == mesh.nodes.shape[0]
 
     # test assigning same number of nodes
     mesh.nodes = mesh.nodes * 1e-3
 
-    assert mesh.point_data["test-data"].shape[0] == mesh.nodes.shape[0]
+    assert mesh.point_data["data-scalar"].shape[0] == mesh.nodes.shape[0]
+    assert mesh.point_data["data-vector"].shape[0] == mesh.nodes.shape[0]

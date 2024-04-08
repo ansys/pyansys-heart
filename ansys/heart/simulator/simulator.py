@@ -423,6 +423,7 @@ class EPSimulator(BaseSimulator):
         """Compute the conduction system."""
         if isinstance(self.model, FourChamber):
             beam_length = self.settings.purkinje.edgelen.m
+
             cs = ConductionSystem(self.model)
             cs.compute_SA_node()
             cs.compute_AV_node()
@@ -434,10 +435,13 @@ class EPSimulator(BaseSimulator):
             cs.compute_left_right_bundle(
                 right.xyz, right.node_id, side="Right", beam_length=beam_length
             )
-            cs.compute_Bachman_bundle(
-                start_coord=self.model.right_atrium.get_point("SA_node").xyz,
-                end_coord=np.array([-34, 163, 413]),  # TODO strocchi 01
-            )
+
+            # # TODO define end point by uhc, or let user choose
+            # Note: must on surface after zerop if coupled with meca
+            # cs.compute_Bachman_bundle(
+            #     start_coord=self.model.right_atrium.get_point("SA_node").xyz,
+            #     end_coord=np.array([-34, 163, 413]),
+            # )
             return cs
 
     def _write_main_simulation_files(self, folder_name):

@@ -258,6 +258,15 @@ class EPpostprocessor:
         if plot:
             t = times
             fig, axes = plt.subplots(nrows=3, ncols=4, layout="tight")
+            # Major ticks every 20, minor ticks every 5
+            major_xticks = np.arange(0, int(max(times)), 200)
+            minor_xticks = np.arange(0, int(max(times)), 40)
+            for i, ax in enumerate(fig.axes):
+                ax.set_xticks(major_xticks)
+                ax.set_xticks(minor_xticks, minor=True)
+                ax.set_yticks(major_xticks)
+                ax.set_yticks(minor_xticks, minor=True)
+                ax.grid(which="both")
             axes[0, 0].plot(t, I)
             axes[0, 0].set_ylabel("I")
             axes[1, 0].plot(t, II)
@@ -283,11 +292,11 @@ class EPpostprocessor:
             axes[2, 3].plot(t, V6)
             axes[2, 3].set_ylabel("V6")
             plt.setp(plt.gcf().get_axes(), xticks=[0, 200, 400, 600, 800], yticks=[])
-            fig.add_subplot(111, frameon=False)
-            plt.tick_params(
-                labelcolor="none", which="both", top=False, bottom=False, left=False, right=False
-            )
-            plt.xlabel("time (ms)")
+            # fig.add_subplot(111, frameon=False)
+            # plt.tick_params(
+            #     labelcolor="none", which="both", top=False, bottom=False, left=False, right=False
+            # )
+            # plt.xlabel("time (ms)")
             post_path = self.create_post_folder()
             filename = os.path.join(post_path, "12LeadECGs.png")
             plt.savefig(fname=filename, format="png")

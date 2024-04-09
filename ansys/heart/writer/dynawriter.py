@@ -1098,19 +1098,18 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             if isinstance(material, MAT295):
                 if material.active is not None:
-                    # obtain ca2+ curve
-                    x, y = material.active.ca2_curve.dyna_input
-
-                    cid = self.get_unique_curve_id()
-                    curve_kw = create_define_curve_kw(
-                        x=x,
-                        y=y,
-                        curve_name=f"ca2+ of {part.name}",
-                        curve_id=cid,
-                        lcint=10000,
-                    )
-
                     if not em_couple:  # write ca2+ curve
+                        # obtain ca2+ curve
+                        x, y = material.active.ca2_curve.dyna_input
+
+                        cid = self.get_unique_curve_id()
+                        curve_kw = create_define_curve_kw(
+                            x=x,
+                            y=y,
+                            curve_name=f"ca2+ of {part.name}",
+                            curve_id=cid,
+                            lcint=10000,
+                        )
                         self.kw_database.material.append(curve_kw)
                         material.active.acid = cid
 
@@ -4240,7 +4239,7 @@ class UHCWriter(BaseDynaWriter):
             origin=cut_center, normal=cut_normal, crinkle=True, return_clipped=True
         )
         # ids in full mesh
-        tv_s_ids = septum["point_ids"][np.where(septum[tv_name] == 1)]
+        tv_s_ids = septum["point_ids"][np.where(septum["tricuspid-valve"] == 1)]
 
         tv_s_ids_sub = np.where(np.isin(atrium["point_ids"], tv_s_ids))[0]
         atrium["tv_s"] = np.zeros(atrium.n_points)

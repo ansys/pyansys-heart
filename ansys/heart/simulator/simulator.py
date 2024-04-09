@@ -616,7 +616,7 @@ class MechanicsSimulator(BaseSimulator):
             guess_ed_coords = np.array(self.stress_free_report["guess_ed_coord"])[:-n_caps]
         elif heart_version == "v0.2":
             guess_ed_coords = np.array(self.stress_free_report["guess_ed_coord"])
-        self.model.mesh.points = guess_ed_coords
+        self.model.mesh.nodes = guess_ed_coords
 
         # Note: synchronization
         for part in self.model.parts:

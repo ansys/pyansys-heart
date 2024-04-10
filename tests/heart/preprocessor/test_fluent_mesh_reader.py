@@ -65,12 +65,12 @@ def test_to_vtk():
     return
 
 
-@pytest.mark.xfail(reason="Duplicate node coordinates are stored.")
 def test_read_nodes(_test_mesh):
     """Tests reading of the nodes of simple box"""
     mesh = _test_mesh
     assert isinstance(mesh, FluentMesh)
     mesh._read_nodes()
+    mesh._remove_duplicate_nodes()
     assert mesh.nodes.shape == (9, 3)
     expected_nodes = np.array(
         [
@@ -85,7 +85,7 @@ def test_read_nodes(_test_mesh):
             [0.4965233, 0.5034767, 0.4965233],
         ]
     )
-    assert np.allclose(mesh.nodes, expected_nodes, atol=1e-8)
+    assert np.allclose(np.sort(mesh.nodes, axis=0), np.sort(expected_nodes, axis=0), atol=1e-8)
 
 
 def test_read_face_zones(_test_mesh):
@@ -147,22 +147,24 @@ def test_read_tetrahedrons(_test_mesh):
     """Tests reading of tetrahedrons on simple box with single cell zone"""
     mesh = FluentMesh()
     mesh.load_mesh(FLUENT_BOX)
-    expected_cells = np.array(
-        [
-            [30, 27, 28, 32],
-            [32, 28, 30, 29],
-            [32, 30, 27, 31],
-            [32, 29, 30, 31],
-            [32, 27, 28, 25],
-            [32, 28, 29, 25],
-            [32, 31, 27, 26],
-            [32, 29, 31, 26],
-            [32, 27, 25, 26],
-            [32, 29, 26, 24],
-            [32, 25, 29, 24],
-            [32, 26, 25, 24],
-        ]
-    )
+    expected_cells = mesh._unique_map[
+        np.array(
+            [
+                [30, 27, 28, 32],
+                [32, 28, 30, 29],
+                [32, 30, 27, 31],
+                [32, 29, 30, 31],
+                [32, 27, 28, 25],
+                [32, 28, 29, 25],
+                [32, 31, 27, 26],
+                [32, 29, 31, 26],
+                [32, 27, 25, 26],
+                [32, 29, 26, 24],
+                [32, 25, 29, 24],
+                [32, 26, 25, 24],
+            ]
+        )
+    ]
     assert np.all(mesh.cell_zones[0].cells == expected_cells)
     # single cell zone: so all cells in mesh should be in the first cell zone.
     assert np.all(mesh.cells == mesh.cell_zones[0].cells)

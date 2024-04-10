@@ -91,10 +91,12 @@ class FluentMesh:
         """All cells."""
         self.cell_ids: np.ndarray = None
         """Array of cell ids use to define the cell zones."""
-        self.cell_zones: List[FluentCellZone] = None
+        self.cell_zones: List[FluentCellZone] = []
         """List of cell zones."""
-        self.face_zones: List[FluentFaceZone] = None
+        self.face_zones: List[FluentFaceZone] = []
         """List of face zones."""
+        self._unique_map: np.ndarray = None
+        """Map to go from full node list to node-list without duplicates."""
 
         pass
 
@@ -111,17 +113,28 @@ class FluentMesh:
         self._read_nodes()
         self._read_face_zone_info()
         self._read_all_faces_of_face_zones()
+        self._remove_duplicate_nodes()
 
         if reconstruct_tetrahedrons:
             self._read_cell_zone_info()
             self._read_c0c1_of_face_zones()
             self._convert_interior_faces_to_tetrahedrons2()
             self._set_cells_in_cell_zones()
-            self._update_indexing_cells()
+            # self._update_indexing_cells()
 
-        self._update_indexing_faces()
+        # self._update_indexing_faces()
 
         self._close_file()
+        return
+
+    def _remove_duplicate_nodes(self) -> None:
+        """Remove duplicate nodes and remaps the face zone definitions."""
+        self._unique_nodes, _, self._unique_map = np.unique(
+            self.nodes, axis=0, return_index=True, return_inverse=True,
+        )
+        for fz in self.face_zones:
+            fz.faces = self._unique_map[fz.faces - 1]
+        self.nodes = self._unique_nodes
         return
 
     def _update_indexing_cells(self) -> None:

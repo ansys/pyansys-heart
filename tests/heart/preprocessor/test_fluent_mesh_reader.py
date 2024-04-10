@@ -143,6 +143,34 @@ def test_read_face_zones(_test_mesh):
         assert np.all(expected_face_zones[face_zone.name] == face_zone.faces)
 
 
+def test_clean_mesh():
+    """Test cleaning the mesh from unreferenced nodes/points."""
+    mesh = FluentMesh()
+    mesh.load_mesh(FLUENT_BOX)
+
+    # remove interior faces
+    mesh.face_zones = [fz for fz in mesh.face_zones if "interior" not in fz.name]
+    # remove one face zone from the box:
+    mesh.face_zones = mesh.face_zones[0:-1]
+
+    mesh.clean()
+    # even though a face zone is removed, the expected shape is
+    # shape is (9,3) since it is used in a cell.
+    assert mesh.nodes.shape == (9, 3)
+
+    # remove cells and cell zones
+    mesh.cell_zones = []
+    mesh.cells = []
+
+    mesh.clean()
+
+    # since cells are also removed, we now expect 8 nodes and 10 faces
+    assert np.vstack([fz.faces for fz in mesh.face_zones]).shape[0] == 10
+    assert mesh.nodes.shape == (8, 3)
+
+    return
+
+
 def test_read_tetrahedrons(_test_mesh):
     """Tests reading of tetrahedrons on simple box with single cell zone"""
     mesh = FluentMesh()

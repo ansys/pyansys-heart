@@ -454,6 +454,9 @@ class HeartModel:
             cz for cz in fluent_mesh.cell_zones if cz.id in self._input.part_ids
         ]
 
+        # remove any unused nodes
+        fluent_mesh.clean()
+
         vtk_grid = fluent_mesh._to_vtk()
 
         mesh = Mesh(vtk_grid)
@@ -474,7 +477,6 @@ class HeartModel:
             fz for ii, fz in enumerate(fluent_mesh.face_zones) if ii not in idx_to_remove
         ]
 
-        # add face zones to mesh object.
         mesh.boundaries = [
             SurfaceMesh(name=fz.name, triangles=fz.faces, nodes=mesh.nodes, id=fz.id)
             for fz in fluent_mesh.face_zones

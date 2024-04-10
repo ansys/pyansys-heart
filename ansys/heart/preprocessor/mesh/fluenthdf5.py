@@ -127,10 +127,37 @@ class FluentMesh:
         self._close_file()
         return
 
+    def clean(self):
+        """Remove all unused nodes."""
+        used_node_ids1 = np.unique(
+            np.array(np.vstack([fz.faces for fz in self.face_zones]), dtype=int)
+        )
+        used_node_ids2 = np.unique(np.array(self.cells, dtype=int))
+        used_node_ids = np.unique(np.append(used_node_ids1, used_node_ids2))
+        mask = np.zeros((self.nodes.shape[0]), dtype=bool)
+        mask[used_node_ids] = True
+
+        old_to_new_indices = np.zeros(self.nodes.shape[0], dtype=int) - 1
+        old_to_new_indices[used_node_ids] = np.arange(0, used_node_ids.shape[0])
+
+        # remove unused nodes
+        self.nodes = self.nodes[used_node_ids, :]
+        # reorder cell and face zones accordingly
+        self.cells = old_to_new_indices[self.cells]
+        for cz in self.cell_zones:
+            cz.cells = old_to_new_indices[cz.cells]
+        for fz in self.face_zones:
+            fz.faces = old_to_new_indices[fz.faces]
+
+        return
+
     def _remove_duplicate_nodes(self) -> None:
         """Remove duplicate nodes and remaps the face zone definitions."""
         self._unique_nodes, _, self._unique_map = np.unique(
-            self.nodes, axis=0, return_index=True, return_inverse=True,
+            self.nodes,
+            axis=0,
+            return_index=True,
+            return_inverse=True,
         )
         for fz in self.face_zones:
             fz.faces = self._unique_map[fz.faces - 1]

@@ -70,8 +70,8 @@ class ConductionSystem:
         """
         Compute SinoAtrial node.
 
-        SinoAtrial node is defined on endocardium surface and
-        between sup vena cave and inf vena cave.
+        SinoAtrial node is defined on the endocardium of the right atrium and
+        between sup vena cava and inf vena cave.
         """
         if target_coord == None:
             for cap in self.m.right_atrium.caps:
@@ -293,11 +293,11 @@ class ConductionSystem:
     def find_path(
         mesh: pv.UnstructuredGrid, start: np.ndarray, end: np.ndarray, return_segment=True
     ):
-        """Find shortes path between two nodes.
+        """Find shortest path between two nodes.
 
         Notes
         -----
-        Unlike geodesic, this method search path inside of 3D mesh.
+        Unlike geodesic, this method searches a path inside of a 3D mesh.
 
         Parameters
         ----------
@@ -308,7 +308,7 @@ class ConductionSystem:
         end : np.ndarray
             End point coordinates
         return_segment : bool, optional
-            Return a segment on which the path relies, by default True
+            Return a segment set (list of triangles) on which the path relies, by default True
         """
 
         def _mesh_to_nx_graph(mesh):

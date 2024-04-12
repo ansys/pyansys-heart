@@ -122,7 +122,7 @@ class ACTIVE:
 
     acid: int = None  # defined in writer
     actype: int = None  # defined by curve
-    acthr: float = None  # defined by curve
+    acthr: float = None  # if not given, defined by curve
     acdir: int = 1
     sf: float = 1.0
     ss: float = 0.0
@@ -140,8 +140,8 @@ class ACTIVE:
             self.actype = 3
         else:
             LOGGER.error("Unknown actype.")
-
-        self.acthr = self.ca2_curve.threshold
+        if self.ca2_curve is not None:
+            self.acthr = self.ca2_curve.threshold
 
 
 @dataclass

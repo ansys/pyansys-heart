@@ -24,7 +24,9 @@ from importlib.resources import path as resource_path
 from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.simulator.settings.material.material import (
+    ACTIVE,
     MAT295,
+    ActiveModel,
     MechanicalMaterialModel,
     NeoHookean,
 )
@@ -162,20 +164,6 @@ class BaseDynaWriter:
 
         self.settings.to_consistent_unit_system()
         self._check_settings()
-
-        # assign material for part if it's empty
-        myocardium, neohookean = self.settings.get_mechanical_material()
-        for part in self.model.parts:
-            if isinstance(part.meca_material, MechanicalMaterialModel.DummyMaterial):
-                LOGGER.info(f"Material of {part.name} will be assigned automatically.")
-                if part.has_fiber:
-                    if part.is_active:
-                        part.meca_material = myocardium
-                    else:
-                        part.meca_material = copy.deepcopy(myocardium)
-                        part.meca_material.active = None
-                elif not part.has_fiber:
-                    part.meca_material = neohookean
 
         if "Improved" in self.model.info.model_type:
             LOGGER.warning(
@@ -1072,24 +1060,56 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self.kw_database.node_sets.extend(kws_surface)
 
     def _update_material_db(self, add_active: bool = True, em_couple: bool = False):
+        # assign material for part if it's empty
+        myocardium, neohookean = self.settings.get_mechanical_material()
+
+        for part in self.model.parts:
+            if isinstance(part.meca_material, MechanicalMaterialModel.DummyMaterial):
+                LOGGER.info(f"Material of {part.name} will be assigned automatically.")
+                if part.has_fiber:
+                    if part.is_active:
+                        part.meca_material = copy.deepcopy(myocardium)
+                        if em_couple:
+                            model3 = ActiveModel.Model3(
+                                ca2ion50=0.001,
+                                n=2,
+                                f=0.0,
+                                l=1.9,
+                                eta=1.45,
+                                sigmax=0.125,  # MPa
+                            )
+                            coupled_active = ACTIVE(
+                                sf=1.0,
+                                ss=0.0,
+                                sn=0.0,
+                                acthr=0.0002,
+                                model=model3,
+                                ca2_curve=None,
+                            )
+                            part.meca_material.active = coupled_active
+                    else:
+                        part.meca_material = copy.deepcopy(myocardium)
+                        part.meca_material.active = None
+                elif not part.has_fiber:
+                    part.meca_material = neohookean
+        # write
         for part in self.model.parts:
             material = part.meca_material
 
             if isinstance(material, MAT295):
                 if material.active is not None:
-                    # obtain ca2+ curve
-                    x, y = material.active.ca2_curve.dyna_input
+                    if not em_couple:  # write ca2+ curve
+                        # obtain ca2+ curve
+                        x, y = material.active.ca2_curve.dyna_input
 
-                    cid = self.get_unique_curve_id()
-                    curve_kw = create_define_curve_kw(
-                        x=x,
-                        y=y,
-                        curve_name=f"ca2+ of {part.name}",
-                        curve_id=cid,
-                        lcint=10000,
-                    )
-
-                    if not em_couple:
+                        cid = self.get_unique_curve_id()
+                        curve_kw = create_define_curve_kw(
+                            x=x,
+                            y=y,
+                            curve_name=f"ca2+ of {part.name}",
+                            curve_id=cid,
+                            lcint=10000,
+                        )
                         self.kw_database.material.append(curve_kw)
                         material.active.acid = cid
 
@@ -3093,7 +3113,12 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         for part in self.model.parts:
             self.kw_database.material.append(f"$$ {part.name} $$")
             partname = part.name.lower()
-            if ("atrium" in partname) or ("ventricle" in partname) or ("septum" in partname):
+            if (
+                ("atrium" in partname)
+                or ("ventricle" in partname)
+                or ("septum" in partname)
+                or ("base" in partname)
+            ):
                 # Electrically "active" tissue (mtype=1)
                 ep_mid = part.pid
                 self.kw_database.material.append(
@@ -3141,7 +3166,12 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         """Add cell model for each defined part."""
         for part in self.model.parts:
             partname = part.name.lower()
-            if ("atrium" in partname) or ("ventricle" in partname) or ("septum" in partname):
+            if (
+                ("atrium" in partname)
+                or ("ventricle" in partname)
+                or ("septum" in partname)
+                or ("base" in partname)
+            ):
                 ep_mid = part.pid
                 # One cell model for myocardium, default value is epi layer parameters
                 self._add_Tentusscher_keyword_epi(matid=ep_mid)
@@ -3500,6 +3530,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                         stim_nodes.append(network.edges[1, 0] + beam_node_id_offset)
                         # stim_nodes.append(network.edges[2, 0] + beam_node_id_offset)
                         # stim_nodes.append(network.edges[3, 0] + beam_node_id_offset)
+                    elif network.name == "Bachman bundle":
+                        stim_nodes.append(network.edges[0, 0])  # SA node on epi, solid node
+                        stim_nodes.append(network.edges[1, 0] + beam_node_id_offset)
 
         # create node-sets for stim nodes
         node_set_id_stimulationnodes = self.get_unique_nodeset_id()
@@ -3522,40 +3555,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 stimamp=50.0,
             )
         )
-
-        # TODO: His bundle is removed for EPMECA model due to unfinished development in LSDYNA
-        # instead we directly stimulate the apical points with a delay.
-        if type(self) == ElectroMechanicsDynaWriter and isinstance(self.model, FourChamber):
-            second_stim_nodes = self.get_unique_nodeset_id()
-            beam_node_id_offset = len(self.model.cap_centroids)
-            # get apical points
-            stim_nodes = [
-                apex.node_id
-                for p in self.model.parts
-                if "ventricle" in p.name
-                for apex in p.apex_points
-                if "endocardium" in apex.name
-            ]
-
-            self.kw_database.ep_settings.append("$$ second stimulation at Left/Right bundle. $$")
-            node_set_kw = create_node_set_keyword(
-                node_ids=np.array(stim_nodes) + 1,
-                node_set_id=second_stim_nodes,
-                title="origin of left/right bundle",
-            )
-            self.kw_database.ep_settings.append(node_set_kw)
-
-            self.kw_database.ep_settings.append(
-                custom_keywords.EmEpTentusscherStimulus(
-                    stimid=2,
-                    settype=2,
-                    setid=second_stim_nodes,
-                    stimstrt=90.0,  # 90ms delay
-                    stimt=800.0,
-                    stimdur=20.0,
-                    stimamp=50.0,
-                )
-            )
 
     def _update_blood_settings(self):
         """Update blood settings."""
@@ -3673,11 +3672,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self.kw_database.beam_networks.append(kw)
 
         for network in self.model.beam_network:
-            ## TODO do not write His Bundle when coupling, it leads to crash
-            if self.__class__.__name__ == "ElectroMechanicsDynaWriter" and network.name == "His":
-                continue
-
-            # It is previously defined from purkinje generation step
+            # pid is previously defined from purkinje generation step
             # but needs to reassign part ID here
             # to make sure no conflict with 4C/full heart case.
             network.pid = self.get_unique_part_id()
@@ -3692,9 +3687,16 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 network.nsid = self.model.left_ventricle.cavity.surface.id
             elif network.name == "Right bundle branch":
                 network.nsid = self.model.right_ventricle.cavity.surface.id
-            # His bundle is inside of surface, no segment will associated
             elif network.name == "His":
-                network.nsid = -1
+                # His bundle are inside of 3d mesh
+                # need to create the segment on which beam elements rely
+                surface = self._add_segment_from_boundary(name="his_bundle_segment")
+                network.nsid = surface.id
+            elif network.name == "Bachman bundle":
+                # His bundle are inside of 3d mesh
+                # need to create the segment on which beam elements rely
+                surface = self._add_segment_from_boundary(name="Bachman segment")
+                network.nsid = surface.id
             else:
                 LOGGER.error(f"Unknown network name for {network.name}.")
                 exit()
@@ -3764,6 +3766,20 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
             beam_elem_id_offset += len(network.edges)
             self.kw_database.beam_networks.append(beams_kw)
+
+    def _add_segment_from_boundary(self, name: str):
+        surface = next(surface for surface in self.model.mesh.boundaries if surface.name == name)
+
+        surface.id = self.get_unique_segmentset_id()
+        kw = create_segment_set_keyword(
+            segments=surface.triangles + 1,
+            segid=surface.id,
+            title=surface.name,
+        )
+        # append this kw to the segment set database
+        self.kw_database.segment_sets.append(kw)
+
+        return surface
 
     def _update_export_controls(self):
         """Add solution controls to the main simulation."""
@@ -4223,7 +4239,7 @@ class UHCWriter(BaseDynaWriter):
             origin=cut_center, normal=cut_normal, crinkle=True, return_clipped=True
         )
         # ids in full mesh
-        tv_s_ids = septum["point_ids"][np.where(septum[tv_name] == 1)]
+        tv_s_ids = septum["point_ids"][np.where(septum["tricuspid-valve"] == 1)]
 
         tv_s_ids_sub = np.where(np.isin(atrium["point_ids"], tv_s_ids))[0]
         atrium["tv_s"] = np.zeros(atrium.n_points)

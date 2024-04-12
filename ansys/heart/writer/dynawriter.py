@@ -3790,6 +3790,375 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         return
 
 
+class ElectrophysiologyEikonalDynaWriter(BaseDynaWriter):
+    """Class for preparing the input for an Electrophysiology eikonal LS-DYNA simulation."""
+
+    def __init__(self, model: HeartModel, settings: SimulationSettings = None) -> None:
+        super().__init__(model=model, settings=settings)
+        self.kw_database = ElectrophysiologyDecks()
+        """Collection of keywords relevant for Electrophysiology."""
+
+    def update(self):
+        """Update keyword database for Electrophysiology."""
+        # self._isolate_atria_and_ventricles()
+
+        ##
+        self._update_main_db()
+        self._update_solution_controls()
+        self._update_export_controls()
+
+        self._update_node_db()
+        self._update_parts_db()
+        self._update_solid_elements_db(add_fibers=True)
+
+        self._update_dummy_material_db()
+        self._update_ep_material_db()
+
+        self._update_segmentsets_db()
+
+        # TODO check if no existing node set ids conflict with surface ids
+        # For now, new node sets should be created after calling
+        # self._update_nodesets_db()
+        self._update_nodesets_db()
+        self._update_cellmodels()
+
+        if self.model.beam_network:
+            # with smcoupl=1, coupling is disabled
+            self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
+            self._update_use_Purkinje()
+
+        # update ep settings
+        self._update_ep_settings()
+        self._update_stimulation()
+
+        if self.model.info.add_blood_pool == True:
+            self._update_blood_settings()
+
+        if hasattr(self.model, "electrodes") and len(self.model.electrodes) != 0:
+            self._update_ECG_coordinates()
+
+        self._get_list_of_includes()
+        self._add_includes()
+
+        return
+
+    def _update_ep_material_db(self):
+        """Add EP material for each defined part."""
+        material_settings = self.settings.electrophysiology.material
+        for part in self.model.parts:
+            self.kw_database.material.append(f"$$ {part.name} $$")
+            partname = part.name.lower()
+            if (
+                ("atrium" in partname)
+                or ("ventricle" in partname)
+                or ("septum" in partname)
+                or ("base" in partname)
+            ):
+                # Electrically "active" tissue (mtype=1)
+                ep_mid = part.pid
+                self.kw_database.material.append(
+                    custom_keywords.EmMat003(
+                        mid=ep_mid,
+                        mtype=2,
+                        sigma11=material_settings.myocardium["sigma_fiber"].m,
+                        sigma22=material_settings.myocardium["sigma_sheet"].m,
+                        sigma33=material_settings.myocardium["sigma_sheet_normal"].m,
+                        beta=material_settings.myocardium["beta"].m,
+                        cm=material_settings.myocardium["cm"].m,
+                        aopt=2.0,
+                        a1=0,
+                        a2=0,
+                        a3=1,
+                        d1=0,
+                        d2=-1,
+                        d3=0,
+                    ),
+                )
+            elif "isolation" in partname:
+                # assign insulator material to isolation layer.
+                ep_mid = part.pid
+                self.kw_database.material.append(
+                    custom_keywords.EmMat001(mid=ep_mid, mtype=1, sigma=1),
+                )
+            else:
+                # Electrically non-active tissue (mtype=4)
+                # These bodies are still conductive bodies
+                # in the extra-cellular space
+                ep_mid = part.pid
+                self.kw_database.material.append(
+                    custom_keywords.EmMat001(
+                        mid=ep_mid,
+                        mtype=4,
+                        sigma=self.settings.electrophysiology.material.myocardium[
+                            "sigma_passive"
+                        ].m,
+                    ),
+                )
+
+        return
+
+    def _update_ep_settings(self):
+        """Add the settings for the electrophysiology solver."""
+        save_part_ids = []
+        for part in self.model.parts:
+            save_part_ids.append(part.pid)
+
+        partset_id = self.get_unique_partset_id()
+        kw = keywords.SetPartList(sid=partset_id)
+        # kw.parts._data = save_part_ids
+        # NOTE: when len(save_part_ids) = 8/16, dynalib bugs
+        str = "\n"
+        for i, id in enumerate(save_part_ids):
+            str += "{0:10d}".format(id)
+            if (i + 1) % 8 == 0:
+                str += "\n"
+        kw = kw.write() + str
+
+        self.kw_database.ep_settings.append(kw)
+
+        self.kw_database.ep_settings.append(
+            keywords.EmControl(
+                emsol=15, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
+            )
+        )
+
+        self.kw_database.ep_settings.append(
+            custom_keywords.EmEpIsoch(idisoch=1, idepol=1, dplthr=-20, irepol=1, rplthr=-40)
+        )
+
+        # use defaults
+        self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=1))
+
+        self.kw_database.ep_settings.append(
+            keywords.EmSolverFem(reltol=1e-6, maxite=int(1e4), precon=2)
+        )
+
+        self.kw_database.ep_settings.append(keywords.EmOutput(mats=1, matf=1, sols=1, solf=1))
+
+    def _update_stimulation(self):
+        # # define apex node set
+        # node_apex_left = self.model.left_ventricle.apex_points[0].node_id
+        # node_set_id_apex_left = self.get_unique_nodeset_id()
+
+        # # create node-sets for apex left
+        # node_set_kw = create_node_set_keyword(
+        #     node_ids=[node_apex_left + 1],
+        #     node_set_id=node_set_id_apex_left,
+        #     title="apex node left",
+        # )
+        # self.kw_database.node_sets.append(node_set_kw)
+
+        # # right ventricle apex
+        # if not isinstance(self.model, LeftVentricle):
+        #     node_apex_right = self.model.right_ventricle.apex_points[0].node_id
+        #     node_set_id_apex_right = self.get_unique_nodeset_id()
+
+        #     # create node-sets for apex right
+        #     node_set_kw = create_node_set_keyword(
+        #         node_ids=[node_apex_right + 1],
+        #         node_set_id=node_set_id_apex_right,
+        #         title="apex node right",
+        #     )
+
+        # define stimulation node set
+        if isinstance(self.model, LeftVentricle):
+            stim_nodes = np.array(self.model.left_ventricle.apex_points[0].node_id)
+
+        elif isinstance(self.model, BiVentricle):
+            node_apex_left = self.model.left_ventricle.apex_points[0].node_id
+            node_apex_right = self.model.right_ventricle.apex_points[0].node_id
+            stim_nodes = np.array([node_apex_left, node_apex_right])
+
+        elif isinstance(self.model, (FourChamber, FullHeart)):
+            node_apex_left = self.model.left_ventricle.apex_points[0].node_id
+            node_apex_right = self.model.right_ventricle.apex_points[0].node_id
+            stim_nodes = np.array([node_apex_left, node_apex_right])
+
+            if self.model.right_atrium.get_point("SA_node") != None:
+                # Active SA node (belong to both solid and beam)
+                stim_nodes = [self.model.right_atrium.get_point("SA_node").node_id]
+
+                #  add more nodes to initiate wave propagation
+                # id offset due to cap center nodes TODO do once
+                if type(self) == ElectroMechanicsDynaWriter:
+                    beam_node_id_offset = len(self.model.cap_centroids)
+                else:
+                    beam_node_id_offset = 0
+
+                for network in self.model.beam_network:
+                    if network.name == "SAN_to_AVN":
+                        stim_nodes.append(network.edges[1, 0] + beam_node_id_offset)
+                        # stim_nodes.append(network.edges[2, 0] + beam_node_id_offset)
+                        # stim_nodes.append(network.edges[3, 0] + beam_node_id_offset)
+                    elif network.name == "Bachman bundle":
+                        stim_nodes.append(network.edges[0, 0])  # SA node on epi, solid node
+                        stim_nodes.append(network.edges[1, 0] + beam_node_id_offset)
+
+        # create node-sets for stim nodes
+        node_set_id_stimulationnodes = self.get_unique_nodeset_id()
+        node_set_kw = create_node_set_keyword(
+            node_ids=np.array(stim_nodes) + 1,
+            node_set_id=node_set_id_stimulationnodes,
+            title="Stim nodes",
+        )
+        self.kw_database.ep_settings.append(node_set_kw)
+
+        # stimulation
+        self.kw_database.ep_settings.append(
+            custom_keywords.EmEpTentusscherStimulus(
+                stimid=1,
+                settype=2,
+                setid=node_set_id_stimulationnodes,
+                stimstrt=0.0,
+                stimt=800.0,
+                stimdur=20.0,
+                stimamp=50.0,
+            )
+        )
+
+    def _update_use_Purkinje(self):
+        """Update keywords for Purkinje usage."""
+        sid = self.get_unique_section_id()
+        self.kw_database.beam_networks.append(keywords.SectionBeam(secid=sid, elform=3, a=645))
+
+        if self.__class__.__name__ == "ElectroMechanicsDynaWriter":
+            # id offset due to cap center nodes
+            beam_node_id_offset = len(self.model.cap_centroids)
+            # id offset due to spring type elements
+            beam_elem_id_offset = self.id_offset["element"]["discrete"]
+        else:
+            beam_node_id_offset = 0
+            beam_elem_id_offset = 0  # no beam elements introduced before
+
+        # write beam nodes
+
+        # Note: the las beam_network saves all bam nodes
+        new_nodes = self.model.beam_network[-1]._all_beam_nodes
+        ids = (
+            np.linspace(
+                len(self.model.mesh.nodes),
+                len(self.model.mesh.nodes) + len(new_nodes) - 1,
+                len(new_nodes),
+                dtype=int,
+            )
+            + 1  # dyna start by 1
+            + beam_node_id_offset  # apply node offset
+        )
+        nodes_table = np.hstack((ids.reshape(-1, 1), new_nodes))
+        kw = add_nodes_to_kw(nodes_table, keywords.Node())
+        self.kw_database.beam_networks.append(kw)
+
+        for network in self.model.beam_network:
+            # pid is previously defined from purkinje generation step
+            # but needs to reassign part ID here
+            # to make sure no conflict with 4C/full heart case.
+            network.pid = self.get_unique_part_id()
+
+            if network.name == "Left-purkinje":
+                network.nsid = self.model.left_ventricle.endocardium.id
+            elif network.name == "Right-purkinje":
+                network.nsid = self.model.right_ventricle.endocardium.id
+            elif network.name == "SAN_to_AVN":
+                network.nsid = self.model.right_atrium.endocardium.id
+            elif network.name == "Left bundle branch":
+                network.nsid = self.model.left_ventricle.cavity.surface.id
+            elif network.name == "Right bundle branch":
+                network.nsid = self.model.right_ventricle.cavity.surface.id
+            elif network.name == "His":
+                # His bundle are inside of 3d mesh
+                # need to create the segment on which beam elements rely
+                surface = self._add_segment_from_boundary(name="his_bundle_segment")
+                network.nsid = surface.id
+            elif network.name == "Bachman bundle":
+                # His bundle are inside of 3d mesh
+                # need to create the segment on which beam elements rely
+                surface = self._add_segment_from_boundary(name="Bachman segment")
+                network.nsid = surface.id
+            else:
+                LOGGER.error(f"Unknown network name for {network.name}.")
+                exit()
+
+            # write
+            self.kw_database.beam_networks.append(f"$$ {network.name} $$")
+
+            origin_coordinates = network.nodes[network.edges[0, 0]]
+            self.kw_database.beam_networks.append(
+                custom_keywords.EmEpPurkinjeNetwork2(
+                    purkid=network.pid,
+                    buildnet=0,
+                    ssid=network.nsid,
+                    mid=network.pid,
+                    pointstx=origin_coordinates[0],
+                    pointsty=origin_coordinates[1],
+                    pointstz=origin_coordinates[2],
+                    edgelen=self.settings.purkinje.edgelen.m,
+                    ngen=self.settings.purkinje.ngen.m,
+                    nbrinit=self.settings.purkinje.nbrinit.m,
+                    nsplit=self.settings.purkinje.nsplit.m,
+                    pmjtype=self.settings.purkinje.pmjtype.m,
+                    pmjradius=self.settings.purkinje.pmjradius.m,
+                    pmjrestype=self.settings.electrophysiology.material.beam["pmjrestype"].m,
+                    pmjres=self.settings.electrophysiology.material.beam["pmjres"].m,
+                )
+            )
+
+            part_df = pd.DataFrame(
+                {
+                    "heading": [network.name],
+                    "pid": [network.pid],
+                    "secid": [sid],
+                    "mid": [network.pid],
+                }
+            )
+            part_kw = keywords.Part()
+            part_kw.parts = part_df
+            self.kw_database.beam_networks.append(part_kw)
+            self.kw_database.beam_networks.append(keywords.MatNull(mid=network.pid, ro=1e-11))
+            beam_material = self.settings.electrophysiology.material.beam
+            self.kw_database.beam_networks.append(
+                custom_keywords.EmMat001(
+                    mid=network.pid,
+                    mtype=2,
+                    sigma=beam_material["sigma"].m,
+                    beta=beam_material["beta"].m,
+                    cm=beam_material["cm"].m,
+                )
+            )
+
+            # cell model
+            # use endo property
+            self._add_Tentusscher_keyword_endo(matid=network.pid)
+
+            # mesh
+            # apply offset for beam connectivity
+            connect = network.edges
+            connect[network.beam_nodes_mask] += beam_node_id_offset
+
+            beams_kw = keywords.ElementBeam()
+            beams_kw = add_beams_to_kw(
+                beams=connect + 1,
+                beam_kw=beams_kw,
+                pid=network.pid,
+                offset=beam_elem_id_offset,
+            )
+            beam_elem_id_offset += len(network.edges)
+            self.kw_database.beam_networks.append(beams_kw)
+
+    def _add_segment_from_boundary(self, name: str):
+        surface = next(surface for surface in self.model.mesh.boundaries if surface.name == name)
+
+        surface.id = self.get_unique_segmentset_id()
+        kw = create_segment_set_keyword(
+            segments=surface.triangles + 1,
+            segid=surface.id,
+            title=surface.name,
+        )
+        # append this kw to the segment set database
+        self.kw_database.segment_sets.append(kw)
+
+        return surface
+
+
 class ElectrophysiologyBeamsDynaWriter(ElectrophysiologyDynaWriter):
     """Class for preparing the input for an Electrophysiology LS-DYNA simulation with beams only."""
 

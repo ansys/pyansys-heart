@@ -3445,7 +3445,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 str += "\n"
         kw = kw.write() + str
 
-        self.kw_database.main.append(kw)
+        self.kw_database.ep_settings.append(kw)
         solvertype = self.settings.electrophysiology.analysis.solvertype
         if solvertype == "Monodomain":
             emsol = 11
@@ -3555,17 +3555,29 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 )
             )
         else:
-            self.kw_database.ep_settings.append(
-                custom_keywords.EmEpTentusscherStimulus(
-                    stimid=1,
-                    settype=2,
-                    setid=node_set_id_stimulationnodes,
-                    stimstrt=0.0,
-                    stimt=800.0,
-                    stimdur=20.0,
-                    stimamp=50.0,
-                )
+            # TODO : add eikonal in custom keywords
+            # EM_EP_EIKONAL
+
+            eikonal_stim_content = "*EM_EP_EIKONAL\n"
+            eikonal_stim_content += "$    eikId  eikPaSet eikStimNS eikStimDF\n"
+            # TODO get the right part set id
+            # setpart_kwds = self.kw_database.ep_settings.get_kwds_by_type()
+            # id of the eikonal solver (different eikonal solves
+            # can be performed in different parts of the model)
+            eikonal_id = 1
+            psid = 1
+            eikonal_stim_content += (
+                f"{eikonal_id:>10d}{psid:>10d}{node_set_id_stimulationnodes:>10d}\n"
             )
+            if solvertype == "ReactionEikonal":
+                eikonal_stim_content += "$ footType     footT     footA  footTauf   footVth\n"
+                footType = 1
+                footT = 2
+                footA = 50
+                footTauf = 1
+                eikonal_stim_content += f"{footType:>10d}{footT:>10d}{footA:>10d}{footTauf:>10d}"
+
+            self.kw_database.ep_settings.append(eikonal_stim_content)
 
     def _update_blood_settings(self):
         """Update blood settings."""

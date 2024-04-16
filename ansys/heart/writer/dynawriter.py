@@ -2913,7 +2913,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         if self.model.beam_network:
             # with smcoupl=1, coupling is disabled
-            self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
+            self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1,smcoupl=1))
             self._update_use_Purkinje()
 
         # update ep settings
@@ -3899,7 +3899,7 @@ class ElectrophysiologyBeamsDynaWriter(ElectrophysiologyDynaWriter):
 
         if self.model.beam_network:
             # with smcoupl=1, coupling is disabled
-            self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
+            self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1,smcoupl=1))
             self._update_use_Purkinje()
 
         # update ep settings
@@ -4130,7 +4130,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
         if self.model.beam_network:
             # Coupling enabled, EP beam nodes follow the motion of surfaces
-            self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=0))
+            self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1,smcoupl=0))
             self._update_use_Purkinje()
             self.kw_database.main.append(keywords.Include(filename="beam_networks.k"))
 
@@ -4147,7 +4147,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
             "         1       1.0\n"
             "*EM_CONTROL_COUPLING\n"
             "$    THCPL     SMCPL    THLCID    SMLCID\n"
-            "                   0\n"
+            "         1         0\n"
         )
         self.kw_database.ep_settings.append("$ EM-MECA coupling control")
         self.kw_database.ep_settings.append(coupling_str)

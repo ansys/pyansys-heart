@@ -2661,7 +2661,8 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
             em_mat_id = part.pid
             self.kw_database.material.extend(
                 [
-                    keywords.MatElastic(mid=em_mat_id, ro=1e-6, e=1),
+                    keywords.MatRigid(mid=em_mat_id, ro=1e-6, e=1),
+                    # keywords.ConstrainedRigidBodies()
                     custom_keywords.EmMat003(
                         mid=em_mat_id,
                         mtype=2,
@@ -3103,9 +3104,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         """Add simple mechanics material for each defined part."""
         for part in self.model.parts:
             ep_mid = part.pid
-            self.kw_database.material.append(
-                keywords.MatElastic(mid=ep_mid, ro=1e-6, e=1),
-            )
+            self.kw_database.material.append(keywords.MatRigid(mid=ep_mid, ro=1e-6, e=1))
 
     def _update_ep_material_db(self):
         """Add EP material for each defined part."""

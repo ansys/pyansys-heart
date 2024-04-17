@@ -2913,7 +2913,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         if self.model.beam_network:
             # with smcoupl=1, coupling is disabled
-            self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1,smcoupl=1))
+            self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1, smcoupl=1))
             self._update_use_Purkinje()
 
         # update ep settings
@@ -3449,10 +3449,19 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         solvertype = self.settings.electrophysiology.analysis.solvertype
         if solvertype == "Monodomain":
             emsol = 11
+            self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=1))
         elif solvertype == "Eikonal":
             emsol = 14
+            self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=1))
         elif solvertype == "ReactionEikonal":
             emsol = 15
+            self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=1, ionsolvr=2))
+            Tend = 500
+            dt = 1
+            # specify simulation time and time step in case of a spline ionsolver type
+            self.kw_database.ep_settings.append("$     Tend        dt")
+            self.kw_database.ep_settings.append(f"{Tend:>10d}{dt:>10d}")
+
         self.kw_database.ep_settings.append(
             keywords.EmControl(
                 emsol=emsol, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
@@ -3462,9 +3471,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self.kw_database.ep_settings.append(
             custom_keywords.EmEpIsoch(idisoch=1, idepol=1, dplthr=-20, irepol=1, rplthr=-40)
         )
-
-        # use defaults
-        self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=1))
 
         self.kw_database.ep_settings.append(
             keywords.EmSolverFem(reltol=1e-6, maxite=int(1e4), precon=2)
@@ -3899,7 +3905,7 @@ class ElectrophysiologyBeamsDynaWriter(ElectrophysiologyDynaWriter):
 
         if self.model.beam_network:
             # with smcoupl=1, coupling is disabled
-            self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1,smcoupl=1))
+            self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1, smcoupl=1))
             self._update_use_Purkinje()
 
         # update ep settings
@@ -4130,7 +4136,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
         if self.model.beam_network:
             # Coupling enabled, EP beam nodes follow the motion of surfaces
-            self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1,smcoupl=0))
+            self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1, smcoupl=0))
             self._update_use_Purkinje()
             self.kw_database.main.append(keywords.Include(filename="beam_networks.k"))
 

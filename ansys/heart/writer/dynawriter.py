@@ -1348,10 +1348,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         robin_settings = boundary_conditions.robin
 
         # collect all pericardium nodes:
-        epicardium_nodes, point_normal = self._get_epicardium_nodes(apply="ventricle")
+        epicardium_nodes, point_normal, nodal_areas = self._get_epicardium_nodes(apply="ventricle")
 
-        # use pre-computed nodal areas
-        nodal_areas = self.model.mesh.point_data["nodal_areas"][epicardium_nodes]
         # penalty
         penalty_function = self._get_longitudinal_penalty(robin_settings["ventricle"])
         nodal_penalty = penalty_function[epicardium_nodes]
@@ -1373,8 +1371,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._write_discret_elements("damper", dc, epicardium_nodes, point_normal, nodal_areas)
 
         if isinstance(self.model, FourChamber):
-            epicardium_nodes, point_normal = self._get_epicardium_nodes(apply="atrial")
-            nodal_areas = self.model.mesh.point_data["nodal_areas"][epicardium_nodes]
+            epicardium_nodes, point_normal, nodal_areas = self._get_epicardium_nodes(apply="atrial")
+
             k = robin_settings["atrial"]["stiffness"].to("MPa/mm").m
             self._write_discret_elements("spring", k, epicardium_nodes, point_normal, nodal_areas)
             dc = robin_settings["atrial"]["damper"].to("MPa/mm*ms").m
@@ -1425,7 +1423,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         nodal_area = surf2.cell_data_to_point_data().point_data["Area"]
         surf["nodal_area"] = nodal_area
 
-        return surf["id"], surf.point_data["Normals"]
+        return surf["id"], surf.point_data["Normals"], surf["nodal_area"]
 
     def _get_longitudinal_penalty(self, pericardium_settings):
         """

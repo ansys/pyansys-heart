@@ -22,7 +22,6 @@ LOGGER = logging.getLogger("pyheart_global.writer")
 from importlib.resources import path as resource_path
 
 from ansys.heart.preprocessor.mesh.objects import Cap
-import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.simulator.settings.material.material import (
     ACTIVE,
     MAT295,
@@ -1415,14 +1414,18 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # build pericardium polydata
         coord = self.model.mesh.nodes[epicardium_nodes]
         connect = a.reshape(epicardium_faces.shape)
-        pericardium_polydata = vtkmethods.create_vtk_surface_triangles(coord, connect, clean=False)
-        # vtkmethods.write_vtkdata_to_vtkfile(pericardium_polydata,'pericardium.vtk')
 
-        # compute normal
-        _, point_normal = vtkmethods.add_normals_to_polydata(
-            pericardium_polydata, return_normals=True
-        )
-        return epicardium_nodes, point_normal
+        # build polydata
+        cell_type = np.ones(len(connect), dtype=int) * 3
+        surf = pv.PolyData(coord, np.hstack((cell_type[:, np.newaxis], connect)))
+        #
+        surf["id"] = epicardium_nodes
+        surf = surf.compute_normals()
+        surf2 = surf.compute_cell_sizes(length=False, volume=False)
+        nodal_area = surf2.cell_data_to_point_data().point_data["Area"]
+        surf["nodal_area"] = nodal_area
+
+        return surf["id"], surf.point_data["Normals"]
 
     def _get_longitudinal_penalty(self, pericardium_settings):
         """

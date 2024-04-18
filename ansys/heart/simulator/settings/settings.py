@@ -137,7 +137,7 @@ class Analysis(Settings):
 class EPAnalysis(Analysis):
     """Class for EP analysis settings."""
 
-    solvertype: Literal["Monodomain", "Bidomain", "Eikonal", "ReactionEikonal"] = "Monodomain"
+    solvertype: Literal["Monodomain", "Eikonal", "ReactionEikonal"] = "Monodomain"
 
 
 @dataclass(repr=False)

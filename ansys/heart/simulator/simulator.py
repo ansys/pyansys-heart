@@ -448,8 +448,8 @@ class EPSimulator(BaseSimulator):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
         self.directories["main-ep"] = export_directory
-
-        dyna_writer = writers.ElectrophysiologyDynaWriter(self.model, self.settings)
+        model = copy.deepcopy(self.model)
+        dyna_writer = writers.ElectrophysiologyDynaWriter(model, self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory)
 
@@ -459,8 +459,8 @@ class EPSimulator(BaseSimulator):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
         self.directories["main-ep"] = export_directory
-
-        dyna_writer = writers.ElectrophysiologyBeamsDynaWriter(self.model, self.settings)
+        model = copy.deepcopy(self.model)
+        dyna_writer = writers.ElectrophysiologyBeamsDynaWriter(model, self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory)
 

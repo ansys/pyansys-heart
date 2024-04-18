@@ -15,7 +15,7 @@ import os
 import time
 from typing import List, Literal
 
-from ansys.dyna.keywords import keywords
+from ansys.dyna.keywords import Deck, keywords
 
 LOGGER = logging.getLogger("pyheart_global.writer")
 # from importlib.resources import files
@@ -697,7 +697,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self._add_constant_atrial_pressure(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
         # for boundary conditions
-        self._add_cap_bc(bc_type="springs_caps")
+        # self._add_cap_bc(bc_type="springs_caps")
         self._add_pericardium_bc()
 
         self._get_list_of_includes()
@@ -1348,51 +1348,37 @@ class MechanicsDynaWriter(BaseDynaWriter):
         robin_settings = boundary_conditions.robin
 
         # collect all pericardium nodes:
-        epicardium_nodes, point_normal, nodal_areas = self._get_epicardium_nodes(apply="ventricle")
+        ventricles_epi = self._get_epi_surface(apply="ventricle")
 
         # penalty
         penalty_function = self._get_longitudinal_penalty(robin_settings["ventricle"])
-        nodal_penalty = penalty_function[epicardium_nodes]
-
-        # compute scale factor
-        scale_factors = nodal_areas * nodal_penalty
-
-        # debug = pv.PointGrid(self.model.mesh.points[epicardium_nodes])
-        # debug.point_data["stiff"] = scale_factors
-        # debug.point_data["normal"] = point_normal
-        # debug.save("pericardium.vtk")
+        ventricles_epi["scale factor"] = penalty_function[ventricles_epi["mesh_id"]]
+        # remove 0
+        ventricles_epi_reduce = ventricles_epi.threshold(
+            value=[0.0001, 1], scalars="scale factor"
+        ).extract_geometry()
 
         k = scale * robin_settings["ventricle"]["stiffness"].to("MPa/mm").m
-        mask = penalty_function[epicardium_nodes] > 0.0001
-        self._write_discret_elements(
-            "spring", k, epicardium_nodes[mask], point_normal[mask], scale_factors[mask]
+        self.write_robin_bc(
+            "spring", k, ventricles_epi_reduce, self.kw_database.pericardium, normal=None
         )
+
+        # damper
         dc = robin_settings["ventricle"]["damper"].to("MPa/mm*ms").m
-        self._write_discret_elements("damper", dc, epicardium_nodes, point_normal, nodal_areas)
+        ventricles_epi.point_data.remove("scale factor")  # remove scale factor for spring
+        self.write_robin_bc("damper", dc, ventricles_epi, self.kw_database.pericardium, normal=None)
 
         if isinstance(self.model, FourChamber):
-            epicardium_nodes, point_normal, nodal_areas = self._get_epicardium_nodes(apply="atrial")
+            atrial_epi = self._get_epi_surface(apply="atrial")
 
             k = robin_settings["atrial"]["stiffness"].to("MPa/mm").m
-            self._write_discret_elements("spring", k, epicardium_nodes, point_normal, nodal_areas)
+            self.write_robin_bc("spring", k, atrial_epi, self.kw_database.pericardium, normal=None)
+
             dc = robin_settings["atrial"]["damper"].to("MPa/mm*ms").m
-            self._write_discret_elements("damper", dc, epicardium_nodes, point_normal, nodal_areas)
+            self.write_robin_bc("damper", dc, atrial_epi, self.kw_database.pericardium, normal=None)
         return
 
-    def _get_epicardium_nodes(self, apply: Literal["ventricle", "atrial"] = "ventricle"):
-        """Extract epicardium nodes to apply Robin BC.
-
-        Parameters
-        ----------
-        apply : Literal[&quot;ventricle&quot;, &quot;atrial&quot;], optional
-            Apply to which part, by default "ventricle"
-
-        TODO: move to model
-
-        Returns
-        -------
-            node list and their normal vectors
-        """
+    def _get_epi_surface(self, apply: Literal["ventricle", "atrial"] = "ventricle"):
         epicardium_faces = np.empty((0, 3), dtype=int)
 
         LOGGER.debug(f"Collecting epicardium nodesets of {apply}:")
@@ -1416,14 +1402,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # build polydata
         cell_type = np.ones(len(connect), dtype=int) * 3
         surf = pv.PolyData(coord, np.hstack((cell_type[:, np.newaxis], connect)))
-        #
-        surf["id"] = epicardium_nodes
-        surf = surf.compute_normals()
-        surf2 = surf.compute_cell_sizes(length=False, volume=False)
-        nodal_area = surf2.cell_data_to_point_data().point_data["Area"]
-        surf["nodal_area"] = nodal_area
-
-        return surf["id"], surf.point_data["Normals"], surf["nodal_area"]
+        surf["mesh_id"] = epicardium_nodes
+        return surf
 
     def _get_longitudinal_penalty(self, pericardium_settings):
         """
@@ -1451,9 +1431,60 @@ class MechanicsDynaWriter(BaseDynaWriter):
         penalty_function = -_sigmoid((abs(uvc_l) - penalty_c0) * penalty_c1) + 1
         return penalty_function
 
-    def _write_discret_elements(
-        self, type: Literal["spring", "damper"], global_fact, nodes, directions, local_stiff
-    ):
+    def write_robin_bc(
+        self,
+        type: Literal["spring", "damper"],
+        k_or_c: float,
+        surface: pv.PolyData,
+        deck: Deck,
+        normal: np.ndarray = None,
+    ) -> Deck:
+        """Create Robin BC on given surface.
+
+        Parameters
+        ----------
+        type : Literal[&quot;spring&quot;, &quot;damper&quot;]
+            Create spring or damper
+        k_or_c : float
+            stiffness (MPa/mm) or viscosity (MPa/mm*ms)
+        surface : pv.PolyData
+            Surface to apply BC, must contain point data 'mesh_id'.
+            Will be scaled by nodal area and point data 'scale factor' if exists
+        deck : Deck
+            deck to write
+        normal : np.ndarray, optional
+            If no normal given, use nodal normals, by default None
+
+        Returns
+        -------
+        Deck
+            updated deck
+        """
+        assert "mesh_id" in surface.point_data
+
+        # nodes to apply BC
+        nodes = surface["mesh_id"]
+
+        # scale factor is nodal area
+        surf2 = surface.compute_cell_sizes(length=False, volume=False)
+        scale_factor = copy.deepcopy(surf2.cell_data_to_point_data().point_data["Area"])
+        if "scale factor" in surface.point_data:
+            scale_factor *= surface.point_data["scale factor"]
+
+        # apply direction is nodal normal
+        if normal is None:
+            directions = surface.compute_normals().point_data["Normals"]
+        else:
+            directions = np.tile(normal, (len(nodes), 1))
+
+        # define spring orientations
+        sd_orientation_kw = create_define_sd_orientation_kw(
+            vectors=directions, vector_id_offset=self.id_offset["vector"]
+        )
+        vector_ids = sd_orientation_kw.vectors["vid"].to_numpy().astype(int)
+        # update offset
+        self.id_offset["vector"] = sd_orientation_kw.vectors["vid"].to_numpy()[-1]
+
         # create unique ids for keywords
         part_id = self.get_unique_part_id()
         section_id = self.get_unique_section_id()
@@ -1461,9 +1492,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # define material
         if type == "spring":
-            mat_kw = keywords.MatSpringElastic(mid=mat_id, k=global_fact)
+            mat_kw = keywords.MatSpringElastic(mid=mat_id, k=k_or_c)
         elif type == "damper":
-            mat_kw = keywords.MatDamperViscous(mid=mat_id, dc=global_fact)
+            mat_kw = keywords.MatDamperViscous(mid=mat_id, dc=k_or_c)
 
         # define part
         part_kw = keywords.Part()
@@ -1473,34 +1504,28 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # define section
         section_kw = keywords.SectionDiscrete(secid=section_id, cdl=0, tdl=0)
 
-        # define spring orientations
-        sd_orientation_kw = create_define_sd_orientation_kw(
-            vectors=directions, vector_id_offset=self.id_offset["vector"]
-        )
-        # add offset
-        self.id_offset["vector"] = sd_orientation_kw.vectors["vid"].to_numpy()[-1]
-        vector_ids = sd_orientation_kw.vectors["vid"].to_numpy().astype(int)
-
-        # define spring nodes
-        nodes_table = np.vstack([nodes + 1, np.zeros(len(nodes))]).T
+        # 0: attached to ground
+        n1_n2 = np.vstack([nodes + 1, np.zeros(len(nodes))]).T
 
         # create discrete elements
         discrete_element_kw = create_discrete_elements_kw(
-            nodes=nodes_table,
+            nodes=n1_n2,
             part_id=part_id,
             vector_ids=vector_ids,
-            scale_factor=local_stiff,
+            scale_factor=scale_factor,
             element_id_offset=self.id_offset["element"]["discrete"],
         )
         # add offset
         self.id_offset["element"]["discrete"] = discrete_element_kw.elements["eid"].to_numpy()[-1]
 
         # add keywords to database
-        self.kw_database.pericardium.append(part_kw)
-        self.kw_database.pericardium.append(section_kw)
-        self.kw_database.pericardium.append(mat_kw)
-        self.kw_database.pericardium.append(sd_orientation_kw)
-        self.kw_database.pericardium.append(discrete_element_kw)
+        deck.append(part_kw)
+        deck.append(section_kw)
+        deck.append(mat_kw)
+        deck.append(sd_orientation_kw)
+        deck.append(discrete_element_kw)
+
+        return deck
 
     def _update_cap_elements_db(self, add_mesh=True):
         """Update the database of shell elements.

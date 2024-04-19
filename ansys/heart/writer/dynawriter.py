@@ -77,11 +77,7 @@ from ansys.heart.writer.keyword_module import (
     fast_element_writer,
     get_list_of_used_ids,
 )
-from ansys.heart.writer.material_keywords import (
-    MaterialHGOMyocardium,
-    MaterialNeoHook,
-    active_curve,
-)
+from ansys.heart.writer.material_keywords import MaterialHGOMyocardium, MaterialNeoHook
 from ansys.heart.writer.system_models import _ed_load_template, define_function_windkessel
 import numpy as np
 import pandas as pd
@@ -621,12 +617,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.system_model_name = self.settings.mechanics.system.name
         """Name of system model to use."""
 
-        # Depending on the system model specified give list of parameters
-        self.cap_in_zerop = True
-        """
-        If include cap (shell) elements in ZeroPressure.
-        Experimental feature, please do not change it.
-        """
         return
 
     @property
@@ -669,21 +659,16 @@ class MechanicsDynaWriter(BaseDynaWriter):
         if not with_dynain:
             self._update_node_db()
             self._update_solid_elements_db(add_fibers=True)
-            # no zerop exists, cap mesh need to be written
-            self.cap_in_zerop = False
+            # write cap with mesh
+            self._update_cap_elements_db(add_mesh=True)
         else:
             self.kw_database.main.append(keywords.Include(filename="dynain.lsda"))
+            # cap mesh has been defined in Zerop and saved in dynain file
+            self._update_cap_elements_db(add_mesh=False)
 
         self._update_segmentsets_db()
         self._update_nodesets_db()
         self._update_material_db(add_active=True)
-
-        if self.cap_in_zerop:
-            # mesh has been defined in Zerop so saved in dynain file
-            self._update_cap_elements_db(add_mesh=False)
-        else:
-            # define new cap element
-            self._update_cap_elements_db(add_mesh=True)
 
         # # for control volume
         self._update_controlvolume_db()
@@ -697,7 +682,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self._add_constant_atrial_pressure(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
         # for boundary conditions
-        # self._add_cap_bc(bc_type="springs_caps")
+        self._add_cap_bc(bc_type="springs_caps")
         self._add_pericardium_bc()
 
         self._get_list_of_includes()
@@ -757,16 +742,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
 
         return
-
-    # def _update_node_db(self):
-    #     """Add nodes to the NODE database."""
-    #     LOGGER.debug("Updating node keywords...")
-    #     node_kw = keywords.Node()
-    #     node_kw = add_nodes_to_kw(self.model.mesh.nodes, node_kw)
-    #
-    #     self.kw_database.nodes.append(node_kw)
-    #
-    #     return
 
     def _add_solution_controls(
         self,
@@ -1126,31 +1101,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 )
                 self.kw_database.material.append(material_kw)
 
-    @staticmethod
-    def add_active_curve(act_curve_id, material_settings):
-        """Add Active curve to material database."""
-        if material_settings.myocardium["active"]["actype"] == 1:
-            time_array, calcium_array = active_curve("constant")
-        elif material_settings.myocardium["active"]["actype"] == 3:
-            time_array, calcium_array = active_curve("Strocchi2020", endtime=8000)
-            # work around with threshold
-            calcium_array[1:] += 1e-6
-
-        curve_kw = create_define_curve_kw(
-            x=time_array,
-            y=calcium_array,
-            curve_name="calcium_concentration",
-            curve_id=act_curve_id,
-            lcint=10000,
-        )
-
-        if material_settings.myocardium["active"]["actype"] == 1:
-            # x scaling from beat rate
-            curve_kw.sfa = material_settings.myocardium["active"]["beat_time"]
-            # y scaling from Ca2
-            curve_kw.sfo = 4.35  # same with material ca2ionmax
-        return curve_kw
-
     def _add_cap_bc(self, bc_type: str):
         """Add boundary condition to the cap.
 
@@ -1353,10 +1303,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # penalty
         penalty_function = self._get_longitudinal_penalty(robin_settings["ventricle"])
         ventricles_epi["scale factor"] = penalty_function[ventricles_epi["mesh_id"]]
-        # remove 0
+        # remove nodes with scale factor = 0
         ventricles_epi_reduce = ventricles_epi.threshold(
             value=[0.0001, 1], scalars="scale factor"
-        ).extract_geometry()
+        ).extract_geometry()  # keep as polydata
 
         k = scale * robin_settings["ventricle"]["stiffness"].to("MPa/mm").m
         self.write_robin_bc(
@@ -1968,9 +1918,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self._update_segmentsets_db()
         self._update_nodesets_db()
         self._update_material_db(add_active=False)
-        if self.cap_in_zerop:
-            # define cap element
-            self._update_cap_elements_db()
+        self._update_cap_elements_db()
 
         # TODO: it should be after cap creation, or it will be written in dynain
         # for boundary conditions
@@ -2133,48 +2081,6 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.kw_database.main.append(kw)
 
         return
-
-    # def _add_enddiastolic_pressure_bc(self, pressure_lv: float = 1, pressure_rv: float = 1):
-    #     """Adds end diastolic pressure boundary condition on the left and right endocardium"""
-
-    #     # create unit load curve
-    #     load_curve_id = 2
-    #     load_curve_kw = create_define_curve_kw(
-    #         [0, 1], [0, 1], "unit load curve", load_curve_id, 100
-    #     )
-
-    #     # append unit curve to main.k
-    #     self.kw_database.main.append(load_curve_kw)
-
-    #     # create *LOAD_SEGMENT_SETS for each ventricular cavity
-    #     for cavity in self.model._mesh._cavities:
-
-    #         if "atrium" in cavity.name:
-    #             continue
-
-    #         if cavity.name == "Left ventricle":
-    #             scale_factor = pressure_lv
-    #         elif cavity.name == "Right ventricle":
-    #             scale_factor = pressure_rv
-
-    #         LOGGER.debug(
-    #             "Adding end-diastolic pressure of {0} to {1}".format(scale_factor, cavity.name)
-    #         )
-
-    #         seg_ids_to_use = []
-    #         # find id of endocardium
-    #         for segset in cavity.segment_sets:
-    #             if "endocardium" in segset["name"]:
-    #                 seg_ids_to_use.append(segset["id"])
-
-    #         # create load segment set for each endocardium segment
-    #         for seg_id in seg_ids_to_use:
-    #             load_segset_kw = keywords.LoadSegmentSet(
-    #                 ssid=seg_id, lcid=load_curve_id, sf=scale_factor
-    #             )
-
-    #             # append to main.k
-    #             self.kw_database.main.append(load_segset_kw)
 
 
 class FiberGenerationDynaWriter(BaseDynaWriter):
@@ -3993,68 +3899,6 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
         self.system_model_name = self.settings.mechanics.system.name
         """Name of system model to use."""
-
-        # Depending on the system model specified give list of parameters
-        self.cap_in_zerop = True
-        """
-        If include cap (shell) elements in ZeroPressure.
-        Experimental feature, please do not change it.
-        """
-
-    def __duplicate_ventricle_atrial_nodes_tie(self):
-        """Test feature, not working with mpp < DEV104400."""
-        # find interface nodes between ventricles and atrial
-        v_ele = np.hstack(
-            (self.model.left_ventricle.element_ids, self.model.right_ventricle.element_ids)
-        )
-        a_ele = np.hstack((self.model.left_atrium.element_ids, self.model.right_atrium.element_ids))
-
-        ventricles = self.model.mesh.extract_cells(v_ele)
-        atrial = self.model.mesh.extract_cells(a_ele)
-
-        interface_nids = np.intersect1d(
-            ventricles["vtkOriginalPointIds"], atrial["vtkOriginalPointIds"]
-        )
-
-        # duplicate these nodes and update mesh
-        sets = []
-        new_coords = np.array([])
-        tets: np.ndarray = self.model.mesh.tetrahedrons
-        nid_offset = len(self.model.mesh.nodes)
-        cnt = 0
-
-        for old_nid in interface_nids:
-            set = np.array([old_nid])
-            ele_ids = np.where(np.any(np.isin(tets, old_nid), axis=1))[
-                0
-            ]  # Ids of elements on this interface node
-            for ele_id in ele_ids[1:]:
-                # first element will keep the original node,
-                # other elements will take duplicated nodes (update mesh)
-                new_id = nid_offset + cnt
-                new_coords = np.append(new_coords, self.model.mesh.nodes[old_nid, :])
-                tets[ele_id][tets[ele_id] == old_nid] = new_id
-                set = np.append(set, new_id)
-                cnt += 1
-            sets.append(set)
-
-        self.model.mesh.nodes = np.vstack((self.model.mesh.nodes, new_coords.reshape(-1, 3)))
-        self.model.mesh.tetrahedrons = tets
-
-        # tie duplicated nodes
-        sid_offset = self.get_unique_nodeset_id()  # slow and move out of loop
-        sid_offset = 100
-        count = 0
-        for set in sets:
-            sid = sid_offset + count
-            count += 1
-            kw = create_node_set_keyword(set + 1, node_set_id=sid, title="tied_" + str(set[0] + 1))
-            self.kw_database.duplicate_nodes.append(kw)
-            kw = keywords.ConstrainedTiedNodesFailure(nsid=sid, eppf=1.0e25, etype=1)
-            self.kw_database.duplicate_nodes.append(kw)
-
-        # self.kw_database.main.append(keywords.Include(filename="duplicate_nodes.k"))
-        return
 
     def update(self, with_dynain=False):
         """Update the keyword database."""

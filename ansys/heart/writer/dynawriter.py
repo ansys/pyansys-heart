@@ -2913,7 +2913,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         if self.model.beam_network:
             # with smcoupl=1, mechanical coupling is disabled
-            # with thcoupl=1, thermal coupling coupling
+            # with thcoupl=1, thermal coupling is disable
             self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1, smcoupl=1))
             self._update_use_Purkinje()
 

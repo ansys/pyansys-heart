@@ -655,6 +655,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._add_damping()
 
         self._update_parts_db()
+        self._update_material_db(add_active=True)
 
         if not with_dynain:
             self._update_node_db()
@@ -668,7 +669,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self._update_segmentsets_db()
         self._update_nodesets_db()
-        self._update_material_db(add_active=True)
 
         # # for control volume
         self._update_controlvolume_db()

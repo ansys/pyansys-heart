@@ -1,3 +1,25 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """Some common functions to test parts."""
 import os
 
@@ -19,8 +41,8 @@ import numpy as np
 def compare_part_names(model: models.HeartModel, ref_stats: dict):
     """Test if parts match that of the reference model.
 
-    Note
-    ----
+    Notes
+    -----
     1. tests consistency of part names
     """
 
@@ -35,8 +57,8 @@ def compare_part_names(model: models.HeartModel, ref_stats: dict):
 def compare_part_element_ids(model: models.HeartModel, reference_model: models.HeartModel):
     """Test if parts match that of the reference model.
 
-    Note
-    ----
+    Notes
+    -----
     1. tests element ids defined in all parts
     """
     # assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
@@ -55,8 +77,8 @@ def compare_part_element_ids(model: models.HeartModel, reference_model: models.H
 def compare_surface_names(model: models.HeartModel, ref_stats: dict):
     """Test if surfaces of the parts match with the reference model.
 
-    Note
-    ----
+    Notes
+    -----
     1. tests consistency of surface names
     """
 
@@ -78,8 +100,8 @@ def compare_surface_names(model: models.HeartModel, ref_stats: dict):
 def compare_generated_mesh(model: models.HeartModel, ref_stats: dict):
     """Compares the number of tetrahedrons, faces, etc in the model.
 
-    Note
-    ----
+    Notes
+    -----
     Test conditions:
         Difference num tetrahedrons < 100
         Difference num faces < 10
@@ -137,8 +159,8 @@ def compare_generated_mesh(model: models.HeartModel, ref_stats: dict):
 def compare_cavity_volume(model: models.HeartModel, ref_volumes: dict):
     """Test volume of cavities.
 
-    Note
-    ----
+    Notes
+    -----
     1. Volume of cavity
     """
     # assert isinstance(model, models.HeartModel), "Expecting model of type HeartModel"
@@ -176,8 +198,6 @@ def compare_part_element_ids_2(model: models.HeartModel, reference_model: models
     -----
     1. tests element ids defined in all parts
     """
-    # assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
-
     for part in model.parts:
         ref_part = next(
             ref_part for ref_part in reference_model.parts if part.name == ref_part.name

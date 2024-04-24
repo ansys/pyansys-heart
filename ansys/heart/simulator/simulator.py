@@ -1,12 +1,35 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """Simulator module.
 
 Options for simulation:
+
 - EP-only
-    with/without fbers
-    with/without purkinje
+    with/without fbers.
+    with/without purkinje.
 - Electro-mechanics
-    simplified EP (imposed activation)
-    coupled electro-mechanics
+    simplified EP (imposed activation).
+    coupled electro-mechanics.
 """
 
 import copy
@@ -83,6 +106,7 @@ class BaseSimulator:
             Settings used for launching LS-DYNA.
         simulation_directory : Path, optional
             Directory in which to start the simulation, by default ""
+
         """
         self.model: HeartModel = model
         """HeartModel to simulate."""
@@ -202,6 +226,7 @@ class BaseSimulator:
         Returns
         -------
             right atrium UnstructuredGrid with related information.
+
         """
         LOGGER.info("Computing RA fiber...")
         export_directory = os.path.join(self.root_directory, "ra_fiber")
@@ -273,11 +298,13 @@ class BaseSimulator:
             LSDYNA directory
         type: str
             Simulation type.
-        kwargs
+        kwargs : dict
+            Additional arguments.
 
         Returns
         -------
             UnstructuredGrid with array to map data back to full mesh.
+
         """
         if type == "ra_fiber":
             for key, value in kwargs.items():
@@ -313,7 +340,8 @@ class BaseSimulator:
         path_to_input : Path
             Path to the LS-DYNA simulation file.
         options : str, optional
-            Additional options to pass to command line, by default ""
+            Additional options to pass to command line, by default "".
+
         """
         if options != "":
             old_options = copy.deepcopy(self.dyna_settings.dyna_options)
@@ -355,6 +383,7 @@ class EPSimulator(BaseSimulator):
         dyna_settings: DynaSettings,
         simulation_directory: Path = "",
     ) -> None:
+        """Initialize EP Simulator."""
         super().__init__(model, dyna_settings, simulation_directory)
 
         return
@@ -699,9 +728,11 @@ def run_lsdyna(
     path_to_input : Path
         Input file for LS-DYNA.
     settings : DynaSettings, optional
-        LS-DYNA settings, such as path to executable, executable type, platform, by default None
+        LS-DYNA settings, such as path to executable, executable type,
+        platform, by default ``None``.
     simulation_directory : Path, optional
-        Directory where to simulate, by default None
+        Directory where to simulate, by default ``None``.
+
     """
     if not settings:
         LOGGER.info("Using default LS-DYNA settings.")

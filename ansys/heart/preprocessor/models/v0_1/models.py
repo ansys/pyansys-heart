@@ -1,3 +1,25 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """Module containing classes for the various heart models."""
 
 import json
@@ -43,6 +65,7 @@ class ModelInfo:
 
     @database.setter
     def database(self, value: str):
+        """Set the database name."""
         valid_databases = ["Strocchi2020", "Rodero2021", "LabeledSurface"]
         if value not in valid_databases:
             raise ValueError(
@@ -61,6 +84,7 @@ class ModelInfo:
         mesh_size: float = 1.5,
         add_blood_pool: bool = False,
     ) -> None:
+        """Initialize the ModelInfo object."""
         self.database = database
         """Name of the database to use."""
         self.workdir = work_directory
@@ -162,6 +186,7 @@ class HeartModel:
         return [part.cavity for part in self.parts if part.cavity]
 
     def __init__(self, info: ModelInfo) -> None:
+        """Initialize the HeartModel object."""
         self.info = info
         """Model meta information."""
         self.mesh = Mesh()
@@ -922,8 +947,8 @@ class HeartModel:
     def _get_endo_epicardial_surfaces(self) -> None:
         """Get endo- and epicardial surfaces.
 
-        Note
-        ----
+        Notes
+        -----
         Also obtains the septum in case of a BiVentricle, FourChamber or FullHeart model
 
         """
@@ -1052,8 +1077,8 @@ class HeartModel:
     def _prepare_for_meshing(self) -> None:
         """Prepare the input for volumetric meshing with Fluent meshing.
 
-        Note
-        ----
+        Notes
+        -----
         Extracts boundary surfaces of the part and the interface surfaces between parts.
         These surfaces are written in .stl format which can be imported in Fluent Meshing
 
@@ -1334,8 +1359,8 @@ class HeartModel:
     def _extract_septum(self) -> None:
         """Separate the septum elements from the left ventricle.
 
-        Note
-        ----
+        Notes
+        -----
         Uses the septum surface of the right ventricle
         """
         if not isinstance(self, (BiVentricle, FourChamber, FullHeart)):
@@ -1381,8 +1406,8 @@ class HeartModel:
     def _extract_apex(self) -> None:
         """Extract the apex for both the endocardium and epicardium of each ventricle.
 
-        Note
-        ----
+        Notes
+        -----
         Apex defined as the point furthest from the mid-point between caps/valves
         If this point is on the edge, another point of the same element will be picked.
 

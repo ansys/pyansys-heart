@@ -1,4 +1,27 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """Module contains methods for mesh operations related to the vtk library."""
+
 import copy
 import logging
 import os
@@ -326,8 +349,8 @@ def vtk_map_discrete_cell_data(
     """
     Map discrete values from a source to a target.
 
-    Note
-    ----
+    Notes
+    -----
     Uses linear interpolation with
     1 closest point. Note that this computes the centroids of the cells first, creates
     a new vtk poly data object as point cloud and uses that for interpolating the target
@@ -394,11 +417,6 @@ def vtk_map_continuous_data(
 ) -> Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]:
     """Map cell and point data from source to target.
 
-    Note
-    ----
-    Makes use of VoronoiKernel and mapping cell to point data
-    consequently point data is mapped back to the cell.
-
     Parameters
     ----------
     input : Union[vtk.PolyData, vtk.UnstructuredGrid]
@@ -411,8 +429,11 @@ def vtk_map_continuous_data(
 
     Notes
     -----
-        Modifies the underlying data of the target vtk object and overwrites if
-        a data field with the same name is already present.
+    Makes use of VoronoiKernel and mapping cell to point data
+    consequently point data is mapped back to the cell.
+
+    Modifies the underlying data of the target vtk object and overwrites if
+    a data field with the same name is already present.
     """
     # NOTE: could use AddExcludeArray to exclude specific arrays from the interpolation
 
@@ -668,6 +689,7 @@ def create_vtk_polydata_from_points(points: np.ndarray) -> vtk.vtkPolyData:
     -------
     vtk.vtkPolyData
         vtkPolyData object
+
     Notes
     -----
     To visualize in ParaView render the points as Gaussian Points
@@ -748,8 +770,8 @@ def compute_surface_nodal_area_pyvista(surface: pyvista.PolyData) -> np.ndarray:
     np.array
         Numpy array with nodal areas of length number of points
 
-    Note
-    ----
+    Notes
+    -----
     Adds the partial areas of connected elements/cells to each node.
 
     """

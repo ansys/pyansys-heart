@@ -1,7 +1,6 @@
 repos:
-
 - repo: https://github.com/psf/black
-  rev: 23.7.0
+  rev: 24.2.0
   hooks:
   - id: black
 
@@ -12,44 +11,63 @@ repos:
     additional_dependencies: [black==23.7.0]
 
 - repo: https://github.com/pycqa/isort
-  rev: 5.12.0
+  rev: 5.13.2
   hooks:
   - id: isort
 
 - repo: https://github.com/PyCQA/flake8
-  rev: 6.1.0
+  rev: 7.0.0
   hooks:
   - id: flake8
 
 - repo: https://github.com/codespell-project/codespell
-  rev: v2.2.4
+  rev: v2.2.6
   hooks:
   - id: codespell
-#    exclude: examples/dyna_decks
     exclude: ^(examples/dyna_decks\/|tests/heart/assets\/)
-    args: [-L solf,"--ignore-words=ignore_words.txt" ]
+    args: [-L solf, "--ignore-words", "doc/styles/Vocab/ANSYS/accept.txt", "-w"]
 
-# pydocstyle is pretty strict
 - repo: https://github.com/pycqa/pydocstyle
   rev: 6.3.0
   hooks:
   - id: pydocstyle
     additional_dependencies: [toml]
     args: ["--convention=numpy"]
-    # exclude these folders: ^(folder_one\/|folder_two\/)
-    exclude: ^(tests\/|examples\/|ansys\/heart\/misc\/|ansys\/heart\/writer\/custom_dynalib_keywords\/|.*__init__.py)
+    # exclude: |
+    #   (?x)^(
+    #     tests/|
+    #     examples/|
+    #     src/ansys/heart/misc/|
+    #     src/ansys/heart/writer/custom_dynalib_keywords/|
+    #     .*__init__.py
+    #   )
+    exclude: |
+      (?x)^(
+        tests/|
+        examples/|
+        ansys/heart/misc/|
+        ansys/heart/writer/custom_dynalib_keywords/|
+        .*__init__.py
+      )
 
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
-    hooks:
-    - id: check-merge-conflict
-    - id: debug-statements
-    - id: check-yaml
-    - id: trailing-whitespace
-      exclude: ^(tests/heart/assets\/)
-
-# this validates our github workflow files
-- repo: https://github.com/python-jsonschema/check-jsonschema
-  rev: 0.24.1
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.5.0
   hooks:
-    - id: check-github-workflows
+  - id: check-merge-conflict
+  - id: debug-statements
+  - id: check-yaml
+  - id: trailing-whitespace
+    exclude: ^(tests/heart/assets\/)
+
+- repo: https://github.com/python-jsonschema/check-jsonschema
+  rev: 0.28.0
+  hooks:
+  - id: check-github-workflows
+
+- repo: https://github.com/ansys/pre-commit-hooks
+  rev: v0.2.9
+  hooks:
+    - id: add-license-headers
+      files: '(ansys|examples|tests)/.*\.(py)'
+      args:
+      - --start_year=2023

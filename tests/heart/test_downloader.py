@@ -50,6 +50,7 @@ def test_download_urls(database_name):
         )
 
 
+@pytest.mark.downloader
 @pytest.mark.parametrize(
     "database_name",
     ["Rodero2021", "Strocchi2020"],

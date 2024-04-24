@@ -40,6 +40,8 @@ from ansys.heart.writer.dynawriter import (
 )
 import pytest
 
+pytestmark = pytest.mark.requires_fluent
+
 from tests.heart.common import (
     compare_cavity_volume_2,
     compare_generated_mesh_2,
@@ -48,10 +50,6 @@ from tests.heart.common import (
 )
 from tests.heart.conftest import get_assets_folder, get_workdir
 from tests.heart.end2end.compare_k import read_file
-
-# marks all tests with the 'requires_fluent' tag after this line
-# pytest.mark.requires_fluent
-pytestmark = pytest.mark.requires_fluent
 
 
 # run this fixture first

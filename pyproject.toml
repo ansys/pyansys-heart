@@ -60,10 +60,7 @@ doc = [
     "sphinx-jinja==2.0.2",
 ]
 
-tests = [
-    "pytest==8.0.1",
-    "dynalib==0.1.0"
-]
+tests = ["pytest==8.0.1", "dynalib==0.1.0"]
 
 [project.urls]
 Source = "https://github.com/ansys/pyansys-heart"
@@ -94,6 +91,6 @@ show_missing = true
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
-markers = ["requires_fluent", "local"]
-tmp_path_retention_count = 0           # do not keep the temporary path that is created
-tmp_path_retention_policy = "none"     # directories always removed, regardless of outcome
+markers = ["requires_fluent", "local", "downloader", "models_v2"]
+tmp_path_retention_count = 0                                      # do not keep the temporary path that is created
+tmp_path_retention_policy = "none"                                # directories always removed, regardless of outcome

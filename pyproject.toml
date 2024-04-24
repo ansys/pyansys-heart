@@ -40,6 +40,7 @@ dependencies = [
     "validators==0.22.0",
     "pint==0.20.1",
     "pyvista==0.43.0",
+    "networkx==3.2.1",
 ]
 
 # Optional dependencies:

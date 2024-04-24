@@ -38,6 +38,7 @@ class EmControlEp(KeywordBase):
                     Field("solvetype", int, 0, 10, kwargs.get("solvetype", 4)),
                     Field("numsplit", int, 10, 10, kwargs.get("numsplit", 1)),
                     Field("actusig", int, 20, 10, kwargs.get("actusig", 100000000)),
+                    Field("ionsolvr", int, 30, 10, kwargs.get("ionsolvr")),
                 ],
             ),
         ]
@@ -68,3 +69,12 @@ class EmControlEp(KeywordBase):
     @actusig.setter
     def actusig(self, value: int) -> None:
         self._cards[0].set_value("actusig", value)
+
+    @property
+    def ionsolvr(self) -> int:
+        """Get or set the ion solver type (0: Euler, 1: VODE, 2: Spline"""  # nopep8
+        return self._cards[0].get_value("ionsolvr")
+
+    @ionsolvr.setter
+    def ionsolvr(self, value: int) -> None:
+        self._cards[0].set_value("ionsolvr", value)

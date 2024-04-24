@@ -76,6 +76,7 @@ REF_STRING_SETTINGS_YML_EP = (
     "      dt_d3plot: 4 second\n"
     "      dt_icvout: 5 millisecond\n"
     "      global_damping: 0 / second\n"
+    "      solvertype: Monodomain\n"
 )
 
 

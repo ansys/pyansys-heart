@@ -61,7 +61,7 @@ elif heart_version == "v0.1" or not heart_version:
     from ansys.heart.preprocessor.models.v0_1.models import FourChamber, HeartModel, LeftVentricle
 
     heart_version = "v0.1"
-
+from ansys.heart.preprocessor.models.conduction_beam import ConductionSystem
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 import numpy as np
@@ -452,30 +452,33 @@ class EPSimulator(BaseSimulator):
         """Compute the conduction system."""
         if isinstance(self.model, FourChamber):
             beam_length = self.settings.purkinje.edgelen.m
-            SA_node = self.model.compute_SA_node()
-            AV_node = self.model.compute_AV_node()
 
-            av_beam = self.model.compute_av_conduction(beam_length=beam_length)
-            # AV_node.xyz
-            # av_beam.edges[-1,-1]
-            point_his_left, point_his_right = self.model.compute_His_conduction(
-                beam_length=beam_length
+            cs = ConductionSystem(self.model)
+            cs.compute_SA_node()
+            cs.compute_AV_node()
+            cs.compute_av_conduction(beam_length=beam_length)
+            left, right = cs.compute_His_conduction(beam_length=beam_length)
+            cs.compute_left_right_bundle(
+                left.xyz, left.node_id, side="Left", beam_length=beam_length
+            )
+            cs.compute_left_right_bundle(
+                right.xyz, right.node_id, side="Right", beam_length=beam_length
             )
 
-            left_bundle_beam = self.model.compute_left_right_bundle(
-                point_his_left.xyz, point_his_left.node_id, side="Left", beam_length=beam_length
-            )
-
-            right_bundle_beam = self.model.compute_left_right_bundle(
-                point_his_right.xyz, point_his_right.node_id, side="Right", beam_length=beam_length
-            )
+            # # TODO define end point by uhc, or let user choose
+            # Note: must on surface after zerop if coupled with meca
+            # cs.compute_Bachman_bundle(
+            #     start_coord=self.model.right_atrium.get_point("SA_node").xyz,
+            #     end_coord=np.array([-34, 163, 413]),
+            # )
+            return cs
 
     def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
         self.directories["main-ep"] = export_directory
-
-        dyna_writer = writers.ElectrophysiologyDynaWriter(self.model, self.settings)
+        model = copy.deepcopy(self.model)
+        dyna_writer = writers.ElectrophysiologyDynaWriter(model, self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory)
 
@@ -485,8 +488,8 @@ class EPSimulator(BaseSimulator):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
         self.directories["main-ep"] = export_directory
-
-        dyna_writer = writers.ElectrophysiologyBeamsDynaWriter(self.model, self.settings)
+        model = copy.deepcopy(self.model)
+        dyna_writer = writers.ElectrophysiologyBeamsDynaWriter(model, self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory)
 
@@ -557,6 +560,7 @@ class MechanicsSimulator(BaseSimulator):
             eids = np.hstack((eids, eid_r))
 
         part: Part = self.model.create_part_by_ids(eids, "base")
+        part.part_type = "ventricle"
         part.has_fiber = False
         part.is_active = False
         part.meca_material = stiff_material
@@ -641,7 +645,7 @@ class MechanicsSimulator(BaseSimulator):
             guess_ed_coords = np.array(self.stress_free_report["guess_ed_coord"])[:-n_caps]
         elif heart_version == "v0.2":
             guess_ed_coords = np.array(self.stress_free_report["guess_ed_coord"])
-        self.model.mesh.points = guess_ed_coords
+        self.model.mesh.nodes = guess_ed_coords
 
         # Note: synchronization
         for part in self.model.parts:

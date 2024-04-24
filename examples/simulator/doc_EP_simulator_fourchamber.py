@@ -50,7 +50,7 @@ import os
 from pathlib import Path
 
 from ansys.heart.preprocessor.mesh.objects import Point
-import ansys.heart.preprocessor.models.v0_1.models as models
+import ansys.heart.preprocessor.models.v0_2.models as models
 from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
 
 # set working directory and path to model.
@@ -171,9 +171,16 @@ simulator.model.plot_purkinje()
 # Start main simulation
 # ~~~~~~~~~~~~~~~~~~~~~
 # Start the main EP simulation. This uses the previously computed fiber orientation
-# and purkinje network to set up and run the LS-DYNA model.
+# and purkinje network to set up and run the LS-DYNA model using different solver
+# options
 
 simulator.simulate()
+# The two following solves only work with LS-DYNA DEV-110013 or later
+simulator.settings.electrophysiology.analysis.solvertype = "Eikonal"
+simulator.simulate(folder_name="main-ep-Eikonal")
+simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
+simulator.simulate(folder_name="main-ep-ReactionEikonal")
+
 
 ###############################################################################
 # We can plot transmembrane potential in LS-PrePost

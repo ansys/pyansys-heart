@@ -159,6 +159,13 @@ class Analysis(Settings):
 
 
 @dataclass(repr=False)
+class EPAnalysis(Analysis):
+    """Class for EP analysis settings."""
+
+    solvertype: Literal["Monodomain", "Eikonal", "ReactionEikonal"] = "Monodomain"
+
+
+@dataclass(repr=False)
 class Material(Settings):
     """Class for storing material settings."""
 
@@ -253,7 +260,7 @@ class Electrophysiology(Settings):
 
     material: EpMaterial = field(default_factory=lambda: EpMaterial())
     """Material settings/configuration."""
-    analysis: Analysis = field(default_factory=lambda: Analysis())
+    analysis: EPAnalysis = field(default_factory=lambda: EPAnalysis())
     """Generic analysis settings."""
 
 
@@ -553,7 +560,7 @@ class SimulationSettings:
                 self.stress_free.analysis = A
 
             if isinstance(getattr(self, attr), Electrophysiology):
-                A = Analysis()
+                A = EPAnalysis()
                 A.set_values(ep_defaults.analysis)
                 M = EpMaterial()
                 M.set_values(ep_defaults.material)

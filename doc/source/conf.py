@@ -1,9 +1,16 @@
 """Sphinx documentation configuration file."""
+
 from datetime import datetime
 import os
+from pathlib import Path
 
-from ansys.heart._version import __version__
-from ansys_sphinx_theme import ansys_favicon, get_version_match, pyansys_logo_black
+from ansys.heart import __version__
+from ansys_sphinx_theme import (
+    ansys_favicon,
+    get_autoapi_templates_dir_relative_path,
+    get_version_match,
+    pyansys_logo_black,
+)
 
 # Project information
 project = "pyansys-heart"
@@ -16,7 +23,7 @@ cname = os.getenv("DOCUMENTATION_CNAME", "heart.docs.pyansys.com")
 html_logo = pyansys_logo_black
 html_theme = "ansys_sphinx_theme"
 
-html_short_title = html_title = "pyansys-heart"
+html_short_title = html_title = "PyAnsys Heart"
 html_favicon = ansys_favicon
 
 # specify the location of your github repo
@@ -36,9 +43,6 @@ html_theme_options = {
 
 # Sphinx extensions
 extensions = [
-    "sphinx.ext.autodoc",
-    "sphinx.ext.autosummary",
-    "sphinx.ext.autosectionlabel",
     "numpydoc",
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
@@ -46,16 +50,15 @@ extensions = [
     "sphinx_autodoc_typehints",
     "sphinx_gallery.gen_gallery",
     "sphinxcontrib.video",
+    "sphinx_design",
+    "sphinx_jinja",
+    "sphinx.ext.autodoc",
 ]
 
 sphinx_gallery_conf = {
     "examples_dirs": "../../examples",  # path to your example scripts
     "gallery_dirs": "examples",  # path where the gallery generated outputs are to be saved
 }
-
-autodoc_mock_imports = ["dynalib", "ansys.dyna"]
-
-autodoc_member_order = "bysource"
 
 # Intersphinx mapping
 intersphinx_mapping = {
@@ -107,18 +110,21 @@ source_suffix = ".rst"
 # The master toctree document.
 master_doc = "index"
 
-# Generate section labels up to four levels deep
-autosectionlabel_maxdepth = 4
-
 ## Configuration for Sphinx autoapi ##
 # ---------------------------------- #
 autoapi_type = "python"
-autoapi_ignore = []
-autoapi_dirs = [
-    "../../ansys/heart/preprocessor",
-    "../../ansys/heart/simulator",
-    "../../ansys/heart/postprocessor",
+autoapi_ignore = [
+    "*writer*",
+    "*calibration*",
+    "*misc*",
 ]
+# autoapi_dirs = [
+#     "../../src/ansys/heart/preprocessor",
+#     "../../src/ansys/heart/simulator",
+#     "../../src/ansys/heart/postprocessor",
+# ]
+autoapi_dirs = ["../../ansys"]
+autoapi_root = "api"
 autoapi_options = [
     "members",
     "undoc-members",
@@ -126,10 +132,26 @@ autoapi_options = [
     "show-module-summary",
     "special-members",
 ]
-autoapi_template_dir = "_autoapi_templates"
-suppress_warnings = ["autoapi.python_import_resolution"]
-# exclude_patterns = ["_autoapi_templates/index.rst"]
+autoapi_template_dir = get_autoapi_templates_dir_relative_path(Path(__file__))
+suppress_warnings = ["autoapi.python_import_resolution", "autosectionlabel.*"]
 autoapi_python_use_implicit_namespaces = True
+autoapi_keep_files = True
+autoapi_own_page_level = "class"
 
 typehints_defaults = "comma"
 simplify_optional_unions = False
+
+
+def prepare_jinja_env(jinja_env) -> None:
+    """
+    Customize the jinja env.
+
+    Notes
+    -----
+    See https://jinja.palletsprojects.com/en/3.0.x/api/#jinja2.Environment
+
+    """
+    jinja_env.globals["project_name"] = project
+
+
+autoapi_prepare_jinja_env = prepare_jinja_env

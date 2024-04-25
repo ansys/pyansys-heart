@@ -1,4 +1,27 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """D3plot parser using Ansys-dpf."""
+
 import os
 import pathlib as Path
 
@@ -258,6 +281,15 @@ class EPpostprocessor:
         if plot:
             t = times
             fig, axes = plt.subplots(nrows=3, ncols=4, layout="tight")
+            # Major ticks every 20, minor ticks every 5
+            major_xticks = np.arange(0, int(max(times)), 200)
+            minor_xticks = np.arange(0, int(max(times)), 40)
+            for i, ax in enumerate(fig.axes):
+                ax.set_xticks(major_xticks)
+                ax.set_xticks(minor_xticks, minor=True)
+                ax.set_yticks(major_xticks)
+                ax.set_yticks(minor_xticks, minor=True)
+                ax.grid(which="both")
             axes[0, 0].plot(t, I)
             axes[0, 0].set_ylabel("I")
             axes[1, 0].plot(t, II)
@@ -283,11 +315,11 @@ class EPpostprocessor:
             axes[2, 3].plot(t, V6)
             axes[2, 3].set_ylabel("V6")
             plt.setp(plt.gcf().get_axes(), xticks=[0, 200, 400, 600, 800], yticks=[])
-            fig.add_subplot(111, frameon=False)
-            plt.tick_params(
-                labelcolor="none", which="both", top=False, bottom=False, left=False, right=False
-            )
-            plt.xlabel("time (ms)")
+            # fig.add_subplot(111, frameon=False)
+            # plt.tick_params(
+            #     labelcolor="none", which="both", top=False, bottom=False, left=False, right=False
+            # )
+            # plt.xlabel("time (ms)")
             post_path = self.create_post_folder()
             filename = os.path.join(post_path, "12LeadECGs.png")
             plt.savefig(fname=filename, format="png")
@@ -295,6 +327,7 @@ class EPpostprocessor:
         return ECGs12
 
     def _assign_pointdata(self, pointdata: np.ndarray, node_ids: np.ndarray):
+        """Assign point data to mesh."""
         result = np.zeros(self.mesh.n_points)
         result[node_ids - 1] = pointdata
         self.mesh.point_data["activation_time"] = result

@@ -1,3 +1,25 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """Module that defines some classes for settings."""
 
 import copy
@@ -30,6 +52,8 @@ class AttrDict(dict):
     """Dict subclass whose entries can be accessed by attributes as well as normally."""
 
     def __init__(self, *args, **kwargs):
+        """Construct nested AttrDicts from nested dictionaries."""
+
         def from_nested_dict(data):
             """Construct nested AttrDicts from nested dictionaries."""
             if not isinstance(data, dict):
@@ -71,14 +95,15 @@ class Settings:
     def to_consistent_unit_system(self):
         """Convert units to consistent unit system.
 
-        Note
-        ----
+        Notes
+        -----
         Currently the only supported unit system is ["MPa", "mm", "N", "ms", "g"]
         For instance:
         Quantity(10, "mm/s") --> Quantity(0.01, "mm/ms")
         """
 
         def _to_consitent_units(d):
+            """Convert units to consistent unit system."""
             if isinstance(d, Settings):
                 d = d.__dict__
             for k, v in d.items():
@@ -131,6 +156,13 @@ class Analysis(Settings):
     """Time-step of icvout export."""
     global_damping: Quantity = Quantity(0, "1/s")
     """Global damping constant."""
+
+
+@dataclass(repr=False)
+class EPAnalysis(Analysis):
+    """Class for EP analysis settings."""
+
+    solvertype: Literal["Monodomain", "Eikonal", "ReactionEikonal"] = "Monodomain"
 
 
 @dataclass(repr=False)
@@ -228,7 +260,7 @@ class Electrophysiology(Settings):
 
     material: EpMaterial = field(default_factory=lambda: EpMaterial())
     """Material settings/configuration."""
-    analysis: Analysis = field(default_factory=lambda: Analysis())
+    analysis: EPAnalysis = field(default_factory=lambda: EPAnalysis())
     """Generic analysis settings."""
 
 
@@ -317,8 +349,8 @@ class SimulationSettings:
             Flag indicating whether to add settings for the stress free
             configuration computation, by default True
 
-        Example
-        -------
+        Examples
+        --------
         Instantiate settings and load defaults
 
         >>> from ansys.heart.simulator.settings.settings import SimulationSettings
@@ -382,8 +414,8 @@ class SimulationSettings:
         remove_units : bool, optional
             Flag indicating whether to remove units before writing, by default False
 
-        Example
-        -------
+        Examples
+        --------
         Create examples settings with default values.
 
         >>> from ansys.heart.simulator.settings.settings import SimulationSettings
@@ -425,8 +457,8 @@ class SimulationSettings:
         filename : pathlib.Path
             Path to yaml or json file.
 
-        Example
-        -------
+        Examples
+        --------
         Create examples settings with default values.
 
         >>> from ansys.heart.simulator.settings.settings import SimulationSettings
@@ -484,8 +516,8 @@ class SimulationSettings:
     def load_defaults(self):
         """Load the default simulation settings.
 
-        Example
-        -------
+        Examples
+        --------
         Create examples settings with default values.
 
         Load module
@@ -528,7 +560,7 @@ class SimulationSettings:
                 self.stress_free.analysis = A
 
             if isinstance(getattr(self, attr), Electrophysiology):
-                A = Analysis()
+                A = EPAnalysis()
                 A.set_values(ep_defaults.analysis)
                 M = EpMaterial()
                 M.set_values(ep_defaults.material)
@@ -547,8 +579,8 @@ class SimulationSettings:
     def to_consistent_unit_system(self):
         """Convert all settings to consistent unit-system ["MPa", "mm", "N", "ms", "g"].
 
-        Example
-        -------
+        Examples
+        --------
         Convert to the consistent unit system ["MPa", "mm", "N", "ms", "g"].
 
         Import necessary modules
@@ -688,6 +720,7 @@ def _deserialize_quantity(d: dict, ureg: UnitRegistry):
 
 # some additional methods
 def _get_dimensionality(d):
+    """Get dimensionality of Quantity objects in a nested dictionary."""
     dims = []
     for k, v in d.items():
         if isinstance(v, (dict, AttrDict)):
@@ -699,6 +732,7 @@ def _get_dimensionality(d):
 
 # get units
 def _get_units(d):
+    """Get units of Quantity objects in a nested dictionary."""
     units = []
     for k, v in d.items():
         if isinstance(v, (dict, AttrDict)):

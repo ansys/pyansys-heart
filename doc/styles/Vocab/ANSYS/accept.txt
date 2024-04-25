@@ -1,5 +1,7 @@
-ANSYS
-Ansys
-ansys
-PyHeart
-pyheart
+propt
+hist
+vart
+API
+(?i)pyansys
+(?i)ansys
+(?i)heart

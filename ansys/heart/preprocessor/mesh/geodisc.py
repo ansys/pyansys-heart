@@ -1,4 +1,27 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """Module for computing paths."""
+
 import math
 from typing import List, Union
 
@@ -114,8 +137,8 @@ def sort_edgeloop_anti_clockwise(points_to_sort: np.ndarray, reference_point: np
     bool
         Flag indicating whether the point order should be reversed or not
 
-    Note
-    ----
+    Notes
+    -----
     This only uses the first two points in the points array, but uses all
     points to compute the center of the sorted points that make up the edge
     loop
@@ -142,8 +165,8 @@ def sort_edgeloop_anti_clockwise(points_to_sort: np.ndarray, reference_point: np
 def rodrigues_rot(P, n0, n1):
     """Rodrigues rotation.
 
-    Note
-    ----
+    Notes
+    -----
     - Rotate given points based on a starting and ending vector
     - Axis k and angle of rotation theta given by vectors n0,n1
     P_rot = P*cos(theta) + (k x P)*sin(theta) + k*<k,P>*(1-cos(theta))
@@ -211,8 +234,8 @@ def sort_aniclkwise(xy_list, x0=None, y0=None):
 def project_3d_points(p_set):
     """Project points on representative plane.
 
-    Note
-    ----
+    Notes
+    -----
     Uses SVD to find representative plane:
     https://meshlogic.github.io/posts/jupyter/curve-fitting/fitting-a-circle-to-cluster-of-3d-points/
     """

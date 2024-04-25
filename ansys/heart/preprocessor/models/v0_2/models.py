@@ -1,3 +1,25 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """Module containing classes for the various heart models."""
 
 import copy
@@ -903,8 +925,8 @@ class HeartModel:
     def _sync_input_parts_to_model_parts(self):
         """Synchronize the input parts to the model parts.
 
-        Note
-        ----
+        Notes
+        -----
         Checks:
             overwrites the default part ids by those given by user.
         """
@@ -929,8 +951,8 @@ class HeartModel:
     def _extract_septum(self, num_layers_to_remove: int = 1) -> None:
         """Separate the septum elements from the left ventricle.
 
-        Note
-        ----
+        Notes
+        -----
         Uses the septum surface of the right ventricle
         """
         if not isinstance(self, (BiVentricle, FourChamber, FullHeart)):
@@ -979,8 +1001,8 @@ class HeartModel:
     def _extract_apex(self) -> None:
         """Extract the apex for both the endocardium and epicardium of each ventricle.
 
-        Note
-        ----
+        Notes
+        -----
         Apex defined as the point furthest from the mid-point between caps/valves
 
         """

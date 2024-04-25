@@ -1,7 +1,29 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """Module contain. classes for writing LS-DYNA keywords based.
 
-Note
-----
+Notes
+-----
 Uses a HeartModel (from ansys.heart.preprocessor.models).
 
 """
@@ -101,7 +123,7 @@ class BaseDynaWriter:
 
         Example
         -------
-        <Example to be added>
+        TODO: add example
         """
         self.model = model
         """Model information necessary for creating the LS-DYNA .k files."""
@@ -299,8 +321,9 @@ class BaseDynaWriter:
             Remove nodes if they are used in other nodeset, by default True
         remove_one_node_from_cell : bool, optional
             Remove a node if a cell has all nodes in nodeset, by default False
-        Note
-        ----
+
+        Notes
+        -----
             In FiberGenerationWriter, we do not allow all nodes of same element in one nodeset.
         """
         # formats endo, epi- and septum nodeset keywords, do for all surfaces
@@ -623,8 +646,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
     def system_model_name(self):
         """System model name.
 
-        Note
-        ----
+        Notes
+        -----
         Valid options include:
         ["ConstantPreloadWindkesselAfterload",
         "ClosedLoop].
@@ -1208,8 +1231,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
     ):
         """Add springs to the cap nodes.
 
-        Note
-        ----
+        Notes
+        -----
         Appends these to the boundary condition database.
         """
         # -------------------------------------------------------------------
@@ -1480,8 +1503,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
     def _update_cap_elements_db(self, add_mesh=True):
         """Update the database of shell elements.
 
-        Note
-        ----
+        Notes
+        -----
         Loops over all the defined caps/valves.
         """
         # create part for each closing cap
@@ -1708,14 +1731,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
             sys_settings = json.load(fid)
 
             # update the volumes
-            sys_settings["SystemModelInitialValues"]["UnstressedVolumes"][
-                "lv"
-            ] = self.model.get_part("Left ventricle").cavity.volume
+            sys_settings["SystemModelInitialValues"]["UnstressedVolumes"]["lv"] = (
+                self.model.get_part("Left ventricle").cavity.volume
+            )
 
             if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-                sys_settings["SystemModelInitialValues"]["UnstressedVolumes"][
-                    "rv"
-                ] = self.model.get_part("Right ventricle").cavity.volume
+                sys_settings["SystemModelInitialValues"]["UnstressedVolumes"]["rv"] = (
+                    self.model.get_part("Right ventricle").cavity.volume
+                )
 
             self.system_model_json = sys_settings
 
@@ -1883,8 +1906,8 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
     """
     Class for preparing the input for a stress-free LS-DYNA simulation.
 
-    Note
-    ----
+    Notes
+    -----
     Derived from MechanicsDynaWriter and consequently derives all keywords relevant
     for simulations involving mechanics. This class does not write the
     control volume keywords but adds the keyword for computing the stress
@@ -2844,8 +2867,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self._update_cellmodels()
 
         if self.model.beam_network:
-            # with smcoupl=1, coupling is disabled
-            self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
+            # with smcoupl=1, mechanical coupling is disabled
+            # with thcoupl=1, thermal coupling is disable
+            self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1, smcoupl=1))
             self._update_use_Purkinje()
 
         # update ep settings
@@ -3042,9 +3066,11 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def _update_ep_material_db(self):
         """Add EP material for each defined part."""
         material_settings = self.settings.electrophysiology.material
+        solvertype = self.settings.electrophysiology.analysis.solvertype
         for part in self.model.parts:
             self.kw_database.material.append(f"$$ {part.name} $$")
             partname = part.name.lower()
+            ep_mid = part.pid
             if (
                 ("atrium" in partname)
                 or ("ventricle" in partname)
@@ -3052,45 +3078,16 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 or ("base" in partname)
             ):
                 # Electrically "active" tissue (mtype=1)
-                ep_mid = part.pid
-                self.kw_database.material.append(
-                    custom_keywords.EmMat003(
-                        mid=ep_mid,
-                        mtype=2,
-                        sigma11=material_settings.myocardium["sigma_fiber"].m,
-                        sigma22=material_settings.myocardium["sigma_sheet"].m,
-                        sigma33=material_settings.myocardium["sigma_sheet_normal"].m,
-                        beta=material_settings.myocardium["beta"].m,
-                        cm=material_settings.myocardium["cm"].m,
-                        aopt=2.0,
-                        a1=0,
-                        a2=0,
-                        a3=1,
-                        d1=0,
-                        d2=-1,
-                        d3=0,
-                    ),
-                )
+                self._set_ep_active_material(ep_mid, material_settings, solvertype=solvertype)
+
             elif "isolation" in partname:
                 # assign insulator material to isolation layer.
-                ep_mid = part.pid
-                self.kw_database.material.append(
-                    custom_keywords.EmMat001(mid=ep_mid, mtype=1, sigma=1),
-                )
+                self._set_ep_insulator_material(ep_mid)
             else:
                 # Electrically non-active tissue (mtype=4)
                 # These bodies are still conductive bodies
                 # in the extra-cellular space
-                ep_mid = part.pid
-                self.kw_database.material.append(
-                    custom_keywords.EmMat001(
-                        mid=ep_mid,
-                        mtype=4,
-                        sigma=self.settings.electrophysiology.material.myocardium[
-                            "sigma_passive"
-                        ].m,
-                    ),
-                )
+                self._set_ep_passive_material(ep_mid)
 
         return
 
@@ -3388,18 +3385,48 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def _update_ep_settings(self):
         """Add the settings for the electrophysiology solver."""
+        save_part_ids = []
+        for part in self.model.parts:
+            save_part_ids.append(part.pid)
+        for beamnet in self.model.beam_network:
+            save_part_ids.append(beamnet.pid)
+        partset_id = self.get_unique_partset_id()
+        kw = keywords.SetPartList(sid=partset_id)
+        # kw.parts._data = save_part_ids
+        # NOTE: when len(save_part_ids) = 8/16, dynalib bugs
+        str = "\n"
+        for i, id in enumerate(save_part_ids):
+            str += "{0:10d}".format(id)
+            if (i + 1) % 8 == 0:
+                str += "\n"
+        kw = kw.write() + str
+
+        self.kw_database.ep_settings.append(kw)
+        solvertype = self.settings.electrophysiology.analysis.solvertype
+        if solvertype == "Monodomain":
+            emsol = 11
+            self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=1))
+        elif solvertype == "Eikonal":
+            emsol = 14
+            self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=1))
+        elif solvertype == "ReactionEikonal":
+            emsol = 15
+            self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=1, ionsolvr=2))
+            Tend = 500
+            dt = 1
+            # specify simulation time and time step in case of a spline ionsolver type
+            self.kw_database.ep_settings.append("$     Tend        dt")
+            self.kw_database.ep_settings.append(f"{Tend:>10d}{dt:>10d}")
+
         self.kw_database.ep_settings.append(
             keywords.EmControl(
-                emsol=11, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
+                emsol=emsol, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
             )
         )
 
         self.kw_database.ep_settings.append(
             custom_keywords.EmEpIsoch(idisoch=1, idepol=1, dplthr=-20, irepol=1, rplthr=-40)
         )
-
-        # use defaults
-        self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=1))
 
         self.kw_database.ep_settings.append(
             keywords.EmSolverFem(reltol=1e-6, maxite=int(1e4), precon=2)
@@ -3476,17 +3503,43 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self.kw_database.ep_settings.append(node_set_kw)
 
         # stimulation
-        self.kw_database.ep_settings.append(
-            custom_keywords.EmEpTentusscherStimulus(
-                stimid=1,
-                settype=2,
-                setid=node_set_id_stimulationnodes,
-                stimstrt=0.0,
-                stimt=800.0,
-                stimdur=20.0,
-                stimamp=50.0,
+        solvertype = self.settings.electrophysiology.analysis.solvertype
+        if solvertype == "Monodomain":
+            self.kw_database.ep_settings.append(
+                custom_keywords.EmEpTentusscherStimulus(
+                    stimid=1,
+                    settype=2,
+                    setid=node_set_id_stimulationnodes,
+                    stimstrt=0.0,
+                    stimt=800.0,
+                    stimdur=20.0,
+                    stimamp=50.0,
+                )
             )
-        )
+        else:
+            # TODO : add eikonal in custom keywords
+            # EM_EP_EIKONAL
+
+            eikonal_stim_content = "*EM_EP_EIKONAL\n"
+            eikonal_stim_content += "$    eikId  eikPaSet eikStimNS eikStimDF\n"
+            # TODO get the right part set id
+            # setpart_kwds = self.kw_database.ep_settings.get_kwds_by_type()
+            # id of the eikonal solver (different eikonal solves
+            # can be performed in different parts of the model)
+            eikonal_id = 1
+            psid = 1
+            eikonal_stim_content += (
+                f"{eikonal_id:>10d}{psid:>10d}{node_set_id_stimulationnodes:>10d}\n"
+            )
+            if solvertype == "ReactionEikonal":
+                eikonal_stim_content += "$ footType     footT     footA  footTauf   footVth\n"
+                footType = 1
+                footT = 2
+                footA = 50
+                footTauf = 1
+                eikonal_stim_content += f"{footType:>10d}{footT:>10d}{footA:>10d}{footTauf:>10d}"
+
+            self.kw_database.ep_settings.append(eikonal_stim_content)
 
     def _update_blood_settings(self):
         """Update blood settings."""
@@ -3721,6 +3774,71 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         return
 
+    def _set_ep_active_material(
+        self,
+        ep_mid,
+        material_settings,
+        solvertype="Monodomain",
+    ):
+        if solvertype == "Monodomain":
+            self.kw_database.material.append(
+                custom_keywords.EmMat003(
+                    mid=ep_mid,
+                    mtype=2,
+                    sigma11=material_settings.myocardium["sigma_fiber"].m,
+                    sigma22=material_settings.myocardium["sigma_sheet"].m,
+                    sigma33=material_settings.myocardium["sigma_sheet_normal"].m,
+                    beta=material_settings.myocardium["beta"].m,
+                    cm=material_settings.myocardium["cm"].m,
+                    aopt=2.0,
+                    a1=0,
+                    a2=0,
+                    a3=1,
+                    d1=0,
+                    d2=-1,
+                    d3=0,
+                ),
+            )
+        elif solvertype == "Eikonal" or solvertype == "ReactionEikonal":
+            self.kw_database.material.append(
+                custom_keywords.EmMat003(
+                    mid=ep_mid,
+                    mtype=2,
+                    sigma11=material_settings.myocardium["velocity_fiber"].m,
+                    sigma22=material_settings.myocardium["velocity_sheet"].m,
+                    sigma33=material_settings.myocardium["velocity_sheet_normal"].m,
+                    beta=material_settings.myocardium["beta"].m,
+                    cm=material_settings.myocardium["cm"].m,
+                    aopt=2.0,
+                    a1=0,
+                    a2=0,
+                    a3=1,
+                    d1=0,
+                    d2=-1,
+                    d3=0,
+                ),
+            )
+
+    def _set_ep_insulator_material(
+        self,
+        ep_mid,
+    ):
+        self.kw_database.material.append(
+            custom_keywords.EmMat001(mid=ep_mid, mtype=1, sigma=1),
+        )
+
+    def _set_ep_passive_material(
+        self,
+        ep_mid,
+    ):
+        self.kw_database.material.append(
+            custom_keywords.EmMat001(
+                mid=ep_mid,
+                mtype=4,
+                sigma=self.settings.electrophysiology.material.myocardium["sigma_passive"].m,
+            ),
+        )
+
 
 class ElectrophysiologyBeamsDynaWriter(ElectrophysiologyDynaWriter):
     """Class for preparing the input for an Electrophysiology LS-DYNA simulation with beams only."""
@@ -3743,7 +3861,7 @@ class ElectrophysiologyBeamsDynaWriter(ElectrophysiologyDynaWriter):
 
         if self.model.beam_network:
             # with smcoupl=1, coupling is disabled
-            self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=1))
+            self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1, smcoupl=1))
             self._update_use_Purkinje()
 
         # update ep settings
@@ -3912,7 +4030,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
         if self.model.beam_network:
             # Coupling enabled, EP beam nodes follow the motion of surfaces
-            self.kw_database.ep_settings.append(keywords.EmControlCoupling(smcoupl=0))
+            self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1, smcoupl=0))
             self._update_use_Purkinje()
             self.kw_database.main.append(keywords.Include(filename="beam_networks.k"))
 
@@ -3929,7 +4047,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
             "         1       1.0\n"
             "*EM_CONTROL_COUPLING\n"
             "$    THCPL     SMCPL    THLCID    SMLCID\n"
-            "                   0\n"
+            "         1         0\n"
         )
         self.kw_database.ep_settings.append("$ EM-MECA coupling control")
         self.kw_database.ep_settings.append(coupling_str)

@@ -1,3 +1,25 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """
 
 Four-chamber EP-simulator example
@@ -28,7 +50,7 @@ import os
 from pathlib import Path
 
 from ansys.heart.preprocessor.mesh.objects import Point
-import ansys.heart.preprocessor.models.v0_1.models as models
+import ansys.heart.preprocessor.models.v0_2.models as models
 from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
 
 # set working directory and path to model.
@@ -149,9 +171,16 @@ simulator.model.plot_purkinje()
 # Start main simulation
 # ~~~~~~~~~~~~~~~~~~~~~
 # Start the main EP simulation. This uses the previously computed fiber orientation
-# and purkinje network to set up and run the LS-DYNA model.
+# and purkinje network to set up and run the LS-DYNA model using different solver
+# options
 
 simulator.simulate()
+# The two following solves only work with LS-DYNA DEV-110013 or later
+simulator.settings.electrophysiology.analysis.solvertype = "Eikonal"
+simulator.simulate(folder_name="main-ep-Eikonal")
+simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
+simulator.simulate(folder_name="main-ep-ReactionEikonal")
+
 
 ###############################################################################
 # We can plot transmembrane potential in LS-PrePost

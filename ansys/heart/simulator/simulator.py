@@ -1,12 +1,35 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """Simulator module.
 
 Options for simulation:
+
 - EP-only
-    with/without fbers
-    with/without purkinje
+    with/without fbers.
+    with/without purkinje.
 - Electro-mechanics
-    simplified EP (imposed activation)
-    coupled electro-mechanics
+    simplified EP (imposed activation).
+    coupled electro-mechanics.
 """
 
 import copy
@@ -16,6 +39,9 @@ import pathlib as Path
 import shutil
 import subprocess
 from typing import List, Literal
+
+from ansys.heart.preprocessor.mesh.objects import Part
+from ansys.heart.simulator.settings.material.material import NeoHookean
 
 LOGGER = logging.getLogger("pyheart_global.simulator")
 from ansys.heart.misc.element_orth import read_orth_element_kfile
@@ -35,7 +61,7 @@ elif heart_version == "v0.1" or not heart_version:
     from ansys.heart.preprocessor.models.v0_1.models import FourChamber, HeartModel, LeftVentricle
 
     heart_version = "v0.1"
-
+from ansys.heart.preprocessor.models.conduction_beam import ConductionSystem
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 import numpy as np
@@ -80,6 +106,7 @@ class BaseSimulator:
             Settings used for launching LS-DYNA.
         simulation_directory : Path, optional
             Directory in which to start the simulation, by default ""
+
         """
         self.model: HeartModel = model
         """HeartModel to simulate."""
@@ -199,6 +226,7 @@ class BaseSimulator:
         Returns
         -------
             right atrium UnstructuredGrid with related information.
+
         """
         LOGGER.info("Computing RA fiber...")
         export_directory = os.path.join(self.root_directory, "ra_fiber")
@@ -270,11 +298,13 @@ class BaseSimulator:
             LSDYNA directory
         type: str
             Simulation type.
-        kwargs
+        kwargs : dict
+            Additional arguments.
 
         Returns
         -------
             UnstructuredGrid with array to map data back to full mesh.
+
         """
         if type == "ra_fiber":
             for key, value in kwargs.items():
@@ -310,7 +340,8 @@ class BaseSimulator:
         path_to_input : Path
             Path to the LS-DYNA simulation file.
         options : str, optional
-            Additional options to pass to command line, by default ""
+            Additional options to pass to command line, by default "".
+
         """
         if options != "":
             old_options = copy.deepcopy(self.dyna_settings.dyna_options)
@@ -352,6 +383,7 @@ class EPSimulator(BaseSimulator):
         dyna_settings: DynaSettings,
         simulation_directory: Path = "",
     ) -> None:
+        """Initialize EP Simulator."""
         super().__init__(model, dyna_settings, simulation_directory)
 
         return
@@ -360,6 +392,20 @@ class EPSimulator(BaseSimulator):
         """Launch the main simulation."""
         directory = os.path.join(self.root_directory, folder_name)
         self._write_main_simulation_files(folder_name)
+
+        LOGGER.info("Launching main EP simulation...")
+
+        input_file = os.path.join(directory, "main.k")
+        self._run_dyna(input_file)
+
+        LOGGER.info("done.")
+
+        return
+
+    def _simulate_conduction(self, folder_name="main-ep-onlybeams"):
+        """Launch the main simulation."""
+        directory = os.path.join(self.root_directory, folder_name)
+        self._write_main_conduction_simulation_files(folder_name)
 
         LOGGER.info("Launching main EP simulation...")
 
@@ -405,32 +451,45 @@ class EPSimulator(BaseSimulator):
     def compute_conduction_system(self):
         """Compute the conduction system."""
         if isinstance(self.model, FourChamber):
-            SA_node = self.model.compute_SA_node()
-            AV_node = self.model.compute_AV_node()
+            beam_length = self.settings.purkinje.edgelen.m
 
-            av_beam = self.model.compute_av_conduction()
-            # AV_node.xyz
-            # av_beam.edges[-1,-1]
-            his_beam, his_ends_coords = self.model.compute_His_conduction()
-
-            left_bundle_beam = self.model.compute_left_right_bundle(
-                his_ends_coords[0],
-                his_beam.edges[-2, 1],
-                side="Left",
+            cs = ConductionSystem(self.model)
+            cs.compute_SA_node()
+            cs.compute_AV_node()
+            cs.compute_av_conduction(beam_length=beam_length)
+            left, right = cs.compute_His_conduction(beam_length=beam_length)
+            cs.compute_left_right_bundle(
+                left.xyz, left.node_id, side="Left", beam_length=beam_length
+            )
+            cs.compute_left_right_bundle(
+                right.xyz, right.node_id, side="Right", beam_length=beam_length
             )
 
-            right_bundle_beam = self.model.compute_left_right_bundle(
-                his_ends_coords[1],
-                his_beam.edges[-1, 1],
-                side="Right",
-            )
+            # # TODO define end point by uhc, or let user choose
+            # Note: must on surface after zerop if coupled with meca
+            # cs.compute_Bachman_bundle(
+            #     start_coord=self.model.right_atrium.get_point("SA_node").xyz,
+            #     end_coord=np.array([-34, 163, 413]),
+            # )
+            return cs
 
     def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
         self.directories["main-ep"] = export_directory
+        model = copy.deepcopy(self.model)
+        dyna_writer = writers.ElectrophysiologyDynaWriter(model, self.settings)
+        dyna_writer.update()
+        dyna_writer.export(export_directory)
 
-        dyna_writer = writers.ElectrophysiologyDynaWriter(self.model, self.settings)
+        return export_directory
+
+    def _write_main_conduction_simulation_files(self, folder_name):
+        """Write LS-DYNA files that are used to start the main simulation."""
+        export_directory = os.path.join(self.root_directory, folder_name)
+        self.directories["main-ep"] = export_directory
+        model = copy.deepcopy(self.model)
+        dyna_writer = writers.ElectrophysiologyBeamsDynaWriter(model, self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory)
 
@@ -468,6 +527,45 @@ class MechanicsSimulator(BaseSimulator):
         """A dictionary save stress free computation information"""
 
         return
+
+    def create_stiff_ventricle_base(
+        self, threshold: float = 0.9, stiff_material=NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+    ) -> Part:
+        """Create a stiff base part from uvc longitudinal value.
+
+        Parameters
+        ----------
+        threshold : float, optional
+            uvc_l larger than threshold will be set as stiff base, by default 0.9
+        stiff_material : _type_, optional
+            material to assign, by default NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+
+        Returns
+        -------
+        Part
+            stiff base part
+        """
+        try:
+            v = self.model.mesh.point_data_to_cell_data()["apico-basal"]
+        except:
+            self.compute_uhc()
+            v = self.model.mesh.point_data_to_cell_data()["apico-basal"]
+
+        eids = np.intersect1d(np.where(v > threshold)[0], self.model.left_ventricle.element_ids)
+        if not isinstance(self.model, LeftVentricle):
+            # uvc-L of RV is generally smaller, *1.05 to be comparable with LV
+            eid_r = np.intersect1d(
+                np.where(v > threshold * 1.05)[0], self.model.right_ventricle.element_ids
+            )
+            eids = np.hstack((eids, eid_r))
+
+        part: Part = self.model.create_part_by_ids(eids, "base")
+        part.part_type = "ventricle"
+        part.has_fiber = False
+        part.is_active = False
+        part.meca_material = stiff_material
+
+        return part
 
     def simulate(self, folder_name="main-mechanics", zerop_folder=None, auto_post=True):
         """
@@ -547,7 +645,7 @@ class MechanicsSimulator(BaseSimulator):
             guess_ed_coords = np.array(self.stress_free_report["guess_ed_coord"])[:-n_caps]
         elif heart_version == "v0.2":
             guess_ed_coords = np.array(self.stress_free_report["guess_ed_coord"])
-        self.model.mesh.points = guess_ed_coords
+        self.model.mesh.nodes = guess_ed_coords
 
         # Note: synchronization
         for part in self.model.parts:
@@ -630,9 +728,11 @@ def run_lsdyna(
     path_to_input : Path
         Input file for LS-DYNA.
     settings : DynaSettings, optional
-        LS-DYNA settings, such as path to executable, executable type, platform, by default None
+        LS-DYNA settings, such as path to executable, executable type,
+        platform, by default ``None``.
     simulation_directory : Path, optional
-        Directory where to simulate, by default None
+        Directory where to simulate, by default ``None``.
+
     """
     if not settings:
         LOGGER.info("Using default LS-DYNA settings.")

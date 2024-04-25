@@ -1,3 +1,25 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import os
 
 from ansys.heart.preprocessor.mesh.objects import Mesh, SurfaceMesh
@@ -88,3 +110,49 @@ def test_mesh_object_read_002():
     assert "tags" in mesh.array_names
 
     return
+
+
+def test_add_nodes_mesh():
+    """Test adding points/nodes to the Mesh object."""
+    # test data:
+    points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    tetrahedron = np.array([[0, 1, 2, 3]])
+
+    mesh = Mesh()
+    mesh.tetrahedrons = tetrahedron
+    mesh.nodes = points
+    mesh.point_data["data-scalar"] = np.ones(mesh.n_points, dtype=float)
+    mesh.point_data["data-vector"] = np.ones((mesh.n_points, 3), dtype=float)
+
+    # test adding nodes
+    mesh.nodes = np.vstack([points, [0, 0.5, 0.5]])
+    assert mesh.point_data["data-scalar"].shape[0] == mesh.nodes.shape[0]
+    assert mesh.point_data["data-vector"].shape[0] == mesh.nodes.shape[0]
+
+    # test assigning same number of nodes
+    mesh.nodes = mesh.nodes * 1e-3
+
+    assert mesh.point_data["data-scalar"].shape[0] == mesh.nodes.shape[0]
+    assert mesh.point_data["data-vector"].shape[0] == mesh.nodes.shape[0]
+
+
+def test_add_nodes_surface_mesh():
+    """Test adding points/nodes to the SurfaceMesh object."""
+    # test data:
+    points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]])
+    triangles = np.array([[0, 1, 2]])
+
+    mesh = SurfaceMesh("triangle", triangles=triangles, nodes=points)
+    mesh.point_data["data-scalar"] = np.ones(mesh.n_points, dtype=float)
+    mesh.point_data["data-vector"] = np.ones((mesh.n_points, 3), dtype=float)
+
+    # test adding nodes
+    mesh.nodes = np.vstack([points, [0, 0.5, 0.5]])
+    assert mesh.point_data["data-scalar"].shape[0] == mesh.nodes.shape[0]
+    assert mesh.point_data["data-vector"].shape[0] == mesh.nodes.shape[0]
+
+    # test assigning same number of nodes
+    mesh.nodes = mesh.nodes * 1e-3
+
+    assert mesh.point_data["data-scalar"].shape[0] == mesh.nodes.shape[0]
+    assert mesh.point_data["data-vector"].shape[0] == mesh.nodes.shape[0]

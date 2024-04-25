@@ -1,9 +1,32 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """
 Module that contains classes relevant for the mesh.
 
 Such as a Mesh object, Part object, Features, etc.
 
 """
+
 import copy
 import logging
 import pathlib
@@ -13,6 +36,7 @@ LOGGER = logging.getLogger("pyheart_global.preprocessor")
 import ansys.heart.preprocessor.mesh.connectivity as connect
 import ansys.heart.preprocessor.mesh.geodisc as geodisc
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
+from ansys.heart.simulator.settings.material.material import MechanicalMaterialModel
 import numpy as np
 
 try:
@@ -75,9 +99,33 @@ class SurfaceMesh(pv.PolyData, Feature):
         if isinstance(array, type(None)):
             return
         try:
+            num_extra_points = array.shape[0] - self.points.shape[0]
             self.points = array
+            if num_extra_points > 0:
+                for key in self.point_data.keys():
+                    shape = self.point_data[key].shape
+                    dtype = self.point_data[key].dtype
+
+                    # vectors
+                    if len(shape) > 1:
+                        append_shape = (num_extra_points, shape[1])
+                        self.point_data[key] = np.vstack(
+                            [self.point_data[key], np.empty(append_shape, dtype) * np.nan]
+                        )
+                    # scalars
+                    else:
+                        append_shape = (num_extra_points,)
+                        self.point_data[key] = np.append(
+                            self.point_data[key], np.empty(append_shape, dtype) * np.nan
+                        )
+
+            elif num_extra_points < 0:
+                raise NotImplementedError(
+                    "Assigning less nodes than the original not implemented yet."
+                )
+
         except:
-            LOGGER.warning("Failed to set points.")
+            LOGGER.warning("Failed to set nodes.")
             return
 
     @property
@@ -516,7 +564,31 @@ class Mesh(pv.UnstructuredGrid):
         if isinstance(array, type(None)):
             return
         try:
+            num_extra_points = array.shape[0] - self.points.shape[0]
             self.points = array
+            if num_extra_points > 0:
+                for key in self.point_data.keys():
+                    shape = self.point_data[key].shape
+                    dtype = self.point_data[key].dtype
+
+                    # vectors
+                    if len(shape) > 1:
+                        append_shape = (num_extra_points, shape[1])
+                        self.point_data[key] = np.vstack(
+                            [self.point_data[key], np.empty(append_shape, dtype) * np.nan]
+                        )
+                    # scalars
+                    else:
+                        append_shape = (num_extra_points,)
+                        self.point_data[key] = np.append(
+                            self.point_data[key], np.empty(append_shape, dtype) * np.nan
+                        )
+
+            elif num_extra_points < 0:
+                raise NotImplementedError(
+                    "Assigning less nodes than the original not implemented yet."
+                )
+
         except:
             LOGGER.warning("Failed to set nodes.")
             return
@@ -903,6 +975,9 @@ class Part:
         self.is_active: bool = False
         """If active stress will be established."""
 
+        self.meca_material: MechanicalMaterialModel = MechanicalMaterialModel.DummyMaterial()
+        """Material model will be assiggned in Simulator."""
+
         """Cavity belonging to the part."""
         if self.part_type in ["ventricle"]:
             self.apex_points: List[Point] = []
@@ -932,12 +1007,3 @@ class Part:
     def _add_septum_part(self):
         self.septum = Part(name="septum", part_type="septum")
         return
-
-    # def get_mesh(self, mesh: Mesh = None) -> Mesh:
-    #     tets: np.ndarray = mesh.tetrahedrons
-    #     tets = tets[self.element_ids :]
-    #     partmesh = Mesh()
-    #     partmesh.tetrahedrons = tets
-
-    #     partmesh.nodes =
-    #     return partmesh

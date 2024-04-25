@@ -1,4 +1,27 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """D3plot parser using Ansys-dpf."""
+
 import os
 import pathlib as Path
 
@@ -214,7 +237,97 @@ class EPpostprocessor:
         ECGs = data[:, 1:11]
         return ECGs, times
 
+    def compute_12_lead_ECGs(
+        self, ECGs: np.ndarray, times: np.ndarray, plot: bool = True
+    ) -> np.ndarray:
+        """Compute 12-Lead ECGs from 10 electrodes.
+
+        Parameters
+        ----------
+        ECGs : np.ndarray
+            mxn array containing ECGs, where m is the number of time steps
+            and n the 10 electrodes in this order:
+            "V1" "V2" "V3" "V4" "V5" "V6" "RA" "LA" "RL" "LL"
+        plot : bool, optional
+            plot option, by default True
+
+        Returns
+        -------
+        np.ndarray
+            12-Lead ECGs in this order:
+            "I" "II" "III" "aVR" "aVL" "aVF" "V1" "V2" "V3" "V4" "V5" "V6"
+        """
+        RA = ECGs[:, 6]
+        LA = ECGs[:, 7]
+        LL = ECGs[:, 9]
+        I = LA - RA
+        II = LL - RA
+        III = LL - LA
+        aVR = RA - (LA + LL) / 2
+        aVL = LA - (LL + RA) / 2
+        aVF = LL - (RA + LA) / 2
+        Vwct = (LA + RA + LL) / 3
+        V1 = ECGs[:, 0] - Vwct
+        V2 = ECGs[:, 1] - Vwct
+        V3 = ECGs[:, 2] - Vwct
+        V4 = ECGs[:, 3] - Vwct
+        V5 = ECGs[:, 4] - Vwct
+        V6 = ECGs[:, 5] - Vwct
+        RA = ECGs[:, 6] - Vwct
+        LA = ECGs[:, 7] - Vwct
+        # RL = ECGs[8, :] - Vwct
+        LL = ECGs[:, 9] - Vwct
+        ECGs12 = np.vstack((I, II, III, aVR, aVL, aVF, V1, V2, V3, V4, V5, V6))
+        if plot:
+            t = times
+            fig, axes = plt.subplots(nrows=3, ncols=4, layout="tight")
+            # Major ticks every 20, minor ticks every 5
+            major_xticks = np.arange(0, int(max(times)), 200)
+            minor_xticks = np.arange(0, int(max(times)), 40)
+            for i, ax in enumerate(fig.axes):
+                ax.set_xticks(major_xticks)
+                ax.set_xticks(minor_xticks, minor=True)
+                ax.set_yticks(major_xticks)
+                ax.set_yticks(minor_xticks, minor=True)
+                ax.grid(which="both")
+            axes[0, 0].plot(t, I)
+            axes[0, 0].set_ylabel("I")
+            axes[1, 0].plot(t, II)
+            axes[1, 0].set_ylabel("II")
+            axes[2, 0].plot(t, III)
+            axes[2, 0].set_ylabel("III")
+            axes[0, 1].plot(t, aVR)
+            axes[0, 1].set_ylabel("aVR")
+            axes[1, 1].plot(t, aVL)
+            axes[1, 1].set_ylabel("aVL")
+            axes[2, 1].plot(t, aVF)
+            axes[2, 1].set_ylabel("aVF")
+            axes[0, 2].plot(t, V1)
+            axes[0, 2].set_ylabel("V1")
+            axes[1, 2].plot(t, V2)
+            axes[1, 2].set_ylabel("V2")
+            axes[2, 2].plot(t, V3)
+            axes[2, 2].set_ylabel("V3")
+            axes[0, 3].plot(t, V4)
+            axes[0, 3].set_ylabel("V4")
+            axes[1, 3].plot(t, V5)
+            axes[1, 3].set_ylabel("V5")
+            axes[2, 3].plot(t, V6)
+            axes[2, 3].set_ylabel("V6")
+            plt.setp(plt.gcf().get_axes(), xticks=[0, 200, 400, 600, 800], yticks=[])
+            # fig.add_subplot(111, frameon=False)
+            # plt.tick_params(
+            #     labelcolor="none", which="both", top=False, bottom=False, left=False, right=False
+            # )
+            # plt.xlabel("time (ms)")
+            post_path = self.create_post_folder()
+            filename = os.path.join(post_path, "12LeadECGs.png")
+            plt.savefig(fname=filename, format="png")
+            plt.show(block=True)
+        return ECGs12
+
     def _assign_pointdata(self, pointdata: np.ndarray, node_ids: np.ndarray):
+        """Assign point data to mesh."""
         result = np.zeros(self.mesh.n_points)
         result[node_ids - 1] = pointdata
         self.mesh.point_data["activation_time"] = result

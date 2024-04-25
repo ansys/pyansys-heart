@@ -1,3 +1,25 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """Module for useful methods to help format LS-DYNA keywords."""
 
 from typing import Union
@@ -37,8 +59,8 @@ def create_node_keyword(nodes: np.array, offset: int = 0) -> keywords.Node:
 def add_nodes_to_kw(nodes: np.array, node_kw: keywords.Node, offset: int = 0) -> keywords.Node:
     """Add nodes to an existing *NODE keyword.
 
-    Note
-    ----
+    Notes
+    -----
     If nodes are already defined, this adds both the nodes in the previous
     keyword and the specified array of nodes. Automatically computes
     the index offset in case node_kw.nodes is not empty.
@@ -82,8 +104,8 @@ def add_beams_to_kw(
 ) -> keywords.ElementBeam:
     """Add beams to an existing *ELEMENT_BEAM keyword.
 
-    Note
-    ----
+    Notes
+    -----
     If beams are already defined, this adds both the beams in the previous
     keyword and the specified array of beams. Automatically computes
     the index offset in case beam_kw.elements is not empty.
@@ -213,8 +235,8 @@ def create_element_shell_keyword(
 ) -> keywords.ElementShell:
     """Create element shell keyword.
 
-    Note
-    ----
+    Notes
+    -----
     From a numpy array of elements. Each row corresponds to an element.
 
     """
@@ -455,8 +477,8 @@ def create_discrete_elements_kw(
 def get_list_of_used_ids(keyword_db: Deck, keyword_str: str) -> np.ndarray:
     """Get array of used ids in the database.
 
-    Note
-    ----
+    Notes
+    -----
     E.g. for *SECTION, *PART and *MAT ids
 
     Parameters
@@ -523,8 +545,8 @@ def fast_element_writer(
 ):
     """Fast implementation of the element writer.
 
-    Note
-    ----
+    Notes
+    -----
     Use this as an alternative to the dynalib writer
 
     """

@@ -3,7 +3,7 @@
    Provide any documentation specific to your online documentation
    here.
 
-PyAnsys-Heart |version|
+PyAnsys Heart |version|
 =======================
 
 .. include:: ../../README.rst
@@ -14,6 +14,6 @@ PyAnsys-Heart |version|
 
    getting_started/index
    user_guide/index
-   autoapi/index
+   api/index
    examples/index
    contributing

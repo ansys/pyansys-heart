@@ -1,3 +1,25 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """Collection of methods to test the settings module."""
 
 import os
@@ -11,6 +33,7 @@ from ansys.heart.simulator.settings.settings import (
 )
 import numpy as np
 from pint import Quantity
+import pytest
 
 from tests.heart.conftest import compare_string_with_file, get_workdir
 
@@ -26,7 +49,7 @@ REF_STRING_SETTINGS_YML_MECHANICS = (
     "      global_damping: 0.33 / second\n"
     "    material:\n"
     "      myocardium: null\n"
-    "      atrium: null\n"
+    "      passive: null\n"
     "      cap: null\n"
     "    boundary_conditions:\n"
     "      robin: null\n"
@@ -53,6 +76,7 @@ REF_STRING_SETTINGS_YML_EP = (
     "      dt_d3plot: 4 second\n"
     "      dt_icvout: 5 millisecond\n"
     "      global_damping: 0 / second\n"
+    "      solvertype: Monodomain\n"
 )
 
 
@@ -189,3 +213,32 @@ def test_settings_set_defaults():
     settings = Fibers()
     settings.set_values(fibers_defaults.angles)
     assert settings.alpha_endo.m == -60
+
+
+@pytest.fixture(autouse=True)
+def default_settings():
+    settings = SimulationSettings(
+        mechanics=True, electrophysiology=False, fiber=False, purkinje=False, stress_free=False
+    )
+    settings.load_defaults()
+    return settings
+
+
+def test_load_defaults(default_settings):
+    default_settings.to_consistent_unit_system()
+
+    assert default_settings.mechanics.material.myocardium["isotropic"]["rho"].m == pytest.approx(
+        0.001, 1e-9
+    )
+
+
+def test_get_meca_material(default_settings):
+    default_settings.mechanics.material.myocardium["isotropic"]["rho"] = Quantity(8000, "kg/m^3")
+    default_settings.to_consistent_unit_system()
+
+    m1, m2 = default_settings.get_mechanical_material()
+    # test default value
+    assert m1.active.actype == 1
+    assert m2.c10 == pytest.approx(0.1 / 2, 1e-9)
+    # test modified value
+    assert m1.rho == pytest.approx(0.008, 1e-9)

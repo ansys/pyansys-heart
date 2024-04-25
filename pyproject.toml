@@ -40,26 +40,28 @@ dependencies = [
     "validators==0.22.0",
     "pint==0.20.1",
     "pyvista==0.43.0",
+    "networkx==3.2.1",
 ]
 
 # Optional dependencies:
 [project.optional-dependencies]
 doc = [
-    "ansys-sphinx-theme==0.10.3",
-    "jupyter_sphinx==0.4.0",
+    "ansys-sphinx-theme==0.14.0",
+    "jupyter_sphinx==0.5.3",
     "myst-parser==2.0.0",
     "numpydoc==1.6.0",
     "nbsphinx==0.9.3",
-    "Sphinx==7.2.2",
-    "sphinx-autoapi==3.0.0",
+    "sphinx==7.2.6",
+    "sphinx-autoapi==3.1.a2",
     "sphinx-autodoc-typehints==1.24.0",
     "sphinx-copybutton==0.5.2",
     "sphinx-gallery==0.14.0",
     "sphinx_design==0.5.0",
     "sphinxcontrib-video",
+    "sphinx-jinja==2.0.2",
 ]
 
-tests = ["pytest==8.1.1"]
+tests = ["pytest==8.0.1", "dynalib==0.1.0"]
 
 [project.urls]
 Source = "https://github.com/ansys/pyansys-heart"
@@ -90,6 +92,6 @@ show_missing = true
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
-markers = ["requires_fluent", "local"]
-tmp_path_retention_count = 0           # do not keep the temporary path that is created
-tmp_path_retention_policy = "none"     # directories always removed, regardless of outcome
+markers = ["requires_fluent", "local", "downloader", "models_v2"]
+tmp_path_retention_count = 0                                      # do not keep the temporary path that is created
+tmp_path_retention_policy = "none"                                # directories always removed, regardless of outcome

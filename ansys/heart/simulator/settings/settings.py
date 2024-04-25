@@ -1,3 +1,25 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """Module that defines some classes for settings."""
 
 import copy
@@ -13,6 +35,15 @@ from ansys.heart.simulator.settings.defaults import fibers as fibers_defaults
 from ansys.heart.simulator.settings.defaults import mechanics as mech_defaults
 from ansys.heart.simulator.settings.defaults import purkinje as purkinje_defaults
 from ansys.heart.simulator.settings.defaults import zeropressure as zero_pressure_defaults
+from ansys.heart.simulator.settings.material.curve import ActiveCurve, Strocchi_active, constant_ca2
+from ansys.heart.simulator.settings.material.material import (
+    ACTIVE,
+    ANISO,
+    ISO,
+    MAT295,
+    ActiveModel,
+    NeoHookean,
+)
 from pint import Quantity, UnitRegistry
 import yaml
 
@@ -21,6 +52,8 @@ class AttrDict(dict):
     """Dict subclass whose entries can be accessed by attributes as well as normally."""
 
     def __init__(self, *args, **kwargs):
+        """Construct nested AttrDicts from nested dictionaries."""
+
         def from_nested_dict(data):
             """Construct nested AttrDicts from nested dictionaries."""
             if not isinstance(data, dict):
@@ -62,14 +95,15 @@ class Settings:
     def to_consistent_unit_system(self):
         """Convert units to consistent unit system.
 
-        Note
-        ----
+        Notes
+        -----
         Currently the only supported unit system is ["MPa", "mm", "N", "ms", "g"]
         For instance:
         Quantity(10, "mm/s") --> Quantity(0.01, "mm/ms")
         """
 
         def _to_consitent_units(d):
+            """Convert units to consistent unit system."""
             if isinstance(d, Settings):
                 d = d.__dict__
             for k, v in d.items():
@@ -122,6 +156,13 @@ class Analysis(Settings):
     """Time-step of icvout export."""
     global_damping: Quantity = Quantity(0, "1/s")
     """Global damping constant."""
+
+
+@dataclass(repr=False)
+class EPAnalysis(Analysis):
+    """Class for EP analysis settings."""
+
+    solvertype: Literal["Monodomain", "Eikonal", "ReactionEikonal"] = "Monodomain"
 
 
 @dataclass(repr=False)
@@ -219,7 +260,7 @@ class Electrophysiology(Settings):
 
     material: EpMaterial = field(default_factory=lambda: EpMaterial())
     """Material settings/configuration."""
-    analysis: Analysis = field(default_factory=lambda: Analysis())
+    analysis: EPAnalysis = field(default_factory=lambda: EPAnalysis())
     """Generic analysis settings."""
 
 
@@ -308,8 +349,8 @@ class SimulationSettings:
             Flag indicating whether to add settings for the stress free
             configuration computation, by default True
 
-        Example
-        -------
+        Examples
+        --------
         Instantiate settings and load defaults
 
         >>> from ansys.heart.simulator.settings.settings import SimulationSettings
@@ -373,8 +414,8 @@ class SimulationSettings:
         remove_units : bool, optional
             Flag indicating whether to remove units before writing, by default False
 
-        Example
-        -------
+        Examples
+        --------
         Create examples settings with default values.
 
         >>> from ansys.heart.simulator.settings.settings import SimulationSettings
@@ -416,8 +457,8 @@ class SimulationSettings:
         filename : pathlib.Path
             Path to yaml or json file.
 
-        Example
-        -------
+        Examples
+        --------
         Create examples settings with default values.
 
         >>> from ansys.heart.simulator.settings.settings import SimulationSettings
@@ -475,8 +516,8 @@ class SimulationSettings:
     def load_defaults(self):
         """Load the default simulation settings.
 
-        Example
-        -------
+        Examples
+        --------
         Create examples settings with default values.
 
         Load module
@@ -519,7 +560,7 @@ class SimulationSettings:
                 self.stress_free.analysis = A
 
             if isinstance(getattr(self, attr), Electrophysiology):
-                A = Analysis()
+                A = EPAnalysis()
                 A.set_values(ep_defaults.analysis)
                 M = EpMaterial()
                 M.set_values(ep_defaults.material)
@@ -538,8 +579,8 @@ class SimulationSettings:
     def to_consistent_unit_system(self):
         """Convert all settings to consistent unit-system ["MPa", "mm", "N", "ms", "g"].
 
-        Example
-        -------
+        Examples
+        --------
         Convert to the consistent unit system ["MPa", "mm", "N", "ms", "g"].
 
         Import necessary modules
@@ -564,6 +605,75 @@ class SimulationSettings:
             if isinstance(attr, Settings):
                 attr.to_consistent_unit_system()
         return
+
+    def get_mechanical_material(self) -> tuple[MAT295, NeoHookean]:
+        """Load material data from settings.
+
+        Returns
+        -------
+        tuple[MAT295, NeoHookean]
+            MAT295 will be assigned for active/passive parts with fibers.
+            NeoHookean will be assigned for isotropic parts.
+
+        Note
+        ----
+        Materials will be automatically assigned for parts if their maerial is not defined.
+        """
+        try:
+            myo_mat: MAT295 = _read_myocardium_from_settings(self.mechanics.material.myocardium)
+        except KeyError:
+            LOGGER.error("Cannot create myocardium material from settings.")
+            exit()
+        try:
+            passive_mat: NeoHookean = _read_passive_from_settings(self.mechanics.material.passive)
+        except KeyError:
+            LOGGER.error("Cannot create passive material from settings.")
+            exit()
+
+        return myo_mat, passive_mat
+
+
+def _read_passive_from_settings(mat: AttrDict) -> NeoHookean:
+    rho = mat["rho"].m
+    mu = mat["mu1"].m
+    return NeoHookean(rho=rho, c10=mu / 2)
+
+
+def _read_myocardium_from_settings(mat: AttrDict) -> MAT295:
+    rho = mat["isotropic"]["rho"].m
+
+    iso = ISO(nu=mat["isotropic"]["nu"], k1=mat["isotropic"]["k1"].m, k2=mat["isotropic"]["k2"].m)
+
+    fibers = [ANISO.HGO_Fiber(k1=mat["anisotropic"]["k1f"].m, k2=mat["anisotropic"]["k2f"].m)]
+
+    if "k1s" in mat["anisotropic"]:
+        sheet = ANISO.HGO_Fiber(k1=mat["anisotropic"]["k1s"].m, k2=mat["anisotropic"]["k2s"].m)
+        fibers.append(sheet)
+
+    if "k1fs" in mat["anisotropic"]:
+        k1fs, k2fs = mat["anisotropic"]["k1fs"].m, mat["anisotropic"]["k2fs"].m
+    else:
+        k1fs, k2fs = None, None
+    aniso = ANISO(fibers=fibers, k1fs=k1fs, k2fs=k2fs)
+
+    max = mat["active"]["taumax"].m
+    bt = mat["active"]["beat_time"].m
+
+    if mat["active"]["actype"] == 1:
+        ac_mdoel = ActiveModel.Model1(taumax=max)
+        curve = ActiveCurve(constant_ca2(tb=bt), threshold=0.1, type="ca2")
+    elif mat["active"]["actype"] == 3:
+        ac_mdoel = ActiveModel.Model3(sigmax=max)
+        curve = ActiveCurve(Strocchi_active(t_end=bt), type="stress")
+
+    active = ACTIVE(
+        ss=mat["active"]["ss"],
+        sn=mat["active"]["sn"],
+        model=ac_mdoel,
+        ca2_curve=curve,
+    )
+
+    return MAT295(rho=rho, iso=iso, aniso=aniso, active=active)
 
 
 def _remove_units_from_dictionary(d: dict):
@@ -610,6 +720,7 @@ def _deserialize_quantity(d: dict, ureg: UnitRegistry):
 
 # some additional methods
 def _get_dimensionality(d):
+    """Get dimensionality of Quantity objects in a nested dictionary."""
     dims = []
     for k, v in d.items():
         if isinstance(v, (dict, AttrDict)):
@@ -621,6 +732,7 @@ def _get_dimensionality(d):
 
 # get units
 def _get_units(d):
+    """Get units of Quantity objects in a nested dictionary."""
     units = []
     for k, v in d.items():
         if isinstance(v, (dict, AttrDict)):

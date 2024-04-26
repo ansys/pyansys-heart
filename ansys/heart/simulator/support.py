@@ -26,7 +26,7 @@ import logging
 import os
 import pathlib as Path
 
-LOGGER = logging.getLogger("pyheart_global.simulator")
+from ansys.heart.core import LOG as LOGGER
 import ansys.heart.preprocessor.models.v0_1.models as models
 
 

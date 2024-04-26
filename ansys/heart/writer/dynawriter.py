@@ -3698,7 +3698,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
             beam_elem_id_offset += len(network.edges)
             self.kw_database.beam_networks.append(beams_kw)
-
+            
+        self.id_offset["element"]["discrete"]  = beam_elem_id_offset
+        
     def _add_segment_from_boundary(self, name: str):
         surface = next(surface for surface in self.model.mesh.boundaries if surface.name == name)
 

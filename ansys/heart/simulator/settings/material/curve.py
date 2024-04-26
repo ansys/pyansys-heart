@@ -22,11 +22,9 @@
 
 """Module for active stress curve."""
 
-import logging
-
-LOGGER = logging.getLogger("pyheart_global.material")
 from typing import Literal
 
+from ansys.heart.core import LOG as LOGGER
 import matplotlib.pyplot as plt
 import numpy as np
 

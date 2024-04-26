@@ -23,14 +23,12 @@
 """Module contains methods for interaction with Fluent meshing."""
 
 import glob
-import logging
 import os
 from pathlib import Path
 import shutil
 from typing import List, Union
 
-LOGGER = logging.getLogger("pyheart_global.preprocessor")
-
+from ansys.heart.core import LOG as LOGGER
 import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401
 from ansys.heart.preprocessor.mesh.fluenthdf5 import FluentCellZone, FluentMesh
 from ansys.heart.preprocessor.models.v0_2.input import _InputBoundary, _InputModel

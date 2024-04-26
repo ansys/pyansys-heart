@@ -29,20 +29,18 @@ Uses a HeartModel (from ansys.heart.preprocessor.models).
 """
 
 import copy
+
+# from importlib.resources import files
+from importlib.resources import path as resource_path
 import json
 
 # import missing keywords
-import logging
 import os
 import time
 from typing import List, Literal
 
 from ansys.dyna.keywords import keywords
-
-LOGGER = logging.getLogger("pyheart_global.writer")
-# from importlib.resources import files
-from importlib.resources import path as resource_path
-
+from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.mesh.objects import Cap
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.simulator.settings.material.material import (

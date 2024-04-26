@@ -32,7 +32,7 @@ from pathlib import Path, PurePath
 import typing
 import warnings
 
-from ansys.heart import LOG as LOGGER
+from ansys.heart.core import LOG as LOGGER
 from tqdm import tqdm
 
 try:

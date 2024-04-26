@@ -22,7 +22,9 @@
 
 # import logging
 
-# from ansys.heart.core.logging import Logger
+import logging
 
-# LOG = Logger(level=logging.DEBUG, to_file=False, to_stdout=True)
-# LOG.debug("Loaded logging module as LOG")
+from ansys.heart.core.logger import Logger
+
+LOG = Logger(level=logging.DEBUG, to_file=False, to_stdout=True)
+LOG.debug("Loaded logging module as LOG")

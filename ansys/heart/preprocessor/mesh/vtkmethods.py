@@ -23,11 +23,10 @@
 """Module contains methods for mesh operations related to the vtk library."""
 
 import copy
-import logging
 import os
 from typing import List, Optional, Tuple, Union
 
-LOGGER = logging.getLogger("pyheart_global.preprocessor")
+from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.mesh.fluenthdf5 import add_solid_name_to_stl
 import numpy as np
 import pyvista

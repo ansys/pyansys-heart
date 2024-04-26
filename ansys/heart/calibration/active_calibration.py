@@ -30,8 +30,8 @@ import shutil
 import sys
 import textwrap
 
-from ansys.heart import LOG as LOGGER
 from ansys.heart.calibration.ivc import IVCSimulator
+from ansys.heart.core import LOG as LOGGER
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 
 heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")

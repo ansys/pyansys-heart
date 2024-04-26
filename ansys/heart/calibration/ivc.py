@@ -27,7 +27,7 @@ import os
 import pathlib as Path
 from typing import Literal
 
-from ansys.heart import LOG as LOGGER
+from ansys.heart.core import LOG as LOGGER
 
 heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
 if heart_version == "v0.2":

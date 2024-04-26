@@ -32,17 +32,12 @@ MatNull
 
 """
 
-import logging
-
-from ansys.dyna.keywords import keywords
-
-LOGGER = logging.getLogger("pyheart_global.writer")
-
 import dataclasses
 
 # from importlib.resources import files
 from importlib.resources import path as resource_path
 
+from ansys.dyna.keywords import keywords
 from ansys.heart.simulator.settings.material.material import MAT295, ActiveModel
 
 # import custom keywords in separate namespace

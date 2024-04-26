@@ -24,7 +24,6 @@
 
 import copy
 import json
-import logging
 import os
 
 # import json
@@ -32,7 +31,8 @@ import pathlib
 import pickle
 from typing import List, Union
 
-LOGGER = logging.getLogger("pyheart_global.preprocessor")
+from ansys.heart.core import LOG as LOGGER
+
 # from ansys.heart.preprocessor.input import HEART_MODELS
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher

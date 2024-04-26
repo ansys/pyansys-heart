@@ -22,13 +22,10 @@
 
 """Material module."""
 
-import logging
-
-LOGGER = logging.getLogger("pyheart_global.material")
-
 from dataclasses import dataclass, field
 from typing import List, Optional
 
+from ansys.heart.core import LOG as LOGGER
 from ansys.heart.simulator.settings.material.curve import ActiveCurve, constant_ca2
 
 

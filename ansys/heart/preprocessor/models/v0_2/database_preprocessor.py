@@ -23,15 +23,13 @@
 """Some helper methods to process cases from Strocchi and Rodero databases."""
 
 import copy
-import logging
 from typing import List, Tuple
 
+from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.mesh.connectivity import face_tetra_connectivity
 import ansys.heart.preprocessor.mesh.geodisc as geodisc
 import numpy as np
 import pyvista as pv
-
-LOGGER = logging.getLogger("pyheart_global.simulator")
 
 
 def _read_input_mesh(mesh_path: str, database: str) -> pv.UnstructuredGrid:

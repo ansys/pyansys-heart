@@ -24,9 +24,7 @@
 
 import os
 
-from ansys.heart.core.logger import Logger
-
-LOGGER = Logger()
+from ansys.heart.core import LOG as LOGGER
 
 heart_version = os.environ["ANSYS_HEART_MODEL_VERSION"]
 

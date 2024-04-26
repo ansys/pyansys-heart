@@ -22,7 +22,11 @@
 
 # import logging
 
-# from ansys.heart.core.logging import Logger
+import logging
+import os
 
-# LOG = Logger(level=logging.DEBUG, to_file=False, to_stdout=True)
-# LOG.debug("Loaded logging module as LOG")
+from ansys.heart.core.logger import Logger
+
+LOG = Logger(level=logging.DEBUG, to_file=False, to_stdout=False)
+LOG.log_to_file(os.path.join(os.getcwd(), "PyAnsys-Heart.log"))
+LOG.debug("Loaded logging module as LOG")

@@ -23,9 +23,6 @@
 """Module containing classes for the various heart models."""
 
 import json
-
-# from ansys.heart import LOG as LOGGER
-import logging
 import os
 
 # import json
@@ -33,7 +30,8 @@ import pathlib
 import pickle
 from typing import List, Union
 
-LOGGER = logging.getLogger("pyheart_global.preprocessor")
+from ansys.heart.core import LOG as LOGGER
+
 LOGGER.warning("Models v0.1 will be deprecated in the future. Use v0.2 instead.")
 
 import ansys.heart.preprocessor.mesh.connectivity as connectivity

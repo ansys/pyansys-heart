@@ -23,10 +23,9 @@
 """Module containing methods for mesh connectivity."""
 
 import copy
-import logging
 from typing import Optional, Tuple, Union
 
-LOGGER = logging.getLogger("pyheart_global.preprocessor")
+from ansys.heart.core import LOG as LOGGER
 import numpy as np
 
 

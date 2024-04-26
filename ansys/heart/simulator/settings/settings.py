@@ -29,7 +29,7 @@ import os
 import pathlib
 from typing import List, Literal
 
-from ansys.heart import LOG as LOGGER
+from ansys.heart.core import LOG as LOGGER
 from ansys.heart.simulator.settings.defaults import electrophysiology as ep_defaults
 from ansys.heart.simulator.settings.defaults import fibers as fibers_defaults
 from ansys.heart.simulator.settings.defaults import mechanics as mech_defaults

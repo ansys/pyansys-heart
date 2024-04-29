@@ -414,8 +414,12 @@ def mesh_from_non_manifold_input_model(
     LOGGER.debug("{0} STLS in {1}:".format(len(stls), work_dir_meshing))
 
     # import stls
-    # session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
-    session.tui.file.import_.cad_geometry('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
+    tui_call = 'no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm'
+    if os.name != "nt":
+        tui_call = tui_call.replace('"', "'")
+
+    session.tui.file.import_.cad(tui_call)
+    # session.tui.file.import_.cad_geometry('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
 
     boundary_ids = session.scheme_eval.scheme_eval("(get-zones-of-type 'wall)")
     LOGGER.debug("Boundaries imported: {0}".format(boundary_ids))

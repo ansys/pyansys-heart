@@ -43,6 +43,8 @@ except KeyError:
     _show_fluent_gui = False
 LOGGER.info(f"Showing Fluent gui: {_show_fluent_gui}")
 
+# _show_fluent_gui = True
+
 # check whether containerized version of Fluent is used
 if os.getenv("PYFLUENT_LAUNCH_CONTAINER"):
     _uses_container = True

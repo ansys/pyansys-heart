@@ -421,7 +421,7 @@ def mesh_from_non_manifold_input_model(
     tui_call = "yes " + stls[0]  # + " no yes 40 yes mm"
     session.tui.file.import_.cad(tui_call)
     for stl in stls[1:]:
-        tui_call = "yes " + stl  # + " yes yes 40 yes mm"
+        tui_call = "yes " + stl  + " yes yes 40 yes mm"
         session.tui.file.import_.cad(tui_call)
 
     # session.scheme

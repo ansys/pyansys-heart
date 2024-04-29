@@ -35,7 +35,7 @@ from ansys.heart.preprocessor.models.v0_2.input import _InputBoundary, _InputMod
 import numpy as np
 import pyvista as pv
 
-_fluent_version = "22.2.0"
+_fluent_version = "24.1.0"
 
 try:
     _show_fluent_gui = bool(int(os.environ["SHOW_FLUENT_GUI"]))

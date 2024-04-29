@@ -49,6 +49,7 @@ if os.getenv("PYFLUENT_LAUNCH_CONTAINER"):
 else:
     _uses_container = False
 
+_show_fluent_gui = True
 
 try:
     import ansys.fluent.core as pyfluent
@@ -411,6 +412,9 @@ def mesh_from_non_manifold_input_model(
 
     # import stls
     session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
+    
+    boundary_ids = session.scheme_eval.scheme_eval("(get-zones-of-type 'wall)")
+    LOGGER.debug("Boundaries imported: {0}".format(boundary_ids))
 
     # each stl is imported as a separate object. Wrap the different collections of stls to create
     # new surface meshes for each of the parts.

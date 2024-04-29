@@ -253,4 +253,4 @@ legally licensed copies of the involved Ansys products.
 .. _dynalib: https://github.com/ansys/dynalib
 .. _conda: https://docs.conda.io/en/latest/
 .. _documentation: https://heart.docs.pyansys.com/
-.. _install-DPF-Server-: https://dpf.docs.pyansys.com/version/stable/getting_started/index.html#install-dpf-server
+.. _install-DPF-Server-: https://dpf.docs.pyansys.com/version/stable/getting_started/index.html#install-dpf-serversyst

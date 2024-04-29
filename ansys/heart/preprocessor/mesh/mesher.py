@@ -410,6 +410,9 @@ def mesh_from_non_manifold_input_model(
         os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
     )
 
+    stls = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+    LOGGER.debug("{0} STLS in {1}:".format(len(stls), work_dir_meshing))
+
     # import stls
     # session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
     session.tui.file.import_.cad_geometry('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')

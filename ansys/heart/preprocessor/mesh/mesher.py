@@ -49,8 +49,6 @@ if os.getenv("PYFLUENT_LAUNCH_CONTAINER"):
 else:
     _uses_container = False
 
-_show_fluent_gui = True
-
 try:
     import ansys.fluent.core as pyfluent
 except ImportError:
@@ -418,11 +416,18 @@ def mesh_from_non_manifold_input_model(
     # if os.name != "nt":
     #     tui_call = tui_call.replace('"', "\'")
 
-    tui_call = "yes " + stls[0]  # + " no yes 40 yes mm"
-    session.tui.file.import_.cad(tui_call)
-    for stl in stls[1:]:
-        tui_call = "yes " + stl  + " yes yes 40 yes mm"
+    if os.name == "nt":
+        tui_call = "yes " + stls[0]  # + " no yes 40 yes mm"
         session.tui.file.import_.cad(tui_call)
+        for stl in stls[1:]:
+            tui_call = "yes " + stl + " yes yes 40 yes mm"
+            session.tui.file.import_.cad(tui_call)
+    else:
+        tui_call = 'yes "' + stls[0] + '"'  # + " no yes 40 yes mm"
+        session.tui.file.import_.cad(tui_call)
+        for stl in stls[1:]:
+            tui_call = 'yes "' + stl + '" yes yes 40 yes mm'
+            session.tui.file.import_.cad(tui_call)
 
     # session.scheme
     # session.tui.file.import_.cad(tui_call)
@@ -430,6 +435,8 @@ def mesh_from_non_manifold_input_model(
 
     boundary_ids = session.scheme_eval.scheme_eval("(get-zones-of-type 'wall)")
     LOGGER.debug("Boundaries imported: {0}".format(boundary_ids))
+    if not boundary_ids:
+        raise ImportError("Failed to import .stls into Fluent.")
 
     # each stl is imported as a separate object. Wrap the different collections of stls to create
     # new surface meshes for each of the parts.

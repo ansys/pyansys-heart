@@ -29,6 +29,7 @@ import os
 # import json
 import pathlib
 import pickle
+import re
 from typing import List, Union
 
 from ansys.heart.core import LOG as LOGGER
@@ -503,6 +504,42 @@ class HeartModel:
         ]
 
         self.mesh = mesh
+
+        return
+
+    def _mesh_fluid_volume(self, remesh_caps: bool = True):
+        """Generate a volume mesh of the cavities.
+
+        Parameters
+        ----------
+        remesh_caps : bool, optional
+            Flag indicating whether to remesh the caps of each cavity, by default True
+        """
+        # get all relevant boundaries:
+        substrings_include = ["endocardium", "valve-plane", "septum"]
+        substrings_include_re = "|".join(substrings_include)
+
+        substrings_exlude = ["pulmonary-valve", "aortic-valve"]
+        substrings_exlude_re = "|".join(substrings_exlude)
+
+        boundaries_include = [
+            b for b in self.mesh.boundaries if re.search(substrings_include_re, b.name)
+        ]
+        boundaries_exclude = [
+            b.name for b in boundaries_include if re.search(substrings_exlude_re, b.name)
+        ]
+        boundaries_include = [b for b in boundaries_include if b.name not in boundaries_exclude]
+
+        caps = [
+            SurfaceMesh("cap_" + c.name, c.triangles, self.mesh.nodes)
+            for p in self.parts
+            for c in p.caps
+        ]
+
+        # mesh the fluid cavities
+        fluid_mesh = mesher.mesh_fluid_cavities(
+            boundaries_include, caps, self.info.workdir, remesh_caps=remesh_caps
+        )
 
         return
 
@@ -1265,15 +1302,26 @@ class HeartModel:
             cavity_faces = np.empty((0, 3), dtype=int)
 
             surfaces = [s for s in part.surfaces if "endocardium" in s.name]
+
             for surface in surfaces:
                 cavity_faces = np.vstack([cavity_faces, surface.triangles])
 
+            # surface ids identifies caps from enocardium
+            ii = 1
+            surface_ids = np.ones(cavity_faces.shape[0], dtype=int) * ii
+
             for cap in part.caps:
+                ii += 1
+                surface_ids = np.append(
+                    surface_ids, np.ones(cap.triangles.shape[0], dtype=int) * ii
+                )
                 cavity_faces = np.vstack([cavity_faces, cap.triangles])
 
             surface = SurfaceMesh(
                 name=part.name + " cavity", triangles=cavity_faces, nodes=self.mesh.nodes
             )
+            surface.cell_data["surface-id"] = surface_ids
+
             surface.compute_normals(inplace=True)  # recompute normals
             part.cavity = Cavity(surface=surface, name=part.name)
             part.cavity.compute_centroid()

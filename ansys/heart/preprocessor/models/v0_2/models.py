@@ -541,6 +541,29 @@ class HeartModel:
             boundaries_include, caps, self.info.workdir, remesh_caps=remesh_caps
         )
 
+        # add part-ids
+        cz_ids = np.sort([cz.id for cz in fluid_mesh.cell_zones])
+        offset = 10000
+        new_ids = np.arange(cz_ids.shape[0]) + offset
+        czid_to_pid = {cz_id: new_ids[ii] for ii, cz_id in enumerate(cz_ids)}
+
+        for cz in fluid_mesh.cell_zones:
+            cz.id = czid_to_pid[cz.id]
+
+        fluid_mesh._fix_negative_cells()
+        fluid_mesh_vtk = fluid_mesh._to_vtk(add_cells=True, add_faces=False)
+
+        fluid_mesh_vtk.cell_data["part-id"] = fluid_mesh_vtk.cell_data["cell-zone-ids"]
+
+        boundaries = [
+            SurfaceMesh(fz.name, fz.faces, fluid_mesh.nodes, fz.id)
+            for fz in fluid_mesh.face_zones
+            if "interior" not in fz.name
+        ]
+
+        self.fluid_mesh = Mesh(fluid_mesh_vtk)
+        self.fluid_mesh.boundaries = boundaries
+
         return
 
     def get_part(self, name: str, by_substring: bool = False) -> Union[Part, None]:

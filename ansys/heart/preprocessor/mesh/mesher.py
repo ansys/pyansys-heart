@@ -38,6 +38,8 @@ import numpy as np
 import pyvista as pv
 
 _fluent_version = "22.2.0"
+_show_fluent_gui: bool = False
+_uses_container: bool = True
 
 try:
     _show_fluent_gui = bool(int(os.environ["SHOW_FLUENT_GUI"]))
@@ -45,11 +47,10 @@ except KeyError:
     _show_fluent_gui = False
 LOGGER.info(f"Showing Fluent gui: {_show_fluent_gui}")
 
-_show_fluent_gui = True
-
 # check whether containerized version of Fluent is used
 if os.getenv("PYFLUENT_LAUNCH_CONTAINER"):
     _uses_container = True
+    _show_fluent_gui = False
 else:
     _uses_container = False
 
@@ -132,10 +133,8 @@ def _get_fluent_meshing_session() -> MeshingSession:
     # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
     if _uses_container:
         num_cpus = 1
-        _show_fluent_gui = False
     else:
         num_cpus = 2
-        _show_fluent_gui = _show_fluent_gui
 
     session = pyfluent.launch_fluent(
         mode="meshing",
@@ -278,11 +277,8 @@ def mesh_from_manifold_input_model(
     if _uses_container:
         mounted_volume = pyfluent.EXAMPLES_PATH
         work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
-        num_cpus = 1
-        show_gui = False
     else:
         work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
-        show_gui = _show_fluent_gui
 
     if os.path.isdir(work_dir_meshing):
         shutil.rmtree(work_dir_meshing)
@@ -305,14 +301,7 @@ def mesh_from_manifold_input_model(
     # write all boundaries
     model.write_part_boundaries(work_dir_meshing)
 
-    session = pyfluent.launch_fluent(
-        mode="meshing",
-        precision="double",
-        processor_count=2,
-        start_transcript=False,
-        show_gui=_show_fluent_gui,
-        product_version=_fluent_version,
-    )
+    session = _get_fluent_meshing_session()
 
     session.transcript.start(
         os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
@@ -457,11 +446,8 @@ def mesh_from_non_manifold_input_model(
     if _uses_container:
         mounted_volume = pyfluent.EXAMPLES_PATH
         work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
-        num_cpus = 1
-        show_gui = False
     else:
         work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
-        show_gui = _show_fluent_gui
 
     if os.path.isdir(work_dir_meshing):
         shutil.rmtree(work_dir_meshing)
@@ -514,14 +500,7 @@ def mesh_from_non_manifold_input_model(
     model.write_part_boundaries(work_dir_meshing)
 
     # launch pyfluent
-    session = pyfluent.launch_fluent(
-        mode="meshing",
-        precision="double",
-        processor_count=4,
-        start_transcript=False,
-        show_gui=_show_fluent_gui,
-        product_version=_fluent_version,
-    )
+    session = _get_fluent_meshing_session()
 
     session.transcript.start(
         os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
@@ -799,11 +778,8 @@ def mesh_heart_model_by_fluent(
     if uses_container:
         mounted_volume = pyfluent.EXAMPLES_PATH
         work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
-        num_cpus = 1
-        show_gui = False
     else:
         work_dir_meshing = os.path.abspath(os.path.join(working_directory, "meshing"))
-        show_gui = _show_fluent_gui
 
     if os.path.isdir(work_dir_meshing):
         shutil.rmtree(work_dir_meshing)
@@ -819,14 +795,8 @@ def mesh_heart_model_by_fluent(
 
     LOGGER.debug("Starting meshing in directory: {}".format(work_dir_meshing))
     # start fluent session
-    session = pyfluent.launch_fluent(
-        mode="meshing",
-        precision="double",
-        processor_count=num_cpus,
-        start_transcript=False,
-        show_gui=show_gui,
-        product_version=_fluent_version,
-    )
+    session = _get_fluent_meshing_session()
+
     if session.health_check_service.status() != "SERVING":
         LOGGER.error("Fluent session failed. Exiting Fluent")
         session.exit()

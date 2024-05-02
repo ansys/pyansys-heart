@@ -28,11 +28,10 @@ Such as a Mesh object, Part object, Features, etc.
 """
 
 import copy
-import logging
 import pathlib
 from typing import List, Optional, Tuple, Union
 
-LOGGER = logging.getLogger("pyheart_global.preprocessor")
+from ansys.heart.core import LOG as LOGGER
 import ansys.heart.preprocessor.mesh.connectivity as connect
 import ansys.heart.preprocessor.mesh.geodisc as geodisc
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods

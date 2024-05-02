@@ -33,17 +33,13 @@ Options for simulation:
 """
 
 import copy
-import logging
 import os
 import pathlib as Path
 import shutil
 import subprocess
 from typing import List, Literal
 
-from ansys.heart.preprocessor.mesh.objects import Part
-from ansys.heart.simulator.settings.material.material import NeoHookean
-
-LOGGER = logging.getLogger("pyheart_global.simulator")
+from ansys.heart.core import LOG as LOGGER
 from ansys.heart.misc.element_orth import read_orth_element_kfile
 from ansys.heart.postprocessor.auto_process import (
     compute_la_fiber_cs,
@@ -52,6 +48,8 @@ from ansys.heart.postprocessor.auto_process import (
     read_uvc,
     zerop_post,
 )
+from ansys.heart.preprocessor.mesh.objects import Part
+from ansys.heart.simulator.settings.material.material import NeoHookean
 
 global heart_version
 heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")

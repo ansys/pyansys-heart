@@ -591,5 +591,5 @@ def add_stdout_handler(logger, level=LOG_LEVEL, write_headers=False):
 # Finally define logger
 # ===============================================================
 
-LOG = Logger(level=logging.INFO, to_file=False, to_stdout=True)
-LOG.debug("Loaded logging module as LOG")
+# LOG = Logger(level=logging.INFO, to_file=False, to_stdout=True)
+# LOG.debug("Loaded logging module as LOG")

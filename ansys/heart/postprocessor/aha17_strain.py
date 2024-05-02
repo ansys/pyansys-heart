@@ -24,7 +24,7 @@
 import os
 import pathlib
 
-from ansys.heart import LOG as LOGGER
+from ansys.heart.core import LOG as LOGGER
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 
 heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")

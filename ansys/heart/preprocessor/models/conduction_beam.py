@@ -35,13 +35,10 @@ if heart_version == "v0.2":
 elif heart_version == "v0.1":
     from ansys.heart.preprocessor.models.v0_1.models import FourChamber
 
-import logging
-
+from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.mesh.objects import BeamMesh, Point, SurfaceMesh
-import pyvista as pv
-
-LOGGER = logging.getLogger("pyheart_global.preprocessor")
 import numpy as np
+import pyvista as pv
 
 
 def _create_line(point_start: np.array, point_end: np.array, beam_length: float):

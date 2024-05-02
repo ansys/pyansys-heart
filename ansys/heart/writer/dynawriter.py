@@ -1941,8 +1941,14 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         return
 
-    def update(self):
-        """Update the keyword database."""
+    def update(self, robin_bcs: list[Callable] = None):
+        """Update the keyword database.
+
+        Parameters
+        ----------
+        robin_bcs : list[Callable], optional
+            A list of lambda functions to apply Robin-type BCs, by default None
+        """
         bc_settings = self.settings.mechanics.boundary_conditions
 
         self._update_main_db()
@@ -1957,9 +1963,14 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self._update_material_db(add_active=False)
         self._update_cap_elements_db()
 
-        # TODO: it should be after cap creation, or it will be written in dynain
         # for boundary conditions
-        self._add_cap_bc(bc_type="springs_caps")
+        if robin_bcs is None:
+            # default BC
+            self._add_cap_bc(bc_type="springs_caps")
+        else:
+            # loop for every Robin BC function
+            for robin_bc in robin_bcs:
+                self.kw_database.boundary_conditions.extend(robin_bc())
         if isinstance(self.model, FourChamber):
             # add a small constraint to avoid rotation
             self._add_pericardium_bc(scale=0.01)

@@ -35,9 +35,9 @@ import json
 import logging
 import os
 import time
-from typing import List, Literal
+from typing import Callable, List, Literal
 
-from ansys.dyna.keywords import Deck, keywords
+from ansys.dyna.keywords import keywords
 
 LOGGER = logging.getLogger("pyheart_global.writer")
 # from importlib.resources import files
@@ -664,14 +664,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
             raise ValueError("System model not valid")
         self._system_model = value
 
-    def update(self, with_dynain=False):
-        """
-        Update the keyword database.
+    def update(self, with_dynain=False, robin_bcs: list[Callable] = None):
+        """Update the keyword database.
 
         Parameters
         ----------
-        with_dynain: bool, optional
-            Use dynain.lsda file from stress free configuration computation.
+        with_dynain : bool, optional
+            Use dynain.lsda file from stress free configuration computation, by default False
+        robin_bcs : list[Callable], optional
+            A list of lambda functions to apply Robin-type BCs, by default None
         """
         self._update_main_db()
 
@@ -705,7 +706,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self._add_constant_atrial_pressure(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
         # for boundary conditions
-        self._add_cap_bc(bc_type="springs_caps")
+        if robin_bcs is None:
+            # default BC
+            self._add_cap_bc(bc_type="springs_caps")
+        else:
+            # loop for every Robin BC function
+            for robin_bc in robin_bcs:
+                self.kw_database.boundary_conditions.extend(robin_bc())
+
         self._add_pericardium_bc()
 
         self._get_list_of_includes()
@@ -1332,23 +1340,29 @@ class MechanicsDynaWriter(BaseDynaWriter):
         ).extract_geometry()  # keep as polydata
 
         k = scale * robin_settings["ventricle"]["stiffness"].to("MPa/mm").m
-        self.write_robin_bc(
-            "spring", k, ventricles_epi_reduce, self.kw_database.pericardium, normal=None
+        self.kw_database.pericardium.extend(
+            self.write_robin_bc("spring", k, ventricles_epi_reduce, normal=None)
         )
 
         # damper
         dc = robin_settings["ventricle"]["damper"].to("MPa/mm*ms").m
         ventricles_epi.point_data.remove("scale factor")  # remove scale factor for spring
-        self.write_robin_bc("damper", dc, ventricles_epi, self.kw_database.pericardium, normal=None)
+        self.kw_database.pericardium.extend(
+            self.write_robin_bc("damper", dc, ventricles_epi, normal=None)
+        )
 
         if isinstance(self.model, FourChamber):
             atrial_epi = self._get_epi_surface(apply="atrial")
 
             k = robin_settings["atrial"]["stiffness"].to("MPa/mm").m
-            self.write_robin_bc("spring", k, atrial_epi, self.kw_database.pericardium, normal=None)
+            self.kw_database.pericardium.extend(
+                self.write_robin_bc("spring", k, atrial_epi, normal=None)
+            )
 
             dc = robin_settings["atrial"]["damper"].to("MPa/mm*ms").m
-            self.write_robin_bc("damper", dc, atrial_epi, self.kw_database.pericardium, normal=None)
+            self.kw_database.pericardium.extend(
+                self.write_robin_bc("damper", dc, atrial_epi, normal=None)
+            )
         return
 
     def _get_epi_surface(self, apply: Literal["ventricle", "atrial"] = "ventricle"):
@@ -1409,9 +1423,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         type: Literal["spring", "damper"],
         k_or_c: float,
         surface: pv.PolyData,
-        deck: Deck,
         normal: np.ndarray = None,
-    ) -> Deck:
+    ) -> list:
         """Create Robin BC on given surface.
 
         Parameters
@@ -1423,15 +1436,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
         surface : pv.PolyData
             Surface to apply BC, must contain point data 'mesh_id'.
             Will be scaled by nodal area and point data 'scale factor' if exists
-        deck : Deck
-            deck to write
         normal : np.ndarray, optional
             If no normal given, use nodal normals, by default None
 
         Returns
         -------
         Deck
-            updated deck
+            list of dyna input deck
         """
         assert "mesh_id" in surface.point_data
 
@@ -1447,8 +1458,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # apply direction is nodal normal
         if normal is None:
             directions = surface.compute_normals().point_data["Normals"]
-        else:
+        elif normal.ndim == 1:
             directions = np.tile(normal, (len(nodes), 1))
+        else:
+            directions = normal
 
         # define spring orientations
         sd_orientation_kw = create_define_sd_orientation_kw(
@@ -1492,13 +1505,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.id_offset["element"]["discrete"] = discrete_element_kw.elements["eid"].to_numpy()[-1]
 
         # add keywords to database
-        deck.append(part_kw)
-        deck.append(section_kw)
-        deck.append(mat_kw)
-        deck.append(sd_orientation_kw)
-        deck.append(discrete_element_kw)
+        kw = []
+        kw.append(part_kw)
+        kw.append(section_kw)
+        kw.append(mat_kw)
+        kw.append(sd_orientation_kw)
+        kw.append(discrete_element_kw)
 
-        return deck
+        return kw
 
     def _update_cap_elements_db(self, add_mesh=True):
         """Update the database of shell elements.
@@ -3751,9 +3765,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
             beam_elem_id_offset += len(network.edges)
             self.kw_database.beam_networks.append(beams_kw)
-            
-        self.id_offset["element"]["discrete"]  = beam_elem_id_offset
-        
+
+        self.id_offset["element"]["discrete"] = beam_elem_id_offset
+
     def _add_segment_from_boundary(self, name: str):
         surface = next(surface for surface in self.model.mesh.boundaries if surface.name == name)
 

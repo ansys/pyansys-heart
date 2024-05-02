@@ -114,10 +114,12 @@ class FluentMesh:
         """All cells."""
         self.cell_ids: np.ndarray = None
         """Array of cell ids use to define the cell zones."""
-        self.cell_zones: List[FluentCellZone] = None
+        self.cell_zones: List[FluentCellZone] = []
         """List of cell zones."""
-        self.face_zones: List[FluentFaceZone] = None
+        self.face_zones: List[FluentFaceZone] = []
         """List of face zones."""
+        self._unique_map: np.ndarray = None
+        """Map to go from full node list to node-list without duplicates."""
 
         pass
 
@@ -134,17 +136,55 @@ class FluentMesh:
         self._read_nodes()
         self._read_face_zone_info()
         self._read_all_faces_of_face_zones()
+        self._remove_duplicate_nodes()
 
         if reconstruct_tetrahedrons:
             self._read_cell_zone_info()
             self._read_c0c1_of_face_zones()
             self._convert_interior_faces_to_tetrahedrons2()
             self._set_cells_in_cell_zones()
-            self._update_indexing_cells()
+            # self._update_indexing_cells()
 
-        self._update_indexing_faces()
+        # self._update_indexing_faces()
 
         self._close_file()
+        return
+
+    def clean(self):
+        """Remove all unused nodes."""
+        used_node_ids1 = np.unique(
+            np.array(np.vstack([fz.faces for fz in self.face_zones]), dtype=int)
+        )
+        used_node_ids2 = np.unique(np.array(self.cells, dtype=int))
+        used_node_ids = np.unique(np.append(used_node_ids1, used_node_ids2))
+        mask = np.zeros((self.nodes.shape[0]), dtype=bool)
+        mask[used_node_ids] = True
+
+        old_to_new_indices = np.zeros(self.nodes.shape[0], dtype=int) - 1
+        old_to_new_indices[used_node_ids] = np.arange(0, used_node_ids.shape[0])
+
+        # remove unused nodes
+        self.nodes = self.nodes[used_node_ids, :]
+        # reorder cell and face zones accordingly
+        self.cells = old_to_new_indices[self.cells]
+        for cz in self.cell_zones:
+            cz.cells = old_to_new_indices[cz.cells]
+        for fz in self.face_zones:
+            fz.faces = old_to_new_indices[fz.faces]
+
+        return
+
+    def _remove_duplicate_nodes(self) -> None:
+        """Remove duplicate nodes and remaps the face zone definitions."""
+        self._unique_nodes, _, self._unique_map = np.unique(
+            self.nodes,
+            axis=0,
+            return_index=True,
+            return_inverse=True,
+        )
+        for fz in self.face_zones:
+            fz.faces = self._unique_map[fz.faces - 1]
+        self.nodes = self._unique_nodes
         return
 
     def _update_indexing_cells(self) -> None:

@@ -4045,7 +4045,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         self.system_model_name = self.settings.mechanics.system.name
         """Name of system model to use."""
 
-    def update(self, with_dynain=False):
+    def update(self, with_dynain=False, robin_bcs=None):
         """Update the keyword database."""
         if isinstance(self.model, FourChamber):
             self.model.left_atrium.has_fiber = True
@@ -4053,7 +4053,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
             self.model.right_atrium.has_fiber = True
             self.model.right_atrium.is_active = True
 
-        MechanicsDynaWriter.update(self, with_dynain=with_dynain)
+        MechanicsDynaWriter.update(self, with_dynain=with_dynain, robin_bcs=robin_bcs)
 
         if self.model.beam_network:
             # Coupling enabled, EP beam nodes follow the motion of surfaces

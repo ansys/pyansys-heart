@@ -515,20 +515,20 @@ class HeartModel:
         remesh_caps : bool, optional
             Flag indicating whether to remesh the caps of each cavity, by default True
         """
-        # get all relevant boundaries:
+        # get all relevant boundaries for the fluid cavities:
         substrings_include = ["endocardium", "valve-plane", "septum"]
         substrings_include_re = "|".join(substrings_include)
 
         substrings_exlude = ["pulmonary-valve", "aortic-valve"]
         substrings_exlude_re = "|".join(substrings_exlude)
 
-        boundaries_include = [
+        boundaries_fluid = [
             b for b in self.mesh.boundaries if re.search(substrings_include_re, b.name)
         ]
         boundaries_exclude = [
-            b.name for b in boundaries_include if re.search(substrings_exlude_re, b.name)
+            b.name for b in boundaries_fluid if re.search(substrings_exlude_re, b.name)
         ]
-        boundaries_include = [b for b in boundaries_include if b.name not in boundaries_exclude]
+        boundaries_fluid = [b for b in boundaries_fluid if b.name not in boundaries_exclude]
 
         caps = [
             SurfaceMesh("cap_" + c.name, c.triangles, self.mesh.nodes)
@@ -536,10 +536,22 @@ class HeartModel:
             for c in p.caps
         ]
 
+        if len(boundaries_fluid) == 0:
+            LOGGER.debug("Meshing of fluid cavities not possible. No fluid surfaces detected.")
+            return
+
+        if len(caps) == 0:
+            LOGGER.debug("Meshing of fluid cavities not possible. No caps detected.")
+            return
+
+        LOGGER.info("Meshing fluid cavities...")
+
         # mesh the fluid cavities
         fluid_mesh = mesher.mesh_fluid_cavities(
-            boundaries_include, caps, self.info.workdir, remesh_caps=remesh_caps
+            boundaries_fluid, caps, self.info.workdir, remesh_caps=remesh_caps
         )
+
+        LOGGER.info(f"Meshed {len(fluid_mesh.cell_zones)} fluid regions...")
 
         # add part-ids
         cz_ids = np.sort([cz.id for cz in fluid_mesh.cell_zones])

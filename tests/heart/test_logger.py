@@ -91,7 +91,7 @@ def test_global_logger_has_handlers():
 
 def test_global_logger_logging(caplog: pytest.LogCaptureFixture):
     """
-    Testing the global PyDiscovery logger capabilities. Forcing minimum logging level to
+    Testing the global PyAnsys-Heart logger capabilities. Forcing minimum logging level to
     Debug, adding a message with different logging levels, checking the output and
     restoring to original level.
 
@@ -101,6 +101,7 @@ def test_global_logger_logging(caplog: pytest.LogCaptureFixture):
         Fixture for capturing logs.
     """
     LOG.logger.setLevel("DEBUG")
+    LOG.log_to_stdout(True)
     LOG.std_out_handler.setLevel("DEBUG")
     for each_log_name, each_log_number in LOG_LEVELS.items():
         msg = f"This is an {each_log_name} message."
@@ -116,6 +117,7 @@ def test_global_logger_logging(caplog: pytest.LogCaptureFixture):
 def test_global_logger_level_mode():
     """Checking that the Logger levels are stored as integer values and that the default
     value (unless changed) is ERROR."""
+    
     assert isinstance(LOG.logger.level, int)
     assert LOG.logger.level == logger.ERROR
 
@@ -195,6 +197,7 @@ def test_global_methods(caplog: pytest.LogCaptureFixture):
         Fixture for capturing logs.
     """
     LOG.logger.setLevel("DEBUG")
+    LOG.log_to_stdout(True)    
     LOG.std_out_handler.setLevel("DEBUG")
 
     msg = f"This is a debug message"
@@ -244,10 +247,11 @@ def test_log_to_file(tmp_path_factory: pytest.TempPathFactory):
     # The LOG loglevel is changed in previous test,
     # hence making sure now it is the "default" one.
     LOG.logger.setLevel("ERROR")
+    LOG.log_to_stdout(True)
     LOG.std_out_handler.setLevel("ERROR")
 
-    if not LOG.file_handler:
-        LOG.log_to_file(file_path)
+    # if not LOG.file_handler:
+    LOG.log_to_file(file_path)
 
     LOG.error(file_msg_error)
     LOG.debug(file_msg_debug)

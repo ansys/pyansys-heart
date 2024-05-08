@@ -117,7 +117,7 @@ def test_global_logger_logging(caplog: pytest.LogCaptureFixture):
 def test_global_logger_level_mode():
     """Checking that the Logger levels are stored as integer values and that the default
     value (unless changed) is ERROR."""
-    
+
     assert isinstance(LOG.logger.level, int)
     assert LOG.logger.level == logger.ERROR
 
@@ -197,7 +197,7 @@ def test_global_methods(caplog: pytest.LogCaptureFixture):
         Fixture for capturing logs.
     """
     LOG.logger.setLevel("DEBUG")
-    LOG.log_to_stdout(True)    
+    LOG.log_to_stdout(True)
     LOG.std_out_handler.setLevel("DEBUG")
 
     msg = f"This is a debug message"

@@ -89,7 +89,7 @@ def get_tetra_info_from_unstructgrid(
     vtk_grid: vtk.vtkUnstructuredGrid, get_all_data: bool = True, deep_copy: bool = False
 ) -> Tuple[np.ndarray, np.ndarray, dict, dict]:
     """Get tetrahedron nodes, connectivity and cell/point data."""
-    PendingDeprecationWarning("This method will be deprecated: can use pyvista objects instead.")
+    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
     LOGGER.debug("Extracting tetrahedron cell and point data...")
     # read nodes into numpy array
     nodes = VN.vtk_to_numpy(vtk_grid.GetPoints().GetData())
@@ -152,7 +152,7 @@ def get_tri_info_from_polydata(
     -----
     Assumes triangular elements
     """
-    PendingDeprecationWarning("This method will be deprecated: can use pyvista objects instead.")
+    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
     # logger.debug("Extracting triangle cell and point data...")
 
     vtk_polydata_obj = dsa.WrapDataObject(vtk_polydata)
@@ -237,7 +237,7 @@ def get_info_from_vtk(
     ValueError
         _description_
     """
-    PendingDeprecationWarning("This method will be deprecated: can use pyvista objects instead.")
+    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
     vtk_obj = dsa.WrapDataObject(vtk_grid)
 
     num_cells = vtk_obj.GetNumberOfCells()
@@ -365,7 +365,7 @@ def vtk_map_continuous_data(
     a data field with the same name is already present.
     """
     # NOTE: could use AddExcludeArray to exclude specific arrays from the interpolation
-    PendingDeprecationWarning("This method will be deprecated: can use pyvista objects instead.")
+    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
 
     if array_names_to_include == []:
         include_all = True
@@ -490,7 +490,7 @@ def vtk_remove_arrays(
     except_array_names: List[str] = [],
 ) -> Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]:
     """Remove all or specific data arrays from vtk object."""
-    PendingDeprecationWarning("This method will be deprecated: can use pyvista objects instead.")
+    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
     if data_type not in ["cell_data", "point_data", "both"]:
         raise ValueError("Data type not valid")
 
@@ -566,7 +566,7 @@ def add_vtk_array(
     array_type : Union[int, float], optional
         Type of array to add, by default float
     """
-    PendingDeprecationWarning("This method will be deprecated: can use pyvista objects instead.")
+    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
     num_dim = len(data.shape)
     num_rows = data.shape[0]
 
@@ -626,7 +626,7 @@ def create_vtk_polydata_from_points(points: np.ndarray) -> vtk.vtkPolyData:
     -----
     To visualize in ParaView render the points as Gaussian Points
     """
-    PendingDeprecationWarning("This method will be deprecated: can use pyvista objects instead.")
+    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
     if len(points.shape) < 2 or points.shape[1] != 3:
         raise ValueError("Expecting an array of dimension Nx3")
 
@@ -725,9 +725,7 @@ def add_normals_to_polydata(
     (cell_normals, point_normals) : (np.ndarray, np.ndarray), optional
         Cell normals and point normals, only provided if return_normals=True
     """
-    PendingDeprecationWarning(
-        "This method will be deprecated: can use pyvista .compute_normals() instead."
-    )
+    LOGGER.warning("This method will be deprecated: can use pyvista .compute_normals() instead.")
     # compute normals
     normal_filter = vtk.vtkPolyDataNormals()
     normal_filter.SetInputData(vtk_polydata)
@@ -817,9 +815,7 @@ def create_vtk_surface_triangles(
     vtk.vtkPolyData
         VTK Object PolyData object describing the surface
     """
-    PendingDeprecationWarning(
-        "This method will be deprecated: can initialize pyvista objects directly."
-    )
+    LOGGER.warning("This method will be deprecated: can initialize pyvista objects directly.")
     num_points = points.shape[0]
     points_vtk = vtk.vtkPoints()
     points_vtk.SetNumberOfPoints(num_points)
@@ -855,7 +851,7 @@ def create_vtk_surface_triangles(
 
 def smooth_polydata(vtk_polydata: vtk.vtkPolyData) -> vtk.vtkPolyData:
     """Use Laplacian smoothing to smooth the vtk polydata object."""
-    PendingDeprecationWarning("This method will be deprecated: can use pyvista objects instead.")
+    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
     smooth_filter = vtk.vtkSmoothPolyDataFilter()
     smooth_filter.SetInputData(vtk_polydata)
     smooth_filter.SetNumberOfIterations(15)
@@ -895,7 +891,7 @@ def cell_ids_inside_enclosed_surface(
         VTK object with additional cell data indicating whether
         the cell is in/outside the provided surface
     """
-    PendingDeprecationWarning("This method will be deprecated: can use pyvista methods instead.")
+    LOGGER.warning("This method will be deprecated: can use pyvista methods instead.")
     vtk_surface = add_normals_to_polydata(vtk_surface)
     points, tetra, _, _ = get_tetra_info_from_unstructgrid(vtk_source)
 
@@ -940,7 +936,7 @@ def get_connected_regions(
     vtk.vtkPolyData
         VTK Object with region ids
     """
-    PendingDeprecationWarning("This method will be deprecated: can use pyvista objects instead.")
+    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
     vtk_surface = create_vtk_surface_triangles(nodes, triangles)
 
     # connectivity filter to extract all connected regions
@@ -990,7 +986,7 @@ def vtk_cutter(vtk_polydata: vtk.vtkPolyData, cut_plane) -> vtk.vtkPolyData:
     -------
     vtkpolydata
     """
-    PendingDeprecationWarning("This method will be deprecated: can use pyvista objects instead.")
+    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
     # create a plane to cut
     plane = vtk.vtkPlane()
     plane.SetOrigin(cut_plane["center"][0], cut_plane["center"][1], cut_plane["center"][2])

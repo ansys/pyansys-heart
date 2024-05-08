@@ -658,6 +658,8 @@ def mesh_heart_model_by_fluent(
     """
     import ansys.fluent.core as pyfluent
 
+    LOGGER.warning("This method os deprecated and will be removed.")
+
     # make sure we are using absolute path
     path_to_stl_directory = os.path.abspath(path_to_stl_directory)
     path_to_output = os.path.abspath(path_to_output)

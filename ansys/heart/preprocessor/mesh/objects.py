@@ -60,20 +60,6 @@ class Feature:
         pass
 
 
-class BoundaryEdges(Feature):
-    """Edges class."""
-
-    def __init__(self, edges: np.ndarray = None) -> None:
-        super().__init__()
-        self.type = "edges"
-        """Feature type."""
-
-        self.node_ids = None
-        """List of edges."""
-        self.groups = None
-        """Grouped edges based on connectivity."""
-
-
 class EdgeGroup:
     """Edge group class, contains info on connected edges."""
 

@@ -32,7 +32,15 @@ from ansys.dpf import core as dpf
 from ansys.heart.core import LOG as LOGGER
 import numpy as np
 
-os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+
+def _check_env():
+    if "ANSYS_DPF_ACCEPT_LA" in os.environ and os.environ["ANSYS_DPF_ACCEPT_LA"] == "Y":
+        pass
+    else:
+        LOGGER.warning('DPF needs to set "ANSYS_DPF_ACCEPT_LA" to "Y".')
+        os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+        LOGGER.warning("This has been done automatically.")
+    return
 
 
 class D3plotReader:
@@ -47,7 +55,7 @@ class D3plotReader:
         path : Path
             d3plot file path.
         """
-        os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+        _check_env()
         # os.environ["ANSYS_DPF_SERVER_CONTEXT"] = "PREMIUM"
         # dpf.set_default_server_context(dpf.AvailableServerContexts.premium)
 
@@ -271,10 +279,14 @@ class ICVoutReader:
         fn : str
             binout file path
         """
+        _check_env()
         self.ds = dpf.DataSources()
         self.ds.set_result_file_path(fn, "binout")
-
-        self._solver_time = self._get_solver_time()
+        try:
+            self._solver_time = self._get_solver_time()
+        except IndexError:
+            LOGGER.error(f"{fn} do not contain icvout.")
+            exit()
 
     def _get_solver_time(self):
         # resultInfoOp = dpf.Operator("lsdyna::binout::result_info_provider")

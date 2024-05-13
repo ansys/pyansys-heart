@@ -24,7 +24,7 @@
 
 Create a full heart model
 ---------------------------------
-This example shows you how to process a case from the Rodero et al (2021) into
+This example shows you how to process a case from Rodero et al (2021) into
 a simulation-ready heart model.
 """
 
@@ -51,14 +51,11 @@ import ansys.heart.preprocessor.models.v0_2.models as models
 os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
 
 # specify necessary paths.
-# Note that we need to cast the paths to strings to facilitate serialization.
-case_file = os.path.join(
-    "d:\\development", "pyansys-heart", "downloads", "Rodero2021", "01", "01.vtk"
-)
+case_file = os.path.join("pyansys-heart", "downloads", "Rodero2021", "01", "01.vtk")
 workdir = os.path.join(os.path.dirname(case_file), "FullHeart")
+
 if not os.path.isdir(workdir):
     os.makedirs(workdir)
-
 
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 path_to_input = os.path.join(workdir, "input_model.vtp")

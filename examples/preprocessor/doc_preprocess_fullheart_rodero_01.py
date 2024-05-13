@@ -62,6 +62,17 @@ path_to_input = os.path.join(workdir, "input_model.vtp")
 path_to_part_definitions = os.path.join(workdir, "part_definitions.json")
 
 ###############################################################################
+# .. note::
+#    You may need to (manually) download the .case or .vtk files from the Strocchi2020
+#    and Rodero2021 databases first. See:
+#
+#    - https://zenodo.org/records/3890034
+#    - https://zenodo.org/records/4590294
+#
+#    Alternatively you can make use of the download
+#    module instead. See the download module.
+
+###############################################################################
 # Convert the .vtk file into compatible input
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 input_geom, part_definitions = get_compatible_input(

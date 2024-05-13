@@ -1418,8 +1418,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
     def write_robin_bc(
         self,
-        type: Literal["spring", "damper"],
-        k_or_c: float,
+        robin_type: Literal["spring", "damper"],
+        constant: float,
         surface: pv.PolyData,
         normal: np.ndarray = None,
     ) -> list:
@@ -1427,9 +1427,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         Parameters
         ----------
-        type : Literal[&quot;spring&quot;, &quot;damper&quot;]
+        robin_type : Literal[&quot;spring&quot;, &quot;damper&quot;]
             Create spring or damper
-        k_or_c : float
+        constant : float
             stiffness (MPa/mm) or viscosity (MPa/mm*ms)
         surface : pv.PolyData
             Surface to apply BC, must contain point data 'mesh_id'.
@@ -1439,10 +1439,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         Returns
         -------
-        Deck
+        list
             list of dyna input deck
         """
-        assert "mesh_id" in surface.point_data
+        if "mesh_id" not in surface.point_data:
+            raise ValueError("surface must contain pointdata 'mesh_id'.")
 
         # nodes to apply BC
         nodes = surface["mesh_id"]
@@ -1475,15 +1476,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
         mat_id = self.get_unique_mat_id()
 
         # define material
-        if type == "spring":
-            mat_kw = keywords.MatSpringElastic(mid=mat_id, k=k_or_c)
-        elif type == "damper":
-            mat_kw = keywords.MatDamperViscous(mid=mat_id, dc=k_or_c)
+        if robin_type == "spring":
+            mat_kw = keywords.MatSpringElastic(mid=mat_id, k=constant)
+        elif robin_type == "damper":
+            mat_kw = keywords.MatDamperViscous(mid=mat_id, dc=constant)
 
         # define part
         part_kw = keywords.Part()
         part_kw.parts = pd.DataFrame(
-            {"heading": [f"{type}"], "pid": [part_id], "secid": [section_id], "mid": [mat_id]}
+            {"heading": [f"{robin_type}"], "pid": [part_id], "secid": [section_id], "mid": [mat_id]}
         )
         # define section
         section_kw = keywords.SectionDiscrete(secid=section_id, cdl=0, tdl=0)

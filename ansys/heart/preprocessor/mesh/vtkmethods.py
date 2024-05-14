@@ -23,7 +23,6 @@
 """Module contains methods for mesh operations related to the vtk library."""
 
 import copy
-import os
 from typing import List, Optional, Tuple, Union
 
 from ansys.heart.core import LOG as LOGGER
@@ -36,35 +35,10 @@ from vtk.util import numpy_support as VN  # type: ignore # noqa
 from vtk.util.numpy_support import numpy_to_vtk  # type: ignore # noqa
 
 
-def read_ensight_file(path_to_ensight: str) -> vtk.vtkUnstructuredGrid:
-    """Read ensight file."""
-    file_path = os.path.dirname(path_to_ensight)
-    filename = os.path.basename(path_to_ensight)
-
-    ens = vtk.vtkGenericEnSightReader()
-    ens.SetByteOrderToLittleEndian()
-    ens.SetFilePath(file_path)
-    ens.SetCaseFileName(filename)
-    ens.ReadAllVariablesOn()
-    ens.Update()
-    return ens.GetOutput().GetBlock(0)
-
-
 def read_vtk_unstructuredgrid_file(path_to_vtk: str) -> vtk.vtkUnstructuredGrid:
     """Read vtk unstructured grid file."""
+    DeprecationWarning("This method is deprecated: use pyvista objects instead.")
     reader = vtk.vtkUnstructuredGridReader()  # noqa
-    reader.SetFileName(path_to_vtk)
-    reader.ReadAllScalarsOn()
-    reader.ReadAllVectorsOn()
-    reader.ReadAllFieldsOn()
-    reader.Update()
-    return reader.GetOutput()
-
-
-def read_vtk_polydata_file(path_to_vtk: str) -> vtk.vtkPolyData:
-    """Read vtk PolyData file."""
-    reader = vtk.vtkUnstructuredGridReader()  # noqa
-    reader = vtk.vtkPolyDataReader()
     reader.SetFileName(path_to_vtk)
     reader.ReadAllScalarsOn()
     reader.ReadAllVectorsOn()
@@ -75,6 +49,7 @@ def read_vtk_polydata_file(path_to_vtk: str) -> vtk.vtkPolyData:
 
 def write_vtkdata_to_vtkfile(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData], fname: str):
     """Write a vtk unstructured grid object to vtk file."""
+    DeprecationWarning("This method is deprecated: use pyvista objects instead.")
     writer = vtk.vtkDataSetWriter()
     writer.SetFileName(fname)
     writer.SetInputData(vtk_data)
@@ -87,6 +62,8 @@ def vtk_surface_to_stl(
     vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData], filename: str, solid_name: str = None
 ) -> None:
     """Write stl from vtk surface mesh (polydata)."""
+    DeprecationWarning("This method is deprecated: use pyvista objects instead.")
+
     vtk_data_to_write = vtk_data
 
     if type(vtk_data) != type(vtk.vtkPolyData()):
@@ -112,6 +89,7 @@ def get_tetra_info_from_unstructgrid(
     vtk_grid: vtk.vtkUnstructuredGrid, get_all_data: bool = True, deep_copy: bool = False
 ) -> Tuple[np.ndarray, np.ndarray, dict, dict]:
     """Get tetrahedron nodes, connectivity and cell/point data."""
+    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
     LOGGER.debug("Extracting tetrahedron cell and point data...")
     # read nodes into numpy array
     nodes = VN.vtk_to_numpy(vtk_grid.GetPoints().GetData())
@@ -174,6 +152,7 @@ def get_tri_info_from_polydata(
     -----
     Assumes triangular elements
     """
+    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
     # logger.debug("Extracting triangle cell and point data...")
 
     vtk_polydata_obj = dsa.WrapDataObject(vtk_polydata)
@@ -215,62 +194,11 @@ def get_tri_info_from_polydata(
         )
 
 
-def threshold_vtk_data(
-    vtk_obj: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData],
-    lower_limit: Union[float, int],
-    upper_limit: Union[float, int],
-    data_name: str,
-    epsilon: float = 1e-3,
-    data_type: str = "CellData",
-) -> Tuple[Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid], np.ndarray]:
-    """Use the vtk thresholding filter to extract a part of the model.
-
-    Parameters
-    ----------
-    vtk_obj : Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData]
-        Vtk object of the model
-    lower_limit : Union[float, int]
-        Lower limit
-    upper_limit : Union[float, int]
-        Upper limit
-    data_name : str
-        Name of the cell data field to processes
-    epsilon : _type_, optional
-        Allowed tolerance for filter, by default 1e-3
-    data_type: str, optional
-        Type of data to filter. Either "CellData" or "PointsData"
-    """
-    if data_type not in ["CellData", "PointData"]:
-        raise ValueError("Please specify either 'CellData' or 'PointData'")
-
-    with_id = vtk.vtkGenerateGlobalIds()  # noqa
-    with_id.SetInputData(vtk_obj)
-    with_id.Update()
-
-    threshold = vtk.vtkThreshold()  # noqa
-    threshold.SetInputData(with_id.GetOutput())
-    if data_type == "CellData":
-        threshold.SetInputArrayToProcess(
-            0, 0, 0, vtk.vtkDataObject.FIELD_ASSOCIATION_CELLS, data_name  # noqa
-        )
-    elif data_type == "PointData":
-        threshold.SetInputArrayToProcess(
-            0, 0, 0, vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS, data_name  # noqa
-        )
-
-    threshold.SetLowerThreshold(lower_limit - epsilon)
-    threshold.SetUpperThreshold(upper_limit + epsilon)
-    threshold.AllScalarsOn()
-    threshold.Update()
-    result = threshold.GetOutput()
-    ids = VN.vtk_to_numpy(result.GetPointData().GetGlobalIds())
-    return result, ids
-
-
 def vtk_surface_filter(
     vtk_grid: vtk.vtkUnstructuredGrid, keep_global_ids: bool = False
 ) -> vtk.vtkPolyData:
     """Extract surface from a vtk object (polydata or unstructured grid)."""
+    DeprecationWarning("This method is deprecated: use pyvista objects instead.")
     LOGGER.debug("Extracting surface from vtk unstructured grid...")
     # make sure global id will be kept
     if keep_global_ids:
@@ -309,6 +237,7 @@ def get_info_from_vtk(
     ValueError
         _description_
     """
+    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
     vtk_obj = dsa.WrapDataObject(vtk_grid)
 
     num_cells = vtk_obj.GetNumberOfCells()
@@ -362,6 +291,7 @@ def vtk_map_discrete_cell_data(
     vtk_object_target : Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]
         Target vtk object
     """
+    DeprecationWarning("This method is deprecated: use pyvista objects instead.")
     source_points, source_tets, source_cdata, source_pdata = get_info_from_vtk(vtk_object_source)
     target_points, target_tets, target_cdata, target_pdata = get_info_from_vtk(vtk_object_target)
 
@@ -435,6 +365,7 @@ def vtk_map_continuous_data(
     a data field with the same name is already present.
     """
     # NOTE: could use AddExcludeArray to exclude specific arrays from the interpolation
+    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
 
     if array_names_to_include == []:
         include_all = True
@@ -559,6 +490,7 @@ def vtk_remove_arrays(
     except_array_names: List[str] = [],
 ) -> Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]:
     """Remove all or specific data arrays from vtk object."""
+    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
     if data_type not in ["cell_data", "point_data", "both"]:
         raise ValueError("Data type not valid")
 
@@ -634,6 +566,7 @@ def add_vtk_array(
     array_type : Union[int, float], optional
         Type of array to add, by default float
     """
+    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
     num_dim = len(data.shape)
     num_rows = data.shape[0]
 
@@ -693,6 +626,7 @@ def create_vtk_polydata_from_points(points: np.ndarray) -> vtk.vtkPolyData:
     -----
     To visualize in ParaView render the points as Gaussian Points
     """
+    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
     if len(points.shape) < 2 or points.shape[1] != 3:
         raise ValueError("Expecting an array of dimension Nx3")
 
@@ -733,27 +667,6 @@ def remove_duplicate_nodes(
     elements = inverse_indices[elements]
 
     return unique_nodes, elements
-
-
-def vtk_compute_cell_area(vtk_surface: vtk.vtkPolyData) -> np.ndarray:
-    """Compute area of each surface element in a polydata object.
-
-    Parameters
-    ----------
-    vtk_surface : vtk.vtkPolyData
-        Vtk surface
-
-    Returns
-    -------
-    np.array
-        Array with cell area's
-    """
-    n_cells = vtk_surface.GetNumberOfCells()
-    cell_area = np.zeros(n_cells)
-    for icell in range(n_cells):
-        cell_area[icell] = vtk_surface.GetCell(icell).ComputeArea()
-
-    return cell_area
 
 
 def compute_surface_nodal_area_pyvista(surface: pyvista.PolyData) -> np.ndarray:
@@ -812,6 +725,7 @@ def add_normals_to_polydata(
     (cell_normals, point_normals) : (np.ndarray, np.ndarray), optional
         Cell normals and point normals, only provided if return_normals=True
     """
+    LOGGER.warning("This method will be deprecated: can use pyvista .compute_normals() instead.")
     # compute normals
     normal_filter = vtk.vtkPolyDataNormals()
     normal_filter.SetInputData(vtk_polydata)
@@ -901,6 +815,7 @@ def create_vtk_surface_triangles(
     vtk.vtkPolyData
         VTK Object PolyData object describing the surface
     """
+    LOGGER.warning("This method will be deprecated: can initialize pyvista objects directly.")
     num_points = points.shape[0]
     points_vtk = vtk.vtkPoints()
     points_vtk.SetNumberOfPoints(num_points)
@@ -936,6 +851,7 @@ def create_vtk_surface_triangles(
 
 def smooth_polydata(vtk_polydata: vtk.vtkPolyData) -> vtk.vtkPolyData:
     """Use Laplacian smoothing to smooth the vtk polydata object."""
+    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
     smooth_filter = vtk.vtkSmoothPolyDataFilter()
     smooth_filter.SetInputData(vtk_polydata)
     smooth_filter.SetNumberOfIterations(15)
@@ -975,6 +891,7 @@ def cell_ids_inside_enclosed_surface(
         VTK object with additional cell data indicating whether
         the cell is in/outside the provided surface
     """
+    LOGGER.warning("This method will be deprecated: can use pyvista methods instead.")
     vtk_surface = add_normals_to_polydata(vtk_surface)
     points, tetra, _, _ = get_tetra_info_from_unstructgrid(vtk_source)
 
@@ -1019,6 +936,7 @@ def get_connected_regions(
     vtk.vtkPolyData
         VTK Object with region ids
     """
+    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
     vtk_surface = create_vtk_surface_triangles(nodes, triangles)
 
     # connectivity filter to extract all connected regions
@@ -1055,38 +973,6 @@ def get_connected_regions(
         return region_ids
 
 
-def mark_elements_inside_surfaces(
-    volume_mesh: vtk.vtkUnstructuredGrid, surfaces: List[vtk.vtkPolyData]
-) -> np.ndarray:
-    """Mark cells based on whether they are inside the provided list of surfaces."""
-    import tqdm as tqdm
-
-    # grab centroids of each cell
-    nodes, tetra, _, _ = get_tetra_info_from_unstructgrid(volume_mesh)
-
-    centroids = np.mean(nodes[tetra, :], axis=1)
-
-    cell_tags = np.zeros(tetra.shape[0], dtype=int) - 1
-
-    for ii, surface in enumerate(surfaces):
-        cell_ids_inside = cell_ids_inside_enclosed_surface(volume_mesh, surface)
-        cell_tags[cell_ids_inside] = ii + 1
-
-    # NOTE: very slow!
-    # cell_tags of value -1 were outside all the surfaces - find the first connected tetrahedron
-    LOGGER.debug("%d cells not enclosed by any of the given surfaces" % np.sum(cell_tags == -1))
-    LOGGER.debug("Assigning data of closest cells")
-    for cell_id in tqdm.tqdm(np.where(cell_tags == -1)[0], ascii=True):
-        # use data from closest tetrahedron
-        centroid = centroids[cell_id]
-        sorted_cell_ids = np.argsort(np.linalg.norm(centroid - centroids, axis=1))
-        closed_cell_id = sorted_cell_ids[np.argwhere(cell_tags[sorted_cell_ids] > -1).flatten()[0]]
-
-        cell_tags[cell_id] = cell_tags[closed_cell_id]
-
-    return cell_tags
-
-
 def vtk_cutter(vtk_polydata: vtk.vtkPolyData, cut_plane) -> vtk.vtkPolyData:
     """
     Cut a vtk polydata by a plane.
@@ -1100,6 +986,7 @@ def vtk_cutter(vtk_polydata: vtk.vtkPolyData, cut_plane) -> vtk.vtkPolyData:
     -------
     vtkpolydata
     """
+    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
     # create a plane to cut
     plane = vtk.vtkPlane()
     plane.SetOrigin(cut_plane["center"][0], cut_plane["center"][1], cut_plane["center"][2])

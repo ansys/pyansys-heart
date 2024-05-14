@@ -973,18 +973,23 @@ class HeartModel:
             surface_septum.triangles, iters=num_layers_to_remove
         )
 
-        septum_surface_vtk = vtkmethods.create_vtk_surface_triangles(self.mesh.nodes, faces_septum)
+        faces_septum = np.hstack([np.ones((faces_septum.shape[0], 1), dtype=int) * 3, faces_septum])
+        septum_surface = pv.PolyData(self.mesh.nodes, faces_septum.flatten()).clean()
 
-        septum_surface_vtk = vtkmethods.smooth_polydata(septum_surface_vtk)
+        septum_surface = septum_surface.compute_normals()
+        septum_surface = septum_surface.smooth()
 
-        septum_surface_vtk_extruded = vtkmethods.extrude_polydata(septum_surface_vtk, 20)
+        # septum_surface_vtk = vtkmethods.smooth_polydata(septum_surface_vtk)
+
+        septum_surface_extruded = vtkmethods.extrude_polydata(septum_surface, 20)
+        # septum_surface_vtk_extruded = vtkmethods.extrude_polydata(septum_surface_vtk, 20)
 
         filename_vtk = os.path.join(self.info.workdir, "volume_mesh.vtk")
         self.mesh.write_to_vtk(filename_vtk)
-        volume_vtk = vtkmethods.read_vtk_unstructuredgrid_file(filename_vtk)
+        volume_vtk = pv.read(filename_vtk)
 
         element_ids_septum = vtkmethods.cell_ids_inside_enclosed_surface(
-            volume_vtk, septum_surface_vtk_extruded
+            volume_vtk, septum_surface_extruded
         )
 
         # assign to septum

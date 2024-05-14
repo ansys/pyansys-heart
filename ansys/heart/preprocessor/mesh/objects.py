@@ -60,20 +60,6 @@ class Feature:
         pass
 
 
-class BoundaryEdges(Feature):
-    """Edges class."""
-
-    def __init__(self, edges: np.ndarray = None) -> None:
-        super().__init__()
-        self.type = "edges"
-        """Feature type."""
-
-        self.node_ids = None
-        """List of edges."""
-        self.groups = None
-        """Grouped edges based on connectivity."""
-
-
 class EdgeGroup:
     """Edge group class, contains info on connected edges."""
 
@@ -228,10 +214,9 @@ class SurfaceMesh(pv.PolyData, Feature):
 
             if write_vtk:
                 tris = np.vstack([edge_group[:, 0], edge_group.T]).T
-                vtk_surf = vtkmethods.create_vtk_surface_triangles(self.nodes, tris)
-                vtkmethods.write_vtkdata_to_vtkfile(
-                    vtk_surf, "edges_{0}_{1}.vtk".format(ii, self.name)
-                )
+                tris = np.hstack([np.ones(tris.shape[0], 1) * 3, tris])
+                vtk_surf = pv.PolyData(self.nodes, tris.flatten())
+                vtk_surf.save("edges_{0}_{1}.vtk".format(ii, self.name))
 
         return self.edge_groups
 
@@ -302,15 +287,20 @@ class SurfaceMesh(pv.PolyData, Feature):
         for ii, edge_group in enumerate(self.edge_groups):
             edges = np.vstack([edges, edge_group.edges])
             if per_edge_group:
+
                 tris = np.vstack([edge_group.edges[:, 0], edge_group.edges.T]).T
-                vtk_surf = vtkmethods.create_vtk_surface_triangles(self.nodes, tris)
+                tris = np.hstack([np.ones(tris.shape[0], 1) * 3, tris])
+                vtk_surf = pv.PolyData(self.nodes, tris.flatten()).clean()
                 filename = "{0}_groupid_{1}_edges_{2}.vtk".format(prefix, ii, self.name)
-                vtkmethods.write_vtkdata_to_vtkfile(vtk_surf, filename)
+                vtk_surf.save(filename)
+
         if not per_edge_group:
             tris = np.vstack([edges[:, 0], edges.T]).T
-            vtk_surf = vtkmethods.create_vtk_surface_triangles(self.nodes, tris)
+            tris = np.hstack([np.ones(tris.shape[0], 1) * 3, tris])
+
+            vtk_surf = pv.PolyData(self.nodes, tris.flatten()).clean()
             filename = "{0}_groupid_edges_{1}.vtk".format(prefix, self.name)
-            vtkmethods.write_vtkdata_to_vtkfile(vtk_surf, filename)
+            vtk_surf.save(filename)
 
         return
 

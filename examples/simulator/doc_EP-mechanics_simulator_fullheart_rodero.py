@@ -45,9 +45,11 @@ set it up for a coupled electromechanical simulation.
 # sphinx_gallery_end_ignore
 
 import os
-from pathlib import Path
 
-import ansys.heart.preprocessor.models.v0_1.models as models
+# set this environment variable to ensure you are using v0.2 of the model
+os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
+
+import ansys.heart.preprocessor.models.v0_2.models as models
 from ansys.heart.simulator.simulator import DynaSettings, EPMechanicsSimulator
 from pint import Quantity
 
@@ -65,61 +67,16 @@ from pint import Quantity
 
 # specify necessary paths.
 # Note that we need to cast the paths to strings to facilitate serialization.
-case_file = str(
-    Path(Path(__file__).resolve().parents[2], "downloads", "Rodero2021", "01", "01.vtk")
-)
-download_folder = str(Path(Path(__file__).resolve().parents[2], "downloads"))
-workdir = str(
-    Path(Path(__file__).resolve().parents[2], "downloads", "Rodero2021", "01", "FullHeart2.0")
-)
-
-path_to_model = str(Path(workdir, "heart_model.pickle"))
-
-##############################################################################
-# Set required information
-# ~~~~~~~~~~~~~~~~~~~~~~~~
-# Set the right database to which this case belongs, and set other relevant
-# information such as the desired mesh size.
-#
-# .. note::
-#    The example was tested with a constant mesh size of 2.0, the stress-free
-#    step may not converge when refining the mesh size.
-
-info = models.ModelInfo(
-    database="Rodero2021",
-    path_to_case=case_file,
-    work_directory=workdir,
-    path_to_model=path_to_model,
-    mesh_size=2.0,
-)
-
-# create the working directory
-info.create_workdir()
-# clean the working directory
-info.clean_workdir(extensions_to_remove=[".stl", ".vtk", ".msh.h5"])
-# dump information to stdout
-info.dump_info()
+case_file = os.path.join("pyansys-heart", "downloads", "Rodero2021", "01", "01.vtk")
+workdir = os.path.join(os.path.dirname(case_file), "FullHeart")
+path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 ###############################################################################
-# Initialize the heart model
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Initialize the desired heart model, and invoke the main method to
-# extract the simulation mesh and dump the model to disk. This will extract
-# the relevant parts and features from the original model and remesh
-# the entire surface and volume. Relevant anatomical features that are extracted include
-# the endocardium, epicardium, apex, and valve annuli
+# Load the full heart model
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # instantiate a four chamber model
-model = models.FullHeart(info)
-
-# extract the simulation mesh
-model.extract_simulation_mesh()
-
-# dump the model to disk for future use
-model.dump_model(path_to_model)
-
-# print information regarding the generated model
-model.print_info()
+model: models.FullHeart = models.HeartModel.load_model(path_to_model)
 
 ###############################################################################
 # Instantiate the simulator object
@@ -128,7 +85,9 @@ model.print_info()
 
 # instantaiate dyna settings of choice
 lsdyna_path = r"mppdyna_d_sse2_linux86_64_intelmmpi_105630"
-dyna_settings = DynaSettings(lsdyna_path=lsdyna_path, dynatype="intelmpi", num_cpus=8)
+dyna_settings = DynaSettings(
+    lsdyna_path=lsdyna_path, dynatype="intelmpi", platform="wsl", num_cpus=6
+)
 
 # instantiate simulator object
 simulator = EPMechanicsSimulator(

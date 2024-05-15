@@ -48,6 +48,10 @@ from pathlib import Path
 import ansys.heart.preprocessor.models.v0_1.models as models
 from ansys.heart.simulator.simulator import DynaSettings, MechanicsSimulator
 
+# accept dpf license aggrement
+# https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
+os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+
 # set working directory and path to model.
 workdir = Path(Path(__file__).resolve().parents[2], "downloads", "Rodero2021", "01", "FullHeart")
 path_to_model = os.path.join(workdir, "heart_model.pickle")

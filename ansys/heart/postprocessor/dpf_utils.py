@@ -38,8 +38,7 @@ def _check_env():
         pass
     else:
         LOGGER.warning('DPF needs to set "ANSYS_DPF_ACCEPT_LA" to "Y".')
-        os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
-        LOGGER.warning("This has been done automatically.")
+        exit()
     return
 
 

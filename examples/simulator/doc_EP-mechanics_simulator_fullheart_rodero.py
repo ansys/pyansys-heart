@@ -63,6 +63,10 @@ from pint import Quantity
 # sphinx_gallery_thumbnail_path = '/_static/images/full_heart_mesh.png'
 # sphinx_gallery_end_ignore
 
+# accept dpf license aggrement
+# https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
+os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+
 # specify necessary paths.
 # Note that we need to cast the paths to strings to facilitate serialization.
 case_file = str(

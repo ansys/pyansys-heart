@@ -48,6 +48,10 @@ from ansys.heart.preprocessor.mesh.objects import Point
 import ansys.heart.preprocessor.models.v0_1.models as models
 from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
 
+# accept dpf license aggrement
+# https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
+os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+
 # set working directory and path to model.
 workdir = Path(Path(__file__).resolve().parents[2], "downloads", "Rodero2021", "01", "FullHeart")
 

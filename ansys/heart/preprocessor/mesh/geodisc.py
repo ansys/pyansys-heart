@@ -23,153 +23,32 @@
 """Module for computing paths."""
 
 import math
-from typing import List, Union
 
 import numpy as np
-import vtk
-from vtk.numpy_interface import dataset_adapter as dsa  # type: ignore
 
 
-def get_closed_path(start_indices: Union[np.ndarray, list], surface: vtk.vtkPolyData) -> np.ndarray:
-    """Get closed geodesic path on a surface from a list of start indices."""
-    surf = dsa.WrapDataObject(surface)
-
-    end_indices = np.append(start_indices[1:], start_indices[0])
-
-    full_path = []  # node ids that form path from start indices to end indices
-    for i, start_idx in enumerate(start_indices):
-        end_idx = end_indices[i]
-
-        # np.savetxt("start_end_node" + str(i) + ".csv",
-        # surf.Points[ [start_idx,end_idx], : ], delimiter = ',' )
-
-        path = vtk_geodesic(surface, start_idx, end_idx)
-        full_path.extend(path[:-1])
-
-    # np.savetxt("full_path.csv", surf.Points[ full_path, : ], delimiter = ',' )
-
-    return np.array(full_path)
-
-
-def vtk_geodesic(input: vtk.vtkPolyData, start_idx: int, end_idx: int) -> List[int]:
-    """Compute the geodesic path between two vertices on a vtkPolyData surface.
+def rodrigues_rot(P: np.ndarray, n0: np.ndarray, n1: np.ndarray) -> np.ndarray:
+    """Perform rodrigues rotation.
 
     Parameters
     ----------
-    input : vtk.vtkPolyData
-        Input surface mesh in vtk.vtkPolyData form
-    start : int
-        Index of start vertex
-    end : int
-        Index of end vertex
+    P : np.ndarray
+        Points to rotate.
+    n0 : np.ndarray
+        Vector 1.
+    n1 : np.ndarray
+        Vector 2.
 
-    Returns
-    -------
-    ids : List[int]
-        Array of indices which define the shortest path from start index to end index
-    """
-    dijkstra = vtk.vtkDijkstraGraphGeodesicPath()  # noqa
-    dijkstra.SetInputData(input)
-    dijkstra.SetStartVertex(start_idx)
-    dijkstra.SetEndVertex(end_idx)
-    dijkstra.Update()
-    ids = []
-    for i in range(dijkstra.GetIdList().GetNumberOfIds()):
-        ids.append(dijkstra.GetIdList().GetId(i))
-    return ids
-
-
-def order_nodes_edgeloop(node_indices: np.ndarray, node_coords: np.ndarray) -> np.ndarray:
-    """Order node indices to form closed/continuous loop.
-
-    Parameters
-    ----------
-    node_indices : np.ndarray
-        Array of node indices.
-    node_coords : np.ndarray
-        Array of node coordinates.
+    Notes
+    -----
+    Rotate given points based on a starting and ending vector.
+    Axis k and angle of rotation theta given by vectors n0,n1.
+    P_rot = P*cos(theta) + (k x P)*sin(theta) + k*<k,P>*(1-cos(theta))
 
     Returns
     -------
     np.ndarray
-        Reordered list of node indices that form a edge loop.
-
-    Notes
-    -----
-    May not work if mesh density is very anisotropic and does
-    not change gradually.
-    """
-    num_nodes = len(node_indices)
-
-    nodes_coords_to_use = node_coords[node_indices, :]
-
-    idx_visited = [0]
-    # iteratively search closest node which has not been visited yet
-    iters = 0
-    while not len(idx_visited) == num_nodes:
-        # for ii in range(0, num_nodes ):
-        ref_node = nodes_coords_to_use[idx_visited[-1], :]
-        distance = np.linalg.norm(nodes_coords_to_use - ref_node, axis=1)
-        indices_sort = np.argsort(distance)
-        mask = np.isin(indices_sort, idx_visited, invert=True)
-        next_idx = indices_sort[mask][0]
-        idx_visited.append(next_idx)
-        iters = iters + 1
-        if iters > num_nodes:
-            raise RecursionError("More iterations needed than expected - check implementation")
-
-    # remap to old numbering and return
-    return node_indices[idx_visited]
-
-
-def sort_edgeloop_anti_clockwise(points_to_sort: np.ndarray, reference_point: np.ndarray) -> bool:
-    """Sort the points of an edge-loop in anti-clockwise direction.
-
-    Parameters
-    ----------
-    points_to_sort : np.bdarray
-        Point coordinates used for sorting.
-    reference_point : np.ndarray
-        Reference point.
-
-    Returns
-    -------
-    bool
-        Flag indicating whether the point order should be reversed or not
-
-    Notes
-    -----
-    This only uses the first two points in the points array, but uses all
-    points to compute the center of the sorted points that make up the edge
-    loop
-
-    """
-    reverse_points = False
-
-    center_of_points = np.mean(points_to_sort, axis=0)
-    p1 = points_to_sort[0, :]
-    p2 = points_to_sort[1, :]
-
-    # determine direction based on right hand rule
-    normal = np.cross(p1 - center_of_points, p2 - center_of_points)
-    d1 = np.linalg.norm(center_of_points + normal - reference_point)
-    d2 = np.linalg.norm(center_of_points - normal - reference_point)
-
-    if d1 >= d2:
-        reverse_points = True
-        # normal points away from reference point. reverse order of points
-
-    return reverse_points
-
-
-def rodrigues_rot(P, n0, n1):
-    """Rodrigues rotation.
-
-    Notes
-    -----
-    - Rotate given points based on a starting and ending vector
-    - Axis k and angle of rotation theta given by vectors n0,n1
-    P_rot = P*cos(theta) + (k x P)*sin(theta) + k*<k,P>*(1-cos(theta))
+        Rotated points.
     """
     # If P is only 1d array (coords of single point), fix it to be matrix
     if P.ndim == 1:
@@ -205,39 +84,23 @@ def carttopolar(x, y, x0=0, y0=0):
     return r, t
 
 
-def sort_aniclkwise(xy_list, x0=None, y0=None):
-    """Sort points anti clockwise with x0 y0 as origin."""
-    if x0 is None and y0 is None:
-        (x0, y0) = np.mean(xy_list, axis=0).tolist()
-    elif x0 is None:
-        (x0, _) = np.mean(xy_list, axis=0).tolist()
-    elif y0 is None:
-        (_, y0) = np.mean(xy_list, axis=0).tolist()
-    # print('origin used:', [x0, y0])
+def project_3d_points(p_set: np.ndarray) -> np.ndarray:
+    """Project points on a representative plane.
 
-    for i in range(len(xy_list)):
-        xy_list[i].append(i)
-
-    xy_list1 = sorted(
-        xy_list,
-        key=lambda a_entry: carttopolar(a_entry[0], a_entry[1], x0, y0)[1],
-    )
-
-    sort_index = []
-    for x in xy_list1:
-        sort_index.append(x[2])
-        del x[2]
-
-    return xy_list1, sort_index
-
-
-def project_3d_points(p_set):
-    """Project points on representative plane.
+    Parameters
+    ----------
+    p_set : np.ndarray
+        Point set, Nx3
 
     Notes
     -----
     Uses SVD to find representative plane:
     https://meshlogic.github.io/posts/jupyter/curve-fitting/fitting-a-circle-to-cluster-of-3d-points/
+
+    Returns
+    -------
+    np.ndarray
+        Projected points onto the SVD representative plane.
     """
     # -------------------------------------------------------------------------------
     # (1) Fitting plane by SVD for the mean-centered data

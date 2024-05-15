@@ -31,15 +31,12 @@ import pathlib
 from pathlib import Path
 
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
-from ansys.heart.preprocessor.mesh.vtkmethods import (
-    read_vtk_polydata_file,
-    vtk_cutter,
-    write_vtkdata_to_vtkfile,
-)
+from ansys.heart.preprocessor.mesh.vtkmethods import vtk_cutter, write_vtkdata_to_vtkfile
 from ansys.heart.preprocessor.models.v0_1.models import HeartModel, LeftVentricle
 import matplotlib.pyplot as plt
 import meshio
 import numpy as np
+import pyvista as pv
 import vtk
 from vtk.util.numpy_support import vtk_to_numpy  # noqa
 
@@ -77,7 +74,7 @@ class LVContourExporter:
         self.lv_surfaces = []
         for i in range(self.nb_frame):
             abspath = os.path.join(self.work_dir, self.out_folder, f"model_{i}.vtk")
-            self.lv_surfaces.append(read_vtk_polydata_file(abspath))
+            self.lv_surfaces.append(pv.read(abspath))
 
         # get ID of mesh
         for ap in self.model.left_ventricle.apex_points:

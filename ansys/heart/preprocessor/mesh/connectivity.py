@@ -373,17 +373,4 @@ def remove_triangle_layers_from_trimesh(triangles: np.ndarray, iters: int = 1) -
 
 
 if __name__ == "__main__":
-    # ************** Simple 2 tetrahedron example *******
-    nodes = np.array([[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, -1, 0], [0, 1, 0]], dtype=float)
-    tetra = np.array([[0, 1, 2, 3], [0, 1, 2, 4]])
-    part_ids = np.array([1, 2])
-
-    # get face-cell connectivity table
-    faces, c0, c1 = face_tetra_connectivity(tetra)
-    face_types = get_face_type(faces, np.array([c0, c1]).T)
-
-    interior_faces = faces[face_types == 1, :]
-    boundary_faces = faces[face_types == 2, :]
-    interface_faces = faces[part_ids[c0] != part_ids[c1], :]
-
     LOGGER.debug("Protected")

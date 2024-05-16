@@ -1527,23 +1527,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         material_settings = copy.deepcopy(self.settings.mechanics.material)
         material_settings._remove_units()
 
-        def _add_linear_constraint(id: int, slave_id: int, master_ids: List[int]) -> list:
-            lin_constraint_kws = []
-
-            for dof in range(1, 4):
-                kw = custom_keywords.ConstrainedLinearGlobal(licd=3 * id + dof)
-                data = np.empty((0, 3))
-                data = np.vstack([data, [slave_id, dof, 1.0]])
-
-                for m_id in master_ids:
-                    data = np.vstack([data, [m_id, dof, -1 / len(master_ids)]])
-
-                kw.linear_constraints = pd.DataFrame(columns=["nid", "dof", "coef"], data=data)
-
-                lin_constraint_kws.append(kw)
-
-            return lin_constraint_kws
-
         # caps are rigid in zerop
         if type(self) == ZeroPressureMechanicsDynaWriter:
             material_kw = keywords.MatRigid(
@@ -1621,26 +1604,16 @@ class MechanicsDynaWriter(BaseDynaWriter):
                         s = "$" + node_kw.write()
                         self.kw_database.nodes.append(s)
 
-                # # seems affect badly the convergence
-                # if type(self) == MechanicsDynaWriter:
-                #     # center node constraint: average of edge nodes
-                #     n = len(cap.node_ids) // 7  # select n+1 node for interpolation
-                #     constraint_list = _add_linear_constraint(
-                #         len(cap_names_used), cap.centroid_id + 1, cap.node_ids[::n] + 1
-                #     )
-                #     self.kw_database.cap_elements.extend(constraint_list)
-
-                # # # do not work with mpp
-                # # constraint = keywords.ConstrainedInterpolation(
-                # #     icid=len(cap_names_used) + 1,
-                # #     dnid=cap.centroid_id + 1,
-                # #     ddof=123,
-                # #     ityp=1,
-                # #     fgm=1,
-                # #     inid=cap.nsid,
-                # #     idof=123,
-                # # )
-                # # self.kw_database.cap_elements.append(constraint)
+                constraint = keywords.ConstrainedInterpolation(
+                    icid=len(cap_names_used) + 1,
+                    dnid=cap.centroid_id + 1,
+                    ddof=123,
+                    ityp=1,
+                    fgm=1,
+                    inid=cap.nsid,
+                    idof=123,
+                )
+                self.kw_database.cap_elements.append(constraint)
 
             self.kw_database.cap_elements.append(part_kw)
             cap_names_used.append(cap.name)

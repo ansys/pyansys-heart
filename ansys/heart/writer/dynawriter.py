@@ -276,7 +276,7 @@ class BaseDynaWriter:
 
         return
 
-    def _update_segmentsets_db(self):
+    def _update_segmentsets_db(self, add_caps=False):
         """Update the segment set database."""
         # NOTE 0: add all surfaces as segment sets
         # NOTE 1: need to more robustly check segids that are already used?
@@ -306,6 +306,18 @@ class BaseDynaWriter:
                 # append this kw to the segment set database
                 self.kw_database.segment_sets.append(kw)
 
+        if add_caps:
+            # create corresponding segment sets
+            caps = [cap for part in self.model.parts for cap in part.caps]
+            for cap in caps:
+                segid = self.get_unique_segmentset_id()
+                setattr(cap, "seg_id", segid)
+                segset_kw = create_segment_set_keyword(
+                    segments=cap.triangles + 1,
+                    segid=cap.seg_id,
+                    title=cap.name,
+                )
+                self.kw_database.segment_sets.append(segset_kw)
         return
 
     def _update_nodesets_db(
@@ -678,7 +690,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self._update_parts_db()
         self._update_material_db(add_active=True)
-        self._update_segmentsets_db()
+        self._update_segmentsets_db(add_caps=True)
         self._update_nodesets_db()
 
         if not with_dynain:
@@ -926,78 +938,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self.kw_database.main.append(f"$$ {part.name} stiffness damping [ms]")
             kw = keywords.DampingPartStiffness(pid=part.pid, coef=-0.2)
             self.kw_database.main.append(kw)
-        return
-
-    def _update_segmentsets_db(self):
-        """Update the segment set database."""
-        # NOTE 0: add all surfaces as segment sets
-        # NOTE 1: need to more robustly check segids that are already used?
-
-        # add closed cavity segment sets
-        cavities = [p.cavity for p in self.model.parts if p.cavity]
-
-        # caps = [cap for part in self.model.parts for cap in part.caps]
-        # valve_nodes = []
-        # for cap in caps:
-        #     valve_nodes.extend(cap.node_ids)
-
-        for cavity in cavities:
-            segs = cavity.surface.triangles
-
-            # # remove segments related to valve nodes
-            # for n in valve_nodes:
-            #     index = np.argwhere(n == segs)
-            #     segs = np.delete(segs, np.array(index)[:, 0], axis=0)
-
-            surface_id = self.get_unique_segmentset_id()
-            cavity.surface.id = surface_id
-            kw = create_segment_set_keyword(
-                segments=segs + 1,
-                segid=cavity.surface.id,
-                title=cavity.name,
-            )
-            # append this kw to the segment set database
-            self.kw_database.segment_sets.append(kw)
-
-        # write surfaces as segment sets
-        for part in self.model.parts:
-            for surface in part.surfaces:
-                surface.id = self.get_unique_segmentset_id()
-                kw = create_segment_set_keyword(
-                    segments=surface.triangles + 1,
-                    segid=surface.id,
-                    title=surface.name,
-                )
-                # append this kw to the segment set database
-                self.kw_database.segment_sets.append(kw)
-
-        # create corresponding segment sets. Store in new file?
-        caps = [cap for part in self.model.parts for cap in part.caps]
-        for cap in caps:
-            segid = self.get_unique_segmentset_id()
-            setattr(cap, "seg_id", segid)
-            # # WYE: add a node at center of cap
-            # # Note: should not be applied in ZeropWriter, it will impact dynain file
-            # nid = len(self.model.mesh.nodes) + segid
-            # self.kw_database.segment_sets.append(
-            #     "*NODE\n{0:8d}{1:16f}{2:16f}{3:16f}".format(nid + 1, *cap.centroid)
-            # )
-            # nid_x = cap.triangles[0, 0]
-            # cap.triangles[:, 0] = nid
-            # cap.triangles = np.insert(
-            #     cap.triangles, 0, np.array([nid, nid_x, cap.triangles[0, 1]]), axis=0
-            # )
-            # cap.triangles = np.insert(
-            #     cap.triangles, -1, np.array([nid, cap.triangles[-1, -1], nid_x]), axis=0
-            # )
-            # # END WYE:
-
-            segset_kw = create_segment_set_keyword(
-                segments=cap.triangles + 1,
-                segid=cap.seg_id,
-                title=cap.name,
-            )
-            self.kw_database.segment_sets.append(segset_kw)
         return
 
     def _update_nodesets_db(self, remove_duplicates: bool = True):
@@ -1942,7 +1882,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self._update_node_db()
         self._update_parts_db()
         self._update_solid_elements_db(add_fibers=True)
-        self._update_segmentsets_db()
+        self._update_segmentsets_db(add_caps=True)
         self._update_nodesets_db()
         self._update_material_db(add_active=False)
         self._update_cap_elements_db()

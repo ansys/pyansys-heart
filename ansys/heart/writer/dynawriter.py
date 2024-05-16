@@ -1545,7 +1545,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             cap.pid = self.get_unique_part_id()
 
             part_kw = keywords.Part()
-            part_info = pd.DataFrame(
+            part_kw.parts = pd.DataFrame(
                 {
                     "heading": [cap.name],
                     "pid": [cap.pid],
@@ -1553,11 +1553,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     "mid": [mat_null_id],
                 }
             )
-            part_kw.parts = part_info
+            self.kw_database.cap_elements.append(part_kw)
+            cap_names_used.append(cap.name)
 
             if cap.centroid is not None:
                 # cap centroids already added to mesh for v0.2
-                if heart_version == "v0.1":
+                if heart_version == "v0.1":  # TODO: remove this exception
                     if add_mesh:
                         # Add center node
                         node_kw = keywords.Node()
@@ -1571,6 +1572,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
                         s = "$" + node_kw.write()
                         self.kw_database.nodes.append(s)
 
+                if cap.nsid is None:
+                    LOGGER.error("cap node set ID is not yes assigned")
+                    exit()
+
                 constraint = keywords.ConstrainedInterpolation(
                     icid=len(cap_names_used) + 1,
                     dnid=cap.centroid_id + 1,
@@ -1582,8 +1587,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 )
                 self.kw_database.cap_elements.append(constraint)
 
-            self.kw_database.cap_elements.append(part_kw)
-            cap_names_used.append(cap.name)
+        # Note: seems there is no more necessary to explicitly define shell parts if already define
+        # them in control volume flow area.
 
         # create closing triangles for each cap
         # assumes there are no shells written yet since offset = 0
@@ -4556,3 +4561,4 @@ class UHCWriter(BaseDynaWriter):
 
 if __name__ == "__main__":
     print("protected")
+    pass

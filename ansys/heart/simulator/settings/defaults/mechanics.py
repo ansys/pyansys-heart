@@ -110,12 +110,6 @@ material = {
         "mu1": Quantity(0.1, "MPa"),
         "alpha1": 2,
     },
-    # null cap: center node is fixed
-    # rigid cap: more difficult to converge
-    "cap": {
-        "type": "null",
-        "rho": Quantity(0.001, "g/mm^3"),
-    },
 }
 
 """Boundary condition settings."""

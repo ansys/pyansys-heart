@@ -1513,48 +1513,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
         -----
         Loops over all the defined caps/valves.
         """
-        # create part for each closing cap
-        # used_partids = get_list_of_used_ids(self.kw_database.parts, "PART")
-        # used_secids = get_list_of_used_ids(self.kw_database.parts, "SECTION")
-        # used_segids = get_list_of_used_ids(self.kw_database.segment_sets, "SET_SEGMENT")
-
-        section_id = self.get_unique_section_id()
-
-        # NOTE should be dynamic
+        # material
         mat_null_id = self.get_unique_mat_id()
+        material_kw = keywords.MatNull(
+            mid=mat_null_id,
+            ro=0.001,
+        )
 
-        # material_kw = MaterialCap(mid=mat_null_id)
-        material_settings = copy.deepcopy(self.settings.mechanics.material)
-        material_settings._remove_units()
-
-        # caps are rigid in zerop
-        if type(self) == ZeroPressureMechanicsDynaWriter:
-            material_kw = keywords.MatRigid(
-                mid=mat_null_id,
-                ro=material_settings.cap["rho"],
-                e=1.0,  # MPa
-            )
-
-        else:
-            if material_settings.cap["type"] == "stiff":
-                material_kw = MaterialNeoHook(
-                    mid=mat_null_id,
-                    rho=material_settings.cap["rho"],
-                    c10=material_settings.cap["mu1"] / 2,
-                )
-
-            elif material_settings.cap["type"] == "null":
-                material_kw = keywords.MatNull(
-                    mid=mat_null_id,
-                    ro=material_settings.cap["rho"],
-                )
-            elif material_settings.cap["type"] == "rigid":
-                material_kw = keywords.MatRigid(
-                    mid=mat_null_id,
-                    ro=material_settings.cap["rho"],
-                    e=1.0,  # MPa
-                )
-
+        # section
+        section_id = self.get_unique_section_id()
         section_kw = keywords.SectionShell(
             secid=section_id,
             elform=4,

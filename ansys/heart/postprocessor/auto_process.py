@@ -207,14 +207,14 @@ def mech_post(directory: pathlib.Path, model):
         fig.savefig(os.path.join(directory, folder, "rv.png"))
 
     #
-    out_dir = directory / "post" / "pv"
+    out_dir = os.path.join(directory, "post", "pv")
     os.makedirs(out_dir, exist_ok=True)
-    time = D3plotReader(directory / "d3plot").time / 1000  # to second
+    time = D3plotReader(os.path.join(directory, "d3plot")).time / 1000  # to second
     for it, tt in enumerate(time):
         # assume heart beat once per 1s
         ef = system.get_ejection_fraction(t_start=time[-1] - 1, t_end=time[-1])
         fig = system.plot_pv_loop(t_start=0, t_end=tt, ef=ef, show_ed=False)
-        fig.savefig(out_dir / "pv_{0:d}.png".format(it))
+        fig.savefig(os.path.join(directory, "pv_{0:d}.png".format(it)))
         plt.close()
     # build video with command
     # ffmpeg -f image2 -i pv_%d.png output.mp4
@@ -238,9 +238,9 @@ def mech_post(directory: pathlib.Path, model):
     exporter.export_lvls_to_vtk("lvls")
 
     #
-    out_dir = directory / "post" / "lrc_strain"
+    out_dir = os.path.join(directory, "post", "lrc_strain")
     os.makedirs(out_dir, exist_ok=True)
-    aha_strain = AhaStrainCalculator(model, d3plot_file=directory / "d3plot")
+    aha_strain = AhaStrainCalculator(model, d3plot_file=os.path.join(directory, "d3plot"))
     aha_strain.compute_aha_strain(out_dir, with_vtk=True)
 
     return

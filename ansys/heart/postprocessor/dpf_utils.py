@@ -33,6 +33,15 @@ from ansys.heart.core import LOG as LOGGER
 import numpy as np
 
 
+def _check_env():
+    if "ANSYS_DPF_ACCEPT_LA" in os.environ and os.environ["ANSYS_DPF_ACCEPT_LA"] == "Y":
+        pass
+    else:
+        LOGGER.warning('DPF needs to set "ANSYS_DPF_ACCEPT_LA" to "Y".')
+        exit()
+    return
+
+
 class D3plotReader:
     """Use DPF to parse d3plot."""
 
@@ -45,7 +54,7 @@ class D3plotReader:
         path : Path
             d3plot file path.
         """
-        os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+        _check_env()
         # os.environ["ANSYS_DPF_SERVER_CONTEXT"] = "PREMIUM"
         # dpf.set_default_server_context(dpf.AvailableServerContexts.premium)
 
@@ -256,6 +265,137 @@ class D3plotReader:
         # ).eval()
 
         return
+
+
+class ICVoutReader:
+    """Read control volume data from binout."""
+
+    def __init__(self, fn: str) -> None:
+        """Init reader.
+
+        Parameters
+        ----------
+        fn : str
+            binout file path
+        """
+        _check_env()
+        self._ds = dpf.DataSources()
+        self._ds.set_result_file_path(fn, "binout")
+        try:
+            self._solver_time = self._get_solver_time()
+        except IndexError:
+            LOGGER.error(f"{fn} do not contain icvout.")
+            exit()
+
+    def _get_solver_time(self) -> np.ndarray:
+        # resultInfoOp = dpf.Operator("lsdyna::binout::result_info_provider")
+        # resultInfoOp.inputs.data_sources(self.ds)
+        # result_info = resultInfoOp.outputs.result_info()
+        # print(result_info)
+
+        icvout_op = dpf.Operator("lsdyna::binout::ICV_ICVIID")
+        icvout_op.inputs.data_sources(self._ds)
+        fields1 = icvout_op.outputs.results()
+        # available ICVI id
+        self._icvi_ids = fields1[0].data.astype(int)
+
+        icvout_op = dpf.Operator("lsdyna::binout::ICV_ICVID")
+        icvout_op.inputs.data_sources(self._ds)
+        fields2 = icvout_op.outputs.results()
+        # available ICV id
+        self._icv_ids = fields2[0].data.astype(int)
+
+        # get time array
+        op = dpf.Operator("lsdyna::binout::TimeFreqSupportProvider")
+        op.inputs.data_sources(self._ds)
+        result_time_freq_support = op.outputs.time_freq_support()
+        time = result_time_freq_support.time_frequencies.data
+        return time
+
+    def get_time(self) -> np.ndarray:
+        """Get time array.
+
+        Returns
+        -------
+        np.ndarray
+            time array
+        """
+        # Note: _solver_time is time array of solving, here we resample it to icvout time array
+        n = len(self.get_pressure(self._icv_ids[0]))
+        x = np.linspace(self._solver_time[0], self._solver_time[-1], n)
+        xp = np.linspace(self._solver_time[0], self._solver_time[-1], len(self._solver_time))
+        return np.interp(x, xp, self._solver_time)
+
+    def get_pressure(self, icv_id: int) -> np.ndarray:
+        """Get pressure array.
+
+        Parameters
+        ----------
+        icv_id : int
+            control volume id
+
+        Returns
+        -------
+        np.ndarray
+            pressure array
+        """
+        if icv_id not in self._icv_ids:
+            raise ValueError("icv_id not found.")
+
+        return self._get_field(icv_id, "ICV_P")
+
+    def get_volume(self, icv_id: int) -> np.ndarray:
+        """Get volume array.
+
+        Parameters
+        ----------
+        icv_id : int
+            control volume id
+
+        Returns
+        -------
+        np.ndarray
+            volume array
+        """
+        if icv_id not in self._icv_ids:
+            raise ValueError("icv_id not found.")
+
+        v = self._get_field(icv_id, "ICV_V")
+        # MPP bug: volume is zero at t0
+        if v[0] == 0:
+            v[0] = v[1]
+
+        return v
+
+    def get_flowrate(self, icvi_id: int) -> np.ndarray:
+        """Get flow rate array.
+
+        Parameters
+        ----------
+        icvi_id : int
+            control volume id
+
+        Returns
+        -------
+        np.ndarray
+            flowrate array
+        """
+        if icvi_id not in self._icvi_ids:
+            raise ValueError("icvi_id not found.")
+        # area is obtained by 'ICVI_A'
+        return self._get_field(icvi_id, "ICVI_FR")
+
+    def _get_field(self, id: int, operator_name: str):
+        icvout_op = dpf.Operator(f"lsdyna::binout::{operator_name}")
+        icvout_op.inputs.data_sources(self._ds)
+
+        my_scoping = dpf.Scoping()
+        my_scoping.location = "interface"
+        my_scoping.ids = [id]
+        icvout_op.connect(6, my_scoping)
+        fields3 = icvout_op.outputs.results()
+
+        return fields3[0].data
 
 
 if __name__ == "__main__":

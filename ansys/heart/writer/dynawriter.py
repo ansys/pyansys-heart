@@ -678,6 +678,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self._update_parts_db()
         self._update_material_db(add_active=True)
+        self._update_segmentsets_db()
+        self._update_nodesets_db()
 
         if not with_dynain:
             self._update_node_db()
@@ -688,9 +690,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self.kw_database.main.append(keywords.Include(filename="dynain.lsda"))
             # cap mesh has been defined in Zerop and saved in dynain file
             self._update_cap_elements_db(add_mesh=False)
-
-        self._update_segmentsets_db()
-        self._update_nodesets_db()
 
         # # for control volume
         self._update_controlvolume_db()
@@ -1612,46 +1611,95 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
     def _update_controlvolume_db(self):
         """Prepare the keywords for the control volume feature."""
-        # NOTE: Assumes cavity id is reserved for combined
-        # segment set
 
-        # set up control volume keywords and interaction of
-        # cavity with ambient. Only do for ventricles
-        cavities = [part.cavity for part in self.model.parts if part.cavity]
-        for cavity in cavities:
-            if "atrium" in cavity.name:
-                continue
+        def _create_null_part():
+            # material
+            mat_id = self.get_unique_mat_id()
+            material_kw = keywords.MatNull(
+                mid=mat_id,
+                ro=0.001,
+            )
+            # section
+            section_id = self.get_unique_section_id()
+            section_kw = keywords.SectionShell(
+                secid=section_id,
+                elform=4,
+                shrf=0.8333,
+                nip=3,
+                t1=1,
+            )
+            # part
+            p_id = self.get_unique_part_id()
+            part_kw = keywords.Part()
+            part_kw.parts = pd.DataFrame(
+                {
+                    "heading": ["null flow area"],
+                    "pid": [p_id],
+                    "secid": [section_id],
+                    "mid": [mat_id],
+                }
+            )
 
-            cv_kw = keywords.DefineControlVolume()
-            cv_kw.id = cavity.surface.id
-            cv_kw.sid = cavity.surface.id
+            self.kw_database.control_volume.append(section_kw)
+            self.kw_database.control_volume.append(material_kw)
+            self.kw_database.control_volume.append(part_kw)
 
-            self.kw_database.control_volume.append(cv_kw)
+            return p_id
 
-        for cavity in cavities:
-            if "atrium" in cavity.name:
-                continue
+        # create a new null part used in defining flow area
+        pid = _create_null_part()
 
-            cvi_kw = keywords.DefineControlVolumeInteraction()
-            cvi_kw.id = cavity.surface.id
-            cvi_kw.cvid1 = cavity.surface.id
-            cvi_kw.cvid2 = 0  # ambient
+        for part in self.model.parts:
+            if part.cavity and not "atrium" in part.cavity.name:
 
-            # NOTE: static for the moment. Maximum of 2 cavities supported
-            # but this is valid for the LeftVentricle, BiVentricle and FourChamber models
-            if self.system_model_name == "ClosedLoop":
-                if "Left ventricle" in cavity.name:
-                    cvi_kw.lcid_ = -10
-                elif "Right ventricle" in cavity.name:
-                    cvi_kw.lcid_ = -11
+                cavity = part.cavity
 
-            elif self.system_model_name == "ConstantPreloadWindkesselAfterload":
-                if "Left ventricle" in cavity.name:
-                    cvi_kw.lcid_ = 10
-                if "Right ventricle" in cavity.name:
-                    cvi_kw.lcid_ = 11
+                # DEFINE_CONTROL_VOLUME
+                cv_kw = keywords.DefineControlVolume()
+                cv_kw.id = cavity.surface.id
+                cv_kw.sid = cavity.surface.id
+                self.kw_database.control_volume.append(cv_kw)
 
-            self.kw_database.control_volume.append(cvi_kw)
+                # DEFINE_CONTROL_VOLUME_FLOW_AREA
+                sid = self.get_unique_segmentset_id()
+                sets = []
+                for cap in part.caps:
+                    sets.append(cap.seg_id)  # TODO
+                if len(sets) % 8 == 0:  # dynalib bug
+                    sets.append(0)
+                self.kw_database.control_volume.append(keywords.SetSegmentAdd(sid=sid, sets=sets))
+
+                # TODO use dynalib: keywords.DefineControlVolumeFlowArea()
+                flow_area_kw = "*DEFINE_CONTROL_VOLUME_FLOW_AREA\n"
+                flow_area_kw += "$#    FAID     FCIID     FASID   FASTYPE       PID\n"
+                flow_area_kw += "{0:10d}".format(cavity.surface.id)
+                flow_area_kw += "{0:10d}".format(cavity.surface.id)  # CVI id
+                flow_area_kw += "{0:10d}".format(sid)
+                flow_area_kw += "{0:10d}".format(2)  # flow area is defined by segment
+                flow_area_kw += "{0:10d}".format(pid)
+                self.kw_database.control_volume.append(flow_area_kw)
+
+                # DEFINE_CONTROL_VOLUME_INTERACTION
+                cvi_kw = keywords.DefineControlVolumeInteraction()
+                cvi_kw.id = cavity.surface.id
+                cvi_kw.cvid1 = cavity.surface.id
+                cvi_kw.cvid2 = 0  # ambient
+
+                # NOTE: static for the moment. Maximum of 2 cavities supported
+                # but this is valid for the LeftVentricle, BiVentricle and FourChamber models
+                if self.system_model_name == "ClosedLoop":
+                    if "Left ventricle" in cavity.name:
+                        cvi_kw.lcid_ = -10
+                    elif "Right ventricle" in cavity.name:
+                        cvi_kw.lcid_ = -11
+
+                elif self.system_model_name == "ConstantPreloadWindkesselAfterload":
+                    if "Left ventricle" in cavity.name:
+                        cvi_kw.lcid_ = 10
+                    if "Right ventricle" in cavity.name:
+                        cvi_kw.lcid_ = 11
+
+                self.kw_database.control_volume.append(cvi_kw)
 
         return
 

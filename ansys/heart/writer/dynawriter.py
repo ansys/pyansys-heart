@@ -1586,27 +1586,26 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 )
                 self.kw_database.cap_elements.append(constraint)
 
-        # Note: seems there is no more necessary to explicitly define shell parts if already define
-        # them in control volume flow area.
-
         # create closing triangles for each cap
-        # assumes there are no shells written yet since offset = 0
-        shell_id_offset = 0
-        cap_names_used = []
-        for cap in caps:
-            if cap.name in cap_names_used:
-                continue
+        # Note: cap parts already defined in control volume flow area, no mandatory here
+        if add_mesh:
+            # assumes there are no shells written yet since offset = 0
+            shell_id_offset = 0
+            cap_names_used = []
+            for cap in caps:
+                if cap.name in cap_names_used:
+                    continue
 
-            shell_kw = create_element_shell_keyword(
-                shells=cap.triangles + 1,
-                part_id=cap.pid,
-                id_offset=shell_id_offset,
-            )
-            if add_mesh:
+                shell_kw = create_element_shell_keyword(
+                    shells=cap.triangles + 1,
+                    part_id=cap.pid,
+                    id_offset=shell_id_offset,
+                )
+
                 self.kw_database.cap_elements.append(shell_kw)
 
-            shell_id_offset = shell_id_offset + cap.triangles.shape[0]
-            cap_names_used.append(cap.name)
+                shell_id_offset = shell_id_offset + cap.triangles.shape[0]
+                cap_names_used.append(cap.name)
         return
 
     def _update_controlvolume_db(self):

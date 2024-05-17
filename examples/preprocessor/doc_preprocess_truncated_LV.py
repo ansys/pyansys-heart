@@ -30,6 +30,7 @@ Land et al (2015): https://doi.org/10.1098/rspa.2015.0641
 """
 
 import os
+
 import numpy as np
 
 os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
@@ -47,10 +48,10 @@ os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
 # sphinx_gallery_thumbnail_path = '_static/images/truncated_LV_mesh.png'
 # sphinx_gallery_end_ignore
 
-import pyvista as pv
 import os
 
 import ansys.heart.preprocessor.models.v0_2.models as models
+import pyvista as pv
 
 workdir = r"simplified-geometries\truncated_lv"
 
@@ -128,9 +129,9 @@ model.mesh_volume(use_wrapper=True)
 model.mesh.plot()
 
 # assign axis of model manually.
-model.l4cv_axis = {"center": base.center, "normal": np.array([1,0,0])}
-model.l2cv_axis = {"center": base.center, "normal": np.array([0,1,0])}
-model.short_axis = {"center": base.center, "normal": np.array([0,0,1])}
+model.l4cv_axis = {"center": base.center, "normal": np.array([1, 0, 0])}
+model.l2cv_axis = {"center": base.center, "normal": np.array([0, 1, 0])}
+model.short_axis = {"center": base.center, "normal": np.array([0, 0, 1])}
 
 # update the model
 model._sync_input_parts_to_model_parts()
@@ -167,6 +168,7 @@ model.mesh.clip(crinkle=True).plot(show_edges=True)
 # Generate static images for docs.
 #
 from pathlib import Path
+
 docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", "_static", "images")
 
 filename = Path(docs_images_folder, "truncated_LV_mesh_input.png")

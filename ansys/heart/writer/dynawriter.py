@@ -1520,7 +1520,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     dnid=cap.centroid_id + 1,
                     ddof=123,
                     ityp=1,
-                    fgm=1,
+                    fgm=0,
                     inid=cap.nsid,
                     idof=123,
                 )

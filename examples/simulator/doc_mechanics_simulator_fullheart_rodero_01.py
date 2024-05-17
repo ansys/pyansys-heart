@@ -43,9 +43,11 @@ stress free configuration, and finally simulate the mechanical model.
 # directory, model, and ls-dyna executable.
 
 import os
-from pathlib import Path
 
-import ansys.heart.preprocessor.models.v0_1.models as models
+# set this environment variable to ensure you are using v0.2 of the model
+os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
+
+import ansys.heart.preprocessor.models.v0_2.models as models
 from ansys.heart.simulator.simulator import DynaSettings, MechanicsSimulator
 
 # accept dpf license aggrement
@@ -53,7 +55,7 @@ from ansys.heart.simulator.simulator import DynaSettings, MechanicsSimulator
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 # set working directory and path to model.
-workdir = Path(Path(__file__).resolve().parents[2], "downloads", "Rodero2021", "01", "FullHeart")
+workdir = os.path.join("pyansys-heart", "downloads", "Rodero2021", "01", "FullHeart")
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 # load four chamber heart model.

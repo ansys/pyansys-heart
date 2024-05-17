@@ -24,8 +24,8 @@
 
 Create a four chamber heart model
 ---------------------------------
-This example shows you how to download a case from the Strocchi et al (2020) database
-and process that case into a simulation-ready four chamber heart model.
+This example shows you how to process a case file from the Strocchi2020 database
+and process that into a simulation-ready full heart model.
 """
 
 ###############################################################################
@@ -40,37 +40,49 @@ and process that case into a simulation-ready four chamber heart model.
 # sphinx_gallery_thumbnail_path = '_static/images/four_chamber_mesh.png'
 # sphinx_gallery_end_ignore
 
+import json
 import os
-from pathlib import Path
 
-from ansys.heart.misc.downloader import download_case, unpack_case
-import ansys.heart.preprocessor.models.v0_1.models as models
+from ansys.heart.preprocessor.models.v0_2.database_preprocessor import get_compatible_input
+import ansys.heart.preprocessor.models.v0_2.models as models
 
-# sphinx_gallery_start_ignore
-os.environ["USE_OLD_HEART_MODELS"] = "1"
-# sphinx_gallery_end_ignore
+# set this environment variable to ensure you are using v0.2 of the model
+os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
 
 # specify necessary paths.
-# Note that we need to cast the paths to strings to facilitate serialization.
-case_file = str(
-    Path(Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "01.case")
-)
-download_folder = str(Path(Path(__file__).resolve().parents[2], "downloads"))
-workdir = str(
-    Path(Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "FourChamber")
-)
-path_to_model = str(Path(workdir, "heart_model.pickle"))
+case_file = os.path.join("pyansys-heart", "downloads", "Strocchi2020", "01", "01.case")
+workdir = os.path.join(os.path.dirname(case_file), "FourChamber")
+
+if not os.path.isdir(workdir):
+    os.makedirs(workdir)
+
+path_to_model = os.path.join(workdir, "heart_model.pickle")
+path_to_input = os.path.join(workdir, "input_model.vtp")
+path_to_part_definitions = os.path.join(workdir, "part_definitions.json")
 
 ###############################################################################
-# Download the case
-# ~~~~~~~~~~~~~~~~~
-# Download and unpack the case from the public repository of full hearts if it is
-# not yet available. This model will be used as input for the preprocessor.
-if not os.path.isfile(case_file):
-    path_to_downloaded_file = download_case(
-        "Strocchi2020", 1, download_folder=download_folder, overwrite=False
-    )
-    unpack_case(path_to_downloaded_file)
+# .. note::
+#    You may need to (manually) download the .case or .vtk files from the Strocchi2020
+#    and Rodero2021 databases first. See:
+#
+#    - https://zenodo.org/records/3890034
+#    - https://zenodo.org/records/4590294
+#
+#    Alternatively you can make use of the download
+#    module instead. See the download module.
+
+###############################################################################
+# Convert the .vtk file into compatible input
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+input_geom, part_definitions = get_compatible_input(
+    case_file, model_type="FourChamber", database="Strocchi2020"
+)
+
+# Note that the input model and part definitions can be used for later use.
+# save input geometry and part definitions:
+input_geom.save(path_to_input)
+with open(path_to_part_definitions, "w") as f:
+    json.dump(part_definitions, f, indent=True)
 
 ###############################################################################
 # Set required information
@@ -78,52 +90,61 @@ if not os.path.isfile(case_file):
 # Set the right database to which this case belongs, and set other relevant
 # information such as the desired mesh size.
 info = models.ModelInfo(
-    database="Strocchi2020",
-    path_to_case=case_file,
+    input=input_geom,
+    scalar="surface-id",
+    part_definitions=part_definitions,
     work_directory=workdir,
-    path_to_model=path_to_model,
-    add_blood_pool=False,
     mesh_size=1.5,
 )
+info.path_to_model = path_to_model
 
-# create the working directory
+
+# create or clean working directory
 info.create_workdir()
+info.clean_workdir([".stl", ".msh.h5", ".pickle"])
+
+###############################################################################
+# Initialize the heart model with info
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Initialize the desired heart model with info.
+
+# initialize four chamber heart model
+model = models.FourChamber(info)
+
+# load input model generated in an earlier step.
+model.load_input()
+
+# mesh the volume of all structural parts.
+model.mesh_volume(use_wrapper=True)
+
+# update the model and extract the required (anatomical) features
+model._update_parts()
+
+# dump the model to disk
+model.dump_model(path_to_model)
+
+# Optionally save the simulation mesh as a vtk object for "offline" inspection
+model.mesh.save(os.path.join(model.info.workdir, "simulation-mesh.vtu"))
+
+# print some info about the processed model.
+model.print_info()
+
 # clean the working directory
 info.clean_workdir(extensions_to_remove=[".stl", ".vtk", ".msh.h5"])
+
 # dump information to stdout
 info.dump_info()
 
-
-###############################################################################
-# Initialize the heart model
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Initialize the desired heart model, and invoke the main method to
-# extract the simulation mesh and dump the model to disk. This will extract
-# the relevant parts from the original model and remesh the entire surface and
-# volume. Moreover, relevant anatomical features are extracted.
-
-# instantiate a four chamber model
-model = models.FourChamber(info)
-
-# extract the simulation mesh
-model.extract_simulation_mesh()
-
-# dump the model to disk for future use
-model.dump_model(path_to_model)
-# print the resulting information
-model.print_info()
-
 # print part names
 print(model.part_names)
-# print volumes of some cavities:
-print(f"Volume of LV cavity: {model.left_ventricle.cavity.volume} mm^3")
-print(f"Volume of LV cavity: {model.left_atrium.cavity.volume} mm^3")
 
 ###############################################################################
 # Visualize results
 # ~~~~~~~~~~~~~~~~~
 # You can visualize and inspect the components of the model by accessing
 # various properties/attributes and invoke methods.
+print(f"Volume of LV cavity: {model.left_ventricle.cavity.volume} mm^3")
+print(f"Volume of LV cavity: {model.left_atrium.cavity.volume} mm^3")
 
 # plot the remeshed model
 model.plot_mesh(show_edges=False)
@@ -157,12 +178,14 @@ cavities.plot(show_edges=True)
 # sphinx_gallery_start_ignore
 # Generate static images for docs.
 #
+from pathlib import Path
+
 docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", "_static", "images")
 
 # Full mesh
 filename = Path(docs_images_folder, "four_chamber_mesh.png")
 plotter = pv.Plotter(off_screen=True)
-model.mesh.set_active_scalars("tags")
+model.mesh.set_active_scalars("part-id")
 plotter.add_mesh(model.mesh, show_edges=False)
 # plotter.show()
 plotter.camera.roll = -60

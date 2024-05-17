@@ -47,7 +47,9 @@ purkinje network and conduction system and finally simulate the electrophysiolog
 # sphinx_gallery_end_ignore
 
 import os
-from pathlib import Path
+
+# set this environment variable to ensure you are using v0.2 of the model
+os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
 
 from ansys.heart.preprocessor.mesh.objects import Point
 import ansys.heart.preprocessor.models.v0_2.models as models
@@ -58,20 +60,12 @@ from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 # set working directory and path to model.
-workdir = Path(
-    Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "FourChamber"
-)
+workdir = os.path.join("pyansys-heart", "downloads", "Strocchi2020", "01", "FourChamber")
 
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
-if not os.path.isfile(path_to_model):
-    raise FileExistsError(f"{path_to_model} not found")
-
 # specify LS-DYNA path (last tested working versions is intelmpi-linux-DEV-106117)
 lsdyna_path = r"ls-dyna_msmpi.exe"
-
-if not os.path.isfile(lsdyna_path):
-    raise FileExistsError(f"{lsdyna_path} not found.")
 
 # load four chamber heart model.
 model: models.FourChamber = models.HeartModel.load_model(path_to_model)

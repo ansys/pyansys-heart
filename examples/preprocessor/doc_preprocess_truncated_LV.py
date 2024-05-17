@@ -53,6 +53,9 @@ import os
 import ansys.heart.preprocessor.models.v0_2.models as models
 import pyvista as pv
 
+###############################################################################
+# Create a truncated ellipsoid using pyvista
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 workdir = r"simplified-geometries\truncated_lv"
 
 # create the surfaces of a truncated LV model
@@ -86,6 +89,10 @@ heart.plot(show_edges=True)
 #   :width: 400pt
 #   :align: center
 
+###############################################################################
+# Convert the input to a HeartModel
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 # construct part definition dictionary
 part_definitions = {
     "Left ventricle": {
@@ -98,7 +105,7 @@ part_definitions = {
     }
 }
 
-# use the combined polydata as input, where "surface-id" identifies each
+# use the combined polydata `heart` as input, where "surface-id" identifies each
 # of the relevant regions.
 # part definitions is used to map the remeshed model to the HeartModel parts/boundaries
 info = models.ModelInfo(
@@ -108,11 +115,9 @@ info = models.ModelInfo(
     work_directory=workdir,
     mesh_size=0.5,
 )
+info.path_to_model = os.path.join(info.workdir, "heart_model.pickle")
 
-path_to_model = os.path.join(info.workdir, "heart_model.pickle")
-info.path_to_model = path_to_model
-
-# initialize full heart model
+# initialize left-ventricular heart model
 model = models.LeftVentricle(info)
 
 # clean working directory
@@ -121,12 +126,12 @@ model.info.clean_workdir([".stl", ".msh.h5", ".pickle"])
 # load input model
 model.load_input()
 
-# save original input as polydata
-model._input.as_single_polydata.save(os.path.join(info.workdir, "input_polydata.vtp"))
-
-# mesh the volume
+# mesh the volume.
+#
+# Note that the individual surfaces in the combined PolyData object are
+# unconnected. Using the wrapper automatically fixes any small gaps
+# and ensures a proper connectivity.
 model.mesh_volume(use_wrapper=True)
-model.mesh.plot()
 
 # assign axis of model manually.
 model.l4cv_axis = {"center": base.center, "normal": np.array([1, 0, 0])}
@@ -191,9 +196,6 @@ plotter = pv.Plotter(off_screen=True)
 # plotter.view_zx()
 # plotter.add_mesh(model.mesh, show_edges=False, color="white")
 plotter.add_mesh(model.mesh.clip(crinkle=True), show_edges=True, color="w")
-# plotter.add_mesh(model.mesh.boundaries[0].clip(), show_edges=True, color="r", label=model.mesh.boundaries[0].name)
-# plotter.add_mesh(model.mesh.boundaries[1].clip(), show_edges=True, color="b", label=model.mesh.boundaries[1].name )
-# plotter.add_mesh(model.mesh.boundaries[2].clip(), show_edges=True, color="g", label=model.mesh.boundaries[2].name)
 # plotter.view_yz()
 # plotter.add_legend()
 # plotter.camera.roll = -60

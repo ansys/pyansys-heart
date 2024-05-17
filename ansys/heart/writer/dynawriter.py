@@ -29,9 +29,6 @@ Uses a HeartModel (from ansys.heart.preprocessor.models).
 """
 
 import copy
-
-# from importlib.resources import files
-from importlib.resources import path as resource_path
 import json
 
 # import missing keywords
@@ -72,6 +69,9 @@ elif heart_version == "v0.1":
         LeftVentricle,
     )
 
+from typing import NamedTuple
+
+from ansys.heart.preprocessor.mesh.objects import Part
 from ansys.heart.simulator.settings.settings import SimulationSettings
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 from ansys.heart.writer.heart_decks import (
@@ -102,6 +102,25 @@ from ansys.heart.writer.system_models import _ed_load_template, define_function_
 import numpy as np
 import pandas as pd
 import pyvista as pv
+
+
+class CVInteraction(NamedTuple):
+    """Template to define control volume interaction."""
+
+    id: int
+    cvid1: int
+    cvid2: int
+    lcid: int
+    name: str
+    parameters: dict
+
+
+class ControlVolume(NamedTuple):
+    """Template to define control volume."""
+
+    part: Part
+    id: int
+    Interactions: list[CVInteraction]
 
 
 class BaseDynaWriter:
@@ -704,8 +723,60 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self._update_cap_elements_db(add_mesh=False)
 
         # # for control volume
-        self._update_controlvolume_db()
-        self._update_system_model()
+        system_settings = copy.deepcopy(self.settings.mechanics.system)
+        system_settings._remove_units()
+        if isinstance(self.model, LeftVentricle):
+            lcid = self.get_unique_curve_id()
+            system_map = [
+                ControlVolume(
+                    part=self.model.left_ventricle,
+                    id=1,
+                    Interactions=[
+                        CVInteraction(
+                            id=1,
+                            cvid1=1,
+                            cvid2=0,
+                            lcid=lcid,
+                            name="constant_preload_windkessel_afterload" + "_left",
+                            parameters=system_settings.left_ventricle,
+                        )
+                    ],
+                )
+            ]
+        else:  # elif type(self.model) == BiVentricle:
+            lcid = self.get_unique_curve_id()
+            system_map = [
+                ControlVolume(
+                    part=self.model.left_ventricle,
+                    id=1,
+                    Interactions=[
+                        CVInteraction(
+                            id=1,
+                            cvid1=1,
+                            cvid2=0,
+                            lcid=lcid,
+                            name="constant_preload_windkessel_afterload" + "_left",
+                            parameters=system_settings.left_ventricle,
+                        )
+                    ],
+                ),
+                ControlVolume(
+                    part=self.model.right_ventricle,
+                    id=2,
+                    Interactions=[
+                        CVInteraction(
+                            id=2,
+                            cvid1=2,
+                            cvid2=0,
+                            lcid=lcid + 1,
+                            name="constant_preload_windkessel_afterload" + "_right",
+                            parameters=system_settings.right_ventricle,
+                        )
+                    ],
+                ),
+            ]
+
+        self._update_controlvolume_db(system_map)
 
         # no control volume for atrial, constant pressure instead
         if isinstance(self.model, FourChamber):
@@ -1548,8 +1619,16 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 cap_names_used.append(cap.name)
         return
 
-    def _update_controlvolume_db(self):
-        """Prepare the keywords for the control volume feature."""
+    def _update_controlvolume_db(self, system_map: list[ControlVolume]):
+        """Prepare the keywords for the control volume feature.
+
+        Parameters
+        ----------
+        system_map : list[ControlVolume]
+            list of control volume
+        """
+        if not self.system_model_name == "ConstantPreloadWindkesselAfterload":
+            exit()
 
         def _create_null_part():
             # material
@@ -1588,123 +1667,53 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # create a new null part used in defining flow area
         pid = _create_null_part()
 
-        for part in self.model.parts:
-            if part.cavity and not "atrium" in part.cavity.name:
+        for control_volume in system_map:
+            part = control_volume.part
+            cavity = part.cavity
 
-                cavity = part.cavity
+            # DEFINE_CONTROL_VOLUME
+            cv_kw = keywords.DefineControlVolume()
+            cv_kw.id = control_volume.id
+            cv_kw.sid = cavity.surface.id
+            self.kw_database.control_volume.append(cv_kw)
 
-                # DEFINE_CONTROL_VOLUME
-                cv_kw = keywords.DefineControlVolume()
-                cv_kw.id = cavity.surface.id
-                cv_kw.sid = cavity.surface.id
-                self.kw_database.control_volume.append(cv_kw)
+            # DEFINE_CONTROL_VOLUME_FLOW_AREA
+            sid = self.get_unique_segmentset_id()
+            sets = []
+            for cap in part.caps:
+                sets.append(cap.seg_id)  # TODO
+            if len(sets) % 8 == 0:  # dynalib bug
+                sets.append(0)
+            self.kw_database.control_volume.append(keywords.SetSegmentAdd(sid=sid, sets=sets))
 
-                # DEFINE_CONTROL_VOLUME_FLOW_AREA
-                sid = self.get_unique_segmentset_id()
-                sets = []
-                for cap in part.caps:
-                    sets.append(cap.seg_id)  # TODO
-                if len(sets) % 8 == 0:  # dynalib bug
-                    sets.append(0)
-                self.kw_database.control_volume.append(keywords.SetSegmentAdd(sid=sid, sets=sets))
+            # TODO use dynalib: keywords.DefineControlVolumeFlowArea()
+            flow_area_kw = "*DEFINE_CONTROL_VOLUME_FLOW_AREA\n"
+            flow_area_kw += "$#    FAID     FCIID     FASID   FASTYPE       PID\n"
+            flow_area_kw += "{0:10d}".format(control_volume.id)  # same as CVID
+            flow_area_kw += "{0:10d}".format(control_volume.Interactions[0].id)  # first CVI id
+            flow_area_kw += "{0:10d}".format(sid)
+            flow_area_kw += "{0:10d}".format(2)  # flow area is defined by segment
+            flow_area_kw += "{0:10d}".format(pid)
+            self.kw_database.control_volume.append(flow_area_kw)
 
-                # TODO use dynalib: keywords.DefineControlVolumeFlowArea()
-                flow_area_kw = "*DEFINE_CONTROL_VOLUME_FLOW_AREA\n"
-                flow_area_kw += "$#    FAID     FCIID     FASID   FASTYPE       PID\n"
-                flow_area_kw += "{0:10d}".format(cavity.surface.id)
-                flow_area_kw += "{0:10d}".format(cavity.surface.id)  # CVI id
-                flow_area_kw += "{0:10d}".format(sid)
-                flow_area_kw += "{0:10d}".format(2)  # flow area is defined by segment
-                flow_area_kw += "{0:10d}".format(pid)
-                self.kw_database.control_volume.append(flow_area_kw)
-
+            for interaction in control_volume.Interactions:
                 # DEFINE_CONTROL_VOLUME_INTERACTION
                 cvi_kw = keywords.DefineControlVolumeInteraction()
-                cvi_kw.id = cavity.surface.id
-                cvi_kw.cvid1 = cavity.surface.id
-                cvi_kw.cvid2 = 0  # ambient
-
-                # NOTE: static for the moment. Maximum of 2 cavities supported
-                # but this is valid for the LeftVentricle, BiVentricle and FourChamber models
-                if self.system_model_name == "ClosedLoop":
-                    if "Left ventricle" in cavity.name:
-                        cvi_kw.lcid_ = -10
-                    elif "Right ventricle" in cavity.name:
-                        cvi_kw.lcid_ = -11
-
-                elif self.system_model_name == "ConstantPreloadWindkesselAfterload":
-                    if "Left ventricle" in cavity.name:
-                        cvi_kw.lcid_ = 10
-                    if "Right ventricle" in cavity.name:
-                        cvi_kw.lcid_ = 11
-
+                cvi_kw.id = interaction.id
+                cvi_kw.cvid1 = interaction.cvid1
+                cvi_kw.cvid2 = interaction.cvid2
+                cvi_kw.lcid_ = interaction.lcid
                 self.kw_database.control_volume.append(cvi_kw)
 
-        return
-
-    def _update_system_model(self):
-        """Update json system model settings."""
-        model_type = self.model.info.model_type
-
-        system_settings = copy.deepcopy(self.settings.mechanics.system)
-        system_settings._remove_units()
-
-        # closed loop uses a custom executable
-        if system_settings.name == "ClosedLoop":
-            raise NotImplementedError("Closed loop circulation not yet supported.")
-            LOGGER.warning(
-                "Note that this model type requires a custom executable that "
-                "supports the Closed Loop circulation model!"
-            )
-            if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-                file_path = resource_path(
-                    "ansys.heart.writer", "templates/system_model_settings_bv.json"
-                ).__enter__()
-            elif isinstance(self.model, LeftVentricle):
-                file_path = resource_path(
-                    "ansys.heart.writer", "templates/system_model_settings_lv.json"
-                ).__enter__()
-
-            fid = open(file_path)
-            sys_settings = json.load(fid)
-
-            # update the volumes
-            sys_settings["SystemModelInitialValues"]["UnstressedVolumes"]["lv"] = (
-                self.model.get_part("Left ventricle").cavity.volume
-            )
-
-            if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-                sys_settings["SystemModelInitialValues"]["UnstressedVolumes"]["rv"] = (
-                    self.model.get_part("Right ventricle").cavity.volume
+                # DEFINE FUNCTION
+                define_function_wk = define_function_windkessel(
+                    function_id=interaction.lcid,
+                    function_name=interaction.name,
+                    implicit=True,
+                    constants=interaction.parameters["constants"],
+                    initialvalues=interaction.parameters["initial_value"]["part"],
                 )
-
-            self.system_model_json = sys_settings
-
-        # otherwise add the define function
-        elif system_settings.name == "ConstantPreloadWindkesselAfterload":
-            if self.system_model_name != system_settings.name:
-                LOGGER.error("Circulation system parameters cannot be rad from Json")
-
-            for cavity in self.model.cavities:
-                if "Left ventricle" in cavity.name:
-                    define_function_wk = define_function_windkessel(
-                        function_id=10,
-                        function_name="constant_preload_windkessel_afterload_left",
-                        implicit=True,
-                        constants=dict(system_settings.left_ventricle["constants"]),
-                        initialvalues=system_settings.left_ventricle["initial_value"]["part"],
-                    )
-                    self.kw_database.control_volume.append(define_function_wk)
-
-                elif "Right ventricle" in cavity.name:
-                    define_function_wk = define_function_windkessel(
-                        function_id=11,
-                        function_name="constant_preload_windkessel_afterload_right",
-                        implicit=True,
-                        constants=dict(system_settings.right_ventricle["constants"]),
-                        initialvalues=system_settings.right_ventricle["initial_value"]["part"],
-                    )
-                    self.kw_database.control_volume.append(define_function_wk)
+                self.kw_database.control_volume.append(define_function_wk)
 
         return
 

@@ -61,29 +61,26 @@ class IVCWriter(MechanicsDynaWriter):
         system_settings = copy.deepcopy(self.settings.mechanics.system)
         system_settings._remove_units()
 
-        from ansys.heart.writer.system_models import define_function_windkessel
+        from ansys.heart.writer.system_models import define_function_0Dsystem
 
         if self.system_model_name != system_settings.name:
             LOGGER.error("Circulation system parameters cannot be rad from Json")
 
         for cavity in self.model.cavities:
             if "Left ventricle" in cavity.name:
-                define_function_wk = define_function_windkessel(
+                define_function_wk = define_function_0Dsystem(
                     function_id=10,
-                    function_name="constant_preload_windkessel_afterload_left",
-                    implicit=True,
-                    constants=dict(system_settings.left_ventricle["constants"]),
-                    initialvalues=system_settings.left_ventricle["initial_value"]["part"],
-                    ivc=True,
+                    function_name="constant_flow",
+                    parameters={"flow": 0.0},
                 )
                 self.kw_database.control_volume.append(define_function_wk)
 
             elif "Right ventricle" in cavity.name:
-                define_function_wk = define_function_windkessel(
+                define_function_wk = define_function_0Dsystem(
                     function_id=11,
                     function_name="constant_preload_windkessel_afterload_right",
                     implicit=True,
-                    constants=dict(system_settings.right_ventricle["constants"]),
+                    parameters=dict(system_settings.right_ventricle["constants"]),
                     initialvalues=system_settings.right_ventricle["initial_value"]["part"],
                     ivc=True,
                 )

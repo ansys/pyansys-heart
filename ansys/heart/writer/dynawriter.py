@@ -98,7 +98,7 @@ from ansys.heart.writer.keyword_module import (
     get_list_of_used_ids,
 )
 from ansys.heart.writer.material_keywords import MaterialHGOMyocardium, MaterialNeoHook
-from ansys.heart.writer.system_models import _ed_load_template, define_function_windkessel
+from ansys.heart.writer.system_models import _ed_load_template, define_function_0Dsystem
 import numpy as np
 import pandas as pd
 import pyvista as pv
@@ -725,6 +725,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # # for control volume
         system_settings = copy.deepcopy(self.settings.mechanics.system)
         system_settings._remove_units()
+
         if isinstance(self.model, LeftVentricle):
             lcid = self.get_unique_curve_id()
             system_map = [
@@ -737,13 +738,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
                             cvid1=1,
                             cvid2=0,
                             lcid=lcid,
-                            name="constant_preload_windkessel_afterload" + "_left",
+                            name="constant_preload_windkessel_afterload_left",
                             parameters=system_settings.left_ventricle,
                         )
                     ],
                 )
             ]
-        else:  # elif type(self.model) == BiVentricle:
+        else:  # BiVentricle model or higher
             lcid = self.get_unique_curve_id()
             system_map = [
                 ControlVolume(
@@ -755,7 +756,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                             cvid1=1,
                             cvid2=0,
                             lcid=lcid,
-                            name="constant_preload_windkessel_afterload" + "_left",
+                            name="constant_preload_windkessel_afterload_left",
                             parameters=system_settings.left_ventricle,
                         )
                     ],
@@ -769,17 +770,96 @@ class MechanicsDynaWriter(BaseDynaWriter):
                             cvid1=2,
                             cvid2=0,
                             lcid=lcid + 1,
-                            name="constant_preload_windkessel_afterload" + "_right",
+                            name="constant_preload_windkessel_afterload_right",
                             parameters=system_settings.right_ventricle,
                         )
                     ],
                 ),
             ]
-
         self._update_controlvolume_db(system_map)
 
-        # no control volume for atrial, constant pressure instead
-        if isinstance(self.model, FourChamber):
+        # Four chamber with active atrial
+        if isinstance(self.model, FourChamber) and self.model.left_atrium.is_active:
+            lcid = self.get_unique_curve_id()
+            system_map = [
+                ControlVolume(
+                    part=self.model.left_ventricle,
+                    id=1,
+                    Interactions=[
+                        CVInteraction(
+                            id=1,
+                            cvid1=1,
+                            cvid2=0,
+                            lcid=lcid,
+                            name="afterload_windkessel_left",
+                            parameters=system_settings.left_ventricle,
+                        ),
+                    ],
+                ),
+                ControlVolume(
+                    part=self.model.right_ventricle,
+                    id=2,
+                    Interactions=[
+                        CVInteraction(
+                            id=2,
+                            cvid1=2,
+                            cvid2=0,
+                            lcid=lcid + 1,
+                            name="afterload_windkessel_right",
+                            parameters=system_settings.right_ventricle,
+                        ),
+                    ],
+                ),
+                ControlVolume(
+                    part=self.model.left_atrium,
+                    id=3,
+                    Interactions=[
+                        CVInteraction(
+                            id=3,
+                            cvid1=3,
+                            cvid2=0,
+                            lcid=lcid + 2,
+                            name="constant_flow_left_atrium",
+                            parameters={"flow": -70.0},
+                        ),
+                        CVInteraction(
+                            id=4,
+                            cvid1=3,
+                            cvid2=1,
+                            lcid=lcid + 3,
+                            name="valve_mitral",
+                            parameters={"Rv": 1e-5},
+                        ),
+                    ],
+                ),
+                ControlVolume(
+                    part=self.model.right_atrium,
+                    id=4,
+                    Interactions=[
+                        CVInteraction(
+                            id=5,
+                            cvid1=4,
+                            cvid2=0,
+                            lcid=lcid + 4,
+                            name="constant_flow_right_atrium",
+                            parameters={"flow": -70.0},
+                        ),
+                        CVInteraction(
+                            id=6,
+                            cvid1=4,
+                            cvid2=2,
+                            lcid=lcid + 5,
+                            name="valve_tricuspid",
+                            parameters={"Rv": 1e-5},
+                        ),
+                    ],
+                ),
+            ]
+            self._update_controlvolume_db(system_map)
+
+        else:
+            # Four chamber with passive atrial
+            # no control volume for atrial, constant pressure instead
             bc_settings = self.settings.mechanics.boundary_conditions
             pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
             pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
@@ -1706,12 +1786,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 self.kw_database.control_volume.append(cvi_kw)
 
                 # DEFINE FUNCTION
-                define_function_wk = define_function_windkessel(
+                define_function_wk = define_function_0Dsystem(
                     function_id=interaction.lcid,
                     function_name=interaction.name,
-                    implicit=True,
-                    constants=interaction.parameters["constants"],
-                    initialvalues=interaction.parameters["initial_value"]["part"],
+                    parameters=interaction.parameters,
                 )
                 self.kw_database.control_volume.append(define_function_wk)
 

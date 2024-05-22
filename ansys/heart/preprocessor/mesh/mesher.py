@@ -31,11 +31,15 @@ from typing import List, Union
 from ansys.heart.core import LOG as LOGGER
 import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401
 from ansys.heart.preprocessor.mesh.fluenthdf5 import FluentCellZone, FluentMesh
+from ansys.heart.preprocessor.mesh.objects import SurfaceMesh
+from ansys.heart.preprocessor.mesh.vtkmethods import add_solid_name_to_stl
 from ansys.heart.preprocessor.models.v0_2.input import _InputBoundary, _InputModel
 import numpy as np
 import pyvista as pv
 
 _fluent_version = "22.2.0"
+_show_fluent_gui: bool = False
+_uses_container: bool = True
 
 try:
     _show_fluent_gui = bool(int(os.environ["SHOW_FLUENT_GUI"]))
@@ -46,12 +50,14 @@ LOGGER.info(f"Showing Fluent gui: {_show_fluent_gui}")
 # check whether containerized version of Fluent is used
 if os.getenv("PYFLUENT_LAUNCH_CONTAINER"):
     _uses_container = True
+    _show_fluent_gui = False
 else:
     _uses_container = False
 
 
 try:
     import ansys.fluent.core as pyfluent
+    from ansys.fluent.core.session_meshing import Meshing as MeshingSession
 except ImportError:
     LOGGER.info(
         "Failed to import PyFluent. Considering installing "
@@ -121,6 +127,117 @@ def _organize_connected_regions(grid: pv.UnstructuredGrid, scalar: str = "part-i
     return grid
 
 
+def _get_fluent_meshing_session() -> MeshingSession:
+    """Get a Fluent Meshing session."""
+    # NOTE: when using containerized version - we need to copy all the files
+    # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
+    if _uses_container:
+        num_cpus = 1
+    else:
+        num_cpus = 2
+
+    session = pyfluent.launch_fluent(
+        mode="meshing",
+        precision="double",
+        processor_count=num_cpus,
+        start_transcript=False,
+        show_gui=_show_fluent_gui,
+        product_version=_fluent_version,
+    )
+
+    return session
+
+
+def mesh_fluid_cavities(
+    fluid_boundaries: List[SurfaceMesh],
+    caps: List[SurfaceMesh],
+    workdir: str,
+    remesh_caps: bool = True,
+) -> FluentMesh:
+    """Mesh the fluid cavities.
+
+    Parameters
+    ----------
+    fluid_boundaries : List[SurfaceMesh]
+        List of fluid boundaries used for meshing.
+    caps : List[SurfaceMesh]
+        List of caps that close each of the cavities.
+    workdir : str
+        Working directory
+    remesh_caps : bool, optional
+        Flag indicating whether to remesh the caps, by default True
+
+    Returns
+    -------
+    Path
+        Path to the .msh.h5 volume mesh.
+    """
+    if _uses_container:
+        mounted_volume = pyfluent.EXAMPLES_PATH
+        work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing-fluid")
+    else:
+        work_dir_meshing = os.path.join(workdir, "meshing-fluid")
+
+    if not os.path.isdir(work_dir_meshing):
+        os.makedirs(work_dir_meshing)
+    else:
+        files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+        for f in files:
+            os.remove(f)
+
+    # write all boundaries
+    for b in fluid_boundaries:
+        filename = os.path.join(work_dir_meshing, b.name.lower() + ".stl")
+        b.save(filename)
+        add_solid_name_to_stl(filename, b.name.lower(), file_type="binary")
+
+    for c in caps:
+        filename = os.path.join(work_dir_meshing, c.name.lower() + ".stl")
+        c.save(filename)
+        add_solid_name_to_stl(filename, c.name.lower(), file_type="binary")
+
+    session = _get_fluent_meshing_session()
+
+    # import all stls
+    session.tui.file.import_.cad(f"no {work_dir_meshing} *.stl")
+
+    # merge objects
+    session.tui.objects.merge("'(*)", "model-fluid")
+
+    # fix duplicate nodes
+    session.tui.diagnostics.face_connectivity.fix_free_faces("objects '(*)")
+
+    # set size field
+    session.tui.size_functions.set_global_controls(1, 1, 1.2)
+    session.tui.scoped_sizing.compute("yes")
+
+    # remesh all caps
+    if remesh_caps:
+        session.tui.boundary.remesh.remesh_constant_size("(cap_*)", "()", 40, 20, 1, "yes")
+
+    # convert to mesh object
+    session.tui.objects.change_object_type("(*)", "mesh", "yes")
+
+    # compute volumetric regions
+    session.tui.objects.volumetric_regions.compute("model-fluid")
+
+    # mesh volume
+    session.tui.mesh.auto_mesh("model-fluid")
+
+    # clean up
+    session.tui.objects.delete_all_geom()
+    session.tui.objects.delete_unreferenced_faces_and_edges()
+
+    # write
+    file_path_mesh = os.path.join(workdir, "fluid-mesh.msh.h5")
+    session.tui.file.write_mesh(file_path_mesh)
+
+    mesh = FluentMesh(file_path_mesh)
+    mesh.load_mesh()
+
+    return mesh
+
+
 def mesh_from_manifold_input_model(
     model: _InputModel,
     workdir: Union[str, Path],
@@ -160,11 +277,8 @@ def mesh_from_manifold_input_model(
     if _uses_container:
         mounted_volume = pyfluent.EXAMPLES_PATH
         work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
-        num_cpus = 1
-        show_gui = False
     else:
         work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
-        show_gui = _show_fluent_gui
 
     if os.path.isdir(work_dir_meshing):
         shutil.rmtree(work_dir_meshing)
@@ -187,14 +301,7 @@ def mesh_from_manifold_input_model(
     # write all boundaries
     model.write_part_boundaries(work_dir_meshing)
 
-    session = pyfluent.launch_fluent(
-        mode="meshing",
-        precision="double",
-        processor_count=2,
-        start_transcript=False,
-        show_gui=_show_fluent_gui,
-        product_version=_fluent_version,
-    )
+    session = _get_fluent_meshing_session()
 
     session.transcript.start(
         os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
@@ -339,11 +446,8 @@ def mesh_from_non_manifold_input_model(
     if _uses_container:
         mounted_volume = pyfluent.EXAMPLES_PATH
         work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
-        num_cpus = 1
-        show_gui = False
     else:
         work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
-        show_gui = _show_fluent_gui
 
     if os.path.isdir(work_dir_meshing):
         shutil.rmtree(work_dir_meshing)
@@ -396,14 +500,7 @@ def mesh_from_non_manifold_input_model(
     model.write_part_boundaries(work_dir_meshing)
 
     # launch pyfluent
-    session = pyfluent.launch_fluent(
-        mode="meshing",
-        precision="double",
-        processor_count=4,
-        start_transcript=False,
-        show_gui=_show_fluent_gui,
-        product_version=_fluent_version,
-    )
+    session = _get_fluent_meshing_session()
 
     session.transcript.start(
         os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
@@ -683,11 +780,8 @@ def mesh_heart_model_by_fluent(
     if uses_container:
         mounted_volume = pyfluent.EXAMPLES_PATH
         work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
-        num_cpus = 1
-        show_gui = False
     else:
         work_dir_meshing = os.path.abspath(os.path.join(working_directory, "meshing"))
-        show_gui = _show_fluent_gui
 
     if os.path.isdir(work_dir_meshing):
         shutil.rmtree(work_dir_meshing)
@@ -703,14 +797,8 @@ def mesh_heart_model_by_fluent(
 
     LOGGER.debug("Starting meshing in directory: {}".format(work_dir_meshing))
     # start fluent session
-    session = pyfluent.launch_fluent(
-        mode="meshing",
-        precision="double",
-        processor_count=num_cpus,
-        start_transcript=False,
-        show_gui=show_gui,
-        product_version=_fluent_version,
-    )
+    session = _get_fluent_meshing_session()
+
     if session.health_check_service.status() != "SERVING":
         LOGGER.error("Fluent session failed. Exiting Fluent")
         session.exit()

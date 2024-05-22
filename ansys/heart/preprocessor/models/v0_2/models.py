@@ -29,6 +29,7 @@ import os
 # import json
 import pathlib
 import pickle
+import re
 from typing import List, Union
 
 from ansys.heart.core import LOG as LOGGER
@@ -505,6 +506,77 @@ class HeartModel:
         ]
 
         self.mesh = mesh
+
+        return
+
+    def _mesh_fluid_volume(self, remesh_caps: bool = True):
+        """Generate a volume mesh of the cavities.
+
+        Parameters
+        ----------
+        remesh_caps : bool, optional
+            Flag indicating whether to remesh the caps of each cavity, by default True
+        """
+        # get all relevant boundaries for the fluid cavities:
+        substrings_include = ["endocardium", "valve-plane", "septum"]
+        substrings_include_re = "|".join(substrings_include)
+
+        substrings_exlude = ["pulmonary-valve", "aortic-valve"]
+        substrings_exlude_re = "|".join(substrings_exlude)
+
+        boundaries_fluid = [
+            b for b in self.mesh.boundaries if re.search(substrings_include_re, b.name)
+        ]
+        boundaries_exclude = [
+            b.name for b in boundaries_fluid if re.search(substrings_exlude_re, b.name)
+        ]
+        boundaries_fluid = [b for b in boundaries_fluid if b.name not in boundaries_exclude]
+
+        caps = [
+            SurfaceMesh("cap_" + c.name, c.triangles, self.mesh.nodes)
+            for p in self.parts
+            for c in p.caps
+        ]
+
+        if len(boundaries_fluid) == 0:
+            LOGGER.debug("Meshing of fluid cavities not possible. No fluid surfaces detected.")
+            return
+
+        if len(caps) == 0:
+            LOGGER.debug("Meshing of fluid cavities not possible. No caps detected.")
+            return
+
+        LOGGER.info("Meshing fluid cavities...")
+
+        # mesh the fluid cavities
+        fluid_mesh = mesher.mesh_fluid_cavities(
+            boundaries_fluid, caps, self.info.workdir, remesh_caps=remesh_caps
+        )
+
+        LOGGER.info(f"Meshed {len(fluid_mesh.cell_zones)} fluid regions...")
+
+        # add part-ids
+        cz_ids = np.sort([cz.id for cz in fluid_mesh.cell_zones])
+        offset = 10000
+        new_ids = np.arange(cz_ids.shape[0]) + offset
+        czid_to_pid = {cz_id: new_ids[ii] for ii, cz_id in enumerate(cz_ids)}
+
+        for cz in fluid_mesh.cell_zones:
+            cz.id = czid_to_pid[cz.id]
+
+        fluid_mesh._fix_negative_cells()
+        fluid_mesh_vtk = fluid_mesh._to_vtk(add_cells=True, add_faces=False)
+
+        fluid_mesh_vtk.cell_data["part-id"] = fluid_mesh_vtk.cell_data["cell-zone-ids"]
+
+        boundaries = [
+            SurfaceMesh(fz.name, fz.faces, fluid_mesh.nodes, fz.id)
+            for fz in fluid_mesh.face_zones
+            if "interior" not in fz.name
+        ]
+
+        self.fluid_mesh = Mesh(fluid_mesh_vtk)
+        self.fluid_mesh.boundaries = boundaries
 
         return
 
@@ -1272,15 +1344,26 @@ class HeartModel:
             cavity_faces = np.empty((0, 3), dtype=int)
 
             surfaces = [s for s in part.surfaces if "endocardium" in s.name]
+
             for surface in surfaces:
                 cavity_faces = np.vstack([cavity_faces, surface.triangles])
 
+            # surface ids identifies caps from enocardium
+            ii = 1
+            surface_ids = np.ones(cavity_faces.shape[0], dtype=int) * ii
+
             for cap in part.caps:
+                ii += 1
+                surface_ids = np.append(
+                    surface_ids, np.ones(cap.triangles.shape[0], dtype=int) * ii
+                )
                 cavity_faces = np.vstack([cavity_faces, cap.triangles])
 
             surface = SurfaceMesh(
                 name=part.name + " cavity", triangles=cavity_faces, nodes=self.mesh.nodes
             )
+            surface.cell_data["surface-id"] = surface_ids
+
             surface.compute_normals(inplace=True)  # recompute normals
             part.cavity = Cavity(surface=surface, name=part.name)
             part.cavity.compute_centroid()

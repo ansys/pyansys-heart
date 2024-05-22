@@ -669,6 +669,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.system_model_name = self.settings.mechanics.system.name
         """Name of system model to use."""
 
+        self.set_flow_area: bool = False
+        """If flow area is set for control volume."""
         return
 
     @property
@@ -1757,24 +1759,26 @@ class MechanicsDynaWriter(BaseDynaWriter):
             cv_kw.sid = cavity.surface.id
             self.kw_database.control_volume.append(cv_kw)
 
-            # DEFINE_CONTROL_VOLUME_FLOW_AREA
-            sid = self.get_unique_segmentset_id()
-            sets = []
-            for cap in part.caps:
-                sets.append(cap.seg_id)  # TODO
-            if len(sets) % 8 == 0:  # dynalib bug
-                sets.append(0)
-            self.kw_database.control_volume.append(keywords.SetSegmentAdd(sid=sid, sets=sets))
+            if self.set_flow_area:
+                # DEFINE_CONTROL_VOLUME_FLOW_AREA
+                # This is necessary for truncated LV/BV model
+                sid = self.get_unique_segmentset_id()
+                sets = []
+                for cap in part.caps:
+                    sets.append(cap.seg_id)  # TODO
+                if len(sets) % 8 == 0:  # dynalib bug when length is 8,16,...
+                    sets.append(0)
+                self.kw_database.control_volume.append(keywords.SetSegmentAdd(sid=sid, sets=sets))
 
-            # TODO use dynalib: keywords.DefineControlVolumeFlowArea()
-            flow_area_kw = "*DEFINE_CONTROL_VOLUME_FLOW_AREA\n"
-            flow_area_kw += "$#    FAID     FCIID     FASID   FASTYPE       PID\n"
-            flow_area_kw += "{0:10d}".format(control_volume.id)  # same as CVID
-            flow_area_kw += "{0:10d}".format(control_volume.Interactions[0].id)  # first CVI id
-            flow_area_kw += "{0:10d}".format(sid)
-            flow_area_kw += "{0:10d}".format(2)  # flow area is defined by segment
-            flow_area_kw += "{0:10d}".format(pid)
-            self.kw_database.control_volume.append(flow_area_kw)
+                # TODO use dynalib: keywords.DefineControlVolumeFlowArea()
+                flow_area_kw = "*DEFINE_CONTROL_VOLUME_FLOW_AREA\n"
+                flow_area_kw += "$#    FAID     FCIID     FASID   FASTYPE       PID\n"
+                flow_area_kw += "{0:10d}".format(control_volume.id)  # same as CVID
+                flow_area_kw += "{0:10d}".format(control_volume.Interactions[0].id)  # first CVI id
+                flow_area_kw += "{0:10d}".format(sid)
+                flow_area_kw += "{0:10d}".format(2)  # flow area is defined by segment
+                flow_area_kw += "{0:10d}".format(pid)
+                self.kw_database.control_volume.append(flow_area_kw)
 
             for interaction in control_volume.Interactions:
                 # DEFINE_CONTROL_VOLUME_INTERACTION

@@ -143,6 +143,7 @@ def _get_fluent_meshing_session() -> MeshingSession:
         start_transcript=False,
         show_gui=_show_fluent_gui,
         product_version=_fluent_version,
+        start_container=_uses_container
     )
 
     return session

@@ -746,42 +746,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     ],
                 )
             ]
-        else:  # BiVentricle model or higher
-            lcid = self.get_unique_curve_id()
-            system_map = [
-                ControlVolume(
-                    part=self.model.left_ventricle,
-                    id=1,
-                    Interactions=[
-                        CVInteraction(
-                            id=1,
-                            cvid1=1,
-                            cvid2=0,
-                            lcid=lcid,
-                            name="constant_preload_windkessel_afterload_left",
-                            parameters=system_settings.left_ventricle,
-                        )
-                    ],
-                ),
-                ControlVolume(
-                    part=self.model.right_ventricle,
-                    id=2,
-                    Interactions=[
-                        CVInteraction(
-                            id=2,
-                            cvid1=2,
-                            cvid2=0,
-                            lcid=lcid + 1,
-                            name="constant_preload_windkessel_afterload_right",
-                            parameters=system_settings.right_ventricle,
-                        )
-                    ],
-                ),
-            ]
-        self._update_controlvolume_db(system_map)
-
         # Four chamber with active atrial
-        if isinstance(self.model, FourChamber) and self.model.left_atrium.is_active:
+        elif isinstance(self, ElectroMechanicsDynaWriter) and isinstance(self.model, FourChamber):
             lcid = self.get_unique_curve_id()
             system_map = [
                 ControlVolume(
@@ -857,15 +823,48 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     ],
                 ),
             ]
-            self._update_controlvolume_db(system_map)
+        else:  # BiVentricle model or higher
+            lcid = self.get_unique_curve_id()
+            system_map = [
+                ControlVolume(
+                    part=self.model.left_ventricle,
+                    id=1,
+                    Interactions=[
+                        CVInteraction(
+                            id=1,
+                            cvid1=1,
+                            cvid2=0,
+                            lcid=lcid,
+                            name="constant_preload_windkessel_afterload_left",
+                            parameters=system_settings.left_ventricle,
+                        )
+                    ],
+                ),
+                ControlVolume(
+                    part=self.model.right_ventricle,
+                    id=2,
+                    Interactions=[
+                        CVInteraction(
+                            id=2,
+                            cvid1=2,
+                            cvid2=0,
+                            lcid=lcid + 1,
+                            name="constant_preload_windkessel_afterload_right",
+                            parameters=system_settings.right_ventricle,
+                        )
+                    ],
+                ),
+            ]
 
-        else:
-            # Four chamber with passive atrial
-            # no control volume for atrial, constant pressure instead
-            bc_settings = self.settings.mechanics.boundary_conditions
-            pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
-            pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
-            self._add_constant_atrial_pressure(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
+        self._update_controlvolume_db(system_map)
+
+        # else:
+        #     # Four chamber with passive atrial
+        #     # no control volume for atrial, constant pressure instead
+        #     bc_settings = self.settings.mechanics.boundary_conditions
+        #     pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
+        #     pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
+        #     self._add_constant_atrial_pressure(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
         # for boundary conditions
         if robin_bcs is None:
@@ -1748,7 +1747,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
             return p_id
 
         # create a new null part used in defining flow area
-        pid = _create_null_part()
+        if self.set_flow_area:
+            pid = _create_null_part()
 
         for control_volume in system_map:
             part = control_volume.part

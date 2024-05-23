@@ -459,7 +459,7 @@ def mesh_from_non_manifold_input_model(
     min_size = mesh_size
     max_size = mesh_size
     growth_rate = 1.2
-  
+
     # clean up any stls in the directory
     stls = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
     for stl in stls:
@@ -513,7 +513,6 @@ def mesh_from_non_manifold_input_model(
     session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
     fzs = _get_face_zones_with_filter(session, ["*"])
     LOGGER.debug(f"Fluent Imported face zones: {fzs}")
-
 
     # each stl is imported as a separate object. Wrap the different collections of stls to create
     # new surface meshes for each of the parts.

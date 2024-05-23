@@ -459,7 +459,7 @@ def mesh_from_non_manifold_input_model(
     min_size = mesh_size
     max_size = mesh_size
     growth_rate = 1.2
-
+  
     # clean up any stls in the directory
     stls = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
     for stl in stls:
@@ -497,7 +497,10 @@ def mesh_from_non_manifold_input_model(
     # ]
 
     # write all boundaries
+    LOGGER.debug(f"Writing files in: {work_dir_meshing}")
     model.write_part_boundaries(work_dir_meshing)
+    files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+    LOGGER.debug(f"Files in {work_dir_meshing}: {files}")
 
     # launch pyfluent
     session = _get_fluent_meshing_session()

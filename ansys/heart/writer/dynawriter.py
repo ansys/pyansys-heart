@@ -2111,20 +2111,20 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         # add general implicit controls
         self.kw_database.main.append(
-            keywords.ControlImplicitGeneral(imflag=1, dt0=settings.analysis.dtmin)
+            keywords.ControlImplicitGeneral(imflag=1, dt0=settings.analysis.dtmax)
         )
 
         # add implicit solution controls
         self.kw_database.main.append(
             keywords.ControlImplicitSolution(
-                maxref=35,
+                # maxref=35,
                 dctol=0.01,
                 ectol=1e6,
                 rctol=1e3,
-                abstol=-1e-20,
+                abstol=1e-20,
                 dnorm=1,
                 diverg=2,
-                lsmtd=5,
+                # lsmtd=5,
             )
         )
 

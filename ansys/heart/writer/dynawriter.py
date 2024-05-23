@@ -979,17 +979,18 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self.kw_database.main.append(
             keywords.ControlImplicitSolution(
-                maxref=35,
-                dctol=0.02,
-                ectol=1e6,
-                rctol=1e3,
-                abstol=-1e-20,
-                dnorm=1,
-                diverg=2,
-                lstol=-0.9,
-                lsmtd=5,
-                d3itctl=1,
+                # maxref=35,
+                # dctol=0.02,
+                # ectol=1e6,
+                # rctol=1e3,
+                abstol=1e-20,
+                # dnorm=1,
+                # diverg=2,
+                # lstol=-0.9,
+                # lsmtd=5,
+                # d3itctl=1,
                 nlprint=3,
+                nlnorm=4,
             )
         )
 

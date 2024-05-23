@@ -32,10 +32,10 @@ heart = {
 """Generic analysis settings."""
 analysis = {
     "end_time": heart["cycles"] * heart["beat_time"],
-    "dtmin": Quantity(1.0, "ms"),
-    "dtmax": Quantity(1.0, "ms"),
+    "dtmin": Quantity(5.0, "ms"),
+    "dtmax": Quantity(5.0, "ms"),
     "dt_d3plot": heart["beat_time"] / 40,
-    "dt_icvout": Quantity(10.0, "ms"),
+    "dt_icvout": Quantity(5.0, "ms"),
     "global_damping": Quantity(0.1, "1/ms"),
 }
 

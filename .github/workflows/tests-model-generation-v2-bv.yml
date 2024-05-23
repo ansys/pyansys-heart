@@ -17,7 +17,7 @@ env:
   ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
   PYFLUENT_START_INSTANCE: 0
   PYFLUENT_LAUNCH_CONTAINER: 1
-  FLUENT_IMAGE_TAG: v24.1.0
+  FLUENT_IMAGE_TAG: v22.2.0
 
 
 concurrency:
@@ -48,7 +48,7 @@ jobs:
           username: ${{ secrets.GH_USERNAME }}
           password: ${{ secrets.REPO_DOWNLOAD_PAT }}
 
-      - name: Pull 24.1 Fluent docker image
+      - name: Pull 22.2 Fluent docker image
         run: |
           docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
           docker image prune -f
@@ -58,7 +58,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install .[tests]
           python -m pip install requests==2.31.0
-          python -m pip install dynalib==0.1.0          
+          python -m pip install dynalib==0.1.0
         env:
           PIP_EXTRA_INDEX_URL: 'https://${{ secrets.PYANSYS_PYPI_PRIVATE_PAT }}@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/'
 

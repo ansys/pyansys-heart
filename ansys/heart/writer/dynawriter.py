@@ -1982,14 +1982,15 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # for boundary conditions
         if robin_bcs is None:
             # default BC
-            self._add_cap_bc(bc_type="springs_caps")
+            self._add_cap_bc(bc_type="fix_caps")
         else:
             # loop for every Robin BC function
             for robin_bc in robin_bcs:
                 self.kw_database.boundary_conditions.extend(robin_bc())
-        if isinstance(self.model, FourChamber):
-            # add a small constraint to avoid rotation
-            self._add_pericardium_bc(scale=0.01)
+
+        # if isinstance(self.model, FourChamber):
+        #     # add a small constraint to avoid rotation
+        #     self._add_pericardium_bc(scale=0.01)
 
         # # Approximate end-diastolic pressures
         pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m

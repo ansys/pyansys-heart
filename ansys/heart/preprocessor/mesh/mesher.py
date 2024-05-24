@@ -37,7 +37,7 @@ from ansys.heart.preprocessor.models.v0_2.input import _InputBoundary, _InputMod
 import numpy as np
 import pyvista as pv
 
-_fluent_version = "22.2.0"
+_fluent_version = "24.1.0"
 _show_fluent_gui: bool = False
 _uses_container: bool = True
 
@@ -277,10 +277,11 @@ def mesh_from_manifold_input_model(
     if _uses_container:
         mounted_volume = pyfluent.EXAMPLES_PATH
         work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
+        work_dir_meshing = mounted_volume
     else:
         work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
 
-    if os.path.isdir(work_dir_meshing):
+    if os.path.isdir(work_dir_meshing) and not _uses_container:
         shutil.rmtree(work_dir_meshing)
     os.makedirs(work_dir_meshing)
 

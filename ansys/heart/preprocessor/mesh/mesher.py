@@ -462,9 +462,10 @@ def mesh_from_non_manifold_input_model(
     if _uses_container:
         config_dict = pyfluent.launch_fluent(start_container=True, dry_run=True)
         LOGGER.debug(f"Config dict:{config_dict}")
+        work_dir_meshing = config_dict["working_dir"]
     
-    # else:
-    work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
+    else:
+        work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
 
     if os.path.isdir(work_dir_meshing):
         shutil.rmtree(work_dir_meshing)

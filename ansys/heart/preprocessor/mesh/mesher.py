@@ -532,7 +532,8 @@ def mesh_from_non_manifold_input_model(
     )
 
     # import stls
-    session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
+    # session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
+    session.tui.file.import_.cad("no", work_dir_meshing, "*.stl", "yes", 40, "yes", "mm")
     fzs = _get_face_zones_with_filter(session, ["*"])
     LOGGER.debug(f"Fluent Imported face zones: {fzs}")
 

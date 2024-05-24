@@ -459,17 +459,18 @@ def mesh_from_non_manifold_input_model(
     #     custom_config = {"host_mount_path": work_dir_meshing}
         # config_dict = pyfluent.launch_fluent(start_container=True, dry_run=True)
     #     print(config_dict)
+    # else:
+    work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
+    
     if _uses_container:
         config_dict = pyfluent.launch_fluent(start_container=True, dry_run=True)
         LOGGER.debug(f"Config dict:{config_dict}")
-        work_dir_meshing = config_dict["working_dir"]
+        config_dict["host_mount_path"] = work_dir_meshing
+        # work_dir_meshing = config_dict["working_dir"]
     
-    else:
-        work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
-
-        if os.path.isdir(work_dir_meshing):
-            shutil.rmtree(work_dir_meshing)
-        os.makedirs(work_dir_meshing)
+    if os.path.isdir(work_dir_meshing):
+        shutil.rmtree(work_dir_meshing)
+    os.makedirs(work_dir_meshing)
 
     path_to_output_old = path_to_output
     path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
@@ -522,8 +523,7 @@ def mesh_from_non_manifold_input_model(
 
     # launch pyfluent
     if _uses_container:
-        custom_config = {"host_mount_path": work_dir_meshing}
-        session = _get_fluent_meshing_session(custom_config)
+        session = _get_fluent_meshing_session(config_dict)
     else:        
         session = _get_fluent_meshing_session()
 

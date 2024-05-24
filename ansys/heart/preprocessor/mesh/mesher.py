@@ -299,8 +299,11 @@ def mesh_from_manifold_input_model(
     for stl in stls:
         os.remove(stl)
 
+    
     # write all boundaries
     model.write_part_boundaries(work_dir_meshing)
+    files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+    LOGGER.debug(f"Files written: {files}")
 
     session = _get_fluent_meshing_session()
 
@@ -309,7 +312,13 @@ def mesh_from_manifold_input_model(
     )
 
     # import files
-    session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
+    # session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
+    session.tui.file.import_.cad("no", work_dir_meshing, "*.stl", "yes", 40, "yes", "mm")
+    
+    face_zones = _get_face_zones_with_filter(session, ["*"])
+    LOGGER.debug(f"Boundaries imported: {face_zones}")
+    
+    
     session.tui.objects.merge("'(*) heart")
     session.tui.objects.labels.create_label_per_zone("heart '(*)")
     session.tui.diagnostics.face_connectivity.fix_free_faces("objects '(*) merge-nodes yes 1e-3")

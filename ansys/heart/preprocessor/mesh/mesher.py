@@ -455,7 +455,8 @@ def mesh_from_non_manifold_input_model(
     # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
     if _uses_container:
         mounted_volume = pyfluent.EXAMPLES_PATH
-        work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
+        # work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
+        work_dir_meshing = mounted_volume
     else:
         work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
 
@@ -506,8 +507,10 @@ def mesh_from_non_manifold_input_model(
     #     if "interface-" in old_name
     # ]
 
-    # write all boundaries
+    # write all boundaries    
     model.write_part_boundaries(work_dir_meshing)
+    files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+    LOGGER.debug(f"Files written in {work_dir_meshing}: {files}")
 
     # launch pyfluent
     session = _get_fluent_meshing_session()
@@ -517,7 +520,10 @@ def mesh_from_non_manifold_input_model(
     )
 
     # import stls
-    session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
+    # session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
+    session.tui.file.import_.cad("no", work_dir_meshing, "*.stl", "yes", 40, "yes", "mm")
+    face_zones = _get_face_zones_with_filter(session, ["*"])
+    LOGGER.debug(f"Face zones read: {face_zones}")
 
     # each stl is imported as a separate object. Wrap the different collections of stls to create
     # new surface meshes for each of the parts.

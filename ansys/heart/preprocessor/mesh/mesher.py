@@ -459,7 +459,10 @@ def mesh_from_non_manifold_input_model(
     #     custom_config = {"host_mount_path": work_dir_meshing}
         # config_dict = pyfluent.launch_fluent(start_container=True, dry_run=True)
     #     print(config_dict)
-        
+    if _uses_container:
+        config_dict = pyfluent.launch_fluent(start_container=True, dry_run=True)
+        LOGGER.debug(f"Config dict:{config_dict}")
+    
     # else:
     work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
 

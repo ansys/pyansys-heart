@@ -303,7 +303,7 @@ def mesh_from_manifold_input_model(
     # write all boundaries
     model.write_part_boundaries(work_dir_meshing)
     files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
-    LOGGER.debug(f"Files written: {files}")
+    LOGGER.debug(f"Files written in {work_dir_meshing}: {files}")
 
     session = _get_fluent_meshing_session()
 

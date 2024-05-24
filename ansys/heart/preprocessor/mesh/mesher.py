@@ -37,7 +37,7 @@ from ansys.heart.preprocessor.models.v0_2.input import _InputBoundary, _InputMod
 import numpy as np
 import pyvista as pv
 
-_fluent_version = "23.2.0"
+_fluent_version = "24.1.0"
 _show_fluent_gui: bool = False
 _uses_container: bool = True
 
@@ -127,24 +127,32 @@ def _organize_connected_regions(grid: pv.UnstructuredGrid, scalar: str = "part-i
     return grid
 
 
-def _get_fluent_meshing_session() -> MeshingSession:
+def _get_fluent_meshing_session(custom_config: dict = {}) -> MeshingSession:
     """Get a Fluent Meshing session."""
     # NOTE: when using containerized version - we need to copy all the files
     # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
     if _uses_container:
         num_cpus = 1
+        session = pyfluent.launch_fluent(
+            mode="meshing",
+            precision="double",
+            processor_count=num_cpus,
+            start_transcript=False,
+            show_gui=_show_fluent_gui,
+            product_version=_fluent_version,
+            start_container=_uses_container,
+            container_dict=custom_config
+        )
     else:
         num_cpus = 2
-
-    session = pyfluent.launch_fluent(
-        mode="meshing",
-        precision="double",
-        processor_count=num_cpus,
-        start_transcript=False,
-        show_gui=_show_fluent_gui,
-        product_version=_fluent_version,
-        start_container=_uses_container
-    )
+        session = pyfluent.launch_fluent(
+            mode="meshing",
+            precision="double",
+            processor_count=num_cpus,
+            start_transcript=False,
+            show_gui=_show_fluent_gui,
+            product_version=_fluent_version,
+        )
 
     return session
 
@@ -444,12 +452,16 @@ def mesh_from_non_manifold_input_model(
 
     # NOTE: when using containerized version - we need to copy all the files
     # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
-    if _uses_container:
-        # mounted_volume = pyfluent.EXAMPLES_PATH
-        # work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
-        work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
-    else:
-        work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
+    # if _uses_container:
+    #     # mounted_volume = pyfluent.EXAMPLES_PATH
+    #     # work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
+    #     work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
+    #     custom_config = {"host_mount_path": work_dir_meshing}
+        # config_dict = pyfluent.launch_fluent(start_container=True, dry_run=True)
+    #     print(config_dict)
+        
+    # else:
+    work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
 
     if os.path.isdir(work_dir_meshing):
         shutil.rmtree(work_dir_meshing)
@@ -505,7 +517,11 @@ def mesh_from_non_manifold_input_model(
     LOGGER.debug(f"Files in {work_dir_meshing}: {files}")
 
     # launch pyfluent
-    session = _get_fluent_meshing_session()
+    if _uses_container:
+        custom_config = {"host_mount_path": work_dir_meshing}
+        session = _get_fluent_meshing_session(custom_config)
+    else:        
+        session = _get_fluent_meshing_session()
 
     session.transcript.start(
         os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False

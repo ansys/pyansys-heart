@@ -467,9 +467,9 @@ def mesh_from_non_manifold_input_model(
     else:
         work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
 
-    if os.path.isdir(work_dir_meshing):
-        shutil.rmtree(work_dir_meshing)
-    os.makedirs(work_dir_meshing)
+        if os.path.isdir(work_dir_meshing):
+            shutil.rmtree(work_dir_meshing)
+        os.makedirs(work_dir_meshing)
 
     path_to_output_old = path_to_output
     path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")

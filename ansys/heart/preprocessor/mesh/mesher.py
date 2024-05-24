@@ -445,8 +445,9 @@ def mesh_from_non_manifold_input_model(
     # NOTE: when using containerized version - we need to copy all the files
     # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
     if _uses_container:
-        mounted_volume = pyfluent.EXAMPLES_PATH
-        work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
+        # mounted_volume = pyfluent.EXAMPLES_PATH
+        # work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
+        work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
     else:
         work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
 

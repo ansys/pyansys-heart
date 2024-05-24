@@ -519,9 +519,14 @@ def mesh_from_non_manifold_input_model(
         os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
     )
 
+    
+    session.tui.file.import_.cad("yes", files[0],"yes",40,"yes","mm")
+    for file in files[1:]:
+        session.tui.file.import_.cad("yes", file, "yes","yes",40,"yes","mm")
+
     # import stls
     # session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
-    session.tui.file.import_.cad("no", work_dir_meshing, "*.stl", "yes", 40, "yes", "mm")
+    # session.tui.file.import_.cad("no", work_dir_meshing, "*.stl", "yes", 40, "yes", "mm")
     face_zones = _get_face_zones_with_filter(session, ["*"])
     LOGGER.debug(f"Face zones read: {face_zones}")
 

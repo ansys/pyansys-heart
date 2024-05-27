@@ -33,7 +33,7 @@ dependencies = [
     "meshio==5.3.4",
     "numpy<=1.26.0",
     "pandas<=3.0.0",
-    "scipy<=1.10.0",
+    "scipy<=1.13.1",
     "vtk>=9.1.0",
     "tqdm==4.66.1",
     "wget==3.2",

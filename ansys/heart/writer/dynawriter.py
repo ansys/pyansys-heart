@@ -4060,7 +4060,10 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         """Collection of keyword decks relevant for mechanics."""
 
         self.system_model_name = self.settings.mechanics.system.name
-        """Name of system model to use."""
+        """Name of system model to use, from MechanicWriter"""
+
+        self.set_flow_area = False
+        """from MechanicWriter"""
 
     def update(self, with_dynain=False, robin_bcs=None):
         """Update the keyword database."""

@@ -211,10 +211,10 @@ def mech_post(directory: pathlib.Path, model):
     os.makedirs(out_dir, exist_ok=True)
     time = D3plotReader(os.path.join(directory, "d3plot")).time / 1000  # to second
     for it, tt in enumerate(time):
-        # assume heart beat once per 1s
-        ef = system.get_ejection_fraction(t_start=time[-1] - 1, t_end=time[-1])
+        # assume heart beat once per 0.8s # TODO
+        ef = system.get_ejection_fraction(t_start=time[-1] - 0.8, t_end=time[-1])
         fig = system.plot_pv_loop(t_start=0, t_end=tt, ef=ef, show_ed=False)
-        fig.savefig(os.path.join(out_dir, "post", "pv_{0:d}.png".format(it)))
+        fig.savefig(os.path.join(out_dir, "pv_{0:d}.png".format(it)))
         plt.close()
     # build video with command
     # ffmpeg -f image2 -i pv_%d.png output.mp4

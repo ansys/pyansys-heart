@@ -29,9 +29,6 @@ Uses a HeartModel (from ansys.heart.preprocessor.models).
 """
 
 import copy
-
-# from importlib.resources import files
-from importlib.resources import path as resource_path
 import json
 
 # import missing keywords
@@ -72,6 +69,9 @@ elif heart_version == "v0.1":
         LeftVentricle,
     )
 
+from typing import NamedTuple
+
+from ansys.heart.preprocessor.mesh.objects import Part
 from ansys.heart.simulator.settings.settings import SimulationSettings
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 from ansys.heart.writer.heart_decks import (
@@ -98,10 +98,29 @@ from ansys.heart.writer.keyword_module import (
     get_list_of_used_ids,
 )
 from ansys.heart.writer.material_keywords import MaterialHGOMyocardium, MaterialNeoHook
-from ansys.heart.writer.system_models import _ed_load_template, define_function_windkessel
+from ansys.heart.writer.system_models import _ed_load_template, define_function_0Dsystem
 import numpy as np
 import pandas as pd
 import pyvista as pv
+
+
+class CVInteraction(NamedTuple):
+    """Template to define control volume interaction."""
+
+    id: int
+    cvid1: int
+    cvid2: int
+    lcid: int
+    name: str
+    parameters: dict
+
+
+class ControlVolume(NamedTuple):
+    """Template to define control volume."""
+
+    part: Part
+    id: int
+    Interactions: list[CVInteraction]
 
 
 class BaseDynaWriter:
@@ -276,7 +295,7 @@ class BaseDynaWriter:
 
         return
 
-    def _update_segmentsets_db(self):
+    def _update_segmentsets_db(self, add_caps=False):
         """Update the segment set database."""
         # NOTE 0: add all surfaces as segment sets
         # NOTE 1: need to more robustly check segids that are already used?
@@ -306,6 +325,18 @@ class BaseDynaWriter:
                 # append this kw to the segment set database
                 self.kw_database.segment_sets.append(kw)
 
+        if add_caps:
+            # create corresponding segment sets
+            caps = [cap for part in self.model.parts for cap in part.caps]
+            for cap in caps:
+                segid = self.get_unique_segmentset_id()
+                setattr(cap, "seg_id", segid)
+                segset_kw = create_segment_set_keyword(
+                    segments=cap.triangles + 1,
+                    segid=cap.seg_id,
+                    title=cap.name,
+                )
+                self.kw_database.segment_sets.append(segset_kw)
         return
 
     def _update_nodesets_db(
@@ -638,6 +669,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.system_model_name = self.settings.mechanics.system.name
         """Name of system model to use."""
 
+        self.set_flow_area: bool = False
+        """If flow area is set for control volume."""
         return
 
     @property
@@ -678,6 +711,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self._update_parts_db()
         self._update_material_db(add_active=True)
+        self._update_segmentsets_db(add_caps=True)
+        self._update_nodesets_db()
 
         if not with_dynain:
             self._update_node_db()
@@ -689,19 +724,147 @@ class MechanicsDynaWriter(BaseDynaWriter):
             # cap mesh has been defined in Zerop and saved in dynain file
             self._update_cap_elements_db(add_mesh=False)
 
-        self._update_segmentsets_db()
-        self._update_nodesets_db()
-
         # # for control volume
-        self._update_controlvolume_db()
-        self._update_system_model()
+        system_settings = copy.deepcopy(self.settings.mechanics.system)
+        system_settings._remove_units()
 
-        # no control volume for atrial, constant pressure instead
-        if isinstance(self.model, FourChamber):
-            bc_settings = self.settings.mechanics.boundary_conditions
-            pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
-            pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
-            self._add_constant_atrial_pressure(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
+        if isinstance(self.model, LeftVentricle):
+            lcid = self.get_unique_curve_id()
+            system_map = [
+                ControlVolume(
+                    part=self.model.left_ventricle,
+                    id=1,
+                    Interactions=[
+                        CVInteraction(
+                            id=1,
+                            cvid1=1,
+                            cvid2=0,
+                            lcid=lcid,
+                            name="constant_preload_windkessel_afterload_left",
+                            parameters=system_settings.left_ventricle,
+                        )
+                    ],
+                )
+            ]
+        # Four chamber with active atrial
+        elif isinstance(self, ElectroMechanicsDynaWriter) and isinstance(self.model, FourChamber):
+            lcid = self.get_unique_curve_id()
+            system_map = [
+                ControlVolume(
+                    part=self.model.left_ventricle,
+                    id=1,
+                    Interactions=[
+                        CVInteraction(
+                            id=1,
+                            cvid1=1,
+                            cvid2=0,
+                            lcid=lcid,
+                            name="afterload_windkessel_left",
+                            parameters=system_settings.left_ventricle,
+                        ),
+                    ],
+                ),
+                ControlVolume(
+                    part=self.model.right_ventricle,
+                    id=2,
+                    Interactions=[
+                        CVInteraction(
+                            id=2,
+                            cvid1=2,
+                            cvid2=0,
+                            lcid=lcid + 1,
+                            name="afterload_windkessel_right",
+                            parameters=system_settings.right_ventricle,
+                        ),
+                    ],
+                ),
+                ControlVolume(
+                    part=self.model.left_atrium,
+                    id=3,
+                    Interactions=[
+                        CVInteraction(
+                            id=3,
+                            cvid1=3,
+                            cvid2=0,
+                            lcid=lcid + 2,
+                            name="constant_flow_left_atrium",
+                            parameters={"flow": -70.0},
+                        ),
+                        CVInteraction(
+                            id=4,
+                            cvid1=3,
+                            cvid2=1,
+                            lcid=lcid + 3,
+                            name="valve_mitral",
+                            parameters={"Rv": 1e-5},
+                        ),
+                    ],
+                ),
+                ControlVolume(
+                    part=self.model.right_atrium,
+                    id=4,
+                    Interactions=[
+                        CVInteraction(
+                            id=5,
+                            cvid1=4,
+                            cvid2=0,
+                            lcid=lcid + 4,
+                            name="constant_flow_right_atrium",
+                            parameters={"flow": -70.0},
+                        ),
+                        CVInteraction(
+                            id=6,
+                            cvid1=4,
+                            cvid2=2,
+                            lcid=lcid + 5,
+                            name="valve_tricuspid",
+                            parameters={"Rv": 1e-5},
+                        ),
+                    ],
+                ),
+            ]
+        else:  # BiVentricle model or higher
+            lcid = self.get_unique_curve_id()
+            system_map = [
+                ControlVolume(
+                    part=self.model.left_ventricle,
+                    id=1,
+                    Interactions=[
+                        CVInteraction(
+                            id=1,
+                            cvid1=1,
+                            cvid2=0,
+                            lcid=lcid,
+                            name="constant_preload_windkessel_afterload_left",
+                            parameters=system_settings.left_ventricle,
+                        )
+                    ],
+                ),
+                ControlVolume(
+                    part=self.model.right_ventricle,
+                    id=2,
+                    Interactions=[
+                        CVInteraction(
+                            id=2,
+                            cvid1=2,
+                            cvid2=0,
+                            lcid=lcid + 1,
+                            name="constant_preload_windkessel_afterload_right",
+                            parameters=system_settings.right_ventricle,
+                        )
+                    ],
+                ),
+            ]
+
+        self._update_controlvolume_db(system_map)
+
+        # else:
+        #     # Four chamber with passive atrial
+        #     # no control volume for atrial, constant pressure instead
+        #     bc_settings = self.settings.mechanics.boundary_conditions
+        #     pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
+        #     pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
+        #     self._add_constant_atrial_pressure(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
 
         # for boundary conditions
         if robin_bcs is None:
@@ -722,13 +885,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
     def export(self, export_directory: str):
         """Write the model to files."""
         super().export(export_directory)
-
-        # write cavity name and volume
-        dct = {}
-        for cavity in self.model.cavities:
-            dct[cavity.name] = cavity.volume
-        with open(os.path.join(export_directory, "volumes.json"), "w") as f:
-            json.dump(dct, f)
 
         # todo: Close loop is only available from a customized LSDYNA executable
         # add system json in case of closed loop. For open-loop this is already
@@ -822,17 +978,18 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self.kw_database.main.append(
             keywords.ControlImplicitSolution(
-                maxref=35,
-                dctol=0.02,
-                ectol=1e6,
-                rctol=1e3,
-                abstol=-1e-20,
-                dnorm=1,
-                diverg=2,
-                lstol=-0.9,
-                lsmtd=5,
-                d3itctl=1,
+                # maxref=35,
+                # dctol=0.02,
+                # ectol=1e6,
+                # rctol=1e3,
+                abstol=1e-20,
+                # dnorm=1,
+                # diverg=2,
+                # lstol=-0.9,
+                # lsmtd=5,
+                # d3itctl=1,
                 nlprint=3,
+                nlnorm=4,
             )
         )
 
@@ -934,78 +1091,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self.kw_database.main.append(f"$$ {part.name} stiffness damping [ms]")
             kw = keywords.DampingPartStiffness(pid=part.pid, coef=-0.2)
             self.kw_database.main.append(kw)
-        return
-
-    def _update_segmentsets_db(self):
-        """Update the segment set database."""
-        # NOTE 0: add all surfaces as segment sets
-        # NOTE 1: need to more robustly check segids that are already used?
-
-        # add closed cavity segment sets
-        cavities = [p.cavity for p in self.model.parts if p.cavity]
-
-        # caps = [cap for part in self.model.parts for cap in part.caps]
-        # valve_nodes = []
-        # for cap in caps:
-        #     valve_nodes.extend(cap.node_ids)
-
-        for cavity in cavities:
-            segs = cavity.surface.triangles
-
-            # # remove segments related to valve nodes
-            # for n in valve_nodes:
-            #     index = np.argwhere(n == segs)
-            #     segs = np.delete(segs, np.array(index)[:, 0], axis=0)
-
-            surface_id = self.get_unique_segmentset_id()
-            cavity.surface.id = surface_id
-            kw = create_segment_set_keyword(
-                segments=segs + 1,
-                segid=cavity.surface.id,
-                title=cavity.name,
-            )
-            # append this kw to the segment set database
-            self.kw_database.segment_sets.append(kw)
-
-        # write surfaces as segment sets
-        for part in self.model.parts:
-            for surface in part.surfaces:
-                surface.id = self.get_unique_segmentset_id()
-                kw = create_segment_set_keyword(
-                    segments=surface.triangles + 1,
-                    segid=surface.id,
-                    title=surface.name,
-                )
-                # append this kw to the segment set database
-                self.kw_database.segment_sets.append(kw)
-
-        # create corresponding segment sets. Store in new file?
-        caps = [cap for part in self.model.parts for cap in part.caps]
-        for cap in caps:
-            segid = self.get_unique_segmentset_id()
-            setattr(cap, "seg_id", segid)
-            # # WYE: add a node at center of cap
-            # # Note: should not be applied in ZeropWriter, it will impact dynain file
-            # nid = len(self.model.mesh.nodes) + segid
-            # self.kw_database.segment_sets.append(
-            #     "*NODE\n{0:8d}{1:16f}{2:16f}{3:16f}".format(nid + 1, *cap.centroid)
-            # )
-            # nid_x = cap.triangles[0, 0]
-            # cap.triangles[:, 0] = nid
-            # cap.triangles = np.insert(
-            #     cap.triangles, 0, np.array([nid, nid_x, cap.triangles[0, 1]]), axis=0
-            # )
-            # cap.triangles = np.insert(
-            #     cap.triangles, -1, np.array([nid, cap.triangles[-1, -1], nid_x]), axis=0
-            # )
-            # # END WYE:
-
-            segset_kw = create_segment_set_keyword(
-                segments=cap.triangles + 1,
-                segid=cap.seg_id,
-                title=cap.name,
-            )
-            self.kw_database.segment_sets.append(segset_kw)
         return
 
     def _update_nodesets_db(self, remove_duplicates: bool = True):
@@ -1520,65 +1605,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
         -----
         Loops over all the defined caps/valves.
         """
-        # create part for each closing cap
-        # used_partids = get_list_of_used_ids(self.kw_database.parts, "PART")
-        # used_secids = get_list_of_used_ids(self.kw_database.parts, "SECTION")
-        # used_segids = get_list_of_used_ids(self.kw_database.segment_sets, "SET_SEGMENT")
-
-        section_id = self.get_unique_section_id()
-
-        # NOTE should be dynamic
+        # material
         mat_null_id = self.get_unique_mat_id()
+        material_kw = keywords.MatNull(
+            mid=mat_null_id,
+            ro=0.001,
+        )
 
-        # material_kw = MaterialCap(mid=mat_null_id)
-        material_settings = copy.deepcopy(self.settings.mechanics.material)
-        material_settings._remove_units()
-
-        def _add_linear_constraint(id: int, slave_id: int, master_ids: List[int]) -> list:
-            lin_constraint_kws = []
-
-            for dof in range(1, 4):
-                kw = custom_keywords.ConstrainedLinearGlobal(licd=3 * id + dof)
-                data = np.empty((0, 3))
-                data = np.vstack([data, [slave_id, dof, 1.0]])
-
-                for m_id in master_ids:
-                    data = np.vstack([data, [m_id, dof, -1 / len(master_ids)]])
-
-                kw.linear_constraints = pd.DataFrame(columns=["nid", "dof", "coef"], data=data)
-
-                lin_constraint_kws.append(kw)
-
-            return lin_constraint_kws
-
-        # caps are rigid in zerop
-        if type(self) == ZeroPressureMechanicsDynaWriter:
-            material_kw = keywords.MatRigid(
-                mid=mat_null_id,
-                ro=material_settings.cap["rho"],
-                e=1.0,  # MPa
-            )
-
-        else:
-            if material_settings.cap["type"] == "stiff":
-                material_kw = MaterialNeoHook(
-                    mid=mat_null_id,
-                    rho=material_settings.cap["rho"],
-                    c10=material_settings.cap["mu1"] / 2,
-                )
-
-            elif material_settings.cap["type"] == "null":
-                material_kw = keywords.MatNull(
-                    mid=mat_null_id,
-                    ro=material_settings.cap["rho"],
-                )
-            elif material_settings.cap["type"] == "rigid":
-                material_kw = keywords.MatRigid(
-                    mid=mat_null_id,
-                    ro=material_settings.cap["rho"],
-                    e=1.0,  # MPa
-                )
-
+        # section
+        section_id = self.get_unique_section_id()
         section_kw = keywords.SectionShell(
             secid=section_id,
             elform=4,
@@ -1602,7 +1637,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             cap.pid = self.get_unique_part_id()
 
             part_kw = keywords.Part()
-            part_info = pd.DataFrame(
+            part_kw.parts = pd.DataFrame(
                 {
                     "heading": [cap.name],
                     "pid": [cap.pid],
@@ -1610,11 +1645,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     "mid": [mat_null_id],
                 }
             )
-            part_kw.parts = part_info
+            self.kw_database.cap_elements.append(part_kw)
+            cap_names_used.append(cap.name)
 
             if cap.centroid is not None:
                 # cap centroids already added to mesh for v0.2
-                if heart_version == "v0.1":
+                if heart_version == "v0.1":  # TODO: remove this exception
                     if add_mesh:
                         # Add center node
                         node_kw = keywords.Node()
@@ -1628,158 +1664,139 @@ class MechanicsDynaWriter(BaseDynaWriter):
                         s = "$" + node_kw.write()
                         self.kw_database.nodes.append(s)
 
-                # # seems affect badly the convergence
-                # if type(self) == MechanicsDynaWriter:
-                #     # center node constraint: average of edge nodes
-                #     n = len(cap.node_ids) // 7  # select n+1 node for interpolation
-                #     constraint_list = _add_linear_constraint(
-                #         len(cap_names_used), cap.centroid_id + 1, cap.node_ids[::n] + 1
-                #     )
-                #     self.kw_database.cap_elements.extend(constraint_list)
+                if cap.nsid is None:
+                    LOGGER.error("cap node set ID is not yes assigned")
+                    exit()
 
-                # # # do not work with mpp
-                # # constraint = keywords.ConstrainedInterpolation(
-                # #     icid=len(cap_names_used) + 1,
-                # #     dnid=cap.centroid_id + 1,
-                # #     ddof=123,
-                # #     ityp=1,
-                # #     fgm=1,
-                # #     inid=cap.nsid,
-                # #     idof=123,
-                # # )
-                # # self.kw_database.cap_elements.append(constraint)
-
-            self.kw_database.cap_elements.append(part_kw)
-            cap_names_used.append(cap.name)
+                constraint = keywords.ConstrainedInterpolation(
+                    icid=len(cap_names_used) + 1,
+                    dnid=cap.centroid_id + 1,
+                    ddof=123,
+                    ityp=1,
+                    fgm=0,
+                    inid=cap.nsid,
+                    idof=123,
+                )
+                self.kw_database.cap_elements.append(constraint)
 
         # create closing triangles for each cap
-        # assumes there are no shells written yet since offset = 0
-        shell_id_offset = 0
-        cap_names_used = []
-        for cap in caps:
-            if cap.name in cap_names_used:
-                continue
+        # Note: cap parts already defined in control volume flow area, no mandatory here
+        if add_mesh:
+            # assumes there are no shells written yet since offset = 0
+            shell_id_offset = 0
+            cap_names_used = []
+            for cap in caps:
+                if cap.name in cap_names_used:
+                    continue
 
-            shell_kw = create_element_shell_keyword(
-                shells=cap.triangles + 1,
-                part_id=cap.pid,
-                id_offset=shell_id_offset,
-            )
-            if add_mesh:
-                self.kw_database.cap_elements.append(shell_kw)
-
-            shell_id_offset = shell_id_offset + cap.triangles.shape[0]
-            cap_names_used.append(cap.name)
-        return
-
-    def _update_controlvolume_db(self):
-        """Prepare the keywords for the control volume feature."""
-        # NOTE: Assumes cavity id is reserved for combined
-        # segment set
-
-        # set up control volume keywords and interaction of
-        # cavity with ambient. Only do for ventricles
-        cavities = [part.cavity for part in self.model.parts if part.cavity]
-        for cavity in cavities:
-            if "atrium" in cavity.name:
-                continue
-
-            cv_kw = keywords.DefineControlVolume()
-            cv_kw.id = cavity.surface.id
-            cv_kw.sid = cavity.surface.id
-
-            self.kw_database.control_volume.append(cv_kw)
-
-        for cavity in cavities:
-            if "atrium" in cavity.name:
-                continue
-
-            cvi_kw = keywords.DefineControlVolumeInteraction()
-            cvi_kw.id = cavity.surface.id
-            cvi_kw.cvid1 = cavity.surface.id
-            cvi_kw.cvid2 = 0  # ambient
-
-            # NOTE: static for the moment. Maximum of 2 cavities supported
-            # but this is valid for the LeftVentricle, BiVentricle and FourChamber models
-            if self.system_model_name == "ClosedLoop":
-                if "Left ventricle" in cavity.name:
-                    cvi_kw.lcid_ = -10
-                elif "Right ventricle" in cavity.name:
-                    cvi_kw.lcid_ = -11
-
-            elif self.system_model_name == "ConstantPreloadWindkesselAfterload":
-                if "Left ventricle" in cavity.name:
-                    cvi_kw.lcid_ = 10
-                if "Right ventricle" in cavity.name:
-                    cvi_kw.lcid_ = 11
-
-            self.kw_database.control_volume.append(cvi_kw)
-
-        return
-
-    def _update_system_model(self):
-        """Update json system model settings."""
-        model_type = self.model.info.model_type
-
-        system_settings = copy.deepcopy(self.settings.mechanics.system)
-        system_settings._remove_units()
-
-        # closed loop uses a custom executable
-        if system_settings.name == "ClosedLoop":
-            raise NotImplementedError("Closed loop circulation not yet supported.")
-            LOGGER.warning(
-                "Note that this model type requires a custom executable that "
-                "supports the Closed Loop circulation model!"
-            )
-            if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-                file_path = resource_path(
-                    "ansys.heart.writer", "templates/system_model_settings_bv.json"
-                ).__enter__()
-            elif isinstance(self.model, LeftVentricle):
-                file_path = resource_path(
-                    "ansys.heart.writer", "templates/system_model_settings_lv.json"
-                ).__enter__()
-
-            fid = open(file_path)
-            sys_settings = json.load(fid)
-
-            # update the volumes
-            sys_settings["SystemModelInitialValues"]["UnstressedVolumes"]["lv"] = (
-                self.model.get_part("Left ventricle").cavity.volume
-            )
-
-            if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-                sys_settings["SystemModelInitialValues"]["UnstressedVolumes"]["rv"] = (
-                    self.model.get_part("Right ventricle").cavity.volume
+                shell_kw = create_element_shell_keyword(
+                    shells=cap.triangles + 1,
+                    part_id=cap.pid,
+                    id_offset=shell_id_offset,
                 )
 
-            self.system_model_json = sys_settings
+                self.kw_database.cap_elements.append(shell_kw)
 
-        # otherwise add the define function
-        elif system_settings.name == "ConstantPreloadWindkesselAfterload":
-            if self.system_model_name != system_settings.name:
-                LOGGER.error("Circulation system parameters cannot be rad from Json")
+                shell_id_offset = shell_id_offset + cap.triangles.shape[0]
+                cap_names_used.append(cap.name)
+        return
 
-            for cavity in self.model.cavities:
-                if "Left ventricle" in cavity.name:
-                    define_function_wk = define_function_windkessel(
-                        function_id=10,
-                        function_name="constant_preload_windkessel_afterload_left",
-                        implicit=True,
-                        constants=dict(system_settings.left_ventricle["constants"]),
-                        initialvalues=system_settings.left_ventricle["initial_value"]["part"],
-                    )
-                    self.kw_database.control_volume.append(define_function_wk)
+    def _update_controlvolume_db(self, system_map: list[ControlVolume]):
+        """Prepare the keywords for the control volume feature.
 
-                elif "Right ventricle" in cavity.name:
-                    define_function_wk = define_function_windkessel(
-                        function_id=11,
-                        function_name="constant_preload_windkessel_afterload_right",
-                        implicit=True,
-                        constants=dict(system_settings.right_ventricle["constants"]),
-                        initialvalues=system_settings.right_ventricle["initial_value"]["part"],
-                    )
-                    self.kw_database.control_volume.append(define_function_wk)
+        Parameters
+        ----------
+        system_map : list[ControlVolume]
+            list of control volume
+        """
+        if not self.system_model_name == "ConstantPreloadWindkesselAfterload":
+            exit()
+
+        def _create_null_part():
+            # material
+            mat_id = self.get_unique_mat_id()
+            material_kw = keywords.MatNull(
+                mid=mat_id,
+                ro=0.001,
+            )
+            # section
+            section_id = self.get_unique_section_id()
+            section_kw = keywords.SectionShell(
+                secid=section_id,
+                elform=4,
+                shrf=0.8333,
+                nip=3,
+                t1=1,
+            )
+            # part
+            p_id = self.get_unique_part_id()
+            part_kw = keywords.Part()
+            part_kw.parts = pd.DataFrame(
+                {
+                    "heading": ["null flow area"],
+                    "pid": [p_id],
+                    "secid": [section_id],
+                    "mid": [mat_id],
+                }
+            )
+
+            self.kw_database.control_volume.append(section_kw)
+            self.kw_database.control_volume.append(material_kw)
+            self.kw_database.control_volume.append(part_kw)
+
+            return p_id
+
+        # create a new null part used in defining flow area
+        if self.set_flow_area:
+            pid = _create_null_part()
+
+        for control_volume in system_map:
+            part = control_volume.part
+            cavity = part.cavity
+
+            # DEFINE_CONTROL_VOLUME
+            cv_kw = keywords.DefineControlVolume()
+            cv_kw.id = control_volume.id
+            cv_kw.sid = cavity.surface.id
+            self.kw_database.control_volume.append(cv_kw)
+
+            if self.set_flow_area:
+                # DEFINE_CONTROL_VOLUME_FLOW_AREA
+                # This is necessary for truncated LV/BV model
+                sid = self.get_unique_segmentset_id()
+                sets = []
+                for cap in part.caps:
+                    sets.append(cap.seg_id)  # TODO
+                if len(sets) % 8 == 0:  # dynalib bug when length is 8,16,...
+                    sets.append(0)
+                self.kw_database.control_volume.append(keywords.SetSegmentAdd(sid=sid, sets=sets))
+
+                # TODO use dynalib: keywords.DefineControlVolumeFlowArea()
+                flow_area_kw = "*DEFINE_CONTROL_VOLUME_FLOW_AREA\n"
+                flow_area_kw += "$#    FAID     FCIID     FASID   FASTYPE       PID\n"
+                flow_area_kw += "{0:10d}".format(control_volume.id)  # same as CVID
+                flow_area_kw += "{0:10d}".format(control_volume.Interactions[0].id)  # first CVI id
+                flow_area_kw += "{0:10d}".format(sid)
+                flow_area_kw += "{0:10d}".format(2)  # flow area is defined by segment
+                flow_area_kw += "{0:10d}".format(pid)
+                self.kw_database.control_volume.append(flow_area_kw)
+
+            for interaction in control_volume.Interactions:
+                # DEFINE_CONTROL_VOLUME_INTERACTION
+                cvi_kw = keywords.DefineControlVolumeInteraction()
+                cvi_kw.id = interaction.id
+                cvi_kw.cvid1 = interaction.cvid1
+                cvi_kw.cvid2 = interaction.cvid2
+                cvi_kw.lcid_ = interaction.lcid
+                self.kw_database.control_volume.append(cvi_kw)
+
+                # DEFINE FUNCTION
+                define_function_wk = define_function_0Dsystem(
+                    function_id=interaction.lcid,
+                    function_name=interaction.name,
+                    parameters=interaction.parameters,
+                )
+                self.kw_database.control_volume.append(define_function_wk)
 
         return
 
@@ -1957,7 +1974,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self._update_node_db()
         self._update_parts_db()
         self._update_solid_elements_db(add_fibers=True)
-        self._update_segmentsets_db()
+        self._update_segmentsets_db(add_caps=True)
         self._update_nodesets_db()
         self._update_material_db(add_active=False)
         self._update_cap_elements_db()
@@ -1965,14 +1982,15 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # for boundary conditions
         if robin_bcs is None:
             # default BC
-            self._add_cap_bc(bc_type="springs_caps")
+            self._add_cap_bc(bc_type="fix_caps")
         else:
             # loop for every Robin BC function
             for robin_bc in robin_bcs:
                 self.kw_database.boundary_conditions.extend(robin_bc())
-        if isinstance(self.model, FourChamber):
-            # add a small constraint to avoid rotation
-            self._add_pericardium_bc(scale=0.01)
+
+        # if isinstance(self.model, FourChamber):
+        #     # add a small constraint to avoid rotation
+        #     self._add_pericardium_bc(scale=0.01)
 
         # # Approximate end-diastolic pressures
         pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
@@ -2095,20 +2113,20 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         # add general implicit controls
         self.kw_database.main.append(
-            keywords.ControlImplicitGeneral(imflag=1, dt0=settings.analysis.dtmin)
+            keywords.ControlImplicitGeneral(imflag=1, dt0=settings.analysis.dtmax)
         )
 
         # add implicit solution controls
         self.kw_database.main.append(
             keywords.ControlImplicitSolution(
-                maxref=35,
+                # maxref=35,
                 dctol=0.01,
                 ectol=1e6,
                 rctol=1e3,
-                abstol=-1e-20,
+                abstol=1e-20,
                 dnorm=1,
                 diverg=2,
-                lsmtd=5,
+                # lsmtd=5,
             )
         )
 
@@ -4042,7 +4060,10 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         """Collection of keyword decks relevant for mechanics."""
 
         self.system_model_name = self.settings.mechanics.system.name
-        """Name of system model to use."""
+        """Name of system model to use, from MechanicWriter"""
+
+        self.set_flow_area = False
+        """from MechanicWriter"""
 
     def update(self, with_dynain=False, robin_bcs=None):
         """Update the keyword database."""
@@ -4623,3 +4644,4 @@ class UHCWriter(BaseDynaWriter):
 
 if __name__ == "__main__":
     print("protected")
+    pass

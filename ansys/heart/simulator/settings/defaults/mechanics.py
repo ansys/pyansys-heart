@@ -32,10 +32,10 @@ heart = {
 """Generic analysis settings."""
 analysis = {
     "end_time": heart["cycles"] * heart["beat_time"],
-    "dtmin": Quantity(1.0, "ms"),
-    "dtmax": Quantity(1.0, "ms"),
+    "dtmin": Quantity(5.0, "ms"),
+    "dtmax": Quantity(5.0, "ms"),
     "dt_d3plot": heart["beat_time"] / 40,
-    "dt_icvout": Quantity(10.0, "ms"),
+    "dt_icvout": Quantity(5.0, "ms"),
     "global_damping": Quantity(0.1, "1/ms"),
 }
 
@@ -84,6 +84,21 @@ material = {
         #     "k1fs": Quantity(0.216e-3, "MPa"),
         #     "k2fs": Quantity(11.436, "dimensionless"),
         # },
+        # # Gultekin et al.
+        # "isotropic": {
+        #     "rho": Quantity(0.001, "g/mm^3"),
+        #     "nu": 0.499,
+        #     "k1": Quantity(0.40e-3, "MPa"),
+        #     "k2": Quantity(6.55),
+        # },
+        # "anisotropic": {
+        #     "k1f": Quantity(3.05e-3, "MPa"),
+        #     "k2f": Quantity(29.05, "dimensionless"),
+        #     "k1s": Quantity(1.25e-3, "MPa"),
+        #     "k2s": Quantity(36.65, "dimensionless"),
+        #     "k1fs": Quantity(0.15e-3, "MPa"),
+        #     "k2fs": Quantity(6.28, "dimensionless"),
+        # },
         "isotropic": {
             "rho": Quantity(0.001, "g/mm^3"),
             "nu": 0.499,
@@ -109,12 +124,6 @@ material = {
         "itype": -1,
         "mu1": Quantity(0.1, "MPa"),
         "alpha1": 2,
-    },
-    # null cap: center node is fixed
-    # rigid cap: more difficult to converge
-    "cap": {
-        "type": "null",
-        "rho": Quantity(0.001, "g/mm^3"),
     },
 }
 

@@ -23,10 +23,10 @@
 """Module for postprocessing system model data."""
 
 from dataclasses import dataclass
-import json
 import os
 
 from ansys.heart.core import LOG as LOGGER
+from ansys.heart.postprocessor.dpf_utils import ICVoutReader
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import matplotlib.pyplot as plt
 import numpy as np
@@ -191,24 +191,19 @@ class SystemModelPost:
             )
 
         # get EOD volume
-        # todo: get this information from binout:icvout
         try:
-            # load simulated EOD volume
-            with open(os.path.join(self.dir, "Post_report.json")) as f:
-                dct = json.load(f)
-                l_ed_volume = dct["Simulation Left ventricle volume (mm3)"][-1] / 1000
-                if self.model_type == "BV":
-                    r_ed_volume = dct["Simulation Right ventricle volume"][-1] / 1000
-        except FileExistsError:
-            # load Input EOD volume
-            with open(os.path.join(self.dir, "volumes.json")) as f:
-                dct = json.load(f)
-                l_ed_volume = dct["Left ventricle"] / 1000
-                if self.model_type == "BV":
-                    r_ed_volume = dct["Right ventricle"] / 1000
-
+            icvout = ICVoutReader(os.path.join(self.dir, "binout0000"))
+        except FileNotFoundError:
+            try:  # from SMP
+                icvout = ICVoutReader(os.path.join(self.dir, "binout"))
+            except FileNotFoundError:
+                LOGGER.error("Cannot find binout file.")
+                exit()
+        l_ed_volume = icvout.get_volume(1)[0] / 1000
         self.lv_system = ZeroDSystem(fcsv1, [l_ed_pressure, l_ed_volume], name="Left ventricle")
+
         if self.model_type == "BV":
+            r_ed_volume = icvout.get_volume(2)[0] / 1000
             self.rv_system = ZeroDSystem(
                 fcsv2, [r_ed_pressure, r_ed_volume], name="Right ventricle"
             )

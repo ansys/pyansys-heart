@@ -587,19 +587,17 @@ class MechanicsSimulator(BaseSimulator):
             zerop_folder = os.path.join(self.root_directory, "zeropressure")
 
         if self.initial_stress:
-            try:
-                # get dynain.lsda file from
-                dynain_file = os.path.join(zerop_folder, "iter3.dynain.lsda")
-
-                shutil.copy(dynain_file, os.path.join(directory, "dynain.lsda"))
-                shutil.copy(
-                    os.path.join(zerop_folder, "post", "Post_report.json"),
-                    os.path.join(directory, "Post_report.json"),
-                )
-            except IndexError:
-                # handle if lsda file not exist.
-                LOGGER.warning("Cannot find initial stress file iter3.dynain.lsda")
+            # try to use iter3
+            dynain_file = os.path.join(zerop_folder, "iter3.dynain.lsda")
+            # try to use iter2
+            if not os.path.isfile(dynain_file):
+                dynain_file = os.path.join(zerop_folder, "iter2.dynain.lsda")
+            # zerop must failed
+            if not os.path.isfile(dynain_file):
+                LOGGER.error("Cannot find initial stress file iterX.dynain.lsda")
                 exit()
+            else:
+                shutil.copy(dynain_file, os.path.join(directory, "dynain.lsda"))
 
         self._write_main_simulation_files(folder_name=folder_name)
 

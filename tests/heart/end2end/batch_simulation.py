@@ -123,6 +123,7 @@ def main(args):
             simulator.settings.load_defaults()
             #
             simulator.compute_fibers()
+            simulator.create_stiff_ventricle_base()
 
             if isinstance(model, models.FourChamber):
                 try:
@@ -141,9 +142,9 @@ def main(args):
 
             simulator.compute_stress_free_configuration()
 
-            simulator.compute_purkinje(after_zerop=True)
+            simulator.compute_purkinje()
             if isinstance(model, models.FourChamber):
-                simulator.compute_conduction_system(after_zerop=True)
+                simulator.compute_conduction_system()
 
             simulator.simulate()
 

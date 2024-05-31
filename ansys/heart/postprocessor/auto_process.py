@@ -35,49 +35,58 @@ from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.postprocessor.exporter import LVContourExporter
-from ansys.heart.preprocessor.mesh.objects import Cavity, SurfaceMesh
+from ansys.heart.preprocessor.mesh.objects import Cavity
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import matplotlib.pyplot as plt
 import numpy as np
 
 if not heart_version:
     heart_version = "v0.1"
+if heart_version == "v0.2":
+    from ansys.heart.preprocessor.models.v0_2.models import HeartModel
+elif heart_version == "v0.1":
+    from ansys.heart.preprocessor.models.v0_2.models import HeartModel
 
 
-def zerop_post(directory, model):
-    """
-    Post-process zeropressure folder.
+def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.ndarray]:
+    """Post-process zeropressure folder.
 
     Parameters
     ----------
-    directory: where d3plot files locate
-    model: Heart model
+    directory : str
+        simulation folder path
+    model : HeartModel
+        model
 
     Returns
     -------
-    Dictionary of stress free simulation report.
+    tuple[dict, np.ndarray, np.ndarray]
+        dictionary with convergence information
+        stress free configuration
+        computed end-of-diastolic configuration
     """
     folder = "post"
     os.makedirs(os.path.join(directory, folder), exist_ok=True)
 
     # read from d3plot
     data = D3plotReader(glob.glob(os.path.join(directory, "iter*.d3plot"))[-1])
+
     # read settings file
     setting = SimulationSettings()
     setting.load(os.path.join(directory, "simulation_settings.yml"))
 
     expected_time = setting.stress_free.analysis.end_time.to("millisecond").m
-
     if data.time[-1] != expected_time:
-        Warning("Stress free computation is not converged, skip post process.")
-        return None
+        LOGGER.error("Stress free computation is not converged, skip post process.")
+        exit()
+
     stress_free_coord = data.get_initial_coordinates()
     displacements = data.get_displacement()
     guess_ed_coord = stress_free_coord + displacements[-1]
 
     if len(model.cap_centroids) == 0 or heart_version == "v0.2":
         nodes = model.mesh.nodes
-    else:
+    else:  # TODO remove after migrating to v0.2
         # a center node for each cap has been created, add them into create the cavity
         nodes = np.vstack((model.mesh.nodes, np.zeros((len(model.cap_centroids), 3))))
         for cap_center in model.cap_centroids:
@@ -96,35 +105,25 @@ def zerop_post(directory, model):
         temp_mesh.cell_data.remove(key)
     temp_mesh.save(os.path.join(directory, folder, "True_ED.vtk"))
 
-    # Note: vtk files contain center cap node, but not cap mesh
     temp_mesh.points = stress_free_coord
     temp_mesh.save(os.path.join(directory, folder, "zerop.vtk"))
     temp_mesh.points = stress_free_coord + displacements[-1]
     temp_mesh.save(os.path.join(directory, folder, "Simu_ED.vtk"))
 
-    def _post_cavity(name: str):
+    def compute_cavity_volume(cavity: Cavity) -> list:
         """Extract cavity volume."""
-        try:
-            faces = (
-                np.loadtxt(os.path.join(directory, name + ".segment"), delimiter=",", dtype=int) - 1
-            )
-        except FileExistsError:
-            LOGGER.warning(f"Cannot find {name}.segment")
-
         volumes = []
         for i, dsp in enumerate(displacements):
-            cavity_surface = SurfaceMesh(name=name, triangles=faces, nodes=stress_free_coord + dsp)
-            cavity_surface.save(os.path.join(directory, folder, f"{name}_{i}.stl"))
-            volumes.append(Cavity(cavity_surface).volume)
+            new_cavity = copy.deepcopy(cavity)
+            new_cavity.surface.points = stress_free_coord + dsp
+            new_cavity.surface.save(os.path.join(directory, folder, f"{cavity.name}_{i}.stl"))
+            volumes.append(new_cavity.volume)
 
         return volumes
 
     # cavity information
-    lv_volumes = _post_cavity("left_ventricle")
-
-    for cavity in model.cavities:
-        if cavity.name.lower() == "left ventricle":
-            true_lv_ed_volume = cavity.volume
+    lv_volumes = compute_cavity_volume(model.left_ventricle.cavity)
+    true_lv_ed_volume = model.left_ventricle.cavity.volume
 
     volume_error = [(lv_volumes[-1] - true_lv_ed_volume) / true_lv_ed_volume]
 
@@ -154,14 +153,12 @@ def zerop_post(directory, model):
             "relative volume error (100%)": volume_error,
         },
     }
-    dct["guess_ed_coord"] = guess_ed_coord.tolist()
 
     # right ventricle exist
     if len(model.cavities) > 1:
-        rv_volumes = _post_cavity("right_ventricle")
-        for cavity in model.cavities:
-            if cavity.name.lower() == "right ventricle":
-                true_rv_ed_volume = cavity.volume
+
+        true_rv_ed_volume = model.right_ventricle.cavity.volume
+        rv_volumes = compute_cavity_volume(model.right_ventricle.cavity)
 
         volume_error.append((rv_volumes[-1] - true_rv_ed_volume) / true_rv_ed_volume)
 
@@ -177,7 +174,7 @@ def zerop_post(directory, model):
     with open(os.path.join(directory, folder, "Post_report.json"), "w") as f:
         json.dump(dct, f)
 
-    return dct
+    return dct, stress_free_coord, guess_ed_coord
 
 
 def mech_post(directory: pathlib.Path, model):

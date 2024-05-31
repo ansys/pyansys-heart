@@ -518,10 +518,7 @@ class MechanicsSimulator(BaseSimulator):
 
         self.initial_stress = initial_stress
         """If stress free computation is taken into considered."""
-        # include initial stress by default
-
-        self.stress_free_report = None
-        """A dictionary save stress free computation information"""
+        # True by default
 
         return
 
@@ -629,7 +626,7 @@ class MechanicsSimulator(BaseSimulator):
         else:
             LOGGER.info(f"Re-using existing results in {directory}")
 
-        self.stress_free_report = zerop_post(directory, self.model)
+        report, stress_free_coord, guess_ed_coord = zerop_post(directory, self.model)
 
         # replace node coordinates by computed ED geometry
         LOGGER.info("Updating nodes after stress-free.")
@@ -637,12 +634,14 @@ class MechanicsSimulator(BaseSimulator):
         # Note: cap center node will be added into mesh.points
         if heart_version == "v0.1":
             n_caps = len(self.model.cap_centroids)
-            guess_ed_coords = np.array(self.stress_free_report["guess_ed_coord"])[:-n_caps]
+            guess_ed_coords = np.array(guess_ed_coord)[:-n_caps]
         elif heart_version == "v0.2":
-            guess_ed_coords = np.array(self.stress_free_report["guess_ed_coord"])
+            guess_ed_coords = np.array(guess_ed_coord)
+
+        # Afterwards, model is on guessed ED state
         self.model.mesh.nodes = guess_ed_coords
 
-        # Note: synchronization
+        # Note: synchronization for surfaces
         for part in self.model.parts:
             for surface in part.surfaces:
                 surface.nodes = guess_ed_coords

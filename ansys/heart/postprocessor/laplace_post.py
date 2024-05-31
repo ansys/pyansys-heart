@@ -22,6 +22,7 @@
 
 """Post process script related to Laplace solving (UHC, fibers)."""
 
+import copy
 import os
 from typing import List
 

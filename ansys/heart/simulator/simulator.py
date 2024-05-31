@@ -41,12 +41,11 @@ from typing import List, Literal
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.misc.element_orth import read_orth_element_kfile
-from ansys.heart.postprocessor.auto_process import (
+from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
+from ansys.heart.postprocessor.laplace_post import (
     compute_la_fiber_cs,
     compute_ra_fiber_cs,
-    mech_post,
     read_uvc,
-    zerop_post,
 )
 from ansys.heart.preprocessor.mesh.objects import Part
 from ansys.heart.simulator.settings.material.material import NeoHookean

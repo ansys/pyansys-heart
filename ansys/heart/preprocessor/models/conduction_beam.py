@@ -60,7 +60,9 @@ def _refine_line(nodes: np.array, beam_length: float):
         if len(points) <= 2:
             is_new_node = np.append(is_new_node, False)
         else:
-            is_new_node = np.append(is_new_node, [np.ones(len(points) - 2, dtype=bool), False])
+            is_new_node = np.append(
+                is_new_node, np.append(np.ones(len(points) - 2, dtype=bool), False)
+            )
         new_nodes = np.vstack((new_nodes, points[1:, :]))
     return new_nodes, is_new_node
 
@@ -142,21 +144,25 @@ class ConductionSystem:
         right_atrium_endo = self.m.right_atrium.endocardium
 
         try:
-            SA_id = self.m.right_atrium.get_point("SA_node").node_id
+            SA_point = self.m.right_atrium.get_point("SA_node")
         except AttributeError:
             LOGGER.info("SA node is not defined, creating with default option.")
-            SA_id = self.m.compute_SA_node().node_id
+            SA_point = self.m.compute_SA_node()
 
         try:
-            AV_id = self.m.right_atrium.get_point("AV_node").node_id
+            AV_point = self.m.right_atrium.get_point("AV_node")
         except AttributeError:
             LOGGER.info("AV node is not defined, creating with default option.")
-            AV_id = self.m.compute_AV_node().node_id
+            AV_point = self.m.compute_AV_node()
 
-        path_SAN_AVN = right_atrium_endo.geodesic(SA_id, AV_id)
+        path_SAN_AVN = right_atrium_endo.geodesic(
+            right_atrium_endo.find_closest_point(SA_point.xyz),
+            right_atrium_endo.find_closest_point(AV_point.xyz),
+        )
 
         # duplicate nodes inside the line, connect only SA node (the first) with 3D
         point_ids = path_SAN_AVN["vtkOriginalPointIds"]
+        # connections=0: duplicate, 1: connect 3D, 2: connect to beam:
         connections = np.zeros((point_ids.size, 2), dtype=int)
         connections[0, 0] = 1
         connections[:, 1] = point_ids
@@ -413,7 +419,15 @@ class ConductionSystem:
         position_id_His_end = np.argwhere(edges == side_his_point_ids[-1])[0]
         return (position_id_His_end, his_end_coord, new_nodes, edges, sgmt)
 
-    def compute_left_right_bundle(self, start_coord, start_id, side: str, beam_length: float = 1.5):
+    def compute_left_right_bundle(
+        self,
+        start_coord,
+        start_id,
+        side: str,
+        end_coord=None,
+        end_id=None,
+        beam_length: float = 1.5,
+    ):
         """Bundle brunch."""
         if side == "Left":
             ventricle = self.m.left_ventricle
@@ -442,6 +456,43 @@ class ConductionSystem:
         connections = np.zeros((point_ids.size, 2), dtype=int)
         if side == "Left":
             connections = np.ones((point_ids.size, 2), dtype=int)
+
+        connections[:, 1] = point_ids
+        connections[[0, -1], 0] = 2
+        new_nodes, edges, mask = self._prepare_beam_line(
+            bundle_branch.points, connections, beam_length
+        )
+        beam_net = self.m.add_beam_net(new_nodes, edges, mask, pid=0, name=side + " bundle branch")
+        # used in dynawriter, to write beam connectivity, need offset since it's a beam node
+        beam_net.beam_nodes_mask[0, 0] = True
+        beam_net.beam_nodes_mask[-1, -1] = True
+
+        return beam_net
+
+    def compute_left_anterior_bundle(
+        self,
+        start_coord,
+        start_id,
+        side: str,
+        end_coord=None,
+        end_id=None,
+        beam_length: float = 1.5,
+    ):
+        """Bundle brunch."""
+        ventricle = self.m.left_ventricle
+        endo_surface = self.m.left_ventricle.endocardium
+
+        bundle_branch = endo_surface.geodesic(
+            endo_surface.find_closest_point(start_coord),
+            endo_surface.find_closest_point(end_coord),
+        )
+
+        # duplicate nodes inside the line, connect only SA node (the first) with 3D
+        point_ids = bundle_branch["vtkOriginalPointIds"]
+        point_ids[0] = start_id
+        point_ids[-1] = end_id
+
+        connections = np.zeros((point_ids.size, 2), dtype=int)
 
         connections[:, 1] = point_ids
         connections[[0, -1], 0] = 2

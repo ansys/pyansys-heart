@@ -125,7 +125,7 @@ class BaseSimulator:
 
         # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
         input_file = os.path.join(directory, "main.k")
-        self._run_dyna(path_to_input=input_file)
+        # self._run_dyna(path_to_input=input_file)
 
         LOGGER.info("done.")
 
@@ -367,7 +367,7 @@ class EPSimulator(BaseSimulator):
         LOGGER.info("Launching main EP simulation...")
 
         input_file = os.path.join(directory, "main.k")
-        # self._run_dyna(input_file)
+        self._run_dyna(input_file)
 
         LOGGER.info("done.")
 
@@ -430,8 +430,16 @@ class EPSimulator(BaseSimulator):
             cs.compute_av_conduction(beam_length=beam_length)
             left, right = cs.compute_His_conduction(beam_length=beam_length)
             cs.compute_left_right_bundle(
-                left.xyz, left.node_id, side="Left", beam_length=beam_length
+                start_coord=left.xyz, start_id=left.node_id, side="Left", beam_length=beam_length
             )
+            # cs.compute_left_anterior_bundle(
+            #     start_coord=left.xyz,
+            #     start_id=left.node_id,
+            #     end_coord=[59.602, 125.083, 393.619],
+            #     end_id=123373,
+            #     side="LeftAnterior",
+            #     beam_length=beam_length,
+            # )
             cs.compute_left_right_bundle(
                 right.xyz, right.node_id, side="Right", beam_length=beam_length
             )

@@ -1732,14 +1732,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
             sys_settings = json.load(fid)
 
             # update the volumes
-            sys_settings["SystemModelInitialValues"]["UnstressedVolumes"][
-                "lv"
-            ] = self.model.get_part("Left ventricle").cavity.volume
+            sys_settings["SystemModelInitialValues"]["UnstressedVolumes"]["lv"] = (
+                self.model.get_part("Left ventricle").cavity.volume
+            )
 
             if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-                sys_settings["SystemModelInitialValues"]["UnstressedVolumes"][
-                    "rv"
-                ] = self.model.get_part("Right ventricle").cavity.volume
+                sys_settings["SystemModelInitialValues"]["UnstressedVolumes"]["rv"] = (
+                    self.model.get_part("Right ventricle").cavity.volume
+                )
 
             self.system_model_json = sys_settings
 
@@ -3714,6 +3714,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             elif network.name == "SAN_to_AVN":
                 network.nsid = self.model.right_atrium.endocardium.id
             elif network.name == "Left bundle branch":
+                network.nsid = self.model.left_ventricle.cavity.surface.id
+            elif network.name == "LeftAnterior bundle branch":
                 network.nsid = self.model.left_ventricle.cavity.surface.id
             elif network.name == "Right bundle branch":
                 network.nsid = self.model.right_ventricle.cavity.surface.id

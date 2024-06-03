@@ -199,6 +199,11 @@ def mesh_fluid_cavities(
     session = _get_fluent_meshing_session()
 
     # import all stls
+    if _uses_container:
+        # NOTE: when using a Fluent container visible files
+        # will be in /mnt/pyfluent. So need to use relative paths
+        # or replace dirname by /mnt/pyfluent as prefix
+        work_dir_meshing = "/mnt/pyfluent"
     session.tui.file.import_.cad(f"no {work_dir_meshing} *.stl")
 
     # merge objects
@@ -276,7 +281,7 @@ def mesh_from_manifold_input_model(
     # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
     if _uses_container:
         mounted_volume = pyfluent.EXAMPLES_PATH
-        work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
+        work_dir_meshing = os.path.join(mounted_volume)
     else:
         work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
 
@@ -308,6 +313,12 @@ def mesh_from_manifold_input_model(
     )
 
     # import files
+    if _uses_container:
+        # NOTE: when using a Fluent container visible files
+        # will be in /mnt/pyfluent. So need to use relative paths
+        # or replace dirname by /mnt/pyfluent as prefix
+        work_dir_meshing = "/mnt/pyfluent"
+
     session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
     session.tui.objects.merge("'(*) heart")
     session.tui.objects.labels.create_label_per_zone("heart '(*)")
@@ -445,7 +456,7 @@ def mesh_from_non_manifold_input_model(
     # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
     if _uses_container:
         mounted_volume = pyfluent.EXAMPLES_PATH
-        work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
+        work_dir_meshing = os.path.join(mounted_volume)
     else:
         work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
 
@@ -507,6 +518,12 @@ def mesh_from_non_manifold_input_model(
     )
 
     # import stls
+    if _uses_container:
+        # NOTE: when using a Fluent container visible files
+        # will be in /mnt/pyfluent. So need to use relative paths
+        # or replace dirname by /mnt/pyfluent as prefix
+        work_dir_meshing = "/mnt/pyfluent"
+
     session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
 
     # each stl is imported as a separate object. Wrap the different collections of stls to create

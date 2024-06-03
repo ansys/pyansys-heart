@@ -535,17 +535,6 @@ class BaseDynaWriter:
 
         return
 
-    def _export_cavity_segmentsets(self, export_directory: str):
-        """Export the cavity segment sets to separate files."""
-        cavities = [part.cavity for part in self.model.parts if part.cavity]
-        for cavity in cavities:
-            filepath = os.path.join(
-                export_directory, "_".join(cavity.name.lower().split()) + ".segment"
-            )
-            np.savetxt(filepath, cavity.surface.triangles + 1, delimiter=",", fmt="%d")
-
-        return
-
     def _keep_ventricles(self):
         """Remove any non-ventricular parts."""
         # NOTE: Could move "remove part" method to model
@@ -2042,15 +2031,6 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         self._get_list_of_includes()
         self._add_includes()
-
-        return
-
-    def export(self, export_directory: str):
-        """Write the model to files."""
-        super().export(export_directory)
-
-        # export segment sets to separate file
-        self._export_cavity_segmentsets(export_directory)
 
         return
 

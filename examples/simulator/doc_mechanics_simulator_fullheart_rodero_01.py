@@ -1,3 +1,25 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """
 
 Full-heart mechanics
@@ -21,13 +43,19 @@ stress free configuration, and finally simulate the mechanical model.
 # directory, model, and ls-dyna executable.
 
 import os
-from pathlib import Path
 
-import ansys.heart.preprocessor.models.v0_1.models as models
+# set this environment variable to ensure you are using v0.2 of the model
+os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
+
+import ansys.heart.preprocessor.models.v0_2.models as models
 from ansys.heart.simulator.simulator import DynaSettings, MechanicsSimulator
 
+# accept dpf license aggrement
+# https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
+os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+
 # set working directory and path to model.
-workdir = Path(Path(__file__).resolve().parents[2], "downloads", "Rodero2021", "01", "FullHeart")
+workdir = os.path.join("pyansys-heart", "downloads", "Rodero2021", "01", "FullHeart")
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 # load four chamber heart model.

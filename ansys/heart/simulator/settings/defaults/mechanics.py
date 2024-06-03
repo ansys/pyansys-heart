@@ -1,3 +1,25 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """Module contains default values for mechanics simulations."""
 
 from pint import Quantity
@@ -10,10 +32,10 @@ heart = {
 """Generic analysis settings."""
 analysis = {
     "end_time": heart["cycles"] * heart["beat_time"],
-    "dtmin": Quantity(1.0, "ms"),
-    "dtmax": Quantity(1.0, "ms"),
+    "dtmin": Quantity(5.0, "ms"),
+    "dtmax": Quantity(5.0, "ms"),
     "dt_d3plot": heart["beat_time"] / 40,
-    "dt_icvout": Quantity(10.0, "ms"),
+    "dt_icvout": Quantity(5.0, "ms"),
     "global_damping": Quantity(0.1, "1/ms"),
 }
 
@@ -62,6 +84,21 @@ material = {
         #     "k1fs": Quantity(0.216e-3, "MPa"),
         #     "k2fs": Quantity(11.436, "dimensionless"),
         # },
+        # # Gultekin et al.
+        # "isotropic": {
+        #     "rho": Quantity(0.001, "g/mm^3"),
+        #     "nu": 0.499,
+        #     "k1": Quantity(0.40e-3, "MPa"),
+        #     "k2": Quantity(6.55),
+        # },
+        # "anisotropic": {
+        #     "k1f": Quantity(3.05e-3, "MPa"),
+        #     "k2f": Quantity(29.05, "dimensionless"),
+        #     "k1s": Quantity(1.25e-3, "MPa"),
+        #     "k2s": Quantity(36.65, "dimensionless"),
+        #     "k1fs": Quantity(0.15e-3, "MPa"),
+        #     "k2fs": Quantity(6.28, "dimensionless"),
+        # },
         "isotropic": {
             "rho": Quantity(0.001, "g/mm^3"),
             "nu": 0.499,
@@ -87,12 +124,6 @@ material = {
         "itype": -1,
         "mu1": Quantity(0.1, "MPa"),
         "alpha1": 2,
-    },
-    # null cap: center node is fixed
-    # rigid cap: more difficult to converge
-    "cap": {
-        "type": "null",
-        "rho": Quantity(0.001, "g/mm^3"),
     },
 }
 

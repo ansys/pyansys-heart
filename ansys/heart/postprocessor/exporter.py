@@ -1,22 +1,42 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """
 Export information from d3plot.
 
 Mostly related to the motion.
 """
+
 import os
 import pathlib
 from pathlib import Path
 
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
-from ansys.heart.preprocessor.mesh.vtkmethods import (
-    read_vtk_polydata_file,
-    vtk_cutter,
-    write_vtkdata_to_vtkfile,
-)
+from ansys.heart.preprocessor.mesh.vtkmethods import vtk_cutter, write_vtkdata_to_vtkfile
 from ansys.heart.preprocessor.models.v0_1.models import HeartModel, LeftVentricle
 import matplotlib.pyplot as plt
 import meshio
 import numpy as np
+import pyvista as pv
 import vtk
 from vtk.util.numpy_support import vtk_to_numpy  # noqa
 
@@ -26,7 +46,7 @@ class LVContourExporter:
 
     def __init__(self, d3plot_file: str, model: HeartModel):
         """
-        Init.
+        Init LVContourExporter.
 
         Parameters
         ----------
@@ -54,7 +74,7 @@ class LVContourExporter:
         self.lv_surfaces = []
         for i in range(self.nb_frame):
             abspath = os.path.join(self.work_dir, self.out_folder, f"model_{i}.vtk")
-            self.lv_surfaces.append(read_vtk_polydata_file(abspath))
+            self.lv_surfaces.append(pv.read(abspath))
 
         # get ID of mesh
         for ap in self.model.left_ventricle.apex_points:

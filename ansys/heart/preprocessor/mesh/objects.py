@@ -1,15 +1,37 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """
 Module that contains classes relevant for the mesh.
 
 Such as a Mesh object, Part object, Features, etc.
 
 """
+
 import copy
-import logging
 import pathlib
 from typing import List, Optional, Tuple, Union
 
-LOGGER = logging.getLogger("pyheart_global.preprocessor")
+from ansys.heart.core import LOG as LOGGER
 import ansys.heart.preprocessor.mesh.connectivity as connect
 import ansys.heart.preprocessor.mesh.geodisc as geodisc
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
@@ -36,20 +58,6 @@ class Feature:
         """Part id associated with the feature."""
 
         pass
-
-
-class BoundaryEdges(Feature):
-    """Edges class."""
-
-    def __init__(self, edges: np.ndarray = None) -> None:
-        super().__init__()
-        self.type = "edges"
-        """Feature type."""
-
-        self.node_ids = None
-        """List of edges."""
-        self.groups = None
-        """Grouped edges based on connectivity."""
 
 
 class EdgeGroup:
@@ -206,10 +214,9 @@ class SurfaceMesh(pv.PolyData, Feature):
 
             if write_vtk:
                 tris = np.vstack([edge_group[:, 0], edge_group.T]).T
-                vtk_surf = vtkmethods.create_vtk_surface_triangles(self.nodes, tris)
-                vtkmethods.write_vtkdata_to_vtkfile(
-                    vtk_surf, "edges_{0}_{1}.vtk".format(ii, self.name)
-                )
+                tris = np.hstack([np.ones(tris.shape[0], 1) * 3, tris])
+                vtk_surf = pv.PolyData(self.nodes, tris.flatten())
+                vtk_surf.save("edges_{0}_{1}.vtk".format(ii, self.name))
 
         return self.edge_groups
 
@@ -280,15 +287,20 @@ class SurfaceMesh(pv.PolyData, Feature):
         for ii, edge_group in enumerate(self.edge_groups):
             edges = np.vstack([edges, edge_group.edges])
             if per_edge_group:
+
                 tris = np.vstack([edge_group.edges[:, 0], edge_group.edges.T]).T
-                vtk_surf = vtkmethods.create_vtk_surface_triangles(self.nodes, tris)
+                tris = np.hstack([np.ones(tris.shape[0], 1) * 3, tris])
+                vtk_surf = pv.PolyData(self.nodes, tris.flatten()).clean()
                 filename = "{0}_groupid_{1}_edges_{2}.vtk".format(prefix, ii, self.name)
-                vtkmethods.write_vtkdata_to_vtkfile(vtk_surf, filename)
+                vtk_surf.save(filename)
+
         if not per_edge_group:
             tris = np.vstack([edges[:, 0], edges.T]).T
-            vtk_surf = vtkmethods.create_vtk_surface_triangles(self.nodes, tris)
+            tris = np.hstack([np.ones(tris.shape[0], 1) * 3, tris])
+
+            vtk_surf = pv.PolyData(self.nodes, tris.flatten()).clean()
             filename = "{0}_groupid_edges_{1}.vtk".format(prefix, self.name)
-            vtkmethods.write_vtkdata_to_vtkfile(vtk_surf, filename)
+            vtk_surf.save(filename)
 
         return
 

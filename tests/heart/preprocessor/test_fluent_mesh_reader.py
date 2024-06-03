@@ -1,4 +1,27 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """ Some tests to test function of the Fluent mesh reader on a unit-cube example """
+
 import os
 
 from ansys.heart.preprocessor.mesh.fluenthdf5 import FluentMesh
@@ -65,12 +88,12 @@ def test_to_vtk():
     return
 
 
-@pytest.mark.xfail(reason="Duplicate node coordinates are stored.")
 def test_read_nodes(_test_mesh):
     """Tests reading of the nodes of simple box"""
     mesh = _test_mesh
     assert isinstance(mesh, FluentMesh)
     mesh._read_nodes()
+    mesh._remove_duplicate_nodes()
     assert mesh.nodes.shape == (9, 3)
     expected_nodes = np.array(
         [
@@ -85,7 +108,7 @@ def test_read_nodes(_test_mesh):
             [0.4965233, 0.5034767, 0.4965233],
         ]
     )
-    assert np.allclose(mesh.nodes, expected_nodes, atol=1e-8)
+    assert np.allclose(np.sort(mesh.nodes, axis=0), np.sort(expected_nodes, axis=0), atol=1e-8)
 
 
 def test_read_face_zones(_test_mesh):
@@ -143,26 +166,56 @@ def test_read_face_zones(_test_mesh):
         assert np.all(expected_face_zones[face_zone.name] == face_zone.faces)
 
 
+def test_clean_mesh():
+    """Test cleaning the mesh from unreferenced nodes/points."""
+    mesh = FluentMesh()
+    mesh.load_mesh(FLUENT_BOX)
+
+    # remove interior faces
+    mesh.face_zones = [fz for fz in mesh.face_zones if "interior" not in fz.name]
+    # remove one face zone from the box:
+    mesh.face_zones = mesh.face_zones[0:-1]
+
+    mesh.clean()
+    # even though a face zone is removed, the expected shape is
+    # shape is (9,3) since it is used in a cell.
+    assert mesh.nodes.shape == (9, 3)
+
+    # remove cells and cell zones
+    mesh.cell_zones = []
+    mesh.cells = []
+
+    mesh.clean()
+
+    # since cells are also removed, we now expect 8 nodes and 10 faces
+    assert np.vstack([fz.faces for fz in mesh.face_zones]).shape[0] == 10
+    assert mesh.nodes.shape == (8, 3)
+
+    return
+
+
 def test_read_tetrahedrons(_test_mesh):
     """Tests reading of tetrahedrons on simple box with single cell zone"""
     mesh = FluentMesh()
     mesh.load_mesh(FLUENT_BOX)
-    expected_cells = np.array(
-        [
-            [30, 27, 28, 32],
-            [32, 28, 30, 29],
-            [32, 30, 27, 31],
-            [32, 29, 30, 31],
-            [32, 27, 28, 25],
-            [32, 28, 29, 25],
-            [32, 31, 27, 26],
-            [32, 29, 31, 26],
-            [32, 27, 25, 26],
-            [32, 29, 26, 24],
-            [32, 25, 29, 24],
-            [32, 26, 25, 24],
-        ]
-    )
+    expected_cells = mesh._unique_map[
+        np.array(
+            [
+                [30, 27, 28, 32],
+                [32, 28, 30, 29],
+                [32, 30, 27, 31],
+                [32, 29, 30, 31],
+                [32, 27, 28, 25],
+                [32, 28, 29, 25],
+                [32, 31, 27, 26],
+                [32, 29, 31, 26],
+                [32, 27, 25, 26],
+                [32, 29, 26, 24],
+                [32, 25, 29, 24],
+                [32, 26, 25, 24],
+            ]
+        )
+    ]
     assert np.all(mesh.cell_zones[0].cells == expected_cells)
     # single cell zone: so all cells in mesh should be in the first cell zone.
     assert np.all(mesh.cells == mesh.cell_zones[0].cells)

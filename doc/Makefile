@@ -6,6 +6,7 @@ SPHINXOPTS    = -j auto
 SPHINXBUILD   = sphinx-build
 SOURCEDIR     = source
 BUILDDIR      = _build
+APIDIR        = api
 
 # Put it first so that "make" without argument is like "make help".
 help:
@@ -23,7 +24,7 @@ help:
 clean:
 	rm -rf $(BUILDDIR)/*
 	rm -rf $(SOURCEDIR)/examples
-	find . -type d -name "_autosummary" -exec rm -rf {} +
+	find . -type d -name $(APIDIR) -exec rm -rf {} +
 
 # Customized pdf for svg format images
 pdf:

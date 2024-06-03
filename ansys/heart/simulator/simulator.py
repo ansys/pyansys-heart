@@ -1,26 +1,45 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """Simulator module.
 
 Options for simulation:
+
 - EP-only
-    with/without fbers
-    with/without purkinje
+    with/without fbers.
+    with/without purkinje.
 - Electro-mechanics
-    simplified EP (imposed activation)
-    coupled electro-mechanics
+    simplified EP (imposed activation).
+    coupled electro-mechanics.
 """
 
 import copy
-import logging
 import os
 import pathlib as Path
 import shutil
 import subprocess
 from typing import List, Literal
 
-from ansys.heart.preprocessor.mesh.objects import Part
-from ansys.heart.simulator.settings.material.material import NeoHookean
-
-LOGGER = logging.getLogger("pyheart_global.simulator")
+from ansys.heart.core import LOG as LOGGER
 from ansys.heart.misc.element_orth import read_orth_element_kfile
 from ansys.heart.postprocessor.auto_process import (
     compute_la_fiber_cs,
@@ -29,6 +48,8 @@ from ansys.heart.postprocessor.auto_process import (
     read_uvc,
     zerop_post,
 )
+from ansys.heart.preprocessor.mesh.objects import Part
+from ansys.heart.simulator.settings.material.material import NeoHookean
 
 global heart_version
 heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
@@ -83,6 +104,7 @@ class BaseSimulator:
             Settings used for launching LS-DYNA.
         simulation_directory : Path, optional
             Directory in which to start the simulation, by default ""
+
         """
         self.model: HeartModel = model
         """HeartModel to simulate."""
@@ -202,6 +224,7 @@ class BaseSimulator:
         Returns
         -------
             right atrium UnstructuredGrid with related information.
+
         """
         LOGGER.info("Computing RA fiber...")
         export_directory = os.path.join(self.root_directory, "ra_fiber")
@@ -273,11 +296,13 @@ class BaseSimulator:
             LSDYNA directory
         type: str
             Simulation type.
-        kwargs
+        kwargs : dict
+            Additional arguments.
 
         Returns
         -------
             UnstructuredGrid with array to map data back to full mesh.
+
         """
         if type == "ra_fiber":
             for key, value in kwargs.items():
@@ -313,7 +338,8 @@ class BaseSimulator:
         path_to_input : Path
             Path to the LS-DYNA simulation file.
         options : str, optional
-            Additional options to pass to command line, by default ""
+            Additional options to pass to command line, by default "".
+
         """
         if options != "":
             old_options = copy.deepcopy(self.dyna_settings.dyna_options)
@@ -355,6 +381,7 @@ class EPSimulator(BaseSimulator):
         dyna_settings: DynaSettings,
         simulation_directory: Path = "",
     ) -> None:
+        """Initialize EP Simulator."""
         super().__init__(model, dyna_settings, simulation_directory)
 
         return
@@ -568,19 +595,17 @@ class MechanicsSimulator(BaseSimulator):
             zerop_folder = os.path.join(self.root_directory, "zeropressure")
 
         if self.initial_stress:
-            try:
-                # get dynain.lsda file from
-                dynain_file = os.path.join(zerop_folder, "iter3.dynain.lsda")
-
-                shutil.copy(dynain_file, os.path.join(directory, "dynain.lsda"))
-                shutil.copy(
-                    os.path.join(zerop_folder, "post", "Post_report.json"),
-                    os.path.join(directory, "Post_report.json"),
-                )
-            except IndexError:
-                # handle if lsda file not exist.
-                LOGGER.warning("Cannot find initial stress file iter3.dynain.lsda")
+            # try to use iter3
+            dynain_file = os.path.join(zerop_folder, "iter3.dynain.lsda")
+            # try to use iter2
+            if not os.path.isfile(dynain_file):
+                dynain_file = os.path.join(zerop_folder, "iter2.dynain.lsda")
+            # zerop must failed
+            if not os.path.isfile(dynain_file):
+                LOGGER.error("Cannot find initial stress file iterX.dynain.lsda")
                 exit()
+            else:
+                shutil.copy(dynain_file, os.path.join(directory, "dynain.lsda"))
 
         self._write_main_simulation_files(folder_name=folder_name)
 
@@ -707,9 +732,11 @@ def run_lsdyna(
     path_to_input : Path
         Input file for LS-DYNA.
     settings : DynaSettings, optional
-        LS-DYNA settings, such as path to executable, executable type, platform, by default None
+        LS-DYNA settings, such as path to executable, executable type,
+        platform, by default ``None``.
     simulation_directory : Path, optional
-        Directory where to simulate, by default None
+        Directory where to simulate, by default ``None``.
+
     """
     if not settings:
         LOGGER.info("Using default LS-DYNA settings.")

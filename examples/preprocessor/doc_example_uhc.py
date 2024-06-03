@@ -1,9 +1,33 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """
 
 UHC example
 --------------------
-This example shows how to compute universal heart coordinate for ventricles.
+This example shows how to compute universal heart coordinates (UHC) for
+the ventricles.
 """
+
 ###############################################################################
 # Perform the required imports
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -17,27 +41,20 @@ This example shows how to compute universal heart coordinate for ventricles.
 
 import copy
 import os
-from pathlib import Path
 
-import ansys.heart.preprocessor.models.v0_1.models as models
+import ansys.heart.preprocessor.models.v0_2.models as models
 from ansys.heart.simulator.simulator import BaseSimulator, DynaSettings
 import pyvista as pv
 
-# set working directory and path to model.
-workdir = Path(
-    Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "FourChamber"
-)
+# set this environment variable to ensure you are using v0.2 of the model
+os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
 
+# specify the path to the working directory and heart model
+workdir = os.path.join("pyansys-heart", "downloads", "Strocchi2020", "01", "FourChamber")
 path_to_model = os.path.join(workdir, "heart_model.pickle")
-
-if not os.path.isfile(path_to_model):
-    raise FileExistsError(f"{path_to_model} not found")
 
 # specify LS-DYNA path
 lsdyna_path = r"ls-dyna_smp"
-
-if not os.path.isfile(lsdyna_path):
-    raise FileExistsError(f"{lsdyna_path} not found.")
 
 # load heart model.
 model: models.FourChamber = models.HeartModel.load_model(path_to_model)
@@ -50,7 +67,7 @@ model.info.workdir = str(workdir)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # instantiate simulator. Change options where necessary.
 
-# instantaiate dyna settings of choice
+# instantiate dyna settings of choice
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path,
     dynatype="smp",
@@ -109,8 +126,8 @@ plotter.show()
 # Assign data to full model
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# UVC is assigned back to full model automatically
-# Atrial points are with NaN
+# UVC is assigned back to the full model automatically
+# Atrial points are padded with NaN's
 model.mesh.set_active_scalars("apico-basal")
 model.mesh.plot()
 

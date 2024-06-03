@@ -1,3 +1,25 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """
 
 Full-heart EP-simulator example
@@ -20,19 +42,22 @@ purkinje network and conduction system and finally simulate the electrophysiolog
 # directory, model, and ls-dyna executable.
 
 import os
-from pathlib import Path
+
+# set this environment variable to ensure you are using v0.2 of the model
+os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
 
 from ansys.heart.preprocessor.mesh.objects import Point
-import ansys.heart.preprocessor.models.v0_1.models as models
+import ansys.heart.preprocessor.models.v0_2.models as models
 from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
 
+# accept dpf license aggrement
+# https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
+os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+
 # set working directory and path to model.
-workdir = Path(Path(__file__).resolve().parents[2], "downloads", "Rodero2021", "01", "FullHeart")
+workdir = os.path.join("pyansys-heart", "downloads", "Rodero2021", "01", "FullHeart")
 
 path_to_model = os.path.join(workdir, "heart_model.pickle")
-
-if not os.path.isfile(path_to_model):
-    raise FileExistsError(f"{path_to_model} not found")
 
 # load four chamber heart model.
 model: models.FullHeart = models.HeartModel.load_model(path_to_model)
@@ -48,12 +73,12 @@ model.info.workdir = str(workdir)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # instantiate the simulator and settings appropriately.
 
+# specify LS-DYNA path (last tested working versions is intelmpi-linux-DEV-106117)
+lsdyna_path = r"ls-dyna_msmpi.exe"
+
 # instantaiate dyna settings of choice
-lsdyna_path = r"mppdyna_d_sse2_linux86_64_intelmmpi_105630"
 dyna_settings = DynaSettings(
-    lsdyna_path=lsdyna_path,
-    dynatype="intelmpi",
-    num_cpus=4,
+    lsdyna_path=lsdyna_path, dynatype="intelmpi", num_cpus=6, platform="wsl"
 )
 
 # instantiate simulator. Change options where necessary.
@@ -128,4 +153,13 @@ simulator.model.plot_purkinje()
 # Start the main EP simulation. This uses the previously computed fiber orientation
 # and purkinje network to set up and run the LS-DYNA model.
 
+# simulate using the default EP solver type (Monodomain)
 simulator.simulate()
+
+# switch to Eikonal
+simulator.settings.electrophysiology.analysis.solvertype = "Eikonal"
+simulator.simulate(folder_name="main-ep-Eikonal")
+
+# switch to ReactionEikonal
+simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
+simulator.simulate(folder_name="main-ep-ReactionEikonal")

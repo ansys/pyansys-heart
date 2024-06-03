@@ -1,3 +1,25 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """Script used to post process simulations automatically."""
 
 import copy
@@ -8,10 +30,7 @@ import pathlib
 from typing import List
 
 heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
-if not heart_version:
-    heart_version = "v0.1"
-
-from ansys.heart import LOG as LOGGER
+from ansys.heart.core import LOG as LOGGER
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
@@ -22,6 +41,9 @@ from ansys.heart.simulator.settings.settings import AtrialFiber, SimulationSetti
 import matplotlib.pyplot as plt
 import numpy as np
 import pyvista as pv
+
+if not heart_version:
+    heart_version = "v0.1"
 
 
 def zerop_post(directory, model):
@@ -185,14 +207,14 @@ def mech_post(directory: pathlib.Path, model):
         fig.savefig(os.path.join(directory, folder, "rv.png"))
 
     #
-    out_dir = directory / "post" / "pv"
+    out_dir = os.path.join(directory, "post", "pv")
     os.makedirs(out_dir, exist_ok=True)
-    time = D3plotReader(directory / "d3plot").time / 1000  # to second
+    time = D3plotReader(os.path.join(directory, "d3plot")).time / 1000  # to second
     for it, tt in enumerate(time):
-        # assume heart beat once per 1s
-        ef = system.get_ejection_fraction(t_start=time[-1] - 1, t_end=time[-1])
+        # assume heart beat once per 0.8s # TODO
+        ef = system.get_ejection_fraction(t_start=time[-1] - 0.8, t_end=time[-1])
         fig = system.plot_pv_loop(t_start=0, t_end=tt, ef=ef, show_ed=False)
-        fig.savefig(out_dir / "pv_{0:d}.png".format(it))
+        fig.savefig(os.path.join(out_dir, "pv_{0:d}.png".format(it)))
         plt.close()
     # build video with command
     # ffmpeg -f image2 -i pv_%d.png output.mp4
@@ -216,9 +238,9 @@ def mech_post(directory: pathlib.Path, model):
     exporter.export_lvls_to_vtk("lvls")
 
     #
-    out_dir = directory / "post" / "lrc_strain"
+    out_dir = os.path.join(directory, "post", "lrc_strain")
     os.makedirs(out_dir, exist_ok=True)
-    aha_strain = AhaStrainCalculator(model, d3plot_file=directory / "d3plot")
+    aha_strain = AhaStrainCalculator(model, d3plot_file=os.path.join(directory, "d3plot"))
     aha_strain.compute_aha_strain(out_dir, with_vtk=True)
 
     return

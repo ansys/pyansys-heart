@@ -1,3 +1,25 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """Auto downloads cases.
 
 Auto downloads cases from the remote repositories of Strocchi et al 2020,
@@ -10,7 +32,7 @@ from pathlib import Path, PurePath
 import typing
 import warnings
 
-from ansys.heart import LOG as LOGGER
+from ansys.heart.core import LOG as LOGGER
 from tqdm import tqdm
 
 try:
@@ -71,14 +93,14 @@ def download_case(
     Examples
     --------
     Download case 1 from the public repository (Strocchi2020) of pathological hearts.
-        >>> path_to_case = download_case(
-                database="Strocchi2020", case_number=1, download_folder="my/download/folder"
-            )
+    >>> path_to_case = download_case(
+            database="Strocchi2020", case_number=1, download_folder="my/download/folder"
+        )
 
     Download case 1 from the public repository (Rodero2021) of 'healthy' hearts.
-        >>> path_to_case = download_case(
-            database="Rodero2021", case_number=1, download_folder="my/download/folder"
-            )
+    >>> path_to_case = download_case(
+        database="Rodero2021", case_number=1, download_folder="my/download/folder"
+        )
     """
 
     if database == "Cristobal2021":

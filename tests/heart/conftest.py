@@ -1,14 +1,39 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import glob as glob
 import os
 import pathlib
 
 ROOT_FOLDER = os.path.join(pathlib.Path(__file__).parent)
+import logging as deflogging
+
 from ansys.heart.misc.downloader import download_case, unpack_case
+import pytest
 
 """
 
-Note
-----
+Notes
+-----
 Note for VS Code/conda users: for the moment it seems that for proper pytest discovery in
 VS Code's native testing framework you need to install pyfluent into the
 base virtual environment.
@@ -137,3 +162,42 @@ def remove_keys_from_dict(dictionary: dict, exclude_keys=[]):
     """Removes specific keys from the dictionary"""
     new_d = {k: dictionary[k] for k in set(list(dictionary.keys())) - set(exclude_keys)}
     return new_d
+
+
+@pytest.fixture
+def fake_record():
+    def inner_fake_record(
+        logger,
+        msg="This is a message",
+        instance_name="172.1.1.1:52000",
+        handler_index=0,
+        name_logger=None,
+        level=deflogging.DEBUG,
+        filename="fn",
+        lno=0,
+        args=(),
+        exc_info=None,
+        extra={},
+    ):
+        sinfo = None
+        if not name_logger:
+            name_logger = logger.name
+
+        if "instance_name" not in extra.keys():
+            extra["instance_name"] = instance_name
+
+        record = logger.makeRecord(
+            name_logger,
+            level,
+            filename,
+            lno,
+            msg,
+            args=args,
+            exc_info=exc_info,
+            extra=extra,
+            sinfo=sinfo,
+        )
+        handler = logger.handlers[handler_index]
+        return handler.format(record)
+
+    return inner_fake_record

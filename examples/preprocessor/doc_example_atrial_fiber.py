@@ -1,8 +1,31 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """
 Atrial fiber
 ------------
 This examples shows how to generate fibers with Laplace-Dirichlet-Rule-Based-Method
 """
+
 ###############################################################################
 # Perform the required imports
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -15,28 +38,21 @@ This examples shows how to generate fibers with Laplace-Dirichlet-Rule-Based-Met
 # sphinx_gallery_end_ignore
 
 import os
-from pathlib import Path
 
-import ansys.heart.preprocessor.models.v0_1.models as models
+# set this environment variable to ensure you are using v0.2 of the model
+os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
+
+import ansys.heart.preprocessor.models.v0_2.models as models
 from ansys.heart.simulator.simulator import BaseSimulator, DynaSettings
 import numpy as np
 import pyvista as pv
 
-# set working directory and path to model.
-workdir = Path(
-    Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "FourChamber"
-)
-
+# specify the path to the working directory and heart model
+workdir = os.path.join("pyansys-heart", "downloads", "Strocchi2020", "01", "FourChamber")
 path_to_model = os.path.join(workdir, "heart_model.pickle")
-
-if not os.path.isfile(path_to_model):
-    raise FileExistsError(f"{path_to_model} not found")
 
 # specify LS-DYNA path
 lsdyna_path = r"ls-dyna_smp"
-
-if not os.path.isfile(lsdyna_path):
-    raise FileExistsError(f"{lsdyna_path} not found.")
 
 # load heart model.
 model: models.FourChamber = models.HeartModel.load_model(path_to_model)
@@ -49,9 +65,15 @@ model.info.workdir = str(workdir)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # instantiate simulator. Change options where necessary.
 
+###############################################################################
+# .. note::
+#    The DynaSettings object supports several LS-DYNA versions and platforms.
+#    Including: "smp", "intempi", "msmpi", "windows", "linux", or "wsl" Choose
+#    the one that is appropriate for you.
+
 # instantaiate dyna settings of choice
 dyna_settings = DynaSettings(
-    lsdyna_path=lsdyna_path, dynatype="intelmpi", num_cpus=4, platform="wsl"
+    lsdyna_path=lsdyna_path, dynatype="smp", num_cpus=4, platform="windows"
 )
 
 simulator = BaseSimulator(
@@ -76,6 +98,11 @@ la = simulator.compute_left_atrial_fiber()
 # Appendage apex point should be manually given to compute right atrium fiber
 appendage_apex = [-50, 106, 425]
 ra = simulator.compute_right_atrial_fiber(appendage_apex)
+
+###############################################################################
+# .. note::
+#    You may need to define an appropriate point for the right atrial appendage
+#    the list defines the x, y, and z coordinates close to the appendage.
 
 ###############################################################################
 # Plot bundle selection results

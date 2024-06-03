@@ -1,3 +1,25 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """
 
 Four-chamber EP-simulator example
@@ -25,27 +47,25 @@ purkinje network and conduction system and finally simulate the electrophysiolog
 # sphinx_gallery_end_ignore
 
 import os
-from pathlib import Path
+
+# set this environment variable to ensure you are using v0.2 of the model
+os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
 
 from ansys.heart.preprocessor.mesh.objects import Point
 import ansys.heart.preprocessor.models.v0_2.models as models
 from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
 
+# accept dpf license aggrement
+# https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
+os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+
 # set working directory and path to model.
-workdir = Path(
-    Path(__file__).resolve().parents[2], "downloads", "Strocchi2020", "01", "FourChamber"
-)
+workdir = os.path.join("pyansys-heart", "downloads", "Strocchi2020", "01", "FourChamber")
 
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
-if not os.path.isfile(path_to_model):
-    raise FileExistsError(f"{path_to_model} not found")
-
 # specify LS-DYNA path (last tested working versions is intelmpi-linux-DEV-106117)
 lsdyna_path = r"ls-dyna_msmpi.exe"
-
-if not os.path.isfile(lsdyna_path):
-    raise FileExistsError(f"{lsdyna_path} not found.")
 
 # load four chamber heart model.
 model: models.FourChamber = models.HeartModel.load_model(path_to_model)

@@ -1,10 +1,31 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """Module containing methods for mesh connectivity."""
 
 import copy
-import logging
 from typing import Optional, Tuple, Union
 
-LOGGER = logging.getLogger("pyheart_global.preprocessor")
+from ansys.heart.core import LOG as LOGGER
 import numpy as np
 
 
@@ -352,17 +373,4 @@ def remove_triangle_layers_from_trimesh(triangles: np.ndarray, iters: int = 1) -
 
 
 if __name__ == "__main__":
-    # ************** Simple 2 tetrahedron example *******
-    nodes = np.array([[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, -1, 0], [0, 1, 0]], dtype=float)
-    tetra = np.array([[0, 1, 2, 3], [0, 1, 2, 4]])
-    part_ids = np.array([1, 2])
-
-    # get face-cell connectivity table
-    faces, c0, c1 = face_tetra_connectivity(tetra)
-    face_types = get_face_type(faces, np.array([c0, c1]).T)
-
-    interior_faces = faces[face_types == 1, :]
-    boundary_faces = faces[face_types == 2, :]
-    interface_faces = faces[part_ids[c0] != part_ids[c1], :]
-
     LOGGER.debug("Protected")

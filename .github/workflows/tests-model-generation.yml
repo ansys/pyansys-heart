@@ -45,7 +45,7 @@ jobs:
       #     mkdir -p ~/image-cache
 
       # - name: Cache Fluent docker image
-      #   uses: actions/cache@v3
+      #   uses: actions/cache@v4
       #   with:
       #     path: ~/image-cache
       #     key: image-cache-${{ runner.os }}
@@ -71,15 +71,12 @@ jobs:
       #   run: |
       #     load -i ~/image-cache/fluent.tar
 
-      - name: Install package
+      - name: Install package and dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e .
-          python -m pip install git+https://${{secrets.REPO_DOWNLOAD_PAT}}@github.com/ansys/dynalib.git@main
-
-      - name: Install testing dependencies
-        run: |
           python -m pip install .[tests]
+        env:
+          PIP_EXTRA_INDEX_URL: 'https://${{ secrets.PYANSYS_PYPI_PRIVATE_PAT }}@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/'
 
       - name: Test PyFluent launch
         continue-on-error: false
@@ -88,12 +85,12 @@ jobs:
 
       - name: Cache large files
         id: cache-strocchi
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: cache-strocchi
         with:
           # cache the case file that will be downloaded in tests/heart/assets/cases/Strocchi2020
-          path: /home/runner/work/PyAnsys-Heart/PyAnsys-Heart/tests/heart/assets/cases/Strocchi2020
+          path: /home/runner/work/pyansys-heart/pyansys-heart/tests/heart/assets/cases/Strocchi2020
           key: ${{ runner.os }}-build-${{ env.cache-name }}
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}

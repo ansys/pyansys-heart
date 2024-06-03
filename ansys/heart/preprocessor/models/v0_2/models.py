@@ -1,16 +1,39 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """Module containing classes for the various heart models."""
 
 import copy
 import json
-import logging
 import os
 
 # import json
 import pathlib
 import pickle
+import re
 from typing import List, Union
 
-LOGGER = logging.getLogger("pyheart_global.preprocessor")
+from ansys.heart.core import LOG as LOGGER
+
 # from ansys.heart.preprocessor.input import HEART_MODELS
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher
@@ -453,6 +476,9 @@ class HeartModel:
             cz for cz in fluent_mesh.cell_zones if cz.id in self._input.part_ids
         ]
 
+        # remove any unused nodes
+        fluent_mesh.clean()
+
         vtk_grid = fluent_mesh._to_vtk()
 
         mesh = Mesh(vtk_grid)
@@ -473,7 +499,6 @@ class HeartModel:
             fz for ii, fz in enumerate(fluent_mesh.face_zones) if ii not in idx_to_remove
         ]
 
-        # add face zones to mesh object.
         mesh.boundaries = [
             SurfaceMesh(name=fz.name, triangles=fz.faces, nodes=mesh.nodes, id=fz.id)
             for fz in fluent_mesh.face_zones
@@ -481,6 +506,77 @@ class HeartModel:
         ]
 
         self.mesh = mesh
+
+        return
+
+    def _mesh_fluid_volume(self, remesh_caps: bool = True):
+        """Generate a volume mesh of the cavities.
+
+        Parameters
+        ----------
+        remesh_caps : bool, optional
+            Flag indicating whether to remesh the caps of each cavity, by default True
+        """
+        # get all relevant boundaries for the fluid cavities:
+        substrings_include = ["endocardium", "valve-plane", "septum"]
+        substrings_include_re = "|".join(substrings_include)
+
+        substrings_exlude = ["pulmonary-valve", "aortic-valve"]
+        substrings_exlude_re = "|".join(substrings_exlude)
+
+        boundaries_fluid = [
+            b for b in self.mesh.boundaries if re.search(substrings_include_re, b.name)
+        ]
+        boundaries_exclude = [
+            b.name for b in boundaries_fluid if re.search(substrings_exlude_re, b.name)
+        ]
+        boundaries_fluid = [b for b in boundaries_fluid if b.name not in boundaries_exclude]
+
+        caps = [
+            SurfaceMesh("cap_" + c.name, c.triangles, self.mesh.nodes)
+            for p in self.parts
+            for c in p.caps
+        ]
+
+        if len(boundaries_fluid) == 0:
+            LOGGER.debug("Meshing of fluid cavities not possible. No fluid surfaces detected.")
+            return
+
+        if len(caps) == 0:
+            LOGGER.debug("Meshing of fluid cavities not possible. No caps detected.")
+            return
+
+        LOGGER.info("Meshing fluid cavities...")
+
+        # mesh the fluid cavities
+        fluid_mesh = mesher.mesh_fluid_cavities(
+            boundaries_fluid, caps, self.info.workdir, remesh_caps=remesh_caps
+        )
+
+        LOGGER.info(f"Meshed {len(fluid_mesh.cell_zones)} fluid regions...")
+
+        # add part-ids
+        cz_ids = np.sort([cz.id for cz in fluid_mesh.cell_zones])
+        offset = 10000
+        new_ids = np.arange(cz_ids.shape[0]) + offset
+        czid_to_pid = {cz_id: new_ids[ii] for ii, cz_id in enumerate(cz_ids)}
+
+        for cz in fluid_mesh.cell_zones:
+            cz.id = czid_to_pid[cz.id]
+
+        fluid_mesh._fix_negative_cells()
+        fluid_mesh_vtk = fluid_mesh._to_vtk(add_cells=True, add_faces=False)
+
+        fluid_mesh_vtk.cell_data["part-id"] = fluid_mesh_vtk.cell_data["cell-zone-ids"]
+
+        boundaries = [
+            SurfaceMesh(fz.name, fz.faces, fluid_mesh.nodes, fz.id)
+            for fz in fluid_mesh.face_zones
+            if "interior" not in fz.name
+        ]
+
+        self.fluid_mesh = Mesh(fluid_mesh_vtk)
+        self.fluid_mesh.boundaries = boundaries
 
         return
 
@@ -903,8 +999,8 @@ class HeartModel:
     def _sync_input_parts_to_model_parts(self):
         """Synchronize the input parts to the model parts.
 
-        Note
-        ----
+        Notes
+        -----
         Checks:
             overwrites the default part ids by those given by user.
         """
@@ -929,8 +1025,8 @@ class HeartModel:
     def _extract_septum(self, num_layers_to_remove: int = 1) -> None:
         """Separate the septum elements from the left ventricle.
 
-        Note
-        ----
+        Notes
+        -----
         Uses the septum surface of the right ventricle
         """
         if not isinstance(self, (BiVentricle, FourChamber, FullHeart)):
@@ -949,18 +1045,23 @@ class HeartModel:
             surface_septum.triangles, iters=num_layers_to_remove
         )
 
-        septum_surface_vtk = vtkmethods.create_vtk_surface_triangles(self.mesh.nodes, faces_septum)
+        faces_septum = np.hstack([np.ones((faces_septum.shape[0], 1), dtype=int) * 3, faces_septum])
+        septum_surface = pv.PolyData(self.mesh.nodes, faces_septum.flatten()).clean()
 
-        septum_surface_vtk = vtkmethods.smooth_polydata(septum_surface_vtk)
+        septum_surface = septum_surface.compute_normals()
+        septum_surface = septum_surface.smooth()
 
-        septum_surface_vtk_extruded = vtkmethods.extrude_polydata(septum_surface_vtk, 20)
+        # septum_surface_vtk = vtkmethods.smooth_polydata(septum_surface_vtk)
+
+        septum_surface_extruded = vtkmethods.extrude_polydata(septum_surface, 20)
+        # septum_surface_vtk_extruded = vtkmethods.extrude_polydata(septum_surface_vtk, 20)
 
         filename_vtk = os.path.join(self.info.workdir, "volume_mesh.vtk")
         self.mesh.write_to_vtk(filename_vtk)
-        volume_vtk = vtkmethods.read_vtk_unstructuredgrid_file(filename_vtk)
+        volume_vtk = pv.read(filename_vtk)
 
         element_ids_septum = vtkmethods.cell_ids_inside_enclosed_surface(
-            volume_vtk, septum_surface_vtk_extruded
+            volume_vtk, septum_surface_extruded
         )
 
         # assign to septum
@@ -979,8 +1080,8 @@ class HeartModel:
     def _extract_apex(self) -> None:
         """Extract the apex for both the endocardium and epicardium of each ventricle.
 
-        Note
-        ----
+        Notes
+        -----
         Apex defined as the point furthest from the mid-point between caps/valves
 
         """
@@ -1243,15 +1344,26 @@ class HeartModel:
             cavity_faces = np.empty((0, 3), dtype=int)
 
             surfaces = [s for s in part.surfaces if "endocardium" in s.name]
+
             for surface in surfaces:
                 cavity_faces = np.vstack([cavity_faces, surface.triangles])
 
+            # surface ids identifies caps from enocardium
+            ii = 1
+            surface_ids = np.ones(cavity_faces.shape[0], dtype=int) * ii
+
             for cap in part.caps:
+                ii += 1
+                surface_ids = np.append(
+                    surface_ids, np.ones(cap.triangles.shape[0], dtype=int) * ii
+                )
                 cavity_faces = np.vstack([cavity_faces, cap.triangles])
 
             surface = SurfaceMesh(
                 name=part.name + " cavity", triangles=cavity_faces, nodes=self.mesh.nodes
             )
+            surface.cell_data["surface-id"] = surface_ids
+
             surface.compute_normals(inplace=True)  # recompute normals
             part.cavity = Cavity(surface=surface, name=part.name)
             part.cavity.compute_centroid()

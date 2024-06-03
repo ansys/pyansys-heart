@@ -26,7 +26,6 @@ import copy
 import glob
 import json
 import os
-import pathlib
 
 heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
 from ansys.heart.core import LOG as LOGGER
@@ -170,15 +169,17 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     return dct, stress_free_coord, guess_ed_coord
 
 
-def mech_post(directory: pathlib.Path, model):
-    """
-    Post-process Main mechanical simulation folder.
+def mech_post(directory: str, model: HeartModel, compute_strain=True):
+    """Post-process Main mechanical simulation folder.
 
     Parameters
     ----------
-    directory: where d3plot files locate
-    model: HeartModel
-
+    directory : str
+        d3plot folder
+    model : HeartModel
+        heart model
+    compute_strain : bool, optional
+        compute LV 17 segments strain, by default True
     """
     folder = "post"
     os.makedirs(os.path.join(directory, folder), exist_ok=True)
@@ -207,11 +208,40 @@ def mech_post(directory: pathlib.Path, model):
     # build video with command
     # ffmpeg -f image2 -i pv_%d.png output.mp4
 
+    if hasattr(model, "l2cv_axis"):
+        export_to_vtk(directory, model)
+    else:
+        try:
+            model.compute_left_ventricle_anatomy_axis(first_cut_short_axis=0.2)
+            export_to_vtk(directory, model)
+        except Exception as e:
+            LOGGER.warning(f"Cannot export vtk surfaces. Error {e}")
+
+    #
+    if compute_strain:
+        out_dir = os.path.join(directory, "post", "lrc_strain")
+        os.makedirs(out_dir, exist_ok=True)
+        aha_strain = AhaStrainCalculator(model, d3plot_file=os.path.join(directory, "d3plot"))
+        aha_strain.compute_aha_strain(out_dir, with_vtk=True)
+
+    return
+
+
+def export_to_vtk(directory: str, model: HeartModel):
+    """Export heart motion(surfaces) into vtk files.
+
+    Parameters
+    ----------
+    directory : str
+        d3plot folder
+    model : HeartModel
+        heart model
+    """
     exporter = LVContourExporter(os.path.join(directory, "d3plot"), model)
 
-    model.compute_left_ventricle_anatomy_axis(first_cut_short_axis=0.2)
     exporter.export_contour_to_vtk("l4cv", model.l4cv_axis)
     exporter.export_contour_to_vtk("l2cv", model.l2cv_axis)
+
     normal = model.short_axis["normal"]
     p_start = model.short_axis["center"]
     for ap in model.left_ventricle.apex_points:  # use next()?
@@ -224,11 +254,3 @@ def mech_post(directory: pathlib.Path, model):
         exporter.export_contour_to_vtk(f"shor_{icut}", cutter)
 
     exporter.export_lvls_to_vtk("lvls")
-
-    #
-    out_dir = os.path.join(directory, "post", "lrc_strain")
-    os.makedirs(out_dir, exist_ok=True)
-    aha_strain = AhaStrainCalculator(model, d3plot_file=os.path.join(directory, "d3plot"))
-    aha_strain.compute_aha_strain(out_dir, with_vtk=True)
-
-    return

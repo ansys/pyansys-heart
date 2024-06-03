@@ -62,7 +62,7 @@ doc = [
     "sphinx-jinja==2.0.2",
 ]
 
-tests = ["pytest==8.0.1", "dynalib==0.1.0"]
+tests = ["pytest==8.0.1"]#, "dynalib==0.1.0"]
 
 [project.urls]
 Source = "https://github.com/ansys/pyansys-heart"

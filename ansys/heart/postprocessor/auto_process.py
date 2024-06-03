@@ -110,6 +110,14 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     temp_mesh.points = stress_free_coord + displacements[-1]
     temp_mesh.save(os.path.join(directory, folder, "Simu_ED.vtk"))
 
+    dct = {
+        "Simulation output time (ms)": data.time.tolist(),
+        "Convergence": {
+            "max_error (mm)": error_max,
+            "mean_error (mm)": error_mean,
+        },
+    }
+
     def compute_cavity_volume(cavity: Cavity) -> list:
         """Extract cavity volume."""
         volumes = []
@@ -125,43 +133,28 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     lv_volumes = compute_cavity_volume(model.left_ventricle.cavity)
     true_lv_ed_volume = model.left_ventricle.cavity.volume
 
-    volume_error = [(lv_volumes[-1] - true_lv_ed_volume) / true_lv_ed_volume]
-
-    # Klotz curve information
     # unit is mL and mmHg
     lv_pr_mmhg = (
         setting.mechanics.boundary_conditions.end_diastolic_cavity_pressure["left_ventricle"]
         .to("mmHg")
         .m
     )
+    dct["Left ventricle EOD pressure (mmHg)"] = lv_pr_mmhg
+    dct["True left ventricle volume (mm3)"] = true_lv_ed_volume
+    dct["Simulation Left ventricle volume (mm3)"] = lv_volumes
 
+    # Klotz curve information
     klotz = EDPVR(true_lv_ed_volume / 1000, lv_pr_mmhg)
     sim_vol_ml = [v / 1000 for v in lv_volumes]
     sim_pr = lv_pr_mmhg * data.time / data.time[-1]
-
     fig = klotz.plot_EDPVR(simulation_data=[sim_vol_ml, sim_pr])
     fig.savefig(os.path.join(directory, folder, "klotz.png"))
 
-    dct = {
-        "Simulation output time (ms)": data.time.tolist(),
-        "Left ventricle EOD pressure (mmHg)": lv_pr_mmhg,
-        "True left ventricle volume (mm3)": true_lv_ed_volume,
-        "Simulation Left ventricle volume (mm3)": lv_volumes,
-        "Convergence": {
-            "max_error (mm)": error_max,
-            "mean_error (mm)": error_mean,
-            "relative volume error (100%)": volume_error,
-        },
-    }
-
-    # right ventricle exist
+    # right ventricle exist # TODO compute LA & RA cavity
     if len(model.cavities) > 1:
 
         true_rv_ed_volume = model.right_ventricle.cavity.volume
         rv_volumes = compute_cavity_volume(model.right_ventricle.cavity)
-
-        volume_error.append((rv_volumes[-1] - true_rv_ed_volume) / true_rv_ed_volume)
-
         rv_pr_mmhg = (
             setting.mechanics.boundary_conditions.end_diastolic_cavity_pressure["right_ventricle"]
             .to("mmHg")

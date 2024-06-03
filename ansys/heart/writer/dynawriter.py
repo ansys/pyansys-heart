@@ -1834,8 +1834,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.DatabaseIcvout(dt=10, binary=2))
         return
 
-    def _add_enddiastolic_pressure_bc(self, pressure_lv: float = 1, pressure_rv: float = 1):
+    def _add_enddiastolic_pressure_bc(self):
         """Add end diastolic pressure boundary condition on the left and right endocardium."""
+        bc_settings = self.settings.mechanics.boundary_conditions
+        pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
+        pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
+        pressure_la = bc_settings.end_diastolic_cavity_pressure["left_atrial"].m
+        pressure_ra = bc_settings.end_diastolic_cavity_pressure["right_atrial"].m
+
         # create unit load curve
         load_curve_id = self.get_unique_curve_id()
         load_curve_kw = create_define_curve_kw(
@@ -1862,37 +1868,17 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 self.kw_database.main.append(load)
             elif cavity.name == "Left atrium":
                 load = keywords.LoadSegmentSet(
-                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_lv
+                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_la
                 )
                 self.kw_database.main.append(load)
             elif cavity.name == "Right atrium":
                 load = keywords.LoadSegmentSet(
-                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_rv
+                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_ra
                 )
                 self.kw_database.main.append(load)
             else:
                 continue
 
-        # # load only endocardium segment (exclude cap shells)
-        # for part in self.model.parts:
-        #     for surface in part.surfaces:
-        #         if surface.name == "Left ventricle endocardium":
-        #             scale_factor = pressure_lv
-        #             seg_id = surface.id
-        #             load = keywords.LoadSegmentSet(
-        #                 ssid=seg_id, lcid=load_curve_id, sf=scale_factor
-        #             )
-        #             self.kw_database.main.append(load)
-        #         elif (
-        #             surface.name == "Right ventricle endocardium"
-        #             or surface.name == "Right ventricle endocardium septum"
-        #         ):
-        #             scale_factor = pressure_rv
-        #             seg_id = surface.id
-        #             load = keywords.LoadSegmentSet(
-        #                 ssid=seg_id, lcid=load_curve_id, sf=scale_factor
-        #             )
-        #             self.kw_database.main.append(load)
         return
 
     def _add_constant_atrial_pressure(self, pressure_lv: float = 1, pressure_rv: float = 1):
@@ -1982,9 +1968,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         #     self._add_pericardium_bc(scale=0.01)
 
         # # Approximate end-diastolic pressures
-        pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
-        pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
-        self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
+        self._add_enddiastolic_pressure_bc()
 
         # zerop key words
         self._add_control_reference_configuration()

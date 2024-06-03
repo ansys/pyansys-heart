@@ -25,7 +25,8 @@ classifiers = [
 
 dependencies = [
     "importlib-metadata >=4.0",
-    "ansys-fluent-core==0.16.0",
+    "requests"==2.31.0",
+    "ansys-fluent-core==0.20.0",
     "ansys-dpf-core==0.10.0",
     "h5py>=3.6.0",
     "Jinja2==3.1.2",

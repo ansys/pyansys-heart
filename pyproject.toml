@@ -29,7 +29,7 @@ dependencies = [
     "ansys-fluent-core==0.20.0",
     "ansys-dpf-core==0.10.0",
     "h5py>=3.6.0",
-    "Jinja2==3.1.2",
+    "Jinja2==3.1.4",
     "matplotlib==3.8.2",
     "meshio==5.3.4",
     "numpy<=1.26.0",

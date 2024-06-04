@@ -288,8 +288,8 @@ def mesh_from_manifold_input_model(
 
     if os.path.isdir(work_dir_meshing) and not _uses_container:
         shutil.rmtree(work_dir_meshing)
-    if not _uses_container:
-        os.makedirs(work_dir_meshing)
+    
+    os.makedirs(work_dir_meshing)
 
     LOGGER.debug(f"Path to meshing directory: {work_dir_meshing}")
 
@@ -307,6 +307,8 @@ def mesh_from_manifold_input_model(
 
     # write all boundaries
     model.write_part_boundaries(work_dir_meshing)
+    files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+    LOGGER.debug(f"Files in {work_dir_meshing}: {files}")
 
     session = _get_fluent_meshing_session()
 
@@ -467,8 +469,8 @@ def mesh_from_non_manifold_input_model(
 
     if os.path.isdir(work_dir_meshing) and not _uses_container:
         shutil.rmtree(work_dir_meshing)
-    if not _uses_container:
-        os.makedirs(work_dir_meshing)
+    # if not _uses_container:
+    os.makedirs(work_dir_meshing)
 
     path_to_output_old = path_to_output
     path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
@@ -514,7 +516,12 @@ def mesh_from_non_manifold_input_model(
     # ]
 
     # write all boundaries
+    LOGGER.debug(f"Files in {work_dir_meshing}")
     model.write_part_boundaries(work_dir_meshing)
+    
+    files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+    LOGGER.debug(f"Written files: {files}")
+    
 
     # launch pyfluent
     session = _get_fluent_meshing_session()

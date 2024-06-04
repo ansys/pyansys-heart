@@ -143,6 +143,7 @@ def _get_fluent_meshing_session() -> MeshingSession:
         start_transcript=False,
         show_gui=_show_fluent_gui,
         product_version=_fluent_version,
+        start_container=_uses_container,
     )
 
     return session
@@ -199,11 +200,11 @@ def mesh_fluid_cavities(
     session = _get_fluent_meshing_session()
 
     # import all stls
-    # if _uses_container:
-    #     # NOTE: when using a Fluent container visible files
-    #     # will be in /mnt/pyfluent. So need to use relative paths
-    #     # or replace dirname by /mnt/pyfluent as prefix
-    #     work_dir_meshing = "/mnt/pyfluent"
+    if _uses_container:
+        # NOTE: when using a Fluent container visible files
+        # will be in /mnt/pyfluent. So need to use relative paths
+        # or replace dirname by /mnt/pyfluent as prefix
+        work_dir_meshing = "."
     session.tui.file.import_.cad(f"no {work_dir_meshing} *.stl")
 
     # merge objects
@@ -285,9 +286,13 @@ def mesh_from_manifold_input_model(
     else:
         work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
 
-    if os.path.isdir(work_dir_meshing):
+    if os.path.isdir(work_dir_meshing) and not _uses_container:
         shutil.rmtree(work_dir_meshing)
-    os.makedirs(work_dir_meshing)
+
+    try:
+        os.makedirs(work_dir_meshing)
+    except:
+        LOGGER.debug("Failed to create working directory")
 
     LOGGER.debug(f"Path to meshing directory: {work_dir_meshing}")
 
@@ -305,6 +310,8 @@ def mesh_from_manifold_input_model(
 
     # write all boundaries
     model.write_part_boundaries(work_dir_meshing)
+    files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+    LOGGER.debug(f"Files in {work_dir_meshing}: {files}")
 
     session = _get_fluent_meshing_session()
 
@@ -313,11 +320,11 @@ def mesh_from_manifold_input_model(
     )
 
     # import files
-    # if _uses_container:
-    #     # NOTE: when using a Fluent container visible files
-    #     # will be in /mnt/pyfluent. So need to use relative paths
-    #     # or replace dirname by /mnt/pyfluent as prefix
-    #     work_dir_meshing = "/mnt/pyfluent"
+    if _uses_container:
+        # NOTE: when using a Fluent container visible files
+        # will be in /mnt/pyfluent. So need to use relative paths
+        # or replace dirname by /mnt/pyfluent as prefix
+        work_dir_meshing = "."
 
     session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
     session.tui.objects.merge("'(*) heart")
@@ -376,7 +383,10 @@ def mesh_from_manifold_input_model(
 
     # write to file
 
-    session.tui.file.write_mesh('"' + path_to_output + '"')
+    if _uses_container:
+        session.tui.file.write_mesh(os.path.basename(path_to_output))
+    else:
+        session.tui.file.write_mesh('"' + path_to_output + '"')
     # session.meshing.tui.file.read_journal(script)
     session.exit()
 
@@ -460,9 +470,13 @@ def mesh_from_non_manifold_input_model(
     else:
         work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
 
-    if os.path.isdir(work_dir_meshing):
+    if os.path.isdir(work_dir_meshing) and not _uses_container:
         shutil.rmtree(work_dir_meshing)
-    os.makedirs(work_dir_meshing)
+
+    try:
+        os.makedirs(work_dir_meshing)
+    except:
+        LOGGER.debug("Failed to create working directory")
 
     path_to_output_old = path_to_output
     path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
@@ -508,7 +522,11 @@ def mesh_from_non_manifold_input_model(
     # ]
 
     # write all boundaries
+    LOGGER.debug(f"Files in {work_dir_meshing}")
     model.write_part_boundaries(work_dir_meshing)
+
+    files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+    LOGGER.debug(f"Written files: {files}")
 
     # launch pyfluent
     session = _get_fluent_meshing_session()
@@ -518,11 +536,11 @@ def mesh_from_non_manifold_input_model(
     )
 
     # # import stls
-    # if _uses_container:
-    #     # NOTE: when using a Fluent container visible files
-    #     # will be in /mnt/pyfluent. So need to use relative paths
-    #     # or replace dirname by /mnt/pyfluent as prefix
-    #     work_dir_meshing = "/mnt/pyfluent"
+    if _uses_container:
+        # NOTE: when using a Fluent container visible files
+        # will be in /mnt/pyfluent. So need to use relative paths
+        # or replace dirname by /mnt/pyfluent as prefix
+        work_dir_meshing = "."
 
     session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
 
@@ -622,7 +640,10 @@ def mesh_from_non_manifold_input_model(
     if os.path.isfile(path_to_output):
         os.remove(path_to_output)
 
-    session.tui.file.write_mesh('"' + path_to_output + '"')
+    if _uses_container:
+        session.tui.file.write_mesh(os.path.basename(path_to_output))
+    else:
+        session.tui.file.write_mesh('"' + path_to_output + '"')
     session.exit()
 
     shutil.copy(path_to_output, path_to_output_old)
@@ -796,13 +817,17 @@ def mesh_heart_model_by_fluent(
     # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
     if uses_container:
         mounted_volume = pyfluent.EXAMPLES_PATH
-        work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
+        work_dir_meshing = os.path.join(mounted_volume)
     else:
         work_dir_meshing = os.path.abspath(os.path.join(working_directory, "meshing"))
 
-    if os.path.isdir(work_dir_meshing):
+    if os.path.isdir(work_dir_meshing) and not _uses_container:
         shutil.rmtree(work_dir_meshing)
-    os.mkdir(work_dir_meshing)
+
+    try:
+        os.makedirs(work_dir_meshing)
+    except:
+        LOGGER.debug("Failed to create working directory")
 
     path_to_output_old = path_to_output
     path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
@@ -830,6 +855,9 @@ def mesh_heart_model_by_fluent(
     )
 
     # import files
+    if _uses_container:
+        work_dir_meshing = "."
+
     session.tui.file.import_.cad("no " + work_dir_meshing + " part_*.stl yes 40 yes mm")
     # session.transcript.start
     session.tui.objects.merge("'(*) heart")
@@ -922,7 +950,10 @@ def mesh_heart_model_by_fluent(
     session.tui.mesh.prepare_for_solve("yes")
 
     # write to file
-    session.tui.file.write_mesh(path_to_output)
+    if _uses_container:
+        session.tui.file.write_mesh(os.path.basename(path_to_output))
+    else:
+        session.tui.file.write_mesh(path_to_output)
     # session.meshing.tui.file.read_journal(script)
     session.exit()
 

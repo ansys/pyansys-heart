@@ -815,7 +815,7 @@ def mesh_heart_model_by_fluent(
     else:
         work_dir_meshing = os.path.abspath(os.path.join(working_directory, "meshing"))
 
-    if os.path.isdir(work_dir_meshing):
+    if os.path.isdir(work_dir_meshing) and not _uses_container:
         shutil.rmtree(work_dir_meshing)
     os.mkdir(work_dir_meshing)
 

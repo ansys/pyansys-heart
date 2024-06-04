@@ -286,9 +286,10 @@ def mesh_from_manifold_input_model(
     else:
         work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
 
-    if os.path.isdir(work_dir_meshing):
+    if os.path.isdir(work_dir_meshing) and not _uses_container:
         shutil.rmtree(work_dir_meshing)
-    os.makedirs(work_dir_meshing)
+    if not _uses_container:
+        os.makedirs(work_dir_meshing)
 
     LOGGER.debug(f"Path to meshing directory: {work_dir_meshing}")
 
@@ -377,7 +378,10 @@ def mesh_from_manifold_input_model(
 
     # write to file
 
-    session.tui.file.write_mesh('"' + path_to_output + '"')
+    if _uses_container:
+        session.tui.file.write_mesh(os.path.basename(path_to_output))
+    else:
+        session.tui.file.write_mesh('"' + path_to_output + '"')
     # session.meshing.tui.file.read_journal(script)
     session.exit()
 
@@ -461,9 +465,10 @@ def mesh_from_non_manifold_input_model(
     else:
         work_dir_meshing = os.path.abspath(os.path.join(workdir, "meshing"))
 
-    if os.path.isdir(work_dir_meshing):
+    if os.path.isdir(work_dir_meshing) and not _uses_container:
         shutil.rmtree(work_dir_meshing)
-    os.makedirs(work_dir_meshing)
+    if not _uses_container:
+        os.makedirs(work_dir_meshing)
 
     path_to_output_old = path_to_output
     path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
@@ -623,7 +628,10 @@ def mesh_from_non_manifold_input_model(
     if os.path.isfile(path_to_output):
         os.remove(path_to_output)
 
-    session.tui.file.write_mesh('"' + path_to_output + '"')
+    if _uses_container:
+        session.tui.file.write_mesh(os.path.basename(path_to_output))
+    else:
+        session.tui.file.write_mesh('"' + path_to_output + '"')
     session.exit()
 
     shutil.copy(path_to_output, path_to_output_old)

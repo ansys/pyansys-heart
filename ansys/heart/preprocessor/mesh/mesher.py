@@ -472,7 +472,7 @@ def mesh_from_non_manifold_input_model(
 
     if os.path.isdir(work_dir_meshing) and not _uses_container:
         shutil.rmtree(work_dir_meshing)
-        
+
     try:
         os.makedirs(work_dir_meshing)
     except:
@@ -823,7 +823,7 @@ def mesh_heart_model_by_fluent(
 
     if os.path.isdir(work_dir_meshing) and not _uses_container:
         shutil.rmtree(work_dir_meshing)
-        
+
     try:
         os.makedirs(work_dir_meshing)
     except:

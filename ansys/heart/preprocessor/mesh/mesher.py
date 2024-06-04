@@ -289,7 +289,10 @@ def mesh_from_manifold_input_model(
     if os.path.isdir(work_dir_meshing) and not _uses_container:
         shutil.rmtree(work_dir_meshing)
 
-    os.makedirs(work_dir_meshing)
+    try:
+        os.makedirs(work_dir_meshing)
+    except:
+        LOGGER.debug("Failed to create working directory")
 
     LOGGER.debug(f"Path to meshing directory: {work_dir_meshing}")
 
@@ -469,8 +472,11 @@ def mesh_from_non_manifold_input_model(
 
     if os.path.isdir(work_dir_meshing) and not _uses_container:
         shutil.rmtree(work_dir_meshing)
-    # if not _uses_container:
-    os.makedirs(work_dir_meshing)
+        
+    try:
+        os.makedirs(work_dir_meshing)
+    except:
+        LOGGER.debug("Failed to create working directory")
 
     path_to_output_old = path_to_output
     path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
@@ -817,7 +823,11 @@ def mesh_heart_model_by_fluent(
 
     if os.path.isdir(work_dir_meshing) and not _uses_container:
         shutil.rmtree(work_dir_meshing)
-    os.mkdir(work_dir_meshing)
+        
+    try:
+        os.makedirs(work_dir_meshing)
+    except:
+        LOGGER.debug("Failed to create working directory")
 
     path_to_output_old = path_to_output
     path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")

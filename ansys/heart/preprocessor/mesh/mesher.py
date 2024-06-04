@@ -811,7 +811,7 @@ def mesh_heart_model_by_fluent(
     # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
     if uses_container:
         mounted_volume = pyfluent.EXAMPLES_PATH
-        work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing")
+        work_dir_meshing = os.path.join(mounted_volume)
     else:
         work_dir_meshing = os.path.abspath(os.path.join(working_directory, "meshing"))
 
@@ -845,6 +845,9 @@ def mesh_heart_model_by_fluent(
     )
 
     # import files
+    if _uses_container:
+        work_dir_meshing = "."
+
     session.tui.file.import_.cad("no " + work_dir_meshing + " part_*.stl yes 40 yes mm")
     # session.transcript.start
     session.tui.objects.merge("'(*) heart")
@@ -937,7 +940,10 @@ def mesh_heart_model_by_fluent(
     session.tui.mesh.prepare_for_solve("yes")
 
     # write to file
-    session.tui.file.write_mesh(path_to_output)
+    if _uses_container:
+        session.tui.file.write_mesh(os.path.basename(path_to_output))
+    else:
+        session.tui.file.write_mesh(path_to_output)
     # session.meshing.tui.file.read_journal(script)
     session.exit()
 

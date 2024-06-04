@@ -21,7 +21,6 @@
 # SOFTWARE.
 
 """Module containing classes for the various heart models."""
-
 import copy
 import json
 import os
@@ -48,6 +47,7 @@ from ansys.heart.preprocessor.mesh.objects import (
 )
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.models.v0_2.input import _InputModel
+from ansys.heart.simulator.settings.material.material import NeoHookean
 import numpy as np
 import pyvista as pv
 from scipy.spatial.transform import Rotation as R
@@ -280,6 +280,10 @@ class HeartModel:
         """
         if len(eids) == 0:
             LOGGER.error(f"Element list is empty to create {name}")
+            return None
+
+        if name in [p.name for p in self.parts]:
+            LOGGER.error(f"Part {name} has existed.")
             return None
 
         for part in self.parts:
@@ -1837,11 +1841,45 @@ class FourChamber(HeartModel):
 
         # create a new part
         isolation: Part = self.create_part_by_ids(interface_eids, "Isolation atrial")
-        isolation.part_type = "atrial"
+        isolation.part_type = "atrium"
         isolation.has_fiber = True
         isolation.is_active = False
 
         return isolation
+
+    def _create_atrial_stiff_ring(self) -> Part:
+        # get ring cells from cap node list
+        ring_nodes = []
+        for cap in self.left_atrium.caps:
+            if "mitral" not in cap.name:
+                ring_nodes.extend(cap.node_ids.tolist())
+        for cap in self.right_atrium.caps:
+            if "tricuspid" not in cap.name:
+                ring_nodes.extend(cap.node_ids.tolist())
+
+        ring_eles = _find_cells_in_sphere(self.mesh, ring_nodes, radius=2)
+
+        # above search may create orphan elements, combine them to rings
+        self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
+        unselect_eles = np.setdiff1d(
+            np.hstack((self.left_atrium.element_ids, self.right_atrium.element_ids)), ring_eles
+        )
+        largest = self.mesh.extract_cells(unselect_eles).connectivity(largest=True)
+        connected_cells = largest["cell_ids"]
+        orphan_cells = np.setdiff1d(unselect_eles, connected_cells)
+        if len(orphan_cells) > 0:
+            ring_eles = np.hstack((ring_eles, orphan_cells))
+
+        # Create ring part
+        ring: Part = self.create_part_by_ids(
+            ring_eles, name="base atrial stiff rings"
+        )  # TODO name must has 'base', see dynawriter.py L3120
+        ring.part_type = "atrium"
+        ring.has_fiber = False
+        ring.is_active = False
+        ring.meca_material = NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+
+        return ring
 
 
 class FullHeart(FourChamber):
@@ -1884,6 +1922,32 @@ class FullHeart(FourChamber):
             super().__init__(info)
 
         pass
+
+
+def _find_cells_in_sphere(mesh, node_ids, radius=2):
+    # Get coordinates of the given node IDs
+    points = mesh.points[node_ids]
+
+    # Create a list to store cells within the sphere radius
+    cells_within_sphere = []
+
+    # Iterate through each point and find cells within the sphere
+    for point in points:
+        # Create a sphere at the given point
+        sphere = pv.Sphere(radius=radius, center=point)
+
+        # Use boolean intersection to find cells that intersect with the sphere
+        selection = mesh.select_enclosed_points(sphere, tolerance=0.0)
+
+        # Get the indices of the cells
+        selected_points = selection.point_data["SelectedPoints"].nonzero()[0]
+        selected_cells = mesh.extract_points(selected_points).cell_data["vtkOriginalCellIds"]
+
+        # Store unique cell indices
+        cells_within_sphere.extend(selected_cells)
+
+    # Return unique cell indices
+    return np.unique(cells_within_sphere)
 
 
 if __name__ == "__main__":

@@ -140,6 +140,10 @@ def main(args):
                 simulator.model.right_atrium.has_fiber = True
                 simulator.model.right_atrium.is_active = True
 
+            simulator.model.dump_model(os.path.join(workdir, "fibers.pickle"))
+
+            _ = simulator.model._create_atrial_stiff_ring()
+
             simulator.compute_stress_free_configuration()
 
             simulator.compute_purkinje()

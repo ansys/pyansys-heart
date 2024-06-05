@@ -544,21 +544,14 @@ def mesh_from_non_manifold_input_model(
     session.tui.scoped_sizing.compute('"yes"')
 
     session.tui.objects.extract_edges("'(*) feature 40")
+
     visited_parts = []
     used_boundary_names = []
-
     for part in model.parts:
         LOGGER.info("Wrapping " + part.name + "...")
         # wrap object.
-        pre_wrap_facezones = _get_face_zones_with_filter(session, ["*"])
+        wrapped_face_zones = _wrap_part(session, part.boundary_names, part.name)
 
-        session.tui.objects.wrap.wrap(
-            "'({0}) collectively {1} shrink-wrap external wrapped hybrid".format(
-                " ".join(part.boundary_names), part.name
-            )
-        )
-        post_wrap_facezones = _get_face_zones_with_filter(session, ["*"])
-        wrapped_face_zones = list(set(post_wrap_facezones) - set(pre_wrap_facezones))
         # manage boundary names of wrapped surfaces
         if not wrapped_face_zones:
             continue
@@ -589,16 +582,7 @@ def mesh_from_non_manifold_input_model(
     # NOTE: this assumes that all the individually wrapped parts form a single
     # connected structure.
     LOGGER.info("Wrapping model...")
-    pre_wrap_facezones = _get_face_zones_with_filter(session, ["*"])
-
-    session.tui.objects.wrap.wrap(
-        "'({0}) collectively {1} shrink-wrap external wrapped hybrid".format(
-            " ".join(model.boundary_names), "model"
-        )
-    )
-
-    post_wrap_facezones = _get_face_zones_with_filter(session, ["*"])
-    wrapped_face_zones = list(set(post_wrap_facezones) - set(pre_wrap_facezones))
+    wrapped_face_zones = _wrap_part(session, model.boundary_names, "model")
 
     if not wrapped_face_zones:
         LOGGER.error("Expecting face zones to rename.")

@@ -30,6 +30,7 @@ import shutil
 
 os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
 
+from ansys.heart.preprocessor.helpers import model_summary
 import ansys.heart.preprocessor.models.v0_2.models as models
 from ansys.heart.writer.dynawriter import (
     ElectrophysiologyDynaWriter,
@@ -39,6 +40,7 @@ from ansys.heart.writer.dynawriter import (
     ZeroPressureMechanicsDynaWriter,
 )
 import pytest
+import yaml
 
 pytestmark = pytest.mark.requires_fluent
 
@@ -46,6 +48,9 @@ from tests.heart.common import (
     compare_cavity_volume_2,
     compare_generated_mesh_2,
     compare_part_names_2,
+    compare_stats_mesh,
+    compare_stats_names,
+    compare_stats_volumes,
     compare_surface_names_2,
 )
 from tests.heart.conftest import get_assets_folder, get_workdir
@@ -88,6 +93,19 @@ def extract_bi_ventricle():
     with open(path_to_reference_stats, "r") as openfile:
         ref_stats = json.load(openfile)
 
+    path_to_reference_stats = os.path.join(
+        get_assets_folder(),
+        "reference_models",
+        "strocchi2020",
+        "01",
+        "BiVentricle",
+        "stats_biventricle_v0-2.yml",
+    )
+
+    global stats_ref
+    with open(path_to_reference_stats, "r") as f:
+        stats_ref = yaml.load(f, yaml.SafeLoader)
+
     workdir = os.path.join(get_workdir(), "v02", "BiVentricle")
     path_to_model = os.path.join(workdir, "heart_model.pickle")
 
@@ -114,6 +132,27 @@ def extract_bi_ventricle():
         shutil.rmtree(workdir)
     except:
         print("Failed to cleanup.")
+
+
+def test_model_names():
+    """Test if relevant features are present in model."""
+    stats = model_summary(model)
+    compare_stats_names(stats, stats_ref)
+    pass
+
+
+def test_model_cavities():
+    """Test consistency of cavity volumes."""
+    stats = model_summary(model)
+    compare_stats_volumes(stats, stats_ref)
+
+    pass
+
+
+def test_model_mesh_stats():
+    stats = model_summary(model)
+    compare_stats_mesh(stats, stats_ref)
+    pass
 
 
 @pytest.mark.models_v2

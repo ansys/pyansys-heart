@@ -37,9 +37,10 @@ elif heart_version == "v0.1":
 
 import numpy as np
 
+
 def compare_stats_names(stats: dict, stats_ref: dict):
-    """Compare stats names 
-    
+    """Compare stats names
+
     Notes
     -----
     Utilizes ansys.heart.preprocessor.helpers.model_summary method
@@ -53,21 +54,28 @@ def compare_stats_names(stats: dict, stats_ref: dict):
         Dictionary with reference stats.
     """
     for part_name in stats_ref["PARTS"].keys():
-        assert part_name in list(stats["PARTS"].keys()), f"Part :{part_name} missing"
-                
+        assert part_name in list(stats["PARTS"].keys()), f"Part: {part_name} missing"
+
         for surface_name in stats_ref["PARTS"][part_name]["SURFACES"].keys():
-            assert surface_name in list(stats["PARTS"][part_name]["SURFACES"].keys()), f"{surface_name} missing"
+            assert surface_name in list(
+                stats["PARTS"][part_name]["SURFACES"].keys()
+            ), f"Surface: {surface_name} missing"
 
         for cap_name in stats_ref["PARTS"][part_name]["CAPS"].keys():
-            assert cap_name in list(stats["PARTS"][cap_name]["CAPS"].keys()), f"{cap_name} missing"       
-    
-    assert list(stats["CAVITIES"].keys()) == list(stats_ref["CAVITIES"].keys()), "one or more cavities missing"
-    
-    
+            assert cap_name in list(
+                stats["PARTS"][part_name]["CAPS"].keys()
+            ), f"Cap: {cap_name} missing"
+
+    assert sorted(list(stats["CAVITIES"].keys())) == sorted(
+        list(stats_ref["CAVITIES"].keys())
+    ), "one or more cavities missing"
+
+    return
+
 
 def compare_stats_volumes(stats: dict, stats_ref: dict):
     """Compare stats volumes of cavities
-    
+
     Notes
     -----
     Utilizes ansys.heart.preprocessor.helpers.model_summary method
@@ -83,8 +91,40 @@ def compare_stats_volumes(stats: dict, stats_ref: dict):
     for cavity_name in stats_ref["CAVITIES"].keys():
         volume = stats["CAVITIES"][cavity_name]["volume"]
         volume_ref = stats_ref["CAVITIES"][cavity_name]["volume"]
-        percent_diff = abs(volume - volume_ref)/volume_ref * 100
-        assert percent_diff < 1, f"Volume of cavity {cavity_name} is {percent_diff}"
+        percent_diff = abs(volume - volume_ref) / volume_ref * 100
+        assert (
+            percent_diff < 1
+        ), f"Difference in cavity volumes of {cavity_name} is {percent_diff} \%"
+
+    return
+
+
+def compare_stats_mesh(stats: dict, stats_ref: dict):
+    """Compare mesh stats of the generated model."""
+    assert (
+        stats["GENERAL"]["total_num_tets"] == stats_ref["GENERAL"]["total_num_tets"]
+    ), "Total number of tets not the same"
+    assert (
+        stats["GENERAL"]["total_num_nodes"] == stats_ref["GENERAL"]["total_num_nodes"]
+    ), "Total number of nodes not the same"
+
+    for part in stats_ref["PARTS"].keys():
+        assert (
+            stats["PARTS"][part]["num_tets"] == stats_ref["PARTS"][part]["num_tets"]
+        ), f"Num tets in {part} not the same."
+
+        for surface in stats_ref["PARTS"][part]["SURFACES"].keys():
+            ref_num_faces = stats_ref["PARTS"][part]["SURFACES"][surface]["num_faces"]
+            num_faces = stats["PARTS"][part]["SURFACES"][surface]["num_faces"]
+            assert num_faces == ref_num_faces, f"Number of faces of {surface} do not match."
+
+        for cap in stats_ref["PARTS"][part]["CAPS"].keys():
+            ref_num_nodes = stats_ref["PARTS"][part]["CAPS"][cap]["num_nodes"]
+            num_nodes = stats["PARTS"][part]["CAPS"][cap]["num_nodes"]
+            assert num_nodes == ref_num_nodes, f"Number of nodes of {cap} do not match."
+
+    return
+
 
 def compare_part_names(model: models.HeartModel, ref_stats: dict):
     """Test if parts match that of the reference model.

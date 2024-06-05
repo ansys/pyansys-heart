@@ -37,6 +37,54 @@ elif heart_version == "v0.1":
 
 import numpy as np
 
+def compare_stats_names(stats: dict, stats_ref: dict):
+    """Compare stats names 
+    
+    Notes
+    -----
+    Utilizes ansys.heart.preprocessor.helpers.model_summary method
+    to generate the stats
+
+    Parameters
+    ----------
+    stats : dict
+        Dictionary with generated stats.
+    stats_ref : dict
+        Dictionary with reference stats.
+    """
+    for part_name in stats_ref["PARTS"].keys():
+        assert part_name in list(stats["PARTS"].keys()), f"Part :{part_name} missing"
+                
+        for surface_name in stats_ref["PARTS"][part_name]["SURFACES"].keys():
+            assert surface_name in list(stats["PARTS"][part_name]["SURFACES"].keys()), f"{surface_name} missing"
+
+        for cap_name in stats_ref["PARTS"][part_name]["CAPS"].keys():
+            assert cap_name in list(stats["PARTS"][cap_name]["CAPS"].keys()), f"{cap_name} missing"       
+    
+    assert list(stats["CAVITIES"].keys()) == list(stats_ref["CAVITIES"].keys()), "one or more cavities missing"
+    
+    
+
+def compare_stats_volumes(stats: dict, stats_ref: dict):
+    """Compare stats volumes of cavities
+    
+    Notes
+    -----
+    Utilizes ansys.heart.preprocessor.helpers.model_summary method
+    to generate the stats
+
+    Parameters
+    ----------
+    stats : dict
+        Dictionary with generated stats.
+    stats_ref : dict
+        Dictionary with reference stats.
+    """
+    for cavity_name in stats_ref["CAVITIES"].keys():
+        volume = stats["CAVITIES"][cavity_name]["volume"]
+        volume_ref = stats_ref["CAVITIES"][cavity_name]["volume"]
+        percent_diff = abs(volume - volume_ref)/volume_ref * 100
+        assert percent_diff < 1, f"Volume of cavity {cavity_name} is {percent_diff}"
 
 def compare_part_names(model: models.HeartModel, ref_stats: dict):
     """Test if parts match that of the reference model.

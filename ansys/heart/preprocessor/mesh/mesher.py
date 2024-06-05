@@ -162,7 +162,27 @@ def _wrap_part(session: MeshingSession, boundary_names: list, wrapped_part_name:
     post_wrap_facezones = _get_face_zones_with_filter(session, ["*"])
     wrapped_face_zones = list(set(post_wrap_facezones) - set(pre_wrap_facezones))
 
-    return wrapped_face_zones
+    # rename the "new" face zones accordingly:
+    wrapped_face_zone_names = []
+    for face_zone_name in wrapped_face_zones:
+        # Exclude renaming of boundaries that include name of visited parts
+        old_name = face_zone_name
+        new_name = wrapped_part_name + ":" + old_name.split(":")[0]
+        # find unique name
+        rename_success = False
+        ii = 0
+        while not rename_success:
+            if new_name not in wrapped_face_zone_names:
+                break
+            else:
+                new_name = new_name = (
+                    wrapped_part_name + ":" + old_name.split(":")[0] + "_{:03d}".format(ii)
+                )
+            ii += 1
+        session.tui.boundary.manage.name(old_name + " " + new_name)
+        wrapped_face_zone_names += [new_name]
+
+    return wrapped_face_zone_names
 
 
 def mesh_fluid_cavities(
@@ -530,13 +550,7 @@ def mesh_from_non_manifold_input_model(
         # or replace dirname by /mnt/pyfluent as prefix
         work_dir_meshing = "."
 
-    # session.tui.file.import_.cad("yes", files[0], "yes", 40, "yes", "mm")
-    # for file in files[1:]:
-    #     session.tui.file.import_.cad("yes", file, "yes", "yes", 40, "yes", "mm")
-    # import all stls
     session.tui.file.import_.cad("no", work_dir_meshing, "*.stl", "yes", 40, "yes", "mm")
-
-    # session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
 
     # each stl is imported as a separate object. Wrap the different collections of stls to create
     # new surface meshes for each of the parts.
@@ -545,68 +559,17 @@ def mesh_from_non_manifold_input_model(
 
     session.tui.objects.extract_edges("'(*) feature 40")
 
-    visited_parts = []
-    used_boundary_names = []
     for part in model.parts:
         LOGGER.info("Wrapping " + part.name + "...")
         # wrap object.
-        wrapped_face_zones = _wrap_part(session, part.boundary_names, part.name)
-
-        # manage boundary names of wrapped surfaces
-        if not wrapped_face_zones:
-            continue
-
-        for face_zone_name in wrapped_face_zones:
-            old_name = face_zone_name
-
-            # if old name contains part name before delimiter : -> skip this boundary
-            prefix = old_name.split(":")[0]
-            if any([prefix == p.lower() for p in visited_parts]):
-                LOGGER.debug(f"Skip {face_zone_name}")
-                continue
-
-            new_name = part.name + ":" + prefix
-
-            if new_name in used_boundary_names:
-                LOGGER.debug(f"Name of boundary {new_name} already used.")
-                continue
-
-            session.tui.boundary.manage.name(old_name + " " + new_name)
-
-            used_boundary_names += [new_name]
-
-        visited_parts += [part.name]
+        _wrap_part(session, part.boundary_names, part.name)
 
     # wrap entire model in one pass so that we can create a single volume mesh. Use list of all
     # input boundaries are given as input. External material point for meshing.
     # NOTE: this assumes that all the individually wrapped parts form a single
     # connected structure.
     LOGGER.info("Wrapping model...")
-    wrapped_face_zones = _wrap_part(session, model.boundary_names, "model")
-
-    if not wrapped_face_zones:
-        LOGGER.error("Expecting face zones to rename.")
-
-    used_names = []
-    for face_zone_name in wrapped_face_zones:
-        # Exclude renaming of boundaries that include name of visited parts
-        old_name = face_zone_name
-
-        new_name = "model" + ":" + old_name.split(":")[0]
-
-        # find unique name
-        rename_success = False
-        ii = 0
-        while not rename_success:
-            if new_name not in used_names:
-                break
-            else:
-                new_name = new_name = "model" + ":" + old_name.split(":")[0] + "_{:03d}".format(ii)
-            ii += 1
-
-        session.tui.boundary.manage.name(old_name + " " + new_name)
-
-        used_names += [new_name]
+    _wrap_part(session, model.boundary_names, "model")
 
     # mesh the entire model in one go.
     session.tui.objects.volumetric_regions.compute("model")
@@ -635,9 +598,6 @@ def mesh_from_non_manifold_input_model(
     mesh._fix_negative_cells()
 
     # convert to unstructured grid.
-    # cells = np.hstack([np.ones((num_cells, 1), dtype=int) * 4, mesh.cell_zones[0].cells])
-    # celltypes = [pv.CellType.TETRA] * num_cells
-    # grid = pv.UnstructuredGrid(cells.flatten(), celltypes, mesh.nodes)
     grid = mesh._to_vtk()
 
     # represent cell centroids as point cloud assign part-ids to cells.
@@ -647,7 +607,7 @@ def mesh_from_non_manifold_input_model(
     # NOTE: should use wrapped surfaces to select part.
     # assign wrapped boundaries to input parts.
     for ii, part in enumerate(model.parts):
-        face_zones_wrapped = [fz for fz in mesh.face_zones if part.name in fz.name]
+        face_zones_wrapped = [fz for fz in mesh.face_zones if part.name + ":" in fz.name]
         if len(face_zones_wrapped) == 0:
             LOGGER.error(f"Did not find any wrapped face zones for {part.name}")
 

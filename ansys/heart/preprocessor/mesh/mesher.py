@@ -285,6 +285,7 @@ def mesh_from_manifold_input_model(
     workdir: Union[str, Path],
     path_to_output: Union[str, Path],
     mesh_size: float = 2.0,
+    overwrite_existing_mesh: bool = True,
 ) -> FluentMesh:
     """Create mesh from good-quality manifold input model.
 
@@ -332,104 +333,110 @@ def mesh_from_manifold_input_model(
 
     LOGGER.debug(f"Path to meshing directory: {work_dir_meshing}")
 
-    path_to_output_old = path_to_output
-    path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
+    if not os.path.isfile(path_to_output) or overwrite_existing_mesh:
 
-    min_size = mesh_size
-    max_size = mesh_size
-    growth_rate = 1.2
+        path_to_output_old = path_to_output
+        path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
 
-    # clean up any stls in the directory
-    stls = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
-    for stl in stls:
-        os.remove(stl)
+        min_size = mesh_size
+        max_size = mesh_size
+        growth_rate = 1.2
 
-    # write all boundaries
-    model.write_part_boundaries(work_dir_meshing)
-    files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
-    LOGGER.debug(f"Files in {work_dir_meshing}: {files}")
+        # clean up any stls in the directory
+        stls = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+        for stl in stls:
+            os.remove(stl)
 
-    session = _get_fluent_meshing_session()
+        # write all boundaries
+        model.write_part_boundaries(work_dir_meshing)
+        files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+        LOGGER.debug(f"Files in {work_dir_meshing}: {files}")
 
-    session.transcript.start(
-        os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
-    )
+        session = _get_fluent_meshing_session()
 
-    # import files
-    if _uses_container:
-        # NOTE: when using a Fluent container visible files
-        # will be in /mnt/pyfluent. So need to use relative paths
-        # or replace dirname by /mnt/pyfluent as prefix
-        work_dir_meshing = "."
-
-    session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
-    session.tui.objects.merge("'(*) heart")
-    session.tui.objects.labels.create_label_per_zone("heart '(*)")
-    session.tui.diagnostics.face_connectivity.fix_free_faces("objects '(*) merge-nodes yes 1e-3")
-
-    if fix_intersections:
-        session.tui.diagnostics.face_connectivity.fix_self_intersections(
-            "objects '(heart) fix-self-intersection"
+        session.transcript.start(
+            os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
         )
 
-    # smooth all zones
-    face_zone_names = _get_face_zones_with_filter(session, "*")
+        # import files
+        if _uses_container:
+            # NOTE: when using a Fluent container visible files
+            # will be in /mnt/pyfluent. So need to use relative paths
+            # or replace dirname by /mnt/pyfluent as prefix
+            work_dir_meshing = "."
 
-    if smooth_boundaries:
-        for fz in face_zone_names:
-            session.tui.boundary.modify.select_zone(fz)
-            session.tui.boundary.modify.smooth()
-
-    session.tui.objects.create_intersection_loops("collectively '(*)")
-    session.tui.boundary.feature.create_edge_zones("(*) fixed-angle 70 yes")
-    # create size field
-    session.tui.size_functions.set_global_controls(min_size, max_size, growth_rate)
-    session.tui.scoped_sizing.compute("yes")
-
-    # remesh surface
-    session.tui.boundary.remesh.remesh_face_zones_conformally("'(*) '(*) 40 20 yes")
-
-    # some diagnostics
-    if fix_intersections:
-        session.tui.diagnostics.face_connectivity.fix_self_intersections(
-            "objects '(heart) fix-self-intersection"
+        session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
+        session.tui.objects.merge("'(*) heart")
+        session.tui.objects.labels.create_label_per_zone("heart '(*)")
+        session.tui.diagnostics.face_connectivity.fix_free_faces(
+            "objects '(*) merge-nodes yes 1e-3"
         )
-    session.tui.diagnostics.face_connectivity.fix_duplicate_faces("objects '(heart)")
 
-    # convert to mesh object
-    session.tui.objects.change_object_type("'(heart) mesh y")
+        if fix_intersections:
+            session.tui.diagnostics.face_connectivity.fix_self_intersections(
+                "objects '(heart) fix-self-intersection"
+            )
 
-    # compute volumes
-    session.tui.objects.volumetric_regions.compute("heart", "no")
+        # smooth all zones
+        face_zone_names = _get_face_zones_with_filter(session, "*")
 
-    # start auto meshing
-    session.tui.mesh.tet.controls.cell_sizing("size-field")
-    session.tui.mesh.auto_mesh("heart", "yes", "pyramids", "tet", "no")
+        if smooth_boundaries:
+            for fz in face_zone_names:
+                session.tui.boundary.modify.select_zone(fz)
+                session.tui.boundary.modify.smooth()
 
-    if auto_improve_nodes:
-        session.tui.mesh.modify.auto_node_move("(*)", "(*)", 0.3, 50, 120, "yes", 5)
+        session.tui.objects.create_intersection_loops("collectively '(*)")
+        session.tui.boundary.feature.create_edge_zones("(*) fixed-angle 70 yes")
+        # create size field
+        session.tui.size_functions.set_global_controls(min_size, max_size, growth_rate)
+        session.tui.scoped_sizing.compute("yes")
 
-    session.tui.objects.delete_all_geom()
-    session.tui.mesh.zone_names_clean_up()
-    # session.tui.mesh.check_mesh()
-    # session.tui.mesh.check_quality()
-    session.tui.boundary.manage.remove_suffix("(*)")
+        # remesh surface
+        session.tui.boundary.remesh.remesh_face_zones_conformally("'(*) '(*) 40 20 yes")
 
-    session.tui.mesh.prepare_for_solve("yes")
+        # some diagnostics
+        if fix_intersections:
+            session.tui.diagnostics.face_connectivity.fix_self_intersections(
+                "objects '(heart) fix-self-intersection"
+            )
+        session.tui.diagnostics.face_connectivity.fix_duplicate_faces("objects '(heart)")
 
-    # write to file
+        # convert to mesh object
+        session.tui.objects.change_object_type("'(heart) mesh y")
 
-    if _uses_container:
-        session.tui.file.write_mesh(os.path.basename(path_to_output))
+        # compute volumes
+        session.tui.objects.volumetric_regions.compute("heart", "no")
+
+        # start auto meshing
+        session.tui.mesh.tet.controls.cell_sizing("size-field")
+        session.tui.mesh.auto_mesh("heart", "yes", "pyramids", "tet", "no")
+
+        if auto_improve_nodes:
+            session.tui.mesh.modify.auto_node_move("(*)", "(*)", 0.3, 50, 120, "yes", 5)
+
+        session.tui.objects.delete_all_geom()
+        session.tui.mesh.zone_names_clean_up()
+        # session.tui.mesh.check_mesh()
+        # session.tui.mesh.check_quality()
+        session.tui.boundary.manage.remove_suffix("(*)")
+
+        session.tui.mesh.prepare_for_solve("yes")
+
+        # write to file
+
+        if _uses_container:
+            session.tui.file.write_mesh(os.path.basename(path_to_output))
+        else:
+            session.tui.file.write_mesh('"' + path_to_output + '"')
+        # session.meshing.tui.file.read_journal(script)
+        session.exit()
+
+        if path_to_output != path_to_output_old:
+            shutil.copy(path_to_output, path_to_output_old)
+
+        path_to_output = path_to_output_old
     else:
-        session.tui.file.write_mesh('"' + path_to_output + '"')
-    # session.meshing.tui.file.read_journal(script)
-    session.exit()
-
-    if path_to_output != path_to_output_old:
-        shutil.copy(path_to_output, path_to_output_old)
-
-    path_to_output = path_to_output_old
+        LOGGER.debug(f"Reusing: {path_to_output}")
 
     mesh = FluentMesh()
     mesh.load_mesh(path_to_output)
@@ -465,6 +472,7 @@ def mesh_from_non_manifold_input_model(
     workdir: Union[str, Path],
     path_to_output: Union[str, Path],
     mesh_size: float = 2.0,
+    overwrite_existing_mesh: bool = True,
 ) -> FluentMesh:
     """Generate mesh from non-manifold poor quality input model.
 
@@ -514,83 +522,88 @@ def mesh_from_non_manifold_input_model(
     except:
         LOGGER.debug("Failed to create working directory")
 
-    path_to_output_old = path_to_output
-    path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
+    if not os.path.isfile(path_to_output) or overwrite_existing_mesh:
+        path_to_output_old = path_to_output
+        path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
 
-    min_size = mesh_size
-    max_size = mesh_size
-    growth_rate = 1.2
+        min_size = mesh_size
+        max_size = mesh_size
+        growth_rate = 1.2
 
-    # clean up any stls in the directory
-    stls = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
-    for stl in stls:
-        os.remove(stl)
+        # clean up any stls in the directory
+        stls = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+        for stl in stls:
+            os.remove(stl)
 
-    for part in model.parts:
-        part.name = part.name.lower().replace(" ", "_")
+        for part in model.parts:
+            part.name = part.name.lower().replace(" ", "_")
 
-    # write all boundaries
-    LOGGER.debug(f"Files in {work_dir_meshing}")
-    model.write_part_boundaries(work_dir_meshing, add_name_to_header=False)
+        # write all boundaries
+        LOGGER.debug(f"Files in {work_dir_meshing}")
+        model.write_part_boundaries(work_dir_meshing, add_name_to_header=False)
 
-    files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
-    LOGGER.debug(f"Written files: {files}")
+        files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+        LOGGER.debug(f"Written files: {files}")
 
-    # launch pyfluent
-    session = _get_fluent_meshing_session()
+        # launch pyfluent
+        session = _get_fluent_meshing_session()
 
-    session.transcript.start(
-        os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
-    )
+        session.transcript.start(
+            os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
+        )
 
-    # # import stls
-    if _uses_container:
-        # NOTE: when using a Fluent container visible files
-        # will be in /mnt/pyfluent. So need to use relative paths
-        # or replace dirname by /mnt/pyfluent as prefix
-        work_dir_meshing = "."
+        # # import stls
+        if _uses_container:
+            # NOTE: when using a Fluent container visible files
+            # will be in /mnt/pyfluent. So need to use relative paths
+            # or replace dirname by /mnt/pyfluent as prefix
+            work_dir_meshing = "."
 
-    session.tui.file.import_.cad("no", work_dir_meshing, "*.stl", "yes", 40, "yes", "mm")
+        session.tui.file.import_.cad("no", work_dir_meshing, "*.stl", "yes", 40, "yes", "mm")
 
-    # each stl is imported as a separate object. Wrap the different collections of stls to create
-    # new surface meshes for each of the parts.
-    session.tui.size_functions.set_global_controls(min_size, max_size, growth_rate)
-    session.tui.scoped_sizing.compute('"yes"')
+        # each stl is imported as a separate object. Wrap the different collections of stls to
+        # create new surface meshes for each of the parts.
+        session.tui.size_functions.set_global_controls(min_size, max_size, growth_rate)
+        session.tui.scoped_sizing.compute('"yes"')
 
-    session.tui.objects.extract_edges("'(*) feature 40")
+        session.tui.objects.extract_edges("'(*) feature 40")
 
-    for part in model.parts:
-        LOGGER.info("Wrapping " + part.name + "...")
-        # wrap object.
-        _wrap_part(session, part.boundary_names, part.name)
+        for part in model.parts:
+            LOGGER.info("Wrapping " + part.name + "...")
+            # wrap object.
+            _wrap_part(session, part.boundary_names, part.name)
 
-    # wrap entire model in one pass so that we can create a single volume mesh. Use list of all
-    # input boundaries are given as input. External material point for meshing.
-    # NOTE: this assumes that all the individually wrapped parts form a single
-    # connected structure.
-    LOGGER.info("Wrapping model...")
-    _wrap_part(session, model.boundary_names, "model")
+        # wrap entire model in one pass so that we can create a single volume mesh. Use list of all
+        # input boundaries are given as input. External material point for meshing.
+        # NOTE: this assumes that all the individually wrapped parts form a single
+        # connected structure.
+        LOGGER.info("Wrapping model...")
+        _wrap_part(session, model.boundary_names, "model")
 
-    # mesh the entire model in one go.
-    session.tui.objects.volumetric_regions.compute("model")
-    session.tui.mesh.auto_mesh("model yes pyramids tet no")
+        # mesh the entire model in one go.
+        session.tui.objects.volumetric_regions.compute("model")
+        session.tui.mesh.auto_mesh("model yes pyramids tet no")
 
-    # clean up geometry objects
-    session.tui.objects.delete_all_geom()
+        # clean up geometry objects
+        session.tui.objects.delete_all_geom()
 
-    # write mesh
-    if os.path.isfile(path_to_output):
-        os.remove(path_to_output)
+        # write mesh
+        if os.path.isfile(path_to_output):
+            os.remove(path_to_output)
 
-    if _uses_container:
-        session.tui.file.write_mesh(os.path.basename(path_to_output))
+        if _uses_container:
+            session.tui.file.write_mesh(os.path.basename(path_to_output))
+        else:
+            session.tui.file.write_mesh('"' + path_to_output + '"')
+        session.exit()
+
+        shutil.copy(path_to_output, path_to_output_old)
+
+        path_to_output = path_to_output_old
     else:
-        session.tui.file.write_mesh('"' + path_to_output + '"')
-    session.exit()
-
-    shutil.copy(path_to_output, path_to_output_old)
-
-    path_to_output = path_to_output_old
+        LOGGER.debug(f"Reusing {path_to_output}")
+        for part in model.parts:
+            part.name = part.name.replace(" ", "_").lower()
 
     # Update the cell zones such that for each part we have a separate cell zone.
     mesh = FluentMesh()

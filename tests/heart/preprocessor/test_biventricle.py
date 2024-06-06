@@ -22,14 +22,18 @@
 
 """Functional test to determine whether generated biventricle model has all the
 expected features."""
-
 import copy
 import glob
 import os
 import pathlib
 import shutil
-import sys
+import tempfile
 
+import yaml
+
+os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.1"
+
+from ansys.heart.preprocessor.helpers import model_summary
 import ansys.heart.preprocessor.models.v0_1.models as models
 from ansys.heart.simulator.support import run_preprocessor
 from ansys.heart.writer.dynawriter import (
@@ -43,12 +47,7 @@ import pytest
 
 pytestmark = pytest.mark.requires_fluent
 
-from tests.heart.common import (
-    compare_cavity_volume,
-    compare_generated_mesh,
-    compare_part_names,
-    compare_surface_names,
-)
+from tests.heart.common import compare_stats_mesh, compare_stats_names, compare_stats_volumes
 from tests.heart.conftest import download_asset, get_assets_folder, get_workdir
 from tests.heart.end2end.compare_k import read_file
 
@@ -64,100 +63,82 @@ def extract_bi_ventricle():
     """
 
     assets_folder = get_assets_folder()
-    # path_to_case = os.path.join(assets_folder, "cases", "Strocchi2020", "01", "01.case")
-    # path_to_case = os.path.join(assets_folder, "cases", "Rodero2021", "01", "01.vtk")
-
     path_to_case = download_asset("Strocchi2020", casenumber=1, clean_folder=True)
 
-    # # load model to test against
-    # path_to_reference_stats = os.path.join(
-    #     assets_folder,
-    #     "reference_models",
-    #     "strocchi2020",
-    #     "01",
-    #     "BiVentricle",
-    #     "heart_model.pickle",
-    # )
-    path_to_reference_stats = path_to_reference_stats = os.path.join(
-        assets_folder,
+    path_to_reference_stats = os.path.join(
+        get_assets_folder(),
         "reference_models",
         "strocchi2020",
         "01",
-        "BiVentricle",
-        "stats_reference_model_BiVentricle.json",
+        "stats_biventricle_v0-1.yml",
     )
+
     assert os.path.isfile(path_to_case)
     assert os.path.isfile(path_to_reference_stats)
 
-    global ref_stats
-    import json
+    global stats_ref
+    with open(path_to_reference_stats, "r") as f:
+        stats_ref = yaml.load(f, yaml.SafeLoader)
 
-    with open(path_to_reference_stats, "r") as openfile:
-        ref_stats = json.load(openfile)
+    # Use a temp directory for generating the model.
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tmpdirname:
+        workdir = str(pathlib.Path(tmpdirname))
+        path_to_model = os.path.join(workdir, "heart_model.pickle")
 
-    workdir = os.path.join(get_workdir(), "BiVentricle")
-    path_to_model = os.path.join(workdir, "heart_model.pickle")
+        # copy mesh file
+        shutil.copyfile(
+            os.path.join(
+                assets_folder,
+                "reference_models",
+                "strocchi2020",
+                "01",
+                "BiVentricle",
+                "fluent_volume_mesh.msh.h5",
+            ),
+            os.path.join(workdir, "fluent_volume_mesh.msh.h5"),
+        )
 
-    # copy mesh file
-    if not os.path.isdir(workdir):
-        os.makedirs(workdir)
-    shutil.copyfile(
-        os.path.join(
-            assets_folder,
-            "reference_models",
-            "strocchi2020",
-            "01",
-            "BiVentricle",
-            "fluent_volume_mesh.msh.h5",
-        ),
-        os.path.join(workdir, "fluent_volume_mesh.msh.h5"),
-    )
+        global model
+        model = run_preprocessor(
+            model_type=models.BiVentricle,
+            database="Strocchi2020",
+            path_original_mesh=path_to_case,
+            work_directory=workdir,
+            path_to_model=path_to_model,
+            mesh_size=2,
+            skip_meshing=True,
+        )
 
-    global model
-    model = run_preprocessor(
-        model_type=models.BiVentricle,
-        database="Strocchi2020",
-        path_original_mesh=path_to_case,
-        work_directory=workdir,
-        path_to_model=path_to_model,
-        mesh_size=2,
-        skip_meshing=True,
-    )
+        global stats
+        stats = model_summary(model)
 
-    yield
-
-    # cleanup
-    try:
-        shutil.rmtree(workdir)
-    except:
-        print("Failed to cleanup.")
+    return
 
 
-def test_part_names():
-    compare_part_names(model, ref_stats)
+@pytest.mark.models_v1
+def test_names():
+    """Test if relevant features are present in model."""
+    compare_stats_names(stats, stats_ref)
     pass
 
 
-def test_surface_names():
-    compare_surface_names(model, ref_stats)
+@pytest.mark.models_v1
+def test_cavity_volumes():
+    """Test consistency of cavity volumes."""
+    compare_stats_volumes(stats, stats_ref)
     pass
 
 
-def test_cavities_volumes():
-    compare_cavity_volume(model, ref_stats)
+@pytest.mark.models_v1
+@pytest.mark.xfail(reason="Different Fluent versions may yield slightly different meshing results")
+def test_mesh_stats():
+    compare_stats_mesh(stats, stats_ref)
     pass
-
-
-@pytest.mark.xfail(
-    sys.platform == "linux", reason="Mesh generation slightly different for Linux version of Fluent"
-)
-def test_mesh():
-    """Test the number of tetrahedrons and triangles in the volume mesh and surface meshes"""
-    compare_generated_mesh(model, ref_stats)
 
 
 # functional tests to determine whether any change was made to
 # LS-DYNA input.
+@pytest.mark.models_v1
 @pytest.mark.xfail(reason="This test is currently too strict - rewrite or disable")
 @pytest.mark.parametrize(
     "writer_class",

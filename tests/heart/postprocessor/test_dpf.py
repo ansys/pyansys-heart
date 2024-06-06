@@ -23,13 +23,21 @@
 """unit test for dpf utils."""
 import os
 
+os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+
 from ansys.heart.postprocessor.dpf_utils import ICVoutReader
 import numpy as np
 import pytest
 
+if os.getenv("GITHUB_ACTION"):
+    github_runner = True
+else:
+    github_runner = False
 
-@pytest.mark.xfail("Needs to be reworked.")
+
+@pytest.mark.xfail(condition=github_runner, reason="Needs to be reworked.")
 def test_icvout():
+
     path = os.path.dirname(os.path.abspath(__file__))
     fn = os.path.join(path, "binout0000")
     icvout = ICVoutReader(fn)

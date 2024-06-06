@@ -24,15 +24,12 @@
 
 import glob as glob
 import os
-import shutil
 import tempfile
 from typing import Union
 
 from ansys.heart.preprocessor.models.v0_2.input import _InputModel
 import numpy as np
 import pyvista as pv
-
-import tests.heart.conftest as conftest
 
 
 def _is_same_mesh(

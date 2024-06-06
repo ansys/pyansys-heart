@@ -106,14 +106,9 @@ jobs:
         env:
           PIP_EXTRA_INDEX_URL: 'https://${{ secrets.PYANSYS_PYPI_PRIVATE_PAT }}@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/'
 
-      - name: Run tests preprocessor module
+      - name: Run tests
         run: |
-          python -m pytest -v tests/heart/preprocessor/test_fluent_mesh_reader.py tests/heart/preprocessor/test_heart_model.py tests/heart/preprocessor/test_mesh_objects.py tests/heart/test_downloader.py
-          python -m pytest -v tests/heart/simulator/test_dyna_settings.py
-
-      - name: Run tests simulator module
-        run: |
-          python -m pytest -v tests/heart/simulator/test_settings.py
+          python -m pytest -v -m "not (requires_fluent or downloader)"
 
 
   build-library:

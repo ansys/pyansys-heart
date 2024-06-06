@@ -20,291 +20,92 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Some common functions to test parts."""
-import os
-
-global heart_version
-
-heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
-if not heart_version:
-    heart_version = "v0.1"
-
-if heart_version == "v0.2":
-    import ansys.heart.preprocessor.models.v0_2.models as models
-
-elif heart_version == "v0.1":
-    import ansys.heart.preprocessor.models.v0_1.models as models
-
-import numpy as np
+"""Some common functions to test model stats."""
 
 
-def compare_part_names(model: models.HeartModel, ref_stats: dict):
-    """Test if parts match that of the reference model.
+def compare_stats_names(stats: dict, stats_ref: dict):
+    """Compare stats names
 
     Notes
     -----
-    1. tests consistency of part names
+    Utilizes ansys.heart.preprocessor.helpers.model_summary method
+    to generate the stats
+
+    Parameters
+    ----------
+    stats : dict
+        Dictionary with generated stats.
+    stats_ref : dict
+        Dictionary with reference stats.
     """
+    for part_name in stats_ref["PARTS"].keys():
+        assert part_name in list(stats["PARTS"].keys()), f"Part: {part_name} missing"
 
-    for part_name in model.part_names:
-        assert part_name in list(ref_stats["parts"].keys()), (
-            "Part name: %s does not exist in reference model" % part_name
-        )
+        for surface_name in stats_ref["PARTS"][part_name]["SURFACES"].keys():
+            assert surface_name in list(
+                stats["PARTS"][part_name]["SURFACES"].keys()
+            ), f"Surface: {surface_name} missing"
 
-    pass
+        for cap_name in stats_ref["PARTS"][part_name]["CAPS"].keys():
+            assert cap_name in list(
+                stats["PARTS"][part_name]["CAPS"].keys()
+            ), f"Cap: {cap_name} missing"
+
+    assert sorted(list(stats["CAVITIES"].keys())) == sorted(
+        list(stats_ref["CAVITIES"].keys())
+    ), "one or more cavities missing"
+
+    return
 
 
-def compare_part_element_ids(model: models.HeartModel, reference_model: models.HeartModel):
-    """Test if parts match that of the reference model.
+def compare_stats_volumes(stats: dict, stats_ref: dict):
+    """Compare stats volumes of cavities
 
     Notes
     -----
-    1. tests element ids defined in all parts
+    Utilizes ansys.heart.preprocessor.helpers.model_summary method
+    to generate the stats
+
+    Parameters
+    ----------
+    stats : dict
+        Dictionary with generated stats.
+    stats_ref : dict
+        Dictionary with reference stats.
     """
-    # assert isinstance(reference_model, models.HeartModel), "Expecting model of type HeartModel"
+    for cavity_name in stats_ref["CAVITIES"].keys():
+        volume = stats["CAVITIES"][cavity_name]["volume"]
+        volume_ref = stats_ref["CAVITIES"][cavity_name]["volume"]
+        percent_diff = abs(volume - volume_ref) / volume_ref * 100
+        assert (
+            percent_diff < 1
+        ), f"Difference in cavity volumes of {cavity_name} is {percent_diff} \%"
 
-    for part in model.parts:
-        ref_part = next(
-            ref_part for ref_part in reference_model.parts if part.name == ref_part.name
-        )
-        assert np.array_equal(part.element_ids, ref_part.element_ids), (
-            "%s element-ids do not match with reference model" % part.name
-        )
-
-    pass
+    return
 
 
-def compare_surface_names(model: models.HeartModel, ref_stats: dict):
-    """Test if surfaces of the parts match with the reference model.
+def compare_stats_mesh(stats: dict, stats_ref: dict):
+    """Compare mesh stats of the generated model."""
+    assert (
+        stats["GENERAL"]["total_num_tets"] == stats_ref["GENERAL"]["total_num_tets"]
+    ), "Total number of tets not the same"
+    assert (
+        stats["GENERAL"]["total_num_nodes"] == stats_ref["GENERAL"]["total_num_nodes"]
+    ), "Total number of nodes not the same"
 
-    Notes
-    -----
-    1. tests consistency of surface names
-    """
+    for part in stats_ref["PARTS"].keys():
+        assert (
+            stats["PARTS"][part]["num_tets"] == stats_ref["PARTS"][part]["num_tets"]
+        ), f"Num tets in {part} not the same."
 
-    for part in model.parts:
-        # check if surface is in the list of reference surface names
-        try:
-            ref_surface_names = list(ref_stats["parts"][part.name]["surfaces"].keys())
-        except KeyError:
-            continue
+        for surface in stats_ref["PARTS"][part]["SURFACES"].keys():
+            ref_num_faces = stats_ref["PARTS"][part]["SURFACES"][surface]["num_faces"]
+            num_faces = stats["PARTS"][part]["SURFACES"][surface]["num_faces"]
+            assert num_faces == ref_num_faces, f"Number of faces of {surface} do not match."
 
-        for surface_name in ref_surface_names:
-            assert surface_name in part.surface_names, (
-                "%s does not exist in model but exists in reference model" % surface_name
-            )
+        for cap in stats_ref["PARTS"][part]["CAPS"].keys():
+            ref_num_nodes = stats_ref["PARTS"][part]["CAPS"][cap]["num_nodes"]
+            num_nodes = stats["PARTS"][part]["CAPS"][cap]["num_nodes"]
+            assert num_nodes == ref_num_nodes, f"Number of nodes of {cap} do not match."
 
-    pass
-
-
-def compare_generated_mesh(model: models.HeartModel, ref_stats: dict):
-    """Compares the number of tetrahedrons, faces, etc in the model.
-
-    Notes
-    -----
-    Test conditions:
-        Difference num tetrahedrons < 100
-        Difference num faces < 10
-        Difference num faces of valve boundaries < 5
-    """
-    import os
-
-    if os.name == "nt":
-        allowed_difference1 = 0
-        allowed_difference2 = 0
-        allowed_difference3 = 0
-    else:
-        allowed_difference1 = 500
-        allowed_difference2 = 75
-        allowed_difference3 = 10
-
-    # Compare parts.
-    for part in model.parts:
-        try:
-            ref_num_tetra = ref_stats["parts"][part.name]["ntetra"]
-        except KeyError:
-            continue
-        difference = abs(part.element_ids.shape[0] - ref_num_tetra)
-        assert difference <= allowed_difference1, (
-            "{0}: Difference between reference and generated model is {1} exceeds {2}"
-        ).format(part.name, difference, allowed_difference1)
-
-        for surface in part.surfaces:
-            # surf_name = "-".join(surface.name.lower().split())
-            try:
-                ref_nfaces = ref_stats["parts"][part.name]["surfaces"][surface.name]["nfaces"]
-            except KeyError:
-                print(surface.name + "not found")
-                continue
-            difference = abs(surface.n_faces - ref_nfaces)
-            assert difference <= allowed_difference2, (
-                "Boundary: {0} Difference between reference and generated model"
-                " is {1} exceeds {2}"
-            ).format(part.name, difference, allowed_difference2)
-
-    # Compare other boundaries in Mesh
-    for boundary in model.mesh.boundaries:
-        ref_nfaces = ref_stats["mesh"]["boundaries"][boundary.name]["nfaces"]
-
-        if "valve" in boundary.name:
-            allowed_difference = allowed_difference3
-        else:
-            allowed_difference = allowed_difference2
-        difference = abs(boundary.n_faces - ref_nfaces)
-        assert difference <= allowed_difference, (
-            "Boundary: {0} Difference between reference and generated model is {1} exceeds {2}"
-        ).format(part.name, difference, allowed_difference2)
-
-
-def compare_cavity_volume(model: models.HeartModel, ref_volumes: dict):
-    """Test volume of cavities.
-
-    Notes
-    -----
-    1. Volume of cavity
-    """
-    # assert isinstance(model, models.HeartModel), "Expecting model of type HeartModel"
-    for part in model.parts:
-        if not part.cavity:
-            continue
-
-        ref_volume = ref_volumes["cavity_volumes"][part.name]
-        assert abs(part.cavity.surface.volume - ref_volume) < 1e-2 * ref_volume, (
-            "Difference in cavity volume of model %s exceeds 1 percent" % part.name
-        )
-
-    pass
-
-
-def compare_part_names_2(model: models.HeartModel, ref_stats: dict):
-    """Test if parts match that of the reference model.
-
-    Notes
-    -----
-    1. tests consistency of part names
-    """
-    for part_name in model.part_names:
-        assert part_name in list(ref_stats["PARTS"].keys()), (
-            "Part name: %s does not exist in reference model" % part_name
-        )
-
-    pass
-
-
-def compare_part_element_ids_2(model: models.HeartModel, reference_model: models.HeartModel):
-    """Test if parts match that of the reference model.
-
-    Notes
-    -----
-    1. tests element ids defined in all parts
-    """
-    for part in model.parts:
-        ref_part = next(
-            ref_part for ref_part in reference_model.parts if part.name == ref_part.name
-        )
-        assert np.array_equal(part.element_ids, ref_part.element_ids), (
-            "%s element-ids do not match with reference model" % part.name
-        )
-
-    pass
-
-
-def compare_surface_names_2(model: models.HeartModel, ref_stats: dict):
-    """Test if surfaces of the parts match with the reference model.
-
-    Notes
-    -----
-    1. tests consistency of surface names
-    """
-    for part in model.parts:
-        # check if surface is in the list of reference surface names
-        try:
-            ref_surface_names = list(ref_stats["PARTS"][part.name]["SURFACES"].keys())
-        except KeyError:
-            continue
-
-        for surface_name in ref_surface_names:
-            assert surface_name in part.surface_names, (
-                "%s does not exist in model but exists in reference model" % surface_name
-            )
-
-    pass
-
-
-def compare_generated_mesh_2(model: models.HeartModel, ref_stats: dict):
-    """Compares the number of tetrahedrons, faces, etc in the model.
-
-    Notes
-    -----
-    Test conditions:
-        Difference num tetrahedrons < 100
-        Difference num faces < 10
-        Difference num faces of valve boundaries < 5
-    """
-    import os
-
-    if os.name == "nt":
-        allowed_difference1 = 0
-        allowed_difference2 = 0
-        allowed_difference3 = 0
-    else:
-        allowed_difference1 = 500
-        allowed_difference2 = 75
-        allowed_difference3 = 10
-
-    # Compare parts.
-    for part in model.parts:
-        try:
-            ref_num_tetra = ref_stats["PARTS"][part.name]["num_tets"]
-        except KeyError:
-            continue
-        difference = abs(part.element_ids.shape[0] - ref_num_tetra)
-        assert difference <= allowed_difference1, (
-            "{0}: Difference between reference and generated model is {1} exceeds {2}"
-        ).format(part.name, difference, allowed_difference1)
-
-        for surface in part.surfaces:
-            # surf_name = "-".join(surface.name.lower().split())
-            try:
-                ref_nfaces = ref_stats["PARTS"][part.name]["SURFACES"][surface.name]["num_faces"]
-            except KeyError:
-                print(surface.name + "not found")
-                continue
-            difference = abs(surface.n_faces - ref_nfaces)
-            assert difference <= allowed_difference2, (
-                "Boundary: {0} Difference between reference and generated model"
-                " is {1} exceeds {2}"
-            ).format(part.name, difference, allowed_difference2)
-
-    # # Compare other boundaries in Mesh
-    # for boundary in model.mesh.boundaries:
-    #     ref_nfaces = ref_stats["mesh"]["boundaries"][boundary.name]["nfaces"]
-
-    #     if "valve" in boundary.name:
-    #         allowed_difference = allowed_difference3
-    #     else:
-    #         allowed_difference = allowed_difference2
-    #     difference = abs(boundary.n_faces - ref_nfaces)
-    #     assert difference <= allowed_difference, (
-    #         "Boundary: {0} Difference between reference and generated model is {1} exceeds {2}"
-    #     ).format(part.name, difference, allowed_difference2)
-
-
-def compare_cavity_volume_2(model: models.HeartModel, ref_volumes: dict):
-    """Test volume of cavities.
-
-    Notes
-    -----
-    1. Volume of cavity
-    """
-    # assert isinstance(model, models.HeartModel), "Expecting model of type HeartModel"
-    for part in model.parts:
-        if not part.cavity:
-            continue
-
-        ref_volume = ref_volumes["CAVITIES"][part.name]["volume"]
-        assert abs(part.cavity.surface.volume - ref_volume) < 1e-2 * ref_volume, (
-            "Difference in cavity volume of model %s exceeds 1 percent" % part.name
-        )
-
-    pass
+    return

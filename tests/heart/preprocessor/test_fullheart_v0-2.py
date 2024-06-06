@@ -24,12 +24,16 @@
 expected features."""
 
 import glob
+import json
 import os
 import pathlib
-import shutil
+import tempfile
+
+import yaml
 
 os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
 
+from ansys.heart.preprocessor.helpers import model_summary
 import ansys.heart.preprocessor.models.v0_2.models as models
 from ansys.heart.writer.dynawriter import (
     ElectrophysiologyDynaWriter,
@@ -42,12 +46,7 @@ import pytest
 
 pytestmark = pytest.mark.requires_fluent
 
-from tests.heart.common import (
-    compare_cavity_volume_2,
-    compare_generated_mesh_2,
-    compare_part_names_2,
-    compare_surface_names_2,
-)
+from tests.heart.common import compare_stats_mesh, compare_stats_names, compare_stats_volumes
 from tests.heart.conftest import get_assets_folder, get_workdir
 from tests.heart.end2end.compare_k import read_file
 
@@ -71,74 +70,65 @@ def extract_fullheart():
     )
 
     path_to_reference_stats = os.path.join(
-        assets_folder,
+        get_assets_folder(),
         "reference_models",
         "strocchi2020",
         "01",
-        "FullHeart",
-        "stats_reference_model_FullHeart_v0-2.json",
+        "stats_fullheart_v0-2.yml",
     )
 
     assert os.path.isfile(path_to_input_vtp)
     assert os.path.isfile(path_to_reference_stats)
 
-    global ref_stats
-    import json
-
-    with open(path_to_reference_stats, "r") as openfile:
-        ref_stats = json.load(openfile)
-
-    workdir = os.path.join(get_workdir(), "v02", "FullHeart")
+    global stats_ref
+    with open(path_to_reference_stats, "r") as f:
+        stats_ref = yaml.load(f, yaml.SafeLoader)
 
     with open(part_def_file, "r") as f:
         part_definitions = json.load(f)
 
-    global model
-    info = models.ModelInfo(
-        path_to_input_vtp,
-        "boundary-id",
-        part_definitions=part_definitions,
-        work_directory=workdir,
-        mesh_size=2.0,
-    )
-    model = models.FullHeart(info)
-    model.load_input()
-    model.mesh_volume(use_wrapper=True)
-    model._update_parts()
+    # Use a temp directory for generating the model.
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tmpdirname:
+        workdir = pathlib.Path(tmpdirname)
 
-    yield
+        global model
+        info = models.ModelInfo(
+            path_to_input_vtp,
+            "boundary-id",
+            part_definitions=part_definitions,
+            work_directory=workdir,
+            mesh_size=2.0,
+        )
+        model = models.FullHeart(info)
+        model.load_input()
+        model.mesh_volume(use_wrapper=True)
+        model._update_parts()
 
-    # cleanup
-    try:
-        shutil.rmtree(workdir)
-        print()
-    except:
-        print("Failed to cleanup.")
+        global stats
+        stats = model_summary(model)
+
+    return
 
 
 @pytest.mark.models_v2
-def test_part_names():
-    compare_part_names_2(model, ref_stats)
+def test_names():
+    """Test if relevant features are present in model."""
+    compare_stats_names(stats, stats_ref)
     pass
 
 
 @pytest.mark.models_v2
-def test_surface_names():
-    compare_surface_names_2(model, ref_stats)
+def test_cavity_volumes():
+    """Test consistency of cavity volumes."""
+    compare_stats_volumes(stats, stats_ref)
     pass
 
 
 @pytest.mark.models_v2
-def test_cavities_volumes():
-    compare_cavity_volume_2(model, ref_stats)
+@pytest.mark.xfail(reason="Different Fluent versions may yield slightly different meshing results")
+def test_mesh_stats():
+    compare_stats_mesh(stats, stats_ref)
     pass
-
-
-@pytest.mark.models_v2
-@pytest.mark.xfail(reason="Comparing against v0.1 model - uses different meshing method(s)")
-def test_mesh():
-    """Test the number of tetrahedrons and triangles in the volume mesh and surface meshes"""
-    compare_generated_mesh_2(model, ref_stats)
 
 
 @pytest.mark.models_v2

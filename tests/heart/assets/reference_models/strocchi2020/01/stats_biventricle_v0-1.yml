@@ -1,0 +1,39 @@
+GENERAL:
+  total_num_tets: 233126
+  total_num_nodes: 49833
+PARTS:
+  Left ventricle:
+    num_tets: 133831
+    SURFACES:
+      Left ventricle endocardium:
+        num_faces: 8824
+      Left ventricle epicardium:
+        num_faces: 11040
+    CAPS:
+      aortic-valve:
+        num_nodes: 46
+      mitral-valve:
+        num_nodes: 62
+  Right ventricle:
+    num_tets: 64517
+    SURFACES:
+      Right ventricle endocardium:
+        num_faces: 9407
+      Right ventricle epicardium:
+        num_faces: 11435
+      Right ventricle endocardium septum:
+        num_faces: 2516
+    CAPS:
+      tricuspid-valve:
+        num_nodes: 84
+      pulmonary-valve:
+        num_nodes: 61
+  Septum:
+    num_tets: 34778
+    SURFACES: {}
+    CAPS: {}
+CAVITIES:
+  Left ventricle:
+    volume: 170224.3786603571
+  Right ventricle:
+    volume: 234197.7610745605

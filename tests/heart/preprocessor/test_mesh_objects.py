@@ -47,23 +47,6 @@ def test_mesh_object_assign_001():
     assert np.array_equal(mesh.cells, np.append([4], tetrahedron.flatten()))
 
 
-# def test_surfacemesh_object_assign_001():
-#     """Test the assigning nodes/faces to the surface mesh."""
-#     # test data:
-#     points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]])
-#     tris = np.array([[0, 1, 2]])
-
-#     surface = SurfaceMesh()
-#     surface.triangles = tris
-#     surface.nodes = points
-
-#     polydata_pv = surface._to_pyvista_object()
-
-#     assert np.array_equal(polydata_pv.points.shape, points.shape)
-#     assert np.all(np.isclose(polydata_pv.points, points))
-#     assert np.array_equal(polydata_pv.faces, np.append([3], tris.flatten()))
-
-
 def test_surfacemesh_object_assign_001():
     """Test the assigning of cell and point data to SurfaceMesh."""
     # test data:
@@ -86,6 +69,7 @@ def test_surfacemesh_object_assign_001():
     assert np.all(surface.cell_data["cells"] == cell_data)
 
 
+@pytest.mark.skip(reason="read_mesh_file will be deprecated")
 def test_mesh_object_read_001():
     """Test if strocchi's case is properly read."""
     case_file = download_asset(database="Strocchi2020", casenumber=1)
@@ -98,8 +82,7 @@ def test_mesh_object_read_001():
     return
 
 
-# @pytest.mark.skipif(skip_test)
-# @pytest.mark.xfail(reason="Only supporting Strocchi for tests.")
+@pytest.mark.skip(reason="read_mesh_file_rodero2021 will be deprecated")
 def test_mesh_object_read_002():
     """Test if rodero's case is properly read."""
     case_file = download_asset(database="Rodero2021", casenumber=1)

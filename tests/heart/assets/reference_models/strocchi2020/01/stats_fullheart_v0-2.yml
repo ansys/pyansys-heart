@@ -1,0 +1,89 @@
+GENERAL:
+  total_num_tets: 252919
+  total_num_nodes: 61353
+PARTS:
+  Left ventricle:
+    num_tets: 98680
+    SURFACES:
+      Left ventricle endocardium:
+        num_faces: 9004
+      Left ventricle epicardium:
+        num_faces: 9350
+    CAPS:
+      aortic-valve:
+        num_nodes: 55
+      mitral-valve:
+        num_nodes: 75
+  Right ventricle:
+    num_tets: 58114
+    SURFACES:
+      Right ventricle endocardium:
+        num_faces: 9409
+      Right ventricle epicardium:
+        num_faces: 10111
+      Right ventricle endocardium septum:
+        num_faces: 2489
+    CAPS:
+      tricuspid-valve:
+        num_nodes: 101
+      pulmonary-valve:
+        num_nodes: 67
+  Septum:
+    num_tets: 24082
+    SURFACES: {}
+    CAPS: {}
+  Left atrium:
+    num_tets: 22812
+    SURFACES:
+      Left atrium endocardium:
+        num_faces: 5150
+      Left atrium epicardium:
+        num_faces: 4620
+    CAPS:
+      right-superior-pulmonary-vein:
+        num_nodes: 31
+      right-inferior-pulmonary-vein:
+        num_nodes: 39
+      left-superior-pulmonary-vein:
+        num_nodes: 30
+      left-inferior-pulmonary-vein:
+        num_nodes: 34
+      left-atrium-appendage:
+        num_nodes: 51
+      mitral-valve-atrium:
+        num_nodes: 65
+  Right atrium:
+    num_tets: 33622
+    SURFACES:
+      Right atrium endocardium:
+        num_faces: 9130
+      Right atrium epicardium:
+        num_faces: 8414
+    CAPS:
+      superior-vena-cava:
+        num_nodes: 42
+      inferior-vena-cava:
+        num_nodes: 38
+      tricuspid-valve-atrium:
+        num_nodes: 108
+  Aorta:
+    num_tets: 10294
+    SURFACES:
+      Aorta wall:
+        num_faces: 3808
+    CAPS: {}
+  Pulmonary artery:
+    num_tets: 5315
+    SURFACES:
+      Pulmonary artery wall:
+        num_faces: 1680
+    CAPS: {}
+CAVITIES:
+  Left ventricle:
+    volume: 170531.50068485975
+  Right ventricle:
+    volume: 234200.63865487787
+  Left atrium:
+    volume: 88685.06988690747
+  Right atrium:
+    volume: 191524.51164321223

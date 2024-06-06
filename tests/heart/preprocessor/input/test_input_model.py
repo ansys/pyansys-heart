@@ -24,14 +24,12 @@
 
 import glob as glob
 import os
-import shutil
+import tempfile
 from typing import Union
 
 from ansys.heart.preprocessor.models.v0_2.input import _InputModel
 import numpy as np
 import pyvista as pv
-
-import tests.heart.conftest as conftest
 
 
 def _is_same_mesh(
@@ -206,17 +204,19 @@ def test_write_boundaries_001():
         },
     )
 
-    write_dir = conftest.get_workdir()
-    model.write_part_boundaries(write_dir, extension=".stl")
+    with tempfile.TemporaryDirectory() as write_dir:
+        model.write_part_boundaries(write_dir, extension=".stl")
 
-    assert os.path.isfile(os.path.join(write_dir, "shells1.stl"))
-    assert os.path.isfile(os.path.join(write_dir, "shells2.stl"))
-    assert os.path.isfile(os.path.join(write_dir, "shells3.stl"))
-    assert not os.path.isfile(os.path.join(write_dir, "shells4.stl"))
+        assert os.path.isfile(os.path.join(write_dir, "shells1.stl"))
+        assert os.path.isfile(os.path.join(write_dir, "shells2.stl"))
+        assert os.path.isfile(os.path.join(write_dir, "shells3.stl"))
+        assert not os.path.isfile(os.path.join(write_dir, "shells4.stl"))
 
-    os.remove(os.path.join(write_dir, "shells1.stl"))
-    os.remove(os.path.join(write_dir, "shells2.stl"))
-    os.remove(os.path.join(write_dir, "shells3.stl"))
+        os.remove(os.path.join(write_dir, "shells1.stl"))
+        os.remove(os.path.join(write_dir, "shells2.stl"))
+        os.remove(os.path.join(write_dir, "shells3.stl"))
+
+    return
 
 
 def test_write_to_polydata():
@@ -240,20 +240,17 @@ def test_write_to_polydata():
         },
     )
 
-    write_dir = os.path.join(conftest.get_workdir(), "test-write-to-poly")
-    if os.path.isdir(write_dir):
-        shutil.rmtree(write_dir)
-    os.mkdir(write_dir)
+    with tempfile.TemporaryDirectory() as write_dir:
+        model.write_part_boundaries(write_dir)
 
-    model.write_part_boundaries(write_dir)
+        files = glob.glob(os.path.join(write_dir, "*.stl"))
+        assert len(files) == 3
+        assert sorted([os.path.basename(file) for file in files]) == [
+            "shells1.stl",
+            "shells2.stl",
+            "shells3.stl",
+        ]
 
-    files = glob.glob(os.path.join(write_dir, "*.stl"))
-    assert len(files) == 3
-    assert sorted([os.path.basename(file) for file in files]) == [
-        "shells1.stl",
-        "shells2.stl",
-        "shells3.stl",
-    ]
     return
 
 

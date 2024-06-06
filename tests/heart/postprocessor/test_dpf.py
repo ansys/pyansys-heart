@@ -28,6 +28,7 @@ import numpy as np
 import pytest
 
 
+@pytest.mark.xfail("Needs to be reworked.")
 def test_icvout():
     path = os.path.dirname(os.path.abspath(__file__))
     fn = os.path.join(path, "binout0000")

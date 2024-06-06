@@ -34,13 +34,15 @@ elif heart_version == "v0.2":
     from ansys.heart.preprocessor.models.v0_2.models import HeartModel
 
 
-def model_summary(model: HeartModel) -> dict:
+def model_summary(model: HeartModel, attributes: list = None) -> dict:
     """Generate a dictionary with model information.
 
     Parameters
     ----------
     model : HeartModel
         HeartModel for which to generate the summary dictionary
+    attributes : list
+        List of attributes to try to add to the dict.
 
     Returns
     -------
@@ -70,12 +72,38 @@ def model_summary(model: HeartModel) -> dict:
             sum_dict["PARTS"][part.name]["SURFACES"][surface.name]["num_faces"] = (
                 surface.triangles.shape[0]
             )
+
+            if attributes:
+                for attribute in attributes:
+                    try:
+                        sum_dict["PARTS"][part.name]["SURFACES"][surface.name][attribute] = getattr(
+                            surface.clean(), attribute
+                        )
+                    except AttributeError:
+                        pass
+
         for cap in part.caps:
             sum_dict["PARTS"][part.name]["CAPS"][cap.name] = {}
             sum_dict["PARTS"][part.name]["CAPS"][cap.name]["num_nodes"] = len(cap.node_ids)
 
+            if attributes:
+                for attribute in attributes:
+                    try:
+                        sum_dict["PARTS"][part.name]["CAPS"][cap.name][attribute] = getattr(
+                            cap, attribute
+                        )
+                    except AttributeError:
+                        pass
+
     for cavity in model.cavities:
         sum_dict["CAVITIES"][cavity.name] = {}
         sum_dict["CAVITIES"][cavity.name]["volume"] = cavity.surface.volume
+
+        if attributes:
+            for attribute in attributes:
+                try:
+                    sum_dict["CAVITIES"][cavity.name][attribute] = getattr(cavity, attribute)
+                except AttributeError:
+                    pass
 
     return sum_dict

@@ -123,7 +123,6 @@ def main(args):
             simulator.settings.load_defaults()
             #
             simulator.compute_fibers()
-            simulator.create_stiff_ventricle_base()
 
             if isinstance(model, models.FourChamber):
                 try:
@@ -140,8 +139,7 @@ def main(args):
                 simulator.model.right_atrium.has_fiber = True
                 simulator.model.right_atrium.is_active = True
 
-            simulator.model.dump_model(os.path.join(workdir, "fibers.pickle"))
-
+            _ = simulator.create_stiff_ventricle_base()
             _ = simulator.model._create_atrial_stiff_ring()
 
             simulator.compute_stress_free_configuration()

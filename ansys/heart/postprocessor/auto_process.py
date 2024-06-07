@@ -30,13 +30,12 @@ import os
 heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
-from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.postprocessor.exporter import LVContourExporter
+from ansys.heart.postprocessor.pvloop import generate_pvloop
 from ansys.heart.preprocessor.mesh.objects import Cavity
 from ansys.heart.simulator.settings.settings import SimulationSettings
-import matplotlib.pyplot as plt
 import numpy as np
 
 if not heart_version:
@@ -184,29 +183,18 @@ def mech_post(directory: str, model: HeartModel, compute_strain=True):
     folder = "post"
     os.makedirs(os.path.join(directory, folder), exist_ok=True)
 
-    system = SystemModelPost(directory)
-    fig = system.plot_pv_loop(show_ed=True)
-    fig.savefig(os.path.join(directory, folder, "pv.png"))
-
-    fig = system.plot_pressure_flow_volume(system.lv_system)
-    fig.savefig(os.path.join(directory, folder, "lv.png"))
-
-    if len(model.cavities) > 1:
-        fig = system.plot_pressure_flow_volume(system.rv_system)
-        fig.savefig(os.path.join(directory, folder, "rv.png"))
-
     #
     out_dir = os.path.join(directory, "post", "pv")
     os.makedirs(out_dir, exist_ok=True)
-    time = D3plotReader(os.path.join(directory, "d3plot")).time / 1000  # to second
-    for it, tt in enumerate(time):
-        # assume heart beat once per 0.8s # TODO
-        ef = system.get_ejection_fraction(t_start=time[-1] - 0.8, t_end=time[-1])
-        fig = system.plot_pv_loop(t_start=0, t_end=tt, ef=ef, show_ed=False)
-        fig.savefig(os.path.join(out_dir, "pv_{0:d}.png".format(it)))
-        plt.close()
-    # build video with command
-    # ffmpeg -f image2 -i pv_%d.png output.mp4
+    f = os.path.join(directory, "binout0000")
+    if os.path.exists(f):
+        generate_pvloop(f, out_dir=out_dir, t_to_keep=800)
+    else:
+        f = os.path.join(directory, "binout")
+        if os.path.exists(f):
+            generate_pvloop(f, out_dir=out_dir, t_to_keep=800)
+        else:
+            LOGGER.warning("Neither 'binout0000' nor 'binout' exists in the directory.")
 
     if hasattr(model, "l2cv_axis"):
         export_to_vtk(directory, model)
@@ -254,3 +242,7 @@ def export_to_vtk(directory: str, model: HeartModel):
         exporter.export_contour_to_vtk(f"shor_{icut}", cutter)
 
     exporter.export_lvls_to_vtk("lvls")
+
+
+if __name__ == "__main__":
+    pass

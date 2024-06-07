@@ -180,6 +180,19 @@ class Mesh(pv.UnstructuredGrid):
         """List of boundary surface meshes within the part."""
         pass
 
+    # def __add__(self, item: pv.PolyData | pv.UnstructuredGrid):
+    #     """Add another mesh to the Mesh object.
+
+    #     Parameters
+    #     ----------
+    #     item : pv.PolyData | pv.UnstructuredGrid
+    #         Item to add.
+    #     """
+    #     if not isinstance(item, (pv.PolyData, pv.UnstructuredGrid)):
+    #         raise ValueError
+
+    #     return self.add_mesh(item, keep_data=True)
+
     def add_mesh(
         self,
         mesh: pv.PolyData | pv.UnstructuredGrid,
@@ -225,5 +238,7 @@ class Mesh(pv.UnstructuredGrid):
 
             for name in point_data_names:
                 mesh.point_data[name] = _get_fill_data(self, mesh, name, "point")
+
+        # super().__init__()
 
         return self + mesh

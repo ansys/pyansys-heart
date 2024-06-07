@@ -68,6 +68,8 @@ def test_mesh_object_assign():
 
     grid2 = grid1.add_mesh(lines)
 
+    # grid2 = grid1 + lines
+
     # check array names
     for name in ["cdata_lines1", "cdata_lines2", "cdata_tet1", "pdata_tet1", "pdata_lines1"]:
         assert name in grid2.array_names, f"Array with name {name} does  not exist"

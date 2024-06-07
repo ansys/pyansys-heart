@@ -548,24 +548,9 @@ class BaseDynaWriter:
 
     def _keep_ventricles(self):
         """Remove any non-ventricular parts."""
-        # NOTE: Could move "remove part" method to model
-        LOGGER.warning("Just keeping ventricular-parts for fiber generation")
-        parts_to_keep = ["Left ventricle", "Right ventricle", "Septum"]
-        parts_to_remove = [part for part in self.model.part_names if part not in parts_to_keep]
-        for part_to_remove in parts_to_remove:
-            LOGGER.warning("Removing: {}".format(part_to_remove))
-            self.model.remove_part(part_to_remove)
-        return
-
-    def _keep_atria(self):
-        """Remove any non-atrial parts."""
-        # NOTE: Could move "remove part" method to model
-        LOGGER.warning("Just keeping atrial-parts")
-        parts_to_keep = [part for part in self.model.part_names if "atrium" in part.lower()]
-        parts_to_remove = [part for part in self.model.part_names if part not in parts_to_keep]
-        for part_to_remove in parts_to_remove:
-            LOGGER.warning("Removing: {}".format(part_to_remove))
-            self.model.remove_part(part_to_remove)
+        LOGGER.warning("Just keeping ventricular-parts for fiber/purkinje generation")
+        parts_to_keep = [p.name for p in self.model.parts if p.part_type in ["ventricle", "septum"]]
+        self._keep_parts(parts_to_keep)
         return
 
     def _keep_parts(self, parts_to_keep: List[str]):

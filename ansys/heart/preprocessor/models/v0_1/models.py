@@ -368,7 +368,7 @@ class HeartModel:
             LOGGER.error(f"Element list is empty to create {name}")
             return None
         if name in [p.name for p in self.parts]:
-            LOGGER.error(f"Part {name} has existed.")
+            LOGGER.error(f"Part {name} already exists.")
             return None
 
         for part in self.parts:
@@ -2170,7 +2170,7 @@ class FullHeart(FourChamber):
         pass
 
 
-def _find_cells_in_sphere(mesh, node_ids, radius=2):
+def _find_cells_in_sphere(mesh: Mesh, node_ids: list, radius: float = 2):
     # Get coordinates of the given node IDs
     points = mesh.points[node_ids]
 

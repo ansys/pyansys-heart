@@ -1857,7 +1857,7 @@ class FourChamber(HeartModel):
             if "tricuspid" not in cap.name:
                 ring_nodes.extend(cap.node_ids.tolist())
 
-        ring_eles = _find_cells_in_sphere(self.mesh, ring_nodes, radius=2)
+        ring_eles = _find_cell_ids_inside_sphere(self.mesh, ring_nodes, radius=2)
 
         # above search may create orphan elements, combine them to rings
         self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
@@ -1924,7 +1924,7 @@ class FullHeart(FourChamber):
         pass
 
 
-def _find_cells_in_sphere(mesh, node_ids, radius=2):
+def _find_cell_ids_inside_sphere(mesh: Mesh, node_ids: list, radius: float = 2) -> np.ndarray:
     # Get coordinates of the given node IDs
     points = mesh.points[node_ids]
 

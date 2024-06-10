@@ -168,7 +168,7 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     return dct, stress_free_coord, guess_ed_coord
 
 
-def mech_post(directory: str, model: HeartModel, compute_strain=True):
+def mech_post(directory: str, model: HeartModel):
     """Post-process Main mechanical simulation folder.
 
     Parameters
@@ -177,9 +177,8 @@ def mech_post(directory: str, model: HeartModel, compute_strain=True):
         d3plot folder
     model : HeartModel
         heart model
-    compute_strain : bool, optional
-        compute LV 17 segments strain, by default True
     """
+    last_cycle_duration = 800
     folder = "post"
     os.makedirs(os.path.join(directory, folder), exist_ok=True)
 
@@ -188,26 +187,25 @@ def mech_post(directory: str, model: HeartModel, compute_strain=True):
     os.makedirs(out_dir, exist_ok=True)
     f = os.path.join(directory, "binout0000")
     if os.path.exists(f):
-        generate_pvloop(f, out_dir=out_dir, t_to_keep=800)
+        generate_pvloop(f, out_dir=out_dir, t_to_keep=last_cycle_duration)
     else:
         f = os.path.join(directory, "binout")
         if os.path.exists(f):
-            generate_pvloop(f, out_dir=out_dir, t_to_keep=800)
+            generate_pvloop(f, out_dir=out_dir, t_to_keep=last_cycle_duration)
         else:
             LOGGER.warning("Neither 'binout0000' nor 'binout' exists in the directory.")
 
     # write vtk files of last cycle
     out_dir = os.path.join(directory, "post", "vtks")
     os.makedirs(out_dir, exist_ok=True)
-    exporter = D3plotToVTKExporter(os.path.join(directory, "d3plot"), t_to_keep=800)
-    _ = exporter.get_pyvista(out_dir, prefix="heart")
+    exporter = D3plotToVTKExporter(os.path.join(directory, "d3plot"), t_to_keep=last_cycle_duration)
+    _ = exporter.get_pyvista(save_to=out_dir, prefix="heart")
 
-    #
-    if compute_strain:
-        out_dir = os.path.join(directory, "post", "lrc_strain")
-        os.makedirs(out_dir, exist_ok=True)
-        aha_strain = AhaStrainCalculator(model, d3plot_file=os.path.join(directory, "d3plot"))
-        aha_strain.compute_aha_strain(out_dir, with_vtk=True)
+    # compute strain of last cycle
+    out_dir = os.path.join(directory, "post", "lrc_strain")
+    os.makedirs(out_dir, exist_ok=True)
+    aha_strain = AhaStrainCalculator(model, d3plot_file=os.path.join(directory, "d3plot"))
+    aha_strain.compute_aha_strain(out_dir, write_vtk=True, t_to_keep=last_cycle_duration)
 
     return
 

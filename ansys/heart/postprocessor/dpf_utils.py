@@ -73,10 +73,6 @@ class D3plotReader:
         """Get initial coordinates."""
         return self.model.results.initial_coordinates.eval()[0].data
 
-    def get_timesteps(self):
-        """Get list of timesteps."""
-        return self.model.metadata.time_freq_support.time_frequencies.data_as_list
-
     def get_ep_fields(self, at_step: int = None) -> dpf.FieldsContainer:
         """Get EP fields container."""
         fields = dpf.FieldsContainer()

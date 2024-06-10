@@ -41,6 +41,56 @@ import vtk
 from vtk.util.numpy_support import vtk_to_numpy  # noqa
 
 
+class D3plotToVTKExporter:
+    """Read d3plot and save deformed mesh."""
+
+    def __init__(self, d3plot_file: str, start_time: float = 0.0) -> None:
+        """Init.
+
+        Parameters
+        ----------
+        d3plot_file : str
+            d3plot file path
+        start_time : float, optional
+            Convert only after this time , by default 0.0
+        """
+        self.data = D3plotReader(d3plot_file)
+        self.save_time = self.data.time[self.data.time >= start_time]
+
+    def get_pyvista(self, save_to: str = None, prefix: str = "model") -> list[pv.UnstructuredGrid]:
+        """Get and save pyvista object from d3plot.
+
+        Parameters
+        ----------
+        save_to : str, optional
+            folder to save vtk files, by default None
+        prefix : str, optional
+            prefix of vtk files name, by default "model"
+
+        Returns
+        -------
+        list[pv.UnstructuredGrid]
+            Deforemed mesh
+        """
+        mesh_list = []
+        mat_ids = self.data.get_material_ids()
+        for i, t in enumerate(self.save_time):
+            mesh = self.data.meshgrid.copy()
+            dsp = self.data.get_displacement_at(time=t)
+            mesh.points += dsp
+
+            mesh.field_data["time"] = t
+            mesh.cell_data["material_ids"] = mat_ids
+            mesh.point_data["displacement"] = dsp
+
+            if save_to is not None:
+                mesh.save(os.path.join(save_to, f"{prefix}_{i}.vtk"))
+
+            mesh_list.append(mesh)
+
+        return mesh_list
+
+
 class LVContourExporter:
     """Export Left ventricle surface and Post-process."""
 

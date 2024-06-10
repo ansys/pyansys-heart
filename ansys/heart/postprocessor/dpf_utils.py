@@ -157,7 +157,7 @@ class D3plotReader:
     def get_history_variable(
         self,
         hv_index: List[int],
-        at_frame: int = 0,
+        at_step: int = 0,
     ):
         """
         Get history variables in d3plot.
@@ -166,7 +166,7 @@ class D3plotReader:
         ----------
         hv_index: List[int]
             History variables index.
-        at_frame: int, optional
+        at_step: int, optional
             At this frame, by default 0.
 
         Returns
@@ -180,12 +180,12 @@ class D3plotReader:
         get Deformation gradient (column-wise storage),see *MAT_295 in LS-DYNA manual.
 
         """
-        if at_frame > self.model.metadata.time_freq_support.n_sets:
-            LOGGER.warning("Frame ID too big")
-            exit()
+        if at_step > self.model.metadata.time_freq_support.n_sets:
+            LOGGER.warning("Frame ID doesn't exist.")
+            return np.empty()
 
         hist_op = dpf.Operator("lsdyna::d3plot::history_var")
-        time_scoping = dpf.Scoping(ids=[at_frame], location=dpf.locations.time_freq)
+        time_scoping = dpf.Scoping(ids=[at_step], location=dpf.locations.time_freq)
         hist_op.connect(4, self.ds)  # why 4?
         hist_op.connect(0, time_scoping)  # why 0
         hist_vars = hist_op.eval()

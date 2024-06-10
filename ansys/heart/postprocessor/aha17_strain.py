@@ -155,7 +155,7 @@ class AhaStrainCalculator:
             exit()
 
         deformation_gradient = self.d3plot.get_history_variable(
-            hv_index=list(range(9)), at_frame=at_frame
+            hv_index=list(range(9)), at_step=at_frame
         ).T
         def_grad = deformation_gradient[self._aha_elements]
 

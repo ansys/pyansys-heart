@@ -27,15 +27,16 @@ Such as a Mesh object, Part object, Features, etc.
 
 """
 
-import copy  # noqa
-import pathlib
-from typing import List, Optional, Tuple, Union
+# import copy  # noqa
+# import pathlib
+# from typing import List, Optional, Tuple, Union
 
 from ansys.heart.core import LOG as LOGGER
-import ansys.heart.preprocessor.mesh.connectivity as connect
-import ansys.heart.preprocessor.mesh.geodisc as geodisc
-import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-from ansys.heart.simulator.settings.material.material import MechanicalMaterialModel
+
+# import ansys.heart.preprocessor.mesh.connectivity as connect
+# import ansys.heart.preprocessor.mesh.geodisc as geodisc
+# import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
+# from ansys.heart.simulator.settings.material.material import MechanicalMaterialModel
 import numpy as np
 
 try:
@@ -143,12 +144,12 @@ class Mesh(pv.UnstructuredGrid):
 
     @property
     def triangles(self):
-        """ "Get all triangles of the mesh."""
+        """Get all triangles of the mesh."""
         return self.cells_dict[pv.CellType.TRIANGLE]
 
     @property
     def lines(self):
-        """ "Get all triangles of the mesh."""
+        """Get all triangles of the mesh."""
         return self.cells_dict[pv.CellType.LINE]
 
     @tetrahedrons.setter
@@ -180,18 +181,59 @@ class Mesh(pv.UnstructuredGrid):
         """List of boundary surface meshes within the part."""
         pass
 
-    # def __add__(self, item: pv.PolyData | pv.UnstructuredGrid):
-    #     """Add another mesh to the Mesh object.
+    @property
+    def surface_ids(self) -> np.ndarray:
+        """Unique surface ids.
 
-    #     Parameters
-    #     ----------
-    #     item : pv.PolyData | pv.UnstructuredGrid
-    #         Item to add.
-    #     """
-    #     if not isinstance(item, (pv.PolyData, pv.UnstructuredGrid)):
-    #         raise ValueError
+        Returns
+        -------
+        np.ndarray
+            Array with unique surface ids
+        """
+        try:
+            mask = self.celltypes == pv.CellType.TRIANGLE
+            mask1 = self.cell_data["surface-id"] > -1
+            np.vstack((mask, mask1))
+            mask = np.all(np.vstack((mask, mask1)), axis=0)
+            return np.unique(self.cell_data["surface-id"][mask])
+        except KeyError:
+            return None
 
-    #     return self.add_mesh(item, keep_data=True)
+    @property
+    def volume_ids(self) -> np.ndarray:
+        """Unique volume ids.
+
+        Returns
+        -------
+        np.ndarray
+            Array with unique volume ids
+        """
+        try:
+            mask = self.celltypes == pv.CellType.TETRA
+            mask1 = self.cell_data["volume-id"] > -1
+            np.vstack((mask, mask1))
+            mask = np.all(np.vstack((mask, mask1)), axis=0)
+            return np.unique(self.cell_data["volume-id"][mask])
+        except KeyError:
+            return None
+
+    @property
+    def beam_ids(self) -> np.ndarray:
+        """Unique beam ids.
+
+        Returns
+        -------
+        np.ndarray
+            Array with beam surface ids
+        """
+        try:
+            mask = self.celltypes == pv.CellType.LINE
+            mask1 = self.cell_data["beam-id"] > -1
+            np.vstack((mask, mask1))
+            mask = np.all(np.vstack((mask, mask1)), axis=0)
+            return np.unique(self.cell_data["beam-id"][mask])
+        except KeyError:
+            return None
 
     def add_mesh(
         self,
@@ -202,6 +244,10 @@ class Mesh(pv.UnstructuredGrid):
     ):
         """Add another mesh to this object.
 
+        Notes
+        -----
+        Adding the mesh is always in-place
+
         Parameters
         ----------
         mesh : pv.PolyData | pv.UnstructuredGrid
@@ -209,11 +255,6 @@ class Mesh(pv.UnstructuredGrid):
         keep_data : bool, optional
             Flag specifying whether to try to keep mesh point/cell data, by default True
         """
-        filldata = 0
-
-        cell_arrays = self.cell_data.keys()
-        fill_array = _get_fill_data(self, mesh, cell_arrays[0], "cell")
-
         if keep_data:
             # add cell/point arrays in self
             cell_data_names = [k for k in mesh.cell_data.keys()]
@@ -239,6 +280,7 @@ class Mesh(pv.UnstructuredGrid):
             for name in point_data_names:
                 mesh.point_data[name] = _get_fill_data(self, mesh, name, "point")
 
-        # super().__init__()
-
-        return self + mesh
+        # super().__init__(self + mesh)
+        merged = pv.merge((self, mesh), merge_points=False)
+        super().__init__(merged)
+        return self

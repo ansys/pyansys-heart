@@ -20,7 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os
 
 from ansys.heart.preprocessor.mesh.objects_2 import Mesh
 import numpy as np
@@ -29,60 +28,161 @@ import pyvista as pv  # noqa F401
 
 from tests.heart.conftest import download_asset, get_assets_folder  # noqa F401
 
-skip_test = os.name != "nt"
+
+@pytest.mark.parametrize("dtype", [float, int])
+def test_pyvista_clean_grid(dtype):
+    import pyvista as pv
+
+    if dtype == int:
+        pytest.xfail(reason="clean() will fail if points are of dtype int")
+
+    points = np.array([[0, 0, 0], [-1, 0, 0], [1, 0, 0]], dtype=dtype)
+
+    # option 1
+    line_cells = [2, 0, 1]
+    cell_types = [pv.CellType.LINE]
+    line_ugrid = pv.UnstructuredGrid(line_cells, cell_types, points)
+    assert line_ugrid.clean().n_points == 2
+
+    # option 2 (does not work)
+    line = pv.lines_from_points(points[0:-1])
+    line = line.cast_to_unstructured_grid()
+    line.points = points
+    assert line.clean().n_points == 2
+
+    return
 
 
-def test_mesh_object_assign():
-    """Test the mesh object with a mixed tet, triangle, line mesh."""
-    # construct a mixed grid with:
-    # 1x Tetrahedron
-    # 4x triangles
-    # 3x lines
-    points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]])
+def test_mesh_object_add_000():
+    """Test adding triangles and lines to a Mesh object."""
+    # NOTE:
+    # create a base mesh, and add the following:
+    # - a volume mesh
+    # - a surface mesh
+    # - a beam mesh
+
+    # generate some dummy data
+    from pyvista import examples
+
+    # prep data based on hexbeam
+    tets = examples.load_tetbeam()
+    tets.clear_cell_data()
+    edges = tets.extract_feature_edges()
+    edges.clear_cell_data()
+    edges.clear_point_data()
+    triangles = tets.extract_surface()
+    triangles.clear_cell_data()
+    triangles.clear_point_data()
+
+    # init the base mesh.
+    base = Mesh(tets)
+
+    # fill attribute with some values to ensure that info is kept.
+    base.conn["c1"] = [[1, 2]]
+
+    merged = base.add_mesh(triangles)
+    assert isinstance(merged, Mesh)
+    assert base.n_cells == triangles.n_cells + tets.n_cells
+
+    # assert that attribute was kept
+    assert base.conn["c1"] == [[1, 2]]
+
+    # assert adding edges.
+    base.add_mesh(edges)
+    assert base.n_cells == triangles.n_cells + tets.n_cells + edges.n_cells
+
+    pass
+
+
+def test_mesh_object_add_001():
+    """Test adding another mesh and its data."""
+    points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=float)
 
     # for each face in the tet
     tets = [4, 0, 1, 2, 3]
-    triangles = [3, 0, 1, 3, 3, 1, 2, 3, 3, 2, 0, 3, 3, 0, 2, 1]
-    lines = [2, 0, 1, 2, 1, 2, 2, 2, 3]
-    cell_types = [pv.CellType.TETRA] + [pv.CellType.TRIANGLE] * 4 + [pv.CellType.LINE] * 3
-    cells = tets + triangles + lines
+    cell_types = [pv.CellType.TETRA]
 
-    grid = pv.UnstructuredGrid(cells, cell_types, points)
+    grid = Mesh(tets, cell_types, points)
 
-    grid1 = Mesh(cells, cell_types, points)
+    # add dummy data
+    grid.cell_data["cdata_tet1"] = 1
+    grid.point_data["pdata_tet1"] = 2
 
-    mask = grid.celltypes == pv.CellType.LINE
-    lines = grid.cells_dict[pv.CellType.LINE]
-    lines = grid.extract_cells(mask)
-
-    grid1.cell_data["cdata_tet1"] = 1
-    grid1.point_data["pdata_tet1"] = 2
-
-    # TODO
-    # add lines
+    # add set of lines that is connected at a single point
     lines = pv.lines_from_points([points[0, :], [-1, 0, 0], [-2, 0, 0]])
+
     # create some dummy data
     lines["cdata_lines1"] = np.array([10, 11], dtype=np.int32)
     lines["cdata_lines2"] = np.array([10.5, 11.5], dtype=np.float64)
     lines["pdata_lines1"] = np.array([[100, 101], [102, 103], [104, 105]], dtype=np.float64)
 
-    grid2 = grid1.add_mesh(lines)
+    grid1 = grid.add_mesh(lines, keep_data=True)
 
     # grid2 = grid1 + lines
 
     # check array names
-    for name in ["cdata_lines1", "cdata_lines2", "cdata_tet1", "pdata_tet1", "pdata_lines1"]:
-        assert name in grid2.array_names, f"Array with name {name} does  not exist"
+    all_names = grid.array_names + lines.array_names
+    for name in all_names:
+        assert name in grid1.array_names, f"Array with name {name} does  not exist"
 
     # check data types
-    assert isinstance(grid2.cell_data["cdata_lines1"][0], np.int32)
-    assert isinstance(grid2.cell_data["cdata_lines2"][0], np.float64)
+    assert isinstance(grid1.cell_data["cdata_lines1"][0], np.int32)
+    assert isinstance(grid1.cell_data["cdata_lines2"][0], np.float64)
 
-    # check shape of array
-    assert grid2["pdata_lines1"].shape[1] == lines["pdata_lines1"].shape[1]
+    # check dimension 2 of array
+    assert grid1["pdata_lines1"].shape[1] == lines["pdata_lines1"].shape[1]
 
-    grid
+    # # check num nodes
+    # assert grid1.clean().n_points == 6
 
-    assert grid.__add__(lines) == (grid + lines)
+    pass
+
+
+def test_mesh_object_add_002():
+    """Test cleaning method."""
+    points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=float)
+    tets = [4, 0, 1, 2, 3]
+    cell_types = [pv.CellType.TETRA]
+    grid = Mesh(tets, cell_types, points)
+    # modify points
+    grid.points = np.vstack((points, points))
+
+    assert isinstance(grid, Mesh)
+    assert grid.clean().n_points == points.shape[0]
+    pass
+
+
+def test_mesh_object_properties():
+    """Test the properties of Mesh."""
+    # NOTE: clean this up
+    points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1], [-1, 0, 0], [-2, 0, 0]])
+
+    # for each face in the tet
+    tets = [4, 0, 1, 2, 3]  # 1 tet
+    triangles = [3, 0, 1, 3, 3, 1, 2, 3, 3, 2, 0, 3, 3, 0, 2, 4, 3, 0, 4, 5]  # 5 triangles
+    lines = [2, 0, 1, 2, 1, 2, 2, 2, 3, 2, 4, 5]  # 4 lines
+    cell_types = [pv.CellType.TETRA] + [pv.CellType.TRIANGLE] * 5 + [pv.CellType.LINE] * 4
+    cells = tets + triangles + lines
+    mesh = Mesh(cells, cell_types, points)
+    mesh.celltypes
+
+    #
+    data = np.ones(mesh.n_cells, dtype=int) * -1
+    data[mesh.celltypes == pv.CellType.TETRA] = 1
+    mesh.cell_data["volume-id"] = data
+    assert mesh.volume_ids == [1]
+
+    data = np.ones(mesh.n_cells, dtype=int) * -1
+    data[mesh.celltypes == pv.CellType.LINE] = 1
+    data[-2:] = 2
+    mesh.cell_data["beam-id"] = data
+    assert np.all(mesh.beam_ids == [1, 2])
+
+    data = np.ones(mesh.n_cells, dtype=int) * -1
+    data[mesh.celltypes == pv.CellType.TRIANGLE] = 1
+    data[1] = 2
+    data[2:4:] = 3
+    mesh.cell_data["surface-id"] = data
+    assert np.all(mesh.surface_ids == [1, 2, 3])
 
     pass

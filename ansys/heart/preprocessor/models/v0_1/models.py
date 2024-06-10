@@ -31,6 +31,7 @@ import pickle
 from typing import List, Union
 
 from ansys.heart.core import LOG as LOGGER
+from ansys.heart.preprocessor.mesh.vtkmethods import find_cells_close_to_nodes
 
 LOGGER.warning("Models v0.1 will be deprecated in the future. Use v0.2 instead.")
 
@@ -47,7 +48,6 @@ from ansys.heart.preprocessor.mesh.objects import (
 )
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.preprocessor.models.v0_1.model_definitions import HEART_PARTS, LABELS_TO_ID
-from ansys.heart.simulator.settings.material.material import NeoHookean
 import meshio
 import numpy as np
 import pyvista as pv
@@ -2103,7 +2103,7 @@ class FourChamber(HeartModel):
             if "tricuspid" not in cap.name:
                 ring_nodes.extend(cap.node_ids.tolist())
 
-        ring_eles = _find_cells_in_sphere(self.mesh, ring_nodes, radius=2)
+        ring_eles = find_cells_close_to_nodes(self.mesh, ring_nodes, radius=2)
 
         # above search may create orphan elements, combine them to rings
         self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
@@ -2123,7 +2123,6 @@ class FourChamber(HeartModel):
         ring.part_type = "atrium"
         ring.has_fiber = False
         ring.is_active = False
-        ring.meca_material = NeoHookean(rho=0.001, c10=0.1, nu=0.499)
 
         return ring
 
@@ -2168,32 +2167,6 @@ class FullHeart(FourChamber):
         # super().__init__(info)
 
         pass
-
-
-def _find_cells_in_sphere(mesh: Mesh, node_ids: list, radius: float = 2):
-    # Get coordinates of the given node IDs
-    points = mesh.points[node_ids]
-
-    # Create a list to store cells within the sphere radius
-    cells_within_sphere = []
-
-    # Iterate through each point and find cells within the sphere
-    for point in points:
-        # Create a sphere at the given point
-        sphere = pv.Sphere(radius=radius, center=point)
-
-        # Use boolean intersection to find cells that intersect with the sphere
-        selection = mesh.select_enclosed_points(sphere, tolerance=0.0)
-
-        # Get the indices of the cells
-        selected_points = selection.point_data["SelectedPoints"].nonzero()[0]
-        selected_cells = mesh.extract_points(selected_points).cell_data["vtkOriginalCellIds"]
-
-        # Store unique cell indices
-        cells_within_sphere.extend(selected_cells)
-
-    # Return unique cell indices
-    return np.unique(cells_within_sphere)
 
 
 if __name__ == "__main__":

@@ -31,6 +31,8 @@ Such as a Mesh object, Part object, Features, etc.
 # import pathlib
 # from typing import List, Optional, Tuple, Union
 
+import copy
+
 from ansys.heart.core import LOG as LOGGER
 
 # import ansys.heart.preprocessor.mesh.connectivity as connect
@@ -234,6 +236,12 @@ class Mesh(pv.UnstructuredGrid):
             return np.unique(self.cell_data["beam-id"][mask])
         except KeyError:
             return None
+
+    def clean(self, *args):
+        """Merge duplicate points and return cleaned copy."""
+        self_c = copy.deepcopy(self)
+        super(Mesh, self_c).__init__(pv.UnstructuredGrid(self).clean(*args))
+        return self_c
 
     def add_mesh(
         self,

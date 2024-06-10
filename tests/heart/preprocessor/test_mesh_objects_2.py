@@ -53,7 +53,7 @@ def test_pyvista_clean_grid(dtype):
     return
 
 
-def test_mesh_object_add_000():
+def test_mesh_add_001():
     """Test adding triangles and lines to a Mesh object."""
     # NOTE:
     # create a base mesh, and add the following:
@@ -84,17 +84,16 @@ def test_mesh_object_add_000():
     assert isinstance(merged, Mesh)
     assert base.n_cells == triangles.n_cells + tets.n_cells
 
-    # assert that attribute was kept
-    assert base.conn["c1"] == [[1, 2]]
-
     # assert adding edges.
     base.add_mesh(edges)
     assert base.n_cells == triangles.n_cells + tets.n_cells + edges.n_cells
 
+    # assert that attribute was kept
+    assert base.conn["c1"] == [[1, 2]]
     pass
 
 
-def test_mesh_object_add_001():
+def test_mesh_add_002():
     """Test adding another mesh and its data."""
     points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=float)
 
@@ -118,7 +117,7 @@ def test_mesh_object_add_001():
 
     grid1 = grid.add_mesh(lines, keep_data=True)
 
-    # grid2 = grid1 + lines
+    assert isinstance(grid1, Mesh)
 
     # check array names
     all_names = grid.array_names + lines.array_names
@@ -132,13 +131,10 @@ def test_mesh_object_add_001():
     # check dimension 2 of array
     assert grid1["pdata_lines1"].shape[1] == lines["pdata_lines1"].shape[1]
 
-    # # check num nodes
-    # assert grid1.clean().n_points == 6
-
     pass
 
 
-def test_mesh_object_add_002():
+def test_mesh_clean_001():
     """Test cleaning method."""
     points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=float)
     tets = [4, 0, 1, 2, 3]
@@ -148,7 +144,9 @@ def test_mesh_object_add_002():
     grid.points = np.vstack((points, points))
 
     assert isinstance(grid, Mesh)
-    assert grid.clean().n_points == points.shape[0]
+    grid1 = grid.clean()
+    assert grid.n_points == points.shape[0] * 2
+    assert grid1.n_points == points.shape[0]
     pass
 
 

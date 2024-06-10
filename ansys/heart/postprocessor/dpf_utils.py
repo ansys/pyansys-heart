@@ -31,6 +31,7 @@ from ansys.dpf import core as dpf
 # from ansys.dpf.core.dpf_operator import available_operator_names
 from ansys.heart.core import LOG as LOGGER
 import numpy as np
+import pyvista as pv
 
 
 def _check_env():
@@ -66,7 +67,8 @@ class D3plotReader:
         self.model = dpf.Model(self.ds)
 
         # common
-        self.meshgrid = self.model.metadata.meshed_region.grid
+
+        self.meshgrid: pv.UnstructuredGrid = self.model.metadata.meshed_region.grid
         self.time = self.model.metadata.time_freq_support.time_frequencies.data
 
     def get_initial_coordinates(self):
@@ -145,14 +147,34 @@ class D3plotReader:
         op.inputs.data_sources(self.ds)
         print(op.eval())
 
+    def get_displacement_at(self, time: float) -> np.ndarray:
+        """Get displacement field.
+
+        Parameters
+        ----------
+        time : float
+            at which time
+
+        Returns
+        -------
+        np.ndarray
+            displacement
+        """
+        if time not in self.time:
+            LOGGER.warning("No data at given time, results are from interpolation.")
+        return self.model.results.displacement.on_time_scoping(float(time)).eval()[0].data
+
     def get_displacement(self):
         """Get displacement."""
-        displacements = self.model.results.displacement.on_all_time_freqs
-        fields = displacements.eval()
+        LOGGER.warning("This method will be deprecated.")
         res = []
-        for f in fields:
-            res.append(f.data)
+        for time in self.time:
+            res.append(self.get_displacement_at(time=time))
         return res
+
+    def get_material_ids(self):
+        """Get list of material id."""
+        return self.model.metadata.meshed_region.elements.materials_field.data
 
     def get_history_variable(
         self,
@@ -214,6 +236,7 @@ class D3plotReader:
         prefix: vtk file prefix, optional
 
         """
+        LOGGER.warning("This method will be deprecated.")
         mat_ids = self.model.metadata.meshed_region.elements.materials_field.data
 
         if not np.all(np.isin(keep_mat_ids, np.unique(mat_ids))):

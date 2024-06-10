@@ -32,7 +32,7 @@ from ansys.heart.core import LOG as LOGGER
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
-from ansys.heart.postprocessor.exporter import LVContourExporter
+from ansys.heart.postprocessor.exporter import D3plotToVTKExporter, LVContourExporter
 from ansys.heart.postprocessor.pvloop import generate_pvloop
 from ansys.heart.preprocessor.mesh.objects import Cavity
 from ansys.heart.simulator.settings.settings import SimulationSettings
@@ -183,7 +183,7 @@ def mech_post(directory: str, model: HeartModel, compute_strain=True):
     folder = "post"
     os.makedirs(os.path.join(directory, folder), exist_ok=True)
 
-    #
+    # create PV loop of last cycle
     out_dir = os.path.join(directory, "post", "pv")
     os.makedirs(out_dir, exist_ok=True)
     f = os.path.join(directory, "binout0000")
@@ -196,14 +196,11 @@ def mech_post(directory: str, model: HeartModel, compute_strain=True):
         else:
             LOGGER.warning("Neither 'binout0000' nor 'binout' exists in the directory.")
 
-    if hasattr(model, "l2cv_axis"):
-        export_to_vtk(directory, model)
-    else:
-        try:
-            model.compute_left_ventricle_anatomy_axis(first_cut_short_axis=0.2)
-            export_to_vtk(directory, model)
-        except Exception as e:
-            LOGGER.warning(f"Cannot export vtk surfaces. Error {e}")
+    # write vtk files of last cycle
+    out_dir = os.path.join(directory, "post", "vtks")
+    os.makedirs(out_dir, exist_ok=True)
+    exporter = D3plotToVTKExporter(os.path.join(directory, "d3plot"), t_to_keep=800)
+    _ = exporter.get_pyvista(out_dir, prefix="heart")
 
     #
     if compute_strain:

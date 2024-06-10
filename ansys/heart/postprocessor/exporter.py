@@ -44,18 +44,18 @@ from vtk.util.numpy_support import vtk_to_numpy  # noqa
 class D3plotToVTKExporter:
     """Read d3plot and save deformed mesh."""
 
-    def __init__(self, d3plot_file: str, start_time: float = 0.0) -> None:
+    def __init__(self, d3plot_file: str, t_to_keep: float = 10.0e10) -> None:
         """Init.
 
         Parameters
         ----------
         d3plot_file : str
             d3plot file path
-        start_time : float, optional
-            Convert only after this time , by default 0.0
+        t_to_keep : float, optional
+            time to be converted, by default 10.0e10
         """
         self.data = D3plotReader(d3plot_file)
-        self.save_time = self.data.time[self.data.time >= start_time]
+        self.save_time = self.data.time[self.data.time >= self.data.time[-1] - t_to_keep]
 
     def get_pyvista(self, save_to: str = None, prefix: str = "model") -> list[pv.UnstructuredGrid]:
         """Get and save pyvista object from d3plot.

@@ -83,6 +83,24 @@ class D3plotToVTKExporter:
             mesh.cell_data["material_ids"] = mat_ids
             mesh.point_data["displacement"] = dsp
 
+            tetra_ids = np.where(mesh.celltypes == 10)[0]
+            i_frame = np.where(self.data.time == t)[0][0]
+
+            mesh.cell_data["his16-18(fiber stretch)"] = np.empty((mesh.n_cells, 3))
+            mesh.cell_data["his16-18(fiber stretch)"][tetra_ids] = self.data.get_history_variable(
+                [15, 16, 17], at_step=i_frame
+            ).T
+
+            mesh.cell_data["his22-24(active stress)"] = np.empty((mesh.n_cells, 3))
+            mesh.cell_data["his22-24(active stress)"][tetra_ids] = self.data.get_history_variable(
+                [21, 22, 23], at_step=i_frame
+            ).T
+
+            mesh.cell_data["his25(ca2+)"] = np.empty(mesh.n_cells)
+            mesh.cell_data["his25(ca2+)"][tetra_ids] = self.data.get_history_variable(
+                [24], at_step=i_frame
+            ).ravel()
+
             if save_to is not None:
                 mesh.save(os.path.join(save_to, f"{prefix}_{i}.vtk"))
 

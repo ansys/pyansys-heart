@@ -145,6 +145,9 @@ def test_surface_add_001():
 
     surface = pv.Triangle([points[0, :], [-1, 0, 0], [-1, -1, 0]])
 
+    assert mesh.add_surface(surface) == None
+    assert mesh.add_surface(surface, float(1)) == None
+
     # test adding a single surface
     mesh.add_surface(surface, id=2)
     assert "surface-id" in mesh.cell_data.keys()
@@ -153,7 +156,7 @@ def test_surface_add_001():
     np.testing.assert_allclose(mesh.cell_data["volume-id"], [np.nan, 1])
     np.testing.assert_allclose(mesh.cell_data["surface-id"], [2, np.nan])
 
-    # test adding multiple surfaces simultaneously
+    # test adding multiple surfaces simultaneously with celldata surface-id
     mesh = Mesh(tets, cell_types, points)
     mesh.cell_data["volume-id"] = 1
 
@@ -178,6 +181,9 @@ def test_lines_add_001():
 
     line = pv.Line(points[0, :], [-1, 0, 0])
 
+    assert mesh.add_lines(line) == None
+    assert mesh.add_lines(line, float(1)) == None
+
     mesh.add_lines(line, id=2)
     assert "line-id" in mesh.cell_data.keys()
     assert np.all(mesh.celltypes == [pv.CellType.LINE, pv.CellType.TETRA])
@@ -195,6 +201,9 @@ def test_volume_add_001():
     mesh = Mesh(tets, cell_types, points)
     mesh.cell_data["volume-id"] = 1
     hex = examples.cells.Hexahedron()
+
+    assert mesh.add_volume(hex) == None
+    assert mesh.add_volume(hex, float(1)) == None
 
     mesh.add_volume(hex, id=2)
     assert np.allclose(mesh.cell_data["volume-id"], [2, 1])

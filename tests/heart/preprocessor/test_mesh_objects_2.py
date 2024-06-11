@@ -208,9 +208,10 @@ def test_get_submesh_001():
     # prep data based on hexbeam
     tets = examples.load_tetbeam()
     tets.clear_cell_data()
-    edges = tets.extract_feature_edges()
-    edges.clear_cell_data()
-    edges.clear_point_data()
+    tets.cell_data["volume-id"] = 1
+    lines = tets.extract_feature_edges()
+    lines.clear_cell_data()
+    lines.clear_point_data()
     triangles = tets.extract_surface()
     triangles.clear_cell_data()
     triangles.clear_point_data()
@@ -219,11 +220,27 @@ def test_get_submesh_001():
     mesh = Mesh()
     mesh.add_volume(tets, 1)
     mesh.add_surface(triangles, 10)
-    mesh.add_lines(edges, 100)
+    mesh.add_lines(lines, 100)
 
+    # test get surfaces
     triangles1 = mesh.get_surface(10)
     assert triangles.n_cells == triangles1.n_cells
     assert np.allclose(triangles.points, triangles1.points)
+
+    # test get lines
+    lines1 = mesh.get_lines(100)
+    assert lines.n_cells == lines1.n_cells
+    assert lines.n_points == lines1.n_points
+
+    # test get volume
+    mesh = Mesh()
+    tets.cell_data["volume-id"] = 1
+    tets.cell_data["volume-id"][0:20] = 2
+    mesh.add_volume(tets)
+    assert np.allclose(mesh.volume_ids, [1, 2])
+
+    volume1 = mesh.get_volume(2)
+    assert volume1.n_cells == 20
 
 
 def test_mesh_remove_001():
@@ -294,3 +311,27 @@ def test_mesh_object_properties():
     assert np.all(mesh.surface_ids == [1, 2, 3])
 
     pass
+
+
+def test_add_nodes_mesh():
+    """Test adding points/nodes to the Mesh object."""
+    # test data:
+    points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    tetrahedron = np.array([[0, 1, 2, 3]])
+
+    mesh = Mesh()
+    mesh.tetrahedrons = tetrahedron
+    mesh.nodes = points
+    mesh.point_data["data-scalar"] = np.ones(mesh.n_points, dtype=float)
+    mesh.point_data["data-vector"] = np.ones((mesh.n_points, 3), dtype=float)
+
+    # test adding nodes
+    mesh.nodes = np.vstack([points, [0, 0.5, 0.5]])
+    assert mesh.point_data["data-scalar"].shape[0] == mesh.nodes.shape[0]
+    assert mesh.point_data["data-vector"].shape[0] == mesh.nodes.shape[0]
+
+    # test assigning same number of nodes
+    mesh.nodes = mesh.nodes * 1e-3
+
+    assert mesh.point_data["data-scalar"].shape[0] == mesh.nodes.shape[0]
+    assert mesh.point_data["data-vector"].shape[0] == mesh.nodes.shape[0]

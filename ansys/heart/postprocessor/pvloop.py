@@ -92,6 +92,10 @@ def generate_pvloop(f: str, out_dir: str, t_to_keep: float = 800):
     pressure = np.atleast_2d(pressure) * 1000  # to KPa
     volume = np.atleast_2d(volume) / 1000  # to mL
 
+    np.savetxt(os.path.join(out_dir, "time_ms.txt"), t)
+    np.savetxt(os.path.join(out_dir, "pressure_kPa.txt"), pressure.T)
+    np.savetxt(os.path.join(out_dir, "volume_mL.txt"), volume.T)
+
     # last cycle
     ns = np.where(t >= t[-1] - t_to_keep)[0][0]
     pressure = pressure[:, ns:]

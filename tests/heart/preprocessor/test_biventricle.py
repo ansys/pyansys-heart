@@ -42,8 +42,8 @@ from ansys.heart.writer.dynawriter import (
 import pytest
 import yaml
 
-pytestmark = pytest.mark.skip(reason="v0.1 HeartModel removed")
 pytestmark = pytest.mark.requires_fluent
+pytestmark = pytest.mark.skip(reason="v0.1 HeartModel removed")
 
 from tests.heart.common import compare_stats_mesh, compare_stats_names, compare_stats_volumes
 from tests.heart.conftest import download_asset, get_assets_folder, get_workdir

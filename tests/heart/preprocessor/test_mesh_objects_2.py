@@ -80,12 +80,12 @@ def test_mesh_add_001():
     # fill attribute with some values to ensure that info is kept.
     base.conn["c1"] = [[1, 2]]
 
-    merged = base.add_mesh(triangles)
+    merged = base._add_mesh(triangles)
     assert isinstance(merged, Mesh)
     assert base.n_cells == triangles.n_cells + tets.n_cells
 
     # assert adding edges.
-    base.add_mesh(edges)
+    base._add_mesh(edges)
     assert base.n_cells == triangles.n_cells + tets.n_cells + edges.n_cells
 
     # assert that attribute was kept
@@ -115,7 +115,7 @@ def test_mesh_add_002():
     lines["cdata_lines2"] = np.array([10.5, 11.5], dtype=np.float64)
     lines["pdata_lines1"] = np.array([[100, 101], [102, 103], [104, 105]], dtype=np.float64)
 
-    grid1 = grid.add_mesh(lines, keep_data=True)
+    grid1 = grid._add_mesh(lines, keep_data=True)
 
     assert isinstance(grid1, Mesh)
 
@@ -132,6 +132,91 @@ def test_mesh_add_002():
     assert grid1["pdata_lines1"].shape[1] == lines["pdata_lines1"].shape[1]
 
     pass
+
+
+def test_surface_add_001():
+    """Test adding a surface to a Mesh."""
+    points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=float)
+    tets = [4, 0, 1, 2, 3]
+    cell_types = [pv.CellType.TETRA]
+
+    mesh = Mesh(tets, cell_types, points)
+    mesh.cell_data["volume-id"] = 1
+
+    surface = pv.Triangle([points[0, :], [-1, 0, 0], [-1, -1, 0]])
+
+    # test adding a single surface
+    mesh.add_surface(surface, id=2)
+    assert "surface-id" in mesh.cell_data.keys()
+
+    assert np.all(mesh.celltypes == [pv.CellType.TRIANGLE, pv.CellType.TETRA])
+    np.testing.assert_allclose(mesh.cell_data["volume-id"], [np.nan, 1])
+    np.testing.assert_allclose(mesh.cell_data["surface-id"], [2, np.nan])
+
+    # test adding multiple surfaces simultaneously
+    mesh = Mesh(tets, cell_types, points)
+    mesh.cell_data["volume-id"] = 1
+
+    points1 = np.array([points[0, :], [-1, 0, 0], [-1, -1, 0]]) + 1.0
+    surface1 = pv.Triangle(points1)
+    surface.cell_data["surface-id"] = 10
+    surface1.cell_data["surface-id"] = 11
+    surface_to_add = surface + surface1
+
+    mesh.add_surface(surface_to_add)
+    np.testing.assert_allclose(mesh.cell_data["surface-id"], [11, 10, np.nan])
+
+
+def test_lines_add_001():
+    """Test adding a beam to a Mesh."""
+    points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=float)
+    tets = [4, 0, 1, 2, 3]
+    cell_types = [pv.CellType.TETRA]
+
+    mesh = Mesh(tets, cell_types, points)
+    mesh.cell_data["volume-id"] = 1
+
+    line = pv.Line(points[0, :], [-1, 0, 0])
+
+    mesh.add_lines(line, id=2)
+    assert "line-id" in mesh.cell_data.keys()
+    assert np.all(mesh.celltypes == [pv.CellType.LINE, pv.CellType.TETRA])
+    np.testing.assert_allclose(mesh.cell_data["volume-id"], [np.nan, 1])
+    np.testing.assert_allclose(mesh.cell_data["line-id"], [2, np.nan])
+
+
+def test_volume_add_001():
+    """Test adding a volume (hex element) to an existing mesh."""
+    from pyvista import examples
+
+    points = np.array([[0, 0, 0], [-1, 0, 0], [0, -1, 0], [0, 0, 1]], dtype=float)
+    tets = [4, 0, 1, 2, 3]
+    cell_types = [pv.CellType.TETRA]
+    mesh = Mesh(tets, cell_types, points)
+    mesh.cell_data["volume-id"] = 1
+
+    hex = examples.cells.Hexahedron()
+
+    mesh.add_volume(hex, id=2)
+    assert np.allclose(mesh.cell_data["volume-id"], [2, 1])
+
+
+def test_mesh_remove_001():
+    """Remove part of the mesh."""
+    points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1], [-1, 0, 0]], dtype=float)
+    # for each face in the tet
+    tets = [4, 0, 1, 2, 3, 4, 0, 1, 2, 4]
+    cell_types = [pv.CellType.TETRA] * 2
+
+    grid = Mesh(tets, cell_types, points)
+    grid.cell_data["test_data"] = 1
+
+    grid2 = grid.remove_cells(0, inplace=False)
+    assert isinstance(grid2, Mesh)
+    assert grid2.n_cells == 1
+    grid.remove_cells(0, inplace=True)
+    assert isinstance(grid2, Mesh)
+    assert grid.n_cells == 1
 
 
 def test_mesh_clean_001():
@@ -173,8 +258,8 @@ def test_mesh_object_properties():
     data = np.ones(mesh.n_cells, dtype=int) * -1
     data[mesh.celltypes == pv.CellType.LINE] = 1
     data[-2:] = 2
-    mesh.cell_data["beam-id"] = data
-    assert np.all(mesh.beam_ids == [1, 2])
+    mesh.cell_data["line-id"] = data
+    assert np.all(mesh.line_ids == [1, 2])
 
     data = np.ones(mesh.n_cells, dtype=int) * -1
     data[mesh.celltypes == pv.CellType.TRIANGLE] = 1

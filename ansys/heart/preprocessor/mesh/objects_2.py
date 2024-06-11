@@ -220,20 +220,20 @@ class Mesh(pv.UnstructuredGrid):
             return None
 
     @property
-    def beam_ids(self) -> np.ndarray:
-        """Unique beam ids.
+    def line_ids(self) -> np.ndarray:
+        """Unique line ids.
 
         Returns
         -------
         np.ndarray
-            Array with beam surface ids
+            Array with unique line ids
         """
         try:
             mask = self.celltypes == pv.CellType.LINE
-            mask1 = self.cell_data["beam-id"] > -1
+            mask1 = self.cell_data["line-id"] > -1
             np.vstack((mask, mask1))
             mask = np.all(np.vstack((mask, mask1)), axis=0)
-            return np.unique(self.cell_data["beam-id"][mask])
+            return np.unique(self.cell_data["line-id"][mask])
         except KeyError:
             return None
 
@@ -243,9 +243,9 @@ class Mesh(pv.UnstructuredGrid):
         super(Mesh, self_c).__init__(pv.UnstructuredGrid(self).clean(*args))
         return self_c
 
-    def add_mesh(
+    def _add_mesh(
         self,
-        mesh: pv.PolyData | pv.UnstructuredGrid,
+        mesh_input: pv.PolyData | pv.UnstructuredGrid,
         keep_data: bool = True,
         fill_float: np.float64 = np.nan,
         fill_int: int = -1,
@@ -258,11 +258,12 @@ class Mesh(pv.UnstructuredGrid):
 
         Parameters
         ----------
-        mesh : pv.PolyData | pv.UnstructuredGrid
+        mesh_input : pv.PolyData | pv.UnstructuredGrid
             Mesh to add, either PolyData or UnstructuredGrid
         keep_data : bool, optional
             Flag specifying whether to try to keep mesh point/cell data, by default True
         """
+        mesh = copy.copy(mesh_input)
         if keep_data:
             # add cell/point arrays in self
             cell_data_names = [k for k in mesh.cell_data.keys()]
@@ -288,7 +289,78 @@ class Mesh(pv.UnstructuredGrid):
             for name in point_data_names:
                 mesh.point_data[name] = _get_fill_data(self, mesh, name, "point")
 
-        # super().__init__(self + mesh)
         merged = pv.merge((self, mesh), merge_points=False)
         super().__init__(merged)
         return self
+
+    def add_volume(self, volume: pv.UnstructuredGrid, id: int = None):
+        """Add a volume.
+
+        Parameters
+        ----------
+        volume : pv.PolyData
+            PolyData representation of the volume to add
+        sid : int
+            ID of the volume to be added. This will be added as cell-data
+        """
+        if not id:
+            if "volume-id" not in volume.cell_data.keys():
+                LOGGER.debug("Failed to set volume-id")
+            else:
+                id = int(volume.cell_data["volume-id"][0])
+        else:
+            if not isinstance(id, int):
+                LOGGER.debug("sid should by type int.")
+                return
+            volume.cell_data["volume-id"] = np.ones(volume.n_cells, dtype=float) * id
+
+        self_copy = self._add_mesh(volume, keep_data=True, fill_float=np.nan)
+        return self_copy
+
+    def add_surface(self, surface: pv.PolyData, id: int = None):
+        """Add a surface.
+
+        Parameters
+        ----------
+        surface : pv.PolyData
+            PolyData representation of the surface to add
+        sid : int
+            ID of the surface to be added. This will be added as cell-data
+        """
+        if not id:
+            if "surface-id" not in surface.cell_data.keys():
+                LOGGER.debug("Failed to set surface-id")
+            else:
+                id = int(surface.cell_data["surface-id"][0])
+        else:
+            if not isinstance(id, int):
+                LOGGER.debug("sid should by type int.")
+                return
+            surface.cell_data["surface-id"] = np.ones(surface.n_cells, dtype=float) * id
+
+        self_copy = self._add_mesh(surface, keep_data=True, fill_float=np.nan)
+        return self_copy
+
+    def add_lines(self, lines: pv.PolyData, id: int = None):
+        """Add lines.
+
+        Parameters
+        ----------
+        lines : pv.PolyData
+            PolyData representation of the lines to add
+        sid : int
+            ID of the surface to be added. This will be added as cell-data
+        """
+        if not id:
+            if "line-id" not in lines.cell_data.keys():
+                LOGGER.debug("Failed to set surface-id")
+            else:
+                id = int(lines.cell_data["line-id"][0])
+        else:
+            if not isinstance(id, int):
+                LOGGER.debug("sid should by type int.")
+                return
+            lines.cell_data["line-id"] = np.ones(lines.n_cells, dtype=float) * id
+
+        self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan)
+        return self_copy

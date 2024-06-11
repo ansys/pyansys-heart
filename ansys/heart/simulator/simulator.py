@@ -49,17 +49,9 @@ from ansys.heart.postprocessor.auto_process import (
     zerop_post,
 )
 from ansys.heart.preprocessor.mesh.objects import Part
-from ansys.heart.simulator.settings.material.material import NeoHookean
-
-global heart_version
-heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
-if heart_version == "v0.2":
-    from ansys.heart.preprocessor.models.v0_2.models import FourChamber, HeartModel, LeftVentricle
-elif heart_version == "v0.1" or not heart_version:
-    from ansys.heart.preprocessor.models.v0_1.models import FourChamber, HeartModel, LeftVentricle
-
-    heart_version = "v0.1"
 from ansys.heart.preprocessor.models.conduction_beam import ConductionSystem
+from ansys.heart.preprocessor.models.v0_2.models import FourChamber, HeartModel, LeftVentricle
+from ansys.heart.simulator.settings.material.material import NeoHookean
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 import numpy as np
@@ -636,11 +628,7 @@ class MechanicsSimulator(BaseSimulator):
         LOGGER.info("Updating nodes after stress-free.")
 
         # Note: cap center node will be added into mesh.points
-        if heart_version == "v0.1":
-            n_caps = len(self.model.cap_centroids)
-            guess_ed_coords = np.array(self.stress_free_report["guess_ed_coord"])[:-n_caps]
-        elif heart_version == "v0.2":
-            guess_ed_coords = np.array(self.stress_free_report["guess_ed_coord"])
+        guess_ed_coords = np.array(self.stress_free_report["guess_ed_coord"])
         self.model.mesh.nodes = guess_ed_coords
 
         # Note: synchronization

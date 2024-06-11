@@ -29,10 +29,6 @@ import pathlib
 import shutil
 import tempfile
 
-import yaml
-
-os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.1"
-
 from ansys.heart.preprocessor.helpers import model_summary
 import ansys.heart.preprocessor.models.v0_1.models as models
 from ansys.heart.simulator.support import run_preprocessor
@@ -44,7 +40,9 @@ from ansys.heart.writer.dynawriter import (
     ZeroPressureMechanicsDynaWriter,
 )
 import pytest
+import yaml
 
+pytestmark = pytest.mark.skip(reason="v0.1 HeartModel removed")
 pytestmark = pytest.mark.requires_fluent
 
 from tests.heart.common import compare_stats_mesh, compare_stats_names, compare_stats_volumes

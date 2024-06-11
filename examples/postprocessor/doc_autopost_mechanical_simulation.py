@@ -43,7 +43,7 @@ from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
 from ansys.heart.postprocessor.auto_process import mech_post
 from ansys.heart.postprocessor.exporter import LVContourExporter
-import ansys.heart.preprocessor.models.v0_1.models as models
+import ansys.heart.preprocessor.models.v0_2.models as models
 import matplotlib.pyplot as plt
 import numpy as np
 import pyvista as pv

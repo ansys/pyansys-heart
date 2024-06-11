@@ -34,11 +34,18 @@ import json
 # import missing keywords
 import os
 import time
-from typing import Callable, List, Literal
+from typing import Callable, List, Literal, NamedTuple
 
 from ansys.dyna.keywords import keywords
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.preprocessor.mesh.objects import Cap
+from ansys.heart.preprocessor.mesh.objects import Cap, Part
+from ansys.heart.preprocessor.models.v0_2.models import (
+    BiVentricle,
+    FourChamber,
+    FullHeart,
+    HeartModel,
+    LeftVentricle,
+)
 from ansys.heart.simulator.settings.material.material import (
     ACTIVE,
     MAT295,
@@ -46,32 +53,6 @@ from ansys.heart.simulator.settings.material.material import (
     MechanicalMaterialModel,
     NeoHookean,
 )
-
-global heart_version
-heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
-if not heart_version:
-    heart_version = "v0.1"
-
-if heart_version == "v0.2":
-    from ansys.heart.preprocessor.models.v0_2.models import (
-        BiVentricle,
-        FourChamber,
-        FullHeart,
-        HeartModel,
-        LeftVentricle,
-    )
-elif heart_version == "v0.1":
-    from ansys.heart.preprocessor.models.v0_1.models import (
-        BiVentricle,
-        FourChamber,
-        FullHeart,
-        HeartModel,
-        LeftVentricle,
-    )
-
-from typing import NamedTuple
-
-from ansys.heart.preprocessor.mesh.objects import Part
 from ansys.heart.simulator.settings.settings import SimulationSettings
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 from ansys.heart.writer.heart_decks import (
@@ -1635,20 +1616,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             if cap.centroid is not None:
                 # cap centroids already added to mesh for v0.2
-                if heart_version == "v0.1":  # TODO: remove this exception
-                    if add_mesh:
-                        # Add center node
-                        node_kw = keywords.Node()
-                        df = pd.DataFrame(
-                            data=np.insert(cap.centroid, 0, cap.centroid_id + 1).reshape(1, -1),
-                            columns=node_kw.nodes.columns[0:4],
-                        )
-                        node_kw.nodes = df
-                        # comment the line '*NODE' so nodes.k can be parsed by zerop solver
-                        # correctly otherwise, these nodes will not be updated in iterations
-                        s = "$" + node_kw.write()
-                        self.kw_database.nodes.append(s)
-
                 if cap.nsid is None:
                     LOGGER.error("cap node set ID is not yes assigned")
                     exit()
@@ -4151,13 +4118,9 @@ class UHCWriter(BaseDynaWriter):
                 part.caps = []
                 for surface in part.surfaces:
                     surface.edge_groups = []
-            if heart_version == "v0.1":
-                model.cap_centroids = []
+
             model._assign_surfaces_to_parts()
-            if heart_version == "v0.1":
-                model._assign_caps_to_parts(unique_mitral_tricuspid_valve=False)
-            elif heart_version == "v0.2":
-                model._assign_caps_to_parts()
+            model._assign_caps_to_parts()
 
             self._keep_parts(parts_to_keep)
             model.mesh.clear_data()
@@ -4225,10 +4188,7 @@ class UHCWriter(BaseDynaWriter):
             exit()
 
         # temporary fix with tricuspid-valve name
-        if heart_version == "v0.1":
-            tv_name = "tricuspid-valve"
-        elif heart_version == "v0.2":
-            tv_name = "tricuspid-valve-atrium"
+        tv_name = "tricuspid-valve-atrium"
 
         # compare closest point with TV nodes, top region should be far with TV node set
         tv_tree = spatial.cKDTree(atrium.points[atrium.point_data[tv_name] == 1])

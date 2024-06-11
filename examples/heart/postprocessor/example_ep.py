@@ -23,7 +23,7 @@
 """For information only, example not yet stable"""
 
 from ansys.heart.postprocessor.EPpostprocessor import EPpostprocessor
-from ansys.heart.preprocessor.models.v0_1.models import HeartModel
+from ansys.heart.preprocessor.models.v0_2.models import HeartModel
 import pyvista as pv
 
 if __name__ == "__main__":

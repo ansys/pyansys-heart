@@ -307,12 +307,11 @@ class Mesh(pv.UnstructuredGrid):
         if not id:
             if "volume-id" not in volume.cell_data.keys():
                 LOGGER.debug("Failed to set volume-id")
-            else:
-                id = int(volume.cell_data["volume-id"][0])
+                return None
         else:
             if not isinstance(id, int):
                 LOGGER.debug("sid should by type int.")
-                return
+                return None
             volume.cell_data["volume-id"] = np.ones(volume.n_cells, dtype=float) * id
 
         self_copy = self._add_mesh(volume, keep_data=True, fill_float=np.nan)
@@ -331,12 +330,11 @@ class Mesh(pv.UnstructuredGrid):
         if not id:
             if "surface-id" not in surface.cell_data.keys():
                 LOGGER.debug("Failed to set surface-id")
-            else:
-                id = int(surface.cell_data["surface-id"][0])
+                return None
         else:
             if not isinstance(id, int):
                 LOGGER.debug("sid should by type int.")
-                return
+                return None
             surface.cell_data["surface-id"] = np.ones(surface.n_cells, dtype=float) * id
 
         self_copy = self._add_mesh(surface, keep_data=True, fill_float=np.nan)
@@ -355,12 +353,11 @@ class Mesh(pv.UnstructuredGrid):
         if not id:
             if "line-id" not in lines.cell_data.keys():
                 LOGGER.debug("Failed to set surface-id")
-            else:
-                id = int(lines.cell_data["line-id"][0])
+                return None
         else:
             if not isinstance(id, int):
                 LOGGER.debug("sid should by type int.")
-                return
+                return None
             lines.cell_data["line-id"] = np.ones(lines.n_cells, dtype=float) * id
 
         self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan)

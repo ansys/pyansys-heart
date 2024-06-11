@@ -194,11 +194,36 @@ def test_volume_add_001():
     cell_types = [pv.CellType.TETRA]
     mesh = Mesh(tets, cell_types, points)
     mesh.cell_data["volume-id"] = 1
-
     hex = examples.cells.Hexahedron()
 
     mesh.add_volume(hex, id=2)
     assert np.allclose(mesh.cell_data["volume-id"], [2, 1])
+
+
+def test_get_submesh_001():
+    """Test getting a submesh of Mesh."""
+    # generate some dummy data
+    from pyvista import examples
+
+    # prep data based on hexbeam
+    tets = examples.load_tetbeam()
+    tets.clear_cell_data()
+    edges = tets.extract_feature_edges()
+    edges.clear_cell_data()
+    edges.clear_point_data()
+    triangles = tets.extract_surface()
+    triangles.clear_cell_data()
+    triangles.clear_point_data()
+    triangles = triangles.remove_cells(np.arange(0, 20))
+
+    mesh = Mesh()
+    mesh.add_volume(tets, 1)
+    mesh.add_surface(triangles, 10)
+    mesh.add_lines(edges, 100)
+
+    triangles1 = mesh.get_surface(10)
+    assert triangles.n_cells == triangles1.n_cells
+    assert np.allclose(triangles.points, triangles1.points)
 
 
 def test_mesh_remove_001():

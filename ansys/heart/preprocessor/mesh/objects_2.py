@@ -32,6 +32,7 @@ Such as a Mesh object, Part object, Features, etc.
 # from typing import List, Optional, Tuple, Union
 
 import copy
+from typing import Literal
 
 from ansys.heart.core import LOG as LOGGER
 
@@ -300,8 +301,8 @@ class Mesh(pv.UnstructuredGrid):
         ----------
         volume : pv.PolyData
             PolyData representation of the volume to add
-        sid : int
-            ID of the volume to be added. This will be added as cell-data
+        id : int
+            ID of the volume to be added. This id will be tracked as "volume-id"
         """
         if not id:
             if "volume-id" not in volume.cell_data.keys():
@@ -325,7 +326,7 @@ class Mesh(pv.UnstructuredGrid):
         surface : pv.PolyData
             PolyData representation of the surface to add
         sid : int
-            ID of the surface to be added. This will be added as cell-data
+            ID of the surface to be added. This id will be tracked as "surface-id"
         """
         if not id:
             if "surface-id" not in surface.cell_data.keys():
@@ -348,8 +349,8 @@ class Mesh(pv.UnstructuredGrid):
         ----------
         lines : pv.PolyData
             PolyData representation of the lines to add
-        sid : int
-            ID of the surface to be added. This will be added as cell-data
+        id : int
+            ID of the surface to be added. This id will be tracked as "line-id"
         """
         if not id:
             if "line-id" not in lines.cell_data.keys():
@@ -364,3 +365,25 @@ class Mesh(pv.UnstructuredGrid):
 
         self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan)
         return self_copy
+
+    def _get_submesh(
+        self, sid: int, scalar: Literal["surface-id", "line-id", "volume-id"]
+    ) -> pv.UnstructuredGrid:
+        # NOTE: extract_cells cleans the object, removing any unused points.
+        if not scalar in self.cell_data.keys():
+            LOGGER.debug(f"{scalar} does not exist in cell_data")
+            return None
+        mask = np.isclose(self.cell_data[scalar], sid)
+        return self.extract_cells(mask)
+
+    def get_volume(self, sid: int) -> pv.UnstructuredGrid:
+        """Get a volume as a UnstructuredGrids object."""
+        return self._get_submesh(sid, scalar="volume-id")
+
+    def get_surface(self, sid: int) -> pv.UnstructuredGrid:
+        """Get a surface as PolyData object."""
+        return self._get_submesh(sid, scalar="surface-id")
+
+    def get_lines(self, sid: int) -> pv.UnstructuredGrid:
+        """Get lines as a PolyData object."""
+        return self._get_submesh(sid, scalar="line-id")

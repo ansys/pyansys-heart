@@ -47,9 +47,6 @@ from pathlib import Path
 from ansys.heart.preprocessor.models.v0_2.database_preprocessor import get_compatible_input
 import ansys.heart.preprocessor.models.v0_2.models as models
 
-# set this environment variable to ensure you are using v0.2 of the model
-os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
-
 # specify necessary paths.
 case_file = os.path.join("pyansys-heart", "downloads", "Rodero2021", "01", "01.vtk")
 workdir = os.path.join(os.path.dirname(case_file), "FullHeart")

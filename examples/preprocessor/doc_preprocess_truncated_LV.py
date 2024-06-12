@@ -31,10 +31,9 @@ Land et al (2015): https://doi.org/10.1098/rspa.2015.0641
 
 import os
 
+import ansys.heart.preprocessor.models.v0_2.models as models
 import numpy as np
-
-os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
-
+import pyvista as pv
 
 ###############################################################################
 # Example setup
@@ -48,10 +47,6 @@ os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
 # sphinx_gallery_thumbnail_path = '_static/images/truncated_LV_mesh.png'
 # sphinx_gallery_end_ignore
 
-import os
-
-import ansys.heart.preprocessor.models.v0_2.models as models
-import pyvista as pv
 
 ###############################################################################
 # Create a truncated ellipsoid using pyvista

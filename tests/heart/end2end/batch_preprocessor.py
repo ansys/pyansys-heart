@@ -35,7 +35,7 @@ def main(args):
 
     #############################################################
     # package import
-    import ansys.heart.preprocessor.models.v0_1.models as models
+    import ansys.heart.preprocessor.models.v0_2.models as models
 
     #
     if database == "Strocchi2020":
@@ -54,6 +54,7 @@ def main(args):
             workdir = os.path.join(root, f"{model_type}_{size}")
             path_to_model = str(Path(workdir, "heart_model.pickle"))
 
+            # TODO: this will not work with v0.2
             info = models.ModelInfo(
                 database=database,
                 path_to_case=case_file,
@@ -134,12 +135,6 @@ if __name__ == "__main__":
 
     # Parse the command-line arguments
     args = parser.parse_args()
-
-    # set right environment variable
-    if args.heartversion == "0":
-        os.environ["USE_OLD_HEART_MODELS"] = "1"
-    else:
-        os.environ["USE_OLD_HEART_MODELS"] = "0"
 
     # Call the main function with parsed arguments
     main(args)

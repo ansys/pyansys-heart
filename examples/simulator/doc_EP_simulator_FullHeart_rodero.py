@@ -43,9 +43,6 @@ purkinje network and conduction system and finally simulate the electrophysiolog
 
 import os
 
-# set this environment variable to ensure you are using v0.2 of the model
-os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
-
 from ansys.heart.preprocessor.mesh.objects import Point
 import ansys.heart.preprocessor.models.v0_2.models as models
 from ansys.heart.simulator.simulator import DynaSettings, EPSimulator

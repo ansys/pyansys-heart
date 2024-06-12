@@ -31,6 +31,7 @@ import pickle
 from typing import List, Union
 
 from ansys.heart.core import LOG as LOGGER
+from ansys.heart.preprocessor.mesh.vtkmethods import find_cells_close_to_nodes
 
 LOGGER.warning("Models v0.1 will be deprecated in the future. Use v0.2 instead.")
 
@@ -365,6 +366,9 @@ class HeartModel:
         """
         if len(eids) == 0:
             LOGGER.error(f"Element list is empty to create {name}")
+            return None
+        if name in [p.name for p in self.parts]:
+            LOGGER.error(f"Part {name} already exists.")
             return None
 
         for part in self.parts:
@@ -2083,11 +2087,44 @@ class FourChamber(HeartModel):
 
         # create a new part
         isolation: Part = self.create_part_by_ids(interface_eids, "Isolation atrial")
-        isolation.part_type = "atrial"
+        isolation.part_type = "atrium"
         isolation.has_fiber = True
         isolation.is_active = False
 
         return isolation
+
+    def _create_atrial_stiff_ring(self) -> Part:
+        # get ring cells from cap node list
+        ring_nodes = []
+        for cap in self.left_atrium.caps:
+            if "mitral" not in cap.name:
+                ring_nodes.extend(cap.node_ids.tolist())
+        for cap in self.right_atrium.caps:
+            if "tricuspid" not in cap.name:
+                ring_nodes.extend(cap.node_ids.tolist())
+
+        ring_eles = find_cells_close_to_nodes(self.mesh, ring_nodes, radius=2)
+
+        # above search may create orphan elements, combine them to rings
+        self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
+        unselect_eles = np.setdiff1d(
+            np.hstack((self.left_atrium.element_ids, self.right_atrium.element_ids)), ring_eles
+        )
+        largest = self.mesh.extract_cells(unselect_eles).connectivity(largest=True)
+        connected_cells = largest["cell_ids"]
+        orphan_cells = np.setdiff1d(unselect_eles, connected_cells)
+        if len(orphan_cells) > 0:
+            ring_eles = np.hstack((ring_eles, orphan_cells))
+
+        # Create ring part
+        ring: Part = self.create_part_by_ids(
+            ring_eles, name="base atrial stiff rings"
+        )  # TODO name must has 'base', see dynawriter.py L3120
+        ring.part_type = "atrium"
+        ring.has_fiber = False
+        ring.is_active = False
+
+        return ring
 
 
 class FullHeart(FourChamber):

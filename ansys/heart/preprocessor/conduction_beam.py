@@ -26,14 +26,7 @@ import os
 
 import networkx as nx
 
-heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
-if not heart_version:
-    heart_version = "v0.1"
-
-if heart_version == "v0.2":
-    from ansys.heart.preprocessor.models.v0_2.models import FourChamber
-elif heart_version == "v0.1":
-    from ansys.heart.preprocessor.models.v0_1.models import FourChamber
+from ansys.heart.preprocessor.models import FourChamber
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.mesh.objects import BeamMesh, Point, SurfaceMesh

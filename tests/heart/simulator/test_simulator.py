@@ -22,7 +22,7 @@
 
 from unittest.mock import Mock, patch
 
-from ansys.heart.preprocessor.models.v0_1.models import FourChamber
+from ansys.heart.preprocessor.models import FourChamber
 from ansys.heart.simulator.settings.settings import DynaSettings
 from ansys.heart.simulator.simulator import BaseSimulator
 import numpy as np

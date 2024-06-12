@@ -23,7 +23,7 @@
 """Module containing general helper methods."""
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.preprocessor.models.v0_2.models import HeartModel
+from ansys.heart.preprocessor.models import HeartModel
 
 
 def model_summary(model: HeartModel) -> dict:

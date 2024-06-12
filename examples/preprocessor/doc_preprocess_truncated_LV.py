@@ -31,7 +31,7 @@ Land et al (2015): https://doi.org/10.1098/rspa.2015.0641
 
 import os
 
-import ansys.heart.preprocessor.models.v0_2.models as models
+import ansys.heart.preprocessor.models as models
 import numpy as np
 import pyvista as pv
 

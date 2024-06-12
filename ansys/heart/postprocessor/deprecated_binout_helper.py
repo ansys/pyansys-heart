@@ -133,7 +133,7 @@ class IcvOut:
 
 if __name__ == "__main__":
     a = NodOut("binout0000")
-    from ansys.heart.preprocessor.models.v0_2.models import HeartModel
+    from ansys.heart.preprocessor.models import HeartModel
 
     model = HeartModel.load_model("heart_model.pickle")
 

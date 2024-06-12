@@ -40,7 +40,7 @@ and visualize them in Paraview.
 import os
 
 from ansys.heart.postprocessor.auto_process import zerop_post
-import ansys.heart.preprocessor.models.v0_2.models as models
+import ansys.heart.preprocessor.models as models
 
 ###############################################################################
 # Set relevant paths

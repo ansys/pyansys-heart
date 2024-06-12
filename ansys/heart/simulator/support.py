@@ -43,6 +43,7 @@ def run_preprocessor(
     clean_workdir: bool = True,
     skip_meshing: bool = False,
 ):
+    LOGGER.error("This method is deprecated.")
     """Run the preprocessor with the given input arguments.
 
     Parameters

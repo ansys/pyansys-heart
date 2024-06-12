@@ -39,7 +39,7 @@ from typing import Callable, List, Literal, NamedTuple
 from ansys.dyna.keywords import keywords
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.mesh.objects import Cap, Part
-from ansys.heart.preprocessor.models.v0_2.models import (
+from ansys.heart.preprocessor.models import (
     BiVentricle,
     FourChamber,
     FullHeart,

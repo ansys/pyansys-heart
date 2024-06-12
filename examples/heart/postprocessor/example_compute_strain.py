@@ -23,7 +23,7 @@
 """Example show how to compute myocardium strain"""
 
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
-from ansys.heart.preprocessor.models.v0_2.models import HeartModel
+from ansys.heart.preprocessor.models import HeartModel
 from matplotlib import pyplot as plt
 
 if __name__ == "__main__":

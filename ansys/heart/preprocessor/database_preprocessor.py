@@ -82,11 +82,11 @@ def _get_original_labels(database: str) -> dict:
         Dictionary representing the label to id map.
     """
     if database == "Strocchi2020":
-        from ansys.heart.preprocessor.models.v0_2.database_labels_to_id import (
+        from ansys.heart.preprocessor.database_labels_to_id import (
             Strocchi2020 as database_labels,
         )
     elif database == "Rodero2021":
-        from ansys.heart.preprocessor.models.v0_2.database_labels_to_id import (
+        from ansys.heart.preprocessor.database_labels_to_id import (
             Rodero2021 as database_labels,
         )
     else:

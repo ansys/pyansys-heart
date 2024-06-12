@@ -41,7 +41,7 @@ from ansys.heart.preprocessor.mesh.mesher import (
     mesh_from_manifold_input_model,
     mesh_from_non_manifold_input_model,
 )
-from ansys.heart.preprocessor.models.v0_2.input import _InputModel
+from ansys.heart.preprocessor.input import _InputModel
 import numpy as np
 import pyvista as pv
 

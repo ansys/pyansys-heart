@@ -29,7 +29,7 @@ from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
 from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
 from ansys.heart.postprocessor.exporter import LVContourExporter
-from ansys.heart.preprocessor.models.v0_2.models import HeartModel
+from ansys.heart.preprocessor.models import HeartModel
 import pytest
 
 model: HeartModel

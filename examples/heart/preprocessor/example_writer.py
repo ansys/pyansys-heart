@@ -25,7 +25,7 @@
 import os
 import pathlib
 
-import ansys.heart.preprocessor.models.v0_2.models as models
+import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.support import run_preprocessor
 import ansys.heart.writer.dynawriter as writers
 
@@ -50,6 +50,7 @@ if __name__ == "__main__":
     write_lsdyna_files = True
 
     # Preprocessing geometry, remeshing with mesh_size=2
+    # TODO: fix this
     if use_preprocessor:
         model = run_preprocessor(
             model_type=models.BiVentricle,

@@ -33,7 +33,7 @@ import textwrap
 from ansys.heart.calibration.ivc import IVCSimulator
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
-from ansys.heart.preprocessor.models.v0_2.models import HeartModel
+from ansys.heart.preprocessor.models import HeartModel
 from ansys.heart.simulator.settings import settings
 import numpy as np
 

@@ -47,7 +47,7 @@ from ansys.heart.preprocessor.mesh.objects import (
     SurfaceMesh,
 )
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-from ansys.heart.preprocessor.models.v0_2.input import _InputModel
+from ansys.heart.preprocessor.input import _InputModel
 import numpy as np
 import pyvista as pv
 from scipy.spatial.transform import Rotation as R

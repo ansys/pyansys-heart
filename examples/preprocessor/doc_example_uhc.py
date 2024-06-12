@@ -42,7 +42,7 @@ the ventricles.
 import copy
 import os
 
-import ansys.heart.preprocessor.models.v0_2.models as models
+import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.simulator import BaseSimulator, DynaSettings
 import pyvista as pv
 

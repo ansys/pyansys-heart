@@ -30,7 +30,7 @@ import pathlib
 import tempfile
 
 from ansys.heart.preprocessor.helpers import model_summary
-import ansys.heart.preprocessor.models.v0_2.models as models
+import ansys.heart.preprocessor.models as models
 from ansys.heart.writer.dynawriter import (
     ElectrophysiologyDynaWriter,
     FiberGenerationDynaWriter,

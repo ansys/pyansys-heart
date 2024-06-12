@@ -33,7 +33,7 @@ import ansys.heart.preprocessor.mesh.fluenthdf5 as hdf5  # noqa: F401
 from ansys.heart.preprocessor.mesh.fluenthdf5 import FluentCellZone, FluentMesh
 from ansys.heart.preprocessor.mesh.objects import SurfaceMesh
 from ansys.heart.preprocessor.mesh.vtkmethods import add_solid_name_to_stl
-from ansys.heart.preprocessor.models.v0_2.input import _InputBoundary, _InputModel
+from ansys.heart.preprocessor.input import _InputBoundary, _InputModel
 import numpy as np
 import pyvista as pv
 

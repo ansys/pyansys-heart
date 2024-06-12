@@ -43,7 +43,6 @@ def run_preprocessor(
     clean_workdir: bool = True,
     skip_meshing: bool = False,
 ):
-    LOGGER.error("This method is deprecated.")
     """Run the preprocessor with the given input arguments.
 
     Parameters
@@ -66,6 +65,7 @@ def run_preprocessor(
         Skip fluent meshing, (only for testing), by default False
 
     """
+    LOGGER.error("This method is deprecated.")
     if not path_to_model:
         path_to_model = os.path.join(work_directory, "heart_model.pickle")
 

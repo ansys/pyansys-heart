@@ -48,8 +48,8 @@ from ansys.heart.postprocessor.auto_process import (
     read_uvc,
     zerop_post,
 )
-from ansys.heart.preprocessor.mesh.objects import Part
 from ansys.heart.preprocessor.conduction_beam import ConductionSystem
+from ansys.heart.preprocessor.mesh.objects import Part
 from ansys.heart.preprocessor.models import FourChamber, HeartModel, LeftVentricle
 from ansys.heart.simulator.settings.material.material import NeoHookean
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings

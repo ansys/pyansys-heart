@@ -22,14 +22,10 @@
 
 """Module containing class for creating conduxtion system."""
 
-import os
-
-import networkx as nx
-
-from ansys.heart.preprocessor.models import FourChamber
-
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.mesh.objects import BeamMesh, Point, SurfaceMesh
+from ansys.heart.preprocessor.models import FourChamber
+import networkx as nx
 import numpy as np
 import pyvista as pv
 

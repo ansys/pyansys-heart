@@ -33,6 +33,7 @@ import re
 from typing import List, Union
 
 from ansys.heart.core import LOG as LOGGER
+from ansys.heart.preprocessor.input import _InputModel
 
 # from ansys.heart.preprocessor.input import HEART_MODELS
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
@@ -47,7 +48,6 @@ from ansys.heart.preprocessor.mesh.objects import (
     SurfaceMesh,
 )
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-from ansys.heart.preprocessor.input import _InputModel
 import numpy as np
 import pyvista as pv
 from scipy.spatial.transform import Rotation as R

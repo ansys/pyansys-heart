@@ -56,24 +56,17 @@ class D3plotToVTKExporter:
         self.data = D3plotReader(d3plot_file)
         self.save_time = self.data.time[self.data.time >= self.data.time[-1] - t_to_keep]
 
-    def get_pyvista(self, save_to: str = None, prefix: str = "model") -> list[pv.UnstructuredGrid]:
-        """Get and save pyvista object from d3plot.
-
-        Parameters
-        ----------
-        save_to : str, optional
-            folder to save vtk files, by default None
-        prefix : str, optional
-            prefix of vtk files name, by default "model"
+    def convert_to_pvgrid(self) -> list[pv.UnstructuredGrid]:
+        """Convert d3plot data into pyvista UnstructuredGrid.
 
         Returns
         -------
         list[pv.UnstructuredGrid]
-            Deforemed mesh
+            Simulation result
         """
         mesh_list = []
         mat_ids = self.data.get_material_ids()
-        for i, t in enumerate(self.save_time):
+        for t in self.save_time:
             mesh = self.data.meshgrid.copy()
             dsp = self.data.get_displacement_at(time=t)
             mesh.points += dsp
@@ -99,9 +92,6 @@ class D3plotToVTKExporter:
             mesh.cell_data["his25(ca2+)"][tetra_ids] = self.data.get_history_variable(
                 [24], at_step=i_frame
             ).ravel()
-
-            if save_to is not None:
-                mesh.save(os.path.join(save_to, f"{prefix}_{i}.vtk"))
 
             mesh_list.append(mesh)
 

@@ -199,7 +199,9 @@ def mech_post(directory: str, model: HeartModel):
     out_dir = os.path.join(directory, "post", "vtks")
     os.makedirs(out_dir, exist_ok=True)
     exporter = D3plotToVTKExporter(os.path.join(directory, "d3plot"), t_to_keep=last_cycle_duration)
-    _ = exporter.get_pyvista(save_to=out_dir, prefix="heart")
+    pv_list = exporter.convert_to_pvgrid()
+    for i, pv in enumerate(pv_list):
+        pv.save(os.path.join(out_dir, f"heart_{i}.vtk"))
 
     # compute strain of last cycle
     out_dir = os.path.join(directory, "post", "lrc_strain")
@@ -240,4 +242,9 @@ def export_to_vtk(directory: str, model: HeartModel):
 
 
 if __name__ == "__main__":
-    pass
+    f = r"D:\ansysdev\pyansys-heart\downloads\Rodero2021\01\fh_2.0\end2end\flow_area"
+    m = HeartModel.load_model(
+        r"D:\ansysdev\pyansys-heart\downloads\Rodero2021\01\fh_2.0\heart_model.pickle"
+    )
+
+    mech_post(f, m)

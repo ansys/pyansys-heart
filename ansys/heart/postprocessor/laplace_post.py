@@ -50,9 +50,6 @@ def read_uvc(directory):
             exit()
         grid.point_data[field_name] = np.array(t, dtype=float)
 
-    grid.set_active_scalars("transmural")
-    grid.save(os.path.join(directory, "uvc.vtk"))
-
     return grid
 
 
@@ -146,6 +143,10 @@ def compute_la_fiber_cs(
         _description_, by default None
         If given, normal direction will be updated by surface normal instead of Laplace solution.
 
+    Notes
+    -----
+    Method descrbed in https://doi.org/10.1016/j.cma.2020.113468
+
     Returns
     -------
     pv.UnstructuredGrid
@@ -215,6 +216,10 @@ def compute_ra_fiber_cs(
     endo_surface : pv.PolyData, optional
         _description_, by default None
         If given, normal direction will be updated by surface normal instead of Laplace solution.
+
+    Notes
+    -----
+    Method descrbed in https://doi.org/10.1016/j.cma.2020.113468
 
     Returns
     -------

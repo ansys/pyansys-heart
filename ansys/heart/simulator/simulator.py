@@ -518,7 +518,6 @@ class MechanicsSimulator(BaseSimulator):
 
         self.initial_stress = initial_stress
         """If stress free computation is taken into considered."""
-        # True by default
 
         return
 

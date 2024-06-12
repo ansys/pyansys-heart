@@ -38,7 +38,6 @@ import meshio
 import numpy as np
 import pyvista as pv
 import vtk
-from vtk.util.numpy_support import vtk_to_numpy  # noqa
 
 
 class D3plotToVTKExporter:

@@ -23,7 +23,7 @@
 """Some helper methods to process cases from Strocchi and Rodero databases."""
 
 import copy
-from typing import List, Tuple
+from typing import List, Literal, Tuple
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.mesh.connectivity import face_tetra_connectivity
@@ -416,7 +416,9 @@ def _smooth_boundary_edges(
 
 
 def get_compatible_input(
-    mesh_path: str, model_type: str = "FullHeart", database: str = "Rodero2021"
+    mesh_path: str,
+    model_type: Literal["FullHeart", "FourChamber", "BiVentricle", "LeftVentricle"] = "FullHeart",
+    database: str = "Rodero2021",
 ) -> Tuple[pv.PolyData, dict]:
     """Extract a preprocessor compatible input surface.
 

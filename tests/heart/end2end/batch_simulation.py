@@ -153,15 +153,6 @@ if __name__ == "__main__":
     # Create an argument parser
     parser = argparse.ArgumentParser(description="EndToEnd Test: Batch run simulation")
 
-    # Define command-line arguments
-    parser.add_argument(
-        "--heartversion",
-        help="Heart model version. 0: Uses HeartModels from old version of models.py,"
-        + "1: Uses HeartModels from new version of models.py (models_new.py)",
-        type=str,
-        default="0",
-    )
-
     parser.add_argument(
         "--root",
         help="Root folder. The script will look for cases relative to this folder.",

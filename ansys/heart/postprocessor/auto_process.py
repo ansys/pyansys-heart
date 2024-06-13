@@ -27,7 +27,6 @@ import glob
 import json
 import os
 
-heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
@@ -35,15 +34,9 @@ from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.postprocessor.exporter import D3plotToVTKExporter, LVContourExporter
 from ansys.heart.postprocessor.pvloop import generate_pvloop
 from ansys.heart.preprocessor.mesh.objects import Cavity
+from ansys.heart.preprocessor.models import HeartModel
 from ansys.heart.simulator.settings.settings import SimulationSettings
 import numpy as np
-
-if not heart_version:
-    heart_version = "v0.1"
-if heart_version == "v0.2":
-    from ansys.heart.preprocessor.models.v0_2.models import HeartModel
-elif heart_version == "v0.1":
-    from ansys.heart.preprocessor.models.v0_2.models import HeartModel
 
 
 def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.ndarray]:
@@ -82,13 +75,7 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     displacements = [data.get_displacement_at(time=t) for t in data.time]
     guess_ed_coord = stress_free_coord + displacements[-1]
 
-    if len(model.cap_centroids) == 0 or heart_version == "v0.2":
-        nodes = model.mesh.nodes
-    else:  # TODO remove after migrating to v0.2
-        # a center node for each cap has been created, add them into create the cavity
-        nodes = np.vstack((model.mesh.nodes, np.zeros((len(model.cap_centroids), 3))))
-        for cap_center in model.cap_centroids:
-            nodes[cap_center.node_id] = cap_center.xyz
+    nodes = model.mesh.nodes
 
     # convergence information
     dst = np.linalg.norm(guess_ed_coord - nodes, axis=1)

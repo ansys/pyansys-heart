@@ -32,6 +32,7 @@ import re
 from typing import List, Union
 
 from ansys.heart.core import LOG as LOGGER
+from ansys.heart.preprocessor.input import _InputModel
 
 # from ansys.heart.preprocessor.input import HEART_MODELS
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
@@ -46,8 +47,6 @@ from ansys.heart.preprocessor.mesh.objects import (
     SurfaceMesh,
 )
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-from ansys.heart.preprocessor.mesh.vtkmethods import find_cells_close_to_nodes
-from ansys.heart.preprocessor.models.v0_2.input import _InputModel
 import numpy as np
 import pyvista as pv
 from scipy.spatial.transform import Rotation as R
@@ -1857,7 +1856,7 @@ class FourChamber(HeartModel):
             if "tricuspid" not in cap.name:
                 ring_nodes.extend(cap.node_ids.tolist())
 
-        ring_eles = find_cells_close_to_nodes(self.mesh, ring_nodes, radius=2)
+        ring_eles = vtkmethods.find_cells_close_to_nodes(self.mesh, ring_nodes, radius=2)
 
         # above search may create orphan elements, combine them to rings
         self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)

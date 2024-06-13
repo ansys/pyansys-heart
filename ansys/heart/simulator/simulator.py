@@ -47,18 +47,10 @@ from ansys.heart.postprocessor.laplace_post import (
     compute_ra_fiber_cs,
     read_uvc,
 )
+from ansys.heart.preprocessor.conduction_beam import ConductionSystem
 from ansys.heart.preprocessor.mesh.objects import Part
+from ansys.heart.preprocessor.models import FourChamber, HeartModel, LeftVentricle
 from ansys.heart.simulator.settings.material.material import NeoHookean
-
-global heart_version
-heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
-if heart_version == "v0.2":
-    from ansys.heart.preprocessor.models.v0_2.models import FourChamber, HeartModel, LeftVentricle
-elif heart_version == "v0.1" or not heart_version:
-    from ansys.heart.preprocessor.models.v0_1.models import FourChamber, HeartModel, LeftVentricle
-
-    heart_version = "v0.1"
-from ansys.heart.preprocessor.models.conduction_beam import ConductionSystem
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 import numpy as np
@@ -610,12 +602,10 @@ class MechanicsSimulator(BaseSimulator):
     def compute_stress_free_configuration(self, folder_name="zeropressure", overwrite: bool = True):
         """Compute the stress-free configuration of the model."""
         directory = os.path.join(self.root_directory, folder_name)
-        os.makedirs(
-            directory,
-            exist_ok=True,
-        )
 
-        if overwrite or len(os.listdir(directory)) == 0:
+        if not os.path.isdir(directory) or overwrite or len(os.listdir(directory)) == 0:
+            os.makedirs(directory, exist_ok=True)
+
             self._write_stress_free_configuration_files(folder_name)
             self.settings.save(Path.Path(directory) / "simulation_settings.yml")
 
@@ -630,20 +620,12 @@ class MechanicsSimulator(BaseSimulator):
         # replace node coordinates by computed ED geometry
         LOGGER.info("Updating nodes after stress-free.")
 
-        # Note: cap center node will be added into mesh.points
-        if heart_version == "v0.1":
-            n_caps = len(self.model.cap_centroids)
-            guess_ed_coords = np.array(guess_ed_coord)[:-n_caps]
-        elif heart_version == "v0.2":
-            guess_ed_coords = np.array(guess_ed_coord)
-
-        # Afterwards, model is on guessed ED state
-        self.model.mesh.nodes = guess_ed_coords
+        self.model.mesh.nodes = guess_ed_coord
 
         # Note: synchronization for surfaces
         for part in self.model.parts:
             for surface in part.surfaces:
-                surface.nodes = guess_ed_coords
+                surface.nodes = guess_ed_coord
 
         return
 

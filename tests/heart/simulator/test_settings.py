@@ -23,6 +23,7 @@
 """Collection of methods to test the settings module."""
 
 import os
+import tempfile
 
 from ansys.heart.simulator.settings.defaults import fibers as fibers_defaults
 from ansys.heart.simulator.settings.settings import (
@@ -35,7 +36,7 @@ import numpy as np
 from pint import Quantity
 import pytest
 
-from tests.heart.conftest import compare_string_with_file, get_workdir
+from tests.heart.conftest import compare_string_with_file
 
 REF_STRING_SETTINGS_YML_MECHANICS = (
     "Simulation Settings:\n"
@@ -94,17 +95,17 @@ def test_settings_save_001():
     settings.mechanics.analysis.dt_icvout = Quantity(5, "ms")
     settings.mechanics.analysis.global_damping = Quantity(0.33, "s**-1")
 
-    file_path = os.path.join(get_workdir(), "settings.yml")
-    settings.save(file_path)
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        file_path = os.path.join(tempdir, "settings.yml")
+        settings.save(file_path)
+        compare_string_with_file(REF_STRING_SETTINGS_YML_MECHANICS, file_path)
 
-    compare_string_with_file(REF_STRING_SETTINGS_YML_MECHANICS, file_path)
-
-    os.remove(file_path)
     pass
 
 
 def test_settings_save_002():
     """Test saving of EP settings to disk."""
+
     settings = SimulationSettings(
         mechanics=False, electrophysiology=True, fiber=False, purkinje=False, stress_free=False
     )
@@ -118,36 +119,35 @@ def test_settings_save_002():
 
     # settings.electrophysiology.material.beam["sigma"] = Quantity(1, "mS")
 
-    file_path = os.path.join(get_workdir(), "settings_ep.yml")
-    settings.save(file_path)
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        file_path = os.path.join(tempdir, "settings_ep.yml")
+        settings.save(file_path)
 
-    compare_string_with_file(REF_STRING_SETTINGS_YML_EP, file_path)
+        compare_string_with_file(REF_STRING_SETTINGS_YML_EP, file_path)
 
-    os.remove(file_path)
     pass
 
 
 def test_settings_load():
     """Test loading of settings from file."""
     # write file-to-load from reference string
-    file_path = os.path.join(get_workdir(), "settings.yml")
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        file_path = os.path.join(tempdir, "settings.yml")
 
-    with open(file_path, "w") as f:
-        f.write(REF_STRING_SETTINGS_YML_MECHANICS)
+        with open(file_path, "w") as f:
+            f.write(REF_STRING_SETTINGS_YML_MECHANICS)
 
-    # load settings
-    settings = SimulationSettings()
-    settings.load(file_path)
+        # load settings
+        settings = SimulationSettings()
+        settings.load(file_path)
 
-    # assert the settings are properly populated
-    assert settings.mechanics.analysis.end_time == Quantity(1, "s")
-    assert settings.mechanics.analysis.dtmin == Quantity(2, "s")
-    assert settings.mechanics.analysis.dtmax == Quantity(3, "s")
-    assert settings.mechanics.analysis.dt_d3plot == Quantity(4, "s")
-    assert settings.mechanics.analysis.dt_icvout == Quantity(5, "ms")
-    assert settings.mechanics.analysis.global_damping == Quantity(0.33, "s**-1")
-
-    os.remove(file_path)
+        # assert the settings are properly populated
+        assert settings.mechanics.analysis.end_time == Quantity(1, "s")
+        assert settings.mechanics.analysis.dtmin == Quantity(2, "s")
+        assert settings.mechanics.analysis.dtmax == Quantity(3, "s")
+        assert settings.mechanics.analysis.dt_d3plot == Quantity(4, "s")
+        assert settings.mechanics.analysis.dt_icvout == Quantity(5, "ms")
+        assert settings.mechanics.analysis.global_damping == Quantity(0.33, "s**-1")
 
     pass
 

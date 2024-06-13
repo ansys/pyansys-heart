@@ -160,7 +160,7 @@ active_mat = MAT295(rho=1, iso=iso, aniso=aniso1, active=active)
 # Now, we will show how to assign materials to the heart model
 
 from ansys.heart.preprocessor.mesh.objects import Part
-import ansys.heart.preprocessor.models.v0_1.models as models
+import ansys.heart.preprocessor.models as models
 import numpy as np
 
 ###############################################################################

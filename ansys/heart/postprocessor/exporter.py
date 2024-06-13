@@ -32,7 +32,9 @@ from pathlib import Path
 
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.preprocessor.mesh.vtkmethods import vtk_cutter, write_vtkdata_to_vtkfile
-from ansys.heart.preprocessor.models.v0_1.models import HeartModel, LeftVentricle
+
+# TODO replace by v0_2
+from ansys.heart.preprocessor.models import HeartModel, LeftVentricle
 import matplotlib.pyplot as plt
 import meshio
 import numpy as np

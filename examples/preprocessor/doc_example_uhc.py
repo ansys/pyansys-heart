@@ -42,12 +42,9 @@ the ventricles.
 import copy
 import os
 
-import ansys.heart.preprocessor.models.v0_2.models as models
+import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.simulator import BaseSimulator, DynaSettings
 import pyvista as pv
-
-# set this environment variable to ensure you are using v0.2 of the model
-os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
 
 # specify the path to the working directory and heart model
 workdir = os.path.join("pyansys-heart", "downloads", "Strocchi2020", "01", "FourChamber")

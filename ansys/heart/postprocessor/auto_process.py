@@ -178,7 +178,10 @@ def mech_post(directory: str, model: HeartModel):
     os.makedirs(out_dir, exist_ok=True)
     exporter = D3plotToVTKExporter(os.path.join(directory, "d3plot"), t_to_keep=last_cycle_duration)
     for i, t in enumerate(exporter.save_time):
-        exporter.convert_to_pvgrid_at_t(time=t, fname=os.path.join(out_dir, f"heart_{i}.vtk"))
+        # NOTE: the returned pv_object seems corrupted, I suspect it's a bug of pyvista
+        pv_object = exporter.convert_to_pvgrid_at_t(
+            time=t, fname=os.path.join(out_dir, f"heart_{i}.vtk")
+        )
 
     # compute strain of last cycle
     out_dir = os.path.join(directory, "post", "lrc_strain")

@@ -98,6 +98,7 @@ class D3plotToVTKExporter:
 
         if fname is not None:
             mesh.save(fname)
+        # NOTE: the returned pv_object seems corrupted, I suspect it's a bug of pyvista
         return mesh
 
 

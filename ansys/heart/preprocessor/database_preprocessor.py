@@ -481,6 +481,27 @@ def get_compatible_input(
 
     # delete parts of dictionary depending on the requested model.
     if model_type == "LeftVentricle":
+        # For the LeftVentricle model the epicardium consists of the
+        # following surfaces, so we need to merge these:
+        # - left-ventricle-epicardium
+        # - right-ventricle-septum
+        # - interface_left-ventricle-myocardium_right-ventricle-myocardium
+        epi_ids = [
+            part_definitions["Left ventricle"]["enclosed_by_boundaries"][
+                "interface_left-ventricle-myocardium_right-ventricle-myocardium"
+            ],
+            part_definitions["Left ventricle"]["enclosed_by_boundaries"]["right-ventricle-septum"],
+            part_definitions["Left ventricle"]["enclosed_by_boundaries"][
+                "left-ventricle-epicardium"
+            ],
+        ]
+        mask = np.isin(geom_with_interfaces.cell_data["surface-id"], epi_ids)
+        geom_with_interfaces.cell_data["surface-id"][mask] = epi_ids[-1]
+        del part_definitions["Left ventricle"]["enclosed_by_boundaries"]["right-ventricle-septum"]
+        del part_definitions["Left ventricle"]["enclosed_by_boundaries"][
+            "interface_left-ventricle-myocardium_right-ventricle-myocardium"
+        ]
+
         del part_definitions["Right ventricle"]
         del part_definitions["Left atrium"]
         del part_definitions["Right atrium"]

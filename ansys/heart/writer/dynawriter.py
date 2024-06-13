@@ -34,11 +34,18 @@ import json
 # import missing keywords
 import os
 import time
-from typing import Callable, List, Literal
+from typing import Callable, List, Literal, NamedTuple
 
 from ansys.dyna.keywords import keywords
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.preprocessor.mesh.objects import Cap
+from ansys.heart.preprocessor.mesh.objects import Cap, Part
+from ansys.heart.preprocessor.models import (
+    BiVentricle,
+    FourChamber,
+    FullHeart,
+    HeartModel,
+    LeftVentricle,
+)
 from ansys.heart.simulator.settings.material.material import (
     ACTIVE,
     MAT295,
@@ -46,32 +53,6 @@ from ansys.heart.simulator.settings.material.material import (
     MechanicalMaterialModel,
     NeoHookean,
 )
-
-global heart_version
-heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
-if not heart_version:
-    heart_version = "v0.1"
-
-if heart_version == "v0.2":
-    from ansys.heart.preprocessor.models.v0_2.models import (
-        BiVentricle,
-        FourChamber,
-        FullHeart,
-        HeartModel,
-        LeftVentricle,
-    )
-elif heart_version == "v0.1":
-    from ansys.heart.preprocessor.models.v0_1.models import (
-        BiVentricle,
-        FourChamber,
-        FullHeart,
-        HeartModel,
-        LeftVentricle,
-    )
-
-from typing import NamedTuple
-
-from ansys.heart.preprocessor.mesh.objects import Part
 from ansys.heart.simulator.settings.settings import SimulationSettings
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 from ansys.heart.writer.heart_decks import (
@@ -535,37 +516,11 @@ class BaseDynaWriter:
 
         return
 
-    def _export_cavity_segmentsets(self, export_directory: str):
-        """Export the cavity segment sets to separate files."""
-        cavities = [part.cavity for part in self.model.parts if part.cavity]
-        for cavity in cavities:
-            filepath = os.path.join(
-                export_directory, "_".join(cavity.name.lower().split()) + ".segment"
-            )
-            np.savetxt(filepath, cavity.surface.triangles + 1, delimiter=",", fmt="%d")
-
-        return
-
     def _keep_ventricles(self):
         """Remove any non-ventricular parts."""
-        # NOTE: Could move "remove part" method to model
-        LOGGER.warning("Just keeping ventricular-parts for fiber generation")
-        parts_to_keep = ["Left ventricle", "Right ventricle", "Septum"]
-        parts_to_remove = [part for part in self.model.part_names if part not in parts_to_keep]
-        for part_to_remove in parts_to_remove:
-            LOGGER.warning("Removing: {}".format(part_to_remove))
-            self.model.remove_part(part_to_remove)
-        return
-
-    def _keep_atria(self):
-        """Remove any non-atrial parts."""
-        # NOTE: Could move "remove part" method to model
-        LOGGER.warning("Just keeping atrial-parts")
-        parts_to_keep = [part for part in self.model.part_names if "atrium" in part.lower()]
-        parts_to_remove = [part for part in self.model.part_names if part not in parts_to_keep]
-        for part_to_remove in parts_to_remove:
-            LOGGER.warning("Removing: {}".format(part_to_remove))
-            self.model.remove_part(part_to_remove)
+        LOGGER.warning("Just keeping ventricular-parts for fiber/purkinje generation")
+        parts_to_keep = [p.name for p in self.model.parts if p.part_type in ["ventricle", "septum"]]
+        self._keep_parts(parts_to_keep)
         return
 
     def _keep_parts(self, parts_to_keep: List[str]):
@@ -788,7 +743,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                             cvid2=0,
                             lcid=lcid + 2,
                             name="constant_flow_left_atrium",
-                            parameters={"flow": -70.0},
+                            parameters={"flow": -83.0},  # ~5 L/min
                         ),
                         CVInteraction(
                             id=4,
@@ -796,7 +751,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                             cvid2=1,
                             lcid=lcid + 3,
                             name="valve_mitral",
-                            parameters={"Rv": 1e-5},
+                            parameters={"Rv": 1e-6},
                         ),
                     ],
                 ),
@@ -810,7 +765,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                             cvid2=0,
                             lcid=lcid + 4,
                             name="constant_flow_right_atrium",
-                            parameters={"flow": -70.0},
+                            parameters={"flow": -83.0},  # ~5 L/min
                         ),
                         CVInteraction(
                             id=6,
@@ -818,7 +773,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                             cvid2=2,
                             lcid=lcid + 5,
                             name="valve_tricuspid",
-                            parameters={"Rv": 1e-5},
+                            parameters={"Rv": 1e-6},
                         ),
                     ],
                 ),
@@ -1650,20 +1605,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             if cap.centroid is not None:
                 # cap centroids already added to mesh for v0.2
-                if heart_version == "v0.1":  # TODO: remove this exception
-                    if add_mesh:
-                        # Add center node
-                        node_kw = keywords.Node()
-                        df = pd.DataFrame(
-                            data=np.insert(cap.centroid, 0, cap.centroid_id + 1).reshape(1, -1),
-                            columns=node_kw.nodes.columns[0:4],
-                        )
-                        node_kw.nodes = df
-                        # comment the line '*NODE' so nodes.k can be parsed by zerop solver
-                        # correctly otherwise, these nodes will not be updated in iterations
-                        s = "$" + node_kw.write()
-                        self.kw_database.nodes.append(s)
-
                 if cap.nsid is None:
                     LOGGER.error("cap node set ID is not yes assigned")
                     exit()
@@ -1845,8 +1786,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.DatabaseIcvout(dt=10, binary=2))
         return
 
-    def _add_enddiastolic_pressure_bc(self, pressure_lv: float = 1, pressure_rv: float = 1):
+    def _add_enddiastolic_pressure_bc(self):
         """Add end diastolic pressure boundary condition on the left and right endocardium."""
+        bc_settings = self.settings.mechanics.boundary_conditions
+        pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
+        pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
+        pressure_la = bc_settings.end_diastolic_cavity_pressure["left_atrial"].m
+        pressure_ra = bc_settings.end_diastolic_cavity_pressure["right_atrial"].m
+
         # create unit load curve
         load_curve_id = self.get_unique_curve_id()
         load_curve_kw = create_define_curve_kw(
@@ -1873,37 +1820,17 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 self.kw_database.main.append(load)
             elif cavity.name == "Left atrium":
                 load = keywords.LoadSegmentSet(
-                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_lv
+                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_la
                 )
                 self.kw_database.main.append(load)
             elif cavity.name == "Right atrium":
                 load = keywords.LoadSegmentSet(
-                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_rv
+                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_ra
                 )
                 self.kw_database.main.append(load)
             else:
                 continue
 
-        # # load only endocardium segment (exclude cap shells)
-        # for part in self.model.parts:
-        #     for surface in part.surfaces:
-        #         if surface.name == "Left ventricle endocardium":
-        #             scale_factor = pressure_lv
-        #             seg_id = surface.id
-        #             load = keywords.LoadSegmentSet(
-        #                 ssid=seg_id, lcid=load_curve_id, sf=scale_factor
-        #             )
-        #             self.kw_database.main.append(load)
-        #         elif (
-        #             surface.name == "Right ventricle endocardium"
-        #             or surface.name == "Right ventricle endocardium septum"
-        #         ):
-        #             scale_factor = pressure_rv
-        #             seg_id = surface.id
-        #             load = keywords.LoadSegmentSet(
-        #                 ssid=seg_id, lcid=load_curve_id, sf=scale_factor
-        #             )
-        #             self.kw_database.main.append(load)
         return
 
     def _add_constant_atrial_pressure(self, pressure_lv: float = 1, pressure_rv: float = 1):
@@ -1993,9 +1920,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         #     self._add_pericardium_bc(scale=0.01)
 
         # # Approximate end-diastolic pressures
-        pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
-        pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
-        self._add_enddiastolic_pressure_bc(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
+        self._add_enddiastolic_pressure_bc()
 
         # zerop key words
         self._add_control_reference_configuration()
@@ -2042,15 +1967,6 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         self._get_list_of_includes()
         self._add_includes()
-
-        return
-
-    def export(self, export_directory: str):
-        """Write the model to files."""
-        super().export(export_directory)
-
-        # export segment sets to separate file
-        self._export_cavity_segmentsets(export_directory)
 
         return
 
@@ -4166,13 +4082,9 @@ class UHCWriter(BaseDynaWriter):
                 part.caps = []
                 for surface in part.surfaces:
                     surface.edge_groups = []
-            if heart_version == "v0.1":
-                model.cap_centroids = []
+
             model._assign_surfaces_to_parts()
-            if heart_version == "v0.1":
-                model._assign_caps_to_parts(unique_mitral_tricuspid_valve=False)
-            elif heart_version == "v0.2":
-                model._assign_caps_to_parts()
+            model._assign_caps_to_parts()
 
             self._keep_parts(parts_to_keep)
             model.mesh.clear_data()
@@ -4240,10 +4152,7 @@ class UHCWriter(BaseDynaWriter):
             exit()
 
         # temporary fix with tricuspid-valve name
-        if heart_version == "v0.1":
-            tv_name = "tricuspid-valve"
-        elif heart_version == "v0.2":
-            tv_name = "tricuspid-valve-atrium"
+        tv_name = "tricuspid-valve-atrium"
 
         # compare closest point with TV nodes, top region should be far with TV node set
         tv_tree = spatial.cKDTree(atrium.points[atrium.point_data[tv_name] == 1])

@@ -22,16 +22,8 @@
 
 """Module containing general helper methods."""
 
-import os
-
 from ansys.heart.core import LOG as LOGGER
-
-heart_version = os.environ["ANSYS_HEART_MODEL_VERSION"]
-
-if not heart_version or heart_version == "v0.1":
-    from ansys.heart.preprocessor.models.v0_1.models import HeartModel
-elif heart_version == "v0.2":
-    from ansys.heart.preprocessor.models.v0_2.models import HeartModel
+from ansys.heart.preprocessor.models import HeartModel
 
 
 def model_summary(model: HeartModel, attributes: list = None) -> dict:

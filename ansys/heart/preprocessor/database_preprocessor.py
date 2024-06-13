@@ -23,7 +23,7 @@
 """Some helper methods to process cases from Strocchi and Rodero databases."""
 
 import copy
-from typing import List, Tuple
+from typing import List, Literal, Tuple
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.mesh.connectivity import face_tetra_connectivity
@@ -82,13 +82,9 @@ def _get_original_labels(database: str) -> dict:
         Dictionary representing the label to id map.
     """
     if database == "Strocchi2020":
-        from ansys.heart.preprocessor.models.v0_2.database_labels_to_id import (
-            Strocchi2020 as database_labels,
-        )
+        from ansys.heart.preprocessor.database_labels_to_id import Strocchi2020 as database_labels
     elif database == "Rodero2021":
-        from ansys.heart.preprocessor.models.v0_2.database_labels_to_id import (
-            Rodero2021 as database_labels,
-        )
+        from ansys.heart.preprocessor.database_labels_to_id import Rodero2021 as database_labels
     else:
         LOGGER.error(f"Database with name {database} not supported.")
         return
@@ -420,7 +416,9 @@ def _smooth_boundary_edges(
 
 
 def get_compatible_input(
-    mesh_path: str, model_type: str = "FullHeart", database: str = "Rodero2021"
+    mesh_path: str,
+    model_type: Literal["FullHeart", "FourChamber", "BiVentricle", "LeftVentricle"] = "FullHeart",
+    database: str = "Rodero2021",
 ) -> Tuple[pv.PolyData, dict]:
     """Extract a preprocessor compatible input surface.
 
@@ -483,6 +481,27 @@ def get_compatible_input(
 
     # delete parts of dictionary depending on the requested model.
     if model_type == "LeftVentricle":
+        # For the LeftVentricle model the epicardium consists of the
+        # following surfaces, so we need to merge these:
+        # - left-ventricle-epicardium
+        # - right-ventricle-septum
+        # - interface_left-ventricle-myocardium_right-ventricle-myocardium
+        epi_ids = [
+            part_definitions["Left ventricle"]["enclosed_by_boundaries"][
+                "interface_left-ventricle-myocardium_right-ventricle-myocardium"
+            ],
+            part_definitions["Left ventricle"]["enclosed_by_boundaries"]["right-ventricle-septum"],
+            part_definitions["Left ventricle"]["enclosed_by_boundaries"][
+                "left-ventricle-epicardium"
+            ],
+        ]
+        mask = np.isin(geom_with_interfaces.cell_data["surface-id"], epi_ids)
+        geom_with_interfaces.cell_data["surface-id"][mask] = epi_ids[-1]
+        del part_definitions["Left ventricle"]["enclosed_by_boundaries"]["right-ventricle-septum"]
+        del part_definitions["Left ventricle"]["enclosed_by_boundaries"][
+            "interface_left-ventricle-myocardium_right-ventricle-myocardium"
+        ]
+
         del part_definitions["Right ventricle"]
         del part_definitions["Left atrium"]
         del part_definitions["Right atrium"]

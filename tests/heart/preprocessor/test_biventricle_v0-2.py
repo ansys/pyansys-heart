@@ -24,16 +24,13 @@
 expected features."""
 
 import glob
+import json
 import os
 import pathlib
-
-os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
-
-import json
 import tempfile
 
 from ansys.heart.preprocessor.helpers import model_summary
-import ansys.heart.preprocessor.models.v0_2.models as models
+import ansys.heart.preprocessor.models as models
 from ansys.heart.writer.dynawriter import (
     ElectrophysiologyDynaWriter,
     FiberGenerationDynaWriter,

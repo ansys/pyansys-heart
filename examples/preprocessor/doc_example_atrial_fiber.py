@@ -39,10 +39,7 @@ This examples shows how to generate fibers with Laplace-Dirichlet-Rule-Based-Met
 
 import os
 
-# set this environment variable to ensure you are using v0.2 of the model
-os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
-
-import ansys.heart.preprocessor.models.v0_2.models as models
+import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.simulator import BaseSimulator, DynaSettings
 import numpy as np
 import pyvista as pv

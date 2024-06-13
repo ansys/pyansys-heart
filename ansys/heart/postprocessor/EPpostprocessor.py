@@ -26,15 +26,7 @@ import os
 import pathlib as Path
 
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
-
-heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
-if heart_version == "v0.2":
-    from ansys.heart.preprocessor.models.v0_2.models import HeartModel
-elif heart_version == "v0.1" or not heart_version:
-    from ansys.heart.preprocessor.models.v0_1.models import (
-        HeartModel,
-    )
-
+from ansys.heart.preprocessor.models import HeartModel
 import matplotlib.pyplot as plt
 import numpy as np
 import pyvista as pv
@@ -95,7 +87,7 @@ class EPpostprocessor:
     def _get_ep_field(self, variable_id: int, node_id=None, plot: bool = False):
         """Get EP field."""
         self.load_ep_fields()
-        times = self.reader.get_timesteps()
+        times = self.reader.time
         if node_id == None:
             nnodes = len(self.reader.meshgrid.points)
             node_id = np.int64(np.linspace(0, nnodes - 1, nnodes))

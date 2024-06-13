@@ -44,10 +44,7 @@ stress free configuration, and finally simulate the mechanical model.
 
 import os
 
-# set this environment variable to ensure you are using v0.2 of the model
-os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
-
-import ansys.heart.preprocessor.models.v0_2.models as models
+import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.simulator import DynaSettings, MechanicsSimulator
 
 # accept dpf license aggrement

@@ -1,6 +1,6 @@
 # GitHub workflow for functional tests
 # Tests consistencty of model being generated
-name: Test model generation-v2
+name: Test model generation
 on:
   pull_request:
     types: ['opened', 'edited', 'reopened', 'synchronize', 'ready_for_review']
@@ -61,9 +61,12 @@ jobs:
         env:
           PIP_EXTRA_INDEX_URL: 'https://${{ secrets.PYANSYS_PYPI_PRIVATE_PAT }}@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/'
 
-      - name: Test model generation v0.2
-        env:
-          ANSYS_HEART_MODEL_VERSION: "v0.2"
+      - name: Test PyFluent launch
+        continue-on-error: false
+        run: |
+          python -m pytest -v tests/heart/preprocessor/test_pyfluent.py
+
+      - name: Test model generation
         continue-on-error: false
         run: |
           pytest -m pytest -v -m models_v2

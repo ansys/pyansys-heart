@@ -43,7 +43,7 @@ from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
 from ansys.heart.postprocessor.auto_process import mech_post
 from ansys.heart.postprocessor.exporter import LVContourExporter
-import ansys.heart.preprocessor.models.v0_1.models as models
+import ansys.heart.preprocessor.models as models
 import matplotlib.pyplot as plt
 import numpy as np
 import pyvista as pv
@@ -129,7 +129,7 @@ model.compute_left_ventricle_aha17()
 
 aha_evaluator = AhaStrainCalculator(model, d3plot_file=meca_folder / "d3plot")
 # get LRC strain at a given time and export a file named LRC_10.vtk
-strain17_at10 = aha_evaluator.compute_aha_strain_once(frame=10, out_dir=".")
+strain17_at10 = aha_evaluator.compute_aha_strain_at(frame=10, out_dir=".")
 
 # show generated vtk
 aha = pv.read(r"LRC_10.vtk")
@@ -157,7 +157,7 @@ plt.show()
 #   :align: center
 
 # get strain for all simulation frames (this will take a while)
-strain_table = aha_evaluator.compute_aha_strain(out_dir=".", with_vtk=False)
+strain_table = aha_evaluator.compute_aha_strain(out_dir=".", write_vtk=False)
 
 # plot
 l_strain_base = np.mean(strain_table[:, 1:19:3], axis=1)

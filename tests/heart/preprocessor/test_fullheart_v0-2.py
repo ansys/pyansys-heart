@@ -29,12 +29,8 @@ import os
 import pathlib
 import tempfile
 
-import yaml
-
-os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
-
 from ansys.heart.preprocessor.helpers import model_summary
-import ansys.heart.preprocessor.models.v0_2.models as models
+import ansys.heart.preprocessor.models as models
 from ansys.heart.writer.dynawriter import (
     ElectrophysiologyDynaWriter,
     FiberGenerationDynaWriter,
@@ -43,6 +39,7 @@ from ansys.heart.writer.dynawriter import (
     ZeroPressureMechanicsDynaWriter,
 )
 import pytest
+import yaml
 
 pytestmark = pytest.mark.requires_fluent
 

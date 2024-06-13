@@ -29,6 +29,8 @@ import pathlib as Path
 LOGGER = logging.getLogger("pyheart_global.simulator")
 import ansys.heart.preprocessor.models.v0_1.models as models
 
+# TODO remove this module
+
 
 def run_preprocessor(
     model_type: models.HeartModel,
@@ -63,6 +65,7 @@ def run_preprocessor(
         Skip fluent meshing, (only for testing), by default False
 
     """
+    LOGGER.error("This method is deprecated.")
     if not path_to_model:
         path_to_model = os.path.join(work_directory, "heart_model.pickle")
 

@@ -25,7 +25,6 @@ import os
 from pathlib import Path
 
 #############################################################
-os.environ["USE_OLD_HEART_MODELS"] = "1"
 root_folder = r"D:\ansysdev"
 
 
@@ -51,7 +50,7 @@ right_appendage_apex = {
 
 
 def main(args):
-    import ansys.heart.preprocessor.models.v0_1.models as models
+    import ansys.heart.preprocessor.models as models
     import ansys.heart.writer.dynawriter as writers
 
     # input

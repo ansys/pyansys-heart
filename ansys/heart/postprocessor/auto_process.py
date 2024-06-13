@@ -29,7 +29,6 @@ import os
 import pathlib
 from typing import List
 
-heart_version = os.getenv("ANSYS_HEART_MODEL_VERSION")
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
@@ -41,9 +40,6 @@ from ansys.heart.simulator.settings.settings import AtrialFiber, SimulationSetti
 import matplotlib.pyplot as plt
 import numpy as np
 import pyvista as pv
-
-if not heart_version:
-    heart_version = "v0.1"
 
 
 def zerop_post(directory, model):
@@ -77,13 +73,7 @@ def zerop_post(directory, model):
     displacements = data.get_displacement()
     guess_ed_coord = stress_free_coord + displacements[-1]
 
-    if len(model.cap_centroids) == 0 or heart_version == "v0.2":
-        nodes = model.mesh.nodes
-    else:
-        # a center node for each cap has been created, add them into create the cavity
-        nodes = np.vstack((model.mesh.nodes, np.zeros((len(model.cap_centroids), 3))))
-        for cap_center in model.cap_centroids:
-            nodes[cap_center.node_id] = cap_center.xyz
+    nodes = model.mesh.nodes
 
     # convergence information
     dst = np.linalg.norm(guess_ed_coord - nodes, axis=1)

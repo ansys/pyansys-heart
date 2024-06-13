@@ -1546,7 +1546,7 @@ class HeartModel:
 
         for i, n in enumerate(elem_center):
             # This part contains valves, do not considered by AHA17
-            if np.dot(n - p_highest, mv_center - p_highest) >= 0:
+            if np.dot(n - p_highest, mv_center - p_highest) > 0:
                 continue
             # Basal: segment 1 2 3 4 5 6
             elif np.dot(n - p1_3, mv_center - p1_3) >= 0:

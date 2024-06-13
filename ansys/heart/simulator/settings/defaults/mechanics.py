@@ -148,8 +148,10 @@ boundary_conditions = {
     },
     "end_diastolic_cavity_pressure": {
         ## https://doi.org/10.3389/fphys.2018.00539
-        "left_ventricle": Quantity(15, "mmHg"),  # the same for left atrium if exist
-        "right_ventricle": Quantity(8, "mmHg"),  # the same for right atrium if exist
+        "left_ventricle": Quantity(15, "mmHg"),
+        "left_atrial": Quantity(15, "mmHg"),
+        "right_ventricle": Quantity(8, "mmHg"),
+        "right_atrial": Quantity(8, "mmHg"),
         # # https://doi.org/10.1016/j.jbiomech.2020.109645
         # "left_ventricle": Quantity(18.0, "mmHg"),
         # "right_ventricle": Quantity(9.54, "mmHg"),

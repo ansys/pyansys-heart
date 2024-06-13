@@ -95,7 +95,7 @@ class EPpostprocessor:
     def _get_ep_field(self, variable_id: int, node_id=None, plot: bool = False):
         """Get EP field."""
         self.load_ep_fields()
-        times = self.reader.get_timesteps()
+        times = self.reader.time
         if node_id == None:
             nnodes = len(self.reader.meshgrid.points)
             node_id = np.int64(np.linspace(0, nnodes - 1, nnodes))

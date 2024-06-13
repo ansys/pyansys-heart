@@ -177,9 +177,8 @@ def mech_post(directory: str, model: HeartModel):
     out_dir = os.path.join(directory, "post", "vtks")
     os.makedirs(out_dir, exist_ok=True)
     exporter = D3plotToVTKExporter(os.path.join(directory, "d3plot"), t_to_keep=last_cycle_duration)
-    pv_list = exporter.convert_to_pvgrid()
-    for i, pv in enumerate(pv_list):
-        pv.save(os.path.join(out_dir, f"heart_{i}.vtk"))
+    for i, t in enumerate(exporter.save_time):
+        exporter.convert_to_pvgrid_at_t(time=t, fname=os.path.join(out_dir, f"heart_{i}.vtk"))
 
     # compute strain of last cycle
     out_dir = os.path.join(directory, "post", "lrc_strain")

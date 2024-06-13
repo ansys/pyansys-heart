@@ -24,6 +24,8 @@ import argparse
 import os
 from pathlib import Path
 
+os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+
 # right atrium appendage apex is manually selected
 right_appendage_apex = {
     "Rodero2021": {

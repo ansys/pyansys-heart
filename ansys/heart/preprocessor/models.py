@@ -1856,7 +1856,7 @@ class FourChamber(HeartModel):
             if "tricuspid" not in cap.name:
                 ring_nodes.extend(cap.node_ids.tolist())
 
-        ring_eles = find_cells_close_to_nodes(self.mesh, ring_nodes, radius=2)
+        ring_eles = vtkmethods.find_cells_close_to_nodes(self.mesh, ring_nodes, radius=2)
 
         # above search may create orphan elements, combine them to rings
         self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)

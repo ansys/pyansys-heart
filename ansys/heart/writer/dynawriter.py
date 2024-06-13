@@ -754,7 +754,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                             cvid2=0,
                             lcid=lcid + 2,
                             name="constant_flow_left_atrium",
-                            parameters={"flow": -70.0},
+                            parameters={"flow": -83.0},  # ~5 L/min
                         ),
                         CVInteraction(
                             id=4,
@@ -762,7 +762,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                             cvid2=1,
                             lcid=lcid + 3,
                             name="valve_mitral",
-                            parameters={"Rv": 1e-5},
+                            parameters={"Rv": 1e-6},
                         ),
                     ],
                 ),
@@ -776,7 +776,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                             cvid2=0,
                             lcid=lcid + 4,
                             name="constant_flow_right_atrium",
-                            parameters={"flow": -70.0},
+                            parameters={"flow": -83.0},  # ~5 L/min
                         ),
                         CVInteraction(
                             id=6,
@@ -784,7 +784,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                             cvid2=2,
                             lcid=lcid + 5,
                             name="valve_tricuspid",
-                            parameters={"Rv": 1e-5},
+                            parameters={"Rv": 1e-6},
                         ),
                     ],
                 ),

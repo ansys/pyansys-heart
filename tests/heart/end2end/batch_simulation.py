@@ -56,6 +56,7 @@ def main(args):
     #############################################################
     # package import
     import ansys.heart.preprocessor.models as models
+    from ansys.heart.simulator.settings.material.material import NeoHookean
     from ansys.heart.simulator.simulator import (
         DynaSettings,
         EPMechanicsSimulator,
@@ -123,7 +124,6 @@ def main(args):
             simulator.settings.load_defaults()
             #
             simulator.compute_fibers()
-            simulator.create_stiff_ventricle_base()
 
             if isinstance(model, models.FourChamber):
                 try:
@@ -139,6 +139,10 @@ def main(args):
                 simulator.model.left_atrium.is_active = True
                 simulator.model.right_atrium.has_fiber = True
                 simulator.model.right_atrium.is_active = True
+
+            _ = simulator.create_stiff_ventricle_base()
+            ring = simulator.model._create_atrial_stiff_ring()
+            ring.meca_material = NeoHookean(rho=0.001, c10=0.1, nu=0.499)
 
             simulator.compute_stress_free_configuration()
 

@@ -28,7 +28,7 @@ from typing import List, Optional, Tuple, Union
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.mesh.fluenthdf5 import add_solid_name_to_stl
 import numpy as np
-import pyvista
+import pyvista as pv
 import vtk
 from vtk.numpy_interface import dataset_adapter as dsa  # type: ignore # noqa
 from vtk.util import numpy_support as VN  # type: ignore # noqa
@@ -669,7 +669,7 @@ def remove_duplicate_nodes(
     return unique_nodes, elements
 
 
-def compute_surface_nodal_area_pyvista(surface: pyvista.PolyData) -> np.ndarray:
+def compute_surface_nodal_area_pyvista(surface: pv.PolyData) -> np.ndarray:
     """Compute an average nodal area by summing surface areas of connected elements.
 
     Parameters
@@ -1000,6 +1000,50 @@ def vtk_cutter(vtk_polydata: vtk.vtkPolyData, cut_plane) -> vtk.vtkPolyData:
     cutter.Update()
 
     return cutter.GetOutput()
+
+
+def find_cells_close_to_nodes(
+    mesh: pv.UnstructuredGrid, node_ids: list[int], radius: float = 2
+) -> np.ndarray:
+    """Find cell IDs close to nodes.
+
+    Parameters
+    ----------
+    mesh : pv.UnstructuredGrid
+        target mesh
+    node_ids : list[int]
+        node IDs
+    radius : float, optional
+        influence radius, by default 2
+
+    Returns
+    -------
+    np.ndarray
+        cell IDs
+    """
+    # Get coordinates of the given node IDs
+    points = mesh.points[node_ids]
+
+    # Create a list to store cells within the sphere radius
+    cells_within_sphere = []
+
+    # Iterate through each point and find cells within the sphere
+    for point in points:
+        # Create a sphere at the given point
+        sphere = pv.Sphere(radius=radius, center=point)
+
+        # Use boolean intersection to find cells that intersect with the sphere
+        selection = mesh.select_enclosed_points(sphere, tolerance=0.0)
+
+        # Get the indices of the cells
+        selected_points = selection.point_data["SelectedPoints"].nonzero()[0]
+        selected_cells = mesh.extract_points(selected_points).cell_data["vtkOriginalCellIds"]
+
+        # Store unique cell indices
+        cells_within_sphere.extend(selected_cells)
+
+    # Return unique cell indices
+    return np.unique(cells_within_sphere)
 
 
 if __name__ == "__main__":

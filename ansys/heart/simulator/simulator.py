@@ -607,12 +607,10 @@ class MechanicsSimulator(BaseSimulator):
     def compute_stress_free_configuration(self, folder_name="zeropressure", overwrite: bool = True):
         """Compute the stress-free configuration of the model."""
         directory = os.path.join(self.root_directory, folder_name)
-        os.makedirs(
-            directory,
-            exist_ok=True,
-        )
 
-        if overwrite or len(os.listdir(directory)) == 0:
+        if not os.path.isdir(directory) or overwrite or len(os.listdir(directory)) == 0:
+            os.makedirs(directory, exist_ok=True)
+
             self._write_stress_free_configuration_files(folder_name)
             self.settings.save(Path.Path(directory) / "simulation_settings.yml")
 

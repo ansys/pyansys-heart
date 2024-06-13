@@ -50,14 +50,16 @@ class AhaStrainCalculator:
 
         self.d3plot = D3plotReader(d3plot_file)
 
-    def compute_aha_strain(self, out_dir: str, with_vtk: bool = False) -> np.ndarray:
+    def compute_aha_strain(
+        self, out_dir: str, write_vtk: bool = False, t_to_keep: float = 10e10
+    ) -> np.ndarray:
         """Compute and save AHA 17 segment strain values.
 
         Parameters
         ----------
         out_dir : str
             Output directory where the segments are saved.
-        with_vtk : bool, optional
+        write_vtk : bool, optional
             Flag indicating whether to save the VTK file, by default False
 
         Returns
@@ -65,9 +67,10 @@ class AhaStrainCalculator:
         np.ndarray
             Average strain values for each of the 17 segments.
         """
-        strain = np.zeros((len(self.d3plot.time), 1 + 17 * 3))
+        save_time = self.d3plot.time[self.d3plot.time >= self.d3plot.time[-1] - t_to_keep]
+        strain = np.zeros((len(save_time), 1 + 17 * 3))
 
-        if with_vtk:
+        if write_vtk:
             vtk_dir = out_dir
         else:
             vtk_dir = None
@@ -77,8 +80,10 @@ class AhaStrainCalculator:
             for dir in ["L", "R", "C"]:
                 header = ",".join([header, "AHA{0:d}_{1:s}".format(aha, dir)])
 
-        for i, t in enumerate(self.d3plot.time):
-            aha_lrc = self.compute_aha_strain_once(i, out_dir=vtk_dir)
+        for i, t in enumerate(save_time):
+            aha_lrc = self.compute_aha_strain_at(
+                np.where(self.d3plot.time == t)[0][0], out_dir=vtk_dir
+            )
             strain[i, 0] = t
             strain[i, 1:] = aha_lrc.ravel()
 
@@ -92,7 +97,7 @@ class AhaStrainCalculator:
 
         return strain
 
-    def compute_aha_strain_once(self, frame: int = 0, out_dir: pathlib.Path = None) -> np.ndarray:
+    def compute_aha_strain_at(self, frame: int = 0, out_dir: pathlib.Path = None) -> np.ndarray:
         """
         Export AHA strain and/or save vtk file for a given frame.
 
@@ -117,7 +122,10 @@ class AhaStrainCalculator:
             init_coord = self.d3plot.get_initial_coordinates()[
                 aha_model.point_data["vtkOriginalPointIds"]
             ]
-            dsp = self.d3plot.get_displacement()[frame][aha_model.point_data["vtkOriginalPointIds"]]
+
+            dsp = self.d3plot.get_displacement_at(self.d3plot.time[frame])[
+                aha_model.point_data["vtkOriginalPointIds"]
+            ]
             aha_model.points = init_coord + dsp
 
             aha_model.cell_data.set_vectors(element_lrc, "LRC strain")
@@ -146,7 +154,7 @@ class AhaStrainCalculator:
             exit()
 
         deformation_gradient = self.d3plot.get_history_variable(
-            hv_index=list(range(9)), at_frame=at_frame
+            hv_index=list(range(9)), at_step=at_frame
         ).T
         def_grad = deformation_gradient[self._aha_elements]
 

@@ -41,12 +41,11 @@ from typing import List, Literal
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.misc.element_orth import read_orth_element_kfile
-from ansys.heart.postprocessor.auto_process import (
+from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
+from ansys.heart.postprocessor.laplace_post import (
     compute_la_fiber_cs,
     compute_ra_fiber_cs,
-    mech_post,
     read_uvc,
-    zerop_post,
 )
 from ansys.heart.preprocessor.conduction_beam import ConductionSystem
 from ansys.heart.preprocessor.mesh.objects import Part
@@ -511,10 +510,6 @@ class MechanicsSimulator(BaseSimulator):
 
         self.initial_stress = initial_stress
         """If stress free computation is taken into considered."""
-        # include initial stress by default
-
-        self.stress_free_report = None
-        """A dictionary save stress free computation information"""
 
         return
 
@@ -620,19 +615,17 @@ class MechanicsSimulator(BaseSimulator):
         else:
             LOGGER.info(f"Re-using existing results in {directory}")
 
-        self.stress_free_report = zerop_post(directory, self.model)
+        report, stress_free_coord, guess_ed_coord = zerop_post(directory, self.model)
 
         # replace node coordinates by computed ED geometry
         LOGGER.info("Updating nodes after stress-free.")
 
-        # Note: cap center node will be added into mesh.points
-        guess_ed_coords = np.array(self.stress_free_report["guess_ed_coord"])
-        self.model.mesh.nodes = guess_ed_coords
+        self.model.mesh.nodes = guess_ed_coord
 
-        # Note: synchronization
+        # Note: synchronization for surfaces
         for part in self.model.parts:
             for surface in part.surfaces:
-                surface.nodes = guess_ed_coords
+                surface.nodes = guess_ed_coord
 
         return
 

@@ -69,17 +69,17 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     # read from d3plot
     data = D3plotReader(glob.glob(os.path.join(directory, "iter*.d3plot"))[-1])
 
-    # read settings file
+    # get load from settings file
     setting = SimulationSettings()
     setting.load(os.path.join(directory, "simulation_settings.yml"))
-
-    expected_time = setting.stress_free.analysis.end_time.to("millisecond").m
-    if data.time[-1] != expected_time:
-        LOGGER.error("Stress free computation is not converged, skip post process.")
-        exit()
+    lv_pr_mmhg = (
+        setting.mechanics.boundary_conditions.end_diastolic_cavity_pressure["left_ventricle"]
+        .to("mmHg")
+        .m
+    )
 
     stress_free_coord = data.get_initial_coordinates()
-    displacements = data.get_displacement()
+    displacements = [data.get_displacement_at(time=t) for t in data.time]
     guess_ed_coord = stress_free_coord + displacements[-1]
 
     if len(model.cap_centroids) == 0 or heart_version == "v0.2":
@@ -97,10 +97,7 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
 
     # geometry information
     temp_mesh = copy.deepcopy(model.mesh)
-    for key in temp_mesh.point_data.keys():
-        temp_mesh.point_data.remove(key)
-    for key in temp_mesh.cell_data.keys():
-        temp_mesh.cell_data.remove(key)
+    temp_mesh.clear_data()
     temp_mesh.save(os.path.join(directory, folder, "True_ED.vtk"))
 
     temp_mesh.points = stress_free_coord
@@ -116,27 +113,22 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
         },
     }
 
-    def compute_cavity_volume(cavity: Cavity) -> list:
-        """Extract cavity volume."""
-        volumes = []
+    # extract cavity information
+    for cavity in model.cavities:
+        cavity: Cavity
+        true_ed_volume = cavity.volume
+        inflated_volumes = []
         for i, dsp in enumerate(displacements):
             new_cavity = copy.deepcopy(cavity)
             new_cavity.surface.points = stress_free_coord + dsp
-            new_cavity.surface.save(os.path.join(directory, folder, f"{cavity.name}_{i}.stl"))
-            volumes.append(new_cavity.volume)
+            new_cavity.surface.save(os.path.join(directory, folder, f"{cavity.name}_{i}.vtk"))
+            inflated_volumes.append(new_cavity.volume)
 
-        return volumes
+        if cavity.name.lower() == "left ventricle":
+            true_lv_ed_volume = true_ed_volume
+            lv_volumes = inflated_volumes
 
-    # cavity information
-    lv_volumes = compute_cavity_volume(model.left_ventricle.cavity)
-    true_lv_ed_volume = model.left_ventricle.cavity.volume
-
-    # unit is mL and mmHg
-    lv_pr_mmhg = (
-        setting.mechanics.boundary_conditions.end_diastolic_cavity_pressure["left_ventricle"]
-        .to("mmHg")
-        .m
-    )
+    # save left ventricle in json
     dct["Left ventricle EOD pressure (mmHg)"] = lv_pr_mmhg
     dct["True left ventricle volume (mm3)"] = true_lv_ed_volume
     dct["Simulation Left ventricle volume (mm3)"] = lv_volumes
@@ -147,20 +139,6 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     sim_pr = lv_pr_mmhg * data.time / data.time[-1]
     fig = klotz.plot_EDPVR(simulation_data=[sim_vol_ml, sim_pr])
     fig.savefig(os.path.join(directory, folder, "klotz.png"))
-
-    # right ventricle exist # TODO compute LA & RA cavity
-    if len(model.cavities) > 1:
-
-        true_rv_ed_volume = model.right_ventricle.cavity.volume
-        rv_volumes = compute_cavity_volume(model.right_ventricle.cavity)
-        rv_pr_mmhg = (
-            setting.mechanics.boundary_conditions.end_diastolic_cavity_pressure["right_ventricle"]
-            .to("mmHg")
-            .m
-        )
-        dct["Right ventricle EOD pressure (mmHg)"] = rv_pr_mmhg
-        dct["True right ventricle volume"] = true_rv_ed_volume
-        dct["Simulation Right ventricle volume"] = rv_volumes
 
     with open(os.path.join(directory, folder, "Post_report.json"), "w") as f:
         json.dump(dct, f)
@@ -242,9 +220,4 @@ def export_to_vtk(directory: str, model: HeartModel):
 
 
 if __name__ == "__main__":
-    f = r"D:\ansysdev\pyansys-heart\downloads\Rodero2021\01\fh_2.0\end2end\flow_area"
-    m = HeartModel.load_model(
-        r"D:\ansysdev\pyansys-heart\downloads\Rodero2021\01\fh_2.0\heart_model.pickle"
-    )
-
-    mech_post(f, m)
+    pass

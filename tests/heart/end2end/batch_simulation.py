@@ -141,10 +141,10 @@ def main(args):
                 simulator.model.left_atrium.is_active = True
                 simulator.model.right_atrium.has_fiber = True
                 simulator.model.right_atrium.is_active = True
+                ring = simulator.model._create_atrial_stiff_ring()
+                ring.meca_material = NeoHookean(rho=0.001, c10=0.1, nu=0.499)
 
             _ = simulator.create_stiff_ventricle_base()
-            ring = simulator.model._create_atrial_stiff_ring()
-            ring.meca_material = NeoHookean(rho=0.001, c10=0.1, nu=0.499)
 
             simulator.compute_stress_free_configuration()
 

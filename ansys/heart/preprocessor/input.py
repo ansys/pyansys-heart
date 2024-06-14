@@ -34,7 +34,7 @@ and to get the necessary parts or boundaries for each respective model.
 import copy
 import os
 from pathlib import Path
-from typing import List, Union
+from typing import List, Tuple, Union
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.mesh.vtkmethods import add_solid_name_to_stl
@@ -408,17 +408,32 @@ class _InputModel:
         writedir: Union[str, Path] = ".",
         extension: str = ".stl",
         avoid_duplicates: bool = True,
-    ):
+        add_name_to_header: bool = True,
+    ) -> Tuple[List, List]:
         """Write boundaries of all parts."""
         saved = []
+        boundary_names = []
+        filenames = []
+        ii = 0
         for b in self.boundaries:
             if avoid_duplicates:
                 if b.id in saved:
                     continue
             filename = os.path.join(writedir, b.name.lower().replace(" ", "_") + extension)
             b.save(filename)
-            add_solid_name_to_stl(filename, b.name, file_type="binary")
+            if add_name_to_header:
+                boundary_name = b.name
+            else:
+                boundary_name = ""
+
+            add_solid_name_to_stl(filename, boundary_name, file_type="binary")
             saved.append(b.id)
+
+            boundary_names += [boundary_name]
+            filenames += [filename]
+            ii += 1
+
+        return filenames, boundary_names
 
 
 def _invert_dict(d: dict):

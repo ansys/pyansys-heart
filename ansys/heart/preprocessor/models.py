@@ -433,22 +433,33 @@ class HeartModel:
         )
         return
 
-    def mesh_volume(self, use_wrapper: bool = False):
+    def mesh_volume(
+        self,
+        use_wrapper: bool = False,
+        overwrite_existing_mesh: bool = True,
+        path_to_fluent_mesh: str = None,
+    ):
         """Remesh the input model and fill the volume.
 
         Parameters
         ----------
         use_wrapper : bool, optional
             Flag for switch to non-manifold mesher, by default False
+        overwrite_existing_mesh : bool, optional
+            Flag indicating whether to overwrite the existing .msh.h5 mesh, by default True
+        path_to_fluent_mesh : str, optional
+            Path to the generated Fluent .msh.h5 mesh, by default None
 
         Notes
         -----
         Note that when the input surfaces are non-manifold the wrapper tries
         to reconstruct the surface and parts. Inevitably this leads to
-        reconstruction errors. Nevertheless, in some instances this approach is
-        robuster than meshing from a manifold surface.
+        reconstruction errors. Nevertheless, in many instances this approach is
+        robuster than meshing from a manifold surface. Moreover, any clear interface
+        between parts is potentially lost.
         """
-        path_to_output_model = os.path.join(self.info.workdir, "simulation_mesh.msh.h5")
+        if not path_to_fluent_mesh:
+            path_to_fluent_mesh = os.path.join(self.info.workdir, "simulation_mesh.msh.h5")
 
         if use_wrapper:
             LOGGER.warning("Meshing from non-manifold model not yet available.")
@@ -457,14 +468,16 @@ class HeartModel:
                 model=self._input,
                 workdir=self.info.workdir,
                 mesh_size=self.info.mesh_size,
-                path_to_output=path_to_output_model,
+                path_to_output=path_to_fluent_mesh,
+                overwrite_existing_mesh=overwrite_existing_mesh,
             )
         else:
             fluent_mesh = mesher.mesh_from_manifold_input_model(
                 model=self._input,
                 workdir=self.info.workdir,
                 mesh_size=self.info.mesh_size,
-                path_to_output=path_to_output_model,
+                path_to_output=path_to_fluent_mesh,
+                overwrite_existing_mesh=overwrite_existing_mesh,
             )
 
         # remove empty cell zones

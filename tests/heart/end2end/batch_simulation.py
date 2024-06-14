@@ -71,7 +71,7 @@ def main(args):
     dyna_settings = DynaSettings(
         lsdyna_path=args.lsdynapath,
         dynatype="intelmpi",
-        num_cpus=10,
+        num_cpus=6,
         platform="wsl",
     )
     # dyna_settings._set_env_variables()

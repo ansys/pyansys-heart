@@ -260,15 +260,20 @@ class ConductionSystem:
                 +np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int),
             )
         )
-        bifurcation_id = point_ids[-1]
+
         # create beam
         edges = np.vstack((point_ids[:-1], point_ids[1:])).T
+        mask = np.ones(edges.shape, dtype=bool)
+        mask[0, 0] = False  # AV point at previous, not offset in creation
 
+        beam_net = self.m.add_beam_net(new_nodes, edges, mask, pid=0, name="HisCentral")
+        beam_net.beam_nodes_mask[0, 0] = True  # offset in writer
+        bifurcation_id = edges[-1, -1]
         (
             position_id_His_end_left,
             his_end_left_coord,
             new_nodes,
-            edges,
+            edgesleft,
             sgmt_left,
         ) = self._create_His_side(
             side="left",
@@ -278,11 +283,18 @@ class ConductionSystem:
             bifurcation_coord=bifurcation_coord,
             bifurcation_id=bifurcation_id,
         )
+
+        mask = np.ones(edgesleft.shape, dtype=bool)
+        mask[0, 0] = False  # bifurcation already created, no offset in creation
+
+        beam_netLeft = self.m.add_beam_net(new_nodes, edgesleft, mask, pid=0, name="HisLeft")
+        beam_netLeft.beam_nodes_mask[0, 0] = True  # offset in writer
+
         (
             position_id_His_end_right,
             his_end_right_coord,
             new_nodes,
-            edges,
+            edgesright,
             sgmt_right,
         ) = self._create_His_side(
             side="right",
@@ -293,11 +305,11 @@ class ConductionSystem:
             bifurcation_id=bifurcation_id,
         )
         # finally
-        mask = np.ones(edges.shape, dtype=bool)
-        mask[0, 0] = False  # AV point at previous, not offset in creation
+        mask = np.ones(edgesright.shape, dtype=bool)
+        mask[0, 0] = False  # bifurcation already created, no offset in creation
 
-        beam_net = self.m.add_beam_net(new_nodes, edges, mask, pid=0, name="His")
-        beam_net.beam_nodes_mask[0, 0] = True  # offset in writer
+        beam_netRight = self.m.add_beam_net(new_nodes, edgesright, mask, pid=0, name="HisRight")
+        beam_netRight.beam_nodes_mask[0, 0] = True  # offset in writer
 
         #
 
@@ -310,10 +322,10 @@ class ConductionSystem:
 
         return Point(
             xyz=his_end_left_coord,
-            node_id=beam_net.edges[position_id_His_end_left[0], position_id_His_end_left[1]],
+            node_id=beam_netLeft.edges[position_id_His_end_left[0], position_id_His_end_left[1]],
         ), Point(
             xyz=his_end_right_coord,
-            node_id=beam_net.edges[position_id_His_end_right[0], position_id_His_end_right[1]],
+            node_id=beam_netRight.edges[position_id_His_end_right[0], position_id_His_end_right[1]],
         )
 
     @staticmethod
@@ -421,20 +433,16 @@ class ConductionSystem:
         side_his = self.m.mesh.points[nodes]
 
         side_his, is_new_node = _refine_line(side_his, beam_length=beam_length)
-        new_nodes = np.vstack((new_nodes, side_his[1:, :]))
+        new_nodes = side_his[1:, :]
 
         side_his_point_ids = np.concatenate(
             (
                 np.array([bifurcation_id]),
-                edges[-1, -1]
-                + 1
-                + np.linspace(0, len(side_his[1:, :]) - 1, len(side_his[1:, :]), dtype=int),
+                np.linspace(0, len(side_his[1:, :]) - 1, len(side_his[1:, :]), dtype=int),
             )
         )
 
-        edges = np.vstack(
-            (edges, np.column_stack((side_his_point_ids[:-1], side_his_point_ids[1:])))
-        )
+        edges = np.column_stack((side_his_point_ids[:-1], side_his_point_ids[1:]))
         position_id_His_end = np.argwhere(edges == side_his_point_ids[-1])[0]
         return (position_id_His_end, his_end_coord, new_nodes, edges, sgmt)
 

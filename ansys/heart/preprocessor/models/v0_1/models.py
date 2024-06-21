@@ -295,9 +295,9 @@ class HeartModel:
             new nodes coordinates.
         edges : np.ndarray
             beam elements connectivity
-            If `mask` is true, it's Id of `beam_nodes` (start by 0),
+            If `mask` is true, refers to a new node (starts by 0),
             it will be offset when creating BeamMesh object.
-            If `mask` is false, it's Id of existed nodes, it will not be offset.
+            If `mask` is false, refers to an existing node (no offset),
         mask : np.ndarray
             with the same shape of `edges`
         pid : int, optional

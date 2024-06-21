@@ -3455,10 +3455,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             emsol = 15
             self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=1, ionsolvr=2))
             Tend = 500
-            dt = 1
+            dt = 0.1
             # specify simulation time and time step in case of a spline ionsolver type
             self.kw_database.ep_settings.append("$     Tend        dt")
-            self.kw_database.ep_settings.append(f"{Tend:>10d}{dt:>10d}")
+            self.kw_database.ep_settings.append(f"{Tend:>10d}{dt:>10f}")
 
         self.kw_database.ep_settings.append(
             keywords.EmControl(
@@ -3580,6 +3580,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 footA = 50
                 footTauf = 1
                 eikonal_stim_content += f"{footType:>10d}{footT:>10d}{footA:>10d}{footTauf:>10d}"
+                eikonal_stim_content += "\n$solvetype\n"
+                eikonal_stim_content += f"{1:>10d}"  # activate time stepping method by default
 
             self.kw_database.ep_settings.append(eikonal_stim_content)
 
@@ -3697,7 +3699,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         nodes_table = np.hstack((ids.reshape(-1, 1), new_nodes))
         kw = add_nodes_to_kw(nodes_table, keywords.Node())
         self.kw_database.beam_networks.append(kw)
-
+        surfaceHIS = None
         for network in self.model.beam_network:
             # pid is previously defined from purkinje generation step
             # but needs to reassign part ID here
@@ -3716,11 +3718,12 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 network.nsid = self.model.left_ventricle.cavity.surface.id
             elif network.name == "Right bundle branch":
                 network.nsid = self.model.right_ventricle.cavity.surface.id
-            elif network.name == "His":
+            elif "His" in network.name:
                 # His bundle are inside of 3d mesh
                 # need to create the segment on which beam elements rely
-                surface = self._add_segment_from_boundary(name="his_bundle_segment")
-                network.nsid = surface.id
+                if surfaceHIS == None:
+                    surfaceHIS = self._add_segment_from_boundary(name="his_bundle_segment")
+                network.nsid = surfaceHIS.id
             elif network.name == "Bachman bundle":
                 # His bundle are inside of 3d mesh
                 # need to create the segment on which beam elements rely

@@ -136,7 +136,7 @@ class LVContourExporter:
 
         self.lv_surfaces = []
         for i in range(self.nb_frame):
-            abspath = os.path.join(self.work_dir, self.out_folder, f"model_{i}.vtk")
+            abspath = os.path.join(self.work_dir, self.out_folder, f"model_{i}.vtu")
             self.lv_surfaces.append(pv.read(abspath))
 
         # get ID of mesh
@@ -168,7 +168,7 @@ class LVContourExporter:
             cut_surfaces.append(res)
 
         for ic, contour in enumerate(cut_surfaces):
-            write_vtkdata_to_vtkfile(contour, os.path.join(w_dir, f"contour_{ic}.vtk"))
+            write_vtkdata_to_vtkfile(contour, os.path.join(w_dir, f"contour_{ic}.vtu"))
         return cut_surfaces
 
     def _compute_lvls(self):
@@ -224,7 +224,7 @@ class LVContourExporter:
 
         for iframe in range(self.nb_frame):
             meshio.write_points_cells(
-                os.path.join(self.work_dir, folder, f"lvls_{iframe}.vtk"),
+                os.path.join(self.work_dir, folder, f"lvls_{iframe}.vtu"),
                 np.array([mv_center[iframe], apex[iframe]]),
                 [("line", np.array([[0, 1]]))],
             )

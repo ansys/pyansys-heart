@@ -255,7 +255,7 @@ class D3plotReader:
         # displacements = self.model.results.displacement.on_all_time_freqs
         # fields = displacements.eval()
         fields = self.get_displacement()
-
+        res = []
         for i, field in enumerate(fields):
             # get pyvista grid
             vista_grid = self.meshgrid.copy()
@@ -270,20 +270,11 @@ class D3plotReader:
             if only_surface:
                 vista_grid = vista_grid.extract_surface()
 
+            res.append(vista_grid)
             # export
-            vista_grid.save(os.path.join(file_path, f"{prefix}_{i}.vtu"))
-            # pyvista.save_meshio(os.path.join(file_path, f"{prefix}_{i}.vtk"),vista_grid)
+            vista_grid.save(os.path.join(file_path, f"{prefix}_{i}.vtk"))
 
-        # This needs Premium dpf licence
-        # op = dpf.operators.serialization.vtk_export(
-        #     export_type=0,
-        #     file_path=os.path.join(file_path,f"{prefix}_{i}.vtk"),
-        #     mesh=mesh,
-        #     # fields1=field,
-        #     # fields2=my_fields2,
-        # ).eval()
-
-        return
+        return res
 
 
 class ICVoutReader:

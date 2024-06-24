@@ -30,16 +30,13 @@ import os
 import pathlib
 from pathlib import Path
 
+from ansys.heart.core import LOG as LOGGER
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
-from ansys.heart.preprocessor.mesh.vtkmethods import vtk_cutter, write_vtkdata_to_vtkfile
-
-# TODO replace by v0_2
 from ansys.heart.preprocessor.models import HeartModel, LeftVentricle
 import matplotlib.pyplot as plt
 import meshio
 import numpy as np
 import pyvista as pv
-import vtk
 
 
 class D3plotToVTKExporter:
@@ -116,6 +113,7 @@ class LVContourExporter:
         d3plot_file:
         model:
         """
+        LOGGER.warning(("This module will be deprecated, please use D3plotToVTKExporter."))
         self.model = model
         self.work_dir = os.path.join(Path(d3plot_file).parent.absolute(), "post")
         self.data = D3plotReader(d3plot_file)
@@ -130,14 +128,9 @@ class LVContourExporter:
         else:
             keep_ids = [1, 3]
 
-        self.data.export_vtk(
+        self.lv_surfaces = self.data.export_vtk(
             os.path.join(self.work_dir, self.out_folder), only_surface=True, keep_mat_ids=keep_ids
         )
-
-        self.lv_surfaces = []
-        for i in range(self.nb_frame):
-            abspath = os.path.join(self.work_dir, self.out_folder, f"model_{i}.vtu")
-            self.lv_surfaces.append(pv.read(abspath))
 
         # get ID of mesh
         for ap in self.model.left_ventricle.apex_points:
@@ -147,7 +140,7 @@ class LVContourExporter:
             if cap.name == "mitral-valve":
                 self.mv_ids = cap.node_ids
 
-    def export_contour_to_vtk(self, folder, cutter) -> [vtk.vtkPolyData]:
+    def export_contour_to_vtk(self, folder, cutter) -> list[pv.PolyData]:
         """
         Cut and save the contour in vtk.
 
@@ -164,11 +157,10 @@ class LVContourExporter:
         os.makedirs(w_dir, exist_ok=True)
         cut_surfaces = []
         for id, surface in enumerate(self.lv_surfaces):
-            res = vtk_cutter(surface, cutter)
+            res = surface.slice(origin=cutter["center"], normal=cutter["normal"])
+            res.save(os.path.join(w_dir, f"contour_{id}.vtk"))
             cut_surfaces.append(res)
 
-        for ic, contour in enumerate(cut_surfaces):
-            write_vtkdata_to_vtkfile(contour, os.path.join(w_dir, f"contour_{ic}.vtu"))
         return cut_surfaces
 
     def _compute_lvls(self):

@@ -28,8 +28,8 @@ This example show you how to create a mechanical material and assign it to a hea
 """
 
 ###############################################################################
-# Imports material module
-# ~~~~~~~~~~~~~~~~~~~~~~~~
+# Import material module
+# ~~~~~~~~~~~~~~~~~~~~~~
 import os
 from pathlib import Path
 
@@ -66,7 +66,7 @@ neo = NeoHookean(rho=0.001, c10=1, nu=0.499)
 
 ###############################################################################
 # .. note::
-#    Please refer to LS-DYNA manual for more details of *MAT295
+#    Please refer to LS-DYNA manual for more details of MAT_295
 
 ## More steps to create MAT295 which is used for myocardium
 
@@ -128,7 +128,7 @@ fig.savefig(os.path.join(docs_images_folder, "model3_stress.png"))
 #   With setting eta=0 is model 3, stress curve will be the active stress for all elements.
 #   If eta!=0, this is idealized active stress when fiber stretch stays to 1.
 
-# Pyheart will convert the stress curve to ca2+ curve (input of *mat295)
+# Pyheart will convert the stress curve to ca2+ curve (input of MAT_295)
 fig = ac_curve3.plot_time_vs_ca2()
 plt.show()
 
@@ -156,7 +156,7 @@ active_mat = MAT295(rho=1, iso=iso, aniso=aniso1, active=active)
 
 ###############################################################################
 # Assign material to a part
-# ~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
 # Now, we will show how to assign materials to the heart model
 
 from ansys.heart.preprocessor.mesh.objects import Part

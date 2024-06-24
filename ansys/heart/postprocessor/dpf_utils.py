@@ -199,7 +199,7 @@ class D3plotReader:
         Notes
         -----
         d3plot.get_history_variable(hv_index=list(range(9)), at_frame=at_frame) to
-        get Deformation gradient (column-wise storage),see *MAT_295 in LS-DYNA manual.
+        get Deformation gradient (column-wise storage),see MAT_295 in LS-DYNA manual.
 
         """
         if at_step > self.model.metadata.time_freq_support.n_sets:

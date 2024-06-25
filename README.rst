@@ -104,7 +104,7 @@ In user mode
 In editable mode
 ^^^^^^^^^^^^^^^^
 
-Installing PyAnsys Heart in developer mode allows
+Installing PyAnsys-Heart in developer mode allows
 you to modify the source and enhance it.
 
 Before contributing to the project, please refer to the `PyAnsys Developer's guide`_. You will

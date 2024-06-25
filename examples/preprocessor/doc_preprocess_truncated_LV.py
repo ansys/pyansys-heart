@@ -29,11 +29,6 @@ from primitive shapes. Shape based on
 Land et al (2015): https://doi.org/10.1098/rspa.2015.0641
 """
 
-import os
-
-import ansys.heart.preprocessor.models as models
-import numpy as np
-import pyvista as pv
 
 ###############################################################################
 # Example setup
@@ -42,6 +37,11 @@ import pyvista as pv
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Import the required modules and set relevant paths, including that of the working
 # directory and generated model
+import os
+
+import ansys.heart.preprocessor.models as models
+import numpy as np
+import pyvista as pv
 
 # sphinx_gallery_start_ignore
 # sphinx_gallery_thumbnail_path = '_static/images/truncated_LV_mesh.png'
@@ -121,11 +121,16 @@ model.info.clean_workdir([".stl", ".msh.h5", ".pickle"])
 # load input model
 model.load_input()
 
-# mesh the volume.
+###############################################################################
+# Remesh the surfaces and volume
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-# Note that the individual surfaces in the combined PolyData object are
-# unconnected. Using the wrapper automatically fixes any small gaps
-# and ensures a proper connectivity.
+# .. note::
+#    The individual surfaces in the combined PolyData object are
+#    unconnected. Using the wrapper automatically fixes any small gaps
+#    and ensures proper connectivity.
+
+# remesh the model using wrapping
 model.mesh_volume(use_wrapper=True)
 
 # assign axis of model manually.

@@ -316,8 +316,8 @@ class _InputModel:
 
         Notes
         -----
-        The part definitions only change if multiple ids are given for a single surface. The first item
-        in the list defines the new boundary id, and the others are merged.
+        The part definitions only change if multiple ids are given for a single surface.
+        The first item in the list defines the new boundary id, and the others are merged.
 
         """
         is_visited = np.full(self.input_polydata.n_cells, False)

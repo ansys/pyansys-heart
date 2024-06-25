@@ -163,7 +163,8 @@ def test_add_parts_and_boundaries_004():
         part_definitions={"sphere": {"id": 1, "enclosed_by_boundaries": {"shells": [2, 3]}}},
     )
 
-    # check if part names, part ids, and boundaries are added and modified correctly to the InputModel.
+    # check if part names, part ids, and boundaries are added and modified
+    # correctly to the InputModel.
     assert ["sphere"] == input.part_names
     assert [1] == input.part_ids
     assert ["shells"] == input.boundary_names

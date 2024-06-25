@@ -1461,24 +1461,44 @@ class HeartModel:
 
         return
 
-    def compute_left_ventricle_anatomy_axis(self, first_cut_short_axis=0.2):
-        """
-        Compute the long and short axes of the left ventricle.
+    def compute_left_ventricle_anatomy_axis(
+        self,
+        mv_center: Union[None, np.ndarray] = None,
+        av_center: Union[None, np.ndarray] = None,
+        first_cut_short_axis=0.2,
+    ):
+        """Compute the long and short axes of the left ventricle.
 
         Parameters
         ----------
-        first_cut_short_axis: default=0.2, use to avoid cut on aortic valve
+        mv_center : Union[None, np.ndarray], optional
+            mitral valve center, by default None
+        av_center : Union[None, np.ndarray], optional
+            aortic valve center, by default None
+        first_cut_short_axis : float, optional
+            relative distance between mv center to apex, by default 0.2
         """
-        for cap in self.left_ventricle.caps:
-            if cap.name == "mitral-valve":
-                mv_center = cap.centroid
-            elif cap.name == "aortic-valve":
-                av_center = cap.centroid
+        if mv_center is None:
+            try:
+                mv_center = next(
+                    cap.centroid for cap in self.left_ventricle.caps if cap.name == "mitral-valve"
+                )
+            except StopIteration:
+                LOGGER.error("Cannot define mitral valve center")
+                return
+        if av_center is None:
+            try:
+                av_center = next(
+                    cap.centroid for cap in self.left_ventricle.caps if cap.name == "aortic-valve"
+                )
+            except StopIteration:
+                LOGGER.error("Cannot define mitral valve center")
+                return
 
         # apex is defined on epicardium
-        for ap in self.left_ventricle.apex_points:
-            if ap.name == "apex epicardium":
-                apex = ap.xyz
+        apex = next(
+            ap.xyz for ap in self.left_ventricle.apex_points if ap.name == "apex epicardium"
+        )
 
         # 4CAV long axis across apex, mitral and aortic valve centers
         center = np.mean(np.array([av_center, mv_center, apex]), axis=0)

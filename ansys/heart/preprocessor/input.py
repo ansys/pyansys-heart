@@ -334,12 +334,6 @@ class _InputModel:
                 # take on first value in list
                 if isinstance(boundary_id, list):
                     boundary_id = boundary_id[0]
-                    # update boundary id in input.
-                    self.input_polydata.cell_data["boundary-id"][mask] = boundary_id
-                    # update part definitions
-                    part_definitions[part_name]["enclosed_by_boundaries"][
-                        boundary_name
-                    ] = boundary_id
 
                 b = _InputBoundary(polydata, name=boundary_name, id=boundary_id)
                 boundaries.append(b)

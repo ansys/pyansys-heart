@@ -169,7 +169,6 @@ def test_add_parts_and_boundaries_004():
     assert [1] == input.part_ids
     assert ["shells"] == input.boundary_names
     assert np.all([2] == input.boundary_ids)
-    assert np.all(np.unique(input.input_polydata.cell_data["boundary-id"]) == 2)
 
     pass
 

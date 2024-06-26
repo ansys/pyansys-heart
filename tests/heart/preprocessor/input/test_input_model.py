@@ -149,6 +149,30 @@ def test_add_parts_and_boundaries_003():
     pass
 
 
+def test_add_parts_and_boundaries_004():
+    """Test adding a single part enclosed by single boundary with multiple surface-ids."""
+    # Prep PolyData input.
+    polydata = pv.Sphere()
+    polydata.cell_data["surface-tags"] = 2
+    polydata.cell_data["surface-tags"][0:20] = 3
+
+    # Polydata as object
+    input = _InputModel(
+        polydata,
+        scalar="surface-tags",
+        part_definitions={"sphere": {"id": 1, "enclosed_by_boundaries": {"shells": [2, 3]}}},
+    )
+
+    # check if part names, part ids, and boundaries are added and modified
+    # correctly to the InputModel.
+    assert ["sphere"] == input.part_names
+    assert [1] == input.part_ids
+    assert ["shells"] == input.boundary_names
+    assert np.all([2] == input.boundary_ids)
+
+    pass
+
+
 def test_is_manifold():
     """Test the is_manifold flag in part."""
     # Prep PolyData input.

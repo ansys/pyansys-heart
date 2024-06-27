@@ -40,10 +40,10 @@ import pathlib
 
 from ansys.heart.postprocessor.EPpostprocessor import EPpostprocessor
 
+os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 # set ep results folder
 ep_folder = os.path.join(
-    pathlib.Path(__file__).absolute().parents[2],
-    "downloads\\Strocchi2020\\01\FourChamber\\simulation-EP\\main-ep\\d3plot",
+    r"D:\REPOS\pyansys-heart\downloads\Strocchi2020\01\FourChamber\simulation-EP-origin\main-ep-ReactionEikonal\d3plot"
 )
 ###############################################################################
 # Instantiate the Postprocessor
@@ -58,14 +58,28 @@ postproc = EPpostprocessor(results_path=ep_folder)
 # ~~~~~~~~~~~~~~~~
 # Plot 12-Lead ECGs
 
-ECGs, times = postproc.read_ECGs(
-    os.path.join(
-        pathlib.Path(__file__).absolute().parents[2],
-        "downloads\\Strocchi2020\\01\FourChamber\\simulation-EP\\main-ep\\em_EKG_001.dat",
-    )
+
+ECGsdyna, times = postproc.read_ECGs(
+    r"D:\REPOS\pyansys-heart\downloads\Strocchi2020\01\FourChamber\simulation-EP-origin\main-ep-ReactionEikonal\em_EKG_001.dat"
 )
+import numpy as np
 
-
+electrodes = np.array(
+    [
+        [-29.893285751342773, 27.112899780273438, 373.30865478515625],
+        [33.68170928955078, 30.09606170654297, 380.5427551269531],
+        [56.33562469482422, 29.499839782714844, 355.533935546875],
+        [100.25729370117188, 43.61333465576172, 331.07635498046875],
+        [140.29800415039062, 81.36004638671875, 349.69970703125],
+        [167.9899139404297, 135.89862060546875, 366.18634033203125],
+        [-176.06332397460938, 57.632076263427734, 509.14202880859375],
+        [133.84518432617188, 101.44053649902344, 534.9176635742188],
+        [203.38825799615842, 56.19020893502452, 538.5052677637375],
+        [128.9441375732422, 92.85327911376953, 173.07363891601562],
+    ]
+)
+ECGs12dyna = postproc.compute_12_lead_ECGs(ECGs=ECGsdyna, times=times, plot=True)
+ECGs, times = postproc.compute_ECGs(electrodes)
 ECGs12 = postproc.compute_12_lead_ECGs(ECGs=ECGs, times=times, plot=True)
 
 ###############################################################################

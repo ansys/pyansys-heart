@@ -394,7 +394,7 @@ class EPSimulator(BaseSimulator):
         LOGGER.info("Launching main EP simulation...")
 
         input_file = os.path.join(directory, "main.k")
-        self._run_dyna(input_file)
+        # self._run_dyna(input_file)
 
         LOGGER.info("done.")
 
@@ -459,18 +459,17 @@ class EPSimulator(BaseSimulator):
             cs.compute_left_right_bundle(
                 start_coord=left.xyz, start_id=left.node_id, side="Left", beam_length=beam_length
             )
-            # cs.compute_left_anterior_bundle(
-            #     start_coord=left.xyz,
-            #     start_id=left.node_id,
-            #     end_coord=[59.602, 125.083, 393.619],
-            #     end_id=123373,
-            #     side="LeftAnterior",
-            #     beam_length=beam_length,
-            # )
+            cs.compute_left_anterior_bundle(
+                start_coord=left.xyz,
+                start_id=left.node_id,
+                end_coord=[51.587, 132.749, 347.145],
+                end_id=123065,
+                side="LeftAnterior",
+                beam_length=beam_length,
+            )
             cs.compute_left_right_bundle(
                 right.xyz, right.node_id, side="Right", beam_length=beam_length
             )
-
             # # TODO define end point by uhc, or let user choose
             # Note: must on surface after zerop if coupled with meca
             # cs.compute_Bachman_bundle(

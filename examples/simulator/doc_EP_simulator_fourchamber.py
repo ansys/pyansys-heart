@@ -50,22 +50,23 @@ import os
 
 # set this environment variable to ensure you are using v0.2 of the model
 os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
-
+from pint import Quantity
 from ansys.heart.preprocessor.mesh.objects import Point
 import ansys.heart.preprocessor.models.v0_2.models as models
 from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
+
 
 # accept dpf license aggrement
 # https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 # set working directory and path to model.
-workdir = os.path.join("pyansys-heart", "downloads", "Strocchi2020", "01", "FourChamber")
+workdir = r"D:\REPOS\pyansys-heart\downloads\Strocchi2020\01\FourChamber"
 
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 # specify LS-DYNA path (last tested working versions is intelmpi-linux-DEV-106117)
-lsdyna_path = r"ls-dyna_msmpi.exe"
+lsdyna_path = r"D:\Fortran\intelMPI\12JUN24\mppdyna_12JUN24"
 
 # load four chamber heart model.
 model: models.FourChamber = models.HeartModel.load_model(path_to_model)
@@ -101,7 +102,8 @@ model.info.workdir = str(workdir)
 # instantaiate dyna settings of choice
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path,
-    dynatype="msmpi",
+    dynatype="intelmpi",
+    platform="wsl",
     num_cpus=1,
 )
 
@@ -109,7 +111,7 @@ dyna_settings = DynaSettings(
 simulator = EPSimulator(
     model=model,
     dyna_settings=dyna_settings,
-    simulation_directory=os.path.join(workdir, "simulation-EP"),
+    simulation_directory=os.path.join(workdir, "simulation-EP-origin"),
 )
 
 ###############################################################################
@@ -125,7 +127,6 @@ simulator.settings.load_defaults()
 # The transmural coordinate is used to define the endo, mid and epi layers.
 
 ###############################################################################
-
 simulator.compute_uhc()
 
 ###############################################################################
@@ -137,8 +138,8 @@ simulator.compute_uhc()
 # .. warning::
 #    Atrial fiber orientation is approximated by apex-base direction, the development is undergoing.
 
-simulator.compute_fibers()
-simulator.model.plot_fibers(n_seed_points=2000)
+# simulator.compute_fibers()
+# simulator.model.plot_fibers(n_seed_points=2000)
 
 ###############################################################################
 # .. image:: /_static/images/fibers.png
@@ -151,14 +152,15 @@ simulator.model.plot_fibers(n_seed_points=2000)
 # Compute conduction system and purkinje network and visualize.
 # The action potential will propagate faster through this system
 # compared to the rest of the model.
-
+simulator.settings.purkinje.pmjtype = Quantity(4)
+simulator.settings.purkinje.pmjradius = Quantity(2)
 simulator.compute_purkinje()
 
 # by calling this method, stimulation will at Atrioventricular node
 # if you skip it, stimulation will at apex nodes of two ventricles
 simulator.compute_conduction_system()
 
-simulator.model.plot_purkinje()
+# simulator.model.plot_purkinje()
 
 ###############################################################################
 # .. image:: /_static/images/purkinje.png
@@ -172,10 +174,10 @@ simulator.model.plot_purkinje()
 # and purkinje network to set up and run the LS-DYNA model using different solver
 # options
 
-simulator.simulate()
-# The two following solves only work with LS-DYNA DEV-110013 or later
-simulator.settings.electrophysiology.analysis.solvertype = "Eikonal"
-simulator.simulate(folder_name="main-ep-Eikonal")
+# simulator.simulate()
+# # The two following solves only work with LS-DYNA DEV-110013 or later
+# simulator.settings.electrophysiology.analysis.solvertype = "Eikonal"
+# simulator.simulate(folder_name="main-ep-Eikonal")
 simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
 simulator.simulate(folder_name="main-ep-ReactionEikonal")
 

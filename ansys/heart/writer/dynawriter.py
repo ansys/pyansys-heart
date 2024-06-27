@@ -3120,7 +3120,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 or ("base" in partname)
             ):
                 # Electrically "active" tissue (mtype=1)
-                self._set_ep_active_material(ep_mid, material_settings, solvertype=solvertype)
+                self._set_ep_active_material_solid(ep_mid, material_settings, solvertype=solvertype)
 
             elif "isolation" in partname:
                 # assign insulator material to isolation layer.
@@ -3770,14 +3770,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             self.kw_database.beam_networks.append(part_kw)
             self.kw_database.beam_networks.append(keywords.MatNull(mid=network.pid, ro=1e-11))
             beam_material = self.settings.electrophysiology.material.beam
-            self.kw_database.beam_networks.append(
-                custom_keywords.EmMat001(
-                    mid=network.pid,
-                    mtype=2,
-                    sigma=beam_material["sigma"].m,
-                    beta=beam_material["beta"].m,
-                    cm=beam_material["cm"].m,
-                )
+            solvertype = self.settings.electrophysiology.analysis.solvertype
+            self._set_ep_active_material_beam(
+                ep_mid=network.pid, material_settings=beam_material, solvertype=solvertype
             )
 
             # cell model
@@ -3823,7 +3818,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         return
 
-    def _set_ep_active_material(
+    def _set_ep_active_material_solid(
         self,
         ep_mid,
         material_settings,
@@ -3868,12 +3863,33 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 ),
             )
 
+    def _set_ep_active_material_beam(
+        self,
+        ep_mid,
+        material_settings,
+        solvertype="Monodomain",
+    ):
+        conduction_param = conduction_param = material_settings["sigma"].m
+        if solvertype == "Monodomain":
+            conduction_param = material_settings["sigma"].m
+        elif solvertype == "Eikonal" or solvertype == "ReactionEikonal":
+            conduction_param = material_settings["velocity"].m
+        self.kw_database.beam_networks.append(
+            custom_keywords.EmMat001(
+                mid=ep_mid,
+                mtype=2,
+                sigma=conduction_param,
+                beta=material_settings["beta"].m,
+                cm=material_settings["cm"].m,
+            )
+        )
+
     def _set_ep_insulator_material(
         self,
         ep_mid,
     ):
         self.kw_database.material.append(
-            custom_keywords.EmMat001(mid=ep_mid, mtype=1, sigma=1),
+            custom_keywords.EmMat001(mid=ep_mid, mtype=1, sigma=0),
         )
 
     def _set_ep_passive_material(
@@ -4018,14 +4034,9 @@ class ElectrophysiologyBeamsDynaWriter(ElectrophysiologyDynaWriter):
             self.kw_database.beam_networks.append(part_kw)
             self.kw_database.beam_networks.append(keywords.MatNull(mid=network.pid, ro=1e-11))
             beam_material = self.settings.electrophysiology.material.beam
-            self.kw_database.beam_networks.append(
-                custom_keywords.EmMat001(
-                    mid=network.pid,
-                    mtype=2,
-                    sigma=beam_material["sigma"].m,
-                    beta=beam_material["beta"].m,
-                    cm=beam_material["cm"].m,
-                )
+            solvertype = self.settings.electrophysiology.analysis.solvertype
+            self._set_ep_active_material_beam(
+                ep_mid=network.pid, material_settings=beam_material, solvertype=solvertype
             )
 
             # cell model

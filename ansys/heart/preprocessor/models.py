@@ -77,7 +77,7 @@ class ModelInfo:
         """Path to the working directory."""
         self.path_to_simulation_mesh = path_to_simulation_mesh
         """Path to simulation(in .vtk format)."""
-        path_to_model: str = None
+        self.path_to_model: str = None
         """Path to model (in .pickle format)."""
 
         self.mesh_size: float = mesh_size

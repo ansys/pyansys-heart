@@ -666,7 +666,7 @@ class HeartModel:
         LOGGER.info("*****************************************")
         return
 
-    def dump_model(self, filename: pathlib.Path | str = None):
+    def dump_model(self, filename: Union[pathlib.Path, str] = None):
         """Save model to .pickle file.
 
         Parameters

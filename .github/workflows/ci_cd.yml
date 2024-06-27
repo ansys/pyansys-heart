@@ -24,7 +24,7 @@ jobs:
     name: "Code style"
     runs-on: ubuntu-latest
     steps:
-      - uses: ansys/actions/code-style@v5
+      - uses: ansys/actions/code-style@v6
         with:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
 

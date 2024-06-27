@@ -3412,20 +3412,14 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 stim_nodes = [self.model.right_atrium.get_point("SA_node").node_id]
 
                 #  add more nodes to initiate wave propagation
-                # id offset due to cap center nodes TODO do once
-                if type(self) == ElectroMechanicsDynaWriter:
-                    beam_node_id_offset = len(self.model.cap_centroids)
-                else:
-                    beam_node_id_offset = 0
-
                 for network in self.model.beam_network:
                     if network.name == "SAN_to_AVN":
-                        stim_nodes.append(network.edges[1, 0] + beam_node_id_offset)
-                        # stim_nodes.append(network.edges[2, 0] + beam_node_id_offset)
-                        # stim_nodes.append(network.edges[3, 0] + beam_node_id_offset)
+                        stim_nodes.append(network.edges[1, 0])
+                        # stim_nodes.append(network.edges[2, 0])
+                        # stim_nodes.append(network.edges[3, 0])
                     elif network.name == "Bachman bundle":
                         stim_nodes.append(network.edges[0, 0])  # SA node on epi, solid node
-                        stim_nodes.append(network.edges[1, 0] + beam_node_id_offset)
+                        stim_nodes.append(network.edges[1, 0])
 
         # create node-sets for stim nodes
         node_set_id_stimulationnodes = self.get_unique_nodeset_id()
@@ -3563,18 +3557,14 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         sid = self.get_unique_section_id()
         self.kw_database.beam_networks.append(keywords.SectionBeam(secid=sid, elform=3, a=645))
 
-        if self.__class__.__name__ == "ElectroMechanicsDynaWriter":
-            # id offset due to cap center nodes
-            beam_node_id_offset = len(self.model.cap_centroids)
-            # id offset due to spring type elements
+        if type(self) == ElectroMechanicsDynaWriter:
+            # id offset due to spring-type elements in mechanical
             beam_elem_id_offset = self.id_offset["element"]["discrete"]
         else:
-            beam_node_id_offset = 0
             beam_elem_id_offset = 0  # no beam elements introduced before
 
         # write beam nodes
-
-        # Note: the las beam_network saves all bam nodes
+        # Note: the last beam_network saves all beam nodes
         new_nodes = self.model.beam_network[-1]._all_beam_nodes
         ids = (
             np.linspace(
@@ -3584,7 +3574,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 dtype=int,
             )
             + 1  # dyna start by 1
-            + beam_node_id_offset  # apply node offset
         )
         nodes_table = np.hstack((ids.reshape(-1, 1), new_nodes))
         kw = add_nodes_to_kw(nodes_table, keywords.Node())
@@ -3676,13 +3665,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             self._add_Tentusscher_keyword_endo(matid=network.pid)
 
             # mesh
-            # apply offset for beam connectivity
-            connect = network.edges
-            connect[network.beam_nodes_mask] += beam_node_id_offset
-
             beams_kw = keywords.ElementBeam()
             beams_kw = add_beams_to_kw(
-                beams=connect + 1,
+                beams=network.edges + 1,
                 beam_kw=beams_kw,
                 pid=network.pid,
                 offset=beam_elem_id_offset,

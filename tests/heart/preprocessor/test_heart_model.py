@@ -101,11 +101,14 @@ def test_model_info_dump(extension):
 
 def test_dump_model_001():
     """Test dumping of model to disk: using path in ModelInfo."""
+    from pathlib import Path
+
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         info = models.ModelInfo(work_directory=workdir)
         model = models.BiVentricle(info)
 
         expected_path = os.path.join(model.info.workdir, "heart_model.pickle")
+
         model.dump_model()
         assert os.path.isfile(expected_path)
         assert model.info.path_to_model == expected_path
@@ -114,6 +117,11 @@ def test_dump_model_001():
         model.dump_model(expected_path)
         assert os.path.isfile(expected_path)
         assert model.info.path_to_model == expected_path
+
+        expected_path = Path(os.path.join(model.info.workdir, "heart_model2.pickle"))
+        model.dump_model(expected_path)
+        assert os.path.isfile(expected_path)
+        assert model.info.path_to_model == str(expected_path)
 
 
 def test_model_load_001():

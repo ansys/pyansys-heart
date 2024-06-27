@@ -63,7 +63,6 @@ class ModelInfo:
         part_definitions: dict = None,
         work_directory: pathlib.Path = ".",
         path_to_simulation_mesh: pathlib.Path = None,
-        path_to_model: pathlib.Path = None,
         mesh_size: float = 1.5,
         add_blood_pool: bool = False,
     ) -> None:
@@ -78,7 +77,7 @@ class ModelInfo:
         """Path to the working directory."""
         self.path_to_simulation_mesh = path_to_simulation_mesh
         """Path to simulation(in .vtk format)."""
-        self.path_to_model = path_to_model
+        path_to_model: str = None
         """Path to model (in .pickle format)."""
 
         self.mesh_size: float = mesh_size

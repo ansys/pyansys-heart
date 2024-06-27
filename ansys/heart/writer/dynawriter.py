@@ -346,6 +346,32 @@ class BaseDynaWriter:
         # TODO check if database already contains nodesets (there will be duplicates otherwise)
         used_node_ids = np.empty(0, dtype=int)
 
+        # add node-set for each cap
+        for part in self.model.parts:
+            for cap in part.caps:
+                if remove_duplicates:
+                    node_ids = np.setdiff1d(cap.node_ids, used_node_ids)
+                else:
+                    node_ids = cap.node_ids
+
+                if len(node_ids) == 0:
+                    LOGGER.debug(
+                        "Nodes already used. Skipping node set for {0}".format(
+                            part.name + " " + cap.name
+                        )
+                    )
+                    continue
+
+                cap.nsid = node_set_id
+
+                kw = create_node_set_keyword(node_ids + 1, node_set_id=cap.nsid, title=cap.name)
+                self.kw_database.node_sets.append(kw)
+
+                node_set_id = node_set_id + 1
+
+                used_node_ids = np.append(used_node_ids, node_ids)
+
+        # add node-set for each surface
         for part in self.model.parts:
             kws_surface = []
             for surface in part.surfaces:
@@ -1047,60 +1073,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
             kw = keywords.DampingPartStiffness(pid=part.pid, coef=-0.2)
             self.kw_database.main.append(kw)
         return
-
-    def _update_nodesets_db(self, remove_duplicates: bool = True):
-        """Update the node set database."""
-        # formats endo, epi- and septum nodeset keywords. Do for all surfaces and caps
-
-        surface_ids = [s.id for p in self.model.parts for s in p.surfaces]
-        node_set_id = np.max(surface_ids) + 1
-
-        # for each surface in each part add the respective node-set
-        # Use same ID as surface
-        used_node_ids = np.empty(0, dtype=int)
-        for part in self.model.parts:
-            # add node-set for each cap
-            kws_caps = []
-            for cap in part.caps:
-                if remove_duplicates:
-                    node_ids = np.setdiff1d(cap.node_ids, used_node_ids)
-                else:
-                    node_ids = cap.node_ids
-
-                if len(node_ids) == 0:
-                    LOGGER.debug(
-                        "Nodes already used. Skipping node set for {0}".format(
-                            part.name + " " + cap.name
-                        )
-                    )
-                    continue
-
-                cap.nsid = node_set_id
-                kw = create_node_set_keyword(node_ids + 1, node_set_id=cap.nsid, title=cap.name)
-                kws_caps.append(kw)
-                node_set_id = node_set_id + 1
-
-                used_node_ids = np.append(used_node_ids, node_ids)
-
-            self.kw_database.node_sets.extend(kws_caps)
-
-        for part in self.model.parts:
-            kws_surface = []
-            for surface in part.surfaces:
-                if remove_duplicates:
-                    node_ids = np.setdiff1d(surface.node_ids, used_node_ids)
-                else:
-                    node_ids = surface.node_ids
-
-                kw = create_node_set_keyword(
-                    node_ids + 1, node_set_id=surface.id, title=surface.name
-                )
-                surface.nsid = surface.id
-                kws_surface.append(kw)
-
-                used_node_ids = np.append(used_node_ids, node_ids)
-
-            self.kw_database.node_sets.extend(kws_surface)
 
     def _update_material_db(self, add_active: bool = True, em_couple: bool = False):
         # assign material for part if it's empty
@@ -2525,8 +2497,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         return
 
 
-# todo: why it's from MechanicsDynaWriter not BaseWriter?
-class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
+class PurkinjeGenerationDynaWriter(BaseDynaWriter):
     """Class for preparing the input for a Purkinje LS-DYNA simulation."""
 
     def __init__(

@@ -118,6 +118,12 @@ def test_dump_model_001():
         expected_path = os.path.join(model.info.workdir, "heart_model3.pickle")
         model.dump_model(expected_path)
         assert os.path.isfile(expected_path)
+        assert model.info.path_to_model != expected_path
+
+        expected_path = os.path.join(model.info.workdir, "heart_model4.pickle")
+        model.dump_model(expected_path, overwrite_path=True)
+        assert os.path.isfile(expected_path)
+        assert model.info.path_to_model == expected_path
 
 
 def test_model_load_001():

@@ -667,7 +667,7 @@ class HeartModel:
         LOGGER.info("*****************************************")
         return
 
-    def dump_model(self, filename: pathlib.Path = None) -> None:
+    def dump_model(self, filename: pathlib.Path = None, overwrite_path: bool = False) -> None:
         """Save model to file.
 
         Examples
@@ -680,7 +680,7 @@ class HeartModel:
             filename = os.path.join(self.info.workdir, "heart_model.pickle")
         elif not filename:
             filename = self.info.path_to_model
-        else:
+        elif overwrite_path:
             self.info.path_to_model = filename
 
         with open(filename, "wb") as file:

@@ -79,7 +79,6 @@ def main(args):
                 scalar="surface-id",
                 part_definitions=part_definitions,
                 work_directory=workdir,
-                path_to_model=path_to_model,
                 mesh_size=2.0,
             )
 

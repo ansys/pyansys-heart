@@ -667,7 +667,7 @@ class HeartModel:
         LOGGER.info("*****************************************")
         return
 
-    def dump_model(self, filename: pathlib.Path = None, overwrite_path: bool = False) -> None:
+    def dump_model(self, filename: pathlib.Path = None) -> None:
         """Save model to file.
 
         Examples
@@ -676,12 +676,13 @@ class HeartModel:
 
         """
         LOGGER.debug("Writing model to disk")
-        if not filename and not self.info.path_to_model:
+        if not filename:
             filename = os.path.join(self.info.workdir, "heart_model.pickle")
-        elif not filename:
-            filename = self.info.path_to_model
-        elif overwrite_path:
-            self.info.path_to_model = filename
+
+        if os.path.isfile(filename):
+            LOGGER.warning(f"Overwriting {filename}")
+
+        self.info.path_to_model = filename
 
         with open(filename, "wb") as file:
             pickle.dump(self, file)

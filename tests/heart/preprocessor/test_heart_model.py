@@ -106,22 +106,12 @@ def test_dump_model_001():
         model = models.BiVentricle(info)
 
         expected_path = os.path.join(model.info.workdir, "heart_model.pickle")
-        model.info.path_to_model = None
         model.dump_model()
         assert os.path.isfile(expected_path)
+        assert model.info.path_to_model == expected_path
 
         expected_path = os.path.join(model.info.workdir, "heart_model1.pickle")
-        model.info.path_to_model = expected_path
-        model.dump_model()
-        assert os.path.isfile(expected_path)
-
-        expected_path = os.path.join(model.info.workdir, "heart_model3.pickle")
         model.dump_model(expected_path)
-        assert os.path.isfile(expected_path)
-        assert model.info.path_to_model != expected_path
-
-        expected_path = os.path.join(model.info.workdir, "heart_model4.pickle")
-        model.dump_model(expected_path, overwrite_path=True)
         assert os.path.isfile(expected_path)
         assert model.info.path_to_model == expected_path
 

@@ -3394,32 +3394,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def _update_stimulation(self):
         # define stimulation node set
-        if isinstance(self.model, LeftVentricle):
-            stim_nodes = np.array(self.model.left_ventricle.apex_points[0].node_id)
-
-        elif isinstance(self.model, BiVentricle):
-            node_apex_left = self.model.left_ventricle.apex_points[0].node_id
-            node_apex_right = self.model.right_ventricle.apex_points[0].node_id
-            stim_nodes = np.array([node_apex_left, node_apex_right])
-
-        elif isinstance(self.model, (FourChamber, FullHeart)):
-            node_apex_left = self.model.left_ventricle.apex_points[0].node_id
-            node_apex_right = self.model.right_ventricle.apex_points[0].node_id
-            stim_nodes = np.array([node_apex_left, node_apex_right])
-
-            if self.model.right_atrium.get_point("SA_node") != None:
-                # Active SA node (belong to both solid and beam)
-                stim_nodes = [self.model.right_atrium.get_point("SA_node").node_id]
-
-                #  add more nodes to initiate wave propagation
-                for network in self.model.beam_network:
-                    if network.name == "SAN_to_AVN":
-                        stim_nodes.append(network.edges[1, 0])
-                        # stim_nodes.append(network.edges[2, 0])
-                        # stim_nodes.append(network.edges[3, 0])
-                    elif network.name == "Bachman bundle":
-                        stim_nodes.append(network.edges[0, 0])  # SA node on epi, solid node
-                        stim_nodes.append(network.edges[1, 0])
+        stim_nodes = self.get_default_stimulus_nodes()
 
         # create node-sets for stim nodes
         node_set_id_stimulationnodes = self.get_unique_nodeset_id()
@@ -3468,6 +3443,46 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 eikonal_stim_content += f"{footType:>10d}{footT:>10d}{footA:>10d}{footTauf:>10d}"
 
             self.kw_database.ep_settings.append(eikonal_stim_content)
+
+    def get_default_stimulus_nodes(self) -> list[int]:
+        """Get default stiumulus nodes.
+
+        1/2 apex point(s) for Left/Bi-ventricle model.
+
+        Sinoatrial node for Fourchamber/Full heart model
+
+        Returns
+        -------
+        list[int]
+            0-based node IDs to sitmulate
+        """
+        if isinstance(self.model, LeftVentricle):
+            stim_nodes = [self.model.left_ventricle.apex_points[0].node_id]
+
+        elif isinstance(self.model, BiVentricle):
+            node_apex_left = self.model.left_ventricle.apex_points[0].node_id
+            node_apex_right = self.model.right_ventricle.apex_points[0].node_id
+            stim_nodes = [node_apex_left, node_apex_right]
+
+        elif isinstance(self.model, (FourChamber, FullHeart)):
+            node_apex_left = self.model.left_ventricle.apex_points[0].node_id
+            node_apex_right = self.model.right_ventricle.apex_points[0].node_id
+            stim_nodes = [node_apex_left, node_apex_right]
+
+            if self.model.right_atrium.get_point("SA_node") != None:
+                # Active SA node (belong to both solid and beam)
+                stim_nodes = [self.model.right_atrium.get_point("SA_node").node_id]
+
+                #  add more nodes to initiate wave propagation
+                for network in self.model.beam_network:
+                    if network.name == "SAN_to_AVN":
+                        stim_nodes.append(network.edges[1, 0])
+                        # stim_nodes.append(network.edges[2, 0])
+                        # stim_nodes.append(network.edges[3, 0])
+                    elif network.name == "Bachman bundle":
+                        stim_nodes.append(network.edges[0, 0])  # SA node on epi, solid node
+                        stim_nodes.append(network.edges[1, 0])
+        return stim_nodes
 
     def _update_blood_settings(self):
         """Update blood settings."""

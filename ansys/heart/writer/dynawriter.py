@@ -2768,24 +2768,6 @@ class PurkinjeGenerationDynaWriter(MechanicsDynaWriter):
     def _update_main_db(self):
         return
 
-    def _get_list_of_includes(self):
-        """Get a list of files to include in main.k. Omit any empty decks."""
-        for deckname, deck in vars(self.kw_database).items():
-            if deckname == "main":
-                continue
-            # skip if no keywords are present in the deck
-            if len(deck.keywords) == 0:
-                LOGGER.debug("No keywords in deck: {0}".format(deckname))
-                continue
-            self.include_files.append(deckname)
-        return
-
-    def _add_includes(self):
-        """Add *INCLUDE keywords."""
-        for include_file in self.include_files:
-            filename_to_include = include_file + ".k"
-            self.kw_database.main.append(keywords.Include(filename=filename_to_include))
-
 
 class ElectrophysiologyDynaWriter(BaseDynaWriter):
     """Class for preparing the input for an Electrophysiology LS-DYNA simulation."""

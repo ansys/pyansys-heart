@@ -1046,5 +1046,187 @@ def find_cells_close_to_nodes(
     return np.unique(cells_within_sphere)
 
 
+def get_boundary_edges(surface: pv.PolyData) -> pv.MultiBlock:
+    """Get the boundary edges from an input surface.
+
+    Parameters
+    ----------
+    surface : pv.PolyData
+        Surface to check for boundary edges.
+
+    Returns
+    -------
+    pv.MultiBlock
+        Multi-block data, where each block represents connected edges.
+    """
+    surface1 = copy.deepcopy(surface)
+    edge_group = surface1.extract_feature_edges(
+        boundary_edges=True, non_manifold_edges=False, feature_edges=False, manifold_edges=False
+    )
+    # NOTE: is line ordering ensured for closed loops?
+    # use connectivity filter to find connected edges
+    edge_group = edge_group.connectivity()
+    # split by connectivity:
+    edge_groups = edge_group.split_bodies("RegionId")
+
+    return edge_groups
+
+
+def get_boundary_edge_loops(
+    surface: pv.PolyData, remove_open_edge_loops: bool = True, return_types: bool = False
+) -> dict:
+    """Get the closed/open boundary edge loops of a surface mesh.
+
+    Parameters
+    ----------
+    surface : pv.PolyData
+        Surface mesh to check for boundary edges
+    remove_open_edge_loops : bool, optional
+        Removes open edge loops from the return dictionary, by default True
+
+    Returns
+    -------
+    dict
+        dictionary with the edges that make up the open/closed loop
+    """
+    # NOTE: Perhaps more consistent to return a pyvista polydata.
+
+    # add cell and point ids to keep track of ids.
+    surface1 = copy.deepcopy(surface)
+    surface1.cell_data["original-cell-ids"] = np.arange(0, surface1.n_cells)
+    surface1.point_data["original-point-ids"] = np.arange(0, surface1.n_points)
+
+    # get boundary edges separated by connectivity
+    edges_block = get_boundary_edges(surface1)
+
+    # lines formed with original point ids
+    edge_groups = {
+        k: edges.point_data["original-point-ids"][edges.cells_dict[3]]
+        for k, edges in enumerate(edges_block)
+    }
+
+    # check if it is a closed or open edge-loop, remove open ones.
+    group_types = {}
+    closed_edge_groups = {}
+    for k, edge_group in edge_groups.items():
+        counts = np.unique(edge_group, return_counts=True)[1]
+        if np.all(counts == 2):
+            group_types[k] = "closed"
+            closed_edge_groups[k] = edge_group
+        else:
+            group_types[k] = "open"
+
+    num_open_edge_groups = len(edge_groups) != len(closed_edge_groups.keys())
+
+    if remove_open_edge_loops:
+        LOGGER.warning(f"Removed {num_open_edge_groups} edge groups")
+        return closed_edge_groups
+    else:
+        if return_types:
+            return edge_groups, group_types
+        else:
+            return edge_groups
+
+
+def get_patches_delaunay(surface: pv.PolyData, closed_only: bool = True) -> List[pv.PolyData]:
+    """Patch boundary edges with a delaunay algorithm.
+
+    Parameters
+    ----------
+    surface : pv.PolyData
+        Surface with boundary edges for which to find patches.
+    closed_only : bool
+        Flag indicating whether to return patches for closed loops of boundary edges,
+        by default True
+
+    Returns
+    -------
+    List[pv.PolyData]
+        List of patches that close the open surface.
+    """
+    surface1 = copy.deepcopy(surface)
+    surface1.cell_data["original-cell-ids"] = np.arange(0, surface1.n_cells)
+    surface1.point_data["original-point-ids"] = np.arange(0, surface1.n_points)
+
+    # edges_block = get_boundary_edges(surface1)
+    if closed_only:
+        edge_groups = get_boundary_edge_loops(surface1, remove_open_edge_loops=True)
+    else:
+        edge_groups = get_boundary_edge_loops(surface1, remove_open_edge_loops=False)
+
+    # reconstruct polydata objects from global ids in edge_groups
+    edges_block = pv.MultiBlock()
+    for edge_group in edge_groups.values():
+        edges = np.array(edge_group, dtype=int)
+        lines = np.hstack([np.array([2] * edges.shape[0])[:, None], edges])
+        edges_block.append(pv.PolyData(surface1.points, lines=lines).clean())
+
+    # generate patches
+    patches = []
+    for edges in edges_block:
+        cloud = pv.PolyData(edges.points)
+        patch = cloud.delaunay_2d()
+        patches.append(patch)
+
+    return patches
+
+
+def get_patches_with_centroid(surface: pv.PolyData, closed_only: bool = True) -> List[pv.PolyData]:
+    """Patch boundary edges with a custom algorithm using a central node.
+
+    Parameters
+    ----------
+    surface : pv.PolyData
+        Surface with boundary edges for which to find patches.
+    closed_only : bool
+        Flag indicating whether to return patches for closed loops of boundary edges,
+        by default True
+
+    Notes
+    -----
+    Edges need to be sorted properly for this method to return sensible patches.
+
+    Returns
+    -------
+    List[pv.PolyData]
+        List of patches that close the open surface.
+    """
+    surface1 = copy.deepcopy(surface)
+    surface1.cell_data["original-cell-ids"] = np.arange(0, surface1.n_cells)
+    surface1.point_data["original-point-ids"] = np.arange(0, surface1.n_points)
+
+    # edges_block = get_boundary_edges(surface1)
+    if closed_only:
+        edge_groups = get_boundary_edge_loops(surface1, remove_open_edge_loops=True)
+    else:
+        raise NotImplementedError
+        return
+        edge_groups = get_boundary_edge_loops(surface1, remove_open_edge_loops=False)
+
+    # reconstruct polydata objects from global ids in edge_groups
+    edges_block = pv.MultiBlock()
+    patches = []
+    for edge_group in edge_groups.values():
+        centroid = np.mean(surface1.points[np.unique(edge_group), :], axis=0)
+
+        edge_points = pv.PolyData(surface1.points[np.unique(edge_group), :])
+        pv.PolyData(centroid)
+
+        centroid_id = surface1.points.shape[0]
+
+        surface1.points = np.vstack([surface1.points, centroid])
+
+        triangles = np.hstack(
+            [edge_group, np.ones(edge_group.shape[0], dtype=int)[:, None] * centroid_id]
+        )
+        # form input to pv.PolyData
+        triangles = np.hstack([np.ones(edge_group.shape[0], dtype=int)[:, None] * 3, triangles])
+
+        patch = pv.PolyData(surface1.points, triangles)
+        patches.append(patch)
+
+    return patches
+
+
 if __name__ == "__main__":
     print()

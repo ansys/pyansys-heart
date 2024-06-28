@@ -708,8 +708,13 @@ def mesh_from_non_manifold_input_model(
         cell_zone.get_cells(new_mesh.cells)
         new_mesh.cell_zones.append(cell_zone)
 
-    # remove any unused face zones.
-    new_mesh.face_zones = [fz for fz in new_mesh.face_zones if "part" not in fz.name.lower()]
+    # keep just the face zones of the entire wrapped model and the corresponding
+    # interior face zone
+    new_mesh.face_zones = [
+        fz
+        for fz in new_mesh.face_zones
+        if "model:" in fz.name.lower() or "interior-" in fz.name.lower()
+    ]
 
     # rename face zones - rename to original input names.
     for fz in new_mesh.face_zones:

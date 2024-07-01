@@ -271,7 +271,7 @@ class D3plotReader:
                 vista_grid = vista_grid.extract_surface()
 
             # export
-            vista_grid.save(os.path.join(file_path, f"{prefix}_{i}.vtu"))
+            vista_grid.save(os.path.join(file_path, f"{prefix}_{i}.vtk"))
             # pyvista.save_meshio(os.path.join(file_path, f"{prefix}_{i}.vtk"),vista_grid)
 
         # This needs Premium dpf licence

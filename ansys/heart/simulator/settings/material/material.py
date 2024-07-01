@@ -33,11 +33,26 @@ from ansys.heart.simulator.settings.material.curve import ActiveCurve, constant_
 class ISO:
     """Isotropic module of *mat295."""
 
-    itype: int = -3
+    itype: int = None
     beta: float = 0.0
     nu: float = 0.499
     k1: float = None
     k2: float = None
+
+    mu1: float = None
+    mu2: float = None
+    mu3: float = None
+
+    alpha1: int = None
+    alpha2: int = None
+    alpha3: int = None
+
+    def __post_init__(self):
+        """Itype is determined by inputs."""
+        if self.k1 is not None:
+            self.itype = -3  # HGO model
+        elif self.mu1 is not None:
+            self.itype = -1  # Odgen model
 
 
 @dataclass

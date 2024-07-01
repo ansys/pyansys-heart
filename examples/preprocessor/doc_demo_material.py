@@ -70,8 +70,11 @@ neo = NeoHookean(rho=0.001, c10=1, nu=0.499)
 
 ## More steps to create MAT295 which is used for myocardium
 
-# step1: create isotropic module as following
+# step1: create isotropic module using HGO model
 iso = ISO(k1=1, k2=1, nu=0.499)
+
+# step1b: create isotropic module using Odgen model
+iso_odgen = ISO(mu1=1, alpha1=1)
 
 # step2: create anisotropoc moddule as following
 fiber = ANISO.HGO_Fiber(k1=1, k2=1)

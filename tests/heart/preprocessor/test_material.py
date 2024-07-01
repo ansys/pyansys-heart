@@ -22,6 +22,7 @@
 
 from ansys.heart.simulator.settings.material.curve import ActiveCurve, Strocchi_active, constant_ca2
 import ansys.heart.simulator.settings.material.material as M
+from ansys.heart.writer.material_keywords import MaterialHGOMyocardium
 import numpy as np
 import pytest
 
@@ -65,6 +66,18 @@ class TestCa2Curve:
 def test_iso():
     iso = M.ISO(k1=1, k2=2)
     assert iso.itype == -3
+
+
+def test_iso2():
+    iso = M.ISO(mu1=1, alpha1=1)
+    assert iso.itype == -1
+
+    fiber = M.ANISO.HGO_Fiber(k1=1, k2=2)
+    # dynalib bug, it can not write *mat295 with only ISO module
+    aniso = M.ANISO(fibers=[fiber])
+    m = M.MAT295(rho=1, iso=iso, aniso=aniso)
+    keyword_str = MaterialHGOMyocardium(id=1, mat=m).write()
+    assert "mu1" in keyword_str
 
 
 def test_aniso():

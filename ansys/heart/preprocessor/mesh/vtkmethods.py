@@ -792,7 +792,7 @@ def extrude_polydata(
     extrude.Update()
     extruded_polydata = extrude.GetOutput()
 
-    return extruded_polydata
+    return pv.PolyData(extruded_polydata)
 
 
 def create_vtk_surface_triangles(

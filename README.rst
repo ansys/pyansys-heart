@@ -74,11 +74,6 @@ Software
     - Pre-processor
     - `Ansys Customer Portal`_
 
-  * - Ansys DPF Server
-    - R24 R1-pre0
-    - Post-processor
-    - `DPF-Server`_
-
   * - Ansys LSDYNA
     - DEV-112103
     - Simulator
@@ -86,9 +81,7 @@ Software
 
 .. Note::
 
-    Fluent is required for meshing and the Ansys DPF Server for post-processing electrophysiology
-    and mechanical results. Currently we advice to use the pre-release version of `DPF-Server`_ since support
-    for `d3plot` result files is updated frequently. See `install-DPF-Server-`_ for installation guide.
+    Fluent is required for meshing.
 
 How to install
 --------------
@@ -249,7 +242,5 @@ legally licensed copies of the involved Ansys products.
 .. _pip: https://pypi.org/project/pip/
 .. _tox: https://tox.wiki/
 .. _venv: https://docs.python.org/3/library/venv.html
-.. _dynalib: https://github.com/ansys/dynalib
 .. _conda: https://docs.conda.io/en/latest/
 .. _documentation: https://heart.docs.pyansys.com/
-.. _install-DPF-Server-: https://dpf.docs.pyansys.com/version/stable/getting_started/index.html#install-dpf-server

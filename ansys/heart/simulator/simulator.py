@@ -650,7 +650,7 @@ class MechanicsSimulator(BaseSimulator):
 
         model = copy.deepcopy(self.model)
         if isinstance(model, FourChamber) and type(self) == EPMechanicsSimulator:
-            model._create_isolation_part()
+            model._create_atrioventricular_isolation()
 
         dyna_writer = writers.ZeroPressureMechanicsDynaWriter(model, self.settings)
         dyna_writer.update()

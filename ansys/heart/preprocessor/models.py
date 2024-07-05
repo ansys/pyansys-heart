@@ -29,7 +29,7 @@ import os
 import pathlib
 import pickle
 import re
-from typing import List, Union
+from typing import List, Literal, Union
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.input import _InputModel
@@ -1720,8 +1720,8 @@ class HeartModel:
 
     def get_apex_node_set(
         self,
-        part: ["left", "right"] = "left",
-        option: ["endocardium", "epicardium", "myocardium"] = "epicardium",
+        part: Literal["left", "right"] = "left",
+        option: Literal["endocardium", "epicardium", "myocardium"] = "epicardium",
         radius: float = 3,
     ) -> np.ndarray:
         """Get a node set around apex point.
@@ -1758,6 +1758,108 @@ class HeartModel:
             return np.intersect1d(part.endocardium.node_ids, apex_set)
         elif option == "epicardium":
             return np.intersect1d(part.epicardium.node_ids, apex_set)
+
+    def _create_atrioventricular_isolation(self) -> Union[None, Part]:
+        """
+        Extract a layer of element to isolate between ventricles and atrium.
+
+        Notes
+        -----
+        These elements are initially belong to atrium.
+
+        Returns
+        -------
+        Part
+            Part of isolation elements.
+        """
+        if not isinstance(self, FourChamber):
+            LOGGER.error("This method is only for FourChamber model.")
+            return
+
+        # find interface nodes between ventricles and atrial
+        v_ele = np.array([], dtype=int)
+        a_ele = np.array([], dtype=int)
+        for part in self.parts:
+            if part.part_type == "ventricle":
+                v_ele = np.append(v_ele, part.element_ids)
+            elif part.part_type == "atrium":
+                a_ele = np.append(a_ele, part.element_ids)
+
+        ventricles = self.mesh.extract_cells(v_ele)
+        atrial = self.mesh.extract_cells(a_ele)
+
+        interface_nids = np.intersect1d(
+            ventricles["vtkOriginalPointIds"], atrial["vtkOriginalPointIds"]
+        )
+
+        interface_eids = np.where(np.any(np.isin(self.mesh.tetrahedrons, interface_nids), axis=1))[
+            0
+        ]
+        # interface elements on atrial part
+        interface_eids = np.intersect1d(interface_eids, a_ele)
+
+        # remove these elements from atrial parts
+        self.left_atrium.element_ids = np.setdiff1d(self.left_atrium.element_ids, interface_eids)
+        self.right_atrium.element_ids = np.setdiff1d(self.right_atrium.element_ids, interface_eids)
+
+        # find orphan elements of atrial parts and assign to isolation part
+        self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
+        for atrium in [self.left_atrium, self.right_atrium]:
+            clean_obj = self.mesh.extract_cells(atrium.element_ids).connectivity(largest=True)
+            connected_cells = clean_obj["cell_ids"]
+            orphan_cells = np.setdiff1d(atrium.element_ids, connected_cells)
+
+            # keeep largest connected part for atrial
+            atrium.element_ids = connected_cells
+
+            # get orphan cells and set to isolation part
+            LOGGER.warning(f"{len(orphan_cells)} orphan cells are found and re-assigned.")
+            interface_eids = np.append(interface_eids, orphan_cells)
+
+        # create a new part
+        isolation: Part = self.create_part_by_ids(interface_eids, "Isolation atrial")
+        isolation.part_type = "atrium"
+        isolation.has_fiber = True
+        isolation.is_active = False
+
+        return isolation
+
+    def _create_atrial_stiff_ring(self) -> Union[None, Part]:
+        # get ring cells from cap node list
+        if not isinstance(self, FourChamber):
+            LOGGER.error("This method is only for FourChamber model.")
+            return
+
+        ring_nodes = []
+        for cap in self.left_atrium.caps:
+            if "mitral" not in cap.name:
+                ring_nodes.extend(cap.node_ids.tolist())
+        for cap in self.right_atrium.caps:
+            if "tricuspid" not in cap.name:
+                ring_nodes.extend(cap.node_ids.tolist())
+
+        ring_eles = vtkmethods.find_cells_close_to_nodes(self.mesh, ring_nodes, radius=2)
+
+        # above search may create orphan elements, pick them to rings
+        self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
+        unselect_eles = np.setdiff1d(
+            np.hstack((self.left_atrium.element_ids, self.right_atrium.element_ids)), ring_eles
+        )
+        largest = self.mesh.extract_cells(unselect_eles).connectivity(largest=True)
+        connected_cells = largest["cell_ids"]
+        orphan_cells = np.setdiff1d(unselect_eles, connected_cells)
+        if len(orphan_cells) > 0:
+            ring_eles = np.hstack((ring_eles, orphan_cells))
+
+        # Create ring part
+        ring: Part = self.create_part_by_ids(
+            ring_eles, name="base atrial stiff rings"
+        )  # TODO name must has 'base', see dynawriter.py L3120
+        ring.part_type = "atrium"
+        ring.has_fiber = False
+        ring.is_active = False
+
+        return ring
 
 
 class LeftVentricle(HeartModel):
@@ -1832,100 +1934,6 @@ class FourChamber(HeartModel):
             super().__init__(info)
 
         pass
-
-    def _create_isolation_part(self) -> Part:
-        """
-        Extract a layer of element to isolate between ventricles and atrium.
-
-        Notes
-        -----
-        These elements are initially belong to atrium.
-
-        Returns
-        -------
-        Part
-            Part of isolation elements.
-        """
-        # find interface nodes between ventricles and atrial
-        v_ele = np.array([], dtype=int)
-        a_ele = np.array([], dtype=int)
-        for part in self.parts:
-            if part.part_type == "ventricle":
-                v_ele = np.append(v_ele, part.element_ids)
-            elif part.part_type == "atrium":
-                a_ele = np.append(a_ele, part.element_ids)
-
-        ventricles = self.mesh.extract_cells(v_ele)
-        atrial = self.mesh.extract_cells(a_ele)
-
-        interface_nids = np.intersect1d(
-            ventricles["vtkOriginalPointIds"], atrial["vtkOriginalPointIds"]
-        )
-
-        interface_eids = np.where(np.any(np.isin(self.mesh.tetrahedrons, interface_nids), axis=1))[
-            0
-        ]
-        # interface elements on atrial part
-        interface_eids = np.intersect1d(interface_eids, a_ele)
-
-        # remove these elements from atrial parts
-        self.left_atrium.element_ids = np.setdiff1d(self.left_atrium.element_ids, interface_eids)
-        self.right_atrium.element_ids = np.setdiff1d(self.right_atrium.element_ids, interface_eids)
-
-        # find orphan elements of atrial parts and assign to isolation part
-        self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
-        for atrium in [self.left_atrium, self.right_atrium]:
-            clean_obj = self.mesh.extract_cells(atrium.element_ids).connectivity(largest=True)
-            connected_cells = clean_obj["cell_ids"]
-            orphan_cells = np.setdiff1d(atrium.element_ids, connected_cells)
-
-            # keeep largest connected part for atrial
-            atrium.element_ids = connected_cells
-
-            # get orphan cells and set to isolation part
-            LOGGER.warning(f"{len(orphan_cells)} orphan cells are found and re-assigned.")
-            interface_eids = np.append(interface_eids, orphan_cells)
-
-        # create a new part
-        isolation: Part = self.create_part_by_ids(interface_eids, "Isolation atrial")
-        isolation.part_type = "atrium"
-        isolation.has_fiber = True
-        isolation.is_active = False
-
-        return isolation
-
-    def _create_atrial_stiff_ring(self) -> Part:
-        # get ring cells from cap node list
-        ring_nodes = []
-        for cap in self.left_atrium.caps:
-            if "mitral" not in cap.name:
-                ring_nodes.extend(cap.node_ids.tolist())
-        for cap in self.right_atrium.caps:
-            if "tricuspid" not in cap.name:
-                ring_nodes.extend(cap.node_ids.tolist())
-
-        ring_eles = vtkmethods.find_cells_close_to_nodes(self.mesh, ring_nodes, radius=2)
-
-        # above search may create orphan elements, combine them to rings
-        self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
-        unselect_eles = np.setdiff1d(
-            np.hstack((self.left_atrium.element_ids, self.right_atrium.element_ids)), ring_eles
-        )
-        largest = self.mesh.extract_cells(unselect_eles).connectivity(largest=True)
-        connected_cells = largest["cell_ids"]
-        orphan_cells = np.setdiff1d(unselect_eles, connected_cells)
-        if len(orphan_cells) > 0:
-            ring_eles = np.hstack((ring_eles, orphan_cells))
-
-        # Create ring part
-        ring: Part = self.create_part_by_ids(
-            ring_eles, name="base atrial stiff rings"
-        )  # TODO name must has 'base', see dynawriter.py L3120
-        ring.part_type = "atrium"
-        ring.has_fiber = False
-        ring.is_active = False
-
-        return ring
 
 
 class FullHeart(FourChamber):

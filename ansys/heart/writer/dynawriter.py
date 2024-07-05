@@ -2745,7 +2745,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def __init__(self, model: HeartModel, settings: SimulationSettings = None) -> None:
         if isinstance(model, FourChamber):
-            model._create_isolation_part()
+            model._create_atrioventricular_isolation()
         if model.info.add_blood_pool == True:
             model._create_blood_part()
 
@@ -3517,7 +3517,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         settings: SimulationSettings = None,
     ) -> None:
         if isinstance(model, FourChamber):
-            model._create_isolation_part()
+            model._create_atrioventricular_isolation()
 
         BaseDynaWriter.__init__(self, model=model, settings=settings)
 

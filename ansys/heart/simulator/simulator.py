@@ -546,8 +546,8 @@ class MechanicsSimulator(BaseSimulator):
 
         part: Part = self.model.create_part_by_ids(eids, "base")
         part.part_type = "ventricle"
-        part.has_fiber = False
-        part.is_active = False
+        part.fiber = False
+        part.active = False
         part.meca_material = stiff_material
 
         return part

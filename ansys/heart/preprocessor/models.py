@@ -1819,8 +1819,8 @@ class HeartModel:
         # create a new part
         isolation: Part = self.create_part_by_ids(interface_eids, "Isolation atrial")
         isolation.part_type = "atrium"
-        isolation.has_fiber = True
-        isolation.is_active = False
+        isolation.fiber = True
+        isolation.active = False
 
         return isolation
 
@@ -1872,8 +1872,8 @@ class HeartModel:
             ring_eles, name="base atrial stiff rings"
         )  # TODO name must has 'base', see dynawriter.py L3120
         ring.part_type = "atrium"
-        ring.has_fiber = False
-        ring.is_active = False
+        ring.fiber = False
+        ring.active = False
 
         return ring
 
@@ -1887,8 +1887,8 @@ class LeftVentricle(HeartModel):
         # remove septum - not used in left ventricle only model
         del self.left_ventricle.septum
 
-        self.left_ventricle.has_fiber = True
-        self.left_ventricle.is_active = True
+        self.left_ventricle.fiber = True
+        self.left_ventricle.active = True
 
         if info:
             super().__init__(info)
@@ -1906,12 +1906,12 @@ class BiVentricle(HeartModel):
         self.septum: Part = Part(name="Septum", part_type="septum")
         """Septum."""
 
-        self.left_ventricle.has_fiber = True
-        self.left_ventricle.is_active = True
-        self.right_ventricle.has_fiber = True
-        self.right_ventricle.is_active = True
-        self.septum.has_fiber = True
-        self.septum.is_active = True
+        self.left_ventricle.fiber = True
+        self.left_ventricle.active = True
+        self.right_ventricle.fiber = True
+        self.right_ventricle.active = True
+        self.septum.fiber = True
+        self.septum.active = True
 
         if info:
             super().__init__(info)
@@ -1934,17 +1934,17 @@ class FourChamber(HeartModel):
         self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
         """Right atrium part."""
 
-        self.left_ventricle.has_fiber = True
-        self.left_ventricle.is_active = True
-        self.right_ventricle.has_fiber = True
-        self.right_ventricle.is_active = True
-        self.septum.has_fiber = True
-        self.septum.is_active = True
+        self.left_ventricle.fiber = True
+        self.left_ventricle.active = True
+        self.right_ventricle.fiber = True
+        self.right_ventricle.active = True
+        self.septum.fiber = True
+        self.septum.active = True
 
-        self.left_atrium.has_fiber = False
-        self.left_atrium.is_active = False
-        self.right_atrium.has_fiber = False
-        self.right_atrium.is_active = False
+        self.left_atrium.fiber = False
+        self.left_atrium.active = False
+        self.right_atrium.fiber = False
+        self.right_atrium.active = False
 
         if info:
             super().__init__(info)
@@ -1972,21 +1972,21 @@ class FullHeart(FourChamber):
         self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type="artery")
         """Pulmonary artery part."""
 
-        self.left_ventricle.has_fiber = True
-        self.left_ventricle.is_active = True
-        self.right_ventricle.has_fiber = True
-        self.right_ventricle.is_active = True
-        self.septum.has_fiber = True
-        self.septum.is_active = True
+        self.left_ventricle.fiber = True
+        self.left_ventricle.active = True
+        self.right_ventricle.fiber = True
+        self.right_ventricle.active = True
+        self.septum.fiber = True
+        self.septum.active = True
 
-        self.left_atrium.has_fiber = False
-        self.left_atrium.is_active = False
-        self.right_atrium.has_fiber = False
-        self.right_atrium.is_active = False
-        self.aorta.has_fiber = False
-        self.aorta.is_active = False
-        self.pulmonary_artery.has_fiber = False
-        self.pulmonary_artery.is_active = False
+        self.left_atrium.fiber = False
+        self.left_atrium.active = False
+        self.right_atrium.fiber = False
+        self.right_atrium.active = False
+        self.aorta.fiber = False
+        self.aorta.active = False
+        self.pulmonary_artery.fiber = False
+        self.pulmonary_artery.active = False
 
         if info:
             super().__init__(info)

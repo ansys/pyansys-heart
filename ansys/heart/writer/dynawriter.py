@@ -575,7 +575,7 @@ class BaseDynaWriter:
 
         # create elements for each part
         for part in self.model.parts:
-            if add_fibers and part.has_fiber:
+            if add_fibers and part.fiber:
                 part_add_fibers = True
             else:
                 part_add_fibers = False
@@ -1081,8 +1081,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
         for part in self.model.parts:
             if isinstance(part.meca_material, MechanicalMaterialModel.DummyMaterial):
                 LOGGER.info(f"Material of {part.name} will be assigned automatically.")
-                if part.has_fiber:
-                    if part.is_active:
+                if part.fiber:
+                    if part.active:
                         part.meca_material = copy.deepcopy(myocardium)
                         if em_couple:
                             model3 = ActiveModel.Model3(
@@ -1105,7 +1105,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     else:
                         part.meca_material = copy.deepcopy(myocardium)
                         part.meca_material.active = None
-                elif not part.has_fiber:
+                elif not part.fiber:
                     part.meca_material = neohookean
         # write
         for part in self.model.parts:
@@ -3533,10 +3533,10 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
     def update(self, with_dynain=False, robin_bcs=None):
         """Update the keyword database."""
         if isinstance(self.model, FourChamber):
-            self.model.left_atrium.has_fiber = True
-            self.model.left_atrium.is_active = True
-            self.model.right_atrium.has_fiber = True
-            self.model.right_atrium.is_active = True
+            self.model.left_atrium.fiber = True
+            self.model.left_atrium.active = True
+            self.model.right_atrium.fiber = True
+            self.model.right_atrium.active = True
 
         MechanicsDynaWriter.update(self, with_dynain=with_dynain, robin_bcs=robin_bcs)
 

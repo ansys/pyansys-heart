@@ -211,8 +211,8 @@ plotter.screenshot(os.path.join(docs_images_folder, "show_a_part.png"))
 # sphinx_gallery_end_ignore
 
 ## set passive anisotropic material for it
-new_part.has_fiber = True
-new_part.is_active = False
+new_part.fiber = True
+new_part.active = False
 new_part.meca_material = passive_mat
 
 print(new_part.meca_material)

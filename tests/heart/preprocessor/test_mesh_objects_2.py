@@ -241,6 +241,10 @@ def test_get_submesh_001():
     assert lines.n_cells == lines1.n_cells
     assert lines.n_points == lines1.n_points
 
+    mesh.add_surface(triangles, 11)
+    triangles1 = mesh.get_surface([10, 11])
+    assert triangles1.n_cells == triangles.n_cells * 2
+
     # test get volume
     mesh = Mesh()
     tets.cell_data["volume-id"] = 1
@@ -268,6 +272,24 @@ def test_mesh_remove_001():
     grid.remove_cells(0, inplace=True)
     assert isinstance(grid2, Mesh)
     assert grid.n_cells == 1
+
+
+def test_mesh_remove_002():
+    """Remove surface based on id."""
+    points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=float)
+    tets = [4, 0, 1, 2, 3]
+    cell_types = [pv.CellType.TETRA]
+
+    mesh = Mesh(tets, cell_types, points)
+    mesh.cell_data["volume-id"] = 1
+
+    surface = pv.Triangle([points[0, :], [-1, 0, 0], [-1, -1, 0]])
+
+    # add a single surface
+    mesh.add_surface(surface, id=2)
+    # remove this surface
+    mesh.remove_surface(sid=2)
+    assert mesh.n_cells == 1
 
 
 def test_mesh_clean_001():

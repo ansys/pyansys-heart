@@ -157,7 +157,7 @@ class Mesh(pv.UnstructuredGrid):
 
     @tetrahedrons.setter
     def tetrahedrons(self, value: np.ndarray):
-        # sets tetrahedrons of UnstructuredGrid
+        # TODO: manage cell data
         try:
             points = self.points
             celltypes = np.full(value.shape[0], pv.CellType.TETRA, dtype=np.int8)
@@ -370,17 +370,50 @@ class Mesh(pv.UnstructuredGrid):
         if not scalar in self.cell_data.keys():
             LOGGER.debug(f"{scalar} does not exist in cell_data")
             return None
-        mask = np.isclose(self.cell_data[scalar], sid)
+        mask = np.isin(self.cell_data[scalar], sid)
         return self.extract_cells(mask)
 
     def get_volume(self, sid: int) -> pv.UnstructuredGrid:
         """Get a volume as a UnstructuredGrids object."""
         return self._get_submesh(sid, scalar="volume-id")
 
-    def get_surface(self, sid: int) -> pv.UnstructuredGrid:
+    def get_surface(self, sid: int) -> pv.PolyData:
         """Get a surface as PolyData object."""
-        return self._get_submesh(sid, scalar="surface-id")
+        return self._get_submesh(sid, scalar="surface-id").extract_surface()
 
-    def get_lines(self, sid: int) -> pv.UnstructuredGrid:
+    def get_lines(self, sid: int) -> pv.PolyData:
         """Get lines as a PolyData object."""
-        return self._get_submesh(sid, scalar="line-id")
+        return self._get_submesh(sid, scalar="line-id").extract_surface()
+
+    def remove_surface(self, sid: int):
+        """Remove a surface with id.
+
+        Parameters
+        ----------
+        sid : int
+            Id of surface to remove.
+        """
+        mask = self.cell_data["surface-id"] == sid
+        return self.remove_cells(mask, inplace=True)
+
+    def remove_volume(self, vid: int):
+        """Remove a volume with id.
+
+        Parameters
+        ----------
+        vid : int
+            Id of volume to remove.
+        """
+        mask = self.cell_data["volume-id"] == vid
+        return self.remove_cells(mask, inplace=True)
+
+    def remove_lines(self, lid: int):
+        """Remove a set of lines with id.
+
+        Parameters
+        ----------
+        lid : int
+            Id of lines to remove.
+        """
+        mask = self.cell_data["volume-id"] == lid
+        return self.remove_cells(mask, inplace=True)

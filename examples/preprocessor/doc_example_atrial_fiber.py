@@ -68,7 +68,7 @@ model.info.workdir = str(workdir)
 #    Including: "smp", "intempi", "msmpi", "windows", "linux", or "wsl" Choose
 #    the one that is appropriate for you.
 
-# instantaiate dyna settings of choice
+# instantiate LS-DYNA settings of choice
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path, dynatype="smp", num_cpus=4, platform="windows"
 )

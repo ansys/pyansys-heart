@@ -114,13 +114,6 @@ simulator.model.plot_fibers(n_seed_points=2000)
 # is computed through Rausch' method.
 
 simulator.compute_stress_free_configuration()
-# plot the updated model.
-simulator.model.plot_mesh(show_edges=True)
-
-###############################################################################
-# .. image:: /_static/images/full_heart_rodero_01_stress_free.png
-#   :width: 400pt
-#   :align: center
 
 ###############################################################################
 # Start main simulation
@@ -129,3 +122,31 @@ simulator.model.plot_mesh(show_edges=True)
 # and stress free configuration and runs the final LS-DYNA heart model.
 
 simulator.simulate()
+
+
+# sphinx_gallery_start_ignore
+# Generate static images for docs.
+#
+from pathlib import Path
+
+import pyvista as pv
+
+# model.plot_fibers()
+docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", "_static", "images")
+
+# Full mesh
+filename = Path(docs_images_folder, "full_heart_rodero_01_fibers.png")
+
+# fibers
+plotter = pv.Plotter(off_screen=True)
+plotter = pv.Plotter()
+mesh = model.mesh
+mesh = mesh.ctp()
+streamlines = mesh.streamlines(vectors="fiber", source_radius=75, n_points=1000)
+tubes = streamlines.tube()
+plotter.add_mesh(mesh, opacity=0.5, color="white")
+plotter.add_mesh(tubes, color="white")
+plotter.camera.roll = -60
+plotter.screenshot(filename)
+
+# sphinx_gallery_end_ignore

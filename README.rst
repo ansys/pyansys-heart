@@ -1,14 +1,22 @@
 PyAnsys Heart
 =============
-|pyansys| |python| |GH-CI| |MIT| |black| |pre-commit|
+|pyansys| |python39| |python310| |python311| |GH-CI| |MIT| |black| |pre-commit|
 
 .. |pyansys| image:: https://img.shields.io/badge/Py-Ansys-ffc107.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAABDklEQVQ4jWNgoDfg5mD8vE7q/3bpVyskbW0sMRUwofHD7Dh5OBkZGBgW7/3W2tZpa2tLQEOyOzeEsfumlK2tbVpaGj4N6jIs1lpsDAwMJ278sveMY2BgCA0NFRISwqkhyQ1q/Nyd3zg4OBgYGNjZ2ePi4rB5loGBhZnhxTLJ/9ulv26Q4uVk1NXV/f///////69du4Zdg78lx//t0v+3S88rFISInD59GqIH2esIJ8G9O2/XVwhjzpw5EAam1xkkBJn/bJX+v1365hxxuCAfH9+3b9/+////48cPuNehNsS7cDEzMTAwMMzb+Q2u4dOnT2vWrMHu9ZtzxP9vl/69RVpCkBlZ3N7enoDXBwEAAA+YYitOilMVAAAAAElFTkSuQmCC
    :target: https://docs.pyansys.com/
    :alt: PyAnsys
 
-.. |python| image:: https://img.shields.io/badge/Python-3.9-blue
+.. |python39| image:: https://img.shields.io/badge/Python-3.9-blue
    :target: https://www.python.org/downloads/release/python-390/
-   :alt: Python
+   :alt: Python39
+
+.. |python310| image:: https://img.shields.io/badge/Python-3.10-blue
+   :target: https://www.python.org/downloads/release/python-3100/
+   :alt: Python310
+
+.. |python311| image:: https://img.shields.io/badge/Python-3.11-blue
+   :target: https://www.python.org/downloads/release/python-3110/
+   :alt: Python311
 
 .. |GH-CI| image:: https://github.com/ansys/pyansys-heart/actions/workflows/ci_cd.yml/badge.svg
    :target: https://github.com/ansys/pyansys-heart/actions/workflows/ci_cd.yml
@@ -46,7 +54,7 @@ Operating system
 Ansys tools
 ^^^^^^^^^^^
 
-This framework was developed and tested under Python 3.9 version. Before starting the
+This framework was developed and tested under |Python39|, |Python310|, and |Python311|. Before starting the
 installation run ``python --version`` and check that it fits with the supported versions.
 
 Software
@@ -62,25 +70,18 @@ Software
     - Link to download
 
   * - Ansys Fluent
-    - R22 R2
+    - R24 R1
     - Pre-processor
     - `Ansys Customer Portal`_
 
-  * - Ansys DPF Server
-    - R24 R1-pre0
-    - Post-processor
-    - `DPF-Server`_
-
   * - Ansys LSDYNA
-    - DEV-105630 or greater
+    - DEV-112103
     - Simulator
     - Contact us for latest working version
 
 .. Note::
 
-    Fluent is required for meshing and the Ansys DPF Server for post-processing electrophysiology
-    and mechanical results. Currently we advice to use the pre-release version of `DPF-Server`_ since support
-    for `d3plot` result files is updated frequently. See `install-DPF-Server-`_ for installation guide.
+    Fluent is required for meshing.
 
 How to install
 --------------
@@ -92,16 +93,11 @@ In user mode
 
     Installing as user-only is not yet supported.
 
-.. User installation can be performed by running:
-
-.. .. code:: bash
-
-..     python -m pip install ansys-heart-lib
 
 In editable mode
 ^^^^^^^^^^^^^^^^
 
-Installing PyAnsys Heart in developer mode allows
+Installing PyAnsys-Heart in developer mode allows
 you to modify the source and enhance it.
 
 Before contributing to the project, please refer to the `PyAnsys Developer's guide`_. You will
@@ -116,7 +112,7 @@ need to follow these steps:
    Since this is a private repository you may need to provide your github username.
    Alternatively you can download and unpack the zip file from `PyAnsys Heart`_
 
-2. Create a fresh-clean Python environment and activate it. Make sure you use one of
+2. Create a fresh Python environment and activate it. Make sure you use one of
    the supported Python versions. Refer to the official `venv`_  or `conda`_ documentation
    if you require further information:
 
@@ -143,7 +139,7 @@ need to follow these steps:
     .. code:: bash
 
         # Create virtual environment with a given Python version
-        conda create --name my-venv python=3.9
+        conda create --name my-venv python=3.10
 
         # Activate the environment
         conda activate my-venv
@@ -154,24 +150,20 @@ need to follow these steps:
 
         python -m pip install -U pip
 
-4. Install the project in editable mode by pointing to the right location:
 
-    .. code:: bash
 
-        python -m pip install --editable .
-
-   Install a version of dynalib into your virtual environment.
+4. Install dynalib 0.1.0 into your virtual environment with the following command.
 
     .. code:: bash
 
         # latest version
-        pip install git+https://github.com/ansys/dynalib.git@main
+        pip install dynalib==0.1.0 --index-url=https://4bqsseypbntw62bre2c35gwucw5icdzsoagqxxe4w5p5dtr3gvqa@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
 
-   or if encountering issues with dynalib you can install a specific version.
-   We recommend using the latest compatible version:
+    Install the project in editable mode by pointing to the right location:
 
-        pip install git+https://github.com/ansys/dynalib.git@4986714d9dfc7fa0d8e95f86c5c8c687fd3c9e7e
+    .. code:: bash
 
+        python -m pip install --editable .
 
 5. Install additional requirements (if needed):
 
@@ -189,7 +181,7 @@ need to follow these steps:
         python -m pip install -e .[tests]
 
         # run quick tests
-        python -m pytest -v -m "not requires_fluent and not local"
+        python -m pytest -v -m "not requires_fluent or (not downloader)"
 
         # run tests requiring Fluent
         python -m pytest -v -m requires_fluent
@@ -250,7 +242,5 @@ legally licensed copies of the involved Ansys products.
 .. _pip: https://pypi.org/project/pip/
 .. _tox: https://tox.wiki/
 .. _venv: https://docs.python.org/3/library/venv.html
-.. _dynalib: https://github.com/ansys/dynalib
 .. _conda: https://docs.conda.io/en/latest/
 .. _documentation: https://heart.docs.pyansys.com/
-.. _install-DPF-Server-: https://dpf.docs.pyansys.com/version/stable/getting_started/index.html#install-dpf-server

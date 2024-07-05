@@ -28,8 +28,8 @@ This example show you how to create a mechanical material and assign it to a hea
 """
 
 ###############################################################################
-# Imports material module
-# ~~~~~~~~~~~~~~~~~~~~~~~~
+# Import material module
+# ~~~~~~~~~~~~~~~~~~~~~~
 import os
 from pathlib import Path
 
@@ -54,7 +54,7 @@ docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", 
 
 ###############################################################################
 # .. note::
-#    Unit system of used in LS-DYNA is ["MPa", "mm", "N", "ms", "g"]
+#    Unit system used for heart modeling in LS-DYNA is ["MPa", "mm", "N", "ms", "g"]
 
 
 ###############################################################################
@@ -66,22 +66,22 @@ neo = NeoHookean(rho=0.001, c10=1, nu=0.499)
 
 ###############################################################################
 # .. note::
-#    Please refer to LS-DYNA manual for more details of *MAT295
+#    Please refer to LS-DYNA manual for more details of MAT_295
 
 ## More steps to create MAT295 which is used for myocardium
 
-# step1: create isotropic module as following
+# step 1: create an isotropic module
 iso = ISO(k1=1, k2=1, nu=0.499)
 
-# step2: create anisotropoc moddule as following
+# step 2: create an anisotropoc moddule
 fiber = ANISO.HGO_Fiber(k1=1, k2=1)
 aniso1 = ANISO(fibers=[fiber])
 
-# or create fiber with sheet, and their interactions
+# Create fiber with sheet, and their interactions
 sheet = ANISO.HGO_Fiber(k1=1, k2=1)
 aniso2 = ANISO(fibers=[fiber, sheet], k1fs=1, k2fs=1)
 
-# step3: create the active module like
+# step3: create the active module
 
 # example 1:
 # create active model 1
@@ -91,10 +91,10 @@ ac_curve1 = ActiveCurve(constant_ca2(tb=800, ca2ionm=ac_model1.ca2ionm), type="c
 # build active module
 active = ACTIVE(model=ac_model1, ca2_curve=ac_curve1)
 
-## For active model 1, it indeed needs a constant ca2ion
+## Active model 1 needs a constant ca2ion
 # but the curve needs to cross threshold at every start of heart beat
 
-# You can plot ca2+ with threshold
+# You can plot Ca2+ with threshold
 fig = active.ca2_curve.plot_time_vs_ca2()
 plt.show()
 ###############################################################################
@@ -128,7 +128,7 @@ fig.savefig(os.path.join(docs_images_folder, "model3_stress.png"))
 #   With setting eta=0 is model 3, stress curve will be the active stress for all elements.
 #   If eta!=0, this is idealized active stress when fiber stretch stays to 1.
 
-# Pyheart will convert the stress curve to ca2+ curve (input of *mat295)
+# PyAnsys-Heart will convert the stress curve to Ca2+ curve (input of MAT_295)
 fig = ac_curve3.plot_time_vs_ca2()
 plt.show()
 
@@ -145,19 +145,19 @@ fig.savefig(os.path.join(docs_images_folder, "model3_ca2+.png"))
 active3 = ACTIVE(model=ac_model3, ca2_curve=ac_curve3)
 
 ###############################################################################
-## Finally, MAT295 can be created with above modules
+## Finally, MAT295 can be created with the above modules
 iso_mat = MAT295(rho=1, iso=iso, aniso=None, active=None)
 passive_mat = MAT295(rho=1, iso=iso, aniso=aniso1, active=None)
 active_mat = MAT295(rho=1, iso=iso, aniso=aniso1, active=active)
 
 ###############################################################################
 # .. note::
-#    Ca2+ curve will be ignored anyway if the simulation is coupled with EP
+#    Ca2+ curve will be ignored if the simulation is coupled with electrophysiology
 
 ###############################################################################
 # Assign material to a part
-# ~~~~~~~~~~~~~~~~~~~~~~~~
-# Now, we will show how to assign materials to the heart model
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+# Assign the materials to the heart model
 
 from ansys.heart.preprocessor.mesh.objects import Part
 import ansys.heart.preprocessor.models as models
@@ -166,10 +166,9 @@ import numpy as np
 ###############################################################################
 # Load a heart model
 
-
 ###############################################################################
 # .. note::
-#    run doc_preprocess_fullheart_rodero_01.py in the same folder if load failed
+#    run doc_preprocess_fullheart_rodero_01.py in the same folder if loading failed
 
 workdir = Path(Path(__file__).resolve().parents[2], "downloads", "Rodero2021", "01", "FullHeart")
 heartmodel: models.FullHeart = models.HeartModel.load_model(

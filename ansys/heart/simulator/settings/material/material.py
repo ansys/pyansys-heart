@@ -31,7 +31,7 @@ from ansys.heart.simulator.settings.material.curve import ActiveCurve, constant_
 
 @dataclass
 class ISO:
-    """Isotropic module of *mat295."""
+    """Isotropic module of MAT_295."""
 
     itype: int = -3
     beta: float = 0.0
@@ -42,7 +42,7 @@ class ISO:
 
 @dataclass
 class ANISO:
-    """Anisotropic module of *mat295."""
+    """Anisotropic module of MAT_295."""
 
     @dataclass
     class HGO_Fiber:
@@ -137,7 +137,7 @@ class ActiveModel:
 
 @dataclass
 class ACTIVE:
-    """Active module of *mat295."""
+    """Active module of MAT_295."""
 
     acid: int = None  # defined in writer
     actype: int = None  # defined by curve
@@ -182,7 +182,7 @@ class MechanicalMaterialModel:
 
 @dataclass
 class MAT295(MechanicalMaterialModel):
-    """Hold data for *mat295."""
+    """Hold data for MAT_295."""
 
     rho: float
     iso: ISO

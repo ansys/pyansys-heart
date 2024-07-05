@@ -1824,12 +1824,28 @@ class HeartModel:
 
         return isolation
 
-    def _create_atrial_stiff_ring(self) -> Union[None, Part]:
-        # get ring cells from cap node list
+    def create_atrial_stiff_ring(self, radius: float = 2) -> Union[None, Part]:
+        """Create a part for solids close to atrial caps.
+
+        Note
+        ----
+        Part will be passive and isotropic, material need to be defined
+
+        Parameters
+        ----------
+        radius : foat, optional
+            Influence region, by default 2
+
+        Returns
+        -------
+        Union[None, Part]
+            Part of atrial rings if created
+        """
         if not isinstance(self, FourChamber):
             LOGGER.error("This method is only for FourChamber model.")
             return
 
+        # get ring cells from cap node list
         ring_nodes = []
         for cap in self.left_atrium.caps:
             if "mitral" not in cap.name:
@@ -1838,7 +1854,7 @@ class HeartModel:
             if "tricuspid" not in cap.name:
                 ring_nodes.extend(cap.node_ids.tolist())
 
-        ring_eles = vtkmethods.find_cells_close_to_nodes(self.mesh, ring_nodes, radius=2)
+        ring_eles = vtkmethods.find_cells_close_to_nodes(self.mesh, ring_nodes, radius=radius)
 
         # above search may create orphan elements, pick them to rings
         self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)

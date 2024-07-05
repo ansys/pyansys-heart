@@ -649,6 +649,7 @@ class MechanicsSimulator(BaseSimulator):
         self.directories["zeropressure"] = export_directory
 
         model = copy.deepcopy(self.model)
+        # Isolation part need to be created in Zerop because main will use its dynain.lsda
         if isinstance(model, FourChamber) and type(self) == EPMechanicsSimulator:
             model._create_atrioventricular_isolation()
 

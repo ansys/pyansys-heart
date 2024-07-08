@@ -68,7 +68,9 @@ os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 # specify necessary paths.
 # Note that we need to cast the paths to strings to facilitate serialization.
-case_file = os.path.join("pyansys-heart", "downloads", "Rodero2021", "01", "01.vtk")
+case_file = os.path.join(
+    "d:\\development", "pyansys-heart", "downloads", "Rodero2021", "01", "01.vtk"
+)
 workdir = os.path.join(os.path.dirname(case_file), "FullHeart")
 
 # sphinx_gallery_start_ignore
@@ -109,9 +111,15 @@ try:
     # assume we are in WSL if .exe not in path.
     if ".exe" not in path_to_dyna:
         dyna_settings.platform = "wsl"
-except KeyError:
+except:
     pass
 # sphinx_gallery_end_ignore
+dyna_settings = DynaSettings(
+    lsdyna_path=r"D:\development\dyna-versions\daily_builds\daily_build_12062024\ls-dyna_mpp_d_DEV-112103-gf7e93a7a26_x86_CentOS79_ifort190_sse2_impi2018",
+    dynatype="intelmpi",
+    platform="wsl",
+    num_cpus=6,
+)
 
 # instantiate simulator object
 simulator = EPMechanicsSimulator(

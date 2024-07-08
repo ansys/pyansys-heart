@@ -31,7 +31,29 @@ Valid models include:
 
 """
 
+from typing import NamedTuple
+
 from ansys.dyna.keywords import keywords
+from ansys.heart.preprocessor.mesh.objects import Part
+
+
+class CVInteraction(NamedTuple):
+    """Template to define control volume interaction."""
+
+    id: int
+    cvid1: int
+    cvid2: int
+    lcid: int
+    name: str
+    parameters: dict
+
+
+class ControlVolume(NamedTuple):
+    """Template to define control volume."""
+
+    part: Part
+    id: int
+    Interactions: list[CVInteraction]
 
 
 def constant_flow_template():

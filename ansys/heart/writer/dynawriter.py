@@ -34,11 +34,11 @@ import json
 # import missing keywords
 import os
 import time
-from typing import Callable, List, Literal, NamedTuple
+from typing import Callable, List, Literal
 
 from ansys.dyna.keywords import keywords
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.preprocessor.mesh.objects import Cap, Part
+from ansys.heart.preprocessor.mesh.objects import Cap
 from ansys.heart.preprocessor.models import (
     BiVentricle,
     FourChamber,
@@ -79,29 +79,15 @@ from ansys.heart.writer.keyword_module import (
     get_list_of_used_ids,
 )
 from ansys.heart.writer.material_keywords import MaterialHGOMyocardium, MaterialNeoHook
-from ansys.heart.writer.system_models import _ed_load_template, define_function_0Dsystem
+from ansys.heart.writer.system_models import (
+    ControlVolume,
+    CVInteraction,
+    _ed_load_template,
+    define_function_0Dsystem,
+)
 import numpy as np
 import pandas as pd
 import pyvista as pv
-
-
-class CVInteraction(NamedTuple):
-    """Template to define control volume interaction."""
-
-    id: int
-    cvid1: int
-    cvid2: int
-    lcid: int
-    name: str
-    parameters: dict
-
-
-class ControlVolume(NamedTuple):
-    """Template to define control volume."""
-
-    part: Part
-    id: int
-    Interactions: list[CVInteraction]
 
 
 class BaseDynaWriter:

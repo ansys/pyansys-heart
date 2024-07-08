@@ -53,6 +53,15 @@ os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 # set working directory and path to model.
 workdir = os.path.join("pyansys-heart", "downloads", "Rodero2021", "01", "FullHeart")
+
+# sphinx_gallery_start_ignore
+# Allows to override path to LS-DYNA exe with env variable:
+from pathlib import Path
+
+path_to_dyna = str(Path(os.environ["PATH_TO_DYNA"]))
+workdir = os.path.join(os.path.dirname(str(Path(os.environ["PATH_TO_CASE_FILE"]))), "FullHeart")
+# sphinx_gallery_end_ignore
+
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 # load four chamber heart model.
@@ -69,13 +78,24 @@ model.info.workdir = str(workdir)
 # variables if you choose to use a `mpi` version of LS-DYNA.
 
 # instantiate dyna settings object
-lsdyna_path = "lsdyna_smp"
+lsdyna_path = "lsdyna_intelmpi"
 # instantiate dyna settings object
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path,
-    dynatype="smp",
-    num_cpus=4,
+    dynatype="intelmpi",
+    num_cpus=8,
 )
+
+# sphinx_gallery_start_ignore
+# override with path_to_dyna from env variable.
+try:
+    dyna_settings.lsdyna_path = path_to_dyna
+    # assume we are in WSL if .exe not in path.
+    if ".exe" not in path_to_dyna:
+        dyna_settings.platform = "wsl"
+except KeyError:
+    pass
+# sphinx_gallery_end_ignore
 
 # instantiate simulator object
 simulator = MechanicsSimulator(

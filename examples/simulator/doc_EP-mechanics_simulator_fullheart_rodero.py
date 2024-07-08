@@ -47,6 +47,7 @@ set it up for a coupled electromechanical simulation.
 import os
 
 import ansys.heart.preprocessor.models as models
+from ansys.heart.simulator.settings.material.material import NeoHookean
 from ansys.heart.simulator.simulator import DynaSettings, EPMechanicsSimulator
 from pint import Quantity
 
@@ -85,7 +86,7 @@ model: models.FullHeart = models.HeartModel.load_model(path_to_model)
 # instantiate the simulator and settings appropriately.
 
 # instantaiate dyna settings of choice
-lsdyna_path = r"mppdyna_d_sse2_linux86_64_intelmmpi_105630"
+lsdyna_path = r"your_dyna_exe"  # tested with DEV-111820
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path, dynatype="intelmpi", platform="wsl", num_cpus=6
 )
@@ -106,11 +107,22 @@ simulator.compute_left_atrial_fiber()
 simulator.compute_right_atrial_fiber(appendage=[39, 29, 98])
 
 # switch atria to active
-simulator.model.left_atrium.has_fiber = True
-simulator.model.left_atrium.is_active = True
+simulator.model.left_atrium.fiber = True
+simulator.model.left_atrium.active = True
 
-simulator.model.right_atrium.has_fiber = True
-simulator.model.right_atrium.is_active = True
+simulator.model.right_atrium.fiber = True
+simulator.model.right_atrium.active = True
+
+## Optionally, we can create more anatomical details.
+## Sometimes, it's in favor of convergence rate of mechanical solve
+
+# Extract elements around atrial caps and assign as a passive material
+ring = simulator.model.create_atrial_stiff_ring(radius=5)
+ring.meca_material = NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+
+# Extract elements around atrialvenricular valves and assign as a passive material
+simulator.create_stiff_ventricle_base(stiff_material=NeoHookean(rho=0.001, c10=0.1, nu=0.499))
+
 
 # Estimate the stress-free-configuration
 simulator.compute_stress_free_configuration()

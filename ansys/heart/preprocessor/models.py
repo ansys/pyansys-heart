@@ -29,7 +29,7 @@ import os
 import pathlib
 import pickle
 import re
-from typing import List, Union
+from typing import List, Literal, Union
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.input import _InputModel
@@ -1720,8 +1720,8 @@ class HeartModel:
 
     def get_apex_node_set(
         self,
-        part: ["left", "right"] = "left",
-        option: ["endocardium", "epicardium", "myocardium"] = "epicardium",
+        part: Literal["left", "right"] = "left",
+        option: Literal["endocardium", "epicardium", "myocardium"] = "epicardium",
         radius: float = 3,
     ) -> np.ndarray:
         """Get a node set around apex point.
@@ -1759,81 +1759,7 @@ class HeartModel:
         elif option == "epicardium":
             return np.intersect1d(part.epicardium.node_ids, apex_set)
 
-
-class LeftVentricle(HeartModel):
-    """Model of just the left ventricle."""
-
-    def __init__(self, info: ModelInfo = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
-        """Left ventricle part."""
-        # remove septum - not used in left ventricle only model
-        del self.left_ventricle.septum
-
-        self.left_ventricle.has_fiber = True
-        self.left_ventricle.is_active = True
-
-        if info:
-            super().__init__(info)
-        pass
-
-
-class BiVentricle(HeartModel):
-    """Model of the left and right ventricle."""
-
-    def __init__(self, info: ModelInfo = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
-        """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
-        """Right ventricle part."""
-        self.septum: Part = Part(name="Septum", part_type="septum")
-        """Septum."""
-
-        self.left_ventricle.has_fiber = True
-        self.left_ventricle.is_active = True
-        self.right_ventricle.has_fiber = True
-        self.right_ventricle.is_active = True
-        self.septum.has_fiber = True
-        self.septum.is_active = True
-
-        if info:
-            super().__init__(info)
-        pass
-
-
-class FourChamber(HeartModel):
-    """Model of the left/right ventricle and left/right atrium."""
-
-    def __init__(self, info: ModelInfo = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
-        """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
-        """Right ventricle part."""
-        self.septum: Part = Part(name="Septum", part_type="septum")
-        """Septum."""
-
-        self.left_atrium: Part = Part(name="Left atrium", part_type="atrium")
-        """Left atrium part."""
-        self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
-        """Right atrium part."""
-
-        self.left_ventricle.has_fiber = True
-        self.left_ventricle.is_active = True
-        self.right_ventricle.has_fiber = True
-        self.right_ventricle.is_active = True
-        self.septum.has_fiber = True
-        self.septum.is_active = True
-
-        self.left_atrium.has_fiber = False
-        self.left_atrium.is_active = False
-        self.right_atrium.has_fiber = False
-        self.right_atrium.is_active = False
-
-        if info:
-            super().__init__(info)
-
-        pass
-
-    def _create_isolation_part(self) -> Part:
+    def _create_atrioventricular_isolation(self) -> Union[None, Part]:
         """
         Extract a layer of element to isolate between ventricles and atrium.
 
@@ -1846,6 +1772,10 @@ class FourChamber(HeartModel):
         Part
             Part of isolation elements.
         """
+        if not isinstance(self, FourChamber):
+            LOGGER.error("This method is only for FourChamber model.")
+            return
+
         # find interface nodes between ventricles and atrial
         v_ele = np.array([], dtype=int)
         a_ele = np.array([], dtype=int)
@@ -1889,12 +1819,32 @@ class FourChamber(HeartModel):
         # create a new part
         isolation: Part = self.create_part_by_ids(interface_eids, "Isolation atrial")
         isolation.part_type = "atrium"
-        isolation.has_fiber = True
-        isolation.is_active = False
+        isolation.fiber = True
+        isolation.active = False
 
         return isolation
 
-    def _create_atrial_stiff_ring(self) -> Part:
+    def create_atrial_stiff_ring(self, radius: float = 2) -> Union[None, Part]:
+        """Create a part for solids close to atrial caps.
+
+        Note
+        ----
+        Part will be passive and isotropic, material need to be defined
+
+        Parameters
+        ----------
+        radius : foat, optional
+            Influence region, by default 2
+
+        Returns
+        -------
+        Union[None, Part]
+            Part of atrial rings if created
+        """
+        if not isinstance(self, FourChamber):
+            LOGGER.error("This method is only for FourChamber model.")
+            return
+
         # get ring cells from cap node list
         ring_nodes = []
         for cap in self.left_atrium.caps:
@@ -1904,9 +1854,9 @@ class FourChamber(HeartModel):
             if "tricuspid" not in cap.name:
                 ring_nodes.extend(cap.node_ids.tolist())
 
-        ring_eles = vtkmethods.find_cells_close_to_nodes(self.mesh, ring_nodes, radius=2)
+        ring_eles = vtkmethods.find_cells_close_to_nodes(self.mesh, ring_nodes, radius=radius)
 
-        # above search may create orphan elements, combine them to rings
+        # above search may create orphan elements, pick them to rings
         self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
         unselect_eles = np.setdiff1d(
             np.hstack((self.left_atrium.element_ids, self.right_atrium.element_ids)), ring_eles
@@ -1922,10 +1872,84 @@ class FourChamber(HeartModel):
             ring_eles, name="base atrial stiff rings"
         )  # TODO name must has 'base', see dynawriter.py L3120
         ring.part_type = "atrium"
-        ring.has_fiber = False
-        ring.is_active = False
+        ring.fiber = False
+        ring.active = False
 
         return ring
+
+
+class LeftVentricle(HeartModel):
+    """Model of just the left ventricle."""
+
+    def __init__(self, info: ModelInfo = None) -> None:
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
+        """Left ventricle part."""
+        # remove septum - not used in left ventricle only model
+        del self.left_ventricle.septum
+
+        self.left_ventricle.fiber = True
+        self.left_ventricle.active = True
+
+        if info:
+            super().__init__(info)
+        pass
+
+
+class BiVentricle(HeartModel):
+    """Model of the left and right ventricle."""
+
+    def __init__(self, info: ModelInfo = None) -> None:
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
+        """Left ventricle part."""
+        self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
+        """Right ventricle part."""
+        self.septum: Part = Part(name="Septum", part_type="septum")
+        """Septum."""
+
+        self.left_ventricle.fiber = True
+        self.left_ventricle.active = True
+        self.right_ventricle.fiber = True
+        self.right_ventricle.active = True
+        self.septum.fiber = True
+        self.septum.active = True
+
+        if info:
+            super().__init__(info)
+        pass
+
+
+class FourChamber(HeartModel):
+    """Model of the left/right ventricle and left/right atrium."""
+
+    def __init__(self, info: ModelInfo = None) -> None:
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
+        """Left ventricle part."""
+        self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
+        """Right ventricle part."""
+        self.septum: Part = Part(name="Septum", part_type="septum")
+        """Septum."""
+
+        self.left_atrium: Part = Part(name="Left atrium", part_type="atrium")
+        """Left atrium part."""
+        self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
+        """Right atrium part."""
+
+        self.left_ventricle.fiber = True
+        self.left_ventricle.active = True
+        self.right_ventricle.fiber = True
+        self.right_ventricle.active = True
+        self.septum.fiber = True
+        self.septum.active = True
+
+        self.left_atrium.fiber = False
+        self.left_atrium.active = False
+        self.right_atrium.fiber = False
+        self.right_atrium.active = False
+
+        if info:
+            super().__init__(info)
+
+        pass
 
 
 class FullHeart(FourChamber):
@@ -1948,21 +1972,21 @@ class FullHeart(FourChamber):
         self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type="artery")
         """Pulmonary artery part."""
 
-        self.left_ventricle.has_fiber = True
-        self.left_ventricle.is_active = True
-        self.right_ventricle.has_fiber = True
-        self.right_ventricle.is_active = True
-        self.septum.has_fiber = True
-        self.septum.is_active = True
+        self.left_ventricle.fiber = True
+        self.left_ventricle.active = True
+        self.right_ventricle.fiber = True
+        self.right_ventricle.active = True
+        self.septum.fiber = True
+        self.septum.active = True
 
-        self.left_atrium.has_fiber = False
-        self.left_atrium.is_active = False
-        self.right_atrium.has_fiber = False
-        self.right_atrium.is_active = False
-        self.aorta.has_fiber = False
-        self.aorta.is_active = False
-        self.pulmonary_artery.has_fiber = False
-        self.pulmonary_artery.is_active = False
+        self.left_atrium.fiber = False
+        self.left_atrium.active = False
+        self.right_atrium.fiber = False
+        self.right_atrium.active = False
+        self.aorta.fiber = False
+        self.aorta.active = False
+        self.pulmonary_artery.fiber = False
+        self.pulmonary_artery.active = False
 
         if info:
             super().__init__(info)

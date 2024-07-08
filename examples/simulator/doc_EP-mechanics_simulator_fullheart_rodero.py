@@ -72,11 +72,14 @@ case_file = os.path.join("pyansys-heart", "downloads", "Rodero2021", "01", "01.v
 workdir = os.path.join(os.path.dirname(case_file), "FullHeart")
 
 # sphinx_gallery_start_ignore
-# Allows to override path to LS-DYNA exe with env variable:
-from pathlib import Path
+# Overwrite with env variables: for testing purposes only. May be removed by user.
+try:
+    from pathlib import Path
 
-path_to_dyna = str(Path(os.environ["PATH_TO_DYNA"]))
-workdir = os.path.join(os.path.dirname(str(Path(os.environ["PATH_TO_CASE_FILE"]))), "FullHeart")
+    path_to_dyna = str(Path(os.environ["PATH_TO_DYNA"]))
+    workdir = os.path.join(os.path.dirname(str(Path(os.environ["PATH_TO_CASE_FILE"]))), "FullHeart")
+except KeyError:
+    pass
 # sphinx_gallery_end_ignore
 
 path_to_model = os.path.join(workdir, "heart_model.pickle")
@@ -100,7 +103,7 @@ dyna_settings = DynaSettings(
 )
 
 # sphinx_gallery_start_ignore
-# override with path_to_dyna from env variable.
+# Overwrite with env variables: for testing purposes only. May be removed by user.
 try:
     dyna_settings.lsdyna_path = path_to_dyna
     # assume we are in WSL if .exe not in path.

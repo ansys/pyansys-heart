@@ -51,12 +51,9 @@ import ansys.heart.preprocessor.models as models
 case_file = os.path.join("pyansys-heart", "downloads", "Rodero2021", "01", "01.vtk")
 
 # sphinx_gallery_start_ignore
-# Allows to override path to case file with env variable:
-# Useful for testing purposes
+# Overwrite with env variables: for testing purposes only. May be removed by user.
 try:
     case_file = str(Path(os.environ["PATH_TO_CASE_FILE"]))
-    if os.path.isfile(case_file):
-        print(f"Overwriting case path to {case_file}.")
 except KeyError:
     pass
 # sphinx_gallery_end_ignore

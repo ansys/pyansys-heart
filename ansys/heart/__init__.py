@@ -35,3 +35,13 @@ __version__ = importlib_metadata.version("pyansys-heart")
 """The version of pyansys-heart."""
 
 LOG = Logger(level=logging.DEBUG, to_file=False, to_stdout=True)
+
+# Flag to turn off visualization of plotters
+try:
+    import pyvista as pv
+    import os 
+    
+    pv.OFF_SCREEN = bool(os.environ["PYVISTA_OFF_SCREEN"])
+    LOG.debug(f"Pyvista OFF_SCREEN: {pv.OFF_SCREEN}")
+except KeyError:
+    pass

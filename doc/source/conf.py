@@ -114,7 +114,14 @@ master_doc = "index"
 # ---------------------------------- #
 autoapi_type = "python"
 autoapi_ignore = [
-    "*writer*",
+    # the following files in writer are not exposed
+    "*custom_dynalib_keywords*",
+    "*system_models.py",
+    "*define_function_strings.py",
+    "*heart_decks.py",
+    "*keyword_module.py",
+    "*material_keywords.py",
+    # others:
     "*calibration*",
     "*misc*",
 ]

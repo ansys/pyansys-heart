@@ -114,12 +114,6 @@ try:
 except:
     pass
 # sphinx_gallery_end_ignore
-dyna_settings = DynaSettings(
-    lsdyna_path=r"D:\development\dyna-versions\daily_builds\daily_build_12062024\ls-dyna_mpp_d_DEV-112103-gf7e93a7a26_x86_CentOS79_ifort190_sse2_impi2018",
-    dynatype="intelmpi",
-    platform="wsl",
-    num_cpus=6,
-)
 
 # instantiate simulator object
 simulator = EPMechanicsSimulator(

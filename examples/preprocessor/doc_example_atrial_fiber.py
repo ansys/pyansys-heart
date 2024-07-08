@@ -53,7 +53,7 @@ from pathlib import Path
 
 try:
     case_file = str(Path(os.environ["PATH_TO_CASE_FILE"]))
-    workdir = os.path.join(case_file, "FourChamber")
+    workdir = os.path.join(os.path.dirname(case_file), "FourChamber")
     path_to_dyna = str(Path(os.environ["PATH_TO_DYNA"]))
 
 except KeyError:

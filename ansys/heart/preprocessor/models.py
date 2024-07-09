@@ -1232,6 +1232,7 @@ class HeartModel:
         """
         # NOTE: Deprecated!
         LOGGER.error("Method deprecated.")
+        exit()
         return
 
         used_boundary_surface_names = [s.name for p in self.parts for s in p.surfaces]

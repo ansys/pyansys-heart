@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Module contain. classes for writing LS-DYNA keywords based.
+"""Module contain classes for writing LS-DYNA keywords based.
 
 Notes
 -----
@@ -3460,8 +3460,12 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         )
 
 
-class ElectrophysiologyBeamsDynaWriter(ElectrophysiologyDynaWriter):
-    """Class for preparing the input for an Electrophysiology LS-DYNA simulation with beams only."""
+class _ElectrophysiologyBeamsDynaWriter(ElectrophysiologyDynaWriter):
+    """
+    Class for preparing the input for an Electrophysiology LS-DYNA simulation with beams only.
+
+    For test purpose.
+    """
 
     def __init__(self, model: HeartModel, settings: SimulationSettings = None) -> None:
         super().__init__(model=model, settings=settings)

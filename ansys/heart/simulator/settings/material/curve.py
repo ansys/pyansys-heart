@@ -33,7 +33,7 @@ def Strocchi_active(t_end=800, t_act=0) -> tuple[np.ndarray, np.ndarray]:
     """
     Active stress in doi.org/10.1371/journal.pone.0235145.
 
-    T_peak is described in *MAT295
+    T_peak is described in MAT_295
 
     Parameters
     ----------
@@ -71,7 +71,7 @@ def Kumaraswamy_active(t_end=1000) -> tuple[np.ndarray, np.ndarray]:
     """
     Active stress in  Gaëtan Desrues doi.org/10.1007/978-3-030-78710-3_43.
 
-    T_peak is described in *MAT295
+    T_peak is described in MAT295
 
     Parameters
     ----------
@@ -108,7 +108,7 @@ def constant_ca2(tb: float = 800, ca2ionm: float = 4.35) -> tuple[np.ndarray, np
     tb : float, optional
         heart beat period, by default 800
     ca2ionm : : float, optional
-        amplitude which eaquals ca2ionm in mat295
+        amplitude which equals ca2ionm in MAT_295
 
     Returns
     -------

@@ -959,9 +959,9 @@ class Part:
         """List of caps belonging to the part."""
         self.cavity: Cavity = None
 
-        self.has_fiber: bool = False
+        self.fiber: bool = False
         """If this part has fiber/sheet data."""
-        self.is_active: bool = False
+        self.active: bool = False
         """If active stress will be established."""
 
         self.meca_material: MechanicalMaterialModel = MechanicalMaterialModel.DummyMaterial()

@@ -53,6 +53,18 @@ os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 # set working directory and path to model.
 workdir = os.path.join("pyansys-heart", "downloads", "Rodero2021", "01", "FullHeart")
+
+# sphinx_gallery_start_ignore
+# Overwrite with env variables: for testing purposes only. May be removed by user.
+try:
+    from pathlib import Path
+
+    path_to_dyna = str(Path(os.environ["PATH_TO_DYNA"]))
+    workdir = os.path.join(os.path.dirname(str(Path(os.environ["PATH_TO_CASE_FILE"]))), "FullHeart")
+except KeyError:
+    pass
+# sphinx_gallery_end_ignore
+
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 # load four chamber heart model.
@@ -69,13 +81,24 @@ model.info.workdir = str(workdir)
 # variables if you choose to use a `mpi` version of LS-DYNA.
 
 # instantiate dyna settings object
-lsdyna_path = "lsdyna_smp"
+lsdyna_path = "lsdyna_intelmpi"
 # instantiate dyna settings object
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path,
-    dynatype="smp",
-    num_cpus=4,
+    dynatype="intelmpi",
+    num_cpus=8,
 )
+
+# sphinx_gallery_start_ignore
+# Overwrite with env variables: for testing purposes only. May be removed by user.
+try:
+    dyna_settings.lsdyna_path = path_to_dyna
+    # assume we are in WSL if .exe not in path.
+    if ".exe" not in path_to_dyna:
+        dyna_settings.platform = "wsl"
+except:
+    pass
+# sphinx_gallery_end_ignore
 
 # instantiate simulator object
 simulator = MechanicsSimulator(
@@ -114,13 +137,6 @@ simulator.model.plot_fibers(n_seed_points=2000)
 # is computed through Rausch' method.
 
 simulator.compute_stress_free_configuration()
-# plot the updated model.
-simulator.model.plot_mesh(show_edges=True)
-
-###############################################################################
-# .. image:: /_static/images/full_heart_rodero_01_stress_free.png
-#   :width: 400pt
-#   :align: center
 
 ###############################################################################
 # Start main simulation
@@ -129,3 +145,31 @@ simulator.model.plot_mesh(show_edges=True)
 # and stress free configuration and runs the final LS-DYNA heart model.
 
 simulator.simulate()
+
+
+# sphinx_gallery_start_ignore
+# Generate static images for docs.
+#
+from pathlib import Path
+
+import pyvista as pv
+
+# model.plot_fibers()
+docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", "_static", "images")
+
+# Full mesh
+filename = Path(docs_images_folder, "full_heart_rodero_01_fibers.png")
+
+# fibers
+plotter = pv.Plotter(off_screen=True)
+plotter = pv.Plotter()
+mesh = model.mesh
+mesh = mesh.ctp()
+streamlines = mesh.streamlines(vectors="fiber", source_radius=75, n_points=1000)
+tubes = streamlines.tube()
+plotter.add_mesh(mesh, opacity=0.5, color="white")
+plotter.add_mesh(tubes, color="white")
+plotter.camera.roll = -60
+plotter.screenshot(filename)
+
+# sphinx_gallery_end_ignore

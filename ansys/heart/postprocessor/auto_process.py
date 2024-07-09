@@ -167,7 +167,7 @@ def mech_post(directory: str, model: HeartModel):
     for i, t in enumerate(exporter.save_time):
         # NOTE: the returned pv_object seems corrupted, I suspect it's a bug of pyvista
         pv_object = exporter.convert_to_pvgrid_at_t(
-            time=t, fname=os.path.join(out_dir, f"heart_{i}.vtk")
+            time=t, fname=os.path.join(out_dir, f"heart_{i}.vtu")
         )
 
     # compute strain of last cycle

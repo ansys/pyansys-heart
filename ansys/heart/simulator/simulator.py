@@ -546,8 +546,8 @@ class MechanicsSimulator(BaseSimulator):
 
         part: Part = self.model.create_part_by_ids(eids, "base")
         part.part_type = "ventricle"
-        part.has_fiber = False
-        part.is_active = False
+        part.fiber = False
+        part.active = False
         part.meca_material = stiff_material
 
         return part
@@ -649,8 +649,9 @@ class MechanicsSimulator(BaseSimulator):
         self.directories["zeropressure"] = export_directory
 
         model = copy.deepcopy(self.model)
+        # Isolation part need to be created in Zerop because main will use its dynain.lsda
         if isinstance(model, FourChamber) and type(self) == EPMechanicsSimulator:
-            model._create_isolation_part()
+            model._create_atrioventricular_isolation()
 
         dyna_writer = writers.ZeroPressureMechanicsDynaWriter(model, self.settings)
         dyna_writer.update()

@@ -48,6 +48,17 @@ import ansys.heart.preprocessor.models as models
 
 # specify necessary paths.
 case_file = os.path.join("pyansys-heart", "downloads", "Strocchi2020", "01", "01.case")
+
+# sphinx_gallery_start_ignore
+# Overwrite with env variables: for testing purposes only. May be removed by user.
+from pathlib import Path
+
+try:
+    case_file = str(Path(os.environ["PATH_TO_CASE_FILE"]))
+except KeyError:
+    pass
+# sphinx_gallery_end_ignore
+
 workdir = os.path.join(os.path.dirname(case_file), "FourChamber")
 
 if not os.path.isdir(workdir):

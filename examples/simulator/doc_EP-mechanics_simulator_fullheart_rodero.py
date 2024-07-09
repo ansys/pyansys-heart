@@ -47,6 +47,7 @@ set it up for a coupled electromechanical simulation.
 import os
 
 import ansys.heart.preprocessor.models as models
+from ansys.heart.simulator.settings.material.material import NeoHookean
 from ansys.heart.simulator.simulator import DynaSettings, EPMechanicsSimulator
 from pint import Quantity
 
@@ -70,6 +71,18 @@ os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 # Note that we need to cast the paths to strings to facilitate serialization.
 case_file = os.path.join("pyansys-heart", "downloads", "Rodero2021", "01", "01.vtk")
 workdir = os.path.join(os.path.dirname(case_file), "FullHeart")
+
+# sphinx_gallery_start_ignore
+# Overwrite with env variables: for testing purposes only. May be removed by user.
+try:
+    from pathlib import Path
+
+    path_to_dyna = str(Path(os.environ["PATH_TO_DYNA"]))
+    workdir = os.path.join(os.path.dirname(str(Path(os.environ["PATH_TO_CASE_FILE"]))), "FullHeart")
+except KeyError:
+    pass
+# sphinx_gallery_end_ignore
+
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 ###############################################################################
@@ -85,10 +98,21 @@ model: models.FullHeart = models.HeartModel.load_model(path_to_model)
 # instantiate the simulator and settings appropriately.
 
 # instantaiate dyna settings of choice
-lsdyna_path = r"mppdyna_d_sse2_linux86_64_intelmmpi_105630"
+lsdyna_path = r"your_dyna_exe"  # tested with DEV-111820
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path, dynatype="intelmpi", platform="wsl", num_cpus=6
 )
+
+# sphinx_gallery_start_ignore
+# Overwrite with env variables: for testing purposes only. May be removed by user.
+try:
+    dyna_settings.lsdyna_path = path_to_dyna
+    # assume we are in WSL if .exe not in path.
+    if ".exe" not in path_to_dyna:
+        dyna_settings.platform = "wsl"
+except:
+    pass
+# sphinx_gallery_end_ignore
 
 # instantiate simulator object
 simulator = EPMechanicsSimulator(
@@ -106,11 +130,22 @@ simulator.compute_left_atrial_fiber()
 simulator.compute_right_atrial_fiber(appendage=[39, 29, 98])
 
 # switch atria to active
-simulator.model.left_atrium.has_fiber = True
-simulator.model.left_atrium.is_active = True
+simulator.model.left_atrium.fiber = True
+simulator.model.left_atrium.active = True
 
-simulator.model.right_atrium.has_fiber = True
-simulator.model.right_atrium.is_active = True
+simulator.model.right_atrium.fiber = True
+simulator.model.right_atrium.active = True
+
+## Optionally, we can create more anatomical details.
+## Sometimes, it's in favor of convergence rate of mechanical solve
+
+# Extract elements around atrial caps and assign as a passive material
+ring = simulator.model.create_atrial_stiff_ring(radius=5)
+ring.meca_material = NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+
+# Extract elements around atrialvenricular valves and assign as a passive material
+simulator.create_stiff_ventricle_base(stiff_material=NeoHookean(rho=0.001, c10=0.1, nu=0.499))
+
 
 # Estimate the stress-free-configuration
 simulator.compute_stress_free_configuration()

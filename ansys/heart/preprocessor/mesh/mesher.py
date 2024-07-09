@@ -348,9 +348,8 @@ def mesh_from_manifold_input_model(
             os.remove(stl)
 
         # write all boundaries
+        LOGGER.debug(f"Writing input files in: {work_dir_meshing}")
         model.write_part_boundaries(work_dir_meshing)
-        files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
-        LOGGER.debug(f"Files in {work_dir_meshing}: {files}")
 
         session = _get_fluent_meshing_session()
 
@@ -539,11 +538,8 @@ def mesh_from_non_manifold_input_model(
             part.name = part.name.lower().replace(" ", "_")
 
         # write all boundaries
-        LOGGER.debug(f"Files in {work_dir_meshing}")
+        LOGGER.debug(f"Writing input files in: {work_dir_meshing}")
         model.write_part_boundaries(work_dir_meshing, add_name_to_header=False)
-
-        files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
-        LOGGER.debug(f"Written files: {files}")
 
         # launch pyfluent
         session = _get_fluent_meshing_session()

@@ -48,7 +48,18 @@ from ansys.heart.preprocessor.database_preprocessor import get_compatible_input
 import ansys.heart.preprocessor.models as models
 
 # specify necessary paths.
-case_file = os.path.join("pyansys-heart", "downloads", "Rodero2021", "01", "01.vtk")
+case_file = os.path.join(
+    "d:\\development", "pyansys-heart", "downloads", "Rodero2021", "01", "01.vtk"
+)
+
+# sphinx_gallery_start_ignore
+# Overwrite with env variables: for testing purposes only. May be removed by user.
+try:
+    case_file = str(Path(os.environ["PATH_TO_CASE_FILE"]))
+except KeyError:
+    pass
+# sphinx_gallery_end_ignore
+
 workdir = os.path.join(os.path.dirname(case_file), "FullHeart")
 
 if not os.path.isdir(workdir):

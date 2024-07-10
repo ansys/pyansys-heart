@@ -21,9 +21,6 @@
 # SOFTWARE.
 
 """Module for computing paths."""
-
-import math
-
 import numpy as np
 
 
@@ -71,17 +68,6 @@ def rodrigues_rot(P: np.ndarray, n0: np.ndarray, n1: np.ndarray) -> np.ndarray:
         )
 
     return P_rot
-
-
-def carttopolar(x, y, x0=0, y0=0):
-    """Cartisian to polar coordinate system with origin shift to x0,y0."""
-    x1 = x - x0
-    y1 = y - y0
-    r = np.sqrt(x1**2 + y1**2)
-    t = np.arctan2(y1, x1) * 180 / math.pi
-    if y1 < 0:
-        t = 360 + t
-    return r, t
 
 
 def project_3d_points(p_set: np.ndarray) -> np.ndarray:

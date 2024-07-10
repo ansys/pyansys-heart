@@ -79,7 +79,7 @@ def compare_stats_volumes(stats: dict, stats_ref: dict):
         percent_diff = abs(volume - volume_ref) / volume_ref * 100
         assert (
             percent_diff < 1
-        ), f"Difference in cavity volumes of {cavity_name} is {percent_diff} \%"
+        ), f"Difference in cavity volumes of {cavity_name} is {percent_diff} percent"
 
     return
 

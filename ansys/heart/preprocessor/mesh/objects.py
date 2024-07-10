@@ -665,64 +665,6 @@ class Mesh(pv.UnstructuredGrid):
             i.nodes = self.nodes
         return
 
-    def read_mesh_file(self, filename: pathlib.Path) -> None:
-        """Read mesh file."""
-        mesh = pv.read(filename)
-        # .case gives multiblock
-        if isinstance(mesh, pv.MultiBlock):
-            mesh: pv.UnstructuredGrid = mesh.GetBlock(0)
-
-        if not isinstance(mesh, pv.UnstructuredGrid):
-            LOGGER.warning("Failed to read mesh file. Expecting .vtk unstructured grid or .case")
-            return
-
-        self.points = mesh.points
-        self.tetrahedrons = mesh.cells_dict[pv.CellType.TETRA]
-        for key, value in mesh.cell_data.items():
-            self.cell_data[key] = mesh.cell_data[key]
-        for key, value in mesh.point_data.items():
-            self.point_data[key] = mesh.point_data[key]
-
-        return
-
-    def read_mesh_file_rodero2021(self, filename: pathlib.Path) -> None:
-        """Read mesh file - but modifies the fields to match data of Strocchi 2020."""
-        LOGGER.warning("This method will be deprecated in the future.")
-        mesh = pv.read(filename)
-        # .case gives multiblock
-        if isinstance(mesh, pv.MultiBlock):
-            mesh: pv.UnstructuredGrid = mesh.GetBlock(0)
-
-        if not isinstance(mesh, pv.UnstructuredGrid):
-            LOGGER.warning("Failed to read mesh file. Expecting .vtk unstructured grid or .case")
-            return
-
-        name_array_mapping = [
-            ["tags", "ID", "cell"],
-            ["fiber", "fibres", "cell"],
-            ["sheet", "sheets", "cell"],
-            ["uvc_longitudinal", "Z.dat", "point"],
-            ["uvc_rotational", "PHI.dat", "point"],
-            ["uvc_transmural", "RHO.dat", "point"],
-            ["uvc_intraventricular", "V.dat", "point"],
-        ]
-
-        # rename tags in rodero
-        for item in name_array_mapping:
-            mesh.rename_array(item[1], item[0], item[2])
-
-        self.points = mesh.points
-        self.tetrahedrons = mesh.cells_dict[pv.CellType.TETRA]
-        for key, value in mesh.cell_data.items():
-            self.cell_data[key] = mesh.cell_data[key]
-        for key, value in mesh.point_data.items():
-            self.point_data[key] = mesh.point_data[key]
-
-        if np.issubdtype(self.cell_data["tags"].dtype, np.integer):
-            self.cell_data["tags"] = np.array(self.cell_data["tags"], dtype=float)
-
-        return None
-
     def write_to_vtk(self, filename: pathlib.Path) -> None:
         """Write mesh to VTK file."""
         self.save(filename)

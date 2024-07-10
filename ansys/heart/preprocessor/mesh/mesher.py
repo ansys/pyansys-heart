@@ -56,6 +56,10 @@ if os.getenv("PYFLUENT_LAUNCH_CONTAINER"):
 else:
     _uses_container = False
 
+if _show_fluent_gui:
+    _fluent_ui_mode = "gui"
+else:
+    _fluent_ui_mode = "hidden_gui"
 
 try:
     import ansys.fluent.core as pyfluent
@@ -143,7 +147,7 @@ def _get_fluent_meshing_session() -> MeshingSession:
         precision="double",
         processor_count=num_cpus,
         start_transcript=False,
-        show_gui=_show_fluent_gui,
+        ui_mode=_fluent_ui_mode,
         product_version=_fluent_version,
         start_container=_uses_container,
     )

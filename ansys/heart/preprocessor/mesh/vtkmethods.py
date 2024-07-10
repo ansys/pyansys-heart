@@ -182,58 +182,6 @@ def get_tri_info_from_polydata(
         )
 
 
-def get_info_from_vtk(
-    vtk_grid: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]
-) -> Tuple[np.ndarray, np.ndarray, dict, dict]:
-    """Use numpy support to get points, cell connectivity, cell data, point data from vtk object.
-
-    Parameters
-    ----------
-    vtk_grid : Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]
-        Vtk object from which to extract the information
-
-    Returns
-    -------
-    List
-        List of points, elements, cell data, and point data
-
-    Raises
-    ------
-    ValueError
-        _description_
-    """
-    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
-    vtk_obj = dsa.WrapDataObject(vtk_grid)
-
-    num_cells = vtk_obj.GetNumberOfCells()
-    points = vtk_obj.Points  # nodes
-    cells_conn = vtk_obj.Cells  # cell connectivity matrix
-    cell_types = vtk_obj.CellTypes
-
-    cell_data = {}
-    point_data = {}
-
-    for key in vtk_obj.CellData.keys():
-        cell_data[key] = vtk_obj.CellData[key]
-
-    for key in vtk_obj.PointData.keys():
-        cell_data[key] = vtk_obj.PointData[key]
-
-    elements = {}
-    if np.all(cell_types == 10):
-        # 10 = tetrahedron
-        elements = cells_conn.reshape(num_cells, 4 + 1)
-        elements = elements[:, 1:]  # remove one column
-    elif np.all(cell_types == 1):
-        # 1 = vertex
-        elements = cells_conn.reshape(num_cells, 1 + 1)
-        elements = elements[:, 1:]  # remove one column
-    else:
-        raise ValueError("Not supporting anything other than tetrahedrons and vertices")
-    # np.savetxt("source_points.csv", points, delimiter=",")
-    return points, elements, cell_data, point_data
-
-
 def add_vtk_array(
     polydata: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid],
     data: np.array,

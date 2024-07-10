@@ -903,16 +903,6 @@ class Part:
     """Part class."""
 
     @property
-    def _features(self) -> List[Feature]:
-        """Return list of part features."""
-        features = []
-        for key, value in self.__dict__.items():
-            attribute = getattr(self, key)
-            if isinstance(attribute, Feature):
-                features.append(attribute)
-        return features
-
-    @property
     def surfaces(self) -> List[SurfaceMesh]:
         """List of surfaces belonging to part."""
         surfaces = []
@@ -947,10 +937,6 @@ class Part:
         """Material id associated with part."""
         self.part_type = part_type
         """Type of the part."""
-        self.tag_labels = None
-        """VTK tag labels used in this part."""
-        self.tag_ids = None
-        """VTK tag ids used in this part."""
         self.element_ids: np.ndarray = np.empty((0, 4), dtype=int)
         """Array holding element ids that make up this part."""
         self.points: List[Point] = []

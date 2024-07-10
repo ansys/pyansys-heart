@@ -220,12 +220,6 @@ class SurfaceMesh(pv.PolyData, Feature):
 
         return self.edge_groups
 
-    def separate_connected_regions(self):
-        """Use vtk to get connected regions and separate into different surfaces."""
-        region_ids = vtkmethods.get_connected_regions(self.nodes, self.triangles)
-
-        return region_ids
-
     def smooth_boundary_edges(self, window_size: int = 3) -> np.ndarray:
         """Smooth the boundary edges if they are closed."""
         if window_size % 2 != 1:
@@ -279,29 +273,6 @@ class SurfaceMesh(pv.PolyData, Feature):
 
         vtk_surface = vtkmethods.create_vtk_surface_triangles(self.nodes, self.triangles)
         vtkmethods.vtk_surface_to_stl(vtk_surface, filename, self.name)
-        return
-
-    def write_feature_edges_to_vtk(self, prefix: str = None, per_edge_group: bool = False) -> None:
-        """Write the feature edges to a vtk file."""
-        edges = np.array((0, 2))
-        for ii, edge_group in enumerate(self.edge_groups):
-            edges = np.vstack([edges, edge_group.edges])
-            if per_edge_group:
-
-                tris = np.vstack([edge_group.edges[:, 0], edge_group.edges.T]).T
-                tris = np.hstack([np.ones(tris.shape[0], 1) * 3, tris])
-                vtk_surf = pv.PolyData(self.nodes, tris.flatten()).clean()
-                filename = "{0}_groupid_{1}_edges_{2}.vtk".format(prefix, ii, self.name)
-                vtk_surf.save(filename)
-
-        if not per_edge_group:
-            tris = np.vstack([edges[:, 0], edges.T]).T
-            tris = np.hstack([np.ones(tris.shape[0], 1) * 3, tris])
-
-            vtk_surf = pv.PolyData(self.nodes, tris.flatten()).clean()
-            filename = "{0}_groupid_edges_{1}.vtk".format(prefix, self.name)
-            vtk_surf.save(filename)
-
         return
 
     def _to_pyvista_object(self) -> pv.PolyData:
@@ -414,19 +385,6 @@ class Cavity(Feature):
         """Volume of the cavity."""
         return self.surface.volume
 
-    def compute_volume(self) -> float:
-        """Compute the volume of the (enclosed) cavity.
-
-        Notes
-        -----
-        - Writes stl and computes volume from stl
-        - Assumes normals are pointing inwards
-        """
-        DeprecationWarning(
-            "compute_volume() is deprecated. Use the volume property of this class instead."
-        )
-        return self.surface.volume
-
     def compute_centroid(self):
         """Compute the centroid of the cavity."""
         # self.centroid = np.mean(self.surface.nodes[np.unique(self.surface.triangles), :], axis=0)
@@ -449,8 +407,6 @@ class Cap(Feature):
         """Centroid of cap."""
         self.centroid_id = None
         """Centroid of cap ID (in case centroid node is created)."""
-        self.type = "cap"
-        """Type."""
         return
 
     def tessellate1(self, use_centroid: bool = False) -> np.ndarray:
@@ -479,38 +435,6 @@ class Cap(Feature):
                 return None
 
             ref_node = self.centroid_id
-            num_triangles = self.node_ids.shape[0] + 1
-            tris = [[ref_node, self.node_ids[0], self.node_ids[1]]]
-            for ii, _ in enumerate(self.node_ids[0:-2]):
-                tri = [ref_node, self.node_ids[ii + 1], self.node_ids[ii + 2]]
-                tris.append(tri)
-            tris.append([ref_node, self.node_ids[-1], self.node_ids[0]])
-            self.triangles = np.array(tris, dtype=int)
-
-        return self.triangles
-
-    def tessellate(self, center_point_id=None) -> np.ndarray:
-        """
-        Form triangles with the node ids.
-
-        Parameters
-        ----------
-        center_point_id: ID of the center point of cap
-
-        Returns
-        -------
-        Mesh connectivity of cap (triangles)
-
-        """
-        if center_point_id is None:
-            tris = []
-            for ii, _ in enumerate(self.node_ids[0:-2]):
-                # first node is reference node
-                tri = [self.node_ids[0], self.node_ids[ii + 1], self.node_ids[ii + 2]]
-                tris.append(tri)
-            self.triangles = np.array(tris, dtype=int)
-        else:
-            ref_node = center_point_id[0]
             num_triangles = self.node_ids.shape[0] + 1
             tris = [[ref_node, self.node_ids[0], self.node_ids[1]]]
             for ii, _ in enumerate(self.node_ids[0:-2]):
@@ -670,18 +594,6 @@ class Mesh(pv.UnstructuredGrid):
         self.save(filename)
         return
 
-    def keep_elements_with_value(
-        self,
-        values: List[int],
-        field_name: str,
-    ) -> None:
-        """Remove elements that satisfy a certain cell value of a specific field."""
-        mask = np.isin(self.cell_data[field_name], values)
-        self.tetrahedrons = self.tetrahedrons[mask, :]
-        for key in self.cell_data.keys():
-            self.cell_data[key] = self.cell_data[key][mask]
-        return
-
     def establish_connectivity(self) -> None:
         """Establish the connetivity of the tetrahedrons."""
         self.triangles, self.conn["c0"], self.conn["c1"] = connect.face_tetra_connectivity(
@@ -807,38 +719,6 @@ class Mesh(pv.UnstructuredGrid):
             return surfaces[0]
         else:
             return surfaces
-
-    def _to_pyvista_object(self) -> pv.UnstructuredGrid:
-        """Convert mesh object into pyvista unstructured grid object.
-
-        Returns
-        -------
-        pv.UnstructuredGrid
-            Pyvista unstructured grid object.
-        """
-        num_tets = self.tetrahedrons.shape[0]
-        cells = np.hstack(
-            [np.ones((self.tetrahedrons.shape[0], 1), dtype=int) * 4, self.tetrahedrons]
-        ).flatten()
-        celltypes = np.ones(num_tets, dtype=int) * pv.CellType.TETRA
-        points = self.nodes
-        grid = pv.UnstructuredGrid(cells, celltypes, points)
-        # add cell and point data
-        if self.cell_data:
-            for key, value in self.cell_data.items():
-                if value.size == value.shape[0]:
-                    grid.cell_data.set_scalars(name=key, scalars=value)
-                elif len(value.shape) > 1:
-                    grid.cell_data.set_vectors(name=key, vectors=value)
-
-        if self.point_data:
-            for key, value in self.point_data.items():
-                if value.size == value.shape[0]:
-                    grid.point_data.set_array(name=key, data=value)
-                elif len(value.shape) > 1:
-                    grid.point_data.set_vectors(name=key, vectors=value)
-
-        return grid
 
 
 class Part:

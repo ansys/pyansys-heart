@@ -23,7 +23,7 @@
 """Module contains methods for mesh operations related to the vtk library."""
 
 import copy
-from typing import Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.mesh.fluenthdf5 import add_solid_name_to_stl

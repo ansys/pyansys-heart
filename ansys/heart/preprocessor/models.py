@@ -1950,7 +1950,7 @@ class LeftVentricle(HeartModel):
     """Model of just the left ventricle."""
 
     def __init__(self, info: ModelInfo = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
         # remove septum - not used in left ventricle only model
         del self.left_ventricle.septum
@@ -1967,11 +1967,11 @@ class BiVentricle(HeartModel):
     """Model of the left and right ventricle."""
 
     def __init__(self, info: ModelInfo = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
+        self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
         """Right ventricle part."""
-        self.septum: Part = Part(name="Septum", part_type="septum")
+        self.septum: Part = Part(name="Septum", part_type=PartType.SEPTUM)
         """Septum."""
 
         self.left_ventricle.fiber = True
@@ -1990,16 +1990,16 @@ class FourChamber(HeartModel):
     """Model of the left/right ventricle and left/right atrium."""
 
     def __init__(self, info: ModelInfo = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
+        self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
         """Right ventricle part."""
-        self.septum: Part = Part(name="Septum", part_type="septum")
+        self.septum: Part = Part(name="Septum", part_type=PartType.SEPTUM)
         """Septum."""
 
-        self.left_atrium: Part = Part(name="Left atrium", part_type="atrium")
+        self.left_atrium: Part = Part(name="Left atrium", part_type=PartType.ATRIUM)
         """Left atrium part."""
-        self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
+        self.right_atrium: Part = Part(name="Right atrium", part_type=PartType.ATRIUM)
         """Right atrium part."""
 
         self.left_ventricle.fiber = True
@@ -2024,20 +2024,20 @@ class FullHeart(FourChamber):
     """Model of both ventricles, both atria, aorta and pulmonary artery."""
 
     def __init__(self, info: ModelInfo = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
+        self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
         """Right ventricle part."""
-        self.septum: Part = Part(name="Septum", part_type="septum")
+        self.septum: Part = Part(name="Septum", part_type=PartType.SEPTUM)
         """Septum."""
-        self.left_atrium: Part = Part(name="Left atrium", part_type="atrium")
+        self.left_atrium: Part = Part(name="Left atrium", part_type=PartType.ATRIUM)
         """Left atrium part."""
-        self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
+        self.right_atrium: Part = Part(name="Right atrium", part_type=PartType.ATRIUM)
         """Right atrium part."""
 
-        self.aorta: Part = Part(name="Aorta", part_type="artery")
+        self.aorta: Part = Part(name="Aorta", part_type=PartType.ARTERY)
         """Aorta part."""
-        self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type="artery")
+        self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type=PartType.ARTERY)
         """Pulmonary artery part."""
 
         self.left_ventricle.fiber = True

@@ -43,6 +43,7 @@ from ansys.heart.preprocessor.mesh.objects import (
     Cavity,
     Mesh,
     Part,
+    PartType,
     Point,
     SurfaceMesh,
 )
@@ -293,7 +294,7 @@ class HeartModel:
 
         self.add_part(name)
         new_part: Part = self.get_part(name)
-        new_part.part_type = ""
+
         new_part.element_ids = eids
 
         return new_part
@@ -903,7 +904,7 @@ class HeartModel:
     def _add_subparts(self) -> None:
         """Add subparts to parts of type ventricle."""
         for part in self.parts:
-            if part.part_type in ["ventricle"]:
+            if part.part_type in [PartType.VENTRICLE]:
                 part._add_myocardium_part()
                 if "Left ventricle" in part.name:
                     part._add_septum_part()
@@ -1847,9 +1848,9 @@ class HeartModel:
         v_ele = np.array([], dtype=int)
         a_ele = np.array([], dtype=int)
         for part in self.parts:
-            if part.part_type == "ventricle":
+            if part.part_type == PartType.VENTRICLE:
                 v_ele = np.append(v_ele, part.element_ids)
-            elif part.part_type == "atrium":
+            elif part.part_type == PartType.ATRIUM:
                 a_ele = np.append(a_ele, part.element_ids)
 
         ventricles = self.mesh.extract_cells(v_ele)
@@ -1885,7 +1886,7 @@ class HeartModel:
 
         # create a new part
         isolation: Part = self.create_part_by_ids(interface_eids, "Isolation atrial")
-        isolation.part_type = "atrium"
+        isolation.part_type = PartType.ATRIUM
         isolation.fiber = True
         isolation.active = False
 
@@ -1938,7 +1939,7 @@ class HeartModel:
         ring: Part = self.create_part_by_ids(
             ring_eles, name="base atrial stiff rings"
         )  # TODO name must has 'base', see dynawriter.py L3120
-        ring.part_type = "atrium"
+        ring.part_type = PartType.ATRIUM
         ring.fiber = False
         ring.active = False
 

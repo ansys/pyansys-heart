@@ -28,6 +28,7 @@ Such as a Mesh object, Part object, Features, etc.
 """
 
 import copy
+from enum import Enum
 import pathlib
 from typing import List, Optional, Tuple, Union
 
@@ -899,6 +900,16 @@ class Mesh(pv.UnstructuredGrid):
         return grid
 
 
+class PartType(Enum):
+    """Stores valid part types."""
+
+    VENTRICLE = "ventricle"
+    ATRIUM = "atrium"
+    SEPTUM = "septum"
+    ARTERY = "artery"
+    MYOCARDIUM = "myocardium"
+
+
 class Part:
     """Part class."""
 
@@ -938,14 +949,14 @@ class Part:
         LOGGER.error("Cannot find point {0:s}.".format(pointname))
         return None
 
-    def __init__(self, name: str = None, part_type: str = None) -> None:
+    def __init__(self, name: str = None, part_type: PartType = None) -> None:
         self.name = name
         """Name of the part."""
         self.pid = None
         """Part ID."""
         self.mid = None
         """Material id associated with part."""
-        self.part_type = part_type
+        self.part_type: PartType = part_type
         """Type of the part."""
         self.tag_labels = None
         """VTK tag labels used in this part."""
@@ -968,7 +979,7 @@ class Part:
         """Material model will be assiggned in Simulator."""
 
         """Cavity belonging to the part."""
-        if self.part_type in ["ventricle"]:
+        if self.part_type in [PartType.VENTRICLE]:
             self.apex_points: List[Point] = []
             """Points on apex."""
 
@@ -976,23 +987,23 @@ class Part:
 
     def _add_surfaces(self):
         """Add surfaces to the part."""
-        if self.part_type in ["ventricle", "atrium"]:
+        if self.part_type in [PartType.VENTRICLE, PartType.ATRIUM]:
             self.endocardium = SurfaceMesh("{0} endocardium".format(self.name))
             """Endocardium."""
             self.epicardium = SurfaceMesh("{0} epicardium".format(self.name))
             """Epicardium."""
-            if self.part_type == "ventricle":
+            if self.part_type == PartType.VENTRICLE:
                 self.septum = SurfaceMesh("{0} septum".format(self.name))
                 """Septum surface."""
-        elif self.part_type in ["artery"]:
+        elif self.part_type in [PartType.ARTERY]:
             self.wall = SurfaceMesh("{0} wall".format(self.name))
             """Wall."""
         return
 
     def _add_myocardium_part(self):
-        self.myocardium = Part(name="myocardium", part_type="myocardium")
+        self.myocardium = Part(name="myocardium", part_type=PartType.MYOCARDIUM)
         return
 
     def _add_septum_part(self):
-        self.septum = Part(name="septum", part_type="septum")
+        self.septum = Part(name="septum", part_type=PartType.SEPTUM)
         return

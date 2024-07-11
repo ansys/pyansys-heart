@@ -24,6 +24,9 @@ import argparse
 import os
 from pathlib import Path
 
+from ansys.heart.preprocessor.database_preprocessor import get_compatible_input
+import ansys.heart.preprocessor.models as models
+
 
 def main(args):
     # input
@@ -35,8 +38,6 @@ def main(args):
 
     #############################################################
     # package import
-    import ansys.heart.preprocessor.models.v0_1.models as models
-
     #
     if database == "Strocchi2020":
         extension = "case"
@@ -52,23 +53,40 @@ def main(args):
 
         for model_type in types:
             workdir = os.path.join(root, f"{model_type}_{size}")
+            if not os.path.isdir(workdir):
+                os.makedirs(workdir)
+
             path_to_model = str(Path(workdir, "heart_model.pickle"))
 
+            path_to_input_vtp = os.path.join(workdir, "input_geom.vtp")
+
+            type_map = {
+                "lv": "LeftVentricle",
+                "bv": "BiVentricle",
+                "4c": "FourChamber",
+                "fh": "FullHeart",
+            }
+
+            # NOTE could optimize by only running once for each case and just
+            # update part_definitions
+            input_polydata, part_definitions = get_compatible_input(
+                case_file, type_map[model_type], database=database
+            )
+            input_polydata.save(path_to_input_vtp)
+
             info = models.ModelInfo(
-                database=database,
-                path_to_case=case_file,
+                input=path_to_input_vtp,
+                scalar="surface-id",
+                part_definitions=part_definitions,
                 work_directory=workdir,
-                path_to_model=path_to_model,
-                add_blood_pool=False,
-                mesh_size=size,
+                mesh_size=2.0,
             )
 
-            # create the working directory
-            info.create_workdir()
             # clean the working directory
             info.clean_workdir(extensions_to_remove=[".stl", ".vtk", ".msh.h5"])
             # dump information to stdout
             info.dump_info()
+
             if model_type == "lv":
                 model = models.LeftVentricle(info)
             elif model_type == "bv":
@@ -79,7 +97,13 @@ def main(args):
                 model = models.FourChamber(info)
 
             # extract the simulation mesh
-            model.extract_simulation_mesh()
+            model.load_input()
+
+            # mesh the volume
+            model.mesh_volume(use_wrapper=True)
+
+            # update the parts
+            model._update_parts()
 
             # dump the model to disk for future use
             model.dump_model(path_to_model)
@@ -90,15 +114,6 @@ def main(args):
 if __name__ == "__main__":
     # Create an argument parser
     parser = argparse.ArgumentParser(description="EndToEnd Test: Batch run preprocessor")
-
-    # Define command-line arguments
-    parser.add_argument(
-        "--heartversion",
-        help="Heart model version. 0: Uses HeartModels from old version of models.py,"
-        + "1: Uses HeartModels from new version of models.py (models_new.py)",
-        type=str,
-        default="0",
-    )
 
     parser.add_argument(
         "--root",
@@ -134,12 +149,6 @@ if __name__ == "__main__":
 
     # Parse the command-line arguments
     args = parser.parse_args()
-
-    # set right environment variable
-    if args.heartversion == "0":
-        os.environ["USE_OLD_HEART_MODELS"] = "1"
-    else:
-        os.environ["USE_OLD_HEART_MODELS"] = "0"
 
     # Call the main function with parsed arguments
     main(args)

@@ -21,7 +21,6 @@
 # SOFTWARE.
 
 """Module containing classes for the various heart models."""
-
 import copy
 import json
 import os
@@ -30,9 +29,10 @@ import os
 import pathlib
 import pickle
 import re
-from typing import List, Union
+from typing import List, Literal, Union
 
 from ansys.heart.core import LOG as LOGGER
+from ansys.heart.preprocessor.input import _InputModel
 
 # from ansys.heart.preprocessor.input import HEART_MODELS
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
@@ -47,7 +47,6 @@ from ansys.heart.preprocessor.mesh.objects import (
     SurfaceMesh,
 )
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-from ansys.heart.preprocessor.models.v0_2.input import _InputModel
 import numpy as np
 import pyvista as pv
 from scipy.spatial.transform import Rotation as R
@@ -64,7 +63,6 @@ class ModelInfo:
         part_definitions: dict = None,
         work_directory: pathlib.Path = ".",
         path_to_simulation_mesh: pathlib.Path = None,
-        path_to_model: pathlib.Path = None,
         mesh_size: float = 1.5,
         add_blood_pool: bool = False,
     ) -> None:
@@ -79,7 +77,7 @@ class ModelInfo:
         """Path to the working directory."""
         self.path_to_simulation_mesh = path_to_simulation_mesh
         """Path to simulation(in .vtk format)."""
-        self.path_to_model = path_to_model
+        self.path_to_model: str = None
         """Path to model (in .pickle format)."""
 
         self.mesh_size: float = mesh_size
@@ -282,6 +280,10 @@ class HeartModel:
             LOGGER.error(f"Element list is empty to create {name}")
             return None
 
+        if name in [p.name for p in self.parts]:
+            LOGGER.error(f"Part {name} has existed.")
+            return None
+
         for part in self.parts:
             try:
                 part.element_ids = np.setdiff1d(part.element_ids, eids)
@@ -430,22 +432,33 @@ class HeartModel:
         )
         return
 
-    def mesh_volume(self, use_wrapper: bool = False):
+    def mesh_volume(
+        self,
+        use_wrapper: bool = False,
+        overwrite_existing_mesh: bool = True,
+        path_to_fluent_mesh: str = None,
+    ):
         """Remesh the input model and fill the volume.
 
         Parameters
         ----------
         use_wrapper : bool, optional
             Flag for switch to non-manifold mesher, by default False
+        overwrite_existing_mesh : bool, optional
+            Flag indicating whether to overwrite the existing .msh.h5 mesh, by default True
+        path_to_fluent_mesh : str, optional
+            Path to the generated Fluent .msh.h5 mesh, by default None
 
         Notes
         -----
         Note that when the input surfaces are non-manifold the wrapper tries
         to reconstruct the surface and parts. Inevitably this leads to
-        reconstruction errors. Nevertheless, in some instances this approach is
-        robuster than meshing from a manifold surface.
+        reconstruction errors. Nevertheless, in many instances this approach is
+        robuster than meshing from a manifold surface. Moreover, any clear interface
+        between parts is potentially lost.
         """
-        path_to_output_model = os.path.join(self.info.workdir, "simulation_mesh.msh.h5")
+        if not path_to_fluent_mesh:
+            path_to_fluent_mesh = os.path.join(self.info.workdir, "simulation_mesh.msh.h5")
 
         if use_wrapper:
             LOGGER.warning("Meshing from non-manifold model not yet available.")
@@ -454,14 +467,16 @@ class HeartModel:
                 model=self._input,
                 workdir=self.info.workdir,
                 mesh_size=self.info.mesh_size,
-                path_to_output=path_to_output_model,
+                path_to_output=path_to_fluent_mesh,
+                overwrite_existing_mesh=overwrite_existing_mesh,
             )
         else:
             fluent_mesh = mesher.mesh_from_manifold_input_model(
                 model=self._input,
                 workdir=self.info.workdir,
                 mesh_size=self.info.mesh_size,
-                path_to_output=path_to_output_model,
+                path_to_output=path_to_fluent_mesh,
+                overwrite_existing_mesh=overwrite_existing_mesh,
             )
 
         # remove empty cell zones
@@ -651,8 +666,18 @@ class HeartModel:
         LOGGER.info("*****************************************")
         return
 
-    def dump_model(self, filename: pathlib.Path = None) -> None:
-        """Save model to file.
+    def dump_model(self, filename: Union[pathlib.Path, str] = None):
+        """Save model to .pickle file.
+
+        Parameters
+        ----------
+        filename : pathlib.Path | str, optional
+            Path where the model will be saved, by default None
+
+        Returns
+        -------
+        str
+            Path to where the model is saved.
 
         Examples
         --------
@@ -660,16 +685,22 @@ class HeartModel:
 
         """
         LOGGER.debug("Writing model to disk")
-        if not filename and not self.info.path_to_model:
+
+        if isinstance(filename, pathlib.Path):
+            filename = str(filename)
+
+        if not filename:
             filename = os.path.join(self.info.workdir, "heart_model.pickle")
-        elif not filename:
-            filename = self.info.path_to_model
-        else:
-            self.info.path_to_model = filename
+
+        if os.path.isfile(filename):
+            LOGGER.warning(f"Overwriting {filename}")
 
         with open(filename, "wb") as file:
             pickle.dump(self, file)
         self.info.dump_info()
+
+        self.info.path_to_model = filename
+
         return
 
     def plot_mesh(self, show_edges: bool = True, color_by: str = "part-id"):
@@ -960,13 +991,13 @@ class HeartModel:
         self._validate_parts()
         self._validate_surfaces()
 
-        self._assign_caps_to_parts()
-        self._validate_cap_names()
-
         self._add_nodal_areas()
         self._add_surface_normals()
 
         self._assign_cavities_to_parts()
+        self._update_cap_names()
+        self._validate_cap_names()
+
         self._extract_apex()
 
         self.compute_left_ventricle_anatomy_axis()
@@ -1199,6 +1230,11 @@ class HeartModel:
         join_ventricles_with_atria : bool, optional
             Flag indicating whether to join the ventricle with atrial cavities, by default False
         """
+        # NOTE: Deprecated!
+        LOGGER.error("Method deprecated.")
+        exit()
+        return
+
         used_boundary_surface_names = [s.name for p in self.parts for s in p.surfaces]
         remaining_surfaces = list(set(self.mesh.boundary_names) - set(used_boundary_surface_names))
         remaining_surfaces1: List[SurfaceMesh] = []
@@ -1339,32 +1375,71 @@ class HeartModel:
 
         # construct cavities with endocardium and caps
         for part in self.parts:
-            if "atrium" not in part.name and "ventricle" not in part.name:
+            if not hasattr(part, "endocardium"):
                 continue
+
             cavity_faces = np.empty((0, 3), dtype=int)
 
+            # select endocardial surfaces
             surfaces = [s for s in part.surfaces if "endocardium" in s.name]
 
+            # NOTE, this is a loop since the right-ventricle endocardium consists
+            # of both the "regular" endocardium and the septal endocardium
             for surface in surfaces:
                 cavity_faces = np.vstack([cavity_faces, surface.triangles])
 
             # surface ids identifies caps from enocardium
-            ii = 1
+            ii = 0
             surface_ids = np.ones(cavity_faces.shape[0], dtype=int) * ii
-
-            for cap in part.caps:
-                ii += 1
-                surface_ids = np.append(
-                    surface_ids, np.ones(cap.triangles.shape[0], dtype=int) * ii
-                )
-                cavity_faces = np.vstack([cavity_faces, cap.triangles])
 
             surface = SurfaceMesh(
                 name=part.name + " cavity", triangles=cavity_faces, nodes=self.mesh.nodes
             )
+
+            # Generate patches that close the surface.
+            patches = vtkmethods.get_patches_with_centroid(surface)
+
+            LOGGER.debug(f"Generating {len(patches)} caps for {part.name}")
+
+            # update nodes: NOTE: last patch has all extra nodes.
+            self.mesh.nodes = patches[-1].points
+            self.mesh._sync_nodes_of_surfaces()
+
+            # Create Cap objects with patches
+            for patch in patches:
+                ii += 1
+
+                cap_name = f"cap_{ii}_{part.name}"
+                faces = np.reshape(patch.faces, (patch.n_faces, 4))[:, 1:]
+                lines = faces[:, 0:-1]
+                # create cap: NOTE, mostly for compatibility. Could simplify further
+                cap = Cap(cap_name, node_ids=np.unique(lines))
+                cap.triangles = faces
+                cap.centroid_id = faces[0, -1]
+                cap.centroid = self.mesh.nodes[cap.centroid_id, :]
+
+                cap.normal = np.mean(patch.compute_normals().cell_data["Normals"], axis=0)
+                part.caps.append(cap)
+                surface_ids = np.append(
+                    surface_ids, np.ones(cap.triangles.shape[0], dtype=int) * ii
+                )
+
+            # Add patches/caps to cavity surface.
+            surface.points = patches[-1].points
+            cap_triangles = np.empty((0, 3), dtype=int)
+            for cap in part.caps:
+                cap_triangles = np.vstack([cap_triangles, cap.triangles])
+
+            surface.triangles = np.vstack([surface.triangles, cap_triangles])
+
             surface.cell_data["surface-id"] = surface_ids
 
             surface.compute_normals(inplace=True)  # recompute normals
+
+            if not surface.is_manifold:
+                LOGGER.warning("Cavity of {part.name} is not manifold.")
+
+            # NOTE: Validate if normals are pointing inward.
             part.cavity = Cavity(surface=surface, name=part.name)
             part.cavity.compute_centroid()
 
@@ -1373,6 +1448,29 @@ class HeartModel:
             part.cavity.surface.write_to_stl(
                 os.path.join(self.info.workdir, "-".join(part.cavity.surface.name.lower().split()))
             )
+
+        return
+
+    def _update_cap_names(self):
+        """Try to update the cap names using names of connected boundaries."""
+        boundaries_to_check = [
+            b for b in self.mesh.boundaries if "valve" in b.name or "inlet" in b.name
+        ]
+        for part in self.parts:
+            for cap in part.caps:
+                for b in boundaries_to_check:
+                    if np.any(np.isin(cap.triangles, b.triangles)):
+                        # use specified boundary to update cap name:
+                        for split in b.name.split("_"):
+                            if "valve" in split or "inlet" in split:
+                                break
+                        cap.name = split.replace("-plane", "").replace("-inlet", "")
+
+                        if "atrium" in part.name and (
+                            "tricuspid" in cap.name or "mitral" in cap.name
+                        ):
+                            cap.name = cap.name + "-atrium"
+                        break
 
         return
 
@@ -1445,24 +1543,44 @@ class HeartModel:
 
         return
 
-    def compute_left_ventricle_anatomy_axis(self, first_cut_short_axis=0.2):
-        """
-        Compute the long and short axes of the left ventricle.
+    def compute_left_ventricle_anatomy_axis(
+        self,
+        mv_center: Union[None, np.ndarray] = None,
+        av_center: Union[None, np.ndarray] = None,
+        first_cut_short_axis=0.2,
+    ):
+        """Compute the long and short axes of the left ventricle.
 
         Parameters
         ----------
-        first_cut_short_axis: default=0.2, use to avoid cut on aortic valve
+        mv_center : Union[None, np.ndarray], optional
+            mitral valve center, by default None
+        av_center : Union[None, np.ndarray], optional
+            aortic valve center, by default None
+        first_cut_short_axis : float, optional
+            relative distance between mv center to apex, by default 0.2
         """
-        for cap in self.left_ventricle.caps:
-            if cap.name == "mitral-valve":
-                mv_center = cap.centroid
-            elif cap.name == "aortic-valve":
-                av_center = cap.centroid
+        if mv_center is None:
+            try:
+                mv_center = next(
+                    cap.centroid for cap in self.left_ventricle.caps if cap.name == "mitral-valve"
+                )
+            except StopIteration:
+                LOGGER.error("Cannot define mitral valve center")
+                return
+        if av_center is None:
+            try:
+                av_center = next(
+                    cap.centroid for cap in self.left_ventricle.caps if cap.name == "aortic-valve"
+                )
+            except StopIteration:
+                LOGGER.error("Cannot define mitral valve center")
+                return
 
         # apex is defined on epicardium
-        for ap in self.left_ventricle.apex_points:
-            if ap.name == "apex epicardium":
-                apex = ap.xyz
+        apex = next(
+            ap.xyz for ap in self.left_ventricle.apex_points if ap.name == "apex epicardium"
+        )
 
         # 4CAV long axis across apex, mitral and aortic valve centers
         center = np.mean(np.array([av_center, mv_center, apex]), axis=0)
@@ -1542,7 +1660,7 @@ class HeartModel:
 
         for i, n in enumerate(elem_center):
             # This part contains valves, do not considered by AHA17
-            if np.dot(n - p_highest, mv_center - p_highest) >= 0:
+            if np.dot(n - p_highest, mv_center - p_highest) > 0:
                 continue
             # Basal: segment 1 2 3 4 5 6
             elif np.dot(n - p1_3, mv_center - p1_3) >= 0:
@@ -1669,8 +1787,8 @@ class HeartModel:
 
     def get_apex_node_set(
         self,
-        part: ["left", "right"] = "left",
-        option: ["endocardium", "epicardium", "myocardium"] = "epicardium",
+        part: Literal["left", "right"] = "left",
+        option: Literal["endocardium", "epicardium", "myocardium"] = "epicardium",
         radius: float = 3,
     ) -> np.ndarray:
         """Get a node set around apex point.
@@ -1708,81 +1826,7 @@ class HeartModel:
         elif option == "epicardium":
             return np.intersect1d(part.epicardium.node_ids, apex_set)
 
-
-class LeftVentricle(HeartModel):
-    """Model of just the left ventricle."""
-
-    def __init__(self, info: ModelInfo = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
-        """Left ventricle part."""
-        # remove septum - not used in left ventricle only model
-        del self.left_ventricle.septum
-
-        self.left_ventricle.has_fiber = True
-        self.left_ventricle.is_active = True
-
-        if info:
-            super().__init__(info)
-        pass
-
-
-class BiVentricle(HeartModel):
-    """Model of the left and right ventricle."""
-
-    def __init__(self, info: ModelInfo = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
-        """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
-        """Right ventricle part."""
-        self.septum: Part = Part(name="Septum", part_type="septum")
-        """Septum."""
-
-        self.left_ventricle.has_fiber = True
-        self.left_ventricle.is_active = True
-        self.right_ventricle.has_fiber = True
-        self.right_ventricle.is_active = True
-        self.septum.has_fiber = True
-        self.septum.is_active = True
-
-        if info:
-            super().__init__(info)
-        pass
-
-
-class FourChamber(HeartModel):
-    """Model of the left/right ventricle and left/right atrium."""
-
-    def __init__(self, info: ModelInfo = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
-        """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
-        """Right ventricle part."""
-        self.septum: Part = Part(name="Septum", part_type="septum")
-        """Septum."""
-
-        self.left_atrium: Part = Part(name="Left atrium", part_type="atrium")
-        """Left atrium part."""
-        self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
-        """Right atrium part."""
-
-        self.left_ventricle.has_fiber = True
-        self.left_ventricle.is_active = True
-        self.right_ventricle.has_fiber = True
-        self.right_ventricle.is_active = True
-        self.septum.has_fiber = True
-        self.septum.is_active = True
-
-        self.left_atrium.has_fiber = False
-        self.left_atrium.is_active = False
-        self.right_atrium.has_fiber = False
-        self.right_atrium.is_active = False
-
-        if info:
-            super().__init__(info)
-
-        pass
-
-    def _create_isolation_part(self) -> Part:
+    def _create_atrioventricular_isolation(self) -> Union[None, Part]:
         """
         Extract a layer of element to isolate between ventricles and atrium.
 
@@ -1795,6 +1839,10 @@ class FourChamber(HeartModel):
         Part
             Part of isolation elements.
         """
+        if not isinstance(self, FourChamber):
+            LOGGER.error("This method is only for FourChamber model.")
+            return
+
         # find interface nodes between ventricles and atrial
         v_ele = np.array([], dtype=int)
         a_ele = np.array([], dtype=int)
@@ -1837,11 +1885,138 @@ class FourChamber(HeartModel):
 
         # create a new part
         isolation: Part = self.create_part_by_ids(interface_eids, "Isolation atrial")
-        isolation.part_type = "atrial"
-        isolation.has_fiber = True
-        isolation.is_active = False
+        isolation.part_type = "atrium"
+        isolation.fiber = True
+        isolation.active = False
 
         return isolation
+
+    def create_atrial_stiff_ring(self, radius: float = 2) -> Union[None, Part]:
+        """Create a part for solids close to atrial caps.
+
+        Note
+        ----
+        Part will be passive and isotropic, material need to be defined
+
+        Parameters
+        ----------
+        radius : foat, optional
+            Influence region, by default 2
+
+        Returns
+        -------
+        Union[None, Part]
+            Part of atrial rings if created
+        """
+        if not isinstance(self, FourChamber):
+            LOGGER.error("This method is only for FourChamber model.")
+            return
+
+        # get ring cells from cap node list
+        ring_nodes = []
+        for cap in self.left_atrium.caps:
+            if "mitral" not in cap.name:
+                ring_nodes.extend(cap.node_ids.tolist())
+        for cap in self.right_atrium.caps:
+            if "tricuspid" not in cap.name:
+                ring_nodes.extend(cap.node_ids.tolist())
+
+        ring_eles = vtkmethods.find_cells_close_to_nodes(self.mesh, ring_nodes, radius=radius)
+
+        # above search may create orphan elements, pick them to rings
+        self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
+        unselect_eles = np.setdiff1d(
+            np.hstack((self.left_atrium.element_ids, self.right_atrium.element_ids)), ring_eles
+        )
+        largest = self.mesh.extract_cells(unselect_eles).connectivity(largest=True)
+        connected_cells = largest["cell_ids"]
+        orphan_cells = np.setdiff1d(unselect_eles, connected_cells)
+        if len(orphan_cells) > 0:
+            ring_eles = np.hstack((ring_eles, orphan_cells))
+
+        # Create ring part
+        ring: Part = self.create_part_by_ids(
+            ring_eles, name="base atrial stiff rings"
+        )  # TODO name must has 'base', see dynawriter.py L3120
+        ring.part_type = "atrium"
+        ring.fiber = False
+        ring.active = False
+
+        return ring
+
+
+class LeftVentricle(HeartModel):
+    """Model of just the left ventricle."""
+
+    def __init__(self, info: ModelInfo = None) -> None:
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
+        """Left ventricle part."""
+        # remove septum - not used in left ventricle only model
+        del self.left_ventricle.septum
+
+        self.left_ventricle.fiber = True
+        self.left_ventricle.active = True
+
+        if info:
+            super().__init__(info)
+        pass
+
+
+class BiVentricle(HeartModel):
+    """Model of the left and right ventricle."""
+
+    def __init__(self, info: ModelInfo = None) -> None:
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
+        """Left ventricle part."""
+        self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
+        """Right ventricle part."""
+        self.septum: Part = Part(name="Septum", part_type="septum")
+        """Septum."""
+
+        self.left_ventricle.fiber = True
+        self.left_ventricle.active = True
+        self.right_ventricle.fiber = True
+        self.right_ventricle.active = True
+        self.septum.fiber = True
+        self.septum.active = True
+
+        if info:
+            super().__init__(info)
+        pass
+
+
+class FourChamber(HeartModel):
+    """Model of the left/right ventricle and left/right atrium."""
+
+    def __init__(self, info: ModelInfo = None) -> None:
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
+        """Left ventricle part."""
+        self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
+        """Right ventricle part."""
+        self.septum: Part = Part(name="Septum", part_type="septum")
+        """Septum."""
+
+        self.left_atrium: Part = Part(name="Left atrium", part_type="atrium")
+        """Left atrium part."""
+        self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
+        """Right atrium part."""
+
+        self.left_ventricle.fiber = True
+        self.left_ventricle.active = True
+        self.right_ventricle.fiber = True
+        self.right_ventricle.active = True
+        self.septum.fiber = True
+        self.septum.active = True
+
+        self.left_atrium.fiber = False
+        self.left_atrium.active = False
+        self.right_atrium.fiber = False
+        self.right_atrium.active = False
+
+        if info:
+            super().__init__(info)
+
+        pass
 
 
 class FullHeart(FourChamber):
@@ -1864,21 +2039,21 @@ class FullHeart(FourChamber):
         self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type="artery")
         """Pulmonary artery part."""
 
-        self.left_ventricle.has_fiber = True
-        self.left_ventricle.is_active = True
-        self.right_ventricle.has_fiber = True
-        self.right_ventricle.is_active = True
-        self.septum.has_fiber = True
-        self.septum.is_active = True
+        self.left_ventricle.fiber = True
+        self.left_ventricle.active = True
+        self.right_ventricle.fiber = True
+        self.right_ventricle.active = True
+        self.septum.fiber = True
+        self.septum.active = True
 
-        self.left_atrium.has_fiber = False
-        self.left_atrium.is_active = False
-        self.right_atrium.has_fiber = False
-        self.right_atrium.is_active = False
-        self.aorta.has_fiber = False
-        self.aorta.is_active = False
-        self.pulmonary_artery.has_fiber = False
-        self.pulmonary_artery.is_active = False
+        self.left_atrium.fiber = False
+        self.left_atrium.active = False
+        self.right_atrium.fiber = False
+        self.right_atrium.active = False
+        self.aorta.fiber = False
+        self.aorta.active = False
+        self.pulmonary_artery.fiber = False
+        self.pulmonary_artery.active = False
 
         if info:
             super().__init__(info)

@@ -43,11 +43,8 @@ purkinje network and conduction system and finally simulate the electrophysiolog
 
 import os
 
-# set this environment variable to ensure you are using v0.2 of the model
-os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
-
 from ansys.heart.preprocessor.mesh.objects import Point
-import ansys.heart.preprocessor.models.v0_2.models as models
+import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
 
 # accept dpf license aggrement
@@ -56,6 +53,17 @@ os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 # set working directory and path to model.
 workdir = os.path.join("pyansys-heart", "downloads", "Rodero2021", "01", "FullHeart")
+
+# sphinx_gallery_start_ignore
+# Overwrite with env variables: for testing purposes only. May be removed by user.
+from pathlib import Path
+
+try:
+    path_to_dyna = str(Path(os.environ["PATH_TO_DYNA"]))
+    workdir = os.path.join(os.path.dirname(str(Path(os.environ["PATH_TO_CASE_FILE"]))), "FullHeart")
+except:
+    pass
+# sphinx_gallery_end_ignore
 
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
@@ -80,6 +88,17 @@ lsdyna_path = r"ls-dyna_msmpi.exe"
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path, dynatype="intelmpi", num_cpus=6, platform="wsl"
 )
+
+# sphinx_gallery_start_ignore
+# Overwrite with env variables: for testing purposes only. May be removed by user.
+try:
+    dyna_settings.lsdyna_path = path_to_dyna
+    # assume we are in WSL if .exe not in path.
+    if ".exe" not in path_to_dyna:
+        dyna_settings.platform = "wsl"
+except:
+    pass
+# sphinx_gallery_end_ignore
 
 # instantiate simulator. Change options where necessary.
 simulator = EPSimulator(

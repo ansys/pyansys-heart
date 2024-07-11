@@ -24,6 +24,8 @@ import argparse
 import os
 from pathlib import Path
 
+os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+
 # right atrium appendage apex is manually selected
 right_appendage_apex = {
     "Rodero2021": {
@@ -55,7 +57,8 @@ def main(args):
 
     #############################################################
     # package import
-    import ansys.heart.preprocessor.models.v0_1.models as models
+    import ansys.heart.preprocessor.models as models
+    from ansys.heart.simulator.settings.material.material import NeoHookean
     from ansys.heart.simulator.simulator import (
         DynaSettings,
         EPMechanicsSimulator,
@@ -123,7 +126,6 @@ def main(args):
             simulator.settings.load_defaults()
             #
             simulator.compute_fibers()
-            simulator.create_stiff_ventricle_base()
 
             if isinstance(model, models.FourChamber):
                 try:
@@ -135,10 +137,14 @@ def main(args):
                 simulator.compute_left_atrial_fiber()
                 simulator.compute_right_atrial_fiber(appendage=coord)
 
-                simulator.model.left_atrium.has_fiber = True
-                simulator.model.left_atrium.is_active = True
-                simulator.model.right_atrium.has_fiber = True
-                simulator.model.right_atrium.is_active = True
+                simulator.model.left_atrium.fiber = True
+                simulator.model.left_atrium.active = True
+                simulator.model.right_atrium.fiber = True
+                simulator.model.right_atrium.active = True
+                ring = simulator.model.create_atrial_stiff_ring()
+                ring.meca_material = NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+
+            _ = simulator.create_stiff_ventricle_base()
 
             simulator.compute_stress_free_configuration()
 
@@ -152,15 +158,6 @@ def main(args):
 if __name__ == "__main__":
     # Create an argument parser
     parser = argparse.ArgumentParser(description="EndToEnd Test: Batch run simulation")
-
-    # Define command-line arguments
-    parser.add_argument(
-        "--heartversion",
-        help="Heart model version. 0: Uses HeartModels from old version of models.py,"
-        + "1: Uses HeartModels from new version of models.py (models_new.py)",
-        type=str,
-        default="0",
-    )
 
     parser.add_argument(
         "--root",
@@ -195,12 +192,6 @@ if __name__ == "__main__":
     )
     # Parse the command-line arguments
     args = parser.parse_args()
-
-    # set right environment variable
-    if args.heartversion == "0":
-        os.environ["USE_OLD_HEART_MODELS"] = "1"
-    else:
-        os.environ["USE_OLD_HEART_MODELS"] = "0"
 
     # Call the main function with parsed arguments
     main(args)

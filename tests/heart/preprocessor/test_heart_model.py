@@ -22,220 +22,206 @@
 
 """Tests shigh-level heart model class. """
 
-import glob as glob
 import json
 import os
+import tempfile
+
+import yaml
 
 if os.getenv("GITHUB_ACTIONS"):
     is_gh_action = True
 else:
     is_gh_action = False
 
-import ansys.heart.preprocessor.models.v0_1.models as models
+import ansys.heart.preprocessor.models as models
 import numpy as np
 import pytest
-
-from tests.heart.conftest import create_directory, get_workdir
 
 
 def _get_test_model_info() -> models.ModelInfo:
     """Get a test model info and populates it."""
     info = models.ModelInfo(
-        database="Strocchi2020",
-        work_directory=get_workdir(),
-        path_to_case="path-to-case",
+        work_directory=None,
         path_to_simulation_mesh="path-to-simulation-mesh",
         mesh_size=2.0,
+        part_definitions={
+            "Left ventricle": {"id": 1, "enclosed_by_boundaries": {"endocardium": 2}}
+        },
     )
+    models.ModelInfo()
     return info
 
 
-def _get_test_model(model_type: type) -> models.HeartModel:
-    """Get a test heart model of specific type."""
-    info = _get_test_model_info()
-    model = model_type(info)
-    return model
-
-
-@pytest.fixture(autouse=True)
-def cleanup_working_directory_after_tests():
-    """Remove any files that were added during the test."""
-    # execute before tests
-    list_of_files_before = glob.glob(os.path.join(get_workdir(), "*"))
-    yield
-    # execute after tests
-    list_of_files_after = glob.glob(os.path.join(get_workdir(), "*"))
-    files_to_remove = list(set(list_of_files_after) - set(list_of_files_before))
-    for file in files_to_remove:
-        os.remove(file)
-    return
-
-
-def test_model_info_dump():
+@pytest.mark.parametrize("extension", [".json", ".yml"])
+def test_model_info_dump(extension):
     """Test dumping of model info to json."""
-    info = _get_test_model_info()
-    create_directory(get_workdir())
-    path_to_model_info = os.path.join(get_workdir(), "model_info.json")
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
+        info = _get_test_model_info()
+        info.workdir = workdir
 
-    info.dump_info(path_to_model_info)
+        path_to_model_info = os.path.join(workdir, "model_info" + extension)
 
-    path_to_model_info
-    with open(path_to_model_info) as json_file:
-        json_data = json.load(json_file)
+        info.dump_info(path_to_model_info)
 
-    assert info.database == json_data["_database"], "Database not the same"
-    assert info.workdir == json_data["workdir"], "Workdir not the same"
-    assert (
-        info.path_to_original_mesh == json_data["path_to_original_mesh"]
-    ), "Path to original mesh not the same"
-    assert (
-        info.path_to_simulation_mesh == json_data["path_to_simulation_mesh"]
-    ), "Path to simulation mesh not the same"
-    assert info.mesh_size == json_data["mesh_size"], "Mesh size not the same"
+        path_to_model_info
+        if extension == ".json":
+            with open(path_to_model_info) as json_file:
+                data = json.load(json_file)
+        else:
+            with open(path_to_model_info) as json_file:
+                data = yaml.load(json_file, yaml.SafeLoader)
+
+        assert info.workdir == data["workdir"], "Workdir not the same"
+        assert (
+            info.path_to_simulation_mesh == data["path_to_simulation_mesh"]
+        ), "Path to simulation mesh not the same"
+        assert info.mesh_size == data["mesh_size"], "Mesh size not the same"
+        assert info.part_definitions == data["part_definitions"]
+        assert info.path_to_model == data["path_to_model"]
 
     pass
 
 
 def test_dump_model_001():
     """Test dumping of model to disk: using path in ModelInfo."""
-    info = _get_test_model_info()
-    info.workdir = get_workdir()
-    create_directory(info.workdir)
-    model = models.BiVentricle(info)
-    expected_path = os.path.join(model.info.workdir, "heart_model.pickle")
-    if os.path.isfile(expected_path):
-        os.remove(expected_path)
+    from pathlib import Path
 
-    model.info.path_to_model = None
-    model.dump_model()
-    assert os.path.isfile(expected_path)
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
+        info = models.ModelInfo(work_directory=workdir)
+        model = models.BiVentricle(info)
 
+        expected_path = os.path.join(model.info.workdir, "heart_model.pickle")
 
-def test_dump_model_002():
-    """Test dumping of model to disk: using specific path in ModelInfo."""
-    info = _get_test_model_info()
-    info.workdir = get_workdir()
-    create_directory(info.workdir)
-    model = models.BiVentricle(info)
-    expected_path = os.path.join(model.info.workdir, "heart_model1.pickle")
-    if os.path.isfile(expected_path):
-        os.remove(expected_path)
+        model.dump_model()
+        assert os.path.isfile(expected_path)
+        assert model.info.path_to_model == expected_path
 
-    model.info.path_to_model = expected_path
-    model.dump_model()
-    assert os.path.isfile(expected_path)
+        expected_path = os.path.join(model.info.workdir, "heart_model1.pickle")
+        model.dump_model(expected_path)
+        assert os.path.isfile(expected_path)
+        assert model.info.path_to_model == expected_path
+
+        expected_path = Path(os.path.join(model.info.workdir, "heart_model2.pickle"))
+        model.dump_model(expected_path)
+        assert os.path.isfile(expected_path)
+        assert model.info.path_to_model == str(expected_path)
 
 
-def test_dump_model_003():
-    """Test dumping of model to disk: using specific path."""
-    info = _get_test_model_info()
-    info.workdir = get_workdir()
-    create_directory(info.workdir)
-    model = models.BiVentricle(info)
-    model.info.path_to_model = os.path.join(model.info.workdir, "heart_model2.pickle")
-    expected_path = os.path.join(model.info.workdir, "heart_model3.pickle")
-    if os.path.isfile(expected_path):
-        os.remove(expected_path)
-
-    model.dump_model(expected_path)
-    assert os.path.isfile(expected_path)
-
-
-def test_dump_read_model_004():
+def test_model_load_001():
     """Test dumping and reading of model with data."""
-    info = _get_test_model_info()
-    info.workdir = get_workdir()
-    create_directory(info.workdir)
-    model = models.BiVentricle(info)
-    model.info.path_to_model = os.path.join(model.info.workdir, "heart_model.pickle")
-    model.left_ventricle.endocardium.triangles = np.array([[0, 1, 2]], dtype=int)
-    model.left_ventricle.endocardium.nodes = np.eye(3, 3, dtype=float)
-    model.dump_model(remove_raw_mesh=False)
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
 
-    assert os.path.isfile(model.info.path_to_model)
+        info = models.ModelInfo()
+        info.workdir = workdir
+        model = models.BiVentricle(info)
 
-    model_loaded: models.BiVentricle = models.HeartModel.load_model(model.info.path_to_model)
-    assert np.array_equal(
-        model_loaded.left_ventricle.endocardium.triangles,
-        model.left_ventricle.endocardium.triangles,
-    )
-    assert np.array_equal(
-        model_loaded.left_ventricle.endocardium.nodes,
-        model.left_ventricle.endocardium.nodes,
-    )
+        model.info.path_to_model = os.path.join(model.info.workdir, "heart_model.pickle")
+        model.left_ventricle.endocardium.triangles = np.array([[0, 1, 2]], dtype=int)
+        model.left_ventricle.endocardium.nodes = np.eye(3, 3, dtype=float)
+
+        model.dump_model()
+
+        assert os.path.isfile(model.info.path_to_model)
+
+        model_loaded: models.BiVentricle = models.HeartModel.load_model(model.info.path_to_model)
+        assert np.array_equal(
+            model_loaded.left_ventricle.endocardium.triangles,
+            model.left_ventricle.endocardium.triangles,
+        )
+        assert np.array_equal(
+            model_loaded.left_ventricle.endocardium.nodes,
+            model.left_ventricle.endocardium.nodes,
+        )
 
 
-@pytest.mark.skip(reason="expected to fail due to access violation: unknown cause. ")
-# @pytest.mark.skipif(is_gh_action, reason="Workaround for github fail")
-def test_model_load():
+def test_model_load_002():
     """Test loading model from pickle."""
-    model: models.BiVentricle = _get_test_model(models.BiVentricle)
-    # populate model
-    model.left_ventricle.element_ids = np.array([1, 2, 3, 4], dtype=int)
-    model.right_ventricle.element_ids = np.array([11, 66, 77, 88], dtype=int)
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
+        info = _get_test_model_info()
+        model: models.BiVentricle = models.BiVentricle(info)
+        model.info.workdir = workdir
+        # populate model
+        model.left_ventricle.element_ids = np.array([1, 2, 3, 4], dtype=int)
+        model.right_ventricle.element_ids = np.array([11, 66, 77, 88], dtype=int)
 
-    model.left_ventricle.endocardium.triangles = np.array([[1, 2, 3], [1, 2, 4]], dtype=int)
-    model.right_ventricle.endocardium.triangles = np.array([[11, 22, 33], [11, 22, 44]], dtype=int)
+        model.left_ventricle.endocardium.triangles = np.array([[0, 1, 2], [0, 2, 3]], dtype=int)
+        model.left_ventricle.endocardium.nodes = np.array(
+            [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=float
+        )
 
-    model.mesh.tetrahedrons = np.array([[1, 2, 3, 4], [1, 2, 3, 5]], dtype=int)
-    model.mesh.nodes = np.array([[0.0, 0.0, 0.1], [1.0, 1.0, 1.1]], dtype=float)
+        model.right_ventricle.endocardium.triangles = np.array([[0, 3, 1], [3, 2, 0]], dtype=int)
+        model.right_ventricle.endocardium.nodes = (
+            np.array(
+                [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=float
+            )
+            + 10
+        )
 
-    # dump model to disk
-    path_to_heart_model = os.path.join(get_workdir(), "heart_model.pickle")
-    model.dump_model(path_to_heart_model)
+        model.mesh.tetrahedrons = np.array([[0, 1, 2, 3]], dtype=int)
+        model.mesh.nodes = np.array(
+            [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=float
+        )
 
-    assert os.path.isfile(path_to_heart_model), "File does not exist"
+        # dump model to disk
+        path_to_heart_model = os.path.join(workdir, "heart_model.pickle")
+        model.dump_model(path_to_heart_model)
 
-    # load model
-    model1 = models.HeartModel.load_model(path_to_heart_model)
+        assert os.path.isfile(path_to_heart_model), "File does not exist"
 
-    assert isinstance(model1, models.BiVentricle), "Expecting model of type BiVentricle"
+        # load model
+        model1 = models.HeartModel.load_model(path_to_heart_model)
 
-    # compare contents to original
-    assert np.array_equal(model1.left_ventricle.element_ids, model.left_ventricle.element_ids)
-    assert np.array_equal(model1.right_ventricle.element_ids, model.right_ventricle.element_ids)
+        assert isinstance(model1, models.BiVentricle), "Expecting model of type BiVentricle"
 
-    assert np.array_equal(
-        model1.left_ventricle.endocardium.triangles, model.left_ventricle.endocardium.triangles
-    )
-    assert np.array_equal(
-        model1.right_ventricle.endocardium.triangles, model.right_ventricle.endocardium.triangles
-    )
+        # compare contents to original
+        assert np.array_equal(model1.left_ventricle.element_ids, model.left_ventricle.element_ids)
+        assert np.array_equal(model1.right_ventricle.element_ids, model.right_ventricle.element_ids)
 
-    assert np.array_equal(model1.mesh.tetrahedrons, model.mesh.tetrahedrons)
-    assert np.allclose(model1.mesh.nodes, model.mesh.nodes, atol=1e-8)
+        assert np.array_equal(
+            model1.left_ventricle.endocardium.triangles, model.left_ventricle.endocardium.triangles
+        )
+        assert np.array_equal(
+            model1.right_ventricle.endocardium.triangles,
+            model.right_ventricle.endocardium.triangles,
+        )
+        assert np.array_equal(model1.mesh.tetrahedrons, model.mesh.tetrahedrons)
+        assert np.allclose(model1.mesh.nodes, model.mesh.nodes, atol=1e-8)
 
     pass
 
 
 @pytest.mark.parametrize(
-    "model_type",
-    [models.LeftVentricle, models.BiVentricle, models.FourChamber, models.FullHeart],
+    "model_type,expected_part_names",
+    [
+        (models.LeftVentricle, ["Left ventricle"]),
+        (models.BiVentricle, ["Left ventricle", "Right ventricle", "Septum"]),
+        (
+            models.FourChamber,
+            [
+                "Left ventricle",
+                "Right ventricle",
+                "Septum",
+                "Left atrium",
+                "Right atrium",
+            ],
+        ),
+        (
+            models.FullHeart,
+            [
+                "Left ventricle",
+                "Right ventricle",
+                "Septum",
+                "Left atrium",
+                "Right atrium",
+                "Aorta",
+                "Pulmonary artery",
+            ],
+        ),
+    ],
 )
-def test_model_part_names(model_type):
+def test_model_part_names(model_type, expected_part_names):
     """Test whether all parts exist in the model."""
-    info = _get_test_model_info()
-    model = model_type(info)
+    info = models.ModelInfo()
+    model: models.HeartModel = model_type(info)
 
-    if isinstance(model, models.LeftVentricle):
-        assert model.part_names == ["Left ventricle"]
-    elif isinstance(model, models.BiVentricle):
-        assert model.part_names == ["Left ventricle", "Right ventricle", "Septum"]
-    elif type(model) == models.FourChamber:
-        assert model.part_names == [
-            "Left ventricle",
-            "Right ventricle",
-            "Septum",
-            "Left atrium",
-            "Right atrium",
-        ]
-    elif type(model) == models.FullHeart:
-        assert model.part_names == [
-            "Left ventricle",
-            "Right ventricle",
-            "Septum",
-            "Left atrium",
-            "Right atrium",
-            "Aorta",
-            "Pulmonary artery",
-        ]
+    assert model.part_names == expected_part_names

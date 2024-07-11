@@ -34,7 +34,7 @@ and to get the necessary parts or boundaries for each respective model.
 import copy
 import os
 from pathlib import Path
-from typing import List, Union
+from typing import List, Tuple, Union
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.mesh.vtkmethods import add_solid_name_to_stl
@@ -251,7 +251,7 @@ class _InputModel:
             return
             # raise NotImplementedError("Default part definitions not yet implemented.")
 
-        self._add_parts(part_definitions)
+        self.part_definitions = self._add_parts(part_definitions)
         self._validate_input()
         self._validate_uniqueness()
 
@@ -301,8 +301,25 @@ class _InputModel:
             "Input boundary mesh:\n" + str(self.input_polydata) + yaml.dump(self.part_definitions)
         )
 
-    def _add_parts(self, part_definitions: dict):
-        """Update the list of parts based on the part definitions."""
+    def _add_parts(self, part_definitions: dict) -> dict:
+        """Update the list of parts based on the part definitions.
+
+        Parameters
+        ----------
+        part_definitions : dict
+            Dictionary defining the part names and list of boundaries it is enclosed by.
+
+        Returns
+        -------
+        dict
+            Updated part definitions.
+
+        Notes
+        -----
+        The part definitions only change if multiple ids are given for a single surface.
+        The first item in the list defines the new boundary id, and the others are merged.
+
+        """
         is_visited = np.full(self.input_polydata.n_cells, False)
 
         for part_name in part_definitions.keys():
@@ -313,6 +330,10 @@ class _InputModel:
                 mask = np.isin(self.input_polydata["boundary-id"], boundary_id)
                 is_visited[mask] = True
                 polydata = self.input_polydata.extract_cells(mask).extract_surface()
+
+                # take on first value in list
+                if isinstance(boundary_id, list):
+                    boundary_id = boundary_id[0]
 
                 b = _InputBoundary(polydata, name=boundary_name, id=boundary_id)
                 boundaries.append(b)
@@ -330,7 +351,7 @@ class _InputModel:
             )
             self.input_polydata = self.input_polydata.extract_cells(is_visited)
 
-        return
+        return part_definitions
 
     def _validate_if_parts_manifold(self):
         """Check if all parts are manifold (watertight)."""
@@ -408,17 +429,32 @@ class _InputModel:
         writedir: Union[str, Path] = ".",
         extension: str = ".stl",
         avoid_duplicates: bool = True,
-    ):
+        add_name_to_header: bool = True,
+    ) -> Tuple[List, List]:
         """Write boundaries of all parts."""
         saved = []
+        boundary_names = []
+        filenames = []
+        ii = 0
         for b in self.boundaries:
             if avoid_duplicates:
                 if b.id in saved:
                     continue
             filename = os.path.join(writedir, b.name.lower().replace(" ", "_") + extension)
             b.save(filename)
-            add_solid_name_to_stl(filename, b.name, file_type="binary")
+            if add_name_to_header:
+                boundary_name = b.name
+            else:
+                boundary_name = ""
+
+            add_solid_name_to_stl(filename, boundary_name, file_type="binary")
             saved.append(b.id)
+
+            boundary_names += [boundary_name]
+            filenames += [filename]
+            ii += 1
+
+        return filenames, boundary_names
 
 
 def _invert_dict(d: dict):
@@ -477,7 +513,7 @@ def _get_required_boundaries(model_type: str) -> List[str]:
     return required_boundaries
 
 
-class InputManager:
+class _InputManager:
     """Class to manage the different types of input.
 
     Notes

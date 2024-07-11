@@ -29,12 +29,6 @@ from primitive shapes. Shape based on
 Land et al (2015): https://doi.org/10.1098/rspa.2015.0641
 """
 
-import os
-
-import numpy as np
-
-os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
-
 
 ###############################################################################
 # Example setup
@@ -43,15 +37,16 @@ os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Import the required modules and set relevant paths, including that of the working
 # directory and generated model
+import os
+
+import ansys.heart.preprocessor.models as models
+import numpy as np
+import pyvista as pv
 
 # sphinx_gallery_start_ignore
 # sphinx_gallery_thumbnail_path = '_static/images/truncated_LV_mesh.png'
 # sphinx_gallery_end_ignore
 
-import os
-
-import ansys.heart.preprocessor.models.v0_2.models as models
-import pyvista as pv
 
 ###############################################################################
 # Create a truncated ellipsoid using pyvista
@@ -126,11 +121,16 @@ model.info.clean_workdir([".stl", ".msh.h5", ".pickle"])
 # load input model
 model.load_input()
 
-# mesh the volume.
+###############################################################################
+# Remesh the surfaces and volume
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-# Note that the individual surfaces in the combined PolyData object are
-# unconnected. Using the wrapper automatically fixes any small gaps
-# and ensures a proper connectivity.
+# .. note::
+#    The individual surfaces in the combined PolyData object are
+#    unconnected. Using the wrapper automatically fixes any small gaps
+#    and ensures proper connectivity.
+
+# remesh the model using wrapping
 model.mesh_volume(use_wrapper=True)
 
 # assign axis of model manually.
@@ -147,13 +147,12 @@ model._assign_surfaces_to_parts()
 model._validate_parts()
 model._validate_surfaces()
 
-model._assign_caps_to_parts()
-model._validate_cap_names()
-
 model._add_nodal_areas()
 model._add_surface_normals()
 
 model._assign_cavities_to_parts()
+model._update_cap_names()
+model._validate_cap_names()
 model._extract_apex()
 
 model.compute_left_ventricle_aha17()

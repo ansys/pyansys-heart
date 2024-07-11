@@ -25,7 +25,7 @@
 import os
 import pathlib
 
-import ansys.heart.preprocessor.models.v0_1.models as models
+import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.simulator import MechanicsSimulator
 from ansys.heart.simulator.support import run_preprocessor
 
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     path_to_model = os.path.join(workdir, "heart_model.pickle")
 
     use_preprocessor = False
-
+    # TODO: fix this
     if use_preprocessor:
         model = run_preprocessor(
             model_type=models.BiVentricle,

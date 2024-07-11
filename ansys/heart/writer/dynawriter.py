@@ -3633,7 +3633,8 @@ class UHCWriter(BaseDynaWriter):
                     surface.edge_groups = []
 
             model._assign_surfaces_to_parts()
-            model._assign_caps_to_parts()
+            model._assign_cavities_to_parts()
+            model._update_cap_names()
 
             self._keep_parts(parts_to_keep)
             model.mesh.clear_data()

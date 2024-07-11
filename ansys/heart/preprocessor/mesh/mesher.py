@@ -56,6 +56,10 @@ if os.getenv("PYFLUENT_LAUNCH_CONTAINER"):
 else:
     _uses_container = False
 
+if _show_fluent_gui:
+    _fluent_ui_mode = "gui"
+else:
+    _fluent_ui_mode = "hidden_gui"
 
 try:
     import ansys.fluent.core as pyfluent
@@ -143,7 +147,7 @@ def _get_fluent_meshing_session() -> MeshingSession:
         precision="double",
         processor_count=num_cpus,
         start_transcript=False,
-        show_gui=_show_fluent_gui,
+        ui_mode=_fluent_ui_mode,
         product_version=_fluent_version,
         start_container=_uses_container,
     )
@@ -721,194 +725,6 @@ def mesh_from_non_manifold_input_model(
             fz.name = fz.name.split(":")[0]
 
     return new_mesh
-
-
-def mesh_heart_model_by_fluent(
-    path_to_stl_directory: str,
-    path_to_output: str,
-    mesh_size: float = 2.0,
-    add_blood_pool: bool = False,
-    show_gui: bool = False,
-):
-    """
-    Use Fluent meshing to wrap the surface and create tetrahedral volume mesh.
-
-    Notes
-    -----
-    Optionally extracts the blood pool.
-    """
-    import ansys.fluent.core as pyfluent
-
-    LOGGER.warning("This method os deprecated and will be removed.")
-
-    # make sure we are using absolute path
-    path_to_stl_directory = os.path.abspath(path_to_stl_directory)
-    path_to_output = os.path.abspath(path_to_output)
-
-    # change directory to directory of stl file
-    old_directory = os.getcwd()
-    working_directory = path_to_stl_directory
-    os.chdir(working_directory)
-
-    num_cpus = 2
-
-    # check whether containerized version of Fluent is used
-    if os.getenv("PYFLUENT_LAUNCH_CONTAINER"):
-        LOGGER.debug("Launching Fluent as container...")
-        uses_container = True
-    else:
-        uses_container = False
-
-    # NOTE: when using containerized version - we need to copy all the files
-    # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
-    if uses_container:
-        mounted_volume = pyfluent.EXAMPLES_PATH
-        work_dir_meshing = os.path.join(mounted_volume)
-    else:
-        work_dir_meshing = os.path.abspath(os.path.join(working_directory, "meshing"))
-
-    if os.path.isdir(work_dir_meshing) and not _uses_container:
-        shutil.rmtree(work_dir_meshing)
-
-    try:
-        os.makedirs(work_dir_meshing)
-    except:
-        LOGGER.debug("Failed to create working directory")
-
-    path_to_output_old = path_to_output
-    path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
-
-    # copy all necessary files to meshing directory
-    files_to_copy = glob.glob("part*.stl")
-    for file in files_to_copy:
-        shutil.copyfile(file, os.path.join(work_dir_meshing, file))
-
-    LOGGER.debug("Starting meshing in directory: {}".format(work_dir_meshing))
-    # start fluent session
-    session = _get_fluent_meshing_session()
-
-    if session.health_check_service.status() != "SERVING":
-        LOGGER.error("Fluent session failed. Exiting Fluent")
-        session.exit()
-        exit()
-
-    min_size = mesh_size
-    max_size = mesh_size
-    growth_rate_wrap = 1.2
-
-    session.transcript.start(
-        os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
-    )
-
-    # import files
-    if _uses_container:
-        work_dir_meshing = "."
-
-    session.tui.file.import_.cad("no " + work_dir_meshing + " part_*.stl yes 40 yes mm")
-    # session.transcript.start
-    session.tui.objects.merge("'(*) heart")
-    session.tui.objects.labels.create_label_per_zone("heart '(*)")
-    session.tui.diagnostics.face_connectivity.fix_free_faces("objects '(*) merge-nodes yes 1e-3")
-    session.tui.objects.create_intersection_loops("collectively '(*)")
-    session.tui.boundary.feature.create_edge_zones("(*) fixed-angle 70 yes")
-
-    # set up size field for wrapping
-    session.tui.size_functions.set_global_controls(min_size, max_size, growth_rate_wrap)
-    session.tui.scoped_sizing.compute("yes")
-
-    # wrap objects
-    session.tui.objects.wrap.wrap(
-        "'(*)",
-        "collectively",
-        "wrapped-myocardium",
-        "shrink-wrap",
-        "external",
-        "wrap",
-        "hybrid",
-        0.8,
-    )
-
-    if add_blood_pool:
-        # if adding blood pool:
-        # ; ------------------------------------------------------------------
-        # ; script for auto-generating caps for all endocardial parts
-        # ; and extracting blood pool volume
-        # ; This first copies all the endocardial zones and septum and
-        # ; and closes the the cavities based on the free faces
-        # ; Note that the auto-patch utility may not work in all cases.
-        # ; ------------------------------------------------------------------
-        session.tui.objects.delete_all_geom()
-        session.scheme_eval.scheme_eval(
-            "(define zone-ids-endo (get-face-zones-of-filter '*endocardium*) )"
-        )
-        session.scheme_eval.scheme_eval(
-            "(define zone-id-septum (get-face-zones-of-filter '*septum*) )"
-        )
-        session.scheme_eval.scheme_eval(
-            "(define zone-ids-to-copy (append zone-ids-endo zone-id-septum) )"
-        )
-        session.scheme_eval.scheme_eval(
-            '(ti-menu-load-string  ( format #f "/boundary/manage/copy ~a" zone-ids-to-copy) )'
-        )
-        session.scheme_eval.scheme_eval(
-            "(define zone-ids-to-patch (get-unreferenced-face-zones-of-filter '*) )"
-        )
-        session.scheme_eval.scheme_eval(
-            '(ti-menu-load-string  ( format #f "/boundary/modify/auto-patch-holes ~a"'
-            "zone-ids-to-patch) )"
-        )
-        session.scheme_eval.scheme_eval(
-            "(define zone-ids-patch (get-unreferenced-face-zones-of-filter '*patch*) )"
-        )
-        session.tui.objects.create("valves fluid 3 '(*-patch-*) '() mesh yes")
-
-        # to here:
-        session.tui.objects.delete_unreferenced_faces_and_edges()
-        session.tui.objects.labels.create_label_per_zone("valves '(*)")
-        session.tui.objects.labels.remove_zones("valves valves '(*)")
-        session.tui.objects.merge("'(wrapped-myocardium valves) wrapped-myocardium")
-        session.tui.diagnostics.face_connectivity.fix_duplicate_faces(
-            "objects '(wrapped-myocardium)"
-        )
-        session.tui.boundary.remesh.controls.intersect.remesh_post_intersection("no")
-        session.tui.boundary.remesh.intersect_all_face_zones("yes 40 0.05 no")
-        session.tui.boundary.manage.remove_suffix("'(*)")
-        session.tui.diagnostics.face_connectivity.fix_duplicate_faces(
-            "objects '(wrapped-myocardium)"
-        )
-
-    # compute volumetric regions
-    session.tui.objects.volumetric_regions.compute("wrapped-myocardium", "no")
-    session.tui.objects.volumetric_regions.change_type("Wrapped-myocardium", "'(*)", "fluid")
-    session.tui.objects.volumetric_regions.change_type("wrapped-myocardium", "(heart)", "solid")
-
-    # start auto meshing
-    session.tui.mesh.tet.controls.cell_sizing("size-field")
-    session.tui.mesh.auto_mesh("wrapped-myocardium", "yes", "pyramids", "tet", "no")
-    session.tui.mesh.modify.auto_node_move("(*)", "(*)", 0.3, 50, 120, "yes", 5)
-    session.tui.objects.delete_all_geom()
-    session.tui.mesh.zone_names_clean_up()
-    session.tui.mesh.check_mesh()
-    session.tui.mesh.check_quality()
-    session.tui.boundary.manage.remove_suffix("(*)")
-
-    # prepare for solve (removes unused nodes, faces, etc.)
-    session.tui.mesh.prepare_for_solve("yes")
-
-    # write to file
-    if _uses_container:
-        session.tui.file.write_mesh(os.path.basename(path_to_output))
-    else:
-        session.tui.file.write_mesh(path_to_output)
-    # session.meshing.tui.file.read_journal(script)
-    session.exit()
-
-    shutil.copy(path_to_output, path_to_output_old)
-
-    # change back to old directory
-    os.chdir(old_directory)
-
-    return
 
 
 if __name__ == "__main__":

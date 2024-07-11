@@ -908,6 +908,7 @@ class PartType(Enum):
     SEPTUM = "septum"
     ARTERY = "artery"
     MYOCARDIUM = "myocardium"
+    UNDEFINED = "undefined"
 
 
 class Part:
@@ -949,7 +950,7 @@ class Part:
         LOGGER.error("Cannot find point {0:s}.".format(pointname))
         return None
 
-    def __init__(self, name: str = None, part_type: PartType = None) -> None:
+    def __init__(self, name: str = None, part_type: PartType = PartType.UNDEFINED) -> None:
         self.name = name
         """Name of the part."""
         self.pid = None

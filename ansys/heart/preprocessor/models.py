@@ -991,13 +991,13 @@ class HeartModel:
         self._validate_parts()
         self._validate_surfaces()
 
-        self._assign_caps_to_parts()
-        self._validate_cap_names()
-
         self._add_nodal_areas()
         self._add_surface_normals()
 
         self._assign_cavities_to_parts()
+        self._update_cap_names()
+        self._validate_cap_names()
+
         self._extract_apex()
 
         self.compute_left_ventricle_anatomy_axis()
@@ -1230,6 +1230,11 @@ class HeartModel:
         join_ventricles_with_atria : bool, optional
             Flag indicating whether to join the ventricle with atrial cavities, by default False
         """
+        # NOTE: Deprecated!
+        LOGGER.error("Method deprecated.")
+        exit()
+        return
+
         used_boundary_surface_names = [s.name for p in self.parts for s in p.surfaces]
         remaining_surfaces = list(set(self.mesh.boundary_names) - set(used_boundary_surface_names))
         remaining_surfaces1: List[SurfaceMesh] = []
@@ -1370,32 +1375,71 @@ class HeartModel:
 
         # construct cavities with endocardium and caps
         for part in self.parts:
-            if "atrium" not in part.name and "ventricle" not in part.name:
+            if not hasattr(part, "endocardium"):
                 continue
+
             cavity_faces = np.empty((0, 3), dtype=int)
 
+            # select endocardial surfaces
             surfaces = [s for s in part.surfaces if "endocardium" in s.name]
 
+            # NOTE, this is a loop since the right-ventricle endocardium consists
+            # of both the "regular" endocardium and the septal endocardium
             for surface in surfaces:
                 cavity_faces = np.vstack([cavity_faces, surface.triangles])
 
             # surface ids identifies caps from enocardium
-            ii = 1
+            ii = 0
             surface_ids = np.ones(cavity_faces.shape[0], dtype=int) * ii
-
-            for cap in part.caps:
-                ii += 1
-                surface_ids = np.append(
-                    surface_ids, np.ones(cap.triangles.shape[0], dtype=int) * ii
-                )
-                cavity_faces = np.vstack([cavity_faces, cap.triangles])
 
             surface = SurfaceMesh(
                 name=part.name + " cavity", triangles=cavity_faces, nodes=self.mesh.nodes
             )
+
+            # Generate patches that close the surface.
+            patches = vtkmethods.get_patches_with_centroid(surface)
+
+            LOGGER.debug(f"Generating {len(patches)} caps for {part.name}")
+
+            # update nodes: NOTE: last patch has all extra nodes.
+            self.mesh.nodes = patches[-1].points
+            self.mesh._sync_nodes_of_surfaces()
+
+            # Create Cap objects with patches
+            for patch in patches:
+                ii += 1
+
+                cap_name = f"cap_{ii}_{part.name}"
+                faces = np.reshape(patch.faces, (patch.n_faces, 4))[:, 1:]
+                lines = faces[:, 0:-1]
+                # create cap: NOTE, mostly for compatibility. Could simplify further
+                cap = Cap(cap_name, node_ids=np.unique(lines))
+                cap.triangles = faces
+                cap.centroid_id = faces[0, -1]
+                cap.centroid = self.mesh.nodes[cap.centroid_id, :]
+
+                cap.normal = np.mean(patch.compute_normals().cell_data["Normals"], axis=0)
+                part.caps.append(cap)
+                surface_ids = np.append(
+                    surface_ids, np.ones(cap.triangles.shape[0], dtype=int) * ii
+                )
+
+            # Add patches/caps to cavity surface.
+            surface.points = patches[-1].points
+            cap_triangles = np.empty((0, 3), dtype=int)
+            for cap in part.caps:
+                cap_triangles = np.vstack([cap_triangles, cap.triangles])
+
+            surface.triangles = np.vstack([surface.triangles, cap_triangles])
+
             surface.cell_data["surface-id"] = surface_ids
 
             surface.compute_normals(inplace=True)  # recompute normals
+
+            if not surface.is_manifold:
+                LOGGER.warning("Cavity of {part.name} is not manifold.")
+
+            # NOTE: Validate if normals are pointing inward.
             part.cavity = Cavity(surface=surface, name=part.name)
             part.cavity.compute_centroid()
 
@@ -1404,6 +1448,29 @@ class HeartModel:
             part.cavity.surface.write_to_stl(
                 os.path.join(self.info.workdir, "-".join(part.cavity.surface.name.lower().split()))
             )
+
+        return
+
+    def _update_cap_names(self):
+        """Try to update the cap names using names of connected boundaries."""
+        boundaries_to_check = [
+            b for b in self.mesh.boundaries if "valve" in b.name or "inlet" in b.name
+        ]
+        for part in self.parts:
+            for cap in part.caps:
+                for b in boundaries_to_check:
+                    if np.any(np.isin(cap.triangles, b.triangles)):
+                        # use specified boundary to update cap name:
+                        for split in b.name.split("_"):
+                            if "valve" in split or "inlet" in split:
+                                break
+                        cap.name = split.replace("-plane", "").replace("-inlet", "")
+
+                        if "atrium" in part.name and (
+                            "tricuspid" in cap.name or "mitral" in cap.name
+                        ):
+                            cap.name = cap.name + "-atrium"
+                        break
 
         return
 

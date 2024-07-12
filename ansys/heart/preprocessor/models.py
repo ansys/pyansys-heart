@@ -43,6 +43,7 @@ from ansys.heart.preprocessor.mesh.objects import (
     Cavity,
     Mesh,
     Part,
+    PartType,
     Point,
     SurfaceMesh,
 )
@@ -293,7 +294,7 @@ class HeartModel:
 
         self.add_part(name)
         new_part: Part = self.get_part(name)
-        new_part.part_type = ""
+
         new_part.element_ids = eids
 
         return new_part
@@ -903,7 +904,7 @@ class HeartModel:
     def _add_subparts(self) -> None:
         """Add subparts to parts of type ventricle."""
         for part in self.parts:
-            if part.part_type in ["ventricle"]:
+            if part.part_type in [PartType.VENTRICLE]:
                 part._add_myocardium_part()
                 if "Left ventricle" in part.name:
                     part._add_septum_part()
@@ -1705,9 +1706,9 @@ class HeartModel:
         v_ele = np.array([], dtype=int)
         a_ele = np.array([], dtype=int)
         for part in self.parts:
-            if part.part_type == "ventricle":
+            if part.part_type == PartType.VENTRICLE:
                 v_ele = np.append(v_ele, part.element_ids)
-            elif part.part_type == "atrium":
+            elif part.part_type == PartType.ATRIUM:
                 a_ele = np.append(a_ele, part.element_ids)
 
         ventricles = self.mesh.extract_cells(v_ele)
@@ -1743,7 +1744,7 @@ class HeartModel:
 
         # create a new part
         isolation: Part = self.create_part_by_ids(interface_eids, "Isolation atrial")
-        isolation.part_type = "atrium"
+        isolation.part_type = PartType.ATRIUM
         isolation.fiber = True
         isolation.active = False
 
@@ -1796,7 +1797,7 @@ class HeartModel:
         ring: Part = self.create_part_by_ids(
             ring_eles, name="base atrial stiff rings"
         )  # TODO name must has 'base', see dynawriter.py L3120
-        ring.part_type = "atrium"
+        ring.part_type = PartType.ATRIUM
         ring.fiber = False
         ring.active = False
 
@@ -1807,7 +1808,7 @@ class LeftVentricle(HeartModel):
     """Model of just the left ventricle."""
 
     def __init__(self, info: ModelInfo = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
         # remove septum - not used in left ventricle only model
         del self.left_ventricle.septum
@@ -1824,11 +1825,11 @@ class BiVentricle(HeartModel):
     """Model of the left and right ventricle."""
 
     def __init__(self, info: ModelInfo = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
+        self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
         """Right ventricle part."""
-        self.septum: Part = Part(name="Septum", part_type="septum")
+        self.septum: Part = Part(name="Septum", part_type=PartType.SEPTUM)
         """Septum."""
 
         self.left_ventricle.fiber = True
@@ -1847,16 +1848,16 @@ class FourChamber(HeartModel):
     """Model of the left/right ventricle and left/right atrium."""
 
     def __init__(self, info: ModelInfo = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
+        self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
         """Right ventricle part."""
-        self.septum: Part = Part(name="Septum", part_type="septum")
+        self.septum: Part = Part(name="Septum", part_type=PartType.SEPTUM)
         """Septum."""
 
-        self.left_atrium: Part = Part(name="Left atrium", part_type="atrium")
+        self.left_atrium: Part = Part(name="Left atrium", part_type=PartType.ATRIUM)
         """Left atrium part."""
-        self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
+        self.right_atrium: Part = Part(name="Right atrium", part_type=PartType.ATRIUM)
         """Right atrium part."""
 
         self.left_ventricle.fiber = True
@@ -1881,20 +1882,20 @@ class FullHeart(FourChamber):
     """Model of both ventricles, both atria, aorta and pulmonary artery."""
 
     def __init__(self, info: ModelInfo = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
+        self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
         """Right ventricle part."""
-        self.septum: Part = Part(name="Septum", part_type="septum")
+        self.septum: Part = Part(name="Septum", part_type=PartType.SEPTUM)
         """Septum."""
-        self.left_atrium: Part = Part(name="Left atrium", part_type="atrium")
+        self.left_atrium: Part = Part(name="Left atrium", part_type=PartType.ATRIUM)
         """Left atrium part."""
-        self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
+        self.right_atrium: Part = Part(name="Right atrium", part_type=PartType.ATRIUM)
         """Right atrium part."""
 
-        self.aorta: Part = Part(name="Aorta", part_type="artery")
+        self.aorta: Part = Part(name="Aorta", part_type=PartType.ARTERY)
         """Aorta part."""
-        self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type="artery")
+        self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type=PartType.ARTERY)
         """Pulmonary artery part."""
 
         self.left_ventricle.fiber = True

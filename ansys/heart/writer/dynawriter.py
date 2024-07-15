@@ -2593,7 +2593,6 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
             # check whether point is on edge of endocardium - otherwise pick another node in
             # the same triangle
             endocardium = self.model.left_ventricle.endocardium
-            endocardium.get_boundary_edges()
             if np.any(endocardium.boundary_edges == node_apex_left):
                 element_id = np.argwhere(np.any(endocardium.triangles == node_apex_left, axis=1))[
                     0
@@ -2665,7 +2664,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
             # check whether point is on edge of endocardium - otherwise pick another node in
             # the same triangle
             endocardium = self.model.right_ventricle.endocardium
-            endocardium.get_boundary_edges()
+            # endocardium.get_boundary_edges()
             if np.any(endocardium.boundary_edges == node_apex_right):
                 element_id = np.argwhere(np.any(endocardium.triangles == node_apex_right, axis=1))[
                     0
@@ -3623,8 +3622,6 @@ class UHCWriter(BaseDynaWriter):
             # so we need to update caps information at first
             for part in model.parts:
                 part.caps = []
-                for surface in part.surfaces:
-                    surface.edge_groups = []
 
             model._assign_surfaces_to_parts()
             model._assign_cavities_to_parts()

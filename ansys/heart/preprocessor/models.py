@@ -1083,7 +1083,7 @@ class HeartModel:
         # septum_surface_vtk_extruded = vtkmethods.extrude_polydata(septum_surface_vtk, 20)
 
         filename_vtk = os.path.join(self.info.workdir, "volume_mesh.vtk")
-        self.mesh.write_to_vtk(filename_vtk)
+        self.mesh.save(filename_vtk)
         volume_vtk = pv.read(filename_vtk)
 
         element_ids_septum = vtkmethods.cell_ids_inside_enclosed_surface(
@@ -1125,7 +1125,6 @@ class HeartModel:
                     )
                 ]
 
-                surface.get_boundary_edges()
                 if np.any(surface.boundary_edges == apical_node_id):
                     # Apical node is on the edge, need to adjust
                     element_id = np.argwhere(np.any(surface.triangles == apical_node_id, axis=1))[

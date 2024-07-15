@@ -20,9 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from ansys.heart.preprocessor.mesh.vtkmethods import get_patches_delaunay, get_patches_with_centroid
 import pytest
 import pyvista as pv
+
+from ansys.heart.preprocessor.mesh.vtkmethods import get_patches_delaunay, get_patches_with_centroid
 
 
 @pytest.mark.parametrize("method", (get_patches_delaunay, get_patches_with_centroid))

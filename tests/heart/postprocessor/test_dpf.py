@@ -25,9 +25,10 @@ import os
 
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
-from ansys.heart.postprocessor.dpf_utils import ICVoutReader
 import numpy as np
 import pytest
+
+from ansys.heart.postprocessor.dpf_utils import ICVoutReader
 
 if os.getenv("GITHUB_ACTION"):
     github_runner = True

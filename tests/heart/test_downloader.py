@@ -26,14 +26,15 @@ import os
 import pathlib
 import tempfile
 
+import pytest
+import validators
+
 from ansys.heart.misc.downloader import (
     _format_download_urls,
     download_case,
     unpack_case,
     validate_hash_sha256,
 )
-import pytest
-import validators
 
 
 @pytest.mark.parametrize(

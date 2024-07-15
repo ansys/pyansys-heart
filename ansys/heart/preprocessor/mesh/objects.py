@@ -27,14 +27,11 @@ Such as a Mesh object, Part object, Features, etc.
 
 """
 
-import copy
 from enum import Enum
 import pathlib
-from typing import List, Optional, Tuple, Union
+from typing import List, Union
 
 from ansys.heart.core import LOG as LOGGER
-import ansys.heart.preprocessor.mesh.connectivity as connect
-import ansys.heart.preprocessor.mesh.geodisc as geodisc
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.simulator.settings.material.material import MechanicalMaterialModel
 import numpy as np
@@ -49,6 +46,7 @@ class Feature:
     """Feature class."""
 
     def __init__(self, name: str = None) -> None:
+        LOGGER.error(DeprecationWarning("Deprecated"))
         self.name = name
         """Name of feature."""
         self.type = None
@@ -65,6 +63,7 @@ class EdgeGroup:
     """Edge group class, contains info on connected edges."""
 
     def __init__(self, edges: np.ndarray = None, type: str = None) -> None:
+        LOGGER.error(DeprecationWarning("Deprecated"))
         self.edges = edges
         """Edges in edge group."""
         self.type = type
@@ -153,12 +152,6 @@ class SurfaceMesh(pv.PolyData, Feature):
         """ID of surface."""
         self.nsid: int = None
         """ID of corresponding set of nodes."""
-        # self.cell_data: dict = {}
-        # """Data associated with each face/cell of surface."""
-        # self.point_data: dict = {}
-        """Data associated with each point on surface."""
-        self._pv_polydata: pv.PolyData = pv.PolyData()
-        """Pyvista representation of the surface mesh."""
 
         self.triangles = triangles
         """Triangular faces of the surface num_faces x 3."""
@@ -179,89 +172,6 @@ class SurfaceMesh(pv.PolyData, Feature):
         node_ids = self.boundary_edges.flatten()[np.sort(idx)]
         return node_ids
 
-    def compute_centroid(self) -> np.ndarray:
-        """Compute the centroid of the surface."""
-        return np.mean(self.nodes[np.unique(self.triangles), :], axis=0)
-
-    def compute_bounding_box(self) -> Tuple[np.ndarray, float]:
-        """Compute the bounding box of the surface."""
-        bounding_box = np.reshape(self.clean().bounds, (3, 2)).T
-        volume = np.prod(np.diff(bounding_box, axis=0))
-        return bounding_box, volume
-
-    def get_boundary_edges(self, append_triangles=None) -> List[EdgeGroup]:
-        """
-        Get boundary edges (if any) of the surface and groups them by connectivity.
-
-        Parameters
-        ----------
-        append_triangles: optional
-            special fix for right ventricle endocardium surface since it needs one part
-            from spetum.
-        """
-        write_vtk = False
-
-        if append_triangles is not None:
-            self.boundary_edges = connect.get_free_edges(
-                np.vstack((self.triangles, append_triangles))
-            )
-        else:
-            self.boundary_edges = connect.get_free_edges(self.triangles)
-
-        edge_groups, group_types = connect.edge_connectivity(
-            self.boundary_edges, return_type=True, sort_closed=True
-        )
-
-        for ii, edge_group in enumerate(edge_groups):
-            group = EdgeGroup(edges=edge_group, type=group_types[ii])
-            self.edge_groups.append(group)
-
-            if write_vtk:
-                tris = np.vstack([edge_group[:, 0], edge_group.T]).T
-                tris = np.hstack([np.ones(tris.shape[0], 1) * 3, tris])
-                vtk_surf = pv.PolyData(self.nodes, tris.flatten())
-                vtk_surf.save("edges_{0}_{1}.vtk".format(ii, self.name))
-
-        return self.edge_groups
-
-    def smooth_boundary_edges(self, window_size: int = 3) -> np.ndarray:
-        """Smooth the boundary edges if they are closed."""
-        if window_size % 2 != 1:
-            raise ValueError("Please specify window size to be an uneven number")
-
-        # self.write_feature_edges_to_vtk("unsmoothed")
-        modified_nodes = np.empty((0), dtype=int)
-        for ii, edge_group in enumerate(self.edge_groups):
-            edges = edge_group.edges
-
-            idx = np.unique(edges.flatten(), return_index=True)[1]
-            idx = np.sort(idx)  # maintain order
-            node_ids = edges.flatten()[idx]
-            nodes = copy.deepcopy(self.nodes[node_ids, :])
-            # project points onto plane
-            nodes = geodisc.project_3d_points(nodes)[0]
-
-            # self.write_feature_edges_to_vtk("projected")
-
-            if edge_group.type == "closed":
-                # use a window average method to smooth edges nodes
-                num_points_to_add = int((window_size - 1) / 2)
-                nodes = np.concatenate(
-                    (nodes[-num_points_to_add:], nodes, nodes[0:num_points_to_add])
-                )
-                offset = num_points_to_add
-                for ii, node in enumerate(nodes[:-num_points_to_add]):
-                    nodes[ii + offset] = np.mean(nodes[ii : ii + window_size, :], axis=0)
-                nodes = nodes[num_points_to_add:-num_points_to_add]
-
-            self.points[node_ids, :] = nodes
-
-            modified_nodes = np.append(modified_nodes, node_ids)
-
-        # self.write_feature_edges_to_vtk("smoothed")
-
-        return modified_nodes
-
     def write_to_stl(self, filename: pathlib.Path = None) -> None:
         """Write the surface to a vtk file."""
         if not filename:
@@ -278,29 +188,6 @@ class SurfaceMesh(pv.PolyData, Feature):
         vtk_surface = vtkmethods.create_vtk_surface_triangles(self.nodes, self.triangles)
         vtkmethods.vtk_surface_to_stl(vtk_surface, filename, self.name)
         return
-
-    def _to_pyvista_object(self) -> pv.PolyData:
-        """Convert to pyvista polydata object.
-
-        Returns
-        -------
-        pv.PolyData
-            pyvista PolyData object
-        """
-        DeprecationWarning("_to_pyvista_object is deprecated.")
-        faces = np.hstack([np.ones((self.triangles.shape[0], 1), dtype=int) * 3, self.triangles])
-        nodes = self.nodes
-        faces = np.reshape(faces, (faces.size))
-        polydata = pv.PolyData(nodes, faces)
-        if self.cell_data:
-            for key, value in self.cell_data.items():
-                polydata.cell_data[key] = value
-
-        if self.point_data:
-            for key, value in self.point_data.items():
-                polydata.point_data[key] = value
-
-        return polydata
 
 
 class BeamMesh(pv.UnstructuredGrid, Feature):
@@ -530,24 +417,6 @@ class Mesh(pv.UnstructuredGrid):
     def __init__(self, *args):
         super().__init__(*args)
 
-        # self.tetrahedrons: np.ndarray = None
-        # """Tetrahedral volume elements of the mesh."""
-        # self.nodes: np.ndarray = None
-        # """Nodes of the mesh."""
-        # self.cell_data: dict = None
-        # """Data per mesh cell/element."""
-        # self.point_data: dict = None
-        # """Data per mesh point."""
-        self.triangles: np.ndarray = None
-        """Faces that make up the tetrahedrons."""
-        self.face_types: np.ndarray = None
-        """Type of face: 1: interior face, 2: boundary face, 3: interface face."""
-        self.conn = {"c0": [], "c1": []}
-        """Face-tetra connectivity array."""
-        # TODO: just store used nodes in interfaces and boundaries
-        # and add mapper to map from local to global (volume mesh) node ids
-        self.interfaces: List[SurfaceMesh] = []
-        """List of surface meshes that make up the interface between different parts."""
         self.boundaries: List[SurfaceMesh] = []
         """List of boundary surface meshes within the part."""
         pass
@@ -589,123 +458,12 @@ class Mesh(pv.UnstructuredGrid):
         """
         for b in self.boundaries:
             b.nodes = self.nodes
-        for i in self.interfaces:
-            i.nodes = self.nodes
+
         return
 
     def write_to_vtk(self, filename: pathlib.Path) -> None:
         """Write mesh to VTK file."""
         self.save(filename)
-        return
-
-    def establish_connectivity(self) -> None:
-        """Establish the connetivity of the tetrahedrons."""
-        self.triangles, self.conn["c0"], self.conn["c1"] = connect.face_tetra_connectivity(
-            self.tetrahedrons
-        )
-        # get the face types
-        c0c1_matrix = np.array([self.conn["c0"], self.conn["c1"]]).transpose()
-        self.face_types = connect.get_face_type(self.triangles, c0c1_matrix)
-
-        return
-
-    def get_mask_interface_faces(
-        self, return_pairs: bool = False
-    ) -> Tuple[np.ndarray, Optional[List[int]]]:
-        """Get the (interface) faces between two parts."""
-        c0 = self.conn["c0"]
-        c1 = self.conn["c1"]
-        part_ids = self.part_ids
-        face_types = self.face_types
-
-        mask_interface_faces = np.all(
-            np.vstack([part_ids[c0] != part_ids[c1], face_types == 1]), axis=0
-        )
-
-        # get interface pairs
-        interface_pairs = np.vstack(
-            [part_ids[c0][mask_interface_faces], part_ids[c1][mask_interface_faces]]
-        )
-        interface_pairs = np.array(interface_pairs, dtype=int)
-        interface_pairs_sorted = np.sort(interface_pairs, axis=0)
-        # get unique pairs
-        part_pairs = np.unique(interface_pairs_sorted, axis=1).transpose()
-        part_pairs = part_pairs.tolist()
-
-        # mark interface faces in type array
-        self.face_types[mask_interface_faces] = 3
-
-        if return_pairs:
-            return mask_interface_faces, part_pairs
-        else:
-            return mask_interface_faces
-
-    def add_interfaces(
-        self,
-        pairs: List[List[int]],
-        pair_names: List[str],
-    ) -> None:
-        """Add the interfaces between the parts to the mesh."""
-        part_ids = self.part_ids
-        c0 = self.conn["c0"]
-        c1 = self.conn["c1"]
-
-        # loop over pairs and add to the list of interfaces
-        for ii, pair in enumerate(pairs):
-            name = pair_names[ii]
-            part_mask1 = (
-                np.sum(
-                    np.array(
-                        [
-                            part_ids[c0] == pair[0],  # mask part 1
-                            part_ids[c1] == pair[0],  # mask part 1
-                        ]
-                    ),
-                    axis=0,
-                )
-                == 1
-            )
-            part_mask2 = (
-                np.sum(
-                    np.array(
-                        [
-                            part_ids[c0] == pair[1],  # mask part 2
-                            part_ids[c1] == pair[1],  # mask part 2
-                        ]
-                    ),
-                    axis=0,
-                )
-                == 1
-            )
-            pair_mask = np.all(np.array([part_mask1, part_mask2]), axis=0)
-
-            faces = self.triangles[pair_mask, :]
-            # NOTE: Nodes are shallow copied
-            self.interfaces.append(SurfaceMesh(name, faces, self.nodes))
-
-    def smooth_interfaces(self) -> None:
-        """Smooth the interfaces between the different parts."""
-        for interface in self.interfaces:
-            interface.get_boundary_edges()
-            node_ids_smoothed = interface.smooth_boundary_edges()
-            # make sure nodes of the (volume) mesh are updated
-            self.points[node_ids_smoothed, :] = interface.nodes[node_ids_smoothed, :]
-        return
-
-    def add_boundaries(self, add_part_ids: List[int] = [], boundary_names: List[str] = []) -> None:
-        """Add boundary surfaces to the mesh object. One surface per part."""
-        part_ids = self.part_ids
-        c0 = self.conn["c0"]
-        c1 = self.conn["c1"]
-
-        for ii, part_id in enumerate(add_part_ids):
-            boundary_mask = np.all(
-                np.array([part_ids[c0] == part_id, part_ids[c1] == part_id, self.face_types == 2]),
-                axis=0,
-            )
-            boundary_faces = self.triangles[boundary_mask, :]
-            self.boundaries.append(SurfaceMesh(boundary_names[ii], boundary_faces, self.nodes))
-
         return
 
     def get_surface_from_name(self, name: str = None):
@@ -715,7 +473,7 @@ class Mesh(pv.UnstructuredGrid):
         -----
         Returns single surface. When multiple matches are found returns list of surfaces
         """
-        surfaces_search = self.boundaries + self.interfaces
+        surfaces_search = self.boundaries
         surfaces = [s for s in surfaces_search if s.name == name]
         if len(surfaces) == 0:
             return None

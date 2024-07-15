@@ -59,18 +59,6 @@ class Feature:
         pass
 
 
-class EdgeGroup:
-    """Edge group class, contains info on connected edges."""
-
-    def __init__(self, edges: np.ndarray = None, type: str = None) -> None:
-        LOGGER.error(DeprecationWarning("Deprecated"))
-        self.edges = edges
-        """Edges in edge group."""
-        self.type = type
-        """Type of edge group: 'open' or 'closed'."""
-        pass
-
-
 class SurfaceMesh(pv.PolyData, Feature):
     """Surface class."""
 
@@ -264,8 +252,7 @@ class Cavity(Feature):
 
     def __init__(self, surface: SurfaceMesh = None, centroid: np.ndarray = None, name=None) -> None:
         super().__init__(name)
-        self.type = "cavity"
-        """Type."""
+
         self.surface: SurfaceMesh = surface
         """Surface mesh making up the cavity."""
         self.centroid: np.ndarray = centroid
@@ -299,42 +286,6 @@ class Cap(Feature):
         self.centroid_id = None
         """Centroid of cap ID (in case centroid node is created)."""
         return
-
-    def tessellate1(self, use_centroid: bool = False) -> np.ndarray:
-        """Tessellate the cap.
-
-        Parameters
-        ----------
-        use_centroid : bool, optional
-            Use a central node for tessellation, by default False
-
-        Returns
-        -------
-        np.ndarray
-            Triangles forming the tessellation.
-        """
-        if not use_centroid:
-            tris = []
-            for ii, _ in enumerate(self.node_ids[0:-2]):
-                # first node is reference node
-                tri = [self.node_ids[0], self.node_ids[ii + 1], self.node_ids[ii + 2]]
-                tris.append(tri)
-            self.triangles = np.array(tris, dtype=int)
-        elif use_centroid:
-            if not self.centroid_id:
-                LOGGER.error("Not able to create the tessellation with the cap center.")
-                return None
-
-            ref_node = self.centroid_id
-            num_triangles = self.node_ids.shape[0] + 1
-            tris = [[ref_node, self.node_ids[0], self.node_ids[1]]]
-            for ii, _ in enumerate(self.node_ids[0:-2]):
-                tri = [ref_node, self.node_ids[ii + 1], self.node_ids[ii + 2]]
-                tris.append(tri)
-            tris.append([ref_node, self.node_ids[-1], self.node_ids[0]])
-            self.triangles = np.array(tris, dtype=int)
-
-        return self.triangles
 
 
 class Point(Feature):
@@ -459,11 +410,6 @@ class Mesh(pv.UnstructuredGrid):
         for b in self.boundaries:
             b.nodes = self.nodes
 
-        return
-
-    def write_to_vtk(self, filename: pathlib.Path) -> None:
-        """Write mesh to VTK file."""
-        self.save(filename)
         return
 
     def get_surface_from_name(self, name: str = None):

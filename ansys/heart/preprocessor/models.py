@@ -1089,7 +1089,7 @@ class HeartModel:
         # septum_surface_vtk_extruded = vtkmethods.extrude_polydata(septum_surface_vtk, 20)
 
         filename_vtk = os.path.join(self.info.workdir, "volume_mesh.vtk")
-        self.mesh.write_to_vtk(filename_vtk)
+        self.mesh.save(filename_vtk)
         volume_vtk = pv.read(filename_vtk)
 
         element_ids_septum = vtkmethods.cell_ids_inside_enclosed_surface(

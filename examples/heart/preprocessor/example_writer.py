@@ -85,7 +85,5 @@ if __name__ == "__main__":
             writer.update()
             writer.export(exportdir)
 
-            writer.model.mesh.write_to_vtk(
-                os.path.join(writer.model.info.workdir, "volume_mesh.vtk")
-            )
+            writer.model.mesh.save(os.path.join(writer.model.info.workdir, "volume_mesh.vtk"))
     print("done")

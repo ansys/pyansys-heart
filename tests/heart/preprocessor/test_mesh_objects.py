@@ -69,32 +69,6 @@ def test_surfacemesh_object_assign_001():
     assert np.all(surface.cell_data["cells"] == cell_data)
 
 
-@pytest.mark.skip(reason="read_mesh_file will be deprecated")
-def test_mesh_object_read_001():
-    """Test if strocchi's case is properly read."""
-    case_file = download_asset(database="Strocchi2020", casenumber=1)
-    mesh = Mesh()
-    mesh.read_mesh_file(case_file)
-
-    assert mesh.n_cells == 2349414
-    assert mesh.n_points == 481066
-    assert "tags" in mesh.array_names
-    return
-
-
-@pytest.mark.skip(reason="read_mesh_file_rodero2021 will be deprecated")
-def test_mesh_object_read_002():
-    """Test if rodero's case is properly read."""
-    case_file = download_asset(database="Rodero2021", casenumber=1)
-    mesh = Mesh()
-    mesh.read_mesh_file_rodero2021(case_file)
-    assert mesh.n_cells == 2477866
-    assert mesh.n_points == 493151
-    assert "tags" in mesh.array_names
-
-    return
-
-
 def test_add_nodes_mesh():
     """Test adding points/nodes to the Mesh object."""
     # test data:

@@ -48,7 +48,7 @@ from ansys.heart.postprocessor.laplace_post import (
     read_uvc,
 )
 from ansys.heart.preprocessor.conduction_beam import ConductionSystem
-from ansys.heart.preprocessor.mesh.objects import Part
+from ansys.heart.preprocessor.mesh.objects import Part, PartType
 from ansys.heart.preprocessor.models import FourChamber, HeartModel, LeftVentricle
 from ansys.heart.simulator.settings.material.material import NeoHookean
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
@@ -545,7 +545,7 @@ class MechanicsSimulator(BaseSimulator):
             eids = np.hstack((eids, eid_r))
 
         part: Part = self.model.create_part_by_ids(eids, "base")
-        part.part_type = "ventricle"
+        part.part_type = PartType.VENTRICLE
         part.fiber = False
         part.active = False
         part.meca_material = stiff_material

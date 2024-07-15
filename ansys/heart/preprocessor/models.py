@@ -43,6 +43,7 @@ from ansys.heart.preprocessor.mesh.objects import (
     Cavity,
     Mesh,
     Part,
+    PartType,
     Point,
     SurfaceMesh,
 )
@@ -293,7 +294,7 @@ class HeartModel:
 
         self.add_part(name)
         new_part: Part = self.get_part(name)
-        new_part.part_type = ""
+
         new_part.element_ids = eids
 
         return new_part
@@ -903,7 +904,7 @@ class HeartModel:
     def _add_subparts(self) -> None:
         """Add subparts to parts of type ventricle."""
         for part in self.parts:
-            if part.part_type in ["ventricle"]:
+            if part.part_type in [PartType.VENTRICLE]:
                 part._add_myocardium_part()
                 if "Left ventricle" in part.name:
                     part._add_septum_part()
@@ -1219,148 +1220,6 @@ class HeartModel:
                     surface.id = boundary_surface.id
                 else:
                     LOGGER.warning("Could not find matching surface for: {0}".format(surface.name))
-
-        return
-
-    def _assign_caps_to_parts(self, join_ventricles_with_atria: bool = False) -> None:
-        """Use connectivity to obtain cap boundaries and add these to their respective parts.
-
-        Parameters
-        ----------
-        join_ventricles_with_atria : bool, optional
-            Flag indicating whether to join the ventricle with atrial cavities, by default False
-        """
-        # NOTE: Deprecated!
-        LOGGER.error("Method deprecated.")
-        exit()
-        return
-
-        used_boundary_surface_names = [s.name for p in self.parts for s in p.surfaces]
-        remaining_surfaces = list(set(self.mesh.boundary_names) - set(used_boundary_surface_names))
-        remaining_surfaces1: List[SurfaceMesh] = []
-        for surface in self.mesh.boundaries:
-            if surface.name not in remaining_surfaces:
-                continue
-            surface.get_boundary_edges()
-            remaining_surfaces1.append(surface)
-
-        # find intersection between remaining surfaces and part surfaces
-        # This will find the valve/cap nodes
-        for part in self.parts:
-            for surface in part.surfaces:
-                # special treatment since a part of surface is defined in septum
-                if surface.name == "Right ventricle endocardium":
-                    surface.get_boundary_edges(append_triangles=part.surfaces[2].triangles)
-                else:
-                    surface.get_boundary_edges()
-
-                if not "endocardium" in surface.name:
-                    continue
-                for edge_group in surface.edge_groups:
-                    if edge_group.type != "closed":
-                        LOGGER.warning(
-                            "Assuming closed edge group: cavity with {0} not be watertight!".format(  # noqa: E501
-                                surface.name
-                            )
-                        )
-                        # continue
-
-                    for surf in remaining_surfaces1:
-                        if "valve" not in surf.name and "inlet" not in surf.name:
-                            continue
-                        if "myocardium" not in surf.name:
-                            continue
-
-                        if np.any(np.isin(edge_group.edges, surf.boundary_edges)):
-                            name_valve = next(
-                                n for n in surf.name.split("_") if "valve" in n or "inlet" in n
-                            )
-                            name_valve = name_valve.replace("-plane", "").replace("-inlet", "")
-                            if (
-                                name_valve in ["mitral-valve", "tricuspid-valve"]
-                                and "atrium" in part.name
-                            ):
-                                name_valve = name_valve + "-atrium"
-
-                            cap = Cap(name=name_valve, node_ids=edge_group.edges[:, 0])
-
-                            # add cap centroid.
-                            cap.centroid = np.mean(surf.nodes[cap.node_ids, :], axis=0)
-
-                            # add cap centroid to node list
-                            self.mesh.nodes = np.vstack([self.mesh.nodes, cap.centroid])
-                            surf.nodes = self.mesh.nodes
-                            cap.centroid_id = self.mesh.nodes.shape[0] - 1
-
-                            # get approximate cavity centroid to check normal of cap
-                            cavity_centroid = surface.compute_centroid()
-
-                            cap.tessellate1(use_centroid=True)
-
-                            p1 = surf.nodes[cap.triangles[:, 1],] - surf.nodes[cap.triangles[:, 0],]
-                            p2 = surf.nodes[cap.triangles[:, 2],] - surf.nodes[cap.triangles[:, 0],]
-                            normals = np.cross(p1, p2)
-                            cap_normal = np.mean(normals, axis=0)
-                            cap_normal = cap_normal / np.linalg.norm(cap_normal)
-                            cap.normal = cap_normal
-                            cap_centroid = np.mean(surf.nodes[cap.node_ids, :], axis=0)
-                            d1 = np.linalg.norm(cap_centroid + cap_normal - cavity_centroid)
-                            d2 = np.linalg.norm(cap_centroid - cap_normal - cavity_centroid)
-                            if d1 > d2:
-                                LOGGER.debug(
-                                    "Flipping order of nodes on cap to ensure normal "
-                                    "pointing inward"
-                                )
-                                cap.node_ids = np.flip(cap.node_ids)
-                                cap.tessellate1(use_centroid=True)
-                                cap.normal = cap.normal * -1
-
-                            self.mesh._sync_nodes_of_surfaces()
-
-                            part.caps.append(cap)
-                            LOGGER.debug("Cap: {0} closes {1}".format(name_valve, surface.name))
-                            break
-
-        # replace caps of atria by caps of ventricle
-        if join_ventricles_with_atria:
-            for part in self.parts:
-                if not "atrium" in part.name:
-                    continue
-                for cap in part.caps:
-                    # replace with cap in ventricle
-                    cap_ref = [
-                        c
-                        for p in self.parts
-                        if "ventricle" in p.name
-                        for c in p.caps
-                        if c.name == cap.name
-                    ]
-                    if len(cap_ref) == 1:
-                        LOGGER.debug(
-                            "Replacing cap {0} of part{1}: with that of the ventricle".format(
-                                cap.name, part.name
-                            )
-                        )
-                        # note: flip order to make sure normal is pointing inwards
-                        cap.node_ids = np.flip(cap_ref[0].node_ids)
-                        cap.centroid = cap_ref[0].centroid
-                        cap.centroid_id = cap_ref[0].centroid_id
-                        cap.tessellate1(use_centroid=True)
-
-            # As a consequence we need to add interface region to endocardium of atria or ventricle
-            # current approach is to add these to the atria
-            for part in self.parts:
-                if "Left atrium" in part.name:
-                    interface_name = "mitral-valve-plane"
-                elif "Right atrium" in part.name:
-                    interface_name = "tricuspid-valve-plane"
-                else:
-                    continue
-                interfaces = [s for s in remaining_surfaces1 if interface_name in s.name]
-                endocardium = next(s for s in part.surfaces if "endocardium" in s.name)
-                # append interface faces to endocardium
-                for interface in interfaces:
-                    endocardium.triangles = np.vstack([endocardium.triangles, interface.triangles])
 
         return
 
@@ -1847,9 +1706,9 @@ class HeartModel:
         v_ele = np.array([], dtype=int)
         a_ele = np.array([], dtype=int)
         for part in self.parts:
-            if part.part_type == "ventricle":
+            if part.part_type == PartType.VENTRICLE:
                 v_ele = np.append(v_ele, part.element_ids)
-            elif part.part_type == "atrium":
+            elif part.part_type == PartType.ATRIUM:
                 a_ele = np.append(a_ele, part.element_ids)
 
         ventricles = self.mesh.extract_cells(v_ele)
@@ -1885,7 +1744,7 @@ class HeartModel:
 
         # create a new part
         isolation: Part = self.create_part_by_ids(interface_eids, "Isolation atrial")
-        isolation.part_type = "atrium"
+        isolation.part_type = PartType.ATRIUM
         isolation.fiber = True
         isolation.active = False
 
@@ -1938,7 +1797,7 @@ class HeartModel:
         ring: Part = self.create_part_by_ids(
             ring_eles, name="base atrial stiff rings"
         )  # TODO name must has 'base', see dynawriter.py L3120
-        ring.part_type = "atrium"
+        ring.part_type = PartType.ATRIUM
         ring.fiber = False
         ring.active = False
 
@@ -1949,7 +1808,7 @@ class LeftVentricle(HeartModel):
     """Model of just the left ventricle."""
 
     def __init__(self, info: ModelInfo = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
         # remove septum - not used in left ventricle only model
         del self.left_ventricle.septum
@@ -1966,11 +1825,11 @@ class BiVentricle(HeartModel):
     """Model of the left and right ventricle."""
 
     def __init__(self, info: ModelInfo = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
+        self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
         """Right ventricle part."""
-        self.septum: Part = Part(name="Septum", part_type="septum")
+        self.septum: Part = Part(name="Septum", part_type=PartType.SEPTUM)
         """Septum."""
 
         self.left_ventricle.fiber = True
@@ -1989,16 +1848,16 @@ class FourChamber(HeartModel):
     """Model of the left/right ventricle and left/right atrium."""
 
     def __init__(self, info: ModelInfo = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
+        self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
         """Right ventricle part."""
-        self.septum: Part = Part(name="Septum", part_type="septum")
+        self.septum: Part = Part(name="Septum", part_type=PartType.SEPTUM)
         """Septum."""
 
-        self.left_atrium: Part = Part(name="Left atrium", part_type="atrium")
+        self.left_atrium: Part = Part(name="Left atrium", part_type=PartType.ATRIUM)
         """Left atrium part."""
-        self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
+        self.right_atrium: Part = Part(name="Right atrium", part_type=PartType.ATRIUM)
         """Right atrium part."""
 
         self.left_ventricle.fiber = True
@@ -2023,20 +1882,20 @@ class FullHeart(FourChamber):
     """Model of both ventricles, both atria, aorta and pulmonary artery."""
 
     def __init__(self, info: ModelInfo = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type="ventricle")
+        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type="ventricle")
+        self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
         """Right ventricle part."""
-        self.septum: Part = Part(name="Septum", part_type="septum")
+        self.septum: Part = Part(name="Septum", part_type=PartType.SEPTUM)
         """Septum."""
-        self.left_atrium: Part = Part(name="Left atrium", part_type="atrium")
+        self.left_atrium: Part = Part(name="Left atrium", part_type=PartType.ATRIUM)
         """Left atrium part."""
-        self.right_atrium: Part = Part(name="Right atrium", part_type="atrium")
+        self.right_atrium: Part = Part(name="Right atrium", part_type=PartType.ATRIUM)
         """Right atrium part."""
 
-        self.aorta: Part = Part(name="Aorta", part_type="artery")
+        self.aorta: Part = Part(name="Aorta", part_type=PartType.ARTERY)
         """Aorta part."""
-        self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type="artery")
+        self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type=PartType.ARTERY)
         """Pulmonary artery part."""
 
         self.left_ventricle.fiber = True

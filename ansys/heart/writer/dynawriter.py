@@ -38,7 +38,7 @@ from typing import Callable, List, Literal, NamedTuple
 
 from ansys.dyna.keywords import keywords
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.preprocessor.mesh.objects import Cap, Part
+from ansys.heart.preprocessor.mesh.objects import Cap, Part, PartType
 from ansys.heart.preprocessor.models import (
     BiVentricle,
     FourChamber,
@@ -545,7 +545,9 @@ class BaseDynaWriter:
     def _keep_ventricles(self):
         """Remove any non-ventricular parts."""
         LOGGER.warning("Just keeping ventricular-parts for fiber/purkinje generation")
-        parts_to_keep = [p.name for p in self.model.parts if p.part_type in ["ventricle", "septum"]]
+        parts_to_keep = [
+            p.name for p in self.model.parts if p.part_type in [PartType.VENTRICLE, PartType.SEPTUM]
+        ]
         self._keep_parts(parts_to_keep)
         return
 
@@ -2057,7 +2059,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             parts = [
                 part
                 for part in self.model.parts
-                if part.part_type == "ventricle" or part.part_type == "septum"
+                if part.part_type in [PartType.VENTRICLE, PartType.SEPTUM]
             ]
             tet_ids = np.empty((0), dtype=int)
             for part in parts:
@@ -2098,7 +2100,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         parts = [
             part
             for part in self.model.parts
-            if part.part_type == "ventricle" or part.part_type == "septum"
+            if part.part_type in [PartType.VENTRICLE, PartType.SEPTUM]
         ]
 
         tet_ids = np.empty((0), dtype=int)

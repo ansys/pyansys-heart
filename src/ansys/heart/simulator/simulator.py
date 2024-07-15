@@ -39,6 +39,9 @@ import shutil
 import subprocess
 from typing import List, Literal
 
+import numpy as np
+import pyvista as pv
+
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.misc.element_orth import read_orth_element_kfile
 from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
@@ -53,8 +56,6 @@ from ansys.heart.preprocessor.models import FourChamber, HeartModel, LeftVentric
 from ansys.heart.simulator.settings.material.material import NeoHookean
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
-import numpy as np
-import pyvista as pv
 
 
 def which(program):

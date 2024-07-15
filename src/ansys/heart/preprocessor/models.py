@@ -31,6 +31,11 @@ import pickle
 import re
 from typing import List, Literal, Union
 
+import numpy as np
+import pyvista as pv
+from scipy.spatial.transform import Rotation as R
+import yaml
+
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.input import _InputModel
 
@@ -48,10 +53,6 @@ from ansys.heart.preprocessor.mesh.objects import (
     SurfaceMesh,
 )
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-import numpy as np
-import pyvista as pv
-from scipy.spatial.transform import Rotation as R
-import yaml
 
 
 class ModelInfo:

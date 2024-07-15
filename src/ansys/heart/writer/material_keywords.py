@@ -38,12 +38,13 @@ import dataclasses
 from importlib.resources import path as resource_path
 
 from ansys.dyna.keywords import keywords
+import numpy as np
+import pandas as pd
+
 from ansys.heart.simulator.settings.material.material import MAT295, ActiveModel
 
 # import custom keywords in separate namespace
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
-import numpy as np
-import pandas as pd
 
 
 class MaterialCap(keywords.MatNull):

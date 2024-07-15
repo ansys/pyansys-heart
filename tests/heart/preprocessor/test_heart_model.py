@@ -33,9 +33,10 @@ if os.getenv("GITHUB_ACTIONS"):
 else:
     is_gh_action = False
 
-import ansys.heart.preprocessor.models as models
 import numpy as np
 import pytest
+
+import ansys.heart.preprocessor.models as models
 
 
 def _get_test_model_info() -> models.ModelInfo:

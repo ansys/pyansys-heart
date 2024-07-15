@@ -29,6 +29,9 @@ import os
 import pathlib
 from typing import List, Literal
 
+from pint import Quantity, UnitRegistry
+import yaml
+
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.simulator.settings.defaults import electrophysiology as ep_defaults
 from ansys.heart.simulator.settings.defaults import fibers as fibers_defaults
@@ -44,8 +47,6 @@ from ansys.heart.simulator.settings.material.material import (
     ActiveModel,
     NeoHookean,
 )
-from pint import Quantity, UnitRegistry
-import yaml
 
 
 class AttrDict(dict):

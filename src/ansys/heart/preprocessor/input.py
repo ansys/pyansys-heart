@@ -36,11 +36,12 @@ import os
 from pathlib import Path
 from typing import List, Tuple, Union
 
-from ansys.heart.core import LOG as LOGGER
-from ansys.heart.preprocessor.mesh.vtkmethods import add_solid_name_to_stl
 import numpy as np
 import pyvista as pv
 import yaml
+
+from ansys.heart.core import LOG as LOGGER
+from ansys.heart.preprocessor.mesh.vtkmethods import add_solid_name_to_stl
 
 # BOUNDARIES_PER_HEART_PART stores the reference id's of the various parts and
 # lists the required boundaries that enclose the part

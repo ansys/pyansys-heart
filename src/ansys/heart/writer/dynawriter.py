@@ -37,6 +37,10 @@ import time
 from typing import Callable, List, Literal, NamedTuple
 
 from ansys.dyna.keywords import keywords
+import numpy as np
+import pandas as pd
+import pyvista as pv
+
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.mesh.objects import Cap, Part, PartType
 from ansys.heart.preprocessor.models import (
@@ -80,9 +84,6 @@ from ansys.heart.writer.keyword_module import (
 )
 from ansys.heart.writer.material_keywords import MaterialHGOMyocardium, MaterialNeoHook
 from ansys.heart.writer.system_models import _ed_load_template, define_function_0Dsystem
-import numpy as np
-import pandas as pd
-import pyvista as pv
 
 
 class CVInteraction(NamedTuple):

@@ -29,6 +29,9 @@ import os
 import pathlib
 import tempfile
 
+import pytest
+import yaml
+
 from ansys.heart.preprocessor.helpers import model_summary
 import ansys.heart.preprocessor.models as models
 from ansys.heart.writer.dynawriter import (
@@ -38,8 +41,6 @@ from ansys.heart.writer.dynawriter import (
     PurkinjeGenerationDynaWriter,
     ZeroPressureMechanicsDynaWriter,
 )
-import pytest
-import yaml
 
 pytestmark = pytest.mark.requires_fluent
 

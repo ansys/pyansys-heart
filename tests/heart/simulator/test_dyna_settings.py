@@ -23,8 +23,9 @@
 import os
 import sys
 
-from ansys.heart.simulator.settings.settings import DynaSettings
 import pytest
+
+from ansys.heart.simulator.settings.settings import DynaSettings
 
 if os.getenv("GITHUB_ACTIONS"):
     is_gh_action = True

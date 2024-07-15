@@ -41,13 +41,14 @@ import glob
 import shutil
 import tempfile
 
+import numpy as np
+import pyvista as pv
+
 from ansys.heart.preprocessor.input import _InputModel
 from ansys.heart.preprocessor.mesh.mesher import (
     mesh_from_manifold_input_model,
     mesh_from_non_manifold_input_model,
 )
-import numpy as np
-import pyvista as pv
 
 
 @pytest.fixture(scope="session", autouse=True)

@@ -25,11 +25,11 @@
 from typing import Union
 
 from ansys.dyna.keywords import Deck, keywords
+import numpy as np
+import pandas as pd
 
 # import some custom keywords that avoid bugs in dynalib
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
-import numpy as np
-import pandas as pd
 
 
 def create_node_keyword(nodes: np.array, offset: int = 0) -> keywords.Node:

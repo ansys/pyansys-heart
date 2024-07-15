@@ -130,6 +130,13 @@ class SurfaceMesh(pv.PolyData, Feature):
         except:
             return
 
+    @property
+    def boundary_edges(self):
+        """Get boundary edges of self."""
+        boundary_edges = vtkmethods.get_boundary_edge_loops(self, remove_open_edge_loops=False)
+        boundary_edges = np.vstack(list(boundary_edges.values()))
+        return boundary_edges
+
     def __init__(
         self,
         name: str = None,
@@ -142,10 +149,6 @@ class SurfaceMesh(pv.PolyData, Feature):
 
         self.type = "surface"
         """Surface type."""
-        self.boundary_edges: np.ndarray = np.empty((0, 2), dtype=int)
-        """Boundary edges."""
-        self.edge_groups: List[EdgeGroup] = []
-        """Edge groups."""
         self.id: int = id
         """ID of surface."""
         self.nsid: int = None
@@ -170,7 +173,7 @@ class SurfaceMesh(pv.PolyData, Feature):
         return node_ids
 
     @property
-    def boundary_nodes(self) -> np.ndarray:
+    def _boundary_nodes(self) -> np.ndarray:
         """Global node ids of nodes on the boundary of the mesh (if any)."""
         _, idx = np.unique(self.boundary_edges.flatten(), return_index=True)
         node_ids = self.boundary_edges.flatten()[np.sort(idx)]

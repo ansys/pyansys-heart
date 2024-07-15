@@ -1131,7 +1131,6 @@ class HeartModel:
                     )
                 ]
 
-                surface.get_boundary_edges()
                 if np.any(surface.boundary_edges == apical_node_id):
                     # Apical node is on the edge, need to adjust
                     element_id = np.argwhere(np.any(surface.triangles == apical_node_id, axis=1))[

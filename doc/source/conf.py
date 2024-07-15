@@ -123,7 +123,7 @@ autoapi_ignore = [
 #     "../../src/ansys/heart/simulator",
 #     "../../src/ansys/heart/postprocessor",
 # ]
-autoapi_dirs = ["../../ansys"]
+autoapi_dirs = ["../../src/ansys/"]
 autoapi_root = "api"
 autoapi_options = [
     "members",

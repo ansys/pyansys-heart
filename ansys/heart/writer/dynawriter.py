@@ -180,14 +180,6 @@ class BaseDynaWriter:
         self.settings.to_consistent_unit_system()
         self._check_settings()
 
-        if "Improved" in self.model.info.model_type:
-            LOGGER.warning(
-                "Changing model type from : {0} to {1}".format(
-                    self.model.info.model_type, self.model.info.model_type.replace("Improved", "")
-                )
-            )
-            self.model.info.model_type = self.model.info.model_type.replace("Improved", "")
-
         return
 
     def _check_settings(self):
@@ -890,7 +882,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         LOGGER.debug("Updating main keywords...")
 
         self.kw_database.main.append("$$- Unit system: g-mm-ms-N-MPa-mJ -$$")
-        self.kw_database.main.title = self.model.model_type
+        self.kw_database.main.title = self.model.__class__.__name__
 
         if isinstance(self, ZeroPressureMechanicsDynaWriter):
             settings = self.settings.stress_free
@@ -1870,7 +1862,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         self._update_main_db()
 
-        self.kw_database.main.title = self.model.info.model_type + " zero-pressure"
+        self.kw_database.main.title = self.model.__class__.__name__ + " zero-pressure"
 
         self._update_node_db()
         self._update_parts_db()
@@ -2242,7 +2234,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
 
         # switch between the various models to generate valid input decks
         if isinstance(self.model, LeftVentricle):
-            LOGGER.warning("Model type %s in development " % self.model.info.model_type)
+            LOGGER.warning("Model type %s in development " % self.model.__class__.__name__)
 
             # Define part set for myocardium
             part_list1_kw = keywords.SetPartList(

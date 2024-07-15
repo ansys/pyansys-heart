@@ -86,9 +86,6 @@ class ModelInfo:
         self.add_blood_pool: bool = add_blood_pool
         """Flag indicating whether to add blood to the cavities."""
 
-        self.model_type: str = ""
-        """Deprecated dummy value of model type."""
-
         pass
 
     def clean_workdir(
@@ -240,9 +237,6 @@ class HeartModel:
 
         self._set_part_ids()
         """Set incremenetal part ids."""
-
-        self.model_type = self.__class__.__name__
-        """Model type."""
 
         self.aha_ids = None
         """American Heart Association ID's."""

@@ -26,8 +26,9 @@ import pathlib
 ROOT_FOLDER = os.path.join(pathlib.Path(__file__).parent)
 import logging as deflogging
 
-from ansys.heart.misc.downloader import download_case, unpack_case
 import pytest
+
+from ansys.heart.misc.downloader import download_case, unpack_case
 
 """
 

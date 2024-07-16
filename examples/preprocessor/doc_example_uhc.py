@@ -42,9 +42,10 @@ the ventricles.
 import copy
 import os
 
+import pyvista as pv
+
 import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.simulator import BaseSimulator, DynaSettings
-import pyvista as pv
 
 # specify the path to the working directory and heart model
 workdir = os.path.join("pyansys-heart", "downloads", "Strocchi2020", "01", "FourChamber")

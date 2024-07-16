@@ -39,9 +39,10 @@ Land et al (2015): https://doi.org/10.1098/rspa.2015.0641
 # directory and generated model
 import os
 
-import ansys.heart.preprocessor.models as models
 import numpy as np
 import pyvista as pv
+
+import ansys.heart.preprocessor.models as models
 
 # sphinx_gallery_start_ignore
 # sphinx_gallery_thumbnail_path = '_static/images/truncated_LV_mesh.png'

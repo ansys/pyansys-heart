@@ -25,6 +25,10 @@
 import os
 import tempfile
 
+import numpy as np
+from pint import Quantity
+import pytest
+
 from ansys.heart.simulator.settings.defaults import fibers as fibers_defaults
 from ansys.heart.simulator.settings.settings import (
     Analysis,
@@ -32,10 +36,6 @@ from ansys.heart.simulator.settings.settings import (
     SimulationSettings,
     _get_consistent_units_str,
 )
-import numpy as np
-from pint import Quantity
-import pytest
-
 from tests.heart.conftest import compare_string_with_file
 
 REF_STRING_SETTINGS_YML_MECHANICS = (

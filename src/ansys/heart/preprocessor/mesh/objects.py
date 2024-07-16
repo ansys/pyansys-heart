@@ -43,6 +43,50 @@ except ImportError:
     LOGGER.warning("Importing pyvista failed. Install with: pip install pyvista")
 
 
+def _get_fill_data(
+    mesh1: pv.UnstructuredGrid | pv.PolyData,
+    mesh2: pv.UnstructuredGrid | pv.PolyData,
+    array_name: str,
+    array_association: str = "cell",
+    pad_value_int: int = None,
+    pad_value_float: float = None,
+) -> np.ndarray:
+    if array_name not in mesh1.array_names:
+        return
+
+    if array_association == "cell":
+        if array_name in mesh2.cell_data.keys():
+            return mesh2.cell_data[array_name]
+
+        array = mesh1.cell_data[array_name]
+        n_pads = mesh2.n_cells
+
+    elif array_association == "point":
+        if array_name in mesh2.point_data.keys():
+            return mesh2.point_data[array_name]
+
+        array = mesh1.point_data[array_name]
+        n_pads = mesh2.n_points
+
+    shape = list(array.shape)
+    shape[0] = n_pads
+    shape = tuple(shape)
+
+    pad_array = np.zeros(shape, dtype=array.dtype)
+
+    if isinstance(array[0], (np.float64, np.float32)):
+        if not pad_value_float:
+            pad_array = pad_array * np.nan
+        else:
+            pad_array = pad_array * pad_value_float
+
+    elif isinstance(array[0], (np.int32, np.int64)):
+        if pad_value_int:
+            pad_array = pad_array + pad_value_int
+
+    return pad_array
+
+
 class Feature:
     """Feature class."""
 
@@ -354,6 +398,16 @@ class Mesh(pv.UnstructuredGrid):
         """Tetrahedrons num_tetra x 4."""
         return self.cells_dict[pv.CellType.TETRA]
 
+    @property
+    def triangles(self):
+        """Get all triangles of the mesh."""
+        return self.cells_dict[pv.CellType.TRIANGLE]
+
+    @property
+    def lines(self):
+        """Get all triangles of the mesh."""
+        return self.cells_dict[pv.CellType.LINE]
+
     @tetrahedrons.setter
     def tetrahedrons(self, value: np.ndarray):
         # sets tetrahedrons of UnstructuredGrid
@@ -428,6 +482,240 @@ class Mesh(pv.UnstructuredGrid):
             return surfaces[0]
         else:
             return surfaces
+
+    @property
+    def surface_ids(self) -> np.ndarray:
+        """Unique surface ids.
+
+        Returns
+        -------
+        np.ndarray
+            Array with unique surface ids
+        """
+        try:
+            mask = self.celltypes == pv.CellType.TRIANGLE
+            mask1 = self.cell_data["surface-id"] > -1
+            np.vstack((mask, mask1))
+            mask = np.all(np.vstack((mask, mask1)), axis=0)
+            return np.unique(self.cell_data["surface-id"][mask])
+        except KeyError:
+            return None
+
+    @property
+    def volume_ids(self) -> np.ndarray:
+        """Unique volume ids.
+
+        Returns
+        -------
+        np.ndarray
+            Array with unique volume ids
+        """
+        try:
+            mask = self.celltypes == pv.CellType.TETRA
+            mask1 = self.cell_data["volume-id"] > -1
+            np.vstack((mask, mask1))
+            mask = np.all(np.vstack((mask, mask1)), axis=0)
+            return np.unique(self.cell_data["volume-id"][mask])
+        except KeyError:
+            return None
+
+    @property
+    def line_ids(self) -> np.ndarray:
+        """Unique line ids.
+
+        Returns
+        -------
+        np.ndarray
+            Array with unique line ids
+        """
+        try:
+            mask = self.celltypes == pv.CellType.LINE
+            mask1 = self.cell_data["line-id"] > -1
+            np.vstack((mask, mask1))
+            mask = np.all(np.vstack((mask, mask1)), axis=0)
+            return np.unique(self.cell_data["line-id"][mask])
+        except KeyError:
+            return None
+
+    def clean(self, *args):
+        """Merge duplicate points and return cleaned copy."""
+        self_c = copy.deepcopy(self)
+        super(Mesh, self_c).__init__(pv.UnstructuredGrid(self).clean(*args))
+        return self_c
+
+    def _add_mesh(
+        self,
+        mesh_input: pv.PolyData | pv.UnstructuredGrid,
+        keep_data: bool = True,
+        fill_float: np.float64 = np.nan,
+        fill_int: int = -1,
+    ):
+        """Add another mesh to this object.
+
+        Notes
+        -----
+        Adding the mesh is always in-place
+
+        Parameters
+        ----------
+        mesh_input : pv.PolyData | pv.UnstructuredGrid
+            Mesh to add, either PolyData or UnstructuredGrid
+        keep_data : bool, optional
+            Flag specifying whether to try to keep mesh point/cell data, by default True
+        """
+        mesh = copy.copy(mesh_input)
+        if keep_data:
+            # add cell/point arrays in self
+            cell_data_names = [k for k in mesh.cell_data.keys()]
+            point_data_names = [k for k in mesh.point_data.keys()]
+
+            for name in cell_data_names:
+                self.cell_data[name] = _get_fill_data(
+                    mesh, self, name, "cell", fill_int, fill_float
+                )
+
+            for name in point_data_names:
+                self.point_data[name] = _get_fill_data(
+                    mesh, self, name, "point", fill_int, fill_float
+                )
+
+            # add cell/point arrays mesh to be added
+            cell_data_names = [k for k in self.cell_data.keys()]
+            point_data_names = [k for k in self.point_data.keys()]
+
+            for name in cell_data_names:
+                mesh.cell_data[name] = _get_fill_data(self, mesh, name, "cell")
+
+            for name in point_data_names:
+                mesh.point_data[name] = _get_fill_data(self, mesh, name, "point")
+
+        merged = pv.merge((self, mesh), merge_points=False)
+        super().__init__(merged)
+        return self
+
+    def add_volume(self, volume: pv.UnstructuredGrid, id: int = None):
+        """Add a volume.
+
+        Parameters
+        ----------
+        volume : pv.PolyData
+            PolyData representation of the volume to add
+        id : int
+            ID of the volume to be added. This id will be tracked as "volume-id"
+        """
+        if not id:
+            if "volume-id" not in volume.cell_data.keys():
+                LOGGER.debug("Failed to set volume-id")
+                return None
+        else:
+            if not isinstance(id, int):
+                LOGGER.debug("sid should by type int.")
+                return None
+            volume.cell_data["volume-id"] = np.ones(volume.n_cells, dtype=float) * id
+
+        self_copy = self._add_mesh(volume, keep_data=True, fill_float=np.nan)
+        return self_copy
+
+    def add_surface(self, surface: pv.PolyData, id: int = None):
+        """Add a surface.
+
+        Parameters
+        ----------
+        surface : pv.PolyData
+            PolyData representation of the surface to add
+        sid : int
+            ID of the surface to be added. This id will be tracked as "surface-id"
+        """
+        if not id:
+            if "surface-id" not in surface.cell_data.keys():
+                LOGGER.debug("Failed to set surface-id")
+                return None
+        else:
+            if not isinstance(id, int):
+                LOGGER.debug("sid should by type int.")
+                return None
+            surface.cell_data["surface-id"] = np.ones(surface.n_cells, dtype=float) * id
+
+        self_copy = self._add_mesh(surface, keep_data=True, fill_float=np.nan)
+        return self_copy
+
+    def add_lines(self, lines: pv.PolyData, id: int = None):
+        """Add lines.
+
+        Parameters
+        ----------
+        lines : pv.PolyData
+            PolyData representation of the lines to add
+        id : int
+            ID of the surface to be added. This id will be tracked as "line-id"
+        """
+        if not id:
+            if "line-id" not in lines.cell_data.keys():
+                LOGGER.debug("Failed to set surface-id")
+                return None
+        else:
+            if not isinstance(id, int):
+                LOGGER.debug("sid should by type int.")
+                return None
+            lines.cell_data["line-id"] = np.ones(lines.n_cells, dtype=float) * id
+
+        self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan)
+        return self_copy
+
+    def _get_submesh(
+        self, sid: int, scalar: Literal["surface-id", "line-id", "volume-id"]
+    ) -> pv.UnstructuredGrid:
+        # NOTE: extract_cells cleans the object, removing any unused points.
+        if not scalar in self.cell_data.keys():
+            LOGGER.debug(f"{scalar} does not exist in cell_data")
+            return None
+        mask = np.isin(self.cell_data[scalar], sid)
+        return self.extract_cells(mask)
+
+    def get_volume(self, sid: int) -> pv.UnstructuredGrid:
+        """Get a volume as a UnstructuredGrids object."""
+        return self._get_submesh(sid, scalar="volume-id")
+
+    def get_surface(self, sid: int) -> pv.PolyData:
+        """Get a surface as PolyData object."""
+        return self._get_submesh(sid, scalar="surface-id").extract_surface()
+
+    def get_lines(self, sid: int) -> pv.PolyData:
+        """Get lines as a PolyData object."""
+        return self._get_submesh(sid, scalar="line-id").extract_surface()
+
+    def remove_surface(self, sid: int):
+        """Remove a surface with id.
+
+        Parameters
+        ----------
+        sid : int
+            Id of surface to remove.
+        """
+        mask = self.cell_data["surface-id"] == sid
+        return self.remove_cells(mask, inplace=True)
+
+    def remove_volume(self, vid: int):
+        """Remove a volume with id.
+
+        Parameters
+        ----------
+        vid : int
+            Id of volume to remove.
+        """
+        mask = self.cell_data["volume-id"] == vid
+        return self.remove_cells(mask, inplace=True)
+
+    def remove_lines(self, lid: int):
+        """Remove a set of lines with id.
+
+        Parameters
+        ----------
+        lid : int
+            Id of lines to remove.
+        """
+        mask = self.cell_data["volume-id"] == lid
+        return self.remove_cells(mask, inplace=True)
 
 
 class PartType(Enum):

@@ -27,9 +27,10 @@ Such as a Mesh object, Part object, Features, etc.
 
 """
 
+import copy
 from enum import Enum
 import pathlib
-from typing import List, Union
+from typing import List, Literal, Union
 
 import numpy as np
 

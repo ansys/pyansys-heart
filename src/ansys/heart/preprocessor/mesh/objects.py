@@ -45,8 +45,8 @@ except ImportError:
 
 
 def _get_fill_data(
-    mesh1: pv.UnstructuredGrid | pv.PolyData,
-    mesh2: pv.UnstructuredGrid | pv.PolyData,
+    mesh1: Union[pv.UnstructuredGrid, pv.PolyData],
+    mesh2: Union[pv.UnstructuredGrid, pv.PolyData],
     array_name: str,
     array_association: str = "cell",
     pad_value_int: int = None,
@@ -550,7 +550,7 @@ class Mesh(pv.UnstructuredGrid):
 
     def _add_mesh(
         self,
-        mesh_input: pv.PolyData | pv.UnstructuredGrid,
+        mesh_input: Union[pv.PolyData, pv.UnstructuredGrid],
         keep_data: bool = True,
         fill_float: np.float64 = np.nan,
         fill_int: int = -1,

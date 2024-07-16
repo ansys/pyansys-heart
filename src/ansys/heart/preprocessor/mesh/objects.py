@@ -411,7 +411,7 @@ class Mesh(pv.UnstructuredGrid):
 
     @tetrahedrons.setter
     def tetrahedrons(self, value: np.ndarray):
-        # sets tetrahedrons of UnstructuredGrid
+        # TODO: manage cell data
         try:
             points = self.points
             celltypes = np.full(value.shape[0], pv.CellType.TETRA, dtype=np.int8)
@@ -436,7 +436,7 @@ class Mesh(pv.UnstructuredGrid):
         -----
         This is derived from the "part-id" field in cell data
         """
-        # NOTE "tags" should be removed.
+        # TODO: deprecate
         try:
             value = self.cell_data["tags"].astype(int)
             return value
@@ -463,7 +463,9 @@ class Mesh(pv.UnstructuredGrid):
         -----
         Temporary until this module is refactored.
         """
-        for b in self.boundaries:
+        # TODO: deprecate
+
+        for b in self._boundaries:
             b.nodes = self.nodes
 
         return
@@ -475,7 +477,9 @@ class Mesh(pv.UnstructuredGrid):
         -----
         Returns single surface. When multiple matches are found returns list of surfaces
         """
-        surfaces_search = self.boundaries
+        # TODO: deprecate
+
+        surfaces_search = self._boundaries
         surfaces = [s for s in surfaces_search if s.name == name]
         if len(surfaces) == 0:
             return None

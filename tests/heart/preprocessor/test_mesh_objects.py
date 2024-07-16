@@ -77,7 +77,7 @@ def test_mesh_add_001():
     base = Mesh(tets)
 
     # fill attribute with some values to ensure that info is kept.
-    base._boundaries = [[1, 2]]
+    base.boundaries = [[1, 2]]
 
     merged = base._add_mesh(triangles)
     assert isinstance(merged, Mesh)
@@ -88,7 +88,7 @@ def test_mesh_add_001():
     assert base.n_cells == triangles.n_cells + tets.n_cells + edges.n_cells
 
     # assert that attribute was kept
-    assert base._boundaries == [[1, 2]]
+    assert base.boundaries == [[1, 2]]
     pass
 
 

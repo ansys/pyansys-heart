@@ -465,7 +465,7 @@ class Mesh(pv.UnstructuredGrid):
         """
         # TODO: deprecate
 
-        for b in self._boundaries:
+        for b in self.boundaries:
             b.nodes = self.nodes
 
         return
@@ -479,7 +479,7 @@ class Mesh(pv.UnstructuredGrid):
         """
         # TODO: deprecate
 
-        surfaces_search = self._boundaries
+        surfaces_search = self.boundaries
         surfaces = [s for s in surfaces_search if s.name == name]
         if len(surfaces) == 0:
             return None

@@ -181,7 +181,7 @@ class BaseSimulator:
         self.model.mesh.cell_data["sheet"][elem_ids - 1] = sheet
 
         # dump the model to reuse fiber information
-        self.model.dump_model(os.path.join(self.root_directory, "model_with_fiber.pickle"))
+        # self.model.dump_model(os.path.join(self.root_directory, "model_with_fiber.pickle"))
         return
 
     def compute_uhc(self) -> pv.UnstructuredGrid:
@@ -324,7 +324,7 @@ class BaseSimulator:
         dyna_writer.export(export_directory)
 
         input_file = os.path.join(export_directory, "main.k")
-        self._run_dyna(path_to_input=input_file, options="case")
+        # self._run_dyna(path_to_input=input_file, options="case")
 
         LOGGER.info("Solving laplace-dirichlet done.")
 
@@ -462,8 +462,8 @@ class EPSimulator(BaseSimulator):
             cs.compute_left_anterior_bundle(
                 start_coord=left.xyz,
                 start_id=left.node_id,
-                end_coord=[51.587, 132.749, 347.145],
-                end_id=123065,
+                end_coord=[57.2813, 138.414, 387.322],
+                end_id=107988,
                 side="LeftAnterior",
                 beam_length=beam_length,
             )

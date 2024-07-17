@@ -238,7 +238,7 @@ class EPpostprocessor:
         return ECGs, times
 
     def compute_12_lead_ECGs(
-        self, ECGs: np.ndarray, times: np.ndarray, plot: bool = True
+        self, ECGs: np.ndarray, times: np.ndarray, plot: bool = True, filename="", save: bool = True
     ) -> np.ndarray:
         """Compute 12-Lead ECGs from 10 electrodes.
 
@@ -278,7 +278,7 @@ class EPpostprocessor:
         # RL = ECGs[8, :] - Vwct
         LL = ECGs[:, 9] - Vwct
         ECGs12 = np.vstack((I, II, III, aVR, aVL, aVF, V1, V2, V3, V4, V5, V6))
-        if plot:
+        if plot or save:
             t = times
             fig, axes = plt.subplots(nrows=3, ncols=4, layout="tight")
             # Major ticks every 20, minor ticks every 5
@@ -321,9 +321,11 @@ class EPpostprocessor:
             # )
             # plt.xlabel("time (ms)")
             post_path = self.create_post_folder()
-            filename = os.path.join(post_path, "12LeadECGs.png")
-            plt.savefig(fname=filename, format="png")
-            plt.show(block=True)
+            filename = os.path.join(post_path, "12LeadECGs" + filename + ".png")
+            if save:
+                plt.savefig(fname=filename, format="png")
+            if plot:
+                plt.show(block=True)
         return ECGs12
 
     def _assign_pointdata(self, pointdata: np.ndarray, node_ids: np.ndarray):

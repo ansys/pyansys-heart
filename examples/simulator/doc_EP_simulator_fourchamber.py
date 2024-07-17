@@ -66,7 +66,7 @@ workdir = r"D:\REPOS\pyansys-heart\downloads\Strocchi2020\01\FourChamber"
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 # specify LS-DYNA path (last tested working versions is intelmpi-linux-DEV-106117)
-lsdyna_path = r"D:\Fortran\intelMPI\12JUN24\mppdyna_12JUN24"
+lsdyna_path = r"D:\Fortran\intelMPI\10JUL24\mppdyna_10JUL24"
 
 # load four chamber heart model.
 model: models.FourChamber = models.HeartModel.load_model(path_to_model)
@@ -80,13 +80,93 @@ electrodes = [
     Point(name="V4", xyz=[100.25729370117188, 43.61333465576172, 331.07635498046875]),
     Point(name="V5", xyz=[140.29800415039062, 81.36004638671875, 349.69970703125]),
     Point(name="V6", xyz=[167.9899139404297, 135.89862060546875, 366.18634033203125]),
-    Point(name="RA", xyz=[-176.06332397460938, 57.632076263427734, 509.14202880859375]),
-    Point(name="LA", xyz=[133.84518432617188, 101.44053649902344, 534.9176635742188]),
+    Point(name="RA", xyz=[133.84518432617188, 101.44053649902344, 534.9176635742188]),
+    Point(name="LA", xyz=[-176.06332397460938, 57.632076263427734, 509.14202880859375]),
     Point(name="RL", xyz=[203.38825799615842, 56.19020893502452, 538.5052677637375]),
     Point(name="LL", xyz=[128.9441375732422, 92.85327911376953, 173.07363891601562]),
 ]
+import numpy as np
+
+electrodesXYZ = np.array(
+    [
+        [-29.893285751342773, 27.112899780273438, 373.30865478515625],
+        [33.68170928955078, 30.09606170654297, 380.5427551269531],
+        [56.33562469482422, 29.499839782714844, 355.533935546875],
+        [100.25729370117188, 43.61333465576172, 331.07635498046875],
+        [140.29800415039062, 81.36004638671875, 349.69970703125],
+        [167.9899139404297, 135.89862060546875, 366.18634033203125],
+        [133.84518432617188, 101.44053649902344, 534.9176635742188],
+        [-176.06332397460938, 57.632076263427734, 509.14202880859375],
+        [203.38825799615842, 56.19020893502452, 538.5052677637375],
+        [128.9441375732422, 92.85327911376953, 173.07363891601562],
+    ]
+)
+
+
+elecV1 = np.array([-29.893285751342773, 27.112899780273438, 373.30865478515625])
+elecV2 = np.array([33.68170928955078, 30.09606170654297, 380.5427551269531])
+elecV3 = np.array([56.33562469482422, 29.499839782714844, 355.533935546875])
+elecV4 = np.array([100.25729370117188, 43.61333465576172, 331.07635498046875])
+elecV5 = np.array([140.29800415039062, 81.36004638671875, 349.69970703125])
+elecV6 = np.array([167.9899139404297, 135.89862060546875, 366.18634033203125])
+elecLA = np.array([-176.06332397460938, 57.632076263427734, 509.14202880859375])
+elecRA = np.array([133.84518432617188, 101.44053649902344, 534.9176635742188])
+elecRL = np.array([203.38825799615842, 56.19020893502452, 538.5052677637375])
+elecLL = np.array([128.9441375732422, 92.85327911376953, 173.07363891601562])
+
+
 model.electrodes = electrodes
 
+
+plot_electrodes = True
+if plot_electrodes:
+    import pyvista as pv
+
+    longvecRot = np.array([-4.6643, 110.254, 380.397]) - np.array([22.0392, 52.1924, 351.721])
+    frontalvecRot = np.array([71.3322, 73.256, 352.189]) - np.array([-66.662, 116.456, 369.011])
+    plotter = pv.Plotter()
+    electrodes_cloud = pv.PolyData(electrodesXYZ)
+    plotter.add_mesh(model.mesh)
+
+    # plotter.add_mesh(pv.PolyData(elecV1), color="blue", point_size=10.0)
+    # plotter.add_mesh(pv.PolyData(elecV2), color="blue", point_size=10.0)
+    # plotter.add_mesh(pv.PolyData(elecV3), color="blue", point_size=10.0)
+    # plotter.add_mesh(pv.PolyData(elecV4), color="blue", point_size=10.0)
+    # plotter.add_mesh(pv.PolyData(elecV5), color="blue", point_size=10.0)
+    # plotter.add_mesh(pv.PolyData(elecV6), color="blue", point_size=10.0)
+    # plotter.add_mesh(pv.PolyData(elecLA), color="blue", point_size=10.0)
+    # plotter.add_mesh(pv.PolyData(elecRA), color="green", point_size=10.0)
+    # plotter.add_mesh(pv.PolyData(elecRL), color="yellow", point_size=10.0)
+    # plotter.add_mesh(pv.PolyData(elecLL), color="black", point_size=10.0)
+    plotter.add_mesh(electrodes_cloud, color="blue", point_size=10.0)
+
+    electrodes_longitudinal_m10 = electrodes_cloud.rotate_vector(
+        longvecRot, -10, (8.66776, 118.739, 350.017), inplace=False
+    )
+    electrodes_longitudinal_m5 = electrodes_cloud.rotate_vector(
+        longvecRot, -5, (8.66776, 118.739, 350.017), inplace=False
+    )
+    electrodes_longitudinal_p5 = electrodes_cloud.rotate_vector(
+        longvecRot, 5, (8.66776, 118.739, 350.017), inplace=False
+    )
+    electrodes_longitudinal_p10 = electrodes_cloud.rotate_vector(
+        longvecRot, 10, (8.66776, 118.739, 350.017), inplace=False
+    )
+
+    electrodes_frontal_m10 = electrodes_cloud.rotate_vector(
+        frontalvecRot, -10, (8.66776, 118.739, 350.017), inplace=False
+    )
+    electrodes_frontal_m5 = electrodes_cloud.rotate_vector(
+        frontalvecRot, -5, (8.66776, 118.739, 350.017), inplace=False
+    )
+    electrodes_frontal_p5 = electrodes_cloud.rotate_vector(
+        frontalvecRot, 5, (8.66776, 118.739, 350.017), inplace=False
+    )
+    electrodes_frontal_p10 = electrodes_cloud.rotate_vector(
+        frontalvecRot, 10, (8.66776, 118.739, 350.017), inplace=False
+    )
+    # plotter.add_mesh(electrodes_cloud_minus10, color="maroon", point_size=10.0)
+    plotter.show()
 
 if not isinstance(model, models.FourChamber):
     raise TypeError("Expecting a FourChamber heart model.")
@@ -138,7 +218,7 @@ simulator.compute_uhc()
 # .. warning::
 #    Atrial fiber orientation is approximated by apex-base direction, the development is undergoing.
 
-# simulator.compute_fibers()
+simulator.compute_fibers()
 # simulator.model.plot_fibers(n_seed_points=2000)
 
 ###############################################################################
@@ -154,6 +234,7 @@ simulator.compute_uhc()
 # compared to the rest of the model.
 simulator.settings.purkinje.pmjtype = Quantity(4)
 simulator.settings.purkinje.pmjradius = Quantity(2)
+
 simulator.compute_purkinje()
 
 # by calling this method, stimulation will at Atrioventricular node
@@ -179,7 +260,13 @@ simulator.compute_conduction_system()
 # simulator.settings.electrophysiology.analysis.solvertype = "Eikonal"
 # simulator.simulate(folder_name="main-ep-Eikonal")
 simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
-simulator.simulate(folder_name="main-ep-ReactionEikonal")
+simulator.settings.electrophysiology.analysis.end_time = Quantity(500, "ms")
+simulator.settings.electrophysiology.analysis.dt_d3plot = Quantity(5, "ms")
+
+# In Purkinje fibers (2–3 m/s) than in myocardial cells (0.7fiber –0.2sheets m/s)
+simulator.settings.electrophysiology.material.beam["velocity"] = Quantity(2.5, "ms")
+
+# simulator.simulate(folder_name="main-ep-ReactionEikonal")
 
 
 ###############################################################################

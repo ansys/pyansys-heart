@@ -3869,7 +3869,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         material_settings,
         solvertype="Monodomain",
     ):
-        conduction_param = conduction_param = material_settings["sigma"].m
+        conduction_param = material_settings["sigma"].m
         if solvertype == "Monodomain":
             conduction_param = material_settings["sigma"].m
         elif solvertype == "Eikonal" or solvertype == "ReactionEikonal":

@@ -50,7 +50,7 @@ import ansys.heart.preprocessor.models.v0_2.models as models
 os.environ["ANSYS_HEART_MODEL_VERSION"] = "v0.2"
 
 # specify necessary paths.
-case_file = os.path.join("pyansys-heart", "downloads", "Strocchi2020", "01", "01.case")
+case_file = os.path.join("downloads", "Strocchi2020", "01", "01.case")
 workdir = os.path.join(os.path.dirname(case_file), "FourChamber")
 
 if not os.path.isdir(workdir):

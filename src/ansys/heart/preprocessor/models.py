@@ -544,7 +544,7 @@ class HeartModel:
         boundaries_fluid = [b for b in boundaries_fluid if b.name not in boundaries_exclude]
 
         caps = [
-            SurfaceMesh("cap_" + c.name, c.triangles, self.mesh.nodes)
+            SurfaceMesh(name="cap_" + c.name, triangles=c.triangles, nodes=self.mesh.nodes)
             for p in self.parts
             for c in p.caps
         ]
@@ -581,7 +581,7 @@ class HeartModel:
         fluid_mesh_vtk.cell_data["part-id"] = fluid_mesh_vtk.cell_data["cell-zone-ids"]
 
         boundaries = [
-            SurfaceMesh(fz.name, fz.faces, fluid_mesh.nodes, fz.id)
+            SurfaceMesh(name=fz.name, triangles=fz.faces, nodes=fluid_mesh.nodes, id=fz.id)
             for fz in fluid_mesh.face_zones
             if "interior" not in fz.name
         ]

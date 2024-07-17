@@ -105,7 +105,7 @@ class Feature:
         pass
 
 
-class SurfaceMesh(pv.PolyData, Feature):
+class SurfaceMesh(pv.PolyData):
     """Surface class."""
 
     @property
@@ -172,16 +172,30 @@ class SurfaceMesh(pv.PolyData, Feature):
 
     def __init__(
         self,
+        var_inp: Union[pv.PolyData, np.ndarray, list, str, pathlib.Path] = None,
         name: str = None,
         triangles: np.ndarray = None,
         nodes: np.ndarray = None,
         id: int = None,
+        **kwargs,
     ) -> None:
-        super().__init__(self)
-        Feature.__init__(self, name)
 
-        self.type = "surface"
-        """Surface type."""
+        # *NOTE: pv.PolyData supports variable input through the first argument (var_inp)
+        # * the following is to make sure this object behaves similar to pv.PolyData
+        # * https://github.com/pyvista/pyvista/blob/release/0.44/pyvista/core/pointset.py#L500-L1693
+        # * https://docs.pyvista.org/version/stable/api/core/_autosummary/pyvista.polydata#pyvista.PolyData # noqa E501
+        if var_inp is None:
+            return
+
+        if isinstance(var_inp, (pv.PolyData, np.ndarray, list, str, pathlib.Path)):
+            kwargs["var_inp"] = var_inp
+
+        super(SurfaceMesh, self).__init__(**kwargs)
+        # **********************
+
+        self.name = name
+        """Name of the surface."""
+
         self.id: int = id
         """ID of surface."""
         self.nsid: int = None
@@ -798,15 +812,15 @@ class Part:
     def _add_surfaces(self):
         """Add surfaces to the part."""
         if self.part_type in [PartType.VENTRICLE, PartType.ATRIUM]:
-            self.endocardium = SurfaceMesh("{0} endocardium".format(self.name))
+            self.endocardium = SurfaceMesh(name="{0} endocardium".format(self.name))
             """Endocardium."""
-            self.epicardium = SurfaceMesh("{0} epicardium".format(self.name))
+            self.epicardium = SurfaceMesh(name="{0} epicardium".format(self.name))
             """Epicardium."""
             if self.part_type == PartType.VENTRICLE:
-                self.septum = SurfaceMesh("{0} septum".format(self.name))
+                self.septum = SurfaceMesh(name="{0} septum".format(self.name))
                 """Septum surface."""
         elif self.part_type in [PartType.ARTERY]:
-            self.wall = SurfaceMesh("{0} wall".format(self.name))
+            self.wall = SurfaceMesh(name="{0} wall".format(self.name))
             """Wall."""
         return
 

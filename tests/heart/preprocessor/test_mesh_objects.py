@@ -21,11 +21,14 @@
 # SOFTWARE.
 
 
-import numpy as np
-import pytest  # noqa F401
-import pyvista as pv  # noqa F401
+import os
+import tempfile
 
-from ansys.heart.preprocessor.mesh.objects import Mesh
+import numpy as np
+import pytest
+import pyvista as pv
+
+from ansys.heart.preprocessor.mesh.objects import Mesh, SurfaceMesh
 
 
 @pytest.mark.parametrize("dtype", [float, int])
@@ -365,3 +368,31 @@ def test_add_nodes_mesh():
 
     assert mesh.point_data["data-scalar"].shape[0] == mesh.nodes.shape[0]
     assert mesh.point_data["data-vector"].shape[0] == mesh.nodes.shape[0]
+
+
+def test_surface_mesh_init():
+    """Test whether SurfaceMesh __init__'s behaves similar to pv.PolyData init"""
+
+    sphere = pv.Sphere()
+
+    # init with number of points
+    sphere1 = SurfaceMesh(sphere.points, faces=sphere.faces, name="test_name")
+
+    assert np.allclose(sphere1.points, sphere.points)
+    assert np.all(sphere1.faces == sphere.faces)
+    assert sphere1.name == "test_name"
+
+    # Init with polydata
+    sphere1 = SurfaceMesh(sphere)
+    assert sphere1.n_cells == sphere.n_cells
+    assert sphere1.n_points == sphere.n_points
+
+    # Init with file path
+    with tempfile.TemporaryDirectory(suffix=".pyansys-heart") as tempdir:
+        temp_path = os.path.join(tempdir, "sphere.vtp")
+        sphere.save(temp_path)
+
+        sphere1 = SurfaceMesh(temp_path)
+
+    assert sphere1.n_cells == sphere.n_cells
+    assert sphere1.n_points == sphere.n_points

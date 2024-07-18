@@ -563,6 +563,13 @@ def mesh_from_non_manifold_input_model(
             os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
         )
 
+        # # import stls
+        if _uses_container:
+            # NOTE: when using a Fluent container visible files
+            # will be in /mnt/pyfluent. So need to use relative paths
+            # or replace dirname by /mnt/pyfluent as prefix
+            work_dir_meshing = "."
+
         session.tui.file.import_.cad("no", work_dir_meshing, "*.stl", "yes", 40, "yes", "mm")
 
         # each stl is imported as a separate object. Wrap the different collections of stls to

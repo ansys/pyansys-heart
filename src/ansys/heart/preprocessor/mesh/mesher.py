@@ -134,27 +134,52 @@ def _organize_connected_regions(grid: pv.UnstructuredGrid, scalar: str = "part-i
     return grid
 
 
-def _get_fluent_meshing_session() -> MeshingSession:
+def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingSession:
     """Get a Fluent Meshing session."""
     # NOTE: when using containerized version - we need to copy all the files
     # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
     if _uses_container:
         num_cpus = 1
-        custom_config = {"host_mount_path": f"{os.getcwd()}"}
-    else:
-        custom_config = {}
-        num_cpus = 2
+        custom_config = {
+            "host_mount_path": f"{working_directory}",
+            "container_mount_path": "/mnt/pyfluent/meshing",
+        }
 
-    session = pyfluent.launch_fluent(
-        mode="meshing",
-        precision="double",
-        processor_count=num_cpus,
-        start_transcript=False,
-        ui_mode=_fluent_ui_mode,
-        product_version=_fluent_version,
-        start_container=_uses_container,
-        container_dict=custom_config,
-    )
+        session = pyfluent.launch_fluent(
+            mode="meshing",
+            precision="double",
+            processor_count=num_cpus,
+            start_transcript=False,
+            ui_mode=_fluent_ui_mode,
+            product_version=_fluent_version,
+            start_container=_uses_container,
+            container_dict=custom_config,
+            dry_run=True,
+        )
+        LOGGER.debug(session)
+
+        session = pyfluent.launch_fluent(
+            mode="meshing",
+            precision="double",
+            processor_count=num_cpus,
+            start_transcript=False,
+            ui_mode=_fluent_ui_mode,
+            product_version=_fluent_version,
+            start_container=_uses_container,
+            container_dict=custom_config,
+        )
+
+    else:
+        num_cpus = 2
+        session = pyfluent.launch_fluent(
+            mode="meshing",
+            precision="double",
+            processor_count=num_cpus,
+            start_transcript=False,
+            ui_mode=_fluent_ui_mode,
+            product_version=_fluent_version,
+            start_container=_uses_container,
+        )
 
     return session
 
@@ -545,19 +570,12 @@ def mesh_from_non_manifold_input_model(
         for part in model.parts:
             part.name = part.name.lower().replace(" ", "_")
 
-        # # import stls
-        if _uses_container:
-            # NOTE: when using a Fluent container visible files
-            # will be in /mnt/pyfluent. So need to use relative paths
-            # or replace dirname by /mnt/pyfluent as prefix
-            work_dir_meshing = os.getcwd()
-
         # write all boundaries
         LOGGER.debug(f"Writing input files in: {work_dir_meshing}")
         model.write_part_boundaries(work_dir_meshing, add_name_to_header=False)
 
         # launch pyfluent
-        session = _get_fluent_meshing_session()
+        session = _get_fluent_meshing_session(work_dir_meshing)
 
         session.transcript.start(
             os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
@@ -568,7 +586,7 @@ def mesh_from_non_manifold_input_model(
             # NOTE: when using a Fluent container visible files
             # will be in /mnt/pyfluent. So need to use relative paths
             # or replace dirname by /mnt/pyfluent as prefix
-            work_dir_meshing = "."
+            work_dir_meshing = "/mnt/pyfluent/meshing"
 
         session.tui.file.import_.cad("no", work_dir_meshing, "*.stl", "yes", 40, "yes", "mm")
 

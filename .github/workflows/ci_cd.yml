@@ -134,7 +134,7 @@ jobs:
           python -m pip install dynalib==0.1.0 --index-url=$PIP_EXTRA_INDEX_URL
         env:
           PIP_EXTRA_INDEX_URL: 'https://${{ secrets.PYANSYS_PYPI_PRIVATE_PAT }}@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/'
-          
+
       - uses: ansys/actions/build-library@v5
         with:
           library-name: ${{ env.LIBRARY_NAME }}

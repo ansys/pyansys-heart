@@ -542,6 +542,13 @@ def mesh_from_non_manifold_input_model(
         for part in model.parts:
             part.name = part.name.lower().replace(" ", "_")
 
+        # # import stls
+        if _uses_container:
+            # NOTE: when using a Fluent container visible files
+            # will be in /mnt/pyfluent. So need to use relative paths
+            # or replace dirname by /mnt/pyfluent as prefix
+            work_dir_meshing = "/mnt/pyfluent"
+
         # write all boundaries
         LOGGER.debug(f"Writing input files in: {work_dir_meshing}")
         model.write_part_boundaries(work_dir_meshing, add_name_to_header=False)
@@ -552,13 +559,6 @@ def mesh_from_non_manifold_input_model(
         session.transcript.start(
             os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
         )
-
-        # # import stls
-        if _uses_container:
-            # NOTE: when using a Fluent container visible files
-            # will be in /mnt/pyfluent. So need to use relative paths
-            # or replace dirname by /mnt/pyfluent as prefix
-            work_dir_meshing = "."
 
         session.tui.file.import_.cad("no", work_dir_meshing, "*.stl", "yes", 40, "yes", "mm")
 

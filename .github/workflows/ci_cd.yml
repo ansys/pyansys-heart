@@ -59,6 +59,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [doc-style]
     steps:
+      - name: Install dynalib dependency
+        run: |
+          python -m pip install dynalib==0.1.0 --index-url=$PIP_EXTRA_INDEX_URL
+
       - uses: ansys/actions/doc-build@v5
         with:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
@@ -117,6 +121,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [tests]
     steps:
+      - name: Install dynalib dependency
+        run: |
+          python -m pip install dynalib==0.1.0 --index-url=$PIP_EXTRA_INDEX_URL
       - uses: ansys/actions/build-library@v5
         with:
           library-name: ${{ env.LIBRARY_NAME }}

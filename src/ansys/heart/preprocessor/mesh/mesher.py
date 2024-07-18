@@ -140,7 +140,9 @@ def _get_fluent_meshing_session() -> MeshingSession:
     # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
     if _uses_container:
         num_cpus = 1
+        custom_config = {"host_mount_path": f"{os.getcwd()}"}
     else:
+        custom_config = {}
         num_cpus = 2
 
     session = pyfluent.launch_fluent(
@@ -151,6 +153,7 @@ def _get_fluent_meshing_session() -> MeshingSession:
         ui_mode=_fluent_ui_mode,
         product_version=_fluent_version,
         start_container=_uses_container,
+        container_dict=custom_config,
     )
 
     return session
@@ -547,7 +550,7 @@ def mesh_from_non_manifold_input_model(
             # NOTE: when using a Fluent container visible files
             # will be in /mnt/pyfluent. So need to use relative paths
             # or replace dirname by /mnt/pyfluent as prefix
-            work_dir_meshing = "/mnt/pyfluent"
+            work_dir_meshing = os.getcwd()
 
         # write all boundaries
         LOGGER.debug(f"Writing input files in: {work_dir_meshing}")

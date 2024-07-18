@@ -37,10 +37,10 @@ def test_launch_fluent():
             precision="double",
             processor_count=1,
             start_transcript=False,
-            show_gui=False,
+            ui_mode="hidden_gui",
             product_version="24.1.0",
         )
-        assert session.health_check_service.status() == "SERVING"
+        assert session._fluent_connection.check_health() == "SERVING"
         # try to initialize workflow
         assert session.workflow.InitializeWorkflow(
             WorkflowType="Watertight Geometry"

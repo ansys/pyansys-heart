@@ -154,19 +154,6 @@ def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingS
             product_version=_fluent_version,
             start_container=_uses_container,
             container_dict=custom_config,
-            dry_run=True,
-        )
-        LOGGER.debug(session)
-
-        session = pyfluent.launch_fluent(
-            mode="meshing",
-            precision="double",
-            processor_count=num_cpus,
-            start_transcript=False,
-            ui_mode=_fluent_ui_mode,
-            product_version=_fluent_version,
-            start_container=_uses_container,
-            container_dict=custom_config,
         )
 
     else:
@@ -266,14 +253,14 @@ def mesh_fluid_cavities(
         c.save(filename)
         add_solid_name_to_stl(filename, c.name.lower(), file_type="binary")
 
-    session = _get_fluent_meshing_session()
+    session = _get_fluent_meshing_session(work_dir_meshing)
 
     # import all stls
     if _uses_container:
         # NOTE: when using a Fluent container visible files
         # will be in /mnt/pyfluent. So need to use relative paths
         # or replace dirname by /mnt/pyfluent as prefix
-        work_dir_meshing = "."
+        work_dir_meshing = "/mnt/pyfluent/meshing"
     session.tui.file.import_.cad(f"no {work_dir_meshing} *.stl")
 
     # merge objects
@@ -384,7 +371,7 @@ def mesh_from_manifold_input_model(
         LOGGER.debug(f"Writing input files in: {work_dir_meshing}")
         model.write_part_boundaries(work_dir_meshing)
 
-        session = _get_fluent_meshing_session()
+        session = _get_fluent_meshing_session(work_dir_meshing)
 
         session.transcript.start(
             os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
@@ -395,7 +382,7 @@ def mesh_from_manifold_input_model(
             # NOTE: when using a Fluent container visible files
             # will be in /mnt/pyfluent. So need to use relative paths
             # or replace dirname by /mnt/pyfluent as prefix
-            work_dir_meshing = "."
+            work_dir_meshing = "/mnt/pyfluent/meshing"
 
         session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
         session.tui.objects.merge("'(*) heart")

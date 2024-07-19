@@ -482,14 +482,14 @@ class Mesh(pv.UnstructuredGrid):
 
         return
 
-    def get_surface_from_name(self, name: str = None):
+    def _get_surface_from_name(self, name: str = None):
         """Return a list of surfaces that match the given list of names.
 
         Notes
         -----
         Returns single surface. When multiple matches are found returns list of surfaces
         """
-        # TODO: deprecate
+        # TODO: deprecate. This method needs to be refactored.
 
         surfaces_search = self.boundaries
         surfaces = [s for s in surfaces_search if s.name == name]

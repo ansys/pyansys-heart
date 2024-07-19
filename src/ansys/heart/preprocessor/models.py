@@ -1197,7 +1197,7 @@ class HeartModel:
         for part in self.parts:
             for surface in part.surfaces:
                 boundary_name = "-".join(surface.name.lower().split())
-                boundary_surface = self.mesh.get_surface_from_name(boundary_name)
+                boundary_surface = self.mesh._get_surface_from_name(boundary_name)
                 if "septum" in surface.name:
                     try:
                         septum = [b for b in self.mesh.boundaries if "septum" in b.name]

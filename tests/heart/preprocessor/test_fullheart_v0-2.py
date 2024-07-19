@@ -105,7 +105,7 @@ def extract_fullheart():
 
         global stats
         stats = model_summary(model)
-        
+
         # Give Fluent time to close
         time.sleep(5)
 

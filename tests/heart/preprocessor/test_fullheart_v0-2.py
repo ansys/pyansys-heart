@@ -28,6 +28,7 @@ import json
 import os
 import pathlib
 import tempfile
+import time
 
 import pytest
 import yaml
@@ -104,6 +105,9 @@ def extract_fullheart():
 
         global stats
         stats = model_summary(model)
+        
+        # Give Fluent time to close
+        time.sleep(5)
 
     return
 

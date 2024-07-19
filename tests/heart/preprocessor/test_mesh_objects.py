@@ -27,6 +27,7 @@ import tempfile
 import numpy as np
 import pytest
 import pyvista as pv
+from pyvista import examples
 
 from ansys.heart.preprocessor.mesh.objects import Mesh, SurfaceMesh
 
@@ -400,3 +401,35 @@ def test_surface_mesh_init():
 
     assert sphere1.n_cells == sphere.n_cells
     assert sphere1.n_points == sphere.n_points
+
+
+@pytest.mark.parametrize("celltype", ["quads", "triangles"])
+def test_mesh_boundaries_property(celltype):
+    """Test the boundaries property of Mesh."""
+    if celltype == "triangles":
+        polydata = pv.Sphere()
+    elif celltype == "quads":
+        polydata = pv.Box(level=15)
+
+    polydata.cell_data["surface-id"] = 1
+    polydata.cell_data["surface-id"][0:800] = 2
+    mesh = Mesh()
+    assert mesh._boundaries == []
+    mesh.add_surface(polydata)
+    assert len(mesh._boundaries) == 2
+
+
+@pytest.mark.parametrize("celltype", ["hex", "tets"])
+def test_mesh_volumes_property(celltype):
+    """Test the boundaries property of Mesh."""
+    if celltype == "hex":
+        ugrid = examples.load_hexbeam()
+    elif celltype == "tets":
+        ugrid = examples.load_tetbeam()
+
+    ugrid.cell_data["volume-id"] = 1
+    ugrid.cell_data["volume-id"][0:20] = 2
+    mesh = Mesh()
+    assert mesh._volumes == []
+    mesh.add_volume(ugrid)
+    assert len(mesh._volumes) == 2

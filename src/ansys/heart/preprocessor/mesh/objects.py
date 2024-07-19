@@ -433,9 +433,24 @@ class Mesh(pv.UnstructuredGrid):
             LOGGER.warning("Failed to set tetrahedrons.")
             return
 
+    @property
+    def _boundaries(self) -> List[SurfaceMesh]:
+        """List of boundaries in the mesh."""
+        if self.surface_ids is None:
+            return []
+        return [self.get_surface(surface_id) for surface_id in self.surface_ids]
+
+    @property
+    def _volumes(self):
+        """List of volumes in the mesh."""
+        if self.volume_ids is None:
+            return []
+        return [self.get_volume(volume_id) for volume_id in self.volume_ids]
+
     def __init__(self, *args):
         super().__init__(*args)
 
+        # ! replace this list by read-only property
         self.boundaries: List[SurfaceMesh] = []
         """List of boundary surface meshes within the part."""
         pass
@@ -466,6 +481,7 @@ class Mesh(pv.UnstructuredGrid):
     @property
     def boundary_names(self) -> List[str]:
         """Iterate over boundaries and returns their names."""
+        # TODO: This needs to be refactored
         return [b.name for b in self.boundaries]
 
     def _sync_nodes_of_surfaces(self):
@@ -509,13 +525,15 @@ class Mesh(pv.UnstructuredGrid):
         np.ndarray
             Array with unique surface ids
         """
+        supported_cell_types = [pv.CellType.QUAD, pv.CellType.TRIANGLE]
         try:
-            mask = self.celltypes == pv.CellType.TRIANGLE
+            mask = np.isin(self.celltypes, supported_cell_types)
             mask1 = self.cell_data["surface-id"] > -1
             np.vstack((mask, mask1))
             mask = np.all(np.vstack((mask, mask1)), axis=0)
             return np.unique(self.cell_data["surface-id"][mask])
         except KeyError:
+            LOGGER.debug(f"Failed to extrect one of {supported_cell_types}")
             return None
 
     @property
@@ -527,13 +545,15 @@ class Mesh(pv.UnstructuredGrid):
         np.ndarray
             Array with unique volume ids
         """
+        supported_cell_types = [pv.CellType.HEXAHEDRON, pv.CellType.TETRA]
         try:
-            mask = self.celltypes == pv.CellType.TETRA
+            mask = np.isin(self.celltypes, supported_cell_types)
             mask1 = self.cell_data["volume-id"] > -1
             np.vstack((mask, mask1))
             mask = np.all(np.vstack((mask, mask1)), axis=0)
             return np.unique(self.cell_data["volume-id"][mask])
         except KeyError:
+            LOGGER.debug(f"Failed to extrect one of {supported_cell_types}")
             return None
 
     @property

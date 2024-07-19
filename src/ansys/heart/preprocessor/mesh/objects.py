@@ -424,6 +424,7 @@ class Mesh(pv.UnstructuredGrid):
     @tetrahedrons.setter
     def tetrahedrons(self, value: np.ndarray):
         # TODO: manage cell data
+        # TODO: could deprecate now that there is an add_volume method?
         try:
             points = self.points
             celltypes = np.full(value.shape[0], pv.CellType.TETRA, dtype=np.int8)
@@ -491,7 +492,8 @@ class Mesh(pv.UnstructuredGrid):
         -----
         Temporary until this module is refactored.
         """
-        # TODO: deprecate
+        # TODO: deprecate. This is redundant with the _add_mesh and 
+        # TODO corresponding add_surface, add_volume, add_line methods        
 
         for b in self.boundaries:
             b.nodes = self.nodes

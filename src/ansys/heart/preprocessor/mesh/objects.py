@@ -184,8 +184,6 @@ class SurfaceMesh(pv.PolyData):
         # * the following is to make sure this object behaves similar to pv.PolyData
         # * https://github.com/pyvista/pyvista/blob/release/0.44/pyvista/core/pointset.py#L500-L1693
         # * https://docs.pyvista.org/version/stable/api/core/_autosummary/pyvista.polydata#pyvista.PolyData # noqa E501
-        if var_inp is None:
-            return
 
         if isinstance(var_inp, (pv.PolyData, np.ndarray, list, str, pathlib.Path)):
             kwargs["var_inp"] = var_inp

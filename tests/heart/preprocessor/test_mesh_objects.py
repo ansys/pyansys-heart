@@ -375,6 +375,10 @@ def test_surface_mesh_init():
 
     sphere = pv.Sphere()
 
+    ## init without var_inp
+    surface = SurfaceMesh(name="test_name")
+    assert surface.name == "test_name"
+
     # init with number of points
     sphere1 = SurfaceMesh(sphere.points, faces=sphere.faces, name="test_name")
 

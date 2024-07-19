@@ -492,8 +492,8 @@ class Mesh(pv.UnstructuredGrid):
         -----
         Temporary until this module is refactored.
         """
-        # TODO: deprecate. This is redundant with the _add_mesh and 
-        # TODO corresponding add_surface, add_volume, add_line methods        
+        # TODO: deprecate. This is redundant with the _add_mesh and
+        # TODO corresponding add_surface, add_volume, add_line methods
 
         for b in self.boundaries:
             b.nodes = self.nodes

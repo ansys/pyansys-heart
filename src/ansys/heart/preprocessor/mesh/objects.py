@@ -433,19 +433,9 @@ class Mesh(pv.UnstructuredGrid):
         return self.cells_dict[pv.CellType.TETRA]
 
     @property
-    def _global_tetrahedron_ids(self):
-        """Global ids of tetrahedral cells."""
-        return _get_global_cell_ids(self, pv.CellType.TETRA)
-
-    @property
     def triangles(self):
         """Get all triangles of the mesh."""
         return self.cells_dict[pv.CellType.TRIANGLE]
-
-    @property
-    def _global_triangle_ids(self):
-        """Global ids of triangular cells."""
-        return _get_global_cell_ids(self, pv.CellType.TRIANGLE)
 
     @property
     def lines(self):
@@ -479,14 +469,17 @@ class Mesh(pv.UnstructuredGrid):
             return []
         return [self.get_volume(volume_id) for volume_id in self.volume_ids]
 
-    def __init__(self, *args):
-        super().__init__(*args)
+    @property
+    def _global_triangle_ids(self):
+        """Global ids of triangular cells."""
+        return _get_global_cell_ids(self, pv.CellType.TRIANGLE)
 
-        # ! replace this list by read-only property
-        self.boundaries: List[SurfaceMesh] = []
-        """List of boundary surface meshes within the part."""
-        pass
+    @property
+    def _global_tetrahedron_ids(self):
+        """Global ids of tetrahedral cells."""
+        return _get_global_cell_ids(self, pv.CellType.TETRA)
 
+    # TODO: deprecate
     @property
     def part_ids(self) -> np.ndarray:
         """Array of part ids indicating to which part the tetrahedron belongs.
@@ -495,7 +488,6 @@ class Mesh(pv.UnstructuredGrid):
         -----
         This is derived from the "part-id" field in cell data
         """
-        # TODO: deprecate
         try:
             value = self.cell_data["tags"].astype(int)
             return value
@@ -510,12 +502,14 @@ class Mesh(pv.UnstructuredGrid):
             value = None
         return value
 
+    # TODO: This needs to be refactored
     @property
     def boundary_names(self) -> List[str]:
         """Iterate over boundaries and returns their names."""
-        # TODO: This needs to be refactored
         return [b.name for b in self.boundaries]
 
+    # TODO: deprecate. This is redundant with the _add_mesh and
+    # TODO corresponding add_surface, add_volume, add_line methods
     def _sync_nodes_of_surfaces(self):
         """Synchronize the node array of each associated surface.
 
@@ -523,14 +517,12 @@ class Mesh(pv.UnstructuredGrid):
         -----
         Temporary until this module is refactored.
         """
-        # TODO: deprecate. This is redundant with the _add_mesh and
-        # TODO corresponding add_surface, add_volume, add_line methods
-
         for b in self.boundaries:
             b.nodes = self.nodes
 
         return
 
+    # TODO: deprecate. This method needs to be refactored.
     def _get_surface_from_name(self, name: str = None):
         """Return a list of surfaces that match the given list of names.
 
@@ -538,8 +530,6 @@ class Mesh(pv.UnstructuredGrid):
         -----
         Returns single surface. When multiple matches are found returns list of surfaces
         """
-        # TODO: deprecate. This method needs to be refactored.
-
         surfaces_search = self.boundaries
         surfaces = [s for s in surfaces_search if s.name == name]
         if len(surfaces) == 0:
@@ -605,11 +595,13 @@ class Mesh(pv.UnstructuredGrid):
         except KeyError:
             return None
 
-    def clean(self, *args):
-        """Merge duplicate points and return cleaned copy."""
-        self_c = copy.deepcopy(self)
-        super(Mesh, self_c).__init__(pv.UnstructuredGrid(self).clean(*args))
-        return self_c
+    def __init__(self, *args):
+        super().__init__(*args)
+
+        # ! replace this list by read-only property
+        self.boundaries: List[SurfaceMesh] = []
+        """List of boundary surface meshes within the part."""
+        pass
 
     def _add_mesh(
         self,
@@ -660,6 +652,22 @@ class Mesh(pv.UnstructuredGrid):
         merged = pv.merge((self, mesh), merge_points=False)
         super().__init__(merged)
         return self
+
+    def _get_submesh(
+        self, sid: int, scalar: Literal["surface-id", "line-id", "volume-id"]
+    ) -> pv.UnstructuredGrid:
+        # NOTE: extract_cells cleans the object, removing any unused points.
+        if not scalar in self.cell_data.keys():
+            LOGGER.debug(f"{scalar} does not exist in cell_data")
+            return None
+        mask = np.isin(self.cell_data[scalar], sid)
+        return self.extract_cells(mask)
+
+    def clean(self, *args):
+        """Merge duplicate points and return cleaned copy."""
+        self_c = copy.deepcopy(self)
+        super(Mesh, self_c).__init__(pv.UnstructuredGrid(self).clean(*args))
+        return self_c
 
     def add_volume(self, volume: pv.UnstructuredGrid, id: int = None):
         """Add a volume.
@@ -729,16 +737,6 @@ class Mesh(pv.UnstructuredGrid):
 
         self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan)
         return self_copy
-
-    def _get_submesh(
-        self, sid: int, scalar: Literal["surface-id", "line-id", "volume-id"]
-    ) -> pv.UnstructuredGrid:
-        # NOTE: extract_cells cleans the object, removing any unused points.
-        if not scalar in self.cell_data.keys():
-            LOGGER.debug(f"{scalar} does not exist in cell_data")
-            return None
-        mask = np.isin(self.cell_data[scalar], sid)
-        return self.extract_cells(mask)
 
     def get_volume(self, sid: int) -> pv.UnstructuredGrid:
         """Get a volume as a UnstructuredGrids object."""

@@ -91,6 +91,24 @@ def _get_fill_data(
     return pad_array
 
 
+def _get_global_cell_ids(mesh: pv.UnstructuredGrid, celltype: pv.CellType) -> np.ndarray:
+    """Get the global cell ids of a particular cell type.
+
+    Parameters
+    ----------
+    mesh : pv.UnstructuredGrid
+        Unstructured grid from which to obtain the global cell ids
+    celltype : pv.CellType
+        Cell type to get global cell ids of.
+
+    Returns
+    -------
+    np.ndarray
+        Array with global cell ids.
+    """
+    return np.argwhere(np.isin(mesh.celltypes, celltype)).flatten()
+
+
 class Feature:
     """Feature class."""
 
@@ -415,9 +433,19 @@ class Mesh(pv.UnstructuredGrid):
         return self.cells_dict[pv.CellType.TETRA]
 
     @property
+    def _global_tetrahedron_ids(self):
+        """Global ids of tetrahedral cells."""
+        return _get_global_cell_ids(self, pv.CellType.TETRA)
+
+    @property
     def triangles(self):
         """Get all triangles of the mesh."""
         return self.cells_dict[pv.CellType.TRIANGLE]
+
+    @property
+    def _global_triangle_ids(self):
+        """Global ids of triangular cells."""
+        return _get_global_cell_ids(self, pv.CellType.TRIANGLE)
 
     @property
     def lines(self):

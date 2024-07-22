@@ -327,11 +327,6 @@ def test_mesh_remove_001():
 
 def test_mesh_remove_002():
     """Remove surface based on id."""
-    # points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=float)
-    # tets = [4, 0, 1, 2, 3]
-    # cell_types = [pv.CellType.TETRA]
-
-    # mesh = Mesh(tets, cell_types, points)
     mesh = _convert_to_mesh(_get_beam_model("tets"))
     mesh.cell_data["_volume-id"] = 1
     init_n_cells = mesh.n_cells
@@ -363,36 +358,28 @@ def test_mesh_clean_001():
 
 def test_mesh_object_properties():
     """Test the properties of Mesh."""
-    # NOTE: clean this up
-    points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1], [-1, 0, 0], [-2, 0, 0]])
+    tets = _get_beam_model("tets")
+    hex = _get_beam_model("hex")
+    triangles = _get_beam_model("triangles")
+    lines = triangles.extract_feature_edges()
+    lines.clear_cell_data()
+    lines.clear_point_data()
 
-    # for each face in the tet
-    tets = [4, 0, 1, 2, 3]  # 1 tet
-    triangles = [3, 0, 1, 3, 3, 1, 2, 3, 3, 2, 0, 3, 3, 0, 2, 4, 3, 0, 4, 5]  # 5 triangles
-    lines = [2, 0, 1, 2, 1, 2, 2, 2, 3, 2, 4, 5]  # 4 lines
-    cell_types = [pv.CellType.TETRA] + [pv.CellType.TRIANGLE] * 5 + [pv.CellType.LINE] * 4
-    cells = tets + triangles + lines
-    mesh = Mesh(cells, cell_types, points)
-    mesh.celltypes
+    mesh = Mesh()
+    mesh.add_volume(tets, int(1))
+    mesh.add_volume(hex, int(2))
+    mesh.add_surface(triangles, int(10))
+    mesh.add_lines(lines, int(100))
 
-    #
-    data = np.ones(mesh.n_cells, dtype=int) * -1
-    data[mesh.celltypes == pv.CellType.TETRA] = 1
-    mesh.cell_data["_volume-id"] = data
-    assert mesh.volume_ids == [1]
-
-    data = np.ones(mesh.n_cells, dtype=int) * -1
-    data[mesh.celltypes == pv.CellType.LINE] = 1
-    data[-2:] = 2
-    mesh.cell_data["_line-id"] = data
-    assert np.all(mesh.line_ids == [1, 2])
-
-    data = np.ones(mesh.n_cells, dtype=int) * -1
-    data[mesh.celltypes == pv.CellType.TRIANGLE] = 1
-    data[1] = 2
-    data[2:4:] = 3
-    mesh.cell_data["_surface-id"] = data
-    assert np.all(mesh.surface_ids == [1, 2, 3])
+    assert np.all(
+        np.isin(
+            mesh.celltypes,
+            [pv.CellType.TETRA, pv.CellType.HEXAHEDRON, pv.CellType.TRIANGLE, pv.CellType.LINE],
+        )
+    )
+    assert np.all(mesh.volume_ids == [1, 2])
+    assert np.all(mesh.surface_ids == [10])
+    assert np.all(mesh.line_ids == [100])
 
     pass
 

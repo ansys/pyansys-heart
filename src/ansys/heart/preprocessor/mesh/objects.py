@@ -43,6 +43,9 @@ try:
 except ImportError:
     LOGGER.warning("Importing pyvista failed. Install with: pip install pyvista")
 
+SURFACE_CELL_TYPES = [pv.CellType.QUAD, pv.CellType.TRIANGLE]
+VOLUME_CELL_TYPES = [pv.CellType.HEXAHEDRON, pv.CellType.TETRA]
+
 
 def _get_fill_data(
     mesh1: Union[pv.UnstructuredGrid, pv.PolyData],
@@ -527,15 +530,14 @@ class Mesh(pv.UnstructuredGrid):
         np.ndarray
             Array with unique surface ids
         """
-        supported_cell_types = [pv.CellType.QUAD, pv.CellType.TRIANGLE]
         try:
-            mask = np.isin(self.celltypes, supported_cell_types)
+            mask = np.isin(self.celltypes, SURFACE_CELL_TYPES)
             mask1 = self.cell_data["surface-id"] > -1
             np.vstack((mask, mask1))
             mask = np.all(np.vstack((mask, mask1)), axis=0)
             return np.unique(self.cell_data["surface-id"][mask])
         except KeyError:
-            LOGGER.debug(f"Failed to extrect one of {supported_cell_types}")
+            LOGGER.debug(f"Failed to extrect one of {SURFACE_CELL_TYPES}")
             return None
 
     @property
@@ -547,15 +549,14 @@ class Mesh(pv.UnstructuredGrid):
         np.ndarray
             Array with unique volume ids
         """
-        supported_cell_types = [pv.CellType.HEXAHEDRON, pv.CellType.TETRA]
         try:
-            mask = np.isin(self.celltypes, supported_cell_types)
+            mask = np.isin(self.celltypes, VOLUME_CELL_TYPES)
             mask1 = self.cell_data["volume-id"] > -1
             np.vstack((mask, mask1))
             mask = np.all(np.vstack((mask, mask1)), axis=0)
             return np.unique(self.cell_data["volume-id"][mask])
         except KeyError:
-            LOGGER.debug(f"Failed to extrect one of {supported_cell_types}")
+            LOGGER.debug(f"Failed to extrect one of {VOLUME_CELL_TYPES}")
             return None
 
     @property

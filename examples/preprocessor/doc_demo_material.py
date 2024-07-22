@@ -40,6 +40,11 @@ from ansys.heart.simulator.settings.material.curve import (
     Kumaraswamy_active,
     constant_ca2,
 )
+from ansys.heart.simulator.settings.material.ep_material import (
+    CellModel,
+    EPMaterial,
+    EPMaterialModel,
+)
 from ansys.heart.simulator.settings.material.material import (
     ACTIVE,
     ANISO,
@@ -48,13 +53,6 @@ from ansys.heart.simulator.settings.material.material import (
     ActiveModel,
     NeoHookean,
 )
-
-from ansys.heart.simulator.settings.material.ep_material import (
-    EPMaterialModel,
-    CellModel,
-    EPMaterial,
-)
-
 
 # sphinx_gallery_start_ignore
 docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", "_static", "images")

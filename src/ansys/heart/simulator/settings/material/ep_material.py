@@ -22,9 +22,9 @@
 
 """Material module."""
 
-from dataclasses import dataclass, field
-from typing import List, Optional, Literal
-from ansys.heart.core import LOG as LOGGER
+from dataclasses import dataclass
+from typing import Optional
+
 from ansys.heart.simulator.settings.defaults import electrophysiology as ep_defaults
 
 
@@ -112,6 +112,8 @@ class CellModel:
 
     @dataclass
     class Tentusscher_endo(Tentusscher):
+        """Hold data for Tentusscher cell model in its endocardium version."""
+
         gks: float = 0.392
         gto: float = 0.073
         v: float = -86.709
@@ -136,6 +138,8 @@ class CellModel:
 
     @dataclass
     class Tentusscher_epi(Tentusscher):
+        """Hold data for Tentusscher cell model in its epicardium version."""
+
         gks: float = 0.392
         gto: float = 0.294
         v: float = -85.23
@@ -160,6 +164,8 @@ class CellModel:
 
     @dataclass
     class Tentusscher_mid(Tentusscher):
+        """Hold data for Tentusscher cell model in its mid-myocardium version."""
+
         gks: float = 0.098
         gto: float = 0.294
         vleak: float = 0.00042
@@ -251,6 +257,7 @@ class EPMaterial(EPMaterialModel):
     pmjres: Optional[float] = ep_defaults.material["beam"]["pmjres"].m
 
     def __post_init__(self):
+        """Post init method."""
         if self.sigma_sheet is not None and self.sigma_sheet_normal is None:
             self.sigma_sheet_normal = self.sigma_sheet
         if self.sigma_sheet_normal is not None and self.sigma_sheet is None:

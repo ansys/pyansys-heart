@@ -550,10 +550,10 @@ class Mesh(pv.UnstructuredGrid):
         """
         try:
             mask = np.isin(self.celltypes, SURFACE_CELL_TYPES)
-            mask1 = self.cell_data["surface-id"] > -1
+            mask1 = self.cell_data["_surface-id"] > -1
             np.vstack((mask, mask1))
             mask = np.all(np.vstack((mask, mask1)), axis=0)
-            return np.unique(self.cell_data["surface-id"][mask])
+            return np.unique(self.cell_data["_surface-id"][mask])
         except KeyError:
             LOGGER.debug(f"Failed to extrect one of {SURFACE_CELL_TYPES}")
             return None
@@ -569,10 +569,10 @@ class Mesh(pv.UnstructuredGrid):
         """
         try:
             mask = np.isin(self.celltypes, VOLUME_CELL_TYPES)
-            mask1 = self.cell_data["volume-id"] > -1
+            mask1 = self.cell_data["_volume-id"] > -1
             np.vstack((mask, mask1))
             mask = np.all(np.vstack((mask, mask1)), axis=0)
-            return np.unique(self.cell_data["volume-id"][mask])
+            return np.unique(self.cell_data["_volume-id"][mask])
         except KeyError:
             LOGGER.debug(f"Failed to extrect one of {VOLUME_CELL_TYPES}")
             return None
@@ -588,10 +588,10 @@ class Mesh(pv.UnstructuredGrid):
         """
         try:
             mask = self.celltypes == pv.CellType.LINE
-            mask1 = self.cell_data["line-id"] > -1
+            mask1 = self.cell_data["_line-id"] > -1
             np.vstack((mask, mask1))
             mask = np.all(np.vstack((mask, mask1)), axis=0)
-            return np.unique(self.cell_data["line-id"][mask])
+            return np.unique(self.cell_data["_line-id"][mask])
         except KeyError:
             return None
 
@@ -654,7 +654,7 @@ class Mesh(pv.UnstructuredGrid):
         return self
 
     def _get_submesh(
-        self, sid: int, scalar: Literal["surface-id", "line-id", "volume-id"]
+        self, sid: int, scalar: Literal["_surface-id", "_line-id", "_volume-id"]
     ) -> pv.UnstructuredGrid:
         # NOTE: extract_cells cleans the object, removing any unused points.
         if not scalar in self.cell_data.keys():
@@ -677,17 +677,17 @@ class Mesh(pv.UnstructuredGrid):
         volume : pv.PolyData
             PolyData representation of the volume to add
         id : int
-            ID of the volume to be added. This id will be tracked as "volume-id"
+            ID of the volume to be added. This id will be tracked as "_volume-id"
         """
         if not id:
-            if "volume-id" not in volume.cell_data.keys():
-                LOGGER.debug("Failed to set volume-id")
+            if "_volume-id" not in volume.cell_data.keys():
+                LOGGER.debug("Failed to set _volume-id")
                 return None
         else:
             if not isinstance(id, int):
                 LOGGER.debug("sid should by type int.")
                 return None
-            volume.cell_data["volume-id"] = np.ones(volume.n_cells, dtype=float) * id
+            volume.cell_data["_volume-id"] = np.ones(volume.n_cells, dtype=float) * id
 
         self_copy = self._add_mesh(volume, keep_data=True, fill_float=np.nan)
         return self_copy
@@ -700,17 +700,17 @@ class Mesh(pv.UnstructuredGrid):
         surface : pv.PolyData
             PolyData representation of the surface to add
         sid : int
-            ID of the surface to be added. This id will be tracked as "surface-id"
+            ID of the surface to be added. This id will be tracked as "_surface-id"
         """
         if not id:
-            if "surface-id" not in surface.cell_data.keys():
-                LOGGER.debug("Failed to set surface-id")
+            if "_surface-id" not in surface.cell_data.keys():
+                LOGGER.debug("Failed to set _surface-id")
                 return None
         else:
             if not isinstance(id, int):
                 LOGGER.debug("sid should by type int.")
                 return None
-            surface.cell_data["surface-id"] = np.ones(surface.n_cells, dtype=float) * id
+            surface.cell_data["_surface-id"] = np.ones(surface.n_cells, dtype=float) * id
 
         self_copy = self._add_mesh(surface, keep_data=True, fill_float=np.nan)
         return self_copy
@@ -723,32 +723,32 @@ class Mesh(pv.UnstructuredGrid):
         lines : pv.PolyData
             PolyData representation of the lines to add
         id : int
-            ID of the surface to be added. This id will be tracked as "line-id"
+            ID of the surface to be added. This id will be tracked as "_line-id"
         """
         if not id:
-            if "line-id" not in lines.cell_data.keys():
-                LOGGER.debug("Failed to set surface-id")
+            if "_line-id" not in lines.cell_data.keys():
+                LOGGER.debug("Failed to set _surface-id")
                 return None
         else:
             if not isinstance(id, int):
                 LOGGER.debug("sid should by type int.")
                 return None
-            lines.cell_data["line-id"] = np.ones(lines.n_cells, dtype=float) * id
+            lines.cell_data["_line-id"] = np.ones(lines.n_cells, dtype=float) * id
 
         self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan)
         return self_copy
 
     def get_volume(self, sid: int) -> pv.UnstructuredGrid:
         """Get a volume as a UnstructuredGrids object."""
-        return self._get_submesh(sid, scalar="volume-id")
+        return self._get_submesh(sid, scalar="_volume-id")
 
     def get_surface(self, sid: int) -> pv.PolyData:
         """Get a surface as PolyData object."""
-        return self._get_submesh(sid, scalar="surface-id").extract_surface()
+        return self._get_submesh(sid, scalar="_surface-id").extract_surface()
 
     def get_lines(self, sid: int) -> pv.PolyData:
         """Get lines as a PolyData object."""
-        return self._get_submesh(sid, scalar="line-id").extract_surface()
+        return self._get_submesh(sid, scalar="_line-id").extract_surface()
 
     def remove_surface(self, sid: int):
         """Remove a surface with id.
@@ -758,7 +758,7 @@ class Mesh(pv.UnstructuredGrid):
         sid : int
             Id of surface to remove.
         """
-        mask = self.cell_data["surface-id"] == sid
+        mask = self.cell_data["_surface-id"] == sid
         return self.remove_cells(mask, inplace=True)
 
     def remove_volume(self, vid: int):
@@ -769,7 +769,7 @@ class Mesh(pv.UnstructuredGrid):
         vid : int
             Id of volume to remove.
         """
-        mask = self.cell_data["volume-id"] == vid
+        mask = self.cell_data["_volume-id"] == vid
         return self.remove_cells(mask, inplace=True)
 
     def remove_lines(self, lid: int):
@@ -780,7 +780,7 @@ class Mesh(pv.UnstructuredGrid):
         lid : int
             Id of lines to remove.
         """
-        mask = self.cell_data["volume-id"] == lid
+        mask = self.cell_data["_volume-id"] == lid
         return self.remove_cells(mask, inplace=True)
 
 

@@ -27,9 +27,9 @@ from typing import List, Optional, Literal
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.simulator.settings.defaults import electrophysiology as ep_defaults
 
+
 @dataclass
 class CellModel:
-    
     """Abstract class for different cell models."""
 
     pass
@@ -37,151 +37,157 @@ class CellModel:
     @dataclass
     class Tentusscher:
         """Hold data for Tentusscher cell model."""
-        gas_constant: float=8314.472
-        t: float=310
-        faraday_constant: float=96485.3415
-        cm: float=0.185
-        vc: float=0.016404
-        vsr: float=0.001094
-        vss: float=0.00005468
-        pkna: float=0.03
-        ko: float=5.4
-        nao: float=140.0
-        cao: float=2.0
-        gk1: float=5.405
-        gkr: float=0.153
-        gna: float=14.838
-        gbna: float=0.0002
-        gcal: float=0.0000398
-        gbca: float=0.000592
-        gpca: float=0.1238
-        gpk: float=0.0146
-        pnak: float=2.724
-        km: float=1.0
-        kmna: float=40.0
-        knaca: float=1000.0
-        ksat: float=0.1
-        alpha: float=2.5
-        gamma: float=0.35
-        kmca: float=1.38
-        kmnai: float=87.5
-        kpca: float=0.0005
-        k1: float=0.15
-        k2: float=0.045
-        k3: float=0.06
-        k4: float=0.005
-        ec: float=1.5
-        maxsr: float=2.5
-        minsr: float=1.0
-        vrel: float=0.102
-        vleak: float=0.00036
-        vxfer: float=0.0038
-        vmaxup: float=0.006375
-        kup: float=0.00025
-        bufc: float=0.2
-        kbufc: float=0.001
-        bufsr: float=10.0
-        kbufsf: float=0.3
-        bufss: float=0.4
-        kbufss: float=0.00025
+
+        gas_constant: float = 8314.472
+        t: float = 310
+        faraday_constant: float = 96485.3415
+        cm: float = 0.185
+        vc: float = 0.016404
+        vsr: float = 0.001094
+        vss: float = 0.00005468
+        pkna: float = 0.03
+        ko: float = 5.4
+        nao: float = 140.0
+        cao: float = 2.0
+        gk1: float = 5.405
+        gkr: float = 0.153
+        gna: float = 14.838
+        gbna: float = 0.0002
+        gcal: float = 0.0000398
+        gbca: float = 0.000592
+        gpca: float = 0.1238
+        gpk: float = 0.0146
+        pnak: float = 2.724
+        km: float = 1.0
+        kmna: float = 40.0
+        knaca: float = 1000.0
+        ksat: float = 0.1
+        alpha: float = 2.5
+        gamma: float = 0.35
+        kmca: float = 1.38
+        kmnai: float = 87.5
+        kpca: float = 0.0005
+        k1: float = 0.15
+        k2: float = 0.045
+        k3: float = 0.06
+        k4: float = 0.005
+        ec: float = 1.5
+        maxsr: float = 2.5
+        minsr: float = 1.0
+        vrel: float = 0.102
+        vleak: float = 0.00036
+        vxfer: float = 0.0038
+        vmaxup: float = 0.006375
+        kup: float = 0.00025
+        bufc: float = 0.2
+        kbufc: float = 0.001
+        bufsr: float = 10.0
+        kbufsf: float = 0.3
+        bufss: float = 0.4
+        kbufss: float = 0.00025
         # gas_constant=8314.472,
         # faraday_constant=96485.3415,
-        gks: float=0.098
-        gto: float=0.294
-        vleak: float=0.00042
-        v: float=-85.423
-        ki: float=138.52
-        nai: float=10.132
-        cai: float=0.000153
-        cass: float=0.00036
-        casr: float=4.272
-        rpri: float=0.8978
-        xr1: float=0.0165
-        xr2: float=0.473
-        xs: float=0.0174
-        m: float=0.00165
-        h: float=0.749
-        j: float=0.6788
-        d: float=3.288e-5
-        f: float=0.7026
-        f2: float=0.9526
-        fcass: float=0.9942
-        s: float=0.999998
-        r: float=2.347e-8
+        gks: float = 0.098
+        gto: float = 0.294
+        vleak: float = 0.00042
+        v: float = -85.423
+        ki: float = 138.52
+        nai: float = 10.132
+        cai: float = 0.000153
+        cass: float = 0.00036
+        casr: float = 4.272
+        rpri: float = 0.8978
+        xr1: float = 0.0165
+        xr2: float = 0.473
+        xs: float = 0.0174
+        m: float = 0.00165
+        h: float = 0.749
+        j: float = 0.6788
+        d: float = 3.288e-5
+        f: float = 0.7026
+        f2: float = 0.9526
+        fcass: float = 0.9942
+        s: float = 0.999998
+        r: float = 2.347e-8
+
     @dataclass
     class Tentusscher_endo(Tentusscher):
-        gks: float=0.392
-        gto: float=0.073
-        v: float=-86.709
-        ki: float=138.4
-        nai: float=10.355
-        cai: float=0.00013
-        cass: float=0.00036
-        casr: float=3.715
-        rpri: float=0.9068
-        xr1: float=0.00448
-        xr2: float=0.476
-        xs: float=0.0087
-        m: float=0.00155
-        h: float=0.7573
-        j: float=0.7225
-        d: float=3.164e-5
-        f: float=0.8009
-        f2: float=0.9778
-        fcass: float=0.9953
-        s: float=0.3212
-        r: float=2.235e-8
+        gks: float = 0.392
+        gto: float = 0.073
+        v: float = -86.709
+        ki: float = 138.4
+        nai: float = 10.355
+        cai: float = 0.00013
+        cass: float = 0.00036
+        casr: float = 3.715
+        rpri: float = 0.9068
+        xr1: float = 0.00448
+        xr2: float = 0.476
+        xs: float = 0.0087
+        m: float = 0.00155
+        h: float = 0.7573
+        j: float = 0.7225
+        d: float = 3.164e-5
+        f: float = 0.8009
+        f2: float = 0.9778
+        fcass: float = 0.9953
+        s: float = 0.3212
+        r: float = 2.235e-8
+
     @dataclass
     class Tentusscher_epi(Tentusscher):
-        gks: float=0.392
-        gto: float=0.294
-        v: float=-85.23
-        ki: float=136.89
-        nai: float=8.604
-        cai: float=0.000126
-        cass: float=0.00036
-        casr: float=3.64
-        rpri: float=0.9073
-        xr1: float=0.00621
-        xr2: float=0.4712
-        xs: float=0.0095
-        m: float=0.00172
-        h: float=0.7444
-        j: float=0.7045
-        d: float=3.373e-5
-        f: float=0.7888
-        f2: float=0.9755
-        fcass: float=0.9953
-        s: float=0.999998
-        r: float=2.42e-8
+        gks: float = 0.392
+        gto: float = 0.294
+        v: float = -85.23
+        ki: float = 136.89
+        nai: float = 8.604
+        cai: float = 0.000126
+        cass: float = 0.00036
+        casr: float = 3.64
+        rpri: float = 0.9073
+        xr1: float = 0.00621
+        xr2: float = 0.4712
+        xs: float = 0.0095
+        m: float = 0.00172
+        h: float = 0.7444
+        j: float = 0.7045
+        d: float = 3.373e-5
+        f: float = 0.7888
+        f2: float = 0.9755
+        fcass: float = 0.9953
+        s: float = 0.999998
+        r: float = 2.42e-8
+
     @dataclass
     class Tentusscher_mid(Tentusscher):
-        gks: float=0.098
-        gto: float=0.294
-        vleak: float=0.00042
-        v: float=-85.423
-        ki: float=138.52
-        nai: float=10.132
-        cai: float=0.000153
-        cass: float=0.00036
-        casr: float=4.272
-        rpri: float=0.8978
-        xr1: float=0.0165
-        xr2: float=0.473
-        xs: float=0.0174
-        m: float=0.00165
-        h: float=0.749
-        j: float=0.6788
-        d: float=3.288e-5
-        f: float=0.7026
-        f2: float=0.9526
-        fcass: float=0.9942
-        s: float=0.999998
-        r: float=2.347e-8
-        
+        gks: float = 0.098
+        gto: float = 0.294
+        vleak: float = 0.00042
+        v: float = -85.423
+        ki: float = 138.52
+        nai: float = 10.132
+        cai: float = 0.000153
+        cass: float = 0.00036
+        casr: float = 4.272
+        rpri: float = 0.8978
+        xr1: float = 0.0165
+        xr2: float = 0.473
+        xs: float = 0.0174
+        m: float = 0.00165
+        h: float = 0.749
+        j: float = 0.6788
+        d: float = 3.288e-5
+        f: float = 0.7026
+        f2: float = 0.9526
+        fcass: float = 0.9942
+        s: float = 0.999998
+        r: float = 2.347e-8
+
+
 @dataclass
 class EPMaterialModel:
     """Base class for all EP material models."""
+
     sigma_fiber: float
     cell_model: Optional[CellModel]
     pass
@@ -189,16 +195,17 @@ class EPMaterialModel:
     @dataclass
     class Insulator:
         """Just for initialization."""
+
         pass
 
         def __repr__(self):
             """Print a message."""
-            return "Material is empty."
-
+            return "Insulator."
 
     @dataclass
     class DummyMaterial:
         """Just for initialization."""
+
         cell_model: Optional[CellModel] = None
         pass
 
@@ -206,30 +213,29 @@ class EPMaterialModel:
             """Print a message."""
             return "Material is empty."
 
-    
+        gks: float = 0.098
+        gto: float = 0.294
+        vleak: float = 0.00042
+        v: float = -85.423
+        ki: float = 138.52
+        nai: float = 10.132
+        cai: float = 0.000153
+        cass: float = 0.00036
+        casr: float = 4.272
+        rpri: float = 0.8978
+        xr1: float = 0.0165
+        xr2: float = 0.473
+        xs: float = 0.0174
+        m: float = 0.00165
+        h: float = 0.749
+        j: float = 0.6788
+        d: float = 3.288e-5
+        f: float = 0.7026
+        f2: float = 0.9526
+        fcass: float = 0.9942
+        s: float = 0.999998
+        r: float = 2.347e-8
 
-        gks: float=0.098
-        gto: float=0.294
-        vleak: float=0.00042
-        v: float=-85.423
-        ki: float=138.52
-        nai: float=10.132
-        cai: float=0.000153
-        cass: float=0.00036
-        casr: float=4.272
-        rpri: float=0.8978
-        xr1: float=0.0165
-        xr2: float=0.473
-        xs: float=0.0174
-        m: float=0.00165
-        h: float=0.749
-        j: float=0.6788
-        d: float=3.288e-5
-        f: float=0.7026
-        f2: float=0.9526
-        fcass: float=0.9942
-        s: float=0.999998
-        r: float=2.347e-8
 
 @dataclass
 class EPMaterial(EPMaterialModel):
@@ -242,20 +248,20 @@ class EPMaterial(EPMaterialModel):
     cm: Optional[float] = ep_defaults.material["myocardium"]["cm"].m
     cell_model: Optional[CellModel] = CellModel.Tentusscher()
     lambda_: Optional[float] = ep_defaults.material["myocardium"]["lambda"].m
-    pmjres : Optional[float] = ep_defaults.material["beam"]["pmjres"].m
-    
+    pmjres: Optional[float] = ep_defaults.material["beam"]["pmjres"].m
+
     def __post_init__(self):
         if self.sigma_sheet is not None and self.sigma_sheet_normal is None:
             self.sigma_sheet_normal = self.sigma_sheet
         if self.sigma_sheet_normal is not None and self.sigma_sheet is None:
             self.sigma_sheet = self.sigma_sheet_normal
-            
-            
+
+
 if __name__ == "__main__":
-    m1=EPMaterialModel.DummyMaterial()
-    
+    m1 = EPMaterialModel.DummyMaterial()
+
     tentus1 = CellModel.Tentusscher()
     tentus2 = CellModel.Tentusscher_endo()
-    
-    mat1 = EPMaterial(sigma_fiber=0,sigma_sheet=0,sigma_sheet_normal=0)
+
+    mat1 = EPMaterial(sigma_fiber=0, sigma_sheet=0, sigma_sheet_normal=0)
     print("done")

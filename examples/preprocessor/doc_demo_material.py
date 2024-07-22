@@ -49,6 +49,13 @@ from ansys.heart.simulator.settings.material.material import (
     NeoHookean,
 )
 
+from ansys.heart.simulator.settings.material.ep_material import (
+    EPMaterialModel,
+    CellModel,
+    EPMaterial,
+)
+
+
 # sphinx_gallery_start_ignore
 docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", "_static", "images")
 # sphinx_gallery_end_ignore
@@ -152,6 +159,13 @@ passive_mat = MAT295(rho=1, iso=iso, aniso=aniso1, active=None)
 active_mat = MAT295(rho=1, iso=iso, aniso=aniso1, active=active)
 
 ###############################################################################
+## EP materials can be created as follows
+ep_mat_active = EPMaterial(
+    sigma_fiber=1, sigma_sheet=0.5, beta=140, cm=0.01, cell_model=CellModel.Tentusscher()
+)
+epinsulator = EPMaterialModel.Insulator()
+
+###############################################################################
 # .. note::
 #    Ca2+ curve will be ignored if the simulation is coupled with electrophysiology
 
@@ -180,18 +194,21 @@ heartmodel: models.FullHeart = models.HeartModel.load_model(
 # Print default material and you should see
 # Material is empty.
 print(heartmodel.left_ventricle.meca_material)
+print(heartmodel.left_ventricle.ep_material)
 
 ###############################################################################
 # .. note::
 #    If no material is set before writing k files, default material from ```settings``` will be set.
 
-# Assign the material we juste created
+# Assign the material we just created
 heartmodel.left_ventricle.meca_material = active_mat
+heartmodel.left_ventricle.ep_material = ep_mat_active
 
 # Print it, you should see
 # MAT295(rho=1, iso=ISO(itype=-3, beta=0.0, nu=0.499, k1=1, k2=1), aopt=2.0, aniso=ANISO(atype=-1, fibers=[ANISO.HGO_Fiber(k1=1, k2=1, a=0.0, b=1.0, _theta=0.0, _ftype=1, _fcid=0)], k1fs=None, k2fs=None, vec_a=(1.0, 0.0, 0.0), vec_d=(0.0, 1.0, 0.0), nf=1, intype=0), active=ActiveModel.Model1(t0=None, ca2ion=None, ca2ionm=4.35, n=2, taumax=0.125, stf=0.0, b=4.75, l0=1.58, l=1.85, dtmax=150, mr=1048.9, tr=-1629.0))  # noqa
 print(heartmodel.left_ventricle.meca_material)
 
+print(heartmodel.left_ventricle.ep_material)
 ###############################################################################
 # Create a new part and set material
 
@@ -216,5 +233,8 @@ plotter.screenshot(os.path.join(docs_images_folder, "show_a_part.png"))
 new_part.fiber = True
 new_part.active = False
 new_part.meca_material = passive_mat
+## and set it to an EP insulator
+new_part.ep_material = epinsulator
 
 print(new_part.meca_material)
+print(new_part.ep_material)

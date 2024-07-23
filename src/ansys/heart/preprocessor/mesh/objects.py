@@ -550,8 +550,7 @@ class Mesh(pv.UnstructuredGrid):
         """
         try:
             mask = np.isin(self.celltypes, SURFACE_CELL_TYPES)
-            mask1 = self.cell_data["_surface-id"] > -1
-            np.vstack((mask, mask1))
+            mask1 = np.invert(np.isnan(self.cell_data["_surface-id"]))
             mask = np.all(np.vstack((mask, mask1)), axis=0)
             return np.unique(self.cell_data["_surface-id"][mask])
         except KeyError:
@@ -569,8 +568,7 @@ class Mesh(pv.UnstructuredGrid):
         """
         try:
             mask = np.isin(self.celltypes, VOLUME_CELL_TYPES)
-            mask1 = self.cell_data["_volume-id"] > -1
-            np.vstack((mask, mask1))
+            mask1 = np.invert(np.isnan(self.cell_data["_volume-id"]))
             mask = np.all(np.vstack((mask, mask1)), axis=0)
             return np.unique(self.cell_data["_volume-id"][mask])
         except KeyError:
@@ -588,8 +586,7 @@ class Mesh(pv.UnstructuredGrid):
         """
         try:
             mask = self.celltypes == pv.CellType.LINE
-            mask1 = self.cell_data["_line-id"] > -1
-            np.vstack((mask, mask1))
+            mask1 = np.invert(np.isnan(self.cell_data["_line-id"]))
             mask = np.all(np.vstack((mask, mask1)), axis=0)
             return np.unique(self.cell_data["_line-id"][mask])
         except KeyError:

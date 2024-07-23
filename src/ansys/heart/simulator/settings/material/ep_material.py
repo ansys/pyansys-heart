@@ -212,7 +212,7 @@ class EPMaterialModel:
     class DummyMaterial:
         """Just for initialization."""
 
-        cell_model: Optional[CellModel] = None
+        cell_model: Optional[CellModel] = field(default_factory=CellModel)
         pass
 
         def __repr__(self):

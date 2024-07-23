@@ -252,7 +252,7 @@ class EPMaterial(EPMaterialModel):
     sigma_sheet_normal: Optional[float] = None
     beta: Optional[float] = ep_defaults.material["myocardium"]["beta"].m
     cm: Optional[float] = ep_defaults.material["myocardium"]["cm"].m
-    cell_model: Optional[CellModel] = CellModel.Tentusscher()
+    cell_model: Optional[CellModel] = field(default_factory=CellModel.Tentusscher)
     lambda_: Optional[float] = ep_defaults.material["myocardium"]["lambda"].m
     pmjres: Optional[float] = ep_defaults.material["beam"]["pmjres"].m
 

@@ -285,6 +285,7 @@ def test_get_submesh_001():
     triangles1 = mesh.get_surface(10)
     assert triangles.n_cells == triangles1.n_cells
     assert np.allclose(triangles.points, triangles1.points)
+    assert isinstance(triangles1, pv.PolyData)
 
     # test get lines
     lines1 = mesh.get_lines(100)
@@ -451,9 +452,9 @@ def test_mesh_boundaries_property(celltype):
     polydata.cell_data["_surface-id"] = 1
     polydata.cell_data["_surface-id"][0:800] = 2
     mesh = Mesh()
-    assert mesh._boundaries == []
+    assert mesh._surfaces == []
     mesh.add_surface(polydata)
-    assert len(mesh._boundaries) == 2
+    assert len(mesh._surfaces) == 2
 
 
 @pytest.mark.parametrize("celltype", ["hex", "tets"])

@@ -480,7 +480,7 @@ class Mesh(pv.UnstructuredGrid):
             return
 
     @property
-    def _boundaries(self) -> List[SurfaceMesh]:
+    def _surfaces(self) -> List[SurfaceMesh]:
         """List of boundaries in the mesh."""
         if self.surface_ids is None:
             return []

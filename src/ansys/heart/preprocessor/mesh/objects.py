@@ -109,6 +109,26 @@ def _get_global_cell_ids(mesh: pv.UnstructuredGrid, celltype: pv.CellType) -> np
     return np.argwhere(np.isin(mesh.celltypes, celltype)).flatten()
 
 
+def _invert_dict(dictionary: dict) -> dict:
+    """Invert a dictionary.
+
+    Parameters
+    ----------
+    dict : dict
+        Dictionary to invert.
+
+    Returns
+    -------
+    dict
+        Inverted dictionary.
+
+    """
+    if dictionary == {}:
+        return {}
+    else:
+        return {v: k for k, v in dictionary.items()}
+
+
 class Feature:
     """Feature class."""
 
@@ -384,8 +404,12 @@ class Mesh(pv.UnstructuredGrid):
 
     Notes
     -----
-    Only tetrahedrons are supported.
-    Additional attributes are added on top of the pyvista UnstructuredGrid class
+    This class inherits from pyvista.UnstructuredGrid and adds additional
+    attributes and convenience methods for enhanced functionality. E.g. we use _volume_id,
+    _surface_id and _line_id cell arrays to keep track of "labeled" selections of
+    cells. _volume_id is used to group 3D volume cells together.
+    Any non 3D volume cell is labeled as numpy.nan. Similarly 2D and 1D cells are tracked
+    through _surface_id and _line_id respectively.
     """
 
     @property
@@ -592,12 +616,25 @@ class Mesh(pv.UnstructuredGrid):
         except KeyError:
             return None
 
+    @property
+    def _surface_name_to_id(self):
+        return _invert_dict(self._surface_id_to_name)
+
+    @property
+    def _volume_name_to_id(self):
+        return _invert_dict(self._volume_id_to_name)
+
     def __init__(self, *args):
         super().__init__(*args)
 
         # ! replace this list by read-only property
         self.boundaries: List[SurfaceMesh] = []
         """List of boundary surface meshes within the part."""
+
+        self._surface_id_to_name: dict = {}
+        """Surface id to name map."""
+        self._volume_id_to_name: dict = {}
+        """Volume id to name map."""
         pass
 
     def _add_mesh(
@@ -739,9 +776,27 @@ class Mesh(pv.UnstructuredGrid):
         """Get a volume as a UnstructuredGrids object."""
         return self._get_submesh(sid, scalar="_volume-id")
 
+    def get_volume_by_name(self, name: str) -> pv.UnstructuredGrid:
+        """Get the surface associated with `name`."""
+        if name not in list(self._volume_name_to_id.keys()):
+            LOGGER.debug(f"No volume associated with {name}")
+            return None
+        volume_id = self._volume_name_to_id[name]
+        return self.get_volume(volume_id)
+
     def get_surface(self, sid: int) -> pv.PolyData:
+        # ?: Return SurfaceMesh instead of PolyData?
         """Get a surface as PolyData object."""
         return self._get_submesh(sid, scalar="_surface-id").extract_surface()
+
+    def get_surface_by_name(self, name: str) -> pv.PolyData:
+        # ?: Return SurfaceMesh instead of PolyData?
+        """Get the surface associated with `name`."""
+        if name not in list(self._surface_name_to_id.keys()):
+            LOGGER.debug(f"No surface associated with {name}")
+            return None
+        surface_id = self._surface_name_to_id[name]
+        return self.get_surface(surface_id)
 
     def get_lines(self, sid: int) -> pv.PolyData:
         """Get lines as a PolyData object."""

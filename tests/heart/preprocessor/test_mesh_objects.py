@@ -470,3 +470,34 @@ def test_mesh_volumes_property(celltype):
     assert mesh._volumes == []
     mesh.add_volume(ugrid)
     assert len(mesh._volumes) == 2
+
+
+def test_mesh_id_to_name():
+    """Test mapping id to and from volume/surface name."""
+    tets = _get_beam_model("tets")
+    triangles = _get_beam_model("triangles")
+    hex = _get_beam_model("hex")
+    quads = _get_beam_model("quads")
+
+    # initialize mesh and add surfaces and volumes
+    mesh = Mesh()
+    mesh.add_surface(triangles, int(1))
+    mesh.add_surface(quads, int(2))
+    mesh.add_volume(tets, int(10))
+    mesh.add_volume(hex, int(11))
+
+    mesh._surface_id_to_name = {1: "triangles", 2: "quads"}
+    mesh._volume_id_to_name = {10: "tets", 11: "hex"}
+
+    assert mesh._surface_name_to_id == {"triangles": 1, "quads": 2}
+    assert mesh._volume_name_to_id == {"tets": 10, "hex": 11}
+
+    triangles1 = mesh.get_surface_by_name("triangles")
+    assert triangles.n_cells == triangles1.n_cells
+    assert triangles.n_points == triangles1.n_points
+    assert mesh.get_surface_by_name("silly-name") == None
+
+    tets1 = mesh.get_volume_by_name("tets")
+    assert tets.n_cells == tets1.n_cells
+    assert tets.n_points == tets1.n_points
+    assert mesh.get_volume_by_name("silly-name") == None

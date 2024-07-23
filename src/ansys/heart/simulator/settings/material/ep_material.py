@@ -22,7 +22,7 @@
 
 """Material module."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 from ansys.heart.simulator.settings.defaults import electrophysiology as ep_defaults
@@ -195,7 +195,7 @@ class EPMaterialModel:
     """Base class for all EP material models."""
 
     sigma_fiber: float
-    cell_model: Optional[CellModel]
+    cell_model: Optional[CellModel] = field(default_factory=CellModel)
     pass
 
     @dataclass

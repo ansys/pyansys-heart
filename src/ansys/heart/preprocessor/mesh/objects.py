@@ -20,12 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# TODO: add _ prefix to scalar arrays that hold surface/volume id
-# TODO: ADD BOUNDARY-NAME-MAPPING
-# TODO: map[id] = "name"
-# TODO: invert dict.
-# ? Enforce unique naming?
-
 """
 Module that contains classes relevant for the mesh.
 

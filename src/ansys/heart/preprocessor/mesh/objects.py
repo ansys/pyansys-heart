@@ -20,6 +20,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# TODO: add _ prefix to scalar arrays that hold surface/volume id
+# TODO: ADD BOUNDARY-NAME-MAPPING
+# TODO: map[id] = "name"
+# TODO: invert dict.
+# ? Enforce unique naming?
+
 """
 Module that contains classes relevant for the mesh.
 
@@ -129,6 +135,7 @@ def _invert_dict(dictionary: dict) -> dict:
         return {v: k for k, v in dictionary.items()}
 
 
+# TODO: Deprecate
 class Feature:
     """Feature class."""
 
@@ -546,7 +553,7 @@ class Mesh(pv.UnstructuredGrid):
 
         return
 
-    # TODO: deprecate. This method needs to be refactored.
+    # TODO: This method needs to be refactored.
     def _get_surface_from_name(self, name: str = None):
         """Return a list of surfaces that match the given list of names.
 

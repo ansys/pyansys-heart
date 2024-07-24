@@ -501,6 +501,8 @@ def test_mesh_id_to_name():
     assert mesh._surface_name_to_id == {"triangles": 1, "quads": 2}
     assert mesh._volume_name_to_id == {"tets": 10, "hex": 11}
 
+    assert mesh.validate_ids_to_name_map() == True
+
     triangles1 = mesh.get_surface_by_name("triangles")
     assert triangles.n_cells == triangles1.n_cells
     assert triangles.n_points == triangles1.n_points
@@ -510,3 +512,7 @@ def test_mesh_id_to_name():
     assert tets.n_cells == tets1.n_cells
     assert tets.n_points == tets1.n_points
     assert mesh.get_volume_by_name("silly-name") == None
+
+    del mesh._volume_id_to_name[10]
+    assert mesh._get_unmapped_volumes() == [10]
+    assert mesh.validate_ids_to_name_map() == False

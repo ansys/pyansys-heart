@@ -727,6 +727,46 @@ class Mesh(pv.UnstructuredGrid):
         self._set_global_ids()
         return self.extract_cells(mask)
 
+    def _get_duplicate_surface_names(self):
+        names, counts = np.unique(self.surface_names, return_counts=True)
+        return names[counts > 1]
+
+    def _get_duplicate_volume_names(self):
+        names, counts = np.unique(self.volume_names, return_counts=True)
+        return names[counts > 1]
+
+    def _get_unmapped_volumes(self):
+        unmapped_ids = self.volume_ids[
+            np.invert(np.isin(self.volume_ids, list(self._volume_id_to_name.keys())))
+        ]
+        return unmapped_ids
+
+    def _get_unmapped_surfaces(self):
+        unmapped_ids = self.surface_ids[
+            np.isin(self.volume_ids, list(self._surface_id_to_name.keys()))
+        ]
+        return unmapped_ids
+
+    def validate_ids_to_name_map(self):
+        """Check whether there are any duplicate or unmapped surfaces/volumes."""
+        # TODO Ensure there are no duplicate names.
+        unmapped_volumes = self._get_unmapped_volumes()
+        unmapped_surfaces = self._get_unmapped_surfaces()
+
+        duplicate_volume_names = self._get_duplicate_volume_names()
+        duplicate_surface_names = self._get_duplicate_surface_names()
+
+        if len(unmapped_volumes) > 0 or len(unmapped_surfaces) > 0:
+            LOGGER.debug(f"Volume ids {unmapped_volumes} not associated with a volume name.")
+            LOGGER.debug(f"Surface ids {unmapped_surfaces} not associated with a surface name.")
+            return False
+        if len(duplicate_surface_names) > 0 or len(duplicate_volume_names) > 0:
+            LOGGER.debug(f"Volume names {duplicate_volume_names} occur more than once")
+            LOGGER.debug(f"Surface names {duplicate_surface_names} occur more than once")
+            return False
+        else:
+            return True
+
     def clean(self, ignore_nans_in_point_average: bool = False, **kwargs):
         """Merge duplicate points and return cleaned copy.
 

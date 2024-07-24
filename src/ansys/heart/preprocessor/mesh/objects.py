@@ -583,6 +583,11 @@ class Mesh(pv.UnstructuredGrid):
             return None
 
     @property
+    def surface_names(self) -> List[str]:
+        """List of surface names."""
+        return [v for k, v in self._surface_id_to_name.items()]
+
+    @property
     def volume_ids(self) -> np.ndarray:
         """Unique volume ids.
 
@@ -599,6 +604,11 @@ class Mesh(pv.UnstructuredGrid):
         except KeyError:
             LOGGER.debug(f"Failed to extrect one of {VOLUME_CELL_TYPES}")
             return None
+
+    @property
+    def volume_names(self) -> List[str]:
+        """List of volume names."""
+        return [v for k, v in self._volume_id_to_name.items()]
 
     @property
     def line_ids(self) -> np.ndarray:
@@ -624,6 +634,18 @@ class Mesh(pv.UnstructuredGrid):
     @property
     def _volume_name_to_id(self):
         return _invert_dict(self._volume_id_to_name)
+
+    @property
+    def _global_cell_ids(self):
+        """Global cell ids."""
+        self._set_global_ids()
+        return self.cell_data["_global-cell-ids"]
+
+    @property
+    def _global_point_ids(self):
+        """Global point ids."""
+        self._set_global_ids()
+        return self.point_data["_global-point-ids"]
 
     def __init__(self, *args):
         super().__init__(*args)
@@ -687,6 +709,12 @@ class Mesh(pv.UnstructuredGrid):
         merged = pv.merge((self, mesh), merge_points=False)
         super().__init__(merged)
         return self
+
+    def _set_global_ids(self):
+        """Add global cell and point ids as cell and point data array."""
+        self.cell_data["_global-cell-ids"] = np.array(np.arange(0, self.n_cells), dtype=int)
+        self.point_data["_global-point-ids"] = np.array(np.arange(0, self.n_points), dtype=int)
+        return
 
     def _get_submesh(
         self, sid: int, scalar: Literal["_surface-id", "_line-id", "_volume-id"]

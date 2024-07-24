@@ -743,7 +743,7 @@ class Mesh(pv.UnstructuredGrid):
 
     def _get_unmapped_surfaces(self):
         unmapped_ids = self.surface_ids[
-            np.isin(self.volume_ids, list(self._surface_id_to_name.keys()))
+            np.invert(np.isin(self.surface_ids, list(self._surface_id_to_name.keys())))
         ]
         return unmapped_ids
 

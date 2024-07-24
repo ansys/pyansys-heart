@@ -516,3 +516,7 @@ def test_mesh_id_to_name():
     del mesh._volume_id_to_name[10]
     assert mesh._get_unmapped_volumes() == [10]
     assert mesh.validate_ids_to_name_map() == False
+
+    del mesh._surface_id_to_name[1]
+    assert mesh._get_unmapped_surfaces() == [1]
+    assert mesh.validate_ids_to_name_map() == False

@@ -1127,45 +1127,12 @@ class HeartModel:
                 ]
 
                 if np.any(surface.boundary_edges == apical_node_id):
-                    # Apical node is on the edge, need to adjust
-                    # Getting triangles containing the apical node and at least one non-boundary node
-                    # element_ids = np.argwhere(
-                    #     np.any(
-                    #         np.hstack(
-                    #             [np.any(surface.triangles == apical_node_id , axis = 1) , np.any(np.isin(surface.triangles, surface.boundary_edges , invert = True) , axis = 1)]
-                    #         ),
-                    #     axis = 1),
-                    # axis=1)[0]
-
-                    # if np.any(element_ids):
-                    #     element_id = element_ids[0]
-
-                    # else:
-                    #     element_id = np.argwhere(np.any(surface.triangles == apical_node_id , axis = 1))[0][0]
-                    #     common_edge = surface.triangles[element_id][surface.triangles[element_id] != apical_node_id]
-                    #     element_id = np.argwhere(
-                    #         np.count_nonzero(
-                    #             np.isin(surface.triangles, common_edge),
-                    #         axis = 1) == 2
-                    #     )
-                        
-                    # triangle = surface.triangles[element_id, :]
-
-                    # # get another point on the same element
-                    # apical_node_id = triangle[
-                    #     np.argwhere(
-                    #         np.isin(
-                    #             triangle,
-                    #             surface.boundary_edges,
-                    #             invert=True,
-                    #         )
-                    #     )[
-                    #         0
-                    #     ][0]
-                    # ]
-                    
-                    edgeless_surface, original_ids = surface.remove_points(np.unique(surface.boundary_edges))
-                    apical_node_id = original_ids[edgeless_surface.find_closest_point(surface.points[apical_node_id])]
+                    edgeless_surface, original_ids = surface.remove_points(
+                        np.unique(surface.boundary_edges)
+                    )
+                    apical_node_id = original_ids[
+                        edgeless_surface.find_closest_point(surface.points[apical_node_id])
+                    ]
 
                     LOGGER.warning(
                         "Initial apical point is on edge of {0}, a close point is picked".format(

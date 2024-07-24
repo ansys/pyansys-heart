@@ -255,6 +255,16 @@ class ZeroPressure(Settings):
     """Generic analysis settings."""
 
 
+@dataclass
+class Stimulation(Settings):
+    """Stimulation module."""
+    node_ids: List[int] = None
+    t_start: Quantity = Quantity(0.0, "ms")
+    period: Quantity = Quantity(800, "ms")
+    duration: Quantity = Quantity(20, "ms")
+    amplitude: Quantity = Quantity(50, "uF/mm^3")
+
+
 @dataclass(repr=False)
 class Electrophysiology(Settings):
     """Class for keeping track of electrophysiology settings."""
@@ -262,6 +272,8 @@ class Electrophysiology(Settings):
     material: EpMaterial = field(default_factory=lambda: EpMaterial())
     """Material settings/configuration."""
     analysis: EPAnalysis = field(default_factory=lambda: EPAnalysis())
+    """Generic analysis settings."""
+    stimulation: list[Stimulation] = field(default_factory=lambda: [Stimulation()])
     """Generic analysis settings."""
 
 
@@ -309,6 +321,8 @@ class AtrialFiber(Settings):
 class Purkinje(Settings):
     """Class for keeping track of purkinje settings."""
 
+    node_id_origin: Quantity = None
+    """Edge length."""
     edgelen: Quantity = 0
     """Edge length."""
     ngen: Quantity = 0
@@ -565,8 +579,11 @@ class SimulationSettings:
                 A.set_values(ep_defaults.analysis)
                 M = EpMaterial()
                 M.set_values(ep_defaults.material)
+                S = Stimulation()
+                S.set_values(ep_defaults.stimulation)
                 self.electrophysiology.analysis = A
                 self.electrophysiology.material = M
+                self.electrophysiology.stimulation = S
                 # TODO add stim params, monodomain/bidomain/eikonal,cellmodel
             # TODO add settings for purkinje  fibers and epmecha
             if isinstance(getattr(self, attr), Fibers):
@@ -1034,4 +1051,5 @@ class DynaSettings:
 
 
 if __name__ == "__main__":
+    print("start")
     LOGGER.debug("protected")

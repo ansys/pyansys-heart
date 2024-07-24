@@ -57,7 +57,7 @@ from ansys.heart.simulator.settings.material.material import (
     MechanicalMaterialModel,
     NeoHookean,
 )
-from ansys.heart.simulator.settings.settings import SimulationSettings
+from ansys.heart.simulator.settings.settings import SimulationSettings, Stimulation
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 from ansys.heart.writer.heart_decks import (
     BaseDecks,
@@ -3082,7 +3082,16 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def _update_stimulation(self):
         # define stimulation node set
-        stim_nodes = self.get_default_stimulus_nodes()
+        stim_defaults = self.settings.electrophysiology.stimulation[0].amplitude 
+        if not self.settings.electrophysiology.stimulation:
+            stim_nodes = self.get_default_stimulus_nodes()
+            
+            stimulation = Stimulation(node_ids=stim_nodes,)
+
+            
+        else:
+            for stimulation in self.settings.electrophysiology.stimulation:
+                stimulation.
 
         # create node-sets for stim nodes
         node_set_id_stimulationnodes = self.get_unique_nodeset_id()
@@ -3159,7 +3168,11 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
             if self.model.right_atrium.get_point("SA_node") != None:
                 # Active SA node (belong to both solid and beam)
-                stim_nodes = [self.model.right_atrium.get_point("SA_node").node_id]
+                stim_nodes = [
+                    self.model.mesh.find_closest_point(
+                        self.model.right_atrium.get_point("SA_node").xyz, n=5
+                    )
+                ]
 
                 #  add more nodes to initiate wave propagation
                 for network in self.model.beam_network:

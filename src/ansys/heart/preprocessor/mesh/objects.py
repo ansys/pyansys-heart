@@ -724,6 +724,7 @@ class Mesh(pv.UnstructuredGrid):
             LOGGER.debug(f"{scalar} does not exist in cell_data")
             return None
         mask = np.isin(self.cell_data[scalar], sid)
+        self._set_global_ids()
         return self.extract_cells(mask)
 
     def clean(self, *args):

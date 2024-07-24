@@ -1104,13 +1104,17 @@ class HeartModel:
 
         return
 
-    def _extract_apex(self) -> None:
-        """Extract the apex for both the endocardium and epicardium of each ventricle.
+    def _extract_apex(self, check_edge: bool = True) -> None:
+        """
+        Extract the apex for both the endocardium and epicardium of each ventricle.
 
         Notes
         -----
         Apex defined as the point furthest from the mid-point between caps/valves
 
+        Args:
+            check_edge (bool, optional): Checks and corrects if the apex point is on surface edge.
+            Defaults to True.
         """
         ventricles = [p for p in self.parts if "ventricle" in p.name]
         surface_substrings = ["endocardium", "epicardium"]
@@ -1126,7 +1130,7 @@ class HeartModel:
                     )
                 ]
 
-                if np.any(surface.boundary_edges == apical_node_id):
+                if check_edge and np.any(surface.boundary_edges == apical_node_id):
                     edgeless_surface, original_ids = surface.remove_points(
                         np.unique(surface.boundary_edges)
                     )

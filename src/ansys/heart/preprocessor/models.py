@@ -509,7 +509,10 @@ class HeartModel:
         fluent_mesh.face_zones = [
             fz for ii, fz in enumerate(fluent_mesh.face_zones) if ii not in idx_to_remove
         ]
+        # TODO: add all surfaces to mesh object.
 
+        # TODO: replace the following by properly referencing the joined mesh object.
+        #
         mesh.boundaries = [
             SurfaceMesh(name=fz.name, triangles=fz.faces, nodes=mesh.nodes, id=fz.id)
             for fz in fluent_mesh.face_zones

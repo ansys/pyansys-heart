@@ -354,6 +354,14 @@ def test_mesh_clean_001():
     grid1 = grid.clean()
     assert grid.n_points == points.shape[0] * 2
     assert grid1.n_points == points.shape[0]
+
+    # test ignoring nans in point data average works
+    grid.point_data["data"] = 1
+    grid.point_data["data"][0:4] = np.nan
+
+    assert np.all(np.isnan(grid.clean(ignore_nans_in_point_average=False).point_data["data"]))
+    assert np.allclose(grid.clean(ignore_nans_in_point_average=True).point_data["data"], 1)
+
     pass
 
 

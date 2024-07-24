@@ -727,10 +727,37 @@ class Mesh(pv.UnstructuredGrid):
         self._set_global_ids()
         return self.extract_cells(mask)
 
-    def clean(self, *args):
-        """Merge duplicate points and return cleaned copy."""
+    def clean(self, ignore_nans_in_point_average: bool = False, **kwargs):
+        """Merge duplicate points and return cleaned copy.
+
+        Parameters
+        ----------
+        ignore_nans_in_point_average : bool, optional
+            Flag indicating whether to ignore nan values when averaging point data, by default False
+
+        Returns
+        -------
+        Mesh
+            Cleaned copy of self.
+        """
         self_c = copy.deepcopy(self)
-        super(Mesh, self_c).__init__(pv.UnstructuredGrid(self).clean(*args))
+
+        # Compute point data average ignoring nan values.
+        if ignore_nans_in_point_average:
+            if "produce_merge_map" not in list(kwargs.keys()):
+                kwargs["produce_merge_map"] = True
+
+            super(Mesh, self_c).__init__(pv.UnstructuredGrid(self).clean(**kwargs))
+
+            merge_map = self_c["PointMergeMap"]
+            for key, data in self.point_data.items():
+                non_nan_avg = [
+                    np.nanmean(data[merge_map == merge_id]) for merge_id in np.unique(merge_map)
+                ]
+                self_c.point_data[key] = non_nan_avg
+        else:
+            super(Mesh, self_c).__init__(pv.UnstructuredGrid(self).clean(**kwargs))
+
         return self_c
 
     def add_volume(self, volume: pv.UnstructuredGrid, id: int = None):

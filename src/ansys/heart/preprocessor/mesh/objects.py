@@ -484,10 +484,19 @@ class Mesh(pv.UnstructuredGrid):
 
     @property
     def _surfaces(self) -> List[SurfaceMesh]:
-        """List of boundaries in the mesh."""
+        """List of surfaces in the mesh."""
         if self.surface_ids is None:
             return []
-        return [self.get_surface(surface_id) for surface_id in self.surface_ids]
+        surfaces = []
+        for sid in self.surface_ids:
+            surface = SurfaceMesh(self.get_surface(sid))
+            surface.id = sid
+            try:
+                surface.name = self._surface_id_to_name[sid]
+            except:
+                LOGGER.debug(f"Failed to give surface with id {sid} a name")
+            surfaces.append(surface)
+        return surfaces
 
     @property
     def _volumes(self):

@@ -22,7 +22,6 @@
 
 """Tests shigh-level heart model class. """
 
-import glob as glob
 import json
 import os
 import tempfile
@@ -34,11 +33,10 @@ if os.getenv("GITHUB_ACTIONS"):
 else:
     is_gh_action = False
 
-import ansys.heart.preprocessor.models as models
 import numpy as np
 import pytest
 
-from tests.heart.conftest import get_workdir
+import ansys.heart.preprocessor.models as models
 
 
 def _get_test_model_info() -> models.ModelInfo:
@@ -53,20 +51,6 @@ def _get_test_model_info() -> models.ModelInfo:
     )
     models.ModelInfo()
     return info
-
-
-@pytest.fixture(autouse=True)
-def cleanup_working_directory_after_tests():
-    """Remove any files that were added during the test."""
-    # execute before tests
-    list_of_files_before = glob.glob(os.path.join(get_workdir(), "*"))
-    yield
-    # execute after tests
-    list_of_files_after = glob.glob(os.path.join(get_workdir(), "*"))
-    files_to_remove = list(set(list_of_files_after) - set(list_of_files_before))
-    for file in files_to_remove:
-        os.remove(file)
-    return
 
 
 @pytest.mark.parametrize("extension", [".json", ".yml"])

@@ -28,6 +28,10 @@ import json
 import os
 import pathlib
 import tempfile
+import time
+
+import pytest
+import yaml
 
 from ansys.heart.preprocessor.helpers import model_summary
 import ansys.heart.preprocessor.models as models
@@ -38,13 +42,11 @@ from ansys.heart.writer.dynawriter import (
     PurkinjeGenerationDynaWriter,
     ZeroPressureMechanicsDynaWriter,
 )
-import pytest
-import yaml
 
 pytestmark = pytest.mark.requires_fluent
 
 from tests.heart.common import compare_stats_mesh, compare_stats_names, compare_stats_volumes
-from tests.heart.conftest import get_assets_folder, get_workdir
+from tests.heart.conftest import get_assets_folder
 from tests.heart.end2end.compare_k import read_file
 
 
@@ -104,6 +106,9 @@ def extract_fullheart():
         global stats
         stats = model_summary(model)
 
+        # Give Fluent time to close
+        time.sleep(5)
+
     return
 
 
@@ -157,16 +162,19 @@ def test_writers(writer_class):
         "k_files",
         writer_class.__name__,
     )
-    to_test_folder = os.path.join(get_workdir(), "fullheart", writer_class.__name__)
-    writer.update()
-    writer.export(to_test_folder)
 
-    ref_files = glob.glob(os.path.join(ref_folder, "*.k"))
-    # compare each of the reference files to the files that were generated.
-    for ref_file in ref_files:
-        file_to_compare = os.path.join(to_test_folder, pathlib.Path(ref_file).name)
-        assert read_file(ref_file) == read_file(
-            file_to_compare
-        ), f"File {pathlib.Path(ref_file).name} does not match."
+    with tempfile.TemporaryDirectory(suffix=".pyansys-heart") as workdir:
+
+        to_test_folder = os.path.join(workdir, "fullheart", writer_class.__name__)
+        writer.update()
+        writer.export(to_test_folder)
+
+        ref_files = glob.glob(os.path.join(ref_folder, "*.k"))
+        # compare each of the reference files to the files that were generated.
+        for ref_file in ref_files:
+            file_to_compare = os.path.join(to_test_folder, pathlib.Path(ref_file).name)
+            assert read_file(ref_file) == read_file(
+                file_to_compare
+            ), f"File {pathlib.Path(ref_file).name} does not match."
 
     return

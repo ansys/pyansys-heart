@@ -39,13 +39,28 @@ This examples shows how to generate fibers with Laplace-Dirichlet-Rule-Based-Met
 
 import os
 
-import ansys.heart.preprocessor.models as models
-from ansys.heart.simulator.simulator import BaseSimulator, DynaSettings
 import numpy as np
 import pyvista as pv
 
+import ansys.heart.preprocessor.models as models
+from ansys.heart.simulator.simulator import BaseSimulator, DynaSettings
+
 # specify the path to the working directory and heart model
 workdir = os.path.join("pyansys-heart", "downloads", "Strocchi2020", "01", "FourChamber")
+
+# sphinx_gallery_start_ignore
+# Overwrite with env variables: for testing purposes only. May be removed by user.
+from pathlib import Path
+
+try:
+    case_file = str(Path(os.environ["PATH_TO_CASE_FILE"]))
+    workdir = os.path.join(os.path.dirname(case_file), "FourChamber")
+    path_to_dyna = str(Path(os.environ["PATH_TO_DYNA"]))
+
+except KeyError:
+    pass
+# sphinx_gallery_end_ignore
+
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 # specify LS-DYNA path
@@ -70,8 +85,19 @@ model.info.workdir = str(workdir)
 
 # instantiate LS-DYNA settings of choice
 dyna_settings = DynaSettings(
-    lsdyna_path=lsdyna_path, dynatype="smp", num_cpus=4, platform="windows"
+    lsdyna_path=lsdyna_path, dynatype="intelmpi", num_cpus=4, platform="windows"
 )
+
+# sphinx_gallery_start_ignore
+# Overwrite with env variables: for testing purposes only. May be removed by user.
+try:
+    dyna_settings.lsdyna_path = path_to_dyna
+    # assume we are in WSL if .exe not in path.
+    if ".exe" not in path_to_dyna:
+        dyna_settings.platform = "wsl"
+except:
+    pass
+# sphinx_gallery_end_ignore
 
 simulator = BaseSimulator(
     model=model,

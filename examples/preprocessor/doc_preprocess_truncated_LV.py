@@ -39,9 +39,10 @@ Land et al (2015): https://doi.org/10.1098/rspa.2015.0641
 # directory and generated model
 import os
 
-import ansys.heart.preprocessor.models as models
 import numpy as np
 import pyvista as pv
+
+import ansys.heart.preprocessor.models as models
 
 # sphinx_gallery_start_ignore
 # sphinx_gallery_thumbnail_path = '_static/images/truncated_LV_mesh.png'
@@ -147,13 +148,12 @@ model._assign_surfaces_to_parts()
 model._validate_parts()
 model._validate_surfaces()
 
-model._assign_caps_to_parts()
-model._validate_cap_names()
-
 model._add_nodal_areas()
 model._add_surface_normals()
 
 model._assign_cavities_to_parts()
+model._update_cap_names()
+model._validate_cap_names()
 model._extract_apex()
 
 model.compute_left_ventricle_aha17()

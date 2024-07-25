@@ -20,10 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from ansys.heart.simulator.settings.material.curve import ActiveCurve, Strocchi_active, constant_ca2
-import ansys.heart.simulator.settings.material.material as M
 import numpy as np
 import pytest
+
+from ansys.heart.simulator.settings.material.curve import ActiveCurve, Strocchi_active, constant_ca2
+import ansys.heart.simulator.settings.material.material as M
 
 
 class TestCa2Curve:

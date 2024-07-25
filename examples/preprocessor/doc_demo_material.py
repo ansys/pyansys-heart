@@ -33,6 +33,8 @@ This example show you how to create a mechanical material and assign it to a hea
 import os
 from pathlib import Path
 
+import matplotlib.pyplot as plt
+
 from ansys.heart.simulator.settings.material.curve import (
     ActiveCurve,
     Kumaraswamy_active,
@@ -46,7 +48,6 @@ from ansys.heart.simulator.settings.material.material import (
     ActiveModel,
     NeoHookean,
 )
-import matplotlib.pyplot as plt
 
 # sphinx_gallery_start_ignore
 docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", "_static", "images")
@@ -159,9 +160,10 @@ active_mat = MAT295(rho=1, iso=iso, aniso=aniso1, active=active)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
 # Assign the materials to the heart model
 
+import numpy as np
+
 from ansys.heart.preprocessor.mesh.objects import Part
 import ansys.heart.preprocessor.models as models
-import numpy as np
 
 ###############################################################################
 # Load a heart model

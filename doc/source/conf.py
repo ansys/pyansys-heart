@@ -4,13 +4,14 @@ from datetime import datetime
 import os
 from pathlib import Path
 
-from ansys.heart import __version__
 from ansys_sphinx_theme import (
     ansys_favicon,
     get_autoapi_templates_dir_relative_path,
     get_version_match,
     pyansys_logo_black,
 )
+
+from ansys.heart import __version__
 
 # Project information
 project = "pyansys-heart"
@@ -130,7 +131,7 @@ autoapi_ignore = [
 #     "../../src/ansys/heart/simulator",
 #     "../../src/ansys/heart/postprocessor",
 # ]
-autoapi_dirs = ["../../ansys"]
+autoapi_dirs = ["../../src/ansys/"]
 autoapi_root = "api"
 autoapi_options = [
     "members",

@@ -20,15 +20,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import glob as glob
 import os
 import pathlib
 
 ROOT_FOLDER = os.path.join(pathlib.Path(__file__).parent)
 import logging as deflogging
 
-from ansys.heart.misc.downloader import download_case, unpack_case
 import pytest
+
+from ansys.heart.misc.downloader import download_case, unpack_case
 
 """
 
@@ -39,12 +39,6 @@ VS Code's native testing framework you need to install pyfluent into the
 base virtual environment.
 
 """
-
-
-def pytest_sessionstart(session):
-    print("Starting pytest session")
-    workdir = get_workdir()
-    pass
 
 
 def get_assets_folder():
@@ -104,29 +98,6 @@ def download_asset(
         raise FileExistsError("File not found.")
 
 
-def get_workdir():
-    return os.path.join(ROOT_FOLDER, "workdir_tests")
-
-
-def create_directory(directory: str):
-    """Creates directory"""
-    print("Creating directory for tests")
-    if not os.path.isdir(directory):
-        os.makedirs(directory)
-    return
-
-
-def clean_workdir(directory: str):
-    print("Cleaning working directory for tests")
-    filelist = glob.glob(os.path.join(directory, "*"))
-    print("Files to remove:")
-    print(filelist)
-    for file in filelist:
-        print("Removing: %s" % file)
-        os.remove(file)
-    return
-
-
 def normalize_line_endings(text: str) -> str:
     return text.replace("\r\n", "\n").replace("\r", "\n")
 
@@ -144,18 +115,6 @@ def compare_string_with_file(output: str, reference_file: str) -> None:
     ref_contents = read_file(reference_file)
 
     assert output == ref_contents
-
-
-def clean_directory(directory: str):
-    """Cleans the directory by removing it and re-creating it"""
-    import shutil
-
-    if os.path.isdir(directory):
-        shutil.rmtree(directory)
-        os.mkdir(directory)
-    else:
-        os.mkdir(directory)
-    return
 
 
 def remove_keys_from_dict(dictionary: dict, exclude_keys=[]):
@@ -201,3 +160,25 @@ def fake_record():
         return handler.format(record)
 
     return inner_fake_record
+
+
+# conftest.py
+import sys
+
+import pytest
+
+
+def is_debugging():
+    return "debugpy" in sys.modules
+
+
+# enable_stop_on_exceptions if the debugger is running during a test
+if is_debugging():
+
+    @pytest.hookimpl(tryfirst=True)
+    def pytest_exception_interact(call):
+        raise call.excinfo.value
+
+    @pytest.hookimpl(tryfirst=True)
+    def pytest_internalerror(excinfo):
+        raise excinfo.value

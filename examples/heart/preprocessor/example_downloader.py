@@ -26,8 +26,9 @@ by Strocchi et al (2020)."""
 import os
 import pathlib
 
-from ansys.heart.misc.downloader import download_case, unpack_case
 import pyvista as pv
+
+from ansys.heart.misc.downloader import download_case, unpack_case
 
 PROJECT_DIRECTORY = pathlib.Path(__file__).absolute().parents[3]
 

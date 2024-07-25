@@ -24,9 +24,10 @@
     require previously launched simulation
     change paths accordingly"""
 
+import matplotlib.pyplot as plt
+
 from ansys.heart.postprocessor.exporter import LVContourExporter
 from ansys.heart.preprocessor.models import HeartModel
-import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
     """

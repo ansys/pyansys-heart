@@ -37,15 +37,38 @@ if is_github_job:
 
 pytestmark = pytest.mark.requires_fluent
 
+import glob
+import shutil
+import tempfile
+
+import numpy as np
+import pyvista as pv
+
 from ansys.heart.preprocessor.input import _InputModel
 from ansys.heart.preprocessor.mesh.mesher import (
     mesh_from_manifold_input_model,
     mesh_from_non_manifold_input_model,
 )
-import numpy as np
-import pyvista as pv
 
-from tests.heart.conftest import clean_directory, get_workdir
+
+@pytest.fixture(scope="session", autouse=True)
+def clean_up_temp_dirs():
+    tmpdirs = glob.glob(os.path.join(tempfile.tempdir, ".pyansys-heart*"))
+    yield
+    os.chdir(os.path.dirname(__file__))
+    import time
+
+    # Sleep to give Fluent process time to shutdown - otherwise tempdirs cannot
+    # be removed due to access violation.
+    time.sleep(5)
+
+    tmpdirs1 = glob.glob(os.path.join(tempfile.tempdir, ".pyansys-heart*"))
+    tmp_dirs_remove = list(set(tmpdirs1) - set(tmpdirs))
+    for tmp_dir in tmp_dirs_remove:
+        try:
+            shutil.rmtree(tmp_dir)
+        except:
+            pass
 
 
 def test_meshing_for_manifold():
@@ -73,23 +96,15 @@ def test_meshing_for_manifold():
         scalar="CellSource",
     )
 
-    write_dir = os.path.join(get_workdir(), "mesher1")
+    tmpdir = tempfile.TemporaryDirectory(prefix=".pyansys-heart")
 
-    # write_dir = r"D:\development\pyheart-lib\pyheart-lib\tests\heart\workdir_tests\mesher"
-    if not os.path.isdir(write_dir):
-        os.makedirs(write_dir)
-    else:
-        clean_directory(write_dir)
-
-    mesh_file = os.path.join(write_dir, "test_mesh.msh.h5")
-    mesh = mesh_from_manifold_input_model(model, write_dir, mesh_file, mesh_size=0.02)
+    mesh_file = os.path.join(tmpdir.name, "test_mesh.msh.h5")
+    mesh = mesh_from_manifold_input_model(model, tmpdir.name, mesh_file, mesh_size=0.02)
 
     assert len(mesh.cell_zones) == 3
     assert ["triangles_001", "triangles_002", "triangles_003", "triangles_004"] == sorted(
         [fz.name for fz in mesh.face_zones if "interior" not in fz.name]
     )
-
-    os.remove(mesh_file)
 
     pass
 
@@ -145,23 +160,16 @@ def test_meshing_for_non_manifold():
         scalar="surface-id",
     )
 
-    write_dir = os.path.join(get_workdir(), "mesher2")
-
-    clean_directory(write_dir)
-
-    if not os.path.isdir(write_dir):
-        os.makedirs(write_dir)
+    tmpdir = tempfile.TemporaryDirectory(prefix=".pyansys-heart")
 
     # call meshing method.
-    mesh_file = os.path.join(write_dir, "test_mesh.msh.h5")
-    fluent_mesh = mesh_from_non_manifold_input_model(model, write_dir, mesh_file, mesh_size=0.1)
+    mesh_file = os.path.join(tmpdir.name, "test_mesh.msh.h5")
+    fluent_mesh = mesh_from_non_manifold_input_model(model, tmpdir.name, mesh_file, mesh_size=0.1)
 
     assert len(fluent_mesh.cell_zones) == 2
     assert sorted([cz.name for cz in fluent_mesh.cell_zones]) == sorted(model.part_names)
     assert sorted(["s1", "s2", "s3", "s4", "s5", "s6", "s8", "s9", "s10", "s11", "s12"]) == sorted(
         [fz.name for fz in fluent_mesh.face_zones if "interior" not in fz.name]
     )
-
-    os.remove(mesh_file)
 
     pass

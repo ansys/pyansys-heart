@@ -24,8 +24,9 @@
     require previously launched simulation
     change paths accordingly"""
 
-from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 import matplotlib.pyplot as plt
+
+from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
 
 if __name__ == "__main__":
     base_dir = r"my_base_directory"

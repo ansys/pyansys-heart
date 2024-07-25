@@ -439,7 +439,7 @@ def test_surface_mesh_init():
     assert sphere1.n_points == sphere.n_points
 
     # Init with file path
-    with tempfile.TemporaryDirectory(suffix=".pyansys-heart") as tempdir:
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         temp_path = os.path.join(tempdir, "sphere.vtp")
         sphere.save(temp_path)
 

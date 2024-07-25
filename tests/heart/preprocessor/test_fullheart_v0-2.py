@@ -163,7 +163,7 @@ def test_writers(writer_class):
         writer_class.__name__,
     )
 
-    with tempfile.TemporaryDirectory(suffix=".pyansys-heart") as workdir:
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
 
         to_test_folder = os.path.join(workdir, "fullheart", writer_class.__name__)
         writer.update()

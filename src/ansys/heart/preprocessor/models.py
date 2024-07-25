@@ -1107,13 +1107,17 @@ class HeartModel:
 
         return
 
-    def _extract_apex(self) -> None:
-        """Extract the apex for both the endocardium and epicardium of each ventricle.
+    def _extract_apex(self, check_edge: bool = True) -> None:
+        """
+        Extract the apex for both the endocardium and epicardium of each ventricle.
 
         Notes
         -----
         Apex defined as the point furthest from the mid-point between caps/valves
 
+        Args:
+            check_edge (bool, optional): Checks and corrects if the apex point is on surface edge.
+            Defaults to True.
         """
         ventricles = [p for p in self.parts if "ventricle" in p.name]
         surface_substrings = ["endocardium", "epicardium"]
@@ -1129,25 +1133,14 @@ class HeartModel:
                     )
                 ]
 
-                if np.any(surface.boundary_edges == apical_node_id):
-                    # Apical node is on the edge, need to adjust
-                    element_id = np.argwhere(np.any(surface.triangles == apical_node_id, axis=1))[
-                        0
-                    ][0]
-                    triangle = surface.triangles[element_id, :]
-
-                    # get another point on the same element
-                    apical_node_id = triangle[
-                        np.argwhere(
-                            np.isin(
-                                triangle,
-                                surface.boundary_edges,
-                                invert=True,
-                            )
-                        )[
-                            0
-                        ][0]
+                if check_edge and np.any(surface.boundary_edges == apical_node_id):
+                    edgeless_surface, original_ids = surface.remove_points(
+                        np.unique(surface.boundary_edges)
+                    )
+                    apical_node_id = original_ids[
+                        edgeless_surface.find_closest_point(surface.points[apical_node_id])
                     ]
+
                     LOGGER.warning(
                         "Initial apical point is on edge of {0}, a close point is picked".format(
                             surface.name,

@@ -479,7 +479,7 @@ class EPSimulator(BaseSimulator):
         export_directory = os.path.join(self.root_directory, folder_name)
         self.directories["main-ep"] = export_directory
         model = copy.deepcopy(self.model)
-        dyna_writer = writers._ElectrophysiologyBeamsDynaWriter(model, self.settings)
+        dyna_writer = writers.ElectrophysiologyBeamsDynaWriter(model, self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory)
 

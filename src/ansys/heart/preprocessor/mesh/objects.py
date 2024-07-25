@@ -29,6 +29,8 @@ Such as a Mesh object, Part object, Features, etc.
 
 import copy
 from enum import Enum
+import json
+import os
 import pathlib
 from typing import List, Literal, Union
 
@@ -746,6 +748,76 @@ class Mesh(pv.UnstructuredGrid):
             np.isin(self.volume_ids, list(self._surface_id_to_name.keys()))
         ]
         return unmapped_ids
+
+    def save(self, filename: Union[str, pathlib.Path], **kwargs):
+        """Save mesh."""
+        super(Mesh, self).save(filename, **kwargs)
+        extension = pathlib.Path(filename).suffix
+        self._save_id_to_name_map(filename.replace(extension, ".namemap.json"))
+        return
+
+    def load_mesh(self, filename: Union[str, pathlib.Path]):
+        """Load an existing mesh.
+
+        Notes
+        -----
+        This tries to read a JSON file with the volume/surface id to name map
+        with extension .namemap.json in the same directory as the file. Alternatively,
+        you can read the name map manually by calling `._load_id_to_name_map()`
+
+        Parameters
+        ----------
+        filename : Union[str, pathlib.Path]
+            Path to filename.
+        """
+        super(Mesh, self).__init__(filename)
+        extension = pathlib.Path(filename).suffix
+        filename_map = filename.replace(extension, ".namemap.json")
+        try:
+            self._load_id_to_name_map(filename_map)
+        except:
+            if not os.path.isfile(filename_map):
+                LOGGER.warning(f"{filename_map} not found.")
+            else:
+                LOGGER.error(f"Failed to read surface/volume id to name map from {filename_map}")
+        return
+
+    def _save_id_to_name_map(self, filename: Union[str, pathlib.Path]):
+        """Save the id to name map.
+
+        Parameters
+        ----------
+        filename : Union[str, pathlib.Path]
+            Path to file.
+        """
+        id_to_name = {
+            "_surface_id_to_name": self._surface_id_to_name,
+            "_volume_id_to_name": self._volume_id_to_name,
+        }
+        with open(filename, "w") as f:
+            json.dump(id_to_name, f, indent=4)
+
+    def _load_id_to_name_map(self, filename: Union[str, pathlib.Path]):
+        """Load the id to name map for volumes and surfaces.
+
+        Parameters
+        ----------
+        filename : Union[str, pathlib.Path]
+            Filename of the id to name map (JSON).
+        """
+        with open(filename, "r") as f:
+            data = json.load(
+                f,
+                object_hook=lambda d: {
+                    int(k) if k.lstrip("-").isdigit() else k: v for k, v in d.items()
+                },
+            )
+            self._surface_id_to_name = data["_surface_id_to_name"]
+            self._volume_id_to_name = data["_volume_id_to_name"]
+
+        # check whether map is valid, and print info to logger.
+        self.validate_ids_to_name_map()
+        return
 
     def validate_ids_to_name_map(self):
         """Check whether there are any duplicate or unmapped surfaces/volumes."""

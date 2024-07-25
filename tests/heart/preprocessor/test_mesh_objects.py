@@ -516,3 +516,39 @@ def test_mesh_id_to_name():
     del mesh._volume_id_to_name[10]
     assert mesh._get_unmapped_volumes() == [10]
     assert mesh.validate_ids_to_name_map() == False
+
+
+def test_mesh_save_load():
+    """Test saving the mesh object."""
+    mesh = _convert_to_mesh(_get_beam_model("tets+triangles"))
+
+    mesh._surface_id_to_name[1] = "triangles"
+    mesh._volume_id_to_name[10] = "tets"
+
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tmpdir:
+        filename = os.path.join(tmpdir, "test_file.vtu")
+        filename_map = filename.replace(".vtu", ".namemap.json")
+        mesh.save(filename)
+
+        assert os.path.isfile(filename)
+        assert os.path.isfile(filename_map)
+
+        # try to load the same mesh.
+        mesh1 = Mesh()
+        mesh1.load_mesh(filename)
+        assert mesh.n_cells == mesh1.n_cells
+        assert mesh.n_points == mesh1.n_points
+        assert mesh._surface_id_to_name == mesh1._surface_id_to_name
+        assert mesh._volume_id_to_name == mesh1._volume_id_to_name
+
+        # try to load when no json is found
+        mesh1 = Mesh()
+        os.remove(filename_map)
+        mesh1.load_mesh(filename)
+        assert mesh.n_cells == mesh1.n_cells
+        assert mesh.n_points == mesh1.n_points
+        assert mesh1._surface_id_to_name == {}
+        assert mesh1._volume_id_to_name == {}
+        assert mesh1.validate_ids_to_name_map() == False
+
+    return

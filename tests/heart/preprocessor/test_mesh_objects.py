@@ -213,8 +213,8 @@ def test_surface_add_001():
 
     assert np.all(np.isin(mesh.celltypes, [pv.CellType.TRIANGLE, pv.CellType.TETRA]))
 
-    expected_volume_ids = np.hstack([surface.n_cells * [np.nan], init_n_cells * [1]])
-    expected_surface_ids = np.hstack([surface.n_cells * [2], init_n_cells * [np.nan]])
+    expected_volume_ids = np.hstack([init_n_cells * [1], surface.n_cells * [np.nan]])
+    expected_surface_ids = np.hstack([init_n_cells * [np.nan], surface.n_cells * [2]])
     np.testing.assert_allclose(mesh.cell_data["_volume-id"], expected_volume_ids)
     np.testing.assert_allclose(mesh.cell_data["_surface-id"], expected_surface_ids)
 
@@ -263,7 +263,12 @@ def test_volume_add_001():
     assert tets.add_volume(hex, float(1)) == None
 
     tets.add_volume(hex, id=2)
-    expected = np.hstack([[2] * hex.n_cells, [1] * n_tets])
+    expected = np.hstack(
+        [
+            [1] * n_tets,
+            [2] * hex.n_cells,
+        ]
+    )
     assert np.allclose(tets.cell_data["_volume-id"], expected)
 
 

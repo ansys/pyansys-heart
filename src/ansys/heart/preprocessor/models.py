@@ -1338,12 +1338,12 @@ class HeartModel:
 
             valid_cap_names = True
             for cn in cap_names:
-                for en in expected_names:
-                    if en in cn:
-                        # LOGGER.debug("Breaking...")
-                        break
+                matches = [True for en in expected_names if en in cn]
+                if len(matches) == 1:
+                    break
+                else:
                     LOGGER.error(
-                        "Part: {0}. Cap name is {1}, but expecting cap names"
+                        "Part: {0}. Cap name is {1}, but expecting cap names "
                         "to contain one of {2}".format(part.name, cn, expected_names)
                     )
                     valid_cap_names = False

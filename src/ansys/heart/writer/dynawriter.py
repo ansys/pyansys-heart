@@ -50,6 +50,7 @@ from ansys.heart.preprocessor.models import (
     HeartModel,
     LeftVentricle,
 )
+from ansys.heart.simulator.settings.material.ep_material import CellModel, EPMaterial
 from ansys.heart.simulator.settings.material.material import (
     ACTIVE,
     MAT295,
@@ -2804,61 +2805,74 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         """Add EP material for each defined part."""
         material_settings = self.settings.electrophysiology.material
         solvertype = self.settings.electrophysiology.analysis.solvertype
-        for part in self.model.parts:
-            self.kw_database.material.append(f"$$ {part.name} $$")
-            partname = part.name.lower()
-            ep_mid = part.pid
-            if (
-                ("atrium" in partname)
-                or ("ventricle" in partname)
-                or ("septum" in partname)
-                or ("base" in partname)
-            ):
-                # Electrically "active" tissue (mtype=1)
-                self._set_ep_active_material(ep_mid, material_settings, solvertype=solvertype)
+        default_epmat = EPMaterial()
+        if solvertype == "Monodomain":
+            sig1 = material_settings.myocardium["sigma_fiber"].m
+            sig2 = material_settings.myocardium["sigma_sheet"].m
+            sig3 = material_settings.myocardium["sigma_sheet_normal"].m
+        elif solvertype == "Eikonal" or solvertype == "ReactionEikonal":
+            sig1 = material_settings.myocardium["velocity_fiber"].m
+            sig2 = material_settings.myocardium["velocity_sheet"].m
+            sig3 = material_settings.myocardium["velocity_sheet_normal"].m
+        default_epmat.sigma_fiber = sig1
+        default_epmat.sigma_sheet = sig2
+        default_epmat.sigma_sheet_normal = sig3
+        default_epmat.beta = material_settings.myocardium["beta"].m
+        default_epmat.cm = material_settings.myocardium["cm"].m
 
-            elif "isolation" in partname:
-                # assign insulator material to isolation layer.
-                self._set_ep_insulator_material(ep_mid)
-            else:
-                # Electrically non-active tissue (mtype=4)
-                # These bodies are still conductive bodies
-                # in the extra-cellular space
-                self._set_ep_passive_material(ep_mid)
+        for part in self.model.parts:
+            partname = part.name.lower()
+            if isinstance(part.ep_material, EPMaterial.DummyMaterial):
+                LOGGER.info(f"Material of {part.name} will be assigned automatically.")
+                if part.active:
+                    part.ep_material = EPMaterial.Active(sigma_fiber=sig1)
+                else:
+                    part.ep_material = EPMaterial.Passive(sigma_fiber=sig1)
+                if part.fiber:
+                    part.ep_material.sigma_sheet = sig2
+                    part.ep_material.sigma_sheet_normal = sig3
+                # TODO avoid str compare here, assign right after part creation?
+                if "isolation" in partname:
+                    # assign insulator material to A-V isolation layer.
+                    part.ep_material = EPMaterial.Insulator()
+            self.kw_database.material.append(f"$$ {part.name} $$")
+
+            ep_mid = part.pid
+            kw = self._get_ep_material_kw(ep_mid, part.ep_material)
+            self.kw_database.material.append(kw)
 
         return
 
     def _update_cellmodels(self):
         """Add cell model for each defined part."""
         for part in self.model.parts:
-            partname = part.name.lower()
-            if (
-                ("atrium" in partname)
-                or ("ventricle" in partname)
-                or ("septum" in partname)
-                or ("base" in partname)
+            if isinstance(part.ep_material, EPMaterial.Active) or isinstance(
+                part.ep_material, EPMaterial.Active
             ):
                 ep_mid = part.pid
                 # One cell model for myocardium, default value is epi layer parameters
-                self._add_Tentusscher_keyword(matid=ep_mid)
-
+                self._add_cell_model_keyword(matid=ep_mid, cellmodel=part.ep_material.cell_model)
         # different cell models for endo/mid/epi layer
         # TODO:  this will override previous definition?
         #        what's the situation at setptum? and at atrial?
         if "transmural" in self.model.mesh.point_data.keys():
+
             (
                 endo_id,
                 mid_id,
                 epi_id,
             ) = self._create_myocardial_nodeset_layers()
+            tentusscher_endo = CellModel.Tentusscher_endo()
+            tentusscher_mid = CellModel.Tentusscher_mid()
+            tentusscher_epi = CellModel.Tentusscher_epi()
 
-            self._add_Tentusscher_keyword(matid=-endo_id, cell_type="endo")
-            self._add_Tentusscher_keyword(matid=-mid_id, cell_type="mid")
-            self._add_Tentusscher_keyword(matid=-epi_id, cell_type="epi")
+            self._add_Tentusscher_keyword(matid=-endo_id, params=tentusscher_endo.to_dictionary())
+            self._add_Tentusscher_keyword(matid=-mid_id, params=tentusscher_mid.to_dictionary())
+            self._add_Tentusscher_keyword(matid=-epi_id, params=tentusscher_epi.to_dictionary())
 
-    def _create_myocardial_nodeset_layers(
-        self, percent_endo=0.17, percent_mid=0.41, percent_epi=0.42
-    ):
+    def _create_myocardial_nodeset_layers(self):
+        percent_endo = self.settings.electrophysiology.material.myocardium["percent_endo"]
+        percent_mid = self.settings.electrophysiology.material.myocardium["percent_mid"]
         values = self.model.mesh.point_data["transmural"]
         # Values from experimental data, see:
         # https://www.frontiersin.org/articles/10.3389/fphys.2019.00580/full
@@ -2890,138 +2904,14 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self.kw_database.node_sets.append(node_set_kw)
         return endo_nodeset_id, mid_nodeset_id, epi_nodeset_id
 
-    def _add_Tentusscher_keyword(self, matid, cell_type="epi"):
-        common_params = dict(
-            mid=matid,
-            gas_constant=8314.472,
-            t=310,
-            faraday_constant=96485.3415,
-            cm=0.185,
-            vc=0.016404,
-            vsr=0.001094,
-            vss=0.00005468,
-            pkna=0.03,
-            ko=5.4,
-            nao=140.0,
-            cao=2.0,
-            gk1=5.405,
-            gkr=0.153,
-            gna=14.838,
-            gbna=0.0002,
-            gcal=0.0000398,
-            gbca=0.000592,
-            gpca=0.1238,
-            gpk=0.0146,
-            pnak=2.724,
-            km=1.0,
-            kmna=40.0,
-            knaca=1000.0,
-            ksat=0.1,
-            alpha=2.5,
-            gamma=0.35,
-            kmca=1.38,
-            kmnai=87.5,
-            kpca=0.0005,
-            k1=0.15,
-            k2=0.045,
-            k3=0.06,
-            k4=0.005,
-            ec=1.5,
-            maxsr=2.5,
-            minsr=1.0,
-            vrel=0.102,
-            vleak=0.00036,
-            vxfer=0.0038,
-            vmaxup=0.006375,
-            kup=0.00025,
-            bufc=0.2,
-            kbufc=0.001,
-            bufsr=10.0,
-            kbufsf=0.3,
-            bufss=0.4,
-            kbufss=0.00025,
-            # gas_constant=8314.472,
-            # faraday_constant=96485.3415,
-        )
+    def _add_cell_model_keyword(self, matid: int, cellmodel: CellModel):
+        """Add cell model keyword to database."""
+        if isinstance(cellmodel, CellModel.Tentusscher):
+            self._add_Tentusscher_keyword(matid=matid, params=cellmodel.__dict__)
 
-        if cell_type == "epi":
-            specific_params = dict(
-                gks=0.392,
-                gto=0.294,
-                v=-85.23,
-                ki=136.89,
-                nai=8.604,
-                cai=0.000126,
-                cass=0.00036,
-                casr=3.64,
-                rpri=0.9073,
-                xr1=0.00621,
-                xr2=0.4712,
-                xs=0.0095,
-                m=0.00172,
-                h=0.7444,
-                j=0.7045,
-                d=3.373e-5,
-                f=0.7888,
-                f2=0.9755,
-                fcass=0.9953,
-                s=0.999998,
-                r=2.42e-8,
-            )
-        elif cell_type == "endo":
-            specific_params = dict(
-                gks=0.392,
-                gto=0.073,
-                v=-86.709,
-                ki=138.4,
-                nai=10.355,
-                cai=0.00013,
-                cass=0.00036,
-                casr=3.715,
-                rpri=0.9068,
-                xr1=0.00448,
-                xr2=0.476,
-                xs=0.0087,
-                m=0.00155,
-                h=0.7573,
-                j=0.7225,
-                d=3.164e-5,
-                f=0.8009,
-                f2=0.9778,
-                fcass=0.9953,
-                s=0.3212,
-                r=2.235e-8,
-            )
-        elif cell_type == "mid":
-            specific_params = dict(
-                gks=0.098,
-                gto=0.294,
-                vleak=0.00042,
-                v=-85.423,
-                ki=138.52,
-                nai=10.132,
-                cai=0.000153,
-                cass=0.00036,
-                casr=4.272,
-                rpri=0.8978,
-                xr1=0.0165,
-                xr2=0.473,
-                xs=0.0174,
-                m=0.00165,
-                h=0.749,
-                j=0.6788,
-                d=3.288e-5,
-                f=0.7026,
-                f2=0.9526,
-                fcass=0.9942,
-                s=0.999998,
-                r=2.347e-8,
-            )
-        else:
-            raise ValueError(f"Unknown cell type: {cell_type}")
-
-        cell_kw = keywords.EmEpCellmodelTentusscher(**{**common_params, **specific_params})
-
+    def _add_Tentusscher_keyword(self, matid: int, params: dict):
+        cell_kw = keywords.EmEpCellmodelTentusscher(**{**params})
+        cell_kw.mid = matid
         # Note: bug in EmEpCellmodelTentusscher
         # the following 2 parameters can not be assigned by above method
         cell_kw.gas_constant = 8314.472
@@ -3294,11 +3184,24 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         nodes_table = np.hstack((ids.reshape(-1, 1), new_nodes))
         kw = add_nodes_to_kw(nodes_table, keywords.Node())
         self.kw_database.beam_networks.append(kw)
+        material_settings = self.settings.electrophysiology.material
+        solvertype = self.settings.electrophysiology.analysis.solvertype
+        default_epmat = EPMaterial.ActiveBeam()
+        if solvertype == "Monodomain":
+            sig1 = material_settings.beam["sigma"].m
+        elif solvertype == "Eikonal":
+            sig1 = material_settings.beam["velocity"].m
+        default_epmat.sigma_fiber = sig1
+        default_epmat.beta = material_settings.beam["beta"].m
+        default_epmat.cm = material_settings.beam["cm"].m
+        default_epmat.pmjres = material_settings.beam["pmjres"].m
 
         for network in self.model.beam_network:
             # pid is previously defined from purkinje generation step
             # but needs to reassign part ID here
             # to make sure no conflict with 4C/full heart case.
+            if isinstance(network.ep_material, EPMaterial.DummyMaterial):
+                network.ep_material = default_epmat
             network.pid = self.get_unique_part_id()
 
             if network.name == "Left-purkinje":
@@ -3349,7 +3252,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     pmjtype=self.settings.purkinje.pmjtype.m,
                     pmjradius=self.settings.purkinje.pmjradius.m,
                     pmjrestype=self.settings.electrophysiology.material.beam["pmjrestype"].m,
-                    pmjres=self.settings.electrophysiology.material.beam["pmjres"].m,
+                    pmjres=network.ep_material.pmjres,
                 )
             )
 
@@ -3365,21 +3268,14 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             part_kw.parts = part_df
             self.kw_database.beam_networks.append(part_kw)
             self.kw_database.beam_networks.append(keywords.MatNull(mid=network.pid, ro=1e-11))
-            beam_material = self.settings.electrophysiology.material.beam
-            self.kw_database.beam_networks.append(
-                custom_keywords.EmMat001(
-                    mid=network.pid,
-                    mtype=2,
-                    sigma=beam_material["sigma"].m,
-                    beta=beam_material["beta"].m,
-                    cm=beam_material["cm"].m,
-                )
-            )
+
+            kw = self._get_ep_material_kw(network.pid, network.ep_material)
+            self.kw_database.beam_networks.append(kw)
 
             # cell model
-            # use endo property
-            self._add_Tentusscher_keyword(matid=network.pid, cell_type="endo")
-
+            self._add_cell_model_keyword(
+                matid=network.pid, cellmodel=network.ep_material.cell_model
+            )
             # mesh
             beams_kw = keywords.ElementBeam()
             beams_kw = add_beams_to_kw(
@@ -3415,70 +3311,83 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         return
 
-    def _set_ep_active_material(
-        self,
-        ep_mid,
-        material_settings,
-        solvertype="Monodomain",
-    ):
-        if solvertype == "Monodomain":
-            self.kw_database.material.append(
-                custom_keywords.EmMat003(
-                    mid=ep_mid,
-                    mtype=2,
-                    sigma11=material_settings.myocardium["sigma_fiber"].m,
-                    sigma22=material_settings.myocardium["sigma_sheet"].m,
-                    sigma33=material_settings.myocardium["sigma_sheet_normal"].m,
-                    beta=material_settings.myocardium["beta"].m,
-                    cm=material_settings.myocardium["cm"].m,
-                    aopt=2.0,
-                    a1=0,
-                    a2=0,
-                    a3=1,
-                    d1=0,
-                    d2=-1,
-                    d3=0,
-                ),
-            )
-        elif solvertype == "Eikonal" or solvertype == "ReactionEikonal":
-            self.kw_database.material.append(
-                custom_keywords.EmMat003(
-                    mid=ep_mid,
-                    mtype=2,
-                    sigma11=material_settings.myocardium["velocity_fiber"].m,
-                    sigma22=material_settings.myocardium["velocity_sheet"].m,
-                    sigma33=material_settings.myocardium["velocity_sheet_normal"].m,
-                    beta=material_settings.myocardium["beta"].m,
-                    cm=material_settings.myocardium["cm"].m,
-                    aopt=2.0,
-                    a1=0,
-                    a2=0,
-                    a3=1,
-                    d1=0,
-                    d2=-1,
-                    d3=0,
-                ),
-            )
-
-    def _set_ep_insulator_material(
-        self,
-        ep_mid,
-    ):
-        self.kw_database.material.append(
-            custom_keywords.EmMat001(mid=ep_mid, mtype=1, sigma=1),
-        )
-
-    def _set_ep_passive_material(
-        self,
-        ep_mid,
-    ):
-        self.kw_database.material.append(
-            custom_keywords.EmMat001(
+    def _get_ep_material_kw(self, ep_mid: int, ep_material: EPMaterial):
+        if isinstance(ep_material, EPMaterial.Insulator):
+            # insulator mtype
+            mtype = 1
+            kw = custom_keywords.EmMat001(
                 mid=ep_mid,
-                mtype=4,
-                sigma=self.settings.electrophysiology.material.myocardium["sigma_passive"].m,
-            ),
-        )
+                mtype=mtype,
+                sigma=ep_material.sigma_fiber,
+                beta=ep_material.beta,
+                cm=ep_material.cm,
+            )
+
+        # active myocardium
+        if isinstance(ep_material, EPMaterial.Active):
+            mtype = 2
+            # "isotropic" case
+            if ep_material.sigma_sheet == None:
+                # lSDYNA bug prevents from using isotropic mat (EMMAT001) for active isotropic case
+                # Bypass: using EMMAT003 with same sigma value in all directions
+                ep_material.sigma_sheet = ep_material.sigma_fiber
+                ep_material.sigma_sheet_normal = ep_material.sigma_fiber
+            kw = custom_keywords.EmMat003(
+                mid=ep_mid,
+                mtype=mtype,
+                sigma11=ep_material.sigma_fiber,
+                sigma22=ep_material.sigma_sheet,
+                sigma33=ep_material.sigma_sheet_normal,
+                beta=ep_material.beta,
+                cm=ep_material.cm,
+                aopt=2.0,
+                a1=0,
+                a2=0,
+                a3=1,
+                d1=0,
+                d2=-1,
+                d3=0,
+            )
+
+        if isinstance(ep_material, EPMaterial.ActiveBeam):
+            mtype = 2
+            kw = custom_keywords.EmMat001(
+                mid=ep_mid,
+                mtype=mtype,
+                sigma=ep_material.sigma_fiber,
+                beta=ep_material.beta,
+                cm=ep_material.cm,
+            )
+        if isinstance(ep_material, EPMaterial.Passive):
+            mtype = 4
+            # isotropic
+            if ep_material.sigma_sheet == None:
+                kw = custom_keywords.EmMat001(
+                    mid=ep_mid,
+                    mtype=mtype,
+                    sigma=ep_material.sigma_fiber,
+                    beta=ep_material.beta,
+                    cm=ep_material.cm,
+                )
+            # Anisotropic
+            else:
+                kw = custom_keywords.EmMat003(
+                    mid=ep_mid,
+                    mtype=mtype,
+                    sigma11=ep_material.sigma_fiber,
+                    sigma22=ep_material.sigma_sheet,
+                    sigma33=ep_material.sigma_sheet_normal,
+                    beta=ep_material.beta,
+                    cm=ep_material.cm,
+                    aopt=2.0,
+                    a1=0,
+                    a2=0,
+                    a3=1,
+                    d1=0,
+                    d2=-1,
+                    d3=0,
+                )
+        return kw
 
 
 class ElectrophysiologyBeamsDynaWriter(ElectrophysiologyDynaWriter):

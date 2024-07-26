@@ -47,7 +47,7 @@ from ansys.heart.preprocessor.database_preprocessor import get_compatible_input
 import ansys.heart.preprocessor.models as models
 
 # specify necessary paths.
-case_file = os.path.join("pyansys-heart", "downloads", "Strocchi2020", "01", "01.case")
+case_file = os.path.join("downloads", "Strocchi2020", "01", "01.case")
 
 # sphinx_gallery_start_ignore
 # Overwrite with env variables: for testing purposes only. May be removed by user.

@@ -313,23 +313,22 @@ class BaseDynaWriter:
                 self.kw_database.segment_sets.append(segset_kw)
         return
 
-    def _bc_filter_nodes(self, surface: SurfaceMesh, node_ids: np.ndarray):
-        """Fix tetrahedrons having all nodes in the boundary.
+    def _filter_bc_nodes(self, surface: SurfaceMesh):
+        """Remove one or more nodes from tetrahedrons having all nodes in the boundary.
 
         Parameters
         ----------
         surface : SurfaceMesh
             Boundary surface to be analysed.
-        node_ids : np.ndarray
-            Array of boundary nodes.
 
         Returns
         -------
         node_ids : np.ndarray
-            Updated array of boundary nodes.
+            Array of boundary nodes after problematic node removal.
         """
         # getting elements in active parts
         element_ids = np.array([], dtype=int)
+        node_ids = surface.node_ids
 
         for part in self.model.parts:
             element_ids = np.append(element_ids, part.element_ids)
@@ -449,12 +448,12 @@ class BaseDynaWriter:
         for part in self.model.parts:
             kws_surface = []
             for surface in part.surfaces:
-                if remove_duplicates:
-                    node_ids = np.setdiff1d(surface.node_ids, used_node_ids)
+                if remove_one_node_from_cell:
+                    node_ids = self._filter_bc_nodes(surface)
                 else:
                     node_ids = surface.node_ids
-                if remove_one_node_from_cell:
-                    node_ids = self._bc_filter_nodes(surface, node_ids)
+                if remove_duplicates:
+                    node_ids = np.setdiff1d(node_ids, used_node_ids)
 
                 kw = create_node_set_keyword(
                     node_ids + 1, node_set_id=surface.id, title=surface.name

@@ -22,7 +22,7 @@
 
 """Material module."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 
 from ansys.heart.simulator.settings.defaults import electrophysiology as ep_defaults
@@ -109,6 +109,7 @@ class CellModel:
         r: float = 2.347e-8
 
         def to_dictionary(self):
+            """Convert to dictionary."""
             return self.__dict__
 
         pass
@@ -272,7 +273,7 @@ if __name__ == "__main__":
     tentus2 = CellModel.Tentusscher_endo()
 
     mat1 = EPMaterial.Insulator()
-    mat2 = EPMaterial.Passive(sigma_fiber=0,sigma_sheet=2)
+    mat2 = EPMaterial.Passive(sigma_fiber=0, sigma_sheet=2)
     mat3 = EPMaterial.Active(sigma_fiber=1, sigma_sheet=2, sigma_sheet_normal=3)
     mat4 = EPMaterial.Active(sigma_fiber=1, sigma_sheet=2, sigma_sheet_normal=3)
     print("done")

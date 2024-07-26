@@ -50,10 +50,7 @@ from ansys.heart.preprocessor.models import (
     HeartModel,
     LeftVentricle,
 )
-from ansys.heart.simulator.settings.material.ep_material import (
-    CellModel,
-    EPMaterial,
-)
+from ansys.heart.simulator.settings.material.ep_material import CellModel, EPMaterial
 from ansys.heart.simulator.settings.material.material import (
     ACTIVE,
     MAT295,

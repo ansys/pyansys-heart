@@ -20,12 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import numpy as np
-import pytest
-
-from ansys.heart.simulator.settings.material.curve import ActiveCurve, Strocchi_active, constant_ca2
-from ansys.heart.simulator.settings.material.ep_material import EPMaterial, CellModel
-import ansys.heart.simulator.settings.material.material as M
+from ansys.heart.simulator.settings.material.ep_material import CellModel, EPMaterial
 
 midcelldata = dict(
     [
@@ -276,6 +271,7 @@ def test_passive():
     passive = EPMaterial.Passive(sigma_fiber=1, sigma_sheet_normal=4)
     assert hasattr(passive, "cell_model") == False
     assert passive.sigma_sheet_normal == 4
+
 
 def test_insulator():
 

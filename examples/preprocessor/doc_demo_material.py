@@ -40,10 +40,7 @@ from ansys.heart.simulator.settings.material.curve import (
     Kumaraswamy_active,
     constant_ca2,
 )
-from ansys.heart.simulator.settings.material.ep_material import (
-    CellModel,
-    EPMaterial,
-)
+from ansys.heart.simulator.settings.material.ep_material import CellModel, EPMaterial
 from ansys.heart.simulator.settings.material.material import (
     ACTIVE,
     ANISO,

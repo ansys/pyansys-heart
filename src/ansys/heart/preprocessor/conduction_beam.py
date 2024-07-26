@@ -284,9 +284,9 @@ class ConductionSystem:
         #
 
         surf = SurfaceMesh(
-            "his_bundle_segment",
-            np.vstack((sgmt_top, sgmt_left, sgmt_right)),
-            self.m.mesh.points,
+            name="his_bundle_segment",
+            triangles=np.vstack((sgmt_top, sgmt_left, sgmt_right)),
+            nodes=self.m.mesh.points,
         )
         self.m.mesh.boundaries.append(surf)
 
@@ -493,7 +493,7 @@ class ConductionSystem:
         mask[-1, 1] = False  # End point at solid
 
         tri = np.vstack((la_epi.triangles, ra_epi.triangles))
-        surface = SurfaceMesh("Bachman segment", tri, self.m.mesh.nodes)
+        surface = SurfaceMesh(name="Bachman segment", triangles=tri, nodes=self.m.mesh.nodes)
         self.m.mesh.boundaries.append(surface)
         beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="Bachman bundle")
 

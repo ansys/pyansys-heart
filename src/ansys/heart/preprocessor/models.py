@@ -509,7 +509,10 @@ class HeartModel:
         fluent_mesh.face_zones = [
             fz for ii, fz in enumerate(fluent_mesh.face_zones) if ii not in idx_to_remove
         ]
+        # TODO: add all surfaces to mesh object.
 
+        # TODO: replace the following by properly referencing the joined mesh object.
+        #
         mesh.boundaries = [
             SurfaceMesh(name=fz.name, triangles=fz.faces, nodes=mesh.nodes, id=fz.id)
             for fz in fluent_mesh.face_zones
@@ -544,7 +547,7 @@ class HeartModel:
         boundaries_fluid = [b for b in boundaries_fluid if b.name not in boundaries_exclude]
 
         caps = [
-            SurfaceMesh("cap_" + c.name, c.triangles, self.mesh.nodes)
+            SurfaceMesh(name="cap_" + c.name, triangles=c.triangles, nodes=self.mesh.nodes)
             for p in self.parts
             for c in p.caps
         ]
@@ -581,7 +584,7 @@ class HeartModel:
         fluid_mesh_vtk.cell_data["part-id"] = fluid_mesh_vtk.cell_data["cell-zone-ids"]
 
         boundaries = [
-            SurfaceMesh(fz.name, fz.faces, fluid_mesh.nodes, fz.id)
+            SurfaceMesh(name=fz.name, triangles=fz.faces, nodes=fluid_mesh.nodes, id=fz.id)
             for fz in fluid_mesh.face_zones
             if "interior" not in fz.name
         ]
@@ -1104,13 +1107,17 @@ class HeartModel:
 
         return
 
-    def _extract_apex(self) -> None:
-        """Extract the apex for both the endocardium and epicardium of each ventricle.
+    def _extract_apex(self, check_edge: bool = True) -> None:
+        """
+        Extract the apex for both the endocardium and epicardium of each ventricle.
 
         Notes
         -----
         Apex defined as the point furthest from the mid-point between caps/valves
 
+        Args:
+            check_edge (bool, optional): Checks and corrects if the apex point is on surface edge.
+            Defaults to True.
         """
         ventricles = [p for p in self.parts if "ventricle" in p.name]
         surface_substrings = ["endocardium", "epicardium"]
@@ -1126,25 +1133,14 @@ class HeartModel:
                     )
                 ]
 
-                if np.any(surface.boundary_edges == apical_node_id):
-                    # Apical node is on the edge, need to adjust
-                    element_id = np.argwhere(np.any(surface.triangles == apical_node_id, axis=1))[
-                        0
-                    ][0]
-                    triangle = surface.triangles[element_id, :]
-
-                    # get another point on the same element
-                    apical_node_id = triangle[
-                        np.argwhere(
-                            np.isin(
-                                triangle,
-                                surface.boundary_edges,
-                                invert=True,
-                            )
-                        )[
-                            0
-                        ][0]
+                if check_edge and np.any(surface.boundary_edges == apical_node_id):
+                    edgeless_surface, original_ids = surface.remove_points(
+                        np.unique(surface.boundary_edges)
+                    )
+                    apical_node_id = original_ids[
+                        edgeless_surface.find_closest_point(surface.points[apical_node_id])
                     ]
+
                     LOGGER.warning(
                         "Initial apical point is on edge of {0}, a close point is picked".format(
                             surface.name,
@@ -1197,7 +1193,7 @@ class HeartModel:
         for part in self.parts:
             for surface in part.surfaces:
                 boundary_name = "-".join(surface.name.lower().split())
-                boundary_surface = self.mesh.get_surface_from_name(boundary_name)
+                boundary_surface = self.mesh._get_surface_from_name(boundary_name)
                 if "septum" in surface.name:
                     try:
                         septum = [b for b in self.mesh.boundaries if "septum" in b.name]

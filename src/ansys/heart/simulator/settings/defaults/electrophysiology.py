@@ -68,11 +68,11 @@ material = {
 
 """Stimulation settings."""
 stimulation = {
-    [
+    "stimdefaults": {
         "node_ids": None,
         "t_start": Quantity(0.0, "ms"),
         "period": Quantity(800.0, "ms"),
         "duration": Quantity(20, "ms"),
         "amplitude": Quantity(50, "uF/mm^3"),
-    ]
+    },
 }

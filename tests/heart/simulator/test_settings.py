@@ -33,6 +33,7 @@ from ansys.heart.simulator.settings.defaults import fibers as fibers_defaults
 from ansys.heart.simulator.settings.settings import (
     Analysis,
     Fibers,
+    Stimulation,
     SimulationSettings,
     _get_consistent_units_str,
 )
@@ -78,6 +79,13 @@ REF_STRING_SETTINGS_YML_EP = (
     "      dt_icvout: 5 millisecond\n"
     "      global_damping: 0 / second\n"
     "      solvertype: Monodomain\n"
+    "    stimulation:\n"
+    "      stimdefaults:\n"
+    "        node_ids: null\n"
+    "        t_start: 0.0 millisecond\n"
+    "        period: 800 millisecond\n"
+    "        duration: 20 millisecond\n"
+    "        amplitude: 50 microfarad / millimeter ** 3\n"
 )
 
 
@@ -109,7 +117,8 @@ def test_settings_save_002():
     settings = SimulationSettings(
         mechanics=False, electrophysiology=True, fiber=False, purkinje=False, stress_free=False
     )
-
+    stim = Stimulation()
+    settings.electrophysiology.stimulation = {"stimdefaults": stim,"stim2":stim}
     # fill some dummy data
     settings.electrophysiology.analysis.end_time = Quantity(1, "s")
     settings.electrophysiology.analysis.dtmin = Quantity(2, "s")

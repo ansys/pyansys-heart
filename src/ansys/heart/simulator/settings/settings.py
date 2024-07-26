@@ -257,7 +257,8 @@ class ZeroPressure(Settings):
 
 @dataclass
 class Stimulation(Settings):
-    """Stimulation module."""
+    """Stimulation settings."""
+
     node_ids: List[int] = None
     t_start: Quantity = Quantity(0.0, "ms")
     period: Quantity = Quantity(800, "ms")
@@ -273,8 +274,8 @@ class Electrophysiology(Settings):
     """Material settings/configuration."""
     analysis: EPAnalysis = field(default_factory=lambda: EPAnalysis())
     """Generic analysis settings."""
-    stimulation: list[Stimulation] = field(default_factory=lambda: [Stimulation()])
-    """Generic analysis settings."""
+    stimulation: AttrDict = None
+    """Stimulation settings."""
 
 
 @dataclass(repr=False)
@@ -579,11 +580,9 @@ class SimulationSettings:
                 A.set_values(ep_defaults.analysis)
                 M = EpMaterial()
                 M.set_values(ep_defaults.material)
-                S = Stimulation()
-                S.set_values(ep_defaults.stimulation)
                 self.electrophysiology.analysis = A
                 self.electrophysiology.material = M
-                self.electrophysiology.stimulation = S
+                self.electrophysiology.stimulation = ep_defaults.stimulation
                 # TODO add stim params, monodomain/bidomain/eikonal,cellmodel
             # TODO add settings for purkinje  fibers and epmecha
             if isinstance(getattr(self, attr), Fibers):

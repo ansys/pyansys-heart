@@ -2972,15 +2972,13 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def _update_stimulation(self):
         # define stimulation node set
-        stim_defaults = self.settings.electrophysiology.stimulation[0].amplitude 
+        
         if not self.settings.electrophysiology.stimulation:
             stim_nodes = self.get_default_stimulus_nodes()
-            
-            stimulation = Stimulation(node_ids=stim_nodes,)
+            stimulation = Stimulation(node_ids=stim_nodes)
+            self.settings.electrophysiology.stimulation = stimulation
 
-            
-        else:
-            for stimulation in self.settings.electrophysiology.stimulation:
+        for stimulation in list(self.settings.electrophysiology.stimulation):
                 stimulation.
 
         # create node-sets for stim nodes
@@ -2992,6 +2990,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         )
         self.kw_database.ep_settings.append(node_set_kw)
 
+    def _add_stimation_keyword(self,nsid:int,stim:Stimulation):
         # stimulation
         solvertype = self.settings.electrophysiology.analysis.solvertype
         if solvertype == "Monodomain":
@@ -2999,11 +2998,11 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 custom_keywords.EmEpTentusscherStimulus(
                     stimid=1,
                     settype=2,
-                    setid=node_set_id_stimulationnodes,
-                    stimstrt=0.0,
-                    stimt=800.0,
-                    stimdur=20.0,
-                    stimamp=50.0,
+                    setid=nsid,
+                    stimstrt=stim.t_start,
+                    stimt=stim.period,
+                    stimdur=stim.duration,
+                    stimamp=stim.amplitude,
                 )
             )
         else:
@@ -3019,7 +3018,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             eikonal_id = 1
             psid = 1
             eikonal_stim_content += (
-                f"{eikonal_id:>10d}{psid:>10d}{node_set_id_stimulationnodes:>10d}\n"
+                f"{eikonal_id:>10d}{psid:>10d}{nsid:>10d}\n"
             )
             if solvertype == "ReactionEikonal":
                 eikonal_stim_content += "$ footType     footT     footA  footTauf   footVth\n"

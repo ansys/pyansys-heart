@@ -1254,6 +1254,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         attached_nodes = cap.node_ids
 
         # use pre-computed nodal area
+        # TODO: Compute nodal areas on demand.
         nodal_areas = self.model.mesh.point_data["nodal_areas"][attached_nodes]
 
         # scaled spring stiffness by nodal area

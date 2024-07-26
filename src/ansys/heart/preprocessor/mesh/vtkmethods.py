@@ -844,5 +844,44 @@ def get_patches_with_centroid(surface: pv.PolyData, closed_only: bool = True) ->
     return patches
 
 
+def are_connected(
+    mesh1: Union[pv.PolyData, pv.UnstructuredGrid], mesh2: Union[pv.PolyData, pv.UnstructuredGrid]
+):
+    """Check whether two PolyData or UnstructuredGrids are connected.
+
+    Parameters
+    ----------
+    mesh1 : Union[pv.PolyData, pv.UnstructuredGrid]
+        First mesh.
+    mesh2 : Union[pv.PolyData, pv.UnstructuredGrid]
+        Second mesh.
+    """
+    try:
+        mesh1.cell_data.remove("RegionId")
+        mesh2.cell_data.remove("RegionId")
+    except KeyError:
+        pass
+
+    mesh1 = mesh1.clean().connectivity()
+    n_regions_1 = len(np.unique(mesh1.cell_data["RegionId"]))
+    mesh2 = mesh2.clean().connectivity()
+    n_regions_2 = len(np.unique(mesh1.cell_data["RegionId"]))
+
+    merged = (mesh1 + mesh2).clean()
+    try:
+        merged.cell_data.remove("RegionId")
+    except:
+        KeyError
+
+    merged = merged.connectivity()
+
+    n_regions_merged = len(np.unique(merged.cell_data["RegionId"]))
+
+    if n_regions_merged < (n_regions_1 + n_regions_2):
+        return True
+    else:
+        return False
+
+
 if __name__ == "__main__":
     print()

@@ -32,8 +32,6 @@ from ansys.heart.simulator.settings.defaults import electrophysiology as ep_defa
 class CellModel:
     """Abstract class for different cell models."""
 
-    pass
-
     @dataclass
     class Tentusscher:
         """Hold data for Tentusscher cell model."""
@@ -109,6 +107,11 @@ class CellModel:
         fcass: float = 0.9942
         s: float = 0.999998
         r: float = 2.347e-8
+
+        def to_dictionary(self):
+            return self.__dict__
+
+        pass
 
     @dataclass
     class Tentusscher_endo(Tentusscher):
@@ -194,67 +197,12 @@ class CellModel:
 class EPMaterialModel:
     """Base class for all EP material models."""
 
-    sigma_fiber: float
-    cell_model: Optional[CellModel] = field(default_factory=CellModel)
-    pass
-
-    @dataclass
-    class Insulator:
-        """Just for initialization."""
-
-        pass
-
-        def __repr__(self):
-            """Print a message."""
-            return "Insulator."
-
-    @dataclass
-    class DummyMaterial:
-        """Just for initialization."""
-
-        cell_model: Optional[CellModel] = field(default_factory=CellModel)
-        pass
-
-        def __repr__(self):
-            """Print a message."""
-            return "Material is empty."
-
-        gks: float = 0.098
-        gto: float = 0.294
-        vleak: float = 0.00042
-        v: float = -85.423
-        ki: float = 138.52
-        nai: float = 10.132
-        cai: float = 0.000153
-        cass: float = 0.00036
-        casr: float = 4.272
-        rpri: float = 0.8978
-        xr1: float = 0.0165
-        xr2: float = 0.473
-        xs: float = 0.0174
-        m: float = 0.00165
-        h: float = 0.749
-        j: float = 0.6788
-        d: float = 3.288e-5
-        f: float = 0.7026
-        f2: float = 0.9526
-        fcass: float = 0.9942
-        s: float = 0.999998
-        r: float = 2.347e-8
-
-
-@dataclass
-class EPMaterial(EPMaterialModel):
-    """Hold data for EP material."""
-
-    sigma_fiber: float = ep_defaults.material["myocardium"]["sigma_fiber"].m
+    sigma_fiber: float = None
     sigma_sheet: Optional[float] = None
     sigma_sheet_normal: Optional[float] = None
     beta: Optional[float] = ep_defaults.material["myocardium"]["beta"].m
     cm: Optional[float] = ep_defaults.material["myocardium"]["cm"].m
-    cell_model: Optional[CellModel] = field(default_factory=CellModel.Tentusscher)
-    lambda_: Optional[float] = ep_defaults.material["myocardium"]["lambda"].m
-    pmjres: Optional[float] = ep_defaults.material["beam"]["pmjres"].m
+    lambda_: Optional[float] = None
 
     def __post_init__(self):
         """Post init method."""
@@ -264,11 +212,66 @@ class EPMaterial(EPMaterialModel):
             self.sigma_sheet = self.sigma_sheet_normal
 
 
+@dataclass
+class EPMaterial(EPMaterialModel):
+    """EP material module."""
+
+    pass
+
+    @dataclass
+    class Insulator:
+        """Insulator material."""
+
+        sigma_fiber = 0
+        cm = 0
+        beta = 0
+        pass
+
+        def __repr__(self):
+            """Print a message."""
+            return "Insulator."
+
+    @dataclass
+    class Active(EPMaterialModel):
+        """Hold data for EP material."""
+
+        sigma_fiber: float = ep_defaults.material["myocardium"]["sigma_fiber"].m
+        sigma_sheet: Optional[float] = None
+        sigma_sheet_normal: Optional[float] = None
+        cell_model: CellModel = CellModel.Tentusscher()
+
+    class ActiveBeam(Active):
+        """Hold data for beam active EP material."""
+
+        sigma_fiber: float = ep_defaults.material["beam"]["sigma"].m
+        pmjres: float = ep_defaults.material["beam"]["pmjres"].m
+
+    class Passive(EPMaterialModel):
+        """Hold data for EP passive material."""
+
+        sigma_fiber: float = ep_defaults.material["myocardium"]["sigma_fiber"].m
+        sigma_sheet: Optional[float] = None
+        sigma_sheet_normal: Optional[float] = None
+
+    @dataclass
+    class DummyMaterial:
+        """Just for initialization."""
+
+        pass
+
+        def __repr__(self):
+            """Print a message."""
+            return "Material is empty."
+
+
 if __name__ == "__main__":
-    m1 = EPMaterialModel.DummyMaterial()
+    m1 = EPMaterial.DummyMaterial()
 
     tentus1 = CellModel.Tentusscher()
     tentus2 = CellModel.Tentusscher_endo()
 
-    mat1 = EPMaterial(sigma_fiber=0, sigma_sheet=0, sigma_sheet_normal=0)
+    mat1 = EPMaterial.Insulator()
+    mat2 = EPMaterial.Passive(sigma_fiber=0,sigma_sheet=2)
+    mat3 = EPMaterial.Active(sigma_fiber=1, sigma_sheet=2, sigma_sheet_normal=3)
+    mat4 = EPMaterial.Active(sigma_fiber=1, sigma_sheet=2, sigma_sheet_normal=3)
     print("done")

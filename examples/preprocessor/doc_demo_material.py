@@ -43,7 +43,6 @@ from ansys.heart.simulator.settings.material.curve import (
 from ansys.heart.simulator.settings.material.ep_material import (
     CellModel,
     EPMaterial,
-    EPMaterialModel,
 )
 from ansys.heart.simulator.settings.material.material import (
     ACTIVE,
@@ -158,10 +157,10 @@ active_mat = MAT295(rho=1, iso=iso, aniso=aniso1, active=active)
 
 ###############################################################################
 ## EP materials can be created as follows
-ep_mat_active = EPMaterial(
+ep_mat_active = EPMaterial.Active(
     sigma_fiber=1, sigma_sheet=0.5, beta=140, cm=0.01, cell_model=CellModel.Tentusscher()
 )
-epinsulator = EPMaterialModel.Insulator()
+epinsulator = EPMaterial.Insulator()
 
 ###############################################################################
 # .. note::

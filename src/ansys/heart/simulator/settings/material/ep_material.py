@@ -243,7 +243,8 @@ class EPMaterial(EPMaterialModel):
     class ActiveBeam(Active):
         """Hold data for beam active EP material."""
 
-        sigma_fiber: float = ep_defaults.material["beam"]["sigma"].m
+        sigma_fiber = ep_defaults.material["beam"]["sigma"].m
+        cell_model = CellModel.Tentusscher_endo()
         pmjres: float = ep_defaults.material["beam"]["pmjres"].m
 
     class Passive(EPMaterialModel):

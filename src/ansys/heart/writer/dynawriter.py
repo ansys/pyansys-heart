@@ -2841,7 +2841,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             self.kw_database.material.append(f"$$ {part.name} $$")
 
             ep_mid = part.pid
-            kw = self._get_ep_material_kw(ep_mid, part.ep_material, part.active, part.fiber)
+            kw = self._get_ep_material_kw(ep_mid, part.ep_material)
             self.kw_database.material.append(kw)
 
         return
@@ -3176,7 +3176,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self.kw_database.beam_networks.append(kw)
         material_settings = self.settings.electrophysiology.material
         solvertype = self.settings.electrophysiology.analysis.solvertype
-        default_epmat = EPMaterial()
+        default_epmat = EPMaterial.ActiveBeam()
         if solvertype == "Monodomain":
             sig1 = material_settings.beam["sigma"].m
         elif solvertype == "Eikonal":
@@ -3192,7 +3192,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             # to make sure no conflict with 4C/full heart case.
             if isinstance(network.ep_material, EPMaterial.DummyMaterial):
                 network.ep_material = default_epmat
-                default_epmat.cell_model = CellModel.Tentusscher_endo()
             network.pid = self.get_unique_part_id()
 
             if network.name == "Left-purkinje":
@@ -3260,9 +3259,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             self.kw_database.beam_networks.append(part_kw)
             self.kw_database.beam_networks.append(keywords.MatNull(mid=network.pid, ro=1e-11))
 
-            kw = self._get_ep_material_kw(
-                network.pid, network.ep_material, active=True, fiber=False
-            )
+            kw = self._get_ep_material_kw(network.pid, network.ep_material)
             self.kw_database.beam_networks.append(kw)
 
             # cell model

@@ -3027,7 +3027,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 footA = 50
                 footTauf = 1
                 eikonal_stim_content += f"{footType:>10d}{footT:>10d}{footA:>10d}{footTauf:>10d}"
-
+                eikonal_stim_content += "\n$solvetype\n"
+                eikonal_stim_content += f"{1:>10d}"  # activate time stepping method by default
             self.kw_database.ep_settings.append(eikonal_stim_content)
 
     def get_default_stimulus_nodes(self) -> list[int]:

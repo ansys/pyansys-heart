@@ -387,6 +387,7 @@ class Cap(Feature):
         """Centroid of cap."""
         self.centroid_id = None
         """Centroid of cap ID (in case centroid node is created)."""
+        self.mesh: SurfaceMesh = None
         return
 
 

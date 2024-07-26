@@ -313,21 +313,33 @@ class BaseDynaWriter:
                 self.kw_database.segment_sets.append(segset_kw)
         return
 
-    def _bc_nodes_to_remove(self , surface : SurfaceMesh , node_ids : np.ndarray):
-        """_summary_
+    def _bc_filter_nodes(self, surface: SurfaceMesh, node_ids: np.ndarray):
+        """Fix tetrahedrons having all nodes in the boundary.
+
+        Parameters
+        ----------
+        surface : SurfaceMesh
+            Boundary surface to be analysed.
+        node_ids : np.ndarray
+            Array of boundary nodes.
+
+        Returns
+        -------
+        node_ids : np.ndarray
+            Updated array of boundary nodes.
         """
         # getting elements in active parts
-        element_ids = np.array([] , dtype = int)
-        
+        element_ids = np.array([], dtype=int)
+
         for part in self.model.parts:
-            element_ids = np.append(element_ids , part.element_ids)
-            
+            element_ids = np.append(element_ids, part.element_ids)
+
         element_ids = np.unique(element_ids)
         active_tets = self.model.mesh.tetrahedrons[element_ids]
-        
-        # make sure not all nodes of the same elements are in the surface
+
+        # make sure not all nodes of the same elements are in the boundary
         node_mask = np.zeros(self.model.mesh.number_of_points, dtype=int)
-        # tag surface nodes with value 1
+        # tag boundary nodes with value 1
         node_mask[node_ids] = 1
 
         tet_mask = np.array(
@@ -338,41 +350,50 @@ class BaseDynaWriter:
                 node_mask[active_tets[:, 3]],
             ]
         )
-        # cells with all nodes in surface are those whose
-        # all nodes are tagged with value 1
+
+        # getting tets with 4 nodes in boundary
         issue_tets = np.where(np.sum(tet_mask, axis=0) == 4)[0]
-        issue_nodes = np.sort(active_tets[issue_tets, :])
-        
-        # counting node appearances in the issue tets
-        u_active_tets , tet_count_active = np.unique(active_tets, return_counts = True )
-        u_issue_nodes , tet_count_issue = np.unique(issue_nodes, return_counts = True )
-        # findind issue nodes that belong to at least one non-issue tet
+
+        # getting corresponding nodes
+        issue_nodes = active_tets[issue_tets, :]
+
+        # counting node appearances
+        u_active_tets, tet_count_active = np.unique(active_tets, return_counts=True)
+        u_issue_nodes, tet_count_issue = np.unique(issue_nodes, return_counts=True)
+
+        # finding issue nodes that belong to at least one non-issue tet
         removable_mask = np.array(
-            [tet_count_active[np.where(u_active_tets == ii)[0][0]] != tet_count_issue[np.where(u_issue_nodes == ii)[0][0]] for ii in issue_nodes.flatten()]
-        ).reshape(-1,4)
-        column_idxs = np.argmax(removable_mask , axis = 1)
-        nodes_toremove = np.unique([issue_nodes[ii , column_idxs[ii]] for ii in range(len(issue_tets))])
-        # checking that there are no nodes that belong to non-issue tets
-        if not np.all(np.any(removable_mask , axis = 1)):
-            # nuclear option
-            nosol_nodes = np.unique(issue_nodes[np.where(~np.any(removable_mask , axis = 1))[0]])
-            nosol_nodes = np.unique([neighbor for ii in nosol_nodes for neighbor in surface.point_neighbors(ii)])
-            nodes_toremove = np.append(nodes_toremove , nosol_nodes)
-            # nodes_toremove = u_issuecellnodes
-        # else:
-        #     column_idxs = np.argmax( removable_mask , axis = 1)
-        #     nodes_toremove = np.unique([issue_cellnodes[ii , column_idxs[ii]] for ii in range(len(issue_cells))])
-        nodes_toremove = self.model.mesh.tetrahedrons[issue_tets, :][:, 0]
+            [
+                tet_count_active[np.where(u_active_tets == ii)[0][0]]
+                != tet_count_issue[np.where(u_issue_nodes == ii)[0][0]]
+                for ii in issue_nodes.flatten()
+            ]
+        ).reshape(-1, 4)
+
+        # removing the first issue node belonging to at least one non-issue tet (for each tet)
+        column_idxs = np.argmax(removable_mask, axis=1)
+        nodes_toremove = np.unique(
+            [issue_nodes[ii, column_idxs[ii]] for ii in range(len(issue_tets))]
+        )
+
+        # checking that there are no nodes that only belong to non-issue tets
+        if not np.all(np.any(removable_mask, axis=1)):
+            # removing all such nodes and all their neighbors
+            unsolvable_nodes = np.unique(issue_nodes[np.where(~np.any(removable_mask, axis=1))[0]])
+            unsolvable_nodes = np.unique(
+                [neighbor for ii in unsolvable_nodes for neighbor in surface.point_neighbors(ii)]
+            )
+            nodes_toremove = np.append(nodes_toremove, unsolvable_nodes)
+
         node_ids = np.setdiff1d(node_ids, nodes_toremove)
-        
+
         for cell in issue_tets:
             LOGGER.warning(
-                f"All nodes of cell {cell+1} are in nodeset of {surface.name},"
-                " N1 is removed."
+                f"All nodes of cell {cell+1} are in nodeset of {surface.name}," " N1 is removed."
             )
-        
+
         return node_ids
-    
+
     def _update_nodesets_db(
         self, remove_duplicates: bool = True, remove_one_node_from_cell: bool = False
     ):
@@ -393,7 +414,7 @@ class BaseDynaWriter:
 
         surface_ids = [s.id for p in self.model.parts for s in p.surfaces]
         node_set_id = np.max(surface_ids) + 1
-        
+
         # for each surface in each part add the respective node-set
         # Use same ID as surface
         # TODO check if database already contains nodesets (there will be duplicates otherwise)
@@ -433,7 +454,7 @@ class BaseDynaWriter:
                 else:
                     node_ids = surface.node_ids
                 if remove_one_node_from_cell:
-                    node_ids = self._bc_nodes_to_remove(surface , node_ids)
+                    node_ids = self._bc_filter_nodes(surface, node_ids)
 
                 kw = create_node_set_keyword(
                     node_ids + 1, node_set_id=surface.id, title=surface.name

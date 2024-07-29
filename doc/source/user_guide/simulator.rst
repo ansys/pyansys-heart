@@ -34,18 +34,18 @@ A simple use example is given as the following:
     dyna_settings=dyna_settings,
     simulation_directory="output-path")
 
-Default modeling parameters are save in :attr:`here <ansys.heart.simulator.settings.defaults>`, you can load them to the simulator:
+Default modeling parameters are save :attr:`here <ansys.heart.simulator.settings.defaults>`, you can load them to the simulator:
 
 .. code:: pycon
 
    >>> simulator.settings.load_defaults()
-   >>> # we can print  settings like
+   >>> # we can print settings
    >>> print(simulator.settings.mechanics.analysis.end_time)
    800 millisecond
    >>> # let's change it to 1600 ms
    >>> simulator.settings.mechanics.analysis.end_time = Quantity(1600, "ms")
 
-Alternatively, settings can be load from a yaml file like the following
+Alternatively, settings can be load from a yaml file as follow
 
 >>> simulator.settings.load("a-yaml-file")
 

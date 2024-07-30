@@ -561,3 +561,84 @@ def test_mesh_save_load():
     del mesh._surface_id_to_name[1]
     assert mesh._get_unmapped_surfaces() == [1]
     assert mesh.validate_ids_to_name_map() == False
+
+
+def test_cap_properties():
+    """Test getting global_node_ids_edge from Cap."""
+    from ansys.heart.preprocessor.mesh.objects import Cap
+    from ansys.heart.preprocessor.mesh.vtkmethods import get_patches_with_centroid
+
+    half_sphere = pv.Sphere().clip(normal="y")
+    patches = get_patches_with_centroid(half_sphere)
+    patch_mesh = patches[0].clean()
+    patch_mesh.point_data["_global-point-ids"] = np.arange(0, patch_mesh.n_points) + 10
+
+    cap = Cap(name="aortic-valve")
+    cap.mesh = patch_mesh
+
+    assert cap.global_node_ids_edge.shape[0] == cap.mesh.n_points - 1
+    assert np.allclose(
+        cap.global_node_ids_edge,
+        np.array(
+            [
+                10,
+                11,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24,
+                25,
+                26,
+                27,
+                28,
+                29,
+                30,
+                31,
+                32,
+                33,
+                34,
+                35,
+                36,
+                37,
+                38,
+                39,
+                40,
+                41,
+                42,
+                43,
+                44,
+                45,
+                46,
+                47,
+                48,
+                49,
+                50,
+                51,
+                52,
+                53,
+                54,
+                55,
+                56,
+                57,
+                58,
+                59,
+                60,
+                61,
+                62,
+                63,
+                64,
+                65,
+                66,
+                67,
+                68,
+            ]
+        ),
+    )

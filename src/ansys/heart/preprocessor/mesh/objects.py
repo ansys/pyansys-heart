@@ -375,16 +375,50 @@ class Cavity(Feature):
 class Cap(Feature):
     """Cap class."""
 
+    @property
+    def _local_node_ids_edge(self):
+        """Local node ids of cap edge."""
+        edges = vtkmethods.get_boundary_edge_loops(self.mesh)
+        edge_local_ids = np.unique(np.array([np.array(edge) for edge in edges.values()]))
+        return edge_local_ids
+
+    @property
+    def global_node_ids_edge(self):
+        """Global node ids of the edge of the cap."""
+        return self.mesh.point_data["_global-point-ids"][self._local_node_ids_edge]
+
+    @property
+    def _local_centroid_id(self):
+        """Local id of centroid."""
+        return np.setdiff1d(np.arange(0, self.mesh.n_points), self._local_node_ids_edge)
+
+    @property
+    def global_centroid_id(self):
+        """Global centroid id."""
+        return self.mesh.point_data["_global-point-ids"][self._local_centroid_id]
+
+    @property
+    def centroid(self):
+        """Centroid of cap."""
+        return self.mesh.points[self._local_centroid_id]
+
+    @property
+    def cap_normal(self):
+        """Compute mean normal of cap."""
+        return np.mean(self.mesh.compute_normals().cell_data["Normals"], axis=0)
+
     def __init__(self, name: str = None, node_ids: Union[List[int], np.ndarray] = []) -> None:
         super().__init__(name)
+        #! Deprecated: use self.global_node_ids_edge instead.
         self.node_ids = node_ids
         """(Global) node ids of the cap."""
+        # TODO make property. local or global ids?
         self.triangles = None
         """Triangulation of cap."""
+        #! Replaced by cap_normal property
         self.normal = None
         """Normal of cap."""
-        self.centroid = None
-        """Centroid of cap."""
+        #! Deprecated: replaced by global_centroid_id
         self.centroid_id = None
         """Centroid of cap ID (in case centroid node is created)."""
         self.mesh: SurfaceMesh = None

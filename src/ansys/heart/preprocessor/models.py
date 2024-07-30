@@ -526,7 +526,7 @@ class HeartModel:
                 )
 
                 mesh.add_surface(surface, int(fz.id))
-                mesh._surface_id_to_name[fz.id] = fz.name
+                mesh._surface_id_to_name[int(fz.id)] = fz.name
 
         self.mesh = mesh.clean()
 
@@ -1090,6 +1090,9 @@ class HeartModel:
         part = next(part for part in self.parts if part.name == "Septum")
         part.element_ids = element_ids_septum
         self.mesh.cell_data["part-id"][element_ids_septum] = part.pid
+        # manipulate _volume-id
+        self.mesh.cell_data["_volume-id"][element_ids_septum] = part.pid
+        self.mesh._volume_id_to_name[int(part.pid)] = part.name
 
         # remove these element ids from the left-ventricle
         part = next(part for part in self.parts if part.name == "Left ventricle")
@@ -1249,11 +1252,14 @@ class HeartModel:
             # of both the "regular" endocardium and the septal endocardium
 
             # NOTE: pv.merge accepts list of surfaces.
-            surface: pv.PolyData = pv.merge(surfaces)
-            surface_name = part.name + " cavity"
+            surface: SurfaceMesh = SurfaceMesh(pv.merge(surfaces))
+            surface.name = part.name + " cavity"
 
-            # surface ids identifies caps from endocardium
-            surface_ids = np.ones(cavity_faces.shape[0], dtype=int) * ii
+            # save this cavity mesh to the centralized mesh object
+            surface.id = int(np.sort(self.mesh.surface_ids)[-1] + 1)  # get unique id.
+
+            self.mesh.add_surface(surface, surface.id)
+            self.mesh._surface_id_to_name[surface.id] = surface.name
 
             # Generate patches that close the surface.
             patches = vtkmethods.get_patches_with_centroid(surface)
@@ -1264,6 +1270,7 @@ class HeartModel:
             # TODO: Note that points come from surface, and does not contain all points in the mesh.
 
             # Create Cap objects with patches
+            caps = []
             for patch in patches:
                 ii += 1
 
@@ -1296,6 +1303,8 @@ class HeartModel:
                 cap.centroid = cap_mesh1.center
 
                 cap.normal = np.mean(patch.compute_normals().cell_data["Normals"], axis=0)
+                cap.mesh = cap_mesh
+
                 part.caps.append(cap)
 
                 patch.cell_data["_cap_id"] = ii + idoffset
@@ -1306,16 +1315,17 @@ class HeartModel:
             # ! also it is not updated dynamically.
             # merge patches into cavity surface.
             surface.cell_data["_cap_id"] = 0
-            surface = SurfaceMesh(pv.merge([surface] + patches))
-            surface.name = surface_name
+            surface_cavity = SurfaceMesh(pv.merge([surface] + [cap.mesh for cap in part.caps]))
+            surface_cavity.name = surface.name
+            surface_cavity.id = surface.id
 
-            surface.compute_normals(inplace=True)  # recompute normals
+            surface_cavity.compute_normals(inplace=True)  # recompute normals
 
-            if not surface.is_manifold:
+            if not surface_cavity.is_manifold:
                 LOGGER.warning("Cavity of {part.name} is not manifold.")
 
             # NOTE: Validate if normals are pointing inward.
-            part.cavity = Cavity(surface=surface, name=part.name)
+            part.cavity = Cavity(surface=surface_cavity, name=part.name)
             part.cavity.compute_centroid()
 
             LOGGER.debug("Volume of cavity: {0} = {1}".format(part.cavity.name, part.cavity.volume))
@@ -1342,6 +1352,7 @@ class HeartModel:
                         for split in b.name.split("_"):
                             if "valve" in split or "inlet" in split:
                                 break
+                        old_cap_name = cap.name
 
                         cap.name = split.replace("-plane", "").replace("-inlet", "")
 
@@ -1351,6 +1362,9 @@ class HeartModel:
                             cap.name = cap.name + "-atrium"
 
                         LOGGER.debug(f"Cap {cap.name} connected to {b.name}")
+                        # update name to id map:
+                        cap_id = self.mesh._surface_name_to_id[old_cap_name]
+                        self.mesh._surface_id_to_name[cap_id] = cap.name
                         break
 
         return
@@ -1431,12 +1445,9 @@ class HeartModel:
                     # do not use any faces that use a node not in the part.
                     mask = np.all(np.isin(surface.triangles, np.argwhere(mask).flatten()), axis=1)
 
-                    surface = SurfaceMesh(
-                        name=surface.name,
-                        triangles=surface.triangles[mask, :],
-                        nodes=surface.points,
-                    )
                     LOGGER.debug(f"Removing {np.sum(np.invert(mask))} from {surface.name}")
+                    surface.triangles = surface.triangles[mask, :]
+
                     # add updated mesh to global mesh.
                     # TODO: could just change the _surface-ids in the cell data directly.
                     # TODO: this basically appends this the cells of this mesh at the end of Mesh.

@@ -208,11 +208,27 @@ class SurfaceMesh(pv.PolyData):
             return
 
     @property
+    def triangles_global(self):
+        """Global triangle ids.
+
+        Returns
+        -------
+        Tries to use point_data["_global-point-ids"] to retreive
+        triangle definitions in global ids.
+        """
+        return self.point_data["_global-point-ids"][self.triangles]
+
+    @property
     def boundary_edges(self):
         """Get boundary edges of self."""
         boundary_edges = vtkmethods.get_boundary_edge_loops(self, remove_open_edge_loops=False)
         boundary_edges = np.vstack(list(boundary_edges.values()))
         return boundary_edges
+
+    @property
+    def boundary_edges_global(self):
+        """Global point ids of boundary edges."""
+        return self.point_data["_global-point-ids"][self.boundary_edges]
 
     def __init__(
         self,
@@ -250,10 +266,15 @@ class SurfaceMesh(pv.PolyData):
 
     @property
     def node_ids(self) -> np.ndarray:
-        """Global node ids - sorted by earliest occurrence."""
+        """Local node ids - sorted by earliest occurrence."""
         _, idx = np.unique(self.triangles.flatten(), return_index=True)
         node_ids = self.triangles.flatten()[np.sort(idx)]
         return node_ids
+
+    @property
+    def global_node_ids(self):
+        """Retreive the global node ids from point data."""
+        return self.point_data["_global-point-ids"][self.node_ids]
 
     @property
     def _boundary_nodes(self) -> np.ndarray:
@@ -378,34 +399,39 @@ class Cap(Feature):
     @property
     def _local_node_ids_edge(self):
         """Local node ids of cap edge."""
-        edges = vtkmethods.get_boundary_edge_loops(self.mesh)
+        edges = vtkmethods.get_boundary_edge_loops(self._mesh)
         edge_local_ids = np.unique(np.array([np.array(edge) for edge in edges.values()]))
         return edge_local_ids
 
     @property
     def global_node_ids_edge(self):
         """Global node ids of the edge of the cap."""
-        return self.mesh.point_data["_global-point-ids"][self._local_node_ids_edge]
+        return self._mesh.point_data["_global-point-ids"][self._local_node_ids_edge]
 
     @property
     def _local_centroid_id(self):
         """Local id of centroid."""
-        return np.setdiff1d(np.arange(0, self.mesh.n_points), self._local_node_ids_edge)
+        centroid_id = np.setdiff1d(np.arange(0, self._mesh.n_points), self._local_node_ids_edge)
+        if len(centroid_id) != 1:
+            LOGGER.error("Failed to identify single centroid node.")
+            return None
+
+        return centroid_id[0]
 
     @property
     def global_centroid_id(self):
         """Global centroid id."""
-        return self.mesh.point_data["_global-point-ids"][self._local_centroid_id]
+        return self._mesh.point_data["_global-point-ids"][self._local_centroid_id]
 
     @property
     def centroid(self):
         """Centroid of cap."""
-        return self.mesh.points[self._local_centroid_id]
+        return self._mesh.points[self._local_centroid_id, :]
 
     @property
     def cap_normal(self):
         """Compute mean normal of cap."""
-        return np.mean(self.mesh.compute_normals().cell_data["Normals"], axis=0)
+        return np.mean(self._mesh.compute_normals().cell_data["Normals"], axis=0)
 
     def __init__(self, name: str = None, node_ids: Union[List[int], np.ndarray] = []) -> None:
         super().__init__(name)
@@ -421,7 +447,10 @@ class Cap(Feature):
         #! Deprecated: replaced by global_centroid_id
         self.centroid_id = None
         """Centroid of cap ID (in case centroid node is created)."""
-        self.mesh: SurfaceMesh = None
+        self._mesh: SurfaceMesh = None
+
+        self._surface_id: int = None
+
         return
 
 

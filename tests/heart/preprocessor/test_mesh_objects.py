@@ -577,9 +577,11 @@ def test_cap_properties():
     patch_mesh.point_data["_global-point-ids"] = np.arange(0, patch_mesh.n_points) + 10
 
     cap = Cap(name="aortic-valve")
-    cap.mesh = patch_mesh
+    cap._mesh = patch_mesh
 
-    assert cap.global_node_ids_edge.shape[0] == cap.mesh.n_points - 1
+    assert cap.global_node_ids_edge.shape[0] == cap._mesh.n_points - 1
+    assert cap.centroid.shape == (3,)
+    assert np.allclose(cap.centroid, [0, 0, 0], atol=1e-7)
     assert np.allclose(
         cap.global_node_ids_edge,
         np.array(

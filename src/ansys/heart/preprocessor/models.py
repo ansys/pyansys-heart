@@ -216,7 +216,7 @@ class HeartModel:
     def cap_centroids(self):
         """Return list of cap centroids."""
         return [
-            Point(name=c.name + "_center", xyz=c.centroid, node_id=c.centroid_id)
+            Point(name=c.name + "_center", xyz=c.centroid, node_id=c.global_centroid_id)
             for p in self.parts
             for c in p.caps
         ]
@@ -555,11 +555,7 @@ class HeartModel:
         ]
         boundaries_fluid = [b for b in boundaries_fluid if b.name not in boundaries_exclude]
 
-        caps = [
-            SurfaceMesh(name="cap_" + c.name, triangles=c.triangles, nodes=self.mesh.nodes)
-            for p in self.parts
-            for c in p.caps
-        ]
+        caps = [c._mesh for p in self.parts for c in p.caps]
 
         if len(boundaries_fluid) == 0:
             LOGGER.debug("Meshing of fluid cavities not possible. No fluid surfaces detected.")
@@ -664,7 +660,9 @@ class HeartModel:
                     )
                 )
             for cap in part.caps:
-                LOGGER.info("\tcap: {:} | # nodes {:d}".format(cap.name, len(cap.node_ids)))
+                LOGGER.info(
+                    "\tcap: {:} | # nodes {:d}".format(cap.name, len(cap.global_node_ids_edge))
+                )
             if part.cavity:
                 LOGGER.info(
                     "\tcavity: {:} | volume: {:.1f} [mm3]".format(
@@ -1087,7 +1085,7 @@ class HeartModel:
         element_ids_septum = self.mesh._global_tetrahedron_ids[element_ids_septum]
 
         # assign to septum
-        part = next(part for part in self.parts if part.name == "Septum")
+        part = next(part for part in self.parts if part.part_type == PartType.SEPTUM)
         part.element_ids = element_ids_septum
         self.mesh.cell_data["part-id"][element_ids_septum] = part.pid
         # manipulate _volume-id
@@ -1212,9 +1210,7 @@ class HeartModel:
                             LOGGER.warning(
                                 "Multiple candidate surfaces for septum found, using first one."
                             )
-                        boundary_surface = SurfaceMesh(
-                            self.mesh.get_surface_by_name(septum_candidates[0])
-                        )
+                        boundary_surface = self.mesh.get_surface_by_name(septum_candidates[0])
                     except:
                         boundary_surface = None
                 if boundary_surface:
@@ -1277,7 +1273,7 @@ class HeartModel:
                 cap_name = f"cap_{ii}_{part.name}"
 
                 # create cap: NOTE, mostly for compatibility. Could simplify further
-                cap_mesh = SurfaceMesh(patch, name=cap_name, id=ii + idoffset)
+                cap_mesh = SurfaceMesh(patch.clean(), name=cap_name, id=ii + idoffset)
 
                 # Add cap to main mesh.
                 self.mesh.add_surface(cap_mesh, id=cap_mesh.id)
@@ -1285,29 +1281,15 @@ class HeartModel:
 
                 self.mesh.clean()
 
-                # Getting the same mesh from the central mesh
-                # allows us to use the global ids
-                cap_mesh1 = self.mesh.get_surface_by_name(cap_name)
+                # get the cap mesh from the global mesh:
+                # this ensures we can access the _global-point/cell-ids.
+                cap_mesh1 = SurfaceMesh(self.mesh.get_surface_by_name(cap_name))
+                cap_mesh1.id = cap_mesh.id
+                cap_mesh1.name = cap_mesh.name
 
                 cap = Cap(name=cap_name)
-
-                global_point_id_centroid = cap_mesh1.point_data["_global-point-ids"][
-                    SurfaceMesh(cap_mesh1).triangles[0, 0]
-                ]
-                global_node_ids = cap_mesh1.point_data["_global-point-ids"]
-                global_node_ids = np.setdiff1d(global_node_ids, global_point_id_centroid)
-
-                cap.node_ids = global_node_ids
-
-                cap.centroid_id = global_point_id_centroid
-                cap.centroid = cap_mesh1.center
-
-                cap.normal = np.mean(patch.compute_normals().cell_data["Normals"], axis=0)
-                cap.mesh = cap_mesh
-
+                cap._mesh = cap_mesh1
                 part.caps.append(cap)
-
-                patch.cell_data["_cap_id"] = ii + idoffset
 
             # TODO: We could do this somewhere else.
             # ! Note that the element ids in cavity.surface don't have any meaning
@@ -1315,7 +1297,7 @@ class HeartModel:
             # ! also it is not updated dynamically.
             # merge patches into cavity surface.
             surface.cell_data["_cap_id"] = 0
-            surface_cavity = SurfaceMesh(pv.merge([surface] + [cap.mesh for cap in part.caps]))
+            surface_cavity = SurfaceMesh(pv.merge([surface] + [cap._mesh for cap in part.caps]))
             surface_cavity.name = surface.name
             surface_cavity.id = surface.id
 
@@ -1323,6 +1305,13 @@ class HeartModel:
 
             if not surface_cavity.is_manifold:
                 LOGGER.warning("Cavity of {part.name} is not manifold.")
+
+            # add and get from global mesh to get all point/cell data arrays.
+            self.mesh.add_surface(surface_cavity, surface_cavity.id)
+            surface_cavity = SurfaceMesh(self.mesh.get_surface(surface.id))
+            self.mesh = self.mesh.clean()
+            surface_cavity.id = surface.id
+            surface_cavity.name = surface.name
 
             # NOTE: Validate if normals are pointing inward.
             part.cavity = Cavity(surface=surface_cavity, name=part.name)
@@ -1835,10 +1824,10 @@ class HeartModel:
         ring_nodes = []
         for cap in self.left_atrium.caps:
             if "mitral" not in cap.name:
-                ring_nodes.extend(cap.node_ids.tolist())
+                ring_nodes.extend(cap.global_node_ids_edge.tolist())
         for cap in self.right_atrium.caps:
             if "tricuspid" not in cap.name:
-                ring_nodes.extend(cap.node_ids.tolist())
+                ring_nodes.extend(cap.global_node_ids_edge.tolist())
 
         ring_eles = vtkmethods.find_cells_close_to_nodes(self.mesh, ring_nodes, radius=radius)
 

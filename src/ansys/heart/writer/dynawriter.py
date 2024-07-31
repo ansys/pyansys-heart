@@ -157,13 +157,20 @@ class BaseDynaWriter:
         }
         """Id offset for several relevant keywords."""
 
-        id = self.id_offset["part"]
+        #! Do we really need the below?
         for part in self.model.parts:
-            id += 1
-            # cannot use get_unique_part_id() because it checks in Deck()
-            # part.pid = self.get_unique_part_id()
-            part.pid = id
-        """Assign part id for heart parts."""
+            if not part.pid:
+                part.pid = np.max([p.pid for p in self.model.parts if p.pid]) + 1
+
+        self.id_offset["part"] = np.max(self.model.part_ids)
+
+        # ! Removed the below since the part ids in self.model.parts are already defined.
+        # for part in self.model.parts:
+        #     id += 1
+        #     # cannot use get_unique_part_id() because it checks in Deck()
+        #     # part.pid = self.get_unique_part_id()
+        #     # part.pid = id
+        # """Assign part id for heart parts."""
 
         """List of .k files to include in main. This is derived from the Decks classes."""
         self.include_files = []
@@ -269,31 +276,44 @@ class BaseDynaWriter:
 
         return
 
-    def _update_segmentsets_db(self, add_caps=False):
+    def _update_segmentsets_db(self, add_caps: bool = False, add_cavities: bool = True):
         """Update the segment set database."""
         # NOTE 0: add all surfaces as segment sets
         # NOTE 1: need to more robustly check segids that are already used?
 
         # add closed cavity segment sets
-        cavities = [p.cavity for p in self.model.parts if p.cavity]
-        for cavity in cavities:
-            surface_id = self.get_unique_segmentset_id()
-            cavity.surface.id = surface_id
-            kw = create_segment_set_keyword(
-                segments=cavity.surface.triangles + 1,
-                segid=cavity.surface.id,
-                title=cavity.name,
-            )
-            # append this kw to the segment set database
-            self.kw_database.segment_sets.append(kw)
+        if add_cavities:
+            cavities = [p.cavity for p in self.model.parts if p.cavity]
+            for cavity in cavities:
+                segset_id = self.get_unique_segmentset_id()
+                # cavity.surface.id = (
+                #     segset_id  #! this is tricky: lose ability to go back to central mesh object.
+                # )
+                setattr(
+                    cavity.surface, "seg_id", segset_id
+                )  # TODO Should avoid setting these dynamically
+                kw = create_segment_set_keyword(
+                    segments=cavity.surface.triangles_global + 1,
+                    segid=cavity.surface.seg_id,  # TODO replace
+                    title=cavity.name,
+                )
+                # append this kw to the segment set database
+                self.kw_database.segment_sets.append(kw)
 
         # write surfaces as segment sets
         for part in self.model.parts:
             for surface in part.surfaces:
-                surface.id = self.get_unique_segmentset_id()
+                surface_global = self.model.mesh.get_surface(surface.id)
+                if not surface_global:
+                    LOGGER.debug(f"Failed to create segment set for {surface.name}")
+                    continue
+
+                segset_id = self.get_unique_segmentset_id()
+                setattr(surface, "seg_id", segset_id)  # TODO Should avoid setting these dynamically
+
                 kw = create_segment_set_keyword(
-                    segments=surface.triangles + 1,
-                    segid=surface.id,
+                    segments=surface_global.triangles_global + 1,
+                    segid=segset_id,
                     title=surface.name,
                 )
                 # append this kw to the segment set database
@@ -304,7 +324,7 @@ class BaseDynaWriter:
             caps = [cap for part in self.model.parts for cap in part.caps]
             for cap in caps:
                 segid = self.get_unique_segmentset_id()
-                setattr(cap, "seg_id", segid)
+                setattr(cap, "seg_id", segid)  # TODO Should avoid setting these dynamically
                 segset_kw = create_segment_set_keyword(
                     segments=cap.triangles + 1,
                     segid=cap.seg_id,
@@ -342,10 +362,12 @@ class BaseDynaWriter:
         # add node-set for each cap
         for part in self.model.parts:
             for cap in part.caps:
+                # update cap mesh:
+                cap._mesh = self.model.mesh.get_surface(cap._mesh.id)
                 if remove_duplicates:
-                    node_ids = np.setdiff1d(cap.node_ids, used_node_ids)
+                    node_ids = np.setdiff1d(cap.global_node_ids_edge, used_node_ids)
                 else:
-                    node_ids = cap.node_ids
+                    node_ids = cap.global_node_ids_edge
 
                 if len(node_ids) == 0:
                     LOGGER.debug(
@@ -369,10 +391,16 @@ class BaseDynaWriter:
             kws_surface = []
             for surface in part.surfaces:
                 if remove_duplicates:
-                    node_ids = np.setdiff1d(surface.node_ids, used_node_ids)
+                    #! This assumes that surface is cleaned, and uses only nodes
+                    #! used in the cell definitions.
+                    node_ids = np.setdiff1d(
+                        self.model.mesh.get_surface(surface.id).point_data["_global-point-ids"],
+                        used_node_ids,
+                    )
                 else:
-                    node_ids = surface.node_ids
+                    node_ids = surface.point_data["_global-point-ids"]
                 if remove_one_node_from_cell:
+                    # TODO: Check whether this actually works.
                     # make sure not all nodes of the same elements are in the surface
                     node_mask = np.zeros(self.model.mesh.number_of_points, dtype=int)
                     # tag surface nodes with value 1
@@ -578,6 +606,8 @@ class BaseDynaWriter:
             LOGGER.debug(
                 "\tAdding elements for {0} | adding fibers: {1}".format(part.name, part_add_fibers)
             )
+            #! This only works since tetrahedrons are at start of model.mesh, and surface
+            #! cells are added behind these tetrahedrons.
             tetrahedrons = self.model.mesh.tetrahedrons[part.element_ids, :] + 1
             num_elements = tetrahedrons.shape[0]
 
@@ -1251,7 +1281,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # -------------------------------------------------------------------
         LOGGER.debug("Adding spring b.c. for cap: %s" % cap.name)
 
-        attached_nodes = cap.node_ids
+        attached_nodes = cap.global_node_ids_edge
 
         # use pre-computed nodal area
         # TODO: Compute nodal areas on demand.
@@ -1273,7 +1303,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # add sd direction normal to plane
         vector_id_normal = self.id_offset["vector"]
         sd_orientation_normal_kw = create_define_sd_orientation_kw(
-            vectors=cap.normal, vector_id_offset=vector_id_normal, iop=0
+            vectors=cap.cap_normal, vector_id_offset=vector_id_normal, iop=0
         )
         vector_id_normal += 1
         self.id_offset["vector"] += 1
@@ -1579,7 +1609,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
                 constraint = keywords.ConstrainedInterpolation(
                     icid=len(cap_names_used) + 1,
-                    dnid=cap.centroid_id + 1,
+                    dnid=cap.global_centroid_id + 1,
                     ddof=123,
                     ityp=1,
                     fgm=0,
@@ -2077,7 +2107,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         self._update_solid_elements_db(add_fibers=False)
         self._update_material_db()
 
-        self._update_segmentsets_db()
+        self._update_segmentsets_db(add_cavities=False)
         self._update_nodesets_db(remove_one_node_from_cell=True)
 
         # # update ep settings
@@ -2127,7 +2157,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         material_settings = self.settings.electrophysiology.material
         for part in parts:
             element_ids = part.element_ids
-            em_mat_id = self.get_unique_mat_id()
+            # em_mat_id = self.get_unique_mat_id()
+            em_mat_id = part.mid  #! Needs to match material id used in update_parts_db
             self.kw_database.material.extend(
                 [
                     keywords.MatElastic(mid=em_mat_id, ro=1e-6, e=1),
@@ -2186,8 +2217,10 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         node_set_ids_epi_and_rseptum = []  # only relevant for bv, 4c and full model
 
         # list of ventricular parts
-        ventricles = [part for part in self.model.parts if "ventricle" in part.name]
-        septum = self.model.get_part("Septum")
+        ventricles = [part for part in self.model.parts if part.part_type == PartType.VENTRICLE]
+        septum = next(
+            (part for part in self.model.parts if part.part_type == PartType.SEPTUM), None
+        )
 
         # collect node set ids (already generated previously)
         node_sets_ids_epi = [ventricle.epicardium.nsid for ventricle in ventricles]
@@ -2197,23 +2230,27 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                 if "endocardium" in surface.name:
                     node_sets_ids_endo.append(surface.nsid)
 
-        node_set_id_lv_endo = self.model.get_part("Left ventricle").endocardium.id
+        node_set_id_lv_endo = self.model.get_part(
+            "Left ventricle"
+        ).endocardium.id  # TODO: use nset id
         if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             surfaces = [surface for p in self.model.parts for surface in p.surfaces]
             for surface in surfaces:
                 if "septum" in surface.name and "endocardium" in surface.name:
-                    node_set_ids_epi_and_rseptum = node_sets_ids_epi + [surface.id]
+                    node_set_ids_epi_and_rseptum = node_sets_ids_epi + [
+                        surface.id
+                    ]  # TODO use nset id
                     break
 
         for part in self.model.parts:
             for cap in part.caps:
-                nodes_base = np.append(nodes_base, cap.node_ids)
+                nodes_base = np.append(nodes_base, cap.global_node_ids_edge)
 
         # apex id [0] endocardium, [1] epicardum
         apex_point = self.model.get_part("Left ventricle").apex_points[1]
         if "epicardium" not in apex_point.name:
             raise ValueError("Expecting a point on the epicardium")
-        node_apex = apex_point.node_id
+        node_apex = apex_point.node_id  #! is this a global node id?
 
         # validate node set by removing nodes not part of the model without ventricles
         tet_ids_ventricles = np.empty((0), dtype=int)
@@ -2224,6 +2261,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
 
         for part in parts:
             tet_ids_ventricles = np.append(tet_ids_ventricles, part.element_ids)
+
         tetra_ventricles = self.model.mesh.tetrahedrons[tet_ids_ventricles, :]
 
         # remove nodes that occur just in atrial part
@@ -2522,7 +2560,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
         self._update_solid_elements_db(add_fibers=False)
         self._update_material_db()
 
-        self._update_segmentsets_db()  # can stay the same
+        self._update_segmentsets_db(add_cavities=False)  # can stay the same
         self._update_nodesets_db()  # can stay the same
 
         # update ep settings
@@ -2590,21 +2628,26 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
         # apex_points[0]: endocardium, apex_points[1]: epicardium
         if isinstance(self.model, (LeftVentricle, BiVentricle, FourChamber, FullHeart)):
             node_apex_left = self.model.left_ventricle.apex_points[0].node_id
-            segment_set_ids_endo_left = self.model.left_ventricle.endocardium.id
+            segment_set_ids_endo_left = self.model.left_ventricle.endocardium.seg_id  # TODO replace
 
             # check whether point is on edge of endocardium - otherwise pick another node in
             # the same triangle
-            endocardium = self.model.left_ventricle.endocardium
-            if np.any(endocardium.boundary_edges == node_apex_left):
-                element_id = np.argwhere(np.any(endocardium.triangles == node_apex_left, axis=1))[
-                    0
-                ][0]
+            #! Get an up-to-date version of the endocardium.
+            endocardium = self.model.mesh.get_surface(self.model.left_ventricle.endocardium.id)
+            #! Need to boundary edges to global ids.
+            if np.any(
+                endocardium.point_data["_global-point-ids"][endocardium.boundary_edges]
+                == node_apex_left
+            ):
+                element_id = np.argwhere(
+                    np.any(endocardium.triangles_global == node_apex_left, axis=1)
+                )[0][0]
 
-                node_apex_left = endocardium.triangles[element_id, :][
+                node_apex_left = endocardium.triangles_global[element_id, :][
                     np.argwhere(
                         np.isin(
-                            endocardium.triangles[element_id, :],
-                            endocardium.boundary_edges,
+                            endocardium.triangles_global[element_id, :],
+                            endocardium.point_data["_global-point-ids"][endocardium.boundary_edges],
                             invert=True,
                         )
                     )[0][0]
@@ -2630,6 +2673,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
 
             apex_left_coordinates = self.model.mesh.nodes[node_apex_left, :]
 
+            #! Is this to get unused start node/edge indinces?
             node_id_start_left = self.model.mesh.nodes.shape[0] + 1
 
             edge_id_start_left = self.model.mesh.tetrahedrons.shape[0] + 1
@@ -2661,22 +2705,25 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
         # Add right purkinje only in biventricular or 4chamber models
         if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             node_apex_right = self.model.right_ventricle.apex_points[0].node_id
-            segment_set_ids_endo_right = self.model.right_ventricle.endocardium.id
+            segment_set_ids_endo_right = (
+                self.model.right_ventricle.endocardium.seg_id
+            )  # TODO Replace
 
             # check whether point is on edge of endocardium - otherwise pick another node in
             # the same triangle
-            endocardium = self.model.right_ventricle.endocardium
+            #! Make sure endocardium is an updated version (e.g. point/cell data is up to date.)
+            endocardium = self.model.mesh.get_surface(self.model.right_ventricle.endocardium.id)
             # endocardium.get_boundary_edges()
-            if np.any(endocardium.boundary_edges == node_apex_right):
-                element_id = np.argwhere(np.any(endocardium.triangles == node_apex_right, axis=1))[
-                    0
-                ][0]
+            if np.any(endocardium.boundary_edges_global == node_apex_right):
+                element_id = np.argwhere(
+                    np.any(endocardium.triangles_global == node_apex_right, axis=1)
+                )[0][0]
 
-                node_apex_right = endocardium.triangles[element_id, :][
+                node_apex_right = endocardium.triangles_global[element_id, :][
                     np.argwhere(
                         np.isin(
-                            endocardium.triangles[element_id, :],
-                            endocardium.boundary_edges,
+                            endocardium.triangles_global[element_id, :],
+                            endocardium.boundary_edges_global,
                             invert=True,
                         )
                     )[0][0]
@@ -2764,7 +2811,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self._update_dummy_material_db()
         self._update_ep_material_db()
 
-        self._update_segmentsets_db()
+        self._update_segmentsets_db(add_cavities=False)
 
         # TODO check if no existing node set ids conflict with surface ids
         # For now, new node sets should be created after calling
@@ -2860,6 +2907,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def _create_myocardial_nodeset_layers(
         self, percent_endo=0.17, percent_mid=0.41, percent_epi=0.42
     ):
+        #! Note point data may also contain point data for cap!
         values = self.model.mesh.point_data["transmural"]
         # Values from experimental data, see:
         # https://www.frontiersin.org/articles/10.3389/fphys.2019.00580/full
@@ -3781,7 +3829,7 @@ class UHCWriter(BaseDynaWriter):
         ids_edges = []  # all nodes belong to valves
         for cap in self.model.parts[0].caps:
             # get node IDs for atrium mesh
-            ids_sub = np.where(np.isin(atrium["point_ids"], cap.node_ids))[0]
+            ids_sub = np.where(np.isin(atrium["point_ids"], cap.global_node_ids_edge))[0]
             # create node set
             set_id = get_nodeset_id_by_cap_name(cap)
             kw = create_node_set_keyword(ids_sub + 1, node_set_id=set_id, title=cap.name)
@@ -3988,7 +4036,7 @@ class UHCWriter(BaseDynaWriter):
             for cap in part.caps:
                 #  Strocchi database use only mv and tv
                 # if ("mitral" in cap.name) or ("tricuspid" in cap.name):
-                base_set = np.append(base_set, cap.node_ids)
+                base_set = np.append(base_set, cap.global_node_ids_edge)
         # get local ID
         ids_submesh = np.where(np.isin(self.target["point_ids"], base_set))[0]
 

@@ -253,9 +253,9 @@ class HeartModel:
 
         return
 
-    def __repr__(self):
-        """Represent self as string."""
-        return yaml.dump(self.summary(), sort_keys=False)
+    # def __repr__(self):
+    #     """Represent self as string."""
+    #     return yaml.dump(self.summary(), sort_keys=False)
 
     def create_part_by_ids(self, eids: List[int], name: str) -> Union[None, Part]:
         """Create a new part by element ids.

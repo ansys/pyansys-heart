@@ -213,7 +213,7 @@ class SurfaceMesh(pv.PolyData):
 
         Returns
         -------
-        Tries to use point_data["_global-point-ids"] to retreive
+        Tries to use point_data["_global-point-ids"] to retrieve
         triangle definitions in global ids.
         """
         return self.point_data["_global-point-ids"][self.triangles]
@@ -273,7 +273,7 @@ class SurfaceMesh(pv.PolyData):
 
     @property
     def global_node_ids(self):
-        """Retreive the global node ids from point data."""
+        """Retrieve the global node ids from point data."""
         return self.point_data["_global-point-ids"][self.node_ids]
 
     @property

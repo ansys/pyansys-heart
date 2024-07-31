@@ -997,12 +997,25 @@ class Mesh(pv.UnstructuredGrid):
         volume_id = self._volume_name_to_id[name]
         return self.get_volume(volume_id)
 
-    def get_surface(self, sid: int) -> pv.PolyData:
+    def get_surface(self, sid: int) -> Union[pv.PolyData, SurfaceMesh]:
         # ?: Return SurfaceMesh instead of PolyData?
-        """Get a surface as PolyData object."""
-        return self._get_submesh(sid, scalar="_surface-id").extract_surface()
+        """Get a surface as PolyData object.
 
-    def get_surface_by_name(self, name: str) -> pv.PolyData:
+        Notes
+        -----
+        Tries to return a SurfaceMesh object that also contains a name and id.
+        and additional convenience properties.
+        """
+        if sid in list(self._surface_id_to_name.keys()):
+            return SurfaceMesh(
+                self._get_submesh(sid, scalar="_surface-id").extract_surface(),
+                name=self._surface_id_to_name[sid],
+                id=sid,
+            )
+        else:
+            return self._get_submesh(sid, scalar="_surface-id").extract_surface()
+
+    def get_surface_by_name(self, name: str) -> Union[pv.PolyData, SurfaceMesh]:
         # ?: Return SurfaceMesh instead of PolyData?
         """Get the surface associated with `name`."""
         if name not in list(self._surface_name_to_id.keys()):

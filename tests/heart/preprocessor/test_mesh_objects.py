@@ -511,6 +511,9 @@ def test_mesh_id_to_name():
     triangles1 = mesh.get_surface_by_name("triangles")
     assert triangles.n_cells == triangles1.n_cells
     assert triangles.n_points == triangles1.n_points
+    assert isinstance(triangles1, SurfaceMesh)
+    assert triangles1.name == "triangles"
+    assert triangles1.id == 1
     assert mesh.get_surface_by_name("silly-name") == None
 
     tets1 = mesh.get_volume_by_name("tets")

@@ -2770,7 +2770,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         # For now, new node sets should be created after calling
         # self._update_nodesets_db()
         self._update_nodesets_db()
-        self._update_cellmodels()
+        self._update_parts_cellmodels()
 
         if self.model.beam_network:
             # with smcoupl=1, mechanical coupling is disabled
@@ -2843,12 +2843,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         return
 
-    def _update_cellmodels(self):
+    def _update_parts_cellmodels(self):
         """Add cell model for each defined part."""
         for part in self.model.parts:
-            if isinstance(part.ep_material, EPMaterial.Active) or isinstance(
-                part.ep_material, EPMaterial.Active
-            ):
+            if isinstance(part.ep_material, EPMaterial.Active):
                 ep_mid = part.pid
                 # One cell model for myocardium, default value is epi layer parameters
                 self._add_cell_model_keyword(matid=ep_mid, cellmodel=part.ep_material.cell_model)
@@ -3299,7 +3297,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         return
 
     def _get_ep_material_kw(self, ep_mid: int, ep_material: EPMaterial):
-        if isinstance(ep_material, EPMaterial.Insulator):
+        if type(ep_material) == EPMaterial.Insulator:
             # insulator mtype
             mtype = 1
             kw = custom_keywords.EmMat001(
@@ -3311,7 +3309,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
 
         # active myocardium
-        if isinstance(ep_material, EPMaterial.Active):
+        elif type(ep_material) == EPMaterial.Active:
             mtype = 2
             # "isotropic" case
             if ep_material.sigma_sheet == None:
@@ -3336,7 +3334,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 d3=0,
             )
 
-        if isinstance(ep_material, EPMaterial.ActiveBeam):
+        elif type(ep_material) == EPMaterial.ActiveBeam:
             mtype = 2
             kw = custom_keywords.EmMat001(
                 mid=ep_mid,
@@ -3345,7 +3343,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 beta=ep_material.beta,
                 cm=ep_material.cm,
             )
-        if isinstance(ep_material, EPMaterial.Passive):
+        elif type(ep_material) == EPMaterial.Passive:
             mtype = 4
             # isotropic
             if ep_material.sigma_sheet == None:
@@ -3449,7 +3447,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
             self._update_use_Purkinje()
             self.kw_database.main.append(keywords.Include(filename="beam_networks.k"))
 
-        self._update_cellmodels()
+        self._update_parts_cellmodels()
         self.kw_database.main.append(keywords.Include(filename="cell_models.k"))
 
         self._update_ep_settings()

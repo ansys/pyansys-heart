@@ -43,6 +43,7 @@ import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.mesh.objects import Cap, Part, PartType
+from ansys.heart.preprocessor.mesh.vtkmethods import compute_surface_nodal_area_pyvista
 from ansys.heart.preprocessor.models import (
     BiVentricle,
     FourChamber,
@@ -285,17 +286,24 @@ class BaseDynaWriter:
         if add_cavities:
             cavities = [p.cavity for p in self.model.parts if p.cavity]
             for cavity in cavities:
+                #! Get up to date surface mesh of cavity.
+                surface = self.model.mesh.get_surface(cavity.surface.id)
                 segset_id = self.get_unique_segmentset_id()
+
+                #! recompute normals: point normals may have changed
+                #! do we need some check to ensure normals are pointing inwards?
+                surface.compute_normals(inplace=True)
+
                 # cavity.surface.id = (
-                #     segset_id  #! this is tricky: lose ability to go back to central mesh object.
+                #     segset_id  #! this is tricky: we lose connection to central mesh object.
                 # )
                 setattr(
                     cavity.surface, "seg_id", segset_id
-                )  # TODO Should avoid setting these dynamically
+                )  # TODO Should avoid setting these dynamically: SurfacMesh attribute?
                 kw = create_segment_set_keyword(
-                    segments=cavity.surface.triangles_global + 1,
+                    segments=surface.triangles_global + 1,
                     segid=cavity.surface.seg_id,  # TODO replace
-                    title=cavity.name,
+                    title=surface.name,
                 )
                 # append this kw to the segment set database
                 self.kw_database.segment_sets.append(kw)
@@ -323,10 +331,12 @@ class BaseDynaWriter:
             # create corresponding segment sets
             caps = [cap for part in self.model.parts for cap in part.caps]
             for cap in caps:
+                cap_mesh = self.model.mesh.get_surface(cap._mesh.id)
+                self._mesh = cap_mesh  #! not sure this is properly updated.
                 segid = self.get_unique_segmentset_id()
                 setattr(cap, "seg_id", segid)  # TODO Should avoid setting these dynamically
                 segset_kw = create_segment_set_keyword(
-                    segments=cap.triangles + 1,
+                    segments=cap_mesh.triangles_global + 1,
                     segid=cap.seg_id,
                     title=cap.name,
                 )
@@ -1278,23 +1288,23 @@ class MechanicsDynaWriter(BaseDynaWriter):
         -----
         Appends these to the boundary condition database.
         """
-        # -------------------------------------------------------------------
         LOGGER.debug("Adding spring b.c. for cap: %s" % cap.name)
 
         attached_nodes = cap.global_node_ids_edge
 
-        # use pre-computed nodal area
-        # TODO: Compute nodal areas on demand.
-        nodal_areas = self.model.mesh.point_data["nodal_areas"][attached_nodes]
+        # ? Can we compute this with only the cap mesh?
+        #! This computes the nodal areas for all points in the cap mesh, including the central one.
+        # compute nodal areas of nodes in cap elements.
+        nodal_areas = compute_surface_nodal_area_pyvista(cap._mesh)[cap._local_node_ids_edge]
 
         # scaled spring stiffness by nodal area
         scale_factor_normal *= nodal_areas
         scale_factor_radial *= nodal_areas
 
         # add sd_orientiation, element discrete
-
         # compute the radial components
-        sd_orientations_radial = self.model.mesh.nodes[attached_nodes, :] - cap.centroid
+        # sd_orientations_radial = self.model.mesh.nodes[attached_nodes, :] - cap.centroid
+        sd_orientations_radial = cap._mesh.nodes[cap._local_node_ids_edge] - cap.centroid
 
         # normalize
         norms = np.linalg.norm(sd_orientations_radial, axis=1)
@@ -1367,9 +1377,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # collect all pericardium nodes:
         ventricles_epi = self._get_epi_surface(apply="ventricle")
 
-        # penalty
+        #! penalty function is defined on all nodes in the mesh: but just need the epicardial nodes.
+        # penalty function
         penalty_function = self._get_longitudinal_penalty(robin_settings["ventricle"])
-        ventricles_epi["scale factor"] = penalty_function[ventricles_epi["mesh_id"]]
+
+        ventricles_epi["scale factor"] = penalty_function[ventricles_epi.global_node_ids]
         # remove nodes with scale factor = 0
         ventricles_epi_reduce = ventricles_epi.threshold(
             value=[0.0001, 1], scalars="scale factor"
@@ -1401,32 +1413,21 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
         return
 
+    # TODO change apply input argument to PartType.VENTRICLE and PartType.ATRIUM
     def _get_epi_surface(self, apply: Literal["ventricle", "atrial"] = "ventricle"):
-        epicardium_faces = np.empty((0, 3), dtype=int)
-
+        """Get the epicardial surfaces of either the ventricle or atria."""
         LOGGER.debug(f"Collecting epicardium nodesets of {apply}:")
         if apply == "ventricle":
-            targets = [part for part in self.model.parts if "ventricle" in part.name]
+            targets = [part for part in self.model.parts if part.part_type == PartType.VENTRICLE]
         elif apply == "atrial":
-            targets = [part for part in self.model.parts if "atrium" in part.name]
+            targets = [part for part in self.model.parts if part.part_type == PartType.ATRIUM]
 
-        epicardium_surfaces = [ventricle.epicardium for ventricle in targets]
+        # retrieve combined epicardial surface from the central mesh object:
+        # this ensures that we can use the global-point-ids
+        epicardium_surface_ids = [ventricle.epicardium.id for ventricle in targets]
+        epicardium_surface1 = self.model.mesh.get_surface(epicardium_surface_ids)
 
-        for surface in epicardium_surfaces:
-            epicardium_faces = np.vstack([epicardium_faces, surface.triangles])
-
-        # some nodes on the edge must be included
-        epicardium_nodes, a = np.unique(epicardium_faces, return_inverse=True)
-
-        # build pericardium polydata
-        coord = self.model.mesh.nodes[epicardium_nodes]
-        connect = a.reshape(epicardium_faces.shape)
-
-        # build polydata
-        cell_type = np.ones(len(connect), dtype=int) * 3
-        surf = pv.PolyData(coord, np.hstack((cell_type[:, np.newaxis], connect)))
-        surf["mesh_id"] = epicardium_nodes
-        return surf
+        return epicardium_surface1
 
     def _get_longitudinal_penalty(self, pericardium_settings):
         """
@@ -1470,7 +1471,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         constant : float
             stiffness (MPa/mm) or viscosity (MPa/mm*ms)
         surface : pv.PolyData
-            Surface to apply BC, must contain point data 'mesh_id'.
+            Surface to apply BC, must contain point data '_global-point-ids'.
             Will be scaled by nodal area and point data 'scale factor' if exists
         normal : np.ndarray, optional
             If no normal given, use nodal normals, by default None
@@ -1480,14 +1481,17 @@ class MechanicsDynaWriter(BaseDynaWriter):
         list
             list of dyna input deck
         """
-        if "mesh_id" not in surface.point_data:
-            raise ValueError("surface must contain pointdata 'mesh_id'.")
+        if "_global-point-ids" not in surface.point_data:
+            raise ValueError("surface must contain pointdata '_global-point-ids'.")
 
-        # nodes to apply BC
-        nodes = surface["mesh_id"]
+        # global node ids where to apply the BC
+        # NOTE: if we pass in a SurfaceMesh object we could use the
+        # .global_node_ids attribute instead.
+        nodes = surface["_global-point-ids"]
 
         # scale factor is nodal area
-        surf2 = surface.compute_cell_sizes(length=False, volume=False)
+        # Add area flag in case pyvista defaults change.
+        surf2 = surface.compute_cell_sizes(length=False, volume=False, area=True)
         scale_factor = copy.deepcopy(surf2.cell_data_to_point_data().point_data["Area"])
         if "scale factor" in surface.point_data:
             scale_factor *= surface.point_data["scale factor"]
@@ -1602,9 +1606,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
             cap_names_used.append(cap.name)
 
             if cap.centroid is not None:
-                # cap centroids already added to mesh for v0.2
+
                 if cap.nsid is None:
-                    LOGGER.error("cap node set ID is not yes assigned")
+                    LOGGER.error("cap node set ID is not yet assigned")
                     exit()
 
                 constraint = keywords.ConstrainedInterpolation(
@@ -1622,21 +1626,24 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # Note: cap parts already defined in control volume flow area, no mandatory here
         if add_mesh:
             # assumes there are no shells written yet since offset = 0
+            # ? Should we use the global cell-index from self.mesh? or start from 0?
             shell_id_offset = 0
             cap_names_used = []
             for cap in caps:
                 if cap.name in cap_names_used:
                     continue
 
+                cap_mesh = self.model.mesh.get_surface(cap._mesh.id)
+
                 shell_kw = create_element_shell_keyword(
-                    shells=cap.triangles + 1,
+                    shells=cap_mesh.triangles_global + 1,
                     part_id=cap.pid,
                     id_offset=shell_id_offset,
                 )
 
                 self.kw_database.cap_elements.append(shell_kw)
 
-                shell_id_offset = shell_id_offset + cap.triangles.shape[0]
+                shell_id_offset = shell_id_offset + cap_mesh.triangles_global.shape[0]
                 cap_names_used.append(cap.name)
         return
 
@@ -1696,7 +1703,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             # DEFINE_CONTROL_VOLUME
             cv_kw = keywords.DefineControlVolume()
             cv_kw.id = control_volume.id
-            cv_kw.sid = cavity.surface.id
+            cv_kw.sid = cavity.surface.seg_id
             self.kw_database.control_volume.append(cv_kw)
 
             if self.set_flow_area:
@@ -1705,7 +1712,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 sid = self.get_unique_segmentset_id()
                 sets = []
                 for cap in part.caps:
-                    sets.append(cap.seg_id)  # TODO
+                    sets.append(cap.seg_id)  # TODO have seg_id as an actual attribute.
                 if len(sets) % 8 == 0:  # dynalib bug when length is 8,16,...
                     sets.append(0)
                 self.kw_database.control_volume.append(keywords.SetSegmentAdd(sid=sid, sets=sets))
@@ -1808,22 +1815,22 @@ class MechanicsDynaWriter(BaseDynaWriter):
         for cavity in cavities:
             if cavity.name == "Left ventricle":
                 load = keywords.LoadSegmentSet(
-                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_lv
+                    ssid=cavity.surface.seg_id, lcid=load_curve_id, sf=pressure_lv
                 )
                 self.kw_database.main.append(load)
             elif cavity.name == "Right ventricle":
                 load = keywords.LoadSegmentSet(
-                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_rv
+                    ssid=cavity.surface.seg_id, lcid=load_curve_id, sf=pressure_rv
                 )
                 self.kw_database.main.append(load)
             elif cavity.name == "Left atrium":
                 load = keywords.LoadSegmentSet(
-                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_la
+                    ssid=cavity.surface.seg_id, lcid=load_curve_id, sf=pressure_la
                 )
                 self.kw_database.main.append(load)
             elif cavity.name == "Right atrium":
                 load = keywords.LoadSegmentSet(
-                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_ra
+                    ssid=cavity.surface.seg_id, lcid=load_curve_id, sf=pressure_ra
                 )
                 self.kw_database.main.append(load)
             else:
@@ -1847,12 +1854,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
         for cavity in cavities:
             if cavity.name == "Left atrium":
                 load = keywords.LoadSegmentSet(
-                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_lv
+                    ssid=cavity.surface.seg_id, lcid=load_curve_id, sf=pressure_lv
                 )
                 self.kw_database.main.append(load)
             elif cavity.name == "Right atrium":
                 load = keywords.LoadSegmentSet(
-                    ssid=cavity.surface.id, lcid=load_curve_id, sf=pressure_rv
+                    ssid=cavity.surface.seg_id, lcid=load_curve_id, sf=pressure_rv
                 )
                 self.kw_database.main.append(load)
 
@@ -2085,6 +2092,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                 for part in self.model.parts
                 if part.part_type in [PartType.VENTRICLE, PartType.SEPTUM]
             ]
+            #! Note that this only works when tetrahedrons are added at the beginning
+            #! of the mesh (file)! E.g. check self.mesh.celltypes to make sure this is the case!
             tet_ids = np.empty((0), dtype=int)
             for part in parts:
                 tet_ids = np.append(tet_ids, part.element_ids)

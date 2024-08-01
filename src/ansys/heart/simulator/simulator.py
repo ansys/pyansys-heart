@@ -623,10 +623,12 @@ class MechanicsSimulator(BaseSimulator):
 
         self.model.mesh.nodes = guess_ed_coord
 
-        # Note: synchronization for surfaces
+        #! Note that it is not always clear if the contents of the retreived
+        #! surface are actually refecleted in the object of which the surface
+        #! is an attribute. That is, is `=` actually working here?
         for part in self.model.parts:
             for surface in part.surfaces:
-                surface.nodes = guess_ed_coord
+                surface = self.model.mesh.get_surface(surface.id)
 
         return
 

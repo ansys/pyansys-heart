@@ -732,9 +732,9 @@ def get_boundary_edge_loops(
         else:
             group_types[k] = "open"
 
-    num_open_edge_groups = len(edge_groups) != len(closed_edge_groups.keys())
+    num_open_edge_groups = len(edge_groups) - len(closed_edge_groups.keys())
 
-    if remove_open_edge_loops:
+    if remove_open_edge_loops and num_open_edge_groups > 0:
         LOGGER.warning(f"Removed {num_open_edge_groups} edge groups")
         return closed_edge_groups
     else:

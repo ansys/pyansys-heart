@@ -33,8 +33,8 @@ from ansys.heart.simulator.settings.defaults import fibers as fibers_defaults
 from ansys.heart.simulator.settings.settings import (
     Analysis,
     Fibers,
-    Stimulation,
     SimulationSettings,
+    Stimulation,
     _get_consistent_units_str,
 )
 from tests.heart.conftest import compare_string_with_file
@@ -82,7 +82,7 @@ REF_STRING_SETTINGS_YML_EP = (
     "    stimulation:\n"
     "      stimdefaults:\n"
     "        node_ids: null\n"
-    "        t_start: 0.0 millisecond\n"
+    "        t_start: 0 millisecond\n"
     "        period: 800 millisecond\n"
     "        duration: 20 millisecond\n"
     "        amplitude: 50 microfarad / millimeter ** 3\n"
@@ -117,8 +117,9 @@ def test_settings_save_002():
     settings = SimulationSettings(
         mechanics=False, electrophysiology=True, fiber=False, purkinje=False, stress_free=False
     )
-    stim = Stimulation()
-    settings.electrophysiology.stimulation = {"stimdefaults": stim,"stim2":stim}
+    stim = Stimulation(t_start=0, period=800, duration=20, amplitude=50)
+
+    settings.electrophysiology.stimulation = {"stimdefaults": stim}
     # fill some dummy data
     settings.electrophysiology.analysis.end_time = Quantity(1, "s")
     settings.electrophysiology.analysis.dtmin = Quantity(2, "s")
@@ -133,7 +134,14 @@ def test_settings_save_002():
         settings.save(file_path)
 
         compare_string_with_file(REF_STRING_SETTINGS_YML_EP, file_path)
+    settings.load_defaults()
+    stim2 = Stimulation(node_ids=[1, 2, 3], t_start=10, period=100, duration=30, amplitude=40)
+    settings.electrophysiology.stimulation["stim2"] = stim2
+    stim: Stimulation = settings.electrophysiology.stimulation["stim2"]
 
+    assert stim.amplitude.m == 40
+    assert stim.duration.m == 30
+    assert stim.t_start.m == 10
     pass
 
 
@@ -204,8 +212,14 @@ def test_convert_units_001():
 
 def test_convert_units_002():
     """Test consistent unit conversion."""
+    stim = Stimulation()
+    stim.amplitude = Quantity(50, "uF/mm^3")
     settings = Fibers()
     settings.alpha_endo = Quantity(10, "radian")
+
+    # uF/mm^3 --> uF/mm^3
+    stim.to_consistent_unit_system()
+    assert stim.amplitude.m == 50
 
     # radian --> degree
     settings.to_consistent_unit_system()

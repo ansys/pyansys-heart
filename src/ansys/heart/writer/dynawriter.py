@@ -2971,40 +2971,51 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self.kw_database.ep_settings.append(keywords.EmOutput(mats=1, matf=1, sols=1, solf=1))
 
     def _update_stimulation(self):
-        # define stimulation node set
-        
-        if not self.settings.electrophysiology.stimulation:
+        # define stimulation settings
+        stimsettings = self.settings.electrophysiology.stimulation
+        if not stimsettings:
             stim_nodes = self.get_default_stimulus_nodes()
             stimulation = Stimulation(node_ids=stim_nodes)
-            self.settings.electrophysiology.stimulation = stimulation
 
-        for stimulation in list(self.settings.electrophysiology.stimulation):
-                stimulation.
+            stimsettings = {"stimdefaults": stimulation}
+
+        for stimname in stimsettings.keys():
+            stim_nodes = stimsettings[stimname].node_ids
+            if stimsettings[stimname].node_ids is None:
+                stim_nodes = self.get_default_stimulus_nodes()
+            stim = Stimulation(
+                node_ids=stim_nodes,
+                t_start=stimsettings[stimname].t_start,
+                period=stimsettings[stimname].period,
+                duration=stimsettings[stimname].duration,
+                amplitude=stimsettings[stimname].amplitude,
+            )
+            node_set_kw, stim_kw = self._add_stimulation_keyword(stim)
+            self.kw_database.ep_settings.append(node_set_kw)
+            self.kw_database.ep_settings.append(stim_kw)
+
+    def _add_stimulation_keyword(self, stim: Stimulation):
 
         # create node-sets for stim nodes
-        node_set_id_stimulationnodes = self.get_unique_nodeset_id()
+        nsid = self.get_unique_nodeset_id()
         node_set_kw = create_node_set_keyword(
-            node_ids=np.array(stim_nodes) + 1,
-            node_set_id=node_set_id_stimulationnodes,
+            node_ids=np.array(stim.node_ids) + 1,
+            node_set_id=nsid,
             title="Stim nodes",
         )
-        self.kw_database.ep_settings.append(node_set_kw)
 
-    def _add_stimation_keyword(self,nsid:int,stim:Stimulation):
-        # stimulation
         solvertype = self.settings.electrophysiology.analysis.solvertype
         if solvertype == "Monodomain":
-            self.kw_database.ep_settings.append(
-                custom_keywords.EmEpTentusscherStimulus(
-                    stimid=1,
-                    settype=2,
-                    setid=nsid,
-                    stimstrt=stim.t_start,
-                    stimt=stim.period,
-                    stimdur=stim.duration,
-                    stimamp=stim.amplitude,
-                )
+            stim_kw = custom_keywords.EmEpTentusscherStimulus(
+                stimid=nsid,
+                settype=2,
+                setid=nsid,
+                stimstrt=stim.t_start.m,
+                stimt=stim.period.m,
+                stimdur=stim.duration.m,
+                stimamp=stim.amplitude.m,
             )
+
         else:
             # TODO : add eikonal in custom keywords
             # EM_EP_EIKONAL
@@ -3017,19 +3028,19 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             # can be performed in different parts of the model)
             eikonal_id = 1
             psid = 1
-            eikonal_stim_content += (
-                f"{eikonal_id:>10d}{psid:>10d}{nsid:>10d}\n"
-            )
+            eikonal_stim_content += f"{eikonal_id:>10d}{psid:>10d}{nsid:>10d}\n"
             if solvertype == "ReactionEikonal":
                 eikonal_stim_content += "$ footType     footT     footA  footTauf   footVth\n"
                 footType = 1
-                footT = 2
-                footA = 50
+                footT = stim.period.m
+                footA = stim.amplitude.m
                 footTauf = 1
-                eikonal_stim_content += f"{footType:>10d}{footT:>10d}{footA:>10d}{footTauf:>10d}"
+                eikonal_stim_content += f"{footType:>10f}{footT:>10f}{footA:>10f}{footTauf:>10f}"
                 eikonal_stim_content += "\n$solvetype\n"
                 eikonal_stim_content += f"{1:>10d}"  # activate time stepping method by default
-            self.kw_database.ep_settings.append(eikonal_stim_content)
+            stim_kw = eikonal_stim_content
+
+        return (node_set_kw, stim_kw)
 
     def get_default_stimulus_nodes(self) -> list[int]:
         """Get default stiumulus nodes.
@@ -3058,11 +3069,11 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
             if self.model.right_atrium.get_point("SA_node") != None:
                 # Active SA node (belong to both solid and beam)
-                stim_nodes = [
+                stim_nodes = list(
                     self.model.mesh.find_closest_point(
                         self.model.right_atrium.get_point("SA_node").xyz, n=5
                     )
-                ]
+                )
 
                 #  add more nodes to initiate wave propagation
                 for network in self.model.beam_network:
@@ -3189,7 +3200,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         default_epmat = EPMaterial.ActiveBeam()
         if solvertype == "Monodomain":
             sig1 = material_settings.beam["sigma"].m
-        elif solvertype == "Eikonal":
+        else:
             sig1 = material_settings.beam["velocity"].m
         default_epmat.sigma_fiber = sig1
         default_epmat.beta = material_settings.beam["beta"].m

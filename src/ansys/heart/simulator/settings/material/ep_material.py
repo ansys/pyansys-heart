@@ -239,13 +239,13 @@ class EPMaterial(EPMaterialModel):
         sigma_fiber: float = ep_defaults.material["myocardium"]["sigma_fiber"].m
         sigma_sheet: Optional[float] = None
         sigma_sheet_normal: Optional[float] = None
-        cell_model: CellModel = field(default_factory=lambda: CellModel.Tentusscher)
+        cell_model: CellModel = field(default_factory=lambda: CellModel.Tentusscher())
 
     class ActiveBeam(Active):
         """Hold data for beam active EP material."""
 
         sigma_fiber = ep_defaults.material["beam"]["sigma"].m
-        cell_model = field(default_factory=lambda: CellModel.Tentusscher_endo)
+        cell_model = field(default_factory=lambda: CellModel.Tentusscher_endo())
         pmjres: float = ep_defaults.material["beam"]["pmjres"].m
 
     class Passive(EPMaterialModel):

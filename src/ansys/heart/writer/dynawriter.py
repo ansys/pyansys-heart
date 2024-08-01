@@ -2905,7 +2905,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def _add_cell_model_keyword(self, matid: int, cellmodel: CellModel):
         """Add cell model keyword to database."""
         if isinstance(cellmodel, CellModel.Tentusscher):
-            self._add_Tentusscher_keyword(matid=matid, params=cellmodel.__dict__)
+            self._add_Tentusscher_keyword(matid=matid, params=cellmodel.to_dictionary())
 
     def _add_Tentusscher_keyword(self, matid: int, params: dict):
         cell_kw = keywords.EmEpCellmodelTentusscher(**{**params})

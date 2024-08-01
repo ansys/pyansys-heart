@@ -139,7 +139,7 @@ class BaseSimulator:
 
         # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
         input_file = os.path.join(directory, "main.k")
-        self._run_dyna(path_to_input=input_file)
+        # self._run_dyna(path_to_input=input_file)
 
         LOGGER.info("done.")
 
@@ -316,7 +316,7 @@ class BaseSimulator:
         dyna_writer.export(export_directory)
 
         input_file = os.path.join(export_directory, "main.k")
-        self._run_dyna(path_to_input=input_file, options="case")
+        # self._run_dyna(path_to_input=input_file, options="case")
 
         LOGGER.info("Solving laplace-dirichlet done.")
 
@@ -422,7 +422,7 @@ class EPSimulator(BaseSimulator):
         self.dyna_settings.num_cpus = 1
 
         input_file = os.path.join(directory, "main.k")
-        self._run_dyna(input_file)
+        # self._run_dyna(input_file)
 
         self.dyna_settings.num_cpus = orig_num_cpus
         LOGGER.debug(f"Set number of cpus back to {orig_num_cpus}.")

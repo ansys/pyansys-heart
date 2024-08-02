@@ -253,13 +253,13 @@ def test_cellmodel():
 
 
 def test_active():
+    tentusepi = CellModel.Tentusscher_epi()
     tentusendo = CellModel.Tentusscher_endo()
-    tentusmid = CellModel.Tentusscher_mid()
     active0 = EPMaterial.Active(sigma_fiber=1)
-    assert active0.sigma_sheet is None
-    active = EPMaterial.Active(sigma_fiber=1, sigma_sheet=1)
+    assert active0.sigma_sheet is not None
+    active = EPMaterial.Active(sigma_fiber=1, sigma_sheet=1, sigma_sheet_normal=1)
     assert active.sigma_sheet_normal == 1
-    assert active.cell_model.to_dictionary().items() == tentusmid.to_dictionary().items()
+    assert active.cell_model.to_dictionary().items() == tentusepi.to_dictionary().items()
     active.cell_model = CellModel.Tentusscher_endo()
     assert active.cell_model.to_dictionary().items() == tentusendo.to_dictionary().items()
     activeBeam = EPMaterial.ActiveBeam(sigma_fiber=1)

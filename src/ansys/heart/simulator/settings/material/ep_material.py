@@ -85,28 +85,27 @@ class CellModel:
         kbufss: float = 0.00025
         # gas_constant=8314.472,
         # faraday_constant=96485.3415,
-        gks: float = 0.098
+        gks: float = 0.392
         gto: float = 0.294
-        vleak: float = 0.00042
-        v: float = -85.423
-        ki: float = 138.52
-        nai: float = 10.132
-        cai: float = 0.000153
+        v: float = -85.23
+        ki: float = 136.89
+        nai: float = 8.604
+        cai: float = 0.000126
         cass: float = 0.00036
-        casr: float = 4.272
-        rpri: float = 0.8978
-        xr1: float = 0.0165
-        xr2: float = 0.473
-        xs: float = 0.0174
-        m: float = 0.00165
-        h: float = 0.749
-        j: float = 0.6788
-        d: float = 3.288e-5
-        f: float = 0.7026
-        f2: float = 0.9526
-        fcass: float = 0.9942
+        casr: float = 3.64
+        rpri: float = 0.9073
+        xr1: float = 0.00621
+        xr2: float = 0.4712
+        xs: float = 0.0095
+        m: float = 0.00172
+        h: float = 0.7444
+        j: float = 0.7045
+        d: float = 3.373e-5
+        f: float = 0.7888
+        f2: float = 0.9755
+        fcass: float = 0.9953
         s: float = 0.999998
-        r: float = 2.347e-8
+        r: float = 2.42e-8
 
         def to_dictionary(self):
             """Convert to dictionary."""
@@ -172,12 +171,11 @@ class CellModel:
 
         gks: float = 0.098
         gto: float = 0.294
-        vleak: float = 0.00042
         v: float = -85.423
         ki: float = 138.52
         nai: float = 10.132
         cai: float = 0.000153
-        cass: float = 0.00036
+        cass: float = 0.00042
         casr: float = 4.272
         rpri: float = 0.8978
         xr1: float = 0.0165
@@ -236,9 +234,19 @@ class EPMaterial(EPMaterialModel):
     class Active(EPMaterialModel):
         """Hold data for EP material."""
 
-        sigma_fiber: float = ep_defaults.material["myocardium"]["sigma_fiber"].m
-        sigma_sheet: Optional[float] = None
-        sigma_sheet_normal: Optional[float] = None
+        solver_type = ep_defaults.analysis["solvertype"]
+        if solver_type == "Monodomain":
+            sig1 = ep_defaults.material["myocardium"]["sigma_fiber"].m
+            sig2 = ep_defaults.material["myocardium"]["sigma_sheet"].m
+            sig3 = ep_defaults.material["myocardium"]["sigma_sheet_normal"].m
+        elif solver_type == "Eikonal" or solver_type == "ReactionEikonal":
+            sig1 = ep_defaults.material["myocardium"]["velocity_fiber"].m
+            sig2 = ep_defaults.material["myocardium"]["velocity_sheet"].m
+            sig3 = ep_defaults.material["myocardium"]["velocity_sheet_normal"].m
+
+        sigma_fiber: float = sig1
+        sigma_sheet: Optional[float] = sig2
+        sigma_sheet_normal: Optional[float] = sig3
         cell_model: CellModel = field(default_factory=lambda: CellModel.Tentusscher())
 
     class ActiveBeam(Active):

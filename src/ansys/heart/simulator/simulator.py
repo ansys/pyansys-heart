@@ -53,6 +53,7 @@ from ansys.heart.postprocessor.laplace_post import (
 from ansys.heart.preprocessor.conduction_beam import ConductionSystem
 from ansys.heart.preprocessor.mesh.objects import Part, PartType
 from ansys.heart.preprocessor.models import FourChamber, HeartModel, LeftVentricle
+from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 from ansys.heart.simulator.settings.material.material import NeoHookean
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
@@ -550,6 +551,8 @@ class MechanicsSimulator(BaseSimulator):
         part.fiber = False
         part.active = False
         part.meca_material = stiff_material
+        # assign default EP material as for ventricles
+        part.ep_material = EPMaterial.Active()
 
         return part
 

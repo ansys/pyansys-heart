@@ -61,7 +61,7 @@ midcelldata = dict(
         ("maxsr", 2.5),
         ("minsr", 1.0),
         ("vrel", 0.102),
-        ("vleak", 0.00042),
+        ("vleak", 0.00036),
         ("vxfer", 0.0038),
         ("vmaxup", 0.006375),
         ("kup", 0.00025),
@@ -77,7 +77,7 @@ midcelldata = dict(
         ("ki", 138.52),
         ("nai", 10.132),
         ("cai", 0.000153),
-        ("cass", 0.00036),
+        ("cass", 0.00042),
         ("casr", 4.272),
         ("rpri", 0.8978),
         ("xr1", 0.0165),
@@ -134,7 +134,7 @@ endocelldata = dict(
         ("maxsr", 2.5),
         ("minsr", 1.0),
         ("vrel", 0.102),
-        ("vleak", 0.00042),
+        ("vleak", 0.00036),
         ("vxfer", 0.0038),
         ("vmaxup", 0.006375),
         ("kup", 0.00025),
@@ -207,7 +207,7 @@ epicelldata = dict(
         ("maxsr", 2.5),
         ("minsr", 1.0),
         ("vrel", 0.102),
-        ("vleak", 0.00042),
+        ("vleak", 0.00036),
         ("vxfer", 0.0038),
         ("vmaxup", 0.006375),
         ("kup", 0.00025),
@@ -253,13 +253,13 @@ def test_cellmodel():
 
 
 def test_active():
+    tentusepi = CellModel.Tentusscher_epi()
     tentusendo = CellModel.Tentusscher_endo()
-    tentusmid = CellModel.Tentusscher_mid()
     active0 = EPMaterial.Active(sigma_fiber=1)
-    assert active0.sigma_sheet is None
-    active = EPMaterial.Active(sigma_fiber=1, sigma_sheet=1)
+    assert active0.sigma_sheet is not None
+    active = EPMaterial.Active(sigma_fiber=1, sigma_sheet=1, sigma_sheet_normal=1)
     assert active.sigma_sheet_normal == 1
-    assert active.cell_model.to_dictionary().items() == tentusmid.to_dictionary().items()
+    assert active.cell_model.to_dictionary().items() == tentusepi.to_dictionary().items()
     active.cell_model = CellModel.Tentusscher_endo()
     assert active.cell_model.to_dictionary().items() == tentusendo.to_dictionary().items()
     activeBeam = EPMaterial.ActiveBeam(sigma_fiber=1)

@@ -234,9 +234,19 @@ class EPMaterial(EPMaterialModel):
     class Active(EPMaterialModel):
         """Hold data for EP material."""
 
-        sigma_fiber: float = ep_defaults.material["myocardium"]["sigma_fiber"].m
-        sigma_sheet: Optional[float] = None
-        sigma_sheet_normal: Optional[float] = None
+        solver_type = ep_defaults.analysis["solvertype"]
+        if solver_type == "Monodomain":
+            sig1 = ep_defaults.material["myocardium"]["sigma_fiber"].m
+            sig2 = ep_defaults.material["myocardium"]["sigma_sheet"].m
+            sig3 = ep_defaults.material["myocardium"]["sigma_sheet_normal"].m
+        elif solver_type == "Eikonal" or solver_type == "ReactionEikonal":
+            sig1 = ep_defaults.material["myocardium"]["velocity_fiber"].m
+            sig2 = ep_defaults.material["myocardium"]["velocity_sheet"].m
+            sig3 = ep_defaults.material["myocardium"]["velocity_sheet_normal"].m
+
+        sigma_fiber: float = sig1
+        sigma_sheet: Optional[float] = sig2
+        sigma_sheet_normal: Optional[float] = sig3
         cell_model: CellModel = field(default_factory=lambda: CellModel.Tentusscher())
 
     class ActiveBeam(Active):

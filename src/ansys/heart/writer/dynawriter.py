@@ -2805,7 +2805,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         """Add EP material for each defined part."""
         material_settings = self.settings.electrophysiology.material
         solvertype = self.settings.electrophysiology.analysis.solvertype
-        default_epmat = EPMaterial()
         if solvertype == "Monodomain":
             sig1 = material_settings.myocardium["sigma_fiber"].m
             sig2 = material_settings.myocardium["sigma_sheet"].m
@@ -2814,14 +2813,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             sig1 = material_settings.myocardium["velocity_fiber"].m
             sig2 = material_settings.myocardium["velocity_sheet"].m
             sig3 = material_settings.myocardium["velocity_sheet_normal"].m
-        default_epmat.sigma_fiber = sig1
-        default_epmat.sigma_sheet = sig2
-        default_epmat.sigma_sheet_normal = sig3
-        default_epmat.beta = material_settings.myocardium["beta"].m
-        default_epmat.cm = material_settings.myocardium["cm"].m
 
         for part in self.model.parts:
-            partname = part.name.lower()
             if isinstance(part.ep_material, EPMaterial.DummyMaterial):
                 LOGGER.info(f"Material of {part.name} will be assigned automatically.")
                 if part.active:
@@ -2831,12 +2824,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 if part.fiber:
                     part.ep_material.sigma_sheet = sig2
                     part.ep_material.sigma_sheet_normal = sig3
-                # TODO avoid str compare here, assign right after part creation?
-                if "isolation" in partname:
-                    # assign insulator material to A-V isolation layer.
-                    part.ep_material = EPMaterial.Insulator()
-            self.kw_database.material.append(f"$$ {part.name} $$")
 
+            self.kw_database.material.append(f"$$ {part.name} $$")
             ep_mid = part.pid
             kw = self._get_ep_material_kw(ep_mid, part.ep_material)
             self.kw_database.material.append(kw)
@@ -2906,6 +2895,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         """Add cell model keyword to database."""
         if isinstance(cellmodel, CellModel.Tentusscher):
             self._add_Tentusscher_keyword(matid=matid, params=cellmodel.to_dictionary())
+        else:
+            raise NotImplementedError
 
     def _add_Tentusscher_keyword(self, matid: int, params: dict):
         cell_kw = keywords.EmEpCellmodelTentusscher(**{**params})

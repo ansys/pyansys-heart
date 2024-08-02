@@ -32,6 +32,7 @@ import numpy as np
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
+from ansys.heart.postprocessor.pressure_change_rate import PressureChangeRate
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.postprocessor.exporter import D3plotToVTKExporter, LVContourExporter
 from ansys.heart.postprocessor.pvloop import generate_pvloop
@@ -179,6 +180,27 @@ def mech_post(directory: str, model: HeartModel):
 
     return
 
+def ivc_post(directory: str, model: HeartModel):
+    folder = "post"
+    os.makedirs(os.path.join(directory, folder), exist_ok=True)
+    pressure_change_rate = PressureChangeRate(model, binout_file=os.path.join(directory, "binout0000"))
+    
+    dct = {
+        "Simulation output time (ms)": pressure_change_rate.t.tolist(),
+        "Pressure (mmHg)": pressure_change_rate.p.tolist(), 
+        "Pressure change rate (mmHg/s)": pressure_change_rate.dp.tolist(),
+        "(dP/dt)max (mmHg/s)": pressure_change_rate.dp_max.tolist()
+    }
+    
+    out_dir = os.path.join(directory, "post", "dP")
+    os.makedirs(out_dir, exist_ok=True)
+    fig = pressure_change_rate.plot_dpdt()
+    fig.savefig(os.path.join(directory, folder, out_dir, "pressure_change_rate.png"))
+    
+    with open(os.path.join(directory, folder, out_dir, "Post_report_dP.json"), "w") as f:
+        json.dump(dct, f)
+        
+    return dct
 
 def export_to_vtk(directory: str, model: HeartModel):
     """Export heart motion(surfaces) into vtk files.

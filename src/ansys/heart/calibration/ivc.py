@@ -31,7 +31,7 @@ from pint import Quantity
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.models import HeartModel
-from ansys.heart.simulator.settings.settings import SimulationSettings
+from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 from ansys.heart.simulator.simulator import MechanicsSimulator
 from ansys.heart.writer.dynawriter import MechanicsDynaWriter
 
@@ -71,11 +71,8 @@ class IVCWriter(MechanicsDynaWriter):
             elif "Right ventricle" in cavity.name:
                 define_function_wk = define_function_0Dsystem(
                     function_id=11,
-                    function_name="constant_preload_windkessel_afterload_right",
-                    implicit=True,
-                    parameters=dict(system_settings.right_ventricle["constants"]),
-                    initialvalues=system_settings.right_ventricle["initial_value"]["part"],
-                    ivc=True,
+                    function_name="constant_flow",
+                    parameters={"flow": 0.0},
                 )
                 self.kw_database.control_volume.append(define_function_wk)
 
@@ -86,15 +83,13 @@ class IVCSimulator(MechanicsSimulator):
     def __init__(
         self,
         model: HeartModel,
-        lsdynapath: Path,
-        dynatype: Literal["smp", "intelmpi", "platformmpi"],
-        num_cpus: int = 1,
+        dyna_settings: DynaSettings,
         simulation_directory: Path = "",
-        initial_stress: bool = True,
+        initial_stress: bool = True
     ) -> None:
         """Overload MechanicsSimulator for IVC."""
         super().__init__(
-            model, lsdynapath, dynatype, num_cpus, simulation_directory, initial_stress
+            model, dyna_settings, simulation_directory, initial_stress
         )
 
     def _write_main_simulation_files(self, folder_name):

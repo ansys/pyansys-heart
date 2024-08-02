@@ -87,12 +87,12 @@ class CellModel:
         # faraday_constant=96485.3415,
         gks: float = 0.098
         gto: float = 0.294
-        vleak: float = 0.00042
+        vleak: float = 0.00036
         v: float = -85.423
         ki: float = 138.52
         nai: float = 10.132
         cai: float = 0.000153
-        cass: float = 0.00036
+        cass: float = 0.00042
         casr: float = 4.272
         rpri: float = 0.8978
         xr1: float = 0.0165
@@ -172,12 +172,12 @@ class CellModel:
 
         gks: float = 0.098
         gto: float = 0.294
-        vleak: float = 0.00042
+        vleak: float = 0.00036
         v: float = -85.423
         ki: float = 138.52
         nai: float = 10.132
         cai: float = 0.000153
-        cass: float = 0.00036
+        cass: float = 0.00042
         casr: float = 4.272
         rpri: float = 0.8978
         xr1: float = 0.0165

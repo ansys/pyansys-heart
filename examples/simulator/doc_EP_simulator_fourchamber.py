@@ -192,6 +192,11 @@ simulator.model.plot_purkinje()
 # Start the main EP simulation. This uses the previously computed fiber orientation
 # and purkinje network to set up and run the LS-DYNA model using different solver
 # options
+simulator.model.right_atrium.active = True
+simulator.model.left_atrium.active = True
+simulator.model.right_atrium.fiber = True
+simulator.model.left_atrium.fiber = True
+
 
 simulator.simulate()
 # The two following solves only work with LS-DYNA DEV-110013 or later

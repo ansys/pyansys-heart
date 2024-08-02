@@ -172,7 +172,6 @@ class CellModel:
 
         gks: float = 0.098
         gto: float = 0.294
-        vleak: float = 0.00036
         v: float = -85.423
         ki: float = 138.52
         nai: float = 10.132

@@ -1676,9 +1676,11 @@ class HeartModel:
         v0 = np.tile(self.l4cv_axis["normal"], (len(free_wall_center["point_ids"]), 1))
 
         dot = np.einsum("ij,ij->i", v0, vn)  # dot product row by row
-        set1 = free_wall_center["point_ids"][dot >= 0]  # -pi
-        set2 = free_wall_center["point_ids"][dot < 0]  # pi
-        set3 = np.setdiff1d(septum_center["point_ids"], free_wall_center["point_ids"])  # 0
+        set1 = np.unique(free_wall_center["point_ids"][dot >= 0])  # -pi
+        set2 = np.unique(free_wall_center["point_ids"][dot < 0])  # pi
+        set3 = np.unique(
+            np.setdiff1d(septum_center["point_ids"], free_wall_center["point_ids"])
+        )  # 0
 
         # visu
         # mesh["bc"] = np.zeros(mesh.n_points)
@@ -1728,9 +1730,13 @@ class HeartModel:
         if option == "myocardium":
             return np.array(apex_set)
         elif option == "endocardium":
-            return np.intersect1d(part.endocardium.node_ids, apex_set)
+            return np.intersect1d(
+                self.mesh.get_surface(part.endocardium.id).global_node_ids, apex_set
+            )
         elif option == "epicardium":
-            return np.intersect1d(part.epicardium.node_ids, apex_set)
+            return np.intersect1d(
+                self.mesh.get_surface(part.epicardium.id).global_node_ids, apex_set
+            )
 
     # TODO: fix this.
     def _create_atrioventricular_isolation(self) -> Union[None, Part]:

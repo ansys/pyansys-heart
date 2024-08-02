@@ -3668,9 +3668,9 @@ class UHCWriter(BaseDynaWriter):
             else:
                 elems_to_keep.extend(model.parts[0].element_ids)
                 elems_to_keep.extend(model.parts[1].element_ids)
-                elems_to_keep.extend(model.parts[2].element_ids)
+                elems_to_keep.extend(model.parts[2].element_ids)  #! assumes part ordering!
 
-            model.mesh.clear_data()
+            # model.mesh.clear_data()
             model.mesh["cell_ids"] = np.arange(0, model.mesh.n_cells, dtype=int)
             model.mesh["point_ids"] = np.arange(0, model.mesh.n_points, dtype=int)
 
@@ -3980,12 +3980,13 @@ class UHCWriter(BaseDynaWriter):
         for part in self.model.parts:
             for surf in part.surfaces:
                 if "endocardium" in surf.name:
-                    endo_set.extend(surf.node_ids)
+                    endo_surf = self.model.mesh.get_surface(surf.id)
+                    endo_set.extend(endo_surf.global_node_ids)
                 # elif "epicardium" in surf.name:
                 #     epi_set.extend(surf.node_ids)
 
         # map IDs to sub mesh
-        endo_set_new = np.where(np.isin(self.target["point_ids"], endo_set))[0]
+        endo_set_new = np.unique(np.where(np.isin(self.target["point_ids"], endo_set))[0])
 
         endo_sid = self.get_unique_nodeset_id()
         kw = create_node_set_keyword(endo_set_new + 1, node_set_id=endo_sid, title="endo")
@@ -3999,7 +4000,7 @@ class UHCWriter(BaseDynaWriter):
 
         # epi cannot use directly Surface because new free surface exposed
         ids_surface = self.target.extract_surface()["vtkOriginalPointIds"]
-        epi_set_new = np.setdiff1d(ids_surface, endo_set_new)
+        epi_set_new = np.unique(np.setdiff1d(ids_surface, endo_set_new))
 
         epi_sid = self.get_unique_nodeset_id()
         kw = create_node_set_keyword(epi_set_new + 1, node_set_id=epi_sid, title="epi")
@@ -4031,7 +4032,7 @@ class UHCWriter(BaseDynaWriter):
         # select a region within 1 cm, this seems consistent with Strocchi database
         apex_set = self.model.get_apex_node_set(radius=10)
         # get local ID
-        ids_submesh = np.where(np.isin(self.target["point_ids"], apex_set))[0]
+        ids_submesh = np.unique(np.where(np.isin(self.target["point_ids"], apex_set))[0])
 
         sid = self.get_unique_nodeset_id()
         kw = create_node_set_keyword(ids_submesh + 1, node_set_id=sid, title="apex")
@@ -4045,9 +4046,10 @@ class UHCWriter(BaseDynaWriter):
             for cap in part.caps:
                 #  Strocchi database use only mv and tv
                 # if ("mitral" in cap.name) or ("tricuspid" in cap.name):
+                cap._mesh = self.model.mesh.get_surface(cap._mesh.id)
                 base_set = np.append(base_set, cap.global_node_ids_edge)
         # get local ID
-        ids_submesh = np.where(np.isin(self.target["point_ids"], base_set))[0]
+        ids_submesh = np.unique(np.where(np.isin(self.target["point_ids"], base_set))[0])
 
         sid = self.get_unique_nodeset_id()
         kw = create_node_set_keyword(ids_submesh + 1, node_set_id=sid, title="base")
@@ -4064,7 +4066,7 @@ class UHCWriter(BaseDynaWriter):
         nodeset = np.unique(nodeset.astype(int))
 
         # map IDs to sub mesh
-        ids_submesh = np.where(np.isin(self.target["point_ids"], nodeset))[0]
+        ids_submesh =np.unique(np.where(np.isin(self.target["point_ids"], nodeset))[0])
 
         sid = self.get_unique_nodeset_id()
         kw = create_node_set_keyword(

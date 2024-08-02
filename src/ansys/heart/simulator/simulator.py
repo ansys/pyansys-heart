@@ -223,7 +223,7 @@ class BaseSimulator:
 
         target = self.run_laplace_problem(export_directory, "ra_fiber", raa=np.array(appendage))
 
-        endo_surface = self.model.right_atrium.endocardium
+        endo_surface = self.model.mesh.get_surface(self.model.right_atrium.endocardium.id)
         ra_pv = compute_ra_fiber_cs(
             export_directory, self.settings.atrial_fibers, endo_surface=endo_surface
         )
@@ -256,7 +256,7 @@ class BaseSimulator:
 
         target = self.run_laplace_problem(export_directory, "la_fiber", laa=appendage)
 
-        endo_surface = self.model.left_atrium.endocardium
+        endo_surface = self.model.mesh.get_surface(self.model.left_atrium.endocardium.id)
         la_pv = compute_la_fiber_cs(
             export_directory, self.settings.atrial_fibers, endo_surface=endo_surface
         )

@@ -3679,15 +3679,15 @@ class UHCWriter(BaseDynaWriter):
         elif self.type == "la_fiber" or self.type == "ra_fiber":
             # In original model, mitral/tricuspid valves are assigned with ventricle parts
             # so we need to update caps information at first
-            for part in model.parts:
-                part.caps = []
+            # for part in model.parts:
+            #     part.caps = []
 
-            model._assign_surfaces_to_parts()
-            model._assign_cavities_to_parts()
-            model._update_cap_names()
+            # model._assign_surfaces_to_parts()
+            # model._assign_cavities_to_parts()
+            # model._update_cap_names()
 
             self._keep_parts(parts_to_keep)
-            model.mesh.clear_data()
+            # model.mesh.clear_data()
             model.mesh["cell_ids"] = np.arange(0, model.mesh.n_cells, dtype=int)
             model.mesh["point_ids"] = np.arange(0, model.mesh.n_points, dtype=int)
 
@@ -3838,6 +3838,8 @@ class UHCWriter(BaseDynaWriter):
         ids_edges = []  # all nodes belong to valves
         for cap in self.model.parts[0].caps:
             # get node IDs for atrium mesh
+            #! get up to date version of cap mesh.
+            cap._mesh = self.model.mesh.get_surface(cap._mesh.id)
             ids_sub = np.where(np.isin(atrium["point_ids"], cap.global_node_ids_edge))[0]
             # create node set
             set_id = get_nodeset_id_by_cap_name(cap)
@@ -3860,7 +3862,9 @@ class UHCWriter(BaseDynaWriter):
             self.kw_database.node_sets.append(kw)
 
         # endo nodes ID
-        ids_endo = np.where(np.isin(atrium["point_ids"], self.model.parts[0].endocardium.node_ids))[
+        #! get up to date endocardium.
+        endocardium = self.model.mesh.get_surface(self.model.parts[0].endocardium.id)
+        ids_endo = np.where(np.isin(atrium["point_ids"], endocardium.global_node_ids))[
             0
         ]
 

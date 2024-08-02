@@ -3174,7 +3174,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         default_epmat = EPMaterial.ActiveBeam()
         if solvertype == "Monodomain":
             sig1 = material_settings.beam["sigma"].m
-        elif solvertype == "Eikonal":
+        else:
             sig1 = material_settings.beam["velocity"].m
         default_epmat.sigma_fiber = sig1
         default_epmat.beta = material_settings.beam["beta"].m

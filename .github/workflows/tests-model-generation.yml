@@ -50,10 +50,10 @@ jobs:
 
       - name: Print available space and remove unnecessary files
         run: |
-          df -lh          
-          sudo rm -rf /usr/share/dotnet          
+          df -lh
+          sudo rm -rf /usr/share/dotnet
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          df -lh 
+          df -lh
 
       - name: Pull Fluent docker image
         run: |

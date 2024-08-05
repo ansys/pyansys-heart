@@ -318,7 +318,7 @@ class BaseDynaWriter:
 
         Notes
         -----
-        The removed node must be connected with more than 1 element, see #656.
+        The removed node must be connected with at least 1 node outside the boundary, see #656.
 
         Parameters
         ----------
@@ -392,7 +392,8 @@ class BaseDynaWriter:
 
         for cell in issue_tets:
             LOGGER.warning(
-                f"All nodes of cell {cell+1} are in nodeset of {surface.name}," " N1 is removed."
+                f"All nodes of cell {cell+1} are in nodeset of {surface.name},"
+                + " removing at least one node."
             )
 
         return node_ids

@@ -87,3 +87,17 @@ def test_filter_bc_nodes02():
     # one node is removed, but not the node 0 since it's only attached with the issue element
     # see #656
     assert np.allclose(ids, [0, 2, 3])
+
+
+def test_filter_bc_nodes03():
+    model = get_test_model()
+    # filter is necessary but no individual nodes can be removed
+    model.left_ventricle.endocardium.triangles = np.array(
+        [[0, 1, 2], [0, 1, 3], [0, 2, 3], [1, 2, 4]], dtype=int
+    )
+    w = writers.FiberGenerationDynaWriter(model)
+    ids = w._filter_bc_nodes(model.left_ventricle.endocardium)
+
+    # all nodes in the unsolvable tetrahedron and their respective neighbors are removed
+    # see #656
+    assert len(ids) == 0

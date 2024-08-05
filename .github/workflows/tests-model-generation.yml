@@ -51,7 +51,9 @@ jobs:
       - name: Print available space and remove unnecessary files.
         run: |
           df -lh          
-          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/share/dotnet          
+          df -lh 
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
           df -lh 
           
       # - name: Maximize build space

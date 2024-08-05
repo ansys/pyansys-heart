@@ -255,6 +255,41 @@ class ZeroPressure(Settings):
     """Generic analysis settings."""
 
 
+@dataclass
+class Stimulation(Settings):
+    """Stimulation settings."""
+
+    node_ids: List[int] = None
+    t_start: Quantity = Quantity(0.0, "ms")
+    period: Quantity = Quantity(800, "ms")
+    duration: Quantity = Quantity(20, "ms")
+    amplitude: Quantity = Quantity(50, "uF/mm^3")
+
+    def __setattr__(self, __name: str, __value) -> None:
+        """Set attributes.
+
+        Parameters
+        ----------
+        __name : str
+            Attribute name.
+        __value : _type_
+            Attribute value.
+
+        """
+        if __name == "node_ids":
+            if isinstance(__value, list):
+                try:
+                    __value = [int(x) for x in __value]
+                except:
+                    print("Failed to cast node_ids to list of integers.")
+
+            return super().__setattr__(__name, __value)
+        elif __name == "t_start" or __name == "period" or __name == "duration":
+            return super().__setattr__(__name, Quantity(__value, "ms"))
+        elif __name == "amplitude":
+            return super().__setattr__(__name, Quantity(__value, "uF/mm^3"))
+
+
 @dataclass(repr=False)
 class Electrophysiology(Settings):
     """Class for keeping track of electrophysiology settings."""
@@ -263,6 +298,8 @@ class Electrophysiology(Settings):
     """Material settings/configuration."""
     analysis: EPAnalysis = field(default_factory=lambda: EPAnalysis())
     """Generic analysis settings."""
+    stimulation: AttrDict[str, Stimulation] = None
+    """Stimulation settings."""
 
 
 @dataclass(repr=False)
@@ -309,6 +346,8 @@ class AtrialFiber(Settings):
 class Purkinje(Settings):
     """Class for keeping track of purkinje settings."""
 
+    node_id_origin: Quantity = None
+    """Edge length."""
     edgelen: Quantity = 0
     """Edge length."""
     ngen: Quantity = 0
@@ -565,8 +604,14 @@ class SimulationSettings:
                 A.set_values(ep_defaults.analysis)
                 M = EpMaterial()
                 M.set_values(ep_defaults.material)
+
                 self.electrophysiology.analysis = A
                 self.electrophysiology.material = M
+                self.electrophysiology.stimulation: AttrDict[str, Stimulation] = AttrDict()
+                for key in ep_defaults.stimulation.keys():
+                    S = Stimulation()
+                    S.set_values(ep_defaults.stimulation[key])
+                    self.electrophysiology.stimulation[key] = S
                 # TODO add stim params, monodomain/bidomain/eikonal,cellmodel
             # TODO add settings for purkinje  fibers and epmecha
             if isinstance(getattr(self, attr), Fibers):
@@ -768,8 +813,9 @@ _derived = [
         Quantity(30, "uF/mm^2").dimensionality,
         Quantity(30, "1/mS").dimensionality,
         Quantity(30, "degree").dimensionality,
+        Quantity(30, "uF/mm^3").dimensionality,
     ],
-    ["MPa", "N", "mS/mm", "uF/mm^2", "1/mS", "degree"],
+    ["MPa", "N", "mS/mm", "uF/mm^2", "1/mS", "degree", "uF/mm^3"],
 ]
 
 
@@ -1034,4 +1080,5 @@ class DynaSettings:
 
 
 if __name__ == "__main__":
+    print("start")
     LOGGER.debug("protected")

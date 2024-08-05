@@ -301,17 +301,13 @@ class ICVoutReader:
         self._ds = dpf.DataSources()
         self._ds.set_result_file_path(fn, "binout")
         try:
-            self._solver_time = self._get_solver_time()
+            self._get_available_ids()
         except IndexError:
             LOGGER.error(f"{fn} do not contain icvout.")
             exit()
 
-    def _get_solver_time(self) -> np.ndarray:
-        # resultInfoOp = dpf.Operator("lsdyna::binout::result_info_provider")
-        # resultInfoOp.inputs.data_sources(self.ds)
-        # result_info = resultInfoOp.outputs.result_info()
-        # print(result_info)
-
+    def _get_available_ids(self):
+        """Get available CV ids and CVI ids."""
         icvout_op = dpf.Operator("lsdyna::binout::ICV_ICVIID")
         icvout_op.inputs.data_sources(self._ds)
         fields1 = icvout_op.outputs.results()
@@ -324,13 +320,6 @@ class ICVoutReader:
         # available ICV id
         self._icv_ids = fields2[0].data.astype(int)
 
-        # get time array
-        op = dpf.Operator("lsdyna::binout::TimeFreqSupportProvider")
-        op.inputs.data_sources(self._ds)
-        result_time_freq_support = op.outputs.time_freq_support()
-        time = result_time_freq_support.time_frequencies.data
-        return time
-
     def get_time(self) -> np.ndarray:
         """Get time array.
 
@@ -339,11 +328,15 @@ class ICVoutReader:
         np.ndarray
             time array
         """
-        # Note: _solver_time is time array of solving, here we resample it to icvout time array
-        n = len(self.get_pressure(self._icv_ids[0]))
-        x = np.linspace(self._solver_time[0], self._solver_time[-1], n)
-        xp = np.linspace(self._solver_time[0], self._solver_time[-1], len(self._solver_time))
-        return np.interp(x, xp, self._solver_time)
+        # see pydpf examples, lsdyna-operators
+        icvout_op = dpf.Operator(f"lsdyna::binout::ICV_P")
+        icvout_op.inputs.data_sources(self._ds)
+        p_fc = icvout_op.eval()
+        rescope_op = dpf.operators.scoping.rescope()
+        rescope_op.inputs.fields.connect(p_fc.time_freq_support.time_frequencies)
+        rescope_op.inputs.mesh_scoping.connect(p_fc[0].scoping)
+        t_field = rescope_op.outputs.fields_as_field()
+        return t_field.data
 
     def get_pressure(self, icv_id: int) -> np.ndarray:
         """Get pressure array.
@@ -392,7 +385,7 @@ class ICVoutReader:
         Parameters
         ----------
         icvi_id : int
-            control volume id
+            control volume interaction id
 
         Returns
         -------

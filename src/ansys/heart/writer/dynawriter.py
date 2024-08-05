@@ -42,7 +42,7 @@ import pandas as pd
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.preprocessor.mesh.objects import Cap, Part, PartType
+from ansys.heart.preprocessor.mesh.objects import Cap, Part, PartType, SurfaceMesh
 from ansys.heart.preprocessor.models import (
     BiVentricle,
     FourChamber,
@@ -314,6 +314,91 @@ class BaseDynaWriter:
                 self.kw_database.segment_sets.append(segset_kw)
         return
 
+    def _filter_bc_nodes(self, surface: SurfaceMesh):
+        """Remove one or more nodes from tetrahedrons having all nodes in the boundary.
+
+        Notes
+        -----
+        The removed node must be connected with at least 1 node outside the boundary, see #656.
+
+        Parameters
+        ----------
+        surface : SurfaceMesh
+            Boundary surface to be analysed.
+
+        Returns
+        -------
+        node_ids : np.ndarray
+            Array of boundary nodes after problematic node removal.
+        """
+        # getting elements in active parts
+        element_ids = np.array([], dtype=int)
+        node_ids = surface.node_ids
+
+        for part in self.model.parts:
+            element_ids = np.append(element_ids, part.element_ids)
+
+        element_ids = np.unique(element_ids)
+        active_tets = self.model.mesh.tetrahedrons[element_ids]
+
+        # make sure not all nodes of the same elements are in the boundary
+        node_mask = np.zeros(self.model.mesh.number_of_points, dtype=int)
+        # tag boundary nodes with value 1
+        node_mask[node_ids] = 1
+
+        tet_mask = np.array(
+            [
+                node_mask[active_tets[:, 0]],
+                node_mask[active_tets[:, 1]],
+                node_mask[active_tets[:, 2]],
+                node_mask[active_tets[:, 3]],
+            ]
+        )
+
+        # getting tets with 4 nodes in boundary
+        issue_tets = np.where(np.sum(tet_mask, axis=0) == 4)[0]
+
+        # getting corresponding nodes
+        issue_nodes = active_tets[issue_tets, :]
+
+        # counting node appearances
+        u_active_tets, tet_count_active = np.unique(active_tets, return_counts=True)
+        u_issue_nodes, tet_count_issue = np.unique(issue_nodes, return_counts=True)
+
+        # finding issue nodes that belong to at least one non-issue tet
+        removable_mask = np.array(
+            [
+                tet_count_active[np.where(u_active_tets == ii)[0][0]]
+                != tet_count_issue[np.where(u_issue_nodes == ii)[0][0]]
+                for ii in issue_nodes.flatten()
+            ]
+        ).reshape(-1, 4)
+
+        # removing the first issue node belonging to at least one non-issue tet (for each tet)
+        column_idxs = np.argmax(removable_mask, axis=1)
+        nodes_toremove = np.unique(
+            [issue_nodes[ii, column_idxs[ii]] for ii in range(len(issue_tets))]
+        )
+
+        # checking that there are no nodes that only belong to non-issue tets
+        if not np.all(np.any(removable_mask, axis=1)):
+            # removing all such nodes and all their neighbors
+            unsolvable_nodes = np.unique(issue_nodes[np.where(~np.any(removable_mask, axis=1))[0]])
+            unsolvable_nodes = np.unique(
+                [neighbor for ii in unsolvable_nodes for neighbor in surface.point_neighbors(ii)]
+            )
+            nodes_toremove = np.append(nodes_toremove, unsolvable_nodes)
+
+        node_ids = np.setdiff1d(node_ids, nodes_toremove)
+
+        for cell in issue_tets:
+            LOGGER.warning(
+                f"All nodes of cell {cell+1} are in nodeset of {surface.name},"
+                + " removing at least one node."
+            )
+
+        return node_ids
+
     def _update_nodesets_db(
         self, remove_duplicates: bool = True, remove_one_node_from_cell: bool = False
     ):
@@ -369,35 +454,12 @@ class BaseDynaWriter:
         for part in self.model.parts:
             kws_surface = []
             for surface in part.surfaces:
-                if remove_duplicates:
-                    node_ids = np.setdiff1d(surface.node_ids, used_node_ids)
+                if remove_one_node_from_cell:
+                    node_ids = self._filter_bc_nodes(surface)
                 else:
                     node_ids = surface.node_ids
-                if remove_one_node_from_cell:
-                    # make sure not all nodes of the same elements are in the surface
-                    node_mask = np.zeros(self.model.mesh.number_of_points, dtype=int)
-                    # tag surface nodes with value 1
-                    node_mask[node_ids] = 1
-
-                    cell_mask = np.array(
-                        [
-                            node_mask[self.model.mesh.tetrahedrons[:, 0]],
-                            node_mask[self.model.mesh.tetrahedrons[:, 1]],
-                            node_mask[self.model.mesh.tetrahedrons[:, 2]],
-                            node_mask[self.model.mesh.tetrahedrons[:, 3]],
-                        ]
-                    )
-                    # cells with all nodes in surface are those whose
-                    # all nodes are tagged with value 1
-                    issue_cells = np.where(np.sum(cell_mask, axis=0) == 4)[0]
-                    nodes_toremove = self.model.mesh.tetrahedrons[issue_cells, :][:, 0]
-                    node_ids = np.setdiff1d(node_ids, nodes_toremove)
-
-                    for cell in issue_cells:
-                        LOGGER.warning(
-                            f"All nodes of cell {cell+1} are in nodeset of {surface.name},"
-                            " N1 is removed."
-                        )
+                if remove_duplicates:
+                    node_ids = np.setdiff1d(node_ids, used_node_ids)
 
                 kw = create_node_set_keyword(
                     node_ids + 1, node_set_id=surface.id, title=surface.name

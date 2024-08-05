@@ -48,10 +48,12 @@ jobs:
           username: ${{ secrets.GH_USERNAME }}
           password: ${{ secrets.REPO_DOWNLOAD_PAT }}
 
-      - name: Print available space
+      - name: Print available space and remove unnecessary files.
         run: |
           df -lh          
-
+          sudo rm -rf /usr/share/dotnet
+          df -lh 
+          
       # - name: Maximize build space
       #   uses: easimon/maximize-build-space@master
       #   with:

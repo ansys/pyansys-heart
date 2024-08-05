@@ -51,11 +51,12 @@ def get_test_model():
     model: models.LeftVentricle = models.LeftVentricle(model_info)
 
     # populate model
-    model.mesh.tetrahedrons = np.array([[0, 1, 2, 3]], dtype=int)
+    model.mesh.tetrahedrons = np.array([[0, 1, 2, 3], [4, 1, 2, 3]], dtype=int)
     model.mesh.nodes = np.array(
-        [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=float
+        [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [1.0, 1.0, 1.0]],
+        dtype=float,
     )
-    model.left_ventricle.element_ids = np.array([0], dtype=int)
+    model.left_ventricle.element_ids = np.array([0, 1], dtype=int)
 
     model.left_ventricle.endocardium.triangles = np.array([[0, 1, 2]], dtype=int)
     model.left_ventricle.endocardium.points = model.mesh.nodes
@@ -64,8 +65,8 @@ def get_test_model():
 
 
 def test_filter_bc_nodes01():
-    # filter is not necessary
     model = get_test_model()
+    # filter is not necessary
     model.left_ventricle.endocardium.triangles = np.array([[0, 1, 2]], dtype=int)
     w = writers.FiberGenerationDynaWriter(model)
     ids = w._filter_bc_nodes(model.left_ventricle.endocardium)
@@ -75,12 +76,14 @@ def test_filter_bc_nodes01():
 
 
 def test_filter_bc_nodes02():
-    # filter is necessary
     model = get_test_model()
-    model.left_ventricle.endocardium.triangles = np.array([[0, 1, 2], [0, 1, 3]], dtype=int)
+    # filter is necessary
+    model.left_ventricle.endocardium.triangles = np.array(
+        [[0, 1, 2], [0, 1, 3], [0, 2, 3]], dtype=int
+    )
     w = writers.FiberGenerationDynaWriter(model)
     ids = w._filter_bc_nodes(model.left_ventricle.endocardium)
 
-    # one node should be removed
-    # TODO @oliver, which node should be removed by your logic?
-    assert np.allclose(ids, [1, 2, 3])
+    # one node is removed, but not the node 0 since it's only attached with the issue element
+    # see #656
+    assert np.allclose(ids, [0, 2, 3])

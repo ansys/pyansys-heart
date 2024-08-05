@@ -316,6 +316,10 @@ class BaseDynaWriter:
     def _filter_bc_nodes(self, surface: SurfaceMesh):
         """Remove one or more nodes from tetrahedrons having all nodes in the boundary.
 
+        Notes
+        -----
+        The removed node must be connected with more than 1 element, see #656.
+
         Parameters
         ----------
         surface : SurfaceMesh

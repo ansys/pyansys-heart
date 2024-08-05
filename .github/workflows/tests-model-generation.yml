@@ -48,8 +48,20 @@ jobs:
           username: ${{ secrets.GH_USERNAME }}
           password: ${{ secrets.REPO_DOWNLOAD_PAT }}
 
+      - name: Print available space
+        run: |
+          df -lh          
+
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 512
+          swap-size-mb: 1024
+          remove-dotnet: 'true'
+
       - name: Pull Fluent docker image
         run: |
+          df -lh
           docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
           docker image prune -f
 

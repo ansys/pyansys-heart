@@ -3864,9 +3864,7 @@ class UHCWriter(BaseDynaWriter):
         # endo nodes ID
         #! get up to date endocardium.
         endocardium = self.model.mesh.get_surface(self.model.parts[0].endocardium.id)
-        ids_endo = np.where(np.isin(atrium["point_ids"], endocardium.global_node_ids))[
-            0
-        ]
+        ids_endo = np.where(np.isin(atrium["point_ids"], endocardium.global_node_ids))[0]
 
         atrium["endo"] = np.zeros(atrium.n_points, dtype=int)
         atrium["endo"][ids_endo] = 1
@@ -4070,7 +4068,7 @@ class UHCWriter(BaseDynaWriter):
         nodeset = np.unique(nodeset.astype(int))
 
         # map IDs to sub mesh
-        ids_submesh =np.unique(np.where(np.isin(self.target["point_ids"], nodeset))[0])
+        ids_submesh = np.unique(np.where(np.isin(self.target["point_ids"], nodeset))[0])
 
         sid = self.get_unique_nodeset_id()
         kw = create_node_set_keyword(

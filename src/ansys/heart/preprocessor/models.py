@@ -791,7 +791,10 @@ class HeartModel:
             return
         plotter = pyvista.Plotter()
 
-        mesh = self.mesh
+        # fiber direction stored in cell data, but cell-to-point filter uses
+        # leads to issues, where nan values in any non-volume cell may change
+        # the fiber direction in the target point(s).
+        mesh = self.mesh.extract_cells_by_type([pv.CellType.TETRA, pv.CellType.HEXAHEDRON])
         mesh = mesh.ctp()
         streamlines = mesh.streamlines(vectors="fiber", source_radius=75, n_points=n_seed_points)
         tubes = streamlines.tube()

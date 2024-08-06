@@ -1828,9 +1828,13 @@ class HeartModel:
         # get ring cells from cap node list
         ring_nodes = []
         for cap in self.left_atrium.caps:
+            # update cap mesh with up-to-date mesh
+            cap._mesh = self.mesh.get_surface(cap._mesh.id)
             if "mitral" not in cap.name:
                 ring_nodes.extend(cap.global_node_ids_edge.tolist())
         for cap in self.right_atrium.caps:
+            # update cap mesh with up-to-date mesh
+            cap._mesh = self.mesh.get_surface(cap._mesh.id)
             if "tricuspid" not in cap.name:
                 ring_nodes.extend(cap.global_node_ids_edge.tolist())
 

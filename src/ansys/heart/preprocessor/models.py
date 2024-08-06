@@ -1254,9 +1254,6 @@ class HeartModel:
             # save this cavity mesh to the centralized mesh object
             surface.id = int(np.sort(self.mesh.surface_ids)[-1] + 1)  # get unique id.
 
-            self.mesh.add_surface(surface, surface.id)
-            self.mesh._surface_id_to_name[surface.id] = surface.name
-
             # Generate patches that close the surface.
             patches = vtkmethods.get_patches_with_centroid(surface)
 
@@ -1308,8 +1305,10 @@ class HeartModel:
 
             # add and get from global mesh to get all point/cell data arrays.
             self.mesh.add_surface(surface_cavity, surface_cavity.id)
-            surface_cavity = SurfaceMesh(self.mesh.get_surface(surface.id))
+            self.mesh._surface_id_to_name[surface_cavity.id] = surface_cavity.name
             self.mesh = self.mesh.clean()
+
+            surface_cavity = self.mesh.get_surface(surface_cavity.id)
             surface_cavity.id = surface.id
             surface_cavity.name = surface.name
 

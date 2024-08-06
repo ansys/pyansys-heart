@@ -654,8 +654,8 @@ class Mesh(pv.UnstructuredGrid):
             mask = np.all(np.vstack((mask, mask1)), axis=0)
             return np.unique(self.cell_data["_surface-id"][mask])
         except KeyError:
-            LOGGER.debug(f"Failed to extrect one of {SURFACE_CELL_TYPES}")
-            return None
+            LOGGER.debug(f"Failed to extract one of {SURFACE_CELL_TYPES}")
+            return []
 
     @property
     def surface_names(self) -> List[str]:
@@ -968,7 +968,7 @@ class Mesh(pv.UnstructuredGrid):
         self_copy = self._add_mesh(volume, keep_data=True, fill_float=np.nan)
         return self_copy
 
-    def add_surface(self, surface: pv.PolyData, id: int = None):
+    def add_surface(self, surface: pv.PolyData, id: int = None, overwrite_existing: bool = False):
         """Add a surface.
 
         Parameters
@@ -977,6 +977,8 @@ class Mesh(pv.UnstructuredGrid):
             PolyData representation of the surface to add
         sid : int
             ID of the surface to be added. This id will be tracked as "_surface-id"
+        overwrite_existing : bool, optional
+            Flag indicating whether to overwrite/append a surface with the same id, by default False
         """
         if not id:
             if "_surface-id" not in surface.cell_data.keys():
@@ -987,6 +989,13 @@ class Mesh(pv.UnstructuredGrid):
                 LOGGER.debug("sid should by type int.")
                 return None
             surface.cell_data["_surface-id"] = np.ones(surface.n_cells, dtype=float) * id
+
+        if not overwrite_existing:
+            if id in self.surface_ids:
+                LOGGER.debug(
+                    f"{id} already used. Please pick any id other than {self.surface_ids}."
+                )
+                return None
 
         self_copy = self._add_mesh(surface, keep_data=True, fill_float=np.nan)
         return self_copy

@@ -232,6 +232,21 @@ def test_surface_add_001():
     mesh.add_surface(surface_to_add)
     np.testing.assert_allclose(np.unique(mesh.cell_data["_surface-id"]), [10, 11, np.nan])
 
+    # check behavior when the same id is specified.
+    mesh = _convert_to_mesh(_get_beam_model("tets"))
+
+    mesh.add_surface(triangles, 10)
+    assert mesh.add_surface(quads, 10) == None
+
+    mesh.add_surface(quads, 10, overwrite_existing=True)
+    # Both quads and triangles will exist:
+    assert np.all(
+        np.isin(
+            [pv.CellType.TRIANGLE, pv.CellType.QUAD],
+            mesh.get_surface(10).cast_to_unstructured_grid().celltypes,
+        )
+    )
+
 
 def test_lines_add_001():
     """Test adding a beam to a Mesh."""

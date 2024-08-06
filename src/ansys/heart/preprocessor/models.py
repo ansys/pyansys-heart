@@ -1768,7 +1768,7 @@ class HeartModel:
         atrial = self.mesh.extract_cells(a_ele)
 
         interface_nids = np.intersect1d(
-            ventricles["vtkOriginalPointIds"], atrial["vtkOriginalPointIds"]
+            ventricles["_global-point-ids"], atrial["_global-point-ids"]
         )
 
         interface_eids = np.where(np.any(np.isin(self.mesh.tetrahedrons, interface_nids), axis=1))[
@@ -1794,6 +1794,9 @@ class HeartModel:
             # get orphan cells and set to isolation part
             LOGGER.warning(f"{len(orphan_cells)} orphan cells are found and re-assigned.")
             interface_eids = np.append(interface_eids, orphan_cells)
+
+            #! Central mesh object not updated. E.g. lose connection between part.element_ids and
+            #! model.mesh.volume_ids/.cell_data["_volume-id"]
 
         # create a new part
         isolation: Part = self.create_part_by_ids(interface_eids, "Isolation atrial")
@@ -1839,7 +1842,8 @@ class HeartModel:
                 ring_nodes.extend(cap.global_node_ids_edge.tolist())
 
         ring_eles = vtkmethods.find_cells_close_to_nodes(self.mesh, ring_nodes, radius=radius)
-
+        #! remove any non-tetrahedron elements
+        ring_eles = ring_eles[np.isin(ring_eles, self.mesh._global_tetrahedron_ids)]
         # above search may create orphan elements, pick them to rings
         self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
         unselect_eles = np.setdiff1d(

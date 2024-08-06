@@ -92,13 +92,13 @@ class ConductionSystem:
             # define SinoAtrial node:
             target_coord = sup_vcava_centroid - (inf_vcava_centroid - sup_vcava_centroid) / 2
 
-        right_atrium_endo = self.m.right_atrium.endocardium
+        right_atrium_endo = self.m.mesh.get_surface(self.m.right_atrium.endocardium.id)
 
         target_id = pv.PolyData(
-            self.m.mesh.nodes[right_atrium_endo.node_ids, :]
+            self.m.mesh.nodes[right_atrium_endo.global_node_ids, :]
         ).find_closest_point(target_coord)
 
-        SA_node_id = right_atrium_endo.node_ids[target_id]
+        SA_node_id = right_atrium_endo.global_node_ids[target_id]
 
         SA_point = Point(name="SA_node", xyz=self.m.mesh.nodes[SA_node_id, :], node_id=SA_node_id)
         # TODO
@@ -117,24 +117,24 @@ class ConductionSystem:
         Point
             returns the AV node.
         """
-        right_atrium_endo = self.m.right_atrium.endocardium
+        right_atrium_endo = self.m.mesh.get_surface(self.m.right_atrium.endocardium.id)
 
         if target_coord is None:
             for surface in self.m.right_ventricle.surfaces:
                 if "endocardium" in surface.name and "septum" in surface.name:
-                    right_septum = surface
+                    right_septum = self.m.mesh.get_surface(surface.id)
             # define AtrioVentricular as the closest point to septum
             target_id = pv.PolyData(
-                self.m.mesh.points[right_atrium_endo.node_ids, :]
+                self.m.mesh.points[right_atrium_endo.global_node_ids, :]
             ).find_closest_point(right_septum.center)
 
         else:
             target_id = pv.PolyData(
-                self.m.mesh.points[right_atrium_endo.node_ids, :]
+                self.m.mesh.points[right_atrium_endo.global_node_ids, :]
             ).find_closest_point(target_coord)
 
         # assign a point
-        av_id = right_atrium_endo.node_ids[target_id]
+        av_id = right_atrium_endo.global_node_ids[target_id]
         AV_point = Point(name="AV_node", xyz=self.m.mesh.nodes[av_id, :], node_id=av_id)
 
         self.m.right_atrium.points.append(AV_point)
@@ -143,7 +143,7 @@ class ConductionSystem:
 
     def compute_av_conduction(self, beam_length: float = 1.5) -> BeamMesh:
         """Compute Atrio-Ventricular conduction by means of beams following a geodesic path."""
-        right_atrium_endo = self.m.right_atrium.endocardium
+        right_atrium_endo = self.m.mesh.get_surface(self.m.right_atrium.endocardium.id)
 
         try:
             SA_id = self.m.right_atrium.get_point("SA_node").node_id
@@ -157,7 +157,10 @@ class ConductionSystem:
             LOGGER.info("AV node is not defined, creating with default option.")
             AV_id = self.m.compute_AV_node().node_id
 
-        path_SAN_AVN = right_atrium_endo.geodesic(SA_id, AV_id)
+        #! get local SA/AV ids.
+        SA_id_local = np.argwhere(right_atrium_endo.global_node_ids == SA_id).flatten()[0]
+        AV_id_local = np.argwhere(right_atrium_endo.global_node_ids == AV_id).flatten()[0]
+        path_SAN_AVN = right_atrium_endo.geodesic(SA_id_local, AV_id_local)
         beam_nodes = path_SAN_AVN.points
 
         beam_nodes = _refine_line(beam_nodes, beam_length=beam_length)[1:, :]
@@ -288,6 +291,7 @@ class ConductionSystem:
             triangles=np.vstack((sgmt_top, sgmt_left, sgmt_right)),
             nodes=self.m.mesh.points,
         )
+        #!? why?
         self.m.mesh.boundaries.append(surf)
 
         return Point(
@@ -319,6 +323,8 @@ class ConductionSystem:
         return_segment : bool, optional
             Return a segment set (list of triangles) on which the path relies, by default True
         """
+        #! mesh can now have multiple element types: TETRA, TRIANGLE, etc.
+        mesh = mesh.extract_cells_by_type(pv.CellType.TETRA)
 
         def _mesh_to_nx_graph(mesh):
             # convert tetra mesh to graph
@@ -424,14 +430,13 @@ class ConductionSystem:
         """Bundle brunch."""
         if side == "Left":
             ventricle = self.m.left_ventricle
-            endo_surface = self.m.left_ventricle.endocardium
+            endo_surface = self.m.mesh.get_surface(self.m.left_ventricle.endocardium.id)
         elif side == "Right":
             ventricle = self.m.right_ventricle
-            face = np.hstack(
-                (self.m.right_ventricle.endocardium.faces, self.m.right_ventricle.septum.faces)
-            )
-            endo_surface = pv.PolyData(self.m.mesh.points, face)
+            surface_ids = [ventricle.endocardium.id, ventricle.septum.id]
+            endo_surface = self.m.mesh.get_surface(surface_ids)
 
+        #! this will give local ids.
         bundle_branch = endo_surface.geodesic(
             endo_surface.find_closest_point(start_coord),
             endo_surface.find_closest_point(self.m.mesh.points[ventricle.apex_points[0].node_id]),

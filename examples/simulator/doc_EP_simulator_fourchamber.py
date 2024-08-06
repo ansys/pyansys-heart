@@ -57,7 +57,7 @@ from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 # set working directory and path to model.
-workdir = r"D:\REPOS\pyansys-heartv03\pyansys-heart\downloads\Strocchi2020\01\FourChamber"
+workdir = os.path.join("pyansys-heart", "downloads", "Strocchi2020", "01", "FourChamber")
 
 # sphinx_gallery_start_ignore
 # Overwrite with env variables: for testing purposes only. May be removed by user.
@@ -72,10 +72,10 @@ except KeyError:
     pass
 # sphinx_gallery_end_ignore
 
-path_to_model = r"D:\REPOS\pyansys-heartv03\pyansys-heart\downloads\Strocchi2020\01\FourChamber\heart_model.pickle"
+path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 # specify LS-DYNA path (last tested working versions is intelmpi-linux-DEV-106117)
-lsdyna_path = r"D:\Fortran\intelMPI\30JUL24\mppdyna_30JUL24"
+lsdyna_path = r"ls-dyna_msmpi.exe"
 
 # load four chamber heart model.
 model: models.FourChamber = models.HeartModel.load_model(path_to_model)
@@ -110,7 +110,9 @@ model.info.workdir = str(workdir)
 
 # instantaiate dyna settings of choice
 dyna_settings = DynaSettings(
-    lsdyna_path=lsdyna_path, dynatype="intelmpi", num_cpus=4, platform="wsl"
+    lsdyna_path=lsdyna_path,
+    dynatype="intelmpi",
+    num_cpus=4,
 )
 
 # sphinx_gallery_start_ignore
@@ -196,10 +198,10 @@ simulator.model.right_atrium.fiber = True
 simulator.model.left_atrium.fiber = True
 
 
-# simulator.simulate()
+simulator.simulate()
 # The two following solves only work with LS-DYNA DEV-110013 or later
-# simulator.settings.electrophysiology.analysis.solvertype = "Eikonal"
-# simulator.simulate(folder_name="main-ep-Eikonal")
+simulator.settings.electrophysiology.analysis.solvertype = "Eikonal"
+simulator.simulate(folder_name="main-ep-Eikonal")
 simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
 simulator.simulate(folder_name="main-ep-ReactionEikonal")
 

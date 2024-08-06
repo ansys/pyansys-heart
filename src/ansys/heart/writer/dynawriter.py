@@ -3000,10 +3000,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             emsol = 15
             self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=1, ionsolvr=2))
             Tend = 500
-            dt = 1
+            dt = 0.1
             # specify simulation time and time step in case of a spline ionsolver type
             self.kw_database.ep_settings.append("$     Tend        dt")
-            self.kw_database.ep_settings.append(f"{Tend:>10d}{dt:>10d}")
+            self.kw_database.ep_settings.append(f"{Tend:>10f}{dt:>10f}")
 
         self.kw_database.ep_settings.append(
             keywords.EmControl(
@@ -3083,10 +3083,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             if solvertype == "ReactionEikonal":
                 eikonal_stim_content += "$ footType     footT     footA  footTauf   footVth\n"
                 footType = 1
-                footT = stim.period.m
+                footT = stim.duration.m
                 footA = stim.amplitude.m
                 footTauf = 1
-                eikonal_stim_content += f"{footType:>10f}{footT:>10f}{footA:>10f}{footTauf:>10f}"
+                eikonal_stim_content += f"{footType:>10d}{footT:>10f}{footA:>10f}{footTauf:>10f}"
                 eikonal_stim_content += "\n$solvetype\n"
                 eikonal_stim_content += f"{1:>10d}"  # activate time stepping method by default
             stim_kw = eikonal_stim_content

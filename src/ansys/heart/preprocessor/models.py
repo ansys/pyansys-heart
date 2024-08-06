@@ -1758,6 +1758,8 @@ class HeartModel:
         # find interface nodes between ventricles and atrial
         v_ele = np.array([], dtype=int)
         a_ele = np.array([], dtype=int)
+        #! Note that this only works since tetrahedrons are located
+        #! at start of the mesh object.
         for part in self.parts:
             if part.part_type == PartType.VENTRICLE:
                 v_ele = np.append(v_ele, part.element_ids)

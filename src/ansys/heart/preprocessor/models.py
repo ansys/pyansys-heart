@@ -979,7 +979,7 @@ class HeartModel:
         self._validate_parts()
         self._validate_surfaces()
 
-        self._add_surface_normals()
+        # self._add_surface_normals()
 
         self._assign_cavities_to_parts()
         self._update_cap_names()

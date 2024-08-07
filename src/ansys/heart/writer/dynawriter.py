@@ -287,12 +287,12 @@ class BaseDynaWriter:
             cavities = [p.cavity for p in self.model.parts if p.cavity]
             for cavity in cavities:
                 #! Get up to date surface mesh of cavity.
-                surface = self.model.mesh.get_surface(cavity.surface.id)
+                surface1 = self.model.mesh.get_surface(cavity.surface.id)
                 segset_id = self.get_unique_segmentset_id()
 
                 #! recompute normals: point normals may have changed
                 #! do we need some check to ensure normals are pointing inwards?
-                surface.compute_normals(inplace=True)
+                surface1 = surface1.compute_normals(inplace=True, flip_normals=False)
 
                 # cavity.surface.id = (
                 #     segset_id  #! this is tricky: we lose connection to central mesh object.
@@ -300,10 +300,11 @@ class BaseDynaWriter:
                 setattr(
                     cavity.surface, "seg_id", segset_id
                 )  # TODO Should avoid setting these dynamically: SurfacMesh attribute?
+
                 kw = create_segment_set_keyword(
-                    segments=surface.triangles_global + 1,
+                    segments=surface1.triangles_global + 1,
                     segid=cavity.surface.seg_id,  # TODO replace
-                    title=surface.name,
+                    title=cavity.surface.name,
                 )
                 # append this kw to the segment set database
                 self.kw_database.segment_sets.append(kw)
@@ -1381,7 +1382,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # penalty function
         penalty_function = self._get_longitudinal_penalty(robin_settings["ventricle"])
 
-        ventricles_epi["scale factor"] = penalty_function[ventricles_epi.global_node_ids]
+        ventricles_epi["scale factor"] = penalty_function[
+            ventricles_epi.point_data["_global-point-ids"]
+        ]
         # remove nodes with scale factor = 0
         ventricles_epi_reduce = ventricles_epi.threshold(
             value=[0.0001, 1], scalars="scale factor"

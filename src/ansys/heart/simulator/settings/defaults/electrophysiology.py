@@ -52,6 +52,8 @@ material = {
         "beta": Quantity(140, "1/mm"),
         "cm": Quantity(0.01, "uF/mm^2"),  # uF/mm^2
         "lambda": Quantity(0.2, "dimensionless"),
+        "percent_endo": Quantity(0.17, "dimensionless"),
+        "percent_mid": Quantity(0.41, "dimensionless"),
     },
     "beam": {
         "velocity": Quantity(1, "mm/ms"),  # mm/ms in case of eikonal model
@@ -61,5 +63,16 @@ material = {
         "lambda": Quantity(0.2, "dimensionless"),
         "pmjrestype": Quantity(1),
         "pmjres": Quantity(0.001, "1/mS"),  # 1/mS
+    },
+}
+
+"""Stimulation settings."""
+stimulation = {
+    "stimdefaults": {
+        "node_ids": None,
+        "t_start": Quantity(0.0, "ms"),
+        "period": Quantity(800.0, "ms"),
+        "duration": Quantity(20, "ms"),
+        "amplitude": Quantity(50, "uF/mm^3"),
     },
 }

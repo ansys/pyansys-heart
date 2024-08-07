@@ -1420,10 +1420,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
     def _get_epi_surface(self, apply: Literal["ventricle", "atrial"] = "ventricle"):
         """Get the epicardial surfaces of either the ventricle or atria."""
         LOGGER.debug(f"Collecting epicardium nodesets of {apply}:")
+        #! TODO: replace the string comparison. 
         if apply == "ventricle":
-            targets = [part for part in self.model.parts if part.part_type == PartType.VENTRICLE]
+            targets = [part for part in self.model.parts if "ventricle" in part.name]
         elif apply == "atrial":
-            targets = [part for part in self.model.parts if part.part_type == PartType.ATRIUM]
+            targets = [part for part in self.model.parts if "atrium" in part.name]
 
         # retrieve combined epicardial surface from the central mesh object:
         # this ensures that we can use the global-point-ids

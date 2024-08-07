@@ -22,40 +22,40 @@
 
 """Compute rate of pressure change."""
 
-from ansys.heart.preprocessor.models import HeartModel
-from ansys.heart.postprocessor.dpf_utils import ICVoutReader
-import numpy as np
 from matplotlib import pyplot as plt
+import numpy as np
+
+from ansys.heart.postprocessor.dpf_utils import ICVoutReader
+from ansys.heart.preprocessor.models import HeartModel
+
 
 class PressureChangeRate:
-    
+
     def __init__(self, model: HeartModel, binout_file):
         self.model = model
         self.icvout = ICVoutReader(binout_file)
-        
+
         self.t = self.icvout.get_time()
         self.q = self.icvout.get_flowrate(1)
-        self.p = self.icvout.get_pressure(1)*7500.6
-        self.dp = np.gradient(self.p, self.t*1e-3, edge_order=2)
-        Q_ratio = np.max(abs(self.q))/np.min(abs(self.q))
-        tolerance = Q_ratio/1000
-        q0 = np.max(abs(self.q))/tolerance
-        t0 = int(np.argwhere(abs(self.q)< q0)[0])
-        self.dp_max = np.max(self.dp[t0:]) 
-    
-        
+        self.p = self.icvout.get_pressure(1) * 7500.6
+        self.dp = np.gradient(self.p, self.t * 1e-3, edge_order=2)
+        Q_ratio = np.max(abs(self.q)) / np.min(abs(self.q))
+        tolerance = Q_ratio / 1000
+        q0 = np.max(abs(self.q)) / tolerance
+        t0 = int(np.argwhere(abs(self.q) < q0)[0])
+        self.dp_max = np.max(self.dp[t0:])
+
     def plot_dpdt(self):
         fig = plt.figure()
         plt.subplot(211)
         plt.plot(self.t, self.p)
-        plt.ylabel('Pressure (mmHg)')
-        plt.title('Pressure')
+        plt.ylabel("Pressure (mmHg)")
+        plt.title("Pressure")
         plt.subplot(212)
         plt.plot(self.t, self.dp)
-        plt.xlabel('Time (ms)')
-        plt.ylabel('dP/dt (mmHg/s)')
-        plt.title('dP/dt')
-        plt.plot(self.t[np.argwhere(self.dp==self.dp_max)], self.dp_max, 'r*', label='(dP/dt)max')
+        plt.xlabel("Time (ms)")
+        plt.ylabel("dP/dt (mmHg/s)")
+        plt.title("dP/dt")
+        plt.plot(self.t[np.argwhere(self.dp == self.dp_max)], self.dp_max, "r*", label="(dP/dt)max")
         plt.legend()
         return fig
-    

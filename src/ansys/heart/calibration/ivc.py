@@ -85,12 +85,10 @@ class IVCSimulator(MechanicsSimulator):
         model: HeartModel,
         dyna_settings: DynaSettings,
         simulation_directory: Path = "",
-        initial_stress: bool = True
+        initial_stress: bool = True,
     ) -> None:
         """Overload MechanicsSimulator for IVC."""
-        super().__init__(
-            model, dyna_settings, simulation_directory, initial_stress
-        )
+        super().__init__(model, dyna_settings, simulation_directory, initial_stress)
 
     def _write_main_simulation_files(self, folder_name):
         """Overload to call IVC writer."""

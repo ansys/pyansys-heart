@@ -363,7 +363,7 @@ class BaseDynaWriter:
         """
         # getting elements in active parts
         element_ids = np.array([], dtype=int)
-        node_ids = surface.node_ids
+        node_ids = surface.global_node_ids
 
         for part in self.model.parts:
             element_ids = np.append(element_ids, part.element_ids)
@@ -486,10 +486,12 @@ class BaseDynaWriter:
         for part in self.model.parts:
             kws_surface = []
             for surface in part.surfaces:
+                #! get up-to-date version of the surface.
+                surface1=self.model.mesh.get_surface(surface.id)
                 if remove_one_node_from_cell:
-                    node_ids = self._filter_bc_nodes(surface)
+                    node_ids = self._filter_bc_nodes(surface1)
                 else:
-                    node_ids = surface.node_ids
+                    node_ids = surface1.global_node_ids
                 if remove_duplicates:
                     node_ids = np.setdiff1d(node_ids, used_node_ids)
 

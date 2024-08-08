@@ -2644,14 +2644,15 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
         # since that would allow you to robustly extract these nodessets using the
         # input data
         # The below is relevant for all models.
-        node_origin_left = self.settings.purkinje.node_id_origin_left
-        node_origin_right = self.settings.purkinje.node_id_origin_right
+
+        node_origin_left = np.empty(0, dtype=int)
+        node_origin_right = np.empty(0, dtype=int)
         edge_id_start_left = np.empty(0, dtype=int)
         edge_id_start_right = np.empty(0, dtype=int)
 
         # apex_points[0]: endocardium, apex_points[1]: epicardium
         if isinstance(self.model, (LeftVentricle, BiVentricle, FourChamber, FullHeart)):
-            if node_origin_left is None:
+            if self.settings.purkinje.node_id_origin_left is None:
                 node_origin_left = self.model.left_ventricle.apex_points[0].node_id
             segment_set_ids_endo_left = self.model.left_ventricle.endocardium.id
 
@@ -2723,7 +2724,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
 
         # Add right purkinje only in biventricular or 4chamber models
         if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-            if node_origin_left is None:
+            if self.settings.purkinje.node_id_origin_right is None:
                 node_origin_right = self.model.right_ventricle.apex_points[0].node_id
             segment_set_ids_endo_right = self.model.right_ventricle.endocardium.id
 

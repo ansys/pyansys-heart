@@ -1301,12 +1301,13 @@ class HeartModel:
             surface_cavity.name = surface.name
             surface_cavity.id = surface.id
 
-            surface_cavity.compute_normals(inplace=True)  # recompute normals
-
             if not surface_cavity.is_manifold:
                 LOGGER.warning("Cavity of {part.name} is not manifold.")
 
             # add and get from global mesh to get all point/cell data arrays.
+            #! Force normals of cavity surface to point inward.
+            surface_cavity.force_normals_inwards()
+
             self.mesh.add_surface(surface_cavity, surface_cavity.id)
             self.mesh._surface_id_to_name[surface_cavity.id] = surface_cavity.name
             self.mesh = self.mesh.clean()
@@ -1315,7 +1316,6 @@ class HeartModel:
             surface_cavity.id = surface.id
             surface_cavity.name = surface.name
 
-            # NOTE: Validate if normals are pointing inward.
             part.cavity = Cavity(surface=surface_cavity, name=part.name)
             part.cavity.compute_centroid()
 

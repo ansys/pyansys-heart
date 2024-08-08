@@ -581,6 +581,21 @@ def test_mesh_save_load():
     assert mesh.validate_ids_to_name_map() == False
 
 
+def test_cavity_volume():
+    """Test whether compute_volume enforces inwards pointing normals."""
+    # by default normals of sphere are pointing outwards.
+    import copy
+
+    sphere: pv.PolyData = pv.Sphere()
+    sphere = sphere.compute_normals()
+    sphere1 = SurfaceMesh(copy.deepcopy(sphere))
+
+    sphere1.force_normals_inwards()
+
+    assert np.allclose(sphere1.cell_data["Normals"], -1 * sphere.cell_data["Normals"])
+    pass
+
+
 def test_cap_properties():
     """Test getting global_node_ids_edge from Cap."""
     from ansys.heart.preprocessor.mesh.objects import Cap

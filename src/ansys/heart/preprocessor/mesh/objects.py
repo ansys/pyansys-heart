@@ -283,6 +283,17 @@ class SurfaceMesh(pv.PolyData):
         node_ids = self.boundary_edges.flatten()[np.sort(idx)]
         return node_ids
 
+    def force_normals_inwards(self):
+        """Force the cell ordering of a the closed surface such that normals point inward."""
+        if not self.is_manifold:
+            LOGGER.warning("Surface is not manifold.")
+
+        #! Flip normals and consistent normals should enforce that normals are pointing
+        #! inwards for a manifold surface. See:
+        #! https://docs.pyvista.org/api/core/_autosummary/pyvista.polydatafilters.compute_normals
+        self.compute_normals(inplace=True, auto_orient_normals=True, flip_normals=True)
+        return self
+
     def write_to_stl(self, filename: pathlib.Path = None) -> None:
         """Write the surface to a vtk file."""
         if not filename:
@@ -376,7 +387,9 @@ class Cavity(Feature):
     def __init__(self, surface: SurfaceMesh = None, centroid: np.ndarray = None, name=None) -> None:
         super().__init__(name)
 
-        self.surface: SurfaceMesh = surface
+        #! that that if we don't do a deepcopy the associated algorithms may
+        #! modify the cells/points in the original object!!
+        self.surface: SurfaceMesh = copy.deepcopy(surface)
         """Surface mesh making up the cavity."""
         self.centroid: np.ndarray = centroid
         """Centroid of the cavity."""
@@ -384,6 +397,7 @@ class Cavity(Feature):
     @property
     def volume(self):
         """Volume of the cavity."""
+        self.surface.force_normals_inwards()
         return self.surface.volume
 
     def compute_centroid(self):

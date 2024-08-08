@@ -290,9 +290,8 @@ class BaseDynaWriter:
                 surface1 = self.model.mesh.get_surface(cavity.surface.id)
                 segset_id = self.get_unique_segmentset_id()
 
-                #! recompute normals: point normals may have changed
-                #! do we need some check to ensure normals are pointing inwards?
-                surface1 = surface1.compute_normals(inplace=True, flip_normals=False)
+                #! Force inwards pointing normals.
+                surface1.force_normals_inwards()
 
                 # cavity.surface.id = (
                 #     segset_id  #! this is tricky: we lose connection to central mesh object.
@@ -1420,7 +1419,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
     def _get_epi_surface(self, apply: Literal["ventricle", "atrial"] = "ventricle"):
         """Get the epicardial surfaces of either the ventricle or atria."""
         LOGGER.debug(f"Collecting epicardium nodesets of {apply}:")
-        #! TODO: replace the string comparison. 
+        #! TODO: replace the string comparison.
         if apply == "ventricle":
             targets = [part for part in self.model.parts if "ventricle" in part.name]
         elif apply == "atrial":

@@ -1381,7 +1381,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # penalty function
         penalty_function = self._get_longitudinal_penalty(robin_settings["ventricle"])
 
-        ventricles_epi["scale factor"] = penalty_function[ventricles_epi.global_node_ids]
+        ventricles_epi["scale factor"] = penalty_function[
+            ventricles_epi.point_data["_global-point-ids"]
+        ]
         # remove nodes with scale factor = 0
         ventricles_epi_reduce = ventricles_epi.threshold(
             value=[0.0001, 1], scalars="scale factor"

@@ -53,6 +53,7 @@ from ansys.heart.preprocessor.mesh.objects import (
     SurfaceMesh,
 )
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
+from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 
 
 class ModelInfo:
@@ -1801,10 +1802,11 @@ class HeartModel:
             #! model.mesh.volume_ids/.cell_data["_volume-id"]
 
         # create a new part
-        isolation: Part = self.create_part_by_ids(interface_eids, "Isolation atrial")
+        isolation: Part = self.create_part_by_ids(interface_eids, "Atrioventricular isolation")
         isolation.part_type = PartType.ATRIUM
         isolation.fiber = True
         isolation.active = False
+        isolation.ep_material = EPMaterial.Insulator()
 
         return isolation
 

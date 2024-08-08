@@ -42,9 +42,12 @@ def test_icvout():
     path = os.path.dirname(os.path.abspath(__file__))
     fn = os.path.join(path, "binout0000")
     icvout = ICVoutReader(fn)
+
     assert np.all(icvout._icv_ids == np.array([1, 2]))
     assert np.all(icvout._icvi_ids == np.array([1, 2]))
 
+    assert icvout.get_time()[1] == pytest.approx(1.0, rel=1e-3)
+    assert icvout.get_time()[-1] == pytest.approx(800.0, rel=1e-3)
     assert icvout.get_pressure(1)[-1] == pytest.approx(0.0019017, rel=1e-3)
     assert icvout.get_volume(1)[-1] == pytest.approx(166579.15625, rel=1e-3)
     assert icvout.get_flowrate(1)[-1] == pytest.approx(-105.39063, rel=1e-3)

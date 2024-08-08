@@ -38,6 +38,7 @@ import numpy as np
 
 from ansys.heart.core import LOG as LOGGER
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
+from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 from ansys.heart.simulator.settings.material.material import MechanicalMaterialModel
 
 try:
@@ -379,6 +380,9 @@ class BeamMesh(pv.UnstructuredGrid, Feature):
 
         self._all_beam_nodes: np.ndarray = np.empty((0, 3))
         """Temporary attribute to save all previously created beam nodes."""
+
+        self.ep_material: EPMaterial = EPMaterial.DummyMaterial()
+        """Initialize dummy ep material model"""
 
 
 class Cavity(Feature):
@@ -1178,6 +1182,9 @@ class Part:
 
         self.meca_material: MechanicalMaterialModel = MechanicalMaterialModel.DummyMaterial()
         """Material model will be assiggned in Simulator."""
+
+        self.ep_material: EPMaterial = EPMaterial.DummyMaterial()
+        """EP Material model will be assiggned in Simulator."""
 
         """Cavity belonging to the part."""
         if self.part_type in [PartType.VENTRICLE]:

@@ -3322,15 +3322,15 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             network.pid = self.get_unique_part_id()
 
             if network.name == "Left-purkinje":
-                network.nsid = self.model.left_ventricle.endocardium.id
+                network.nsid = self.model.left_ventricle.endocardium.seg_id
             elif network.name == "Right-purkinje":
-                network.nsid = self.model.right_ventricle.endocardium.id
+                network.nsid = self.model.right_ventricle.endocardium.seg_id
             elif network.name == "SAN_to_AVN":
-                network.nsid = self.model.right_atrium.endocardium.id
+                network.nsid = self.model.right_atrium.endocardium.seg_id
             elif network.name == "Left bundle branch":
-                network.nsid = self.model.left_ventricle.cavity.surface.id
+                network.nsid = self.model.left_ventricle.cavity.surface.seg_id
             elif network.name == "Right bundle branch":
-                network.nsid = self.model.right_ventricle.cavity.surface.id
+                network.nsid = self.model.right_ventricle.cavity.surface.seg_id
             elif network.name == "His":
                 # His bundle are inside of 3d mesh
                 # need to create the segment on which beam elements rely

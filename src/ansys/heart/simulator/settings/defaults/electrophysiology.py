@@ -42,9 +42,9 @@ analysis = {
 """Material settings."""
 material = {
     "myocardium": {
-        "velocity_fiber": Quantity(1, "mm/ms"),  # mm/ms in case of eikonal model
-        "velocity_sheet": Quantity(1, "mm/ms"),  # mm/ms in case of eikonal model
-        "velocity_sheet_normal": Quantity(1, "mm/ms"),  # mm/ms in case of eikonal model
+        "velocity_fiber": Quantity(0.7, "mm/ms"),  # mm/ms in case of eikonal model
+        "velocity_sheet": Quantity(0.2, "mm/ms"),  # mm/ms in case of eikonal model
+        "velocity_sheet_normal": Quantity(0.2, "mm/ms"),  # mm/ms in case of eikonal model
         "sigma_fiber": Quantity(0.5, "mS/mm"),  # mS/mm
         "sigma_sheet": Quantity(0.1, "mS/mm"),  # mS/mm
         "sigma_sheet_normal": Quantity(0.1, "mS/mm"),  # mS/mm

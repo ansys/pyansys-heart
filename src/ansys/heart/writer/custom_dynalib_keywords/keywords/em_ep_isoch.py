@@ -42,6 +42,8 @@ class EmEpIsoch(KeywordBase):
                     Field("dplthr", float, 20, 10, kwargs.get("dplthr", 0)),
                     Field("irepol", int, 30, 10, kwargs.get("irepol", 0)),
                     Field("rplthr", float, 40, 10, kwargs.get("rplthr", 0)),
+                    Field("cyclenmin", float, 50, 10, kwargs.get("cyclenmin", 2000)),
+                    Field("apdmin", float, 60, 10, kwargs.get("apdmin", 100)),
                 ],
             ),
         ]
@@ -96,3 +98,21 @@ class EmEpIsoch(KeywordBase):
     @rplthr.setter
     def rplthr(self, value: float) -> None:
         self._cards[0].set_value("rplthr", value)
+
+    @property
+    def cyclenmin(self) -> float:
+        """Get or set the minimum delay between two repol and two depol."""  # nopep8
+        return self._cards[0].get_value("cyclenmin")
+
+    @cyclenmin.setter
+    def cyclenmin(self, value: float) -> None:
+        self._cards[0].set_value("cyclenmin", value)
+
+    @property
+    def apdmin(self) -> float:
+        """Get or set the minimum value to be considered for APD."""  # nopep8
+        return self._cards[0].get_value("apdmin")
+
+    @apdmin.setter
+    def apdmin(self, value: float) -> None:
+        self._cards[0].set_value("apdmin", value)

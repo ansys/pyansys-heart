@@ -34,7 +34,7 @@ import json
 # import missing keywords
 import os
 import time
-from typing import Callable, List, Literal, NamedTuple
+from typing import Callable, List, Literal, NamedTuple, Union
 
 from ansys.dyna.keywords import keywords
 import numpy as np
@@ -295,16 +295,11 @@ class BaseDynaWriter:
                 #! do we need some check to ensure normals are pointing inwards?
                 surface.compute_normals(inplace=True)
 
-                # cavity.surface.id = (
-                #     segset_id  #! this is tricky: we lose connection to central mesh object.
-                # )
-                setattr(
-                    cavity.surface, "seg_id", segset_id
-                )  # TODO Should avoid setting these dynamically: SurfacMesh attribute?
+                cavity.surface._seg_set_id = segset_id
                 kw = create_segment_set_keyword(
                     segments=surface.triangles_global + 1,
-                    segid=cavity.surface.seg_id,  # TODO replace
-                    title=surface.name,
+                    segid=cavity.surface._seg_set_id,  # TODO replace
+                    title=cavity.surface.name,
                 )
                 # append this kw to the segment set database
                 self.kw_database.segment_sets.append(kw)
@@ -318,7 +313,7 @@ class BaseDynaWriter:
                     continue
 
                 segset_id = self.get_unique_segmentset_id()
-                setattr(surface, "seg_id", segset_id)  # TODO Should avoid setting these dynamically
+                surface._seg_set_id = segset_id
 
                 kw = create_segment_set_keyword(
                     segments=surface_global.triangles_global + 1,
@@ -335,10 +330,11 @@ class BaseDynaWriter:
                 cap_mesh = self.model.mesh.get_surface(cap._mesh.id)
                 self._mesh = cap_mesh  #! not sure this is properly updated.
                 segid = self.get_unique_segmentset_id()
-                setattr(cap, "seg_id", segid)  # TODO Should avoid setting these dynamically
+                cap._mesh._seg_set_id = segid
+                cap._seg_set_id = segid
                 segset_kw = create_segment_set_keyword(
                     segments=cap_mesh.triangles_global + 1,
-                    segid=cap.seg_id,
+                    segid=cap._seg_set_id,
                     title=cap.name,
                 )
                 self.kw_database.segment_sets.append(segset_kw)
@@ -446,10 +442,6 @@ class BaseDynaWriter:
             In FiberGenerationWriter, we do not allow all nodes of same element in one nodeset.
         """
         # formats endo, epi- and septum nodeset keywords, do for all surfaces
-
-        surface_ids = [s.id for p in self.model.parts for s in p.surfaces]
-        node_set_id = np.max(surface_ids) + 1
-
         # for each surface in each part add the respective node-set
         # Use same ID as surface
         # TODO check if database already contains nodesets (there will be duplicates otherwise)
@@ -473,12 +465,14 @@ class BaseDynaWriter:
                     )
                     continue
 
-                cap.nsid = node_set_id
+                cap._node_set_id = self.get_unique_nodeset_id()
 
-                kw = create_node_set_keyword(node_ids + 1, node_set_id=cap.nsid, title=cap.name)
+                kw = create_node_set_keyword(
+                    node_ids + 1, node_set_id=cap._node_set_id, title=cap.name
+                )
                 self.kw_database.node_sets.append(kw)
 
-                node_set_id = node_set_id + 1
+                # node_set_id = node_set_id + 1
 
                 used_node_ids = np.append(used_node_ids, node_ids)
 
@@ -495,15 +489,14 @@ class BaseDynaWriter:
                 if remove_duplicates:
                     node_ids = np.setdiff1d(node_ids, used_node_ids)
 
+                surface._node_set_id = self.get_unique_nodeset_id()
                 kw = create_node_set_keyword(
-                    node_ids + 1, node_set_id=surface.id, title=surface.name
+                    node_ids + 1, node_set_id=surface._node_set_id, title=surface.name
                 )
-                surface.nsid = surface.id
-                kws_surface.append(kw)
 
                 used_node_ids = np.append(used_node_ids, node_ids)
 
-            self.kw_database.node_sets.extend(kws_surface)
+                self.kw_database.node_sets.append(kw)
 
     def _get_unique_id(self, keyword: str, return_used_ids: bool = False) -> int:
         """Get unique id of given keyword.
@@ -1280,7 +1273,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 for cap in part.caps:
                     if cap.name in caps_to_use:
                         kw_fix = keywords.BoundarySpcSet()
-                        kw_fix.nsid = cap.nsid
+                        kw_fix.nsid = cap._node_set_id
                         kw_fix.dofx = 1
                         kw_fix.dofy = 1
                         kw_fix.dofz = 1
@@ -1668,7 +1661,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             if cap.centroid is not None:
 
-                if cap.nsid is None:
+                if cap._node_set_id is None:
                     LOGGER.error("cap node set ID is not yet assigned")
                     exit()
 
@@ -1678,7 +1671,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     ddof=123,
                     ityp=1,
                     fgm=0,
-                    inid=cap.nsid,
+                    inid=cap._node_set_id,
                     idof=123,
                 )
                 self.kw_database.cap_elements.append(constraint)
@@ -1764,7 +1757,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             # DEFINE_CONTROL_VOLUME
             cv_kw = keywords.DefineControlVolume()
             cv_kw.id = control_volume.id
-            cv_kw.sid = cavity.surface.seg_id
+            cv_kw.sid = cavity.surface._seg_set_id
             self.kw_database.control_volume.append(cv_kw)
 
             if self.set_flow_area:
@@ -1773,7 +1766,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 sid = self.get_unique_segmentset_id()
                 sets = []
                 for cap in part.caps:
-                    sets.append(cap.seg_id)  # TODO have seg_id as an actual attribute.
+                    sets.append(cap._mesh._seg_set_id)
                 if len(sets) % 8 == 0:  # dynalib bug when length is 8,16,...
                     sets.append(0)
                 self.kw_database.control_volume.append(keywords.SetSegmentAdd(sid=sid, sets=sets))
@@ -1823,13 +1816,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
             # create CV
             cv_kw = keywords.DefineControlVolume()
             cv_kw.id = cavity.surface.id
-            cv_kw.sid = cavity.surface.id
+            cv_kw.sid = cavity.surface._seg_set_id
             self.kw_database.main.append(cv_kw)
 
             # define CV interaction
             cvi_kw = keywords.DefineControlVolumeInteraction()
             cvi_kw.id = cavity.surface.id
-            cvi_kw.cvid1 = cavity.surface.id
+            cvi_kw.cvid1 = cavity.surface._seg_set_id
             cvi_kw.cvid2 = 0  # ambient
 
             if "Left ventricle" in cavity.name:
@@ -1876,22 +1869,22 @@ class MechanicsDynaWriter(BaseDynaWriter):
         for cavity in cavities:
             if cavity.name == "Left ventricle":
                 load = keywords.LoadSegmentSet(
-                    ssid=cavity.surface.seg_id, lcid=load_curve_id, sf=pressure_lv
+                    ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_lv
                 )
                 self.kw_database.main.append(load)
             elif cavity.name == "Right ventricle":
                 load = keywords.LoadSegmentSet(
-                    ssid=cavity.surface.seg_id, lcid=load_curve_id, sf=pressure_rv
+                    ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_rv
                 )
                 self.kw_database.main.append(load)
             elif cavity.name == "Left atrium":
                 load = keywords.LoadSegmentSet(
-                    ssid=cavity.surface.seg_id, lcid=load_curve_id, sf=pressure_la
+                    ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_la
                 )
                 self.kw_database.main.append(load)
             elif cavity.name == "Right atrium":
                 load = keywords.LoadSegmentSet(
-                    ssid=cavity.surface.seg_id, lcid=load_curve_id, sf=pressure_ra
+                    ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_ra
                 )
                 self.kw_database.main.append(load)
             else:
@@ -1915,12 +1908,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
         for cavity in cavities:
             if cavity.name == "Left atrium":
                 load = keywords.LoadSegmentSet(
-                    ssid=cavity.surface.seg_id, lcid=load_curve_id, sf=pressure_lv
+                    ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_lv
                 )
                 self.kw_database.main.append(load)
             elif cavity.name == "Right atrium":
                 load = keywords.LoadSegmentSet(
-                    ssid=cavity.surface.seg_id, lcid=load_curve_id, sf=pressure_rv
+                    ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_rv
                 )
                 self.kw_database.main.append(load)
 
@@ -2293,23 +2286,19 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         )
 
         # collect node set ids (already generated previously)
-        node_sets_ids_epi = [ventricle.epicardium.nsid for ventricle in ventricles]
+        node_sets_ids_epi = [ventricle.epicardium._node_set_id for ventricle in ventricles]
         node_sets_ids_endo = []
         for ventricle in ventricles:
             for surface in ventricle.surfaces:
                 if "endocardium" in surface.name:
-                    node_sets_ids_endo.append(surface.nsid)
+                    node_sets_ids_endo.append(surface._node_set_id)
 
-        node_set_id_lv_endo = self.model.get_part(
-            "Left ventricle"
-        ).endocardium.id  # TODO: use nset id
+        node_set_id_lv_endo = self.model.get_part("Left ventricle").endocardium._node_set_id
         if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             surfaces = [surface for p in self.model.parts for surface in p.surfaces]
             for surface in surfaces:
                 if "septum" in surface.name and "endocardium" in surface.name:
-                    node_set_ids_epi_and_rseptum = node_sets_ids_epi + [
-                        surface.id
-                    ]  # TODO use nset id
+                    node_set_ids_epi_and_rseptum = node_sets_ids_epi + [surface._node_set_id]
                     break
 
         for part in self.model.parts:
@@ -2700,7 +2689,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
         if isinstance(self.model, (LeftVentricle, BiVentricle, FourChamber, FullHeart)):
             if self.settings.purkinje.node_id_origin_left is None:
                 node_origin_left = self.model.left_ventricle.apex_points[0].node_id
-            segment_set_ids_endo_left = self.model.left_ventricle.endocardium.seg_id  # TODO replace
+            segment_set_ids_endo_left = self.model.left_ventricle.endocardium._seg_set_id
 
             # check whether point is on edge of endocardium - otherwise pick another node in
             # the same triangle
@@ -2779,7 +2768,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
             if self.settings.purkinje.node_id_origin_right is None:
                 node_origin_right = self.model.right_ventricle.apex_points[0].node_id
             segment_set_ids_endo_right = (
-                self.model.right_ventricle.endocardium.seg_id
+                self.model.right_ventricle.endocardium._seg_set_id
             )  # TODO Replace
 
             # check whether point is on edge of endocardium - otherwise pick another node in
@@ -2858,7 +2847,11 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
 class ElectrophysiologyDynaWriter(BaseDynaWriter):
     """Class for preparing the input for an Electrophysiology LS-DYNA simulation."""
 
-    def __init__(self, model: HeartModel, settings: SimulationSettings = None) -> None:
+    def __init__(
+        self,
+        model: Union[HeartModel, FullHeart, FourChamber, BiVentricle, LeftVentricle],
+        settings: SimulationSettings = None,
+    ) -> None:
         if isinstance(model, FourChamber):
             model._create_atrioventricular_isolation()
         if model.info.add_blood_pool == True:
@@ -3280,6 +3273,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def _update_use_Purkinje(self, associate_to_segment: bool = True):
         """Update keywords for Purkinje usage."""
+        if not isinstance(self.model, (FullHeart, FourChamber, BiVentricle, LeftVentricle)):
+            LOGGER.debug("Model type not recognized.")
+            return
+
         sid = self.get_unique_section_id()
         self.kw_database.beam_networks.append(keywords.SectionBeam(secid=sid, elform=3, a=645))
 
@@ -3325,32 +3322,32 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             network.pid = self.get_unique_part_id()
 
             if network.name == "Left-purkinje":
-                network.nsid = self.model.left_ventricle.endocardium.seg_id
+                network._node_set_id = self.model.left_ventricle.endocardium._seg_set_id
             elif network.name == "Right-purkinje":
-                network.nsid = self.model.right_ventricle.endocardium.seg_id
+                network._node_set_id = self.model.right_ventricle.endocardium._seg_set_id
             elif network.name == "SAN_to_AVN":
-                network.nsid = self.model.right_atrium.endocardium.seg_id
+                network._node_set_id = self.model.right_atrium.endocardium._seg_set_id
             elif network.name == "Left bundle branch":
-                network.nsid = self.model.left_ventricle.cavity.surface.seg_id
+                network._node_set_id = self.model.left_ventricle.cavity.surface._seg_set_id
             elif network.name == "Right bundle branch":
-                network.nsid = self.model.right_ventricle.cavity.surface.seg_id
+                network._node_set_id = self.model.right_ventricle.cavity.surface._seg_set_id
             elif network.name == "His":
                 # His bundle are inside of 3d mesh
                 # need to create the segment on which beam elements rely
                 surface = self._add_segment_from_boundary(name="his_bundle_segment")
-                network.nsid = surface.id
+                network._node_set_id = surface._node_set_id
             elif network.name == "Bachman bundle":
                 # His bundle are inside of 3d mesh
                 # need to create the segment on which beam elements rely
                 surface = self._add_segment_from_boundary(name="Bachman segment")
-                network.nsid = surface.id
+                network._node_set_id = surface._node_set_id
             else:
                 LOGGER.error(f"Unknown network name for {network.name}.")
                 exit()
 
             # overwrite nsid if beam should not follow the motion of segment
             if not associate_to_segment:
-                network.nsid = -1
+                network._node_set_id = -1
 
             # write
             self.kw_database.beam_networks.append(f"$$ {network.name} $$")
@@ -3360,7 +3357,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 custom_keywords.EmEpPurkinjeNetwork2(
                     purkid=network.pid,
                     buildnet=0,
-                    ssid=network.nsid,
+                    ssid=network._node_set_id,
                     mid=network.pid,
                     pointstx=origin_coordinates[0],
                     pointsty=origin_coordinates[1],
@@ -3412,10 +3409,12 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def _add_segment_from_boundary(self, name: str):
         surface = next(surface for surface in self.model.mesh.boundaries if surface.name == name)
 
-        surface.id = self.get_unique_segmentset_id()
+        surface._seg_set_id = self.get_unique_segmentset_id()
+        surface._node_set_id = self.get_unique_nodeset_id()
+
         kw = create_segment_set_keyword(
             segments=surface.triangles + 1,
-            segid=surface.id,
+            segid=surface._seg_set_id,
             title=surface.name,
         )
         # append this kw to the segment set database

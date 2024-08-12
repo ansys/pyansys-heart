@@ -142,8 +142,10 @@ class Feature:
         """Name of feature."""
         self.type = None
         """Type of feature."""
-        self.nsid: int = None
+        self._node_set_id: int = None
         """Node set id associated with feature."""
+        self._seg_set_id: int = None
+        """Segment set id associated with feature."""
         self.pid: int = None
         """Part id associated with the feature."""
 
@@ -264,6 +266,10 @@ class SurfaceMesh(pv.PolyData):
         """Triangular faces of the surface num_faces x 3."""
         self.nodes = nodes
         """Node coordinates."""
+        self._seg_set_id: int = None
+        """Segment set id."""
+        self._node_set_id: int = None
+        """Node set id."""
 
     @property
     def node_ids(self) -> np.ndarray:

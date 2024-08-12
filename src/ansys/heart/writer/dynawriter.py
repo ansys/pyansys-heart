@@ -2877,7 +2877,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self._update_dummy_material_db()
         self._update_ep_material_db()
 
-        self._update_segmentsets_db(add_cavities=False)
+        self._update_segmentsets_db(add_cavities=True)
 
         # TODO check if no existing node set ids conflict with surface ids
         # For now, new node sets should be created after calling

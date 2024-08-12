@@ -487,7 +487,7 @@ class BaseDynaWriter:
             kws_surface = []
             for surface in part.surfaces:
                 #! get up-to-date version of the surface.
-                surface1=self.model.mesh.get_surface(surface.id)
+                surface1 = self.model.mesh.get_surface(surface.id)
                 if remove_one_node_from_cell:
                     node_ids = self._filter_bc_nodes(surface1)
                 else:
@@ -2690,14 +2690,16 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
         # since that would allow you to robustly extract these nodessets using the
         # input data
         # The below is relevant for all models.
-        node_apex_left = np.empty(0, dtype=int)
-        node_apex_right = np.empty(0, dtype=int)
+
+        node_origin_left = np.empty(0, dtype=int)
+        node_origin_right = np.empty(0, dtype=int)
         edge_id_start_left = np.empty(0, dtype=int)
         edge_id_start_right = np.empty(0, dtype=int)
 
         # apex_points[0]: endocardium, apex_points[1]: epicardium
         if isinstance(self.model, (LeftVentricle, BiVentricle, FourChamber, FullHeart)):
-            node_apex_left = self.model.left_ventricle.apex_points[0].node_id
+            if self.settings.purkinje.node_id_origin_left is None:
+                node_origin_left = self.model.left_ventricle.apex_points[0].node_id
             segment_set_ids_endo_left = self.model.left_ventricle.endocardium.seg_id  # TODO replace
 
             # check whether point is on edge of endocardium - otherwise pick another node in
@@ -2707,13 +2709,13 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
             #! Need to boundary edges to global ids.
             if np.any(
                 endocardium.point_data["_global-point-ids"][endocardium.boundary_edges]
-                == node_apex_left
+                == node_origin_left
             ):
                 element_id = np.argwhere(
-                    np.any(endocardium.triangles_global == node_apex_left, axis=1)
+                    np.any(endocardium.triangles_global == node_origin_left, axis=1)
                 )[0][0]
 
-                node_apex_left = endocardium.triangles_global[element_id, :][
+                node_origin_left = endocardium.triangles_global[element_id, :][
                     np.argwhere(
                         np.isin(
                             endocardium.triangles_global[element_id, :],
@@ -2726,22 +2728,22 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
                     "Node id {0} is on edge of {1}. Picking node id {2}".format(
                         self.model.left_ventricle.apex_points[0].node_id,
                         endocardium.name,
-                        node_apex_left,
+                        node_origin_left,
                     )
                 )
-                self.model.left_ventricle.apex_points[0].node_id = node_apex_left
+                self.model.left_ventricle.apex_points[0].node_id = node_origin_left
 
             node_set_id_apex_left = self.get_unique_nodeset_id()
             # create node-sets for apex
             node_set_apex_kw = create_node_set_keyword(
-                node_ids=[node_apex_left + 1],
+                node_ids=[node_origin_left + 1],
                 node_set_id=node_set_id_apex_left,
                 title="apex node left",
             )
 
             self.kw_database.node_sets.append(node_set_apex_kw)
 
-            apex_left_coordinates = self.model.mesh.nodes[node_apex_left, :]
+            apex_left_coordinates = self.model.mesh.nodes[node_origin_left, :]
 
             #! Is this to get unused start node/edge indinces?
             node_id_start_left = self.model.mesh.nodes.shape[0] + 1
@@ -2774,7 +2776,8 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
 
         # Add right purkinje only in biventricular or 4chamber models
         if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-            node_apex_right = self.model.right_ventricle.apex_points[0].node_id
+            if self.settings.purkinje.node_id_origin_right is None:
+                node_origin_right = self.model.right_ventricle.apex_points[0].node_id
             segment_set_ids_endo_right = (
                 self.model.right_ventricle.endocardium.seg_id
             )  # TODO Replace
@@ -2784,12 +2787,12 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
             #! Make sure endocardium is an updated version (e.g. point/cell data is up to date.)
             endocardium = self.model.mesh.get_surface(self.model.right_ventricle.endocardium.id)
             # endocardium.get_boundary_edges()
-            if np.any(endocardium.boundary_edges_global == node_apex_right):
+            if np.any(endocardium.boundary_edges_global == node_origin_right):
                 element_id = np.argwhere(
-                    np.any(endocardium.triangles_global == node_apex_right, axis=1)
+                    np.any(endocardium.triangles_global == node_origin_right, axis=1)
                 )[0][0]
 
-                node_apex_right = endocardium.triangles_global[element_id, :][
+                node_origin_right = endocardium.triangles_global[element_id, :][
                     np.argwhere(
                         np.isin(
                             endocardium.triangles_global[element_id, :],
@@ -2802,22 +2805,22 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
                     "Node id {0} is on edge of {1}. Picking node id {2}".format(
                         self.model.right_ventricle.apex_points[0].node_id,
                         endocardium.name,
-                        node_apex_right,
+                        node_origin_right,
                     )
                 )
-                self.model.right_ventricle.apex_points[0].node_id = node_apex_right
+                self.model.right_ventricle.apex_points[0].node_id = node_origin_right
 
             node_set_id_apex_right = self.get_unique_nodeset_id()
             # create node-sets for apex
             node_set_apex_kw = create_node_set_keyword(
-                node_ids=[node_apex_right + 1],
+                node_ids=[node_origin_right + 1],
                 node_set_id=node_set_id_apex_right,
                 title="apex node right",
             )
 
             self.kw_database.node_sets.append(node_set_apex_kw)
 
-            apex_right_coordinates = self.model.mesh.nodes[node_apex_right, :]
+            apex_right_coordinates = self.model.mesh.nodes[node_origin_right, :]
 
             node_id_start_right = (
                 2 * self.model.mesh.nodes.shape[0]
@@ -3055,10 +3058,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             emsol = 15
             self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=1, ionsolvr=2))
             Tend = 500
-            dt = 1
+            dt = 0.1
             # specify simulation time and time step in case of a spline ionsolver type
             self.kw_database.ep_settings.append("$     Tend        dt")
-            self.kw_database.ep_settings.append(f"{Tend:>10d}{dt:>10d}")
+            self.kw_database.ep_settings.append(f"{Tend:>10f}{dt:>10f}")
 
         self.kw_database.ep_settings.append(
             keywords.EmControl(
@@ -3138,10 +3141,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             if solvertype == "ReactionEikonal":
                 eikonal_stim_content += "$ footType     footT     footA  footTauf   footVth\n"
                 footType = 1
-                footT = stim.period.m
+                footT = stim.duration.m
                 footA = stim.amplitude.m
                 footTauf = 1
-                eikonal_stim_content += f"{footType:>10f}{footT:>10f}{footA:>10f}{footTauf:>10f}"
+                eikonal_stim_content += f"{footType:>10d}{footT:>10f}{footA:>10f}{footTauf:>10f}"
                 eikonal_stim_content += "\n$solvetype\n"
                 eikonal_stim_content += f"{1:>10d}"  # activate time stepping method by default
             stim_kw = eikonal_stim_content

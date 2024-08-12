@@ -24,9 +24,9 @@
 
 Stimulation definition example
 ---------------------------------
-This example shows you how to define an EP stimulation. It demonstrates how you 
-can load a pre-computed heart model, define a stimulation region based on a sphere 
-centered on the apex, and a sphere centered on a point chosen in Universal 
+This example shows you how to define an EP stimulation. It demonstrates how you
+can load a pre-computed heart model, define a stimulation region based on a sphere
+centered on the apex, and a sphere centered on a point chosen in Universal
 Ventricular Coordinates (UVC).
 """
 
@@ -45,11 +45,13 @@ Ventricular Coordinates (UVC).
 # sphinx_gallery_end_ignore
 
 import os
+
+import numpy as np
+import pyvista as pv
+
 import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.settings.settings import SimulationSettings, Stimulation
 from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
-import pyvista as pv
-import numpy as np
 
 # accept dpf license aggrement
 # https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
@@ -65,7 +67,8 @@ workdir = os.path.join(
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 
-# load your four chamber heart model with uvcs (see preprocessor examples to create a heart model from scratch)
+# load your four chamber heart model with uvcs (see preprocessor examples to create
+# a heart model from scratch)
 model: models.FourChamber = models.HeartModel.load_model(path_to_model)
 
 ###############################################################################
@@ -90,7 +93,7 @@ settings.load_defaults()
 settings.electrophysiology.stimulation = {"stim_apex": stim_apex}
 
 
-# Define auxilary function to find a point in the model based on its UVC coordinates
+# Define auxiliary function to find a point in the model based on its UVC coordinates
 def get_point_from_uvc(
     model: models.HeartModel, apicobasal: float, transmural: float, rotational: float
 ):
@@ -117,7 +120,8 @@ def get_point_from_uvc(
 ###############################################################################
 # Define stimulation based on UVC
 # -------------------------------
-# Select points inside sphere centered at a chosen point based on UVC coordinates (if the model has UVC).
+# Select points inside sphere centered at a chosen point based on UVC coordinates
+# (if the model has UVC).
 if (
     ("transmural" in model.mesh.point_data.keys())
     and ("apico-basal" in model.mesh.point_data.keys())

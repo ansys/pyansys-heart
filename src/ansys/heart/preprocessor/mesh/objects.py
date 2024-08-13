@@ -137,7 +137,7 @@ class Feature:
     """Feature class."""
 
     def __init__(self, name: str = None) -> None:
-        LOGGER.error(DeprecationWarning("Deprecated"))
+        #! This class can be deprecated.
         self.name = name
         """Name of feature."""
         self.type = None

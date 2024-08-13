@@ -3407,7 +3407,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self.id_offset["element"]["discrete"] = beam_elem_id_offset
 
     def _add_segment_from_boundary(self, name: str):
-        
+
         surface = self.model.mesh.get_surface_by_name(name)
 
         surface._seg_set_id = self.get_unique_segmentset_id()

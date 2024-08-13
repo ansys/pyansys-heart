@@ -293,6 +293,12 @@ class ConductionSystem:
         )
         #!? why?
         self.m.mesh.boundaries.append(surf)
+        
+        #! add surface to central mesh object for future use.
+        surface_id = int(np.max(self.m.mesh.surface_ids)+1)
+        self.m.mesh.add_surface(surf.clean(), surface_id)
+        self.m.mesh._surface_id_to_name[surface_id] = "his_bundle_segment"
+        self.m.mesh = self.m.mesh.clean()
 
         return Point(
             xyz=his_end_left_coord,
@@ -500,6 +506,13 @@ class ConductionSystem:
         tri = np.vstack((la_epi.triangles, ra_epi.triangles))
         surface = SurfaceMesh(name="Bachman segment", triangles=tri, nodes=self.m.mesh.nodes)
         self.m.mesh.boundaries.append(surface)
+        
+        #! add surface to central mesh. mesh.boundaries is deprecated.
+        surface_id = int(np.max(self.m.mesh.surface_ids)+1)
+        self.m.mesh.add_surface(surface.clean(), surface_id)
+        self.m.mesh._surface_id_to_name[surface_id] = "Bachman segment"
+        self.m.mesh.clean()
+        
         beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="Bachman bundle")
 
         return beam_net

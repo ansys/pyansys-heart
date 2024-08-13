@@ -3335,12 +3335,12 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 # His bundle are inside of 3d mesh
                 # need to create the segment on which beam elements rely
                 surface = self._add_segment_from_boundary(name="his_bundle_segment")
-                network._node_set_id = surface._node_set_id
+                network._node_set_id = surface._seg_set_id
             elif network.name == "Bachman bundle":
                 # His bundle are inside of 3d mesh
                 # need to create the segment on which beam elements rely
                 surface = self._add_segment_from_boundary(name="Bachman segment")
-                network._node_set_id = surface._node_set_id
+                network._node_set_id = surface._seg_set_id
             else:
                 LOGGER.error(f"Unknown network name for {network.name}.")
                 exit()
@@ -3407,13 +3407,14 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self.id_offset["element"]["discrete"] = beam_elem_id_offset
 
     def _add_segment_from_boundary(self, name: str):
-        surface = next(surface for surface in self.model.mesh.boundaries if surface.name == name)
+        
+        surface = self.model.mesh.get_surface_by_name(name)
 
         surface._seg_set_id = self.get_unique_segmentset_id()
         surface._node_set_id = self.get_unique_nodeset_id()
 
         kw = create_segment_set_keyword(
-            segments=surface.triangles + 1,
+            segments=surface.triangles_global + 1,
             segid=surface._seg_set_id,
             title=surface.name,
         )

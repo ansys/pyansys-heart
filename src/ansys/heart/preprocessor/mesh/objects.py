@@ -876,7 +876,7 @@ class Mesh(pv.UnstructuredGrid):
 
         return self_c
 
-    def add_volume(self, volume: pv.UnstructuredGrid, id: int = None):
+    def add_volume(self, volume: pv.UnstructuredGrid, id: int = None, name: str = None):
         """Add a volume.
 
         Parameters
@@ -885,6 +885,8 @@ class Mesh(pv.UnstructuredGrid):
             PolyData representation of the volume to add
         id : int
             ID of the volume to be added. This id will be tracked as "_volume-id"
+        name : str, optional
+            Name of the added volume, by default None (not tracked)
         """
         if not id:
             if "_volume-id" not in volume.cell_data.keys():
@@ -895,6 +897,9 @@ class Mesh(pv.UnstructuredGrid):
                 LOGGER.debug("sid should by type int.")
                 return None
             volume.cell_data["_volume-id"] = np.ones(volume.n_cells, dtype=float) * id
+
+        if name:
+            self._volume_id_to_name[id] = name
 
         self_copy = self._add_mesh(volume, keep_data=True, fill_float=np.nan)
         return self_copy

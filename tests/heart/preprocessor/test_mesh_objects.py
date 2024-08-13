@@ -232,6 +232,10 @@ def test_surface_add_001():
     mesh.add_surface(surface_to_add)
     np.testing.assert_allclose(np.unique(mesh.cell_data["_surface-id"]), [10, 11, np.nan])
 
+    mesh.add_surface(triangles, 20, name="triangles1")
+    assert triangles.n_cells == mesh.get_surface_by_name("triangles1").n_cells
+    assert triangles.n_points == mesh.get_surface_by_name("triangles1").n_points
+
 
 def test_lines_add_001():
     """Test adding a beam to a Mesh."""

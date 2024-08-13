@@ -899,7 +899,7 @@ class Mesh(pv.UnstructuredGrid):
         self_copy = self._add_mesh(volume, keep_data=True, fill_float=np.nan)
         return self_copy
 
-    def add_surface(self, surface: pv.PolyData, id: int = None):
+    def add_surface(self, surface: pv.PolyData, id: int = None, name: str = None):
         """Add a surface.
 
         Parameters
@@ -908,6 +908,8 @@ class Mesh(pv.UnstructuredGrid):
             PolyData representation of the surface to add
         sid : int
             ID of the surface to be added. This id will be tracked as "_surface-id"
+        name : str, optional
+            Name of the added surface, by default None (not tracked)
         """
         if not id:
             if "_surface-id" not in surface.cell_data.keys():
@@ -920,6 +922,10 @@ class Mesh(pv.UnstructuredGrid):
             surface.cell_data["_surface-id"] = np.ones(surface.n_cells, dtype=float) * id
 
         self_copy = self._add_mesh(surface, keep_data=True, fill_float=np.nan)
+
+        if name:
+            self._surface_id_to_name[id] = name
+
         return self_copy
 
     def add_lines(self, lines: pv.PolyData, id: int = None):

@@ -190,9 +190,13 @@ class ConductionSystem:
 
         # remove nodes on surface, to make sure His bundle nodes are inside of septum
         septum_point_ids = np.setdiff1d(
-            septum_point_ids, self.m.left_ventricle.endocardium.node_ids
+            septum_point_ids,
+            self.m.mesh.get_surface(self.m.left_ventricle.endocardium.id).global_node_ids,
         )
-        septum_point_ids = np.setdiff1d(septum_point_ids, self.m.right_ventricle.septum.node_ids)
+        septum_point_ids = np.setdiff1d(
+            septum_point_ids,
+            self.m.mesh.get_surface(self.m.right_ventricle.septum.id).global_node_ids,
+        )
 
         septum_pointcloud = pv.PolyData(self.m.mesh.nodes[septum_point_ids, :])
 
@@ -396,16 +400,16 @@ class ConductionSystem:
     ):
         """Create His side after bifucation."""
         if side.lower() == "left":
-            endo = self.m.left_ventricle.endocardium
+            endo = self.m.mesh.get_surface(self.m.left_ventricle.endocardium.id)
         elif side.lower() == "right":
-            endo = self.m.right_ventricle.septum
+            endo = self.m.mesh.get_surface(self.m.right_ventricle.septum.id)
 
         n = 20  # avoid too close to bifurcation point
-        temp_id = pv.PolyData(self.m.mesh.points[endo.node_ids, :]).find_closest_point(
+        temp_id = pv.PolyData(self.m.mesh.points[endo.global_node_ids, :]).find_closest_point(
             bifurcation_coord, n=n
         )[n - 1]
 
-        his_end_id = endo.node_ids[temp_id]
+        his_end_id = endo.global_node_ids[temp_id]
         his_end_coord = self.m.mesh.points[his_end_id, :]
 
         # side_his = np.array([bifurcation_coord, his_end_coord])

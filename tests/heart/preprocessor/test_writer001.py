@@ -60,6 +60,9 @@ def get_test_model():
 
     model.left_ventricle.endocardium.triangles = np.array([[0, 1, 2]], dtype=int)
     model.left_ventricle.endocardium.points = model.mesh.nodes
+    model.left_ventricle.endocardium.point_data["_global-point-ids"] = np.arange(
+        0, model.mesh.n_points
+    )
 
     return model
 

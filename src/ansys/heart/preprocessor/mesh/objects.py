@@ -137,13 +137,15 @@ class Feature:
     """Feature class."""
 
     def __init__(self, name: str = None) -> None:
-        LOGGER.error(DeprecationWarning("Deprecated"))
+        #! This class can be deprecated.
         self.name = name
         """Name of feature."""
         self.type = None
         """Type of feature."""
-        self.nsid: int = None
+        self._node_set_id: int = None
         """Node set id associated with feature."""
+        self._seg_set_id: int = None
+        """Segment set id associated with feature."""
         self.pid: int = None
         """Part id associated with the feature."""
 
@@ -209,11 +211,27 @@ class SurfaceMesh(pv.PolyData):
             return
 
     @property
+    def triangles_global(self):
+        """Global triangle ids.
+
+        Returns
+        -------
+        Tries to use point_data["_global-point-ids"] to retrieve
+        triangle definitions in global ids.
+        """
+        return self.point_data["_global-point-ids"][self.triangles]
+
+    @property
     def boundary_edges(self):
         """Get boundary edges of self."""
         boundary_edges = vtkmethods.get_boundary_edge_loops(self, remove_open_edge_loops=False)
         boundary_edges = np.vstack(list(boundary_edges.values()))
         return boundary_edges
+
+    @property
+    def boundary_edges_global(self):
+        """Global point ids of boundary edges."""
+        return self.point_data["_global-point-ids"][self.boundary_edges]
 
     def __init__(
         self,
@@ -248,13 +266,22 @@ class SurfaceMesh(pv.PolyData):
         """Triangular faces of the surface num_faces x 3."""
         self.nodes = nodes
         """Node coordinates."""
+        self._seg_set_id: int = None
+        """Segment set id."""
+        self._node_set_id: int = None
+        """Node set id."""
 
     @property
     def node_ids(self) -> np.ndarray:
-        """Global node ids - sorted by earliest occurrence."""
+        """Local node ids - sorted by earliest occurrence."""
         _, idx = np.unique(self.triangles.flatten(), return_index=True)
         node_ids = self.triangles.flatten()[np.sort(idx)]
         return node_ids
+
+    @property
+    def global_node_ids(self):
+        """Retrieve the global node ids from point data."""
+        return self.point_data["_global-point-ids"][self.node_ids]
 
     @property
     def _boundary_nodes(self) -> np.ndarray:
@@ -262,6 +289,17 @@ class SurfaceMesh(pv.PolyData):
         _, idx = np.unique(self.boundary_edges.flatten(), return_index=True)
         node_ids = self.boundary_edges.flatten()[np.sort(idx)]
         return node_ids
+
+    def force_normals_inwards(self):
+        """Force the cell ordering of a the closed surface such that normals point inward."""
+        if not self.is_manifold:
+            LOGGER.warning("Surface is not manifold.")
+
+        #! Flip normals and consistent normals should enforce that normals are pointing
+        #! inwards for a manifold surface. See:
+        #! https://docs.pyvista.org/api/core/_autosummary/pyvista.polydatafilters.compute_normals
+        self.compute_normals(inplace=True, auto_orient_normals=True, flip_normals=True)
+        return self
 
     def write_to_stl(self, filename: pathlib.Path = None) -> None:
         """Write the surface to a vtk file."""
@@ -359,7 +397,9 @@ class Cavity(Feature):
     def __init__(self, surface: SurfaceMesh = None, centroid: np.ndarray = None, name=None) -> None:
         super().__init__(name)
 
-        self.surface: SurfaceMesh = surface
+        #! that that if we don't do a deepcopy the associated algorithms may
+        #! modify the cells/points in the original object!!
+        self.surface: SurfaceMesh = copy.deepcopy(surface)
         """Surface mesh making up the cavity."""
         self.centroid: np.ndarray = centroid
         """Centroid of the cavity."""
@@ -367,6 +407,7 @@ class Cavity(Feature):
     @property
     def volume(self):
         """Volume of the cavity."""
+        self.surface.force_normals_inwards()
         return self.surface.volume
 
     def compute_centroid(self):
@@ -379,18 +420,61 @@ class Cavity(Feature):
 class Cap(Feature):
     """Cap class."""
 
+    @property
+    def _local_node_ids_edge(self):
+        """Local node ids of cap edge."""
+        edges = vtkmethods.get_boundary_edge_loops(self._mesh)
+        edge_local_ids = np.unique(np.array([np.array(edge) for edge in edges.values()]))
+        return edge_local_ids
+
+    @property
+    def global_node_ids_edge(self):
+        """Global node ids of the edge of the cap."""
+        return self._mesh.point_data["_global-point-ids"][self._local_node_ids_edge]
+
+    @property
+    def _local_centroid_id(self):
+        """Local id of centroid."""
+        centroid_id = np.setdiff1d(np.arange(0, self._mesh.n_points), self._local_node_ids_edge)
+        if len(centroid_id) != 1:
+            LOGGER.error("Failed to identify single centroid node.")
+            return None
+
+        return centroid_id[0]
+
+    @property
+    def global_centroid_id(self):
+        """Global centroid id."""
+        return self._mesh.point_data["_global-point-ids"][self._local_centroid_id]
+
+    @property
+    def centroid(self):
+        """Centroid of cap."""
+        return self._mesh.points[self._local_centroid_id, :]
+
+    @property
+    def cap_normal(self):
+        """Compute mean normal of cap."""
+        return np.mean(self._mesh.compute_normals().cell_data["Normals"], axis=0)
+
     def __init__(self, name: str = None, node_ids: Union[List[int], np.ndarray] = []) -> None:
         super().__init__(name)
+        #! Deprecated: use self.global_node_ids_edge instead.
         self.node_ids = node_ids
         """(Global) node ids of the cap."""
+        # TODO make property. local or global ids?
         self.triangles = None
         """Triangulation of cap."""
+        #! Replaced by cap_normal property
         self.normal = None
         """Normal of cap."""
-        self.centroid = None
-        """Centroid of cap."""
+        #! Deprecated: replaced by global_centroid_id
         self.centroid_id = None
         """Centroid of cap ID (in case centroid node is created)."""
+        self._mesh: SurfaceMesh = None
+
+        self._surface_id: int = None
+
         return
 
 
@@ -488,10 +572,19 @@ class Mesh(pv.UnstructuredGrid):
 
     @property
     def _surfaces(self) -> List[SurfaceMesh]:
-        """List of boundaries in the mesh."""
+        """List of surfaces in the mesh."""
         if self.surface_ids is None:
             return []
-        return [self.get_surface(surface_id) for surface_id in self.surface_ids]
+        surfaces = []
+        for sid in self.surface_ids:
+            surface = SurfaceMesh(self.get_surface(sid))
+            surface.id = sid
+            try:
+                surface.name = self._surface_id_to_name[sid]
+            except:
+                LOGGER.debug(f"Failed to give surface with id {sid} a name")
+            surfaces.append(surface)
+        return surfaces
 
     @property
     def _volumes(self):
@@ -585,8 +678,8 @@ class Mesh(pv.UnstructuredGrid):
             mask = np.all(np.vstack((mask, mask1)), axis=0)
             return np.unique(self.cell_data["_surface-id"][mask])
         except KeyError:
-            LOGGER.debug(f"Failed to extrect one of {SURFACE_CELL_TYPES}")
-            return None
+            LOGGER.debug(f"Failed to extract one of {SURFACE_CELL_TYPES}")
+            return []
 
     @property
     def surface_names(self) -> List[str]:
@@ -712,7 +805,7 @@ class Mesh(pv.UnstructuredGrid):
             for name in point_data_names:
                 mesh.point_data[name] = _get_fill_data(self, mesh, name, "point")
 
-        merged = pv.merge((self, mesh), merge_points=False)
+        merged = pv.merge((self, mesh), merge_points=False, main_has_priority=False)
         super().__init__(merged)
         return self
 
@@ -749,7 +842,7 @@ class Mesh(pv.UnstructuredGrid):
 
     def _get_unmapped_surfaces(self):
         unmapped_ids = self.surface_ids[
-            np.isin(self.volume_ids, list(self._surface_id_to_name.keys()))
+            np.invert(np.isin(self.surface_ids, list(self._surface_id_to_name.keys())))
         ]
         return unmapped_ids
 
@@ -899,7 +992,7 @@ class Mesh(pv.UnstructuredGrid):
         self_copy = self._add_mesh(volume, keep_data=True, fill_float=np.nan)
         return self_copy
 
-    def add_surface(self, surface: pv.PolyData, id: int = None):
+    def add_surface(self, surface: pv.PolyData, id: int = None, overwrite_existing: bool = False):
         """Add a surface.
 
         Parameters
@@ -908,6 +1001,8 @@ class Mesh(pv.UnstructuredGrid):
             PolyData representation of the surface to add
         sid : int
             ID of the surface to be added. This id will be tracked as "_surface-id"
+        overwrite_existing : bool, optional
+            Flag indicating whether to overwrite/append a surface with the same id, by default False
         """
         if not id:
             if "_surface-id" not in surface.cell_data.keys():
@@ -918,6 +1013,13 @@ class Mesh(pv.UnstructuredGrid):
                 LOGGER.debug("sid should by type int.")
                 return None
             surface.cell_data["_surface-id"] = np.ones(surface.n_cells, dtype=float) * id
+
+        if not overwrite_existing:
+            if id in self.surface_ids:
+                LOGGER.debug(
+                    f"{id} already used. Please pick any id other than {self.surface_ids}."
+                )
+                return None
 
         self_copy = self._add_mesh(surface, keep_data=True, fill_float=np.nan)
         return self_copy
@@ -957,12 +1059,25 @@ class Mesh(pv.UnstructuredGrid):
         volume_id = self._volume_name_to_id[name]
         return self.get_volume(volume_id)
 
-    def get_surface(self, sid: int) -> pv.PolyData:
+    def get_surface(self, sid: int) -> Union[pv.PolyData, SurfaceMesh]:
         # ?: Return SurfaceMesh instead of PolyData?
-        """Get a surface as PolyData object."""
-        return self._get_submesh(sid, scalar="_surface-id").extract_surface()
+        """Get a surface as PolyData object.
 
-    def get_surface_by_name(self, name: str) -> pv.PolyData:
+        Notes
+        -----
+        Tries to return a SurfaceMesh object that also contains a name and id.
+        and additional convenience properties.
+        """
+        if sid in list(self._surface_id_to_name.keys()):
+            return SurfaceMesh(
+                self._get_submesh(sid, scalar="_surface-id").extract_surface(),
+                name=self._surface_id_to_name[sid],
+                id=sid,
+            )
+        else:
+            return self._get_submesh(sid, scalar="_surface-id").extract_surface()
+
+    def get_surface_by_name(self, name: str) -> Union[pv.PolyData, SurfaceMesh]:
         # ?: Return SurfaceMesh instead of PolyData?
         """Get the surface associated with `name`."""
         if name not in list(self._surface_name_to_id.keys()):

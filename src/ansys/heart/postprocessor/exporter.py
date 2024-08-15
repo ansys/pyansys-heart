@@ -146,7 +146,7 @@ class LVContourExporter:
                 self.apex_id = ap.node_id
         for cap in self.model.left_ventricle.caps:
             if cap.name == "mitral-valve":
-                self.mv_ids = cap.node_ids
+                self.mv_ids = cap.global_node_ids_edge
 
     def export_contour_to_vtk(self, folder, cutter) -> [vtk.vtkPolyData]:
         """

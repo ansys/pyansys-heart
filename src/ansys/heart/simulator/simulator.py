@@ -224,7 +224,7 @@ class BaseSimulator:
 
         target = self.run_laplace_problem(export_directory, "ra_fiber", raa=np.array(appendage))
 
-        endo_surface = self.model.right_atrium.endocardium
+        endo_surface = self.model.mesh.get_surface(self.model.right_atrium.endocardium.id)
         ra_pv = compute_ra_fiber_cs(
             export_directory, self.settings.atrial_fibers, endo_surface=endo_surface
         )
@@ -257,7 +257,7 @@ class BaseSimulator:
 
         target = self.run_laplace_problem(export_directory, "la_fiber", laa=appendage)
 
-        endo_surface = self.model.left_atrium.endocardium
+        endo_surface = self.model.mesh.get_surface(self.model.left_atrium.endocardium.id)
         la_pv = compute_la_fiber_cs(
             export_directory, self.settings.atrial_fibers, endo_surface=endo_surface
         )
@@ -626,10 +626,12 @@ class MechanicsSimulator(BaseSimulator):
 
         self.model.mesh.nodes = guess_ed_coord
 
-        # Note: synchronization for surfaces
+        #! Note that it is not always clear if the contents of the retrieved
+        #! surface is actually properly copied to the object of which the surface
+        #! is an attribute (part.surface). That is, is `=` actually working here?
         for part in self.model.parts:
             for surface in part.surfaces:
-                surface.nodes = guess_ed_coord
+                surface = self.model.mesh.get_surface(surface.id)
 
         return
 

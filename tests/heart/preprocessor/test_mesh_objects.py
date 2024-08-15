@@ -213,8 +213,8 @@ def test_surface_add_001():
 
     assert np.all(np.isin(mesh.celltypes, [pv.CellType.TRIANGLE, pv.CellType.TETRA]))
 
-    expected_volume_ids = np.hstack([surface.n_cells * [np.nan], init_n_cells * [1]])
-    expected_surface_ids = np.hstack([surface.n_cells * [2], init_n_cells * [np.nan]])
+    expected_volume_ids = np.hstack([init_n_cells * [1], surface.n_cells * [np.nan]])
+    expected_surface_ids = np.hstack([init_n_cells * [np.nan], surface.n_cells * [2]])
     np.testing.assert_allclose(mesh.cell_data["_volume-id"], expected_volume_ids)
     np.testing.assert_allclose(mesh.cell_data["_surface-id"], expected_surface_ids)
 
@@ -231,6 +231,21 @@ def test_surface_add_001():
 
     mesh.add_surface(surface_to_add)
     np.testing.assert_allclose(np.unique(mesh.cell_data["_surface-id"]), [10, 11, np.nan])
+
+    # check behavior when the same id is specified.
+    mesh = _convert_to_mesh(_get_beam_model("tets"))
+
+    mesh.add_surface(triangles, 10)
+    assert mesh.add_surface(quads, 10) == None
+
+    mesh.add_surface(quads, 10, overwrite_existing=True)
+    # Both quads and triangles will exist:
+    assert np.all(
+        np.isin(
+            [pv.CellType.TRIANGLE, pv.CellType.QUAD],
+            mesh.get_surface(10).cast_to_unstructured_grid().celltypes,
+        )
+    )
 
 
 def test_lines_add_001():
@@ -263,7 +278,12 @@ def test_volume_add_001():
     assert tets.add_volume(hex, float(1)) == None
 
     tets.add_volume(hex, id=2)
-    expected = np.hstack([[2] * hex.n_cells, [1] * n_tets])
+    expected = np.hstack(
+        [
+            [1] * n_tets,
+            [2] * hex.n_cells,
+        ]
+    )
     assert np.allclose(tets.cell_data["_volume-id"], expected)
 
 
@@ -506,6 +526,9 @@ def test_mesh_id_to_name():
     triangles1 = mesh.get_surface_by_name("triangles")
     assert triangles.n_cells == triangles1.n_cells
     assert triangles.n_points == triangles1.n_points
+    assert isinstance(triangles1, SurfaceMesh)
+    assert triangles1.name == "triangles"
+    assert triangles1.id == 1
     assert mesh.get_surface_by_name("silly-name") == None
 
     tets1 = mesh.get_volume_by_name("tets")
@@ -552,3 +575,105 @@ def test_mesh_save_load():
         assert mesh1.validate_ids_to_name_map() == False
 
     return
+
+    del mesh._surface_id_to_name[1]
+    assert mesh._get_unmapped_surfaces() == [1]
+    assert mesh.validate_ids_to_name_map() == False
+
+
+def test_cavity_volume():
+    """Test whether compute_volume enforces inwards pointing normals."""
+    # by default normals of sphere are pointing outwards.
+    import copy
+
+    sphere: pv.PolyData = pv.Sphere()
+    sphere = sphere.compute_normals()
+    sphere1 = SurfaceMesh(copy.deepcopy(sphere))
+
+    sphere1.force_normals_inwards()
+
+    assert np.allclose(sphere1.cell_data["Normals"], -1 * sphere.cell_data["Normals"])
+    pass
+
+
+def test_cap_properties():
+    """Test getting global_node_ids_edge from Cap."""
+    from ansys.heart.preprocessor.mesh.objects import Cap
+    from ansys.heart.preprocessor.mesh.vtkmethods import get_patches_with_centroid
+
+    half_sphere = pv.Sphere().clip(normal="y")
+    patches = get_patches_with_centroid(half_sphere)
+    patch_mesh = patches[0].clean()
+    patch_mesh.point_data["_global-point-ids"] = np.arange(0, patch_mesh.n_points) + 10
+
+    cap = Cap(name="aortic-valve")
+    cap._mesh = patch_mesh
+
+    assert cap.global_node_ids_edge.shape[0] == cap._mesh.n_points - 1
+    assert cap.centroid.shape == (3,)
+    assert np.allclose(cap.centroid, [0, 0, 0], atol=1e-7)
+    assert np.allclose(
+        cap.global_node_ids_edge,
+        np.array(
+            [
+                10,
+                11,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24,
+                25,
+                26,
+                27,
+                28,
+                29,
+                30,
+                31,
+                32,
+                33,
+                34,
+                35,
+                36,
+                37,
+                38,
+                39,
+                40,
+                41,
+                42,
+                43,
+                44,
+                45,
+                46,
+                47,
+                48,
+                49,
+                50,
+                51,
+                52,
+                53,
+                54,
+                55,
+                56,
+                57,
+                58,
+                59,
+                60,
+                61,
+                62,
+                63,
+                64,
+                65,
+                66,
+                67,
+                68,
+            ]
+        ),
+    )

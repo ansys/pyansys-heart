@@ -246,6 +246,12 @@ def test_surface_add_001():
             mesh.get_surface(10).cast_to_unstructured_grid().celltypes,
         )
     )
+    mesh.add_surface(triangles, 20, name="triangles1")
+    triangles1 = mesh.get_surface_by_name("triangles1")
+    assert triangles.n_cells == triangles1.n_cells
+    assert triangles.n_points == triangles1.n_points
+    assert isinstance(triangles1, SurfaceMesh)
+    assert triangles1.name == "triangles1"
 
 
 def test_lines_add_001():
@@ -285,6 +291,11 @@ def test_volume_add_001():
         ]
     )
     assert np.allclose(tets.cell_data["_volume-id"], expected)
+
+    tets.add_volume(hex, id=3, name="hex")
+    hex1 = tets.get_volume_by_name("hex")
+    assert hex1.n_cells == hex.n_cells
+    assert hex1.n_points == hex.n_points
 
 
 def test_get_submesh_001():

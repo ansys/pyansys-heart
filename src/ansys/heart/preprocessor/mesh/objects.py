@@ -969,7 +969,7 @@ class Mesh(pv.UnstructuredGrid):
 
         return self_c
 
-    def add_volume(self, volume: pv.UnstructuredGrid, id: int = None):
+    def add_volume(self, volume: pv.UnstructuredGrid, id: int = None, name: str = None):
         """Add a volume.
 
         Parameters
@@ -978,6 +978,8 @@ class Mesh(pv.UnstructuredGrid):
             PolyData representation of the volume to add
         id : int
             ID of the volume to be added. This id will be tracked as "_volume-id"
+        name : str, optional
+            Name of the added volume, by default None (not tracked)
         """
         if not id:
             if "_volume-id" not in volume.cell_data.keys():
@@ -989,10 +991,19 @@ class Mesh(pv.UnstructuredGrid):
                 return None
             volume.cell_data["_volume-id"] = np.ones(volume.n_cells, dtype=float) * id
 
+        if name:
+            self._volume_id_to_name[id] = name
+
         self_copy = self._add_mesh(volume, keep_data=True, fill_float=np.nan)
         return self_copy
 
-    def add_surface(self, surface: pv.PolyData, id: int = None, overwrite_existing: bool = False):
+    def add_surface(
+        self,
+        surface: pv.PolyData,
+        id: int = None,
+        name: str = None,
+        overwrite_existing: bool = False,
+    ):
         """Add a surface.
 
         Parameters
@@ -1001,6 +1012,8 @@ class Mesh(pv.UnstructuredGrid):
             PolyData representation of the surface to add
         sid : int
             ID of the surface to be added. This id will be tracked as "_surface-id"
+        name : str, optional
+            Name of the added surface, by default None (not tracked)
         overwrite_existing : bool, optional
             Flag indicating whether to overwrite/append a surface with the same id, by default False
         """
@@ -1022,6 +1035,10 @@ class Mesh(pv.UnstructuredGrid):
                 return None
 
         self_copy = self._add_mesh(surface, keep_data=True, fill_float=np.nan)
+
+        if name:
+            self._surface_id_to_name[id] = name
+
         return self_copy
 
     def add_lines(self, lines: pv.PolyData, id: int = None):

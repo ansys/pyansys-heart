@@ -141,8 +141,6 @@ class Feature:
         #! This class can be deprecated.
         self.name = name
         """Name of feature."""
-        self.type = None
-        """Type of feature."""
         self._node_set_id: int = None
         """Node set id associated with feature."""
         self._seg_set_id: int = None
@@ -157,6 +155,7 @@ class SurfaceMesh(pv.PolyData):
     """Surface class."""
 
     @property
+    @deprecated(reason="Use .points instead.")
     def nodes(self):
         """Node coordinates."""
         return np.array(self.points)
@@ -195,6 +194,7 @@ class SurfaceMesh(pv.PolyData):
             LOGGER.warning("Failed to set nodes.")
             return
 
+    # TODO This will fail for quad-type meshes.
     @property
     def triangles(self):
         """Triangular faces of the surface num_faces x 3."""
@@ -263,7 +263,7 @@ class SurfaceMesh(pv.PolyData):
 
         self.triangles = triangles
         """Triangular faces of the surface num_faces x 3."""
-        self.nodes = nodes
+        self.points = nodes
         """Node coordinates."""
         self._seg_set_id: int = None
         """Segment set id."""
@@ -301,7 +301,7 @@ class SurfaceMesh(pv.PolyData):
         return self
 
 
-# TODO: Refactor BeamMesh: why is this different from "Mesh"?
+# TODO: Refactor BeamMesh?
 class BeamMesh(pv.UnstructuredGrid, Feature):
     """Beam class."""
 

@@ -293,13 +293,15 @@ class BaseDynaWriter:
 
                 #! recompute normals: point normals may have changed
                 #! do we need some check to ensure normals are pointing inwards?
+                #! Could use surface.force_normals_inwards()
                 surface.compute_normals(inplace=True)
+                # surface.force_normals_inwards()
 
                 cavity.surface._seg_set_id = segset_id
                 kw = create_segment_set_keyword(
                     segments=surface.triangles_global + 1,
                     segid=cavity.surface._seg_set_id,  # TODO replace
-                    title=cavity.surface.name,
+                    title=surface.name,
                 )
                 # append this kw to the segment set database
                 self.kw_database.segment_sets.append(kw)
@@ -359,7 +361,7 @@ class BaseDynaWriter:
         """
         # getting elements in active parts
         element_ids = np.array([], dtype=int)
-        node_ids = surface.global_node_ids
+        node_ids = surface.global_node_ids_triangles
 
         for part in self.model.parts:
             element_ids = np.append(element_ids, part.element_ids)
@@ -485,7 +487,7 @@ class BaseDynaWriter:
                 if remove_one_node_from_cell:
                     node_ids = self._filter_bc_nodes(surface1)
                 else:
-                    node_ids = surface1.global_node_ids
+                    node_ids = surface1.global_node_ids_triangles
                 if remove_duplicates:
                     node_ids = np.setdiff1d(node_ids, used_node_ids)
 
@@ -2198,8 +2200,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
 
         for part in parts:
             for surface in part.surfaces:
-                nodes_to_remove = surface.node_ids[
-                    np.isin(surface.node_ids, nids, assume_unique=True, invert=True)
+                nodes_to_remove = surface.node_ids_triangles[
+                    np.isin(surface.node_ids_triangles, nids, assume_unique=True, invert=True)
                 ]
 
                 faces = surface.faces.reshape(-1, 4)
@@ -3848,7 +3850,7 @@ class UHCWriter(BaseDynaWriter):
         # endo nodes ID
         #! get up to date endocardium.
         endocardium = self.model.mesh.get_surface(self.model.parts[0].endocardium.id)
-        ids_endo = np.where(np.isin(atrium["point_ids"], endocardium.global_node_ids))[0]
+        ids_endo = np.where(np.isin(atrium["point_ids"], endocardium.global_node_ids_triangles))[0]
 
         atrium["endo"] = np.zeros(atrium.n_points, dtype=int)
         atrium["endo"][ids_endo] = 1
@@ -3967,7 +3969,7 @@ class UHCWriter(BaseDynaWriter):
             for surf in part.surfaces:
                 if "endocardium" in surf.name:
                     endo_surf = self.model.mesh.get_surface(surf.id)
-                    endo_set.extend(endo_surf.global_node_ids)
+                    endo_set.extend(endo_surf.global_node_ids_triangles)
                 # elif "epicardium" in surf.name:
                 #     epi_set.extend(surf.node_ids)
 
@@ -4048,7 +4050,7 @@ class UHCWriter(BaseDynaWriter):
             if cavity_type in part.name:
                 for surf in part.surfaces:
                     if surftype in surf.name:
-                        nodeset = np.append(nodeset, surf.node_ids)
+                        nodeset = np.append(nodeset, surf.node_ids_triangles)
         nodeset = np.unique(nodeset.astype(int))
 
         # map IDs to sub mesh

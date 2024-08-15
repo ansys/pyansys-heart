@@ -139,9 +139,6 @@ def test_mesh_add_001():
     # init the base mesh.
     base = Mesh(tets)
 
-    # fill attribute with some values to ensure that info is kept.
-    base.boundaries = [[1, 2]]
-
     merged = base._add_mesh(triangles)
     assert isinstance(merged, Mesh)
     assert base.n_cells == triangles.n_cells + tets.n_cells
@@ -150,8 +147,6 @@ def test_mesh_add_001():
     base._add_mesh(edges)
     assert base.n_cells == triangles.n_cells + tets.n_cells + edges.n_cells
 
-    # assert that attribute was kept
-    assert base.boundaries == [[1, 2]]
     pass
 
 
@@ -246,6 +241,12 @@ def test_surface_add_001():
             mesh.get_surface(10).cast_to_unstructured_grid().celltypes,
         )
     )
+    mesh.add_surface(triangles, 20, name="triangles1")
+    triangles1 = mesh.get_surface_by_name("triangles1")
+    assert triangles.n_cells == triangles1.n_cells
+    assert triangles.n_points == triangles1.n_points
+    assert isinstance(triangles1, SurfaceMesh)
+    assert triangles1.name == "triangles1"
 
 
 def test_lines_add_001():
@@ -285,6 +286,11 @@ def test_volume_add_001():
         ]
     )
     assert np.allclose(tets.cell_data["_volume-id"], expected)
+
+    tets.add_volume(hex, id=3, name="hex")
+    hex1 = tets.get_volume_by_name("hex")
+    assert hex1.n_cells == hex.n_cells
+    assert hex1.n_points == hex.n_points
 
 
 def test_get_submesh_001():

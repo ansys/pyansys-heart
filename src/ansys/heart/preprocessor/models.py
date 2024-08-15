@@ -513,21 +513,13 @@ class HeartModel:
         fluent_mesh.face_zones = [
             fz for ii, fz in enumerate(fluent_mesh.face_zones) if ii not in idx_to_remove
         ]
-        # TODO: remove the following:
-        mesh.boundaries = [
-            SurfaceMesh(name=fz.name, triangles=fz.faces, nodes=mesh.nodes, id=fz.id)
-            for fz in fluent_mesh.face_zones
-            if not "interior" in fz.name
-        ]
 
         for fz in fluent_mesh.face_zones:
             if "interior" not in fz.name:
                 surface = SurfaceMesh(
                     name=fz.name, triangles=fz.faces, nodes=fluent_mesh.nodes, id=fz.id
                 )
-
-                mesh.add_surface(surface, int(fz.id))
-                mesh._surface_id_to_name[int(fz.id)] = fz.name
+                mesh.add_surface(surface, int(fz.id), name=fz.name)
 
         self.mesh = mesh.clean()
 
@@ -549,7 +541,7 @@ class HeartModel:
         substrings_exlude_re = "|".join(substrings_exlude)
 
         boundaries_fluid = [
-            b for b in self.mesh.boundaries if re.search(substrings_include_re, b.name)
+            b for b in self.mesh._surfaces if re.search(substrings_include_re, b.name)
         ]
         boundaries_exclude = [
             b.name for b in boundaries_fluid if re.search(substrings_exlude_re, b.name)
@@ -598,7 +590,8 @@ class HeartModel:
         ]
 
         self.fluid_mesh = Mesh(fluid_mesh_vtk)
-        self.fluid_mesh.boundaries = boundaries
+        for boundary in boundaries:
+            self.fluid_mesh.add_surface(boundary, boundary.id, boundary.name)
 
         return
 
@@ -637,6 +630,8 @@ class HeartModel:
         summary = model_summary(self)
         return summary
 
+    # TODO keep this for now, but we can rework to more conveniently use
+    # TODO info from self.mesh.
     def print_info(self) -> None:
         """Print information about the model."""
         if not isinstance(self.mesh.tetrahedrons, np.ndarray):
@@ -830,7 +825,7 @@ class HeartModel:
             return
 
         surfaces_to_plot = [s for p in self.parts for s in p.surfaces]
-        valves = [b for b in self.mesh.boundaries if "valve" in b.name or "border" in b.name]
+        valves = [b for b in self.mesh._surfaces if "valve" in b.name or "border" in b.name]
         surfaces_to_plot = surfaces_to_plot + valves
 
         color_map = plt.cm.get_cmap("tab20", len(surfaces_to_plot))
@@ -1103,19 +1098,17 @@ class HeartModel:
 
         return
 
-    # TODO: since we now use a global mesh we need to
-    # TODO: use the global point ids.
     def _extract_apex(self, check_edge: bool = True) -> None:
-        """
-        Extract the apex for both the endocardium and epicardium of each ventricle.
+        """Extract the apex of the ventricles.
 
         Notes
         -----
-        Apex defined as the point furthest from the mid-point between caps/valves
+        Apex is the defined as the point furthest from the mid-point between cap/valves.
 
-        Args:
-            check_edge (bool, optional): Checks and corrects if the apex point is on surface edge.
-            Defaults to True.
+        Parameters
+        ----------
+        check_edge : bool, optional
+            Checks and corrects if the apical point is on the edge of a surface, by default True
         """
         ventricles = [p for p in self.parts if "ventricle" in p.name]
         surface_substrings = ["endocardium", "epicardium"]
@@ -1124,10 +1117,11 @@ class HeartModel:
             cap_centroids = [c.centroid for c in ventricle.caps]
             ref_point = np.mean(np.array(cap_centroids), axis=0)
             for surface_substring in surface_substrings:
-                surface = next(s for s in ventricle.surfaces if surface_substring in s.name)
-                surface = SurfaceMesh(self.mesh.get_surface(surface.id))
+                surface_id = next((s.id for s in ventricle.surfaces if surface_substring in s.name))
+                surface = self.mesh.get_surface(surface_id)
+
                 # surface = next(s for s in self.mesh._surfaces if surface_substring in s.name)
-                apical_node_id = surface.node_ids[
+                apical_node_id = surface.node_ids_triangles[
                     np.argmax(np.linalg.norm(surface.nodes - ref_point, axis=1))
                 ]
                 # NOTE: This is the global apical node id when referenced in self.mesh.
@@ -1204,9 +1198,8 @@ class HeartModel:
         for part in self.parts:
             for surface in part.surfaces:
                 boundary_name = "-".join(surface.name.lower().split())
-                # boundary_surface = self.mesh._get_surface_from_name(boundary_name)
-                boundary_surface = SurfaceMesh(self.mesh.get_surface_by_name(boundary_name))
-                boundary_surface.id = self.mesh._surface_name_to_id[boundary_name]
+                boundary_surface = self.mesh.get_surface_by_name(boundary_name)
+
                 if "septum" in surface.name:
                     try:
                         septum_candidates = [s for s in self.mesh.surface_names if "septum" in s]
@@ -1263,9 +1256,7 @@ class HeartModel:
 
             LOGGER.debug(f"Generating {len(patches)} caps for {part.name}")
 
-            # TODO: Add patches as a surface to self.mesh instead of modifying nodes directly.
             # TODO: Note that points come from surface, and does not contain all points in the mesh.
-
             # Create Cap objects with patches
             caps = []
             for patch in patches:
@@ -1277,23 +1268,20 @@ class HeartModel:
                 cap_mesh = SurfaceMesh(patch.clean(), name=cap_name, id=ii + idoffset)
 
                 # Add cap to main mesh.
-                self.mesh.add_surface(cap_mesh, id=cap_mesh.id)
-                self.mesh._surface_id_to_name[cap_mesh.id] = cap_name
+                self.mesh.add_surface(cap_mesh, id=cap_mesh.id, name=cap_name)
 
                 self.mesh.clean()
 
                 # get the cap mesh from the global mesh:
                 # this ensures we can access the _global-point/cell-ids.
-                cap_mesh1 = SurfaceMesh(self.mesh.get_surface_by_name(cap_name))
-                cap_mesh1.id = cap_mesh.id
-                cap_mesh1.name = cap_mesh.name
+                cap_mesh1 = self.mesh.get_surface_by_name(cap_name)
 
                 cap = Cap(name=cap_name)
                 cap._mesh = cap_mesh1
                 part.caps.append(cap)
 
             # TODO: We could do this somewhere else.
-            # ! Note that the element ids in cavity.surface don't have any meaning
+            # ! Note that the element/cell ids in cavity.surface don't have any meaning
             # ! and we can only use this for getting some meta-data such as volume
             # ! also it is not updated dynamically.
             # merge patches into cavity surface.
@@ -1306,13 +1294,10 @@ class HeartModel:
             surface_cavity.force_normals_inwards()
 
             # add and get from global mesh to get all point/cell data arrays.
-            self.mesh.add_surface(surface_cavity, surface_cavity.id)
-            self.mesh._surface_id_to_name[surface_cavity.id] = surface_cavity.name
+            self.mesh.add_surface(surface_cavity, id=surface_cavity.id, name=surface_cavity.name)
             self.mesh = self.mesh.clean()
 
             surface_cavity = self.mesh.get_surface(surface_cavity.id)
-            surface_cavity.id = surface.id
-            surface_cavity.name = surface.name
 
             part.cavity = Cavity(surface=surface_cavity, name=part.name)
             part.cavity.compute_centroid()
@@ -1352,8 +1337,7 @@ class HeartModel:
 
                         LOGGER.debug(f"Cap {cap.name} connected to {b.name}")
                         # update name to id map:
-                        cap_id = self.mesh._surface_name_to_id[old_cap_name]
-                        self.mesh._surface_id_to_name[cap_id] = cap.name
+                        self.mesh._surface_id_to_name[cap_mesh.id] = cap.name
                         break
 
         return
@@ -1439,9 +1423,9 @@ class HeartModel:
 
                     # add updated mesh to global mesh.
                     # TODO: could just change the _surface-ids in the cell data directly.
-                    # TODO: this basically appends this the cells of this mesh at the end of Mesh.
+                    # TODO: this basically appends the cells of surface at the end of Mesh.
                     self.mesh.remove_surface(surf_id)
-                    self.mesh.add_surface(surface, int(surf_id))
+                    self.mesh.add_surface(surface, int(surf_id), name=surface.name)
 
         return
 
@@ -1731,14 +1715,13 @@ class HeartModel:
             return np.array(apex_set)
         elif option == "endocardium":
             return np.intersect1d(
-                self.mesh.get_surface(part.endocardium.id).global_node_ids, apex_set
+                self.mesh.get_surface(part.endocardium.id).global_node_ids_triangles, apex_set
             )
         elif option == "epicardium":
             return np.intersect1d(
-                self.mesh.get_surface(part.epicardium.id).global_node_ids, apex_set
+                self.mesh.get_surface(part.epicardium.id).global_node_ids_triangles, apex_set
             )
 
-    # TODO: fix this.
     def _create_atrioventricular_isolation(self) -> Union[None, Part]:
         """
         Extract a layer of element to isolate between ventricles and atrium.

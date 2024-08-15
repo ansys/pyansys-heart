@@ -112,8 +112,8 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
             #! This needs to be refactored.
             new_cavity = copy.deepcopy(cavity)
             new_cavity.surface.points = (
-                stress_free_coord[new_cavity.surface.global_node_ids]
-                + dsp[new_cavity.surface.global_node_ids]
+                stress_free_coord[new_cavity.surface.global_node_ids_triangles]
+                + dsp[new_cavity.surface.global_node_ids_triangles]
             )
             new_cavity.surface.save(os.path.join(directory, folder, f"{cavity.name}_{i}.vtk"))
             inflated_volumes.append(new_cavity.volume)

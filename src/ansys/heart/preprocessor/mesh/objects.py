@@ -34,6 +34,7 @@ import os
 import pathlib
 from typing import List, Literal, Union
 
+from deprecated import deprecated
 import numpy as np
 
 from ansys.heart.core import LOG as LOGGER
@@ -259,8 +260,6 @@ class SurfaceMesh(pv.PolyData):
 
         self.id: int = id
         """ID of surface."""
-        self.nsid: int = None
-        """ID of corresponding set of nodes."""
 
         self.triangles = triangles
         """Triangular faces of the surface num_faces x 3."""
@@ -272,16 +271,16 @@ class SurfaceMesh(pv.PolyData):
         """Node set id."""
 
     @property
-    def node_ids(self) -> np.ndarray:
+    def node_ids_triangles(self) -> np.ndarray:
         """Local node ids - sorted by earliest occurrence."""
         _, idx = np.unique(self.triangles.flatten(), return_index=True)
         node_ids = self.triangles.flatten()[np.sort(idx)]
         return node_ids
 
     @property
-    def global_node_ids(self):
+    def global_node_ids_triangles(self):
         """Retrieve the global node ids from point data."""
-        return self.point_data["_global-point-ids"][self.node_ids]
+        return self.point_data["_global-point-ids"][self.node_ids_triangles]
 
     @property
     def _boundary_nodes(self) -> np.ndarray:
@@ -301,24 +300,8 @@ class SurfaceMesh(pv.PolyData):
         self.compute_normals(inplace=True, auto_orient_normals=True, flip_normals=True)
         return self
 
-    def write_to_stl(self, filename: pathlib.Path = None) -> None:
-        """Write the surface to a vtk file."""
-        if not filename:
-            filename = "_".join(self.name.lower().split()) + ".stl"
-        if filename[-4:] != ".stl":
-            filename = filename + ".stl"
 
-        # NOTE: The below should yield the same stls, but somehow fluent meshing
-        # produces a slightly different mesh. Should still be valid though
-        # cleaned = self.clean()
-        # cleaned.save(filename)
-        # vtkmethods.add_solid_name_to_stl(filename, self.name, file_type="binary")
-
-        vtk_surface = vtkmethods.create_vtk_surface_triangles(self.nodes, self.triangles)
-        vtkmethods.vtk_surface_to_stl(vtk_surface, filename, self.name)
-        return
-
-
+# TODO: Refactor BeamMesh: why is this different from "Mesh"?
 class BeamMesh(pv.UnstructuredGrid, Feature):
     """Beam class."""
 
@@ -459,17 +442,6 @@ class Cap(Feature):
 
     def __init__(self, name: str = None, node_ids: Union[List[int], np.ndarray] = []) -> None:
         super().__init__(name)
-        #! Deprecated: use self.global_node_ids_edge instead.
-        self.node_ids = node_ids
-        """(Global) node ids of the cap."""
-        # TODO make property. local or global ids?
-        self.triangles = None
-        """Triangulation of cap."""
-        #! Replaced by cap_normal property
-        self.normal = None
-        """Normal of cap."""
-        #! Deprecated: replaced by global_centroid_id
-        self.centroid_id = None
         """Centroid of cap ID (in case centroid node is created)."""
         self._mesh: SurfaceMesh = None
 
@@ -504,11 +476,16 @@ class Mesh(pv.UnstructuredGrid):
     """
 
     @property
+    @deprecated(reason="Equivalent to `.points`.")
     def nodes(self):
         """Node coordinates."""
         return np.array(self.points)
 
     @nodes.setter
+    @deprecated(
+        reason="""Setting nodes through this property is deprecated.
+        Use add_surface, add_volume or .points instead"""
+    )
     def nodes(self, array: np.ndarray):
         if isinstance(array, type(None)):
             return
@@ -558,6 +535,10 @@ class Mesh(pv.UnstructuredGrid):
         return self.cells_dict[pv.CellType.LINE]
 
     @tetrahedrons.setter
+    @deprecated(
+        reason="""Setting tetrahedrons through this property is deprecated, use
+                add_volume instead."""
+    )
     def tetrahedrons(self, value: np.ndarray):
         # TODO: manage cell data
         # TODO: could deprecate now that there is an add_volume method?
@@ -603,8 +584,8 @@ class Mesh(pv.UnstructuredGrid):
         """Global ids of tetrahedral cells."""
         return _get_global_cell_ids(self, pv.CellType.TETRA)
 
-    # TODO: deprecate
     @property
+    @deprecated(reason="Part-ids will be deprecated: use _volume-id(s) instead.")
     def part_ids(self) -> np.ndarray:
         """Array of part ids indicating to which part the tetrahedron belongs.
 
@@ -625,43 +606,6 @@ class Mesh(pv.UnstructuredGrid):
             LOGGER.warning("'part-id' field not found in self.cell_data")
             value = None
         return value
-
-    # TODO: This needs to be refactored
-    @property
-    def boundary_names(self) -> List[str]:
-        """Iterate over boundaries and returns their names."""
-        return [b.name for b in self.boundaries]
-
-    # TODO: deprecate. This is redundant with the _add_mesh and
-    # TODO corresponding add_surface, add_volume, add_line methods
-    def _sync_nodes_of_surfaces(self):
-        """Synchronize the node array of each associated surface.
-
-        Notes
-        -----
-        Temporary until this module is refactored.
-        """
-        for b in self.boundaries:
-            b.nodes = self.nodes
-
-        return
-
-    # TODO: This method needs to be refactored.
-    def _get_surface_from_name(self, name: str = None):
-        """Return a list of surfaces that match the given list of names.
-
-        Notes
-        -----
-        Returns single surface. When multiple matches are found returns list of surfaces
-        """
-        surfaces_search = self.boundaries
-        surfaces = [s for s in surfaces_search if s.name == name]
-        if len(surfaces) == 0:
-            return None
-        if len(surfaces) == 1:
-            return surfaces[0]
-        else:
-            return surfaces
 
     @property
     def surface_ids(self) -> np.ndarray:
@@ -748,10 +692,6 @@ class Mesh(pv.UnstructuredGrid):
 
     def __init__(self, *args):
         super().__init__(*args)
-
-        # ! replace this list by read-only property
-        self.boundaries: List[SurfaceMesh] = []
-        """List of boundary surface meshes within the part."""
 
         self._surface_id_to_name: dict = {}
         """Surface id to name map."""
@@ -860,7 +800,7 @@ class Mesh(pv.UnstructuredGrid):
         -----
         This tries to read a JSON file with the volume/surface id to name map
         with extension .namemap.json in the same directory as the file. Alternatively,
-        you can read the name map manually by calling `._load_id_to_name_map()`
+        you can read the name map manually by calling `._load_id_to_name_map(filename)`
 
         Parameters
         ----------
@@ -874,9 +814,16 @@ class Mesh(pv.UnstructuredGrid):
             self._load_id_to_name_map(filename_map)
         except:
             if not os.path.isfile(filename_map):
-                LOGGER.warning(f"{filename_map} not found.")
+                LOGGER.warning(
+                    f"""{filename_map} not found. Please set id_to_name map manually by
+                               mesh._load_id_to_name_map(filename)"""
+                )
             else:
-                LOGGER.error(f"Failed to read surface/volume id to name map from {filename_map}")
+                LOGGER.error(
+                    f"""Failed to read surface/volume id to name map from {filename_map}.
+                    Please set id_to_name map manually by
+                    mesh._load_id_to_name_map(filename)"""
+                )
         return
 
     def _save_id_to_name_map(self, filename: Union[str, pathlib.Path]):
@@ -969,7 +916,7 @@ class Mesh(pv.UnstructuredGrid):
 
         return self_c
 
-    def add_volume(self, volume: pv.UnstructuredGrid, id: int = None):
+    def add_volume(self, volume: pv.UnstructuredGrid, id: int = None, name: str = None):
         """Add a volume.
 
         Parameters
@@ -978,6 +925,8 @@ class Mesh(pv.UnstructuredGrid):
             PolyData representation of the volume to add
         id : int
             ID of the volume to be added. This id will be tracked as "_volume-id"
+        name : str, optional
+            Name of the added volume, by default None (not tracked)
         """
         if not id:
             if "_volume-id" not in volume.cell_data.keys():
@@ -989,10 +938,19 @@ class Mesh(pv.UnstructuredGrid):
                 return None
             volume.cell_data["_volume-id"] = np.ones(volume.n_cells, dtype=float) * id
 
+        if name:
+            self._volume_id_to_name[id] = name
+
         self_copy = self._add_mesh(volume, keep_data=True, fill_float=np.nan)
         return self_copy
 
-    def add_surface(self, surface: pv.PolyData, id: int = None, overwrite_existing: bool = False):
+    def add_surface(
+        self,
+        surface: pv.PolyData,
+        id: int = None,
+        name: str = None,
+        overwrite_existing: bool = False,
+    ):
         """Add a surface.
 
         Parameters
@@ -1001,6 +959,8 @@ class Mesh(pv.UnstructuredGrid):
             PolyData representation of the surface to add
         sid : int
             ID of the surface to be added. This id will be tracked as "_surface-id"
+        name : str, optional
+            Name of the added surface, by default None (not tracked)
         overwrite_existing : bool, optional
             Flag indicating whether to overwrite/append a surface with the same id, by default False
         """
@@ -1022,6 +982,10 @@ class Mesh(pv.UnstructuredGrid):
                 return None
 
         self_copy = self._add_mesh(surface, keep_data=True, fill_float=np.nan)
+
+        if name:
+            self._surface_id_to_name[id] = name
+
         return self_copy
 
     def add_lines(self, lines: pv.PolyData, id: int = None):

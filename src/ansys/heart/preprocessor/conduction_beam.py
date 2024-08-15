@@ -95,10 +95,10 @@ class ConductionSystem:
         right_atrium_endo = self.m.mesh.get_surface(self.m.right_atrium.endocardium.id)
 
         target_id = pv.PolyData(
-            self.m.mesh.nodes[right_atrium_endo.global_node_ids, :]
+            self.m.mesh.nodes[right_atrium_endo.global_node_ids_triangles, :]
         ).find_closest_point(target_coord)
 
-        SA_node_id = right_atrium_endo.global_node_ids[target_id]
+        SA_node_id = right_atrium_endo.global_node_ids_triangles[target_id]
 
         SA_point = Point(name="SA_node", xyz=self.m.mesh.nodes[SA_node_id, :], node_id=SA_node_id)
         # TODO
@@ -125,16 +125,16 @@ class ConductionSystem:
                     right_septum = self.m.mesh.get_surface(surface.id)
             # define AtrioVentricular as the closest point to septum
             target_id = pv.PolyData(
-                self.m.mesh.points[right_atrium_endo.global_node_ids, :]
+                self.m.mesh.points[right_atrium_endo.global_node_ids_triangles, :]
             ).find_closest_point(right_septum.center)
 
         else:
             target_id = pv.PolyData(
-                self.m.mesh.points[right_atrium_endo.global_node_ids, :]
+                self.m.mesh.points[right_atrium_endo.global_node_ids_triangles, :]
             ).find_closest_point(target_coord)
 
         # assign a point
-        av_id = right_atrium_endo.global_node_ids[target_id]
+        av_id = right_atrium_endo.global_node_ids_triangles[target_id]
         AV_point = Point(name="AV_node", xyz=self.m.mesh.nodes[av_id, :], node_id=av_id)
 
         self.m.right_atrium.points.append(AV_point)
@@ -158,8 +158,8 @@ class ConductionSystem:
             AV_id = self.m.compute_AV_node().node_id
 
         #! get local SA/AV ids.
-        SA_id_local = np.argwhere(right_atrium_endo.global_node_ids == SA_id).flatten()[0]
-        AV_id_local = np.argwhere(right_atrium_endo.global_node_ids == AV_id).flatten()[0]
+        SA_id_local = np.argwhere(right_atrium_endo.global_node_ids_triangles == SA_id).flatten()[0]
+        AV_id_local = np.argwhere(right_atrium_endo.global_node_ids_triangles == AV_id).flatten()[0]
         path_SAN_AVN = right_atrium_endo.geodesic(SA_id_local, AV_id_local)
         beam_nodes = path_SAN_AVN.points
 
@@ -191,11 +191,11 @@ class ConductionSystem:
         # remove nodes on surface, to make sure His bundle nodes are inside of septum
         septum_point_ids = np.setdiff1d(
             septum_point_ids,
-            self.m.mesh.get_surface(self.m.left_ventricle.endocardium.id).global_node_ids,
+            self.m.mesh.get_surface(self.m.left_ventricle.endocardium.id).global_node_ids_triangles,
         )
         septum_point_ids = np.setdiff1d(
             septum_point_ids,
-            self.m.mesh.get_surface(self.m.right_ventricle.septum.id).global_node_ids,
+            self.m.mesh.get_surface(self.m.right_ventricle.septum.id).global_node_ids_triangles,
         )
 
         septum_pointcloud = pv.PolyData(self.m.mesh.nodes[septum_point_ids, :])
@@ -298,8 +298,7 @@ class ConductionSystem:
 
         #! add surface to central mesh object for future use.
         surface_id = int(np.max(self.m.mesh.surface_ids) + 1)
-        self.m.mesh.add_surface(surf.clean(), surface_id)
-        self.m.mesh._surface_id_to_name[surface_id] = "his_bundle_segment"
+        self.m.mesh.add_surface(surf.clean(), surface_id, name="his_bundle_segment")
         self.m.mesh = self.m.mesh.clean()
 
         return Point(
@@ -405,11 +404,11 @@ class ConductionSystem:
             endo = self.m.mesh.get_surface(self.m.right_ventricle.septum.id)
 
         n = 20  # avoid too close to bifurcation point
-        temp_id = pv.PolyData(self.m.mesh.points[endo.global_node_ids, :]).find_closest_point(
-            bifurcation_coord, n=n
-        )[n - 1]
+        temp_id = pv.PolyData(
+            self.m.mesh.points[endo.global_node_ids_triangles, :]
+        ).find_closest_point(bifurcation_coord, n=n)[n - 1]
 
-        his_end_id = endo.global_node_ids[temp_id]
+        his_end_id = endo.global_node_ids_triangles[temp_id]
         his_end_coord = self.m.mesh.points[his_end_id, :]
 
         # side_his = np.array([bifurcation_coord, his_end_coord])
@@ -510,8 +509,7 @@ class ConductionSystem:
 
         #! add surface to central mesh.
         surface_id = int(np.max(self.m.mesh.surface_ids) + 1)
-        self.m.mesh.add_surface(surface.clean(), surface_id)
-        self.m.mesh._surface_id_to_name[surface_id] = "Bachman segment"
+        self.m.mesh.add_surface(surface.clean(), surface_id, name="Bachman segment")
         self.m.mesh.clean()
 
         beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="Bachman bundle")

@@ -152,12 +152,12 @@ need to follow these steps:
 
 
 
-4. Install dynalib 0.1.0 into your virtual environment with the following command.
+4. Install dynalib 0.1.0 into your virtual environment with the following command. Request the appropiate private pypi token from your Ansys contact. 
 
     .. code:: bash
 
         # latest version
-        pip install dynalib==0.1.0 --index-url=https://4bqsseypbntw62bre2c35gwucw5icdzsoagqxxe4w5p5dtr3gvqa@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
+        pip install dynalib==0.1.0 --index-url=https://token@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
 
     Install the project in editable mode by pointing to the right location:
 

@@ -93,7 +93,7 @@ path_to_model = os.path.join(workdir, "heart_model.vtu")
 
 # instantiate a four chamber model
 model: models.FullHeart = models.FullHeart(models.ModelInfo(work_directory=workdir))
-model.load_model_from_mesh(path_to_model)
+model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
 model._extract_apex()
 model.compute_left_ventricle_anatomy_axis()
 model.compute_left_ventricle_aha17()
@@ -179,6 +179,7 @@ simulator.model.dump_model(os.path.join(workdir, "heart_fib_beam.pickle"))
 #    No circulation system is coupled with the atria.
 
 # start main simulation
+simulator.dyna_settings.num_cpus=12
 simulator.simulate()
 
 ###############################################################################

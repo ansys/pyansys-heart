@@ -1185,3 +1185,34 @@ class Part:
     def _add_septum_part(self):
         self.septum = Part(name="septum", part_type=PartType.SEPTUM)
         return
+
+    def _get_info(self):
+        """Get part info in order to reconstruct from a mesh file."""
+        info = {
+            self.name: {
+                "part-id": self.pid,
+                "part-type": self.part_type.value,
+                "surfaces": {},
+                "caps": {},
+                "cavity": {},
+            }
+        }
+
+        info2 = {}
+        info2["surfaces"] = {}
+        info2["caps"] = {}
+        info2["cavity"] = {}
+        for surface in self.surfaces:
+            if isinstance(surface, SurfaceMesh):
+                if surface.id:
+                    info2["surfaces"][surface.name] = surface.id
+
+        for cap in self.caps:
+            info2["caps"][cap.name] = cap._mesh.id
+
+        if self.cavity:
+            info2["cavity"][self.cavity.surface.name] = self.cavity.surface.id
+
+        info[self.name].update(info2)
+
+        return info

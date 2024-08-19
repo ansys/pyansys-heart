@@ -252,11 +252,16 @@ class HeartModel:
         self.electrodes: List[Point] = []
         """Electrodes positions for ECG computing."""
 
+        self._part_info = {}
+        """Information about all the parts in the model."""
         return
 
-    # def __repr__(self):
-    #     """Represent self as string."""
-    #     return yaml.dump(self.summary(), sort_keys=False)
+    # NOTE There is some overlap with the input module.
+    def _get_parts_info(self):
+        """Get the id to model map that allows reconstructing the model from a mesh object."""
+        for part in self.parts:
+            self._part_info.update(part._get_info())
+        return self._part_info
 
     def create_part_by_ids(self, eids: List[int], name: str) -> Union[None, Part]:
         """Create a new part by element ids.
@@ -1007,6 +1012,8 @@ class HeartModel:
             Prot[:, 2] = Prot[:, 2] - np.min(Prot, axis=0)[2]
             scaling = Prot[:, 2] / np.max(Prot[:, 2])
             self.mesh.point_data["uvc_longitudinal"] = scaling
+
+        self._get_parts_info()
 
         return
 

@@ -2301,12 +2301,18 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         for ventricle in ventricles:
             for surface in ventricle.surfaces:
                 if "endocardium" in surface.name:
+                    if surface.n_cells == 0:
+                        LOGGER.debug(
+                            f"Failed to collect node-set id for {surface.name}. Empty mesh."
+                        )
+                        continue
                     node_sets_ids_endo.append(surface._node_set_id)
 
         node_set_id_lv_endo = self.model.get_part("Left ventricle").endocardium._node_set_id
         if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             surfaces = [surface for p in self.model.parts for surface in p.surfaces]
             for surface in surfaces:
+                #! relies on order of surfaces. Could be tricky.
                 if "septum" in surface.name and "endocardium" in surface.name:
                     node_set_ids_epi_and_rseptum = node_sets_ids_epi + [surface._node_set_id]
                     break
@@ -3977,6 +3983,9 @@ class UHCWriter(BaseDynaWriter):
             for surf in part.surfaces:
                 if "endocardium" in surf.name:
                     endo_surf = self.model.mesh.get_surface(surf.id)
+                    if endo_surf.n_cells == 0:
+                        LOGGER.debug(f"Failed to collect nodes for {surf.name}. Empty mesh.")
+                        continue
                     endo_set.extend(endo_surf.global_node_ids_triangles)
                 # elif "epicardium" in surf.name:
                 #     epi_set.extend(surf.node_ids)

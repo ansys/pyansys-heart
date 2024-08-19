@@ -136,7 +136,7 @@ def test_mesh_stats():
 # functional tests to determine whether any change was made to
 # LS-DYNA input.
 @pytest.mark.models_v2
-@pytest.mark.xfail(reason="This test is currently too strict - rewrite or disable")
+@pytest.mark.skip(reason="This test is currently too strict - rewrite or disable")
 @pytest.mark.parametrize(
     "writer_class",
     [

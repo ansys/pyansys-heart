@@ -247,6 +247,15 @@ def default_settings():
     return settings
 
 
+@pytest.fixture(autouse=True)
+def default_allsettings():
+    settings = SimulationSettings(
+        mechanics=True, electrophysiology=True, fiber=True, purkinje=True, stress_free=True
+    )
+    settings.load_defaults()
+    return settings
+
+
 def test_load_defaults(default_settings):
     default_settings.to_consistent_unit_system()
 
@@ -265,3 +274,24 @@ def test_get_meca_material(default_settings):
     assert m2.c10 == pytest.approx(0.1 / 2, 1e-9)
     # test modified value
     assert m1.rho == pytest.approx(0.008, 1e-9)
+
+
+def test_purkinje_settings(default_allsettings: SimulationSettings):
+    # check default default values
+    assert default_allsettings.purkinje.node_id_origin_left is None
+    assert default_allsettings.purkinje.node_id_origin_right is None
+
+    node_origin_left = np.empty(0, dtype=int)
+    node_origin_right = np.empty(0, dtype=int)
+    if default_allsettings.purkinje.node_id_origin_left is None:
+        node_origin_left = 9
+    if default_allsettings.purkinje.node_id_origin_right is None:
+        node_origin_right = 10
+    assert node_origin_left == 9
+    assert node_origin_right == 10
+    default_allsettings.purkinje.node_id_origin_left = 1
+    node_origin_left = default_allsettings.purkinje.node_id_origin_left
+    assert node_origin_left == 1
+    default_allsettings.purkinje.node_id_origin_right = 2
+    node_origin_right = default_allsettings.purkinje.node_id_origin_right
+    assert node_origin_right == 2

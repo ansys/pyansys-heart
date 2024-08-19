@@ -173,6 +173,11 @@ simulator.model.plot_purkinje()
 # and purkinje network to set up and run the LS-DYNA model.
 
 # simulate using the default EP solver type (Monodomain)
+simulator.model.right_atrium.active = True
+simulator.model.left_atrium.active = True
+simulator.model.right_atrium.fiber = True
+simulator.model.left_atrium.fiber = True
+
 simulator.simulate()
 
 # switch to Eikonal

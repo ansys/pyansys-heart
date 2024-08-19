@@ -20,18 +20,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Module contains default values for Purkinje generation."""
+import pyvista as pv
 
-from pint import Quantity
+from ansys.heart.preprocessor.mesh.vtkmethods import are_connected
 
-"""Construction parameters."""
-build = {
-    "node_id_origin_left": None,
-    "node_id_origin_right": None,
-    "edgelen": Quantity(1.5, "mm"),
-    "ngen": Quantity(200, "dimensionless"),
-    "nbrinit": Quantity(3, "dimensionless"),
-    "nsplit": Quantity(4, "dimensionless"),
-    "pmjtype": Quantity(1, "dimensionless"),
-    "pmjradius": Quantity(0.7, "dimensionless"),
-}
+
+def test_check_if_connected():
+    """Test whether two pyvista objects are connected."""
+    box1 = pv.Box()
+    box2 = pv.Box()
+
+    assert are_connected(box1, box2.translate((2, 0, 0))) == True
+    assert are_connected(box1, box2.translate((3, 0, 0))) == False
+
+    return

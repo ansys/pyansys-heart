@@ -31,6 +31,7 @@ import pickle
 import re
 from typing import List, Literal, Union
 
+from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 from scipy.spatial.transform import Rotation as R
@@ -682,6 +683,10 @@ class HeartModel:
         LOGGER.info("*****************************************")
         return
 
+    @deprecated(
+        reason="""dump_model() uses pickle which is unsafe
+                and will be replaced. Use save_model() instead"""
+    )
     def dump_model(self, filename: Union[pathlib.Path, str] = None):
         """Save model to .pickle file.
 
@@ -954,6 +959,7 @@ class HeartModel:
         return
 
     @staticmethod
+    @deprecated(reason="Load model is deprecated and is superseded by by load_model_from_mesh()")
     def load_model(filename: pathlib.Path):
         """Load a preprocessed model from file.
 

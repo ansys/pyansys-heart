@@ -1876,27 +1876,28 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # create *LOAD_SEGMENT_SETS for each ventricular cavity
         cavities = [part.cavity for part in self.model.parts if part.cavity]
         for cavity in cavities:
-            if cavity.name == "Left ventricle":
+            if "Left ventricle" in cavity.name:
                 load = keywords.LoadSegmentSet(
                     ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_lv
                 )
                 self.kw_database.main.append(load)
-            elif cavity.name == "Right ventricle":
+            elif "Right ventricle" in cavity.name:
                 load = keywords.LoadSegmentSet(
                     ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_rv
                 )
                 self.kw_database.main.append(load)
-            elif cavity.name == "Left atrium":
+            elif "Left atrium" in cavity.name:
                 load = keywords.LoadSegmentSet(
                     ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_la
                 )
                 self.kw_database.main.append(load)
-            elif cavity.name == "Right atrium":
+            elif "Right atrium" in cavity.name:
                 load = keywords.LoadSegmentSet(
                     ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_ra
                 )
                 self.kw_database.main.append(load)
             else:
+                LOGGER.debug(f"No load added to {cavity.name}")
                 continue
 
         return

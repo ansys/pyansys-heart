@@ -1001,8 +1001,6 @@ class HeartModel:
         for part in self.parts:
             if part.part_type in [PartType.VENTRICLE]:
                 part._add_myocardium_part()
-                if "Left ventricle" in part.name:
-                    part._add_septum_part()
         return
 
     def _get_used_element_ids(self) -> np.ndarray:
@@ -1139,7 +1137,11 @@ class HeartModel:
             LOGGER.warning("Model type: {0} Not extracting septum elements".format(type(self)))
             return None
 
-        septum_name = [s for s in self.mesh.surface_names if "septum" in s]
+        septum_name = [
+            s
+            for s in self.mesh.surface_names
+            if "right" in s.lower() and "ventricle" in s.lower() and "septum" in s.lower()
+        ]
 
         if len(septum_name) > 1:
             raise ValueError("Expecting only one surface that contains string: 'septum'")
@@ -1291,7 +1293,7 @@ class HeartModel:
                 boundary_name = "-".join(surface.name.lower().split())
                 boundary_surface = self.mesh.get_surface_by_name(boundary_name)
 
-                if "septum" in surface.name:
+                if "septum" in surface.name.lower() and "right ventricle" in surface.name.lower():
                     try:
                         septum_candidates = [s for s in self.mesh.surface_names if "septum" in s]
                         if len(septum_candidates) > 1:
@@ -1301,10 +1303,14 @@ class HeartModel:
                         boundary_surface = self.mesh.get_surface_by_name(septum_candidates[0])
                     except:
                         boundary_surface = None
+
                 if boundary_surface:
-                    surface.triangles = boundary_surface.triangles
-                    surface.nodes = boundary_surface.nodes
+                    #! change boundary name in self.mesh to align with heart model: note that
+                    #! we may want to do this in another place.
+                    self.mesh._surface_id_to_name[boundary_surface.id] = surface.name
+                    super(SurfaceMesh, surface).__init__(boundary_surface)
                     surface.id = boundary_surface.id
+
                 else:
                     LOGGER.warning("Could not find matching surface for: {0}".format(surface.name))
 
@@ -1312,12 +1318,12 @@ class HeartModel:
 
     def _assign_cavities_to_parts(self) -> None:
         """Create cavities based on endocardium surfaces and cap definitions."""
-        # rename septum to right ventricle endocardium septum
-        if isinstance(self, (BiVentricle, FourChamber, FullHeart)):
-            part = self.get_part("Right ventricle", True)
-            for surface in part.surfaces:
-                if "Right ventricle septum" in surface.name:
-                    surface.name = surface.name.replace("septum", "endocardium septum")
+        # # rename septum to right ventricle endocardium septum
+        # if isinstance(self, (BiVentricle, FourChamber, FullHeart)):
+        #     part = self.get_part("Right ventricle", True)
+        #     for surface in part.surfaces:
+        #         if "Right ventricle septum" in surface.name:
+        #             surface.name = surface.name.replace("septum", "endocardium septum")
 
         # construct cavities with endocardium and caps
         idoffset = 1000  # TODO need to improve id checking
@@ -1390,7 +1396,7 @@ class HeartModel:
 
             surface_cavity = self.mesh.get_surface(surface_cavity.id)
 
-            part.cavity = Cavity(surface=surface_cavity, name=part.name)
+            part.cavity = Cavity(surface=surface_cavity, name=surface_cavity.name)
             part.cavity.compute_centroid()
 
             LOGGER.debug("Volume of cavity: {0} = {1}".format(part.cavity.name, part.cavity.volume))
@@ -1501,7 +1507,7 @@ class HeartModel:
             for surface in part.surfaces:
                 if "epicardium" in surface.name:
                     # get the surface id.
-                    surf_id = self.mesh._surface_name_to_id[surface.name.lower().replace(" ", "-")]
+                    surf_id = self.mesh._surface_name_to_id[surface.name]
                     global_node_ids_surface = self.mesh.get_surface(surf_id).point_data[
                         "_global-point-ids"
                     ]

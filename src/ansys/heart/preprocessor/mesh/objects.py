@@ -1171,7 +1171,7 @@ class Part:
             self.epicardium = SurfaceMesh(name="{0} epicardium".format(self.name))
             """Epicardium."""
             if self.part_type == PartType.VENTRICLE:
-                self.septum = SurfaceMesh(name="{0} septum".format(self.name))
+                self.septum = SurfaceMesh(name="{0} endocardium septum".format(self.name))
                 """Septum surface."""
         elif self.part_type in [PartType.ARTERY]:
             self.wall = SurfaceMesh(name="{0} wall".format(self.name))

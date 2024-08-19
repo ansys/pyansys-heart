@@ -85,14 +85,19 @@ except KeyError:
     pass
 # sphinx_gallery_end_ignore
 
-path_to_model = os.path.join(workdir, "heart_model.pickle")
+path_to_model = os.path.join(workdir, "heart_model.vtu")
 
 ###############################################################################
 # Load the full heart model
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # instantiate a four chamber model
-model: models.FullHeart = models.HeartModel.load_model(path_to_model)
+model: models.FullHeart = models.FullHeart(models.ModelInfo(work_directory=workdir))
+model.load_model_from_mesh(path_to_model)
+model._extract_apex()
+model.compute_left_ventricle_anatomy_axis()
+model.compute_left_ventricle_aha17()
+
 
 ###############################################################################
 # Instantiate the simulator object

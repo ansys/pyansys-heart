@@ -532,6 +532,9 @@ class HeartModel:
 
         self.mesh = mesh.clean()
 
+        filename = os.path.join(self.info.workdir, "volume-mesh-post-meshing.vtu")
+        self.mesh.save(filename)
+
         return
 
     def _mesh_fluid_volume(self, remesh_caps: bool = True):
@@ -877,6 +880,77 @@ class HeartModel:
             plotter.show()
         except:
             LOGGER.warning("Failed to plot mesh.")
+        return
+
+    def save_model(self, filename: str):
+        """Save model and necessary info to reconstruct from the VTU file."""
+        extension = pathlib.Path(filename).suffix
+        if extension != "":
+            mesh_path = filename.replace(extension, ".vtu")
+            map_path = filename.replace(extension, ".partinfo.json")
+        else:
+            mesh_path = filename + ".vtu"
+            map_path = filename + ".partinfo.json"
+
+        self.mesh.save(mesh_path)
+
+        with open(map_path, "w") as f:
+            json.dump(self._get_parts_info(), f, indent=4)
+
+        return
+
+    # TODO could consider having this as a static method.
+    def load_model_from_mesh(self, filename_mesh: str, filename_part_info: str):
+        """Load model from an existing VTU file and part info dictionary."""
+        # try to load the mesh.
+        self.mesh.load_mesh(filename_mesh)
+
+        # open part info
+        with open(filename_part_info, "r") as f:
+            self._part_info = json.load(f)
+            part_info = self._part_info
+
+        # try to reconstruct parts from part info
+        for part_name in part_info.keys():
+            part_name_n = "_".join(part_name.lower().split(" "))
+            # init part.
+            part = Part(part_name, PartType(part_info[part_name]["part-type"]))
+
+            #! try to add surfaces to part by using the pre-defined surfaces
+            #! Should part-info define the entire heart model and part attributes?
+            for surface in part.surfaces:
+                surface1 = self.mesh.get_surface_by_name(surface.name)
+                if not surface1:
+                    # LOGGER.debug(f"{surface1.name} not found in mesh.")
+                    continue
+                super(SurfaceMesh, surface).__init__(surface1)
+                surface.id = surface1.id
+                surface.name = surface1.name
+
+            part.pid = part_info[part.name]["part-id"]
+
+            try:
+                part.element_ids = np.argwhere(
+                    np.isin(self.mesh.cell_data["_volume-id"], part.pid)
+                ).flatten()
+            except:
+                LOGGER.debug(f"Failed to set element ids for {part.name}")
+                pass
+
+            # try to set cavity
+            if part_info[part_name]["cavity"] != {}:
+                cavity_name = list(part_info[part_name]["cavity"].keys())[0]
+                cavity_id = list(part_info[part_name]["cavity"].values())[0]
+                part.cavity = Cavity(surface=self.mesh.get_surface(cavity_id), name=cavity_name)
+
+            if part_info[part_name]["caps"] != {}:
+                for cap_name, cap_id in part_info[part_name]["caps"].items():
+                    cap = Cap(cap_name)
+                    cap._mesh = self.mesh.get_surface(cap_id)
+                    part.caps.append(cap)
+
+            setattr(self, part_name_n, part)
+
         return
 
     @staticmethod

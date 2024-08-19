@@ -256,6 +256,10 @@ class HeartModel:
         """Information about all the parts in the model."""
         return
 
+    def __str__(self):
+        """Represent self as string."""
+        return yaml.dump(self.summary(), sort_keys=False)
+
     # NOTE There is some overlap with the input module.
     def _get_parts_info(self):
         """Get the id to model map that allows reconstructing the model from a mesh object."""

@@ -313,6 +313,9 @@ class BaseDynaWriter:
                 if not surface_global:
                     LOGGER.debug(f"Failed to create segment set for {surface.name}")
                     continue
+                if surface_global.n_cells == 0:
+                    LOGGER.debug(f"Failed to create segment set for {surface.name}. Empty mesh.")
+                    continue
 
                 segset_id = self.get_unique_segmentset_id()
                 surface._seg_set_id = segset_id
@@ -484,6 +487,10 @@ class BaseDynaWriter:
             for surface in part.surfaces:
                 #! get up-to-date version of the surface.
                 surface1 = self.model.mesh.get_surface(surface.id)
+                if surface1.n_cells == 0:
+                    LOGGER.debug(f"Failed to create node set for {surface.name}. Empty mesh.")
+                    continue
+
                 if remove_one_node_from_cell:
                     node_ids = self._filter_bc_nodes(surface1)
                 else:

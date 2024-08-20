@@ -33,7 +33,7 @@ PARTS:
     SURFACES: {}
     CAPS: {}
 CAVITIES:
-  Left ventricle:
+  Left ventricle cavity:
     volume: 170420.20386288973
-  Right ventricle:
+  Right ventricle cavity:
     volume: 234073.0840824509

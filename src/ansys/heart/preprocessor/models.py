@@ -916,14 +916,21 @@ class HeartModel:
             part_info = self._part_info
 
         # try to reconstruct parts from part info
-        for part_name in part_info.keys():
-            part_name_n = "_".join(part_name.lower().split(" "))
+        # for part_name in part_info.keys():
+        for part1 in self.parts:
+            try:
+                idx = list(part_info.keys()).index(part1.name)
+            except ValueError:
+                LOGGER.debug(f"{part.name} not in part info")
+                continue
+
+            # part_name_n = "_".join(part_name.lower().split(" "))
             # init part.
-            part = Part(part_name, PartType(part_info[part_name]["part-type"]))
+            part = Part(part1.name, PartType(part_info[part1.name]["part-type"]))
 
             #! try to add surfaces to part by using the pre-defined surfaces
             #! Should part-info define the entire heart model and part attributes?
-            for surface in part.surfaces:
+            for surface in part1.surfaces:
                 surface1 = self.mesh.get_surface_by_name(surface.name)
                 if not surface1:
                     # LOGGER.debug(f"{surface1.name} not found in mesh.")
@@ -932,29 +939,29 @@ class HeartModel:
                 surface.id = surface1.id
                 surface.name = surface1.name
 
-            part.pid = part_info[part.name]["part-id"]
+            part1.pid = part_info[part1.name]["part-id"]
 
             try:
-                part.element_ids = np.argwhere(
-                    np.isin(self.mesh.cell_data["_volume-id"], part.pid)
+                part1.element_ids = np.argwhere(
+                    np.isin(self.mesh.cell_data["_volume-id"], part1.pid)
                 ).flatten()
             except:
-                LOGGER.debug(f"Failed to set element ids for {part.name}")
+                LOGGER.debug(f"Failed to set element ids for {part1.name}")
                 pass
 
             # try to set cavity
-            if part_info[part_name]["cavity"] != {}:
-                cavity_name = list(part_info[part_name]["cavity"].keys())[0]
-                cavity_id = list(part_info[part_name]["cavity"].values())[0]
-                part.cavity = Cavity(surface=self.mesh.get_surface(cavity_id), name=cavity_name)
+            if part_info[part1.name]["cavity"] != {}:
+                cavity_name = list(part_info[part1.name]["cavity"].keys())[0]
+                cavity_id = list(part_info[part1.name]["cavity"].values())[0]
+                part1.cavity = Cavity(surface=self.mesh.get_surface(cavity_id), name=cavity_name)
 
-            if part_info[part_name]["caps"] != {}:
-                for cap_name, cap_id in part_info[part_name]["caps"].items():
+            if part_info[part1.name]["caps"] != {}:
+                for cap_name, cap_id in part_info[part1.name]["caps"].items():
                     cap = Cap(cap_name)
                     cap._mesh = self.mesh.get_surface(cap_id)
-                    part.caps.append(cap)
+                    part1.caps.append(cap)
 
-            setattr(self, part_name_n, part)
+            # setattr(self, part_name_n, part)
 
         return
 

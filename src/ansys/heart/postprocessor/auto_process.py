@@ -118,7 +118,7 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
             new_cavity.surface.save(os.path.join(directory, folder, f"{cavity.name}_{i}.vtk"))
             inflated_volumes.append(new_cavity.volume)
 
-        if cavity.name.lower() == "left ventricle":
+        if cavity.name.lower() == "left ventricle cavity":
             true_lv_ed_volume = true_ed_volume
             lv_volumes = inflated_volumes
 

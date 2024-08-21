@@ -2313,7 +2313,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             surfaces = [surface for p in self.model.parts for surface in p.surfaces]
             for surface in surfaces:
                 #! relies on order of surfaces. Could be tricky.
-                if "septum" in surface.name and "endocardium" in surface.name:
+                if surface.name == "Right ventricle endocardium septum":
                     node_set_ids_epi_and_rseptum = node_sets_ids_epi + [surface._node_set_id]
                     break
 

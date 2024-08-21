@@ -86,108 +86,149 @@ Software
 How to install
 --------------
 
-In user mode
-^^^^^^^^^^^^
+.. tab-set::
 
-.. warning::
+    .. tab-item:: In user mode
 
-    Installing as user-only is not yet supported.
+        Request a read-only token to download PyAnsys - Heart by sending an email to pyansys.core@ansys.com.
 
+        1. Create a fresh Python environment and activate it. Make sure you use one of
+           the supported Python versions. Refer to the official `venv`_  or `conda`_ documentation
+           if you require further information:
 
-In editable mode
-^^^^^^^^^^^^^^^^
+            .. tab-set::
 
-Installing PyAnsys-Heart in developer mode allows
-you to modify the source and enhance it.
+                .. tab-item:: venv:
 
-Before contributing to the project, please refer to the `PyAnsys Developer's guide`_. You will
-need to follow these steps:
+                    .. code:: bash
 
-1. Start by cloning this repository:
+                        # Create a virtual environment
+                        python -m venv .venv
+                        # Activate environment:
+                        # POSIX systems:
+                        source .venv/bin/activate
+                        # Windows cmd shell:
+                        .venv\Scripts\activate.bat
+                        # or in Windows powershell
+                        .venv\Scripts\Activate.ps1
 
-    .. code:: bash
+                .. tab-item:: conda:
 
-        git clone https://github.com/ansys/pyansys-heart
+                    .. code:: bash
 
-   Since this is a private repository you may need to provide your github username.
-   Alternatively you can download and unpack the zip file from `PyAnsys Heart`_
+                        # Create virtual environment with a given Python version
+                        conda create --name my-venv python=3.10
+                        # Activate the environment
+                        conda activate my-venv
 
-2. Create a fresh Python environment and activate it. Make sure you use one of
-   the supported Python versions. Refer to the official `venv`_  or `conda`_ documentation
-   if you require further information:
+        2. Install dynalib 0.1.0 into your virtual environment with the following command and insert the received token.
 
-   Through `venv`_:
+            .. code:: bash
 
-    .. code:: bash
+                # latest version
+                pip install dynalib==0.1.0 --index-url=https://<token>@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
 
-        # Create a virtual environment
-        python -m venv .venv
+        3. Install the project in your virtual environment, again specifying the right token:
 
-        # Activate environment:
+            .. code:: bash
 
-        # POSIX systems:
-        source .venv/bin/activate
+                pip install ansys-dpf-core==0.10.0
+                pip install dynalib==0.1.0 --index-url=https://<token>@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
+                pip install pyansys-heart==0.3.0 --index-url=https://<token>@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
 
-        # Windows cmd shell:
-        .venv\Scripts\activate.bat
+            .. note::
 
-        # or in Windows powershell
-        .venv\Scripts\Activate.ps1
-
-   Through the virtual environment manager `conda`_
-
-    .. code:: bash
-
-        # Create virtual environment with a given Python version
-        conda create --name my-venv python=3.10
-
-        # Activate the environment
-        conda activate my-venv
-
-3. Make sure you have the latest version of `pip`_ installed in your virtual environment.
-
-    .. code:: bash
-
-        python -m pip install -U pip
+                You can also use environment variables to format the `-index-url` with the token value and URL.
 
 
+    .. tab-item:: In editable mode
 
-4. Install dynalib 0.1.0 into your virtual environment with the following command. Request the appropiate private pypi token from your Ansys contact. 
+        Installing PyAnsys-Heart in developer mode allows
+        you to modify the source and enhance it.
 
-    .. code:: bash
+        Before contributing to the project, please refer to the `PyAnsys Developer's guide`_. You will
+        need to follow these steps:
 
-        # latest version
-        pip install dynalib==0.1.0 --index-url=https://token@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
+        1. Start by cloning this repository:
 
-    Install the project in editable mode by pointing to the right location:
+            .. code:: bash
 
-    .. code:: bash
+                git clone https://github.com/ansys/pyansys-heart
 
-        python -m pip install --editable .
+            Since this is a private repository you may need to provide your github username.
+            Alternatively you can download and unpack the zip file from `PyAnsys Heart`_
 
-5. Install additional requirements (if needed):
+        2. Create a fresh Python environment and activate it. Make sure you use one of
+           the supported Python versions. Refer to the official `venv`_  or `conda`_ documentation
+           if you require further information:
 
-     .. code:: bash
+            .. tab-set::
 
-        # dependencies for local doc building
-        python -m pip install -e .[doc]
-        # dependencies needed for (unit) testing
-        python -m pip install -e .[tests]
+                .. tab-item:: venv:
 
-6. You may verify your development version by running all or a set of tests:
+                    .. code:: bash
 
-    .. code:: bash
+                        # Create a virtual environment
+                        python -m venv .venv
+                        # Activate environment:
+                        # POSIX systems:
+                        source .venv/bin/activate
+                        # Windows cmd shell:
+                        .venv\Scripts\activate.bat
+                        # or in Windows powershell
+                        .venv\Scripts\Activate.ps1
 
-        python -m pip install -e .[tests]
+                .. tab-item:: conda:
 
-        # run quick tests
-        python -m pytest -v -m "not requires_fluent or (not downloader)"
+                    .. code:: bash
 
-        # run tests requiring Fluent
-        python -m pytest -v -m requires_fluent
+                        # Create virtual environment with a given Python version
+                        conda create --name my-venv python=3.10
+                        # Activate the environment
+                        conda activate my-venv
 
-        # run all tests
-        pytest tests -v
+        3. Make sure you have the latest version of `pip`_ installed in your virtual environment.
+
+            .. code:: bash
+
+                python -m pip install -U pip
+
+        4. Install dynalib 0.1.0 into your virtual environment with the following command. Request the appropriate private pypi token from pyansys.core@ansys.com.
+
+            .. code:: bash
+
+                # latest version
+                pip install dynalib==0.1.0 --index-url=https://token@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
+
+            Install the project in editable mode by pointing to the right location:
+
+            .. code:: bash
+
+                python -m pip install --editable .
+
+        5. Install additional requirements (if needed):
+
+            .. code:: bash
+
+                # dependencies for local doc building
+                python -m pip install -e .[doc]
+                # dependencies needed for (unit) testing
+                python -m pip install -e .[tests]
+
+        6. You may verify your development version by running all or a set of tests:
+
+            .. code:: bash
+
+                python -m pip install -e .[tests]
+
+                # run quick tests
+                python -m pytest -v -m "not requires_fluent or (not downloader)"
+
+                # run tests requiring Fluent
+                python -m pytest -v -m requires_fluent
+
+                # run all tests
+                pytest tests -v
 
 
 Style and Testing

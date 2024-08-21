@@ -48,6 +48,13 @@ jobs:
           username: ${{ secrets.GH_USERNAME }}
           password: ${{ secrets.REPO_DOWNLOAD_PAT }}
 
+      - name: Print available space and remove unnecessary files
+        run: |
+          df -lh
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          df -lh
+
       - name: Pull Fluent docker image
         run: |
           docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG

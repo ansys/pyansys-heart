@@ -160,30 +160,28 @@ In editable mode
         the supported Python versions. Refer to the official `venv`_  or `conda`_ documentation
         if you require further information:
 
-        .. tab-set::
+        Using `venv`_:
 
-            .. tab-item:: venv:
+            .. code:: bash
 
-                .. code:: bash
+                # Create a virtual environment
+                python -m venv .venv
+                # Activate environment:
+                # POSIX systems:
+                source .venv/bin/activate
+                # Windows cmd shell:
+                .venv\Scripts\activate.bat
+                # or in Windows powershell
+                .venv\Scripts\Activate.ps1
 
-                    # Create a virtual environment
-                    python -m venv .venv
-                    # Activate environment:
-                    # POSIX systems:
-                    source .venv/bin/activate
-                    # Windows cmd shell:
-                    .venv\Scripts\activate.bat
-                    # or in Windows powershell
-                    .venv\Scripts\Activate.ps1
+        Using `conda`_:
 
-            .. tab-item:: conda:
+            .. code:: bash
 
-                .. code:: bash
-
-                    # Create virtual environment with a given Python version
-                    conda create --name my-venv python=3.10
-                    # Activate the environment
-                    conda activate my-venv
+                # Create virtual environment with a given Python version
+                conda create --name my-venv python=3.10
+                # Activate the environment
+                conda activate my-venv
 
     3. Make sure you have the latest version of `pip`_ installed in your virtual environment.
 

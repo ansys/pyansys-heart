@@ -179,7 +179,7 @@ simulator.model.dump_model(os.path.join(workdir, "heart_fib_beam.pickle"))
 #    No circulation system is coupled with the atria.
 
 # start main simulation
-simulator.dyna_settings.num_cpus=12
+simulator.dyna_settings.num_cpus = 10
 simulator.simulate()
 
 ###############################################################################

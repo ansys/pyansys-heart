@@ -67,6 +67,13 @@ def extract_bi_ventricle():
     part_def_file = os.path.join(
         assets_folder, "cases", "Strocchi2020", "01", "part_definitions_biventricle.json"
     )
+    mesh_path = os.path.join(
+        assets_folder,
+        "reference_models",
+        "strocchi2020",
+        "01",
+        "biventricle-post-mesh.vtu",
+    )
 
     path_to_reference_stats = os.path.join(
         get_assets_folder(),
@@ -100,7 +107,8 @@ def extract_bi_ventricle():
         )
         model = models.BiVentricle(info)
         model.load_input()
-        model.mesh_volume(use_wrapper=True)
+        # model.mesh_volume() # skip this in favor of reusing an existing mesh.
+        model.mesh.load_mesh(mesh_path)
         model._update_parts()
 
         global stats

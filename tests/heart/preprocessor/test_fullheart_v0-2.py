@@ -67,6 +67,13 @@ def extract_fullheart():
     part_def_file = os.path.join(
         assets_folder, "cases", "Strocchi2020", "01", "part_definitions_fullheart.json"
     )
+    mesh_path = os.path.join(
+        assets_folder,
+        "reference_models",
+        "strocchi2020",
+        "01",
+        "fullheart-post-mesh.vtu",
+    )
 
     path_to_reference_stats = os.path.join(
         get_assets_folder(),
@@ -100,7 +107,7 @@ def extract_fullheart():
         )
         model = models.FullHeart(info)
         model.load_input()
-        model.mesh_volume(use_wrapper=True)
+        model.mesh.load_mesh(mesh_path)
         model._update_parts()
 
         global stats

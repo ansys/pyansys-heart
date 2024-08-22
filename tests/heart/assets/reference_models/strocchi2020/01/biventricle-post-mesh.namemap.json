@@ -1,0 +1,23 @@
+{
+    "_surface_id_to_name": {
+        "805636": "interface_left-ventricle-myocardium_left-atrium-myocardium",
+        "805635": "interface_left-ventricle-myocardium_right-atrium-myocardium",
+        "805634": "interface_left-ventricle-myocardium_aorta-wall",
+        "805633": "interface_left-ventricle-myocardium_mitral-valve-plane",
+        "805632": "interface_left-ventricle-myocardium_aortic-valve-plane",
+        "805631": "left-ventricle-endocardium",
+        "805630": "left-ventricle-epicardium",
+        "805629": "right-ventricle-septum",
+        "805628": "interface_right-ventricle-myocardium_right-atrium-myocardium",
+        "805627": "interface_right-ventricle-myocardium_aorta-wall",
+        "805626": "interface_right-ventricle-myocardium_pulmonary-artery-wall",
+        "805625": "interface_right-ventricle-myocardium_tricuspid-valve-plane",
+        "805624": "interface_right-ventricle-myocardium_pulmonary-valve-plane",
+        "805623": "right-ventricle-endocardium",
+        "805622": "right-ventricle-epicardium"
+    },
+    "_volume_id_to_name": {
+        "1": "Left ventricle",
+        "2": "Right ventricle"
+    }
+}

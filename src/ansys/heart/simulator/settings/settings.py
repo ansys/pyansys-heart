@@ -262,7 +262,7 @@ class Stimulation(Settings):
     node_ids: List[int] = None
     t_start: Quantity = Quantity(0.0, "ms")
     period: Quantity = Quantity(800, "ms")
-    duration: Quantity = Quantity(20, "ms")
+    duration: Quantity = Quantity(2, "ms")
     amplitude: Quantity = Quantity(50, "uF/mm^3")
 
     def __setattr__(self, __name: str, __value) -> None:
@@ -346,8 +346,10 @@ class AtrialFiber(Settings):
 class Purkinje(Settings):
     """Class for keeping track of purkinje settings."""
 
-    node_id_origin: Quantity = None
-    """Edge length."""
+    node_id_origin_left: int = None
+    """Left Purkinje origin id."""
+    node_id_origin_right: int = None
+    """Right Purkinje origin id."""
     edgelen: Quantity = 0
     """Edge length."""
     ngen: Quantity = 0

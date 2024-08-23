@@ -194,6 +194,36 @@ def test_mesh_stats(extract_model):
     pass
 
 
+@pytest.fixture(autouse=True, scope="module")
+def unpack_k_files():
+    """Unpacks the .k files of a specific model if necessary."""
+    import zipfile
+
+    zip_file = os.path.join(
+        get_assets_folder(),
+        "reference_models",
+        "strocchi2020",
+        "01",
+        "k_files_biventricle_fullheart.zip",
+    )
+
+    with zipfile.ZipFile(zip_file, "r") as zip_ref:
+        zip_ref.extractall(os.path.dirname(zip_file))
+
+    yield
+
+    # cleanup
+    try:
+        import shutil
+
+        shutil.rmtree(os.path.join(os.path.dirname(zip_file), "_BiVentricle"))
+        shutil.rmtree(os.path.join(os.path.dirname(zip_file), "_FullHeart"))
+    except:
+        pass
+
+    return
+
+
 @pytest.mark.parametrize(
     "writer_class",
     [
@@ -226,8 +256,8 @@ def test_writers(extract_model, writer_class):
             "reference_models",
             "strocchi2020",
             "01",
-            "BiVentricle",
-            "_k_files_3",
+            "_BiVentricle",
+            "k_files1",
             writer_class.__name__,
         )
     elif isinstance(model, models.FullHeart):
@@ -236,8 +266,8 @@ def test_writers(extract_model, writer_class):
             "reference_models",
             "strocchi2020",
             "01",
-            "FullHeart",
-            "_k_files_3",
+            "_FullHeart",
+            "k_files1",
             writer_class.__name__,
         )
 

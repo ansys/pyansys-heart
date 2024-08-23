@@ -55,11 +55,6 @@ jobs:
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
           df -lh
 
-      - name: Pull Fluent docker image
-        run: |
-          docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
-          docker image prune -f
-
       - name: Install package and dependencies
         run: |
           python -m pip install --upgrade pip
@@ -68,12 +63,21 @@ jobs:
         env:
           PIP_EXTRA_INDEX_URL: 'https://${{ secrets.PYANSYS_PYPI_PRIVATE_PAT }}@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/'
 
-      - name: Test PyFluent launch
-        continue-on-error: false
-        run: |
-          python -m pytest -v tests/heart/preprocessor/test_pyfluent.py
-
+      # These tests will reuse an existing mesh and skip the step where the entire model
+      # is remeshed.
       - name: Test model generation
         continue-on-error: false
         run: |
-          pytest -m pytest -v -m models_v2
+          pytest -m pytest -v -m "extract_models and not requires_fluent and not k_file_writer"
+          pytest -m pytest -v -m "k_file_writer"
+
+      - name: Pull Fluent docker image
+        run: |
+          docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
+          docker image prune -f
+
+      # run all tests requiring Fluent (these are very slow compared to the previous tests)
+      - name: Run all tests requiring (Py)Fluent
+        continue-on-error: false
+        run: |
+          pytest -m pytest -v -m "requires_fluent"

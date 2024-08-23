@@ -55,7 +55,7 @@ Some anatomical details are difficult to capture with medical imaging techniques
 Electrophisology
 ================
 
-This section introduces cardiac electrophysiology modeling in *PyAnsys Heart*. 
+This section introduces cardiac electrophysiology modeling in *PyAnsys Heart*.
 Three options are available to model electrical propagation in *PyAnsys Heart* (see `simulator.settings.settings.EPAnalysis.solvertype`): `Monodomain` (``*EM_CONTROL`` with EMSOL=11 in LS-DYNA), `Eikonal` (``*EM_CONTROL`` with EMSOL=14 in LS-DYNA) and `ReactionEikonal` model (``*EM_CONTROL`` with EMSOL=15 in LS-DYNA).
 
 - Monodomain:
@@ -63,7 +63,7 @@ Three options are available to model electrical propagation in *PyAnsys Heart* (
    Note: LS-DYNA offers the possibility of using either the Bidomain, Monodomain, or a mix of both models but only the Monodomain is exposed in *PyAnsys Heart* for now.
 
 - Eikonal:
-   In this case only the activation time is computed, no cell model is used. 
+   In this case only the activation time is computed, no cell model is used.
    Here, the 'passive' electrical material properties are also set with ``*EM_MAT_003`` for 3D tissue and ``*EM_MAT_001`` for the beams of the conduction system.
 
 - Reaction Eikonal:

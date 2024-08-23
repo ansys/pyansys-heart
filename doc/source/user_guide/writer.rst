@@ -20,7 +20,7 @@ A simple use example is given as the following:
 
 >>> # Get a heart model
 >>> import ansys.heart.preprocessor.models as models
->>> model = models.HeartModel.load_model("a-model-path")
+>>> model = models.HeartModel.load_model("path_to_model")
 
 >>> import ansys.heart.writer.dynawriter as writers
 >>> import copy
@@ -28,5 +28,5 @@ A simple use example is given as the following:
 >>> settings = SimulationSettings().load_defaults()
 >>> writer = writers.MechanicsDynaWriter(copy.deepcopy(model),settings=settings) # Writers may change the model, it's better to pass the copy of load_model
 >>> writer.update()
->>> writer.export("a-folder-path")
+>>> writer.export("path_to_folder")
 

@@ -20,16 +20,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Functional test to determine whether generated biventricle model has all the
-expected features."""
+"""Functional test to determine whether generated biventricle and fullheart
+model has all the expected features and writes consistent .k files."""
 
+import copy
 import glob
 import json
 import os
 import pathlib
 import tempfile
-import time
-import copy
 from typing import Union
 
 import pytest
@@ -37,12 +36,11 @@ import yaml
 
 import ansys.heart.preprocessor.models as models
 import ansys.heart.writer.dynawriter as writers
-
-pytestmark = pytest.mark.requires_fluent
-
 from tests.heart.common import compare_stats_mesh, compare_stats_names, compare_stats_volumes
 from tests.heart.conftest import get_assets_folder
 from tests.heart.end2end.compare_k import read_file
+
+#! Note: should run fast tests before slow tests.
 
 
 # get the input files from the assets directory.
@@ -78,10 +76,45 @@ def _get_inputs(model_type: Union[models.BiVentricle, models.FullHeart]):
     return (input_polydata, part_definitions, ref_stats, mesh_file)
 
 
-@pytest.fixture(scope="module", params=[models.BiVentricle, models.FullHeart])
+# Set up testing parameter combinations
+# first item: model type, second item flag indicating whether to try to remesh
+# the model.
+test_params_fast = [
+    pytest.param([models.BiVentricle, False], marks=pytest.mark.extract_models),
+    pytest.param([models.FullHeart, False], marks=pytest.mark.extract_models),
+]
+test_params_fast_ids = ["BiVentricle-NoRemesh", "FullHeart-NoRemesh"]
+
+test_params_slow = [
+    pytest.param(
+        [models.BiVentricle, True],
+        marks=[pytest.mark.extract_models, pytest.mark.requires_fluent],
+    ),
+    pytest.param(
+        [models.FullHeart, True],
+        marks=[pytest.mark.extract_models, pytest.mark.requires_fluent],
+    ),
+]
+test_params_slow_ids = [
+    "BiVentricle-Remesh",
+    "FullHeart-Remesh",
+]
+
+
+# default params are the fast parameters.
+@pytest.fixture(
+    scope="module",
+    params=test_params_fast,
+    ids=test_params_fast_ids,
+)
 def extract_model(request):
 
-    model_type = request.param  # models.BiVentricle
+    if list(request.param):
+        model_type = request.param[0]
+        mesh_volume = request.param[1]
+    else:
+        raise TypeError("Expecting list of 2 input parameters.")
+
     if not model_type in (models.BiVentricle, models.FullHeart):
         raise TypeError(f"Expecting model to be of types: {models.BiVentricle, models.FullHeart}")
         return
@@ -105,7 +138,11 @@ def extract_model(request):
             exit()
 
         model.load_input()
-        model.mesh.load_mesh(mesh_file)
+        # model.mesh_volume(wrapper=True) # could use this: but requires fluent
+        if mesh_volume:
+            model.mesh_volume(use_wrapper=True)
+        else:
+            model.mesh.load_mesh(mesh_file)
         model._update_parts()
 
         yield model, ref_stats
@@ -113,7 +150,12 @@ def extract_model(request):
     return
 
 
-@pytest.mark.models_v2
+@pytest.mark.parametrize(
+    "extract_model",
+    test_params_slow + test_params_fast,
+    ids=test_params_slow_ids + test_params_fast_ids,
+    indirect=["extract_model"],
+)
 def test_names(extract_model):
     """Test if relevant features are present in model."""
     model, ref_stats = extract_model
@@ -122,7 +164,12 @@ def test_names(extract_model):
     pass
 
 
-@pytest.mark.models_v2
+@pytest.mark.parametrize(
+    "extract_model",
+    test_params_slow + test_params_fast,
+    ids=test_params_slow_ids + test_params_fast_ids,
+    indirect=["extract_model"],
+)
 def test_cavity_volumes(extract_model):
     """Test consistency of cavity volumes."""
     model, ref_stats = extract_model
@@ -131,8 +178,15 @@ def test_cavity_volumes(extract_model):
     pass
 
 
-@pytest.mark.models_v2
-@pytest.mark.xfail(reason="Different Fluent versions may yield slightly different meshing results")
+@pytest.mark.parametrize(
+    "extract_model",
+    test_params_slow + test_params_fast,
+    ids=test_params_slow_ids + test_params_fast_ids,
+    indirect=["extract_model"],
+)
+@pytest.mark.xfail(
+    reason="Different Fluent versions or os's may yield slightly different meshing results"
+)
 def test_mesh_stats(extract_model):
     model, ref_stats = extract_model
     stats = model.summary()
@@ -140,7 +194,6 @@ def test_mesh_stats(extract_model):
     pass
 
 
-@pytest.mark.models_v2
 @pytest.mark.parametrize(
     "writer_class",
     [
@@ -152,6 +205,7 @@ def test_mesh_stats(extract_model):
         writers.PurkinjeGenerationDynaWriter,
     ],
 )
+@pytest.mark.k_file_writer
 @pytest.mark.xfail(reason="Testing .k files is mesh sensitive.")
 def test_writers(extract_model, writer_class):
     """Test whether all writers yield the same .k files as the reference model.

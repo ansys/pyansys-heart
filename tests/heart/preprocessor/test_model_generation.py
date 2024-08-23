@@ -273,7 +273,84 @@ def test_writers(extract_model, writer_class):
 
     # with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
-        to_test_folder = os.path.join(workdir, "biventricle", writer_class.__name__)
+        to_test_folder = os.path.join(workdir, writer_class.__name__)
+        writer.update()
+        writer.export(to_test_folder)
+
+        ref_files = glob.glob(os.path.join(ref_folder, "*.k"))
+        # compare each of the reference files to the files that were generated.
+        for ref_file in ref_files:
+            file_to_compare = os.path.join(to_test_folder, pathlib.Path(ref_file).name)
+            assert read_file(ref_file) == read_file(
+                file_to_compare
+            ), f"File {pathlib.Path(ref_file).name} does not match."
+
+    return
+
+
+@pytest.mark.parametrize(
+    "writer_class",
+    [
+        writers.ElectrophysiologyDynaWriter,
+        writers.ElectroMechanicsDynaWriter,
+        writers.MechanicsDynaWriter,
+        writers.ZeroPressureMechanicsDynaWriter,
+        writers.FiberGenerationDynaWriter,
+        writers.PurkinjeGenerationDynaWriter,
+    ],
+)
+@pytest.mark.k_file_writer
+@pytest.mark.xfail(
+    reason="""Testing .k files is mesh sensitive and subject to changes in model configuration.
+    If no changes to the model are expected than this test should pass"""
+)
+def test_writers_after_load_model(extract_model, writer_class):
+    """Test whether all writers yield the same .k files as the reference model.
+
+    Notes
+    -----
+    This tests the .k files after saving and loading a model.
+    """
+    model, _ = extract_model
+
+    if isinstance(model, models.BiVentricle):
+        ref_folder = os.path.join(
+            get_assets_folder(),
+            "reference_models",
+            "strocchi2020",
+            "01",
+            "_BiVentricle",
+            "k_files1",
+            writer_class.__name__,
+        )
+    elif isinstance(model, models.FullHeart):
+        ref_folder = os.path.join(
+            get_assets_folder(),
+            "reference_models",
+            "strocchi2020",
+            "01",
+            "_FullHeart",
+            "k_files1",
+            writer_class.__name__,
+        )
+
+    # with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
+
+        model_path = os.path.join(workdir, model.__class__.__name__ + ".vtu")
+        partinfo = model_path.replace(".vtu", ".partinfo.json")
+
+        model.save_model(model_path)
+
+        model1 = type(model)(models.ModelInfo(work_directory=workdir))
+        model1.load_model_from_mesh(model_path, partinfo)
+        model1._extract_apex()
+        model1.compute_left_ventricle_anatomy_axis()
+        model1.compute_left_ventricle_aha17()
+
+        writer = writer_class(copy.deepcopy(model1))
+
+        to_test_folder = os.path.join(workdir, writer_class.__name__)
         writer.update()
         writer.export(to_test_folder)
 

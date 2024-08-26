@@ -52,7 +52,7 @@ doc = [
     "myst-parser==2.0.0",
     "numpydoc==1.6.0",
     "nbsphinx==0.9.3",
-    "sphinx==7.2.6",
+    "sphinx==8.0.2",
     "sphinx-autoapi==3.1.a2",
     "sphinx-autodoc-typehints==1.24.0",
     "sphinx-copybutton==0.5.2",

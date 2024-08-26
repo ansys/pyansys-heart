@@ -12,8 +12,8 @@ Based on different applications, different simulators need to be created.
 
     - :attr:`BaseSimulator`, parent class for all other Simulators, it holds general methods, like fiber generation.
     - :attr:`EPSimulator`, used for running electrophysiology cardiac simulation
-    - :attr:`MechanicsSimulator`, used for running mecahnical cardiac simulation
-    - :attr:`EPMechanicsSimulator`, used for running electrical-mecahnical coupled cardiac simulation
+    - :attr:`MechanicsSimulator`, used for running mechanical cardiac simulation
+    - :attr:`EPMechanicsSimulator`, used for running electrical-mechanical coupled cardiac simulation
 
 A simple usage example is given in the following:
 

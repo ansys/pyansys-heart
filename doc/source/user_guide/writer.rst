@@ -10,10 +10,10 @@ writer
 Based on different applications, different Writers need to be created.
 
     - :attr:`PurkinjeGenerationDynaWriter`, used to generate LS-DYNA input deck for creating Purkinje network.
-    - :attr:`FiberGenerationDynaWriter`, used to generate LS-DYNA input deck for creating fibers orientatin vectors.
+    - :attr:`FiberGenerationDynaWriter`, used to generate LS-DYNA input deck for creating fibers orientation vectors.
     - :attr:`MechanicsDynaWriter`, used to generate LS-DYNA input deck for mechanical simulations
-    - :attr:`ZeroPressureMechanicsDynaWriter`, used to generate LS-DYNA input deck for stress_free_configuration simulations
-    - :attr:`ElectrophysiologyDynaWriter`, used to generate LS-DYNA input deck for electrophysiological simulations
+    - :attr:`ZeroPressureMechanicsDynaWriter`, used to generate LS-DYNA input deck for stress free configuration simulations
+    - :attr:`ElectrophysiologyDynaWriter`, used to generate LS-DYNA input deck for electrophysiology simulations
     - :attr:`ElectroMechanicsDynaWriter`, used to generate LS-DYNA input deck for electrical-mecahnical coupled simulations
 
 A simple use example is given as the following:

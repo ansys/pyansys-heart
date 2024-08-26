@@ -2,7 +2,7 @@
 .. _ref_components:
 
 ************
-preprocessor
+Preprocessor
 ************
 
-We give an overview of :attr:`HeartModel <ansys.heart.preprocessor.models>`
+This section provides an overview of the :attr:`HeartModel <ansys.heart.preprocessor.models>` module.

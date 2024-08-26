@@ -2,7 +2,7 @@
 .. _ref_components:
 
 ***********
-calibration
+Calibration
 ***********
 
-This section is still under development...
+This section is still under development.

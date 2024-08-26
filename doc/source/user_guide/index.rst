@@ -29,7 +29,7 @@ Brief theory
 ============
 This section provides a brief review of key techniques in cardiac modeling. A list of references is also provided.
 
-We assume that the reader has a basic knowledge of using LS-DYNA. However, you are encouraged to read the `LS-DYNA manuals`_ for a comprehensive understanding of the modeling process.
+It is assumed that the reader has a basic knowledge on LS-DYNA usage. However, it is encouraged to read the `LS-DYNA manuals`_ for a comprehensive understanding of the modeling process.
 
 
 
@@ -52,8 +52,8 @@ Some anatomical details are difficult to capture with medical imaging techniques
 
 
 
-Electrophisology
-================
+Electrophysiology
+=================
 
 This section introduces cardiac electrophysiology modeling in *PyAnsys Heart*.
 Three options are available to model electrical propagation in *PyAnsys Heart* (see `simulator.settings.settings.EPAnalysis.solvertype`): `Monodomain` (``*EM_CONTROL`` with EMSOL=11 in LS-DYNA), `Eikonal` (``*EM_CONTROL`` with EMSOL=14 in LS-DYNA) and `ReactionEikonal` model (``*EM_CONTROL`` with EMSOL=15 in LS-DYNA).
@@ -81,7 +81,7 @@ Three options are available to model electrical propagation in *PyAnsys Heart* (
 Mechanics
 =========
 
-This section expalains the key elements in cardiac mechanical models and their default options in the package.
+This section explains the key elements in cardiac mechanical models and their default options in the package.
 
 
 - Material:
@@ -98,7 +98,7 @@ This section expalains the key elements in cardiac mechanical models and their d
 .. closed loop, twin builder ?
 
 - Stress free configuration
-   We assume that the input geometry is in the state of end-diastole. To account for the initial stress from the end-diastolic pressure, we first compute the stress-free configuration using the keyword `*CONTROL_REFERENCE_CONFIGURATION`. Then, the pressure is reapplied to the stress-free geometry, and we export a "virtual" end-diastolic mesh with the initial stress. This mesh is subsequently used in the contraction simulation.
+   It is assumed that the input geometry is in the state of end-diastole. To account for the initial stress from the end-diastolic pressure, the stress-free configuration is computed using the keyword `*CONTROL_REFERENCE_CONFIGURATION`. Then, the pressure is reapplied to the stress-free geometry, and a "virtual" end-diastolic mesh with the initial stress is exported. This mesh is subsequently used in the contraction simulation.
 
 
 
@@ -117,11 +117,11 @@ _`Strocchi et al.`: Strocchi, Marina, et al. "Simulating ventricular systolic mo
 
 _`Piersanti et al.`: Piersanti, Roberto, et al. "Modeling cardiac muscle fibers in ventricular and atrial electrophysiology simulations." Computer Methods in Applied Mechanics and Engineering 373 (2021): 113468.
 
-_`Roney et al.`: Roney, Caroline H., et al. "Universal atrial coordinates applied to visualisation, registration and construction of patient specific meshes." Medical image analysis 55 (2019): 65-75.
+_`Roney et al.`: Roney, Caroline H., et al. “Universal atrial coordinates applied to visualisation, registration and construction of patient specific meshes.” Medical image analysis 55 (2019): 65-75.
 
-_`Bayer et al.2`: Bayer, Jason, et al. "Universal ventricular coordinates: A generic framework for describing position within the heart and transferring data." Medical image analysis 45 (2018): 83-93.
+_`Bayer et al.2`: Bayer, Jason, et al. “Universal ventricular coordinates: A generic framework for describing position within the heart and transferring data.” Medical image analysis 45 (2018): 83-93.
 
-_`Agustin et al.`: Augustin, Christoph M., et al. "A computationally efficient physiologically comprehensive 3D-0D closed-loop model of the heart and circulation." Computer methods in applied mechanics and engineering 386 (2021): 114092.
+_`Agustin et al.`: Augustin, Christoph M., et al. “A computationally efficient physiologically comprehensive 3D-0D closed-loop model of the heart and circulation.” Computer methods in applied mechanics and engineering 386 (2021): 114092.
 
 _`Potse et al.`: Potse, M., Dube, B., Richer, J., Vinet, A., Gulrajani, R.: A comparison of monodomain and bidomain reaction-diffusion models for action potential propagation in the human heart. IEEE Transactions on Biomedical Engineering 53(12), 2425- 2435 (dec 2006).
 

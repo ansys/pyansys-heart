@@ -956,7 +956,7 @@ class HeartModel:
     # TODO Note that right now this only reconstructs the
     # TODO surfaces and parts that are defined in the HeartModel classes
     # TODO LeftVentricle, BiVentricle, FourChamber and FullHeart
-    # TODO should consider to also reconstruct the parts that are not explicitely
+    # TODO should consider to also reconstruct the parts that are not explicitly
     # TODO defined in the class.
     def load_model_from_mesh(self, filename_mesh: str, filename_part_info: str):
         """Load model from an existing VTU file and part info dictionary.

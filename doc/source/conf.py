@@ -2,14 +2,8 @@
 
 from datetime import datetime
 import os
-from pathlib import Path
 
-from ansys_sphinx_theme import (
-    ansys_favicon,
-    get_autoapi_templates_dir_relative_path,
-    get_version_match,
-    pyansys_logo_black,
-)
+from ansys_sphinx_theme import ansys_favicon, get_version_match
 
 from ansys.heart import __version__
 
@@ -21,7 +15,6 @@ release = version = __version__
 cname = os.getenv("DOCUMENTATION_CNAME", "heart.docs.pyansys.com")
 
 # use the default pyansys logo
-html_logo = pyansys_logo_black
 html_theme = "ansys_sphinx_theme"
 
 html_short_title = html_title = "PyAnsys Heart"
@@ -40,6 +33,11 @@ html_theme_options = {
         "version_match": get_version_match(__version__),
     },
     "check_switcher": False,
+    "logo": "pyansys",
+    "ansys_sphinx_theme_autoapi": {
+        "project": project,
+        "ignore": ["*writer*", "*calibration*", "*misc*"],
+    },
 }
 
 # Sphinx extensions
@@ -54,6 +52,7 @@ extensions = [
     "sphinx_design",
     "sphinx_jinja",
     "sphinx.ext.autodoc",
+    "ansys_sphinx_theme.extension.autoapi",
 ]
 
 sphinx_gallery_conf = {
@@ -113,46 +112,14 @@ master_doc = "index"
 
 ## Configuration for Sphinx autoapi ##
 # ---------------------------------- #
-autoapi_type = "python"
-autoapi_ignore = [
-    "*writer*",
-    "*calibration*",
-    "*misc*",
-]
+
 # autoapi_dirs = [
 #     "../../src/ansys/heart/preprocessor",
 #     "../../src/ansys/heart/simulator",
 #     "../../src/ansys/heart/postprocessor",
 # ]
-autoapi_dirs = ["../../src/ansys/"]
-autoapi_root = "api"
-autoapi_options = [
-    "members",
-    "undoc-members",
-    "show-inheritance",
-    "show-module-summary",
-    "special-members",
-]
-autoapi_template_dir = get_autoapi_templates_dir_relative_path(Path(__file__))
 suppress_warnings = ["autoapi.python_import_resolution", "autosectionlabel.*"]
 autoapi_python_use_implicit_namespaces = True
-autoapi_keep_files = True
-autoapi_own_page_level = "class"
 
 typehints_defaults = "comma"
 simplify_optional_unions = False
-
-
-def prepare_jinja_env(jinja_env) -> None:
-    """
-    Customize the jinja env.
-
-    Notes
-    -----
-    See https://jinja.palletsprojects.com/en/3.0.x/api/#jinja2.Environment
-
-    """
-    jinja_env.globals["project_name"] = project
-
-
-autoapi_prepare_jinja_env = prepare_jinja_env

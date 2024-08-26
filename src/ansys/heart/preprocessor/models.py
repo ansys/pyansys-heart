@@ -31,6 +31,7 @@ import pickle
 import re
 from typing import List, Literal, Union
 
+from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 from scipy.spatial.transform import Rotation as R
@@ -252,11 +253,20 @@ class HeartModel:
         self.electrodes: List[Point] = []
         """Electrodes positions for ECG computing."""
 
+        self._part_info = {}
+        """Information about all the parts in the model."""
         return
 
-    # def __repr__(self):
-    #     """Represent self as string."""
-    #     return yaml.dump(self.summary(), sort_keys=False)
+    def __str__(self):
+        """Represent self as string."""
+        return yaml.dump(self.summary(), sort_keys=False)
+
+    # NOTE There is some overlap with the input module.
+    def _get_parts_info(self):
+        """Get the id to model map that allows reconstructing the model from a mesh object."""
+        for part in self.parts:
+            self._part_info.update(part._get_info())
+        return self._part_info
 
     def create_part_by_ids(self, eids: List[int], name: str) -> Union[None, Part]:
         """Create a new part by element ids.
@@ -523,6 +533,9 @@ class HeartModel:
 
         self.mesh = mesh.clean()
 
+        filename = os.path.join(self.info.workdir, "volume-mesh-post-meshing.vtu")
+        self.mesh.save(filename)
+
         return
 
     def _mesh_fluid_volume(self, remesh_caps: bool = True):
@@ -668,43 +681,6 @@ class HeartModel:
             LOGGER.info("-----------------------------------------")
         LOGGER.info("*****************************************")
         LOGGER.info("*****************************************")
-        return
-
-    def dump_model(self, filename: Union[pathlib.Path, str] = None):
-        """Save model to .pickle file.
-
-        Parameters
-        ----------
-        filename : pathlib.Path | str, optional
-            Path where the model will be saved, by default None
-
-        Returns
-        -------
-        str
-            Path to where the model is saved.
-
-        Examples
-        --------
-        >>> model.dump_model("my_heart_model.pickle")
-
-        """
-        LOGGER.debug("Writing model to disk")
-
-        if isinstance(filename, pathlib.Path):
-            filename = str(filename)
-
-        if not filename:
-            filename = os.path.join(self.info.workdir, "heart_model.pickle")
-
-        if os.path.isfile(filename):
-            LOGGER.warning(f"Overwriting {filename}")
-
-        with open(filename, "wb") as file:
-            pickle.dump(self, file)
-        self.info.dump_info()
-
-        self.info.path_to_model = filename
-
         return
 
     def plot_mesh(self, show_edges: bool = True, color_by: str = "part-id"):
@@ -870,7 +846,49 @@ class HeartModel:
             LOGGER.warning("Failed to plot mesh.")
         return
 
+    @deprecated(
+        reason="""dump_model() uses pickle which is unsafe
+                and will be replaced. Use save_model() instead"""
+    )
+    def dump_model(self, filename: Union[pathlib.Path, str] = None):
+        """Save model to .pickle file.
+
+        Parameters
+        ----------
+        filename : pathlib.Path | str, optional
+            Path where the model will be saved, by default None
+
+        Returns
+        -------
+        str
+            Path to where the model is saved.
+
+        Examples
+        --------
+        >>> model.dump_model("my_heart_model.pickle")
+
+        """
+        LOGGER.debug("Writing model to disk")
+
+        if isinstance(filename, pathlib.Path):
+            filename = str(filename)
+
+        if not filename:
+            filename = os.path.join(self.info.workdir, "heart_model.pickle")
+
+        if os.path.isfile(filename):
+            LOGGER.warning(f"Overwriting {filename}")
+
+        with open(filename, "wb") as file:
+            pickle.dump(self, file)
+        self.info.dump_info()
+
+        self.info.path_to_model = filename
+
+        return
+
     @staticmethod
+    @deprecated(reason="Load model is deprecated and is superseded by by load_model_from_mesh()")
     def load_model(filename: pathlib.Path):
         """Load a preprocessed model from file.
 
@@ -900,6 +918,121 @@ class HeartModel:
         vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_1)
         return model
 
+    def save_model(self, filename: str):
+        """Save the model and necessary info to reconstruct.
+
+        Parameters
+        ----------
+        filename : str
+            Path to the model
+
+        Notes
+        -----
+        The mesh of the heart model will be saved as .vtu file, and
+        an additional partinfo.json file will be written to reconstruct
+        the heart model from the VTU file.
+
+        Examples
+        --------
+        >>> model.save_model("my-heart-model.vtu")
+
+        """
+        extension = pathlib.Path(filename).suffix
+        if extension != "":
+            mesh_path = filename.replace(extension, ".vtu")
+            map_path = filename.replace(extension, ".partinfo.json")
+        else:
+            mesh_path = filename + ".vtu"
+            map_path = filename + ".partinfo.json"
+
+        self.mesh.save(mesh_path)
+
+        with open(map_path, "w") as f:
+            json.dump(self._get_parts_info(), f, indent=4)
+
+        return
+
+    # TODO could consider having this as a static method.
+    # TODO Note that right now this only reconstructs the
+    # TODO surfaces and parts that are defined in the HeartModel classes
+    # TODO LeftVentricle, BiVentricle, FourChamber and FullHeart
+    # TODO should consider to also reconstruct the parts that are not explicitly
+    # TODO defined in the class.
+    def load_model_from_mesh(self, filename_mesh: str, filename_part_info: str):
+        """Load model from an existing VTU file and part info dictionary.
+
+        Parameters
+        ----------
+        filename_mesh : str
+            Path to the VTU file containing the mesh.
+        filename_part_info : str
+            Path to the JSON file that contains the part info to reconstruct the model.
+
+        Examples
+        --------
+        >>> from ansys.heart.preprocessor.models import FullHeart, ModelInfo
+        >>> model: FullHeart = FullHeart(ModelInfo())
+        >>> model.load_model_from_mesh("mesh.vtu", "mesh.partinfo.json")
+
+        """
+        # try to load the mesh.
+        self.mesh.load_mesh(filename_mesh)
+
+        # open part info
+        with open(filename_part_info, "r") as f:
+            self._part_info = json.load(f)
+            part_info = self._part_info
+
+        # try to reconstruct parts from part info
+        # for part_name in part_info.keys():
+        for part1 in self.parts:
+            try:
+                idx = list(part_info.keys()).index(part1.name)
+            except ValueError:
+                LOGGER.debug(f"{part.name} not in part info")
+                continue
+
+            # part_name_n = "_".join(part_name.lower().split(" "))
+            # init part.
+            part = Part(part1.name, PartType(part_info[part1.name]["part-type"]))
+
+            #! try to add surfaces to part by using the pre-defined surfaces
+            #! Should part-info define the entire heart model and part attributes?
+            for surface in part1.surfaces:
+                surface1 = self.mesh.get_surface_by_name(surface.name)
+                if not surface1:
+                    # LOGGER.debug(f"{surface1.name} not found in mesh.")
+                    continue
+                super(SurfaceMesh, surface).__init__(surface1)
+                surface.id = surface1.id
+                surface.name = surface1.name
+
+            part1.pid = part_info[part1.name]["part-id"]
+
+            try:
+                part1.element_ids = np.argwhere(
+                    np.isin(self.mesh.cell_data["_volume-id"], part1.pid)
+                ).flatten()
+            except:
+                LOGGER.debug(f"Failed to set element ids for {part1.name}")
+                pass
+
+            # try to set cavity
+            if part_info[part1.name]["cavity"] != {}:
+                cavity_name = list(part_info[part1.name]["cavity"].keys())[0]
+                cavity_id = list(part_info[part1.name]["cavity"].values())[0]
+                part1.cavity = Cavity(surface=self.mesh.get_surface(cavity_id), name=cavity_name)
+
+            if part_info[part1.name]["caps"] != {}:
+                for cap_name, cap_id in part_info[part1.name]["caps"].items():
+                    cap = Cap(cap_name)
+                    cap._mesh = self.mesh.get_surface(cap_id)
+                    part1.caps.append(cap)
+
+            # setattr(self, part_name_n, part)
+
+        return
+
     def _set_part_ids(self):
         """Populate part ids."""
         c = 1
@@ -912,8 +1045,6 @@ class HeartModel:
         for part in self.parts:
             if part.part_type in [PartType.VENTRICLE]:
                 part._add_myocardium_part()
-                if "Left ventricle" in part.name:
-                    part._add_septum_part()
         return
 
     def _get_used_element_ids(self) -> np.ndarray:
@@ -1008,6 +1139,8 @@ class HeartModel:
             scaling = Prot[:, 2] / np.max(Prot[:, 2])
             self.mesh.point_data["uvc_longitudinal"] = scaling
 
+        self._get_parts_info()
+
         return
 
     def _sync_input_parts_to_model_parts(self):
@@ -1048,7 +1181,11 @@ class HeartModel:
             LOGGER.warning("Model type: {0} Not extracting septum elements".format(type(self)))
             return None
 
-        septum_name = [s for s in self.mesh.surface_names if "septum" in s]
+        septum_name = [
+            s
+            for s in self.mesh.surface_names
+            if "right" in s.lower() and "ventricle" in s.lower() and "septum" in s.lower()
+        ]
 
         if len(septum_name) > 1:
             raise ValueError("Expecting only one surface that contains string: 'septum'")
@@ -1200,7 +1337,7 @@ class HeartModel:
                 boundary_name = "-".join(surface.name.lower().split())
                 boundary_surface = self.mesh.get_surface_by_name(boundary_name)
 
-                if "septum" in surface.name:
+                if "septum" in surface.name.lower() and "right ventricle" in surface.name.lower():
                     try:
                         septum_candidates = [s for s in self.mesh.surface_names if "septum" in s]
                         if len(septum_candidates) > 1:
@@ -1210,10 +1347,14 @@ class HeartModel:
                         boundary_surface = self.mesh.get_surface_by_name(septum_candidates[0])
                     except:
                         boundary_surface = None
+
                 if boundary_surface:
-                    surface.triangles = boundary_surface.triangles
-                    surface.nodes = boundary_surface.nodes
+                    #! change boundary name in self.mesh to align with heart model: note that
+                    #! we may want to do this in another place.
+                    self.mesh._surface_id_to_name[boundary_surface.id] = surface.name
+                    super(SurfaceMesh, surface).__init__(boundary_surface)
                     surface.id = boundary_surface.id
+
                 else:
                     LOGGER.warning("Could not find matching surface for: {0}".format(surface.name))
 
@@ -1221,12 +1362,12 @@ class HeartModel:
 
     def _assign_cavities_to_parts(self) -> None:
         """Create cavities based on endocardium surfaces and cap definitions."""
-        # rename septum to right ventricle endocardium septum
-        if isinstance(self, (BiVentricle, FourChamber, FullHeart)):
-            part = self.get_part("Right ventricle", True)
-            for surface in part.surfaces:
-                if "Right ventricle septum" in surface.name:
-                    surface.name = surface.name.replace("septum", "endocardium septum")
+        # # rename septum to right ventricle endocardium septum
+        # if isinstance(self, (BiVentricle, FourChamber, FullHeart)):
+        #     part = self.get_part("Right ventricle", True)
+        #     for surface in part.surfaces:
+        #         if "Right ventricle septum" in surface.name:
+        #             surface.name = surface.name.replace("septum", "endocardium septum")
 
         # construct cavities with endocardium and caps
         idoffset = 1000  # TODO need to improve id checking
@@ -1299,7 +1440,7 @@ class HeartModel:
 
             surface_cavity = self.mesh.get_surface(surface_cavity.id)
 
-            part.cavity = Cavity(surface=surface_cavity, name=part.name)
+            part.cavity = Cavity(surface=surface_cavity, name=surface_cavity.name)
             part.cavity.compute_centroid()
 
             LOGGER.debug("Volume of cavity: {0} = {1}".format(part.cavity.name, part.cavity.volume))
@@ -1410,7 +1551,7 @@ class HeartModel:
             for surface in part.surfaces:
                 if "epicardium" in surface.name:
                     # get the surface id.
-                    surf_id = self.mesh._surface_name_to_id[surface.name.lower().replace(" ", "-")]
+                    surf_id = self.mesh._surface_name_to_id[surface.name]
                     global_node_ids_surface = self.mesh.get_surface(surf_id).point_data[
                         "_global-point-ids"
                     ]

@@ -63,13 +63,17 @@ except KeyError:
     pass
 # sphinx_gallery_end_ignore
 
-path_to_model = os.path.join(workdir, "heart_model.pickle")
+path_to_model = os.path.join(workdir, "heart_model.vtu")
 
 # specify LS-DYNA path
 lsdyna_path = r"ls-dyna_smp"
 
 # load heart model.
-model: models.FourChamber = models.HeartModel.load_model(path_to_model)
+model: models.FourChamber = models.FourChamber(models.ModelInfo(work_directory=workdir))
+model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
+model._extract_apex()
+model.compute_left_ventricle_anatomy_axis()
+model.compute_left_ventricle_aha17()
 
 # set base working directory
 model.info.workdir = str(workdir)

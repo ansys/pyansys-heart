@@ -64,12 +64,16 @@ os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 workdir = os.path.join(
     "pyansys-heart", "downloads", "Strocchi2020", "01", "FourChamber", "teststim"
 )
-path_to_model = os.path.join(workdir, "heart_model.pickle")
+path_to_model = os.path.join(workdir, "heart_model.vtu")
 
 
 # load your four chamber heart model with uvcs (see preprocessor examples to create
 # a heart model from scratch)
-model: models.FourChamber = models.HeartModel.load_model(path_to_model)
+model: models.FourChamber = models.FourChamber(models.ModelInfo(work_directory=workdir))
+model.load_model_from_mesh(path_to_model)
+model._extract_apex()
+model.compute_left_ventricle_anatomy_axis()
+model.compute_left_ventricle_aha17()
 
 ###############################################################################
 # Define stimulation at the apex

@@ -79,11 +79,11 @@ PARTS:
         num_faces: 1680
     CAPS: {}
 CAVITIES:
-  Left ventricle:
+  Left ventricle cavity:
     volume: 170531.50068485975
-  Right ventricle:
+  Right ventricle cavity:
     volume: 234200.63865487787
-  Left atrium:
+  Left atrium cavity:
     volume: 88685.06988690747
-  Right atrium:
+  Right atrium cavity:
     volume: 191524.51164321223

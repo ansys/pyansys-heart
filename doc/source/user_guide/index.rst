@@ -17,9 +17,9 @@ Overview
 ========
 
 
-Cardiac electromechanic simulation models the intricate processes that governs the heart's electrical activity and mechanical response, providing a comprehensive view of how the heart operates. This type of simulation is essential for understanding cardiac function, diagnosing conditions, and developing treatments.
+Cardiac electromechanical simulation models the intricate processes that governs the heart's electrical activity and mechanical response, providing a comprehensive view of how the heart operates. This type of simulation is essential for understanding cardiac function, diagnosing conditions, and developing treatments.
 
-Simulating these processes requires sophisticated computational tools and techniques. LS-DYNA is one such tool used in cardiac electromechanic simulation. It can run electrophysiology (EP) and mechanics simulations separately, as well as coupled electromechanics simulations. PyAnsys Heart leverages the potential of LS-DYNA to set up and drive these complex simulations effectively.
+Simulating these processes requires sophisticated computational tools and techniques. LS-DYNA is one such tool used in cardiac electromechanical simulation. It can run electrophysiology (EP) and mechanics simulations separately, as well as coupled electromechanics simulations. PyAnsys Heart leverages the potential of LS-DYNA to set up and drive these complex simulations effectively.
 
 *PyAnsys Heart* is a high-level interface designed to use LS-DYNA for heart modeling. It provides convenient features to set up and drive cardiac simulations.
 

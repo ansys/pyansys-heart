@@ -5,7 +5,7 @@
 simulator
 *********
 
-:attr:`Simulator <ansys.heart.simulator.simulator>` is used to link up different simulation steps for cardiac modeling. For example, for electrophysiology simulations, we typically need to firstly generate fiber orientation :attr:`BaseSimulator.compute_fibers` and Purkinje network :attr:`EPSimulator.compute_purkinje`, then start physical simulation. For mechanical simulations, it's necessary to compute the stress free configuration :attr:`MechanicsSimulator.compute_stress_free_configuration` before running the simulation.
+:attr:`Simulator <ansys.heart.simulator.simulator>` is used to link up different simulation steps for cardiac modeling. For example, for electrophysiology simulations, fiber orientation :attr:`BaseSimulator.compute_fibers` and Purkinje network :attr:`EPSimulator.compute_purkinje` are computed before launching the physical simulation. In mechanical analysis, it is necessary to compute the stress free configuration :attr:`MechanicsSimulator.compute_stress_free_configuration` before running the simulation.
 
 
 Based on different applications, different simulators need to be created.

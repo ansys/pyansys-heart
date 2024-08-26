@@ -2,7 +2,7 @@
 .. _ref_components:
 
 ******
-writer
+Writer
 ******
 
 :attr:`DynaWriter <ansys.heart.writer.dynawriter>` is used to generate LS-DYNA input files for different simulations.

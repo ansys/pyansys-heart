@@ -5,3 +5,14 @@ API
 (?i)pyansys
 (?i)ansys
 (?i)heart
+LS-DYNA
+MAT_295
+Bayer
+Costabal
+Strocchi
+Piersanti
+Roney
+Bayer
+Agustin
+Potse
+TenTusscher

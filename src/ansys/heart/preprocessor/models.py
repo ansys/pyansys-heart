@@ -683,47 +683,6 @@ class HeartModel:
         LOGGER.info("*****************************************")
         return
 
-    @deprecated(
-        reason="""dump_model() uses pickle which is unsafe
-                and will be replaced. Use save_model() instead"""
-    )
-    def dump_model(self, filename: Union[pathlib.Path, str] = None):
-        """Save model to .pickle file.
-
-        Parameters
-        ----------
-        filename : pathlib.Path | str, optional
-            Path where the model will be saved, by default None
-
-        Returns
-        -------
-        str
-            Path to where the model is saved.
-
-        Examples
-        --------
-        >>> model.dump_model("my_heart_model.pickle")
-
-        """
-        LOGGER.debug("Writing model to disk")
-
-        if isinstance(filename, pathlib.Path):
-            filename = str(filename)
-
-        if not filename:
-            filename = os.path.join(self.info.workdir, "heart_model.pickle")
-
-        if os.path.isfile(filename):
-            LOGGER.warning(f"Overwriting {filename}")
-
-        with open(filename, "wb") as file:
-            pickle.dump(self, file)
-        self.info.dump_info()
-
-        self.info.path_to_model = filename
-
-        return
-
     def plot_mesh(self, show_edges: bool = True, color_by: str = "part-id"):
         """Plot the volume mesh of the heart model.
 
@@ -887,8 +846,97 @@ class HeartModel:
             LOGGER.warning("Failed to plot mesh.")
         return
 
+    @deprecated(
+        reason="""dump_model() uses pickle which is unsafe
+                and will be replaced. Use save_model() instead"""
+    )
+    def dump_model(self, filename: Union[pathlib.Path, str] = None):
+        """Save model to .pickle file.
+
+        Parameters
+        ----------
+        filename : pathlib.Path | str, optional
+            Path where the model will be saved, by default None
+
+        Returns
+        -------
+        str
+            Path to where the model is saved.
+
+        Examples
+        --------
+        >>> model.dump_model("my_heart_model.pickle")
+
+        """
+        LOGGER.debug("Writing model to disk")
+
+        if isinstance(filename, pathlib.Path):
+            filename = str(filename)
+
+        if not filename:
+            filename = os.path.join(self.info.workdir, "heart_model.pickle")
+
+        if os.path.isfile(filename):
+            LOGGER.warning(f"Overwriting {filename}")
+
+        with open(filename, "wb") as file:
+            pickle.dump(self, file)
+        self.info.dump_info()
+
+        self.info.path_to_model = filename
+
+        return
+
+    @staticmethod
+    @deprecated(reason="Load model is deprecated and is superseded by by load_model_from_mesh()")
+    def load_model(filename: pathlib.Path):
+        """Load a preprocessed model from file.
+
+        Examples
+        --------
+        >>> model = HeartModel.load_model("my_model.pickle")
+
+        """
+        # NOTE: need to suppress some vtk errors in pickled pyvista objects.
+        # change the verbosity in the vtk logger and suppress the python logger.
+        import logging
+
+        import vtk
+
+        logger = copy.deepcopy(logging.getLogger("pyheart_global"))
+        # setting propagate to False is workaround for VTK changing log behavior
+        logger.propagate = False
+
+        logger = logging.getLogger()
+        logger.disabled = True
+        # to suppress vtk errors
+        vtk_logger = vtk.vtkLogger
+        vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_OFF)
+        with open(filename, "rb") as file:
+            model = pickle.load(file)
+        logger.disabled = False
+        vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_1)
+        return model
+
     def save_model(self, filename: str):
-        """Save model and necessary info to reconstruct from the VTU file."""
+        """Save the model and necessary info to reconstruct.
+
+        Parameters
+        ----------
+        filename : str
+            Path to the model
+
+        Notes
+        -----
+        The mesh of the heart model will be saved as .vtu file, and
+        an additional partinfo.json file will be written to reconstruct
+        the heart model from the VTU file.
+
+        Examples
+        --------
+        >>> model.save_model("my-heart-model.vtu")
+
+        """
         extension = pathlib.Path(filename).suffix
         if extension != "":
             mesh_path = filename.replace(extension, ".vtu")
@@ -905,8 +953,28 @@ class HeartModel:
         return
 
     # TODO could consider having this as a static method.
+    # TODO Note that right now this only reconstructs the
+    # TODO surfaces and parts that are defined in the HeartModel classes
+    # TODO LeftVentricle, BiVentricle, FourChamber and FullHeart
+    # TODO should consider to also reconstruct the parts that are not explicitely
+    # TODO defined in the class.
     def load_model_from_mesh(self, filename_mesh: str, filename_part_info: str):
-        """Load model from an existing VTU file and part info dictionary."""
+        """Load model from an existing VTU file and part info dictionary.
+
+        Parameters
+        ----------
+        filename_mesh : str
+            Path to the VTU file containing the mesh.
+        filename_part_info : str
+            Path to the JSON file that contains the part info to reconstruct the model.
+
+        Examples
+        --------
+        >>> from ansys.heart.preprocessor.models import FullHeart, ModelInfo
+        >>> model: FullHeart = FullHeart(ModelInfo())
+        >>> model.load_model_from_mesh("mesh.vtu", "mesh.partinfo.json")
+
+        """
         # try to load the mesh.
         self.mesh.load_mesh(filename_mesh)
 
@@ -964,37 +1032,6 @@ class HeartModel:
             # setattr(self, part_name_n, part)
 
         return
-
-    @staticmethod
-    @deprecated(reason="Load model is deprecated and is superseded by by load_model_from_mesh()")
-    def load_model(filename: pathlib.Path):
-        """Load a preprocessed model from file.
-
-        Examples
-        --------
-        >>> model = HeartModel.load_model("my_model.pickle")
-
-        """
-        # NOTE: need to suppress some vtk errors in pickled pyvista objects.
-        # change the verbosity in the vtk logger and suppress the python logger.
-        import logging
-
-        import vtk
-
-        logger = copy.deepcopy(logging.getLogger("pyheart_global"))
-        # setting propagate to False is workaround for VTK changing log behavior
-        logger.propagate = False
-
-        logger = logging.getLogger()
-        logger.disabled = True
-        # to suppress vtk errors
-        vtk_logger = vtk.vtkLogger
-        vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_OFF)
-        with open(filename, "rb") as file:
-            model = pickle.load(file)
-        logger.disabled = False
-        vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_1)
-        return model
 
     def _set_part_ids(self):
         """Populate part ids."""

@@ -206,9 +206,12 @@ def unpack_k_files():
         "01",
         "k_files_biventricle_fullheart.zip",
     )
-
-    with zipfile.ZipFile(zip_file, "r") as zip_ref:
-        zip_ref.extractall(os.path.dirname(zip_file))
+    try:
+        with zipfile.ZipFile(zip_file, "r") as zip_ref:
+            zip_ref.extractall(os.path.dirname(zip_file))
+    except:
+        print("Failed to unpack zip files.")
+        pass
 
     yield
 

@@ -109,7 +109,7 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m pytest -v -m "not (requires_fluent or downloader)"
+          python -m pytest -v -m "not (requires_fluent or downloader or extract_models)"
 
 
   build-library:

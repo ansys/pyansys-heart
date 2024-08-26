@@ -313,6 +313,9 @@ class BaseDynaWriter:
                 if not surface_global:
                     LOGGER.debug(f"Failed to create segment set for {surface.name}")
                     continue
+                if surface_global.n_cells == 0:
+                    LOGGER.debug(f"Failed to create segment set for {surface.name}. Empty mesh.")
+                    continue
 
                 segset_id = self.get_unique_segmentset_id()
                 surface._seg_set_id = segset_id
@@ -484,6 +487,10 @@ class BaseDynaWriter:
             for surface in part.surfaces:
                 #! get up-to-date version of the surface.
                 surface1 = self.model.mesh.get_surface(surface.id)
+                if surface1.n_cells == 0:
+                    LOGGER.debug(f"Failed to create node set for {surface.name}. Empty mesh.")
+                    continue
+
                 if remove_one_node_from_cell:
                     node_ids = self._filter_bc_nodes(surface1)
                 else:
@@ -1869,27 +1876,28 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # create *LOAD_SEGMENT_SETS for each ventricular cavity
         cavities = [part.cavity for part in self.model.parts if part.cavity]
         for cavity in cavities:
-            if cavity.name == "Left ventricle":
+            if "Left ventricle" in cavity.name:
                 load = keywords.LoadSegmentSet(
                     ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_lv
                 )
                 self.kw_database.main.append(load)
-            elif cavity.name == "Right ventricle":
+            elif "Right ventricle" in cavity.name:
                 load = keywords.LoadSegmentSet(
                     ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_rv
                 )
                 self.kw_database.main.append(load)
-            elif cavity.name == "Left atrium":
+            elif "Left atrium" in cavity.name:
                 load = keywords.LoadSegmentSet(
                     ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_la
                 )
                 self.kw_database.main.append(load)
-            elif cavity.name == "Right atrium":
+            elif "Right atrium" in cavity.name:
                 load = keywords.LoadSegmentSet(
                     ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_ra
                 )
                 self.kw_database.main.append(load)
             else:
+                LOGGER.debug(f"No load added to {cavity.name}")
                 continue
 
         return
@@ -2293,13 +2301,19 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         for ventricle in ventricles:
             for surface in ventricle.surfaces:
                 if "endocardium" in surface.name:
+                    if surface.n_cells == 0:
+                        LOGGER.debug(
+                            f"Failed to collect node-set id for {surface.name}. Empty mesh."
+                        )
+                        continue
                     node_sets_ids_endo.append(surface._node_set_id)
 
         node_set_id_lv_endo = self.model.get_part("Left ventricle").endocardium._node_set_id
         if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
             surfaces = [surface for p in self.model.parts for surface in p.surfaces]
             for surface in surfaces:
-                if "septum" in surface.name and "endocardium" in surface.name:
+                #! relies on order of surfaces. Could be tricky.
+                if surface.name == "Right ventricle endocardium septum":
                     node_set_ids_epi_and_rseptum = node_sets_ids_epi + [surface._node_set_id]
                     break
 
@@ -3969,6 +3983,9 @@ class UHCWriter(BaseDynaWriter):
             for surf in part.surfaces:
                 if "endocardium" in surf.name:
                     endo_surf = self.model.mesh.get_surface(surf.id)
+                    if endo_surf.n_cells == 0:
+                        LOGGER.debug(f"Failed to collect nodes for {surf.name}. Empty mesh.")
+                        continue
                     endo_set.extend(endo_surf.global_node_ids_triangles)
                 # elif "epicardium" in surf.name:
                 #     epi_set.extend(surf.node_ids)

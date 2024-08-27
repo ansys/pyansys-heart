@@ -15,7 +15,6 @@
 Overview
 ========
 
-
 Brief theory
 ------------
 This section provides a brief review of key techniques in cardiac modeling. A list of references is also provided.
@@ -26,7 +25,18 @@ It is assumed that the reader has a basic knowledge on LS-DYNA usage. However, i
 
 Anatomy generation
 ------------------
-<to be filled>
+Currently *PyAnsys Heart* supports generating electrophysiology, electro-mechanical and mechanical models from 24 pathological (`Strocchi et al.`_) and 20 healthy (`Rodero et al.`_) hearts.
+
+.. note::
+   Input .case and .vtk files for both repositories can be found here:
+
+   * https://zenodo.org/records/3890034
+   * https://zenodo.org/records/4590294
+
+These .vtk and .case files are processed into a compatible input format where the naming and ids of the surfaces are inferred from the part ids and consequently written to an input .vtp file and .json file.
+These input files are then further processed into a HeartModel that contains the various relevant anatomical features (left ventricle, right ventricle, endo- and epicardium, and cavities). This
+HeartModel is a Python object that is then further processed (e.g. add physics) and exported as a LS-DYNA model.
+
 
 Brief theory
 ------------
@@ -48,22 +58,22 @@ Three options are available to model electrical propagation in *PyAnsys Heart* (
 
 - Monodomain:
    The Monodomain model is a reaction-diffusion model and is a simplification of the Bidomain model `Potse et al.`_. In LS-DYNA, the 'passive' electrical material properties (electrical conductivity, membrane capacitance, surface/volume ratio) corresponding to the Monodomain model are set in ``*EM_MAT_003`` for the myocardium and ``*EM_MAT_001`` for the beams of the conduction system. These are to be completed with 'active' properties using a cell model (see 'cell model' section).
-   
-   .. Note::  
-      LS-DYNA offers the possibility of using either the Bidomain, Monodomain, or a mix of 
-      both models but only the Monodomain is exposed in *PyAnsys Heart* for now.  
+
+   .. Note::
+      LS-DYNA offers the possibility of using either the Bidomain, Monodomain, or a mix of
+      both models but only the Monodomain is exposed in *PyAnsys Heart* for now.
 
 - Eikonal:
    In this case only the activation time is computed, no cell model is used.
    Here, the 'passive' electrical material properties are also set with ``*EM_MAT_003`` for 3D tissue and ``*EM_MAT_001`` for the beams of the conduction system.
 
 - Reaction Eikonal:
-   The Reaction Eikonal model first computes the activation time on each node, then it assigns action potential curves to each node with a time delay that corresponds to the activation time. Passive properties are the same as those describes in the pure Eikonal model.
+   The Reaction Eikonal model first computes the activation time on each node, then it assigns action potential curves to each node with a time delay that corresponds to the activation time. Passive properties are the same as those described in the pure Eikonal model.
 
 - cell model:
    The cell model used *PyAnsys Heart* is the `TenTusscher et al.`_ model, other models are to be added in the future.
    When UHCs are computed, the transmural coordinate is used to distinguish between endo-, epi- and mid- myocardium layers using the corresponding version of the TenTusscher model.
-   
+
    .. Note::
       LS-DYNA supports other cell models and user defined models, see the `*EM_EP` collection of keywords in `LS-DYNA manuals`_.
 
@@ -85,7 +95,7 @@ This section explains the key elements in cardiac mechanical models and their de
 
 
 - Circulation model
-   Many papers have described the coupling between 3D heart models and 0D circulation models, such as those by `Agustin et al.`_. LS-DYNA uses ``CONTROL_VOLUME`` related keywords to achieve this coupling. By default, the *PyAnsys Heart* provides a simple open-loop model. Specifically, a 2-element Windkessel model is applied to the left and right ventricle. If atria are present, atrioventricular valves are represented by a diode model, and a constant venous inflow is set for both atria. If no atrium is present, a constant pressure (preload) is set.
+   Many papers have described the coupling between 3D heart models and 0D circulation models, such as those by `Agustin et al.`_. LS-DYNA uses ``CONTROL_VOLUME`` related keywords to achieve this coupling. By default, *PyAnsys Heart* provides a simple open-loop model. Specifically, a 2-element Windkessel model is applied to the left and right ventricle. If atria are present, atrioventricular valves are represented by a diode model, and a constant venous inflow is set for both atria. If no atrium is present, a constant venous pressure (preload) is set.
 
 .. Figure(?)
 .. closed loop, twin builder ?
@@ -120,7 +130,7 @@ _`Potse et al.`: Potse, M., Dube, B., Richer, J., Vinet, A., Gulrajani, R.: A co
 
 _`TenTusscher et al.`: Ten Tusscher, K. H., & Panfilov, A. V. (2006). Alternans and spiral breakup in a human ventricular tissue model. American Journal of Physiology-Heart and Circulatory Physiology, 291(3), H1088-H1100.
 
-
+_`Rodero et al.`: Rodero, C., et al. (2021). Virtual cohort of adult healthy four-chamber heart meshes from CT images. In PLOS Computational Biology (1.0.0).
 
 .. numerical damping from here
 

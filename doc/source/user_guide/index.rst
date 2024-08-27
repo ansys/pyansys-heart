@@ -117,7 +117,7 @@ _`Strocchi et al.`: Strocchi, Marina, et al. "Simulating ventricular systolic mo
 
 _`Piersanti et al.`: Piersanti, Roberto, et al. "Modeling cardiac muscle fibers in ventricular and atrial electrophysiology simulations." Computer Methods in Applied Mechanics and Engineering 373 (2021): 113468.
 
-_`Roney et al.`: Roney, Caroline H., et al. “Universal atrial coordinates applied to visualisation, registration and construction of patient specific meshes.” Medical image analysis 55 (2019): 65-75.
+_`Roney et al.`: Roney, Caroline H., et al., “Universal atrial coordinates applied to visualisation, registration and construction of patient specific meshes.” Medical image analysis 55 (2019): 65-75.
 
 _`Bayer et al.2`: Bayer, Jason, et al. “Universal ventricular coordinates: A generic framework for describing position within the heart and transferring data.” Medical image analysis 45 (2018): 83-93.
 

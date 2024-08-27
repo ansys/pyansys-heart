@@ -2,7 +2,7 @@
 .. _ref_components:
 
 *********
-simulator
+Simulator
 *********
 
 :attr:`Simulator <ansys.heart.simulator.simulator>` is used to link up different simulation steps for cardiac modeling. For example, for electrophysiology simulations, fiber orientation :attr:`BaseSimulator.compute_fibers` and Purkinje network :attr:`EPSimulator.compute_purkinje` are computed before launching the physical simulation. In mechanical analysis, it is necessary to compute the stress free configuration :attr:`MechanicsSimulator.compute_stress_free_configuration` before running the simulation.

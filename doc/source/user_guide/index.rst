@@ -56,7 +56,7 @@ Electrophysiology
 =================
 
 This section introduces cardiac electrophysiology modeling in *PyAnsys Heart*.
-Three options are available to model electrical propagation in *PyAnsys Heart* (see `simulator.settings.settings.EPAnalysis.solvertype`): `Monodomain` (``*EM_CONTROL`` with EMSOL=11 in LS-DYNA), `Eikonal` (``*EM_CONTROL`` with EMSOL=14 in LS-DYNA) and `ReactionEikonal` model (``*EM_CONTROL`` with EMSOL=15 in LS-DYNA).
+Three options are available to model electrical propagation in *PyAnsys Heart* (see `simulator.settings.settings.epanalysis.solvertype`): `Monodomain` (``*EM_CONTROL`` with EMSOL=11 in LS-DYNA), `Eikonal` (``*EM_CONTROL`` with EMSOL=14 in LS-DYNA) and `ReactionEikonal` model (``*EM_CONTROL`` with EMSOL=15 in LS-DYNA).
 
 - Monodomain:
    The Monodomain model is a reaction-diffusion model and is a simplification of the Bidomain model `Potse et al.`_. In LS-DYNA, the 'passive' electrical material properties (electrical conductivity, membrane capacitance, surface/volume ratio) corresponding to the Monodomain model are set in ``*EM_MAT_003`` for the myocardium and ``*EM_MAT_001`` for the beams of the conduction system. These are to be completed with 'active' properties using a cell model (see 'cell model' section).

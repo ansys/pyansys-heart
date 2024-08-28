@@ -99,26 +99,26 @@ then fill in the its value in place of ``<TOKEN>`` to export the following envir
 
 Using `venv`_:
 
-    .. code:: bash
+.. code:: bash
 
-        # Create a virtual environment
-        python -m venv .venv
-        # Activate environment:
-        # POSIX systems:
-        source .venv/bin/activate
-        # Windows cmd shell:
-        .venv\Scripts\activate.bat
-        # or in Windows powershell
-        .venv\Scripts\Activate.ps1
+      # Create a virtual environment
+      python -m venv .venv
+      # Activate environment:
+      # POSIX systems:
+      source .venv/bin/activate
+      # Windows cmd shell:
+      .venv\Scripts\activate.bat
+      # or in Windows powershell
+      .venv\Scripts\Activate.ps1
 
 Using `conda`_:
 
-    .. code:: bash
+.. code:: bash
 
-        # Create virtual environment with a given Python version
-        conda create --name my-venv python=3.10
-        # Activate the environment
-        conda activate my-venv
+      # Create virtual environment with a given Python version
+      conda create --name my-venv python=3.10
+      # Activate the environment
+      conda activate my-venv
 
 2. Install dynalib 0.1.0 into your virtual environment with the following command and insert the received token.
 

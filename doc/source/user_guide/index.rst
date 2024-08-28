@@ -35,7 +35,7 @@ Currently *PyAnsys Heart* supports generating electrophysiology, electro-mechani
 
 These .vtk and .case files are processed into a compatible input format where the naming and ids of the surfaces are inferred from the part ids and consequently written to an input .vtp file and .json file.
 These input files are then further processed into a HeartModel that contains the various relevant anatomical features (left ventricle, right ventricle, endo- and epicardium, and cavities). This
-HeartModel is a Python object that is then further processed (e.g. add physics) and exported as a LS-DYNA model.
+HeartModel is a Python object that is then further processed (add physics) and exported as a LS-DYNA model.
 
 
 Brief theory

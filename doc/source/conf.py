@@ -112,7 +112,19 @@ master_doc = "index"
 
 ## Configuration for Sphinx autoapi ##
 # ---------------------------------- #
-
+autoapi_type = "python"
+autoapi_ignore = [
+    # the following files in writer are not exposed
+    "*custom_dynalib_keywords*",
+    "*system_models.py",
+    "*define_function_strings.py",
+    "*heart_decks.py",
+    "*keyword_module.py",
+    "*material_keywords.py",
+    # others:
+    "*calibration*",
+    "*misc*",
+]
 # autoapi_dirs = [
 #     "../../src/ansys/heart/preprocessor",
 #     "../../src/ansys/heart/simulator",

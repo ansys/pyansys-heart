@@ -97,7 +97,7 @@ then fill in the its value in place of ``<TOKEN>`` to export the following envir
     the supported Python versions. Refer to the official `venv`_  or `conda`_ documentation
     if you require further information:
 
-    Using `venv`_:
+Using `venv`_:
 
     .. code:: bash
 

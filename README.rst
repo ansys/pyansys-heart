@@ -89,142 +89,144 @@ How to install
 In user mode
 ^^^^^^^^^^^^
 
-    Request a read-only token to download PyAnsys - Heart by sending an email to pyansys.core@ansys.com.
+Request the value of the ``PYANSYS_PYPI_PRIVATE_READ_PAT`` token by sending an
+email to `pyansys.core@ansys.com <mailto:pyansys.core@ansys.com>`_,
+then fill in the its value in place of ``<TOKEN>`` to export the following environment variables:
 
-    1. Create a fresh Python environment and activate it. Make sure you use one of
-        the supported Python versions. Refer to the official `venv`_  or `conda`_ documentation
-        if you require further information:
+1. Create a fresh Python environment and activate it. Make sure you use one of
+    the supported Python versions. Refer to the official `venv`_  or `conda`_ documentation
+    if you require further information:
 
-        Using `venv`_:
+Using `venv`_:
 
-            .. code:: bash
+    .. code:: bash
 
-                # Create a virtual environment
-                python -m venv .venv
-                # Activate environment:
-                # POSIX systems:
-                source .venv/bin/activate
-                # Windows cmd shell:
-                .venv\Scripts\activate.bat
-                # or in Windows powershell
-                .venv\Scripts\Activate.ps1
+        # Create a virtual environment
+        python -m venv .venv
+        # Activate environment:
+        # POSIX systems:
+        source .venv/bin/activate
+        # Windows cmd shell:
+        .venv\Scripts\activate.bat
+        # or in Windows powershell
+        .venv\Scripts\Activate.ps1
 
-        Using `conda`_:
+Using `conda`_:
 
-            .. code:: bash
+    .. code:: bash
 
-                # Create virtual environment with a given Python version
-                conda create --name my-venv python=3.10
-                # Activate the environment
-                conda activate my-venv
+        # Create virtual environment with a given Python version
+        conda create --name my-venv python=3.10
+        # Activate the environment
+        conda activate my-venv
 
-    2. Install dynalib 0.1.0 into your virtual environment with the following command and insert the received token.
+2. Install dynalib 0.1.0 into your virtual environment with the following command and insert the received token.
 
-        .. code:: bash
+.. code:: bash
 
-            # latest version
-            pip install dynalib==0.1.0 --index-url=https://<token>@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
+    # latest version
+    pip install dynalib==0.1.0 --index-url=https://<TOKEN>@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
 
-    3. Install the project in your virtual environment, again specifying the right token:
+3. Install the project in your virtual environment, again specifying the right token:
 
-        .. code:: bash
+.. code:: bash
 
-            pip install ansys-dpf-core==0.10.0
-            pip install dynalib==0.1.0 --index-url=https://<token>@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
-            pip install pyansys-heart==0.3.0 --index-url=https://<token>@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
+    pip install ansys-dpf-core==0.10.0
+    pip install dynalib==0.1.0 --index-url=https://<TOKEN>@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
+    pip install pyansys-heart==0.3.0 --index-url=https://<TOKEN>@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
 
-        .. note::
+.. note::
 
-            You can also use environment variables to format the `-index-url` with the token value and URL.
+    You can also use environment variables to format the `-index-url` with the token value and URL.
 
 
 In editable mode
 ^^^^^^^^^^^^^^^^
 
-    Installing PyAnsys-Heart in developer mode allows
-    you to modify the source and enhance it.
+Installing PyAnsys-Heart in developer mode allows
+you to modify the source and enhance it.
 
-    Before contributing to the project, please refer to the `PyAnsys Developer's guide`_. You will
-    need to follow these steps:
+Before contributing to the project, please refer to the `PyAnsys Developer's guide`_. You will
+need to follow these steps:
 
-    1. Start by cloning this repository:
+1. Start by cloning this repository:
 
-        .. code:: bash
+.. code:: bash
 
-            git clone https://github.com/ansys/pyansys-heart
+    git clone https://github.com/ansys/pyansys-heart
 
-        Since this is a private repository you may need to provide your github username.
-        Alternatively you can download and unpack the zip file from `PyAnsys Heart`_
+Since this is a private repository you may need to provide your github username.
+Alternatively you can download and unpack the zip file from `PyAnsys Heart`_
 
-    2. Create a fresh Python environment and activate it. Make sure you use one of
-        the supported Python versions. Refer to the official `venv`_  or `conda`_ documentation
-        if you require further information:
+2. Create a fresh Python environment and activate it. Make sure you use one of
+    the supported Python versions. Refer to the official `venv`_  or `conda`_ documentation
+    if you require further information:
 
-        Using `venv`_:
+Using `venv`_:
 
-            .. code:: bash
+.. code:: bash
 
-                # Create a virtual environment
-                python -m venv .venv
-                # Activate environment:
-                # POSIX systems:
-                source .venv/bin/activate
-                # Windows cmd shell:
-                .venv\Scripts\activate.bat
-                # or in Windows powershell
-                .venv\Scripts\Activate.ps1
+    # Create a virtual environment
+    python -m venv .venv
+    # Activate environment:
+    # POSIX systems:
+    source .venv/bin/activate
+    # Windows cmd shell:
+    .venv\Scripts\activate.bat
+    # or in Windows powershell
+    .venv\Scripts\Activate.ps1
 
-        Using `conda`_:
+Using `conda`_:
 
-            .. code:: bash
+.. code:: bash
 
-                # Create virtual environment with a given Python version
-                conda create --name my-venv python=3.10
-                # Activate the environment
-                conda activate my-venv
+    # Create virtual environment with a given Python version
+    conda create --name my-venv python=3.10
+    # Activate the environment
+    conda activate my-venv
 
-    3. Make sure you have the latest version of `pip`_ installed in your virtual environment.
+3. Make sure you have the latest version of `pip`_ installed in your virtual environment.
 
-        .. code:: bash
+.. code:: bash
 
-            python -m pip install -U pip
+    python -m pip install -U pip
 
-    4. Install dynalib 0.1.0 into your virtual environment with the following command. Request the appropriate private pypi token from pyansys.core@ansys.com.
+4. Install dynalib 0.1.0 into your virtual environment with the following command. Request the appropriate private pypi token from pyansys.core@ansys.com.
 
-        .. code:: bash
+.. code:: bash
 
-            # latest version
-            pip install dynalib==0.1.0 --index-url=https://token@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
+    # latest version
+    pip install dynalib==0.1.0 --index-url=https://<TOKEN>@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
 
-        Install the project in editable mode by pointing to the right location:
+Install the project in editable mode by pointing to the right location:
 
-        .. code:: bash
+.. code:: bash
 
-            python -m pip install --editable .
+    python -m pip install --editable .
 
-    5. Install additional requirements (if needed):
+5. Install additional requirements (if needed):
 
-        .. code:: bash
+.. code:: bash
 
-            # dependencies for local doc building
-            python -m pip install -e .[doc]
-            # dependencies needed for (unit) testing
-            python -m pip install -e .[tests]
+    # dependencies for local doc building
+    python -m pip install -e .[doc]
+    # dependencies needed for (unit) testing
+    python -m pip install -e .[tests]
 
-    6. You may verify your development version by running all or a set of tests:
+6. You may verify your development version by running all or a set of tests:
 
-        .. code:: bash
+.. code:: bash
 
-            python -m pip install -e .[tests]
+    python -m pip install -e .[tests]
 
-            # run quick tests
-            python -m pytest -v -m "not requires_fluent or (not downloader)"
+    # run quick tests
+    python -m pytest -v -m "not requires_fluent or (not downloader)"
 
-            # run tests requiring Fluent
-            python -m pytest -v -m requires_fluent
+    # run tests requiring Fluent
+    python -m pytest -v -m requires_fluent
 
-            # run all tests
-            pytest tests -v
+    # run all tests
+    pytest tests -v
 
 
 Style and Testing

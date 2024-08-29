@@ -8,7 +8,7 @@ name = "pyansys-heart"
 version = "0.4.dev0"
 description = "Python framework for heart modeling using ANSYS tools."
 readme = "README.rst"
-requires-python = ">=3.9,<4"
+requires-python = ">=3.10,<4"
 license = { file = "LICENSE" }
 authors = [{ name = "ANSYS, Inc.", email = "pyansys.core@ansys.com" }]
 maintainers = [{ name = "ANSYS, Inc.", email = "pyansys.core@ansys.com" }]
@@ -18,9 +18,9 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Information Analysis",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 
 dependencies = [
@@ -33,7 +33,7 @@ dependencies = [
     "meshio==5.3.4",
     "numpy<=1.26.0",
     "pandas<=3.0.0",
-    "scipy<=1.10.0",
+    "scipy<=1.14.1",
     "vtk>=9.1.0",
     "tqdm==4.66.1",
     "wget==3.2",

@@ -53,7 +53,7 @@ from ansys.heart.preprocessor.mesh.mesher import (
 
 @pytest.fixture(scope="session", autouse=True)
 def clean_up_temp_dirs():
-    tmpdirs = glob.glob(os.path.join(tempfile.tempdir, ".pyansys-heart*"))
+    tmpdirs = glob.glob(os.path.join(tempfile.gettempdir(), ".pyansys-heart*"))
     yield
     os.chdir(os.path.dirname(__file__))
     import time
@@ -62,7 +62,7 @@ def clean_up_temp_dirs():
     # be removed due to access violation.
     time.sleep(5)
 
-    tmpdirs1 = glob.glob(os.path.join(tempfile.tempdir, ".pyansys-heart*"))
+    tmpdirs1 = glob.glob(os.path.join(tempfile.gettempdir(), ".pyansys-heart*"))
     tmp_dirs_remove = list(set(tmpdirs1) - set(tmpdirs))
     for tmp_dir in tmp_dirs_remove:
         try:

@@ -3065,8 +3065,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             self.kw_database.ep_settings.append(custom_keywords.EmControlEp(numsplit=1, ionsolvr=0))
             Tend = 500
             dt = 0.1
-            # specify simulation time and time step even in the case of a pure Eikonal model
-            # (otherwise LS-DYNA crashes)
+            # specify simulation time and time step even in the case of a pure
+            # Eikonal model (otherwise LS-DYNA crashes)
             self.kw_database.ep_settings.append("$     Tend        dt")
             self.kw_database.ep_settings.append(f"{Tend:>10f}{dt:>10f}")
         elif solvertype == "ReactionEikonal":

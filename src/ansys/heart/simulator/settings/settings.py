@@ -346,8 +346,10 @@ class AtrialFiber(Settings):
 class Purkinje(Settings):
     """Class for keeping track of purkinje settings."""
 
-    node_id_origin: Quantity = None
-    """Edge length."""
+    node_id_origin_left: int = None
+    """Left Purkinje origin id."""
+    node_id_origin_right: int = None
+    """Right Purkinje origin id."""
     edgelen: Quantity = 0
     """Edge length."""
     ngen: Quantity = 0

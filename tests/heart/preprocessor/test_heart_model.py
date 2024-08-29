@@ -226,3 +226,93 @@ def test_model_part_names(model_type, expected_part_names):
     model: models.HeartModel = model_type(info)
 
     assert model.part_names == expected_part_names
+
+
+def test_load_from_mesh():
+    """Test loading mesh from mesh file and id map."""
+    # define an arbitrary mesh.
+    import pyvista as pv
+    from pyvista import examples
+
+    from ansys.heart.preprocessor.mesh.objects import Mesh, PartType
+
+    # generate a dummy mesh.
+    #! Note, can modify to create something more meaningful,
+    #! e.g. a sphere with inner/outer surface and caps.
+    mesh = Mesh()
+    mesh.add_surface(pv.Sphere(), int(1))
+    mesh.add_surface(pv.Box(), int(2))
+    mesh.add_surface(pv.Disc(), int(3))
+    mesh.add_surface(pv.Disc().translate((1, 0, 0)), int(4))
+    mesh.add_surface(pv.Sphere(radius=0.3), int(5))
+
+    mesh.add_volume(examples.load_tetbeam(), int(10))
+    mesh.add_volume(examples.load_tetbeam(), int(11))
+    mesh.add_volume(examples.load_tetbeam(), int(12))
+
+    mesh._volume_id_to_name[10] = "Left ventricle"
+    mesh._volume_id_to_name[11] = "Right ventricle"
+    mesh._volume_id_to_name[12] = "Septum"
+
+    mesh._surface_id_to_name[1] = "Left ventricle endocardium"
+    mesh._surface_id_to_name[2] = "Right ventricle epicardium"
+    mesh._surface_id_to_name[3] = "mitral-valve"
+    mesh._surface_id_to_name[4] = "aortic-valve"
+    mesh._surface_id_to_name[5] = "Left ventricle cavity"
+
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tmpdir:
+        mesh_path = os.path.join(tmpdir, "mesh.vtu")
+
+        mesh.save(mesh_path)
+        model = models.BiVentricle(models.ModelInfo())
+
+        part_info = {
+            "Left ventricle": {
+                "part-id": 10,
+                "part-type": PartType.VENTRICLE.value,
+                "surfaces": {"Left ventricle endocardium": 1},
+                "caps": {"mitral-valve": 3, "aortic-valve": 4},
+                "cavity": {"Left ventricle endocardium": 1},
+            },
+            "Right ventricle": {
+                "part-id": 11,
+                "part-type": PartType.VENTRICLE.value,
+                "surfaces": {"Right ventricle epicardium": 1},
+                "caps": {},
+                "cavity": {},
+            },
+            "Septum": {
+                "part-id": 12,
+                "part-type": PartType.SEPTUM.value,
+                "surfaces": {},
+                "caps": {},
+                "cavity": {},
+            },
+        }
+
+        part_info_path = os.path.join(tmpdir, "partinfo.json")
+        with open(part_info_path, "w") as f:
+            json.dump(part_info, f, indent=4)
+
+        model.load_model_from_mesh(mesh_path, part_info_path)
+
+        assert model.part_names == list(part_info.keys())
+
+        assert model.left_ventricle.element_ids.shape[0] == examples.load_tetbeam().n_cells
+        assert model.right_ventricle.element_ids.shape[0] == examples.load_tetbeam().n_cells
+        assert model.septum.element_ids.shape[0] == examples.load_tetbeam().n_cells
+
+        assert model.left_ventricle.endocardium.n_cells == pv.Sphere().n_cells
+        assert model.left_ventricle.endocardium.n_points == pv.Sphere().n_points
+
+        assert model.right_ventricle.epicardium.n_cells == pv.Box().n_cells
+        assert model.right_ventricle.epicardium.n_points == pv.Box().n_points
+
+        assert model.left_ventricle.caps[0]._mesh.n_cells == pv.Disc().n_cells
+        assert model.left_ventricle.caps[1]._mesh.n_cells == pv.Disc().n_cells
+
+        assert model.left_ventricle.cavity.surface.n_cells == pv.Sphere().n_cells
+        assert model.left_ventricle.cavity.surface.n_points == pv.Sphere().n_points
+
+        # TODO: Could add more asserts, e.g. for the cavity.
+    return

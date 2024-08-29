@@ -104,15 +104,21 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     # extract cavity information
     for cavity in model.cavities:
         cavity: Cavity
+        cavity.surface = model.mesh.get_surface(cavity.surface.id)
+        cavity.surface.compute_normals(inplace=True)
         true_ed_volume = cavity.volume
         inflated_volumes = []
         for i, dsp in enumerate(displacements):
+            #! This needs to be refactored.
             new_cavity = copy.deepcopy(cavity)
-            new_cavity.surface.points = stress_free_coord + dsp
+            new_cavity.surface.points = (
+                stress_free_coord[new_cavity.surface.global_node_ids_triangles]
+                + dsp[new_cavity.surface.global_node_ids_triangles]
+            )
             new_cavity.surface.save(os.path.join(directory, folder, f"{cavity.name}_{i}.vtk"))
             inflated_volumes.append(new_cavity.volume)
 
-        if cavity.name.lower() == "left ventricle":
+        if cavity.name.lower() == "left ventricle cavity":
             true_lv_ed_volume = true_ed_volume
             lv_volumes = inflated_volumes
 

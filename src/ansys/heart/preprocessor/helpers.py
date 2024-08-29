@@ -76,7 +76,9 @@ def model_summary(model: HeartModel, attributes: list = None) -> dict:
 
         for cap in part.caps:
             sum_dict["PARTS"][part.name]["CAPS"][cap.name] = {}
-            sum_dict["PARTS"][part.name]["CAPS"][cap.name]["num_nodes"] = len(cap.node_ids)
+            sum_dict["PARTS"][part.name]["CAPS"][cap.name]["num_nodes"] = len(
+                cap.global_node_ids_edge
+            )
 
             if attributes:
                 for attribute in attributes:

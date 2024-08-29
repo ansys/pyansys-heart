@@ -74,10 +74,10 @@ Software
     - Pre-processor
     - `Ansys Customer Portal`_
 
-  * - Ansys LSDYNA
-    - DEV-112103
+  * - Ansys LS-DYNA
+    - R16.0
     - Simulator
-    - Contact us for latest working version
+    - Contact us for appropriate version
 
 .. Note::
 

@@ -28,6 +28,7 @@ import glob
 import json
 import os
 import pathlib
+import shutil
 import tempfile
 from typing import Union
 
@@ -124,28 +125,32 @@ def extract_model(request):
     mesh_file = inputs[3]
 
     # global workdir
-    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
+    workdir = tempfile.TemporaryDirectory(prefix=".pyansys-heart").name
 
-        info = models.ModelInfo(
-            input=inputs[0],
-            scalar="boundary-id",
-            part_definitions=inputs[1],
-            mesh_size=2.0,
-            work_directory=workdir,
-        )
-        model = model_type(info)
-        if not isinstance(model, (models.BiVentricle, models.FullHeart)):
-            exit()
+    # with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
 
-        model.load_input()
-        # model.mesh_volume(wrapper=True) # could use this: but requires fluent
-        if mesh_volume:
-            model.mesh_volume(use_wrapper=True)
-        else:
-            model.mesh.load_mesh(mesh_file)
-        model._update_parts()
+    info = models.ModelInfo(
+        input=inputs[0],
+        scalar="boundary-id",
+        part_definitions=inputs[1],
+        mesh_size=2.0,
+        work_directory=workdir,
+    )
+    model = model_type(info)
+    if not isinstance(model, (models.BiVentricle, models.FullHeart)):
+        exit()
 
-        yield model, ref_stats
+    model.load_input()
+    # model.mesh_volume(wrapper=True) # could use this: but requires fluent
+    if mesh_volume:
+        model.mesh_volume(use_wrapper=True)
+    else:
+        model.mesh.load_mesh(mesh_file)
+    model._update_parts()
+
+    yield model, ref_stats
+
+    shutil.rmtree(workdir, ignore_errors=True)
 
     return
 

@@ -151,7 +151,7 @@ simulator.settings.load_defaults()
 
 ###############################################################################
 
-# simulator.compute_uhc()
+simulator.compute_uhc()
 
 ###############################################################################
 # Compute the fiber orientation
@@ -162,8 +162,8 @@ simulator.settings.load_defaults()
 # .. warning::
 #    Atrial fiber orientation is approximated by apex-base direction, the development is undergoing.
 
-# simulator.compute_fibers()
-# simulator.model.plot_fibers(n_seed_points=2000)
+simulator.compute_fibers()
+simulator.model.plot_fibers(n_seed_points=2000)
 
 ###############################################################################
 # .. image:: /_static/images/fibers.png
@@ -181,7 +181,7 @@ simulator.compute_purkinje()
 
 # by calling this method, stimulation will at Atrioventricular node
 # if you skip it, stimulation will at apex nodes of two ventricles
-# simulator.compute_conduction_system()
+simulator.compute_conduction_system()
 
 simulator.model.plot_purkinje()
 
@@ -196,18 +196,18 @@ simulator.model.plot_purkinje()
 # Start the main EP simulation. This uses the previously computed fiber orientation
 # and purkinje network to set up and run the LS-DYNA model using different solver
 # options
-# simulator.model.right_atrium.active = True
-# simulator.model.left_atrium.active = True
-# simulator.model.right_atrium.fiber = True
-# simulator.model.left_atrium.fiber = True
+simulator.model.right_atrium.active = True
+simulator.model.left_atrium.active = True
+simulator.model.right_atrium.fiber = True
+simulator.model.left_atrium.fiber = True
 
 
-# simulator.simulate()
-# # The two following solves only work with LS-DYNA DEV-110013 or later
-# simulator.settings.electrophysiology.analysis.solvertype = "Eikonal"
-# simulator.simulate(folder_name="main-ep-Eikonal")
-# simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
-# simulator.simulate(folder_name="main-ep-ReactionEikonal")
+simulator.simulate()
+# The two following solves only work with LS-DYNA DEV-110013 or later
+simulator.settings.electrophysiology.analysis.solvertype = "Eikonal"
+simulator.simulate(folder_name="main-ep-Eikonal")
+simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
+simulator.simulate(folder_name="main-ep-ReactionEikonal")
 
 
 ###############################################################################

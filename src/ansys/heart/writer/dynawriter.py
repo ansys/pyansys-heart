@@ -2707,7 +2707,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
                 node_origin_left = self.model.left_ventricle.apex_points[0].node_id
             else:
                 node_origin_left = self.settings.purkinje.node_id_origin_left
-                
+
             segment_set_ids_endo_left = self.model.left_ventricle.endocardium._seg_set_id
 
             # check whether point is on edge of endocardium - otherwise pick another node in
@@ -2788,7 +2788,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
                 node_origin_right = self.model.right_ventricle.apex_points[0].node_id
             else:
                 node_origin_right = self.settings.purkinje.node_id_origin_right
-                
+
             segment_set_ids_endo_right = (
                 self.model.right_ventricle.endocardium._seg_set_id
             )  # TODO Replace

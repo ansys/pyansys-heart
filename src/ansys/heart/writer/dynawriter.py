@@ -415,8 +415,17 @@ class BaseDynaWriter:
         if not np.all(np.any(removable_mask, axis=1)):
             # removing all such nodes and all their neighbors
             unsolvable_nodes = np.unique(issue_nodes[np.where(~np.any(removable_mask, axis=1))[0]])
+            #! NOTE: surface.point_neighbors uses local indexing, so should get local index
+            #! from global indices.
+            local_point_ids = np.where(
+                np.isin(surface.point_data["_global-point-ids"], unsolvable_nodes)
+            )[0]
             unsolvable_nodes = np.unique(
-                [neighbor for ii in unsolvable_nodes for neighbor in surface.point_neighbors(ii)]
+                [
+                    neighbor
+                    for ii, node in enumerate(unsolvable_nodes)
+                    for neighbor in surface.point_neighbors(local_point_ids[ii])
+                ]
             )
             nodes_toremove = np.append(nodes_toremove, unsolvable_nodes)
 

@@ -129,36 +129,22 @@ simulator.compute_uhc()
 ###############################################################################
 # Visualization of UVCs
 # ~~~~~~~~~~~~~~~~~~~~~
-
-data_ventricles = pv.read(os.path.join(workdir, "simulation", "uvc", "uvc.vtk"))
+# UVC is assigned back to the full model automatically
+# Atrial points are padded with NaN's
 
 plotter = pv.Plotter(shape=(1, 3))
 
 plotter.subplot(0, 0)
-plotter.add_mesh(data_ventricles, scalars="apico-basal")
+plotter.add_mesh(simulator.model.mesh, scalars="apico-basal")
 
 plotter.subplot(0, 1)
-plotter.add_mesh(copy.copy(data_ventricles), scalars="transmural")
+plotter.add_mesh(copy.copy(simulator.model.mesh), scalars="transmural")
 
 plotter.subplot(0, 2)
-plotter.add_mesh(copy.copy(data_ventricles), scalars="rotational")
+plotter.add_mesh(copy.copy(simulator.model.mesh), scalars="rotational")
 plotter.show()
 
 ###############################################################################
 # .. image:: /_static/images/uvc_result.png
-#   :width: 600pt
-#   :align: center
-
-###############################################################################
-# Assign data to full model
-# ~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# UVC is assigned back to the full model automatically
-# Atrial points are padded with NaN's
-model.mesh.set_active_scalars("apico-basal")
-model.mesh.plot()
-
-###############################################################################
-# .. image:: /_static/images/uvc_assign.png
 #   :width: 600pt
 #   :align: center

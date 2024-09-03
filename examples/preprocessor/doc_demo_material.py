@@ -219,7 +219,12 @@ plotter = heartmodel.plot_part(new_part)
 #   :align: center
 
 # sphinx_gallery_start_ignore
-plotter = heartmodel.plot_part(new_part, _offscreen=True)
+import pyvista as pv
+
+plotter = pv.Plotter(off_screen=True)
+plotter.add_mesh(heartmodel.mesh, opacity=0.5, color="white")
+part = heartmodel.mesh.extract_cells(new_part.element_ids)
+plotter.add_mesh(part, opacity=0.95, color="red")
 plotter.screenshot(os.path.join(docs_images_folder, "show_a_part.png"))
 # sphinx_gallery_end_ignore
 

@@ -420,14 +420,17 @@ class BaseDynaWriter:
             local_point_ids = np.where(
                 np.isin(surface.point_data["_global-point-ids"], unsolvable_nodes)
             )[0]
-            unsolvable_nodes = np.unique(
+            local_unsolvable_nodes = np.unique(
                 [
                     neighbor
                     for ii, node in enumerate(unsolvable_nodes)
                     for neighbor in surface.point_neighbors(local_point_ids[ii])
                 ]
             )
-            nodes_toremove = np.append(nodes_toremove, unsolvable_nodes)
+            global_unsolvable_nodes = surface.point_data["_global-point-ids"][
+                local_unsolvable_nodes
+            ]
+            nodes_toremove = np.append(nodes_toremove, global_unsolvable_nodes)
 
         node_ids = np.setdiff1d(node_ids, nodes_toremove)
 

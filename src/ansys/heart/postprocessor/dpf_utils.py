@@ -86,7 +86,7 @@ class D3plotReader:
 
         self.model = dpf.Model(self.ds)
 
-        self._ansyscl_pids = set(_get_processes_ids("ansyscl")) - set(_pids)
+        self._ansyscl_pids = list(set(_get_processes_ids("ansyscl")) - set(_pids))
         """Ansyscl process ids triggered by DPF."""
 
         # common

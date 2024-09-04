@@ -294,8 +294,7 @@ class BaseDynaWriter:
                 #! recompute normals: point normals may have changed
                 #! do we need some check to ensure normals are pointing inwards?
                 #! Could use surface.force_normals_inwards()
-                surface.compute_normals(inplace=True)
-                # surface.force_normals_inwards()
+                surface.force_normals_inwards()
 
                 cavity.surface._seg_set_id = segset_id
                 kw = create_segment_set_keyword(

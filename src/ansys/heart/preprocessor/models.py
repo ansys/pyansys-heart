@@ -1925,6 +1925,13 @@ class HeartModel:
             #! Central mesh object not updated. E.g. lose connection between part.element_ids and
             #! model.mesh.volume_ids/.cell_data["_volume-id"]
 
+        if interface_eids.shape[0] == 0:
+            LOGGER.warning(
+                """Atria and ventricles do not seem to be
+                connected, not generating a separate part for isolation."""
+            )
+            return None
+
         # create a new part
         isolation: Part = self.create_part_by_ids(interface_eids, "Atrioventricular isolation")
         isolation.part_type = PartType.ATRIUM

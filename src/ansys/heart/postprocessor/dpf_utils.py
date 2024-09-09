@@ -28,7 +28,6 @@ from typing import List
 
 from ansys.dpf import core as dpf
 import numpy as np
-import psutil
 import pyvista as pv
 
 # from ansys.dpf.core.dpf_operator import available_operator_names
@@ -42,22 +41,6 @@ def _check_env():
         LOGGER.warning('DPF needs to set "ANSYS_DPF_ACCEPT_LA" to "Y".')
         exit()
     return
-
-
-def _get_processes_ids(process_name: str) -> List[int]:
-    """Get process ids.
-
-    Parameters
-    ----------
-    process_name : str
-        (Partial) name of the process.
-
-    Returns
-    -------
-    List[int]
-        List of process ids.
-    """
-    return [p.pid for p in psutil.process_iter() if process_name in p.name()]
 
 
 class D3plotReader:
@@ -78,30 +61,15 @@ class D3plotReader:
 
         # server = dpf.start_local_server()
 
-        # get existing ansyscl process ids.
-        _pids = _get_processes_ids("ansyscl")
-
         self.ds = dpf.DataSources()
         self.ds.set_result_file_path(path, "d3plot")
 
         self.model = dpf.Model(self.ds)
 
-        self._ansyscl_pids = set(_get_processes_ids("ansyscl")) - set(_pids)
-        """Ansyscl process ids triggered by DPF."""
-
         # common
 
         self.meshgrid: pv.UnstructuredGrid = self.model.metadata.meshed_region.grid
         self.time = self.model.metadata.time_freq_support.time_frequencies.data
-
-        return
-
-    def __del__(self):
-        """Cleanup."""
-        for pid in self._ansyscl_pids:
-            LOGGER.info(f"Force close ansyscl utility with process id: {pid}.")
-            psutil.Process(pid).kill()
-        return
 
     def get_initial_coordinates(self):
         """Get initial coordinates."""

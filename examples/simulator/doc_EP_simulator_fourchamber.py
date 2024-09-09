@@ -169,7 +169,9 @@ simulator.model.left_atrium.active = True
 simulator.model.right_atrium.fiber = True
 simulator.model.left_atrium.fiber = True
 
+# Strocchi/Rodero data has marked left atrium appendage point
 simulator.compute_left_atrial_fiber()
+# need to manually select the right atrium appendage point
 simulator.compute_right_atrial_fiber(appendage=[-33, 82, 417])
 
 simulator.model.plot_fibers(n_seed_points=2000)

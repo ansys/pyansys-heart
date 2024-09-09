@@ -59,7 +59,7 @@ class D3plotReader:
         # os.environ["ANSYS_DPF_SERVER_CONTEXT"] = "PREMIUM"
         # dpf.set_default_server_context(dpf.AvailableServerContexts.premium)
 
-        # server = dpf.start_local_server()
+        self._server = dpf.start_local_server(config=dpf.AvailableServerConfigs.GrpcServer)
 
         self.ds = dpf.DataSources()
         self.ds.set_result_file_path(path, "d3plot")
@@ -70,6 +70,10 @@ class D3plotReader:
 
         self.meshgrid: pv.UnstructuredGrid = self.model.metadata.meshed_region.grid
         self.time = self.model.metadata.time_freq_support.time_frequencies.data
+
+    def __del__(self):
+        """Shutdown the server to release ansyscl."""
+        self._server.shutdown()
 
     def get_initial_coordinates(self):
         """Get initial coordinates."""

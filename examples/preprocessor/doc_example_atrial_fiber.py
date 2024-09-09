@@ -123,7 +123,7 @@ model.mesh.cell_data["sheet"] = np.zeros((model.mesh.n_cells, 3))
 la = simulator.compute_left_atrial_fiber()
 
 # Appendage apex point should be manually given to compute right atrium fiber
-appendage_apex = [-50, 106, 425]
+appendage_apex = [-33, 82, 417]
 ra = simulator.compute_right_atrial_fiber(appendage_apex)
 
 ###############################################################################

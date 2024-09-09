@@ -142,7 +142,16 @@ simulator.settings.load_defaults()
 # .. warning::
 #    Atrial fiber orientation is approximated by apex-base direction in this model
 
+# compute ventricular fibers
 simulator.compute_fibers()
+
+# compute atrial fibers
+simulator.model.right_atrium.active = True
+simulator.model.left_atrium.active = True
+simulator.model.right_atrium.fiber = True
+simulator.model.left_atrium.fiber = True
+simulator.compute_left_atrial_fiber()
+simulator.compute_right_atrial_fiber(appendage=[39, 29, 98])
 simulator.model.plot_fibers(n_seed_points=2000)
 
 ###############################################################################
@@ -177,11 +186,6 @@ simulator.model.plot_purkinje()
 # and purkinje network to set up and run the LS-DYNA model.
 
 # simulate using the default EP solver type (Monodomain)
-simulator.model.right_atrium.active = True
-simulator.model.left_atrium.active = True
-simulator.model.right_atrium.fiber = True
-simulator.model.left_atrium.fiber = True
-
 simulator.simulate()
 
 # switch to Eikonal

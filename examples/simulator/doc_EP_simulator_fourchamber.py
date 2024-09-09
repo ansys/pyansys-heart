@@ -114,9 +114,7 @@ model.info.workdir = str(workdir)
 
 # instantaiate dyna settings of choice
 dyna_settings = DynaSettings(
-    lsdyna_path=lsdyna_path,
-    dynatype="intelmpi",
-    num_cpus=4,
+    lsdyna_path=lsdyna_path, dynatype="smp", num_cpus=4, platform="windows"
 )
 
 # sphinx_gallery_start_ignore
@@ -162,7 +160,20 @@ simulator.compute_uhc()
 # .. warning::
 #    Atrial fiber orientation is approximated by apex-base direction, the development is undergoing.
 
+# compute ventricular fibers
 simulator.compute_fibers()
+
+# compute atrial fibers
+simulator.model.right_atrium.active = True
+simulator.model.left_atrium.active = True
+simulator.model.right_atrium.fiber = True
+simulator.model.left_atrium.fiber = True
+
+# Strocchi/Rodero data has marked left atrium appendage point
+simulator.compute_left_atrial_fiber()
+# need to manually select the right atrium appendage point
+simulator.compute_right_atrial_fiber(appendage=[-33, 82, 417])
+
 simulator.model.plot_fibers(n_seed_points=2000)
 
 ###############################################################################
@@ -196,11 +207,6 @@ simulator.model.plot_purkinje()
 # Start the main EP simulation. This uses the previously computed fiber orientation
 # and purkinje network to set up and run the LS-DYNA model using different solver
 # options
-simulator.model.right_atrium.active = True
-simulator.model.left_atrium.active = True
-simulator.model.right_atrium.fiber = True
-simulator.model.left_atrium.fiber = True
-
 
 simulator.simulate()
 # The two following solves only work with LS-DYNA DEV-110013 or later

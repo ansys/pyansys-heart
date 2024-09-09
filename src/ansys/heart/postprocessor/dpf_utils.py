@@ -46,18 +46,6 @@ def _check_env():
 class D3plotReader:
     """Use DPF to parse d3plot."""
 
-    def __del__(self):
-        """Force close ansyscl."""
-        # DPF leaves his ansyscl process alive after him
-        # it may lead to ansyscl of LS-DYNA not correctly start
-        LOGGER.info("Force close ansyscl after DPF call.")
-
-        import psutil
-
-        for p in psutil.process_iter():
-            if "ansyscl" in p.name():
-                p.kill()
-
     def __init__(self, path: Path.Path):
         """
         Initialize D3plotReader.

@@ -24,24 +24,25 @@ classifiers = [
 ]
 
 dependencies = [
-    "importlib-metadata >=4.0",
-    "requests==2.31.0",
-    "ansys-fluent-core==0.20.0",
     "ansys-dpf-core==0.10.0",
+    "ansys-fluent-core==0.22.0",
+    "deprecated==1.2.14",
+    "dynalib==0.1.0",
     "h5py>=3.6.0",
+    "importlib-metadata >=4.0",
     "Jinja2==3.1.2",
     "matplotlib==3.8.2",
     "meshio==5.3.4",
+    "networkx==3.2.1",
     "numpy<=1.26.0",
     "pandas<=3.0.0",
-    "scipy<=1.10.0",
-    "vtk>=9.1.0",
-    "tqdm==4.66.1",
-    "wget==3.2",
-    "validators==0.30.0",
     "pint==0.20.1",
     "pyvista==0.43.0",
-    "networkx==3.2.1",
+    "scipy<=1.14.1",
+    "tqdm==4.66.1",
+    "validators==0.30.0",
+    "vtk>=9.1.0",
+    "wget==3.2",
 ]
 
 # Optional dependencies:

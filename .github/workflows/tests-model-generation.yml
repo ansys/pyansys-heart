@@ -18,6 +18,7 @@ env:
   PYFLUENT_START_INSTANCE: 0
   PYFLUENT_LAUNCH_CONTAINER: 1
   FLUENT_IMAGE_TAG: v24.1.0
+  PIP_EXTRA_INDEX_URL: 'https://${{ secrets.PYANSYS_PYPI_PRIVATE_PAT }}@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/'
 
 
 concurrency:
@@ -63,10 +64,7 @@ jobs:
       - name: Install package and dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install dynalib==0.1.0 --index-url=$PIP_EXTRA_INDEX_URL
           python -m pip install .[tests]
-        env:
-          PIP_EXTRA_INDEX_URL: 'https://${{ secrets.PYANSYS_PYPI_PRIVATE_PAT }}@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/'
 
       - name: Test PyFluent launch
         continue-on-error: false

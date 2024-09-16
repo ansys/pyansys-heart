@@ -25,13 +25,14 @@
 from dataclasses import dataclass
 import os
 
-from ansys.heart.core import LOG as LOGGER
 from ansys.heart.postprocessor.dpf_utils import ICVoutReader
-from ansys.heart.simulator.settings.settings import SimulationSettings
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
+
+from ansys.heart.core import LOG as LOGGER
+from ansys.heart.simulator.settings.settings import SimulationSettings
 
 
 @dataclass(init=False)

@@ -37,7 +37,6 @@ import time
 from typing import Callable, List, Literal, NamedTuple
 
 from ansys.dyna.keywords import keywords
-from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.mesh.objects import Cap, Part, PartType
 from ansys.heart.preprocessor.models import (
     BiVentricle,
@@ -46,15 +45,6 @@ from ansys.heart.preprocessor.models import (
     HeartModel,
     LeftVentricle,
 )
-from ansys.heart.simulator.settings.material.material import (
-    ACTIVE,
-    MAT295,
-    ActiveModel,
-    MechanicalMaterialModel,
-    NeoHookean,
-)
-from ansys.heart.simulator.settings.settings import SimulationSettings
-from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 from ansys.heart.writer.heart_decks import (
     BaseDecks,
     ElectroMechanicsDecks,
@@ -83,6 +73,17 @@ from ansys.heart.writer.system_models import _ed_load_template, define_function_
 import numpy as np
 import pandas as pd
 import pyvista as pv
+
+from ansys.heart.core import LOG as LOGGER
+from ansys.heart.simulator.settings.material.material import (
+    ACTIVE,
+    MAT295,
+    ActiveModel,
+    MechanicalMaterialModel,
+    NeoHookean,
+)
+from ansys.heart.simulator.settings.settings import SimulationSettings
+from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
 
 
 class CVInteraction(NamedTuple):

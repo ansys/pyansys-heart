@@ -25,11 +25,12 @@
 import copy
 from typing import List, Literal, Tuple
 
-from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.mesh.connectivity import face_tetra_connectivity
 import ansys.heart.preprocessor.mesh.geodisc as geodisc
 import numpy as np
 import pyvista as pv
+
+from ansys.heart.core import LOG as LOGGER
 
 
 def _read_input_mesh(mesh_path: str, database: str) -> pv.UnstructuredGrid:

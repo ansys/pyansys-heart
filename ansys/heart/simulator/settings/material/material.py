@@ -25,8 +25,9 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from ansys.heart.core import LOG as LOGGER
 from ansys.heart.simulator.settings.material.curve import ActiveCurve, constant_ca2
+
+from ansys.heart.core import LOG as LOGGER
 
 
 @dataclass

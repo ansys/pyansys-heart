@@ -26,8 +26,9 @@ import os
 import pathlib
 
 import ansys.heart.preprocessor.models as models
-from ansys.heart.simulator.simulator import EPSimulator
 from ansys.heart.simulator.support import run_preprocessor
+
+from ansys.heart.simulator.simulator import EPSimulator
 
 if __name__ == "__main__":
     """FourChamber example.

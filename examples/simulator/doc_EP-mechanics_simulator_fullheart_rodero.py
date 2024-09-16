@@ -47,9 +47,10 @@ set it up for a coupled electromechanical simulation.
 import os
 
 import ansys.heart.preprocessor.models as models
+from pint import Quantity
+
 from ansys.heart.simulator.settings.material.material import NeoHookean
 from ansys.heart.simulator.simulator import DynaSettings, EPMechanicsSimulator
-from pint import Quantity
 
 ###############################################################################
 # Example setup

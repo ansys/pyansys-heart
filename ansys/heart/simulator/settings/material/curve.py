@@ -24,9 +24,10 @@
 
 from typing import Literal
 
-from ansys.heart.core import LOG as LOGGER
 import matplotlib.pyplot as plt
 import numpy as np
+
+from ansys.heart.core import LOG as LOGGER
 
 
 def Strocchi_active(t_end=800, t_act=0) -> tuple[np.ndarray, np.ndarray]:

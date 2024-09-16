@@ -38,6 +38,8 @@ from ansys.heart.simulator.settings.material.curve import (
     Kumaraswamy_active,
     constant_ca2,
 )
+import matplotlib.pyplot as plt
+
 from ansys.heart.simulator.settings.material.material import (
     ACTIVE,
     ANISO,
@@ -46,7 +48,6 @@ from ansys.heart.simulator.settings.material.material import (
     ActiveModel,
     NeoHookean,
 )
-import matplotlib.pyplot as plt
 
 # sphinx_gallery_start_ignore
 docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", "_static", "images")

@@ -31,7 +31,6 @@ import pickle
 import re
 from typing import List, Literal, Union
 
-from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.input import _InputModel
 
 # from ansys.heart.preprocessor.input import HEART_MODELS
@@ -52,6 +51,8 @@ import numpy as np
 import pyvista as pv
 from scipy.spatial.transform import Rotation as R
 import yaml
+
+from ansys.heart.core import LOG as LOGGER
 
 
 class ModelInfo:

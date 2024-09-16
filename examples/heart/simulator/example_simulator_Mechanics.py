@@ -26,8 +26,9 @@ import os
 import pathlib
 
 import ansys.heart.preprocessor.models as models
-from ansys.heart.simulator.simulator import MechanicsSimulator
 from ansys.heart.simulator.support import run_preprocessor
+
+from ansys.heart.simulator.simulator import MechanicsSimulator
 
 # import ansys.heart.writer.dynawriter as writers
 

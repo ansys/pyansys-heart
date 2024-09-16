@@ -32,9 +32,10 @@ import textwrap
 
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.preprocessor.models import HeartModel
+import numpy as np
+
 from ansys.heart.simulator.settings import settings
 from ansys.heart.simulator.simulator import MechanicsSimulator
-import numpy as np
 
 
 class PassiveCalibration:

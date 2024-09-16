@@ -29,13 +29,16 @@ import os
 import pathlib
 from typing import List, Literal
 
+from ansys.heart.simulator.settings.material.curve import ActiveCurve, Strocchi_active, constant_ca2
+from pint import Quantity, UnitRegistry
+import yaml
+
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.simulator.settings.defaults import electrophysiology as ep_defaults
 from ansys.heart.simulator.settings.defaults import fibers as fibers_defaults
 from ansys.heart.simulator.settings.defaults import mechanics as mech_defaults
 from ansys.heart.simulator.settings.defaults import purkinje as purkinje_defaults
 from ansys.heart.simulator.settings.defaults import zeropressure as zero_pressure_defaults
-from ansys.heart.simulator.settings.material.curve import ActiveCurve, Strocchi_active, constant_ca2
 from ansys.heart.simulator.settings.material.material import (
     ACTIVE,
     ANISO,
@@ -44,8 +47,6 @@ from ansys.heart.simulator.settings.material.material import (
     ActiveModel,
     NeoHookean,
 )
-from pint import Quantity, UnitRegistry
-import yaml
 
 
 class AttrDict(dict):

@@ -31,10 +31,11 @@ from enum import Enum
 import pathlib
 from typing import List, Union
 
-from ansys.heart.core import LOG as LOGGER
 import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
-from ansys.heart.simulator.settings.material.material import MechanicalMaterialModel
 import numpy as np
+
+from ansys.heart.core import LOG as LOGGER
+from ansys.heart.simulator.settings.material.material import MechanicalMaterialModel
 
 try:
     import pyvista as pv

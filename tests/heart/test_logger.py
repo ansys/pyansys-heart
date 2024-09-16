@@ -26,9 +26,10 @@ import logging as deflogging  # Default logging module
 import re
 from typing import Callable
 
-from ansys.heart.core import LOG  # Global logger
 import ansys.heart.core.logger as logger
 import pytest
+
+from ansys.heart.core import LOG  # Global logger
 
 ## Notes
 # Use the next fixtures for:

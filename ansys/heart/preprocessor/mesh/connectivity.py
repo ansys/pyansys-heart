@@ -25,8 +25,9 @@
 import copy
 from typing import Optional, Tuple, Union
 
-from ansys.heart.core import LOG as LOGGER
 import numpy as np
+
+from ansys.heart.core import LOG as LOGGER
 
 
 def get_faces_tetra(tetra: np.ndarray) -> np.ndarray:

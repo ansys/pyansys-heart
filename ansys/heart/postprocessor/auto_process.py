@@ -27,7 +27,6 @@ import glob
 import json
 import os
 
-from ansys.heart.core import LOG as LOGGER
 from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
@@ -35,8 +34,10 @@ from ansys.heart.postprocessor.exporter import D3plotToVTKExporter, LVContourExp
 from ansys.heart.postprocessor.pvloop import generate_pvloop
 from ansys.heart.preprocessor.mesh.objects import Cavity
 from ansys.heart.preprocessor.models import HeartModel
-from ansys.heart.simulator.settings.settings import SimulationSettings
 import numpy as np
+
+from ansys.heart.core import LOG as LOGGER
+from ansys.heart.simulator.settings.settings import SimulationSettings
 
 
 def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.ndarray]:

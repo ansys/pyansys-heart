@@ -181,9 +181,11 @@ import ansys.heart.preprocessor.models as models
 #    run doc_preprocess_fullheart_rodero_01.py in the same folder if loading failed
 
 workdir = Path(Path(__file__).resolve().parents[2], "downloads", "Rodero2021", "01", "FullHeart")
-heartmodel: models.FullHeart = models.HeartModel.load_model(
-    os.path.join(workdir, "heart_model.pickle")
-)
+path_to_model = os.path.join(workdir, "heart_model.vtu")
+
+# load four chamber heart model.
+heartmodel: models.FullHeart = models.FullHeart(models.ModelInfo(work_directory=workdir))
+heartmodel.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
 
 # Print default material and you should see
 # Material is empty.
@@ -219,7 +221,12 @@ plotter = heartmodel.plot_part(new_part)
 #   :align: center
 
 # sphinx_gallery_start_ignore
-plotter = heartmodel.plot_part(new_part, _offscreen=True)
+import pyvista as pv
+
+plotter = pv.Plotter(off_screen=True)
+plotter.add_mesh(heartmodel.mesh, opacity=0.5, color="white")
+part = heartmodel.mesh.extract_cells(new_part.element_ids)
+plotter.add_mesh(part, opacity=0.95, color="red")
 plotter.screenshot(os.path.join(docs_images_folder, "show_a_part.png"))
 # sphinx_gallery_end_ignore
 

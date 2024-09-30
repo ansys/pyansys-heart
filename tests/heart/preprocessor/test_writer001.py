@@ -27,9 +27,12 @@ if os.getenv("GITHUB_ACTIONS"):
 else:
     is_gh_action = False
 
+import copy
+
 import numpy as np
 import pytest
 
+from ansys.heart.preprocessor.mesh.objects import SurfaceMesh
 import ansys.heart.preprocessor.models as models
 import ansys.heart.writer.dynawriter as writers
 
@@ -51,53 +54,68 @@ def get_test_model():
     model: models.LeftVentricle = models.LeftVentricle(model_info)
 
     # populate model
-    model.mesh.tetrahedrons = np.array([[0, 1, 2, 3], [4, 1, 2, 3]], dtype=int)
+    model.mesh.tetrahedrons = np.array([[1, 2, 3, 4], [5, 2, 3, 4]], dtype=int)
     model.mesh.nodes = np.array(
-        [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [1.0, 1.0, 1.0]],
+        [
+            [9.1, 9.1, 9.1],
+            [0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0],
+            [1.0, 1.0, 1.0],
+        ],
         dtype=float,
     )
     model.left_ventricle.element_ids = np.array([0, 1], dtype=int)
 
-    model.left_ventricle.endocardium.triangles = np.array([[0, 1, 2]], dtype=int)
+    model.left_ventricle.endocardium.triangles = np.array([[1, 2, 3]], dtype=int)
     model.left_ventricle.endocardium.points = model.mesh.nodes
     model.left_ventricle.endocardium.point_data["_global-point-ids"] = np.arange(
         0, model.mesh.n_points
     )
 
+    # model.left_ventricle.endocardium = SurfaceMesh(model.left_ventricle.endocardium.clean())
+
     return model
 
 
 def test_filter_bc_nodes01():
-    model = get_test_model()
+    model = copy.deepcopy(get_test_model())
     # filter is not necessary
-    model.left_ventricle.endocardium.triangles = np.array([[0, 1, 2]], dtype=int)
+    model.left_ventricle.endocardium.triangles = np.array([[1, 2, 3]], dtype=int)
+    model.left_ventricle.endocardium = SurfaceMesh(model.left_ventricle.endocardium.clean())
+
     w = writers.FiberGenerationDynaWriter(model)
     ids = w._filter_bc_nodes(model.left_ventricle.endocardium)
 
     # no node is removed
-    assert np.allclose(ids, [0, 1, 2])
+    assert np.allclose(ids, [1, 2, 3])
 
 
 def test_filter_bc_nodes02():
-    model = get_test_model()
+    model = copy.deepcopy(get_test_model())
     # filter is necessary
     model.left_ventricle.endocardium.triangles = np.array(
-        [[0, 1, 2], [0, 1, 3], [0, 2, 3]], dtype=int
+        [[1, 2, 3], [1, 2, 4], [1, 3, 4]], dtype=int
     )
+    model.left_ventricle.endocardium = SurfaceMesh(model.left_ventricle.endocardium.clean())
+
     w = writers.FiberGenerationDynaWriter(model)
     ids = w._filter_bc_nodes(model.left_ventricle.endocardium)
 
     # one node is removed, but not the node 0 since it's only attached with the issue element
     # see #656
-    assert np.allclose(ids, [0, 2, 3])
+    assert np.allclose(ids, [1, 3, 4])
 
 
 def test_filter_bc_nodes03():
-    model = get_test_model()
+    model = copy.deepcopy(get_test_model())
     # filter is necessary but no individual nodes can be removed
     model.left_ventricle.endocardium.triangles = np.array(
-        [[0, 1, 2], [0, 1, 3], [0, 2, 3], [1, 2, 4]], dtype=int
+        [[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 5]], dtype=int
     )
+    model.left_ventricle.endocardium = SurfaceMesh(model.left_ventricle.endocardium.clean())
+
     w = writers.FiberGenerationDynaWriter(model)
     ids = w._filter_bc_nodes(model.left_ventricle.endocardium)
 

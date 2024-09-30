@@ -294,8 +294,7 @@ class BaseDynaWriter:
                 #! recompute normals: point normals may have changed
                 #! do we need some check to ensure normals are pointing inwards?
                 #! Could use surface.force_normals_inwards()
-                surface.compute_normals(inplace=True)
-                # surface.force_normals_inwards()
+                surface.force_normals_inwards()
 
                 cavity.surface._seg_set_id = segset_id
                 kw = create_segment_set_keyword(
@@ -415,10 +414,22 @@ class BaseDynaWriter:
         if not np.all(np.any(removable_mask, axis=1)):
             # removing all such nodes and all their neighbors
             unsolvable_nodes = np.unique(issue_nodes[np.where(~np.any(removable_mask, axis=1))[0]])
-            unsolvable_nodes = np.unique(
-                [neighbor for ii in unsolvable_nodes for neighbor in surface.point_neighbors(ii)]
+            #! NOTE: surface.point_neighbors uses local indexing, so should get local index
+            #! from global indices.
+            local_point_ids = np.where(
+                np.isin(surface.point_data["_global-point-ids"], unsolvable_nodes)
+            )[0]
+            local_unsolvable_nodes = np.unique(
+                [
+                    neighbor
+                    for ii, node in enumerate(unsolvable_nodes)
+                    for neighbor in surface.point_neighbors(local_point_ids[ii])
+                ]
             )
-            nodes_toremove = np.append(nodes_toremove, unsolvable_nodes)
+            global_unsolvable_nodes = surface.point_data["_global-point-ids"][
+                local_unsolvable_nodes
+            ]
+            nodes_toremove = np.append(nodes_toremove, global_unsolvable_nodes)
 
         node_ids = np.setdiff1d(node_ids, nodes_toremove)
 

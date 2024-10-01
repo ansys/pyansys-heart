@@ -212,7 +212,7 @@ Install the project in editable mode by pointing to the right location:
     python -m pip install -e .[tests]
 
     # run quick tests
-    python -m pytest -v -m "not requires_fluent or extract_models"
+    python -m pytest -v -m "not requires_fluent or (not extract_models)"
 
     # run tests requiring Fluent
     python -m pytest -v -m requires_fluent

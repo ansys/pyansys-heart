@@ -28,7 +28,7 @@ import pathlib
 
 import pyvista as pv
 
-from ansys.heart.misc.downloader import download_case_from_zenodo, unpack_case
+from ansys.heart.core.downloader import download_case_from_zenodo, unpack_case
 
 PROJECT_DIRECTORY = pathlib.Path(__file__).absolute().parents[3]
 

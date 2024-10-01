@@ -28,7 +28,7 @@ import logging as deflogging
 
 import pytest
 
-from ansys.heart.misc.downloader import download_case_from_zenodo, unpack_case
+from ansys.heart.core.downloader import download_case_from_zenodo, unpack_case
 
 """
 

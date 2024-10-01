@@ -28,7 +28,7 @@ import pathlib
 
 import pyvista as pv
 
-from ansys.heart.misc.downloader import download_case, unpack_case
+from ansys.heart.misc.downloader import download_case_from_zenodo, unpack_case
 
 PROJECT_DIRECTORY = pathlib.Path(__file__).absolute().parents[3]
 
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     case_num = 1  # patient number 1
     database = "Strocchi2020"
     download_folder: pathlib.Path = os.path.join(PROJECT_DIRECTORY, "downloads")
-    case_path: pathlib.Path = download_case(
+    case_path: pathlib.Path = download_case_from_zenodo(
         database=database, case_number=case_num, download_folder=download_folder, overwrite=False
     )
     unpack_case(case_path)

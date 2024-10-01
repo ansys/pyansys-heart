@@ -33,8 +33,9 @@ database.
 # Import the required modules and set relevant paths, including that of the working
 # directory and generated model
 
+import glob
+
 from ansys.heart.misc.downloader import download_case_from_zenodo, unpack_case
-import glob, os
 
 # Download the tar file of Rodero2021 from the Zenodo database.
 tar_file = download_case_from_zenodo("Rodero2021", 1, "downloads")

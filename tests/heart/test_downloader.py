@@ -64,7 +64,7 @@ def test_download_case(database_name, mocker):
             database_name, 1, download_folder, overwrite=True, validate_hash=False
         )
 
-        if database_name in ["Rodero2021"]:
+        if database_name == "Rodero2021":
             expected_save_path = os.path.join(download_folder, database_name, "01", "01.tar.gz")
         elif database_name == "Strocchi2020":
             expected_save_path = os.path.join(download_folder, database_name, "01.tar.gz")

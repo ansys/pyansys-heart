@@ -38,7 +38,7 @@ OS = "wsl"
 # OS = "Win"
 
 
-def check_lsdyna_exe():
+def _check_lsdyna_exe():
     """Check if LSDYNA executable exists."""
     if OS == "Win":
         result = str(distutils.spawn.find_executable(LSDYNAPATH))
@@ -53,7 +53,7 @@ def check_lsdyna_exe():
     return
 
 
-def clean_directory(directory: str):
+def _clean_directory(directory: str):
     """Clean the directory by removing it and re-creating it."""
     if os.path.isdir(directory):
         shutil.rmtree(directory)
@@ -64,7 +64,7 @@ def clean_directory(directory: str):
     return
 
 
-def run_lsdyna(sim_file: str, lsdynapath: str = LSDYNAPATH, ncpu: int = NCPU, options="", OS=OS):
+def _run_lsdyna(sim_file: str, lsdynapath: str = LSDYNAPATH, ncpu: int = NCPU, options="", OS=OS):
     """Run lsdyna in wsl."""
     # extract_binout = False
     # os.chdir(pathlib.Path(sim_file).parent)

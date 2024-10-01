@@ -43,7 +43,7 @@ import numpy as np
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.misc.element_orth import read_orth_element_kfile
+from ansys.heart.misc.element_orth import _read_orth_element_kfile
 from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
 from ansys.heart.postprocessor.laplace_post import (
     compute_la_fiber_cs,
@@ -166,7 +166,7 @@ class BaseSimulator:
         # print("Done.")
 
         LOGGER.info("Assigning fiber orientation to model...")
-        elem_ids, part_ids, connect, fib, sheet = read_orth_element_kfile(
+        elem_ids, part_ids, connect, fib, sheet = _read_orth_element_kfile(
             os.path.join(directory, "element_solid_ortho.k")
         )
 

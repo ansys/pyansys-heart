@@ -10,6 +10,6 @@ a useful tool for all users. As such, we welcome and encourage any
 questions or submissions to this repository.
 
 For contributing to this project, please refer to the [PyAnsys Developer's Guide](https://dev.docs.pyansys.com/).
-Further information about contributing to PyAnsys Geometry can be found in [Contributing].
+Further information about contributing to PyAnsys heart can be found in [Contributing].
 
 [Contributing]: https://heart.docs.pyansys.com/version/stable/contributing.html

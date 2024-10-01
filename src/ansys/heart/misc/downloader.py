@@ -94,19 +94,19 @@ def download_case_from_zenodo(
 
     Returns
     -------
-    bool
-        flag indicating whether download and unpacking was successful
+    Path
+        Path to the tar ball that contains the vtk/case files.
 
     Examples
     --------
     Download case 1 from the public repository (Strocchi2020) of pathological hearts.
-    >>> path_to_case = download_case(
+    >>> path_to_tar_file = download_case_from_zenodo(
             database="Strocchi2020", case_number=1, download_folder="my/download/folder"
         )
 
     Download case 1 from the public repository (Rodero2021) of 'healthy' hearts.
-    >>> path_to_case = download_case(
-        database="Rodero2021", case_number=1, download_folder="my/download/folder"
+    >>> path_to_tar_file = download_case_from_zenodo(
+            database="Rodero2021", case_number=1, download_folder="my/download/folder"
         )
     """
 
@@ -196,7 +196,18 @@ def _validate_hash_sha256(
 
 
 def unpack_case(tar_path: Path):
-    """Untar the downloaded tar-ball."""
+    """Untar the downloaded tar-ball.
+
+    Parameters
+    ----------
+    tar_path : Path
+        Path to the tar ball.
+
+    Examples
+    --------
+    >>> from ansys.heart.misc.downloader import unpack_case
+    >>> unpack_case("Strocchi2020\\01.tar.gz")
+    """
     import tarfile
 
     try:
@@ -216,6 +227,15 @@ def download_all_cases(download_dir: str = None):
     ----------
     download_dir : str
         Base directory where to download the cases to.
+
+    Examples
+    --------
+    >>> from ansys.heart.misc.downloader import download_all_cases
+    >>> tar_files = download_call_cases("my-downloads")
+
+    To unpack all cases you can use the unpack_cases method:
+    >>> from ansys.heart.misc.downloader import unpack_cases
+    >>> unpack_cases(tar_files)
 
     Notes
     -----
@@ -241,7 +261,18 @@ def download_all_cases(download_dir: str = None):
 
 
 def unpack_cases(list_of_tar_files: typing.List):
-    """Un-tar the downloaded cases."""
+    """Unpack a list of tar files.
+
+    Parameters
+    ----------
+    list_of_tar_files : typing.List
+        List of tar files to unpack.
+
+    Examples
+    --------
+    >>> from ansys.heart.misc.downloader import unpack_cases
+    >>> unpack_cases(["01.tar.gz", "02.tar.gz"])
+    """
     for file in tqdm(list_of_tar_files):
         unpack_case(file)
     return

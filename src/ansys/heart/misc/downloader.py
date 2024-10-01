@@ -135,19 +135,18 @@ def download_case_from_zenodo(
 
     download_url = "{:}/files/{:02d}.tar.gz?download=1".format(url, case_number)
 
-    if download_url not in list(ALL_DOWNLOAD_URLS[database].values()):
-        LOGGER.error(f"{download_url} not valid.")
+    if download_url not in ALL_DOWNLOAD_URLS[database].values():
         return None
 
     # validate URL
     if not validators.url(download_url):
-        LOGGER.error(f"{download_url} not valid")
+        LOGGER.error(f"'{download_url}' is not a well-formed URL.")
         return None
 
     try:
         wget.download(download_url, save_path)
-    except:
-        LOGGER.error(f"Failed to download from {download_url}")
+    except Exception as e:
+        LOGGER.error(f"Failed to download from {download_url}: {e}")
         return None
 
     if validate_hash:
@@ -243,8 +242,8 @@ def download_all_cases(download_dir: str = None):
     time.
 
     """
-    if download_dir == None:
-        download_dir == DOWNLOAD_DIR
+    if download_dir is None:
+        download_dir = DOWNLOAD_DIR
 
     if not os.path.isdir(download_dir):
         raise FileExistsError(f"{download_dir} does not exist.")

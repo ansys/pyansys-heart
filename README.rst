@@ -120,20 +120,12 @@ Using `conda`_:
       # Activate the environment
       conda activate my-venv
 
-2. Install dynalib 0.1.0 into your virtual environment with the following command and insert the received token.
-
-.. code:: bash
-
-    # latest version
-    pip install dynalib==0.1.0 --index-url=https://<TOKEN>@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
-
-3. Install the project in your virtual environment, again specifying the right token:
+2. Install the project in your virtual environment, again specifying the right token:
 
 .. code:: bash
 
     pip install ansys-dpf-core==0.10.0
-    pip install dynalib==0.1.0 --index-url=https://<TOKEN>@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
-    pip install pyansys-heart==0.3.0 --index-url=https://<TOKEN>@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
+    pip install pyansys-heart==0.4.0 --index-url=https://<TOKEN>@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
 
 .. note::
 
@@ -220,7 +212,7 @@ Install the project in editable mode by pointing to the right location:
     python -m pip install -e .[tests]
 
     # run quick tests
-    python -m pytest -v -m "not requires_fluent or (not downloader)"
+    python -m pytest -v -m "not requires_fluent or extract_models"
 
     # run tests requiring Fluent
     python -m pytest -v -m requires_fluent

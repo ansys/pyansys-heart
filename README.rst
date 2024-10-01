@@ -120,7 +120,7 @@ Using `conda`_:
       # Activate the environment
       conda activate my-venv
 
-2. Install the project in your virtual environment, again specifying the right token:
+2. Install the project in your virtual environment, specifying the right token:
 
 .. code:: bash
 

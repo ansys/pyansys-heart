@@ -31,7 +31,7 @@ database.
 # Perform the required imports
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Import the required modules and set relevant paths, including that of the working
-# directory and generated model
+# directory and generated model.
 
 import glob
 

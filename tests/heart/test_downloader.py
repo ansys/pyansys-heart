@@ -23,7 +23,6 @@
 import hashlib
 import json
 import os
-import pathlib
 import tempfile
 
 import pytest
@@ -31,9 +30,8 @@ import validators
 
 from ansys.heart.misc.downloader import (
     _format_download_urls,
-    download_case,
-    unpack_case,
-    validate_hash_sha256,
+    _validate_hash_sha256,
+    download_case_from_zenodo,
 )
 
 
@@ -51,43 +49,29 @@ def test_download_urls(database_name):
         )
 
 
-@pytest.mark.downloader
 @pytest.mark.parametrize(
     "database_name",
     ["Rodero2021", "Strocchi2020"],
 )
-def test_download_and_unpack(database_name):
+def test_download_case(database_name, mocker):
     """Test unpacking cases from different repositories."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
 
         download_folder = tempdir
-        save_path = download_case(database_name, 1, download_folder, overwrite=True)
 
-        # assert
-        if database_name in ["Rodero2021", "Cristobal2021"]:
+        mocker.patch("wget.download")
+        save_path = download_case_from_zenodo(
+            database_name, 1, download_folder, overwrite=True, validate_hash=False
+        )
+
+        if database_name == "Rodero2021":
             expected_save_path = os.path.join(download_folder, database_name, "01", "01.tar.gz")
         elif database_name == "Strocchi2020":
             expected_save_path = os.path.join(download_folder, database_name, "01.tar.gz")
 
-        assert os.path.isfile(save_path)
-
         assert save_path == expected_save_path
 
-        unpack_case(save_path)
-
-        expected_paths = [
-            pathlib.Path(download_folder, database_name, "01", "01.vtk"),
-            pathlib.Path(download_folder, database_name, "01", "01.case"),
-        ]
-
-        found = False
-        for expected_path in expected_paths:
-            if os.path.isfile(expected_path):
-                found = True
-                break
-        assert found, ".vtk or .case file not in expected path."
-
-        return
+    return
 
 
 def test_validate_hash_function_001():
@@ -120,12 +104,12 @@ def test_validate_hash_function_001():
             json.dump(hash_table, outfile, indent=4, ensure_ascii=True)
 
         # hashes of the same file should be the same
-        assert validate_hash_sha256(
+        assert _validate_hash_sha256(
             path_file2, "Rodero2021", casenumber=1, path_hash_table=path_hash_table
         ), "Expecting matching hash function"
 
         # hashes of two different files should be different
-        assert not validate_hash_sha256(
+        assert not _validate_hash_sha256(
             path_file3, "Rodero2021", casenumber=1, path_hash_table=path_hash_table
         ), "Expecting non-matching hash function"
 

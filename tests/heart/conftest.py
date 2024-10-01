@@ -28,7 +28,7 @@ import logging as deflogging
 
 import pytest
 
-from ansys.heart.misc.downloader import download_case, unpack_case
+from ansys.heart.misc.downloader import download_case_from_zenodo, unpack_case
 
 """
 
@@ -75,7 +75,7 @@ def download_asset(
         return case_path
 
     print("Downloading asset.")
-    path_to_zip = download_case(database, casenumber, download_dir)
+    path_to_zip = download_case_from_zenodo(database, casenumber, download_dir)
     unpack_case(path_to_zip)
 
     # remove .vtk file to reduce size (relevant for Github cache)

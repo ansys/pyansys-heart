@@ -20,33 +20,38 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Extract a full heart mesh from the public database of 24 pathological hearts
-by Strocchi et al (2020)."""
+"""
 
-import os
-import pathlib
+Download a PyAnsys - Heart compatible case from Zenodo.
+-------------------------------------------------------
+This example shows you how to download a Strocchi 2020 or Rodero 2021 case from the Zenodo
+database.
+"""
 
-import pyvista as pv
+# Perform the required imports
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Import the required modules and set relevant paths, including that of the working
+# directory and generated model.
+
+import glob
 
 from ansys.heart.misc.downloader import download_case_from_zenodo, unpack_case
 
-PROJECT_DIRECTORY = pathlib.Path(__file__).absolute().parents[3]
+# Download the tar file of Rodero2021 from the Zenodo database.
+tar_file = download_case_from_zenodo("Rodero2021", 1, "downloads")
+# Unpack the tar file
+unpack_case(tar_file)
 
-if __name__ == "__main__":
-    # download case from remote repository
-    case_num = 1  # patient number 1
-    database = "Strocchi2020"
-    download_folder: pathlib.Path = os.path.join(PROJECT_DIRECTORY, "downloads")
-    case_path: pathlib.Path = download_case_from_zenodo(
-        database=database, case_number=case_num, download_folder=download_folder, overwrite=False
-    )
-    unpack_case(case_path)
-    mesh_path = os.path.join(
-        pathlib.Path(case_path).parents[0], "%02d" % (case_num,), "%02d.case" % (case_num,)
-    )
-    mesh = pv.read(mesh_path)
+# list all files
+glob.glob("downloads" + "/**/*.*", recursive=True)
 
-    plotter = pv.Plotter()
-    plotter.add_mesh(mesh, color="white")
-    plotter.show()
-    print("done")
+###############################################################################
+# .. note::
+#    You can also manually download the .case or .vtk files from the Strocchi2020
+#    and Rodero2021 databases first. See:
+#
+#    - https://zenodo.org/records/3890034
+#    - https://zenodo.org/records/4590294
+#
+#    Alternatively you can make use of the download
+#    module instead. See the example below.

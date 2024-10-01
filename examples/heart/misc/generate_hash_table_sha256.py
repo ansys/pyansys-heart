@@ -24,7 +24,7 @@ import hashlib
 import json
 import os
 
-from ansys.heart.misc.downloader import download_case
+from ansys.heart.misc.downloader import download_case_from_zenodo
 
 if __name__ == "__main__":
     """Creates a reference hash table used to check integrity of data files.
@@ -67,7 +67,9 @@ if __name__ == "__main__":
                 key_exists = False
 
             print("\nDownloading... %d" % ii)
-            path_to_case = download_case(database, ii, download_folder, validate_hash=False)
+            path_to_case = download_case_from_zenodo(
+                database, ii, download_folder, validate_hash=False
+            )
             sha256 = hashlib.sha256(open(path_to_case, "rb").read()).hexdigest()
             sha256_table[database][ii] = sha256
 

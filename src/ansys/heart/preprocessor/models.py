@@ -638,7 +638,7 @@ class HeartModel:
 
     def summary(self) -> dict:
         """Get summary information of the model as a ditionary."""
-        from ansys.heart.preprocessor.helpers import model_summary
+        from ansys.heart.core.helpers.general import model_summary
 
         summary = model_summary(self)
         return summary

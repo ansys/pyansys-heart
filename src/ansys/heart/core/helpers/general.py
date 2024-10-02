@@ -28,6 +28,7 @@ import shutil
 import subprocess
 
 from ansys.heart.core import LOG as LOGGER
+from ansys.heart.preprocessor.models import HeartModel
 
 # --------------------------------------------------------------------------
 NCPU = 4
@@ -115,3 +116,80 @@ def _run_lsdyna(sim_file: str, lsdynapath: str = LSDYNAPATH, ncpu: int = NCPU, o
     LOGGER.info("Finished")
 
     return
+
+
+def model_summary(model: HeartModel, attributes: list = None) -> dict:
+    """Generate a dictionary with model information.
+
+    Parameters
+    ----------
+    model : HeartModel
+        HeartModel for which to generate the summary dictionary
+    attributes : list
+        List of attributes to try to add to the dict.
+
+    Returns
+    -------
+    dict
+        Dictionary with model information.
+    """
+    sum_dict = {}
+    sum_dict["GENERAL"] = {}
+
+    try:
+        sum_dict["GENERAL"]["total_num_tets"] = model.mesh.tetrahedrons.shape[0]
+        sum_dict["GENERAL"]["total_num_nodes"] = model.mesh.nodes.shape[0]
+    except TypeError:
+        LOGGER.info("Failed to format General model information.")
+
+    sum_dict["PARTS"] = {}
+    sum_dict["CAVITIES"] = {}
+    for ii, part in enumerate(model.parts):
+        sum_dict["PARTS"][part.name] = {}
+        sum_dict["PARTS"][part.name]["num_tets"] = len(part.element_ids)
+
+        sum_dict["PARTS"][part.name]["SURFACES"] = {}
+        sum_dict["PARTS"][part.name]["CAPS"] = {}
+
+        for surface in part.surfaces:
+            sum_dict["PARTS"][part.name]["SURFACES"][surface.name] = {}
+            sum_dict["PARTS"][part.name]["SURFACES"][surface.name]["num_faces"] = (
+                surface.triangles.shape[0]
+            )
+
+            if attributes:
+                for attribute in attributes:
+                    try:
+                        sum_dict["PARTS"][part.name]["SURFACES"][surface.name][attribute] = getattr(
+                            surface.clean(), attribute
+                        )
+                    except AttributeError:
+                        pass
+
+        for cap in part.caps:
+            sum_dict["PARTS"][part.name]["CAPS"][cap.name] = {}
+            sum_dict["PARTS"][part.name]["CAPS"][cap.name]["num_nodes"] = len(
+                cap.global_node_ids_edge
+            )
+
+            if attributes:
+                for attribute in attributes:
+                    try:
+                        sum_dict["PARTS"][part.name]["CAPS"][cap.name][attribute] = getattr(
+                            cap, attribute
+                        )
+                    except AttributeError:
+                        pass
+
+    for cavity in model.cavities:
+        sum_dict["CAVITIES"][cavity.name] = {}
+        sum_dict["CAVITIES"][cavity.name]["volume"] = cavity.surface.volume
+
+        if attributes:
+            for attribute in attributes:
+                try:
+                    sum_dict["CAVITIES"][cavity.name][attribute] = getattr(cavity, attribute)
+                except AttributeError:
+                    pass
+
+    return sum_dict

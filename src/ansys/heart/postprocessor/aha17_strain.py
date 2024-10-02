@@ -28,8 +28,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.core.models import HeartModel
+from ansys.heart.postprocessor.dpf_utils import D3plotReader
 
 
 class AhaStrainCalculator:

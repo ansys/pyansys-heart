@@ -44,6 +44,8 @@ import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.helpers.element_orth import _read_orth_element_kfile
+from ansys.heart.core.models import FourChamber, HeartModel, LeftVentricle
+from ansys.heart.core.objects import Part, PartType
 from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
 from ansys.heart.postprocessor.laplace_post import (
     compute_la_fiber_cs,
@@ -51,8 +53,6 @@ from ansys.heart.postprocessor.laplace_post import (
     read_uvc,
 )
 from ansys.heart.preprocessor.conduction_beam import ConductionSystem
-from ansys.heart.core.objects import Part, PartType
-from ansys.heart.core.models import FourChamber, HeartModel, LeftVentricle
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 from ansys.heart.simulator.settings.material.material import NeoHookean
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings

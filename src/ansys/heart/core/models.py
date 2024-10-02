@@ -38,22 +38,13 @@ from scipy.spatial.transform import Rotation as R
 import yaml
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.preprocessor.input import _InputModel
 
 # from ansys.heart.preprocessor.input import HEART_MODELS
 import ansys.heart.core.helpers.connectivity as connectivity
-import ansys.heart.preprocessor.mesher as mesher
-from ansys.heart.core.objects import (
-    BeamMesh,
-    Cap,
-    Cavity,
-    Mesh,
-    Part,
-    PartType,
-    Point,
-    SurfaceMesh,
-)
 import ansys.heart.core.helpers.vtkmethods as vtkmethods
+from ansys.heart.core.objects import BeamMesh, Cap, Cavity, Mesh, Part, PartType, Point, SurfaceMesh
+from ansys.heart.preprocessor.input import _InputModel
+import ansys.heart.preprocessor.mesher as mesher
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 
 

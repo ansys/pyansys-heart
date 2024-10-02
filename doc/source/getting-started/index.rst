@@ -19,4 +19,11 @@ This guide helps you get started with PyAnsys Heart. It provides information on 
         Learn how to install PyAnsys Heart.
 
 
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+
+    prerequisites
+    installation
+
 

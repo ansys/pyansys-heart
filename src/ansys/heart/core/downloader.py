@@ -23,7 +23,8 @@
 """Auto downloads cases.
 
 Auto downloads cases from the remote repositories of Strocchi et al 2020,
-and Rodero et al 2021."""
+and Rodero et al 2021.
+"""
 
 import hashlib
 
@@ -45,14 +46,14 @@ except ImportError:
     LOGGER.error("wget not installed but required. Please install by: pip install wget")
     exit()
 
-URLS = {
+_URLS = {
     "Strocchi2020": {"url": "https://zenodo.org/record/3890034", "num_cases": 24},
     "Rodero2021": {"url": "https://zenodo.org/record/4590294", "num_cases": 20},
 }
-VALID_DATABASES = list(URLS.keys())
-DOWNLOAD_DIR = PurePath.joinpath(Path(__file__).parents[3], "downloads")
+_VALID_DATABASES = list(_URLS.keys())
+_DOWNLOAD_DIR = PurePath.joinpath(Path(__file__).parents[3], "downloads")
 
-PATH_TO_HASHTABLE = resource_path(
+_PATH_TO_HASHTABLE = resource_path(
     "ansys.heart.misc", "remote_repo_hash_table_sha256.json"
 ).__enter__()
 
@@ -60,10 +61,10 @@ PATH_TO_HASHTABLE = resource_path(
 def _format_download_urls():
     """Format the URLS for all cases."""
     download_urls = {}
-    for database_name in URLS.keys():
+    for database_name in _URLS.keys():
         download_urls[database_name] = {}
-        url = URLS[database_name]["url"]
-        num_cases = URLS[database_name]["num_cases"]
+        url = _URLS[database_name]["url"]
+        num_cases = _URLS[database_name]["num_cases"]
         for case_number in range(1, num_cases + 1):
             download_urls[database_name][case_number] = "{:}/files/{:02d}.tar.gz?download=1".format(
                 url, case_number
@@ -71,7 +72,7 @@ def _format_download_urls():
     return download_urls
 
 
-ALL_DOWNLOAD_URLS = _format_download_urls()
+_ALL_DOWNLOAD_URLS = _format_download_urls()
 
 
 def download_case_from_zenodo(
@@ -81,7 +82,7 @@ def download_case_from_zenodo(
     overwrite: bool = True,
     validate_hash: bool = True,
 ) -> Path:
-    """Download a case from the remote repository
+    """Download a case from the remote repository.
 
     Parameters
     ----------
@@ -100,23 +101,24 @@ def download_case_from_zenodo(
     Examples
     --------
     Download case 1 from the public repository (Strocchi2020) of pathological hearts.
+
     >>> path_to_tar_file = download_case_from_zenodo(
             database="Strocchi2020", case_number=1, download_folder="my/download/folder"
         )
 
     Download case 1 from the public repository (Rodero2021) of 'healthy' hearts.
+
     >>> path_to_tar_file = download_case_from_zenodo(
             database="Rodero2021", case_number=1, download_folder="my/download/folder"
         )
     """
+    if database not in _VALID_DATABASES:
+        raise ValueError("Database not valid, please specify valid database: %s" % _VALID_DATABASES)
 
-    if database not in VALID_DATABASES:
-        raise ValueError("Database not valid, please specify valid database: %s" % VALID_DATABASES)
-
-    url = URLS[database]["url"]
-    if case_number > URLS[database]["num_cases"]:
+    url = _URLS[database]["url"]
+    if case_number > _URLS[database]["num_cases"]:
         raise ValueError(
-            "Database {0} only has {1} cases".format(database, URLS[database]["num_cases"])
+            "Database {0} only has {1} cases".format(database, _URLS[database]["num_cases"])
         )
 
     if database == "Rodero2021":
@@ -135,7 +137,7 @@ def download_case_from_zenodo(
 
     download_url = "{:}/files/{:02d}.tar.gz?download=1".format(url, case_number)
 
-    if download_url not in ALL_DOWNLOAD_URLS[database].values():
+    if download_url not in _ALL_DOWNLOAD_URLS[database].values():
         return None
 
     # validate URL
@@ -154,7 +156,7 @@ def download_case_from_zenodo(
             file_path=save_path,
             database=database,
             casenumber=case_number,
-            path_hash_table=PATH_TO_HASHTABLE,
+            path_hash_table=_PATH_TO_HASHTABLE,
         )
     else:
         LOGGER.warning("Not validating hash. Proceed at own risk")
@@ -195,7 +197,7 @@ def _validate_hash_sha256(
 
 
 def unpack_case(tar_path: Path):
-    """Untar the downloaded tar-ball.
+    r"""Untar the downloaded tar-ball.
 
     Parameters
     ----------
@@ -230,9 +232,10 @@ def download_all_cases(download_dir: str = None):
     Examples
     --------
     >>> from ansys.heart.misc.downloader import download_all_cases
-    >>> tar_files = download_call_cases("my-downloads")
+    >>> tar_files = download_all_cases("my-downloads")
 
     To unpack all cases you can use the unpack_cases method:
+
     >>> from ansys.heart.misc.downloader import unpack_cases
     >>> unpack_cases(tar_files)
 
@@ -243,13 +246,13 @@ def download_all_cases(download_dir: str = None):
 
     """
     if download_dir is None:
-        download_dir = DOWNLOAD_DIR
+        download_dir = _DOWNLOAD_DIR
 
     if not os.path.isdir(download_dir):
         raise FileExistsError(f"{download_dir} does not exist.")
 
     tar_files = []
-    for database_name, subdict in URLS.items():
+    for database_name, subdict in _URLS.items():
         num_cases = subdict["num_cases"]
         download_dir = PurePath.joinpath(download_dir)
         for ii in range(1, num_cases + 1):

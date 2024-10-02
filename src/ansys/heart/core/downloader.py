@@ -103,14 +103,14 @@ def download_case_from_zenodo(
     Download case 1 from the public repository (Strocchi2020) of pathological hearts.
 
     >>> path_to_tar_file = download_case_from_zenodo(
-            database="Strocchi2020", case_number=1, download_folder="my/download/folder"
-        )
+    ...     database="Strocchi2020", case_number=1, download_folder="my/download/folder"
+    ... )
 
     Download case 1 from the public repository (Rodero2021) of 'healthy' hearts.
 
     >>> path_to_tar_file = download_case_from_zenodo(
-            database="Rodero2021", case_number=1, download_folder="my/download/folder"
-        )
+    ...     database="Rodero2021", case_number=1, download_folder="my/download/folder"
+    ... )
     """
     if database not in _VALID_DATABASES:
         raise ValueError("Database not valid, please specify valid database: %s" % _VALID_DATABASES)

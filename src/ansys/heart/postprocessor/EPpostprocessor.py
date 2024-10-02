@@ -30,7 +30,7 @@ import numpy as np
 import pyvista as pv
 
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
-from ansys.heart.preprocessor.models import HeartModel
+from ansys.heart.core.models import HeartModel
 
 
 class EPpostprocessor:

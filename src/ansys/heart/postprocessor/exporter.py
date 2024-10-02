@@ -40,7 +40,7 @@ from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.core.helpers.vtkmethods import vtk_cutter, write_vtkdata_to_vtkfile
 
 # TODO replace by v0_2
-from ansys.heart.preprocessor.models import HeartModel, LeftVentricle
+from ansys.heart.core.models import HeartModel, LeftVentricle
 
 
 class D3plotToVTKExporter:

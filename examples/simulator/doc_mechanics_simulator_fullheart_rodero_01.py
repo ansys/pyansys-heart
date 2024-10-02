@@ -44,7 +44,7 @@ stress free configuration, and finally simulate the mechanical model.
 
 import os
 
-import ansys.heart.preprocessor.models as models
+import ansys.heart.core.models as models
 from ansys.heart.simulator.simulator import DynaSettings, MechanicsSimulator
 
 # accept dpf license aggrement

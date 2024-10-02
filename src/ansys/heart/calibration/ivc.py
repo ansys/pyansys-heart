@@ -30,7 +30,7 @@ from typing import Literal
 from pint import Quantity
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.preprocessor.models import HeartModel
+from ansys.heart.core.models import HeartModel
 from ansys.heart.simulator.settings.settings import SimulationSettings
 from ansys.heart.simulator.simulator import MechanicsSimulator
 from ansys.heart.writer.dynawriter import MechanicsDynaWriter

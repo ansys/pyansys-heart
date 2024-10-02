@@ -35,7 +35,7 @@ from typing import Union
 import pytest
 import yaml
 
-import ansys.heart.preprocessor.models as models
+import ansys.heart.core.models as models
 import ansys.heart.writer.dynawriter as writers
 from tests.heart.common import compare_stats_mesh, compare_stats_names, compare_stats_volumes
 from tests.heart.conftest import get_assets_folder

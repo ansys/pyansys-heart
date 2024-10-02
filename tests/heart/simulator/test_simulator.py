@@ -26,7 +26,7 @@ import numpy as np
 import pytest
 import pyvista as pv
 
-from ansys.heart.preprocessor.models import FourChamber
+from ansys.heart.core.models import FourChamber
 from ansys.heart.simulator.settings.settings import DynaSettings
 from ansys.heart.simulator.simulator import BaseSimulator
 

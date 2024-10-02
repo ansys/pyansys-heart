@@ -25,7 +25,7 @@
 import pyvista as pv
 
 from ansys.heart.postprocessor.EPpostprocessor import EPpostprocessor
-from ansys.heart.preprocessor.models import HeartModel
+from ansys.heart.core.models import HeartModel
 
 if __name__ == "__main__":
     model: HeartModel

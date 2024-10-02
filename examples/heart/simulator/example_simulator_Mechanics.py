@@ -25,7 +25,7 @@
 import os
 import pathlib
 
-import ansys.heart.preprocessor.models as models
+import ansys.heart.core.models as models
 from ansys.heart.simulator.simulator import MechanicsSimulator
 from ansys.heart.simulator.support import run_preprocessor
 

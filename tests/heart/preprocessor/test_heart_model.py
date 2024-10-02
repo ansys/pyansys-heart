@@ -36,7 +36,7 @@ else:
 import numpy as np
 import pytest
 
-import ansys.heart.preprocessor.models as models
+import ansys.heart.core.models as models
 
 
 def _get_test_model_info() -> models.ModelInfo:

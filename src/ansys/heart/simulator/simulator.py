@@ -52,7 +52,7 @@ from ansys.heart.postprocessor.laplace_post import (
 )
 from ansys.heart.preprocessor.conduction_beam import ConductionSystem
 from ansys.heart.core.objects import Part, PartType
-from ansys.heart.preprocessor.models import FourChamber, HeartModel, LeftVentricle
+from ansys.heart.core.models import FourChamber, HeartModel, LeftVentricle
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 from ansys.heart.simulator.settings.material.material import NeoHookean
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings

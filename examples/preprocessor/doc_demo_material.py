@@ -171,7 +171,7 @@ epinsulator = EPMaterial.Insulator()
 import numpy as np
 
 from ansys.heart.core.objects import Part
-import ansys.heart.preprocessor.models as models
+import ansys.heart.core.models as models
 
 ###############################################################################
 # Load a heart model

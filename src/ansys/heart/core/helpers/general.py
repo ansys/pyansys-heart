@@ -28,7 +28,7 @@ import shutil
 import subprocess
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.preprocessor.models import HeartModel
+from ansys.heart.core.models import HeartModel
 
 # --------------------------------------------------------------------------
 NCPU = 4

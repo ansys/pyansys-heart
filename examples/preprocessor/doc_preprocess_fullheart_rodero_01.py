@@ -45,7 +45,7 @@ import os
 from pathlib import Path
 
 from ansys.heart.preprocessor.database_preprocessor import get_compatible_input
-import ansys.heart.preprocessor.models as models
+import ansys.heart.core.models as models
 
 # specify necessary paths.
 case_file = os.path.join(

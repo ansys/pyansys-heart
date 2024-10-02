@@ -27,7 +27,7 @@
 import matplotlib.pyplot as plt
 
 from ansys.heart.postprocessor.exporter import LVContourExporter
-from ansys.heart.preprocessor.models import HeartModel
+from ansys.heart.core.models import HeartModel
 
 if __name__ == "__main__":
     """

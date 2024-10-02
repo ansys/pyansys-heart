@@ -62,12 +62,3 @@ directory and then install using the same pip install command as in the precedin
 Consider installing using a virtual environment to avoid conflicts with other packages. For more information,
 refer to the `Python documentation <https://docs.python.org/3/library/venv.html>`_.
 
-
-
-
-
-
-
-
-
-

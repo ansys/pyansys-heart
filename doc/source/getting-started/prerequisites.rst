@@ -34,7 +34,7 @@ Software
   * - Ansys LS-DYNA
     - R16.0
     - Simulator
-    - Contact us for appropriate version
+    - Contact `PyAnsys Core <mailto:pyansys.core@ansys.com>`_ to get more information
 
 .. Note::
 

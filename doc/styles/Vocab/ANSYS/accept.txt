@@ -37,3 +37,5 @@ Panfilov
 Alternans
 simulator.settings.settings.EPAnalysis.solvertype
 Rodero
+(?i)GitHub
+PyPI

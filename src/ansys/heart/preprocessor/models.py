@@ -41,7 +41,7 @@ from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.input import _InputModel
 
 # from ansys.heart.preprocessor.input import HEART_MODELS
-import ansys.heart.preprocessor.mesh.connectivity as connectivity
+import ansys.heart.core.helpers.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher
 from ansys.heart.preprocessor.mesh.objects import (
     BeamMesh,
@@ -53,7 +53,7 @@ from ansys.heart.preprocessor.mesh.objects import (
     Point,
     SurfaceMesh,
 )
-import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
+import ansys.heart.core.helpers.vtkmethods as vtkmethods
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 
 

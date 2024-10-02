@@ -32,7 +32,7 @@ import copy
 import numpy as np
 import pytest
 
-from ansys.heart.preprocessor.mesh.objects import SurfaceMesh
+from ansys.heart.core.objects import SurfaceMesh
 import ansys.heart.preprocessor.models as models
 import ansys.heart.writer.dynawriter as writers
 

@@ -28,7 +28,7 @@ import pathlib
 import numpy as np
 import pytest
 
-from ansys.heart.preprocessor.mesh.objects import BeamMesh, Point
+from ansys.heart.core.objects import BeamMesh, Point
 from ansys.heart.preprocessor.models import FourChamber
 from tests.heart.conftest import get_assets_folder
 

@@ -43,7 +43,7 @@ from ansys.heart.preprocessor.input import _InputModel
 # from ansys.heart.preprocessor.input import HEART_MODELS
 import ansys.heart.core.helpers.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher
-from ansys.heart.preprocessor.mesh.objects import (
+from ansys.heart.core.objects import (
     BeamMesh,
     Cap,
     Cavity,

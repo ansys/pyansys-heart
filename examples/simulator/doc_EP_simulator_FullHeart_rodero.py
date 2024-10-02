@@ -43,7 +43,7 @@ purkinje network and conduction system and finally simulate the electrophysiolog
 
 import os
 
-from ansys.heart.preprocessor.mesh.objects import Point
+from ansys.heart.core.objects import Point
 import ansys.heart.preprocessor.models as models
 from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
 

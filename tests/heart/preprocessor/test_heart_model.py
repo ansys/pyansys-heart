@@ -234,7 +234,7 @@ def test_load_from_mesh():
     import pyvista as pv
     from pyvista import examples
 
-    from ansys.heart.preprocessor.mesh.objects import Mesh, PartType
+    from ansys.heart.core.objects import Mesh, PartType
 
     # generate a dummy mesh.
     #! Note, can modify to create something more meaningful,

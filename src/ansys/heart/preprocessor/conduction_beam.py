@@ -27,7 +27,7 @@ import numpy as np
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.preprocessor.mesh.objects import BeamMesh, Point, SurfaceMesh
+from ansys.heart.core.objects import BeamMesh, Point, SurfaceMesh
 from ansys.heart.preprocessor.models import FourChamber
 
 

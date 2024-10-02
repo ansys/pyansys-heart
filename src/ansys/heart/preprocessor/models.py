@@ -1132,7 +1132,7 @@ class HeartModel:
             lv_apex = self.left_ventricle.apex_points[1].xyz
             mv_centroid = [c.centroid for p in self.parts for c in p.caps if "mitral" in c.name][0]
             longitudinal_axis = lv_apex - mv_centroid
-            from ansys.heart.preprocessor.mesh.geodisc import rodrigues_rot
+            from ansys.heart.core.helpers.geodisc import rodrigues_rot
 
             Prot = rodrigues_rot(self.mesh.nodes - lv_apex, longitudinal_axis, [0, 0, -1])
             Prot[:, 2] = Prot[:, 2] - np.min(Prot, axis=0)[2]

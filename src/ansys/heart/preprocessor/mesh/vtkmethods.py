@@ -33,7 +33,7 @@ from vtk.util import numpy_support as VN  # type: ignore # noqa
 from vtk.util.numpy_support import numpy_to_vtk  # type: ignore # noqa
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.preprocessor.mesh.fluenthdf5 import add_solid_name_to_stl
+from ansys.heart.core.helpers.fluenthdf5 import add_solid_name_to_stl
 
 
 def write_vtkdata_to_vtkfile(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData], fname: str):

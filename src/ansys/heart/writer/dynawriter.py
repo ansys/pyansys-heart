@@ -43,7 +43,7 @@ import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.mesh.objects import Cap, Part, PartType, SurfaceMesh
-from ansys.heart.preprocessor.mesh.vtkmethods import compute_surface_nodal_area_pyvista
+from ansys.heart.core.helpers.vtkmethods import compute_surface_nodal_area_pyvista
 from ansys.heart.preprocessor.models import (
     BiVentricle,
     FourChamber,

@@ -605,7 +605,7 @@ def test_cavity_volume():
 def test_cap_properties():
     """Test getting global_node_ids_edge from Cap."""
     from ansys.heart.preprocessor.mesh.objects import Cap
-    from ansys.heart.preprocessor.mesh.vtkmethods import get_patches_with_centroid
+    from ansys.heart.core.helpers.vtkmethods import get_patches_with_centroid
 
     half_sphere = pv.Sphere().clip(normal="y")
     patches = get_patches_with_centroid(half_sphere)

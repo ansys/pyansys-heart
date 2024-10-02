@@ -7,13 +7,13 @@ This guide helps you get started with PyAnsys Heart. It provides information on 
 
 
     .. grid-item-card::  :fa:`book` Prerequisites
-        :link: getting-started/prerequisites.rst
+        :link: prerequisites
         :link-type: doc
 
         Learn about the prerequisites for using PyAnsys Heart.
 
     .. grid-item-card:: :fa:`download` Installation
-        :link: getting-started/installation.rst
+        :link: installation
         :link-type: doc
 
         Learn how to install PyAnsys Heart.

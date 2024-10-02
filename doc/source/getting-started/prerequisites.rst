@@ -11,8 +11,8 @@ Operating system
 Ansys tools
 -----------
 
-This framework was developed and tested under |Python310|, |Python311|, and |Python312|. Before starting the
-installation run ``python --version`` and check that it fits with the supported versions.
+This framework was developed and tested under and later.
+As indicated in the Moving to require Python 3 statement, previous versions of Python are no longer supported.
 
 Software
 --------
@@ -39,3 +39,6 @@ Software
 .. Note::
 
     Fluent is required for meshing.
+
+
+.. _Ansys Customer Portal: https://support.ansys.com/Home/HomePage

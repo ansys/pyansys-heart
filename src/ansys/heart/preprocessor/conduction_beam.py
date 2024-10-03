@@ -82,7 +82,7 @@ class ConductionSystem:
         SinoAtrial node is defined on the endocardium of the right atrium and
         between sup vena cava and inf vena cave.
         """
-        if target_coord == None:
+        if target_coord is None:
             for cap in self.m.right_atrium.caps:
                 if "superior" in cap.name:
                     sup_vcava_centroid = cap.centroid

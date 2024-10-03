@@ -100,8 +100,6 @@ ignore = [
     "N802",  # Function name should be lowercase
     "N803",  # Argument name should be lowercase
     "N806",  # Variable in function should be lowercase
-    "E741",  # Do not use variables named 'l', 'O', or 'I'
-    "E711",  # Comparison to None should be 'if cond is None:'
 ]
 
 [tool.ruff.lint.per-file-ignores]

@@ -170,9 +170,9 @@ class PassiveCalibration:
     def apply_input_parameter(self, setting: settings):
         """Apply parameters."""
         with open(os.path.join(self.work_directory, "parameters.k")) as f:
-            l = f.readlines()
-            p1 = float(l[0].split(",")[1])
-            p2 = float(l[1].split(",")[1])
+            lines = f.readlines()
+            p1 = float(lines[0].split(",")[1])
+            p2 = float(lines[1].split(",")[1])
 
         setting.mechanics.material.myocardium["isotropic"]["k1"] *= p1
         setting.mechanics.material.myocardium["isotropic"]["k2"] *= p2

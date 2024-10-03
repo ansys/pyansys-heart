@@ -249,7 +249,7 @@ class _InputModel:
             LOGGER.debug(f"Renaming {scalar} to boundary-id")
             self.input_polydata.rename_array(scalar, "boundary-id")
 
-        if part_definitions == None:
+        if part_definitions is None:
             return
             # raise NotImplementedError("Default part definitions not yet implemented.")
 

@@ -99,7 +99,7 @@ class FluentMesh:
     @property
     def cell_zone_names(self):
         """List of cell zone names of non-empty cell zones."""
-        return [cz.name for cz in self.cell_zones if cz != None]
+        return [cz.name for cz in self.cell_zones if cz is not None]
 
     def __init__(self, filename: str = None) -> None:
         self.filename: str = filename

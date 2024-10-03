@@ -52,14 +52,14 @@ class EPpostprocessor:
 
     def load_ep_fields(self):
         """Load all EP fields."""
-        if self.fields == None:
+        if self.fields is None:
             self.fields = self.reader.get_ep_fields()
 
     def get_activation_times(self, at_step: int = None):
         """Get activation times field."""
         step = (
             self.reader.model.metadata.time_freq_support.time_frequencies.scoping.ids[-1]
-            if at_step == None
+            if at_step is None
             else [at_step]
         )
         field = self.reader.get_ep_fields(at_step=step).get_field({"variable_id": 129})
@@ -89,7 +89,7 @@ class EPpostprocessor:
         """Get EP field."""
         self.load_ep_fields()
         times = self.reader.time
-        if node_id == None:
+        if node_id is None:
             nnodes = len(self.reader.meshgrid.points)
             node_id = np.int64(np.linspace(0, nnodes - 1, nnodes))
         phi = np.zeros((len(times), len(node_id)))
@@ -141,7 +141,7 @@ class EPpostprocessor:
 
     def create_post_folder(self, path: Path = None):
         """Create Postprocessing folder."""
-        if path == None:
+        if path is None:
             post_path = os.path.join(os.path.dirname(self.reader.ds.result_files[0]), "post")
         else:
             post_path = path
@@ -254,7 +254,7 @@ class EPpostprocessor:
         RA = ECGs[:, 6]
         LA = ECGs[:, 7]
         LL = ECGs[:, 9]
-        I = LA - RA
+        I = LA - RA  # noqa: E741
         II = LL - RA
         III = LL - LA
         aVR = RA - (LA + LL) / 2

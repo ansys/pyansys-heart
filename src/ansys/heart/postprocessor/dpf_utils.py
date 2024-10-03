@@ -86,7 +86,7 @@ class D3plotReader:
 
         time_ids = (
             self.model.metadata.time_freq_support.time_frequencies.scoping.ids
-            if at_step == None
+            if at_step is None
             else [at_step]
         )
 

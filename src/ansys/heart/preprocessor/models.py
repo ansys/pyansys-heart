@@ -1168,7 +1168,7 @@ class HeartModel:
         # assign new ids to parts without part id
         for p in self.parts:
             if not p.pid:
-                p.pid = max([pid for pid in self.part_ids if pid != None]) + 1
+                p.pid = max([pid for pid in self.part_ids if pid is not None]) + 1
 
         return
 

@@ -117,7 +117,7 @@ class ActiveModel:
         stf: float = 0.0
         b: float = 4.75
         l0: float = 1.58
-        l: float = 1.85
+        l: float = 1.85  # noqa: E741
         dtmax: float = 150
         mr: float = 1048.9
         tr: float = -1629.0
@@ -130,7 +130,7 @@ class ActiveModel:
         ca2ion50: float = 1.0
         n: float = 1.0
         f: float = 0.0
-        l: float = 1.0  # no effect if eta=0
+        l: float = 1.0  # no effect if eta=0 #noqa: E741
         eta: float = 0.0
         sigmax: float = None
 

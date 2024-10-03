@@ -349,7 +349,7 @@ class FluentMesh:
             mask = np.invert(mask)
 
             if not np.all(np.sum(mask, axis=1) == 1):
-                # note: in an edge case we may have an interior face that
+                # NOTE: in an edge case we may have an interior face that
                 # is connected to a cell where all the other faces are actually
                 # not of the interior.
                 # as a solution we can collect all faces first and consequently construct

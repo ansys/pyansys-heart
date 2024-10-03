@@ -71,11 +71,10 @@ def tetra_to_faces(tetra: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     tetra_face_map = inverse[tetra_face_map]
 
     # find connectivity c0 an c1 (cell indices that are connected to the face)
-    tet_ids = np.arange(0, num_tetra, 1)
-    face_ids = np.arange(0, len(unique_faces), 1)
+    # tet_ids = np.arange(0, num_tetra, 1)
+    # face_ids = np.arange(0, len(unique_faces), 1)
 
-    # this gives faces_1 again:
-    # unique_faces[tetra_face_map]
+    # NOTE: unique_faces[tetra_face_map] gives faces_1 again.
 
     return tetra_face_map, unique_faces
 
@@ -87,18 +86,8 @@ def face_tetra_connectivity(tetra: np.ndarray) -> Tuple[np.ndarray, np.ndarray, 
     LOGGER.debug("Establishing tetra-face connectivity...")
     t0 = time.time()
 
-    # num_tetra = tetra.shape[0]
-    # faces = np.zeros( (num_tetra, 3, 4), dtype=int )
-    # masks = np.array([
-    #     [ True, True, True, False],
-    #     [ True, True, False, True],
-    #     [ True, False, True, True],
-    #     [ False, True, True, True]
-    #      ] )
-    # for ii, mask in enumerate( masks ):
-    #     faces[:,:,ii] = tetra[:, mask]
     faces = get_faces_tetra(tetra)
-    # reshape faces such that shape is (NumTetra*4, 3) with following structure:
+    # NOTE: reshape faces such that shape is (NumTetra*4, 3) with following structure:
     # i n1 n2 n3
     # 0 tet1_face1
     # 1 tet1_face2
@@ -256,7 +245,6 @@ def edge_connectivity(
     Performance is not tested so may not be suitable for large arrays of edges.
     """
     # Nested in Dept-first search algorithm
-
     def _dfs(visited, graph, node):
         if node not in visited:
             # print(node)

@@ -1113,9 +1113,11 @@ class HeartModel:
             longitudinal_axis = lv_apex - mv_centroid
             from ansys.heart.preprocessor.mesh.geodisc import rodrigues_rot
 
-            Prot = rodrigues_rot(self.mesh.nodes - lv_apex, longitudinal_axis, [0, 0, -1])
-            Prot[:, 2] = Prot[:, 2] - np.min(Prot, axis=0)[2]
-            scaling = Prot[:, 2] / np.max(Prot[:, 2])
+            points_rotation = rodrigues_rot(
+                self.mesh.nodes - lv_apex, longitudinal_axis, [0, 0, -1]
+            )
+            points_rotation[:, 2] = points_rotation[:, 2] - np.min(points_rotation, axis=0)[2]
+            scaling = points_rotation[:, 2] / np.max(points_rotation[:, 2])
             self.mesh.point_data["uvc_longitudinal"] = scaling
 
         self._get_parts_info()

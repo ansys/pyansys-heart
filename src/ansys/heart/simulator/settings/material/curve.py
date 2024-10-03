@@ -84,8 +84,8 @@ def kumaraswamy_active(t_end=1000) -> tuple[np.ndarray, np.ndarray]:
     tuple[np.ndarray, np.ndarray]
         (timen,stress) array
     """
-    APD90 = 250 * t_end / 1000  # action potential duration
-    TR = 750 * t_end / 1000  #  repolarization time
+    apd90 = 250 * t_end / 1000  # action potential duration
+    time_repolarization = 750 * t_end / 1000  #  repolarization time
 
     time = np.linspace(0, t_end, 101)
     stress = np.zeros(time.shape)
@@ -94,10 +94,10 @@ def kumaraswamy_active(t_end=1000) -> tuple[np.ndarray, np.ndarray]:
         return 1 - (1 - x**a) ** b
 
     for i, t in enumerate(time):
-        if t < APD90:
-            stress[i] = _kumaraswamy(2, 1.5, t / APD90)
-        elif t < TR:
-            stress[i] = -_kumaraswamy(2, 3, (t - APD90) / (TR - APD90)) + 1
+        if t < apd90:
+            stress[i] = _kumaraswamy(2, 1.5, t / apd90)
+        elif t < time_repolarization:
+            stress[i] = -_kumaraswamy(2, 3, (t - apd90) / (time_repolarization - apd90)) + 1
     return (time, stress)
 
 
@@ -237,13 +237,14 @@ class ActiveCurve:
 
     def _estimate_stress(self):
         # TODO: only with 1
+        # TODO: @wenfengye ensure ruff compatibility, see the # noqa's
         ca2ionmax = 4.35
         ca2ion = 4.35
         n = 2
         mr = 1048.9
         dtmax = 150
         tr = -1429
-        L = 1.85  # 1.78-1.91
+        L = 1.85  # 1.78-1.91 # noqa N806
         l0 = 1.58
         b = 4.75
         lam = 1

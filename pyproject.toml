@@ -94,7 +94,6 @@ select = [
 ignore = [
     "TD002", # Missing author in TODOs comment
     "TD003", # Missing links in TODOs comment
-    "N806",  # Variable in function should be lowercase
 ]
 
 [tool.ruff.lint.per-file-ignores]

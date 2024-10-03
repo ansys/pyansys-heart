@@ -60,15 +60,15 @@ def rodrigues_rot(points: np.ndarray, n0: np.ndarray, n1: np.ndarray) -> np.ndar
     theta = np.arccos(np.dot(n0, n1))
 
     # Compute rotated points
-    P_rot = np.zeros((len(points), 3))
+    points_rotation = np.zeros((len(points), 3))
     for i in range(len(points)):
-        P_rot[i] = (
+        points_rotation[i] = (
             points[i] * np.cos(theta)
             + np.cross(k, points[i]) * np.sin(theta)
             + k * np.dot(k, points[i]) * (1 - np.cos(theta))
         )
 
-    return P_rot
+    return points_rotation
 
 
 def project_3d_points(p_set: np.ndarray) -> np.ndarray:
@@ -93,24 +93,27 @@ def project_3d_points(p_set: np.ndarray) -> np.ndarray:
     # (1) Fitting plane by SVD for the mean-centered data
     # Eq. of plane is <p,n> + d = 0, where p is a point on plane and n is normal vector
     # -------------------------------------------------------------------------------
-    P_mean = np.mean(p_set, axis=0)
-    P_centered = p_set - P_mean
-    _, _, V = np.linalg.svd(P_centered)
+    point_mean = np.mean(p_set, axis=0)
+    point_centered = p_set - point_mean
+    _, _, vector = np.linalg.svd(point_centered)
     # Normal vector of fitting plane is given by 3rd column in V
     # Note linalg.svd returns V^T, so we need to select 3rd row from V^T
-    normal = V[2, :]
+    normal = vector[2, :]
 
     # -------------------------------------------------------------------------------
     # (2) Project points to coords X-Y in 2D plane
     # -------------------------------------------------------------------------------
-    P_xy = rodrigues_rot(P_centered, normal, [0, 0, 1])
+    points_xy = rodrigues_rot(point_centered, normal, [0, 0, 1])
 
     # -------------------------------------------------------------------------------
     # (2) Project points back to the original CS
     # -------------------------------------------------------------------------------
-    P_project = np.zeros(p_set.shape)
-    for i in range(len(P_xy)):
-        point = rodrigues_rot(np.array([P_xy[i, 0], P_xy[i, 1], 0]), [0, 0, 1], normal) + P_mean
-        P_project[i] = point.ravel()
+    point_projected = np.zeros(p_set.shape)
+    for i in range(len(points_xy)):
+        point = (
+            rodrigues_rot(np.array([points_xy[i, 0], points_xy[i, 1], 0]), [0, 0, 1], normal)
+            + point_mean
+        )
+        point_projected[i] = point.ravel()
 
-    return P_project, normal, P_mean
+    return point_projected, normal, point_mean

@@ -98,12 +98,16 @@ class ConductionSystem:
             self.m.mesh.nodes[right_atrium_endo.global_node_ids_triangles, :]
         ).find_closest_point(target_coord)
 
-        SA_node_id = right_atrium_endo.global_node_ids_triangles[target_id]
+        sino_atrial_node_id = right_atrium_endo.global_node_ids_triangles[target_id]
 
-        SA_point = Point(name="SA_node", xyz=self.m.mesh.nodes[SA_node_id, :], node_id=SA_node_id)
-        self.m.right_atrium.points.append(SA_point)
+        sino_atrial_point = Point(
+            name="SA_node",
+            xyz=self.m.mesh.nodes[sino_atrial_node_id, :],
+            node_id=sino_atrial_node_id,
+        )
+        self.m.right_atrium.points.append(sino_atrial_point)
 
-        return SA_point
+        return sino_atrial_point
 
     def compute_av_node(self, target_coord=None) -> Point:
         """
@@ -134,39 +138,47 @@ class ConductionSystem:
 
         # assign a point
         av_id = right_atrium_endo.global_node_ids_triangles[target_id]
-        AV_point = Point(name="AV_node", xyz=self.m.mesh.nodes[av_id, :], node_id=av_id)
+        atrioventricular_point = Point(
+            name="AV_node", xyz=self.m.mesh.nodes[av_id, :], node_id=av_id
+        )
 
-        self.m.right_atrium.points.append(AV_point)
+        self.m.right_atrium.points.append(atrioventricular_point)
 
-        return AV_point
+        return atrioventricular_point
 
     def compute_av_conduction(self, beam_length: float = 1.5) -> BeamMesh:
         """Compute Atrio-Ventricular conduction by means of beams following a geodesic path."""
         right_atrium_endo = self.m.mesh.get_surface(self.m.right_atrium.endocardium.id)
 
         try:
-            SA_id = self.m.right_atrium.get_point("SA_node").node_id
+            sino_atrial_id = self.m.right_atrium.get_point("SA_node").node_id
         except AttributeError:
             LOGGER.info("SA node is not defined, creating with default option.")
-            SA_id = self.m.compute_sa_node().node_id
+            sino_atrial_id = self.m.compute_sa_node().node_id
 
         try:
-            AV_id = self.m.right_atrium.get_point("AV_node").node_id
+            atrio_ventricular_id = self.m.right_atrium.get_point("AV_node").node_id
         except AttributeError:
             LOGGER.info("AV node is not defined, creating with default option.")
-            AV_id = self.m.compute_AV_node().node_id
+            atrio_ventricular_id = self.m.compute_AV_node().node_id
 
         #! get local SA/AV ids.
-        SA_id_local = np.argwhere(right_atrium_endo.global_node_ids_triangles == SA_id).flatten()[0]
-        AV_id_local = np.argwhere(right_atrium_endo.global_node_ids_triangles == AV_id).flatten()[0]
-        path_SAN_AVN = right_atrium_endo.geodesic(SA_id_local, AV_id_local)
-        beam_nodes = path_SAN_AVN.points
+        sino_atrial_id_local = np.argwhere(
+            right_atrium_endo.global_node_ids_triangles == sino_atrial_id
+        ).flatten()[0]
+        atrio_ventricular_id_local = np.argwhere(
+            right_atrium_endo.global_node_ids_triangles == atrio_ventricular_id
+        ).flatten()[0]
+        path_sinoatrial_atrioventricular = right_atrium_endo.geodesic(
+            sino_atrial_id_local, atrio_ventricular_id_local
+        )
+        beam_nodes = path_sinoatrial_atrioventricular.points
 
         beam_nodes = _refine_line(beam_nodes, beam_length=beam_length)[1:, :]
 
         # duplicate nodes inside the line, connect only SA node (the first) with 3D
         point_ids = np.linspace(0, len(beam_nodes) - 1, len(beam_nodes), dtype=int)
-        point_ids = np.insert(point_ids, 0, SA_id)
+        point_ids = np.insert(point_ids, 0, sino_atrial_id)
         # build connectivity table
         edges = np.vstack((point_ids[:-1], point_ids[1:])).T
 
@@ -183,7 +195,7 @@ class ConductionSystem:
 
         End point: create a point inside of septum part and close to AV node .
         """
-        AV_node = self.m.right_atrium.get_point("AV_node")
+        atrio_ventricular_node = self.m.right_atrium.get_point("AV_node")
 
         septum_point_ids = np.unique(np.ravel(self.m.mesh.tetrahedrons[self.m.septum.element_ids]))
 
@@ -200,9 +212,9 @@ class ConductionSystem:
         septum_pointcloud = pv.PolyData(self.m.mesh.nodes[septum_point_ids, :])
 
         # Define start point: closest to artria
-        pointcloud_id = septum_pointcloud.find_closest_point(AV_node.xyz)
+        pointcloud_id = septum_pointcloud.find_closest_point(atrio_ventricular_node.xyz)
 
-        pointcloud_id = septum_pointcloud.find_closest_point(AV_node.xyz)
+        pointcloud_id = septum_pointcloud.find_closest_point(atrio_ventricular_node.xyz)
 
         bifurcation_id = septum_point_ids[pointcloud_id]
         bifurcation_coord = self.m.mesh.nodes[bifurcation_id, :]
@@ -253,7 +265,7 @@ class ConductionSystem:
         edges = np.vstack((point_ids[:-1], point_ids[1:])).T
 
         (
-            position_id_His_end_left,
+            position_id_his_end_left,
             his_end_left_coord,
             new_nodes,
             edges,
@@ -267,7 +279,7 @@ class ConductionSystem:
             bifurcation_id=bifurcation_id,
         )
         (
-            position_id_His_end_right,
+            position_id_his_end_right,
             his_end_right_coord,
             new_nodes,
             edges,
@@ -302,10 +314,10 @@ class ConductionSystem:
 
         return Point(
             xyz=his_end_left_coord,
-            node_id=beam_net.edges[position_id_His_end_left[0], position_id_His_end_left[1]],
+            node_id=beam_net.edges[position_id_his_end_left[0], position_id_his_end_left[1]],
         ), Point(
             xyz=his_end_right_coord,
-            node_id=beam_net.edges[position_id_His_end_right[0], position_id_His_end_right[1]],
+            node_id=beam_net.edges[position_id_his_end_right[0], position_id_his_end_right[1]],
         )
 
     @staticmethod
@@ -334,21 +346,21 @@ class ConductionSystem:
 
         def _mesh_to_nx_graph(mesh):
             # convert tetra mesh to graph
-            G = nx.Graph()
+            graph = nx.Graph()
             # Add nodes
             for i, point in enumerate(mesh.points):
-                G.add_node(i, pos=tuple(point))
+                graph.add_node(i, pos=tuple(point))
             # Assume all cells are tetra
             cells = np.array(mesh.cells).reshape(-1, 5)[:, 1:]
             # Add edges
             for cell in cells:
-                G.add_edge(cell[0], cell[1])
-                G.add_edge(cell[1], cell[2])
-                G.add_edge(cell[2], cell[0])
-                G.add_edge(cell[0], cell[3])
-                G.add_edge(cell[1], cell[3])
-                G.add_edge(cell[2], cell[3])
-            return G
+                graph.add_edge(cell[0], cell[1])
+                graph.add_edge(cell[1], cell[2])
+                graph.add_edge(cell[2], cell[0])
+                graph.add_edge(cell[0], cell[3])
+                graph.add_edge(cell[1], cell[3])
+                graph.add_edge(cell[2], cell[3])
+            return graph
 
         # do the search in a small region for efficiency
         center = 0.5 * (start + end)
@@ -429,8 +441,8 @@ class ConductionSystem:
         edges = np.vstack(
             (edges, np.column_stack((side_his_point_ids[:-1], side_his_point_ids[1:])))
         )
-        position_id_His_end = np.argwhere(edges == side_his_point_ids[-1])[0]
-        return (position_id_His_end, his_end_coord, new_nodes, edges, sgmt)
+        position_id_his_end = np.argwhere(edges == side_his_point_ids[-1])[0]
+        return (position_id_his_end, his_end_coord, new_nodes, edges, sgmt)
 
     def compute_left_right_bundle(self, start_coord, start_id, side: str, beam_length: float = 1.5):
         """Bundle brunch."""

@@ -145,8 +145,8 @@ class EPpostprocessor:
             post_path = os.path.join(os.path.dirname(self.reader.ds.result_files[0]), "post")
         else:
             post_path = path
-        isExist = os.path.exists(post_path)
-        if not isExist:
+        path_exists = os.path.exists(post_path)
+        if not path_exists:
             # Create a new directory because it does not exist
             os.makedirs(post_path)
         return post_path
@@ -189,7 +189,8 @@ class EPpostprocessor:
         cell_volumes = grid.cell_data["Volume"]
         centroids = grid.cell_centers()
         vm, times = self.get_transmembrane_potential()
-        ECGs = np.zeros([vm.shape[0], electrodes.shape[0]])
+        # NOTE: ecgs: Electrocardiograms
+        ecgs = np.zeros([vm.shape[0], electrodes.shape[0]])
 
         for time_step in range(vm.shape[0]):
             grid.point_data["vmi"] = vm[time_step, :]
@@ -212,16 +213,17 @@ class EPpostprocessor:
                     )
                     * cell_volumes
                 )
-                ECGs[time_step, electrode_id] = integral
-        return ECGs, times
+                ecgs[time_step, electrode_id] = integral
+        return ecgs, times
 
     def read_ECGs(self, path: Path):  # noqa: N802
         """Read ECG text file produced by LS-DYNA simulation."""
         data = np.loadtxt(path, skiprows=4)
         times = data[:, 0]
-        ECGs = data[:, 1:11]
-        return ECGs, times
+        ecgs = data[:, 1:11]
+        return ecgs, times
 
+    # TODO: @KarimElHouari can we avoid capital letters in variable names somehow?
     def compute_12_lead_ECGs(  # noqa: N802
         self,
         ECGs: np.ndarray,  # noqa: N803
@@ -245,27 +247,42 @@ class EPpostprocessor:
             12-Lead ECGs in this order:
             "I" "II" "III" "aVR" "aVL" "aVF" "V1" "V2" "V3" "V4" "V5" "V6"
         """
-        RA = ECGs[:, 6]
-        LA = ECGs[:, 7]
-        LL = ECGs[:, 9]
-        I = LA - RA  # noqa: E741
-        II = LL - RA
-        III = LL - LA
-        aVR = RA - (LA + LL) / 2
-        aVL = LA - (LL + RA) / 2
-        aVF = LL - (RA + LA) / 2
-        Vwct = (LA + RA + LL) / 3
-        V1 = ECGs[:, 0] - Vwct
-        V2 = ECGs[:, 1] - Vwct
-        V3 = ECGs[:, 2] - Vwct
-        V4 = ECGs[:, 3] - Vwct
-        V5 = ECGs[:, 4] - Vwct
-        V6 = ECGs[:, 5] - Vwct
-        RA = ECGs[:, 6] - Vwct
-        LA = ECGs[:, 7] - Vwct
+        right_arm = ECGs[:, 6]
+        left_arm = ECGs[:, 7]
+        left_leg = ECGs[:, 9]
+        lead1 = left_arm - right_arm  # noqa: E741
+        lead2 = left_leg - right_arm
+        lead3 = left_leg - left_arm
+        lead_avr = right_arm - (left_arm + left_leg) / 2
+        lead_avl = left_arm - (left_leg + right_arm) / 2
+        lead_avf = left_leg - (right_arm + left_arm) / 2
+        Vwct = (left_arm + right_arm + left_leg) / 3  # noqa: N806
+        lead_v1 = ECGs[:, 0] - Vwct
+        lead_v2 = ECGs[:, 1] - Vwct
+        lead_v3 = ECGs[:, 2] - Vwct
+        lead_v4 = ECGs[:, 3] - Vwct
+        lead_v5 = ECGs[:, 4] - Vwct
+        lead_v6 = ECGs[:, 5] - Vwct
+        right_arm = ECGs[:, 6] - Vwct
+        left_arm = ECGs[:, 7] - Vwct
         # RL = ECGs[8, :] - Vwct
-        LL = ECGs[:, 9] - Vwct
-        ECGs12 = np.vstack((I, II, III, aVR, aVL, aVF, V1, V2, V3, V4, V5, V6))
+        left_leg = ECGs[:, 9] - Vwct
+        ecg_12lead = np.vstack(
+            (
+                lead1,
+                lead2,
+                lead3,
+                lead_avr,
+                lead_avl,
+                lead_avf,
+                lead_v1,
+                lead_v2,
+                lead_v3,
+                lead_v4,
+                lead_v5,
+                lead_v6,
+            )
+        )
         if plot:
             t = times
             fig, axes = plt.subplots(nrows=3, ncols=4, layout="tight")
@@ -278,29 +295,29 @@ class EPpostprocessor:
                 ax.set_yticks(major_xticks)
                 ax.set_yticks(minor_xticks, minor=True)
                 ax.grid(which="both")
-            axes[0, 0].plot(t, I)
+            axes[0, 0].plot(t, lead1)
             axes[0, 0].set_ylabel("I")
-            axes[1, 0].plot(t, II)
+            axes[1, 0].plot(t, lead2)
             axes[1, 0].set_ylabel("II")
-            axes[2, 0].plot(t, III)
+            axes[2, 0].plot(t, lead3)
             axes[2, 0].set_ylabel("III")
-            axes[0, 1].plot(t, aVR)
+            axes[0, 1].plot(t, lead_avr)
             axes[0, 1].set_ylabel("aVR")
-            axes[1, 1].plot(t, aVL)
+            axes[1, 1].plot(t, lead_avl)
             axes[1, 1].set_ylabel("aVL")
-            axes[2, 1].plot(t, aVF)
+            axes[2, 1].plot(t, lead_avf)
             axes[2, 1].set_ylabel("aVF")
-            axes[0, 2].plot(t, V1)
+            axes[0, 2].plot(t, lead_v1)
             axes[0, 2].set_ylabel("V1")
-            axes[1, 2].plot(t, V2)
+            axes[1, 2].plot(t, lead_v2)
             axes[1, 2].set_ylabel("V2")
-            axes[2, 2].plot(t, V3)
+            axes[2, 2].plot(t, lead_v3)
             axes[2, 2].set_ylabel("V3")
-            axes[0, 3].plot(t, V4)
+            axes[0, 3].plot(t, lead_v4)
             axes[0, 3].set_ylabel("V4")
-            axes[1, 3].plot(t, V5)
+            axes[1, 3].plot(t, lead_v5)
             axes[1, 3].set_ylabel("V5")
-            axes[2, 3].plot(t, V6)
+            axes[2, 3].plot(t, lead_v6)
             axes[2, 3].set_ylabel("V6")
             plt.setp(plt.gcf().get_axes(), xticks=[0, 200, 400, 600, 800], yticks=[])
             # fig.add_subplot(111, frameon=False)
@@ -312,7 +329,7 @@ class EPpostprocessor:
             filename = os.path.join(post_path, "12LeadECGs.png")
             plt.savefig(fname=filename, format="png")
             plt.show(block=True)
-        return ECGs12
+        return ecg_12lead
 
     def _assign_pointdata(self, pointdata: np.ndarray, node_ids: np.ndarray):
         """Assign point data to mesh."""

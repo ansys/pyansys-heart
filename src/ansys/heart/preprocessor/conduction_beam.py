@@ -75,7 +75,7 @@ class ConductionSystem:
     def __init__(self, model: FourChamber):
         self.m = model
 
-    def compute_SA_node(self, target_coord=None) -> Point:
+    def compute_sa_node(self, target_coord=None) -> Point:
         """
         Compute SinoAtrial node.
 
@@ -105,7 +105,7 @@ class ConductionSystem:
 
         return SA_point
 
-    def compute_AV_node(self, target_coord=None) -> Point:
+    def compute_av_node(self, target_coord=None) -> Point:
         """
         Compute Atrio-Ventricular node.
 
@@ -148,7 +148,7 @@ class ConductionSystem:
             SA_id = self.m.right_atrium.get_point("SA_node").node_id
         except AttributeError:
             LOGGER.info("SA node is not defined, creating with default option.")
-            SA_id = self.m.compute_SA_node().node_id
+            SA_id = self.m.compute_sa_node().node_id
 
         try:
             AV_id = self.m.right_atrium.get_point("AV_node").node_id
@@ -209,7 +209,7 @@ class ConductionSystem:
 
         return bifurcation_coord
 
-    def compute_His_conduction(self, beam_length: float = 1.5):
+    def compute_his_conduction(self, beam_length: float = 1.5):
         """Compute His bundle conduction."""
         bifurcation_coord = self._get_hisbundle_bifurcation()
 
@@ -258,7 +258,7 @@ class ConductionSystem:
             new_nodes,
             edges,
             sgmt_left,
-        ) = self._create_His_side(
+        ) = self._create_his_side(
             side="left",
             new_nodes=new_nodes,
             edges=edges,
@@ -272,7 +272,7 @@ class ConductionSystem:
             new_nodes,
             edges,
             sgmt_right,
-        ) = self._create_His_side(
+        ) = self._create_his_side(
             side="right",
             new_nodes=new_nodes,
             edges=edges,
@@ -393,7 +393,7 @@ class ConductionSystem:
         else:
             return path2
 
-    def _create_His_side(
+    def _create_his_side(
         self, side: str, new_nodes, edges, beam_length, bifurcation_coord, bifurcation_id
     ):
         """Create His side after bifucation."""
@@ -479,7 +479,7 @@ class ConductionSystem:
         cell_id = surface.find_closest_cell(point)
         return surface.get_cell(cell_id).point_ids[0]
 
-    def compute_Bachman_bundle(self, start_coord, end_coord, beam_length: float = 1.5):
+    def compute_bachman_bundle(self, start_coord, end_coord, beam_length: float = 1.5):
         """Compute Bachman bundle conduction system."""
         la_epi = self.m.left_atrium.epicardium
         ra_epi = self.m.right_atrium.epicardium
@@ -522,20 +522,20 @@ if __name__ == "__main__":
     )
 
     test = ConductionSystem(model)
-    sa_point = test.compute_SA_node()
+    sa_point = test.compute_sa_node()
     test.compute_AV_node()
 
     test.compute_av_conduction(
         # midpoints=[[-74, 90, 388], [70, 111, 372]]
     )
 
-    # a,b =model.compute_His_conduction()
-    a, b = test.compute_His_conduction()
+    # a,b =model.compute_his_conduction()
+    a, b = test.compute_his_conduction()
     print(a.xyz, a.node_id)
     print(b.xyz, b.node_id)
 
     test.compute_left_right_bundle(a.xyz, a.node_id, side="Left")
     test.compute_left_right_bundle(b.xyz, b.node_id, side="Right")
-    test.compute_Bachman_bundle(start_coord=sa_point.xyz, end_coord=np.array([-34, 163, 413]))
+    test.compute_bachman_bundle(start_coord=sa_point.xyz, end_coord=np.array([-34, 163, 413]))
 
     model.plot_purkinje()

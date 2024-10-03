@@ -217,7 +217,7 @@ class PyAnsysHeartCustomAdapter(logging.LoggerAdapter):
         add_stdout_handler(self.logger, level=level)
         self.std_out_handler = self.logger.std_out_handler
 
-    def setLevel(self, level: Union[int, str] = "DEBUG"):
+    def setLevel(self, level: Union[int, str] = "DEBUG"):  # noqa: N802
         """Change the log level of the object and the attached handlers."""
         if isinstance(level, str):
             level = string_to_loglevel[cast(LOG_LEVEL_STRING_TYPE, level.upper())]
@@ -406,7 +406,7 @@ class Logger:
         """
         add_stdout_handler(self, level=level)
 
-    def setLevel(self, level: LOG_LEVEL_TYPE = "DEBUG"):
+    def setLevel(self, level: LOG_LEVEL_TYPE = "DEBUG"):  # noqa: N802
         """Change the log level of the object and the attached handlers."""
         if isinstance(level, str):
             level = string_to_loglevel[cast(LOG_LEVEL_STRING_TYPE, level.upper())]

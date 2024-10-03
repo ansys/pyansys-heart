@@ -131,7 +131,7 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     klotz = EDPVR(true_lv_ed_volume / 1000, lv_pr_mmhg)
     sim_vol_ml = [v / 1000 for v in lv_volumes]
     sim_pr = lv_pr_mmhg * data.time / data.time[-1]
-    fig = klotz.plot_EDPVR(simulation_data=[sim_vol_ml, sim_pr])
+    fig = klotz.plot_pressure_volume(simulation_data=[sim_vol_ml, sim_pr])
     fig.savefig(os.path.join(directory, folder, "klotz.png"))
 
     with open(os.path.join(directory, folder, "Post_report.json"), "w") as f:

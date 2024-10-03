@@ -23,7 +23,7 @@
 import numpy as np
 import pytest
 
-from ansys.heart.simulator.settings.material.curve import ActiveCurve, Strocchi_active, constant_ca2
+from ansys.heart.simulator.settings.material.curve import ActiveCurve, strocchi_active, constant_ca2
 import ansys.heart.simulator.settings.material.material as M
 
 
@@ -34,7 +34,7 @@ class TestCa2Curve:
 
     @pytest.fixture
     def stress_curve(self):
-        return ActiveCurve(Strocchi_active(), threshold=0.1, type="stress")
+        return ActiveCurve(strocchi_active(), threshold=0.1, type="stress")
 
     def test_stress_to_ca2(self, stress_curve):
         t, v = stress_curve.dyna_input
@@ -82,7 +82,7 @@ def test_aniso():
 
 
 def test_active():
-    a = M.ACTIVE(ca2_curve=ActiveCurve(Strocchi_active(), type="ca2", threshold=0.1))
+    a = M.ACTIVE(ca2_curve=ActiveCurve(strocchi_active(), type="ca2", threshold=0.1))
     assert a.actype == 1
     assert a.acthr == 0.1
     assert a.model.l == 1.85

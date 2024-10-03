@@ -445,10 +445,10 @@ class EPSimulator(BaseSimulator):
             beam_length = self.settings.purkinje.edgelen.m
 
             cs = ConductionSystem(self.model)
-            cs.compute_SA_node()
+            cs.compute_sa_node()
             cs.compute_AV_node()
             cs.compute_av_conduction(beam_length=beam_length)
-            left, right = cs.compute_His_conduction(beam_length=beam_length)
+            left, right = cs.compute_his_conduction(beam_length=beam_length)
             cs.compute_left_right_bundle(
                 left.xyz, left.node_id, side="Left", beam_length=beam_length
             )
@@ -458,7 +458,7 @@ class EPSimulator(BaseSimulator):
 
             # # TODO: define end point by uhc, or let user choose
             # Note: must on surface after zerop if coupled with meca
-            # cs.compute_Bachman_bundle(
+            # cs.compute_bachman_bundle(
             #     start_coord=self.model.right_atrium.get_point("SA_node").xyz,
             #     end_coord=np.array([-34, 163, 413]),
             # )

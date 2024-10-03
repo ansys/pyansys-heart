@@ -80,8 +80,8 @@ def test_add_beam_net():
 
 
 @pytest.mark.xfail(reason="Test uses local data.")
-def test_compute_SA_node():
-    p = model.compute_SA_node()
+def test_compute_sa_node():
+    p = model.compute_sa_node()
     target = Point(name="SA_node", xyz=[-48.95559814, 108.23159848, 422.91220412], node_id=22056)
     assert p.node_id == target.node_id
 
@@ -104,10 +104,10 @@ def test_compute_av_conduction():
 
 
 @pytest.mark.xfail(reason="Test uses local data.")
-def test_compute_His_conduction():
+def test_compute_his_conduction():
     model.compute_AV_node()
     model.compute_av_conduction()
-    beam, _ = model.compute_His_conduction()
+    beam, _ = model.compute_his_conduction()
 
     assert np.all(beam.edges[0] == [69788, 69789])
     assert np.all(beam.edges[-1] == [69793, 69795])

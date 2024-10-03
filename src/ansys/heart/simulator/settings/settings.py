@@ -40,7 +40,7 @@ from ansys.heart.simulator.settings.defaults import (
     purkinje as purkinje_defaults,
     zeropressure as zero_pressure_defaults,
 )
-from ansys.heart.simulator.settings.material.curve import ActiveCurve, Strocchi_active, constant_ca2
+from ansys.heart.simulator.settings.material.curve import ActiveCurve, constant_ca2, strocchi_active
 from ansys.heart.simulator.settings.material.material import (
     ACTIVE,
     ANISO,
@@ -714,7 +714,7 @@ def _read_myocardium_from_settings(mat: AttrDict) -> MAT295:
         curve = ActiveCurve(constant_ca2(tb=bt), threshold=0.1, type="ca2")
     elif mat["active"]["actype"] == 3:
         ac_mdoel = ActiveModel.Model3(sigmax=max)
-        curve = ActiveCurve(Strocchi_active(t_end=bt), type="stress")
+        curve = ActiveCurve(strocchi_active(t_end=bt), type="stress")
 
     active = ACTIVE(
         ss=mat["active"]["ss"],

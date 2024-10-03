@@ -30,7 +30,7 @@ import numpy as np
 from ansys.heart.core import LOG as LOGGER
 
 
-def Strocchi_active(t_end=800, t_act=0) -> tuple[np.ndarray, np.ndarray]:
+def strocchi_active(t_end=800, t_act=0) -> tuple[np.ndarray, np.ndarray]:
     """
     Active stress in doi.org/10.1371/journal.pone.0235145.
 
@@ -68,7 +68,7 @@ def Strocchi_active(t_end=800, t_act=0) -> tuple[np.ndarray, np.ndarray]:
     return _stress()
 
 
-def Kumaraswamy_active(t_end=1000) -> tuple[np.ndarray, np.ndarray]:
+def kumaraswamy_active(t_end=1000) -> tuple[np.ndarray, np.ndarray]:
     """
     Active stress in  Gaëtan Desrues doi.org/10.1007/978-3-030-78710-3_43.
 
@@ -90,14 +90,14 @@ def Kumaraswamy_active(t_end=1000) -> tuple[np.ndarray, np.ndarray]:
     time = np.linspace(0, t_end, 101)
     stress = np.zeros(time.shape)
 
-    def _Kumaraswamy(a, b, x):
+    def _kumaraswamy(a, b, x):
         return 1 - (1 - x**a) ** b
 
     for i, t in enumerate(time):
         if t < APD90:
-            stress[i] = _Kumaraswamy(2, 1.5, t / APD90)
+            stress[i] = _kumaraswamy(2, 1.5, t / APD90)
         elif t < TR:
-            stress[i] = -_Kumaraswamy(2, 3, (t - APD90) / (TR - APD90)) + 1
+            stress[i] = -_kumaraswamy(2, 3, (t - APD90) / (TR - APD90)) + 1
     return (time, stress)
 
 

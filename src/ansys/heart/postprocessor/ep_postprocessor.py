@@ -105,7 +105,7 @@ class EPpostprocessor:
             plt.show(block=True)
         return phi, times
 
-    def read_EP_nodout(self):
+    def read_ep_nodout(self):
         """Read Electrophysiology results."""
         em_nodout_path = os.path.join(self.results_path, "em_nodout_EP_001.dat")
         with open(em_nodout_path, "r") as f:
@@ -182,7 +182,7 @@ class EPpostprocessor:
             grid.save(post_path + "\\vm_" + str(i) + ".vtk")
         return
 
-    def compute_ECGs(self, electrodes: np.ndarray):
+    def compute_ECGs(self, electrodes: np.ndarray):  # noqa: N802
         """Compute ECGs."""
         grid = self.reader.meshgrid
         grid = grid.compute_cell_sizes(length=False, area=False, volume=True)
@@ -215,18 +215,18 @@ class EPpostprocessor:
                 ECGs[time_step, electrode_id] = integral
         return ECGs, times
 
-    def read_ECGs(self, path: Path):
+    def read_ECGs(self, path: Path):  # noqa: N802
         """Read ECG text file produced by LS-DYNA simulation."""
         data = np.loadtxt(path, skiprows=4)
         times = data[:, 0]
         ECGs = data[:, 1:11]
         return ECGs, times
 
-    def compute_12_lead_ECGs(
+    def compute_12_lead_ECGs(  # noqa: N802
         self,
-        ECGs: np.ndarray,
+        ECGs: np.ndarray,  # noqa: N803
         times: np.ndarray,
-        plot: bool = True,  # noqa: N803
+        plot: bool = True,
     ) -> np.ndarray:
         """Compute 12-Lead ECGs from 10 electrodes.
 

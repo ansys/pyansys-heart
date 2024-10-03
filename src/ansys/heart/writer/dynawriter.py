@@ -2995,9 +2995,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 mid_id,
                 epi_id,
             ) = self._create_myocardial_nodeset_layers()
-            tentusscher_endo = CellModel.Tentusscher_endo()
-            tentusscher_mid = CellModel.Tentusscher_mid()
-            tentusscher_epi = CellModel.Tentusscher_epi()
+            tentusscher_endo = CellModel.TentusscherEndo()
+            tentusscher_mid = CellModel.TentusscherMid()
+            tentusscher_epi = CellModel.TentusscherEpi()
 
             self._add_Tentusscher_keyword(matid=-endo_id, params=tentusscher_endo.to_dictionary())
             self._add_Tentusscher_keyword(matid=-mid_id, params=tentusscher_mid.to_dictionary())

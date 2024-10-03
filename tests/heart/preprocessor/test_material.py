@@ -69,8 +69,8 @@ def test_iso():
 
 
 def test_aniso():
-    fiber = M.ANISO.HGO_Fiber(k1=1, k2=2)
-    sheet = M.ANISO.HGO_Fiber(k1=1, k2=2)
+    fiber = M.ANISO.HGOFiber(k1=1, k2=2)
+    sheet = M.ANISO.HGOFiber(k1=1, k2=2)
     aniso = M.ANISO(fibers=[fiber, sheet])
     assert aniso.nf == 2
     assert aniso.intype == 0

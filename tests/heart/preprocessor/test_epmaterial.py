@@ -243,9 +243,9 @@ epicelldata = dict(
 
 
 def test_cellmodel():
-    tentusendo = CellModel.Tentusscher_endo()
-    tentusmid = CellModel.Tentusscher_mid()
-    tentusepi = CellModel.Tentusscher_epi()
+    tentusendo = CellModel.TentusscherEndo()
+    tentusmid = CellModel.TentusscherMid()
+    tentusepi = CellModel.TentusscherEpi()
 
     assert tentusendo.to_dictionary().items() == endocelldata.items()
     assert tentusmid.to_dictionary().items() == midcelldata.items()
@@ -253,14 +253,14 @@ def test_cellmodel():
 
 
 def test_active():
-    tentusepi = CellModel.Tentusscher_epi()
-    tentusendo = CellModel.Tentusscher_endo()
+    tentusepi = CellModel.TentusscherEpi()
+    tentusendo = CellModel.TentusscherEndo()
     active0 = EPMaterial.Active(sigma_fiber=1)
     assert active0.sigma_sheet is not None
     active = EPMaterial.Active(sigma_fiber=1, sigma_sheet=1, sigma_sheet_normal=1)
     assert active.sigma_sheet_normal == 1
     assert active.cell_model.to_dictionary().items() == tentusepi.to_dictionary().items()
-    active.cell_model = CellModel.Tentusscher_endo()
+    active.cell_model = CellModel.TentusscherEndo()
     assert active.cell_model.to_dictionary().items() == tentusendo.to_dictionary().items()
     activeBeam = EPMaterial.ActiveBeam(sigma_fiber=1)
     assert activeBeam.pmjres is not None

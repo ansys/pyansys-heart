@@ -694,10 +694,10 @@ def _read_myocardium_from_settings(mat: AttrDict) -> MAT295:
 
     iso = ISO(nu=mat["isotropic"]["nu"], k1=mat["isotropic"]["k1"].m, k2=mat["isotropic"]["k2"].m)
 
-    fibers = [ANISO.HGO_Fiber(k1=mat["anisotropic"]["k1f"].m, k2=mat["anisotropic"]["k2f"].m)]
+    fibers = [ANISO.HGOFiber(k1=mat["anisotropic"]["k1f"].m, k2=mat["anisotropic"]["k2f"].m)]
 
     if "k1s" in mat["anisotropic"]:
-        sheet = ANISO.HGO_Fiber(k1=mat["anisotropic"]["k1s"].m, k2=mat["anisotropic"]["k2s"].m)
+        sheet = ANISO.HGOFiber(k1=mat["anisotropic"]["k1s"].m, k2=mat["anisotropic"]["k2s"].m)
         fibers.append(sheet)
 
     if "k1fs" in mat["anisotropic"]:

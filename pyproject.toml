@@ -94,7 +94,6 @@ select = [
 ignore = [
     "TD002", # Missing author in TODOs comment
     "TD003", # Missing date in TODOs comment
-    "N801",  # Class name should use CapWords convention
     "N806",  # Variable in function should be lowercase
 ]
 

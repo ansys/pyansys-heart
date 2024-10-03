@@ -101,7 +101,6 @@ class ConductionSystem:
         SA_node_id = right_atrium_endo.global_node_ids_triangles[target_id]
 
         SA_point = Point(name="SA_node", xyz=self.m.mesh.nodes[SA_node_id, :], node_id=SA_node_id)
-        # TODO
         self.m.right_atrium.points.append(SA_point)
 
         return SA_point

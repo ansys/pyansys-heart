@@ -1399,8 +1399,7 @@ class HeartModel:
             LOGGER.debug(f"Generating {len(patches)} caps for {part.name}")
 
             # TODO: Note that points come from surface, and does not contain all points in the mesh.
-            # Create Cap objects with patches
-            caps = []
+            # Create Cap objects with patches.
             for patch in patches:
                 ii += 1
 
@@ -1468,7 +1467,6 @@ class HeartModel:
                         for split in b.name.split("_"):
                             if "valve" in split or "inlet" in split:
                                 break
-                        old_cap_name = cap.name
 
                         cap.name = split.replace("-plane", "").replace("-inlet", "")
 
@@ -1648,7 +1646,7 @@ class HeartModel:
         # get lv elements
         try:
             ele_ids = np.hstack((self.left_ventricle.element_ids, self.septum.element_ids))
-        except:  # if no septum exists?
+        except AttributeError:
             ele_ids = np.hstack(self.left_ventricle.element_ids)
 
         # left ventricle elements center

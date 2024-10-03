@@ -282,7 +282,7 @@ class Stimulation(Settings):
             if isinstance(__value, list):
                 try:
                     __value = [int(x) for x in __value]
-                except:
+                except ValueError:
                     print("Failed to cast node_ids to list of integers.")
 
             return super().__setattr__(__name, __value)
@@ -554,7 +554,7 @@ class SimulationSettings:
             A.set_values(settings[attribute_name]["analysis"])
             self.stress_free.analysis = A
 
-        except:
+        except KeyError:
             LOGGER.error("Failed to load mechanics settings.")
 
     def load_defaults(self):

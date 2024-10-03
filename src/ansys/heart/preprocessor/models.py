@@ -41,7 +41,6 @@ import yaml
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.input import _InputModel
 
-# from ansys.heart.preprocessor.input import HEART_MODELS
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher
 from ansys.heart.preprocessor.mesh.objects import (
@@ -58,6 +57,7 @@ import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 
 
+# TODO: Refactor or remove ModelInfo.
 class ModelInfo:
     """Contains model information."""
 
@@ -81,7 +81,7 @@ class ModelInfo:
         self.workdir = work_directory
         """Path to the working directory."""
         self.path_to_simulation_mesh = path_to_simulation_mesh
-        """Path to simulation(in .vtk format)."""
+        """Path to simulation mesh (.vtk format)."""
         self.path_to_model: str = None
         """Path to model (in .pickle format)."""
 
@@ -262,7 +262,7 @@ class HeartModel:
         """Represent self as string."""
         return yaml.dump(self.summary(), sort_keys=False)
 
-    # NOTE There is some overlap with the input module.
+    # TODO: There is overlap with the input module.
     def _get_parts_info(self):
         """Get the id to model map that allows reconstructing the model from a mesh object."""
         for part in self.parts:
@@ -343,23 +343,11 @@ class HeartModel:
         pid = beam_data[0, 1]
 
         # TODO: physically, this is not fully understood: Merging the end of bundle branch, the
-        # origin of Purkinje and the apex of myiocardium seems logical, but it has more chance
-        # the EP wave will not be triggered.
-        # so I remove it, it means: end of bundle branch connect to apex, origin of Purkinje
-        # is another point on the same location.
+        # TODO: origin of Purkinje and the apex of myiocardium seems logical, but it has more chance
+        # TODO: the EP wave will not be triggered.
+        # TODO: so I remove it, it means: end of bundle branch connect to apex, origin of Purkinje
+        # TODO: is another point on the same location.
 
-        # # replace origin (new created beam mesh) of purkinje by apex point (on solid mesh)
-        # if "left" in name.lower():
-        #     apex = self.left_ventricle.apex_points[0]
-        # elif "right" in name.lower():
-        #     apex = self.right_ventricle.apex_points[0]
-
-        # to_be_replaced_id = new_ids[0]
-        # new_ids = new_ids[1:]  # remove this point
-        # beam_nodes = beam_nodes[1:]  # remove this point
-        # edges[edges == to_be_replaced_id] = apex.node_id  # replace by apex Id
-
-        #
         mask = np.isin(edges, new_ids)  # True for new created nodes
         edges[mask] -= new_ids[0]  # beam nodes id start from 0
 
@@ -400,7 +388,7 @@ class HeartModel:
         else:
             BeamMesh.all_beam_nodes = np.vstack((BeamMesh.all_beam_nodes, beam_nodes))
 
-        # nodes is just for pyvista plot, edges used in writer will be offsetted
+        # nodes is just for pyvista plot, edges used in writer will be offset
         # TODO: only save necessary nodes, cells, and with a 'global id' array
         beam_net = BeamMesh(
             nodes=np.vstack((self.mesh.nodes, BeamMesh.all_beam_nodes)),
@@ -410,9 +398,9 @@ class HeartModel:
         beam_net.pid = pid
         beam_net.name = name
 
-        # class variable BeamMesh.all_beam_nodes is not saved in pickle
-        #
-        # only the last created beam_network holds all previously created
+        #! class variable BeamMesh.all_beam_nodes is not saved in pickle
+        #! only the last created beam_network holds all previously created 
+        #! nodes.
         beam_net._all_beam_nodes = np.copy(BeamMesh.all_beam_nodes)
 
         self.beam_network.append(beam_net)
@@ -420,14 +408,6 @@ class HeartModel:
         # sync across beam networks
         for beams in self.beam_network:
             beams._all_beam_nodes = np.copy(BeamMesh.all_beam_nodes)
-
-        # # visualize (debug)
-        # import pyvista
-
-        # plotter = pyvista.Plotter()
-        # plotter.add_mesh(self.mesh, opacity=0.3)
-        # plotter.add_mesh(beam_net)
-        # plotter.show()
 
         return beam_net
 
@@ -459,7 +439,7 @@ class HeartModel:
 
         Notes
         -----
-        Note that when the input surfaces are non-manifold the wrapper tries
+        When the input surfaces are non-manifold the wrapper tries
         to reconstruct the surface and parts. Inevitably this leads to
         reconstruction errors. Nevertheless, in many instances this approach is
         robuster than meshing from a manifold surface. Moreover, any clear interface
@@ -510,7 +490,7 @@ class HeartModel:
         for fluent_cell_zone in fluent_mesh.cell_zones:
             mesh._volume_id_to_name[fluent_cell_zone.id] = fluent_cell_zone.name
 
-        # merge some face zones that Fluent split based on connectivity
+        # merge some face zones that Fluent split based on connectivity.
         idx_to_remove = []
         for ii, fz in enumerate(fluent_mesh.face_zones):
             if ":" in fz.name:
@@ -584,7 +564,7 @@ class HeartModel:
         # add part-ids
         cz_ids = np.sort([cz.id for cz in fluid_mesh.cell_zones])
 
-        # ? this offset is arbitrary.
+        # TODO: this offset is arbitrary.
         offset = 10000
         new_ids = np.arange(cz_ids.shape[0]) + offset
         czid_to_pid = {cz_id: new_ids[ii] for ii, cz_id in enumerate(cz_ids)}
@@ -645,7 +625,8 @@ class HeartModel:
         return summary
 
     # TODO: keep this for now, but we can rework to more conveniently use
-    # TODO: info from self.mesh.
+    # TODO: info from self.mesh. We can replace for instance with the 
+    # TODO: model_summary() method.
     def print_info(self) -> None:
         """Print information about the model."""
         if not isinstance(self.mesh.tetrahedrons, np.ndarray):
@@ -764,7 +745,7 @@ class HeartModel:
             return
         plotter = pyvista.Plotter()
 
-        # fiber direction stored in cell data, but cell-to-point filter uses
+        # fiber direction is stored in cell data, but the cell-to-point filter
         # leads to issues, where nan values in any non-volume cell may change
         # the fiber direction in the target point(s).
         mesh = self.mesh.extract_cells_by_type([pv.CellType.TETRA, pv.CellType.HEXAHEDRON])
@@ -954,10 +935,10 @@ class HeartModel:
         return
 
     # TODO: could consider having this as a static method.
-    # TODO: Note that right now this only reconstructs the
-    # TODO: surfaces and parts that are defined in the HeartModel classes
-    # TODO: LeftVentricle, BiVentricle, FourChamber and FullHeart
-    # TODO: should consider to also reconstruct the parts that are not explicitly
+    # TODO: Tight now this only reconstructs the surfaces and parts that
+    # TODO: are defined in the HeartModel classes:
+    # TODO: LeftVentricle, BiVentricle, FourChamber and FullHeart.
+    # TODO: Should consider to also reconstruct the parts that are not explicitly
     # TODO: defined in the class.
     def load_model_from_mesh(self, filename_mesh: str, filename_part_info: str):
         """Load model from an existing VTU file and part info dictionary.
@@ -985,7 +966,7 @@ class HeartModel:
             part_info = self._part_info
 
         # try to reconstruct parts from part info
-        # for part_name in part_info.keys():
+        # TODO: use keys in part info: for part_name in part_info.keys():
         for part1 in self.parts:
             try:
                 idx = list(part_info.keys()).index(part1.name)
@@ -993,8 +974,6 @@ class HeartModel:
                 LOGGER.debug(f"{part.name} not in part info")
                 continue
 
-            # part_name_n = "_".join(part_name.lower().split(" "))
-            # init part.
             part = Part(part1.name, PartType(part_info[part1.name]["part-type"]))
 
             #! try to add surfaces to part by using the pre-defined surfaces
@@ -1002,7 +981,6 @@ class HeartModel:
             for surface in part1.surfaces:
                 surface1 = self.mesh.get_surface_by_name(surface.name)
                 if not surface1:
-                    # LOGGER.debug(f"{surface1.name} not found in mesh.")
                     continue
                 super(SurfaceMesh, surface).__init__(surface1)
                 surface.id = surface1.id
@@ -1018,7 +996,7 @@ class HeartModel:
                 LOGGER.debug(f"Failed to set element ids for {part1.name}")
                 pass
 
-            # try to set cavity
+            # try to set initialize cavity object.
             if part_info[part1.name]["cavity"] != {}:
                 cavity_name = list(part_info[part1.name]["cavity"].keys())[0]
                 cavity_id = list(part_info[part1.name]["cavity"].values())[0]
@@ -1030,7 +1008,7 @@ class HeartModel:
                     cap._mesh = self.mesh.get_surface(cap_id)
                     part1.caps.append(cap)
 
-            # setattr(self, part_name_n, part)
+            # TODO: add non-standard part by setattr(self, part_name_n, part)
 
         return
 
@@ -1056,7 +1034,8 @@ class HeartModel:
 
         return element_ids
 
-    # TODO: Should do this on the fly in dynawriter
+    # TODO: Should do this on the fly in dynawriter.
+    @deprecated(reason="Adding nodal areas is deprecated, use pyvista instead.")
     def _add_nodal_areas(self):
         """Compute and add nodal areas to surface nodes."""
         raise NotImplementedError("Adding nodal areas is deprecated")
@@ -1106,8 +1085,6 @@ class HeartModel:
 
         self._validate_parts()
         self._validate_surfaces()
-
-        # self._add_surface_normals()
 
         self._assign_cavities_to_parts()
         self._update_cap_names()
@@ -1208,10 +1185,7 @@ class HeartModel:
         septum_surface.compute_normals()
         septum_surface = septum_surface.smooth()
 
-        # septum_surface_vtk = vtkmethods.smooth_polydata(septum_surface_vtk)
-
         septum_surface_extruded = vtkmethods.extrude_polydata(septum_surface, 20)
-        # septum_surface_vtk_extruded = vtkmethods.extrude_polydata(septum_surface_vtk, 20)
 
         # only check tetra elements
         volume_vtk = self.mesh.extract_cells_by_type(pv.CellType.TETRA)
@@ -1251,14 +1225,13 @@ class HeartModel:
         ventricles = [p for p in self.parts if "ventricle" in p.name]
         surface_substrings = ["endocardium", "epicardium"]
         for ventricle in ventricles:
-            # get reference point (center point between two caps)
+            # get reference point (center point between two caps).
             cap_centroids = [c.centroid for c in ventricle.caps]
             ref_point = np.mean(np.array(cap_centroids), axis=0)
             for surface_substring in surface_substrings:
                 surface_id = next((s.id for s in ventricle.surfaces if surface_substring in s.name))
                 surface = self.mesh.get_surface(surface_id)
 
-                # surface = next(s for s in self.mesh._surfaces if surface_substring in s.name)
                 apical_node_id = surface.node_ids_triangles[
                     np.argmax(np.linalg.norm(surface.nodes - ref_point, axis=1))
                 ]
@@ -1290,7 +1263,7 @@ class HeartModel:
                         )
                     )
 
-                #     assign apex point
+                # assign apex point
                 ventricle.apex_points.append(
                     Point(
                         name="apex " + surface_substring,
@@ -1303,7 +1276,7 @@ class HeartModel:
 
     def _assign_elements_to_parts(self) -> None:
         """Get the element ids of each part and assign these to the Part objects."""
-        # get element ids of each part
+        # get element ids of each part.
         used_element_ids = self._get_used_element_ids()
         for part in self.parts:
             if len(part.element_ids) > 0:
@@ -1323,7 +1296,6 @@ class HeartModel:
             summ = summ + part.element_ids.shape[0]
         LOGGER.debug("Total num elements: {}".format(summ))
 
-        # if summ != self.mesh.tetrahedrons.shape[0]:
         LOGGER.debug(
             "{0}/{1} elements assigned to parts".format(summ, self.mesh.tetrahedrons.shape[0])
         )
@@ -1363,13 +1335,6 @@ class HeartModel:
 
     def _assign_cavities_to_parts(self) -> None:
         """Create cavities based on endocardium surfaces and cap definitions."""
-        # # rename septum to right ventricle endocardium septum
-        # if isinstance(self, (BiVentricle, FourChamber, FullHeart)):
-        #     part = self.get_part("Right ventricle", True)
-        #     for surface in part.surfaces:
-        #         if "Right ventricle septum" in surface.name:
-        #             surface.name = surface.name.replace("septum", "endocardium septum")
-
         # construct cavities with endocardium and caps
         idoffset = 1000  # TODO: need to improve id checking
         ii = 0
@@ -1381,12 +1346,10 @@ class HeartModel:
             cavity_faces = np.empty((0, 3), dtype=int)
 
             # select endocardial surfaces
-            surfaces = [s for s in part.surfaces if "endocardium" in s.name]
-
             # NOTE, this is a loop since the right-ventricle endocardium consists
-            # of both the "regular" endocardium and the septal endocardium
-
-            # NOTE: pv.merge accepts list of surfaces.
+            # of both the "regular" endocardium and the septal endocardium.
+            surfaces = [s for s in part.surfaces if "endocardium" in s.name]
+            
             surface: SurfaceMesh = SurfaceMesh(pv.merge(surfaces))
             surface.name = part.name + " cavity"
 
@@ -1454,7 +1417,6 @@ class HeartModel:
 
         return
 
-    # TODO: use `are_connected`` to confirm which other surfaces are connected to the caps.
     def _update_cap_names(self):
         """Try to update the cap names using names of connected boundaries."""
         boundaries_to_check = [
@@ -1468,7 +1430,6 @@ class HeartModel:
                         for split in b.name.split("_"):
                             if "valve" in split or "inlet" in split:
                                 break
-                        old_cap_name = cap.name
 
                         cap.name = split.replace("-plane", "").replace("-inlet", "")
 
@@ -1484,6 +1445,7 @@ class HeartModel:
 
         return
 
+    # TODO: Refactor.
     def _validate_cap_names(self):
         """Validate that caps are attached to right part."""
         for part in self.parts:
@@ -1571,6 +1533,7 @@ class HeartModel:
 
         return
 
+    # TODO: refactor, could be standalone method instead of a class method.
     def compute_left_ventricle_anatomy_axis(
         self,
         mv_center: Union[None, np.ndarray] = None,
@@ -1617,10 +1580,9 @@ class HeartModel:
 
         # short axis: from mitral valve center to apex
         sh_axis = apex - mv_center
-        # the highest possible but avoid to cut aortic valve
+        # the highest possible point but avoid to cut aortic valve plane
         center = mv_center + first_cut_short_axis * sh_axis
         self.short_axis = {"center": center, "normal": sh_axis / np.linalg.norm(sh_axis)}
-        # LOGGER.info("Plane of short axis:", self.short_axis)
 
         # 2CAV long axis: normal to 4cav axe and pass mv center and apex
         center = np.mean(np.array([mv_center, apex]), axis=0)
@@ -1632,7 +1594,8 @@ class HeartModel:
 
         return
 
-    # TODO: fix this.
+    # TODO: refactor, could be standalone method instead of a class method.
+    # TODO: e.g. as part of post-processor.
     def compute_left_ventricle_aha17(self, seg=17, p_junction=None) -> None:
         """
         Compute AHA17 label for left ventricle elements.
@@ -1808,7 +1771,7 @@ class HeartModel:
             np.setdiff1d(septum_center["point_ids"], free_wall_center["point_ids"])
         )  # 0
 
-        # visu
+        # Uncomment to visualize.
         # mesh["bc"] = np.zeros(mesh.n_points)
         # mesh["bc"][set1] = 1
         # mesh["bc"][set2] = -1
@@ -1992,9 +1955,10 @@ class HeartModel:
             ring_eles = np.hstack((ring_eles, orphan_cells))
 
         # Create ring part
+        # TODO: name must have 'base' in name, see dynawriter.py L3120
         ring: Part = self.create_part_by_ids(
             ring_eles, name="base atrial stiff rings"
-        )  # TODO: name must has 'base', see dynawriter.py L3120
+        )  
         ring.part_type = PartType.ATRIUM
         ring.fiber = False
         ring.active = False

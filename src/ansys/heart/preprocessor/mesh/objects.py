@@ -191,7 +191,7 @@ class SurfaceMesh(pv.PolyData):
                     "Assigning less nodes than the original not implemented yet."
                 )
 
-        except:
+        except Exception:
             LOGGER.warning("Failed to set nodes.")
             return
 
@@ -208,7 +208,7 @@ class SurfaceMesh(pv.PolyData):
             num_faces = value.shape[0]
             faces = np.hstack([np.full((num_faces, 1), 3, dtype=np.int8), value])
             self.faces = faces
-        except:
+        except Exception:
             return
 
     @property
@@ -317,7 +317,7 @@ class BeamMesh(pv.UnstructuredGrid, Feature):
             return
         try:
             self.points = array
-        except:
+        except Exception:
             LOGGER.warning("Failed to set nodes.")
             return
 
@@ -334,7 +334,7 @@ class BeamMesh(pv.UnstructuredGrid, Feature):
             celltypes = np.full(value.shape[0], pv.CellType.LINE, dtype=np.int8)
             lines = np.hstack([np.full(len(celltypes), 2)[:, None], value])
             super().__init__(lines, celltypes, points)
-        except:
+        except Exception:
             LOGGER.warning("Failed to set lines.")
             return
 
@@ -513,7 +513,7 @@ class Mesh(pv.UnstructuredGrid):
                     "Assigning less nodes than the original not implemented yet."
                 )
 
-        except:
+        except Exception:
             LOGGER.warning("Failed to set nodes.")
             return
 
@@ -545,7 +545,7 @@ class Mesh(pv.UnstructuredGrid):
             celltypes = np.full(value.shape[0], pv.CellType.TETRA, dtype=np.int8)
             tetra = np.hstack([np.full(len(celltypes), 4)[:, None], value])
             super().__init__(tetra, celltypes, points)
-        except:
+        except Exception:
             LOGGER.warning("Failed to set tetrahedrons.")
             return
 
@@ -560,7 +560,7 @@ class Mesh(pv.UnstructuredGrid):
             surface.id = sid
             try:
                 surface.name = self._surface_id_to_name[sid]
-            except:
+            except KeyError:
                 LOGGER.debug(f"Failed to give surface with id {sid} a name")
             surfaces.append(surface)
         return surfaces
@@ -810,7 +810,7 @@ class Mesh(pv.UnstructuredGrid):
         filename_map = filename.replace(extension, ".namemap.json")
         try:
             self._load_id_to_name_map(filename_map)
-        except:
+        except FileNotFoundError:
             if not os.path.isfile(filename_map):
                 LOGGER.warning(
                     f"""{filename_map} not found. Please set id_to_name map manually by

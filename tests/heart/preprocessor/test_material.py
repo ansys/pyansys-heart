@@ -106,11 +106,11 @@ def test_active_couple():
 
 def test_mat295():
     m = M.MAT295(rho=1, iso=M.ISO())
-    assert m.aniso == None
-    assert m.active == None
+    assert m.aniso is None
+    assert m.active is None
 
     m.aniso = M.ANISO()
-    assert m.aniso != None
+    assert m.aniso is not None
 
 
 def test_neohookean():

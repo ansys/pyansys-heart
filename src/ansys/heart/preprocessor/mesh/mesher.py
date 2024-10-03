@@ -344,7 +344,7 @@ def mesh_from_manifold_input_model(
 
     try:
         os.makedirs(work_dir_meshing)
-    except:
+    except Exception:
         LOGGER.debug("Failed to create working directory")
 
     LOGGER.debug(f"Path to meshing directory: {work_dir_meshing}")
@@ -459,14 +459,10 @@ def mesh_from_manifold_input_model(
     for input_part in model.parts:
         surface = input_part.combined_boundaries
 
-        if surface.is_manifold:
-            check_surface = True
-        else:
-            check_surface = False
+        if not surface.is_manifold:
             LOGGER.warning(
                 "Part {0} not manifold - disabled surface check.".format(input_part.name)
             )
-
         for cz in mesh.cell_zones:
             # use centroid of first cell to find which input part it belongs to.
             centroid = pv.PolyData(np.mean(mesh.nodes[cz.cells[0, :], :], axis=0))
@@ -532,7 +528,7 @@ def mesh_from_non_manifold_input_model(
 
     try:
         os.makedirs(work_dir_meshing)
-    except:
+    except Exception:
         LOGGER.debug("Failed to create working directory")
 
     if not os.path.isfile(path_to_output) or overwrite_existing_mesh:
@@ -672,16 +668,16 @@ def mesh_from_non_manifold_input_model(
     )
     try:
         cell_centroids_2.point_data.remove("orig_indices")
-    except:
-        KeyError
+    except KeyError:
+        LOGGER.debug("KeyError")
     try:
         cell_centroids_2.point_data.remove("cell-zone-ids")
-    except:
-        KeyError
+    except KeyError:
+        LOGGER.debug("KeyError")
     try:
         cell_centroids_2.cell_data.remove("cell-zone-ids")
-    except:
-        KeyError
+    except KeyError:
+        LOGGER.debug("KeyError")
 
     cell_centroids_1.point_data.remove("part-id")
     cell_centroids_1.cell_data.remove("cell-zone-ids")

@@ -116,9 +116,6 @@ def face_tetra_connectivity(tetra: np.ndarray) -> Tuple[np.ndarray, np.ndarray, 
         faces_sorted_flip, return_index=True, return_inverse=True, return_counts=True, axis=0
     )
 
-    # number of cells connected to each face
-    num_cells_connected = counts[inverse]
-
     tetra_ids = np.repeat(np.arange(0, num_tetra, 1), 4)
     tetra_ids_flip = np.flipud(tetra_ids)
 

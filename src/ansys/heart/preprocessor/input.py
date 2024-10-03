@@ -236,11 +236,12 @@ class _InputModel:
             if not os.path.isfile(input):
                 raise FileNotFoundError(f"File {input} not found.")
 
-        boundary_is_set = False
+        # boundary_is_set = False
+        # TODO: @mhoeijm - remove boundary_is_set variable if not using , commenting out for now
         try:
             self.input_polydata = pv.PolyData(input)
-            boundary_is_set = True
-        except:
+            # boundary_is_set = True
+        except Exception:
             NotImplementedError(f"Failed to load file {input}. Other file types not supported yet.")
             return
 
@@ -248,7 +249,7 @@ class _InputModel:
             LOGGER.debug(f"Renaming {scalar} to boundary-id")
             self.input_polydata.rename_array(scalar, "boundary-id")
 
-        if part_definitions == None:
+        if part_definitions is None:
             return
 
         self.part_definitions = self._add_parts(part_definitions)
@@ -595,11 +596,11 @@ class _InputManager:
         try:
             self.input_boundary = pv.PolyData(input)
             boundary_is_set = True
-        except:
+        except Exception:
             try:
                 self.input_volume = pv.UnstructuredGrid(input)
                 volume_is_set = True
-            except:
+            except Exception:
                 pass
 
         if not volume_is_set and not boundary_is_set:
@@ -621,7 +622,7 @@ class _InputManager:
                         else:
                             boundary = boundary.merge(block)
                     boundary_is_set = True
-            except:
+            except Exception:
                 raise ImportError(f"Failed to load {input} as volume or boundary.")
 
         # change array names if scalar is given.
@@ -752,12 +753,12 @@ class _InputManager:
         try:
             self._validate_volume_mesh()
             is_valid = True
-        except:
+        except Exception:
             pass
         try:
             self._validate_boundary_mesh()
             is_valid = True
-        except:
+        except Exception:
             pass
         return is_valid
 

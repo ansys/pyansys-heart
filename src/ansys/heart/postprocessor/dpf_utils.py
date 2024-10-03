@@ -23,7 +23,7 @@
 """D3plot parser using Ansys-dpf."""
 
 import os
-import pathlib as Path
+from pathlib import Path
 from typing import List
 
 import numpy as np
@@ -47,7 +47,7 @@ def _check_env():
 class D3plotReader:
     """Use DPF to parse d3plot."""
 
-    def __init__(self, path: Path.Path):
+    def __init__(self, path: Path):
         """
         Initialize D3plotReader.
 
@@ -86,7 +86,7 @@ class D3plotReader:
 
         time_ids = (
             self.model.metadata.time_freq_support.time_frequencies.scoping.ids
-            if at_step == None
+            if at_step is None
             else [at_step]
         )
 

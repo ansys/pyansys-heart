@@ -34,7 +34,7 @@ import numpy as np
 
 from ansys.heart.calibration.ivc import IVCSimulator
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
+from ansys.heart.postprocessor.system_model_post import SystemModelPost
 from ansys.heart.preprocessor.models import HeartModel
 from ansys.heart.simulator.settings import settings
 
@@ -178,9 +178,9 @@ class ActiveCalibration:
     def apply_input_parameter(self, setting: settings):
         """Apply parameters."""
         with open(os.path.join(self.work_directory, "parameters.k")) as f:
-            l = f.readlines()
-            p1 = float(l[0].split(",")[1])
-            p2 = float(l[1].split(",")[1])
+            lines = f.readlines()
+            p1 = float(lines[0].split(",")[1])
+            p2 = float(lines[1].split(",")[1])
         from pint import Quantity
 
         # dummy input parameters
@@ -190,7 +190,8 @@ class ActiveCalibration:
     def define_objective(self):
         """Define objective function."""
         s = SystemModelPost(os.path.join(self.work_directory, "ivc"))
-        t = s.lv_system.time
+        # TODO: @mhoeijm - remove this variable if not using , commenting out for now
+        # t = s.lv_system.time
         p = s.lv_system.pressure.cavity
 
         # dummy objective function

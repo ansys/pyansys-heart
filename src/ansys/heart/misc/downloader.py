@@ -82,16 +82,16 @@ def download_case_from_zenodo(
     overwrite: bool = True,
     validate_hash: bool = True,
 ) -> Path:
-    """Download a case from the remote repository
+    """Download a case from the remote repository.
 
     Parameters
     ----------
     database : str
-        name of the database. Either Strocchi2020 or Rodero2021
+        name of the database. Either Strocchi2020 or Rodero2021.
     case_number : int
-        case number to download
+        case number to download.
     download_folder : Path
-        path to the folder in which to download the case
+        path to the folder in which to download the case.
 
     Returns
     -------
@@ -101,6 +101,7 @@ def download_case_from_zenodo(
     Examples
     --------
     Download case 1 from the public repository (Strocchi2020) of pathological hearts.
+
     >>> path_to_tar_file = download_case_from_zenodo(
             database="Strocchi2020", case_number=1, download_folder="my/download/folder"
         )
@@ -195,7 +196,7 @@ def _validate_hash_sha256(
 
 
 def unpack_case(tar_path: Path):
-    """Untar the downloaded tar-ball.
+    r"""Untar the downloaded tar-ball.
 
     Parameters
     ----------
@@ -214,7 +215,7 @@ def unpack_case(tar_path: Path):
         tar_dir = os.path.dirname(tar_path)
         tar_ball.extractall(path=tar_dir)
         return True
-    except:
+    except Exception:
         LOGGER.error("Unpacking failed...")
         return False
 

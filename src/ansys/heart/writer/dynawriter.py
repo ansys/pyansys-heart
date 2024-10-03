@@ -2012,7 +2012,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         caps = [cap for part in self.model.parts for cap in part.caps]
         for cap in caps:
-            if cap.pid != None:  # MV,TV for atrial parts get None
+            if cap.pid is not None:  # MV,TV for atrial parts get None
                 save_part_ids.append(cap.pid)
 
         partset_id = self.get_unique_partset_id()
@@ -3208,7 +3208,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             node_apex_right = self.model.right_ventricle.apex_points[0].node_id
             stim_nodes = [node_apex_left, node_apex_right]
 
-            if self.model.right_atrium.get_point("SA_node") != None:
+            if self.model.right_atrium.get_point("SA_node") is not None:
                 # Active SA node (belong to both solid and beam)
                 stim_nodes = list(
                     self.model.mesh.find_closest_point(
@@ -3486,7 +3486,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         elif type(ep_material) == EPMaterial.Active:
             mtype = 2
             # "isotropic" case
-            if ep_material.sigma_sheet == None:
+            if ep_material.sigma_sheet is None:
                 # lSDYNA bug prevents from using isotropic mat (EMMAT001) for active isotropic case
                 # Bypass: using EMMAT003 with same sigma value in all directions
                 ep_material.sigma_sheet = ep_material.sigma_fiber
@@ -3520,7 +3520,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         elif type(ep_material) == EPMaterial.Passive:
             mtype = 4
             # isotropic
-            if ep_material.sigma_sheet == None:
+            if ep_material.sigma_sheet is None:
                 kw = custom_keywords.EmMat001(
                     mid=ep_mid,
                     mtype=mtype,

@@ -99,7 +99,7 @@ class FluentMesh:
     @property
     def cell_zone_names(self):
         """List of cell zone names of non-empty cell zones."""
-        return [cz.name for cz in self.cell_zones if cz != None]
+        return [cz.name for cz in self.cell_zones if cz is not None]
 
     def __init__(self, filename: str = None) -> None:
         self.filename: str = filename
@@ -243,7 +243,6 @@ class FluentMesh:
         min_ids = np.array(self.fid["meshes/1/cells/zoneTopology/minId"], dtype=int)
         max_ids = np.array(self.fid["meshes/1/cells/zoneTopology/maxId"], dtype=int)
         cell_zones: List[FluentCellZone] = []
-        num_cell_zones = len(cell_zone_ids)
 
         for ii in range(0, len(cell_zone_names), 1):
             cell_zones.append(
@@ -518,39 +517,6 @@ class FluentMesh:
         # update cell zones with reordered cells
         self._set_cells_in_cell_zones()
         return
-
-
-def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii") -> None:
-    """Add name of solid to stl file.
-
-    Notes
-    -----
-    Supports only single block.
-
-    """
-    if file_type == "ascii":
-        start_str = "solid"
-        end_str = "endsolid"
-        f = open(filename, "r")
-        list_of_lines = f.readlines()
-        f.close()
-        list_of_lines[0] = "{0} {1}\n".format(start_str, solid_name)
-        list_of_lines[-1] = "{0} {1}\n".format(end_str, solid_name)
-
-        f = open(filename, "w")
-        f.writelines(list_of_lines)
-        f.close()
-    # replace part name in binary file
-    elif file_type == "binary":
-        fid = open(filename, "r+b")
-        fid.seek(0)
-        data = fid.read(40)
-        fid.seek(0)
-        string_replace = "{:<40}".format(solid_name).encode()
-        fid.write(string_replace)
-        fid.close()
-    return
-
 
 if __name__ == "__main__":
     print("protected")

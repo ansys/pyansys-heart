@@ -94,7 +94,8 @@ def write_orth_element_kfile(fname, elem_orth):
 
 def modify_ids_orth_elements():
     """
-    Part ID is different from FiberGeneration module to simulation modules
+    Part ID is different from FiberGeneration module to simulation modules.
+
     This script is to change them to be consistent.
     """
     elem_ids, part_ids, connect, fib, sheet = read_orth_element_kfile("solid_elements.k")

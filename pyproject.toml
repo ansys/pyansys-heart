@@ -95,7 +95,10 @@ select = [
 ignore = [
     "TD002", # Missing author in TODOs comment
     "TD003", # Missing date in TODOs comment
-    "E721",  # Do not compare types, use 'isinstance()'
+    "N801",  # Class name should use CapWords convention
+    "N802",  # Function name should be lowercase
+    "N803",  # Argument name should be lowercase
+    "N806",  # Variable in function should be lowercase
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -103,6 +106,8 @@ ignore = [
 "__init__.py" = ["F401"]
 # Ignore `D` rules everywhere except for the `src/` directory.
 "!src/**.py" = ["D"]
+# ignore "E402" for examples
+"examples/**.py" = ["E402"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"

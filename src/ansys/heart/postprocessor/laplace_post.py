@@ -239,13 +239,11 @@ def compute_ra_fiber_cs(
         tao_ib = settings.tau_ib  # 0.35
         tao_ras = settings.tau_ras  # 0.135
 
-        trans = grid["trans"]
         ab = grid["ab"]
         v = grid["v"]
         r = grid["r"]
         w = grid["w"]
 
-        trans_grad = grid["grad_trans"]
         ab_grad = grid["grad_ab"]
         v_grad = grid["grad_v"]
         r_grad = grid["grad_r"]

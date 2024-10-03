@@ -214,7 +214,7 @@ def unpack_k_files():
     try:
         with zipfile.ZipFile(zip_file, "r") as zip_ref:
             zip_ref.extractall(os.path.dirname(zip_file))
-    except:
+    except Exception as e:
         print("Failed to unpack zip files.")
         pass
 
@@ -226,7 +226,7 @@ def unpack_k_files():
 
         shutil.rmtree(os.path.join(os.path.dirname(zip_file), "_BiVentricle"))
         shutil.rmtree(os.path.join(os.path.dirname(zip_file), "_FullHeart"))
-    except:
+    except Exception as e:
         pass
 
     return

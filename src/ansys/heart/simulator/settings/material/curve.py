@@ -201,7 +201,7 @@ class ActiveCurve:
         """Plot stress."""
         if self.stress is None:
             LOGGER.error("Only support stress curve.")
-            # self._estimate_stress() # TODO
+            # self._estimate_stress()
             return None
         t, v = self._repeat((self.time, self.stress))
         fig, ax = plt.subplots(figsize=(8, 4))

@@ -82,7 +82,7 @@ class ConductionSystem:
         SinoAtrial node is defined on the endocardium of the right atrium and
         between sup vena cava and inf vena cave.
         """
-        if target_coord == None:
+        if target_coord is None:
             for cap in self.m.right_atrium.caps:
                 if "superior" in cap.name:
                     sup_vcava_centroid = cap.centroid
@@ -101,7 +101,6 @@ class ConductionSystem:
         SA_node_id = right_atrium_endo.global_node_ids_triangles[target_id]
 
         SA_point = Point(name="SA_node", xyz=self.m.mesh.nodes[SA_node_id, :], node_id=SA_node_id)
-        # TODO
         self.m.right_atrium.points.append(SA_point)
 
         return SA_point

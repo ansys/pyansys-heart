@@ -38,7 +38,7 @@ This example shows you how to post process an EP simulation.
 import os
 import pathlib
 
-from ansys.heart.postprocessor.EPpostprocessor import EPpostprocessor
+from ansys.heart.postprocessor.ep_postprocessor import EPpostprocessor
 
 # set ep results folder
 ep_folder = os.path.join(

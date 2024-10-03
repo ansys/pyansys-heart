@@ -25,7 +25,7 @@
 import copy
 from typing import List, Optional, Tuple, Union
 
-import deprecated
+from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 import vtk
@@ -36,7 +36,7 @@ from vtk.util.numpy_support import numpy_to_vtk  # type: ignore # noqa
 from ansys.heart.core import LOG as LOGGER
 
 
-@deprecated("This method is deprecated: can use pyvista objects directly.")
+@deprecated(reason="This method is deprecated: can use pyvista objects directly.")
 def write_vtkdata_to_vtkfile(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData], fname: str):
     """Write a vtk unstructured grid object to vtk file."""
     writer = vtk.vtkDataSetWriter()
@@ -45,7 +45,6 @@ def write_vtkdata_to_vtkfile(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPol
     writer.SetFileTypeToBinary()
     writer.Write()
     return
-
 
 # TODO: replace partially with pyvista objects for convenience.
 def get_tetra_info_from_unstructgrid(
@@ -59,7 +58,6 @@ def get_tetra_info_from_unstructgrid(
 
     # gets number of cells
     num_cells = vtk_grid.GetNumberOfCells()
-    num_points = vtk_grid.GetNumberOfPoints()
 
     connect1 = VN.vtk_to_numpy(vtk_grid.GetCells().GetData())
     # test vtk exists only tetra type element
@@ -141,7 +139,7 @@ def get_tri_info_from_polydata(
     try:
         global_ids = VN.vtk_to_numpy(vtk_polydata.GetPointData().GetGlobalIds())
         point_data["global_ids"] = global_ids
-    except:
+    except AttributeError:
         LOGGER.debug("Global Ids were not added to point data...")
 
     if not deep_copy:
@@ -156,7 +154,7 @@ def get_tri_info_from_polydata(
 
 
 # TODO: replace with pyvista.
-@deprecated("This method will be deprecated: can use pyvista methods instead.")
+@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
 def add_vtk_array(
     polydata: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid],
     data: np.array,
@@ -223,7 +221,7 @@ def add_vtk_array(
 
 
 # TODO: replace with pyvista.
-@deprecated("This method will be deprecated: can use pyvista methods instead.")
+@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
 def create_vtk_polydata_from_points(points: np.ndarray) -> vtk.vtkPolyData:
     """Create VTK PolyData object from set of points.
 
@@ -293,7 +291,7 @@ def compute_surface_nodal_area_pyvista(surface: pv.PolyData) -> np.ndarray:
 
 
 # TODO: replace with pyvista.
-@deprecated("This method will be deprecated: can use pyvista methods instead.")
+@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
 def add_normals_to_polydata(
     vtk_polydata: vtk.vtkPolyData, return_normals: bool = False
 ) -> Union[vtk.vtkPolyData, Optional[Tuple[np.ndarray, np.ndarray]]]:
@@ -383,7 +381,7 @@ def extrude_polydata(
 
 
 # TODO: replace with pyvista.
-@deprecated("This method will be deprecated: can use pyvista methods instead.")
+@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
 def create_vtk_surface_triangles(
     points: np.ndarray, triangles: np.ndarray, clean=True
 ) -> vtk.vtkPolyData:
@@ -439,7 +437,7 @@ def create_vtk_surface_triangles(
 
 
 # TODO: replace with pyvista.
-@deprecated("This method will be deprecated: can use pyvista methods instead.")
+@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
 def cell_ids_inside_enclosed_surface(
     vtk_source: vtk.vtkUnstructuredGrid, vtk_surface: vtk.vtkPolyData
 ) -> np.ndarray:
@@ -483,7 +481,7 @@ def cell_ids_inside_enclosed_surface(
 
 
 # TODO: replace with pyvista.
-@deprecated("This method will be deprecated: can use pyvista methods instead.")
+@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
 def vtk_cutter(vtk_polydata: vtk.vtkPolyData, cut_plane) -> vtk.vtkPolyData:
     """
     Cut a vtk polydata by a plane.
@@ -714,12 +712,14 @@ def get_patches_with_centroid(surface: pv.PolyData, closed_only: bool = True) ->
         edge_groups = get_boundary_edge_loops(surface1, remove_open_edge_loops=False)
 
     # reconstruct polydata objects from global ids in edge_groups
-    edges_block = pv.MultiBlock()
+    # TODO: @mhoeijm - remove this variable if not using , commenting out for now
+    # edges_block = pv.MultiBlock()
     patches = []
     for edge_group in edge_groups.values():
         centroid = np.mean(surface1.points[np.unique(edge_group), :], axis=0)
 
-        edge_points = pv.PolyData(surface1.points[np.unique(edge_group), :])
+        # TODO: @mhoeijm - remove this variable if not using , commenting out for now
+        # edge_points = pv.PolyData(surface1.points[np.unique(edge_group), :])
         pv.PolyData(centroid)
 
         centroid_id = surface1.points.shape[0]
@@ -764,8 +764,8 @@ def are_connected(
     merged = (mesh1 + mesh2).clean()
     try:
         merged.cell_data.remove("RegionId")
-    except:
-        KeyError
+    except KeyError:
+        LOGGER.warning("RegionId was not present in the cell data")
 
     merged = merged.connectivity()
 
@@ -776,6 +776,35 @@ def are_connected(
     else:
         return False
 
+
+def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii") -> None:
+    """Add name of solid to stl file.
+
+    Notes
+    -----
+    Supports only single block.
+
+    """
+    if file_type == "ascii":
+        start_str = "solid"
+        end_str = "endsolid"
+        f = open(filename, "r")
+        list_of_lines = f.readlines()
+        f.close()
+        list_of_lines[0] = "{0} {1}\n".format(start_str, solid_name)
+        list_of_lines[-1] = "{0} {1}\n".format(end_str, solid_name)
+
+        f = open(filename, "w")
+        f.writelines(list_of_lines)
+        f.close()
+    # replace part name in binary file
+    elif file_type == "binary":
+        with open(filename, "r+b") as fid:
+            fid.seek(0)  # Go to the start of the file
+            string_replace = "{:<40}".format(solid_name).encode()  # Format and encode the string
+            fid.write(string_replace)
+        fid.close()
+    return
 
 if __name__ == "__main__":
     print()

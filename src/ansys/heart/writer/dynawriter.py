@@ -299,7 +299,7 @@ class BaseDynaWriter:
                 cavity.surface._seg_set_id = segset_id
                 kw = create_segment_set_keyword(
                     segments=surface.triangles_global + 1,
-                    segid=cavity.surface._seg_set_id,  # TODO replace
+                    segid=cavity.surface._seg_set_id,  # TODO: replace
                     title=surface.name,
                 )
                 # append this kw to the segment set database
@@ -460,7 +460,7 @@ class BaseDynaWriter:
         # formats endo, epi- and septum nodeset keywords, do for all surfaces
         # for each surface in each part add the respective node-set
         # Use same ID as surface
-        # TODO check if database already contains nodesets (there will be duplicates otherwise)
+        # TODO: check if database already contains nodesets (there will be duplicates otherwise)
         used_node_ids = np.empty(0, dtype=int)
 
         # add node-set for each cap
@@ -1487,7 +1487,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
         return
 
-    # TODO change apply input argument to PartType.VENTRICLE and PartType.ATRIUM
+    # TODO: change apply input argument to PartType.VENTRICLE and PartType.ATRIUM
     def _get_epi_surface(self, apply: Literal["ventricle", "atrial"] = "ventricle"):
         """Get the epicardial surfaces of either the ventricle or atria."""
         LOGGER.debug(f"Collecting epicardium nodesets of {apply}:")
@@ -1791,7 +1791,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     sets.append(0)
                 self.kw_database.control_volume.append(keywords.SetSegmentAdd(sid=sid, sets=sets))
 
-                # TODO use dynalib: keywords.DefineControlVolumeFlowArea()
+                # TODO: use dynalib: keywords.DefineControlVolumeFlowArea()
                 flow_area_kw = "*DEFINE_CONTROL_VOLUME_FLOW_AREA\n"
                 flow_area_kw += "$#    FAID     FCIID     FASID   FASTYPE       PID\n"
                 flow_area_kw += "{0:10d}".format(control_volume.id)  # same as CVID
@@ -2785,7 +2785,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
                     nbrinit=self.settings.purkinje.nbrinit.m,
                     nsplit=self.settings.purkinje.nsplit.m,
                     inodeid=node_id_start_left,
-                    iedgeid=edge_id_start_left,  # TODO check if beam elements exist in mesh
+                    iedgeid=edge_id_start_left,  # TODO: check if beam elements exist in mesh
                     pmjtype=self.settings.purkinje.pmjtype.m,
                     pmjradius=self.settings.purkinje.pmjradius.m,
                     pmjrestype=self.settings.electrophysiology.material.beam["pmjrestype"].m,
@@ -2802,7 +2802,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
 
             segment_set_ids_endo_right = (
                 self.model.right_ventricle.endocardium._seg_set_id
-            )  # TODO Replace
+            )  # TODO: Replace
 
             # check whether point is on edge of endocardium - otherwise pick another node in
             # the same triangle
@@ -2846,7 +2846,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
 
             node_id_start_right = (
                 2 * self.model.mesh.nodes.shape[0]
-            )  # TODO find a solution in dyna to better handle id definition
+            )  # TODO: find a solution in dyna to better handle id definition
 
             edge_id_start_right = 2 * self.model.mesh.tetrahedrons.shape[0]
             pid = self.get_unique_part_id() + 1
@@ -2864,7 +2864,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
                     ngen=self.settings.purkinje.ngen.m,
                     nbrinit=self.settings.purkinje.nbrinit.m,
                     nsplit=self.settings.purkinje.nsplit.m,
-                    inodeid=node_id_start_right,  # TODO check if beam elements exist in mesh
+                    inodeid=node_id_start_right,  # TODO: check if beam elements exist in mesh
                     iedgeid=edge_id_start_right,
                     pmjtype=self.settings.purkinje.pmjtype.m,
                     pmjradius=self.settings.purkinje.pmjradius.m,
@@ -2912,7 +2912,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         self._update_segmentsets_db(add_cavities=True)
 
-        # TODO check if no existing node set ids conflict with surface ids
+        # TODO: check if no existing node set ids conflict with surface ids
         # For now, new node sets should be created after calling
         # self._update_nodesets_db()
         self._update_nodesets_db()
@@ -3158,12 +3158,12 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
 
         else:
-            # TODO : add eikonal in custom keywords
+            # TODO: : add eikonal in custom keywords
             # EM_EP_EIKONAL
 
             eikonal_stim_content = "*EM_EP_EIKONAL\n"
             eikonal_stim_content += "$    eikId  eikPaSet eikStimNS eikStimDF\n"
-            # TODO get the right part set id
+            # TODO: get the right part set id
             # setpart_kwds = self.kw_database.ep_settings.get_kwds_by_type()
             # id of the eikonal solver (different eikonal solves
             # can be performed in different parts of the model)
@@ -3261,8 +3261,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def _update_ECG_coordinates(self):
         """Add ECG computation content."""
-        # TODO replace strings by custom dyna keyword
-        # TODO handle dynamic numbering of point set ids "psid'
+        # TODO: replace strings by custom dyna keyword
+        # TODO: handle dynamic numbering of point set ids "psid'
         psid = 1
         pstype = 0
 

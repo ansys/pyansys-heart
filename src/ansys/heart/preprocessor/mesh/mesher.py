@@ -354,7 +354,6 @@ def mesh_from_manifold_input_model(
     LOGGER.debug(f"Path to meshing directory: {work_dir_meshing}")
 
     if not os.path.isfile(path_to_output) or overwrite_existing_mesh:
-
         path_to_output_old = path_to_output
         path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
 
@@ -660,9 +659,9 @@ def mesh_from_non_manifold_input_model(
         cell_centroids = cell_centroids.select_enclosed_points(
             part.combined_boundaries, check_surface=False
         )
-        cell_centroids.point_data["part-id"][
-            cell_centroids.point_data["SelectedPoints"] == 1
-        ] = part.id
+        cell_centroids.point_data["part-id"][cell_centroids.point_data["SelectedPoints"] == 1] = (
+            part.id
+        )
 
     # Use closest-point interpolation to assign part-ids to cell centers that are
     # not enclosed by any of the wrapped parts

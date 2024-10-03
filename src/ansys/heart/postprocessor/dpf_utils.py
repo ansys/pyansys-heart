@@ -26,9 +26,10 @@ import os
 import pathlib as Path
 from typing import List
 
-from ansys.dpf import core as dpf
 import numpy as np
 import pyvista as pv
+
+from ansys.dpf import core as dpf
 
 # from ansys.dpf.core.dpf_operator import available_operator_names
 from ansys.heart.core import LOG as LOGGER
@@ -333,7 +334,7 @@ class ICVoutReader:
             time array
         """
         # see pydpf examples, lsdyna-operators
-        icvout_op = dpf.Operator(f"lsdyna::binout::ICV_P")
+        icvout_op = dpf.Operator("lsdyna::binout::ICV_P")
         icvout_op.inputs.data_sources(self._ds)
         p_fc = icvout_op.eval()
         rescope_op = dpf.operators.scoping.rescope()

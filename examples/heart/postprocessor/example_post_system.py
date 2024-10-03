@@ -20,9 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-""" For information only, not yet stable
-    require previously launched simulation
-    change paths accordingly"""
+"""For information only, not yet stable
+require previously launched simulation
+change paths accordingly"""
 
 import matplotlib.pyplot as plt
 

@@ -161,7 +161,7 @@ def _find_endo_epicardial_regions(geom_all: pv.PolyData, tag_to_label: dict):
 
     for tag, label in tag_to_label.items():
         # split myocardial surfaces
-        if "myocardium" in label and not "interface" in label:
+        if "myocardium" in label and "interface" not in label:
             mask = geom_all.cell_data["tags"] == tag
             sub_geom = geom_all.extract_cells(mask).extract_geometry()
             sub_geom = sub_geom.connectivity()

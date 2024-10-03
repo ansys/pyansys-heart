@@ -236,7 +236,7 @@ class ActiveCurve:
         return (t, v)
 
     def _estimate_stress(self):
-        # TODO only with 1
+        # TODO: only with 1
         ca2ionmax = 4.35
         ca2ion = 4.35
         n = 2

@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 """Module containing classes for the various heart models."""
+
 import copy
 import json
 import os
@@ -400,7 +401,7 @@ class HeartModel:
             BeamMesh.all_beam_nodes = np.vstack((BeamMesh.all_beam_nodes, beam_nodes))
 
         # nodes is just for pyvista plot, edges used in writer will be offsetted
-        # TODO only save necessary nodes, cells, and with a 'global id' array
+        # TODO: only save necessary nodes, cells, and with a 'global id' array
         beam_net = BeamMesh(
             nodes=np.vstack((self.mesh.nodes, BeamMesh.all_beam_nodes)),
             edges=edges,
@@ -643,8 +644,8 @@ class HeartModel:
         summary = model_summary(self)
         return summary
 
-    # TODO keep this for now, but we can rework to more conveniently use
-    # TODO info from self.mesh.
+    # TODO: keep this for now, but we can rework to more conveniently use
+    # TODO: info from self.mesh.
     def print_info(self) -> None:
         """Print information about the model."""
         if not isinstance(self.mesh.tetrahedrons, np.ndarray):
@@ -952,12 +953,12 @@ class HeartModel:
 
         return
 
-    # TODO could consider having this as a static method.
-    # TODO Note that right now this only reconstructs the
-    # TODO surfaces and parts that are defined in the HeartModel classes
-    # TODO LeftVentricle, BiVentricle, FourChamber and FullHeart
-    # TODO should consider to also reconstruct the parts that are not explicitly
-    # TODO defined in the class.
+    # TODO: could consider having this as a static method.
+    # TODO: Note that right now this only reconstructs the
+    # TODO: surfaces and parts that are defined in the HeartModel classes
+    # TODO: LeftVentricle, BiVentricle, FourChamber and FullHeart
+    # TODO: should consider to also reconstruct the parts that are not explicitly
+    # TODO: defined in the class.
     def load_model_from_mesh(self, filename_mesh: str, filename_part_info: str):
         """Load model from an existing VTU file and part info dictionary.
 
@@ -1329,7 +1330,7 @@ class HeartModel:
 
         return
 
-    # TODO refactor:
+    # TODO: refactor:
     def _assign_surfaces_to_parts(self) -> None:
         """Assign surfaces generated during remeshing to model parts."""
         for part in self.parts:
@@ -1370,7 +1371,7 @@ class HeartModel:
         #             surface.name = surface.name.replace("septum", "endocardium septum")
 
         # construct cavities with endocardium and caps
-        idoffset = 1000  # TODO need to improve id checking
+        idoffset = 1000  # TODO: need to improve id checking
         ii = 0
 
         for part in self.parts:
@@ -1993,7 +1994,7 @@ class HeartModel:
         # Create ring part
         ring: Part = self.create_part_by_ids(
             ring_eles, name="base atrial stiff rings"
-        )  # TODO name must has 'base', see dynawriter.py L3120
+        )  # TODO: name must has 'base', see dynawriter.py L3120
         ring.part_type = PartType.ATRIUM
         ring.fiber = False
         ring.active = False

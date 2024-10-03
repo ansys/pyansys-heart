@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 """Compute myocardial strain."""
+
 import pathlib
 
 import matplotlib as mpl
@@ -165,10 +166,10 @@ class AhaStrainCalculator:
 
         # model info
         e_l, e_r, e_c = self.model.compute_left_ventricle_element_cs()
-        # todo: vectorization
+        # TODO: vectorization
         for i_ele in range(len(self._aha_elements)):
             if reference is not None:
-                # todo
+                # TODO
                 pass
             else:
                 right_cauchy_green = np.matmul(

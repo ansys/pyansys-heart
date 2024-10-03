@@ -33,11 +33,13 @@ from pint import Quantity, UnitRegistry
 import yaml
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.simulator.settings.defaults import electrophysiology as ep_defaults
-from ansys.heart.simulator.settings.defaults import fibers as fibers_defaults
-from ansys.heart.simulator.settings.defaults import mechanics as mech_defaults
-from ansys.heart.simulator.settings.defaults import purkinje as purkinje_defaults
-from ansys.heart.simulator.settings.defaults import zeropressure as zero_pressure_defaults
+from ansys.heart.simulator.settings.defaults import (
+    electrophysiology as ep_defaults,
+    fibers as fibers_defaults,
+    mechanics as mech_defaults,
+    purkinje as purkinje_defaults,
+    zeropressure as zero_pressure_defaults,
+)
 from ansys.heart.simulator.settings.material.curve import ActiveCurve, Strocchi_active, constant_ca2
 from ansys.heart.simulator.settings.material.material import (
     ACTIVE,
@@ -190,7 +192,7 @@ class EpMaterial(Settings):
     """Cap material."""
     beam: AttrDict = None
     """beam material."""
-    # TODO consider 'other', e.g passive conductor, soft tissue...?
+    # TODO: consider 'other', e.g passive conductor, soft tissue...?
 
 
 @dataclass(repr=False)
@@ -579,7 +581,7 @@ class SimulationSettings:
           global_damping: 0.5 / millisecond
 
         """
-        # TODO move to Settings class
+        # TODO: move to Settings class
         for attr in self.__dict__:
             if isinstance(getattr(self, attr), Mechanics):
                 A = Analysis()
@@ -614,8 +616,8 @@ class SimulationSettings:
                     S = Stimulation()
                     S.set_values(ep_defaults.stimulation[key])
                     self.electrophysiology.stimulation[key] = S
-                # TODO add stim params, monodomain/bidomain/eikonal,cellmodel
-            # TODO add settings for purkinje  fibers and epmecha
+                # TODO: add stim params, monodomain/bidomain/eikonal,cellmodel
+            # TODO: add settings for purkinje  fibers and epmecha
             if isinstance(getattr(self, attr), Fibers):
                 self.fibers.set_values(fibers_defaults.angles)
             if isinstance(getattr(self, attr), Purkinje):

@@ -552,14 +552,18 @@ class _InputManager:
 
         >>> mesh_file = "unstructured_grid.vtu" # unstructured grid where 'tags'
         ...                                       cell data represents the part-ids
-        >>> input = InputManager(mesh_file, scalar="tags",
-        ...             name_to_id_map={"Left ventricle myocardium" : 3,
-        ...                             "Right ventricle myocardium" : 1})
+        >>> input = InputManager(
+        ...     mesh_file,
+        ...     scalar="tags",
+        ...     name_to_id_map={"Left ventricle myocardium": 3, "Right ventricle myocardium": 1},
+        ... )
 
         Reading a boundary mesh (PolyData) from a file and explicitly give the boundary
         name to boundary-id map
 
-        >>> mesh_file = "boundary_mesh.vtk" # PolyData where 'cell-tags' represents the boundary-ids
+        >>> mesh_file = (
+        ...     "boundary_mesh.vtk"  # PolyData where 'cell-tags' represents the boundary-ids
+        ... )
         >>> input = InputManager(mesh_file, scalar="cell-tags",
             ...     name_to_id_map = {
         ...             "left-ventricle-endocardium": 3,
@@ -708,13 +712,13 @@ class _InputManager:
 
     def _validate_volume_mesh(self):
         """Perform some validation steps on the volume mesh."""
-        if not "part-id" in self.input_volume.cell_data.keys():
+        if "part-id" not in self.input_volume.cell_data.keys():
             raise KeyError("Missing 'part-id' array in cell data.")
         return
 
     def _validate_boundary_mesh(self):
         """Perform some validation steps on the boundary mesh."""
-        if not "boundary-id" in self.input_boundary.cell_data.keys():
+        if "boundary-id" not in self.input_boundary.cell_data.keys():
             raise KeyError("Missing 'boundary-d' in cell-data.")
 
         if not self.input_boundary.is_manifold:

@@ -243,7 +243,6 @@ class SurfaceMesh(pv.PolyData):
         id: int = None,
         **kwargs,
     ) -> None:
-
         # *NOTE: pv.PolyData supports variable input through the first argument (var_inp)
         # * the following is to make sure this object behaves similar to pv.PolyData
         # * https://github.com/pyvista/pyvista/blob/release/0.44/pyvista/core/pointset.py#L500-L1693
@@ -759,7 +758,7 @@ class Mesh(pv.UnstructuredGrid):
         self, sid: int, scalar: Literal["_surface-id", "_line-id", "_volume-id"]
     ) -> pv.UnstructuredGrid:
         # NOTE: extract_cells cleans the object, removing any unused points.
-        if not scalar in self.cell_data.keys():
+        if scalar not in self.cell_data.keys():
             LOGGER.debug(f"{scalar} does not exist in cell_data")
             return None
         mask = np.isin(self.cell_data[scalar], sid)
@@ -865,7 +864,7 @@ class Mesh(pv.UnstructuredGrid):
 
     def validate_ids_to_name_map(self):
         """Check whether there are any duplicate or unmapped surfaces/volumes."""
-        # TODO Ensure there are no duplicate names.
+        # TODO: Ensure there are no duplicate names.
         unmapped_volumes = self._get_unmapped_volumes()
         unmapped_surfaces = self._get_unmapped_surfaces()
 

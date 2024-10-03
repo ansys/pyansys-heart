@@ -39,7 +39,7 @@ import vtk
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.preprocessor.mesh.vtkmethods import vtk_cutter, write_vtkdata_to_vtkfile
 
-# TODO replace by v0_2
+# TODO: replace by v0_2
 from ansys.heart.preprocessor.models import HeartModel, LeftVentricle
 
 
@@ -68,6 +68,7 @@ class D3plotToVTKExporter:
             time to convert
         fname : str
             filename to be saved, default is None
+
         Returns
         -------
         pv.UnstructuredGrid
@@ -125,7 +126,7 @@ class LVContourExporter:
         self.out_folder = "lv_surface"
         os.makedirs(os.path.join(self.work_dir, self.out_folder), exist_ok=True)
 
-        # todo get ID dynamically by part.pid or mid
+        # TODO: get ID dynamically by part.pid or mid
         if isinstance(self.model, LeftVentricle):
             keep_ids = [1]
         else:

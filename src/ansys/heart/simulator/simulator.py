@@ -456,7 +456,7 @@ class EPSimulator(BaseSimulator):
                 right.xyz, right.node_id, side="Right", beam_length=beam_length
             )
 
-            # # TODO define end point by uhc, or let user choose
+            # # TODO: define end point by uhc, or let user choose
             # Note: must on surface after zerop if coupled with meca
             # cs.compute_Bachman_bundle(
             #     start_coord=self.model.right_atrium.get_point("SA_node").xyz,

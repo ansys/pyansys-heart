@@ -186,7 +186,7 @@ def compute_la_fiber_cs(
         return grid
 
     grid = get_gradient(directory, field_list=["trans", "ab", "v", "r"])
-    # TODO sometimes, pv object broken when pass directly
+    # TODO: sometimes, pv object broken when pass directly
 
     grid = pv.read("gradient.vtk")
     if endo_surface is not None:

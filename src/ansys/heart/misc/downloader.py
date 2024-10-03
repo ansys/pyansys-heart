@@ -23,7 +23,8 @@
 """Auto downloads cases.
 
 Auto downloads cases from the remote repositories of Strocchi et al 2020,
-and Rodero et al 2021."""
+and Rodero et al 2021.
+"""
 
 import hashlib
 
@@ -109,7 +110,6 @@ def download_case_from_zenodo(
             database="Rodero2021", case_number=1, download_folder="my/download/folder"
         )
     """
-
     if database not in VALID_DATABASES:
         raise ValueError("Database not valid, please specify valid database: %s" % VALID_DATABASES)
 

@@ -185,9 +185,9 @@ class PyAnsysHeartCustomAdapter(logging.LoggerAdapter):
         """Process extra arguments."""
         kwargs["extra"] = {}
         # This are the extra parameters sent to log
-        kwargs["extra"][
-            "instance_name"
-        ] = self.extra.name  # here self.extra is the argument pass to the log records.
+        kwargs["extra"]["instance_name"] = (
+            self.extra.name
+        )  # here self.extra is the argument pass to the log records.
         return msg, kwargs
 
     def log_to_file(self, filename: str = FILE_NAME, level: LOG_LEVEL_TYPE = LOG_LEVEL) -> None:
@@ -314,7 +314,7 @@ class Logger:
 
     >>> import os
     >>> from ansys.heart.core import LOG
-    >>> file_path = os.path.join(os.getcwd(), 'PyAnsys Heart.log')
+    >>> file_path = os.path.join(os.getcwd(), "PyAnsys Heart.log")
     >>> LOG.log_to_file(file_path)
 
     """
@@ -390,7 +390,7 @@ class Logger:
 
         >>> from ansys.heart.core import LOG
         >>> import os
-        >>> file_path = os.path.join(os.getcwd(), 'PyAnsys Heart.log')
+        >>> file_path = os.path.join(os.getcwd(), "PyAnsys Heart.log")
         >>> LOG.log_to_file(file_path)
 
         """

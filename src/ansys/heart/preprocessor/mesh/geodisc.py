@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 """Module for computing paths."""
+
 import numpy as np
 
 

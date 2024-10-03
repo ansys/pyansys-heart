@@ -175,7 +175,7 @@ class EPpostprocessor:
         grid = self.reader.meshgrid.copy()
 
         for i in range(vm.shape[0]):
-            # TODO vtk is not optimal for scalar fields with
+            # TODO: vtk is not optimal for scalar fields with
             # non moving meshes, consider using ROM format
             grid.point_data["transmembrane_potential"] = vm[i, :]
             grid.save(post_path + "\\vm_" + str(i) + ".vtk")
@@ -199,8 +199,8 @@ class EPpostprocessor:
                 electrode = electrodes[electrode_id, :]
                 r_vector = centroids.points - electrode
                 distances = np.linalg.norm(r_vector, axis=1)
-                # TODO add conductivity tensor in the calculation (necessary?)
-                # TODO add method to handle beam gradients as well
+                # TODO: add conductivity tensor in the calculation (necessary?)
+                # TODO: add method to handle beam gradients as well
                 integral = sum(
                     sum(
                         np.transpose(

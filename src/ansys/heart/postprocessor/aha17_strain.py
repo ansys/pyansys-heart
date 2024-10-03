@@ -202,11 +202,7 @@ class AhaStrainCalculator:
 
     @staticmethod
     def bullseye_plot(ax, data, seg_bold=None, cmap=None, norm=None):
-        """
-        Bullseye representation for the left ventricle.
-
-        Based on:
-        https://matplotlib.org/stable/gallery/specialty_plots/leftventricle_bulleye.html#sphx-glr-gallery-specialty-plots-leftventricle-bulleye-py
+        """Bullseye representation for the left ventricle.
 
         Parameters
         ----------
@@ -224,6 +220,9 @@ class AhaStrainCalculator:
         -----
         This function creates the 17 segment model for the left ventricle according
         to the American Heart Association (AHA) [1]_
+
+        Based on:
+        https://matplotlib.org/stable/gallery/specialty_plots/leftventricle_bulleye.html#sphx-glr-gallery-specialty-plots-leftventricle-bulleye-py
 
         References
         ----------

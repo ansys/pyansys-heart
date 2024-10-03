@@ -72,8 +72,10 @@ def tetra_to_faces(tetra: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
 
     # find connectivity c0 an c1 (cell indices that are connected to the face)
 
-    tet_ids = np.arange(0, num_tetra, 1)
-    face_ids = np.arange(0, len(unique_faces), 1)
+    # TODO: @mhoeijm please remove the below variables if not used
+
+    # tet_ids = np.arange(0, num_tetra, 1)
+    # face_ids = np.arange(0, len(unique_faces), 1)
 
     # this gives faces_1 again:
     # unique_faces[tetra_face_map]

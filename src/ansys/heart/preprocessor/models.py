@@ -988,7 +988,7 @@ class HeartModel:
         # for part_name in part_info.keys():
         for part_1 in self.parts:
             try:
-                idx = list(part_info.keys()).index(part_1.name)
+                list(part_info.keys()).index(part_1.name)
             except ValueError:
                 LOGGER.debug(f"{part_1.name} not in part info")
                 continue
@@ -1495,7 +1495,7 @@ class HeartModel:
                 expected_names = []
 
             # valid_cap_names = True
-            # TODO: @mhoeijm: The valid cap names is not used, and should be removed. 
+            # TODO: @mhoeijm: The valid cap names is not used, and should be removed.
             # commenting out for now.
             for cn in cap_names:
                 matches = [True for en in expected_names if en in cn]

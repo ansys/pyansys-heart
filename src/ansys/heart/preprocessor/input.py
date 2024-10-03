@@ -723,7 +723,7 @@ class _InputManager:
 
     def export_boundaries(self, format: str, folder: Union[Path, str] = ".") -> None:
         """Export the boundaries as separate stls."""
-        from ansys.heart.preprocessor.mesh.misc import add_solid_name_to_stl
+        from ansys.heart.core.helpers.vtkmethods import add_solid_name_to_stl
 
         boundary_ids = np.unique(self.input_boundary.cell_data["boundary-id"])
         id_to_name = _get_boundary_id_to_boundary_name_map()

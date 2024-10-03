@@ -25,6 +25,7 @@
 import copy
 from typing import List, Optional, Tuple, Union
 
+from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 import vtk
@@ -33,12 +34,11 @@ from vtk.util import numpy_support as VN  # type: ignore # noqa
 from vtk.util.numpy_support import numpy_to_vtk  # type: ignore # noqa
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.preprocessor.mesh.fluenthdf5 import add_solid_name_to_stl
 
 
+@deprecated(reason="This method is deprecated: can use pyvista objects directly.")
 def write_vtkdata_to_vtkfile(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData], fname: str):
     """Write a vtk unstructured grid object to vtk file."""
-    DeprecationWarning("This method is deprecated: use pyvista objects instead.")
     writer = vtk.vtkDataSetWriter()
     writer.SetFileName(fname)
     writer.SetInputData(vtk_data)
@@ -47,32 +47,7 @@ def write_vtkdata_to_vtkfile(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPol
     return
 
 
-def vtk_surface_to_stl(
-    vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData], filename: str, solid_name: str = None
-) -> None:
-    """Write stl from vtk surface mesh (polydata)."""
-    DeprecationWarning("This method is deprecated: use pyvista objects instead.")
-
-    vtk_data_to_write = vtk_data
-    if not isinstance(vtk_data, vtk.vtkPolyData):
-        # convert to polydata
-        surface_filter = vtk.vtkDataSetSurfaceFilter()
-        surface_filter.SetInputData(vtk_data)
-        surface_filter.Update()
-        vtk_data_to_write = surface_filter.GetOutput()
-
-    writer = vtk.vtkSTLWriter()
-    writer.SetFileName(filename)
-    writer.SetInputData(vtk_data_to_write)
-    writer.SetFileTypeToBinary()
-    writer.Write()
-
-    if solid_name:
-        add_solid_name_to_stl(filename, solid_name, "binary")
-
-    return
-
-
+# TODO: replace partially with pyvista objects for convenience.
 def get_tetra_info_from_unstructgrid(
     vtk_grid: vtk.vtkUnstructuredGrid, get_all_data: bool = True, deep_copy: bool = False
 ) -> Tuple[np.ndarray, np.ndarray, dict, dict]:
@@ -130,6 +105,7 @@ def get_tetra_info_from_unstructgrid(
         )
 
 
+@deprecated(reason="This method will be deprecated: can use pyvista objects instead.")
 def get_tri_info_from_polydata(
     vtk_polydata: vtk.vtkPolyData, get_all_data: bool = True, deep_copy: bool = False
 ) -> Tuple[np.ndarray, np.ndarray, dict, dict]:
@@ -139,9 +115,6 @@ def get_tri_info_from_polydata(
     -----
     Assumes triangular elements
     """
-    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
-    # logger.debug("Extracting triangle cell and point data...")
-
     vtk_polydata_obj = dsa.WrapDataObject(vtk_polydata)
 
     nodes = np.array(vtk_polydata_obj.Points)
@@ -181,6 +154,8 @@ def get_tri_info_from_polydata(
         )
 
 
+# TODO: replace with pyvista.
+@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
 def add_vtk_array(
     polydata: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid],
     data: np.array,
@@ -246,6 +221,8 @@ def add_vtk_array(
     return
 
 
+# TODO: replace with pyvista.
+@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
 def create_vtk_polydata_from_points(points: np.ndarray) -> vtk.vtkPolyData:
     """Create VTK PolyData object from set of points.
 
@@ -263,7 +240,6 @@ def create_vtk_polydata_from_points(points: np.ndarray) -> vtk.vtkPolyData:
     -----
     To visualize in ParaView render the points as Gaussian Points
     """
-    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
     if len(points.shape) < 2 or points.shape[1] != 3:
         raise ValueError("Expecting an array of dimension Nx3")
 
@@ -276,34 +252,6 @@ def create_vtk_polydata_from_points(points: np.ndarray) -> vtk.vtkPolyData:
     add_vtk_array(poly.VTKObject, nodeids, name="node-ids", data_type="point")
 
     return poly.VTKObject
-
-
-def remove_duplicate_nodes(
-    nodes: np.ndarray, elements: np.ndarray, tolerance: float = 1e-7
-) -> Tuple[np.ndarray, np.ndarray]:
-    """Find and removes duplicate nodes and remaps element definitions.
-
-    Parameters
-    ----------
-    nodes : np.ndarray
-        Array with nodal coordinates
-    elements : np.ndarray
-        Array with element definition
-    tolerance: float
-        Tolerance - the same for each coordinate
-    """
-    nodes_rounded = np.array(np.round(nodes * 1 / tolerance), dtype=int)
-    unique_nodes, indices, inverse_indices, counts = np.unique(
-        nodes_rounded,
-        axis=0,
-        return_index=True,
-        return_inverse=True,
-        return_counts=True,
-    )
-    unique_nodes = nodes[indices, :]
-    elements = inverse_indices[elements]
-
-    return unique_nodes, elements
 
 
 def compute_surface_nodal_area_pyvista(surface: pv.PolyData) -> np.ndarray:
@@ -343,6 +291,8 @@ def compute_surface_nodal_area_pyvista(surface: pv.PolyData) -> np.ndarray:
     return nodal_area
 
 
+# TODO: replace with pyvista.
+@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
 def add_normals_to_polydata(
     vtk_polydata: vtk.vtkPolyData, return_normals: bool = False
 ) -> Union[vtk.vtkPolyData, Optional[Tuple[np.ndarray, np.ndarray]]]:
@@ -362,7 +312,6 @@ def add_normals_to_polydata(
     (cell_normals, point_normals) : (np.ndarray, np.ndarray), optional
         Cell normals and point normals, only provided if return_normals=True
     """
-    LOGGER.warning("This method will be deprecated: can use pyvista .compute_normals() instead.")
     # compute normals
     normal_filter = vtk.vtkPolyDataNormals()
     normal_filter.SetInputData(vtk_polydata)
@@ -432,6 +381,8 @@ def extrude_polydata(
     return pv.PolyData(extruded_polydata)
 
 
+# TODO: replace with pyvista.
+@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
 def create_vtk_surface_triangles(
     points: np.ndarray, triangles: np.ndarray, clean=True
 ) -> vtk.vtkPolyData:
@@ -486,6 +437,8 @@ def create_vtk_surface_triangles(
         return polydata
 
 
+# TODO: replace with pyvista.
+@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
 def cell_ids_inside_enclosed_surface(
     vtk_source: vtk.vtkUnstructuredGrid, vtk_surface: vtk.vtkPolyData
 ) -> np.ndarray:
@@ -505,7 +458,6 @@ def cell_ids_inside_enclosed_surface(
         VTK object with additional cell data indicating whether
         the cell is in/outside the provided surface
     """
-    LOGGER.warning("This method will be deprecated: can use pyvista methods instead.")
     vtk_surface = add_normals_to_polydata(vtk_surface)
     points, tetra, _, _ = get_tetra_info_from_unstructgrid(vtk_source)
 
@@ -529,64 +481,8 @@ def cell_ids_inside_enclosed_surface(
     return cell_ids_inside
 
 
-def get_connected_regions(
-    nodes: np.ndarray, triangles: np.ndarray, return_vtk_object: bool = False
-) -> np.ndarray:
-    """Find the connected regions.
-
-    Parameters
-    ----------
-    nodes : np.ndarray
-        NumNodes x 3 array with point coordinates
-    triangles : np.ndarray
-        NumTriangles x 3 array with triangle definitions
-    return_vtk_object : bool, optional
-        Flag indicating whether to return the vtk (surface) object, by default False
-
-    Returns
-    -------
-    np.array
-        Array with region ids
-    vtk.vtkPolyData
-        VTK Object with region ids
-    """
-    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
-    vtk_surface = create_vtk_surface_triangles(nodes, triangles)
-
-    # connectivity filter to extract all connected regions
-    connectivity0 = vtk.vtkPolyDataConnectivityFilter()
-    connectivity0.SetExtractionModeToAllRegions()
-    connectivity0.SetColorRegions(1)
-    connectivity0.SetInputData(vtk_surface)
-    connectivity0.Update()
-    vtk_surface_with_regions = connectivity0.GetOutput()
-
-    vtk_surface_dsa = dsa.WrapDataObject(vtk_surface_with_regions)
-    region_ids = vtk_surface_dsa.PointData["RegionId"]
-
-    # add separate array to facilitate point2cell filter. Somehow region ids are protected from
-    # this filter
-    add_vtk_array(
-        vtk_surface_with_regions, region_ids + 1, "regions", data_type="point", array_type=int
-    )
-    # map point data to cell data
-    point2cell = vtk.vtkPointDataToCellData()
-    point2cell.SetInputData(vtk_surface_with_regions)
-    point2cell.Update()
-    vtk_surface_with_regions = point2cell.GetOutput()
-
-    # get cell data from triangular polydata
-    cell_data = get_tri_info_from_polydata(vtk_surface_with_regions)[2]
-
-    region_ids = cell_data["regions"]
-    # cast to ints
-    region_ids = np.array(region_ids, dtype=int)
-    if return_vtk_object:
-        return region_ids, vtk_surface_with_regions
-    else:
-        return region_ids
-
-
+# TODO: replace with pyvista.
+@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
 def vtk_cutter(vtk_polydata: vtk.vtkPolyData, cut_plane) -> vtk.vtkPolyData:
     """
     Cut a vtk polydata by a plane.
@@ -600,7 +496,6 @@ def vtk_cutter(vtk_polydata: vtk.vtkPolyData, cut_plane) -> vtk.vtkPolyData:
     -------
     vtkpolydata
     """
-    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
     # create a plane to cut
     plane = vtk.vtkPlane()
     plane.SetOrigin(cut_plane["center"][0], cut_plane["center"][1], cut_plane["center"][2])
@@ -818,14 +713,10 @@ def get_patches_with_centroid(surface: pv.PolyData, closed_only: bool = True) ->
         edge_groups = get_boundary_edge_loops(surface1, remove_open_edge_loops=False)
 
     # reconstruct polydata objects from global ids in edge_groups
-    # TODO: @mhoeijm - remove this variable if not using , commenting out for now
-    # edges_block = pv.MultiBlock()
     patches = []
     for edge_group in edge_groups.values():
         centroid = np.mean(surface1.points[np.unique(edge_group), :], axis=0)
 
-        # TODO: @mhoeijm - remove this variable if not using , commenting out for now
-        # edge_points = pv.PolyData(surface1.points[np.unique(edge_group), :])
         pv.PolyData(centroid)
 
         centroid_id = surface1.points.shape[0]
@@ -881,6 +772,36 @@ def are_connected(
         return True
     else:
         return False
+
+
+def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii") -> None:
+    """Add name of solid to stl file.
+
+    Notes
+    -----
+    Supports only single block.
+
+    """
+    if file_type == "ascii":
+        start_str = "solid"
+        end_str = "endsolid"
+        f = open(filename, "r")
+        list_of_lines = f.readlines()
+        f.close()
+        list_of_lines[0] = "{0} {1}\n".format(start_str, solid_name)
+        list_of_lines[-1] = "{0} {1}\n".format(end_str, solid_name)
+
+        f = open(filename, "w")
+        f.writelines(list_of_lines)
+        f.close()
+    # replace part name in binary file
+    elif file_type == "binary":
+        with open(filename, "r+b") as fid:
+            fid.seek(0)  # Go to the start of the file
+            string_replace = "{:<40}".format(solid_name).encode()  # Format and encode the string
+            fid.write(string_replace)
+        fid.close()
+    return
 
 
 if __name__ == "__main__":

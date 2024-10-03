@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Get PV loop from ls-dyna icvout file."""
+"""Get pressure-volume (PV) loop from LS-DYNA icvout file."""
 
 import os
 
@@ -29,7 +29,7 @@ import numpy as np
 
 from ansys.heart.postprocessor.dpf_utils import ICVoutReader
 
-# assume control volume is defined with this order
+# NOTE: assume control volume is defined with in this order
 CV_NAME = ["LV", "RV", "LA", "RA"]
 
 
@@ -65,6 +65,7 @@ def write_pvloop_pngs(pressure: np.ndarray, volume: np.ndarray, save_to: str):
             fig.savefig(os.path.join(save_to, f"pv_{iframe}.png"))
 
         plt.close()
+    # NOTE: can combine into mp4 with:
     # ffmpeg -f image2 -i pv_%d.png output.mp4
 
 

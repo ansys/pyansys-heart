@@ -38,7 +38,7 @@ from ansys.heart.preprocessor.mesh.fluenthdf5 import FluentCellZone, FluentMesh
 from ansys.heart.preprocessor.mesh.objects import SurfaceMesh
 from ansys.heart.preprocessor.mesh.vtkmethods import add_solid_name_to_stl
 
-# os.environ["SHOW_FLUENT_GUI"] = "1"
+# NOTE: can set os.environ["SHOW_FLUENT_GUI"] = "1" to show Fluent GUI.
 
 _fluent_version = "24.1.0"
 _show_fluent_gui: bool = False
@@ -126,10 +126,6 @@ def _organize_connected_regions(grid: pv.UnstructuredGrid, scalar: str = "part-i
                 LOGGER.debug("More than 1 candidate.")
 
             grid.cell_data["part-id"][orphan_cell_ids] = unique_ids[np.argmax(counts)]
-
-        # orphan_cell_ids += list(conn.cell_data["orig-cell-ids"][conn.cell_data["RegionId"] > 0])
-
-    # for each orphan cell
 
     return grid
 
@@ -446,7 +442,6 @@ def mesh_from_manifold_input_model(
             session.tui.file.write_mesh(os.path.basename(path_to_output))
         else:
             session.tui.file.write_mesh('"' + path_to_output + '"')
-        # session.meshing.tui.file.read_journal(script)
         session.exit()
 
         if path_to_output != path_to_output_old:
@@ -584,9 +579,9 @@ def mesh_from_non_manifold_input_model(
             # wrap object.
             _wrap_part(session, part.boundary_names, part.name)
 
-        # wrap entire model in one pass so that we can create a single volume mesh. Use list of all
-        # input boundaries are given as input. External material point for meshing.
-        # NOTE: this assumes that all the individually wrapped parts form a single
+        # NOTE: wrap entire model in one pass so that we can create a single volume mesh.
+        # Use list of all input boundaries as input. Uses external material point for meshing.
+        # This assumes that all the individually wrapped parts form a single
         # connected structure.
         LOGGER.info("Wrapping model...")
         _wrap_part(session, model.boundary_names, "model")
@@ -661,6 +656,7 @@ def mesh_from_non_manifold_input_model(
 
     # Use closest-point interpolation to assign part-ids to cell centers that are
     # not enclosed by any of the wrapped parts
+    # TODO: clean up the following section.
     cell_centroids["orig_indices"] = np.arange(cell_centroids.n_points, dtype=np.int32)
     cell_centroids.point_data.remove("SelectedPoints")
     cell_centroids_1 = cell_centroids.remove_cells(

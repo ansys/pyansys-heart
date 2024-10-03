@@ -109,8 +109,7 @@ def _get_interface_surfaces(mesh: pv.UnstructuredGrid, labels: dict, tag_to_labe
     """
     tetras = np.reshape(mesh.cells, (mesh.n_cells, 5))[:, 1:]
     faces, c0, c1 = face_tetra_connectivity(tetras)
-    # TODO: @mhoeijm - remove this variable if not using , commenting out for now
-    # interface_mask = mesh.cell_data["tags"][c0] != mesh.cell_data["tags"][c1]
+    # NOTE: if c0 != c1, face is an interface between two parts.
     t0 = np.array(mesh.cell_data["tags"][c0], dtype=int)
     t1 = np.array(mesh.cell_data["tags"][c1], dtype=int)
 

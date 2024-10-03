@@ -348,7 +348,7 @@ class FluentMesh:
             mask = np.invert(mask)
 
             if not np.all(np.sum(mask, axis=1) == 1):
-                # note: in an edge case we may have an interior face that
+                # NOTE: in an edge case we may have an interior face that
                 # is connected to a cell where all the other faces are actually
                 # not of the interior.
                 # as a solution we can collect all faces first and consequently construct
@@ -517,36 +517,6 @@ class FluentMesh:
         # update cell zones with reordered cells
         self._set_cells_in_cell_zones()
         return
-
-
-def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii") -> None:
-    """Add name of solid to stl file.
-
-    Notes
-    -----
-    Supports only single block.
-
-    """
-    if file_type == "ascii":
-        start_str = "solid"
-        end_str = "endsolid"
-        f = open(filename, "r")
-        list_of_lines = f.readlines()
-        f.close()
-        list_of_lines[0] = "{0} {1}\n".format(start_str, solid_name)
-        list_of_lines[-1] = "{0} {1}\n".format(end_str, solid_name)
-
-        f = open(filename, "w")
-        f.writelines(list_of_lines)
-        f.close()
-    # replace part name in binary file
-    elif file_type == "binary":
-        with open(filename, "r+b") as fid:
-            fid.seek(0)  # Go to the start of the file
-            string_replace = "{:<40}".format(solid_name).encode()  # Format and encode the string
-            fid.write(string_replace)
-        fid.close()
-    return
 
 
 if __name__ == "__main__":

@@ -48,7 +48,7 @@ from ansys.heart.preprocessor.mesh.vtkmethods import add_solid_name_to_stl
 # E.g. Left ventricle is enclosed by the endocardium, epicardium, and aortic/mitral valve interfaces
 # hence to create a left-ventricle we need to provide these boundaries. The mesher will
 # then generate the volume mesh for that part.
-BOUNDARIES_PER_HEART_PART = {
+_BOUNDARIES_PER_HEART_PART = {
     "Left ventricle myocardium": {
         "id": 1,
         "enclosed_by_boundaries": {
@@ -101,7 +101,7 @@ BOUNDARIES_PER_HEART_PART = {
 }
 
 # the different types of "base" models supported
-HEART_MODELS = {
+_HEART_MODELS = {
     "LeftVentricle": ["Left ventricle myocardium"],
     "BiVentricle": ["Left ventricle myocardium", "Right ventricle myocardium", "Septum"],
     "FourChamber": [
@@ -236,11 +236,8 @@ class _InputModel:
             if not os.path.isfile(input):
                 raise FileNotFoundError(f"File {input} not found.")
 
-        # boundary_is_set = False
-        # TODO: @mhoeijm - remove boundary_is_set variable if not using , commenting out for now
         try:
             self.input_polydata = pv.PolyData(input)
-            # boundary_is_set = True
         except Exception:
             NotImplementedError(f"Failed to load file {input}. Other file types not supported yet.")
             return
@@ -251,7 +248,6 @@ class _InputModel:
 
         if part_definitions is None:
             return
-            # raise NotImplementedError("Default part definitions not yet implemented.")
 
         self.part_definitions = self._add_parts(part_definitions)
         self._validate_input()
@@ -467,11 +463,11 @@ def _invert_dict(d: dict):
 def _get_required_parts(model_type: str) -> dict:
     """Get a dict of required parts for the given model."""
     try:
-        part_names = HEART_MODELS[model_type]
+        part_names = _HEART_MODELS[model_type]
     except KeyError:
         raise KeyError(
             "{0} invalid heart model type. Valid model types include: {1}".format(
-                model_type, list(HEART_MODELS.keys())
+                model_type, list(_HEART_MODELS.keys())
             )
         )
     parts = {}
@@ -483,7 +479,7 @@ def _get_required_parts(model_type: str) -> dict:
 def _get_part_name_to_part_id_map() -> dict:
     """Get map that maps the part names to the part ids."""
     mapper = {}
-    for k, value in BOUNDARIES_PER_HEART_PART.items():
+    for k, value in _BOUNDARIES_PER_HEART_PART.items():
         mapper[k] = value["id"]
     return mapper
 
@@ -496,7 +492,7 @@ def _get_part_id_to_part_name_map() -> dict:
 def _get_boundary_name_to_boundary_id_map() -> dict:
     """Get the map that maps the boundary name to the boundary id."""
     mapper = {}
-    for part_name, part_subdict in BOUNDARIES_PER_HEART_PART.items():
+    for part_name, part_subdict in _BOUNDARIES_PER_HEART_PART.items():
         mapper.update(part_subdict["enclosed_by_boundaries"])
     return mapper
 
@@ -511,7 +507,7 @@ def _get_required_boundaries(model_type: str) -> List[str]:
     parts = _get_required_parts(model_type)
     required_boundaries = []
     for p in parts:
-        required_boundaries += BOUNDARIES_PER_HEART_PART[p]["enclosed_by_boundaries"]
+        required_boundaries += _BOUNDARIES_PER_HEART_PART[p]["enclosed_by_boundaries"]
     return required_boundaries
 
 
@@ -614,6 +610,7 @@ class _InputManager:
                     raise NotImplementedError(
                         "Support for Multi-Block PolyData not yet implemented."
                     )
+                    # TODO: support multi-block input.
                     for ii, block in enumerate(multi_block):
                         if not isinstance(block, pv.PolyData):
                             raise ValueError("Expecting PolyData in MultiBlock with size > 1")
@@ -633,10 +630,8 @@ class _InputManager:
             LOGGER.debug(f"Renaming {scalar} to boundary-id")
             self.input_boundary.rename_array(scalar, "boundary-id")
 
-        # validate
         self.validate()
 
-        # reorder
         if volume_is_set and name_to_id_map:
             self._reorder_part_ids(name_to_id_map)
 
@@ -669,11 +664,11 @@ class _InputManager:
         self._part_id_mapping = {}
 
         for key, old_id in part_name_to_part_id.items():
-            if key not in list(BOUNDARIES_PER_HEART_PART.keys()):
+            if key not in list(_BOUNDARIES_PER_HEART_PART.keys()):
                 target_id = max_defined_id + 1
                 max_defined_id += 1
             else:
-                target_id = BOUNDARIES_PER_HEART_PART[key]["id"]
+                target_id = _BOUNDARIES_PER_HEART_PART[key]["id"]
 
             mask = old_ids == old_id
             new_ids[mask] = target_id

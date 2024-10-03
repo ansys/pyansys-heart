@@ -46,9 +46,9 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     Parameters
     ----------
     directory : str
-        simulation folder path
+        Path to simulation folder
     model : HeartModel
-        model
+        model to post-process
 
     Returns
     -------
@@ -141,7 +141,7 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
 
 
 def mech_post(directory: str, model: HeartModel):
-    """Post-process Main mechanical simulation folder.
+    """Post-process mechanical simulation folder.
 
     Parameters
     ----------

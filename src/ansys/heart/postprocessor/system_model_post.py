@@ -81,13 +81,14 @@ class SystemState:
 class ZeroDSystem:
     """0D circulation system model (for one cavity)."""
 
+    # TODO: @wenfengye: docstrings should follow numpy-format.
     def __init__(self, csv_path, ed_state, name=""):
         """
         Initialize ZeroDSystem.
 
         Notes
         -----
-        # from "ms, MPa, mm^3" to "s, kPa, mL"
+        units: "ms, MPa, mm^3" to "s, kPa, mL"
 
         Parameters
         ----------
@@ -121,6 +122,7 @@ class ZeroDSystem:
 
         pass
 
+    # TODO: @wenfengye: docstrings should follow numpy-format.
     @staticmethod
     def integrate_volume(v0, t, q):
         """
@@ -151,6 +153,7 @@ class ZeroDSystem:
         return v
 
 
+# TODO: @wenfengye: docstrings should follow numpy-format.
 class SystemModelPost:
     """
     Class for post-processing system model.
@@ -237,6 +240,7 @@ class SystemModelPost:
 
         return ef
 
+    # TODO: @wenfengye: docstrings should follow numpy-format.
     def plot_pv_loop(self, t_start=0, t_end=10e10, show_ed=True, ef=[None, None]):
         """
         Plot PV loop.
@@ -373,6 +377,7 @@ class SystemModelPost:
 
         return fig
 
+    # TODO: @wenfengye: docstrings should follow numpy-format.
     def _check_output(self):
         """
         Check if system states == FEM states.
@@ -414,6 +419,7 @@ class SystemModelPost:
 
         return fig
 
+    # TODO: @wenfengye: docstrings should follow numpy-format.
     def _check_total_volume(self, plot_all=False):
         """Check if total volume is constant for a closed loop.
 

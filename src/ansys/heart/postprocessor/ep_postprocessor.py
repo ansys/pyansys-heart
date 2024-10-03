@@ -213,15 +213,6 @@ class EPpostprocessor:
                     * cell_volumes
                 )
                 ECGs[time_step, electrode_id] = integral
-            # testing:
-            # grid.point_data["testgrad"] = grid.points[:, 0]
-            # grid = grid.compute_derivative(scalars="testgrad")
-            # grid = grid.point_data_to_cell_data()
-
-            # gradients = get vm gradient on elem centroids
-            # volumes = get element volumes
-            # q1 = r / (np.power(distances, 3) * 4 * np.pi)
-            # ECGi = q1 .gradients(t) x volumes
         return ECGs, times
 
     def read_ECGs(self, path: Path):

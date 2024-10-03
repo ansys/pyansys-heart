@@ -166,9 +166,11 @@ class LVContourExporter:
         os.makedirs(w_dir, exist_ok=True)
         cut_surfaces = []
         for id, surface in enumerate(self.lv_surfaces):
+            # TODO: replace by pyvista method(s).
             res = vtk_cutter(surface, cutter)
             cut_surfaces.append(res)
 
+        # TODO: replace by pyvista method(s).
         for ic, contour in enumerate(cut_surfaces):
             write_vtkdata_to_vtkfile(contour, os.path.join(w_dir, f"contour_{ic}.vtk"))
         return cut_surfaces

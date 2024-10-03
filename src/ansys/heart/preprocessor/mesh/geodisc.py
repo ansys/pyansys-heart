@@ -25,12 +25,12 @@
 import numpy as np
 
 
-def rodrigues_rot(P: np.ndarray, n0: np.ndarray, n1: np.ndarray) -> np.ndarray:
+def rodrigues_rot(points: np.ndarray, n0: np.ndarray, n1: np.ndarray) -> np.ndarray:
     """Perform rodrigues rotation.
 
     Parameters
     ----------
-    P : np.ndarray
+    points : np.ndarray
         Points to rotate.
     n0 : np.ndarray
         Vector 1.
@@ -49,8 +49,8 @@ def rodrigues_rot(P: np.ndarray, n0: np.ndarray, n1: np.ndarray) -> np.ndarray:
         Rotated points.
     """
     # If P is only 1d array (coords of single point), fix it to be matrix
-    if P.ndim == 1:
-        P = P[np.newaxis, :]
+    if points.ndim == 1:
+        points = points[np.newaxis, :]
 
     # Get vector of rotation k and angle theta
     n0 = n0 / np.linalg.norm(n0)
@@ -60,12 +60,12 @@ def rodrigues_rot(P: np.ndarray, n0: np.ndarray, n1: np.ndarray) -> np.ndarray:
     theta = np.arccos(np.dot(n0, n1))
 
     # Compute rotated points
-    P_rot = np.zeros((len(P), 3))
-    for i in range(len(P)):
+    P_rot = np.zeros((len(points), 3))
+    for i in range(len(points)):
         P_rot[i] = (
-            P[i] * np.cos(theta)
-            + np.cross(k, P[i]) * np.sin(theta)
-            + k * np.dot(k, P[i]) * (1 - np.cos(theta))
+            points[i] * np.cos(theta)
+            + np.cross(k, points[i]) * np.sin(theta)
+            + k * np.dot(k, points[i]) * (1 - np.cos(theta))
         )
 
     return P_rot

@@ -85,7 +85,6 @@ def get_tetra_info_from_unstructgrid(
 
     # gets number of cells
     num_cells = vtk_grid.GetNumberOfCells()
-    num_points = vtk_grid.GetNumberOfPoints()
 
     connect1 = VN.vtk_to_numpy(vtk_grid.GetCells().GetData())
     # test vtk exists only tetra type element
@@ -820,12 +819,14 @@ def get_patches_with_centroid(surface: pv.PolyData, closed_only: bool = True) ->
         edge_groups = get_boundary_edge_loops(surface1, remove_open_edge_loops=False)
 
     # reconstruct polydata objects from global ids in edge_groups
-    edges_block = pv.MultiBlock()
+    # TODO: @mhoeijm - remove this variable if not using , commenting out for now
+    # edges_block = pv.MultiBlock()
     patches = []
     for edge_group in edge_groups.values():
         centroid = np.mean(surface1.points[np.unique(edge_group), :], axis=0)
 
-        edge_points = pv.PolyData(surface1.points[np.unique(edge_group), :])
+        # TODO: @mhoeijm - remove this variable if not using , commenting out for now
+        # edge_points = pv.PolyData(surface1.points[np.unique(edge_group), :])
         pv.PolyData(centroid)
 
         centroid_id = surface1.points.shape[0]

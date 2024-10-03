@@ -380,7 +380,7 @@ def _smooth_boundary_edges(
                 edges_array = np.reshape(edges.lines, (edges.n_cells, 3))[:, 1:].tolist()
                 try:
                     sorted_edges_array = _sort_edge_loop(edges_array)
-                except Exception as e:
+                except Exception:
                     print(f"Failed to sort edges for {id_to_label_map[surf_id]} region {region_id}")
                     continue
 

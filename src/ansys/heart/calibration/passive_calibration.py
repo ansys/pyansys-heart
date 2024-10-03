@@ -184,7 +184,7 @@ class PassiveCalibration:
             setting.mechanics.material.myocardium["anisotropic"]["k2s"] *= p2
             setting.mechanics.material.myocardium["anisotropic"]["k1fs"] *= p1
             setting.mechanics.material.myocardium["anisotropic"]["k2fs"] *= p2
-        except Exception as e:
+        except Exception:
             pass
 
     def define_objective(self):

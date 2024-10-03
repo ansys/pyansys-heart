@@ -71,6 +71,7 @@ def tetra_to_faces(tetra: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     tetra_face_map = inverse[tetra_face_map]
 
     # find connectivity c0 an c1 (cell indices that are connected to the face)
+
     tet_ids = np.arange(0, num_tetra, 1)
     face_ids = np.arange(0, len(unique_faces), 1)
 
@@ -126,9 +127,6 @@ def face_tetra_connectivity(tetra: np.ndarray) -> Tuple[np.ndarray, np.ndarray, 
     faces_unique_r, index_r, inverse_r, counts_r = np.unique(
         faces_sorted_flip, return_index=True, return_inverse=True, return_counts=True, axis=0
     )
-
-    # number of cells connected to each face
-    num_cells_connected = counts[inverse]
 
     tetra_ids = np.repeat(np.arange(0, num_tetra, 1), 4)
     tetra_ids_flip = np.flipud(tetra_ids)

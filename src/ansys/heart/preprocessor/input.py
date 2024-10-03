@@ -240,7 +240,7 @@ class _InputModel:
         try:
             self.input_polydata = pv.PolyData(input)
             boundary_is_set = True
-        except Exception as e:
+        except Exception:
             NotImplementedError(f"Failed to load file {input}. Other file types not supported yet.")
             return
 
@@ -596,11 +596,11 @@ class _InputManager:
         try:
             self.input_boundary = pv.PolyData(input)
             boundary_is_set = True
-        except Exception as e:
+        except Exception:
             try:
                 self.input_volume = pv.UnstructuredGrid(input)
                 volume_is_set = True
-            except Exception as e:
+            except Exception:
                 pass
 
         if not volume_is_set and not boundary_is_set:
@@ -621,7 +621,7 @@ class _InputManager:
                         else:
                             boundary = boundary.merge(block)
                     boundary_is_set = True
-            except Exception as e:
+            except Exception:
                 raise ImportError(f"Failed to load {input} as volume or boundary.")
 
         # change array names if scalar is given.
@@ -754,12 +754,12 @@ class _InputManager:
         try:
             self._validate_volume_mesh()
             is_valid = True
-        except Exception as e:
+        except Exception:
             pass
         try:
             self._validate_boundary_mesh()
             is_valid = True
-        except Exception as e:
+        except Exception:
             pass
         return is_valid
 

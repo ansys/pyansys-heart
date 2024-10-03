@@ -843,7 +843,7 @@ class HeartModel:
             for beams in self.beam_network:
                 plotter.add_mesh(beams, color="r", line_width=2)
             plotter.show()
-        except Exception as e:
+        except Exception:
             LOGGER.warning("Failed to plot mesh.")
         return
 
@@ -995,7 +995,8 @@ class HeartModel:
 
             # part_name_n = "_".join(part_name.lower().split(" "))
             # init part.
-            part = Part(part_1.name, PartType(part_info[part_1.name]["part-type"]))
+            # TODO: @mhoeijm is this `part` variable using anywhere? If not, we can remove it.
+            # part = Part(part_1.name, PartType(part_info[part_1.name]["part-type"]))
 
             #! try to add surfaces to part by using the pre-defined surfaces
             #! Should part-info define the entire heart model and part attributes?
@@ -1346,7 +1347,7 @@ class HeartModel:
                                 "Multiple candidate surfaces for septum found, using first one."
                             )
                         boundary_surface = self.mesh.get_surface_by_name(septum_candidates[0])
-                    except Exception as e:
+                    except Exception:
                         boundary_surface = None
 
                 if boundary_surface:
@@ -1377,8 +1378,6 @@ class HeartModel:
         for part in self.parts:
             if not hasattr(part, "endocardium"):
                 continue
-
-            cavity_faces = np.empty((0, 3), dtype=int)
 
             # select endocardial surfaces
             surfaces = [s for s in part.surfaces if "endocardium" in s.name]
@@ -1495,7 +1494,9 @@ class HeartModel:
             elif part.name == "Right atrium":
                 expected_names = []
 
-            valid_cap_names = True
+            # valid_cap_names = True
+            # TODO: @mhoeijm: The valid cap names is not used, and should be removed. 
+            # commenting out for now.
             for cn in cap_names:
                 matches = [True for en in expected_names if en in cn]
                 if len(matches) == 1:
@@ -1505,7 +1506,7 @@ class HeartModel:
                         "Part: {0}. Cap name is {1}, but expecting cap names "
                         "to contain one of {2}".format(part.name, cn, expected_names)
                     )
-                    valid_cap_names = False
+                    # valid_cap_names = False
         return
 
     def _validate_surfaces(self):

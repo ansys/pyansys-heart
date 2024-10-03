@@ -243,7 +243,6 @@ class FluentMesh:
         min_ids = np.array(self.fid["meshes/1/cells/zoneTopology/minId"], dtype=int)
         max_ids = np.array(self.fid["meshes/1/cells/zoneTopology/maxId"], dtype=int)
         cell_zones: List[FluentCellZone] = []
-        num_cell_zones = len(cell_zone_ids)
 
         for ii in range(0, len(cell_zone_names), 1):
             cell_zones.append(
@@ -542,12 +541,10 @@ def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii") -> Non
         f.close()
     # replace part name in binary file
     elif file_type == "binary":
-        fid = open(filename, "r+b")
-        fid.seek(0)
-        data = fid.read(40)
-        fid.seek(0)
-        string_replace = "{:<40}".format(solid_name).encode()
-        fid.write(string_replace)
+        with open(filename, "r+b") as fid:
+            fid.seek(0)  # Go to the start of the file
+            string_replace = "{:<40}".format(solid_name).encode()  # Format and encode the string
+            fid.write(string_replace)
         fid.close()
     return
 

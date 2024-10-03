@@ -31,30 +31,30 @@ from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.models import HeartModel
 
 # --------------------------------------------------------------------------
-NCPU = 4
-LSDYNAPATH = r"D:\wsl\lsdyna_mpp\mppdyna_d_sse2_linux86_64_intelmmpi"
-OS = "wsl"
+_NCPU = 4
+_LSDYNAPATH = r"D:\wsl\lsdyna_mpp\mppdyna_d_sse2_linux86_64_intelmmpi"
+_OS = "wsl"
 
 # LSDYNAPATH = r"C:\Program Files\ANSYS Inc\v222\ansys\bin\winx64\lsdyna_dp.exe"
 # OS = "Win"
 
 
-def check_lsdyna_exe():
+def _check_lsdyna_exe():
     """Check if LSDYNA executable exists."""
-    if OS == "Win":
-        result = str(distutils.spawn.find_executable(LSDYNAPATH))
-    elif OS == "wsl":
-        p = subprocess.Popen(["wsl", "which", LSDYNAPATH], stdout=subprocess.PIPE)
+    if _OS == "Win":
+        result = str(distutils.spawn.find_executable(_LSDYNAPATH))
+    elif _OS == "wsl":
+        p = subprocess.Popen(["wsl", "which", _LSDYNAPATH], stdout=subprocess.PIPE)
         result = p.stdout.read().decode()
 
-    if result.strip() != LSDYNAPATH:
+    if result.strip() != _LSDYNAPATH:
         LOGGER.error("Cannot find LSDYNA executable.")
         exit()
 
     return
 
 
-def clean_directory(directory: str):
+def _clean_directory(directory: str):
     """Clean the directory by removing it and re-creating it."""
     if os.path.isdir(directory):
         shutil.rmtree(directory)
@@ -65,7 +65,9 @@ def clean_directory(directory: str):
     return
 
 
-def run_lsdyna(sim_file: str, lsdynapath: str = LSDYNAPATH, ncpu: int = NCPU, options="", os=OS):
+def _run_lsdyna(
+    sim_file: str, lsdynapath: str = _LSDYNAPATH, ncpu: int = _NCPU, options="", os=_OS
+):
     """Run lsdyna in wsl."""
     # extract_binout = False
     # os.chdir(pathlib.Path(sim_file).parent)

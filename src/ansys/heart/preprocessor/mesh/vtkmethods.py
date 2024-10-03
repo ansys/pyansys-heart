@@ -54,8 +54,7 @@ def vtk_surface_to_stl(
     DeprecationWarning("This method is deprecated: use pyvista objects instead.")
 
     vtk_data_to_write = vtk_data
-
-    if type(vtk_data) != type(vtk.vtkPolyData()):
+    if not isinstance(vtk_data, vtk.vtkPolyData):
         # convert to polydata
         surface_filter = vtk.vtkDataSetSurfaceFilter()
         surface_filter.SetInputData(vtk_data)

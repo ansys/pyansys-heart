@@ -656,7 +656,7 @@ class MechanicsSimulator(BaseSimulator):
 
         model = copy.deepcopy(self.model)
         # Isolation part need to be created in Zerop because main will use its dynain.lsda
-        if isinstance(model, FourChamber) and type(self) == EPMechanicsSimulator:
+        if isinstance(model, FourChamber) and isinstance(self, EPMechanicsSimulator):
             model._create_atrioventricular_isolation()
 
         dyna_writer = writers.ZeroPressureMechanicsDynaWriter(model, self.settings)

@@ -71,7 +71,7 @@ class EDPVR:
                 volume[i] = self.v0
         return volume
 
-    def plot_pressure_volume(self, simulation_data=None):
+    def plot_EDPVR(self, simulation_data=None):  # noqa: N802
         """
         Plot end-diastolic pressure-volume relation.
 

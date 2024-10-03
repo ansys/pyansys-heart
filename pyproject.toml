@@ -102,6 +102,7 @@ ignore = [
     "N806",  # Variable in function should be lowercase
     "E741",  # Do not use variables named 'l', 'O', or 'I'
     "E711",  # Comparison to None should be 'if cond is None:'
+    "F841",  # Local variable is assigned to but never used
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -109,6 +110,8 @@ ignore = [
 "__init__.py" = ["F401"]
 # Ignore `D` rules everywhere except for the `src/` directory.
 "!src/**.py" = ["D"]
+# ignore "E402" for examples
+"examples/**.py" = ["E402"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"

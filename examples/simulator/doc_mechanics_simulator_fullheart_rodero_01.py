@@ -100,7 +100,7 @@ try:
     # assume we are in WSL if .exe not in path.
     if ".exe" not in path_to_dyna:
         dyna_settings.platform = "wsl"
-except:
+except Exception as e:
     pass
 # sphinx_gallery_end_ignore
 

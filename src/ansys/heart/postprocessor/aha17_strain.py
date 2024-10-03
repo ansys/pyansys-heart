@@ -169,7 +169,6 @@ class AhaStrainCalculator:
         # TODO: vectorization
         for i_ele in range(len(self._aha_elements)):
             if reference is not None:
-                # TODO
                 pass
             else:
                 right_cauchy_green = np.matmul(

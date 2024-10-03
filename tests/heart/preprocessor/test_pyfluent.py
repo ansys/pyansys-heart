@@ -47,5 +47,5 @@ def test_launch_fluent():
         ), "Failed workflow"
         session.exit()
         assert True
-    except:
+    except Exception as e:
         assert False, "Failed to launch pyfluent in meshing mode."

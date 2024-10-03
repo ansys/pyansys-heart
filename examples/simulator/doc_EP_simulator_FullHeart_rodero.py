@@ -61,7 +61,7 @@ from pathlib import Path
 try:
     path_to_dyna = str(Path(os.environ["PATH_TO_DYNA"]))
     workdir = os.path.join(os.path.dirname(str(Path(os.environ["PATH_TO_CASE_FILE"]))), "FullHeart")
-except:
+except Exception as e:
     pass
 # sphinx_gallery_end_ignore
 
@@ -100,7 +100,7 @@ try:
     # assume we are in WSL if .exe not in path.
     if ".exe" not in path_to_dyna:
         dyna_settings.platform = "wsl"
-except:
+except Exception as e:
     pass
 # sphinx_gallery_end_ignore
 

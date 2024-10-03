@@ -348,7 +348,7 @@ def mesh_from_manifold_input_model(
 
     try:
         os.makedirs(work_dir_meshing)
-    except:
+    except Exception:
         LOGGER.debug("Failed to create working directory")
 
     LOGGER.debug(f"Path to meshing directory: {work_dir_meshing}")
@@ -537,7 +537,7 @@ def mesh_from_non_manifold_input_model(
 
     try:
         os.makedirs(work_dir_meshing)
-    except:
+    except Exception:
         LOGGER.debug("Failed to create working directory")
 
     if not os.path.isfile(path_to_output) or overwrite_existing_mesh:
@@ -676,16 +676,16 @@ def mesh_from_non_manifold_input_model(
     )
     try:
         cell_centroids_2.point_data.remove("orig_indices")
-    except:
-        KeyError
+    except KeyError:
+        LOGGER.debug("KeyError")
     try:
         cell_centroids_2.point_data.remove("cell-zone-ids")
-    except:
-        KeyError
+    except KeyError:
+        LOGGER.debug("KeyError")
     try:
         cell_centroids_2.cell_data.remove("cell-zone-ids")
-    except:
-        KeyError
+    except KeyError:
+        LOGGER.debug("KeyError")
 
     cell_centroids_1.point_data.remove("part-id")
     cell_centroids_1.cell_data.remove("cell-zone-ids")

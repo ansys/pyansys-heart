@@ -169,7 +169,7 @@ def get_tri_info_from_polydata(
     try:
         global_ids = VN.vtk_to_numpy(vtk_polydata.GetPointData().GetGlobalIds())
         point_data["global_ids"] = global_ids
-    except:
+    except AttributeError:
         LOGGER.debug("Global Ids were not added to point data...")
 
     if not deep_copy:
@@ -870,8 +870,8 @@ def are_connected(
     merged = (mesh1 + mesh2).clean()
     try:
         merged.cell_data.remove("RegionId")
-    except:
-        KeyError
+    except KeyError:
+        LOGGER.warning("RegionId was not present in the cell data")
 
     merged = merged.connectivity()
 

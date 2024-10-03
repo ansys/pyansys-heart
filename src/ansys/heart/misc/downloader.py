@@ -214,7 +214,7 @@ def unpack_case(tar_path: Path):
         tar_dir = os.path.dirname(tar_path)
         tar_ball.extractall(path=tar_dir)
         return True
-    except:
+    except Exception as e:
         LOGGER.error("Unpacking failed...")
         return False
 

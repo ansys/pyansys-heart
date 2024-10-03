@@ -35,7 +35,7 @@ from typing import List, Literal, Union
 from deprecated import deprecated
 import numpy as np
 import pyvista as pv
-from scipy.spatial.transform import Rotation as R
+from scipy.spatial.transform import Rotation
 import yaml
 
 from ansys.heart.core import LOG as LOGGER
@@ -119,7 +119,7 @@ class ModelInfo:
         for file in files:
             try:
                 os.remove(file)
-            except:
+            except Exception:
                 LOGGER.debug(f"Unable to delete: {file}")
         return
 
@@ -295,7 +295,7 @@ class HeartModel:
         for part in self.parts:
             try:
                 part.element_ids = np.setdiff1d(part.element_ids, eids)
-            except:
+            except ValueError:
                 LOGGER.error(f"Failed to create part {name}")
                 return None
 
@@ -843,7 +843,7 @@ class HeartModel:
             for beams in self.beam_network:
                 plotter.add_mesh(beams, color="r", line_width=2)
             plotter.show()
-        except:
+        except Exception as e:
             LOGGER.warning("Failed to plot mesh.")
         return
 
@@ -986,20 +986,20 @@ class HeartModel:
 
         # try to reconstruct parts from part info
         # for part_name in part_info.keys():
-        for part1 in self.parts:
+        for part_1 in self.parts:
             try:
-                idx = list(part_info.keys()).index(part1.name)
+                idx = list(part_info.keys()).index(part_1.name)
             except ValueError:
-                LOGGER.debug(f"{part.name} not in part info")
+                LOGGER.debug(f"{part_1.name} not in part info")
                 continue
 
             # part_name_n = "_".join(part_name.lower().split(" "))
             # init part.
-            part = Part(part1.name, PartType(part_info[part1.name]["part-type"]))
+            part = Part(part_1.name, PartType(part_info[part_1.name]["part-type"]))
 
             #! try to add surfaces to part by using the pre-defined surfaces
             #! Should part-info define the entire heart model and part attributes?
-            for surface in part1.surfaces:
+            for surface in part_1.surfaces:
                 surface1 = self.mesh.get_surface_by_name(surface.name)
                 if not surface1:
                     # LOGGER.debug(f"{surface1.name} not found in mesh.")
@@ -1008,27 +1008,27 @@ class HeartModel:
                 surface.id = surface1.id
                 surface.name = surface1.name
 
-            part1.pid = part_info[part1.name]["part-id"]
+            part_1.pid = part_info[part_1.name]["part-id"]
 
             try:
-                part1.element_ids = np.argwhere(
-                    np.isin(self.mesh.cell_data["_volume-id"], part1.pid)
+                part_1.element_ids = np.argwhere(
+                    np.isin(self.mesh.cell_data["_volume-id"], part_1.pid)
                 ).flatten()
-            except:
-                LOGGER.debug(f"Failed to set element ids for {part1.name}")
+            except Exception:
+                LOGGER.debug(f"Failed to set element ids for {part_1.name}")
                 pass
 
             # try to set cavity
-            if part_info[part1.name]["cavity"] != {}:
-                cavity_name = list(part_info[part1.name]["cavity"].keys())[0]
-                cavity_id = list(part_info[part1.name]["cavity"].values())[0]
-                part1.cavity = Cavity(surface=self.mesh.get_surface(cavity_id), name=cavity_name)
+            if part_info[part_1.name]["cavity"] != {}:
+                cavity_name = list(part_info[part_1.name]["cavity"].keys())[0]
+                cavity_id = list(part_info[part_1.name]["cavity"].values())[0]
+                part_1.cavity = Cavity(surface=self.mesh.get_surface(cavity_id), name=cavity_name)
 
-            if part_info[part1.name]["caps"] != {}:
-                for cap_name, cap_id in part_info[part1.name]["caps"].items():
+            if part_info[part_1.name]["caps"] != {}:
+                for cap_name, cap_id in part_info[part_1.name]["caps"].items():
                     cap = Cap(cap_name)
                     cap._mesh = self.mesh.get_surface(cap_id)
-                    part1.caps.append(cap)
+                    part_1.caps.append(cap)
 
             # setattr(self, part_name_n, part)
 
@@ -1346,7 +1346,7 @@ class HeartModel:
                                 "Multiple candidate surfaces for septum found, using first one."
                             )
                         boundary_surface = self.mesh.get_surface_by_name(septum_candidates[0])
-                    except:
+                    except Exception as e:
                         boundary_surface = None
 
                 if boundary_surface:
@@ -1383,7 +1383,7 @@ class HeartModel:
             # select endocardial surfaces
             surfaces = [s for s in part.surfaces if "endocardium" in s.name]
 
-            # NOTE, this is a loop since the right-ventricle endocardium consists
+            # NOTE: this is a loop since the right-ventricle endocardium consists
             # of both the "regular" endocardium and the septal endocardium
 
             # NOTE: pv.merge accepts list of surfaces.
@@ -1672,15 +1672,17 @@ class HeartModel:
         if p_junction is not None:
             # CASIS definition: LV and RV junction point
             vec = (p_junction - p_highest) / np.linalg.norm(p_junction - p_highest)
-            axe_60 = R.from_rotvec(np.radians(90) * short_axis).apply(vec)
+            axe_60 = Rotation.from_rotvec(np.radians(90) * short_axis).apply(vec)
         else:
             # default: rotate 60 from long axis
-            axe_60 = R.from_rotvec(np.radians(60) * short_axis).apply(self.l4cv_axis["normal"])
+            axe_60 = Rotation.from_rotvec(np.radians(60) * short_axis).apply(  # noqa:E501
+                self.l4cv_axis["normal"]
+            )
 
-        axe_120 = R.from_rotvec(np.radians(60) * short_axis).apply(axe_60)
-        axe_180 = -R.from_rotvec(np.radians(60) * short_axis).apply(axe_120)
-        axe_45 = R.from_rotvec(np.radians(-15) * short_axis).apply(axe_60)
-        axe_135 = R.from_rotvec(np.radians(90) * short_axis).apply(axe_45)
+        axe_120 = Rotation.from_rotvec(np.radians(60) * short_axis).apply(axe_60)
+        axe_180 = -Rotation.from_rotvec(np.radians(60) * short_axis).apply(axe_120)
+        axe_45 = Rotation.from_rotvec(np.radians(-15) * short_axis).apply(axe_60)
+        axe_135 = Rotation.from_rotvec(np.radians(90) * short_axis).apply(axe_45)
 
         p1_3 = 1 / 3 * (apex_ep - p_highest) + p_highest
         p2_3 = 2 / 3 * (apex_ep - p_highest) + p_highest

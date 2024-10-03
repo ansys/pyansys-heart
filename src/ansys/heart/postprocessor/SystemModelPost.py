@@ -228,7 +228,7 @@ class SystemModelPost:
         vl = self.lv_system.volume.cavity[start:end]
         try:
             ef[0] = (max(vl) - min(vl)) / max(vl)
-        except:
+        except Exception as e:
             ef[0] = None
             LOGGER.warning("Failed to compute ejection fraction.")
         if self.model_type == "BV":

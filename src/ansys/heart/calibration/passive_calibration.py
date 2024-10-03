@@ -32,8 +32,8 @@ import textwrap
 
 import numpy as np
 
+from ansys.heart.core.models import HeartModel
 from ansys.heart.postprocessor.klotz_curve import EDPVR
-from ansys.heart.preprocessor.models import HeartModel
 from ansys.heart.simulator.settings import settings
 from ansys.heart.simulator.simulator import MechanicsSimulator
 

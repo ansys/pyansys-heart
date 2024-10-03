@@ -237,14 +237,15 @@ class ActiveCurve:
 
     def _estimate_stress(self):
         # TODO: only with 1
-        # TODO: @wenfengye ensure ruff compatibility, see the # noqa's
+        # TODO: @wenfengye ensure ruff compatibility, see the noqa's
         ca2ionmax = 4.35
         ca2ion = 4.35
         n = 2
         mr = 1048.9
         dtmax = 150
         tr = -1429
-        L = 1.85  # 1.78-1.91 # noqa N806
+        # Range of L 1.78-1.91
+        L = 1.85  # noqa N806
         l0 = 1.58
         b = 4.75
         lam = 1

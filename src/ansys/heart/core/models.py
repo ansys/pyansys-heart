@@ -39,10 +39,9 @@ from scipy.spatial.transform import Rotation
 import yaml
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.preprocessor.input import _InputModel
-import ansys.heart.preprocessor.mesh.connectivity as connectivity
-import ansys.heart.preprocessor.mesh.mesher as mesher
-from ansys.heart.preprocessor.mesh.objects import (
+import ansys.heart.core.helpers.connectivity as connectivity
+import ansys.heart.core.helpers.vtkmethods as vtkmethods
+from ansys.heart.core.objects import (
     BeamMesh,
     Cap,
     Cavity,
@@ -52,7 +51,8 @@ from ansys.heart.preprocessor.mesh.objects import (
     Point,
     SurfaceMesh,
 )
-import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
+from ansys.heart.preprocessor.input import _InputModel
+import ansys.heart.preprocessor.mesher as mesher
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 
 
@@ -618,7 +618,7 @@ class HeartModel:
 
     def summary(self) -> dict:
         """Get summary information of the model as a ditionary."""
-        from ansys.heart.preprocessor.helpers import model_summary
+        from ansys.heart.core.helpers.general import model_summary
 
         summary = model_summary(self)
         return summary
@@ -1111,7 +1111,7 @@ class HeartModel:
             lv_apex = self.left_ventricle.apex_points[1].xyz
             mv_centroid = [c.centroid for p in self.parts for c in p.caps if "mitral" in c.name][0]
             longitudinal_axis = lv_apex - mv_centroid
-            from ansys.heart.preprocessor.mesh.geodisc import rodrigues_rot
+            from ansys.heart.core.helpers.geodisc import rodrigues_rot
 
             points_rotation = rodrigues_rot(
                 self.mesh.nodes - lv_apex, longitudinal_axis, [0, 0, -1]

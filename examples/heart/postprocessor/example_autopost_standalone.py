@@ -20,8 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from ansys.heart.core.models import HeartModel
 from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
-from ansys.heart.preprocessor.models import HeartModel
 
 if __name__ == "__main__":
     """

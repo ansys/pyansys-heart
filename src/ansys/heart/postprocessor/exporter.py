@@ -37,9 +37,9 @@ import numpy as np
 import pyvista as pv
 import vtk
 
+from ansys.heart.core.helpers.vtkmethods import vtk_cutter, write_vtkdata_to_vtkfile
+from ansys.heart.core.models import HeartModel, LeftVentricle
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
-from ansys.heart.preprocessor.mesh.vtkmethods import vtk_cutter, write_vtkdata_to_vtkfile
-from ansys.heart.preprocessor.models import HeartModel, LeftVentricle
 
 
 class D3plotToVTKExporter:

@@ -28,7 +28,7 @@ import tempfile
 import pytest
 import validators
 
-from ansys.heart.misc.downloader import (
+from ansys.heart.core.helpers.downloader import (
     _format_download_urls,
     _validate_hash_sha256,
     download_case_from_zenodo,

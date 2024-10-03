@@ -24,7 +24,7 @@ import hashlib
 import json
 import os
 
-from ansys.heart.misc.downloader import download_case_from_zenodo
+from ansys.heart.core.helpers.downloader import download_case_from_zenodo
 
 if __name__ == "__main__":
     """Creates a reference hash table used to check integrity of data files.

@@ -43,8 +43,8 @@ and process that into a simulation-ready full heart model.
 import json
 import os
 
+import ansys.heart.core.models as models
 from ansys.heart.preprocessor.database_preprocessor import get_compatible_input
-import ansys.heart.preprocessor.models as models
 
 # specify necessary paths.
 case_file = os.path.join("downloads", "Strocchi2020", "01", "01.case")

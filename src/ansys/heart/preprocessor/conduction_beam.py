@@ -27,8 +27,8 @@ import numpy as np
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.preprocessor.mesh.objects import BeamMesh, Point, SurfaceMesh
-from ansys.heart.preprocessor.models import FourChamber
+from ansys.heart.core.models import FourChamber
+from ansys.heart.core.objects import BeamMesh, Point, SurfaceMesh
 
 
 def _create_line(point_start: np.array, point_end: np.array, beam_length: float):

@@ -584,7 +584,7 @@ def mesh_from_non_manifold_input_model(
             _wrap_part(session, part.boundary_names, part.name)
 
         # NOTE: wrap entire model in one pass so that we can create a single volume mesh.
-        # Use list of all input boundaries as input. Uses external material point for meshing. 
+        # Use list of all input boundaries as input. Uses external material point for meshing.
         # This assumes that all the individually wrapped parts form a single
         # connected structure.
         LOGGER.info("Wrapping model...")

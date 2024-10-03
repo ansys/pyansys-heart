@@ -40,7 +40,6 @@ import yaml
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.preprocessor.input import _InputModel
-
 import ansys.heart.preprocessor.mesh.connectivity as connectivity
 import ansys.heart.preprocessor.mesh.mesher as mesher
 from ansys.heart.preprocessor.mesh.objects import (
@@ -399,7 +398,7 @@ class HeartModel:
         beam_net.name = name
 
         #! class variable BeamMesh.all_beam_nodes is not saved in pickle
-        #! only the last created beam_network holds all previously created 
+        #! only the last created beam_network holds all previously created
         #! nodes.
         beam_net._all_beam_nodes = np.copy(BeamMesh.all_beam_nodes)
 
@@ -625,7 +624,7 @@ class HeartModel:
         return summary
 
     # TODO: keep this for now, but we can rework to more conveniently use
-    # TODO: info from self.mesh. We can replace for instance with the 
+    # TODO: info from self.mesh. We can replace for instance with the
     # TODO: model_summary() method.
     def print_info(self) -> None:
         """Print information about the model."""
@@ -1349,7 +1348,7 @@ class HeartModel:
             # NOTE, this is a loop since the right-ventricle endocardium consists
             # of both the "regular" endocardium and the septal endocardium.
             surfaces = [s for s in part.surfaces if "endocardium" in s.name]
-            
+
             surface: SurfaceMesh = SurfaceMesh(pv.merge(surfaces))
             surface.name = part.name + " cavity"
 
@@ -1956,9 +1955,7 @@ class HeartModel:
 
         # Create ring part
         # TODO: name must have 'base' in name, see dynawriter.py L3120
-        ring: Part = self.create_part_by_ids(
-            ring_eles, name="base atrial stiff rings"
-        )  
+        ring: Part = self.create_part_by_ids(ring_eles, name="base atrial stiff rings")
         ring.part_type = PartType.ATRIUM
         ring.fiber = False
         ring.active = False

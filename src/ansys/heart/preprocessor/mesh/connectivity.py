@@ -244,6 +244,7 @@ def edge_connectivity(
     https://www.educative.io/answers/how-to-implement-depth-first-search-in-python
     Performance is not tested so may not be suitable for large arrays of edges.
     """
+
     # Nested in Dept-first search algorithm
     def _dfs(visited, graph, node):
         if node not in visited:

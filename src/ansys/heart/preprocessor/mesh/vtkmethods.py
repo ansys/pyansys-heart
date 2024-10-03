@@ -24,8 +24,8 @@
 
 import copy
 from typing import List, Optional, Tuple, Union
-import deprecated
 
+import deprecated
 import numpy as np
 import pyvista as pv
 import vtk
@@ -34,7 +34,6 @@ from vtk.util import numpy_support as VN  # type: ignore # noqa
 from vtk.util.numpy_support import numpy_to_vtk  # type: ignore # noqa
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.preprocessor.mesh.fluenthdf5 import add_solid_name_to_stl
 
 
 @deprecated("This method is deprecated: can use pyvista objects directly.")
@@ -46,6 +45,7 @@ def write_vtkdata_to_vtkfile(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPol
     writer.SetFileTypeToBinary()
     writer.Write()
     return
+
 
 # TODO: replace partially with pyvista objects for convenience.
 def get_tetra_info_from_unstructgrid(
@@ -116,7 +116,6 @@ def get_tri_info_from_polydata(
     -----
     Assumes triangular elements
     """
-
     vtk_polydata_obj = dsa.WrapDataObject(vtk_polydata)
 
     nodes = np.array(vtk_polydata_obj.Points)
@@ -155,7 +154,8 @@ def get_tri_info_from_polydata(
             copy.deepcopy(point_data),
         )
 
-#TODO: replace with pyvista.
+
+# TODO: replace with pyvista.
 @deprecated("This method will be deprecated: can use pyvista methods instead.")
 def add_vtk_array(
     polydata: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid],
@@ -221,7 +221,8 @@ def add_vtk_array(
 
     return
 
-#TODO: replace with pyvista.
+
+# TODO: replace with pyvista.
 @deprecated("This method will be deprecated: can use pyvista methods instead.")
 def create_vtk_polydata_from_points(points: np.ndarray) -> vtk.vtkPolyData:
     """Create VTK PolyData object from set of points.
@@ -252,6 +253,7 @@ def create_vtk_polydata_from_points(points: np.ndarray) -> vtk.vtkPolyData:
     add_vtk_array(poly.VTKObject, nodeids, name="node-ids", data_type="point")
 
     return poly.VTKObject
+
 
 def compute_surface_nodal_area_pyvista(surface: pv.PolyData) -> np.ndarray:
     """Compute an average nodal area by summing surface areas of connected elements.
@@ -289,7 +291,8 @@ def compute_surface_nodal_area_pyvista(surface: pv.PolyData) -> np.ndarray:
         ii += 1
     return nodal_area
 
-#TODO: replace with pyvista.
+
+# TODO: replace with pyvista.
 @deprecated("This method will be deprecated: can use pyvista methods instead.")
 def add_normals_to_polydata(
     vtk_polydata: vtk.vtkPolyData, return_normals: bool = False
@@ -378,7 +381,8 @@ def extrude_polydata(
 
     return pv.PolyData(extruded_polydata)
 
-#TODO: replace with pyvista.
+
+# TODO: replace with pyvista.
 @deprecated("This method will be deprecated: can use pyvista methods instead.")
 def create_vtk_surface_triangles(
     points: np.ndarray, triangles: np.ndarray, clean=True
@@ -433,7 +437,8 @@ def create_vtk_surface_triangles(
     else:
         return polydata
 
-#TODO: replace with pyvista.
+
+# TODO: replace with pyvista.
 @deprecated("This method will be deprecated: can use pyvista methods instead.")
 def cell_ids_inside_enclosed_surface(
     vtk_source: vtk.vtkUnstructuredGrid, vtk_surface: vtk.vtkPolyData
@@ -476,7 +481,8 @@ def cell_ids_inside_enclosed_surface(
 
     return cell_ids_inside
 
-#TODO: replace with pyvista.
+
+# TODO: replace with pyvista.
 @deprecated("This method will be deprecated: can use pyvista methods instead.")
 def vtk_cutter(vtk_polydata: vtk.vtkPolyData, cut_plane) -> vtk.vtkPolyData:
     """

@@ -190,7 +190,7 @@ class ActiveCalibration:
     def define_objective(self):
         """Define objective function."""
         s = SystemModelPost(os.path.join(self.work_directory, "ivc"))
-        # TODO: @mhoeijm - remove this variable if not using , commenting out for now
+        # TODO: @wenfengye - remove this variable if not using , commenting out for now
         # t = s.lv_system.time
         p = s.lv_system.pressure.cavity
 

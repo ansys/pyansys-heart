@@ -713,14 +713,10 @@ def get_patches_with_centroid(surface: pv.PolyData, closed_only: bool = True) ->
         edge_groups = get_boundary_edge_loops(surface1, remove_open_edge_loops=False)
 
     # reconstruct polydata objects from global ids in edge_groups
-    # TODO: @mhoeijm - remove this variable if not using , commenting out for now
-    # edges_block = pv.MultiBlock()
     patches = []
     for edge_group in edge_groups.values():
         centroid = np.mean(surface1.points[np.unique(edge_group), :], axis=0)
 
-        # TODO: @mhoeijm - remove this variable if not using , commenting out for now
-        # edge_points = pv.PolyData(surface1.points[np.unique(edge_group), :])
         pv.PolyData(centroid)
 
         centroid_id = surface1.points.shape[0]

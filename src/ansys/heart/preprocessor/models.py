@@ -965,16 +965,17 @@ class HeartModel:
             part_info = self._part_info
 
         # try to reconstruct parts from part info
+        # TODO: @mhoeijm alternatively we can use parts defined in part_info,
+        # TODO: but we lose autocomplete. e.g.
         # TODO: use keys in part info: for part_name in part_info.keys():
+        # TODO: init part by:
+        # TODO: part = Part(part_1.name, PartType(part_info[part_1.name]["part-type"]))
         for part_1 in self.parts:
             try:
                 list(part_info.keys()).index(part_1.name)
             except ValueError:
                 LOGGER.debug(f"{part_1.name} not in part info")
                 continue
-
-            # TODO: @mhoeijm is this `part` variable using anywhere? If not, we can remove it.
-            # part = Part(part_1.name, PartType(part_info[part_1.name]["part-type"]))
 
             #! try to add surfaces to part by using the pre-defined surfaces
             #! Should part-info define the entire heart model and part attributes?
@@ -1442,7 +1443,9 @@ class HeartModel:
 
         return
 
-    # TODO: Refactor.
+    # TODO: @mhoeijm
+    # TODO: Refactor. Check whether all necessary caps exist in model.
+    # TODO: should be a function of model type.
     def _validate_cap_names(self):
         """Validate that caps are attached to right part."""
         for part in self.parts:
@@ -1456,9 +1459,6 @@ class HeartModel:
             elif part.name == "Right atrium":
                 expected_names = []
 
-            # valid_cap_names = True
-            # TODO: @mhoeijm: The valid cap names is not used, and should be removed.
-            # commenting out for now.
             for cn in cap_names:
                 matches = [True for en in expected_names if en in cn]
                 if len(matches) == 1:
@@ -1468,7 +1468,7 @@ class HeartModel:
                         "Part: {0}. Cap name is {1}, but expecting cap names "
                         "to contain one of {2}".format(part.name, cn, expected_names)
                     )
-                    # valid_cap_names = False
+
         return
 
     def _validate_surfaces(self):

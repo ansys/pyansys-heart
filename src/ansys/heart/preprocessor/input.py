@@ -236,11 +236,8 @@ class _InputModel:
             if not os.path.isfile(input):
                 raise FileNotFoundError(f"File {input} not found.")
 
-        # boundary_is_set = False
-        # TODO: @mhoeijm - remove boundary_is_set variable if not using , commenting out for now
         try:
             self.input_polydata = pv.PolyData(input)
-            # boundary_is_set = True
         except Exception:
             NotImplementedError(f"Failed to load file {input}. Other file types not supported yet.")
             return

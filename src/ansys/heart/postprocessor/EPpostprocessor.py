@@ -23,7 +23,7 @@
 """D3plot parser using Ansys-dpf."""
 
 import os
-import pathlib as Path
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -98,7 +98,7 @@ class EPpostprocessor:
             phi[time_id - 1, :] = self.fields.get_field(
                 {"variable_id": variable_id, "time": time_id}
             ).data[node_id]
-        if plot == True:
+        if plot:
             plt.plot(times, phi, label="node 0")
             plt.xlabel("time (ms)")
             plt.ylabel("phi (mV)")

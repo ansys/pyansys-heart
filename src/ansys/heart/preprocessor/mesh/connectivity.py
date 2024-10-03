@@ -242,8 +242,8 @@ def edge_connectivity(
     Performance is not tested so may not be suitable for large arrays of edges.
     """
 
-    # Nested in Dept-first search algorithm
     def _dfs(visited, graph, node):
+        # Nested in Dept-first search algorithm
         if node not in visited:
             # print(node)
             visited.add(node)

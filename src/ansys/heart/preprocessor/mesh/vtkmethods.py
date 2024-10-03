@@ -46,6 +46,7 @@ def write_vtkdata_to_vtkfile(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPol
     writer.Write()
     return
 
+
 # TODO: replace partially with pyvista objects for convenience.
 def get_tetra_info_from_unstructgrid(
     vtk_grid: vtk.vtkUnstructuredGrid, get_all_data: bool = True, deep_copy: bool = False
@@ -805,6 +806,7 @@ def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii") -> Non
             fid.write(string_replace)
         fid.close()
     return
+
 
 if __name__ == "__main__":
     print()

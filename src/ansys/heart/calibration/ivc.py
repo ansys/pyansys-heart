@@ -24,7 +24,7 @@
 
 import copy
 import os
-import pathlib as Path
+from pathlib import Path
 from typing import Literal
 
 from pint import Quantity

@@ -20,13 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-""" For information only, not yet stable
-    require previously launched simulation
-    change paths accordingly"""
+"""For information only, not yet stable
+require previously launched simulation
+change paths accordingly"""
 
 import matplotlib.pyplot as plt
 
-from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
+from ansys.heart.postprocessor.system_model_post import SystemModelPost
 
 if __name__ == "__main__":
     base_dir = r"my_base_directory"

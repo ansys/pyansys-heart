@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Tests shigh-level heart model class. """
+"""Tests shigh-level heart model class."""
 
 import json
 import os
@@ -111,7 +111,6 @@ def test_dump_model_001():
 def test_model_load_001():
     """Test dumping and reading of model with data."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
-
         info = models.ModelInfo()
         info.workdir = workdir
         model = models.BiVentricle(info)

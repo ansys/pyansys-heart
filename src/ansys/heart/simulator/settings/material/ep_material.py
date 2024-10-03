@@ -114,7 +114,7 @@ class CellModel:
         pass
 
     @dataclass
-    class Tentusscher_endo(Tentusscher):
+    class TentusscherEndo(Tentusscher):
         """Hold data for Tentusscher cell model in its endocardium version."""
 
         gks: float = 0.392
@@ -140,7 +140,7 @@ class CellModel:
         r: float = 2.235e-8
 
     @dataclass
-    class Tentusscher_epi(Tentusscher):
+    class TentusscherEpi(Tentusscher):
         """Hold data for Tentusscher cell model in its epicardium version."""
 
         gks: float = 0.392
@@ -166,7 +166,7 @@ class CellModel:
         r: float = 2.42e-8
 
     @dataclass
-    class Tentusscher_mid(Tentusscher):
+    class TentusscherMid(Tentusscher):
         """Hold data for Tentusscher cell model in its mid-myocardium version."""
 
         gks: float = 0.098
@@ -253,7 +253,7 @@ class EPMaterial(EPMaterialModel):
         """Hold data for beam active EP material."""
 
         sigma_fiber = ep_defaults.material["beam"]["sigma"].m
-        cell_model = field(default_factory=lambda: CellModel.Tentusscher_endo())
+        cell_model = field(default_factory=lambda: CellModel.TentusscherEndo())
         pmjres: float = ep_defaults.material["beam"]["pmjres"].m
 
     class Passive(EPMaterialModel):
@@ -278,7 +278,7 @@ if __name__ == "__main__":
     m1 = EPMaterial.DummyMaterial()
 
     tentus1 = CellModel.Tentusscher()
-    tentus2 = CellModel.Tentusscher_endo()
+    tentus2 = CellModel.TentusscherEndo()
 
     mat1 = EPMaterial.Insulator()
     mat2 = EPMaterial.Passive(sigma_fiber=0, sigma_sheet=2)

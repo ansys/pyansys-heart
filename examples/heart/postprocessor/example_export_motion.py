@@ -21,8 +21,8 @@
 # SOFTWARE.
 
 """For information only, not yet stable
-    require previously launched simulation
-    change paths accordingly"""
+require previously launched simulation
+change paths accordingly"""
 
 import matplotlib.pyplot as plt
 

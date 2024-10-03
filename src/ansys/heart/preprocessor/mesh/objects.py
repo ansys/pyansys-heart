@@ -47,8 +47,8 @@ try:
 except ImportError:
     LOGGER.warning("Importing pyvista failed. Install with: pip install pyvista")
 
-SURFACE_CELL_TYPES = [pv.CellType.QUAD, pv.CellType.TRIANGLE]
-VOLUME_CELL_TYPES = [pv.CellType.HEXAHEDRON, pv.CellType.TETRA]
+_SURFACE_CELL_TYPES = [pv.CellType.QUAD, pv.CellType.TRIANGLE]
+_VOLUME_CELL_TYPES = [pv.CellType.HEXAHEDRON, pv.CellType.TETRA]
 
 
 def _get_fill_data(
@@ -191,7 +191,7 @@ class SurfaceMesh(pv.PolyData):
                     "Assigning less nodes than the original not implemented yet."
                 )
 
-        except:
+        except Exception:
             LOGGER.warning("Failed to set nodes.")
             return
 
@@ -208,7 +208,7 @@ class SurfaceMesh(pv.PolyData):
             num_faces = value.shape[0]
             faces = np.hstack([np.full((num_faces, 1), 3, dtype=np.int8), value])
             self.faces = faces
-        except:
+        except Exception:
             return
 
     @property
@@ -243,7 +243,6 @@ class SurfaceMesh(pv.PolyData):
         id: int = None,
         **kwargs,
     ) -> None:
-
         # *NOTE: pv.PolyData supports variable input through the first argument (var_inp)
         # * the following is to make sure this object behaves similar to pv.PolyData
         # * https://github.com/pyvista/pyvista/blob/release/0.44/pyvista/core/pointset.py#L500-L1693
@@ -253,7 +252,6 @@ class SurfaceMesh(pv.PolyData):
             kwargs["var_inp"] = var_inp
 
         super(SurfaceMesh, self).__init__(**kwargs)
-        # **********************
 
         self.name = name
         """Name of the surface."""
@@ -319,7 +317,7 @@ class BeamMesh(pv.UnstructuredGrid, Feature):
             return
         try:
             self.points = array
-        except:
+        except Exception:
             LOGGER.warning("Failed to set nodes.")
             return
 
@@ -336,7 +334,7 @@ class BeamMesh(pv.UnstructuredGrid, Feature):
             celltypes = np.full(value.shape[0], pv.CellType.LINE, dtype=np.int8)
             lines = np.hstack([np.full(len(celltypes), 2)[:, None], value])
             super().__init__(lines, celltypes, points)
-        except:
+        except Exception:
             LOGGER.warning("Failed to set lines.")
             return
 
@@ -515,7 +513,7 @@ class Mesh(pv.UnstructuredGrid):
                     "Assigning less nodes than the original not implemented yet."
                 )
 
-        except:
+        except Exception:
             LOGGER.warning("Failed to set nodes.")
             return
 
@@ -547,7 +545,7 @@ class Mesh(pv.UnstructuredGrid):
             celltypes = np.full(value.shape[0], pv.CellType.TETRA, dtype=np.int8)
             tetra = np.hstack([np.full(len(celltypes), 4)[:, None], value])
             super().__init__(tetra, celltypes, points)
-        except:
+        except Exception:
             LOGGER.warning("Failed to set tetrahedrons.")
             return
 
@@ -562,7 +560,7 @@ class Mesh(pv.UnstructuredGrid):
             surface.id = sid
             try:
                 surface.name = self._surface_id_to_name[sid]
-            except:
+            except KeyError:
                 LOGGER.debug(f"Failed to give surface with id {sid} a name")
             surfaces.append(surface)
         return surfaces
@@ -617,12 +615,12 @@ class Mesh(pv.UnstructuredGrid):
             Array with unique surface ids
         """
         try:
-            mask = np.isin(self.celltypes, SURFACE_CELL_TYPES)
+            mask = np.isin(self.celltypes, _SURFACE_CELL_TYPES)
             mask1 = np.invert(np.isnan(self.cell_data["_surface-id"]))
             mask = np.all(np.vstack((mask, mask1)), axis=0)
             return np.unique(self.cell_data["_surface-id"][mask])
         except KeyError:
-            LOGGER.debug(f"Failed to extract one of {SURFACE_CELL_TYPES}")
+            LOGGER.debug(f"Failed to extract one of {_SURFACE_CELL_TYPES}")
             return []
 
     @property
@@ -640,12 +638,12 @@ class Mesh(pv.UnstructuredGrid):
             Array with unique volume ids
         """
         try:
-            mask = np.isin(self.celltypes, VOLUME_CELL_TYPES)
+            mask = np.isin(self.celltypes, _VOLUME_CELL_TYPES)
             mask1 = np.invert(np.isnan(self.cell_data["_volume-id"]))
             mask = np.all(np.vstack((mask, mask1)), axis=0)
             return np.unique(self.cell_data["_volume-id"][mask])
         except KeyError:
-            LOGGER.debug(f"Failed to extrect one of {VOLUME_CELL_TYPES}")
+            LOGGER.debug(f"Failed to extrect one of {_VOLUME_CELL_TYPES}")
             return None
 
     @property
@@ -759,7 +757,7 @@ class Mesh(pv.UnstructuredGrid):
         self, sid: int, scalar: Literal["_surface-id", "_line-id", "_volume-id"]
     ) -> pv.UnstructuredGrid:
         # NOTE: extract_cells cleans the object, removing any unused points.
-        if not scalar in self.cell_data.keys():
+        if scalar not in self.cell_data.keys():
             LOGGER.debug(f"{scalar} does not exist in cell_data")
             return None
         mask = np.isin(self.cell_data[scalar], sid)
@@ -812,7 +810,7 @@ class Mesh(pv.UnstructuredGrid):
         filename_map = filename.replace(extension, ".namemap.json")
         try:
             self._load_id_to_name_map(filename_map)
-        except:
+        except FileNotFoundError:
             if not os.path.isfile(filename_map):
                 LOGGER.warning(
                     f"""{filename_map} not found. Please set id_to_name map manually by
@@ -865,7 +863,7 @@ class Mesh(pv.UnstructuredGrid):
 
     def validate_ids_to_name_map(self):
         """Check whether there are any duplicate or unmapped surfaces/volumes."""
-        # TODO Ensure there are no duplicate names.
+        # TODO: Ensure there are no duplicate names.
         unmapped_volumes = self._get_unmapped_volumes()
         unmapped_surfaces = self._get_unmapped_surfaces()
 

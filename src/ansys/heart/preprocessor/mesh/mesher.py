@@ -38,7 +38,7 @@ from ansys.heart.preprocessor.mesh.fluenthdf5 import FluentCellZone, FluentMesh
 from ansys.heart.preprocessor.mesh.objects import SurfaceMesh
 from ansys.heart.preprocessor.mesh.vtkmethods import add_solid_name_to_stl
 
-# os.environ["SHOW_FLUENT_GUI"] = "1"
+# NOTE: can set os.environ["SHOW_FLUENT_GUI"] = "1" to show Fluent GUI.
 
 _fluent_version = "24.1.0"
 _show_fluent_gui: bool = False
@@ -126,10 +126,6 @@ def _organize_connected_regions(grid: pv.UnstructuredGrid, scalar: str = "part-i
                 LOGGER.debug("More than 1 candidate.")
 
             grid.cell_data["part-id"][orphan_cell_ids] = unique_ids[np.argmax(counts)]
-
-        # orphan_cell_ids += list(conn.cell_data["orig-cell-ids"][conn.cell_data["RegionId"] > 0])
-
-    # for each orphan cell
 
     return grid
 
@@ -348,13 +344,12 @@ def mesh_from_manifold_input_model(
 
     try:
         os.makedirs(work_dir_meshing)
-    except:
+    except Exception:
         LOGGER.debug("Failed to create working directory")
 
     LOGGER.debug(f"Path to meshing directory: {work_dir_meshing}")
 
     if not os.path.isfile(path_to_output) or overwrite_existing_mesh:
-
         path_to_output_old = path_to_output
         path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
 
@@ -447,7 +442,6 @@ def mesh_from_manifold_input_model(
             session.tui.file.write_mesh(os.path.basename(path_to_output))
         else:
             session.tui.file.write_mesh('"' + path_to_output + '"')
-        # session.meshing.tui.file.read_journal(script)
         session.exit()
 
         if path_to_output != path_to_output_old:
@@ -465,14 +459,10 @@ def mesh_from_manifold_input_model(
     for input_part in model.parts:
         surface = input_part.combined_boundaries
 
-        if surface.is_manifold:
-            check_surface = True
-        else:
-            check_surface = False
+        if not surface.is_manifold:
             LOGGER.warning(
                 "Part {0} not manifold - disabled surface check.".format(input_part.name)
             )
-
         for cz in mesh.cell_zones:
             # use centroid of first cell to find which input part it belongs to.
             centroid = pv.PolyData(np.mean(mesh.nodes[cz.cells[0, :], :], axis=0))
@@ -538,7 +528,7 @@ def mesh_from_non_manifold_input_model(
 
     try:
         os.makedirs(work_dir_meshing)
-    except:
+    except Exception:
         LOGGER.debug("Failed to create working directory")
 
     if not os.path.isfile(path_to_output) or overwrite_existing_mesh:
@@ -589,9 +579,9 @@ def mesh_from_non_manifold_input_model(
             # wrap object.
             _wrap_part(session, part.boundary_names, part.name)
 
-        # wrap entire model in one pass so that we can create a single volume mesh. Use list of all
-        # input boundaries are given as input. External material point for meshing.
-        # NOTE: this assumes that all the individually wrapped parts form a single
+        # NOTE: wrap entire model in one pass so that we can create a single volume mesh.
+        # Use list of all input boundaries as input. Uses external material point for meshing.
+        # This assumes that all the individually wrapped parts form a single
         # connected structure.
         LOGGER.info("Wrapping model...")
         _wrap_part(session, model.boundary_names, "model")
@@ -660,12 +650,13 @@ def mesh_from_non_manifold_input_model(
         cell_centroids = cell_centroids.select_enclosed_points(
             part.combined_boundaries, check_surface=False
         )
-        cell_centroids.point_data["part-id"][
-            cell_centroids.point_data["SelectedPoints"] == 1
-        ] = part.id
+        cell_centroids.point_data["part-id"][cell_centroids.point_data["SelectedPoints"] == 1] = (
+            part.id
+        )
 
     # Use closest-point interpolation to assign part-ids to cell centers that are
     # not enclosed by any of the wrapped parts
+    # TODO: clean up the following section.
     cell_centroids["orig_indices"] = np.arange(cell_centroids.n_points, dtype=np.int32)
     cell_centroids.point_data.remove("SelectedPoints")
     cell_centroids_1 = cell_centroids.remove_cells(
@@ -677,16 +668,16 @@ def mesh_from_non_manifold_input_model(
     )
     try:
         cell_centroids_2.point_data.remove("orig_indices")
-    except:
-        KeyError
+    except KeyError:
+        LOGGER.debug("KeyError")
     try:
         cell_centroids_2.point_data.remove("cell-zone-ids")
-    except:
-        KeyError
+    except KeyError:
+        LOGGER.debug("KeyError")
     try:
         cell_centroids_2.cell_data.remove("cell-zone-ids")
-    except:
-        KeyError
+    except KeyError:
+        LOGGER.debug("KeyError")
 
     cell_centroids_1.point_data.remove("part-id")
     cell_centroids_1.cell_data.remove("cell-zone-ids")

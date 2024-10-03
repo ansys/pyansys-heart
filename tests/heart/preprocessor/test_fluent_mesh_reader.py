@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-""" Some tests to test function of the Fluent mesh reader on a unit-cube example """
+"""Some tests to test function of the Fluent mesh reader on a unit-cube example"""
 
 import os
 

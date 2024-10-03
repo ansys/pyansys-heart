@@ -29,6 +29,7 @@ Mostly related to the motion.
 import os
 import pathlib
 from pathlib import Path
+from typing import List
 
 import matplotlib.pyplot as plt
 import meshio
@@ -38,8 +39,6 @@ import vtk
 
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.preprocessor.mesh.vtkmethods import vtk_cutter, write_vtkdata_to_vtkfile
-
-# TODO replace by v0_2
 from ansys.heart.preprocessor.models import HeartModel, LeftVentricle
 
 
@@ -67,7 +66,8 @@ class D3plotToVTKExporter:
         time : float
             time to convert
         fname : str
-            filename to be saved, default is None
+            filename to be save save data, default is None
+
         Returns
         -------
         pv.UnstructuredGrid
@@ -109,13 +109,14 @@ class LVContourExporter:
     """Export Left ventricle surface and Post-process."""
 
     def __init__(self, d3plot_file: str, model: HeartModel):
-        """
-        Init LVContourExporter.
+        """Initialize the LVContourExporter.
 
         Parameters
         ----------
-        d3plot_file:
-        model:
+        d3plot_file : str
+            Path to the d3plot file.
+        model : HeartModel
+            Heart model.
         """
         self.model = model
         self.work_dir = os.path.join(Path(d3plot_file).parent.absolute(), "post")
@@ -125,7 +126,7 @@ class LVContourExporter:
         self.out_folder = "lv_surface"
         os.makedirs(os.path.join(self.work_dir, self.out_folder), exist_ok=True)
 
-        # todo get ID dynamically by part.pid or mid
+        # TODO: get ID dynamically by part.pid or mid
         if isinstance(self.model, LeftVentricle):
             keep_ids = [1]
         else:
@@ -148,26 +149,32 @@ class LVContourExporter:
             if cap.name == "mitral-valve":
                 self.mv_ids = cap.global_node_ids_edge
 
-    def export_contour_to_vtk(self, folder, cutter) -> [vtk.vtkPolyData]:
-        """
-        Cut and save the contour in vtk.
+    # TODO: @wenfengye can you cleanup, refactor and/or complete
+    # TODO: the typehints, etc.
+    def export_contour_to_vtk(self, folder, cutter) -> List[vtk.vtkPolyData]:
+        """Cut and save the contour in .vtk format.
 
         Parameters
         ----------
-        cutter: dict contain 'center' and 'normal'
-        folder: output folder
+        folder : _type_
+            Output folder.
+        cutter : _type_
+            _description_
 
         Returns
         -------
-        List of contour data
+        [vtk.vtkPolyData]
+            List of contours
         """
         w_dir = os.path.join(self.work_dir, folder)
         os.makedirs(w_dir, exist_ok=True)
         cut_surfaces = []
         for id, surface in enumerate(self.lv_surfaces):
+            # TODO: replace by pyvista method(s).
             res = vtk_cutter(surface, cutter)
             cut_surfaces.append(res)
 
+        # TODO: replace by pyvista method(s).
         for ic, contour in enumerate(cut_surfaces):
             write_vtkdata_to_vtkfile(contour, os.path.join(w_dir, f"contour_{ic}.vtk"))
         return cut_surfaces

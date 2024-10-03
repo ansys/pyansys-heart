@@ -45,7 +45,7 @@ class ANISO:
     """Anisotropic module of MAT_295."""
 
     @dataclass
-    class HGO_Fiber:
+    class HGOFiber:
         """Define HGO type fiber from k1 and k2."""
 
         k1: float = None
@@ -57,7 +57,7 @@ class ANISO:
         _fcid: int = 0
 
     atype: int = -1
-    fibers: List[HGO_Fiber] = None
+    fibers: List[HGOFiber] = None
 
     k1fs: Optional[float] = None
     k2fs: Optional[float] = None
@@ -69,7 +69,7 @@ class ANISO:
         """Check and deduce other parameters from input."""
         # create a default one if not given
         if self.fibers is None:
-            self.fibers = [self.HGO_Fiber()]
+            self.fibers = [self.HGOFiber()]
 
         # check if legal
         if len(self.fibers) != 1 and len(self.fibers) != 2:
@@ -117,7 +117,7 @@ class ActiveModel:
         stf: float = 0.0
         b: float = 4.75
         l0: float = 1.58
-        l: float = 1.85
+        l: float = 1.85  # noqa: E741
         dtmax: float = 150
         mr: float = 1048.9
         tr: float = -1629.0
@@ -130,7 +130,7 @@ class ActiveModel:
         ca2ion50: float = 1.0
         n: float = 1.0
         f: float = 0.0
-        l: float = 1.0  # no effect if eta=0
+        l: float = 1.0  # no effect if eta=0 #noqa: E741
         eta: float = 0.0
         sigmax: float = None
 

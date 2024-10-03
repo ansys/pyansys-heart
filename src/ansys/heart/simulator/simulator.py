@@ -34,7 +34,7 @@ Options for simulation:
 
 import copy
 import os
-import pathlib as Path
+import pathlib
 import shutil
 import subprocess
 from typing import List, Literal
@@ -43,7 +43,7 @@ import numpy as np
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.misc.element_orth import read_orth_element_kfile
+from ansys.heart.misc.element_orth import _read_orth_element_kfile
 from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
 from ansys.heart.postprocessor.laplace_post import (
     compute_la_fiber_cs,
@@ -85,7 +85,7 @@ class BaseSimulator:
         self,
         model: HeartModel,
         dyna_settings: DynaSettings = None,
-        simulation_directory: Path = "",
+        simulation_directory: pathlib = "",
     ) -> None:
         """Initialize BaseSimulator.
 
@@ -166,7 +166,7 @@ class BaseSimulator:
         # print("Done.")
 
         LOGGER.info("Assigning fiber orientation to model...")
-        elem_ids, part_ids, connect, fib, sheet = read_orth_element_kfile(
+        elem_ids, part_ids, connect, fib, sheet = _read_orth_element_kfile(
             os.path.join(directory, "element_solid_ortho.k")
         )
 
@@ -323,7 +323,7 @@ class BaseSimulator:
 
         return dyna_writer.target
 
-    def _run_dyna(self, path_to_input: Path, options: str = ""):
+    def _run_dyna(self, path_to_input: pathlib, options: str = ""):
         """Run LS-DYNA with path and options.
 
         Parameters
@@ -353,7 +353,7 @@ class BaseSimulator:
         alpha_epicardium: float = 60,
         beta_endocardium: float = 25,
         beta_epicardium: float = -65,
-    ) -> Path:
+    ) -> pathlib:
         """Write LS-DYNA files for fiber generation."""
         export_directory = os.path.join(self.root_directory, "fibergeneration")
         self.directories["fibergeneration"] = export_directory
@@ -372,7 +372,7 @@ class EPSimulator(BaseSimulator):
         self,
         model: HeartModel,
         dyna_settings: DynaSettings,
-        simulation_directory: Path = "",
+        simulation_directory: pathlib = "",
     ) -> None:
         """Initialize EP Simulator."""
         super().__init__(model, dyna_settings, simulation_directory)
@@ -445,10 +445,10 @@ class EPSimulator(BaseSimulator):
             beam_length = self.settings.purkinje.edgelen.m
 
             cs = ConductionSystem(self.model)
-            cs.compute_SA_node()
+            cs.compute_sa_node()
             cs.compute_AV_node()
             cs.compute_av_conduction(beam_length=beam_length)
-            left, right = cs.compute_His_conduction(beam_length=beam_length)
+            left, right = cs.compute_his_conduction(beam_length=beam_length)
             cs.compute_left_right_bundle(
                 left.xyz, left.node_id, side="Left", beam_length=beam_length
             )
@@ -456,9 +456,9 @@ class EPSimulator(BaseSimulator):
                 right.xyz, right.node_id, side="Right", beam_length=beam_length
             )
 
-            # # TODO define end point by uhc, or let user choose
+            # # TODO: define end point by uhc, or let user choose
             # Note: must on surface after zerop if coupled with meca
-            # cs.compute_Bachman_bundle(
+            # cs.compute_bachman_bundle(
             #     start_coord=self.model.right_atrium.get_point("SA_node").xyz,
             #     end_coord=np.array([-34, 163, 413]),
             # )
@@ -489,7 +489,7 @@ class EPSimulator(BaseSimulator):
     def _write_purkinje_files(
         self,
         export_directory,
-    ) -> Path:
+    ) -> pathlib:
         """Write purkinje files."""
         model = copy.deepcopy(self.model)
         dyna_writer = writers.PurkinjeGenerationDynaWriter(model, self.settings)
@@ -505,7 +505,7 @@ class MechanicsSimulator(BaseSimulator):
         self,
         model: HeartModel,
         dyna_settings: DynaSettings,
-        simulation_directory: Path = "",
+        simulation_directory: pathlib = "",
         initial_stress: bool = True,
     ) -> None:
         super().__init__(model, dyna_settings, simulation_directory)
@@ -534,7 +534,7 @@ class MechanicsSimulator(BaseSimulator):
         """
         try:
             v = self.model.mesh.point_data_to_cell_data()["apico-basal"]
-        except:
+        except KeyError:
             self.compute_uhc()
             v = self.model.mesh.point_data_to_cell_data()["apico-basal"]
 
@@ -600,7 +600,7 @@ class MechanicsSimulator(BaseSimulator):
         LOGGER.info("done.")
 
         if auto_post:
-            mech_post(Path.Path(directory), self.model)
+            mech_post(pathlib.Path(directory), self.model)
         return
 
     def compute_stress_free_configuration(self, folder_name="zeropressure", overwrite: bool = True):
@@ -611,7 +611,7 @@ class MechanicsSimulator(BaseSimulator):
             os.makedirs(directory, exist_ok=True)
 
             self._write_stress_free_configuration_files(folder_name)
-            self.settings.save(Path.Path(directory) / "simulation_settings.yml")
+            self.settings.save(pathlib.Path(directory) / "simulation_settings.yml")
 
             LOGGER.info("Computing stress-free configuration...")
             self._run_dyna(os.path.join(directory, "main.k"), options="case")
@@ -649,14 +649,14 @@ class MechanicsSimulator(BaseSimulator):
 
         return export_directory
 
-    def _write_stress_free_configuration_files(self, folder_name) -> Path:
+    def _write_stress_free_configuration_files(self, folder_name) -> pathlib:
         """Write LS-DYNA files to compute stress-free configuration."""
         export_directory = os.path.join(self.root_directory, folder_name)
         self.directories["zeropressure"] = export_directory
 
         model = copy.deepcopy(self.model)
         # Isolation part need to be created in Zerop because main will use its dynain.lsda
-        if isinstance(model, FourChamber) and type(self) == EPMechanicsSimulator:
+        if isinstance(model, FourChamber) and isinstance(self, EPMechanicsSimulator):
             model._create_atrioventricular_isolation()
 
         dyna_writer = writers.ZeroPressureMechanicsDynaWriter(model, self.settings)
@@ -673,7 +673,7 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         self,
         model: HeartModel,
         dyna_settings: DynaSettings,
-        simulation_directory: Path = "",
+        simulation_directory: pathlib = "",
     ) -> None:
         MechanicsSimulator.__init__(self, model, dyna_settings, simulation_directory)
 
@@ -699,9 +699,9 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
 
 
 def run_lsdyna(
-    path_to_input: Path,
+    path_to_input: pathlib,
     settings: DynaSettings = None,
-    simulation_directory: Path = None,
+    simulation_directory: pathlib = None,
 ):
     """Standalone function for running LS-DYNA.
 

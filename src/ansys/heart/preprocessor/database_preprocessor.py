@@ -83,9 +83,13 @@ def _get_original_labels(database: str) -> dict:
         Dictionary representing the label to id map.
     """
     if database == "Strocchi2020":
-        from ansys.heart.preprocessor.database_labels_to_id import Strocchi2020 as database_labels
+        from ansys.heart.preprocessor.database_labels_to_id import Strocchi2020
+
+        database_labels = Strocchi2020
     elif database == "Rodero2021":
-        from ansys.heart.preprocessor.database_labels_to_id import Rodero2021 as database_labels
+        from ansys.heart.preprocessor.database_labels_to_id import Rodero2021
+
+        database_labels = Rodero2021
     else:
         LOGGER.error(f"Database with name {database} not supported.")
         return
@@ -105,7 +109,7 @@ def _get_interface_surfaces(mesh: pv.UnstructuredGrid, labels: dict, tag_to_labe
     """
     tetras = np.reshape(mesh.cells, (mesh.n_cells, 5))[:, 1:]
     faces, c0, c1 = face_tetra_connectivity(tetras)
-    interface_mask = mesh.cell_data["tags"][c0] != mesh.cell_data["tags"][c1]
+    # NOTE: if c0 != c1, face is an interface between two parts.
     t0 = np.array(mesh.cell_data["tags"][c0], dtype=int)
     t1 = np.array(mesh.cell_data["tags"][c1], dtype=int)
 
@@ -161,7 +165,7 @@ def _find_endo_epicardial_regions(geom_all: pv.PolyData, tag_to_label: dict):
 
     for tag, label in tag_to_label.items():
         # split myocardial surfaces
-        if "myocardium" in label and not "interface" in label:
+        if "myocardium" in label and "interface" not in label:
             mask = geom_all.cell_data["tags"] == tag
             sub_geom = geom_all.extract_cells(mask).extract_geometry()
             sub_geom = sub_geom.connectivity()
@@ -376,7 +380,7 @@ def _smooth_boundary_edges(
                 edges_array = np.reshape(edges.lines, (edges.n_cells, 3))[:, 1:].tolist()
                 try:
                     sorted_edges_array = _sort_edge_loop(edges_array)
-                except:
+                except Exception:
                     print(f"Failed to sort edges for {id_to_label_map[surf_id]} region {region_id}")
                     continue
 

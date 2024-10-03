@@ -64,6 +64,7 @@ def orthogonalization(grid) -> pv.UnstructuredGrid:
         f" This should only be at valve regions and can be checked from the vtk file."
     )
 
+    # NOTE: keep for reference.
     # grad_trans_new = grid["grad_trans"]
     # grad_trans_new[bad_cells] = np.array([[1, 0, 0]]).repeat(len(bad_cells), axis=0)
     # norm = np.linalg.norm(grad_trans_new, axis=1)
@@ -101,7 +102,7 @@ def get_gradient(directory, field_list: List[str]) -> pv.UnstructuredGrid:
         # force a deep copy
         grid.point_data[name] = copy.deepcopy(t)
 
-    # note vtk gradient method shows warning/error for some cells
+    # NOTE: vtk gradient method shows warning/error for some cells
     grid2 = grid.point_data_to_cell_data()
     for name in field_list:
         derivative = grid2.compute_derivative(scalars=name, preference="cell")
@@ -123,7 +124,7 @@ def _update_trans_by_normal(grid: pv.UnstructuredGrid, surface: pv.PolyData):
 
     cell_center = grid.cell_centers().points
     d, t = tree.query(cell_center, 1)
-    # print(max(d))
+
     grid["grad_trans"] = with_normals.cell_data["Normals"][t]
 
     return grid
@@ -156,8 +157,6 @@ def compute_la_fiber_cs(
 
     def bundle_selection(grid) -> pv.UnstructuredGrid:
         """Left atrium bundle selection."""
-        # grid = pv.read(os.path.join(directory, "res.vtk"))
-
         # bundle selection
         tau_mv = settings.tau_mv  # 0.65
         tau_lpv = settings.tau_lpv  # 0.65
@@ -181,12 +180,10 @@ def compute_la_fiber_cs(
         mask = grid["bundle"] == 0
         grid["k"][mask] = grid["grad_ab"][mask]
 
-        # grid.save(os.path.join(directory, "res2.vtk"))
-
         return grid
 
     grid = get_gradient(directory, field_list=["trans", "ab", "v", "r"])
-    # TODO sometimes, pv object broken when pass directly
+    # TODO: sometimes, pyvista object breaks when passing this directly
 
     grid = pv.read("gradient.vtk")
     if endo_surface is not None:
@@ -239,13 +236,11 @@ def compute_ra_fiber_cs(
         tao_ib = settings.tau_ib  # 0.35
         tao_ras = settings.tau_ras  # 0.135
 
-        trans = grid["trans"]
         ab = grid["ab"]
         v = grid["v"]
         r = grid["r"]
         w = grid["w"]
 
-        trans_grad = grid["grad_trans"]
         ab_grad = grid["grad_ab"]
         v_grad = grid["grad_v"]
         r_grad = grid["grad_r"]

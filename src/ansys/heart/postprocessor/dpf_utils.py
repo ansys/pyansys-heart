@@ -23,14 +23,14 @@
 """D3plot parser using Ansys-dpf."""
 
 import os
-import pathlib as Path
+from pathlib import Path
 from typing import List
 
-from ansys.dpf import core as dpf
+from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 
-# from ansys.dpf.core.dpf_operator import available_operator_names
+from ansys.dpf import core as dpf
 from ansys.heart.core import LOG as LOGGER
 
 
@@ -46,7 +46,7 @@ def _check_env():
 class D3plotReader:
     """Use DPF to parse d3plot."""
 
-    def __init__(self, path: Path.Path):
+    def __init__(self, path: Path):
         """
         Initialize D3plotReader.
 
@@ -56,8 +56,6 @@ class D3plotReader:
             d3plot file path.
         """
         _check_env()
-        # os.environ["ANSYS_DPF_SERVER_CONTEXT"] = "PREMIUM"
-        # dpf.set_default_server_context(dpf.AvailableServerContexts.premium)
 
         self._server = dpf.start_local_server(config=dpf.AvailableServerConfigs.GrpcServer)
 
@@ -65,8 +63,6 @@ class D3plotReader:
         self.ds.set_result_file_path(path, "d3plot")
 
         self.model = dpf.Model(self.ds)
-
-        # common
 
         self.meshgrid: pv.UnstructuredGrid = self.model.metadata.meshed_region.grid
         self.time = self.model.metadata.time_freq_support.time_frequencies.data
@@ -85,12 +81,12 @@ class D3plotReader:
 
         time_ids = (
             self.model.metadata.time_freq_support.time_frequencies.scoping.ids
-            if at_step == None
+            if at_step is None
             else [at_step]
         )
 
         time_scoping = dpf.Scoping(ids=time_ids, location=dpf.locations.time_freq)
-        # to get time steps:
+        # NOTE: to get time steps:
         # self.model.metadata.time_freq_support.time_frequencies.data_as_list
 
         op = dpf.Operator("lsdyna::ms::results")  # ls dyna EP operator
@@ -134,6 +130,7 @@ class D3plotReader:
 
     def print_lsdyna_ms_results(self):
         """Print available ms results."""
+        # NOTE: map between variable id and variable name.
         #  Elemental Electrical Conductivity(domain Id: 1, Variable Id: 33)
         #  Elemental Scalar Potential(domain Id: 2, Variable Id: 32)
         #  Elemental Current Density(domain Id: 2, Variable Id: 1013)
@@ -222,6 +219,8 @@ class D3plotReader:
 
         return np.array(res)
 
+    @deprecated(reason="This method will be deprecated.")
+    # TODO: @wenfengye please deprecate or replace.
     def export_vtk(
         self,
         file_path: str,
@@ -229,18 +228,19 @@ class D3plotReader:
         only_surface: bool = False,
         keep_mat_ids: List[int] = None,
     ):
-        """
-        Convert d3plot to vtk.
+        """Convert d3plot to vtk.
 
         Parameters
         ----------
-        keep_mat_ids: keep cells by material IDs.
-        only_surface: extract surface.
-        file_path: Path
-        prefix: vtk file prefix, optional
-
+        file_path : str
+            Path to d3plot file.
+        prefix : str, optional
+            Prefix added to filename, by default "model"
+        only_surface : bool, optional
+            Flag indicating whether to export only the surface, by default False
+        keep_mat_ids : List[int], optional
+            Keep these material ids in the vtk files, by default None
         """
-        LOGGER.warning("This method will be deprecated.")
         mat_ids = self.model.metadata.meshed_region.elements.materials_field.data
 
         if not np.all(np.isin(keep_mat_ids, np.unique(mat_ids))):
@@ -333,7 +333,7 @@ class ICVoutReader:
             time array
         """
         # see pydpf examples, lsdyna-operators
-        icvout_op = dpf.Operator(f"lsdyna::binout::ICV_P")
+        icvout_op = dpf.Operator("lsdyna::binout::ICV_P")
         icvout_op.inputs.data_sources(self._ds)
         p_fc = icvout_op.eval()
         rescope_op = dpf.operators.scoping.rescope()

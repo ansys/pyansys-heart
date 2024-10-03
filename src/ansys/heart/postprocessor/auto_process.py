@@ -30,10 +30,10 @@ import os
 import numpy as np
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.postprocessor.Klotz_curve import EDPVR
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.postprocessor.exporter import D3plotToVTKExporter, LVContourExporter
+from ansys.heart.postprocessor.klotz_curve import EDPVR
 from ansys.heart.postprocessor.pvloop import generate_pvloop
 from ansys.heart.preprocessor.mesh.objects import Cavity
 from ansys.heart.preprocessor.models import HeartModel
@@ -46,9 +46,9 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     Parameters
     ----------
     directory : str
-        simulation folder path
+        Path to simulation folder
     model : HeartModel
-        model
+        model to post-process
 
     Returns
     -------
@@ -141,7 +141,7 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
 
 
 def mech_post(directory: str, model: HeartModel):
-    """Post-process Main mechanical simulation folder.
+    """Post-process mechanical simulation folder.
 
     Parameters
     ----------
@@ -173,9 +173,7 @@ def mech_post(directory: str, model: HeartModel):
     exporter = D3plotToVTKExporter(os.path.join(directory, "d3plot"), t_to_keep=last_cycle_duration)
     for i, t in enumerate(exporter.save_time):
         # NOTE: the returned pv_object seems corrupted, I suspect it's a bug of pyvista
-        pv_object = exporter.convert_to_pvgrid_at_t(
-            time=t, fname=os.path.join(out_dir, f"heart_{i}.vtu")
-        )
+        exporter.convert_to_pvgrid_at_t(time=t, fname=os.path.join(out_dir, f"heart_{i}.vtu"))
 
     # compute strain of last cycle
     out_dir = os.path.join(directory, "post", "lrc_strain")

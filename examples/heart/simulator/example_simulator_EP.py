@@ -35,7 +35,7 @@ WORKING_DIRECTORY = os.path.join(pathlib.Path(PATH_TO_CASE).parent, "BiVentricle
 
 # Specify LS-DYNA path
 # LSDYNA_PATH = rf"my_path_to_ls_dyna\lsdyna_executable.exe"
-LSDYNA_PATH = rf"D:\LSDYNA\ls-dyna_smp_d_Dev_97584-g1b99fd817b_winx64_ifort190.exe"
+LSDYNA_PATH = r"D:\LSDYNA\ls-dyna_smp_d_Dev_97584-g1b99fd817b_winx64_ifort190.exe"
 
 if __name__ == "__main__":
     """BiVentricle example.

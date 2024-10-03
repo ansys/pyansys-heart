@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 """Compute myocardial strain."""
+
 import pathlib
 
 import matplotlib as mpl
@@ -165,10 +166,9 @@ class AhaStrainCalculator:
 
         # model info
         e_l, e_r, e_c = self.model.compute_left_ventricle_element_cs()
-        # todo: vectorization
+        # TODO: vectorization
         for i_ele in range(len(self._aha_elements)):
             if reference is not None:
-                # todo
                 pass
             else:
                 right_cauchy_green = np.matmul(
@@ -202,11 +202,7 @@ class AhaStrainCalculator:
 
     @staticmethod
     def bullseye_plot(ax, data, seg_bold=None, cmap=None, norm=None):
-        """
-        Bullseye representation for the left ventricle.
-
-        Based on:
-        https://matplotlib.org/stable/gallery/specialty_plots/leftventricle_bulleye.html#sphx-glr-gallery-specialty-plots-leftventricle-bulleye-py
+        """Bullseye representation for the left ventricle.
 
         Parameters
         ----------
@@ -224,6 +220,9 @@ class AhaStrainCalculator:
         -----
         This function creates the 17 segment model for the left ventricle according
         to the American Heart Association (AHA) [1]_
+
+        Based on:
+        https://matplotlib.org/stable/gallery/specialty_plots/leftventricle_bulleye.html#sphx-glr-gallery-specialty-plots-leftventricle-bulleye-py
 
         References
         ----------
@@ -272,7 +271,8 @@ class AhaStrainCalculator:
             # First segment start at 60 degrees
             theta0 = theta[i * 128 : i * 128 + 128] + np.deg2rad(60)
             theta0 = np.repeat(theta0[:, np.newaxis], 2, axis=1)
-            z = np.ones((128, 2)) * data[i]
+            # TODO: @wenfengye - remove this variable if not using , commenting out for now
+            # z = np.ones((128, 2)) * data[i]
             # ax.pcolormesh(theta0, r0, z, cmap=cmap, norm=norm, shading="auto")
 
             ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[i]), fontsize=12)
@@ -289,7 +289,8 @@ class AhaStrainCalculator:
             # First segment start at 60 degrees
             theta0 = theta[i * 128 : i * 128 + 128] + np.deg2rad(60)
             theta0 = np.repeat(theta0[:, np.newaxis], 2, axis=1)
-            z = np.ones((128, 2)) * data[i + 6]
+            # TODO: @wenfengye - remove this variable if not using , commenting out for now
+            # z = np.ones((128, 2)) * data[i + 6]
             # ax.pcolormesh(theta0, r0, z, cmap=cmap, norm=norm, shading="auto")
 
             ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[i + 6]), fontsize=12)
@@ -306,7 +307,8 @@ class AhaStrainCalculator:
             # First segment start at 45 degrees
             theta0 = theta[i * 192 : i * 192 + 192] + np.deg2rad(45)
             theta0 = np.repeat(theta0[:, np.newaxis], 2, axis=1)
-            z = np.ones((192, 2)) * data[i + 12]
+            # TODO: @wenfengye - remove this variable if not using , commenting out for now
+            # z = np.ones((192, 2)) * data[i + 12]
             # ax.pcolormesh(theta0, r0, z, cmap=cmap, norm=norm, shading="auto")
 
             ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[i + 12]), fontsize=12)
@@ -321,7 +323,8 @@ class AhaStrainCalculator:
             r0 = np.array([0, r[0]])
             r0 = np.repeat(r0[:, np.newaxis], theta.size, axis=1).T
             theta0 = np.repeat(theta[:, np.newaxis], 2, axis=1)
-            z = np.ones((theta.size, 2)) * data[16]
+            # TODO: @wenfengye - remove this variable if not using , commenting out for now
+            # z = np.ones((theta.size, 2)) * data[16]
             # ax.pcolormesh(theta0, r0, z, cmap=cmap, norm=norm, shading="auto")
 
             ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[16]), fontsize=12)

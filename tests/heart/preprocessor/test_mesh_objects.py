@@ -55,7 +55,7 @@ def _convert_to_mesh(model: pv.UnstructuredGrid) -> Mesh:
 
 # define different beam models that can be used for testing.
 def _get_beam_model(
-    cell_type: Literal["tets", "tets+triangles", "triangles", "hex", "hex+quads", "quads"]
+    cell_type: Literal["tets", "tets+triangles", "triangles", "hex", "hex+quads", "quads"],
 ) -> Union[pv.UnstructuredGrid, pv.PolyData]:
     """Generates various beam models.
 
@@ -199,8 +199,8 @@ def test_surface_add_001():
 
     surface = _get_beam_model("triangles")
     # check adding without id or id as float
-    assert mesh.add_surface(surface) == None
-    assert mesh.add_surface(surface, float(1)) == None
+    assert mesh.add_surface(surface) is None
+    assert mesh.add_surface(surface, float(1)) is None
 
     # test adding a single surface
     mesh.add_surface(surface, id=2)
@@ -231,7 +231,7 @@ def test_surface_add_001():
     mesh = _convert_to_mesh(_get_beam_model("tets"))
 
     mesh.add_surface(triangles, 10)
-    assert mesh.add_surface(quads, 10) == None
+    assert mesh.add_surface(quads, 10) is None
 
     mesh.add_surface(quads, 10, overwrite_existing=True)
     # Both quads and triangles will exist:
@@ -256,8 +256,8 @@ def test_lines_add_001():
 
     line = pv.Line([0, 0, 0], [-1, 0, 0])
 
-    assert mesh.add_lines(line) == None
-    assert mesh.add_lines(line, float(1)) == None
+    assert mesh.add_lines(line) is None
+    assert mesh.add_lines(line, float(1)) is None
 
     mesh.add_lines(line, id=2)
 
@@ -275,8 +275,8 @@ def test_volume_add_001():
 
     hex = _get_beam_model("hex")
 
-    assert tets.add_volume(hex) == None
-    assert tets.add_volume(hex, float(1)) == None
+    assert tets.add_volume(hex) is None
+    assert tets.add_volume(hex, float(1)) is None
 
     tets.add_volume(hex, id=2)
     expected = np.hstack(
@@ -535,12 +535,12 @@ def test_mesh_id_to_name():
     assert isinstance(triangles1, SurfaceMesh)
     assert triangles1.name == "triangles"
     assert triangles1.id == 1
-    assert mesh.get_surface_by_name("silly-name") == None
+    assert mesh.get_surface_by_name("silly-name") is None
 
     tets1 = mesh.get_volume_by_name("tets")
     assert tets.n_cells == tets1.n_cells
     assert tets.n_points == tets1.n_points
-    assert mesh.get_volume_by_name("silly-name") == None
+    assert mesh.get_volume_by_name("silly-name") is None
 
     del mesh._volume_id_to_name[10]
     assert mesh._get_unmapped_volumes() == [10]

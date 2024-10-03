@@ -33,12 +33,14 @@ from pint import Quantity, UnitRegistry
 import yaml
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.simulator.settings.defaults import electrophysiology as ep_defaults
-from ansys.heart.simulator.settings.defaults import fibers as fibers_defaults
-from ansys.heart.simulator.settings.defaults import mechanics as mech_defaults
-from ansys.heart.simulator.settings.defaults import purkinje as purkinje_defaults
-from ansys.heart.simulator.settings.defaults import zeropressure as zero_pressure_defaults
-from ansys.heart.simulator.settings.material.curve import ActiveCurve, Strocchi_active, constant_ca2
+from ansys.heart.simulator.settings.defaults import (
+    electrophysiology as ep_defaults,
+    fibers as fibers_defaults,
+    mechanics as mech_defaults,
+    purkinje as purkinje_defaults,
+    zeropressure as zero_pressure_defaults,
+)
+from ansys.heart.simulator.settings.material.curve import ActiveCurve, constant_ca2, strocchi_active
 from ansys.heart.simulator.settings.material.material import (
     ACTIVE,
     ANISO,
@@ -190,7 +192,7 @@ class EpMaterial(Settings):
     """Cap material."""
     beam: AttrDict = None
     """beam material."""
-    # TODO consider 'other', e.g passive conductor, soft tissue...?
+    # TODO: consider 'other', e.g passive conductor, soft tissue...?
 
 
 @dataclass(repr=False)
@@ -280,7 +282,7 @@ class Stimulation(Settings):
             if isinstance(__value, list):
                 try:
                     __value = [int(x) for x in __value]
-                except:
+                except ValueError:
                     print("Failed to cast node_ids to list of integers.")
 
             return super().__setattr__(__name, __value)
@@ -533,26 +535,26 @@ class SimulationSettings:
             attribute_name = "mechanics"
             _deserialize_quantity(settings[attribute_name], ureg)
             # assign values to each respective attribute
-            A = Analysis()
-            A.set_values(settings[attribute_name]["analysis"])
-            M = Material()
-            M.set_values(settings[attribute_name]["material"])
-            BC = BoundaryConditions()
-            BC.set_values(settings[attribute_name]["boundary_conditions"])
-            S = SystemModel()
-            S.set_values(settings[attribute_name]["system"])
-            self.mechanics.analysis = A
-            self.mechanics.material = M
-            self.mechanics.boundary_conditions = BC
-            self.mechanics.system = S
+            analysis = Analysis()
+            analysis.set_values(settings[attribute_name]["analysis"])
+            material = Material()
+            material.set_values(settings[attribute_name]["material"])
+            boundary_conditions = BoundaryConditions()
+            boundary_conditions.set_values(settings[attribute_name]["boundary_conditions"])
+            system_model = SystemModel()
+            system_model.set_values(settings[attribute_name]["system"])
+            self.mechanics.analysis = analysis
+            self.mechanics.material = material
+            self.mechanics.boundary_conditions = boundary_conditions
+            self.mechanics.system = system_model
 
             attribute_name = "stress_free"
             _deserialize_quantity(settings[attribute_name], ureg)
-            A = AnalysisZeroPressure()
-            A.set_values(settings[attribute_name]["analysis"])
-            self.stress_free.analysis = A
+            analysis = AnalysisZeroPressure()
+            analysis.set_values(settings[attribute_name]["analysis"])
+            self.stress_free.analysis = analysis
 
-        except:
+        except KeyError:
             LOGGER.error("Failed to load mechanics settings.")
 
     def load_defaults(self):
@@ -579,43 +581,43 @@ class SimulationSettings:
           global_damping: 0.5 / millisecond
 
         """
-        # TODO move to Settings class
+        # TODO: move to Settings class
         for attr in self.__dict__:
             if isinstance(getattr(self, attr), Mechanics):
-                A = Analysis()
-                A.set_values(mech_defaults.analysis)
-                M = Material()
-                M.set_values(mech_defaults.material)
-                BC = BoundaryConditions()
-                BC.set_values(mech_defaults.boundary_conditions)
-                S = SystemModel()
-                S.set_values(mech_defaults.system_model)
+                analysis = Analysis()
+                analysis.set_values(mech_defaults.analysis)
+                material = Material()
+                material.set_values(mech_defaults.material)
+                boundary_conditions = BoundaryConditions()
+                boundary_conditions.set_values(mech_defaults.boundary_conditions)
+                system_model = SystemModel()
+                system_model.set_values(mech_defaults.system_model)
 
-                self.mechanics.analysis = A
-                self.mechanics.material = M
-                self.mechanics.boundary_conditions = BC
-                self.mechanics.system = S
+                self.mechanics.analysis = analysis
+                self.mechanics.material = material
+                self.mechanics.boundary_conditions = boundary_conditions
+                self.mechanics.system = system_model
 
             if isinstance(getattr(self, attr), ZeroPressure):
-                A = AnalysisZeroPressure()
-                A.set_values(zero_pressure_defaults.analysis)
-                self.stress_free.analysis = A
+                analysis = AnalysisZeroPressure()
+                analysis.set_values(zero_pressure_defaults.analysis)
+                self.stress_free.analysis = analysis
 
             if isinstance(getattr(self, attr), Electrophysiology):
-                A = EPAnalysis()
-                A.set_values(ep_defaults.analysis)
-                M = EpMaterial()
-                M.set_values(ep_defaults.material)
+                analysis = EPAnalysis()
+                analysis.set_values(ep_defaults.analysis)
+                material = EpMaterial()
+                material.set_values(ep_defaults.material)
 
-                self.electrophysiology.analysis = A
-                self.electrophysiology.material = M
+                self.electrophysiology.analysis = analysis
+                self.electrophysiology.material = material
                 self.electrophysiology.stimulation: AttrDict[str, Stimulation] = AttrDict()
                 for key in ep_defaults.stimulation.keys():
-                    S = Stimulation()
-                    S.set_values(ep_defaults.stimulation[key])
-                    self.electrophysiology.stimulation[key] = S
-                # TODO add stim params, monodomain/bidomain/eikonal,cellmodel
-            # TODO add settings for purkinje  fibers and epmecha
+                    system_model = Stimulation()
+                    system_model.set_values(ep_defaults.stimulation[key])
+                    self.electrophysiology.stimulation[key] = system_model
+                # TODO: add stim params, monodomain/bidomain/eikonal,cellmodel
+            # TODO: add settings for purkinje  fibers and epmecha
             if isinstance(getattr(self, attr), Fibers):
                 self.fibers.set_values(fibers_defaults.angles)
             if isinstance(getattr(self, attr), Purkinje):
@@ -692,10 +694,10 @@ def _read_myocardium_from_settings(mat: AttrDict) -> MAT295:
 
     iso = ISO(nu=mat["isotropic"]["nu"], k1=mat["isotropic"]["k1"].m, k2=mat["isotropic"]["k2"].m)
 
-    fibers = [ANISO.HGO_Fiber(k1=mat["anisotropic"]["k1f"].m, k2=mat["anisotropic"]["k2f"].m)]
+    fibers = [ANISO.HGOFiber(k1=mat["anisotropic"]["k1f"].m, k2=mat["anisotropic"]["k2f"].m)]
 
     if "k1s" in mat["anisotropic"]:
-        sheet = ANISO.HGO_Fiber(k1=mat["anisotropic"]["k1s"].m, k2=mat["anisotropic"]["k2s"].m)
+        sheet = ANISO.HGOFiber(k1=mat["anisotropic"]["k1s"].m, k2=mat["anisotropic"]["k2s"].m)
         fibers.append(sheet)
 
     if "k1fs" in mat["anisotropic"]:
@@ -712,7 +714,7 @@ def _read_myocardium_from_settings(mat: AttrDict) -> MAT295:
         curve = ActiveCurve(constant_ca2(tb=bt), threshold=0.1, type="ca2")
     elif mat["active"]["actype"] == 3:
         ac_mdoel = ActiveModel.Model3(sigmax=max)
-        curve = ActiveCurve(Strocchi_active(t_end=bt), type="stress")
+        curve = ActiveCurve(strocchi_active(t_end=bt), type="stress")
 
     active = ACTIVE(
         ss=mat["active"]["ss"],
@@ -981,6 +983,7 @@ class DynaSettings:
 
         return commands
 
+    # TODO: @mhoeijm update to ensure compatibility with new LS-DYNA/Ansys versions
     def _set_env_variables(self):
         r"""Try to set environment variables for MPI run using Ansys installation root directories.
 
@@ -1001,9 +1004,9 @@ class DynaSettings:
             platform = "linx64"
 
         if self.dynatype in "intelmpi":
-            INTEL_CMP_REV = "2019.5.281"
-            INTEL_MKL_REV = "2020.0.166"
-            INTEL_MPI_REV = "2018.3.210"
+            intel_cmp_rev = "2019.5.281"
+            intel_mkl_rev = "2020.0.166"
+            intel_mpi_rev = "2018.3.210"
 
             if os.getenv("MPI_ROOT"):
                 LOGGER.warning(
@@ -1013,12 +1016,12 @@ class DynaSettings:
 
             for root in ansys_env_roots:
                 mpi_root = os.path.join(
-                    os.getenv(root), "commonfiles", "MPI", "Intel", INTEL_MPI_REV, platform
+                    os.getenv(root), "commonfiles", "MPI", "Intel", intel_mpi_rev, platform
                 )
                 mpi_path = os.path.join(mpi_root, "bin")
-                mkl_path = os.path.join(os.getenv(root), "tp", "IntelMKL", INTEL_MKL_REV, platform)
+                mkl_path = os.path.join(os.getenv(root), "tp", "IntelMKL", intel_mkl_rev, platform)
                 cmp_path = os.path.join(
-                    os.getenv(root), "tp", "IntelCompiler", INTEL_CMP_REV, platform
+                    os.getenv(root), "tp", "IntelCompiler", intel_cmp_rev, platform
                 )
                 for p in [mpi_root, mpi_path, mkl_path, cmp_path]:
                     if not os.path.isdir(p):
@@ -1037,9 +1040,9 @@ class DynaSettings:
                 break
 
         elif self.dynatype == "msmpi" and self.platform == "windows":
-            INTEL_CMP_REV = "2019.5.281"
-            INTEL_MKL_REV = "2020.0.166"
-            MS_MPI_REV = "10.1.12498.18"
+            intel_cmp_rev = "2019.5.281"
+            intel_mkl_rev = "2020.0.166"
+            ms_mpi_rev = "10.1.12498.18"
 
             if os.getenv("MPI_ROOT"):
                 LOGGER.warning(
@@ -1049,12 +1052,12 @@ class DynaSettings:
 
             for root in ansys_env_roots:
                 mpi_root = os.path.join(
-                    os.getenv(root), "commonfiles", "MPI", "Microsoft", MS_MPI_REV, platform
+                    os.getenv(root), "commonfiles", "MPI", "Microsoft", ms_mpi_rev, platform
                 )
                 mpi_path = os.path.join(mpi_root, "bin")
-                mkl_path = os.path.join(os.getenv(root), "tp", "IntelMKL", INTEL_MKL_REV, platform)
+                mkl_path = os.path.join(os.getenv(root), "tp", "IntelMKL", intel_mkl_rev, platform)
                 cmp_path = os.path.join(
-                    os.getenv(root), "tp", "IntelCompiler", INTEL_CMP_REV, platform
+                    os.getenv(root), "tp", "IntelCompiler", intel_cmp_rev, platform
                 )
                 for p in [mpi_root, mpi_path, mkl_path, cmp_path]:
                     if not os.path.isdir(p):

@@ -64,14 +64,14 @@ def clean_directory(directory: str):
     return
 
 
-def run_lsdyna(sim_file: str, lsdynapath: str = LSDYNAPATH, ncpu: int = NCPU, options="", OS=OS):
+def run_lsdyna(sim_file: str, lsdynapath: str = LSDYNAPATH, ncpu: int = NCPU, options="", os=OS):
     """Run lsdyna in wsl."""
     # extract_binout = False
     # os.chdir(pathlib.Path(sim_file).parent)
 
     # check_lsdyna_exe()
 
-    if OS == "wsl":
+    if os == "wsl":
         sim_file_wsl = (
             subprocess.run(["wsl", "wslpath", os.path.basename(sim_file)], capture_output=1)
             .stdout.decode()
@@ -92,7 +92,7 @@ def run_lsdyna(sim_file: str, lsdynapath: str = LSDYNAPATH, ncpu: int = NCPU, op
 
         command = ["powershell", "-Command", "wsl", "-e", "bash", "-lic", "./run_lsdyna.sh"]
 
-    elif OS == "Win":
+    elif os == "Win":
         command = [lsdynapath, f"ncpu={ncpu}", f"i={sim_file}", f"{options}"]
 
     LOGGER.info("Running ls-dyna with command:")

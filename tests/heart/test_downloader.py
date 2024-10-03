@@ -56,7 +56,6 @@ def test_download_urls(database_name):
 def test_download_case(database_name, mocker):
     """Test unpacking cases from different repositories."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
-
         download_folder = tempdir
 
         mocker.patch("wget.download")

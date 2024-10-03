@@ -232,7 +232,10 @@ class EPpostprocessor:
         return ECGs, times
 
     def compute_12_lead_ECGs(
-        self, ECGs: np.ndarray, times: np.ndarray, plot: bool = True
+        self,
+        ECGs: np.ndarray,
+        times: np.ndarray,
+        plot: bool = True,  # noqa: N803
     ) -> np.ndarray:
         """Compute 12-Lead ECGs from 10 electrodes.
 

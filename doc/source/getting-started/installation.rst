@@ -43,7 +43,7 @@ Install from a wheel file
 -------------------------
 
 if you lack the internet connection, you can install PyAnsys Heart from a wheel file.
-you should you should install PyAnsys Heart by downloading the wheelhouse archive for your
+You should install PyAnsys Heart by downloading the wheelhouse archive for your
 corresponding machine architecture from the repository’s
 `Release page <https://github.com/ansys/pyansys-heart/releases>`_.
 

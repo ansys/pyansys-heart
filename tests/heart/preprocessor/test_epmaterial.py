@@ -267,14 +267,12 @@ def test_active():
 
 
 def test_passive():
-
     passive = EPMaterial.Passive(sigma_fiber=1, sigma_sheet_normal=4)
     assert hasattr(passive, "cell_model") == False
     assert passive.sigma_sheet_normal == 4
 
 
 def test_insulator():
-
     insulator = EPMaterial.Insulator()
     assert insulator.sigma_fiber == 0
     assert insulator.beta == 0

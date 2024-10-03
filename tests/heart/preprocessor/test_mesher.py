@@ -67,7 +67,7 @@ def clean_up_temp_dirs():
     for tmp_dir in tmp_dirs_remove:
         try:
             shutil.rmtree(tmp_dir)
-        except Exception as e:
+        except Exception:
             pass
 
 

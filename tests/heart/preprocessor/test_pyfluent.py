@@ -22,8 +22,9 @@
 
 """Collection of methods to test pyfluent."""
 
-import ansys.fluent.core as pyfluent
 import pytest
+
+import ansys.fluent.core as pyfluent
 
 # marks all tests with the 'requires_fluent' tag after this line
 pytestmark = pytest.mark.requires_fluent
@@ -47,5 +48,5 @@ def test_launch_fluent():
         ), "Failed workflow"
         session.exit()
         assert True
-    except Exception as e:
+    except Exception:
         assert False, "Failed to launch pyfluent in meshing mode."

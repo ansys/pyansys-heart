@@ -55,7 +55,7 @@ def _convert_to_mesh(model: pv.UnstructuredGrid) -> Mesh:
 
 # define different beam models that can be used for testing.
 def _get_beam_model(
-    cell_type: Literal["tets", "tets+triangles", "triangles", "hex", "hex+quads", "quads"]
+    cell_type: Literal["tets", "tets+triangles", "triangles", "hex", "hex+quads", "quads"],
 ) -> Union[pv.UnstructuredGrid, pv.PolyData]:
     """Generates various beam models.
 

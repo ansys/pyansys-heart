@@ -109,14 +109,13 @@ test_params_slow_ids = [
     ids=test_params_fast_ids,
 )
 def extract_model(request):
-
     if list(request.param):
         model_type = request.param[0]
         mesh_volume = request.param[1]
     else:
         raise TypeError("Expecting list of 2 input parameters.")
 
-    if not model_type in (models.BiVentricle, models.FullHeart):
+    if model_type not in (models.BiVentricle, models.FullHeart):
         raise TypeError(f"Expecting model to be of types: {models.BiVentricle, models.FullHeart}")
         return
 
@@ -214,7 +213,7 @@ def unpack_k_files():
     try:
         with zipfile.ZipFile(zip_file, "r") as zip_ref:
             zip_ref.extractall(os.path.dirname(zip_file))
-    except Exception as e:
+    except Exception:
         print("Failed to unpack zip files.")
         pass
 
@@ -226,7 +225,7 @@ def unpack_k_files():
 
         shutil.rmtree(os.path.join(os.path.dirname(zip_file), "_BiVentricle"))
         shutil.rmtree(os.path.join(os.path.dirname(zip_file), "_FullHeart"))
-    except Exception as e:
+    except Exception:
         pass
 
     return
@@ -344,7 +343,6 @@ def test_writers_after_load_model(extract_model, writer_class):
 
     # with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
-
         model_path = os.path.join(workdir, model.__class__.__name__ + ".vtu")
         partinfo = model_path.replace(".vtu", ".partinfo.json")
 

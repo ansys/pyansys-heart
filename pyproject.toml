@@ -74,7 +74,7 @@ name = "ansys.heart"
 [tool.ruff]
 line-length = 100
 fix = true
-extend-exclude = ["tests/**", "src/ansys/heart/writer/**"]
+extend-exclude = ["src/ansys/heart/writer/**", "tests/**"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -93,7 +93,7 @@ select = [
 ]
 ignore = [
     "TD002", # Missing author in TODOs comment
-    "TD003", # Missing date in TODOs comment
+    "TD003", # Missing links in TODOs comment
     "N806",  # Variable in function should be lowercase
 ]
 

@@ -23,7 +23,7 @@
 import numpy as np
 import pytest
 
-from ansys.heart.simulator.settings.material.curve import ActiveCurve, strocchi_active, constant_ca2
+from ansys.heart.simulator.settings.material.curve import ActiveCurve, constant_ca2, strocchi_active
 import ansys.heart.simulator.settings.material.material as M
 
 

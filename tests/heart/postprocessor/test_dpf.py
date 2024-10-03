@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 """unit test for dpf utils."""
+
 import os
 
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
@@ -38,7 +39,6 @@ else:
 
 @pytest.mark.xfail(condition=github_runner, reason="Needs to be reworked.")
 def test_icvout():
-
     path = os.path.dirname(os.path.abspath(__file__))
     fn = os.path.join(path, "binout0000")
     icvout = ICVoutReader(fn)

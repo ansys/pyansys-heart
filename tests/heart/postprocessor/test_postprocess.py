@@ -27,7 +27,7 @@ import pathlib as Path
 
 import pytest
 
-from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
+from ansys.heart.postprocessor.system_model_post import SystemModelPost
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
 from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
 from ansys.heart.postprocessor.exporter import LVContourExporter

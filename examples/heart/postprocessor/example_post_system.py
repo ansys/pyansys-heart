@@ -26,7 +26,7 @@ change paths accordingly"""
 
 import matplotlib.pyplot as plt
 
-from ansys.heart.postprocessor.SystemModelPost import SystemModelPost
+from ansys.heart.postprocessor.system_model_post import SystemModelPost
 
 if __name__ == "__main__":
     base_dir = r"my_base_directory"

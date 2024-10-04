@@ -12,8 +12,8 @@ PyAnsys Heart |version|
    :hidden:
    :maxdepth: 2
 
-   getting_started/index
-   user_guide/index
+   getting-started/index
+   user-guide/index
    api/index
    examples/index
    contributing

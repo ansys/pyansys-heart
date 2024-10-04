@@ -130,7 +130,7 @@ autoapi_ignore = [
 #     "../../src/ansys/heart/simulator",
 #     "../../src/ansys/heart/postprocessor",
 # ]
-suppress_warnings = ["autoapi.python_import_resolution", "autosectionlabel.*"]
+suppress_warnings = ["autoapi.python_import_resolution", "autosectionlabel.*", "config.cache"]
 autoapi_python_use_implicit_namespaces = True
 
 typehints_defaults = "comma"

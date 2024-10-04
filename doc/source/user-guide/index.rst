@@ -10,21 +10,22 @@
    writer
    simulator
    postprocessor
+   calibration
 
 
-Overview
-========
+User guide
+==========
 
-Brief theory
-------------
+PyAnsys Heart Overview
+----------------------
+
 This section provides a brief review of key techniques in cardiac modeling. A list of references is also provided.
 
 It is assumed that the reader has a basic knowledge on LS-DYNA usage. However, it is encouraged to read the `LS-DYNA manuals`_ for a comprehensive understanding of the modeling process.
 
 
-
 Anatomy generation
-------------------
+^^^^^^^^^^^^^^^^^^
 Currently *PyAnsys Heart* supports generating electrophysiology, electro-mechanical and mechanical models from 24 pathological (`Strocchi et al.`_) and 20 healthy (`Rodero et al.`_) hearts.
 
 .. note::
@@ -39,7 +40,7 @@ HeartModel is a Python object that is then further processed (add physics) and e
 
 
 Brief theory
-------------
+^^^^^^^^^^^^
 Some anatomical details are difficult to capture with medical imaging techniques but are crucial for physical simulations. Fortunately, some rule-based methods proposed in the literature are included in *PyAnsys Heart*.
 
 - **Conduction System:**
@@ -51,7 +52,7 @@ Some anatomical details are difficult to capture with medical imaging techniques
 
 
 Electrophysiology
------------------
+^^^^^^^^^^^^^^^^^
 
 This section introduces cardiac electrophysiology modeling in *PyAnsys Heart*.
 Three options are available to model electrical propagation in *PyAnsys Heart* (see `simulator.settings.settings.epanalysis.solvertype`): `Monodomain` (``*EM_CONTROL`` with EMSOL=11 in LS-DYNA), `Eikonal` (``*EM_CONTROL`` with EMSOL=14 in LS-DYNA) and `ReactionEikonal` model (``*EM_CONTROL`` with EMSOL=15 in LS-DYNA).
@@ -82,7 +83,7 @@ Three options are available to model electrical propagation in *PyAnsys Heart* (
 
 
 Mechanics
-=========
+---------
 
 This section explains the key elements in cardiac mechanical models and their default options in *PyAnsys Heart*.
 
@@ -106,7 +107,7 @@ This section explains the key elements in cardiac mechanical models and their de
 
 
 References
-==========
+----------
 
 _`LS-DYNA manuals`: https://lsdyna.ansys.com/manuals/
 

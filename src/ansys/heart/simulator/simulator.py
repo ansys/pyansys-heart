@@ -446,7 +446,7 @@ class EPSimulator(BaseSimulator):
 
             cs = ConductionSystem(self.model)
             cs.compute_sa_node()
-            cs.compute_AV_node()
+            cs.compute_av_node()
             cs.compute_av_conduction(beam_length=beam_length)
             left, right = cs.compute_his_conduction(beam_length=beam_length)
             cs.compute_left_right_bundle(

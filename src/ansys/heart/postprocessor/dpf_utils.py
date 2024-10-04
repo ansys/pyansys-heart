@@ -57,7 +57,7 @@ class D3plotReader:
         """
         _check_env()
 
-        self._server = dpf.start_local_server(config=dpf.AvailableServerConfigs.GrpcServer)
+        self._server = dpf.start_local_server()
 
         self.ds = dpf.DataSources()
         self.ds.set_result_file_path(path, "d3plot")

@@ -49,7 +49,7 @@ import os
 import numpy as np
 import pyvista as pv
 
-import ansys.heart.preprocessor.models as models
+import ansys.heart.core.models as models
 from ansys.heart.simulator.settings.settings import SimulationSettings, Stimulation
 from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
 

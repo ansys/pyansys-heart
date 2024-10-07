@@ -54,7 +54,7 @@ _VALID_DATABASES = list(_URLS.keys())
 _DOWNLOAD_DIR = PurePath.joinpath(Path(__file__).parents[3], "downloads")
 
 _PATH_TO_HASHTABLE = resource_path(
-    "ansys.heart.misc", "remote_repo_hash_table_sha256.json"
+    "ansys.heart.core.helpers", "remote_repo_hash_table_sha256.json"
 ).__enter__()
 
 

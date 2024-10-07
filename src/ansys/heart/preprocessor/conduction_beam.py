@@ -27,8 +27,8 @@ import numpy as np
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.preprocessor.mesh.objects import BeamMesh, Point, SurfaceMesh
-from ansys.heart.preprocessor.models import FourChamber
+from ansys.heart.core.models import FourChamber
+from ansys.heart.core.objects import BeamMesh, Point, SurfaceMesh
 
 
 def _create_line(point_start: np.array, point_end: np.array, beam_length: float):
@@ -160,7 +160,7 @@ class ConductionSystem:
             atrio_ventricular_id = self.m.right_atrium.get_point("AV_node").node_id
         except AttributeError:
             LOGGER.info("AV node is not defined, creating with default option.")
-            atrio_ventricular_id = self.m.compute_AV_node().node_id
+            atrio_ventricular_id = self.m.compute_av_node().node_id
 
         #! get local SA/AV ids.
         sino_atrial_id_local = np.argwhere(
@@ -535,7 +535,7 @@ if __name__ == "__main__":
 
     test = ConductionSystem(model)
     sa_point = test.compute_sa_node()
-    test.compute_AV_node()
+    test.compute_av_node()
 
     test.compute_av_conduction(
         # midpoints=[[-74, 90, 388], [70, 111, 372]]

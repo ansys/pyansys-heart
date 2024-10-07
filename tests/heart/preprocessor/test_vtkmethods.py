@@ -22,7 +22,7 @@
 
 import pyvista as pv
 
-from ansys.heart.preprocessor.mesh.vtkmethods import are_connected
+from ansys.heart.core.helpers.vtkmethods import are_connected
 
 
 def test_check_if_connected():

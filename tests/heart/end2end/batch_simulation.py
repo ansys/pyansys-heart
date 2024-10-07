@@ -57,7 +57,7 @@ def main(args):
 
     #############################################################
     # package import
-    import ansys.heart.preprocessor.models as models
+    import ansys.heart.core.models as models
     from ansys.heart.simulator.settings.material.material import NeoHookean
     from ansys.heart.simulator.simulator import (
         DynaSettings,

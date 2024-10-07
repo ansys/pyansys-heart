@@ -38,7 +38,7 @@ from deprecated import deprecated
 import numpy as np
 
 from ansys.heart.core import LOG as LOGGER
-import ansys.heart.preprocessor.mesh.vtkmethods as vtkmethods
+import ansys.heart.core.helpers.vtkmethods as vtkmethods
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 from ansys.heart.simulator.settings.material.material import MechanicalMaterialModel
 

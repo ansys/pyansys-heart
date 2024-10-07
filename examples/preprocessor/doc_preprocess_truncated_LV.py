@@ -41,7 +41,7 @@ import os
 import numpy as np
 import pyvista as pv
 
-import ansys.heart.preprocessor.models as models
+import ansys.heart.core.models as models
 
 # sphinx_gallery_start_ignore
 # sphinx_gallery_thumbnail_path = '_static/images/truncated_LV_mesh.png'

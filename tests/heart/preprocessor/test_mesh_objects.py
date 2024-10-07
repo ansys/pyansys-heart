@@ -30,7 +30,7 @@ import pytest
 import pyvista as pv
 from pyvista import examples
 
-from ansys.heart.preprocessor.mesh.objects import Mesh, SurfaceMesh
+from ansys.heart.core.objects import Mesh, SurfaceMesh
 
 SURFACE_TYPES = [pv.CellType.TRIANGLE, pv.CellType.QUAD]
 VOLUME_TYPES = [pv.CellType.TETRA, pv.CellType.HEXAHEDRON]
@@ -604,8 +604,8 @@ def test_cavity_volume():
 
 def test_cap_properties():
     """Test getting global_node_ids_edge from Cap."""
-    from ansys.heart.preprocessor.mesh.objects import Cap
-    from ansys.heart.preprocessor.mesh.vtkmethods import get_patches_with_centroid
+    from ansys.heart.core.objects import Cap
+    from ansys.heart.core.helpers.vtkmethods import get_patches_with_centroid
 
     half_sphere = pv.Sphere().clip(normal="y")
     patches = get_patches_with_centroid(half_sphere)
@@ -687,7 +687,7 @@ def test_cap_properties():
 
 def test_part_get_info():
     """Test getting part info."""
-    from ansys.heart.preprocessor.mesh.objects import Cap, Cavity, Part, PartType
+    from ansys.heart.core.objects import Cap, Cavity, Part, PartType
 
     part = Part("Part1", PartType.VENTRICLE)
     part.pid = 1

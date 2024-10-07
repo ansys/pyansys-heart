@@ -28,8 +28,8 @@ import pathlib
 import numpy as np
 import pytest
 
-from ansys.heart.preprocessor.mesh.objects import BeamMesh, Point
-from ansys.heart.preprocessor.models import FourChamber
+from ansys.heart.core.objects import BeamMesh, Point
+from ansys.heart.core.models import FourChamber
 from tests.heart.conftest import get_assets_folder
 
 model: FourChamber
@@ -87,8 +87,8 @@ def test_compute_sa_node():
 
 
 @pytest.mark.xfail(reason="Test uses local data.")
-def test_compute_AV_node():
-    p = model.compute_AV_node()
+def test_compute_av_node():
+    p = model.compute_av_node()
     target = Point(
         name="AV_node", xyz=np.array([-8.20742556, 106.99512699, 373.32172823]), node_id=28424
     )
@@ -105,7 +105,7 @@ def test_compute_av_conduction():
 
 @pytest.mark.xfail(reason="Test uses local data.")
 def test_compute_his_conduction():
-    model.compute_AV_node()
+    model.compute_av_node()
     model.compute_av_conduction()
     beam, _ = model.compute_his_conduction()
 
@@ -115,7 +115,7 @@ def test_compute_his_conduction():
 
 @pytest.mark.xfail(reason="Test uses local data.")
 def test__define_hisbundle_start_end_point():
-    model.compute_AV_node()
+    model.compute_av_node()
     start_p, bifurcation_p = model._define_hisbundle_start_bifurcation()
 
     assert np.allclose(start_p, [2.96411229, 107.68694446, 367.01330368])

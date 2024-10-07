@@ -36,7 +36,7 @@ html_theme_options = {
     "logo": "pyansys",
     "ansys_sphinx_theme_autoapi": {
         "project": project,
-        "ignore": ["*writer*", "*calibration*", "*misc*"],
+        "ignore": ["*writer*", "*misc*"],
     },
 }
 
@@ -122,7 +122,6 @@ autoapi_ignore = [
     "*keyword_module.py",
     "*material_keywords.py",
     # others:
-    "*calibration*",
     "*misc*",
 ]
 # autoapi_dirs = [

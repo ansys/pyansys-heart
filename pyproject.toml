@@ -24,7 +24,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "ansys-dpf-core==0.10.0",
+    "ansys-dpf-core==0.13.0",
     "ansys-fluent-core==0.24.2",
     "deprecated==1.2.14",
     "dynalib==0.1.0",

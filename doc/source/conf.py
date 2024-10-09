@@ -121,8 +121,6 @@ autoapi_ignore = [
     "*heart_decks.py",
     "*keyword_module.py",
     "*material_keywords.py",
-    # others:
-    "*misc*",
 ]
 # autoapi_dirs = [
 #     "../../src/ansys/heart/preprocessor",

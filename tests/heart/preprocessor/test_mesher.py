@@ -46,6 +46,8 @@ import pyvista as pv
 
 from ansys.heart.preprocessor.input import _InputModel
 import ansys.heart.preprocessor.mesher as mesher
+# NOTE: Can manually set Fluent version:
+# mesher._fluent_version = "24.1"
 
 @pytest.fixture(scope="session", autouse=True)
 def clean_up_temp_dirs():

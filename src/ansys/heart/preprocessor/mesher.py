@@ -87,7 +87,10 @@ def _get_supported_fluent_version():
     )
 
 
-_fluent_version = _get_supported_fluent_version()
+try:
+    _fluent_version = _get_supported_fluent_version()
+except Exception:
+    _fluent_version = None
 
 
 def _get_face_zones_with_filter(pyfluent_session, prefixes: list) -> list:
@@ -152,6 +155,11 @@ def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingS
     """Get a Fluent Meshing session."""
     # NOTE: when using containerized version - we need to copy all the files
     # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
+    if _fluent_version is None:
+        product_version = _get_supported_fluent_version()
+    else:
+        product_version = _fluent_version
+
     if _uses_container:
         num_cpus = 1
         custom_config = {
@@ -165,7 +173,7 @@ def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingS
             processor_count=num_cpus,
             start_transcript=False,
             ui_mode=_fluent_ui_mode,
-            product_version=_fluent_version,
+            product_version=product_version,
             start_container=_uses_container,
             container_dict=custom_config,
         )
@@ -178,7 +186,7 @@ def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingS
             processor_count=num_cpus,
             start_transcript=False,
             ui_mode=_fluent_ui_mode,
-            product_version=_fluent_version,
+            product_version=product_version,
             start_container=_uses_container,
         )
 

@@ -40,7 +40,7 @@ from ansys.heart.preprocessor.input import _InputBoundary, _InputModel
 
 # NOTE: can set os.environ["SHOW_FLUENT_GUI"] = "1" to show Fluent GUI.
 
-_fluent_version = "24.1.0"
+_supported_fluent_versions = ["24.2", "24.1"]
 _show_fluent_gui: bool = False
 _uses_container: bool = True
 
@@ -70,6 +70,24 @@ except ImportError:
         "Failed to import PyFluent. Considering installing "
         "pyfluent with `pip install ansys-fluent-core`."
     )
+
+
+def _get_supported_fluent_version():
+    """Use pyfluent to get a supported Fluent version."""
+    for version in _supported_fluent_versions:
+        try:
+            pyfluent.launch_fluent(product_version=version, dry_run=True)
+            LOGGER.info(f"Using Fluent {version}")
+            return version
+        except Exception:
+            pass
+    raise Exception(
+        f"""Did not find a supported Fluent version,
+        please install one of {_supported_fluent_versions}"""
+    )
+
+
+_fluent_version = _get_supported_fluent_version()
 
 
 def _get_face_zones_with_filter(pyfluent_session, prefixes: list) -> list:

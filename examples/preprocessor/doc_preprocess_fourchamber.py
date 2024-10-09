@@ -46,6 +46,11 @@ import os
 import ansys.heart.core.models as models
 from ansys.heart.preprocessor.database_preprocessor import get_compatible_input
 
+# Use Fluent 24.1 for meshing.
+import ansys.heart.preprocessor.mesher as mesher
+
+mesher._fluent_version = "24.1"
+
 # specify necessary paths.
 case_file = os.path.join("downloads", "Strocchi2020", "01", "01.case")
 

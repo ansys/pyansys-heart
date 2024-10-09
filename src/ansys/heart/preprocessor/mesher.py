@@ -77,7 +77,10 @@ def _get_supported_fluent_version():
     for version in _supported_fluent_versions:
         try:
             pyfluent.launch_fluent(product_version=version, dry_run=True)
-            LOGGER.info(f"Using Fluent {version}")
+            LOGGER.info(
+                f"Found Fluent {version} as latest compatible "
+                + f"version from supported versions: {_supported_fluent_versions}."
+            )
             return version
         except Exception:
             pass
@@ -159,6 +162,8 @@ def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingS
         product_version = _get_supported_fluent_version()
     else:
         product_version = _fluent_version
+
+    LOGGER.info(f"Launching meshing session with {product_version}")
 
     if _uses_container:
         num_cpus = 1

@@ -160,7 +160,8 @@ def test_meshing_for_non_manifold():
 
     # call meshing method.
     mesh_file = os.path.join(tmpdir.name, "test_mesh.msh.h5")
-    fluent_mesh = mesher.mesh_from_non_manifold_input_model(model, tmpdir.name, mesh_file, mesh_size=0.1)
+    fluent_mesh = mesher.mesh_from_non_manifold_input_model(model,
+                                                            tmpdir.name, mesh_file, mesh_size=0.1)
 
     assert len(fluent_mesh.cell_zones) == 2
     assert sorted([cz.name for cz in fluent_mesh.cell_zones]) == sorted(model.part_names)

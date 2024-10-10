@@ -246,7 +246,7 @@ def mesh_fluid_cavities(
 
     for c in caps:
         filename = os.path.join(work_dir_meshing, c.name.lower() + ".stl")
-        c.save(filename)
+        c._mesh.save(filename)
         add_solid_name_to_stl(filename, c.name.lower(), file_type="binary")
 
     session = _get_fluent_meshing_session(work_dir_meshing)
@@ -263,15 +263,16 @@ def mesh_fluid_cavities(
     session.tui.objects.merge("'(*)", "model-fluid")
 
     # fix duplicate nodes
-    session.tui.diagnostics.face_connectivity.fix_free_faces("objects '(*)")
+    session.tui.diagnostics.face_connectivity.fix_free_faces('objects', "'(*)")
 
     # set size field
     session.tui.size_functions.set_global_controls(1, 1, 1.2)
     session.tui.scoped_sizing.compute("yes")
 
     # remesh all caps
+    cap_names = " ".join([cap.name for cap in caps])
     if remesh_caps:
-        session.tui.boundary.remesh.remesh_constant_size("(cap_*)", "()", 40, 20, 1, "yes")
+        session.tui.boundary.remesh.remesh_constant_size(f"'({cap_names})", '()', 40, 20, 1, "yes")
 
     # convert to mesh object
     session.tui.objects.change_object_type("(*)", "mesh", "yes")

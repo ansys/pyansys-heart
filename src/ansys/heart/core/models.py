@@ -1371,6 +1371,7 @@ class HeartModel:
 
                 # create cap: NOTE, mostly for compatibility. Could simplify further
                 cap_mesh = SurfaceMesh(patch.clean(), name=cap_name, id=ii + idoffset)
+                cap_mesh.cell_data["_cap_id"] = float(ii + idoffset)
 
                 # Add cap to main mesh.
                 self.mesh.add_surface(cap_mesh, id=cap_mesh.id, name=cap_name)
@@ -1390,7 +1391,7 @@ class HeartModel:
             # ! and we can only use this for getting some meta-data such as volume
             # ! also it is not updated dynamically.
             # merge patches into cavity surface.
-            surface.cell_data["_cap_id"] = 0
+            surface.cell_data["_cap_id"] = float(0)
             surface_cavity = SurfaceMesh(pv.merge([surface] + [cap._mesh for cap in part.caps]))
             surface_cavity.name = surface.name
             surface_cavity.id = surface.id

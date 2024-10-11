@@ -281,8 +281,24 @@ def _mesh_fluid_cavities1(
         )
         # merge objects
         session.tui.objects.merge(f"'({cavity_name}*)")
-        session.tui.objects.volumetric_regions.compute(cavity_name)
-        session.tui.mesh.auto_mesh(cavity_name, "yes", "pyr", "tet", "yes")
+
+    # find overlapping pairs
+    # (tgapi-util-get-overlapping-face-zones "*patch*" 0.1 0.1 )
+    overlapping_pairs = session.scheme_eval.scheme_eval(
+        '(tgapi-util-get-overlapping-face-zones "*patch*" 0.1 0.1 )'
+    )
+    for pair in overlapping_pairs:
+        # remove first from pair
+        session.tui.boundary.manage.delete(f"'({pair[0]})", "yes")
+
+    # merge mesh objects
+    session.tui.objects.merge("'(*)", "fluid-zones")
+
+    # merge nodes
+    session.tui.boundary.merge_nodes("'(*)", "'(*)", "no", "no , ,")
+    # mesh volumes
+    session.tui.objects.volumetric_regions.compute("fluid-zones", "no")
+    session.tui.mesh.auto_mesh("fluid-zones", "yes", "pyr", "tet", "yes")
 
     session.tui.objects.delete_all_geom()
 

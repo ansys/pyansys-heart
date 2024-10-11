@@ -201,7 +201,7 @@ def _wrap_part(session: MeshingSession, boundary_names: list, wrapped_part_name:
     return wrapped_face_zone_names
 
 
-def _mesh_fluid_cavities1(
+def _mesh_fluid_cavities(
     cavity_boundaries: list[SurfaceMesh], workdir: str, mesh_size: float = 1.0
 ) -> pv.UnstructuredGrid:
     """Mesh the caps of each fluid cavity with uniformly.

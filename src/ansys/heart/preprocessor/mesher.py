@@ -513,6 +513,7 @@ def mesh_from_non_manifold_input_model(
     path_to_output: Union[str, Path],
     mesh_size: float = 2.0,
     overwrite_existing_mesh: bool = True,
+    mesh_size_per_part: dict = None,
 ) -> FluentMesh:
     """Generate mesh from non-manifold poor quality input model.
 
@@ -526,6 +527,8 @@ def mesh_from_non_manifold_input_model(
         Path to the resulting Fluent mesh file.
     mesh_size : float, optional
         Uniform mesh size to use for both wrapping and filling the volume, by default 2.0
+    mesh_size_per_part : dict, optional
+        Dictionary specifying the mesh size that should be used for each part, by default None.
 
     Notes
     -----
@@ -540,6 +543,21 @@ def mesh_from_non_manifold_input_model(
     """
     if not isinstance(model, _InputModel):
         raise ValueError(f"Expecting input to be of type {str(_InputModel)}")
+
+    # check validity of mesh_size_per_part_dict:
+    if mesh_size_per_part is None:
+        # NOTE: use Fluent convention for replacing spaces and capitals.
+        mesh_size_per_part = {
+            "_".join(part_name.lower().split()): mesh_size for part_name in model.part_names
+        }
+
+    if isinstance(mesh_size_per_part, dict):
+        for part_name in model.part_names:
+            # NOTE: use Fluent convention for replacing spaces and capitals.
+            tmp_part_name = "_".join(part_name.lower().split())
+            if tmp_part_name not in mesh_size_per_part.keys():
+                LOGGER.info(f"{part_name} not specified. Using {mesh_size} for {part_name}")
+                mesh_size_per_part[tmp_part_name] = mesh_size
 
     if not os.path.isdir(workdir):
         os.makedirs(workdir)
@@ -610,6 +628,28 @@ def mesh_from_non_manifold_input_model(
             # wrap object.
             _wrap_part(session, part.boundary_names, part.name)
 
+        # update the size field. Should we do this before wrapping each individual part,
+        # or after!?
+        session.tui.size_functions.delete()
+        session.tui.size_functions.set_global_controls(
+            np.min(list(mesh_size_per_part.values())),
+            np.max(list(mesh_size_per_part.values())),
+            growth_rate,
+        )
+        # create body-of-influence for each part.
+        for part, part_size in mesh_size_per_part.items():
+            session.tui.scoped_sizing.create(
+                f"boi-{part.lower()}",
+                "boi",
+                "object-faces-and-edges",
+                "no",
+                "yes",
+                f"{part.lower()}",
+                part_size,
+                growth_rate,
+            )
+        session.tui.scoped_sizing.compute()
+
         # NOTE: wrap entire model in one pass so that we can create a single volume mesh.
         # Use list of all input boundaries as input. Uses external material point for meshing.
         # This assumes that all the individually wrapped parts form a single
@@ -619,6 +659,7 @@ def mesh_from_non_manifold_input_model(
 
         # mesh the entire model in one go.
         session.tui.objects.volumetric_regions.compute("model")
+        session.tui.mesh.tet.controls.cell_sizing("size-field")
         session.tui.mesh.auto_mesh("model yes pyramids tet no")
 
         # clean up geometry objects

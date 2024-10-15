@@ -419,11 +419,13 @@ class HeartModel:
         )
         return
 
+    #! TODO: add mesh_size_per_part in docstring.
     def mesh_volume(
         self,
         use_wrapper: bool = False,
         overwrite_existing_mesh: bool = True,
         path_to_fluent_mesh: str = None,
+        mesh_size_per_part: dict = None,
     ):
         """Remesh the input model and fill the volume.
 
@@ -456,6 +458,7 @@ class HeartModel:
                 mesh_size=self.info.mesh_size,
                 path_to_output=path_to_fluent_mesh,
                 overwrite_existing_mesh=overwrite_existing_mesh,
+                mesh_size_per_part=mesh_size_per_part,
             )
         else:
             fluent_mesh = mesher.mesh_from_manifold_input_model(

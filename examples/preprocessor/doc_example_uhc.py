@@ -48,7 +48,7 @@ import ansys.heart.core.models as models
 from ansys.heart.simulator.simulator import BaseSimulator, DynaSettings
 
 # specify the path to the working directory and heart model
-workdir = os.path.join("pyansys-heart", "downloads", "Strocchi2020", "01", "FourChamber")
+workdir = os.path.abspath(os.path.join("downloads", "Strocchi2020", "01", "FourChamber"))
 
 # sphinx_gallery_start_ignore
 # Overwrite with env variables: for testing purposes only. May be removed by user.

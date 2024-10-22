@@ -3427,7 +3427,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         for index, point in enumerate(self.model.electrodes):
             x, y, z = point.xyz
-            position_str = f"{index:>10d} {str(f'{x:9.6f}')[:9]} {str(f'{y:9.6f}')[:9]} {str(f'{z:9.6f}')[:9]}" # noqa
+            position_str = f"{index:>10d} {str(f'{x:9.6f}')[:9]} {str(f'{y:9.6f}')[:9]} {str(f'{z:9.6f}')[:9]}"  # noqa
 
             self.kw_database.ep_settings.append(position_str)
 
@@ -3823,6 +3823,17 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 class UHCWriter(BaseDynaWriter):
     """Universal Heart Coordinate Writer."""
 
+    # RIP 1 LAP 2 RSP 3 MV 4 LIP 5 LSP 6 TV 7 SVC 8 IVC 9
+    _CAP_NODESET_MAP = {
+        "right": {"inferior": 1, "superior": 3},
+        "left": {"appendage": 2, "inferior": 5, "superior": 6},
+        "mitral": 4,
+        "tricuspid": 7,
+        "vena": {"superior": 8, "inferior": 9},
+    }
+
+    _LANDMARK_RADIUS = 1.5  # mm
+
     def __init__(
         self, model: HeartModel, type: Literal["uvc", "la_fiber", "ra_fiber"], **kwargs
     ):
@@ -3838,6 +3849,7 @@ class UHCWriter(BaseDynaWriter):
         """
         super().__init__(model=model)
         self.type = type
+        self.landmarks = kwargs
 
         # remove unnecessary parts
         if self.type == "uvc":
@@ -3845,16 +3857,8 @@ class UHCWriter(BaseDynaWriter):
             self._keep_parts(parts_to_keep)
         elif self.type == "la_fiber":
             parts_to_keep = ["Left atrium"]
-            #  A manual point for LA fiber
-            for key, value in kwargs.items():
-                if key == "laa":
-                    self.left_appendage_apex = value
         elif self.type == "ra_fiber":
             parts_to_keep = ["Right atrium"]
-            #  A manual point for RA fiber
-            for key, value in kwargs.items():
-                if key == "raa":
-                    self.right_appendage_apex = value
 
         # remove unnecessary mesh
         if self.type == "uvc":
@@ -3875,14 +3879,6 @@ class UHCWriter(BaseDynaWriter):
             self.target = model.mesh.extract_cells(elems_to_keep)
 
         elif self.type == "la_fiber" or self.type == "ra_fiber":
-            # In original model, mitral/tricuspid valves are assigned with ventricle parts
-            # so we need to update caps information at first
-            # for part in model.parts:
-            #     part.caps = []
-
-            # model._assign_surfaces_to_parts()
-            # model._assign_cavities_to_parts()
-            # model._update_cap_names()
 
             self._keep_parts(parts_to_keep)
             # model.mesh.clear_data()
@@ -3891,24 +3887,25 @@ class UHCWriter(BaseDynaWriter):
 
             self.target = model.mesh.extract_cells(model.parts[0].element_ids)
 
-        # if self.type == "la_fiber":
-        #     if 6 != len(self.model.parts[0].caps):
-        #         LOGGER.error("Input left atrium is not suitable for set up BC.")
-        #         exit(-1)
-        # elif self.type == "ra_fiber":
-        #     if 3 != len(self.model.parts[0].caps):
-        #         LOGGER.error("Input left atrium is not suitable for set up BC.")
-        #         exit(-1)
-
     def _update_ra_top_nodeset(self, atrium: pv.UnstructuredGrid):
         """
-        Find right atrium topn nodeset.
+        Find right atrium top nodeset.
 
         Parameters
         ----------
         atrium : pv.UnstructuredGrid
             right atrium pyvista object
         """
+        if "top" in self.landmarks:
+            top_ids = self._find_top_nodeset_by_geodesic()
+        else:
+            top_ids = self._find_top_nodeset_by_cut(atrium)
+
+        # assign top nodeset
+        kw = create_node_set_keyword(top_ids + 1, node_set_id=10, title="top")
+        self.kw_database.node_sets.append(kw)
+
+    def _find_top_nodeset_by_cut(self, atrium: pv.UnstructuredGrid):
         cut_center, cut_normal = self._define_ra_cut()
 
         atrium["cell_ids_tmp"] = np.arange(0, atrium.n_cells, dtype=int)
@@ -3944,12 +3941,10 @@ class UHCWriter(BaseDynaWriter):
 
         atrium.cell_data.remove("cell_ids_tmp")
         atrium.point_data.remove("point_ids_tmp")
+        return top_ids
 
-        # assign top nodeset
-        kw = create_node_set_keyword(top_ids + 1, node_set_id=10, title="top")
-        self.kw_database.node_sets.append(kw)
-        atrium["top"] = np.zeros(atrium.n_points)
-        atrium["top"][top_ids] = 1
+    def _find_top_nodeset_by_geodesic(self, atrium: pv.UnstructuredGrid):
+        raise NotImplementedError
 
     def _define_ra_cut(self):
         """Define a cut from 3 holes of right atrium."""
@@ -3965,16 +3960,15 @@ class UHCWriter(BaseDynaWriter):
 
         return cut_center, cut_normal
 
-    def _update_tricuspid_nodeset(self, atrium):
-        # Find tricuspid_wall and tricuspid_septum
-
+    def _update_ra_tricuspid_nodeset(self, atrium):
+        """Find tricuspid_wall and tricuspid_septum."""
         # temporary fix with tricuspid-valve name
         tv_name = "tricuspid-valve-atrium"
 
-        # need a copied object to do clip, atrium will be corrupted otherwise
         # The cut_normal is determined so 1st part will be septum and 2nd will be free
         cut_center, cut_normal = self._define_ra_cut()
 
+        # need a copied object to do clip, atrium will be corrupted otherwise
         septum, free_wall = copy.deepcopy(atrium).clip(
             origin=cut_center, normal=cut_normal, crinkle=True, return_clipped=True
         )
@@ -4001,41 +3995,27 @@ class UHCWriter(BaseDynaWriter):
         kw = create_node_set_keyword(tv_w_ids_sub + 1, node_set_id=13, title="tv_wall")
         self.kw_database.node_sets.append(kw)
 
-    def update_atrial_caps_nodeset(self, atrium: pv.UnstructuredGrid):
+    def _update_atrial_caps_nodeset(self, atrium: pv.UnstructuredGrid):
         """Define boundary condition."""
 
         def get_nodeset_id_by_cap_name(cap):
-            # ID map:
-            # RIP 1 LAP 2 RSP 3 MV 4 LIP 5 LSP 6 TV 7 SVC 8 IVC 9
-            if "right" in cap.name:
-                if "inferior" in cap.name:
-                    set_id = 1
-                elif "superior" in cap.name:
-                    set_id = 3
-            elif "left" in cap.name:
-                if "appendage" in cap.name:
-                    set_id = 2
-                elif "inferior" in cap.name:
-                    set_id = 5
-                elif "superior" in cap.name:
-                    set_id = 6
-            elif "mitral" in cap.name:
-                set_id = 4
-            elif "tricuspid" in cap.name:
-                set_id = 7
-            elif "vena" in cap.name:
-                if "superior" in cap.name:
-                    set_id = 8
-                elif "inferior" in cap.name:
-                    set_id = 9
-            else:
-                set_id = 99
-            return set_id
+            # Check for keywords in cap.name
+            for key, value in self._CAP_NODESET_MAP.items():
+                if key in cap.name:
+                    if isinstance(value, dict):
+                        for sub_key, sub_value in value.items():
+                            if sub_key in cap.name:
+                                return sub_value
+                    else:
+                        return value
+
+            # no conditions matched
+            LOGGER.error(f"{cap.name} is not identified.")
+            raise
 
         ids_edges = []  # all nodes belong to valves
         for cap in self.model.parts[0].caps:
             # get node IDs for atrium mesh
-            #! get up to date version of cap mesh.
             cap._mesh = self.model.mesh.get_surface(cap._mesh.id)
             ids_sub = np.where(np.isin(atrium["point_ids"], cap.global_node_ids_edge))[
                 0
@@ -4052,6 +4032,7 @@ class UHCWriter(BaseDynaWriter):
             # Add info to pyvista object (RA fiber use this)
             atrium[cap.name] = np.zeros(atrium.n_points, dtype=int)
             atrium[cap.name][ids_sub] = 1
+
         return ids_edges
 
     def update_atrial_endo_epi_nodeset(
@@ -4089,13 +4070,14 @@ class UHCWriter(BaseDynaWriter):
 
     def _update_la_bc(self, atrium):
 
-        edge_ids = self.update_atrial_caps_nodeset(atrium)
+        edge_ids = self._update_atrial_caps_nodeset(atrium)
         self.update_atrial_endo_epi_nodeset(atrium, edge_ids)
 
-        if hasattr(self, "left_appendage_apex"):
+        if "laa" in self.landmarks.keys():
             tree = spatial.cKDTree(atrium.points)
-            # radius = 1.5 mm
-            laa_ids = np.array(tree.query_ball_point(self.left_appendage_apex, 1.5))
+            laa_ids = np.array(
+                tree.query_ball_point(self.landmarks["laa"], self._LANDMARK_RADIUS)
+            )
             kw = create_node_set_keyword(
                 laa_ids + 1, node_set_id=2, title="left atrium appendage"
             )
@@ -4131,13 +4113,14 @@ class UHCWriter(BaseDynaWriter):
 
     def _update_ra_bc(self, atrium):
 
-        edge_ids = self.update_atrial_caps_nodeset(atrium)
+        edge_ids = self._update_atrial_caps_nodeset(atrium)
         self.update_atrial_endo_epi_nodeset(atrium, edge_ids)
 
         # Find appendage apex
         tree = spatial.cKDTree(atrium.points)
-        # radius = 1.5 mm
-        raa_ids = np.array(tree.query_ball_point(self.right_appendage_apex, 1.5))
+        raa_ids = np.array(
+            tree.query_ball_point(self.landmarks["raa"], self._LANDMARK_RADIUS)
+        )
         if len(raa_ids) == 0:
             LOGGER.error("No node is identified as right atrium appendage apex.")
             exit()
@@ -4149,7 +4132,7 @@ class UHCWriter(BaseDynaWriter):
 
         # other nodesets
         self._update_ra_top_nodeset(atrium)
-        self._update_tricuspid_nodeset(atrium)
+        self._update_ra_tricuspid_nodeset(atrium)
 
         self.kw_database.main.append(keywords.Case(caseid=1, jobid="trans", scid1=1))
         self.kw_database.main.append(keywords.Case(caseid=2, jobid="ab", scid1=2))

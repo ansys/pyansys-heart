@@ -57,9 +57,7 @@ def model() -> models.FourChamber:
         "heart_model.partinfo.json",
     )
 
-    model: models.FourChamber = models.FourChamber(
-        models.ModelInfo(work_directory=".")
-    )
+    model: models.FourChamber = models.FourChamber(models.ModelInfo(work_directory="."))
 
     model.load_model_from_mesh(vtu_file, json_file)
     model._extract_apex()
@@ -103,6 +101,19 @@ def test_la_fiber(model):
             "la_fiber",
         )
         compare_outputs(to_test_folder, ref_folder)
+
+
+def test_ra_top(model):
+    start = [-46.4863, 133.29, 405.961]
+    end = [-33.7271, 134.605, 332.155]
+    mid = [-43.5525, 148.992, 367.271]
+
+    writer = UHCWriter(model, "ra_fiber", raa=[-33, 82, 417], top=[start, mid, end])
+    ids = writer._find_top_nodeset_by_geodesic(writer.target)
+
+    assert len(ids) == 61
+    assert ids[0] == 1224
+    assert ids[-1] == 23575
 
 
 def test_ra_fiber(model):

@@ -3897,7 +3897,7 @@ class UHCWriter(BaseDynaWriter):
             right atrium pyvista object
         """
         if "top" in self.landmarks:
-            top_ids = self._find_top_nodeset_by_geodesic()
+            top_ids = self._find_top_nodeset_by_geodesic(atrium)
         else:
             top_ids = self._find_top_nodeset_by_cut(atrium)
 
@@ -3917,8 +3917,8 @@ class UHCWriter(BaseDynaWriter):
         x = crinkled.connectivity()
         if np.max(x.point_data["RegionId"]) != 2:
             # Should only have 3 parts
-            LOGGER.error("Cannot find top node set for right atrium.")
-            exit()
+            LOGGER.error("Cannot find top nodeset...")
+            raise ValueError("Please define top start/end points and re-run.")
 
         # temporary fix with tricuspid-valve name
         tv_name = "tricuspid-valve-atrium"
@@ -3944,7 +3944,19 @@ class UHCWriter(BaseDynaWriter):
         return top_ids
 
     def _find_top_nodeset_by_geodesic(self, atrium: pv.UnstructuredGrid):
-        raise NotImplementedError
+        top_ids = []
+        surface: pv.PolyData = atrium.extract_surface()
+        for i in range(len(self.landmarks['top'])-1):
+            p1 = self.landmarks["top"][i]
+            p2 = self.landmarks["top"][i+1]
+
+            path = surface.geodesic(
+                surface.find_closest_point(p1), surface.find_closest_point(p2)
+            )
+            for point in path.points:
+                top_ids.append(atrium.find_closest_point(point))
+
+        return np.unique(np.array(top_ids))
 
     def _define_ra_cut(self):
         """Define a cut from 3 holes of right atrium."""
@@ -4035,7 +4047,7 @@ class UHCWriter(BaseDynaWriter):
 
         return ids_edges
 
-    def update_atrial_endo_epi_nodeset(
+    def _update_atrial_endo_epi_nodeset(
         self, atrium: pv.UnstructuredGrid, nodes_to_remove: list[int]
     ):
         """Define atrial endo/epi nodeset to 100/200.
@@ -4068,16 +4080,18 @@ class UHCWriter(BaseDynaWriter):
         kw = create_node_set_keyword(ids_epi + 1, node_set_id=200, title="epi")
         self.kw_database.node_sets.append(kw)
 
+    def _get_laa_nodes(self, atrium, laa: np.ndarray):
+        tree = spatial.cKDTree(atrium.points)
+        ids = np.array(tree.query_ball_point(laa, self._LANDMARK_RADIUS))
+        return ids
+
     def _update_la_bc(self, atrium):
 
         edge_ids = self._update_atrial_caps_nodeset(atrium)
-        self.update_atrial_endo_epi_nodeset(atrium, edge_ids)
+        self._update_atrial_endo_epi_nodeset(atrium, edge_ids)
 
         if "laa" in self.landmarks.keys():
-            tree = spatial.cKDTree(atrium.points)
-            laa_ids = np.array(
-                tree.query_ball_point(self.landmarks["laa"], self._LANDMARK_RADIUS)
-            )
+            laa_ids = self._get_laa_nodes(atrium, self.landmarks["laa"])
             kw = create_node_set_keyword(
                 laa_ids + 1, node_set_id=2, title="left atrium appendage"
             )
@@ -4114,7 +4128,7 @@ class UHCWriter(BaseDynaWriter):
     def _update_ra_bc(self, atrium):
 
         edge_ids = self._update_atrial_caps_nodeset(atrium)
-        self.update_atrial_endo_epi_nodeset(atrium, edge_ids)
+        self._update_atrial_endo_epi_nodeset(atrium, edge_ids)
 
         # Find appendage apex
         tree = spatial.cKDTree(atrium.points)

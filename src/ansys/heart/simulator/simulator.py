@@ -205,7 +205,7 @@ class BaseSimulator:
 
         return grid
 
-    def compute_right_atrial_fiber(self, appendage: List[float]) -> pv.UnstructuredGrid:
+    def compute_right_atrial_fiber(self, appendage: List[float], top=None) -> pv.UnstructuredGrid:
         """
         Compute right atrium fiber with LDRBD method.
 
@@ -213,6 +213,9 @@ class BaseSimulator:
         ----------
         appendage
             Right atrium appendage apex coordinates.
+        top
+            Start and end coordinates of Top nodeset.
+            Can add an middle point to enforce the geodesic path, like [start, midlle, end].
 
         Returns
         -------
@@ -222,7 +225,9 @@ class BaseSimulator:
         LOGGER.info("Computing RA fiber...")
         export_directory = os.path.join(self.root_directory, "ra_fiber")
 
-        target = self.run_laplace_problem(export_directory, "ra_fiber", raa=np.array(appendage))
+        target = self.run_laplace_problem(
+            export_directory, "ra_fiber", raa=np.array(appendage), top=top
+        )
 
         endo_surface = self.model.mesh.get_surface(self.model.right_atrium.endocardium.id)
         ra_pv = compute_ra_fiber_cs(
@@ -243,7 +248,10 @@ class BaseSimulator:
 
         return ra_pv
 
-    def compute_left_atrial_fiber(self, appendage: List[float] = None) -> pv.UnstructuredGrid:
+    def compute_left_atrial_fiber(
+        self,
+        appendage: List[float] = None,
+    ) -> pv.UnstructuredGrid:
         """
         Compute left atrium fiber with LDRBD method.
 
@@ -290,28 +298,21 @@ class BaseSimulator:
         type: str
             Simulation type.
         kwargs : dict
-            Additional arguments.
+            Landmarks to create nodeset, keys can be 'laa','raa','top'.
 
         Returns
         -------
             UnstructuredGrid with array to map data back to full mesh.
 
         """
-        if type == "ra_fiber":
-            for key, value in kwargs.items():
-                if key == "raa":
-                    break
-            dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, raa=value)
-        elif type == "la_fiber":
-            for key, value in kwargs.items():
-                if key == "laa":
-                    break
-            if value is None:
-                dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type)
-            else:
-                dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, laa=value)
-        else:
-            dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type)
+        for k, v in kwargs.items():
+            if k not in ["laa", "raa", "top"]:
+                LOGGER.error(f"kwarg with {k} can not be identified.")
+                raise KeyError(f"kwarg with {k} can not be identified.")
+            if v is None:
+                del kwargs[k]
+
+        dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, kwargs)
 
         dyna_writer.update()
         dyna_writer.export(export_directory)
@@ -516,7 +517,9 @@ class MechanicsSimulator(BaseSimulator):
         return
 
     def create_stiff_ventricle_base(
-        self, threshold: float = 0.9, stiff_material=NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+        self,
+        threshold: float = 0.9,
+        stiff_material=NeoHookean(rho=0.001, c10=0.1, nu=0.499),
     ) -> Part:
         """Create a stiff base part from uvc longitudinal value.
 
@@ -542,7 +545,8 @@ class MechanicsSimulator(BaseSimulator):
         if not isinstance(self.model, LeftVentricle):
             # uvc-L of RV is generally smaller, *1.05 to be comparable with LV
             eid_r = np.intersect1d(
-                np.where(v > threshold * 1.05)[0], self.model.right_ventricle.element_ids
+                np.where(v > threshold * 1.05)[0],
+                self.model.right_ventricle.element_ids,
             )
             eids = np.hstack((eids, eid_r))
 

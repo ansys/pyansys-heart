@@ -54,7 +54,10 @@ from ansys.heart.postprocessor.laplace_post import (
 )
 from ansys.heart.preprocessor.conduction_beam import ConductionSystem
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
-from ansys.heart.simulator.settings.material.material import NeoHookean
+from ansys.heart.simulator.settings.material.material import (
+    MechanicalMaterialModel,
+    NeoHookean,
+)
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 
@@ -544,7 +547,7 @@ class MechanicsSimulator(BaseSimulator):
     def create_stiff_ventricle_base(
         self,
         threshold: float = 0.9,
-        stiff_material=NeoHookean(rho=0.001, c10=0.1, nu=0.499),
+        stiff_material: MechanicalMaterialModel = NeoHookean(rho=0.001, c10=0.1, nu=0.499),
     ) -> Part:
         """Create a stiff base part from uvc longitudinal value.
 
@@ -552,13 +555,13 @@ class MechanicsSimulator(BaseSimulator):
         ----------
         threshold : float, optional
             uvc_l larger than threshold will be set as stiff base, by default 0.9
-        stiff_material : _type_, optional
+        stiff_material : MechanicalMaterialModel, optional
             material to assign, by default NeoHookean(rho=0.001, c10=0.1, nu=0.499)
 
         Returns
         -------
         Part
-            stiff base part
+            new created part
         """
         try:
             v = self.model.mesh.point_data_to_cell_data()["apico-basal"]

@@ -4052,10 +4052,12 @@ class UHCWriter(BaseDynaWriter):
     ):
         """Define atrial endo/epi nodeset to 100/200.
 
-        Args:
-        ----
-            atrium (pv.UnstructuredGrid): target atrium, left or right
-            nodes_to_remove (list[int]): nodes ID of valves, need to be removed from endo/epi sets.
+        Parameters
+        ----------
+        atrium : pv.UnstructuredGrid
+            target atrium, left or right
+        nodes_to_remove : list[int]
+            nodes ID of valves, need to be removed from endo/epi sets.
         """
         # endo nodes ID
         #! get up to date endocardium.

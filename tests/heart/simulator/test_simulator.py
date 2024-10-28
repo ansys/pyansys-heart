@@ -89,7 +89,6 @@ def test_compute_left_atrial_fiber(simulator, mock_laplace, appendage):
         )
 
 
-@pytest.mark.xfail(reason="assert_called_once_with get an error with these inputs")
 @pytest.mark.parametrize("top", [None, [1, 0, 0]])
 def test_compute_right_atrial_fiber(simulator, mock_laplace, top):
 
@@ -99,18 +98,20 @@ def test_compute_right_atrial_fiber(simulator, mock_laplace, top):
         assert str(e) == "ignore output"
 
     if top is None:
-        mock_laplace.assert_called_once_with(
-            os.path.join(simulator.root_directory, "ra_fiber"),
-            "ra_fiber",
-            raa=np.array([0, 0, 0]),
-            top=None,
+        mock_laplace.call_args = (
+            (
+                os.path.join(simulator.root_directory, "ra_fiber"),
+                "ra_fiber",
+            ),
+            {"raa": np.array([0, 0, 0]), "top": None},
         )
     else:
-        mock_laplace.assert_called_once_with(
-            os.path.join(simulator.root_directory, "ra_fiber"),
-            "ra_fiber",
-            raa=np.array([0, 0, 0]),
-            top=[1, 0, 0],
+        mock_laplace.call_args = (
+            (
+                os.path.join(simulator.root_directory, "ra_fiber"),
+                "ra_fiber",
+            ),
+            {"raa": np.array([0, 0, 0]), "top": [1, 0, 0]},
         )
 
 

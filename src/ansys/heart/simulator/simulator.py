@@ -37,7 +37,7 @@ import os
 import pathlib
 import shutil
 import subprocess
-from typing import List, Literal
+from typing import Literal
 
 import numpy as np
 import pyvista as pv
@@ -205,22 +205,38 @@ class BaseSimulator:
 
         return grid
 
-    def compute_right_atrial_fiber(self, appendage: List[float], top=None) -> pv.UnstructuredGrid:
+    def compute_right_atrial_fiber(
+        self, appendage: list[float], top: list[list[float]] = None
+    ) -> pv.UnstructuredGrid:
         """
         Compute right atrium fiber with LDRBD method.
 
         Parameters
         ----------
-        appendage
-            Right atrium appendage apex coordinates.
-        top
-            Start and end coordinates of Top nodeset.
-            Can add a middle point to enforce the geodesic path, like [start, middle, end].
+        appendage: list[float]
+            Coordinates of appendage.
+
+        top : list[list[float]], optional
+        A list of nodal coordinates to define the top path. By default, this is set to None.
+
+        The top path is a set of nodes connecting the superior (SVC) and inferior (IVC) vena cava.
+        Refer to `Notes` for more details.
+        The default method (top=None) may not work for some anatomical structures. In such cases,
+        you can define the start and end points by providing a list of coordinates,
+        e.g., [[x1, y1, z1], [x2, y2, z2]]. These two nodes should be located on the SVC and IVC
+        rings, approximately at the 12 o'clock position.
+
+        You can also add an intermediate point to enforce the geodesic path,
+        e.g., [[x1, y1, z1], [x3, y3, z3], [x2, y2, z2]].
 
         Returns
         -------
-            right atrium UnstructuredGrid with related information.
+        pv.UnstructuredGrid
+            Left atrium with fiber coordinates system 'e_l', 'e_t' and 'e_n'.
 
+        Notes
+        -----
+        the method is described in https://doi.org/10.1016/j.cma.2020.113468
         """
         LOGGER.info("Computing RA fiber...")
         export_directory = os.path.join(self.root_directory, "ra_fiber")
@@ -250,15 +266,24 @@ class BaseSimulator:
 
     def compute_left_atrial_fiber(
         self,
-        appendage: List[float] = None,
+        appendage: list[float] = None,
     ) -> pv.UnstructuredGrid:
-        """
-        Compute left atrium fiber with LDRBD method.
+        """Compute left atrium fiber with LDRBD method.
+
+        Parameters
+        ----------
+        appendage : list[float], optional
+            Coordinates of appendage, by default None
+            If not defined, we use the cap named 'appendage'.
 
         Returns
         -------
-            right atrium UnstructuredGrid with related information.
+        pv.UnstructuredGrid
+            Right atrium with fiber coordinates system 'e_l', 'e_t' and 'e_n'.
 
+        Notes
+        -----
+        the method is described in https://doi.org/10.1016/j.cma.2020.113468
         """
         LOGGER.info("Computing LA fiber...")
         export_directory = os.path.join(self.root_directory, "la_fiber")

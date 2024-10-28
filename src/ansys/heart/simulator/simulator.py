@@ -215,7 +215,7 @@ class BaseSimulator:
             Right atrium appendage apex coordinates.
         top
             Start and end coordinates of Top nodeset.
-            Can add an middle point to enforce the geodesic path, like [start, midlle, end].
+            Can add a middle point to enforce the geodesic path, like [start, middle, end].
 
         Returns
         -------

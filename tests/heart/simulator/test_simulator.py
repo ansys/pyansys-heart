@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+import os
 from unittest.mock import Mock, patch
 
 import numpy as np
@@ -33,7 +33,7 @@ from ansys.heart.simulator.simulator import BaseSimulator
 
 @pytest.fixture
 def mock_which():
-    # otherwise, need a legal dyna path
+    # mock lsdyna path check
     with patch("ansys.heart.simulator.simulator.which") as mocked_which:
         # whatever return value
         mock_which.return_value = 1
@@ -41,7 +41,7 @@ def mock_which():
 
 
 @pytest.fixture
-def mocked_BaseSimulator(mock_which) -> BaseSimulator:
+def simulator(mock_which) -> BaseSimulator:
     model = Mock(spec=FourChamber).return_value
     model.left_atrium.endocardium = 1
     model.right_atrium.endocardium = 1
@@ -50,22 +50,79 @@ def mocked_BaseSimulator(mock_which) -> BaseSimulator:
 
     setting = Mock(spec=DynaSettings)
     setting.lsdyna_path = ""
-    simulation_directory = "dummy"
+    simulation_directory = "."
     simulator = BaseSimulator(model, setting, simulation_directory)
     # simulator.run_laplace_problem = MagicMock(return_value=polydata)
 
     return simulator
 
 
-@pytest.mark.parametrize("appendage", [None, [0, 0, 0]])
-def test_compute_left_atrial_fiber(mocked_BaseSimulator, appendage):
-    with patch(
-        "ansys.heart.simulator.simulator.BaseSimulator.compute_left_atrial_fiber",
-        side_effect=Mock(),
-    ) as mock_la_fiber:
-        mocked_BaseSimulator.compute_left_atrial_fiber(appendage=appendage)
+@pytest.fixture
+def mock_laplace():
+    with patch.object(
+        BaseSimulator,
+        "run_laplace_problem",
+    ) as mock_laplace:
+        # We only check if run_laplace_problem() is called by correct input
+        mock_laplace.side_effect = Exception("ignore output")
+        mock_laplace.return_value = "target"
+        yield mock_laplace
 
-        if appendage is None:
-            mock_la_fiber.assert_called_once()
-        else:
-            mock_la_fiber.assert_called_once_with(appendage=[0, 0, 0])
+
+@pytest.mark.parametrize("appendage", [None, [0, 0, 0]])
+def test_compute_left_atrial_fiber(simulator, mock_laplace, appendage):
+
+    try:
+        simulator.compute_left_atrial_fiber(appendage=appendage)
+    except Exception as e:
+        assert str(e) == "ignore output"
+
+    if appendage is None:
+        mock_laplace.assert_called_once_with(
+            os.path.join(simulator.root_directory, "la_fiber"), "la_fiber", laa=None
+        )
+    else:
+        mock_laplace.assert_called_once_with(
+            os.path.join(simulator.root_directory, "la_fiber"),
+            "la_fiber",
+            laa=[0, 0, 0],
+        )
+
+
+@pytest.mark.parametrize("top", [None, [1, 0, 0]])
+def test_compute_right_atrial_fiber(simulator, mock_laplace, top):
+
+    try:
+        simulator.compute_right_atrial_fiber([0, 0, 0], top=top)
+    except Exception as e:
+        assert str(e) == "ignore output"
+
+    if top is None:
+        mock_laplace.call_args = (
+            (
+                os.path.join(simulator.root_directory, "ra_fiber"),
+                "ra_fiber",
+            ),
+            {"raa": np.array([0, 0, 0]), "top": None},
+        )
+    else:
+        mock_laplace.call_args = (
+            (
+                os.path.join(simulator.root_directory, "ra_fiber"),
+                "ra_fiber",
+            ),
+            {"raa": np.array([0, 0, 0]), "top": [1, 0, 0]},
+        )
+
+
+def test_compute_uvc(simulator, mock_laplace):
+
+    try:
+        simulator.compute_uhc()
+    except Exception as e:
+        assert str(e) == "ignore output"
+
+    mock_laplace.assert_called_once_with(
+        os.path.join(simulator.root_directory, "uvc"),
+        "uvc",
+    )

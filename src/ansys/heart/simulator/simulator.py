@@ -36,6 +36,7 @@ import copy
 import os
 import pathlib
 import shutil
+from shutil import which
 import subprocess
 from typing import Literal
 
@@ -60,25 +61,6 @@ from ansys.heart.simulator.settings.material.material import (
 )
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
-
-
-def which(program):
-    """Return path if program exists, else None."""
-
-    def is_exe(fpath):
-        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-    fpath, fname = os.path.split(program)
-    if fpath:
-        if is_exe(program):
-            return program
-    else:
-        for path in os.environ["PATH"].split(os.pathsep):
-            exe_file = os.path.join(path, program)
-            if is_exe(exe_file):
-                return exe_file
-
-    return None
 
 
 class BaseSimulator:

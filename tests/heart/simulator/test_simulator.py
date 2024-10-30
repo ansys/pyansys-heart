@@ -28,7 +28,6 @@ import pyvista as pv
 
 from ansys.heart.core.models import FourChamber
 from ansys.heart.simulator.settings.settings import DynaSettings
-from ansys.heart.simulator.simulator import BaseSimulator, which
 
 
 @pytest.fixture
@@ -126,22 +125,3 @@ def test_compute_uvc(simulator, mock_laplace):
         os.path.join(simulator.root_directory, "uvc"),
         "uvc",
     )
-
-def test_which():
-    """Test the which method."""
-    import tempfile
-
-    with tempfile.TemporaryFile() as f:
-        file_path = f.name
-        file_name = os.path.basename(file_path)
-
-        assert which(f.name) == file_path
-        assert which(file_name) is None
-        # add tempdir to PATH
-        os.environ["PATH"] = tempfile.tempdir + ";" + os.environ["PATH"]
-        assert which(file_name) == file_path
-
-    # after file cleanup should return None (path does not exist.)
-    assert which(f.name) == None
-
-    pass

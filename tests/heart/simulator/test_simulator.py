@@ -21,6 +21,7 @@
 # SOFTWARE.
 import os
 from unittest.mock import Mock, patch
+import shutil
 
 import numpy as np
 import pytest
@@ -29,18 +30,12 @@ import pyvista as pv
 from ansys.heart.core.models import FourChamber
 from ansys.heart.simulator.settings.settings import DynaSettings
 
+# import after mocking.
+from ansys.heart.simulator.simulator import BaseSimulator
 
 @pytest.fixture
-def mock_which():
-    # mock lsdyna path check
-    with patch("ansys.heart.simulator.simulator.which") as mocked_which:
-        # whatever return value
-        mock_which.return_value = 1
-        yield mock_which
-
-
-@pytest.fixture
-def simulator(mock_which) -> BaseSimulator:
+def simulator(mocker) -> BaseSimulator:
+    mocker.patch.object(shutil, "which", return_value=1)
     model = Mock(spec=FourChamber).return_value
     model.left_atrium.endocardium = 1
     model.right_atrium.endocardium = 1
@@ -66,7 +61,6 @@ def mock_laplace():
         mock_laplace.side_effect = Exception("ignore output")
         mock_laplace.return_value = "target"
         yield mock_laplace
-
 
 @pytest.mark.parametrize("appendage", [None, [0, 0, 0]])
 def test_compute_left_atrial_fiber(simulator, mock_laplace, appendage):

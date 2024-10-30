@@ -36,7 +36,6 @@ import copy
 import os
 import pathlib
 import shutil
-from shutil import which
 import subprocess
 from typing import Literal
 
@@ -97,7 +96,7 @@ class BaseSimulator:
         """Dictionary of all defined directories."""
 
         """Operating System."""
-        if which(self.dyna_settings.lsdyna_path) is None:
+        if shutil.which(self.dyna_settings.lsdyna_path) is None:
             LOGGER.error(f"{self.dyna_settings.lsdyna_path} not exist")
             exit()
 

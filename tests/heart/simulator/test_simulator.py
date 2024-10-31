@@ -138,11 +138,7 @@ def test_simulator_inits(mocker, simulator_type):
     model.info = Mock(spec=models.ModelInfo)
     model.info.workdir = os.getcwd()
     simulator = simulator_type(model = model, dyna_settings=None)
-
-
-    simulator = BaseSimulator(model = model, dyna_settings=None)
     
-    simulator = BaseSimulator(model = model, dyna_settings=None)
     assert simulator.dyna_settings.__str__() == DynaSettings().__str__()
 
 def test_base_simulator_load_default_settings(mocker):

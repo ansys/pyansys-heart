@@ -124,15 +124,24 @@ def test_compute_uvc(simulator, mock_laplace):
         "uvc",
     )
 
-def test_base_simulator_init(mocker):
-    """Test the base simulator."""
+@pytest.mark.parametrize("simulator_type",
+                         (simulators.BaseSimulator,
+                          simulators.EPSimulator,
+                          simulators.EPMechanicsSimulator,
+                          simulators.MechanicsSimulator))
+def test_simulator_inits(mocker, simulator_type):
+    """Test inits of all simulators."""
     # mock which
     mocker.patch.object(shutil, "which", return_value=1)
     # test init
     model = MagicMock(spec=models.FourChamber)
     model.info = Mock(spec=models.ModelInfo)
     model.info.workdir = os.getcwd()
+    simulator = simulator_type(model = model, dyna_settings=None)
 
+
+    simulator = BaseSimulator(model = model, dyna_settings=None)
+    
     simulator = BaseSimulator(model = model, dyna_settings=None)
     assert simulator.dyna_settings.__str__() == DynaSettings().__str__()
 

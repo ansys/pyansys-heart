@@ -20,14 +20,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import os
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, MagicMock
 import shutil
 
 import numpy as np
 import pytest
 import pyvista as pv
+from pyvista import examples as pyvista_examples
+from ansys.heart.simulator.simulator import run_lsdyna
+import tempfile
 
 from ansys.heart.core.models import FourChamber
+import ansys.heart.core.models as models
 from ansys.heart.simulator.settings.settings import DynaSettings
 
 # import after mocking.
@@ -119,3 +123,49 @@ def test_compute_uvc(simulator, mock_laplace):
         os.path.join(simulator.root_directory, "uvc"),
         "uvc",
     )
+
+def test_base_simulator_init(mocker):
+    """Test the base simulator."""
+    # mock which
+    mocker.patch.object(shutil, "which", return_value=1)
+    # test init
+    model = MagicMock(spec=models.FourChamber)
+    model.info = Mock(spec=models.ModelInfo)
+    model.info.workdir = os.getcwd()
+
+    simulator = BaseSimulator(model = model, dyna_settings=None)
+    assert simulator.dyna_settings.__str__() == DynaSettings().__str__()
+
+def test_base_simulator_load_default_settings(mocker):
+    """Test loading defaults."""
+    from ansys.heart.simulator.settings.settings import SimulationSettings
+    mocker.patch.object(shutil, "which", return_value=1)
+    # test init
+    model = Mock(spec=models.FourChamber)
+    model.info = Mock(spec=models.ModelInfo)
+    model.info.workdir = os.getcwd()
+    model.mesh = pyvista_examples.load_hexbeam()
+    model.mesh.cell_data["fiber"] = np.zeros( (model.mesh.n_cells, 3), dtype=float)
+    model.mesh.cell_data["sheet"] = np.zeros( (model.mesh.n_cells, 3), dtype=float)
+    fiber = np.eye(3)
+    sheet = np.eye(3)
+
+    simulator = BaseSimulator(model = model, dyna_settings=None)
+    simulator.load_default_settings() == SimulationSettings()
+
+    # mock methods
+    mocker.patch("ansys.heart.simulator.simulator.BaseSimulator._write_fibers", return_value=".")
+    mocker.patch("ansys.heart.simulator.simulator.BaseSimulator._run_dyna", return_value=True)
+    mocker.patch("ansys.heart.simulator.simulator._read_orth_element_kfile",
+                 return_value=(np.array([1, 2, 3]), [], [], fiber, sheet))
+    mocker.patch("ansys.heart.core.models.HeartModel.dump_model")
+
+    simulator.compute_fibers()
+
+@patch("subprocess.Popen")
+@pytest.mark.parametrize("settings", [None, Mock(DynaSettings)])
+def test_run_dyna1(mock_subproc_popen, settings):
+    """Test run_dyna with mock settings and patched Popen."""
+    with tempfile.TemporaryFile() as f:
+        run_lsdyna(f.name, settings, os.getcwd())
+        assert mock_subproc_popen.assert_called_once

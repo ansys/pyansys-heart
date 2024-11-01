@@ -92,6 +92,7 @@ def test_read_ECGs(_mock_ep_postprocessor: EPpostprocessor):
 
 
 #! TODO: implement sensible asserts.
+#! TODO: reduce overlap with test_export_transmembrane_to_vtk
 def test_compute_ECGs(_mock_ep_postprocessor: EPpostprocessor, mocker):
     """Test the ECG computation."""
     # mocks the following:

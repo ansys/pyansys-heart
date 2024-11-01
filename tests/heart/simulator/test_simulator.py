@@ -192,11 +192,15 @@ def test_base_simulator_load_default_settings(mocker):
 
 @patch("subprocess.Popen")
 @pytest.mark.parametrize("settings", [None, Mock(DynaSettings)])
-def test_run_dyna1(mock_subproc_popen, settings):
+def test_run_dyna(mock_subproc_popen, settings):
     """Test run_dyna with mock settings and patched Popen."""
-    with tempfile.TemporaryFile() as f:
-        print(f.name)
-        run_lsdyna(f.name, settings, os.getcwd())
+    curr_dir = os.getcwd()
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        tmp_file = os.path.join(tempdir, "main.k")
+        with open(tmp_file, "w") as f:
+            f.write("*INCLUDE\n")
+
+        run_lsdyna(tmp_file, settings, curr_dir)
         assert mock_subproc_popen.assert_called_once
 
 

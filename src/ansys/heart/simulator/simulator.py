@@ -569,7 +569,12 @@ class MechanicsSimulator(BaseSimulator):
 
         return part
 
-    def simulate(self, folder_name="main-mechanics", zerop_folder=None, auto_post=True):
+    def simulate(
+        self,
+        folder_name: str = "main-mechanics",
+        zerop_folder: str | None = None,
+        auto_post: bool = True,
+    ):
         """
         Launch the main simulation.
 

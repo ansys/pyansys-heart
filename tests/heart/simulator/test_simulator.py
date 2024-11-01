@@ -30,17 +30,17 @@ from pyvista import examples as pyvista_examples
 from ansys.heart.simulator.simulator import run_lsdyna
 import tempfile
 
-from ansys.heart.core.models import FourChamber
 import ansys.heart.core.models as models
 from ansys.heart.simulator.settings.settings import DynaSettings
 
 # import after mocking.
 from ansys.heart.simulator.simulator import BaseSimulator
+import ansys.heart.simulator.simulator as simulators
 
 @pytest.fixture
 def simulator(mocker) -> BaseSimulator:
     mocker.patch.object(shutil, "which", return_value=1)
-    model = Mock(spec=FourChamber).return_value
+    model = Mock(spec=models.FourChamber).return_value
     model.left_atrium.endocardium = 1
     model.right_atrium.endocardium = 1
     polydata = pv.PolyData(np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0]]), [3, 0, 1, 2])
@@ -50,7 +50,6 @@ def simulator(mocker) -> BaseSimulator:
     setting.lsdyna_path = ""
     simulation_directory = "."
     simulator = BaseSimulator(model, setting, simulation_directory)
-    # simulator.run_laplace_problem = MagicMock(return_value=polydata)
 
     return simulator
 
@@ -138,7 +137,7 @@ def test_simulator_inits(mocker, simulator_type):
     model.info = Mock(spec=models.ModelInfo)
     model.info.workdir = os.getcwd()
     simulator = simulator_type(model = model, dyna_settings=None)
-    
+
     assert simulator.dyna_settings.__str__() == DynaSettings().__str__()
 
 def test_base_simulator_load_default_settings(mocker):

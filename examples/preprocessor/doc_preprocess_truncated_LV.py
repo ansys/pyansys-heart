@@ -152,9 +152,6 @@ model._assign_surfaces_to_parts()
 model._validate_parts()
 model._validate_surfaces()
 
-model._add_nodal_areas()
-model._add_surface_normals()
-
 model._assign_cavities_to_parts()
 model._update_cap_names()
 model._validate_cap_names()

@@ -1035,33 +1035,6 @@ class HeartModel:
 
         return element_ids
 
-    # TODO: Should do this on the fly in dynawriter.
-    @deprecated(reason="Adding nodal areas is deprecated, use pyvista instead.")
-    def _add_nodal_areas(self):
-        """Compute and add nodal areas to surface nodes."""
-        raise NotImplementedError("Adding nodal areas is deprecated")
-        exit()
-
-    def _add_surface_normals(self):
-        """Add surface normal as point data and cell data to all 'named' surfaces in the model.
-
-        Notes
-        -----
-        Note that we need to flip the normals due to the convention that Fluent Meshing uses.
-        That is, normals point into the meshed domain.
-        """
-        LOGGER.debug("Adding normals to all 'named' surfaces")
-        LOGGER.warning("Flipping normals.")
-        for part in self.parts:
-            for surface in part.surfaces:
-                surface_with_normals = surface.compute_normals(
-                    cell_normals=True, point_normals=True, inplace=True, flip_normals=True
-                )
-                surface.cell_data["normals"] = surface_with_normals.cell_data["Normals"]
-                surface.point_data["normals"] = surface_with_normals.point_data["Normals"]
-
-        return
-
     def _update_parts(self):
         """Update the parts using the meshed volume.
 

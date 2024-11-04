@@ -124,8 +124,8 @@ def test_compute_ECGs(_mock_ep_postprocessor: EPpostprocessor, mocker):
 
     pass
 
-@pytest.mark.xfail(condition=github_runner,
-                   reason="Exporting transmembrane potential fails on github runner.")
+# Exporting transmembrane potential fails on github runner.
+@pytest.mark.skipif(condition=github_runner)
 def test_export_transmembrane_to_vtk(_mock_ep_postprocessor: EPpostprocessor, mocker):
     """Test exporting to VTK."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:

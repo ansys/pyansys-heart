@@ -58,7 +58,7 @@ def test_heart_model_plot_mesh(_mock_biventricle):
 def test_heart_model_plot_part(_mock_biventricle):
     """Test plotting a part."""
     mock_part = mock.Mock(Part)
-    mock_part.element_ids = np.array([0,1,2,3,4])
+    mock_part.element_ids = np.array([0, 1, 2, 3, 4])
     _mock_biventricle.plot_part(mock_part)
 
 def test_heart_model_plot_fibers(_mock_biventricle):

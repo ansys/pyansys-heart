@@ -31,6 +31,7 @@ import pyvista as pv
 
 from ansys.heart.core.models import HeartModel
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
+from ansys.heart.core import LOG as LOGGER
 
 
 class EPpostprocessor:
@@ -179,7 +180,8 @@ class EPpostprocessor:
             # TODO: vtk is not optimal for scalar fields with
             # non moving meshes, consider using ROM format
             grid.point_data["transmembrane_potential"] = vm[ii, :]
-            grid.save(os.path.join(post_path, f"vm_{ii}.vtk"))
+            LOGGER.debug(os.path.join(post_path, "vm_{0}.vtk".format(ii)))
+            grid.save(os.path.join(post_path, "vm_{0}.vtk".format(ii)))
         return
 
     def compute_ECGs(self, electrodes: np.ndarray):  # noqa: N802

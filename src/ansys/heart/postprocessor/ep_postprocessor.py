@@ -29,9 +29,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pyvista as pv
 
+from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.models import HeartModel
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
-from ansys.heart.core import LOG as LOGGER
 
 
 class EPpostprocessor:

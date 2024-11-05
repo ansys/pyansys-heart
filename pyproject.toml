@@ -114,6 +114,7 @@ known-first-party = ["ansys.heart"]
 
 [tool.coverage.run]
 source = ["ansys.heart"]
+omit = ["*custom_dynalib_keywords*"]
 
 [tool.coverage.report]
 show_missing = true

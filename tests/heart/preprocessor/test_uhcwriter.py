@@ -27,10 +27,12 @@ if os.getenv("GITHUB_ACTIONS"):
 else:
     is_gh_action = False
 
-import glob, pathlib
+import glob
+import pathlib
+import tempfile
 
 import pytest
-import tempfile
+
 import ansys.heart.core.models as models
 from ansys.heart.writer.dynawriter import UHCWriter
 from tests.heart.conftest import get_assets_folder

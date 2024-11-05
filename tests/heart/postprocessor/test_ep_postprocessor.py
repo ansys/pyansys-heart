@@ -33,6 +33,7 @@ else:
 import numpy as np
 import pytest
 import pyvista as pv
+
 pv.OFF_SCREEN = True
 
 from ansys.heart.core.models import FullHeart
@@ -123,6 +124,7 @@ def test_compute_ECGs(_mock_ep_postprocessor: EPpostprocessor, mocker):
     mock_get_transmembrane.assert_called_once()
 
     pass
+
 
 @pytest.mark.skipif(github_runner, reason="Interactive update fails on github runner")
 def test_export_transmembrane_to_vtk(_mock_ep_postprocessor: EPpostprocessor, mocker):

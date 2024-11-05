@@ -27,26 +27,29 @@ if os.getenv("GITHUB_ACTIONS"):
 else:
     is_gh_action = False
 
-import numpy as np
-import pytest
 import unittest.mock as mock
 
-import ansys.heart.core.models as models
+import numpy as np
+import pytest
 import pyvista as pv
+
+import ansys.heart.core.models as models
 from ansys.heart.core.objects import Part
+
 
 @pytest.fixture
 def _mock_input(mocker):
     """Mock biventricular model."""
     mesh = pv.examples.load_tetbeam()
-    mesh.points = mesh.points*1e1
+    mesh.points = mesh.points * 1e1
     mesh.cell_data["part-id"] = 1
-    fibers = np.repeat([1.0, 0.0, 0.0], mesh.n_cells, axis = 0).reshape((3, mesh.n_cells)).T
+    fibers = np.repeat([1.0, 0.0, 0.0], mesh.n_cells, axis=0).reshape((3, mesh.n_cells)).T
     mesh.cell_data["fiber"] = fibers
     mock_biventricle: models.BiVentricle = models.BiVentricle(mock.Mock(models.ModelInfo))
     mock_biventricle.mesh = mesh
     mock_show = mocker.patch("pyvista.Plotter.show")
     return mock_biventricle, mock_show
+
 
 def test_heart_model_plot_mesh(_mock_input):
     """Test plotting the mesh."""
@@ -63,10 +66,11 @@ def test_heart_model_plot_part(_mock_input):
     mock_biventricle.plot_part(mock_part)
     mock_show.assert_called_once()
 
+
 def test_heart_model_plot_fibers(_mock_input):
     """Test plotting of fibers."""
     mock_biventricle, mock_show = _mock_input
     assert isinstance(mock_biventricle.plot_fibers(), pv.Plotter)
-    mock_biventricle.mesh.points = mock_biventricle.mesh.points/1e1
+    mock_biventricle.mesh.points = mock_biventricle.mesh.points / 1e1
     assert not mock_biventricle.plot_fibers()
     mock_show.assert_called_once()

@@ -21,9 +21,19 @@
 # SOFTWARE.
 
 # from conftest import get_workdir, clean_directory
+import glob
 import os
+import shutil
+import tempfile
 
+import numpy as np
 import pytest
+import pyvista as pv
+
+from ansys.heart.preprocessor.input import _InputModel
+import ansys.heart.preprocessor.mesher as mesher
+
+pytestmark = pytest.mark.requires_fluent
 
 try:
     os.environ["GITHUB_JOB"]
@@ -34,18 +44,6 @@ except KeyError:
 # disable Fluent gui for github job
 if is_github_job:
     os.environ["SHOW_FLUENT_GUI"] = "0"
-
-pytestmark = pytest.mark.requires_fluent
-
-import glob
-import shutil
-import tempfile
-
-import numpy as np
-import pyvista as pv
-
-from ansys.heart.preprocessor.input import _InputModel
-import ansys.heart.preprocessor.mesher as mesher
 
 # NOTE: Can manually set Fluent version:
 # mesher._fluent_version = "24.1"

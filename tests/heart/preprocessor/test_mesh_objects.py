@@ -96,7 +96,7 @@ def _get_beam_model(
 def test_pyvista_clean_grid(dtype):
     import pyvista as pv
 
-    if dtype == int:
+    if dtype is int:
         pytest.xfail(reason="clean() will fail if points are of dtype int")
 
     points = np.array([[0, 0, 0], [-1, 0, 0], [1, 0, 0]], dtype=dtype)
@@ -527,7 +527,7 @@ def test_mesh_id_to_name():
     assert mesh._surface_name_to_id == {"triangles": 1, "quads": 2}
     assert mesh._volume_name_to_id == {"tets": 10, "hex": 11}
 
-    assert mesh.validate_ids_to_name_map() == True
+    assert mesh.validate_ids_to_name_map()
 
     triangles1 = mesh.get_surface_by_name("triangles")
     assert triangles.n_cells == triangles1.n_cells
@@ -544,7 +544,7 @@ def test_mesh_id_to_name():
 
     del mesh._volume_id_to_name[10]
     assert mesh._get_unmapped_volumes() == [10]
-    assert mesh.validate_ids_to_name_map() == False
+    assert not mesh.validate_ids_to_name_map()
 
 
 def test_mesh_save_load():
@@ -578,13 +578,9 @@ def test_mesh_save_load():
         assert mesh.n_points == mesh1.n_points
         assert mesh1._surface_id_to_name == {}
         assert mesh1._volume_id_to_name == {}
-        assert mesh1.validate_ids_to_name_map() == False
+        assert not mesh1.validate_ids_to_name_map()
 
     return
-
-    del mesh._surface_id_to_name[1]
-    assert mesh._get_unmapped_surfaces() == [1]
-    assert mesh.validate_ids_to_name_map() == False
 
 
 def test_cavity_volume():

@@ -23,7 +23,7 @@
 """unit test for post-processing."""
 
 import os
-import pathlib as Path
+from pathlib import Path
 
 import pytest
 
@@ -40,30 +40,29 @@ test_dir: str
 pytestmark = pytest.mark.local
 
 
+# TODO: use mock objects to allow testing postprocessing methods.
 @pytest.fixture(autouse=True, scope="module")
 def get_data():
     global test_dir, model
 
-    # TODO: test case in locally saved, need to upload to Github
-
     test_dir = r"D:\PyAnsys-Heart\test_case\test_lv"
-    model = HeartModel.load_model(Path.Path(test_dir) / "model_with_fiber.pickle")
+    model = HeartModel.load_model(Path(test_dir) / "model_with_fiber.pickle")
     model.compute_left_ventricle_anatomy_axis()
     model.compute_left_ventricle_aha17()
 
 
 @pytest.mark.xfail(reason="Test requires local data.")
 def test_compute_myocardial_strain():
-    d3plot = Path.Path(test_dir) / "main-mechanics" / "d3plot"
+    d3plot = Path(test_dir) / "main-mechanics" / "d3plot"
 
     s = AhaStrainCalculator(model, d3plot)
-    element_lrc, aha_lrc, element_lrc_averaged = s._compute_myocardial_strain(1)
+    _, aha_lrc, _ = s._compute_myocardial_strain(1)
     assert aha_lrc[-1, -1] == pytest.approx(0.08878163)
 
 
 @pytest.mark.xfail(reason="Test requires local data.")
 def test_compute_aha_strain():
-    d3plot = Path.Path(test_dir) / "main-mechanics" / "d3plot"
+    d3plot = Path(test_dir) / "main-mechanics" / "d3plot"
 
     s = AhaStrainCalculator(model, d3plot)
     aha_lrc = s.compute_aha_strain(".")
@@ -72,20 +71,20 @@ def test_compute_aha_strain():
 
 @pytest.mark.xfail(reason="Test requires local data.")
 def test_mech_post():
-    dct = mech_post(Path.Path(test_dir) / "main-mechanics", model)
-    assert os.path.exists(Path.Path(test_dir) / "main-mechanics" / "post")
+    mech_post(Path(test_dir) / "main-mechanics", model)
+    assert os.path.exists(Path(test_dir) / "main-mechanics" / "post")
 
 
 @pytest.mark.xfail(reason="Test requires local data.")
 def test_zerop_post():
-    dct = zerop_post(Path.Path(test_dir) / "zeropressure", model)
+    dct = zerop_post(Path(test_dir) / "zeropressure", model)
     assert dct["True left ventricle volume (mm3)"] == pytest.approx(288876.8)
-    assert os.path.exists(Path.Path(test_dir) / "zeropressure" / "post")
+    assert os.path.exists(Path(test_dir) / "zeropressure" / "post")
 
 
 @pytest.mark.xfail(reason="Test requires local data.")
 def test_contour_exporter():
-    d3plot = Path.Path(test_dir) / "main-mechanics" / "d3plot"
+    d3plot = Path(test_dir) / "main-mechanics" / "d3plot"
     exporter = LVContourExporter(d3plot, model)
     contours = exporter.export_contour_to_vtk("l4cv", model.l4cv_axis)
     # exporter.export_contour_to_vtk('l2cv', model.l2cv_axis)
@@ -116,7 +115,7 @@ def test_contour_exporter():
 
 @pytest.mark.xfail(reason="Test requires local data.")
 def test_lvls():
-    d3plot = Path.Path(test_dir) / "main-mechanics" / "d3plot"
+    d3plot = Path(test_dir) / "main-mechanics" / "d3plot"
     exporter = LVContourExporter(d3plot, model)
     p1, p2 = exporter._compute_lvls()
     exporter.export_lvls_to_vtk(folder="lvls")
@@ -138,7 +137,7 @@ def test_lvls():
 class TestSystemModelPost:
     @pytest.fixture
     def system_model(self):
-        return SystemModelPost(Path.Path(test_dir) / "main-mechanics")
+        return SystemModelPost(Path(test_dir) / "main-mechanics")
 
     @pytest.mark.xfail(reason="Test requires local data.")
     def test_plot_pv_loop(self, system_model):

@@ -19,6 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import hashlib
 import os
 import shutil
 import tempfile
@@ -35,6 +36,10 @@ from ansys.heart.simulator.settings.settings import DynaSettings
 # import after mocking.
 import ansys.heart.simulator.simulator as simulators
 from ansys.heart.simulator.simulator import run_lsdyna
+
+
+def _get_md5(filename):
+    return hashlib.md5(open(filename, "rb").read()).hexdigest()
 
 
 @pytest.fixture
@@ -237,9 +242,16 @@ def test_mechanics_simulator_simulate(
             zerop_folder = os.path.join(tempdir, "zero-pressure")
             os.makedirs(zerop_folder)
 
-            lsda_mock = os.path.join(zerop_folder, "iter3.dynain.lsda")
-            with open(lsda_mock, "w") as tmpfile:
-                tmpfile.write("lsda_file")
+            # generate set of unique lsda files.
+            # TODO: may want to have a separate test for this
+            # TODO: in order to check the exact condition the
+            # TODO: lsda file is used.
+            for ii in range(0, 11):
+                filename = os.path.join(zerop_folder, f"iter{ii}.dynain.lsda")
+                with open(filename, "w") as tmpfile:
+                    tmpfile.write(f"lsda_file_{ii}")
+
+            md5_ref = _get_md5(filename)
 
         mechanics_simulator.simulate(
             folder_name=folder_name, zerop_folder=zerop_folder, auto_post=auto_post
@@ -259,4 +271,7 @@ def test_mechanics_simulator_simulate(
         mock_write_main.reset_mock()
 
         if initial_stress:
-            pass
+            # TODO: assert if correct file is copied by confirming hash. Will need
+            # TODO: unique files for that.
+            md5 = _get_md5(os.path.join(tempdir, folder_name, "dynain.lsda"))
+            assert md5 == md5_ref

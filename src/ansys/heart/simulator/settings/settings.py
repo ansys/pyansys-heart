@@ -245,6 +245,7 @@ class AnalysisZeroPressure(Analysis):
     """Maximum iterations for stress-free-configuration algorithm."""
     method: int = 2
     """Method to use."""
+    # TODO: this should be a Quantity type
     tolerance: float = 5.0
     """Tolerance to use for iterative algorithm."""
 

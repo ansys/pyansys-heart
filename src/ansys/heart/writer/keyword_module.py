@@ -166,7 +166,7 @@ def create_segment_set_keyword(
         raise ValueError("expecting segments to have 3 or 4 columns")
 
     if segments.shape[1] == 3:
-        segtype = "triangle"
+        # segtype = "triangle"
         segments = np.vstack([segments.T, segments[:, -1]]).T
 
     kw = keywords.SetSegment(sid=segid)
@@ -246,10 +246,10 @@ def create_element_shell_keyword(
     kw = keywords.ElementShell()
 
     if shells.shape[1] == 3:
-        element_type = "triangle"
+        # element_type = "triangle"
         columns = kw.elements.columns[0:5]
     elif shells.shape[1] == 4:
-        element_type = "quad"
+        # element_type = "quad"
         columns = kw.elements.columns[0:6]
     else:
         raise ValueError("Unknown type. Check size of shell array")
@@ -567,7 +567,7 @@ def fast_element_writer(
         pass
 
     elements_np = elements.to_numpy()
-    headers = list(element_kw.elements.columns)
+    # headers = list(element_kw.elements.columns)
 
     if writer == "solid_ortho_writer":
         # explicitly cast to ints and floats

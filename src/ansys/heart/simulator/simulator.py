@@ -62,25 +62,6 @@ from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSett
 import ansys.heart.writer.dynawriter as writers
 
 
-def which(program):
-    """Return path if program exists, else None."""
-
-    def is_exe(fpath):
-        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-    fpath, fname = os.path.split(program)
-    if fpath:
-        if is_exe(program):
-            return program
-    else:
-        for path in os.environ["PATH"].split(os.pathsep):
-            exe_file = os.path.join(path, program)
-            if is_exe(exe_file):
-                return exe_file
-
-    return None
-
-
 class BaseSimulator:
     """Base class for the simulator."""
 
@@ -115,7 +96,7 @@ class BaseSimulator:
         """Dictionary of all defined directories."""
 
         """Operating System."""
-        if which(self.dyna_settings.lsdyna_path) is None:
+        if shutil.which(self.dyna_settings.lsdyna_path) is None:
             LOGGER.error(f"{self.dyna_settings.lsdyna_path} not exist")
             exit()
 
@@ -588,7 +569,12 @@ class MechanicsSimulator(BaseSimulator):
 
         return part
 
-    def simulate(self, folder_name="main-mechanics", zerop_folder=None, auto_post=True):
+    def simulate(
+        self,
+        folder_name: str = "main-mechanics",
+        zerop_folder: str | None = None,
+        auto_post: bool = True,
+    ):
         """
         Launch the main simulation.
 

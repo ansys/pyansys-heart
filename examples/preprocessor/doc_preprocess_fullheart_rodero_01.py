@@ -141,7 +141,7 @@ model.mesh.save(os.path.join(model.info.workdir, "simulation-mesh.vtu"))
 model.save_model(os.path.join(model.info.workdir, "heart_model.vtu"))
 
 # print some info about the processed model.
-model.print_info()
+print(model)
 
 # clean the working directory
 info.clean_workdir(extensions_to_remove=[".stl", ".vtk", ".msh.h5"])

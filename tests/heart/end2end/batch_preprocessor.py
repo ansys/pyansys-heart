@@ -108,7 +108,7 @@ def main(args):
             # dump the model to disk for future use
             model.dump_model(path_to_model)
             # print the resulting information
-            model.print_info()
+            print(model)
 
 
 if __name__ == "__main__":

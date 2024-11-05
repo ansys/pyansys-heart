@@ -37,10 +37,10 @@ import dataclasses
 # from importlib.resources import files
 from importlib.resources import path as resource_path
 
-from ansys.dyna.keywords import keywords
 import numpy as np
 import pandas as pd
 
+from ansys.dyna.keywords import keywords
 from ansys.heart.simulator.settings.material.material import MAT295, ActiveModel
 
 # import custom keywords in separate namespace

@@ -24,9 +24,10 @@
 
 from typing import Union
 
-from ansys.dyna.keywords import Deck, keywords
 import numpy as np
 import pandas as pd
+
+from ansys.dyna.keywords import Deck, keywords
 
 # import some custom keywords that avoid bugs in dynalib
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
@@ -646,9 +647,10 @@ def example_performance():
     """Test performance of regular vs. improved keyword writer."""
     import time as time
 
-    from ansys.dyna import keywords
     import numpy as np
     import pandas as pd
+
+    from ansys.dyna import keywords
 
     # from ansys.dyna.keywords import db as db
     # create some data

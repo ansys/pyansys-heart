@@ -36,14 +36,13 @@ import os
 import time
 from typing import Callable, List, Literal, NamedTuple, Union
 
-from ansys.dyna.keywords import keywords
 import numpy as np
 import pandas as pd
 import pyvista as pv
 import scipy.spatial as spatial
 
+from ansys.dyna.keywords import keywords
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.objects import Cap, Part, PartType, SurfaceMesh
 from ansys.heart.core.helpers.vtkmethods import compute_surface_nodal_area_pyvista
 from ansys.heart.core.models import (
     BiVentricle,
@@ -52,6 +51,7 @@ from ansys.heart.core.models import (
     HeartModel,
     LeftVentricle,
 )
+from ansys.heart.core.objects import Cap, Part, PartType, SurfaceMesh
 from ansys.heart.simulator.settings.material.ep_material import CellModel, EPMaterial
 from ansys.heart.simulator.settings.material.material import (
     ACTIVE,
@@ -86,7 +86,10 @@ from ansys.heart.writer.keyword_module import (
     get_list_of_used_ids,
 )
 from ansys.heart.writer.material_keywords import MaterialHGOMyocardium, MaterialNeoHook
-from ansys.heart.writer.system_models import _ed_load_template, define_function_0Dsystem # noqa F401
+from ansys.heart.writer.system_models import (  # noqa F401
+    _ed_load_template,
+    define_function_0Dsystem,
+)
 
 
 class CVInteraction(NamedTuple):
@@ -204,19 +207,19 @@ class BaseDynaWriter:
         ]
 
         if isinstance(self, MechanicsDynaWriter):
-            if not sett.Mechanics in subsettings_classes:
+            if sett.Mechanics not in subsettings_classes:
                 raise ValueError("Expecting mechanics settings.")
 
         elif isinstance(self, FiberGenerationDynaWriter):
-            if not sett.Fibers in subsettings_classes:
+            if sett.Fibers not in subsettings_classes:
                 raise ValueError("Expecting fiber settings.")
 
         elif isinstance(self, PurkinjeGenerationDynaWriter):
-            if not sett.Purkinje in subsettings_classes:
+            if sett.Purkinje not in subsettings_classes:
                 raise ValueError("Expecting Purkinje settings.")
 
         elif isinstance(self, ElectrophysiologyDynaWriter):
-            if not sett.Electrophysiology in subsettings_classes:
+            if sett.Electrophysiology not in subsettings_classes:
                 raise ValueError("Expecting electrophysiology settings.")
         elif isinstance(self, UHCWriter):
             pass
@@ -990,7 +993,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         """Write the model to files."""
         super().export(export_directory)
 
-        # todo: Close loop is only available from a customized LSDYNA executable
+        # TODO: Close loop is only available from a customized LSDYNA executable
         # add system json in case of closed loop. For open-loop this is already
         # added in the control volume database
         if (

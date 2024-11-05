@@ -25,22 +25,22 @@ import os
 import tempfile
 import unittest.mock as mock
 
-if os.getenv("GITHUB_ACTION"):
-    github_runner = True
-else:
-    github_runner = False
-
 import numpy as np
 import pytest
 import pyvista as pv
-pv.OFF_SCREEN = True
 
 from ansys.heart.core.models import FullHeart
 from ansys.heart.postprocessor.ep_postprocessor import EPpostprocessor
 
+if os.getenv("GITHUB_ACTION"):
+    github_runner = True
+else:
+    github_runner = False
+pv.OFF_SCREEN = True
+
 
 #! @kelhouari can we get more sensible mock data?
-def _create_mock_ECG_data() -> tuple:
+def _create_mock_ECG_data() -> tuple:  # noqa N802
     """Create mock ECG data."""
     data = np.arange(10 * 12).reshape((12, 10)).T
     time = data[:, 0]
@@ -63,7 +63,7 @@ def _mock_ep_postprocessor(mocker) -> EPpostprocessor:
 
 
 @pytest.mark.parametrize("to_plot", [False, True], ids=["Plot=False", "Plot=True"])
-def test_compute_12lead_ECG(_mock_ep_postprocessor: EPpostprocessor, to_plot, mocker):
+def test_compute_12lead_ECG(_mock_ep_postprocessor: EPpostprocessor, to_plot, mocker):  # noqa N802
     """Test 12 lead ECG computation."""
 
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
@@ -76,7 +76,7 @@ def test_compute_12lead_ECG(_mock_ep_postprocessor: EPpostprocessor, to_plot, mo
         mock_show = mocker.patch("ansys.heart.postprocessor.ep_postprocessor.plt.show")
 
         time, ecg_data, _ = _create_mock_ECG_data()
-        ecg = _mock_ep_postprocessor.compute_12_lead_ECGs(ECGs=ecg_data, times=time, plot=to_plot)
+        _mock_ep_postprocessor.compute_12_lead_ECGs(ECGs=ecg_data, times=time, plot=to_plot)
 
         #! TODO: add assertion.
         if to_plot:
@@ -85,7 +85,7 @@ def test_compute_12lead_ECG(_mock_ep_postprocessor: EPpostprocessor, to_plot, mo
             mock_show.assert_called_once()
 
 
-def test_read_ECGs(_mock_ep_postprocessor: EPpostprocessor):
+def test_read_ECGs(_mock_ep_postprocessor: EPpostprocessor):  # noqa N802
     """Read ECGs"""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         data_expected = _create_mock_ECG_data()[-1]
@@ -98,7 +98,7 @@ def test_read_ECGs(_mock_ep_postprocessor: EPpostprocessor):
 
 #! TODO: implement sensible asserts.
 #! TODO: reduce overlap with test_export_transmembrane_to_vtk
-def test_compute_ECGs(_mock_ep_postprocessor: EPpostprocessor, mocker):
+def test_compute_ECGs(_mock_ep_postprocessor: EPpostprocessor, mocker):  # noqa N802
     """Test the ECG computation."""
     # mocks the following:
     # vm, times = self.get_transmembrane_potential()
@@ -123,6 +123,7 @@ def test_compute_ECGs(_mock_ep_postprocessor: EPpostprocessor, mocker):
     mock_get_transmembrane.assert_called_once()
 
     pass
+
 
 @pytest.mark.skipif(github_runner, reason="Interactive update fails on github runner")
 def test_export_transmembrane_to_vtk(_mock_ep_postprocessor: EPpostprocessor, mocker):

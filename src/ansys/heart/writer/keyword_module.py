@@ -24,9 +24,10 @@
 
 from typing import Union
 
-from ansys.dyna.keywords import Deck, keywords
 import numpy as np
 import pandas as pd
+
+from ansys.dyna.keywords import Deck, keywords
 
 # import some custom keywords that avoid bugs in dynalib
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
@@ -165,7 +166,7 @@ def create_segment_set_keyword(
         raise ValueError("expecting segments to have 3 or 4 columns")
 
     if segments.shape[1] == 3:
-        segtype = "triangle"
+        # segtype = "triangle"
         segments = np.vstack([segments.T, segments[:, -1]]).T
 
     kw = keywords.SetSegment(sid=segid)
@@ -245,10 +246,10 @@ def create_element_shell_keyword(
     kw = keywords.ElementShell()
 
     if shells.shape[1] == 3:
-        element_type = "triangle"
+        # element_type = "triangle"
         columns = kw.elements.columns[0:5]
     elif shells.shape[1] == 4:
-        element_type = "quad"
+        # element_type = "quad"
         columns = kw.elements.columns[0:6]
     else:
         raise ValueError("Unknown type. Check size of shell array")
@@ -566,7 +567,7 @@ def fast_element_writer(
         pass
 
     elements_np = elements.to_numpy()
-    headers = list(element_kw.elements.columns)
+    # headers = list(element_kw.elements.columns)
 
     if writer == "solid_ortho_writer":
         # explicitly cast to ints and floats
@@ -638,74 +639,5 @@ def fast_element_writer(
         for line in list_formatted_strings:
             fid.write(line)
         fid.close()
-
-    return
-
-
-def example_performance():
-    """Test performance of regular vs. improved keyword writer."""
-    import time as time
-
-    from ansys.dyna import keywords
-    import numpy as np
-    import pandas as pd
-
-    # from ansys.dyna.keywords import db as db
-    # create some data
-    num_elem = 40000
-
-    elements = np.zeros((num_elem, 10), dtype=int)
-    elements[:, 0] = np.arange(1, num_elem + 1, 1)
-    elements[:, 1:] = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-
-    A = np.zeros((num_elem, 3), dtype=float) + 0.33
-    B = np.ones((num_elem, 3), dtype=float) + 0.5
-
-    data = np.hstack([elements, A, B])
-
-    data[1, 7:] = np.nan
-
-    # instantiate keyword
-    kw = keywords.ElementSolidOrtho()
-    element_df = pd.DataFrame(data=data, columns=kw.elements.columns)
-    kw.elements = element_df
-
-    ## faster export method:
-    t0 = time.time()
-    line_format = ""
-    for duplicate_card in kw._cards[0]._cards:
-        for field in duplicate_card._fields:
-            if field.type == float:
-                fmt_append = "{:>" + "{0}.5f".format(field.width) + "}"
-            elif field.type == int:
-                fmt_append = "{:>" + "{0}.0f".format(field.width) + "}"
-
-            line_format = line_format + fmt_append
-
-        line_format = line_format + "\n"
-
-    # format list of strings from data
-    list_formatted = ["*KEYWORD\n", kw.get_title() + "\n"]
-    elements = kw.elements.to_numpy()
-    for element in elements:
-        list_formatted.append(line_format.format(*element))
-    list_formatted.append("*END")
-
-    # write formatted list of strings
-    with open("test_export_elements1.k", "w") as fid:
-        fid.writelines(list_formatted)
-
-    t1 = time.time()
-
-    ## original "slow" export for large keywords
-    kw_db = Deck()
-    kw_db.append(kw)
-    kw_db.export_file("test_export_elements.k ")
-
-    t2 = time.time()
-
-    print("Time fast method: {:.3f}s".format(t1 - t0))
-    print("Time default method: {:.3f}s".format(t2 - t1))
-    print("Speedup: {:.1f}".format((t2 - t1) / (t1 - t0)))
 
     return

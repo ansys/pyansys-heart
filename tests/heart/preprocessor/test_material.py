@@ -24,7 +24,7 @@ import numpy as np
 import pytest
 
 from ansys.heart.simulator.settings.material.curve import ActiveCurve, constant_ca2, strocchi_active
-import ansys.heart.simulator.settings.material.material as M
+import ansys.heart.simulator.settings.material.material as material
 
 
 class TestCa2Curve:
@@ -43,7 +43,7 @@ class TestCa2Curve:
         assert v[0] < stress_curve.threshold
         assert np.all(v[1:] > stress_curve.threshold)
 
-    def test_repeat(sellf, ca2_curve):
+    def test_repeat(self, ca2_curve):
         t, v = ca2_curve.dyna_input
         assert len(t) == 501
 
@@ -54,35 +54,35 @@ class TestCa2Curve:
     def test_check_threshold(self):
         # threshold larger than max
         with pytest.raises(ValueError) as e:
-            bad = ActiveCurve(constant_ca2(), threshold=4.36, type="ca2")
+            ActiveCurve(constant_ca2(), threshold=4.36, type="ca2")
             assert str(e.value) == "Threshold must cross ca2+ curve at least once"
 
         # threshold lower than min
         with pytest.raises(ValueError) as e:
-            bad = ActiveCurve(constant_ca2(), threshold=-0.1, type="ca2")
+            ActiveCurve(constant_ca2(), threshold=-0.1, type="ca2")
             assert str(e.value) == "Threshold must cross ca2+ curve at least once"
 
 
 def test_iso():
-    iso = M.ISO(k1=1, k2=2)
+    iso = material.ISO(k1=1, k2=2)
     assert iso.itype == -3
 
 
 def test_aniso():
-    fiber = M.ANISO.HGOFiber(k1=1, k2=2)
-    sheet = M.ANISO.HGOFiber(k1=1, k2=2)
-    aniso = M.ANISO(fibers=[fiber, sheet])
+    fiber = material.ANISO.HGOFiber(k1=1, k2=2)
+    sheet = material.ANISO.HGOFiber(k1=1, k2=2)
+    aniso = material.ANISO(fibers=[fiber, sheet])
     assert aniso.nf == 2
     assert aniso.intype == 0
     assert fiber._theta == 0.0
     assert sheet._theta == 90.0
 
-    aniso = M.ANISO(fibers=[fiber, sheet], k1fs=1, k2fs=2)
+    aniso = material.ANISO(fibers=[fiber, sheet], k1fs=1, k2fs=2)
     assert aniso.intype == 1
 
 
 def test_active():
-    a = M.ACTIVE(ca2_curve=ActiveCurve(strocchi_active(), type="ca2", threshold=0.1))
+    a = material.ACTIVE(ca2_curve=ActiveCurve(strocchi_active(), type="ca2", threshold=0.1))
     assert a.actype == 1
     assert a.acthr == 0.1
     assert a.model.l == 1.85
@@ -90,7 +90,7 @@ def test_active():
 
 
 def test_active_couple():
-    active_model = M.ActiveModel.Model3(
+    active_model = material.ActiveModel.Model3(
         ca2ion50=0.001,
         n=2,
         f=0.0,
@@ -99,27 +99,29 @@ def test_active_couple():
         sigmax=0.125,  # MPa
     )
     assert active_model.f == 0.0
-    active = M.ACTIVE(sf=1.0, ss=0.0, sn=0.0, acthr=0.0002, model=active_model, ca2_curve=None)
+    active = material.ACTIVE(
+        sf=1.0, ss=0.0, sn=0.0, acthr=0.0002, model=active_model, ca2_curve=None
+    )
     assert active.acthr == 0.0002
     assert active.acdir == 1
 
 
 def test_mat295():
-    m = M.MAT295(rho=1, iso=M.ISO())
+    m = material.MAT295(rho=1, iso=material.ISO())
     assert m.aniso is None
     assert m.active is None
 
-    m.aniso = M.ANISO()
+    m.aniso = material.ANISO()
     assert m.aniso is not None
 
 
 def test_neohookean():
-    m = M.NeoHookean(rho=1, c10=1)
+    m = material.NeoHookean(rho=1, c10=1)
     assert m.nu == 0.499
 
 
 def test_dummy(capsys):
-    m = M.MechanicalMaterialModel.DummyMaterial()
+    m = material.MechanicalMaterialModel.DummyMaterial()
     print(m)
     captured = capsys.readouterr()
     assert captured.out == "Material is empty.\n"

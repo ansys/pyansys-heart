@@ -842,7 +842,7 @@ class DynaSettings:
 
     def __init__(
         self,
-        lsdyna_path: pathlib.Path,
+        lsdyna_path: pathlib.Path = "lsdyna.exe",
         dynatype: Literal["smp", "intelmpi", "platformmpi", "msmpi"] = "intelmpi",
         num_cpus: int = 1,
         platform: Literal["windows", "wsl", "linux"] = "windows",

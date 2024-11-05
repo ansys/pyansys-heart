@@ -37,7 +37,7 @@ import os
 import pathlib
 import shutil
 import subprocess
-from typing import List, Literal
+from typing import Literal
 
 import numpy as np
 import pyvista as pv
@@ -54,28 +54,12 @@ from ansys.heart.postprocessor.laplace_post import (
 )
 from ansys.heart.preprocessor.conduction_beam import ConductionSystem
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
-from ansys.heart.simulator.settings.material.material import NeoHookean
+from ansys.heart.simulator.settings.material.material import (
+    MechanicalMaterialModel,
+    NeoHookean,
+)
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
-
-
-def which(program):
-    """Return path if program exists, else None."""
-
-    def is_exe(fpath):
-        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-    fpath, fname = os.path.split(program)
-    if fpath:
-        if is_exe(program):
-            return program
-    else:
-        for path in os.environ["PATH"].split(os.pathsep):
-            exe_file = os.path.join(path, program)
-            if is_exe(exe_file):
-                return exe_file
-
-    return None
 
 
 class BaseSimulator:
@@ -112,7 +96,7 @@ class BaseSimulator:
         """Dictionary of all defined directories."""
 
         """Operating System."""
-        if which(self.dyna_settings.lsdyna_path) is None:
+        if shutil.which(self.dyna_settings.lsdyna_path) is None:
             LOGGER.error(f"{self.dyna_settings.lsdyna_path} not exist")
             exit()
 
@@ -205,24 +189,45 @@ class BaseSimulator:
 
         return grid
 
-    def compute_right_atrial_fiber(self, appendage: List[float]) -> pv.UnstructuredGrid:
+    def compute_right_atrial_fiber(
+        self, appendage: list[float], top: list[list[float]] = None
+    ) -> pv.UnstructuredGrid:
         """
         Compute right atrium fiber with LDRBD method.
 
         Parameters
         ----------
-        appendage
-            Right atrium appendage apex coordinates.
+        appendage: list[float]
+            Coordinates of appendage.
+
+        top : list[list[float]], optional
+        A list of nodal coordinates to define the top path. By default, this is set to None.
+
+        The top path is a set of nodes connecting the superior (SVC) and inferior (IVC) vena cava.
+        Refer to `Notes` for more details.
+        The default method (top=None) may not work for some anatomical structures. In such cases,
+        you can define the start and end points by providing a list of coordinates,
+        e.g., [[x1, y1, z1], [x2, y2, z2]]. These two nodes should be located on the SVC and IVC
+        rings, approximately at the 12 o'clock position.
+
+        You can also add an intermediate point to enforce the geodesic path,
+        e.g., [[x1, y1, z1], [x3, y3, z3], [x2, y2, z2]].
 
         Returns
         -------
-            right atrium UnstructuredGrid with related information.
+        pv.UnstructuredGrid
+            Left atrium with fiber coordinates system 'e_l', 'e_t' and 'e_n'.
 
+        Notes
+        -----
+        the method is described in https://doi.org/10.1016/j.cma.2020.113468
         """
         LOGGER.info("Computing RA fiber...")
         export_directory = os.path.join(self.root_directory, "ra_fiber")
 
-        target = self.run_laplace_problem(export_directory, "ra_fiber", raa=np.array(appendage))
+        target = self.run_laplace_problem(
+            export_directory, "ra_fiber", raa=np.array(appendage), top=top
+        )
 
         endo_surface = self.model.mesh.get_surface(self.model.right_atrium.endocardium.id)
         ra_pv = compute_ra_fiber_cs(
@@ -243,14 +248,26 @@ class BaseSimulator:
 
         return ra_pv
 
-    def compute_left_atrial_fiber(self, appendage: List[float] = None) -> pv.UnstructuredGrid:
-        """
-        Compute left atrium fiber with LDRBD method.
+    def compute_left_atrial_fiber(
+        self,
+        appendage: list[float] = None,
+    ) -> pv.UnstructuredGrid:
+        """Compute left atrium fiber with LDRBD method.
+
+        Parameters
+        ----------
+        appendage : list[float], optional
+            Coordinates of appendage, by default None
+            If not defined, we use the cap named 'appendage'.
 
         Returns
         -------
-            right atrium UnstructuredGrid with related information.
+        pv.UnstructuredGrid
+            Right atrium with fiber coordinates system 'e_l', 'e_t' and 'e_n'.
 
+        Notes
+        -----
+        the method is described in https://doi.org/10.1016/j.cma.2020.113468
         """
         LOGGER.info("Computing LA fiber...")
         export_directory = os.path.join(self.root_directory, "la_fiber")
@@ -290,28 +307,21 @@ class BaseSimulator:
         type: str
             Simulation type.
         kwargs : dict
-            Additional arguments.
+            Landmarks to create nodeset, keys can be 'laa','raa','top'.
 
         Returns
         -------
             UnstructuredGrid with array to map data back to full mesh.
 
         """
-        if type == "ra_fiber":
-            for key, value in kwargs.items():
-                if key == "raa":
-                    break
-            dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, raa=value)
-        elif type == "la_fiber":
-            for key, value in kwargs.items():
-                if key == "laa":
-                    break
-            if value is None:
-                dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type)
-            else:
-                dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, laa=value)
-        else:
-            dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type)
+        for k, v in kwargs.items():
+            if k not in ["laa", "raa", "top"]:
+                LOGGER.error(f"kwarg with {k} can not be identified.")
+                raise KeyError(f"kwarg with {k} can not be identified.")
+            if v is None:
+                del kwargs[k]
+
+        dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, kwargs)
 
         dyna_writer.update()
         dyna_writer.export(export_directory)
@@ -516,7 +526,9 @@ class MechanicsSimulator(BaseSimulator):
         return
 
     def create_stiff_ventricle_base(
-        self, threshold: float = 0.9, stiff_material=NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+        self,
+        threshold: float = 0.9,
+        stiff_material: MechanicalMaterialModel = NeoHookean(rho=0.001, c10=0.1, nu=0.499),
     ) -> Part:
         """Create a stiff base part from uvc longitudinal value.
 
@@ -524,13 +536,13 @@ class MechanicsSimulator(BaseSimulator):
         ----------
         threshold : float, optional
             uvc_l larger than threshold will be set as stiff base, by default 0.9
-        stiff_material : _type_, optional
+        stiff_material : MechanicalMaterialModel, optional
             material to assign, by default NeoHookean(rho=0.001, c10=0.1, nu=0.499)
 
         Returns
         -------
         Part
-            stiff base part
+            new created part
         """
         try:
             v = self.model.mesh.point_data_to_cell_data()["apico-basal"]
@@ -542,7 +554,8 @@ class MechanicsSimulator(BaseSimulator):
         if not isinstance(self.model, LeftVentricle):
             # uvc-L of RV is generally smaller, *1.05 to be comparable with LV
             eid_r = np.intersect1d(
-                np.where(v > threshold * 1.05)[0], self.model.right_ventricle.element_ids
+                np.where(v > threshold * 1.05)[0],
+                self.model.right_ventricle.element_ids,
             )
             eids = np.hstack((eids, eid_r))
 
@@ -556,7 +569,12 @@ class MechanicsSimulator(BaseSimulator):
 
         return part
 
-    def simulate(self, folder_name="main-mechanics", zerop_folder=None, auto_post=True):
+    def simulate(
+        self,
+        folder_name: str = "main-mechanics",
+        zerop_folder: str | None = None,
+        auto_post: bool = True,
+    ):
         """
         Launch the main simulation.
 

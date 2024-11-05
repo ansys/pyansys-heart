@@ -43,6 +43,11 @@ import pyvista as pv
 
 import ansys.heart.core.models as models
 
+# Use Fluent 24.1 for meshing.
+import ansys.heart.preprocessor.mesher as mesher
+
+mesher._fluent_version = "24.1"
+
 # sphinx_gallery_start_ignore
 # sphinx_gallery_thumbnail_path = '_static/images/truncated_LV_mesh.png'
 # sphinx_gallery_end_ignore
@@ -146,9 +151,6 @@ model._assign_surfaces_to_parts()
 
 model._validate_parts()
 model._validate_surfaces()
-
-model._add_nodal_areas()
-model._add_surface_normals()
 
 model._assign_cavities_to_parts()
 model._update_cap_names()

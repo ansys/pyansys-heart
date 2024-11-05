@@ -262,13 +262,13 @@ def test_active():
     assert active.cell_model.to_dictionary().items() == tentusepi.to_dictionary().items()
     active.cell_model = CellModel.TentusscherEndo()
     assert active.cell_model.to_dictionary().items() == tentusendo.to_dictionary().items()
-    activeBeam = EPMaterial.ActiveBeam(sigma_fiber=1)
-    assert activeBeam.pmjres is not None
+    active_beam = EPMaterial.ActiveBeam(sigma_fiber=1)
+    assert active_beam.pmjres is not None
 
 
 def test_passive():
     passive = EPMaterial.Passive(sigma_fiber=1, sigma_sheet_normal=4)
-    assert hasattr(passive, "cell_model") == False
+    assert not hasattr(passive, "cell_model")
     assert passive.sigma_sheet_normal == 4
 
 

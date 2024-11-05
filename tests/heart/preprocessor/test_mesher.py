@@ -21,9 +21,19 @@
 # SOFTWARE.
 
 # from conftest import get_workdir, clean_directory
+import glob
 import os
+import shutil
+import tempfile
 
+import numpy as np
 import pytest
+import pyvista as pv
+
+from ansys.heart.preprocessor.input import _InputModel
+import ansys.heart.preprocessor.mesher as mesher
+
+pytestmark = pytest.mark.requires_fluent
 
 try:
     os.environ["GITHUB_JOB"]
@@ -35,20 +45,8 @@ except KeyError:
 if is_github_job:
     os.environ["SHOW_FLUENT_GUI"] = "0"
 
-pytestmark = pytest.mark.requires_fluent
-
-import glob
-import shutil
-import tempfile
-
-import numpy as np
-import pyvista as pv
-
-from ansys.heart.preprocessor.input import _InputModel
-from ansys.heart.preprocessor.mesher import (
-    mesh_from_manifold_input_model,
-    mesh_from_non_manifold_input_model,
-)
+# NOTE: Can manually set Fluent version:
+# mesher._fluent_version = "24.1"
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -99,7 +97,7 @@ def test_meshing_for_manifold():
     tmpdir = tempfile.TemporaryDirectory(prefix=".pyansys-heart")
 
     mesh_file = os.path.join(tmpdir.name, "test_mesh.msh.h5")
-    mesh = mesh_from_manifold_input_model(model, tmpdir.name, mesh_file, mesh_size=0.02)
+    mesh = mesher.mesh_from_manifold_input_model(model, tmpdir.name, mesh_file, mesh_size=0.02)
 
     assert len(mesh.cell_zones) == 3
     assert ["triangles_001", "triangles_002", "triangles_003", "triangles_004"] == sorted(
@@ -164,7 +162,9 @@ def test_meshing_for_non_manifold():
 
     # call meshing method.
     mesh_file = os.path.join(tmpdir.name, "test_mesh.msh.h5")
-    fluent_mesh = mesh_from_non_manifold_input_model(model, tmpdir.name, mesh_file, mesh_size=0.1)
+    fluent_mesh = mesher.mesh_from_non_manifold_input_model(
+        model, tmpdir.name, mesh_file, mesh_size=0.1
+    )
 
     assert len(fluent_mesh.cell_zones) == 2
     assert sorted([cz.name for cz in fluent_mesh.cell_zones]) == sorted(model.part_names)

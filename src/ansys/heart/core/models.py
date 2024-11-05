@@ -626,42 +626,10 @@ class HeartModel:
     # TODO: keep this for now, but we can rework to more conveniently use
     # TODO: info from self.mesh. We can replace for instance with the
     # TODO: model_summary() method.
+    @deprecated(reason="Superseded by print(model) and model.summary()")
     def print_info(self) -> None:
-        """Print information about the model."""
-        if not isinstance(self.mesh.tetrahedrons, np.ndarray):
-            LOGGER.info("Nothing to print")
-            return
-
-        LOGGER.info("*****************************************")
-        LOGGER.info("*****************************************")
-        LOGGER.info("Mesh info:")
-        LOGGER.info("Number of tetra: {:d}".format(self.mesh.tetrahedrons.shape[0]))
-        LOGGER.info("Number of nodes: {:d}".format(self.mesh.nodes.shape[0]))
-        LOGGER.info("-----------------------------------------")
-
-        for ii, part in enumerate(self.parts):
-            LOGGER.info("{:d}. part name: {:}".format(ii + 1, part.name))
-            LOGGER.info("\tnumber of tetrahedrons: {:d}\n".format(len(part.element_ids)))
-
-            for surface in part.surfaces:
-                LOGGER.info(
-                    "\tsurface: {:} | # faces: {:d}".format(
-                        surface.name, surface.triangles.shape[0]
-                    )
-                )
-            for cap in part.caps:
-                LOGGER.info(
-                    "\tcap: {:} | # nodes {:d}".format(cap.name, len(cap.global_node_ids_edge))
-                )
-            if part.cavity:
-                LOGGER.info(
-                    "\tcavity: {:} | volume: {:.1f} [mm3]".format(
-                        part.cavity.name, part.cavity.surface.volume
-                    )
-                )
-            LOGGER.info("-----------------------------------------")
-        LOGGER.info("*****************************************")
-        LOGGER.info("*****************************************")
+        """Print model information."""
+        LOGGER.info(self.__str__())
         return
 
     def plot_mesh(self, show_edges: bool = True, color_by: str = "part-id"):
@@ -750,11 +718,16 @@ class HeartModel:
         mesh = self.mesh.extract_cells_by_type([pv.CellType.TETRA, pv.CellType.HEXAHEDRON])
         mesh = mesh.ctp()
         streamlines = mesh.streamlines(vectors="fiber", source_radius=75, n_points=n_seed_points)
+        if streamlines.n_cells == 0:
+            LOGGER.error(
+                "Failed to generate streanlines with radius {source_radius} and {n_seed_points}"
+            )
+            return None
         tubes = streamlines.tube()
         plotter.add_mesh(mesh, opacity=0.5, color="white")
         plotter.add_mesh(tubes, color="white")
         plotter.show()
-        return
+        return plotter
 
     def plot_surfaces(self, show_edges: bool = True):
         """Plot all the surfaces in the model.
@@ -1034,33 +1007,6 @@ class HeartModel:
             element_ids = np.append(element_ids, part.element_ids)
 
         return element_ids
-
-    # TODO: Should do this on the fly in dynawriter.
-    @deprecated(reason="Adding nodal areas is deprecated, use pyvista instead.")
-    def _add_nodal_areas(self):
-        """Compute and add nodal areas to surface nodes."""
-        raise NotImplementedError("Adding nodal areas is deprecated")
-        exit()
-
-    def _add_surface_normals(self):
-        """Add surface normal as point data and cell data to all 'named' surfaces in the model.
-
-        Notes
-        -----
-        Note that we need to flip the normals due to the convention that Fluent Meshing uses.
-        That is, normals point into the meshed domain.
-        """
-        LOGGER.debug("Adding normals to all 'named' surfaces")
-        LOGGER.warning("Flipping normals.")
-        for part in self.parts:
-            for surface in part.surfaces:
-                surface_with_normals = surface.compute_normals(
-                    cell_normals=True, point_normals=True, inplace=True, flip_normals=True
-                )
-                surface.cell_data["normals"] = surface_with_normals.cell_data["Normals"]
-                surface.point_data["normals"] = surface_with_normals.point_data["Normals"]
-
-        return
 
     def _update_parts(self):
         """Update the parts using the meshed volume.

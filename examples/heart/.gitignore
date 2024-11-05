@@ -1,4 +1,0 @@
-# ignore any files in the examples working directory
-workdir*
-preprocessor/workdir
-preprocessor/example_*tmp.py

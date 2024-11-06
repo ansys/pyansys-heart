@@ -2126,7 +2126,13 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
     def _add_control_reference_configuration(self):
         """Add control reference configuration keyword to main."""
         LOGGER.debug("Adding *CONTROL_REFERENCE_CONFIGURATION to main.k")
-        kw = keywords.ControlReferenceConfiguration(maxiter=3, target="nodes.k", method=2, tol=5)
+        settings = self.settings.stress_free.analysis
+        kw = keywords.ControlReferenceConfiguration(
+            maxiter=settings.max_iters,
+            target="nodes.k",
+            method=settings.method,
+            tol=settings.tolerance,
+        )
 
         self.kw_database.main.append(kw)
 

@@ -320,10 +320,10 @@ class BaseSimulator:
             if k not in ["laa", "raa", "top"]:
                 LOGGER.error(f"kwarg with {k} can not be identified.")
                 raise KeyError(f"kwarg with {k} can not be identified.")
-            if v is None:
-                del kwargs[k]
 
-        dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, kwargs)
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, **kwargs)
 
         dyna_writer.update()
         dyna_writer.export(export_directory)

@@ -87,6 +87,7 @@ def mock_laplace():
         yield mock_laplace
 
 
+#! TODO: test does not capture errors in pass through of kwargs
 @pytest.mark.parametrize("appendage", [None, [0, 0, 0]])
 def test_compute_left_atrial_fiber(base_simulator, mock_laplace, appendage):
     try:

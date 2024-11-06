@@ -40,6 +40,7 @@ import shutil
 import subprocess
 from typing import Literal
 
+import natsort
 import numpy as np
 import pyvista as pv
 
@@ -61,14 +62,6 @@ from ansys.heart.simulator.settings.material.material import (
 )
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
-
-
-def _pad_zeros_dynain_files(dynain_files):
-    """Pad zeros in front of iteration number in dynain files."""
-    for file in dynain_files:
-        iter_num = int(os.path.basename(file).replace("iter", "").replace(".dynain.lsda", ""))
-        new_name = "iter{:0>3d}.dynain.lsda".format(iter_num)
-        os.rename(file, os.path.join(os.path.dirname(file), new_name))
 
 
 class BaseSimulator:
@@ -609,10 +602,8 @@ class MechanicsSimulator(BaseSimulator):
             # At least two iterations required?
             dynain_files = glob.glob(os.path.join(zerop_folder, "iter*.dynain.lsda"))
 
-            # pad file names with zeros to ensure natural ordering
-            _pad_zeros_dynain_files(dynain_files)
-
-            dynain_files = glob.glob(os.path.join(zerop_folder, "iter*.dynain.lsda"))
+            # force natural ordering since iteration numbers are not padded with zeros.
+            dynain_files = natsort.natsorted(dynain_files)
 
             if len(dynain_files) == 0:
                 LOGGER.error("No dynain file 'iter*.dynain.lsda found.")

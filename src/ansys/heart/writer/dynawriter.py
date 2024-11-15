@@ -2313,7 +2313,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         for ventricle in ventricles:
             for surface in ventricle.surfaces:
                 if "endocardium" in surface.name:
-                    if surface.n_cells == 0:
+                    surf = self.model.mesh.get_surface(surface.id)
+                    if surf.n_cells == 0:
                         LOGGER.debug(
                             f"Failed to collect node-set id for {surface.name}. Empty mesh."
                         )

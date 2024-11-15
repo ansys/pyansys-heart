@@ -4045,7 +4045,7 @@ class UHCWriter(BaseDynaWriter):
         # epi_set = []
         for part in self.model.parts:
             for surf in part.surfaces:
-                if "endocardium" in surf.name:
+                if "endocardium" in surf.name and surf.name != "Right ventricle endocardium septum":
                     endo_surf = self.model.mesh.get_surface(surf.id)
                     if endo_surf.n_cells == 0:
                         LOGGER.debug(f"Failed to collect nodes for {surf.name}. Empty mesh.")

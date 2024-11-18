@@ -1312,7 +1312,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             mat_id = self.get_unique_mat_id()
 
             spring_stiffness = bc_settings.valve["stiffness"].m
-            if isinstance(self, ZeroPressureMechanicsDynaWriter):
+            if type(self) is ZeroPressureMechanicsDynaWriter:
                 spring_stiffness *= 1e16
 
             scale_factor_normal = bc_settings.valve["scale_factor"]["normal"]
@@ -3343,7 +3343,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         sid = self.get_unique_section_id()
         self.kw_database.beam_networks.append(keywords.SectionBeam(secid=sid, elform=3, a=645))
 
-        if isinstance(self, ElectroMechanicsDynaWriter):
+        if type(self) is ElectroMechanicsDynaWriter:
             # id offset due to spring-type elements in mechanical
             beam_elem_id_offset = self.id_offset["element"]["discrete"]
         else:
@@ -3494,7 +3494,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         return
 
     def _get_ep_material_kw(self, ep_mid: int, ep_material: EPMaterial):
-        if isinstance(ep_material, EPMaterial.Insulator):
+        if type(ep_material) is EPMaterial.Insulator:
             # insulator mtype
             mtype = 1
             kw = custom_keywords.EmMat001(
@@ -3506,7 +3506,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
 
         # active myocardium
-        elif isinstance(ep_material, EPMaterial.Active):
+        elif type(ep_material) is EPMaterial.Active:
             mtype = 2
             # "isotropic" case
             if ep_material.sigma_sheet is None:
@@ -3531,7 +3531,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 d3=0,
             )
 
-        elif isinstance(ep_material, EPMaterial.ActiveBeam):
+        elif type(ep_material) is EPMaterial.ActiveBeam:
             mtype = 2
             kw = custom_keywords.EmMat001(
                 mid=ep_mid,
@@ -3540,7 +3540,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 beta=ep_material.beta,
                 cm=ep_material.cm,
             )
-        elif isinstance(ep_material, EPMaterial.Passive):
+        elif type(ep_material) is EPMaterial.Passive:
             mtype = 4
             # isotropic
             if ep_material.sigma_sheet is None:

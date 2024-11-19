@@ -370,7 +370,6 @@ class ConductionSystem:
         # extract region
         cell_center = mesh.cell_centers()
         ids = np.where(cell_center.select_enclosed_points(sphere)["SelectedPoints"])[0]
-        mesh.point_data["temp_ids"] = np.linspace(0, mesh.n_points - 1, mesh.n_points, dtype=int)
         sub_mesh = mesh.extract_cells(ids)
 
         # search shortes path across cells
@@ -380,7 +379,7 @@ class ConductionSystem:
         # ids in submesh
         path = nx.shortest_path(graph, source=source_id, target=target_id)
         # ids in mesh
-        path2 = sub_mesh["temp_ids"][path]
+        path2 = sub_mesh["_global-point-ids"][path]
 
         if return_segment:
             tetras = sub_mesh.cells.reshape(-1, 5)[:, 1:]
@@ -399,7 +398,7 @@ class ConductionSystem:
                         segment.append(tri)
                         break
             segment = np.array(segment)
-            segment2 = sub_mesh["temp_ids"][segment]
+            segment2 = sub_mesh["_global-point-ids"][segment]
 
             return segment2, path2
         else:

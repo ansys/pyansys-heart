@@ -33,12 +33,14 @@ Options for simulation:
 """
 
 import copy
+import glob
 import os
 import pathlib
 import shutil
 import subprocess
 from typing import Literal
 
+import natsort
 import numpy as np
 import pyvista as pv
 
@@ -318,10 +320,10 @@ class BaseSimulator:
             if k not in ["laa", "raa", "top"]:
                 LOGGER.error(f"kwarg with {k} can not be identified.")
                 raise KeyError(f"kwarg with {k} can not be identified.")
-            if v is None:
-                del kwargs[k]
 
-        dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, kwargs)
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, **kwargs)
 
         dyna_writer.update()
         dyna_writer.export(export_directory)
@@ -596,17 +598,23 @@ class MechanicsSimulator(BaseSimulator):
             zerop_folder = os.path.join(self.root_directory, "zeropressure")
 
         if self.initial_stress:
-            # try to use iter3
-            dynain_file = os.path.join(zerop_folder, "iter3.dynain.lsda")
-            # try to use iter2
-            if not os.path.isfile(dynain_file):
-                dynain_file = os.path.join(zerop_folder, "iter2.dynain.lsda")
-            # zerop must failed
-            if not os.path.isfile(dynain_file):
-                LOGGER.error("Cannot find initial stress file iterX.dynain.lsda")
+            # Use last iteration
+            # At least two iterations required?
+            dynain_files = glob.glob(os.path.join(zerop_folder, "iter*.dynain.lsda"))
+
+            # force natural ordering since iteration numbers are not padded with zeros.
+            dynain_files = natsort.natsorted(dynain_files)
+
+            if len(dynain_files) == 0:
+                LOGGER.error("No dynain file 'iter*.dynain.lsda found.")
                 exit()
-            else:
-                shutil.copy(dynain_file, os.path.join(directory, "dynain.lsda"))
+            elif len(dynain_files) == 1:
+                LOGGER.error("Only one dynain file found, expecting at least two.")
+                exit()
+
+            dynain_file = dynain_files[-1]
+            LOGGER.info(f"Using {dynain_file} for initial stress.")
+            shutil.copy(dynain_file, os.path.join(directory, "dynain.lsda"))
 
         self._write_main_simulation_files(folder_name=folder_name)
 

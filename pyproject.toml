@@ -43,6 +43,7 @@ dependencies = [
     "validators==0.34.0",
     "vtk>=9.1.0",
     "wget==3.2",
+    "natsort==8.4.0"
 ]
 
 # Optional dependencies:

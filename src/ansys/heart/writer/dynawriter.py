@@ -2313,7 +2313,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         for ventricle in ventricles:
             for surface in ventricle.surfaces:
                 if "endocardium" in surface.name:
-                    if surface.n_cells == 0:
+                    surf = self.model.mesh.get_surface(surface.id)
+                    if surf.n_cells == 0:
                         LOGGER.debug(
                             f"Failed to collect node-set id for {surface.name}. Empty mesh."
                         )
@@ -3862,8 +3863,9 @@ class UHCWriter(BaseDynaWriter):
                         return value
 
             # no conditions matched
-            LOGGER.error(f"{cap.name} is not identified.")
-            raise
+            LOGGER.warning(f"{cap.name} is not identified.")
+            return False
+            # raise
 
         ids_edges = []  # all nodes belong to valves
         for cap in self.model.parts[0].caps:
@@ -3872,14 +3874,15 @@ class UHCWriter(BaseDynaWriter):
             ids_sub = np.where(np.isin(atrium["point_ids"], cap.global_node_ids_edge))[0]
             # create node set
             set_id = get_nodeset_id_by_cap_name(cap)
-            kw = create_node_set_keyword(ids_sub + 1, node_set_id=set_id, title=cap.name)
-            self.kw_database.node_sets.append(kw)
+            if set_id:
+                kw = create_node_set_keyword(ids_sub + 1, node_set_id=set_id, title=cap.name)
+                self.kw_database.node_sets.append(kw)
 
-            ids_edges.extend(ids_sub)
+                ids_edges.extend(ids_sub)
 
-            # Add info to pyvista object (RA fiber use this)
-            atrium[cap.name] = np.zeros(atrium.n_points, dtype=int)
-            atrium[cap.name][ids_sub] = 1
+                # Add info to pyvista object (RA fiber use this)
+                atrium[cap.name] = np.zeros(atrium.n_points, dtype=int)
+                atrium[cap.name][ids_sub] = 1
 
         return ids_edges
 

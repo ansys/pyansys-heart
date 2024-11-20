@@ -518,14 +518,8 @@ class HeartModel:
 
         return
 
-    def _mesh_fluid_volume(self, remesh_caps: bool = True):
-        """Generate a volume mesh of the cavities.
-
-        Parameters
-        ----------
-        remesh_caps : bool, optional
-            Flag indicating whether to remesh the caps of each cavity, by default True
-        """
+    def _mesh_fluid_volume(self):
+        """Generate a volume mesh of the cavities."""
         # get all relevant boundaries for the fluid cavities:
         substrings_include = ["endocardium", "valve-plane", "septum"]
         substrings_include_re = "|".join(substrings_include)

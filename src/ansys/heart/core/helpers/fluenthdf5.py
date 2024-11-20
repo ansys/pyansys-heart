@@ -426,7 +426,9 @@ class FluentMesh:
         return tetrahedrons, cell_ids
 
     # NOTE: no typehint due to lazy import of pyvista
-    def _to_vtk(self, add_cells: bool = True, add_faces: bool = False):
+    def _to_vtk(
+        self, add_cells: bool = True, add_faces: bool = False, remove_interior_faces: bool = False
+    ):
         """Convert mesh to vtk unstructured grid or polydata.
 
         Parameters
@@ -471,11 +473,16 @@ class FluentMesh:
 
         if add_faces:
             # add faces.
+            face_zones = self.face_zones
+
+            if remove_interior_faces:
+                face_zones = [fz for fz in face_zones if "interior" not in fz.name]
+
             grid_faces = pv.UnstructuredGrid()
             grid_faces.nodes = self.nodes
 
-            face_zone_ids = np.concatenate([[fz.id] * fz.faces.shape[0] for fz in self.face_zones])
-            faces = np.array(np.concatenate([fz.faces for fz in self.face_zones]), dtype=int)
+            face_zone_ids = np.concatenate([[fz.id] * fz.faces.shape[0] for fz in face_zones])
+            faces = np.array(np.concatenate([fz.faces for fz in face_zones]), dtype=int)
             faces = np.hstack([np.ones((faces.shape[0], 1), dtype=int) * 3, faces])
 
             grid_faces = pv.UnstructuredGrid(

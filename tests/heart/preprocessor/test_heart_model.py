@@ -319,7 +319,7 @@ def test_load_from_mesh():
     return
 
 
-def test_get_set_axis():
+def test_model_get_set_axes():
     """Test getting and setting the axis of a model."""
     model = models.HeartModel(Mock(models.ModelInfo))
     model.mesh = pv.Sphere().cast_to_unstructured_grid()

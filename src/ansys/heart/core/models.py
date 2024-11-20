@@ -1592,13 +1592,13 @@ class HeartModel:
         # 4CAV long axis across apex, mitral and aortic valve centers
         center = np.mean(np.array([av_center, mv_center, apex]), axis=0)
         normal = np.cross(av_center - apex, mv_center - apex)
-        self._l4cv_axis = {"center": center, "normal": normal / np.linalg.norm(normal)}
+        self.l4cv_axis = {"center": center, "normal": normal / np.linalg.norm(normal)}
 
         # short axis: from mitral valve center to apex
         sh_axis = apex - mv_center
         # the highest possible point but avoid to cut aortic valve plane
         center = mv_center + first_cut_short_axis * sh_axis
-        self._short_axis = {"center": center, "normal": sh_axis / np.linalg.norm(sh_axis)}
+        self.short_axis = {"center": center, "normal": sh_axis / np.linalg.norm(sh_axis)}
 
         # 2CAV long axis: normal to 4cav axe and pass mv center and apex
         center = np.mean(np.array([mv_center, apex]), axis=0)
@@ -1606,18 +1606,7 @@ class HeartModel:
         p2 = mv_center
         p3 = apex
         normal = np.cross(p1 - p2, p1 - p3)
-        self._l2cv_axis = {"center": center, "normal": normal / np.linalg.norm(normal)}
-
-        # store axes in mesh field_data
-        self.mesh.field_data["l4cv_axis"] = np.vstack(
-            [self._l4cv_axis["center"], self._l4cv_axis["normal"]]
-        )
-        self.mesh.field_data["short_axis"] = np.vstack(
-            [self._short_axis["center"], self._short_axis["normal"]]
-        )
-        self.mesh.field_data["l2cv_axis"] = np.vstack(
-            [self._l2cv_axis["center"], self._l2cv_axis["normal"]]
-        )
+        self.l2cv_axis = {"center": center, "normal": normal / np.linalg.norm(normal)}
 
         return
 
@@ -1657,8 +1646,8 @@ class HeartModel:
                 apex_ep = apex.xyz
 
         # short axis
-        short_axis = self._short_axis["normal"]
-        p_highest = self._short_axis["center"]
+        short_axis = self.short_axis["normal"]
+        p_highest = self.short_axis["center"]
 
         # define reference cut plane
         if p_junction is not None:
@@ -1668,7 +1657,7 @@ class HeartModel:
         else:
             # default: rotate 60 from long axis
             axe_60 = Rotation.from_rotvec(np.radians(60) * short_axis).apply(  # noqa:E501
-                self._l4cv_axis["normal"]
+                self.l4cv_axis["normal"]
             )
 
         axe_120 = Rotation.from_rotvec(np.radians(60) * short_axis).apply(axe_60)
@@ -1760,7 +1749,7 @@ class HeartModel:
         elem_center = np.mean(self.mesh.nodes[elems], axis=1)
 
         # compute longitudinal direction, i.e. short axis
-        e_l = np.tile(self._short_axis["normal"], (len(ele_ids), 1))
+        e_l = np.tile(self.short_axis["normal"], (len(ele_ids), 1))
 
         # compute radial direction
         center_offset = elem_center - self.left_ventricle.apex_points[1].xyz

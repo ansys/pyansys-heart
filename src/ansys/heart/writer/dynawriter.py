@@ -1312,7 +1312,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             mat_id = self.get_unique_mat_id()
 
             spring_stiffness = bc_settings.valve["stiffness"].m
-            if isinstance(self, ZeroPressureMechanicsDynaWriter):
+            if type(self) is ZeroPressureMechanicsDynaWriter:
                 spring_stiffness *= 1e16
 
             scale_factor_normal = bc_settings.valve["scale_factor"]["normal"]
@@ -2313,7 +2313,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         for ventricle in ventricles:
             for surface in ventricle.surfaces:
                 if "endocardium" in surface.name:
-                    if surface.n_cells == 0:
+                    surf = self.model.mesh.get_surface(surface.id)
+                    if surf.n_cells == 0:
                         LOGGER.debug(
                             f"Failed to collect node-set id for {surface.name}. Empty mesh."
                         )
@@ -3342,7 +3343,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         sid = self.get_unique_section_id()
         self.kw_database.beam_networks.append(keywords.SectionBeam(secid=sid, elform=3, a=645))
 
-        if isinstance(self, ElectroMechanicsDynaWriter):
+        if type(self) is ElectroMechanicsDynaWriter:
             # id offset due to spring-type elements in mechanical
             beam_elem_id_offset = self.id_offset["element"]["discrete"]
         else:
@@ -3493,7 +3494,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         return
 
     def _get_ep_material_kw(self, ep_mid: int, ep_material: EPMaterial):
-        if isinstance(ep_material, EPMaterial.Insulator):
+        if type(ep_material) is EPMaterial.Insulator:
             # insulator mtype
             mtype = 1
             kw = custom_keywords.EmMat001(
@@ -3505,7 +3506,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
 
         # active myocardium
-        elif isinstance(ep_material, EPMaterial.Active):
+        elif type(ep_material) is EPMaterial.Active:
             mtype = 2
             # "isotropic" case
             if ep_material.sigma_sheet is None:
@@ -3530,7 +3531,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 d3=0,
             )
 
-        elif isinstance(ep_material, EPMaterial.ActiveBeam):
+        elif type(ep_material) is EPMaterial.ActiveBeam:
             mtype = 2
             kw = custom_keywords.EmMat001(
                 mid=ep_mid,
@@ -3539,7 +3540,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 beta=ep_material.beta,
                 cm=ep_material.cm,
             )
-        elif isinstance(ep_material, EPMaterial.Passive):
+        elif type(ep_material) is EPMaterial.Passive:
             mtype = 4
             # isotropic
             if ep_material.sigma_sheet is None:
@@ -3862,8 +3863,9 @@ class UHCWriter(BaseDynaWriter):
                         return value
 
             # no conditions matched
-            LOGGER.error(f"{cap.name} is not identified.")
-            raise
+            LOGGER.warning(f"{cap.name} is not identified.")
+            return False
+            # raise
 
         ids_edges = []  # all nodes belong to valves
         for cap in self.model.parts[0].caps:
@@ -3872,14 +3874,15 @@ class UHCWriter(BaseDynaWriter):
             ids_sub = np.where(np.isin(atrium["point_ids"], cap.global_node_ids_edge))[0]
             # create node set
             set_id = get_nodeset_id_by_cap_name(cap)
-            kw = create_node_set_keyword(ids_sub + 1, node_set_id=set_id, title=cap.name)
-            self.kw_database.node_sets.append(kw)
+            if set_id:
+                kw = create_node_set_keyword(ids_sub + 1, node_set_id=set_id, title=cap.name)
+                self.kw_database.node_sets.append(kw)
 
-            ids_edges.extend(ids_sub)
+                ids_edges.extend(ids_sub)
 
-            # Add info to pyvista object (RA fiber use this)
-            atrium[cap.name] = np.zeros(atrium.n_points, dtype=int)
-            atrium[cap.name][ids_sub] = 1
+                # Add info to pyvista object (RA fiber use this)
+                atrium[cap.name] = np.zeros(atrium.n_points, dtype=int)
+                atrium[cap.name][ids_sub] = 1
 
         return ids_edges
 
@@ -4045,7 +4048,7 @@ class UHCWriter(BaseDynaWriter):
         # epi_set = []
         for part in self.model.parts:
             for surf in part.surfaces:
-                if "endocardium" in surf.name:
+                if "endocardium" in surf.name and surf.name != "Right ventricle endocardium septum":
                     endo_surf = self.model.mesh.get_surface(surf.id)
                     if endo_surf.n_cells == 0:
                         LOGGER.debug(f"Failed to collect nodes for {surf.name}. Empty mesh.")

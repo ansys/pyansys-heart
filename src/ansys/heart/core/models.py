@@ -1602,7 +1602,7 @@ class HeartModel:
 
         # 2CAV long axis: normal to 4cav axe and pass mv center and apex
         center = np.mean(np.array([mv_center, apex]), axis=0)
-        p1 = center + 10 * self._l4cv_axis["normal"]
+        p1 = center + 10 * self.l4cv_axis["normal"]
         p2 = mv_center
         p3 = apex
         normal = np.cross(p1 - p2, p1 - p3)

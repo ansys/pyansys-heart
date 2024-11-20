@@ -71,7 +71,9 @@ os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 # specify necessary paths.
 # Note that we need to cast the paths to strings to facilitate serialization.
-case_file = os.path.join("pyansys-heart", "downloads", "Rodero2021", "01", "01.vtk")
+case_file = os.path.join(
+    "d:\\development", "pyansys-heart", "downloads", "Rodero2021", "01", "01.vtk"
+)
 workdir = os.path.join(os.path.dirname(case_file), "FullHeart")
 
 # sphinx_gallery_start_ignore
@@ -95,7 +97,6 @@ path_to_model = os.path.join(workdir, "heart_model.vtu")
 model: models.FullHeart = models.FullHeart(models.ModelInfo(work_directory=workdir))
 model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
 model._extract_apex()
-model.compute_left_ventricle_anatomy_axis()
 model.compute_left_ventricle_aha17()
 
 

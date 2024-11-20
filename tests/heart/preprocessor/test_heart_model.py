@@ -25,7 +25,9 @@
 import json
 import os
 import tempfile
+from unittest.mock import Mock
 
+import pyvista as pv
 import yaml
 
 if os.getenv("GITHUB_ACTIONS"):
@@ -315,3 +317,22 @@ def test_load_from_mesh():
 
         # TODO: Could add more asserts, e.g. for the cavity.
     return
+
+
+def test_model_get_set_axes():
+    """Test getting and setting the axis of a model."""
+    model = models.HeartModel(Mock(models.ModelInfo))
+    model.mesh = pv.Sphere().cast_to_unstructured_grid()
+    test_axis = {"center": [0.0, 0.0, 0.0], "normal": [1.0, 0.0, 0.0]}
+
+    assert model.l2cv_axis is None
+    assert model.l4cv_axis is None
+    assert model.short_axis is None
+
+    model.l2cv_axis = test_axis
+    model.l4cv_axis = test_axis
+    model.short_axis = test_axis
+
+    assert len(set(model.l2cv_axis) - set(test_axis)) == 0
+    assert len(set(model.l4cv_axis) - set(test_axis)) == 0
+    assert len(set(model.short_axis) - set(test_axis)) == 0

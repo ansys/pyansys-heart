@@ -71,7 +71,6 @@ path_to_model = os.path.join(workdir, "heart_model.vtu")
 model: models.FullHeart = models.FullHeart(models.ModelInfo(work_directory=workdir))
 model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
 model._extract_apex()
-model.compute_left_ventricle_anatomy_axis()
 model.compute_left_ventricle_aha17()
 
 # save model.

@@ -1767,11 +1767,11 @@ class HeartModel:
         """Select node set on long axis plane."""
         mesh["cell_ids"] = np.arange(0, mesh.n_cells, dtype=int)
         mesh["point_ids"] = np.arange(0, mesh.n_points, dtype=int)
-        slice = mesh.slice(origin=self._l4cv_axis["center"], normal=self._l4cv_axis["normal"])
+        slice = mesh.slice(origin=self.l4cv_axis["center"], normal=self.l4cv_axis["normal"])
         crinkled = mesh.extract_cells(np.unique(slice["cell_ids"]))
         free_wall_center, septum_center = crinkled.clip(
-            origin=self._l2cv_axis["center"],
-            normal=-self._l2cv_axis["normal"],
+            origin=self.l2cv_axis["center"],
+            normal=-self.l2cv_axis["normal"],
             crinkle=True,
             return_clipped=True,
         )
@@ -1779,8 +1779,8 @@ class HeartModel:
         rotation_mesh = mesh.remove_cells(free_wall_center["cell_ids"])
         print(f"{mesh.n_points - rotation_mesh.n_points} nodes are removed from clip.")
 
-        vn = mesh.points[free_wall_center["point_ids"]] - self._l4cv_axis["center"]
-        v0 = np.tile(self._l4cv_axis["normal"], (len(free_wall_center["point_ids"]), 1))
+        vn = mesh.points[free_wall_center["point_ids"]] - self.l4cv_axis["center"]
+        v0 = np.tile(self.l4cv_axis["normal"], (len(free_wall_center["point_ids"]), 1))
 
         dot = np.einsum("ij,ij->i", v0, vn)  # dot product row by row
         set1 = np.unique(free_wall_center["point_ids"][dot >= 0])  # -pi

@@ -764,7 +764,11 @@ def _mesh_fluid_cavities(
     #     LOGGER.debug("No overlapping face zones.")
 
     # merge mesh objects
-    session.tui.objects.merge("'(*)", "fluid-zones")
+    mesh_object_names = session.scheme_eval.scheme_eval("(get-objects-of-type 'mesh)")
+    if len(mesh_object_names) > 1:
+        session.tui.objects.merge("'(*)", "fluid-zones")
+    else:
+        session.tui.objects.rename_object(mesh_object_names[0].str, "fluid-zones")
 
     # merge nodes
     session.tui.boundary.merge_nodes("'(*)", "'(*)", "no", "no , ,")
@@ -783,7 +787,7 @@ def _mesh_fluid_cavities(
     mesh = FluentMesh(file_path_mesh)
     mesh.load_mesh(reconstruct_tetrahedrons=True)
 
-    return mesh._to_vtk(add_cells=True, add_faces=True)
+    return mesh._to_vtk(add_cells=True, add_faces=True, remove_interior_faces=True)
 
 
 if __name__ == "__main__":

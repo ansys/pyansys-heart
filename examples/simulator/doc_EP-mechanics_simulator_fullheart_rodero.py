@@ -71,9 +71,7 @@ os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 # specify necessary paths.
 # Note that we need to cast the paths to strings to facilitate serialization.
-case_file = os.path.join(
-    "d:\\development", "pyansys-heart", "downloads", "Rodero2021", "01", "01.vtk"
-)
+case_file = os.path.join("pyansys-heart", "downloads", "Rodero2021", "01", "01.vtk")
 workdir = os.path.join(os.path.dirname(case_file), "FullHeart")
 
 # sphinx_gallery_start_ignore

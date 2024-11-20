@@ -86,7 +86,7 @@ def test_zerop_post():
 def test_contour_exporter():
     d3plot = Path(test_dir) / "main-mechanics" / "d3plot"
     exporter = LVContourExporter(d3plot, model)
-    contours = exporter.export_contour_to_vtk("l4cv", model.l4cv_axis)
+    contours = exporter.export_contour_to_vtk("l4cv", model._l4cv_axis)
     # exporter.export_contour_to_vtk('l2cv', model.l2cv_axis)
     #
     # normal = model.short_axis["normal"]

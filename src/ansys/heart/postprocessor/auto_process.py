@@ -196,11 +196,11 @@ def export_to_vtk(directory: str, model: HeartModel):
     """
     exporter = LVContourExporter(os.path.join(directory, "d3plot"), model)
 
-    exporter.export_contour_to_vtk("l4cv", model.l4cv_axis)
-    exporter.export_contour_to_vtk("l2cv", model.l2cv_axis)
+    exporter.export_contour_to_vtk("l4cv", model._l4cv_axis)
+    exporter.export_contour_to_vtk("l2cv", model._l2cv_axis)
 
-    normal = model.short_axis["normal"]
-    p_start = model.short_axis["center"]
+    normal = model._short_axis["normal"]
+    p_start = model._short_axis["center"]
     for ap in model.left_ventricle.apex_points:  # use next()?
         if ap.name == "apex epicardium":
             p_end = ap.xyz

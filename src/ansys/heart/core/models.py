@@ -1523,21 +1523,32 @@ class HeartModel:
         # 4CAV long axis across apex, mitral and aortic valve centers
         center = np.mean(np.array([av_center, mv_center, apex]), axis=0)
         normal = np.cross(av_center - apex, mv_center - apex)
-        self.l4cv_axis = {"center": center, "normal": normal / np.linalg.norm(normal)}
+        self._l4cv_axis = {"center": center, "normal": normal / np.linalg.norm(normal)}
 
         # short axis: from mitral valve center to apex
         sh_axis = apex - mv_center
         # the highest possible point but avoid to cut aortic valve plane
         center = mv_center + first_cut_short_axis * sh_axis
-        self.short_axis = {"center": center, "normal": sh_axis / np.linalg.norm(sh_axis)}
+        self._short_axis = {"center": center, "normal": sh_axis / np.linalg.norm(sh_axis)}
 
         # 2CAV long axis: normal to 4cav axe and pass mv center and apex
         center = np.mean(np.array([mv_center, apex]), axis=0)
-        p1 = center + 10 * self.l4cv_axis["normal"]
+        p1 = center + 10 * self._l4cv_axis["normal"]
         p2 = mv_center
         p3 = apex
         normal = np.cross(p1 - p2, p1 - p3)
-        self.l2cv_axis = {"center": center, "normal": normal / np.linalg.norm(normal)}
+        self._l2cv_axis = {"center": center, "normal": normal / np.linalg.norm(normal)}
+
+        # store axes in mesh field_data
+        self.mesh.field_data["l4cv_axis"] = np.vstack(
+            [self._l4cv_axis["center"], self._l4cv_axis["normal"]]
+        )
+        self.mesh.field_data["short_axis"] = np.vstack(
+            [self._short_axis["center"], self._short_axis["normal"]]
+        )
+        self.mesh.field_data["l2cv_axis"] = np.vstack(
+            [self._l2cv_axis["center"], self._l2cv_axis["normal"]]
+        )
 
         return
 
@@ -1577,8 +1588,8 @@ class HeartModel:
                 apex_ep = apex.xyz
 
         # short axis
-        short_axis = self.short_axis["normal"]
-        p_highest = self.short_axis["center"]
+        short_axis = self._short_axis["normal"]
+        p_highest = self._short_axis["center"]
 
         # define reference cut plane
         if p_junction is not None:
@@ -1588,7 +1599,7 @@ class HeartModel:
         else:
             # default: rotate 60 from long axis
             axe_60 = Rotation.from_rotvec(np.radians(60) * short_axis).apply(  # noqa:E501
-                self.l4cv_axis["normal"]
+                self._l4cv_axis["normal"]
             )
 
         axe_120 = Rotation.from_rotvec(np.radians(60) * short_axis).apply(axe_60)
@@ -1680,7 +1691,7 @@ class HeartModel:
         elem_center = np.mean(self.mesh.nodes[elems], axis=1)
 
         # compute longitudinal direction, i.e. short axis
-        e_l = np.tile(self.short_axis["normal"], (len(ele_ids), 1))
+        e_l = np.tile(self._short_axis["normal"], (len(ele_ids), 1))
 
         # compute radial direction
         center_offset = elem_center - self.left_ventricle.apex_points[1].xyz
@@ -1698,11 +1709,11 @@ class HeartModel:
         """Select node set on long axis plane."""
         mesh["cell_ids"] = np.arange(0, mesh.n_cells, dtype=int)
         mesh["point_ids"] = np.arange(0, mesh.n_points, dtype=int)
-        slice = mesh.slice(origin=self.l4cv_axis["center"], normal=self.l4cv_axis["normal"])
+        slice = mesh.slice(origin=self._l4cv_axis["center"], normal=self._l4cv_axis["normal"])
         crinkled = mesh.extract_cells(np.unique(slice["cell_ids"]))
         free_wall_center, septum_center = crinkled.clip(
-            origin=self.l2cv_axis["center"],
-            normal=-self.l2cv_axis["normal"],
+            origin=self._l2cv_axis["center"],
+            normal=-self._l2cv_axis["normal"],
             crinkle=True,
             return_clipped=True,
         )
@@ -1710,8 +1721,8 @@ class HeartModel:
         rotation_mesh = mesh.remove_cells(free_wall_center["cell_ids"])
         print(f"{mesh.n_points - rotation_mesh.n_points} nodes are removed from clip.")
 
-        vn = mesh.points[free_wall_center["point_ids"]] - self.l4cv_axis["center"]
-        v0 = np.tile(self.l4cv_axis["normal"], (len(free_wall_center["point_ids"]), 1))
+        vn = mesh.points[free_wall_center["point_ids"]] - self._l4cv_axis["center"]
+        v0 = np.tile(self._l4cv_axis["normal"], (len(free_wall_center["point_ids"]), 1))
 
         dot = np.einsum("ij,ij->i", v0, vn)  # dot product row by row
         set1 = np.unique(free_wall_center["point_ids"][dot >= 0])  # -pi

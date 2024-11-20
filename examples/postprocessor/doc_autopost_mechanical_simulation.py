@@ -103,9 +103,9 @@ exporter = LVContourExporter(os.path.join(meca_folder, "d3plot"), model)
 model.compute_left_ventricle_anatomy_axis()
 
 # cut from long axis 4 cavity view
-cut_long = exporter.export_contour_to_vtk("l4cv", model.l4cv_axis)
+cut_long = exporter.export_contour_to_vtk("l4cv", model._l4cv_axis)
 # cut from short axis
-cut_short = exporter.export_contour_to_vtk("short", model.short_axis)
+cut_short = exporter.export_contour_to_vtk("short", model._short_axis)
 
 # plot the first frame using pyvista
 plotter = pv.Plotter()

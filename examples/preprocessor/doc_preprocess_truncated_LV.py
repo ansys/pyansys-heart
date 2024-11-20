@@ -139,9 +139,9 @@ model.load_input()
 model.mesh_volume(use_wrapper=True)
 
 # assign axis of model manually.
-model.l4cv_axis = {"center": base.center, "normal": np.array([1, 0, 0])}
-model.l2cv_axis = {"center": base.center, "normal": np.array([0, 1, 0])}
-model.short_axis = {"center": base.center, "normal": np.array([0, 0, 1])}
+model._l4cv_axis = {"center": base.center, "normal": np.array([1, 0, 0])}
+model._l2cv_axis = {"center": base.center, "normal": np.array([0, 1, 0])}
+model._short_axis = {"center": base.center, "normal": np.array([0, 0, 1])}
 
 # update the model
 model._sync_input_parts_to_model_parts()

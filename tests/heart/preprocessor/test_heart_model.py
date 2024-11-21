@@ -50,33 +50,6 @@ def _get_test_model_info() -> models.ModelInfo:
     return info
 
 
-@pytest.mark.parametrize("extension", [".json", ".yml"])
-@pytest.mark.xfail(reason="ModelInfo is deprecated.")
-def test_model_info_dump(extension):
-    """Test dumping of model info to json."""
-    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
-        info = _get_test_model_info()
-
-        path_to_model_info = os.path.join(workdir, "model_info" + extension)
-
-        info.dump_info(path_to_model_info)
-
-        path_to_model_info
-        if extension == ".json":
-            with open(path_to_model_info) as json_file:
-                data = json.load(json_file)
-        else:
-            with open(path_to_model_info) as json_file:
-                data = yaml.load(json_file, yaml.SafeLoader)
-
-        assert info.workdir == data["workdir"], "Workdir not the same"
-        assert (
-            info.path_to_simulation_mesh == data["path_to_simulation_mesh"]
-        ), "Path to simulation mesh not the same"
-
-    pass
-
-
 def test_dump_model_001():
     """Test dumping of model to disk: using path in ModelInfo."""
     from pathlib import Path

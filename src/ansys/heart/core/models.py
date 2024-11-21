@@ -67,7 +67,7 @@ class MeshSettings:
     """Flag indicating whether to add a blood pool (experimental)."""
 
 
-# TODO: Refactor or remove ModelInfo.
+# TODO: Remove ModelInfo.
 @deprecated(
     reason="""ModelInfo is deprecated. Specify working directory in HeartModel directly
     and (re)meshing settings using the MeshSettings dataclass"""
@@ -227,6 +227,7 @@ class HeartModel:
             for c in p.caps
         ]
 
+    # TODO: Remove ModelInfo as input argument.
     def __init__(
         self, info: ModelInfo = None, working_directory: pathlib.Path | str = os.path.curdir
     ) -> None:
@@ -1938,6 +1939,7 @@ class HeartModel:
 class LeftVentricle(HeartModel):
     """Model of just the left ventricle."""
 
+    # TODO: Remove ModelInfo as input argument.
     def __init__(
         self, info: ModelInfo = None, working_directory: pathlib.Path | str = os.path.curdir
     ) -> None:
@@ -1956,6 +1958,7 @@ class LeftVentricle(HeartModel):
 class BiVentricle(HeartModel):
     """Model of the left and right ventricle."""
 
+    # TODO: Remove ModelInfo as input argument.
     def __init__(
         self, info: ModelInfo = None, working_directory: pathlib.Path | str = os.path.curdir
     ) -> None:
@@ -1980,6 +1983,7 @@ class BiVentricle(HeartModel):
 class FourChamber(HeartModel):
     """Model of the left/right ventricle and left/right atrium."""
 
+    # TODO: Remove ModelInfo as input argument.
     def __init__(
         self, info: ModelInfo = None, working_directory: pathlib.Path | str = os.path.curdir
     ) -> None:
@@ -2015,6 +2019,7 @@ class FourChamber(HeartModel):
 class FullHeart(FourChamber):
     """Model of both ventricles, both atria, aorta and pulmonary artery."""
 
+    # TODO: Remove ModelInfo as input argument.
     def __init__(
         self, info: ModelInfo = None, working_directory: pathlib.Path | str = os.path.curdir
     ) -> None:

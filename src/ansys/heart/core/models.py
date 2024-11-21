@@ -229,8 +229,11 @@ class HeartModel:
 
     # TODO: Remove ModelInfo as input argument.
     def __init__(
-        self, info: ModelInfo = None, working_directory: pathlib.Path | str = os.path.curdir
+        self, info: ModelInfo = None, working_directory: pathlib.Path | str = None
     ) -> None:
+        if working_directory is None:
+            working_directory = os.path.abspath(os.path.curdir)
+
         self.info = info
         """Model meta information."""
 
@@ -1941,7 +1944,7 @@ class LeftVentricle(HeartModel):
 
     # TODO: Remove ModelInfo as input argument.
     def __init__(
-        self, info: ModelInfo = None, working_directory: pathlib.Path | str = os.path.curdir
+        self, info: ModelInfo = None, working_directory: pathlib.Path | str = None
     ) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
@@ -1960,7 +1963,7 @@ class BiVentricle(HeartModel):
 
     # TODO: Remove ModelInfo as input argument.
     def __init__(
-        self, info: ModelInfo = None, working_directory: pathlib.Path | str = os.path.curdir
+        self, info: ModelInfo = None, working_directory: pathlib.Path | str = None
     ) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
@@ -1985,7 +1988,7 @@ class FourChamber(HeartModel):
 
     # TODO: Remove ModelInfo as input argument.
     def __init__(
-        self, info: ModelInfo = None, working_directory: pathlib.Path | str = os.path.curdir
+        self, info: ModelInfo = None, working_directory: pathlib.Path | str = None
     ) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
@@ -2021,7 +2024,7 @@ class FullHeart(FourChamber):
 
     # TODO: Remove ModelInfo as input argument.
     def __init__(
-        self, info: ModelInfo = None, working_directory: pathlib.Path | str = os.path.curdir
+        self, info: ModelInfo = None, working_directory: pathlib.Path | str = None
     ) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""

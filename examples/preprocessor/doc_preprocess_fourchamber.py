@@ -134,8 +134,8 @@ model._update_parts()
 model.dump_model(path_to_model)
 
 # Optionally save the simulation mesh as a vtk object for "offline" inspection
-model.mesh.save(os.path.join(model.info.workdir, "simulation-mesh.vtu"))
-model.save_model(os.path.join(model.info.workdir, "heart_model.vtu"))
+model.mesh.save(os.path.join(model._workdir, "simulation-mesh.vtu"))
+model.save_model(os.path.join(model._workdir, "heart_model.vtu"))
 
 # print some info about the processed model.
 print(model)

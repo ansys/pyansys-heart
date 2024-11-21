@@ -605,7 +605,7 @@ class BaseDynaWriter:
         # is this reachable??
         if not export_directory:
             export_directory = os.path.join(
-                self.model.info.workdir,
+                self.model._workdir,
                 self.__class__.__name__.lower().replace("dynawriter", ""),
             )
 

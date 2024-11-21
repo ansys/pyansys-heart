@@ -74,7 +74,7 @@ model.compute_left_ventricle_anatomy_axis()
 model.compute_left_ventricle_aha17()
 
 # set base working directory
-model.info.workdir = str(workdir)
+model._workdir = str(workdir)
 
 ###############################################################################
 # Instantiate the simulator object

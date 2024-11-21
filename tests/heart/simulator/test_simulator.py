@@ -160,7 +160,7 @@ def test_simulator_inits(mocker, simulator_type):
     # test init
     model = MagicMock(spec=models.FourChamber)
     model.info = Mock(spec=models.ModelInfo)
-    model.info.workdir = os.getcwd()
+    model._workdir = os.getcwd()
     simulator = simulator_type(model=model, dyna_settings=None)
 
     assert simulator.dyna_settings.__str__() == DynaSettings().__str__()
@@ -174,7 +174,7 @@ def test_base_simulator_load_default_settings(mocker):
     # test init
     model = Mock(spec=models.FourChamber)
     model.info = Mock(spec=models.ModelInfo)
-    model.info.workdir = os.getcwd()
+    model._workdir = os.getcwd()
     model.mesh = pyvista_examples.load_hexbeam()
     model.mesh.cell_data["fiber"] = np.zeros((model.mesh.n_cells, 3), dtype=float)
     model.mesh.cell_data["sheet"] = np.zeros((model.mesh.n_cells, 3), dtype=float)

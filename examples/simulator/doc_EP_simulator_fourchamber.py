@@ -105,7 +105,7 @@ if not isinstance(model, models.FourChamber):
     raise TypeError("Expecting a FourChamber heart model.")
 
 # set base working directory
-model.info.workdir = str(workdir)
+model._workdir = str(workdir)
 
 ###############################################################################
 # Instantiate the simulator object

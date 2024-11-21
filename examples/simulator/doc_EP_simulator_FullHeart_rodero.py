@@ -75,10 +75,10 @@ model.compute_left_ventricle_anatomy_axis()
 model.compute_left_ventricle_aha17()
 
 # save model.
-model.mesh.save(os.path.join(model.info.workdir, "simulation_model.vtu"))
+model.mesh.save(os.path.join(model._workdir, "simulation_model.vtu"))
 
 # set base working directory
-model.info.workdir = str(workdir)
+model._workdir = str(workdir)
 
 ###############################################################################
 # Instantiate the simulator object

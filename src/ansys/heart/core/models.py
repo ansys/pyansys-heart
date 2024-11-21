@@ -210,9 +210,15 @@ class HeartModel:
             for c in p.caps
         ]
 
-    def __init__(self, info: ModelInfo) -> None:
+    def __init__(
+        self, info: ModelInfo, working_directory: pathlib.Path | str = os.path.curdir
+    ) -> None:
         self.info = info
         """Model meta information."""
+
+        self._workdir = info.workdir
+        # self.workdir = working_directory
+
         self.mesh = Mesh()
         """Computational mesh."""
 
@@ -445,14 +451,14 @@ class HeartModel:
         between parts is potentially lost.
         """
         if not path_to_fluent_mesh:
-            path_to_fluent_mesh = os.path.join(self.info.workdir, "simulation_mesh.msh.h5")
+            path_to_fluent_mesh = os.path.join(self._workdir, "simulation_mesh.msh.h5")
 
         if use_wrapper:
             LOGGER.warning("Meshing from non-manifold model not yet available.")
 
             fluent_mesh = mesher.mesh_from_non_manifold_input_model(
                 model=self._input,
-                workdir=self.info.workdir,
+                workdir=self._workdir,
                 mesh_size=self.info.mesh_size,
                 path_to_output=path_to_fluent_mesh,
                 overwrite_existing_mesh=overwrite_existing_mesh,
@@ -460,7 +466,7 @@ class HeartModel:
         else:
             fluent_mesh = mesher.mesh_from_manifold_input_model(
                 model=self._input,
-                workdir=self.info.workdir,
+                workdir=self._workdir,
                 mesh_size=self.info.mesh_size,
                 path_to_output=path_to_fluent_mesh,
                 overwrite_existing_mesh=overwrite_existing_mesh,
@@ -513,7 +519,7 @@ class HeartModel:
 
         self.mesh = mesh.clean()
 
-        filename = os.path.join(self.info.workdir, "volume-mesh-post-meshing.vtu")
+        filename = os.path.join(self._workdir, "volume-mesh-post-meshing.vtu")
         self.mesh.save(filename)
 
         return
@@ -555,7 +561,7 @@ class HeartModel:
 
         # mesh the fluid cavities
         fluid_mesh = mesher.mesh_fluid_cavities(
-            boundaries_fluid, caps, self.info.workdir, remesh_caps=remesh_caps
+            boundaries_fluid, caps, self._workdir, remesh_caps=remesh_caps
         )
 
         LOGGER.info(f"Meshed {len(fluid_mesh.cell_zones)} fluid regions...")
@@ -828,7 +834,7 @@ class HeartModel:
             filename = str(filename)
 
         if not filename:
-            filename = os.path.join(self.info.workdir, "heart_model.pickle")
+            filename = os.path.join(self._workdir, "heart_model.pickle")
 
         if os.path.isfile(filename):
             LOGGER.warning(f"Overwriting {filename}")
@@ -1357,7 +1363,7 @@ class HeartModel:
 
             part.cavity.surface.save(
                 os.path.join(
-                    self.info.workdir, "-".join(part.cavity.surface.name.lower().split()) + ".stl"
+                    self._workdir, "-".join(part.cavity.surface.name.lower().split()) + ".stl"
                 )
             )
 

@@ -109,9 +109,6 @@ part_definitions = {
 # of the relevant regions.
 # part definitions is used to map the remeshed model to the HeartModel parts/boundaries
 info = models.ModelInfo(
-    input=heart,
-    scalar="surface-id",
-    part_definitions=part_definitions,
     work_directory=workdir,
     mesh_size=0.5,
 )

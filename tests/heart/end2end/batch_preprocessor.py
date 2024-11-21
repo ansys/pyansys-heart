@@ -75,9 +75,6 @@ def main(args):
             input_polydata.save(path_to_input_vtp)
 
             info = models.ModelInfo(
-                input=path_to_input_vtp,
-                scalar="surface-id",
-                part_definitions=part_definitions,
                 work_directory=workdir,
                 mesh_size=2.0,
             )

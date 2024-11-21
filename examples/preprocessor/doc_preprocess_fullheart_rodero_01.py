@@ -104,9 +104,6 @@ with open(path_to_part_definitions, "w") as f:
 # Set the right database to which this case belongs, and set other relevant
 # information such as the desired mesh size.
 info = models.ModelInfo(
-    input=input_geom,
-    scalar="surface-id",
-    part_definitions=part_definitions,
     work_directory=workdir,
     mesh_size=1.5,
 )

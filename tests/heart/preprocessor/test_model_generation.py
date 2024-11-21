@@ -132,9 +132,6 @@ def extract_model(request):
     # with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
 
     info = models.ModelInfo(
-        input=inputs[0],
-        scalar="boundary-id",
-        part_definitions=inputs[1],
         mesh_size=2.0,
         work_directory=workdir,
     )

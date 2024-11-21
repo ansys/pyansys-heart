@@ -1480,7 +1480,7 @@ class HeartModel:
         self,
         mv_center: Union[None, np.ndarray] = None,
         av_center: Union[None, np.ndarray] = None,
-        first_cut_short_axis=0.05,
+        first_cut_short_axis=0.2,
     ):
         """Compute the long and short axes of the left ventricle.
 
@@ -1535,11 +1535,6 @@ class HeartModel:
         normal = np.cross(p1 - p2, p1 - p3)
         self.l2cv_axis = {"center": center, "normal": normal / np.linalg.norm(normal)}
 
-        print("L4CV AXIS", self.l4cv_axis)
-        print("L2CV AXIS", self.l2cv_axis)
-        print("SH AXIS", self.short_axis)
-        print("APEX", apex)
-        
         return
 
     def compute_left_ventricle_aha17(self, seg=17, p_junction=None) -> None:
@@ -1572,16 +1567,13 @@ class HeartModel:
         for apex in self.left_ventricle.apex_points:
             if "endocardium" in apex.name:
                 apex_ed = apex.xyz
-                print("apex_ed", apex_ed)
             elif "epicardium" in apex.name:
                 apex_ep = apex.xyz
-                print("apex_ep", apex_ep)
 
         # short axis
         short_axis = self.short_axis["normal"]
         p_highest = self.short_axis["center"]
-        print("p_highest", p_highest)
-        print("p_junction", p_junction)
+
         # define reference cut plane
         if p_junction is not None:
             # CASIS definition: LV and RV junction point
@@ -1590,7 +1582,7 @@ class HeartModel:
         else:
             # default: rotate 60 from long axis
             axe_60 = R.from_rotvec(np.radians(60) * short_axis).apply(self.l4cv_axis["normal"])
-            print("axe_60", axe_60)
+
         axe_120 = R.from_rotvec(np.radians(60) * short_axis).apply(axe_60)
         axe_180 = -R.from_rotvec(np.radians(60) * short_axis).apply(axe_120)
         axe_45 = R.from_rotvec(np.radians(-15) * short_axis).apply(axe_60)
@@ -1598,18 +1590,9 @@ class HeartModel:
 
         p1_3 = 1 / 3 * (apex_ep - p_highest) + p_highest
         p2_3 = 2 / 3 * (apex_ep - p_highest) + p_highest
-        print("p1_3", p1_3)
-        print("p2_3", p2_3)
-        # apex_ed = 0.9 * (apex_ep - p_highest) + p_highest
-        # print("apex_ed", apex_ed)
-        from skspatial.objects import Line
-        line = Line.from_points(apex_ep, p_highest)
-        apex_ed = line.project_point(apex_ed)
-        print("apex_ed_proj", apex_ed)
 
         for i, n in enumerate(elem_center):
             # This part contains valves, do not considered by AHA17
-            mv_center=[79.28559113, 79.23339081, 63.00772858]
             if np.dot(n - p_highest, mv_center - p_highest) > 0:
                 continue
             # Basal: segment 1 2 3 4 5 6

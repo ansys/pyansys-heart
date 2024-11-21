@@ -514,7 +514,7 @@ class MechanicsSimulator(BaseSimulator):
         return
 
     def create_stiff_ventricle_base(
-        self, threshold: float = 0.7, stiff_material=NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+        self, threshold: float = 0.9, stiff_material=NeoHookean(rho=0.001, c10=0.1, nu=0.499)
     ) -> Part:
         """Create a stiff base part from uvc longitudinal value.
 

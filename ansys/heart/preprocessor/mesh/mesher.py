@@ -39,7 +39,7 @@ import pyvista as pv
 
 # os.environ["SHOW_FLUENT_GUI"] = "1"
 
-_fluent_version = "24.1.0"
+_fluent_version = "22.2.0"
 _show_fluent_gui: bool = False
 _uses_container: bool = True
 

@@ -47,8 +47,8 @@ from ansys.heart.preprocessor.database_preprocessor import get_compatible_input
 import ansys.heart.preprocessor.models as models
 
 # specify necessary paths.
-case_file = os.path.join("pyansys-heart", "downloads", "Strocchi2020", "01", "01.case")
-workdir = os.path.join(os.path.dirname(case_file), "FourChamber")
+case_file = r"C:\\Users\\fmohamed\\pyansys-heart\\downloads\\Strocchi2020\\01\\01.case"
+workdir = os.path.join(os.path.dirname(case_file), "LeftVentricle")
 
 if not os.path.isdir(workdir):
     os.makedirs(workdir)
@@ -72,7 +72,7 @@ path_to_part_definitions = os.path.join(workdir, "part_definitions.json")
 # Convert the .vtk file into compatible input
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 input_geom, part_definitions = get_compatible_input(
-    case_file, model_type="FourChamber", database="Strocchi2020"
+    case_file, model_type="LeftVentricle", database="Strocchi2020"
 )
 
 # Note that the input model and part definitions can be used for later use.
@@ -106,7 +106,7 @@ info.clean_workdir([".stl", ".msh.h5", ".pickle"])
 # Initialize the desired heart model with info.
 
 # initialize four chamber heart model
-model = models.FourChamber(info)
+model = models.LeftVentricle(info)
 
 # load input model generated in an earlier step.
 model.load_input()
@@ -134,76 +134,76 @@ info.dump_info()
 
 # print part names
 print(model.part_names)
+model.left_ventricle.epicardium.plot(show_edges=True, color="r")
+# ###############################################################################
+# # Visualize results
+# # ~~~~~~~~~~~~~~~~~
+# # You can visualize and inspect the components of the model by accessing
+# # various properties/attributes and invoke methods.
+# print(f"Volume of LV cavity: {model.left_ventricle.cavity.volume} mm^3")
+# print(f"Volume of LV cavity: {model.left_atrium.cavity.volume} mm^3")
 
-###############################################################################
-# Visualize results
-# ~~~~~~~~~~~~~~~~~
-# You can visualize and inspect the components of the model by accessing
-# various properties/attributes and invoke methods.
-print(f"Volume of LV cavity: {model.left_ventricle.cavity.volume} mm^3")
-print(f"Volume of LV cavity: {model.left_atrium.cavity.volume} mm^3")
+# # plot the remeshed model
+# model.plot_mesh(show_edges=False)
 
-# plot the remeshed model
-model.plot_mesh(show_edges=False)
+# ###############################################################################
+# # .. image:: /_static/images/four_chamber_mesh.png
+# #   :width: 400pt
+# #   :align: center
 
-###############################################################################
-# .. image:: /_static/images/four_chamber_mesh.png
-#   :width: 400pt
-#   :align: center
+# # plot the endocardial surface of the left ventricle.
+# model.left_ventricle.endocardium.plot(show_edges=True, color="r")
 
-# plot the endocardial surface of the left ventricle.
-model.left_ventricle.endocardium.plot(show_edges=True, color="r")
+# ###############################################################################
+# # .. image:: /_static/images/four_chamber_lv_endocardium.png
+# #   :width: 400pt
+# #   :align: center
 
-###############################################################################
-# .. image:: /_static/images/four_chamber_lv_endocardium.png
-#   :width: 400pt
-#   :align: center
+# # loop over all cavities and plot these in a single window.
+# import pyvista as pv
 
-# loop over all cavities and plot these in a single window.
-import pyvista as pv
+# cavities = pv.PolyData()
+# for c in model.cavities:
+#     cavities += c.surface
+# cavities.plot(show_edges=True)
 
-cavities = pv.PolyData()
-for c in model.cavities:
-    cavities += c.surface
-cavities.plot(show_edges=True)
+# ###############################################################################
+# # .. image:: /_static/images/four_chamber_cavities.png
+# #   :width: 400pt
+# #   :align: center
 
-###############################################################################
-# .. image:: /_static/images/four_chamber_cavities.png
-#   :width: 400pt
-#   :align: center
+# # sphinx_gallery_start_ignore
+# # Generate static images for docs.
+# #
+# from pathlib import Path
 
-# sphinx_gallery_start_ignore
-# Generate static images for docs.
-#
-from pathlib import Path
+# docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", "_static", "images")
 
-docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", "_static", "images")
+# # Full mesh
+# filename = Path(docs_images_folder, "four_chamber_mesh.png")
+# plotter = pv.Plotter(off_screen=True)
+# model.mesh.set_active_scalars("part-id")
+# plotter.add_mesh(model.mesh, show_edges=False)
+# # plotter.show()
+# plotter.camera.roll = -60
+# plotter.screenshot(filename)
 
-# Full mesh
-filename = Path(docs_images_folder, "four_chamber_mesh.png")
-plotter = pv.Plotter(off_screen=True)
-model.mesh.set_active_scalars("part-id")
-plotter.add_mesh(model.mesh, show_edges=False)
-# plotter.show()
-plotter.camera.roll = -60
-plotter.screenshot(filename)
+# # Clipped full mesh
 
-# Clipped full mesh
+# # left ventricle endocardium
+# filename = Path(docs_images_folder, "four_chamber_lv_endocardium.png")
+# plotter = pv.Plotter(off_screen=True)
+# model.mesh.set_active_scalars(None)
+# plotter.add_mesh(model.left_ventricle.endocardium, color="r", show_edges=True)
+# plotter.camera.roll = -60
+# plotter.screenshot(filename)
 
-# left ventricle endocardium
-filename = Path(docs_images_folder, "four_chamber_lv_endocardium.png")
-plotter = pv.Plotter(off_screen=True)
-model.mesh.set_active_scalars(None)
-plotter.add_mesh(model.left_ventricle.endocardium, color="r", show_edges=True)
-plotter.camera.roll = -60
-plotter.screenshot(filename)
-
-# Cavities
-filename = Path(docs_images_folder, "four_chamber_cavities.png")
-plotter = pv.Plotter(off_screen=True)
-for c in model.cavities:
-    plotter.add_mesh(c.surface, show_edges=True)
-# plotter.show()
-plotter.camera.roll = -60
-plotter.screenshot(filename)
-# sphinx_gallery_end_ignore
+# # Cavities
+# filename = Path(docs_images_folder, "four_chamber_cavities.png")
+# plotter = pv.Plotter(off_screen=True)
+# for c in model.cavities:
+#     plotter.add_mesh(c.surface, show_edges=True)
+# # plotter.show()
+# plotter.camera.roll = -60
+# plotter.screenshot(filename)
+# # sphinx_gallery_end_ignore

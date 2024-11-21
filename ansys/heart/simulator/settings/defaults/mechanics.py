@@ -69,7 +69,7 @@ material = {
         #     "k1fs": Quantity(0.283e-3, "MPa"),
         #     "k2fs": Quantity(3.088, "dimensionless"),
         # },
-        # # ambit
+        # ambit
         # "isotropic": {
         #     "rho": Quantity(0.001, "g/mm^3"),
         #     "nu": 0.49,
@@ -84,31 +84,31 @@ material = {
         #     "k1fs": Quantity(0.216e-3, "MPa"),
         #     "k2fs": Quantity(11.436, "dimensionless"),
         # },
-        # # Gultekin et al.
-        # "isotropic": {
-        #     "rho": Quantity(0.001, "g/mm^3"),
-        #     "nu": 0.499,
-        #     "k1": Quantity(0.40e-3, "MPa"),
-        #     "k2": Quantity(6.55),
-        # },
-        # "anisotropic": {
-        #     "k1f": Quantity(3.05e-3, "MPa"),
-        #     "k2f": Quantity(29.05, "dimensionless"),
-        #     "k1s": Quantity(1.25e-3, "MPa"),
-        #     "k2s": Quantity(36.65, "dimensionless"),
-        #     "k1fs": Quantity(0.15e-3, "MPa"),
-        #     "k2fs": Quantity(6.28, "dimensionless"),
-        # },
+        # Gultekin et al.
         "isotropic": {
             "rho": Quantity(0.001, "g/mm^3"),
             "nu": 0.499,
-            "k1": Quantity(0.0023599999999999997, "MPa"),
-            "k2": Quantity(1.75),
+            "k1": Quantity(0.40e-3, "MPa"),
+            "k2": Quantity(6.55),
         },
         "anisotropic": {
-            "k1f": Quantity(0.00049, "MPa"),
-            "k2f": Quantity(9.01, "dimensionless"),
+            "k1f": Quantity(3.05e-3, "MPa"),
+            "k2f": Quantity(29.05, "dimensionless"),
+            "k1s": Quantity(1.25e-3, "MPa"),
+            "k2s": Quantity(36.65, "dimensionless"),
+            "k1fs": Quantity(0.15e-3, "MPa"),
+            "k2fs": Quantity(6.28, "dimensionless"),
         },
+        # "isotropic": {
+        #     "rho": Quantity(0.001, "g/mm^3"),
+        #     "nu": 0.499,
+        #     "k1": Quantity(0.0023599999999999997, "MPa"),
+        #     "k2": Quantity(1.75),
+        # },
+        # "anisotropic": {
+        #     "k1f": Quantity(0.00049, "MPa"),
+        #     "k2f": Quantity(9.01, "dimensionless"),
+        # },
         # no effect if EM coupled
         "active": {
             "actype": 1,  # or 3

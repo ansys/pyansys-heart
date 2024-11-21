@@ -26,8 +26,6 @@ import json
 import os
 import tempfile
 
-import yaml
-
 if os.getenv("GITHUB_ACTIONS"):
     is_gh_action = True
 else:

@@ -167,7 +167,7 @@ pee = Quantity(100, "mmHg")
 rp = 0.97 * pee / co
 ca = tau / rp
 ra = 0.03 * rp
-rv = 0.2 * ra
+rv = ra
 
 system_model = {
     "name": "ConstantPreloadWindkesselAfterload",

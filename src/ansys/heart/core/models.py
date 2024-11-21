@@ -81,6 +81,7 @@ class ModelInfo:
 
         pass
 
+    @deprecated(reason="Use stand-alone method instead.")
     def clean_workdir(
         self,
         extensions_to_remove: List[str] = [".stl", ".vtk", ".msh.h5"],
@@ -211,7 +212,7 @@ class HeartModel:
         ]
 
     def __init__(
-        self, info: ModelInfo, working_directory: pathlib.Path | str = os.path.curdir
+        self, info: ModelInfo = None, working_directory: pathlib.Path | str = os.path.curdir
     ) -> None:
         self.info = info
         """Model meta information."""

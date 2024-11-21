@@ -24,6 +24,7 @@ import argparse
 import os
 from pathlib import Path
 
+from ansys.heart.core.helpers.general import clean_directory
 import ansys.heart.core.models as models
 from ansys.heart.preprocessor.database_preprocessor import get_compatible_input
 
@@ -80,7 +81,7 @@ def main(args):
             )
 
             # clean the working directory
-            info.clean_workdir(extensions_to_remove=[".stl", ".vtk", ".msh.h5"])
+            clean_directory(workdir, extensions_to_remove=[".stl", ".vtk", ".msh.h5"])
             # dump information to stdout
             info.dump_info()
 

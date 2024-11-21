@@ -44,6 +44,7 @@ import json
 import os
 from pathlib import Path
 
+from ansys.heart.core.helpers.general import clean_directory
 import ansys.heart.core.models as models
 from ansys.heart.preprocessor.database_preprocessor import get_compatible_input
 
@@ -111,7 +112,7 @@ info.path_to_model = path_to_model
 
 # create or clean working directory
 info.create_workdir()
-info.clean_workdir([".stl", ".msh.h5", ".pickle"])
+clean_directory(workdir, [".stl", ".msh.h5", ".pickle"])
 
 ###############################################################################
 # Initialize the heart model with info
@@ -141,7 +142,7 @@ model.save_model(os.path.join(model._workdir, "heart_model.vtu"))
 print(model)
 
 # clean the working directory
-info.clean_workdir(extensions_to_remove=[".stl", ".vtk", ".msh.h5"])
+clean_directory(workdir, extensions_to_remove=[".stl", ".vtk", ".msh.h5"])
 
 # dump information to stdout
 info.dump_info()

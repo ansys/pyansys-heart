@@ -41,6 +41,7 @@ import os
 import numpy as np
 import pyvista as pv
 
+from ansys.heart.core.helpers.general import clean_directory
 import ansys.heart.core.models as models
 
 # Use Fluent 24.1 for meshing.
@@ -118,7 +119,7 @@ info.path_to_model = os.path.join(info.workdir, "heart_model.pickle")
 model = models.LeftVentricle(info)
 
 # clean working directory
-model.info.clean_workdir([".stl", ".msh.h5", ".pickle"])
+clean_directory(workdir, [".stl", ".msh.h5", ".pickle"])
 
 # load input model
 model.load_input(heart, part_definitions, "surface-id")

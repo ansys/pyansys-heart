@@ -97,7 +97,7 @@ def main(args):
                 model = models.FourChamber(info)
 
             # extract the simulation mesh
-            model.load_input()
+            model.load_input(path_to_input_vtp, part_definitions, "surface-id")
 
             # mesh the volume
             model.mesh_volume(use_wrapper=True)

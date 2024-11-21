@@ -124,7 +124,7 @@ model = models.LeftVentricle(info)
 model.info.clean_workdir([".stl", ".msh.h5", ".pickle"])
 
 # load input model
-model.load_input()
+model.load_input(heart, part_definitions, "surface-id")
 
 ###############################################################################
 # Remesh the surfaces and volume

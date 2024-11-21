@@ -125,7 +125,7 @@ info.clean_workdir([".stl", ".msh.h5", ".pickle"])
 model = models.FourChamber(info)
 
 # load input model generated in an earlier step.
-model.load_input()
+model.load_input(input_geom, part_definitions, "surface-id")
 
 # mesh the volume of all structural parts.
 model.mesh_volume(use_wrapper=True)

@@ -139,6 +139,7 @@ def test_add_parts_and_boundaries_003():
                 "enclosed_by_boundaries": {"shells3": boundary_ids[2], "shells4": boundary_ids[3]},
             },
         },
+        scalar="boundary-id",
     )
 
     # check if part names, part ids, and boundaries are added correctly to the InputModel.
@@ -202,6 +203,7 @@ def test_is_manifold():
                 "enclosed_by_boundaries": {"shells1": 1},
             },
         },
+        scalar="boundary-id",
     )
 
     assert not input._validate_if_parts_manifold()
@@ -227,6 +229,7 @@ def test_write_boundaries_001():
                 "enclosed_by_boundaries": {"shells3": 3, "shells4": 2},
             },
         },
+        scalar="boundary-id",
     )
 
     with tempfile.TemporaryDirectory() as write_dir:
@@ -263,6 +266,7 @@ def test_write_to_polydata():
                 "enclosed_by_boundaries": {"shells3": 3, "shells4": 2},
             },
         },
+        scalar="boundary-id",
     )
 
     with tempfile.TemporaryDirectory() as write_dir:
@@ -300,6 +304,7 @@ def test_input_uniqueness():
                 "enclosed_by_boundaries": {"shells3": 3, "shells4": 2},
             },
         },
+        scalar="boundary-id",
     )
 
     assert not model._validate_uniqueness()
@@ -317,6 +322,7 @@ def test_input_uniqueness():
                 "enclosed_by_boundaries": {"shells3": 3, "shells2": 4},
             },
         },
+        scalar="boundary-id",
     )
 
     assert not model._validate_uniqueness()

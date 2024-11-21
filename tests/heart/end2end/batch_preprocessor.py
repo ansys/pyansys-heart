@@ -75,24 +75,20 @@ def main(args):
             )
             input_polydata.save(path_to_input_vtp)
 
-            info = models.ModelInfo(
-                work_directory=workdir,
-                mesh_size=2.0,
-            )
-
             # clean the working directory
             clean_directory(workdir, extensions_to_remove=[".stl", ".vtk", ".msh.h5"])
             # dump information to stdout
-            info.dump_info()
 
             if model_type == "lv":
-                model = models.LeftVentricle(info)
+                model = models.LeftVentricle(working_directory=workdir)
             elif model_type == "bv":
-                model = models.BiVentricle(info)
+                model = models.BiVentricle(working_directory=workdir)
             elif model_type == "fh":
-                model = models.FullHeart(info)
+                model = models.FullHeart(working_directory=workdir)
             elif model_type == "4c":
-                model = models.FourChamber(info)
+                model = models.FourChamber(working_directory=workdir)
+
+            model._mesh_settings.global_mesh_size = 2.0
 
             # extract the simulation mesh
             model.load_input(path_to_input_vtp, part_definitions, "surface-id")

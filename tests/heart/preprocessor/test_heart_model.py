@@ -73,7 +73,6 @@ def test_model_info_dump(extension):
         assert (
             info.path_to_simulation_mesh == data["path_to_simulation_mesh"]
         ), "Path to simulation mesh not the same"
-        assert info.mesh_size == data["mesh_size"], "Mesh size not the same"
 
     pass
 
@@ -83,20 +82,18 @@ def test_dump_model_001():
     from pathlib import Path
 
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
-        info = models.ModelInfo(work_directory=workdir)
-        model = models.BiVentricle(info)
+        model = models.BiVentricle(working_directory=workdir)
 
-        model._workdir = workdir
-        expected_path = os.path.join(model._workdir, "heart_model.pickle")
+        expected_path = os.path.join(model.workdir, "heart_model.pickle")
 
         model.dump_model()
         assert os.path.isfile(expected_path)
 
-        expected_path = os.path.join(model._workdir, "heart_model1.pickle")
+        expected_path = os.path.join(model.workdir, "heart_model1.pickle")
         model.dump_model(expected_path)
         assert os.path.isfile(expected_path)
 
-        expected_path = Path(os.path.join(model._workdir, "heart_model2.pickle"))
+        expected_path = Path(os.path.join(model.workdir, "heart_model2.pickle"))
         model.dump_model(expected_path)
         assert os.path.isfile(expected_path)
 
@@ -104,11 +101,9 @@ def test_dump_model_001():
 def test_model_load_001():
     """Test dumping and reading of model with data."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
-        info = models.ModelInfo()
-        model = models.BiVentricle(info)
-        model._workdir = workdir
+        model = models.BiVentricle(working_directory=workdir)
 
-        path_to_model = os.path.join(model._workdir, "heart_model.pickle")
+        path_to_model = os.path.join(model.workdir, "heart_model.pickle")
         model.left_ventricle.endocardium.triangles = np.array([[0, 1, 2]], dtype=int)
         model.left_ventricle.endocardium.nodes = np.eye(3, 3, dtype=float)
 
@@ -132,7 +127,7 @@ def test_model_load_002():
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         info = _get_test_model_info()
         model: models.BiVentricle = models.BiVentricle(info)
-        model._workdir = workdir
+        model.workdir = workdir
         # populate model
         model.left_ventricle.element_ids = np.array([1, 2, 3, 4], dtype=int)
         model.right_ventricle.element_ids = np.array([11, 66, 77, 88], dtype=int)
@@ -214,8 +209,7 @@ def test_model_load_002():
 )
 def test_model_part_names(model_type, expected_part_names):
     """Test whether all parts exist in the model."""
-    info = models.ModelInfo()
-    model: models.HeartModel = model_type(info)
+    model: models.HeartModel = model_type()
 
     assert model.part_names == expected_part_names
 
@@ -256,7 +250,7 @@ def test_load_from_mesh():
         mesh_path = os.path.join(tmpdir, "mesh.vtu")
 
         mesh.save(mesh_path)
-        model = models.BiVentricle(models.ModelInfo())
+        model = models.BiVentricle(working_directory=tmpdir)
 
         part_info = {
             "Left ventricle": {

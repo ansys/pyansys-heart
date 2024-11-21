@@ -78,7 +78,7 @@ path_to_model = os.path.join(workdir, "heart_model.vtu")
 lsdyna_path = r"ls-dyna_msmpi.exe"
 
 # load four chamber heart model.
-model: models.FourChamber = models.FourChamber(models.ModelInfo(work_directory=workdir))
+model: models.FourChamber = models.FourChamber(working_directory=workdir)
 model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
 model._extract_apex()
 model.compute_left_ventricle_anatomy_axis()
@@ -105,7 +105,7 @@ if not isinstance(model, models.FourChamber):
     raise TypeError("Expecting a FourChamber heart model.")
 
 # set base working directory
-model._workdir = str(workdir)
+model.workdir = str(workdir)
 
 ###############################################################################
 # Instantiate the simulator object

@@ -45,7 +45,7 @@ def _mock_input(mocker):
     mesh.cell_data["part-id"] = 1
     fibers = np.repeat([1.0, 0.0, 0.0], mesh.n_cells, axis=0).reshape((3, mesh.n_cells)).T
     mesh.cell_data["fiber"] = fibers
-    mock_biventricle: models.BiVentricle = models.BiVentricle(mock.Mock(models.ModelInfo))
+    mock_biventricle: models.BiVentricle = models.BiVentricle()
     mock_biventricle.mesh = mesh
     mock_show = mocker.patch("pyvista.Plotter.show")
     return mock_biventricle, mock_show

@@ -109,14 +109,11 @@ part_definitions = {
 # use the combined polydata `heart` as input, where "surface-id" identifies each
 # of the relevant regions.
 # part definitions is used to map the remeshed model to the HeartModel parts/boundaries
-info = models.ModelInfo(
-    work_directory=workdir,
-    mesh_size=0.5,
-)
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 # initialize left-ventricular heart model
-model = models.LeftVentricle(info)
+model = models.LeftVentricle(working_directory=workdir)
+model._mesh_settings.global_mesh_size = 0.5
 
 # clean working directory
 clean_directory(workdir, [".stl", ".msh.h5", ".pickle"])

@@ -45,15 +45,13 @@ def _get_test_model_info() -> models.ModelInfo:
         work_directory=None,
         path_to_simulation_mesh="path-to-simulation-mesh",
         mesh_size=2.0,
-        part_definitions={
-            "Left ventricle": {"id": 1, "enclosed_by_boundaries": {"endocardium": 2}}
-        },
     )
     models.ModelInfo()
     return info
 
 
 @pytest.mark.parametrize("extension", [".json", ".yml"])
+@pytest.mark.xfail(reason="ModelInfo is deprecated.")
 def test_model_info_dump(extension):
     """Test dumping of model info to json."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:

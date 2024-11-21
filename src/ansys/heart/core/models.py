@@ -57,6 +57,7 @@ from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 
 
 # TODO: Refactor or remove ModelInfo.
+@deprecated(reason="ModelInfo is deprecated.")
 class ModelInfo:
     """Contains model information."""
 
@@ -842,9 +843,6 @@ class HeartModel:
 
         with open(filename, "wb") as file:
             pickle.dump(self, file)
-        self.info.dump_info()
-
-        self.info.path_to_model = filename
 
         return
 
@@ -1923,7 +1921,9 @@ class HeartModel:
 class LeftVentricle(HeartModel):
     """Model of just the left ventricle."""
 
-    def __init__(self, info: ModelInfo = None) -> None:
+    def __init__(
+        self, info: ModelInfo = None, working_directory: pathlib.Path | str = os.path.curdir
+    ) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
         # remove septum - not used in left ventricle only model
@@ -1933,14 +1933,16 @@ class LeftVentricle(HeartModel):
         self.left_ventricle.active = True
 
         if info:
-            super().__init__(info)
+            super().__init__(info, working_directory=working_directory)
         pass
 
 
 class BiVentricle(HeartModel):
     """Model of the left and right ventricle."""
 
-    def __init__(self, info: ModelInfo = None) -> None:
+    def __init__(
+        self, info: ModelInfo = None, working_directory: pathlib.Path | str = os.path.curdir
+    ) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
@@ -1956,14 +1958,16 @@ class BiVentricle(HeartModel):
         self.septum.active = True
 
         if info:
-            super().__init__(info)
+            super().__init__(info, working_directory=working_directory)
         pass
 
 
 class FourChamber(HeartModel):
     """Model of the left/right ventricle and left/right atrium."""
 
-    def __init__(self, info: ModelInfo = None) -> None:
+    def __init__(
+        self, info: ModelInfo = None, working_directory: pathlib.Path | str = os.path.curdir
+    ) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
@@ -1989,7 +1993,7 @@ class FourChamber(HeartModel):
         self.right_atrium.active = False
 
         if info:
-            super().__init__(info)
+            super().__init__(info, working_directory=working_directory)
 
         pass
 
@@ -1997,7 +2001,9 @@ class FourChamber(HeartModel):
 class FullHeart(FourChamber):
     """Model of both ventricles, both atria, aorta and pulmonary artery."""
 
-    def __init__(self, info: ModelInfo = None) -> None:
+    def __init__(
+        self, info: ModelInfo = None, working_directory: pathlib.Path | str = os.path.curdir
+    ) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
@@ -2031,7 +2037,7 @@ class FullHeart(FourChamber):
         self.pulmonary_artery.active = False
 
         if info:
-            super().__init__(info)
+            super().__init__(info, working_directory=working_directory)
 
         pass
 

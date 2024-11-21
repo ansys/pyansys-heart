@@ -56,7 +56,6 @@ def test_model_info_dump(extension):
     """Test dumping of model info to json."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         info = _get_test_model_info()
-        info.workdir = workdir
 
         path_to_model_info = os.path.join(workdir, "model_info" + extension)
 
@@ -75,8 +74,6 @@ def test_model_info_dump(extension):
             info.path_to_simulation_mesh == data["path_to_simulation_mesh"]
         ), "Path to simulation mesh not the same"
         assert info.mesh_size == data["mesh_size"], "Mesh size not the same"
-        assert info.part_definitions == data["part_definitions"]
-        assert info.path_to_model == data["path_to_model"]
 
     pass
 
@@ -89,39 +86,37 @@ def test_dump_model_001():
         info = models.ModelInfo(work_directory=workdir)
         model = models.BiVentricle(info)
 
+        model._workdir = workdir
         expected_path = os.path.join(model._workdir, "heart_model.pickle")
 
         model.dump_model()
         assert os.path.isfile(expected_path)
-        assert model.info.path_to_model == expected_path
 
         expected_path = os.path.join(model._workdir, "heart_model1.pickle")
         model.dump_model(expected_path)
         assert os.path.isfile(expected_path)
-        assert model.info.path_to_model == expected_path
 
         expected_path = Path(os.path.join(model._workdir, "heart_model2.pickle"))
         model.dump_model(expected_path)
         assert os.path.isfile(expected_path)
-        assert model.info.path_to_model == str(expected_path)
 
 
 def test_model_load_001():
     """Test dumping and reading of model with data."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         info = models.ModelInfo()
-        info.workdir = workdir
         model = models.BiVentricle(info)
+        model._workdir = workdir
 
-        model.info.path_to_model = os.path.join(model._workdir, "heart_model.pickle")
+        path_to_model = os.path.join(model._workdir, "heart_model.pickle")
         model.left_ventricle.endocardium.triangles = np.array([[0, 1, 2]], dtype=int)
         model.left_ventricle.endocardium.nodes = np.eye(3, 3, dtype=float)
 
         model.dump_model()
 
-        assert os.path.isfile(model.info.path_to_model)
+        assert os.path.isfile(path_to_model)
 
-        model_loaded: models.BiVentricle = models.HeartModel.load_model(model.info.path_to_model)
+        model_loaded: models.BiVentricle = models.HeartModel.load_model(path_to_model)
         assert np.array_equal(
             model_loaded.left_ventricle.endocardium.triangles,
             model.left_ventricle.endocardium.triangles,

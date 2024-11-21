@@ -108,7 +108,6 @@ info = models.ModelInfo(
     work_directory=workdir,
     mesh_size=1.5,
 )
-info.path_to_model = path_to_model
 
 # create or clean working directory
 info.create_workdir()

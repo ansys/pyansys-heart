@@ -113,7 +113,7 @@ info = models.ModelInfo(
     work_directory=workdir,
     mesh_size=0.5,
 )
-info.path_to_model = os.path.join(info.workdir, "heart_model.pickle")
+path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 # initialize left-ventricular heart model
 model = models.LeftVentricle(info)

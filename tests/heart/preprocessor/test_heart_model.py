@@ -28,7 +28,6 @@ import tempfile
 from unittest.mock import Mock
 
 import pyvista as pv
-import yaml
 
 if os.getenv("GITHUB_ACTIONS"):
     is_gh_action = True

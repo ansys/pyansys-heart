@@ -75,9 +75,6 @@ def main(args):
             input_polydata.save(path_to_input_vtp)
 
             info = models.ModelInfo(
-                input=path_to_input_vtp,
-                scalar="surface-id",
-                part_definitions=part_definitions,
                 work_directory=workdir,
                 mesh_size=2.0,
             )
@@ -97,7 +94,7 @@ def main(args):
                 model = models.FourChamber(info)
 
             # extract the simulation mesh
-            model.load_input()
+            model.load_input(path_to_input_vtp, part_definitions, "surface-id")
 
             # mesh the volume
             model.mesh_volume(use_wrapper=True)

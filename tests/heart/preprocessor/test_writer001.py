@@ -44,9 +44,6 @@ def model_info() -> models.ModelInfo:
         work_directory=None,
         path_to_simulation_mesh="path-to-simulation-mesh",
         mesh_size=2.0,
-        part_definitions={
-            "Left ventricle": {"id": 1, "enclosed_by_boundaries": {"endocardium": 2}}
-        },
     )
 
 

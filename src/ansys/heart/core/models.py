@@ -152,6 +152,37 @@ class ModelInfo:
         return
 
 
+def _get_axis_from_field_data(
+    mesh: Mesh | pv.UnstructuredGrid, axis_name: Literal["l4cv_axis", "l2cv_axis", "short_axis"]
+) -> dict:
+    """Get the axis from mesh field data."""
+    try:
+        return {
+            "center": mesh.field_data[axis_name][0],
+            "normal": mesh.field_data[axis_name][1],
+        }
+    except KeyError:
+        LOGGER.info(f"Failed to retrieve {axis_name} from mesh field data")
+        return None
+
+
+def _set_field_data_from_axis(
+    mesh: Mesh | pv.UnstructuredGrid,
+    axis: dict,
+    axis_name: Literal["l4cv_axis", "l2cv_axis", "short_axis"],
+):
+    """Store the axis in mesh field data."""
+    if "center" and "normal" not in axis.keys():
+        LOGGER.info("Failed to store axis.")
+        return None
+    data = np.array([value for value in axis.values()])
+    if data.shape != (2, 3):
+        LOGGER.info("Data has wrong shape, expecting (2,3) shaped data.")
+        return None
+    mesh.field_data[axis_name] = data
+    return mesh
+
+
 class HeartModel:
     """Parent class for heart models."""
 
@@ -219,6 +250,36 @@ class HeartModel:
         return {s.id: s.name for p in self.parts for s in p.surfaces}
 
     @property
+    def l4cv_axis(self) -> dict:
+        """l4cv axis."""
+        return _get_axis_from_field_data(self.mesh, "l4cv_axis")
+
+    @property
+    def l2cv_axis(self) -> dict:
+        """l2cv axis."""
+        return _get_axis_from_field_data(self.mesh, "l2cv_axis")
+
+    @property
+    def short_axis(self) -> dict:
+        """l2cv axis."""
+        return _get_axis_from_field_data(self.mesh, "short_axis")
+
+    @l4cv_axis.setter
+    def l4cv_axis(self, axis: dict):
+        """Set short axis."""
+        _set_field_data_from_axis(self.mesh, axis, "l4cv_axis")
+
+    @l2cv_axis.setter
+    def l2cv_axis(self, axis: dict):
+        """Set short axis."""
+        _set_field_data_from_axis(self.mesh, axis, "l2cv_axis")
+
+    @short_axis.setter
+    def short_axis(self, axis: dict):
+        """Set short axis."""
+        _set_field_data_from_axis(self.mesh, axis, "short_axis")
+
+    @property
     def cap_centroids(self):
         """Return list of cap centroids."""
         return [
@@ -271,6 +332,14 @@ class HeartModel:
 
         self._part_info = {}
         """Information about all the parts in the model."""
+
+        self._short_axis: dict = None
+        """Short axis."""
+        self._l2cv_axis: dict = None
+        """l2cv axis."""
+        self._l4cv_axis: dict = None
+        """l4cv axis."""
+
         return
 
     def __str__(self):

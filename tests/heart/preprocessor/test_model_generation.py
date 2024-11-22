@@ -120,7 +120,6 @@ def extract_model(request):
         return
 
     inputs = _get_inputs(model_type)  # model_type)
-
     input_vtp = inputs[0]
     part_definitions = inputs[1]
     ref_stats = inputs[2]
@@ -348,7 +347,6 @@ def test_writers_after_load_model(extract_model, writer_class):
         model1 = type(model)(working_directory=workdir)
         model1.load_model_from_mesh(model_path, partinfo)
         model1._extract_apex()
-        model1.compute_left_ventricle_anatomy_axis()
         model1.compute_left_ventricle_aha17()
 
         writer = writer_class(copy.deepcopy(model1))

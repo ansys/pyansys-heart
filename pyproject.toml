@@ -24,10 +24,10 @@ classifiers = [
 ]
 
 dependencies = [
-    "ansys-dpf-core==0.13.0",
+    "ansys-dpf-core==0.13.2",
     "ansys-fluent-core==0.26.0",
     "deprecated==1.2.14",
-    "dynalib==0.1.0",
+    "ansys.dyna.core==0.6.0",
     "h5py>=3.6.0",
     "importlib-metadata >=4.0",
     "Jinja2==3.1.2",
@@ -37,7 +37,7 @@ dependencies = [
     "numpy<=2.1.2",
     "pandas<=3.0.0",
     "pint==0.20.1",
-    "pyvista==0.43.0",
+    "pyvista==0.43.4",
     "scipy<=1.14.1",
     "tqdm==4.66.1",
     "validators==0.34.0",

@@ -22,7 +22,7 @@
 
 """Defines LS-DYNA decks for heart modeling."""
 
-from ansys.dyna.keywords import Deck
+from ansys.dyna.core import Deck
 
 
 class BaseDecks:

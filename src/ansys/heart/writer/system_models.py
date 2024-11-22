@@ -31,7 +31,7 @@ Valid models include:
 
 """
 
-from ansys.dyna.keywords import keywords
+from ansys.dyna.core.keywords import keywords
 
 
 def constant_flow_template():

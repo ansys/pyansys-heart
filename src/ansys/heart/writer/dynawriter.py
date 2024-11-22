@@ -41,7 +41,7 @@ import pandas as pd
 import pyvista as pv
 import scipy.spatial as spatial
 
-from ansys.dyna.keywords import keywords
+from ansys.dyna.core.keywords import keywords
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.helpers.vtkmethods import compute_surface_nodal_area_pyvista
 from ansys.heart.core.models import (

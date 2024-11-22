@@ -27,7 +27,8 @@ from typing import Union
 import numpy as np
 import pandas as pd
 
-from ansys.dyna.keywords import Deck, keywords
+from ansys.dyna.core import Deck
+from ansys.dyna.core.keywords import keywords
 
 # import some custom keywords that avoid bugs in dynalib
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords

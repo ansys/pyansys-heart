@@ -20,9 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from ansys.dyna.keywords.lib.card import Field
-from ansys.dyna.keywords.lib.duplicate_card import DuplicateCard
-from ansys.dyna.keywords.lib.keyword_base import KeywordBase
+from ansys.dyna.core.lib.card import Field
+from ansys.dyna.core.lib.duplicate_card import DuplicateCard
+from ansys.dyna.core.lib.keyword_base import KeywordBase
 
 
 class UserLoadingSet(KeywordBase):

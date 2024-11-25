@@ -583,7 +583,7 @@ def test_mesh_save_load():
     return
 
 
-def test_cavity_volume():
+def test_force_normals_inwards():
     """Test whether compute_volume enforces inwards pointing normals."""
     # by default normals of sphere are pointing outwards.
     import copy

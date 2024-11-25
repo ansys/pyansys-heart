@@ -37,7 +37,7 @@ dependencies = [
     "numpy<=2.1.2",
     "pandas<=3.0.0",
     "pint==0.20.1",
-    "pyvista==0.44.0",
+    "pyvista==0.44.1",
     "scipy<=1.14.1",
     "tqdm==4.66.1",
     "validators==0.34.0",

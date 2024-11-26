@@ -295,6 +295,17 @@ class SurfaceMesh(pv.PolyData):
         #! Flip normals and consistent normals should enforce that normals are pointing
         #! inwards for a manifold surface. See:
         #! https://docs.pyvista.org/api/core/_autosummary/pyvista.polydatafilters.compute_normals
+        #! With 0.44.1 we may need to remove the normals prior to computing them. With earlier
+        #! versions this seems to have unintentionally worked.
+        try:
+            self.cell_data.remove("Normals")
+        except KeyError:
+            pass
+        try:
+            self.point_data.remove("Normals")
+        except KeyError:
+            pass
+
         self.compute_normals(inplace=True, auto_orient_normals=True, flip_normals=True)
         return self
 

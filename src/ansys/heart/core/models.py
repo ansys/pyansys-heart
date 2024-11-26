@@ -62,21 +62,11 @@ class ModelInfo:
 
     def __init__(
         self,
-        input: Union[pathlib.Path, str, pv.PolyData, pv.UnstructuredGrid] = None,
-        scalar: str = "part-id",
-        part_definitions: dict = None,
         work_directory: pathlib.Path = ".",
         path_to_simulation_mesh: pathlib.Path = None,
         mesh_size: float = 1.5,
         add_blood_pool: bool = False,
     ) -> None:
-        self.input = input
-        """Input to the workflow."""
-        self.scalar = scalar
-        """Scalar field name with part/surface ids."""
-        self.part_definitions = part_definitions
-        """Part definitions."""
-
         self.workdir = work_directory
         """Path to the working directory."""
         self.path_to_simulation_mesh = path_to_simulation_mesh
@@ -130,9 +120,6 @@ class ModelInfo:
 
     def dump_info(self, filename: pathlib.Path = None) -> None:
         """Dump model information to file."""
-        if not isinstance(self.input, (str, pathlib.Path)):
-            self.input = None
-
         if not filename:
             filename = os.path.join(self.workdir, "model_info.json")
 
@@ -479,13 +466,26 @@ class HeartModel:
 
         return beam_net
 
-    def load_input(self):
-        """Use the content in model info to load the input model."""
+    def load_input(self, input_vtp: pv.PolyData, part_definitions: dict, scalar: str):
+        """Load an input model.
+
+        Parameters
+        ----------
+        input_vtp : pv.PolyData
+            The input surface mesh, represented by a VTK PolyData object.
+        part_definitions : dict
+            Part definitions of the input model. Each part is enclosed by N number of boundaries.
+        scalar : str
+            Scalar used to identify boundaries.
+        """
         self._input = _InputModel(
-            part_definitions=self.info.part_definitions,
-            input=self.info.input,
-            scalar=self.info.scalar,
+            input=input_vtp,
+            part_definitions=part_definitions,
+            scalar=scalar,
         )
+        if self._input is None:
+            LOGGER.error("Failed to initialize input model. Please check input arguments.")
+            exit()
         return
 
     def mesh_volume(

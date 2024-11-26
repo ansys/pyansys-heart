@@ -109,9 +109,6 @@ part_definitions = {
 # of the relevant regions.
 # part definitions is used to map the remeshed model to the HeartModel parts/boundaries
 info = models.ModelInfo(
-    input=heart,
-    scalar="surface-id",
-    part_definitions=part_definitions,
     work_directory=workdir,
     mesh_size=0.5,
 )
@@ -124,7 +121,7 @@ model = models.LeftVentricle(info)
 model.info.clean_workdir([".stl", ".msh.h5", ".pickle"])
 
 # load input model
-model.load_input()
+model.load_input(heart, part_definitions, "surface-id")
 
 ###############################################################################
 # Remesh the surfaces and volume

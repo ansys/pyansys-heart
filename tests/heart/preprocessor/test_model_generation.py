@@ -120,6 +120,9 @@ def extract_model(request):
         return
 
     inputs = _get_inputs(model_type)  # model_type)
+
+    input_vtp = inputs[0]
+    part_definitions = inputs[1]
     ref_stats = inputs[2]
     mesh_file = inputs[3]
 
@@ -129,9 +132,6 @@ def extract_model(request):
     # with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
 
     info = models.ModelInfo(
-        input=inputs[0],
-        scalar="boundary-id",
-        part_definitions=inputs[1],
         mesh_size=2.0,
         work_directory=workdir,
     )
@@ -139,7 +139,7 @@ def extract_model(request):
     if not isinstance(model, (models.BiVentricle, models.FullHeart)):
         exit()
 
-    model.load_input()
+    model.load_input(input_vtp, part_definitions, "boundary-id")
     # model.mesh_volume(wrapper=True) # could use this: but requires fluent
     if mesh_volume:
         model.mesh_volume(use_wrapper=True)

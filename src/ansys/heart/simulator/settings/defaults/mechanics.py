@@ -159,7 +159,7 @@ boundary_conditions = {
 }
 
 """System model parameters."""
-# 2wk model, with parameters deduced in a physiological range
+# 2wk model, with parameters deduced in a physiological range, from Eindhoven lecture notes
 co = Quantity(5, "L/min")
 tau = Quantity(2, "s")
 pee = Quantity(100, "mmHg")
@@ -167,7 +167,7 @@ pee = Quantity(100, "mmHg")
 rp = 0.97 * pee / co
 ca = tau / rp
 ra = 0.03 * rp
-rv = 0.2 * ra
+rv = ra
 
 system_model = {
     "name": "ConstantPreloadWindkesselAfterload",

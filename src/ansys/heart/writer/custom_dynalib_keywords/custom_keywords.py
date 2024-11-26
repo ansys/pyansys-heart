@@ -39,6 +39,5 @@ from .keywords.em_mat_001 import EmMat001
 from .keywords.em_mat_003 import EmMat003
 from .keywords.interface_springback_lsdyna import InterfaceSpringbackLsdyna
 from .keywords.mat_077h import Mat077H
-# from .keywords.set_node_list import SetNodeList
 from .keywords.user_loading import UserLoading
 from .keywords.user_loading_set import UserLoadingSet

@@ -30,9 +30,6 @@ import pandas as pd
 from ansys.dyna.core import Deck
 from ansys.dyna.core.keywords import keywords
 
-# import some custom keywords that avoid bugs in dynalib
-from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
-
 
 def create_node_keyword(nodes: np.array, offset: int = 0) -> keywords.Node:
     """Create node keyword from numpy array of nodes.
@@ -212,24 +209,7 @@ def create_node_set_keyword(
 
     kw.options["TITLE"].active = True
     kw.title = title
-
-    # rearrange nodeids such that its size is n x 8
-    num_nodes = len(node_ids)
-    num_cols = int(8)
-    num_rows = int(np.ceil(len(node_ids) / 8))
-
-    node_ids2 = np.zeros(int(num_rows * num_cols)) * np.nan
-
-    node_ids2[:num_nodes] = node_ids
-
-    node_ids2 = np.reshape(node_ids2, (num_rows, num_cols))
-
     kw.nodes._data = node_ids
-
-    # prepare dataframe
-    # df = pd.DataFrame(data=node_ids2, columns=kw.nodes.columns[0:8])
-
-    # kw.nodes = df
 
     return kw
 

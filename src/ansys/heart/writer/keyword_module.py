@@ -186,7 +186,7 @@ def create_segment_set_keyword(
 
 def create_node_set_keyword(
     node_ids: np.ndarray, node_set_id: int = 1, title: str = "nodeset-title"
-) -> custom_keywords.SetNodeList:
+) -> keywords.SetNodeList:
     """Create node set.
 
     Parameters
@@ -208,7 +208,7 @@ def create_node_set_keyword(
     if isinstance(node_ids, (int, np.int32, np.int64)):
         node_ids = [node_ids]
 
-    kw = custom_keywords.SetNodeList(sid=node_set_id)
+    kw = keywords.SetNodeList(sid=node_set_id)
 
     kw.options["TITLE"].active = True
     kw.title = title
@@ -224,10 +224,12 @@ def create_node_set_keyword(
 
     node_ids2 = np.reshape(node_ids2, (num_rows, num_cols))
 
-    # prepare dataframe
-    df = pd.DataFrame(data=node_ids2, columns=kw.nodes.columns[0:8])
+    kw.nodes._data = node_ids
 
-    kw.nodes = df
+    # prepare dataframe
+    # df = pd.DataFrame(data=node_ids2, columns=kw.nodes.columns[0:8])
+
+    # kw.nodes = df
 
     return kw
 

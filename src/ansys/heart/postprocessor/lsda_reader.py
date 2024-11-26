@@ -712,8 +712,4 @@ for a, b in types:
         types_ok = 0
 
 if __name__ == "__main__":
-
-    reader = LsdaReader(
-        r"d:\Olivier_CRABBE\These\Sinus_rhythm\lyon_patient5\vt_machine\post_processing_test\raw\1.leftT1.em_bin0000"
-    )
     pass

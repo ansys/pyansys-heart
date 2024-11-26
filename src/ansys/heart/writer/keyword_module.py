@@ -210,6 +210,7 @@ def create_node_set_keyword(
     kw.options["TITLE"].active = True
     kw.title = title
     kw.nodes._data = node_ids
+    kw._cards[0].set_value("its", None)  # remove its parameter.
 
     return kw
 

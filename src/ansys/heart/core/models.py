@@ -23,6 +23,7 @@
 """Module containing classes for the various heart models."""
 
 import copy
+from dataclasses import dataclass
 import json
 import os
 
@@ -56,7 +57,21 @@ import ansys.heart.preprocessor.mesher as mesher
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 
 
-# TODO: Refactor or remove ModelInfo.
+@dataclass
+class MeshSettings:
+    """Mesh settings for (re) meshing the model."""
+
+    global_mesh_size: float = 1.5
+    """Global mesh size."""
+    add_blood_pool: bool = False
+    """Flag indicating whether to add a blood pool (experimental)."""
+
+
+# TODO: Remove ModelInfo.
+@deprecated(
+    reason="""ModelInfo is deprecated. Specify working directory in HeartModel directly
+    and (re)meshing settings using the MeshSettings dataclass"""
+)
 class ModelInfo:
     """Contains model information."""
 
@@ -67,6 +82,7 @@ class ModelInfo:
         mesh_size: float = 1.5,
         add_blood_pool: bool = False,
     ) -> None:
+        # return None
         self.workdir = work_directory
         """Path to the working directory."""
         self.path_to_simulation_mesh = path_to_simulation_mesh
@@ -81,6 +97,7 @@ class ModelInfo:
 
         pass
 
+    @deprecated(reason="Use stand-alone method instead.")
     def clean_workdir(
         self,
         extensions_to_remove: List[str] = [".stl", ".vtk", ".msh.h5"],
@@ -271,16 +288,28 @@ class HeartModel:
             for c in p.caps
         ]
 
-    def __init__(self, info: ModelInfo) -> None:
+    # TODO: Remove ModelInfo as input argument.
+    def __init__(
+        self, info: ModelInfo = None, working_directory: pathlib.Path | str = None
+    ) -> None:
+        if working_directory is None:
+            working_directory = os.path.abspath(os.path.curdir)
+
         self.info = info
         """Model meta information."""
+
+        self.workdir = working_directory
+
         self.mesh = Mesh()
         """Computational mesh."""
 
         self.fluid_mesh = Mesh()
         """Generated fluid mesh."""
 
-        self._input = _InputModel()
+        self._mesh_settings = MeshSettings()
+        """Settings used for (re)meshing the model."""
+
+        self._input: _InputModel = None
         """Input model."""
 
         self._add_subparts()
@@ -514,23 +543,23 @@ class HeartModel:
         between parts is potentially lost.
         """
         if not path_to_fluent_mesh:
-            path_to_fluent_mesh = os.path.join(self.info.workdir, "simulation_mesh.msh.h5")
+            path_to_fluent_mesh = os.path.join(self.workdir, "simulation_mesh.msh.h5")
 
         if use_wrapper:
             LOGGER.warning("Meshing from non-manifold model not yet available.")
 
             fluent_mesh = mesher.mesh_from_non_manifold_input_model(
                 model=self._input,
-                workdir=self.info.workdir,
-                mesh_size=self.info.mesh_size,
+                workdir=self.workdir,
+                mesh_size=self._mesh_settings.global_mesh_size,
                 path_to_output=path_to_fluent_mesh,
                 overwrite_existing_mesh=overwrite_existing_mesh,
             )
         else:
             fluent_mesh = mesher.mesh_from_manifold_input_model(
                 model=self._input,
-                workdir=self.info.workdir,
-                mesh_size=self.info.mesh_size,
+                workdir=self.workdir,
+                mesh_size=self._mesh_settings.global_mesh_size,
                 path_to_output=path_to_fluent_mesh,
                 overwrite_existing_mesh=overwrite_existing_mesh,
             )
@@ -582,7 +611,7 @@ class HeartModel:
 
         self.mesh = mesh.clean()
 
-        filename = os.path.join(self.info.workdir, "volume-mesh-post-meshing.vtu")
+        filename = os.path.join(self.workdir, "volume-mesh-post-meshing.vtu")
         self.mesh.save(filename)
 
         return
@@ -624,7 +653,7 @@ class HeartModel:
 
         # mesh the fluid cavities
         fluid_mesh = mesher.mesh_fluid_cavities(
-            boundaries_fluid, caps, self.info.workdir, remesh_caps=remesh_caps
+            boundaries_fluid, caps, self.workdir, remesh_caps=remesh_caps
         )
 
         LOGGER.info(f"Meshed {len(fluid_mesh.cell_zones)} fluid regions...")
@@ -897,16 +926,13 @@ class HeartModel:
             filename = str(filename)
 
         if not filename:
-            filename = os.path.join(self.info.workdir, "heart_model.pickle")
+            filename = os.path.join(self.workdir, "heart_model.pickle")
 
         if os.path.isfile(filename):
             LOGGER.warning(f"Overwriting {filename}")
 
         with open(filename, "wb") as file:
             pickle.dump(self, file)
-        self.info.dump_info()
-
-        self.info.path_to_model = filename
 
         return
 
@@ -1426,7 +1452,7 @@ class HeartModel:
 
             part.cavity.surface.save(
                 os.path.join(
-                    self.info.workdir, "-".join(part.cavity.surface.name.lower().split()) + ".stl"
+                    self.workdir, "-".join(part.cavity.surface.name.lower().split()) + ".stl"
                 )
             )
 
@@ -1985,7 +2011,10 @@ class HeartModel:
 class LeftVentricle(HeartModel):
     """Model of just the left ventricle."""
 
-    def __init__(self, info: ModelInfo = None) -> None:
+    # TODO: Remove ModelInfo as input argument.
+    def __init__(
+        self, info: ModelInfo = None, working_directory: pathlib.Path | str = None
+    ) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
         # remove septum - not used in left ventricle only model
@@ -1994,15 +2023,17 @@ class LeftVentricle(HeartModel):
         self.left_ventricle.fiber = True
         self.left_ventricle.active = True
 
-        if info:
-            super().__init__(info)
+        super().__init__(info, working_directory=working_directory)
         pass
 
 
 class BiVentricle(HeartModel):
     """Model of the left and right ventricle."""
 
-    def __init__(self, info: ModelInfo = None) -> None:
+    # TODO: Remove ModelInfo as input argument.
+    def __init__(
+        self, info: ModelInfo = None, working_directory: pathlib.Path | str = None
+    ) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
@@ -2017,15 +2048,17 @@ class BiVentricle(HeartModel):
         self.septum.fiber = True
         self.septum.active = True
 
-        if info:
-            super().__init__(info)
+        super().__init__(info, working_directory=working_directory)
         pass
 
 
 class FourChamber(HeartModel):
     """Model of the left/right ventricle and left/right atrium."""
 
-    def __init__(self, info: ModelInfo = None) -> None:
+    # TODO: Remove ModelInfo as input argument.
+    def __init__(
+        self, info: ModelInfo = None, working_directory: pathlib.Path | str = None
+    ) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
@@ -2050,8 +2083,7 @@ class FourChamber(HeartModel):
         self.right_atrium.fiber = False
         self.right_atrium.active = False
 
-        if info:
-            super().__init__(info)
+        super().__init__(info, working_directory=working_directory)
 
         pass
 
@@ -2059,7 +2091,10 @@ class FourChamber(HeartModel):
 class FullHeart(FourChamber):
     """Model of both ventricles, both atria, aorta and pulmonary artery."""
 
-    def __init__(self, info: ModelInfo = None) -> None:
+    # TODO: Remove ModelInfo as input argument.
+    def __init__(
+        self, info: ModelInfo = None, working_directory: pathlib.Path | str = None
+    ) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
@@ -2092,8 +2127,7 @@ class FullHeart(FourChamber):
         self.pulmonary_artery.fiber = False
         self.pulmonary_artery.active = False
 
-        if info:
-            super().__init__(info)
+        super().__init__(info, working_directory=working_directory)
 
         pass
 

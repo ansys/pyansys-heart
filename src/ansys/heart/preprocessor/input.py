@@ -251,9 +251,13 @@ class _InputModel:
             )
             return None
 
-        if self.input_polydata and scalar:
-            LOGGER.debug(f"Renaming {scalar} to boundary-id")
-            self.input_polydata.rename_array(scalar, "boundary-id")
+        if scalar != "boundary-id":
+            if scalar in self.input_polydata.cell_data.keys():
+                LOGGER.debug(f"Renaming {scalar} to boundary-id")
+                self.input_polydata.rename_array(scalar, "boundary-id")
+            else:
+                LOGGER.debug(f"Failed to rename {scalar} to boundary-id")
+                return None
 
         self.part_definitions = self._add_parts(part_definitions)
         self._validate_input()

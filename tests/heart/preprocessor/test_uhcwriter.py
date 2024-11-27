@@ -59,7 +59,7 @@ def model() -> models.FourChamber:
         "heart_model.partinfo.json",
     )
 
-    model: models.FourChamber = models.FourChamber(models.ModelInfo(work_directory="."))
+    model: models.FourChamber = models.FourChamber(working_directory=".")
 
     model.load_model_from_mesh(vtu_file, json_file)
     model._extract_apex()
@@ -74,6 +74,7 @@ def model() -> models.FourChamber:
 def test_uvc(model):
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         to_test_folder = os.path.join(workdir, "uvc")
+        model._workdir = workdir
         writer = UHCWriter(model, "uvc")
         writer.update()
         writer.export(to_test_folder)

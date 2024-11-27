@@ -103,7 +103,7 @@ class BaseSimulator:
             exit()
 
         if simulation_directory == "":
-            simulation_directory = os.path.join(self.model.info.workdir, "simulation")
+            simulation_directory = os.path.join(self.model.workdir, "simulation")
 
         self.root_directory = simulation_directory
         """Root simulation directory."""

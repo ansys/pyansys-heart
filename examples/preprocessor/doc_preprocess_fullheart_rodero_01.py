@@ -44,6 +44,7 @@ import json
 import os
 from pathlib import Path
 
+from ansys.heart.core.helpers.general import clean_directory
 import ansys.heart.core.models as models
 from ansys.heart.preprocessor.database_preprocessor import get_compatible_input
 
@@ -103,15 +104,12 @@ with open(path_to_part_definitions, "w") as f:
 # ~~~~~~~~~~~~~~~~~~~~~~~~
 # Set the right database to which this case belongs, and set other relevant
 # information such as the desired mesh size.
-info = models.ModelInfo(
-    work_directory=workdir,
-    mesh_size=1.5,
-)
-info.path_to_model = path_to_model
 
 # create or clean working directory
-info.create_workdir()
-info.clean_workdir([".stl", ".msh.h5", ".pickle"])
+if not os.path.isdir(workdir):
+    os.makedirs(workdir)
+else:
+    clean_directory(workdir, [".stl", ".msh.h5", ".pickle"])
 
 ###############################################################################
 # Initialize the heart model with info
@@ -119,7 +117,8 @@ info.clean_workdir([".stl", ".msh.h5", ".pickle"])
 # Initialize the desired heart model with info.
 
 # initialize full heart model
-model = models.FullHeart(info)
+model = models.FullHeart(working_directory=workdir)
+model._mesh_settings.global_mesh_size = 1.5
 
 # load input model generated in an earlier step.
 model.load_input(input_geom, part_definitions, "surface-id")
@@ -134,17 +133,14 @@ model._update_parts()
 model.dump_model(path_to_model)
 
 # Optionally save the simulation mesh as a vtk object for "offline" inspection
-model.mesh.save(os.path.join(model.info.workdir, "simulation-mesh.vtu"))
-model.save_model(os.path.join(model.info.workdir, "heart_model.vtu"))
+model.mesh.save(os.path.join(model.workdir, "simulation-mesh.vtu"))
+model.save_model(os.path.join(model.workdir, "heart_model.vtu"))
 
 # print some info about the processed model.
 print(model)
 
 # clean the working directory
-info.clean_workdir(extensions_to_remove=[".stl", ".vtk", ".msh.h5"])
-
-# dump information to stdout
-info.dump_info()
+clean_directory(workdir, extensions_to_remove=[".stl", ".vtk", ".msh.h5"])
 
 # print part names
 print(model.part_names)

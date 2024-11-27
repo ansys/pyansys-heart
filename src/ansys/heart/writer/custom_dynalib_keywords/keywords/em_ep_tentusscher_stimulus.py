@@ -23,8 +23,8 @@
 # flake8: noqa: E501
 import typing
 
-from ansys.dyna.keywords.lib.card import Card, Field
-from ansys.dyna.keywords.lib.keyword_base import KeywordBase
+from ansys.dyna.core.lib.card import Card, Field
+from ansys.dyna.core.lib.keyword_base import KeywordBase
 
 
 class EmEpTentusscherStimulus(KeywordBase):

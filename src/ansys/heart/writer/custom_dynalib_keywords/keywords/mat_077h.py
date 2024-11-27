@@ -23,10 +23,10 @@
 # flake8: noqa: E501
 import typing
 
-from ansys.dyna.keywords.lib.card import Card, Field
+from ansys.dyna.core.lib.card import Card, Field
 
-# from ansys.dyna.keywords.lib.duplicate_card import DuplicateCard
-from ansys.dyna.keywords.lib.keyword_base import KeywordBase
+# from ansys.dyna.core.lib.duplicate_card import DuplicateCard
+from ansys.dyna.core.lib.keyword_base import KeywordBase
 
 """
 This files contains the keywords that is not supported by dynalib

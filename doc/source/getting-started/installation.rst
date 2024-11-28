@@ -53,7 +53,7 @@ Python 3.10 on a Windows machine, run the following command:
 
 .. code:: bash
 
-    unzip pyansys-heart-v0.4.0-wheelhouse-windows-latest-3.12.zip wheelhouse
+    unzip pyansys-heart-v0.6.1-wheelhouse-windows-latest-3.12.zip wheelhouse
     pip install pyansys-heart -f wheelhouse --no-index --upgrade --ignore-installed
 
 If you are on Windows with Python 3.12, unzip the wheelhouse archive to a wheelhouse

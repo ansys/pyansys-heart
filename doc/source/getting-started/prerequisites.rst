@@ -39,7 +39,7 @@ Software
     - Link to download
 
   * - Ansys Fluent
-    - R24 R1
+    - R24R1, R24R2
     - Pre-processor
     - `Ansys Customer Portal`_
 

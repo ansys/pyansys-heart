@@ -81,8 +81,7 @@ Using `conda`_:
 
 .. code:: bash
 
-    pip install ansys-dpf-core==0.10.0
-    pip install pyansys-heart==0.4.0 --index-url=https://<TOKEN>@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
+    pip install pyansys-heart==0.6.1 --index-url=https://<TOKEN>@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
 
 .. note::
 
@@ -107,9 +106,7 @@ need to follow these steps:
 Since this is a private repository you may need to provide your github username.
 Alternatively you can download and unpack the zip file from `PyAnsys Heart`_
 
-2. Create a fresh Python environment and activate it. Make sure you use one of
-    the supported Python versions. Refer to the official `venv`_  or `conda`_ documentation
-    if you require further information:
+2. Create a fresh Python environment and activate it. Make sure you use one of the supported Python versions. Refer to the official `venv`_  or `conda`_ documentation if you require further information:
 
 Using `venv`_:
 
@@ -140,20 +137,13 @@ Using `conda`_:
 
     python -m pip install -U pip
 
-4. Install dynalib 0.1.0 into your virtual environment with the following command. Request the appropriate private pypi token from pyansys.core@ansys.com.
-
-.. code:: bash
-
-    # latest version
-    pip install dynalib==0.1.0 --index-url=https://<TOKEN>@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
-
 Install the project in editable mode by pointing to the right location:
 
 .. code:: bash
 
     python -m pip install --editable .
 
-5. Install additional requirements (if needed):
+5. Install additional requirements, such as dependencies to build documentation or run (unit)tests:
 
 .. code:: bash
 

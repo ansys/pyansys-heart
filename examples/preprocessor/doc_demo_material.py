@@ -184,7 +184,7 @@ workdir = Path(Path(__file__).resolve().parents[2], "downloads", "Rodero2021", "
 path_to_model = os.path.join(workdir, "heart_model.vtu")
 
 # load four chamber heart model.
-heartmodel: models.FullHeart = models.FullHeart(models.ModelInfo(work_directory=workdir))
+heartmodel: models.FullHeart = models.FullHeart(working_directory=workdir)
 heartmodel.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
 
 # Print default material and you should see

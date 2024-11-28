@@ -240,14 +240,24 @@ class _InputModel:
             self.input_polydata = pv.PolyData(input)
         except Exception:
             NotImplementedError(f"Failed to load file {input}. Other file types not supported yet.")
-            return
-
-        if self.input_polydata and scalar:
-            LOGGER.debug(f"Renaming {scalar} to boundary-id")
-            self.input_polydata.rename_array(scalar, "boundary-id")
+            return None
 
         if part_definitions is None:
-            return
+            LOGGER.error("Please specify part definitions.")
+            return None
+        if scalar is None:
+            LOGGER.error(
+                "Please specify a scalar that is used to identify the enclosing boundaries."
+            )
+            return None
+
+        if scalar != "boundary-id":
+            if scalar in self.input_polydata.cell_data.keys():
+                LOGGER.debug(f"Renaming {scalar} to boundary-id")
+                self.input_polydata.rename_array(scalar, "boundary-id")
+            else:
+                LOGGER.debug(f"Failed to rename {scalar} to boundary-id")
+                return None
 
         self.part_definitions = self._add_parts(part_definitions)
         self._validate_input()

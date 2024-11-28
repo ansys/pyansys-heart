@@ -2,9 +2,9 @@
 *SET_NODE_LIST_TITLE
 $#                                                                         title
 mitral-valve-atrium                                                             
-$#     sid       da1       da2       da3       da4    solver
-         4       0.0       0.0       0.0       0.0MECH      
-$#      n1        n2        n3        n4        n5        n6        n7        n8
+$#     sid       da1       da2       da3       da4    solver       its    unused
+         4       0.0       0.0       0.0       0.0MECH                          
+$#   nodes     nodes     nodes     nodes     nodes     nodes     nodes     nodes
        495       561       614      1032      2728      2950      2951      3274
       3276      3679      3891      3935      4710      4941      5260      6413
       6477      6539      7743      8046      8159      8541      9229      9708
@@ -15,13 +15,13 @@ $#      n1        n2        n3        n4        n5        n6        n7        n8
      13278     13300     13309     13360     13361     13389     13483     13548
      13567     13688     13972     14037     14081     14145     14193     14500
      14565     14763     14831     15085     15111     15116     15255     15406
-     15456     15462     15473     15518     15549                              
+     15456     15462     15473     15518     15549
 *SET_NODE_LIST_TITLE
 $#                                                                         title
 left-atrium-appendage                                                           
-$#     sid       da1       da2       da3       da4    solver
-         2       0.0       0.0       0.0       0.0MECH      
-$#      n1        n2        n3        n4        n5        n6        n7        n8
+$#     sid       da1       da2       da3       da4    solver       its    unused
+         2       0.0       0.0       0.0       0.0MECH                          
+$#   nodes     nodes     nodes     nodes     nodes     nodes     nodes     nodes
       1153      1307      1364      1450      1598      1599      1970      1972
       2135      2317      2440      4158      4364      4365      5087      5948
       6038      6449      7070      7365      7536      7537      8513      8688
@@ -30,51 +30,51 @@ $#      n1        n2        n3        n4        n5        n6        n7        n8
      11717     11766     11940     12543     12546     12553     12567     12569
      12570     12616     12617     12641     12722     12911     12912     12948
      13198     13532     13633     13753     13815     13844     13913     13926
-     13927     14069     14159     14919     14977     15344                    
+     13927     14069     14159     14919     14977     15344
 *SET_NODE_LIST_TITLE
 $#                                                                         title
 right-inferior-pulmonary-vein                                                   
-$#     sid       da1       da2       da3       da4    solver
-         1       0.0       0.0       0.0       0.0MECH      
-$#      n1        n2        n3        n4        n5        n6        n7        n8
+$#     sid       da1       da2       da3       da4    solver       its    unused
+         1       0.0       0.0       0.0       0.0MECH                          
+$#   nodes     nodes     nodes     nodes     nodes     nodes     nodes     nodes
       1132      2090      2314      2315      2919      2920      3933      3966
       3968      4872      4873      4988      5012      5013      5067      5840
       6054      6252      6832      7389      8523      8524      9426      9553
       9602      9629      9728     10404     10405     10419     10420     10551
      10578     10730     10731     10940     10986     11292     11304     11647
      11743     11772     12216     12382     14858     14891     14920     14965
-     15034     15107     15276     15313     15512                              
+     15034     15107     15276     15313     15512
 *SET_NODE_LIST_TITLE
 $#                                                                         title
 left-inferior-pulmonary-vein                                                    
-$#     sid       da1       da2       da3       da4    solver
-         5       0.0       0.0       0.0       0.0MECH      
-$#      n1        n2        n3        n4        n5        n6        n7        n8
+$#     sid       da1       da2       da3       da4    solver       its    unused
+         5       0.0       0.0       0.0       0.0MECH                          
+$#   nodes     nodes     nodes     nodes     nodes     nodes     nodes     nodes
       1058      1059      1283      2157      2374      2375      2589      2915
       2916      3210      4490      4598      5910      6349      6350      7397
       7398      7851      9152      9250      9287      9457      9900      9901
      10017     10034     10049     10164     10906     11162     11187     11188
      11368     11449     12051     12410     12562     12659     13621     13864
      13866     13892     14059     14067     14580     14724     14760     14999
-     15243     15254                                                            
+     15243     15254
 *SET_NODE_LIST_TITLE
 $#                                                                         title
 right-superior-pulmonary-vein                                                   
-$#     sid       da1       da2       da3       da4    solver
-         3       0.0       0.0       0.0       0.0MECH      
-$#      n1        n2        n3        n4        n5        n6        n7        n8
+$#     sid       da1       da2       da3       da4    solver       its    unused
+         3       0.0       0.0       0.0       0.0MECH                          
+$#   nodes     nodes     nodes     nodes     nodes     nodes     nodes     nodes
       1910      2570      2571      3160      3436      3628      4331      4464
       4465      5521      5806      5807      6041      6563      6590      6591
       6720      6984      7370      7448      7449      7689      8075      8358
       8384      8854      8928      9550     10061     10062     11058     11095
      11300     12875     12989     13016     14315     14447     14620     14702
-     14706     14783     14928     15018     15186                              
+     14706     14783     14928     15018     15186
 *SET_NODE_LIST_TITLE
 $#                                                                         title
 left-superior-pulmonary-vein                                                    
-$#     sid       da1       da2       da3       da4    solver
-         6       0.0       0.0       0.0       0.0MECH      
-$#      n1        n2        n3        n4        n5        n6        n7        n8
+$#     sid       da1       da2       da3       da4    solver       its    unused
+         6       0.0       0.0       0.0       0.0MECH                          
+$#   nodes     nodes     nodes     nodes     nodes     nodes     nodes     nodes
       1544      2014      2113      2115      2365      2366      4260      4261
       4282      4283      6179      6222      6447      6450      6457      7085
       7183      7184      7373      7937      8467      9663      9664      9731
@@ -83,9 +83,9 @@ $#      n1        n2        n3        n4        n5        n6        n7        n8
 *SET_NODE_LIST_TITLE
 $#                                                                         title
 endo                                                                            
-$#     sid       da1       da2       da3       da4    solver
-       100       0.0       0.0       0.0       0.0MECH      
-$#      n1        n2        n3        n4        n5        n6        n7        n8
+$#     sid       da1       da2       da3       da4    solver       its    unused
+       100       0.0       0.0       0.0       0.0MECH                          
+$#   nodes     nodes     nodes     nodes     nodes     nodes     nodes     nodes
        495       561       614      1032      1058      1059      1062      1064
       1070      1071      1072      1078      1079      1082      1083      1089
       1090      1091      1093      1095      1096      1107      1109      1110
@@ -676,9 +676,9 @@ $#      n1        n2        n3        n4        n5        n6        n7        n8
 *SET_NODE_LIST_TITLE
 $#                                                                         title
 epi                                                                             
-$#     sid       da1       da2       da3       da4    solver
-       200       0.0       0.0       0.0       0.0MECH      
-$#      n1        n2        n3        n4        n5        n6        n7        n8
+$#     sid       da1       da2       da3       da4    solver       its    unused
+       200       0.0       0.0       0.0       0.0MECH                          
+$#   nodes     nodes     nodes     nodes     nodes     nodes     nodes     nodes
          1         2         3         4         5         6         7         8
          9        10        11        12        13        14        15        16
         17        18        19        20        21        22        23        24
@@ -1601,5 +1601,5 @@ $#      n1        n2        n3        n4        n5        n6        n7        n8
      15566     15567     15568     15569     15570     15571     15572     15573
      15574     15575     15576     15577     15578     15579     15580     15581
      15582     15583     15584     15585     15586     15587     15588     15589
-     15590     15591     15592     15593     15594     15595                    
+     15590     15591     15592     15593     15594     15595
 *END

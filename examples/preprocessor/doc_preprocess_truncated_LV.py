@@ -41,6 +41,7 @@ import os
 import numpy as np
 import pyvista as pv
 
+from ansys.heart.core.helpers.general import clean_directory
 import ansys.heart.core.models as models
 
 # Use Fluent 24.1 for meshing.
@@ -108,23 +109,17 @@ part_definitions = {
 # use the combined polydata `heart` as input, where "surface-id" identifies each
 # of the relevant regions.
 # part definitions is used to map the remeshed model to the HeartModel parts/boundaries
-info = models.ModelInfo(
-    input=heart,
-    scalar="surface-id",
-    part_definitions=part_definitions,
-    work_directory=workdir,
-    mesh_size=0.5,
-)
-info.path_to_model = os.path.join(info.workdir, "heart_model.pickle")
+path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 # initialize left-ventricular heart model
-model = models.LeftVentricle(info)
+model = models.LeftVentricle(working_directory=workdir)
+model._mesh_settings.global_mesh_size = 0.5
 
 # clean working directory
-model.info.clean_workdir([".stl", ".msh.h5", ".pickle"])
+clean_directory(workdir, [".stl", ".msh.h5", ".pickle"])
 
 # load input model
-model.load_input()
+model.load_input(heart, part_definitions, "surface-id")
 
 ###############################################################################
 # Remesh the surfaces and volume

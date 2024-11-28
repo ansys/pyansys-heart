@@ -159,7 +159,7 @@ boundary_conditions = {
 }
 
 """System model parameters."""
-# 2wk model, with parameters deduced in a physiological range
+# 2wk model, with parameters deduced in a physiological range, from Eindhoven lecture notes
 co = Quantity(5, "L/min")
 tau = Quantity(2, "s")
 pee = Quantity(100, "mmHg")

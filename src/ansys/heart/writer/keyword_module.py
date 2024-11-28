@@ -27,10 +27,8 @@ from typing import Union
 import numpy as np
 import pandas as pd
 
-from ansys.dyna.keywords import Deck, keywords
-
-# import some custom keywords that avoid bugs in dynalib
-from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
+from ansys.dyna.core import Deck
+from ansys.dyna.core.keywords import keywords
 
 
 def create_node_keyword(nodes: np.array, offset: int = 0) -> keywords.Node:
@@ -185,7 +183,7 @@ def create_segment_set_keyword(
 
 def create_node_set_keyword(
     node_ids: np.ndarray, node_set_id: int = 1, title: str = "nodeset-title"
-) -> custom_keywords.SetNodeList:
+) -> keywords.SetNodeList:
     """Create node set.
 
     Parameters
@@ -207,26 +205,12 @@ def create_node_set_keyword(
     if isinstance(node_ids, (int, np.int32, np.int64)):
         node_ids = [node_ids]
 
-    kw = custom_keywords.SetNodeList(sid=node_set_id)
+    kw = keywords.SetNodeList(sid=node_set_id)
 
     kw.options["TITLE"].active = True
     kw.title = title
-
-    # rearrange nodeids such that its size is n x 8
-    num_nodes = len(node_ids)
-    num_cols = int(8)
-    num_rows = int(np.ceil(len(node_ids) / 8))
-
-    node_ids2 = np.zeros(int(num_rows * num_cols)) * np.nan
-
-    node_ids2[:num_nodes] = node_ids
-
-    node_ids2 = np.reshape(node_ids2, (num_rows, num_cols))
-
-    # prepare dataframe
-    df = pd.DataFrame(data=node_ids2, columns=kw.nodes.columns[0:8])
-
-    kw.nodes = df
+    kw.nodes._data = node_ids
+    kw._cards[0].set_value("its", None)  # remove its parameter.
 
     return kw
 

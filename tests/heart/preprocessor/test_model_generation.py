@@ -120,6 +120,8 @@ def extract_model(request):
         return
 
     inputs = _get_inputs(model_type)  # model_type)
+    input_vtp = inputs[0]
+    part_definitions = inputs[1]
     ref_stats = inputs[2]
     mesh_file = inputs[3]
 
@@ -128,18 +130,12 @@ def extract_model(request):
 
     # with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
 
-    info = models.ModelInfo(
-        input=inputs[0],
-        scalar="boundary-id",
-        part_definitions=inputs[1],
-        mesh_size=2.0,
-        work_directory=workdir,
-    )
-    model = model_type(info)
+    model: models.HeartModel = model_type(working_directory=workdir)
+    model._mesh_settings.global_mesh_size = 2.0
     if not isinstance(model, (models.BiVentricle, models.FullHeart)):
         exit()
 
-    model.load_input()
+    model.load_input(input_vtp, part_definitions, "boundary-id")
     # model.mesh_volume(wrapper=True) # could use this: but requires fluent
     if mesh_volume:
         model.mesh_volume(use_wrapper=True)
@@ -348,10 +344,9 @@ def test_writers_after_load_model(extract_model, writer_class):
 
         model.save_model(model_path)
 
-        model1 = type(model)(models.ModelInfo(work_directory=workdir))
+        model1 = type(model)(working_directory=workdir)
         model1.load_model_from_mesh(model_path, partinfo)
         model1._extract_apex()
-        model1.compute_left_ventricle_anatomy_axis()
         model1.compute_left_ventricle_aha17()
 
         writer = writer_class(copy.deepcopy(model1))

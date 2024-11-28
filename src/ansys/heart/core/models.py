@@ -647,13 +647,13 @@ class HeartModel:
 
         # get list of fluid cavities
         # mesh the fluid cavities
-        cavity_surfaces = [part.cavity.surface for part in self.parts if part.cavity]
+        cavity_surfaces = [self.mesh.get_surface(part.cavity.surface.id) for part in self.parts if part.cavity]
         # remove caps.
         cavity_surfaces = [
             SurfaceMesh(cs.threshold((0, 0), "_cap_id").extract_surface(), name=cs.name)
             for cs in cavity_surfaces
         ]
-        fluid_mesh = mesher._mesh_fluid_cavities(cavity_surfaces, self.info.workdir, mesh_size=1)
+        fluid_mesh = mesher._mesh_fluid_cavities(cavity_surfaces, self.workdir, mesh_size=1)
 
         # LOGGER.info(f"Meshed {len(fluid_mesh.cell_zones)} fluid regions...")
 

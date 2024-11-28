@@ -1,46 +1,62 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 """Reader classes for LS-DYNA binary output files in Lsda format."""
 
 import glob
-import struct
-import re
 import os
 from pathlib import Path
-from typing import Literal, Self, Tuple, ByteString, List, Dict, Iterable
-
+import re
+import struct
+from typing import ByteString, Dict, Iterable, List, Literal, Self, Tuple
 
 
 class LsdaTypeSizeError(Exception):
-    """This is only here so I can raise an error in case the data type
-    sizes are not what I expect"""
+    """Raised in case the data type sizes are not what I expect."""
 
     pass
 
 
 class FrameNotInFileError(Exception):
-    """This is only here so I can raise an error in case the file does
-    not contain a certain frame"""
+    """Raised in case the file does not contain a certain frame."""
 
     pass
 
 
 class VarNotInFrameError(Exception):
-    """This is only here so I can raise an error in case the file does
-    not contain a certain variable"""
+    """Raised in case the file does not contain a certain variable."""
 
-    pass    
+    pass
 
 
 class _Diskfile:
-    """Handles all the low level file I/O.  Nothing here should be
-    called directly by a user."""
+    """Handles all the low level file I/O. Nothing here should be called directly by a user."""
 
     packsize = [0, "b", "h", 0, "i", 0, 0, 0, "q"]
     packtype = [0, "b", "h", "i", "q", "B", "H", "I", "Q", "f", "d", "s"]
     sizeof = [0, 1, 2, 4, 8, 1, 2, 4, 8, 4, 8, 1]
 
     def __init__(self, name: str):
-        """Inits Diskfile object for the given file in the read mode.
+        """Init Diskfile object for the given file in read mode.
 
         Parameters
         ----------
@@ -52,10 +68,10 @@ class _Diskfile:
         self.fp = open(name, "rb")
         s = self.fp.read(8)
         header = struct.unpack("BBBBBBBB", s)
-        
+
         if header[0] > 8:
             self.fp.seek(header[0])
-    
+
         self.lengthsize = header[1]
         self.offsetsize = header[2]
         self.commandsize = header[3]
@@ -81,22 +97,21 @@ class _Diskfile:
         self.comp2 = self.lengthsize + self.commandsize + self.typesize + 1
 
     def readcommand(self):
-        """Read a LENGTH,COMMAND pair from the file at the current location"""
+        """Read a LENGTH,COMMAND pair from the file at the current location."""
         s = self.fp.read(self.lengthsize + self.commandsize)
         return struct.unpack(self.lcunpack, s)
 
     def readoffset(self):
-        """Read an OFFSET from the file at the current location"""
+        """Read an OFFSET from the file at the current location."""
         s = self.fp.read(self.offsetsize)
         return struct.unpack(self.ounpack, s)[0]
 
 
 class Symbol:
-    """A directory tree structure.  A Symbol can be a directory (type==0)
-    or data"""
+    """A directory tree structure. A Symbol can be a directory (type==0) or data."""
 
     def __init__(self, name: str = "", parent: str = None):
-        """Inits Symbol with the given name and parent.
+        """Init Symbol with the given name and parent.
 
         Parameters
         ----------
@@ -117,7 +132,7 @@ class Symbol:
             parent.length = len(parent.children)
 
     def path(self):
-        """Return absolute path for this Symbol"""
+        """Return absolute path for this Symbol."""
         if not self.parent:
             return "/"
         sym = self
@@ -128,8 +143,9 @@ class Symbol:
         return ret
 
     def get(self, name: str) -> Self:
-        """Return the Symbol with the indicated name. The name can be
-        prefixed with a relative or absolute path.
+        """Return the Symbol with the indicated name.
+
+        The name can be prefixed with a relative or absolute path.
 
         Parameters
         ----------
@@ -139,7 +155,7 @@ class Symbol:
         Returns
         -------
         Self
-            Returns the requested Symbol or None if it does not exist.
+            The requested Symbol or None if it does not exist.
         """
         # If I am just a variable, let my parent handle this
         if self.type != 0:
@@ -178,9 +194,8 @@ class Symbol:
         # Not found
         return None
 
-    def lread(self, start: int=0, end: int=2000000000) -> Tuple:
-        """Read data from the file.
-        This routine does NOT follow links.
+    def lread(self, start: int = 0, end: int = 2000000000) -> Tuple:
+        """Read data from the file. This routine does NOT follow links.
 
         Parameters
         ----------
@@ -225,9 +240,9 @@ class Symbol:
         else:
             return struct.unpack(format, self.file.fp.read(size * (end - start)))
 
-    def read(self, start: int=0, end: int=2000000000) -> Tuple:
+    def read(self, start: int = 0, end: int = 2000000000) -> Tuple:
         """Read data from the file.  Same as lread, but follows links.
-        
+
         Parameters
         ----------
         start : int, optional
@@ -245,9 +260,9 @@ class Symbol:
         """
         return self._resolve_link(self).lread(start, end)
 
-    def read_raw(self, start: int=0, end: int=2000000000) -> ByteString | List:
+    def read_raw(self, start: int = 0, end: int = 2000000000) -> ByteString | List:
         """Read data from the file and return as bytestring.
-        
+
         Parameters
         ----------
         start : int, optional
@@ -282,7 +297,7 @@ class Symbol:
         return self.file.fp.read(size)
 
     def _resolve_link(self, var: Self) -> Self:
-        """Follow a link to find what it finally resolves to
+        """Follow a link to find what it finally resolves to.
 
         Parameters
         ----------
@@ -301,8 +316,11 @@ class Symbol:
 
 
 class Lsda:
-    """Main class: holds all the Symbols for an LSDA file, and has methods
-    for reading data from and writing data to the file"""
+    """Main class.
+
+    Holds all the Symbols for an LSDA file.
+    Has methods for reading data from the file.
+    """
 
     CD = 2
     DATA = 3
@@ -323,8 +341,7 @@ class Lsda:
     LINK = 11
 
     def __init__(self, files: Tuple[str]):
-        """Creates the LSDA structure, opens the file and reads the
-        SYMBOLTABLE.
+        """Create the LSDA structure, open the file and read the SYMBOLTABLE.
 
         Parameters
         ----------
@@ -343,7 +360,8 @@ class Lsda:
         #
         if not types_ok:
             raise LsdaTypeSizeError
-        if type(files) != type((1,)) and type(files) != type([1]):
+        # if type(files) != type((1,)) and type(files) != type([1]):
+        if files is not Tuple and files is not List:
             files = (files,)
         self.files = []
         self.fw = None
@@ -369,7 +387,7 @@ class Lsda:
             self.cwd = self.root
             if cmd == Lsda.SYMBOLTABLEOFFSET:
                 self._readsymboltable(f)
-        
+
         self.cwd = self.root
         self.dirty_symbols = set()
         self.lastpath = None
@@ -379,7 +397,7 @@ class Lsda:
         self.fw = None
         self.make_dirs = 0
 
-    def cd(self, path: str, create: int=2) -> Symbol:  # change CWD
+    def cd(self, path: str, create: int = 2) -> Symbol:  # change CWD
         """Change the current working directory in the file.
 
         Parameters
@@ -422,9 +440,10 @@ class Lsda:
                     break
         return self.cwd
 
-    def get(self, path: str)-> Symbol:
-        """Return the Symbol with the indicated name. The name can be
-        prefixed with a relative or absolute path.
+    def get(self, path: str) -> Symbol:
+        """Return the Symbol with the indicated name.
+
+        The name can be prefixed with a relative or absolute path.
 
         Parameters
         ----------
@@ -439,7 +458,8 @@ class Lsda:
         return self.cwd.get(path)
 
     def _readsymboltable(self, f: _Diskfile):
-        """Read all the SYMBOLTABLEs in the current file
+        """Read all the SYMBOLTABLEs in the current file.
+
         Users should never call this.
 
         Parameters
@@ -447,7 +467,7 @@ class Lsda:
         f : _Diskfile
             Target _Diskfile.
         """
-        # 
+        #
         f.ateof = 0
         while 1:
             f.lastoffset = f.fp.tell()
@@ -464,14 +484,15 @@ class Lsda:
                 if cmd == Lsda.CD:
                     path = f.fp.read(clen)
                     path = path.decode("utf-8")
-                    ss = self.cd(path, 1)
+                    self.cd(path, 1)
                 elif cmd == Lsda.VARIABLE:
                     self._readentry(f, clen, self.cwd)
                 else:  # is end of symbol table...get next part if there is one
                     break
 
     def _readentry(self, f: _Diskfile, reclen: int, parent: Symbol):
-        """Read a VARIABLE record from the file, and construct the proper Symbol
+        """Read a VARIABLE record from the file, and construct the proper Symbol.
+
         Users should never call this.
 
         Parameters
@@ -479,7 +500,7 @@ class Lsda:
         f : _Diskfile
             Target _Diskfile
         reclen : int
-            Lenght to be read
+            Length to be read
         parent : Symbol
             Parent of the current symbol
         """
@@ -497,12 +518,13 @@ class Lsda:
 
 
 class LsdaReader:
-    """Reader: Wraps Lsda class to extract data from LS-DYNA output
-    files in lsda binary format (e.g. binout or em_bin).
-    Contains methods to extract and rewrite such data."""
+    """Reader: Wraps Lsda class to extract data from Lsda binary files (e.g. em_binXXXX files).
+
+    Contains methods to extract and rewrite such data.
+    """
 
     def __init__(self, file: Path):
-        """Inits Reader class for the given file.
+        """Init Reader class for the given file.
 
         Parameters
         ----------
@@ -514,8 +536,8 @@ class LsdaReader:
         self.nids = self._list_nids()
         self.var_dict = self._build_var_dict()
 
-    def _list_frames(self)->List[str]:
-        """Lists frames contained in the file.
+    def _list_frames(self) -> List[str]:
+        """List frames contained in the file.
 
         Returns
         -------
@@ -528,8 +550,8 @@ class LsdaReader:
 
         return frames
 
-    def _list_nids(self)->Tuple[int]:
-        """Returns a tuple of the node ids where the file data was collected.
+    def _list_nids(self) -> Tuple[int]:
+        """Return a tuple of the node ids where the file data was collected.
 
         Returns
         -------
@@ -542,14 +564,13 @@ class LsdaReader:
 
         return nids
 
-    def _build_var_dict(self)-> Dict[str , List[str]]:
-        """Generates a dictionnary containing available variables for
-        each frame contained in the file.
+    def _build_var_dict(self) -> Dict[str, List[str]]:
+        """Generate a dictionary containing available variables for each frame in the file.
 
         Returns
         -------
         Dict[str:List[str]]
-            Variable dictionnary. Keys are frame names. Values are variable name lists.
+            Variable dictionary. Keys are frame names. Values are variable name lists.
         """
         res = {}
 
@@ -558,8 +579,8 @@ class LsdaReader:
 
         return res
 
-    def _list_vars(self, frame: str)->List[str]:
-        """Returns a list with available variables for a given frame.
+    def _list_vars(self, frame: str) -> List[str]:
+        """Return a list with available variables for a given frame.
 
         Parameters
         ----------
@@ -578,8 +599,10 @@ class LsdaReader:
 
         return vars
 
-    def get_var(self, frame: str, var: Literal['TMP', 'ECP', 'ICP', 'AT', 'RT', 'CA2', 'time'])->Tuple[float]:
-        """Returns the variable values for a given frame.
+    def get_var(
+        self, frame: str, var: Literal["TMP", "ECP", "ICP", "AT", "RT", "CA2", "time"]
+    ) -> Tuple[float]:
+        """Return the variable values for a given frame.
 
         Parameters
         ----------
@@ -587,14 +610,14 @@ class LsdaReader:
             Target frame name.
         var : Literal['TMP', 'ECP', 'ICP', 'AT', 'RT', 'CA2', 'time']
             Target variable name.
-            TMP: Transmembrane Potential. For emsol=14 simulations, this contains the first activation time.
-            ECP: Extracellular Potential. For emsol=14 simulations, this contains the second activation time.
-            ICP: Intracellular Potential. For emsol=14 simulations, this contains the third activation time.
-            AT: Activation Time. For emsol=14 simulations, this contains the fourth activation time.
-            RT: Repolarization Time. For emsol=14 simulations, this contains the fifth activation time.
-            CA2: Calcium Ion Concentration. For emsol=14 simulations, this contains the sixth activation time.
+            TMP: Transmembrane Potential. For emsol=14, this contains the first activation time.
+            ECP: Extracellular Potential. For emsol=14, this contains the second activation time.
+            ICP: Intracellular Potential. For emsol=14, this contains the third activation time.
+            AT: Activation Time. For emsol=14, this contains the fourth activation time.
+            RT: Repolarization Time. For emsol=14, this contains the fifth activation time.
+            CA2: Calcium Ion Concentration. For emsol=14, this contains the sixth activation time.
             time: Instant of the frame export.
-            
+
         Returns
         -------
         Tuple[float]
@@ -609,8 +632,7 @@ class LsdaReader:
         return var
 
     def write_frame_to_snapshot(self, path: Path, frame: str, var: str):
-        """Writes the variable values in a given frame into a binary snapshot
-        in Ansys ROM builder format.
+        """Write the variable values in the frame into a binary file in Ansys ROM builder format.
 
         Parameters
         ----------
@@ -624,10 +646,15 @@ class LsdaReader:
         vec = self.get_var(frame, var)
         self._write_binary(path, vec)
 
-    def write_frames_to_snapshots(self, dir: Path, var: str, prefix: str="snapshot", extension: str=".bin"):
-        """Writes the requested variable's values in for all available frames into one binary snapshot
-        per frame. Snapshots are written in the given directory in Ansys ROM builder format.
-        Snapshot file names are as follows: <prefix><frame_id><extension>
+    def write_frames_to_snapshots(
+        self, dir: Path, var: str, prefix: str = "snapshot", extension: str = ".bin"
+    ):
+        """Write the requested variable values in for all available frames to binary files.
+
+        One binary snapshot is created per frame.
+        Snapshots are written in the given directory in Ansys ROM builder format.
+        Snapshot file names are as follows: <prefix><frame_id><extension>.
+
 
         Parameters
         ----------
@@ -646,7 +673,7 @@ class LsdaReader:
             self.write_frame_to_snapshot(current_path, frame, var)
 
     def check_frame(self, frame: str):
-        """Checks if the given frame was loaded into self.frames.
+        """Check if the given frame was loaded into self.frames.
 
         Parameters
         ----------
@@ -660,9 +687,9 @@ class LsdaReader:
         """
         if frame not in self.frames:
             raise FrameNotInFileError("{frame} does not exist in this file.")
-        
+
     def check_var(self, frame: str, var: str):
-        """Checks if the given var exists in the given frame using self.var_dict
+        """Check if the given var exists in the given frame using self.var_dict.
 
         Parameters
         ----------
@@ -678,10 +705,9 @@ class LsdaReader:
         """
         if var not in self.var_dict[frame]:
             raise VarNotInFrameError("{var} does not exist in {frame}.")
-        
+
     def _write_binary(self, fp: Path, vector: Iterable):
-        """Write vector to binary snapshot format usable in
-        Ansys ROM builders.
+        """Write vector to binary snapshot format usable in Ansys ROM builders.
 
         Parameters
         ----------

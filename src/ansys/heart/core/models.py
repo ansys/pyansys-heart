@@ -1390,7 +1390,14 @@ class HeartModel:
             # select endocardial surfaces
             # NOTE, this is a loop since the right-ventricle endocardium consists
             # of both the "regular" endocardium and the septal endocardium.
-            surfaces = [s for s in part.surfaces if "endocardium" in s.name]
+            surfaces = [
+                self.mesh.get_surface(s.id)
+                for s in part.surfaces
+                if "endocardium" in s.name and s.n_cells > 0
+            ]
+            if len(surfaces) == 0:
+                LOGGER.warning(f"Skipping part {part.name}: only empty surfaces present.")
+                continue
 
             surface: SurfaceMesh = SurfaceMesh(pv.merge(surfaces))
             surface.name = part.name + " cavity"

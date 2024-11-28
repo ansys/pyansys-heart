@@ -647,7 +647,9 @@ class HeartModel:
 
         # get list of fluid cavities
         # mesh the fluid cavities
-        cavity_surfaces = [self.mesh.get_surface(part.cavity.surface.id) for part in self.parts if part.cavity]
+        cavity_surfaces = [
+            self.mesh.get_surface(part.cavity.surface.id) for part in self.parts if part.cavity
+        ]
         # remove caps.
         cavity_surfaces = [
             SurfaceMesh(cs.threshold((0, 0), "_cap_id").extract_surface(), name=cs.name)

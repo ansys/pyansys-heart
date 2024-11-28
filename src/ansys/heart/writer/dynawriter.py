@@ -3743,7 +3743,7 @@ class UHCWriter(BaseDynaWriter):
         atrium : pv.UnstructuredGrid
             right atrium pyvista object
         """
-        if "top" in self.landmarks:
+        if "top" in self.landmarks.keys():
             top_ids = self._find_top_nodeset_by_geodesic(atrium)
         else:
             top_ids = self._find_top_nodeset_by_cut(atrium)

@@ -24,8 +24,9 @@ import argparse
 import os
 from pathlib import Path
 
-from ansys.heart.preprocessor.database_preprocessor import get_compatible_input
+from ansys.heart.core.helpers.general import clean_directory
 import ansys.heart.core.models as models
+from ansys.heart.preprocessor.database_preprocessor import get_compatible_input
 
 
 def main(args):
@@ -74,30 +75,23 @@ def main(args):
             )
             input_polydata.save(path_to_input_vtp)
 
-            info = models.ModelInfo(
-                input=path_to_input_vtp,
-                scalar="surface-id",
-                part_definitions=part_definitions,
-                work_directory=workdir,
-                mesh_size=2.0,
-            )
-
             # clean the working directory
-            info.clean_workdir(extensions_to_remove=[".stl", ".vtk", ".msh.h5"])
+            clean_directory(workdir, extensions_to_remove=[".stl", ".vtk", ".msh.h5"])
             # dump information to stdout
-            info.dump_info()
 
             if model_type == "lv":
-                model = models.LeftVentricle(info)
+                model = models.LeftVentricle(working_directory=workdir)
             elif model_type == "bv":
-                model = models.BiVentricle(info)
+                model = models.BiVentricle(working_directory=workdir)
             elif model_type == "fh":
-                model = models.FullHeart(info)
+                model = models.FullHeart(working_directory=workdir)
             elif model_type == "4c":
-                model = models.FourChamber(info)
+                model = models.FourChamber(working_directory=workdir)
+
+            model._mesh_settings.global_mesh_size = 2.0
 
             # extract the simulation mesh
-            model.load_input()
+            model.load_input(path_to_input_vtp, part_definitions, "surface-id")
 
             # mesh the volume
             model.mesh_volume(use_wrapper=True)
@@ -108,7 +102,7 @@ def main(args):
             # dump the model to disk for future use
             model.dump_model(path_to_model)
             # print the resulting information
-            model.print_info()
+            print(model)
 
 
 if __name__ == "__main__":

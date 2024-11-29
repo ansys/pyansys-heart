@@ -39,6 +39,38 @@ _OS = "wsl"
 # OS = "Win"
 
 
+def clean_directory(
+    directory: str,
+    extensions_to_remove: list[str] = [".stl", ".vtk", ".msh.h5"],
+    remove_all: bool = False,
+) -> None:
+    """Remove files with extension present in the working directory.
+
+    Parameters
+    ----------
+    extensions_to_remove : List[str], optional
+        List of extensions to remove, by default [".stl", ".vtk", ".msh.h5"]
+    remove_all: bool, optional
+        Flag indicating whether to remove files with any extension.
+        Keeps files/folder without extension
+    """
+    import glob as glob
+
+    files = []
+    if not remove_all:
+        for ext in extensions_to_remove:
+            files += glob.glob(os.path.join(directory, "*" + ext))
+    elif remove_all:
+        files = glob.glob(os.path.join(directory, "*.*"))
+
+    for file in files:
+        try:
+            os.remove(file)
+        except Exception:
+            LOGGER.debug(f"Unable to delete: {file}")
+    return
+
+
 def _check_lsdyna_exe():
     """Check if LSDYNA executable exists."""
     if _OS == "Win":

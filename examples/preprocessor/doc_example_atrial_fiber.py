@@ -46,7 +46,7 @@ import ansys.heart.core.models as models
 from ansys.heart.simulator.simulator import BaseSimulator, DynaSettings
 
 # specify the path to the working directory and heart model
-workdir = os.path.join("pyansys-heart", "downloads", "Strocchi2020", "01", "FourChamber")
+workdir = os.path.abspath(os.path.join("downloads", "Strocchi2020", "01", "FourChamber"))
 
 # sphinx_gallery_start_ignore
 # Overwrite with env variables: for testing purposes only. May be removed by user.
@@ -67,14 +67,11 @@ path_to_model = os.path.join(workdir, "heart_model.vtu")
 lsdyna_path = r"ls-dyna_smp"
 
 # load heart model.
-model: models.FourChamber = models.FourChamber(models.ModelInfo(work_directory=workdir))
+model: models.FourChamber = models.FourChamber(working_directory=workdir)
 model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
 model._extract_apex()
-model.compute_left_ventricle_anatomy_axis()
 model.compute_left_ventricle_aha17()
 
-# set base working directory
-model.info.workdir = str(workdir)
 
 ###############################################################################
 # Instantiate the simulator object

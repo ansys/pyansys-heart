@@ -30,28 +30,15 @@ else:
 import copy
 
 import numpy as np
-import pytest
 
-from ansys.heart.core.objects import SurfaceMesh
 import ansys.heart.core.models as models
+from ansys.heart.core.objects import SurfaceMesh
 import ansys.heart.writer.dynawriter as writers
 
 
-@pytest.fixture
-def model_info() -> models.ModelInfo:
-    """Get a test model info and populates it."""
-    return models.ModelInfo(
-        work_directory=None,
-        path_to_simulation_mesh="path-to-simulation-mesh",
-        mesh_size=2.0,
-        part_definitions={
-            "Left ventricle": {"id": 1, "enclosed_by_boundaries": {"endocardium": 2}}
-        },
-    )
-
-
 def get_test_model():
-    model: models.LeftVentricle = models.LeftVentricle(model_info)
+    model: models.LeftVentricle = models.LeftVentricle()
+    model._mesh_settings.global_mesh_size = 2.0
 
     # populate model
     model.mesh.tetrahedrons = np.array([[1, 2, 3, 4], [5, 2, 3, 4]], dtype=int)

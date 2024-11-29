@@ -175,11 +175,11 @@ class EPpostprocessor:
         post_path = self.create_post_folder()
         grid = self.reader.meshgrid.copy()
 
-        for i in range(vm.shape[0]):
+        for ii in range(vm.shape[0]):
             # TODO: vtk is not optimal for scalar fields with
             # non moving meshes, consider using ROM format
-            grid.point_data["transmembrane_potential"] = vm[i, :]
-            grid.save(post_path + "\\vm_" + str(i) + ".vtk")
+            grid.point_data["transmembrane_potential"] = vm[ii, :]
+            grid.save(os.path.join(post_path, "vm_{0}.vtk".format(ii)))
         return
 
     def compute_ECGs(self, electrodes: np.ndarray):  # noqa: N802

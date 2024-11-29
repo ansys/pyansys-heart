@@ -69,10 +69,9 @@ path_to_model = os.path.join(workdir, "heart_model.vtu")
 
 # load your four chamber heart model with uvcs (see preprocessor examples to create
 # a heart model from scratch)
-model: models.FourChamber = models.FourChamber(models.ModelInfo(work_directory=workdir))
+model: models.FourChamber = models.FourChamber(working_directory=workdir)
 model.load_model_from_mesh(path_to_model)
 model._extract_apex()
-model.compute_left_ventricle_anatomy_axis()
 model.compute_left_ventricle_aha17()
 
 ###############################################################################

@@ -31,7 +31,7 @@ Valid models include:
 
 """
 
-from ansys.dyna.keywords import keywords
+from ansys.dyna.core.keywords import keywords
 
 
 def constant_flow_template():
@@ -421,7 +421,7 @@ def windkessel_template():
     return template
 
 
-def define_function_0Dsystem(
+def define_function_0d_system(
     function_id: int,
     function_name: str,
     parameters: dict,

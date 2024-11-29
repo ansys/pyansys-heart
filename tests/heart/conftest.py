@@ -20,15 +20,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import logging as deflogging
 import os
 import pathlib
-
-ROOT_FOLDER = os.path.join(pathlib.Path(__file__).parent)
-import logging as deflogging
+import sys
 
 import pytest
 
 from ansys.heart.core.helpers.downloader import download_case_from_zenodo, unpack_case
+
+ROOT_FOLDER = os.path.join(pathlib.Path(__file__).parent)
 
 """
 
@@ -160,12 +161,6 @@ def fake_record():
         return handler.format(record)
 
     return inner_fake_record
-
-
-# conftest.py
-import sys
-
-import pytest
 
 
 def is_debugging():

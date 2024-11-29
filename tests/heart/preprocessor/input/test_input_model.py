@@ -38,7 +38,7 @@ def _is_same_mesh(
     object2: Union[pv.UnstructuredGrid, pv.PolyData],
 ) -> bool:
     """Compares two pyvista objects for mesh correspondence."""
-    if type(object1) != type(object2):
+    if type(object1) is not type(object2):
         raise ValueError("Expecting both objects to be of same type.")
 
     assert np.all(np.isclose(object1.points, object2.points)), "Points of objects not the same"
@@ -139,6 +139,7 @@ def test_add_parts_and_boundaries_003():
                 "enclosed_by_boundaries": {"shells3": boundary_ids[2], "shells4": boundary_ids[3]},
             },
         },
+        scalar="boundary-id",
     )
 
     # check if part names, part ids, and boundaries are added correctly to the InputModel.
@@ -190,7 +191,7 @@ def test_is_manifold():
         },
     )
 
-    assert input._validate_if_parts_manifold() == True
+    assert input._validate_if_parts_manifold()
 
     polydata = polydata.remove_cells([1, 2])
 
@@ -202,9 +203,10 @@ def test_is_manifold():
                 "enclosed_by_boundaries": {"shells1": 1},
             },
         },
+        scalar="boundary-id",
     )
 
-    assert input._validate_if_parts_manifold() == False
+    assert not input._validate_if_parts_manifold()
 
 
 def test_write_boundaries_001():
@@ -227,6 +229,7 @@ def test_write_boundaries_001():
                 "enclosed_by_boundaries": {"shells3": 3, "shells4": 2},
             },
         },
+        scalar="boundary-id",
     )
 
     with tempfile.TemporaryDirectory() as write_dir:
@@ -263,6 +266,7 @@ def test_write_to_polydata():
                 "enclosed_by_boundaries": {"shells3": 3, "shells4": 2},
             },
         },
+        scalar="boundary-id",
     )
 
     with tempfile.TemporaryDirectory() as write_dir:
@@ -300,9 +304,10 @@ def test_input_uniqueness():
                 "enclosed_by_boundaries": {"shells3": 3, "shells4": 2},
             },
         },
+        scalar="boundary-id",
     )
 
-    assert model._validate_uniqueness() == False
+    assert not model._validate_uniqueness()
 
     # Not unique due to same boundary id but same name.
     model = _InputModel(
@@ -317,9 +322,10 @@ def test_input_uniqueness():
                 "enclosed_by_boundaries": {"shells3": 3, "shells2": 4},
             },
         },
+        scalar="boundary-id",
     )
 
-    assert model._validate_uniqueness() == False
+    assert not model._validate_uniqueness()
 
     # Unique due to unique id and name
     model = _InputModel(
@@ -336,7 +342,7 @@ def test_input_uniqueness():
         },
     )
 
-    assert model._validate_uniqueness() == True
+    assert model._validate_uniqueness()
 
     # Unique due to unique id and name
     model = _InputModel(
@@ -353,4 +359,4 @@ def test_input_uniqueness():
         },
     )
 
-    assert model._validate_uniqueness() == True
+    assert model._validate_uniqueness()

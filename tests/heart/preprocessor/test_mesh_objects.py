@@ -96,7 +96,7 @@ def _get_beam_model(
 def test_pyvista_clean_grid(dtype):
     import pyvista as pv
 
-    if dtype == int:
+    if dtype is int:
         pytest.xfail(reason="clean() will fail if points are of dtype int")
 
     points = np.array([[0, 0, 0], [-1, 0, 0], [1, 0, 0]], dtype=dtype)
@@ -194,7 +194,7 @@ def test_mesh_add_002():
 def test_surface_add_001():
     """Test adding a surface to a Mesh."""
     mesh = _convert_to_mesh(_get_beam_model("tets"))
-    mesh.cell_data["_volume-id"] = 1
+    mesh.cell_data["_volume-id"] = float(1)
     init_n_cells = mesh.n_cells
 
     surface = _get_beam_model("triangles")
@@ -215,12 +215,12 @@ def test_surface_add_001():
 
     # test adding multiple surfaces simultaneously with celldata _surface-id
     mesh = _convert_to_mesh(_get_beam_model("tets"))
-    mesh.cell_data["_volume-id"] = 1
+    mesh.cell_data["_volume-id"] = float(1)
 
     triangles = _get_beam_model("triangles")
     quads = _get_beam_model("quads")
-    triangles.cell_data["_surface-id"] = 10
-    quads.cell_data["_surface-id"] = 11
+    triangles.cell_data["_surface-id"] = float(10)
+    quads.cell_data["_surface-id"] = float(11)
 
     surface_to_add = triangles + quads
 
@@ -252,7 +252,7 @@ def test_surface_add_001():
 def test_lines_add_001():
     """Test adding a beam to a Mesh."""
     mesh = _convert_to_mesh(_get_beam_model("tets"))
-    mesh.cell_data["_volume-id"] = 1
+    mesh.cell_data["_volume-id"] = float(1)
 
     line = pv.Line([0, 0, 0], [-1, 0, 0])
 
@@ -270,7 +270,7 @@ def test_lines_add_001():
 def test_volume_add_001():
     """Test adding a volume (hex elements) to an existing mesh."""
     tets = _convert_to_mesh(_get_beam_model("tets"))
-    tets.cell_data["_volume-id"] = 1
+    tets.cell_data["_volume-id"] = float(1)
     n_tets = tets.n_cells
 
     hex = _get_beam_model("hex")
@@ -382,7 +382,7 @@ def test_mesh_clean_001():
     assert grid1.n_points == points.shape[0]
 
     # test ignoring nans in point data average works
-    grid.point_data["data"] = 1
+    grid.point_data["data"] = float(1)
     grid.point_data["data"][0:4] = np.nan
 
     assert np.all(np.isnan(grid.clean(ignore_nans_in_point_average=False).point_data["data"]))
@@ -527,7 +527,7 @@ def test_mesh_id_to_name():
     assert mesh._surface_name_to_id == {"triangles": 1, "quads": 2}
     assert mesh._volume_name_to_id == {"tets": 10, "hex": 11}
 
-    assert mesh.validate_ids_to_name_map() == True
+    assert mesh.validate_ids_to_name_map()
 
     triangles1 = mesh.get_surface_by_name("triangles")
     assert triangles.n_cells == triangles1.n_cells
@@ -544,7 +544,7 @@ def test_mesh_id_to_name():
 
     del mesh._volume_id_to_name[10]
     assert mesh._get_unmapped_volumes() == [10]
-    assert mesh.validate_ids_to_name_map() == False
+    assert not mesh.validate_ids_to_name_map()
 
 
 def test_mesh_save_load():
@@ -578,16 +578,12 @@ def test_mesh_save_load():
         assert mesh.n_points == mesh1.n_points
         assert mesh1._surface_id_to_name == {}
         assert mesh1._volume_id_to_name == {}
-        assert mesh1.validate_ids_to_name_map() == False
+        assert not mesh1.validate_ids_to_name_map()
 
     return
 
-    del mesh._surface_id_to_name[1]
-    assert mesh._get_unmapped_surfaces() == [1]
-    assert mesh.validate_ids_to_name_map() == False
 
-
-def test_cavity_volume():
+def test_force_normals_inwards():
     """Test whether compute_volume enforces inwards pointing normals."""
     # by default normals of sphere are pointing outwards.
     import copy
@@ -604,8 +600,8 @@ def test_cavity_volume():
 
 def test_cap_properties():
     """Test getting global_node_ids_edge from Cap."""
-    from ansys.heart.core.objects import Cap
     from ansys.heart.core.helpers.vtkmethods import get_patches_with_centroid
+    from ansys.heart.core.objects import Cap
 
     half_sphere = pv.Sphere().clip(normal="y")
     patches = get_patches_with_centroid(half_sphere)

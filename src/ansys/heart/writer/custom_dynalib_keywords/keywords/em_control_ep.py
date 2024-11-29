@@ -20,8 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from ansys.dyna.keywords.lib.card import Card, Field
-from ansys.dyna.keywords.lib.keyword_base import KeywordBase
+from ansys.dyna.core.lib.card import Card, Field
+from ansys.dyna.core.lib.keyword_base import KeywordBase
 
 
 class EmControlEp(KeywordBase):

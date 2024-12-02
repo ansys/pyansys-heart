@@ -23,7 +23,6 @@
 """Module containing classes for the various heart models."""
 
 import copy
-from dataclasses import dataclass
 import json
 import os
 
@@ -55,16 +54,6 @@ from ansys.heart.core.objects import (
 from ansys.heart.preprocessor.input import _InputModel
 import ansys.heart.preprocessor.mesher as mesher
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
-
-
-@dataclass
-class MeshSettings:
-    """Mesh settings for (re) meshing the model."""
-
-    global_mesh_size: float = 1.5
-    """Global mesh size."""
-    add_blood_pool: bool = False
-    """Flag indicating whether to add a blood pool (experimental)."""
 
 
 # TODO: Remove ModelInfo.
@@ -306,8 +295,9 @@ class HeartModel:
         self.fluid_mesh = Mesh()
         """Generated fluid mesh."""
 
-        self._mesh_settings = MeshSettings()
-        """Settings used for (re)meshing the model."""
+        #! TODO: non-functional flag. Remove or replace.
+        self._add_blood_pool: bool = False
+        """Flag indicating whether to add a blood pool mesh (Experimental)."""
 
         self._input: _InputModel = None
         """Input model."""

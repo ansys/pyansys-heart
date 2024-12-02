@@ -88,13 +88,11 @@ def main(args):
             elif model_type == "4c":
                 model = models.FourChamber(working_directory=workdir)
 
-            model._mesh_settings.global_mesh_size = 2.0
-
             # extract the simulation mesh
             model.load_input(path_to_input_vtp, part_definitions, "surface-id")
 
             # mesh the volume
-            model.mesh_volume(use_wrapper=True)
+            model.mesh_volume(use_wrapper=True, global_mesh_size=2.0)
 
             # update the parts
             model._update_parts()

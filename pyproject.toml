@@ -61,7 +61,7 @@ doc = [
     "sphinxcontrib-video",
 ]
 
-tests = ["pytest==8.0.1", "pytest-mock"]
+tests = ["pytest==8.3.4", "pytest-mock"]
 
 [project.urls]
 Source = "https://github.com/ansys/pyansys-heart"

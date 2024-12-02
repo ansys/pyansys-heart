@@ -536,9 +536,8 @@ class HeartModel:
         reconstruction errors. Nevertheless, in many instances this approach is
         robuster than meshing from a manifold surface. Moreover, any clear interface
         between parts is potentially lost.
-
         When mesh_size_per_part is incomplete, remaining part sizes default to the
-        global mesh size.
+        global mesh size. Note that this is an experimental setting.
         """
         if not path_to_fluent_mesh:
             path_to_fluent_mesh = os.path.join(self.workdir, "simulation_mesh.msh.h5")

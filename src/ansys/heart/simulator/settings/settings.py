@@ -40,13 +40,17 @@ from ansys.heart.simulator.settings.defaults import (
     purkinje as purkinje_defaults,
     zeropressure as zero_pressure_defaults,
 )
-from ansys.heart.simulator.settings.material.curve import ActiveCurve, constant_ca2, strocchi_active
+from ansys.heart.simulator.settings.material.curve import (
+    ActiveCurve,
+    constant_ca2,
+)
 from ansys.heart.simulator.settings.material.material import (
     ACTIVE,
     ANISO,
     ISO,
     MAT295,
     ActiveModel,
+    MechanicalMaterialModel,
     NeoHookean,
 )
 
@@ -657,31 +661,33 @@ class SimulationSettings:
                 attr.to_consistent_unit_system()
         return
 
-    def get_mechanical_material(self) -> tuple[MAT295, NeoHookean]:
+    def get_mechanical_material(
+        self, type: Literal["neohookean", "m295", "m295_coupled"]
+    ) -> MechanicalMaterialModel:
         """Load material data from settings.
+
+        Parameters
+        ----------
+        type : Literal[&quot;neohookean&quot;, &quot;m295&quot;, &quot;m295_coupled&quot;]
+            required type
 
         Returns
         -------
-        tuple[MAT295, NeoHookean]
-            MAT295 will be assigned for active/passive parts with fibers.
-            NeoHookean will be assigned for isotropic parts.
-
-        Note
-        ----
-        Materials will be automatically assigned for parts if their maerial is not defined.
+        MechanicalMaterialModel
+            material with default parameters
         """
-        try:
-            myo_mat: MAT295 = _read_myocardium_from_settings(self.mechanics.material.myocardium)
-        except KeyError:
-            LOGGER.error("Cannot create myocardium material from settings.")
-            exit()
-        try:
-            passive_mat: NeoHookean = _read_passive_from_settings(self.mechanics.material.passive)
-        except KeyError:
-            LOGGER.error("Cannot create passive material from settings.")
-            exit()
+        if type == "m295":
+            material = _read_myocardium_from_settings(
+                self.mechanics.material.myocardium, coupled=False
+            )
+        elif type == "m295_coupled":
+            material = _read_myocardium_from_settings(
+                self.mechanics.material.myocardium, coupled=True
+            )
+        elif type == "neohookean":
+            material = _read_passive_from_settings(self.mechanics.material.passive)
 
-        return myo_mat, passive_mat
+        return material
 
 
 def _read_passive_from_settings(mat: AttrDict) -> NeoHookean:
@@ -690,10 +696,14 @@ def _read_passive_from_settings(mat: AttrDict) -> NeoHookean:
     return NeoHookean(rho=rho, c10=mu / 2)
 
 
-def _read_myocardium_from_settings(mat: AttrDict) -> MAT295:
+def _read_myocardium_from_settings(mat: AttrDict, coupled=False) -> MAT295:
     rho = mat["isotropic"]["rho"].m
 
-    iso = ISO(nu=mat["isotropic"]["nu"], k1=mat["isotropic"]["k1"].m, k2=mat["isotropic"]["k2"].m)
+    iso = ISO(
+        nu=mat["isotropic"]["nu"],
+        k1=mat["isotropic"]["k1"].m,
+        k2=mat["isotropic"]["k2"].m,
+    )
 
     fibers = [ANISO.HGOFiber(k1=mat["anisotropic"]["k1f"].m, k2=mat["anisotropic"]["k2f"].m)]
 
@@ -709,20 +719,35 @@ def _read_myocardium_from_settings(mat: AttrDict) -> MAT295:
 
     max = mat["active"]["taumax"].m
     bt = mat["active"]["beat_time"].m
+    ss = mat["active"]["ss"]
+    sn = mat["active"]["sn"]
 
-    if mat["active"]["actype"] == 1:
-        ac_mdoel = ActiveModel.Model1(taumax=max)
+    if not coupled:
+        ac_mdoel = ActiveModel.Model1(taumax=max)  # use default field in Model1 except taumax
         curve = ActiveCurve(constant_ca2(tb=bt), threshold=0.1, type="ca2")
-    elif mat["active"]["actype"] == 3:
-        ac_mdoel = ActiveModel.Model3(sigmax=max)
-        curve = ActiveCurve(strocchi_active(t_end=bt), type="stress")
+        active = ACTIVE(
+            ss=ss,
+            sn=sn,
+            model=ac_mdoel,
+            ca2_curve=curve,
+        )
+    else:
+        ac_mdoel = ActiveModel.Model3(
+            ca2ion50=0.001,
+            n=2,
+            f=0.0,
+            l=1.9,
+            eta=1.45,
+            sigmax=max,  # MPa
+        )
 
-    active = ACTIVE(
-        ss=mat["active"]["ss"],
-        sn=mat["active"]["sn"],
-        model=ac_mdoel,
-        ca2_curve=curve,
-    )
+        active = ACTIVE(
+            ss=ss,
+            sn=sn,
+            acthr=0.0002,
+            model=ac_mdoel,
+            ca2_curve=None,
+        )
 
     return MAT295(rho=rho, iso=iso, aniso=aniso, active=active)
 
@@ -936,7 +961,8 @@ class DynaSettings:
         elif self.platform == "wsl":
             path_to_input_wsl = (
                 subprocess.run(
-                    ["wsl", "wslpath", os.path.basename(path_to_input)], capture_output=1
+                    ["wsl", "wslpath", os.path.basename(path_to_input)],
+                    capture_output=1,
                 )
                 .stdout.decode()
                 .strip()
@@ -944,7 +970,8 @@ class DynaSettings:
             # redefines LS-DYNA path.
             lsdyna_path = (
                 subprocess.run(
-                    ["wsl", "wslpath", str(lsdyna_path).replace("\\", "/")], capture_output=1
+                    ["wsl", "wslpath", str(lsdyna_path).replace("\\", "/")],
+                    capture_output=1,
                 )
                 .stdout.decode()
                 .strip()
@@ -974,7 +1001,15 @@ class DynaSettings:
                 f.write("echo start lsdyna in wsl...\n")
                 f.write(" ".join([i.strip() for i in commands]))
 
-            commands = ["powershell", "-Command", "wsl", "-e", "bash", "-lic", "./run_lsdyna.sh"]
+            commands = [
+                "powershell",
+                "-Command",
+                "wsl",
+                "-e",
+                "bash",
+                "-lic",
+                "./run_lsdyna.sh",
+            ]
 
         # remove empty strings from commands
         commands = [c for c in commands if c != ""]
@@ -1017,7 +1052,12 @@ class DynaSettings:
 
             for root in ansys_env_roots:
                 mpi_root = os.path.join(
-                    os.getenv(root), "commonfiles", "MPI", "Intel", intel_mpi_rev, platform
+                    os.getenv(root),
+                    "commonfiles",
+                    "MPI",
+                    "Intel",
+                    intel_mpi_rev,
+                    platform,
                 )
                 mpi_path = os.path.join(mpi_root, "bin")
                 mkl_path = os.path.join(os.getenv(root), "tp", "IntelMKL", intel_mkl_rev, platform)
@@ -1053,7 +1093,12 @@ class DynaSettings:
 
             for root in ansys_env_roots:
                 mpi_root = os.path.join(
-                    os.getenv(root), "commonfiles", "MPI", "Microsoft", ms_mpi_rev, platform
+                    os.getenv(root),
+                    "commonfiles",
+                    "MPI",
+                    "Microsoft",
+                    ms_mpi_rev,
+                    platform,
                 )
                 mpi_path = os.path.join(mpi_root, "bin")
                 mkl_path = os.path.join(os.getenv(root), "tp", "IntelMKL", intel_mkl_rev, platform)

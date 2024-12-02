@@ -139,11 +139,11 @@ class ActiveModel:
 class ACTIVE:
     """Active module of MAT_295."""
 
-    acid: int = None  # defined in writer
-    actype: int = None  # defined by curve
-    acthr: float = None  # if not given, defined by curve
-    acdir: int = 1
-    sf: float = 1.0
+    acid: int = None  # empty for ep_coupled, or curve ID from writer
+    actype: int = None  # defined in __post_init__
+    acthr: float = None  # need to be defined for ep_coupled, for meca, it's defined in ActiveCurve
+    acdir: int = 1  # always act in fiber direction
+    sf: float = 1.0  # always 1.0 and control contractility in ActiveModel
     ss: float = 0.0
     sn: float = 0.0
     model: ActiveModel = field(default_factory=ActiveModel.Model1)

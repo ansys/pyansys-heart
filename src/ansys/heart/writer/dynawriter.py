@@ -54,9 +54,7 @@ from ansys.heart.core.models import (
 from ansys.heart.core.objects import Cap, Part, PartType, SurfaceMesh
 from ansys.heart.simulator.settings.material.ep_material import CellModel, EPMaterial
 from ansys.heart.simulator.settings.material.material import (
-    ACTIVE,
     MAT295,
-    ActiveModel,
     MechanicalMaterialModel,
     NeoHookean,
 )
@@ -1186,58 +1184,43 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _update_material_db(self, add_active: bool = True, em_couple: bool = False):
-        # assign material for part if it's empty
-        myocardium, neohookean = self.settings.get_mechanical_material()
-
+        #
         for part in self.model.parts:
             if isinstance(part.meca_material, MechanicalMaterialModel.DummyMaterial):
+                # assign material for part if it's empty
                 LOGGER.info(f"Material of {part.name} will be assigned automatically.")
                 if part.fiber:
-                    if part.active:
-                        part.meca_material = copy.deepcopy(myocardium)
-                        if em_couple:
-                            model3 = ActiveModel.Model3(
-                                ca2ion50=0.001,
-                                n=2,
-                                f=0.0,
-                                l=1.9,
-                                eta=1.45,
-                                sigmax=0.125,  # MPa
-                            )
-                            coupled_active = ACTIVE(
-                                sf=1.0,
-                                ss=0.0,
-                                sn=0.0,
-                                acthr=0.0002,
-                                model=model3,
-                                ca2_curve=None,
-                            )
-                            part.meca_material.active = coupled_active
+                    if em_couple:
+                        part.meca_material = self.settings.get_mechanical_material(
+                            type="m295_coupled"
+                        )
                     else:
-                        part.meca_material = copy.deepcopy(myocardium)
+                        part.meca_material = self.settings.get_mechanical_material(type="m295")
+                    # disable active module
+                    if not part.active:
                         part.meca_material.active = None
-                elif not part.fiber:
-                    part.meca_material = neohookean
+
+                else:
+                    part.meca_material = self.settings.get_mechanical_material(type="neohookean")
         # write
         for part in self.model.parts:
             material = part.meca_material
 
             if isinstance(material, MAT295):
-                if material.active is not None:
-                    if not em_couple:  # write ca2+ curve
-                        # obtain ca2+ curve
-                        x, y = material.active.ca2_curve.dyna_input
+                # need to write ca2+ curve
+                if add_active and not em_couple and material.active is not None:
+                    x, y = material.active.ca2_curve.dyna_input
 
-                        cid = self.get_unique_curve_id()
-                        curve_kw = create_define_curve_kw(
-                            x=x,
-                            y=y,
-                            curve_name=f"ca2+ of {part.name}",
-                            curve_id=cid,
-                            lcint=10000,
-                        )
-                        self.kw_database.material.append(curve_kw)
-                        material.active.acid = cid
+                    cid = self.get_unique_curve_id()
+                    curve_kw = create_define_curve_kw(
+                        x=x,
+                        y=y,
+                        curve_name=f"ca2+ of {part.name}",
+                        curve_id=cid,
+                        lcint=10000,
+                    )
+                    self.kw_database.material.append(curve_kw)
+                    material.active.acid = cid
 
                 material_kw = MaterialHGOMyocardium(
                     id=part.mid, mat=material, ignore_active=not add_active

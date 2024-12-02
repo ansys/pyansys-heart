@@ -194,8 +194,7 @@ def test_mesh_stats(extract_model):
     pass
 
 
-@pytest.fixture(autouse=True, scope="module")
-def unpack_k_files():
+def _unpack_k_files():
     """Unpacks the .k files of a specific model if necessary."""
     import zipfile
 
@@ -259,7 +258,7 @@ def test_writers(extract_model, writer_class):
             "reference_models",
             "strocchi2020",
             "01",
-            "_BiVentricle",
+            "BiVentricle",
             "k_files1",
             writer_class.__name__,
         )
@@ -269,7 +268,7 @@ def test_writers(extract_model, writer_class):
             "reference_models",
             "strocchi2020",
             "01",
-            "_FullHeart",
+            "FullHeart",
             "k_files1",
             writer_class.__name__,
         )

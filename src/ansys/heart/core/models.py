@@ -522,6 +522,7 @@ class HeartModel:
         self,
         use_wrapper: bool = False,
         overwrite_existing_mesh: bool = True,
+        global_mesh_size: float = 1.5,
         path_to_fluent_mesh: str = None,
         mesh_size_per_part: dict = None,
     ):
@@ -535,6 +536,8 @@ class HeartModel:
             Flag indicating whether to overwrite the existing .msh.h5 mesh, by default True
         path_to_fluent_mesh : str, optional
             Path to the generated Fluent .msh.h5 mesh, by default None
+        mesh_size_per_part : dict, optional
+            Dictionary specifying the target mesh size for a part, by default None.
 
         Notes
         -----
@@ -543,6 +546,9 @@ class HeartModel:
         reconstruction errors. Nevertheless, in many instances this approach is
         robuster than meshing from a manifold surface. Moreover, any clear interface
         between parts is potentially lost.
+
+        When mesh_size_per_part is incomplete, remaining part sizes default to the
+        global mesh size.
         """
         if not path_to_fluent_mesh:
             path_to_fluent_mesh = os.path.join(self.workdir, "simulation_mesh.msh.h5")
@@ -553,7 +559,7 @@ class HeartModel:
             fluent_mesh = mesher.mesh_from_non_manifold_input_model(
                 model=self._input,
                 workdir=self.workdir,
-                mesh_size=self._mesh_settings.global_mesh_size,
+                global_mesh_size=global_mesh_size,
                 path_to_output=path_to_fluent_mesh,
                 overwrite_existing_mesh=overwrite_existing_mesh,
                 mesh_size_per_part=mesh_size_per_part,
@@ -562,7 +568,7 @@ class HeartModel:
             fluent_mesh = mesher.mesh_from_manifold_input_model(
                 model=self._input,
                 workdir=self.workdir,
-                mesh_size=self._mesh_settings.global_mesh_size,
+                mesh_size=global_mesh_size,
                 path_to_output=path_to_fluent_mesh,
                 overwrite_existing_mesh=overwrite_existing_mesh,
             )

@@ -131,14 +131,14 @@ def extract_model(request):
     # with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
 
     model: models.HeartModel = model_type(working_directory=workdir)
-    model._mesh_settings.global_mesh_size = 2.0
+
     if not isinstance(model, (models.BiVentricle, models.FullHeart)):
         exit()
 
     model.load_input(input_vtp, part_definitions, "boundary-id")
     # model.mesh_volume(wrapper=True) # could use this: but requires fluent
     if mesh_volume:
-        model.mesh_volume(use_wrapper=True)
+        model.mesh_volume(use_wrapper=True, global_mesh_size=2.0)
     else:
         model.mesh.load_mesh(mesh_file)
     model._update_parts()

@@ -41,7 +41,7 @@ from ansys.heart.preprocessor.input import _InputBoundary, _InputModel
 # NOTE: can set os.environ["SHOW_FLUENT_GUI"] = "1" to show Fluent GUI.
 
 _supported_fluent_versions = ["24.2", "24.1"]
-_show_fluent_gui: bool = False
+_show_fluent_gui: bool = True
 _uses_container: bool = True
 
 try:
@@ -511,7 +511,7 @@ def mesh_from_non_manifold_input_model(
     model: _InputModel,
     workdir: Union[str, Path],
     path_to_output: Union[str, Path],
-    mesh_size: float = 2.0,
+    global_mesh_size: float = 2.0,
     overwrite_existing_mesh: bool = True,
     mesh_size_per_part: dict = None,
 ) -> FluentMesh:
@@ -536,6 +536,10 @@ def mesh_from_non_manifold_input_model(
     parts. Consequently wrap the entire model and use the manifold parts to split the
     wrapped model into the different cell zones.
 
+    When specifying a mesh size per part, you can do that by either specifying that for all
+    parts, or for specific parts. The default mesh size will be used for any part not listed
+    in the dictionary.
+
     Returns
     -------
     FluentMesh
@@ -548,7 +552,12 @@ def mesh_from_non_manifold_input_model(
     if mesh_size_per_part is None:
         # NOTE: use Fluent convention for replacing spaces and capitals.
         mesh_size_per_part = {
-            "_".join(part_name.lower().split()): mesh_size for part_name in model.part_names
+            "_".join(part_name.lower().split()): global_mesh_size for part_name in model.part_names
+        }
+    else:
+        # NOTE: Force Fluent convention of dictionary keys.
+        mesh_size_per_part = {
+            "_".join(part.lower().split()): size for part, size in mesh_size_per_part.items()
         }
 
     if isinstance(mesh_size_per_part, dict):
@@ -556,8 +565,11 @@ def mesh_from_non_manifold_input_model(
             # NOTE: use Fluent convention for replacing spaces and capitals.
             tmp_part_name = "_".join(part_name.lower().split())
             if tmp_part_name not in mesh_size_per_part.keys():
-                LOGGER.info(f"{part_name} not specified. Using {mesh_size} for {part_name}")
-                mesh_size_per_part[tmp_part_name] = mesh_size
+                LOGGER.info(f"{part_name} not specified. Using {global_mesh_size} for {part_name}")
+                mesh_size_per_part[tmp_part_name] = global_mesh_size
+
+    min_mesh_size = np.min(list(mesh_size_per_part.values()))
+    max_mesh_size = np.max(list(mesh_size_per_part.values()))
 
     if not os.path.isdir(workdir):
         os.makedirs(workdir)
@@ -584,8 +596,6 @@ def mesh_from_non_manifold_input_model(
         path_to_output_old = path_to_output
         path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
 
-        min_size = mesh_size
-        max_size = mesh_size
         growth_rate = 1.2
 
         # clean up any stls in the directory
@@ -618,7 +628,7 @@ def mesh_from_non_manifold_input_model(
 
         # each stl is imported as a separate object. Wrap the different collections of stls to
         # create new surface meshes for each of the parts.
-        session.tui.size_functions.set_global_controls(min_size, max_size, growth_rate)
+        session.tui.size_functions.set_global_controls(min_mesh_size, max_mesh_size, growth_rate)
         session.tui.scoped_sizing.compute('"yes"')
 
         session.tui.objects.extract_edges("'(*) feature 40")
@@ -632,22 +642,25 @@ def mesh_from_non_manifold_input_model(
         # or after!?
         session.tui.size_functions.delete()
         session.tui.size_functions.set_global_controls(
-            np.min(list(mesh_size_per_part.values())),
-            np.max(list(mesh_size_per_part.values())),
+            min_mesh_size,
+            max_mesh_size,
             growth_rate,
         )
         # create body-of-influence for each part.
         for part, part_size in mesh_size_per_part.items():
-            session.tui.scoped_sizing.create(
-                f"boi-{part.lower()}",
-                "boi",
-                "object-faces-and-edges",
-                "no",
-                "yes",
-                f"{part.lower()}",
-                part_size,
-                growth_rate,
-            )
+            try:
+                session.tui.scoped_sizing.create(
+                    f"boi-{part}",
+                    "boi",
+                    "object-faces-and-edges",
+                    "no",
+                    "yes",
+                    f"{part.lower()}",
+                    part_size,
+                    growth_rate,
+                )
+            except Exception as e:
+                LOGGER.warning(f"Failed to set mesh size for {part}: {e}")
         session.tui.scoped_sizing.compute()
 
         # NOTE: wrap entire model in one pass so that we can create a single volume mesh.

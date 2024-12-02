@@ -1223,21 +1223,20 @@ class MechanicsDynaWriter(BaseDynaWriter):
             material = part.meca_material
 
             if isinstance(material, MAT295):
-                if material.active is not None:
-                    if not em_couple:  # write ca2+ curve
-                        # obtain ca2+ curve
-                        x, y = material.active.ca2_curve.dyna_input
+                if not em_couple and add_active and material.active is not None:
+                    # need to write ca2+ curve
+                    x, y = material.active.ca2_curve.dyna_input
 
-                        cid = self.get_unique_curve_id()
-                        curve_kw = create_define_curve_kw(
-                            x=x,
-                            y=y,
-                            curve_name=f"ca2+ of {part.name}",
-                            curve_id=cid,
-                            lcint=10000,
-                        )
-                        self.kw_database.material.append(curve_kw)
-                        material.active.acid = cid
+                    cid = self.get_unique_curve_id()
+                    curve_kw = create_define_curve_kw(
+                        x=x,
+                        y=y,
+                        curve_name=f"ca2+ of {part.name}",
+                        curve_id=cid,
+                        lcint=10000,
+                    )
+                    self.kw_database.material.append(curve_kw)
+                    material.active.acid = cid
 
                 material_kw = MaterialHGOMyocardium(
                     id=part.mid, mat=material, ignore_active=not add_active

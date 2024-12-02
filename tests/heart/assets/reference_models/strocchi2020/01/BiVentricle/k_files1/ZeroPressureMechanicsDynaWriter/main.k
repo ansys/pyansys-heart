@@ -64,17 +64,17 @@ $#     id1       id2       id3       id4       id5       id6       id7       id8
 $#                                                                         title
 unit load curve                                                                 
 $#    lcid      sidr       sfa       sfo      offa      offo    dattyp     lcint
-         4         0    1000.0       1.0       0.0       0.0         0       100
+         1         0    1000.0       1.0       0.0       0.0         0       100
 $#                a1                  o1
                  0.0                 0.0
                  1.0                 1.0
  1.00099999999999989                 1.0
 *LOAD_SEGMENT_SET
 $#    ssid      lcid        sf        at
-         1         40.00199984       0.0
+         1         10.00199984       0.0
 *LOAD_SEGMENT_SET
 $#    ssid      lcid        sf        at
-         2         40.00106658       0.0
+         2         10.00106658       0.0
 *CONTROL_REFERENCE_CONFIGURATION
 $# maxiter                                                                target
          3nodes.k                                                               

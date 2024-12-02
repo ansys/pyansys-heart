@@ -25,7 +25,6 @@
 import json
 import os
 import tempfile
-from unittest.mock import Mock
 
 import pyvista as pv
 
@@ -40,19 +39,8 @@ import pytest
 import ansys.heart.core.models as models
 
 
-def _get_test_model_info() -> models.ModelInfo:
-    """Get a test model info and populates it."""
-    info = models.ModelInfo(
-        work_directory=None,
-        path_to_simulation_mesh="path-to-simulation-mesh",
-        mesh_size=2.0,
-    )
-    models.ModelInfo()
-    return info
-
-
 def test_dump_model_001():
-    """Test dumping of model to disk: using path in ModelInfo."""
+    """Test dumping of model to disk."""
     from pathlib import Path
 
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
@@ -99,8 +87,7 @@ def test_model_load_001():
 def test_model_load_002():
     """Test loading model from pickle."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
-        info = _get_test_model_info()
-        model: models.BiVentricle = models.BiVentricle(info)
+        model: models.BiVentricle = models.BiVentricle(working_directory=workdir)
         model.workdir = workdir
         # populate model
         model.left_ventricle.element_ids = np.array([1, 2, 3, 4], dtype=int)
@@ -280,7 +267,7 @@ def test_load_from_mesh():
 
 def test_model_get_set_axes():
     """Test getting and setting the axis of a model."""
-    model = models.HeartModel(Mock(models.ModelInfo))
+    model = models.HeartModel()
     model.mesh = pv.Sphere().cast_to_unstructured_grid()
     test_axis = {"center": [0.0, 0.0, 0.0], "normal": [1.0, 0.0, 0.0]}
 

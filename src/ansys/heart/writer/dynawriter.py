@@ -1223,8 +1223,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
             material = part.meca_material
 
             if isinstance(material, MAT295):
-                # when needs to write ca2+ curve
                 if not em_couple and add_active and material.active is not None:
+                    # need to write ca2+ curve
                     x, y = material.active.ca2_curve.dyna_input
 
                     cid = self.get_unique_curve_id()

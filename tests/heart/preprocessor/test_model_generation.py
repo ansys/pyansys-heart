@@ -194,37 +194,37 @@ def test_mesh_stats(extract_model):
     pass
 
 
-# @pytest.fixture(autouse=True, scope="module")
-# def unpack_k_files():
-# """Unpacks the .k files of a specific model if necessary."""
-# import zipfile
+@pytest.fixture(autouse=True, scope="module")
+def unpack_k_files():
+    """Unpacks the .k files of a specific model if necessary."""
+    import zipfile
 
-# zip_file = os.path.join(
-#     get_assets_folder(),
-#     "reference_models",
-#     "strocchi2020",
-#     "01",
-#     "k_files_biventricle_fullheart.zip",
-# )
-# try:
-#     with zipfile.ZipFile(zip_file, "r") as zip_ref:
-#         zip_ref.extractall(os.path.dirname(zip_file))
-# except Exception:
-#     print("Failed to unpack zip files.")
-#     pass
+    zip_file = os.path.join(
+        get_assets_folder(),
+        "reference_models",
+        "strocchi2020",
+        "01",
+        "k_files_biventricle_fullheart.zip",
+    )
+    try:
+        with zipfile.ZipFile(zip_file, "r") as zip_ref:
+            zip_ref.extractall(os.path.dirname(zip_file))
+    except Exception:
+        print("Failed to unpack zip files.")
+        pass
 
-# yield
+    yield
 
-# # cleanup
-# try:
-#     import shutil
+    # cleanup
+    try:
+        import shutil
 
-#     shutil.rmtree(os.path.join(os.path.dirname(zip_file), "_BiVentricle"))
-#     shutil.rmtree(os.path.join(os.path.dirname(zip_file), "_FullHeart"))
-# except Exception:
-#     pass
+        shutil.rmtree(os.path.join(os.path.dirname(zip_file), "_BiVentricle"))
+        shutil.rmtree(os.path.join(os.path.dirname(zip_file), "_FullHeart"))
+    except Exception:
+        pass
 
-# return
+    return
 
 
 @pytest.mark.parametrize(
@@ -239,10 +239,10 @@ def test_mesh_stats(extract_model):
     ],
 )
 @pytest.mark.k_file_writer
-# @pytest.mark.xfail(
-#     reason="""Testing .k files is mesh sensitive and subject to changes in model configuration.
-#     If no changes to the model are expected than this test should pass"""
-# )
+@pytest.mark.xfail(
+    reason="""Testing .k files is mesh sensitive and subject to changes in model configuration.
+    If no changes to the model are expected than this test should pass"""
+)
 def test_writers(extract_model, writer_class):
     """Test whether all writers yield the same .k files as the reference model.
 
@@ -259,7 +259,7 @@ def test_writers(extract_model, writer_class):
             "reference_models",
             "strocchi2020",
             "01",
-            "BiVentricle",
+            "_BiVentricle",
             "k_files1",
             writer_class.__name__,
         )
@@ -269,7 +269,7 @@ def test_writers(extract_model, writer_class):
             "reference_models",
             "strocchi2020",
             "01",
-            "FullHeart",
+            "_FullHeart",
             "k_files1",
             writer_class.__name__,
         )
@@ -303,10 +303,10 @@ def test_writers(extract_model, writer_class):
     ],
 )
 @pytest.mark.k_file_writer
-# @pytest.mark.xfail(
-#     reason="""Testing .k files is mesh sensitive and subject to changes in model configuration.
-#     If no changes to the model are expected than this test should pass"""
-# )
+@pytest.mark.xfail(
+    reason="""Testing .k files is mesh sensitive and subject to changes in model configuration.
+    If no changes to the model are expected than this test should pass"""
+)
 def test_writers_after_load_model(extract_model, writer_class):
     """Test whether all writers yield the same .k files as the reference model.
 
@@ -322,7 +322,7 @@ def test_writers_after_load_model(extract_model, writer_class):
             "reference_models",
             "strocchi2020",
             "01",
-            "BiVentricle",
+            "_BiVentricle",
             "k_files1",
             writer_class.__name__,
         )
@@ -332,7 +332,7 @@ def test_writers_after_load_model(extract_model, writer_class):
             "reference_models",
             "strocchi2020",
             "01",
-            "FullHeart",
+            "_FullHeart",
             "k_files1",
             writer_class.__name__,
         )

@@ -1,0 +1,153 @@
+Simulation Settings:
+  mechanics:
+    analysis:
+      end_time: 800 millisecond
+      dtmin: 5.0 millisecond
+      dtmax: 5.0 millisecond
+      dt_d3plot: 20.0 millisecond
+      dt_icvout: 5.0 millisecond
+      global_damping: 0.1 / millisecond
+    material:
+      myocardium:
+        isotropic:
+          rho: 0.001 gram / millimeter ** 3
+          nu: 0.499
+          k1: 0.0023599999999999997 megapascal
+          k2: 1.75 dimensionless
+        anisotropic:
+          k1f: 0.00049 megapascal
+          k2f: 9.01 dimensionless
+        active:
+          actype: 1
+          beat_time: 800 millisecond
+          taumax: 0.125 megapascal
+          ss: 0.0
+          sn: 0.0
+      passive:
+        type: NeoHook
+        rho: 0.001 gram / millimeter ** 3
+        itype: -1
+        mu1: 0.1 megapascal
+        alpha1: 2
+      cap: null
+    boundary_conditions:
+      robin:
+        ventricle:
+          penalty_function:
+          - 0.25
+          - 25
+          stiffness: 0.05 gram / millimeter ** 2 / millisecond ** 2
+          damper: 0.005 gram / millimeter ** 2 / millisecond
+        atrial:
+          stiffness: 7.5e-05 gram / millimeter ** 2 / millisecond ** 2
+          damper: 0.005 gram / millimeter ** 2 / millisecond
+      valve:
+        stiffness: 0.002 gram / millimeter ** 2 / millisecond ** 2
+        scale_factor:
+          normal: 0.5
+          radial: 1.0
+      end_diastolic_cavity_pressure:
+        left_ventricle: 0.0019998358112249997 megapascal
+        left_atrial: 0.0019998358112249997 megapascal
+        right_ventricle: 0.0010665790993199997 megapascal
+        right_atrial: 0.0010665790993199997 megapascal
+    system:
+      name: ConstantPreloadWindkesselAfterload
+      left_ventricle:
+        constants:
+          Rv: 9.311235537063599e-07 gram / millimeter ** 4 / millisecond
+          Ra: 4.6556177685317995e-06 gram / millimeter ** 4 / millisecond
+          Rp: 0.00015518725895105997 gram / millimeter ** 4 / millisecond
+          Ca: 12887655.942365238 millimeter ** 4 * millisecond ** 2 / gram
+          Pven: 0.0019998358112249997 megapascal
+        initial_value:
+          part: 0.009332567119049997 megapascal
+      right_ventricle:
+        constants:
+          Rv: 4.6556177685317995e-07 gram / millimeter ** 4 / millisecond
+          Ra: 1.6294662189861296e-06 gram / millimeter ** 4 / millisecond
+          Rp: 1.9398407368882496e-05 gram / millimeter ** 4 / millisecond
+          Ca: 57994451.74064357 millimeter ** 4 * millisecond ** 2 / gram
+          Pven: 0.0010665790993199997 megapascal
+        initial_value:
+          part: 0.0019998358112249997 megapascal
+  electrophysiology:
+    material:
+      myocardium:
+        velocity_fiber: 0.7 millimeter / millisecond
+        velocity_sheet: 0.2 millimeter / millisecond
+        velocity_sheet_normal: 0.2 millimeter / millisecond
+        sigma_fiber: 0.5 millisiemens / millimeter
+        sigma_sheet: 0.1 millisiemens / millimeter
+        sigma_sheet_normal: 0.1 millisiemens / millimeter
+        sigma_passive: 1.0 millisiemens / millimeter
+        beta: 140 / millimeter
+        cm: 0.01 microfarad / millimeter ** 2
+        lambda: 0.2 dimensionless
+        percent_endo: 0.17 dimensionless
+        percent_mid: 0.41 dimensionless
+      atrium: null
+      cap: null
+      beam:
+        velocity: 1 millimeter / millisecond
+        sigma: 1 millisiemens / millimeter
+        beta: 140 / millimeter
+        cm: 0.01 microfarad / millimeter ** 2
+        lambda: 0.2 dimensionless
+        pmjrestype: 1 dimensionless
+        pmjres: 0.001 / millisiemens
+    analysis:
+      end_time: 800 millisecond
+      dtmin: 0.0 millisecond
+      dtmax: 1.0 millisecond
+      dt_d3plot: 10 millisecond
+      dt_icvout: 0.0 millisecond
+      global_damping: 0.0 / millisecond
+      solvertype: Monodomain
+    stimulation:
+      stimdefaults:
+        node_ids: null
+        t_start: 0.0 millisecond
+        period: 800.0 millisecond
+        duration: 20 millisecond
+        amplitude: 50 microfarad / millimeter ** 3
+  fibers:
+    alpha_endo: -60 degree
+    alpha_epi: 60 degree
+    beta_endo: -65 degree
+    beta_epi: 25 degree
+    beta_endo_septum: -65 degree
+    beta_epi_septum: 25 degree
+  atrial_fibers:
+    tau_mv: 0.65
+    tau_lpv: 0.1
+    tau_rpv: 0.65
+    tau_tv: 0.9
+    tau_raw: 0.55
+    tau_ct_minus: -0.18
+    tau_ct_plus: -0.1
+    tau_icv: 0.9
+    tau_scv: 0.1
+    tau_ib: 0.135
+    tau_ras: 0.35
+  purkinje:
+    node_id_origin_left: null
+    node_id_origin_right: null
+    edgelen: 1.5 millimeter
+    ngen: 200 dimensionless
+    nbrinit: 3 dimensionless
+    nsplit: 4 dimensionless
+    pmjtype: 1 dimensionless
+    pmjradius: 0.7 dimensionless
+  stress_free:
+    analysis:
+      end_time: 1000.0 millisecond
+      dtmin: 10.0 millisecond
+      dtmax: 100.0 millisecond
+      dt_d3plot: 100.0 millisecond
+      dt_icvout: 0.0 millisecond
+      global_damping: 0.0 / millisecond
+      dt_nodout: 200 millisecond
+      max_iters: 3
+      method: 2
+      tolerance: 5.0

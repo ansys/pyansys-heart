@@ -143,7 +143,7 @@ class ACTIVE:
     actype: int = None  # defined in __post_init__
     acthr: float = None  # need to be defined for ep_coupled, for mechanics it's defined in ActiveCurve
     acdir: int = 1  # always act in fiber direction
-    sf: float = 1.0  # always 1.0 and control contractility in ActiveModel
+    sf: float = 1.0  # always 1.0 and controls contractility in ActiveModel
     ss: float = 0.0
     sn: float = 0.0
     model: ActiveModel = field(default_factory=ActiveModel.Model1)

@@ -50,7 +50,6 @@ from ansys.heart.simulator.settings.material.material import (
     ISO,
     MAT295,
     ActiveModel,
-    MechanicalMaterialModel,
     NeoHookean,
 )
 
@@ -662,8 +661,8 @@ class SimulationSettings:
         return
 
     def get_mechanical_material(
-        self, type: Literal["neohookean", "m295", "m295_coupled"]
-    ) -> MechanicalMaterialModel:
+        self, required_type: Literal[NeoHookean, MAT295], ep_coupled=False
+    ) -> NeoHookean | MAT295:
         """Load material data from settings.
 
         Parameters
@@ -676,15 +675,11 @@ class SimulationSettings:
         MechanicalMaterialModel
             material with default parameters
         """
-        if type == "m295":
+        if required_type is MAT295:
             material = _read_myocardium_from_settings(
-                self.mechanics.material.myocardium, coupled=False
+                self.mechanics.material.myocardium, coupled=ep_coupled
             )
-        elif type == "m295_coupled":
-            material = _read_myocardium_from_settings(
-                self.mechanics.material.myocardium, coupled=True
-            )
-        elif type == "neohookean":
+        elif required_type is NeoHookean:
             material = _read_passive_from_settings(self.mechanics.material.passive)
 
         return material

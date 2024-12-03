@@ -1190,18 +1190,17 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 # assign material for part if it's empty
                 LOGGER.info(f"Material of {part.name} will be assigned automatically.")
                 if part.fiber:
-                    if em_couple:
-                        part.meca_material = self.settings.get_mechanical_material(
-                            type="m295_coupled"
-                        )
-                    else:
-                        part.meca_material = self.settings.get_mechanical_material(type="m295")
+                    part.meca_material = self.settings.get_mechanical_material(
+                        required_type=MAT295, ep_coupled=em_couple
+                    )
                     # disable active module
                     if not part.active:
                         part.meca_material.active = None
 
                 else:
-                    part.meca_material = self.settings.get_mechanical_material(type="neohookean")
+                    part.meca_material = self.settings.get_mechanical_material(
+                        required_type=NeoHookean
+                    )
         # write
         for part in self.model.parts:
             material = part.meca_material

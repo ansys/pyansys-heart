@@ -56,91 +56,6 @@ import ansys.heart.preprocessor.mesher as mesher
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 
 
-# TODO: Remove ModelInfo.
-@deprecated(
-    reason="""ModelInfo is deprecated. Specify working directory in HeartModel directly
-    and (re)meshing settings using the MeshSettings dataclass"""
-)
-class ModelInfo:
-    """Contains model information."""
-
-    def __init__(
-        self,
-        work_directory: pathlib.Path = ".",
-        path_to_simulation_mesh: pathlib.Path = None,
-        mesh_size: float = 1.5,
-        add_blood_pool: bool = False,
-    ) -> None:
-        # return None
-        self.workdir = work_directory
-        """Path to the working directory."""
-        self.path_to_simulation_mesh = path_to_simulation_mesh
-        """Path to simulation mesh (.vtk format)."""
-        self.path_to_model: str = None
-        """Path to model (in .pickle format)."""
-
-        self.mesh_size: float = mesh_size
-        """Mesh size used for remeshing."""
-        self.add_blood_pool: bool = add_blood_pool
-        """Flag indicating whether to add blood to the cavities."""
-
-        pass
-
-    @deprecated(reason="Use stand-alone method instead.")
-    def clean_workdir(
-        self,
-        extensions_to_remove: List[str] = [".stl", ".vtk", ".msh.h5"],
-        remove_all: bool = False,
-    ) -> None:
-        """Remove files with extension present in the working directory.
-
-        Parameters
-        ----------
-        extensions_to_remove : List[str], optional
-            List of extensions to remove, by default [".stl", ".vtk", ".msh.h5"]
-        remove_all: bool, optional
-            Flag indicating whether to remove files with any extension.
-            Keeps files/folder without extension
-        """
-        import glob as glob
-
-        files = []
-        if not remove_all:
-            for ext in extensions_to_remove:
-                files += glob.glob(os.path.join(self.workdir, "*" + ext))
-        elif remove_all:
-            files = glob.glob(os.path.join(self.workdir, "*.*"))
-
-        for file in files:
-            try:
-                os.remove(file)
-            except Exception:
-                LOGGER.debug(f"Unable to delete: {file}")
-        return
-
-    def create_workdir(self) -> None:
-        """Create the working directory if it doesn't exist."""
-        if not os.path.isdir(self.workdir):
-            os.makedirs(self.workdir)
-        return
-
-    def dump_info(self, filename: pathlib.Path = None) -> None:
-        """Dump model information to file."""
-        if not filename:
-            filename = os.path.join(self.workdir, "model_info.json")
-
-        extension = os.path.splitext(filename)[1]
-        with open(filename, "w") as file:
-            if extension == ".json":
-                formatted_string = json.dumps(self.__dict__, indent=4)
-            elif extension == ".yml":
-                formatted_string = yaml.dump(self.__dict__, indent=4, sort_keys=False)
-
-            file.write(formatted_string)
-
-        return
-
-
 def _get_axis_from_field_data(
     mesh: Mesh | pv.UnstructuredGrid, axis_name: Literal["l4cv_axis", "l2cv_axis", "short_axis"]
 ) -> dict:
@@ -277,17 +192,12 @@ class HeartModel:
             for c in p.caps
         ]
 
-    # TODO: Remove ModelInfo as input argument.
-    def __init__(
-        self, info: ModelInfo = None, working_directory: pathlib.Path | str = None
-    ) -> None:
+    def __init__(self, working_directory: pathlib.Path | str = None) -> None:
         if working_directory is None:
             working_directory = os.path.abspath(os.path.curdir)
 
-        self.info = info
-        """Model meta information."""
-
         self.workdir = working_directory
+        """Working directory."""
 
         self.mesh = Mesh()
         """Computational mesh."""
@@ -1029,8 +939,8 @@ class HeartModel:
 
         Examples
         --------
-        >>> from ansys.heart.preprocessor.models import FullHeart, ModelInfo
-        >>> model: FullHeart = FullHeart(ModelInfo())
+        >>> from ansys.heart.preprocessor.models import FullHeart
+        >>> model: FullHeart = FullHeart()
         >>> model.load_model_from_mesh("mesh.vtu", "mesh.partinfo.json")
 
         """
@@ -2028,10 +1938,7 @@ class HeartModel:
 class LeftVentricle(HeartModel):
     """Model of just the left ventricle."""
 
-    # TODO: Remove ModelInfo as input argument.
-    def __init__(
-        self, info: ModelInfo = None, working_directory: pathlib.Path | str = None
-    ) -> None:
+    def __init__(self, working_directory: pathlib.Path | str = None) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
         # remove septum - not used in left ventricle only model
@@ -2040,17 +1947,14 @@ class LeftVentricle(HeartModel):
         self.left_ventricle.fiber = True
         self.left_ventricle.active = True
 
-        super().__init__(info, working_directory=working_directory)
+        super().__init__(working_directory=working_directory)
         pass
 
 
 class BiVentricle(HeartModel):
     """Model of the left and right ventricle."""
 
-    # TODO: Remove ModelInfo as input argument.
-    def __init__(
-        self, info: ModelInfo = None, working_directory: pathlib.Path | str = None
-    ) -> None:
+    def __init__(self, working_directory: pathlib.Path | str = None) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
@@ -2065,17 +1969,14 @@ class BiVentricle(HeartModel):
         self.septum.fiber = True
         self.septum.active = True
 
-        super().__init__(info, working_directory=working_directory)
+        super().__init__(working_directory=working_directory)
         pass
 
 
 class FourChamber(HeartModel):
     """Model of the left/right ventricle and left/right atrium."""
 
-    # TODO: Remove ModelInfo as input argument.
-    def __init__(
-        self, info: ModelInfo = None, working_directory: pathlib.Path | str = None
-    ) -> None:
+    def __init__(self, working_directory: pathlib.Path | str = None) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
@@ -2100,7 +2001,7 @@ class FourChamber(HeartModel):
         self.right_atrium.fiber = False
         self.right_atrium.active = False
 
-        super().__init__(info, working_directory=working_directory)
+        super().__init__(working_directory=working_directory)
 
         pass
 
@@ -2108,10 +2009,7 @@ class FourChamber(HeartModel):
 class FullHeart(FourChamber):
     """Model of both ventricles, both atria, aorta and pulmonary artery."""
 
-    # TODO: Remove ModelInfo as input argument.
-    def __init__(
-        self, info: ModelInfo = None, working_directory: pathlib.Path | str = None
-    ) -> None:
+    def __init__(self, working_directory: pathlib.Path | str = None) -> None:
         self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
         """Left ventricle part."""
         self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
@@ -2144,7 +2042,7 @@ class FullHeart(FourChamber):
         self.pulmonary_artery.fiber = False
         self.pulmonary_artery.active = False
 
-        super().__init__(info, working_directory=working_directory)
+        super().__init__(working_directory=working_directory)
 
         pass
 

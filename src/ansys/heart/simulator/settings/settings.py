@@ -661,7 +661,7 @@ class SimulationSettings:
         return
 
     def get_mechanical_material(
-        self, required_type: Literal[NeoHookean, MAT295], ep_coupled=False
+        self, required_type: NeoHookean | MAT295, ep_coupled=False
     ) -> NeoHookean | MAT295:
         """Load material data from settings.
 

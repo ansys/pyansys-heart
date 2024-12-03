@@ -663,17 +663,19 @@ class SimulationSettings:
     def get_mechanical_material(
         self, required_type: NeoHookean | MAT295, ep_coupled=False
     ) -> NeoHookean | MAT295:
-        """Load material data from settings.
+        """Load mechanical materials from settings.
 
         Parameters
         ----------
-        type : Literal[&quot;neohookean&quot;, &quot;m295&quot;, &quot;m295_coupled&quot;]
-            required type
+        required_type : NeoHookean | MAT295
+            Type of required maerial
+        ep_coupled : bool, optional
+            If MAT295 is coupled with EP simulation, by default False
 
         Returns
         -------
-        MechanicalMaterialModel
-            material with default parameters
+        NeoHookean | MAT295
+            material with parameters in settings
         """
         if required_type is MAT295:
             material = _read_myocardium_from_settings(

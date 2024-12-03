@@ -71,6 +71,7 @@ def model() -> models.FourChamber:
     return model
 
 
+@pytest.mark.k_file_writer
 def test_uvc(model):
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         to_test_folder = os.path.join(workdir, "uvc")
@@ -90,6 +91,7 @@ def test_uvc(model):
         compare_outputs(to_test_folder, ref_folder)
 
 
+@pytest.mark.k_file_writer
 def test_la_fiber(model):
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         to_test_folder = os.path.join(workdir, "la_fiber")
@@ -108,6 +110,7 @@ def test_la_fiber(model):
         compare_outputs(to_test_folder, ref_folder)
 
 
+@pytest.mark.k_file_writer
 def test_ra_top(model):
     start = [-46.4863, 133.29, 405.961]
     end = [-33.7271, 134.605, 332.155]
@@ -121,6 +124,7 @@ def test_ra_top(model):
     assert ids[-1] == 23575
 
 
+@pytest.mark.k_file_writer
 def test_ra_fiber(model):
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         to_test_folder = os.path.join(workdir, "ra_fiber")

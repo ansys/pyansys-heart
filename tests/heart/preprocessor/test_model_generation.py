@@ -238,10 +238,6 @@ def _unpack_k_files():
     ],
 )
 @pytest.mark.k_file_writer
-@pytest.mark.xfail(
-    reason="""Testing .k files is mesh sensitive and subject to changes in model configuration.
-    If no changes to the model are expected than this test should pass"""
-)
 def test_writers(extract_model, writer_class):
     """Test whether all writers yield the same .k files as the reference model.
 
@@ -302,10 +298,6 @@ def test_writers(extract_model, writer_class):
     ],
 )
 @pytest.mark.k_file_writer
-@pytest.mark.xfail(
-    reason="""Testing .k files is mesh sensitive and subject to changes in model configuration.
-    If no changes to the model are expected than this test should pass"""
-)
 def test_writers_after_load_model(extract_model, writer_class):
     """Test whether all writers yield the same .k files as the reference model.
 

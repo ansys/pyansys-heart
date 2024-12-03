@@ -629,6 +629,26 @@ def mesh_from_non_manifold_input_model(
         # each stl is imported as a separate object. Wrap the different collections of stls to
         # create new surface meshes for each of the parts.
         session.tui.size_functions.set_global_controls(min_mesh_size, max_mesh_size, growth_rate)
+
+        ## Set up boi's scoped to face zones of individual parts:
+        part_names_input = [p.name for p in model.parts]
+        for part, part_size in mesh_size_per_part.items():
+            idx = part_names_input.index(part)
+            try:
+                b_names = [b.name.replace("'", '"') for b in model.parts[idx].boundaries]
+                session.tui.scoped_sizing.create(
+                    f"boi-{part}",
+                    "boi",
+                    "face-zone",
+                    "yes",
+                    "no",
+                    '"' + " ".join(b_names).replace("'", '"') + '"',
+                    part_size,
+                    growth_rate,
+                )
+            except Exception as e:
+                LOGGER.warning(f"Failed to set mesh size for {part}: {e}")
+
         session.tui.scoped_sizing.compute('"yes"')
 
         session.tui.objects.extract_edges("'(*) feature 40")
@@ -637,31 +657,7 @@ def mesh_from_non_manifold_input_model(
             LOGGER.info("Wrapping " + part.name + "...")
             # wrap object.
             _wrap_part(session, part.boundary_names, part.name)
-
-        # update the size field. Should we do this before wrapping each individual part,
-        # or after!?
-        session.tui.size_functions.delete()
-        session.tui.size_functions.set_global_controls(
-            min_mesh_size,
-            max_mesh_size,
-            growth_rate,
-        )
-        # create body-of-influence for each part.
-        for part, part_size in mesh_size_per_part.items():
-            try:
-                session.tui.scoped_sizing.create(
-                    f"boi-{part}",
-                    "boi",
-                    "object-faces-and-edges",
-                    "no",
-                    "yes",
-                    f"{part.lower()}",
-                    part_size,
-                    growth_rate,
-                )
-            except Exception as e:
-                LOGGER.warning(f"Failed to set mesh size for {part}: {e}")
-        session.tui.scoped_sizing.compute()
+            session.tui.objects.volumetric_regions.compute(part.name)
 
         # NOTE: wrap entire model in one pass so that we can create a single volume mesh.
         # Use list of all input boundaries as input. Uses external material point for meshing.
@@ -730,7 +726,7 @@ def mesh_from_non_manifold_input_model(
     # use individual wrapped parts to separate the parts of the wrapped model.
     for part in model.parts:
         if not part.is_manifold:
-            LOGGER.warning("Part is not manifold.")
+            LOGGER.warning(f"Part {part.name} is not manifold.")
 
         cell_centroids = cell_centroids.select_enclosed_points(
             part.combined_boundaries, check_surface=False

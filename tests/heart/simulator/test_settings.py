@@ -92,7 +92,11 @@ REF_STRING_SETTINGS_YML_EP = (
 def test_settings_save_001():
     """Test saving of settings to disk."""
     settings = SimulationSettings(
-        mechanics=True, electrophysiology=False, fiber=False, purkinje=False, stress_free=False
+        mechanics=True,
+        electrophysiology=False,
+        fiber=False,
+        purkinje=False,
+        stress_free=False,
     )
 
     # fill some dummy data
@@ -115,7 +119,11 @@ def test_settings_save_002():
     """Test saving of EP settings to disk."""
 
     settings = SimulationSettings(
-        mechanics=False, electrophysiology=True, fiber=False, purkinje=False, stress_free=False
+        mechanics=False,
+        electrophysiology=True,
+        fiber=False,
+        purkinje=False,
+        stress_free=False,
     )
     stim = Stimulation(t_start=0, period=800, duration=20, amplitude=50)
 
@@ -241,7 +249,11 @@ def test_settings_set_defaults():
 @pytest.fixture(autouse=True)
 def default_settings():
     settings = SimulationSettings(
-        mechanics=True, electrophysiology=False, fiber=False, purkinje=False, stress_free=False
+        mechanics=True,
+        electrophysiology=False,
+        fiber=False,
+        purkinje=False,
+        stress_free=False,
     )
     settings.load_defaults()
     return settings
@@ -250,7 +262,11 @@ def default_settings():
 @pytest.fixture(autouse=True)
 def default_allsettings():
     settings = SimulationSettings(
-        mechanics=True, electrophysiology=True, fiber=True, purkinje=True, stress_free=True
+        mechanics=True,
+        electrophysiology=True,
+        fiber=True,
+        purkinje=True,
+        stress_free=True,
     )
     settings.load_defaults()
     return settings
@@ -268,9 +284,13 @@ def test_get_meca_material(default_settings):
     default_settings.mechanics.material.myocardium["isotropic"]["rho"] = Quantity(8000, "kg/m^3")
     default_settings.to_consistent_unit_system()
 
-    m1, m2 = default_settings.get_mechanical_material()
     # test default value
+    m1 = default_settings.get_mechanical_material(type="m295")
     assert m1.active.actype == 1
+    m1 = default_settings.get_mechanical_material(type="m295_coupled")
+    assert m1.active.actype == 3
+
+    m2 = default_settings.get_mechanical_material(type="neohookean")
     assert m2.c10 == pytest.approx(0.1 / 2, 1e-9)
     # test modified value
     assert m1.rho == pytest.approx(0.008, 1e-9)

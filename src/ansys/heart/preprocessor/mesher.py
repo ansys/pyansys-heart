@@ -653,11 +653,16 @@ def mesh_from_non_manifold_input_model(
 
         session.tui.objects.extract_edges("'(*) feature 40")
 
+        part_face_zone_ids_post_wrap = {}
         for part in model.parts:
             LOGGER.info("Wrapping " + part.name + "...")
             # wrap object.
             _wrap_part(session, part.boundary_names, part.name)
             session.tui.objects.volumetric_regions.compute(part.name)
+
+            part_face_zone_ids_post_wrap[part.name] = session.scheme_eval.scheme_eval(
+                f"(get-face-zones-of-objects '({part.name}) )"
+            )
 
         # NOTE: wrap entire model in one pass so that we can create a single volume mesh.
         # Use list of all input boundaries as input. Uses external material point for meshing.
@@ -707,21 +712,24 @@ def mesh_from_non_manifold_input_model(
     # NOTE: should use wrapped surfaces to select part.
     # assign wrapped boundaries to input parts.
     for ii, part in enumerate(model.parts):
-        face_zones_wrapped = [fz for fz in mesh.face_zones if part.name + ":" in fz.name]
+        part_face_zone_ids_post_wrap[part.name]
+        face_zones_wrapped = [
+            fz for fz in mesh.face_zones if fz.id in part_face_zone_ids_post_wrap[part.name]
+        ]
         if len(face_zones_wrapped) == 0:
             LOGGER.error(f"Did not find any wrapped face zones for {part.name}")
 
-        # replace with remeshed counterpart.
-        for jj, boundary in enumerate(part.boundaries):
-            for fz in face_zones_wrapped:
-                if boundary.name in fz.name:
-                    break
+        # replace with remeshed face zones (Note, we may have more face zones now.).
+        remeshed_boundaries = []
+        for fz in face_zones_wrapped:
             remeshed_boundary = _InputBoundary(
                 mesh.nodes,
                 faces=np.hstack([np.ones(fz.faces.shape[0], dtype=int)[:, None] * 3, fz.faces]),
-                id=boundary.id,
+                id=fz.id,
+                name=fz.name.replace(part.name + ":", ""),
             )
-            model.parts[ii].boundaries[jj] = remeshed_boundary
+            remeshed_boundaries.append(remeshed_boundary)
+        model.parts[ii].boundaries = remeshed_boundaries
 
     # use individual wrapped parts to separate the parts of the wrapped model.
     for part in model.parts:

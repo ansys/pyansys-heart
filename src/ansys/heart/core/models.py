@@ -507,7 +507,7 @@ class HeartModel:
             exit()
         return
 
-    #! TODO: add mesh_size_per_part in docstring.
+    # TODO: add working example in docstring, e.g. by using an existing model.
     def mesh_volume(
         self,
         use_wrapper: bool = False,
@@ -528,6 +528,18 @@ class HeartModel:
             Path to the generated Fluent .msh.h5 mesh, by default None
         mesh_size_per_part : dict, optional
             Dictionary specifying the target mesh size for a part, by default None.
+
+        Examples
+        --------
+        >>> from ansys.heart.core.models import HeartModel
+        >>> model = HeartModel()
+        >>> model.load_input(geom, part_definitions, scalar)
+        >>> model.mesh_volume(
+        ...     use_wrapper=True,
+        ...     global_mesh_size=1.5,
+        ...     path_to_fluent_mesh="simulation-mesh.msh.h5",
+        ...     mesh_size_per_part={"Left ventricle": 1},
+        ... )
 
         Notes
         -----

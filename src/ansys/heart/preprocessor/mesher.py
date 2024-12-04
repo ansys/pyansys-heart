@@ -723,11 +723,19 @@ def mesh_from_non_manifold_input_model(
         # replace with remeshed face zones (Note, we may have more face zones now.).
         remeshed_boundaries = []
         for fz in face_zones_wrapped:
+            fz_name = fz.name.replace(part.name + ":", "")
+
+            # try to maintain the input id.
+            try:
+                boundary_id = model.boundary_ids[model.boundary_names.index(fz_name)]
+            except IndexError:
+                boundary_id = fz.id
+
             remeshed_boundary = _InputBoundary(
                 mesh.nodes,
                 faces=np.hstack([np.ones(fz.faces.shape[0], dtype=int)[:, None] * 3, fz.faces]),
-                id=fz.id,
-                name=fz.name.replace(part.name + ":", ""),
+                id=boundary_id,
+                name=fz_name,
             )
             remeshed_boundaries.append(remeshed_boundary)
         model.parts[ii].boundaries = remeshed_boundaries

@@ -128,7 +128,9 @@ def add_beams_to_kw(
     pid = np.zeros(eids.shape) + pid
     # create dataframe
     df = pd.DataFrame(
-        data=np.vstack([eids, pid, beams.T]).T, columns=beam_kw.elements.columns[0:4], dtype=int
+        data=np.vstack([eids, pid, beams.T]).T,
+        columns=beam_kw.elements.columns[0:4],
+        dtype=int,
     )
 
     # concatenate old and new dataframe
@@ -399,7 +401,7 @@ def create_define_sd_orientation_kw(
     vector_ids = np.arange(0, num_vectors, 1) + vector_id_offset + 1
     iops = np.ones(num_vectors) * iop
     columns = kw.vectors.columns
-    data = np.hstack([vector_ids[:, None], iops[:, None], vectors])
+    data = np.hstack([vector_ids[:, None], iops[:, None], vectors], dtype=np.float64)
     df = pd.DataFrame(data=data, columns=columns[0:5])
 
     kw.vectors = df
@@ -480,7 +482,15 @@ def get_list_of_used_ids(keyword_db: Deck, keyword_str: str) -> np.ndarray:
     """
     ids = np.empty(0, dtype=int)
 
-    valid_kws = ["SECTION", "PART", "MAT", "SET_SEGMENT", "SET_NODE", "DEFINE_CURVE", "SET_PART"]
+    valid_kws = [
+        "SECTION",
+        "PART",
+        "MAT",
+        "SET_SEGMENT",
+        "SET_NODE",
+        "DEFINE_CURVE",
+        "SET_PART",
+    ]
 
     if keyword_str not in valid_kws:
         raise ValueError("Expecting one of: {0}".format(valid_kws))

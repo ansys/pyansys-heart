@@ -1552,7 +1552,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # scale factor is nodal area
         # Add area flag in case pyvista defaults change.
         surf2 = surface.compute_cell_sizes(length=False, volume=False, area=True)
-        scale_factor = copy.deepcopy(surf2.cell_data_to_point_data().point_data["Area"])
+        scale_factor = np.array(
+            surf2.cell_data_to_point_data().point_data["Area"].copy(), dtype=np.float64
+        )
         if "scale factor" in surface.point_data:
             scale_factor *= surface.point_data["scale factor"]
 
@@ -1604,7 +1606,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             nodes=n1_n2,
             part_id=part_id,
             vector_ids=vector_ids,
-            scale_factor=scale_factor,
+            scale_factor=np.round(scale_factor, 6),
             element_id_offset=self.id_offset["element"]["discrete"],
         )
         # add offset

@@ -185,7 +185,7 @@ def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingS
         )
 
     else:
-        num_cpus = 2
+        num_cpus = _num_cpus
         session = pyfluent.launch_fluent(
             mode="meshing",
             precision="double",

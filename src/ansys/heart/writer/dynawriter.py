@@ -54,9 +54,7 @@ from ansys.heart.core.models import (
 from ansys.heart.core.objects import Cap, Part, PartType, SurfaceMesh
 from ansys.heart.simulator.settings.material.ep_material import CellModel, EPMaterial
 from ansys.heart.simulator.settings.material.material import (
-    ACTIVE,
     MAT295,
-    ActiveModel,
     MechanicalMaterialModel,
     NeoHookean,
 )
@@ -1186,38 +1184,23 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _update_material_db(self, add_active: bool = True, em_couple: bool = False):
-        # assign material for part if it's empty
-        myocardium, neohookean = self.settings.get_mechanical_material()
-
+        #
         for part in self.model.parts:
             if isinstance(part.meca_material, MechanicalMaterialModel.DummyMaterial):
+                # assign material for part if it's empty
                 LOGGER.info(f"Material of {part.name} will be assigned automatically.")
                 if part.fiber:
-                    if part.active:
-                        part.meca_material = copy.deepcopy(myocardium)
-                        if em_couple:
-                            model3 = ActiveModel.Model3(
-                                ca2ion50=0.001,
-                                n=2,
-                                f=0.0,
-                                l=1.9,
-                                eta=1.45,
-                                sigmax=0.125,  # MPa
-                            )
-                            coupled_active = ACTIVE(
-                                sf=1.0,
-                                ss=0.0,
-                                sn=0.0,
-                                acthr=0.0002,
-                                model=model3,
-                                ca2_curve=None,
-                            )
-                            part.meca_material.active = coupled_active
-                    else:
-                        part.meca_material = copy.deepcopy(myocardium)
+                    part.meca_material = self.settings.get_mechanical_material(
+                        required_type=MAT295, ep_coupled=em_couple
+                    )
+                    # disable active module
+                    if not part.active:
                         part.meca_material.active = None
-                elif not part.fiber:
-                    part.meca_material = neohookean
+
+                else:
+                    part.meca_material = self.settings.get_mechanical_material(
+                        required_type=NeoHookean
+                    )
         # write
         for part in self.model.parts:
             material = part.meca_material
@@ -1569,9 +1552,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # scale factor is nodal area
         # Add area flag in case pyvista defaults change.
         surf2 = surface.compute_cell_sizes(length=False, volume=False, area=True)
-        scale_factor = copy.deepcopy(surf2.cell_data_to_point_data().point_data["Area"])
+        scale_factor = np.array(
+            surf2.cell_data_to_point_data().point_data["Area"].copy(), dtype=np.float32
+        )
         if "scale factor" in surface.point_data:
-            scale_factor *= surface.point_data["scale factor"]
+            scale_factor *= np.array(surface.point_data["scale factor"], dtype=np.float32)
 
         # apply direction is nodal normal
         if normal is None:

@@ -46,13 +46,17 @@ from tests.heart.end2end.compare_k import read_file
 _FILES_TO_SKIP = ["boundary_conditions.k", "pericardium.k"]
 
 
+#! TODO: replace this by proper assertion or make sure boundary_conditions.k and
+#! pericardium.k succeed. Currently when assertion fails it will try to print
+#! the location where the string comparison fails, this is extremely slow for
+#! very long strings.
 def _compare_k(ref_file: str, file: str):
     """Compare two .k files."""
 
     if os.path.basename(ref_file) in _FILES_TO_SKIP:
-        print(f"Skipping {ref_file}")
-        return
-        # files_are_equal = read_file(ref_file) is read_file(file)
+        files_are_equal = read_file(ref_file) == read_file(file)
+        if not files_are_equal:
+            print(f"!!!! {file} not equal to {ref_file} !!!!")
         # assert files_are_equal, f"{file} not equal to {ref_file}"
     else:
         assert read_file(ref_file) == read_file(file), f"{file} not equal to {ref_file}"

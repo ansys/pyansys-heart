@@ -383,7 +383,7 @@ class Lsda:
             #
             # We are already positioned to read the SYMBOLTABLEOFFSET record
             #
-            (clen, cmd) = f.readcommand()
+            (clength, cmd) = f.readcommand()
             self.cwd = self.root
             if cmd == Lsda.SYMBOLTABLEOFFSET:
                 self._readsymboltable(f)
@@ -475,18 +475,18 @@ class Lsda:
             if offset == 0:
                 return
             f.fp.seek(offset)
-            (clen, cmd) = f.readcommand()
+            (clength, cmd) = f.readcommand()
             if cmd != Lsda.BEGINSYMBOLTABLE:
                 return
             while 1:
-                (clen, cmd) = f.readcommand()
-                clen = clen - f.commandsize - f.lengthsize
+                (clength, cmd) = f.readcommand()
+                clength = clength - f.commandsize - f.lengthsize
                 if cmd == Lsda.CD:
-                    path = f.fp.read(clen)
+                    path = f.fp.read(clength)
                     path = path.decode("utf-8")
                     self.cd(path, 1)
                 elif cmd == Lsda.VARIABLE:
-                    self._readentry(f, clen, self.cwd)
+                    self._readentry(f, clength, self.cwd)
                 else:  # is end of symbol table...get next part if there is one
                     break
 
@@ -592,7 +592,7 @@ class LsdaReader:
         List[str]
             Variable name list for the target frame.
         """
-        self.check_frame(frame)
+        self._check_frame(frame)
         self.handle.cd(frame)
         vars = self.handle.cwd.read()
         self.handle.cwd = self.handle.cd("..")
@@ -623,8 +623,8 @@ class LsdaReader:
         Tuple[float]
             Requested variable values.
         """
-        self.check_frame(frame)
-        self.check_var(frame, var)
+        self._check_frame(frame)
+        self._check_var(frame, var)
         self.handle.cd(frame)
         var = self.handle.cwd.get(var).read()
         self.handle.cwd = self.handle.cd("..")
@@ -672,7 +672,7 @@ class LsdaReader:
             current_path = os.path.join(dir, f"{prefix}{frame_id}{extension}")
             self.write_frame_to_snapshot(current_path, frame, var)
 
-    def check_frame(self, frame: str):
+    def _check_frame(self, frame: str):
         """Check if the given frame was loaded into self.frames.
 
         Parameters
@@ -688,7 +688,7 @@ class LsdaReader:
         if frame not in self.frames:
             raise FrameNotInFileError("{frame} does not exist in this file.")
 
-    def check_var(self, frame: str, var: str):
+    def _check_var(self, frame: str, var: str):
         """Check if the given var exists in the given frame using self.var_dict.
 
         Parameters

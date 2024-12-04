@@ -401,7 +401,7 @@ def create_define_sd_orientation_kw(
     vector_ids = np.arange(0, num_vectors, 1) + vector_id_offset + 1
     iops = np.ones(num_vectors) * iop
     columns = kw.vectors.columns
-    data = np.hstack([vector_ids[:, None], iops[:, None], vectors], dtype=np.float64)
+    data = np.hstack([vector_ids[:, None], iops[:, None], vectors], dtype=np.float32)
     df = pd.DataFrame(data=data, columns=columns[0:5])
 
     kw.vectors = df

@@ -55,9 +55,9 @@ def _compare_k(ref_file: str, file: str):
 
     if os.path.basename(ref_file) in _FILES_TO_SKIP:
         files_are_equal = read_file(ref_file) == read_file(file)
-        if not files_are_equal:
-            print(f"!!!! {file} not equal to {ref_file} !!!!")
-        # assert files_are_equal, f"{file} not equal to {ref_file}"
+        # if not files_are_equal:
+        #     print(f"!!!! {file} not equal to {ref_file} !!!!")
+        assert files_are_equal, f"{file} not equal to {ref_file}"
     else:
         assert read_file(ref_file) == read_file(file), f"{file} not equal to {ref_file}"
 

@@ -1491,7 +1491,7 @@ class HeartModel:
                     # do not use any faces that use a node not in the part.
                     mask = np.all(np.isin(surface.triangles, np.argwhere(mask).flatten()), axis=1)
 
-                    LOGGER.debug(f"Removing {np.sum(np.invert(mask))} from {surface.name}")
+                    LOGGER.debug(f"Removing {np.sum(np.invert(mask))} faces from {surface.name}")
                     surface.triangles = surface.triangles[mask, :]
 
                     # add updated mesh to global mesh.

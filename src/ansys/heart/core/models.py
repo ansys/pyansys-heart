@@ -23,7 +23,6 @@
 """Module containing classes for the various heart models."""
 
 import copy
-from dataclasses import dataclass
 import json
 import os
 
@@ -55,16 +54,6 @@ from ansys.heart.core.objects import (
 from ansys.heart.preprocessor.input import _InputModel
 import ansys.heart.preprocessor.mesher as mesher
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
-
-
-@dataclass
-class MeshSettings:
-    """Mesh settings for (re) meshing the model."""
-
-    global_mesh_size: float = 1.5
-    """Global mesh size."""
-    add_blood_pool: bool = False
-    """Flag indicating whether to add a blood pool (experimental)."""
 
 
 def _get_axis_from_field_data(
@@ -216,8 +205,9 @@ class HeartModel:
         self.fluid_mesh = Mesh()
         """Generated fluid mesh."""
 
-        self._mesh_settings = MeshSettings()
-        """Settings used for (re)meshing the model."""
+        #! TODO: non-functional flag. Remove or replace.
+        self._add_blood_pool: bool = False
+        """Flag indicating whether to add a blood pool mesh (Experimental)."""
 
         self._input: _InputModel = None
         """Input model."""
@@ -427,11 +417,14 @@ class HeartModel:
             exit()
         return
 
+    # TODO: add working example in docstring, e.g. by using an existing model.
     def mesh_volume(
         self,
         use_wrapper: bool = False,
         overwrite_existing_mesh: bool = True,
+        global_mesh_size: float = 1.5,
         path_to_fluent_mesh: str = None,
+        mesh_size_per_part: dict = None,
     ):
         """Remesh the input model and fill the volume.
 
@@ -443,6 +436,20 @@ class HeartModel:
             Flag indicating whether to overwrite the existing .msh.h5 mesh, by default True
         path_to_fluent_mesh : str, optional
             Path to the generated Fluent .msh.h5 mesh, by default None
+        mesh_size_per_part : dict, optional
+            Dictionary specifying the target mesh size for a part, by default None.
+
+        Examples
+        --------
+        >>> from ansys.heart.core.models import HeartModel
+        >>> model = HeartModel()
+        >>> model.load_input(geom, part_definitions, scalar)
+        >>> model.mesh_volume(
+        ...     use_wrapper=True,
+        ...     global_mesh_size=1.5,
+        ...     path_to_fluent_mesh="simulation-mesh.msh.h5",
+        ...     mesh_size_per_part={"Left ventricle": 1},
+        ... )
 
         Notes
         -----
@@ -451,6 +458,8 @@ class HeartModel:
         reconstruction errors. Nevertheless, in many instances this approach is
         robuster than meshing from a manifold surface. Moreover, any clear interface
         between parts is potentially lost.
+        When mesh_size_per_part is incomplete, remaining part sizes default to the
+        global mesh size. Note that this is an experimental setting.
         """
         if not path_to_fluent_mesh:
             path_to_fluent_mesh = os.path.join(self.workdir, "simulation_mesh.msh.h5")
@@ -461,15 +470,16 @@ class HeartModel:
             fluent_mesh = mesher.mesh_from_non_manifold_input_model(
                 model=self._input,
                 workdir=self.workdir,
-                mesh_size=self._mesh_settings.global_mesh_size,
+                global_mesh_size=global_mesh_size,
                 path_to_output=path_to_fluent_mesh,
                 overwrite_existing_mesh=overwrite_existing_mesh,
+                mesh_size_per_part=mesh_size_per_part,
             )
         else:
             fluent_mesh = mesher.mesh_from_manifold_input_model(
                 model=self._input,
                 workdir=self.workdir,
-                mesh_size=self._mesh_settings.global_mesh_size,
+                mesh_size=global_mesh_size,
                 path_to_output=path_to_fluent_mesh,
                 overwrite_existing_mesh=overwrite_existing_mesh,
             )
@@ -1481,7 +1491,7 @@ class HeartModel:
                     # do not use any faces that use a node not in the part.
                     mask = np.all(np.isin(surface.triangles, np.argwhere(mask).flatten()), axis=1)
 
-                    LOGGER.debug(f"Removing {np.sum(np.invert(mask))} from {surface.name}")
+                    LOGGER.debug(f"Removing {np.sum(np.invert(mask))} faces from {surface.name}")
                     surface.triangles = surface.triangles[mask, :]
 
                     # add updated mesh to global mesh.

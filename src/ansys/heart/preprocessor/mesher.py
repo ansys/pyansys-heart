@@ -41,8 +41,9 @@ from ansys.heart.preprocessor.input import _InputBoundary, _InputModel
 # NOTE: can set os.environ["SHOW_FLUENT_GUI"] = "1" to show Fluent GUI.
 
 _supported_fluent_versions = ["24.2", "24.1"]
-_show_fluent_gui: bool = False
+_show_fluent_gui: bool = True
 _uses_container: bool = True
+_num_cpus: bool = 2
 
 try:
     _show_fluent_gui = bool(int(os.environ["SHOW_FLUENT_GUI"]))
@@ -184,7 +185,7 @@ def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingS
         )
 
     else:
-        num_cpus = 2
+        num_cpus = _num_cpus
         session = pyfluent.launch_fluent(
             mode="meshing",
             precision="double",
@@ -511,8 +512,9 @@ def mesh_from_non_manifold_input_model(
     model: _InputModel,
     workdir: Union[str, Path],
     path_to_output: Union[str, Path],
-    mesh_size: float = 2.0,
+    global_mesh_size: float = 2.0,
     overwrite_existing_mesh: bool = True,
+    mesh_size_per_part: dict = None,
 ) -> FluentMesh:
     """Generate mesh from non-manifold poor quality input model.
 
@@ -526,12 +528,18 @@ def mesh_from_non_manifold_input_model(
         Path to the resulting Fluent mesh file.
     mesh_size : float, optional
         Uniform mesh size to use for both wrapping and filling the volume, by default 2.0
+    mesh_size_per_part : dict, optional
+        Dictionary specifying the mesh size that should be used for each part, by default None.
 
     Notes
     -----
     Uses Fluent wrapping technology to wrap the individual parts first to create manifold
     parts. Consequently wrap the entire model and use the manifold parts to split the
     wrapped model into the different cell zones.
+
+    When specifying a mesh size per part, you can do that by either specifying that for all
+    parts, or for specific parts. The default mesh size will be used for any part not listed
+    in the dictionary.
 
     Returns
     -------
@@ -540,6 +548,29 @@ def mesh_from_non_manifold_input_model(
     """
     if not isinstance(model, _InputModel):
         raise ValueError(f"Expecting input to be of type {str(_InputModel)}")
+
+    # check validity of mesh_size_per_part_dict:
+    if mesh_size_per_part is None:
+        # NOTE: use Fluent convention for replacing spaces and capitals.
+        mesh_size_per_part = {
+            "_".join(part_name.lower().split()): global_mesh_size for part_name in model.part_names
+        }
+    else:
+        # NOTE: Force Fluent convention of dictionary keys.
+        mesh_size_per_part = {
+            "_".join(part.lower().split()): size for part, size in mesh_size_per_part.items()
+        }
+
+    if isinstance(mesh_size_per_part, dict):
+        for part_name in model.part_names:
+            # NOTE: use Fluent convention for replacing spaces and capitals.
+            tmp_part_name = "_".join(part_name.lower().split())
+            if tmp_part_name not in mesh_size_per_part.keys():
+                LOGGER.info(f"{part_name} not specified. Using {global_mesh_size} for {part_name}")
+                mesh_size_per_part[tmp_part_name] = global_mesh_size
+
+    min_mesh_size = np.min(list(mesh_size_per_part.values()))
+    max_mesh_size = np.max(list(mesh_size_per_part.values()))
 
     if not os.path.isdir(workdir):
         os.makedirs(workdir)
@@ -566,8 +597,6 @@ def mesh_from_non_manifold_input_model(
         path_to_output_old = path_to_output
         path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
 
-        min_size = mesh_size
-        max_size = mesh_size
         growth_rate = 1.2
 
         # clean up any stls in the directory
@@ -600,15 +629,41 @@ def mesh_from_non_manifold_input_model(
 
         # each stl is imported as a separate object. Wrap the different collections of stls to
         # create new surface meshes for each of the parts.
-        session.tui.size_functions.set_global_controls(min_size, max_size, growth_rate)
+        session.tui.size_functions.set_global_controls(min_mesh_size, max_mesh_size, growth_rate)
+
+        ## Set up boi's scoped to face zones of individual parts:
+        part_names_input = [p.name for p in model.parts]
+        for part, part_size in mesh_size_per_part.items():
+            idx = part_names_input.index(part)
+            try:
+                b_names = [b.name.replace("'", '"') for b in model.parts[idx].boundaries]
+                session.tui.scoped_sizing.create(
+                    f"boi-{part}",
+                    "boi",
+                    "face-zone",
+                    "yes",
+                    "no",
+                    '"' + " ".join(b_names).replace("'", '"') + '"',
+                    part_size,
+                    growth_rate,
+                )
+            except Exception as e:
+                LOGGER.warning(f"Failed to set mesh size for {part}: {e}")
+
         session.tui.scoped_sizing.compute('"yes"')
 
         session.tui.objects.extract_edges("'(*) feature 40")
 
+        part_face_zone_ids_post_wrap = {}
         for part in model.parts:
             LOGGER.info("Wrapping " + part.name + "...")
             # wrap object.
             _wrap_part(session, part.boundary_names, part.name)
+            session.tui.objects.volumetric_regions.compute(part.name)
+
+            part_face_zone_ids_post_wrap[part.name] = session.scheme_eval.scheme_eval(
+                f"(get-face-zones-of-objects '({part.name}) )"
+            )
 
         # NOTE: wrap entire model in one pass so that we can create a single volume mesh.
         # Use list of all input boundaries as input. Uses external material point for meshing.
@@ -619,6 +674,7 @@ def mesh_from_non_manifold_input_model(
 
         # mesh the entire model in one go.
         session.tui.objects.volumetric_regions.compute("model")
+        session.tui.mesh.tet.controls.cell_sizing("size-field")
         session.tui.mesh.auto_mesh("model yes pyramids tet no")
 
         # clean up geometry objects
@@ -657,26 +713,37 @@ def mesh_from_non_manifold_input_model(
     # NOTE: should use wrapped surfaces to select part.
     # assign wrapped boundaries to input parts.
     for ii, part in enumerate(model.parts):
-        face_zones_wrapped = [fz for fz in mesh.face_zones if part.name + ":" in fz.name]
+        part_face_zone_ids_post_wrap[part.name]
+        face_zones_wrapped = [
+            fz for fz in mesh.face_zones if fz.id in part_face_zone_ids_post_wrap[part.name]
+        ]
         if len(face_zones_wrapped) == 0:
             LOGGER.error(f"Did not find any wrapped face zones for {part.name}")
 
-        # replace with remeshed counterpart.
-        for jj, boundary in enumerate(part.boundaries):
-            for fz in face_zones_wrapped:
-                if boundary.name in fz.name:
-                    break
+        # replace with remeshed face zones (Note, we may have more face zones now.).
+        remeshed_boundaries = []
+        for fz in face_zones_wrapped:
+            fz_name = fz.name.replace(part.name + ":", "")
+
+            # try to maintain the input id.
+            try:
+                boundary_id = model.boundary_ids[model.boundary_names.index(fz_name)]
+            except IndexError:
+                boundary_id = fz.id
+
             remeshed_boundary = _InputBoundary(
                 mesh.nodes,
                 faces=np.hstack([np.ones(fz.faces.shape[0], dtype=int)[:, None] * 3, fz.faces]),
-                id=boundary.id,
+                id=boundary_id,
+                name=fz_name,
             )
-            model.parts[ii].boundaries[jj] = remeshed_boundary
+            remeshed_boundaries.append(remeshed_boundary)
+        model.parts[ii].boundaries = remeshed_boundaries
 
     # use individual wrapped parts to separate the parts of the wrapped model.
     for part in model.parts:
         if not part.is_manifold:
-            LOGGER.warning("Part is not manifold.")
+            LOGGER.warning(f"Part {part.name} is not manifold.")
 
         cell_centroids = cell_centroids.select_enclosed_points(
             part.combined_boundaries, check_surface=False

@@ -113,7 +113,6 @@ path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 # initialize left-ventricular heart model
 model = models.LeftVentricle(working_directory=workdir)
-model._mesh_settings.global_mesh_size = 0.5
 
 # clean working directory
 clean_directory(workdir, [".stl", ".msh.h5", ".pickle"])
@@ -131,7 +130,7 @@ model.load_input(heart, part_definitions, "surface-id")
 #    and ensures proper connectivity.
 
 # remesh the model using wrapping
-model.mesh_volume(use_wrapper=True)
+model.mesh_volume(use_wrapper=True, global_mesh_size=0.5)
 
 # assign axis of model manually.
 model.l4cv_axis = {"center": base.center, "normal": np.array([1, 0, 0])}

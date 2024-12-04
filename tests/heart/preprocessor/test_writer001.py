@@ -38,7 +38,6 @@ import ansys.heart.writer.dynawriter as writers
 
 def get_test_model():
     model: models.LeftVentricle = models.LeftVentricle()
-    model._mesh_settings.global_mesh_size = 2.0
 
     # populate model
     model.mesh.tetrahedrons = np.array([[1, 2, 3, 4], [5, 2, 3, 4]], dtype=int)

@@ -2895,7 +2895,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     ) -> None:
         if isinstance(model, FourChamber):
             model._create_atrioventricular_isolation()
-        if model._mesh_settings.add_blood_pool:
+        if model._add_blood_pool:
             model._create_blood_part()
 
         super().__init__(model=model, settings=settings)
@@ -2936,7 +2936,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self._update_ep_settings()
         self._update_stimulation()
 
-        if self.model._mesh_settings.add_blood_pool:
+        if self.model._add_blood_pool:
             self._update_blood_settings()
 
         if hasattr(self.model, "electrodes") and len(self.model.electrodes) != 0:
@@ -3237,7 +3237,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def _update_blood_settings(self):
         """Update blood settings."""
-        if self.model._mesh_settings.add_blood_pool:
+        if self.model._add_blood_pool:
             dirichlet_bc_nid = self.get_unique_nodeset_id()
             apex = self.model.left_ventricle.apex_points[0].node_id
             node_set_kw = create_node_set_keyword(

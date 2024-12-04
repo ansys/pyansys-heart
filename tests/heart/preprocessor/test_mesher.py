@@ -162,8 +162,14 @@ def test_meshing_for_non_manifold():
 
     # call meshing method.
     mesh_file = os.path.join(tmpdir.name, "test_mesh.msh.h5")
+
+    # specify incomplete mesh-size-per-part. Part 2 should use 0.1 for mesh-size
     fluent_mesh = mesher.mesh_from_non_manifold_input_model(
-        model, tmpdir.name, mesh_file, mesh_size=0.1
+        model,
+        tmpdir.name,
+        mesh_file,
+        global_mesh_size=0.1,
+        mesh_size_per_part={"Part1": 0.15},
     )
 
     assert len(fluent_mesh.cell_zones) == 2
@@ -171,5 +177,7 @@ def test_meshing_for_non_manifold():
     assert sorted(["s1", "s2", "s3", "s4", "s5", "s6", "s8", "s9", "s10", "s11", "s12"]) == sorted(
         [fz.name for fz in fluent_mesh.face_zones if "interior" not in fz.name]
     )
+    # assert that more cells exist in Part 2, even though box size is smaller.
+    assert fluent_mesh.cell_zones[0].cells.shape[0] < fluent_mesh.cell_zones[1].cells.shape[0]
 
     pass

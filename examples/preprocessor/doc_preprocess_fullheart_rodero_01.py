@@ -118,13 +118,12 @@ else:
 
 # initialize full heart model
 model = models.FullHeart(working_directory=workdir)
-model._mesh_settings.global_mesh_size = 1.5
 
 # load input model generated in an earlier step.
 model.load_input(input_geom, part_definitions, "surface-id")
 
 # mesh the volume of all structural parts.
-model.mesh_volume(use_wrapper=True)
+model.mesh_volume(use_wrapper=True, global_mesh_size=1.5)
 
 # update the model and extract the required (anatomical) features
 model._update_parts()

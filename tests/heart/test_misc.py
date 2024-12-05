@@ -22,14 +22,14 @@
 
 import numpy as np
 
-from ansys.heart.misc.slerp import interpolate_slerp, slerp
+from ansys.heart.misc.slerp import _slerp, interpolate_slerp
 
 
 def test_slerp():
     a = np.array([1, 0, 0])
     b = np.array([0, 1, 0])
 
-    c = slerp(a, b, 0.5)
+    c = _slerp(a, b, 0.5)
     assert np.allclose(c, np.array([0.70710678, 0.70710678, 0]))
 
 

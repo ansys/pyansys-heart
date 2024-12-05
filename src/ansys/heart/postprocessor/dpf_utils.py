@@ -57,7 +57,7 @@ class D3plotReader:
         """
         _check_env()
 
-        self._server = dpf.start_local_server(config=dpf.AvailableServerConfigs.GrpcServer)
+        self._server = dpf.start_local_server()
 
         self.ds = dpf.DataSources()
         self.ds.set_result_file_path(path, "d3plot")
@@ -68,8 +68,13 @@ class D3plotReader:
         self.time = self.model.metadata.time_freq_support.time_frequencies.data
 
     def __del__(self):
-        """Shutdown the server to release ansyscl."""
-        self._server.shutdown()
+        """Force shutdown ansyscl after use of dpf."""
+        # otherwise, lsdyna will try to connect with ansyscl from dpf and cause licence issue.
+        import psutil
+
+        for p in psutil.process_iter():
+            if "ansyscl" in p.name():
+                p.kill()
 
     def get_initial_coordinates(self):
         """Get initial coordinates."""

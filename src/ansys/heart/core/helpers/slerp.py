@@ -30,7 +30,7 @@ import numpy as np
 from scipy.spatial import cKDTree
 
 
-def _slerp(v0: np.ndarray, v1: np.ndarray, t: float):
+def _slerp(v0: np.ndarray, v1: np.ndarray, t: float) -> np.ndarray:
     """Spherical Linear Interpolation between two unit vectors v0 and v1."""
     # Compute dot product and clamp to handle numerical issues
     dot = np.dot(v0, v1)

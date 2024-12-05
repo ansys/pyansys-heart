@@ -23,7 +23,6 @@
 """functions for fibers interpolation."""
 
 import numpy as np
-import pyvista as pv
 from scipy.spatial import cKDTree
 
 
@@ -119,35 +118,4 @@ if __name__ == "__main__":
     Note:
     if interpolate both fiber and sheet, make sure they should be orthogonal.
     """
-    # read source mesh with fibers, note fibers are on cell center
-    source_mesh = pv.read(r"mesh08.vtk")
-    source_pos = source_mesh.cell_centers().points
-    source_vec = source_mesh.cell_data["aVector"]
-
-    # read target mesh
-    target_mesh = pv.read(r"mesh20.vtk")
-    target_pos = target_mesh.cell_centers().points
-
-    # run slerp interpolation
-    target_vec = interpolate_slerp(source_pos, source_vec, target_pos)
-
-    # verify the results
-    def compute_bidirectional_angles(vectors1, vectors2):
-        """Compare angles between data and interpolation."""
-        dot_products = np.sum(vectors1 * vectors2, axis=1)
-
-        # absolute because it's bidirectional
-        dot_products = np.clip(np.abs(dot_products), 0.0, 1.0)
-
-        # angles in degree
-        angles = np.degrees(np.arccos(dot_products))
-        return angles
-
-    error_in_degree = compute_bidirectional_angles(target_vec, target_mesh.cell_data["aVector"])
-    print(np.mean(error_in_degree))
-    print(np.max(error_in_degree))
-
-    # save and check in vtk file
-    target_mesh.cell_data["res"] = target_vec
-    target_mesh.cell_data["error"] = error_in_degree
-    target_mesh.save("result.vtu")
+    ...

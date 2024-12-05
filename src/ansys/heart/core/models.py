@@ -425,6 +425,7 @@ class HeartModel:
         global_mesh_size: float = 1.5,
         path_to_fluent_mesh: str = None,
         mesh_size_per_part: dict = None,
+        wrap_size_per_part: dict = None,
     ):
         """Remesh the input model and fill the volume.
 
@@ -474,6 +475,7 @@ class HeartModel:
                 path_to_output=path_to_fluent_mesh,
                 overwrite_existing_mesh=overwrite_existing_mesh,
                 mesh_size_per_part=mesh_size_per_part,
+                _wrap_size_per_part=wrap_size_per_part,
             )
         else:
             fluent_mesh = mesher.mesh_from_manifold_input_model(

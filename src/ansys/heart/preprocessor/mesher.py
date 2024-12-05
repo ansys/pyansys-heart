@@ -233,6 +233,45 @@ def _wrap_part(session: MeshingSession, boundary_names: list, wrapped_part_name:
     return wrapped_face_zone_names
 
 
+def _set_size_field_on_mesh_part(
+    session: MeshingSession, mesh_size: float, part_name: str, growth_rate: float = 1.2
+):
+    """Set the size field per part."""
+    session.tui.scoped_sizing.create(
+        f"boi-{part_name}",
+        "boi",
+        "object-faces-and-edges",
+        "no",
+        "yes",
+        f"{part_name.lower()}",
+        mesh_size,
+        growth_rate,
+    )
+
+    return session
+
+
+def _set_size_field_on_face_zones(
+    session: MeshingSession,
+    mesh_size: float,
+    face_zone_names: list[str],
+    boi_name: str,
+    growth_rate: float = 1.2,
+):
+    """Set the size field per list of boundaries."""
+    session.tui.scoped_sizing.create(
+        f"{boi_name}",
+        "boi",
+        "face-zone",
+        "yes",
+        "no",
+        '"' + " ".join(face_zone_names).replace("'", '"') + '"',
+        mesh_size,
+        growth_rate,
+    )
+    return session
+
+
 def mesh_fluid_cavities(
     fluid_boundaries: List[SurfaceMesh],
     caps: List[SurfaceMesh],
@@ -513,8 +552,10 @@ def mesh_from_non_manifold_input_model(
     workdir: Union[str, Path],
     path_to_output: Union[str, Path],
     global_mesh_size: float = 2.0,
+    _global_wrap_size: float = 1.5,
     overwrite_existing_mesh: bool = True,
     mesh_size_per_part: dict = None,
+    _wrap_size_per_part: dict = None,
 ) -> FluentMesh:
     """Generate mesh from non-manifold poor quality input model.
 
@@ -549,6 +590,7 @@ def mesh_from_non_manifold_input_model(
     if not isinstance(model, _InputModel):
         raise ValueError(f"Expecting input to be of type {str(_InputModel)}")
 
+    # TODO: Cleanup (populating) dictionaries, e.g. move to separate method
     # check validity of mesh_size_per_part_dict:
     if mesh_size_per_part is None:
         # NOTE: use Fluent convention for replacing spaces and capitals.
@@ -569,8 +611,34 @@ def mesh_from_non_manifold_input_model(
                 LOGGER.info(f"{part_name} not specified. Using {global_mesh_size} for {part_name}")
                 mesh_size_per_part[tmp_part_name] = global_mesh_size
 
+    if _wrap_size_per_part is None:
+        _wrap_size_per_part = {part: _global_wrap_size for part in mesh_size_per_part.keys()}
+    else:
+        _wrap_size_per_part = {
+            "_".join(part.lower().split()): size for part, size in _wrap_size_per_part.items()
+        }
+
+    if isinstance(_wrap_size_per_part, dict):
+        for part_name in model.part_names:
+            # NOTE: use Fluent convention for replacing spaces and capitals.
+            tmp_part_name = "_".join(part_name.lower().split())
+            if tmp_part_name not in _wrap_size_per_part.keys():
+                LOGGER.info(
+                    f"{part_name} not specified. Using {_global_wrap_size} for wrapping {part_name}"
+                )
+                _wrap_size_per_part[tmp_part_name] = _global_wrap_size
+
+    # Flag to determine whether to do a post-wrap remesh.
+    if _wrap_size_per_part == mesh_size_per_part:
+        post_wrap_remesh = False
+    else:
+        post_wrap_remesh = True
+
     min_mesh_size = np.min(list(mesh_size_per_part.values()))
     max_mesh_size = np.max(list(mesh_size_per_part.values()))
+
+    min_mesh_size_wrap = np.min(list(_wrap_size_per_part.values()))
+    max_mesh_size_wrap = np.max(list(_wrap_size_per_part.values()))
 
     if not os.path.isdir(workdir):
         os.makedirs(workdir)
@@ -629,28 +697,27 @@ def mesh_from_non_manifold_input_model(
 
         # each stl is imported as a separate object. Wrap the different collections of stls to
         # create new surface meshes for each of the parts.
-        session.tui.size_functions.set_global_controls(min_mesh_size, max_mesh_size, growth_rate)
+
+        ## Set size field for wrapping process.
+        #####################################################################
+        session.tui.size_functions.set_global_controls(
+            min_mesh_size_wrap, max_mesh_size_wrap, growth_rate
+        )
 
         ## Set up boi's scoped to face zones of individual parts:
         part_names_input = [p.name for p in model.parts]
-        for part, part_size in mesh_size_per_part.items():
+        for part, wrap_size in _wrap_size_per_part.items():
             idx = part_names_input.index(part)
             try:
                 b_names = [b.name.replace("'", '"') for b in model.parts[idx].boundaries]
-                session.tui.scoped_sizing.create(
-                    f"boi-{part}",
-                    "boi",
-                    "face-zone",
-                    "yes",
-                    "no",
-                    '"' + " ".join(b_names).replace("'", '"') + '"',
-                    part_size,
-                    growth_rate,
+                _set_size_field_on_face_zones(
+                    session, wrap_size, b_names, f"boi-{part}", growth_rate
                 )
             except Exception as e:
                 LOGGER.warning(f"Failed to set mesh size for {part}: {e}")
 
         session.tui.scoped_sizing.compute('"yes"')
+        #####################################################################
 
         session.tui.objects.extract_edges("'(*) feature 40")
 
@@ -672,9 +739,40 @@ def mesh_from_non_manifold_input_model(
         LOGGER.info("Wrapping model...")
         _wrap_part(session, model.boundary_names, "model")
 
+        ## Recompute size field for final target mesh size. This size-field is used for
+        ## remeshing the wrapped model.
+        if post_wrap_remesh:
+            LOGGER.info("Post-wrap remeshing of model surfaces...")
+            session.tui.objects.delete_all_geom()
+            session.tui.scoped_sizing.delete_size_field()
+            session.tui.scoped_sizing.delete_all()
+
+            ## set size field for final mesh.
+            #####################################################################
+            session.tui.size_functions.set_global_controls(
+                min_mesh_size, max_mesh_size, growth_rate
+            )
+
+            for part, mesh_size in mesh_size_per_part.items():
+                idx = part_names_input.index(part)
+                try:
+                    b_names = [b.name.replace("'", '"') for b in model.parts[idx].boundaries]
+                    _set_size_field_on_mesh_part(session, mesh_size, part, growth_rate)
+                except Exception as e:
+                    LOGGER.warning(f"Failed to set mesh size for {part}: {e}")
+
+            session.tui.scoped_sizing.compute('"yes"')
+            #####################################################################
+
+            session.tui.boundary.remesh.remesh_face_zones_conformally(
+                "'(model*)", "()", 40, 20, "yes"
+            )
+
         # mesh the entire model in one go.
         session.tui.objects.volumetric_regions.compute("model")
         session.tui.mesh.tet.controls.cell_sizing("size-field")
+
+        LOGGER.info("Generating volume mesh...")
         session.tui.mesh.auto_mesh("model yes pyramids tet no")
 
         # clean up geometry objects
@@ -684,6 +782,7 @@ def mesh_from_non_manifold_input_model(
         if os.path.isfile(path_to_output):
             os.remove(path_to_output)
 
+        LOGGER.info(f"Writing mesh to {path_to_output}...")
         if _uses_container:
             session.tui.file.write_mesh(os.path.basename(path_to_output))
         else:
@@ -698,6 +797,7 @@ def mesh_from_non_manifold_input_model(
         for part in model.parts:
             part.name = part.name.replace(" ", "_").lower()
 
+    LOGGER.info("Post Fluent-Meshing cleanup...")
     # Update the cell zones such that for each part we have a separate cell zone.
     mesh = FluentMesh()
     mesh.load_mesh(path_to_output)

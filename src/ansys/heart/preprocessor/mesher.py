@@ -777,6 +777,7 @@ def mesh_from_non_manifold_input_model(
 
         # clean up geometry objects
         session.tui.objects.delete_all_geom()
+        session.tui.objects.delete_unreferenced_faces_and_edges()
 
         # write mesh
         if os.path.isfile(path_to_output):

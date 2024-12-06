@@ -233,6 +233,57 @@ def _wrap_part(session: MeshingSession, boundary_names: list, wrapped_part_name:
     return wrapped_face_zone_names
 
 
+def _update_input_model_with_wrapped_surfaces(
+    model: _InputModel, mesh: FluentMesh, face_zone_ids_per_part: dict
+) -> _InputModel:
+    """Update the input model with the wrapped surfaces.
+
+    Parameters
+    ----------
+    model : _InputModel
+        Input model to be updated.
+    mesh : FluentMesh
+        Fluent mesh containing all wrapped face zones.
+    face_zone_ids_per_part : dict
+        Face zone ids for each part.
+
+    Returns
+    -------
+    _InputModel
+        Input model with wrapped boundaries assigned.
+    """
+    for ii, part in enumerate(model.parts):
+        face_zone_ids_per_part[part.name]
+        face_zones_wrapped = [
+            fz for fz in mesh.face_zones if fz.id in face_zone_ids_per_part[part.name]
+        ]
+        if len(face_zones_wrapped) == 0:
+            LOGGER.error(f"Did not find any wrapped face zones for {part.name}")
+
+        # replace with remeshed face zones, note that we may have more face zones now.
+        remeshed_boundaries = []
+        for fz in face_zones_wrapped:
+            face_zone_name = fz.name.replace(part.name + ":", "")
+
+            # try to maintain the input id.
+            try:
+                boundary_id = model.boundary_ids[model.boundary_names.index(face_zone_name)]
+            except IndexError:
+                boundary_id = fz.id
+
+            remeshed_boundary = _InputBoundary(
+                mesh.nodes,
+                faces=np.hstack([np.ones(fz.faces.shape[0], dtype=int)[:, None] * 3, fz.faces]),
+                id=boundary_id,
+                name=face_zone_name,
+            )
+            remeshed_boundaries.append(remeshed_boundary)
+
+        model.parts[ii].boundaries = remeshed_boundaries
+
+    return model
+
+
 def _set_size_field_on_mesh_part(
     session: MeshingSession, mesh_size: float, part_name: str, growth_rate: float = 1.2
 ):
@@ -804,6 +855,9 @@ def mesh_from_non_manifold_input_model(
     mesh.load_mesh(path_to_output)
     mesh._fix_negative_cells()
 
+    # update the input model with the wrapped surfaces.
+    model = _update_input_model_with_wrapped_surfaces(model, mesh, part_face_zone_ids_post_wrap)
+
     # convert to unstructured grid.
     grid = mesh._to_vtk()
 
@@ -811,43 +865,13 @@ def mesh_from_non_manifold_input_model(
     cell_centroids = grid.cell_centers()
     cell_centroids.point_data.set_scalars(name="part-id", scalars=0)
 
-    # NOTE: should use wrapped surfaces to select part.
-    # assign wrapped boundaries to input parts.
-    for ii, part in enumerate(model.parts):
-        part_face_zone_ids_post_wrap[part.name]
-        face_zones_wrapped = [
-            fz for fz in mesh.face_zones if fz.id in part_face_zone_ids_post_wrap[part.name]
-        ]
-        if len(face_zones_wrapped) == 0:
-            LOGGER.error(f"Did not find any wrapped face zones for {part.name}")
-
-        # replace with remeshed face zones (Note, we may have more face zones now.).
-        remeshed_boundaries = []
-        for fz in face_zones_wrapped:
-            fz_name = fz.name.replace(part.name + ":", "")
-
-            # try to maintain the input id.
-            try:
-                boundary_id = model.boundary_ids[model.boundary_names.index(fz_name)]
-            except IndexError:
-                boundary_id = fz.id
-
-            remeshed_boundary = _InputBoundary(
-                mesh.nodes,
-                faces=np.hstack([np.ones(fz.faces.shape[0], dtype=int)[:, None] * 3, fz.faces]),
-                id=boundary_id,
-                name=fz_name,
-            )
-            remeshed_boundaries.append(remeshed_boundary)
-        model.parts[ii].boundaries = remeshed_boundaries
-
     # use individual wrapped parts to separate the parts of the wrapped model.
     for part in model.parts:
         if not part.is_manifold:
             LOGGER.warning(f"Part {part.name} is not manifold.")
 
         cell_centroids = cell_centroids.select_enclosed_points(
-            part.combined_boundaries, check_surface=False
+            part.combined_boundaries, check_surface=True
         )
         cell_centroids.point_data["part-id"][cell_centroids.point_data["SelectedPoints"] == 1] = (
             part.id
@@ -865,18 +889,19 @@ def mesh_from_non_manifold_input_model(
     cell_centroids_2 = cell_centroids.remove_cells(
         cell_centroids.point_data["part-id"] == 0, inplace=False
     )
+    # cleanup unwanted point and cell data.
     try:
         cell_centroids_2.point_data.remove("orig_indices")
     except KeyError:
-        LOGGER.debug("KeyError")
+        pass
     try:
         cell_centroids_2.point_data.remove("cell-zone-ids")
     except KeyError:
-        LOGGER.debug("KeyError")
+        pass
     try:
         cell_centroids_2.cell_data.remove("cell-zone-ids")
     except KeyError:
-        LOGGER.debug("KeyError")
+        pass
 
     cell_centroids_1.point_data.remove("part-id")
     cell_centroids_1.cell_data.remove("cell-zone-ids")
@@ -901,7 +926,7 @@ def mesh_from_non_manifold_input_model(
 
     new_mesh = mesh
     new_mesh.cells = new_mesh.cells[idx_sorted]
-    new_mesh.cell_zones: List[FluentCellZone] = []
+    new_mesh.cell_zones: list[FluentCellZone] = []
 
     for part in model.parts:
         part.name = part.name.replace("_", " ").capitalize()

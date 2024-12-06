@@ -106,26 +106,26 @@ class D3plotReader:
         # print(self.model.operator())
         return
 
-    def get_transmembrane_potentials_fc(self, fc: dpf.FieldsContainer) -> dpf.FieldsContainer:
-        """Get sub field container."""
-        op = dpf.operators.utility.extract_sub_fc(
-            fields_container=fc,
-            label_space={"variable_id": 126},
-        )
-        return op.eval()
+    # def get_transmembrane_potentials_fc(self, fc: dpf.FieldsContainer) -> dpf.FieldsContainer:
+    #     """Get sub field container."""
+    #     op = dpf.operators.utility.extract_sub_fc(
+    #         fields_container=fc,
+    #         label_space={"variable_id": 126},
+    #     )
+    #     return op.eval()
 
-        # activation_time_field = fields_container[10]
+    #     # activation_time_field = fields_container[10]
 
-        # use to know which variable to use:
-        # lsdyna::ms::result_info_provider
+    #     # use to know which variable to use:
+    #     # lsdyna::ms::result_info_provider
 
-        # sub_fields_container: dpf.FieldsContainer = dpf.operators.utility.extract_sub_fc(
-        #     fields_container=full_fields_container,
-        #     label_space={"variable_id": 129},
-        # ).eval()
-        # sub_fields_container.animate()
-        # print(self.model.operator())
-        return
+    #     # sub_fields_container: dpf.FieldsContainer = dpf.operators.utility.extract_sub_fc(
+    #     #     fields_container=full_fields_container,
+    #     #     label_space={"variable_id": 129},
+    #     # ).eval()
+    #     # sub_fields_container.animate()
+    #     # print(self.model.operator())
+    #     return
 
     def print_lsdyna_ms_results(self):
         """Print available ms results."""

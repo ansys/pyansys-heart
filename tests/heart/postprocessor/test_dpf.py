@@ -29,7 +29,8 @@ os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 import numpy as np
 import pytest
 
-from ansys.heart.postprocessor.dpf_utils import ICVoutReader
+from ansys.dpf import core as dpf
+from ansys.heart.postprocessor.dpf_utils import D3plotReader, ICVoutReader
 
 if os.getenv("GITHUB_ACTION"):
     github_runner = True
@@ -37,8 +38,7 @@ else:
     github_runner = False
 
 
-@pytest.mark.xfail(condition=github_runner, reason="Needs to be reworked.")
-def test_icvout():
+def test_icvout_reader():
     path = os.path.dirname(os.path.abspath(__file__))
     fn = os.path.join(path, "binout0000")
     icvout = ICVoutReader(fn)
@@ -54,3 +54,17 @@ def test_icvout():
 
     with pytest.raises(ValueError):
         icvout.get_flowrate(3)
+
+
+def test_d3plot_reader():
+    path = os.path.dirname(os.path.abspath(__file__))
+    fn = os.path.join(path, "d3plot")
+    d3plot = D3plotReader(fn)
+
+    # just to check all dpf API works
+    assert len(d3plot.time) == 2
+    assert d3plot.get_material_ids().max() == 8
+    assert d3plot.get_initial_coordinates().shape == (8598, 3)
+    assert d3plot.get_displacement_at(0).shape == (8598, 3)
+    assert d3plot.get_history_variable([1, 2], at_step=0).shape == (2, 24206)
+    assert isinstance(d3plot.get_ep_fields(), dpf.FieldsContainer)

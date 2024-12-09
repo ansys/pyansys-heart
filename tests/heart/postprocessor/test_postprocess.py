@@ -23,73 +23,63 @@
 """unit test for post-processing."""
 
 import os
-from pathlib import Path
 
 import pytest
 
-from ansys.heart.core.models import HeartModel
+from ansys.heart.core.models import LeftVentricle
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
-from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
+from ansys.heart.postprocessor.auto_process import zerop_post
 from ansys.heart.postprocessor.system_model_post import SystemModelPost
 
-model: HeartModel
-test_dir: str
 
-
-pytestmark = pytest.mark.local
-
-
-# TODO: use mock objects to allow testing postprocessing methods.
 @pytest.fixture(autouse=True, scope="module")
 def get_data():
-    global test_dir, model
-
-    test_dir = r"D:\PyAnsys-Heart\test_case\test_lv"
-    model = HeartModel.load_model(Path(test_dir) / "model_with_fiber.pickle")
-    model.compute_left_ventricle_anatomy_axis()
+    test_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "asset")
+    path_to_model = os.path.join(test_dir, "model", "heart_model.vtu")
+    model: LeftVentricle = LeftVentricle(working_directory=test_dir)
+    model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
+    model._extract_apex()
     model.compute_left_ventricle_aha17()
 
+    return test_dir, model
 
-@pytest.mark.xfail(reason="Test requires local data.")
-def test_compute_myocardial_strain():
-    d3plot = Path(test_dir) / "main-mechanics" / "d3plot"
+
+def test_compute_myocardial_strain(get_data):
+    test_dir = get_data[0]
+    model = get_data[1]
+    d3plot = os.path.join(os.path.join(test_dir, "main", "d3plot"))
 
     s = AhaStrainCalculator(model, d3plot)
     _, aha_lrc, _ = s._compute_myocardial_strain(1)
-    assert aha_lrc[-1, -1] == pytest.approx(0.08878163)
+    assert aha_lrc[-1, -1] == pytest.approx(0.0829107005807934)
 
 
-@pytest.mark.xfail(reason="Test requires local data.")
-def test_compute_aha_strain():
-    d3plot = Path(test_dir) / "main-mechanics" / "d3plot"
+def test_compute_aha_strain(get_data):
+    test_dir = get_data[0]
+    model = get_data[1]
+    d3plot = os.path.join(os.path.join(test_dir, "main", "d3plot"))
 
     s = AhaStrainCalculator(model, d3plot)
     aha_lrc = s.compute_aha_strain(".")
-    assert aha_lrc[1, -1] == pytest.approx(0.08878163)
+
+    assert aha_lrc[1, -1] == pytest.approx(0.0829107005807934)
 
 
-@pytest.mark.xfail(reason="Test requires local data.")
-def test_mech_post():
-    mech_post(Path(test_dir) / "main-mechanics", model)
-    assert os.path.exists(Path(test_dir) / "main-mechanics" / "post")
-
-
-@pytest.mark.xfail(reason="Test requires local data.")
-def test_zerop_post():
-    dct = zerop_post(Path(test_dir) / "zeropressure", model)
-    assert dct["True left ventricle volume (mm3)"] == pytest.approx(288876.8)
-    assert os.path.exists(Path(test_dir) / "zeropressure" / "post")
+def test_zerop_post(get_data):
+    test_dir = get_data[0]
+    model = get_data[1]
+    dct = zerop_post(os.path.join(test_dir, "zerop"), model)
+    assert dct[0]["True left ventricle volume (mm3)"] == pytest.approx(118078.82768066938)
 
 
 class TestSystemModelPost:
     @pytest.fixture
-    def system_model(self):
-        return SystemModelPost(Path(test_dir) / "main-mechanics")
+    def system_model(self, get_data):
+        test_dir = get_data[0]
+        return SystemModelPost(os.path.join(test_dir, "main"))
 
-    @pytest.mark.xfail(reason="Test requires local data.")
     def test_plot_pv_loop(self, system_model):
-        ef = system_model.get_ejection_fraction(t_start=2, t_end=3)
+        ef = system_model.get_ejection_fraction()
         fig = system_model.plot_pv_loop(ef=ef)
         fig.savefig("pv_{0:d}.png".format(0))
         assert os.path.isfile("pv_0.png")
-        # ffmpeg -f image2 -i pv_%d.png output.mp4

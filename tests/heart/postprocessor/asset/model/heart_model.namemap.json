@@ -1,0 +1,18 @@
+{
+    "_surface_id_to_name": {
+        "34728": "interface_left-ventricle-myocardium_left-atrium-myocardium",
+        "34727": "interface_left-ventricle-myocardium_right-atrium-myocardium",
+        "34726": "interface_left-ventricle-myocardium_aorta-wall",
+        "34725": "interface_left-ventricle-myocardium_mitral-valve-plane",
+        "34724": "interface_left-ventricle-myocardium_aortic-valve-plane",
+        "34723": "left-ventricle-unknown-surface",
+        "34722": "Left ventricle endocardium",
+        "34721": "Left ventricle epicardium",
+        "1001": "mitral-valve",
+        "1002": "aortic-valve",
+        "34729": "Left ventricle cavity"
+    },
+    "_volume_id_to_name": {
+        "1": "Left ventricle"
+    }
+}

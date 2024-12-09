@@ -1,0 +1,17 @@
+{
+    "Left ventricle": {
+        "part-id": 1,
+        "part-type": "ventricle",
+        "surfaces": {
+            "Left ventricle endocardium": 34722,
+            "Left ventricle epicardium": 34721
+        },
+        "caps": {
+            "mitral-valve": 1001,
+            "aortic-valve": 1002
+        },
+        "cavity": {
+            "Left ventricle cavity": 34729
+        }
+    }
+}

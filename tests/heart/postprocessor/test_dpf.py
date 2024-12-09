@@ -58,7 +58,7 @@ def test_icvout_reader():
 
 def test_d3plot_reader():
     path = os.path.dirname(os.path.abspath(__file__))
-    fn = os.path.join(path, "d3plot")
+    fn = os.path.join(path, "main", "d3plot")
     d3plot = D3plotReader(fn)
 
     # just to check all dpf API works

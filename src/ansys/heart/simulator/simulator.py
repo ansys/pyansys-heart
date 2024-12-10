@@ -699,6 +699,13 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         return export_directory
 
 
+class LsDynaErrorTerminationError(Exception):
+    """Exception raised when `N o r m a l    t e r m i n a t i o n` is not found."""
+
+    def __init__(self):
+        super().__init__("The LS-DYNA process did not terminate as expected.")
+
+
 def run_lsdyna(
     path_to_input: pathlib,
     settings: DynaSettings = None,
@@ -725,9 +732,15 @@ def run_lsdyna(
 
     os.chdir(os.path.dirname(path_to_input))
 
+    mess = []
     with subprocess.Popen(commands, stdout=subprocess.PIPE, text=True) as p:
         for line in p.stdout:
             LOGGER.info(line.rstrip())
+            mess.append(line)
 
     os.chdir(simulation_directory)
+
+    if "N o r m a l    t e r m i n a t i o n" not in "".join(mess):
+        raise LsDynaErrorTerminationError()
+
     return

@@ -52,21 +52,23 @@ class AhaStrainCalculator:
         self.d3plot = D3plotReader(d3plot_file)
 
     def compute_aha_strain(
-        self, out_dir: str, write_vtk: bool = False, t_to_keep: float = 10e10
+        self, out_dir: str = None, write_vtk: bool = False, t_to_keep: float = 10e10
     ) -> np.ndarray:
-        """Compute and save AHA 17 segment strain values.
+        """Compute AHA 17 segment strain values from deformation grandient.
 
         Parameters
         ----------
-        out_dir : str
-            Output directory where the segments are saved.
+        out_dir : str, optional
+            output folder, by default None
         write_vtk : bool, optional
-            Flag indicating whether to save the VTK file, by default False
+            write into vtk files, by default False
+        t_to_keep : float, optional
+            time to stop, by default 10e10
 
         Returns
         -------
         np.ndarray
-            Average strain values for each of the 17 segments.
+            array of N_time * (1+17*3), columnus represents time and (L R C) strain of each segment
         """
         save_time = self.d3plot.time[self.d3plot.time >= self.d3plot.time[-1] - t_to_keep]
         strain = np.zeros((len(save_time), 1 + 17 * 3))
@@ -88,13 +90,14 @@ class AhaStrainCalculator:
             strain[i, 0] = t
             strain[i, 1:] = aha_lrc.ravel()
 
-        np.savetxt(
-            pathlib.Path(out_dir) / "AHAstrain.csv",
-            strain,
-            header=header,
-            delimiter=",",
-            comments="",
-        )
+        if out_dir is not None:
+            np.savetxt(
+                pathlib.Path(out_dir) / "AHAstrain.csv",
+                strain,
+                header=header,
+                delimiter=",",
+                comments="",
+            )
 
         return strain
 

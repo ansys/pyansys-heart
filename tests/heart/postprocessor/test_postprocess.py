@@ -61,7 +61,7 @@ def test_compute_aha_strain(get_data):
     d3plot = os.path.join(os.path.join(test_dir, "main", "d3plot"))
 
     s = AhaStrainCalculator(model, d3plot)
-    aha_lrc = s.compute_aha_strain(".")
+    aha_lrc = s.compute_aha_strain()
 
     assert aha_lrc[1, -1] == pytest.approx(0.0829107005807934)
 
@@ -88,4 +88,7 @@ class TestSystemModelPost:
         ef = system_model.get_ejection_fraction()
         fig = system_model.plot_pv_loop(ef=ef)
         fig.savefig("pv_{0:d}.png".format(0))
+
         assert os.path.isfile("pv_0.png")
+        # clean
+        os.remove("pv_0.png")

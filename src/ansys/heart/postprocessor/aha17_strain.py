@@ -28,7 +28,6 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 import numpy as np
 
-from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.models import HeartModel
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 
@@ -152,8 +151,7 @@ class AhaStrainCalculator:
         return3: [nelem * 3] elemental LRC strain averaged from AHA17
         """
         if reference is not None:
-            LOGGER.warning("Not implemented")
-            exit()
+            raise NotImplementedError
 
         deformation_gradient = self.d3plot.get_history_variable(
             hv_index=list(range(9)), at_step=at_frame
@@ -198,7 +196,6 @@ class AhaStrainCalculator:
             aha_strain[i - 1] = np.mean(strain[indices, :], axis=0)
             averaged_strain[indices] = aha_strain[i - 1]
         return strain, aha_strain, averaged_strain
-        # return {"strain":strain,"aha_strain":aha_strain,"averaged_strain":averaged_strain}
 
     @staticmethod
     def bullseye_plot(ax, data, seg_bold=None, cmap=None, norm=None):

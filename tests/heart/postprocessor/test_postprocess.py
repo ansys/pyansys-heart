@@ -23,6 +23,7 @@
 """unit test for post-processing."""
 
 import os
+import shutil
 
 import pytest
 
@@ -70,6 +71,11 @@ def test_zerop_post(get_data):
     model = get_data[1]
     dct = zerop_post(os.path.join(test_dir, "zerop"), model)
     assert dct[0]["True left ventricle volume (mm3)"] == pytest.approx(118078.82768066938)
+
+    # Cleanup
+    folder = os.path.join(test_dir, "zerop", "post")
+    if os.path.exists(folder):
+        shutil.rmtree(folder)
 
 
 class TestSystemModelPost:

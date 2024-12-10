@@ -128,29 +128,6 @@ class BaseSimulator:
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(path_to_input=input_file)
 
-        LOGGER.info("done.")
-
-        # interpolate new fibers onto model.mesh
-        # Number of cells/points or element/node ordering may not be the same
-        # especially in the case of a full-heart model where we do not use
-        # the full heart to compute the fibers. Hence, interpolate using the cell
-        # centers.
-        # NOTE: How to handle null values?
-
-        # # read results.
-        # print("Interpolating fibers onto model.mesh")
-        # vtk_with_fibers = os.path.join(directory, "vtk_FO_ADvectors.vtk")
-        # vtk_with_fibers = pyvista.UnstructuredGrid(vtk_with_fibers)
-        #
-        # cell_centers_target = vtk_with_fibers.cell_centers()
-        # cell_centers_source = self.model.mesh.cell_centers()
-        #
-        # cell_centers_source = cell_centers_source.interpolate(cell_centers_target)
-        #
-        # self.model.mesh.cell_data["fiber"] = cell_centers_source.point_data["aVector"]
-        # self.model.mesh.cell_data["sheet"] = cell_centers_source.point_data["dVector"]
-        # print("Done.")
-
         LOGGER.info("Assigning fiber orientation to model...")
         elem_ids, part_ids, connect, fib, sheet = _read_orth_element_kfile(
             os.path.join(directory, "element_solid_ortho.k")
@@ -159,8 +136,6 @@ class BaseSimulator:
         self.model.mesh.cell_data["fiber"][elem_ids - 1] = fib
         self.model.mesh.cell_data["sheet"][elem_ids - 1] = sheet
 
-        # dump the model to reuse fiber information
-        self.model.dump_model(os.path.join(self.root_directory, "model_with_fiber.pickle"))
         return
 
     def compute_uhc(self) -> pv.UnstructuredGrid:

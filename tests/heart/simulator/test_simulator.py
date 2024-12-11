@@ -23,6 +23,7 @@ import hashlib
 import os
 import shutil
 import tempfile
+import unittest.mock as mock
 from unittest.mock import MagicMock, Mock, patch
 
 import numpy as np
@@ -43,36 +44,36 @@ def _get_md5(filename):
 
 
 @pytest.fixture
-def base_simulator(mocker) -> simulators.BaseSimulator:
-    mocker.patch.object(shutil, "which", return_value=1)
-    model = Mock(spec=models.FourChamber).return_value
-    model.left_atrium.endocardium = 1
-    model.right_atrium.endocardium = 1
-    polydata = pv.PolyData(np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0]]), [3, 0, 1, 2])
-    model.mesh = polydata
+def base_simulator() -> simulators.BaseSimulator:
+    with patch("shutil.which", return_value=1):
+        model = Mock(spec=models.FourChamber).return_value
+        model.left_atrium.endocardium = 1
+        model.right_atrium.endocardium = 1
+        polydata = pv.PolyData(np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0]]), [3, 0, 1, 2])
+        model.mesh = polydata
 
-    setting = Mock(spec=DynaSettings)
-    setting.lsdyna_path = ""
-    simulation_directory = "."
-    simulator = simulators.BaseSimulator(model, setting, simulation_directory)
+        setting = Mock(spec=DynaSettings)
+        setting.lsdyna_path = ""
+        simulation_directory = "."
+        simulator = simulators.BaseSimulator(model, setting, simulation_directory)
 
-    return simulator
+        yield simulator
 
 
 @pytest.fixture
-def mechanics_simulator(mocker) -> simulators.MechanicsSimulator:
-    mocker.patch.object(shutil, "which", return_value=1)
-    model = Mock(spec=models.FourChamber).return_value
-    model.left_atrium.endocardium = 1
-    model.right_atrium.endocardium = 1
-    polydata = pv.PolyData(np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0]]), [3, 0, 1, 2])
-    model.mesh = polydata
+def mechanics_simulator() -> simulators.MechanicsSimulator:
+    with patch("shutil.which", return_value=1):
+        model = Mock(spec=models.FourChamber).return_value
+        model.left_atrium.endocardium = 1
+        model.right_atrium.endocardium = 1
+        polydata = pv.PolyData(np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0]]), [3, 0, 1, 2])
+        model.mesh = polydata
 
-    setting = Mock(spec=DynaSettings)
-    setting.lsdyna_path = ""
-    simulation_directory = "."
-    simulator = simulators.MechanicsSimulator(model, setting, simulation_directory)
-    return simulator
+        setting = Mock(spec=DynaSettings)
+        setting.lsdyna_path = ""
+        simulation_directory = "."
+        simulator = simulators.MechanicsSimulator(model, setting, simulation_directory)
+        yield simulator
 
 
 @pytest.fixture
@@ -153,45 +154,64 @@ def test_compute_uvc(base_simulator, mock_laplace):
         simulators.MechanicsSimulator,
     ),
 )
-def test_simulator_inits(mocker, simulator_type):
+def test_simulator_inits(simulator_type):
     """Test inits of all simulators."""
     # mock which
-    mocker.patch.object(shutil, "which", return_value=1)
-    # test init
-    model = MagicMock(spec=models.FourChamber)
-    model.workdir = os.getcwd()
-    simulator = simulator_type(model=model, dyna_settings=None)
+    with patch.object(shutil, "which", return_value=1) as mock_which:
+        # test init
+        model = MagicMock(spec=models.FourChamber)
+        model.workdir = os.getcwd()
+        simulator = simulator_type(model=model, dyna_settings=None)
 
-    assert simulator.dyna_settings.__str__() == DynaSettings().__str__()
+        mock_which.assert_called_once()
+
+        assert simulator.dyna_settings.__str__() == DynaSettings().__str__()
 
 
-def test_base_simulator_load_default_settings(mocker):
+@pytest.fixture()
+def _mocked_methods():
+    """Mock several methods as fixture."""
+    with mock.patch(
+        "ansys.heart.simulator.simulator.BaseSimulator._write_fibers", return_value="."
+    ) as mock_write_fibers:
+        with mock.patch(
+            "ansys.heart.simulator.simulator.BaseSimulator._run_dyna", return_value=True
+        ) as mock_run_dyna:
+            with mock.patch(
+                "ansys.heart.simulator.simulator._read_orth_element_kfile"
+            ) as mock_orth:  # return_value=(np.array([1, 2, 3]), [], [], fiber, sheet),)
+                with mock.patch("ansys.heart.core.models.HeartModel.dump_model"):
+                    yield mock_write_fibers, mock_run_dyna, mock_orth
+
+
+def test_base_simulator_load_default_settings(_mocked_methods):
     """Test loading defaults."""
     from ansys.heart.simulator.settings.settings import SimulationSettings
 
-    mocker.patch.object(shutil, "which", return_value=1)
-    # test init
-    model = Mock(spec=models.FourChamber)
-    model.workdir = os.getcwd()
-    model.mesh = pyvista_examples.load_hexbeam()
-    model.mesh.cell_data["fiber"] = np.zeros((model.mesh.n_cells, 3), dtype=float)
-    model.mesh.cell_data["sheet"] = np.zeros((model.mesh.n_cells, 3), dtype=float)
-    fiber = np.eye(3)
-    sheet = np.eye(3)
+    _mock_write_fibers = _mocked_methods[0]
+    _mock_run_dyna = _mocked_methods[1]
+    _mock_read_orth = _mocked_methods[2]
 
-    simulator = simulators.BaseSimulator(model=model, dyna_settings=None)
-    simulator.load_default_settings() == SimulationSettings()
+    with patch.object(shutil, "which", return_value=1) as mock_which:
+        # test init
+        model = Mock(spec=models.FourChamber)
+        model.workdir = os.getcwd()
+        model.mesh = pyvista_examples.load_hexbeam()
+        model.mesh.cell_data["fiber"] = np.zeros((model.mesh.n_cells, 3), dtype=float)
+        model.mesh.cell_data["sheet"] = np.zeros((model.mesh.n_cells, 3), dtype=float)
+        fiber = np.eye(3)
+        sheet = np.eye(3)
+        _mock_read_orth.return_value = (np.array([1, 2, 3]), [], [], fiber, sheet)
 
-    # mock methods
-    mocker.patch("ansys.heart.simulator.simulator.BaseSimulator._write_fibers", return_value=".")
-    mocker.patch("ansys.heart.simulator.simulator.BaseSimulator._run_dyna", return_value=True)
-    mocker.patch(
-        "ansys.heart.simulator.simulator._read_orth_element_kfile",
-        return_value=(np.array([1, 2, 3]), [], [], fiber, sheet),
-    )
-    mocker.patch("ansys.heart.core.models.HeartModel.dump_model")
+        simulator = simulators.BaseSimulator(model=model, dyna_settings=None)
+        simulator.load_default_settings() == SimulationSettings()
 
-    simulator.compute_fibers()
+        simulator.compute_fibers()
+
+        _mock_run_dyna.assert_called_once()
+        _mock_read_orth.assert_called_once()
+        _mock_write_fibers.assert_called_once()
+        mock_which.assert_called_once()
 
 
 @patch("subprocess.Popen")

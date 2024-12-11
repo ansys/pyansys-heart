@@ -59,13 +59,13 @@ def _mock_ep_postprocessor():
     """Get mock EP postprocessor object."""
     with mock.patch("ansys.heart.postprocessor.ep_postprocessor.D3plotReader"):
         mock_model = mock.Mock(FullHeart)
+
         yield EPpostprocessor(".", mock_model)
 
 
 @pytest.mark.parametrize("to_plot", [False, True], ids=["Plot=False", "Plot=True"])
-def test_compute_12lead_ECG(_mock_ep_postprocessor: EPpostprocessor, to_plot):  # noqa N802
+def test_compute_12lead_ECG(to_plot, _mock_ep_postprocessor: EPpostprocessor):  # noqa: N802
     """Test 12 lead ECG computation."""
-
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         # patch create post folder
         with mock.patch(

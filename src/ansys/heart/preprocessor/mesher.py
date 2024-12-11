@@ -295,8 +295,8 @@ def _set_size_field_on_mesh_part(
         "no",
         "yes",
         f"{part_name.lower()}",
-        mesh_size,
-        growth_rate,
+        str(mesh_size),
+        str(growth_rate),
     )
 
     return session
@@ -801,7 +801,7 @@ def mesh_from_non_manifold_input_model(
             ## set size field for final mesh.
             #####################################################################
             session.tui.size_functions.set_global_controls(
-                min_mesh_size, max_mesh_size, growth_rate
+                str(min_mesh_size), str(max_mesh_size), str(growth_rate)
             )
 
             for part, mesh_size in mesh_size_per_part.items():

@@ -28,10 +28,14 @@ from typing import List
 
 from deprecated import deprecated
 import numpy as np
+import psutil
 import pyvista as pv
 
 from ansys.dpf import core as dpf
 from ansys.heart.core import LOG as LOGGER
+
+_KILL_ANSYSCL_ON_DEL: bool = False
+"""Flag indicating whether to kill the ansys licence client upon deleting the D3PlotReader."""
 
 
 def _check_env():
@@ -57,6 +61,8 @@ class D3plotReader:
         """
         _check_env()
 
+        _running_ansyscl_pids = set([p.pid for p in psutil.process_iter() if "ansyscl" in p.name()])
+
         self._server = dpf.start_local_server()
 
         self.ds = dpf.DataSources()
@@ -64,17 +70,26 @@ class D3plotReader:
 
         self.model = dpf.Model(self.ds)
 
+        self._ansyscl_pid = [
+            p.pid
+            for p in psutil.process_iter()
+            if "ansyscl" in p.name() and p.pid not in _running_ansyscl_pids
+        ]
+        """ansyscl process id triggered by (Py)DPF."""
+
         self.meshgrid: pv.UnstructuredGrid = self.model.metadata.meshed_region.grid
         self.time = self.model.metadata.time_freq_support.time_frequencies.data
 
     def __del__(self):
         """Force shutdown ansyscl after use of dpf."""
-        # otherwise, lsdyna will try to connect with ansyscl from dpf and cause licence issue.
-        import psutil
-
-        for p in psutil.process_iter():
-            if "ansyscl" in p.name():
-                p.kill()
+        # NOTE: kills the ansys client triggered by (py)dpf.
+        # May resolve issues when using tools using other versions of the license client.
+        if _KILL_ANSYSCL_ON_DEL:
+            try:
+                for pid in self._ansyscl_pid:
+                    psutil.Process(pid).kill()
+            except Exception as e:
+                LOGGER.info(f"Failed to kill ansyscl upon delete. {e}")
 
     def get_initial_coordinates(self):
         """Get initial coordinates."""

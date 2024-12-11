@@ -1926,11 +1926,12 @@ class HeartModel:
             ring_eles = np.hstack((ring_eles, orphan_cells))
 
         # Create ring part
-        # TODO: name must have 'base' in name, see dynawriter.py L3120
-        ring: Part = self.create_part_by_ids(ring_eles, name="base atrial stiff rings")
+        ring: Part = self.create_part_by_ids(ring_eles, name="atrial stiff rings")
         ring.part_type = PartType.ATRIUM
         ring.fiber = False
         ring.active = False
+        # assign default EP material
+        ring.ep_material = EPMaterial.Active()
 
         return ring
 

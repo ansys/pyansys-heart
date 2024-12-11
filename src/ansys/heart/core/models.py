@@ -54,6 +54,10 @@ from ansys.heart.core.objects import (
 from ansys.heart.preprocessor.input import _InputModel
 import ansys.heart.preprocessor.mesher as mesher
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
+from ansys.heart.simulator.settings.material.material import (
+    MechanicalMaterialModel,
+    NeoHookean,
+)
 
 
 def _get_axis_from_field_data(
@@ -1876,8 +1880,52 @@ class HeartModel:
 
         return isolation
 
-    # TODO: fix this.
-    def create_atrial_stiff_ring(self, radius: float = 2) -> Union[None, Part]:
+    def create_stiff_ventricle_base(
+        self,
+        threshold: float = 0.9,
+        stiff_material: MechanicalMaterialModel = NeoHookean(rho=0.001, c10=0.1, nu=0.499),
+    ) -> None | Part:
+        """Create a stiff base part from uvc longitudinal value.
+
+        Parameters
+        ----------
+        threshold : float, optional
+            uvc_l larger than threshold will be set as stiff base, by default 0.9
+        stiff_material : MechanicalMaterialModel, optional
+            material to assign, by default NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+
+        Returns
+        -------
+        Part
+            part if created
+        """
+        try:
+            v = self.mesh.point_data_to_cell_data()["apico-basal"]
+        except KeyError:
+            LOGGER.error("Array named 'apico-basal' cannot be found, cannot create base part.")
+            LOGGER.error("Run simulator.compute_uhc() first.")
+            return
+
+        eids = np.intersect1d(np.where(v > threshold)[0], self.left_ventricle.element_ids)
+        if not isinstance(self, LeftVentricle):
+            # uvc-L of RV is generally smaller, *1.05 to be comparable with LV
+            eid_r = np.intersect1d(
+                np.where(v > threshold * 1.05)[0],
+                self.right_ventricle.element_ids,
+            )
+            eids = np.hstack((eids, eid_r))
+
+        part: Part = self.create_part_by_ids(eids, "base")
+        part.part_type = PartType.VENTRICLE
+        part.fiber = False
+        part.active = False
+        part.meca_material = stiff_material
+        # assign default EP material as for ventricles
+        part.ep_material = EPMaterial.Active()
+
+        return part
+
+    def create_atrial_stiff_ring(self, radius: float = 2) -> None | Part:
         """Create a part for solids close to atrial caps.
 
         Note

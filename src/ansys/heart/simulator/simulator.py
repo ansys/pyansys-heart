@@ -40,6 +40,7 @@ import shutil
 import subprocess
 from typing import Literal
 
+from deprecated import deprecated
 import natsort
 import numpy as np
 import pyvista as pv
@@ -527,6 +528,7 @@ class MechanicsSimulator(BaseSimulator):
 
         return
 
+    @deprecated(reason="""please use the same method under the class HeartModel.""")
     def create_stiff_ventricle_base(
         self,
         threshold: float = 0.9,

@@ -229,9 +229,8 @@ class _InputModel:
 
         try:
             self.input_polydata = pv.PolyData(input)
-        except Exception:
-            NotImplementedError(f"Failed to load file {input}. Other file types not supported yet.")
-            return None
+        except Exception as e:
+            raise NotImplementedError(f"Failed to load file {input}. {e}")
 
         if part_definitions is None:
             LOGGER.error("Please specify part definitions.")

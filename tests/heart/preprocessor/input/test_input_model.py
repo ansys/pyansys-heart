@@ -80,6 +80,16 @@ def _is_same_mesh(
     return True
 
 
+# TODO: extend and refactor initialization.
+def test_input_model_init():
+    """Test initializing the input model."""
+
+    # specify unsupported input.
+    input = pv.Box().cast_to_unstructured_grid()
+    with pytest.raises(NotImplementedError) as execption_info:
+        _InputModel(input)
+
+
 def test_add_parts_and_boundaries_001():
     """Test adding a single part enclosed by single boundary."""
     # Prep PolyData input.

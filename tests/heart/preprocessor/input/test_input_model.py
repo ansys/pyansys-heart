@@ -25,17 +25,45 @@
 import glob as glob
 import os
 import tempfile
-from typing import Union
+import unittest.mock as mock
 
 import numpy as np
+import pytest
 import pyvista as pv
 
-from ansys.heart.preprocessor.input import _InputModel
+from ansys.heart.preprocessor.input import _InputBoundary, _InputModel, _InputPart
+
+
+def _get_test_input_model() -> tuple[_InputModel, pv.PolyData, dict]:
+    """A test input model using a sphere."""
+    polydata = pv.Sphere()
+    polydata.cell_data.set_scalars(np.full(polydata.n_cells, 1), "boundary-id")
+    polydata.cell_data["boundary-id"][0:100] = 2
+    polydata.cell_data["boundary-id"][10:200] = 3
+
+    part_definitions = {
+        "sphere1": {
+            "id": 1,
+            "enclosed_by_boundaries": {"shells1": 1, "shells2": 2},
+        },
+        "sphere2": {
+            "id": 2,
+            "enclosed_by_boundaries": {"shells3": 3, "shells4": 2},
+        },
+    }
+
+    model = _InputModel(
+        input=polydata,
+        part_definitions=part_definitions,
+        scalar="boundary-id",
+    )
+
+    return model, polydata, part_definitions
 
 
 def _is_same_mesh(
-    object1: Union[pv.UnstructuredGrid, pv.PolyData],
-    object2: Union[pv.UnstructuredGrid, pv.PolyData],
+    object1: pv.UnstructuredGrid | pv.PolyData,
+    object2: pv.UnstructuredGrid | pv.PolyData,
 ) -> bool:
     """Compares two pyvista objects for mesh correspondence."""
     if type(object1) is not type(object2):
@@ -249,24 +277,11 @@ def test_write_boundaries_001():
 
 def test_write_to_polydata():
     """Test writing to polydata."""
-    polydata = pv.Sphere()
-    polydata.cell_data.set_scalars(np.full(polydata.n_cells, 1), "boundary-id")
-    polydata.cell_data["boundary-id"][0:100] = 2
-    polydata.cell_data["boundary-id"][10:200] = 3
 
-    model = _InputModel(
-        polydata,
-        part_definitions={
-            "sphere1": {
-                "id": 1,
-                "enclosed_by_boundaries": {"shells1": 1, "shells2": 2},
-            },
-            "sphere2": {
-                "id": 2,
-                "enclosed_by_boundaries": {"shells3": 3, "shells4": 2},
-            },
-        },
-        scalar="boundary-id",
+    model = _get_test_input_model()[0]
+
+    assert np.all(
+        np.unique(model.as_single_polydata.cell_data["boundary-id"]) == np.array([1, 2, 3])
     )
 
     with tempfile.TemporaryDirectory() as write_dir:
@@ -283,10 +298,25 @@ def test_write_to_polydata():
     return
 
 
+def test_validate_input():
+    """Test validate input method."""
+    model, _, _ = _get_test_input_model()
+
+    # change id to id that is not present in `boundary-id` array.
+    model.parts[0].boundaries[0].id = 100
+    with pytest.raises(ValueError):
+        model._validate_input()
+
+    model._parts = []
+    assert model._validate_input() is None
+
+    pass
+
+
 def test_input_uniqueness():
     """Test model validator."""
-    polydata = pv.Sphere()
-    polydata.cell_data.set_scalars(np.full(polydata.n_cells, 1), "boundary-id")
+
+    model, polydata, part_definitions = _get_test_input_model()
     polydata.cell_data["boundary-id"][0:100] = 2
     polydata.cell_data["boundary-id"][10:180] = 3
     polydata.cell_data["boundary-id"][180:200] = 4
@@ -294,16 +324,7 @@ def test_input_uniqueness():
     # Not unique due to same boundary id but different name.
     model = _InputModel(
         polydata,
-        part_definitions={
-            "sphere1": {
-                "id": 1,
-                "enclosed_by_boundaries": {"shells1": 1, "shells2": 2},
-            },
-            "sphere2": {
-                "id": 2,
-                "enclosed_by_boundaries": {"shells3": 3, "shells4": 2},
-            },
-        },
+        part_definitions=part_definitions,
         scalar="boundary-id",
     )
 
@@ -360,3 +381,31 @@ def test_input_uniqueness():
     )
 
     assert model._validate_uniqueness()
+
+
+@mock.patch("pyvista.Plotter.show")
+def test_input_model_plot(mock_plot):
+    """Test plotting the input model."""
+    model = _get_test_input_model()[0]
+    model.plot()
+    mock_plot.assert_called_once()
+
+
+def test_input_part():
+    """Test part."""
+    boundary_name = "sphere"
+    boundary = _InputBoundary(pv.Sphere(), name=boundary_name, id=1)
+
+    # if not passed as list raise error.
+    with pytest.raises(TypeError) as exception_info:
+        _InputPart(name="Part1", id=1, boundaries=boundary)
+        assert exception_info.value.args[0] == "Boundaries should be a list."
+
+    part = _InputPart(name="Part1", id=1, boundaries=[boundary])
+
+    assert part.boundary_ids == [1]
+
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        part.write_boundaries(tempdir, ".stl")
+
+        assert os.path.isfile(os.path.join(tempdir, "sphere.stl"))

@@ -31,7 +31,6 @@ Methods are provided to validate the volume and boundary mesh objects (pyvista o
 and to get the necessary parts or boundaries for each respective model.
 """
 
-import copy
 import os
 from pathlib import Path
 from typing import List, Tuple, Union

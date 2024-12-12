@@ -236,22 +236,20 @@ def test_run_dyna(mock_subproc_popen, settings):
         ("main-mechanics1", "zero-pressure", False, True),
     ],
 )
-#  ids=["combination1, combination2"])
+@mock.patch("ansys.heart.simulator.simulator.MechanicsSimulator._run_dyna")
+@mock.patch("ansys.heart.simulator.simulator.mech_post")
+@mock.patch("ansys.heart.simulator.simulator.MechanicsSimulator._write_main_simulation_files")
 def test_mechanics_simulator_simulate(
+    mock_write_main,
+    mock_mech_post,
+    mock_run_dyna,
     folder_name,
     zerop_folder,
     auto_post,
     initial_stress,
-    mocker,
     mechanics_simulator: simulators.MechanicsSimulator,
 ):
     """Test the simulate method of the mechanics simulator."""
-    # set up mocks
-    mock_mech_post = mocker.patch("ansys.heart.simulator.simulator.mech_post")
-    mock_run_dyna = mocker.patch("ansys.heart.simulator.simulator.MechanicsSimulator._run_dyna")
-    mock_write_main = mocker.patch(
-        "ansys.heart.simulator.simulator.MechanicsSimulator._write_main_simulation_files"
-    )
 
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         mechanics_simulator.root_directory = tempdir

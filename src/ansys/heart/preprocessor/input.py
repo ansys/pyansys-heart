@@ -146,14 +146,6 @@ class _InputBoundary(pv.PolyData):
         self.name = name
         """Name of boundary."""
 
-    @property
-    def triangles(self):
-        """Returns all triangles."""
-        if not self.is_all_triangles:
-            return
-        else:
-            return self.faces.reshape(self.n_cells, 4)[:, 1:]
-
     def __repr__(self):
         return f"Name:{self.name}\nid:{self.id}\n{super().__repr__()}"
 

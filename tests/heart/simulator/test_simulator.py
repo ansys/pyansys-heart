@@ -223,7 +223,7 @@ def test_run_dyna(mock_subproc_popen, settings):
         with open(tmp_file, "w") as f:
             f.write("*INCLUDE\n")
 
-        mock_process = MagicMock()
+        mock_process = mock.MagicMock()
         mock_process.stdout = iter(["N o r m a l    t e r m i n a t i o n\n", "bbb\n"])
         mock_process.__enter__.return_value = mock_process
         mock_subproc_popen.return_value = mock_process

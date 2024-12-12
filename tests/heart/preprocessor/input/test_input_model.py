@@ -86,7 +86,7 @@ def test_input_model_init():
 
     # specify unsupported input.
     input = pv.Box().cast_to_unstructured_grid()
-    with pytest.raises(NotImplementedError) as execption_info:
+    with pytest.raises(NotImplementedError):
         _InputModel(input)
 
 

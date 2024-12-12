@@ -24,7 +24,6 @@ import os
 import shutil
 import tempfile
 import unittest.mock as mock
-from unittest.mock import MagicMock, Mock, patch
 
 import numpy as np
 import pytest
@@ -45,14 +44,14 @@ def _get_md5(filename):
 
 @pytest.fixture
 def base_simulator() -> simulators.BaseSimulator:
-    with patch("shutil.which", return_value=1):
-        model = Mock(spec=models.FourChamber).return_value
+    with mock.patch("shutil.which", return_value=1):
+        model = mock.Mock(spec=models.FourChamber).return_value
         model.left_atrium.endocardium = 1
         model.right_atrium.endocardium = 1
         polydata = pv.PolyData(np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0]]), [3, 0, 1, 2])
         model.mesh = polydata
 
-        setting = Mock(spec=DynaSettings)
+        setting = mock.Mock(spec=DynaSettings)
         setting.lsdyna_path = ""
         simulation_directory = "."
         simulator = simulators.BaseSimulator(model, setting, simulation_directory)
@@ -62,14 +61,14 @@ def base_simulator() -> simulators.BaseSimulator:
 
 @pytest.fixture
 def mechanics_simulator() -> simulators.MechanicsSimulator:
-    with patch("shutil.which", return_value=1):
-        model = Mock(spec=models.FourChamber).return_value
+    with mock.patch("shutil.which", return_value=1):
+        model = mock.Mock(spec=models.FourChamber).return_value
         model.left_atrium.endocardium = 1
         model.right_atrium.endocardium = 1
         polydata = pv.PolyData(np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0]]), [3, 0, 1, 2])
         model.mesh = polydata
 
-        setting = Mock(spec=DynaSettings)
+        setting = mock.Mock(spec=DynaSettings)
         setting.lsdyna_path = ""
         simulation_directory = "."
         simulator = simulators.MechanicsSimulator(model, setting, simulation_directory)
@@ -78,7 +77,7 @@ def mechanics_simulator() -> simulators.MechanicsSimulator:
 
 @pytest.fixture
 def mock_laplace():
-    with patch.object(
+    with mock.patch.object(
         simulators.BaseSimulator,
         "run_laplace_problem",
     ) as mock_laplace:
@@ -157,9 +156,9 @@ def test_compute_uvc(base_simulator, mock_laplace):
 def test_simulator_inits(simulator_type):
     """Test inits of all simulators."""
     # mock which
-    with patch.object(shutil, "which", return_value=1) as mock_which:
+    with mock.patch.object(shutil, "which", return_value=1) as mock_which:
         # test init
-        model = MagicMock(spec=models.FourChamber)
+        model = mock.MagicMock(spec=models.FourChamber)
         model.workdir = os.getcwd()
         simulator = simulator_type(model=model, dyna_settings=None)
 
@@ -192,9 +191,9 @@ def test_base_simulator_load_default_settings(_mocked_methods):
     _mock_run_dyna = _mocked_methods[1]
     _mock_read_orth = _mocked_methods[2]
 
-    with patch.object(shutil, "which", return_value=1) as mock_which:
+    with mock.patch.object(shutil, "which", return_value=1) as mock_which:
         # test init
-        model = Mock(spec=models.FourChamber)
+        model = mock.Mock(spec=models.FourChamber)
         model.workdir = os.getcwd()
         model.mesh = pyvista_examples.load_hexbeam()
         model.mesh.cell_data["fiber"] = np.zeros((model.mesh.n_cells, 3), dtype=float)
@@ -214,8 +213,8 @@ def test_base_simulator_load_default_settings(_mocked_methods):
         mock_which.assert_called_once()
 
 
-@patch("subprocess.Popen")
-@pytest.mark.parametrize("settings", [None, Mock(DynaSettings)])
+@mock.patch("subprocess.Popen")
+@pytest.mark.parametrize("settings", [None, mock.Mock(DynaSettings)])
 def test_run_dyna(mock_subproc_popen, settings):
     """Test run_dyna with mock settings and patched Popen."""
     curr_dir = os.getcwd()

@@ -97,7 +97,7 @@ def test_validate_hash_function_001():
         fid.writelines("abcd")
         fid.close()
 
-        path_hash_table = "hash_table.json"
+        path_hash_table = os.path.join(tempdir, "hash_table.json")
 
         # write dummy hash table
         hash_table = {"Rodero2021": {1: hashlib.sha256(open(path_file1, "rb").read()).hexdigest()}}

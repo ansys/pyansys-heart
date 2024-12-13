@@ -1863,7 +1863,7 @@ class HeartModel:
         Returns
         -------
         Part
-            part if created
+            Part associated with the stiff base region.
         """
         try:
             v = self.mesh.point_data_to_cell_data()["apico-basal"]

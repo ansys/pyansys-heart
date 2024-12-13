@@ -55,34 +55,33 @@ def _create_mock_electrode_positions() -> np.ndarray:
 
 
 @pytest.fixture
-def _mock_ep_postprocessor(mocker) -> EPpostprocessor:
+def _mock_ep_postprocessor():
     """Get mock EP postprocessor object."""
-    mocker.patch("ansys.heart.postprocessor.ep_postprocessor.D3plotReader")
-    mock_model = mock.Mock(FullHeart)
-    return EPpostprocessor(".", mock_model)
+    with mock.patch("ansys.heart.postprocessor.ep_postprocessor.D3plotReader"):
+        mock_model = mock.Mock(FullHeart)
+
+        yield EPpostprocessor(".", mock_model)
 
 
 @pytest.mark.parametrize("to_plot", [False, True], ids=["Plot=False", "Plot=True"])
-def test_compute_12lead_ECG(_mock_ep_postprocessor: EPpostprocessor, to_plot, mocker):  # noqa N802
+def test_compute_12lead_ECG(to_plot, _mock_ep_postprocessor: EPpostprocessor):  # noqa: N802
     """Test 12 lead ECG computation."""
-
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
-        # mock post path
-        # mock plt.show (surpesses interactive figure)
-        mock_post = mocker.patch(
+        # patch create post folder
+        with mock.patch(
             "ansys.heart.postprocessor.ep_postprocessor.EPpostprocessor.create_post_folder",
             return_value=tempdir,
-        )
-        mock_show = mocker.patch("ansys.heart.postprocessor.ep_postprocessor.plt.show")
+        ) as mock_post:
+            # patch show
+            with mock.patch("ansys.heart.postprocessor.ep_postprocessor.plt.show") as mock_show:
+                time, ecg_data, _ = _create_mock_ECG_data()
+                _mock_ep_postprocessor.compute_12_lead_ECGs(ECGs=ecg_data, times=time, plot=to_plot)
 
-        time, ecg_data, _ = _create_mock_ECG_data()
-        _mock_ep_postprocessor.compute_12_lead_ECGs(ECGs=ecg_data, times=time, plot=to_plot)
-
-        #! TODO: add assertion.
-        if to_plot:
-            assert os.path.isfile(os.path.join(tempdir, "12LeadECGs.png"))
-            mock_post.assert_called_once()
-            mock_show.assert_called_once()
+                #! TODO: add assertion.
+                if to_plot:
+                    assert os.path.isfile(os.path.join(tempdir, "12LeadECGs.png"))
+                    mock_post.assert_called_once()
+                    mock_show.assert_called_once()
 
 
 def test_read_ECGs(_mock_ep_postprocessor: EPpostprocessor):  # noqa N802
@@ -98,7 +97,7 @@ def test_read_ECGs(_mock_ep_postprocessor: EPpostprocessor):  # noqa N802
 
 #! TODO: implement sensible asserts.
 #! TODO: reduce overlap with test_export_transmembrane_to_vtk
-def test_compute_ECGs(_mock_ep_postprocessor: EPpostprocessor, mocker):  # noqa N802
+def test_compute_ECGs(_mock_ep_postprocessor: EPpostprocessor):  # noqa N802
     """Test the ECG computation."""
     # mocks the following:
     # vm, times = self.get_transmembrane_potential()
@@ -111,43 +110,44 @@ def test_compute_ECGs(_mock_ep_postprocessor: EPpostprocessor, mocker):  # noqa 
     vm = np.ones((10, _mock_ep_postprocessor.reader.meshgrid.n_points))
     times = np.arange(0, 10)
 
-    mock_get_transmembrane = mocker.patch(
+    with mock.patch(
         "ansys.heart.postprocessor.ep_postprocessor.EPpostprocessor.get_transmembrane_potential",
         return_value=(vm, times),
-    )
+    ) as mock_get_transmembrane:
+        electrodes = _create_mock_electrode_positions()
 
-    electrodes = _create_mock_electrode_positions()
+        ecg_computed, time_computed = _mock_ep_postprocessor.compute_ECGs(electrodes=electrodes)
 
-    ecg_computed, time_computed = _mock_ep_postprocessor.compute_ECGs(electrodes=electrodes)
-
-    mock_get_transmembrane.assert_called_once()
+        mock_get_transmembrane.assert_called_once()
 
     pass
 
 
 @pytest.mark.skipif(github_runner, reason="Interactive update fails on github runner")
-def test_export_transmembrane_to_vtk(_mock_ep_postprocessor: EPpostprocessor, mocker):
+def test_export_transmembrane_to_vtk(_mock_ep_postprocessor: EPpostprocessor):
     """Test exporting to VTK."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         _mock_ep_postprocessor.reader = mock.Mock()
         _mock_ep_postprocessor.reader.meshgrid = pv.examples.load_tetbeam()
         vm = np.ones((10, _mock_ep_postprocessor.reader.meshgrid.n_points))
         times = np.arange(0, 10)
-        mock_get_transmembrane = mocker.patch(
+
+        # mock get_transmembrane_potential
+        with mock.patch(
             "ansys.heart.postprocessor.ep_postprocessor.EPpostprocessor.get_transmembrane_potential",  # noqa E501
             return_value=(vm, times),
-        )
-        mock_post = mocker.patch(
-            "ansys.heart.postprocessor.ep_postprocessor.EPpostprocessor.create_post_folder",
-            return_value=tempdir,
-        )
+        ) as mock_get_transmembrane:
+            # mock create_post_folder:
+            with mock.patch(
+                "ansys.heart.postprocessor.ep_postprocessor.EPpostprocessor.create_post_folder",
+                return_value=tempdir,
+            ) as mock_post:
+                _mock_ep_postprocessor.export_transmembrane_to_vtk()
 
-        _mock_ep_postprocessor.export_transmembrane_to_vtk()
+                mock_post.assert_called_once()
+                mock_get_transmembrane.assert_called_once()
 
-        mock_post.assert_called_once()
-        mock_get_transmembrane.assert_called_once()
+                assert len(glob.glob(os.path.join(tempdir, "*.vtk"))) == 10
 
-        assert len(glob.glob(os.path.join(tempdir, "*.vtk"))) == 10
-
-        #! TODO: do we need asserts?
-        _mock_ep_postprocessor.animate_transmembrane()
+                #! TODO: do we need asserts?
+                _mock_ep_postprocessor.animate_transmembrane()

@@ -71,7 +71,6 @@ path_to_model = os.path.join(workdir, "heart_model.vtu")
 # a heart model from scratch)
 model: models.FourChamber = models.FourChamber(working_directory=workdir)
 model.load_model_from_mesh(path_to_model)
-model._extract_apex()
 
 ###############################################################################
 # Define stimulation at the apex

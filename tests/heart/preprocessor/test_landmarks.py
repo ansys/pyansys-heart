@@ -57,7 +57,6 @@ def model() -> models.FourChamber:
     model: models.FourChamber = models.FourChamber(working_directory=".")
 
     model.load_model_from_mesh(vtu_file, json_file)
-    model._extract_apex()
 
     return model
 

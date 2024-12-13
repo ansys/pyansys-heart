@@ -355,7 +355,6 @@ def test_writers_after_load_model(extract_model, writer_class):
 
         model1 = type(model)(working_directory=workdir)
         model1.load_model_from_mesh(model_path, partinfo)
-        model1._extract_apex()
 
         writer = writer_class(copy.deepcopy(model1))
 

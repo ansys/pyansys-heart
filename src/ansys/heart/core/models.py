@@ -995,6 +995,9 @@ class HeartModel:
 
             # TODO: add non-standard part by setattr(self, part_name_n, part)
 
+        self._extract_apex()
+        self.compute_left_ventricle_anatomy_axis()
+
         return
 
     def _set_part_ids(self):

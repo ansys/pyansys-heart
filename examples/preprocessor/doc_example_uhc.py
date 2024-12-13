@@ -71,7 +71,6 @@ lsdyna_path = r"ls-dyna_smp"
 # load heart model.
 model: models.FourChamber = models.FourChamber(working_directory=workdir)
 model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
-model._extract_apex()
 
 ###############################################################################
 # Instantiate the simulator object

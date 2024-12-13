@@ -47,7 +47,6 @@ def get_data():
 
     test_dir = r"D:\PyAnsys-Heart\test_case\test_lv"
     model = HeartModel.load_model(Path(test_dir) / "model_with_fiber.pickle")
-    model.compute_left_ventricle_anatomy_axis()
 
 
 @pytest.mark.xfail(reason="Test requires local data.")

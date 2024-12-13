@@ -62,10 +62,6 @@ def model() -> models.FourChamber:
     model: models.FourChamber = models.FourChamber(working_directory=".")
 
     model.load_model_from_mesh(vtu_file, json_file)
-    model._extract_apex()
-    # TODO: recompute heart_model.vtu and commit it with the axis
-    # TODO: as field data
-    model.compute_left_ventricle_anatomy_axis()
 
     return model
 

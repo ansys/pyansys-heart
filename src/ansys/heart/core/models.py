@@ -1845,7 +1845,8 @@ class HeartModel:
 
     def create_stiff_ventricle_base(
         self,
-        threshold: float = 0.9,
+        threshold_left_ventricle: float = 0.9,
+        threshold_right_ventricle: float = 0.95
         stiff_material: MechanicalMaterialModel = NeoHookean(rho=0.001, c10=0.1, nu=0.499),
     ) -> None | Part:
         """Create a stiff base part from uvc longitudinal value.

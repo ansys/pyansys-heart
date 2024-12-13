@@ -27,8 +27,8 @@ import pytest
 import pyvista as pv
 import pyvista.examples as examples
 
-from ansys.heart.core.models import FullHeart
-from ansys.heart.core.objects import BeamMesh, Mesh, Part, Point
+from ansys.heart.core.models import LeftVentricle
+from ansys.heart.core.objects import BeamMesh, Mesh, Part, PartType, Point
 from ansys.heart.simulator.settings.settings import SimulationSettings, Stimulation
 import ansys.heart.writer.dynawriter as writers
 
@@ -36,7 +36,7 @@ import ansys.heart.writer.dynawriter as writers
 @pytest.fixture()
 def _mock_model():
     """Create a mock EP Writer."""
-    model: FullHeart = mock.MagicMock(FullHeart)
+    model: LeftVentricle = mock.MagicMock(LeftVentricle)
     model.mesh = Mesh(examples.load_tetbeam())
 
     p1 = Point(name="electrode-1", xyz=np.array([0.0, 0.0, 0.0]), node_id=1)
@@ -47,7 +47,7 @@ def _mock_model():
     yield model
 
 
-def _add_beam_network(model: FullHeart):
+def _add_beam_network(model: LeftVentricle):
     """Add a beam network to the model."""
     lines = pv.line_segments_from_points([[0, 0, 0], [1, 0, 0]])
     beams = BeamMesh(name="beams")
@@ -58,9 +58,13 @@ def _add_beam_network(model: FullHeart):
     return model
 
 
-def _add_parts(model: FullHeart):
+def _add_parts(model: LeftVentricle):
     """Add parts to model."""
-    model.parts = [Part(name="left_ventricle"), Part(name="Right ventricle")]
+    model.parts = [
+        Part(name="left_ventricle", part_type=PartType.VENTRICLE),
+        Part(name="Right ventricle", part_type=PartType.VENTRICLE),
+        Part(name="Septum", part_type=PartType.SEPTUM),
+    ]
     for ii, part in enumerate(model.parts):
         part.pid = ii
     return model
@@ -163,3 +167,15 @@ def test_add_myocardial_nodeset_layer(_mock_model):
     writer = writers.ElectroMechanicsDynaWriter(model, settings)
     # assert node-set ids (no other nodesets present, so expecting 1,2,3)
     assert writer._create_myocardial_nodeset_layers() == (1, 2, 3)
+
+
+@pytest.mark.xfail(reason="_update_create_fibers un-testable, needs refactoring.")
+def test_update_create_fibers(_mock_model):
+    """Test updating the create fibers method."""
+    model = _mock_model
+    settings = SimulationSettings()
+    settings.load_defaults()
+
+    writer = writers.FiberGenerationDynaWriter(model, settings)
+
+    writer._update_create_fibers()

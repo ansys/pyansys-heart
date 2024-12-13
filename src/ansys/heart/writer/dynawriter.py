@@ -2270,6 +2270,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
 
         return
 
+    # TODO: Refactor
     def _update_create_fibers(self):
         """Update the keywords for fiber generation."""
         # collect relevant node and segment sets.

@@ -767,7 +767,7 @@ class HeartModel:
             )
             return
         try:
-            import matplotlib.pyplot as plt
+            import matplotlib as matplotlib
         except ImportError:
             LOGGER.warning("matplotlib not found. Install matplotlib with: pip install matplotlib")
             return
@@ -776,7 +776,8 @@ class HeartModel:
         valves = [b for b in self.mesh._surfaces if "valve" in b.name or "border" in b.name]
         surfaces_to_plot = surfaces_to_plot + valves
 
-        color_map = plt.cm.get_cmap("tab20", len(surfaces_to_plot))
+        color_map = matplotlib.pyplot.get_cmap("tab20", len(surfaces_to_plot))
+
         colors = color_map.colors[:, 0:3]
         plotter = pv.Plotter()
         ii = 0

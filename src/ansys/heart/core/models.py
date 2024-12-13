@@ -1846,17 +1846,18 @@ class HeartModel:
     def create_stiff_ventricle_base(
         self,
         threshold_left_ventricle: float = 0.9,
-        threshold_right_ventricle: float = 0.95
+        threshold_right_ventricle: float = 0.95,
         stiff_material: MechanicalMaterialModel = NeoHookean(rho=0.001, c10=0.1, nu=0.499),
     ) -> None | Part:
-        """Use universal coordinates to generate a stiff base region."""
+        """Use universal coordinates to generate a stiff base region.
 
         Parameters
         ----------
         threshold_left_ventricle : float, optional
             uvc_l larger than threshold will be set as stiff material, by default 0.9
         threshold_right_ventricle : float, optional
-            a uvc_l value larger than this threshold in the right ventricle will be set to a stiff material, by default 0.95
+            a uvc_l value larger than this threshold in the right ventricle will be set to a stiff
+            material, by default 0.95
         stiff_material : MechanicalMaterialModel, optional
             material to assign, by default NeoHookean(rho=0.001, c10=0.1, nu=0.499)
 
@@ -1872,11 +1873,13 @@ class HeartModel:
             LOGGER.error("Run simulator.compute_uhc() first.")
             return
 
-        eids = np.intersect1d(np.where(v > threshold)[0], self.left_ventricle.element_ids)
+        eids = np.intersect1d(
+            np.where(v > threshold_left_ventricle)[0], self.left_ventricle.element_ids
+        )
         if not isinstance(self, LeftVentricle):
             # uvc-L of RV is generally smaller, *1.05 to be comparable with LV
             eid_r = np.intersect1d(
-                np.where(v > threshold * 1.05)[0],
+                np.where(v > threshold_right_ventricle)[0],
                 self.right_ventricle.element_ids,
             )
             eids = np.hstack((eids, eid_r))

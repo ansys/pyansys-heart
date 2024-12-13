@@ -147,3 +147,19 @@ def test_update_ep_settings(_mock_model, solvertype, expected_num_keywords):
     assert len(writer.kw_database.ep_settings.keywords) == expected_num_keywords
 
     del writer
+
+
+def test_add_myocardial_nodeset_layer(_mock_model):
+    """Test adding myocardial nodeset layer."""
+    model = _mock_model
+    # add a dummy transmural direction.
+    model.mesh.point_data["transmural"] = model.mesh.points[:, -1] / np.max(
+        model.mesh.points[:, -1]
+    )
+
+    settings = SimulationSettings()
+    settings.load_defaults()
+
+    writer = writers.ElectroMechanicsDynaWriter(model, settings)
+    # assert node-set ids (no other nodesets present, so expecting 1,2,3)
+    assert writer._create_myocardial_nodeset_layers() == (1, 2, 3)

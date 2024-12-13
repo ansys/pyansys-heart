@@ -61,7 +61,7 @@ def model() -> models.FourChamber:
     return model
 
 
-def test_compute_anatomy_axis(model):
+def test_compute_anatomy_axis():
     mv_center = np.array([14.91736773, 138.79881432, 382.26438557])
     # next(
     #     cap.centroid for cap in model.left_ventricle.caps if cap.name == "mitral-valve"

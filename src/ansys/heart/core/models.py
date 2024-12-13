@@ -39,6 +39,7 @@ import yaml
 
 from ansys.heart.core import LOG as LOGGER
 import ansys.heart.core.helpers.connectivity as connectivity
+from ansys.heart.core.helpers.landmarks import compute_anatomy_axis
 import ansys.heart.core.helpers.vtkmethods as vtkmethods
 from ansys.heart.core.objects import (
     BeamMesh,
@@ -996,7 +997,7 @@ class HeartModel:
             # TODO: add non-standard part by setattr(self, part_name_n, part)
 
         self._extract_apex()
-        self.compute_left_ventricle_anatomy_axis()
+        self._define_anatomy_axis()
 
         return
 
@@ -1052,8 +1053,7 @@ class HeartModel:
         self._validate_cap_names()
 
         self._extract_apex()
-
-        self.compute_left_ventricle_anatomy_axis()
+        self._define_anatomy_axis()
 
         if "fiber" not in self.mesh.array_names:
             LOGGER.debug("Adding placeholder for fiber direction.")
@@ -1500,66 +1500,27 @@ class HeartModel:
 
         return
 
-    # TODO: refactor, could be standalone method instead of a class method.
-    def compute_left_ventricle_anatomy_axis(
-        self,
-        mv_center: Union[None, np.ndarray] = None,
-        av_center: Union[None, np.ndarray] = None,
-        first_cut_short_axis=0.2,
-    ):
-        """Compute the long and short axes of the left ventricle.
+    def _define_anatomy_axis(self):
+        """Define long and short axes from left ventricle landmarks."""
+        mv_center = next(
+            cap.centroid for cap in self.left_ventricle.caps if cap.name == "mitral-valve"
+        )
 
-        Parameters
-        ----------
-        mv_center : Union[None, np.ndarray], optional
-            mitral valve center, by default None
-        av_center : Union[None, np.ndarray], optional
-            aortic valve center, by default None
-        first_cut_short_axis : float, optional
-            relative distance between mv center to apex, by default 0.2
-        """
-        if mv_center is None:
-            try:
-                mv_center = next(
-                    cap.centroid for cap in self.left_ventricle.caps if cap.name == "mitral-valve"
-                )
-            except StopIteration:
-                LOGGER.error("Cannot define mitral valve center")
-                return
-        if av_center is None:
-            try:
-                av_center = next(
-                    cap.centroid for cap in self.left_ventricle.caps if cap.name == "aortic-valve"
-                )
-            except StopIteration:
-                LOGGER.error("Cannot define mitral valve center")
-                return
+        av_center = next(
+            cap.centroid for cap in self.left_ventricle.caps if cap.name == "aortic-valve"
+        )
 
-        # apex is defined on epicardium
         apex = next(
             ap.xyz for ap in self.left_ventricle.apex_points if ap.name == "apex epicardium"
         )
 
-        # 4CAV long axis across apex, mitral and aortic valve centers
-        center = np.mean(np.array([av_center, mv_center, apex]), axis=0)
-        normal = np.cross(av_center - apex, mv_center - apex)
-        self.l4cv_axis = {"center": center, "normal": normal / np.linalg.norm(normal)}
+        l4cv, l2cv, short = compute_anatomy_axis(
+            mv_center, av_center, apex, first_cut_short_axis=0.2
+        )
 
-        # short axis: from mitral valve center to apex
-        sh_axis = apex - mv_center
-        # the highest possible point but avoid to cut aortic valve plane
-        center = mv_center + first_cut_short_axis * sh_axis
-        self.short_axis = {"center": center, "normal": sh_axis / np.linalg.norm(sh_axis)}
-
-        # 2CAV long axis: normal to 4cav axe and pass mv center and apex
-        center = np.mean(np.array([mv_center, apex]), axis=0)
-        p1 = center + 10 * self.l4cv_axis["normal"]
-        p2 = mv_center
-        p3 = apex
-        normal = np.cross(p1 - p2, p1 - p3)
-        self.l2cv_axis = {"center": center, "normal": normal / np.linalg.norm(normal)}
-
-        return
+        self.l4cv_axis = l4cv
+        self.l2cv_axis = l2cv
+        self.short_axis = short
 
     # TODO: fix this.
     def _compute_uvc_rotation_bc(self, mesh: pv.UnstructuredGrid):

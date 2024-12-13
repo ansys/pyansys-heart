@@ -66,7 +66,6 @@ def model() -> models.FourChamber:
     # TODO: recompute heart_model.vtu and commit it with the axis
     # TODO: as field data
     model.compute_left_ventricle_anatomy_axis()
-    model.compute_left_ventricle_aha17()
 
     return model
 

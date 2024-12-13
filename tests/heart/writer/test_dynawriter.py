@@ -27,7 +27,7 @@ import pytest
 import pyvista as pv
 import pyvista.examples as examples
 
-from ansys.heart.core.models import LeftVentricle
+from ansys.heart.core.models import FullHeart
 from ansys.heart.core.objects import BeamMesh, Mesh, Part, PartType, Point
 from ansys.heart.simulator.settings.settings import SimulationSettings, Stimulation
 import ansys.heart.writer.dynawriter as writers
@@ -36,7 +36,7 @@ import ansys.heart.writer.dynawriter as writers
 @pytest.fixture()
 def _mock_model():
     """Create a mock EP Writer."""
-    model: LeftVentricle = mock.MagicMock(LeftVentricle)
+    model: FullHeart = mock.MagicMock(FullHeart)
     model.mesh = Mesh(examples.load_tetbeam())
 
     p1 = Point(name="electrode-1", xyz=np.array([0.0, 0.0, 0.0]), node_id=1)
@@ -47,7 +47,7 @@ def _mock_model():
     yield model
 
 
-def _add_beam_network(model: LeftVentricle):
+def _add_beam_network(model: FullHeart):
     """Add a beam network to the model."""
     lines = pv.line_segments_from_points([[0, 0, 0], [1, 0, 0]])
     beams = BeamMesh(name="beams")
@@ -58,7 +58,7 @@ def _add_beam_network(model: LeftVentricle):
     return model
 
 
-def _add_parts(model: LeftVentricle):
+def _add_parts(model: FullHeart):
     """Add parts to model."""
     model.parts = [
         Part(name="left_ventricle", part_type=PartType.VENTRICLE),
@@ -179,3 +179,34 @@ def test_update_create_fibers(_mock_model):
     writer = writers.FiberGenerationDynaWriter(model, settings)
 
     writer._update_create_fibers()
+
+
+def test_update_use_purkinje(_mock_model: FullHeart):
+    """Test update use purkinje."""
+    model = _mock_model
+    model = _add_beam_network(model)
+    model = _add_parts(model)
+    model.beam_network[0].name = "Left-purkinje"
+    model.mesh.add_surface(pv.Sphere(), id=10, name="Left ventricle endocardium")
+    model.left_ventricle = model.parts[0]
+    model.left_ventricle.endocardium = model.mesh.get_surface(10)
+
+    settings = SimulationSettings()
+    settings.load_defaults()
+
+    writer = writers.ElectroMechanicsDynaWriter(model, settings)
+
+    writer._update_use_Purkinje()
+
+    kw_titles = [kw.get_title() for kw in writer.kw_database.beam_networks.keywords]
+    expected_kw_titles = [
+        "*SECTION_BEAM",
+        "*NODE",
+        "*EM_EP_PURKINJE_NETWORK2",
+        "*PART",
+        "*MAT_NULL",
+        "*EM_MAT_001",
+        "*ELEMENT_BEAM",
+    ]
+    for expected_kw in expected_kw_titles:
+        assert expected_kw in kw_titles, f"Did not find {expected_kw} in keywords"

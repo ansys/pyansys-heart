@@ -41,7 +41,7 @@ def model() -> models.FourChamber:
         "reference_models",
         "strocchi2020",
         "01",
-        "4C_wye",
+        "FourChamber",
         "heart_model.vtu",
     )
 
@@ -50,7 +50,7 @@ def model() -> models.FourChamber:
         "reference_models",
         "strocchi2020",
         "01",
-        "4C_wye",
+        "FourChamber",
         "heart_model.partinfo.json",
     )
 

@@ -46,7 +46,7 @@ def model() -> models.FourChamber:
         "reference_models",
         "strocchi2020",
         "01",
-        "4C_wye",
+        "FourChamber",
         "heart_model.vtu",
     )
 
@@ -55,7 +55,7 @@ def model() -> models.FourChamber:
         "reference_models",
         "strocchi2020",
         "01",
-        "4C_wye",
+        "FourChamber",
         "heart_model.partinfo.json",
     )
 
@@ -80,7 +80,7 @@ def test_uvc(model):
             "reference_models",
             "strocchi2020",
             "01",
-            "4C_wye",
+            "FourChamber",
             "uvc",
         )
         compare_outputs(to_test_folder, ref_folder)
@@ -99,7 +99,7 @@ def test_la_fiber(model):
             "reference_models",
             "strocchi2020",
             "01",
-            "4C_wye",
+            "FourChamber",
             "la_fiber",
         )
         compare_outputs(to_test_folder, ref_folder)
@@ -132,7 +132,7 @@ def test_ra_fiber(model):
             "reference_models",
             "strocchi2020",
             "01",
-            "4C_wye",
+            "FourChamber",
             "ra_fiber",
         )
         compare_outputs(to_test_folder, ref_folder)

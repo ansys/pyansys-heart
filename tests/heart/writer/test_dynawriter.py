@@ -1,3 +1,25 @@
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import unittest.mock as mock
 
 import numpy as np
@@ -6,7 +28,7 @@ import pyvista as pv
 import pyvista.examples as examples
 
 from ansys.heart.core.models import FullHeart
-from ansys.heart.core.objects import Mesh, Point
+from ansys.heart.core.objects import BeamMesh, Mesh, Part, Point
 from ansys.heart.simulator.settings.settings import SimulationSettings, Stimulation
 import ansys.heart.writer.dynawriter as writers
 
@@ -23,6 +45,25 @@ def _mock_model():
     model.electrodes = [p1, p2]
 
     yield model
+
+
+def _add_beam_network(model: FullHeart):
+    """Add a beam network to the model."""
+    lines = pv.line_segments_from_points([[0, 0, 0], [1, 0, 0]])
+    beams = BeamMesh(name="beams")
+    beams.nodes = lines.points
+    beams.edges = np.array([lines.lines[1:]])
+    beams.pid = 1000
+    model.beam_network = [beams]
+    return model
+
+
+def _add_parts(model: FullHeart):
+    """Add parts to model."""
+    model.parts = [Part(name="left_ventricle"), Part(name="Right ventricle")]
+    for ii, part in enumerate(model.parts):
+        part.pid = ii
+    return model
 
 
 def test_update_ECG_coordinates(_mock_model):  # noqa: N802
@@ -79,3 +120,30 @@ def test_add_stimulation_keyword(_mock_model, solvertype, expected_kw):
         assert stim_kw.get_title() == expected_kw
     else:
         assert "*EM_EP_EIKONAL" in stim_kw
+
+
+@pytest.mark.parametrize(
+    "solvertype,expected_num_keywords",
+    [
+        ("Monodomain", 5),
+        ("Eikonal", 5),
+        ("ReactionEikonal", 5),
+    ],
+)
+def test_update_ep_settings(_mock_model, solvertype, expected_num_keywords):
+    """Test updating EP settings."""
+    model = _mock_model
+
+    model = _add_beam_network(model)
+    model = _add_parts(model)
+
+    settings = SimulationSettings()
+    settings.load_defaults()
+    settings.electrophysiology.analysis.solvertype = solvertype
+
+    writer = writers.ElectroMechanicsDynaWriter(model, settings)
+    writer._update_ep_settings()
+
+    assert len(writer.kw_database.ep_settings.keywords) == expected_num_keywords
+
+    del writer

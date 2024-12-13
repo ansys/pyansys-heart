@@ -1854,7 +1854,7 @@ class HeartModel:
         Parameters
         ----------
         threshold_left_ventricle : float, optional
-            uvc_l larger than threshold will be set as stiff base, by default 0.9
+            uvc_l larger than threshold will be set as stiff material, by default 0.9
         stiff_material : MechanicalMaterialModel, optional
             material to assign, by default NeoHookean(rho=0.001, c10=0.1, nu=0.499)
 

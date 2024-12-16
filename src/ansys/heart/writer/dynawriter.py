@@ -2270,6 +2270,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
 
         return
 
+    # TODO: Refactor
     def _update_create_fibers(self):
         """Update the keywords for fiber generation."""
         # collect relevant node and segment sets.
@@ -3381,12 +3382,12 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             elif network.name == "His":
                 # His bundle are inside of 3d mesh
                 # need to create the segment on which beam elements rely
-                surface = self._add_segment_from_boundary(name="his_bundle_segment")
+                surface = self._add_segment_from_surface(name="his_bundle_segment")
                 network._node_set_id = surface._seg_set_id
             elif network.name == "Bachman bundle":
                 # His bundle are inside of 3d mesh
                 # need to create the segment on which beam elements rely
-                surface = self._add_segment_from_boundary(name="Bachman segment")
+                surface = self._add_segment_from_surface(name="Bachman segment")
                 network._node_set_id = surface._seg_set_id
             else:
                 LOGGER.error(f"Unknown network name for {network.name}.")
@@ -3453,7 +3454,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         self.id_offset["element"]["discrete"] = beam_elem_id_offset
 
-    def _add_segment_from_boundary(self, name: str):
+    def _add_segment_from_surface(self, name: str):
         surface = self.model.mesh.get_surface_by_name(name)
 
         surface._seg_set_id = self.get_unique_segmentset_id()

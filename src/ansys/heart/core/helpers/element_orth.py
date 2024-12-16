@@ -77,33 +77,5 @@ def _read_orth_element_kfile(fn):
     return elem_ids, part_ids, connect, fib, sheet
 
 
-def _write_orth_element_kfile(fname, elem_orth):
-    """Write *ELEMENT_SOLID_ORTHO keywords to file."""
-    with open(fname, "w") as f:
-        f.write("*KEYWORDS\n")
-        f.write("*ELEMENT_SOLID_ORTHO\n")
-
-        for id, pid, elems, a, d in elem_orth:
-            f.write("{0:8d}{1:8d}\n".format(id, pid))
-            f.write((8 * "{:8d}" + "\n").format(*elems))
-            f.write((3 * "{:16f}" + "\n").format(*a))
-            f.write((3 * "{:16f}" + "\n").format(*d))
-
-        f.write("*END\n")
-
-
-def _modify_ids_orth_elements():
-    """
-    Part ID is different from FiberGeneration module to simulation modules.
-
-    This script is to change them to be consistent.
-    """
-    elem_ids, part_ids, connect, fib, sheet = _read_orth_element_kfile("solid_elements.k")
-    # Septum is a part of LV
-    # Change part ID 3 to ID 1
-    part_ids = np.where(part_ids == 3, 1, part_ids)
-    _write_orth_element_kfile("solid_elements.k", zip(elem_ids, part_ids, connect, fib, sheet))
-
-
 if __name__ == "__main__":
     pass

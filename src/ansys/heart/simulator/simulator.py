@@ -128,6 +128,7 @@ class BaseSimulator:
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(path_to_input=input_file)
 
+        # TODO: May want to replace by ansys.dyna.core.keywords
         LOGGER.info("Assigning fiber orientation to model...")
         elem_ids, part_ids, connect, fib, sheet = _read_orth_element_kfile(
             os.path.join(directory, "element_solid_ortho.k")

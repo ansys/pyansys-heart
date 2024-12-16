@@ -32,11 +32,6 @@ import pytest
 from ansys.dpf import core as dpf
 from ansys.heart.postprocessor.dpf_utils import D3plotReader, ICVoutReader
 
-if os.getenv("GITHUB_ACTION"):
-    github_runner = True
-else:
-    github_runner = False
-
 
 def test_icvout_reader():
     path = os.path.dirname(os.path.abspath(__file__))
@@ -58,7 +53,7 @@ def test_icvout_reader():
 
 def test_d3plot_reader():
     path = os.path.dirname(os.path.abspath(__file__))
-    fn = os.path.join(path, "main", "d3plot")
+    fn = os.path.join(path, "asset", "main", "d3plot")
     d3plot = D3plotReader(fn)
 
     # just to check all dpf API works

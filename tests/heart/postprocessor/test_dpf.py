@@ -63,7 +63,7 @@ def test_d3plot_reader():
     assert isinstance(d3plot.get_ep_fields(), dpf.FieldsContainer)
 
 
-@pytest.xfail(reason="This function fails on Github but not local.")
+@pytest.mark.xfail(reason="This function fails on Github but not local.")
 def test_d3plot_reader2():
     fn = os.path.join(get_assets_folder(), "post", "main", "d3plot")
     d3plot = D3plotReader(fn)

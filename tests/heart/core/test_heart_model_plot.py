@@ -38,7 +38,7 @@ from ansys.heart.core.objects import Part
 
 
 @pytest.fixture
-def _mock_input(mocker):
+def _mock_input():
     """Mock biventricular model."""
     mesh = pv.examples.load_tetbeam()
     mesh.points = mesh.points * 1e1
@@ -47,12 +47,13 @@ def _mock_input(mocker):
     mesh.cell_data["fiber"] = fibers
     mock_biventricle: models.BiVentricle = models.BiVentricle()
     mock_biventricle.mesh = mesh
-    mock_show = mocker.patch("pyvista.Plotter.show")
-    return mock_biventricle, mock_show
+    with mock.patch("pyvista.Plotter.show") as mock_show:
+        yield mock_biventricle, mock_show
 
 
 def test_heart_model_plot_mesh(_mock_input):
     """Test plotting the mesh."""
+    # with mock.patch("pyvista.Plotter.show") as mock_show:
     mock_biventricle, mock_show = _mock_input
     mock_biventricle.plot_mesh()
     mock_show.assert_called_once()

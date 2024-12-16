@@ -18,6 +18,7 @@ env:
   LIBRARY_NAME: 'pyansys-heart'
   LIBRARY_NAMESPACE: 'ansys.heart'
   PIP_EXTRA_INDEX_URL: 'https://${{ secrets.PYANSYS_PYPI_PRIVATE_PAT }}@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/'
+  ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
 
 jobs:
 

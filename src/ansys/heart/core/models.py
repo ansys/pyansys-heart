@@ -995,6 +995,8 @@ class HeartModel:
 
             # TODO: add non-standard part by setattr(self, part_name_n, part)
 
+        # NOTE: #? Wrap in try-block?
+        # NOTE: #? add validation method to make sure all essential components are present?
         self._extract_apex()
         self._define_anatomy_axis()
 

@@ -46,7 +46,7 @@ def model() -> models.FourChamber:
         "reference_models",
         "strocchi2020",
         "01",
-        "4C_wye",
+        "FourChamber",
         "heart_model.vtu",
     )
 
@@ -55,18 +55,13 @@ def model() -> models.FourChamber:
         "reference_models",
         "strocchi2020",
         "01",
-        "4C_wye",
+        "FourChamber",
         "heart_model.partinfo.json",
     )
 
     model: models.FourChamber = models.FourChamber(working_directory=".")
 
     model.load_model_from_mesh(vtu_file, json_file)
-    model._extract_apex()
-    # TODO: recompute heart_model.vtu and commit it with the axis
-    # TODO: as field data
-    model.compute_left_ventricle_anatomy_axis()
-    model.compute_left_ventricle_aha17()
 
     return model
 
@@ -85,7 +80,7 @@ def test_uvc(model):
             "reference_models",
             "strocchi2020",
             "01",
-            "4C_wye",
+            "FourChamber",
             "uvc",
         )
         compare_outputs(to_test_folder, ref_folder)
@@ -104,7 +99,7 @@ def test_la_fiber(model):
             "reference_models",
             "strocchi2020",
             "01",
-            "4C_wye",
+            "FourChamber",
             "la_fiber",
         )
         compare_outputs(to_test_folder, ref_folder)
@@ -137,7 +132,7 @@ def test_ra_fiber(model):
             "reference_models",
             "strocchi2020",
             "01",
-            "4C_wye",
+            "FourChamber",
             "ra_fiber",
         )
         compare_outputs(to_test_folder, ref_folder)

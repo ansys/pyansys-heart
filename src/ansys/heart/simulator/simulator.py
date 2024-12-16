@@ -40,6 +40,7 @@ import shutil
 import subprocess
 from typing import Literal
 
+from deprecated import deprecated
 import natsort
 import numpy as np
 import pyvista as pv
@@ -128,6 +129,7 @@ class BaseSimulator:
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(path_to_input=input_file)
 
+        # TODO: May want to replace by ansys.dyna.core.keywords
         LOGGER.info("Assigning fiber orientation to model...")
         elem_ids, part_ids, connect, fib, sheet = _read_orth_element_kfile(
             os.path.join(directory, "element_solid_ortho.k")
@@ -502,6 +504,7 @@ class MechanicsSimulator(BaseSimulator):
 
         return
 
+    @deprecated(reason="""please use the same method under the class HeartModel.""")
     def create_stiff_ventricle_base(
         self,
         threshold: float = 0.9,
@@ -741,7 +744,8 @@ def run_lsdyna(
     os.chdir(simulation_directory)
 
     if "N o r m a l    t e r m i n a t i o n" not in "".join(mess):
-        LOGGER.error("LS-DYNA did not terminate properly.")
-        raise LsDynaErrorTerminationError()
+        if "job done, stopping" not in "".join(mess):
+            LOGGER.error("LS-DYNA did not terminate properly.")
+            raise LsDynaErrorTerminationError()
 
     return

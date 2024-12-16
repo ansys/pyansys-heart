@@ -94,8 +94,6 @@ path_to_model = os.path.join(workdir, "heart_model.vtu")
 # instantiate a four chamber model
 model: models.FullHeart = models.FullHeart(working_directory=workdir)
 model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
-model._extract_apex()
-model.compute_left_ventricle_aha17()
 
 
 ###############################################################################
@@ -153,7 +151,7 @@ ring.meca_material = NeoHookean(rho=0.001, c10=0.1, nu=0.499)
 ring.ep_material = EPMaterial.Active()
 
 # Extract elements around atrialvenricular valves and assign as a passive material
-simulator.create_stiff_ventricle_base(stiff_material=NeoHookean(rho=0.001, c10=0.1, nu=0.499))
+simulator.model.create_stiff_ventricle_base(stiff_material=NeoHookean(rho=0.001, c10=0.1, nu=0.499))
 
 
 # Estimate the stress-free-configuration

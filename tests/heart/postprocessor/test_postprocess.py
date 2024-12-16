@@ -40,8 +40,6 @@ def get_data():
     path_to_model = os.path.join(test_dir, "model", "heart_model.vtu")
     model: LeftVentricle = LeftVentricle(working_directory=test_dir)
     model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
-    model._extract_apex()
-    model.compute_left_ventricle_aha17()
 
     return test_dir, model
 

@@ -99,10 +99,6 @@ for it, tt in enumerate(np.linspace(0.001, 3, 60)):
 # ~~~~~~~~~~~~~~~~~~~~~~
 # Compute left ventricle strain in longitudinal, radial, circumferential directions
 
-# in case they are not pre-computed
-model.compute_left_ventricle_anatomy_axis()
-model.compute_left_ventricle_aha17()
-
 aha_evaluator = AhaStrainCalculator(model, d3plot_file=meca_folder / "d3plot")
 # get LRC strain at a given time and export a file named LRC_10.vtk
 strain17_at10 = aha_evaluator.compute_aha_strain_at(frame=10, out_dir=".")

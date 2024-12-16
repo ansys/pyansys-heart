@@ -99,8 +99,6 @@ for it, tt in enumerate(np.linspace(0.001, 3, 60)):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 exporter = LVContourExporter(os.path.join(meca_folder, "d3plot"), model)
-# In case principle axis is not yet computed
-model.compute_left_ventricle_anatomy_axis()
 
 # cut from long axis 4 cavity view
 cut_long = exporter.export_contour_to_vtk("l4cv", model.l4cv_axis)
@@ -123,10 +121,6 @@ plotter.show()
 # Myocardium wall strain
 # ~~~~~~~~~~~~~~~~~~~~~~
 # Compute left ventricle strain in longitudinal, radial, circumferential directions
-
-# in case they are not pre-computed
-model.compute_left_ventricle_anatomy_axis()
-model.compute_left_ventricle_aha17()
 
 aha_evaluator = AhaStrainCalculator(model, d3plot_file=meca_folder / "d3plot")
 # get LRC strain at a given time and export a file named LRC_10.vtk

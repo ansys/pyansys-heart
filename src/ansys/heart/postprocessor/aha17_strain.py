@@ -29,6 +29,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 from ansys.heart.core import LOG as LOGGER
+from ansys.heart.core.helpers.landmarks import compute_aha17, compute_element_cs
 from ansys.heart.core.models import HeartModel
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 
@@ -48,7 +49,9 @@ class AhaStrainCalculator:
             d3plot header file path.
         """
         self.model = model
-        self._aha_elements = np.where(~np.isnan(model.aha_ids))[0]
+
+        self.aha_labels = compute_aha17(model, model.short_axis, model.l4cv_axis)
+        self._aha_elements = np.where(~np.isnan(self.aha_labels))[0]
 
         self.d3plot = D3plotReader(d3plot_file)
 
@@ -119,7 +122,7 @@ class AhaStrainCalculator:
 
         if out_dir is not None:
             aha_model = self.model.mesh.extract_cells(self._aha_elements)
-            aha_model.cell_data["AHA"] = self.model.aha_ids[self._aha_elements]
+            aha_model.cell_data["AHA"] = self.aha_labels[self._aha_elements]
 
             init_coord = self.d3plot.get_initial_coordinates()[
                 aha_model.point_data["vtkOriginalPointIds"]
@@ -165,7 +168,7 @@ class AhaStrainCalculator:
         aha_strain = np.zeros((17, 3))
 
         # model info
-        e_l, e_r, e_c = self.model.compute_left_ventricle_element_cs()
+        e_l, e_r, e_c = compute_element_cs(self.model, self.model.short_axis, self._aha_elements)
         # TODO: vectorization
         for i_ele in range(len(self._aha_elements)):
             if reference is not None:
@@ -189,7 +192,7 @@ class AhaStrainCalculator:
             )
 
         # get aha17 label for left ventricle elements
-        aha17_label = self.model.aha_ids[self._aha_elements]
+        aha17_label = self.aha_labels[self._aha_elements]
 
         for i in range(1, 18):
             # get index in strain table

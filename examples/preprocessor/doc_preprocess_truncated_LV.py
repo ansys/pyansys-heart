@@ -151,8 +151,6 @@ model._update_cap_names()
 model._validate_cap_names()
 model._extract_apex()
 
-model.compute_left_ventricle_aha17()
-
 # dump the model to disk
 model.dump_model()
 

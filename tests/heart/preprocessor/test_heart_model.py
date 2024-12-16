@@ -240,9 +240,9 @@ def test_load_from_mesh():
         with open(part_info_path, "w") as f:
             json.dump(part_info, f, indent=4)
 
-        with mock.patch("ansys.heart.core.models.FullHeart._extract_apex") as mock_extract_apex:
+        with mock.patch("ansys.heart.core.models.BiVentricle._extract_apex") as mock_extract_apex:
             with mock.patch(
-                "ansys.heart.core.models.FullHeart._define_anatomy_axis"
+                "ansys.heart.core.models.BiVentricle._define_anatomy_axis"
             ) as mock_define_axis:
                 model.load_model_from_mesh(mesh_path, part_info_path)
                 mock_extract_apex.assert_called_once()

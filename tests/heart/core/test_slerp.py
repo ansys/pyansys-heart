@@ -20,31 +20,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from ansys.dyna.core.lib.card import Card, Field
-from ansys.dyna.core.lib.keyword_base import KeywordBase
+import numpy as np
+
+from ansys.heart.core.helpers.slerp import _slerp, interpolate_slerp
 
 
-class EmEpCellmodelUsermat(KeywordBase):
-    """DYNA EM_EP_CELLMODEL_USERMAT keyword"""
+def test_slerp():
+    a = np.array([1, 0, 0])
+    b = np.array([0, 1, 0])
 
-    keyword = "EM"
-    subkeyword = "EP_CELLMODEL_USERMAT"
+    c = _slerp(a, b, 0.5)
+    assert np.allclose(c, np.array([0.70710678, 0.70710678, 0]))
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._cards = [
-            Card(
-                [
-                    Field("mid", int, 0, 10, kwargs.get("mid", 1)),
-                ],
-            ),
-        ]
 
-    @property
-    def mid(self) -> int:
-        """Get or set the Material ID. A unique number must be specified (see *PART)."""  # nopep8
-        return self._cards[0].get_value("mid")
-
-    @mid.setter
-    def mid(self, value: int) -> None:
-        self._cards[0].set_value("mid", value)
+def test_interpolate_slerp():
+    p = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    v = np.array([[1, 0, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0]])
+    center = np.array([0.25, 0.25, 0.25]).reshape(1, 3)
+    c = interpolate_slerp(p, v, center)
+    assert np.allclose(c, np.array([0.71305305, 0.70111008, 0.0]))

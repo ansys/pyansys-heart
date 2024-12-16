@@ -40,6 +40,7 @@ import shutil
 import subprocess
 from typing import Literal
 
+from deprecated import deprecated
 import natsort
 import numpy as np
 import pyvista as pv
@@ -128,29 +129,7 @@ class BaseSimulator:
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(path_to_input=input_file)
 
-        LOGGER.info("done.")
-
-        # interpolate new fibers onto model.mesh
-        # Number of cells/points or element/node ordering may not be the same
-        # especially in the case of a full-heart model where we do not use
-        # the full heart to compute the fibers. Hence, interpolate using the cell
-        # centers.
-        # NOTE: How to handle null values?
-
-        # # read results.
-        # print("Interpolating fibers onto model.mesh")
-        # vtk_with_fibers = os.path.join(directory, "vtk_FO_ADvectors.vtk")
-        # vtk_with_fibers = pyvista.UnstructuredGrid(vtk_with_fibers)
-        #
-        # cell_centers_target = vtk_with_fibers.cell_centers()
-        # cell_centers_source = self.model.mesh.cell_centers()
-        #
-        # cell_centers_source = cell_centers_source.interpolate(cell_centers_target)
-        #
-        # self.model.mesh.cell_data["fiber"] = cell_centers_source.point_data["aVector"]
-        # self.model.mesh.cell_data["sheet"] = cell_centers_source.point_data["dVector"]
-        # print("Done.")
-
+        # TODO: May want to replace by ansys.dyna.core.keywords
         LOGGER.info("Assigning fiber orientation to model...")
         elem_ids, part_ids, connect, fib, sheet = _read_orth_element_kfile(
             os.path.join(directory, "element_solid_ortho.k")
@@ -159,8 +138,6 @@ class BaseSimulator:
         self.model.mesh.cell_data["fiber"][elem_ids - 1] = fib
         self.model.mesh.cell_data["sheet"][elem_ids - 1] = sheet
 
-        # dump the model to reuse fiber information
-        self.model.dump_model(os.path.join(self.root_directory, "model_with_fiber.pickle"))
         return
 
     def compute_uhc(self) -> pv.UnstructuredGrid:
@@ -527,6 +504,7 @@ class MechanicsSimulator(BaseSimulator):
 
         return
 
+    @deprecated(reason="""please use the same method under the class HeartModel.""")
     def create_stiff_ventricle_base(
         self,
         threshold: float = 0.9,
@@ -724,6 +702,13 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         return export_directory
 
 
+class LsDynaErrorTerminationError(Exception):
+    """Exception raised when `N o r m a l    t e r m i n a t i o n` is not found."""
+
+    def __init__(self):
+        super().__init__("The LS-DYNA process did not terminate as expected.")
+
+
 def run_lsdyna(
     path_to_input: pathlib,
     settings: DynaSettings = None,
@@ -750,9 +735,16 @@ def run_lsdyna(
 
     os.chdir(os.path.dirname(path_to_input))
 
+    mess = []
     with subprocess.Popen(commands, stdout=subprocess.PIPE, text=True) as p:
         for line in p.stdout:
             LOGGER.info(line.rstrip())
+            mess.append(line)
 
     os.chdir(simulation_directory)
+
+    if "N o r m a l    t e r m i n a t i o n" not in "".join(mess):
+        LOGGER.error("LS-DYNA did not terminate properly.")
+        raise LsDynaErrorTerminationError()
+
     return

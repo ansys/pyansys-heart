@@ -54,6 +54,10 @@ from ansys.heart.core.objects import (
 from ansys.heart.preprocessor.input import _InputModel
 import ansys.heart.preprocessor.mesher as mesher
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
+from ansys.heart.simulator.settings.material.material import (
+    MechanicalMaterialModel,
+    NeoHookean,
+)
 
 
 def _get_axis_from_field_data(
@@ -1717,43 +1721,6 @@ class HeartModel:
         return e_l, e_r, e_c
 
     # TODO: fix this.
-    def _compute_uvc_rotation_bc(self, mesh: pv.UnstructuredGrid):
-        """Select node set on long axis plane."""
-        mesh["cell_ids"] = np.arange(0, mesh.n_cells, dtype=int)
-        mesh["point_ids"] = np.arange(0, mesh.n_points, dtype=int)
-        slice = mesh.slice(origin=self.l4cv_axis["center"], normal=self.l4cv_axis["normal"])
-        crinkled = mesh.extract_cells(np.unique(slice["cell_ids"]))
-        free_wall_center, septum_center = crinkled.clip(
-            origin=self.l2cv_axis["center"],
-            normal=-self.l2cv_axis["normal"],
-            crinkle=True,
-            return_clipped=True,
-        )
-
-        rotation_mesh = mesh.remove_cells(free_wall_center["cell_ids"])
-        print(f"{mesh.n_points - rotation_mesh.n_points} nodes are removed from clip.")
-
-        vn = mesh.points[free_wall_center["point_ids"]] - self.l4cv_axis["center"]
-        v0 = np.tile(self.l4cv_axis["normal"], (len(free_wall_center["point_ids"]), 1))
-
-        dot = np.einsum("ij,ij->i", v0, vn)  # dot product row by row
-        set1 = np.unique(free_wall_center["point_ids"][dot >= 0])  # -pi
-        set2 = np.unique(free_wall_center["point_ids"][dot < 0])  # pi
-        set3 = np.unique(
-            np.setdiff1d(septum_center["point_ids"], free_wall_center["point_ids"])
-        )  # 0
-
-        # Uncomment to visualize.
-        # mesh["bc"] = np.zeros(mesh.n_points)
-        # mesh["bc"][set1] = 1
-        # mesh["bc"][set2] = -1
-        # mesh["bc"][set3] = 2
-        # mesh.set_active_scalars("bc")
-        # mesh.plot()
-
-        return set1, set2, set3
-
-    # TODO: fix this.
     def get_apex_node_set(
         self,
         part: Literal["left", "right"] = "left",
@@ -1877,8 +1844,58 @@ class HeartModel:
 
         return isolation
 
-    # TODO: fix this.
-    def create_atrial_stiff_ring(self, radius: float = 2) -> Union[None, Part]:
+    def create_stiff_ventricle_base(
+        self,
+        threshold_left_ventricle: float = 0.9,
+        threshold_right_ventricle: float = 0.95,
+        stiff_material: MechanicalMaterialModel = NeoHookean(rho=0.001, c10=0.1, nu=0.499),
+    ) -> None | Part:
+        """Use universal coordinates to generate a stiff base region.
+
+        Parameters
+        ----------
+        threshold_left_ventricle : float, optional
+            uvc_l larger than threshold will be set as stiff material, by default 0.9
+        threshold_right_ventricle : float, optional
+            a uvc_l value larger than this threshold in the right ventricle will be set to a stiff
+            material, by default 0.95
+        stiff_material : MechanicalMaterialModel, optional
+            material to assign, by default NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+
+        Returns
+        -------
+        Part
+            Part associated with the stiff base region.
+        """
+        try:
+            v = self.mesh.point_data_to_cell_data()["apico-basal"]
+        except KeyError:
+            LOGGER.error("Array named 'apico-basal' cannot be found, cannot create base part.")
+            LOGGER.error("Run simulator.compute_uhc() first.")
+            return
+
+        eids = np.intersect1d(
+            np.where(v > threshold_left_ventricle)[0], self.left_ventricle.element_ids
+        )
+        if not isinstance(self, LeftVentricle):
+            # uvc-L of RV is generally smaller, *1.05 to be comparable with LV
+            eid_r = np.intersect1d(
+                np.where(v > threshold_right_ventricle)[0],
+                self.right_ventricle.element_ids,
+            )
+            eids = np.hstack((eids, eid_r))
+
+        part: Part = self.create_part_by_ids(eids, "base")
+        part.part_type = PartType.VENTRICLE
+        part.fiber = False
+        part.active = False
+        part.meca_material = stiff_material
+        # assign default EP material as for ventricles
+        part.ep_material = EPMaterial.Active()
+
+        return part
+
+    def create_atrial_stiff_ring(self, radius: float = 2) -> None | Part:
         """Create a part for solids close to atrial caps.
 
         Note
@@ -1927,11 +1944,12 @@ class HeartModel:
             ring_eles = np.hstack((ring_eles, orphan_cells))
 
         # Create ring part
-        # TODO: name must have 'base' in name, see dynawriter.py L3120
-        ring: Part = self.create_part_by_ids(ring_eles, name="base atrial stiff rings")
+        ring: Part = self.create_part_by_ids(ring_eles, name="atrial stiff rings")
         ring.part_type = PartType.ATRIUM
         ring.fiber = False
         ring.active = False
+        # assign default EP material
+        ring.ep_material = EPMaterial.Active()
 
         return ring
 

@@ -4137,7 +4137,7 @@ class UHCWriter(BaseDynaWriter):
 
     def _create_rotational_nodesets(self):
         # Find nodes on target mesh
-        rot_start, rot_end, septum = self.model._compute_uvc_rotation_bc(copy.deepcopy(self.target))
+        rot_start, rot_end, septum = self._get_uvc_rotation_bc()
 
         sid_minus_pi = self.get_unique_nodeset_id()
         kw = create_node_set_keyword(rot_start + 1, node_set_id=sid_minus_pi, title="rotation:-pi")
@@ -4149,6 +4149,37 @@ class UHCWriter(BaseDynaWriter):
         kw = create_node_set_keyword(septum + 1, node_set_id=sid_zero, title="rotation:0")
         self.kw_database.node_sets.append(kw)
         return [sid_minus_pi, sid_plus_pi, sid_zero]
+
+    def _get_uvc_rotation_bc(self):
+        """Select node set on long axis plane."""
+        mesh = copy.deepcopy(self.target)
+        mesh["cell_ids"] = np.arange(0, mesh.n_cells, dtype=int)
+        mesh["point_ids"] = np.arange(0, mesh.n_points, dtype=int)
+        slice = mesh.slice(
+            origin=self.model.l4cv_axis["center"], normal=self.model.l4cv_axis["normal"]
+        )
+        crinkled = mesh.extract_cells(np.unique(slice["cell_ids"]))
+        free_wall_center, septum_center = crinkled.clip(
+            origin=self.model.l2cv_axis["center"],
+            normal=-self.model.l2cv_axis["normal"],
+            crinkle=True,
+            return_clipped=True,
+        )
+
+        rotation_mesh = mesh.remove_cells(free_wall_center["cell_ids"])
+        LOGGER.info(f"{mesh.n_points - rotation_mesh.n_points} nodes are removed from clip.")
+
+        vn = mesh.points[free_wall_center["point_ids"]] - self.model.l4cv_axis["center"]
+        v0 = np.tile(self.model.l4cv_axis["normal"], (len(free_wall_center["point_ids"]), 1))
+
+        dot = np.einsum("ij,ij->i", v0, vn)  # dot product row by row
+        set1 = np.unique(free_wall_center["point_ids"][dot >= 0])  # -pi
+        set2 = np.unique(free_wall_center["point_ids"][dot < 0])  # pi
+        set3 = np.unique(
+            np.setdiff1d(septum_center["point_ids"], free_wall_center["point_ids"])
+        )  # 0
+
+        return set1, set2, set3
 
     def _define_Laplace_Dirichlet_bc(  # noqa N802
         self,

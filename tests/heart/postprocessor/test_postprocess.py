@@ -31,11 +31,12 @@ from ansys.heart.core.models import LeftVentricle
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
 from ansys.heart.postprocessor.auto_process import zerop_post
 from ansys.heart.postprocessor.system_model_post import SystemModelPost
+from tests.heart.conftest import get_assets_folder
 
 
 @pytest.fixture(autouse=True, scope="module")
 def get_data():
-    test_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "asset")
+    test_dir = os.path.join(get_assets_folder(), "post")
     path_to_model = os.path.join(test_dir, "model", "heart_model.vtu")
     model: LeftVentricle = LeftVentricle(working_directory=test_dir)
     model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))

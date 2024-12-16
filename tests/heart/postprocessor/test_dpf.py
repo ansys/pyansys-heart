@@ -31,11 +31,11 @@ import pytest
 
 from ansys.dpf import core as dpf
 from ansys.heart.postprocessor.dpf_utils import D3plotReader, ICVoutReader
+from tests.heart.conftest import get_assets_folder
 
 
 def test_icvout_reader():
-    path = os.path.dirname(os.path.abspath(__file__))
-    fn = os.path.join(path, "asset", "main", "binout")
+    fn = os.path.join(get_assets_folder(), "post", "main", "binout")
     icvout = ICVoutReader(fn)
 
     assert np.all(icvout._icv_ids == np.array([1]))
@@ -52,8 +52,7 @@ def test_icvout_reader():
 
 
 def test_d3plot_reader():
-    path = os.path.dirname(os.path.abspath(__file__))
-    fn = os.path.join(path, "asset", "main", "d3plot")
+    fn = os.path.join(get_assets_folder(), "post", "main", "d3plot")
     d3plot = D3plotReader(fn)
 
     # just to check all dpf API works
@@ -66,8 +65,7 @@ def test_d3plot_reader():
 
 @pytest.xfail(reason="This function fails on Github but not local.")
 def test_d3plot_reader2():
-    path = os.path.dirname(os.path.abspath(__file__))
-    fn = os.path.join(path, "asset", "main", "d3plot")
+    fn = os.path.join(get_assets_folder(), "post", "main", "d3plot")
     d3plot = D3plotReader(fn)
 
     assert d3plot.get_displacement_at(0.0).shape == (8598, 3)

@@ -22,14 +22,13 @@
 
 """Module for computing hear anatomical landmarks."""
 
-from typing import TYPE_CHECKING, Literal
+from typing import Literal
 
 from deprecated import deprecated
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-if TYPE_CHECKING:
-    from ansys.heart.core.models import HeartModel
+from ansys.heart.core.models import HeartModel
 
 
 def compute_anatomy_axis(

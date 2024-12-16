@@ -39,7 +39,6 @@ import yaml
 
 from ansys.heart.core import LOG as LOGGER
 import ansys.heart.core.helpers.connectivity as connectivity
-from ansys.heart.core.helpers.landmarks import compute_anatomy_axis
 import ansys.heart.core.helpers.vtkmethods as vtkmethods
 from ansys.heart.core.objects import (
     BeamMesh,
@@ -1502,6 +1501,8 @@ class HeartModel:
 
     def _define_anatomy_axis(self):
         """Define long and short axes from left ventricle landmarks."""
+        from ansys.heart.core.helpers.landmarks import compute_anatomy_axis
+
         mv_center = next(
             cap.centroid for cap in self.left_ventricle.caps if cap.name == "mitral-valve"
         )

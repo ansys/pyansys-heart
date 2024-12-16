@@ -110,7 +110,7 @@ class EDPVR:
 
         Parameters
         ----------
-        simulation_data : np.ndarray, optional
+        simulation_data : list, optional
             [volume, pressure] from simulation, by default None
 
         Returns

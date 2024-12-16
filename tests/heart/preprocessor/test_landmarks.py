@@ -63,15 +63,8 @@ def model() -> models.FourChamber:
 
 def test_compute_anatomy_axis():
     mv_center = np.array([14.91736773, 138.79881432, 382.26438557])
-    # next(
-    #     cap.centroid for cap in model.left_ventricle.caps if cap.name == "mitral-valve"
-    # )
     av_center = np.array([4.56652835, 118.0155877, 391.6282463])
-    # next(
-    #     cap.centroid for cap in model.left_ventricle.caps if cap.name == "aortic-valve"
-    # )
     apex = np.array([70.69582127, 71.67369568, 353.56092681])
-    # next(ap.xyz for ap in model.left_ventricle.apex_points if ap.name == "apex epicardium")
 
     a, b, c = compute_anatomy_axis(mv_center, av_center, apex)
     assert np.allclose(b["center"], np.array([42.8065945, 105.236255, 367.91265619]))

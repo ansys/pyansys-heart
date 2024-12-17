@@ -23,13 +23,12 @@
 """Module contains methods for mesh operations related to the vtk library."""
 
 import copy
-from typing import List, Optional, Tuple, Union
+from typing import List, Union
 
 from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 import vtk
-from vtk.numpy_interface import dataset_adapter as dsa  # type: ignore # noqa
 
 from ansys.heart.core import LOG as LOGGER
 
@@ -71,61 +70,16 @@ def compute_surface_nodal_area_pyvista(surface: pv.PolyData) -> np.ndarray:
     return nodal_area
 
 
-# TODO: replace with pyvista.
-@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
-def add_normals_to_polydata(
-    vtk_polydata: vtk.vtkPolyData, return_normals: bool = False
-) -> Union[vtk.vtkPolyData, Optional[Tuple[np.ndarray, np.ndarray]]]:
-    """Add normals to the vtk.vtkPolyData object.
-
-    Parameters
-    ----------
-    vtk_polydata : vtk.vtkPolyData
-        Input surface.
-    return_normals : bool, optional
-        Return the cell and point normals as numpy arrays, by default False.
-
-    Returns
-    -------
-    vtk_polydata : vtk.vtkPolyData
-        Vtk surface with cell and point normals added.
-    (cell_normals, point_normals) : (np.ndarray, np.ndarray), optional
-        Cell normals and point normals, only provided if return_normals=True
-    """
-    # compute normals
-    normal_filter = vtk.vtkPolyDataNormals()
-    normal_filter.SetInputData(vtk_polydata)
-    normal_filter.ComputeCellNormalsOn()
-    normal_filter.ComputePointNormalsOn()
-    # normal_filter.AutoOrientNormalsOn()
-    # normal_filter.ConsistencyOff()
-    # normal_filter.NonManifoldTraversalOff()
-    # normal_filter.SetSplitting(0)
-
-    normal_filter.SplittingOff()
-    normal_filter.SetFeatureAngle(30)
-
-    normal_filter.Update()
-
-    if return_normals:
-        normal_filter_dsa = dsa.WrapDataObject(normal_filter.GetOutput())
-        return np.array(normal_filter_dsa.CellData["Normals"]), np.array(
-            normal_filter_dsa.PointData["Normals"]
-        )
-    else:
-        return normal_filter.GetOutput()
-
-
 def extrude_polydata(
-    vtk_surface: vtk.vtkPolyData,
+    surface: pv.PolyData,
     extrude_by: float = 1,
     extrude_direction: np.array = np.empty(0),
-) -> vtk.vtkPolyData:
+) -> pv.PolyData:
     """Extrude a given polydata surface in a given direction.
 
     Parameters
     ----------
-    vtk_surface : vtk.vtkPolyData
+    surface : pv.PolyData
         Surface to extrude
     extrude_by : float, optional
         Extrude by this much, by default 1
@@ -135,14 +89,14 @@ def extrude_polydata(
 
     Returns
     -------
-    vtk.vtkPolyData
-        Extruded vtkPolyData object
+    pv.PolyData
+        Extruded PolyData object
     """
     extrude_normal = False
     if len(extrude_direction) == 0:
         extrude_normal = True
 
-    vtk_surface = add_normals_to_polydata(vtk_surface)
+    surface = surface.compute_normals()
 
     extrude = vtk.vtkLinearExtrusionFilter()
     extrude.CappingOn()
@@ -153,12 +107,11 @@ def extrude_polydata(
         extrude.SetExtrusionTypeToVectorExtrusion()
         extrude.SetVector(extrude_direction[0], extrude_direction[1], extrude_direction[2])
 
-    extrude.SetInputData(vtk_surface)
+    extrude.SetInputData(surface)
     extrude.SetScaleFactor(extrude_by)
     extrude.Update()
-    extruded_polydata = extrude.GetOutput()
 
-    return pv.PolyData(extruded_polydata)
+    return pv.PolyData(extrude.GetOutput())
 
 
 def cell_ids_inside_enclosed_surface(

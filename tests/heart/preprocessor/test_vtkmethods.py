@@ -20,9 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import numpy as np
 import pyvista as pv
+import pyvista.examples as examples
 
-from ansys.heart.core.helpers.vtkmethods import are_connected
+from ansys.heart.core.helpers.vtkmethods import are_connected, find_cells_close_to_nodes
 
 
 def test_check_if_connected():
@@ -32,5 +34,18 @@ def test_check_if_connected():
 
     assert are_connected(box1, box2.translate((2, 0, 0)))
     assert not are_connected(box1, box2.translate((3, 0, 0)))
+
+    return
+
+
+def test_find_cells_close_to_nodes():
+    """Test finding cells close to list of nodes."""
+    mesh = examples.load_tetbeam()
+
+    mesh.points[0, :]
+    # expecting all nodes to be enclosed.
+    assert np.all(find_cells_close_to_nodes(mesh, [0], radius=6) == np.arange(0, mesh.n_cells))
+    # expecting just a single enclosed node.
+    assert find_cells_close_to_nodes(mesh, [0], radius=0.1) == np.array([0])
 
     return

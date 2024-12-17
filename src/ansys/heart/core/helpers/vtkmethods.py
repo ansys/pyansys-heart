@@ -163,7 +163,7 @@ def find_cells_close_to_nodes(
     points = mesh.points[node_ids]
 
     # Create a list to store cells within the sphere radius
-    cells_within_sphere = []
+    selected_cells = []
 
     # Iterate through each point and find cells within the sphere
     for point in points:
@@ -175,13 +175,13 @@ def find_cells_close_to_nodes(
 
         # Get the indices of the cells
         selected_points = selection.point_data["SelectedPoints"].nonzero()[0]
-        selected_cells = mesh.extract_points(selected_points).cell_data["vtkOriginalCellIds"]
+        cells_within_sphere = mesh.extract_points(selected_points).cell_data["vtkOriginalCellIds"]
 
         # Store unique cell indices
-        cells_within_sphere.extend(selected_cells)
+        selected_cells.extend(cells_within_sphere)
 
     # Return unique cell indices
-    return np.unique(cells_within_sphere)
+    return np.unique(selected_cells)
 
 
 def get_boundary_edges(surface: pv.PolyData) -> pv.MultiBlock:

@@ -36,17 +36,6 @@ from vtk.util.numpy_support import numpy_to_vtk  # type: ignore # noqa
 from ansys.heart.core import LOG as LOGGER
 
 
-@deprecated(reason="This method is deprecated: can use pyvista objects directly.")
-def write_vtkdata_to_vtkfile(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData], fname: str):
-    """Write a vtk unstructured grid object to vtk file."""
-    writer = vtk.vtkDataSetWriter()
-    writer.SetFileName(fname)
-    writer.SetInputData(vtk_data)
-    writer.SetFileTypeToBinary()
-    writer.Write()
-    return
-
-
 # TODO: replace partially with pyvista objects for convenience.
 def get_tetra_info_from_unstructgrid(
     vtk_grid: vtk.vtkUnstructuredGrid, get_all_data: bool = True, deep_copy: bool = False

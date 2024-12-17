@@ -57,7 +57,7 @@ class AhaStrainCalculator:
     def compute_aha_strain(
         self, out_dir: str = None, write_vtk: bool = False, t_to_keep: float = 10e10
     ) -> np.ndarray:
-        """Compute AHA 17 segment strain values from deformation grandient.
+        """Compute AHA 17 segment strain values from deformation gradient.
 
         Parameters
         ----------
@@ -71,7 +71,8 @@ class AhaStrainCalculator:
         Returns
         -------
         np.ndarray
-            array of N_time * (1+17*3), columnus represents time and (L R C) strain of each segment
+            array of N_time * (1+17*3), columns represent time and
+            longitudinal, radial, and circumferential strain averaged of each segment
         """
         save_time = self.d3plot.time[self.d3plot.time >= self.d3plot.time[-1] - t_to_keep]
         strain = np.zeros((len(save_time), 1 + 17 * 3))

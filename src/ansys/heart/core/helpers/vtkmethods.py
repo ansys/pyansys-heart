@@ -25,7 +25,6 @@
 import copy
 from typing import List, Union
 
-from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 import vtk
@@ -139,36 +138,6 @@ def cell_ids_inside_enclosed_surface(
         "__original-cell-ids"
     ]
     return cell_ids_inside
-
-
-# TODO: replace with pyvista.
-@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
-def vtk_cutter(vtk_polydata: vtk.vtkPolyData, cut_plane) -> vtk.vtkPolyData:
-    """
-    Cut a vtk polydata by a plane.
-
-    Parameters
-    ----------
-    vtk_polydata: vtk polydata
-    cut_plane: dictionary contains key: 'center' and 'normal'
-
-    Returns
-    -------
-    vtkpolydata
-    """
-    # create a plane to cut
-    plane = vtk.vtkPlane()
-    plane.SetOrigin(cut_plane["center"][0], cut_plane["center"][1], cut_plane["center"][2])
-    plane.SetNormal(cut_plane["normal"][0], cut_plane["normal"][1], cut_plane["normal"][2])
-
-    # create cutter
-    cutter = vtk.vtkCutter()
-    # cutter.SetNumberOfContours(20) #how to control number of points?
-    cutter.SetCutFunction(plane)
-    cutter.SetInputData(vtk_polydata)
-    cutter.Update()
-
-    return cutter.GetOutput()
 
 
 def find_cells_close_to_nodes(

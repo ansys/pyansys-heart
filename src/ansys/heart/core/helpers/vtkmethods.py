@@ -426,47 +426,30 @@ def create_vtk_surface_triangles(
         return polydata
 
 
-# TODO: replace with pyvista.
-@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
 def cell_ids_inside_enclosed_surface(
-    vtk_source: vtk.vtkUnstructuredGrid, vtk_surface: vtk.vtkPolyData
+    source: pv.UnstructuredGrid, surface: pv.PolyData
 ) -> np.ndarray:
-    """Tag any cells that are inside an enclosed surface.
+    """Get cell ids of cells of which all points are inside a given surface.
 
     Parameters
     ----------
-    vtk_source : vtk.vtkUnstructuredGrid
-        Source VTK object of which to check the whether the cells are inside/outside
-        the specified surface
-    vtk_surface : vtk.vtkPolyData
-        Enclosed surface
+    source : pv.UnstructuredGrid
+        Unstructured grid to check for cells that are inside a given surface.
+    surface : pv.PolyData
+        Surface used to check whether cells are inside/outside.
 
     Returns
     -------
-    vtk.vtkUnstructuredGrid
-        VTK object with additional cell data indicating whether
-        the cell is in/outside the provided surface
+    np.ndarray
+        Array with cell ids that are inside the enclosed surface.
     """
-    vtk_surface = add_normals_to_polydata(vtk_surface)
-    points, tetra, _, _ = get_tetra_info_from_unstructgrid(vtk_source)
-
-    centroids = np.mean(points[tetra, :], axis=1)
-
-    vtk_centroids = create_vtk_polydata_from_points(centroids)
-
-    select = vtk.vtkSelectEnclosedPoints()
-    select.SetInputData(vtk_centroids)
-    select.SetSurfaceData(vtk_surface)
-    select.CheckSurfaceOn()
-    select.SetTolerance(1e-9)  # fraction of diagonal of bounding box!
-    select.Update()
-
-    output = select.GetOutput()
-
-    output_dsa = dsa.WrapDataObject(output)
-
-    cell_ids_inside = np.where(output_dsa.PointData["SelectedPoints"] == 1)[0]
-
+    source.cell_data["__original-cell-ids"] = np.arange(0, source.n_cells, dtype=int)
+    source = source.select_enclosed_points(surface)
+    source.point_data
+    mask = source.point_data["SelectedPoints"] == 1
+    cell_ids_inside = source.extract_points(mask, adjacent_cells=False).cell_data[
+        "__original-cell-ids"
+    ]
     return cell_ids_inside
 
 

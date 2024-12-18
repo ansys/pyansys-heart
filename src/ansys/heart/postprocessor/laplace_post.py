@@ -62,7 +62,6 @@ def read_temperature_field(directory: str, field_list: list[str]) -> pv.Unstruct
             LOGGER.error("Failed to read d3plot.")
             exit()
 
-        # force a deep copy
         grid.point_data[name] = np.array(t, dtype=float)
 
     return grid
@@ -81,7 +80,6 @@ def compute_cell_gradient(grid: pv.UnstructuredGrid) -> pv.UnstructuredGrid:
     pv.UnstructuredGrid
         grid with gradient vectors in cell data
     """
-    # NOTE: vtk gradient method shows warning/error for some cells
     grid2 = grid.point_data_to_cell_data()
     for name in grid2.cell_data.keys():
         derivative = grid2.compute_derivative(scalars=name, preference="cell")
@@ -91,25 +89,57 @@ def compute_cell_gradient(grid: pv.UnstructuredGrid) -> pv.UnstructuredGrid:
     return grid2
 
 
-def _update_trans_by_normal(grid: pv.UnstructuredGrid, surface: pv.PolyData):
-    """Use surface normal to replace gradient of transmural direction."""
-    with_normals = surface.clean().compute_normals()
+def update_trans_by_normal(grid: pv.UnstructuredGrid, surface: pv.PolyData) -> np.ndarray:
+    """Use surface normal for transmural direction.
+
+    Note
+    ----
+    Assume mesh is coarse compared to the thinkness, solid cell normal
+    is interpolated from closest surface normal
+
+    Parameters
+    ----------
+    grid : pv.UnstructuredGrid
+        atrium grid
+    surface : pv.PolyData
+        atrium endocardium surface
+
+    Returns
+    -------
+    np.ndarray
+        cell transmural direction vector
+    """
+    surface_normals = surface.clean().compute_normals()
 
     from scipy import spatial
 
-    tree = spatial.cKDTree(with_normals.cell_centers().points)
+    tree = spatial.cKDTree(surface_normals.cell_centers().points)
 
     cell_center = grid.cell_centers().points
     d, t = tree.query(cell_center, 1)
 
-    grid["grad_trans"] = with_normals.cell_data["Normals"][t]
+    grad_trans = surface_normals.cell_data["Normals"][t]
 
-    return grid
+    return grad_trans
 
 
-def _orthogonalization(
+def orthogonalization(
     grad_trans: np.ndarray, k: np.ndarray
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Orthogonalization.
+
+    Parameters
+    ----------
+    grad_trans : np.ndarray
+        transmural vector
+    k : np.ndarray
+        Bundle selection vector
+
+    Returns
+    -------
+    tuple[np.ndarray, np.ndarray, np.ndarray]
+        local coordinate system e_l,e_n,e_t
+    """
     norm = np.linalg.norm(grad_trans, axis=1)
     bad_cells = np.argwhere(norm == 0).ravel()
 
@@ -157,7 +187,7 @@ def compute_la_fiber_cs(
         pv object with fiber coordinates system.
     """
 
-    def bundle_selection(grid) -> pv.UnstructuredGrid:
+    def bundle_selection(grid):
         """Left atrium bundle selection.
 
         Add two cell data to grid.
@@ -190,17 +220,17 @@ def compute_la_fiber_cs(
         mask = grid["bundle"] == 0
         grid["k"][mask] = grid["grad_ab"][mask]
 
-        return grid
+        return
 
-    grid = read_temperature_field(directory, field_list=["trans", "ab", "v", "r"])
-    grid = compute_cell_gradient(grid)
+    data = read_temperature_field(directory, field_list=["trans", "ab", "v", "r"])
+    grid = compute_cell_gradient(data)
 
     if endo_surface is not None:
-        grid = _update_trans_by_normal(grid, endo_surface)
+        grid.cell_data["grad_trans"] = update_trans_by_normal(grid, endo_surface)
 
-    grid = bundle_selection(grid)
+    bundle_selection(grid)
 
-    el, en, et = _orthogonalization(grid["grad_trans"], grid["k"])
+    el, en, et = orthogonalization(grid["grad_trans"], grid["k"])
 
     grid.cell_data["e_l"] = el
     grid.cell_data["e_n"] = en
@@ -234,7 +264,7 @@ def compute_ra_fiber_cs(
         pv object with fiber coordinates system.
     """
 
-    def bundle_selection(grid) -> pv.UnstructuredGrid:
+    def bundle_selection(grid):
         """Right atrium bundle selection.
 
         Add two cell data to grid.
@@ -328,17 +358,17 @@ def compute_ra_fiber_cs(
         grid["k"] = k
         grid["bundle"] = tag.astype(int)
 
-        return grid
+        return
 
-    grid = read_temperature_field(directory, field_list=["trans", "ab", "v", "r", "w"])
-    grid = compute_cell_gradient(grid)
+    data = read_temperature_field(directory, field_list=["trans", "ab", "v", "r", "w"])
+    grid = compute_cell_gradient(data)
 
     if endo_surface is not None:
-        grid = _update_trans_by_normal(grid, endo_surface)
+        grid.cell_data["grad_trans"] = update_trans_by_normal(grid, endo_surface)
 
-    grid = bundle_selection(grid)
+    bundle_selection(grid)
 
-    el, en, et = _orthogonalization(grid["grad_trans"], grid["k"])
+    el, en, et = orthogonalization(grid["grad_trans"], grid["k"])
 
     grid.cell_data["e_l"] = el
     grid.cell_data["e_n"] = en

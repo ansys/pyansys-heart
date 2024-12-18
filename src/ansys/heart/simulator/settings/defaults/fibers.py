@@ -35,7 +35,7 @@ angles = {
 }
 
 # Quarteroni idealized geometry
-# paper has a type, lpv should < rpv
+# paper has a typo, lpv should < rpv
 la_bundle = {"tau_mv": 0.65, "tau_lpv": 0.10, "tau_rpv": 0.65}
 
 # la_bundle = {"tau_mv": 0.85, "tau_lpv": 0.4, "tau_rpv": 0.9}

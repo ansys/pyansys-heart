@@ -24,7 +24,6 @@
 
 import copy
 import os
-from typing import List
 
 import numpy as np
 import pyvista as pv
@@ -87,8 +86,21 @@ def orthogonalization(grid) -> pv.UnstructuredGrid:
     return grid
 
 
-def get_gradient(directory, field_list: List[str]) -> pv.UnstructuredGrid:
-    """Read thermal fields from d3plot and compute gradient."""
+def read_temperature_field(directory: str, field_list: list[str]) -> pv.UnstructuredGrid:
+    """Read thermal fields from d3plot.
+
+    Parameters
+    ----------
+    directory : str
+        directory of d3plot files
+    field_list : list[str]
+        name of each d3plot file/field
+
+    Returns
+    -------
+    pv.UnstructuredGrid
+        grid with point data of each field
+    """
     data = D3plotReader(os.path.join(directory, field_list[0] + ".d3plot"))
     grid: pv.UnstructuredGrid = data.model.metadata.meshed_region.grid
 
@@ -98,6 +110,7 @@ def get_gradient(directory, field_list: List[str]) -> pv.UnstructuredGrid:
         if len(t) == grid.n_points:
             t = t
         elif len(t) == 3 * grid.n_points:
+            LOGGER.warning("DPF reads temperature as a vector field, maybe your DPF is obsolete.")
             t = t[::3]
         else:
             LOGGER.error("Failed to read d3plot.")
@@ -106,9 +119,25 @@ def get_gradient(directory, field_list: List[str]) -> pv.UnstructuredGrid:
         # force a deep copy
         grid.point_data[name] = copy.deepcopy(t)
 
+    return grid
+
+
+def compute_cell_gradient(grid: pv.UnstructuredGrid) -> pv.UnstructuredGrid:
+    """Compute cell gradient.
+
+    Parameters
+    ----------
+    grid : pv.UnstructuredGrid
+        grid with point data associated
+
+    Returns
+    -------
+    pv.UnstructuredGrid
+        grid with gradient vectors in cell data
+    """
     # NOTE: vtk gradient method shows warning/error for some cells
     grid2 = grid.point_data_to_cell_data()
-    for name in field_list:
+    for name in grid2.cell_data.keys():
         derivative = grid2.compute_derivative(scalars=name, preference="cell")
         res = derivative["gradient"]
         grid2["grad_" + name] = res
@@ -194,7 +223,8 @@ def compute_la_fiber_cs(
 
         return grid
 
-    grid = get_gradient(directory, field_list=["trans", "ab", "v", "r"])
+    grid = read_temperature_field(directory, field_list=["trans", "ab", "v", "r"])
+    grid = compute_cell_gradient(grid)
     # TODO: sometimes, pyvista object breaks when passing this directly
 
     grid = pv.read("gradient.vtk")
@@ -333,8 +363,8 @@ def compute_ra_fiber_cs(
 
         return grid
 
-    grid = get_gradient(directory, field_list=["trans", "ab", "v", "r", "w"])
-    grid = pv.read("gradient.vtk")
+    grid = read_temperature_field(directory, field_list=["trans", "ab", "v", "r", "w"])
+    grid = compute_cell_gradient(grid)
 
     if endo_surface is not None:
         grid = _update_trans_by_normal(grid, endo_surface)

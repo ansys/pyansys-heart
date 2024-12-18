@@ -55,7 +55,10 @@ def read_uvc(directory):
 
 
 def orthogonalization(grid) -> pv.UnstructuredGrid:
-    """Gram–Schmidt orthogonalization."""
+    """Gram–Schmidt orthogonalization.
+
+    add cell data 'e_l', 'e_n','e_t'
+    """
     norm = np.linalg.norm(grid["grad_trans"], axis=1)
     bad_cells = np.argwhere(norm == 0).ravel()
 
@@ -80,6 +83,7 @@ def orthogonalization(grid) -> pv.UnstructuredGrid:
     grid["e_n"] = en / norm[:, None]
 
     grid["e_l"] = np.cross(grid["e_n"], grid["e_t"])
+
     return grid
 
 
@@ -156,7 +160,13 @@ def compute_la_fiber_cs(
     """
 
     def bundle_selection(grid) -> pv.UnstructuredGrid:
-        """Left atrium bundle selection."""
+        """Left atrium bundle selection.
+
+        Add two cell data to grid.
+        - 'k' is unit vector from different gradient fields.
+        - 'bundle' labels regions of selection.
+
+        """
         # bundle selection
         tau_mv = settings.tau_mv  # 0.65
         tau_lpv = settings.tau_lpv  # 0.65
@@ -165,18 +175,20 @@ def compute_la_fiber_cs(
         grid["k"] = np.zeros((grid.n_cells, 3))
         grid["bundle"] = np.zeros(grid.n_cells, dtype=int)
 
+        # MV region
         mask_mv = grid["r"] >= tau_mv
         grid["k"][mask_mv] = grid["grad_r"][mask_mv]
         grid["bundle"][mask_mv] = 1
-
+        # LPV region
         mask = np.invert(mask_mv) & (grid["v"] < tau_lpv)
         grid["k"][mask] = grid["grad_v"][mask]
         grid["bundle"][mask] = 2
-
+        # RPV region
         mask = np.invert(mask_mv) & (grid["v"] > tau_rpv)
         grid["k"][mask] = grid["grad_v"][mask]
         grid["bundle"][mask] = 3
 
+        # rest and assign to grad_ab
         mask = grid["bundle"] == 0
         grid["k"][mask] = grid["grad_ab"][mask]
 
@@ -226,7 +238,13 @@ def compute_ra_fiber_cs(
     """
 
     def bundle_selection(grid) -> pv.UnstructuredGrid:
-        """Left atrium bundle selection."""
+        """Right atrium bundle selection.
+
+        Add two cell data to grid.
+        - 'k' is unit vector from different gradient fields.
+        - 'bundle' labels regions of selection.
+
+        """
         tao_tv = settings.tau_tv  # 0.9
         tao_raw = settings.tau_raw  # 0.55
         tao_ct_minus = settings.tau_ct_minus  # -0.18

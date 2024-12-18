@@ -32,39 +32,6 @@ from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.simulator.settings.settings import AtrialFiber
 
 
-def orthogonalization(grid) -> pv.UnstructuredGrid:
-    """Gram–Schmidt orthogonalization.
-
-    add cell data 'e_l', 'e_n','e_t'
-    """
-    norm = np.linalg.norm(grid["grad_trans"], axis=1)
-    bad_cells = np.argwhere(norm == 0).ravel()
-
-    LOGGER.debug(
-        f"{len(bad_cells)} cells have null gradient in transmural direction."
-        f" This should only be at valve regions and can be checked from the vtk file."
-    )
-
-    # NOTE: keep for reference.
-    # grad_trans_new = grid["grad_trans"]
-    # grad_trans_new[bad_cells] = np.array([[1, 0, 0]]).repeat(len(bad_cells), axis=0)
-    # norm = np.linalg.norm(grad_trans_new, axis=1)
-    # grid["e_t"] = grad_trans_new / norm[:, None]
-
-    norm = np.where(norm != 0, norm, 1)
-    grid["e_t"] = grid["grad_trans"] / norm[:, None]
-
-    k_e = np.einsum("ij,ij->i", grid["k"], grid["e_t"])
-    en = grid["k"] - np.einsum("i,ij->ij", k_e, grid["e_t"])
-    norm = np.linalg.norm(en, axis=1)
-    norm = np.where(norm != 0, norm, 1)
-    grid["e_n"] = en / norm[:, None]
-
-    grid["e_l"] = np.cross(grid["e_n"], grid["e_t"])
-
-    return grid
-
-
 def read_temperature_field(directory: str, field_list: list[str]) -> pv.UnstructuredGrid:
     """Read thermal fields from d3plot.
 
@@ -121,8 +88,6 @@ def compute_cell_gradient(grid: pv.UnstructuredGrid) -> pv.UnstructuredGrid:
         res = derivative["gradient"]
         grid2["grad_" + name] = res
 
-    grid2.save("gradient.vtk")
-
     return grid2
 
 
@@ -140,6 +105,31 @@ def _update_trans_by_normal(grid: pv.UnstructuredGrid, surface: pv.PolyData):
     grid["grad_trans"] = with_normals.cell_data["Normals"][t]
 
     return grid
+
+
+def _orthogonalization(
+    grad_trans: np.ndarray, k: np.ndarray
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    norm = np.linalg.norm(grad_trans, axis=1)
+    bad_cells = np.argwhere(norm == 0).ravel()
+
+    LOGGER.debug(
+        f"{len(bad_cells)} cells have null gradient in transmural direction."
+        f" This should only be at valve regions and can be checked from the vtk file."
+    )
+
+    norm = np.where(norm != 0, norm, 1)
+    e_t = grad_trans / norm[:, None]
+
+    k_e = np.einsum("ij,ij->i", k, e_t)
+    en = k - np.einsum("i,ij->ij", k_e, e_t)
+    norm = np.linalg.norm(en, axis=1)
+    norm = np.where(norm != 0, norm, 1)
+    e_n = en / norm[:, None]
+
+    e_l = np.cross(e_n, e_t)
+
+    return e_l, e_n, e_t
 
 
 def compute_la_fiber_cs(
@@ -204,19 +194,17 @@ def compute_la_fiber_cs(
 
     grid = read_temperature_field(directory, field_list=["trans", "ab", "v", "r"])
     grid = compute_cell_gradient(grid)
-    # TODO: sometimes, pyvista object breaks when passing this directly
 
-    grid = pv.read("gradient.vtk")
     if endo_surface is not None:
         grid = _update_trans_by_normal(grid, endo_surface)
 
     grid = bundle_selection(grid)
 
-    grid.save("la_fiber.vtk")
-    grid = pv.read("la_fiber.vtk")
+    el, en, et = _orthogonalization(grid["grad_trans"], grid["k"])
 
-    grid = orthogonalization(grid)
-    grid.save("la_fiber.vtk")
+    grid.cell_data["e_l"] = el
+    grid.cell_data["e_n"] = en
+    grid.cell_data["e_t"] = et
 
     return grid
 
@@ -350,10 +338,10 @@ def compute_ra_fiber_cs(
 
     grid = bundle_selection(grid)
 
-    grid.save("ra_fiber.vtk")
-    grid = pv.read("ra_fiber.vtk")
+    el, en, et = _orthogonalization(grid["grad_trans"], grid["k"])
 
-    grid = orthogonalization(grid)
-    grid.save("ra_fiber.vtk")
+    grid.cell_data["e_l"] = el
+    grid.cell_data["e_n"] = en
+    grid.cell_data["e_t"] = et
 
     return grid

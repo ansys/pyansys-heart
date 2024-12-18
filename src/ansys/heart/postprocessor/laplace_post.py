@@ -22,7 +22,6 @@
 
 """Post process script related to Laplace solving (UHC, fibers)."""
 
-import copy
 import os
 
 import numpy as np
@@ -31,26 +30,6 @@ import pyvista as pv
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.simulator.settings.settings import AtrialFiber
-
-
-def read_uvc(directory):
-    """Read UVC from d3plot files."""
-    data = D3plotReader(os.path.join(directory, "apico-basal.d3plot"))
-    grid: pv.UnstructuredGrid = data.model.metadata.meshed_region.grid
-
-    for field_name in ["apico-basal", "transmural", "rotational"]:
-        data = D3plotReader(os.path.join(directory, field_name + ".d3plot"))
-        t = data.model.results.temperature.on_last_time_freq.eval()[0].data
-        if len(t) == grid.n_points:
-            t = t
-        elif len(t) == 3 * grid.n_points:
-            t = t[::3]
-        else:
-            LOGGER.error("Failed to read d3plot in UVC")
-            exit()
-        grid.point_data[field_name] = np.array(t, dtype=float)
-
-    return grid
 
 
 def orthogonalization(grid) -> pv.UnstructuredGrid:
@@ -117,7 +96,7 @@ def read_temperature_field(directory: str, field_list: list[str]) -> pv.Unstruct
             exit()
 
         # force a deep copy
-        grid.point_data[name] = copy.deepcopy(t)
+        grid.point_data[name] = np.array(t, dtype=float)
 
     return grid
 

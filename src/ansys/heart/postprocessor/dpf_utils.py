@@ -72,6 +72,7 @@ class D3plotReader:
         _running_ansyscl_pids = set([p.pid for p in psutil.process_iter() if "ansyscl" in p.name()])
 
         try:
+            LOGGER.info("Trying to launch DPF Server 2024.1")
             self._server = dpf.server.available_servers()["2024.1"]()
         except KeyError as e:
             LOGGER.error(f"Failed to launch DPF Server 2024.1. {e}")

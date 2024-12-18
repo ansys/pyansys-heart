@@ -112,7 +112,7 @@ jobs:
         uses: ansys/pydpf-actions/install-dpf-server@v2.3
         with:
           dpf-standalone-TOKEN: ${{secrets.PYANSYS_CI_BOT_TOKEN}}
-          ANSYS_VERSION : "242"
+          ANSYS_VERSION : "241"
 
       - name: Installing dependencies
         run: |

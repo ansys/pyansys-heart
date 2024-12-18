@@ -23,235 +23,13 @@
 """Module contains methods for mesh operations related to the vtk library."""
 
 import copy
-from typing import List, Optional, Tuple, Union
+from typing import List, Union
 
-from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 import vtk
-from vtk.numpy_interface import dataset_adapter as dsa  # type: ignore # noqa
-from vtk.util import numpy_support as VN  # type: ignore # noqa
-from vtk.util.numpy_support import numpy_to_vtk  # type: ignore # noqa
 
 from ansys.heart.core import LOG as LOGGER
-
-
-@deprecated(reason="This method is deprecated: can use pyvista objects directly.")
-def write_vtkdata_to_vtkfile(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData], fname: str):
-    """Write a vtk unstructured grid object to vtk file."""
-    writer = vtk.vtkDataSetWriter()
-    writer.SetFileName(fname)
-    writer.SetInputData(vtk_data)
-    writer.SetFileTypeToBinary()
-    writer.Write()
-    return
-
-
-# TODO: replace partially with pyvista objects for convenience.
-def get_tetra_info_from_unstructgrid(
-    vtk_grid: vtk.vtkUnstructuredGrid, get_all_data: bool = True, deep_copy: bool = False
-) -> Tuple[np.ndarray, np.ndarray, dict, dict]:
-    """Get tetrahedron nodes, connectivity and cell/point data."""
-    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
-    LOGGER.debug("Extracting tetrahedron cell and point data...")
-    # read nodes into numpy array
-    nodes = VN.vtk_to_numpy(vtk_grid.GetPoints().GetData())
-
-    # gets number of cells
-    num_cells = vtk_grid.GetNumberOfCells()
-
-    connect1 = VN.vtk_to_numpy(vtk_grid.GetCells().GetData())
-    # test vtk exists only tetra type element
-    assert len(connect1) / num_cells == 5.0
-
-    # remove ID
-    idx_remove = np.arange(0, len(connect1), 5)
-    tetra = np.delete(connect1, idx_remove)
-    # return with  (nelem,4)
-    tetra = np.reshape(tetra, (num_cells, 4))
-
-    # get cell and node data from vtk polydata
-    cell_data = np.zeros((num_cells))
-    point_data = np.zeros((num_cells))
-
-    # get number of cell data arrays:
-    num_cell_arrays = vtk_grid.GetCellData().GetNumberOfArrays()
-    num_point_arrays = vtk_grid.GetPointData().GetNumberOfArrays()
-
-    # grab cell and point data if any
-    cell_data = {}
-    point_data = {}
-
-    if get_all_data:
-        for ii in np.arange(0, num_cell_arrays, 1):
-            array_name = vtk_grid.GetCellData().GetArrayName(ii)
-            cell_data[array_name] = VN.vtk_to_numpy(vtk_grid.GetCellData().GetArray(array_name))
-
-        for ii in np.arange(0, num_point_arrays, 1):
-            array_name = vtk_grid.GetPointData().GetArrayName(ii)
-            point_data[array_name] = VN.vtk_to_numpy(vtk_grid.GetPointData().GetArray(array_name))
-
-    else:
-        LOGGER.debug("Not implemented reading specific cell data arrays based on name yet")
-
-    if not deep_copy:
-        return nodes, tetra, cell_data, point_data
-    else:
-        return (
-            copy.deepcopy(nodes),
-            copy.deepcopy(tetra),
-            copy.deepcopy(cell_data),
-            copy.deepcopy(point_data),
-        )
-
-
-@deprecated(reason="This method will be deprecated: can use pyvista objects instead.")
-def get_tri_info_from_polydata(
-    vtk_polydata: vtk.vtkPolyData, get_all_data: bool = True, deep_copy: bool = False
-) -> Tuple[np.ndarray, np.ndarray, dict, dict]:
-    """Get connectivity, celldata and point data info from polydata object.
-
-    Notes
-    -----
-    Assumes triangular elements
-    """
-    vtk_polydata_obj = dsa.WrapDataObject(vtk_polydata)
-
-    nodes = np.array(vtk_polydata_obj.Points)
-    polys = np.array(vtk_polydata_obj.Polygons)
-
-    if not np.all(polys[np.arange(0, len(polys), 4)]):
-        raise TypeError("Some polygons are not triangular")
-
-    tris = polys.reshape(-1, 4)
-    tris = np.delete(tris, 0, axis=1)
-
-    # store cell/point data in dictionary
-    cell_data = {}
-    point_data = {}
-
-    for key in vtk_polydata_obj.CellData.keys():
-        cell_data[key] = np.array(vtk_polydata_obj.CellData[key])
-
-    for key in vtk_polydata_obj.PointData.keys():
-        point_data[key] = np.array(vtk_polydata_obj.PointData[key])
-
-    # try to add global ids
-    try:
-        global_ids = VN.vtk_to_numpy(vtk_polydata.GetPointData().GetGlobalIds())
-        point_data["global_ids"] = global_ids
-    except AttributeError:
-        LOGGER.debug("Global Ids were not added to point data...")
-
-    if not deep_copy:
-        return nodes, tris, cell_data, point_data
-    else:
-        return (
-            copy.deepcopy(nodes),
-            copy.deepcopy(tris),
-            copy.deepcopy(cell_data),
-            copy.deepcopy(point_data),
-        )
-
-
-# TODO: replace with pyvista.
-@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
-def add_vtk_array(
-    polydata: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid],
-    data: np.array,
-    name: str,
-    data_type: str = "cell",
-    array_type: Union[int, float] = float,
-):
-    """Add vtk array to vtk polydata or unstructured grid object.
-
-    Parameters
-    ----------
-    polydata : Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]
-        vtk object
-    data : np.array
-        input data. Can be either 1d array or 2d array
-    name : str
-        name of data field
-    data_type : str, optional
-        Type of data; either "cell" or "point", by default "cell"
-    array_type : Union[int, float], optional
-        Type of array to add, by default float
-    """
-    LOGGER.warning("This method will be deprecated: can use pyvista objects instead.")
-    num_dim = len(data.shape)
-    num_rows = data.shape[0]
-
-    if data_type == "point":
-        num_points = polydata.GetNumberOfPoints()
-    elif data_type == "cell":
-        num_points = polydata.GetNumberOfCells()
-    else:
-        raise ValueError("Expecting 'point' or 'cell'")
-
-    assert num_rows == num_points
-
-    # determine type of array:
-    if array_type is int:
-        vtk_array = vtk.vtkIntArray()
-        data = np.array(data, int)
-    elif array_type is float:
-        vtk_array = vtk.vtkDoubleArray()
-
-    vtk_array.SetName(name)
-
-    # for multi dimensional array
-    if num_dim > 1:
-        num_cols = data.shape[1]
-        vtk_array.SetNumberOfComponents(num_rows)
-        vtk_array.SetNumberOfTuples(num_cols)
-        for x in zip(range(num_points), data.T):
-            vtk_array.SetTuple(*x)
-
-    elif num_dim == 1:
-        vtk_array.SetNumberOfValues(num_rows)
-        for x in zip(range(num_points), data.T):
-            vtk_array.SetValue(*x)
-
-    if data_type == "cell":
-        polydata.GetCellData().AddArray(vtk_array)
-    elif data_type == "point":
-        polydata.GetPointData().AddArray(vtk_array)
-
-    return
-
-
-# TODO: replace with pyvista.
-@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
-def create_vtk_polydata_from_points(points: np.ndarray) -> vtk.vtkPolyData:
-    """Create VTK PolyData object from set of points.
-
-    Parameters
-    ----------
-    points : np.array
-        Point coordinates Nx3
-
-    Returns
-    -------
-    vtk.vtkPolyData
-        vtkPolyData object
-
-    Notes
-    -----
-    To visualize in ParaView render the points as Gaussian Points
-    """
-    if len(points.shape) < 2 or points.shape[1] != 3:
-        raise ValueError("Expecting an array of dimension Nx3")
-
-    vtk_poly = vtk.vtkPolyData()
-    poly = dsa.WrapDataObject(vtk_poly)
-    poly.Points = points
-    nodeids = np.arange(0, points.shape[0], 1)
-
-    # add point array with node ids
-    add_vtk_array(poly.VTKObject, nodeids, name="node-ids", data_type="point")
-
-    return poly.VTKObject
 
 
 def compute_surface_nodal_area_pyvista(surface: pv.PolyData) -> np.ndarray:
@@ -291,61 +69,16 @@ def compute_surface_nodal_area_pyvista(surface: pv.PolyData) -> np.ndarray:
     return nodal_area
 
 
-# TODO: replace with pyvista.
-@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
-def add_normals_to_polydata(
-    vtk_polydata: vtk.vtkPolyData, return_normals: bool = False
-) -> Union[vtk.vtkPolyData, Optional[Tuple[np.ndarray, np.ndarray]]]:
-    """Add normals to the vtk.vtkPolyData object.
-
-    Parameters
-    ----------
-    vtk_polydata : vtk.vtkPolyData
-        Input surface.
-    return_normals : bool, optional
-        Return the cell and point normals as numpy arrays, by default False.
-
-    Returns
-    -------
-    vtk_polydata : vtk.vtkPolyData
-        Vtk surface with cell and point normals added.
-    (cell_normals, point_normals) : (np.ndarray, np.ndarray), optional
-        Cell normals and point normals, only provided if return_normals=True
-    """
-    # compute normals
-    normal_filter = vtk.vtkPolyDataNormals()
-    normal_filter.SetInputData(vtk_polydata)
-    normal_filter.ComputeCellNormalsOn()
-    normal_filter.ComputePointNormalsOn()
-    # normal_filter.AutoOrientNormalsOn()
-    # normal_filter.ConsistencyOff()
-    # normal_filter.NonManifoldTraversalOff()
-    # normal_filter.SetSplitting(0)
-
-    normal_filter.SplittingOff()
-    normal_filter.SetFeatureAngle(30)
-
-    normal_filter.Update()
-
-    if return_normals:
-        normal_filter_dsa = dsa.WrapDataObject(normal_filter.GetOutput())
-        return np.array(normal_filter_dsa.CellData["Normals"]), np.array(
-            normal_filter_dsa.PointData["Normals"]
-        )
-    else:
-        return normal_filter.GetOutput()
-
-
 def extrude_polydata(
-    vtk_surface: vtk.vtkPolyData,
+    surface: pv.PolyData,
     extrude_by: float = 1,
     extrude_direction: np.array = np.empty(0),
-) -> vtk.vtkPolyData:
+) -> pv.PolyData:
     """Extrude a given polydata surface in a given direction.
 
     Parameters
     ----------
-    vtk_surface : vtk.vtkPolyData
+    surface : pv.PolyData
         Surface to extrude
     extrude_by : float, optional
         Extrude by this much, by default 1
@@ -355,14 +88,14 @@ def extrude_polydata(
 
     Returns
     -------
-    vtk.vtkPolyData
-        Extruded vtkPolyData object
+    pv.PolyData
+        Extruded PolyData object
     """
     extrude_normal = False
     if len(extrude_direction) == 0:
         extrude_normal = True
 
-    vtk_surface = add_normals_to_polydata(vtk_surface)
+    surface = surface.compute_normals()
 
     extrude = vtk.vtkLinearExtrusionFilter()
     extrude.CappingOn()
@@ -373,142 +106,35 @@ def extrude_polydata(
         extrude.SetExtrusionTypeToVectorExtrusion()
         extrude.SetVector(extrude_direction[0], extrude_direction[1], extrude_direction[2])
 
-    extrude.SetInputData(vtk_surface)
+    extrude.SetInputData(surface)
     extrude.SetScaleFactor(extrude_by)
     extrude.Update()
-    extruded_polydata = extrude.GetOutput()
 
-    return pv.PolyData(extruded_polydata)
-
-
-# TODO: replace with pyvista.
-@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
-def create_vtk_surface_triangles(
-    points: np.ndarray, triangles: np.ndarray, clean=True
-) -> vtk.vtkPolyData:
-    """Create vtkPolyData object from array of points and array of triangles.
-
-    Parameters
-    ----------
-    points : np.array
-        Nx3 array of point coordinates
-    triangles : np.array
-        Mx3 array of triangle definitions
-    clean : Boolean, True by default
-        use vtkCleanPolyData Filter to remove unused nodes, etc.
-        But may have unexpected behavior...
-
-    Returns
-    -------
-    vtk.vtkPolyData
-        VTK Object PolyData object describing the surface
-    """
-    LOGGER.warning("This method will be deprecated: can initialize pyvista objects directly.")
-    num_points = points.shape[0]
-    points_vtk = vtk.vtkPoints()
-    points_vtk.SetNumberOfPoints(num_points)
-    points_vtk.SetData(numpy_to_vtk(np.asarray(points, order="C", dtype=float), deep=1))
-
-    triangles_vtk = vtk.vtkCellArray()
-    for tri in triangles:
-        triangle_vtk = vtk.vtkTriangle()
-        triangle_vtk.GetPointIds().SetId(0, tri[0])
-        triangle_vtk.GetPointIds().SetId(1, tri[1])
-        triangle_vtk.GetPointIds().SetId(2, tri[2])
-        triangles_vtk.InsertNextCell(triangle_vtk)
-
-    polydata = vtk.vtkPolyData()
-    polydata.SetPoints(points_vtk)
-    polydata.SetPolys(triangles_vtk)
-    polydata.Modified()
-    # polydata.Update()
-
-    if clean:
-        # clean polydata
-        clean_filter = vtk.vtkCleanPolyData()
-        clean_filter.SetInputData(polydata)
-        clean_filter.PointMergingOn()
-        clean_filter.Update()
-
-        polydata_cleaned = clean_filter.GetOutput()
-        return polydata_cleaned
-
-    else:
-        return polydata
+    return pv.PolyData(extrude.GetOutput())
 
 
-# TODO: replace with pyvista.
-@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
 def cell_ids_inside_enclosed_surface(
-    vtk_source: vtk.vtkUnstructuredGrid, vtk_surface: vtk.vtkPolyData
+    source: pv.UnstructuredGrid, surface: pv.PolyData
 ) -> np.ndarray:
-    """Tag any cells that are inside an enclosed surface.
+    """Get cell ids of cells of which the centroids are inside a given surface.
 
     Parameters
     ----------
-    vtk_source : vtk.vtkUnstructuredGrid
-        Source VTK object of which to check the whether the cells are inside/outside
-        the specified surface
-    vtk_surface : vtk.vtkPolyData
-        Enclosed surface
+    source : pv.UnstructuredGrid
+        Unstructured grid to check for cells that are inside a given surface.
+    surface : pv.PolyData
+        Surface used to check whether cells are inside/outside.
 
     Returns
     -------
-    vtk.vtkUnstructuredGrid
-        VTK object with additional cell data indicating whether
-        the cell is in/outside the provided surface
+    np.ndarray
+        Array with cell ids that are inside the enclosed surface.
     """
-    vtk_surface = add_normals_to_polydata(vtk_surface)
-    points, tetra, _, _ = get_tetra_info_from_unstructgrid(vtk_source)
-
-    centroids = np.mean(points[tetra, :], axis=1)
-
-    vtk_centroids = create_vtk_polydata_from_points(centroids)
-
-    select = vtk.vtkSelectEnclosedPoints()
-    select.SetInputData(vtk_centroids)
-    select.SetSurfaceData(vtk_surface)
-    select.CheckSurfaceOn()
-    select.SetTolerance(1e-9)  # fraction of diagonal of bounding box!
-    select.Update()
-
-    output = select.GetOutput()
-
-    output_dsa = dsa.WrapDataObject(output)
-
-    cell_ids_inside = np.where(output_dsa.PointData["SelectedPoints"] == 1)[0]
-
+    source = source.select_enclosed_points(surface)
+    centroids = pv.PolyData(source.cell_centers())
+    centroids = centroids.select_enclosed_points(surface, tolerance=1e-8)
+    cell_ids_inside = np.where(centroids.point_data["SelectedPoints"] == 1)[0]
     return cell_ids_inside
-
-
-# TODO: replace with pyvista.
-@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
-def vtk_cutter(vtk_polydata: vtk.vtkPolyData, cut_plane) -> vtk.vtkPolyData:
-    """
-    Cut a vtk polydata by a plane.
-
-    Parameters
-    ----------
-    vtk_polydata: vtk polydata
-    cut_plane: dictionary contains key: 'center' and 'normal'
-
-    Returns
-    -------
-    vtkpolydata
-    """
-    # create a plane to cut
-    plane = vtk.vtkPlane()
-    plane.SetOrigin(cut_plane["center"][0], cut_plane["center"][1], cut_plane["center"][2])
-    plane.SetNormal(cut_plane["normal"][0], cut_plane["normal"][1], cut_plane["normal"][2])
-
-    # create cutter
-    cutter = vtk.vtkCutter()
-    # cutter.SetNumberOfContours(20) #how to control number of points?
-    cutter.SetCutFunction(plane)
-    cutter.SetInputData(vtk_polydata)
-    cutter.Update()
-
-    return cutter.GetOutput()
 
 
 def find_cells_close_to_nodes(
@@ -534,7 +160,7 @@ def find_cells_close_to_nodes(
     points = mesh.points[node_ids]
 
     # Create a list to store cells within the sphere radius
-    cells_within_sphere = []
+    selected_cells = []
 
     # Iterate through each point and find cells within the sphere
     for point in points:
@@ -546,13 +172,13 @@ def find_cells_close_to_nodes(
 
         # Get the indices of the cells
         selected_points = selection.point_data["SelectedPoints"].nonzero()[0]
-        selected_cells = mesh.extract_points(selected_points).cell_data["vtkOriginalCellIds"]
+        cells_within_sphere = mesh.extract_points(selected_points).cell_data["vtkOriginalCellIds"]
 
         # Store unique cell indices
-        cells_within_sphere.extend(selected_cells)
+        selected_cells.extend(cells_within_sphere)
 
     # Return unique cell indices
-    return np.unique(cells_within_sphere)
+    return np.unique(selected_cells)
 
 
 def get_boundary_edges(surface: pv.PolyData) -> pv.MultiBlock:

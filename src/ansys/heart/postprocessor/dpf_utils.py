@@ -41,9 +41,18 @@ def _check_env():
     if "ANSYS_DPF_ACCEPT_LA" in os.environ and os.environ["ANSYS_DPF_ACCEPT_LA"] == "Y":
         pass
     else:
-        LOGGER.warning('DPF needs to set "ANSYS_DPF_ACCEPT_LA" to "Y".')
+        LOGGER.warning(
+            """DPF requires you to accept the license agreement.
+            Set the environment variable "ANSYS_DPF_ACCEPT_LA" to "Y"."""
+        )
         exit()
     return
+
+
+class SupportedDPFServerNotFoundError(Exception):
+    """SupportedDPFServerNotFoundError."""
+
+    pass
 
 
 class D3plotReader:
@@ -62,7 +71,11 @@ class D3plotReader:
 
         _running_ansyscl_pids = set([p.pid for p in psutil.process_iter() if "ansyscl" in p.name()])
 
-        self._server = dpf.start_local_server()
+        try:
+            self._server = dpf.server.available_servers()["2024.1"]()
+        except KeyError as e:
+            LOGGER.error(f"Failed to launch DPF Server 2024.1. {e}")
+            raise SupportedDPFServerNotFoundError(f"Failed to launch DPF Server 2024.1. {e}")
 
         self.ds = dpf.DataSources()
         self.ds.set_result_file_path(path, "d3plot")

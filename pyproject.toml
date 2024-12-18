@@ -36,7 +36,7 @@ dependencies = [
     "networkx==3.2.1",
     "numpy<=2.1.2",
     "pandas<=3.0.0",
-    "pint==0.20.1",
+    "pint==0.24.4",
     "pyvista==0.44.1",
     "scipy<=1.14.1",
     "tqdm==4.66.1",

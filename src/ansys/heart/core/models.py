@@ -35,7 +35,6 @@ from typing import List, Literal, Union
 from deprecated import deprecated
 import numpy as np
 import pyvista as pv
-from scipy.spatial.transform import Rotation
 import yaml
 
 from ansys.heart.core import LOG as LOGGER
@@ -221,9 +220,6 @@ class HeartModel:
 
         self._set_part_ids()
         """Set incremenetal part ids."""
-
-        self.aha_ids = None
-        """American Heart Association ID's."""
 
         self.electrodes: List[Point] = []
         """Electrodes positions for ECG computing."""
@@ -995,6 +991,11 @@ class HeartModel:
 
             # TODO: add non-standard part by setattr(self, part_name_n, part)
 
+        # NOTE: #? Wrap in try-block?
+        # NOTE: #? add validation method to make sure all essential components are present?
+        self._extract_apex()
+        self._define_anatomy_axis()
+
         return
 
     def _set_part_ids(self):
@@ -1049,9 +1050,7 @@ class HeartModel:
         self._validate_cap_names()
 
         self._extract_apex()
-
-        self.compute_left_ventricle_anatomy_axis()
-        self.compute_left_ventricle_aha17()
+        self._define_anatomy_axis()
 
         if "fiber" not in self.mesh.array_names:
             LOGGER.debug("Adding placeholder for fiber direction.")
@@ -1498,218 +1497,29 @@ class HeartModel:
 
         return
 
-    # TODO: refactor, could be standalone method instead of a class method.
-    def compute_left_ventricle_anatomy_axis(
-        self,
-        mv_center: Union[None, np.ndarray] = None,
-        av_center: Union[None, np.ndarray] = None,
-        first_cut_short_axis=0.2,
-    ):
-        """Compute the long and short axes of the left ventricle.
+    def _define_anatomy_axis(self):
+        """Define long and short axes from left ventricle landmarks."""
+        from ansys.heart.core.helpers.landmarks import compute_anatomy_axis
 
-        Parameters
-        ----------
-        mv_center : Union[None, np.ndarray], optional
-            mitral valve center, by default None
-        av_center : Union[None, np.ndarray], optional
-            aortic valve center, by default None
-        first_cut_short_axis : float, optional
-            relative distance between mv center to apex, by default 0.2
-        """
-        if mv_center is None:
-            try:
-                mv_center = next(
-                    cap.centroid for cap in self.left_ventricle.caps if cap.name == "mitral-valve"
-                )
-            except StopIteration:
-                LOGGER.error("Cannot define mitral valve center")
-                return
-        if av_center is None:
-            try:
-                av_center = next(
-                    cap.centroid for cap in self.left_ventricle.caps if cap.name == "aortic-valve"
-                )
-            except StopIteration:
-                LOGGER.error("Cannot define mitral valve center")
-                return
+        mv_center = next(
+            cap.centroid for cap in self.left_ventricle.caps if cap.name == "mitral-valve"
+        )
 
-        # apex is defined on epicardium
+        av_center = next(
+            cap.centroid for cap in self.left_ventricle.caps if cap.name == "aortic-valve"
+        )
+
         apex = next(
             ap.xyz for ap in self.left_ventricle.apex_points if ap.name == "apex epicardium"
         )
 
-        # 4CAV long axis across apex, mitral and aortic valve centers
-        center = np.mean(np.array([av_center, mv_center, apex]), axis=0)
-        normal = np.cross(av_center - apex, mv_center - apex)
-        self.l4cv_axis = {"center": center, "normal": normal / np.linalg.norm(normal)}
+        l4cv, l2cv, short = compute_anatomy_axis(
+            mv_center, av_center, apex, first_cut_short_axis=0.2
+        )
 
-        # short axis: from mitral valve center to apex
-        sh_axis = apex - mv_center
-        # the highest possible point but avoid to cut aortic valve plane
-        center = mv_center + first_cut_short_axis * sh_axis
-        self.short_axis = {"center": center, "normal": sh_axis / np.linalg.norm(sh_axis)}
-
-        # 2CAV long axis: normal to 4cav axe and pass mv center and apex
-        center = np.mean(np.array([mv_center, apex]), axis=0)
-        p1 = center + 10 * self.l4cv_axis["normal"]
-        p2 = mv_center
-        p3 = apex
-        normal = np.cross(p1 - p2, p1 - p3)
-        self.l2cv_axis = {"center": center, "normal": normal / np.linalg.norm(normal)}
-
-        return
-
-    # TODO: refactor, could be standalone method instead of a class method.
-    # TODO: e.g. as part of post-processor.
-    def compute_left_ventricle_aha17(self, seg=17, p_junction=None) -> None:
-        """
-        Compute AHA17 label for left ventricle elements.
-
-        Parameters
-        ----------
-        seg ::  default 17, or 16 segments
-        p_junction: use CASIS definition for the first cut
-        """
-        self.aha_ids = np.empty(len(self.mesh.tetrahedrons))
-        self.aha_ids[:] = np.nan
-
-        # get lv elements
-        try:
-            ele_ids = np.hstack((self.left_ventricle.element_ids, self.septum.element_ids))
-        except AttributeError:
-            ele_ids = np.hstack(self.left_ventricle.element_ids)
-
-        # left ventricle elements center
-        elem_center = np.mean(self.mesh.nodes[self.mesh.tetrahedrons[ele_ids]], axis=1)
-        label = np.empty(len(elem_center))
-        label[:] = np.nan
-
-        # anatomical points
-        for cap in self.left_ventricle.caps:
-            if cap.name == "mitral-valve":
-                mv_center = cap.centroid
-        for apex in self.left_ventricle.apex_points:
-            if "endocardium" in apex.name:
-                apex_ed = apex.xyz
-            elif "epicardium" in apex.name:
-                apex_ep = apex.xyz
-
-        # short axis
-        short_axis = self.short_axis["normal"]
-        p_highest = self.short_axis["center"]
-
-        # define reference cut plane
-        if p_junction is not None:
-            # CASIS definition: LV and RV junction point
-            vec = (p_junction - p_highest) / np.linalg.norm(p_junction - p_highest)
-            axe_60 = Rotation.from_rotvec(np.radians(90) * short_axis).apply(vec)
-        else:
-            # default: rotate 60 from long axis
-            axe_60 = Rotation.from_rotvec(np.radians(60) * short_axis).apply(  # noqa:E501
-                self.l4cv_axis["normal"]
-            )
-
-        axe_120 = Rotation.from_rotvec(np.radians(60) * short_axis).apply(axe_60)
-        axe_180 = -Rotation.from_rotvec(np.radians(60) * short_axis).apply(axe_120)
-        axe_45 = Rotation.from_rotvec(np.radians(-15) * short_axis).apply(axe_60)
-        axe_135 = Rotation.from_rotvec(np.radians(90) * short_axis).apply(axe_45)
-
-        p1_3 = 1 / 3 * (apex_ep - p_highest) + p_highest
-        p2_3 = 2 / 3 * (apex_ep - p_highest) + p_highest
-
-        for i, n in enumerate(elem_center):
-            # This part contains valves, do not considered by AHA17
-            if np.dot(n - p_highest, mv_center - p_highest) > 0:
-                continue
-            # Basal: segment 1 2 3 4 5 6
-            elif np.dot(n - p1_3, mv_center - p1_3) >= 0:
-                if np.dot(n - p1_3, axe_60) >= 0:
-                    if np.dot(n - p1_3, axe_120) >= 0:
-                        if np.dot(n - p1_3, axe_180) >= 0:
-                            label[i] = 6
-                        else:
-                            label[i] = 5
-                    else:
-                        label[i] = 1
-                else:
-                    if np.dot(n - p1_3, axe_180) <= 0:
-                        if np.dot(n - p1_3, axe_120) >= 0:
-                            label[i] = 4
-                        else:
-                            label[i] = 3
-                    else:
-                        label[i] = 2
-            # Mid cavity: segment 7 8 9 10 11 12
-            elif np.dot(n - p2_3, mv_center - p2_3) >= 0:
-                if np.dot(n - p1_3, axe_60) >= 0:
-                    if np.dot(n - p1_3, axe_120) >= 0:
-                        if np.dot(n - p1_3, axe_180) >= 0:
-                            label[i] = 12
-                        else:
-                            label[i] = 11
-                    else:
-                        label[i] = 7
-                else:
-                    if np.dot(n - p1_3, axe_180) <= 0:
-                        if np.dot(n - p1_3, axe_120) >= 0:
-                            label[i] = 10
-                        else:
-                            label[i] = 9
-                    else:
-                        label[i] = 8
-            # Apical
-            else:
-                if seg == 17:
-                    if np.dot(n - apex_ed, apex_ep - apex_ed) >= 0:
-                        label[i] = 17
-                    else:
-                        if np.dot(n - p1_3, axe_45) >= 0:
-                            if np.dot(n - p1_3, axe_135) >= 0:
-                                label[i] = 16
-                            else:
-                                label[i] = 13
-                        else:
-                            if np.dot(n - p1_3, axe_135) >= 0:
-                                label[i] = 15
-                            else:
-                                label[i] = 14
-
-                else:
-                    if np.dot(n - p1_3, axe_45) >= 0:
-                        if np.dot(n - p1_3, axe_135) >= 0:
-                            label[i] = 16
-                        else:
-                            label[i] = 13
-                    else:
-                        if np.dot(n - p1_3, axe_135) >= 0:
-                            label[i] = 15
-                        else:
-                            label[i] = 14
-
-        self.aha_ids[ele_ids] = label
-
-        return
-
-    # TODO: fix this.
-    def compute_left_ventricle_element_cs(self):
-        """Compute elemental coordinate system for aha17 elements."""
-        ele_ids = np.where(~np.isnan(self.aha_ids))[0]
-        elems = self.mesh.tetrahedrons[ele_ids]
-        elem_center = np.mean(self.mesh.nodes[elems], axis=1)
-
-        # compute longitudinal direction, i.e. short axis
-        e_l = np.tile(self.short_axis["normal"], (len(ele_ids), 1))
-
-        # compute radial direction
-        center_offset = elem_center - self.left_ventricle.apex_points[1].xyz
-        e_r = center_offset - (np.sum(e_l * center_offset, axis=1) * e_l.T).T
-        # normalize each row
-        e_r /= np.linalg.norm(e_r, axis=1)[:, np.newaxis]
-
-        # compute circumferential direction
-        e_c = np.cross(e_l, e_r)
-
-        return e_l, e_r, e_c
+        self.l4cv_axis = l4cv
+        self.l2cv_axis = l2cv
+        self.short_axis = short
 
     # TODO: fix this.
     def get_apex_node_set(

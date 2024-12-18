@@ -46,7 +46,6 @@ import pyvista as pv
 import ansys.heart.core.models as models
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
 from ansys.heart.postprocessor.auto_process import mech_post
-from ansys.heart.postprocessor.exporter import LVContourExporter
 from ansys.heart.postprocessor.system_model_post import SystemModelPost
 
 ###############################################################################
@@ -94,39 +93,11 @@ for it, tt in enumerate(np.linspace(0.001, 3, 60)):
 #   :loop:
 #   :class: center
 
-###############################################################################
-# Export left ventricle contour
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-exporter = LVContourExporter(os.path.join(meca_folder, "d3plot"), model)
-# In case principle axis is not yet computed
-model.compute_left_ventricle_anatomy_axis()
-
-# cut from long axis 4 cavity view
-cut_long = exporter.export_contour_to_vtk("l4cv", model.l4cv_axis)
-# cut from short axis
-cut_short = exporter.export_contour_to_vtk("short", model.short_axis)
-
-# plot the first frame using pyvista
-plotter = pv.Plotter()
-plotter.add_mesh(exporter.lv_surfaces[0], opacity=0.6)
-plotter.add_mesh(cut_long[0], line_width=3, color="red")
-plotter.add_mesh(cut_short[0], line_width=3, color="green")
-plotter.show()
-
-###############################################################################
-# .. image:: /_static/images/cut.png
-#   :width: 400pt
-#   :align: center
 
 ###############################################################################
 # Myocardium wall strain
 # ~~~~~~~~~~~~~~~~~~~~~~
 # Compute left ventricle strain in longitudinal, radial, circumferential directions
-
-# in case they are not pre-computed
-model.compute_left_ventricle_anatomy_axis()
-model.compute_left_ventricle_aha17()
 
 aha_evaluator = AhaStrainCalculator(model, d3plot_file=meca_folder / "d3plot")
 # get LRC strain at a given time and export a file named LRC_10.vtk

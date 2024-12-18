@@ -48,37 +48,6 @@ def get_faces_tetra(tetra: np.ndarray) -> np.ndarray:
     return faces
 
 
-def tetra_to_faces(tetra: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-    """Create list of unique faces from tetrahedrons and returns tetra_face_map."""
-    faces = get_faces_tetra(tetra)
-
-    # reshape to (4*NumTetra, 3)
-    num_tetra = tetra.shape[0]
-    faces_1 = np.reshape(faces.transpose(0, 2, 1), (4 * num_tetra, 3))
-
-    # construct tetra_face_map. Constructs tetrahedron such that it points to face array
-    tetra_face_map = np.reshape(np.arange(0, num_tetra * 4, 1), (num_tetra, 4))
-
-    # sort faces to facilitate finding uniques
-    faces_1 = np.sort(faces_1, axis=1)
-
-    # find unique faces
-    unique_faces, index, inverse, counts = np.unique(
-        faces_1, axis=0, return_index=True, return_inverse=True, return_counts=True
-    )
-
-    # update tetra_face_map accordingly
-    tetra_face_map = inverse[tetra_face_map]
-
-    # find connectivity c0 an c1 (cell indices that are connected to the face)
-    # tet_ids = np.arange(0, num_tetra, 1)
-    # face_ids = np.arange(0, len(unique_faces), 1)
-
-    # NOTE: unique_faces[tetra_face_map] gives faces_1 again.
-
-    return tetra_face_map, unique_faces
-
-
 def face_tetra_connectivity(tetra: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Compute the tetra-face connectivity tables."""
     import time as time
@@ -212,6 +181,7 @@ def get_free_edges(
         return free_edges, free_triangles
 
 
+#! NOTE: method not used anymore, but may still be useful.
 def edge_connectivity(
     edges: np.ndarray, return_type: bool = False, sort_closed: bool = False
 ) -> np.ndarray:

@@ -27,11 +27,17 @@ import os
 import tempfile
 
 import pyvista as pv
+from pyvista import examples
+
+from ansys.heart.core.objects import Mesh, PartType
 
 if os.getenv("GITHUB_ACTIONS"):
     is_gh_action = True
 else:
     is_gh_action = False
+
+from pathlib import Path
+import unittest.mock as mock
 
 import numpy as np
 import pytest
@@ -41,7 +47,6 @@ import ansys.heart.core.models as models
 
 def test_dump_model_001():
     """Test dumping of model to disk."""
-    from pathlib import Path
 
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         model = models.BiVentricle(working_directory=workdir)
@@ -177,12 +182,6 @@ def test_model_part_names(model_type, expected_part_names):
 
 def test_load_from_mesh():
     """Test loading mesh from mesh file and id map."""
-    # define an arbitrary mesh.
-    import pyvista as pv
-    from pyvista import examples
-
-    from ansys.heart.core.objects import Mesh, PartType
-
     # generate a dummy mesh.
     #! Note, can modify to create something more meaningful,
     #! e.g. a sphere with inner/outer surface and caps.
@@ -241,7 +240,13 @@ def test_load_from_mesh():
         with open(part_info_path, "w") as f:
             json.dump(part_info, f, indent=4)
 
-        model.load_model_from_mesh(mesh_path, part_info_path)
+        with mock.patch("ansys.heart.core.models.BiVentricle._extract_apex") as mock_extract_apex:
+            with mock.patch(
+                "ansys.heart.core.models.BiVentricle._define_anatomy_axis"
+            ) as mock_define_axis:
+                model.load_model_from_mesh(mesh_path, part_info_path)
+                mock_extract_apex.assert_called_once()
+                mock_define_axis.assert_called_once()
 
         assert model.part_names == list(part_info.keys())
 

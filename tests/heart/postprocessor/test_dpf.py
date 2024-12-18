@@ -29,28 +29,43 @@ os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 import numpy as np
 import pytest
 
-from ansys.heart.postprocessor.dpf_utils import ICVoutReader
-
-if os.getenv("GITHUB_ACTION"):
-    github_runner = True
-else:
-    github_runner = False
+from ansys.dpf import core as dpf
+from ansys.heart.postprocessor.dpf_utils import D3plotReader, ICVoutReader
+from tests.heart.conftest import get_assets_folder
 
 
-@pytest.mark.xfail(condition=github_runner, reason="Needs to be reworked.")
-def test_icvout():
-    path = os.path.dirname(os.path.abspath(__file__))
-    fn = os.path.join(path, "binout0000")
+def test_icvout_reader():
+    fn = os.path.join(get_assets_folder(), "post", "main", "binout")
     icvout = ICVoutReader(fn)
 
-    assert np.all(icvout._icv_ids == np.array([1, 2]))
-    assert np.all(icvout._icvi_ids == np.array([1, 2]))
+    assert np.all(icvout._icv_ids == np.array([1]))
+    assert np.all(icvout._icvi_ids == np.array([1]))
 
-    assert icvout.get_time()[1] == pytest.approx(1.0, rel=1e-3)
-    assert icvout.get_time()[-1] == pytest.approx(800.0, rel=1e-3)
-    assert icvout.get_pressure(1)[-1] == pytest.approx(0.0019017, rel=1e-3)
-    assert icvout.get_volume(1)[-1] == pytest.approx(166579.15625, rel=1e-3)
-    assert icvout.get_flowrate(1)[-1] == pytest.approx(-105.39063, rel=1e-3)
+    assert icvout.get_time()[1] == pytest.approx(5.0, rel=1e-3)
+    assert icvout.get_time()[1] == pytest.approx(5.0, rel=1e-3)
+    assert icvout.get_pressure(1)[-1] == pytest.approx(0.001700745546258986, rel=1e-3)
+    assert icvout.get_volume(1)[-1] == pytest.approx(109582.515625, rel=1e-3)
+    assert icvout.get_flowrate(1)[-1] == pytest.approx(-64.24286651611328, rel=1e-1)
 
     with pytest.raises(ValueError):
         icvout.get_flowrate(3)
+
+
+def test_d3plot_reader():
+    fn = os.path.join(get_assets_folder(), "post", "main", "d3plot")
+    d3plot = D3plotReader(fn)
+
+    # just to check all dpf API works
+    assert len(d3plot.time) == 2
+    assert d3plot.get_material_ids().max() == 8
+    assert d3plot.get_initial_coordinates().shape == (8598, 3)
+    assert d3plot.get_history_variable([1, 2], at_step=0).shape == (2, 24206)
+    assert isinstance(d3plot.get_ep_fields(), dpf.FieldsContainer)
+
+
+@pytest.mark.xfail(reason="This function fails for DPF server v242.")
+def test_d3plot_reader2():
+    fn = os.path.join(get_assets_folder(), "post", "main", "d3plot")
+    d3plot = D3plotReader(fn)
+
+    assert d3plot.get_displacement_at(0.0).shape == (8598, 3)

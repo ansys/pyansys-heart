@@ -28,7 +28,6 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 import numpy as np
 
-from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.helpers.landmarks import compute_aha17, compute_element_cs
 from ansys.heart.core.models import HeartModel
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
@@ -56,21 +55,24 @@ class AhaStrainCalculator:
         self.d3plot = D3plotReader(d3plot_file)
 
     def compute_aha_strain(
-        self, out_dir: str, write_vtk: bool = False, t_to_keep: float = 10e10
+        self, out_dir: str = None, write_vtk: bool = False, t_to_keep: float = 10e10
     ) -> np.ndarray:
-        """Compute and save AHA 17 segment strain values.
+        """Compute AHA 17 segment strain values from deformation gradient.
 
         Parameters
         ----------
-        out_dir : str
-            Output directory where the segments are saved.
+        out_dir : str, optional
+            output folder, by default None
         write_vtk : bool, optional
-            Flag indicating whether to save the VTK file, by default False
+            write into vtk files, by default False
+        t_to_keep : float, optional
+            time to stop, by default 10e10
 
         Returns
         -------
         np.ndarray
-            Average strain values for each of the 17 segments.
+            array of N_time * (1+17*3), columns represent time and
+            longitudinal, radial, and circumferential strain averaged of each segment
         """
         save_time = self.d3plot.time[self.d3plot.time >= self.d3plot.time[-1] - t_to_keep]
         strain = np.zeros((len(save_time), 1 + 17 * 3))
@@ -92,13 +94,14 @@ class AhaStrainCalculator:
             strain[i, 0] = t
             strain[i, 1:] = aha_lrc.ravel()
 
-        np.savetxt(
-            pathlib.Path(out_dir) / "AHAstrain.csv",
-            strain,
-            header=header,
-            delimiter=",",
-            comments="",
-        )
+        if out_dir is not None:
+            np.savetxt(
+                pathlib.Path(out_dir) / "AHAstrain.csv",
+                strain,
+                header=header,
+                delimiter=",",
+                comments="",
+            )
 
         return strain
 
@@ -155,8 +158,7 @@ class AhaStrainCalculator:
         return3: [nelem * 3] elemental LRC strain averaged from AHA17
         """
         if reference is not None:
-            LOGGER.warning("Not implemented")
-            exit()
+            raise NotImplementedError
 
         deformation_gradient = self.d3plot.get_history_variable(
             hv_index=list(range(9)), at_step=at_frame
@@ -201,7 +203,6 @@ class AhaStrainCalculator:
             aha_strain[i - 1] = np.mean(strain[indices, :], axis=0)
             averaged_strain[indices] = aha_strain[i - 1]
         return strain, aha_strain, averaged_strain
-        # return {"strain":strain,"aha_strain":aha_strain,"averaged_strain":averaged_strain}
 
     @staticmethod
     def bullseye_plot(ax, data, seg_bold=None, cmap=None, norm=None):

@@ -26,7 +26,6 @@ import os
 from pathlib import Path
 from typing import List
 
-from deprecated import deprecated
 import numpy as np
 import psutil
 import pyvista as pv
@@ -127,26 +126,26 @@ class D3plotReader:
         # print(self.model.operator())
         return
 
-    def get_transmembrane_potentials_fc(self, fc: dpf.FieldsContainer) -> dpf.FieldsContainer:
-        """Get sub field container."""
-        op = dpf.operators.utility.extract_sub_fc(
-            fields_container=fc,
-            label_space={"variable_id": 126},
-        )
-        return op.eval()
+    # def get_transmembrane_potentials_fc(self, fc: dpf.FieldsContainer) -> dpf.FieldsContainer:
+    #     """Get sub field container."""
+    #     op = dpf.operators.utility.extract_sub_fc(
+    #         fields_container=fc,
+    #         label_space={"variable_id": 126},
+    #     )
+    #     return op.eval()
 
-        # activation_time_field = fields_container[10]
+    #     # activation_time_field = fields_container[10]
 
-        # use to know which variable to use:
-        # lsdyna::ms::result_info_provider
+    #     # use to know which variable to use:
+    #     # lsdyna::ms::result_info_provider
 
-        # sub_fields_container: dpf.FieldsContainer = dpf.operators.utility.extract_sub_fc(
-        #     fields_container=full_fields_container,
-        #     label_space={"variable_id": 129},
-        # ).eval()
-        # sub_fields_container.animate()
-        # print(self.model.operator())
-        return
+    #     # sub_fields_container: dpf.FieldsContainer = dpf.operators.utility.extract_sub_fc(
+    #     #     fields_container=full_fields_container,
+    #     #     label_space={"variable_id": 129},
+    #     # ).eval()
+    #     # sub_fields_container.animate()
+    #     # print(self.model.operator())
+    #     return
 
     def print_lsdyna_ms_results(self):
         """Print available ms results."""
@@ -184,14 +183,6 @@ class D3plotReader:
         if time not in self.time:
             LOGGER.warning("No data at given time, results are from interpolation.")
         return self.model.results.displacement.on_time_scoping(float(time)).eval()[0].data
-
-    def get_displacement(self):
-        """Get displacement."""
-        LOGGER.warning("This method will be deprecated.")
-        res = []
-        for time in self.time:
-            res.append(self.get_displacement_at(time=time))
-        return res
 
     def get_material_ids(self):
         """Get list of material id."""
@@ -238,76 +229,6 @@ class D3plotReader:
             res.append(hist_vars[i].data)
 
         return np.array(res)
-
-    @deprecated(reason="This method will be deprecated.")
-    # TODO: @wenfengye please deprecate or replace.
-    def export_vtk(
-        self,
-        file_path: str,
-        prefix: str = "model",
-        only_surface: bool = False,
-        keep_mat_ids: List[int] = None,
-    ):
-        """Convert d3plot to vtk.
-
-        Parameters
-        ----------
-        file_path : str
-            Path to d3plot file.
-        prefix : str, optional
-            Prefix added to filename, by default "model"
-        only_surface : bool, optional
-            Flag indicating whether to export only the surface, by default False
-        keep_mat_ids : List[int], optional
-            Keep these material ids in the vtk files, by default None
-        """
-        mat_ids = self.model.metadata.meshed_region.elements.materials_field.data
-
-        if not np.all(np.isin(keep_mat_ids, np.unique(mat_ids))):
-            LOGGER.warning("Invalid material IDs, all parts will be saved.")
-            keep_mat_ids = None
-
-        if keep_mat_ids is None:
-            # keep all cells
-            keep_cells = np.ones((len(mat_ids)), dtype=bool)
-        else:
-            # keep cells by material ID
-            keep_cells = np.zeros((len(mat_ids)), dtype=bool)
-            for id in keep_mat_ids:
-                keep_cells = keep_cells | (mat_ids == id)
-
-        # displacements = self.model.results.displacement.on_all_time_freqs
-        # fields = displacements.eval()
-        fields = self.get_displacement()
-
-        for i, field in enumerate(fields):
-            # get pyvista grid
-            vista_grid = self.meshgrid.copy()
-
-            # deform mesh by displacement
-            vista_grid.points += field.data
-
-            # keep cells
-            vista_grid = vista_grid.extract_cells(keep_cells)
-
-            # extract surface
-            if only_surface:
-                vista_grid = vista_grid.extract_surface()
-
-            # export
-            vista_grid.save(os.path.join(file_path, f"{prefix}_{i}.vtk"))
-            # pyvista.save_meshio(os.path.join(file_path, f"{prefix}_{i}.vtk"),vista_grid)
-
-        # This needs Premium dpf licence
-        # op = dpf.operators.serialization.vtk_export(
-        #     export_type=0,
-        #     file_path=os.path.join(file_path,f"{prefix}_{i}.vtk"),
-        #     mesh=mesh,
-        #     # fields1=field,
-        #     # fields2=my_fields2,
-        # ).eval()
-
-        return
 
 
 class ICVoutReader:

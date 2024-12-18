@@ -116,7 +116,7 @@ def extrude_polydata(
 def cell_ids_inside_enclosed_surface(
     source: pv.UnstructuredGrid, surface: pv.PolyData
 ) -> np.ndarray:
-    """Get cell ids of cells of which all points are inside a given surface.
+    """Get cell ids of cells of which the centroids are inside a given surface.
 
     Parameters
     ----------
@@ -130,13 +130,10 @@ def cell_ids_inside_enclosed_surface(
     np.ndarray
         Array with cell ids that are inside the enclosed surface.
     """
-    source.cell_data["__original-cell-ids"] = np.arange(0, source.n_cells, dtype=int)
     source = source.select_enclosed_points(surface)
-    source.point_data
-    mask = source.point_data["SelectedPoints"] == 1
-    cell_ids_inside = source.extract_points(mask, adjacent_cells=False).cell_data[
-        "__original-cell-ids"
-    ]
+    centroids = pv.PolyData(source.cell_centers())
+    centroids = centroids.select_enclosed_points(surface, tolerance=1e-8)
+    cell_ids_inside = np.where(centroids.point_data["SelectedPoints"] == 1)[0]
     return cell_ids_inside
 
 

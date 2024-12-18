@@ -24,7 +24,11 @@ import numpy as np
 import pyvista as pv
 import pyvista.examples as examples
 
-from ansys.heart.core.helpers.vtkmethods import are_connected, find_cells_close_to_nodes
+from ansys.heart.core.helpers.vtkmethods import (
+    are_connected,
+    cell_ids_inside_enclosed_surface,
+    find_cells_close_to_nodes,
+)
 
 
 def test_check_if_connected():
@@ -49,3 +53,12 @@ def test_find_cells_close_to_nodes():
     assert find_cells_close_to_nodes(mesh, [0], radius=0.1) == np.array([0])
 
     return
+
+
+def test_cell_ids_inside_enclosed_surface():
+    """Test finding cell ids inside a given surface."""
+    # box = pv.Box(bounds=(-0.1, 0.1, -0.1, 0.1, -0.1, 1.0))
+    mesh = examples.load_tetbeam()
+    surface = mesh.extract_surface()
+
+    assert np.all(cell_ids_inside_enclosed_surface(mesh, surface) == np.arange(0, mesh.n_cells))

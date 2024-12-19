@@ -34,11 +34,9 @@ angles = {
     "beta_epi_septum": Quantity(25, "degree"),
 }
 
-# Quarteroni idealized geometry
-# paper has a typo, lpv should < rpv
+# From https://doi.org/10.1016/j.cma.2020.113468, table 4, for idealized geometry
+# paper has a typo, lpv should smaller than rpv
 la_bundle = {"tau_mv": 0.65, "tau_lpv": 0.10, "tau_rpv": 0.65}
-
-# la_bundle = {"tau_mv": 0.85, "tau_lpv": 0.4, "tau_rpv": 0.9}
 
 ra_bundle = {
     "tau_tv": 0.9,
@@ -47,6 +45,6 @@ ra_bundle = {
     "tau_ct_plus": -0.1,
     "tau_icv": 0.9,
     "tau_scv": 0.1,
-    "tau_ib": 0.135,  # paper has a typo, ras should > ras
-    "tau_ras": 0.35,  # paper has a typo, ras should > ras
+    "tau_ib": 0.135,  # paper has a typo, ras should larger than ib
+    "tau_ras": 0.35,
 }

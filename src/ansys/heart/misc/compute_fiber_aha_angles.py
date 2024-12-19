@@ -23,7 +23,7 @@
 """
 Compute average fiber orientations with respect to UHCs in each AHA region in the LV.
 
-from david.oks@medtronic.com
+from davoks
 """
 
 import os
@@ -224,7 +224,7 @@ def plot_fiber_aha_angles(data: pd.DataFrame | str):
         i = iaha // 6
         j = iaha % 6
         alphas = df.iloc[iaha].tolist()[1:]
-        print(alphas)
+        # print(alphas)
         axs[i, j].plot(depths, alphas, "o-b")
         axs[i, j].plot([-1, 1], [-60, -60], "--k")
         axs[i, j].plot([-1, 1], [60, 60], "--k")

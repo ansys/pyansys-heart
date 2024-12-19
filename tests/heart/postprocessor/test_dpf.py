@@ -26,6 +26,9 @@ import os
 
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
+
+import unittest.mock as mock
+
 import numpy as np
 import pytest
 
@@ -63,9 +66,20 @@ def test_d3plot_reader():
     assert isinstance(d3plot.get_ep_fields(), dpf.FieldsContainer)
 
 
-@pytest.mark.xfail(reason="This function fails for DPF server v242.")
 def test_d3plot_reader2():
     fn = os.path.join(get_assets_folder(), "post", "main", "d3plot")
     d3plot = D3plotReader(fn)
 
     assert d3plot.get_displacement_at(0.0).shape == (8598, 3)
+
+
+def test_d3plot_reader_init_supported_versions():
+    """Test d3plot reader init."""
+    fn = os.path.join(get_assets_folder(), "post", "main", "d3plot")
+
+    with mock.patch(
+        "ansys.heart.postprocessor.dpf_utils._SUPPORTED_DPF_SERVERS"
+    ) as mock_supported_versions:
+        mock_supported_versions.return_value = []
+        with pytest.raises(Exception):
+            D3plotReader(fn)

@@ -36,14 +36,26 @@ from ansys.heart.core import LOG as LOGGER
 _KILL_ANSYSCL_ON_DEL: bool = False
 """Flag indicating whether to kill the ansys licence client upon deleting the D3PlotReader."""
 
+_SUPPORTED_DPF_SERVERS = ["2024.1", "2024.1rc1"]
+"""List of supported DPF Servers."""
+
 
 def _check_env():
     if "ANSYS_DPF_ACCEPT_LA" in os.environ and os.environ["ANSYS_DPF_ACCEPT_LA"] == "Y":
         pass
     else:
-        LOGGER.warning('DPF needs to set "ANSYS_DPF_ACCEPT_LA" to "Y".')
+        LOGGER.warning(
+            """DPF requires you to accept the license agreement.
+            Set the environment variable "ANSYS_DPF_ACCEPT_LA" to "Y"."""
+        )
         exit()
     return
+
+
+class SupportedDPFServerNotFoundError(Exception):
+    """SupportedDPFServerNotFoundError."""
+
+    pass
 
 
 class D3plotReader:
@@ -62,7 +74,24 @@ class D3plotReader:
 
         _running_ansyscl_pids = set([p.pid for p in psutil.process_iter() if "ansyscl" in p.name()])
 
-        self._server = dpf.start_local_server()
+        # TODO: retrieve version from docker
+        self._server = None
+
+        # sort available servers from latest to oldest version.
+        available_dpf_servers = dict(reversed(dpf.server.available_servers().items()))
+        LOGGER.info(f"Available DPF Servers: {available_dpf_servers.keys()}")
+
+        for version, server in available_dpf_servers.items():
+            if version in _SUPPORTED_DPF_SERVERS:
+                LOGGER.info(f"Trying to launch DPF Server {version}")
+                self._server = server()
+                break
+
+        if self._server is None:
+            mess = f"""Failed to launch supported DPF Server:
+                        Please make sure one of {_SUPPORTED_DPF_SERVERS} is installed."""
+            LOGGER.error(mess)
+            raise SupportedDPFServerNotFoundError(mess)
 
         self.ds = dpf.DataSources()
         self.ds.set_result_file_path(path, "d3plot")

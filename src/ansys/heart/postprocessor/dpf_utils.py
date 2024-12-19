@@ -22,7 +22,6 @@
 
 """D3plot parser using Ansys-dpf."""
 
-import copy
 import os
 from pathlib import Path
 from typing import List
@@ -77,8 +76,8 @@ class D3plotReader:
         ]
         """ansyscl process id triggered by (Py)DPF."""
 
-        self.meshgrid: pv.UnstructuredGrid = copy.deepcopy(self.model.metadata.meshed_region.grid)
-        self.time = copy.deepcopy(self.model.metadata.time_freq_support.time_frequencies.data)
+        self.meshgrid: pv.UnstructuredGrid = self.model.metadata.meshed_region.grid
+        self.time = self.model.metadata.time_freq_support.time_frequencies.data
 
     def __del__(self):
         """Force shutdown ansyscl after use of dpf."""

@@ -70,13 +70,15 @@ def read_temperature_field(directory: str, field_list: list[str]) -> pv.Unstruct
     return grid
 
 
-def compute_cell_gradient(grid: pv.UnstructuredGrid) -> pv.UnstructuredGrid:
+def compute_cell_gradient(grid: pv.UnstructuredGrid, field_list: list[str]) -> pv.UnstructuredGrid:
     """Compute cell gradient.
 
     Parameters
     ----------
     grid : pv.UnstructuredGrid
         grid with point data associated
+    field_list : list[str]
+        name of cell data
 
     Returns
     -------
@@ -84,7 +86,7 @@ def compute_cell_gradient(grid: pv.UnstructuredGrid) -> pv.UnstructuredGrid:
         grid with gradient vectors in cell data
     """
     grid2 = grid.point_data_to_cell_data()
-    for name in grid2.cell_data.keys():
+    for name in field_list:
         derivative = grid2.compute_derivative(scalars=name, preference="cell")
         res = derivative["gradient"]
         grid2["grad_" + name] = res
@@ -225,8 +227,9 @@ def compute_la_fiber_cs(
 
         return
 
-    data = read_temperature_field(directory, field_list=["trans", "ab", "v", "r"])
-    grid = compute_cell_gradient(data)
+    solutions = ["trans", "ab", "v", "r"]
+    data = read_temperature_field(directory, field_list=solutions)
+    grid = compute_cell_gradient(data, field_list=solutions)
 
     if endo_surface is not None:
         grid.cell_data["grad_trans"] = update_transmural_by_normal(grid, endo_surface)
@@ -363,8 +366,9 @@ def compute_ra_fiber_cs(
 
         return
 
-    data = read_temperature_field(directory, field_list=["trans", "ab", "v", "r", "w"])
-    grid = compute_cell_gradient(data)
+    solution = ["trans", "ab", "v", "r", "w"]
+    data = read_temperature_field(directory, field_list=solution)
+    grid = compute_cell_gradient(data, field_list=solution)
 
     if endo_surface is not None:
         grid.cell_data["grad_trans"] = update_transmural_by_normal(grid, endo_surface)

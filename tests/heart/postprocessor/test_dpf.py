@@ -27,6 +27,8 @@ import os
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 
+import unittest.mock as mock
+
 import numpy as np
 import pytest
 
@@ -75,9 +77,9 @@ def test_d3plot_reader_init_supported_versions():
     """Test d3plot reader init."""
     fn = os.path.join(get_assets_folder(), "post", "main", "d3plot")
 
-    import ansys.heart.postprocessor.dpf_utils as dpf_utils
-
-    dpf_utils._SUPPORTED_DPF_SERVERS = []
-
-    with pytest.raises(Exception):
-        D3plotReader(fn)
+    with mock.patch(
+        "ansys.heart.postprocessor.dpf_utils._SUPPORTED_DPF_SERVERS"
+    ) as mock_supported_versions:
+        mock_supported_versions.return_value = []
+        with pytest.raises(Exception):
+            D3plotReader(fn)

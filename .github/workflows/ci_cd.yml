@@ -116,8 +116,6 @@ jobs:
 
       - name: Installing dependencies
         run: |
-          echo "DPF Docker:"
-          echo $DPF_DOCKER
           python -m pip install --upgrade pip
           python -m pip install .[tests]
 

@@ -137,6 +137,8 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     with open(os.path.join(directory, folder, "Post_report.json"), "w") as f:
         json.dump(dct, f)
 
+    del data
+
     return dct, stress_free_coord, guess_ed_coord
 
 

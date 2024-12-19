@@ -72,16 +72,13 @@ class D3plotReader:
         _running_ansyscl_pids = set([p.pid for p in psutil.process_iter() if "ansyscl" in p.name()])
 
         # TODO: retrieve version from docker
-        if dpf.server.RUNNING_DOCKER.use_docker:
-            self._server = dpf.start_local_server()
-            LOGGER.debug(f"Docker Server version: {self._server.version}")
-        else:
-            try:
-                LOGGER.info("Trying to launch DPF Server 2024.1")
-                self._server = dpf.server.available_servers()["2024.1"]()
-            except KeyError as e:
-                LOGGER.error(f"Failed to launch DPF Server 2024.1. {e}")
-                raise SupportedDPFServerNotFoundError(f"Failed to launch DPF Server 2024.1. {e}")
+        try:
+            LOGGER.info(f"Available DPF Servers: {dpf.server.available_servers()}")
+            LOGGER.info("Trying to launch DPF Server 2024.1")
+            self._server = dpf.server.available_servers()["2024.1"]()
+        except KeyError as e:
+            LOGGER.error(f"Failed to launch DPF Server 2024.1. {e}")
+            raise SupportedDPFServerNotFoundError(f"Failed to launch DPF Server 2024.1. {e}")
 
         self.ds = dpf.DataSources()
         self.ds.set_result_file_path(path, "d3plot")

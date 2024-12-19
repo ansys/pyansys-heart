@@ -23,7 +23,7 @@
 """
 Compute average fiber orientations with respect to UHCs in each AHA region in the LV.
 
-from david.oks@medtronic.com
+from davoks
 """
 
 import os

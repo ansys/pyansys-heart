@@ -32,8 +32,8 @@ from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.simulator.settings.settings import AtrialFiber
 
 
-def read_temperature_field(directory: str, field_list: list[str]) -> pv.UnstructuredGrid:
-    """Read thermal fields from d3plot.
+def read_laplace_solution(directory: str, field_list: list[str]) -> pv.UnstructuredGrid:
+    """Read laplace fields from d3plot files.
 
     Parameters
     ----------
@@ -228,7 +228,7 @@ def compute_la_fiber_cs(
         return
 
     solutions = ["trans", "ab", "v", "r"]
-    data = read_temperature_field(directory, field_list=solutions)
+    data = read_laplace_solution(directory, field_list=solutions)
     grid = compute_cell_gradient(data, field_list=solutions)
 
     if endo_surface is not None:
@@ -367,7 +367,7 @@ def compute_ra_fiber_cs(
         return
 
     solution = ["trans", "ab", "v", "r", "w"]
-    data = read_temperature_field(directory, field_list=solution)
+    data = read_laplace_solution(directory, field_list=solution)
     grid = compute_cell_gradient(data, field_list=solution)
 
     if endo_surface is not None:

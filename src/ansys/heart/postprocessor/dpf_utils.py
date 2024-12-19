@@ -85,6 +85,7 @@ class D3plotReader:
             if version in _SUPPORTED_DPF_SERVERS:
                 LOGGER.info(f"Trying to launch DPF Server {version}")
                 self._server = server()
+                break
 
         if self._server is None:
             mess = f"""Failed to launch supported DPF Server:

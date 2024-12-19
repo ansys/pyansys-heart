@@ -25,6 +25,8 @@
 import os
 import shutil
 
+os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+
 import pytest
 
 from ansys.heart.core.models import LeftVentricle

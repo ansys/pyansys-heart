@@ -53,7 +53,7 @@ from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
 from ansys.heart.postprocessor.laplace_post import (
     compute_la_fiber_cs,
     compute_ra_fiber_cs,
-    read_uvc,
+    read_laplace_solution,
 )
 from ansys.heart.preprocessor.conduction_beam import ConductionSystem
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
@@ -148,7 +148,9 @@ class BaseSimulator:
         export_directory = os.path.join(self.root_directory, type)
 
         target = self.run_laplace_problem(export_directory, type)
-        grid = read_uvc(export_directory)
+        grid = read_laplace_solution(
+            export_directory, field_list=["apico-basal", "transmural", "rotational"]
+        )
 
         grid["cell_ids"] = target["cell_ids"]
         grid["point_ids"] = target["point_ids"]

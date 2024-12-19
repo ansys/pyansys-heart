@@ -56,7 +56,10 @@ def read_temperature_field(directory: str, field_list: list[str]) -> pv.Unstruct
         if len(t) == grid.n_points:
             t = t
         elif len(t) == 3 * grid.n_points:
-            LOGGER.warning("DPF reads temperature as a vector field, maybe your DPF is obsolete.")
+            LOGGER.warning(
+                "DPF reads temperature as a vector field, but expecting a scalar field.\
+                Consider updating the DPF server."
+            )
             t = t[::3]
         else:
             LOGGER.error("Failed to read d3plot.")
@@ -89,7 +92,7 @@ def compute_cell_gradient(grid: pv.UnstructuredGrid) -> pv.UnstructuredGrid:
     return grid2
 
 
-def update_trans_by_normal(grid: pv.UnstructuredGrid, surface: pv.PolyData) -> np.ndarray:
+def update_transmural_by_normal(grid: pv.UnstructuredGrid, surface: pv.PolyData) -> np.ndarray:
     """Use surface normal for transmural direction.
 
     Note
@@ -226,7 +229,7 @@ def compute_la_fiber_cs(
     grid = compute_cell_gradient(data)
 
     if endo_surface is not None:
-        grid.cell_data["grad_trans"] = update_trans_by_normal(grid, endo_surface)
+        grid.cell_data["grad_trans"] = update_transmural_by_normal(grid, endo_surface)
 
     bundle_selection(grid)
 
@@ -364,7 +367,7 @@ def compute_ra_fiber_cs(
     grid = compute_cell_gradient(data)
 
     if endo_surface is not None:
-        grid.cell_data["grad_trans"] = update_trans_by_normal(grid, endo_surface)
+        grid.cell_data["grad_trans"] = update_transmural_by_normal(grid, endo_surface)
 
     bundle_selection(grid)
 

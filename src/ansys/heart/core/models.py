@@ -641,6 +641,15 @@ class HeartModel:
         summary = model_summary(self)
         return summary
 
+    # TODO: keep this for now, but we can rework to more conveniently use
+    # TODO: info from self.mesh. We can replace for instance with the
+    # TODO: model_summary() method.
+    @deprecated(reason="Superseded by print(model) and model.summary()")
+    def print_info(self) -> None:
+        """Print model information."""
+        LOGGER.info(self.__str__())
+        return
+
     def plot_mesh(self, show_edges: bool = True, color_by: str = "part-id"):
         """Plot the volume mesh of the heart model.
 

@@ -36,17 +36,6 @@ from vtk.util.numpy_support import numpy_to_vtk  # type: ignore # noqa
 from ansys.heart.core import LOG as LOGGER
 
 
-@deprecated(reason="This method is deprecated: can use pyvista objects directly.")
-def write_vtkdata_to_vtkfile(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData], fname: str):
-    """Write a vtk unstructured grid object to vtk file."""
-    writer = vtk.vtkDataSetWriter()
-    writer.SetFileName(fname)
-    writer.SetInputData(vtk_data)
-    writer.SetFileTypeToBinary()
-    writer.Write()
-    return
-
-
 # TODO: replace partially with pyvista objects for convenience.
 def get_tetra_info_from_unstructgrid(
     vtk_grid: vtk.vtkUnstructuredGrid, get_all_data: bool = True, deep_copy: bool = False
@@ -100,55 +89,6 @@ def get_tetra_info_from_unstructgrid(
         return (
             copy.deepcopy(nodes),
             copy.deepcopy(tetra),
-            copy.deepcopy(cell_data),
-            copy.deepcopy(point_data),
-        )
-
-
-@deprecated(reason="This method will be deprecated: can use pyvista objects instead.")
-def get_tri_info_from_polydata(
-    vtk_polydata: vtk.vtkPolyData, get_all_data: bool = True, deep_copy: bool = False
-) -> Tuple[np.ndarray, np.ndarray, dict, dict]:
-    """Get connectivity, celldata and point data info from polydata object.
-
-    Notes
-    -----
-    Assumes triangular elements
-    """
-    vtk_polydata_obj = dsa.WrapDataObject(vtk_polydata)
-
-    nodes = np.array(vtk_polydata_obj.Points)
-    polys = np.array(vtk_polydata_obj.Polygons)
-
-    if not np.all(polys[np.arange(0, len(polys), 4)]):
-        raise TypeError("Some polygons are not triangular")
-
-    tris = polys.reshape(-1, 4)
-    tris = np.delete(tris, 0, axis=1)
-
-    # store cell/point data in dictionary
-    cell_data = {}
-    point_data = {}
-
-    for key in vtk_polydata_obj.CellData.keys():
-        cell_data[key] = np.array(vtk_polydata_obj.CellData[key])
-
-    for key in vtk_polydata_obj.PointData.keys():
-        point_data[key] = np.array(vtk_polydata_obj.PointData[key])
-
-    # try to add global ids
-    try:
-        global_ids = VN.vtk_to_numpy(vtk_polydata.GetPointData().GetGlobalIds())
-        point_data["global_ids"] = global_ids
-    except AttributeError:
-        LOGGER.debug("Global Ids were not added to point data...")
-
-    if not deep_copy:
-        return nodes, tris, cell_data, point_data
-    else:
-        return (
-            copy.deepcopy(nodes),
-            copy.deepcopy(tris),
             copy.deepcopy(cell_data),
             copy.deepcopy(point_data),
         )
@@ -479,36 +419,6 @@ def cell_ids_inside_enclosed_surface(
     cell_ids_inside = np.where(output_dsa.PointData["SelectedPoints"] == 1)[0]
 
     return cell_ids_inside
-
-
-# TODO: replace with pyvista.
-@deprecated(reason="This method will be deprecated: can use pyvista methods instead.")
-def vtk_cutter(vtk_polydata: vtk.vtkPolyData, cut_plane) -> vtk.vtkPolyData:
-    """
-    Cut a vtk polydata by a plane.
-
-    Parameters
-    ----------
-    vtk_polydata: vtk polydata
-    cut_plane: dictionary contains key: 'center' and 'normal'
-
-    Returns
-    -------
-    vtkpolydata
-    """
-    # create a plane to cut
-    plane = vtk.vtkPlane()
-    plane.SetOrigin(cut_plane["center"][0], cut_plane["center"][1], cut_plane["center"][2])
-    plane.SetNormal(cut_plane["normal"][0], cut_plane["normal"][1], cut_plane["normal"][2])
-
-    # create cutter
-    cutter = vtk.vtkCutter()
-    # cutter.SetNumberOfContours(20) #how to control number of points?
-    cutter.SetCutFunction(plane)
-    cutter.SetInputData(vtk_polydata)
-    cutter.Update()
-
-    return cutter.GetOutput()
 
 
 def find_cells_close_to_nodes(

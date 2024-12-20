@@ -23,9 +23,7 @@
 """Module contains methods for mesh operations related to the vtk library."""
 
 import copy
-from typing import List, Optional, Tuple, Union
 
-from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 import vtk
@@ -276,7 +274,7 @@ def get_boundary_edge_loops(
             return edge_groups
 
 
-def get_patches_delaunay(surface: pv.PolyData, closed_only: bool = True) -> List[pv.PolyData]:
+def get_patches_delaunay(surface: pv.PolyData, closed_only: bool = True) -> list[pv.PolyData]:
     """Patch boundary edges with a delaunay algorithm.
 
     Parameters
@@ -319,7 +317,7 @@ def get_patches_delaunay(surface: pv.PolyData, closed_only: bool = True) -> List
     return patches
 
 
-def get_patches_with_centroid(surface: pv.PolyData, closed_only: bool = True) -> List[pv.PolyData]:
+def get_patches_with_centroid(surface: pv.PolyData, closed_only: bool = True) -> list[pv.PolyData]:
     """Patch boundary edges with a custom algorithm using a central node.
 
     Parameters
@@ -375,7 +373,7 @@ def get_patches_with_centroid(surface: pv.PolyData, closed_only: bool = True) ->
 
 
 def are_connected(
-    mesh1: Union[pv.PolyData, pv.UnstructuredGrid], mesh2: Union[pv.PolyData, pv.UnstructuredGrid]
+    mesh1: pv.PolyData | pv.UnstructuredGrid, mesh2: pv.PolyData | pv.UnstructuredGrid
 ):
     """Check whether two PolyData or UnstructuredGrids are connected.
 
@@ -441,7 +439,3 @@ def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii") -> Non
             fid.write(string_replace)
         fid.close()
     return
-
-
-if __name__ == "__main__":
-    print()

@@ -23,7 +23,6 @@
 """Module contains methods for mesh operations related to the vtk library."""
 
 import copy
-from typing import List, Union
 
 import numpy as np
 import pyvista as pv
@@ -95,6 +94,8 @@ def extrude_polydata(
     if len(extrude_direction) == 0:
         extrude_normal = True
 
+    # NOTE: pyvista does not have a extrusion in cell normal direction. Hence
+    # resort to VTK method.
     surface = surface.compute_normals()
 
     extrude = vtk.vtkLinearExtrusionFilter()
@@ -121,7 +122,8 @@ def cell_ids_inside_enclosed_surface(
     Parameters
     ----------
     source : pv.UnstructuredGrid
-        Unstructured grid to check for cells that are inside a given surface.
+        Source object of which to check which cells are inside/outside
+        the specified surface
     surface : pv.PolyData
         Surface used to check whether cells are inside/outside.
 
@@ -130,9 +132,9 @@ def cell_ids_inside_enclosed_surface(
     np.ndarray
         Array with cell ids that are inside the enclosed surface.
     """
-    source = source.select_enclosed_points(surface)
-    centroids = pv.PolyData(source.cell_centers())
-    centroids = centroids.select_enclosed_points(surface, tolerance=1e-8)
+    surface = surface.compute_normals()
+    centroids = source.cell_centers()
+    centroids = centroids.select_enclosed_points(surface, tolerance=1e-9)
     cell_ids_inside = np.where(centroids.point_data["SelectedPoints"] == 1)[0]
     return cell_ids_inside
 
@@ -263,7 +265,7 @@ def get_boundary_edge_loops(
             return edge_groups
 
 
-def get_patches_delaunay(surface: pv.PolyData, closed_only: bool = True) -> List[pv.PolyData]:
+def get_patches_delaunay(surface: pv.PolyData, closed_only: bool = True) -> list[pv.PolyData]:
     """Patch boundary edges with a delaunay algorithm.
 
     Parameters
@@ -306,7 +308,7 @@ def get_patches_delaunay(surface: pv.PolyData, closed_only: bool = True) -> List
     return patches
 
 
-def get_patches_with_centroid(surface: pv.PolyData, closed_only: bool = True) -> List[pv.PolyData]:
+def get_patches_with_centroid(surface: pv.PolyData, closed_only: bool = True) -> list[pv.PolyData]:
     """Patch boundary edges with a custom algorithm using a central node.
 
     Parameters
@@ -362,7 +364,7 @@ def get_patches_with_centroid(surface: pv.PolyData, closed_only: bool = True) ->
 
 
 def are_connected(
-    mesh1: Union[pv.PolyData, pv.UnstructuredGrid], mesh2: Union[pv.PolyData, pv.UnstructuredGrid]
+    mesh1: pv.PolyData | pv.UnstructuredGrid, mesh2: pv.PolyData | pv.UnstructuredGrid
 ):
     """Check whether two PolyData or UnstructuredGrids are connected.
 
@@ -428,7 +430,3 @@ def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii") -> Non
             fid.write(string_replace)
         fid.close()
     return
-
-
-if __name__ == "__main__":
-    print()

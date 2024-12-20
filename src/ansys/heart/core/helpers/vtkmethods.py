@@ -110,15 +110,14 @@ def extrude_polydata(
     extrude.SetInputData(surface)
     extrude.SetScaleFactor(extrude_by)
     extrude.Update()
-    extruded_polydata = extrude.GetOutput()
 
-    return pv.PolyData(extruded_polydata)
+    return pv.PolyData(extrude.GetOutput())
 
 
 def cell_ids_inside_enclosed_surface(
     source: pv.UnstructuredGrid, surface: pv.PolyData
 ) -> np.ndarray:
-    """Tag any cells that are inside an enclosed surface.
+    """Get cell ids of cells of which the centroids are inside a given surface.
 
     Parameters
     ----------
@@ -126,25 +125,17 @@ def cell_ids_inside_enclosed_surface(
         Source object of which to check which cells are inside/outside
         the specified surface
     surface : pv.PolyData
-        Surface used to tag cells.
+        Surface used to check whether cells are inside/outside.
 
     Returns
     -------
     np.ndarray
-        Array with cell ids that are inside the given surface.
+        Array with cell ids that are inside the enclosed surface.
     """
     surface = surface.compute_normals()
-    points = pv.UnstructuredGrid(source).points
-    tetra = pv.UnstructuredGrid(source).cells_dict[pv.CellType.TETRA]
-
-    centroids = np.mean(points[tetra, :], axis=1)
-
-    vtk_centroids = pv.PolyData(centroids)
-
-    output = vtk_centroids.select_enclosed_points(surface, tolerance=1e-9)
-
-    cell_ids_inside = np.where(output.point_data["SelectedPoints"] == 1)[0]
-
+    centroids = source.cell_centers()
+    centroids = centroids.select_enclosed_points(surface, tolerance=1e-9)
+    cell_ids_inside = np.where(centroids.point_data["SelectedPoints"] == 1)[0]
     return cell_ids_inside
 
 
@@ -171,7 +162,7 @@ def find_cells_close_to_nodes(
     points = mesh.points[node_ids]
 
     # Create a list to store cells within the sphere radius
-    cells_within_sphere = []
+    selected_cells = []
 
     # Iterate through each point and find cells within the sphere
     for point in points:
@@ -183,13 +174,13 @@ def find_cells_close_to_nodes(
 
         # Get the indices of the cells
         selected_points = selection.point_data["SelectedPoints"].nonzero()[0]
-        selected_cells = mesh.extract_points(selected_points).cell_data["vtkOriginalCellIds"]
+        cells_within_sphere = mesh.extract_points(selected_points).cell_data["vtkOriginalCellIds"]
 
         # Store unique cell indices
-        cells_within_sphere.extend(selected_cells)
+        selected_cells.extend(cells_within_sphere)
 
     # Return unique cell indices
-    return np.unique(cells_within_sphere)
+    return np.unique(selected_cells)
 
 
 def get_boundary_edges(surface: pv.PolyData) -> pv.MultiBlock:

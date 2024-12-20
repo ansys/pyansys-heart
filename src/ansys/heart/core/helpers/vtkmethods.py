@@ -45,6 +45,7 @@ def get_tetra_info_from_unstructgrid(
     LOGGER.debug("Extracting tetrahedron cell and point data...")
     # read nodes into numpy array
     nodes = VN.vtk_to_numpy(vtk_grid.GetPoints().GetData())
+    nodes = pv.UnstructuredGrid(vtk_grid).points
 
     # gets number of cells
     num_cells = vtk_grid.GetNumberOfCells()
@@ -399,7 +400,8 @@ def cell_ids_inside_enclosed_surface(
         the cell is in/outside the provided surface
     """
     vtk_surface = add_normals_to_polydata(vtk_surface)
-    points, tetra, _, _ = get_tetra_info_from_unstructgrid(vtk_source)
+    points = pv.UnstructuredGrid(vtk_source).points
+    tetra = pv.UnstructuredGrid(vtk_source).cells_dict[pv.CellType.TETRA]
 
     centroids = np.mean(points[tetra, :], axis=1)
 

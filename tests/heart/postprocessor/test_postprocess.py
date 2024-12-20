@@ -32,8 +32,14 @@ import pytest
 from ansys.heart.core.models import LeftVentricle
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
 from ansys.heart.postprocessor.auto_process import zerop_post
+import ansys.heart.postprocessor.dpf_utils as dpf_utils
 from ansys.heart.postprocessor.system_model_post import SystemModelPost
 from tests.heart.conftest import get_assets_folder
+
+# Kills ansyscl. May be necessary to pass tests locally
+dpf_utils._KILL_ANSYSCL_ON_DEL = True
+# Accept DPF LA
+os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 
 @pytest.fixture(autouse=True, scope="module")

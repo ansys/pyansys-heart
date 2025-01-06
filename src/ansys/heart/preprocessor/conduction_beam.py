@@ -61,12 +61,19 @@ def _create_line(point_start: np.array, point_end: np.array, beam_length: float)
 
 def _refine_line(nodes: np.array, beam_length: float):
     new_nodes = [nodes[0, :]]
+    is_new_node = np.array([False])
     for beam_id in range(len(nodes) - 1):
         point_start = nodes[beam_id, :]
         point_end = nodes[beam_id + 1, :]
         points = _create_line(point_start, point_end, beam_length=beam_length)
+        if len(points) <= 2:
+            is_new_node = np.append(is_new_node, False)
+        else:
+            is_new_node = np.append(
+                is_new_node, np.append(np.ones(len(points) - 2, dtype=bool), False)
+            )
         new_nodes = np.vstack((new_nodes, points[1:, :]))
-    return new_nodes
+    return new_nodes, is_new_node
 
 
 class ConductionSystem:
@@ -90,7 +97,9 @@ class ConductionSystem:
                     inf_vcava_centroid = cap.centroid
 
             # define SinoAtrial node:
-            target_coord = sup_vcava_centroid - (inf_vcava_centroid - sup_vcava_centroid) / 2
+            target_coord = (
+                sup_vcava_centroid - (inf_vcava_centroid - sup_vcava_centroid) / 2
+            )
 
         right_atrium_endo = self.m.mesh.get_surface(self.m.right_atrium.endocardium.id)
 
@@ -185,7 +194,9 @@ class ConductionSystem:
         mask = np.ones(edges.shape, dtype=bool)
         mask[0, 0] = False  # SA point at solid
 
-        beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="SAN_to_AVN")
+        beam_net = self.m.add_beam_net(
+            beam_nodes, edges, mask, pid=0, name="SAN_to_AVN"
+        )
 
         return beam_net
 
@@ -197,16 +208,22 @@ class ConductionSystem:
         """
         atrio_ventricular_node = self.m.right_atrium.get_point("AV_node")
 
-        septum_point_ids = np.unique(np.ravel(self.m.mesh.tetrahedrons[self.m.septum.element_ids]))
+        septum_point_ids = np.unique(
+            np.ravel(self.m.mesh.tetrahedrons[self.m.septum.element_ids])
+        )
 
         # remove nodes on surface, to make sure His bundle nodes are inside of septum
         septum_point_ids = np.setdiff1d(
             septum_point_ids,
-            self.m.mesh.get_surface(self.m.left_ventricle.endocardium.id).global_node_ids_triangles,
+            self.m.mesh.get_surface(
+                self.m.left_ventricle.endocardium.id
+            ).global_node_ids_triangles,
         )
         septum_point_ids = np.setdiff1d(
             septum_point_ids,
-            self.m.mesh.get_surface(self.m.right_ventricle.septum.id).global_node_ids_triangles,
+            self.m.mesh.get_surface(
+                self.m.right_ventricle.septum.id
+            ).global_node_ids_triangles,
         )
 
         septum_pointcloud = pv.PolyData(self.m.mesh.nodes[septum_point_ids, :])
@@ -251,7 +268,7 @@ class ConductionSystem:
             bifurcation_coord,
         )
         new_nodes = self.m.mesh.points[nodes]
-        new_nodes = _refine_line(new_nodes, beam_length=beam_length)
+        new_nodes, is_new_node = _refine_line(new_nodes, beam_length=beam_length)
         new_nodes = new_nodes[1:, :]
 
         point_ids = np.concatenate(
@@ -260,15 +277,20 @@ class ConductionSystem:
                 +np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int),
             )
         )
-        bifurcation_id = point_ids[-1]
+
         # create beam
         edges = np.vstack((point_ids[:-1], point_ids[1:])).T
+        mask = np.ones(edges.shape, dtype=bool)
+        mask[0, 0] = False  # AV point at previous, not offset in creation
 
+        beam_net = self.m.add_beam_net(new_nodes, edges, mask, pid=0, name="HisCentral")
+        beam_net.beam_nodes_mask[0, 0] = True  # offset in writer
+        bifurcation_id = edges[-1, -1]
         (
             position_id_his_end_left,
             his_end_left_coord,
             new_nodes,
-            edges,
+            edgesleft,
             sgmt_left,
         ) = self._create_his_side(
             side="left",
@@ -278,11 +300,20 @@ class ConductionSystem:
             bifurcation_coord=bifurcation_coord,
             bifurcation_id=bifurcation_id,
         )
+
+        mask = np.ones(edgesleft.shape, dtype=bool)
+        mask[0, 0] = False  # bifurcation already created, no offset in creation
+
+        beam_netLeft = self.m.add_beam_net(
+            new_nodes, edgesleft, mask, pid=0, name="HisLeft"
+        )
+        beam_netLeft.beam_nodes_mask[0, 0] = True  # offset in writer
+
         (
             position_id_his_end_right,
             his_end_right_coord,
             new_nodes,
-            edges,
+            edgesright,
             sgmt_right,
         ) = self._create_his_side(
             side="right",
@@ -293,18 +324,20 @@ class ConductionSystem:
             bifurcation_id=bifurcation_id,
         )
         # finally
-        mask = np.ones(edges.shape, dtype=bool)
-        mask[0, 0] = False  # AV point at previous, not offset in creation
+        mask = np.ones(edgesright.shape, dtype=bool)
+        mask[0, 0] = False  # bifurcation already created, no offset in creation
 
-        beam_net = self.m.add_beam_net(new_nodes, edges, mask, pid=0, name="His")
-        beam_net.beam_nodes_mask[0, 0] = True  # offset in writer
+        beam_netRight = self.m.add_beam_net(
+            new_nodes, edgesright, mask, pid=0, name="HisRight"
+        )
+        beam_netRight.beam_nodes_mask[0, 0] = True  # offset in writer
 
         #
 
         surf = SurfaceMesh(
-            name="his_bundle_segment",
-            triangles=np.vstack((sgmt_top, sgmt_left, sgmt_right)),
-            nodes=self.m.mesh.points,
+            "his_bundle_segment",
+            np.vstack((sgmt_top, sgmt_left, sgmt_right)),
+            self.m.mesh.points,
         )
 
         #! add surface to central mesh object for future use.
@@ -314,15 +347,22 @@ class ConductionSystem:
 
         return Point(
             xyz=his_end_left_coord,
-            node_id=beam_net.edges[position_id_his_end_left[0], position_id_his_end_left[1]],
+            node_id=beam_net.edges[
+                position_id_his_end_left[0], position_id_his_end_left[1]
+            ],
         ), Point(
             xyz=his_end_right_coord,
-            node_id=beam_net.edges[position_id_his_end_right[0], position_id_his_end_right[1]],
+            node_id=beam_net.edges[
+                position_id_his_end_right[0], position_id_his_end_right[1]
+            ],
         )
 
     @staticmethod
     def find_path(
-        mesh: pv.UnstructuredGrid, start: np.ndarray, end: np.ndarray, return_segment=True
+        mesh: pv.UnstructuredGrid,
+        start: np.ndarray,
+        end: np.ndarray,
+        return_segment=True,
     ):
         """Find shortest path between two nodes.
 
@@ -405,7 +445,13 @@ class ConductionSystem:
             return path2
 
     def _create_his_side(
-        self, side: str, new_nodes, edges, beam_length, bifurcation_coord, bifurcation_id
+        self,
+        side: str,
+        new_nodes,
+        edges,
+        beam_length,
+        bifurcation_coord,
+        bifurcation_id,
     ):
         """Create His side after bifucation."""
         if side.lower() == "left":
@@ -425,15 +471,15 @@ class ConductionSystem:
         sgmt, nodes = self.find_path(self.m.mesh, bifurcation_coord, his_end_coord)
         side_his = self.m.mesh.points[nodes]
 
-        side_his = _refine_line(side_his, beam_length=beam_length)
-        new_nodes = np.vstack((new_nodes, side_his[1:, :]))
+        side_his, is_new_node = _refine_line(side_his, beam_length=beam_length)
+        new_nodes = side_his[1:, :]
 
         side_his_point_ids = np.concatenate(
             (
                 np.array([bifurcation_id]),
-                edges[-1, -1]
-                + 1
-                + np.linspace(0, len(side_his[1:, :]) - 1, len(side_his[1:, :]), dtype=int),
+                np.linspace(
+                    0, len(side_his[1:, :]) - 1, len(side_his[1:, :]), dtype=int
+                ),
             )
         )
 
@@ -443,7 +489,15 @@ class ConductionSystem:
         position_id_his_end = np.argwhere(edges == side_his_point_ids[-1])[0]
         return (position_id_his_end, his_end_coord, new_nodes, edges, sgmt)
 
-    def compute_left_right_bundle(self, start_coord, start_id, side: str, beam_length: float = 1.5):
+    def compute_left_right_bundle(
+        self,
+        start_coord,
+        start_id,
+        side: str,
+        end_coord=None,
+        end_id=None,
+        beam_length: float = 1.5,
+    ):
         """Bundle brunch."""
         if side == "Left":
             ventricle = self.m.left_ventricle
@@ -456,33 +510,101 @@ class ConductionSystem:
         #! this will give local ids.
         bundle_branch = endo_surface.geodesic(
             endo_surface.find_closest_point(start_coord),
-            endo_surface.find_closest_point(self.m.mesh.points[ventricle.apex_points[0].node_id]),
+            endo_surface.find_closest_point(
+                self.m.mesh.points[ventricle.apex_points[0].node_id]
+            ),
         )
 
-        new_nodes = bundle_branch.points
-        new_nodes = _refine_line(new_nodes, beam_length=beam_length)
-        # exclude first and last (apex) node which belongs to purkinje beam
-        new_nodes = new_nodes[1:-1, :]
-        point_ids = np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int)
-        point_ids = np.insert(point_ids, 0, start_id)
+        # duplicate nodes inside the line, connect only SA node (the first) with 3D
+        point_ids = bundle_branch["vtkOriginalPointIds"]
+        point_ids[0] = start_id
         apex = ventricle.apex_points[0].node_id
         for network in self.m.beam_network:
             if network.name == side + "-purkinje":
                 apex = network.edges[0, 0]
-        point_ids = np.append(point_ids, apex)
+        point_ids[-1] = apex
 
-        edges = np.vstack((point_ids[:-1], point_ids[1:])).T
+        connections = np.zeros((point_ids.size, 2), dtype=int)
+        if side == "Left":
+            connections = np.ones((point_ids.size, 2), dtype=int)
 
-        mask = np.ones(edges.shape, dtype=bool)
-        mask[0, 0] = False  # His end point of previous, no offset at creation
-        mask[-1, -1] = False  # Apex point, no offset
-
-        beam_net = self.m.add_beam_net(new_nodes, edges, mask, pid=0, name=side + " bundle branch")
+        connections[:, 1] = point_ids
+        connections[[0, -1], 0] = 2
+        new_nodes, edges, mask = self._prepare_beam_line(
+            bundle_branch.points, connections, beam_length
+        )
+        beam_net = self.m.add_beam_net(
+            new_nodes, edges, mask, pid=0, name=side + " bundle branch"
+        )
         # used in dynawriter, to write beam connectivity, need offset since it's a beam node
         beam_net.beam_nodes_mask[0, 0] = True
         beam_net.beam_nodes_mask[-1, -1] = True
 
         return beam_net
+
+    def compute_left_anterior_bundle(
+        self,
+        start_coord,
+        start_id,
+        side: str,
+        end_coord=None,
+        end_id=None,
+        beam_length: float = 1.5,
+    ):
+        """Bundle brunch."""
+        ventricle = self.m.left_ventricle
+        endo_surface = self.m.left_ventricle.endocardium
+
+        bundle_branch = endo_surface.geodesic(
+            endo_surface.find_closest_point(start_coord),
+            endo_surface.find_closest_point(end_coord),
+        )
+
+        # duplicate nodes inside the line, connect only SA node (the first) with 3D
+        point_ids = bundle_branch["vtkOriginalPointIds"]
+        point_ids[0] = start_id
+        point_ids[-1] = end_id
+
+        connections = np.zeros((point_ids.size, 2), dtype=int)
+
+        connections[:, 1] = point_ids
+        connections[[0, -1], 0] = 2
+        new_nodes, edges, mask = self._prepare_beam_line(
+            bundle_branch.points, connections, beam_length
+        )
+        beam_net = self.m.add_beam_net(
+            new_nodes, edges, mask, pid=0, name=side + " bundle branch"
+        )
+        # used in dynawriter, to write beam connectivity, need offset since it's a beam node
+        beam_net.beam_nodes_mask[0, 0] = True
+        beam_net.beam_nodes_mask[-1, -1] = True
+
+        return beam_net
+
+    def _prepare_beam_line(self, path_nodes, connections, beam_length):
+        refined_path_nodes, is_mid_node = _refine_line(
+            path_nodes, beam_length=beam_length
+        )
+
+        path_nodes_ids = np.zeros(is_mid_node.shape, dtype=int)
+        path_nodes_ids_from_surface = np.where(np.logical_not(is_mid_node))[0]
+        path_nodes_ids[path_nodes_ids_from_surface] = connections[:, 1]
+        connect_to_3D = path_nodes_ids_from_surface[connections[:, 0] == 1]
+        connect_to_beams = path_nodes_ids_from_surface[connections[:, 0] == 2]
+        is_new_node = np.ones(is_mid_node.shape, dtype=bool)
+        is_new_node[connect_to_3D] = False
+        is_new_node[connect_to_beams] = False
+
+        new_nodes = refined_path_nodes[is_new_node, :]
+        if sum(is_new_node) != 0:
+            path_nodes_ids[is_new_node] = np.linspace(
+                0, sum(is_new_node) - 1, sum(is_new_node), dtype=int
+            )
+
+        edges = np.vstack((path_nodes_ids[:-1], path_nodes_ids[1:])).T
+        mask = np.vstack((is_new_node[:-1], is_new_node[1:])).T
+
+        return new_nodes, edges, mask
 
     @staticmethod
     def _get_closest_point_id(surface: pv.PolyData, point):
@@ -502,7 +624,9 @@ class ConductionSystem:
         path = epi.geodesic(start_id, end_id)
 
         #
-        beam_nodes = _refine_line(path.points, beam_length=beam_length)[1:-1, :]
+        beam_nodes, is_new_node = _refine_line(path.points, beam_length=beam_length)[
+            1:-1, :
+        ]
         point_ids = np.linspace(0, len(beam_nodes) - 1, len(beam_nodes), dtype=int)
         point_ids = np.insert(point_ids, 0, start_id)
         point_ids = np.append(point_ids, end_id)
@@ -515,14 +639,18 @@ class ConductionSystem:
         mask[-1, 1] = False  # End point at solid
 
         tri = np.vstack((la_epi.triangles, ra_epi.triangles))
-        surface = SurfaceMesh(name="Bachman segment", triangles=tri, nodes=self.m.mesh.nodes)
+        surface = SurfaceMesh(
+            name="Bachman segment", triangles=tri, nodes=self.m.mesh.nodes
+        )
 
         #! add surface to central mesh.
         surface_id = int(np.max(self.m.mesh.surface_ids) + 1)
         self.m.mesh.add_surface(surface.clean(), surface_id, name="Bachman segment")
         self.m.mesh.clean()
 
-        beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="Bachman bundle")
+        beam_net = self.m.add_beam_net(
+            beam_nodes, edges, mask, pid=0, name="Bachman bundle"
+        )
 
         return beam_net
 
@@ -547,6 +675,8 @@ if __name__ == "__main__":
 
     test.compute_left_right_bundle(a.xyz, a.node_id, side="Left")
     test.compute_left_right_bundle(b.xyz, b.node_id, side="Right")
-    test.compute_bachman_bundle(start_coord=sa_point.xyz, end_coord=np.array([-34, 163, 413]))
+    test.compute_bachman_bundle(
+        start_coord=sa_point.xyz, end_coord=np.array([-34, 163, 413])
+    )
 
     model.plot_purkinje()

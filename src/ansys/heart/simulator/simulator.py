@@ -414,7 +414,7 @@ class EPSimulator(BaseSimulator):
         self.dyna_settings.num_cpus = 1
 
         input_file = os.path.join(directory, "main.k")
-        # self._run_dyna(input_file)
+        self._run_dyna(input_file)
 
         self.dyna_settings.num_cpus = orig_num_cpus
         LOGGER.debug(f"Set number of cpus back to {orig_num_cpus}.")

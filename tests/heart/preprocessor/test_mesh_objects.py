@@ -30,11 +30,10 @@ import pytest
 import pyvista as pv
 from pyvista import examples
 
-from ansys.heart.core.objects import BeamsMesh, Mesh, SurfaceMesh
+from ansys.heart.core.objects import Mesh, SurfaceMesh
 
 SURFACE_TYPES = [pv.CellType.TRIANGLE, pv.CellType.QUAD]
 VOLUME_TYPES = [pv.CellType.TETRA, pv.CellType.HEXAHEDRON]
-LINE_TYPES = [pv.CellType.LINE]
 
 
 def _convert_to_mesh(model: pv.UnstructuredGrid) -> Mesh:
@@ -56,7 +55,9 @@ def _convert_to_mesh(model: pv.UnstructuredGrid) -> Mesh:
 
 # define different beam models that can be used for testing.
 def _get_beam_model(
-    cell_type: Literal["tets", "tets+triangles", "triangles", "hex", "hex+quads", "quads"],
+    cell_type: Literal[
+        "tets", "tets+triangles", "triangles", "hex", "hex+quads", "quads"
+    ],
 ) -> Union[pv.UnstructuredGrid, pv.PolyData]:
     """Generates various beam models.
 
@@ -171,7 +172,9 @@ def test_mesh_add_002():
     # create some dummy data
     lines["cdata_lines1"] = np.array([10, 11], dtype=np.int32)
     lines["cdata_lines2"] = np.array([10.5, 11.5], dtype=np.float64)
-    lines["pdata_lines1"] = np.array([[100, 101], [102, 103], [104, 105]], dtype=np.float64)
+    lines["pdata_lines1"] = np.array(
+        [[100, 101], [102, 103], [104, 105]], dtype=np.float64
+    )
 
     grid1 = grid._add_mesh(lines, keep_data=True)
 
@@ -226,7 +229,9 @@ def test_surface_add_001():
     surface_to_add = triangles + quads
 
     mesh.add_surface(surface_to_add)
-    np.testing.assert_allclose(np.unique(mesh.cell_data["_surface-id"]), [10, 11, np.nan])
+    np.testing.assert_allclose(
+        np.unique(mesh.cell_data["_surface-id"]), [10, 11, np.nan]
+    )
 
     # check behavior when the same id is specified.
     mesh = _convert_to_mesh(_get_beam_model("tets"))
@@ -266,33 +271,6 @@ def test_lines_add_001():
     assert np.all(np.isin(mesh.celltypes, [pv.CellType.LINE, pv.CellType.TETRA]))
     np.testing.assert_allclose(np.unique(mesh.cell_data["_volume-id"]), [1, np.nan])
     np.testing.assert_allclose(np.unique(mesh.cell_data["_line-id"]), [2, np.nan])
-
-
-def test_lines_add_002():
-    """Test adding a beam to a Mesh."""
-
-    import pyvista as pv
-
-    mesh = BeamsMesh()
-    points = np.array([[0, 0, 0], [-1, 0, 0], [1, 0, 0]], dtype=float)
-
-    line_cells = [2, 1, 0, 2, 0, 2]
-    cell_types = [pv.CellType.LINE, pv.CellType.LINE]
-    mesh1 = BeamsMesh(pv.UnstructuredGrid(line_cells, cell_types, points))
-    mesh1._line_id_to_name[1] = "beam_net1"
-
-    points = np.array([[0, 1, 0], [-1, 1, 0], [1, 1, 0]], dtype=float)
-
-    line_cells = [2, 1, 0, 2, 0, 2]
-    cell_types = [pv.CellType.LINE, pv.CellType.LINE]
-    mesh100 = BeamsMesh(pv.UnstructuredGrid(line_cells, cell_types, points))
-    mesh100._line_id_to_name[100] = "beam_net100"
-    mesh.add_lines(mesh1, id=1, name=mesh1._line_id_to_name[1])
-    mesh.add_lines(mesh100, id=100, name=mesh100._line_id_to_name[100])
-
-    assert mesh._line_id_to_name[1] == "beam_net1"
-    assert mesh._line_id_to_name[100] == "beam_net100"
-    assert np.allclose([1.0, 1.0, 100.0, 100.0], mesh.cell_data["_line-id"])
 
 
 def test_volume_add_001():
@@ -364,7 +342,9 @@ def test_get_submesh_001():
 
 def test_mesh_remove_001():
     """Remove part of the mesh."""
-    points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1], [-1, 0, 0]], dtype=float)
+    points = np.array(
+        [[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1], [-1, 0, 0]], dtype=float
+    )
     # for each face in the tet
     tets = [4, 0, 1, 2, 3, 4, 0, 1, 2, 4]
     cell_types = [pv.CellType.TETRA] * 2
@@ -413,8 +393,12 @@ def test_mesh_clean_001():
     grid.point_data["data"] = float(1)
     grid.point_data["data"][0:4] = np.nan
 
-    assert np.all(np.isnan(grid.clean(ignore_nans_in_point_average=False).point_data["data"]))
-    assert np.allclose(grid.clean(ignore_nans_in_point_average=True).point_data["data"], 1)
+    assert np.all(
+        np.isnan(grid.clean(ignore_nans_in_point_average=False).point_data["data"])
+    )
+    assert np.allclose(
+        grid.clean(ignore_nans_in_point_average=True).point_data["data"], 1
+    )
 
     pass
 
@@ -578,52 +562,6 @@ def test_mesh_id_to_name():
     del mesh._volume_id_to_name[10]
     assert mesh._get_unmapped_volumes() == [10]
     assert not mesh.validate_ids_to_name_map()
-
-
-def test_mesh_add_beam():
-    """Test merging beam meshes."""
-    import pyvista as pv
-
-    points0 = np.array([[0, 0, 0], [-1, 0, 0], [1, 0, 0]], dtype=float)
-    points1 = np.array([[0, 1, 0], [-1, 1, 0], [1, 1, 0]], dtype=float)
-
-    line_cells = [2, 1, 0, 2, 0, 2]
-    cell_types = [pv.CellType.LINE, pv.CellType.LINE]
-    mesh0 = BeamsMesh(pv.UnstructuredGrid(line_cells, cell_types, points0))
-    mesh0.cell_data["_line-id"] = [0, 0]
-    mesh0._beams_id_to_name[0] = "id0"
-    mesh1 = BeamsMesh(pv.UnstructuredGrid(line_cells, cell_types, points1))
-    mesh1._beams_id_to_name[10] = "id10"
-    mesh1.cell_data["_line-id"] = [10, 10]
-    merged = mesh0._add_mesh(mesh1)
-    print("done")
-
-
-def test_mesh_save_load_beam():
-    """Test saving a beam mesh object."""
-    import pyvista as pv
-
-    points = np.array([[0, 0, 0], [-1, 0, 0], [1, 0, 0]], dtype=float)
-
-    line_cells = [2, 1, 0, 2, 0, 2]
-    cell_types = [pv.CellType.LINE, pv.CellType.LINE]
-    mesh = BeamsMesh(pv.UnstructuredGrid(line_cells, cell_types, points))
-    mesh._line_id_to_name[0] = "id0"
-
-    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tmpdir:
-        filename = os.path.join(tmpdir, "test_file.vtu")
-        filename_map = filename.replace(".vtu", ".namemap.json")
-        mesh.save(filename)
-
-        assert os.path.isfile(filename)
-        assert os.path.isfile(filename_map)
-
-        # try to load the same mesh.
-        mesh1 = BeamsMesh()
-        mesh1.load_mesh(filename)
-        assert mesh.n_cells == mesh1.n_cells
-        assert mesh.n_points == mesh1.n_points
-        assert mesh._line_id_to_name == mesh1._line_id_to_name
 
 
 def test_mesh_save_load():

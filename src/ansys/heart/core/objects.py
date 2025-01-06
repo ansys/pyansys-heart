@@ -95,7 +95,9 @@ def _get_fill_data(
     return pad_array
 
 
-def _get_global_cell_ids(mesh: pv.UnstructuredGrid, celltype: pv.CellType) -> np.ndarray:
+def _get_global_cell_ids(
+    mesh: pv.UnstructuredGrid, celltype: pv.CellType
+) -> np.ndarray:
     """Get the global cell ids of a particular cell type.
 
     Parameters
@@ -228,7 +230,9 @@ class SurfaceMesh(pv.PolyData):
     @property
     def boundary_edges(self):
         """Get boundary edges of self."""
-        boundary_edges = vtkmethods.get_boundary_edge_loops(self, remove_open_edge_loops=False)
+        boundary_edges = vtkmethods.get_boundary_edge_loops(
+            self, remove_open_edge_loops=False
+        )
         boundary_edges = np.vstack(list(boundary_edges.values()))
         return boundary_edges
 
@@ -389,7 +393,9 @@ class BeamMesh(pv.UnstructuredGrid, Feature):
 class Cavity(Feature):
     """Cavity class."""
 
-    def __init__(self, surface: SurfaceMesh = None, centroid: np.ndarray = None, name=None) -> None:
+    def __init__(
+        self, surface: SurfaceMesh = None, centroid: np.ndarray = None, name=None
+    ) -> None:
         super().__init__(name)
 
         #! that that if we don't do a deepcopy the associated algorithms may
@@ -419,7 +425,9 @@ class Cap(Feature):
     def _local_node_ids_edge(self):
         """Local node ids of cap edge."""
         edges = vtkmethods.get_boundary_edge_loops(self._mesh)
-        edge_local_ids = np.unique(np.array([np.array(edge) for edge in edges.values()]))
+        edge_local_ids = np.unique(
+            np.array([np.array(edge) for edge in edges.values()])
+        )
         return edge_local_ids
 
     @property
@@ -430,7 +438,9 @@ class Cap(Feature):
     @property
     def _local_centroid_id(self):
         """Local id of centroid."""
-        centroid_id = np.setdiff1d(np.arange(0, self._mesh.n_points), self._local_node_ids_edge)
+        centroid_id = np.setdiff1d(
+            np.arange(0, self._mesh.n_points), self._local_node_ids_edge
+        )
         if len(centroid_id) != 1:
             LOGGER.error("Failed to identify single centroid node.")
             return None
@@ -452,7 +462,9 @@ class Cap(Feature):
         """Compute mean normal of cap."""
         return np.mean(self._mesh.compute_normals().cell_data["Normals"], axis=0)
 
-    def __init__(self, name: str = None, node_ids: Union[List[int], np.ndarray] = []) -> None:
+    def __init__(
+        self, name: str = None, node_ids: Union[List[int], np.ndarray] = []
+    ) -> None:
         super().__init__(name)
         """Centroid of cap ID (in case centroid node is created)."""
         self._mesh: SurfaceMesh = None
@@ -465,7 +477,9 @@ class Cap(Feature):
 class Point(Feature):
     """Point class. Can be used to collect relevant points in the mesh."""
 
-    def __init__(self, name: str = None, xyz: np.ndarray = None, node_id: int = None) -> None:
+    def __init__(
+        self, name: str = None, xyz: np.ndarray = None, node_id: int = None
+    ) -> None:
         super().__init__(name)
 
         self.xyz: np.ndarray = xyz
@@ -766,8 +780,12 @@ class Mesh(pv.UnstructuredGrid):
 
     def _set_global_ids(self):
         """Add global cell and point ids as cell and point data array."""
-        self.cell_data["_global-cell-ids"] = np.array(np.arange(0, self.n_cells), dtype=int)
-        self.point_data["_global-point-ids"] = np.array(np.arange(0, self.n_points), dtype=int)
+        self.cell_data["_global-cell-ids"] = np.array(
+            np.arange(0, self.n_cells), dtype=int
+        )
+        self.point_data["_global-point-ids"] = np.array(
+            np.arange(0, self.n_points), dtype=int
+        )
         return
 
     def _get_submesh(
@@ -888,12 +906,18 @@ class Mesh(pv.UnstructuredGrid):
         duplicate_surface_names = self._get_duplicate_surface_names()
 
         if len(unmapped_volumes) > 0 or len(unmapped_surfaces) > 0:
-            LOGGER.debug(f"Volume ids {unmapped_volumes} not associated with a volume name.")
-            LOGGER.debug(f"Surface ids {unmapped_surfaces} not associated with a surface name.")
+            LOGGER.debug(
+                f"Volume ids {unmapped_volumes} not associated with a volume name."
+            )
+            LOGGER.debug(
+                f"Surface ids {unmapped_surfaces} not associated with a surface name."
+            )
             return False
         if len(duplicate_surface_names) > 0 or len(duplicate_volume_names) > 0:
             LOGGER.debug(f"Volume names {duplicate_volume_names} occur more than once")
-            LOGGER.debug(f"Surface names {duplicate_surface_names} occur more than once")
+            LOGGER.debug(
+                f"Surface names {duplicate_surface_names} occur more than once"
+            )
             return False
         else:
             return True
@@ -923,7 +947,8 @@ class Mesh(pv.UnstructuredGrid):
             merge_map = self_c["PointMergeMap"]
             for key, data in self.point_data.items():
                 non_nan_avg = [
-                    np.nanmean(data[merge_map == merge_id]) for merge_id in np.unique(merge_map)
+                    np.nanmean(data[merge_map == merge_id])
+                    for merge_id in np.unique(merge_map)
                 ]
                 self_c.point_data[key] = non_nan_avg
         else:
@@ -987,7 +1012,9 @@ class Mesh(pv.UnstructuredGrid):
             if not isinstance(id, int):
                 LOGGER.debug("sid should by type int.")
                 return None
-            surface.cell_data["_surface-id"] = np.ones(surface.n_cells, dtype=float) * id
+            surface.cell_data["_surface-id"] = (
+                np.ones(surface.n_cells, dtype=float) * id
+            )
 
         if not overwrite_existing:
             if id in self.surface_ids:
@@ -1103,80 +1130,6 @@ class Mesh(pv.UnstructuredGrid):
         return self.remove_cells(mask, inplace=True)
 
 
-class BeamsMesh(Mesh):
-    """BeamsMesh class: inherits from Mesh.
-
-    Notes
-    -----
-    This class inherits from Mesh and uses _beam_id to keep track of "labeled" selections of
-    cells.
-    """
-
-    def __init__(self, *args):
-        super().__init__(*args)
-
-        self._line_id_to_name: dict = {}
-        """Beams set id to name map."""
-
-    def _save_id_to_name_map(self, filename: Union[str, pathlib.Path]):
-        """Save the id to name map.
-
-        Parameters
-        ----------
-        filename : Union[str, pathlib.Path]
-            Path to file.
-        """
-        id_to_name = {
-            "_line_id_to_name": self._line_id_to_name,
-        }
-        with open(filename, "w") as f:
-            json.dump(id_to_name, f, indent=4)
-
-    def _load_id_to_name_map(self, filename: Union[str, pathlib.Path]):
-        """Load the id to name map for beams.
-
-        Parameters
-        ----------
-        filename : Union[str, pathlib.Path]
-            Filename of the id to name map (JSON).
-        """
-        with open(filename, "r") as f:
-            data = json.load(
-                f,
-                object_hook=lambda d: {
-                    int(k) if k.lstrip("-").isdigit() else k: v for k, v in d.items()
-                },
-            )
-            self._line_id_to_name = data["_line_id_to_name"]
-
-        return
-
-    def add_lines(self, lines: pv.PolyData, id: int = None, name: str = None):
-        """Add lines.
-
-        Parameters
-        ----------
-        lines : pv.PolyData
-            PolyData representation of the lines to add
-        id : int
-            ID of the surface to be added. This id will be tracked as "_line-id"
-        """
-        if not id:
-            if "_line-id" not in lines.cell_data.keys():
-                LOGGER.debug("Failed to set _surface-id")
-                return None
-        else:
-            if not isinstance(id, int):
-                LOGGER.debug("sid should by type int.")
-                return None
-            lines.cell_data["_line-id"] = np.ones(lines.n_cells, dtype=float) * id
-
-        self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan)
-        if name:
-            self._line_id_to_name[id] = name
-        return self_copy
-
-
 class PartType(Enum):
     """Stores valid part types."""
 
@@ -1217,7 +1170,9 @@ class Part:
         LOGGER.error("Cannot find point {0:s}.".format(pointname))
         return None
 
-    def __init__(self, name: str = None, part_type: PartType = PartType.UNDEFINED) -> None:
+    def __init__(
+        self, name: str = None, part_type: PartType = PartType.UNDEFINED
+    ) -> None:
         self.name = name
         """Name of the part."""
         self.pid = None
@@ -1239,7 +1194,9 @@ class Part:
         self.active: bool = False
         """If active stress will be established."""
 
-        self.meca_material: MechanicalMaterialModel = MechanicalMaterialModel.DummyMaterial()
+        self.meca_material: MechanicalMaterialModel = (
+            MechanicalMaterialModel.DummyMaterial()
+        )
         """Material model will be assiggned in Simulator."""
 
         self.ep_material: EPMaterial = EPMaterial.DummyMaterial()
@@ -1260,7 +1217,9 @@ class Part:
             self.epicardium = SurfaceMesh(name="{0} epicardium".format(self.name))
             """Epicardium."""
             if self.part_type == PartType.VENTRICLE:
-                self.septum = SurfaceMesh(name="{0} endocardium septum".format(self.name))
+                self.septum = SurfaceMesh(
+                    name="{0} endocardium septum".format(self.name)
+                )
                 """Septum surface."""
         elif self.part_type in [PartType.ARTERY]:
             self.wall = SurfaceMesh(name="{0} wall".format(self.name))

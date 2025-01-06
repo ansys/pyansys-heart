@@ -1,16 +1,17 @@
-import pytest
 import unittest.mock as mock
+
+import pytest
 import pyvista as pv
 from pyvista.examples import examples
 
+from ansys.heart.preprocessor.database_labels_to_id import Rodero2021, Strocchi2020
 from ansys.heart.preprocessor.database_preprocessor import (
     _get_interface_surfaces,
-    get_compatible_input,
     _get_original_labels,
     _read_input_mesh,
     _smooth_boundary_edges,
+    get_compatible_input,
 )
-from ansys.heart.preprocessor.database_labels_to_id import Strocchi2020, Rodero2021
 
 
 def test_read_input_mesh_strocchi():

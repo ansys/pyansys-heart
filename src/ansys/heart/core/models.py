@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -42,6 +42,7 @@ import ansys.heart.core.helpers.connectivity as connectivity
 import ansys.heart.core.helpers.vtkmethods as vtkmethods
 from ansys.heart.core.objects import (
     BeamMesh,
+    BeamsMesh,
     Cap,
     Cavity,
     Mesh,
@@ -60,7 +61,8 @@ from ansys.heart.simulator.settings.material.material import (
 
 
 def _get_axis_from_field_data(
-    mesh: Mesh | pv.UnstructuredGrid, axis_name: Literal["l4cv_axis", "l2cv_axis", "short_axis"]
+    mesh: Mesh | pv.UnstructuredGrid,
+    axis_name: Literal["l4cv_axis", "l2cv_axis", "short_axis"],
 ) -> dict:
     """Get the axis from mesh field data."""
     try:
@@ -88,6 +90,47 @@ def _set_field_data_from_axis(
         return None
     mesh.field_data[axis_name] = data
     return mesh
+
+
+def _read_beams_from_kfile(filename: pathlib.Path):
+    # Open file and import beams and created nodes
+    with open(filename, "r") as file:
+        start_nodes = 0
+        lines = file.readlines()
+    # find line ids delimiting node data and edge data
+    start_nodes = np.array(np.where(["*NODE" in line for line in lines]))[0][0]
+    end_nodes = np.array(np.where(["*" in line for line in lines]))
+    end_nodes = end_nodes[end_nodes > start_nodes][0]
+    start_beams = np.array(np.where(["*ELEMENT_BEAM" in line for line in lines]))[0][0]
+    end_beams = np.array(np.where(["*" in line for line in lines]))
+    end_beams = end_beams[end_beams > start_beams][0]
+
+    # load node data
+    node_data = np.loadtxt(
+        filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1
+    )
+    new_ids = node_data[:, 0].astype(int) - 1
+    beam_nodes = node_data[:, 1:4]
+
+    # load beam data
+    beam_data = np.loadtxt(
+        filename,
+        skiprows=start_beams + 1,
+        max_rows=end_beams - start_beams - 1,
+        dtype=int,
+    )
+    edges = beam_data[:, 2:4] - 1
+    pid = beam_data[0, 1]
+
+    # TODO: physically, this is not fully understood: Merging the end of bundle branch, the
+    # TODO: origin of Purkinje and the apex of myiocardium seems logical, but it has more chance
+    # TODO: the EP wave will not be triggered.
+    # TODO: so I remove it, it means: end of bundle branch connect to apex, origin of Purkinje
+    # TODO: is another point on the same location.
+
+    mask = np.isin(edges, new_ids)  # True for new created nodes
+    edges[mask] -= new_ids[0]  # beam nodes id start from 0
+    return beam_nodes, edges, mask, pid
 
 
 class HeartModel:
@@ -224,6 +267,9 @@ class HeartModel:
         self.electrodes: List[Point] = []
         """Electrodes positions for ECG computing."""
 
+        self.beam_mesh: Mesh()
+        """Beam mesh."""
+
         self.beam_network: List[BeamMesh] = []
         """List of beam networks in the mesh."""
 
@@ -300,47 +346,75 @@ class HeartModel:
         name : str
             beamnet name
         """
-        # Open file and import beams and created nodes
-        with open(filename, "r") as file:
-            start_nodes = 0
-            lines = file.readlines()
-        # find line ids delimiting node data and edge data
-        start_nodes = np.array(np.where(["*NODE" in line for line in lines]))[0][0]
-        end_nodes = np.array(np.where(["*" in line for line in lines]))
-        end_nodes = end_nodes[end_nodes > start_nodes][0]
-        start_beams = np.array(np.where(["*ELEMENT_BEAM" in line for line in lines]))[0][0]
-        end_beams = np.array(np.where(["*" in line for line in lines]))
-        end_beams = end_beams[end_beams > start_beams][0]
-
-        # load node data
-        node_data = np.loadtxt(
-            filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1
-        )
-        new_ids = node_data[:, 0].astype(int) - 1
-        beam_nodes = node_data[:, 1:4]
-
-        # load beam data
-        beam_data = np.loadtxt(
-            filename, skiprows=start_beams + 1, max_rows=end_beams - start_beams - 1, dtype=int
-        )
-        edges = beam_data[:, 2:4] - 1
-        pid = beam_data[0, 1]
-
-        # TODO: physically, this is not fully understood: Merging the end of bundle branch, the
-        # TODO: origin of Purkinje and the apex of myiocardium seems logical, but it has more chance
-        # TODO: the EP wave will not be triggered.
-        # TODO: so I remove it, it means: end of bundle branch connect to apex, origin of Purkinje
-        # TODO: is another point on the same location.
-
-        mask = np.isin(edges, new_ids)  # True for new created nodes
-        edges[mask] -= new_ids[0]  # beam nodes id start from 0
-
-        beam = self.add_beam_net(beam_nodes, edges, mask, pid=pid, name=name)
+        beam_nodes, edges, mask, pid = _read_beams_from_kfile(filename)
+        # beam = self.add_beam_net(beam_nodes, edges, mask, pid=pid, name=name)
+        beam = self.add_beam_lines(beam_nodes, edges, mask, pid=pid, name=name)
 
         return beam
 
+    def add_beam_lines(
+        self,
+        beam_nodes: np.ndarray,
+        edges: np.ndarray,
+        mask: np.ndarray,
+        pid=0,
+        name: str = None,
+    ) -> BeamsMesh:
+        """Add a Beam Mesh object to the model.
+
+        Parameters
+        ----------
+        beam_nodes : np.ndarray
+            new nodes coordinates.
+        edges : np.ndarray
+            beam elements connectivity
+        mask : np.ndarray
+            with the same shape of `edges`
+            If `mask` is true, refers to the Id of `beam_nodes` (start by 0),
+            it will be offset when creating BeamMesh object.
+            If `mask` is false, refers to Id of existing (volume) nodes, it will not be offset.
+        pid : int, optional
+            part Id, will be reassigned when writing, by default 0
+        name : str, optional
+            name, by default None
+
+        Returns
+        -------
+        BeamsMesh
+            BeamsMesh object
+        """
+        # add volume points from volume mesh:
+        volume_point_ids = edges[np.logical_not(mask)]
+        nb_newnodes = beam_nodes.shape[0]
+        [_volume_point_ids_ordered, new_volume_point_ids] = np.unique(
+            volume_point_ids, return_inverse=True
+        )
+        new_volume_point_ids = new_volume_point_ids + nb_newnodes
+        edges_new = np.copy(edges)
+        edges_new[np.logical_not(mask)] = new_volume_point_ids
+
+        edges_new = np.hstack(
+            (np.array(edges_new.shape[0] * [2])[:, np.newaxis], edges_new)
+        )
+        edges_new = np.hstack(edges_new)
+        volume_nodes = self.mesh.points[_volume_point_ids_ordered, :]
+        points = np.vstack((beam_nodes, volume_nodes))
+        #
+
+        lines = BeamsMesh(
+            pv.UnstructuredGrid(edges_new, edges.shape[0] * [pv.CellType.LINE], points)
+        )
+        lines._line_id_to_name[pid] = name
+
+        return lines
+
     def add_beam_net(
-        self, beam_nodes: np.ndarray, edges: np.ndarray, mask: np.ndarray, pid=0, name: str = None
+        self,
+        beam_nodes: np.ndarray,
+        edges: np.ndarray,
+        mask: np.ndarray,
+        pid=0,
+        name: str = None,
     ) -> BeamMesh:
         """Add a BeamMesh object on the model.
 
@@ -413,7 +487,9 @@ class HeartModel:
             scalar=scalar,
         )
         if self._input is None:
-            LOGGER.error("Failed to initialize input model. Please check input arguments.")
+            LOGGER.error(
+                "Failed to initialize input model. Please check input arguments."
+            )
             exit()
         return
 
@@ -486,10 +562,14 @@ class HeartModel:
 
         # remove empty cell zones
         num_cell_zones1 = len(fluent_mesh.cell_zones)
-        fluent_mesh.cell_zones = [cz for cz in fluent_mesh.cell_zones if cz.cells.shape[0] > 0]
+        fluent_mesh.cell_zones = [
+            cz for cz in fluent_mesh.cell_zones if cz.cells.shape[0] > 0
+        ]
         num_cell_zones2 = len(fluent_mesh.cell_zones)
         if num_cell_zones1 > num_cell_zones2:
-            LOGGER.warning("Removed {0} cell zones".format(num_cell_zones1 - num_cell_zones2))
+            LOGGER.warning(
+                "Removed {0} cell zones".format(num_cell_zones1 - num_cell_zones2)
+            )
 
         # Use only cell zones that are inside the parts defined in the input.
         fluent_mesh.cell_zones = [
@@ -512,14 +592,18 @@ class HeartModel:
         for ii, fz in enumerate(fluent_mesh.face_zones):
             if ":" in fz.name:
                 basename = fz.name.split(":")[0]
-                ref_facezone = next(fz1 for fz1 in fluent_mesh.face_zones if fz1.name == basename)
+                ref_facezone = next(
+                    fz1 for fz1 in fluent_mesh.face_zones if fz1.name == basename
+                )
                 LOGGER.debug("Merging {0} with {1}".format(fz.name, ref_facezone.name))
                 ref_facezone.faces = np.vstack([ref_facezone.faces, fz.faces])
                 idx_to_remove += [ii]
 
         # remove merged face zone
         fluent_mesh.face_zones = [
-            fz for ii, fz in enumerate(fluent_mesh.face_zones) if ii not in idx_to_remove
+            fz
+            for ii, fz in enumerate(fluent_mesh.face_zones)
+            if ii not in idx_to_remove
         ]
 
         for fz in fluent_mesh.face_zones:
@@ -557,12 +641,16 @@ class HeartModel:
         boundaries_exclude = [
             b.name for b in boundaries_fluid if re.search(substrings_exlude_re, b.name)
         ]
-        boundaries_fluid = [b for b in boundaries_fluid if b.name not in boundaries_exclude]
+        boundaries_fluid = [
+            b for b in boundaries_fluid if b.name not in boundaries_exclude
+        ]
 
         caps = [c._mesh for p in self.parts for c in p.caps]
 
         if len(boundaries_fluid) == 0:
-            LOGGER.debug("Meshing of fluid cavities not possible. No fluid surfaces detected.")
+            LOGGER.debug(
+                "Meshing of fluid cavities not possible. No fluid surfaces detected."
+            )
             return
 
         if len(caps) == 0:
@@ -595,7 +683,9 @@ class HeartModel:
         fluid_mesh_vtk.cell_data["part-id"] = fluid_mesh_vtk.cell_data["cell-zone-ids"]
 
         boundaries = [
-            SurfaceMesh(name=fz.name, triangles=fz.faces, nodes=fluid_mesh.nodes, id=fz.id)
+            SurfaceMesh(
+                name=fz.name, triangles=fz.faces, nodes=fluid_mesh.nodes, id=fz.id
+            )
             for fz in fluid_mesh.face_zones
             if "interior" not in fz.name
         ]
@@ -724,9 +814,13 @@ class HeartModel:
         # fiber direction is stored in cell data, but the cell-to-point filter
         # leads to issues, where nan values in any non-volume cell may change
         # the fiber direction in the target point(s).
-        mesh = self.mesh.extract_cells_by_type([pv.CellType.TETRA, pv.CellType.HEXAHEDRON])
+        mesh = self.mesh.extract_cells_by_type(
+            [pv.CellType.TETRA, pv.CellType.HEXAHEDRON]
+        )
         mesh = mesh.ctp()
-        streamlines = mesh.streamlines(vectors="fiber", source_radius=75, n_points=n_seed_points)
+        streamlines = mesh.streamlines(
+            vectors="fiber", source_radius=75, n_points=n_seed_points
+        )
         if streamlines.n_cells == 0:
             LOGGER.error(
                 "Failed to generate streanlines with radius {source_radius} and {n_seed_points}"
@@ -760,11 +854,15 @@ class HeartModel:
         try:
             import matplotlib as matplotlib
         except ImportError:
-            LOGGER.warning("matplotlib not found. Install matplotlib with: pip install matplotlib")
+            LOGGER.warning(
+                "matplotlib not found. Install matplotlib with: pip install matplotlib"
+            )
             return
 
         surfaces_to_plot = [s for p in self.parts for s in p.surfaces]
-        valves = [b for b in self.mesh._surfaces if "valve" in b.name or "border" in b.name]
+        valves = [
+            b for b in self.mesh._surfaces if "valve" in b.name or "border" in b.name
+        ]
         surfaces_to_plot = surfaces_to_plot + valves
 
         color_map = matplotlib.pyplot.get_cmap("tab20", len(surfaces_to_plot))
@@ -849,7 +947,9 @@ class HeartModel:
         return
 
     @staticmethod
-    @deprecated(reason="Load model is deprecated and is superseded by by load_model_from_mesh()")
+    @deprecated(
+        reason="Load model is deprecated and is superseded by by load_model_from_mesh()"
+    )
     def load_model(filename: pathlib.Path):
         """Load a preprocessed model from file.
 
@@ -981,7 +1081,9 @@ class HeartModel:
             if part_info[part_1.name]["cavity"] != {}:
                 cavity_name = list(part_info[part_1.name]["cavity"].keys())[0]
                 cavity_id = list(part_info[part_1.name]["cavity"].values())[0]
-                part_1.cavity = Cavity(surface=self.mesh.get_surface(cavity_id), name=cavity_name)
+                part_1.cavity = Cavity(
+                    surface=self.mesh.get_surface(cavity_id), name=cavity_name
+                )
 
             if part_info[part_1.name]["caps"] != {}:
                 for cap_name, cap_id in part_info[part_1.name]["caps"].items():
@@ -1065,14 +1167,18 @@ class HeartModel:
         if "uvc_l" not in self.mesh.array_names:
             LOGGER.debug("Add approximate longitudinal coordinates.")
             lv_apex = self.left_ventricle.apex_points[1].xyz
-            mv_centroid = [c.centroid for p in self.parts for c in p.caps if "mitral" in c.name][0]
+            mv_centroid = [
+                c.centroid for p in self.parts for c in p.caps if "mitral" in c.name
+            ][0]
             longitudinal_axis = lv_apex - mv_centroid
             from ansys.heart.core.helpers.geodisc import rodrigues_rot
 
             points_rotation = rodrigues_rot(
                 self.mesh.nodes - lv_apex, longitudinal_axis, [0, 0, -1]
             )
-            points_rotation[:, 2] = points_rotation[:, 2] - np.min(points_rotation, axis=0)[2]
+            points_rotation[:, 2] = (
+                points_rotation[:, 2] - np.min(points_rotation, axis=0)[2]
+            )
             scaling = points_rotation[:, 2] / np.max(points_rotation[:, 2])
             self.mesh.point_data["uvc_longitudinal"] = scaling
 
@@ -1115,17 +1221,23 @@ class HeartModel:
         Uses the septum surface of the right ventricle
         """
         if not isinstance(self, (BiVentricle, FourChamber, FullHeart)):
-            LOGGER.warning("Model type: {0} Not extracting septum elements".format(type(self)))
+            LOGGER.warning(
+                "Model type: {0} Not extracting septum elements".format(type(self))
+            )
             return None
 
         septum_name = [
             s
             for s in self.mesh.surface_names
-            if "right" in s.lower() and "ventricle" in s.lower() and "septum" in s.lower()
+            if "right" in s.lower()
+            and "ventricle" in s.lower()
+            and "septum" in s.lower()
         ]
 
         if len(septum_name) > 1:
-            raise ValueError("Expecting only one surface that contains string: 'septum'")
+            raise ValueError(
+                "Expecting only one surface that contains string: 'septum'"
+            )
         if len(septum_name) == 0:
             raise ValueError("No boundary with name: 'septum' found")
         surface_septum = self.mesh.get_surface_by_name(septum_name[0])
@@ -1188,7 +1300,9 @@ class HeartModel:
             cap_centroids = [c.centroid for c in ventricle.caps]
             ref_point = np.mean(np.array(cap_centroids), axis=0)
             for surface_substring in surface_substrings:
-                surface_id = next((s.id for s in ventricle.surfaces if surface_substring in s.name))
+                surface_id = next(
+                    (s.id for s in ventricle.surfaces if surface_substring in s.name)
+                )
                 surface = self.mesh.get_surface(surface_id)
 
                 apical_node_id = surface.node_ids_triangles[
@@ -1203,8 +1317,10 @@ class HeartModel:
                 ):
                     # remove one layer of elements at the boundary.
                     edgeless_surface = copy.deepcopy(surface)
-                    edgeless_surface.triangles = connectivity.remove_triangle_layers_from_trimesh(
-                        surface.triangles
+                    edgeless_surface.triangles = (
+                        connectivity.remove_triangle_layers_from_trimesh(
+                            surface.triangles
+                        )
                     )
 
                     apical_node_id = edgeless_surface.find_closest_point(
@@ -1240,23 +1356,31 @@ class HeartModel:
         for part in self.parts:
             if len(part.element_ids) > 0:
                 LOGGER.warning(
-                    "Part {0} seems to already have elements assigned: skipping".format(part.name)
+                    "Part {0} seems to already have elements assigned: skipping".format(
+                        part.name
+                    )
                 )
                 continue
             # ! this is valid as long as no additional surfaces are added in self.mesh.
             # ! otherwise (global) element ids may change
             element_ids = np.where(np.isin(self.mesh.part_ids, part.pid))[0]
-            element_ids = element_ids[np.isin(element_ids, used_element_ids, invert=True)]
+            element_ids = element_ids[
+                np.isin(element_ids, used_element_ids, invert=True)
+            ]
             part.element_ids = element_ids
 
         summ = 0
         for part in self.parts:
-            LOGGER.debug("Num elements in {0}: {1}".format(part.name, part.element_ids.shape[0]))
+            LOGGER.debug(
+                "Num elements in {0}: {1}".format(part.name, part.element_ids.shape[0])
+            )
             summ = summ + part.element_ids.shape[0]
         LOGGER.debug("Total num elements: {}".format(summ))
 
         LOGGER.debug(
-            "{0}/{1} elements assigned to parts".format(summ, self.mesh.tetrahedrons.shape[0])
+            "{0}/{1} elements assigned to parts".format(
+                summ, self.mesh.tetrahedrons.shape[0]
+            )
         )
 
         return
@@ -1269,14 +1393,21 @@ class HeartModel:
                 boundary_name = "-".join(surface.name.lower().split())
                 boundary_surface = self.mesh.get_surface_by_name(boundary_name)
 
-                if "septum" in surface.name.lower() and "right ventricle" in surface.name.lower():
+                if (
+                    "septum" in surface.name.lower()
+                    and "right ventricle" in surface.name.lower()
+                ):
                     try:
-                        septum_candidates = [s for s in self.mesh.surface_names if "septum" in s]
+                        septum_candidates = [
+                            s for s in self.mesh.surface_names if "septum" in s
+                        ]
                         if len(septum_candidates) > 1:
                             LOGGER.warning(
                                 "Multiple candidate surfaces for septum found, using first one."
                             )
-                        boundary_surface = self.mesh.get_surface_by_name(septum_candidates[0])
+                        boundary_surface = self.mesh.get_surface_by_name(
+                            septum_candidates[0]
+                        )
                     except Exception:
                         boundary_surface = None
 
@@ -1288,7 +1419,9 @@ class HeartModel:
                     surface.id = boundary_surface.id
 
                 else:
-                    LOGGER.warning("Could not find matching surface for: {0}".format(surface.name))
+                    LOGGER.warning(
+                        "Could not find matching surface for: {0}".format(surface.name)
+                    )
 
         return
 
@@ -1311,7 +1444,9 @@ class HeartModel:
                 if "endocardium" in s.name and s.n_cells > 0
             ]
             if len(surfaces) == 0:
-                LOGGER.warning(f"Skipping part {part.name}: only empty surfaces present.")
+                LOGGER.warning(
+                    f"Skipping part {part.name}: only empty surfaces present."
+                )
                 continue
 
             surface: SurfaceMesh = SurfaceMesh(pv.merge(surfaces))
@@ -1354,7 +1489,9 @@ class HeartModel:
             # ! also it is not updated dynamically.
             # merge patches into cavity surface.
             surface.cell_data["_cap_id"] = 0
-            surface_cavity = SurfaceMesh(pv.merge([surface] + [cap._mesh for cap in part.caps]))
+            surface_cavity = SurfaceMesh(
+                pv.merge([surface] + [cap._mesh for cap in part.caps])
+            )
             surface_cavity.name = surface.name
             surface_cavity.id = surface.id
 
@@ -1362,7 +1499,9 @@ class HeartModel:
             surface_cavity.force_normals_inwards()
 
             # add and get from global mesh to get all point/cell data arrays.
-            self.mesh.add_surface(surface_cavity, id=surface_cavity.id, name=surface_cavity.name)
+            self.mesh.add_surface(
+                surface_cavity, id=surface_cavity.id, name=surface_cavity.name
+            )
             self.mesh = self.mesh.clean()
 
             surface_cavity = self.mesh.get_surface(surface_cavity.id)
@@ -1370,11 +1509,16 @@ class HeartModel:
             part.cavity = Cavity(surface=surface_cavity, name=surface_cavity.name)
             part.cavity.compute_centroid()
 
-            LOGGER.debug("Volume of cavity: {0} = {1}".format(part.cavity.name, part.cavity.volume))
+            LOGGER.debug(
+                "Volume of cavity: {0} = {1}".format(
+                    part.cavity.name, part.cavity.volume
+                )
+            )
 
             part.cavity.surface.save(
                 os.path.join(
-                    self.workdir, "-".join(part.cavity.surface.name.lower().split()) + ".stl"
+                    self.workdir,
+                    "-".join(part.cavity.surface.name.lower().split()) + ".stl",
                 )
             )
 
@@ -1484,9 +1628,13 @@ class HeartModel:
                     ]
                     mask = np.isin(global_node_ids_surface, global_node_ids_part)
                     # do not use any faces that use a node not in the part.
-                    mask = np.all(np.isin(surface.triangles, np.argwhere(mask).flatten()), axis=1)
+                    mask = np.all(
+                        np.isin(surface.triangles, np.argwhere(mask).flatten()), axis=1
+                    )
 
-                    LOGGER.debug(f"Removing {np.sum(np.invert(mask))} faces from {surface.name}")
+                    LOGGER.debug(
+                        f"Removing {np.sum(np.invert(mask))} faces from {surface.name}"
+                    )
                     surface.triangles = surface.triangles[mask, :]
 
                     # add updated mesh to global mesh.
@@ -1502,15 +1650,21 @@ class HeartModel:
         from ansys.heart.core.helpers.landmarks import compute_anatomy_axis
 
         mv_center = next(
-            cap.centroid for cap in self.left_ventricle.caps if cap.name == "mitral-valve"
+            cap.centroid
+            for cap in self.left_ventricle.caps
+            if cap.name == "mitral-valve"
         )
 
         av_center = next(
-            cap.centroid for cap in self.left_ventricle.caps if cap.name == "aortic-valve"
+            cap.centroid
+            for cap in self.left_ventricle.caps
+            if cap.name == "aortic-valve"
         )
 
         apex = next(
-            ap.xyz for ap in self.left_ventricle.apex_points if ap.name == "apex epicardium"
+            ap.xyz
+            for ap in self.left_ventricle.apex_points
+            if ap.name == "apex epicardium"
         )
 
         l4cv, l2cv, short = compute_anatomy_axis(
@@ -1560,11 +1714,13 @@ class HeartModel:
             return np.array(apex_set)
         elif option == "endocardium":
             return np.intersect1d(
-                self.mesh.get_surface(part.endocardium.id).global_node_ids_triangles, apex_set
+                self.mesh.get_surface(part.endocardium.id).global_node_ids_triangles,
+                apex_set,
             )
         elif option == "epicardium":
             return np.intersect1d(
-                self.mesh.get_surface(part.epicardium.id).global_node_ids_triangles, apex_set
+                self.mesh.get_surface(part.epicardium.id).global_node_ids_triangles,
+                apex_set,
             )
 
     def _create_atrioventricular_isolation(self) -> Union[None, Part]:
@@ -1602,20 +1758,26 @@ class HeartModel:
             ventricles["_global-point-ids"], atrial["_global-point-ids"]
         )
 
-        interface_eids = np.where(np.any(np.isin(self.mesh.tetrahedrons, interface_nids), axis=1))[
-            0
-        ]
+        interface_eids = np.where(
+            np.any(np.isin(self.mesh.tetrahedrons, interface_nids), axis=1)
+        )[0]
         # interface elements on atrial part
         interface_eids = np.intersect1d(interface_eids, a_ele)
 
         # remove these elements from atrial parts
-        self.left_atrium.element_ids = np.setdiff1d(self.left_atrium.element_ids, interface_eids)
-        self.right_atrium.element_ids = np.setdiff1d(self.right_atrium.element_ids, interface_eids)
+        self.left_atrium.element_ids = np.setdiff1d(
+            self.left_atrium.element_ids, interface_eids
+        )
+        self.right_atrium.element_ids = np.setdiff1d(
+            self.right_atrium.element_ids, interface_eids
+        )
 
         # find orphan elements of atrial parts and assign to isolation part
         self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
         for atrium in [self.left_atrium, self.right_atrium]:
-            clean_obj = self.mesh.extract_cells(atrium.element_ids).connectivity(largest=True)
+            clean_obj = self.mesh.extract_cells(atrium.element_ids).connectivity(
+                largest=True
+            )
             connected_cells = clean_obj["cell_ids"]
             orphan_cells = np.setdiff1d(atrium.element_ids, connected_cells)
 
@@ -1623,7 +1785,9 @@ class HeartModel:
             atrium.element_ids = connected_cells
 
             # get orphan cells and set to isolation part
-            LOGGER.warning(f"{len(orphan_cells)} orphan cells are found and re-assigned.")
+            LOGGER.warning(
+                f"{len(orphan_cells)} orphan cells are found and re-assigned."
+            )
             interface_eids = np.append(interface_eids, orphan_cells)
 
             #! Central mesh object not updated. E.g. lose connection between part.element_ids and
@@ -1637,7 +1801,9 @@ class HeartModel:
             return None
 
         # create a new part
-        isolation: Part = self.create_part_by_ids(interface_eids, "Atrioventricular isolation")
+        isolation: Part = self.create_part_by_ids(
+            interface_eids, "Atrioventricular isolation"
+        )
         isolation.part_type = PartType.ATRIUM
         isolation.fiber = True
         isolation.active = False
@@ -1649,7 +1815,9 @@ class HeartModel:
         self,
         threshold_left_ventricle: float = 0.9,
         threshold_right_ventricle: float = 0.95,
-        stiff_material: MechanicalMaterialModel = NeoHookean(rho=0.001, c10=0.1, nu=0.499),
+        stiff_material: MechanicalMaterialModel = NeoHookean(
+            rho=0.001, c10=0.1, nu=0.499
+        ),
     ) -> None | Part:
         """Use universal coordinates to generate a stiff base region.
 
@@ -1671,7 +1839,9 @@ class HeartModel:
         try:
             v = self.mesh.point_data_to_cell_data()["apico-basal"]
         except KeyError:
-            LOGGER.error("Array named 'apico-basal' cannot be found, cannot create base part.")
+            LOGGER.error(
+                "Array named 'apico-basal' cannot be found, cannot create base part."
+            )
             LOGGER.error("Run simulator.compute_uhc() first.")
             return
 
@@ -1730,13 +1900,16 @@ class HeartModel:
             if "tricuspid" not in cap.name:
                 ring_nodes.extend(cap.global_node_ids_edge.tolist())
 
-        ring_eles = vtkmethods.find_cells_close_to_nodes(self.mesh, ring_nodes, radius=radius)
+        ring_eles = vtkmethods.find_cells_close_to_nodes(
+            self.mesh, ring_nodes, radius=radius
+        )
         #! remove any non-tetrahedron elements
         ring_eles = ring_eles[np.isin(ring_eles, self.mesh._global_tetrahedron_ids)]
         # above search may create orphan elements, pick them to rings
         self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
         unselect_eles = np.setdiff1d(
-            np.hstack((self.left_atrium.element_ids, self.right_atrium.element_ids)), ring_eles
+            np.hstack((self.left_atrium.element_ids, self.right_atrium.element_ids)),
+            ring_eles,
         )
         largest = self.mesh.extract_cells(unselect_eles).connectivity(largest=True)
         connected_cells = largest["cell_ids"]
@@ -1759,7 +1932,9 @@ class LeftVentricle(HeartModel):
     """Model of just the left ventricle."""
 
     def __init__(self, working_directory: pathlib.Path | str = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
+        self.left_ventricle: Part = Part(
+            name="Left ventricle", part_type=PartType.VENTRICLE
+        )
         """Left ventricle part."""
         # remove septum - not used in left ventricle only model
         del self.left_ventricle.septum
@@ -1775,9 +1950,13 @@ class BiVentricle(HeartModel):
     """Model of the left and right ventricle."""
 
     def __init__(self, working_directory: pathlib.Path | str = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
+        self.left_ventricle: Part = Part(
+            name="Left ventricle", part_type=PartType.VENTRICLE
+        )
         """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
+        self.right_ventricle: Part = Part(
+            name="Right ventricle", part_type=PartType.VENTRICLE
+        )
         """Right ventricle part."""
         self.septum: Part = Part(name="Septum", part_type=PartType.SEPTUM)
         """Septum."""
@@ -1797,9 +1976,13 @@ class FourChamber(HeartModel):
     """Model of the left/right ventricle and left/right atrium."""
 
     def __init__(self, working_directory: pathlib.Path | str = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
+        self.left_ventricle: Part = Part(
+            name="Left ventricle", part_type=PartType.VENTRICLE
+        )
         """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
+        self.right_ventricle: Part = Part(
+            name="Right ventricle", part_type=PartType.VENTRICLE
+        )
         """Right ventricle part."""
         self.septum: Part = Part(name="Septum", part_type=PartType.SEPTUM)
         """Septum."""
@@ -1830,9 +2013,13 @@ class FullHeart(FourChamber):
     """Model of both ventricles, both atria, aorta and pulmonary artery."""
 
     def __init__(self, working_directory: pathlib.Path | str = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
+        self.left_ventricle: Part = Part(
+            name="Left ventricle", part_type=PartType.VENTRICLE
+        )
         """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
+        self.right_ventricle: Part = Part(
+            name="Right ventricle", part_type=PartType.VENTRICLE
+        )
         """Right ventricle part."""
         self.septum: Part = Part(name="Septum", part_type=PartType.SEPTUM)
         """Septum."""
@@ -1843,7 +2030,9 @@ class FullHeart(FourChamber):
 
         self.aorta: Part = Part(name="Aorta", part_type=PartType.ARTERY)
         """Aorta part."""
-        self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type=PartType.ARTERY)
+        self.pulmonary_artery: Part = Part(
+            name="Pulmonary artery", part_type=PartType.ARTERY
+        )
         """Pulmonary artery part."""
 
         self.left_ventricle.fiber = True

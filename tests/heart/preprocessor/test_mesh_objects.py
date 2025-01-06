@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -30,10 +30,11 @@ import pytest
 import pyvista as pv
 from pyvista import examples
 
-from ansys.heart.core.objects import Mesh, SurfaceMesh
+from ansys.heart.core.objects import BeamsMesh, Mesh, SurfaceMesh
 
 SURFACE_TYPES = [pv.CellType.TRIANGLE, pv.CellType.QUAD]
 VOLUME_TYPES = [pv.CellType.TETRA, pv.CellType.HEXAHEDRON]
+LINE_TYPES = [pv.CellType.LINE]
 
 
 def _convert_to_mesh(model: pv.UnstructuredGrid) -> Mesh:
@@ -267,6 +268,33 @@ def test_lines_add_001():
     np.testing.assert_allclose(np.unique(mesh.cell_data["_line-id"]), [2, np.nan])
 
 
+def test_lines_add_002():
+    """Test adding a beam to a Mesh."""
+
+    import pyvista as pv
+
+    mesh = BeamsMesh()
+    points = np.array([[0, 0, 0], [-1, 0, 0], [1, 0, 0]], dtype=float)
+
+    line_cells = [2, 1, 0, 2, 0, 2]
+    cell_types = [pv.CellType.LINE, pv.CellType.LINE]
+    mesh1 = BeamsMesh(pv.UnstructuredGrid(line_cells, cell_types, points))
+    mesh1._line_id_to_name[1] = "beam_net1"
+
+    points = np.array([[0, 1, 0], [-1, 1, 0], [1, 1, 0]], dtype=float)
+
+    line_cells = [2, 1, 0, 2, 0, 2]
+    cell_types = [pv.CellType.LINE, pv.CellType.LINE]
+    mesh100 = BeamsMesh(pv.UnstructuredGrid(line_cells, cell_types, points))
+    mesh100._line_id_to_name[100] = "beam_net100"
+    mesh.add_lines(mesh1, id=1, name=mesh1._line_id_to_name[1])
+    mesh.add_lines(mesh100, id=100, name=mesh100._line_id_to_name[100])
+
+    assert mesh._line_id_to_name[1] == "beam_net1"
+    assert mesh._line_id_to_name[100] == "beam_net100"
+    assert np.allclose([1.0, 1.0, 100.0, 100.0], mesh.cell_data["_line-id"])
+
+
 def test_volume_add_001():
     """Test adding a volume (hex elements) to an existing mesh."""
     tets = _convert_to_mesh(_get_beam_model("tets"))
@@ -409,7 +437,12 @@ def test_mesh_object_properties():
     assert np.all(
         np.isin(
             mesh.celltypes,
-            [pv.CellType.TETRA, pv.CellType.HEXAHEDRON, pv.CellType.TRIANGLE, pv.CellType.LINE],
+            [
+                pv.CellType.TETRA,
+                pv.CellType.HEXAHEDRON,
+                pv.CellType.TRIANGLE,
+                pv.CellType.LINE,
+            ],
         )
     )
     assert np.all(mesh.volume_ids == [1, 2])
@@ -545,6 +578,52 @@ def test_mesh_id_to_name():
     del mesh._volume_id_to_name[10]
     assert mesh._get_unmapped_volumes() == [10]
     assert not mesh.validate_ids_to_name_map()
+
+
+def test_mesh_add_beam():
+    """Test merging beam meshes."""
+    import pyvista as pv
+
+    points0 = np.array([[0, 0, 0], [-1, 0, 0], [1, 0, 0]], dtype=float)
+    points1 = np.array([[0, 1, 0], [-1, 1, 0], [1, 1, 0]], dtype=float)
+
+    line_cells = [2, 1, 0, 2, 0, 2]
+    cell_types = [pv.CellType.LINE, pv.CellType.LINE]
+    mesh0 = BeamsMesh(pv.UnstructuredGrid(line_cells, cell_types, points0))
+    mesh0.cell_data["_line-id"] = [0, 0]
+    mesh0._beams_id_to_name[0] = "id0"
+    mesh1 = BeamsMesh(pv.UnstructuredGrid(line_cells, cell_types, points1))
+    mesh1._beams_id_to_name[10] = "id10"
+    mesh1.cell_data["_line-id"] = [10, 10]
+    merged = mesh0._add_mesh(mesh1)
+    print("done")
+
+
+def test_mesh_save_load_beam():
+    """Test saving a beam mesh object."""
+    import pyvista as pv
+
+    points = np.array([[0, 0, 0], [-1, 0, 0], [1, 0, 0]], dtype=float)
+
+    line_cells = [2, 1, 0, 2, 0, 2]
+    cell_types = [pv.CellType.LINE, pv.CellType.LINE]
+    mesh = BeamsMesh(pv.UnstructuredGrid(line_cells, cell_types, points))
+    mesh._line_id_to_name[0] = "id0"
+
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tmpdir:
+        filename = os.path.join(tmpdir, "test_file.vtu")
+        filename_map = filename.replace(".vtu", ".namemap.json")
+        mesh.save(filename)
+
+        assert os.path.isfile(filename)
+        assert os.path.isfile(filename_map)
+
+        # try to load the same mesh.
+        mesh1 = BeamsMesh()
+        mesh1.load_mesh(filename)
+        assert mesh.n_cells == mesh1.n_cells
+        assert mesh.n_points == mesh1.n_points
+        assert mesh._line_id_to_name == mesh1._line_id_to_name
 
 
 def test_mesh_save_load():
@@ -699,7 +778,9 @@ def test_part_get_info():
 
     part.cavity = Cavity(
         surface=SurfaceMesh(
-            pv.merge([part.endocardium, cap1._mesh, cap2._mesh]), name="cavity1", id=1000
+            pv.merge([part.endocardium, cap1._mesh, cap2._mesh]),
+            name="cavity1",
+            id=1000,
         )
     )
 

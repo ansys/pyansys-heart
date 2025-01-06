@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -177,7 +177,10 @@ class SurfaceMesh(pv.PolyData):
                     if len(shape) > 1:
                         append_shape = (num_extra_points, shape[1])
                         self.point_data[key] = np.vstack(
-                            [self.point_data[key], np.empty(append_shape, dtype) * np.nan]
+                            [
+                                self.point_data[key],
+                                np.empty(append_shape, dtype) * np.nan,
+                            ]
                         )
                     # scalars
                     else:
@@ -510,7 +513,10 @@ class Mesh(pv.UnstructuredGrid):
                     if len(shape) > 1:
                         append_shape = (num_extra_points, shape[1])
                         self.point_data[key] = np.vstack(
-                            [self.point_data[key], np.empty(append_shape, dtype) * np.nan]
+                            [
+                                self.point_data[key],
+                                np.empty(append_shape, dtype) * np.nan,
+                            ]
                         )
                     # scalars
                     else:
@@ -1095,6 +1101,80 @@ class Mesh(pv.UnstructuredGrid):
         """
         mask = self.cell_data["_volume-id"] == lid
         return self.remove_cells(mask, inplace=True)
+
+
+class BeamsMesh(Mesh):
+    """BeamsMesh class: inherits from Mesh.
+
+    Notes
+    -----
+    This class inherits from Mesh and uses _beam_id to keep track of "labeled" selections of
+    cells.
+    """
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+        self._line_id_to_name: dict = {}
+        """Beams set id to name map."""
+
+    def _save_id_to_name_map(self, filename: Union[str, pathlib.Path]):
+        """Save the id to name map.
+
+        Parameters
+        ----------
+        filename : Union[str, pathlib.Path]
+            Path to file.
+        """
+        id_to_name = {
+            "_line_id_to_name": self._line_id_to_name,
+        }
+        with open(filename, "w") as f:
+            json.dump(id_to_name, f, indent=4)
+
+    def _load_id_to_name_map(self, filename: Union[str, pathlib.Path]):
+        """Load the id to name map for beams.
+
+        Parameters
+        ----------
+        filename : Union[str, pathlib.Path]
+            Filename of the id to name map (JSON).
+        """
+        with open(filename, "r") as f:
+            data = json.load(
+                f,
+                object_hook=lambda d: {
+                    int(k) if k.lstrip("-").isdigit() else k: v for k, v in d.items()
+                },
+            )
+            self._line_id_to_name = data["_line_id_to_name"]
+
+        return
+
+    def add_lines(self, lines: pv.PolyData, id: int = None, name: str = None):
+        """Add lines.
+
+        Parameters
+        ----------
+        lines : pv.PolyData
+            PolyData representation of the lines to add
+        id : int
+            ID of the surface to be added. This id will be tracked as "_line-id"
+        """
+        if not id:
+            if "_line-id" not in lines.cell_data.keys():
+                LOGGER.debug("Failed to set _surface-id")
+                return None
+        else:
+            if not isinstance(id, int):
+                LOGGER.debug("sid should by type int.")
+                return None
+            lines.cell_data["_line-id"] = np.ones(lines.n_cells, dtype=float) * id
+
+        self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan)
+        if name:
+            self._line_id_to_name[id] = name
+        return self_copy
 
 
 class PartType(Enum):

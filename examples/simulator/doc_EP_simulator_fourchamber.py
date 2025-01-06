@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -57,7 +57,7 @@ from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 # set working directory and path to model.
-workdir = os.path.join("pyansys-heart", "downloads", "Strocchi2020", "01", "FourChamber")
+workdir = r"D:\Repos\pyansys-heart\downloads\Strocchi2020\01\FourChamber"
 
 # sphinx_gallery_start_ignore
 # Overwrite with env variables: for testing purposes only. May be removed by user.
@@ -72,14 +72,18 @@ except KeyError:
     pass
 # sphinx_gallery_end_ignore
 
-path_to_model = os.path.join(workdir, "heart_model.vtu")
+path_to_model = (
+    r"D:\Repos\pyansys-heart\downloads\Strocchi2020\01\FourChamber\heart_model.vtu"
+)
 
 # specify LS-DYNA path (last tested working versions is intelmpi-linux-DEV-106117)
-lsdyna_path = r"ls-dyna_msmpi.exe"
+lsdyna_path = r"D:\Dynaexe\30DEC24\mppdyna_30DEC24"
 
 # load four chamber heart model.
 model: models.FourChamber = models.FourChamber(working_directory=workdir)
-model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
+model.load_model_from_mesh(
+    path_to_model, path_to_model.replace(".vtu", ".partinfo.json")
+)
 
 # Define electrode positions and add them to model (correspond to patient 01 only)
 # Positions were defined using a template torso geometry.
@@ -111,7 +115,7 @@ model.workdir = str(workdir)
 
 # instantaiate dyna settings of choice
 dyna_settings = DynaSettings(
-    lsdyna_path=lsdyna_path, dynatype="smp", num_cpus=4, platform="windows"
+    lsdyna_path=lsdyna_path, dynatype="intelmpi", num_cpus=1, platform="wsl"
 )
 
 # sphinx_gallery_start_ignore
@@ -146,7 +150,7 @@ simulator.settings.load_defaults()
 
 ###############################################################################
 
-simulator.compute_uhc()
+# simulator.compute_uhc()
 
 ###############################################################################
 # Compute the fiber orientation
@@ -157,21 +161,21 @@ simulator.compute_uhc()
 # .. warning::
 #    Atrial fiber orientation is approximated by apex-base direction, the development is undergoing.
 
-# compute ventricular fibers
-simulator.compute_fibers()
+# # compute ventricular fibers
+# simulator.compute_fibers()
 
-# compute atrial fibers
-simulator.model.right_atrium.active = True
-simulator.model.left_atrium.active = True
-simulator.model.right_atrium.fiber = True
-simulator.model.left_atrium.fiber = True
+# # compute atrial fibers
+# simulator.model.right_atrium.active = True
+# simulator.model.left_atrium.active = True
+# simulator.model.right_atrium.fiber = True
+# simulator.model.left_atrium.fiber = True
 
-# Strocchi/Rodero data has marked left atrium appendage point
-simulator.compute_left_atrial_fiber()
-# need to manually select the right atrium appendage point
-simulator.compute_right_atrial_fiber(appendage=[-33, 82, 417])
+# # Strocchi/Rodero data has marked left atrium appendage point
+# simulator.compute_left_atrial_fiber()
+# # need to manually select the right atrium appendage point
+# simulator.compute_right_atrial_fiber(appendage=[-33, 82, 417])
 
-simulator.model.plot_fibers(n_seed_points=2000)
+# simulator.model.plot_fibers(n_seed_points=2000)
 
 ###############################################################################
 # .. image:: /_static/images/fibers.png
@@ -205,12 +209,12 @@ simulator.model.plot_purkinje()
 # and purkinje network to set up and run the LS-DYNA model using different solver
 # options
 
-simulator.simulate()
-# The two following solves only work with LS-DYNA DEV-110013 or later
-simulator.settings.electrophysiology.analysis.solvertype = "Eikonal"
-simulator.simulate(folder_name="main-ep-Eikonal")
-simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
-simulator.simulate(folder_name="main-ep-ReactionEikonal")
+# simulator.simulate()
+# # The two following solves only work with LS-DYNA DEV-110013 or later
+# simulator.settings.electrophysiology.analysis.solvertype = "Eikonal"
+# simulator.simulate(folder_name="main-ep-Eikonal")
+# simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
+# simulator.simulate(folder_name="main-ep-ReactionEikonal")
 
 
 ###############################################################################

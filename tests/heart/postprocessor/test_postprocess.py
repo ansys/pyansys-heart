@@ -73,6 +73,22 @@ def test_compute_aha_strain(get_data):
     assert aha_lrc[1, -1] == pytest.approx(0.0829107005807934)
 
 
+def test_plot_aha_bullseye():
+    """Test plotting AHA bullseye plot."""
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    # Create the fake data
+    data = np.arange(17) + 1
+    # Make a figure and Axes with dimensions as desired.
+    fig = plt.figure(figsize=(10, 5), layout="constrained")
+    fig.get_layout_engine().set(wspace=0.1, w_pad=0.2)
+    axs = fig.subplots(1, 1, subplot_kw=dict(projection="polar"))
+    # NOTE: just for line coverage: no assertion done here to check validity
+    # NOTE: of result.
+    AhaStrainCalculator.bullseye_plot(axs, data)
+
+
 def test_zerop_post(get_data):
     test_dir = get_data[0]
     model = get_data[1]

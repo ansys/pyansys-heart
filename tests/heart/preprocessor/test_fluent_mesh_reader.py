@@ -43,6 +43,23 @@ def _test_mesh():
     mesh._close_file()
 
 
+@pytest.mark.parametrize(
+    "input,expected_error",
+    (
+        [None, ValueError],
+        ["file-without-extension", FileNotFoundError],
+        ["non-existing-file.msh.h5", FileNotFoundError],
+    ),
+)
+def test_open_file(input, expected_error):
+    """Tests opening a file."""
+    mesh = FluentMesh()
+    if expected_error:
+        with pytest.raises(expected_error):
+            mesh._open_file(input)
+        return
+
+
 def test_load_mesh():
     """Tests loading a mesh without cell zones."""
     mesh = FluentMesh(FLUENT_BOX1)

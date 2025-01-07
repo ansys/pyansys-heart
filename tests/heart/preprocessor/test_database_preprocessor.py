@@ -1,3 +1,25 @@
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import unittest.mock as mock
 
 import pytest
@@ -10,7 +32,6 @@ from ansys.heart.preprocessor.database_preprocessor import (
     _get_original_labels,
     _read_input_mesh,
     _smooth_boundary_edges,
-    get_compatible_input,
 )
 
 
@@ -37,7 +58,7 @@ def test_read_input_mesh_strocchi():
         mock_read.assert_called_once()
 
 
-def test_input_mesh_rodero():
+def test_read_input_mesh_rodero():
     mesh = examples.load_tetbeam()
 
     with mock.patch("pyvista.read", return_value=mesh) as mock_read:
@@ -75,7 +96,7 @@ def test_get_interface_surface():
 
 @pytest.mark.parametrize(
     "database,expected",
-    (["Strocchi2020", Strocchi2020], ["Rodero2021", Rodero2021], ["unkown", None]),
+    (["Strocchi2020", Strocchi2020], ["Rodero2021", Rodero2021], ["unknown", None]),
 )
 def test_get_original_labels(database, expected):
     assert _get_original_labels(database) == expected
@@ -88,15 +109,6 @@ def test_smooth_boundary_edges():
     poly.cell_data["surface-id"] = 1
     poly = poly.rotate_x(90)
     id_to_label = {1: "polygon"}
-    # won't work if all points are on single z plane
+    # will return nan points if all points are in X-Y plane
     smoothed_plane, edges = _smooth_boundary_edges(poly, id_to_label, sub_label_to_smooth="polygon")
     assert len(edges) == 1
-
-
-# integration test.
-@pytest.mark.parametrize(
-    "database",
-    (["Strocchi2020"], ["Rodero2021"], ["unkown"]),
-)
-def test_get_compatible_input(database):
-    get_compatible_input()

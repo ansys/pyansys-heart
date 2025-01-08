@@ -190,7 +190,7 @@ docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", 
 # Full mesh
 filename = Path(docs_images_folder, "four_chamber_mesh.png")
 plotter = pv.Plotter(off_screen=True)
-model.mesh.set_active_scalars("part-id")
+model.mesh.set_active_scalars("_volume-id")
 plotter.add_mesh(model.mesh, show_edges=False)
 # plotter.show()
 plotter.camera.roll = -60

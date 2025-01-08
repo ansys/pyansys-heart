@@ -34,7 +34,6 @@ import os
 import pathlib
 from typing import List, Literal, Union
 
-from deprecated import deprecated
 import numpy as np
 
 from ansys.heart.core import LOG as LOGGER
@@ -531,29 +530,6 @@ class Mesh(pv.UnstructuredGrid):
     def _global_tetrahedron_ids(self):
         """Global ids of tetrahedral cells."""
         return _get_global_cell_ids(self, pv.CellType.TETRA)
-
-    @property
-    @deprecated(reason="Part-ids will be deprecated: use _volume-id(s) instead.")
-    def part_ids(self) -> np.ndarray:
-        """Array of part ids indicating to which part the tetrahedron belongs.
-
-        Notes
-        -----
-        This is derived from the "part-id" field in cell data
-        """
-        try:
-            value = self.cell_data["tags"].astype(int)
-            return value
-        except (KeyError, NameError):
-            LOGGER.warning("'tags' field not found in self.cell_data")
-            value = None
-        try:
-            value = self.cell_data["part-id"].astype(int)
-            return value
-        except (KeyError, NameError):
-            LOGGER.warning("'part-id' field not found in self.cell_data")
-            value = None
-        return value
 
     @property
     def surface_ids(self) -> np.ndarray:

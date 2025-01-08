@@ -543,23 +543,6 @@ class Mesh(pv.UnstructuredGrid):
         """Get all triangles of the mesh."""
         return self.cells_dict[pv.CellType.LINE]
 
-    @tetrahedrons.setter
-    @deprecated(
-        reason="""Setting tetrahedrons through this property is deprecated, use
-                add_volume instead."""
-    )
-    def tetrahedrons(self, value: np.ndarray):
-        # TODO: manage cell data
-        # TODO: could deprecate now that there is an add_volume method?
-        try:
-            points = self.points
-            celltypes = np.full(value.shape[0], pv.CellType.TETRA, dtype=np.int8)
-            tetra = np.hstack([np.full(len(celltypes), 4)[:, None], value])
-            super().__init__(tetra, celltypes, points)
-        except Exception:
-            LOGGER.warning("Failed to set tetrahedrons.")
-            return
-
     @property
     def _surfaces(self) -> List[SurfaceMesh]:
         """List of surfaces in the mesh."""

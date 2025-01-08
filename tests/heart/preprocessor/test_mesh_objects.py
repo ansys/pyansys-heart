@@ -423,11 +423,10 @@ def test_add_nodes_mesh():
     """Test adding points/nodes to the Mesh object."""
     # test data:
     points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]])
-    tetrahedron = np.array([[0, 1, 2, 3]])
+    cells = np.array([4, 0, 1, 2, 3])
+    celltypes = [pv.CellType.TETRA]
 
-    mesh = Mesh()
-    mesh.tetrahedrons = tetrahedron
-    mesh.nodes = points
+    mesh = Mesh(cells, celltypes, points)
     mesh.point_data["data-scalar"] = np.ones(mesh.n_points, dtype=float)
     mesh.point_data["data-vector"] = np.ones((mesh.n_points, 3), dtype=float)
 

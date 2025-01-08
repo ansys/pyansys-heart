@@ -30,9 +30,10 @@ else:
 import copy
 
 import numpy as np
+import pyvista as pv
 
 import ansys.heart.core.models as models
-from ansys.heart.core.objects import SurfaceMesh
+from ansys.heart.core.objects import Mesh, SurfaceMesh
 import ansys.heart.writer.dynawriter as writers
 
 
@@ -40,8 +41,8 @@ def get_test_model():
     model: models.LeftVentricle = models.LeftVentricle()
 
     # populate model
-    model.mesh.tetrahedrons = np.array([[1, 2, 3, 4], [5, 2, 3, 4]], dtype=int)
-    model.mesh.nodes = np.array(
+    cells = np.array([4, 1, 2, 3, 4, 4, 5, 2, 3, 4], dtype=int)
+    points = np.array(
         [
             [9.1, 9.1, 9.1],
             [0.0, 0.0, 0.0],
@@ -52,6 +53,9 @@ def get_test_model():
         ],
         dtype=float,
     )
+    celltypes = [pv.CellType.TETRA] * 2
+
+    model.mesh = Mesh(cells, celltypes, points)
     model.left_ventricle.element_ids = np.array([0, 1], dtype=int)
 
     model.left_ventricle.endocardium.triangles = np.array([[1, 2, 3]], dtype=int)
@@ -59,8 +63,6 @@ def get_test_model():
     model.left_ventricle.endocardium.point_data["_global-point-ids"] = np.arange(
         0, model.mesh.n_points
     )
-
-    # model.left_ventricle.endocardium = SurfaceMesh(model.left_ventricle.endocardium.clean())
 
     return model
 

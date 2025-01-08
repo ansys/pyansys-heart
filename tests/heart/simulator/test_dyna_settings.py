@@ -284,8 +284,11 @@ def test_get_dyna_commands_004(dynatype, platform):
     assert commands == expected
 
 
+@pytest.mark.parametrize(
+    "dynatype,expect_mpi_root", (["intelmpi", True], ["msmpi", True], ["platformmpi", False])
+)
 @pytest.mark.xfail(is_gh_action, reason="No Ansys installation expected on Github runner.")
-def test_set_env_variables():
+def test_set_env_variables(dynatype, expect_mpi_root):
     """Test setting environment variables."""
 
     import os
@@ -295,12 +298,13 @@ def test_set_env_variables():
 
     settings = DynaSettings(
         lsdyna_path="my-dyna-path.exe",
-        dynatype="intelmpi",
+        dynatype=dynatype,
         num_cpus=2,
         platform="windows",
     )
     settings._set_env_variables()
 
-    assert os.getenv("MPI_ROOT")
+    if expect_mpi_root:
+        assert os.getenv("MPI_ROOT")
 
     pass

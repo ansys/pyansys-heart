@@ -66,22 +66,19 @@ def _mock_ep_postprocessor():
 @pytest.mark.parametrize("to_plot", [False, True], ids=["Plot=False", "Plot=True"])
 def test_compute_12lead_ECG(to_plot, _mock_ep_postprocessor: EPpostprocessor):  # noqa: N802
     """Test 12 lead ECG computation."""
-    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
-        # patch create post folder
-        with mock.patch(
-            "ansys.heart.postprocessor.ep_postprocessor.EPpostprocessor.create_post_folder",
-            return_value=tempdir,
-        ) as mock_post:
-            # patch show
-            with mock.patch("ansys.heart.postprocessor.ep_postprocessor.plt.show") as mock_show:
-                time, ecg_data, _ = _create_mock_ECG_data()
-                _mock_ep_postprocessor.compute_12_lead_ECGs(ECGs=ecg_data, times=time, plot=to_plot)
+    time, ecg_data, _ = _create_mock_ECG_data()
 
-                #! TODO: add assertion.
+    with mock.patch(
+        "ansys.heart.postprocessor.ep_postprocessor.EPpostprocessor.create_post_folder",
+        return_value="",
+    ) as mock_post:
+        with mock.patch("ansys.heart.postprocessor.ep_postprocessor.plt.show") as mock_show:
+            with mock.patch("ansys.heart.postprocessor.ep_postprocessor.plt.savefig") as mock_save:
+                _mock_ep_postprocessor.compute_12_lead_ECGs(ECGs=ecg_data, times=time, plot=to_plot)
                 if to_plot:
-                    assert os.path.isfile(os.path.join(tempdir, "12LeadECGs.png"))
                     mock_post.assert_called_once()
                     mock_show.assert_called_once()
+                    mock_save.assert_called_once()
 
 
 def test_read_ECGs(_mock_ep_postprocessor: EPpostprocessor):  # noqa N802

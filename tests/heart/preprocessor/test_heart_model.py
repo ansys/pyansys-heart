@@ -323,3 +323,21 @@ def test_heart_model_add_purkinje_from_file():
                 ]
             ),
         )
+
+
+def test_create_stiff_ventricle_base():
+    """Test creating a stiff ventricle base."""
+    model = models.BiVentricle()
+    # create a test mesh (apico-basal coordinate defined by z-coordinate)
+    mesh = examples.load_tetbeam()
+    mesh.cell_data["_volume-id"] = 1
+    mesh.point_data["apico-basal"] = mesh.points[:, 2] / 5
+
+    mesh1 = Mesh()
+    mesh1.add_volume(mesh, id=1, name="Left ventricle")
+    model.mesh = mesh1
+    model.left_ventricle.element_ids = np.arange(0, model.mesh.n_cells)
+
+    part = model.create_stiff_ventricle_base()
+    assert len(part.element_ids) == 20
+    assert np.all(part.element_ids == np.arange(180, 200))

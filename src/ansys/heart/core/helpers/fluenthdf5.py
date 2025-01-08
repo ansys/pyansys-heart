@@ -141,11 +141,8 @@ class FluentMesh:
         if reconstruct_tetrahedrons:
             self._read_cell_zone_info()
             self._read_c0c1_of_face_zones()
-            self._convert_interior_faces_to_tetrahedrons2()
+            self._convert_interior_faces_to_tetrahedrons()
             self._set_cells_in_cell_zones()
-            # self._update_indexing_cells()
-
-        # self._update_indexing_faces()
 
         self._close_file()
         return
@@ -185,19 +182,6 @@ class FluentMesh:
         for fz in self.face_zones:
             fz.faces = self._unique_map[fz.faces - 1]
         self.nodes = self._unique_nodes
-        return
-
-    def _update_indexing_cells(self) -> None:
-        """Update the indexing of all cells: index should start from 0."""
-        for cell_zone in self.cell_zones:
-            cell_zone.cells = cell_zone.cells - 1
-        self.cells = self.cells - 1
-        return
-
-    def _update_indexing_faces(self) -> None:
-        """Update the indexing of all faces: index should start from 0."""
-        for face_zone in self.face_zones:
-            face_zone.faces = face_zone.faces - 1
         return
 
     def _set_cells_in_cell_zones(self) -> List[FluentCellZone]:
@@ -310,66 +294,6 @@ class FluentMesh:
         return self.face_zones
 
     def _convert_interior_faces_to_tetrahedrons(self) -> Tuple[np.ndarray, np.ndarray]:
-        """Use c0c1 matrix to get tetrahedrons.
-
-        Notes
-        -----
-        f1: n1 n2 n3 c0 c1
-        f2: n3 n1 n4 c0 c1
-
-        If f1 and f2 are connected to same face - extract node not occurring in
-        f1. The resulting four nodes will make up the tetrahedron
-
-        Do this for all interior faces.
-
-        """
-        self.cells = np.zeros((0, 4), dtype=int)
-        self.cell_ids = np.zeros(0, dtype=int)
-
-        for face_zone in self.face_zones:
-            if "interior" not in face_zone.name:
-                continue
-
-            faces = face_zone.faces
-            c0c1 = face_zone.c0c1.T.ravel()
-
-            cell_ids1, idx1, counts1 = np.unique(c0c1, return_index=True, return_counts=True)
-            cell_ids2, idx2, counts2 = np.unique(
-                np.flipud(c0c1), return_index=True, return_counts=True
-            )
-
-            faces_temp = np.vstack([faces, faces])
-
-            f1 = faces_temp[idx1, :]
-            f2 = np.flipud(faces_temp)[idx2, :]
-
-            # Find node in connected face which completes tetrahedron
-            mask = (f2[:, :, None] == f1[:, None, :]).any(-1)
-            mask = np.invert(mask)
-
-            if not np.all(np.sum(mask, axis=1) == 1):
-                # NOTE: in an edge case we may have an interior face that
-                # is connected to a cell where all the other faces are actually
-                # not of the interior.
-                # as a solution we can collect all faces first and consequently construct
-                # the tetrahedrons
-                face_ids = np.where(np.sum(mask, axis=1) != 1)[0]
-                for face_id in face_ids:
-                    f1[face_id]
-
-                raise ValueError("The two faces do not seem to be connected with two nodes")
-
-            tetrahedrons = np.hstack([f1, f2[mask][:, None]])
-
-            # element ids?
-            cell_ids = cell_ids1
-
-            self.cells = np.vstack([self.cells, tetrahedrons])
-            self.cell_ids = np.append(self.cell_ids, cell_ids)
-
-        return tetrahedrons, cell_ids
-
-    def _convert_interior_faces_to_tetrahedrons2(self) -> Tuple[np.ndarray, np.ndarray]:
         """Use c0c1 matrix to get tetrahedrons.
 
         Notes

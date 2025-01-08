@@ -525,28 +525,3 @@ class ConductionSystem:
         beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="Bachman bundle")
 
         return beam_net
-
-
-if __name__ == "__main__":
-    model: FourChamber = FourChamber.load_model(
-        r"D:\ansysdev\pyansys-heart\downloads\Strocchi2020\01\FourChamber\heart_model.pickle"
-    )
-
-    test = ConductionSystem(model)
-    sa_point = test.compute_sa_node()
-    test.compute_av_node()
-
-    test.compute_av_conduction(
-        # midpoints=[[-74, 90, 388], [70, 111, 372]]
-    )
-
-    # a,b =model.compute_his_conduction()
-    a, b = test.compute_his_conduction()
-    print(a.xyz, a.node_id)
-    print(b.xyz, b.node_id)
-
-    test.compute_left_right_bundle(a.xyz, a.node_id, side="Left")
-    test.compute_left_right_bundle(b.xyz, b.node_id, side="Right")
-    test.compute_bachman_bundle(start_coord=sa_point.xyz, end_coord=np.array([-34, 163, 413]))
-
-    model.plot_purkinje()

@@ -365,7 +365,7 @@ class HeartModel:
         BeamMesh
             BeamMesh object
         """
-        edges[mask] += len(self.mesh.nodes) + len(BeamMesh.all_beam_nodes)
+        edges[mask] += len(self.mesh.points) + len(BeamMesh.all_beam_nodes)
 
         if len(BeamMesh.all_beam_nodes) == 0:
             BeamMesh.all_beam_nodes = beam_nodes
@@ -375,7 +375,7 @@ class HeartModel:
         # nodes is just for pyvista plot, edges used in writer will be offset
         # TODO: only save necessary nodes, cells, and with a 'global id' array
         beam_net = BeamMesh(
-            nodes=np.vstack((self.mesh.nodes, BeamMesh.all_beam_nodes)),
+            nodes=np.vstack((self.mesh.points, BeamMesh.all_beam_nodes)),
             edges=edges,
             beam_nodes_mask=mask,
         )
@@ -1070,7 +1070,7 @@ class HeartModel:
             from ansys.heart.core.helpers.geodisc import rodrigues_rot
 
             points_rotation = rodrigues_rot(
-                self.mesh.nodes - lv_apex, longitudinal_axis, [0, 0, -1]
+                self.mesh.points - lv_apex, longitudinal_axis, [0, 0, -1]
             )
             points_rotation[:, 2] = points_rotation[:, 2] - np.min(points_rotation, axis=0)[2]
             scaling = points_rotation[:, 2] / np.max(points_rotation[:, 2])

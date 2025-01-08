@@ -141,7 +141,7 @@ def test_model_load_002():
             model.right_ventricle.endocardium.triangles,
         )
         assert np.array_equal(model1.mesh.tetrahedrons, model.mesh.tetrahedrons)
-        assert np.allclose(model1.mesh.nodes, model.mesh.nodes, atol=1e-8)
+        assert np.allclose(model1.mesh.points, model.mesh.points, atol=1e-8)
 
     pass
 

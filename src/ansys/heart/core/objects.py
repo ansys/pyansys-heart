@@ -485,12 +485,6 @@ class Mesh(pv.UnstructuredGrid):
     """
 
     @property
-    @deprecated(reason="Equivalent to `.points`.")
-    def nodes(self):
-        """Node coordinates."""
-        return np.array(self.points)
-
-    @property
     def tetrahedrons(self):
         """Tetrahedrons num_tetra x 4."""
         return self.cells_dict[pv.CellType.TETRA]

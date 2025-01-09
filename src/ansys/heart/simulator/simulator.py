@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -40,7 +40,6 @@ import shutil
 import subprocess
 from typing import Literal
 
-from deprecated import deprecated
 import natsort
 import numpy as np
 import pyvista as pv
@@ -48,7 +47,6 @@ import pyvista as pv
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.helpers.element_orth import _read_orth_element_kfile
 from ansys.heart.core.models import FourChamber, HeartModel, LeftVentricle
-from ansys.heart.core.objects import Part, PartType
 from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
 from ansys.heart.postprocessor.laplace_post import (
     compute_la_fiber_cs,
@@ -56,11 +54,6 @@ from ansys.heart.postprocessor.laplace_post import (
     read_laplace_solution,
 )
 from ansys.heart.preprocessor.conduction_beam import ConductionSystem
-from ansys.heart.simulator.settings.material.ep_material import EPMaterial
-from ansys.heart.simulator.settings.material.material import (
-    MechanicalMaterialModel,
-    NeoHookean,
-)
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 
@@ -505,51 +498,6 @@ class MechanicsSimulator(BaseSimulator):
         """If stress free computation is taken into considered."""
 
         return
-
-    @deprecated(reason="""please use the same method under the class HeartModel.""")
-    def create_stiff_ventricle_base(
-        self,
-        threshold: float = 0.9,
-        stiff_material: MechanicalMaterialModel = NeoHookean(rho=0.001, c10=0.1, nu=0.499),
-    ) -> Part:
-        """Create a stiff base part from uvc longitudinal value.
-
-        Parameters
-        ----------
-        threshold : float, optional
-            uvc_l larger than threshold will be set as stiff base, by default 0.9
-        stiff_material : MechanicalMaterialModel, optional
-            material to assign, by default NeoHookean(rho=0.001, c10=0.1, nu=0.499)
-
-        Returns
-        -------
-        Part
-            new created part
-        """
-        try:
-            v = self.model.mesh.point_data_to_cell_data()["apico-basal"]
-        except KeyError:
-            self.compute_uhc()
-            v = self.model.mesh.point_data_to_cell_data()["apico-basal"]
-
-        eids = np.intersect1d(np.where(v > threshold)[0], self.model.left_ventricle.element_ids)
-        if not isinstance(self.model, LeftVentricle):
-            # uvc-L of RV is generally smaller, *1.05 to be comparable with LV
-            eid_r = np.intersect1d(
-                np.where(v > threshold * 1.05)[0],
-                self.model.right_ventricle.element_ids,
-            )
-            eids = np.hstack((eids, eid_r))
-
-        part: Part = self.model.create_part_by_ids(eids, "base")
-        part.part_type = PartType.VENTRICLE
-        part.fiber = False
-        part.active = False
-        part.meca_material = stiff_material
-        # assign default EP material as for ventricles
-        part.ep_material = EPMaterial.Active()
-
-        return part
 
     def simulate(
         self,

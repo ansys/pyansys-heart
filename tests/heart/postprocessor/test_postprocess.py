@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -32,8 +32,14 @@ import pytest
 from ansys.heart.core.models import LeftVentricle
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
 from ansys.heart.postprocessor.auto_process import zerop_post
+import ansys.heart.postprocessor.dpf_utils as dpf_utils
 from ansys.heart.postprocessor.system_model_post import SystemModelPost
 from tests.heart.conftest import get_assets_folder
+
+# Kills ansyscl. May be necessary to pass tests locally
+dpf_utils._KILL_ANSYSCL_ON_DEL = True
+# Accept DPF LA
+os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 
 @pytest.fixture(autouse=True, scope="module")
@@ -65,6 +71,22 @@ def test_compute_aha_strain(get_data):
     aha_lrc = s.compute_aha_strain()
 
     assert aha_lrc[1, -1] == pytest.approx(0.0829107005807934)
+
+
+def test_plot_aha_bullseye():
+    """Test plotting AHA bullseye plot."""
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    # Create the fake data
+    data = np.arange(17) + 1
+    # Make a figure and Axes with dimensions as desired.
+    fig = plt.figure(figsize=(10, 5), layout="constrained")
+    fig.get_layout_engine().set(wspace=0.1, w_pad=0.2)
+    axs = fig.subplots(1, 1, subplot_kw=dict(projection="polar"))
+    # NOTE: just for line coverage: no assertion done here to check validity
+    # NOTE: of result.
+    AhaStrainCalculator.bullseye_plot(axs, data)
 
 
 def test_zerop_post(get_data):

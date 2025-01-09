@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -136,6 +136,10 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
 
     with open(os.path.join(directory, folder, "Post_report.json"), "w") as f:
         json.dump(dct, f)
+
+    # NOTE: this will trigger killing the dpf-launched ansyscl, which may be necessary
+    # to locally pass tests.
+    del data
 
     return dct, stress_free_coord, guess_ed_coord
 

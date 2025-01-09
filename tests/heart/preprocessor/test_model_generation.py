@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -32,10 +32,13 @@ import shutil
 import tempfile
 from typing import Union
 
+import numpy as np
 import pytest
 import yaml
 
+from ansys.heart.core.helpers.downloader import download_case_from_zenodo, unpack_case
 import ansys.heart.core.models as models
+from ansys.heart.preprocessor.database_preprocessor import get_compatible_input
 import ansys.heart.writer.dynawriter as writers
 from tests.heart.common import compare_stats_mesh, compare_stats_names, compare_stats_volumes
 from tests.heart.conftest import get_assets_folder
@@ -372,3 +375,28 @@ def test_writers_after_load_model(extract_model, writer_class):
             # ), f"File {pathlib.Path(ref_file).name} does not match."
 
     return
+
+
+@pytest.mark.extract_models
+def test_get_compatible_input():
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        path_to_tar = download_case_from_zenodo("Rodero2021", 1, tempdir)
+        unpack_case(path_to_tar)
+        import os
+
+        mesh_path = os.path.join(tempdir, "Rodero2021", "01", "01.vtk")
+        assert os.path.isfile(mesh_path)
+        input_geom, part_definitions = get_compatible_input(mesh_path, "FullHeart")
+
+        assert np.all(input_geom.cast_to_unstructured_grid().celltypes == 5)
+
+        expected_keys = [
+            "Left ventricle",
+            "Right ventricle",
+            "Left atrium",
+            "Right atrium",
+            "Pulmonary artery",
+            "Aorta",
+        ]
+        for k in part_definitions.keys():
+            assert k in expected_keys

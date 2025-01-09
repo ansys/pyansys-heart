@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -791,30 +791,6 @@ def _deserialize_quantity(d: dict, ureg: UnitRegistry):
     return d
 
 
-# some additional methods
-def _get_dimensionality(d):
-    """Get dimensionality of Quantity objects in a nested dictionary."""
-    dims = []
-    for k, v in d.items():
-        if isinstance(v, (dict, AttrDict)):
-            dims += _get_dimensionality(v)
-        elif isinstance(v, Quantity):
-            dims.append(v.dimensionality)
-    return dims
-
-
-# get units
-def _get_units(d):
-    """Get units of Quantity objects in a nested dictionary."""
-    units = []
-    for k, v in d.items():
-        if isinstance(v, (dict, AttrDict)):
-            units += _get_units(v)
-        elif isinstance(v, Quantity):
-            units.append(v.units)
-    return units
-
-
 # desired consistent unit system is:
 # ["MPa", "mm", "N", "ms", "g"]
 # Time: ms
@@ -1125,8 +1101,3 @@ class DynaSettings:
     def __repr__(self):
         """Represent self as string."""
         return yaml.dump(vars(self), allow_unicode=True, default_flow_style=False)
-
-
-if __name__ == "__main__":
-    print("start")
-    LOGGER.debug("protected")

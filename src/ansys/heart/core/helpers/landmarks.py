@@ -151,6 +151,11 @@ def compute_aha17(
     p1_3 = 1 / 3 * (apex_ep - p_highest) + p_highest
     p2_3 = 2 / 3 * (apex_ep - p_highest) + p_highest
 
+    # In order to have a flat segment 17, project endocardical apex point on short axis
+    x = apex_ed - apex_ep
+    y = p_highest - apex_ep
+    apex_ed = y * np.dot(x, y) / np.dot(y, y) + apex_ep
+
     # aha17 label assignment
     label = np.full(len(elem_center), np.nan)
     for i, n in enumerate(elem_center):

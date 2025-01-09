@@ -82,11 +82,12 @@ def test_compute_aha17(model):
 
     aha_ids = compute_aha17(model, short, l4cv)
     # solid = model.mesh.extract_cells_by_type(10)
-    # solid.cell_data['aha']=aha_ids
-    # solid.save('aha.vtk')
+    # solid.cell_data["aha"] = aha_ids
+    # solid.save("aha.vtk")
 
     assert np.sum(aha_ids == 10) == 10591
     assert np.sum(aha_ids == 12) == 11220
+    assert np.sum(aha_ids == 17) == 2526
     assert np.sum(np.isnan(aha_ids)) == 361818
 
 

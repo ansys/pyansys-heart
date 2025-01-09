@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -162,37 +162,37 @@ def compute_aha17(
             if np.dot(n - p1_3, axe_60) >= 0:
                 if np.dot(n - p1_3, axe_120) >= 0:
                     if np.dot(n - p1_3, axe_180) >= 0:
-                        label[i] = 6
-                    else:
                         label[i] = 5
+                    else:
+                        label[i] = 6
                 else:
-                    label[i] = 1
+                    label[i] = 4
             else:
                 if np.dot(n - p1_3, axe_180) <= 0:
                     if np.dot(n - p1_3, axe_120) >= 0:
-                        label[i] = 4
+                        label[i] = 1
                     else:
-                        label[i] = 3
+                        label[i] = 2
                 else:
-                    label[i] = 2
+                    label[i] = 3
         # Mid cavity: segment 7 8 9 10 11 12
         elif np.dot(n - p2_3, mv_center - p2_3) >= 0:
             if np.dot(n - p1_3, axe_60) >= 0:
                 if np.dot(n - p1_3, axe_120) >= 0:
                     if np.dot(n - p1_3, axe_180) >= 0:
-                        label[i] = 12
-                    else:
                         label[i] = 11
+                    else:
+                        label[i] = 12
                 else:
-                    label[i] = 7
+                    label[i] = 10
             else:
                 if np.dot(n - p1_3, axe_180) <= 0:
                     if np.dot(n - p1_3, axe_120) >= 0:
-                        label[i] = 10
+                        label[i] = 7
                     else:
-                        label[i] = 9
+                        label[i] = 8
                 else:
-                    label[i] = 8
+                    label[i] = 9
         # Apical
         else:
             if seg == 17:
@@ -203,10 +203,10 @@ def compute_aha17(
                         if np.dot(n - p1_3, axe_135) >= 0:
                             label[i] = 16
                         else:
-                            label[i] = 13
+                            label[i] = 15
                     else:
                         if np.dot(n - p1_3, axe_135) >= 0:
-                            label[i] = 15
+                            label[i] = 13
                         else:
                             label[i] = 14
 
@@ -215,10 +215,10 @@ def compute_aha17(
                     if np.dot(n - p1_3, axe_135) >= 0:
                         label[i] = 16
                     else:
-                        label[i] = 13
+                        label[i] = 15
                 else:
                     if np.dot(n - p1_3, axe_135) >= 0:
-                        label[i] = 15
+                        label[i] = 13
                     else:
                         label[i] = 14
 

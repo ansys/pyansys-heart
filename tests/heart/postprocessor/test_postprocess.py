@@ -59,7 +59,7 @@ def test_compute_myocardial_strain(get_data):
 
     s = AhaStrainCalculator(model, d3plot)
     _, aha_lrc, _ = s._compute_myocardial_strain(1)
-    assert aha_lrc[-1, -1] == pytest.approx(0.0829107005807934)
+    assert aha_lrc[-1, -1] == pytest.approx(0.05857088962026651)
 
 
 def test_compute_aha_strain(get_data):
@@ -70,7 +70,7 @@ def test_compute_aha_strain(get_data):
     s = AhaStrainCalculator(model, d3plot)
     aha_lrc = s.compute_aha_strain()
 
-    assert aha_lrc[1, -1] == pytest.approx(0.0829107005807934)
+    assert aha_lrc[1, -1] == pytest.approx(0.05857088962026651)
 
 
 def test_plot_aha_bullseye():

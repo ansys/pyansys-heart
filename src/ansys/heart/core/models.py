@@ -25,38 +25,26 @@
 import copy
 import json
 import os
-
 # import json
 import pathlib
 import pickle
 import re
 from typing import List, Literal, Union
 
-from deprecated import deprecated
+import ansys.heart.core.helpers.connectivity as connectivity
+import ansys.heart.core.helpers.vtkmethods as vtkmethods
+import ansys.heart.preprocessor.mesher as mesher
 import numpy as np
 import pyvista as pv
 import yaml
-
 from ansys.heart.core import LOG as LOGGER
-import ansys.heart.core.helpers.connectivity as connectivity
-import ansys.heart.core.helpers.vtkmethods as vtkmethods
-from ansys.heart.core.objects import (
-    BeamMesh,
-    Cap,
-    Cavity,
-    Mesh,
-    Part,
-    PartType,
-    Point,
-    SurfaceMesh,
-)
+from ansys.heart.core.objects import (BeamMesh, BeamsMesh, Cap, Cavity, Mesh,
+                                      Part, PartType, Point, SurfaceMesh)
 from ansys.heart.preprocessor.input import _InputModel
-import ansys.heart.preprocessor.mesher as mesher
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 from ansys.heart.simulator.settings.material.material import (
-    MechanicalMaterialModel,
-    NeoHookean,
-)
+    MechanicalMaterialModel, NeoHookean)
+from deprecated import deprecated
 
 
 def _get_axis_from_field_data(
@@ -90,6 +78,47 @@ def _set_field_data_from_axis(
     mesh.field_data[axis_name] = data
     return mesh
 
+
+def _read_beams_from_kfile(filename: pathlib.Path):
+    "Read beams network from k file."
+    # Open file and import beams and created nodes
+    with open(filename, "r") as file:
+        start_nodes = 0
+        lines = file.readlines()
+    # find line ids delimiting node data and edge data
+    start_nodes = np.array(np.where(["*NODE" in line for line in lines]))[0][0]
+    end_nodes = np.array(np.where(["*" in line for line in lines]))
+    end_nodes = end_nodes[end_nodes > start_nodes][0]
+    start_beams = np.array(np.where(["*ELEMENT_BEAM" in line for line in lines]))[0][0]
+    end_beams = np.array(np.where(["*" in line for line in lines]))
+    end_beams = end_beams[end_beams > start_beams][0]
+
+    # load node data
+    node_data = np.loadtxt(
+        filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1
+    )
+    new_ids = node_data[:, 0].astype(int) - 1
+    beam_nodes = node_data[:, 1:4]
+
+    # load beam data
+    beam_data = np.loadtxt(
+        filename,
+        skiprows=start_beams + 1,
+        max_rows=end_beams - start_beams - 1,
+        dtype=int,
+    )
+    edges = beam_data[:, 2:4] - 1
+    pid = beam_data[0, 1]
+
+    # TODO: physically, this is not fully understood: Merging the end of bundle branch, the
+    # TODO: origin of Purkinje and the apex of myiocardium seems logical, but it has more chance
+    # TODO: the EP wave will not be triggered.
+    # TODO: so I remove it, it means: end of bundle branch connect to apex, origin of Purkinje
+    # TODO: is another point on the same location.
+
+    mask = np.isin(edges, new_ids)  # True for new created nodes
+    edges[mask] -= new_ids[0]  # beam nodes id start from 0
+    return beam_nodes, edges, mask, pid
 
 class HeartModel:
     """Parent class for heart models."""
@@ -209,6 +238,9 @@ class HeartModel:
         self.fluid_mesh = Mesh()
         """Generated fluid mesh."""
 
+        self.beam_mesh = BeamsMesh()
+        """Generated fluid mesh."""
+
         #! TODO: non-functional flag. Remove or replace.
         self._add_blood_pool: bool = False
         """Flag indicating whether to add a blood pool mesh (Experimental)."""
@@ -292,58 +324,58 @@ class HeartModel:
         return new_part
 
     def add_purkinje_from_kfile(self, filename: pathlib.Path, name: str) -> None:
-        """Read an LS-DYNA file containing purkinje beams and nodes.
+        new_beam_nodes, edges, mask, pid = _read_beams_from_kfile(filename)
+        # beam = self.add_beam_net(beam_nodes, edges, mask, pid=pid, name=name)
+        new_beam_mesh = self.build_lines(new_beam_nodes, edges, mask)
+        self.beam_mesh.add_lines(new_beam_mesh,id=int(pid), name=name)
+        return new_beam_mesh
+
+    def build_lines(
+        self,
+        beam_nodes: np.ndarray,
+        edges: np.ndarray,
+        mask: np.ndarray,
+    ) -> BeamsMesh:
+        """Add a Beam Mesh object to the model.
 
         Parameters
         ----------
-        filename : pathlib.Path
+        beam_nodes : np.ndarray
+            new nodes coordinates.
+        edges : np.ndarray
+            beam elements connectivity
+        mask : np.ndarray
+            with the same shape of `edges`
+            If `mask` is true, the value in 'edges' refers to the Id of `beam_nodes` (start by 0),
+            it will be offset when creating BeamMesh object.
+            If `mask` is false, the value in 'edges' refers to the Id of existing (volume) nodes, it will not be offset.
 
-        name : str
-            beamnet name
+        Returns
+        -------
+        BeamsMesh
+            BeamsMesh object
         """
-        # Open file and import beams and created nodes
-        with open(filename, "r") as file:
-            start_nodes = 0
-            lines = file.readlines()
-        # find line ids delimiting node data and edge data
-        start_nodes = np.array(np.where(["*NODE" in line for line in lines]))[0][0]
-        end_nodes = np.array(np.where(["*" in line for line in lines]))
-        end_nodes = end_nodes[end_nodes > start_nodes][0]
-        start_beams = np.array(np.where(["*ELEMENT_BEAM" in line for line in lines]))[
-            0
-        ][0]
-        end_beams = np.array(np.where(["*" in line for line in lines]))
-        end_beams = end_beams[end_beams > start_beams][0]
-
-        # load node data
-        node_data = np.loadtxt(
-            filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1
+        # add volume points from volume mesh:
+        volume_point_ids = edges[np.logical_not(mask)]
+        nb_newnodes = beam_nodes.shape[0]
+        [_volume_point_ids_ordered, new_volume_point_ids] = np.unique(
+            volume_point_ids, return_inverse=True
         )
-        new_ids = node_data[:, 0].astype(int) - 1
-        beam_nodes = node_data[:, 1:4]
+        new_volume_point_ids = new_volume_point_ids + nb_newnodes
+        edges_new = np.copy(edges)
+        edges_new[np.logical_not(mask)] = new_volume_point_ids
 
-        # load beam data
-        beam_data = np.loadtxt(
-            filename,
-            skiprows=start_beams + 1,
-            max_rows=end_beams - start_beams - 1,
-            dtype=int,
+        edges_new = np.hstack(
+            (np.array(edges_new.shape[0] * [2])[:, np.newaxis], edges_new)
         )
-        edges = beam_data[:, 2:4] - 1
-        pid = beam_data[0, 1]
+        edges_new = np.hstack(edges_new)
+        volume_nodes = self.mesh.points[_volume_point_ids_ordered, :]
+        points = np.vstack((beam_nodes, volume_nodes))
+        #
 
-        # TODO: physically, this is not fully understood: Merging the end of bundle branch, the
-        # TODO: origin of Purkinje and the apex of myiocardium seems logical, but it has more chance
-        # TODO: the EP wave will not be triggered.
-        # TODO: so I remove it, it means: end of bundle branch connect to apex, origin of Purkinje
-        # TODO: is another point on the same location.
+        lines = BeamsMesh(pv.UnstructuredGrid(edges_new, edges.shape[0] * [pv.CellType.LINE], points))
 
-        mask = np.isin(edges, new_ids)  # True for new created nodes
-        edges[mask] -= new_ids[0]  # beam nodes id start from 0
-
-        beam = self.add_beam_net(beam_nodes, edges, mask, pid=pid, name=name)
-
-        return beam
+        return lines
 
     def add_beam_net(
         self,

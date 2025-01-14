@@ -112,24 +112,43 @@ class BaseSimulator:
         self.settings.load_defaults()
         return self.settings
 
-    def compute_fibers(self):
+    def compute_fibers(self, method="LSDYNA"):
         """Compute the fiber direction on the model."""
-        directory = self._write_fibers()
+        if method == "LSDYNA":
+            directory = self._write_fibers()
 
-        LOGGER.info("Computing fiber orientation...")
+            LOGGER.info("Computing fiber orientation...")
 
-        # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
-        input_file = os.path.join(directory, "main.k")
-        self._run_dyna(path_to_input=input_file)
+            # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
+            input_file = os.path.join(directory, "main.k")
+            self._run_dyna(path_to_input=input_file)
 
-        # TODO: May want to replace by ansys.dyna.core.keywords
-        LOGGER.info("Assigning fiber orientation to model...")
-        elem_ids, part_ids, connect, fib, sheet = _read_orth_element_kfile(
-            os.path.join(directory, "element_solid_ortho.k")
-        )
+            # TODO: May want to replace by ansys.dyna.core.keywords
+            LOGGER.info("Assigning fiber orientation to model...")
+            elem_ids, part_ids, connect, fib, sheet = _read_orth_element_kfile(
+                os.path.join(directory, "element_solid_ortho.k")
+            )
+            self.model.mesh.cell_data["fiber"][elem_ids - 1] = fib
+            self.model.mesh.cell_data["sheet"][elem_ids - 1] = sheet
 
-        self.model.mesh.cell_data["fiber"][elem_ids - 1] = fib
-        self.model.mesh.cell_data["sheet"][elem_ids - 1] = sheet
+        elif method == "D-RBM":
+            export_directory = os.path.join(self.root_directory, method)
+            target = self.run_laplace_problem(export_directory, type=method)
+
+            from ansys.heart.postprocessor.laplace_post import compute_ventricle_fiber_by_drbm
+
+            grid = compute_ventricle_fiber_by_drbm(export_directory)
+            grid.save("drbm_karim.vtu")
+            exit()
+            # arrays that save ID map to full model
+            grid["cell_ids"] = target["cell_ids"]
+
+            LOGGER.info("Assigning fibers to full model...")
+
+            # cell IDs in full model mesh
+            ids = grid["cell_ids"]
+            self.model.mesh.cell_data["fiber"][ids] = grid["fiber"]
+            self.model.mesh.cell_data["sheet"][ids] = grid["sheet"]
 
         return
 

@@ -168,7 +168,7 @@ simulator.compute_conduction_system()
 simulator.settings.mechanics.analysis.end_time = Quantity(800, "ms")
 simulator.settings.mechanics.analysis.dt_d3plot = Quantity(10, "ms")
 
-simulator.model.dump_model(os.path.join(workdir, "heart_fib_beam.pickle"))
+simulator.model.save_model(os.path.join(workdir, "heart_fib_beam.vtu"))
 
 ###############################################################################
 # .. note::

@@ -57,7 +57,7 @@ def main(args):
             if not os.path.isdir(workdir):
                 os.makedirs(workdir)
 
-            path_to_model = str(Path(workdir, "heart_model.pickle"))
+            path_to_model = str(Path(workdir, "heart_model.vtu"))
 
             path_to_input_vtp = os.path.join(workdir, "input_geom.vtp")
 
@@ -97,8 +97,8 @@ def main(args):
             # update the parts
             model._update_parts()
 
-            # dump the model to disk for future use
-            model.dump_model(path_to_model)
+            # save the model to disk for future use
+            model.save_model(path_to_model)
             # print the resulting information
             print(model)
 

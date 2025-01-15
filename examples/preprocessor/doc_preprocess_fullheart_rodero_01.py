@@ -128,9 +128,6 @@ model.mesh_volume(use_wrapper=True, global_mesh_size=1.5)
 # update the model and extract the required (anatomical) features
 model._update_parts()
 
-# dump the model to disk
-model.dump_model(path_to_model)
-
 # Optionally save the simulation mesh as a vtk object for "offline" inspection
 model.mesh.save(os.path.join(model.workdir, "simulation-mesh.vtu"))
 model.save_model(os.path.join(model.workdir, "heart_model.vtu"))

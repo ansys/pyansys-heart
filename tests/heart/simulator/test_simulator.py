@@ -179,7 +179,7 @@ def _mocked_methods():
             with mock.patch(
                 "ansys.heart.simulator.simulator._read_orth_element_kfile"
             ) as mock_orth:  # return_value=(np.array([1, 2, 3]), [], [], fiber, sheet),)
-                with mock.patch("ansys.heart.core.models.HeartModel.dump_model"):
+                with mock.patch("ansys.heart.core.models.HeartModel._dump_model"):
                     yield mock_write_fibers, mock_run_dyna, mock_orth
 
 

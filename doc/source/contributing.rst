@@ -40,7 +40,7 @@ Run tests to verify your development version.
     # run all tests
     pytest tests -v
 
-Style and Testing
+Style and testing
 -----------------
 If required, you can always call the style commands (`black`_, `isort`_,
 `flake8`_...) or unit testing ones (`pytest`_) from the command line. Alternatively, you can

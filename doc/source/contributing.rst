@@ -44,7 +44,7 @@ Style and testing
 -----------------
 If required, you can always call the style commands (`black`_, `isort`_,
 `flake8`_...) or unit testing ones (`pytest`_) from the command line. Alternatively, you can
-use `pre-commit`_, which will ensure that all style requirements are met. However,
+use `pre-commit`_, which ensures that all style requirements are met. However,
 this does not guarantee that your project is being tested in an isolated
 environment, which is another reason to consider using `tox`_.
 

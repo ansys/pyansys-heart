@@ -138,8 +138,7 @@ class BaseSimulator:
             from ansys.heart.postprocessor.laplace_post import compute_ventricle_fiber_by_drbm
 
             grid = compute_ventricle_fiber_by_drbm(export_directory)
-            grid.save("drbm_karim.vtu")
-            exit()
+
             # arrays that save ID map to full model
             grid["cell_ids"] = target["cell_ids"]
 

@@ -449,12 +449,9 @@ def compute_ventricle_fiber_by_drbm(directory: str) -> pv.UnstructuredGrid:
 
         return alpha
 
-    # alpha = compute_rotation_angle([-60, 60], [90, -25], [90, 0])  # D RBM paper
+    alpha = compute_rotation_angle([-60, 60], [90, -25], [90, 0])  # D RBM paper
     # # alpha = compute_rotation_angle([60, -60], [90, -25], [90, 0]) #Quatoroni's paper Eq.8 typo?
-    # beta = compute_rotation_angle([-20, 20], [0, 20], [0, 0])
-
-    alpha = compute_rotation_angle([-60, 60], [-60, 60], [0, 0])  # Karim
-    beta = compute_rotation_angle([-65, 25], [-65, 25], [0, 0])
+    beta = compute_rotation_angle([-20, 20], [0, 20], [0, 0])
 
     grid.cell_data["alpha"] = alpha
     grid.cell_data["beta"] = beta

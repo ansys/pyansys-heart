@@ -49,7 +49,7 @@ Contributing:
 Installing PyAnsys-Heart in developer mode allows
 you to modify the source and enhance it.
 
-Before contributing to the project, please refer to the `PyAnsys Developer's guide`_ and :doc:`contributing` page.
+Before contributing to the project, please refer to the `PyAnsys Developer's guide`_ and `contributing <https://heart.docs.pyansys.com/version/stable/contributing>`_ page.
 
 Documentation and issues
 ------------------------

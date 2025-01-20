@@ -389,7 +389,6 @@ def compute_ventricle_fiber_by_drbm(directory: str) -> pv.UnstructuredGrid:
     solutions = ["trans", "ab_l", "ab_r", "ot_l", "ot_r", "w_l", "w_r", "lr"]
     data = read_laplace_solution(directory, field_list=solutions)
     grid = compute_cell_gradient(data, field_list=solutions)
-    #  need normalizd?
 
     # left/right ventricle label
     left_mask = grid["lr"] >= 0
@@ -409,12 +408,8 @@ def compute_ventricle_fiber_by_drbm(directory: str) -> pv.UnstructuredGrid:
     k[right_mask] = result[right_mask]
     grid.cell_data["k"] = k
 
-    #   should we normalize k?
-    # norm = np.linalg.norm(k, axis=1)
-    # norm = np.where(norm != 0, norm, 1)
-    # k = k / norm[:, None]
-
-    # grid.cell_data["grad_trans"][right_mask] *= -1.0  # why
+    # build local coordinate system
+    grid.cell_data["grad_trans"][right_mask] *= -1.0  # both LV & RV  point to  inside
     el, en, et = orthogonalization(grid["grad_trans"], k)
 
     # transmural normalized distance
@@ -425,7 +420,7 @@ def compute_ventricle_fiber_by_drbm(directory: str) -> pv.UnstructuredGrid:
     grid["d"][right_mask] = d_r[right_mask]
 
     def compute_rotation_angle(left, right, outflow_tracts):
-        consider_ot = True
+        consider_ot = False  # need to find the bug when is True
 
         if consider_ot:
             w_l = grid["w_l"]
@@ -449,9 +444,12 @@ def compute_ventricle_fiber_by_drbm(directory: str) -> pv.UnstructuredGrid:
 
         return alpha
 
-    alpha = compute_rotation_angle([-60, 60], [90, -25], [90, 0])  # D RBM paper
-    # # alpha = compute_rotation_angle([60, -60], [90, -25], [90, 0]) #Quatoroni's paper Eq.8 typo?
-    beta = compute_rotation_angle([-20, 20], [0, 20], [0, 0])
+    # apply rotation
+    # alpha = compute_rotation_angle([-60, 60], [90, -25], [90, 0])  # D RBM paper
+    # beta = compute_rotation_angle([-20, 20], [0, 20], [0, 0])
+
+    alpha = compute_rotation_angle([-0, 0], [-0, 0], [0, 0])  # Karim
+    beta = compute_rotation_angle([0, 0], [0, 0], [0, 0])
 
     grid.cell_data["alpha"] = alpha
     grid.cell_data["beta"] = beta

@@ -387,8 +387,9 @@ def compute_ra_fiber_cs(
 def compute_ventricle_fiber_by_drbm(directory: str) -> pv.UnstructuredGrid:
     """D-RBM method described in https://doi.org/10.1016/j.cma.2020.113468."""
     solutions = ["trans", "ab_l", "ab_r", "ot_l", "ot_r", "w_l", "w_r", "lr"]
-    data = read_laplace_solution(directory, field_list=solutions)
-    grid = compute_cell_gradient(data, field_list=solutions)
+    # data = read_laplace_solution(directory, field_list=solutions)
+    # grid = compute_cell_gradient(data, field_list=solutions)
+    grid = get_cell_gradient_from_tprint(directory, field_list=solutions)
 
     # left/right ventricle label
     left_mask = grid["lr"] >= 0
@@ -409,7 +410,7 @@ def compute_ventricle_fiber_by_drbm(directory: str) -> pv.UnstructuredGrid:
     grid.cell_data["k"] = k
 
     # build local coordinate system
-    grid.cell_data["grad_trans"][right_mask] *= -1.0  # both LV & RV  point to  inside
+    grid.cell_data["grad_trans"][right_mask] *= -1.0  # both LV & RV point to inside
     el, en, et = orthogonalization(grid["grad_trans"], k)
 
     # transmural normalized distance
@@ -420,7 +421,7 @@ def compute_ventricle_fiber_by_drbm(directory: str) -> pv.UnstructuredGrid:
     grid["d"][right_mask] = d_r[right_mask]
 
     def compute_rotation_angle(left, right, outflow_tracts):
-        consider_ot = False  # need to find the bug when is True
+        consider_ot = False  # TODO: need to find the bug when is True
 
         if consider_ot:
             w_l = grid["w_l"]
@@ -481,3 +482,42 @@ def compute_ventricle_fiber_by_drbm(directory: str) -> pv.UnstructuredGrid:
         grid.cell_data["sheet"][i] = qq[:, 2]
 
     return grid
+
+
+def get_cell_gradient_from_tprint(directory: str, field_list: list[str]):
+    """Read laplace fields from tprint files and convert to cell data.
+
+    Parameters
+    ----------
+    directory : str
+        directory of d3plot files
+    field_list : list[str]
+        name of each d3plot file/field
+
+    Returns
+    -------
+    pv.UnstructuredGrid
+        grid with point data of each field
+    """
+    # get mesh from first case
+    data = D3plotReader(os.path.join(directory, field_list[0] + ".d3plot"))
+    grid: pv.UnstructuredGrid = data.model.metadata.meshed_region.grid
+
+    def _read_tprint(f):
+        try:
+            table = np.loadtxt(f, skiprows=14, max_rows=grid.GetNumberOfPoints())
+        except ValueError:
+            LOGGER.error(f"Unable to read tprint file of {f}")
+            exit()
+
+        ids = table[:, 0].astype(int) - 1  # makesure the order
+
+        return table[ids, 1], table[ids, 2:5]
+
+    for name in field_list:
+        f = os.path.join(directory, name + ".tprint")
+        temperature, heat_flux = _read_tprint(f)
+        grid.point_data[name] = temperature
+        grid.point_data["grad_" + name] = -heat_flux
+
+    return grid.point_data_to_cell_data()

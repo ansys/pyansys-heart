@@ -803,6 +803,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._update_segmentsets_db(add_caps=True)
         self._update_nodesets_db()
 
+        # for mesh
         if not with_dynain:
             self._update_node_db()
             self._update_solid_elements_db(add_fibers=True)
@@ -813,7 +814,18 @@ class MechanicsDynaWriter(BaseDynaWriter):
             # cap mesh has been defined in Zerop and saved in dynain file
             self._update_cap_elements_db(add_mesh=False)
 
-        # # for control volume
+        # for boundary conditions
+        if robin_bcs is None:
+            # default BC
+            self._add_cap_bc(bc_type="springs_caps")
+        else:
+            # loop for every Robin BC function
+            for robin_bc in robin_bcs:
+                self.kw_database.boundary_conditions.extend(robin_bc())
+
+        self._add_pericardium_bc()
+
+        # for control volume
         system_settings = copy.deepcopy(self.settings.mechanics.system)
         system_settings._remove_units()
 
@@ -954,17 +966,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         #     pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
         #     pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
         #     self._add_constant_atrial_pressure(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
-
-        # for boundary conditions
-        if robin_bcs is None:
-            # default BC
-            self._add_cap_bc(bc_type="springs_caps")
-        else:
-            # loop for every Robin BC function
-            for robin_bc in robin_bcs:
-                self.kw_database.boundary_conditions.extend(robin_bc())
-
-        self._add_pericardium_bc()
 
         self._get_list_of_includes()
         self._add_includes()

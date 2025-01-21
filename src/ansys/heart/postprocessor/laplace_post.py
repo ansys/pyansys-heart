@@ -445,11 +445,11 @@ def compute_ventricle_fiber_by_drbm(
     grid["d"][right_mask] = d_r[right_mask]
 
     def compute_rotation_angle(left, right, outflow_tracts=None):
-        # TODO: need to find the bug when is True
         if outflow_tracts is not None:
+            # consider outflow tracts
+            # interpolate along w
             w_l = grid["w_l"]
             w_r = grid["w_r"]
-
             ro_endo_left = w_l * left[0] + (1 - w_l) * outflow_tracts[0]
             ro_epi_left = w_l * left[1] + (1 - w_l) * outflow_tracts[1]
             ro_endo_right = w_r * right[0] + (1 - w_r) * outflow_tracts[0]
@@ -460,6 +460,7 @@ def compute_ventricle_fiber_by_drbm(
             ro_endo_right = np.ones(grid.n_cells) * right[0]
             ro_epi_right = np.ones(grid.n_cells) * right[1]
 
+        # interpolate along transmural direction
         alpha_l = ro_epi_left * (np.ones(grid.n_cells) - d_l) + ro_endo_left * d_l
         alpha_r = ro_epi_right * (np.ones(grid.n_cells) - d_r) + ro_endo_right * d_r
 

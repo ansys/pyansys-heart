@@ -51,6 +51,7 @@ from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
 from ansys.heart.postprocessor.laplace_post import (
     compute_la_fiber_cs,
     compute_ra_fiber_cs,
+    compute_ventricle_fiber_by_drbm,
     read_laplace_solution,
 )
 from ansys.heart.preprocessor.conduction_beam import ConductionSystem
@@ -112,14 +113,23 @@ class BaseSimulator:
         self.settings.load_defaults()
         return self.settings
 
-    def compute_fibers(self, method="LSDYNA"):
-        """Compute the fiber direction on the model."""
+    def compute_fibers(
+        self, method: Literal["LSDYNA", "D-RBM"] = "LSDYNA", rotation_angles: dict = None
+    ):
+        """Compute the fiber direction on the model.
+
+        Parameters
+        ----------
+        method : Literal[&quot;LSDYNA&quot;, &quot;D, optional
+            method, by default "LSDYNA"
+        rotation_angles : dict, optional
+            rotation angle alpha and beta, by default None
+        """
         if method == "LSDYNA":
             directory = self._write_fibers()
 
             LOGGER.info("Computing fiber orientation...")
 
-            # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
             input_file = os.path.join(directory, "main.k")
             self._run_dyna(path_to_input=input_file)
 
@@ -132,12 +142,35 @@ class BaseSimulator:
             self.model.mesh.cell_data["sheet"][elem_ids - 1] = sheet
 
         elif method == "D-RBM":
+            if isinstance(self.model, LeftVentricle):
+                LOGGER.error(f"{method} cannot run for LeftVentricle model.")
+                exit()
+
+            if rotation_angles is None:
+                # find default settings
+                rotation_angles = {
+                    "alpha_left": [
+                        self.settings.fibers.alpha_endo.m,
+                        self.settings.fibers.alpha_epi.m,
+                    ],
+                    "alpha_right": [
+                        self.settings.fibers.alpha_endo.m,
+                        self.settings.fibers.alpha_epi.m,
+                    ],
+                    "alpha_ot": None,
+                    "beta_left": [
+                        self.settings.fibers.beta_endo.m,
+                        self.settings.fibers.beta_epi.m,
+                    ],
+                    "beta_right": [
+                        self.settings.fibers.beta_endo.m,
+                        self.settings.fibers.beta_epi.m,
+                    ],
+                    "beta_ot": None,
+                }
             export_directory = os.path.join(self.root_directory, method)
             target = self.run_laplace_problem(export_directory, type=method)
-
-            from ansys.heart.postprocessor.laplace_post import compute_ventricle_fiber_by_drbm
-
-            grid = compute_ventricle_fiber_by_drbm(export_directory)
+            grid = compute_ventricle_fiber_by_drbm(export_directory, settings=rotation_angles)
 
             # arrays that save ID map to full model
             grid["cell_ids"] = target["cell_ids"]

@@ -384,8 +384,32 @@ def compute_ra_fiber_cs(
     return grid
 
 
-def compute_ventricle_fiber_by_drbm(directory: str) -> pv.UnstructuredGrid:
-    """D-RBM method described in https://doi.org/10.1016/j.cma.2020.113468."""
+def compute_ventricle_fiber_by_drbm(
+    directory: str,
+    settings: dict = {
+        "alpha_left": [-60, 60],
+        "alpha_right": [-60, 60],
+        "alpha_ot": None,
+        "beta_left": [-65, 25],
+        "beta_right": [-65, 25],
+        "beta_ot": None,
+    },
+) -> pv.UnstructuredGrid:
+    """D-RBM method described in https://doi.org/10.1016/j.cma.2020.113468.
+
+    Parameters
+    ----------
+    directory : str
+        directory of d3plot/tprint files.
+    settings : dict, optional
+        rotation angles, by default { "alpha_left": [-60, 60], "alpha_right": [-60, 60],
+        "alpha_ot": None, "beta_left": [-65, 25], "beta_right": [-65, 25], "beta_ot": None, }
+
+    Returns
+    -------
+    pv.UnstructuredGrid
+        grid contains `fiber`,`cross-fiber`,`sheet` vectors
+    """
     solutions = ["trans", "ab_l", "ab_r", "ot_l", "ot_r", "w_l", "w_r", "lr"]
     # data = read_laplace_solution(directory, field_list=solutions)
     # grid = compute_cell_gradient(data, field_list=solutions)
@@ -413,28 +437,28 @@ def compute_ventricle_fiber_by_drbm(directory: str) -> pv.UnstructuredGrid:
     grid.cell_data["grad_trans"][right_mask] *= -1.0  # both LV & RV point to inside
     el, en, et = orthogonalization(grid["grad_trans"], k)
 
-    # transmural normalized distance
+    # normalized transmural distance
     d_l = grid["trans"] / 2
     d_r = np.absolute(grid["trans"])
     grid["d"] = np.zeros(grid.n_cells, dtype=float)
     grid["d"][left_mask] = d_l[left_mask]
     grid["d"][right_mask] = d_r[right_mask]
 
-    def compute_rotation_angle(left, right, outflow_tracts):
-        consider_ot = False  # TODO: need to find the bug when is True
-
-        if consider_ot:
+    def compute_rotation_angle(left, right, outflow_tracts=None):
+        # TODO: need to find the bug when is True
+        if outflow_tracts is not None:
             w_l = grid["w_l"]
             w_r = grid["w_r"]
+
+            ro_endo_left = w_l * left[0] + (1 - w_l) * outflow_tracts[0]
+            ro_epi_left = w_l * left[1] + (1 - w_l) * outflow_tracts[1]
+            ro_endo_right = w_r * right[0] + (1 - w_r) * outflow_tracts[0]
+            ro_epi_right = w_r * right[1] + (1 - w_r) * outflow_tracts[1]
         else:
-            w_l = np.ones(grid.n_cells)
-            w_r = np.ones(grid.n_cells)
-
-        ro_endo_left = w_l * left[0] + (1 - w_l) * outflow_tracts[0]
-        ro_epi_left = w_l * left[1] + (1 - w_l) * outflow_tracts[1]
-
-        ro_endo_right = w_r * right[0] + (1 - w_r) * outflow_tracts[0]
-        ro_epi_right = w_r * right[1] + (1 - w_r) * outflow_tracts[1]
+            ro_endo_left = np.ones(grid.n_cells) * left[0]
+            ro_epi_left = np.ones(grid.n_cells) * left[1]
+            ro_endo_right = np.ones(grid.n_cells) * right[0]
+            ro_epi_right = np.ones(grid.n_cells) * right[1]
 
         alpha_l = ro_epi_left * (np.ones(grid.n_cells) - d_l) + ro_endo_left * d_l
         alpha_r = ro_epi_right * (np.ones(grid.n_cells) - d_r) + ro_endo_right * d_r
@@ -446,11 +470,12 @@ def compute_ventricle_fiber_by_drbm(directory: str) -> pv.UnstructuredGrid:
         return alpha
 
     # apply rotation
-    # alpha = compute_rotation_angle([-60, 60], [90, -25], [90, 0])  # D RBM paper
-    # beta = compute_rotation_angle([-20, 20], [0, 20], [0, 0])
-
-    alpha = compute_rotation_angle([-0, 0], [-0, 0], [0, 0])  # Karim
-    beta = compute_rotation_angle([0, 0], [0, 0], [0, 0])
+    alpha = compute_rotation_angle(
+        settings["alpha_left"], settings["alpha_right"], settings["alpha_ot"]
+    )
+    beta = compute_rotation_angle(
+        settings["beta_left"], settings["beta_right"], settings["beta_ot"]
+    )
 
     grid.cell_data["alpha"] = alpha
     grid.cell_data["beta"] = beta

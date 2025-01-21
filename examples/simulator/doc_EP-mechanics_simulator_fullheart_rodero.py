@@ -150,9 +150,11 @@ ring.meca_material = NeoHookean(rho=0.001, c10=0.1, nu=0.499)
 # assign default EP material as for atrial
 ring.ep_material = EPMaterial.Active()
 
+# Compute universal coordinates:
+simulator.compute_uhc()
+
 # Extract elements around atrialvenricular valves and assign as a passive material
 simulator.model.create_stiff_ventricle_base(stiff_material=NeoHookean(rho=0.001, c10=0.1, nu=0.499))
-
 
 # Estimate the stress-free-configuration
 simulator.compute_stress_free_configuration()

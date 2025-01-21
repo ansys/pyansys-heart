@@ -1,28 +1,28 @@
 *KEYWORD
 *SECTION_SHELL
 $#   secid    elform      shrf       nip     propt   qr/irid     icomp     setyp
-         6         4    0.8333         3       1.0         0         0         1
+         8         4    0.8333         3       1.0         0         0         1
 $#      t1        t2        t3        t4      nloc     marea      idof    edgset
        1.0       0.0       0.0       0.0       0.0       0.0       0.0         0
 *MAT_NULL
 $#     mid        ro        pc        mu     terod     cerod        ym        pr
-         8     0.001                                                            
+        14     0.001                                                            
 *PART
 $#                                                             heading
 null flow area                                                        
 $#     pid     secid       mid     eosid      hgid      grav    adpopt      tmid
-        11         6         8                                                  
+        26         8        14                                                  
 *DEFINE_CONTROL_VOLUME
 $#      id       sid        p0
          1         1          
 *SET_SEGMENT_ADD
 $#     sid
-        12
+        29
 $#    sets      sets
-         8         9
+        16        17
 *DEFINE_CONTROL_VOLUME_FLOW_AREA
 $#    FAID     FCIID     FASID   FASTYPE       PID
-         1         1        12         2        11
+         1         1        29         2        26
 *DEFINE_CONTROL_VOLUME_INTERACTION
 $#      id     cvid1     cvid2     lcid      area 
          1         1         0         5          
@@ -183,12 +183,12 @@ $#      id       sid        p0
          2         2          
 *SET_SEGMENT_ADD
 $#     sid
-        13
+        30
 $#    sets      sets
-        10        11
+        18        19
 *DEFINE_CONTROL_VOLUME_FLOW_AREA
 $#    FAID     FCIID     FASID   FASTYPE       PID
-         2         2        13         2        11
+         2         2        30         2        26
 *DEFINE_CONTROL_VOLUME_INTERACTION
 $#      id     cvid1     cvid2     lcid      area 
          2         2         0         6          

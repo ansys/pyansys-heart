@@ -334,7 +334,6 @@ class BaseDynaWriter:
             caps = [cap for part in self.model.parts for cap in part.caps]
             for cap in caps:
                 cap_mesh = self.model.mesh.get_surface(cap._mesh.id)
-                self._mesh = cap_mesh  #! not sure this is properly updated.
                 segid = self.get_unique_segmentset_id()
                 cap._mesh._seg_set_id = segid
                 cap._seg_set_id = segid

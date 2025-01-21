@@ -759,7 +759,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.system_model_name = self.settings.mechanics.system.name
         """Name of system model to use."""
 
-        self.set_flow_area: bool = False
+        self.set_flow_area: bool = True
         """If flow area is set for control volume."""
         return
 
@@ -1774,11 +1774,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             if self.set_flow_area:
                 # DEFINE_CONTROL_VOLUME_FLOW_AREA
-                # This is necessary for truncated LV/BV model
                 sid = self.get_unique_segmentset_id()
                 sets = []
                 for cap in part.caps:
-                    sets.append(cap._mesh._seg_set_id)
+                    sets.append(cap._seg_set_id)
                 if len(sets) % 8 == 0:  # dynalib bug when length is 8,16,...
                     sets.append(0)
                 self.kw_database.control_volume.append(keywords.SetSegmentAdd(sid=sid, sets=sets))
@@ -3610,7 +3609,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         self.system_model_name = self.settings.mechanics.system.name
         """Name of system model to use, from MechanicWriter"""
 
-        self.set_flow_area = False
+        self.set_flow_area = True
         """from MechanicWriter"""
 
     def update(self, with_dynain=False, robin_bcs=None):

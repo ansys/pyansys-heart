@@ -527,7 +527,7 @@ def get_cell_gradient_from_tprint(directory: str, field_list: list[str]):
     """
     # get mesh from first case
     data = D3plotReader(os.path.join(directory, field_list[0] + ".d3plot"))
-    grid: pv.UnstructuredGrid = data.model.metadata.meshed_region.grid
+    grid: pv.UnstructuredGrid = data.meshgrid
 
     def _read_tprint(f):
         try:

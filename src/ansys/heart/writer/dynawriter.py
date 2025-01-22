@@ -2131,7 +2131,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         self.kw_database = FiberGenerationDecks()
         """Collection of keywords relevant for fiber generation."""
 
-    def update(self):
+    def update(self, rotation_angles=None):
         """Update keyword database for Fiber generation: overwrites the inherited function."""
         ##
         self._update_main_db()  # needs updating
@@ -2175,7 +2175,24 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
 
         # # update ep settings
         self._update_ep_settings()
-        self._update_create_fibers()
+
+        if rotation_angles is None:
+            # find default settings
+            rotation_angles = {
+                "alpha": [
+                    self.settings.fibers.alpha_endo.m,
+                    self.settings.fibers.alpha_epi.m,
+                ],
+                "beta": [
+                    self.settings.fibers.beta_endo.m,
+                    self.settings.fibers.beta_epi.m,
+                ],
+                "beta_septum": [
+                    self.settings.fibers.beta_endo_septum.m,
+                    self.settings.fibers.beta_epi_septum.m,
+                ],
+            }
+        self._update_create_fibers(rotation_angles)
 
         self._get_list_of_includes()
         self._add_includes()
@@ -2271,7 +2288,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         return
 
     # TODO: Refactor
-    def _update_create_fibers(self):
+    def _update_create_fibers(self, rotation_angles):
         """Update the keywords for fiber generation."""
         # collect relevant node and segment sets.
         # node set: apex, base
@@ -2440,8 +2457,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                 keywords.DefineFunction(
                     fid=101,
                     function=function_alpha(
-                        alpha_endo=self.settings.fibers.alpha_endo.m,
-                        alpha_epi=self.settings.fibers.alpha_epi.m,
+                        alpha_endo=rotation_angles["alpha"][0],
+                        alpha_epi=rotation_angles["alpha"][1],
                     ),
                 )
             )
@@ -2449,8 +2466,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                 keywords.DefineFunction(
                     fid=102,
                     function=function_beta(
-                        beta_endo=self.settings.fibers.beta_endo.m,
-                        beta_epi=self.settings.fibers.beta_epi.m,
+                        beta_endo=rotation_angles["beta"][0],
+                        beta_epi=rotation_angles["beta"][1],
                     ),
                 )
             )
@@ -2590,8 +2607,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                 keywords.DefineFunction(
                     fid=101,
                     function=function_alpha(
-                        alpha_endo=self.settings.fibers.alpha_endo.m,
-                        alpha_epi=self.settings.fibers.alpha_epi.m,
+                        alpha_endo=rotation_angles["alpha"][0],
+                        alpha_epi=rotation_angles["alpha"][1],
                     ),
                 )
             )
@@ -2599,8 +2616,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                 keywords.DefineFunction(
                     fid=102,
                     function=function_beta(
-                        beta_endo=self.settings.fibers.beta_endo.m,
-                        beta_epi=self.settings.fibers.beta_epi.m,
+                        beta_endo=rotation_angles["beta"][0],
+                        beta_epi=rotation_angles["beta"][1],
                     ),
                 )
             )
@@ -2608,8 +2625,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                 keywords.DefineFunction(
                     fid=103,
                     function=function_beta_septum(
-                        beta_endo=self.settings.fibers.beta_endo_septum.m,
-                        beta_epi=self.settings.fibers.beta_epi_septum.m,
+                        beta_endo=rotation_angles["beta_septum"][0],
+                        beta_epi=rotation_angles["beta_septum"][1],
                     ),
                 )
             )

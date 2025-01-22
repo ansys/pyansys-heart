@@ -126,7 +126,28 @@ class BaseSimulator:
             rotation angle alpha and beta, by default None
         """
         if method == "LSDYNA":
-            directory = self._write_fibers()
+            if rotation_angles is None:
+                # find default settings
+                rotation_angles = {
+                    "alpha": [
+                        self.settings.fibers.alpha_endo.m,
+                        self.settings.fibers.alpha_epi.m,
+                    ],
+                    "beta": [
+                        self.settings.fibers.beta_endo.m,
+                        self.settings.fibers.beta_epi.m,
+                    ],
+                    "beta_septum": [
+                        self.settings.fibers.beta_endo_septum.m,
+                        self.settings.fibers.beta_epi_septum.m,
+                    ],
+                }
+            else:
+                for name in ["alpha", "beta", "beta_septum"]:
+                    if name not in rotation_angles.keys():
+                        LOGGER.error(f"Must provide key {name} for D-RBM method")
+                        exit()
+            directory = self._write_fibers(rotation_angles)
 
             LOGGER.info("Computing fiber orientation...")
 
@@ -168,6 +189,12 @@ class BaseSimulator:
                     ],
                     "beta_ot": None,
                 }
+            else:
+                for a, b in zip(["alpha", "beta"], ["_left", "_right", "_ot"]):
+                    name = a + b
+                    if name not in rotation_angles.keys():
+                        LOGGER.error(f"Must provide key {name} for D-RBM method")
+                        exit()
             export_directory = os.path.join(self.root_directory, method)
             target = self.run_laplace_problem(export_directory, type=method)
             grid = compute_ventricle_fiber_by_drbm(export_directory, settings=rotation_angles)
@@ -382,19 +409,13 @@ class BaseSimulator:
         if options != "":
             self.dyna_settings.dyna_options = old_options
 
-    def _write_fibers(
-        self,
-        alpha_endocardium: float = -60,
-        alpha_epicardium: float = 60,
-        beta_endocardium: float = 25,
-        beta_epicardium: float = -65,
-    ) -> pathlib:
+    def _write_fibers(self, rotation_angles: dict) -> str:
         """Write LS-DYNA files for fiber generation."""
         export_directory = os.path.join(self.root_directory, "fibergeneration")
         self.directories["fibergeneration"] = export_directory
 
         dyna_writer = writers.FiberGenerationDynaWriter(copy.deepcopy(self.model), self.settings)
-        dyna_writer.update()
+        dyna_writer.update(rotation_angles)
         dyna_writer.export(export_directory)
 
         return export_directory

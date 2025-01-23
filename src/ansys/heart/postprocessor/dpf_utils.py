@@ -33,9 +33,6 @@ import pyvista as pv
 from ansys.dpf import core as dpf
 from ansys.heart.core import LOG as LOGGER
 
-_KILL_ANSYSCL_ON_DEL: bool = False
-"""Flag indicating whether to kill the ansys licence client upon deleting the D3PlotReader."""
-
 _SUPPORTED_DPF_SERVERS = ["2024.1", "2024.1rc1"]
 """List of supported DPF Servers."""
 
@@ -107,17 +104,6 @@ class D3plotReader:
 
         self.meshgrid: pv.UnstructuredGrid = self.model.metadata.meshed_region.grid
         self.time = self.model.metadata.time_freq_support.time_frequencies.data
-
-    def __del__(self):
-        """Force shutdown ansyscl after use of dpf."""
-        # NOTE: kills the ansys client triggered by (py)dpf.
-        # May resolve issues when using tools using other versions of the license client.
-        if _KILL_ANSYSCL_ON_DEL:
-            try:
-                for pid in self._ansyscl_pid:
-                    psutil.Process(pid).kill()
-            except Exception as e:
-                LOGGER.info(f"Failed to kill ansyscl upon delete. {e}")
 
     def get_initial_coordinates(self):
         """Get initial coordinates."""

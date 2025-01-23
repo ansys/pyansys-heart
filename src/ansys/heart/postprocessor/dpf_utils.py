@@ -27,7 +27,6 @@ from pathlib import Path
 from typing import List
 
 import numpy as np
-import psutil
 import pyvista as pv
 
 from ansys.dpf import core as dpf
@@ -37,7 +36,7 @@ _SUPPORTED_DPF_SERVERS = ["2024.1", "2024.1rc1"]
 """List of supported DPF Servers."""
 
 
-def _check_env():
+def _check_accept_dpf():
     if "ANSYS_DPF_ACCEPT_LA" in os.environ and os.environ["ANSYS_DPF_ACCEPT_LA"] == "Y":
         pass
     else:
@@ -67,9 +66,7 @@ class D3plotReader:
         path : Path
             d3plot file path.
         """
-        _check_env()
-
-        _running_ansyscl_pids = set([p.pid for p in psutil.process_iter() if "ansyscl" in p.name()])
+        _check_accept_dpf()
 
         # TODO: retrieve version from docker
         self._server = None
@@ -94,13 +91,6 @@ class D3plotReader:
         self.ds.set_result_file_path(path, "d3plot")
 
         self.model = dpf.Model(self.ds)
-
-        self._ansyscl_pid = [
-            p.pid
-            for p in psutil.process_iter()
-            if "ansyscl" in p.name() and p.pid not in _running_ansyscl_pids
-        ]
-        """ansyscl process id triggered by (Py)DPF."""
 
         self.meshgrid: pv.UnstructuredGrid = self.model.metadata.meshed_region.grid
         self.time = self.model.metadata.time_freq_support.time_frequencies.data
@@ -257,7 +247,7 @@ class ICVoutReader:
         fn : str
             binout file path
         """
-        _check_env()
+        _check_accept_dpf()
         self._ds = dpf.DataSources()
         self._ds.set_result_file_path(fn, "binout")
         try:

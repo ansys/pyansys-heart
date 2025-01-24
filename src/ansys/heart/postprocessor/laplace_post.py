@@ -445,16 +445,28 @@ def compute_ventricle_fiber_by_drbm(
     grid["d"][right_mask] = d_r[right_mask]
 
     def compute_rotation_angle(left, right, outflow_tracts=None):
+        def _sigmoid(z):
+            """Sigmoid function to scale spring coefficient."""
+            return 1 / (1 + np.exp(-z))
+
+        # consider outflow tract regions
         if outflow_tracts is not None:
-            # consider outflow tracts
-            # interpolate along w
-            w_l = grid["w_l"]
-            w_r = grid["w_r"]
+            # linearly interpolate along w
+            # w_l = grid["w_l"]
+            # w_r = grid["w_r"]
+
+            # nonlinearly interpolate along w
+            c0 = 0.3  # clip point
+            c1 = 20  # steepness
+            w_l = _sigmoid((grid["w_l"] - c0) * c1)
+            w_r = _sigmoid((grid["w_r"] - c0) * c1)
+
             ro_endo_left = w_l * left[0] + (1 - w_l) * outflow_tracts[0]
             ro_epi_left = w_l * left[1] + (1 - w_l) * outflow_tracts[1]
             ro_endo_right = w_r * right[0] + (1 - w_r) * outflow_tracts[0]
             ro_epi_right = w_r * right[1] + (1 - w_r) * outflow_tracts[1]
         else:
+            # no outflow tract consideration
             ro_endo_left = np.ones(grid.n_cells) * left[0]
             ro_epi_left = np.ones(grid.n_cells) * left[1]
             ro_endo_right = np.ones(grid.n_cells) * right[0]

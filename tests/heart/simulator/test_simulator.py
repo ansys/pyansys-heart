@@ -48,7 +48,9 @@ def base_simulator() -> simulators.BaseSimulator:
         model = mock.Mock(spec=models.FourChamber).return_value
         model.left_atrium.endocardium = 1
         model.right_atrium.endocardium = 1
-        polydata = pv.PolyData(np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0]]), [3, 0, 1, 2])
+        polydata = pv.PolyData(
+            np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0]], dtype=float), [3, 0, 1, 2]
+        )
         model.mesh = polydata
 
         setting = mock.Mock(spec=DynaSettings)
@@ -65,7 +67,9 @@ def mechanics_simulator() -> simulators.MechanicsSimulator:
         model = mock.Mock(spec=models.FourChamber).return_value
         model.left_atrium.endocardium = 1
         model.right_atrium.endocardium = 1
-        polydata = pv.PolyData(np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0]]), [3, 0, 1, 2])
+        polydata = pv.PolyData(
+            np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0]], dtype=float), [3, 0, 1, 2]
+        )
         model.mesh = polydata
 
         setting = mock.Mock(spec=DynaSettings)

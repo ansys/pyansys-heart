@@ -42,6 +42,7 @@ from typing import Literal
 
 import natsort
 import numpy as np
+import psutil
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
@@ -57,6 +58,9 @@ from ansys.heart.postprocessor.laplace_post import (
 from ansys.heart.preprocessor.conduction_beam import ConductionSystem
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
+
+_KILL_ANSYSCL_PRIOR_TO_RUN = True
+"""Flag indicating whether to kill all ansys license clients prior to LS-DYNA run."""
 
 
 class BaseSimulator:
@@ -658,7 +662,7 @@ class MechanicsSimulator(BaseSimulator):
         # replace node coordinates by computed ED geometry
         LOGGER.info("Updating nodes after stress-free.")
 
-        self.model.mesh.nodes = guess_ed_coord
+        self.model.mesh.points = guess_ed_coord
 
         #! Note that it is not always clear if the contents of the retrieved
         #! surface is actually properly copied to the object of which the surface
@@ -732,6 +736,13 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         return export_directory
 
 
+def _kill_all_ansyscl():
+    """Kill all ansys license clients."""
+    for p in psutil.process_iter():
+        if "ansyscl" in p.name():
+            p.kill()
+
+
 class LsDynaErrorTerminationError(Exception):
     """Exception raised when `N o r m a l    t e r m i n a t i o n` is not found."""
 
@@ -764,6 +775,12 @@ def run_lsdyna(
     commands = settings.get_commands(path_to_input)
 
     os.chdir(os.path.dirname(path_to_input))
+
+    #! Kill all ansys license clients prior to running LS-DYNA
+    #! this to avoid issues with orphan license clients of versions
+    #! lower than the one needed by LS-DYNA.
+    if _KILL_ANSYSCL_PRIOR_TO_RUN:
+        _kill_all_ansyscl()
 
     mess = []
     with subprocess.Popen(commands, stdout=subprocess.PIPE, text=True) as p:

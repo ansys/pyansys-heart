@@ -34,7 +34,6 @@ import os
 import pathlib
 from typing import List, Literal, Union
 
-from deprecated import deprecated
 import numpy as np
 
 from ansys.heart.core import LOG as LOGGER
@@ -485,50 +484,6 @@ class Mesh(pv.UnstructuredGrid):
     """
 
     @property
-    @deprecated(reason="Equivalent to `.points`.")
-    def nodes(self):
-        """Node coordinates."""
-        return np.array(self.points)
-
-    @nodes.setter
-    @deprecated(
-        reason="""Setting nodes through this property is deprecated.
-        Use add_surface, add_volume or .points instead"""
-    )
-    def nodes(self, array: np.ndarray):
-        if isinstance(array, type(None)):
-            return
-        try:
-            num_extra_points = array.shape[0] - self.points.shape[0]
-            self.points = array
-            if num_extra_points > 0:
-                for key in self.point_data.keys():
-                    shape = self.point_data[key].shape
-                    dtype = self.point_data[key].dtype
-
-                    # vectors
-                    if len(shape) > 1:
-                        append_shape = (num_extra_points, shape[1])
-                        self.point_data[key] = np.vstack(
-                            [self.point_data[key], np.empty(append_shape, dtype) * np.nan]
-                        )
-                    # scalars
-                    else:
-                        append_shape = (num_extra_points,)
-                        self.point_data[key] = np.append(
-                            self.point_data[key], np.empty(append_shape, dtype) * np.nan
-                        )
-
-            elif num_extra_points < 0:
-                raise NotImplementedError(
-                    "Assigning less nodes than the original not implemented yet."
-                )
-
-        except Exception:
-            LOGGER.warning("Failed to set nodes.")
-            return
-
-    @property
     def tetrahedrons(self):
         """Tetrahedrons num_tetra x 4."""
         return self.cells_dict[pv.CellType.TETRA]
@@ -542,23 +497,6 @@ class Mesh(pv.UnstructuredGrid):
     def lines(self):
         """Get all triangles of the mesh."""
         return self.cells_dict[pv.CellType.LINE]
-
-    @tetrahedrons.setter
-    @deprecated(
-        reason="""Setting tetrahedrons through this property is deprecated, use
-                add_volume instead."""
-    )
-    def tetrahedrons(self, value: np.ndarray):
-        # TODO: manage cell data
-        # TODO: could deprecate now that there is an add_volume method?
-        try:
-            points = self.points
-            celltypes = np.full(value.shape[0], pv.CellType.TETRA, dtype=np.int8)
-            tetra = np.hstack([np.full(len(celltypes), 4)[:, None], value])
-            super().__init__(tetra, celltypes, points)
-        except Exception:
-            LOGGER.warning("Failed to set tetrahedrons.")
-            return
 
     @property
     def _surfaces(self) -> List[SurfaceMesh]:
@@ -592,29 +530,6 @@ class Mesh(pv.UnstructuredGrid):
     def _global_tetrahedron_ids(self):
         """Global ids of tetrahedral cells."""
         return _get_global_cell_ids(self, pv.CellType.TETRA)
-
-    @property
-    @deprecated(reason="Part-ids will be deprecated: use _volume-id(s) instead.")
-    def part_ids(self) -> np.ndarray:
-        """Array of part ids indicating to which part the tetrahedron belongs.
-
-        Notes
-        -----
-        This is derived from the "part-id" field in cell data
-        """
-        try:
-            value = self.cell_data["tags"].astype(int)
-            return value
-        except (KeyError, NameError):
-            LOGGER.warning("'tags' field not found in self.cell_data")
-            value = None
-        try:
-            value = self.cell_data["part-id"].astype(int)
-            return value
-        except (KeyError, NameError):
-            LOGGER.warning("'part-id' field not found in self.cell_data")
-            value = None
-        return value
 
     @property
     def surface_ids(self) -> np.ndarray:

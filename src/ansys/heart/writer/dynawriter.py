@@ -239,10 +239,10 @@ class BaseDynaWriter:
         LOGGER.debug("Updating node keywords...")
         node_kw = keywords.Node()
         if ids is not None:
-            nodes = np.vstack([ids + 1, self.model.mesh.nodes[ids, :].T]).T
+            nodes = np.vstack([ids + 1, self.model.mesh.points[ids, :].T]).T
             node_kw = add_nodes_to_kw(nodes, node_kw)
         else:
-            node_kw = add_nodes_to_kw(self.model.mesh.nodes, node_kw)
+            node_kw = add_nodes_to_kw(self.model.mesh.points, node_kw)
 
         self.kw_database.nodes.append(node_kw)
 
@@ -2788,10 +2788,10 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
 
             self.kw_database.node_sets.append(node_set_apex_kw)
 
-            apex_left_coordinates = self.model.mesh.nodes[node_origin_left, :]
+            apex_left_coordinates = self.model.mesh.points[node_origin_left, :]
 
             #! Is this to get unused start node/edge indinces?
-            node_id_start_left = self.model.mesh.nodes.shape[0] + 1
+            node_id_start_left = self.model.mesh.points.shape[0] + 1
 
             edge_id_start_left = self.model.mesh.tetrahedrons.shape[0] + 1
 
@@ -2868,10 +2868,10 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
 
             self.kw_database.node_sets.append(node_set_apex_kw)
 
-            apex_right_coordinates = self.model.mesh.nodes[node_origin_right, :]
+            apex_right_coordinates = self.model.mesh.points[node_origin_right, :]
 
             node_id_start_right = (
-                2 * self.model.mesh.nodes.shape[0]
+                2 * self.model.mesh.points.shape[0]
             )  # TODO: find a solution in dyna to better handle id definition
 
             edge_id_start_right = 2 * self.model.mesh.tetrahedrons.shape[0]
@@ -3356,8 +3356,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         new_nodes = self.model.beam_network[-1]._all_beam_nodes
         ids = (
             np.linspace(
-                len(self.model.mesh.nodes),
-                len(self.model.mesh.nodes) + len(new_nodes) - 1,
+                len(self.model.mesh.points),
+                len(self.model.mesh.points) + len(new_nodes) - 1,
                 len(new_nodes),
                 dtype=int,
             )

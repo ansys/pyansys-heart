@@ -115,7 +115,7 @@ def compute_aha17(
         ele_ids = np.hstack(model.left_ventricle.element_ids)
 
     # elements center
-    elem_center = np.mean(model.mesh.nodes[model.mesh.tetrahedrons[ele_ids]], axis=1)
+    elem_center = np.mean(model.mesh.points[model.mesh.tetrahedrons[ele_ids]], axis=1)
 
     # anatomical points
     for cap in model.left_ventricle.caps:
@@ -253,7 +253,7 @@ def compute_element_cs(
         longitudinal, radial, circufenrential vecotors of each AHA element
     """
     elems = model.mesh.tetrahedrons[aha_element]
-    elem_center = np.mean(model.mesh.nodes[elems], axis=1)
+    elem_center = np.mean(model.mesh.points[elems], axis=1)
 
     # compute longitudinal direction, i.e. short axis
     e_l = np.tile(short_axis["normal"], (len(aha_element), 1))

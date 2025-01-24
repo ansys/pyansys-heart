@@ -69,7 +69,7 @@ def test_add_beam_net():
 
     # construct mesh to compare against
     beam_mesh = BeamMesh(
-        nodes=np.vstack((model.mesh.nodes, BeamMesh.all_beam_nodes)),
+        nodes=np.vstack((model.mesh.points, BeamMesh.all_beam_nodes)),
         edges=np.array([[0, 69754], [69754, 69755]]),
         beam_nodes_mask=mask,
     )

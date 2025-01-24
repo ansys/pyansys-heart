@@ -80,7 +80,7 @@ def model_summary(model: HeartModel, attributes: list = None) -> dict:
 
     try:
         sum_dict["GENERAL"]["total_num_tets"] = model.mesh.tetrahedrons.shape[0]
-        sum_dict["GENERAL"]["total_num_nodes"] = model.mesh.nodes.shape[0]
+        sum_dict["GENERAL"]["total_num_nodes"] = model.mesh.points.shape[0]
     except TypeError:
         LOGGER.info("Failed to format General model information.")
 

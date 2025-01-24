@@ -111,10 +111,12 @@ def test_model_load_002():
             + 10
         )
 
-        model.mesh.tetrahedrons = np.array([[0, 1, 2, 3]], dtype=int)
-        model.mesh.nodes = np.array(
+        points = np.array(
             [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=float
         )
+        cells = np.array([4, 0, 1, 2, 3], dtype=int)
+        celltypes = [pv.CellType.TETRA]
+        model.mesh = Mesh(cells, celltypes, points)
 
         # dump model to disk
         path_to_heart_model = os.path.join(workdir, "heart_model.pickle")
@@ -139,7 +141,7 @@ def test_model_load_002():
             model.right_ventricle.endocardium.triangles,
         )
         assert np.array_equal(model1.mesh.tetrahedrons, model.mesh.tetrahedrons)
-        assert np.allclose(model1.mesh.nodes, model.mesh.nodes, atol=1e-8)
+        assert np.allclose(model1.mesh.points, model.mesh.points, atol=1e-8)
 
     pass
 

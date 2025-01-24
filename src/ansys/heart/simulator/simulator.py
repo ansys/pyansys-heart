@@ -582,7 +582,7 @@ class MechanicsSimulator(BaseSimulator):
         # replace node coordinates by computed ED geometry
         LOGGER.info("Updating nodes after stress-free.")
 
-        self.model.mesh.nodes = guess_ed_coord
+        self.model.mesh.points = guess_ed_coord
 
         #! Note that it is not always clear if the contents of the retrieved
         #! surface is actually properly copied to the object of which the surface

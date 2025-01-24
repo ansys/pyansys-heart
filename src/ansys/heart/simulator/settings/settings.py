@@ -686,6 +686,57 @@ class SimulationSettings:
 
         return material
 
+    def get_ventricle_fiber_rotation(self, method: Literal["LSDYNA", "D-RBM"]) -> dict:
+        """Get rotation angles from settings.
+
+        Parameters
+        ----------
+        method : Literal[&quot;LSDYNA&quot;, &quot;D
+            Fiber rule based methods
+
+        Returns
+        -------
+        dict
+            rotation angles alpha and beta
+        """
+        if method == "LSDYNA":
+            rotation = {
+                "alpha": [
+                    self.fibers.alpha_endo.m,
+                    self.fibers.alpha_epi.m,
+                ],
+                "beta": [
+                    self.fibers.beta_endo.m,
+                    self.fibers.beta_epi.m,
+                ],
+                "beta_septum": [
+                    self.fibers.beta_endo_septum.m,
+                    self.fibers.beta_epi_septum.m,
+                ],
+            }
+        elif method == "D-RBM":
+            rotation = {
+                "alpha_left": [
+                    self.fibers.alpha_endo.m,
+                    self.fibers.alpha_epi.m,
+                ],
+                "alpha_right": [
+                    self.fibers.alpha_endo.m,
+                    self.fibers.alpha_epi.m,
+                ],
+                "alpha_ot": None,
+                "beta_left": [
+                    self.fibers.beta_endo.m,
+                    self.fibers.beta_epi.m,
+                ],
+                "beta_right": [
+                    self.fibers.beta_endo.m,
+                    self.fibers.beta_epi.m,
+                ],
+                "beta_ot": None,
+            }
+        return rotation
+
 
 def _read_passive_from_settings(mat: AttrDict) -> NeoHookean:
     rho = mat["rho"].m

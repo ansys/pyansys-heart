@@ -134,25 +134,12 @@ class BaseSimulator:
         if method == "LSDYNA":
             if rotation_angles is None:
                 # find default settings
-                rotation_angles = {
-                    "alpha": [
-                        self.settings.fibers.alpha_endo.m,
-                        self.settings.fibers.alpha_epi.m,
-                    ],
-                    "beta": [
-                        self.settings.fibers.beta_endo.m,
-                        self.settings.fibers.beta_epi.m,
-                    ],
-                    "beta_septum": [
-                        self.settings.fibers.beta_endo_septum.m,
-                        self.settings.fibers.beta_epi_septum.m,
-                    ],
-                }
-            else:
-                for name in ["alpha", "beta", "beta_septum"]:
-                    if name not in rotation_angles.keys():
-                        LOGGER.error(f"Must provide key {name} for D-RBM method")
-                        exit()
+                rotation_angles = self.settings.get_ventricle_fiber_rotation(method="LSDYNA")
+
+            for name in ["alpha", "beta", "beta_septum"]:
+                if name not in rotation_angles.keys():
+                    LOGGER.error(f"Must provide key {name} for D-RBM method")
+                    exit()
 
             self._compute_fibers_lsdyna(rotation_angles)
 
@@ -164,40 +151,20 @@ class BaseSimulator:
                 LOGGER.error(f"{method} can only be used in within SMP executables")
                 exit()
 
+            if rotation_angles is None:
+                # find default settings
+                rotation_angles = self.settings.get_ventricle_fiber_rotation(method="D-RBM")
+
+            for a, b in zip(["alpha", "beta"], ["_left", "_right", "_ot"]):
+                if a + b not in rotation_angles.keys():
+                    LOGGER.error(f"Must provide key {name} for D-RBM method")
+                    exit()
             self._compute_fibers_drbm(rotation_angles)
 
         return
 
-    def _compute_fibers_drbm(self, rotation_angles: dict = None):
+    def _compute_fibers_drbm(self, rotation_angles: dict):
         """Use D-RBM fiber method."""
-        if rotation_angles is None:
-            # find default settings
-            rotation_angles = {
-                "alpha_left": [
-                    self.settings.fibers.alpha_endo.m,
-                    self.settings.fibers.alpha_epi.m,
-                ],
-                "alpha_right": [
-                    self.settings.fibers.alpha_endo.m,
-                    self.settings.fibers.alpha_epi.m,
-                ],
-                "alpha_ot": None,
-                "beta_left": [
-                    self.settings.fibers.beta_endo.m,
-                    self.settings.fibers.beta_epi.m,
-                ],
-                "beta_right": [
-                    self.settings.fibers.beta_endo.m,
-                    self.settings.fibers.beta_epi.m,
-                ],
-                "beta_ot": None,
-            }
-        else:
-            for a, b in zip(["alpha", "beta"], ["_left", "_right", "_ot"]):
-                name = a + b
-                if name not in rotation_angles.keys():
-                    LOGGER.error(f"Must provide key {name} for D-RBM method")
-                    exit()
         export_directory = os.path.join(self.root_directory, "D-RBM")
         target = self.run_laplace_problem(export_directory, type="D-RBM")
         grid = compute_ventricle_fiber_by_drbm(export_directory, settings=rotation_angles)

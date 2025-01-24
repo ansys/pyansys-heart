@@ -2178,20 +2178,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
 
         if rotation_angles is None:
             # find default settings
-            rotation_angles = {
-                "alpha": [
-                    self.settings.fibers.alpha_endo.m,
-                    self.settings.fibers.alpha_epi.m,
-                ],
-                "beta": [
-                    self.settings.fibers.beta_endo.m,
-                    self.settings.fibers.beta_epi.m,
-                ],
-                "beta_septum": [
-                    self.settings.fibers.beta_endo_septum.m,
-                    self.settings.fibers.beta_epi_septum.m,
-                ],
-            }
+            rotation_angles = self.settings.get_ventricle_fiber_rotation(method="LSDYNA")
         self._update_create_fibers(rotation_angles)
 
         self._get_list_of_includes()

@@ -116,7 +116,7 @@ class BaseSimulator:
     def compute_fibers(
         self, method: Literal["LSDYNA", "D-RBM"] = "LSDYNA", rotation_angles: dict = None
     ):
-        """Compute the fiber direction on the model.
+        """Compute the fiber-sheet directions on ventricle(s).
 
         Parameters
         ----------
@@ -125,6 +125,8 @@ class BaseSimulator:
         rotation_angles : dict, optional
             rotation angle alpha and beta, by default None
         """
+        LOGGER.info("Computing fiber orientation...")
+
         if method == "LSDYNA":
             if rotation_angles is None:
                 # find default settings
@@ -147,20 +149,8 @@ class BaseSimulator:
                     if name not in rotation_angles.keys():
                         LOGGER.error(f"Must provide key {name} for D-RBM method")
                         exit()
-            directory = self._write_fibers(rotation_angles)
 
-            LOGGER.info("Computing fiber orientation...")
-
-            input_file = os.path.join(directory, "main.k")
-            self._run_dyna(path_to_input=input_file)
-
-            # TODO: May want to replace by ansys.dyna.core.keywords
-            LOGGER.info("Assigning fiber orientation to model...")
-            elem_ids, part_ids, connect, fib, sheet = _read_orth_element_kfile(
-                os.path.join(directory, "element_solid_ortho.k")
-            )
-            self.model.mesh.cell_data["fiber"][elem_ids - 1] = fib
-            self.model.mesh.cell_data["sheet"][elem_ids - 1] = sheet
+            self._compute_fibers_lsdyna(rotation_angles)
 
         elif method == "D-RBM":
             if isinstance(self.model, LeftVentricle):
@@ -170,47 +160,73 @@ class BaseSimulator:
                 LOGGER.error(f"{method} can only be used in within SMP executables")
                 exit()
 
-            if rotation_angles is None:
-                # find default settings
-                rotation_angles = {
-                    "alpha_left": [
-                        self.settings.fibers.alpha_endo.m,
-                        self.settings.fibers.alpha_epi.m,
-                    ],
-                    "alpha_right": [
-                        self.settings.fibers.alpha_endo.m,
-                        self.settings.fibers.alpha_epi.m,
-                    ],
-                    "alpha_ot": None,
-                    "beta_left": [
-                        self.settings.fibers.beta_endo.m,
-                        self.settings.fibers.beta_epi.m,
-                    ],
-                    "beta_right": [
-                        self.settings.fibers.beta_endo.m,
-                        self.settings.fibers.beta_epi.m,
-                    ],
-                    "beta_ot": None,
-                }
-            else:
-                for a, b in zip(["alpha", "beta"], ["_left", "_right", "_ot"]):
-                    name = a + b
-                    if name not in rotation_angles.keys():
-                        LOGGER.error(f"Must provide key {name} for D-RBM method")
-                        exit()
-            export_directory = os.path.join(self.root_directory, method)
-            target = self.run_laplace_problem(export_directory, type=method)
-            grid = compute_ventricle_fiber_by_drbm(export_directory, settings=rotation_angles)
+            self._compute_fibers_drbm(rotation_angles)
 
-            # arrays that save ID map to full model
-            grid["cell_ids"] = target["cell_ids"]
+        return
 
-            LOGGER.info("Assigning fibers to full model...")
+    def _compute_fibers_drbm(self, rotation_angles: dict = None):
+        """Use D-RBM fiber method."""
+        if rotation_angles is None:
+            # find default settings
+            rotation_angles = {
+                "alpha_left": [
+                    self.settings.fibers.alpha_endo.m,
+                    self.settings.fibers.alpha_epi.m,
+                ],
+                "alpha_right": [
+                    self.settings.fibers.alpha_endo.m,
+                    self.settings.fibers.alpha_epi.m,
+                ],
+                "alpha_ot": None,
+                "beta_left": [
+                    self.settings.fibers.beta_endo.m,
+                    self.settings.fibers.beta_epi.m,
+                ],
+                "beta_right": [
+                    self.settings.fibers.beta_endo.m,
+                    self.settings.fibers.beta_epi.m,
+                ],
+                "beta_ot": None,
+            }
+        else:
+            for a, b in zip(["alpha", "beta"], ["_left", "_right", "_ot"]):
+                name = a + b
+                if name not in rotation_angles.keys():
+                    LOGGER.error(f"Must provide key {name} for D-RBM method")
+                    exit()
+        export_directory = os.path.join(self.root_directory, "D-RBM")
+        target = self.run_laplace_problem(export_directory, type="D-RBM")
+        grid = compute_ventricle_fiber_by_drbm(export_directory, settings=rotation_angles)
 
-            # cell IDs in full model mesh
-            ids = grid["cell_ids"]
-            self.model.mesh.cell_data["fiber"][ids] = grid["fiber"]
-            self.model.mesh.cell_data["sheet"][ids] = grid["sheet"]
+        # arrays that save ID map to full model
+        grid["cell_ids"] = target["cell_ids"]
+
+        LOGGER.info("Assigning fibers to full model...")
+
+        # cell IDs in full model mesh
+        ids = grid["cell_ids"]
+        self.model.mesh.cell_data["fiber"][ids] = grid["fiber"]
+        self.model.mesh.cell_data["sheet"][ids] = grid["sheet"]
+
+    def _compute_fibers_lsdyna(self, rotation_angles: dict):
+        """Use LSDYNA native fiber method."""
+        directory = os.path.join(self.root_directory, "fibergeneration")
+        self.directories["fibergeneration"] = directory
+
+        dyna_writer = writers.FiberGenerationDynaWriter(copy.deepcopy(self.model), self.settings)
+        dyna_writer.update(rotation_angles)
+        dyna_writer.export(directory)
+
+        input_file = os.path.join(directory, "main.k")
+        self._run_dyna(path_to_input=input_file)
+
+        # TODO: May want to replace by ansys.dyna.core.keywords
+        LOGGER.info("Assigning fiber orientation to model...")
+        elem_ids, part_ids, connect, fib, sheet = _read_orth_element_kfile(
+            os.path.join(directory, "element_solid_ortho.k")
+        )
+        self.model.mesh.cell_data["fiber"][elem_ids - 1] = fib
+        self.model.mesh.cell_data["sheet"][elem_ids - 1] = sheet
 
         return
 
@@ -411,17 +427,6 @@ class BaseSimulator:
 
         if options != "":
             self.dyna_settings.dyna_options = old_options
-
-    def _write_fibers(self, rotation_angles: dict) -> str:
-        """Write LS-DYNA files for fiber generation."""
-        export_directory = os.path.join(self.root_directory, "fibergeneration")
-        self.directories["fibergeneration"] = export_directory
-
-        dyna_writer = writers.FiberGenerationDynaWriter(copy.deepcopy(self.model), self.settings)
-        dyna_writer.update(rotation_angles)
-        dyna_writer.export(export_directory)
-
-        return export_directory
 
 
 class EPSimulator(BaseSimulator):

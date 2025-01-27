@@ -26,7 +26,7 @@ classifiers = [
 dependencies = [
     "ansys-dpf-core==0.13.3",
     "ansys-fluent-core==0.26.0",
-    "deprecated==1.2.14",
+    "deprecated==1.2.17",
     "ansys.dyna.core==0.6.1",
     "h5py>=3.6.0",
     "importlib-metadata >=4.0",

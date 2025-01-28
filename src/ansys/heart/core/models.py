@@ -810,10 +810,10 @@ class HeartModel:
         return
 
     @deprecated(
-        reason="""dump_model() uses pickle which is unsafe
+        reason="""_dump_model() uses pickle which is unsafe
                 and will be replaced. Use save_model() instead"""
     )
-    def dump_model(self, filename: Union[pathlib.Path, str] = None):
+    def _dump_model(self, filename: Union[pathlib.Path, str] = None):
         """Save model to .pickle file.
 
         Parameters
@@ -828,7 +828,7 @@ class HeartModel:
 
         Examples
         --------
-        >>> model.dump_model("my_heart_model.pickle")
+        >>> model._dump_model("my_heart_model.pickle")
 
         """
         LOGGER.debug("Writing model to disk")
@@ -992,8 +992,22 @@ class HeartModel:
 
         # NOTE: #? Wrap in try-block?
         # NOTE: #? add validation method to make sure all essential components are present?
-        self._extract_apex()
-        self._define_anatomy_axis()
+        try:
+            self._extract_apex()
+        except Exception:
+            LOGGER.error("Failed to extract apex. Consider setting apex manually.")
+
+        if any(v is None for v in [self.short_axis, self.l4cv_axis, self.l2cv_axis]):
+            LOGGER.warning("Heart axis not defined in the VTU file.")
+            try:
+                LOGGER.warning("Computing heart axis...")
+                self._define_anatomy_axis()
+            except Exception:
+                LOGGER.error(
+                    "Failed to extract heart axis. Consider computing and setting them manually."
+                )
+        else:
+            LOGGER.warning("Read heart axis defined in the VTU file is reused...")
 
         return
 

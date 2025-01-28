@@ -810,10 +810,10 @@ class HeartModel:
         return
 
     @deprecated(
-        reason="""dump_model() uses pickle which is unsafe
+        reason="""_dump_model() uses pickle which is unsafe
                 and will be replaced. Use save_model() instead"""
     )
-    def dump_model(self, filename: Union[pathlib.Path, str] = None):
+    def _dump_model(self, filename: Union[pathlib.Path, str] = None):
         """Save model to .pickle file.
 
         Parameters
@@ -828,7 +828,7 @@ class HeartModel:
 
         Examples
         --------
-        >>> model.dump_model("my_heart_model.pickle")
+        >>> model._dump_model("my_heart_model.pickle")
 
         """
         LOGGER.debug("Writing model to disk")

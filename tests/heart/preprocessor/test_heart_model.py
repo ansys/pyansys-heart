@@ -53,15 +53,15 @@ def test_dump_model_001():
 
         expected_path = os.path.join(model.workdir, "heart_model.pickle")
 
-        model.dump_model()
+        model._dump_model()
         assert os.path.isfile(expected_path)
 
         expected_path = os.path.join(model.workdir, "heart_model1.pickle")
-        model.dump_model(expected_path)
+        model._dump_model(expected_path)
         assert os.path.isfile(expected_path)
 
         expected_path = Path(os.path.join(model.workdir, "heart_model2.pickle"))
-        model.dump_model(expected_path)
+        model._dump_model(expected_path)
         assert os.path.isfile(expected_path)
 
 
@@ -74,7 +74,7 @@ def test_model_load_001():
         model.left_ventricle.endocardium.triangles = np.array([[0, 1, 2]], dtype=int)
         model.left_ventricle.endocardium.nodes = np.eye(3, 3, dtype=float)
 
-        model.dump_model()
+        model._dump_model()
 
         assert os.path.isfile(path_to_model)
 
@@ -120,7 +120,7 @@ def test_model_load_002():
 
         # dump model to disk
         path_to_heart_model = os.path.join(workdir, "heart_model.pickle")
-        model.dump_model(path_to_heart_model)
+        model._dump_model(path_to_heart_model)
 
         assert os.path.isfile(path_to_heart_model), "File does not exist"
 

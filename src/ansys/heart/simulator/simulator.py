@@ -145,7 +145,7 @@ class BaseSimulator:
 
         elif method == "D-RBM":
             if isinstance(self.model, LeftVentricle):
-                LOGGER.error(f"{method} cannot run for LeftVentricle model.")
+                LOGGER.error(f"{method} not supported for LeftVentricle model.")
                 exit()
             if self.dyna_settings.dynatype != "smp":
                 LOGGER.error(f"{method} can only be used in within SMP executables")

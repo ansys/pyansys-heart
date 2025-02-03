@@ -138,6 +138,28 @@ def test_ra_fiber(model):
         compare_outputs(to_test_folder, ref_folder)
 
 
+@pytest.mark.k_file_writer
+def test_drbm(model):
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
+        # if True:
+        #     workdir = r'D:/temp'
+        to_test_folder = os.path.join(workdir, "drbm")
+        model._workdir = workdir
+        writer = UHCWriter(model, "D-RBM")
+        writer.update()
+        writer.export(to_test_folder)
+
+        ref_folder = os.path.join(
+            get_assets_folder(),
+            "reference_models",
+            "strocchi2020",
+            "01",
+            "FourChamber",
+            "drbm",
+        )
+        compare_outputs(to_test_folder, ref_folder)
+
+
 def compare_outputs(to_test_folder, ref_folder):
     ref_files = glob.glob(os.path.join(ref_folder, "*.k"))
     # compare each of the reference files to the files that were generated.

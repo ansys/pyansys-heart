@@ -382,3 +382,180 @@ def compute_ra_fiber_cs(
     grid.cell_data["e_t"] = et
 
     return grid
+
+
+def compute_ventricle_fiber_by_drbm(
+    directory: str,
+    settings: dict = {
+        "alpha_left": [-60, 60],
+        "alpha_right": [-60, 60],
+        "alpha_ot": None,
+        "beta_left": [-65, 25],
+        "beta_right": [-65, 25],
+        "beta_ot": None,
+    },
+) -> pv.UnstructuredGrid:
+    """D-RBM method described in https://doi.org/10.1016/j.cma.2020.113468.
+
+    Parameters
+    ----------
+    directory : str
+        directory of d3plot/tprint files.
+    settings : dict, optional
+        rotation angles, by default { "alpha_left": [-60, 60], "alpha_right": [-60, 60],
+        "alpha_ot": None, "beta_left": [-65, 25], "beta_right": [-65, 25], "beta_ot": None, }
+
+    Returns
+    -------
+    pv.UnstructuredGrid
+        grid contains `fiber`,`cross-fiber`,`sheet` vectors
+    """
+    solutions = ["trans", "ab_l", "ab_r", "ot_l", "ot_r", "w_l", "w_r", "lr"]
+    # data = read_laplace_solution(directory, field_list=solutions)
+    # grid = compute_cell_gradient(data, field_list=solutions)
+    grid = get_cell_gradient_from_tprint(directory, field_list=solutions)
+
+    # left/right ventricle label
+    left_mask = grid["lr"] >= 0
+    right_mask = grid["lr"] < 0
+    label = np.zeros(grid.n_cells, dtype=int)
+    label[left_mask] = 1
+    label[right_mask] = 2
+    grid.cell_data["label"] = label
+
+    # normal direction
+    k = np.zeros((grid.n_cells, 3))
+    w_l = np.tile(grid["w_l"], (3, 1)).T
+    w_r = np.tile(grid["w_r"], (3, 1)).T
+    result = w_l * grid["grad_ab_l"] + (np.ones((grid.n_cells, 3)) - w_l) * grid["grad_ot_l"]
+    k[left_mask] = result[left_mask]
+    result = w_r * grid["grad_ab_r"] + (np.ones((grid.n_cells, 3)) - w_r) * grid["grad_ot_r"]
+    k[right_mask] = result[right_mask]
+    grid.cell_data["k"] = k
+
+    # build local coordinate system
+    grid.cell_data["grad_trans"][right_mask] *= -1.0  # both LV & RV point to inside
+    el, en, et = orthogonalization(grid["grad_trans"], k)
+
+    # normalized transmural distance
+    d_l = grid["trans"] / 2
+    d_r = np.absolute(grid["trans"])
+    grid["d"] = np.zeros(grid.n_cells, dtype=float)
+    grid["d"][left_mask] = d_l[left_mask]
+    grid["d"][right_mask] = d_r[right_mask]
+
+    def compute_rotation_angle(left, right, outflow_tracts=None):
+        def _sigmoid(z):
+            """Sigmoid function to scale spring coefficient."""
+            return 1 / (1 + np.exp(-z))
+
+        # consider outflow tract regions
+        if outflow_tracts is not None:
+            # linearly interpolate along w
+            # w_l = grid["w_l"]
+            # w_r = grid["w_r"]
+
+            # nonlinearly interpolate along w
+            c0 = 0.3  # clip point
+            c1 = 20  # steepness
+            w_l = _sigmoid((grid["w_l"] - c0) * c1)
+            w_r = _sigmoid((grid["w_r"] - c0) * c1)
+
+            ro_endo_left = w_l * left[0] + (1 - w_l) * outflow_tracts[0]
+            ro_epi_left = w_l * left[1] + (1 - w_l) * outflow_tracts[1]
+            ro_endo_right = w_r * right[0] + (1 - w_r) * outflow_tracts[0]
+            ro_epi_right = w_r * right[1] + (1 - w_r) * outflow_tracts[1]
+        else:
+            # no outflow tract consideration
+            ro_endo_left = np.ones(grid.n_cells) * left[0]
+            ro_epi_left = np.ones(grid.n_cells) * left[1]
+            ro_endo_right = np.ones(grid.n_cells) * right[0]
+            ro_epi_right = np.ones(grid.n_cells) * right[1]
+
+        # interpolate along transmural direction
+        alpha_l = ro_epi_left * (np.ones(grid.n_cells) - d_l) + ro_endo_left * d_l
+        alpha_r = ro_epi_right * (np.ones(grid.n_cells) - d_r) + ro_endo_right * d_r
+
+        alpha = np.zeros(grid.n_cells)
+        alpha[left_mask] = alpha_l[left_mask]
+        alpha[right_mask] = alpha_r[right_mask]
+
+        return alpha
+
+    # apply rotation
+    alpha = compute_rotation_angle(
+        settings["alpha_left"], settings["alpha_right"], settings["alpha_ot"]
+    )
+    beta = compute_rotation_angle(
+        settings["beta_left"], settings["beta_right"], settings["beta_ot"]
+    )
+
+    grid.cell_data["alpha"] = alpha
+    grid.cell_data["beta"] = beta
+
+    #
+    grid.cell_data["fiber"] = np.zeros((grid.n_cells, 3))
+
+    # use f,n,s in Quateroni, it's n, cross fiber
+    # use FTS in Bayer, it's S, sheet normal
+    grid.cell_data["cross-fiber"] = np.zeros((grid.n_cells, 3))
+
+    # use f,n,s in Quateroni, it's s, sheet
+    # use FTS in Bayer, it's T, transverse
+    grid.cell_data["sheet"] = np.zeros((grid.n_cells, 3))
+
+    for i in range(grid.n_cells):
+        q = np.array([el[i], en[i], et[i]]).T
+        # rotate alpha around e_t
+        a = alpha[i] * np.pi / 180
+        rot1 = np.array([[np.cos(a), -np.sin(a), 0], [np.sin(a), np.cos(a), 0], [0, 0, 1]])
+        # rotate beta around e_l
+        b = beta[i] * np.pi / 180
+        rot2 = np.array([[1, 0, 0], [0, np.cos(b), np.sin(b)], [0, -np.sin(b), np.cos(b)]])
+        # apply rotation
+        qq = np.matmul(np.matmul(q, rot1), rot2)
+
+        grid.cell_data["fiber"][i] = qq[:, 0]
+        grid.cell_data["cross-fiber"][i] = qq[:, 1]
+        grid.cell_data["sheet"][i] = qq[:, 2]
+
+    return grid
+
+
+def get_cell_gradient_from_tprint(directory: str, field_list: list[str]):
+    """Read laplace fields from tprint files and convert to cell data.
+
+    Parameters
+    ----------
+    directory : str
+        directory of d3plot files
+    field_list : list[str]
+        name of each d3plot file/field
+
+    Returns
+    -------
+    pv.UnstructuredGrid
+        grid with point data of each field
+    """
+    # get mesh from first case
+    data = D3plotReader(os.path.join(directory, field_list[0] + ".d3plot"))
+    grid: pv.UnstructuredGrid = data.meshgrid
+
+    def _read_tprint(f):
+        try:
+            table = np.loadtxt(f, skiprows=14, max_rows=grid.GetNumberOfPoints())
+        except ValueError:
+            LOGGER.error(f"Unable to read tprint file of {f}")
+            exit()
+
+        ids = table[:, 0].astype(int) - 1  # makesure the order
+
+        return table[ids, 1], table[ids, 2:5]
+
+    for name in field_list:
+        f = os.path.join(directory, name + ".tprint")
+        temperature, heat_flux = _read_tprint(f)
+        grid.point_data[name] = temperature
+        grid.point_data["grad_" + name] = -heat_flux
+
+    return grid.point_data_to_cell_data()

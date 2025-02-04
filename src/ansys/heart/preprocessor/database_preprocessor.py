@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -92,7 +92,7 @@ def _get_original_labels(database: str) -> dict:
         database_labels = Rodero2021
     else:
         LOGGER.error(f"Database with name {database} not supported.")
-        return
+        return None
 
     return database_labels
 

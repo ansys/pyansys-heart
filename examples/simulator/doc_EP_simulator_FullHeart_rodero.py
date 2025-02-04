@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -70,8 +70,7 @@ path_to_model = os.path.join(workdir, "heart_model.vtu")
 # load four chamber heart model.
 model: models.FullHeart = models.FullHeart(working_directory=workdir)
 model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
-model._extract_apex()
-model.compute_left_ventricle_aha17()
+
 
 # save model.
 model.mesh.save(os.path.join(model.workdir, "simulation_model.vtu"))

@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -95,14 +95,14 @@ class ConductionSystem:
         right_atrium_endo = self.m.mesh.get_surface(self.m.right_atrium.endocardium.id)
 
         target_id = pv.PolyData(
-            self.m.mesh.nodes[right_atrium_endo.global_node_ids_triangles, :]
+            self.m.mesh.points[right_atrium_endo.global_node_ids_triangles, :]
         ).find_closest_point(target_coord)
 
         sino_atrial_node_id = right_atrium_endo.global_node_ids_triangles[target_id]
 
         sino_atrial_point = Point(
             name="SA_node",
-            xyz=self.m.mesh.nodes[sino_atrial_node_id, :],
+            xyz=self.m.mesh.points[sino_atrial_node_id, :],
             node_id=sino_atrial_node_id,
         )
         self.m.right_atrium.points.append(sino_atrial_point)
@@ -139,7 +139,7 @@ class ConductionSystem:
         # assign a point
         av_id = right_atrium_endo.global_node_ids_triangles[target_id]
         atrioventricular_point = Point(
-            name="AV_node", xyz=self.m.mesh.nodes[av_id, :], node_id=av_id
+            name="AV_node", xyz=self.m.mesh.points[av_id, :], node_id=av_id
         )
 
         self.m.right_atrium.points.append(atrioventricular_point)
@@ -209,7 +209,7 @@ class ConductionSystem:
             self.m.mesh.get_surface(self.m.right_ventricle.septum.id).global_node_ids_triangles,
         )
 
-        septum_pointcloud = pv.PolyData(self.m.mesh.nodes[septum_point_ids, :])
+        septum_pointcloud = pv.PolyData(self.m.mesh.points[septum_point_ids, :])
 
         # Define start point: closest to artria
         pointcloud_id = septum_pointcloud.find_closest_point(atrio_ventricular_node.xyz)
@@ -217,7 +217,7 @@ class ConductionSystem:
         pointcloud_id = septum_pointcloud.find_closest_point(atrio_ventricular_node.xyz)
 
         bifurcation_id = septum_point_ids[pointcloud_id]
-        bifurcation_coord = self.m.mesh.nodes[bifurcation_id, :]
+        bifurcation_coord = self.m.mesh.points[bifurcation_id, :]
 
         return bifurcation_coord
 
@@ -515,7 +515,7 @@ class ConductionSystem:
         mask[-1, 1] = False  # End point at solid
 
         tri = np.vstack((la_epi.triangles, ra_epi.triangles))
-        surface = SurfaceMesh(name="Bachman segment", triangles=tri, nodes=self.m.mesh.nodes)
+        surface = SurfaceMesh(name="Bachman segment", triangles=tri, nodes=self.m.mesh.points)
 
         #! add surface to central mesh.
         surface_id = int(np.max(self.m.mesh.surface_ids) + 1)
@@ -525,28 +525,3 @@ class ConductionSystem:
         beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="Bachman bundle")
 
         return beam_net
-
-
-if __name__ == "__main__":
-    model: FourChamber = FourChamber.load_model(
-        r"D:\ansysdev\pyansys-heart\downloads\Strocchi2020\01\FourChamber\heart_model.pickle"
-    )
-
-    test = ConductionSystem(model)
-    sa_point = test.compute_sa_node()
-    test.compute_av_node()
-
-    test.compute_av_conduction(
-        # midpoints=[[-74, 90, 388], [70, 111, 372]]
-    )
-
-    # a,b =model.compute_his_conduction()
-    a, b = test.compute_his_conduction()
-    print(a.xyz, a.node_id)
-    print(b.xyz, b.node_id)
-
-    test.compute_left_right_bundle(a.xyz, a.node_id, side="Left")
-    test.compute_left_right_bundle(b.xyz, b.node_id, side="Right")
-    test.compute_bachman_bundle(start_coord=sa_point.xyz, end_coord=np.array([-34, 163, 413]))
-
-    model.plot_purkinje()

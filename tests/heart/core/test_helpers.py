@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -28,6 +28,7 @@ import numpy as np
 from ansys.heart.core.helpers.element_orth import (
     _read_orth_element_kfile,
 )
+from ansys.heart.core.helpers.general import clean_directory
 
 _test_data = """*ELEMENT_SOLID_ORTHO
        1       1
@@ -63,3 +64,30 @@ def test_read_orth_element_kfile():
         assert np.allclose(
             conn[:, 0:4], np.array([[1, 2, 3, 4], [5, 6, 7, 8], [7, 6, 9, 8], [10, 11, 12, 13]])
         )
+
+
+def _create_mock_files(directory: str, extensions: list[str]):
+    """Create a set of mock files."""
+    mock_files = []
+    for ext in extensions:
+        file = os.path.join(directory, "file" + ext)
+        with open(file, "w") as f:
+            f.write("..")
+        mock_files = mock_files + [file]
+
+    return mock_files
+
+
+def test_cleanup_directory():
+    """Test cleaning up directory."""
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        # create several mock files
+        exts = [".msh", ".msh.h5", ".stl"]
+        _create_mock_files(tempdir, exts)
+
+        clean_directory(tempdir, extensions_to_remove=[".msh", "stl"])
+        assert os.listdir(tempdir) == ["file.msh.h5"]
+
+        _create_mock_files(tempdir, exts)
+        clean_directory(tempdir, remove_all=True)
+        assert os.listdir(tempdir) == []

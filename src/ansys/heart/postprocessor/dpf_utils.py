@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -26,25 +26,32 @@ import os
 from pathlib import Path
 from typing import List
 
-from deprecated import deprecated
 import numpy as np
-import psutil
 import pyvista as pv
 
 from ansys.dpf import core as dpf
 from ansys.heart.core import LOG as LOGGER
 
-_KILL_ANSYSCL_ON_DEL: bool = False
-"""Flag indicating whether to kill the ansys licence client upon deleting the D3PlotReader."""
+_SUPPORTED_DPF_SERVERS = ["2024.1", "2024.1rc1"]
+"""List of supported DPF Servers."""
 
 
-def _check_env():
+def _check_accept_dpf():
     if "ANSYS_DPF_ACCEPT_LA" in os.environ and os.environ["ANSYS_DPF_ACCEPT_LA"] == "Y":
         pass
     else:
-        LOGGER.warning('DPF needs to set "ANSYS_DPF_ACCEPT_LA" to "Y".')
+        LOGGER.warning(
+            """DPF requires you to accept the license agreement.
+            Set the environment variable "ANSYS_DPF_ACCEPT_LA" to "Y"."""
+        )
         exit()
     return
+
+
+class SupportedDPFServerNotFoundError(Exception):
+    """SupportedDPFServerNotFoundError."""
+
+    pass
 
 
 class D3plotReader:
@@ -59,37 +66,34 @@ class D3plotReader:
         path : Path
             d3plot file path.
         """
-        _check_env()
+        _check_accept_dpf()
 
-        _running_ansyscl_pids = set([p.pid for p in psutil.process_iter() if "ansyscl" in p.name()])
+        # TODO: retrieve version from docker
+        self._server = None
 
-        self._server = dpf.start_local_server()
+        # sort available servers from latest to oldest version.
+        available_dpf_servers = dict(reversed(dpf.server.available_servers().items()))
+        LOGGER.info(f"Available DPF Servers: {available_dpf_servers.keys()}")
+
+        for version, server in available_dpf_servers.items():
+            if version in _SUPPORTED_DPF_SERVERS:
+                LOGGER.info(f"Trying to launch DPF Server {version}")
+                self._server = server()
+                break
+
+        if self._server is None:
+            mess = f"""Failed to launch supported DPF Server:
+                        Please make sure one of {_SUPPORTED_DPF_SERVERS} is installed."""
+            LOGGER.error(mess)
+            raise SupportedDPFServerNotFoundError(mess)
 
         self.ds = dpf.DataSources()
         self.ds.set_result_file_path(path, "d3plot")
 
         self.model = dpf.Model(self.ds)
 
-        self._ansyscl_pid = [
-            p.pid
-            for p in psutil.process_iter()
-            if "ansyscl" in p.name() and p.pid not in _running_ansyscl_pids
-        ]
-        """ansyscl process id triggered by (Py)DPF."""
-
         self.meshgrid: pv.UnstructuredGrid = self.model.metadata.meshed_region.grid
         self.time = self.model.metadata.time_freq_support.time_frequencies.data
-
-    def __del__(self):
-        """Force shutdown ansyscl after use of dpf."""
-        # NOTE: kills the ansys client triggered by (py)dpf.
-        # May resolve issues when using tools using other versions of the license client.
-        if _KILL_ANSYSCL_ON_DEL:
-            try:
-                for pid in self._ansyscl_pid:
-                    psutil.Process(pid).kill()
-            except Exception as e:
-                LOGGER.info(f"Failed to kill ansyscl upon delete. {e}")
 
     def get_initial_coordinates(self):
         """Get initial coordinates."""
@@ -127,26 +131,26 @@ class D3plotReader:
         # print(self.model.operator())
         return
 
-    def get_transmembrane_potentials_fc(self, fc: dpf.FieldsContainer) -> dpf.FieldsContainer:
-        """Get sub field container."""
-        op = dpf.operators.utility.extract_sub_fc(
-            fields_container=fc,
-            label_space={"variable_id": 126},
-        )
-        return op.eval()
+    # def get_transmembrane_potentials_fc(self, fc: dpf.FieldsContainer) -> dpf.FieldsContainer:
+    #     """Get sub field container."""
+    #     op = dpf.operators.utility.extract_sub_fc(
+    #         fields_container=fc,
+    #         label_space={"variable_id": 126},
+    #     )
+    #     return op.eval()
 
-        # activation_time_field = fields_container[10]
+    #     # activation_time_field = fields_container[10]
 
-        # use to know which variable to use:
-        # lsdyna::ms::result_info_provider
+    #     # use to know which variable to use:
+    #     # lsdyna::ms::result_info_provider
 
-        # sub_fields_container: dpf.FieldsContainer = dpf.operators.utility.extract_sub_fc(
-        #     fields_container=full_fields_container,
-        #     label_space={"variable_id": 129},
-        # ).eval()
-        # sub_fields_container.animate()
-        # print(self.model.operator())
-        return
+    #     # sub_fields_container: dpf.FieldsContainer = dpf.operators.utility.extract_sub_fc(
+    #     #     fields_container=full_fields_container,
+    #     #     label_space={"variable_id": 129},
+    #     # ).eval()
+    #     # sub_fields_container.animate()
+    #     # print(self.model.operator())
+    #     return
 
     def print_lsdyna_ms_results(self):
         """Print available ms results."""
@@ -184,14 +188,6 @@ class D3plotReader:
         if time not in self.time:
             LOGGER.warning("No data at given time, results are from interpolation.")
         return self.model.results.displacement.on_time_scoping(float(time)).eval()[0].data
-
-    def get_displacement(self):
-        """Get displacement."""
-        LOGGER.warning("This method will be deprecated.")
-        res = []
-        for time in self.time:
-            res.append(self.get_displacement_at(time=time))
-        return res
 
     def get_material_ids(self):
         """Get list of material id."""
@@ -239,76 +235,6 @@ class D3plotReader:
 
         return np.array(res)
 
-    @deprecated(reason="This method will be deprecated.")
-    # TODO: @wenfengye please deprecate or replace.
-    def export_vtk(
-        self,
-        file_path: str,
-        prefix: str = "model",
-        only_surface: bool = False,
-        keep_mat_ids: List[int] = None,
-    ):
-        """Convert d3plot to vtk.
-
-        Parameters
-        ----------
-        file_path : str
-            Path to d3plot file.
-        prefix : str, optional
-            Prefix added to filename, by default "model"
-        only_surface : bool, optional
-            Flag indicating whether to export only the surface, by default False
-        keep_mat_ids : List[int], optional
-            Keep these material ids in the vtk files, by default None
-        """
-        mat_ids = self.model.metadata.meshed_region.elements.materials_field.data
-
-        if not np.all(np.isin(keep_mat_ids, np.unique(mat_ids))):
-            LOGGER.warning("Invalid material IDs, all parts will be saved.")
-            keep_mat_ids = None
-
-        if keep_mat_ids is None:
-            # keep all cells
-            keep_cells = np.ones((len(mat_ids)), dtype=bool)
-        else:
-            # keep cells by material ID
-            keep_cells = np.zeros((len(mat_ids)), dtype=bool)
-            for id in keep_mat_ids:
-                keep_cells = keep_cells | (mat_ids == id)
-
-        # displacements = self.model.results.displacement.on_all_time_freqs
-        # fields = displacements.eval()
-        fields = self.get_displacement()
-
-        for i, field in enumerate(fields):
-            # get pyvista grid
-            vista_grid = self.meshgrid.copy()
-
-            # deform mesh by displacement
-            vista_grid.points += field.data
-
-            # keep cells
-            vista_grid = vista_grid.extract_cells(keep_cells)
-
-            # extract surface
-            if only_surface:
-                vista_grid = vista_grid.extract_surface()
-
-            # export
-            vista_grid.save(os.path.join(file_path, f"{prefix}_{i}.vtk"))
-            # pyvista.save_meshio(os.path.join(file_path, f"{prefix}_{i}.vtk"),vista_grid)
-
-        # This needs Premium dpf licence
-        # op = dpf.operators.serialization.vtk_export(
-        #     export_type=0,
-        #     file_path=os.path.join(file_path,f"{prefix}_{i}.vtk"),
-        #     mesh=mesh,
-        #     # fields1=field,
-        #     # fields2=my_fields2,
-        # ).eval()
-
-        return
-
 
 class ICVoutReader:
     """Read control volume data from binout."""
@@ -321,7 +247,7 @@ class ICVoutReader:
         fn : str
             binout file path
         """
-        _check_env()
+        _check_accept_dpf()
         self._ds = dpf.DataSources()
         self._ds.set_result_file_path(fn, "binout")
         try:

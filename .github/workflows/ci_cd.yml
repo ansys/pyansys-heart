@@ -18,6 +18,7 @@ env:
   LIBRARY_NAME: 'pyansys-heart'
   LIBRARY_NAMESPACE: 'ansys.heart'
   PIP_EXTRA_INDEX_URL: 'https://${{ secrets.PYANSYS_PYPI_PRIVATE_PAT }}@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/'
+  ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
 
 jobs:
 
@@ -41,7 +42,7 @@ jobs:
   smoke-tests:
     name: "Build and Smoke tests"
     runs-on: ${{ matrix.os }}
-    needs: [code-style]
+    needs: [tests]
     strategy:
       fail-fast: false
       matrix:
@@ -84,7 +85,7 @@ jobs:
   tests:
     name: Tests
     runs-on: ${{ matrix.os }}
-    needs: [smoke-tests]
+    needs: [code-style]
     strategy:
       matrix:
 #        os: [windows-latest, macos-latest, ubuntu-latest]
@@ -101,6 +102,17 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
+
+      - name: Set Licensing
+        shell: bash
+        run: |
+          echo "ANSYS_DPF_ACCEPT_LA=Y" >> $GITHUB_ENV
+
+      - name: Install DPF
+        uses: ansys/pydpf-actions/install-dpf-server@v2.3
+        with:
+          dpf-standalone-TOKEN: ${{secrets.PYANSYS_CI_BOT_TOKEN}}
+          ANSYS_VERSION : "241"
 
       - name: Installing dependencies
         run: |

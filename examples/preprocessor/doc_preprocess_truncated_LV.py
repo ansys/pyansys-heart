@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -151,10 +151,7 @@ model._update_cap_names()
 model._validate_cap_names()
 model._extract_apex()
 
-model.compute_left_ventricle_aha17()
-
-# dump the model to disk
-model.dump_model()
+model.save_model(os.path.join(workdir, "heart_model.vtu"))
 
 # plot the clipped volume mesh.
 model.mesh.clip(crinkle=True).plot(show_edges=True)

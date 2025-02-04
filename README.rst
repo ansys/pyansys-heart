@@ -42,141 +42,14 @@ PyAnsys Heart is a `Python`_ framework for heart modeling using Ansys tools.
 
 How to install
 --------------
+Follow the instructions for `installation <https://heart.docs.pyansys.com/version/stable/getting-started/installation>`_.
 
-In user mode
-^^^^^^^^^^^^
-
-Request the value of the ``PYANSYS_PYPI_PRIVATE_READ_PAT`` token by sending an
-email to `pyansys.core@ansys.com <mailto:pyansys.core@ansys.com>`_,
-then fill in the its value in place of ``<TOKEN>`` to export the following environment variables:
-
-1. Create a fresh Python environment and activate it. Make sure you use one of
-    the supported Python versions. Refer to the official `venv`_  or `conda`_ documentation
-    if you require further information:
-
-Using `venv`_:
-
-.. code:: bash
-
-      # Create a virtual environment
-      python -m venv .venv
-      # Activate environment:
-      # POSIX systems:
-      source .venv/bin/activate
-      # Windows cmd shell:
-      .venv\Scripts\activate.bat
-      # or in Windows powershell
-      .venv\Scripts\Activate.ps1
-
-Using `conda`_:
-
-.. code:: bash
-
-      # Create virtual environment with a given Python version
-      conda create --name my-venv python=3.10
-      # Activate the environment
-      conda activate my-venv
-
-2. Install the project in your virtual environment, specifying the right token:
-
-.. code:: bash
-
-    pip install pyansys-heart==0.6.1 --index-url=https://<TOKEN>@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/
-
-.. note::
-
-    You can also use environment variables to format the `-index-url` with the token value and URL.
-
-
-In editable mode
-^^^^^^^^^^^^^^^^
-
+Contributing:
+-------------
 Installing PyAnsys-Heart in developer mode allows
 you to modify the source and enhance it.
 
-Before contributing to the project, please refer to the `PyAnsys Developer's guide`_. You will
-need to follow these steps:
-
-1. Start by cloning this repository:
-
-.. code:: bash
-
-    git clone https://github.com/ansys/pyansys-heart
-
-Since this is a private repository you may need to provide your github username.
-Alternatively you can download and unpack the zip file from `PyAnsys Heart`_
-
-2. Create a fresh Python environment and activate it. Make sure you use one of the supported Python versions. Refer to the official `venv`_  or `conda`_ documentation if you require further information:
-
-Using `venv`_:
-
-.. code:: bash
-
-    # Create a virtual environment
-    python -m venv .venv
-    # Activate environment:
-    # POSIX systems:
-    source .venv/bin/activate
-    # Windows cmd shell:
-    .venv\Scripts\activate.bat
-    # or in Windows powershell
-    .venv\Scripts\Activate.ps1
-
-Using `conda`_:
-
-.. code:: bash
-
-    # Create virtual environment with a given Python version
-    conda create --name my-venv python=3.10
-    # Activate the environment
-    conda activate my-venv
-
-3. Make sure you have the latest version of `pip`_ installed in your virtual environment.
-
-.. code:: bash
-
-    python -m pip install -U pip
-
-Install the project in editable mode by pointing to the right location:
-
-.. code:: bash
-
-    python -m pip install --editable .
-
-5. Install additional requirements, such as dependencies to build documentation or run (unit)tests:
-
-.. code:: bash
-
-    # dependencies for local doc building
-    python -m pip install -e .[doc]
-    # dependencies needed for (unit) testing
-    python -m pip install -e .[tests]
-
-6. You may verify your development version by running all or a set of tests:
-
-.. code:: bash
-
-    python -m pip install -e .[tests]
-
-    # run quick tests
-    python -m pytest -v -m "not requires_fluent or (not extract_models)"
-
-    # run tests requiring Fluent
-    python -m pytest -v -m requires_fluent
-
-    # run all tests
-    pytest tests -v
-
-
-Style and Testing
------------------
-
-If required, you can always call the style commands (`black`_, `isort`_,
-`flake8`_...) or unit testing ones (`pytest`_) from the command line. Alternatively, you can
-use `pre-commit`_, which will ensure that all style requirements are met. However,
-this does not guarantee that your project is being tested in an isolated
-environment, which is another reason to consider using `tox`_.
-
+Before contributing to the project, please refer to the `PyAnsys Developer's guide`_ and `contributing <https://heart.docs.pyansys.com/version/stable/contributing>`_ page.
 
 Documentation and issues
 ------------------------
@@ -196,7 +69,6 @@ To reach the project support team, email `pyansys.core@ansys.com <mailto:pyansys
 
 License
 -------
-
 PyAnsys Heart is licensed under the MIT license. Please refer to the `LICENSE` file for more information.
 PyAnsys Heart makes no commercial claim over any Ansys products whatsoever.
 This library extends the functionality of the listed Ansys products by adding a Python interface

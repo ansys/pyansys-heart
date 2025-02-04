@@ -43,6 +43,11 @@ Software
     - Pre-processor
     - `Ansys Customer Portal`_
 
+  * - Ansys DPF Server
+    - R24R1
+    - Post-processor
+    - `Ansys Customer Portal`_
+
   * - Ansys LS-DYNA
     - R16.0
     - Simulator
@@ -50,7 +55,7 @@ Software
 
 .. Note::
 
-    Fluent is required for meshing.
+    Fluent is required for meshing. Also note that currently the postprocessor module is only compatible with Ansys DPF Server R24R1.
 
 
 .. _Ansys Customer Portal: https://support.ansys.com/Home/HomePage

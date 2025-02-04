@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -27,11 +27,17 @@ import os
 import tempfile
 
 import pyvista as pv
+from pyvista import examples
+
+from ansys.heart.core.objects import Mesh, PartType
 
 if os.getenv("GITHUB_ACTIONS"):
     is_gh_action = True
 else:
     is_gh_action = False
+
+from pathlib import Path
+import unittest.mock as mock
 
 import numpy as np
 import pytest
@@ -41,22 +47,21 @@ import ansys.heart.core.models as models
 
 def test_dump_model_001():
     """Test dumping of model to disk."""
-    from pathlib import Path
 
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         model = models.BiVentricle(working_directory=workdir)
 
         expected_path = os.path.join(model.workdir, "heart_model.pickle")
 
-        model.dump_model()
+        model._dump_model()
         assert os.path.isfile(expected_path)
 
         expected_path = os.path.join(model.workdir, "heart_model1.pickle")
-        model.dump_model(expected_path)
+        model._dump_model(expected_path)
         assert os.path.isfile(expected_path)
 
         expected_path = Path(os.path.join(model.workdir, "heart_model2.pickle"))
-        model.dump_model(expected_path)
+        model._dump_model(expected_path)
         assert os.path.isfile(expected_path)
 
 
@@ -69,7 +74,7 @@ def test_model_load_001():
         model.left_ventricle.endocardium.triangles = np.array([[0, 1, 2]], dtype=int)
         model.left_ventricle.endocardium.nodes = np.eye(3, 3, dtype=float)
 
-        model.dump_model()
+        model._dump_model()
 
         assert os.path.isfile(path_to_model)
 
@@ -106,14 +111,16 @@ def test_model_load_002():
             + 10
         )
 
-        model.mesh.tetrahedrons = np.array([[0, 1, 2, 3]], dtype=int)
-        model.mesh.nodes = np.array(
+        points = np.array(
             [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=float
         )
+        cells = np.array([4, 0, 1, 2, 3], dtype=int)
+        celltypes = [pv.CellType.TETRA]
+        model.mesh = Mesh(cells, celltypes, points)
 
         # dump model to disk
         path_to_heart_model = os.path.join(workdir, "heart_model.pickle")
-        model.dump_model(path_to_heart_model)
+        model._dump_model(path_to_heart_model)
 
         assert os.path.isfile(path_to_heart_model), "File does not exist"
 
@@ -134,7 +141,7 @@ def test_model_load_002():
             model.right_ventricle.endocardium.triangles,
         )
         assert np.array_equal(model1.mesh.tetrahedrons, model.mesh.tetrahedrons)
-        assert np.allclose(model1.mesh.nodes, model.mesh.nodes, atol=1e-8)
+        assert np.allclose(model1.mesh.points, model.mesh.points, atol=1e-8)
 
     pass
 
@@ -177,12 +184,6 @@ def test_model_part_names(model_type, expected_part_names):
 
 def test_load_from_mesh():
     """Test loading mesh from mesh file and id map."""
-    # define an arbitrary mesh.
-    import pyvista as pv
-    from pyvista import examples
-
-    from ansys.heart.core.objects import Mesh, PartType
-
     # generate a dummy mesh.
     #! Note, can modify to create something more meaningful,
     #! e.g. a sphere with inner/outer surface and caps.
@@ -241,7 +242,13 @@ def test_load_from_mesh():
         with open(part_info_path, "w") as f:
             json.dump(part_info, f, indent=4)
 
-        model.load_model_from_mesh(mesh_path, part_info_path)
+        with mock.patch("ansys.heart.core.models.BiVentricle._extract_apex") as mock_extract_apex:
+            with mock.patch(
+                "ansys.heart.core.models.BiVentricle._define_anatomy_axis"
+            ) as mock_define_axis:
+                model.load_model_from_mesh(mesh_path, part_info_path)
+                mock_extract_apex.assert_called_once()
+                mock_define_axis.assert_called_once()
 
         assert model.part_names == list(part_info.keys())
 
@@ -282,3 +289,55 @@ def test_model_get_set_axes():
     assert len(set(model.l2cv_axis) - set(test_axis)) == 0
     assert len(set(model.l4cv_axis) - set(test_axis)) == 0
     assert len(set(model.short_axis) - set(test_axis)) == 0
+
+
+def test_heart_model_add_purkinje_from_file():
+    """Test adding a purkinje network from a file."""
+    lines = """*KEYWORD
+*NODE +
+              123932  0.117289119795E+03  0.244318845738E+02  0.883234881118E+01
+              123933  0.116478727414E+03  0.250487507439E+02  0.795046863408E+01
+              123934  0.116515199453E+03  0.236812534885E+02  0.963833959240E+01
+*ELEMENT_BEAM
+  560893       8  123932  123933
+  560894       8  123932  123934
+*END"""
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        model = models.HeartModel(tempdir)
+        temp_path = os.path.join(tempdir, "purkinje1.k")
+        with open(temp_path, "w") as f:
+            f.writelines(lines)
+        model.add_purkinje_from_kfile(temp_path, "purkinje1")
+
+        assert len(model.beam_network) == 1
+        assert model.beam_network[0].pid == 8
+        assert model.beam_network[0].name == "purkinje1"
+        assert np.all(model.beam_network[0].edges == np.array([[0, 1], [0, 2]]))
+        assert np.allclose(
+            model.beam_network[0].points,
+            np.array(
+                [
+                    [0.117289119795e03, 0.244318845738e02, 0.883234881118e01],
+                    [0.116478727414e03, 0.250487507439e02, 0.795046863408e01],
+                    [0.116515199453e03, 0.236812534885e02, 0.963833959240e01],
+                ]
+            ),
+        )
+
+
+def test_create_stiff_ventricle_base():
+    """Test creating a stiff ventricle base."""
+    model = models.BiVentricle()
+    # create a test mesh (apico-basal coordinate defined by z-coordinate)
+    mesh = examples.load_tetbeam()
+    mesh.cell_data["_volume-id"] = 1
+    mesh.point_data["apico-basal"] = mesh.points[:, 2] / 5
+
+    mesh1 = Mesh()
+    mesh1.add_volume(mesh, id=1, name="Left ventricle")
+    model.mesh = mesh1
+    model.left_ventricle.element_ids = np.arange(0, model.mesh.n_cells)
+
+    part = model.create_stiff_ventricle_base()
+    assert len(part.element_ids) == 20
+    assert np.all(part.element_ids == np.arange(180, 200))

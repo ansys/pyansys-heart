@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -42,7 +42,7 @@ def _mock_input():
     """Mock biventricular model."""
     mesh = pv.examples.load_tetbeam()
     mesh.points = mesh.points * 1e1
-    mesh.cell_data["part-id"] = 1
+    mesh.cell_data["_volume-id"] = 1
     fibers = np.repeat([1.0, 0.0, 0.0], mesh.n_cells, axis=0).reshape((3, mesh.n_cells)).T
     mesh.cell_data["fiber"] = fibers
 
@@ -61,7 +61,7 @@ def _mock_input():
     mock_biventricle.mesh.add_surface(pv.Disc(), id=1, name="valve")
 
     # add mock purkinje data.
-    lines = pv.line_segments_from_points([[0, 0, 0], [1, 0, 0]])
+    lines = pv.line_segments_from_points([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
     beams = BeamMesh(name="beams")
     beams.nodes = lines.points
     beams.edges = np.array([lines.lines[1:]])

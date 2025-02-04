@@ -608,7 +608,7 @@ def mesh_from_non_manifold_input_model(
     mesh_size_per_part: dict = None,
     _wrap_size_per_part: dict = None,
 ) -> FluentMesh:
-    """Generate mesh from non-manifold poor quality input model.
+    """Generate mesh from a non-manifold poor quality input model.
 
     Parameters
     ----------
@@ -618,10 +618,16 @@ def mesh_from_non_manifold_input_model(
         Working directory.
     path_to_output : Union[str, Path]
         Path to the resulting Fluent mesh file.
-    mesh_size : float, optional
-        Uniform mesh size to use for both wrapping and filling the volume, by default 2.0
+    global_mesh_size : float, optional
+        Uniform mesh size to use for all volumes and surfaces, by default 2.0
+    _global_wrap_size : float, optional
+        Global size used by the wrapper to reconstruct the geometry, by default 1.5
+    overwrite_existing_mesh : bool, optional
+        Flag indicating whether to overwrite an existing mesh, by default True
     mesh_size_per_part : dict, optional
-        Dictionary specifying the mesh size that should be used for each part, by default None.
+        Dictionary specifying the mesh size that should be used for each part, by default None
+    _wrap_size_per_part : dict, optional
+        Dictionary specifying the mesh size that should be used to wrap each part, by default None
 
     Notes
     -----
@@ -631,7 +637,12 @@ def mesh_from_non_manifold_input_model(
 
     When specifying a mesh size per part, you can do that by either specifying that for all
     parts, or for specific parts. The default mesh size will be used for any part not listed
-    in the dictionary.
+    in the dictionary. This also applies to the wrapping step. The user can control the wrap size
+    per part, or on a global level. By default a size of 1.5 mm is used: but is not guaranteed to
+    give good results.
+
+    Note that a post-wrap remesh is triggered if the wrap size is not equal to the target mesh size.
+    Remeshing may fail if the target mesh size deviates too much from the wrap size.
 
     Returns
     -------

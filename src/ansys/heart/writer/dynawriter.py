@@ -334,7 +334,6 @@ class BaseDynaWriter:
             caps = [cap for part in self.model.parts for cap in part.caps]
             for cap in caps:
                 cap_mesh = self.model.mesh.get_surface(cap._mesh.id)
-                self._mesh = cap_mesh  #! not sure this is properly updated.
                 segid = self.get_unique_segmentset_id()
                 cap._mesh._seg_set_id = segid
                 cap._seg_set_id = segid
@@ -759,7 +758,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.system_model_name = self.settings.mechanics.system.name
         """Name of system model to use."""
 
-        self.set_flow_area: bool = False
+        self.set_flow_area: bool = True
         """If flow area is set for control volume."""
         return
 
@@ -804,6 +803,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._update_segmentsets_db(add_caps=True)
         self._update_nodesets_db()
 
+        # for mesh
         if not with_dynain:
             self._update_node_db()
             self._update_solid_elements_db(add_fibers=True)
@@ -814,7 +814,18 @@ class MechanicsDynaWriter(BaseDynaWriter):
             # cap mesh has been defined in Zerop and saved in dynain file
             self._update_cap_elements_db(add_mesh=False)
 
-        # # for control volume
+        # for boundary conditions
+        if robin_bcs is None:
+            # default BC
+            self._add_cap_bc(bc_type="springs_caps")
+        else:
+            # loop for every Robin BC function
+            for robin_bc in robin_bcs:
+                self.kw_database.boundary_conditions.extend(robin_bc())
+
+        self._add_pericardium_bc()
+
+        # for control volume
         system_settings = copy.deepcopy(self.settings.mechanics.system)
         system_settings._remove_units()
 
@@ -955,17 +966,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         #     pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
         #     pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
         #     self._add_constant_atrial_pressure(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
-
-        # for boundary conditions
-        if robin_bcs is None:
-            # default BC
-            self._add_cap_bc(bc_type="springs_caps")
-        else:
-            # loop for every Robin BC function
-            for robin_bc in robin_bcs:
-                self.kw_database.boundary_conditions.extend(robin_bc())
-
-        self._add_pericardium_bc()
 
         self._get_list_of_includes()
         self._add_includes()
@@ -1774,11 +1774,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             if self.set_flow_area:
                 # DEFINE_CONTROL_VOLUME_FLOW_AREA
-                # This is necessary for truncated LV/BV model
                 sid = self.get_unique_segmentset_id()
                 sets = []
                 for cap in part.caps:
-                    sets.append(cap._mesh._seg_set_id)
+                    sets.append(cap._seg_set_id)
                 if len(sets) % 8 == 0:  # dynalib bug when length is 8,16,...
                     sets.append(0)
                 self.kw_database.control_volume.append(keywords.SetSegmentAdd(sid=sid, sets=sets))
@@ -3614,7 +3613,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         self.system_model_name = self.settings.mechanics.system.name
         """Name of system model to use, from MechanicWriter"""
 
-        self.set_flow_area = False
+        self.set_flow_area = True
         """from MechanicWriter"""
 
     def update(self, with_dynain=False, robin_bcs=None):

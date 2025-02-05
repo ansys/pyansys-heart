@@ -1,7 +1,28 @@
 *KEYWORD
+*SECTION_SHELL
+$#   secid    elform      shrf       nip     propt   qr/irid     icomp     setyp
+         8         4    0.8333         3       1.0         0         0         1
+$#      t1        t2        t3        t4      nloc     marea      idof    edgset
+       1.0       0.0       0.0       0.0       0.0       0.0       0.0         0
+*MAT_NULL
+$#     mid        ro        pc        mu     terod     cerod        ym        pr
+        15     0.001                                                            
+*PART
+$#                                                             heading
+null flow area                                                        
+$#     pid     secid       mid     eosid      hgid      grav    adpopt      tmid
+        27         8        15                                                  
 *DEFINE_CONTROL_VOLUME
 $#      id       sid        p0
          1         1          
+*SET_SEGMENT_ADD
+$#     sid
+        29
+$#    sets      sets
+        16        17
+*DEFINE_CONTROL_VOLUME_FLOW_AREA
+$#    FAID     FCIID     FASID   FASTYPE       PID
+         1         1        29         2        27
 *DEFINE_CONTROL_VOLUME_INTERACTION
 $#      id     cvid1     cvid2     lcid      area 
          1         1         0         2          
@@ -139,6 +160,14 @@ $   LSDYNA defines outflow as positive
 *DEFINE_CONTROL_VOLUME
 $#      id       sid        p0
          2         2          
+*SET_SEGMENT_ADD
+$#     sid
+        30
+$#    sets      sets
+        18        19
+*DEFINE_CONTROL_VOLUME_FLOW_AREA
+$#    FAID     FCIID     FASID   FASTYPE       PID
+         2         2        30         2        27
 *DEFINE_CONTROL_VOLUME_INTERACTION
 $#      id     cvid1     cvid2     lcid      area 
          2         2         0         3          
@@ -276,6 +305,14 @@ $   LSDYNA defines outflow as positive
 *DEFINE_CONTROL_VOLUME
 $#      id       sid        p0
          3         3          
+*SET_SEGMENT_ADD
+$#     sid
+        31
+$#    sets      sets      sets      sets      sets      sets
+        20        21        22        23        24        25
+*DEFINE_CONTROL_VOLUME_FLOW_AREA
+$#    FAID     FCIID     FASID   FASTYPE       PID
+         3         3        31         2        27
 *DEFINE_CONTROL_VOLUME_INTERACTION
 $#      id     cvid1     cvid2     lcid      area 
          3         3         0         4          
@@ -310,6 +347,14 @@ float valve_mitral(float t, float dp)
 *DEFINE_CONTROL_VOLUME
 $#      id       sid        p0
          4         4          
+*SET_SEGMENT_ADD
+$#     sid
+        32
+$#    sets      sets      sets
+        26        27        28
+*DEFINE_CONTROL_VOLUME_FLOW_AREA
+$#    FAID     FCIID     FASID   FASTYPE       PID
+         4         5        32         2        27
 *DEFINE_CONTROL_VOLUME_INTERACTION
 $#      id     cvid1     cvid2     lcid      area 
          5         4         0         6          

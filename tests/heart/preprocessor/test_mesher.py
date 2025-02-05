@@ -169,6 +169,7 @@ def test_meshing_for_non_manifold():
         tmpdir.name,
         mesh_file,
         global_mesh_size=0.1,
+        _global_wrap_size=0.1,
         mesh_size_per_part={"Part1": 0.15},
     )
 

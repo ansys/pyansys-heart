@@ -32,7 +32,9 @@ from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.simulator.settings.settings import AtrialFiber
 
 
-def read_laplace_solution(directory: str, field_list: list[str]) -> pv.UnstructuredGrid:
+def read_laplace_solution(
+    directory: str, field_list: list[str], read_heatflux: bool = False
+) -> pv.UnstructuredGrid:
     """Read laplace fields from d3plot files.
 
     Parameters
@@ -66,8 +68,10 @@ def read_laplace_solution(directory: str, field_list: list[str]) -> pv.Unstructu
             exit()
 
         grid.point_data[name] = np.array(t, dtype=float)
-        last_step = data.model.metadata.time_freq_support.n_sets
-        grid.point_data["grad_" + name] = -data.get_heatflux(last_step)
+
+        if read_heatflux:
+            last_step = data.model.metadata.time_freq_support.n_sets
+            grid.point_data["grad_" + name] = -data.get_heatflux(last_step)
 
     return grid.copy()
 
@@ -230,8 +234,8 @@ def compute_la_fiber_cs(
         return
 
     solutions = ["trans", "ab", "v", "r"]
-    data = read_laplace_solution(directory, field_list=solutions)
-    grid = compute_cell_gradient(data, field_list=solutions)
+    data = read_laplace_solution(directory, field_list=solutions, read_heatflux=True)
+    grid = data.point_data_to_cell_data()
 
     if endo_surface is not None:
         grid.cell_data["grad_trans"] = update_transmural_by_normal(grid, endo_surface)
@@ -369,8 +373,8 @@ def compute_ra_fiber_cs(
         return
 
     solution = ["trans", "ab", "v", "r", "w"]
-    data = read_laplace_solution(directory, field_list=solution)
-    grid = compute_cell_gradient(data, field_list=solution)
+    data = read_laplace_solution(directory, field_list=solution, read_heatflux=True)
+    grid = data.point_data_to_cell_data()
 
     if endo_surface is not None:
         grid.cell_data["grad_trans"] = update_transmural_by_normal(grid, endo_surface)
@@ -413,9 +417,10 @@ def compute_ventricle_fiber_by_drbm(
         grid contains `fiber`,`cross-fiber`,`sheet` vectors
     """
     solutions = ["trans", "ab_l", "ab_r", "ot_l", "ot_r", "w_l", "w_r", "lr"]
-    # data = read_laplace_solution(directory, field_list=solutions)
+    data = read_laplace_solution(directory, field_list=solutions, read_heatflux=True)
+    grid = data.point_data_to_cell_data()
     # grid = compute_cell_gradient(data, field_list=solutions)
-    grid = get_cell_gradient_from_tprint(directory, field_list=solutions)
+    # grid = get_cell_gradient_from_tprint(directory, field_list=solutions)
 
     # left/right ventricle label
     left_mask = grid["lr"] >= 0

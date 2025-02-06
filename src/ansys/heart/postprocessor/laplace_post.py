@@ -66,8 +66,10 @@ def read_laplace_solution(directory: str, field_list: list[str]) -> pv.Unstructu
             exit()
 
         grid.point_data[name] = np.array(t, dtype=float)
+        last_step = data.model.metadata.time_freq_support.n_sets
+        grid.point_data["grad_" + name] = -data.get_heatflux(last_step)
 
-    return grid
+    return grid.copy()
 
 
 def compute_cell_gradient(grid: pv.UnstructuredGrid, field_list: list[str]) -> pv.UnstructuredGrid:

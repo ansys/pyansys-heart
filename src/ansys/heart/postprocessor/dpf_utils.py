@@ -235,6 +235,25 @@ class D3plotReader:
 
         return np.array(res)
 
+    def get_heatflux(self, step: int = 2) -> np.ndarray:
+        """Get nodal heat flux vector from d3plot.
+
+        Parameters
+        ----------
+        step : int, optional
+            time step, by default 2
+
+        Returns
+        -------
+        np.ndarray
+            heat flux
+        """
+        op = dpf.Operator("lsdyna::d3plot::TF")
+        op.inputs.data_sources(self.ds)
+        time_scoping = dpf.Scoping(ids=[step], location=dpf.locations.time_freq)
+        op.inputs.time_scoping(time_scoping)
+        return op.eval()[0].data
+
 
 class ICVoutReader:
     """Read control volume data from binout."""

@@ -101,7 +101,7 @@ def test_compute_ventricle_fiber_by_drbm():
     input_grid = pv.read(os.path.join(dir, "data.vtu"))
 
     with mock.patch(
-        "ansys.heart.postprocessor.laplace_post.get_cell_gradient_from_tprint",
+        "ansys.heart.postprocessor.laplace_post.read_laplace_solution",
         return_value=input_grid,
     ):
         res = compute_ventricle_fiber_by_drbm(".")

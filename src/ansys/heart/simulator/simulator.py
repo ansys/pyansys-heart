@@ -165,6 +165,7 @@ class BaseSimulator:
         export_directory = os.path.join(self.root_directory, "D-RBM")
         target = self.run_laplace_problem(export_directory, type="D-RBM")
         grid = compute_ventricle_fiber_by_drbm(export_directory, settings=rotation_angles)
+        grid.save(os.path.join(export_directory, "drbm_fibers.vtu"))
 
         # arrays that save ID map to full model
         grid["cell_ids"] = target["cell_ids"]
@@ -272,6 +273,7 @@ class BaseSimulator:
         ra_pv = compute_ra_fiber_cs(
             export_directory, self.settings.atrial_fibers, endo_surface=endo_surface
         )
+        ra_pv.save(os.path.join(export_directory, "ra_fiber.vtu"))
         LOGGER.info("Generating fibers done.")
 
         # arrays that save ID map to full model
@@ -317,7 +319,7 @@ class BaseSimulator:
         la_pv = compute_la_fiber_cs(
             export_directory, self.settings.atrial_fibers, endo_surface=endo_surface
         )
-
+        la_pv.save(os.path.join(export_directory, "la_fiber.vtu"))
         LOGGER.info("Generating fibers done.")
 
         # arrays that save ID map to full model

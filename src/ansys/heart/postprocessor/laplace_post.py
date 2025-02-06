@@ -248,7 +248,7 @@ def compute_la_fiber_cs(
     grid.cell_data["e_n"] = en
     grid.cell_data["e_t"] = et
 
-    return grid
+    return grid.copy()
 
 
 def compute_ra_fiber_cs(
@@ -387,7 +387,7 @@ def compute_ra_fiber_cs(
     grid.cell_data["e_n"] = en
     grid.cell_data["e_t"] = et
 
-    return grid
+    return grid.copy()
 
 
 def compute_ventricle_fiber_by_drbm(
@@ -526,7 +526,7 @@ def compute_ventricle_fiber_by_drbm(
         grid.cell_data["cross-fiber"][i] = qq[:, 1]
         grid.cell_data["sheet"][i] = qq[:, 2]
 
-    return grid
+    return grid.copy()
 
 
 def get_cell_gradient_from_tprint(directory: str, field_list: list[str]):

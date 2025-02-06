@@ -147,9 +147,6 @@ class BaseSimulator:
             if isinstance(self.model, LeftVentricle):
                 LOGGER.error(f"{method} not supported for LeftVentricle model.")
                 exit()
-            if self.dyna_settings.dynatype != "smp":
-                LOGGER.error(f"{method} can only be used in within SMP executables")
-                exit()
 
             if rotation_angles is None:
                 # find default settings

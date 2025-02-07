@@ -460,12 +460,23 @@ class ConductionSystem:
         )
 
         new_nodes = bundle_branch.points
+        original_ids =np.zeros(len(new_nodes))
+        for idx, new_node in enumerate(new_nodes):
+            original_ids[idx] = self.m.mesh.find_closest_point(new_node)
         new_nodes = _refine_line(new_nodes, beam_length=beam_length)
+
         # exclude first and last (apex) node which belongs to purkinje beam
+
+        original_ids = original_ids[1:-1]
         new_nodes = new_nodes[1:-1, :]
+
+        
         point_ids = np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int)
+        if side == "Left":
+            point_ids = original_ids.astype(int)
         point_ids = np.insert(point_ids, 0, start_id)
         apex = ventricle.apex_points[0].node_id
+        
         for network in self.m.beam_network:
             if network.name == side + "-purkinje":
                 apex = network.edges[0, 0]
@@ -474,6 +485,9 @@ class ConductionSystem:
         edges = np.vstack((point_ids[:-1], point_ids[1:])).T
 
         mask = np.ones(edges.shape, dtype=bool)
+        if side == "Left":
+            mask = np.zeros(edges.shape, dtype=bool)
+            new_nodes = np.empty((0,3))
         mask[0, 0] = False  # His end point of previous, no offset at creation
         mask[-1, -1] = False  # Apex point, no offset
 

@@ -31,7 +31,6 @@ from ansys.heart.postprocessor.laplace_post import (
     compute_la_fiber_cs,
     compute_ra_fiber_cs,
     compute_ventricle_fiber_by_drbm,
-    get_cell_gradient_from_tprint,
 )
 from ansys.heart.simulator.settings.settings import AtrialFiber
 from tests.heart.conftest import get_assets_folder
@@ -107,18 +106,3 @@ def test_compute_ventricle_fiber_by_drbm():
         res = compute_ventricle_fiber_by_drbm(".")
         assert np.sum(res["label"] == 1) == 86210
         assert np.allclose(res["fiber"][0], np.array([0.03515216, 0.964732, 0.26087638]))
-
-
-def test_get_cell_gradient_from_tprint():
-    dir = os.path.join(get_assets_folder(), "post", "drbm")
-    input_grid = pv.read(os.path.join(dir, "data.vtu"))
-
-    mock_d3plot = mock.MagicMock()
-    mock_d3plot.meshgrid = input_grid
-
-    with mock.patch(
-        "ansys.heart.postprocessor.laplace_post.D3plotReader", return_value=mock_d3plot
-    ):
-        grid = get_cell_gradient_from_tprint(dir, ["trans"])
-        assert "trans" in grid.cell_data.keys()
-        assert "grad_trans" in grid.cell_data.keys()

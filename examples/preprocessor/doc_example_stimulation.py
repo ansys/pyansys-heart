@@ -141,9 +141,7 @@ if (
     pl.add_mesh(model.mesh, color="lightgrey", opacity=0.2)
     pl.show()
 
-    stim_uvc = Stimulation(
-        node_ids=list(node_ids), t_start=0, period=800, duration=2, amplitude=50
-    )
+    stim_uvc = Stimulation(node_ids=list(node_ids), t_start=0, period=800, duration=2, amplitude=50)
     settings.electrophysiology.stimulation["stim_uvc"] = stim_uvc
 
 # specify LS-DYNA path

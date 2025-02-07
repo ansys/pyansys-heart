@@ -3237,6 +3237,15 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     elif network.name == "Bachman bundle":
                         stim_nodes.append(network.edges[0, 0])  # SA node on epi, solid node
                         stim_nodes.append(network.edges[1, 0])
+
+        # stimule entire elements for Eikonal
+        if self.settings.electrophysiology.analysis.solvertype in [
+            "Eikonal",
+            "ReactionEikonal",
+        ]:
+            stim_cells = np.where(np.isin(self.model.mesh.tetrahedrons, stim_nodes))[0]
+            stim_nodes = np.unique(self.model.mesh.tetrahedrons[stim_cells].ravel())
+
         return stim_nodes
 
     def _update_blood_settings(self):

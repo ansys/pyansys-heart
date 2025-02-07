@@ -23,6 +23,15 @@ $#      dt    binary      lcur     ioopt
 *DATABASE_TPRINT
 $#      dt    binary      lcur     ioopt
        1.0         0         0         1
+*DATABASE_EXTENT_BINARY
+$#   neiph     neips    maxint    strflg    sigflg    epsflg    rltflg    engflg
+         0         0         3         0         1         1         1         1
+$#  cmpflg    ieverp    beamip     dcomp      shge     stssz    n3thdt   ialemat
+         0         0         0         1         1         1         2         1
+$# nintsld   pkp_sen      sclp     hydro     msscl     therm    intout    nodout
+         0         0       1.0         0         0         2                    
+$#    dtdt    resplt     neipb   quadsld    cubsld   deleres
+         0         0                   0         0         0
 *CONTROL_TERMINATION
 $#  endtim    endcyc     dtmin    endeng    endmas     nosol
        1.0         0       1.0       0.0     1e+08         0

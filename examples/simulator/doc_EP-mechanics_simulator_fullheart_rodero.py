@@ -150,10 +150,6 @@ ring.meca_material = NeoHookean(rho=0.001, c10=0.1, nu=0.499)
 # assign default EP material as for atrial
 ring.ep_material = EPMaterial.Active()
 
-# Isolate arteries
-simulator.model.get_part("Aorta").ep_material = EPMaterial.Insulator()
-simulator.model.get_part("Pulmonary artery").ep_material = EPMaterial.Insulator()
-
 # Compute universal coordinates:
 simulator.compute_uhc()
 

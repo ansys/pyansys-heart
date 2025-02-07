@@ -44,8 +44,8 @@ purkinje network and conduction system and finally simulate the electrophysiolog
 import os
 
 import ansys.heart.core.models as models
-from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 from ansys.heart.core.objects import Point
+from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
 
 # accept dpf license aggrement
@@ -183,8 +183,8 @@ simulator.model.plot_purkinje()
 
 
 # Isolate arteries
-simulator.model.get_part('Aorta').ep_material=EPMaterial.Insulator()
-simulator.model.get_part('Pulmonary artery').ep_material=EPMaterial.Insulator()
+simulator.model.get_part("Aorta").ep_material = EPMaterial.Insulator()
+simulator.model.get_part("Pulmonary artery").ep_material = EPMaterial.Insulator()
 
 
 # simulate using the default EP solver type (Monodomain)

@@ -24,6 +24,7 @@
 
 import os
 
+from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 
@@ -76,6 +77,7 @@ def read_laplace_solution(
     return grid.copy()
 
 
+@deprecated(reason="transmural direction can be automatically read by d3plot heat flux.")
 def update_transmural_by_normal(grid: pv.UnstructuredGrid, surface: pv.PolyData) -> np.ndarray:
     """Use surface normal for transmural direction.
 
@@ -395,8 +397,6 @@ def compute_ventricle_fiber_by_drbm(
     solutions = ["trans", "ab_l", "ab_r", "ot_l", "ot_r", "w_l", "w_r", "lr"]
     data = read_laplace_solution(directory, field_list=solutions, read_heatflux=True)
     grid = data.point_data_to_cell_data()
-    # grid = compute_cell_gradient(data, field_list=solutions)
-    # grid = get_cell_gradient_from_tprint(directory, field_list=solutions)
 
     # left/right ventricle label
     left_mask = grid["lr"] >= 0

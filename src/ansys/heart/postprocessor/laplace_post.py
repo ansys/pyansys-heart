@@ -76,30 +76,6 @@ def read_laplace_solution(
     return grid.copy()
 
 
-def compute_cell_gradient(grid: pv.UnstructuredGrid, field_list: list[str]) -> pv.UnstructuredGrid:
-    """Compute cell gradient.
-
-    Parameters
-    ----------
-    grid : pv.UnstructuredGrid
-        grid with point data associated
-    field_list : list[str]
-        name of cell data
-
-    Returns
-    -------
-    pv.UnstructuredGrid
-        grid with gradient vectors in cell data
-    """
-    grid2 = grid.point_data_to_cell_data()
-    for name in field_list:
-        derivative = grid2.compute_derivative(scalars=name, preference="cell")
-        res = derivative["gradient"]
-        grid2["grad_" + name] = res
-
-    return grid2
-
-
 def update_transmural_by_normal(grid: pv.UnstructuredGrid, surface: pv.PolyData) -> np.ndarray:
     """Use surface normal for transmural direction.
 

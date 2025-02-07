@@ -3387,6 +3387,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 # need to create the segment on which beam elements rely
                 surface = self._add_segment_from_surface(name="his_bundle_segment")
                 network._node_set_id = surface._seg_set_id
+            elif network.name == "Left fascicle":
+                network._node_set_id = self.model.left_ventricle.cavity.surface._seg_set_id
             elif network.name == "Bachman bundle":
                 # His bundle are inside of 3d mesh
                 # need to create the segment on which beam elements rely

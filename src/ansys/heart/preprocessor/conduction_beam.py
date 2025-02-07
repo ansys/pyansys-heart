@@ -508,15 +508,22 @@ class ConductionSystem:
         """Compute Bachman bundle conduction system."""
         la_epi = self.m.left_atrium.epicardium
         ra_epi = self.m.right_atrium.epicardium
+        surface_ids = [la_epi.id, ra_epi.id]
+        endo_surface = self.m.mesh.get_surface(surface_ids)
 
-        start_id = self._get_closest_point_id(ra_epi, start_coord)
-        end_id = self._get_closest_point_id(la_epi, end_coord)
+        path = endo_surface.geodesic(
+            endo_surface.find_closest_point(start_coord),
+            endo_surface.find_closest_point(end_coord),
+        )
 
-        epi = la_epi.merge(ra_epi)
-        path = epi.geodesic(start_id, end_id)
 
-        #
         beam_nodes = _refine_line(path.points, beam_length=beam_length)[1:-1, :]
+        original_ids =np.zeros(len(path.points))
+        for idx, new_node in enumerate(path.points):
+            original_ids[idx] = self.m.mesh.find_closest_point(new_node)
+        original_ids= original_ids.astype(int)
+        start_id = original_ids[0]
+        end_id = original_ids[-1]
         point_ids = np.linspace(0, len(beam_nodes) - 1, len(beam_nodes), dtype=int)
         point_ids = np.insert(point_ids, 0, start_id)
         point_ids = np.append(point_ids, end_id)
@@ -537,5 +544,53 @@ class ConductionSystem:
         self.m.mesh.clean()
 
         beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="Bachman bundle")
+
+        return beam_net
+
+
+    def compute_fascicle(self, start_coord, start_id, side: str, end_coord=[107.531, 86.4699, 61.3175],  end_id=165598, beam_length: float = 1.5):
+        """Fascicle."""
+        if side == "Left":
+            ventricle = self.m.left_ventricle
+            endo_surface = self.m.mesh.get_surface(self.m.left_ventricle.endocardium.id)
+        elif side == "Right":
+            ventricle = self.m.right_ventricle
+            surface_ids = [ventricle.endocardium.id, ventricle.septum.id]
+            endo_surface = self.m.mesh.get_surface(surface_ids)
+        # (dyna)165599 ,  xyz= 107.531, 86.4699, 61.3175
+        #! this will give local ids.
+        bundle_branch = endo_surface.geodesic(
+            endo_surface.find_closest_point(start_coord),
+            endo_surface.find_closest_point(end_coord),
+        )
+
+        new_nodes = bundle_branch.points
+        original_ids =np.zeros(len(new_nodes))
+        for idx, new_node in enumerate(new_nodes):
+            original_ids[idx] = self.m.mesh.find_closest_point(new_node)
+        new_nodes = _refine_line(new_nodes, beam_length=beam_length)
+
+        # exclude first and last (apex) node which belongs to purkinje beam
+
+        original_ids = original_ids[1:-1]
+        new_nodes = new_nodes[1:-1, :]
+
+        
+        point_ids = np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int)
+
+        point_ids = np.insert(point_ids, 0, start_id)       
+        point_ids = np.append(point_ids, end_id)
+
+        edges = np.vstack((point_ids[:-1], point_ids[1:])).T
+
+        mask = np.ones(edges.shape, dtype=bool)
+
+        mask[0, 0] = False  # His end point of previous, no offset at creation
+        mask[-1, -1] = False  # Apex point, no offset
+
+        beam_net = self.m.add_beam_net(new_nodes, edges, mask, pid=0, name=side + " fascicle")
+        # used in dynawriter, to write beam connectivity, need offset since it's a beam node
+        beam_net.beam_nodes_mask[0, 0] = True
+        beam_net.beam_nodes_mask[-1, -1] = True
 
         return beam_net

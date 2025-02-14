@@ -2,7 +2,8 @@
 *SET_PART_LIST
 $#     sid       da1       da2       da3       da4    solver
          1       0.0       0.0       0.0       0.0MECH      
-         1         2         7         3         4         5         6         8
+         1         2         7         3         4         5         6         8
+
 *EM_CONTROL_EP
 $#olvetype  numsplit   actusig  ionsolvr
          4         1 100000000          
@@ -29,5 +30,5 @@ $#   nodes     nodes
 $#  stimid   settype     setid
         25         2        25
 $#stimstrt     stimt   stimdur   stimamp
-       0.0     800.0      20.0      50.0
+       0.0     800.0       2.0      50.0
 *END

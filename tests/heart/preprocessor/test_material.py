@@ -67,6 +67,13 @@ def test_iso():
     iso = material.ISO(k1=1, k2=2)
     assert iso.itype == -3
 
+    iso2 = material.ISO(mu1=1, alpha1=2, itype=-1)
+    assert iso2.itype == -1
+    assert iso2.nu == 0.499
+
+    iso3 = material.ISO(mu1=1, alpha1=2, itype=-1, kappa=100)
+    assert iso3.nu == pytest.approx(0.495, abs=0.01)
+
 
 def test_aniso():
     fiber = material.ANISO.HGOFiber(k1=1, k2=2)
@@ -107,7 +114,7 @@ def test_active_couple():
 
 
 def test_mat295():
-    m = material.MAT295(rho=1, iso=material.ISO())
+    m = material.MAT295(rho=1, iso=material.ISO(k1=1, k2=1))
     assert m.aniso is None
     assert m.active is None
 

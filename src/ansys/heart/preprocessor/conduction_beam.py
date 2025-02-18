@@ -460,23 +460,12 @@ class ConductionSystem:
         )
 
         new_nodes = bundle_branch.points
-        original_ids =np.zeros(len(new_nodes))
-        for idx, new_node in enumerate(new_nodes):
-            original_ids[idx] = self.m.mesh.find_closest_point(new_node)
         new_nodes = _refine_line(new_nodes, beam_length=beam_length)
-
         # exclude first and last (apex) node which belongs to purkinje beam
-
-        original_ids = original_ids[1:-1]
         new_nodes = new_nodes[1:-1, :]
-
-        
         point_ids = np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int)
-        if side == "Left":
-            point_ids = original_ids.astype(int)
         point_ids = np.insert(point_ids, 0, start_id)
         apex = ventricle.apex_points[0].node_id
-        
         for network in self.m.beam_network:
             if network.name == side + "-purkinje":
                 apex = network.edges[0, 0]
@@ -506,58 +495,34 @@ class ConductionSystem:
 
     def compute_bachman_bundle(self, start_coord, end_coord, beam_length: float = 1.5):
         """Compute Bachman bundle conduction system."""
-        la_epi = self.m.left_atrium.epicardium
-        ra_epi = self.m.right_atrium.epicardium
-        surface_ids = [la_epi.id, ra_epi.id]
-        epi_surface = self.m.mesh.get_surface(surface_ids)
+        la_epi = self.m.mesh.get_surface(self.m.left_atrium.epicardium.id)
+        ra_epi = self.m.mesh.get_surface(self.m.right_atrium.epicardium.id)
+        epi = la_epi.merge(ra_epi)
 
-        path = epi_surface.geodesic(
-            epi_surface.find_closest_point(start_coord),
-            epi_surface.find_closest_point(end_coord),
-        )
-
-        epi_surface.find_closest_point(end_coord,n=7)
-        # start_id = self._get_closest_point_id(ra_epi, start_coord)
-        # end_id = self._get_closest_point_id(la_epi, end_coord)
-
-        # epi = la_epi.merge(ra_epi)
-        # path = epi.geodesic(start_id, end_id)
+        start_id = epi.find_closest_point(start_coord)
+        end_id = epi.find_closest_point(end_coord)
+        path = epi.geodesic(start_id, end_id)
 
         #
-
-        beam_nodes = _refine_line(path.points, beam_length=beam_length)
-        original_ids =np.zeros(len(path.points))
-        for idx, new_node in enumerate(path.points):
-            original_ids[idx] = self.m.mesh.find_closest_point(new_node)
-        
-        original_ids= original_ids.astype(int)
-        start_id = original_ids[0]
-        end_id = original_ids[-1]
-        end_id2 = original_ids[-2]
-        beam_nodes=beam_nodes[1:-2, :]
+        beam_nodes = _refine_line(path.points, beam_length=beam_length)[1:-1, :]
         point_ids = np.linspace(0, len(beam_nodes) - 1, len(beam_nodes), dtype=int)
-        
-        point_ids = np.insert(point_ids, 0, start_id)       
-        point_ids = np.append(point_ids, end_id2)
-        point_ids = np.append(point_ids, end_id)
+
+        glob_start_id = epi.point_data["_global-point-ids"][start_id]
+        glob_end_id = epi.point_data["_global-point-ids"][end_id]
+        point_ids = np.insert(point_ids, 0, glob_start_id)
+        point_ids = np.append(point_ids, glob_end_id)
 
         # build connectivity table
         edges = np.vstack((point_ids[:-1], point_ids[1:])).T
 
         mask = np.ones(edges.shape, dtype=bool)
         mask[0, 0] = False  # Start point at solid
-        mask[-2, 1] = False  # End point2 at solid
-        mask[-1, 0] = False  # End point2 at solid
         mask[-1, 1] = False  # End point at solid
 
-
-        # tri = np.vstack((la_epi.triangles, ra_epi.triangles))
-        # surface = SurfaceMesh(name="Bachman segment", triangles=tri, nodes=self.m.mesh.points)
-
-        # # # #! add surface to central mesh.
-        # surface_id = int(np.max(self.m.mesh.surface_ids) + 1)
-        # self.m.mesh.add_surface(surface.clean(), surface_id, name="Bachman segment")
-        # self.m.mesh.clean()
+        #! add surface to central mesh.
+        surface_id = int(np.max(self.m.mesh.surface_ids) + 1)
+        self.m.mesh.add_surface(epi, surface_id, name="Bachman segment")
+        self.m.mesh = self.m.mesh.clean()
 
         beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="Bachman bundle")
 

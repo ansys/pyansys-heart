@@ -705,9 +705,12 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
 
 def _kill_all_ansyscl():
     """Kill all ansys license clients."""
-    for p in psutil.process_iter():
-        if "ansyscl" in p.name():
-            p.kill()
+    try:
+        for p in psutil.process_iter():
+            if "ansyscl" in p.name():
+                p.kill()
+    except Exception as e:
+        LOGGER.warning(f"Failed to kill all ansyscl's: {e}")
 
 
 class LsDynaErrorTerminationError(Exception):

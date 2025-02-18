@@ -366,7 +366,7 @@ class BaseSimulator:
         dyna_writer.export(export_directory)
 
         input_file = os.path.join(export_directory, "main.k")
-        self._run_dyna(path_to_input=input_file, options="case")
+        # self._run_dyna(path_to_input=input_file, options="case")
 
         LOGGER.info("Solving laplace-dirichlet done.")
 
@@ -455,7 +455,7 @@ class EPSimulator(BaseSimulator):
         self.dyna_settings.num_cpus = 1
 
         input_file = os.path.join(directory, "main.k")
-        self._run_dyna(input_file)
+        # self._run_dyna(input_file)
 
         self.dyna_settings.num_cpus = orig_num_cpus
         LOGGER.debug(f"Set number of cpus back to {orig_num_cpus}.")
@@ -487,13 +487,16 @@ class EPSimulator(BaseSimulator):
             cs.compute_left_right_bundle(
                 right.xyz, right.node_id, side="Right", beam_length=beam_length
             )
+            cs.compute_fascicle(start_coord=left.xyz, start_id=left.node_id, side='Left', end_coord=[96.9019, 73.6718, 32.8586],  end_id=19730, beam_length= 1.5)
 
             # # TODO: define end point by uhc, or let user choose
             # Note: must on surface after zerop if coupled with meca
-            # cs.compute_bachman_bundle(
-            #     start_coord=self.model.right_atrium.get_point("SA_node").xyz,
-            #     end_coord=np.array([-34, 163, 413]),
-            # )
+            
+            # (rodero patient 5)
+            cs.compute_bachman_bundle(
+                start_coord=self.model.right_atrium.get_point("SA_node").xyz,
+                end_coord=np.array([44.6358, 106.652, 66.51]),
+            )
             return cs
 
     def _write_main_simulation_files(self, folder_name):

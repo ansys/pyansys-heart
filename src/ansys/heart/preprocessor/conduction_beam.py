@@ -509,23 +509,36 @@ class ConductionSystem:
         la_epi = self.m.left_atrium.epicardium
         ra_epi = self.m.right_atrium.epicardium
         surface_ids = [la_epi.id, ra_epi.id]
-        endo_surface = self.m.mesh.get_surface(surface_ids)
+        epi_surface = self.m.mesh.get_surface(surface_ids)
 
-        path = endo_surface.geodesic(
-            endo_surface.find_closest_point(start_coord),
-            endo_surface.find_closest_point(end_coord),
+        path = epi_surface.geodesic(
+            epi_surface.find_closest_point(start_coord),
+            epi_surface.find_closest_point(end_coord),
         )
 
+        epi_surface.find_closest_point(end_coord,n=7)
+        # start_id = self._get_closest_point_id(ra_epi, start_coord)
+        # end_id = self._get_closest_point_id(la_epi, end_coord)
 
-        beam_nodes = _refine_line(path.points, beam_length=beam_length)[1:-1, :]
+        # epi = la_epi.merge(ra_epi)
+        # path = epi.geodesic(start_id, end_id)
+
+        #
+
+        beam_nodes = _refine_line(path.points, beam_length=beam_length)
         original_ids =np.zeros(len(path.points))
         for idx, new_node in enumerate(path.points):
             original_ids[idx] = self.m.mesh.find_closest_point(new_node)
+        
         original_ids= original_ids.astype(int)
         start_id = original_ids[0]
         end_id = original_ids[-1]
+        end_id2 = original_ids[-2]
+        beam_nodes=beam_nodes[1:-2, :]
         point_ids = np.linspace(0, len(beam_nodes) - 1, len(beam_nodes), dtype=int)
-        point_ids = np.insert(point_ids, 0, start_id)
+        
+        point_ids = np.insert(point_ids, 0, start_id)       
+        point_ids = np.append(point_ids, end_id2)
         point_ids = np.append(point_ids, end_id)
 
         # build connectivity table
@@ -533,15 +546,18 @@ class ConductionSystem:
 
         mask = np.ones(edges.shape, dtype=bool)
         mask[0, 0] = False  # Start point at solid
+        mask[-2, 1] = False  # End point2 at solid
+        mask[-1, 0] = False  # End point2 at solid
         mask[-1, 1] = False  # End point at solid
 
-        tri = np.vstack((la_epi.triangles, ra_epi.triangles))
-        surface = SurfaceMesh(name="Bachman segment", triangles=tri, nodes=self.m.mesh.points)
 
-        #! add surface to central mesh.
-        surface_id = int(np.max(self.m.mesh.surface_ids) + 1)
-        self.m.mesh.add_surface(surface.clean(), surface_id, name="Bachman segment")
-        self.m.mesh.clean()
+        # tri = np.vstack((la_epi.triangles, ra_epi.triangles))
+        # surface = SurfaceMesh(name="Bachman segment", triangles=tri, nodes=self.m.mesh.points)
+
+        # # # #! add surface to central mesh.
+        # surface_id = int(np.max(self.m.mesh.surface_ids) + 1)
+        # self.m.mesh.add_surface(surface.clean(), surface_id, name="Bachman segment")
+        # self.m.mesh.clean()
 
         beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="Bachman bundle")
 

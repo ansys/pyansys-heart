@@ -99,7 +99,7 @@ class MaterialHGOMyocardium(keywords.Mat295):
         super().__init__(mid=id)
         setattr(self, "rho", mat.rho)
         setattr(self, "aopt", mat.aopt)
-
+        setattr(self, "user_comment", f"nu deduced from kappa={mat.iso.kappa}")
         # iso
         for field in dataclasses.fields(mat.iso):
             value = getattr(mat.iso, field.name)

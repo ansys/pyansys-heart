@@ -180,6 +180,7 @@ simulator.model.plot_purkinje()
 # Start the main EP simulation. This uses the previously computed fiber orientation
 # and purkinje network to set up and run the LS-DYNA model.
 
+
 # simulate using the default EP solver type (Monodomain)
 simulator.simulate()
 

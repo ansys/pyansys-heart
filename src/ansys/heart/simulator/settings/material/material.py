@@ -25,6 +25,8 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
+from deprecated import deprecated
+
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.simulator.settings.material.curve import ActiveCurve, constant_ca2
 
@@ -211,6 +213,7 @@ class MAT295(MechanicalMaterialModel):
 
 
 @dataclass
+@deprecated(reason="Use *MAT_295 with only ISO module instead.")
 class NeoHookean(MechanicalMaterialModel):
     """Passive isotropic material."""
 

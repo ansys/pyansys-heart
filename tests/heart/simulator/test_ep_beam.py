@@ -116,3 +116,26 @@ def test_compute_bachman_bundle():
 
     assert np.all(beam.edges[0] == [108609, 121942])
     assert np.all(beam.edges[-1] == [121994, 94118])
+
+
+def test_compute_left_right_bundle():
+    # get a fresh model
+    fourchamber = get_fourchamber()
+    cs = ConductionSystem(fourchamber)
+    BeamMesh.all_beam_nodes = []
+
+    cs.compute_sa_node()
+    cs.compute_av_node()
+    cs.compute_av_conduction()
+    beam, left_end, right_end = cs.compute_his_conduction()
+
+    left_bundle = cs.compute_left_right_bundle(left_end.xyz, left_end.node_id, side="Left")
+    right_bundle = cs.compute_left_right_bundle(right_end.xyz, right_end.node_id, side="Right")
+
+    # fourchamber.plot_purkinje()
+    assert np.all(left_bundle.edges[0] == [121937, 121942])
+    assert np.all(left_bundle.edges[-1] == [121996, 50025])
+    assert np.all(right_bundle.edges[0] == [121941, 121997])
+    assert np.all(right_bundle.edges[-1] == [122040, 68079])
+
+    return

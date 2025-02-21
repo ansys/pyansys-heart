@@ -68,8 +68,11 @@ def test_compute_av_node():
 
 
 def test_av_conduction():
+    # get a fresh model
     fourchamber = get_fourchamber()
     cs = ConductionSystem(fourchamber)
+    BeamMesh.all_beam_nodes = []
+
     cs.compute_sa_node()
     cs.compute_av_node()
     beam = cs.compute_av_conduction()
@@ -80,8 +83,11 @@ def test_av_conduction():
 
 
 def test_compute_his_conduction():
+    # get a fresh model
     fourchamber = get_fourchamber()
     cs = ConductionSystem(fourchamber)
+    BeamMesh.all_beam_nodes = []
+
     cs.compute_sa_node()
     cs.compute_av_node()
     beam = cs.compute_av_conduction()
@@ -93,8 +99,11 @@ def test_compute_his_conduction():
 
 
 def test_compute_bachman_bundle():
+    # get a fresh model
     fourchamber = get_fourchamber()
     cs = ConductionSystem(fourchamber)
+    BeamMesh.all_beam_nodes = []
+
     cs.compute_sa_node()
     cs.compute_av_node()
     beam = cs.compute_av_conduction()

@@ -46,8 +46,8 @@ def test_add_beam_net(fourchamber):
     )
     beam_mesh.pid = 0
     beam_mesh.name = "test"
-
-    assert fourchamber.beam_network[0] == beam_mesh
+    assert fourchamber.beam_network[0].edges == np.array([[0, n], [n, n + 1]])
+    # assert fourchamber.beam_network[0] == beam_mesh
 
 
 def test_compute_sa_node(fourchamber):

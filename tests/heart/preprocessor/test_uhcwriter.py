@@ -20,22 +20,21 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os
-
-if os.getenv("GITHUB_ACTIONS"):
-    is_gh_action = True
-else:
-    is_gh_action = False
-
 import glob
+import os
 import pathlib
 import tempfile
 
 import pytest
 
 from ansys.heart.writer.dynawriter import UHCWriter
-from tests.heart.conftest import get_assets_folder
+from tests.heart.conftest import get_assets_folder, get_fourchamber
 from tests.heart.end2end.compare_k import read_file
+
+
+@pytest.fixture
+def fourchamber():
+    return get_fourchamber()
 
 
 @pytest.mark.k_file_writer

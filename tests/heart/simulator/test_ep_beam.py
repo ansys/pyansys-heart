@@ -26,11 +26,12 @@ import numpy as np
 
 from ansys.heart.core.objects import BeamMesh
 from ansys.heart.preprocessor.conduction_beam import ConductionSystem
+from tests.heart.conftest import get_fourchamber
 
 
-def test_add_beam_net(fourchamber):
+def test_add_beam_net():
     """Test reading Purkinje from .k files."""
-
+    fourchamber = get_fourchamber()
     node_b = np.array([[0, 0, 0], [10, 10, 10]])
 
     edges = np.array([[0, 0], [0, 1]])
@@ -46,11 +47,11 @@ def test_add_beam_net(fourchamber):
     )
     beam_mesh.pid = 0
     beam_mesh.name = "test"
-    assert np.all(fourchamber.beam_network[0].edges == np.array([[0, n], [n, n + 1]]))
-    # assert fourchamber.beam_network[0] == beam_mesh
+    assert fourchamber.beam_network[0] == beam_mesh
 
 
-def test_compute_sa_node(fourchamber):
+def test_compute_sa_node():
+    fourchamber = get_fourchamber()
     cs = ConductionSystem(fourchamber)
     sa_node = cs.compute_sa_node()
 
@@ -58,42 +59,51 @@ def test_compute_sa_node(fourchamber):
     assert sa_node.node_id == 105021
 
 
-def test_compute_av_node(fourchamber):
+def test_compute_av_node():
+    fourchamber = get_fourchamber()
     cs = ConductionSystem(fourchamber)
     av_node = cs.compute_av_node()
     assert np.allclose(av_node.xyz, np.array([-10.16353107, 108.95410155, 371.9505145]))
     assert av_node.node_id == 100501
 
 
-# def test_av_conduction(fourchamber):
-#     cs = ConductionSystem(fourchamber)
-#     cs.compute_sa_node()
-#     cs.compute_av_node()
-#     beam = cs.compute_av_conduction()
+def test_av_conduction():
+    fourchamber = get_fourchamber()
+    cs = ConductionSystem(fourchamber)
+    cs.compute_sa_node()
+    cs.compute_av_node()
+    beam = cs.compute_av_conduction()
 
-#     assert len(beam.edges) == 48
-#     assert np.all(beam.edges[0] == [105021, 121874])
-#     assert np.all(beam.edges[-1] == [121920, 121921])
+    assert len(beam.edges) == 48
+    assert np.all(beam.edges[0] == [105021, 121874])
+    assert np.all(beam.edges[-1] == [121920, 121921])
 
 
-# def test_compute_his_conduction(fourchamber):
-#     cs = ConductionSystem(fourchamber)
-#     cs.compute_sa_node()
-#     cs.compute_av_node()
-#     beam = cs.compute_av_conduction()
+def test_compute_his_conduction():
+    fourchamber = get_fourchamber()
+    cs = ConductionSystem(fourchamber)
+    cs.compute_sa_node()
+    cs.compute_av_node()
+    beam = cs.compute_av_conduction()
 
-#     beam, _, _ = cs.compute_his_conduction()
+    beam, _, _ = cs.compute_his_conduction()
 
-#     assert np.all(beam.edges[0] == [121921, 121922])
-#     assert np.all(beam.edges[-1] == [121940, 121941])
+    assert np.all(beam.edges[0] == [121921, 121922])
+    assert np.all(beam.edges[-1] == [121940, 121941])
 
-# def test_compute_bachman_bundle(fourchamber):
-#     cs = ConductionSystem(fourchamber)
-#     cs.compute_sa_node()
-#     cs.compute_av_node()
-#     beam = cs.compute_av_conduction()
 
-#     beam, _, _ = cs.compute_his_conduction()
-#     beam = cs.compute_bachman_bundle()
-#     assert np.all(beam.edges[0] == [121921, 121922])
-#     assert np.all(beam.edges[-1] == [121940, 121941])
+def test_compute_bachman_bundle():
+    fourchamber = get_fourchamber()
+    cs = ConductionSystem(fourchamber)
+    cs.compute_sa_node()
+    cs.compute_av_node()
+    beam = cs.compute_av_conduction()
+    beam, _, _ = cs.compute_his_conduction()
+
+    beam = cs.compute_bachman_bundle(
+        start_coord=fourchamber.right_atrium.get_point("SA_node").xyz,
+        end_coord=np.array([-34, 163, 413]),
+    )
+
+    assert np.all(beam.edges[0] == [108609, 121942])
+    assert np.all(beam.edges[-1] == [121994, 94118])

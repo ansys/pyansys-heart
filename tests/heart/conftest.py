@@ -180,8 +180,7 @@ if is_debugging():
         raise excinfo.value
 
 
-@pytest.fixture
-def fourchamber() -> models.FourChamber:
+def get_fourchamber() -> models.FourChamber:
     vtu_file = os.path.join(
         get_assets_folder(),
         "reference_models",

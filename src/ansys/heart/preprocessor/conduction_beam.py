@@ -494,7 +494,7 @@ class ConductionSystem:
         cell_id = surface.find_closest_cell(point)
         return surface.get_cell(cell_id).point_ids[0]
 
-    def compute_bachman_bundle(self, start_coord, end_coord, beam_length: float = 1.5):
+    def compute_bachman_bundle(self, start_coord, end_coord, beam_length: float = 1.5) -> BeamMesh:
         """Compute Bachman bundle conduction system."""
         la_epi = self.m.mesh.get_surface(self.m.left_atrium.epicardium.id)
         ra_epi = self.m.mesh.get_surface(self.m.right_atrium.epicardium.id)

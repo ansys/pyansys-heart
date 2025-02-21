@@ -221,7 +221,7 @@ class ConductionSystem:
 
         return bifurcation_coord
 
-    def compute_his_conduction(self, beam_length: float = 1.5):
+    def compute_his_conduction(self, beam_length: float = 1.5) -> tuple[BeamMesh, Point, Point]:
         """Compute His bundle conduction."""
         bifurcation_coord = self._get_hisbundle_bifurcation()
 
@@ -312,12 +312,16 @@ class ConductionSystem:
         self.m.mesh.add_surface(surf.clean(), surface_id, name="his_bundle_segment")
         self.m.mesh = self.m.mesh.clean()
 
-        return Point(
-            xyz=his_end_left_coord,
-            node_id=beam_net.edges[position_id_his_end_left[0], position_id_his_end_left[1]],
-        ), Point(
-            xyz=his_end_right_coord,
-            node_id=beam_net.edges[position_id_his_end_right[0], position_id_his_end_right[1]],
+        return (
+            beam_net,
+            Point(
+                xyz=his_end_left_coord,
+                node_id=beam_net.edges[position_id_his_end_left[0], position_id_his_end_left[1]],
+            ),
+            Point(
+                xyz=his_end_right_coord,
+                node_id=beam_net.edges[position_id_his_end_right[0], position_id_his_end_right[1]],
+            ),
         )
 
     @staticmethod

@@ -32,11 +32,12 @@ from tests.heart.conftest import get_fourchamber
 def test_add_beam_net():
     """Test reading Purkinje from .k files."""
     fourchamber = get_fourchamber()
-    node_b = np.array([[0, 0, 0], [10, 10, 10]])
+    BeamMesh.all_beam_nodes = []
 
+    nodes = np.array([[0, 0, 0], [10, 10, 10]])
     edges = np.array([[0, 0], [0, 1]])
     mask = np.array([[False, True], [True, True]])  # first node is form solid mesh
-    fourchamber.add_beam_net(beam_nodes=node_b, edges=edges.copy(), mask=mask, pid=0, name="test")
+    fourchamber.add_beam_net(beam_nodes=nodes, edges=edges.copy(), mask=mask, pid=0, name="test")
 
     # construct mesh to compare against
     n = fourchamber.mesh.points.shape[0]

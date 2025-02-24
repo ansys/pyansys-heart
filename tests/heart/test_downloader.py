@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -24,6 +24,7 @@ import hashlib
 import json
 import os
 import tempfile
+import unittest.mock as mock
 
 import pytest
 import validators
@@ -53,22 +54,24 @@ def test_download_urls(database_name):
     "database_name",
     ["Rodero2021", "Strocchi2020"],
 )
-def test_download_case(database_name, mocker):
+def test_download_case(database_name):
     """Test unpacking cases from different repositories."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         download_folder = tempdir
 
-        mocker.patch("wget.download")
-        save_path = download_case_from_zenodo(
-            database_name, 1, download_folder, overwrite=True, validate_hash=False
-        )
+        with mock.patch("wget.download") as mock_download:
+            save_path = download_case_from_zenodo(
+                database_name, 1, download_folder, overwrite=True, validate_hash=False
+            )
 
-        if database_name == "Rodero2021":
-            expected_save_path = os.path.join(download_folder, database_name, "01", "01.tar.gz")
-        elif database_name == "Strocchi2020":
-            expected_save_path = os.path.join(download_folder, database_name, "01.tar.gz")
+            if database_name == "Rodero2021":
+                expected_save_path = os.path.join(download_folder, database_name, "01", "01.tar.gz")
+            elif database_name == "Strocchi2020":
+                expected_save_path = os.path.join(download_folder, database_name, "01.tar.gz")
 
-        assert save_path == expected_save_path
+            assert save_path == expected_save_path
+
+            mock_download.assert_called_once()
 
     return
 
@@ -94,7 +97,7 @@ def test_validate_hash_function_001():
         fid.writelines("abcd")
         fid.close()
 
-        path_hash_table = "hash_table.json"
+        path_hash_table = os.path.join(tempdir, "hash_table.json")
 
         # write dummy hash table
         hash_table = {"Rodero2021": {1: hashlib.sha256(open(path_file1, "rb").read()).hexdigest()}}

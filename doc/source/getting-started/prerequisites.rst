@@ -34,13 +34,18 @@ Software
   :header-rows: 1
 
   * - Product
-    - Versions
+    - Supported versions
     - Scope
     - Link to download
 
   * - Ansys Fluent
-    - R24R1, R24R2
+    - R24R1, R24R2, R25R1
     - Pre-processor
+    - `Ansys Customer Portal`_
+
+  * - Ansys DPF Server
+    - 2024.1 (R24R1 install), 2024.1rc1, 2024.2rc0
+    - Post-processor
     - `Ansys Customer Portal`_
 
   * - Ansys LS-DYNA
@@ -50,7 +55,7 @@ Software
 
 .. Note::
 
-    Fluent is required for meshing.
+    Fluent is required for meshing. Also note that currently the postprocessor module is only compatible with Ansys DPF Servers 2024.1 (comes with R24R1 installation), 2024.1rc1 and 2024.2rc0. Later versions are currently not supported. Hence installing Ansys Fluent R24R1 is currently the most convenient.
 
 
 .. _Ansys Customer Portal: https://support.ansys.com/Home/HomePage

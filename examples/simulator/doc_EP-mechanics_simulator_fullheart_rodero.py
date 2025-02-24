@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -94,8 +94,6 @@ path_to_model = os.path.join(workdir, "heart_model.vtu")
 # instantiate a four chamber model
 model: models.FullHeart = models.FullHeart(working_directory=workdir)
 model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
-model._extract_apex()
-model.compute_left_ventricle_aha17()
 
 
 ###############################################################################
@@ -152,9 +150,11 @@ ring.meca_material = NeoHookean(rho=0.001, c10=0.1, nu=0.499)
 # assign default EP material as for atrial
 ring.ep_material = EPMaterial.Active()
 
-# Extract elements around atrialvenricular valves and assign as a passive material
-simulator.create_stiff_ventricle_base(stiff_material=NeoHookean(rho=0.001, c10=0.1, nu=0.499))
+# Compute universal coordinates:
+simulator.compute_uhc()
 
+# Extract elements around atrialvenricular valves and assign as a passive material
+simulator.model.create_stiff_ventricle_base(stiff_material=NeoHookean(rho=0.001, c10=0.1, nu=0.499))
 
 # Estimate the stress-free-configuration
 simulator.compute_stress_free_configuration()
@@ -170,7 +170,7 @@ simulator.compute_conduction_system()
 simulator.settings.mechanics.analysis.end_time = Quantity(800, "ms")
 simulator.settings.mechanics.analysis.dt_d3plot = Quantity(10, "ms")
 
-simulator.model.dump_model(os.path.join(workdir, "heart_fib_beam.pickle"))
+simulator.model.save_model(os.path.join(workdir, "heart_fib_beam.vtu"))
 
 ###############################################################################
 # .. note::

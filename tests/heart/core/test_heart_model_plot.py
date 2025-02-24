@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -34,25 +34,46 @@ import pytest
 import pyvista as pv
 
 import ansys.heart.core.models as models
-from ansys.heart.core.objects import Part
+from ansys.heart.core.objects import BeamMesh, Mesh, Part, SurfaceMesh
 
 
 @pytest.fixture
-def _mock_input(mocker):
+def _mock_input():
     """Mock biventricular model."""
     mesh = pv.examples.load_tetbeam()
     mesh.points = mesh.points * 1e1
-    mesh.cell_data["part-id"] = 1
+    mesh.cell_data["_volume-id"] = 1
     fibers = np.repeat([1.0, 0.0, 0.0], mesh.n_cells, axis=0).reshape((3, mesh.n_cells)).T
     mesh.cell_data["fiber"] = fibers
+
     mock_biventricle: models.BiVentricle = models.BiVentricle()
-    mock_biventricle.mesh = mesh
-    mock_show = mocker.patch("pyvista.Plotter.show")
-    return mock_biventricle, mock_show
+    mock_biventricle.mesh = Mesh(mesh)
+
+    # add surfaces to parts.
+    ii = 1
+    for part in mock_biventricle.parts:
+        for surface in part.surfaces:
+            mock_biventricle.mesh.add_surface(pv.Disc(), id=ii, name=surface.name)
+            surface.id = ii
+            super(SurfaceMesh, surface).__init__(mock_biventricle.mesh.get_surface(surface.id))
+            ii += 1
+
+    mock_biventricle.mesh.add_surface(pv.Disc(), id=1, name="valve")
+
+    # add mock purkinje data.
+    lines = pv.line_segments_from_points([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
+    beams = BeamMesh(name="beams")
+    beams.nodes = lines.points
+    beams.edges = np.array([lines.lines[1:]])
+    mock_biventricle.beam_network = [beams]
+
+    with mock.patch("pyvista.Plotter.show") as mock_show:
+        yield mock_biventricle, mock_show
 
 
 def test_heart_model_plot_mesh(_mock_input):
     """Test plotting the mesh."""
+    # with mock.patch("pyvista.Plotter.show") as mock_show:
     mock_biventricle, mock_show = _mock_input
     mock_biventricle.plot_mesh()
     mock_show.assert_called_once()
@@ -74,3 +95,32 @@ def test_heart_model_plot_fibers(_mock_input):
     mock_biventricle.mesh.points = mock_biventricle.mesh.points / 1e1
     assert not mock_biventricle.plot_fibers()
     mock_show.assert_called_once()
+
+
+def test_heart_model_plot_surfaces(_mock_input):
+    """Test plotting the surfaces of the model."""
+    mock_biventricle, mock_show = _mock_input
+
+    if not isinstance(mock_biventricle, models.BiVentricle):
+        assert isinstance(mock_biventricle, models.BiVentricle)
+
+    mock_biventricle.plot_surfaces()
+    mock_show.assert_called_once()
+
+
+def test_heart_model_plot_purkinje(_mock_input):
+    """Test plotting purkinje."""
+    mock_biventricle, mock_show = _mock_input
+
+    if not isinstance(mock_biventricle, models.BiVentricle):
+        assert isinstance(mock_biventricle, models.BiVentricle)
+
+    mock_biventricle.plot_purkinje()
+
+    mock_show.assert_called_once()
+    mock_show.reset_mock()
+
+    # remove beam network.
+    mock_biventricle.beam_network = []
+    mock_biventricle.plot_purkinje()
+    mock_show.assert_not_called()

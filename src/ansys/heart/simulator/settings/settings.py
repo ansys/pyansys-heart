@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -686,6 +686,57 @@ class SimulationSettings:
 
         return material
 
+    def get_ventricle_fiber_rotation(self, method: Literal["LSDYNA", "D-RBM"]) -> dict:
+        """Get rotation angles from settings.
+
+        Parameters
+        ----------
+        method : Literal[&quot;LSDYNA&quot;, &quot;D
+            Fiber rule based methods
+
+        Returns
+        -------
+        dict
+            rotation angles alpha and beta
+        """
+        if method == "LSDYNA":
+            rotation = {
+                "alpha": [
+                    self.fibers.alpha_endo.m,
+                    self.fibers.alpha_epi.m,
+                ],
+                "beta": [
+                    self.fibers.beta_endo.m,
+                    self.fibers.beta_epi.m,
+                ],
+                "beta_septum": [
+                    self.fibers.beta_endo_septum.m,
+                    self.fibers.beta_epi_septum.m,
+                ],
+            }
+        elif method == "D-RBM":
+            rotation = {
+                "alpha_left": [
+                    self.fibers.alpha_endo.m,
+                    self.fibers.alpha_epi.m,
+                ],
+                "alpha_right": [
+                    self.fibers.alpha_endo.m,
+                    self.fibers.alpha_epi.m,
+                ],
+                "alpha_ot": None,
+                "beta_left": [
+                    self.fibers.beta_endo.m,
+                    self.fibers.beta_epi.m,
+                ],
+                "beta_right": [
+                    self.fibers.beta_endo.m,
+                    self.fibers.beta_epi.m,
+                ],
+                "beta_ot": None,
+            }
+        return rotation
+
 
 def _read_passive_from_settings(mat: AttrDict) -> NeoHookean:
     rho = mat["rho"].m
@@ -789,30 +840,6 @@ def _deserialize_quantity(d: dict, ureg: UnitRegistry):
                     continue
                 d[k] = q
     return d
-
-
-# some additional methods
-def _get_dimensionality(d):
-    """Get dimensionality of Quantity objects in a nested dictionary."""
-    dims = []
-    for k, v in d.items():
-        if isinstance(v, (dict, AttrDict)):
-            dims += _get_dimensionality(v)
-        elif isinstance(v, Quantity):
-            dims.append(v.dimensionality)
-    return dims
-
-
-# get units
-def _get_units(d):
-    """Get units of Quantity objects in a nested dictionary."""
-    units = []
-    for k, v in d.items():
-        if isinstance(v, (dict, AttrDict)):
-            units += _get_units(v)
-        elif isinstance(v, Quantity):
-            units.append(v.units)
-    return units
 
 
 # desired consistent unit system is:
@@ -1125,8 +1152,3 @@ class DynaSettings:
     def __repr__(self):
         """Represent self as string."""
         return yaml.dump(vars(self), allow_unicode=True, default_flow_style=False)
-
-
-if __name__ == "__main__":
-    print("start")
-    LOGGER.debug("protected")

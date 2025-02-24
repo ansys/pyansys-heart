@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -34,7 +34,7 @@ from ansys.heart.core.models import HeartModel
 from ansys.heart.core.objects import Cavity
 from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
-from ansys.heart.postprocessor.exporter import D3plotToVTKExporter, LVContourExporter
+from ansys.heart.postprocessor.exporter import D3plotToVTKExporter
 from ansys.heart.postprocessor.klotz_curve import EDPVR
 from ansys.heart.postprocessor.pvloop import generate_pvloop
 from ansys.heart.simulator.settings.settings import SimulationSettings
@@ -76,7 +76,7 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     displacements = [data.get_displacement_at(time=t) for t in data.time]
     guess_ed_coord = stress_free_coord + displacements[-1]
 
-    nodes = model.mesh.nodes
+    nodes = model.mesh.points
 
     # convergence information
     dst = np.linalg.norm(guess_ed_coord - nodes, axis=1)
@@ -137,6 +137,10 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     with open(os.path.join(directory, folder, "Post_report.json"), "w") as f:
         json.dump(dct, f)
 
+    # NOTE: this will trigger killing the dpf-launched ansyscl, which may be necessary
+    # to locally pass tests.
+    del data
+
     return dct, stress_free_coord, guess_ed_coord
 
 
@@ -182,35 +186,6 @@ def mech_post(directory: str, model: HeartModel):
     aha_strain.compute_aha_strain(out_dir, write_vtk=True, t_to_keep=last_cycle_duration)
 
     return
-
-
-def export_to_vtk(directory: str, model: HeartModel):
-    """Export heart motion(surfaces) into vtk files.
-
-    Parameters
-    ----------
-    directory : str
-        d3plot folder
-    model : HeartModel
-        heart model
-    """
-    exporter = LVContourExporter(os.path.join(directory, "d3plot"), model)
-
-    exporter.export_contour_to_vtk("l4cv", model.l4cv_axis)
-    exporter.export_contour_to_vtk("l2cv", model.l2cv_axis)
-
-    normal = model.short_axis["normal"]
-    p_start = model.short_axis["center"]
-    for ap in model.left_ventricle.apex_points:  # use next()?
-        if ap.name == "apex epicardium":
-            p_end = ap.xyz
-
-    for icut in range(2):
-        p_cut = p_start + (p_end - p_start) * icut / 2
-        cutter = {"center": p_cut, "normal": normal}
-        exporter.export_contour_to_vtk(f"shor_{icut}", cutter)
-
-    exporter.export_lvls_to_vtk("lvls")
 
 
 if __name__ == "__main__":

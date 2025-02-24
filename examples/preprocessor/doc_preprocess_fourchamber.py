@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -70,7 +70,7 @@ workdir = os.path.join(os.path.dirname(case_file), "FourChamber")
 if not os.path.isdir(workdir):
     os.makedirs(workdir)
 
-path_to_model = os.path.join(workdir, "heart_model.pickle")
+path_to_model = os.path.join(workdir, "heart_model.vtu")
 path_to_input = os.path.join(workdir, "input_model.vtp")
 path_to_part_definitions = os.path.join(workdir, "part_definitions.json")
 
@@ -128,7 +128,7 @@ model.mesh_volume(use_wrapper=True, global_mesh_size=1.5)
 model._update_parts()
 
 # dump the model to disk
-model.dump_model(path_to_model)
+model.save_model(path_to_model)
 
 # Optionally save the simulation mesh as a vtk object for "offline" inspection
 model.mesh.save(os.path.join(model.workdir, "simulation-mesh.vtu"))
@@ -190,7 +190,7 @@ docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", 
 # Full mesh
 filename = Path(docs_images_folder, "four_chamber_mesh.png")
 plotter = pv.Plotter(off_screen=True)
-model.mesh.set_active_scalars("part-id")
+model.mesh.set_active_scalars("_volume-id")
 plotter.add_mesh(model.mesh, show_edges=False)
 # plotter.show()
 plotter.camera.roll = -60

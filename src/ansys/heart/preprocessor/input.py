@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -31,7 +31,6 @@ Methods are provided to validate the volume and boundary mesh objects (pyvista o
 and to get the necessary parts or boundaries for each respective model.
 """
 
-import copy
 import os
 from pathlib import Path
 from typing import List, Tuple, Union
@@ -147,14 +146,6 @@ class _InputBoundary(pv.PolyData):
         self.name = name
         """Name of boundary."""
 
-    @property
-    def triangles(self):
-        """Returns all triangles."""
-        if not self.is_all_triangles:
-            return
-        else:
-            return self.faces.reshape(self.n_cells, 4)[:, 1:]
-
     def __repr__(self):
         return f"Name:{self.name}\nid:{self.id}\n{super().__repr__()}"
 
@@ -238,9 +229,8 @@ class _InputModel:
 
         try:
             self.input_polydata = pv.PolyData(input)
-        except Exception:
-            NotImplementedError(f"Failed to load file {input}. Other file types not supported yet.")
-            return None
+        except Exception as e:
+            raise NotImplementedError(f"Failed to load file {input}. {e}")
 
         if part_definitions is None:
             LOGGER.error("Please specify part definitions.")
@@ -519,267 +509,3 @@ def _get_required_boundaries(model_type: str) -> List[str]:
     for p in parts:
         required_boundaries += _BOUNDARIES_PER_HEART_PART[p]["enclosed_by_boundaries"]
     return required_boundaries
-
-
-class _InputManager:
-    """Class to manage the different types of input.
-
-    Notes
-    -----
-    Supported inputs include:
-    1. Unstructured grid file or object with part-ids
-    2. Multiblock VTK file or object with a single UnstructuredGrid block or
-    with multiple PolyData objects
-    3. PolyData file or object with boundary-ids
-    """
-
-    def __init__(
-        self,
-        input: Union[Path, str, pv.UnstructuredGrid, pv.PolyData] = None,
-        scalar: str = None,
-        name_to_id_map: dict = None,
-    ) -> None:
-        """Read provided input volume or boundary mesh.
-
-        Parameters
-        ----------
-        input :  Union[Path, str, pv.UnstructuredGrid, pv.PolyData], optional
-            An input volume mesh or boundary mesh, either as a pyvista
-            UnstructuredGrid object, pyvista PolyData object or path to vtk-like file,
-            by default None
-        scalar : str, optional
-            Scalar array to use for either the part ids or boundary ids, by default None
-        name_to_id_map : dict, optional
-            Map indicating which part/boundary name corresponds to which part/boundary id,
-            by default None
-
-        Examples
-        --------
-        Reading a UnstructuredGrid from a file and give the part-name to part-id map
-
-        >>> mesh_file = "unstructured_grid.vtu" # unstructured grid where 'tags'
-        ...                                       cell data represents the part-ids
-        >>> input = InputManager(
-        ...     mesh_file,
-        ...     scalar="tags",
-        ...     name_to_id_map={"Left ventricle myocardium": 3, "Right ventricle myocardium": 1},
-        ... )
-
-        Reading a boundary mesh (PolyData) from a file and explicitly give the boundary
-        name to boundary-id map
-
-        >>> mesh_file = (
-        ...     "boundary_mesh.vtk"  # PolyData where 'cell-tags' represents the boundary-ids
-        ... )
-        >>> input = InputManager(mesh_file, scalar="cell-tags",
-            ...     name_to_id_map = {
-        ...             "left-ventricle-endocardium": 3,
-        ...             "left-ventricle-epicardium": 6,
-        ...             "interface@left-ventricle_aortic-valve": 1,
-        ...             "interface@left-ventricle_mitral-valve": 2})
-        """
-        # Try to populate these attributes during initialization.
-        self.input_volume: pv.UnstructuredGrid = None
-        """Input volume mesh."""
-        self.input_boundary: pv.PolyData = None
-        """Input boundary."""
-        self._part_id_mapping = (
-            _get_part_name_to_part_id_map() if not name_to_id_map else name_to_id_map
-        )
-        """Maps part-ids to part-names."""
-        self._boundary_id_mapping = (
-            _get_boundary_name_to_boundary_id_map() if not name_to_id_map else name_to_id_map
-        )
-        """Maps boundary-names to boundary-ids."""
-
-        # try to read the input.
-        if isinstance(input, (Path, str)):
-            LOGGER.info(f"Reading {input}...")
-            if not os.path.isfile(input):
-                raise FileNotFoundError(f"File {input} not found.")
-
-        volume_is_set = False
-        boundary_is_set = False
-        try:
-            self.input_boundary = pv.PolyData(input)
-            boundary_is_set = True
-        except Exception:
-            try:
-                self.input_volume = pv.UnstructuredGrid(input)
-                volume_is_set = True
-            except Exception:
-                pass
-
-        if not volume_is_set and not boundary_is_set:
-            try:
-                multi_block = pv.MultiBlock(input)
-                if len(multi_block) == 1 and isinstance(multi_block[0], pv.UnstructuredGrid):
-                    self.input_volume = multi_block[0]
-                    volume_is_set = True
-                elif len(multi_block) > 0:
-                    raise NotImplementedError(
-                        "Support for Multi-Block PolyData not yet implemented."
-                    )
-                    # TODO: support multi-block input.
-                    for ii, block in enumerate(multi_block):
-                        if not isinstance(block, pv.PolyData):
-                            raise ValueError("Expecting PolyData in MultiBlock with size > 1")
-                        if ii == 0:
-                            boundary = block
-                        else:
-                            boundary = boundary.merge(block)
-                    boundary_is_set = True
-            except Exception:
-                raise ImportError(f"Failed to load {input} as volume or boundary.")
-
-        # change array names if scalar is given.
-        if self.input_volume and scalar:
-            LOGGER.debug(f"Renaming {scalar} to part-id")
-            self.input_volume.rename_array(scalar, "part-id")
-        if self.input_boundary and scalar:
-            LOGGER.debug(f"Renaming {scalar} to boundary-id")
-            self.input_boundary.rename_array(scalar, "boundary-id")
-
-        self.validate()
-
-        if volume_is_set and name_to_id_map:
-            self._reorder_part_ids(name_to_id_map)
-
-        if boundary_is_set and name_to_id_map:
-            self._reorder_boundary_ids(name_to_id_map)
-
-        pass
-
-    def __repr__(self):
-        """Represent self."""
-        return (
-            "Input volume mesh:\n"
-            + str(self.input_volume)
-            + "Input boundary mesh:\n"
-            + str(self.input_boundary)
-        )
-
-    def _reorder_part_ids(self, part_name_to_part_id: dict):
-        """Reorder the input part ids such that they correspond with BOUNDARIES_PER_HEART_PART."""
-        old_ids = copy.deepcopy(self.input_volume.cell_data["part-id"])
-        new_ids = self.input_volume.cell_data["part-id"]
-
-        if not np.all(np.isin(old_ids, list(part_name_to_part_id.values()))):
-            raise ValueError(
-                "Unable to map all part ids to part name: please extend dictionary"
-                + "with all defined part-ids",
-            )
-
-        max_defined_id = np.max(list(_get_part_name_to_part_id_map().values()))
-        self._part_id_mapping = {}
-
-        for key, old_id in part_name_to_part_id.items():
-            if key not in list(_BOUNDARIES_PER_HEART_PART.keys()):
-                target_id = max_defined_id + 1
-                max_defined_id += 1
-            else:
-                target_id = _BOUNDARIES_PER_HEART_PART[key]["id"]
-
-            mask = old_ids == old_id
-            new_ids[mask] = target_id
-            self._part_id_mapping[key] = target_id
-
-        self.input_volume.cell_data["part-id"] = new_ids
-
-        return
-
-    def _reorder_boundary_ids(self, boundary_name_to_boundary_id: dict):
-        """Reorder the input part ids such that they correspond with BOUNDARIES_PER_HEART_PART."""
-        old_ids = copy.deepcopy(self.input_boundary.cell_data["boundary-id"])
-        new_ids = self.input_boundary.cell_data["boundary-id"]
-        # reference map
-        ref_map = _get_boundary_name_to_boundary_id_map()
-        max_defined_id = max(ref_map.values())
-        self._boundary_id_mapping = {}
-
-        if not np.all(np.isin(old_ids, list(boundary_name_to_boundary_id.values()))):
-            raise ValueError(
-                "Unable to map all boundary ids to boundary name: please extend dictionary"
-            )
-
-        for key, old_id in boundary_name_to_boundary_id.items():
-            if key not in ref_map.keys():
-                target_id = max_defined_id + 1
-                max_defined_id += 1
-            else:
-                target_id = ref_map[key]
-
-            mask = old_ids == old_id
-            new_ids[mask] = target_id
-            self._boundary_id_mapping[key] = target_id
-
-        self.input_boundary.cell_data["boundary-id"] = new_ids
-        return
-
-    def _validate_volume_mesh(self):
-        """Perform some validation steps on the volume mesh."""
-        if "part-id" not in self.input_volume.cell_data.keys():
-            raise KeyError("Missing 'part-id' array in cell data.")
-        return
-
-    def _validate_boundary_mesh(self):
-        """Perform some validation steps on the boundary mesh."""
-        if "boundary-id" not in self.input_boundary.cell_data.keys():
-            raise KeyError("Missing 'boundary-d' in cell-data.")
-
-        if not self.input_boundary.is_manifold:
-            raise ImportWarning("Input boundary has gaps and is not watertight.")
-        return
-
-    def export_boundaries(self, format: str, folder: Union[Path, str] = ".") -> None:
-        """Export the boundaries as separate stls."""
-        from ansys.heart.preprocessor.mesh.misc import add_solid_name_to_stl
-
-        boundary_ids = np.unique(self.input_boundary.cell_data["boundary-id"])
-        id_to_name = _get_boundary_id_to_boundary_name_map()
-
-        for id in boundary_ids:
-            boundary = self.input_boundary.threshold([id - 1e-3, id + 1e-3], scalars="boundary-id")
-            boundary_name = id_to_name[id]
-            file_path = os.path.join(folder, boundary_name + ".stl")
-            boundary.extract_surface().save(file_path)
-            add_solid_name_to_stl(file_path, boundary_name, file_type="binary")
-
-    def validate(self):
-        """Validate the given input."""
-        if self.input_volume:
-            self._validate_volume_mesh()
-        if self.input_boundary:
-            self._validate_boundary_mesh()
-
-        return
-
-    def is_valid_input(self):
-        """Validate if the model has the proper boundaries or parts defined."""
-        is_valid = False
-        try:
-            self._validate_volume_mesh()
-            is_valid = True
-        except Exception:
-            pass
-        try:
-            self._validate_boundary_mesh()
-            is_valid = True
-        except Exception:
-            pass
-        return is_valid
-
-    def get_required_parts_and_boundaries(self, model_type: str) -> dict:
-        """Return a dictionary of the required parts and boundaries for a specific model."""
-        parts = _get_required_parts(model_type)
-        boundaries = _get_required_boundaries(model_type)
-        LOGGER.info({"Parts": parts, "Boundaries": boundaries})
-
-        return {"Parts": parts, "Boundaries": boundaries}
-
-    def get_input(self):
-        """Return the validated input volume or boundary."""
-        if isinstance(self.input_volume, pv.UnstructuredGrid):
-            return self.input_volume
-        elif isinstance(self.input_boundary, pv.PolyData):
-            return self.input_boundary

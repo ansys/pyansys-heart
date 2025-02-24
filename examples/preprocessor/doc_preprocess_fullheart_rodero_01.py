@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -128,9 +128,6 @@ model.mesh_volume(use_wrapper=True, global_mesh_size=1.5)
 # update the model and extract the required (anatomical) features
 model._update_parts()
 
-# dump the model to disk
-model.dump_model(path_to_model)
-
 # Optionally save the simulation mesh as a vtk object for "offline" inspection
 model.mesh.save(os.path.join(model.workdir, "simulation-mesh.vtu"))
 model.save_model(os.path.join(model.workdir, "heart_model.vtu"))
@@ -189,7 +186,7 @@ docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", 
 # Full mesh
 filename = Path(docs_images_folder, "full_heart_mesh.png")
 plotter = pv.Plotter(off_screen=True)
-model.mesh.set_active_scalars("part-id")
+model.mesh.set_active_scalars("_volume-id")
 plotter.add_mesh(model.mesh, show_edges=False)
 # plotter.show()
 plotter.camera.roll = -60

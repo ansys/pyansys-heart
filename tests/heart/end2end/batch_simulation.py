@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -144,7 +144,7 @@ def main(args):
                 ring = simulator.model.create_atrial_stiff_ring()
                 ring.meca_material = NeoHookean(rho=0.001, c10=0.1, nu=0.499)
 
-            _ = simulator.create_stiff_ventricle_base()
+            _ = simulator.model.create_stiff_ventricle_base()
 
             simulator.compute_stress_free_configuration()
 

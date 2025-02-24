@@ -34,9 +34,9 @@ from ansys.heart.core import LOG as LOGGER
 
 _SUPPORTED_DPF_SERVERS = ["2024.1", "2024.1rc1", "2024.2rc0"]
 """List of supported DPF Servers."""
-# NOTE:
-# 2024.1rc0: not supported due to mising ::tf operator
-# => 2024.2rc1: not supported due to bug in dpf server when reading d3plots mixed with EM results
+#! NOTE:
+#! 2024.1rc0: not supported due to missing ::tf operator
+#! => 2024.2rc1: not supported due to bug in dpf server when reading d3plots mixed with EM results
 
 
 def _check_accept_dpf():

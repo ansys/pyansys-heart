@@ -23,6 +23,7 @@
 """ "Testing of log module."""
 
 import logging as deflogging  # Default logging module
+import os
 import re
 from typing import Callable
 
@@ -253,7 +254,6 @@ def test_log_to_file(tmp_path_factory: pytest.TempPathFactory):
 
     # if not LOG.file_handler:
     LOG.log_to_file(file_path)
-
     LOG.error(file_msg_error)
     LOG.debug(file_msg_debug)
 
@@ -306,3 +306,21 @@ def test_global_logger_format(fake_record: Callable):
     assert re.findall(r"(?:[0-9]{1,3}.){3}[0-9]{1,3}", log)
     assert "DEBUG" in log
     assert "This is a message" in log
+
+
+def test_clear_file_handlers(tmp_path_factory: pytest.TempPathFactory):
+    """Test clearing all file handlers."""
+    file_path = tmp_path_factory.mktemp("log_files") / "instance.log"
+    LOG.log_to_file(file_path)
+
+    assert len(LOG.logger.handlers) == 3
+    assert isinstance(LOG.logger.handlers[0], deflogging.FileHandler)
+    assert isinstance(LOG.logger.handlers[1], deflogging.StreamHandler)
+    assert isinstance(LOG.logger.handlers[2], deflogging.FileHandler)
+
+    LOG.clear_all_file_handlers()
+    assert len(LOG.logger.handlers) == 1
+    assert isinstance(LOG.logger.handlers[0], deflogging.StreamHandler)
+
+    LOG.debug("test")
+    assert os.path.getsize(file_path) == 0

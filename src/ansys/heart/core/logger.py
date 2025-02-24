@@ -406,6 +406,11 @@ class Logger:
         """
         add_stdout_handler(self, level=level)
 
+    def clear_all_file_handlers(self):
+        """Clear all file handlers from the logger."""
+        clear_file_handlers(self)
+        return
+
     def setLevel(self, level: LOG_LEVEL_TYPE = "DEBUG"):  # noqa: N802
         """Change the log level of the object and the attached handlers."""
         if isinstance(level, str):
@@ -548,6 +553,27 @@ def addfile_handler(logger, filename=FILE_NAME, level=LOG_LEVEL, write_headers=F
         file_handler.stream.write(NEW_SESSION_HEADER)
         file_handler.stream.write(DEFAULT_FILE_HEADER)
 
+    return logger
+
+
+def clear_file_handlers(logger: Logger) -> Logger:
+    """Clear all file handlers from the logger.
+
+    Parameters
+    ----------
+    logger : Logger
+        Logger from which to clear the file handlers.
+
+    Returns
+    -------
+    Logger
+        Logger without file handlers.
+    """
+    logger.logger.handlers = [
+        handler
+        for handler in logger.logger.handlers
+        if not isinstance(handler, logging.FileHandler)
+    ]
     return logger
 
 

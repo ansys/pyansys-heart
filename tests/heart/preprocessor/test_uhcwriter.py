@@ -112,7 +112,6 @@ def test_ra_fiber(fourchamber):
 @pytest.mark.k_file_writer
 def test_drbm(fourchamber):
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
-        # if True:
         #     workdir = r'D:/temp'
         to_test_folder = os.path.join(workdir, "drbm")
         fourchamber._workdir = workdir

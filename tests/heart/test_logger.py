@@ -310,17 +310,22 @@ def test_global_logger_format(fake_record: Callable):
 
 def test_clear_file_handlers(tmp_path_factory: pytest.TempPathFactory):
     """Test clearing all file handlers."""
+    from ansys.heart.core import Logger
+
+    log = Logger()
     file_path = tmp_path_factory.mktemp("log_files") / "instance.log"
-    LOG.log_to_file(file_path)
+    log.log_to_file(file_path)
 
-    assert len(LOG.logger.handlers) == 3
-    assert isinstance(LOG.logger.handlers[0], deflogging.FileHandler)
-    assert isinstance(LOG.logger.handlers[1], deflogging.StreamHandler)
-    assert isinstance(LOG.logger.handlers[2], deflogging.FileHandler)
+    assert len(log.logger.handlers) == 4
+    assert isinstance(log.logger.handlers[0], deflogging.FileHandler)
+    assert isinstance(log.logger.handlers[1], deflogging.StreamHandler)
+    assert isinstance(log.logger.handlers[2], deflogging.StreamHandler)
+    assert isinstance(log.logger.handlers[3], deflogging.FileHandler)
 
-    LOG.clear_all_file_handlers()
-    assert len(LOG.logger.handlers) == 1
-    assert isinstance(LOG.logger.handlers[0], deflogging.StreamHandler)
+    log.clear_all_file_handlers()
+    assert len(log.logger.handlers) == 2
+    assert isinstance(log.logger.handlers[0], deflogging.StreamHandler)
+    assert isinstance(log.logger.handlers[1], deflogging.StreamHandler)
 
-    LOG.debug("test")
+    log.debug("test")
     assert os.path.getsize(file_path) == 0

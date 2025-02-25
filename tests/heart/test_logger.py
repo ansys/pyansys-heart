@@ -310,9 +310,7 @@ def test_global_logger_format(fake_record: Callable):
 
 def test_clear_file_handlers(tmp_path_factory: pytest.TempPathFactory):
     """Test clearing all file handlers."""
-    from ansys.heart.core import Logger
-
-    log = Logger()
+    log = logger.Logger()
     file_path = tmp_path_factory.mktemp("log_files") / "instance.log"
     log.log_to_file(file_path)
 

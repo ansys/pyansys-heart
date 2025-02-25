@@ -16,7 +16,7 @@
 User guide
 ==========
 
-PyAnsys Heart Overview
+PyAnsys Heart overview
 ----------------------
 
 This section provides a brief review of key techniques in cardiac modeling. A list of references is also provided.

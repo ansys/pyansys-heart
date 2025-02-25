@@ -1,9 +1,9 @@
 documentation:
 - changed-files:
-  - any-glob-to-any-file: 'docs/source/**/*'
+  - any-glob-to-any-file: ['doc/source/**/*', 'README.rst']
 maintenance:
 - changed-files:
-  - any-glob-to-any-file: ['.github/**/*', '.flake8/', 'pyproject.toml']
+  - any-glob-to-any-file: ['.github/**/*', 'pyproject.toml']
 testing:
 - changed-files:
   - any-glob-to-any-file:  'tests/*'

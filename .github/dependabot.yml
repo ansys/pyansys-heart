@@ -3,7 +3,7 @@ updates:
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     labels:
       - "maintenance"
       - "dependencies"
@@ -18,17 +18,13 @@ updates:
       docs-deps:
           patterns:
             - "ansys-sphinx-theme*"
-            - "ipyvtklink"
             - "jupyter_sphinx"
-            - "jupytext"
             - "myst-parser"
             - "nbconvert"
             - "nbsphinx"
-            - "notebook"
             - "numpydoc"
             - "sphinx"
             - "sphinx*"
-
 
   - package-ecosystem: "github-actions"
     directory: "/"

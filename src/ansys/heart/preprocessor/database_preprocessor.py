@@ -23,6 +23,7 @@
 """Some helper methods to process cases from Strocchi and Rodero databases."""
 
 import copy
+import os
 from typing import List, Literal, Tuple
 
 import numpy as np
@@ -69,7 +70,7 @@ def _read_input_mesh(mesh_path: str, database: str) -> pv.UnstructuredGrid:
     return mesh
 
 
-def _get_original_labels(database: str) -> dict:
+def _get_original_labels(database: str, case_num: int = None) -> dict:
     """Import the original labels based on database name.
 
     Parameters
@@ -82,17 +83,25 @@ def _get_original_labels(database: str) -> dict:
     dict
         Dictionary representing the label to id map.
     """
-    if database == "Strocchi2020":
-        from ansys.heart.preprocessor.database_labels_to_id import Strocchi2020
+    match database:
+        case "Strocchi2020":
+            if case_num in [12, 14]:
+                from ansys.heart.preprocessor.database_labels_to_id import (
+                    Strocchi2020_case_12_14 as database_labels,
+                )
+            else:
+                from ansys.heart.preprocessor.database_labels_to_id import (
+                    Strocchi2020 as database_labels,  # noqa: N813
+                )
 
-        database_labels = Strocchi2020
-    elif database == "Rodero2021":
-        from ansys.heart.preprocessor.database_labels_to_id import Rodero2021
+        case "Rodero2021":
+            from ansys.heart.preprocessor.database_labels_to_id import (
+                Rodero2021 as database_labels,  # noqa: N813
+            )
 
-        database_labels = Rodero2021
-    else:
-        LOGGER.error(f"Database with name {database} not supported.")
-        return None
+        case _:
+            LOGGER.error(f"Database with name {database} not supported.")
+            return None
 
     return database_labels
 
@@ -441,8 +450,10 @@ def get_compatible_input(
     Tuple[pv.PolyData, dict]
         Preprocessor compatible polydata object and dictionary with part definitions
     """
+    case_num = os.path.basename(mesh_path)
+    case_num = int(case_num.replace(".case", "").replace(".vtk", ""))
     # get the original label <> id map
-    database_labels = _get_original_labels(database)
+    database_labels = _get_original_labels(database, case_num)
 
     # read the mesh file.
     mesh = _read_input_mesh(mesh_path, database)

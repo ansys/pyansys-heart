@@ -6,17 +6,9 @@ PyAnsys Heart
    :target: https://docs.pyansys.com/
    :alt: PyAnsys
 
-.. |python310| image:: https://img.shields.io/badge/Python-3.10-blue
-   :target: https://www.python.org/downloads/release/python-3100/
-   :alt: Python310
-
-.. |python311| image:: https://img.shields.io/badge/Python-3.11-blue
-   :target: https://www.python.org/downloads/release/python-3110/
-   :alt: Python311
-
-.. |python312| image:: https://img.shields.io/badge/Python-3.12-blue
-   :target: https://www.python.org/downloads/release/python-3120/
-   :alt: Python312
+.. |python| image:: https://img.shields.io/pypi/pyversions/pyansys-heart?logo=pypi
+   :target: https://pypi.org/project/pyansys-heart/
+   :alt: Python
 
 .. |GH-CI| image:: https://github.com/ansys/pyansys-heart/actions/workflows/ci_cd.yml/badge.svg
    :target: https://github.com/ansys/pyansys-heart/actions/workflows/ci_cd.yml
@@ -36,9 +28,9 @@ PyAnsys Heart
 
 PyAnsys Heart is a `Python`_ framework for heart modeling using Ansys tools.
 
-.. Note::
+.. note::
 
-    Please read LICENSE file before using this package.
+   Please read LICENSE file before using this package.
 
 How to install
 --------------
@@ -65,7 +57,6 @@ you can create issues to report bugs and request new features. On the `PyAnsys H
 page on the Ansys Developer portal, you can post questions, share ideas, and get community feedback.
 
 To reach the project support team, email `pyansys.core@ansys.com <mailto:pyansys.core@ansys.com>`_.
-
 
 License
 -------

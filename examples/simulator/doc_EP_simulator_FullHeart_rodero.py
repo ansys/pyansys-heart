@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -179,6 +179,7 @@ simulator.model.plot_purkinje()
 # ~~~~~~~~~~~~~~~~~~~~~
 # Start the main EP simulation. This uses the previously computed fiber orientation
 # and purkinje network to set up and run the LS-DYNA model.
+
 
 # simulate using the default EP solver type (Monodomain)
 simulator.simulate()

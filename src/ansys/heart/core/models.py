@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -365,7 +365,7 @@ class HeartModel:
         BeamMesh
             BeamMesh object
         """
-        edges[mask] += len(self.mesh.nodes) + len(BeamMesh.all_beam_nodes)
+        edges[mask] += len(self.mesh.points) + len(BeamMesh.all_beam_nodes)
 
         if len(BeamMesh.all_beam_nodes) == 0:
             BeamMesh.all_beam_nodes = beam_nodes
@@ -375,7 +375,7 @@ class HeartModel:
         # nodes is just for pyvista plot, edges used in writer will be offset
         # TODO: only save necessary nodes, cells, and with a 'global id' array
         beam_net = BeamMesh(
-            nodes=np.vstack((self.mesh.nodes, BeamMesh.all_beam_nodes)),
+            nodes=np.vstack((self.mesh.points, BeamMesh.all_beam_nodes)),
             edges=edges,
             beam_nodes_mask=mask,
         )
@@ -502,7 +502,6 @@ class HeartModel:
         vtk_grid = fluent_mesh._to_vtk()
 
         mesh = Mesh(vtk_grid)
-        mesh.cell_data["part-id"] = mesh.cell_data["cell-zone-ids"]
         mesh.cell_data["_volume-id"] = mesh.cell_data["cell-zone-ids"]
         for fluent_cell_zone in fluent_mesh.cell_zones:
             mesh._volume_id_to_name[fluent_cell_zone.id] = fluent_cell_zone.name
@@ -592,7 +591,7 @@ class HeartModel:
         fluid_mesh._fix_negative_cells()
         fluid_mesh_vtk = fluid_mesh._to_vtk(add_cells=True, add_faces=False)
 
-        fluid_mesh_vtk.cell_data["part-id"] = fluid_mesh_vtk.cell_data["cell-zone-ids"]
+        fluid_mesh_vtk.cell_data["_volume-id"] = fluid_mesh_vtk.cell_data["cell-zone-ids"]
 
         boundaries = [
             SurfaceMesh(name=fz.name, triangles=fz.faces, nodes=fluid_mesh.nodes, id=fz.id)
@@ -641,7 +640,7 @@ class HeartModel:
         summary = model_summary(self)
         return summary
 
-    def plot_mesh(self, show_edges: bool = True, color_by: str = "part-id"):
+    def plot_mesh(self, show_edges: bool = True, color_by: str = "_volume-id"):
         """Plot the volume mesh of the heart model.
 
         Parameters
@@ -649,7 +648,7 @@ class HeartModel:
         show_edges : bool, optional
             Whether to plot the edges, by default True
         color_by : str, optional
-            Color by cell/point data, by default "part-id"
+            Color by cell/point data, by default "_volume-id"
 
         Examples
         --------
@@ -811,10 +810,10 @@ class HeartModel:
         return
 
     @deprecated(
-        reason="""dump_model() uses pickle which is unsafe
+        reason="""_dump_model() uses pickle which is unsafe
                 and will be replaced. Use save_model() instead"""
     )
-    def dump_model(self, filename: Union[pathlib.Path, str] = None):
+    def _dump_model(self, filename: Union[pathlib.Path, str] = None):
         """Save model to .pickle file.
 
         Parameters
@@ -829,7 +828,7 @@ class HeartModel:
 
         Examples
         --------
-        >>> model.dump_model("my_heart_model.pickle")
+        >>> model._dump_model("my_heart_model.pickle")
 
         """
         LOGGER.debug("Writing model to disk")
@@ -993,8 +992,22 @@ class HeartModel:
 
         # NOTE: #? Wrap in try-block?
         # NOTE: #? add validation method to make sure all essential components are present?
-        self._extract_apex()
-        self._define_anatomy_axis()
+        try:
+            self._extract_apex()
+        except Exception:
+            LOGGER.error("Failed to extract apex. Consider setting apex manually.")
+
+        if any(v is None for v in [self.short_axis, self.l4cv_axis, self.l2cv_axis]):
+            LOGGER.warning("Heart axis not defined in the VTU file.")
+            try:
+                LOGGER.warning("Computing heart axis...")
+                self._define_anatomy_axis()
+            except Exception:
+                LOGGER.error(
+                    "Failed to extract heart axis. Consider computing and setting them manually."
+                )
+        else:
+            LOGGER.warning("Read heart axis defined in the VTU file is reused...")
 
         return
 
@@ -1070,7 +1083,7 @@ class HeartModel:
             from ansys.heart.core.helpers.geodisc import rodrigues_rot
 
             points_rotation = rodrigues_rot(
-                self.mesh.nodes - lv_apex, longitudinal_axis, [0, 0, -1]
+                self.mesh.points - lv_apex, longitudinal_axis, [0, 0, -1]
             )
             points_rotation[:, 2] = points_rotation[:, 2] - np.min(points_rotation, axis=0)[2]
             scaling = points_rotation[:, 2] / np.max(points_rotation[:, 2])
@@ -1157,7 +1170,6 @@ class HeartModel:
         # assign to septum
         part = next(part for part in self.parts if part.part_type == PartType.SEPTUM)
         part.element_ids = element_ids_septum
-        self.mesh.cell_data["part-id"][element_ids_septum] = part.pid
         # manipulate _volume-id
         self.mesh.cell_data["_volume-id"][element_ids_septum] = part.pid
         self.mesh._volume_id_to_name[int(part.pid)] = part.name
@@ -1245,7 +1257,7 @@ class HeartModel:
                 continue
             # ! this is valid as long as no additional surfaces are added in self.mesh.
             # ! otherwise (global) element ids may change
-            element_ids = np.where(np.isin(self.mesh.part_ids, part.pid))[0]
+            element_ids = np.where(np.isin(self.mesh.cell_data["_volume-id"], part.pid))[0]
             element_ids = element_ids[np.isin(element_ids, used_element_ids, invert=True)]
             part.element_ids = element_ids
 
@@ -1861,6 +1873,9 @@ class FullHeart(FourChamber):
         self.aorta.active = False
         self.pulmonary_artery.fiber = False
         self.pulmonary_artery.active = False
+
+        self.aorta.ep_material = EPMaterial.Insulator()
+        self.pulmonary_artery.ep_material = EPMaterial.Insulator()
 
         super().__init__(working_directory=working_directory)
 

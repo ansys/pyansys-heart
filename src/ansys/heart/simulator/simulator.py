@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -40,29 +40,27 @@ import shutil
 import subprocess
 from typing import Literal
 
-from deprecated import deprecated
 import natsort
 import numpy as np
+import psutil
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.helpers.element_orth import _read_orth_element_kfile
 from ansys.heart.core.models import FourChamber, HeartModel, LeftVentricle
-from ansys.heart.core.objects import Part, PartType
 from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
 from ansys.heart.postprocessor.laplace_post import (
     compute_la_fiber_cs,
     compute_ra_fiber_cs,
+    compute_ventricle_fiber_by_drbm,
     read_laplace_solution,
 )
 from ansys.heart.preprocessor.conduction_beam import ConductionSystem
-from ansys.heart.simulator.settings.material.ep_material import EPMaterial
-from ansys.heart.simulator.settings.material.material import (
-    MechanicalMaterialModel,
-    NeoHookean,
-)
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
+
+_KILL_ANSYSCL_PRIOR_TO_RUN = True
+"""Flag indicating whether to kill all ansys license clients prior to LS-DYNA run."""
 
 
 class BaseSimulator:
@@ -119,13 +117,75 @@ class BaseSimulator:
         self.settings.load_defaults()
         return self.settings
 
-    def compute_fibers(self):
-        """Compute the fiber direction on the model."""
-        directory = self._write_fibers()
+    def compute_fibers(
+        self, method: Literal["LSDYNA", "D-RBM"] = "LSDYNA", rotation_angles: dict = None
+    ):
+        """Compute the fiber-sheet directions on ventricle(s).
 
+        Parameters
+        ----------
+        method : Literal[&quot;LSDYNA&quot;, &quot;D, optional
+            method, by default "LSDYNA"
+        rotation_angles : dict, optional
+            rotation angle alpha and beta, by default None
+        """
         LOGGER.info("Computing fiber orientation...")
 
-        # self.settings.save(os.path.join(directory, "simulation_settings.yml"))
+        if method == "LSDYNA":
+            if rotation_angles is None:
+                # find default settings
+                rotation_angles = self.settings.get_ventricle_fiber_rotation(method="LSDYNA")
+
+            for name in ["alpha", "beta", "beta_septum"]:
+                if name not in rotation_angles.keys():
+                    LOGGER.error(f"Must provide key {name} for D-RBM method")
+                    exit()
+
+            self._compute_fibers_lsdyna(rotation_angles)
+
+        elif method == "D-RBM":
+            if isinstance(self.model, LeftVentricle):
+                LOGGER.error(f"{method} not supported for LeftVentricle model.")
+                exit()
+
+            if rotation_angles is None:
+                # find default settings
+                rotation_angles = self.settings.get_ventricle_fiber_rotation(method="D-RBM")
+
+            for a, b in zip(["alpha", "beta"], ["_left", "_right", "_ot"]):
+                if a + b not in rotation_angles.keys():
+                    LOGGER.error(f"Must provide key {name} for D-RBM method")
+                    exit()
+            self._compute_fibers_drbm(rotation_angles)
+
+        return
+
+    def _compute_fibers_drbm(self, rotation_angles: dict):
+        """Use D-RBM fiber method."""
+        export_directory = os.path.join(self.root_directory, "D-RBM")
+        target = self.run_laplace_problem(export_directory, type="D-RBM")
+        grid = compute_ventricle_fiber_by_drbm(export_directory, settings=rotation_angles)
+        grid.save(os.path.join(export_directory, "drbm_fibers.vtu"))
+
+        # arrays that save ID map to full model
+        grid["cell_ids"] = target["cell_ids"]
+
+        LOGGER.info("Assigning fibers to full model...")
+
+        # cell IDs in full model mesh
+        ids = grid["cell_ids"]
+        self.model.mesh.cell_data["fiber"][ids] = grid["fiber"]
+        self.model.mesh.cell_data["sheet"][ids] = grid["sheet"]
+
+    def _compute_fibers_lsdyna(self, rotation_angles: dict):
+        """Use LSDYNA native fiber method."""
+        directory = os.path.join(self.root_directory, "fibergeneration")
+        self.directories["fibergeneration"] = directory
+
+        dyna_writer = writers.FiberGenerationDynaWriter(copy.deepcopy(self.model), self.settings)
+        dyna_writer.update(rotation_angles)
+        dyna_writer.export(directory)
+
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(path_to_input=input_file)
 
@@ -134,7 +194,6 @@ class BaseSimulator:
         elem_ids, part_ids, connect, fib, sheet = _read_orth_element_kfile(
             os.path.join(directory, "element_solid_ortho.k")
         )
-
         self.model.mesh.cell_data["fiber"][elem_ids - 1] = fib
         self.model.mesh.cell_data["sheet"][elem_ids - 1] = sheet
 
@@ -210,10 +269,10 @@ class BaseSimulator:
             export_directory, "ra_fiber", raa=np.array(appendage), top=top
         )
 
-        endo_surface = self.model.mesh.get_surface(self.model.right_atrium.endocardium.id)
         ra_pv = compute_ra_fiber_cs(
-            export_directory, self.settings.atrial_fibers, endo_surface=endo_surface
+            export_directory, self.settings.atrial_fibers, endo_surface=None
         )
+        ra_pv.save(os.path.join(export_directory, "ra_fiber.vtu"))
         LOGGER.info("Generating fibers done.")
 
         # arrays that save ID map to full model
@@ -255,11 +314,10 @@ class BaseSimulator:
 
         target = self.run_laplace_problem(export_directory, "la_fiber", laa=appendage)
 
-        endo_surface = self.model.mesh.get_surface(self.model.left_atrium.endocardium.id)
         la_pv = compute_la_fiber_cs(
-            export_directory, self.settings.atrial_fibers, endo_surface=endo_surface
+            export_directory, self.settings.atrial_fibers, endo_surface=None
         )
-
+        la_pv.save(os.path.join(export_directory, "la_fiber.vtu"))
         LOGGER.info("Generating fibers done.")
 
         # arrays that save ID map to full model
@@ -337,23 +395,6 @@ class BaseSimulator:
 
         if options != "":
             self.dyna_settings.dyna_options = old_options
-
-    def _write_fibers(
-        self,
-        alpha_endocardium: float = -60,
-        alpha_epicardium: float = 60,
-        beta_endocardium: float = 25,
-        beta_epicardium: float = -65,
-    ) -> pathlib:
-        """Write LS-DYNA files for fiber generation."""
-        export_directory = os.path.join(self.root_directory, "fibergeneration")
-        self.directories["fibergeneration"] = export_directory
-
-        dyna_writer = writers.FiberGenerationDynaWriter(copy.deepcopy(self.model), self.settings)
-        dyna_writer.update()
-        dyna_writer.export(export_directory)
-
-        return export_directory
 
 
 class EPSimulator(BaseSimulator):
@@ -439,12 +480,12 @@ class EPSimulator(BaseSimulator):
             cs.compute_sa_node()
             cs.compute_av_node()
             cs.compute_av_conduction(beam_length=beam_length)
-            left, right = cs.compute_his_conduction(beam_length=beam_length)
+            _, left_point, right_point = cs.compute_his_conduction(beam_length=beam_length)
             cs.compute_left_right_bundle(
-                left.xyz, left.node_id, side="Left", beam_length=beam_length
+                left_point.xyz, left_point.node_id, side="Left", beam_length=beam_length
             )
             cs.compute_left_right_bundle(
-                right.xyz, right.node_id, side="Right", beam_length=beam_length
+                right_point.xyz, right_point.node_id, side="Right", beam_length=beam_length
             )
 
             # # TODO: define end point by uhc, or let user choose
@@ -505,51 +546,6 @@ class MechanicsSimulator(BaseSimulator):
         """If stress free computation is taken into considered."""
 
         return
-
-    @deprecated(reason="""please use the same method under the class HeartModel.""")
-    def create_stiff_ventricle_base(
-        self,
-        threshold: float = 0.9,
-        stiff_material: MechanicalMaterialModel = NeoHookean(rho=0.001, c10=0.1, nu=0.499),
-    ) -> Part:
-        """Create a stiff base part from uvc longitudinal value.
-
-        Parameters
-        ----------
-        threshold : float, optional
-            uvc_l larger than threshold will be set as stiff base, by default 0.9
-        stiff_material : MechanicalMaterialModel, optional
-            material to assign, by default NeoHookean(rho=0.001, c10=0.1, nu=0.499)
-
-        Returns
-        -------
-        Part
-            new created part
-        """
-        try:
-            v = self.model.mesh.point_data_to_cell_data()["apico-basal"]
-        except KeyError:
-            self.compute_uhc()
-            v = self.model.mesh.point_data_to_cell_data()["apico-basal"]
-
-        eids = np.intersect1d(np.where(v > threshold)[0], self.model.left_ventricle.element_ids)
-        if not isinstance(self.model, LeftVentricle):
-            # uvc-L of RV is generally smaller, *1.05 to be comparable with LV
-            eid_r = np.intersect1d(
-                np.where(v > threshold * 1.05)[0],
-                self.model.right_ventricle.element_ids,
-            )
-            eids = np.hstack((eids, eid_r))
-
-        part: Part = self.model.create_part_by_ids(eids, "base")
-        part.part_type = PartType.VENTRICLE
-        part.fiber = False
-        part.active = False
-        part.meca_material = stiff_material
-        # assign default EP material as for ventricles
-        part.ep_material = EPMaterial.Active()
-
-        return part
 
     def simulate(
         self,
@@ -630,7 +626,7 @@ class MechanicsSimulator(BaseSimulator):
         # replace node coordinates by computed ED geometry
         LOGGER.info("Updating nodes after stress-free.")
 
-        self.model.mesh.nodes = guess_ed_coord
+        self.model.mesh.points = guess_ed_coord
 
         #! Note that it is not always clear if the contents of the retrieved
         #! surface is actually properly copied to the object of which the surface
@@ -704,6 +700,16 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         return export_directory
 
 
+def _kill_all_ansyscl():
+    """Kill all ansys license clients."""
+    try:
+        for p in psutil.process_iter():
+            if "ansyscl" in p.name():
+                p.kill()
+    except Exception as e:
+        LOGGER.warning(f"Failed to kill all ansyscl's: {e}")
+
+
 class LsDynaErrorTerminationError(Exception):
     """Exception raised when `N o r m a l    t e r m i n a t i o n` is not found."""
 
@@ -737,6 +743,12 @@ def run_lsdyna(
 
     os.chdir(os.path.dirname(path_to_input))
 
+    #! Kill all ansys license clients prior to running LS-DYNA
+    #! this to avoid issues with orphan license clients of versions
+    #! lower than the one needed by LS-DYNA.
+    if _KILL_ANSYSCL_PRIOR_TO_RUN:
+        _kill_all_ansyscl()
+
     mess = []
     with subprocess.Popen(commands, stdout=subprocess.PIPE, text=True) as p:
         for line in p.stdout:
@@ -746,7 +758,7 @@ def run_lsdyna(
     os.chdir(simulation_directory)
 
     if "N o r m a l    t e r m i n a t i o n" not in "".join(mess):
-        if "job done, stopping" not in "".join(mess):
+        if "numNodePurkinje" not in "".join(mess):
             LOGGER.error("LS-DYNA did not terminate properly.")
             raise LsDynaErrorTerminationError()
 

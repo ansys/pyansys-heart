@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -49,7 +49,7 @@ def _mock_model():
 
 def _add_beam_network(model: FullHeart):
     """Add a beam network to the model."""
-    lines = pv.line_segments_from_points([[0, 0, 0], [1, 0, 0]])
+    lines = pv.line_segments_from_points([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
     beams = BeamMesh(name="beams")
     beams.nodes = lines.points
     beams.edges = np.array([lines.lines[1:]])

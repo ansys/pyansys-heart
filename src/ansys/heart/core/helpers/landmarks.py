@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -115,7 +115,7 @@ def compute_aha17(
         ele_ids = np.hstack(model.left_ventricle.element_ids)
 
     # elements center
-    elem_center = np.mean(model.mesh.nodes[model.mesh.tetrahedrons[ele_ids]], axis=1)
+    elem_center = np.mean(model.mesh.points[model.mesh.tetrahedrons[ele_ids]], axis=1)
 
     # anatomical points
     for cap in model.left_ventricle.caps:
@@ -151,6 +151,11 @@ def compute_aha17(
     p1_3 = 1 / 3 * (apex_ep - p_highest) + p_highest
     p2_3 = 2 / 3 * (apex_ep - p_highest) + p_highest
 
+    # In order to have a flat segment 17, project endocardical apex point on short axis
+    x = apex_ed - apex_ep
+    y = p_highest - apex_ep
+    apex_ed = y * np.dot(x, y) / np.dot(y, y) + apex_ep
+
     # aha17 label assignment
     label = np.full(len(elem_center), np.nan)
     for i, n in enumerate(elem_center):
@@ -162,37 +167,37 @@ def compute_aha17(
             if np.dot(n - p1_3, axe_60) >= 0:
                 if np.dot(n - p1_3, axe_120) >= 0:
                     if np.dot(n - p1_3, axe_180) >= 0:
-                        label[i] = 6
-                    else:
                         label[i] = 5
+                    else:
+                        label[i] = 6
                 else:
-                    label[i] = 1
+                    label[i] = 4
             else:
                 if np.dot(n - p1_3, axe_180) <= 0:
                     if np.dot(n - p1_3, axe_120) >= 0:
-                        label[i] = 4
+                        label[i] = 1
                     else:
-                        label[i] = 3
+                        label[i] = 2
                 else:
-                    label[i] = 2
+                    label[i] = 3
         # Mid cavity: segment 7 8 9 10 11 12
         elif np.dot(n - p2_3, mv_center - p2_3) >= 0:
             if np.dot(n - p1_3, axe_60) >= 0:
                 if np.dot(n - p1_3, axe_120) >= 0:
                     if np.dot(n - p1_3, axe_180) >= 0:
-                        label[i] = 12
-                    else:
                         label[i] = 11
+                    else:
+                        label[i] = 12
                 else:
-                    label[i] = 7
+                    label[i] = 10
             else:
                 if np.dot(n - p1_3, axe_180) <= 0:
                     if np.dot(n - p1_3, axe_120) >= 0:
-                        label[i] = 10
+                        label[i] = 7
                     else:
-                        label[i] = 9
+                        label[i] = 8
                 else:
-                    label[i] = 8
+                    label[i] = 9
         # Apical
         else:
             if seg == 17:
@@ -203,10 +208,10 @@ def compute_aha17(
                         if np.dot(n - p1_3, axe_135) >= 0:
                             label[i] = 16
                         else:
-                            label[i] = 13
+                            label[i] = 15
                     else:
                         if np.dot(n - p1_3, axe_135) >= 0:
-                            label[i] = 15
+                            label[i] = 13
                         else:
                             label[i] = 14
 
@@ -215,10 +220,10 @@ def compute_aha17(
                     if np.dot(n - p1_3, axe_135) >= 0:
                         label[i] = 16
                     else:
-                        label[i] = 13
+                        label[i] = 15
                 else:
                     if np.dot(n - p1_3, axe_135) >= 0:
-                        label[i] = 15
+                        label[i] = 13
                     else:
                         label[i] = 14
 
@@ -248,7 +253,7 @@ def compute_element_cs(
         longitudinal, radial, circufenrential vecotors of each AHA element
     """
     elems = model.mesh.tetrahedrons[aha_element]
-    elem_center = np.mean(model.mesh.nodes[elems], axis=1)
+    elem_center = np.mean(model.mesh.points[elems], axis=1)
 
     # compute longitudinal direction, i.e. short axis
     e_l = np.tile(short_axis["normal"], (len(aha_element), 1))

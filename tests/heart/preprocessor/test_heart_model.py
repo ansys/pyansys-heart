@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -53,15 +53,15 @@ def test_dump_model_001():
 
         expected_path = os.path.join(model.workdir, "heart_model.pickle")
 
-        model.dump_model()
+        model._dump_model()
         assert os.path.isfile(expected_path)
 
         expected_path = os.path.join(model.workdir, "heart_model1.pickle")
-        model.dump_model(expected_path)
+        model._dump_model(expected_path)
         assert os.path.isfile(expected_path)
 
         expected_path = Path(os.path.join(model.workdir, "heart_model2.pickle"))
-        model.dump_model(expected_path)
+        model._dump_model(expected_path)
         assert os.path.isfile(expected_path)
 
 
@@ -74,7 +74,7 @@ def test_model_load_001():
         model.left_ventricle.endocardium.triangles = np.array([[0, 1, 2]], dtype=int)
         model.left_ventricle.endocardium.nodes = np.eye(3, 3, dtype=float)
 
-        model.dump_model()
+        model._dump_model()
 
         assert os.path.isfile(path_to_model)
 
@@ -111,14 +111,16 @@ def test_model_load_002():
             + 10
         )
 
-        model.mesh.tetrahedrons = np.array([[0, 1, 2, 3]], dtype=int)
-        model.mesh.nodes = np.array(
+        points = np.array(
             [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=float
         )
+        cells = np.array([4, 0, 1, 2, 3], dtype=int)
+        celltypes = [pv.CellType.TETRA]
+        model.mesh = Mesh(cells, celltypes, points)
 
         # dump model to disk
         path_to_heart_model = os.path.join(workdir, "heart_model.pickle")
-        model.dump_model(path_to_heart_model)
+        model._dump_model(path_to_heart_model)
 
         assert os.path.isfile(path_to_heart_model), "File does not exist"
 
@@ -139,7 +141,7 @@ def test_model_load_002():
             model.right_ventricle.endocardium.triangles,
         )
         assert np.array_equal(model1.mesh.tetrahedrons, model.mesh.tetrahedrons)
-        assert np.allclose(model1.mesh.nodes, model.mesh.nodes, atol=1e-8)
+        assert np.allclose(model1.mesh.points, model.mesh.points, atol=1e-8)
 
     pass
 
@@ -321,3 +323,21 @@ def test_heart_model_add_purkinje_from_file():
                 ]
             ),
         )
+
+
+def test_create_stiff_ventricle_base():
+    """Test creating a stiff ventricle base."""
+    model = models.BiVentricle()
+    # create a test mesh (apico-basal coordinate defined by z-coordinate)
+    mesh = examples.load_tetbeam()
+    mesh.cell_data["_volume-id"] = 1
+    mesh.point_data["apico-basal"] = mesh.points[:, 2] / 5
+
+    mesh1 = Mesh()
+    mesh1.add_volume(mesh, id=1, name="Left ventricle")
+    model.mesh = mesh1
+    model.left_ventricle.element_ids = np.arange(0, model.mesh.n_cells)
+
+    part = model.create_stiff_ventricle_base()
+    assert len(part.element_ids) == 20
+    assert np.all(part.element_ids == np.arange(180, 200))

@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -92,4 +92,4 @@ class D3plotToVTKExporter:
         if fname is not None:
             mesh.save(fname)
         # NOTE: the returned pv_object seems corrupted, I suspect it's a bug of pyvista
-        return mesh
+        return mesh.copy()

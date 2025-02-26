@@ -1,7 +1,28 @@
 *KEYWORD
+*SECTION_SHELL
+$#   secid    elform      shrf       nip     propt   qr/irid     icomp     setyp
+         8         4    0.8333         3       1.0         0         0         1
+$#      t1        t2        t3        t4      nloc     marea      idof    edgset
+       1.0       0.0       0.0       0.0       0.0       0.0       0.0         0
+*MAT_NULL
+$#     mid        ro        pc        mu     terod     cerod        ym        pr
+        14     0.001                                                            
+*PART
+$#                                                             heading
+null flow area                                                        
+$#     pid     secid       mid     eosid      hgid      grav    adpopt      tmid
+        26         8        14                                                  
 *DEFINE_CONTROL_VOLUME
 $#      id       sid        p0
          1         1          
+*SET_SEGMENT_ADD
+$#     sid
+        29
+$#    sets      sets
+        16        17
+*DEFINE_CONTROL_VOLUME_FLOW_AREA
+$#    FAID     FCIID     FASID   FASTYPE       PID
+         1         1        29         2        26
 *DEFINE_CONTROL_VOLUME_INTERACTION
 $#      id     cvid1     cvid2     lcid      area 
          1         1         0         5          
@@ -160,6 +181,14 @@ $   LSDYNA defines outflow as positive
 *DEFINE_CONTROL_VOLUME
 $#      id       sid        p0
          2         2          
+*SET_SEGMENT_ADD
+$#     sid
+        30
+$#    sets      sets
+        18        19
+*DEFINE_CONTROL_VOLUME_FLOW_AREA
+$#    FAID     FCIID     FASID   FASTYPE       PID
+         2         2        30         2        26
 *DEFINE_CONTROL_VOLUME_INTERACTION
 $#      id     cvid1     cvid2     lcid      area 
          2         2         0         6          

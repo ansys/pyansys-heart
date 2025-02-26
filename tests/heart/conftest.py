@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -28,6 +28,7 @@ import sys
 import pytest
 
 from ansys.heart.core.helpers.downloader import download_case_from_zenodo, unpack_case
+import ansys.heart.core.models as models
 
 ROOT_FOLDER = os.path.join(pathlib.Path(__file__).parent)
 
@@ -177,3 +178,29 @@ if is_debugging():
     @pytest.hookimpl(tryfirst=True)
     def pytest_internalerror(excinfo):
         raise excinfo.value
+
+
+def get_fourchamber() -> models.FourChamber:
+    vtu_file = os.path.join(
+        get_assets_folder(),
+        "reference_models",
+        "strocchi2020",
+        "01",
+        "FourChamber",
+        "heart_model.vtu",
+    )
+
+    json_file = os.path.join(
+        get_assets_folder(),
+        "reference_models",
+        "strocchi2020",
+        "01",
+        "FourChamber",
+        "heart_model.partinfo.json",
+    )
+
+    model: models.FourChamber = models.FourChamber(working_directory=".")
+
+    model.load_model_from_mesh(vtu_file, json_file)
+
+    return model

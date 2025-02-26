@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -417,30 +417,6 @@ def test_mesh_object_properties():
     assert np.all(mesh.line_ids == [100])
 
     pass
-
-
-def test_add_nodes_mesh():
-    """Test adding points/nodes to the Mesh object."""
-    # test data:
-    points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]])
-    tetrahedron = np.array([[0, 1, 2, 3]])
-
-    mesh = Mesh()
-    mesh.tetrahedrons = tetrahedron
-    mesh.nodes = points
-    mesh.point_data["data-scalar"] = np.ones(mesh.n_points, dtype=float)
-    mesh.point_data["data-vector"] = np.ones((mesh.n_points, 3), dtype=float)
-
-    # test adding nodes
-    mesh.nodes = np.vstack([points, [0, 0.5, 0.5]])
-    assert mesh.point_data["data-scalar"].shape[0] == mesh.nodes.shape[0]
-    assert mesh.point_data["data-vector"].shape[0] == mesh.nodes.shape[0]
-
-    # test assigning same number of nodes
-    mesh.nodes = mesh.nodes * 1e-3
-
-    assert mesh.point_data["data-scalar"].shape[0] == mesh.nodes.shape[0]
-    assert mesh.point_data["data-vector"].shape[0] == mesh.nodes.shape[0]
 
 
 def test_surface_mesh_init():

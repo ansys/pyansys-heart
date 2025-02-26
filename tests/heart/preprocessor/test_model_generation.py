@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -32,10 +32,13 @@ import shutil
 import tempfile
 from typing import Union
 
+import numpy as np
 import pytest
 import yaml
 
+from ansys.heart.core.helpers.downloader import download_case_from_zenodo, unpack_case
 import ansys.heart.core.models as models
+from ansys.heart.preprocessor.database_preprocessor import get_compatible_input
 import ansys.heart.writer.dynawriter as writers
 from tests.heart.common import compare_stats_mesh, compare_stats_names, compare_stats_volumes
 from tests.heart.conftest import get_assets_folder
@@ -294,6 +297,8 @@ def test_writers(extract_model, writer_class):
         writer.export(to_test_folder)
 
         ref_files = glob.glob(os.path.join(ref_folder, "*.k"))
+        assert len(ref_files) > 1  # at least 2 k files exist
+
         # compare each of the reference files to the files that were generated.
         for ref_file in ref_files:
             file_to_compare = os.path.join(to_test_folder, pathlib.Path(ref_file).name)
@@ -331,7 +336,7 @@ def test_writers_after_load_model(extract_model, writer_class):
             "reference_models",
             "strocchi2020",
             "01",
-            "_BiVentricle",
+            "BiVentricle",
             "k_files1",
             writer_class.__name__,
         )
@@ -341,12 +346,11 @@ def test_writers_after_load_model(extract_model, writer_class):
             "reference_models",
             "strocchi2020",
             "01",
-            "_FullHeart",
+            "FullHeart",
             "k_files1",
             writer_class.__name__,
         )
 
-    # with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         model_path = os.path.join(workdir, model.__class__.__name__ + ".vtu")
         partinfo = model_path.replace(".vtu", ".partinfo.json")
@@ -363,12 +367,36 @@ def test_writers_after_load_model(extract_model, writer_class):
         writer.export(to_test_folder)
 
         ref_files = glob.glob(os.path.join(ref_folder, "*.k"))
+        assert len(ref_files) > 1  # at least 2 k files exist
+
         # compare each of the reference files to the files that were generated.
         for ref_file in ref_files:
             file_to_compare = os.path.join(to_test_folder, pathlib.Path(ref_file).name)
             _compare_k(ref_file, file_to_compare)
-            # assert read_file(ref_file) == read_file(
-            #     file_to_compare
-            # ), f"File {pathlib.Path(ref_file).name} does not match."
 
     return
+
+
+@pytest.mark.extract_models
+def test_get_compatible_input():
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        path_to_tar = download_case_from_zenodo("Rodero2021", 1, tempdir)
+        unpack_case(path_to_tar)
+        import os
+
+        mesh_path = os.path.join(tempdir, "Rodero2021", "01", "01.vtk")
+        assert os.path.isfile(mesh_path)
+        input_geom, part_definitions = get_compatible_input(mesh_path, "FullHeart")
+
+        assert np.all(input_geom.cast_to_unstructured_grid().celltypes == 5)
+
+        expected_keys = [
+            "Left ventricle",
+            "Right ventricle",
+            "Left atrium",
+            "Right atrium",
+            "Pulmonary artery",
+            "Aorta",
+        ]
+        for k in part_definitions.keys():
+            assert k in expected_keys

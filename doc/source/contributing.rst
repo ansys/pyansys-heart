@@ -1,6 +1,6 @@
-==========
-Contribute
-==========
+============
+Contributing
+============
 
 Overall guidance on contributing to a PyAnsys repository appears in the *PyAnsys Developer's Guide*, see:
 `Contribute <https://dev.docs.pyansys.com/>`_. Ensure that you are thoroughly familiar
@@ -13,12 +13,40 @@ Clone the repository
 Clone and install the latest version of PyAnsys Heart in
 development mode by running this code:
 
-.. code::
+.. code:: bash
 
     git clone https://github.com/pyansys/pyansys-heart
     cd pyansys-heart
     pip install -e .
 
+
+Install additional requirements, such as dependencies to build documentation or run (unit)tests:
+
+.. code:: bash
+
+    # dependencies for local doc building
+    python -m pip install -e .[doc]
+    # dependencies needed for (unit) testing
+    python -m pip install -e .[tests]
+
+Run tests to verify your development version.
+
+.. code:: bash
+
+    # run quick tests
+    python -m pytest -v -m "not requires_fluent or (not extract_models)"
+    # run tests requiring Fluent
+    python -m pytest -v -m requires_fluent
+    # run all tests
+    pytest tests -v
+
+Style and testing
+-----------------
+If required, you can always call the style commands (`black`_, `isort`_,
+`flake8`_) or unit testing ones (`pytest`_) from the command line. Alternatively, you can
+use `pre-commit`_, which ensures that all style requirements are met. However,
+this does not guarantee that your project is being tested in an isolated
+environment, which is another reason to consider using `tox`_.
 
 Post issues
 -----------

@@ -42,7 +42,7 @@ jobs:
   smoke-tests:
     name: "Build and Smoke tests"
     runs-on: ${{ matrix.os }}
-    needs: [code-style]
+    needs: [tests]
     strategy:
       fail-fast: false
       matrix:
@@ -63,7 +63,7 @@ jobs:
     steps:
       - uses: ansys/actions/doc-build@v8
         with:
-          python-version: ${{ env.MAIN_PYTHON_VERSION }}
+          python-version: "3.11"
           check-links: false
           # By default, also '-W --keep-going'... we should eventually solve the warnings in the build process.
           sphinxopts: '-j auto'
@@ -85,7 +85,7 @@ jobs:
   tests:
     name: Tests
     runs-on: ${{ matrix.os }}
-    needs: [smoke-tests]
+    needs: [code-style]
     strategy:
       matrix:
 #        os: [windows-latest, macos-latest, ubuntu-latest]

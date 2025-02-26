@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -76,7 +76,7 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     displacements = [data.get_displacement_at(time=t) for t in data.time]
     guess_ed_coord = stress_free_coord + displacements[-1]
 
-    nodes = model.mesh.nodes
+    nodes = model.mesh.points
 
     # convergence information
     dst = np.linalg.norm(guess_ed_coord - nodes, axis=1)

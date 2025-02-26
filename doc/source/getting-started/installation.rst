@@ -4,10 +4,18 @@ Installation
 This guide helps you install PyAnsys Heart. It provides information on how to install
 the package from PyPI, from a wheel file, or from the source code.
 
+.. Note::
+
+    If you do not have access to *PyAnsys Heart* you can follow the instructions under *Install from a wheel file*. You may need to request the wheel files from your Ansys contact.
+
+.. Warning::
+
+    Consider installing using a virtual environment to avoid conflicts with other packages.
+
 PyPI
 ----
 
-Before installing PyAnsys Heart, to ensure that you have the latest version
+Before installing PyAnsys Heart ensure that you have the latest version
 of the `pip <https://pip.pypa.io/en/stable/installation/>`_
 package manager, run the following command:
 

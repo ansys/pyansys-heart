@@ -4,7 +4,6 @@ documentation:
 maintenance:
 - changed-files:
   - any-glob-to-any-file: ['pyproject.toml']
-  - head-branch: ['maint']
 testing:
 - changed-files:
   - any-glob-to-any-file: ['tests/**/*']

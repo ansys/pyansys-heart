@@ -103,7 +103,7 @@ This way, it's not possible for you to push code that fails the style checks::
 Install tox
 -----------
 Once the project is installed, you can install `Tox <https://tox.wiki/en/stable/>`_ to run tests in an isolated environment.
-Tox is a generic virtualenv management and test command line tool that can be used to test your project
+Tox is a generic virtual environment management and test command line tool that can be used to test your project
 in isolated python environments.
 
 .. code:: bash

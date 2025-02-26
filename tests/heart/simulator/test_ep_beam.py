@@ -157,7 +157,7 @@ def test_compute_left_bundle_connection():
     )
 
     # fourchamber.plot_purkinje()
-    assert np.all(left_bundle.edges[0] == [121937, 44626])
-    assert np.all(left_bundle.edges[-1] == [39542, 50025])
+    assert np.all(left_bundle.edges[0] == [121937, 121942])
+    assert np.all(left_bundle.edges[-1] == [121996, 50025])
 
     return

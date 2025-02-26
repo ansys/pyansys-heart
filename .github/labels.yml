@@ -29,3 +29,11 @@
 - name: testing
   description: Anything related to tests
   color: BFE4D6
+
+- name: ci
+  description: Pipelines maintenance related
+  color: a9a9a9
+
+- name: tests:skip
+  description: Skip tests runs in CI/CD
+  color: ffd8b1

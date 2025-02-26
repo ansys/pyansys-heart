@@ -63,7 +63,7 @@ jobs:
     steps:
       - uses: ansys/actions/doc-build@v8
         with:
-          python-version: ${{ env.MAIN_PYTHON_VERSION }}
+          python-version: "3.11"
           check-links: false
           # By default, also '-W --keep-going'... we should eventually solve the warnings in the build process.
           sphinxopts: '-j auto'

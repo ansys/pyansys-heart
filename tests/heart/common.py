@@ -42,18 +42,18 @@ def compare_stats_names(stats: dict, stats_ref: dict):
         assert part_name in list(stats["PARTS"].keys()), f"Part: {part_name} missing"
 
         for surface_name in stats_ref["PARTS"][part_name]["SURFACES"].keys():
-            assert surface_name in list(
-                stats["PARTS"][part_name]["SURFACES"].keys()
-            ), f"Surface: {surface_name} missing"
+            assert surface_name in list(stats["PARTS"][part_name]["SURFACES"].keys()), (
+                f"Surface: {surface_name} missing"
+            )
 
         for cap_name in stats_ref["PARTS"][part_name]["CAPS"].keys():
-            assert cap_name in list(
-                stats["PARTS"][part_name]["CAPS"].keys()
-            ), f"Cap: {cap_name} missing"
+            assert cap_name in list(stats["PARTS"][part_name]["CAPS"].keys()), (
+                f"Cap: {cap_name} missing"
+            )
 
-    assert sorted(list(stats["CAVITIES"].keys())) == sorted(
-        list(stats_ref["CAVITIES"].keys())
-    ), "one or more cavities missing"
+    assert sorted(list(stats["CAVITIES"].keys())) == sorted(list(stats_ref["CAVITIES"].keys())), (
+        "one or more cavities missing"
+    )
 
     return
 
@@ -77,26 +77,26 @@ def compare_stats_volumes(stats: dict, stats_ref: dict):
         volume = stats["CAVITIES"][cavity_name]["volume"]
         volume_ref = stats_ref["CAVITIES"][cavity_name]["volume"]
         percent_diff = abs(volume - volume_ref) / volume_ref * 100
-        assert (
-            percent_diff < 1
-        ), f"Difference in cavity volumes of {cavity_name} is {percent_diff} percent"
+        assert percent_diff < 1, (
+            f"Difference in cavity volumes of {cavity_name} is {percent_diff} percent"
+        )
 
     return
 
 
 def compare_stats_mesh(stats: dict, stats_ref: dict):
     """Compare mesh stats of the generated model."""
-    assert (
-        stats["GENERAL"]["total_num_tets"] == stats_ref["GENERAL"]["total_num_tets"]
-    ), "Total number of tets not the same"
-    assert (
-        stats["GENERAL"]["total_num_nodes"] == stats_ref["GENERAL"]["total_num_nodes"]
-    ), "Total number of nodes not the same"
+    assert stats["GENERAL"]["total_num_tets"] == stats_ref["GENERAL"]["total_num_tets"], (
+        "Total number of tets not the same"
+    )
+    assert stats["GENERAL"]["total_num_nodes"] == stats_ref["GENERAL"]["total_num_nodes"], (
+        "Total number of nodes not the same"
+    )
 
     for part in stats_ref["PARTS"].keys():
-        assert (
-            stats["PARTS"][part]["num_tets"] == stats_ref["PARTS"][part]["num_tets"]
-        ), f"Num tets in {part} not the same."
+        assert stats["PARTS"][part]["num_tets"] == stats_ref["PARTS"][part]["num_tets"], (
+            f"Num tets in {part} not the same."
+        )
 
         for surface in stats_ref["PARTS"][part]["SURFACES"].keys():
             ref_num_faces = stats_ref["PARTS"][part]["SURFACES"][surface]["num_faces"]

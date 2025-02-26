@@ -36,7 +36,7 @@ from ansys.dyna.core.keywords import keywords
 
 def constant_flow_template():
     """Constant flow template."""
-    template = "float {0}(float t, float dp, float area) \n" "{{\n" "return {1};\n" "}}"
+    template = "float {0}(float t, float dp, float area) \n{{\nreturn {1};\n}}"
     return template
 
 

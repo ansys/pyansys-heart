@@ -29,5 +29,5 @@ $#   nodes     nodes
 $#  stimid   settype     setid
         10         2        10
 $#stimstrt     stimt   stimdur   stimamp
-       0.0     800.0      20.0      50.0
+       0.0     800.0       2.0      50.0
 *END

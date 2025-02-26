@@ -32,8 +32,11 @@ import pyvista as pv
 from ansys.dpf import core as dpf
 from ansys.heart.core import LOG as LOGGER
 
-_SUPPORTED_DPF_SERVERS = ["2024.1", "2024.1rc1"]
+_SUPPORTED_DPF_SERVERS = ["2024.1", "2024.1rc1", "2024.2rc0"]
 """List of supported DPF Servers."""
+#! NOTE:
+#! 2024.1rc0: not supported due to missing ::tf operator
+#! => 2024.2rc1: not supported due to bug in dpf server when reading d3plots mixed with EM results
 
 
 def _check_accept_dpf():
@@ -234,6 +237,25 @@ class D3plotReader:
             res.append(hist_vars[i].data)
 
         return np.array(res)
+
+    def get_heatflux(self, step: int = 2) -> np.ndarray:
+        """Get nodal heat flux vector from d3plot.
+
+        Parameters
+        ----------
+        step : int, optional
+            time step, by default 2
+
+        Returns
+        -------
+        np.ndarray
+            heat flux
+        """
+        op = dpf.Operator("lsdyna::d3plot::TF")
+        op.inputs.data_sources(self.ds)
+        time_scoping = dpf.Scoping(ids=[step], location=dpf.locations.time_freq)
+        op.inputs.time_scoping(time_scoping)
+        return op.eval()[0].data
 
 
 class ICVoutReader:

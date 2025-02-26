@@ -147,9 +147,6 @@ class BaseSimulator:
             if isinstance(self.model, LeftVentricle):
                 LOGGER.error(f"{method} not supported for LeftVentricle model.")
                 exit()
-            if self.dyna_settings.dynatype != "smp":
-                LOGGER.error(f"{method} can only be used in within SMP executables")
-                exit()
 
             if rotation_angles is None:
                 # find default settings
@@ -168,6 +165,7 @@ class BaseSimulator:
         export_directory = os.path.join(self.root_directory, "D-RBM")
         target = self.run_laplace_problem(export_directory, type="D-RBM")
         grid = compute_ventricle_fiber_by_drbm(export_directory, settings=rotation_angles)
+        grid.save(os.path.join(export_directory, "drbm_fibers.vtu"))
 
         # arrays that save ID map to full model
         grid["cell_ids"] = target["cell_ids"]
@@ -271,10 +269,10 @@ class BaseSimulator:
             export_directory, "ra_fiber", raa=np.array(appendage), top=top
         )
 
-        endo_surface = self.model.mesh.get_surface(self.model.right_atrium.endocardium.id)
         ra_pv = compute_ra_fiber_cs(
-            export_directory, self.settings.atrial_fibers, endo_surface=endo_surface
+            export_directory, self.settings.atrial_fibers, endo_surface=None
         )
+        ra_pv.save(os.path.join(export_directory, "ra_fiber.vtu"))
         LOGGER.info("Generating fibers done.")
 
         # arrays that save ID map to full model
@@ -316,11 +314,10 @@ class BaseSimulator:
 
         target = self.run_laplace_problem(export_directory, "la_fiber", laa=appendage)
 
-        endo_surface = self.model.mesh.get_surface(self.model.left_atrium.endocardium.id)
         la_pv = compute_la_fiber_cs(
-            export_directory, self.settings.atrial_fibers, endo_surface=endo_surface
+            export_directory, self.settings.atrial_fibers, endo_surface=None
         )
-
+        la_pv.save(os.path.join(export_directory, "la_fiber.vtu"))
         LOGGER.info("Generating fibers done.")
 
         # arrays that save ID map to full model
@@ -483,12 +480,12 @@ class EPSimulator(BaseSimulator):
             cs.compute_sa_node()
             cs.compute_av_node()
             cs.compute_av_conduction(beam_length=beam_length)
-            left, right = cs.compute_his_conduction(beam_length=beam_length)
+            _, left_point, right_point = cs.compute_his_conduction(beam_length=beam_length)
             cs.compute_left_right_bundle(
-                left.xyz, left.node_id, side="Left", beam_length=beam_length
+                left_point.xyz, left_point.node_id, side="Left", beam_length=beam_length
             )
             cs.compute_left_right_bundle(
-                right.xyz, right.node_id, side="Right", beam_length=beam_length
+                right_point.xyz, right_point.node_id, side="Right", beam_length=beam_length
             )
 
             # # TODO: define end point by uhc, or let user choose
@@ -705,9 +702,12 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
 
 def _kill_all_ansyscl():
     """Kill all ansys license clients."""
-    for p in psutil.process_iter():
-        if "ansyscl" in p.name():
-            p.kill()
+    try:
+        for p in psutil.process_iter():
+            if "ansyscl" in p.name():
+                p.kill()
+    except Exception as e:
+        LOGGER.warning(f"Failed to kill all ansyscl's: {e}")
 
 
 class LsDynaErrorTerminationError(Exception):

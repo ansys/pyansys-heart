@@ -3237,6 +3237,15 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     elif network.name == "Bachman bundle":
                         stim_nodes.append(network.edges[0, 0])  # SA node on epi, solid node
                         stim_nodes.append(network.edges[1, 0])
+
+        # stimule entire elements for Eikonal
+        if self.settings.electrophysiology.analysis.solvertype in [
+            "Eikonal",
+            "ReactionEikonal",
+        ]:
+            stim_cells = np.where(np.isin(self.model.mesh.tetrahedrons, stim_nodes))[0]
+            stim_nodes = np.unique(self.model.mesh.tetrahedrons[stim_cells].ravel())
+
         return stim_nodes
 
     def _update_blood_settings(self):
@@ -4247,6 +4256,7 @@ class UHCWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.DatabaseGlstat(dt=1.0))
         self.kw_database.main.append(keywords.DatabaseMatsum(dt=1.0))
         self.kw_database.main.append(keywords.DatabaseTprint(dt=1.0))
+        self.kw_database.main.append(keywords.DatabaseExtentBinary(therm=2))  # save heat flux
         self.kw_database.main.append(keywords.ControlTermination(endtim=1, dtmin=1.0))
 
     def _update_drbm_bc(self):

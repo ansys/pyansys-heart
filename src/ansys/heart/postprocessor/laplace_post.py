@@ -24,6 +24,7 @@
 
 import os
 
+from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 
@@ -32,7 +33,9 @@ from ansys.heart.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.simulator.settings.settings import AtrialFiber
 
 
-def read_laplace_solution(directory: str, field_list: list[str]) -> pv.UnstructuredGrid:
+def read_laplace_solution(
+    directory: str, field_list: list[str], read_heatflux: bool = False
+) -> pv.UnstructuredGrid:
     """Read laplace fields from d3plot files.
 
     Parameters
@@ -67,33 +70,14 @@ def read_laplace_solution(directory: str, field_list: list[str]) -> pv.Unstructu
 
         grid.point_data[name] = np.array(t, dtype=float)
 
-    return grid
+        if read_heatflux:
+            last_step = data.model.metadata.time_freq_support.n_sets
+            grid.point_data["grad_" + name] = -data.get_heatflux(last_step)
+
+    return grid.copy()
 
 
-def compute_cell_gradient(grid: pv.UnstructuredGrid, field_list: list[str]) -> pv.UnstructuredGrid:
-    """Compute cell gradient.
-
-    Parameters
-    ----------
-    grid : pv.UnstructuredGrid
-        grid with point data associated
-    field_list : list[str]
-        name of cell data
-
-    Returns
-    -------
-    pv.UnstructuredGrid
-        grid with gradient vectors in cell data
-    """
-    grid2 = grid.point_data_to_cell_data()
-    for name in field_list:
-        derivative = grid2.compute_derivative(scalars=name, preference="cell")
-        res = derivative["gradient"]
-        grid2["grad_" + name] = res
-
-    return grid2
-
-
+@deprecated(reason="transmural direction can be automatically read by d3plot heat flux.")
 def update_transmural_by_normal(grid: pv.UnstructuredGrid, surface: pv.PolyData) -> np.ndarray:
     """Use surface normal for transmural direction.
 
@@ -228,8 +212,8 @@ def compute_la_fiber_cs(
         return
 
     solutions = ["trans", "ab", "v", "r"]
-    data = read_laplace_solution(directory, field_list=solutions)
-    grid = compute_cell_gradient(data, field_list=solutions)
+    data = read_laplace_solution(directory, field_list=solutions, read_heatflux=True)
+    grid = data.point_data_to_cell_data()
 
     if endo_surface is not None:
         grid.cell_data["grad_trans"] = update_transmural_by_normal(grid, endo_surface)
@@ -242,7 +226,7 @@ def compute_la_fiber_cs(
     grid.cell_data["e_n"] = en
     grid.cell_data["e_t"] = et
 
-    return grid
+    return grid.copy()
 
 
 def compute_ra_fiber_cs(
@@ -367,8 +351,8 @@ def compute_ra_fiber_cs(
         return
 
     solution = ["trans", "ab", "v", "r", "w"]
-    data = read_laplace_solution(directory, field_list=solution)
-    grid = compute_cell_gradient(data, field_list=solution)
+    data = read_laplace_solution(directory, field_list=solution, read_heatflux=True)
+    grid = data.point_data_to_cell_data()
 
     if endo_surface is not None:
         grid.cell_data["grad_trans"] = update_transmural_by_normal(grid, endo_surface)
@@ -381,7 +365,7 @@ def compute_ra_fiber_cs(
     grid.cell_data["e_n"] = en
     grid.cell_data["e_t"] = et
 
-    return grid
+    return grid.copy()
 
 
 def compute_ventricle_fiber_by_drbm(
@@ -411,9 +395,8 @@ def compute_ventricle_fiber_by_drbm(
         grid contains `fiber`,`cross-fiber`,`sheet` vectors
     """
     solutions = ["trans", "ab_l", "ab_r", "ot_l", "ot_r", "w_l", "w_r", "lr"]
-    # data = read_laplace_solution(directory, field_list=solutions)
-    # grid = compute_cell_gradient(data, field_list=solutions)
-    grid = get_cell_gradient_from_tprint(directory, field_list=solutions)
+    data = read_laplace_solution(directory, field_list=solutions, read_heatflux=True)
+    grid = data.point_data_to_cell_data()
 
     # left/right ventricle label
     left_mask = grid["lr"] >= 0
@@ -519,43 +502,4 @@ def compute_ventricle_fiber_by_drbm(
         grid.cell_data["cross-fiber"][i] = qq[:, 1]
         grid.cell_data["sheet"][i] = qq[:, 2]
 
-    return grid
-
-
-def get_cell_gradient_from_tprint(directory: str, field_list: list[str]):
-    """Read laplace fields from tprint files and convert to cell data.
-
-    Parameters
-    ----------
-    directory : str
-        directory of d3plot files
-    field_list : list[str]
-        name of each d3plot file/field
-
-    Returns
-    -------
-    pv.UnstructuredGrid
-        grid with point data of each field
-    """
-    # get mesh from first case
-    data = D3plotReader(os.path.join(directory, field_list[0] + ".d3plot"))
-    grid: pv.UnstructuredGrid = data.meshgrid
-
-    def _read_tprint(f):
-        try:
-            table = np.loadtxt(f, skiprows=14, max_rows=grid.GetNumberOfPoints())
-        except ValueError:
-            LOGGER.error(f"Unable to read tprint file of {f}")
-            exit()
-
-        ids = table[:, 0].astype(int) - 1  # makesure the order
-
-        return table[ids, 1], table[ids, 2:5]
-
-    for name in field_list:
-        f = os.path.join(directory, name + ".tprint")
-        temperature, heat_flux = _read_tprint(f)
-        grid.point_data[name] = temperature
-        grid.point_data["grad_" + name] = -heat_flux
-
-    return grid.point_data_to_cell_data()
+    return grid.copy()

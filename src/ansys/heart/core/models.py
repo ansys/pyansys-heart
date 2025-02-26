@@ -1889,6 +1889,9 @@ class FullHeart(FourChamber):
         self.pulmonary_artery.fiber = False
         self.pulmonary_artery.active = False
 
+        self.aorta.ep_material = EPMaterial.Insulator()
+        self.pulmonary_artery.ep_material = EPMaterial.Insulator()
+
         super().__init__(working_directory=working_directory)
 
         pass

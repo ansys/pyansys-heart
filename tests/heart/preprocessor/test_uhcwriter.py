@@ -20,58 +20,29 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os
-
-if os.getenv("GITHUB_ACTIONS"):
-    is_gh_action = True
-else:
-    is_gh_action = False
-
 import glob
+import os
 import pathlib
 import tempfile
 
 import pytest
 
-import ansys.heart.core.models as models
 from ansys.heart.writer.dynawriter import UHCWriter
-from tests.heart.conftest import get_assets_folder
+from tests.heart.conftest import get_assets_folder, get_fourchamber
 from tests.heart.end2end.compare_k import read_file
 
 
 @pytest.fixture
-def model() -> models.FourChamber:
-    vtu_file = os.path.join(
-        get_assets_folder(),
-        "reference_models",
-        "strocchi2020",
-        "01",
-        "FourChamber",
-        "heart_model.vtu",
-    )
-
-    json_file = os.path.join(
-        get_assets_folder(),
-        "reference_models",
-        "strocchi2020",
-        "01",
-        "FourChamber",
-        "heart_model.partinfo.json",
-    )
-
-    model: models.FourChamber = models.FourChamber(working_directory=".")
-
-    model.load_model_from_mesh(vtu_file, json_file)
-
-    return model
+def fourchamber():
+    return get_fourchamber()
 
 
 @pytest.mark.k_file_writer
-def test_uvc(model):
+def test_uvc(fourchamber):
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         to_test_folder = os.path.join(workdir, "uvc")
-        model._workdir = workdir
-        writer = UHCWriter(model, "uvc")
+        fourchamber._workdir = workdir
+        writer = UHCWriter(fourchamber, "uvc")
         writer.update()
         writer.export(to_test_folder)
 
@@ -87,10 +58,10 @@ def test_uvc(model):
 
 
 @pytest.mark.k_file_writer
-def test_la_fiber(model):
+def test_la_fiber(fourchamber):
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         to_test_folder = os.path.join(workdir, "la_fiber")
-        writer = UHCWriter(model, "la_fiber")
+        writer = UHCWriter(fourchamber, "la_fiber")
         writer.update()
         writer.export(to_test_folder)
 
@@ -106,12 +77,12 @@ def test_la_fiber(model):
 
 
 @pytest.mark.k_file_writer
-def test_ra_top(model):
+def test_ra_top(fourchamber):
     start = [-46.4863, 133.29, 405.961]
     end = [-33.7271, 134.605, 332.155]
     mid = [-43.5525, 148.992, 367.271]
 
-    writer = UHCWriter(model, "ra_fiber", raa=[-33, 82, 417], top=[start, mid, end])
+    writer = UHCWriter(fourchamber, "ra_fiber", raa=[-33, 82, 417], top=[start, mid, end])
     ids = writer._find_top_nodeset_by_geodesic(writer.target)
 
     assert len(ids) == 61
@@ -120,10 +91,10 @@ def test_ra_top(model):
 
 
 @pytest.mark.k_file_writer
-def test_ra_fiber(model):
+def test_ra_fiber(fourchamber):
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         to_test_folder = os.path.join(workdir, "ra_fiber")
-        writer = UHCWriter(model, "ra_fiber", raa=[-33, 82, 417])
+        writer = UHCWriter(fourchamber, "ra_fiber", raa=[-33, 82, 417])
         writer.update()
         writer.export(to_test_folder)
 
@@ -134,6 +105,26 @@ def test_ra_fiber(model):
             "01",
             "FourChamber",
             "ra_fiber",
+        )
+        compare_outputs(to_test_folder, ref_folder)
+
+
+@pytest.mark.k_file_writer
+def test_drbm(fourchamber):
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
+        to_test_folder = os.path.join(workdir, "drbm")
+        fourchamber._workdir = workdir
+        writer = UHCWriter(fourchamber, "D-RBM")
+        writer.update()
+        writer.export(to_test_folder)
+
+        ref_folder = os.path.join(
+            get_assets_folder(),
+            "reference_models",
+            "strocchi2020",
+            "01",
+            "FourChamber",
+            "drbm",
         )
         compare_outputs(to_test_folder, ref_folder)
 

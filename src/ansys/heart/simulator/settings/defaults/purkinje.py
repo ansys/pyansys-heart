@@ -32,6 +32,6 @@ build = {
     "ngen": Quantity(200, "dimensionless"),
     "nbrinit": Quantity(3, "dimensionless"),
     "nsplit": Quantity(4, "dimensionless"),
-    "pmjtype": Quantity(1, "dimensionless"),
-    "pmjradius": Quantity(0.7, "dimensionless"),
+    "pmjtype": Quantity(2, "dimensionless"),
+    "pmjradius": Quantity(1.5, "dimensionless"),
 }

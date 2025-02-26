@@ -27,7 +27,11 @@ import numpy as np
 import pytest
 import pyvista as pv
 
-from ansys.heart.postprocessor.laplace_post import compute_la_fiber_cs, compute_ra_fiber_cs
+from ansys.heart.postprocessor.laplace_post import (
+    compute_la_fiber_cs,
+    compute_ra_fiber_cs,
+    compute_ventricle_fiber_by_drbm,
+)
 from ansys.heart.simulator.settings.settings import AtrialFiber
 from tests.heart.conftest import get_assets_folder
 
@@ -53,7 +57,7 @@ def test_compute_la_fiber_cs():
     ):
         res = compute_la_fiber_cs(".", setting, la_endo)
         assert np.sum(res["bundle"] == 0) == 33097
-        assert np.allclose(res["e_l"][0], np.array([0.49902277, 0.77585099, -0.386046]))
+        assert np.allclose(res["e_l"][0], np.array([0.54939723, 0.77379318, -0.31528842]))
 
         assert pytest.approx(np.dot(res["e_l"][0], res["e_n"][0])) == 0
         assert pytest.approx(np.dot(res["e_l"][0], res["e_t"][0])) == 0
@@ -85,7 +89,20 @@ def test_compute_ra_fiber_cs():
 
         assert np.sum(res["bundle"] == 0) == 0
         assert np.sum(res["bundle"] == 10) == 15548
-        assert np.allclose(res["e_l"][0], np.array([-0.33383915, 0.90291615, -0.27072854]))
+        assert np.allclose(res["e_l"][0], np.array([-0.3007031, 0.93551427, -0.18544755]))
 
         assert pytest.approx(np.dot(res["e_l"][0], res["e_n"][0])) == 0
         assert pytest.approx(np.dot(res["e_l"][0], res["e_t"][0])) == 0
+
+
+def test_compute_ventricle_fiber_by_drbm():
+    dir = os.path.join(get_assets_folder(), "post", "drbm")
+    input_grid = pv.read(os.path.join(dir, "data.vtu"))
+
+    with mock.patch(
+        "ansys.heart.postprocessor.laplace_post.read_laplace_solution",
+        return_value=input_grid,
+    ):
+        res = compute_ventricle_fiber_by_drbm(".")
+        assert np.sum(res["label"] == 1) == 86210
+        assert np.allclose(res["fiber"][0], np.array([0.03515216, 0.964732, 0.26087638]))

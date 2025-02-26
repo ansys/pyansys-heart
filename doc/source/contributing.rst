@@ -116,7 +116,7 @@ To verify that your project is working as expected, run the following command
 
   tox list
 
-This command will list all the environments that are available for testing.
+This command lists all the environments that are available for testing.
 
 .. jinja:: toxenvs
 

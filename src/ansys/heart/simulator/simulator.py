@@ -55,7 +55,9 @@ from ansys.heart.postprocessor.laplace_post import (
     compute_ventricle_fiber_by_drbm,
     read_laplace_solution,
 )
-from ansys.heart.preprocessor.conduction_beam import ConductionSystem
+from ansys.heart.preprocessor.conduction_beam import (
+    compute_fullheart_conduction_system,
+)
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 
@@ -476,25 +478,11 @@ class EPSimulator(BaseSimulator):
         if isinstance(self.model, FourChamber):
             beam_length = self.settings.purkinje.edgelen.m
 
-            cs = ConductionSystem(self.model)
-            cs.compute_sa_node()
-            cs.compute_av_node()
-            cs.compute_av_conduction(beam_length=beam_length)
-            _, left_point, right_point = cs.compute_his_conduction(beam_length=beam_length)
-            cs.compute_left_right_bundle(
-                left_point.xyz, left_point.node_id, side="Left", beam_length=beam_length
-            )
-            cs.compute_left_right_bundle(
-                right_point.xyz, right_point.node_id, side="Right", beam_length=beam_length
-            )
+            cs = compute_fullheart_conduction_system(self.model, beam_length)
 
-            # # TODO: define end point by uhc, or let user choose
-            # Note: must on surface after zerop if coupled with meca
-            # cs.compute_bachman_bundle(
-            #     start_coord=self.model.right_atrium.get_point("SA_node").xyz,
-            #     end_coord=np.array([-34, 163, 413]),
-            # )
             return cs
+        else:
+            raise TypeError("Only work with FourChamber/FullHeart model")
 
     def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""

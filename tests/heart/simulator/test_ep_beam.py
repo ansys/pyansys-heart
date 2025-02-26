@@ -139,3 +139,25 @@ def test_compute_left_right_bundle():
     assert np.all(right_bundle.edges[-1] == [122040, 68079])
 
     return
+
+
+def test_compute_left_bundle_connection():
+    # get a fresh model
+    fourchamber = get_fourchamber()
+    cs = ConductionSystem(fourchamber)
+    BeamMesh.all_beam_nodes = []
+
+    cs.compute_sa_node()
+    cs.compute_av_node()
+    cs.compute_av_conduction()
+    beam, left_end, right_end = cs.compute_his_conduction()
+
+    left_bundle = cs.compute_left_right_bundle(
+        left_end.xyz, left_end.node_id, side="Left", full_connect=True
+    )
+
+    # fourchamber.plot_purkinje()
+    assert np.all(left_bundle.edges[0] == [121937, 44626])
+    assert np.all(left_bundle.edges[-1] == [39542, 50025])
+
+    return

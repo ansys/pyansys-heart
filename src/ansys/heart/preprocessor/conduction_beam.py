@@ -22,6 +22,8 @@
 
 """Module containing class for creating conduxtion system."""
 
+from typing import Literal
+
 import networkx as nx
 import numpy as np
 import pyvista as pv
@@ -447,7 +449,14 @@ class ConductionSystem:
         position_id_his_end = np.argwhere(edges == side_his_point_ids[-1])[0]
         return (position_id_his_end, his_end_coord, new_nodes, edges, sgmt)
 
-    def compute_left_right_bundle(self, start_coord, start_id, side: str, beam_length: float = 1.5):
+    def compute_left_right_bundle(
+        self,
+        start_coord,
+        start_id,
+        side: Literal["Left", "Right"],
+        full_connect: bool = False,
+        beam_length: float = 1.5,
+    ):
         """Bundle brunch."""
         if side == "Left":
             ventricle = self.m.left_ventricle
@@ -464,10 +473,20 @@ class ConductionSystem:
         )
 
         new_nodes = bundle_branch.points
-        new_nodes = _refine_line(new_nodes, beam_length=beam_length)
-        # exclude first and last (apex) node which belongs to purkinje beam
-        new_nodes = new_nodes[1:-1, :]
-        point_ids = np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int)
+        if not full_connect:  # refine only if not connect to solid
+            new_nodes = _refine_line(new_nodes, beam_length=beam_length)
+
+        if full_connect:
+            new_nodes = np.empty((0, 3))
+            point_ids = endo_surface["_global-point-ids"][bundle_branch["vtkOriginalPointIds"]][
+                1:-1
+            ]
+        else:
+            # new created nodes
+            new_nodes = new_nodes[1:-1, :]
+            point_ids = np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int)
+
+        # give back the first and last (apex) node which belongs to purkinje beam
         point_ids = np.insert(point_ids, 0, start_id)
         apex = ventricle.apex_points[0].node_id
         for network in self.m.beam_network:
@@ -477,11 +496,15 @@ class ConductionSystem:
 
         edges = np.vstack((point_ids[:-1], point_ids[1:])).T
 
-        mask = np.ones(edges.shape, dtype=bool)
-        mask[0, 0] = False  # His end point of previous, no offset at creation
-        mask[-1, -1] = False  # Apex point, no offset
+        if full_connect:
+            mask = np.zeros(edges.shape, dtype=bool)
+        else:
+            mask = np.ones(edges.shape, dtype=bool)
+            mask[0, 0] = False  # His end point of previous, no offset at creation
+            mask[-1, -1] = False  # Apex point, no offset
 
         beam_net = self.m.add_beam_net(new_nodes, edges, mask, pid=0, name=side + " bundle branch")
+
         # used in dynawriter, to write beam connectivity, need offset since it's a beam node
         beam_net.beam_nodes_mask[0, 0] = True
         beam_net.beam_nodes_mask[-1, -1] = True
@@ -528,3 +551,38 @@ class ConductionSystem:
         beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="Bachman bundle")
 
         return beam_net
+
+
+def compute_fullheart_conduction_system(model: FourChamber, beam_length=1.5) -> ConductionSystem:
+    """Compute heart conduction system.
+
+    Parameters
+    ----------
+    model : FourChamber
+        Heart model
+    beam_length : float, optional
+        beam mesh size, by default 1.5
+
+    Returns
+    -------
+    ConductionSystem
+        conduction system
+    """
+    cs = ConductionSystem(model)
+    cs.compute_sa_node()
+    cs.compute_av_node()
+    cs.compute_av_conduction(beam_length=beam_length)
+    _, left_point, right_point = cs.compute_his_conduction(beam_length=beam_length)
+    cs.compute_left_right_bundle(
+        left_point.xyz, left_point.node_id, side="Left", full_connect=True, beam_length=beam_length
+    )
+    cs.compute_left_right_bundle(
+        right_point.xyz, right_point.node_id, side="Right", beam_length=beam_length
+    )
+    # # TODO: define end point by uhc, or let user choose
+    # Note: must on surface after zerop if coupled with meca
+    # cs.compute_bachman_bundle(
+    #     start_coord=self.model.right_atrium.get_point("SA_node").xyz,
+    #     end_coord=np.array([-34, 163, 413]),
+    # )
+    return cs

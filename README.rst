@@ -56,7 +56,7 @@ viewing the documentation for the latest stable release to viewing the documenta
 development version or previously released versions.
 
 On the `PyAnsys Heart Issues`_ page,
-you can create issues to report bugs and request new features. On the `PyAnsys Heart Discussions`_ page or the `Discussions`_
+you can create issues to report bugs and request new features. On the `PyAnsys Heart Discussions`_ page or the `Discussion`_
 page on the Ansys Developer portal, you can post questions, share ideas, and get community feedback.
 
 To reach the project support team, email `pyansys.core@ansys.com <mailto:pyansys.core@ansys.com>`_.

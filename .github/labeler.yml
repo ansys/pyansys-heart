@@ -4,12 +4,13 @@ documentation:
 maintenance:
 - changed-files:
   - any-glob-to-any-file: ['pyproject.toml']
+  - head-branch: ['maint']
 testing:
 - changed-files:
-  - any-glob-to-any-file:  'tests/*'
+  - any-glob-to-any-file: ['tests/**/*']
 dependencies:
 - changed-files:
-  - any-glob-to-any-file: 'pyproject.toml'
+  - any-glob-to-any-file: ['pyproject.toml']
 fix:
   - head-branch: ['fix']
 enhancement:

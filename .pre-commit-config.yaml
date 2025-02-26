@@ -1,17 +1,12 @@
 repos:
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.6.7
+  rev: v0.9.7
   hooks:
     - id: ruff
     - id: ruff-format
 
-- repo: https://github.com/PyCQA/flake8
-  rev: 7.0.0
-  hooks:
-  - id: flake8
-
 - repo: https://github.com/codespell-project/codespell
-  rev: v2.2.6
+  rev: v2.4.1
   hooks:
   - id: codespell
     exclude: ^(examples/dyna_decks\/|tests/heart/assets\/)
@@ -41,7 +36,7 @@ repos:
       )
 
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.6.0
+  rev: v5.0.0
   hooks:
   - id: check-merge-conflict
   - id: debug-statements
@@ -50,12 +45,12 @@ repos:
     exclude: ^(tests/heart/assets\/)
 
 - repo: https://github.com/python-jsonschema/check-jsonschema
-  rev: 0.29.2
+  rev: 0.31.2
   hooks:
     - id: check-github-workflows
 
 - repo: https://github.com/ansys/pre-commit-hooks
-  rev: v0.2.9
+  rev: v0.5.1
   hooks:
     - id: add-license-headers
       files: '(ansys|examples|tests)/.*\.(py)'

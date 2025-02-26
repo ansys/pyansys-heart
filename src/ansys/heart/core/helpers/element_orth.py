@@ -48,22 +48,22 @@ def _read_orth_element_kfile(fn):
     every_row = 4
 
     # element ID and part ID
-    indx = np.linspace(0, nele - 1, num=nele, dtype=int) * every_row + skip_row
-    data = generate_specific_rows(fn, indx)
+    index = np.linspace(0, nele - 1, num=nele, dtype=int) * every_row + skip_row
+    data = generate_specific_rows(fn, index)
     ids = np.loadtxt(data, dtype=int)[:, :]
 
     # element connectivity
-    indx = np.linspace(0, nele - 1, num=nele, dtype=int) * every_row + skip_row + 1
-    data = generate_specific_rows(fn, indx)
+    index = np.linspace(0, nele - 1, num=nele, dtype=int) * every_row + skip_row + 1
+    data = generate_specific_rows(fn, index)
     connect = np.loadtxt(data, dtype=int)[:, :]
 
     # fiber
-    indx = np.linspace(0, nele - 1, num=nele, dtype=int) * every_row + skip_row + 2
-    data = generate_specific_rows(fn, indx)
+    index = np.linspace(0, nele - 1, num=nele, dtype=int) * every_row + skip_row + 2
+    data = generate_specific_rows(fn, index)
     fib = np.loadtxt(data)
     # sheet
-    indx = np.linspace(0, nele - 1, num=nele, dtype=int) * every_row + skip_row + 3
-    data = generate_specific_rows(fn, indx)
+    index = np.linspace(0, nele - 1, num=nele, dtype=int) * every_row + skip_row + 3
+    data = generate_specific_rows(fn, index)
     sheet = np.loadtxt(data)
 
     # sort by ids

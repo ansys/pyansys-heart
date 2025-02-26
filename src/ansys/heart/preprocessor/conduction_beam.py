@@ -448,7 +448,7 @@ class ConductionSystem:
         return (position_id_his_end, his_end_coord, new_nodes, edges, sgmt)
 
     def compute_left_right_bundle(self, start_coord, start_id, side: str, beam_length: float = 1.5):
-        """Bundle brunch."""
+        """Bundle branch."""
         if side == "Left":
             ventricle = self.m.left_ventricle
             endo_surface = self.m.mesh.get_surface(self.m.left_ventricle.endocardium.id)

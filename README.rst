@@ -28,7 +28,7 @@ PyAnsys Heart
 
 PyAnsys Heart is a `Python`_ framework for heart modeling using Ansys tools.
 
-.. note:: 
+.. note::
    Please read LICENSE file before using this package.
 
 How to install

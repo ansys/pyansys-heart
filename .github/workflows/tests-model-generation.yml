@@ -27,7 +27,7 @@ concurrency:
 
 jobs:
   build:
-    if: github.event.pull_request.draft == false
+    if: github.event.pull_request.draft == false && !contains(github.event.pull_request.labels.*.name, 'tests:skip')
     name: Tests requiring PyFluent
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -46,8 +46,8 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ secrets.GH_USERNAME }}
-          password: ${{ secrets.REPO_DOWNLOAD_PAT }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Print available space and remove unnecessary files
         run: |

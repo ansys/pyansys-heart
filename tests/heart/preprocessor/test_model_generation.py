@@ -297,6 +297,8 @@ def test_writers(extract_model, writer_class):
         writer.export(to_test_folder)
 
         ref_files = glob.glob(os.path.join(ref_folder, "*.k"))
+        assert len(ref_files) > 1  # at least 2 k files exist
+
         # compare each of the reference files to the files that were generated.
         for ref_file in ref_files:
             file_to_compare = os.path.join(to_test_folder, pathlib.Path(ref_file).name)
@@ -334,7 +336,7 @@ def test_writers_after_load_model(extract_model, writer_class):
             "reference_models",
             "strocchi2020",
             "01",
-            "_BiVentricle",
+            "BiVentricle",
             "k_files1",
             writer_class.__name__,
         )
@@ -344,12 +346,11 @@ def test_writers_after_load_model(extract_model, writer_class):
             "reference_models",
             "strocchi2020",
             "01",
-            "_FullHeart",
+            "FullHeart",
             "k_files1",
             writer_class.__name__,
         )
 
-    # with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         model_path = os.path.join(workdir, model.__class__.__name__ + ".vtu")
         partinfo = model_path.replace(".vtu", ".partinfo.json")
@@ -366,13 +367,12 @@ def test_writers_after_load_model(extract_model, writer_class):
         writer.export(to_test_folder)
 
         ref_files = glob.glob(os.path.join(ref_folder, "*.k"))
+        assert len(ref_files) > 1  # at least 2 k files exist
+
         # compare each of the reference files to the files that were generated.
         for ref_file in ref_files:
             file_to_compare = os.path.join(to_test_folder, pathlib.Path(ref_file).name)
             _compare_k(ref_file, file_to_compare)
-            # assert read_file(ref_file) == read_file(
-            #     file_to_compare
-            # ), f"File {pathlib.Path(ref_file).name} does not match."
 
     return
 

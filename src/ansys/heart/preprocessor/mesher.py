@@ -233,6 +233,42 @@ def _wrap_part(session: MeshingSession, boundary_names: list, wrapped_part_name:
     return wrapped_face_zone_names
 
 
+def _to_fluent_convention(string_to_convert: str) -> str:
+    """Convert string to Fluent-supported convention."""
+    return string_to_convert.lower().replace(" ", "_")
+
+
+def _update_size_per_part(
+    part_names: list[str],
+    global_size: float,
+    size_per_part: dict = None,
+):
+    """Update the dictionary containing the (wrap) size per part.
+
+    Parameters
+    ----------
+    global_size : float
+        Global size to use for parts that are not referenced.
+    part_names : list[str]
+        Part names involved in the model/
+    size_per_part : dict, optional
+        Size per part used to override global size, by default None
+    """
+    # convert both to Fluent naming convention. Note: so remove cases and spaces
+    part_names = [_to_fluent_convention(part) for part in part_names]
+    if size_per_part is not None:
+        size_per_part = {_to_fluent_convention(part): size for part, size in size_per_part.items()}
+
+    mesh_size_per_part = {part_name: global_size for part_name in part_names}
+
+    if size_per_part is not None:
+        for part, size in size_per_part.items():
+            if part in part_names:
+                mesh_size_per_part[part] = size
+
+    return mesh_size_per_part
+
+
 def _update_input_model_with_wrapped_surfaces(
     model: _InputModel, mesh: FluentMesh, face_zone_ids_per_part: dict
 ) -> _InputModel:
@@ -295,8 +331,8 @@ def _set_size_field_on_mesh_part(
         "no",
         "yes",
         f"{part_name.lower()}",
-        mesh_size,
-        growth_rate,
+        str(mesh_size),
+        str(growth_rate),
     )
 
     return session
@@ -608,7 +644,7 @@ def mesh_from_non_manifold_input_model(
     mesh_size_per_part: dict = None,
     _wrap_size_per_part: dict = None,
 ) -> FluentMesh:
-    """Generate mesh from non-manifold poor quality input model.
+    """Generate mesh from a non-manifold poor quality input model.
 
     Parameters
     ----------
@@ -618,10 +654,16 @@ def mesh_from_non_manifold_input_model(
         Working directory.
     path_to_output : Union[str, Path]
         Path to the resulting Fluent mesh file.
-    mesh_size : float, optional
-        Uniform mesh size to use for both wrapping and filling the volume, by default 2.0
+    global_mesh_size : float, optional
+        Uniform mesh size to use for all volumes and surfaces, by default 2.0
+    _global_wrap_size : float, optional
+        Global size used by the wrapper to reconstruct the geometry, by default 1.5
+    overwrite_existing_mesh : bool, optional
+        Flag indicating whether to overwrite an existing mesh, by default True
     mesh_size_per_part : dict, optional
-        Dictionary specifying the mesh size that should be used for each part, by default None.
+        Dictionary specifying the mesh size that should be used for each part, by default None
+    _wrap_size_per_part : dict, optional
+        Dictionary specifying the mesh size that should be used to wrap each part, by default None
 
     Notes
     -----
@@ -631,7 +673,12 @@ def mesh_from_non_manifold_input_model(
 
     When specifying a mesh size per part, you can do that by either specifying that for all
     parts, or for specific parts. The default mesh size will be used for any part not listed
-    in the dictionary.
+    in the dictionary. This also applies to the wrapping step. The user can control the wrap size
+    per part, or on a global level. By default a size of 1.5 mm is used: but is not guaranteed to
+    give good results.
+
+    Note that a post-wrap remesh is triggered if the wrap size is not equal to the target mesh size.
+    Remeshing may fail if the target mesh size deviates too much from the wrap size.
 
     Returns
     -------
@@ -641,43 +688,12 @@ def mesh_from_non_manifold_input_model(
     if not isinstance(model, _InputModel):
         raise ValueError(f"Expecting input to be of type {str(_InputModel)}")
 
-    # TODO: Cleanup (populating) dictionaries, e.g. move to separate method
-    # check validity of mesh_size_per_part_dict:
-    if mesh_size_per_part is None:
-        # NOTE: use Fluent convention for replacing spaces and capitals.
-        mesh_size_per_part = {
-            "_".join(part_name.lower().split()): global_mesh_size for part_name in model.part_names
-        }
-    else:
-        # NOTE: Force Fluent convention of dictionary keys.
-        mesh_size_per_part = {
-            "_".join(part.lower().split()): size for part, size in mesh_size_per_part.items()
-        }
-
-    if isinstance(mesh_size_per_part, dict):
-        for part_name in model.part_names:
-            # NOTE: use Fluent convention for replacing spaces and capitals.
-            tmp_part_name = "_".join(part_name.lower().split())
-            if tmp_part_name not in mesh_size_per_part.keys():
-                LOGGER.info(f"{part_name} not specified. Using {global_mesh_size} for {part_name}")
-                mesh_size_per_part[tmp_part_name] = global_mesh_size
-
-    if _wrap_size_per_part is None:
-        _wrap_size_per_part = {part: _global_wrap_size for part in mesh_size_per_part.keys()}
-    else:
-        _wrap_size_per_part = {
-            "_".join(part.lower().split()): size for part, size in _wrap_size_per_part.items()
-        }
-
-    if isinstance(_wrap_size_per_part, dict):
-        for part_name in model.part_names:
-            # NOTE: use Fluent convention for replacing spaces and capitals.
-            tmp_part_name = "_".join(part_name.lower().split())
-            if tmp_part_name not in _wrap_size_per_part.keys():
-                LOGGER.info(
-                    f"{part_name} not specified. Using {_global_wrap_size} for wrapping {part_name}"
-                )
-                _wrap_size_per_part[tmp_part_name] = _global_wrap_size
+    mesh_size_per_part = _update_size_per_part(
+        model.part_names, global_mesh_size, mesh_size_per_part
+    )
+    _wrap_size_per_part = _update_size_per_part(
+        model.part_names, _global_wrap_size, _wrap_size_per_part
+    )
 
     # Flag to determine whether to do a post-wrap remesh.
     if _wrap_size_per_part == mesh_size_per_part:
@@ -723,8 +739,9 @@ def mesh_from_non_manifold_input_model(
         for stl in stls:
             os.remove(stl)
 
+        # convert model names to Fluent-supported convention.
         for part in model.parts:
-            part.name = part.name.lower().replace(" ", "_")
+            part.name = _to_fluent_convention(part.name)
 
         # write all boundaries
         LOGGER.debug(f"Writing input files in: {work_dir_meshing}")
@@ -801,7 +818,7 @@ def mesh_from_non_manifold_input_model(
             ## set size field for final mesh.
             #####################################################################
             session.tui.size_functions.set_global_controls(
-                min_mesh_size, max_mesh_size, growth_rate
+                str(min_mesh_size), str(max_mesh_size), str(growth_rate)
             )
 
             for part, mesh_size in mesh_size_per_part.items():
@@ -847,7 +864,7 @@ def mesh_from_non_manifold_input_model(
     else:
         LOGGER.debug(f"Reusing {path_to_output}")
         for part in model.parts:
-            part.name = part.name.replace(" ", "_").lower()
+            part.name = _to_fluent_convention(part.name)
 
     LOGGER.info("Post Fluent-Meshing cleanup...")
     # Update the cell zones such that for each part we have a separate cell zone.
@@ -929,6 +946,8 @@ def mesh_from_non_manifold_input_model(
     new_mesh.cell_zones: list[FluentCellZone] = []
 
     for part in model.parts:
+        # convert back to original convention.
+        # TODO: refactor so that we revert back to the original name.
         part.name = part.name.replace("_", " ").capitalize()
         cell_zone = FluentCellZone(
             min_id=np.argwhere(partids_sorted == part.id)[0][0],
@@ -956,7 +975,3 @@ def mesh_from_non_manifold_input_model(
             fz.name = fz.name.split(":")[0]
 
     return new_mesh
-
-
-if __name__ == "__main__":
-    LOGGER.info("Protected")

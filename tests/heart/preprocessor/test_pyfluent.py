@@ -42,9 +42,9 @@ def test_launch_fluent():
         )
         assert session._fluent_connection.check_health() == "SERVING"
         # try to initialize workflow
-        assert session.workflow.InitializeWorkflow(
-            WorkflowType="Watertight Geometry"
-        ), "Failed workflow"
+        assert session.workflow.InitializeWorkflow(WorkflowType="Watertight Geometry"), (
+            "Failed workflow"
+        )
         session.exit()
         assert True
     except Exception:

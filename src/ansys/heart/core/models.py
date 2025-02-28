@@ -219,7 +219,7 @@ class HeartModel:
         """Add any subparts."""
 
         self._set_part_ids()
-        """Set incremenetal part ids."""
+        """Set incremental part ids."""
 
         self.electrodes: List[Point] = []
         """Electrodes positions for ECG computing."""
@@ -649,7 +649,7 @@ class HeartModel:
         return
 
     def summary(self) -> dict:
-        """Get summary information of the model as a ditionary."""
+        """Get summary information of the model as a dictionary."""
         from ansys.heart.core.helpers.general import model_summary
 
         summary = model_summary(self)

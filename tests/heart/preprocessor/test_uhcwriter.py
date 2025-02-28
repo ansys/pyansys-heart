@@ -134,6 +134,6 @@ def compare_outputs(to_test_folder, ref_folder):
     # compare each of the reference files to the files that were generated.
     for ref_file in ref_files:
         file_to_compare = os.path.join(to_test_folder, pathlib.Path(ref_file).name)
-        assert read_file(ref_file) == read_file(
-            file_to_compare
-        ), f"File {pathlib.Path(ref_file).name} does not match."
+        assert read_file(ref_file) == read_file(file_to_compare), (
+            f"File {pathlib.Path(ref_file).name} does not match."
+        )

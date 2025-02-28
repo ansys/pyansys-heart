@@ -425,7 +425,9 @@ class HeartModel:
         global_mesh_size: float = 1.5,
         path_to_fluent_mesh: str = None,
         mesh_size_per_part: dict = None,
-    ):
+        _global_wrap_size: float = 1.5,
+        _wrap_size_per_part: dict = None,
+    ) -> Mesh:
         """Remesh the input model and fill the volume.
 
         Parameters
@@ -434,16 +436,25 @@ class HeartModel:
             Flag for switch to non-manifold mesher, by default False
         overwrite_existing_mesh : bool, optional
             Flag indicating whether to overwrite the existing .msh.h5 mesh, by default True
+        global_mesh_size : float, optional
+            Global mesh size used for the generated mesh, by default 1.5
         path_to_fluent_mesh : str, optional
             Path to the generated Fluent .msh.h5 mesh, by default None
         mesh_size_per_part : dict, optional
-            Dictionary specifying the target mesh size for a part, by default None.
+            Dictionary specifying the target mesh size for each part, by default None.
+        _global_wrap_size : float, optional
+            Global size used for setting up the size-field for the shrink-wrap algorithm,
+            by default None
+        _wrap_size_per_part : dict, optional
+            Per part size used for setting up the size-field for the shrink-wrap algorithm,
+            by default None
 
         Examples
         --------
         >>> from ansys.heart.core.models import HeartModel
         >>> model = HeartModel()
         >>> model.load_input(geom, part_definitions, scalar)
+        >>> # mesh the volume with a global size of 1.5 and size of 1 for the left ventricle.
         >>> model.mesh_volume(
         ...     use_wrapper=True,
         ...     global_mesh_size=1.5,
@@ -459,7 +470,8 @@ class HeartModel:
         robuster than meshing from a manifold surface. Moreover, any clear interface
         between parts is potentially lost.
         When mesh_size_per_part is incomplete, remaining part sizes default to the
-        global mesh size. Note that this is an experimental setting.
+        global mesh size. This is an experimental setting. Any wrap sizes given
+        as input argument are ignored when the wrapper is not used.
         """
         if not path_to_fluent_mesh:
             path_to_fluent_mesh = os.path.join(self.workdir, "simulation_mesh.msh.h5")
@@ -474,6 +486,8 @@ class HeartModel:
                 path_to_output=path_to_fluent_mesh,
                 overwrite_existing_mesh=overwrite_existing_mesh,
                 mesh_size_per_part=mesh_size_per_part,
+                _global_wrap_size=_global_wrap_size,
+                _wrap_size_per_part=_wrap_size_per_part,
             )
         else:
             fluent_mesh = mesher.mesh_from_manifold_input_model(
@@ -484,6 +498,7 @@ class HeartModel:
                 overwrite_existing_mesh=overwrite_existing_mesh,
             )
 
+        # TODO: Cleanup the following.
         # remove empty cell zones
         num_cell_zones1 = len(fluent_mesh.cell_zones)
         fluent_mesh.cell_zones = [cz for cz in fluent_mesh.cell_zones if cz.cells.shape[0] > 0]
@@ -533,7 +548,7 @@ class HeartModel:
         filename = os.path.join(self.workdir, "volume-mesh-post-meshing.vtu")
         self.mesh.save(filename)
 
-        return
+        return self.mesh
 
     def _mesh_fluid_volume(self, remesh_caps: bool = True):
         """Generate a volume mesh of the cavities.

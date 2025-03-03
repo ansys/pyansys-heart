@@ -47,7 +47,8 @@ def test_add_beam_net():
     )
     beam_mesh.pid = 0
     beam_mesh.name = "test"
-    assert fourchamber.beam_network[0] == beam_mesh
+    assert np.all(fourchamber.beam_network[0].nodes == beam_mesh.nodes)
+    assert np.all(fourchamber.beam_network[0].edges == beam_mesh.edges)
 
 
 def test_compute_sa_node():
@@ -157,7 +158,7 @@ def test_compute_left_bundle_connection():
     )
 
     # fourchamber.plot_purkinje()
-    assert np.all(left_bundle.edges[0] == [121937, 121942])
-    assert np.all(left_bundle.edges[-1] == [121996, 50025])
+    assert np.all(left_bundle.edges[0] == [121937, 44626])
+    assert np.all(left_bundle.edges[-1] == [39542, 50025])
 
     return

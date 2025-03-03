@@ -487,15 +487,15 @@ class EPSimulator(BaseSimulator):
             cs.compute_left_right_bundle(
                 right.xyz, right.node_id, side="Right", beam_length=beam_length
             )
-            cs.compute_fascicle(start_coord=left.xyz, start_id=left.node_id, side='Left', end_coord=[96.9019, 73.6718, 32.8586],  end_id=19730, beam_length= 1.5)
+            cs.compute_fascicle(start_coord=left.xyz, start_id=left.node_id, side='Left', end_coord=[114.602, 83.5255, 42.4961],  end_id=19730, beam_length= 1.5)
 
             # # TODO: define end point by uhc, or let user choose
             # Note: must on surface after zerop if coupled with meca
             
-            # (rodero patient 5)
+            # (rodero patient 5: [44.6358, 106.652, 66.51])
             cs.compute_bachman_bundle(
                 start_coord=self.model.right_atrium.get_point("SA_node").xyz,
-                end_coord=np.array([44.6358, 106.652, 66.51]),
+                end_coord=np.array([51.4769, 114.545, 103.916]),
             )
             return cs
 

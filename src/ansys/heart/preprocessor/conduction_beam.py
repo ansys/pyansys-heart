@@ -460,12 +460,23 @@ class ConductionSystem:
         )
 
         new_nodes = bundle_branch.points
+        original_ids =np.zeros(len(new_nodes))
+        for idx, new_node in enumerate(new_nodes):
+            original_ids[idx] = self.m.mesh.find_closest_point(new_node)
         new_nodes = _refine_line(new_nodes, beam_length=beam_length)
+
         # exclude first and last (apex) node which belongs to purkinje beam
+
+        original_ids = original_ids[1:-1]
         new_nodes = new_nodes[1:-1, :]
+
+        
         point_ids = np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int)
+        if side == "Left":
+            point_ids = original_ids.astype(int)
         point_ids = np.insert(point_ids, 0, start_id)
         apex = ventricle.apex_points[0].node_id
+        
         for network in self.m.beam_network:
             if network.name == side + "-purkinje":
                 apex = network.edges[0, 0]
@@ -500,24 +511,32 @@ class ConductionSystem:
         epi = la_epi.merge(ra_epi)
 
         start_id = epi.find_closest_point(start_coord)
-        end_id = epi.find_closest_point(end_coord)
-        path = epi.geodesic(start_id, end_id)
+        end_ids = epi.find_closest_point(end_coord,n=10)
+
+        path = epi.geodesic(start_id, end_ids[0])
 
         #
         beam_nodes = _refine_line(path.points, beam_length=beam_length)[1:-1, :]
         point_ids = np.linspace(0, len(beam_nodes) - 1, len(beam_nodes), dtype=int)
-
+        point_ids = epi.point_data["_global-point-ids"][path.point_data["vtkOriginalPointIds"]][1:-1]
         glob_start_id = epi.point_data["_global-point-ids"][start_id]
-        glob_end_id = epi.point_data["_global-point-ids"][end_id]
+        glob_end_ids = epi.point_data["_global-point-ids"][end_ids]
         point_ids = np.insert(point_ids, 0, glob_start_id)
-        point_ids = np.append(point_ids, glob_end_id)
+        point_ids = np.append(point_ids, glob_end_ids[0])
 
         # build connectivity table
         edges = np.vstack((point_ids[:-1], point_ids[1:])).T
 
-        mask = np.ones(edges.shape, dtype=bool)
+        for nid in glob_end_ids[1:]:
+            edges = np.vstack((edges,[glob_end_ids[0],nid]))
+
+
+        mask = np.zeros(edges.shape, dtype=bool)
         mask[0, 0] = False  # Start point at solid
-        mask[-1, 1] = False  # End point at solid
+        mask[-len(glob_end_ids), 1] = False  # End point at solid
+        for i in range(len(glob_end_ids)-1):
+             mask[-i-1,:]=False
+            
 
         #! add surface to central mesh.
         surface_id = int(np.max(self.m.mesh.surface_ids) + 1)
@@ -550,7 +569,7 @@ class ConductionSystem:
         for idx, new_node in enumerate(new_nodes):
             original_ids[idx] = self.m.mesh.find_closest_point(new_node)
         new_nodes = _refine_line(new_nodes, beam_length=beam_length)
-
+        end_id=int(original_ids[-1])
         # exclude first and last (apex) node which belongs to purkinje beam
 
         original_ids = original_ids[1:-1]
@@ -572,6 +591,6 @@ class ConductionSystem:
         beam_net = self.m.add_beam_net(new_nodes, edges, mask, pid=0, name=side + " fascicle")
         # used in dynawriter, to write beam connectivity, need offset since it's a beam node
         beam_net.beam_nodes_mask[0, 0] = True
-        beam_net.beam_nodes_mask[-1, -1] = True
+        # beam_net.beam_nodes_mask[-1, -1] = True
 
         return beam_net

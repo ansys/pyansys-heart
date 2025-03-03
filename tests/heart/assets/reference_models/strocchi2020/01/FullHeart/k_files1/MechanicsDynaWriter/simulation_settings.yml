@@ -18,7 +18,6 @@ Simulation Settings:
           k1f: 0.00049 megapascal
           k2f: 9.01 dimensionless
         active:
-          actype: 1
           beat_time: 800 millisecond
           taumax: 0.125 megapascal
           ss: 0.0
@@ -55,7 +54,7 @@ Simulation Settings:
       name: ConstantPreloadWindkesselAfterload
       left_ventricle:
         constants:
-          Rv: 9.311235537063599e-07 gram / millimeter ** 4 / millisecond
+          Rv: 4.6556177685317995e-06 gram / millimeter ** 4 / millisecond
           Ra: 4.6556177685317995e-06 gram / millimeter ** 4 / millisecond
           Rp: 0.00015518725895105997 gram / millimeter ** 4 / millisecond
           Ca: 12887655.942365238 millimeter ** 4 * millisecond ** 2 / gram
@@ -64,7 +63,7 @@ Simulation Settings:
           part: 0.009332567119049997 megapascal
       right_ventricle:
         constants:
-          Rv: 4.6556177685317995e-07 gram / millimeter ** 4 / millisecond
+          Rv: 2.3278088842658997e-06 gram / millimeter ** 4 / millisecond
           Ra: 1.6294662189861296e-06 gram / millimeter ** 4 / millisecond
           Rp: 1.9398407368882496e-05 gram / millimeter ** 4 / millisecond
           Ca: 57994451.74064357 millimeter ** 4 * millisecond ** 2 / gram
@@ -109,7 +108,7 @@ Simulation Settings:
         node_ids: null
         t_start: 0.0 millisecond
         period: 800.0 millisecond
-        duration: 20 millisecond
+        duration: 2 millisecond
         amplitude: 50 microfarad / millimeter ** 3
   fibers:
     alpha_endo: -60 degree
@@ -137,8 +136,8 @@ Simulation Settings:
     ngen: 200 dimensionless
     nbrinit: 3 dimensionless
     nsplit: 4 dimensionless
-    pmjtype: 1 dimensionless
-    pmjradius: 0.7 dimensionless
+    pmjtype: 2 dimensionless
+    pmjradius: 1.5 dimensionless
   stress_free:
     analysis:
       end_time: 1000.0 millisecond

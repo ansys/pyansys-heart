@@ -292,7 +292,7 @@ def test_get_meca_material(default_settings):
     assert m1.active.actype == 3
 
     m2 = default_settings.get_mechanical_material("isotropic")
-    assert m2.c10 == pytest.approx(0.1 / 2, 1e-9)
+    assert m2.iso.mu1 == pytest.approx(0.1, 1e-9)
     # test modified value
     assert m1.rho == pytest.approx(0.008, 1e-9)
 

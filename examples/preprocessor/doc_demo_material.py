@@ -65,6 +65,13 @@ docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", 
 
 ## Neo-Hookean material can be created as following
 neo = NeoHookean(rho=0.001, c10=1, nu=0.499)
+###############################################################################
+# .. note::
+#    The previous method is now deprecated.
+
+## The recommended approach is to create a Neo-Hookean material by
+# activating only the ISO module in MAT295.
+neo2 = MAT295(rho=0.001, iso=ISO(itype=1, beta=2, kappa=1, mu1=0.05, alpha1=2))
 
 ###############################################################################
 # .. note::
@@ -73,7 +80,7 @@ neo = NeoHookean(rho=0.001, c10=1, nu=0.499)
 ## More steps to create MAT295 which is used for myocardium
 
 # step 1: create an isotropic module
-iso = ISO(k1=1, k2=1, nu=0.499)
+iso = ISO(k1=1, k2=1, kappa=100)
 
 # step 2: create an anisotropoc moddule
 fiber = ANISO.HGOFiber(k1=1, k2=1)

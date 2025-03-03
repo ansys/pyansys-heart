@@ -54,8 +54,9 @@ from ansys.heart.preprocessor.input import _InputModel
 import ansys.heart.preprocessor.mesher as mesher
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 from ansys.heart.simulator.settings.material.material import (
+    ISO,
+    MAT295,
     MechanicalMaterialModel,
-    NeoHookean,
 )
 
 
@@ -1676,7 +1677,9 @@ class HeartModel:
         self,
         threshold_left_ventricle: float = 0.9,
         threshold_right_ventricle: float = 0.95,
-        stiff_material: MechanicalMaterialModel = NeoHookean(rho=0.001, c10=0.1, nu=0.499),
+        stiff_material: MechanicalMaterialModel = MAT295(
+            rho=0.001, iso=ISO(itype=1, beta=2, kappa=1, mu1=0.05, alpha1=2)
+        ),
     ) -> None | Part:
         """Use universal coordinates to generate a stiff base region.
 
@@ -1688,7 +1691,8 @@ class HeartModel:
             a uvc_l value larger than this threshold in the right ventricle will be set to a stiff
             material, by default 0.95
         stiff_material : MechanicalMaterialModel, optional
-            material to assign, by default NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+            material to assign, by default MAT295(rho=0.001,
+            iso=ISO(itype=1, beta=2, kappa=1, mu1=0.05, alpha1=2))
 
         Returns
         -------

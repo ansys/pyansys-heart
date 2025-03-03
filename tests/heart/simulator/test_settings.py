@@ -30,10 +30,6 @@ from pint import Quantity
 import pytest
 
 from ansys.heart.simulator.settings.defaults import fibers as fibers_defaults
-from ansys.heart.simulator.settings.material.material import (
-    MAT295,
-    NeoHookean,
-)
 from ansys.heart.simulator.settings.settings import (
     Analysis,
     Fibers,
@@ -289,13 +285,13 @@ def test_get_meca_material(default_settings):
     default_settings.to_consistent_unit_system()
 
     # test default value
-    m1 = default_settings.get_mechanical_material(MAT295)
+    m1 = default_settings.get_mechanical_material("anisotropic")
     assert m1.active.actype == 1
 
-    m1 = default_settings.get_mechanical_material(MAT295, ep_coupled=True)
+    m1 = default_settings.get_mechanical_material("anisotropic", ep_coupled=True)
     assert m1.active.actype == 3
 
-    m2 = default_settings.get_mechanical_material(NeoHookean)
+    m2 = default_settings.get_mechanical_material("isotropic")
     assert m2.c10 == pytest.approx(0.1 / 2, 1e-9)
     # test modified value
     assert m1.rho == pytest.approx(0.008, 1e-9)

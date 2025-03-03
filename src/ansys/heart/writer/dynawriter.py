@@ -1191,7 +1191,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 LOGGER.info(f"Material of {part.name} will be assigned automatically.")
                 if part.fiber:
                     part.meca_material = self.settings.get_mechanical_material(
-                        required_type=MAT295, ep_coupled=em_couple
+                        required_type="anisotropic", ep_coupled=em_couple
                     )
                     # disable active module
                     if not part.active:
@@ -1199,7 +1199,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
                 else:
                     part.meca_material = self.settings.get_mechanical_material(
-                        required_type=NeoHookean
+                        required_type="isotropic"
                     )
         # write
         for part in self.model.parts:

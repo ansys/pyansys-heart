@@ -236,3 +236,36 @@ def test_read_tetrahedrons(_test_mesh):
     assert np.all(mesh.cell_zones[0].cells == expected_cells)
     # single cell zone: so all cells in mesh should be in the first cell zone.
     assert np.all(mesh.cells == mesh.cell_zones[0].cells)
+
+
+def test_to_vtk_from_dpf():
+    """Tests conversion to vtk object with the various options available."""
+    # mesh without any cell zones
+    import os
+
+    os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+    from ansys.heart.core.helpers.fluenthdf5_dpf import _FluentMesh
+
+    mesh = _FluentMesh(FLUENT_BOX1)
+    vtk_object = mesh._to_vtk(add_cells=False, add_faces=True)
+
+    # just triangles in vtk object
+    assert list(vtk_object.cells_dict.keys()) == [int(pv.CellType.TRIANGLE)]
+    assert vtk_object.n_cells == 6 * 2  # 2 faces per face zone, and 6 face zones
+
+    # mesh with cell zones
+    mesh = FluentMesh(FLUENT_BOX)
+    mesh.load_mesh(reconstruct_tetrahedrons=True)
+    vtk_object = mesh._to_vtk(add_cells=True, add_faces=False)
+
+    assert list(vtk_object.cells_dict.keys()) == [int(pv.CellType.TETRA)]
+    assert vtk_object.n_cells == 12  # 12 tetrahedrons in cell zone
+
+    # when extracting both cell zones and face zones
+    vtk_object = mesh._to_vtk(add_cells=True, add_faces=True)
+
+    # both triangles and tetra present
+    assert list(vtk_object.cells_dict.keys()) == [int(pv.CellType.TRIANGLE), int(pv.CellType.TETRA)]
+    assert vtk_object.n_cells == 42  # interior cells are also generated
+
+    return

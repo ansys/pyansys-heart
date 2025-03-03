@@ -16,6 +16,5 @@ $#     pid     secid       mid     eosid      hgid      grav    adpopt      tmid
          3         1         3                                                  
 *SECTION_SOLID
 $#   secid    elform       aet    unused    unused    unused    cohoff   gaskeit
-         1        13         0                                                  
-
+         1        13         0                                                  
 *END

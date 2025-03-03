@@ -457,7 +457,7 @@ class ConductionSystem:
         full_connect: bool = False,
         beam_length: float = 1.5,
     ):
-        """Bundle brunch."""
+        """Bundle branch."""
         if side == "Left":
             ventricle = self.m.left_ventricle
             endo_surface = self.m.mesh.get_surface(self.m.left_ventricle.endocardium.id)

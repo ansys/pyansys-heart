@@ -607,7 +607,7 @@ class MechanicsSimulator(BaseSimulator):
             self._run_dyna(os.path.join(directory, "main.k"), options="case")
             LOGGER.info("Simulation done.")
         else:
-            LOGGER.info(f"Re-using existing results in {directory}")
+            LOGGER.info(f"Reusing existing results in {directory}")
 
         report, stress_free_coord, guess_ed_coord = zerop_post(directory, self.model)
 

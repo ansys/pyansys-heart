@@ -738,19 +738,28 @@ class SimulationSettings:
         return rotation
 
 
-def _read_passive_from_settings(mat: AttrDict) -> NeoHookean:
-    rho = mat["rho"].m
-    mu = mat["mu1"].m
-    return NeoHookean(rho=rho, c10=mu / 2)
+def _read_passive_from_settings(passive: AttrDict) -> MAT295:
+    passive = MAT295(
+        rho=passive["rho"].m,
+        iso=ISO(
+            itype=passive["itype"],
+            beta=2,
+            kappa=passive["mkappa"].m,
+            mu1=passive["mu1"].m,
+            alpha1=passive["alpha1"],
+        ),
+    )
+    return passive
 
 
 def _read_myocardium_from_settings(mat: AttrDict, coupled=False) -> MAT295:
     rho = mat["isotropic"]["rho"].m
 
     iso = ISO(
-        nu=mat["isotropic"]["nu"],
+        kappa=mat["isotropic"]["kappa"].m,
         k1=mat["isotropic"]["k1"].m,
         k2=mat["isotropic"]["k2"].m,
+        beta=2,
     )
 
     fibers = [ANISO.HGOFiber(k1=mat["anisotropic"]["k1f"].m, k2=mat["anisotropic"]["k2f"].m)]

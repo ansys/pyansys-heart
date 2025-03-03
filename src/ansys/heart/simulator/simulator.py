@@ -480,12 +480,12 @@ class EPSimulator(BaseSimulator):
             cs.compute_sa_node()
             cs.compute_av_node()
             cs.compute_av_conduction(beam_length=beam_length)
-            left, right = cs.compute_his_conduction(beam_length=beam_length)
+            _, left_point, right_point = cs.compute_his_conduction(beam_length=beam_length)
             cs.compute_left_right_bundle(
-                left.xyz, left.node_id, side="Left", beam_length=beam_length
+                left_point.xyz, left_point.node_id, side="Left", beam_length=beam_length
             )
             cs.compute_left_right_bundle(
-                right.xyz, right.node_id, side="Right", beam_length=beam_length
+                right_point.xyz, right_point.node_id, side="Right", beam_length=beam_length
             )
 
             # # TODO: define end point by uhc, or let user choose
@@ -619,7 +619,7 @@ class MechanicsSimulator(BaseSimulator):
             self._run_dyna(os.path.join(directory, "main.k"), options="case")
             LOGGER.info("Simulation done.")
         else:
-            LOGGER.info(f"Re-using existing results in {directory}")
+            LOGGER.info(f"Reusing existing results in {directory}")
 
         report, stress_free_coord, guess_ed_coord = zerop_post(directory, self.model)
 

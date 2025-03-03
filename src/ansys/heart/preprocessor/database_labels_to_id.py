@@ -48,6 +48,33 @@ Strocchi2020 = {
     "Superior vena cava inlet": 23,
     "Inferior vena cava inlet": 24,
 }
+#! NOTE: Strocchi 2020 cases 12 and 14 have different labeling.
+Strocchi2020_case_12_14 = {
+    "Left ventricle myocardium": 1,
+    "Right ventricle myocardium": 2,
+    "Left atrium myocardium": 3,
+    "Right atrium myocardium": 4,
+    "Aorta wall": 5,
+    "Pulmonary artery wall": 6,
+    "Left atrial appendage border": 7,
+    "Left superior pulmonary vein border": 8,
+    "Left inferior pulmonary vein border": 9,
+    "Right inferior pulmonary vein border": 9,
+    "Right superior pulmonary vein border": 10,
+    "Superior vena cava border": 11,
+    "Inferior vena cava border": 12,
+    "Mitral valve plane": 13,
+    "Tricuspid valve plane": 14,
+    "Aortic valve plane": 15,
+    "Pulmonary valve plane": 16,
+    "Left atrium appendage inlet": 17,
+    "Left superior pulmonary vein inlet": 18,
+    "Left inferior pulmonary vein inlet": 18,
+    "Right inferior pulmonary vein inlet": 20,
+    "Right superior pulmonary vein inlet": 19,
+    "Superior vena cava inlet": 21,
+    "Inferior vena cava inlet": 22,
+}
 Rodero2021 = {
     "Left ventricle myocardium": 1,
     "Right ventricle myocardium": 2,

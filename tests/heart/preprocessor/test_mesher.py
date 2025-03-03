@@ -69,6 +69,22 @@ def clean_up_temp_dirs():
             pass
 
 
+@pytest.mark.parametrize(
+    "part_names,global_size,size_per_part,expected",
+    (
+        [["part1", "part2"], 1.0, None, {"part1": 1.0, "part2": 1.0}],
+        [["part1", "part2"], 1.0, {"part1": 2.0}, {"part1": 2.0, "part2": 1.0}],
+        [["part1", "part2"], 1.0, {"Part1": 2.0}, {"part1": 2.0, "part2": 1.0}],
+        [["part1", "part2"], 1.0, {"Part3": 2.0}, {"part1": 1.0, "part2": 1.0}],
+        [["Part 1", "part2"], 1.0, {"Part 1": 2.0}, {"part_1": 2.0, "part2": 1.0}],
+    ),
+)
+def test_get_mesh_size_per_part(part_names, global_size, size_per_part, expected):
+    """Test setting/overriding mesh size per part."""
+    size_per_part1 = mesher._update_size_per_part(part_names, global_size, size_per_part)
+    assert size_per_part1 == expected
+
+
 def test_meshing_for_manifold():
     """Test meshing method for a clean manifold input model."""
     sphere1 = pv.Sphere()
@@ -169,6 +185,7 @@ def test_meshing_for_non_manifold():
         tmpdir.name,
         mesh_file,
         global_mesh_size=0.1,
+        _global_wrap_size=0.1,
         mesh_size_per_part={"Part1": 0.15},
     )
 

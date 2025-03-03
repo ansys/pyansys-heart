@@ -37,35 +37,6 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         sync-labels: true
 
-    # Label based on branch name
-    - uses: actions-ecosystem/action-add-labels@v1
-      if: |
-        startsWith(github.event.pull_request.head.ref, 'doc') ||
-        startsWith(github.event.pull_request.head.ref, 'docs')
-      with:
-        labels: documentation
-
-    - uses: actions-ecosystem/action-add-labels@v1
-      if: |
-        startsWith(github.event.pull_request.head.ref, 'maint') ||
-        startsWith(github.event.pull_request.head.ref, 'no-ci') ||
-        startsWith(github.event.pull_request.head.ref, 'ci')
-      with:
-        labels: maintenance
-
-    - uses: actions-ecosystem/action-add-labels@v1
-      if: startsWith(github.event.pull_request.head.ref, 'feat')
-      with:
-        labels: |
-          enhancement
-
-    - uses: actions-ecosystem/action-add-labels@v1
-      if: |
-        startsWith(github.event.pull_request.head.ref, 'fix') ||
-        startsWith(github.event.pull_request.head.ref, 'patch')
-      with:
-        labels: bug
-
   commenter:
     runs-on: ubuntu-latest
     steps:
@@ -83,3 +54,5 @@ jobs:
           - [good first issue](https://github.com/ansys/pyansys-heart/pulls?q=label%3Agood+first+issue)
           - [maintenance](https://github.com/ansys/pyansys-heart/pulls?q=label%3Amaintenance+)
           - [release](https://github.com/ansys/pyansys-heart/pulls?q=label%3Arelease+)
+          - [testing](https://github.com/ansys/pyansys-heart/pulls?q=label%3Atesting+)
+          - [ci](https://github.com/ansys/pyansys-heart/pulls?q=label%3Aci+)

@@ -744,7 +744,7 @@ def _read_passive_from_settings(passive: AttrDict) -> MAT295:
         iso=ISO(
             itype=passive["itype"],
             beta=2,
-            kappa=passive["mkappa"].m,
+            kappa=passive["kappa"].m,
             mu1=passive["mu1"].m,
             alpha1=passive["alpha1"],
         ),

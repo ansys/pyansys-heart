@@ -1424,12 +1424,14 @@ class HeartModel:
 
                         cap_name = split.replace("-plane", "").replace("-inlet", "")
                         cap.type = CapType(cap_name)
-                        cap.name = cap_name
 
                         if "atrium" in part.name and (
                             cap.type in [CapType.TRICUSPID_VALVE, CapType.MITRAL_VALVE]
                         ):
+                            cap_name = cap_name + "-atrium"
                             cap.type = CapType(cap.type.value + "-atrium")
+
+                        cap.name = cap_name
 
                         LOGGER.debug(f"Cap {cap.type.value} connected to {b.name}")
                         # update name to id map:

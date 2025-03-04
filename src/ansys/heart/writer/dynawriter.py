@@ -1267,7 +1267,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 CapType.RIGHT_INFERIOR_PULMONARY_VEIN,
                 CapType.RIGHT_SUPERIOR_PULMONARY_VEIN,
             ]
-            caps_to_use = []
             if isinstance(self, ZeroPressureMechanicsDynaWriter):
                 # add additional constraint to avoid rotation
                 caps_to_use.extend([CapType.PULMONARY_VALVE])

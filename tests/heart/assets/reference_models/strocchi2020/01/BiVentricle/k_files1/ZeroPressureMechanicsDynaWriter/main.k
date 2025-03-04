@@ -7,10 +7,10 @@ $#  endtim    endcyc     dtmin    endeng    endmas     nosol
     1000.0         0       0.0       0.0     1e+08         0
 *CONTROL_IMPLICIT_DYNAMICS
 $#   imass     gamma      beta    tdybir    tdydth    tdybur     irate     alpha
-         0       0.5      0.25       0.0     1e+28     1e+28         0       0.0
+         0       0.5      0.25       0.0     1e+28     1e+28         0       0.0
 *CONTROL_IMPLICIT_AUTO
 $#   iauto    iteopt    itewin     dtmin     dtmax     dtexp     kfail    kcycle
-         1        11         5      10.0     100.0                              
+         1        11         5      10.0     100.0                              
 *CONTROL_IMPLICIT_GENERAL
 $#  imflag       dt0    imform      nsbs       igs     cnstn      form    zero_v
          1     100.0         2         1         2         0         0         0

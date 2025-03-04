@@ -1429,11 +1429,11 @@ class HeartModel:
                         if "atrium" in part.name and (
                             cap.type in [CapType.TRICUSPID_VALVE, CapType.MITRAL_VALVE]
                         ):
-                            cap.type = CapType(cap.type.name + "-atrium")
+                            cap.type = CapType(cap.type.value + "-atrium")
 
                         LOGGER.debug(f"Cap {cap.type.value} connected to {b.name}")
                         # update name to id map:
-                        self.mesh._surface_id_to_name[cap_mesh.id] = cap.type.name
+                        self.mesh._surface_id_to_name[cap_mesh.id] = cap.type.value
                         break
 
         return

@@ -3880,8 +3880,8 @@ class UHCWriter(BaseDynaWriter):
                 ids_edges.extend(ids_sub)
 
                 # Add info to pyvista object (RA fiber use this)
-                atrium[cap.type.name] = np.zeros(atrium.n_points, dtype=int)
-                atrium[cap.type.name][ids_sub] = 1
+                atrium[cap.type.value] = np.zeros(atrium.n_points, dtype=int)
+                atrium[cap.type.value][ids_sub] = 1
 
         return ids_edges
 

@@ -213,7 +213,7 @@ class MAT295(MechanicalMaterialModel):
 
 
 @dataclass
-@deprecated(reason="Use *MAT_295 with only ISO module instead.")
+@deprecated(reason="Use *MAT_295 with the ISO module instead.")
 class NeoHookean(MechanicalMaterialModel):
     """Passive isotropic material."""
 

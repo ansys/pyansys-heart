@@ -30,7 +30,7 @@ import pytest
 import pyvista as pv
 from pyvista import examples
 
-from ansys.heart.core.objects import Mesh, SurfaceMesh
+from ansys.heart.core.objects import CapType, Mesh, SurfaceMesh
 
 SURFACE_TYPES = [pv.CellType.TRIANGLE, pv.CellType.QUAD]
 VOLUME_TYPES = [pv.CellType.TETRA, pv.CellType.HEXAHEDRON]
@@ -584,7 +584,7 @@ def test_cap_properties():
     patch_mesh = patches[0].clean()
     patch_mesh.point_data["_global-point-ids"] = np.arange(0, patch_mesh.n_points) + 10
 
-    cap = Cap(name="aortic-valve")
+    cap = Cap(name="aortic-valve", type=CapType.AORTIC_VALVE)
     cap._mesh = patch_mesh
 
     assert cap.global_node_ids_edge.shape[0] == cap._mesh.n_points - 1

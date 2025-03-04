@@ -147,7 +147,7 @@ model._validate_parts()
 model._validate_surfaces()
 
 model._assign_cavities_to_parts()
-model._update_cap_names()
+model._update_cap_types()
 model._validate_cap_names()
 model._extract_apex()
 

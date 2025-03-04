@@ -28,7 +28,7 @@ import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.models import FourChamber
-from ansys.heart.core.objects import BeamMesh, Point, SurfaceMesh
+from ansys.heart.core.objects import BeamMesh, CapType, Point, SurfaceMesh
 
 
 def _create_line(point_start: np.array, point_end: np.array, beam_length: float):
@@ -84,9 +84,9 @@ class ConductionSystem:
         """
         if target_coord is None:
             for cap in self.m.right_atrium.caps:
-                if "superior" in cap.name:
+                if cap.type == CapType.SUPERIOR_VENA_CAVA:
                     sup_vcava_centroid = cap.centroid
-                elif "inferior" in cap.name:
+                elif cap.type == CapType.INFERIOR_VENA_CAVA:
                     inf_vcava_centroid = cap.centroid
 
             # define SinoAtrial node:

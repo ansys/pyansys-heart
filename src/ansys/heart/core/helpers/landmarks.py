@@ -29,6 +29,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 
 from ansys.heart.core.models import HeartModel
+from ansys.heart.core.objects import CapType
 
 
 def compute_anatomy_axis(
@@ -119,7 +120,7 @@ def compute_aha17(
 
     # anatomical points
     for cap in model.left_ventricle.caps:
-        if cap.name == "mitral-valve":
+        if cap.type == CapType.MITRAL_VALVE:
             mv_center = cap.centroid
     for apex in model.left_ventricle.apex_points:
         if "endocardium" in apex.name:

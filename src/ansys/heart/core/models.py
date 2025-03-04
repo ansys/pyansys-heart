@@ -43,6 +43,7 @@ import ansys.heart.core.helpers.vtkmethods as vtkmethods
 from ansys.heart.core.objects import (
     BeamMesh,
     Cap,
+    CapType,
     Cavity,
     Mesh,
     Part,
@@ -1074,7 +1075,7 @@ class HeartModel:
         self._validate_surfaces()
 
         self._assign_cavities_to_parts()
-        self._update_cap_names()
+        self._update_cap_types()
         self._validate_cap_names()
 
         self._extract_apex()
@@ -1407,8 +1408,8 @@ class HeartModel:
 
         return
 
-    def _update_cap_names(self):
-        """Try to update the cap names using names of connected boundaries."""
+    def _update_cap_types(self):
+        """Try to update the cap types using names of connected boundaries."""
         boundaries_to_check = [
             s for s in self.mesh._surfaces if "valve" in s.name or "inlet" in s.name
         ]
@@ -1421,16 +1422,18 @@ class HeartModel:
                             if "valve" in split or "inlet" in split:
                                 break
 
-                        cap.name = split.replace("-plane", "").replace("-inlet", "")
+                        cap_name = split.replace("-plane", "").replace("-inlet", "")
+                        cap.type = CapType(cap_name)
+                        cap.name = cap_name
 
                         if "atrium" in part.name and (
-                            "tricuspid" in cap.name or "mitral" in cap.name
+                            cap.type in [CapType.TRICUSPID_VALVE, CapType.MITRAL_VALVE]
                         ):
-                            cap.name = cap.name + "-atrium"
+                            cap.type = CapType(cap.type.name + "-atrium")
 
-                        LOGGER.debug(f"Cap {cap.name} connected to {b.name}")
+                        LOGGER.debug(f"Cap {cap.type.value} connected to {b.name}")
                         # update name to id map:
-                        self.mesh._surface_id_to_name[cap_mesh.id] = cap.name
+                        self.mesh._surface_id_to_name[cap_mesh.id] = cap.type.name
                         break
 
         return
@@ -1441,24 +1444,43 @@ class HeartModel:
     def _validate_cap_names(self):
         """Validate that caps are attached to right part."""
         for part in self.parts:
-            cap_names = [c.name for c in part.caps]
+            cap_types = [c.type for c in part.caps]
             if part.name == "Left ventricle":
-                expected_names = ["mitral", "aortic"]
+                expected_cap_types = [
+                    CapType.MITRAL_VALVE,
+                    CapType.AORTIC_VALVE,
+                    CapType.COMBINED_MITRAL_AORTIC_VALVE,
+                ]
             elif part.name == "Right ventricle":
-                expected_names = ["pulmonary", "tricuspid"]
+                expected_cap_types = [CapType.PULMONARY_VALVE, CapType.TRICUSPID_VALVE]
             elif part.name == "Left atrium":
-                expected_names = []
+                expected_cap_types = [
+                    CapType.LEFT_ATRIUM_APPENDAGE,
+                    CapType.LEFT_INFERIOR_PULMONARY_VEIN,
+                    CapType.LEFT_SUPERIOR_PULMONARY_VEIN,
+                    CapType.RIGHT_INFERIOR_PULMONARY_VEIN,
+                    CapType.RIGHT_SUPERIOR_PULMONARY_VEIN,
+                    CapType.MITRAL_VALVE_ATRIUM,
+                ]
             elif part.name == "Right atrium":
-                expected_names = []
+                expected_cap_types = [
+                    CapType.PULMONARY_VALVE_ATRIUM,
+                    CapType.SUPERIOR_VENA_CAVA,
+                    CapType.INFERIOR_VENA_CAVA,
+                ]
 
-            for cn in cap_names:
-                matches = [True for en in expected_names if en in cn]
-                if len(matches) == 1:
+            for cap_type in cap_types:
+                # matches = [True for expected in expected_cap_types if expected in cap_name]
+                # matches = [
+                #     True for expected_type in expected_cap_types if expected_type in cap_type
+                # ]
+                if cap_type in expected_cap_types:
                     break
                 else:
                     LOGGER.error(
-                        "Part: {0}. Cap name is {1}, but expecting cap names "
-                        "to contain one of {2}".format(part.name, cn, expected_names)
+                        "Part: {0}. Cap type is {1}, but expecting one of cap types:{2}".format(
+                            part.name, cap_type, expected_cap_types
+                        )
                     )
 
         return
@@ -1529,11 +1551,11 @@ class HeartModel:
         from ansys.heart.core.helpers.landmarks import compute_anatomy_axis
 
         mv_center = next(
-            cap.centroid for cap in self.left_ventricle.caps if cap.name == "mitral-valve"
+            cap.centroid for cap in self.left_ventricle.caps if cap.type == CapType.MITRAL_VALVE
         )
 
         av_center = next(
-            cap.centroid for cap in self.left_ventricle.caps if cap.name == "aortic-valve"
+            cap.centroid for cap in self.left_ventricle.caps if cap.type == CapType.AORTIC_VALVE
         )
 
         apex = next(
@@ -1749,12 +1771,12 @@ class HeartModel:
         for cap in self.left_atrium.caps:
             # update cap mesh with up-to-date mesh
             cap._mesh = self.mesh.get_surface(cap._mesh.id)
-            if "mitral" not in cap.name:
+            if cap.type is not CapType.MITRAL_VALVE_ATRIUM:
                 ring_nodes.extend(cap.global_node_ids_edge.tolist())
         for cap in self.right_atrium.caps:
             # update cap mesh with up-to-date mesh
             cap._mesh = self.mesh.get_surface(cap._mesh.id)
-            if "tricuspid" not in cap.name:
+            if cap.type is not CapType.TRICUSPID_VALVE_ATRIUM:
                 ring_nodes.extend(cap.global_node_ids_edge.tolist())
 
         ring_eles = vtkmethods.find_cells_close_to_nodes(self.mesh, ring_nodes, radius=radius)

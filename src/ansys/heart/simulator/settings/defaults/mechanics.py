@@ -122,7 +122,8 @@ material = {
     "passive": {
         "type": "NeoHook",  # or 'MAT295'
         "rho": Quantity(0.001, "g/mm^3"),
-        "itype": -1,
+        "itype": 1,
+        "kappa": Quantity(1.0, "MPa"),  # same with myocardium due to ETYPE=13
         "mu1": Quantity(0.1, "MPa"),
         "alpha1": 2,
     },

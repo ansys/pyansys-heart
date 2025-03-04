@@ -38,6 +38,27 @@ class ISO:
     nu: float = 0.499
     k1: float = None
     k2: float = None
+    mu1: float = None
+    alpha1: float = None
+    kappa: float = None
+
+    def __post_init__(self):
+        """Test inputs."""
+        if self.k1 is not None and self.k2 is not None:
+            if not abs(self.itype) == 3:
+                # must be HGO model
+                raise ValueError("ISO input is invalid, abs(itype)!=3.")
+        elif self.mu1 is not None and self.alpha1 is not None:
+            if not abs(self.itype) == 1:
+                # must be Odgen model
+                raise ValueError("ISO input is invalid, abs(itype)!=1.")
+        else:
+            raise ValueError("ISO input is not supported.")
+
+        if self.kappa is not None:
+            # replace Poisson's coefficient
+            mu = self.k1 if abs(self.itype) == 3 else self.mu1
+            self.nu = (3 * self.kappa - 2 * mu) / (6 * self.kappa + 2 * mu)
 
 
 @dataclass

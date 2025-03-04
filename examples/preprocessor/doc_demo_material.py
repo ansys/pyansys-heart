@@ -66,9 +66,6 @@ docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", 
 ## Neo-Hookean material can be created as following
 neo = NeoHookean(rho=0.001, c10=1, nu=0.499)
 ###############################################################################
-# .. note::
-#    The previous method is now deprecated.
-
 ## The recommended approach is to create a Neo-Hookean material by
 # activating only the ISO module in MAT295.
 neo2 = MAT295(rho=0.001, iso=ISO(itype=1, beta=2, kappa=1, mu1=0.05, alpha1=2))

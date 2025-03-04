@@ -51,7 +51,7 @@ class ISO:
         elif self.mu1 is not None and self.alpha1 is not None:
             assert abs(self.itype) == 1  # must be Odgen model
         else:
-            raise ValueError("ISO input is illegal.")
+            raise ValueError("ISO input is invalid.")
 
         if self.kappa is not None:
             # replace Poisson's coefficient

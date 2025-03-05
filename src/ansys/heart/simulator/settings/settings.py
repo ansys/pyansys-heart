@@ -741,14 +741,15 @@ class SimulationSettings:
 def _read_passive_from_settings(mat: AttrDict) -> NeoHookean:
     rho = mat["rho"].m
     mu = mat["mu1"].m
-    return NeoHookean(rho=rho, c10=mu / 2)
+    kappa = mat["kappa"].m
+    return NeoHookean(rho=rho, c10=mu / 2, kappa=kappa)
 
 
 def _read_myocardium_from_settings(mat: AttrDict, coupled=False) -> MAT295:
     rho = mat["isotropic"]["rho"].m
 
     iso = ISO(
-        nu=mat["isotropic"]["nu"],
+        nu=mat["isotropic"]["kappa"].m,
         k1=mat["isotropic"]["k1"].m,
         k2=mat["isotropic"]["k2"].m,
     )

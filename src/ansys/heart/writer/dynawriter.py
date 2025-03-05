@@ -1229,7 +1229,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
             elif isinstance(material, NeoHookean):
                 material_kw = MaterialNeoHook(
-                    mid=part.mid, rho=material.rho, c10=material.c10, kappa=material.kappa
+                    mid=part.mid,
+                    rho=material.rho,
+                    c10=material.c10,
+                    poisson_ratio=material.nu,
+                    kappa=material.kappa,
                 )
                 self.kw_database.material.append(material_kw)
 

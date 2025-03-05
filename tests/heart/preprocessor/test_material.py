@@ -107,7 +107,7 @@ def test_active_couple():
 
 
 def test_mat295():
-    m = material.MAT295(rho=1, iso=material.ISO())
+    m = material.MAT295(rho=1, iso=material.ISO(k1=1, k2=1))
     assert m.aniso is None
     assert m.active is None
 

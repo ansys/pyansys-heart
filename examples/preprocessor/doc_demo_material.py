@@ -64,7 +64,7 @@ docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", 
 # ~~~~~~~~~~~~~~~~~
 
 ## Neo-Hookean material can be created as following
-neo = NeoHookean(rho=0.001, c10=1, nu=0.499)
+neo = NeoHookean(rho=0.001, c10=1, kappa=100)
 
 ###############################################################################
 # .. note::
@@ -73,7 +73,7 @@ neo = NeoHookean(rho=0.001, c10=1, nu=0.499)
 ## More steps to create MAT295 which is used for myocardium
 
 # step 1: create an isotropic module
-iso = ISO(k1=1, k2=1, nu=0.499)
+iso = ISO(k1=1, k2=1, kappa=100)
 
 # step 2: create an anisotropoc moddule
 fiber = ANISO.HGOFiber(k1=1, k2=1)
@@ -201,7 +201,7 @@ heartmodel.left_ventricle.meca_material = active_mat
 heartmodel.left_ventricle.ep_material = ep_mat_active
 
 # Print it, you should see
-# MAT295(rho=1, iso=ISO(itype=-3, beta=0.0, nu=0.499, k1=1, k2=1), aopt=2.0, aniso=ANISO(atype=-1, fibers=[ANISO.HGOFiber(k1=1, k2=1, a=0.0, b=1.0, _theta=0.0, _ftype=1, _fcid=0)], k1fs=None, k2fs=None, vec_a=(1.0, 0.0, 0.0), vec_d=(0.0, 1.0, 0.0), nf=1, intype=0), active=ActiveModel.Model1(t0=None, ca2ion=None, ca2ionm=4.35, n=2, taumax=0.125, stf=0.0, b=4.75, l0=1.58, l=1.85, dtmax=150, mr=1048.9, tr=-1629.0))  # noqa
+# MAT295(rho=1, iso=ISO(itype=-3, beta=0.0, kappa=100, k1=1, k2=1), aopt=2.0, aniso=ANISO(atype=-1, fibers=[ANISO.HGOFiber(k1=1, k2=1, a=0.0, b=1.0, _theta=0.0, _ftype=1, _fcid=0)], k1fs=None, k2fs=None, vec_a=(1.0, 0.0, 0.0), vec_d=(0.0, 1.0, 0.0), nf=1, intype=0), active=ActiveModel.Model1(t0=None, ca2ion=None, ca2ionm=4.35, n=2, taumax=0.125, stf=0.0, b=4.75, l0=1.58, l=1.85, dtmax=150, mr=1048.9, tr=-1629.0))  # noqa
 print(heartmodel.left_ventricle.meca_material)
 
 print(heartmodel.left_ventricle.ep_material)

@@ -146,7 +146,7 @@ simulator.model.right_atrium.active = True
 # Extract elements around atrial caps and assign as a passive material
 ring = simulator.model.create_atrial_stiff_ring(radius=5)
 # material is stiff and value is arbitrarily chosen
-ring.meca_material = NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+ring.meca_material = NeoHookean(rho=0.001, c10=0.1, kappa=1)
 # assign default EP material as for atrial
 ring.ep_material = EPMaterial.Active()
 
@@ -154,7 +154,7 @@ ring.ep_material = EPMaterial.Active()
 simulator.compute_uhc()
 
 # Extract elements around atrialvenricular valves and assign as a passive material
-simulator.model.create_stiff_ventricle_base(stiff_material=NeoHookean(rho=0.001, c10=0.1, nu=0.499))
+simulator.model.create_stiff_ventricle_base(stiff_material=NeoHookean(rho=0.001, c10=0.1, kappa=1))
 
 # Estimate the stress-free-configuration
 simulator.compute_stress_free_configuration()

@@ -1676,7 +1676,7 @@ class HeartModel:
         self,
         threshold_left_ventricle: float = 0.9,
         threshold_right_ventricle: float = 0.95,
-        stiff_material: MechanicalMaterialModel = NeoHookean(rho=0.001, c10=0.1, nu=0.499),
+        stiff_material: MechanicalMaterialModel = NeoHookean(rho=0.001, c10=0.1, kappa=1),
     ) -> None | Part:
         """Use universal coordinates to generate a stiff base region.
 
@@ -1688,7 +1688,7 @@ class HeartModel:
             a uvc_l value larger than this threshold in the right ventricle will be set to a stiff
             material, by default 0.95
         stiff_material : MechanicalMaterialModel, optional
-            material to assign, by default NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+            material to assign, by default NeoHookean(rho=0.001, c10=0.1, kappa=1)
 
         Returns
         -------

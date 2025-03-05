@@ -152,48 +152,79 @@ class ActiveModel:
         """Hold data for active model 1."""
 
         t0: float = None
+        """Starting time of active stress development."""
         ca2ion: float = None
+        """Intercellular calcium ion concentration."""
         ca2ionm: float = 4.35
+        """Maximum intercellular calcium ion concentration."""
         n: int = 2
+        """Hill coefficient."""
         taumax: float = 0.125
+        """Peak isometric tension under maximum activation."""
         stf: float = 0.0
+        """scaling factor, obselote, don't change."""
+
         b: float = 4.75
+        """Shape coefficient."""
         l0: float = 1.58
+        """Sarcomere length with no active tension"""
         l: float = 1.85  # noqa: E741
+        """Reference (stress-free) sarcomere length."""
         dtmax: float = 150
+        """Time to peak tension."""
         mr: float = 1048.9
+        """Slope of linear relaxation versus sarcomere length relation."""
         tr: float = -1629.0
+        """Time intercept of linear relaxation as a function of sarcomere length relation."""  # noqa: E501
 
     @dataclass
     class Model3:
         """Hold data for active model 3."""
 
         t0: float = None
+        """Starting time of active stress development."""
         ca2ion50: float = 1.0
+        """Maximum intercellular calcium ion concentration."""
         n: float = 1.0
+        """"Hill coefficient."""
         f: float = 0.0
+        """scaling factor, obselote, don't change."""
         l: float = 1.0  # no effect if eta=0 #noqa: E741
+        """Reference (stress-free) sarcomere length"""
         eta: float = 0.0
+        """Scaling parameter."""
         sigmax: float = None
+        """Maximum active stress."""
 
 
 @dataclass
 class ACTIVE:
     """Active module of MAT_295."""
 
-    acid: int = None  # empty for ep_coupled, or curve ID from writer
-    actype: int = None  # defined in __post_init__
+    acid: int = None
+    """Activation curve ID, leave None for ep_coupled."""
+    actype: int = None
+    """Type of active model, will bedefined in __post_init__."""
     acthr: float = (
         None  # need to be defined for ep_coupled, for mechanics it's defined in ActiveCurve
     )
-    acdir: int = 1  # always act in fiber direction
+    """(De/re)activation threshold."""
+    acdir: int = 1
+    """Direction of active tension, don't change."""
     sf: float = 1.0  # always 1.0 and controls contractility in ActiveModel
+    """Active stress scaling factor in the fiber direction."""
     ss: float = 0.0
+    """Active stress scaling factor in the transverse sheet direction."""
     sn: float = 0.0
+    """Active stress scaling factor in the transverse normal direction."""
+
     model: ActiveModel = field(default_factory=ActiveModel.Model1)
+    """Active model."""
+
     ca2_curve: ActiveCurve = field(
         default_factory=lambda: ActiveCurve(constant_ca2(), threshold=0.1, type="ca2")
     )
+    """Active curve if it's not ep_coupled."""
 
     def __post_init__(self):
         """Deduce actype."""

@@ -89,6 +89,76 @@ def _set_field_data_from_axis(
     mesh.field_data[axis_name] = data
     return mesh
 
+def _read_purkinje_from_kfile(filename: pathlib.Path):
+    """Reads purkinje from k file.
+
+    Parameters
+    ----------
+    filename : pathlib.Path
+        Purkinje filename.
+
+    Returns
+    -------
+    _type_
+        Beam data extracted from file: beam_nodes,edges,mask,pid
+    """
+    # Open file and import beams and created nodes
+    with open(filename, "r") as file:
+        start_nodes = 0
+        lines = file.readlines()
+    # find line ids delimiting node data and edge data
+    start_nodes = np.array(np.where(["*NODE" in line for line in lines]))[0][0]
+    end_nodes = np.array(np.where(["*" in line for line in lines]))
+    end_nodes = end_nodes[end_nodes > start_nodes][0]
+    start_beams = np.array(np.where(["*ELEMENT_BEAM" in line for line in lines]))[0][0]
+    end_beams = np.array(np.where(["*" in line for line in lines]))
+    end_beams = end_beams[end_beams > start_beams][0]
+
+    # load node data
+    node_data = np.loadtxt(
+        filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1
+    )
+    new_ids = node_data[:, 0].astype(int) - 1
+    beam_nodes = node_data[:, 1:4]
+
+    # load beam data
+    beam_data = np.loadtxt(
+        filename, skiprows=start_beams + 1, max_rows=end_beams - start_beams - 1, dtype=int
+    )
+    edges = beam_data[:, 2:4] - 1
+    pid = beam_data[0, 1]
+
+    # TODO: physically, this is not fully understood: Merging the end of bundle branch, the
+    # TODO: origin of Purkinje and the apex of myiocardium seems logical, but it has more chance
+    # TODO: the EP wave will not be triggered.
+    # TODO: so I remove it, it means: end of bundle branch connect to apex, origin of Purkinje
+    # TODO: is another point on the same location.
+
+    mask = np.isin(edges, new_ids)  # True for new created nodes
+    edges[mask] -= new_ids[0]  # beam nodes id start from 0
+
+    return beam_nodes,edges,mask,pid
+
+
+def _create_polydata_beam_network(points: np.array, edges: np.array)->pv.PolyData:
+    """Create beam network from points and edges.
+
+    Parameters
+    ----------
+    points : np.array
+        Points coordinates.
+    edges : np.array
+        Connectivity.
+
+    Returns
+    -------
+    pv.PolyData
+        PolyData object.
+    """
+    beamnet = pv.PolyData(points)
+    beamnet.lines = edges
+    return beamnet
+
 
 class HeartModel:
     """Parent class for heart models."""
@@ -300,41 +370,26 @@ class HeartModel:
         name : str
             beamnet name
         """
-        # Open file and import beams and created nodes
-        with open(filename, "r") as file:
-            start_nodes = 0
-            lines = file.readlines()
-        # find line ids delimiting node data and edge data
-        start_nodes = np.array(np.where(["*NODE" in line for line in lines]))[0][0]
-        end_nodes = np.array(np.where(["*" in line for line in lines]))
-        end_nodes = end_nodes[end_nodes > start_nodes][0]
-        start_beams = np.array(np.where(["*ELEMENT_BEAM" in line for line in lines]))[0][0]
-        end_beams = np.array(np.where(["*" in line for line in lines]))
-        end_beams = end_beams[end_beams > start_beams][0]
 
-        # load node data
-        node_data = np.loadtxt(
-            filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1
-        )
-        new_ids = node_data[:, 0].astype(int) - 1
-        beam_nodes = node_data[:, 1:4]
+        beam_nodes,edges,mask,pid = _read_purkinje_from_kfile(filename)
 
-        # load beam data
-        beam_data = np.loadtxt(
-            filename, skiprows=start_beams + 1, max_rows=end_beams - start_beams - 1, dtype=int
-        )
-        edges = beam_data[:, 2:4] - 1
-        pid = beam_data[0, 1]
 
-        # TODO: physically, this is not fully understood: Merging the end of bundle branch, the
-        # TODO: origin of Purkinje and the apex of myiocardium seems logical, but it has more chance
-        # TODO: the EP wave will not be triggered.
-        # TODO: so I remove it, it means: end of bundle branch connect to apex, origin of Purkinje
-        # TODO: is another point on the same location.
+        # build tree: beam_nodes and solid_points
+        original_points_order = np.unique(edges[mask==False])
+        solid_points = self.mesh.points[original_points_order]
 
-        mask = np.isin(edges, new_ids)  # True for new created nodes
-        edges[mask] -= new_ids[0]  # beam nodes id start from 0
-
+        connectivity = np.empty_like(edges)
+        np.copyto(connectivity, edges)
+        
+        
+        _, _,inverse_indices = np.unique(connectivity[np.logical_not(mask)], return_index=True,return_inverse=True)
+        connectivity[np.logical_not(mask)] = inverse_indices + max(connectivity[mask])+1
+        celltypes = np.full((connectivity.shape[0], 1), 2)
+        connectivity = np.hstack((celltypes,connectivity)).flatten()
+        
+        beam_points = np.vstack([beam_nodes,solid_points])
+        beam_net = _create_polydata_beam_network(points=beam_points,edges=connectivity)
+        
         beam = self.add_beam_net(beam_nodes, edges, mask, pid=pid, name=name)
 
         return beam

@@ -57,7 +57,7 @@ material = {
         # # Sack et.al
         # "isotropic": {
         #     "rho": Quantity(0.001, "g/mm^3"),
-        #     "nu": 0.49,
+        #     "kappa": Quantity(1.0, "MPa"),
         #     "k1": Quantity(1.05e-3, "MPa"),
         #     "k2": Quantity(7.542),
         # },
@@ -72,7 +72,7 @@ material = {
         # # ambit
         # "isotropic": {
         #     "rho": Quantity(0.001, "g/mm^3"),
-        #     "nu": 0.49,
+        #     "kappa": Quantity(1.0, "MPa"),
         #     "k1": Quantity(0.059e-3, "MPa"),
         #     "k2": Quantity(8.023),
         # },
@@ -87,7 +87,7 @@ material = {
         # # Gultekin et al.
         # "isotropic": {
         #     "rho": Quantity(0.001, "g/mm^3"),
-        #     "nu": 0.499,
+        #     "kappa": Quantity(1.0, "MPa"),
         #     "k1": Quantity(0.40e-3, "MPa"),
         #     "k2": Quantity(6.55),
         # },
@@ -101,7 +101,7 @@ material = {
         # },
         "isotropic": {
             "rho": Quantity(0.001, "g/mm^3"),
-            "nu": 0.499,
+            "kappa": Quantity(1.0, "MPa"),
             "k1": Quantity(0.0023599999999999997, "MPa"),
             "k2": Quantity(1.75),
         },

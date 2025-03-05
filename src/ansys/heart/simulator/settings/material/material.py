@@ -220,4 +220,12 @@ class NeoHookean(MechanicalMaterialModel):
 
     rho: float
     c10: float  # mu/2
-    nu: float = 0.499
+    kappa: float
+    nu: float
+
+    def __post_init__(self):
+        """Deduce Poisson's coefficient."""
+        if self.kappa is not None:
+            # replace Poisson's coefficient
+            mu = self.c10 / 2.0
+            self.nu = (3 * self.kappa - 2 * mu) / (6 * self.kappa + 2 * mu)

@@ -3108,7 +3108,12 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         self.kw_database.ep_settings.append(
             keywords.EmControl(
-                emsol=emsol, numls=4, macrodt=1, dimtype=None, nperio=None, ncylbem=None
+                emsol=emsol,
+                numls=4,
+                macrodt=self.settings.electrophysiology.analysis.dtmax.m,
+                dimtype=None,
+                nperio=None,
+                ncylbem=None,
             )
         )
 

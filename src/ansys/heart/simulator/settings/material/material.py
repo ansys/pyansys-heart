@@ -34,13 +34,21 @@ class ISO:
     """Isotropic module of MAT_295."""
 
     itype: int = -3
+    """Type of isotropic model."""
     beta: float = 0.0
+    """Volumetric response function coefficient."""
     nu: float = 0.499
+    """Poisson's coefficient."""
     k1: float = None
+    """Holzapfel-Ogden modulus."""
     k2: float = None
+    """Holzapfel-Ogden constant."""
     mu1: float = None
+    """Ogden modulus."""
     alpha1: float = None
+    """Odgen constant."""
     kappa: float = None
+    """Bulk modulus."""
 
     def __post_init__(self):
         """Test inputs."""
@@ -70,21 +78,34 @@ class ANISO:
         """Define HGO type fiber from k1 and k2."""
 
         k1: float = None
+        """Holzapfel-Ogden modulus of fiber."""
         k2: float = None
+        """Holzapfel-Ogden constant of fiber."""
         a: float = 0.0
+        """First dispersion parameter."""
         b: float = 1.0
+        """Second dispersion parameter."""
         _theta: float = None
+        """Second fiber rotation angle, 90."""
         _ftype: int = 1
+        """Fiber type."""
         _fcid: int = 0
+        """Curve ID, keep it 0."""
 
     atype: int = -1
+    "Type of anisotropic model."
     fibers: List[HGOFiber] = None
+    """List of fibers."""
 
     k1fs: Optional[float] = None
+    """Coupling modulus between the fiber and sheet directions"""
     k2fs: Optional[float] = None
+    """Coupling constant between the fiber and sheet directions"""
 
     vec_a: tuple = (1.0, 0.0, 0.0)
+    """Components of vector a, don't change."""
     vec_d: tuple = (0.0, 1.0, 0.0)
+    """Components of vector d, don't change."""
 
     def __post_init__(self):
         """Check and deduce other parameters from input."""
@@ -94,7 +115,7 @@ class ANISO:
 
         # check if legal
         if len(self.fibers) != 1 and len(self.fibers) != 2:
-            LOGGER.error("No. of fiber must be 1 or 2.")
+            LOGGER.error("The number of fibers must be 1 or 2.")
             exit()
 
         # deduce input
@@ -104,7 +125,7 @@ class ANISO:
             if len(self.fibers) == 2:
                 self.intype = 1
             else:
-                LOGGER.error("One fiber cannot have interaction.")
+                LOGGER.error("A single fiber cannot have interaction.")
                 exit()
         else:
             self.intype = 0
@@ -114,7 +135,7 @@ class ANISO:
             self.fibers[1]._theta = 90.0
 
     def __repr__(self):
-        """Make sure print contains field in __post_init__."""
+        """Ensure the print output contains fields from __post_init__."""
         attrs = ", ".join(f"{attr}={getattr(self, attr)}" for attr in self.__annotations__)
         attrs += f", nf={self.nf}, intype={self.intype}"
         return f"{self.__class__.__name__}({attrs})"
@@ -188,7 +209,7 @@ class ACTIVE:
 
 @dataclass
 class MechanicalMaterialModel:
-    """Base class for all mechanical material model."""
+    """Base class for mechanical material models."""
 
     pass
 
@@ -205,23 +226,32 @@ class MechanicalMaterialModel:
 
 @dataclass
 class MAT295(MechanicalMaterialModel):
-    """Hold data for MAT_295."""
+    """MAT_295, check LS-DYNA manul for more details."""
 
     rho: float
+    """Mass density."""
     iso: ISO
+    """Isotropic module."""
     aopt: float = 2.0
+    """Material axes option, dont' change."""
     aniso: Optional[ANISO] = None
+    """Anisotropic module."""
     active: Optional[ACTIVE] = None
+    """Active module."""
 
 
 @dataclass
 class NeoHookean(MechanicalMaterialModel):
-    """Passive isotropic material."""
+    """NeoHookean model, passive isotropic material."""
 
     rho: float
+    """Mass density."""
     c10: float  # mu/2
+    """Neohookean parameter, is half of shear modulus."""
     kappa: float
+    """Bulk modulus."""
     nu: float = None
+    """Poisson's coefficient."""
 
     def __post_init__(self):
         """Deduce Poisson's coefficient."""

@@ -116,8 +116,8 @@ def test_mat295():
 
 
 def test_neohookean():
-    m = material.NeoHookean(rho=1, c10=1)
-    assert m.nu == 0.499
+    m = material.NeoHookean(rho=1, c10=1, kappa=100)
+    assert m.nu == (3 * 100 - 1) / (6 * 100 + 1)
 
 
 def test_dummy(capsys):

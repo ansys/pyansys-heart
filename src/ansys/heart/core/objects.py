@@ -492,7 +492,6 @@ class Cap(Feature):
     def __init__(
         self,
         name: str = None,
-        node_ids: Union[List[int], np.ndarray] = [],
         cap_type: CapType = None,
     ) -> None:
         super().__init__(name)

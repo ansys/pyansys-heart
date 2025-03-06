@@ -2,6 +2,7 @@
 
 from datetime import datetime
 import os
+import subprocess
 
 from ansys_sphinx_theme import ansys_favicon, get_version_match
 
@@ -132,3 +133,11 @@ autoapi_python_use_implicit_namespaces = True
 
 typehints_defaults = "comma"
 simplify_optional_unions = False
+
+jinja_contexts = {
+    "toxenvs": {
+        "envs": subprocess.run(
+            ["tox", "list", "-d", "-q"], capture_output=True, text=True
+        ).stdout.splitlines()[1:],
+    },
+}

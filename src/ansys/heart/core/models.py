@@ -43,6 +43,7 @@ import ansys.heart.core.helpers.vtkmethods as vtkmethods
 from ansys.heart.core.objects import (
     BeamMesh,
     Cap,
+    CapType,
     Cavity,
     Mesh,
     Part,
@@ -219,7 +220,7 @@ class HeartModel:
         """Add any subparts."""
 
         self._set_part_ids()
-        """Set incremenetal part ids."""
+        """Set incremental part ids."""
 
         self.electrodes: List[Point] = []
         """Electrodes positions for ECG computing."""
@@ -425,7 +426,9 @@ class HeartModel:
         global_mesh_size: float = 1.5,
         path_to_fluent_mesh: str = None,
         mesh_size_per_part: dict = None,
-    ):
+        _global_wrap_size: float = 1.5,
+        _wrap_size_per_part: dict = None,
+    ) -> Mesh:
         """Remesh the input model and fill the volume.
 
         Parameters
@@ -434,16 +437,25 @@ class HeartModel:
             Flag for switch to non-manifold mesher, by default False
         overwrite_existing_mesh : bool, optional
             Flag indicating whether to overwrite the existing .msh.h5 mesh, by default True
+        global_mesh_size : float, optional
+            Global mesh size used for the generated mesh, by default 1.5
         path_to_fluent_mesh : str, optional
             Path to the generated Fluent .msh.h5 mesh, by default None
         mesh_size_per_part : dict, optional
-            Dictionary specifying the target mesh size for a part, by default None.
+            Dictionary specifying the target mesh size for each part, by default None.
+        _global_wrap_size : float, optional
+            Global size used for setting up the size-field for the shrink-wrap algorithm,
+            by default None
+        _wrap_size_per_part : dict, optional
+            Per part size used for setting up the size-field for the shrink-wrap algorithm,
+            by default None
 
         Examples
         --------
         >>> from ansys.heart.core.models import HeartModel
         >>> model = HeartModel()
         >>> model.load_input(geom, part_definitions, scalar)
+        >>> # mesh the volume with a global size of 1.5 and size of 1 for the left ventricle.
         >>> model.mesh_volume(
         ...     use_wrapper=True,
         ...     global_mesh_size=1.5,
@@ -459,7 +471,8 @@ class HeartModel:
         robuster than meshing from a manifold surface. Moreover, any clear interface
         between parts is potentially lost.
         When mesh_size_per_part is incomplete, remaining part sizes default to the
-        global mesh size. Note that this is an experimental setting.
+        global mesh size. This is an experimental setting. Any wrap sizes given
+        as input argument are ignored when the wrapper is not used.
         """
         if not path_to_fluent_mesh:
             path_to_fluent_mesh = os.path.join(self.workdir, "simulation_mesh.msh.h5")
@@ -474,6 +487,8 @@ class HeartModel:
                 path_to_output=path_to_fluent_mesh,
                 overwrite_existing_mesh=overwrite_existing_mesh,
                 mesh_size_per_part=mesh_size_per_part,
+                _global_wrap_size=_global_wrap_size,
+                _wrap_size_per_part=_wrap_size_per_part,
             )
         else:
             fluent_mesh = mesher.mesh_from_manifold_input_model(
@@ -484,6 +499,7 @@ class HeartModel:
                 overwrite_existing_mesh=overwrite_existing_mesh,
             )
 
+        # TODO: Cleanup the following.
         # remove empty cell zones
         num_cell_zones1 = len(fluent_mesh.cell_zones)
         fluent_mesh.cell_zones = [cz for cz in fluent_mesh.cell_zones if cz.cells.shape[0] > 0]
@@ -533,7 +549,7 @@ class HeartModel:
         filename = os.path.join(self.workdir, "volume-mesh-post-meshing.vtu")
         self.mesh.save(filename)
 
-        return
+        return self.mesh
 
     def _mesh_fluid_volume(self, remesh_caps: bool = True):
         """Generate a volume mesh of the cavities.
@@ -634,7 +650,7 @@ class HeartModel:
         return
 
     def summary(self) -> dict:
-        """Get summary information of the model as a ditionary."""
+        """Get summary information of the model as a dictionary."""
         from ansys.heart.core.helpers.general import model_summary
 
         summary = model_summary(self)
@@ -984,7 +1000,8 @@ class HeartModel:
 
             if part_info[part_1.name]["caps"] != {}:
                 for cap_name, cap_id in part_info[part_1.name]["caps"].items():
-                    cap = Cap(cap_name)
+                    #! note that we sasume cap name equals cap type here.
+                    cap = Cap(cap_name, cap_type=CapType(cap_name))
                     cap._mesh = self.mesh.get_surface(cap_id)
                     part_1.caps.append(cap)
 
@@ -1059,7 +1076,7 @@ class HeartModel:
         self._validate_surfaces()
 
         self._assign_cavities_to_parts()
-        self._update_cap_names()
+        self._update_cap_types()
         self._validate_cap_names()
 
         self._extract_apex()
@@ -1392,8 +1409,8 @@ class HeartModel:
 
         return
 
-    def _update_cap_names(self):
-        """Try to update the cap names using names of connected boundaries."""
+    def _update_cap_types(self):
+        """Try to update the cap types using names of connected boundaries."""
         boundaries_to_check = [
             s for s in self.mesh._surfaces if "valve" in s.name or "inlet" in s.name
         ]
@@ -1406,16 +1423,20 @@ class HeartModel:
                             if "valve" in split or "inlet" in split:
                                 break
 
-                        cap.name = split.replace("-plane", "").replace("-inlet", "")
+                        cap_name = split.replace("-plane", "").replace("-inlet", "")
+                        cap.type = CapType(cap_name)
 
                         if "atrium" in part.name and (
-                            "tricuspid" in cap.name or "mitral" in cap.name
+                            cap.type in [CapType.TRICUSPID_VALVE, CapType.MITRAL_VALVE]
                         ):
-                            cap.name = cap.name + "-atrium"
+                            cap_name = cap_name + "-atrium"
+                            cap.type = CapType(cap.type.value + "-atrium")
 
-                        LOGGER.debug(f"Cap {cap.name} connected to {b.name}")
+                        cap.name = cap_name
+
+                        LOGGER.debug(f"Cap {cap.type.value} connected to {b.name}")
                         # update name to id map:
-                        self.mesh._surface_id_to_name[cap_mesh.id] = cap.name
+                        self.mesh._surface_id_to_name[cap_mesh.id] = cap.type.value
                         break
 
         return
@@ -1426,24 +1447,43 @@ class HeartModel:
     def _validate_cap_names(self):
         """Validate that caps are attached to right part."""
         for part in self.parts:
-            cap_names = [c.name for c in part.caps]
+            cap_types = [c.type for c in part.caps]
             if part.name == "Left ventricle":
-                expected_names = ["mitral", "aortic"]
+                expected_cap_types = [
+                    CapType.MITRAL_VALVE,
+                    CapType.AORTIC_VALVE,
+                    CapType.COMBINED_MITRAL_AORTIC_VALVE,
+                ]
             elif part.name == "Right ventricle":
-                expected_names = ["pulmonary", "tricuspid"]
+                expected_cap_types = [CapType.PULMONARY_VALVE, CapType.TRICUSPID_VALVE]
             elif part.name == "Left atrium":
-                expected_names = []
+                expected_cap_types = [
+                    CapType.LEFT_ATRIUM_APPENDAGE,
+                    CapType.LEFT_INFERIOR_PULMONARY_VEIN,
+                    CapType.LEFT_SUPERIOR_PULMONARY_VEIN,
+                    CapType.RIGHT_INFERIOR_PULMONARY_VEIN,
+                    CapType.RIGHT_SUPERIOR_PULMONARY_VEIN,
+                    CapType.MITRAL_VALVE_ATRIUM,
+                ]
             elif part.name == "Right atrium":
-                expected_names = []
+                expected_cap_types = [
+                    CapType.PULMONARY_VALVE_ATRIUM,
+                    CapType.SUPERIOR_VENA_CAVA,
+                    CapType.INFERIOR_VENA_CAVA,
+                ]
 
-            for cn in cap_names:
-                matches = [True for en in expected_names if en in cn]
-                if len(matches) == 1:
+            for cap_type in cap_types:
+                # matches = [True for expected in expected_cap_types if expected in cap_name]
+                # matches = [
+                #     True for expected_type in expected_cap_types if expected_type in cap_type
+                # ]
+                if cap_type in expected_cap_types:
                     break
                 else:
                     LOGGER.error(
-                        "Part: {0}. Cap name is {1}, but expecting cap names "
-                        "to contain one of {2}".format(part.name, cn, expected_names)
+                        "Part: {0}. Cap type is {1}, but expecting one of cap types:{2}".format(
+                            part.name, cap_type, expected_cap_types
+                        )
                     )
 
         return
@@ -1514,11 +1554,11 @@ class HeartModel:
         from ansys.heart.core.helpers.landmarks import compute_anatomy_axis
 
         mv_center = next(
-            cap.centroid for cap in self.left_ventricle.caps if cap.name == "mitral-valve"
+            cap.centroid for cap in self.left_ventricle.caps if cap.type == CapType.MITRAL_VALVE
         )
 
         av_center = next(
-            cap.centroid for cap in self.left_ventricle.caps if cap.name == "aortic-valve"
+            cap.centroid for cap in self.left_ventricle.caps if cap.type == CapType.AORTIC_VALVE
         )
 
         apex = next(
@@ -1734,12 +1774,12 @@ class HeartModel:
         for cap in self.left_atrium.caps:
             # update cap mesh with up-to-date mesh
             cap._mesh = self.mesh.get_surface(cap._mesh.id)
-            if "mitral" not in cap.name:
+            if cap.type is not CapType.MITRAL_VALVE_ATRIUM:
                 ring_nodes.extend(cap.global_node_ids_edge.tolist())
         for cap in self.right_atrium.caps:
             # update cap mesh with up-to-date mesh
             cap._mesh = self.mesh.get_surface(cap._mesh.id)
-            if "tricuspid" not in cap.name:
+            if cap.type is not CapType.TRICUSPID_VALVE_ATRIUM:
                 ring_nodes.extend(cap.global_node_ids_edge.tolist())
 
         ring_eles = vtkmethods.find_cells_close_to_nodes(self.mesh, ring_nodes, radius=radius)

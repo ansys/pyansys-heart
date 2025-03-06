@@ -408,6 +408,47 @@ class Cavity(Feature):
         return self.centroid
 
 
+# Naming convention of caps.
+class CapType(Enum):
+    """Enumeration tracking cap names."""
+
+    MITRAL_VALVE = "mitral-valve"
+    """Cap representing mitral valve region."""
+    AORTIC_VALVE = "aortic-valve"
+    """Cap representing aortic valve region."""
+    MITRAL_VALVE_ATRIUM = "mitral-valve-atrium"
+    """Cap representing mitral valve region on the atrial side."""
+    AORTIC_VALVE_ATRIUM = "aortic-valve-atrium"
+    """Cap representing aortic valve region on the atrial side."""
+    COMBINED_MITRAL_AORTIC_VALVE = "combined-mitral-aortic-valve"
+    """Combined mitral aortic valve. Valid for truncated models."""
+    PULMONARY_VALVE = "pulmonary-valve"
+    """Cap representing pulmonary valve region."""
+    TRICUSPID_VALVE = "tricuspid-valve"
+    """Cap representing tricuspid valve region."""
+    PULMONARY_VALVE_ATRIUM = "pulmonary-valve-atrium"
+    """Cap representing pulmonary valve region on the atrial side."""
+    TRICUSPID_VALVE_ATRIUM = "tricuspid-valve-atrium"
+    """Cap representing tricuspid valve region on the atrial side."""
+
+    LEFT_ATRIUM_APPENDAGE = "left-atrium-appendage"
+    """Cap representing left atrium appendage region."""
+    LEFT_SUPERIOR_PULMONARY_VEIN = "left-superior-pulmonary-vein"
+    """Cap representing left superior pulmonary vein region."""
+    LEFT_INFERIOR_PULMONARY_VEIN = "left-inferior-pulmonary-vein"
+    """Cap representing left inferior pulmonary vein region."""
+    RIGHT_INFERIOR_PULMONARY_VEIN = "right-inferior-pulmonary-vein"
+    """Cap representing right inferior pulmonary vein region."""
+    RIGHT_SUPERIOR_PULMONARY_VEIN = "right-superior-pulmonary-vein"
+    """Cap representing right superior pulmonary vein region."""
+    SUPERIOR_VENA_CAVA = "superior-vena-cava"
+    """Cap representing superior vena cava region."""
+    INFERIOR_VENA_CAVA = "inferior-vena-cava"
+    """Cap representing inferior vena cava region."""
+    UNKNOWN = "unknown-cap"
+    """Cap with unknown association."""
+
+
 class Cap(Feature):
     """Cap class."""
 
@@ -448,10 +489,19 @@ class Cap(Feature):
         """Compute mean normal of cap."""
         return np.mean(self._mesh.compute_normals().cell_data["Normals"], axis=0)
 
-    def __init__(self, name: str = None, node_ids: Union[List[int], np.ndarray] = []) -> None:
+    def __init__(
+        self,
+        name: str = None,
+        cap_type: CapType = None,
+    ) -> None:
         super().__init__(name)
         """Centroid of cap ID (in case centroid node is created)."""
         self._mesh: SurfaceMesh = None
+
+        if cap_type is None or isinstance(cap_type, CapType):
+            self.type = cap_type
+        else:
+            LOGGER.debug(f"Failed to set cap type for {name}, {cap_type}")
 
         return
 

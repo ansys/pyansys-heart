@@ -28,7 +28,7 @@ import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.models import FourChamber
-from ansys.heart.core.objects import BeamMesh, Point, SurfaceMesh
+from ansys.heart.core.objects import BeamMesh, CapType, Point, SurfaceMesh
 
 
 def _create_line(point_start: np.array, point_end: np.array, beam_length: float):
@@ -83,11 +83,16 @@ class ConductionSystem:
         between sup vena cava and inf vena cave.
         """
         if target_coord is None:
-            for cap in self.m.right_atrium.caps:
-                if "superior" in cap.name:
-                    sup_vcava_centroid = cap.centroid
-                elif "inferior" in cap.name:
-                    inf_vcava_centroid = cap.centroid
+            sup_vcava_centroid = next(
+                cap.centroid
+                for cap in self.m.right_atrium.caps
+                if cap.type == CapType.SUPERIOR_VENA_CAVA
+            )
+            inf_vcava_centroid = next(
+                cap.centroid
+                for cap in self.m.right_atrium.caps
+                if cap.type == CapType.INFERIOR_VENA_CAVA
+            )
 
             # define SinoAtrial node:
             target_coord = sup_vcava_centroid - (inf_vcava_centroid - sup_vcava_centroid) / 2
@@ -221,7 +226,7 @@ class ConductionSystem:
 
         return bifurcation_coord
 
-    def compute_his_conduction(self, beam_length: float = 1.5):
+    def compute_his_conduction(self, beam_length: float = 1.5) -> tuple[BeamMesh, Point, Point]:
         """Compute His bundle conduction."""
         bifurcation_coord = self._get_hisbundle_bifurcation()
 
@@ -312,12 +317,16 @@ class ConductionSystem:
         self.m.mesh.add_surface(surf.clean(), surface_id, name="his_bundle_segment")
         self.m.mesh = self.m.mesh.clean()
 
-        return Point(
-            xyz=his_end_left_coord,
-            node_id=beam_net.edges[position_id_his_end_left[0], position_id_his_end_left[1]],
-        ), Point(
-            xyz=his_end_right_coord,
-            node_id=beam_net.edges[position_id_his_end_right[0], position_id_his_end_right[1]],
+        return (
+            beam_net,
+            Point(
+                xyz=his_end_left_coord,
+                node_id=beam_net.edges[position_id_his_end_left[0], position_id_his_end_left[1]],
+            ),
+            Point(
+                xyz=his_end_right_coord,
+                node_id=beam_net.edges[position_id_his_end_right[0], position_id_his_end_right[1]],
+            ),
         )
 
     @staticmethod
@@ -444,7 +453,7 @@ class ConductionSystem:
         return (position_id_his_end, his_end_coord, new_nodes, edges, sgmt)
 
     def compute_left_right_bundle(self, start_coord, start_id, side: str, beam_length: float = 1.5):
-        """Bundle brunch."""
+        """Bundle branch."""
         if side == "Left":
             ventricle = self.m.left_ventricle
             endo_surface = self.m.mesh.get_surface(self.m.left_ventricle.endocardium.id)
@@ -490,7 +499,7 @@ class ConductionSystem:
         cell_id = surface.find_closest_cell(point)
         return surface.get_cell(cell_id).point_ids[0]
 
-    def compute_bachman_bundle(self, start_coord, end_coord, beam_length: float = 1.5):
+    def compute_bachman_bundle(self, start_coord, end_coord, beam_length: float = 1.5) -> BeamMesh:
         """Compute Bachman bundle conduction system."""
         la_epi = self.m.mesh.get_surface(self.m.left_atrium.epicardium.id)
         ra_epi = self.m.mesh.get_surface(self.m.right_atrium.epicardium.id)

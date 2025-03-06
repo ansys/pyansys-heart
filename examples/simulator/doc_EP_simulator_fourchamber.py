@@ -52,7 +52,7 @@ import ansys.heart.core.models as models
 from ansys.heart.core.objects import Point
 from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
 
-# accept dpf license aggrement
+# accept dpf license agreement
 # https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 

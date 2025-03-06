@@ -65,7 +65,7 @@ from ansys.heart.simulator.simulator import DynaSettings, EPMechanicsSimulator
 # sphinx_gallery_thumbnail_path = '/_static/images/full_heart_mesh.png'
 # sphinx_gallery_end_ignore
 
-# accept dpf license aggrement
+# accept dpf license agreement
 # https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 

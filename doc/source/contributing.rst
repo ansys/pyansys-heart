@@ -24,29 +24,22 @@ Install additional requirements, such as dependencies to build documentation or 
 
 .. code:: bash
 
-    # dependencies for local doc building
-    python -m pip install -e .[doc]
-    # dependencies needed for (unit) testing
-    python -m pip install -e .[tests]
+  # dependencies for local doc building
+  python -m pip install -e .[doc]
+  # dependencies needed for (unit) testing
+  python -m pip install -e .[tests]
 
 Run tests to verify your development version.
 
 .. code:: bash
 
-    # run quick tests
-    python -m pytest -v -m "not requires_fluent or (not extract_models)"
-    # run tests requiring Fluent
-    python -m pytest -v -m requires_fluent
-    # run all tests
-    pytest tests -v
+  # run quick tests
+  python -m pytest -v -m "not requires_fluent or (not extract_models)"
+  # run tests requiring Fluent
+  python -m pytest -v -m requires_fluent
+  # run all tests
+  pytest tests -v
 
-Style and testing
------------------
-If required, you can always call the style commands (`black`_, `isort`_,
-`flake8`_...) or unit testing ones (`pytest`_) from the command line. Alternatively, you can
-use `pre-commit`_, which ensures that all style requirements are met. However,
-this does not guarantee that your project is being tested in an isolated
-environment, which is another reason to consider using `tox`_.
 
 Post issues
 -----------
@@ -106,3 +99,54 @@ This way, it's not possible for you to push code that fails the style checks::
   check yaml...............................................................Passed
   trim trailing whitespace.................................................Passed
   Validate GitHub Workflows................................................Passed
+
+Install tox
+-----------
+Once the project is installed, you can install `Tox <https://tox.wiki/en/stable/>`_ to run tests in an isolated environment.
+Tox is a generic virtual environment management and test command line tool that can be used to test your project
+in isolated python environments.
+
+.. code:: bash
+
+  python -m pip install tox
+
+To verify that your project is working as expected, run the following command
+
+.. code:: bash
+
+  tox list
+
+This command lists all the environments that are available for testing.
+
+.. jinja:: toxenvs
+
+    .. dropdown:: Default Tox environments
+        :animate: fade-in
+        :icon: three-bars
+
+        .. list-table::
+            :header-rows: 1
+            :widths: auto
+
+            * - Environment
+              - Description
+              - usage
+            {% for environment in envs %}
+            {% set name, description  = environment.split("->") %}
+            * - {{ name }}
+              - {{ description }}
+              - python -m tox -e {{ name }}
+            {% endfor %}
+
+Run CI/CD pipelines
+-------------------
+You can label a pull-request to skip certain jobs in the pipeline as follows:
+
+.. list-table::
+    :widths: auto
+    :header-rows: 1
+
+    * - Label
+      - Description
+    * - ``test:skip``
+      - Skip the model generation tests

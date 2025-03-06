@@ -58,7 +58,7 @@ jobs:
 
   doc-build:
     name: "Build documentation"
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, pyhealth]
     needs: [doc-style]
     steps:
       - uses: ansys/actions/doc-build@v8
@@ -84,12 +84,10 @@ jobs:
 
   tests:
     name: Tests
-    runs-on: ${{ matrix.os }}
+    runs-on: [self-hosted, pyhealth]
     needs: [code-style]
     strategy:
       matrix:
-#        os: [windows-latest, macos-latest, ubuntu-latest]
-        os: [ubuntu-latest]
         python-version: ["3.10", "3.11", "3.12"]
       fail-fast: false
 

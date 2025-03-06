@@ -373,7 +373,12 @@ class Logger:
         # Using logger to record unhandled exceptions
         self.add_handling_uncaught_expections(self.logger)
 
-    def log_to_file(self, filename: str = FILE_NAME, level: LOG_LEVEL_TYPE = LOG_LEVEL) -> None:
+    def log_to_file(
+        self,
+        filename: str = FILE_NAME,
+        level: LOG_LEVEL_TYPE = LOG_LEVEL,
+        remove_other_file_handlers: bool = False,
+    ) -> None:
         """Add file handler to logger.
 
         Parameters
@@ -383,6 +388,8 @@ class Logger:
             ``'PyAnsys Heart.log'``.
         level : str or int, optional
             Level of logging. By default ``'DEBUG'``.
+        remove_other_file_handlers : bool, optional
+            Flag indicating whether to remove all other file handlers, by default False
 
         Examples
         --------
@@ -394,6 +401,9 @@ class Logger:
         >>> LOG.log_to_file(file_path)
 
         """
+        if remove_other_file_handlers:
+            _clear_all_file_handlers(self)
+
         addfile_handler(self, filename=filename, level=level, write_headers=True)
 
     def log_to_stdout(self, level: LOG_LEVEL_TYPE = LOG_LEVEL):
@@ -405,11 +415,6 @@ class Logger:
             Level of logging record. By default  ``'DEBUG'``.
         """
         add_stdout_handler(self, level=level)
-
-    def clear_all_file_handlers(self):
-        """Clear all file handlers from the logger."""
-        clear_file_handlers(self)
-        return
 
     def setLevel(self, level: LOG_LEVEL_TYPE = "DEBUG"):  # noqa: N802
         """Change the log level of the object and the attached handlers."""
@@ -556,7 +561,7 @@ def addfile_handler(logger, filename=FILE_NAME, level=LOG_LEVEL, write_headers=F
     return logger
 
 
-def clear_file_handlers(logger: Logger) -> Logger:
+def _clear_all_file_handlers(logger: Logger) -> Logger:
     """Clear all file handlers from the logger.
 
     Parameters
@@ -569,9 +574,15 @@ def clear_file_handlers(logger: Logger) -> Logger:
     Logger
         Logger without file handlers.
     """
-    for handler in logger.logger.handlers:
-        if isinstance(handler, logging.FileHandler):
-            logger.logger.removeHandler(handler)
+    has_file_handler = True
+    while has_file_handler:
+        for handler in logger.logger.handlers:
+            if isinstance(handler, logging.FileHandler):
+                logger.logger.removeHandler(handler)
+        if any([isinstance(handler, logging.FileHandler) for handler in logger.logger.handlers]):
+            has_file_handler = True
+        else:
+            has_file_handler = False
     return logger
 
 

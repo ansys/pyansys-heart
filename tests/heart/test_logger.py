@@ -31,6 +31,7 @@ import pytest
 
 from ansys.heart.core import LOG  # Global logger
 import ansys.heart.core.logger as logger
+from ansys.heart.core.logger import _clear_all_file_handlers
 
 ## Notes
 # Use the next fixtures for:
@@ -310,20 +311,13 @@ def test_global_logger_format(fake_record: Callable):
 
 def test_clear_file_handlers(tmp_path_factory: pytest.TempPathFactory):
     """Test clearing all file handlers."""
-    log = logger.Logger()
+    log = LOG
     file_path = tmp_path_factory.mktemp("log_files") / "instance.log"
     log.log_to_file(file_path)
 
-    assert len(log.logger.handlers) == 4
-    assert isinstance(log.logger.handlers[0], deflogging.FileHandler)
-    assert isinstance(log.logger.handlers[1], deflogging.StreamHandler)
-    assert isinstance(log.logger.handlers[2], deflogging.StreamHandler)
-    assert isinstance(log.logger.handlers[3], deflogging.FileHandler)
-
-    log.clear_all_file_handlers()
-    assert len(log.logger.handlers) == 2
+    _clear_all_file_handlers(log)
+    assert not any([isinstance(handler, deflogging.FileHandler) for handler in log.logger.handlers])
     assert isinstance(log.logger.handlers[0], deflogging.StreamHandler)
-    assert isinstance(log.logger.handlers[1], deflogging.StreamHandler)
 
     log.debug("test")
     assert os.path.getsize(file_path) == 0

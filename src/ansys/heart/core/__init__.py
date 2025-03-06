@@ -28,6 +28,7 @@ import os
 
 from ansys.heart.core.logger import Logger
 
-LOG = Logger(level=logging.DEBUG, to_file=False, to_stdout=False)
+# Will create a log in the working directory.
+LOG = Logger(level=logging.DEBUG, to_file=False, to_stdout=True)
 LOG.log_to_file(os.path.join(os.getcwd(), "PyAnsys-Heart.log"))
 LOG.debug("Loaded logging module as LOG")

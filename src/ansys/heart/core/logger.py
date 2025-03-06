@@ -373,7 +373,12 @@ class Logger:
         # Using logger to record unhandled exceptions
         self.add_handling_uncaught_expections(self.logger)
 
-    def log_to_file(self, filename: str = FILE_NAME, level: LOG_LEVEL_TYPE = LOG_LEVEL) -> None:
+    def log_to_file(
+        self,
+        filename: str = FILE_NAME,
+        level: LOG_LEVEL_TYPE = LOG_LEVEL,
+        remove_other_file_handlers: bool = False,
+    ) -> None:
         """Add file handler to logger.
 
         Parameters
@@ -383,6 +388,8 @@ class Logger:
             ``'PyAnsys Heart.log'``.
         level : str or int, optional
             Level of logging. By default ``'DEBUG'``.
+        remove_other_file_handlers : bool, optional
+            Flag indicating whether to remove all other file handlers, by default False
 
         Examples
         --------
@@ -394,6 +401,9 @@ class Logger:
         >>> LOG.log_to_file(file_path)
 
         """
+        if remove_other_file_handlers:
+            _clear_all_file_handlers(self)
+
         addfile_handler(self, filename=filename, level=level, write_headers=True)
 
     def log_to_stdout(self, level: LOG_LEVEL_TYPE = LOG_LEVEL):
@@ -548,6 +558,28 @@ def addfile_handler(logger, filename=FILE_NAME, level=LOG_LEVEL, write_headers=F
         file_handler.stream.write(NEW_SESSION_HEADER)
         file_handler.stream.write(DEFAULT_FILE_HEADER)
 
+    return logger
+
+
+def _clear_all_file_handlers(logger: Logger) -> Logger:
+    """Clear all file handlers from the logger.
+
+    Parameters
+    ----------
+    logger : Logger
+        Logger from which to clear the file handlers.
+
+    Returns
+    -------
+    Logger
+        Logger without file handlers.
+    """
+    file_handlers = [
+        handler for handler in logger.logger.handlers if isinstance(handler, logging.FileHandler)
+    ]
+    for handler in file_handlers:
+        logger.logger.removeHandler(handler)
+        handler.close()
     return logger
 
 

@@ -192,7 +192,7 @@ class PyAnsysHeartCustomAdapter(logging.LoggerAdapter):
         return msg, kwargs
 
     def log_to_file(
-        self, filename: str = FILE_NAME, level: LOG_LEVEL_TYPE = LOG_LEVEL_STDOUT
+        self, filename: str = FILE_NAME, level: LOG_LEVEL_TYPE = LOG_LEVEL_FILE
     ) -> None:
         """Add file handler to logger.
 

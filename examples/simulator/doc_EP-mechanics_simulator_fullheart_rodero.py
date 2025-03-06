@@ -74,17 +74,6 @@ os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 case_file = os.path.join("pyansys-heart", "downloads", "Rodero2021", "01", "01.vtk")
 workdir = os.path.join(os.path.dirname(case_file), "FullHeart")
 
-# sphinx_gallery_start_ignore
-# Overwrite with env variables: for testing purposes only. May be removed by user.
-try:
-    from pathlib import Path
-
-    path_to_dyna = str(Path(os.environ["PATH_TO_DYNA"]))
-    workdir = os.path.join(os.path.dirname(str(Path(os.environ["PATH_TO_CASE_FILE"]))), "FullHeart")
-except KeyError:
-    pass
-# sphinx_gallery_end_ignore
-
 path_to_model = os.path.join(workdir, "heart_model.vtu")
 
 ###############################################################################
@@ -101,22 +90,11 @@ model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partin
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # instantiate the simulator and settings appropriately.
 
-# instantaiate dyna settings of choice
+# instantiate dyna settings of choice
 lsdyna_path = r"your_dyna_exe"  # tested with DEV-111820
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path, dynatype="intelmpi", platform="wsl", num_cpus=6
 )
-
-# sphinx_gallery_start_ignore
-# Overwrite with env variables: for testing purposes only. May be removed by user.
-try:
-    dyna_settings.lsdyna_path = path_to_dyna
-    # assume we are in WSL if .exe not in path.
-    if ".exe" not in path_to_dyna:
-        dyna_settings.platform = "wsl"
-except Exception:
-    pass
-# sphinx_gallery_end_ignore
 
 # instantiate simulator object
 simulator = EPMechanicsSimulator(

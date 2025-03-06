@@ -57,10 +57,6 @@ from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
 # https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
-# sphinx_gallery_start_ignore
-# Overwrite with env variables: for testing purposes only. May be removed by user.
-
-# sphinx_gallery_end_ignore
 workdir = os.path.join(
     "pyansys-heart", "downloads", "Strocchi2020", "01", "FourChamber", "teststim"
 )

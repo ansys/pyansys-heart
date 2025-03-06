@@ -320,4 +320,5 @@ def test_clear_file_handlers(tmp_path_factory: pytest.TempPathFactory):
     assert isinstance(log.logger.handlers[0], deflogging.StreamHandler)
 
     log.debug("test")
-    assert os.path.getsize(file_path) == 0
+    # size equals 260 since we have some default text in the log file when closing the handler.
+    assert os.path.getsize(file_path) == 260

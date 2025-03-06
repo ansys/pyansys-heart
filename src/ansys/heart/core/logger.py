@@ -574,15 +574,12 @@ def _clear_all_file_handlers(logger: Logger) -> Logger:
     Logger
         Logger without file handlers.
     """
-    has_file_handler = True
-    while has_file_handler:
-        for handler in logger.logger.handlers:
-            if isinstance(handler, logging.FileHandler):
-                logger.logger.removeHandler(handler)
-        if any([isinstance(handler, logging.FileHandler) for handler in logger.logger.handlers]):
-            has_file_handler = True
-        else:
-            has_file_handler = False
+    file_handlers = [
+        handler for handler in logger.logger.handlers if isinstance(handler, logging.FileHandler)
+    ]
+    for handler in file_handlers:
+        logger.logger.removeHandler(handler)
+        handler.close()
     return logger
 
 

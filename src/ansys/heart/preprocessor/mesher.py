@@ -32,8 +32,8 @@ import numpy as np
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
-import ansys.heart.core.helpers.fluenthdf5 as hdf5  # noqa: F401
-from ansys.heart.core.helpers.fluenthdf5 import FluentCellZone, FluentMesh
+import ansys.heart.core.helpers.fluent_reader as fluent_reader  # noqa: F401
+from ansys.heart.core.helpers.fluent_reader import FluentCellZone, FluentMesh
 from ansys.heart.core.helpers.vtkmethods import add_solid_name_to_stl
 from ansys.heart.core.objects import SurfaceMesh
 from ansys.heart.preprocessor.input import _InputBoundary, _InputModel

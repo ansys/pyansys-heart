@@ -112,7 +112,8 @@ from types import TracebackType
 from typing import Any, Dict, Literal, Mapping, MutableMapping, Optional, Type, Union, cast
 
 ## Default configuration
-LOG_LEVEL = logging.DEBUG
+LOG_LEVEL_STDOUT = logging.INFO
+LOG_LEVEL_FILE = logging.DEBUG
 FILE_NAME = "PyAnsys Heart.log"
 
 # For convenience
@@ -190,7 +191,9 @@ class PyAnsysHeartCustomAdapter(logging.LoggerAdapter):
         )  # here self.extra is the argument pass to the log records.
         return msg, kwargs
 
-    def log_to_file(self, filename: str = FILE_NAME, level: LOG_LEVEL_TYPE = LOG_LEVEL) -> None:
+    def log_to_file(
+        self, filename: str = FILE_NAME, level: LOG_LEVEL_TYPE = LOG_LEVEL_STDOUT
+    ) -> None:
         """Add file handler to logger.
 
         Parameters
@@ -203,7 +206,7 @@ class PyAnsysHeartCustomAdapter(logging.LoggerAdapter):
         addfile_handler(self.logger, filename=filename, level=level, write_headers=True)
         self.file_handler = self.logger.file_handler
 
-    def log_to_stdout(self, level: LOG_LEVEL_TYPE = LOG_LEVEL) -> None:
+    def log_to_stdout(self, level: LOG_LEVEL_TYPE = LOG_LEVEL_STDOUT) -> None:
         """Add standard output handler to the logger.
 
         Parameters
@@ -373,7 +376,9 @@ class Logger:
         # Using logger to record unhandled exceptions
         self.add_handling_uncaught_expections(self.logger)
 
-    def log_to_file(self, filename: str = FILE_NAME, level: LOG_LEVEL_TYPE = LOG_LEVEL) -> None:
+    def log_to_file(
+        self, filename: str = FILE_NAME, level: LOG_LEVEL_TYPE = LOG_LEVEL_STDOUT
+    ) -> None:
         """Add file handler to logger.
 
         Parameters
@@ -396,7 +401,7 @@ class Logger:
         """
         addfile_handler(self, filename=filename, level=level, write_headers=True)
 
-    def log_to_stdout(self, level: LOG_LEVEL_TYPE = LOG_LEVEL):
+    def log_to_stdout(self, level: LOG_LEVEL_TYPE = LOG_LEVEL_STDOUT):
         """Add standard output handler to the logger.
 
         Parameters
@@ -511,7 +516,7 @@ class Logger:
         sys.excepthook = handle_exception
 
 
-def addfile_handler(logger, filename=FILE_NAME, level=LOG_LEVEL, write_headers=False):
+def addfile_handler(logger, filename=FILE_NAME, level=LOG_LEVEL_STDOUT, write_headers=False):
     """
     Add a file handler to the input.
 
@@ -551,7 +556,7 @@ def addfile_handler(logger, filename=FILE_NAME, level=LOG_LEVEL, write_headers=F
     return logger
 
 
-def add_stdout_handler(logger, level=LOG_LEVEL, write_headers=False):
+def add_stdout_handler(logger, level=LOG_LEVEL_STDOUT, write_headers=False):
     """
     Add a standout handler to the logger.
 

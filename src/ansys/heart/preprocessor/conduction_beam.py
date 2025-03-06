@@ -83,11 +83,16 @@ class ConductionSystem:
         between sup vena cava and inf vena cave.
         """
         if target_coord is None:
-            for cap in self.m.right_atrium.caps:
-                if cap.type == CapType.SUPERIOR_VENA_CAVA:
-                    sup_vcava_centroid = cap.centroid
-                elif cap.type == CapType.INFERIOR_VENA_CAVA:
-                    inf_vcava_centroid = cap.centroid
+            sup_vcava_centroid = next(
+                cap.centroid
+                for cap in self.m.right_atrium.caps
+                if cap.type == CapType.SUPERIOR_VENA_CAVA
+            )
+            inf_vcava_centroid = next(
+                cap.centroid
+                for cap in self.m.right_atrium.caps
+                if cap.type == CapType.INFERIOR_VENA_CAVA
+            )
 
             # define SinoAtrial node:
             target_coord = sup_vcava_centroid - (inf_vcava_centroid - sup_vcava_centroid) / 2

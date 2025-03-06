@@ -3669,16 +3669,18 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 class UHCWriter(BaseDynaWriter):
     """Universal Heart Coordinate Writer."""
 
-    # TODO: @mhoeijm add CapType to this mapping.
-    # RIP 1 LAP 2 RSP 3 MV 4 LIP 5 LSP 6 TV 7 SVC 8 IVC 9
+    # constant node set ID for atrial valves/caps
     _CAP_NODESET_MAP = {
-        "right": {"inferior": 1, "superior": 3},
-        "left": {"appendage": 2, "inferior": 5, "superior": 6},
-        "mitral": 4,
-        "tricuspid": 7,
-        "vena": {"superior": 8, "inferior": 9},
+        CapType.RIGHT_INFERIOR_PULMONARY_VEIN: 1,
+        CapType.LEFT_ATRIUM_APPENDAGE: 2,
+        CapType.RIGHT_SUPERIOR_PULMONARY_VEIN: 3,
+        CapType.MITRAL_VALVE_ATRIUM: 4,
+        CapType.LEFT_INFERIOR_PULMONARY_VEIN: 5,
+        CapType.LEFT_SUPERIOR_PULMONARY_VEIN: 6,
+        CapType.TRICUSPID_VALVE_ATRIUM: 7,
+        CapType.SUPERIOR_VENA_CAVA: 8,
+        CapType.INFERIOR_VENA_CAVA: 9,
     }
-
     _LANDMARK_RADIUS = 1.5  # mm
 
     def __init__(
@@ -3847,32 +3849,15 @@ class UHCWriter(BaseDynaWriter):
 
     def _update_atrial_caps_nodeset(self, atrium: pv.UnstructuredGrid):
         """Define boundary condition."""
-
-        def get_nodeset_id_by_cap_name(cap):
-            # Check for keywords in cap.name
-            # TODO: @mhoeijm change this to cap.type
-            for key, value in self._CAP_NODESET_MAP.items():
-                if key in cap.name:
-                    if isinstance(value, dict):
-                        for sub_key, sub_value in value.items():
-                            if sub_key in cap.name:
-                                return sub_value
-                    else:
-                        return value
-
-            # no conditions matched
-            LOGGER.warning(f"{cap.name} is not identified.")
-            return False
-            # raise
-
         ids_edges = []  # all nodes belong to valves
         for cap in self.model.parts[0].caps:
             # get node IDs for atrium mesh
             cap._mesh = self.model.mesh.get_surface(cap._mesh.id)
             ids_sub = np.where(np.isin(atrium["point_ids"], cap.global_node_ids_edge))[0]
             # create node set
-            set_id = get_nodeset_id_by_cap_name(cap)
-            if set_id:
+            set_id = self._CAP_NODESET_MAP[cap.type]
+
+            if set_id:  # Can be none for LEFT_ATRIUM_APPENDAGE
                 kw = create_node_set_keyword(ids_sub + 1, node_set_id=set_id, title=cap.name)
                 self.kw_database.node_sets.append(kw)
 

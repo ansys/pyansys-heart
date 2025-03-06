@@ -27,7 +27,7 @@ import numpy as np
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.models import FourChamber
+from ansys.heart.core.models import FourChamber, _create_polydata_beam_network
 from ansys.heart.core.objects import BeamMesh, Point, SurfaceMesh
 
 
@@ -186,6 +186,8 @@ class ConductionSystem:
         mask[0, 0] = False  # SA point at solid
 
         beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="SAN_to_AVN")
+        beamnet = _create_polydata_beam_network(points=beam_nodes,edges=np.array([]))
+        conduction_component = self.m.add_conduction_component(beamnet)
 
         return beam_net
 
@@ -252,8 +254,9 @@ class ConductionSystem:
         )
         new_nodes = self.m.mesh.points[nodes]
         new_nodes = _refine_line(new_nodes, beam_length=beam_length)
+        beamnet = _create_polydata_beam_network(points=new_nodes,edges=np.array([]))
         new_nodes = new_nodes[1:, :]
-
+        
         point_ids = np.concatenate(
             (
                 np.array([av_id]),
@@ -267,39 +270,45 @@ class ConductionSystem:
         (
             position_id_his_end_left,
             his_end_left_coord,
-            new_nodes,
+            new_nodes_left,
             edges,
             sgmt_left,
         ) = self._create_his_side(
             side="left",
-            new_nodes=new_nodes,
             edges=edges,
             beam_length=beam_length,
             bifurcation_coord=bifurcation_coord,
             bifurcation_id=bifurcation_id,
         )
+        beamnet += _create_polydata_beam_network(points=new_nodes_left,edges=np.array([]))
+        new_nodes = np.vstack((new_nodes, new_nodes_left[1:, :]))
         (
             position_id_his_end_right,
             his_end_right_coord,
-            new_nodes,
+            new_nodes_right,
             edges,
             sgmt_right,
         ) = self._create_his_side(
             side="right",
-            new_nodes=new_nodes,
             edges=edges,
             beam_length=beam_length,
             bifurcation_coord=bifurcation_coord,
             bifurcation_id=bifurcation_id,
         )
+        beamnet += _create_polydata_beam_network(points=new_nodes_right,edges=np.array([]))
+        new_nodes = np.vstack((new_nodes, new_nodes_right[1:, :]))
         # finally
         mask = np.ones(edges.shape, dtype=bool)
         mask[0, 0] = False  # AV point at previous, not offset in creation
 
+        np.savetxt('test2.out', new_nodes, delimiter=',')   # X is an array
+
         beam_net = self.m.add_beam_net(new_nodes, edges, mask, pid=0, name="His")
         beam_net.beam_nodes_mask[0, 0] = True  # offset in writer
 
-        #
+
+        conduction_component = self.m.add_conduction_component(beamnet)
+
 
         surf = SurfaceMesh(
             name="his_bundle_segment",
@@ -409,7 +418,7 @@ class ConductionSystem:
             return path2
 
     def _create_his_side(
-        self, side: str, new_nodes, edges, beam_length, bifurcation_coord, bifurcation_id
+        self, side: str, edges, beam_length, bifurcation_coord, bifurcation_id
     ):
         """Create His side after bifucation."""
         if side.lower() == "left":
@@ -430,7 +439,7 @@ class ConductionSystem:
         side_his = self.m.mesh.points[nodes]
 
         side_his = _refine_line(side_his, beam_length=beam_length)
-        new_nodes = np.vstack((new_nodes, side_his[1:, :]))
+        
 
         side_his_point_ids = np.concatenate(
             (
@@ -445,7 +454,8 @@ class ConductionSystem:
             (edges, np.column_stack((side_his_point_ids[:-1], side_his_point_ids[1:])))
         )
         position_id_his_end = np.argwhere(edges == side_his_point_ids[-1])[0]
-        return (position_id_his_end, his_end_coord, new_nodes, edges, sgmt)
+        
+        return (position_id_his_end, his_end_coord, side_his, edges, sgmt)
 
     def compute_left_right_bundle(self, start_coord, start_id, side: str, beam_length: float = 1.5):
         """Bundle branch."""
@@ -485,6 +495,9 @@ class ConductionSystem:
         # used in dynawriter, to write beam connectivity, need offset since it's a beam node
         beam_net.beam_nodes_mask[0, 0] = True
         beam_net.beam_nodes_mask[-1, -1] = True
+
+        beamnet = _create_polydata_beam_network(points=bundle_branch.points,edges=np.array([]))
+        conduction_component = self.m.add_conduction_component(beamnet)
 
         return beam_net
 

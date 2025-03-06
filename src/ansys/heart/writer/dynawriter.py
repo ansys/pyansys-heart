@@ -51,7 +51,7 @@ from ansys.heart.core.models import (
     HeartModel,
     LeftVentricle,
 )
-from ansys.heart.core.objects import Cap, Part, PartType, SurfaceMesh
+from ansys.heart.core.objects import Cap, CapType, Part, PartType, SurfaceMesh
 from ansys.heart.simulator.settings.material.ep_material import CellModel, EPMaterial
 from ansys.heart.simulator.settings.material.material import (
     MAT295,
@@ -1252,32 +1252,29 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # create list of cap names where to add the spring b.c
         caps_to_use = []
         if isinstance(self.model, LeftVentricle):
-            caps_to_use = [
-                "mitral-valve",
-                "aortic-valve",
-            ]
+            caps_to_use = [CapType.MITRAL_VALVE, CapType.AORTIC_VALVE]
         elif isinstance(self.model, BiVentricle):
             caps_to_use = [
-                "mitral-valve",
-                "tricuspid-valve",
-                "aortic-valve",
-                "pulmonary-valve",
+                CapType.MITRAL_VALVE,
+                CapType.AORTIC_VALVE,
+                CapType.TRICUSPID_VALVE,
+                CapType.PULMONARY_VALVE,
             ]
 
         elif isinstance(self.model, (FourChamber, FullHeart)):
             caps_to_use = [
-                "superior-vena-cava",
-                "right-inferior-pulmonary-vein",
-                "right-superior-pulmonary-vein",
+                CapType.SUPERIOR_VENA_CAVA,
+                CapType.RIGHT_INFERIOR_PULMONARY_VEIN,
+                CapType.RIGHT_SUPERIOR_PULMONARY_VEIN,
             ]
             if isinstance(self, ZeroPressureMechanicsDynaWriter):
                 # add additional constraint to avoid rotation
-                caps_to_use.extend(["pulmonary-valve"])
+                caps_to_use.extend([CapType.PULMONARY_VALVE])
 
         if bc_type == "fix_caps":
             for part in self.model.parts:
                 for cap in part.caps:
-                    if cap.name in caps_to_use:
+                    if cap.type in caps_to_use:
                         kw_fix = keywords.BoundarySpcSet()
                         kw_fix.nsid = cap._node_set_id
                         kw_fix.dofx = 1
@@ -1322,7 +1319,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             # add springs for each cap
             caps = [cap for part in self.model.parts for cap in part.caps]
             for cap in caps:
-                if cap.name in caps_to_use:
+                if cap.type in caps_to_use:
                     self.kw_database.boundary_conditions.append(f"$$ spring at {cap.name}$$")
                     self._add_springs_cap_edge(
                         cap,
@@ -1346,7 +1343,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         -----
         Appends these to the boundary condition database.
         """
-        LOGGER.debug("Adding spring b.c. for cap: %s" % cap.name)
+        LOGGER.debug(f"Adding spring b.c. for cap: {cap.name} of type {cap.type}")
 
         attached_nodes = cap.global_node_ids_edge
 
@@ -3684,15 +3681,18 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 class UHCWriter(BaseDynaWriter):
     """Universal Heart Coordinate Writer."""
 
-    # RIP 1 LAP 2 RSP 3 MV 4 LIP 5 LSP 6 TV 7 SVC 8 IVC 9
+    # constant node set ID for atrial valves/caps
     _CAP_NODESET_MAP = {
-        "right": {"inferior": 1, "superior": 3},
-        "left": {"appendage": 2, "inferior": 5, "superior": 6},
-        "mitral": 4,
-        "tricuspid": 7,
-        "vena": {"superior": 8, "inferior": 9},
+        CapType.RIGHT_INFERIOR_PULMONARY_VEIN: 1,
+        CapType.LEFT_ATRIUM_APPENDAGE: 2,
+        CapType.RIGHT_SUPERIOR_PULMONARY_VEIN: 3,
+        CapType.MITRAL_VALVE_ATRIUM: 4,
+        CapType.LEFT_INFERIOR_PULMONARY_VEIN: 5,
+        CapType.LEFT_SUPERIOR_PULMONARY_VEIN: 6,
+        CapType.TRICUSPID_VALVE_ATRIUM: 7,
+        CapType.SUPERIOR_VENA_CAVA: 8,
+        CapType.INFERIOR_VENA_CAVA: 9,
     }
-
     _LANDMARK_RADIUS = 1.5  # mm
 
     def __init__(
@@ -3815,11 +3815,11 @@ class UHCWriter(BaseDynaWriter):
     def _define_ra_cut(self):
         """Define a cut from 3 holes of right atrium."""
         for cap in self.model.parts[0].caps:
-            if "tricuspid" in cap.name:
+            if cap.type == CapType.TRICUSPID_VALVE_ATRIUM:
                 tv_center = cap.centroid
-            elif "superior" in cap.name:
+            elif cap.type == CapType.SUPERIOR_VENA_CAVA:
                 svc_center = cap.centroid
-            elif "inferior" in cap.name:
+            elif cap.type == CapType.INFERIOR_VENA_CAVA:
                 ivc_center = cap.centroid
         cut_center = np.vstack((tv_center, svc_center, ivc_center)).mean(axis=0)
         cut_normal = np.cross(svc_center - tv_center, ivc_center - tv_center)
@@ -3861,39 +3861,23 @@ class UHCWriter(BaseDynaWriter):
 
     def _update_atrial_caps_nodeset(self, atrium: pv.UnstructuredGrid):
         """Define boundary condition."""
-
-        def get_nodeset_id_by_cap_name(cap):
-            # Check for keywords in cap.name
-            for key, value in self._CAP_NODESET_MAP.items():
-                if key in cap.name:
-                    if isinstance(value, dict):
-                        for sub_key, sub_value in value.items():
-                            if sub_key in cap.name:
-                                return sub_value
-                    else:
-                        return value
-
-            # no conditions matched
-            LOGGER.warning(f"{cap.name} is not identified.")
-            return False
-            # raise
-
         ids_edges = []  # all nodes belong to valves
         for cap in self.model.parts[0].caps:
             # get node IDs for atrium mesh
             cap._mesh = self.model.mesh.get_surface(cap._mesh.id)
             ids_sub = np.where(np.isin(atrium["point_ids"], cap.global_node_ids_edge))[0]
             # create node set
-            set_id = get_nodeset_id_by_cap_name(cap)
-            if set_id:
+            set_id = self._CAP_NODESET_MAP[cap.type]
+
+            if set_id:  # Can be none for LEFT_ATRIUM_APPENDAGE
                 kw = create_node_set_keyword(ids_sub + 1, node_set_id=set_id, title=cap.name)
                 self.kw_database.node_sets.append(kw)
 
                 ids_edges.extend(ids_sub)
 
                 # Add info to pyvista object (RA fiber use this)
-                atrium[cap.name] = np.zeros(atrium.n_points, dtype=int)
-                atrium[cap.name][ids_sub] = 1
+                atrium[cap.type.value] = np.zeros(atrium.n_points, dtype=int)
+                atrium[cap.type.value][ids_sub] = 1
 
         return ids_edges
 
@@ -4129,8 +4113,6 @@ class UHCWriter(BaseDynaWriter):
         base_set = np.array([])
         for part in self.model.parts:
             for cap in part.caps:
-                #  Strocchi database use only mv and tv
-                # if ("mitral" in cap.name) or ("tricuspid" in cap.name):
                 cap._mesh = self.model.mesh.get_surface(cap._mesh.id)
                 base_set = np.append(base_set, cap.global_node_ids_edge)
         # get local ID
@@ -4274,13 +4256,13 @@ class UHCWriter(BaseDynaWriter):
     def _update_drbm_bc(self):
         for part in self.model.parts:
             for cap in part.caps:
-                if "mitral" in cap.name.lower():
+                if cap.type == CapType.MITRAL_VALVE:
                     mv_nodes = cap.global_node_ids_edge
-                elif "aortic" in cap.name.lower():
+                elif cap.type == CapType.AORTIC_VALVE:
                     av_nodes = cap.global_node_ids_edge
-                elif "tricuspid" in cap.name.lower():
+                elif cap.type == CapType.TRICUSPID_VALVE:
                     tv_nodes = cap.global_node_ids_edge
-                elif "pulmonary" in cap.name.lower():
+                elif cap.type == CapType.PULMONARY_VALVE:
                     pv_nodes = cap.global_node_ids_edge
         rings_nodes = np.hstack((mv_nodes, av_nodes, pv_nodes, tv_nodes))
 

@@ -5,7 +5,7 @@ build-backend = "flit_core.buildapi"
 [project]
 # Check https://flit.readthedocs.io/en/latest/pyproject_toml.html for all available sections
 name = "pyansys-heart"
-version = "0.10.dev0"
+version = "0.11.dev0"
 description = "Python framework for heart modeling using ANSYS tools."
 readme = "README.rst"
 requires-python = ">=3.10,<4"
@@ -24,7 +24,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "ansys-dpf-core==0.13.3",
+    "ansys-dpf-core==0.13.4",
     "ansys-fluent-core==0.29.0",
     "deprecated==1.2.18",
     "ansys.dyna.core==0.7.1",

@@ -23,7 +23,6 @@
 """ "Testing of log module."""
 
 import logging as deflogging  # Default logging module
-import os
 import re
 from typing import Callable
 
@@ -320,5 +319,8 @@ def test_clear_file_handlers(tmp_path_factory: pytest.TempPathFactory):
     assert isinstance(log.logger.handlers[0], deflogging.StreamHandler)
 
     log.debug("test")
-    # size equals 260 since we have some default text in the log file when closing the handler.
-    assert os.path.getsize(file_path) == 260
+
+    expected_text_in_last_line = "LEVEL - INSTANCE NAME - MODULE - FUNCTION - MESSAGE"
+    with open(file_path, "r") as fid:
+        text = fid.readlines()
+        assert expected_text_in_last_line in text[-1]

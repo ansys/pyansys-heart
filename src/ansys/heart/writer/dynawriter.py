@@ -3106,11 +3106,18 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             self.kw_database.ep_settings.append("$     Tend        dt")
             self.kw_database.ep_settings.append(f"{t_end:>10f}{dt:>10f}")
 
+        macrodt = self.settings.electrophysiology.analysis.dtmax.m
+        if macrodt > self.settings.mechanics.analysis.dtmax.m:
+            LOGGER.info(
+                "EP Timestep > Mechanics Timestep. Setting EP Timestep to Mechanics Timestep"
+            )
+            macrodt = self.settings.mechanics.analysis.dtmax.m
+
         self.kw_database.ep_settings.append(
             keywords.EmControl(
                 emsol=emsol,
                 numls=4,
-                macrodt=self.settings.electrophysiology.analysis.dtmax.m,
+                macrodt=macrodt,
                 dimtype=None,
                 nperio=None,
                 ncylbem=None,

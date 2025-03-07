@@ -187,7 +187,10 @@ class ConductionSystem:
 
         beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="SAN_to_AVN")
         beamnet = _create_polydata_beam_network(points=beam_nodes,edges=np.array([]))
-        conduction_component = self.m.add_conduction_component(beamnet)
+        
+        id=self.m.conduction_system.get_unique_lines_id()
+        self.m.conduction_system.add_lines(lines=beamnet,id=id)
+        # conduction_component = self.m.add_conduction_component(beamnet)
 
         return beam_net
 
@@ -306,9 +309,8 @@ class ConductionSystem:
         beam_net = self.m.add_beam_net(new_nodes, edges, mask, pid=0, name="His")
         beam_net.beam_nodes_mask[0, 0] = True  # offset in writer
 
-
-        conduction_component = self.m.add_conduction_component(beamnet)
-
+        id=self.m.conduction_system.get_unique_lines_id()
+        self.m.conduction_system.add_lines(lines=beamnet,id=id)
 
         surf = SurfaceMesh(
             name="his_bundle_segment",
@@ -497,7 +499,8 @@ class ConductionSystem:
         beam_net.beam_nodes_mask[-1, -1] = True
 
         beamnet = _create_polydata_beam_network(points=bundle_branch.points,edges=np.array([]))
-        conduction_component = self.m.add_conduction_component(beamnet)
+        id=self.m.conduction_system.get_unique_lines_id()
+        self.m.conduction_system.add_lines(lines=beamnet,id=id)
 
         return beam_net
 

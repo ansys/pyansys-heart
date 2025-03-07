@@ -302,7 +302,7 @@ class HeartModel:
         self.beam_network: List[BeamMesh] = []
         """List of beam networks in the mesh."""
 
-        self.conduction_system: BeamsMesh = None
+        self.conduction_system: BeamsMesh = BeamsMesh()
         """Beams data defining the conduction system."""
 
         self.electrodes: List[Point] = []
@@ -396,8 +396,11 @@ class HeartModel:
 
         beam_net = _create_polydata_beam_network(points=beam_points,edges=connectivity)
         
+        id=self.conduction_system.get_unique_lines_id()
+        self.conduction_system.add_lines(lines=beam_net,id=id)
+        
         beam = self.add_beam_net(beam_nodes, edges, mask, pid=pid, name=name)
-        self.add_conduction_component(beam_net)
+
         return beam,beam_net
 
     def add_beam_net(

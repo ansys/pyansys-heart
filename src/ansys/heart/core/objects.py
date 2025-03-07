@@ -1462,8 +1462,6 @@ class BeamsMesh(pv.UnstructuredGrid):
             ID of the surface to be added. This id will be tracked as "_line-id"
         """
         if not id:
-            if "_line-id" not in lines.cell_data.keys():
-                LOGGER.debug("Failed to set _surface-id")
                 return None
         else:
             if not isinstance(id, int):
@@ -1515,8 +1513,17 @@ class BeamsMesh(pv.UnstructuredGrid):
 
     def get_lines(self, sid: int) -> pv.PolyData:
         """Get lines as a PolyData object."""
-        return self._get_submesh(sid, scalar="_line-id").extract_surface()
+        return self._get_submesh(sid, scalar="_line-id")
 
+    def get_unique_lines_id(self) -> int:
+        """Get unique lines id."""
+        new_id:int
+        if "_line-id" not in self.cell_data.keys():
+            new_id=1
+        else:
+            new_id= np.max(np.unique(self.cell_data["_line-id"]))+1
+        return int(new_id)
+    
     def remove_surface(self, sid: int):
         """Remove a surface with id.
 

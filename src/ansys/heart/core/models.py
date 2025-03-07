@@ -397,7 +397,7 @@ class HeartModel:
         beam_net = _create_polydata_beam_network(points=beam_points,edges=connectivity)
         
         id=self.conduction_system.get_unique_lines_id()
-        self.conduction_system.add_lines(lines=beam_net,id=id)
+        self.conduction_system.add_lines(lines=beam_net,id=id,name=name)
         
         beam = self.add_beam_net(beam_nodes, edges, mask, pid=pid, name=name)
 

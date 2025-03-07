@@ -1160,6 +1160,8 @@ class BeamsMesh(pv.UnstructuredGrid):
         """Surface id to name map."""
         self._volume_id_to_name: dict = {}
         """Volume id to name map."""
+        self._line_id_to_name: dict = {}
+        """line id to name map."""
         pass
 
     def _add_mesh(
@@ -1451,7 +1453,7 @@ class BeamsMesh(pv.UnstructuredGrid):
 
         return self_copy
 
-    def add_lines(self, lines: pv.PolyData, id: int = None):
+    def add_lines(self, lines: pv.PolyData, id: int = None, name: str = None):
         """Add lines.
 
         Parameters
@@ -1470,6 +1472,8 @@ class BeamsMesh(pv.UnstructuredGrid):
             lines.cell_data["_line-id"] = np.ones(lines.n_cells, dtype=float) * id
 
         self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan)
+        if name:
+            self._line_id_to_name[id] = name
         return self_copy
 
     def get_volume(self, sid: int) -> pv.UnstructuredGrid:

@@ -56,3 +56,19 @@ jobs:
           - [release](https://github.com/ansys/pyansys-heart/pulls?q=label%3Arelease+)
           - [testing](https://github.com/ansys/pyansys-heart/pulls?q=label%3Atesting+)
           - [ci](https://github.com/ansys/pyansys-heart/pulls?q=label%3Aci+)
+
+  changelog-fragment:
+    name: "Create changelog fragment"
+    needs: [labeler]
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+    - uses: ansys/actions/doc-changelog@v8
+      with:
+        token: ${{ secrets.PYANSYS_CI_BOT_TOKEN }}
+        use-conventional-commits: true
+        use-default-towncrier-config: true
+        bot-user: ${{ secrets.PYANSYS_CI_BOT_USERNAME }}
+        bot-email: ${{ secrets.PYANSYS_CI_BOT_EMAIL }}

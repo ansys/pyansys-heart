@@ -143,7 +143,7 @@ def main(args):
                 simulator.model.right_atrium.active = True
                 ring = simulator.model.create_atrial_stiff_ring()
                 ring.meca_material = MAT295(
-                    rho=0.001, iso=ISO(itype=1, beta=2, kappa=1.0, mu1=0.05, alpha1=2)
+                    rho=0.001, iso=ISO(itype=1, beta=2, kappa=10, mu1=0.1, alpha1=2)
                 )
 
             _ = simulator.model.create_stiff_ventricle_base()

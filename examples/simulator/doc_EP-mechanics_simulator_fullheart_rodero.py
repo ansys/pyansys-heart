@@ -146,7 +146,7 @@ simulator.model.right_atrium.active = True
 # Extract elements around atrial caps and assign as a passive material
 ring = simulator.model.create_atrial_stiff_ring(radius=5)
 # material is stiff and value is arbitrarily chosen
-stiff_iso = MAT295(rho=0.001, iso=ISO(itype=1, beta=2, kappa=1, mu1=0.05, alpha1=2))
+stiff_iso = MAT295(rho=0.001, iso=ISO(itype=-1, beta=2, kappa=10, mu1=0.1, alpha1=2))
 ring.meca_material = stiff_iso
 # assign default EP material as for atrial
 ring.ep_material = EPMaterial.Active()

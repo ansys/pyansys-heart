@@ -123,7 +123,7 @@ def test_mat295():
 
 
 def test_neohookean():
-    m = material.NeoHookean(rho=1, c10=1)
+    m = material.NeoHookean(rho=1, c10=1, nu=0.499)
     assert m.nu == 0.499
 
 

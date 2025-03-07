@@ -57,6 +57,8 @@ class ISO:
             # replace Poisson's coefficient
             mu = self.k1 if abs(self.itype) == 3 else self.mu1
             self.nu = (3 * self.kappa - 2 * mu) / (6 * self.kappa + 2 * mu)
+        if self.nu < 0.49:
+            LOGGER.warning("Poisson's ratio lower than 0.49 is not recommended.")
 
 
 @dataclass
@@ -215,8 +217,22 @@ class MAT295(MechanicalMaterialModel):
 @dataclass
 @deprecated(reason="Use *MAT_295 with the ISO module instead.")
 class NeoHookean(MechanicalMaterialModel):
-    """Passive isotropic material."""
+    """Passive isotropic material with MAT_77H."""
 
     rho: float
+    """Density of the material."""
     c10: float  # mu/2
-    nu: float = 0.499
+    """c10."""
+    kappa: float = None
+    """Bulk modulus."""
+    nu: float = None
+    """Poisson's ratio."""
+
+    def __post_init__(self):
+        """Deduce Poisson's ratio if not given."""
+        if self.kappa is not None:
+            # replace Poisson's coefficient
+            mu = self.c10 * 2
+            self.nu = (3 * self.kappa - 2 * mu) / (6 * self.kappa + 2 * mu)
+        if self.nu < 0.49:
+            LOGGER.warning("Poisson's ratio lower than 0.49 is not recommended.")

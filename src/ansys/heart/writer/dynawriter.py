@@ -1232,6 +1232,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     mid=part.mid,
                     rho=material.rho,
                     c10=material.c10,
+                    nu=material.nu,
+                    kappa=material.kappa,
                 )
                 self.kw_database.material.append(material_kw)
 

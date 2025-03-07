@@ -27,14 +27,10 @@ try:
 except ModuleNotFoundError:  # pragma: no cover
     import importlib_metadata
 
-import logging
-
-from ansys.heart.core.logger import Logger
+from ansys.heart.core import LOG
 
 __version__ = importlib_metadata.version("pyansys-heart")
 """The version of pyansys-heart."""
-
-LOG = Logger(level=logging.DEBUG, to_file=False, to_stdout=True)
 
 # Flag to turn off visualization of plotters
 try:

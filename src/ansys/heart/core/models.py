@@ -41,6 +41,7 @@ from ansys.heart.core import LOG as LOGGER
 import ansys.heart.core.helpers.connectivity as connectivity
 import ansys.heart.core.helpers.vtkmethods as vtkmethods
 from ansys.heart.core.objects import (
+    BeamsMesh,
     BeamMesh,
     Cap,
     Cavity,
@@ -301,7 +302,7 @@ class HeartModel:
         self.beam_network: List[BeamMesh] = []
         """List of beam networks in the mesh."""
 
-        self.conduction_system: pv.PolyData = None
+        self.conduction_system: BeamsMesh = None
         """Beams data defining the conduction system."""
 
         self.electrodes: List[Point] = []

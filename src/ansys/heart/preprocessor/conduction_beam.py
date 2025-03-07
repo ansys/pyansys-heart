@@ -304,8 +304,6 @@ class ConductionSystem:
         mask = np.ones(edges.shape, dtype=bool)
         mask[0, 0] = False  # AV point at previous, not offset in creation
 
-        np.savetxt('test2.out', new_nodes, delimiter=',')   # X is an array
-
         beam_net = self.m.add_beam_net(new_nodes, edges, mask, pid=0, name="His")
         beam_net.beam_nodes_mask[0, 0] = True  # offset in writer
 

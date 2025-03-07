@@ -43,9 +43,9 @@ def _check_accept_dpf():
     if "ANSYS_DPF_ACCEPT_LA" in os.environ and os.environ["ANSYS_DPF_ACCEPT_LA"] == "Y":
         pass
     else:
-        LOGGER.warning(
+        LOGGER.error(
             """DPF requires you to accept the license agreement.
-            Set the environment variable "ANSYS_DPF_ACCEPT_LA" to "Y"."""
+            Please set the environment variable "ANSYS_DPF_ACCEPT_LA" to "Y"."""
         )
         exit()
     return
@@ -274,8 +274,8 @@ class ICVoutReader:
         self._ds.set_result_file_path(fn, "binout")
         try:
             self._get_available_ids()
-        except IndexError:
-            LOGGER.error(f"{fn} do not contain icvout.")
+        except IndexError as error:
+            LOGGER.error(f"{fn} does not contain icvout. {error}")
             exit()
 
     def _get_available_ids(self):

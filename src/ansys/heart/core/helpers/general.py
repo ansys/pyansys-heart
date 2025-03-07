@@ -56,7 +56,7 @@ def clean_directory(
         try:
             os.remove(file)
         except Exception as e:
-            LOGGER.debug(f"Unable to delete: {file}. {e}")
+            LOGGER.error(f"Unable to delete: {file}. {e}")
     return
 
 
@@ -81,8 +81,8 @@ def model_summary(model: HeartModel, attributes: list = None) -> dict:
     try:
         sum_dict["GENERAL"]["total_num_tets"] = model.mesh.tetrahedrons.shape[0]
         sum_dict["GENERAL"]["total_num_nodes"] = model.mesh.points.shape[0]
-    except TypeError:
-        LOGGER.info("Failed to format General model information.")
+    except TypeError as error:
+        LOGGER.error(f"Failed to format General model information. {error}")
 
     sum_dict["PARTS"] = {}
     sum_dict["CAVITIES"] = {}

@@ -624,7 +624,7 @@ class MechanicsSimulator(BaseSimulator):
         report, stress_free_coord, guess_ed_coord = zerop_post(directory, self.model)
 
         # replace node coordinates by computed ED geometry
-        LOGGER.info("Updating nodes after stress-free.")
+        LOGGER.info("Updating nodes.")
 
         self.model.mesh.points = guess_ed_coord
 

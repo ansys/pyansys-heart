@@ -35,16 +35,12 @@ import pathlib
 from typing import List, Literal, Union
 
 import numpy as np
+import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
 import ansys.heart.core.helpers.vtkmethods as vtkmethods
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 from ansys.heart.simulator.settings.material.material import MechanicalMaterialModel
-
-try:
-    import pyvista as pv
-except ImportError:
-    LOGGER.warning("Importing pyvista failed. Install with: pip install pyvista")
 
 _SURFACE_CELL_TYPES = [pv.CellType.QUAD, pv.CellType.TRIANGLE]
 _VOLUME_CELL_TYPES = [pv.CellType.HEXAHEDRON, pv.CellType.TETRA]
@@ -190,8 +186,8 @@ class SurfaceMesh(pv.PolyData):
                     "Assigning less nodes than the original not implemented yet."
                 )
 
-        except Exception:
-            LOGGER.warning("Failed to set nodes.")
+        except Exception as e:
+            LOGGER.error(f"Failed to set nodes. {e}")
             return
 
     @property
@@ -289,7 +285,7 @@ class SurfaceMesh(pv.PolyData):
     def force_normals_inwards(self):
         """Force the cell ordering of a the closed surface such that normals point inward."""
         if not self.is_manifold:
-            LOGGER.warning("Surface is not manifold.")
+            LOGGER.warning("Surface is non-manifold.")
 
         #! Flip normals and consistent normals should enforce that normals are pointing
         #! inwards for a manifold surface. See:
@@ -327,8 +323,8 @@ class BeamMesh(pv.UnstructuredGrid, Feature):
             return
         try:
             self.points = array
-        except Exception:
-            LOGGER.warning("Failed to set nodes.")
+        except Exception as e:
+            LOGGER.error(f"Failed to set nodes. {e}")
             return
 
     @property
@@ -344,8 +340,8 @@ class BeamMesh(pv.UnstructuredGrid, Feature):
             celltypes = np.full(value.shape[0], pv.CellType.LINE, dtype=np.int8)
             lines = np.hstack([np.full(len(celltypes), 2)[:, None], value])
             super().__init__(lines, celltypes, points)
-        except Exception:
-            LOGGER.warning("Failed to set lines.")
+        except Exception as e:
+            LOGGER.error(f"Failed to set lines. {e}")
             return
 
     def __init__(
@@ -501,7 +497,7 @@ class Cap(Feature):
         if cap_type is None or isinstance(cap_type, CapType):
             self.type = cap_type
         else:
-            LOGGER.debug(f"Failed to set cap type for {name}, {cap_type}")
+            LOGGER.warning(f"Failed to set cap type for {name}, {cap_type}")
 
         return
 
@@ -557,8 +553,8 @@ class Mesh(pv.UnstructuredGrid):
             surface.id = sid
             try:
                 surface.name = self._surface_id_to_name[sid]
-            except KeyError:
-                LOGGER.debug(f"Failed to give surface with id {sid} a name")
+            except KeyError as error:
+                LOGGER.debug(f"Failed to give surface with id {sid} a name. {error}")
             surfaces.append(surface)
         return surfaces
 
@@ -938,17 +934,17 @@ class Mesh(pv.UnstructuredGrid):
         """
         if not id:
             if "_surface-id" not in surface.cell_data.keys():
-                LOGGER.debug("Failed to set _surface-id")
+                LOGGER.error("Failed to set _surface-id")
                 return None
         else:
             if not isinstance(id, int):
-                LOGGER.debug("sid should by type int.")
+                LOGGER.error("sid should by type int.")
                 return None
             surface.cell_data["_surface-id"] = np.ones(surface.n_cells, dtype=float) * id
 
         if not overwrite_existing:
             if id in self.surface_ids:
-                LOGGER.debug(
+                LOGGER.error(
                     f"{id} already used. Please pick any id other than {self.surface_ids}."
                 )
                 return None
@@ -972,11 +968,11 @@ class Mesh(pv.UnstructuredGrid):
         """
         if not id:
             if "_line-id" not in lines.cell_data.keys():
-                LOGGER.debug("Failed to set _surface-id")
+                LOGGER.error("Failed to set _surface-id")
                 return None
         else:
             if not isinstance(id, int):
-                LOGGER.debug("sid should by type int.")
+                LOGGER.error("sid should by type int.")
                 return None
             lines.cell_data["_line-id"] = np.ones(lines.n_cells, dtype=float) * id
 
@@ -990,7 +986,7 @@ class Mesh(pv.UnstructuredGrid):
     def get_volume_by_name(self, name: str) -> pv.UnstructuredGrid:
         """Get the surface associated with `name`."""
         if name not in list(self._volume_name_to_id.keys()):
-            LOGGER.debug(f"No volume associated with {name}")
+            LOGGER.error(f"No volume associated with {name}")
             return None
         volume_id = self._volume_name_to_id[name]
         return self.get_volume(volume_id)
@@ -1017,7 +1013,7 @@ class Mesh(pv.UnstructuredGrid):
         # ?: Return SurfaceMesh instead of PolyData?
         """Get the surface associated with `name`."""
         if name not in list(self._surface_name_to_id.keys()):
-            LOGGER.debug(f"No surface associated with {name}")
+            LOGGER.error(f"No surface associated with {name}")
             return None
         surface_id = self._surface_name_to_id[name]
         return self.get_surface(surface_id)

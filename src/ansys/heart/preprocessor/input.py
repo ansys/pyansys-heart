@@ -243,10 +243,10 @@ class _InputModel:
 
         if scalar != "boundary-id":
             if scalar in self.input_polydata.cell_data.keys():
-                LOGGER.debug(f"Renaming {scalar} to boundary-id")
+                LOGGER.info(f"Renaming {scalar} to boundary-id")
                 self.input_polydata.rename_array(scalar, "boundary-id")
             else:
-                LOGGER.debug(f"Failed to rename {scalar} to boundary-id")
+                LOGGER.error(f"Failed to rename {scalar} to boundary-id")
                 return None
 
         self.part_definitions = self._add_parts(part_definitions)
@@ -406,8 +406,10 @@ class _InputModel:
         """Plot all boundaries."""
         try:
             import matplotlib as mpl
-        except ImportError:
-            LOGGER.error("Failed to import matplotlib. Install with pip install matplotlib.")
+        except ImportError as error:
+            LOGGER.error(
+                f"Failed to import matplotlib. Install with pip install matplotlib. {error}"
+            )
             return
         import matplotlib as mpl
 

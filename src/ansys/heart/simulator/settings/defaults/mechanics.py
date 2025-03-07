@@ -101,7 +101,7 @@ material = {
         # },
         "isotropic": {
             "rho": Quantity(0.001, "g/mm^3"),
-            "kappa": Quantity(10.0, "MPa"),
+            "kappa": Quantity(1.0, "MPa"),
             "k1": Quantity(0.00236, "MPa"),
             "k2": Quantity(1.75),
         },
@@ -123,7 +123,7 @@ material = {
         "type": "MAT295",
         "rho": Quantity(0.001, "g/mm^3"),
         "itype": -1,
-        "kappa": Quantity(10.0, "MPa"),  # same with myocardium due to ETYPE=13
+        "kappa": Quantity(10.0, "MPa"),
         "mu1": Quantity(0.1, "MPa"),
         "alpha1": 2,
     },

@@ -129,9 +129,9 @@ tmp_path_retention_policy = "none"                                # directories 
 
 
 [tool.towncrier]
-directory = "doc/changelog.d"
+directory = "doc/source/changelog"
 filename = "doc/source/changelog.rst"
-template = "doc/changelog.d/changelog_template.jinja"
+template = "doc/source/changelog/template.jinja"
 start_string = ".. towncrier release notes start\n"
 title_format = "`{version} <https://github.com/ansys/pyansys-heart/releases/tag/v{version}>`_ ({project_date})"
 issue_format = "`#{issue} <https://github.com/ansys/pyansys-heart/pull/{issue}>`_"

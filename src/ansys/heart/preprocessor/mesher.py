@@ -32,10 +32,9 @@ import numpy as np
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
-import ansys.heart.core.helpers.fluent_reader as fluent_reader  # noqa: F401
 from ansys.heart.core.helpers.fluent_reader import FluentCellZone, FluentMesh
 from ansys.heart.core.helpers.vtkmethods import add_solid_name_to_stl
-from ansys.heart.core.objects import SurfaceMesh
+from ansys.heart.core.objects import Mesh, SurfaceMesh
 from ansys.heart.preprocessor.input import _InputBoundary, _InputModel
 
 # NOTE: can set os.environ["SHOW_FLUENT_GUI"] = "1" to show Fluent GUI.
@@ -317,6 +316,34 @@ def _update_input_model_with_wrapped_surfaces(
         model.parts[ii].boundaries = remeshed_boundaries
 
     return model
+
+
+def _post_meshing_cleanup(fluent_mesh: FluentMesh) -> Mesh:
+    """Clean up and retrieve VTK mesh after meshing."""
+    # remove any unused nodes
+    fluent_mesh.clean()
+
+    # convert to vtk grid.
+    vtk_grid = fluent_mesh._to_vtk()
+    mesh = Mesh(vtk_grid)
+
+    # get mapping from fluent mesh.
+    mesh.cell_data["_volume-id"] = mesh.cell_data["cell-zone-ids"]
+    mesh._volume_id_to_name = fluent_mesh.cell_zone_id_to_name
+
+    # merge face zones based on fluent naming convention.
+    fluent_mesh._merge_face_zones_based_on_connectivity(face_zone_separator=":")
+
+    for fz in fluent_mesh.face_zones:
+        if "interior" not in fz.name:
+            surface = SurfaceMesh(
+                name=fz.name, triangles=fz.faces, nodes=fluent_mesh.nodes, id=fz.id
+            )
+            mesh.add_surface(surface, int(fz.id), name=fz.name)
+
+    mesh = mesh.clean()
+
+    return mesh
 
 
 def _set_size_field_on_mesh_part(

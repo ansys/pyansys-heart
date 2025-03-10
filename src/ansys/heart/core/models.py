@@ -503,28 +503,7 @@ class HeartModel:
             cz for cz in fluent_mesh.cell_zones if cz.id in self._input.part_ids
         ]
 
-        # remove any unused nodes
-        fluent_mesh.clean()
-
-        # convert to vtk grid.
-        vtk_grid = fluent_mesh._to_vtk()
-        mesh = Mesh(vtk_grid)
-
-        # get mapping from fluent mesh.
-        mesh.cell_data["_volume-id"] = mesh.cell_data["cell-zone-ids"]
-        mesh._volume_id_to_name = fluent_mesh.cell_zone_id_to_name
-
-        # merge some face-zones that probably belong together.
-        fluent_mesh._merge_face_zones_based_on_connectivity(face_zone_separator=":")
-
-        for fz in fluent_mesh.face_zones:
-            if "interior" not in fz.name:
-                surface = SurfaceMesh(
-                    name=fz.name, triangles=fz.faces, nodes=fluent_mesh.nodes, id=fz.id
-                )
-                mesh.add_surface(surface, int(fz.id), name=fz.name)
-
-        self.mesh = mesh.clean()
+        self.mesh = mesher._post_meshing_cleanup(fluent_mesh)
 
         filename = os.path.join(self.workdir, "volume-mesh-post-meshing.vtu")
         self.mesh.save(filename)

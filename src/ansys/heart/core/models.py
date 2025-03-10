@@ -823,7 +823,7 @@ class HeartModel:
         return
 
     # TODO: could consider having this as a static method.
-    # TODO: Tight now this only reconstructs the surfaces and parts that
+    # TODO: Right now this only reconstructs the surfaces and parts that
     # TODO: are defined in the HeartModel classes:
     # TODO: LeftVentricle, BiVentricle, FourChamber and FullHeart.
     # TODO: Should consider to also reconstruct the parts that are not explicitly

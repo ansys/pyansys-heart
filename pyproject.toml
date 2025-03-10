@@ -24,7 +24,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "ansys-dpf-core==0.13.4",
+    "ansys-dpf-core==0.13.6",
     "ansys-fluent-core==0.29.0",
     "deprecated==1.2.18",
     "ansys.dyna.core==0.7.1",
@@ -126,3 +126,52 @@ testpaths = ["tests"]
 markers = ["extract_models", "requires_fluent", "k_file_writer", "local", "downloader"]
 tmp_path_retention_count = 0                                      # do not keep the temporary path that is created
 tmp_path_retention_policy = "none"                                # directories always removed, regardless of outcome
+
+
+[tool.towncrier]
+directory = "doc/source/changelog"
+filename = "doc/source/changelog.rst"
+template = "doc/source/changelog/template.jinja"
+start_string = ".. towncrier release notes start\n"
+title_format = "`{version} <https://github.com/ansys/pyansys-heart/releases/tag/v{version}>`_ ({project_date})"
+issue_format = "`#{issue} <https://github.com/ansys/pyansys-heart/pull/{issue}>`_"
+
+[[tool.towncrier.type]]
+directory = "added"
+name = "Added"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "changed"
+name = "Changed"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "fixed"
+name = "Fixed"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "documentation"
+name = "Documentation"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "test"
+name = "Test"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "dependencies"
+name = "Dependencies"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "maintenance"
+name = "Maintenance"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "miscellaneous"
+name = "Miscellaneous"
+showcontent = true

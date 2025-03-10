@@ -158,13 +158,13 @@ class ConductionSystem:
         try:
             sino_atrial_id = self.m.right_atrium.get_point("SA_node").node_id
         except AttributeError:
-            LOGGER.info("SA node is not defined, creating with default option.")
+            LOGGER.info("SA node is not defined, creating with default options.")
             sino_atrial_id = self.m.compute_sa_node().node_id
 
         try:
             atrio_ventricular_id = self.m.right_atrium.get_point("AV_node").node_id
         except AttributeError:
-            LOGGER.info("AV node is not defined, creating with default option.")
+            LOGGER.info("AV node is not defined, creating with default options.")
             atrio_ventricular_id = self.m.compute_av_node().node_id
 
         #! get local SA/AV ids.
@@ -239,7 +239,7 @@ class ConductionSystem:
 
         if av_id is None:
             LOGGER.error(
-                "Unable to find the last node of SAN_to_AVN branch, you need to define it."
+                "Unable to find the last node of SAN_to_AVN branch, please define manually."
             )
             exit()
 

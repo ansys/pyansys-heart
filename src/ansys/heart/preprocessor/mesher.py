@@ -68,8 +68,7 @@ try:
     from ansys.fluent.core.session_meshing import Meshing as MeshingSession
 except ImportError:
     LOGGER.info(
-        "Failed to import PyFluent. Considering installing "
-        "pyfluent with `pip install ansys-fluent-core`."
+        "Failed to import PyFluent. Please install PyFluent with `pip install ansys-fluent-core`."
     )
 
 
@@ -502,10 +501,10 @@ def mesh_from_manifold_input_model(
 
     try:
         os.makedirs(work_dir_meshing)
-    except Exception:
-        LOGGER.debug("Failed to create working directory")
+    except Exception as e:
+        LOGGER.error(f"Failed to create working directory. {e}")
 
-    LOGGER.debug(f"Path to meshing directory: {work_dir_meshing}")
+    LOGGER.info(f"Path to meshing directory: {work_dir_meshing}")
 
     if not os.path.isfile(path_to_output) or overwrite_existing_mesh:
         path_to_output_old = path_to_output
@@ -521,7 +520,7 @@ def mesh_from_manifold_input_model(
             os.remove(stl)
 
         # write all boundaries
-        LOGGER.debug(f"Writing input files in: {work_dir_meshing}")
+        LOGGER.info(f"Writing input files in: {work_dir_meshing}")
         model.write_part_boundaries(work_dir_meshing)
 
         session = _get_fluent_meshing_session(work_dir_meshing)
@@ -607,7 +606,7 @@ def mesh_from_manifold_input_model(
 
         path_to_output = path_to_output_old
     else:
-        LOGGER.debug(f"Reusing: {path_to_output}")
+        LOGGER.info(f"Reusing: {path_to_output}")
 
     mesh = FluentMesh()
     mesh.load_mesh(path_to_output)
@@ -725,8 +724,8 @@ def mesh_from_non_manifold_input_model(
 
     try:
         os.makedirs(work_dir_meshing)
-    except Exception:
-        LOGGER.debug("Failed to create working directory")
+    except Exception as e:
+        LOGGER.error(f"Failed to create working directory. {e}")
 
     if not os.path.isfile(path_to_output) or overwrite_existing_mesh:
         path_to_output_old = path_to_output
@@ -744,7 +743,7 @@ def mesh_from_non_manifold_input_model(
             part.name = _to_fluent_convention(part.name)
 
         # write all boundaries
-        LOGGER.debug(f"Writing input files in: {work_dir_meshing}")
+        LOGGER.info(f"Writing input files in: {work_dir_meshing}")
         model.write_part_boundaries(work_dir_meshing, add_name_to_header=False)
 
         # launch pyfluent

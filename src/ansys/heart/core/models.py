@@ -268,11 +268,11 @@ class HeartModel:
            return the part if succeed
         """
         if len(eids) == 0:
-            LOGGER.error(f"Element list is empty to create {name}")
+            LOGGER.error(f"Failed to create {name}. Element list is empty")
             return None
 
         if name in [p.name for p in self.parts]:
-            LOGGER.error(f"Part {name} has existed.")
+            LOGGER.error(f"Failed to create {name}. Name already exists.")
             return None
 
         for part in self.parts:
@@ -476,8 +476,6 @@ class HeartModel:
             path_to_fluent_mesh = os.path.join(self.workdir, "simulation_mesh.msh.h5")
 
         if use_wrapper:
-            LOGGER.warning("Meshing from non-manifold model not yet available.")
-
             fluent_mesh = mesher.mesh_from_non_manifold_input_model(
                 model=self._input,
                 workdir=self.workdir,
@@ -489,6 +487,7 @@ class HeartModel:
                 _wrap_size_per_part=_wrap_size_per_part,
             )
         else:
+            LOGGER.warning("Meshing from manifold model is experimental.")
             fluent_mesh = mesher.mesh_from_manifold_input_model(
                 model=self._input,
                 workdir=self.workdir,
@@ -503,7 +502,7 @@ class HeartModel:
         fluent_mesh.cell_zones = [cz for cz in fluent_mesh.cell_zones if cz.cells.shape[0] > 0]
         num_cell_zones2 = len(fluent_mesh.cell_zones)
         if num_cell_zones1 > num_cell_zones2:
-            LOGGER.warning("Removed {0} cell zones".format(num_cell_zones1 - num_cell_zones2))
+            LOGGER.debug("Removed {0} cell zones".format(num_cell_zones1 - num_cell_zones2))
 
         # Use only cell zones that are inside the parts defined in the input.
         fluent_mesh.cell_zones = [
@@ -670,13 +669,7 @@ class HeartModel:
         >>> model = models.HeartModel.load_model("heart_model.pickle")
         >>> model.plot_mesh(show_edges=True)
         """
-        try:
-            import pyvista
-        except ImportError:
-            LOGGER.warning("pyvista not found. Install with: pip install pyvista")
-            return
-
-        plotter = pyvista.Plotter()
+        plotter = pv.Plotter()
         plotter.add_mesh(self.mesh, show_edges=show_edges, scalars=color_by)
 
         plotter.show()
@@ -696,15 +689,9 @@ class HeartModel:
         >>> model = models.HeartModel.load_model("my_model.pickle")
         >>> model.part(model.left_ventricle)
         """
-        try:
-            import pyvista
-        except ImportError:
-            LOGGER.warning("pyvista not found. Install with: pip install pyvista")
-            return
-
         mesh = self.mesh
 
-        plotter = pyvista.Plotter()
+        plotter = pv.Plotter()
         plotter.add_mesh(mesh, opacity=0.5, color="white")
         part = mesh.extract_cells(part.element_ids)
         plotter.add_mesh(part, opacity=0.95, color="red")
@@ -727,12 +714,7 @@ class HeartModel:
         >>> model = models.HeartModel.load_model("my_model.pickle")
         >>> model.plot_fibers(n_seed_points=5000)
         """
-        try:
-            import pyvista
-        except ImportError:
-            LOGGER.warning("pyvista not found. Install with: pip install pyvista")
-            return
-        plotter = pyvista.Plotter()
+        plotter = pv.Plotter()
 
         # fiber direction is stored in cell data, but the cell-to-point filter
         # leads to issues, where nan values in any non-volume cell may change
@@ -762,14 +744,6 @@ class HeartModel:
         Plot the model
         >>> model.plot(show_edges=True)
         """
-        try:
-            import pyvista as pv
-        except ImportError:
-            LOGGER.warning(
-                "PyVista not found: visualization not supported."
-                "Install pyvista with: pip install pyvista"
-            )
-            return
         try:
             import matplotlib as matplotlib
         except ImportError:
@@ -802,15 +776,6 @@ class HeartModel:
         """Plot the mesh and Purkinje network."""
         if not len(self.beam_network) > 0:
             LOGGER.info("No Purkinje network to plot.")
-            return
-
-        try:
-            import pyvista as pv
-        except ImportError:
-            LOGGER.warning(
-                "PyVista not found: visualization not supported."
-                "Install pyvista with: pip install pyvista"
-            )
             return
 
         try:
@@ -898,7 +863,7 @@ class HeartModel:
             try:
                 list(part_info.keys()).index(part_1.name)
             except ValueError:
-                LOGGER.debug(f"{part_1.name} not in part info")
+                LOGGER.warning(f"{part_1.name} not in part info")
                 continue
 
             #! try to add surfaces to part by using the pre-defined surfaces
@@ -918,7 +883,7 @@ class HeartModel:
                     np.isin(self.mesh.cell_data["_volume-id"], part_1.pid)
                 ).flatten()
             except Exception:
-                LOGGER.debug(f"Failed to set element ids for {part_1.name}")
+                LOGGER.warning(f"Failed to set element ids for {part_1.name}")
                 pass
 
             # try to initialize cavity object.
@@ -941,10 +906,10 @@ class HeartModel:
         try:
             self._extract_apex()
         except Exception:
-            LOGGER.error("Failed to extract apex. Consider setting apex manually.")
+            LOGGER.warning("Failed to extract apex. Consider setting apex manually.")
 
         if any(v is None for v in [self.short_axis, self.l4cv_axis, self.l2cv_axis]):
-            LOGGER.warning("Heart axis not defined in the VTU file.")
+            LOGGER.warning("Heart not defined in the VTU file.")
             try:
                 LOGGER.warning("Computing heart axis...")
                 self._define_anatomy_axis()
@@ -953,7 +918,7 @@ class HeartModel:
                     "Failed to extract heart axis. Consider computing and setting them manually."
                 )
         else:
-            LOGGER.warning("Read heart axis defined in the VTU file is reused...")
+            LOGGER.info("Heart axis defined in the VTU file is reused...")
 
         return
 
@@ -1175,9 +1140,7 @@ class HeartModel:
                     ]
 
                     LOGGER.warning(
-                        "Initial apical point is on edge of {0}, a close point is picked".format(
-                            surface.name,
-                        )
+                        f"Initial apical point is on edge of {surface.name}, the next closest point is used"  # noqa: E501
                     )
 
                 # assign apex point
@@ -1209,11 +1172,11 @@ class HeartModel:
 
         summ = 0
         for part in self.parts:
-            LOGGER.debug("Num elements in {0}: {1}".format(part.name, part.element_ids.shape[0]))
+            LOGGER.info("Num elements in {0}: {1}".format(part.name, part.element_ids.shape[0]))
             summ = summ + part.element_ids.shape[0]
-        LOGGER.debug("Total num elements: {}".format(summ))
+        LOGGER.info("Total num elements: {}".format(summ))
 
-        LOGGER.debug(
+        LOGGER.info(
             "{0}/{1} elements assigned to parts".format(summ, self.mesh.tetrahedrons.shape[0])
         )
 
@@ -1246,7 +1209,7 @@ class HeartModel:
                     surface.id = boundary_surface.id
 
                 else:
-                    LOGGER.warning("Could not find matching surface for: {0}".format(surface.name))
+                    LOGGER.info("Could not find matching surface for: {0}".format(surface.name))
 
         return
 
@@ -1561,6 +1524,7 @@ class HeartModel:
         Part
             Part of isolation elements.
         """
+        # TODO: move this method to FourChamber class.
         if not isinstance(self, FourChamber):
             LOGGER.error("This method is only for FourChamber model.")
             return
@@ -1604,7 +1568,7 @@ class HeartModel:
             atrium.element_ids = connected_cells
 
             # get orphan cells and set to isolation part
-            LOGGER.warning(f"{len(orphan_cells)} orphan cells are found and re-assigned.")
+            LOGGER.warning(f"{len(orphan_cells)} orphan cells are re-assigned.")
             interface_eids = np.append(interface_eids, orphan_cells)
 
             #! Central mesh object not updated. E.g. lose connection between part.element_ids and
@@ -1653,7 +1617,7 @@ class HeartModel:
             v = self.mesh.point_data_to_cell_data()["apico-basal"]
         except KeyError:
             LOGGER.error("Array named 'apico-basal' cannot be found, cannot create base part.")
-            LOGGER.error("Run simulator.compute_uhc() first.")
+            LOGGER.error("Please call simulator.compute_uhc() first.")
             return
 
         eids = np.intersect1d(
@@ -1694,6 +1658,7 @@ class HeartModel:
         Union[None, Part]
             Part of atrial rings if created
         """
+        # TODO: @mhoeijm move this to FourChamber class
         if not isinstance(self, FourChamber):
             LOGGER.error("This method is only for FourChamber model.")
             return

@@ -256,7 +256,7 @@ def get_boundary_edge_loops(
     num_open_edge_groups = len(edge_groups) - len(closed_edge_groups.keys())
 
     if remove_open_edge_loops and num_open_edge_groups > 0:
-        LOGGER.warning(f"Removed {num_open_edge_groups} edge groups")
+        LOGGER.debug(f"Removed {num_open_edge_groups} edge groups")
         return closed_edge_groups
     else:
         if return_types:
@@ -390,7 +390,7 @@ def are_connected(
     try:
         merged.cell_data.remove("RegionId")
     except KeyError:
-        LOGGER.warning("RegionId was not present in the cell data")
+        LOGGER.debug("RegionId not present in the cell data")
 
     merged = merged.connectivity()
 

@@ -27,6 +27,8 @@ from typing import List, Tuple
 import h5py
 import numpy as np
 
+from ansys.heart.core import LOG as LOGGER
+
 
 class FluentCellZone:
     """Class that stores information of the cell zone."""
@@ -463,6 +465,23 @@ class FluentMesh:
         self.cell_zones = [cz for cz in self.cell_zones if cz.cells.shape[0] > 0]
         return
 
+    def _merge_face_zones_based_on_connectivity(self, face_zone_separator: str = ":"):
+        """Merge face zones that were split by Fluent based on connectivity.
 
-if __name__ == "__main__":
-    print("protected")
+        Notes
+        -----
+        This method is useful when mesh is split into multiple unconnected face zones with
+        the same name. Fluent uses a colon as an identifier when separating these face-zones.
+        """
+        idx_to_remove = []
+        for ii, fz in enumerate(self.face_zones):
+            if ":" in fz.name:
+                basename = fz.name.split(face_zone_separator)[0]
+                ref_facezone = next(fz1 for fz1 in self.face_zones if fz1.name == basename)
+                LOGGER.debug("Merging {0} with {1}".format(fz.name, ref_facezone.name))
+                ref_facezone.faces = np.vstack([ref_facezone.faces, fz.faces])
+                idx_to_remove += [ii]
+
+        # remove merged face zone
+        self.face_zones = [fz for ii, fz in enumerate(self.face_zones) if ii not in idx_to_remove]
+        return

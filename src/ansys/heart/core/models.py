@@ -506,27 +506,16 @@ class HeartModel:
         # remove any unused nodes
         fluent_mesh.clean()
 
+        # convert to vtk grid.
         vtk_grid = fluent_mesh._to_vtk()
-
         mesh = Mesh(vtk_grid)
+
+        # get mapping from fluent mesh.
         mesh.cell_data["_volume-id"] = mesh.cell_data["cell-zone-ids"]
-        for fluent_cell_zone in fluent_mesh.cell_zones:
-            mesh._volume_id_to_name[fluent_cell_zone.id] = fluent_cell_zone.name
+        mesh._volume_id_to_name = fluent_mesh.cell_zone_id_to_name
 
-        # merge some face zones that Fluent split based on connectivity.
-        idx_to_remove = []
-        for ii, fz in enumerate(fluent_mesh.face_zones):
-            if ":" in fz.name:
-                basename = fz.name.split(":")[0]
-                ref_facezone = next(fz1 for fz1 in fluent_mesh.face_zones if fz1.name == basename)
-                LOGGER.debug("Merging {0} with {1}".format(fz.name, ref_facezone.name))
-                ref_facezone.faces = np.vstack([ref_facezone.faces, fz.faces])
-                idx_to_remove += [ii]
-
-        # remove merged face zone
-        fluent_mesh.face_zones = [
-            fz for ii, fz in enumerate(fluent_mesh.face_zones) if ii not in idx_to_remove
-        ]
+        # merge some face-zones that probably belong together.
+        fluent_mesh._merge_face_zones_based_on_connectivity(face_zone_separator=":")
 
         for fz in fluent_mesh.face_zones:
             if "interior" not in fz.name:

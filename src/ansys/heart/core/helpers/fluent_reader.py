@@ -143,6 +143,7 @@ class FluentMesh:
             self._read_c0c1_of_face_zones()
             self._convert_interior_faces_to_tetrahedrons()
             self._set_cells_in_cell_zones()
+            self._remove_empty_cell_zones()
 
         self._close_file()
         return
@@ -440,6 +441,11 @@ class FluentMesh:
 
         # update cell zones with reordered cells
         self._set_cells_in_cell_zones()
+        return
+
+    def _remove_empty_cell_zones(self):
+        """Remove empty cell zones from cell zone list."""
+        self.cell_zones = [cz for cz in self.cell_zones if cz.cells.shape[0] > 0]
         return
 
 

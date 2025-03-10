@@ -498,14 +498,6 @@ class HeartModel:
                 overwrite_existing_mesh=overwrite_existing_mesh,
             )
 
-        # TODO: Cleanup the following.
-        # remove empty cell zones
-        num_cell_zones1 = len(fluent_mesh.cell_zones)
-        fluent_mesh.cell_zones = [cz for cz in fluent_mesh.cell_zones if cz.cells.shape[0] > 0]
-        num_cell_zones2 = len(fluent_mesh.cell_zones)
-        if num_cell_zones1 > num_cell_zones2:
-            LOGGER.debug("Removed {0} cell zones".format(num_cell_zones1 - num_cell_zones2))
-
         # Use only cell zones that are inside the parts defined in the input.
         fluent_mesh.cell_zones = [
             cz for cz in fluent_mesh.cell_zones if cz.id in self._input.part_ids

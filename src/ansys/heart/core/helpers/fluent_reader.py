@@ -101,6 +101,21 @@ class FluentMesh:
         """List of cell zone names of non-empty cell zones."""
         return [cz.name for cz in self.cell_zones if cz is not None]
 
+    @property
+    def face_zone_names(self):
+        """List of face zone names of non-empty face zones."""
+        return [fz.name for fz in self.face_zones if fz is not None]
+
+    @property
+    def cell_zone_id_to_name(self):
+        """Cell-zone id to name mapping."""
+        return {cz.id: cz.name for cz in self.cell_zones if cz is not None}
+
+    @property
+    def face_zone_id_to_name(self):
+        """Face-zone id to name mapping."""
+        return {fz.id: fz.name for fz in self.face_zones if fz is not None}
+
     def __init__(self, filename: str = None) -> None:
         self.filename: str = filename
         """Path to file."""

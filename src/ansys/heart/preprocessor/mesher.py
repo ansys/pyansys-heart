@@ -32,7 +32,7 @@ import numpy as np
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.helpers.fluent_reader import FluentCellZone, FluentMesh
+from ansys.heart.core.helpers.fluent_reader import _FluentCellZone, _FluentMesh
 from ansys.heart.core.helpers.vtkmethods import add_solid_name_to_stl
 from ansys.heart.core.objects import Mesh, SurfaceMesh
 from ansys.heart.preprocessor.input import _InputBoundary, _InputModel
@@ -268,7 +268,7 @@ def _update_size_per_part(
 
 
 def _update_input_model_with_wrapped_surfaces(
-    model: _InputModel, mesh: FluentMesh, face_zone_ids_per_part: dict
+    model: _InputModel, mesh: _FluentMesh, face_zone_ids_per_part: dict
 ) -> _InputModel:
     """Update the input model with the wrapped surfaces.
 
@@ -318,7 +318,7 @@ def _update_input_model_with_wrapped_surfaces(
     return model
 
 
-def _post_meshing_cleanup(fluent_mesh: FluentMesh) -> Mesh:
+def _post_meshing_cleanup(fluent_mesh: _FluentMesh) -> Mesh:
     """Clean up and retrieve VTK mesh after meshing."""
     # remove any unused nodes
     fluent_mesh.clean()
@@ -392,7 +392,7 @@ def _mesh_fluid_cavities(
     caps: List[SurfaceMesh],
     workdir: str,
     remesh_caps: bool = True,
-) -> FluentMesh:
+) -> _FluentMesh:
     """Mesh the fluid cavities.
 
     Parameters
@@ -476,7 +476,7 @@ def _mesh_fluid_cavities(
     file_path_mesh = os.path.join(workdir, "fluid-mesh.msh.h5")
     session.tui.file.write_mesh(file_path_mesh)
 
-    mesh = FluentMesh(file_path_mesh)
+    mesh = _FluentMesh(file_path_mesh)
     mesh.load_mesh()
 
     return mesh
@@ -637,7 +637,7 @@ def mesh_from_manifold_input_model(
     else:
         LOGGER.info(f"Reusing: {path_to_output}")
 
-    mesh = FluentMesh()
+    mesh = _FluentMesh()
     mesh.load_mesh(path_to_output)
     mesh._fix_negative_cells()
 
@@ -901,7 +901,7 @@ def mesh_from_non_manifold_input_model(
 
     LOGGER.info("Post Fluent-Meshing cleanup...")
     # Update the cell zones such that for each part we have a separate cell zone.
-    mesh = FluentMesh()
+    mesh = _FluentMesh()
     mesh.load_mesh(path_to_output)
     mesh._fix_negative_cells()
 
@@ -976,13 +976,13 @@ def mesh_from_non_manifold_input_model(
 
     new_mesh = mesh
     new_mesh.cells = new_mesh.cells[idx_sorted]
-    new_mesh.cell_zones: list[FluentCellZone] = []
+    new_mesh.cell_zones: list[_FluentCellZone] = []
 
     for part in model.parts:
         # convert back to original convention.
         # TODO: refactor so that we revert back to the original name.
         part.name = part.name.replace("_", " ").capitalize()
-        cell_zone = FluentCellZone(
+        cell_zone = _FluentCellZone(
             min_id=np.argwhere(partids_sorted == part.id)[0][0],
             max_id=np.argwhere(partids_sorted == part.id)[-1][0],
             name=part.name,

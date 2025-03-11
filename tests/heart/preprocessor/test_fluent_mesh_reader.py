@@ -28,7 +28,7 @@ import numpy as np
 import pytest
 import pyvista as pv
 
-from ansys.heart.core.helpers.fluent_reader import FluentMesh
+from ansys.heart.core.helpers.fluent_reader import _FluentMesh
 from tests.heart.conftest import get_assets_folder
 
 FLUENT_BOX = os.path.join(get_assets_folder(), "simple_fluent_meshes", "box.msh.h5")
@@ -37,7 +37,7 @@ FLUENT_BOX1 = os.path.join(get_assets_folder(), "simple_fluent_meshes", "box_no_
 
 @pytest.fixture(autouse=True, scope="module")
 def _test_mesh():
-    mesh = FluentMesh()
+    mesh = _FluentMesh()
     mesh._open_file(FLUENT_BOX)
     yield mesh
     mesh._close_file()
@@ -53,7 +53,7 @@ def _test_mesh():
 )
 def test_open_file(input, expected_error):
     """Tests opening a file."""
-    mesh = FluentMesh()
+    mesh = _FluentMesh()
     if expected_error:
         with pytest.raises(expected_error):
             mesh._open_file(input)
@@ -62,7 +62,7 @@ def test_open_file(input, expected_error):
 
 def test_load_mesh():
     """Tests loading a mesh without cell zones."""
-    mesh = FluentMesh(FLUENT_BOX1)
+    mesh = _FluentMesh(FLUENT_BOX1)
     mesh.load_mesh(reconstruct_tetrahedrons=False)
 
     assert sorted([fz.name for fz in mesh.face_zones]) == [
@@ -79,7 +79,7 @@ def test_load_mesh():
 def test_to_vtk():
     """Tests conversion to vtk object with the various options available."""
     # mesh without any cell zones
-    mesh = FluentMesh(FLUENT_BOX1)
+    mesh = _FluentMesh(FLUENT_BOX1)
     mesh.load_mesh(reconstruct_tetrahedrons=False)
     vtk_object = mesh._to_vtk(add_cells=False, add_faces=True)
 
@@ -88,7 +88,7 @@ def test_to_vtk():
     assert vtk_object.n_cells == 6 * 2  # 2 faces per face zone, and 6 face zones
 
     # mesh with cell zones
-    mesh = FluentMesh(FLUENT_BOX)
+    mesh = _FluentMesh(FLUENT_BOX)
     mesh.load_mesh(reconstruct_tetrahedrons=True)
     vtk_object = mesh._to_vtk(add_cells=True, add_faces=False)
 
@@ -108,7 +108,7 @@ def test_to_vtk():
 def test_read_nodes(_test_mesh):
     """Tests reading of the nodes of simple box"""
     mesh = _test_mesh
-    assert isinstance(mesh, FluentMesh)
+    assert isinstance(mesh, _FluentMesh)
     mesh._read_nodes()
     mesh._remove_duplicate_nodes()
     assert mesh.nodes.shape == (9, 3)
@@ -131,7 +131,7 @@ def test_read_nodes(_test_mesh):
 def test_read_face_zones(_test_mesh):
     """Tests reading face zones. Checks face zone names and defined faces"""
     mesh = _test_mesh
-    assert isinstance(mesh, FluentMesh)
+    assert isinstance(mesh, _FluentMesh)
     mesh._read_nodes()
     mesh._read_face_zone_info()
     mesh._read_cell_zone_info()
@@ -185,7 +185,7 @@ def test_read_face_zones(_test_mesh):
 
 def test_clean_mesh():
     """Test cleaning the mesh from unreferenced nodes/points."""
-    mesh = FluentMesh()
+    mesh = _FluentMesh()
     mesh.load_mesh(FLUENT_BOX)
 
     # remove interior faces
@@ -213,7 +213,7 @@ def test_clean_mesh():
 
 def test_read_tetrahedrons(_test_mesh):
     """Tests reading of tetrahedrons on simple box with single cell zone"""
-    mesh = FluentMesh()
+    mesh = _FluentMesh()
     mesh.load_mesh(FLUENT_BOX)
     expected_cells = mesh._unique_map[
         np.array(

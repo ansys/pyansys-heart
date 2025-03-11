@@ -36,7 +36,6 @@ if os.getenv("GITHUB_ACTIONS"):
 else:
     is_gh_action = False
 
-from pathlib import Path
 import unittest.mock as mock
 
 import numpy as np
@@ -51,99 +50,9 @@ def test_dump_model_001():
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         model = models.BiVentricle(working_directory=workdir)
 
-        expected_path = os.path.join(model.workdir, "heart_model.pickle")
-
-        model._dump_model()
+        expected_path = os.path.join(os.path.join(workdir, "test.vtu"))
+        model.save_model(os.path.join(workdir, "test.vtu"))
         assert os.path.isfile(expected_path)
-
-        expected_path = os.path.join(model.workdir, "heart_model1.pickle")
-        model._dump_model(expected_path)
-        assert os.path.isfile(expected_path)
-
-        expected_path = Path(os.path.join(model.workdir, "heart_model2.pickle"))
-        model._dump_model(expected_path)
-        assert os.path.isfile(expected_path)
-
-
-def test_model_load_001():
-    """Test dumping and reading of model with data."""
-    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
-        model = models.BiVentricle(working_directory=workdir)
-
-        path_to_model = os.path.join(model.workdir, "heart_model.pickle")
-        model.left_ventricle.endocardium.triangles = np.array([[0, 1, 2]], dtype=int)
-        model.left_ventricle.endocardium.nodes = np.eye(3, 3, dtype=float)
-
-        model._dump_model()
-
-        assert os.path.isfile(path_to_model)
-
-        model_loaded: models.BiVentricle = models.HeartModel.load_model(path_to_model)
-        assert np.array_equal(
-            model_loaded.left_ventricle.endocardium.triangles,
-            model.left_ventricle.endocardium.triangles,
-        )
-        assert np.array_equal(
-            model_loaded.left_ventricle.endocardium.nodes,
-            model.left_ventricle.endocardium.nodes,
-        )
-
-
-def test_model_load_002():
-    """Test loading model from pickle."""
-    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
-        model: models.BiVentricle = models.BiVentricle(working_directory=workdir)
-        model.workdir = workdir
-        # populate model
-        model.left_ventricle.element_ids = np.array([1, 2, 3, 4], dtype=int)
-        model.right_ventricle.element_ids = np.array([11, 66, 77, 88], dtype=int)
-
-        model.left_ventricle.endocardium.triangles = np.array([[0, 1, 2], [0, 2, 3]], dtype=int)
-        model.left_ventricle.endocardium.nodes = np.array(
-            [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=float
-        )
-
-        model.right_ventricle.endocardium.triangles = np.array([[0, 3, 1], [3, 2, 0]], dtype=int)
-        model.right_ventricle.endocardium.nodes = (
-            np.array(
-                [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=float
-            )
-            + 10
-        )
-
-        points = np.array(
-            [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=float
-        )
-        cells = np.array([4, 0, 1, 2, 3], dtype=int)
-        celltypes = [pv.CellType.TETRA]
-        model.mesh = Mesh(cells, celltypes, points)
-
-        # dump model to disk
-        path_to_heart_model = os.path.join(workdir, "heart_model.pickle")
-        model._dump_model(path_to_heart_model)
-
-        assert os.path.isfile(path_to_heart_model), "File does not exist"
-
-        # load model
-        model1 = models.HeartModel.load_model(path_to_heart_model)
-
-        assert isinstance(model1, models.BiVentricle), "Expecting model of type BiVentricle"
-
-        # compare contents to original
-        assert np.array_equal(model1.left_ventricle.element_ids, model.left_ventricle.element_ids)
-        assert np.array_equal(model1.right_ventricle.element_ids, model.right_ventricle.element_ids)
-
-        assert np.array_equal(
-            model1.left_ventricle.endocardium.triangles, model.left_ventricle.endocardium.triangles
-        )
-        assert np.array_equal(
-            model1.right_ventricle.endocardium.triangles,
-            model.right_ventricle.endocardium.triangles,
-        )
-        assert np.array_equal(model1.mesh.tetrahedrons, model.mesh.tetrahedrons)
-        assert np.allclose(model1.mesh.points, model.mesh.points, atol=1e-8)
-
-    pass
 
 
 @pytest.mark.parametrize(

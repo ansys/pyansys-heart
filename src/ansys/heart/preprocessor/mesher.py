@@ -334,6 +334,7 @@ def _post_meshing_cleanup(fluent_mesh: FluentMesh) -> Mesh:
     # merge face zones based on fluent naming convention.
     fluent_mesh._merge_face_zones_based_on_connectivity(face_zone_separator=":")
 
+    # add face zones to the mesh.
     for fz in fluent_mesh.face_zones:
         if "interior" not in fz.name:
             surface = SurfaceMesh(
@@ -385,7 +386,8 @@ def _set_size_field_on_face_zones(
     return session
 
 
-def mesh_fluid_cavities(
+# TODO: fix method.
+def _mesh_fluid_cavities(
     fluid_boundaries: List[SurfaceMesh],
     caps: List[SurfaceMesh],
     workdir: str,
@@ -486,7 +488,7 @@ def mesh_from_manifold_input_model(
     path_to_output: Union[str, Path],
     mesh_size: float = 2.0,
     overwrite_existing_mesh: bool = True,
-) -> FluentMesh:
+) -> Mesh:
     """Create mesh from good-quality manifold input model.
 
     Parameters
@@ -502,8 +504,8 @@ def mesh_from_manifold_input_model(
 
     Returns
     -------
-    FluentMesh
-        The volume mesh with cell and face zones.
+    Mesh
+        The VTK mesh with both cell and face zones.
     """
     smooth_boundaries = False
     fix_intersections = False
@@ -657,7 +659,12 @@ def mesh_from_manifold_input_model(
             ):
                 cz.id = input_part.id
 
-    return mesh
+    # Use only cell zones that are inside the parts defined in the input.
+    mesh.cell_zones = [cz for cz in mesh.cell_zones if cz.id in model.part_ids]
+
+    vtk_mesh = _post_meshing_cleanup(mesh)
+
+    return vtk_mesh
 
 
 def mesh_from_non_manifold_input_model(
@@ -669,7 +676,7 @@ def mesh_from_non_manifold_input_model(
     overwrite_existing_mesh: bool = True,
     mesh_size_per_part: dict = None,
     _wrap_size_per_part: dict = None,
-) -> FluentMesh:
+) -> Mesh:
     """Generate mesh from a non-manifold poor quality input model.
 
     Parameters
@@ -708,8 +715,8 @@ def mesh_from_non_manifold_input_model(
 
     Returns
     -------
-    FluentMesh
-        The volume mesh with cell and face zones.
+    Mesh
+        The VTK mesh with both cell and face zones.
     """
     if not isinstance(model, _InputModel):
         raise ValueError(f"Expecting input to be of type {str(_InputModel)}")
@@ -1000,4 +1007,9 @@ def mesh_from_non_manifold_input_model(
         if ":" in fz.name:
             fz.name = fz.name.split(":")[0]
 
-    return new_mesh
+    # Use only cell zones that are inside the parts defined in the input.
+    new_mesh.cell_zones = [cz for cz in new_mesh.cell_zones if cz.id in model.part_ids]
+
+    vtk_mesh = _post_meshing_cleanup(new_mesh)
+
+    return vtk_mesh

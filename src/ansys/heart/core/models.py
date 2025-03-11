@@ -478,7 +478,7 @@ class HeartModel:
             path_to_fluent_mesh = os.path.join(self.workdir, "simulation_mesh.msh.h5")
 
         if use_wrapper:
-            fluent_mesh = mesher.mesh_from_non_manifold_input_model(
+            self.mesh = mesher.mesh_from_non_manifold_input_model(
                 model=self._input,
                 workdir=self.workdir,
                 global_mesh_size=global_mesh_size,
@@ -490,20 +490,13 @@ class HeartModel:
             )
         else:
             LOGGER.warning("Meshing from manifold model is experimental.")
-            fluent_mesh = mesher.mesh_from_manifold_input_model(
+            self.mesh = mesher.mesh_from_manifold_input_model(
                 model=self._input,
                 workdir=self.workdir,
                 mesh_size=global_mesh_size,
                 path_to_output=path_to_fluent_mesh,
                 overwrite_existing_mesh=overwrite_existing_mesh,
             )
-
-        # Use only cell zones that are inside the parts defined in the input.
-        fluent_mesh.cell_zones = [
-            cz for cz in fluent_mesh.cell_zones if cz.id in self._input.part_ids
-        ]
-
-        self.mesh = mesher._post_meshing_cleanup(fluent_mesh)
 
         filename = os.path.join(self.workdir, "volume-mesh-post-meshing.vtu")
         self.mesh.save(filename)
@@ -546,7 +539,7 @@ class HeartModel:
         LOGGER.info("Meshing fluid cavities...")
 
         # mesh the fluid cavities
-        fluid_mesh = mesher.mesh_fluid_cavities(
+        fluid_mesh = mesher._mesh_fluid_cavities(
             boundaries_fluid, caps, self.workdir, remesh_caps=remesh_caps
         )
 

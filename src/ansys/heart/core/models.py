@@ -28,11 +28,9 @@ import os
 
 # import json
 import pathlib
-import pickle
 import re
 from typing import List, Literal, Union
 
-from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 import yaml
@@ -790,75 +788,6 @@ class HeartModel:
             LOGGER.warning("Failed to plot mesh.")
         return
 
-    @deprecated(
-        reason="""_dump_model() uses pickle which is unsafe
-                and will be replaced. Use save_model() instead"""
-    )
-    def _dump_model(self, filename: Union[pathlib.Path, str] = None):
-        """Save model to .pickle file.
-
-        Parameters
-        ----------
-        filename : pathlib.Path | str, optional
-            Path where the model will be saved, by default None
-
-        Returns
-        -------
-        str
-            Path to where the model is saved.
-
-        Examples
-        --------
-        >>> model._dump_model("my_heart_model.pickle")
-
-        """
-        LOGGER.info(f"Writing model to {filename}")
-
-        if isinstance(filename, pathlib.Path):
-            filename = str(filename)
-
-        if not filename:
-            filename = os.path.join(self.workdir, "heart_model.pickle")
-
-        if os.path.isfile(filename):
-            LOGGER.warning(f"Overwriting {filename}")
-
-        with open(filename, "wb") as file:
-            pickle.dump(self, file)
-
-        return
-
-    @staticmethod
-    @deprecated(reason="Load model is deprecated and is superseded by by load_model_from_mesh()")
-    def load_model(filename: pathlib.Path):
-        """Load a preprocessed model from file.
-
-        Examples
-        --------
-        >>> model = HeartModel.load_model("my_model.pickle")
-
-        """
-        # NOTE: need to suppress some vtk errors in pickled pyvista objects.
-        # change the verbosity in the vtk logger and suppress the python logger.
-        import logging
-
-        import vtk
-
-        logger = copy.deepcopy(logging.getLogger("pyheart_global"))
-        # setting propagate to False is workaround for VTK changing log behavior
-        logger.propagate = False
-
-        logger = logging.getLogger()
-        logger.disabled = True
-        # to suppress vtk errors
-        vtk_logger = vtk.vtkLogger
-        vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_OFF)
-        with open(filename, "rb") as file:
-            model = pickle.load(file)
-        logger.disabled = False
-        vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_1)
-        return model
-
     def save_model(self, filename: str):
         """Save the model and necessary info to reconstruct.
 
@@ -894,7 +823,7 @@ class HeartModel:
         return
 
     # TODO: could consider having this as a static method.
-    # TODO: Tight now this only reconstructs the surfaces and parts that
+    # TODO: Right now this only reconstructs the surfaces and parts that
     # TODO: are defined in the HeartModel classes:
     # TODO: LeftVentricle, BiVentricle, FourChamber and FullHeart.
     # TODO: Should consider to also reconstruct the parts that are not explicitly

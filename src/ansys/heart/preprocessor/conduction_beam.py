@@ -27,7 +27,7 @@ import numpy as np
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.models import FourChamber, _create_polydata_beam_network
+from ansys.heart.core.models import FourChamber
 from ansys.heart.core.objects import BeamMesh, Point, SurfaceMesh
 
 
@@ -186,7 +186,9 @@ class ConductionSystem:
         mask[0, 0] = False  # SA point at solid
 
         beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="SAN_to_AVN")
-        beamnet = _create_polydata_beam_network(points=beam_nodes,edges=np.array([]))
+        
+        beamnet = pv.lines_from_points(beam_nodes)
+
         
         id=self.m.conduction_system.get_unique_lines_id()
         self.m.conduction_system.add_lines(lines=beamnet,id=id,name="SAN_to_AVN")
@@ -257,7 +259,7 @@ class ConductionSystem:
         )
         new_nodes = self.m.mesh.points[nodes]
         new_nodes = _refine_line(new_nodes, beam_length=beam_length)
-        beamnet = _create_polydata_beam_network(points=new_nodes,edges=np.array([]))
+        beamnet = pv.lines_from_points(new_nodes)
         new_nodes = new_nodes[1:, :]
         
         point_ids = np.concatenate(
@@ -283,7 +285,7 @@ class ConductionSystem:
             bifurcation_coord=bifurcation_coord,
             bifurcation_id=bifurcation_id,
         )
-        beamnet += _create_polydata_beam_network(points=new_nodes_left,edges=np.array([]))
+        beamnet = pv.lines_from_points(new_nodes_left)+beamnet
         new_nodes = np.vstack((new_nodes, new_nodes_left[1:, :]))
         (
             position_id_his_end_right,
@@ -298,7 +300,7 @@ class ConductionSystem:
             bifurcation_coord=bifurcation_coord,
             bifurcation_id=bifurcation_id,
         )
-        beamnet += _create_polydata_beam_network(points=new_nodes_right,edges=np.array([]))
+        beamnet = pv.lines_from_points(new_nodes_right)+beamnet
         new_nodes = np.vstack((new_nodes, new_nodes_right[1:, :]))
         # finally
         mask = np.ones(edges.shape, dtype=bool)
@@ -496,7 +498,7 @@ class ConductionSystem:
         beam_net.beam_nodes_mask[0, 0] = True
         beam_net.beam_nodes_mask[-1, -1] = True
 
-        beamnet = _create_polydata_beam_network(points=bundle_branch.points,edges=np.array([]))
+        beamnet = pv.lines_from_points(bundle_branch.points)
         id=self.m.conduction_system.get_unique_lines_id()
         self.m.conduction_system.add_lines(lines=beamnet,id=id,name=side + " bundle branch")
 

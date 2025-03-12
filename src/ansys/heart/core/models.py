@@ -141,28 +141,6 @@ def _read_purkinje_from_kfile(filename: pathlib.Path):
     return beam_nodes,edges,mask,pid
 
 
-def _create_polydata_beam_network(points: np.array, edges: np.array)->pv.PolyData:
-    """Create beam network from points and edges.
-
-    Parameters
-    ----------
-    points : np.array
-        Points coordinates.
-    edges : np.array
-        Connectivity.
-
-    Returns
-    -------
-    pv.PolyData
-        PolyData object.
-    """
-    if edges.any():
-        beamnet = pv.PolyData(points,lines=edges)
-    else:
-        beamnet = pv.lines_from_points(points)
-
-    return beamnet
-
 
    
 class HeartModel:
@@ -387,15 +365,16 @@ class HeartModel:
         connectivity = np.empty_like(edges)
         np.copyto(connectivity, edges)
         
-        
+        # create ids of solid points and fill connectivity
         _, _,inverse_indices = np.unique(connectivity[np.logical_not(mask)], return_index=True,return_inverse=True)
         connectivity[np.logical_not(mask)] = inverse_indices + max(connectivity[mask])+1
         celltypes = np.full((connectivity.shape[0], 1), 2)
         connectivity = np.hstack((celltypes,connectivity))
         beam_points = np.vstack([beam_nodes,solid_points])
-
-        beam_net = _create_polydata_beam_network(points=beam_points,edges=connectivity)
+        is_connected = np.concatenate([np.zeros(len(beam_nodes)),np.ones(len(solid_points))])
         
+        beam_net = pv.PolyData(beam_points,lines=connectivity)
+        beam_net.point_data["_is-connected"] = is_connected
         id=self.conduction_system.get_unique_lines_id()
         self.conduction_system.add_lines(lines=beam_net,id=id,name=name)
         
@@ -458,16 +437,6 @@ class HeartModel:
             beams._all_beam_nodes = np.copy(BeamMesh.all_beam_nodes)
 
         return beam_net
-
-    def add_conduction_component(
-        self, beam_data:pv.PolyData
-    ) -> pv.PolyData:
-        if self.conduction_system is None:
-            self.conduction_system = beam_data
-        else:
-            self.conduction_system += beam_data
-
-        return beam_data
 
 
     def load_input(self, input_vtp: pv.PolyData, part_definitions: dict, scalar: str):

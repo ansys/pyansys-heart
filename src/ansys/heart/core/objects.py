@@ -1009,7 +1009,7 @@ class Mesh(pv.UnstructuredGrid):
         mask = self.cell_data["_volume-id"] == lid
         return self.remove_cells(mask, inplace=True)
 
-class BeamsMesh(pv.UnstructuredGrid):
+class BeamsMesh(pv.PolyData):
     """Mesh class: inherits from pyvista UnstructuredGrid.
 
     Notes

@@ -40,7 +40,7 @@ from ansys.heart.preprocessor.input import _InputBoundary, _InputModel
 
 # NOTE: can set os.environ["SHOW_FLUENT_GUI"] = "1" to show Fluent GUI.
 
-_supported_fluent_versions = ["24.2", "24.1"]
+_supported_fluent_versions = ["25.1", "24.2", "24.1"]
 _show_fluent_gui: bool = True
 _uses_container: bool = True
 _num_cpus: bool = 2

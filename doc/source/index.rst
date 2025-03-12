@@ -17,3 +17,4 @@ PyAnsys Heart |version|
    api/index
    examples/index
    contributing
+   changelog

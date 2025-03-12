@@ -35,7 +35,6 @@ import os
 from pathlib import Path, PurePath
 import typing
 
-from tqdm import tqdm
 import validators
 
 from ansys.heart.core import LOG as LOGGER
@@ -273,6 +272,7 @@ def unpack_cases(list_of_tar_files: typing.List):
     >>> from ansys.heart.misc.downloader import unpack_cases
     >>> unpack_cases(["01.tar.gz", "02.tar.gz"])
     """
-    for file in tqdm(list_of_tar_files):
+    for file in list_of_tar_files:
+        LOGGER.info(f"Unpacking {file}...")
         unpack_case(file)
     return

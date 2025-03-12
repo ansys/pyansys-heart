@@ -89,6 +89,35 @@ def _set_field_data_from_axis(
     return mesh
 
 
+def _set_workdir(workdir: pathlib.Path | str = None) -> str:
+    """Set the root working directory.
+
+    Parameters
+    ----------
+    workdir : pathlib.Path | str, optional
+        Path to desired working directory, by default None
+
+    Returns
+    -------
+    str
+        Path to working directory.
+    """
+    if workdir is None:
+        workdir = os.getcwd()
+
+    workdir1 = os.getenv("PYANSYS_HEART_WORKDIR", workdir)
+    if workdir1 != workdir:
+        LOGGER.info(f"Working directory set to {workdir1}")
+
+    if not os.path.isdir(workdir1):
+        LOGGER.info(f"Creating {workdir1}")
+        os.makedirs(workdir1, exist_ok=True)
+    else:
+        LOGGER.warning(f"Working directory {workdir1} already exists.")
+
+    return workdir1
+
+
 class HeartModel:
     """Parent class for heart models."""
 
@@ -195,10 +224,19 @@ class HeartModel:
         ]
 
     def __init__(self, working_directory: pathlib.Path | str = None) -> None:
-        if working_directory is None:
-            working_directory = os.path.abspath(os.path.curdir)
+        """Initialize the HeartModel.
 
-        self.workdir = working_directory
+        Parameters
+        ----------
+        working_directory : pathlib.Path | str, optional
+            Path to desired working directory, by default None
+
+        Notes
+        -----
+        Note that if no working directory is specified it will default to the current
+        working directory.
+        """
+        self.workdir = _set_workdir(working_directory)
         """Working directory."""
 
         self.mesh = Mesh()

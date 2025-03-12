@@ -44,6 +44,24 @@ import pytest
 import ansys.heart.core.models as models
 
 
+def test_set_workdir():
+    """Test setting the working directory."""
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        workdir = models._set_workdir(os.path.join(tempdir, "test"))
+        assert workdir == os.path.join(tempdir, "test")
+        assert os.path.isdir(workdir)
+
+        # test setting workdir to current workdir
+        with mock.patch("os.getcwd") as mock_getcwd:
+            mock_getcwd.return_value = os.path.join(tempdir, "test1")
+            workdir = models._set_workdir()
+            assert workdir == os.path.join(tempdir, "test1")
+
+        os.environ["PYANSYS_HEART_WORKDIR"] = os.path.join(tempdir, "test2")
+        workdir = models._set_workdir()
+        assert workdir == os.path.join(tempdir, "test2")
+
+
 def test_dump_model_001():
     """Test dumping of model to disk."""
 

@@ -25,6 +25,8 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
+from deprecated import deprecated
+
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.simulator.settings.material.curve import ActiveCurve, constant_ca2
 
@@ -34,10 +36,38 @@ class ISO:
     """Isotropic module of MAT_295."""
 
     itype: int = -3
+    """Isotropic material type."""
+    """+/-3: HGO model, +/-1: Ogden model."""
     beta: float = 0.0
+    """Volumetric response coefficient."""
     nu: float = 0.499
+    """Possion's ratio."""
     k1: float = None
+    """k1 for HGO model."""
     k2: float = None
+    """k2 for HGO model."""
+    mu1: float = None
+    """mu1 for Ogden model."""
+    alpha1: float = None
+    """alpha1 for Ogden model."""
+    kappa: float = None
+    """Bulk modulus."""
+
+    def __post_init__(self):
+        """Test inputs."""
+        if self.k1 is not None and self.k2 is not None:
+            assert abs(self.itype) == 3  # must be HGO model
+        elif self.mu1 is not None and self.alpha1 is not None:
+            assert abs(self.itype) == 1  # must be Odgen model
+        else:
+            raise ValueError("ISO input is invalid.")
+
+        if self.kappa is not None:
+            # replace Poisson's coefficient
+            mu = self.k1 if abs(self.itype) == 3 else self.mu1
+            self.nu = (3 * self.kappa - 2 * mu) / (6 * self.kappa + 2 * mu)
+        if self.nu < 0.49:
+            LOGGER.warning("Poisson's ratio lower than 0.49 is not recommended.")
 
 
 @dataclass
@@ -49,21 +79,34 @@ class ANISO:
         """Define HGO type fiber from k1 and k2."""
 
         k1: float = None
+        """k1 for HGO model."""
         k2: float = None
+        """k2 for HGO model."""
         a: float = 0.0
+        """Fiber dispersion tensor parameter."""
         b: float = 1.0
+        """Fiber dispersion tensor parameter."""
         _theta: float = None
+        """0 for fiber 1, 90 for fiber 2. Don't change it."""
         _ftype: int = 1
+        """Fiber type, 1 for HGO."""
         _fcid: int = 0
+        """Not used yet."""
 
     atype: int = -1
+    """Type of anisotropic model."""
     fibers: List[HGOFiber] = None
+    """List of fibers."""
 
     k1fs: Optional[float] = None
+    """k1 for HGO model for coupling between fibers."""
     k2fs: Optional[float] = None
+    """k2 for HGO model for coupling between fibers."""
 
     vec_a: tuple = (1.0, 0.0, 0.0)
+    """Component of fiber direction, don't change it."""
     vec_d: tuple = (0.0, 1.0, 0.0)
+    """Component of sheet direction, don't change it."""
 
     def __post_init__(self):
         """Check and deduce other parameters from input."""
@@ -107,7 +150,7 @@ class ActiveModel:
 
     @dataclass
     class Model1:
-        """Hold data for active model 1."""
+        """Hold data for active model 1, check manual for details."""
 
         t0: float = None
         ca2ion: float = None
@@ -124,7 +167,7 @@ class ActiveModel:
 
     @dataclass
     class Model3:
-        """Hold data for active model 3."""
+        """Hold data for active model 3, check manual for details."""
 
         t0: float = None
         ca2ion50: float = 1.0
@@ -134,24 +177,52 @@ class ActiveModel:
         eta: float = 0.0
         sigmax: float = None
 
+    @dataclass
+    class Model4:
+        """Hold data for active model 4."""
+
+        raise NotImplementedError
+
+    @dataclass
+    class Model2:
+        """Hold data for active model 2."""
+
+        raise NotImplementedError
+
+    @dataclass
+    class Model5:
+        """Hold data for active model 5."""
+
+        raise NotImplementedError
+
 
 @dataclass
 class ACTIVE:
     """Active module of MAT_295."""
 
     acid: int = None  # empty for ep_coupled, or curve ID from writer
+    """Do not define it, it will be assigned with an ID of Ca2+ curve
+    for mechanical problem or empty for ep-coupled problem."""
     actype: int = None  # defined in __post_init__
-    acthr: float = (
-        None  # need to be defined for ep_coupled, for mechanics it's defined in ActiveCurve
-    )
+    """Type of active model, will be deduced in __post_init__."""
+    acthr: float = None
+    """Ca2+ threshold for active stress, need to be defined for ep-coupled,
+    for mechanics it's defined in ActiveCurve."""
     acdir: int = 1  # always act in fiber direction
+    """Direction of active stress, don't change it."""
     sf: float = 1.0  # always 1.0 and controls contractility in ActiveModel
+    """Scaling factor on fiber direction."""
     ss: float = 0.0
+    """Scaling factor on sheet direction."""
     sn: float = 0.0
+    """Scaling factor on normal direction."""
     model: ActiveModel = field(default_factory=ActiveModel.Model1)
+    """Active model."""
+
     ca2_curve: ActiveCurve = field(
         default_factory=lambda: ActiveCurve(constant_ca2(), threshold=0.1, type="ca2")
     )
+    """Ca2+ curve for mechanical problem."""
 
     def __post_init__(self):
         """Deduce actype."""
@@ -184,19 +255,39 @@ class MechanicalMaterialModel:
 
 @dataclass
 class MAT295(MechanicalMaterialModel):
-    """Hold data for MAT_295."""
+    """Hold data for MAT_ANISOTROPIC_HYPERELASTIC (MAT_295)."""
 
     rho: float
+    """Density of the material."""
     iso: ISO
+    """Isotropic module."""
     aopt: float = 2.0
+    """Matrerial axe option, don't change it."""
     aniso: Optional[ANISO] = None
+    """Anisotropic module."""
     active: Optional[ACTIVE] = None
+    """Active module."""
 
 
 @dataclass
+@deprecated(reason="Use *MAT_295 with the ISO module instead.")
 class NeoHookean(MechanicalMaterialModel):
-    """Passive isotropic material."""
+    """Passive isotropic material with MAT_77H."""
 
     rho: float
+    """Density of the material."""
     c10: float  # mu/2
-    nu: float = 0.499
+    """c10."""
+    kappa: float = None
+    """Bulk modulus."""
+    nu: float = None
+    """Poisson's ratio."""
+
+    def __post_init__(self):
+        """Deduce Poisson's ratio if not given."""
+        if self.kappa is not None:
+            # replace Poisson's coefficient
+            mu = self.c10 * 2
+            self.nu = (3 * self.kappa - 2 * mu) / (6 * self.kappa + 2 * mu)
+        if self.nu < 0.49:
+            LOGGER.warning("Poisson's ratio lower than 0.49 is not recommended.")

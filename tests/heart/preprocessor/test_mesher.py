@@ -115,9 +115,9 @@ def test_meshing_for_manifold():
     mesh_file = os.path.join(tmpdir.name, "test_mesh.msh.h5")
     mesh = mesher.mesh_from_manifold_input_model(model, tmpdir.name, mesh_file, mesh_size=0.02)
 
-    assert len(mesh.cell_zones) == 3
+    assert len(mesh.volume_ids) == 3
     assert ["triangles_001", "triangles_002", "triangles_003", "triangles_004"] == sorted(
-        [fz.name for fz in mesh.face_zones if "interior" not in fz.name]
+        [surface_name for surface_name in mesh.surface_names if "interior" not in surface_name]
     )
 
     pass
@@ -180,7 +180,7 @@ def test_meshing_for_non_manifold():
     mesh_file = os.path.join(tmpdir.name, "test_mesh.msh.h5")
 
     # specify incomplete mesh-size-per-part. Part 2 should use 0.1 for mesh-size
-    fluent_mesh = mesher.mesh_from_non_manifold_input_model(
+    vtk_mesh = mesher.mesh_from_non_manifold_input_model(
         model,
         tmpdir.name,
         mesh_file,
@@ -189,12 +189,14 @@ def test_meshing_for_non_manifold():
         mesh_size_per_part={"Part1": 0.15},
     )
 
-    assert len(fluent_mesh.cell_zones) == 2
-    assert sorted([cz.name for cz in fluent_mesh.cell_zones]) == sorted(model.part_names)
+    assert len(vtk_mesh.volume_ids) == 2
+    assert sorted([volume_name for volume_name in vtk_mesh.volume_names]) == sorted(
+        model.part_names
+    )
     assert sorted(["s1", "s2", "s3", "s4", "s5", "s6", "s8", "s9", "s10", "s11", "s12"]) == sorted(
-        [fz.name for fz in fluent_mesh.face_zones if "interior" not in fz.name]
+        [surface_name for surface_name in vtk_mesh.surface_names if "interior" not in surface_name]
     )
     # assert that more cells exist in Part 2, even though box size is smaller.
-    assert fluent_mesh.cell_zones[0].cells.shape[0] < fluent_mesh.cell_zones[1].cells.shape[0]
+    assert vtk_mesh.get_volume(1).n_cells < vtk_mesh.get_volume(2).n_cells
 
     pass

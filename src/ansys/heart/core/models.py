@@ -53,8 +53,9 @@ from ansys.heart.preprocessor.input import _InputModel
 import ansys.heart.preprocessor.mesher as mesher
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 from ansys.heart.simulator.settings.material.material import (
+    ISO,
+    Mat295,
     MechanicalMaterialModel,
-    NeoHookean,
 )
 
 
@@ -514,7 +515,7 @@ class HeartModel:
             path_to_fluent_mesh = os.path.join(self.workdir, "simulation_mesh.msh.h5")
 
         if use_wrapper:
-            fluent_mesh = mesher.mesh_from_non_manifold_input_model(
+            self.mesh = mesher.mesh_from_non_manifold_input_model(
                 model=self._input,
                 workdir=self.workdir,
                 global_mesh_size=global_mesh_size,
@@ -526,60 +527,13 @@ class HeartModel:
             )
         else:
             LOGGER.warning("Meshing from manifold model is experimental.")
-            fluent_mesh = mesher.mesh_from_manifold_input_model(
+            self.mesh = mesher.mesh_from_manifold_input_model(
                 model=self._input,
                 workdir=self.workdir,
                 mesh_size=global_mesh_size,
                 path_to_output=path_to_fluent_mesh,
                 overwrite_existing_mesh=overwrite_existing_mesh,
             )
-
-        # TODO: Cleanup the following.
-        # remove empty cell zones
-        num_cell_zones1 = len(fluent_mesh.cell_zones)
-        fluent_mesh.cell_zones = [cz for cz in fluent_mesh.cell_zones if cz.cells.shape[0] > 0]
-        num_cell_zones2 = len(fluent_mesh.cell_zones)
-        if num_cell_zones1 > num_cell_zones2:
-            LOGGER.debug("Removed {0} cell zones".format(num_cell_zones1 - num_cell_zones2))
-
-        # Use only cell zones that are inside the parts defined in the input.
-        fluent_mesh.cell_zones = [
-            cz for cz in fluent_mesh.cell_zones if cz.id in self._input.part_ids
-        ]
-
-        # remove any unused nodes
-        fluent_mesh.clean()
-
-        vtk_grid = fluent_mesh._to_vtk()
-
-        mesh = Mesh(vtk_grid)
-        mesh.cell_data["_volume-id"] = mesh.cell_data["cell-zone-ids"]
-        for fluent_cell_zone in fluent_mesh.cell_zones:
-            mesh._volume_id_to_name[fluent_cell_zone.id] = fluent_cell_zone.name
-
-        # merge some face zones that Fluent split based on connectivity.
-        idx_to_remove = []
-        for ii, fz in enumerate(fluent_mesh.face_zones):
-            if ":" in fz.name:
-                basename = fz.name.split(":")[0]
-                ref_facezone = next(fz1 for fz1 in fluent_mesh.face_zones if fz1.name == basename)
-                LOGGER.debug("Merging {0} with {1}".format(fz.name, ref_facezone.name))
-                ref_facezone.faces = np.vstack([ref_facezone.faces, fz.faces])
-                idx_to_remove += [ii]
-
-        # remove merged face zone
-        fluent_mesh.face_zones = [
-            fz for ii, fz in enumerate(fluent_mesh.face_zones) if ii not in idx_to_remove
-        ]
-
-        for fz in fluent_mesh.face_zones:
-            if "interior" not in fz.name:
-                surface = SurfaceMesh(
-                    name=fz.name, triangles=fz.faces, nodes=fluent_mesh.nodes, id=fz.id
-                )
-                mesh.add_surface(surface, int(fz.id), name=fz.name)
-
-        self.mesh = mesh.clean()
 
         filename = os.path.join(self.workdir, "volume-mesh-post-meshing.vtu")
         self.mesh.save(filename)
@@ -622,7 +576,7 @@ class HeartModel:
         LOGGER.info("Meshing fluid cavities...")
 
         # mesh the fluid cavities
-        fluid_mesh = mesher.mesh_fluid_cavities(
+        fluid_mesh = mesher._mesh_fluid_cavities(
             boundaries_fluid, caps, self.workdir, remesh_caps=remesh_caps
         )
 
@@ -1632,7 +1586,9 @@ class HeartModel:
         self,
         threshold_left_ventricle: float = 0.9,
         threshold_right_ventricle: float = 0.95,
-        stiff_material: MechanicalMaterialModel = NeoHookean(rho=0.001, c10=0.1, nu=0.499),
+        stiff_material: MechanicalMaterialModel = Mat295(
+            rho=0.001, iso=ISO(itype=1, beta=2, kappa=10, mu1=0.1, alpha1=2)
+        ),
     ) -> None | Part:
         """Use universal coordinates to generate a stiff base region.
 
@@ -1644,7 +1600,8 @@ class HeartModel:
             a uvc_l value larger than this threshold in the right ventricle will be set to a stiff
             material, by default 0.95
         stiff_material : MechanicalMaterialModel, optional
-            material to assign, by default NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+            material to assign, by default MAT295(rho=0.001,
+            iso=ISO(itype=1, beta=2, kappa=10, mu1=0.1, alpha1=2)
 
         Returns
         -------

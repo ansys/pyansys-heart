@@ -150,7 +150,7 @@ class ActiveModel:
 
     @dataclass
     class Model1:
-        """Hold data for active model 1."""
+        """Hold data for active model 1, check manual for details."""
 
         t0: float = None
         ca2ion: float = None
@@ -167,7 +167,7 @@ class ActiveModel:
 
     @dataclass
     class Model3:
-        """Hold data for active model 3."""
+        """Hold data for active model 3, check manual for details."""
 
         t0: float = None
         ca2ion50: float = 1.0
@@ -176,6 +176,24 @@ class ActiveModel:
         l: float = 1.0  # no effect if eta=0 #noqa: E741
         eta: float = 0.0
         sigmax: float = None
+
+    @dataclass
+    class Model4:
+        """Hold data for active model 4."""
+
+        raise NotImplementedError
+
+    @dataclass
+    class Model2:
+        """Hold data for active model 2."""
+
+        raise NotImplementedError
+
+    @dataclass
+    class Model5:
+        """Hold data for active model 5."""
+
+        raise NotImplementedError
 
 
 @dataclass

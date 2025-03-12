@@ -74,9 +74,11 @@ class MaterialNeoHook(custom_keywords.Mat077H):
         mid: int,
         rho: float,
         c10: float,
-        poisson_ratio: float = 0.499,
+        nu: float,
+        kappa: float,
     ):
-        super().__init__(mid=mid, ro=rho, pr=poisson_ratio, n=0, c10=c10)
+        super().__init__(mid=mid, ro=rho, pr=nu, n=0, c10=c10)
+        setattr(self, "user_comment", f"nu deduced from kappa={kappa}")
         return
 
 
@@ -99,7 +101,7 @@ class MaterialHGOMyocardium(keywords.Mat295):
         super().__init__(mid=id)
         setattr(self, "rho", mat.rho)
         setattr(self, "aopt", mat.aopt)
-
+        setattr(self, "user_comment", f"nu deduced from kappa={mat.iso.kappa}")
         # iso
         for field in dataclasses.fields(mat.iso):
             value = getattr(mat.iso, field.name)

@@ -934,6 +934,13 @@ class DynaSettings:
         elif dynatype == "smp":
             self.mpi_options = ""
 
+        self._modify_from_global_settings()
+
+        LOGGER.info("LS-DYNA Configuration:")
+        LOGGER.info(
+            f"path: {self.lsdyna_path} | type: {self.dynatype} | platform: {self.platform} | cpus: {self.num_cpus}"  # noqa: E501
+        )
+
         return
 
     def get_commands(self, path_to_input: pathlib.Path) -> List[str]:
@@ -1042,6 +1049,14 @@ class DynaSettings:
         commands = [os.path.expandvars(c) for c in commands]
 
         return commands
+
+    def _modify_from_global_settings(self):
+        """Set DynaSettings based on globally defined settings for PyAnsys-Heart."""
+        self.lsdyna_path = os.getenv("PYANSYS_HEART_LSDYNA_PATH", self.lsdyna_path)
+        self.platform = os.getenv("PYANSYS_HEART_LSDYNA_PLATFORM", self.platform)
+        self.dynatype = os.getenv("PYANSYS_HEART_LSDYNA_TYPE", self.dynatype)
+        self.num_cpus = int(os.getenv("PYANSYS_HEART_NUM_CPU", self.num_cpus))
+        return
 
     # TODO: @mhoeijm update to ensure compatibility with new LS-DYNA/Ansys versions
     def _set_env_variables(self):

@@ -54,7 +54,7 @@ import ansys.heart.preprocessor.mesher as mesher
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 from ansys.heart.simulator.settings.material.material import (
     ISO,
-    MAT295,
+    Mat295,
     MechanicalMaterialModel,
 )
 
@@ -1595,7 +1595,7 @@ class HeartModel:
         self,
         threshold_left_ventricle: float = 0.9,
         threshold_right_ventricle: float = 0.95,
-        stiff_material: MechanicalMaterialModel = MAT295(
+        stiff_material: MechanicalMaterialModel = Mat295(
             rho=0.001, iso=ISO(itype=1, beta=2, kappa=10, mu1=0.1, alpha1=2)
         ),
     ) -> None | Part:

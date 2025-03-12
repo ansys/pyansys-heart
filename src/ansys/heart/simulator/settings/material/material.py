@@ -254,7 +254,7 @@ class MechanicalMaterialModel:
 
 
 @dataclass
-class MAT295(MechanicalMaterialModel):
+class Mat295(MechanicalMaterialModel):
     """Hold data for MAT_ANISOTROPIC_HYPERELASTIC (MAT_295)."""
 
     rho: float

@@ -54,7 +54,7 @@ from ansys.heart.core.models import (
 from ansys.heart.core.objects import Cap, CapType, Part, PartType, SurfaceMesh
 from ansys.heart.simulator.settings.material.ep_material import CellModel, EPMaterial
 from ansys.heart.simulator.settings.material.material import (
-    MAT295,
+    Mat295,
     MechanicalMaterialModel,
     NeoHookean,
 )
@@ -1205,7 +1205,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         for part in self.model.parts:
             material = part.meca_material
 
-            if isinstance(material, MAT295):
+            if isinstance(material, Mat295):
                 # need to write ca2+ curve
                 if add_active and not em_couple and material.active is not None:
                     x, y = material.active.ca2_curve.dyna_input

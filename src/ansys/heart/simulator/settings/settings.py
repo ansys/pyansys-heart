@@ -677,11 +677,11 @@ class SimulationSettings:
             material with parameters in settings
         """
         if required_type == "anisotropic":
-            material = _read_myocardium_from_settings(
+            material = _read_myocardium_property(
                 self.mechanics.material.myocardium, coupled=ep_coupled
             )
         elif required_type == "isotropic":
-            material = _read_passive_from_settings(self.mechanics.material.passive)
+            material = _read_passive_property(self.mechanics.material.passive)
 
         return material
 
@@ -737,7 +737,8 @@ class SimulationSettings:
         return rotation
 
 
-def _read_passive_from_settings(passive: AttrDict) -> MAT295:
+def _read_passive_property(passive: AttrDict) -> MAT295:
+    """Read passive property from settings."""
     passive = MAT295(
         rho=passive["rho"].m,
         iso=ISO(
@@ -751,7 +752,8 @@ def _read_passive_from_settings(passive: AttrDict) -> MAT295:
     return passive
 
 
-def _read_myocardium_from_settings(mat: AttrDict, coupled=False) -> MAT295:
+def _read_myocardium_property(mat: AttrDict, coupled=False) -> MAT295:
+    """Read myocardium property from settings."""
     rho = mat["isotropic"]["rho"].m
 
     iso = ISO(

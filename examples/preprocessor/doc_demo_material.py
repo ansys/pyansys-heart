@@ -45,8 +45,8 @@ from ansys.heart.simulator.settings.material.material import (
     ACTIVE,
     ANISO,
     ISO,
-    MAT295,
     ActiveModel,
+    Mat295,
     NeoHookean,
 )
 
@@ -68,7 +68,7 @@ neo = NeoHookean(rho=0.001, c10=1, nu=0.499)
 ###############################################################################
 ## The recommended approach is to create a Neo-Hookean material by
 # activating only the isotropic module in MAT295.
-neo2 = MAT295(rho=0.001, iso=ISO(itype=1, beta=2, kappa=1, mu1=0.05, alpha1=2))
+neo2 = Mat295(rho=0.001, iso=ISO(itype=1, beta=2, kappa=1, mu1=0.05, alpha1=2))
 
 ###############################################################################
 # .. note::
@@ -152,9 +152,9 @@ active3 = ACTIVE(model=ac_model3, ca2_curve=ac_curve3)
 
 ###############################################################################
 ## Finally, MAT295 can be created with the above modules
-iso_mat = MAT295(rho=1, iso=iso, aniso=None, active=None)
-passive_mat = MAT295(rho=1, iso=iso, aniso=aniso1, active=None)
-active_mat = MAT295(rho=1, iso=iso, aniso=aniso1, active=active)
+iso_mat = Mat295(rho=1, iso=iso, aniso=None, active=None)
+passive_mat = Mat295(rho=1, iso=iso, aniso=aniso1, active=None)
+active_mat = Mat295(rho=1, iso=iso, aniso=aniso1, active=active)
 
 ###############################################################################
 ## EP materials can be created as follows

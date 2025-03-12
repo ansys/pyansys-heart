@@ -41,7 +41,7 @@ import numpy as np
 import pandas as pd
 
 from ansys.dyna.core.keywords import keywords
-from ansys.heart.simulator.settings.material.material import MAT295, ActiveModel
+from ansys.heart.simulator.settings.material.material import ActiveModel, Mat295
 
 # import custom keywords in separate namespace
 from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
@@ -85,7 +85,7 @@ class MaterialNeoHook(custom_keywords.Mat077H):
 class MaterialHGOMyocardium(keywords.Mat295):
     """HGO Material model - derived from Mat295."""
 
-    def __init__(self, id: int, mat: MAT295, ignore_active: bool = False):
+    def __init__(self, id: int, mat: Mat295, ignore_active: bool = False):
         """Init a keyword of *mat295.
 
         Parameters

@@ -3122,9 +3122,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 ncylbem=None,
             )
         )
-        self.kw_database.ep_settings.append(
-            keywords.EmControlTimestep(dtcons=macrodt)
-        )
+        self.kw_database.ep_settings.append(keywords.EmControlTimestep(dtcons=macrodt))
 
         self.kw_database.ep_settings.append(
             custom_keywords.EmEpIsoch(idisoch=1, idepol=1, dplthr=-20, irepol=1, rplthr=-40)
@@ -3663,9 +3661,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
         # coupling parameters
         coupling_str = (
-            "*EM_CONTROL_COUPLING\n"
-            "$    THCPL     SMCPL    THLCID    SMLCID\n"
-            "         1         0\n"
+            "*EM_CONTROL_COUPLING\n$    THCPL     SMCPL    THLCID    SMLCID\n         1         0\n"
         )
         self.kw_database.ep_settings.append("$ EM-MECA coupling control")
         self.kw_database.ep_settings.append(coupling_str)

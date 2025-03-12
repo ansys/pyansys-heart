@@ -199,8 +199,8 @@ class SystemModelPost:
         except FileNotFoundError:
             try:  # from SMP
                 icvout = ICVoutReader(os.path.join(self.dir, "binout"))
-            except FileNotFoundError:
-                LOGGER.error("Cannot find binout file.")
+            except FileNotFoundError as error:
+                LOGGER.error(f"Cannot find binout file. {error}")
                 exit()
         l_ed_volume = icvout.get_volume(1)[0] / 1000
         self.lv_system = ZeroDSystem(fcsv1, [l_ed_pressure, l_ed_volume], name="Left ventricle")
@@ -230,9 +230,9 @@ class SystemModelPost:
         vl = self.lv_system.volume.cavity[start:end]
         try:
             ef[0] = (max(vl) - min(vl)) / max(vl)
-        except Exception:
+        except Exception as e:
             ef[0] = None
-            LOGGER.warning("Failed to compute ejection fraction.")
+            LOGGER.warning(f"Failed to compute ejection fraction. {e}")
         if self.model_type == "BV":
             vr = self.rv_system.volume.cavity[start:end]
             ef[1] = (max(vr) - min(vr)) / max(vr)

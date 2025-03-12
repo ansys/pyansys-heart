@@ -50,7 +50,7 @@ from pint import Quantity
 
 import ansys.heart.core.models as models
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
-from ansys.heart.simulator.settings.material.material import NeoHookean
+from ansys.heart.simulator.settings.material.material import ISO, Mat295
 from ansys.heart.simulator.simulator import DynaSettings, EPMechanicsSimulator
 
 ###############################################################################
@@ -146,7 +146,8 @@ simulator.model.right_atrium.active = True
 # Extract elements around atrial caps and assign as a passive material
 ring = simulator.model.create_atrial_stiff_ring(radius=5)
 # material is stiff and value is arbitrarily chosen
-ring.meca_material = NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+stiff_iso = Mat295(rho=0.001, iso=ISO(itype=-1, beta=2, kappa=10, mu1=0.1, alpha1=2))
+ring.meca_material = stiff_iso
 # assign default EP material as for atrial
 ring.ep_material = EPMaterial.Active()
 
@@ -154,7 +155,7 @@ ring.ep_material = EPMaterial.Active()
 simulator.compute_uhc()
 
 # Extract elements around atrialvenricular valves and assign as a passive material
-simulator.model.create_stiff_ventricle_base(stiff_material=NeoHookean(rho=0.001, c10=0.1, nu=0.499))
+simulator.model.create_stiff_ventricle_base(stiff_material=stiff_iso)
 
 # Estimate the stress-free-configuration
 simulator.compute_stress_free_configuration()

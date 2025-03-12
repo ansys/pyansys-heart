@@ -327,7 +327,3 @@ def remove_triangle_layers_from_trimesh(triangles: np.ndarray, iters: int = 1) -
         reduced_triangles = reduced_triangles[~idx_triangles_boundary, :]
 
     return reduced_triangles
-
-
-if __name__ == "__main__":
-    LOGGER.debug("Protected")

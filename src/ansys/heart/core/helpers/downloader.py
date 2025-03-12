@@ -35,7 +35,6 @@ import os
 from pathlib import Path, PurePath
 import typing
 
-from tqdm import tqdm
 import validators
 
 from ansys.heart.core import LOG as LOGGER
@@ -215,8 +214,8 @@ def unpack_case(tar_path: Path):
         tar_dir = os.path.dirname(tar_path)
         tar_ball.extractall(path=tar_dir)
         return True
-    except Exception:
-        LOGGER.error("Unpacking failed...")
+    except Exception as exception:
+        LOGGER.error(f"Unpacking failed... {exception}")
         return False
 
 
@@ -273,10 +272,7 @@ def unpack_cases(list_of_tar_files: typing.List):
     >>> from ansys.heart.misc.downloader import unpack_cases
     >>> unpack_cases(["01.tar.gz", "02.tar.gz"])
     """
-    for file in tqdm(list_of_tar_files):
+    for file in list_of_tar_files:
+        LOGGER.info(f"Unpacking {file}...")
         unpack_case(file)
     return
-
-
-if __name__ == "__main__":
-    LOGGER.info("Protected")

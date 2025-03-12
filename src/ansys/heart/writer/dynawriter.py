@@ -54,7 +54,7 @@ from ansys.heart.core.models import (
 from ansys.heart.core.objects import Cap, CapType, Part, PartType, SurfaceMesh
 from ansys.heart.simulator.settings.material.ep_material import CellModel, EPMaterial
 from ansys.heart.simulator.settings.material.material import (
-    MAT295,
+    Mat295,
     MechanicalMaterialModel,
     NeoHookean,
 )
@@ -597,7 +597,7 @@ class BaseDynaWriter:
     def export(self, export_directory: str):
         """Write the model to files."""
         tstart = time.time()
-        LOGGER.debug("Writing all LS-DYNA .k files...")
+        LOGGER.info("Writing all LS-DYNA .k files...")
 
         # is this reachable??
         if not export_directory:
@@ -648,7 +648,7 @@ class BaseDynaWriter:
 
     def _keep_ventricles(self):
         """Remove any non-ventricular parts."""
-        LOGGER.warning("Just keeping ventricular-parts for fiber/purkinje generation")
+        LOGGER.debug("Just keeping ventricular-parts for fiber/purkinje generation")
         parts_to_keep = [
             p.name for p in self.model.parts if p.part_type in [PartType.VENTRICLE, PartType.SEPTUM]
         ]
@@ -659,7 +659,7 @@ class BaseDynaWriter:
         """Remove parts by a list of part names."""
         parts_to_remove = [part for part in self.model.part_names if part not in parts_to_keep]
         for part_to_remove in parts_to_remove:
-            LOGGER.warning("Removing: {}".format(part_to_remove))
+            LOGGER.warning(f"Removing: {part_to_remove}")
             self.model.remove_part(part_to_remove)
         return
 
@@ -1191,7 +1191,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 LOGGER.info(f"Material of {part.name} will be assigned automatically.")
                 if part.fiber:
                     part.meca_material = self.settings.get_mechanical_material(
-                        required_type=MAT295, ep_coupled=em_couple
+                        required_type="anisotropic", ep_coupled=em_couple
                     )
                     # disable active module
                     if not part.active:
@@ -1199,13 +1199,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
                 else:
                     part.meca_material = self.settings.get_mechanical_material(
-                        required_type=NeoHookean
+                        required_type="isotropic"
                     )
         # write
         for part in self.model.parts:
             material = part.meca_material
 
-            if isinstance(material, MAT295):
+            if isinstance(material, Mat295):
                 # need to write ca2+ curve
                 if add_active and not em_couple and material.active is not None:
                     x, y = material.active.ca2_curve.dyna_input
@@ -1232,6 +1232,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     mid=part.mid,
                     rho=material.rho,
                     c10=material.c10,
+                    nu=material.nu,
+                    kappa=material.kappa,
                 )
                 self.kw_database.material.append(material_kw)
 
@@ -2134,7 +2136,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
 
         if isinstance(self.model, (FourChamber, FullHeart)):
             LOGGER.warning(
-                "Atrium present in the model, they will be removed for ventricle fiber generation."
+                "Atrium present in the model, these will be removed for ventricle fiber generation."
             )
 
             parts = [
@@ -2647,7 +2649,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
         if isinstance(self.model, (FourChamber, FullHeart)):
             LOGGER.warning(
                 "Atrium present in the model, "
-                "they will be removed for ventricle Purkinje generation."
+                "these will be removed for ventricle Purkinje generation."
             )
             self._keep_ventricles()
 
@@ -2752,7 +2754,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
                         )
                     )[0][0]
                 ]
-                LOGGER.warning(
+                LOGGER.debug(
                     "Node id {0} is on edge of {1}. Picking node id {2}".format(
                         self.model.left_ventricle.apex_points[0].node_id,
                         endocardium.name,
@@ -2832,7 +2834,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
                         )
                     )[0][0]
                 ]
-                LOGGER.warning(
+                LOGGER.debug(
                     "Node id {0} is on edge of {1}. Picking node id {2}".format(
                         self.model.right_ventricle.apex_points[0].node_id,
                         endocardium.name,
@@ -3343,7 +3345,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def _update_use_Purkinje(self, associate_to_segment: bool = True):  # noqa N802
         """Update keywords for Purkinje usage."""
         if not isinstance(self.model, (FullHeart, FourChamber, BiVentricle, LeftVentricle)):
-            LOGGER.debug("Model type not recognized.")
+            LOGGER.error("Model type not recognized.")
             return
 
         sid = self.get_unique_section_id()

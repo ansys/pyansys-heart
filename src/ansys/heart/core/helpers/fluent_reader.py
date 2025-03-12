@@ -27,8 +27,10 @@ from typing import List, Tuple
 import h5py
 import numpy as np
 
+from ansys.heart.core import LOG as LOGGER
 
-class FluentCellZone:
+
+class _FluentCellZone:
     """Class that stores information of the cell zone."""
 
     def __init__(
@@ -59,7 +61,7 @@ class FluentCellZone:
         return
 
 
-class FluentFaceZone:
+class _FluentFaceZone:
     """Class that stores information of the face zone."""
 
     def __init__(
@@ -93,13 +95,28 @@ class FluentFaceZone:
         return
 
 
-class FluentMesh:
+class _FluentMesh:
     """Class that stores the Fluent mesh."""
 
     @property
     def cell_zone_names(self):
         """List of cell zone names of non-empty cell zones."""
         return [cz.name for cz in self.cell_zones if cz is not None]
+
+    @property
+    def face_zone_names(self):
+        """List of face zone names of non-empty face zones."""
+        return [fz.name for fz in self.face_zones if fz is not None]
+
+    @property
+    def cell_zone_id_to_name(self):
+        """Cell-zone id to name mapping."""
+        return {cz.id: cz.name for cz in self.cell_zones if cz is not None}
+
+    @property
+    def face_zone_id_to_name(self):
+        """Face-zone id to name mapping."""
+        return {fz.id: fz.name for fz in self.face_zones if fz is not None}
 
     def __init__(self, filename: str = None) -> None:
         self.filename: str = filename
@@ -114,9 +131,9 @@ class FluentMesh:
         """All cells."""
         self.cell_ids: np.ndarray = None
         """Array of cell ids use to define the cell zones."""
-        self.cell_zones: List[FluentCellZone] = []
+        self.cell_zones: List[_FluentCellZone] = []
         """List of cell zones."""
-        self.face_zones: List[FluentFaceZone] = []
+        self.face_zones: List[_FluentFaceZone] = []
         """List of face zones."""
         self._unique_map: np.ndarray = None
         """Map to go from full node list to node-list without duplicates."""
@@ -143,6 +160,7 @@ class FluentMesh:
             self._read_c0c1_of_face_zones()
             self._convert_interior_faces_to_tetrahedrons()
             self._set_cells_in_cell_zones()
+            self._remove_empty_cell_zones()
 
         self._close_file()
         return
@@ -184,7 +202,7 @@ class FluentMesh:
         self.nodes = self._unique_nodes
         return
 
-    def _set_cells_in_cell_zones(self) -> List[FluentCellZone]:
+    def _set_cells_in_cell_zones(self) -> List[_FluentCellZone]:
         """Iterate over the cell zones and assigns cells to them."""
         for cell_zone in self.cell_zones:
             zone_cell_ids = np.arange(cell_zone.min_id, cell_zone.max_id + 1, 1)
@@ -216,7 +234,7 @@ class FluentMesh:
             self.nodes = np.vstack([self.nodes, np.array(self.fid["meshes/1/nodes/coords/" + ii])])
         return
 
-    def _read_cell_zone_info(self) -> List[FluentCellZone]:
+    def _read_cell_zone_info(self) -> List[_FluentCellZone]:
         """Initialize the list of cell zones."""
         cell_zone_names = (
             np.chararray.tobytes(np.array(self.fid["meshes/1/cells/zoneTopology/name"]))
@@ -226,11 +244,11 @@ class FluentMesh:
         cell_zone_ids = np.array(self.fid["meshes/1/cells/zoneTopology/id"], dtype=int)
         min_ids = np.array(self.fid["meshes/1/cells/zoneTopology/minId"], dtype=int)
         max_ids = np.array(self.fid["meshes/1/cells/zoneTopology/maxId"], dtype=int)
-        cell_zones: List[FluentCellZone] = []
+        cell_zones: List[_FluentCellZone] = []
 
         for ii in range(0, len(cell_zone_names), 1):
             cell_zones.append(
-                FluentCellZone(
+                _FluentCellZone(
                     name=cell_zone_names[ii],
                     cid=cell_zone_ids[ii],
                     min_id=min_ids[ii],
@@ -240,7 +258,7 @@ class FluentMesh:
         self.cell_zones = cell_zones
         return cell_zones
 
-    def _read_face_zone_info(self) -> List[FluentFaceZone]:
+    def _read_face_zone_info(self) -> List[_FluentFaceZone]:
         """Initialize the list of face zones."""
         ids = np.array(self.fid["meshes/1/faces/zoneTopology/id"], dtype=int)
         max_ids = np.array(self.fid["meshes/1/faces/zoneTopology/maxId"], dtype=int)
@@ -252,11 +270,11 @@ class FluentMesh:
         )
         zone_types = np.array(self.fid["meshes/1/faces/zoneTopology/zoneType"], dtype=int)
         num_face_zones = len(ids)
-        face_zones: List[FluentFaceZone] = []
+        face_zones: List[_FluentFaceZone] = []
 
         for ii in range(0, num_face_zones, 1):
             face_zones.append(
-                FluentFaceZone(
+                _FluentFaceZone(
                     min_id=min_ids[ii],
                     max_id=max_ids[ii],
                     name=names[ii],
@@ -268,7 +286,7 @@ class FluentMesh:
         self.face_zones = face_zones
         return face_zones
 
-    def _read_all_faces_of_face_zones(self) -> List[FluentFaceZone]:
+    def _read_all_faces_of_face_zones(self) -> List[_FluentFaceZone]:
         """Read the faces of the face zone."""
         for face_zone in self.face_zones:
             subdir = "meshes/1/faces/nodes/" + str(face_zone.hdf5_id) + "/nodes"
@@ -283,7 +301,7 @@ class FluentMesh:
 
         return self.face_zones
 
-    def _read_c0c1_of_face_zones(self) -> List[FluentFaceZone]:
+    def _read_c0c1_of_face_zones(self) -> List[_FluentFaceZone]:
         """Read the cell connectivity of the face zone. Only do for interior cells."""
         for face_zone in self.face_zones:
             subdir0 = "meshes/1/faces/c0/" + str(face_zone.hdf5_id)
@@ -442,6 +460,28 @@ class FluentMesh:
         self._set_cells_in_cell_zones()
         return
 
+    def _remove_empty_cell_zones(self):
+        """Remove empty cell zones from cell zone list."""
+        self.cell_zones = [cz for cz in self.cell_zones if cz.cells.shape[0] > 0]
+        return
 
-if __name__ == "__main__":
-    print("protected")
+    def _merge_face_zones_based_on_connectivity(self, face_zone_separator: str = ":"):
+        """Merge face zones that were split by Fluent based on connectivity.
+
+        Notes
+        -----
+        This method is useful when mesh is split into multiple unconnected face zones with
+        the same name. Fluent uses a colon as an identifier when separating these face-zones.
+        """
+        idx_to_remove = []
+        for ii, fz in enumerate(self.face_zones):
+            if ":" in fz.name:
+                basename = fz.name.split(face_zone_separator)[0]
+                ref_facezone = next(fz1 for fz1 in self.face_zones if fz1.name == basename)
+                LOGGER.debug("Merging {0} with {1}".format(fz.name, ref_facezone.name))
+                ref_facezone.faces = np.vstack([ref_facezone.faces, fz.faces])
+                idx_to_remove += [ii]
+
+        # remove merged face zone
+        self.face_zones = [fz for ii, fz in enumerate(self.face_zones) if ii not in idx_to_remove]
+        return

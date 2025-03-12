@@ -181,19 +181,19 @@ class ActiveModel:
     class Model4:
         """Hold data for active model 4."""
 
-        raise NotImplementedError
+        pass
 
     @dataclass
     class Model2:
         """Hold data for active model 2."""
 
-        raise NotImplementedError
+        pass
 
     @dataclass
     class Model5:
         """Hold data for active model 5."""
 
-        raise NotImplementedError
+        pass
 
 
 @dataclass
@@ -254,7 +254,7 @@ class MechanicalMaterialModel:
 
 
 @dataclass
-class MAT295(MechanicalMaterialModel):
+class Mat295(MechanicalMaterialModel):
     """Hold data for MAT_ANISOTROPIC_HYPERELASTIC (MAT_295)."""
 
     rho: float

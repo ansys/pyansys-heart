@@ -48,8 +48,8 @@ from ansys.heart.simulator.settings.material.material import (
     ACTIVE,
     ANISO,
     ISO,
-    MAT295,
     ActiveModel,
+    Mat295,
 )
 
 
@@ -661,7 +661,7 @@ class SimulationSettings:
 
     def get_mechanical_material(
         self, required_type: Literal["isotropic", "anisotropic"], ep_coupled=False
-    ) -> MAT295:
+    ) -> Mat295:
         """Load mechanical materials from settings.
 
         Parameters
@@ -737,9 +737,9 @@ class SimulationSettings:
         return rotation
 
 
-def _read_passive_property(passive: AttrDict) -> MAT295:
+def _read_passive_property(passive: AttrDict) -> Mat295:
     """Read passive property from settings."""
-    passive = MAT295(
+    passive = Mat295(
         rho=passive["rho"].m,
         iso=ISO(
             itype=passive["itype"],
@@ -752,7 +752,7 @@ def _read_passive_property(passive: AttrDict) -> MAT295:
     return passive
 
 
-def _read_myocardium_property(mat: AttrDict, coupled=False) -> MAT295:
+def _read_myocardium_property(mat: AttrDict, coupled=False) -> Mat295:
     """Read myocardium property from settings."""
     rho = mat["isotropic"]["rho"].m
 
@@ -807,7 +807,7 @@ def _read_myocardium_property(mat: AttrDict, coupled=False) -> MAT295:
             ca2_curve=None,
         )
 
-    return MAT295(rho=rho, iso=iso, aniso=aniso, active=active)
+    return Mat295(rho=rho, iso=iso, aniso=aniso, active=active)
 
 
 def _remove_units_from_dictionary(d: dict):

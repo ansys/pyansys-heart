@@ -30,6 +30,7 @@ import pytest
 
 from ansys.heart.core import LOG  # Global logger
 import ansys.heart.core.logger as logger
+from ansys.heart.core.logger import _clear_all_file_handlers
 
 ## Notes
 # Use the next fixtures for:
@@ -253,7 +254,6 @@ def test_log_to_file(tmp_path_factory: pytest.TempPathFactory):
 
     # if not LOG.file_handler:
     LOG.log_to_file(file_path)
-
     LOG.error(file_msg_error)
     LOG.debug(file_msg_debug)
 
@@ -306,3 +306,21 @@ def test_global_logger_format(fake_record: Callable):
     assert re.findall(r"(?:[0-9]{1,3}.){3}[0-9]{1,3}", log)
     assert "DEBUG" in log
     assert "This is a message" in log
+
+
+def test_clear_file_handlers(tmp_path_factory: pytest.TempPathFactory):
+    """Test clearing all file handlers."""
+    log = LOG
+    file_path = tmp_path_factory.mktemp("log_files") / "instance.log"
+    log.log_to_file(file_path)
+
+    _clear_all_file_handlers(log)
+    assert not any([isinstance(handler, deflogging.FileHandler) for handler in log.logger.handlers])
+    assert isinstance(log.logger.handlers[0], deflogging.StreamHandler)
+
+    log.debug("test")
+
+    expected_text_in_last_line = "LEVEL - INSTANCE NAME - MODULE - FUNCTION - MESSAGE"
+    with open(file_path, "r") as fid:
+        text = fid.readlines()
+        assert expected_text_in_last_line in text[-1]

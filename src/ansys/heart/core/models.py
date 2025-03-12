@@ -28,11 +28,9 @@ import os
 
 # import json
 import pathlib
-import pickle
 import re
 from typing import List, Literal, Union
 
-from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 import yaml
@@ -44,6 +42,7 @@ from ansys.heart.core.objects import (
     BeamsMesh,
     BeamMesh,
     Cap,
+    CapType,
     Cavity,
     Mesh,
     Part,
@@ -55,8 +54,9 @@ from ansys.heart.preprocessor.input import _InputModel
 import ansys.heart.preprocessor.mesher as mesher
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 from ansys.heart.simulator.settings.material.material import (
+    ISO,
+    Mat295,
     MechanicalMaterialModel,
-    NeoHookean,
 )
 
 
@@ -325,11 +325,11 @@ class HeartModel:
            return the part if succeed
         """
         if len(eids) == 0:
-            LOGGER.error(f"Element list is empty to create {name}")
+            LOGGER.error(f"Failed to create {name}. Element list is empty")
             return None
 
         if name in [p.name for p in self.parts]:
-            LOGGER.error(f"Part {name} has existed.")
+            LOGGER.error(f"Failed to create {name}. Name already exists.")
             return None
 
         for part in self.parts:
@@ -521,9 +521,7 @@ class HeartModel:
             path_to_fluent_mesh = os.path.join(self.workdir, "simulation_mesh.msh.h5")
 
         if use_wrapper:
-            LOGGER.warning("Meshing from non-manifold model not yet available.")
-
-            fluent_mesh = mesher.mesh_from_non_manifold_input_model(
+            self.mesh = mesher.mesh_from_non_manifold_input_model(
                 model=self._input,
                 workdir=self.workdir,
                 global_mesh_size=global_mesh_size,
@@ -534,60 +532,14 @@ class HeartModel:
                 _wrap_size_per_part=_wrap_size_per_part,
             )
         else:
-            fluent_mesh = mesher.mesh_from_manifold_input_model(
+            LOGGER.warning("Meshing from manifold model is experimental.")
+            self.mesh = mesher.mesh_from_manifold_input_model(
                 model=self._input,
                 workdir=self.workdir,
                 mesh_size=global_mesh_size,
                 path_to_output=path_to_fluent_mesh,
                 overwrite_existing_mesh=overwrite_existing_mesh,
             )
-
-        # TODO: Cleanup the following.
-        # remove empty cell zones
-        num_cell_zones1 = len(fluent_mesh.cell_zones)
-        fluent_mesh.cell_zones = [cz for cz in fluent_mesh.cell_zones if cz.cells.shape[0] > 0]
-        num_cell_zones2 = len(fluent_mesh.cell_zones)
-        if num_cell_zones1 > num_cell_zones2:
-            LOGGER.warning("Removed {0} cell zones".format(num_cell_zones1 - num_cell_zones2))
-
-        # Use only cell zones that are inside the parts defined in the input.
-        fluent_mesh.cell_zones = [
-            cz for cz in fluent_mesh.cell_zones if cz.id in self._input.part_ids
-        ]
-
-        # remove any unused nodes
-        fluent_mesh.clean()
-
-        vtk_grid = fluent_mesh._to_vtk()
-
-        mesh = Mesh(vtk_grid)
-        mesh.cell_data["_volume-id"] = mesh.cell_data["cell-zone-ids"]
-        for fluent_cell_zone in fluent_mesh.cell_zones:
-            mesh._volume_id_to_name[fluent_cell_zone.id] = fluent_cell_zone.name
-
-        # merge some face zones that Fluent split based on connectivity.
-        idx_to_remove = []
-        for ii, fz in enumerate(fluent_mesh.face_zones):
-            if ":" in fz.name:
-                basename = fz.name.split(":")[0]
-                ref_facezone = next(fz1 for fz1 in fluent_mesh.face_zones if fz1.name == basename)
-                LOGGER.debug("Merging {0} with {1}".format(fz.name, ref_facezone.name))
-                ref_facezone.faces = np.vstack([ref_facezone.faces, fz.faces])
-                idx_to_remove += [ii]
-
-        # remove merged face zone
-        fluent_mesh.face_zones = [
-            fz for ii, fz in enumerate(fluent_mesh.face_zones) if ii not in idx_to_remove
-        ]
-
-        for fz in fluent_mesh.face_zones:
-            if "interior" not in fz.name:
-                surface = SurfaceMesh(
-                    name=fz.name, triangles=fz.faces, nodes=fluent_mesh.nodes, id=fz.id
-                )
-                mesh.add_surface(surface, int(fz.id), name=fz.name)
-
-        self.mesh = mesh.clean()
 
         filename = os.path.join(self.workdir, "volume-mesh-post-meshing.vtu")
         self.mesh.save(filename)
@@ -630,7 +582,7 @@ class HeartModel:
         LOGGER.info("Meshing fluid cavities...")
 
         # mesh the fluid cavities
-        fluid_mesh = mesher.mesh_fluid_cavities(
+        fluid_mesh = mesher._mesh_fluid_cavities(
             boundaries_fluid, caps, self.workdir, remesh_caps=remesh_caps
         )
 
@@ -715,13 +667,7 @@ class HeartModel:
         >>> model = models.HeartModel.load_model("heart_model.pickle")
         >>> model.plot_mesh(show_edges=True)
         """
-        try:
-            import pyvista
-        except ImportError:
-            LOGGER.warning("pyvista not found. Install with: pip install pyvista")
-            return
-
-        plotter = pyvista.Plotter()
+        plotter = pv.Plotter()
         plotter.add_mesh(self.mesh, show_edges=show_edges, scalars=color_by)
 
         plotter.show()
@@ -741,15 +687,9 @@ class HeartModel:
         >>> model = models.HeartModel.load_model("my_model.pickle")
         >>> model.part(model.left_ventricle)
         """
-        try:
-            import pyvista
-        except ImportError:
-            LOGGER.warning("pyvista not found. Install with: pip install pyvista")
-            return
-
         mesh = self.mesh
 
-        plotter = pyvista.Plotter()
+        plotter = pv.Plotter()
         plotter.add_mesh(mesh, opacity=0.5, color="white")
         part = mesh.extract_cells(part.element_ids)
         plotter.add_mesh(part, opacity=0.95, color="red")
@@ -772,12 +712,7 @@ class HeartModel:
         >>> model = models.HeartModel.load_model("my_model.pickle")
         >>> model.plot_fibers(n_seed_points=5000)
         """
-        try:
-            import pyvista
-        except ImportError:
-            LOGGER.warning("pyvista not found. Install with: pip install pyvista")
-            return
-        plotter = pyvista.Plotter()
+        plotter = pv.Plotter()
 
         # fiber direction is stored in cell data, but the cell-to-point filter
         # leads to issues, where nan values in any non-volume cell may change
@@ -807,14 +742,6 @@ class HeartModel:
         Plot the model
         >>> model.plot(show_edges=True)
         """
-        try:
-            import pyvista as pv
-        except ImportError:
-            LOGGER.warning(
-                "PyVista not found: visualization not supported."
-                "Install pyvista with: pip install pyvista"
-            )
-            return
         try:
             import matplotlib as matplotlib
         except ImportError:
@@ -850,15 +777,6 @@ class HeartModel:
             return
 
         try:
-            import pyvista as pv
-        except ImportError:
-            LOGGER.warning(
-                "PyVista not found: visualization not supported."
-                "Install pyvista with: pip install pyvista"
-            )
-            return
-
-        try:
             plotter = pv.Plotter()
             plotter.add_mesh(self.mesh, color="w", opacity=0.3)
             for beams in self.beam_network:
@@ -867,75 +785,6 @@ class HeartModel:
         except Exception:
             LOGGER.warning("Failed to plot mesh.")
         return
-
-    @deprecated(
-        reason="""_dump_model() uses pickle which is unsafe
-                and will be replaced. Use save_model() instead"""
-    )
-    def _dump_model(self, filename: Union[pathlib.Path, str] = None):
-        """Save model to .pickle file.
-
-        Parameters
-        ----------
-        filename : pathlib.Path | str, optional
-            Path where the model will be saved, by default None
-
-        Returns
-        -------
-        str
-            Path to where the model is saved.
-
-        Examples
-        --------
-        >>> model._dump_model("my_heart_model.pickle")
-
-        """
-        LOGGER.debug("Writing model to disk")
-
-        if isinstance(filename, pathlib.Path):
-            filename = str(filename)
-
-        if not filename:
-            filename = os.path.join(self.workdir, "heart_model.pickle")
-
-        if os.path.isfile(filename):
-            LOGGER.warning(f"Overwriting {filename}")
-
-        with open(filename, "wb") as file:
-            pickle.dump(self, file)
-
-        return
-
-    @staticmethod
-    @deprecated(reason="Load model is deprecated and is superseded by by load_model_from_mesh()")
-    def load_model(filename: pathlib.Path):
-        """Load a preprocessed model from file.
-
-        Examples
-        --------
-        >>> model = HeartModel.load_model("my_model.pickle")
-
-        """
-        # NOTE: need to suppress some vtk errors in pickled pyvista objects.
-        # change the verbosity in the vtk logger and suppress the python logger.
-        import logging
-
-        import vtk
-
-        logger = copy.deepcopy(logging.getLogger("pyheart_global"))
-        # setting propagate to False is workaround for VTK changing log behavior
-        logger.propagate = False
-
-        logger = logging.getLogger()
-        logger.disabled = True
-        # to suppress vtk errors
-        vtk_logger = vtk.vtkLogger
-        vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_OFF)
-        with open(filename, "rb") as file:
-            model = pickle.load(file)
-        logger.disabled = False
-        vtk_logger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_1)
-        return model
 
     def save_model(self, filename: str):
         """Save the model and necessary info to reconstruct.
@@ -972,7 +821,7 @@ class HeartModel:
         return
 
     # TODO: could consider having this as a static method.
-    # TODO: Tight now this only reconstructs the surfaces and parts that
+    # TODO: Right now this only reconstructs the surfaces and parts that
     # TODO: are defined in the HeartModel classes:
     # TODO: LeftVentricle, BiVentricle, FourChamber and FullHeart.
     # TODO: Should consider to also reconstruct the parts that are not explicitly
@@ -1012,7 +861,7 @@ class HeartModel:
             try:
                 list(part_info.keys()).index(part_1.name)
             except ValueError:
-                LOGGER.debug(f"{part_1.name} not in part info")
+                LOGGER.warning(f"{part_1.name} not in part info")
                 continue
 
             #! try to add surfaces to part by using the pre-defined surfaces
@@ -1032,7 +881,7 @@ class HeartModel:
                     np.isin(self.mesh.cell_data["_volume-id"], part_1.pid)
                 ).flatten()
             except Exception:
-                LOGGER.debug(f"Failed to set element ids for {part_1.name}")
+                LOGGER.warning(f"Failed to set element ids for {part_1.name}")
                 pass
 
             # try to initialize cavity object.
@@ -1043,7 +892,8 @@ class HeartModel:
 
             if part_info[part_1.name]["caps"] != {}:
                 for cap_name, cap_id in part_info[part_1.name]["caps"].items():
-                    cap = Cap(cap_name)
+                    #! note that we sasume cap name equals cap type here.
+                    cap = Cap(cap_name, cap_type=CapType(cap_name))
                     cap._mesh = self.mesh.get_surface(cap_id)
                     part_1.caps.append(cap)
 
@@ -1054,10 +904,10 @@ class HeartModel:
         try:
             self._extract_apex()
         except Exception:
-            LOGGER.error("Failed to extract apex. Consider setting apex manually.")
+            LOGGER.warning("Failed to extract apex. Consider setting apex manually.")
 
         if any(v is None for v in [self.short_axis, self.l4cv_axis, self.l2cv_axis]):
-            LOGGER.warning("Heart axis not defined in the VTU file.")
+            LOGGER.warning("Heart not defined in the VTU file.")
             try:
                 LOGGER.warning("Computing heart axis...")
                 self._define_anatomy_axis()
@@ -1066,7 +916,7 @@ class HeartModel:
                     "Failed to extract heart axis. Consider computing and setting them manually."
                 )
         else:
-            LOGGER.warning("Read heart axis defined in the VTU file is reused...")
+            LOGGER.info("Heart axis defined in the VTU file is reused...")
 
         return
 
@@ -1118,7 +968,7 @@ class HeartModel:
         self._validate_surfaces()
 
         self._assign_cavities_to_parts()
-        self._update_cap_names()
+        self._update_cap_types()
         self._validate_cap_names()
 
         self._extract_apex()
@@ -1288,9 +1138,7 @@ class HeartModel:
                     ]
 
                     LOGGER.warning(
-                        "Initial apical point is on edge of {0}, a close point is picked".format(
-                            surface.name,
-                        )
+                        f"Initial apical point is on edge of {surface.name}, the next closest point is used"  # noqa: E501
                     )
 
                 # assign apex point
@@ -1322,11 +1170,11 @@ class HeartModel:
 
         summ = 0
         for part in self.parts:
-            LOGGER.debug("Num elements in {0}: {1}".format(part.name, part.element_ids.shape[0]))
+            LOGGER.info("Num elements in {0}: {1}".format(part.name, part.element_ids.shape[0]))
             summ = summ + part.element_ids.shape[0]
-        LOGGER.debug("Total num elements: {}".format(summ))
+        LOGGER.info("Total num elements: {}".format(summ))
 
-        LOGGER.debug(
+        LOGGER.info(
             "{0}/{1} elements assigned to parts".format(summ, self.mesh.tetrahedrons.shape[0])
         )
 
@@ -1359,7 +1207,7 @@ class HeartModel:
                     surface.id = boundary_surface.id
 
                 else:
-                    LOGGER.warning("Could not find matching surface for: {0}".format(surface.name))
+                    LOGGER.info("Could not find matching surface for: {0}".format(surface.name))
 
         return
 
@@ -1451,8 +1299,8 @@ class HeartModel:
 
         return
 
-    def _update_cap_names(self):
-        """Try to update the cap names using names of connected boundaries."""
+    def _update_cap_types(self):
+        """Try to update the cap types using names of connected boundaries."""
         boundaries_to_check = [
             s for s in self.mesh._surfaces if "valve" in s.name or "inlet" in s.name
         ]
@@ -1465,16 +1313,20 @@ class HeartModel:
                             if "valve" in split or "inlet" in split:
                                 break
 
-                        cap.name = split.replace("-plane", "").replace("-inlet", "")
+                        cap_name = split.replace("-plane", "").replace("-inlet", "")
+                        cap.type = CapType(cap_name)
 
                         if "atrium" in part.name and (
-                            "tricuspid" in cap.name or "mitral" in cap.name
+                            cap.type in [CapType.TRICUSPID_VALVE, CapType.MITRAL_VALVE]
                         ):
-                            cap.name = cap.name + "-atrium"
+                            cap_name = cap_name + "-atrium"
+                            cap.type = CapType(cap.type.value + "-atrium")
 
-                        LOGGER.debug(f"Cap {cap.name} connected to {b.name}")
+                        cap.name = cap_name
+
+                        LOGGER.debug(f"Cap {cap.type.value} connected to {b.name}")
                         # update name to id map:
-                        self.mesh._surface_id_to_name[cap_mesh.id] = cap.name
+                        self.mesh._surface_id_to_name[cap_mesh.id] = cap.type.value
                         break
 
         return
@@ -1485,24 +1337,43 @@ class HeartModel:
     def _validate_cap_names(self):
         """Validate that caps are attached to right part."""
         for part in self.parts:
-            cap_names = [c.name for c in part.caps]
+            cap_types = [c.type for c in part.caps]
             if part.name == "Left ventricle":
-                expected_names = ["mitral", "aortic"]
+                expected_cap_types = [
+                    CapType.MITRAL_VALVE,
+                    CapType.AORTIC_VALVE,
+                    CapType.COMBINED_MITRAL_AORTIC_VALVE,
+                ]
             elif part.name == "Right ventricle":
-                expected_names = ["pulmonary", "tricuspid"]
+                expected_cap_types = [CapType.PULMONARY_VALVE, CapType.TRICUSPID_VALVE]
             elif part.name == "Left atrium":
-                expected_names = []
+                expected_cap_types = [
+                    CapType.LEFT_ATRIUM_APPENDAGE,
+                    CapType.LEFT_INFERIOR_PULMONARY_VEIN,
+                    CapType.LEFT_SUPERIOR_PULMONARY_VEIN,
+                    CapType.RIGHT_INFERIOR_PULMONARY_VEIN,
+                    CapType.RIGHT_SUPERIOR_PULMONARY_VEIN,
+                    CapType.MITRAL_VALVE_ATRIUM,
+                ]
             elif part.name == "Right atrium":
-                expected_names = []
+                expected_cap_types = [
+                    CapType.PULMONARY_VALVE_ATRIUM,
+                    CapType.SUPERIOR_VENA_CAVA,
+                    CapType.INFERIOR_VENA_CAVA,
+                ]
 
-            for cn in cap_names:
-                matches = [True for en in expected_names if en in cn]
-                if len(matches) == 1:
+            for cap_type in cap_types:
+                # matches = [True for expected in expected_cap_types if expected in cap_name]
+                # matches = [
+                #     True for expected_type in expected_cap_types if expected_type in cap_type
+                # ]
+                if cap_type in expected_cap_types:
                     break
                 else:
                     LOGGER.error(
-                        "Part: {0}. Cap name is {1}, but expecting cap names "
-                        "to contain one of {2}".format(part.name, cn, expected_names)
+                        "Part: {0}. Cap type is {1}, but expecting one of cap types:{2}".format(
+                            part.name, cap_type, expected_cap_types
+                        )
                     )
 
         return
@@ -1573,11 +1444,11 @@ class HeartModel:
         from ansys.heart.core.helpers.landmarks import compute_anatomy_axis
 
         mv_center = next(
-            cap.centroid for cap in self.left_ventricle.caps if cap.name == "mitral-valve"
+            cap.centroid for cap in self.left_ventricle.caps if cap.type == CapType.MITRAL_VALVE
         )
 
         av_center = next(
-            cap.centroid for cap in self.left_ventricle.caps if cap.name == "aortic-valve"
+            cap.centroid for cap in self.left_ventricle.caps if cap.type == CapType.AORTIC_VALVE
         )
 
         apex = next(
@@ -1651,6 +1522,7 @@ class HeartModel:
         Part
             Part of isolation elements.
         """
+        # TODO: move this method to FourChamber class.
         if not isinstance(self, FourChamber):
             LOGGER.error("This method is only for FourChamber model.")
             return
@@ -1694,7 +1566,7 @@ class HeartModel:
             atrium.element_ids = connected_cells
 
             # get orphan cells and set to isolation part
-            LOGGER.warning(f"{len(orphan_cells)} orphan cells are found and re-assigned.")
+            LOGGER.warning(f"{len(orphan_cells)} orphan cells are re-assigned.")
             interface_eids = np.append(interface_eids, orphan_cells)
 
             #! Central mesh object not updated. E.g. lose connection between part.element_ids and
@@ -1720,7 +1592,9 @@ class HeartModel:
         self,
         threshold_left_ventricle: float = 0.9,
         threshold_right_ventricle: float = 0.95,
-        stiff_material: MechanicalMaterialModel = NeoHookean(rho=0.001, c10=0.1, nu=0.499),
+        stiff_material: MechanicalMaterialModel = Mat295(
+            rho=0.001, iso=ISO(itype=1, beta=2, kappa=10, mu1=0.1, alpha1=2)
+        ),
     ) -> None | Part:
         """Use universal coordinates to generate a stiff base region.
 
@@ -1732,7 +1606,8 @@ class HeartModel:
             a uvc_l value larger than this threshold in the right ventricle will be set to a stiff
             material, by default 0.95
         stiff_material : MechanicalMaterialModel, optional
-            material to assign, by default NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+            material to assign, by default MAT295(rho=0.001,
+            iso=ISO(itype=1, beta=2, kappa=10, mu1=0.1, alpha1=2)
 
         Returns
         -------
@@ -1743,7 +1618,7 @@ class HeartModel:
             v = self.mesh.point_data_to_cell_data()["apico-basal"]
         except KeyError:
             LOGGER.error("Array named 'apico-basal' cannot be found, cannot create base part.")
-            LOGGER.error("Run simulator.compute_uhc() first.")
+            LOGGER.error("Please call simulator.compute_uhc() first.")
             return
 
         eids = np.intersect1d(
@@ -1784,6 +1659,7 @@ class HeartModel:
         Union[None, Part]
             Part of atrial rings if created
         """
+        # TODO: @mhoeijm move this to FourChamber class
         if not isinstance(self, FourChamber):
             LOGGER.error("This method is only for FourChamber model.")
             return
@@ -1793,12 +1669,12 @@ class HeartModel:
         for cap in self.left_atrium.caps:
             # update cap mesh with up-to-date mesh
             cap._mesh = self.mesh.get_surface(cap._mesh.id)
-            if "mitral" not in cap.name:
+            if cap.type is not CapType.MITRAL_VALVE_ATRIUM:
                 ring_nodes.extend(cap.global_node_ids_edge.tolist())
         for cap in self.right_atrium.caps:
             # update cap mesh with up-to-date mesh
             cap._mesh = self.mesh.get_surface(cap._mesh.id)
-            if "tricuspid" not in cap.name:
+            if cap.type is not CapType.TRICUSPID_VALVE_ATRIUM:
                 ring_nodes.extend(cap.global_node_ids_edge.tolist())
 
         ring_eles = vtkmethods.find_cells_close_to_nodes(self.mesh, ring_nodes, radius=radius)

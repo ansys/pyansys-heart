@@ -134,7 +134,7 @@ class ZeroDSystem:
         v0 : float
             Volume at t0
         t : np.ndarray
-            time array_
+            Time array
         q : np.ndarray
             flow array
 

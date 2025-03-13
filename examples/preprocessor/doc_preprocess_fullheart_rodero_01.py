@@ -44,7 +44,7 @@ import json
 import os
 from pathlib import Path
 
-from ansys.heart.core.helpers.general import clean_directory
+from ansys.heart.core.helpers.misc import clean_directory
 import ansys.heart.core.models as models
 from ansys.heart.preprocessor.database_preprocessor import get_compatible_input
 
@@ -57,14 +57,6 @@ mesher._fluent_version = "24.1"
 case_file = os.path.join(
     "d:\\development", "pyansys-heart", "downloads", "Rodero2021", "01", "01.vtk"
 )
-
-# sphinx_gallery_start_ignore
-# Overwrite with env variables: for testing purposes only. May be removed by user.
-try:
-    case_file = str(Path(os.environ["PATH_TO_CASE_FILE"]))
-except KeyError:
-    pass
-# sphinx_gallery_end_ignore
 
 workdir = os.path.join(os.path.dirname(case_file), "FullHeart")
 

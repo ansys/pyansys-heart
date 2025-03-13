@@ -86,7 +86,7 @@ class ZeroDSystem:
         Parameters
         ----------
         csv_path : str
-            csv file path
+            CSV file path
         ed_state : list[float,float]
             End of Diastole pressure and volume
         name : str, optional

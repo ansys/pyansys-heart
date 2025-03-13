@@ -14,6 +14,7 @@ on:
 # Required env variables for pyfluent
 env:
   MAIN_PYTHON_VERSION: "3.10"
+  AWP_ROOT241: "C:\\Program Files\\ANSYS Inc\\v241"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

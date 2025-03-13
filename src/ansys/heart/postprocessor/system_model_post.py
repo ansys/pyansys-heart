@@ -257,7 +257,7 @@ class SystemModelPost:
         show_ed : bool, optional
             Whether to show the end of diastole state in zeroppressure, by default True
         ef : list[float, float], optional
-            show ejection fraction in legend if given, by default [None, None]
+            Show the ejection fraction in the legend, by default [None, None]
 
         Returns
         -------

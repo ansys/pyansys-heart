@@ -86,7 +86,7 @@ class ZeroDSystem:
         Parameters
         ----------
         csv_path : str
-            csv file path
+            CSV file path
         ed_state : list[float,float]
             End of Diastole pressure and volume
         name : str, optional
@@ -126,7 +126,7 @@ class ZeroDSystem:
         Cavity's volume is not evaluated/saved in csv file, this is to ensure
         volume is consistent with what's in icvout.
 
-        Use implicit with gamma=0.6
+        This assumes that the implicit solver with gamma=0.6 was used.
 
 
         Parameters
@@ -134,9 +134,9 @@ class ZeroDSystem:
         v0 : float
             Volume at t0
         t : np.ndarray
-            time array_
+            Time array
         q : np.ndarray
-            flow array
+            Flow array
 
         Returns
         -------
@@ -251,13 +251,13 @@ class SystemModelPost:
         Parameters
         ----------
         t_start : float, optional
-            start time to plot, by default 0
+            Start time to plot, by default 0
         t_end : float, optional
-            end time to plot, by default 10e10
+            End time to plot, by default 10e10
         show_ed : bool, optional
-            whether show end of diastole state in zeroppressure, by default True
+            Whether to show the end of diastole state in zeroppressure, by default True
         ef : list[float, float], optional
-            show ejection fraction in legend if given, by default [None, None]
+            Show the ejection fraction in the legend, by default [None, None]
 
         Returns
         -------

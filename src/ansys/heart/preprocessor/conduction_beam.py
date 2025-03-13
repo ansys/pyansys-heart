@@ -192,12 +192,12 @@ class ConductionSystem:
 
         beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="SAN_to_AVN")
         
-        beamnet = pv.lines_from_points(path_sinoatrial_atrioventricular.points)
-
         
+        # usage of new class ------------        
+        beamnet = pv.lines_from_points(path_sinoatrial_atrioventricular.points)
         id=self.m.conduction_system.get_unique_lines_id()
         self.m.conduction_system.add_lines(lines=beamnet,id=id,name="SAN_to_AVN")
-        # conduction_component = self.m.add_conduction_component(beamnet)
+        # usage of new class ------------
 
         return beam_net
 
@@ -264,9 +264,11 @@ class ConductionSystem:
         )
         new_nodes = self.m.mesh.points[nodes]
         new_nodes = _refine_line(new_nodes, beam_length=beam_length)
+        # usage of new class ------------
         beamnet = pv.lines_from_points(new_nodes)
         id=self.m.conduction_system.get_unique_lines_id()
         self.m.conduction_system.add_lines(lines=beamnet,id=id,name="his_bundle_segment")
+        # usage of new class ------------
         new_nodes = new_nodes[1:, :]
         
         point_ids = np.concatenate(
@@ -292,8 +294,10 @@ class ConductionSystem:
             bifurcation_coord=bifurcation_coord,
             bifurcation_id=bifurcation_id,
         )
+        # usage of new class ------------
         beamnet = pv.lines_from_points(new_nodes_left)
         self.m.conduction_system.add_lines(lines=beamnet,id=id,name="his_bundle_segment")
+        # usage of new class ------------
         new_nodes = np.vstack((new_nodes, new_nodes_left[1:, :]))
         (
             position_id_his_end_right,
@@ -308,8 +312,10 @@ class ConductionSystem:
             bifurcation_coord=bifurcation_coord,
             bifurcation_id=bifurcation_id,
         )
+        # usage of new class ------------
         beamnet = pv.lines_from_points(new_nodes_right)
         self.m.conduction_system.add_lines(lines=beamnet,id=id,name="his_bundle_segment")
+        # usage of new class ------------
         new_nodes = np.vstack((new_nodes, new_nodes_right[1:, :]))
         # finally
         mask = np.ones(edges.shape, dtype=bool)
@@ -318,7 +324,7 @@ class ConductionSystem:
         beam_net = self.m.add_beam_net(new_nodes, edges, mask, pid=0, name="His")
         beam_net.beam_nodes_mask[0, 0] = True  # offset in writer
 
-        self.m.conduction_system.add_lines(lines=beamnet,id=id,name="his_bundle_segment")
+
 
         surf = SurfaceMesh(
             name="his_bundle_segment",
@@ -505,10 +511,12 @@ class ConductionSystem:
         # used in dynawriter, to write beam connectivity, need offset since it's a beam node
         beam_net.beam_nodes_mask[0, 0] = True
         beam_net.beam_nodes_mask[-1, -1] = True
-
+        
+        # usage of new class ------------
         beamnet = pv.lines_from_points(bundle_branch.points)
         id=self.m.conduction_system.get_unique_lines_id()
         self.m.conduction_system.add_lines(lines=beamnet,id=id,name=side + " bundle branch")
+        # usage of new class ------------
 
         return beam_net
 
@@ -558,7 +566,6 @@ class ConductionSystem:
         """Connect conduction system component to solid mesh through the "_is-connected" point data."""
         
         global_ids = self.m.conduction_system.get_lines(sid=component_id)["_global-point-ids"][local_point_ids]
-        
         self.m.conduction_system["_is-connected"][global_ids]=1
             
         return 

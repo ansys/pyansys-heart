@@ -251,7 +251,7 @@ class SystemModelPost:
         Parameters
         ----------
         t_start : float, optional
-            start time to plot, by default 0
+            Start time to plot, by default 0
         t_end : float, optional
             end time to plot, by default 10e10
         show_ed : bool, optional

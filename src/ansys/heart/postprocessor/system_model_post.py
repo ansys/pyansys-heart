@@ -253,7 +253,7 @@ class SystemModelPost:
         t_start : float, optional
             Start time to plot, by default 0
         t_end : float, optional
-            end time to plot, by default 10e10
+            End time to plot, by default 10e10
         show_ed : bool, optional
             whether show end of diastole state in zeroppressure, by default True
         ef : list[float, float], optional

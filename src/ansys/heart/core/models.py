@@ -92,7 +92,7 @@ def _set_field_data_from_axis(
 
 
 def _read_purkinje_from_kfile(filename: pathlib.Path):
-    """Reads purkinje from k file.
+    """Read purkinje from k file.
 
     Parameters
     ----------

@@ -192,7 +192,7 @@ class ConductionSystem:
 
         beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="SAN_to_AVN")
         
-        beamnet = pv.lines_from_points(beam_nodes)
+        beamnet = pv.lines_from_points(path_sinoatrial_atrioventricular.points)
 
         
         id=self.m.conduction_system.get_unique_lines_id()
@@ -265,6 +265,8 @@ class ConductionSystem:
         new_nodes = self.m.mesh.points[nodes]
         new_nodes = _refine_line(new_nodes, beam_length=beam_length)
         beamnet = pv.lines_from_points(new_nodes)
+        id=self.m.conduction_system.get_unique_lines_id()
+        self.m.conduction_system.add_lines(lines=beamnet,id=id,name="his_bundle_segment")
         new_nodes = new_nodes[1:, :]
         
         point_ids = np.concatenate(
@@ -290,7 +292,8 @@ class ConductionSystem:
             bifurcation_coord=bifurcation_coord,
             bifurcation_id=bifurcation_id,
         )
-        beamnet = pv.lines_from_points(new_nodes_left)+beamnet
+        beamnet = pv.lines_from_points(new_nodes_left)
+        self.m.conduction_system.add_lines(lines=beamnet,id=id,name="his_bundle_segment")
         new_nodes = np.vstack((new_nodes, new_nodes_left[1:, :]))
         (
             position_id_his_end_right,
@@ -305,7 +308,8 @@ class ConductionSystem:
             bifurcation_coord=bifurcation_coord,
             bifurcation_id=bifurcation_id,
         )
-        beamnet = pv.lines_from_points(new_nodes_right)+beamnet
+        beamnet = pv.lines_from_points(new_nodes_right)
+        self.m.conduction_system.add_lines(lines=beamnet,id=id,name="his_bundle_segment")
         new_nodes = np.vstack((new_nodes, new_nodes_right[1:, :]))
         # finally
         mask = np.ones(edges.shape, dtype=bool)
@@ -314,7 +318,6 @@ class ConductionSystem:
         beam_net = self.m.add_beam_net(new_nodes, edges, mask, pid=0, name="His")
         beam_net.beam_nodes_mask[0, 0] = True  # offset in writer
 
-        id=self.m.conduction_system.get_unique_lines_id()
         self.m.conduction_system.add_lines(lines=beamnet,id=id,name="his_bundle_segment")
 
         surf = SurfaceMesh(
@@ -549,3 +552,13 @@ class ConductionSystem:
         beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="Bachman bundle")
 
         return beam_net
+
+
+    def connect_to_solid(self,component_id: int, local_point_ids:np.array):
+        """Connect conduction system component to solid mesh through the "_is-connected" point data."""
+        
+        global_ids = self.m.conduction_system.get_lines(sid=component_id)["_global-point-ids"][local_point_ids]
+        
+        self.m.conduction_system["_is-connected"][global_ids]=1
+            
+        return 

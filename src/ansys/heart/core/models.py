@@ -371,7 +371,7 @@ class HeartModel:
         celltypes = np.full((connectivity.shape[0], 1), 2)
         connectivity = np.hstack((celltypes,connectivity))
         beam_points = np.vstack([beam_nodes,solid_points])
-        is_connected = np.concatenate([np.zeros(len(beam_nodes)),np.ones(len(solid_points))])
+        is_connected = np.concatenate([np.zeros(len(beam_nodes)),np.ones(len(solid_points))]).astype(np.int64)
         
         beam_net = pv.PolyData(beam_points,lines=connectivity)
         beam_net.point_data["_is-connected"] = is_connected

@@ -418,7 +418,7 @@ class HeartModel:
         
         beam = self.add_beam_net(beam_nodes, edges, mask, pid=pid, name=name)
 
-        return beam,beam_net
+        return beam
 
     def add_beam_net(
         self, beam_nodes: np.ndarray, edges: np.ndarray, mask: np.ndarray, pid=0, name: str = None
@@ -475,7 +475,6 @@ class HeartModel:
             beams._all_beam_nodes = np.copy(BeamMesh.all_beam_nodes)
 
         return beam_net
-
 
     def load_input(self, input_vtp: pv.PolyData, part_definitions: dict, scalar: str):
         """Load an input model.

@@ -43,7 +43,7 @@ and process that into a simulation-ready full heart model.
 import json
 import os
 
-from ansys.heart.core.helpers.general import clean_directory
+from ansys.heart.core.helpers.misc import clean_directory
 import ansys.heart.core.models as models
 from ansys.heart.preprocessor.database_preprocessor import get_compatible_input
 

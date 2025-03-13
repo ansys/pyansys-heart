@@ -640,7 +640,7 @@ class HeartModel:
 
     def summary(self) -> dict:
         """Get summary information of the model as a dictionary."""
-        from ansys.heart.core.helpers.general import model_summary
+        from ansys.heart.core.helpers.misc import model_summary
 
         summary = model_summary(self)
         return summary
@@ -983,7 +983,7 @@ class HeartModel:
             lv_apex = self.left_ventricle.apex_points[1].xyz
             mv_centroid = [c.centroid for p in self.parts for c in p.caps if "mitral" in c.name][0]
             longitudinal_axis = lv_apex - mv_centroid
-            from ansys.heart.core.helpers.geodisc import rodrigues_rot
+            from ansys.heart.core.helpers.misc import rodrigues_rot
 
             points_rotation = rodrigues_rot(
                 self.mesh.points - lv_apex, longitudinal_axis, [0, 0, -1]

@@ -126,7 +126,7 @@ class ZeroDSystem:
         Cavity's volume is not evaluated/saved in csv file, this is to ensure
         volume is consistent with what's in icvout.
 
-        Use implicit with gamma=0.6
+        This assumes that the implicit solver with gamma=0.6 was used.
 
 
         Parameters

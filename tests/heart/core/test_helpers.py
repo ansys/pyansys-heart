@@ -28,7 +28,7 @@ import numpy as np
 from ansys.heart.core.helpers.element_orth import (
     _read_orth_element_kfile,
 )
-from ansys.heart.core.helpers.general import clean_directory
+from ansys.heart.core.helpers.misc import clean_directory
 
 _test_data = """*ELEMENT_SOLID_ORTHO
        1       1

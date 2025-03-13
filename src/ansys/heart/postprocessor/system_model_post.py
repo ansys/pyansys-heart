@@ -80,21 +80,17 @@ class SystemState:
 class ZeroDSystem:
     """0D circulation system model (for one cavity)."""
 
-    # TODO: @wenfengye: docstrings should follow numpy-format.
-    def __init__(self, csv_path, ed_state, name=""):
-        """
-        Initialize ZeroDSystem.
-
-        Notes
-        -----
-        units: "ms, MPa, mm^3" to "s, kPa, mL"
+    def __init__(self, csv_path: str, ed_state: list[float, float], name: str = ""):
+        """Initialize ZeroDSystem.
 
         Parameters
         ----------
-        csv_path: str, csv file path
-        ed_state: List, End of Diastole pressure and volume
-        name: str, system name, like 'left_ventricle'
-
+        csv_path : str
+            csv file path
+        ed_state : list[float,float]
+            End of Diastole pressure and volume
+        name : str, optional
+            Cavity name, by default ""
         """
         self.name = name
         self.ed = ed_state
@@ -117,30 +113,35 @@ class ZeroDSystem:
         self.volume = Volume()
         self.volume.artery = data["vart"].to_numpy() / 1000
         # integrate volume of cavity
-        self.volume.cavity = self.integrate_volume(self.ed[1], self.time, self.flow.cavity)
+        self.volume.cavity = self._integrate_volume(self.ed[1], self.time, self.flow.cavity)
 
         pass
 
-    # TODO: @wenfengye: docstrings should follow numpy-format.
     @staticmethod
-    def integrate_volume(v0, t, q):
-        """
-        Integrate cavity's volume.
+    def _integrate_volume(v0: float, t: np.ndarray, q: np.ndarray) -> np.ndarray:
+        """Integrate cavity's volume.
 
         Notes
         -----
-        Cavity's volume is not evaluated/saved in csv file.
+        Cavity's volume is not evaluated/saved in csv file, this is to ensure
+        volume is consistent with what's in icvout.
+
         Use implicit with gamma=0.6
+
 
         Parameters
         ----------
-        v0: float, volume at time of 0
-        t: time array
-        q: flow array
+        v0 : float
+            Volume at t0
+        t : np.ndarray
+            time array_
+        q : np.ndarray
+            flow array
 
         Returns
         -------
-            volume array
+        np.ndarray
+            Cavity volume
         """
         gamma = 0.6
 
@@ -152,7 +153,6 @@ class ZeroDSystem:
         return v
 
 
-# TODO: @wenfengye: docstrings should follow numpy-format.
 class SystemModelPost:
     """
     Class for post-processing system model.
@@ -162,13 +162,13 @@ class SystemModelPost:
     unit: ms, kPa, mL
     """
 
-    def __init__(self, dir):
-        """
-        Initialize SystemModelPost.
+    def __init__(self, dir: str):
+        """Initialize SystemModelPost.
 
         Parameters
         ----------
-        dir: simulation directory
+        dir : str
+            Simulation directory
         """
         self.dir = dir
         self.model_type = "LV"
@@ -239,17 +239,30 @@ class SystemModelPost:
 
         return ef
 
-    # TODO: @wenfengye: docstrings should follow numpy-format.
-    def plot_pv_loop(self, t_start=0, t_end=10e10, show_ed=True, ef=[None, None]):
-        """
-        Plot PV loop.
+    def plot_pv_loop(
+        self,
+        t_start: float = 0,
+        t_end: float = 10e10,
+        show_ed: bool = True,
+        ef: list[float, float] = [None, None],
+    ) -> plt.Figure:
+        """Plot PV loop.
 
         Parameters
         ----------
-        ef: Default None, else plot ejection fraction in legend.
-        show_ed: Default False, else plot ED state
-        t_start: start time
-        t_end: end time
+        t_start : float, optional
+            start time to plot, by default 0
+        t_end : float, optional
+            end time to plot, by default 10e10
+        show_ed : bool, optional
+            whether show end of diastole state in zeroppressure, by default True
+        ef : list[float, float], optional
+            show ejection fraction in legend if given, by default [None, None]
+
+        Returns
+        -------
+        plt.Figure
+            Figrue handle
         """
         start = np.where(self.lv_system.time >= t_start)[0][0]
         end = np.where(self.lv_system.time <= t_end)[0][-1]

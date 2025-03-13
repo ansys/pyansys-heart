@@ -378,6 +378,7 @@ def compute_ventricle_fiber_by_drbm(
         "beta_right": [-65, 25],
         "beta_ot": None,
     },
+    left_only: bool = False,
 ) -> pv.UnstructuredGrid:
     """D-RBM method described in https://doi.org/10.1016/j.cma.2020.113468.
 
@@ -389,81 +390,102 @@ def compute_ventricle_fiber_by_drbm(
         rotation angles, by default { "alpha_left": [-60, 60], "alpha_right": [-60, 60],
         "alpha_ot": None, "beta_left": [-65, 25], "beta_right": [-65, 25], "beta_ot": None, }
 
+    left_only : bool, optional
+        only compute left ventricle, by default False
+
     Returns
     -------
     pv.UnstructuredGrid
         grid contains `fiber`,`cross-fiber`,`sheet` vectors
     """
-    solutions = ["trans", "ab_l", "ab_r", "ot_l", "ot_r", "w_l", "w_r", "lr"]
+    solutions = ["trans", "ab_l", "ot_l", "w_l"]
+    if not left_only:
+        solutions.extend(["ab_r", "ot_r", "w_r", "lr"])
+
     data = read_laplace_solution(directory, field_list=solutions, read_heatflux=True)
     grid = data.point_data_to_cell_data()
 
-    # left/right ventricle label
-    left_mask = grid["lr"] >= 0
-    right_mask = grid["lr"] < 0
-    label = np.zeros(grid.n_cells, dtype=int)
-    label[left_mask] = 1
-    label[right_mask] = 2
-    grid.cell_data["label"] = label
+    if left_only:
+        # label to 1 for all cells
+        left_mask = np.ones(grid.n_cells, dtype=bool)
+        grid.cell_data["label"] = np.ones(grid.n_cells, dtype=int)
+    else:
+        # label to 1 for left ventricle, 2 for right ventricle
+        left_mask = grid["lr"] >= 0
+        right_mask = grid["lr"] < 0
+        label = np.zeros(grid.n_cells, dtype=int)
+        label[left_mask] = 1
+        label[right_mask] = 2
+        grid.cell_data["label"] = label
 
     # normal direction
     k = np.zeros((grid.n_cells, 3))
     w_l = np.tile(grid["w_l"], (3, 1)).T
-    w_r = np.tile(grid["w_r"], (3, 1)).T
     result = w_l * grid["grad_ab_l"] + (np.ones((grid.n_cells, 3)) - w_l) * grid["grad_ot_l"]
     k[left_mask] = result[left_mask]
-    result = w_r * grid["grad_ab_r"] + (np.ones((grid.n_cells, 3)) - w_r) * grid["grad_ot_r"]
-    k[right_mask] = result[right_mask]
+
+    if not left_only:
+        w_r = np.tile(grid["w_r"], (3, 1)).T
+        result = w_r * grid["grad_ab_r"] + (np.ones((grid.n_cells, 3)) - w_r) * grid["grad_ot_r"]
+        k[right_mask] = result[right_mask]
+
     grid.cell_data["k"] = k
 
     # build local coordinate system
-    grid.cell_data["grad_trans"][right_mask] *= -1.0  # both LV & RV point to inside
+    if not left_only:
+        grid.cell_data["grad_trans"][right_mask] *= -1.0  # both LV & RV point to inside
+
     el, en, et = orthogonalization(grid["grad_trans"], k)
 
     # normalized transmural distance
-    d_l = grid["trans"] / 2
-    d_r = np.absolute(grid["trans"])
-    grid["d"] = np.zeros(grid.n_cells, dtype=float)
-    grid["d"][left_mask] = d_l[left_mask]
-    grid["d"][right_mask] = d_r[right_mask]
+    if left_only:
+        grid["d"] = grid["trans"]
+    else:
+        d_l = grid["trans"] / 2
+        d_r = np.absolute(grid["trans"])
+        grid["d"] = np.zeros(grid.n_cells, dtype=float)
+        grid["d"][left_mask] = d_l[left_mask]
+        grid["d"][right_mask] = d_r[right_mask]
 
     def compute_rotation_angle(left, right, outflow_tracts=None):
-        def _sigmoid(z):
-            """Sigmoid function to scale spring coefficient."""
-            return 1 / (1 + np.exp(-z))
+        """Rotate by alpha and beta angles."""
 
-        # consider outflow tract regions
-        if outflow_tracts is not None:
-            # linearly interpolate along w
-            # w_l = grid["w_l"]
-            # w_r = grid["w_r"]
+        def interpolate_angles(w, endo, epi, outflow_tracts=None):
+            def _sigmoid(z):
+                """Sigmoid function to scale spring coefficient."""
+                return 1 / (1 + np.exp(-z))
 
-            # nonlinearly interpolate along w
-            c0 = 0.3  # clip point
-            c1 = 20  # steepness
-            w_l = _sigmoid((grid["w_l"] - c0) * c1)
-            w_r = _sigmoid((grid["w_r"] - c0) * c1)
+            if outflow_tracts is not None:
+                # rotation is different in outflow tracts
+                c0 = 0.3  # clip point
+                c1 = 20  # steepness
+                w = _sigmoid((w - c0) * c1)
+                ro_endo = w * endo[0] + (1 - w) * outflow_tracts[0]
+                ro_epi = w * epi + (1 - w) * outflow_tracts[1]
+            else:
+                # constant rotation angle
+                ro_endo = np.ones(grid.n_cells) * endo
+                ro_epi = np.ones(grid.n_cells) * epi
 
-            ro_endo_left = w_l * left[0] + (1 - w_l) * outflow_tracts[0]
-            ro_epi_left = w_l * left[1] + (1 - w_l) * outflow_tracts[1]
-            ro_endo_right = w_r * right[0] + (1 - w_r) * outflow_tracts[0]
-            ro_epi_right = w_r * right[1] + (1 - w_r) * outflow_tracts[1]
-        else:
-            # no outflow tract consideration
-            ro_endo_left = np.ones(grid.n_cells) * left[0]
-            ro_epi_left = np.ones(grid.n_cells) * left[1]
-            ro_endo_right = np.ones(grid.n_cells) * right[0]
-            ro_epi_right = np.ones(grid.n_cells) * right[1]
+            return ro_endo, ro_epi
+
+        ro_endo_left, ro_epi_left = interpolate_angles(
+            grid["w_l"], left[0], left[1], outflow_tracts
+        )
 
         # interpolate along transmural direction
+        angle = np.zeros(grid.n_cells)
         alpha_l = ro_epi_left * (np.ones(grid.n_cells) - d_l) + ro_endo_left * d_l
-        alpha_r = ro_epi_right * (np.ones(grid.n_cells) - d_r) + ro_endo_right * d_r
+        angle[left_mask] = alpha_l[left_mask]
 
-        alpha = np.zeros(grid.n_cells)
-        alpha[left_mask] = alpha_l[left_mask]
-        alpha[right_mask] = alpha_r[right_mask]
+        if not left_only:
+            ro_endo_right, ro_epi_right = interpolate_angles(
+                grid["w_r"], right[0], right[1], outflow_tracts
+            )
+            alpha_r = ro_epi_right * (np.ones(grid.n_cells) - d_r) + ro_endo_right * d_r
+            angle[right_mask] = alpha_r[right_mask]
 
-        return alpha
+        return angle
 
     # apply rotation
     alpha = compute_rotation_angle(

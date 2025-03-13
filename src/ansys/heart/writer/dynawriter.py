@@ -2432,7 +2432,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             )
 
             # define functions:
-            from ansys.heart.writer.define_function_strings import (
+            from ansys.heart.writer.define_function_templates import (
                 function_alpha,
                 function_beta,
                 function_beta_septum,
@@ -2582,7 +2582,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             )
 
             # define functions:
-            from ansys.heart.writer.define_function_strings import (
+            from ansys.heart.writer.define_function_templates import (
                 function_alpha,
                 function_beta,
                 function_beta_septum,

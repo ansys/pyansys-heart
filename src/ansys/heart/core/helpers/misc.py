@@ -231,3 +231,55 @@ def project_3d_points(p_set: np.ndarray) -> np.ndarray:
         point_projected[i] = point.ravel()
 
     return point_projected, normal, point_mean
+
+
+def _read_orth_element_kfile(fn):
+    """Read *ELEMENT_SOLID_ORTHO keywords from file."""
+
+    def get_number_of_elements(file):
+        lines = open(file).readlines()
+        n = 0
+        for line in lines:
+            if line[0] == "*":
+                n += 1
+        return int((len(lines) - n) / 4)
+
+    def generate_specific_rows(file, row_indices):
+        with open(file) as f:
+            lines = f.readlines()
+        return [lines[i] for i in row_indices]
+
+    nele = get_number_of_elements(fn)
+
+    # skip first 1 row and read every 4 row
+    skip_row = 1  # because the first line is *ELEMENT_SOLID_ORTHO
+    every_row = 4
+
+    # element ID and part ID
+    index = np.linspace(0, nele - 1, num=nele, dtype=int) * every_row + skip_row
+    data = generate_specific_rows(fn, index)
+    ids = np.loadtxt(data, dtype=int)[:, :]
+
+    # element connectivity
+    index = np.linspace(0, nele - 1, num=nele, dtype=int) * every_row + skip_row + 1
+    data = generate_specific_rows(fn, index)
+    connect = np.loadtxt(data, dtype=int)[:, :]
+
+    # fiber
+    index = np.linspace(0, nele - 1, num=nele, dtype=int) * every_row + skip_row + 2
+    data = generate_specific_rows(fn, index)
+    fib = np.loadtxt(data)
+    # sheet
+    index = np.linspace(0, nele - 1, num=nele, dtype=int) * every_row + skip_row + 3
+    data = generate_specific_rows(fn, index)
+    sheet = np.loadtxt(data)
+
+    # sort by ids
+    index = np.argsort(ids[:, 0])
+    elem_ids = ids[index, 0]
+    part_ids = ids[index, 1]
+    connect = connect[index]
+    fib = fib[index]
+    sheet = sheet[index]
+
+    return elem_ids, part_ids, connect, fib, sheet

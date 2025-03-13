@@ -737,7 +737,7 @@ def run_lsdyna(
     """
     if not settings:
         LOGGER.info("Using default LS-DYNA settings.")
-        settings = DynaSettings()
+        raise ValueError("Settings must be provided.")
 
     commands = settings.get_commands(path_to_input)
 

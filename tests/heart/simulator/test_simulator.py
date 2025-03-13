@@ -246,14 +246,18 @@ def test_run_dyna(settings):
             mock_process.__enter__.return_value = mock_process
             mock_subproc_popen.return_value = mock_process
 
-            # test popen is called
-            run_lsdyna(tmp_file, settings, curr_dir)
-            assert mock_subproc_popen.assert_called_once
-
-            # test exception is raised
-            mock_process.stdout = iter(["aaa\n", "bbb\n"])
-            with pytest.raises(LsDynaErrorTerminationError):
+            if settings is None:
+                with pytest.raises(ValueError):
+                    run_lsdyna(tmp_file, settings, curr_dir)
+            else:
+                # test popen is called
                 run_lsdyna(tmp_file, settings, curr_dir)
+                assert mock_subproc_popen.assert_called_once
+
+                # test exception is raised
+                mock_process.stdout = iter(["aaa\n", "bbb\n"])
+                with pytest.raises(LsDynaErrorTerminationError):
+                    run_lsdyna(tmp_file, settings, curr_dir)
 
 
 @pytest.mark.parametrize(

@@ -136,7 +136,7 @@ class ZeroDSystem:
         t : np.ndarray
             Time array
         q : np.ndarray
-            flow array
+            Flow array
 
         Returns
         -------

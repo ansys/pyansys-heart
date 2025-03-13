@@ -2,7 +2,8 @@
 *SET_PART_LIST
 $#     sid       da1       da2       da3       da4    solver
          1       0.0       0.0       0.0       0.0MECH      
-         1         2         7         3         4         5         6         8
+         1         2         7         3         4         5         6         8
+
 *EM_CONTROL_EP
 $#olvetype  numsplit   actusig  ionsolvr
          4         1 100000000          
@@ -32,8 +33,8 @@ $#stimstrt     stimt   stimdur   stimamp
        0.0     800.0       2.0      50.0
 $ EM-MECA coupling control
 *EM_CONTROL_TIMESTEP
-$   TSTYPE   DTCONST      LCID    FACTOR     DTMIN     DTMAX
-         1       1.0
+$#  tstype    dtcons      lcid    factor     tsmin     tsmas     rlcsf    mecats
+         1       1.0                 1.0                            25         0
 *EM_CONTROL_COUPLING
 $    THCPL     SMCPL    THLCID    SMLCID
          1         0

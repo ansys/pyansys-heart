@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Module for computing hear anatomical landmarks."""
+"""Module for computing heart anatomical landmarks."""
 
 from typing import Literal
 

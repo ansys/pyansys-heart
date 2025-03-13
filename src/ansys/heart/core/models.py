@@ -1397,7 +1397,7 @@ class HeartModel:
 
     def _define_anatomy_axis(self):
         """Define long and short axes from left ventricle landmarks."""
-        from ansys.heart.core.helpers.landmarks import compute_anatomy_axis
+        from ansys.heart.core.helpers.landmark_utils import compute_anatomy_axis
 
         mv_center = next(
             cap.centroid for cap in self.left_ventricle.caps if cap.type == CapType.MITRAL_VALVE

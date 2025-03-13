@@ -28,7 +28,7 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 import numpy as np
 
-from ansys.heart.core.helpers.landmarks import compute_aha17, compute_element_cs
+from ansys.heart.core.helpers.landmark_utils import compute_aha17, compute_element_cs
 from ansys.heart.core.models import HeartModel
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 

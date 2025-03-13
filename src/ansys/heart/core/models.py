@@ -39,8 +39,8 @@ from ansys.heart.core import LOG as LOGGER
 import ansys.heart.core.helpers.connectivity as connectivity
 import ansys.heart.core.helpers.vtkmethods as vtkmethods
 from ansys.heart.core.objects import (
-    BeamsMesh,
     BeamMesh,
+    BeamsMesh,
     Cap,
     CapType,
     Cavity,
@@ -90,6 +90,7 @@ def _set_field_data_from_axis(
     mesh.field_data[axis_name] = data
     return mesh
 
+
 def _read_purkinje_from_kfile(filename: pathlib.Path):
     """Reads purkinje from k file.
 
@@ -116,9 +117,7 @@ def _read_purkinje_from_kfile(filename: pathlib.Path):
     end_beams = end_beams[end_beams > start_beams][0]
 
     # load node data
-    node_data = np.loadtxt(
-        filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1
-    )
+    node_data = np.loadtxt(filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1)
     new_ids = node_data[:, 0].astype(int) - 1
     beam_nodes = node_data[:, 1:4]
 
@@ -138,11 +137,9 @@ def _read_purkinje_from_kfile(filename: pathlib.Path):
     mask = np.isin(edges, new_ids)  # True for new created nodes
     edges[mask] -= new_ids[0]  # beam nodes id start from 0
 
-    return beam_nodes,edges,mask,pid
+    return beam_nodes, edges, mask, pid
 
 
-
-   
 def _set_workdir(workdir: pathlib.Path | str = None) -> str:
     """Set the root working directory.
 
@@ -394,28 +391,31 @@ class HeartModel:
         name : str
             beamnet name
         """
-
-        beam_nodes,edges,mask,pid = _read_purkinje_from_kfile(filename)
+        beam_nodes, edges, mask, pid = _read_purkinje_from_kfile(filename)
 
         # build tree: beam_nodes and solid_points
-        original_points_order = np.unique(edges[mask==False])
+        original_points_order = np.unique(edges[mask == False])
         solid_points = self.mesh.points[original_points_order]
         connectivity = np.empty_like(edges)
         np.copyto(connectivity, edges)
-        
+
         # create ids of solid points and fill connectivity
-        _, _,inverse_indices = np.unique(connectivity[np.logical_not(mask)], return_index=True,return_inverse=True)
-        connectivity[np.logical_not(mask)] = inverse_indices + max(connectivity[mask])+1
+        _, _, inverse_indices = np.unique(
+            connectivity[np.logical_not(mask)], return_index=True, return_inverse=True
+        )
+        connectivity[np.logical_not(mask)] = inverse_indices + max(connectivity[mask]) + 1
         celltypes = np.full((connectivity.shape[0], 1), 2)
-        connectivity = np.hstack((celltypes,connectivity))
-        beam_points = np.vstack([beam_nodes,solid_points])
-        is_connected = np.concatenate([np.zeros(len(beam_nodes)),np.ones(len(solid_points))]).astype(np.int64)
-        
-        beam_net = pv.PolyData(beam_points,lines=connectivity)
+        connectivity = np.hstack((celltypes, connectivity))
+        beam_points = np.vstack([beam_nodes, solid_points])
+        is_connected = np.concatenate(
+            [np.zeros(len(beam_nodes)), np.ones(len(solid_points))]
+        ).astype(np.int64)
+
+        beam_net = pv.PolyData(beam_points, lines=connectivity)
         beam_net.point_data["_is-connected"] = is_connected
-        id=self.conduction_system.get_unique_lines_id()
-        self.conduction_system.add_lines(lines=beam_net,id=id,name=name)
-        
+        id = self.conduction_system.get_unique_lines_id()
+        self.conduction_system.add_lines(lines=beam_net, id=id, name=name)
+
         beam = self.add_beam_net(beam_nodes, edges, mask, pid=pid, name=name)
 
         return beam

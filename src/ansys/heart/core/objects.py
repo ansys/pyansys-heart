@@ -1055,6 +1055,7 @@ class Mesh(pv.UnstructuredGrid):
         mask = self.cell_data["_volume-id"] == lid
         return self.remove_cells(mask, inplace=True)
 
+
 class BeamsMesh(Mesh):
     """Mesh class: inherits from pyvista UnstructuredGrid.
 
@@ -1068,7 +1069,6 @@ class BeamsMesh(Mesh):
     through _surface_id and _line_id respectively.
     """
 
-
     def __init__(self, *args):
         super().__init__(*args)
 
@@ -1078,13 +1078,12 @@ class BeamsMesh(Mesh):
 
     def get_unique_lines_id(self) -> int:
         """Get unique lines id."""
-        new_id:int
+        new_id: int
         if "_line-id" not in self.cell_data.keys():
-            new_id=1
+            new_id = 1
         else:
-            new_id= np.max(np.unique(self.cell_data["_line-id"]))+1
+            new_id = np.max(np.unique(self.cell_data["_line-id"])) + 1
         return int(new_id)
-    
 
     def add_lines(self, lines: pv.PolyData, id: int = None, name: str = None):
         """Add lines.
@@ -1097,7 +1096,7 @@ class BeamsMesh(Mesh):
             ID of the surface to be added. This id will be tracked as "_line-id"
         """
         if not id:
-                return None
+            return None
         else:
             if not isinstance(id, int):
                 LOGGER.debug("sid should by type int.")
@@ -1108,6 +1107,7 @@ class BeamsMesh(Mesh):
         if name:
             self._line_id_to_name[id] = name
         return self_copy
+
 
 class PartType(Enum):
     """Stores valid part types."""

@@ -494,7 +494,7 @@ class EPSimulator(BaseSimulator):
             #     start_coord=self.model.right_atrium.get_point("SA_node").xyz,
             #     end_coord=np.array([-34, 163, 413]),
             # )
-            cs.connect_to_solid(component_id=3,local_point_ids=0)
+            cs.connect_to_solid(component_id=3, local_point_ids=0)
             return cs
 
     def _write_main_simulation_files(self, folder_name):

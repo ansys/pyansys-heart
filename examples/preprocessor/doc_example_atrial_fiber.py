@@ -48,19 +48,6 @@ from ansys.heart.simulator.simulator import BaseSimulator, DynaSettings
 # specify the path to the working directory and heart model
 workdir = os.path.abspath(os.path.join("downloads", "Strocchi2020", "01", "FourChamber"))
 
-# sphinx_gallery_start_ignore
-# Overwrite with env variables: for testing purposes only. May be removed by user.
-from pathlib import Path
-
-try:
-    case_file = str(Path(os.environ["PATH_TO_CASE_FILE"]))
-    workdir = os.path.join(os.path.dirname(case_file), "FourChamber")
-    path_to_dyna = str(Path(os.environ["PATH_TO_DYNA"]))
-
-except KeyError:
-    pass
-# sphinx_gallery_end_ignore
-
 path_to_model = os.path.join(workdir, "heart_model.vtu")
 
 # specify LS-DYNA path
@@ -86,17 +73,6 @@ model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partin
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path, dynatype="intelmpi", num_cpus=4, platform="windows"
 )
-
-# sphinx_gallery_start_ignore
-# Overwrite with env variables: for testing purposes only. May be removed by user.
-try:
-    dyna_settings.lsdyna_path = path_to_dyna
-    # assume we are in WSL if .exe not in path.
-    if ".exe" not in path_to_dyna:
-        dyna_settings.platform = "wsl"
-except Exception:
-    pass
-# sphinx_gallery_end_ignore
 
 simulator = BaseSimulator(
     model=model,

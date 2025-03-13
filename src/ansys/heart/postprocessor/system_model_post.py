@@ -255,7 +255,7 @@ class SystemModelPost:
         t_end : float, optional
             End time to plot, by default 10e10
         show_ed : bool, optional
-            whether show end of diastole state in zeroppressure, by default True
+            Whether to show the end of diastole state in zeroppressure, by default True
         ef : list[float, float], optional
             show ejection fraction in legend if given, by default [None, None]
 

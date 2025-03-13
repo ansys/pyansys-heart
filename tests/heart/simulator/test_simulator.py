@@ -231,9 +231,8 @@ def test_base_simulator_fiber(_mocked_methods):
         mock_drbm.assert_called_once()
 
 
-@mock.patch("subprocess.Popen")
 @pytest.mark.parametrize("settings", [None, mock.Mock(DynaSettings)])
-def test_run_dyna(mock_subproc_popen, settings):
+def test_run_dyna(settings):
     """Test run_dyna with mock settings and patched Popen."""
     curr_dir = os.getcwd()
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
@@ -241,19 +240,24 @@ def test_run_dyna(mock_subproc_popen, settings):
         with open(tmp_file, "w") as f:
             f.write("*INCLUDE\n")
 
-        mock_process = mock.MagicMock()
-        mock_process.stdout = iter(["N o r m a l    t e r m i n a t i o n\n", "bbb\n"])
-        mock_process.__enter__.return_value = mock_process
-        mock_subproc_popen.return_value = mock_process
+        with mock.patch("subprocess.Popen") as mock_subproc_popen:
+            mock_process = mock.MagicMock()
+            mock_process.stdout = iter(["N o r m a l    t e r m i n a t i o n\n", "bbb\n"])
+            mock_process.__enter__.return_value = mock_process
+            mock_subproc_popen.return_value = mock_process
 
-        # test popen is called
-        run_lsdyna(tmp_file, settings, curr_dir)
-        assert mock_subproc_popen.assert_called_once
+            if settings is None:
+                with pytest.raises(ValueError):
+                    run_lsdyna(tmp_file, settings, curr_dir)
+            else:
+                # test popen is called
+                run_lsdyna(tmp_file, settings, curr_dir)
+                assert mock_subproc_popen.assert_called_once
 
-        # test exception is raised
-        mock_process.stdout = iter(["aaa\n", "bbb\n"])
-        with pytest.raises(LsDynaErrorTerminationError):
-            run_lsdyna(tmp_file, settings, curr_dir)
+                # test exception is raised
+                mock_process.stdout = iter(["aaa\n", "bbb\n"])
+                with pytest.raises(LsDynaErrorTerminationError):
+                    run_lsdyna(tmp_file, settings, curr_dir)
 
 
 @pytest.mark.parametrize(

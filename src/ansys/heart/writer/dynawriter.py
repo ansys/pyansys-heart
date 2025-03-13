@@ -4264,6 +4264,7 @@ class UHCWriter(BaseDynaWriter):
         return nodes
 
     def _update_drbm_bc(self):
+        mv_nodes = av_nodes = tv_nodes = pv_nodes = None
         for part in self.model.parts:
             for cap in part.caps:
                 if cap.type == CapType.MITRAL_VALVE:
@@ -4274,36 +4275,42 @@ class UHCWriter(BaseDynaWriter):
                     tv_nodes = cap.global_node_ids_edge
                 elif cap.type == CapType.PULMONARY_VALVE:
                     pv_nodes = cap.global_node_ids_edge
+
         rings_nodes = np.hstack((mv_nodes, av_nodes, pv_nodes, tv_nodes))
 
+        # LV endo
         lv_endo_nodes = self.model.left_ventricle.endocardium.global_node_ids_triangles
         lv_endo_nodes = self.clean_node_set(lv_endo_nodes, rings_nodes)
-
-        for surf in self.model.right_ventricle.surfaces:
-            if "endocardium" in surf.name and "septum" in surf.name:
-                septum_endo = surf
-
-        rv_endo_nodes = np.hstack(
-            (
-                self.model.right_ventricle.endocardium.global_node_ids_triangles,
-                septum_endo.global_node_ids_triangles,
-            )
-        )
-        rv_endo_nodes = self.clean_node_set(rv_endo_nodes, rings_nodes)
-
-        epi_nodes = np.hstack(
-            (
-                self.model.left_ventricle.epicardium.global_node_ids_triangles,
-                self.model.right_ventricle.epicardium.global_node_ids_triangles,
-            )
-        )
-
-        epi_nodes = self.clean_node_set(
-            epi_nodes, np.hstack((lv_endo_nodes, rv_endo_nodes, rings_nodes))
-        )
-
+        # LV epi
+        epi_nodes = self.model.left_ventricle.epicardium.global_node_ids_triangles
+        epi_nodes = self.clean_node_set(epi_nodes, np.hstack((lv_endo_nodes, rings_nodes)))
+        # LV apex
         la_node = self.model.get_apex_node_set(part="left")
-        ra_node = self.model.get_apex_node_set(part="right")
+
+        if not isinstance(self.model, LeftVentricle):
+            # RV endo
+            for surf in self.model.right_ventricle.surfaces:
+                if "endocardium" in surf.name and "septum" in surf.name:
+                    septum_endo = surf
+
+            rv_endo_nodes = np.hstack(
+                (
+                    self.model.right_ventricle.endocardium.global_node_ids_triangles,
+                    septum_endo.global_node_ids_triangles,
+                )
+            )
+            rv_endo_nodes = self.clean_node_set(rv_endo_nodes, rings_nodes)
+
+            # append RV epi
+            epi_nodes = np.hstack(
+                (
+                    epi_nodes,
+                    self.model.right_ventricle.epicardium.global_node_ids_triangles,
+                )
+            )
+            epi_nodes = self.clean_node_set(epi_nodes, np.hstack((rv_endo_nodes, rings_nodes)))
+            # RV apex
+            ra_node = self.model.get_apex_node_set(part="right")
 
         # id sorter from model to submesh
         sorter = np.argsort(self.target["point_ids"])
@@ -4317,27 +4324,43 @@ class UHCWriter(BaseDynaWriter):
             self.kw_database.node_sets.append(kw)
             return nodeset_id
 
-        lv_endo_nodeset_id = create_and_append_node_set(lv_endo_nodes, "lv endo")
-        rv_endo_nodeset_id = create_and_append_node_set(rv_endo_nodes, "rv endo")
-        epi_nodeset_id = create_and_append_node_set(np.unique(epi_nodes), "epi")
-        mv_nodeset_id = create_and_append_node_set(mv_nodes, "mv")
-        av_nodeset_id = create_and_append_node_set(av_nodes, "av")
-        tv_nodeset_id = create_and_append_node_set(tv_nodes, "tv")
-        pv_nodeset_id = create_and_append_node_set(pv_nodes, "pv")
-        la_nodeset_id = create_and_append_node_set(la_node, "left apex")
-        ra_nodeset_id = create_and_append_node_set(ra_node, "right apex")
+        if isinstance(self.model, LeftVentricle):
+            lv_endo_nodeset_id = create_and_append_node_set(lv_endo_nodes, "lv endo")
+            epi_nodeset_id = create_and_append_node_set(np.unique(epi_nodes), "epi")
+            mv_nodeset_id = create_and_append_node_set(mv_nodes, "mv")
+            av_nodeset_id = create_and_append_node_set(av_nodes, "av")
+            la_nodeset_id = create_and_append_node_set(la_node, "left apex")
 
-        # add case kewyords
-        cases = [
-            (1, "trans", [lv_endo_nodeset_id, rv_endo_nodeset_id, epi_nodeset_id], [2, -1, 0]),
-            (2, "ab_l", [mv_nodeset_id, la_nodeset_id], [1, 0]),
-            (3, "ab_r", [tv_nodeset_id, ra_nodeset_id], [1, 0]),
-            (4, "ot_l", [av_nodeset_id, la_nodeset_id], [1, 0]),
-            (5, "ot_r", [pv_nodeset_id, ra_nodeset_id], [1, 0]),
-            (6, "w_l", [mv_nodeset_id, la_nodeset_id, av_nodeset_id], [1, 1, 0]),
-            (7, "w_r", [tv_nodeset_id, ra_nodeset_id, pv_nodeset_id], [1, 1, 0]),
-            (8, "lr", [lv_endo_nodeset_id, rv_endo_nodeset_id], [1, -1]),
-        ]
+            # add case kewyords
+            cases = [
+                (1, "trans", [lv_endo_nodeset_id, epi_nodeset_id], [1, 0]),
+                (2, "ab_l", [mv_nodeset_id, la_nodeset_id], [1, 0]),
+                (3, "ot_l", [av_nodeset_id, la_nodeset_id], [1, 0]),
+                (4, "w_l", [mv_nodeset_id, la_nodeset_id, av_nodeset_id], [1, 1, 0]),
+            ]
+        else:  # BV
+            lv_endo_nodeset_id = create_and_append_node_set(lv_endo_nodes, "lv endo")
+            rv_endo_nodeset_id = create_and_append_node_set(rv_endo_nodes, "rv endo")
+            epi_nodeset_id = create_and_append_node_set(np.unique(epi_nodes), "epi")
+            mv_nodeset_id = create_and_append_node_set(mv_nodes, "mv")
+            av_nodeset_id = create_and_append_node_set(av_nodes, "av")
+            tv_nodeset_id = create_and_append_node_set(tv_nodes, "tv")
+            pv_nodeset_id = create_and_append_node_set(pv_nodes, "pv")
+            la_nodeset_id = create_and_append_node_set(la_node, "left apex")
+            ra_nodeset_id = create_and_append_node_set(ra_node, "right apex")
+
+            # add case kewyords
+            cases = [
+                (1, "trans", [lv_endo_nodeset_id, rv_endo_nodeset_id, epi_nodeset_id], [2, -1, 0]),
+                (2, "ab_l", [mv_nodeset_id, la_nodeset_id], [1, 0]),
+                (3, "ab_r", [tv_nodeset_id, ra_nodeset_id], [1, 0]),
+                (4, "ot_l", [av_nodeset_id, la_nodeset_id], [1, 0]),
+                (5, "ot_r", [pv_nodeset_id, ra_nodeset_id], [1, 0]),
+                (6, "w_l", [mv_nodeset_id, la_nodeset_id, av_nodeset_id], [1, 1, 0]),
+                (7, "w_r", [tv_nodeset_id, ra_nodeset_id, pv_nodeset_id], [1, 1, 0]),
+                (8, "lr", [lv_endo_nodeset_id, rv_endo_nodeset_id], [1, -1]),
+            ]
+
         for case_id, job_name, set_ids, bc_values in cases:
             self._add_case(case_id, job_name, set_ids, bc_values)
 

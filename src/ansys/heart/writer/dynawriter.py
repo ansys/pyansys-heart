@@ -4186,24 +4186,9 @@ class UHCWriter(BaseDynaWriter):
 
     def _update_drbm_bc(self):
         """Update D-RBM boundary conditions."""
-        combined_av_mv = False  # combined mitral and aortic valve
-        mv_nodes = av_nodes = tv_nodes = pv_nodes = None
-
-        for part in self.model.parts:
-            for cap in part.caps:
-                if cap.type == CapType.MITRAL_VALVE:
-                    mv_nodes = cap.global_node_ids_edge
-                if cap.type == CapType.AORTIC_VALVE:
-                    av_nodes = cap.global_node_ids_edge
-                if cap.type == CapType.COMBINED_MITRAL_AORTIC_VALVE:
-                    mv_nodes = av_nodes = cap.global_node_ids_edge
-                    combined_av_mv = True
-
-                if not isinstance(self.model, LeftVentricle):
-                    if cap.type == CapType.TRICUSPID_VALVE:
-                        tv_nodes = cap.global_node_ids_edge
-                    if cap.type == CapType.PULMONARY_VALVE:
-                        pv_nodes = cap.global_node_ids_edge
+        (pv_nodes, tv_nodes, av_nodes, mv_nodes), combined_av_mv = (
+            self._update_ventricular_caps_nodes()
+        )
 
         if isinstance(self.model, LeftVentricle):
             rings_nodes = np.hstack((mv_nodes, av_nodes))
@@ -4303,6 +4288,28 @@ class UHCWriter(BaseDynaWriter):
 
         for case_id, job_name, set_ids, bc_values in cases:
             self.add_case(case_id, job_name, set_ids, bc_values)
+
+    def _update_ventricular_caps_nodes(self):
+        combined_av_mv = False  # combined mitral and aortic valve
+        mv_nodes = av_nodes = tv_nodes = pv_nodes = None
+
+        for part in self.model.parts:
+            for cap in part.caps:
+                if cap.type == CapType.MITRAL_VALVE:
+                    mv_nodes = cap.global_node_ids_edge
+                if cap.type == CapType.AORTIC_VALVE:
+                    av_nodes = cap.global_node_ids_edge
+                if cap.type == CapType.COMBINED_MITRAL_AORTIC_VALVE:
+                    mv_nodes = av_nodes = cap.global_node_ids_edge
+                    combined_av_mv = True
+
+                if not isinstance(self.model, LeftVentricle):
+                    if cap.type == CapType.TRICUSPID_VALVE:
+                        tv_nodes = cap.global_node_ids_edge
+                    if cap.type == CapType.PULMONARY_VALVE:
+                        pv_nodes = cap.global_node_ids_edge
+
+        return (pv_nodes, tv_nodes, av_nodes, mv_nodes), combined_av_mv
 
     def add_case(self, case_id: int, case_name: str, set_ids: list[int], bc_values: list[float]):
         """Add case to keyword database.

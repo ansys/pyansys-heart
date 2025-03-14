@@ -4251,150 +4251,140 @@ class UHCWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.DatabaseExtentBinary(therm=2))  # save heat flux
         self.kw_database.main.append(keywords.ControlTermination(endtim=1, dtmin=1.0))
 
+    @staticmethod
+    def clean_node_set(nodes, exclude_nodes=None):
+        """Make sure there are no duplicate or excluded nodes."""
+        nodes = np.unique(nodes)
+        if exclude_nodes is not None:
+            nodes = np.setdiff1d(nodes, exclude_nodes)
+        return nodes
+
     def _update_drbm_bc(self):
+        """Update D-RBM boundary conditions."""
+        combined_av_mv = False  # combined mitral and aortic valve
+        mv_nodes = av_nodes = tv_nodes = pv_nodes = None
+
         for part in self.model.parts:
             for cap in part.caps:
                 if cap.type == CapType.MITRAL_VALVE:
                     mv_nodes = cap.global_node_ids_edge
-                elif cap.type == CapType.AORTIC_VALVE:
+                if cap.type == CapType.AORTIC_VALVE:
                     av_nodes = cap.global_node_ids_edge
-                elif cap.type == CapType.TRICUSPID_VALVE:
-                    tv_nodes = cap.global_node_ids_edge
-                elif cap.type == CapType.PULMONARY_VALVE:
-                    pv_nodes = cap.global_node_ids_edge
-        rings_nodes = np.hstack((mv_nodes, av_nodes, pv_nodes, tv_nodes))
+                if cap.type == CapType.COMBINED_MITRAL_AORTIC_VALVE:
+                    mv_nodes = av_nodes = cap.global_node_ids_edge
+                    combined_av_mv = True
 
-        lv_endo_nodes = self.model.get_part("Left ventricle").endocardium.global_node_ids_triangles
-        lv_endo_nodes = np.unique(lv_endo_nodes)
-        lv_endo_nodes = np.setdiff1d(lv_endo_nodes, rings_nodes)
-        rv_endo_nodes = np.hstack(
-            (
-                self.model.get_part("Right ventricle").endocardium.global_node_ids_triangles,
-                # TODO: make sure its septum
-                self.model.get_part("Right ventricle").surfaces[2].global_node_ids_triangles,
-            )
-        )
-        rv_endo_nodes = np.unique(rv_endo_nodes)
-        rv_endo_nodes = np.setdiff1d(rv_endo_nodes, rings_nodes)
+                if not isinstance(self.model, LeftVentricle):
+                    if cap.type == CapType.TRICUSPID_VALVE:
+                        tv_nodes = cap.global_node_ids_edge
+                    if cap.type == CapType.PULMONARY_VALVE:
+                        pv_nodes = cap.global_node_ids_edge
 
-        epi_nodes = np.hstack(
-            (
-                self.model.get_part("Left ventricle").epicardium.global_node_ids_triangles,
-                self.model.get_part("Right ventricle").epicardium.global_node_ids_triangles,
-            )
-        )
-        epi_nodes = np.unique(epi_nodes)
-        epi_nodes = np.setdiff1d(epi_nodes, np.hstack((lv_endo_nodes, rv_endo_nodes)))
-        epi_nodes = np.setdiff1d(epi_nodes, rings_nodes)
+        if isinstance(self.model, LeftVentricle):
+            rings_nodes = np.hstack((mv_nodes, av_nodes))
+        else:
+            rings_nodes = np.hstack((mv_nodes, av_nodes, pv_nodes, tv_nodes))
 
+        # LV endo
+        lv_endo_nodes = self.model.left_ventricle.endocardium.global_node_ids_triangles
+        lv_endo_nodes = self.clean_node_set(lv_endo_nodes, rings_nodes)
+        # LV epi
+        epi_nodes = self.model.left_ventricle.epicardium.global_node_ids_triangles
+        epi_nodes = self.clean_node_set(epi_nodes, np.hstack((lv_endo_nodes, rings_nodes)))
+        # LV apex
         la_node = self.model.get_apex_node_set(part="left")
-        ra_node = self.model.get_apex_node_set(part="right")
 
-        # ids of sub mesh
+        if not isinstance(self.model, LeftVentricle):
+            # Right ventricle endocardium
+            for surf in self.model.right_ventricle.surfaces:
+                if "endocardium" in surf.name and "septum" in surf.name:
+                    septum_endo = surf
+
+            rv_endo_nodes = np.hstack(
+                (
+                    self.model.right_ventricle.endocardium.global_node_ids_triangles,
+                    septum_endo.global_node_ids_triangles,
+                )
+            )
+            rv_endo_nodes = self.clean_node_set(rv_endo_nodes, rings_nodes)
+
+            # append RV epi
+            epi_nodes = np.hstack(
+                (
+                    epi_nodes,
+                    self.model.right_ventricle.epicardium.global_node_ids_triangles,
+                )
+            )
+            epi_nodes = self.clean_node_set(epi_nodes, np.hstack((rv_endo_nodes, rings_nodes)))
+            # RV apex
+            ra_node = self.model.get_apex_node_set(part="right")
+
+        # id sorter from model to submesh
         sorter = np.argsort(self.target["point_ids"])
 
-        lv_endo_nodes = sorter[
-            np.searchsorted(self.target["point_ids"], lv_endo_nodes, sorter=sorter)
-        ]
-        lv_endo_nodeset_id = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(
-            lv_endo_nodes + 1, node_set_id=lv_endo_nodeset_id, title="lv endo"
-        )
-        self.kw_database.node_sets.append(kw)
+        def create_and_append_node_set(nodes, title):
+            # get node IDs of sub mesh
+            nodes = sorter[np.searchsorted(self.target["point_ids"], nodes, sorter=sorter)]
+            nodeset_id = self.get_unique_nodeset_id()
+            # lsdyna ID start with 1
+            kw = create_node_set_keyword(nodes + 1, node_set_id=nodeset_id, title=title)
+            self.kw_database.node_sets.append(kw)
+            return nodeset_id
 
-        rv_endo_nodes = sorter[
-            np.searchsorted(self.target["point_ids"], rv_endo_nodes, sorter=sorter)
-        ]
-        rv_endo_nodeset_id = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(
-            rv_endo_nodes + 1, node_set_id=rv_endo_nodeset_id, title="rv endo"
-        )
-        self.kw_database.node_sets.append(kw)
+        if isinstance(self.model, LeftVentricle):
+            lv_endo_nodeset_id = create_and_append_node_set(lv_endo_nodes, "lv endo")
+            epi_nodeset_id = create_and_append_node_set(np.unique(epi_nodes), "epi")
+            mv_nodeset_id = create_and_append_node_set(mv_nodes, "mv")
+            av_nodeset_id = create_and_append_node_set(av_nodes, "av")
+            la_nodeset_id = create_and_append_node_set(la_node, "left apex")
 
-        epi_nodes = sorter[np.searchsorted(self.target["point_ids"], epi_nodes, sorter=sorter)]
-        epi_nodes = np.unique(epi_nodes)  # necessary?
-        epi_nodeset_id = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(epi_nodes + 1, node_set_id=epi_nodeset_id, title="epi")
-        self.kw_database.node_sets.append(kw)
+            # add case kewyords
+            cases = [
+                (1, "trans", [lv_endo_nodeset_id, epi_nodeset_id], [1, 0]),
+                (2, "ab_l", [mv_nodeset_id, la_nodeset_id], [1, 0]),
+                (3, "ot_l", [av_nodeset_id, la_nodeset_id], [1, 0]),
+                # If combined MV and AV, mv_nodeset=av_nodeset=combined, solve ab_l = ot_l
+                # w_l's has no effect on the result, so set only for structure of code
+                (4, "w_l", [mv_nodeset_id, la_nodeset_id], [1, 0])
+                if combined_av_mv
+                else (4, "w_l", [mv_nodeset_id, la_nodeset_id, av_nodeset_id], [1, 1, 0]),
+            ]
+        else:  # BV
+            lv_endo_nodeset_id = create_and_append_node_set(lv_endo_nodes, "lv endo")
+            rv_endo_nodeset_id = create_and_append_node_set(rv_endo_nodes, "rv endo")
+            epi_nodeset_id = create_and_append_node_set(np.unique(epi_nodes), "epi")
+            mv_nodeset_id = create_and_append_node_set(mv_nodes, "mv")
+            av_nodeset_id = create_and_append_node_set(av_nodes, "av")
+            tv_nodeset_id = create_and_append_node_set(tv_nodes, "tv")
+            pv_nodeset_id = create_and_append_node_set(pv_nodes, "pv")
+            la_nodeset_id = create_and_append_node_set(la_node, "left apex")
+            ra_nodeset_id = create_and_append_node_set(ra_node, "right apex")
 
-        mv_nodes = sorter[np.searchsorted(self.target["point_ids"], mv_nodes, sorter=sorter)]
-        mv_nodeset_id = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(mv_nodes + 1, node_set_id=mv_nodeset_id, title="mv")
-        self.kw_database.node_sets.append(kw)
+            # add case kewyords
+            cases = [
+                (1, "trans", [lv_endo_nodeset_id, rv_endo_nodeset_id, epi_nodeset_id], [2, -1, 0]),
+                (2, "ab_l", [mv_nodeset_id, la_nodeset_id], [1, 0]),
+                (3, "ab_r", [tv_nodeset_id, ra_nodeset_id], [1, 0]),
+                (4, "ot_l", [av_nodeset_id, la_nodeset_id], [1, 0]),
+                (5, "ot_r", [pv_nodeset_id, ra_nodeset_id], [1, 0]),
+                # If combined MV and AV, mv_nodeset=av_nodeset=combined, solve ab_l = ot_l
+                # w_l's has no effect on the result, so set only for structure of code
+                (6, "w_l", [mv_nodeset_id, la_nodeset_id], [1, 0])
+                if combined_av_mv
+                else (6, "w_l", [mv_nodeset_id, la_nodeset_id, av_nodeset_id], [1, 1, 0]),
+                (7, "w_r", [tv_nodeset_id, ra_nodeset_id, pv_nodeset_id], [1, 1, 0]),
+                (8, "lr", [lv_endo_nodeset_id, rv_endo_nodeset_id], [1, -1]),
+            ]
 
-        av_nodes = sorter[np.searchsorted(self.target["point_ids"], av_nodes, sorter=sorter)]
-        av_nodeset_id = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(av_nodes + 1, node_set_id=av_nodeset_id, title="av")
-        self.kw_database.node_sets.append(kw)
+        for case_id, job_name, set_ids, bc_values in cases:
+            self._add_case(case_id, job_name, set_ids, bc_values)
 
-        tv_nodes = sorter[np.searchsorted(self.target["point_ids"], tv_nodes, sorter=sorter)]
-        tv_nodeset_id = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(tv_nodes + 1, node_set_id=tv_nodeset_id, title="tv")
-        self.kw_database.node_sets.append(kw)
-
-        pv_nodes = sorter[np.searchsorted(self.target["point_ids"], pv_nodes, sorter=sorter)]
-        pv_nodeset_id = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(pv_nodes + 1, node_set_id=pv_nodeset_id, title="pv")
-        self.kw_database.node_sets.append(kw)
-
-        la_node = sorter[np.searchsorted(self.target["point_ids"], la_node, sorter=sorter)]
-        la_nodeset_id = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(la_node + 1, node_set_id=la_nodeset_id, title="left apex")
-        self.kw_database.node_sets.append(kw)
-
-        ra_node = sorter[np.searchsorted(self.target["point_ids"], ra_node, sorter=sorter)]
-        ra_nodeset_id = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(ra_node + 1, node_set_id=ra_nodeset_id, title="right apex")
-        self.kw_database.node_sets.append(kw)
-
-        self.kw_database.main.append(keywords.Case(caseid=1, jobid="trans", scid1=1))
-        self.kw_database.main.append("*CASE_BEGIN_1")
-        self._define_Laplace_Dirichlet_bc(
-            set_ids=[lv_endo_nodeset_id, rv_endo_nodeset_id, epi_nodeset_id], bc_values=[2, -1, 0]
-        )
-        self.kw_database.main.append("*CASE_END_1")
-
-        self.kw_database.main.append(keywords.Case(caseid=2, jobid="ab_l", scid1=2))
-
-        self.kw_database.main.append("*CASE_BEGIN_2")
-        self._define_Laplace_Dirichlet_bc(set_ids=[mv_nodeset_id, la_nodeset_id], bc_values=[1, 0])
-        self.kw_database.main.append("*CASE_END_2")
-
-        self.kw_database.main.append(keywords.Case(caseid=3, jobid="ab_r", scid1=3))
-        self.kw_database.main.append("*CASE_BEGIN_3")
-        self._define_Laplace_Dirichlet_bc(set_ids=[tv_nodeset_id, ra_nodeset_id], bc_values=[1, 0])
-        self.kw_database.main.append("*CASE_END_3")
-
-        self.kw_database.main.append(keywords.Case(caseid=4, jobid="ot_l", scid1=4))
-        self.kw_database.main.append("*CASE_BEGIN_4")
-        self._define_Laplace_Dirichlet_bc(set_ids=[av_nodeset_id, la_nodeset_id], bc_values=[1, 0])
-        self.kw_database.main.append("*CASE_END_4")
-
-        self.kw_database.main.append(keywords.Case(caseid=5, jobid="ot_r", scid1=5))
-        self.kw_database.main.append("*CASE_BEGIN_5")
-        self._define_Laplace_Dirichlet_bc(set_ids=[pv_nodeset_id, ra_nodeset_id], bc_values=[1, 0])
-        self.kw_database.main.append("*CASE_END_5")
-
-        self.kw_database.main.append(keywords.Case(caseid=6, jobid="w_l", scid1=6))
-        self.kw_database.main.append("*CASE_BEGIN_6")
-        self._define_Laplace_Dirichlet_bc(
-            set_ids=[mv_nodeset_id, la_nodeset_id, av_nodeset_id], bc_values=[1, 1, 0]
-        )
-        self.kw_database.main.append("*CASE_END_6")
-
-        self.kw_database.main.append(keywords.Case(caseid=7, jobid="w_r", scid1=7))
-        self.kw_database.main.append("*CASE_BEGIN_7")
-        self._define_Laplace_Dirichlet_bc(
-            set_ids=[tv_nodeset_id, ra_nodeset_id, pv_nodeset_id], bc_values=[1, 1, 0]
-        )
-        self.kw_database.main.append("*CASE_END_7")
-
-        self.kw_database.main.append(keywords.Case(caseid=8, jobid="lr", scid1=8))
-        self.kw_database.main.append("*CASE_BEGIN_8")
-        self._define_Laplace_Dirichlet_bc(
-            set_ids=[lv_endo_nodeset_id, rv_endo_nodeset_id], bc_values=[1, -1]
-        )
-        self.kw_database.main.append("*CASE_END_8")
+    def _add_case(self, case_id, job_name, set_ids, bc_values):
+        """Add case to keyword database."""
+        self.kw_database.main.append(keywords.Case(caseid=case_id, jobid=job_name, scid1=case_id))
+        self.kw_database.main.append(f"*CASE_BEGIN_{case_id}")
+        self._define_Laplace_Dirichlet_bc(set_ids=set_ids, bc_values=bc_values)
+        self.kw_database.main.append(f"*CASE_END_{case_id}")
 
 
 if __name__ == "__main__":

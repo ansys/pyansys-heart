@@ -3122,6 +3122,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 ncylbem=None,
             )
         )
+        self.kw_database.ep_settings.append(keywords.EmControlTimestep(dtcons=macrodt))
 
         self.kw_database.ep_settings.append(
             custom_keywords.EmEpIsoch(idisoch=1, idepol=1, dplthr=-20, irepol=1, rplthr=-40)
@@ -3660,12 +3661,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
         # coupling parameters
         coupling_str = (
-            "*EM_CONTROL_TIMESTEP\n"
-            "$   TSTYPE   DTCONST      LCID    FACTOR     DTMIN     DTMAX\n"
-            "         1       1.0\n"
-            "*EM_CONTROL_COUPLING\n"
-            "$    THCPL     SMCPL    THLCID    SMLCID\n"
-            "         1         0\n"
+            "*EM_CONTROL_COUPLING\n$    THCPL     SMCPL    THLCID    SMLCID\n         1         0\n"
         )
         self.kw_database.ep_settings.append("$ EM-MECA coupling control")
         self.kw_database.ep_settings.append(coupling_str)
@@ -4187,7 +4183,7 @@ class UHCWriter(BaseDynaWriter):
 
     @staticmethod
     def clean_node_set(nodes: np.ndarray, exclude_nodes: np.ndarray = None):
-        """Make sure there is no duplicate or excluded nodes."""
+        """Make sure there are no duplicate or excluded nodes."""
         nodes = np.unique(nodes)
         if exclude_nodes is not None:
             nodes = np.setdiff1d(nodes, exclude_nodes)
@@ -4229,7 +4225,7 @@ class UHCWriter(BaseDynaWriter):
         la_node = self.model.get_apex_node_set(part="left")
 
         if not isinstance(self.model, LeftVentricle):
-            # RV endo
+            # Right ventricle endocardium
             for surf in self.model.right_ventricle.surfaces:
                 if "endocardium" in surf.name and "septum" in surf.name:
                     septum_endo = surf

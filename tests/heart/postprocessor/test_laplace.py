@@ -103,6 +103,30 @@ def test_compute_ventricle_fiber_by_drbm():
         "ansys.heart.postprocessor.laplace_post.read_laplace_solution",
         return_value=input_grid,
     ):
+        # test no outflow tract
         res = compute_ventricle_fiber_by_drbm(".")
         assert np.sum(res["label"] == 1) == 86210
+
+        assert res["label"][0] == 1
         assert np.allclose(res["fiber"][0], np.array([0.03515216, 0.964732, 0.26087638]))
+        assert res["label"][-1] == 2
+        assert np.allclose(res["fiber"][-1], np.array([0.70611833, 0.32320625, -0.63002748]))
+
+        # test with outflow tract
+        res = compute_ventricle_fiber_by_drbm(
+            ".",
+            settings={
+                "alpha_left": [-60, 60],
+                "alpha_right": [90, -25],
+                "alpha_ot": [90, 0],
+                "beta_left": [-20, 20],
+                "beta_right": [0, 20],
+                "beta_ot": [0, 0],
+            },
+        )
+        assert np.sum(res["label"] == 1) == 86210
+
+        assert res["label"][0] == 1
+        assert np.allclose(res["fiber"][0], np.array([0.03520965, 0.96476314, 0.26075345]))
+        assert res["label"][-1] == 2
+        assert np.allclose(res["fiber"][-1], np.array([-0.70556093, 0.21479473, 0.67531252]))

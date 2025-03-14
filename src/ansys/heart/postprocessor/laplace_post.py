@@ -368,6 +368,83 @@ def compute_ra_fiber_cs(
     return grid.copy()
 
 
+def set_rotation_bounds(
+    w: np.ndarray, endo: float, epi: float, outflow_tracts: list[float, float] = None
+) -> tuple[np.ndarray, np.ndarray]:
+    """Define rotation bounds from input parameters.
+
+    Parameters
+    ----------
+    w : np.ndarray
+        intra-ventricular interpolation weight if outflow_tracts is not None
+    endo : float
+        rotation angle at endocardium
+    epi : float
+        rotation angle at epicardium
+    outflow_tracts : list[float, float], optional
+        rotation angle of enendocardium do and epicardium on outflow tract, by default None
+
+    Returns
+    -------
+    tuple[np.ndarray, np.ndarray]
+        cell-wise rotation bounds for endocardium and epicardium
+    """
+
+    def _sigmoid(z):
+        """Sigmoid function."""
+        return 1 / (1 + np.exp(-z))
+
+    if outflow_tracts is not None:
+        # rescale w with sigmoid function so it affects only on outflow tracts region
+        c0 = 0.3  # clip point
+        c1 = 20  # steepness
+        w = _sigmoid((w - c0) * c1)
+        ro_endo = w * endo + (1 - w) * outflow_tracts[0]
+        ro_epi = w * epi + (1 - w) * outflow_tracts[1]
+    else:
+        # constant rotation angle
+        ro_endo = np.ones(len(w)) * endo
+        ro_epi = np.ones(len(w)) * epi
+
+    return ro_endo, ro_epi
+
+
+def compute_rotation_angle(
+    grid: pv.UnstructuredGrid,
+    w: np.ndarray,
+    rotation: list[float, float],
+    outflow_tracts: list[float, float] = None,
+) -> np.ndarray:
+    """Rotate by alpha and beta angles.
+
+    Parameters
+    ----------
+    grid : pv.UnstructuredGrid
+        mesh grid
+    w : np.ndarray
+        intral ventricular interpolation weight
+    rotation : list[float, float]
+        rotation angles in degree at endocardium and epicardium
+    outflow_tracts : list[float, float], optional
+        rotation angle of enendocardium do and epicardium on outflow tract, by default None
+
+    Returns
+    -------
+    np.ndarray
+        cell-wise rotation angles
+
+    Note
+    ----
+    Compute for all cells, but filtered by left/right mask outside of this function.
+    """
+    rot_endo, rot_epi = set_rotation_bounds(w, rotation[0], rotation[1], outflow_tracts)
+
+    # interpolate along transmural direction
+    angle = np.zeros(grid.n_cells)
+    angle = rot_epi * (np.ones(grid.n_cells) - grid["d"]) + rot_endo * grid["d"]
+    return angle
+
+
 def compute_ventricle_fiber_by_drbm(
     directory: str,
     settings: dict = {
@@ -391,7 +468,7 @@ def compute_ventricle_fiber_by_drbm(
         "alpha_ot": None, "beta_left": [-65, 25], "beta_right": [-65, 25], "beta_ot": None, }
 
     left_only : bool, optional
-        only compute left ventricle, by default False
+        only compute fibers on left ventricle, by default False
 
     Returns
     -------
@@ -447,54 +524,26 @@ def compute_ventricle_fiber_by_drbm(
         grid["d"][left_mask] = d_l[left_mask]
         grid["d"][right_mask] = d_r[right_mask]
 
-    def compute_rotation_angle(left, right, outflow_tracts=None):
-        """Rotate by alpha and beta angles."""
+    # rotation angles for each cell
+    alpha = np.zeros(grid.n_cells)
+    beta = np.zeros(grid.n_cells)
 
-        def interpolate_angles(w, endo, epi, outflow_tracts=None):
-            def _sigmoid(z):
-                """Sigmoid function to scale spring coefficient."""
-                return 1 / (1 + np.exp(-z))
+    alpha[left_mask] = compute_rotation_angle(
+        grid, grid["w_l"], settings["alpha_left"], settings["alpha_ot"]
+    )[left_mask]
+    beta[left_mask] = compute_rotation_angle(
+        grid, grid["w_l"], settings["beta_left"], settings["beta_ot"]
+    )[left_mask]
 
-            if outflow_tracts is not None:
-                # rotation is different in outflow tracts
-                c0 = 0.3  # clip point
-                c1 = 20  # steepness
-                w = _sigmoid((w - c0) * c1)
-                ro_endo = w * endo[0] + (1 - w) * outflow_tracts[0]
-                ro_epi = w * epi + (1 - w) * outflow_tracts[1]
-            else:
-                # constant rotation angle
-                ro_endo = np.ones(grid.n_cells) * endo
-                ro_epi = np.ones(grid.n_cells) * epi
+    if not left_only:
+        alpha[right_mask] = compute_rotation_angle(
+            grid, grid["w_r"], settings["alpha_right"], settings["alpha_ot"]
+        )[right_mask]
+        beta[right_mask] = compute_rotation_angle(
+            grid, grid["w_r"], settings["beta_right"], settings["beta_ot"]
+        )[right_mask]
 
-            return ro_endo, ro_epi
-
-        ro_endo_left, ro_epi_left = interpolate_angles(
-            grid["w_l"], left[0], left[1], outflow_tracts
-        )
-
-        # interpolate along transmural direction
-        angle = np.zeros(grid.n_cells)
-        alpha_l = ro_epi_left * (np.ones(grid.n_cells) - grid["d"]) + ro_endo_left * grid["d"]
-        angle[left_mask] = alpha_l[left_mask]
-
-        if not left_only:
-            ro_endo_right, ro_epi_right = interpolate_angles(
-                grid["w_r"], right[0], right[1], outflow_tracts
-            )
-            alpha_r = ro_epi_right * (np.ones(grid.n_cells) - grid["d"]) + ro_endo_right * grid["d"]
-            angle[right_mask] = alpha_r[right_mask]
-
-        return angle
-
-    # apply rotation
-    alpha = compute_rotation_angle(
-        settings["alpha_left"], settings["alpha_right"], settings["alpha_ot"]
-    )
-    beta = compute_rotation_angle(
-        settings["beta_left"], settings["beta_right"], settings["beta_ot"]
-    )
-
+    # save data for inspection
     grid.cell_data["alpha"] = alpha
     grid.cell_data["beta"] = beta
 
@@ -509,6 +558,7 @@ def compute_ventricle_fiber_by_drbm(
     # use FTS in Bayer, it's T, transverse
     grid.cell_data["sheet"] = np.zeros((grid.n_cells, 3))
 
+    # apply rotation
     for i in range(grid.n_cells):
         q = np.array([el[i], en[i], et[i]]).T
         # rotate alpha around e_t

@@ -34,6 +34,7 @@ import os
 import pathlib
 from typing import List, Literal, Union
 
+from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 
@@ -306,6 +307,7 @@ class SurfaceMesh(pv.PolyData):
 
 
 # TODO: Refactor BeamMesh: why is this different from "Mesh"?
+@deprecated(reason="BeamMesh is replaced by new class.")
 class _BeamMesh(pv.UnstructuredGrid, Feature):
     """Beam class."""
 

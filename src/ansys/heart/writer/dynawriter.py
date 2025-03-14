@@ -4264,19 +4264,30 @@ class UHCWriter(BaseDynaWriter):
         return nodes
 
     def _update_drbm_bc(self):
+        """Update D-RBM boundary conditions."""
+        combined_av_mv = False  # combined mitral and aortic valve
         mv_nodes = av_nodes = tv_nodes = pv_nodes = None
+
         for part in self.model.parts:
             for cap in part.caps:
                 if cap.type == CapType.MITRAL_VALVE:
                     mv_nodes = cap.global_node_ids_edge
-                elif cap.type == CapType.AORTIC_VALVE:
+                if cap.type == CapType.AORTIC_VALVE:
                     av_nodes = cap.global_node_ids_edge
-                elif cap.type == CapType.TRICUSPID_VALVE:
-                    tv_nodes = cap.global_node_ids_edge
-                elif cap.type == CapType.PULMONARY_VALVE:
-                    pv_nodes = cap.global_node_ids_edge
+                if cap.type == CapType.COMBINED_MITRAL_AORTIC_VALVE:
+                    mv_nodes = av_nodes = cap.global_node_ids_edge
+                    combined_av_mv = True
 
-        rings_nodes = np.hstack((mv_nodes, av_nodes, pv_nodes, tv_nodes))
+                if not isinstance(self.model, LeftVentricle):
+                    if cap.type == CapType.TRICUSPID_VALVE:
+                        tv_nodes = cap.global_node_ids_edge
+                    if cap.type == CapType.PULMONARY_VALVE:
+                        pv_nodes = cap.global_node_ids_edge
+
+        if isinstance(self.model, LeftVentricle):
+            rings_nodes = np.hstack((mv_nodes, av_nodes))
+        else:
+            rings_nodes = np.hstack((mv_nodes, av_nodes, pv_nodes, tv_nodes))
 
         # LV endo
         lv_endo_nodes = self.model.left_ventricle.endocardium.global_node_ids_triangles
@@ -4336,7 +4347,11 @@ class UHCWriter(BaseDynaWriter):
                 (1, "trans", [lv_endo_nodeset_id, epi_nodeset_id], [1, 0]),
                 (2, "ab_l", [mv_nodeset_id, la_nodeset_id], [1, 0]),
                 (3, "ot_l", [av_nodeset_id, la_nodeset_id], [1, 0]),
-                (4, "w_l", [mv_nodeset_id, la_nodeset_id, av_nodeset_id], [1, 1, 0]),
+                # If combined MV and AV, mv_nodeset=av_nodeset=combined, solve ab_l = ot_l
+                # w_l's has no effect on the result, so set only for structure of code
+                (4, "w_l", [mv_nodeset_id, la_nodeset_id], [1, 0])
+                if combined_av_mv
+                else (4, "w_l", [mv_nodeset_id, la_nodeset_id, av_nodeset_id], [1, 1, 0]),
             ]
         else:  # BV
             lv_endo_nodeset_id = create_and_append_node_set(lv_endo_nodes, "lv endo")
@@ -4356,7 +4371,11 @@ class UHCWriter(BaseDynaWriter):
                 (3, "ab_r", [tv_nodeset_id, ra_nodeset_id], [1, 0]),
                 (4, "ot_l", [av_nodeset_id, la_nodeset_id], [1, 0]),
                 (5, "ot_r", [pv_nodeset_id, ra_nodeset_id], [1, 0]),
-                (6, "w_l", [mv_nodeset_id, la_nodeset_id, av_nodeset_id], [1, 1, 0]),
+                # If combined MV and AV, mv_nodeset=av_nodeset=combined, solve ab_l = ot_l
+                # w_l's has no effect on the result, so set only for structure of code
+                (6, "w_l", [mv_nodeset_id, la_nodeset_id], [1, 0])
+                if combined_av_mv
+                else (6, "w_l", [mv_nodeset_id, la_nodeset_id, av_nodeset_id], [1, 1, 0]),
                 (7, "w_r", [tv_nodeset_id, ra_nodeset_id, pv_nodeset_id], [1, 1, 0]),
                 (8, "lr", [lv_endo_nodeset_id, rv_endo_nodeset_id], [1, -1]),
             ]

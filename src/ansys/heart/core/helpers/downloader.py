@@ -223,6 +223,7 @@ def _validate_hash_sha256(file_path: Path, database: str, casenumber: int) -> bo
 
 def _infer_extraction_path_from_tar(tar_path: str | Path) -> str:
     """Infer the path to the relevant .case or .vtk file from the tar_path."""
+    tar_path = Path(tar_path)
     tarball = tarfile.open(tar_path)
     names = tarball.getnames()
     # Order matters: check if .case file exists before .vtk file
@@ -230,9 +231,8 @@ def _infer_extraction_path_from_tar(tar_path: str | Path) -> str:
     if not sub_path:
         sub_path = next((name for name in names if name.endswith(".vtk")), None)
 
-    sub_paths = sub_path.split("/")
-    path = os.path.abspath(os.path.join(os.path.dirname(tar_path), *sub_paths))
-    return path
+    path = (tar_path.parent / sub_path).resolve()
+    return str(path)
 
 
 def _get_members_to_unpack(tar_ball: tarfile.TarFile) -> typing.List:

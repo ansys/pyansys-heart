@@ -475,14 +475,14 @@ def compute_ventricle_fiber_by_drbm(
 
         # interpolate along transmural direction
         angle = np.zeros(grid.n_cells)
-        alpha_l = ro_epi_left * (np.ones(grid.n_cells) - d_l) + ro_endo_left * d_l
+        alpha_l = ro_epi_left * (np.ones(grid.n_cells) - grid["d"]) + ro_endo_left * grid["d"]
         angle[left_mask] = alpha_l[left_mask]
 
         if not left_only:
             ro_endo_right, ro_epi_right = interpolate_angles(
                 grid["w_r"], right[0], right[1], outflow_tracts
             )
-            alpha_r = ro_epi_right * (np.ones(grid.n_cells) - d_r) + ro_endo_right * d_r
+            alpha_r = ro_epi_right * (np.ones(grid.n_cells) - grid["d"]) + ro_endo_right * grid["d"]
             angle[right_mask] = alpha_r[right_mask]
 
         return angle

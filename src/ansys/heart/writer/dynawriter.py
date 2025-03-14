@@ -4081,28 +4081,6 @@ class UHCWriter(BaseDynaWriter):
         self.kw_database.node_sets.append(kw)
         return sid
 
-    def _create_surface_nodeset(self, surftype: str, cavity_type: str):
-        nodeset = np.array([])
-        for part in self.model.parts:
-            if cavity_type in part.name:
-                for surf in part.surfaces:
-                    if surftype in surf.name:
-                        nodeset = np.append(nodeset, surf.node_ids_triangles)
-        nodeset = np.unique(nodeset.astype(int))
-
-        # map IDs to sub mesh
-        ids_submesh = np.unique(np.where(np.isin(self.target["point_ids"], nodeset))[0])
-
-        sid = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(
-            ids_submesh + 1,
-            node_set_id=sid,
-            title=cavity_type + " " + surftype + " all",
-        )
-        self.kw_database.node_sets.append(kw)
-
-        return sid
-
     def _create_rotational_nodesets(self):
         # Find nodes on target mesh
         rot_start, rot_end, septum = self._get_uvc_rotation_bc()

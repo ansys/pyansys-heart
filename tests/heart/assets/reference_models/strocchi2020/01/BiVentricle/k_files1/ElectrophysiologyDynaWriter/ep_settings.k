@@ -9,6 +9,9 @@ $#olvetype  numsplit   actusig  ionsolvr
 *EM_CONTROL
 $#   emsol     numls   macrodt   dimtype    nperio    unused   ncylfem   ncylbem
         11         4       1.0                                    5000          
+*EM_CONTROL_TIMESTEP
+$#  tstype    dtcons      lcid    factor     tsmin     tsmas     rlcsf    mecats
+         1       1.0                 1.0                            25         0
 *EM_EP_ISOCH
 $# idisoch    idepol    dplthr    irepol    rplthr cyclenmin    apdmin
          1         1     -20.0         1     -40.0    2000.0     100.0

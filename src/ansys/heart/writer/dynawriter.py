@@ -4042,29 +4042,21 @@ class UHCWriter(BaseDynaWriter):
         kw = create_node_set_keyword(epi_set_new + 1, node_set_id=epi_sid, title="epi")
         self.kw_database.node_sets.append(kw)
 
-        sorter = np.argsort(self.target["point_ids"])
-
-        # apex is selected only for left ventricle and with a region of 10mm
+        # apex is selected only at left ventricle and with a region of 10 mm
         # This avoids mesh sensitivity and seems consistent with Strocchi paper's figure
         apex_nodes = self.model.get_apex_node_set(radius=self._UVC_APEX_RADIUS)
-        apex_nodes = sorter[np.searchsorted(self.target["point_ids"], apex_nodes, sorter=sorter)]
-        apex_sid = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(apex_nodes + 1, node_set_id=apex_sid, title="apex")
-        self.kw_database.node_sets.append(kw)
+        apex_sid = self._add_nodeset(apex_nodes, "apex")
 
-        # base
+        # base is with all cap nodes
         (pv_nodes, tv_nodes, av_nodes, mv_nodes), _ = self._update_ventricular_caps_nodes()
         if isinstance(self.model, LeftVentricle):
             base_nodes = np.hstack((mv_nodes, av_nodes))
         else:
             base_nodes = np.hstack((mv_nodes, av_nodes, pv_nodes, tv_nodes))
 
-        base_nodes = sorter[np.searchsorted(self.target["point_ids"], base_nodes, sorter=sorter)]
-        base_sid = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(base_nodes + 1, node_set_id=base_sid, title="base")
-        self.kw_database.node_sets.append(kw)
+        base_sid = self._add_nodeset(base_nodes, "base")
 
-        # rotational uc
+        # rotational uvc
         [sid_minus_pi, sid_plus_pi, sid_zero] = self._create_rotational_nodesets()
 
         cases = [

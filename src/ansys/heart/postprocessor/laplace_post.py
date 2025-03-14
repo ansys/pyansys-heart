@@ -391,7 +391,7 @@ def compute_ventricle_fiber_by_drbm(
         "alpha_ot": None, "beta_left": [-65, 25], "beta_right": [-65, 25], "beta_ot": None, }
 
     left_only : bool, optional
-        only compute left ventricle, by default False
+        only compute fibers on left ventricle, by default False
 
     Returns
     -------

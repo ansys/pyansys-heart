@@ -3921,18 +3921,24 @@ class UHCWriter(BaseDynaWriter):
         kw = create_node_set_keyword(ids_epi + 1, node_set_id=200, title="epi")
         self.kw_database.node_sets.append(kw)
 
-    def _get_laa_nodes(self, atrium, laa: np.ndarray):
-        tree = spatial.cKDTree(atrium.points)
-        ids = np.array(tree.query_ball_point(laa, self._LANDMARK_RADIUS))
-        return ids
-
     def _update_la_bc(self, atrium):
+        def get_laa_nodes(atrium, laa: np.ndarray):
+            tree = spatial.cKDTree(atrium.points)
+            ids = np.array(tree.query_ball_point(laa, self._LANDMARK_RADIUS))
+            return ids
+
         edge_ids = self._update_atrial_caps_nodeset(atrium)
         self._update_atrial_endo_epi_nodeset(atrium, edge_ids)
 
         if "laa" in self.landmarks.keys():
-            laa_ids = self._get_laa_nodes(atrium, self.landmarks["laa"])
-            kw = create_node_set_keyword(laa_ids + 1, node_set_id=2, title="left atrium appendage")
+            # else there should exist LEFT_ATRIUM_APPENDAGE as Strocchi's data
+            laa_ids = get_laa_nodes(atrium, self.landmarks["laa"])
+
+            kw = create_node_set_keyword(
+                laa_ids + 1,
+                node_set_id=self._CAP_NODESET_MAP[CapType.LEFT_ATRIUM_APPENDAGE],
+                title="left atrium appendage",
+            )
             self.kw_database.node_sets.append(kw)
 
         cases = [

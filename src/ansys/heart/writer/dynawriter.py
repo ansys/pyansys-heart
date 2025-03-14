@@ -4253,7 +4253,7 @@ class UHCWriter(BaseDynaWriter):
 
     @staticmethod
     def clean_node_set(nodes, exclude_nodes=None):
-        """Make sure there is no duplicate or excluded nodes."""
+        """Make sure there are no duplicate or excluded nodes."""
         nodes = np.unique(nodes)
         if exclude_nodes is not None:
             nodes = np.setdiff1d(nodes, exclude_nodes)

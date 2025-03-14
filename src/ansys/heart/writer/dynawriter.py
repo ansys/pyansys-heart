@@ -4008,40 +4008,28 @@ class UHCWriter(BaseDynaWriter):
 
     def _update_uvc_bc(self):
         # transmural uvc
-        endo_set = []
-        # epi_set = []
-        for part in self.model.parts:
-            for surf in part.surfaces:
-                if "endocardium" in surf.name and surf.name != "Right ventricle endocardium septum":
-                    endo_surf = self.model.mesh.get_surface(surf.id)
-                    if endo_surf.n_cells == 0:
-                        LOGGER.debug(f"Failed to collect nodes for {surf.name}. Empty mesh.")
-                        continue
-                    endo_set.extend(endo_surf.global_node_ids_triangles)
-                # elif "epicardium" in surf.name:
-                #     epi_set.extend(surf.node_ids)
+        endo_nodes = self.model.left_ventricle.endocardium.global_node_ids_triangles
+        epi_nodes = self.model.left_ventricle.epicardium.global_node_ids_triangles
 
-        # map IDs to sub mesh
-        endo_set_new = np.unique(np.where(np.isin(self.target["point_ids"], endo_set))[0])
+        if not isinstance(self.model, LeftVentricle):
+            rv_endo = self.model.right_ventricle.endocardium.global_node_ids_triangles
+            septum_endo = self._get_rv_septum_endo_surface().global_node_ids_triangles
+            rv_epi = self.model.right_ventricle.epicardium.global_node_ids_triangles
 
-        endo_sid = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(endo_set_new + 1, node_set_id=endo_sid, title="endo")
-        self.kw_database.node_sets.append(kw)
+            # septum endocardium is merged into epicardium set, this is
+            # consistent with transmural values of LeftVentricle model
+            endo_nodes = np.hstack((endo_nodes, rv_endo))
+            epi_nodes = np.hstack(
+                (
+                    epi_nodes,
+                    rv_epi,
+                    septum_endo,
+                )
+            )
+        endo_sid = self._add_nodeset(endo_nodes, "endocardium")
+        epi_sid = self._add_nodeset(epi_nodes, "epicardium")
 
-        # epi_set_new = id_sorter[
-        #     np.searchsorted(self.target["point_ids"], epi_set, sorter=id_sorter)
-        # ]
-        # epi_set_new = np.unique(epi_set_new)
-        # epi_set_new = np.setdiff1d(epi_set_new, endo_set_new)
-
-        # epi cannot use directly Surface because new free surface exposed
-        ids_surface = self.target.extract_surface()["vtkOriginalPointIds"]
-        epi_set_new = np.unique(np.setdiff1d(ids_surface, endo_set_new))
-
-        epi_sid = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(epi_set_new + 1, node_set_id=epi_sid, title="epi")
-        self.kw_database.node_sets.append(kw)
-
+        # base-apical uvc
         # apex is selected only at left ventricle and with a region of 10 mm
         # This avoids mesh sensitivity and seems consistent with Strocchi paper's figure
         apex_nodes = self.model.get_apex_node_set(radius=self._UVC_APEX_RADIUS)
@@ -4216,10 +4204,7 @@ class UHCWriter(BaseDynaWriter):
 
         if not isinstance(self.model, LeftVentricle):
             # Right ventricle endocardium
-            for surf in self.model.right_ventricle.surfaces:
-                if "endocardium" in surf.name and "septum" in surf.name:
-                    septum_endo = surf
-
+            septum_endo = self._get_rv_septum_endo_surface()
             rv_endo_nodes = np.hstack(
                 (
                     self.model.right_ventricle.endocardium.global_node_ids_triangles,
@@ -4286,6 +4271,14 @@ class UHCWriter(BaseDynaWriter):
 
         for case_id, job_name, set_ids, bc_values in cases:
             self.add_case(case_id, job_name, set_ids, bc_values)
+
+    def _get_rv_septum_endo_surface(self):
+        """Get the right ventricle septum endocardium surface."""
+        for surface in self.model.right_ventricle.surfaces:
+            if "endocardium" in surface.name and "septum" in surface.name:
+                return surface
+
+        raise ValueError("Septum endocardium surface not found in right ventricle.")
 
     def _update_ventricular_caps_nodes(self):
         combined_av_mv = False  # combined mitral and aortic valve

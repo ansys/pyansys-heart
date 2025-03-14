@@ -129,9 +129,9 @@ def test_add_stimulation_keyword(_mock_model, solvertype, expected_kw):
 @pytest.mark.parametrize(
     "solvertype,expected_num_keywords",
     [
-        ("Monodomain", 5),
-        ("Eikonal", 5),
-        ("ReactionEikonal", 5),
+        ("Monodomain", 6),
+        ("Eikonal", 6),
+        ("ReactionEikonal", 6),
     ],
 )
 def test_update_ep_settings(_mock_model, solvertype, expected_num_keywords):

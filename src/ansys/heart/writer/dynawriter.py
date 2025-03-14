@@ -4295,7 +4295,7 @@ class UHCWriter(BaseDynaWriter):
         la_node = self.model.get_apex_node_set(part="left")
 
         if not isinstance(self.model, LeftVentricle):
-            # RV endo
+            # Right ventricle endocardium
             for surf in self.model.right_ventricle.surfaces:
                 if "endocardium" in surf.name and "septum" in surf.name:
                     septum_endo = surf

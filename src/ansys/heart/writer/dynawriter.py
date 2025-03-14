@@ -4152,6 +4152,11 @@ class UHCWriter(BaseDynaWriter):
         int
             nodeset id
         """
+        # id sorter from model to submesh
+        sorter = np.argsort(self.target["point_ids"])
+        # get node IDs of sub mesh
+        nodes = sorter[np.searchsorted(self.target["point_ids"], nodes, sorter=sorter)]
+
         nodeset_id = self.get_unique_nodeset_id()
         # lsdyna ID start with 1
         kw = create_node_set_keyword(nodes + 1, node_set_id=nodeset_id, title=title)

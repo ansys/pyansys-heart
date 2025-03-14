@@ -81,20 +81,13 @@ def test_ra_top(fourchamber):
     start = [-46.4863, 133.29, 405.961]
     end = [-33.7271, 134.605, 332.155]
     mid = [-43.5525, 148.992, 367.271]
-    # test geodesic method
+
     writer = UHCWriter(fourchamber, "ra_fiber", raa=[-33, 82, 417], top=[start, mid, end])
-    ids = writer._update_ra_top_nodeset(writer.target)
+    ids = writer._find_top_nodeset_by_geodesic(writer.target)
+
     assert len(ids) == 61
     assert ids[0] == 1224
     assert ids[-1] == 23575
-
-    # # test cut method # TODO: cut method cannot be run before tricuspid is defined
-    # writer = UHCWriter(fourchamber, "ra_fiber", raa=[-33, 82, 417])
-    # ids = writer._update_ra_top_nodeset(writer.target)
-
-    # assert len(ids) == ?
-    # assert ids[0] == ?
-    # assert ids[-1] == ?
 
 
 @pytest.mark.k_file_writer

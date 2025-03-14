@@ -394,7 +394,7 @@ class HeartModel:
         beam_nodes, edges, mask, pid = _read_purkinje_from_kfile(filename)
 
         # build tree: beam_nodes and solid_points
-        original_points_order = np.unique(edges[mask == False])
+        original_points_order = np.unique(edges[np.invert(mask)])
         solid_points = self.mesh.points[original_points_order]
         connectivity = np.empty_like(edges)
         np.copyto(connectivity, edges)

@@ -4045,7 +4045,11 @@ class UHCWriter(BaseDynaWriter):
         base_sid = self._add_nodeset(base_nodes, "base")
 
         # rotational uvc
-        [sid_minus_pi, sid_plus_pi, sid_zero] = self._create_rotational_nodesets()
+        rot_start, rot_end, rot_mid = self._get_uvc_rotation_bc()
+
+        sid_minus_pi = self._add_nodeset(rot_start, title="rotation:-pi")
+        sid_plus_pi = self._add_nodeset(rot_end, title="rotation:pi")
+        sid_zero = self._add_nodeset(rot_mid, title="rotation:0")
 
         cases = [
             (1, "transmural", [endo_sid, epi_sid], [0, 1]),
@@ -4054,21 +4058,6 @@ class UHCWriter(BaseDynaWriter):
         ]
         for case_id, job_name, set_ids, bc_values in cases:
             self.add_case(case_id, job_name, set_ids, bc_values)
-
-    def _create_rotational_nodesets(self):
-        # Find nodes on target mesh
-        rot_start, rot_end, septum = self._get_uvc_rotation_bc()
-
-        sid_minus_pi = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(rot_start + 1, node_set_id=sid_minus_pi, title="rotation:-pi")
-        self.kw_database.node_sets.append(kw)
-        sid_plus_pi = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(rot_end + 1, node_set_id=sid_plus_pi, title="rotation:pi")
-        self.kw_database.node_sets.append(kw)
-        sid_zero = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(septum + 1, node_set_id=sid_zero, title="rotation:0")
-        self.kw_database.node_sets.append(kw)
-        return [sid_minus_pi, sid_plus_pi, sid_zero]
 
     def _get_uvc_rotation_bc(self):
         """Select node set on long axis plane."""
@@ -4149,7 +4138,7 @@ class UHCWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.ControlTermination(endtim=1, dtmin=1.0))
 
     @staticmethod
-    def clean_node_set(nodes: np.ndarray, exclude_nodes: np.ndarray = None):
+    def _clean_node_set(nodes: np.ndarray, exclude_nodes: np.ndarray = None):
         """Make sure there are no duplicate or excluded nodes."""
         nodes = np.unique(nodes)
         if exclude_nodes is not None:
@@ -4195,10 +4184,10 @@ class UHCWriter(BaseDynaWriter):
 
         # LV endo
         lv_endo_nodes = self.model.left_ventricle.endocardium.global_node_ids_triangles
-        lv_endo_nodes = self.clean_node_set(lv_endo_nodes, rings_nodes)
+        lv_endo_nodes = self._clean_node_set(lv_endo_nodes, rings_nodes)
         # LV epi
         epi_nodes = self.model.left_ventricle.epicardium.global_node_ids_triangles
-        epi_nodes = self.clean_node_set(epi_nodes, np.hstack((lv_endo_nodes, rings_nodes)))
+        epi_nodes = self._clean_node_set(epi_nodes, np.hstack((lv_endo_nodes, rings_nodes)))
         # LV apex
         la_node = self.model.get_apex_node_set(part="left")
 
@@ -4211,7 +4200,7 @@ class UHCWriter(BaseDynaWriter):
                     septum_endo.global_node_ids_triangles,
                 )
             )
-            rv_endo_nodes = self.clean_node_set(rv_endo_nodes, rings_nodes)
+            rv_endo_nodes = self._clean_node_set(rv_endo_nodes, rings_nodes)
 
             # append RV epi
             epi_nodes = np.hstack(
@@ -4220,7 +4209,7 @@ class UHCWriter(BaseDynaWriter):
                     self.model.right_ventricle.epicardium.global_node_ids_triangles,
                 )
             )
-            epi_nodes = self.clean_node_set(epi_nodes, np.hstack((rv_endo_nodes, rings_nodes)))
+            epi_nodes = self._clean_node_set(epi_nodes, np.hstack((rv_endo_nodes, rings_nodes)))
             # RV apex
             ra_node = self.model.get_apex_node_set(part="right")
 

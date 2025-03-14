@@ -4176,6 +4176,32 @@ class UHCWriter(BaseDynaWriter):
             nodes = np.setdiff1d(nodes, exclude_nodes)
         return nodes
 
+    def _add_nodeset(self, nodes: np.ndarray, title: str) -> int:
+        """Convert to local node ID and add to nodeset.
+
+        Parameters
+        ----------
+        nodes : np.ndarray
+            Nodes global ids
+        title : str
+            nodeset title
+
+        Returns
+        -------
+        int
+            nodeset id
+        """
+        # id sorter from model to submesh
+        sorter = np.argsort(self.target["point_ids"])
+        # get node IDs of sub mesh
+        nodes = sorter[np.searchsorted(self.target["point_ids"], nodes, sorter=sorter)]
+
+        nodeset_id = self.get_unique_nodeset_id()
+        # lsdyna ID start with 1
+        kw = create_node_set_keyword(nodes + 1, node_set_id=nodeset_id, title=title)
+        self.kw_database.node_sets.append(kw)
+        return nodeset_id
+
     def _update_drbm_bc(self):
         """Update D-RBM boundary conditions."""
         (pv_nodes, tv_nodes, av_nodes, mv_nodes), combined_av_mv = (
@@ -4221,24 +4247,12 @@ class UHCWriter(BaseDynaWriter):
             # RV apex
             ra_node = self.model.get_apex_node_set(part="right")
 
-        # id sorter from model to submesh
-        sorter = np.argsort(self.target["point_ids"])
-
-        def create_and_append_node_set(nodes, title):
-            # get node IDs of sub mesh
-            nodes = sorter[np.searchsorted(self.target["point_ids"], nodes, sorter=sorter)]
-            nodeset_id = self.get_unique_nodeset_id()
-            # lsdyna ID start with 1
-            kw = create_node_set_keyword(nodes + 1, node_set_id=nodeset_id, title=title)
-            self.kw_database.node_sets.append(kw)
-            return nodeset_id
-
         if isinstance(self.model, LeftVentricle):
-            lv_endo_nodeset_id = create_and_append_node_set(lv_endo_nodes, "lv endo")
-            epi_nodeset_id = create_and_append_node_set(np.unique(epi_nodes), "epi")
-            mv_nodeset_id = create_and_append_node_set(mv_nodes, "mv")
-            av_nodeset_id = create_and_append_node_set(av_nodes, "av")
-            la_nodeset_id = create_and_append_node_set(la_node, "left apex")
+            lv_endo_nodeset_id = self._add_nodeset(lv_endo_nodes, "lv endo")
+            epi_nodeset_id = self._add_nodeset(epi_nodes, "epi")
+            mv_nodeset_id = self._add_nodeset(mv_nodes, "mv")
+            av_nodeset_id = self._add_nodeset(av_nodes, "av")
+            la_nodeset_id = self._add_nodeset(la_node, "left apex")
 
             # add case kewyords
             cases = [
@@ -4252,15 +4266,15 @@ class UHCWriter(BaseDynaWriter):
                 else (4, "w_l", [mv_nodeset_id, la_nodeset_id, av_nodeset_id], [1, 1, 0]),
             ]
         else:  # BV
-            lv_endo_nodeset_id = create_and_append_node_set(lv_endo_nodes, "lv endo")
-            rv_endo_nodeset_id = create_and_append_node_set(rv_endo_nodes, "rv endo")
-            epi_nodeset_id = create_and_append_node_set(np.unique(epi_nodes), "epi")
-            mv_nodeset_id = create_and_append_node_set(mv_nodes, "mv")
-            av_nodeset_id = create_and_append_node_set(av_nodes, "av")
-            tv_nodeset_id = create_and_append_node_set(tv_nodes, "tv")
-            pv_nodeset_id = create_and_append_node_set(pv_nodes, "pv")
-            la_nodeset_id = create_and_append_node_set(la_node, "left apex")
-            ra_nodeset_id = create_and_append_node_set(ra_node, "right apex")
+            lv_endo_nodeset_id = self._add_nodeset(lv_endo_nodes, "lv endo")
+            rv_endo_nodeset_id = self._add_nodeset(rv_endo_nodes, "rv endo")
+            epi_nodeset_id = self._add_nodeset(epi_nodes, "epi")
+            mv_nodeset_id = self._add_nodeset(mv_nodes, "mv")
+            av_nodeset_id = self._add_nodeset(av_nodes, "av")
+            tv_nodeset_id = self._add_nodeset(tv_nodes, "tv")
+            pv_nodeset_id = self._add_nodeset(pv_nodes, "pv")
+            la_nodeset_id = self._add_nodeset(la_node, "left apex")
+            ra_nodeset_id = self._add_nodeset(ra_node, "right apex")
 
             # add case kewyords
             cases = [

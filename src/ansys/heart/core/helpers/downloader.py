@@ -47,7 +47,7 @@ _URLS = {
     "Rodero2021": {"url": "https://zenodo.org/record/4590294", "num_cases": 20},
 }
 _VALID_DATABASES = list(_URLS.keys())
-_DOWNLOAD_DIR = PurePath.joinpath(Path.home(), "downloads")
+_DOWNLOAD_DIR = PurePath.joinpath(Path.home(), "pyansys-heart", "downloads")
 
 # checksum table for Rodero 2021 et al and Strocchi 2020 et al.
 _SHA256_TABLE = {

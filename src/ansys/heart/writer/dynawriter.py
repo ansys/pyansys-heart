@@ -3859,7 +3859,7 @@ class UHCWriter(BaseDynaWriter):
         self.kw_database.node_sets.append(kw)
 
     def _update_atrial_caps_nodeset(self, atrium: pv.UnstructuredGrid):
-        """Define boundary condition."""
+        """Define boundary conditionon caps."""
         ids_edges = []  # all nodes belong to valves
         for cap in self.model.parts[0].caps:
             # get node IDs for atrium mesh
@@ -4139,7 +4139,7 @@ class UHCWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.DatabaseExtentBinary(therm=2))  # save heat flux
         self.kw_database.main.append(keywords.ControlTermination(endtim=1, dtmin=1.0))
 
-    def _add_nodeset(self, nodes: np.ndarray, title: str) -> int:
+    def _add_nodeset(self, nodes: np.ndarray, title: str, nodeset_id: int = None) -> int:
         """Convert to local node ID and add to nodeset.
 
         Parameters
@@ -4148,18 +4148,18 @@ class UHCWriter(BaseDynaWriter):
             Nodes global ids
         title : str
             nodeset title
+        nodeset_id : int, optional
+            attribute a nodeset ID if not given, by default None
 
         Returns
         -------
         int
             nodeset id
         """
-        # id sorter from model to submesh
-        sorter = np.argsort(self.target["point_ids"])
         # get node IDs of sub mesh
-        nodes = sorter[np.searchsorted(self.target["point_ids"], nodes, sorter=sorter)]
-
-        nodeset_id = self.get_unique_nodeset_id()
+        nodes = np.where(np.isin(self.target["point_ids"], nodes))[0]
+        if nodeset_id is None:
+            nodeset_id = self.get_unique_nodeset_id()
         # lsdyna ID start with 1
         kw = create_node_set_keyword(nodes + 1, node_set_id=nodeset_id, title=title)
         self.kw_database.node_sets.append(kw)

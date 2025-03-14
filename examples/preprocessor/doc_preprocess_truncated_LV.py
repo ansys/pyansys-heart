@@ -37,6 +37,7 @@ Land et al (2015): https://doi.org/10.1098/rspa.2015.0641
 # Import the required modules and set relevant paths, including that of the working
 # directory and generated model
 import os
+from pathlib import Path
 
 import numpy as np
 import pyvista as pv
@@ -57,7 +58,8 @@ mesher._fluent_version = "24.1"
 ###############################################################################
 # Create a truncated ellipsoid using pyvista
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-workdir = r"simplified-geometries\truncated_lv"
+workdir = Path.home() / "pyansys-heart" / "simplified-geometries" / "truncated_LV"
+workdir.mkdir(parents=True, exist_ok=True)
 
 # create the surfaces of a truncated LV model
 ellips_epi: pv.PolyData = pv.ParametricEllipsoid(xradius=10, yradius=10, zradius=20)

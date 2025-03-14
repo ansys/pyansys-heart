@@ -73,6 +73,14 @@ except ImportError:
 
 def _get_supported_fluent_version():
     """Use pyfluent to get a supported Fluent version."""
+    if os.getenv("PYANSYS_HEART_FLUENT_VERSION", None):
+        version = os.getenv("PYANSYS_HEART_FLUENT_VERSION")
+        if version not in _supported_fluent_versions:
+            raise ValueError(
+                f"Fluent version {version} is not supported. Supported versions are: {_supported_fluent_versions}"  # noqa: E501
+            )
+        return version
+
     for version in _supported_fluent_versions:
         try:
             pyfluent.launch_fluent(product_version=version, dry_run=True)
@@ -183,7 +191,7 @@ def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingS
         )
 
     else:
-        num_cpus = _num_cpus
+        num_cpus = os.getenv("PYANSYS_HEART_NUM_CPU", _num_cpus)
         session = pyfluent.launch_fluent(
             mode="meshing",
             precision="double",

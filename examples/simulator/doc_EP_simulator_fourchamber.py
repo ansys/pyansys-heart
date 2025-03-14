@@ -59,19 +59,6 @@ os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 # set working directory and path to model.
 workdir = os.path.join("pyansys-heart", "downloads", "Strocchi2020", "01", "FourChamber")
 
-# sphinx_gallery_start_ignore
-# Overwrite with env variables: for testing purposes only. May be removed by user.
-from pathlib import Path
-
-try:
-    path_to_dyna = str(Path(os.environ["PATH_TO_DYNA"]))
-    workdir = os.path.join(
-        os.path.dirname(str(Path(os.environ["PATH_TO_CASE_FILE"]))), "FourChamber"
-    )
-except KeyError:
-    pass
-# sphinx_gallery_end_ignore
-
 path_to_model = os.path.join(workdir, "heart_model.vtu")
 
 # specify LS-DYNA path (last tested working versions is intelmpi-linux-DEV-106117)
@@ -113,17 +100,6 @@ model.workdir = str(workdir)
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path, dynatype="smp", num_cpus=4, platform="windows"
 )
-
-# sphinx_gallery_start_ignore
-# Overwrite with env variables: for testing purposes only. May be removed by user.
-try:
-    dyna_settings.lsdyna_path = path_to_dyna
-    # assume we are in WSL if .exe not in path.
-    if ".exe" not in path_to_dyna:
-        dyna_settings.platform = "wsl"
-except Exception:
-    pass
-# sphinx_gallery_end_ignore
 
 # instantiate simulator. Change options where necessary.
 simulator = EPSimulator(

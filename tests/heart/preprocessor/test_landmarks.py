@@ -25,7 +25,7 @@ import os
 import numpy as np
 import pytest
 
-from ansys.heart.core.helpers.landmarks import (
+from ansys.heart.core.helpers.landmark_utils import (
     compute_aha17,
     compute_anatomy_axis,
     compute_element_cs,

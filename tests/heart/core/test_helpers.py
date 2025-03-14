@@ -25,10 +25,10 @@ import tempfile
 
 import numpy as np
 
-from ansys.heart.core.helpers.element_orth import (
+from ansys.heart.core.helpers.misc import (
     _read_orth_element_kfile,
+    clean_directory,
 )
-from ansys.heart.core.helpers.general import clean_directory
 
 _test_data = """*ELEMENT_SOLID_ORTHO
        1       1

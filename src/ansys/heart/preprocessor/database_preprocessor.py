@@ -31,7 +31,7 @@ import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.helpers.connectivity import face_tetra_connectivity
-import ansys.heart.core.helpers.geodisc as geodisc
+import ansys.heart.core.helpers.misc as geodisc
 
 
 def _read_input_mesh(mesh_path: str, database: str) -> pv.UnstructuredGrid:

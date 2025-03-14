@@ -28,7 +28,7 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 import numpy as np
 
-from ansys.heart.core.helpers.landmarks import compute_aha17, compute_element_cs
+from ansys.heart.core.helpers.landmark_utils import compute_aha17, compute_element_cs
 from ansys.heart.core.models import HeartModel
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 
@@ -171,7 +171,6 @@ class AhaStrainCalculator:
 
         # model info
         e_l, e_r, e_c = compute_element_cs(self.model, self.model.short_axis, self._aha_elements)
-        # TODO: vectorization
         for i_ele in range(len(self._aha_elements)):
             if reference is not None:
                 pass
@@ -275,7 +274,7 @@ class AhaStrainCalculator:
             # First segment start at 60 degrees
             theta0 = theta[i * 128 : i * 128 + 128] + np.deg2rad(60)
             theta0 = np.repeat(theta0[:, np.newaxis], 2, axis=1)
-            # TODO: @wenfengye - remove this variable if not using , commenting out for now
+            # for color fill
             # z = np.ones((128, 2)) * data[i]
             # ax.pcolormesh(theta0, r0, z, cmap=cmap, norm=norm, shading="auto")
 
@@ -293,7 +292,7 @@ class AhaStrainCalculator:
             # First segment start at 60 degrees
             theta0 = theta[i * 128 : i * 128 + 128] + np.deg2rad(60)
             theta0 = np.repeat(theta0[:, np.newaxis], 2, axis=1)
-            # TODO: @wenfengye - remove this variable if not using , commenting out for now
+            # for color fill
             # z = np.ones((128, 2)) * data[i + 6]
             # ax.pcolormesh(theta0, r0, z, cmap=cmap, norm=norm, shading="auto")
 
@@ -311,7 +310,7 @@ class AhaStrainCalculator:
             # First segment start at 45 degrees
             theta0 = theta[i * 192 : i * 192 + 192] + np.deg2rad(45)
             theta0 = np.repeat(theta0[:, np.newaxis], 2, axis=1)
-            # TODO: @wenfengye - remove this variable if not using , commenting out for now
+            # for color fill
             # z = np.ones((192, 2)) * data[i + 12]
             # ax.pcolormesh(theta0, r0, z, cmap=cmap, norm=norm, shading="auto")
 
@@ -327,7 +326,7 @@ class AhaStrainCalculator:
             r0 = np.array([0, r[0]])
             r0 = np.repeat(r0[:, np.newaxis], theta.size, axis=1).T
             theta0 = np.repeat(theta[:, np.newaxis], 2, axis=1)
-            # TODO: @wenfengye - remove this variable if not using , commenting out for now
+            # for color fill
             # z = np.ones((theta.size, 2)) * data[16]
             # ax.pcolormesh(theta0, r0, z, cmap=cmap, norm=norm, shading="auto")
 

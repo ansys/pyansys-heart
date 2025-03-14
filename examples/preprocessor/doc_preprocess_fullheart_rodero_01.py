@@ -44,7 +44,7 @@ import json
 import os
 from pathlib import Path
 
-from ansys.heart.core.helpers.general import clean_directory
+from ansys.heart.core.helpers.downloader import download_case_from_zenodo, unpack_case
 import ansys.heart.core.models as models
 from ansys.heart.preprocessor.database_preprocessor import get_compatible_input
 
@@ -53,25 +53,22 @@ import ansys.heart.preprocessor.mesher as mesher
 
 mesher._fluent_version = "24.1"
 
-# specify necessary paths.
-case_file = os.path.join(
-    "d:\\development", "pyansys-heart", "downloads", "Rodero2021", "01", "01.vtk"
-)
+# specify a download directory.
+download_folder = Path.home() / "pyansys-heart" / "downloads"
 
-# sphinx_gallery_start_ignore
-# Overwrite with env variables: for testing purposes only. May be removed by user.
-try:
-    case_file = str(Path(os.environ["PATH_TO_CASE_FILE"]))
-except KeyError:
-    pass
-# sphinx_gallery_end_ignore
+# download a compatible case from the Zenodo database.
+tar_file = download_case_from_zenodo("Rodero2021", 1, download_folder, overwrite=False)
+# unpack the case to get the unput .case/.vtk file.
+case_file = unpack_case(tar_file)
 
+# specify working directory. Here we use the directory of the case file.
 workdir = os.path.join(os.path.dirname(case_file), "FullHeart")
 
 if not os.path.isdir(workdir):
     os.makedirs(workdir)
 
-path_to_model = os.path.join(workdir, "heart_model.pickle")
+# specify paths to the model, input, and part definitions.
+path_to_model = os.path.join(workdir, "heart_model.vtu")
 path_to_input = os.path.join(workdir, "input_model.vtp")
 path_to_part_definitions = os.path.join(workdir, "part_definitions.json")
 
@@ -84,11 +81,11 @@ path_to_part_definitions = os.path.join(workdir, "part_definitions.json")
 #    - https://zenodo.org/records/4590294
 #
 #    Alternatively you can make use of the download
-#    module instead. See the download module.
+#    module instead. See the download example.
 
 ###############################################################################
-# Convert the .vtk file into compatible input
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Convert the .vtk file into compatible input format
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 input_geom, part_definitions = get_compatible_input(
     case_file, model_type="FullHeart", database="Rodero2021"
 )
@@ -100,23 +97,9 @@ with open(path_to_part_definitions, "w") as f:
     json.dump(part_definitions, f, indent=True)
 
 ###############################################################################
-# Set required information
-# ~~~~~~~~~~~~~~~~~~~~~~~~
-# Set the right database to which this case belongs, and set other relevant
-# information such as the desired mesh size.
-
-# create or clean working directory
-if not os.path.isdir(workdir):
-    os.makedirs(workdir)
-else:
-    clean_directory(workdir, [".stl", ".msh.h5", ".pickle"])
-
-###############################################################################
-# Initialize the heart model with info
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Initialize the desired heart model with info.
-
-# initialize full heart model
+# Create a heart model
+# ~~~~~~~~~~~~~~~~~~~~
+# initialize a full heart model
 model = models.FullHeart(working_directory=workdir)
 
 # load input model generated in an earlier step.
@@ -134,9 +117,6 @@ model.save_model(os.path.join(model.workdir, "heart_model.vtu"))
 
 # print some info about the processed model.
 print(model)
-
-# clean the working directory
-clean_directory(workdir, extensions_to_remove=[".stl", ".vtk", ".msh.h5"])
 
 # print part names
 print(model.part_names)

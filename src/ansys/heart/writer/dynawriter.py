@@ -4026,6 +4026,8 @@ class UHCWriter(BaseDynaWriter):
                     septum_endo,
                 )
             )
+        epi_nodes = np.setdiff1d(epi_nodes, endo_nodes)
+
         endo_sid = self._add_nodeset(endo_nodes, "endocardium")
         epi_sid = self._add_nodeset(epi_nodes, "epicardium")
 

@@ -3937,7 +3937,7 @@ class UHCWriter(BaseDynaWriter):
             (4, "r", [4, 1, 2, 3, 5, 6], [1.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
         ]
         for case_id, job_name, set_ids, bc_values in cases:
-            self._add_case(case_id, job_name, set_ids, bc_values)
+            self.add_case(case_id, job_name, set_ids, bc_values)
 
     def _update_ra_bc(self, atrium):
         edge_ids = self._update_atrial_caps_nodeset(atrium)
@@ -3967,7 +3967,7 @@ class UHCWriter(BaseDynaWriter):
             (5, "w", [12, 13, 10], [1.0, -1.0, 0.0]),
         ]
         for case_id, job_name, set_ids, bc_values in cases:
-            self._add_case(case_id, job_name, set_ids, bc_values)
+            self.add_case(case_id, job_name, set_ids, bc_values)
 
         return atrium
 
@@ -4052,7 +4052,7 @@ class UHCWriter(BaseDynaWriter):
             (3, "rotational", [sid_minus_pi, sid_plus_pi, sid_zero], [-np.pi, np.pi, 0]),
         ]
         for case_id, job_name, set_ids, bc_values in cases:
-            self._add_case(case_id, job_name, set_ids, bc_values)
+            self.add_case(case_id, job_name, set_ids, bc_values)
 
     def _create_apex_nodeset(self):
         # apex
@@ -4148,21 +4148,6 @@ class UHCWriter(BaseDynaWriter):
         )  # 0
 
         return set1, set2, set3
-
-    def _define_Laplace_Dirichlet_bc(  # noqa N802
-        self,
-        set_ids: List[int],
-        bc_values: List[float],
-    ):
-        for sid, value in zip(set_ids, bc_values):
-            self.kw_database.main.append(
-                keywords.BoundaryTemperatureSet(
-                    nsid=sid,
-                    lcid=0,
-                    cmult=value,
-                ),
-            )
-        return
 
     def _update_parts_materials_db(self):
         """Loop over parts defined in the model and creates keywords."""
@@ -4337,13 +4322,34 @@ class UHCWriter(BaseDynaWriter):
             ]
 
         for case_id, job_name, set_ids, bc_values in cases:
-            self._add_case(case_id, job_name, set_ids, bc_values)
+            self.add_case(case_id, job_name, set_ids, bc_values)
 
-    def _add_case(self, case_id, job_name, set_ids, bc_values):
-        """Add case to keyword database."""
-        self.kw_database.main.append(keywords.Case(caseid=case_id, jobid=job_name, scid1=case_id))
+    def add_case(self, case_id: int, case_name: str, set_ids: list[int], bc_values: list[float]):
+        """Add case to keyword database.
+
+        Parameters
+        ----------
+        case_id : int
+            case id
+        case_name : str
+            case name, will be d3plot file name
+        set_ids : list[int]
+            node set id for boundary condition
+        bc_values : list[float]
+            boundary condition values
+        """
+        # declare case
+        self.kw_database.main.append(keywords.Case(caseid=case_id, jobid=case_name, scid1=case_id))
+        # define BC for this case
         self.kw_database.main.append(f"*CASE_BEGIN_{case_id}")
-        self._define_Laplace_Dirichlet_bc(set_ids=set_ids, bc_values=bc_values)
+        for sid, value in zip(set_ids, bc_values):
+            self.kw_database.main.append(
+                keywords.BoundaryTemperatureSet(
+                    nsid=sid,
+                    lcid=0,
+                    cmult=value,
+                ),
+            )
         self.kw_database.main.append(f"*CASE_END_{case_id}")
 
 

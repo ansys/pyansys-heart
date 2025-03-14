@@ -22,6 +22,7 @@
 
 import hashlib
 import os
+import pathlib
 import tarfile
 import tempfile
 import unittest.mock as mock
@@ -78,20 +79,19 @@ def test_download_case(database_name):
     return
 
 
-@pytest.mark.parametrize("contents", (["01/01.case"], ["01.vtk"]))
-def test_infer_extraction_path_from_tar(contents):
+@pytest.mark.parametrize("tar_subpaths", (["01/01.case"], ["01.vtk"]))
+def test_infer_extraction_path_from_tar(tar_subpaths):
     """Test unpacking a downloaded case."""
     # two configurations:
     # Strocchi2020 --> 01.tar.gz > 01/01.case
     # Rodero2021 --> 01.tar.gz > > 01.vtk
     with mock.patch("tarfile.open", return_value=mock.MagicMock(tarfile.TarFile)) as mock_taropen:
-        mock_taropen.return_value.getnames.return_value = contents
+        mock_taropen.return_value.getnames.return_value = tar_subpaths
         with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
             path = _infer_extraction_path_from_tar(os.path.join(tempdir, "mytar.tar.gz"))
 
-            subpaths = contents[0].split("/")
-            exected_path = os.path.join(tempdir, *subpaths)
-            assert path == exected_path
+            expected_path = str(pathlib.Path(tempdir, tar_subpaths[0]))
+            assert path == expected_path
 
 
 def test_validate_hash_function_001():

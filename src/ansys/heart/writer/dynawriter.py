@@ -3697,19 +3697,19 @@ class UHCWriter(BaseDynaWriter):
     def __init__(
         self, model: HeartModel, type: Literal["uvc", "la_fiber", "ra_fiber", "D-RBM"], **kwargs
     ):
-        """
-        Write thermal input to set up a Laplace dirichlet problem.
+        """Write thermal input to set up a Laplace dirichlet problem.
 
         Parameters
         ----------
-        model: Heart Model
-            Heart model to simulate.
-        type : Literal[]
-            Type of simulation to set up.
+        model : HeartModel
+            Heart model
+        type : Literal[&quot;uvc&quot;, &quot;la_fiber&quot;, &quot;ra_fiber&quot;, &quot;D
+            simulation type
         """
         super().__init__(model=model)
         self.type = type
         self.landmarks = kwargs
+        self.target: pv.UnstructuredGrid = None
 
         # remove unnecessary parts
         if self.type == "uvc" or self.type == "D-RBM":
@@ -3720,7 +3720,7 @@ class UHCWriter(BaseDynaWriter):
         elif self.type == "ra_fiber":
             parts_to_keep = ["Right atrium"]
 
-        # remove unnecessary mesh
+        # remove unnecessary mesh and create target attribute
         if self.type == "uvc" or self.type == "D-RBM":
             elems_to_keep = []
             if isinstance(self.model, LeftVentricle):
@@ -3777,8 +3777,8 @@ class UHCWriter(BaseDynaWriter):
             LOGGER.error("Cannot find top nodeset...")
             raise ValueError("Please define top start/end points and re-run.")
 
-        # temporary fix with tricuspid-valve name
-        tv_name = "tricuspid-valve-atrium"
+        # get tricuspid-valve name
+        tv_name = CapType.TRICUSPID_VALVE_ATRIUM.value
 
         # compare closest point with TV nodes, top region should be far with TV node set
         tv_tree = spatial.cKDTree(atrium.points[atrium.point_data[tv_name] == 1])
@@ -3827,8 +3827,8 @@ class UHCWriter(BaseDynaWriter):
 
     def _update_ra_tricuspid_nodeset(self, atrium):
         """Find tricuspid_wall and tricuspid_septum."""
-        # temporary fix with tricuspid-valve name
-        tv_name = "tricuspid-valve-atrium"
+        # get tricuspid-valve name
+        tv_name = CapType.TRICUSPID_VALVE_ATRIUM.value
 
         # The cut_normal is determined so 1st part will be septum and 2nd will be free
         cut_center, cut_normal = self._define_ra_cut()
@@ -3868,7 +3868,7 @@ class UHCWriter(BaseDynaWriter):
             # create node set
             set_id = self._CAP_NODESET_MAP[cap.type]
 
-            if set_id:  # Can be none for LEFT_ATRIUM_APPENDAGE
+            if set_id:  # Can be None for LEFT_ATRIUM_APPENDAGE
                 kw = create_node_set_keyword(ids_sub + 1, node_set_id=set_id, title=cap.name)
                 self.kw_database.node_sets.append(kw)
 

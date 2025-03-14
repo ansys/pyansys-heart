@@ -4043,7 +4043,18 @@ class UHCWriter(BaseDynaWriter):
 
         # apicobasal uvc
         apex_sid = self._create_apex_nodeset()
-        base_sid = self._create_base_nodeset()
+
+        # base
+        (pv_nodes, tv_nodes, av_nodes, mv_nodes), _ = self._update_ventricular_caps_nodes()
+        if isinstance(self.model, LeftVentricle):
+            base_nodes = np.hstack((mv_nodes, av_nodes))
+        else:
+            base_nodes = np.hstack((mv_nodes, av_nodes, pv_nodes, tv_nodes))
+        sorter = np.argsort(self.target["point_ids"])
+        base_nodes = sorter[np.searchsorted(self.target["point_ids"], base_nodes, sorter=sorter)]
+        base_sid = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(base_nodes + 1, node_set_id=base_sid, title="base")
+        self.kw_database.node_sets.append(kw)
 
         # rotational uc
         [sid_minus_pi, sid_plus_pi, sid_zero] = self._create_rotational_nodesets()
@@ -4065,21 +4076,6 @@ class UHCWriter(BaseDynaWriter):
 
         sid = self.get_unique_nodeset_id()
         kw = create_node_set_keyword(ids_submesh + 1, node_set_id=sid, title="apex")
-        self.kw_database.node_sets.append(kw)
-        return sid
-
-    def _create_base_nodeset(self):
-        # base
-        base_set = np.array([])
-        for part in self.model.parts:
-            for cap in part.caps:
-                cap._mesh = self.model.mesh.get_surface(cap._mesh.id)
-                base_set = np.append(base_set, cap.global_node_ids_edge)
-        # get local ID
-        ids_submesh = np.unique(np.where(np.isin(self.target["point_ids"], base_set))[0])
-
-        sid = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(ids_submesh + 1, node_set_id=sid, title="base")
         self.kw_database.node_sets.append(kw)
         return sid
 

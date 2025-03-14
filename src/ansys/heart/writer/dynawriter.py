@@ -4137,14 +4137,6 @@ class UHCWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.DatabaseExtentBinary(therm=2))  # save heat flux
         self.kw_database.main.append(keywords.ControlTermination(endtim=1, dtmin=1.0))
 
-    @staticmethod
-    def _clean_node_set(nodes: np.ndarray, exclude_nodes: np.ndarray = None):
-        """Make sure there are no duplicate or excluded nodes."""
-        nodes = np.unique(nodes)
-        if exclude_nodes is not None:
-            nodes = np.setdiff1d(nodes, exclude_nodes)
-        return nodes
-
     def _add_nodeset(self, nodes: np.ndarray, title: str) -> int:
         """Convert to local node ID and add to nodeset.
 
@@ -4168,6 +4160,14 @@ class UHCWriter(BaseDynaWriter):
 
     def _update_drbm_bc(self):
         """Update D-RBM boundary conditions."""
+
+        def clean_node_set(nodes: np.ndarray, exclude_nodes: np.ndarray = None):
+            """Make sure there are no duplicate or excluded nodes, avoid thermal BC error."""
+            nodes = np.unique(nodes)
+            if exclude_nodes is not None:
+                nodes = np.setdiff1d(nodes, exclude_nodes)
+            return nodes
+
         (pv_nodes, tv_nodes, av_nodes, mv_nodes), combined_av_mv = (
             self._update_ventricular_caps_nodes()
         )
@@ -4179,10 +4179,10 @@ class UHCWriter(BaseDynaWriter):
 
         # LV endo
         lv_endo_nodes = self.model.left_ventricle.endocardium.global_node_ids_triangles
-        lv_endo_nodes = self._clean_node_set(lv_endo_nodes, rings_nodes)
+        lv_endo_nodes = clean_node_set(lv_endo_nodes, rings_nodes)
         # LV epi
         epi_nodes = self.model.left_ventricle.epicardium.global_node_ids_triangles
-        epi_nodes = self._clean_node_set(epi_nodes, np.hstack((lv_endo_nodes, rings_nodes)))
+        epi_nodes = clean_node_set(epi_nodes, np.hstack((lv_endo_nodes, rings_nodes)))
         # LV apex
         la_node = self.model.get_apex_node_set(part="left")
 
@@ -4195,7 +4195,7 @@ class UHCWriter(BaseDynaWriter):
                     septum_endo.global_node_ids_triangles,
                 )
             )
-            rv_endo_nodes = self._clean_node_set(rv_endo_nodes, rings_nodes)
+            rv_endo_nodes = clean_node_set(rv_endo_nodes, rings_nodes)
 
             # append RV epi
             epi_nodes = np.hstack(
@@ -4204,7 +4204,7 @@ class UHCWriter(BaseDynaWriter):
                     self.model.right_ventricle.epicardium.global_node_ids_triangles,
                 )
             )
-            epi_nodes = self._clean_node_set(epi_nodes, np.hstack((rv_endo_nodes, rings_nodes)))
+            epi_nodes = clean_node_set(epi_nodes, np.hstack((rv_endo_nodes, rings_nodes)))
             # RV apex
             ra_node = self.model.get_apex_node_set(part="right")
 

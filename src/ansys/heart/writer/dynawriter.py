@@ -219,7 +219,7 @@ class BaseDynaWriter:
         elif isinstance(self, ElectrophysiologyDynaWriter):
             if sett.Electrophysiology not in subsettings_classes:
                 raise ValueError("Expecting electrophysiology settings.")
-        elif isinstance(self, UHCWriter):
+        elif isinstance(self, LaplaceWriter):
             pass
         else:
             raise NotImplementedError(
@@ -3676,8 +3676,8 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         return
 
 
-class UHCWriter(BaseDynaWriter):
-    """Universal Heart Coordinate Writer."""
+class LaplaceWriter(BaseDynaWriter):
+    """Writer to set Laplace dirichlet problem."""
 
     # constant node set ID for atrial valves/caps
     _CAP_NODESET_MAP = {

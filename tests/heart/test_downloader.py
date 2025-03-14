@@ -21,8 +21,9 @@
 # SOFTWARE.
 
 import hashlib
-import json
 import os
+import pathlib
+import tarfile
 import tempfile
 import unittest.mock as mock
 
@@ -30,7 +31,9 @@ import pytest
 import validators
 
 from ansys.heart.core.helpers.downloader import (
+    _SHA256_TABLE,
     _format_download_urls,
+    _infer_extraction_path_from_tar,
     _validate_hash_sha256,
     download_case_from_zenodo,
 )
@@ -76,43 +79,48 @@ def test_download_case(database_name):
     return
 
 
+@pytest.mark.parametrize("tar_subpaths", (["01/01.case"], ["01.vtk"]))
+def test_infer_extraction_path_from_tar(tar_subpaths):
+    """Test unpacking a downloaded case."""
+    # two configurations:
+    # Strocchi2020 --> 01.tar.gz > 01/01.case
+    # Rodero2021 --> 01.tar.gz > > 01.vtk
+    with mock.patch("tarfile.open", return_value=mock.MagicMock(tarfile.TarFile)) as mock_taropen:
+        mock_taropen.return_value.getnames.return_value = tar_subpaths
+        with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+            path = _infer_extraction_path_from_tar(os.path.join(tempdir, "mytar.tar.gz"))
+
+            expected_path = str(pathlib.Path(tempdir, tar_subpaths[0]))
+            assert path == expected_path
+
+
 def test_validate_hash_function_001():
     """Test hash validator."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         # create dummy data
         path_file1 = os.path.join(tempdir, "file1.txt")
         path_file2 = os.path.join(tempdir, "file2.txt")
-        path_file3 = os.path.join(tempdir, "file3.txt")
 
         fid = open(path_file1, "w")
         fid.writelines("abc")
         fid.close()
 
         fid = open(path_file2, "w")
-        fid.writelines("abc")
-        fid.close()
-        path_hash_table = "hash_table.json"
-
-        fid = open(path_file3, "w")
-        fid.writelines("abcd")
+        fid.writelines("abcd\nblbla")
         fid.close()
 
-        path_hash_table = os.path.join(tempdir, "hash_table.json")
+        expected_hash = hashlib.sha256(open(path_file1, "rb").read()).hexdigest()
 
-        # write dummy hash table
-        hash_table = {"Rodero2021": {1: hashlib.sha256(open(path_file1, "rb").read()).hexdigest()}}
+        # override original hash value with expected value.
+        _SHA256_TABLE["Rodero2021"][1] = expected_hash
 
-        with open(path_hash_table, "w") as outfile:
-            json.dump(hash_table, outfile, indent=4, ensure_ascii=True)
-
-        # hashes of the same file should be the same
-        assert _validate_hash_sha256(
-            path_file2, "Rodero2021", casenumber=1, path_hash_table=path_hash_table
-        ), "Expecting matching hash function"
+        assert _validate_hash_sha256(path_file1, "Rodero2021", casenumber=1), (
+            "Expecting matching hash function"
+        )
 
         # hashes of two different files should be different
-        assert not _validate_hash_sha256(
-            path_file3, "Rodero2021", casenumber=1, path_hash_table=path_hash_table
-        ), "Expecting non-matching hash function"
+        assert not _validate_hash_sha256(path_file2, "Rodero2021", casenumber=1), (
+            "Expecting non-matching hash function"
+        )
 
     return

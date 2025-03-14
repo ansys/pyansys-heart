@@ -3880,48 +3880,13 @@ class UHCWriter(BaseDynaWriter):
 
         return ids_edges
 
-    def _update_atrial_endo_epi_nodeset(
-        self, atrium: pv.UnstructuredGrid, nodes_to_remove: list[int]
-    ):
-        """Define atrial endo/epi nodeset to 100/200.
-
-        Parameters
-        ----------
-        atrium : pv.UnstructuredGrid
-            target atrium, left or right
-        nodes_to_remove : list[int]
-            nodes ID of valves, need to be removed from endo/epi sets.
-        """
-        # endo nodes ID
-        #! get up to date endocardium.
-        endocardium = self.model.mesh.get_surface(self.model.parts[0].endocardium.id)
-        ids_endo = np.where(np.isin(atrium["point_ids"], endocardium.global_node_ids_triangles))[0]
-
-        atrium["endo"] = np.zeros(atrium.n_points, dtype=int)
-        atrium["endo"][ids_endo] = 1
-        kw = create_node_set_keyword(ids_endo + 1, node_set_id=100, title="endo")
-        self.kw_database.node_sets.append(kw)
-
-        # epi node ID
-        # epi cannot use directly Surface because new free surface exposed
-        ids_surface = atrium.extract_surface()["vtkOriginalPointIds"]
-        ids_epi = np.setdiff1d(ids_surface, ids_endo)
-        ids_epi = np.setdiff1d(ids_epi, nodes_to_remove)
-
-        atrium["epi"] = np.zeros(atrium.n_points, dtype=int)
-        atrium["epi"][ids_epi] = 1
-        kw = create_node_set_keyword(ids_epi + 1, node_set_id=200, title="epi")
-        self.kw_database.node_sets.append(kw)
-
     def _update_la_bc(self, atrium):
         def get_laa_nodes(atrium, laa: np.ndarray):
             tree = spatial.cKDTree(atrium.points)
             ids = np.array(tree.query_ball_point(laa, self._LANDMARK_RADIUS))
             return ids
 
-        edge_ids = self._update_atrial_caps_nodeset(atrium)
-        self._update_atrial_endo_epi_nodeset(atrium, edge_ids)
-
+        # laa
         if "laa" in self.landmarks.keys():
             # else there should exist LEFT_ATRIUM_APPENDAGE as Strocchi's data
             laa_ids = get_laa_nodes(atrium, self.landmarks["laa"])
@@ -3933,6 +3898,17 @@ class UHCWriter(BaseDynaWriter):
             )
             self.kw_database.node_sets.append(kw)
 
+        # caps
+        _ = self._update_atrial_caps_nodeset(atrium)
+
+        # endo/epi
+        endo_nodes = self.model.left_atrium.endocardium.global_node_ids_triangles
+        epi_nodes = self.model.left_atrium.epicardium.global_node_ids_triangles
+        epi_nodes = np.setdiff1d(epi_nodes, endo_nodes)
+
+        _ = self._add_nodeset(endo_nodes, "endocardium", nodeset_id=100)
+        _ = self._add_nodeset(epi_nodes, "epicardium", nodeset_id=200)
+
         cases = [
             (1, "trans", [100, 200], [0, 1]),
             (2, "ab", [1, 3, 4, 5, 6, 2], [2.0, 2.0, 1.0, 0.0, 0.0, -1.0]),
@@ -3943,8 +3919,15 @@ class UHCWriter(BaseDynaWriter):
             self.add_case(case_id, job_name, set_ids, bc_values)
 
     def _update_ra_bc(self, atrium):
-        edge_ids = self._update_atrial_caps_nodeset(atrium)
-        self._update_atrial_endo_epi_nodeset(atrium, edge_ids)
+        # caps
+        _ = self._update_atrial_caps_nodeset(atrium)
+        # endo/epi
+        endo_nodes = self.model.right_atrium.endocardium.global_node_ids_triangles
+        epi_nodes = self.model.right_atrium.epicardium.global_node_ids_triangles
+        epi_nodes = np.setdiff1d(epi_nodes, endo_nodes)
+
+        _ = self._add_nodeset(endo_nodes, "endocardium", nodeset_id=100)
+        _ = self._add_nodeset(epi_nodes, "epicardium", nodeset_id=200)
 
         # Find appendage apex
         tree = spatial.cKDTree(atrium.points)

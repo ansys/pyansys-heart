@@ -22,6 +22,7 @@
 
 import hashlib
 import os
+import tarfile
 import tempfile
 import unittest.mock as mock
 
@@ -31,6 +32,7 @@ import validators
 from ansys.heart.core.helpers.downloader import (
     _SHA256_TABLE,
     _format_download_urls,
+    _infer_extraction_path_from_tar,
     _validate_hash_sha256,
     download_case_from_zenodo,
 )
@@ -74,6 +76,22 @@ def test_download_case(database_name):
             mock_download.assert_called_once()
 
     return
+
+
+@pytest.mark.parametrize("contents", (["01/01.case"], ["01.vtk"]))
+def test_infer_extraction_path_from_tar(contents):
+    """Test unpacking a downloaded case."""
+    # two configurations:
+    # Strocchi2020 --> 01.tar.gz > 01/01.case
+    # Rodero2021 --> 01.tar.gz > > 01.vtk
+    with mock.patch("tarfile.open", return_value=mock.MagicMock(tarfile.TarFile)) as mock_taropen:
+        mock_taropen.return_value.getnames.return_value = contents
+        with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+            path = _infer_extraction_path_from_tar(os.path.join(tempdir, "mytar.tar.gz"))
+
+            subpaths = contents[0].split("/")
+            exected_path = os.path.join(tempdir, *subpaths)
+            assert path == exected_path
 
 
 def test_validate_hash_function_001():

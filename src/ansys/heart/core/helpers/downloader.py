@@ -29,6 +29,7 @@ and Rodero et al 2021.
 import hashlib
 import os
 from pathlib import Path, PurePath
+import tarfile
 import typing
 
 import validators
@@ -115,7 +116,7 @@ def _format_download_urls():
     return download_urls
 
 
-ALL_DOWNLOAD_URLS = _format_download_urls()
+_ALL_DOWNLOAD_URLS = _format_download_urls()
 
 
 def download_case_from_zenodo(
@@ -157,12 +158,6 @@ def download_case_from_zenodo(
     if database not in _VALID_DATABASES:
         raise ValueError("Database not valid, please specify valid database: %s" % _VALID_DATABASES)
 
-    url = _URLS[database]["url"]
-    if case_number > _URLS[database]["num_cases"]:
-        raise ValueError(
-            "Database {0} only has {1} cases".format(database, _URLS[database]["num_cases"])
-        )
-
     if database == "Rodero2021":
         save_dir = os.path.join(download_folder, database, "{:>02d}".format(case_number))
     elif database == "Strocchi2020":
@@ -177,9 +172,10 @@ def download_case_from_zenodo(
         LOGGER.warning(f"File {save_path} already exists. Skipping...")
         return save_path
 
-    download_url = "{:}/files/{:02d}.tar.gz?download=1".format(url, case_number)
-
-    if download_url not in ALL_DOWNLOAD_URLS[database].values():
+    try:
+        download_url = _ALL_DOWNLOAD_URLS[database][case_number]
+    except KeyError as e:
+        LOGGER.error(f"Case {case_number} not found in database {database}. {e}")
         return None
 
     # validate URL
@@ -225,26 +221,67 @@ def _validate_hash_sha256(file_path: Path, database: str, casenumber: int) -> bo
         return False
 
 
-def unpack_case(tar_path: Path):
-    r"""Untar the downloaded tar-ball.
+def _infer_extraction_path_from_tar(tar_path: str | Path) -> str:
+    """Infer the path to the relevant .case or .vtk file from the tar_path."""
+    tarball = tarfile.open(tar_path)
+    names = tarball.getnames()
+    # Order matters: check if .case file exists before .vtk file
+    sub_path = next((name for name in names if name.endswith(".case")), None)
+    if not sub_path:
+        sub_path = next((name for name in names if name.endswith(".vtk")), None)
+
+    sub_paths = sub_path.split("/")
+    path = os.path.abspath(os.path.join(os.path.dirname(tar_path), *sub_paths))
+    return path
+
+
+def _get_members_to_unpack(tar_ball: tarfile.TarFile) -> typing.List:
+    """Get the members to unpack from the tar ball.
+
+    Notes
+    -----
+    This ignores the large .vtk for the Strocchi2020 archives.
+    """
+    if len(tar_ball.getnames()) > 1:
+        members_to_unpack = [
+            member for member in tar_ball.getmembers() if not member.name.endswith(".vtk")
+        ]
+    else:
+        members_to_unpack = tar_ball.getmembers()
+    return members_to_unpack
+
+
+def unpack_case(tar_path: Path, reduce_size: bool = True) -> str:
+    r"""Unpack the downloaded tar file.
 
     Parameters
     ----------
     tar_path : Path
-        Path to the tar ball.
+        Path to tar.gz file.
+    reduce_size : bool
+        If True, reduce the size of the unpacked files by removing the .vtk file for the
+        Strocchi database.
 
     Examples
     --------
     >>> from ansys.heart.misc.downloader import unpack_case
-    >>> unpack_case("Strocchi2020\\01.tar.gz")
-    """
-    import tarfile
+    >>> path = unpack_case("Rodero2021\\01.tar.gz")
 
+    Returns
+    -------
+    str
+        Path to the .case or .vtk file
+    """
     try:
         tar_ball = tarfile.open(tar_path)
         tar_dir = os.path.dirname(tar_path)
-        tar_ball.extractall(path=tar_dir)
-        return True
+        if reduce_size:
+            tar_ball.extractall(path=tar_dir, members=_get_members_to_unpack(tar_ball))
+        else:
+            tar_ball.extractall(path=tar_dir)
+        path = _infer_extraction_path_from_tar(tar_path)
+        return path
+
     except Exception as exception:
         LOGGER.error(f"Unpacking failed... {exception}")
         return False

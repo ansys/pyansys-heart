@@ -154,6 +154,10 @@ class BaseSimulator:
                     exit()
             self._compute_fibers_drbm(rotation_angles)
 
+        else:
+            LOGGER.error(f"Method {method} not recognized")
+            exit()
+
         return
 
     def _compute_fibers_drbm(self, rotation_angles: dict):

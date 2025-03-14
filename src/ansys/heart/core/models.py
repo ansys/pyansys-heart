@@ -25,8 +25,6 @@
 import copy
 import json
 import os
-
-# import json
 import pathlib
 import re
 from typing import List, Literal, Union
@@ -39,8 +37,6 @@ from ansys.heart.core import LOG as LOGGER
 import ansys.heart.core.helpers.connectivity as connectivity
 import ansys.heart.core.helpers.vtkmethods as vtkmethods
 from ansys.heart.core.objects import (
-    BeamMesh,
-    BeamsMesh,
     Cap,
     CapType,
     Cavity,
@@ -49,6 +45,8 @@ from ansys.heart.core.objects import (
     PartType,
     Point,
     SurfaceMesh,
+    _BeamMesh,
+    _BeamsMesh,
 )
 from ansys.heart.preprocessor.input import _InputModel
 import ansys.heart.preprocessor.mesher as mesher
@@ -312,10 +310,10 @@ class HeartModel:
         self.electrodes: List[Point] = []
         """Electrodes positions for ECG computing."""
 
-        self.beam_network: List[BeamMesh] = []
+        self.beam_network: List[_BeamMesh] = []
         """List of beam networks in the mesh."""
 
-        self.conduction_system: BeamsMesh = BeamsMesh()
+        self.conduction_system: _BeamsMesh = _BeamsMesh()
         """Beams data defining the conduction system."""
 
         self.electrodes: List[Point] = []
@@ -422,7 +420,7 @@ class HeartModel:
 
     def add_beam_net(
         self, beam_nodes: np.ndarray, edges: np.ndarray, mask: np.ndarray, pid=0, name: str = None
-    ) -> BeamMesh:
+    ) -> _BeamMesh:
         """Add a BeamMesh object on the model.
 
         Parameters
@@ -446,17 +444,17 @@ class HeartModel:
         BeamMesh
             BeamMesh object
         """
-        edges[mask] += len(self.mesh.points) + len(BeamMesh.all_beam_nodes)
+        edges[mask] += len(self.mesh.points) + len(_BeamMesh.all_beam_nodes)
 
-        if len(BeamMesh.all_beam_nodes) == 0:
-            BeamMesh.all_beam_nodes = beam_nodes
+        if len(_BeamMesh.all_beam_nodes) == 0:
+            _BeamMesh.all_beam_nodes = beam_nodes
         else:
-            BeamMesh.all_beam_nodes = np.vstack((BeamMesh.all_beam_nodes, beam_nodes))
+            _BeamMesh.all_beam_nodes = np.vstack((_BeamMesh.all_beam_nodes, beam_nodes))
 
         # nodes is just for pyvista plot, edges used in writer will be offset
         # TODO: only save necessary nodes, cells, and with a 'global id' array
-        beam_net = BeamMesh(
-            nodes=np.vstack((self.mesh.points, BeamMesh.all_beam_nodes)),
+        beam_net = _BeamMesh(
+            nodes=np.vstack((self.mesh.points, _BeamMesh.all_beam_nodes)),
             edges=edges,
             beam_nodes_mask=mask,
         )
@@ -466,13 +464,13 @@ class HeartModel:
         #! class variable BeamMesh.all_beam_nodes is not saved in pickle
         #! only the last created beam_network holds all previously created
         #! nodes.
-        beam_net._all_beam_nodes = np.copy(BeamMesh.all_beam_nodes)
+        beam_net._all_beam_nodes = np.copy(_BeamMesh.all_beam_nodes)
 
         self.beam_network.append(beam_net)
 
         # sync across beam networks
         for beams in self.beam_network:
-            beams._all_beam_nodes = np.copy(BeamMesh.all_beam_nodes)
+            beams._all_beam_nodes = np.copy(_BeamMesh.all_beam_nodes)
 
         return beam_net
 

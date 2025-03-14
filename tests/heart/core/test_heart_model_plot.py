@@ -34,7 +34,7 @@ import pytest
 import pyvista as pv
 
 import ansys.heart.core.models as models
-from ansys.heart.core.objects import BeamMesh, Mesh, Part, SurfaceMesh
+from ansys.heart.core.objects import Mesh, Part, SurfaceMesh, _BeamMesh
 
 
 @pytest.fixture
@@ -62,7 +62,7 @@ def _mock_input():
 
     # add mock purkinje data.
     lines = pv.line_segments_from_points([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
-    beams = BeamMesh(name="beams")
+    beams = _BeamMesh(name="beams")
     beams.nodes = lines.points
     beams.edges = np.array([lines.lines[1:]])
     mock_biventricle.beam_network = [beams]

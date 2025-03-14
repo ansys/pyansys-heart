@@ -306,7 +306,7 @@ class SurfaceMesh(pv.PolyData):
 
 
 # TODO: Refactor BeamMesh: why is this different from "Mesh"?
-class BeamMesh(pv.UnstructuredGrid, Feature):
+class _BeamMesh(pv.UnstructuredGrid, Feature):
     """Beam class."""
 
     all_beam_nodes = []
@@ -1056,7 +1056,7 @@ class Mesh(pv.UnstructuredGrid):
         return self.remove_cells(mask, inplace=True)
 
 
-class BeamsMesh(Mesh):
+class _BeamsMesh(Mesh):
     """Mesh class: inherits from pyvista UnstructuredGrid.
 
     Notes

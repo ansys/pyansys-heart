@@ -24,7 +24,7 @@
 
 import numpy as np
 
-from ansys.heart.core.objects import BeamMesh
+from ansys.heart.core.objects import _BeamMesh
 from ansys.heart.preprocessor.conduction_beam import ConductionSystem
 from tests.heart.conftest import get_fourchamber
 
@@ -32,7 +32,7 @@ from tests.heart.conftest import get_fourchamber
 def test_add_beam_net():
     """Test reading Purkinje from .k files."""
     fourchamber = get_fourchamber()
-    BeamMesh.all_beam_nodes = []
+    _BeamMesh.all_beam_nodes = []
 
     nodes = np.array([[0, 0, 0], [10, 10, 10]])
     edges = np.array([[0, 0], [0, 1]])
@@ -41,8 +41,8 @@ def test_add_beam_net():
 
     # construct mesh to compare against
     n = fourchamber.mesh.points.shape[0]
-    beam_mesh = BeamMesh(
-        nodes=np.vstack((fourchamber.mesh.points, BeamMesh.all_beam_nodes)),
+    beam_mesh = _BeamMesh(
+        nodes=np.vstack((fourchamber.mesh.points, _BeamMesh.all_beam_nodes)),
         edges=np.array([[0, n], [n, n + 1]]),
         beam_nodes_mask=mask,
     )
@@ -72,7 +72,7 @@ def test_av_conduction():
     # get a fresh model
     fourchamber = get_fourchamber()
     cs = ConductionSystem(fourchamber)
-    BeamMesh.all_beam_nodes = []
+    _BeamMesh.all_beam_nodes = []
 
     cs.compute_sa_node()
     cs.compute_av_node()
@@ -87,7 +87,7 @@ def test_compute_his_conduction():
     # get a fresh model
     fourchamber = get_fourchamber()
     cs = ConductionSystem(fourchamber)
-    BeamMesh.all_beam_nodes = []
+    _BeamMesh.all_beam_nodes = []
 
     cs.compute_sa_node()
     cs.compute_av_node()
@@ -103,7 +103,7 @@ def test_compute_bachman_bundle():
     # get a fresh model
     fourchamber = get_fourchamber()
     cs = ConductionSystem(fourchamber)
-    BeamMesh.all_beam_nodes = []
+    _BeamMesh.all_beam_nodes = []
 
     cs.compute_sa_node()
     cs.compute_av_node()
@@ -123,7 +123,7 @@ def test_compute_left_right_bundle():
     # get a fresh model
     fourchamber = get_fourchamber()
     cs = ConductionSystem(fourchamber)
-    BeamMesh.all_beam_nodes = []
+    _BeamMesh.all_beam_nodes = []
 
     cs.compute_sa_node()
     cs.compute_av_node()

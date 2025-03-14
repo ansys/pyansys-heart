@@ -28,7 +28,7 @@ import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.models import FourChamber
-from ansys.heart.core.objects import BeamMesh, CapType, Point, SurfaceMesh
+from ansys.heart.core.objects import CapType, Point, SurfaceMesh, _BeamMesh
 
 
 def _create_line(point_start: np.array, point_end: np.array, beam_length: float):
@@ -151,7 +151,7 @@ class ConductionSystem:
 
         return atrioventricular_point
 
-    def compute_av_conduction(self, beam_length: float = 1.5) -> BeamMesh:
+    def compute_av_conduction(self, beam_length: float = 1.5) -> _BeamMesh:
         """Compute Atrio-Ventricular conduction by means of beams following a geodesic path."""
         right_atrium_endo = self.m.mesh.get_surface(self.m.right_atrium.endocardium.id)
 
@@ -232,7 +232,7 @@ class ConductionSystem:
 
         return bifurcation_coord
 
-    def compute_his_conduction(self, beam_length: float = 1.5) -> tuple[BeamMesh, Point, Point]:
+    def compute_his_conduction(self, beam_length: float = 1.5) -> tuple[_BeamMesh, Point, Point]:
         """Compute His bundle conduction."""
         bifurcation_coord = self._get_hisbundle_bifurcation()
 
@@ -520,7 +520,7 @@ class ConductionSystem:
         cell_id = surface.find_closest_cell(point)
         return surface.get_cell(cell_id).point_ids[0]
 
-    def compute_bachman_bundle(self, start_coord, end_coord, beam_length: float = 1.5) -> BeamMesh:
+    def compute_bachman_bundle(self, start_coord, end_coord, beam_length: float = 1.5) -> _BeamMesh:
         """Compute Bachman bundle conduction system."""
         la_epi = self.m.mesh.get_surface(self.m.left_atrium.epicardium.id)
         ra_epi = self.m.mesh.get_surface(self.m.right_atrium.epicardium.id)

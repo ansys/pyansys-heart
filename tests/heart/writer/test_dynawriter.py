@@ -28,7 +28,7 @@ import pyvista as pv
 import pyvista.examples as examples
 
 from ansys.heart.core.models import FullHeart
-from ansys.heart.core.objects import BeamMesh, Mesh, Part, PartType, Point
+from ansys.heart.core.objects import Mesh, Part, PartType, Point, _BeamMesh
 from ansys.heart.simulator.settings.settings import SimulationSettings, Stimulation
 import ansys.heart.writer.dynawriter as writers
 
@@ -50,7 +50,7 @@ def _mock_model():
 def _add_beam_network(model: FullHeart):
     """Add a beam network to the model."""
     lines = pv.line_segments_from_points([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
-    beams = BeamMesh(name="beams")
+    beams = _BeamMesh(name="beams")
     beams.nodes = lines.points
     beams.edges = np.array([lines.lines[1:]])
     beams.pid = 1000

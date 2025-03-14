@@ -3708,8 +3708,11 @@ class LaplaceWriter(BaseDynaWriter):
         """
         super().__init__(model=model)
         self.type = type
+        """problem type"""
         self.landmarks = kwargs
+        """lanmarks can be `laa`, `raa`, `top`"""
         self.target: pv.UnstructuredGrid = None
+        """target mesh related to problem"""
 
         # remove unnecessary parts
         if self.type == "uvc" or self.type == "D-RBM":
@@ -3724,11 +3727,11 @@ class LaplaceWriter(BaseDynaWriter):
         if self.type == "uvc" or self.type == "D-RBM":
             elems_to_keep = []
             if isinstance(self.model, LeftVentricle):
-                elems_to_keep.extend(model.parts[0].element_ids)
+                elems_to_keep.extend(model.left_ventricle.element_ids)
             else:
-                elems_to_keep.extend(model.parts[0].element_ids)
-                elems_to_keep.extend(model.parts[1].element_ids)
-                elems_to_keep.extend(model.parts[2].element_ids)  #! assumes part ordering!
+                elems_to_keep.extend(model.left_ventricle.element_ids)
+                elems_to_keep.extend(model.right_ventricle.element_ids)
+                elems_to_keep.extend(model.septum.element_ids)
 
             # model.mesh.clear_data()
             model.mesh["cell_ids"] = np.arange(0, model.mesh.n_cells, dtype=int)
@@ -3746,7 +3749,7 @@ class LaplaceWriter(BaseDynaWriter):
 
     def _update_ra_top_nodeset(self, atrium: pv.UnstructuredGrid):
         """
-        Find right atrium top nodeset.
+        Define right atrium top nodeset to 10.
 
         Parameters
         ----------
@@ -3763,6 +3766,14 @@ class LaplaceWriter(BaseDynaWriter):
         self.kw_database.node_sets.append(kw)
 
     def _find_top_nodeset_by_cut(self, atrium: pv.UnstructuredGrid):
+        """
+        Define right atrium top nodeset.
+
+        Cut through the center of TV, IVC and SVC, expect to have
+        3 unconnected regions and the farthest is top.
+        This method may fail with varying geometries, then user
+        need to define top landmarks.
+        """
         cut_center, cut_normal = self._define_ra_cut()
 
         atrium["cell_ids_tmp"] = np.arange(0, atrium.n_cells, dtype=int)
@@ -3799,6 +3810,7 @@ class LaplaceWriter(BaseDynaWriter):
         return top_ids
 
     def _find_top_nodeset_by_geodesic(self, atrium: pv.UnstructuredGrid):
+        """Define top nodeset by connecting landmark points with geodesic."""
         top_ids = []
         surface: pv.PolyData = atrium.extract_surface()
         for i in range(len(self.landmarks["top"]) - 1):
@@ -3812,7 +3824,7 @@ class LaplaceWriter(BaseDynaWriter):
         return np.unique(np.array(top_ids))
 
     def _define_ra_cut(self):
-        """Define a cut from 3 holes of right atrium."""
+        """Define a cut from 3 caps of right atrium."""
         for cap in self.model.parts[0].caps:
             if cap.type == CapType.TRICUSPID_VALVE_ATRIUM:
                 tv_center = cap.centroid
@@ -3826,7 +3838,7 @@ class LaplaceWriter(BaseDynaWriter):
         return cut_center, cut_normal
 
     def _update_ra_tricuspid_nodeset(self, atrium):
-        """Find tricuspid_wall and tricuspid_septum."""
+        """Define nodeset for tricuspid_wall and tricuspid_septum."""
         # get tricuspid-valve name
         tv_name = CapType.TRICUSPID_VALVE_ATRIUM.value
 
@@ -3859,7 +3871,7 @@ class LaplaceWriter(BaseDynaWriter):
         self.kw_database.node_sets.append(kw)
 
     def _update_atrial_caps_nodeset(self, atrium: pv.UnstructuredGrid):
-        """Define boundary conditionon caps."""
+        """Define nodeset for caps."""
         for cap in self.model.parts[0].caps:
             # get node IDs for atrium mesh
             cap._mesh = self.model.mesh.get_surface(cap._mesh.id)
@@ -3877,7 +3889,9 @@ class LaplaceWriter(BaseDynaWriter):
 
         return
 
-    def _update_la_bc(self, atrium):
+    def _update_la_bc(self):
+        atrium = self.target
+
         def get_laa_nodes(atrium, laa: np.ndarray):
             tree = spatial.cKDTree(atrium.points)
             ids = np.array(tree.query_ball_point(laa, self._LANDMARK_RADIUS))
@@ -3915,7 +3929,8 @@ class LaplaceWriter(BaseDynaWriter):
         for case_id, job_name, set_ids, bc_values in cases:
             self.add_case(case_id, job_name, set_ids, bc_values)
 
-    def _update_ra_bc(self, atrium):
+    def _update_ra_bc(self):
+        atrium = self.target
         # caps
         self._update_atrial_caps_nodeset(atrium)
 
@@ -3954,8 +3969,6 @@ class LaplaceWriter(BaseDynaWriter):
         for case_id, job_name, set_ids, bc_values in cases:
             self.add_case(case_id, job_name, set_ids, bc_values)
 
-        return atrium
-
     def update(self):
         """Update keyword database."""
         # nodes
@@ -3979,9 +3992,9 @@ class LaplaceWriter(BaseDynaWriter):
         if self.type == "uvc":
             self._update_uvc_bc()
         elif self.type == "la_fiber":
-            self._update_la_bc(self.target)
+            self._update_la_bc()
         elif self.type == "ra_fiber":
-            self._update_ra_bc(self.target)
+            self._update_ra_bc()
         elif self.type == "D-RBM":
             self._update_drbm_bc()
 

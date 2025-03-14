@@ -3692,6 +3692,7 @@ class UHCWriter(BaseDynaWriter):
         CapType.INFERIOR_VENA_CAVA: 9,
     }
     _LANDMARK_RADIUS = 1.5  # mm
+    _UVC_APEX_RADIUS = 10.0  # mm
 
     def __init__(
         self, model: HeartModel, type: Literal["uvc", "la_fiber", "ra_fiber", "D-RBM"], **kwargs
@@ -4041,8 +4042,15 @@ class UHCWriter(BaseDynaWriter):
         kw = create_node_set_keyword(epi_set_new + 1, node_set_id=epi_sid, title="epi")
         self.kw_database.node_sets.append(kw)
 
-        # apicobasal uvc
-        apex_sid = self._create_apex_nodeset()
+        sorter = np.argsort(self.target["point_ids"])
+
+        # apex is selected only for left ventricle and with a region of 10mm
+        # This avoids mesh sensitivity and seems consistent with Strocchi paper's figure
+        apex_nodes = self.model.get_apex_node_set(radius=self._UVC_APEX_RADIUS)
+        apex_nodes = sorter[np.searchsorted(self.target["point_ids"], apex_nodes, sorter=sorter)]
+        apex_sid = self.get_unique_nodeset_id()
+        kw = create_node_set_keyword(apex_nodes + 1, node_set_id=apex_sid, title="apex")
+        self.kw_database.node_sets.append(kw)
 
         # base
         (pv_nodes, tv_nodes, av_nodes, mv_nodes), _ = self._update_ventricular_caps_nodes()
@@ -4050,7 +4058,7 @@ class UHCWriter(BaseDynaWriter):
             base_nodes = np.hstack((mv_nodes, av_nodes))
         else:
             base_nodes = np.hstack((mv_nodes, av_nodes, pv_nodes, tv_nodes))
-        sorter = np.argsort(self.target["point_ids"])
+
         base_nodes = sorter[np.searchsorted(self.target["point_ids"], base_nodes, sorter=sorter)]
         base_sid = self.get_unique_nodeset_id()
         kw = create_node_set_keyword(base_nodes + 1, node_set_id=base_sid, title="base")
@@ -4066,18 +4074,6 @@ class UHCWriter(BaseDynaWriter):
         ]
         for case_id, job_name, set_ids, bc_values in cases:
             self.add_case(case_id, job_name, set_ids, bc_values)
-
-    def _create_apex_nodeset(self):
-        # apex
-        # select a region within 1 cm, this seems consistent with Strocchi database
-        apex_set = self.model.get_apex_node_set(radius=10)
-        # get local ID
-        ids_submesh = np.unique(np.where(np.isin(self.target["point_ids"], apex_set))[0])
-
-        sid = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(ids_submesh + 1, node_set_id=sid, title="apex")
-        self.kw_database.node_sets.append(kw)
-        return sid
 
     def _create_rotational_nodesets(self):
         # Find nodes on target mesh

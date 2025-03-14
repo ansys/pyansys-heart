@@ -3860,7 +3860,6 @@ class UHCWriter(BaseDynaWriter):
 
     def _update_atrial_caps_nodeset(self, atrium: pv.UnstructuredGrid):
         """Define boundary conditionon caps."""
-        ids_edges = []  # all nodes belong to valves
         for cap in self.model.parts[0].caps:
             # get node IDs for atrium mesh
             cap._mesh = self.model.mesh.get_surface(cap._mesh.id)
@@ -3872,13 +3871,11 @@ class UHCWriter(BaseDynaWriter):
                 kw = create_node_set_keyword(ids_sub + 1, node_set_id=set_id, title=cap.name)
                 self.kw_database.node_sets.append(kw)
 
-                ids_edges.extend(ids_sub)
-
                 # Add info to pyvista object (RA fiber use this)
                 atrium[cap.type.value] = np.zeros(atrium.n_points, dtype=int)
                 atrium[cap.type.value][ids_sub] = 1
 
-        return ids_edges
+        return
 
     def _update_la_bc(self, atrium):
         def get_laa_nodes(atrium, laa: np.ndarray):
@@ -3899,7 +3896,7 @@ class UHCWriter(BaseDynaWriter):
             self.kw_database.node_sets.append(kw)
 
         # caps
-        _ = self._update_atrial_caps_nodeset(atrium)
+        self._update_atrial_caps_nodeset(atrium)
 
         # endo/epi
         endo_nodes = self.model.left_atrium.endocardium.global_node_ids_triangles
@@ -3920,7 +3917,8 @@ class UHCWriter(BaseDynaWriter):
 
     def _update_ra_bc(self, atrium):
         # caps
-        _ = self._update_atrial_caps_nodeset(atrium)
+        self._update_atrial_caps_nodeset(atrium)
+
         # endo/epi
         endo_nodes = self.model.right_atrium.endocardium.global_node_ids_triangles
         epi_nodes = self.model.right_atrium.epicardium.global_node_ids_triangles
@@ -3941,8 +3939,9 @@ class UHCWriter(BaseDynaWriter):
         atrium["raa"] = np.zeros(atrium.n_points)
         atrium["raa"][raa_ids] = 1
 
-        # other nodesets
+        # top nodeset
         self._update_ra_top_nodeset(atrium)
+        # tricuspid wall/free nodeset
         self._update_ra_tricuspid_nodeset(atrium)
 
         cases = [

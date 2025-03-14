@@ -1325,9 +1325,6 @@ class HeartModel:
 
         return
 
-    # TODO: @mhoeijm
-    # TODO: Refactor. Check whether all necessary caps exist in model.
-    # TODO: should be a function of model type.
     def _validate_cap_names(self):
         """Validate that caps are attached to right part."""
         for part in self.parts:
@@ -1351,24 +1348,18 @@ class HeartModel:
                 ]
             elif part.name == "Right atrium":
                 expected_cap_types = [
-                    CapType.PULMONARY_VALVE_ATRIUM,
+                    CapType.TRICUSPID_VALVE_ATRIUM,
                     CapType.SUPERIOR_VENA_CAVA,
                     CapType.INFERIOR_VENA_CAVA,
                 ]
 
-            for cap_type in cap_types:
-                # matches = [True for expected in expected_cap_types if expected in cap_name]
-                # matches = [
-                #     True for expected_type in expected_cap_types if expected_type in cap_type
-                # ]
-                if cap_type in expected_cap_types:
-                    break
-                else:
-                    LOGGER.error(
-                        "Part: {0}. Cap type is {1}, but expecting one of cap types:{2}".format(
-                            part.name, cap_type, expected_cap_types
-                        )
+            unexpected_captypes = [ctype for ctype in cap_types if ctype not in expected_cap_types]
+            if len(unexpected_captypes) > 0:
+                LOGGER.error(
+                    "Part: {0}. Cap types {1} not in expected cap types:{2}".format(
+                        part.name, unexpected_captypes, expected_cap_types
                     )
+                )
 
         return
 

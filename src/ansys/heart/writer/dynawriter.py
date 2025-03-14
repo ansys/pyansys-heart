@@ -3930,31 +3930,14 @@ class UHCWriter(BaseDynaWriter):
             kw = create_node_set_keyword(laa_ids + 1, node_set_id=2, title="left atrium appendage")
             self.kw_database.node_sets.append(kw)
 
-        # set BC in into DYNA case
-        self.kw_database.main.append(keywords.Case(caseid=1, jobid="trans", scid1=1))
-        self.kw_database.main.append(keywords.Case(caseid=2, jobid="ab", scid1=2))
-        self.kw_database.main.append(keywords.Case(caseid=3, jobid="v", scid1=3))
-        self.kw_database.main.append(keywords.Case(caseid=4, jobid="r", scid1=4))
-
-        self.kw_database.main.append("*CASE_BEGIN_1")
-        self._define_Laplace_Dirichlet_bc(set_ids=[100, 200], bc_values=[0, 1])
-        self.kw_database.main.append("*CASE_END_1")
-
-        self.kw_database.main.append("*CASE_BEGIN_2")
-        self._define_Laplace_Dirichlet_bc(
-            set_ids=[1, 3, 4, 5, 6, 2], bc_values=[2.0, 2.0, 1.0, 0.0, 0.0, -1.0]
-        )
-        self.kw_database.main.append("*CASE_END_2")
-
-        self.kw_database.main.append("*CASE_BEGIN_3")
-        self._define_Laplace_Dirichlet_bc(set_ids=[1, 3, 5, 6], bc_values=[1.0, 1.0, 0.0, 0.0])
-        self.kw_database.main.append("*CASE_END_3")
-
-        self.kw_database.main.append("*CASE_BEGIN_4")
-        self._define_Laplace_Dirichlet_bc(
-            set_ids=[4, 1, 2, 3, 5, 6], bc_values=[1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        )
-        self.kw_database.main.append("*CASE_END_4")
+        cases = [
+            (1, "trans", [100, 200], [0, 1]),
+            (2, "ab", [1, 3, 4, 5, 6, 2], [2.0, 2.0, 1.0, 0.0, 0.0, -1.0]),
+            (3, "v", [1, 3, 5, 6], [1.0, 1.0, 0.0, 0.0]),
+            (4, "r", [4, 1, 2, 3, 5, 6], [1.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+        ]
+        for case_id, job_name, set_ids, bc_values in cases:
+            self._add_case(case_id, job_name, set_ids, bc_values)
 
     def _update_ra_bc(self, atrium):
         edge_ids = self._update_atrial_caps_nodeset(atrium)
@@ -3976,32 +3959,15 @@ class UHCWriter(BaseDynaWriter):
         self._update_ra_top_nodeset(atrium)
         self._update_ra_tricuspid_nodeset(atrium)
 
-        self.kw_database.main.append(keywords.Case(caseid=1, jobid="trans", scid1=1))
-        self.kw_database.main.append(keywords.Case(caseid=2, jobid="ab", scid1=2))
-        self.kw_database.main.append(keywords.Case(caseid=3, jobid="v", scid1=3))
-        self.kw_database.main.append(keywords.Case(caseid=4, jobid="r", scid1=4))
-        self.kw_database.main.append(keywords.Case(caseid=5, jobid="w", scid1=5))
-
-        self.kw_database.main.append("*CASE_BEGIN_1")
-        self._define_Laplace_Dirichlet_bc(set_ids=[100, 200], bc_values=[0, 1])
-        self.kw_database.main.append("*CASE_END_1")
-
-        self.kw_database.main.append("*CASE_BEGIN_2")
-        self._define_Laplace_Dirichlet_bc(set_ids=[9, 7, 8, 11], bc_values=[2.0, 1.0, 0.0, -1.0])
-        self.kw_database.main.append("*CASE_END_2")
-
-        self.kw_database.main.append("*CASE_BEGIN_3")
-        self._define_Laplace_Dirichlet_bc(set_ids=[9, 8, 11], bc_values=[1.0, 0.0, 0.0])
-        self.kw_database.main.append("*CASE_END_3")
-
-        self.kw_database.main.append("*CASE_BEGIN_4")
-        self._define_Laplace_Dirichlet_bc(set_ids=[7, 10], bc_values=[1.0, 0.0])
-        self.kw_database.main.append("*CASE_END_4")
-
-        # Differently with article, we add Gamma_top = 0 to enforce BC
-        self.kw_database.main.append("*CASE_BEGIN_5")
-        self._define_Laplace_Dirichlet_bc(set_ids=[12, 13, 10], bc_values=[1.0, -1.0, 0.0])
-        self.kw_database.main.append("*CASE_END_5")
+        cases = [
+            (1, "trans", [100, 200], [0, 1]),
+            (2, "ab", [9, 7, 8, 11], [2.0, 1.0, 0.0, -1.0]),
+            (3, "v", [9, 8, 11], [1.0, 0.0, 0.0]),
+            (4, "r", [7, 10], [1.0, 0.0]),
+            (5, "w", [12, 13, 10], [1.0, -1.0, 0.0]),
+        ]
+        for case_id, job_name, set_ids, bc_values in cases:
+            self._add_case(case_id, job_name, set_ids, bc_values)
 
         return atrium
 
@@ -4038,10 +4004,6 @@ class UHCWriter(BaseDynaWriter):
         self._add_includes()
 
     def _update_uvc_bc(self):
-        self.kw_database.main.append(keywords.Case(caseid=1, jobid="transmural", scid1=1))
-        self.kw_database.main.append(keywords.Case(caseid=2, jobid="apico-basal", scid1=2))
-        self.kw_database.main.append(keywords.Case(caseid=3, jobid="rotational", scid1=3))
-
         # transmural uvc
         endo_set = []
         # epi_set = []
@@ -4077,26 +4039,20 @@ class UHCWriter(BaseDynaWriter):
         kw = create_node_set_keyword(epi_set_new + 1, node_set_id=epi_sid, title="epi")
         self.kw_database.node_sets.append(kw)
 
-        self.kw_database.main.append("*CASE_BEGIN_1")
-        self._define_Laplace_Dirichlet_bc(set_ids=[endo_sid, epi_sid], bc_values=[0, 1])
-        self.kw_database.main.append("*CASE_END_1")
-
         # apicobasal uvc
         apex_sid = self._create_apex_nodeset()
         base_sid = self._create_base_nodeset()
 
-        self.kw_database.main.append("*CASE_BEGIN_2")
-        self._define_Laplace_Dirichlet_bc(set_ids=[apex_sid, base_sid], bc_values=[0, 1])
-        self.kw_database.main.append("*CASE_END_2")
-
         # rotational uc
         [sid_minus_pi, sid_plus_pi, sid_zero] = self._create_rotational_nodesets()
 
-        self.kw_database.main.append("*CASE_BEGIN_3")
-        self._define_Laplace_Dirichlet_bc(
-            set_ids=[sid_minus_pi, sid_plus_pi, sid_zero], bc_values=[-np.pi, np.pi, 0]
-        )
-        self.kw_database.main.append("*CASE_END_3")
+        cases = [
+            (1, "transmural", [endo_sid, epi_sid], [0, 1]),
+            (2, "apico-basal", [apex_sid, base_sid], [0, 1]),
+            (3, "rotational", [sid_minus_pi, sid_plus_pi, sid_zero], [-np.pi, np.pi, 0]),
+        ]
+        for case_id, job_name, set_ids, bc_values in cases:
+            self._add_case(case_id, job_name, set_ids, bc_values)
 
     def _create_apex_nodeset(self):
         # apex
@@ -4256,7 +4212,7 @@ class UHCWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.ControlTermination(endtim=1, dtmin=1.0))
 
     @staticmethod
-    def clean_node_set(nodes, exclude_nodes=None):
+    def clean_node_set(nodes: np.ndarray, exclude_nodes: np.ndarray = None):
         """Make sure there is no duplicate or excluded nodes."""
         nodes = np.unique(nodes)
         if exclude_nodes is not None:

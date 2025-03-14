@@ -35,15 +35,22 @@ jobs:
         with:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
 
+      - name: Create a virtual environment and use for subsequent steps
+        run: |
+          python -m venv .venv
+          .venv\Scripts\Activate.ps1
+          python -m pip install -U pip
+
       - name: Install package and dependencies
         run: |
-          python -m pip install --upgrade pip
+          .venv\Scripts\Activate.ps1
           python -m pip install .[tests]
 
       # run all tests requiring Fluent (these are very slow compared to the previous tests)
       - name: Run all tests requiring (Py)Fluent
         continue-on-error: false
         run: |
+          .venv\Scripts\Activate.ps1
           python -m pytest -v -m "requires_fluent"
 
       # These tests will reuse an existing mesh and skip the step where the entire model
@@ -51,5 +58,6 @@ jobs:
       - name: Test model generation
         continue-on-error: false
         run: |
+          .venv\Scripts\Activate.ps1
           python -m pytest -v -m "extract_models and not requires_fluent and not k_file_writer"
           python -m pytest -v -m "k_file_writer"

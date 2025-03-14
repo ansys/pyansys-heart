@@ -3756,63 +3756,68 @@ class UHCWriter(BaseDynaWriter):
         atrium : pv.UnstructuredGrid
             right atrium pyvista object
         """
-        if "top" in self.landmarks.keys():
-            top_ids = self._find_top_nodeset_by_geodesic(atrium)
-        else:
-            top_ids = self._find_top_nodeset_by_cut(atrium)
 
-        # assign top nodeset
+        def _find_top_nodeset_by_cut(atrium: pv.UnstructuredGrid):
+            cut_center, cut_normal = self._define_ra_cut()
+
+            atrium["cell_ids_tmp"] = np.arange(0, atrium.n_cells, dtype=int)
+            atrium["point_ids_tmp"] = np.arange(0, atrium.n_points, dtype=int)
+            slice = atrium.slice(origin=cut_center, normal=cut_normal)
+            crinkled = atrium.extract_cells(np.unique(slice["cell_ids_tmp"]))
+
+            # After cut, select the top region
+            x = crinkled.connectivity()
+            if np.max(x.point_data["RegionId"]) != 2:
+                # Should only have 3 parts
+                LOGGER.error("Cannot find top nodeset...")
+                raise ValueError("Please define top start/end points and re-run.")
+
+            # temporary fix with tricuspid-valve name
+            tv_name = "tricuspid-valve-atrium"
+
+            # compare closest point with TV nodes, top region should be far with TV node set
+            tv_tree = spatial.cKDTree(atrium.points[atrium.point_data[tv_name] == 1])
+            min_dst = -1.0
+            for i in range(3):
+                current_min_dst = np.min(tv_tree.query(x.points[x.point_data["RegionId"] == i])[0])
+                if current_min_dst > min_dst:
+                    min_dst = current_min_dst
+                    top_region_id = i
+
+            # This region is the top
+            mask = x.point_data["RegionId"] == top_region_id
+
+            top_ids = x["point_ids_tmp"][mask]
+
+            atrium.cell_data.remove("cell_ids_tmp")
+            atrium.point_data.remove("point_ids_tmp")
+            return top_ids
+
+        def _find_top_nodeset_by_geodesic(atrium: pv.UnstructuredGrid):
+            top_ids = []
+            surface: pv.PolyData = atrium.extract_surface()
+            for i in range(len(self.landmarks["top"]) - 1):
+                p1 = self.landmarks["top"][i]
+                p2 = self.landmarks["top"][i + 1]
+
+                path = surface.geodesic(
+                    surface.find_closest_point(p1), surface.find_closest_point(p2)
+                )
+                for point in path.points:
+                    top_ids.append(atrium.find_closest_point(point))
+
+            return np.unique(np.array(top_ids))
+
+        if "top" in self.landmarks.keys():
+            top_ids = _find_top_nodeset_by_geodesic(atrium)
+        else:
+            top_ids = _find_top_nodeset_by_cut(atrium)
+
+        # assign top nodeset with ID 10
         kw = create_node_set_keyword(top_ids + 1, node_set_id=10, title="top")
         self.kw_database.node_sets.append(kw)
 
-    def _find_top_nodeset_by_cut(self, atrium: pv.UnstructuredGrid):
-        cut_center, cut_normal = self._define_ra_cut()
-
-        atrium["cell_ids_tmp"] = np.arange(0, atrium.n_cells, dtype=int)
-        atrium["point_ids_tmp"] = np.arange(0, atrium.n_points, dtype=int)
-        slice = atrium.slice(origin=cut_center, normal=cut_normal)
-        crinkled = atrium.extract_cells(np.unique(slice["cell_ids_tmp"]))
-
-        # After cut, select the top region
-        x = crinkled.connectivity()
-        if np.max(x.point_data["RegionId"]) != 2:
-            # Should only have 3 parts
-            LOGGER.error("Cannot find top nodeset...")
-            raise ValueError("Please define top start/end points and re-run.")
-
-        # temporary fix with tricuspid-valve name
-        tv_name = "tricuspid-valve-atrium"
-
-        # compare closest point with TV nodes, top region should be far with TV node set
-        tv_tree = spatial.cKDTree(atrium.points[atrium.point_data[tv_name] == 1])
-        min_dst = -1.0
-        for i in range(3):
-            current_min_dst = np.min(tv_tree.query(x.points[x.point_data["RegionId"] == i])[0])
-            if current_min_dst > min_dst:
-                min_dst = current_min_dst
-                top_region_id = i
-
-        # This region is the top
-        mask = x.point_data["RegionId"] == top_region_id
-
-        top_ids = x["point_ids_tmp"][mask]
-
-        atrium.cell_data.remove("cell_ids_tmp")
-        atrium.point_data.remove("point_ids_tmp")
         return top_ids
-
-    def _find_top_nodeset_by_geodesic(self, atrium: pv.UnstructuredGrid):
-        top_ids = []
-        surface: pv.PolyData = atrium.extract_surface()
-        for i in range(len(self.landmarks["top"]) - 1):
-            p1 = self.landmarks["top"][i]
-            p2 = self.landmarks["top"][i + 1]
-
-            path = surface.geodesic(surface.find_closest_point(p1), surface.find_closest_point(p2))
-            for point in path.points:
-                top_ids.append(atrium.find_closest_point(point))
-
-        return np.unique(np.array(top_ids))
 
     def _define_ra_cut(self):
         """Define a cut from 3 holes of right atrium."""

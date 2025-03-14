@@ -258,7 +258,7 @@ def unpack_case(tar_path: Path, reduce_size: bool = True) -> str:
     ----------
     tar_path : Path
         Path to tar.gz file.
-    reduce_size : bool
+    reduce_size : bool, default: True
         If True, reduce the size of the unpacked files by removing the .vtk file for the
         Strocchi database.
 

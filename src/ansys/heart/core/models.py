@@ -1325,9 +1325,6 @@ class HeartModel:
 
         return
 
-    # TODO: @mhoeijm
-    # TODO: Refactor. Check whether all necessary caps exist in model.
-    # TODO: should be a function of model type.
     def _validate_cap_names(self):
         """Validate that caps are attached to right part."""
         for part in self.parts:

@@ -1351,7 +1351,7 @@ class HeartModel:
                 ]
             elif part.name == "Right atrium":
                 expected_cap_types = [
-                    CapType.PULMONARY_VALVE_ATRIUM,
+                    CapType.TRICUSPID_VALVE_ATRIUM,
                     CapType.SUPERIOR_VENA_CAVA,
                     CapType.INFERIOR_VENA_CAVA,
                 ]

@@ -3772,7 +3772,7 @@ class LaplaceWriter(BaseDynaWriter):
         Cut through the center of TV, IVC and SVC, expecting to result in
         3 unconnected regions and the farthest is top.
         This method may fail with varying geometries, then the user
-        need to define top landmarks.
+        needs to define the top landmarks.
         """
         cut_center, cut_normal = self._define_ra_cut()
 

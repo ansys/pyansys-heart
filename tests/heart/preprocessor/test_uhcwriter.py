@@ -27,7 +27,7 @@ import tempfile
 
 import pytest
 
-from ansys.heart.writer.dynawriter import UHCWriter
+from ansys.heart.writer.dynawriter import LaplaceWriter
 from tests.heart.conftest import get_assets_folder, get_fourchamber
 from tests.heart.end2end.compare_k import read_file
 
@@ -42,7 +42,7 @@ def test_uvc(fourchamber):
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         to_test_folder = os.path.join(workdir, "uvc")
         fourchamber._workdir = workdir
-        writer = UHCWriter(fourchamber, "uvc")
+        writer = LaplaceWriter(fourchamber, "uvc")
         writer.update()
         writer.export(to_test_folder)
 
@@ -61,7 +61,7 @@ def test_uvc(fourchamber):
 def test_la_fiber(fourchamber):
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         to_test_folder = os.path.join(workdir, "la_fiber")
-        writer = UHCWriter(fourchamber, "la_fiber")
+        writer = LaplaceWriter(fourchamber, "la_fiber")
         writer.update()
         writer.export(to_test_folder)
 
@@ -82,7 +82,7 @@ def test_ra_top(fourchamber):
     end = [-33.7271, 134.605, 332.155]
     mid = [-43.5525, 148.992, 367.271]
 
-    writer = UHCWriter(fourchamber, "ra_fiber", raa=[-33, 82, 417], top=[start, mid, end])
+    writer = LaplaceWriter(fourchamber, "ra_fiber", raa=[-33, 82, 417], top=[start, mid, end])
     ids = writer._find_top_nodeset_by_geodesic(writer.target)
 
     assert len(ids) == 61
@@ -94,7 +94,7 @@ def test_ra_top(fourchamber):
 def test_ra_fiber(fourchamber):
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         to_test_folder = os.path.join(workdir, "ra_fiber")
-        writer = UHCWriter(fourchamber, "ra_fiber", raa=[-33, 82, 417])
+        writer = LaplaceWriter(fourchamber, "ra_fiber", raa=[-33, 82, 417])
         writer.update()
         writer.export(to_test_folder)
 
@@ -114,7 +114,7 @@ def test_drbm(fourchamber):
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         to_test_folder = os.path.join(workdir, "drbm")
         fourchamber._workdir = workdir
-        writer = UHCWriter(fourchamber, "D-RBM")
+        writer = LaplaceWriter(fourchamber, "D-RBM")
         writer.update()
         writer.export(to_test_folder)
 

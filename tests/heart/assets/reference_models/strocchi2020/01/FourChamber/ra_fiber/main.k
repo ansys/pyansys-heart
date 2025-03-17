@@ -42,34 +42,6 @@ $#                                                                      commands
                                                                                 
 $#   scid1     scid2     scid3     scid4     scid5     scid6     scid7     scid8
          1                                                                      
-*CASE
-$#  caseid                                                                 jobid
-         2ab                                                                    
-$#                                                                      commands
-                                                                                
-$#   scid1     scid2     scid3     scid4     scid5     scid6     scid7     scid8
-         2                                                                      
-*CASE
-$#  caseid                                                                 jobid
-         3v                                                                     
-$#                                                                      commands
-                                                                                
-$#   scid1     scid2     scid3     scid4     scid5     scid6     scid7     scid8
-         3                                                                      
-*CASE
-$#  caseid                                                                 jobid
-         4r                                                                     
-$#                                                                      commands
-                                                                                
-$#   scid1     scid2     scid3     scid4     scid5     scid6     scid7     scid8
-         4                                                                      
-*CASE
-$#  caseid                                                                 jobid
-         5w                                                                     
-$#                                                                      commands
-                                                                                
-$#   scid1     scid2     scid3     scid4     scid5     scid6     scid7     scid8
-         5                                                                      
 *CASE_BEGIN_1
 *BOUNDARY_TEMPERATURE_SET
 $#    nsid      lcid     cmult       loc    tdeath    tbirth
@@ -78,6 +50,13 @@ $#    nsid      lcid     cmult       loc    tdeath    tbirth
 $#    nsid      lcid     cmult       loc    tdeath    tbirth
        200         0       1.0         0     1e+20       0.0
 *CASE_END_1
+*CASE
+$#  caseid                                                                 jobid
+         2ab                                                                    
+$#                                                                      commands
+                                                                                
+$#   scid1     scid2     scid3     scid4     scid5     scid6     scid7     scid8
+         2                                                                      
 *CASE_BEGIN_2
 *BOUNDARY_TEMPERATURE_SET
 $#    nsid      lcid     cmult       loc    tdeath    tbirth
@@ -92,6 +71,13 @@ $#    nsid      lcid     cmult       loc    tdeath    tbirth
 $#    nsid      lcid     cmult       loc    tdeath    tbirth
         11         0      -1.0         0     1e+20       0.0
 *CASE_END_2
+*CASE
+$#  caseid                                                                 jobid
+         3v                                                                     
+$#                                                                      commands
+                                                                                
+$#   scid1     scid2     scid3     scid4     scid5     scid6     scid7     scid8
+         3                                                                      
 *CASE_BEGIN_3
 *BOUNDARY_TEMPERATURE_SET
 $#    nsid      lcid     cmult       loc    tdeath    tbirth
@@ -103,6 +89,13 @@ $#    nsid      lcid     cmult       loc    tdeath    tbirth
 $#    nsid      lcid     cmult       loc    tdeath    tbirth
         11         0       0.0         0     1e+20       0.0
 *CASE_END_3
+*CASE
+$#  caseid                                                                 jobid
+         4r                                                                     
+$#                                                                      commands
+                                                                                
+$#   scid1     scid2     scid3     scid4     scid5     scid6     scid7     scid8
+         4                                                                      
 *CASE_BEGIN_4
 *BOUNDARY_TEMPERATURE_SET
 $#    nsid      lcid     cmult       loc    tdeath    tbirth
@@ -111,6 +104,13 @@ $#    nsid      lcid     cmult       loc    tdeath    tbirth
 $#    nsid      lcid     cmult       loc    tdeath    tbirth
         10         0       0.0         0     1e+20       0.0
 *CASE_END_4
+*CASE
+$#  caseid                                                                 jobid
+         5w                                                                     
+$#                                                                      commands
+                                                                                
+$#   scid1     scid2     scid3     scid4     scid5     scid6     scid7     scid8
+         5                                                                      
 *CASE_BEGIN_5
 *BOUNDARY_TEMPERATURE_SET
 $#    nsid      lcid     cmult       loc    tdeath    tbirth

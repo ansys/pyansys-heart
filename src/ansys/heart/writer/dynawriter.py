@@ -3871,7 +3871,7 @@ class LaplaceWriter(BaseDynaWriter):
         self.kw_database.node_sets.append(kw)
 
     def _update_atrial_caps_nodeset(self, atrium: pv.UnstructuredGrid):
-        """Define nodeset for caps."""
+        """Define node sets for the caps."""
         for cap in self.model.parts[0].caps:
             # get node IDs for atrium mesh
             cap._mesh = self.model.mesh.get_surface(cap._mesh.id)

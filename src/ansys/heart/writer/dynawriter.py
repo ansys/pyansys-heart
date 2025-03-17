@@ -3917,8 +3917,8 @@ class LaplaceWriter(BaseDynaWriter):
         epi_nodes = self.model.left_atrium.epicardium.global_node_ids_triangles
         epi_nodes = np.setdiff1d(epi_nodes, endo_nodes)
 
-        _ = self._add_nodeset(endo_nodes, "endocardium", nodeset_id=100)
-        _ = self._add_nodeset(epi_nodes, "epicardium", nodeset_id=200)
+        self._add_nodeset(endo_nodes, "endocardium", nodeset_id=100)
+        self._add_nodeset(epi_nodes, "epicardium", nodeset_id=200)
 
         cases = [
             (1, "trans", [100, 200], [0, 1]),
@@ -3939,8 +3939,8 @@ class LaplaceWriter(BaseDynaWriter):
         epi_nodes = self.model.right_atrium.epicardium.global_node_ids_triangles
         epi_nodes = np.setdiff1d(epi_nodes, endo_nodes)
 
-        _ = self._add_nodeset(endo_nodes, "endocardium", nodeset_id=100)
-        _ = self._add_nodeset(epi_nodes, "epicardium", nodeset_id=200)
+        self._add_nodeset(endo_nodes, "endocardium", nodeset_id=100)
+        self._add_nodeset(epi_nodes, "epicardium", nodeset_id=200)
 
         # Find appendage apex
         tree = spatial.cKDTree(atrium.points)
@@ -4228,7 +4228,7 @@ class LaplaceWriter(BaseDynaWriter):
                 if combined_av_mv
                 else (4, "w_l", [mv_nodeset_id, la_nodeset_id, av_nodeset_id], [1, 1, 0]),
             ]
-        else:  # BV
+        elif isinstance(self.model, (FullHeart, FourChamber, BiVentricle)):
             lv_endo_nodeset_id = self._add_nodeset(lv_endo_nodes, "lv endo")
             rv_endo_nodeset_id = self._add_nodeset(rv_endo_nodes, "rv endo")
             epi_nodeset_id = self._add_nodeset(epi_nodes, "epi")

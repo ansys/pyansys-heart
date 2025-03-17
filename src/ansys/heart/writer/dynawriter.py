@@ -1867,11 +1867,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
             for robin_bc in robin_bcs:
                 self.kw_database.boundary_conditions.extend(robin_bc())
 
-        # if isinstance(self.model, FourChamber):
-        #     # add a small constraint to avoid rotation
-        #     self._add_pericardium_bc(scale=0.01)
-
-        # # Approximate end-diastolic pressures
+        # Approximate end-diastolic pressures
         self._add_enddiastolic_pressure_bc()
 
         # zerop key words
@@ -1935,9 +1931,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         # add export controls
         # self.kw_database.main.append(keywords.DatabaseElout(dt=0.1, binary=2))
-        #
         # self.kw_database.main.append(keywords.DatabaseGlstat(dt=0.1, binary=2))
-        #
         # self.kw_database.main.append(keywords.DatabaseMatsum(dt=0.1, binary=2))
 
         # frequency of full results

@@ -1810,105 +1810,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         return
 
-    # TODO: Keep this implementation for reference.
-    # def _add_enddiastolic_pressure_bc2(
-    #     self, pressure_lv: float = 1, pressure_rv: float = 1
-    # ):
-    #     """
-    #     Apply ED pressure by control volume.
-
-    #     Notes
-    #     -----
-    #     LSDYNA stress reference configuration bug with this load due to define function.
-    #     """
-    #     cavities = [part.cavity for part in self.model.parts if part.cavity]
-    #     for cavity in cavities:
-    #         if "atrium" in cavity.name:
-    #             continue
-
-    #         # create CV
-    #         cv_kw = keywords.DefineControlVolume()
-    #         cv_kw.id = cavity.surface.id
-    #         cv_kw.sid = cavity.surface._seg_set_id
-    #         self.kw_database.main.append(cv_kw)
-
-    #         # define CV interaction
-    #         cvi_kw = keywords.DefineControlVolumeInteraction()
-    #         cvi_kw.id = cavity.surface.id
-    #         cvi_kw.cvid1 = cavity.surface._seg_set_id
-    #         cvi_kw.cvid2 = 0  # ambient
-
-    #         if "Left ventricle" in cavity.name:
-    #             cvi_kw.lcid_ = 10
-    #             pressure = pressure_lv
-    #         elif "Right ventricle" in cavity.name:
-    #             cvi_kw.lcid_ = 11
-    #             pressure = pressure_rv
-
-    #         self.kw_database.main.append(cvi_kw)
-
-    #         # define define function
-    #         definefunction_str = _ed_load_template()
-    #         self.kw_database.main.append(
-    #             definefunction_str.format(
-    #                 cvi_kw.lcid_,
-    #                 "flow_" + cavity.name.replace(" ", "_"),
-    #                 pressure,
-    #                 -200,
-    #             )
-    #         )
-
-    #     self.kw_database.main.append(keywords.DatabaseIcvout(dt=10, binary=2))
-    #     return
-
-    def _add_enddiastolic_pressure_bc(self):
-        """Add end diastolic pressure boundary condition on the left and right endocardium."""
-        bc_settings = self.settings.mechanics.boundary_conditions
-        pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
-        pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
-        pressure_la = bc_settings.end_diastolic_cavity_pressure["left_atrial"].m
-        pressure_ra = bc_settings.end_diastolic_cavity_pressure["right_atrial"].m
-
-        # create unit load curve
-        load_curve_id = self.get_unique_curve_id()
-        load_curve_kw = create_define_curve_kw(
-            [0, 1, 1.001], [0, 1.0, 1.0], "unit load curve", load_curve_id, 100
-        )
-
-        load_curve_kw.sfa = 1000
-
-        # append unit curve to main.k
-        self.kw_database.main.append(load_curve_kw)
-
-        # create *LOAD_SEGMENT_SETS for each ventricular cavity
-        cavities = [part.cavity for part in self.model.parts if part.cavity]
-        for cavity in cavities:
-            if "Left ventricle" in cavity.name:
-                load = keywords.LoadSegmentSet(
-                    ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_lv
-                )
-                self.kw_database.main.append(load)
-            elif "Right ventricle" in cavity.name:
-                load = keywords.LoadSegmentSet(
-                    ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_rv
-                )
-                self.kw_database.main.append(load)
-            elif "Left atrium" in cavity.name:
-                load = keywords.LoadSegmentSet(
-                    ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_la
-                )
-                self.kw_database.main.append(load)
-            elif "Right atrium" in cavity.name:
-                load = keywords.LoadSegmentSet(
-                    ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_ra
-                )
-                self.kw_database.main.append(load)
-            else:
-                LOGGER.debug(f"No load added to {cavity.name}")
-                continue
-
-        return
-
 
 class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
     """
@@ -2117,6 +2018,103 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         )
 
         self.kw_database.main.append(kw)
+
+        return
+
+    def _add_enddiastolic_pressure_by_cv(self, pressure_lv: float = 1, pressure_rv: float = 1):
+        """
+        Apply ED pressure by control volume.
+
+        Notes
+        -----
+        LSDYNA stress reference configuration lead to a bug with this load,
+        it seems due to define function, need to be investigated.
+        """
+        cavities = [part.cavity for part in self.model.parts if part.cavity]
+        for cavity in cavities:
+            if "atrium" in cavity.name:
+                continue
+
+            # create CV
+            cv_kw = keywords.DefineControlVolume()
+            cv_kw.id = cavity.surface.id
+            cv_kw.sid = cavity.surface._seg_set_id
+            self.kw_database.main.append(cv_kw)
+
+            # define CV interaction
+            cvi_kw = keywords.DefineControlVolumeInteraction()
+            cvi_kw.id = cavity.surface.id
+            cvi_kw.cvid1 = cavity.surface._seg_set_id
+            cvi_kw.cvid2 = 0  # ambient
+
+            if "Left ventricle" in cavity.name:
+                cvi_kw.lcid_ = 10
+                pressure = pressure_lv
+            elif "Right ventricle" in cavity.name:
+                cvi_kw.lcid_ = 11
+                pressure = pressure_rv
+
+            self.kw_database.main.append(cvi_kw)
+
+            # define define function
+            definefunction_str = _ed_load_template()
+            self.kw_database.main.append(
+                definefunction_str.format(
+                    cvi_kw.lcid_,
+                    "flow_" + cavity.name.replace(" ", "_"),
+                    pressure,
+                    -200,
+                )
+            )
+
+        self.kw_database.main.append(keywords.DatabaseIcvout(dt=10, binary=2))
+        return
+
+    def _add_enddiastolic_pressure_bc(self):
+        """Add end diastolic pressure boundary condition on the left and right endocardium."""
+        bc_settings = self.settings.mechanics.boundary_conditions
+        pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
+        pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
+        pressure_la = bc_settings.end_diastolic_cavity_pressure["left_atrial"].m
+        pressure_ra = bc_settings.end_diastolic_cavity_pressure["right_atrial"].m
+
+        # create unit load curve
+        load_curve_id = self.get_unique_curve_id()
+        load_curve_kw = create_define_curve_kw(
+            [0, 1, 1.001], [0, 1.0, 1.0], "unit load curve", load_curve_id, 100
+        )
+
+        load_curve_kw.sfa = 1000
+
+        # append unit curve to main.k
+        self.kw_database.main.append(load_curve_kw)
+
+        # create *LOAD_SEGMENT_SETS for each ventricular cavity
+        cavities = [part.cavity for part in self.model.parts if part.cavity]
+        for cavity in cavities:
+            if "Left ventricle" in cavity.name:
+                load = keywords.LoadSegmentSet(
+                    ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_lv
+                )
+                self.kw_database.main.append(load)
+            elif "Right ventricle" in cavity.name:
+                load = keywords.LoadSegmentSet(
+                    ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_rv
+                )
+                self.kw_database.main.append(load)
+            elif "Left atrium" in cavity.name:
+                load = keywords.LoadSegmentSet(
+                    ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_la
+                )
+                self.kw_database.main.append(load)
+            elif "Right atrium" in cavity.name:
+                load = keywords.LoadSegmentSet(
+                    ssid=cavity.surface._seg_set_id, lcid=load_curve_id, sf=pressure_ra
+                )
+                self.kw_database.main.append(load)
+            else:
+                LOGGER.debug(f"No load added to {cavity.name}")
+                continue
 
         return
 

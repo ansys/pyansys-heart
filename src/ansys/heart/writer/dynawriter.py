@@ -1405,7 +1405,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         robin_settings = boundary_conditions.robin
 
         # collect all pericardium nodes:
-        ventricles_epi = self._get_epi_surface(apply="ventricle")
+        ventricles_epi = self._get_epi_surface(apply=PartType.VENTRICLE)
 
         #! penalty function is defined on all nodes in the mesh: but just need the epicardial nodes.
         # penalty function
@@ -1432,7 +1432,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         )
 
         if isinstance(self.model, FourChamber):
-            atrial_epi = self._get_epi_surface(apply="atrial")
+            atrial_epi = self._get_epi_surface(PartType.ATRIUM)
 
             k = robin_settings["atrial"]["stiffness"].to("MPa/mm").m
             self.kw_database.pericardium.extend(
@@ -1445,18 +1445,17 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
         return
 
-    # TODO: change apply input argument to PartType.VENTRICLE and PartType.ATRIUM
-    def _get_epi_surface(self, apply: Literal["ventricle", "atrial"] = "ventricle"):
+    def _get_epi_surface(
+        self, apply: Literal[PartType.VENTRICLE, PartType.ATRIUM] = PartType.VENTRICLE
+    ):
         """Get the epicardial surfaces of either the ventricle or atria."""
         LOGGER.debug(f"Collecting epicardium nodesets of {apply}:")
-        if apply == "ventricle":
-            targets = [part for part in self.model.parts if "ventricle" in part.name]
-        elif apply == "atrial":
-            targets = [part for part in self.model.parts if "atrium" in part.name]
+
+        targets = [part for part in self.model.parts if apply == part.part_type]
 
         # retrieve combined epicardial surface from the central mesh object:
         # this ensures that we can use the global-point-ids
-        epicardium_surface_ids = [ventricle.epicardium.id for ventricle in targets]
+        epicardium_surface_ids = [part.epicardium.id for part in targets]
         epicardium_surface1 = self.model.mesh.get_surface(epicardium_surface_ids)
 
         return epicardium_surface1

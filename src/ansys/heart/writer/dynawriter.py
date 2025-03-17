@@ -3899,7 +3899,7 @@ class LaplaceWriter(BaseDynaWriter):
 
         # laa
         if "laa" in self.landmarks.keys():
-            # else there should exist LEFT_ATRIUM_APPENDAGE as Strocchi's data
+            # else there should be a LEFT_ATRIUM_APPENDAGE as in Strocchi's data
             laa_ids = get_laa_nodes(atrium, self.landmarks["laa"])
 
             kw = create_node_set_keyword(

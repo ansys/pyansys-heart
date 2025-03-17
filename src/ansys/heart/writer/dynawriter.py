@@ -59,7 +59,7 @@ from ansys.heart.simulator.settings.material.material import (
     NeoHookean,
 )
 from ansys.heart.simulator.settings.settings import SimulationSettings, Stimulation
-from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
+from ansys.heart.writer import custom_keywords as custom_keywords
 from ansys.heart.writer.heart_decks import (
     BaseDecks,
     ElectroMechanicsDecks,
@@ -68,7 +68,7 @@ from ansys.heart.writer.heart_decks import (
     MechanicsDecks,
     PurkinjeGenerationDecks,
 )
-from ansys.heart.writer.keyword_module import (
+from ansys.heart.writer.keyword_utils import (
     add_beams_to_kw,
     add_nodes_to_kw,
     create_define_curve_kw,

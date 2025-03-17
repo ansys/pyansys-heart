@@ -43,7 +43,7 @@ import scipy.spatial as spatial
 
 from ansys.dyna.core.keywords import keywords
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.helpers.vtkmethods import compute_surface_nodal_area_pyvista
+from ansys.heart.core.helpers.vtk_utils import compute_surface_nodal_area_pyvista
 from ansys.heart.core.models import (
     BiVentricle,
     FourChamber,

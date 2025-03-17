@@ -33,7 +33,7 @@ import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.helpers.fluent_reader import _FluentCellZone, _FluentMesh
-from ansys.heart.core.helpers.vtkmethods import add_solid_name_to_stl
+from ansys.heart.core.helpers.vtk_utils import add_solid_name_to_stl
 from ansys.heart.core.objects import Mesh, SurfaceMesh
 from ansys.heart.preprocessor.input import _InputBoundary, _InputModel
 

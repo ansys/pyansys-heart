@@ -959,14 +959,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self._update_controlvolume_db(system_map)
 
-        # else:
-        #     # Four chamber with passive atrial
-        #     # no control volume for atrial, constant pressure instead
-        #     bc_settings = self.settings.mechanics.boundary_conditions
-        #     pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
-        #     pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
-        #     self._add_constant_atrial_pressure(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
-
         self._get_list_of_includes()
         self._add_includes()
 
@@ -1138,25 +1130,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(
             keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0, resplt=1)
         )
-
-        # remove, aha strain is computed from d3plot
-
-        # # control ELOUT file to extract left ventricle's stress/strain
-        # if hasattr(self.model, "septum"):
-        #     self.kw_database.main.append(
-        #         keywords.SetSolidGeneral(
-        #             option="PART",
-        #             sid=1,
-        #             e1=self.model.left_ventricle.pid,
-        #             e2=self.model.septum.pid,
-        #             user_comment="create left ventricle + septum set for exporting",
-        #         )
-        #     )
-        # else:
-        #     self.kw_database.main.append(
-        #         keywords.SetSolidGeneral(option="PART", sid=1, e1=self.model.left_ventricle.pid)
-        #     )
-        # self.kw_database.main.append(keywords.DatabaseHistorySolidSet(id1=1))
 
         return
 

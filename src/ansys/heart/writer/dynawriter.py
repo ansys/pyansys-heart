@@ -3883,7 +3883,7 @@ class LaplaceWriter(BaseDynaWriter):
                 kw = create_node_set_keyword(ids_sub + 1, node_set_id=set_id, title=cap.name)
                 self.kw_database.node_sets.append(kw)
 
-                # Add info to pyvista object (RA fiber use this)
+                # Add info to pyvista object, necessary for right atrial fibers.
                 atrium[cap.type.value] = np.zeros(atrium.n_points, dtype=int)
                 atrium[cap.type.value][ids_sub] = 1
 

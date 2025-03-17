@@ -41,16 +41,17 @@ the ventricles.
 
 import copy
 import os
+from pathlib import Path
 
 import pyvista as pv
 
 import ansys.heart.core.models as models
 from ansys.heart.simulator.simulator import BaseSimulator, DynaSettings
 
-# specify the path to the working directory and heart model
-workdir = os.path.abspath(os.path.join("downloads", "Strocchi2020", "01", "FourChamber"))
-
-path_to_model = os.path.join(workdir, "heart_model.vtu")
+# specify the path to the working directory and heart model. The following path assumes
+# that a preprocessed model is already available
+workdir = Path.home() / "pyansys-heart" / "downloads" / "Strocchi2020" / "01" / "FourChamber"
+path_to_model = workdir / "heart_model.vtu"
 
 # specify LS-DYNA path
 lsdyna_path = r"ls-dyna_smp"

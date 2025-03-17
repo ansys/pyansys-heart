@@ -47,19 +47,21 @@ purkinje network and conduction system and finally simulate the electrophysiolog
 # sphinx_gallery_end_ignore
 
 import os
+from pathlib import Path
 
 import ansys.heart.core.models as models
 from ansys.heart.core.objects import Point
-from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
+from ansys.heart.simulator.settings.settings import DynaSettings
+from ansys.heart.simulator.simulator import EPSimulator
 
 # accept dpf license agreement
 # https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
-# set working directory and path to model.
-workdir = os.path.join("pyansys-heart", "downloads", "Strocchi2020", "01", "FourChamber")
-
-path_to_model = os.path.join(workdir, "heart_model.vtu")
+# set working directory and path to model. Note that we expect a pre-processed model
+# stored as "heart_model.vtu" in this folder.
+workdir = Path.home() / "pyansys-heart" / "downloads" / "Strocchi2020" / "01" / "FourChamber"
+path_to_model = workdir / "heart_model.vtu"
 
 # specify LS-DYNA path (last tested working versions is intelmpi-linux-DEV-106117)
 lsdyna_path = r"ls-dyna_msmpi.exe"

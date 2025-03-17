@@ -45,6 +45,7 @@ set it up for a coupled electromechanical simulation.
 # sphinx_gallery_end_ignore
 
 import os
+from pathlib import Path
 
 from pint import Quantity
 
@@ -69,12 +70,10 @@ from ansys.heart.simulator.simulator import DynaSettings, EPMechanicsSimulator
 # https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
-# specify necessary paths.
-# Note that we need to cast the paths to strings to facilitate serialization.
-case_file = os.path.join("pyansys-heart", "downloads", "Rodero2021", "01", "01.vtk")
-workdir = os.path.join(os.path.dirname(case_file), "FullHeart")
-
-path_to_model = os.path.join(workdir, "heart_model.vtu")
+# set working directory and path to model. Note that we assume here that that there is a
+# preprocessed model called "heart_model.vtu" available in the working directory.
+workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "FullHeart"
+path_to_model = workdir / "heart_model.vtu"
 
 ###############################################################################
 # Load the full heart model

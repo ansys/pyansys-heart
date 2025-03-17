@@ -37,8 +37,8 @@ import matplotlib.pyplot as plt
 
 from ansys.heart.simulator.settings.material.curve import (
     ActiveCurve,
-    Kumaraswamy_active,
     constant_ca2,
+    kumaraswamy_active,
 )
 from ansys.heart.simulator.settings.material.ep_material import CellModel, EPMaterial
 from ansys.heart.simulator.settings.material.material import (
@@ -116,7 +116,7 @@ fig.savefig(os.path.join(docs_images_folder, "model1_ca2.png"))
 # create active model 3
 ac_model3 = ActiveModel.Model3()
 # create a stress curve and show
-ac_curve3 = ActiveCurve(Kumaraswamy_active(t_end=800), type="stress")
+ac_curve3 = ActiveCurve(kumaraswamy_active(t_end=800), type="stress")
 fig = ac_curve3.plot_time_vs_stress()
 plt.show()
 
@@ -182,12 +182,12 @@ from ansys.heart.core.objects import Part
 
 ###############################################################################
 # .. note::
-#    run doc_preprocess_fullheart_rodero_01.py in the same folder if loading failed
+#    You need to complete the full heart preprocessing example first.
 
-workdir = Path(Path(__file__).resolve().parents[2], "downloads", "Rodero2021", "01", "FullHeart")
-path_to_model = os.path.join(workdir, "heart_model.vtu")
+workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "FullHeart"
+path_to_model = workdir / "heart_model.vtu"
 
-# load four chamber heart model.
+# load a full heart model.
 heartmodel: models.FullHeart = models.FullHeart(working_directory=workdir)
 heartmodel.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
 

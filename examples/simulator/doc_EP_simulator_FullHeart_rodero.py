@@ -42,6 +42,7 @@ purkinje network and conduction system and finally simulate the electrophysiolog
 # directory, model, and ls-dyna executable.
 
 import os
+from pathlib import Path
 
 import ansys.heart.core.models as models
 from ansys.heart.core.objects import Point
@@ -51,10 +52,10 @@ from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
 # https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
-# set working directory and path to model.
-workdir = os.path.join("pyansys-heart", "downloads", "Rodero2021", "01", "FullHeart")
-
-path_to_model = os.path.join(workdir, "heart_model.vtu")
+# set working directory and path to model. Note that we assume here that that there is a
+# preprocessed model called "heart_model.vtu" available in the working directory.
+workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "FullHeart"
+path_to_model = workdir / "heart_model.vtu"
 
 # load four chamber heart model.
 model: models.FullHeart = models.FullHeart(working_directory=workdir)

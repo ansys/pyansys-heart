@@ -43,6 +43,7 @@ stress free configuration, and finally simulate the mechanical model.
 # directory, model, and ls-dyna executable.
 
 import os
+from pathlib import Path
 
 import ansys.heart.core.models as models
 from ansys.heart.simulator.simulator import DynaSettings, MechanicsSimulator
@@ -51,17 +52,14 @@ from ansys.heart.simulator.simulator import DynaSettings, MechanicsSimulator
 # https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
-# set working directory and path to model.
-workdir = os.path.join("pyansys-heart", "downloads", "Rodero2021", "01", "FullHeart")
+# set working directory and path to model. Note that we assume here that that there is a
+# preprocessed model called "heart_model.vtu" available in the working directory.
+workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "FullHeart"
+path_to_model = workdir / "heart_model.vtu"
 
-path_to_model = os.path.join(workdir, "heart_model.vtu")
-
-# load four chamber heart model.
+# load the full heart.
 model: models.FullHeart = models.FullHeart(working_directory=workdir)
 model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
-
-# set base working directory
-model.workdir = str(workdir)
 
 ###############################################################################
 # Instantiate the simulator object

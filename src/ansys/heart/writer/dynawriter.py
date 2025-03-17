@@ -3710,7 +3710,7 @@ class LaplaceWriter(BaseDynaWriter):
         self.type = type
         """problem type"""
         self.landmarks = kwargs
-        """lanmarks can be `laa`, `raa`, `top`"""
+        """landmarks can be `laa`, `raa`, `top`"""
         self.target: pv.UnstructuredGrid = None
         """target mesh related to problem"""
 

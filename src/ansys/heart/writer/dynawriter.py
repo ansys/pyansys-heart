@@ -3769,7 +3769,7 @@ class LaplaceWriter(BaseDynaWriter):
         """
         Define right atrium top nodeset.
 
-        Cut through the center of TV, IVC and SVC, expect to have
+        Cut through the center of TV, IVC and SVC, expecting to result in
         3 unconnected regions and the farthest is top.
         This method may fail with varying geometries, then user
         need to define top landmarks.

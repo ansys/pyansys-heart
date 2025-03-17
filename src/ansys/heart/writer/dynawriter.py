@@ -3749,7 +3749,7 @@ class LaplaceWriter(BaseDynaWriter):
 
     def _update_ra_top_nodeset(self, atrium: pv.UnstructuredGrid):
         """
-        Define right atrium top nodeset to 10.
+        Define right atrium top nodeset with node set id 10.
 
         Parameters
         ----------

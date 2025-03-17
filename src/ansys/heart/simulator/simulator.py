@@ -577,6 +577,15 @@ class MechanicsSimulator(BaseSimulator):
         if zerop_folder is None:
             zerop_folder = os.path.join(self.root_directory, "zeropressure")
 
+        try:
+            self.model.mesh.point_data_to_cell_data()["apico-basal"]
+        except KeyError:
+            LOGGER.error(
+                "Array named 'apico-basal' cannot be found, will compute"
+                "universal coordinate system (UVC) firstly."
+            )
+            self.compute_uhc()
+
         if self.initial_stress:
             # Use last iteration
             # At least two iterations required?

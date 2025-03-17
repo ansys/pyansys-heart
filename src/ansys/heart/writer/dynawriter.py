@@ -1475,7 +1475,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
             return 1 / (1 + np.exp(-z))
 
         # compute penalty function from longitudinal coordinate
-        uvc_l = self.model.mesh.point_data["uvc_longitudinal"]
+        try:
+            uvc_l = self.model.mesh.point_data["apico-basal"]
+        except KeyError:
+            LOGGER.warning(
+                "No apico-basal is found in point data, pericardium spring won't be created."
+            )
+            uvc_l = np.ones(self.model.mesh.GetNumberOfPoints())
         if np.any(uvc_l < 0):
             LOGGER.warning(
                 "Negative normalized longitudinal coordinate detected."
@@ -1512,6 +1518,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
         list
             list of dyna input deck
         """
+        if surface.GetNumberOfPoints() == 0:
+            LOGGER.error("Surface is empty, no Robin BC is added.")
+            return []
+
         if "_global-point-ids" not in surface.point_data:
             raise ValueError("surface must contain pointdata '_global-point-ids'.")
 

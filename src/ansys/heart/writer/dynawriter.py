@@ -3712,7 +3712,7 @@ class LaplaceWriter(BaseDynaWriter):
         self.landmarks = kwargs
         """landmarks can be `laa`, `raa`, `top`"""
         self.target: pv.UnstructuredGrid = None
-        """target mesh related to problem"""
+        """target mesh related to the problem."""
 
         # remove unnecessary parts
         if self.type == "uvc" or self.type == "D-RBM":

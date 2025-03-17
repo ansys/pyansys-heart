@@ -3810,7 +3810,7 @@ class LaplaceWriter(BaseDynaWriter):
         return top_ids
 
     def _find_top_nodeset_by_geodesic(self, atrium: pv.UnstructuredGrid):
-        """Define top nodeset by connecting landmark points with geodesic."""
+        """Define top nodeset by connecting landmark points with a geodesic path."""
         top_ids = []
         surface: pv.PolyData = atrium.extract_surface()
         for i in range(len(self.landmarks["top"]) - 1):

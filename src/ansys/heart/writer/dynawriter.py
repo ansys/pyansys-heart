@@ -3824,7 +3824,7 @@ class LaplaceWriter(BaseDynaWriter):
         return np.unique(np.array(top_ids))
 
     def _define_ra_cut(self):
-        """Define a cut from 3 caps of right atrium."""
+        """Define a cut-plane using the three caps of right atrium."""
         for cap in self.model.parts[0].caps:
             if cap.type == CapType.TRICUSPID_VALVE_ATRIUM:
                 tv_center = cap.centroid

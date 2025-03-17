@@ -55,7 +55,7 @@ os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 # set working directory and path to model. Note that we assume here that that there is a
 # preprocessed model called "heart_model.vtu" available in the working directory.
 workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "FullHeart"
-path_to_model = workdir / "heart_model.vtu"
+path_to_model = str(workdir / "heart_model.vtu")
 
 # load four chamber heart model.
 model: models.FullHeart = models.FullHeart(working_directory=workdir)

@@ -49,7 +49,7 @@ from ansys.heart.simulator.simulator import BaseSimulator, DynaSettings
 # specify the path to the working directory and heart model. The following path assumes
 # that a preprocessed model is already available
 workdir = Path.home() / "pyansys-heart" / "downloads" / "Strocchi2020" / "01" / "FourChamber"
-path_to_model = workdir / "heart_model.vtu"
+path_to_model = str(workdir / "heart_model.vtu")
 
 # specify LS-DYNA path
 lsdyna_path = r"ls-dyna_smp"

@@ -185,7 +185,7 @@ from ansys.heart.core.objects import Part
 #    You need to complete the full heart preprocessing example first.
 
 workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "FullHeart"
-path_to_model = workdir / "heart_model.vtu"
+path_to_model = str(workdir / "heart_model.vtu")
 
 # load a full heart model.
 heartmodel: models.FullHeart = models.FullHeart(working_directory=workdir)

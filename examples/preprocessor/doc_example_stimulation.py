@@ -66,7 +66,7 @@ os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 # specify the path to the working directory and heart model. The following path assumes
 # that a preprocessed model is already available
 workdir = Path.home() / "pyansys-heart" / "downloads" / "Strocchi2020" / "01" / "FourChamber"
-path_to_model = workdir / "heart_model.vtu"
+path_to_model = str(workdir / "heart_model.vtu")
 
 
 # load your four chamber heart model with uvcs (see preprocessor examples to create

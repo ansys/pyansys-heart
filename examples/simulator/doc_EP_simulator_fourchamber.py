@@ -61,7 +61,7 @@ os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 # set working directory and path to model. Note that we expect a pre-processed model
 # stored as "heart_model.vtu" in this folder.
 workdir = Path.home() / "pyansys-heart" / "downloads" / "Strocchi2020" / "01" / "FourChamber"
-path_to_model = workdir / "heart_model.vtu"
+path_to_model = str(workdir / "heart_model.vtu")
 
 # specify LS-DYNA path (last tested working versions is intelmpi-linux-DEV-106117)
 lsdyna_path = r"ls-dyna_msmpi.exe"

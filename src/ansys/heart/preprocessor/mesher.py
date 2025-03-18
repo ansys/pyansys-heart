@@ -161,6 +161,68 @@ def _organize_connected_regions(grid: pv.UnstructuredGrid, scalar: str = "part-i
     return grid
 
 
+def _get_cells_inside_wrapped_parts(model: _InputModel, mesh: _FluentMesh):
+    # convert to unstructured grid.
+    grid = mesh._to_vtk()
+
+    # represent cell centroids as point cloud assign part-ids to cells.
+    cell_centroids = grid.cell_centers()
+    cell_centroids.point_data.set_scalars(name="part-id", scalars=0)
+
+    # use individual wrapped parts to separate the parts of the wrapped model.
+    for part in model.parts:
+        if not part.is_manifold:
+            LOGGER.warning(f"Part {part.name} is not manifold.")
+
+        # grid.select_enclosed_points(part.combined_boundaries, check_surface=True)
+
+        cell_centroids = cell_centroids.select_enclosed_points(
+            part.combined_boundaries, check_surface=True
+        )
+        cell_centroids.point_data["part-id"][cell_centroids.point_data["SelectedPoints"] == 1] = (
+            part.id
+        )
+
+    # Use closest-point interpolation to assign part-ids to cell centers that are
+    # not enclosed by any of the wrapped parts
+    # TODO: clean up the following section.
+    cell_centroids["orig_indices"] = np.arange(cell_centroids.n_points, dtype=np.int32)
+    cell_centroids.point_data.remove("SelectedPoints")
+    cell_centroids_1 = cell_centroids.remove_cells(
+        cell_centroids.point_data["part-id"] != 0, inplace=False
+    )
+    orig_indices_1 = cell_centroids_1.point_data["orig_indices"]
+    cell_centroids_2 = cell_centroids.remove_cells(
+        cell_centroids.point_data["part-id"] == 0, inplace=False
+    )
+    # cleanup unwanted point and cell data.
+    try:
+        cell_centroids_2.point_data.remove("orig_indices")
+    except KeyError:
+        pass
+    try:
+        cell_centroids_2.point_data.remove("cell-zone-ids")
+    except KeyError:
+        pass
+    try:
+        cell_centroids_2.cell_data.remove("cell-zone-ids")
+    except KeyError:
+        pass
+
+    cell_centroids_1.point_data.remove("part-id")
+    cell_centroids_1.cell_data.remove("cell-zone-ids")
+
+    cell_centroids_1 = cell_centroids_1.interpolate(
+        cell_centroids_2, n_points=1, pass_cell_data=False
+    )
+    cell_centroids.point_data["part-id"][orig_indices_1] = cell_centroids_1.point_data["part-id"]
+
+    # assign part-ids to grid
+    grid.cell_data["part-id"] = np.array(cell_centroids.point_data["part-id"], dtype=int)
+
+    return grid
+
+
 def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingSession:
     """Get a Fluent Meshing session."""
     # NOTE: when using containerized version - we need to copy all the files
@@ -916,61 +978,8 @@ def mesh_from_non_manifold_input_model(
     # update the input model with the wrapped surfaces.
     model = _update_input_model_with_wrapped_surfaces(model, mesh, part_face_zone_ids_post_wrap)
 
-    # convert to unstructured grid.
-    grid = mesh._to_vtk()
-
-    # represent cell centroids as point cloud assign part-ids to cells.
-    cell_centroids = grid.cell_centers()
-    cell_centroids.point_data.set_scalars(name="part-id", scalars=0)
-
-    # use individual wrapped parts to separate the parts of the wrapped model.
-    for part in model.parts:
-        if not part.is_manifold:
-            LOGGER.warning(f"Part {part.name} is not manifold.")
-
-        cell_centroids = cell_centroids.select_enclosed_points(
-            part.combined_boundaries, check_surface=True
-        )
-        cell_centroids.point_data["part-id"][cell_centroids.point_data["SelectedPoints"] == 1] = (
-            part.id
-        )
-
-    # Use closest-point interpolation to assign part-ids to cell centers that are
-    # not enclosed by any of the wrapped parts
-    # TODO: clean up the following section.
-    cell_centroids["orig_indices"] = np.arange(cell_centroids.n_points, dtype=np.int32)
-    cell_centroids.point_data.remove("SelectedPoints")
-    cell_centroids_1 = cell_centroids.remove_cells(
-        cell_centroids.point_data["part-id"] != 0, inplace=False
-    )
-    orig_indices_1 = cell_centroids_1.point_data["orig_indices"]
-    cell_centroids_2 = cell_centroids.remove_cells(
-        cell_centroids.point_data["part-id"] == 0, inplace=False
-    )
-    # cleanup unwanted point and cell data.
-    try:
-        cell_centroids_2.point_data.remove("orig_indices")
-    except KeyError:
-        pass
-    try:
-        cell_centroids_2.point_data.remove("cell-zone-ids")
-    except KeyError:
-        pass
-    try:
-        cell_centroids_2.cell_data.remove("cell-zone-ids")
-    except KeyError:
-        pass
-
-    cell_centroids_1.point_data.remove("part-id")
-    cell_centroids_1.cell_data.remove("cell-zone-ids")
-
-    cell_centroids_1 = cell_centroids_1.interpolate(
-        cell_centroids_2, n_points=1, pass_cell_data=False
-    )
-    cell_centroids.point_data["part-id"][orig_indices_1] = cell_centroids_1.point_data["part-id"]
-
-    # assign part-ids to grid
-    grid.cell_data["part-id"] = np.array(cell_centroids.point_data["part-id"], dtype=int)
+    # get cells inside each of the wrapped parts.
+    grid = _get_cells_inside_wrapped_parts(model, mesh)
 
     # Ensure that parts are continuous and well connected.
     grid = _organize_connected_regions(grid, scalar="part-id")

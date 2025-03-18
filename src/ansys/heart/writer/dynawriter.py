@@ -1455,7 +1455,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         # retrieve combined epicardial surface from the central mesh object:
         # this ensures that we can use the global-point-ids
-        epicardium_surface_ids = [part.epicardium.id for part in targets]
+
+        epicardium_surface_ids = [
+            part.epicardium.id for part in targets if hasattr(part, "epicardium")
+        ]  # part as "Atrioventricular isolation" may not have epicardium surface
+
         epicardium_surface1 = self.model.mesh.get_surface(epicardium_surface_ids)
 
         return epicardium_surface1

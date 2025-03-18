@@ -38,7 +38,7 @@ import numpy as np
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
-import ansys.heart.core.helpers.vtkmethods as vtkmethods
+import ansys.heart.core.helpers.vtk_utils as vtk_utils
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 from ansys.heart.simulator.settings.material.material import MechanicalMaterialModel
 
@@ -220,7 +220,7 @@ class SurfaceMesh(pv.PolyData):
     @property
     def boundary_edges(self):
         """Get boundary edges of self."""
-        boundary_edges = vtkmethods.get_boundary_edge_loops(self, remove_open_edge_loops=False)
+        boundary_edges = vtk_utils.get_boundary_edge_loops(self, remove_open_edge_loops=False)
         boundary_edges = np.vstack(list(boundary_edges.values()))
         return boundary_edges
 
@@ -414,16 +414,12 @@ class CapType(Enum):
     """Cap representing aortic valve region."""
     MITRAL_VALVE_ATRIUM = "mitral-valve-atrium"
     """Cap representing mitral valve region on the atrial side."""
-    AORTIC_VALVE_ATRIUM = "aortic-valve-atrium"
-    """Cap representing aortic valve region on the atrial side."""
     COMBINED_MITRAL_AORTIC_VALVE = "combined-mitral-aortic-valve"
     """Combined mitral aortic valve. Valid for truncated models."""
     PULMONARY_VALVE = "pulmonary-valve"
     """Cap representing pulmonary valve region."""
     TRICUSPID_VALVE = "tricuspid-valve"
     """Cap representing tricuspid valve region."""
-    PULMONARY_VALVE_ATRIUM = "pulmonary-valve-atrium"
-    """Cap representing pulmonary valve region on the atrial side."""
     TRICUSPID_VALVE_ATRIUM = "tricuspid-valve-atrium"
     """Cap representing tricuspid valve region on the atrial side."""
 
@@ -451,7 +447,7 @@ class Cap(Feature):
     @property
     def _local_node_ids_edge(self):
         """Local node ids of cap edge."""
-        edges = vtkmethods.get_boundary_edge_loops(self._mesh)
+        edges = vtk_utils.get_boundary_edge_loops(self._mesh)
         edge_local_ids = np.unique(np.array([np.array(edge) for edge in edges.values()]))
         return edge_local_ids
 

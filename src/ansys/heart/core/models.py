@@ -37,7 +37,7 @@ import yaml
 
 from ansys.heart.core import LOG as LOGGER
 import ansys.heart.core.helpers.connectivity as connectivity
-import ansys.heart.core.helpers.vtkmethods as vtkmethods
+import ansys.heart.core.helpers.vtk_utils as vtk_utils
 from ansys.heart.core.objects import (
     BeamMesh,
     Cap,
@@ -1060,12 +1060,12 @@ class HeartModel:
         septum_surface.compute_normals()
         septum_surface = septum_surface.smooth()
 
-        septum_surface_extruded = vtkmethods.extrude_polydata(septum_surface, 20)
+        septum_surface_extruded = vtk_utils.extrude_polydata(septum_surface, 20)
 
         # only check tetra elements
         volume_vtk = self.mesh.extract_cells_by_type(pv.CellType.TETRA)
 
-        element_ids_septum = vtkmethods.cell_ids_inside_enclosed_surface(
+        element_ids_septum = vtk_utils.cell_ids_inside_enclosed_surface(
             volume_vtk, septum_surface_extruded
         )
         element_ids_septum = self.mesh._global_tetrahedron_ids[element_ids_septum]
@@ -1234,7 +1234,7 @@ class HeartModel:
             surface.id = int(np.sort(self.mesh.surface_ids)[-1] + 1)  # get unique id.
 
             # Generate patches that close the surface.
-            patches = vtkmethods.get_patches_with_centroid(surface)
+            patches = vtk_utils.get_patches_with_centroid(surface)
 
             LOGGER.debug(f"Generating {len(patches)} caps for {part.name}")
 
@@ -1302,7 +1302,7 @@ class HeartModel:
             for cap in part.caps:
                 cap_mesh = self.mesh.get_surface_by_name(cap.name)
                 for b in boundaries_to_check:
-                    if vtkmethods.are_connected(cap_mesh, b):
+                    if vtk_utils.are_connected(cap_mesh, b):
                         for split in b.name.split("_"):
                             if "valve" in split or "inlet" in split:
                                 break
@@ -1325,9 +1325,6 @@ class HeartModel:
 
         return
 
-    # TODO: @mhoeijm
-    # TODO: Refactor. Check whether all necessary caps exist in model.
-    # TODO: should be a function of model type.
     def _validate_cap_names(self):
         """Validate that caps are attached to right part."""
         for part in self.parts:
@@ -1351,24 +1348,18 @@ class HeartModel:
                 ]
             elif part.name == "Right atrium":
                 expected_cap_types = [
-                    CapType.PULMONARY_VALVE_ATRIUM,
+                    CapType.TRICUSPID_VALVE_ATRIUM,
                     CapType.SUPERIOR_VENA_CAVA,
                     CapType.INFERIOR_VENA_CAVA,
                 ]
 
-            for cap_type in cap_types:
-                # matches = [True for expected in expected_cap_types if expected in cap_name]
-                # matches = [
-                #     True for expected_type in expected_cap_types if expected_type in cap_type
-                # ]
-                if cap_type in expected_cap_types:
-                    break
-                else:
-                    LOGGER.error(
-                        "Part: {0}. Cap type is {1}, but expecting one of cap types:{2}".format(
-                            part.name, cap_type, expected_cap_types
-                        )
+            unexpected_captypes = [ctype for ctype in cap_types if ctype not in expected_cap_types]
+            if len(unexpected_captypes) > 0:
+                LOGGER.error(
+                    "Part: {0}. Cap types {1} not in expected cap types:{2}".format(
+                        part.name, unexpected_captypes, expected_cap_types
                     )
+                )
 
         return
 
@@ -1671,7 +1662,7 @@ class HeartModel:
             if cap.type is not CapType.TRICUSPID_VALVE_ATRIUM:
                 ring_nodes.extend(cap.global_node_ids_edge.tolist())
 
-        ring_eles = vtkmethods.find_cells_close_to_nodes(self.mesh, ring_nodes, radius=radius)
+        ring_eles = vtk_utils.find_cells_close_to_nodes(self.mesh, ring_nodes, radius=radius)
         #! remove any non-tetrahedron elements
         ring_eles = ring_eles[np.isin(ring_eles, self.mesh._global_tetrahedron_ids)]
         # above search may create orphan elements, pick them to rings

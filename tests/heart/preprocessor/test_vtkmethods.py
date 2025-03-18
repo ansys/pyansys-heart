@@ -20,8 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-
 import numpy as np
+import pytest
 import pyvista as pv
 import pyvista.examples as examples
 
@@ -29,7 +29,26 @@ from ansys.heart.core.helpers.vtk_utils import (
     are_connected,
     cell_ids_inside_enclosed_surface,
     find_cells_close_to_nodes,
+    find_corresponding_points,
+    generate_thickness_lines,
 )
+
+
+def test_find_corresponding_points():
+    sphere1 = pv.Sphere(radius=1, center=(0, 0, 0))
+    sphere2 = pv.Sphere(radius=1.2, center=(0, 0, 0))
+    res = find_corresponding_points(sphere1, sphere2)
+    assert res.shape == (2, sphere1.GetNumberOfPoints())
+    assert res[1, 0] == 0
+    assert res[1, 841] == 841
+
+
+def test_generate_thickness_lines():
+    sphere1 = pv.Sphere(radius=1, center=(0, 0, 0))
+    sphere2 = pv.Sphere(radius=1.2, center=(0, 0, 0))
+    lines = generate_thickness_lines(sphere1, sphere2)
+    assert lines.GetNumberOfCells() == sphere1.GetNumberOfPoints()
+    assert pytest.approx(0.2, rel=0.01) == lines["thickness"][0]
 
 
 def test_check_if_connected():

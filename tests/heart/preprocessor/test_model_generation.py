@@ -162,7 +162,19 @@ def extract_model(request):
         model.mesh_volume(use_wrapper=True, global_mesh_size=2.0)
     else:
         model.mesh.load_mesh(mesh_file)
+
     model._update_parts()
+
+    # Dummy apico-basal data to match pericardium output in asset
+    lv_apex = model.left_ventricle.apex_points[1].xyz
+    mv_centroid = [c.centroid for p in model.parts for c in p.caps if "mitral" in c.name][0]
+    longitudinal_axis = lv_apex - mv_centroid
+    from ansys.heart.core.helpers.misc import rodrigues_rot
+
+    points_rotation = rodrigues_rot(model.mesh.points - lv_apex, longitudinal_axis, [0, 0, -1])
+    points_rotation[:, 2] = points_rotation[:, 2] - np.min(points_rotation, axis=0)[2]
+    scaling = points_rotation[:, 2] / np.max(points_rotation[:, 2])
+    model.mesh.point_data["apico-basal"] = scaling
 
     yield model, ref_stats
 

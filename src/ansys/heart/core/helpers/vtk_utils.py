@@ -484,7 +484,7 @@ def find_corresponding_points(
 
         if len(intersection) == 1:
             corresp_points.append(tree_s(intersection[0]))
-        if len(intersection) > 1:
+        elif len(intersection) > 1:
             # Take the closet intersection point
             x = np.argmin(np.linalg.norm(intersection - start_point, axis=1))
             corresp_points.append(tree_s(intersection[x]))

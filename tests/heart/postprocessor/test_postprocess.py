@@ -52,6 +52,19 @@ def get_data():
     return test_dir, model
 
 
+def test_compute_thickness(get_data):
+    test_dir = get_data[0]
+    model = get_data[1]
+    d3plot = os.path.join(os.path.join(test_dir, "main", "d3plot"))
+
+    s = AhaStrainCalculator(model, d3plot)
+    lines = s.compute_thickness_lines()
+    assert len(lines) == 2
+    assert lines[0]["time"] == 0
+    assert lines[0]["label"][0] == 1
+    assert lines[0]["thickness"][0] == pytest.approx(6.75, abs=0.1)
+
+
 def test_compute_myocardial_strain(get_data):
     test_dir = get_data[0]
     model = get_data[1]

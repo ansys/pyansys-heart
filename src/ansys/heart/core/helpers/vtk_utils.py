@@ -430,3 +430,25 @@ def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii") -> Non
             fid.write(string_replace)
         fid.close()
     return
+
+
+def _get_point_ids_inside_surface(points: pv.PolyData, surface: pv.PolyData) -> pv.PolyData:
+    """Get points inside a closed surface.
+
+    Notes
+    -----
+    This sets up the surface as an implicit function. Seems more robust
+    then computing it using the ExtractEnclosedPoints and SelectEnclosedPoints filters.
+    However, it is relatively slow.
+    """
+    # set up implicit function.
+    points.point_data["_original-point-ids1"] = np.arange(0, points.n_points)
+    function = vtk.vtkImplicitPolyDataDistance()
+    function.SetInput(surface)
+    extractor = vtk.vtkExtractPoints()
+    extractor.SetInputData(points)
+    extractor.SetImplicitFunction(function)
+    extractor.Update()
+    output = extractor.GetOutput()
+    output1 = pv.PolyData(output)
+    return output1.point_data["_original-point-ids1"]

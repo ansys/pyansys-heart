@@ -577,10 +577,8 @@ class MechanicsSimulator(BaseSimulator):
         if zerop_folder is None:
             zerop_folder = os.path.join(self.root_directory, "zeropressure")
 
-        try:
-            self.model.mesh.point_data_to_cell_data()["apico-basal"]
-        except KeyError:
-            LOGGER.error(
+        if "apico-basal" not in self.model.mesh.point_data.keys():
+            LOGGER.warning(
                 "Array named 'apico-basal' cannot be found, will compute"
                 "universal coordinate system (UVC) firstly."
             )

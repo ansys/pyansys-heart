@@ -119,45 +119,6 @@ def _get_face_zones_with_filter(pyfluent_session, prefixes: list) -> list:
     return face_zones
 
 
-def _get_ill_connected_tets(tets: np.ndarray):
-    """Get tetrahedrons that are ill connected."""
-    # naive approach, return sum of number of times each node in the tetrahedrons
-    # if count == 4: isolated tetrahedron
-    # if count == 5: tetrahedron connected with 1 point to other tetrahedron
-    # if count == 6: tetrahedron connected with 2 points to other tetrahedron
-    _, inverse, counts = np.unique(tets, return_counts=True, return_inverse=True)
-    return np.sum(counts[inverse], axis=1) <= 5
-
-
-def _redistribute_ill_connected_tets(grid: pv.UnstructuredGrid, scalar="part-id"):
-    # cleanup any ill connected cells.
-    orphan_cells_1 = []
-    part_ids = np.unique(grid.cell_data[scalar])
-    tets = grid.cells_dict[10]
-    for part_id in part_ids:
-        # identify any ill connected tets. Treat these differently.
-        mask = grid.cell_data[scalar] == part_id
-        subgrid = grid.extract_cells(mask)
-        if subgrid.n_cells == 0:
-            continue
-        ill_connected_tets = _get_ill_connected_tets(subgrid.cells_dict[10])
-        orphan_cells = subgrid.extract_cells(ill_connected_tets)
-        orphan_cells_1.append(orphan_cells)
-        if np.any(ill_connected_tets):
-            LOGGER.warning(f"Part id: {part_id} Found {orphan_cells.n_cells} ill connected tets.")
-
-    for orphan_cell in orphan_cells_1:
-        cell_ids = orphan_cell.cell_data["orig-cell-ids"]
-        for cell_id in cell_ids:
-            # find better candidate part.
-            adjacent_cells = np.any(np.isin(tets, tets[cell_id]), axis=1)
-            uniq_values, counts = np.unique_counts(grid.cell_data["part-id"][adjacent_cells])
-            new_part_id = uniq_values[np.argmax(counts)]
-            grid.cell_data["part-id"][cell_id] = new_part_id
-
-    return grid
-
-
 def _organize_connected_regions(grid: pv.UnstructuredGrid, scalar: str = "part-id"):
     """Ensure that cells that belong to same part are connected."""
     LOGGER.debug("Re-organize connected regions.")
@@ -198,38 +159,6 @@ def _organize_connected_regions(grid: pv.UnstructuredGrid, scalar: str = "part-i
                 LOGGER.debug("More than 1 candidate.")
 
             grid.cell_data["part-id"][orphan_cell_ids] = unique_ids[np.argmax(counts)]
-
-    return grid
-
-
-def _assign_part_id_to_orphan_cells1(grid: pv.UnstructuredGrid, scalar="part-id"):
-    """Assign part id to any cells that have part-id == 0."""
-    LOGGER.debug("Assigning part ids to orphan cells...")
-
-    tetrahedrons = grid.cells_dict[10]
-    part_ids = grid.cell_data["part-id"]
-    max_iters = 100
-    iters = 0
-    while np.any(part_ids == 0) and iters < max_iters:
-        LOGGER.info(f"iter: {iters}")
-        cell_ids = np.argwhere(part_ids == 0).flatten()
-        if iters >= max_iters:
-            LOGGER.debug(f"Maximum iterations reached. Failed to assign part ids to {cell_ids}")
-
-        for cell_id in cell_ids:
-            # find better candidate part id.
-            adjacent_cells = np.any(np.isin(tetrahedrons, tetrahedrons[cell_id]), axis=1)
-            adjacent_cells[cell_id] = False
-            uniq_values, counts = np.unique_counts(grid.cell_data["part-id"][adjacent_cells])
-            index = np.argmax(counts)
-            candidate_part_id = uniq_values[index]
-            if candidate_part_id == 0:
-                LOGGER.debug(f"{cell_id} connected only to tetrahedrons with part id 0")
-                continue
-            grid.cell_data["part-id"][cell_id] = candidate_part_id
-
-        part_ids = grid.cell_data["part-id"]
-        iters += 1
 
     return grid
 
@@ -300,7 +229,7 @@ def _get_cells_inside_wrapped_parts(model: _InputModel, mesh: _FluentMesh):
     grid1.cell_data["part-id"] = np.array(cell_centroids.point_data["part-id"], dtype=int)
 
     # Use closed point interpolation to assign part ids to any un-assigned (orphan) cells.
-    grid2 = _assign_part_id_to_orphan_cells1(grid1)
+    grid2 = _assign_part_id_to_orphan_cells(grid1)
 
     if np.any(grid2.cell_data["part-id"] == 0):
         LOGGER.warning("Not all cells have a part id assigned.")

@@ -81,7 +81,8 @@ class AhaStrainCalculator:
 
         if isinstance(self.model, LeftVentricle):
             surface_epi = self.model.left_ventricle.epicardium.copy()
-        else:  # need to patch septum_endocardium surface on epicardium
+        elif isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
+            # need to patch septum_endocardium surface on epicardium
             for surface in self.model.right_ventricle.surfaces:
                 if "endocardium" in surface.name and "septum" in surface.name:
                     sept_endo = surface

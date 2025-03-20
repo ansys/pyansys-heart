@@ -70,6 +70,7 @@ def mechanics_simulator() -> simulators.MechanicsSimulator:
         polydata = pv.PolyData(
             np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0]], dtype=float), [3, 0, 1, 2]
         )
+        polydata.point_data["apico-basal"] = 1
         model.mesh = polydata
 
         setting = mock.Mock(spec=DynaSettings)

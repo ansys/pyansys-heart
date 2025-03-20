@@ -41,10 +41,10 @@ import numpy as np
 import pandas as pd
 
 from ansys.dyna.core.keywords import keywords
-from ansys.heart.simulator.settings.material.material import MAT295, ActiveModel
+from ansys.heart.simulator.settings.material.material import ActiveModel, Mat295
 
 # import custom keywords in separate namespace
-from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
+from ansys.heart.writer import custom_keywords as custom_keywords
 
 
 class MaterialCap(keywords.MatNull):
@@ -74,16 +74,18 @@ class MaterialNeoHook(custom_keywords.Mat077H):
         mid: int,
         rho: float,
         c10: float,
-        poisson_ratio: float = 0.499,
+        nu: float,
+        kappa: float,
     ):
-        super().__init__(mid=mid, ro=rho, pr=poisson_ratio, n=0, c10=c10)
+        super().__init__(mid=mid, ro=rho, pr=nu, n=0, c10=c10)
+        setattr(self, "user_comment", f"nu deduced from kappa={kappa}")
         return
 
 
 class MaterialHGOMyocardium(keywords.Mat295):
     """HGO Material model - derived from Mat295."""
 
-    def __init__(self, id: int, mat: MAT295, ignore_active: bool = False):
+    def __init__(self, id: int, mat: Mat295, ignore_active: bool = False):
         """Init a keyword of *mat295.
 
         Parameters
@@ -99,7 +101,7 @@ class MaterialHGOMyocardium(keywords.Mat295):
         super().__init__(mid=id)
         setattr(self, "rho", mat.rho)
         setattr(self, "aopt", mat.aopt)
-
+        setattr(self, "user_comment", f"nu deduced from kappa={mat.iso.kappa}")
         # iso
         for field in dataclasses.fields(mat.iso):
             value = getattr(mat.iso, field.name)

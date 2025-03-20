@@ -46,7 +46,7 @@ import psutil
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.helpers.element_orth import _read_orth_element_kfile
+from ansys.heart.core.helpers.misc import _read_orth_element_kfile
 from ansys.heart.core.models import FourChamber, HeartModel, LeftVentricle
 from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
 from ansys.heart.postprocessor.laplace_post import (
@@ -146,10 +146,6 @@ class BaseSimulator:
             self._compute_fibers_lsdyna(rotation_angles)
 
         elif method == "D-RBM":
-            if isinstance(self.model, LeftVentricle):
-                LOGGER.error(f"{method} not supported for LeftVentricle model.")
-                exit()
-
             if rotation_angles is None:
                 # find default settings
                 rotation_angles = self.settings.get_ventricle_fiber_rotation(method="D-RBM")
@@ -160,13 +156,21 @@ class BaseSimulator:
                     exit()
             self._compute_fibers_drbm(rotation_angles)
 
+        else:
+            LOGGER.error(f"Method {method} not recognized")
+            exit()
+
         return
 
     def _compute_fibers_drbm(self, rotation_angles: dict):
         """Use D-RBM fiber method."""
         export_directory = os.path.join(self.root_directory, "D-RBM")
         target = self.run_laplace_problem(export_directory, type="D-RBM")
-        grid = compute_ventricle_fiber_by_drbm(export_directory, settings=rotation_angles)
+        grid = compute_ventricle_fiber_by_drbm(
+            export_directory,
+            settings=rotation_angles,
+            left_only=isinstance(self.model, LeftVentricle),
+        )
         grid.save(os.path.join(export_directory, "drbm_fibers.vtu"))
 
         # arrays that save ID map to full model
@@ -362,7 +366,7 @@ class BaseSimulator:
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
-        dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, **kwargs)
+        dyna_writer = writers.LaplaceWriter(copy.deepcopy(self.model), type, **kwargs)
 
         dyna_writer.update()
         dyna_writer.export(export_directory)
@@ -612,7 +616,7 @@ class MechanicsSimulator(BaseSimulator):
         report, stress_free_coord, guess_ed_coord = zerop_post(directory, self.model)
 
         # replace node coordinates by computed ED geometry
-        LOGGER.info("Updating nodes after stress-free.")
+        LOGGER.info("Updating nodes.")
 
         self.model.mesh.points = guess_ed_coord
 
@@ -725,7 +729,7 @@ def run_lsdyna(
     """
     if not settings:
         LOGGER.info("Using default LS-DYNA settings.")
-        settings = DynaSettings()
+        raise ValueError("Settings must be provided.")
 
     commands = settings.get_commands(path_to_input)
 

@@ -42,8 +42,9 @@ and process that into a simulation-ready full heart model.
 
 import json
 import os
+from pathlib import Path
 
-from ansys.heart.core.helpers.general import clean_directory
+from ansys.heart.core.helpers.downloader import download_case_from_zenodo, unpack_case
 import ansys.heart.core.models as models
 from ansys.heart.preprocessor.database_preprocessor import get_compatible_input
 
@@ -52,24 +53,18 @@ import ansys.heart.preprocessor.mesher as mesher
 
 mesher._fluent_version = "24.1"
 
-# specify necessary paths.
-case_file = os.path.join("downloads", "Strocchi2020", "01", "01.case")
+# Download and unpack the case in a dedicated folder, in this case the home directory.
+download_folder = Path.home() / "pyansys-heart" / "downloads"
+tar_file = download_case_from_zenodo("Strocchi2020", 1, download_folder, overwrite=False)
+case_file = unpack_case(tar_file)
 
-# sphinx_gallery_start_ignore
-# Overwrite with env variables: for testing purposes only. May be removed by user.
-from pathlib import Path
-
-try:
-    case_file = str(Path(os.environ["PATH_TO_CASE_FILE"]))
-except KeyError:
-    pass
-# sphinx_gallery_end_ignore
-
+# specify a working directory. Here we use the same directory as the case file.
 workdir = os.path.join(os.path.dirname(case_file), "FourChamber")
 
 if not os.path.isdir(workdir):
     os.makedirs(workdir)
 
+# specify paths to the model, input and part definitions.
 path_to_model = os.path.join(workdir, "heart_model.vtu")
 path_to_input = os.path.join(workdir, "input_model.vtp")
 path_to_part_definitions = os.path.join(workdir, "part_definitions.json")
@@ -99,23 +94,11 @@ with open(path_to_part_definitions, "w") as f:
     json.dump(part_definitions, f, indent=True)
 
 ###############################################################################
-# Set required information
-# ~~~~~~~~~~~~~~~~~~~~~~~~
-# Set the right database to which this case belongs, and set other relevant
-# information such as the desired mesh size.
+# Create a heart model
+# ~~~~~~~~~~~~~~~~~~~~
+# Initialize the desired heart model by giving a working directory.
 
-# create or clean working directory
-if not os.path.isdir(workdir):
-    os.makedirs(workdir)
-
-clean_directory(workdir, [".stl", ".msh.h5", ".pickle"])
-
-###############################################################################
-# Initialize the heart model with info
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Initialize the desired heart model with info.
-
-# initialize four chamber heart model
+# initialize a four chamber heart model
 model = models.FourChamber(working_directory=workdir)
 
 # load input model generated in an earlier step.
@@ -136,9 +119,6 @@ model.save_model(os.path.join(model.workdir, "heart_model.vtu"))
 
 # print some info about the processed model.
 print(model)
-
-# clean the working directory
-clean_directory(workdir, extensions_to_remove=[".stl", ".vtk", ".msh.h5"])
 
 # print part names
 print(model.part_names)

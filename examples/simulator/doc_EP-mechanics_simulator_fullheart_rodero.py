@@ -50,7 +50,7 @@ from pint import Quantity
 
 import ansys.heart.core.models as models
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
-from ansys.heart.simulator.settings.material.material import NeoHookean
+from ansys.heart.simulator.settings.material.material import ISO, Mat295
 from ansys.heart.simulator.simulator import DynaSettings, EPMechanicsSimulator
 
 ###############################################################################
@@ -74,17 +74,6 @@ os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 case_file = os.path.join("pyansys-heart", "downloads", "Rodero2021", "01", "01.vtk")
 workdir = os.path.join(os.path.dirname(case_file), "FullHeart")
 
-# sphinx_gallery_start_ignore
-# Overwrite with env variables: for testing purposes only. May be removed by user.
-try:
-    from pathlib import Path
-
-    path_to_dyna = str(Path(os.environ["PATH_TO_DYNA"]))
-    workdir = os.path.join(os.path.dirname(str(Path(os.environ["PATH_TO_CASE_FILE"]))), "FullHeart")
-except KeyError:
-    pass
-# sphinx_gallery_end_ignore
-
 path_to_model = os.path.join(workdir, "heart_model.vtu")
 
 ###############################################################################
@@ -106,17 +95,6 @@ lsdyna_path = r"your_dyna_exe"  # tested with DEV-111820
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path, dynatype="intelmpi", platform="wsl", num_cpus=6
 )
-
-# sphinx_gallery_start_ignore
-# Overwrite with env variables: for testing purposes only. May be removed by user.
-try:
-    dyna_settings.lsdyna_path = path_to_dyna
-    # assume we are in WSL if .exe not in path.
-    if ".exe" not in path_to_dyna:
-        dyna_settings.platform = "wsl"
-except Exception:
-    pass
-# sphinx_gallery_end_ignore
 
 # instantiate simulator object
 simulator = EPMechanicsSimulator(
@@ -146,7 +124,8 @@ simulator.model.right_atrium.active = True
 # Extract elements around atrial caps and assign as a passive material
 ring = simulator.model.create_atrial_stiff_ring(radius=5)
 # material is stiff and value is arbitrarily chosen
-ring.meca_material = NeoHookean(rho=0.001, c10=0.1, nu=0.499)
+stiff_iso = Mat295(rho=0.001, iso=ISO(itype=-1, beta=2, kappa=10, mu1=0.1, alpha1=2))
+ring.meca_material = stiff_iso
 # assign default EP material as for atrial
 ring.ep_material = EPMaterial.Active()
 
@@ -154,7 +133,7 @@ ring.ep_material = EPMaterial.Active()
 simulator.compute_uhc()
 
 # Extract elements around atrialvenricular valves and assign as a passive material
-simulator.model.create_stiff_ventricle_base(stiff_material=NeoHookean(rho=0.001, c10=0.1, nu=0.499))
+simulator.model.create_stiff_ventricle_base(stiff_material=stiff_iso)
 
 # Estimate the stress-free-configuration
 simulator.compute_stress_free_configuration()

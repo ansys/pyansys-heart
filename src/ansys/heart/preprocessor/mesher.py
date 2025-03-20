@@ -32,10 +32,9 @@ import numpy as np
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
-import ansys.heart.core.helpers.fluenthdf5 as hdf5  # noqa: F401
-from ansys.heart.core.helpers.fluenthdf5 import FluentCellZone, FluentMesh
-from ansys.heart.core.helpers.vtkmethods import add_solid_name_to_stl
-from ansys.heart.core.objects import SurfaceMesh
+from ansys.heart.core.helpers.fluent_reader import _FluentCellZone, _FluentMesh
+from ansys.heart.core.helpers.vtk_utils import add_solid_name_to_stl
+from ansys.heart.core.objects import Mesh, SurfaceMesh
 from ansys.heart.preprocessor.input import _InputBoundary, _InputModel
 
 # NOTE: can set os.environ["SHOW_FLUENT_GUI"] = "1" to show Fluent GUI.
@@ -68,13 +67,20 @@ try:
     from ansys.fluent.core.session_meshing import Meshing as MeshingSession
 except ImportError:
     LOGGER.info(
-        "Failed to import PyFluent. Considering installing "
-        "pyfluent with `pip install ansys-fluent-core`."
+        "Failed to import PyFluent. Please install PyFluent with `pip install ansys-fluent-core`."
     )
 
 
 def _get_supported_fluent_version():
     """Use pyfluent to get a supported Fluent version."""
+    if os.getenv("PYANSYS_HEART_FLUENT_VERSION", None):
+        version = os.getenv("PYANSYS_HEART_FLUENT_VERSION")
+        if version not in _supported_fluent_versions:
+            raise ValueError(
+                f"Fluent version {version} is not supported. Supported versions are: {_supported_fluent_versions}"  # noqa: E501
+            )
+        return version
+
     for version in _supported_fluent_versions:
         try:
             pyfluent.launch_fluent(product_version=version, dry_run=True)
@@ -185,7 +191,7 @@ def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingS
         )
 
     else:
-        num_cpus = _num_cpus
+        num_cpus = os.getenv("PYANSYS_HEART_NUM_CPU", _num_cpus)
         session = pyfluent.launch_fluent(
             mode="meshing",
             precision="double",
@@ -270,7 +276,7 @@ def _update_size_per_part(
 
 
 def _update_input_model_with_wrapped_surfaces(
-    model: _InputModel, mesh: FluentMesh, face_zone_ids_per_part: dict
+    model: _InputModel, mesh: _FluentMesh, face_zone_ids_per_part: dict
 ) -> _InputModel:
     """Update the input model with the wrapped surfaces.
 
@@ -320,6 +326,35 @@ def _update_input_model_with_wrapped_surfaces(
     return model
 
 
+def _post_meshing_cleanup(fluent_mesh: _FluentMesh) -> Mesh:
+    """Clean up and retrieve VTK mesh after meshing."""
+    # remove any unused nodes
+    fluent_mesh.clean()
+
+    # convert to vtk grid.
+    vtk_grid = fluent_mesh._to_vtk()
+    mesh = Mesh(vtk_grid)
+
+    # get mapping from fluent mesh.
+    mesh.cell_data["_volume-id"] = mesh.cell_data["cell-zone-ids"]
+    mesh._volume_id_to_name = fluent_mesh.cell_zone_id_to_name
+
+    # merge face zones based on fluent naming convention.
+    fluent_mesh._merge_face_zones_based_on_connectivity(face_zone_separator=":")
+
+    # add face zones to the mesh.
+    for fz in fluent_mesh.face_zones:
+        if "interior" not in fz.name:
+            surface = SurfaceMesh(
+                name=fz.name, triangles=fz.faces, nodes=fluent_mesh.nodes, id=fz.id
+            )
+            mesh.add_surface(surface, int(fz.id), name=fz.name)
+
+    mesh = mesh.clean()
+
+    return mesh
+
+
 def _set_size_field_on_mesh_part(
     session: MeshingSession, mesh_size: float, part_name: str, growth_rate: float = 1.2
 ):
@@ -359,12 +394,13 @@ def _set_size_field_on_face_zones(
     return session
 
 
-def mesh_fluid_cavities(
+# TODO: fix method.
+def _mesh_fluid_cavities(
     fluid_boundaries: List[SurfaceMesh],
     caps: List[SurfaceMesh],
     workdir: str,
     remesh_caps: bool = True,
-) -> FluentMesh:
+) -> _FluentMesh:
     """Mesh the fluid cavities.
 
     Parameters
@@ -448,7 +484,7 @@ def mesh_fluid_cavities(
     file_path_mesh = os.path.join(workdir, "fluid-mesh.msh.h5")
     session.tui.file.write_mesh(file_path_mesh)
 
-    mesh = FluentMesh(file_path_mesh)
+    mesh = _FluentMesh(file_path_mesh)
     mesh.load_mesh()
 
     return mesh
@@ -460,7 +496,7 @@ def mesh_from_manifold_input_model(
     path_to_output: Union[str, Path],
     mesh_size: float = 2.0,
     overwrite_existing_mesh: bool = True,
-) -> FluentMesh:
+) -> Mesh:
     """Create mesh from good-quality manifold input model.
 
     Parameters
@@ -476,8 +512,8 @@ def mesh_from_manifold_input_model(
 
     Returns
     -------
-    FluentMesh
-        The volume mesh with cell and face zones.
+    Mesh
+        The VTK mesh with both cell and face zones.
     """
     smooth_boundaries = False
     fix_intersections = False
@@ -502,10 +538,10 @@ def mesh_from_manifold_input_model(
 
     try:
         os.makedirs(work_dir_meshing)
-    except Exception:
-        LOGGER.debug("Failed to create working directory")
+    except Exception as e:
+        LOGGER.error(f"Failed to create working directory. {e}")
 
-    LOGGER.debug(f"Path to meshing directory: {work_dir_meshing}")
+    LOGGER.info(f"Path to meshing directory: {work_dir_meshing}")
 
     if not os.path.isfile(path_to_output) or overwrite_existing_mesh:
         path_to_output_old = path_to_output
@@ -521,7 +557,7 @@ def mesh_from_manifold_input_model(
             os.remove(stl)
 
         # write all boundaries
-        LOGGER.debug(f"Writing input files in: {work_dir_meshing}")
+        LOGGER.info(f"Writing input files in: {work_dir_meshing}")
         model.write_part_boundaries(work_dir_meshing)
 
         session = _get_fluent_meshing_session(work_dir_meshing)
@@ -607,9 +643,9 @@ def mesh_from_manifold_input_model(
 
         path_to_output = path_to_output_old
     else:
-        LOGGER.debug(f"Reusing: {path_to_output}")
+        LOGGER.info(f"Reusing: {path_to_output}")
 
-    mesh = FluentMesh()
+    mesh = _FluentMesh()
     mesh.load_mesh(path_to_output)
     mesh._fix_negative_cells()
 
@@ -631,7 +667,12 @@ def mesh_from_manifold_input_model(
             ):
                 cz.id = input_part.id
 
-    return mesh
+    # Use only cell zones that are inside the parts defined in the input.
+    mesh.cell_zones = [cz for cz in mesh.cell_zones if cz.id in model.part_ids]
+
+    vtk_mesh = _post_meshing_cleanup(mesh)
+
+    return vtk_mesh
 
 
 def mesh_from_non_manifold_input_model(
@@ -643,7 +684,7 @@ def mesh_from_non_manifold_input_model(
     overwrite_existing_mesh: bool = True,
     mesh_size_per_part: dict = None,
     _wrap_size_per_part: dict = None,
-) -> FluentMesh:
+) -> Mesh:
     """Generate mesh from a non-manifold poor quality input model.
 
     Parameters
@@ -682,8 +723,8 @@ def mesh_from_non_manifold_input_model(
 
     Returns
     -------
-    FluentMesh
-        The volume mesh with cell and face zones.
+    Mesh
+        The VTK mesh with both cell and face zones.
     """
     if not isinstance(model, _InputModel):
         raise ValueError(f"Expecting input to be of type {str(_InputModel)}")
@@ -725,8 +766,8 @@ def mesh_from_non_manifold_input_model(
 
     try:
         os.makedirs(work_dir_meshing)
-    except Exception:
-        LOGGER.debug("Failed to create working directory")
+    except Exception as e:
+        LOGGER.error(f"Failed to create working directory. {e}")
 
     if not os.path.isfile(path_to_output) or overwrite_existing_mesh:
         path_to_output_old = path_to_output
@@ -744,7 +785,7 @@ def mesh_from_non_manifold_input_model(
             part.name = _to_fluent_convention(part.name)
 
         # write all boundaries
-        LOGGER.debug(f"Writing input files in: {work_dir_meshing}")
+        LOGGER.info(f"Writing input files in: {work_dir_meshing}")
         model.write_part_boundaries(work_dir_meshing, add_name_to_header=False)
 
         # launch pyfluent
@@ -868,7 +909,7 @@ def mesh_from_non_manifold_input_model(
 
     LOGGER.info("Post Fluent-Meshing cleanup...")
     # Update the cell zones such that for each part we have a separate cell zone.
-    mesh = FluentMesh()
+    mesh = _FluentMesh()
     mesh.load_mesh(path_to_output)
     mesh._fix_negative_cells()
 
@@ -943,13 +984,13 @@ def mesh_from_non_manifold_input_model(
 
     new_mesh = mesh
     new_mesh.cells = new_mesh.cells[idx_sorted]
-    new_mesh.cell_zones: list[FluentCellZone] = []
+    new_mesh.cell_zones: list[_FluentCellZone] = []
 
     for part in model.parts:
         # convert back to original convention.
         # TODO: refactor so that we revert back to the original name.
         part.name = part.name.replace("_", " ").capitalize()
-        cell_zone = FluentCellZone(
+        cell_zone = _FluentCellZone(
             min_id=np.argwhere(partids_sorted == part.id)[0][0],
             max_id=np.argwhere(partids_sorted == part.id)[-1][0],
             name=part.name,
@@ -974,4 +1015,9 @@ def mesh_from_non_manifold_input_model(
         if ":" in fz.name:
             fz.name = fz.name.split(":")[0]
 
-    return new_mesh
+    # Use only cell zones that are inside the parts defined in the input.
+    new_mesh.cell_zones = [cz for cz in new_mesh.cell_zones if cz.id in model.part_ids]
+
+    vtk_mesh = _post_meshing_cleanup(new_mesh)
+
+    return vtk_mesh

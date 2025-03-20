@@ -34,13 +34,18 @@ database.
 # directory and generated model.
 
 import glob
+from pathlib import Path
 
 from ansys.heart.core.helpers.downloader import download_case_from_zenodo, unpack_case
 
 # Download the tar file of Rodero2021 from the Zenodo database.
-tar_file = download_case_from_zenodo("Rodero2021", 1, "downloads")
-# Unpack the tar file
-unpack_case(tar_file)
+download_dir = Path.home() / "pyansys-heart" / "downloads"
+tar_file = download_case_from_zenodo("Rodero2021", 1, download_dir)
+
+# Unpack the tar file and get the path to the input .vtk/.case file.
+path = unpack_case(tar_file)
+
+print(path)
 
 # list all files
 glob.glob("downloads" + "/**/*.*", recursive=True)

@@ -30,7 +30,7 @@ import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.models import FourChamber
-from ansys.heart.core.objects import BeamMesh, Point, SurfaceMesh
+from ansys.heart.core.objects import BeamMesh, CapType, Point, SurfaceMesh
 
 
 def _create_line(point_start: np.array, point_end: np.array, beam_length: float):
@@ -85,11 +85,16 @@ class ConductionSystem:
         between sup vena cava and inf vena cave.
         """
         if target_coord is None:
-            for cap in self.m.right_atrium.caps:
-                if "superior" in cap.name:
-                    sup_vcava_centroid = cap.centroid
-                elif "inferior" in cap.name:
-                    inf_vcava_centroid = cap.centroid
+            sup_vcava_centroid = next(
+                cap.centroid
+                for cap in self.m.right_atrium.caps
+                if cap.type == CapType.SUPERIOR_VENA_CAVA
+            )
+            inf_vcava_centroid = next(
+                cap.centroid
+                for cap in self.m.right_atrium.caps
+                if cap.type == CapType.INFERIOR_VENA_CAVA
+            )
 
             # define SinoAtrial node:
             target_coord = sup_vcava_centroid - (inf_vcava_centroid - sup_vcava_centroid) / 2
@@ -155,13 +160,13 @@ class ConductionSystem:
         try:
             sino_atrial_id = self.m.right_atrium.get_point("SA_node").node_id
         except AttributeError:
-            LOGGER.info("SA node is not defined, creating with default option.")
+            LOGGER.info("SA node is not defined, creating with default options.")
             sino_atrial_id = self.m.compute_sa_node().node_id
 
         try:
             atrio_ventricular_id = self.m.right_atrium.get_point("AV_node").node_id
         except AttributeError:
-            LOGGER.info("AV node is not defined, creating with default option.")
+            LOGGER.info("AV node is not defined, creating with default options.")
             atrio_ventricular_id = self.m.compute_av_node().node_id
 
         #! get local SA/AV ids.
@@ -236,7 +241,7 @@ class ConductionSystem:
 
         if av_id is None:
             LOGGER.error(
-                "Unable to find the last node of SAN_to_AVN branch, you need to define it."
+                "Unable to find the last node of SAN_to_AVN branch, please define manually."
             )
             exit()
 

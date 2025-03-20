@@ -48,9 +48,8 @@ from ansys.heart.simulator.settings.material.material import (
     ACTIVE,
     ANISO,
     ISO,
-    MAT295,
     ActiveModel,
-    NeoHookean,
+    Mat295,
 )
 
 
@@ -661,28 +660,28 @@ class SimulationSettings:
         return
 
     def get_mechanical_material(
-        self, required_type: NeoHookean | MAT295, ep_coupled=False
-    ) -> NeoHookean | MAT295:
+        self, required_type: Literal["isotropic", "anisotropic"], ep_coupled=False
+    ) -> Mat295:
         """Load mechanical materials from settings.
 
         Parameters
         ----------
-        required_type : NeoHookean | MAT295
+        required_type : Literal[&#39;isotropic&#39;,&#39;anisotropic&#39;]
             Type of required maerial
         ep_coupled : bool, optional
             If MAT295 is coupled with EP simulation, by default False
 
         Returns
         -------
-        NeoHookean | MAT295
+        MAT295
             material with parameters in settings
         """
-        if required_type is MAT295:
-            material = _read_myocardium_from_settings(
+        if required_type == "anisotropic":
+            material = _read_myocardium_property(
                 self.mechanics.material.myocardium, coupled=ep_coupled
             )
-        elif required_type is NeoHookean:
-            material = _read_passive_from_settings(self.mechanics.material.passive)
+        elif required_type == "isotropic":
+            material = _read_passive_property(self.mechanics.material.passive)
 
         return material
 
@@ -738,19 +737,30 @@ class SimulationSettings:
         return rotation
 
 
-def _read_passive_from_settings(mat: AttrDict) -> NeoHookean:
-    rho = mat["rho"].m
-    mu = mat["mu1"].m
-    return NeoHookean(rho=rho, c10=mu / 2)
+def _read_passive_property(passive: AttrDict) -> Mat295:
+    """Read passive property from settings."""
+    passive = Mat295(
+        rho=passive["rho"].m,
+        iso=ISO(
+            itype=passive["itype"],
+            beta=2,
+            kappa=passive["kappa"].m,
+            mu1=passive["mu1"].m,
+            alpha1=passive["alpha1"],
+        ),
+    )
+    return passive
 
 
-def _read_myocardium_from_settings(mat: AttrDict, coupled=False) -> MAT295:
+def _read_myocardium_property(mat: AttrDict, coupled=False) -> Mat295:
+    """Read myocardium property from settings."""
     rho = mat["isotropic"]["rho"].m
 
     iso = ISO(
-        nu=mat["isotropic"]["nu"],
+        kappa=mat["isotropic"]["kappa"].m,
         k1=mat["isotropic"]["k1"].m,
         k2=mat["isotropic"]["k2"].m,
+        beta=2,
     )
 
     fibers = [ANISO.HGOFiber(k1=mat["anisotropic"]["k1f"].m, k2=mat["anisotropic"]["k2f"].m)]
@@ -797,7 +807,7 @@ def _read_myocardium_from_settings(mat: AttrDict, coupled=False) -> MAT295:
             ca2_curve=None,
         )
 
-    return MAT295(rho=rho, iso=iso, aniso=aniso, active=active)
+    return Mat295(rho=rho, iso=iso, aniso=aniso, active=active)
 
 
 def _remove_units_from_dictionary(d: dict):
@@ -934,6 +944,13 @@ class DynaSettings:
         elif dynatype == "smp":
             self.mpi_options = ""
 
+        self._modify_from_global_settings()
+
+        LOGGER.info("LS-DYNA Configuration:")
+        LOGGER.info(
+            f"path: {self.lsdyna_path} | type: {self.dynatype} | platform: {self.platform} | cpus: {self.num_cpus}"  # noqa: E501
+        )
+
         return
 
     def get_commands(self, path_to_input: pathlib.Path) -> List[str]:
@@ -1042,6 +1059,14 @@ class DynaSettings:
         commands = [os.path.expandvars(c) for c in commands]
 
         return commands
+
+    def _modify_from_global_settings(self):
+        """Set DynaSettings based on globally defined settings for PyAnsys-Heart."""
+        self.lsdyna_path = os.getenv("PYANSYS_HEART_LSDYNA_PATH", self.lsdyna_path)
+        self.platform = os.getenv("PYANSYS_HEART_LSDYNA_PLATFORM", self.platform)
+        self.dynatype = os.getenv("PYANSYS_HEART_LSDYNA_TYPE", self.dynatype)
+        self.num_cpus = int(os.getenv("PYANSYS_HEART_NUM_CPU", self.num_cpus))
+        return
 
     # TODO: @mhoeijm update to ensure compatibility with new LS-DYNA/Ansys versions
     def _set_env_variables(self):

@@ -35,16 +35,12 @@ import pathlib
 from typing import List, Literal, Union
 
 import numpy as np
+import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
-import ansys.heart.core.helpers.vtkmethods as vtkmethods
+import ansys.heart.core.helpers.vtk_utils as vtk_utils
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 from ansys.heart.simulator.settings.material.material import MechanicalMaterialModel
-
-try:
-    import pyvista as pv
-except ImportError:
-    LOGGER.warning("Importing pyvista failed. Install with: pip install pyvista")
 
 _SURFACE_CELL_TYPES = [pv.CellType.QUAD, pv.CellType.TRIANGLE]
 _VOLUME_CELL_TYPES = [pv.CellType.HEXAHEDRON, pv.CellType.TETRA]
@@ -190,8 +186,8 @@ class SurfaceMesh(pv.PolyData):
                     "Assigning less nodes than the original not implemented yet."
                 )
 
-        except Exception:
-            LOGGER.warning("Failed to set nodes.")
+        except Exception as e:
+            LOGGER.error(f"Failed to set nodes. {e}")
             return
 
     @property
@@ -224,7 +220,7 @@ class SurfaceMesh(pv.PolyData):
     @property
     def boundary_edges(self):
         """Get boundary edges of self."""
-        boundary_edges = vtkmethods.get_boundary_edge_loops(self, remove_open_edge_loops=False)
+        boundary_edges = vtk_utils.get_boundary_edge_loops(self, remove_open_edge_loops=False)
         boundary_edges = np.vstack(list(boundary_edges.values()))
         return boundary_edges
 
@@ -289,7 +285,7 @@ class SurfaceMesh(pv.PolyData):
     def force_normals_inwards(self):
         """Force the cell ordering of a the closed surface such that normals point inward."""
         if not self.is_manifold:
-            LOGGER.warning("Surface is not manifold.")
+            LOGGER.warning("Surface is non-manifold.")
 
         #! Flip normals and consistent normals should enforce that normals are pointing
         #! inwards for a manifold surface. See:
@@ -327,8 +323,8 @@ class BeamMesh(pv.UnstructuredGrid, Feature):
             return
         try:
             self.points = array
-        except Exception:
-            LOGGER.warning("Failed to set nodes.")
+        except Exception as e:
+            LOGGER.error(f"Failed to set nodes. {e}")
             return
 
     @property
@@ -344,8 +340,8 @@ class BeamMesh(pv.UnstructuredGrid, Feature):
             celltypes = np.full(value.shape[0], pv.CellType.LINE, dtype=np.int8)
             lines = np.hstack([np.full(len(celltypes), 2)[:, None], value])
             super().__init__(lines, celltypes, points)
-        except Exception:
-            LOGGER.warning("Failed to set lines.")
+        except Exception as e:
+            LOGGER.error(f"Failed to set lines. {e}")
             return
 
     def __init__(
@@ -408,13 +404,50 @@ class Cavity(Feature):
         return self.centroid
 
 
+# Naming convention of caps.
+class CapType(Enum):
+    """Enumeration tracking cap names."""
+
+    MITRAL_VALVE = "mitral-valve"
+    """Cap representing mitral valve region."""
+    AORTIC_VALVE = "aortic-valve"
+    """Cap representing aortic valve region."""
+    MITRAL_VALVE_ATRIUM = "mitral-valve-atrium"
+    """Cap representing mitral valve region on the atrial side."""
+    COMBINED_MITRAL_AORTIC_VALVE = "combined-mitral-aortic-valve"
+    """Combined mitral aortic valve. Valid for truncated models."""
+    PULMONARY_VALVE = "pulmonary-valve"
+    """Cap representing pulmonary valve region."""
+    TRICUSPID_VALVE = "tricuspid-valve"
+    """Cap representing tricuspid valve region."""
+    TRICUSPID_VALVE_ATRIUM = "tricuspid-valve-atrium"
+    """Cap representing tricuspid valve region on the atrial side."""
+
+    LEFT_ATRIUM_APPENDAGE = "left-atrium-appendage"
+    """Cap representing left atrium appendage region."""
+    LEFT_SUPERIOR_PULMONARY_VEIN = "left-superior-pulmonary-vein"
+    """Cap representing left superior pulmonary vein region."""
+    LEFT_INFERIOR_PULMONARY_VEIN = "left-inferior-pulmonary-vein"
+    """Cap representing left inferior pulmonary vein region."""
+    RIGHT_INFERIOR_PULMONARY_VEIN = "right-inferior-pulmonary-vein"
+    """Cap representing right inferior pulmonary vein region."""
+    RIGHT_SUPERIOR_PULMONARY_VEIN = "right-superior-pulmonary-vein"
+    """Cap representing right superior pulmonary vein region."""
+    SUPERIOR_VENA_CAVA = "superior-vena-cava"
+    """Cap representing superior vena cava region."""
+    INFERIOR_VENA_CAVA = "inferior-vena-cava"
+    """Cap representing inferior vena cava region."""
+    UNKNOWN = "unknown-cap"
+    """Cap with unknown association."""
+
+
 class Cap(Feature):
     """Cap class."""
 
     @property
     def _local_node_ids_edge(self):
         """Local node ids of cap edge."""
-        edges = vtkmethods.get_boundary_edge_loops(self._mesh)
+        edges = vtk_utils.get_boundary_edge_loops(self._mesh)
         edge_local_ids = np.unique(np.array([np.array(edge) for edge in edges.values()]))
         return edge_local_ids
 
@@ -448,10 +481,19 @@ class Cap(Feature):
         """Compute mean normal of cap."""
         return np.mean(self._mesh.compute_normals().cell_data["Normals"], axis=0)
 
-    def __init__(self, name: str = None, node_ids: Union[List[int], np.ndarray] = []) -> None:
+    def __init__(
+        self,
+        name: str = None,
+        cap_type: CapType = None,
+    ) -> None:
         super().__init__(name)
         """Centroid of cap ID (in case centroid node is created)."""
         self._mesh: SurfaceMesh = None
+
+        if cap_type is None or isinstance(cap_type, CapType):
+            self.type = cap_type
+        else:
+            LOGGER.warning(f"Failed to set cap type for {name}, {cap_type}")
 
         return
 
@@ -507,8 +549,8 @@ class Mesh(pv.UnstructuredGrid):
             surface.id = sid
             try:
                 surface.name = self._surface_id_to_name[sid]
-            except KeyError:
-                LOGGER.debug(f"Failed to give surface with id {sid} a name")
+            except KeyError as error:
+                LOGGER.debug(f"Failed to give surface with id {sid} a name. {error}")
             surfaces.append(surface)
         return surfaces
 
@@ -888,17 +930,17 @@ class Mesh(pv.UnstructuredGrid):
         """
         if not id:
             if "_surface-id" not in surface.cell_data.keys():
-                LOGGER.debug("Failed to set _surface-id")
+                LOGGER.error("Failed to set _surface-id")
                 return None
         else:
             if not isinstance(id, int):
-                LOGGER.debug("sid should by type int.")
+                LOGGER.error("sid should by type int.")
                 return None
             surface.cell_data["_surface-id"] = np.ones(surface.n_cells, dtype=float) * id
 
         if not overwrite_existing:
             if id in self.surface_ids:
-                LOGGER.debug(
+                LOGGER.error(
                     f"{id} already used. Please pick any id other than {self.surface_ids}."
                 )
                 return None
@@ -922,11 +964,11 @@ class Mesh(pv.UnstructuredGrid):
         """
         if not id:
             if "_line-id" not in lines.cell_data.keys():
-                LOGGER.debug("Failed to set _surface-id")
+                LOGGER.error("Failed to set _surface-id")
                 return None
         else:
             if not isinstance(id, int):
-                LOGGER.debug("sid should by type int.")
+                LOGGER.error("sid should by type int.")
                 return None
             lines.cell_data["_line-id"] = np.ones(lines.n_cells, dtype=float) * id
 
@@ -940,7 +982,7 @@ class Mesh(pv.UnstructuredGrid):
     def get_volume_by_name(self, name: str) -> pv.UnstructuredGrid:
         """Get the surface associated with `name`."""
         if name not in list(self._volume_name_to_id.keys()):
-            LOGGER.debug(f"No volume associated with {name}")
+            LOGGER.error(f"No volume associated with {name}")
             return None
         volume_id = self._volume_name_to_id[name]
         return self.get_volume(volume_id)
@@ -967,7 +1009,7 @@ class Mesh(pv.UnstructuredGrid):
         # ?: Return SurfaceMesh instead of PolyData?
         """Get the surface associated with `name`."""
         if name not in list(self._surface_name_to_id.keys()):
-            LOGGER.debug(f"No surface associated with {name}")
+            LOGGER.error(f"No surface associated with {name}")
             return None
         surface_id = self._surface_name_to_id[name]
         return self.get_surface(surface_id)

@@ -308,3 +308,24 @@ def test_set_env_variables(dynatype, expect_mpi_root):
         assert os.getenv("MPI_ROOT")
 
     pass
+
+
+def test_modify_settings_from_env_variables():
+    """Test to ensure proper override from environment variables."""
+    settings = DynaSettings(lsdyna_path="my-dyna-path.exe", dynatype="intelmpi", num_cpus=2)
+
+    assert settings.lsdyna_path == "my-dyna-path.exe"
+    assert settings.dynatype == "intelmpi"
+    assert settings.num_cpus == 2
+
+    os.environ["PYANSYS_HEART_LSDYNA_PATH"] = "new-dyna-path.exe"
+    os.environ["PYANSYS_HEART_LSDYNA_PLATFORM"] = "wsl"
+    os.environ["PYANSYS_HEART_LSDYNA_TYPE"] = "msmpi"
+    os.environ["PYANSYS_HEART_NUM_CPU"] = "4"
+
+    settings = DynaSettings()
+
+    assert settings.lsdyna_path == "new-dyna-path.exe"
+    assert settings.platform == "wsl"
+    assert settings.dynatype == "msmpi"
+    assert settings.num_cpus == 4

@@ -18,20 +18,12 @@ repos:
   - id: pydocstyle
     additional_dependencies: [toml]
     args: ["--convention=numpy"]
-    # exclude: |
-    #   (?x)^(
-    #     tests/|
-    #     examples/|
-    #     src/ansys/heart/misc/|
-    #     src/ansys/heart/writer/custom_dynalib_keywords/|
-    #     .*__init__.py
-    #   )
     exclude: |
       (?x)^(
         tests/|
         examples/|
         src/ansys/heart/misc/|
-        src/ansys/heart/writer/custom_dynalib_keywords/|
+        src/ansys/heart/writer/custom_keywords/|
         .*__init__.py
       )
 

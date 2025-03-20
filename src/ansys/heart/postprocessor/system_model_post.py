@@ -80,21 +80,17 @@ class SystemState:
 class ZeroDSystem:
     """0D circulation system model (for one cavity)."""
 
-    # TODO: @wenfengye: docstrings should follow numpy-format.
-    def __init__(self, csv_path, ed_state, name=""):
-        """
-        Initialize ZeroDSystem.
-
-        Notes
-        -----
-        units: "ms, MPa, mm^3" to "s, kPa, mL"
+    def __init__(self, csv_path: str, ed_state: list[float, float], name: str = ""):
+        """Initialize ZeroDSystem.
 
         Parameters
         ----------
-        csv_path: str, csv file path
-        ed_state: List, End of Diastole pressure and volume
-        name: str, system name, like 'left_ventricle'
-
+        csv_path : str
+            CSV file path
+        ed_state : list[float,float]
+            End of Diastole pressure and volume
+        name : str, optional
+            Cavity name, by default ""
         """
         self.name = name
         self.ed = ed_state
@@ -117,30 +113,35 @@ class ZeroDSystem:
         self.volume = Volume()
         self.volume.artery = data["vart"].to_numpy() / 1000
         # integrate volume of cavity
-        self.volume.cavity = self.integrate_volume(self.ed[1], self.time, self.flow.cavity)
+        self.volume.cavity = self._integrate_volume(self.ed[1], self.time, self.flow.cavity)
 
         pass
 
-    # TODO: @wenfengye: docstrings should follow numpy-format.
     @staticmethod
-    def integrate_volume(v0, t, q):
-        """
-        Integrate cavity's volume.
+    def _integrate_volume(v0: float, t: np.ndarray, q: np.ndarray) -> np.ndarray:
+        """Integrate cavity's volume.
 
         Notes
         -----
-        Cavity's volume is not evaluated/saved in csv file.
-        Use implicit with gamma=0.6
+        Cavity's volume is not evaluated/saved in csv file, this is to ensure
+        volume is consistent with what's in icvout.
+
+        This assumes that the implicit solver with gamma=0.6 was used.
+
 
         Parameters
         ----------
-        v0: float, volume at time of 0
-        t: time array
-        q: flow array
+        v0 : float
+            Volume at t0
+        t : np.ndarray
+            Time array
+        q : np.ndarray
+            Flow array
 
         Returns
         -------
-            volume array
+        np.ndarray
+            Cavity volume
         """
         gamma = 0.6
 
@@ -152,7 +153,6 @@ class ZeroDSystem:
         return v
 
 
-# TODO: @wenfengye: docstrings should follow numpy-format.
 class SystemModelPost:
     """
     Class for post-processing system model.
@@ -162,13 +162,13 @@ class SystemModelPost:
     unit: ms, kPa, mL
     """
 
-    def __init__(self, dir):
-        """
-        Initialize SystemModelPost.
+    def __init__(self, dir: str):
+        """Initialize SystemModelPost.
 
         Parameters
         ----------
-        dir: simulation directory
+        dir : str
+            Simulation directory
         """
         self.dir = dir
         self.model_type = "LV"
@@ -199,8 +199,8 @@ class SystemModelPost:
         except FileNotFoundError:
             try:  # from SMP
                 icvout = ICVoutReader(os.path.join(self.dir, "binout"))
-            except FileNotFoundError:
-                LOGGER.error("Cannot find binout file.")
+            except FileNotFoundError as error:
+                LOGGER.error(f"Cannot find binout file. {error}")
                 exit()
         l_ed_volume = icvout.get_volume(1)[0] / 1000
         self.lv_system = ZeroDSystem(fcsv1, [l_ed_pressure, l_ed_volume], name="Left ventricle")
@@ -230,26 +230,39 @@ class SystemModelPost:
         vl = self.lv_system.volume.cavity[start:end]
         try:
             ef[0] = (max(vl) - min(vl)) / max(vl)
-        except Exception:
+        except Exception as e:
             ef[0] = None
-            LOGGER.warning("Failed to compute ejection fraction.")
+            LOGGER.warning(f"Failed to compute ejection fraction. {e}")
         if self.model_type == "BV":
             vr = self.rv_system.volume.cavity[start:end]
             ef[1] = (max(vr) - min(vr)) / max(vr)
 
         return ef
 
-    # TODO: @wenfengye: docstrings should follow numpy-format.
-    def plot_pv_loop(self, t_start=0, t_end=10e10, show_ed=True, ef=[None, None]):
-        """
-        Plot PV loop.
+    def plot_pv_loop(
+        self,
+        t_start: float = 0,
+        t_end: float = 10e10,
+        show_ed: bool = True,
+        ef: list[float, float] = [None, None],
+    ) -> plt.Figure:
+        """Plot PV loop.
 
         Parameters
         ----------
-        ef: Default None, else plot ejection fraction in legend.
-        show_ed: Default False, else plot ED state
-        t_start: start time
-        t_end: end time
+        t_start : float, optional
+            Start time to plot, by default 0
+        t_end : float, optional
+            End time to plot, by default 10e10
+        show_ed : bool, optional
+            Whether to show the end of diastole state in zeroppressure, by default True
+        ef : list[float, float], optional
+            Show the ejection fraction in the legend, by default [None, None]
+
+        Returns
+        -------
+        plt.Figure
+            Figrue handle
         """
         start = np.where(self.lv_system.time >= t_start)[0][0]
         end = np.where(self.lv_system.time <= t_end)[0][-1]

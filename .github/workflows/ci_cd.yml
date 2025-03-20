@@ -1,8 +1,7 @@
 name: Github Actions
 
 on:
-  # DBG
-  # pull_request:
+  pull_request:
   push:
     tags:
       - "*"

@@ -458,7 +458,7 @@ def find_corresponding_points(
 
     Notes
     -----
-    Using normal ray trace method.
+    Uses ray tracing.
     """
     # Note: using UVC coordinates lead to a shift in
     # longitudinal direction from epicardium to endocardium

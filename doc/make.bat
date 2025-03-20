@@ -13,6 +13,7 @@ set APIDIR=api
 
 if "%1" == "" goto help
 if "%1" == "clean" goto clean
+if "%1" == "pdf" goto pdf  REM Add this line to handle PDF builds
 
 %SPHINXBUILD% >NUL 2>NUL
 if errorlevel 9009 (
@@ -29,6 +30,23 @@ if errorlevel 9009 (
 
 %SPHINXBUILD% -M %1 %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% %O%
 goto end
+
+:pdf
+echo Building LaTeX files...
+%SPHINXBUILD% -M latex %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% %O%
+
+cd "%BUILDDIR%\latex" || exit /b 1
+echo Compiling LaTeX into PDF...
+latexmk -r latexmkrc -pdf *.tex -interaction=nonstopmode || exit /b 1
+
+REM Check if any PDF was generated
+for %%F in (*.pdf) do (
+    echo PDF successfully built: %%F
+    exit /b 0
+)
+
+echo PDF build failed
+exit /b 1
 
 :clean
 rmdir /s /q %BUILDDIR% > /NUL 2>&1

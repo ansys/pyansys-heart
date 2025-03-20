@@ -1001,6 +1001,8 @@ def mesh_from_non_manifold_input_model(
     if np.any(grid.cell_data["part-id"] == 0):
         raise ValueError("Invalid mesh, not all elements assigned to a part.")
 
+    # TODO: refactor and cleanup the following
+    # TODO: stick with the VTK object instead of _FluentMesh.
     # change FluentMesh object accordingly.
     idx_sorted = np.argsort(np.array(grid.cell_data["part-id"], dtype=int))
     partids_sorted = np.sort(np.array(grid.cell_data["part-id"], dtype=int))

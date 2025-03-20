@@ -28,19 +28,20 @@ import ansys.fluent.core as pyfluent
 from ansys.fluent.core.launcher.error_handler import LaunchFluentError
 
 # marks all tests with the 'requires_fluent' tag after this line
-pytestmark = [pytest.mark.requires_fluent, pytest.mark.test_launch_fluent_only]
+pytestmark = pytest.mark.requires_fluent
 
 pyfluent.set_console_logging_level("DEBUG")
+
 
 def test_launch_fluent():
     """Launch pyfluent in meshing mode and check health."""
     try:
         session = pyfluent.launch_fluent(
-           mode="meshing",
-           precision="double",
-           processor_count=1,
-           start_transcript=True,
-           ui_mode="no_gui",
+            mode="meshing",
+            precision="double",
+            processor_count=1,
+            start_transcript=True,
+            ui_mode="no_gui",
         )
         assert session._fluent_connection.check_health() == "SERVING"
         # try to initialize workflow

@@ -437,10 +437,6 @@ def find_corresponding_points(
 ) -> np.ndarray:
     """Find corresponding points between two surfaces.
 
-    The two surfaces are assumed close and almost in parallel.
-    Result is not 1-1 pair, 1 point may have no corresponding
-    point or same corresponding point with other points.
-
     Parameters
     ----------
     master_surface : pv.PolyData
@@ -459,9 +455,13 @@ def find_corresponding_points(
     Notes
     -----
     Using normal ray trace method.
+    The two surfaces are assumed to be close and nearly parallel.
+    As a result, the correspondence is not one-to-one—some points may
+    have no corresponding match, while others may share the same
+    corresponding point.
     """
-    # Note: using UVC coordinates lead to a shift in
-    # longitudinal direction from epicardium to endocardium
+    # NOTE: using UVC coordinates leads to a shift in
+    # longitudinal direction from epicardium to endocardium and is thus not an option.
 
     # Compute normal of master surface
     master_surface.compute_normals(inplace=True)

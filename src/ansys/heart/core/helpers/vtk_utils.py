@@ -433,7 +433,7 @@ def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii") -> Non
 
 
 def find_corresponding_points(
-    master_surface: pv.PolyData, slave_surface: pv.PolyData
+    master_surface: pv.PolyData, slave_surface: pv.PolyData, distance: float = 20
 ) -> np.ndarray:
     """Find corresponding points between two surfaces.
 
@@ -443,6 +443,8 @@ def find_corresponding_points(
         first surface
     slave_surface : pv.PolyData
         second surface
+    distance : float
+        approximate largest distance between two surfaces
 
     Returns
     -------
@@ -479,7 +481,7 @@ def find_corresponding_points(
         direction = normals_m[i]
         # Cast a ray along the normal direction
         intersection, _ = slave_surface.ray_trace(
-            start_point - direction * 20, start_point + direction * 20
+            start_point - direction * distance, start_point + direction * distance
         )
 
         if len(intersection) == 1:

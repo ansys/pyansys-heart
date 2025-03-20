@@ -37,6 +37,7 @@ import pytest
 import yaml
 
 from ansys.heart.core.helpers.downloader import download_case_from_zenodo, unpack_case
+from ansys.heart.core.helpers.misc import rodrigues_rot
 import ansys.heart.core.models as models
 from ansys.heart.preprocessor.database_preprocessor import get_compatible_input
 import ansys.heart.writer.dynawriter as writers
@@ -169,7 +170,6 @@ def extract_model(request):
     lv_apex = model.left_ventricle.apex_points[1].xyz
     mv_centroid = [c.centroid for p in model.parts for c in p.caps if "mitral" in c.name][0]
     longitudinal_axis = lv_apex - mv_centroid
-    from ansys.heart.core.helpers.misc import rodrigues_rot
 
     points_rotation = rodrigues_rot(model.mesh.points - lv_apex, longitudinal_axis, [0, 0, -1])
     points_rotation[:, 2] = points_rotation[:, 2] - np.min(points_rotation, axis=0)[2]

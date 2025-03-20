@@ -1522,7 +1522,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         list
             list of dyna input deck
         """
-        if surface.GetNumberOfPoints() == 0:
+        if surface.n_points == 0:
             LOGGER.error("Surface is empty, no Robin BC is added.")
             return []
 
@@ -2001,54 +2001,54 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         return
 
-    def _add_enddiastolic_pressure_by_cv(self, pressure_lv: float = 1, pressure_rv: float = 1):
-        """
-        Apply ED pressure by control volume.
+    # def _add_enddiastolic_pressure_by_cv(self, pressure_lv: float = 1, pressure_rv: float = 1):
+    #     """
+    #     Apply end-of-diastolic pressure by control volume.
 
-        Notes
-        -----
-        LSDYNA stress reference configuration lead to a bug with this load,
-        it seems due to define function, need to be investigated.
-        """
-        cavities = [part.cavity for part in self.model.parts if part.cavity]
-        for cavity in cavities:
-            if "atrium" in cavity.name:
-                continue
+    #     Notes
+    #     -----
+    #     LSDYNA stress reference configuration lead to a bug with this load,
+    #     it seems due to define function, need to be investigated.
+    #     """
+    #     cavities = [part.cavity for part in self.model.parts if part.cavity]
+    #     for cavity in cavities:
+    #         if "atrium" in cavity.name:
+    #             continue
 
-            # create CV
-            cv_kw = keywords.DefineControlVolume()
-            cv_kw.id = cavity.surface.id
-            cv_kw.sid = cavity.surface._seg_set_id
-            self.kw_database.main.append(cv_kw)
+    #         # create CV
+    #         cv_kw = keywords.DefineControlVolume()
+    #         cv_kw.id = cavity.surface.id
+    #         cv_kw.sid = cavity.surface._seg_set_id
+    #         self.kw_database.main.append(cv_kw)
 
-            # define CV interaction
-            cvi_kw = keywords.DefineControlVolumeInteraction()
-            cvi_kw.id = cavity.surface.id
-            cvi_kw.cvid1 = cavity.surface._seg_set_id
-            cvi_kw.cvid2 = 0  # ambient
+    #         # define CV interaction
+    #         cvi_kw = keywords.DefineControlVolumeInteraction()
+    #         cvi_kw.id = cavity.surface.id
+    #         cvi_kw.cvid1 = cavity.surface._seg_set_id
+    #         cvi_kw.cvid2 = 0  # ambient
 
-            if "Left ventricle" in cavity.name:
-                cvi_kw.lcid_ = 10
-                pressure = pressure_lv
-            elif "Right ventricle" in cavity.name:
-                cvi_kw.lcid_ = 11
-                pressure = pressure_rv
+    #         if "Left ventricle" in cavity.name:
+    #             cvi_kw.lcid_ = 10
+    #             pressure = pressure_lv
+    #         elif "Right ventricle" in cavity.name:
+    #             cvi_kw.lcid_ = 11
+    #             pressure = pressure_rv
 
-            self.kw_database.main.append(cvi_kw)
+    #         self.kw_database.main.append(cvi_kw)
 
-            # define define function
-            definefunction_str = _ed_load_template()
-            self.kw_database.main.append(
-                definefunction_str.format(
-                    cvi_kw.lcid_,
-                    "flow_" + cavity.name.replace(" ", "_"),
-                    pressure,
-                    -200,
-                )
-            )
+    #         # define define function
+    #         definefunction_str = _ed_load_template()
+    #         self.kw_database.main.append(
+    #             definefunction_str.format(
+    #                 cvi_kw.lcid_,
+    #                 "flow_" + cavity.name.replace(" ", "_"),
+    #                 pressure,
+    #                 -200,
+    #             )
+    #         )
 
-        self.kw_database.main.append(keywords.DatabaseIcvout(dt=10, binary=2))
-        return
+    #     self.kw_database.main.append(keywords.DatabaseIcvout(dt=10, binary=2))
+    #     return
 
     def _add_enddiastolic_pressure_bc(self):
         """Add end diastolic pressure boundary condition on the left and right endocardium."""

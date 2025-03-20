@@ -23,6 +23,7 @@
 """Collection of methods to test pyfluent."""
 
 import pytest
+import time
 
 import ansys.fluent.core as pyfluent
 
@@ -40,6 +41,8 @@ def test_launch_fluent():
             start_transcript=False,
             ui_mode="hidden_gui",
         )
+        # Wait for pyfluent to start
+        time.sleep(120)
         assert session._fluent_connection.check_health() == "SERVING"
         # try to initialize workflow
         assert session.workflow.InitializeWorkflow(WorkflowType="Watertight Geometry"), (

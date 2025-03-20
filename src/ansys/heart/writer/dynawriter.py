@@ -959,14 +959,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self._update_controlvolume_db(system_map)
 
-        # else:
-        #     # Four chamber with passive atrial
-        #     # no control volume for atrial, constant pressure instead
-        #     bc_settings = self.settings.mechanics.boundary_conditions
-        #     pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
-        #     pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
-        #     self._add_constant_atrial_pressure(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
-
         self._get_list_of_includes()
         self._add_includes()
 
@@ -1138,25 +1130,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(
             keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0, resplt=1)
         )
-
-        # remove, aha strain is computed from d3plot
-
-        # # control ELOUT file to extract left ventricle's stress/strain
-        # if hasattr(self.model, "septum"):
-        #     self.kw_database.main.append(
-        #         keywords.SetSolidGeneral(
-        #             option="PART",
-        #             sid=1,
-        #             e1=self.model.left_ventricle.pid,
-        #             e2=self.model.septum.pid,
-        #             user_comment="create left ventricle + septum set for exporting",
-        #         )
-        #     )
-        # else:
-        #     self.kw_database.main.append(
-        #         keywords.SetSolidGeneral(option="PART", sid=1, e1=self.model.left_ventricle.pid)
-        #     )
-        # self.kw_database.main.append(keywords.DatabaseHistorySolidSet(id1=1))
 
         return
 
@@ -1432,7 +1405,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         robin_settings = boundary_conditions.robin
 
         # collect all pericardium nodes:
-        ventricles_epi = self._get_epi_surface(apply="ventricle")
+        ventricles_epi = self._get_epi_surface(apply=PartType.VENTRICLE)
 
         #! penalty function is defined on all nodes in the mesh: but just need the epicardial nodes.
         # penalty function
@@ -1459,7 +1432,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         )
 
         if isinstance(self.model, FourChamber):
-            atrial_epi = self._get_epi_surface(apply="atrial")
+            atrial_epi = self._get_epi_surface(PartType.ATRIUM)
 
             k = robin_settings["atrial"]["stiffness"].to("MPa/mm").m
             self.kw_database.pericardium.extend(
@@ -1472,18 +1445,25 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
         return
 
-    # TODO: change apply input argument to PartType.VENTRICLE and PartType.ATRIUM
-    def _get_epi_surface(self, apply: Literal["ventricle", "atrial"] = "ventricle"):
+    def _get_epi_surface(
+        self, apply: Literal[PartType.VENTRICLE, PartType.ATRIUM] = PartType.VENTRICLE
+    ):
         """Get the epicardial surfaces of either the ventricle or atria."""
         LOGGER.debug(f"Collecting epicardium nodesets of {apply}:")
-        if apply == "ventricle":
-            targets = [part for part in self.model.parts if "ventricle" in part.name]
-        elif apply == "atrial":
-            targets = [part for part in self.model.parts if "atrium" in part.name]
+
+        targets = [part for part in self.model.parts if apply == part.part_type]
 
         # retrieve combined epicardial surface from the central mesh object:
         # this ensures that we can use the global-point-ids
-        epicardium_surface_ids = [ventricle.epicardium.id for ventricle in targets]
+        epicardium_surface_ids = []
+        for part in targets:
+            try:
+                epicardium_surface_ids.append[part.epicardium.id]
+            except AttributeError:
+                LOGGER.warning(f"{part.name} has no epicardium surface.")
+                # part as "Atrioventricular isolation" may not have epicardium surface
+                continue
+
         epicardium_surface1 = self.model.mesh.get_surface(epicardium_surface_ids)
 
         return epicardium_surface1
@@ -1503,7 +1483,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
             return 1 / (1 + np.exp(-z))
 
         # compute penalty function from longitudinal coordinate
-        uvc_l = self.model.mesh.point_data["uvc_longitudinal"]
+        try:
+            uvc_l = self.model.mesh.point_data["apico-basal"]
+        except KeyError:
+            LOGGER.warning(
+                "No apico-basal is found in point data, pericardium spring won't be created."
+            )
+            uvc_l = np.ones(self.model.mesh.GetNumberOfPoints())
         if np.any(uvc_l < 0):
             LOGGER.warning(
                 "Negative normalized longitudinal coordinate detected."
@@ -1540,6 +1526,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
         list
             list of dyna input deck
         """
+        if surface.n_points == 0:
+            LOGGER.error("Surface is empty, no Robin BC is added.")
+            return []
+
         if "_global-point-ids" not in surface.point_data:
             raise ValueError("surface must contain pointdata '_global-point-ids'.")
 
@@ -1810,16 +1800,219 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         return
 
-    # TODO: Keep this implementation for reference.
-    # def _add_enddiastolic_pressure_bc2(
-    #     self, pressure_lv: float = 1, pressure_rv: float = 1
-    # ):
+
+class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
+    """
+    Class for preparing the input for a stress-free LS-DYNA simulation.
+
+    Notes
+    -----
+    Derived from MechanicsDynaWriter and consequently derives all keywords relevant
+    for simulations involving mechanics. This class does not write the
+    control volume keywords but adds the keyword for computing the stress
+    free configuration based on left/right cavity pressures instead.
+
+    """
+
+    def __init__(
+        self,
+        model: HeartModel,
+        settings: SimulationSettings = None,
+    ) -> None:
+        super().__init__(model=model, settings=settings)
+
+        self.kw_database = MechanicsDecks()
+        """Collection of keyword decks relevant for mechanics."""
+
+        return
+
+    def update(self, robin_bcs: list[Callable] = None):
+        """Update the keyword database.
+
+        Parameters
+        ----------
+        robin_bcs : list[Callable], optional
+            A list of lambda functions to apply Robin-type BCs, by default None
+        """
+        # bc_settings = self.settings.mechanics.boundary_conditions
+
+        self._update_main_db()
+
+        self.kw_database.main.title = self.model.__class__.__name__ + " zero-pressure"
+
+        self._update_node_db()
+        self._update_parts_db()
+        self._update_solid_elements_db(add_fibers=True)
+        self._update_segmentsets_db(add_caps=True)
+        self._update_nodesets_db()
+        self._update_material_db(add_active=False)
+        self._update_cap_elements_db()
+
+        # for boundary conditions
+        if robin_bcs is None:
+            # default BC
+            self._add_cap_bc(bc_type="fix_caps")
+        else:
+            # loop for every Robin BC function
+            for robin_bc in robin_bcs:
+                self.kw_database.boundary_conditions.extend(robin_bc())
+
+        # Approximate end-diastolic pressures
+        self._add_enddiastolic_pressure_bc()
+
+        # zerop key words
+        self._add_control_reference_configuration()
+
+        # export dynain file
+        save_part_ids = []
+        for part in self.model.parts:
+            save_part_ids.append(part.pid)
+
+        caps = [cap for part in self.model.parts for cap in part.caps]
+        for cap in caps:
+            if cap.pid is not None:  # MV,TV for atrial parts get None
+                save_part_ids.append(cap.pid)
+
+        partset_id = self.get_unique_partset_id()
+        kw = keywords.SetPartList(sid=partset_id)
+        # kw.parts._data = save_part_ids
+        # NOTE: when len(save_part_ids) = 8/16, dynalib bugs
+        str = "\n"
+        for i, id in enumerate(save_part_ids):
+            str += "{0:10d}".format(id)
+            if (i + 1) % 8 == 0:
+                str += "\n"
+        kw = kw.write() + str
+
+        self.kw_database.main.append(kw)
+
+        self.kw_database.main.append(
+            custom_keywords.InterfaceSpringbackLsdyna(
+                psid=partset_id,
+                nshv=999,
+                ftype=3,
+                rflag=1,
+                optc="OPTCARD",
+                ndflag=1,
+                cflag=1,
+                hflag=1,
+            )
+        )
+
+        self.kw_database.main.append(
+            keywords.InterfaceSpringbackExclude(kwdname="BOUNDARY_SPC_NODE")
+        )
+
+        self._get_list_of_includes()
+        self._add_includes()
+
+        return
+
+    def _add_export_controls(self, dt_output_d3plot: float = 0.5):
+        """Rewrite method for zerop export.
+
+        Parameters
+        ----------
+        dt_output_d3plot : float, optional
+            Writes full D3PLOT results at this time-step spacing, by default 0.5
+        """
+        # add output control
+        self.kw_database.main.append(keywords.ControlOutput(npopt=1, neecho=1, ikedit=0, iflush=0))
+
+        # add export controls
+        # self.kw_database.main.append(keywords.DatabaseElout(dt=0.1, binary=2))
+        # self.kw_database.main.append(keywords.DatabaseGlstat(dt=0.1, binary=2))
+        # self.kw_database.main.append(keywords.DatabaseMatsum(dt=0.1, binary=2))
+
+        # frequency of full results
+        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
+
+        # self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
+
+        # add binout for post-process
+        settings = copy.deepcopy(self.settings.stress_free)
+        settings._remove_units()
+
+        self.kw_database.main.append(
+            keywords.DatabaseNodout(dt=settings.analysis.dt_nodout, binary=2)
+        )
+
+        # write for all nodes in nodout
+        nodeset_id = self.get_unique_nodeset_id()
+        kw = keywords.SetNodeGeneral(option="ALL", sid=nodeset_id)
+        self.kw_database.main.append(kw)
+
+        kw = keywords.DatabaseHistoryNodeSet(id1=nodeset_id)
+        self.kw_database.main.append(kw)
+
+        return
+
+    def _add_solution_controls(self):
+        """Rewrite method for the zerop simulation."""
+        settings = copy.deepcopy(self.settings.stress_free)
+        settings._remove_units()
+
+        self.kw_database.main.append(keywords.ControlTermination(endtim=settings.analysis.end_time))
+
+        self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
+
+        # add auto step controls
+        self.kw_database.main.append(
+            keywords.ControlImplicitAuto(
+                iauto=1, dtmin=settings.analysis.dtmin, dtmax=settings.analysis.dtmax
+            )
+        )
+
+        # add general implicit controls
+        self.kw_database.main.append(
+            keywords.ControlImplicitGeneral(imflag=1, dt0=settings.analysis.dtmax)
+        )
+
+        # add implicit solution controls
+        self.kw_database.main.append(
+            keywords.ControlImplicitSolution(
+                # maxref=35,
+                dctol=0.01,
+                ectol=1e6,
+                rctol=1e3,
+                abstol=1e-20,
+                dnorm=1,
+                diverg=2,
+                # lsmtd=5,
+            )
+        )
+
+        # add implicit solver controls
+        self.kw_database.main.append(custom_keywords.ControlImplicitSolver(autospc=2))
+
+        # accuracy control
+        self.kw_database.main.append(keywords.ControlAccuracy(osu=1, inn=4, iacc=1))
+
+        return
+
+    def _add_control_reference_configuration(self):
+        """Add control reference configuration keyword to main."""
+        LOGGER.debug("Adding *CONTROL_REFERENCE_CONFIGURATION to main.k")
+        settings = self.settings.stress_free.analysis
+        kw = keywords.ControlReferenceConfiguration(
+            maxiter=settings.max_iters,
+            target="nodes.k",
+            method=settings.method,
+            tol=settings.tolerance,
+        )
+
+        self.kw_database.main.append(kw)
+
+        return
+
+    # def _add_enddiastolic_pressure_by_cv(self, pressure_lv: float = 1, pressure_rv: float = 1):
     #     """
-    #     Apply ED pressure by control volume.
+    #     Apply end-of-diastolic pressure by control volume.
 
     #     Notes
     #     -----
-    #     LSDYNA stress reference configuration bug with this load due to define function.
+    #     LSDYNA stress reference configuration lead to a bug with this load,
+    #     it seems due to define function, need to be investigated.
     #     """
     #     cavities = [part.cavity for part in self.model.parts if part.cavity]
     #     for cavity in cavities:
@@ -1906,217 +2099,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
             else:
                 LOGGER.debug(f"No load added to {cavity.name}")
                 continue
-
-        return
-
-
-class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
-    """
-    Class for preparing the input for a stress-free LS-DYNA simulation.
-
-    Notes
-    -----
-    Derived from MechanicsDynaWriter and consequently derives all keywords relevant
-    for simulations involving mechanics. This class does not write the
-    control volume keywords but adds the keyword for computing the stress
-    free configuration based on left/right cavity pressures instead.
-
-    """
-
-    def __init__(
-        self,
-        model: HeartModel,
-        settings: SimulationSettings = None,
-    ) -> None:
-        super().__init__(model=model, settings=settings)
-
-        self.kw_database = MechanicsDecks()
-        """Collection of keyword decks relevant for mechanics."""
-
-        return
-
-    def update(self, robin_bcs: list[Callable] = None):
-        """Update the keyword database.
-
-        Parameters
-        ----------
-        robin_bcs : list[Callable], optional
-            A list of lambda functions to apply Robin-type BCs, by default None
-        """
-        # bc_settings = self.settings.mechanics.boundary_conditions
-
-        self._update_main_db()
-
-        self.kw_database.main.title = self.model.__class__.__name__ + " zero-pressure"
-
-        self._update_node_db()
-        self._update_parts_db()
-        self._update_solid_elements_db(add_fibers=True)
-        self._update_segmentsets_db(add_caps=True)
-        self._update_nodesets_db()
-        self._update_material_db(add_active=False)
-        self._update_cap_elements_db()
-
-        # for boundary conditions
-        if robin_bcs is None:
-            # default BC
-            self._add_cap_bc(bc_type="fix_caps")
-        else:
-            # loop for every Robin BC function
-            for robin_bc in robin_bcs:
-                self.kw_database.boundary_conditions.extend(robin_bc())
-
-        # if isinstance(self.model, FourChamber):
-        #     # add a small constraint to avoid rotation
-        #     self._add_pericardium_bc(scale=0.01)
-
-        # # Approximate end-diastolic pressures
-        self._add_enddiastolic_pressure_bc()
-
-        # zerop key words
-        self._add_control_reference_configuration()
-
-        # export dynain file
-        save_part_ids = []
-        for part in self.model.parts:
-            save_part_ids.append(part.pid)
-
-        caps = [cap for part in self.model.parts for cap in part.caps]
-        for cap in caps:
-            if cap.pid is not None:  # MV,TV for atrial parts get None
-                save_part_ids.append(cap.pid)
-
-        partset_id = self.get_unique_partset_id()
-        kw = keywords.SetPartList(sid=partset_id)
-        # kw.parts._data = save_part_ids
-        # NOTE: when len(save_part_ids) = 8/16, dynalib bugs
-        str = "\n"
-        for i, id in enumerate(save_part_ids):
-            str += "{0:10d}".format(id)
-            if (i + 1) % 8 == 0:
-                str += "\n"
-        kw = kw.write() + str
-
-        self.kw_database.main.append(kw)
-
-        self.kw_database.main.append(
-            custom_keywords.InterfaceSpringbackLsdyna(
-                psid=partset_id,
-                nshv=999,
-                ftype=3,
-                rflag=1,
-                optc="OPTCARD",
-                ndflag=1,
-                cflag=1,
-                hflag=1,
-            )
-        )
-
-        self.kw_database.main.append(
-            keywords.InterfaceSpringbackExclude(kwdname="BOUNDARY_SPC_NODE")
-        )
-
-        self._get_list_of_includes()
-        self._add_includes()
-
-        return
-
-    def _add_export_controls(self, dt_output_d3plot: float = 0.5):
-        """Rewrite method for zerop export.
-
-        Parameters
-        ----------
-        dt_output_d3plot : float, optional
-            Writes full D3PLOT results at this time-step spacing, by default 0.5
-        """
-        # add output control
-        self.kw_database.main.append(keywords.ControlOutput(npopt=1, neecho=1, ikedit=0, iflush=0))
-
-        # add export controls
-        # self.kw_database.main.append(keywords.DatabaseElout(dt=0.1, binary=2))
-        #
-        # self.kw_database.main.append(keywords.DatabaseGlstat(dt=0.1, binary=2))
-        #
-        # self.kw_database.main.append(keywords.DatabaseMatsum(dt=0.1, binary=2))
-
-        # frequency of full results
-        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
-
-        # self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
-
-        # add binout for post-process
-        settings = copy.deepcopy(self.settings.stress_free)
-        settings._remove_units()
-
-        self.kw_database.main.append(
-            keywords.DatabaseNodout(dt=settings.analysis.dt_nodout, binary=2)
-        )
-
-        # write for all nodes in nodout
-        nodeset_id = self.get_unique_nodeset_id()
-        kw = keywords.SetNodeGeneral(option="ALL", sid=nodeset_id)
-        self.kw_database.main.append(kw)
-
-        kw = keywords.DatabaseHistoryNodeSet(id1=nodeset_id)
-        self.kw_database.main.append(kw)
-
-        return
-
-    def _add_solution_controls(self):
-        """Rewrite method for the zerop simulation."""
-        settings = copy.deepcopy(self.settings.stress_free)
-        settings._remove_units()
-
-        self.kw_database.main.append(keywords.ControlTermination(endtim=settings.analysis.end_time))
-
-        self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
-
-        # add auto step controls
-        self.kw_database.main.append(
-            keywords.ControlImplicitAuto(
-                iauto=1, dtmin=settings.analysis.dtmin, dtmax=settings.analysis.dtmax
-            )
-        )
-
-        # add general implicit controls
-        self.kw_database.main.append(
-            keywords.ControlImplicitGeneral(imflag=1, dt0=settings.analysis.dtmax)
-        )
-
-        # add implicit solution controls
-        self.kw_database.main.append(
-            keywords.ControlImplicitSolution(
-                # maxref=35,
-                dctol=0.01,
-                ectol=1e6,
-                rctol=1e3,
-                abstol=1e-20,
-                dnorm=1,
-                diverg=2,
-                # lsmtd=5,
-            )
-        )
-
-        # add implicit solver controls
-        self.kw_database.main.append(custom_keywords.ControlImplicitSolver(autospc=2))
-
-        # accuracy control
-        self.kw_database.main.append(keywords.ControlAccuracy(osu=1, inn=4, iacc=1))
-
-        return
-
-    def _add_control_reference_configuration(self):
-        """Add control reference configuration keyword to main."""
-        LOGGER.debug("Adding *CONTROL_REFERENCE_CONFIGURATION to main.k")
-        settings = self.settings.stress_free.analysis
-        kw = keywords.ControlReferenceConfiguration(
-            maxiter=settings.max_iters,
-            target="nodes.k",
-            method=settings.method,
-            tol=settings.tolerance,
-        )
-
-        self.kw_database.main.append(kw)
 
         return
 

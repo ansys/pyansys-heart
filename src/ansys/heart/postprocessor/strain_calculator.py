@@ -27,9 +27,11 @@ import pathlib
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 import numpy as np
+import pyvista as pv
 
 from ansys.heart.core.helpers.landmark_utils import compute_aha17, compute_element_cs
-from ansys.heart.core.models import HeartModel
+from ansys.heart.core.helpers.vtk_utils import find_corresponding_points, generate_thickness_lines
+from ansys.heart.core.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.heart.postprocessor.dpf_utils import D3plotReader
 
 
@@ -53,6 +55,100 @@ class AhaStrainCalculator:
         self._aha_elements = np.where(~np.isnan(self.aha_labels))[0]
 
         self.d3plot = D3plotReader(d3plot_file)
+
+    def _compute_thickness_lines(self, time_array: np.ndarray | list = None) -> list[pv.PolyData]:
+        """Compute ventricular myocardium thickness.
+
+        Parameters
+        ----------
+        time_array : np.ndarray | list, optional
+           time array to export, by default d3plot time
+
+        Returns
+        -------
+        list[pv.PolyData]
+            Polydata that has lines from nodes on the endocardium to nodes on the epicardium
+
+        Notes
+        -----
+        Endocardium surfaces are supposed to be smooth
+        Artifact may occur on base (close to valves) region
+        """
+        if time_array is None:
+            time_array = self.d3plot.time
+
+        surface_endo = self.model.left_ventricle.endocardium.copy()
+
+        if isinstance(self.model, LeftVentricle):
+            surface_epi = self.model.left_ventricle.epicardium.copy()
+        elif isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
+            # need to patch septum_endocardium surface on epicardium
+            for surface in self.model.right_ventricle.surfaces:
+                if "endocardium" in surface.name and "septum" in surface.name:
+                    sept_endo = surface
+                    break
+            surface_epi = sept_endo.copy() + self.model.left_ventricle.epicardium.copy()
+
+        lines_list = self._compute_thickness(time_array, surface_endo, surface_epi)
+
+        # labeled as 1 for left ventricle
+        for lines in lines_list:
+            lines.cell_data["label"] = np.ones(lines.GetNumberOfCells())
+
+        if isinstance(self.model, LeftVentricle):
+            return lines_list
+
+        elif isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
+            # continue for right ventricle
+            surface_endo = self.model.right_ventricle.endocardium.copy()
+            surface_epi = self.model.right_ventricle.epicardium.copy()
+            line_list2 = self._compute_thickness(time_array, surface_endo, surface_epi)
+
+            # labeled as 2 for right ventricle
+            for lines in line_list2:
+                lines.cell_data["label"] = np.ones(lines.GetNumberOfCells()) * 2
+
+            # merge polydata
+            for i in range(len(lines_list)):
+                lines_list[i] += line_list2[i]
+
+            return lines_list
+
+    def _compute_thickness(
+        self, time_array: np.ndarray, surface_endo: pv.PolyData, surface_epi: pv.PolyData
+    ) -> list[pv.PolyData]:
+        """Compute thickness lines from endocardium to epicardium.
+
+        Parameters
+        ----------
+        time_array : _type_
+            time array to export
+        surface_endo : pv.PolyData]
+            endocardium surface
+        surface_epi : pv.PolyData]
+            epicardium surface
+
+        Returns
+        -------
+        list[pv.PolyData]
+            thickness lines
+        """
+        res = []
+        # assumes that corresponding points don't change in time
+        pair = find_corresponding_points(surface_endo, surface_epi)
+        for t in time_array:
+            coordinates = (
+                self.d3plot.model.results.coordinates.on_time_scoping(float(t)).eval()[0].data
+            )
+            # update surface coordinates
+            surface_endo.points = coordinates[surface_endo["_global-point-ids"]]
+            surface_epi.points = coordinates[surface_epi["_global-point-ids"]]
+
+            thickness_lines = generate_thickness_lines(surface_endo, surface_epi, pair)
+            thickness_lines.field_data["time"] = t
+
+            res.append(thickness_lines)
+        return res
 
     def compute_aha_strain(
         self, out_dir: str = None, write_vtk: bool = False, t_to_keep: float = 10e10

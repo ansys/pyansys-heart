@@ -58,7 +58,7 @@ jobs:
 
   doc-build:
     name: "Build documentation"
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, pyhealth]
     needs: [doc-style]
     steps:
       - uses: ansys/actions/doc-build@v8

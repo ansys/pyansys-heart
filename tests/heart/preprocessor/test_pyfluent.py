@@ -29,6 +29,7 @@ import ansys.fluent.core as pyfluent
 # marks all tests with the 'requires_fluent' tag after this line
 pytestmark = pytest.mark.requires_fluent
 
+
 def test_launch_fluent():
     """Launch pyfluent in meshing mode and check health."""
     try:

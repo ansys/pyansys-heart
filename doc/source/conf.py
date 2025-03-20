@@ -46,7 +46,6 @@ extensions = [
     "numpydoc",
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
-    "autoapi.extension",
     "sphinx_autodoc_typehints",
     "sphinx_gallery.gen_gallery",
     "sphinxcontrib.video",
@@ -110,26 +109,6 @@ source_suffix = ".rst"
 
 # The master toctree document.
 master_doc = "index"
-
-## Configuration for Sphinx autoapi ##
-# ---------------------------------- #
-autoapi_type = "python"
-autoapi_ignore = [
-    # the following files in writer are not exposed
-    "*custom_dynalib_keywords*",
-    "*system_models.py",
-    "*define_function_strings.py",
-    "*heart_decks.py",
-    "*keyword_module.py",
-    "*material_keywords.py",
-]
-# autoapi_dirs = [
-#     "../../src/ansys/heart/preprocessor",
-#     "../../src/ansys/heart/simulator",
-#     "../../src/ansys/heart/postprocessor",
-# ]
-suppress_warnings = ["autoapi.python_import_resolution", "autosectionlabel.*", "config.cache"]
-autoapi_python_use_implicit_namespaces = True
 
 typehints_defaults = "comma"
 simplify_optional_unions = False

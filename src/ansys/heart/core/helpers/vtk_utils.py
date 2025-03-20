@@ -491,14 +491,14 @@ def find_corresponding_points(
         else:
             corresp_points.append(None)  # fill None for no corresponding point
 
-    return np.vstack((range(0, master_surface.GetNumberOfPoints()), corresp_points))
+    return np.vstack((range(0, master_surface.n_points), corresp_points))
 
 
 def generate_thickness_lines(
     surface1: pv.PolyData, surface2: pv.PolyData, corresponding_points: np.ndarray = None
 ) -> pv.PolyData:
     """
-    Generate a polydata that contains two-nodes lines from surface1 to surface2.
+    Generate lines from points on surface 1 to corresponding points on surface 2.
 
     Parameters
     ----------
@@ -512,8 +512,7 @@ def generate_thickness_lines(
     Returns
     -------
     pv.PolyData
-        it contains cell data named
-        'thickenss'.
+        it contains cell data named 'thickenss'.
     """
     if corresponding_points is None:
         corresponding_points = find_corresponding_points(surface1, surface2)
@@ -524,7 +523,8 @@ def generate_thickness_lines(
     idx = 0
 
     for i in range(corresponding_points.shape[1]):
-        if corresponding_points[1, i] is not None:  # make sure pari exist
+        if corresponding_points[1, i] is not None:
+            # make sure point pair exist
             p1 = surface1.points[corresponding_points[0, i]]
             p2 = surface2.points[corresponding_points[1, i]]
             points.append(p1)

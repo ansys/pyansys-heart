@@ -16,7 +16,6 @@ env:
   MAIN_PYTHON_VERSION: "3.11"
   AWP_ROOT241: "C:\\Program Files\\ANSYS Inc\\v241"
   ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
-  PYFLUENT_WATCHDOG_EXCEPTION_ON_ERROR: "1"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -48,24 +47,24 @@ jobs:
           .venv\Scripts\Activate.ps1
           python -m pip install .[tests]
 
-      - name: Test fluent launching
+      # - name: Test fluent launching
+      #   continue-on-error: false
+      #   run: |
+      #     .venv\Scripts\Activate.ps1
+      #     python -m pytest -v -m "test_launch_fluent_only"
+
+      # run all tests requiring Fluent (these are very slow compared to the previous tests)
+      - name: Run all tests requiring (Py)Fluent
         continue-on-error: false
         run: |
           .venv\Scripts\Activate.ps1
-          python -m pytest -v -m "test_launch_fluent_only"
+          python -m pytest -v -m "requires_fluent"
 
-      # # run all tests requiring Fluent (these are very slow compared to the previous tests)
-      # - name: Run all tests requiring (Py)Fluent
-      #   continue-on-error: false
-      #   run: |
-      #     .venv\Scripts\Activate.ps1
-      #     python -m pytest -v -m "requires_fluent"
-
-      # # These tests will reuse an existing mesh and skip the step where the entire model
-      # # is remeshed.
-      # - name: Test model generation
-      #   continue-on-error: false
-      #   run: |
-      #     .venv\Scripts\Activate.ps1
-      #     python -m pytest -v -m "extract_models and not requires_fluent and not k_file_writer"
-      #     python -m pytest -v -m "k_file_writer"
+      # These tests will reuse an existing mesh and skip the step where the entire model
+      # is remeshed.
+      - name: Test model generation
+        continue-on-error: false
+        run: |
+          .venv\Scripts\Activate.ps1
+          python -m pytest -v -m "extract_models and not requires_fluent and not k_file_writer"
+          python -m pytest -v -m "k_file_writer"

@@ -27,7 +27,7 @@ import pytest
 import ansys.fluent.core as pyfluent
 
 # marks all tests with the 'requires_fluent' tag after this line
-pytestmark = pytest.mark.requires_fluent
+pytestmark = [pytest.mark.requires_fluent, pytest.mark.test_launch_fluent_only]
 
 
 def test_launch_fluent():

@@ -432,7 +432,7 @@ def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii") -> Non
     return
 
 
-def _get_point_ids_inside_surface(points: pv.PolyData, surface: pv.PolyData) -> pv.PolyData:
+def _get_point_ids_inside_surface(points: pv.PolyData, surface: pv.PolyData) -> np.ndarray:
     """Get points inside a closed surface using an implicit function.
 
     Parameters
@@ -444,8 +444,8 @@ def _get_point_ids_inside_surface(points: pv.PolyData, surface: pv.PolyData) -> 
 
     Returns
     -------
-    pv.PolyData
-        Points inside the given surface.
+    np.ndarray
+        Point ids inside the given surface.
 
     Notes
     -----

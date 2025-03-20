@@ -47,12 +47,6 @@ jobs:
           .venv\Scripts\Activate.ps1
           python -m pip install .[tests]
 
-      # - name: Test fluent launching
-      #   continue-on-error: false
-      #   run: |
-      #     .venv\Scripts\Activate.ps1
-      #     python -m pytest -v -m "test_launch_fluent_only"
-
       # run all tests requiring Fluent (these are very slow compared to the previous tests)
       - name: Run all tests requiring (Py)Fluent
         continue-on-error: false

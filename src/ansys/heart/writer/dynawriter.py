@@ -3360,7 +3360,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         # write beam nodes
         # Note: the last beam_network saves all beam nodes
-        new_nodes = self.model.beam_network[-1]._all_beam_nodes
+        new_nodes = self.model.conduction_system.points[(np.where(np.logical_not(self.model.conduction_system["_is-connected"]))[0])]
         ids = (
             np.linspace(
                 len(self.model.mesh.points),

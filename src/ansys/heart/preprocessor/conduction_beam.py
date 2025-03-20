@@ -178,7 +178,7 @@ class ConductionSystem:
             sino_atrial_id_local, atrio_ventricular_id_local
         )
         beam_nodes = path_sinoatrial_atrioventricular.points
-
+        # beam_nodes = right_atrium_endo.points[path_sinoatrial_atrioventricular["vtkOriginalPointIds"]]
         beam_nodes = _refine_line(beam_nodes, beam_length=beam_length)[1:, :]
 
         # duplicate nodes inside the line, connect only SA node (the first) with 3D
@@ -264,6 +264,7 @@ class ConductionSystem:
         new_nodes = self.m.mesh.points[nodes]
         new_nodes = _refine_line(new_nodes, beam_length=beam_length)
         # usage of new class ------------
+        new_nodes[0] = self.m.conduction_system.get_lines(3).points[-1]
         beamnet = pv.lines_from_points(new_nodes)
         id = self.m.conduction_system.get_unique_lines_id()
         self.m.conduction_system.add_lines(lines=beamnet, id=id, name="his_bundle_segment")
@@ -338,10 +339,12 @@ class ConductionSystem:
             beam_net,
             Point(
                 xyz=his_end_left_coord,
+                # xyz=new_nodes_left[-1],
                 node_id=beam_net.edges[position_id_his_end_left[0], position_id_his_end_left[1]],
             ),
             Point(
                 xyz=his_end_right_coord,
+                # xyz=new_nodes_right[-1],
                 node_id=beam_net.edges[position_id_his_end_right[0], position_id_his_end_right[1]],
             ),
         )
@@ -465,14 +468,16 @@ class ConductionSystem:
         )
         position_id_his_end = np.argwhere(edges == side_his_point_ids[-1])[0]
 
-        return (position_id_his_end, his_end_coord, side_his, edges, sgmt)
+        return (position_id_his_end, side_his[-1], side_his, edges, sgmt)
 
     def compute_left_right_bundle(self, start_coord, start_id, side: str, beam_length: float = 1.5):
         """Bundle branch."""
         if side == "Left":
+            end_coord = self.m.conduction_system.get_lines(1).points[0]
             ventricle = self.m.left_ventricle
             endo_surface = self.m.mesh.get_surface(self.m.left_ventricle.endocardium.id)
         elif side == "Right":
+            end_coord = self.m.conduction_system.get_lines(2).points[0]
             ventricle = self.m.right_ventricle
             surface_ids = [ventricle.endocardium.id, ventricle.septum.id]
             endo_surface = self.m.mesh.get_surface(surface_ids)
@@ -484,6 +489,7 @@ class ConductionSystem:
         )
 
         new_nodes = bundle_branch.points
+        # new_nodes = endo_surface.points[bundle_branch["vtkOriginalPointIds"]]
         new_nodes = _refine_line(new_nodes, beam_length=beam_length)
         # exclude first and last (apex) node which belongs to purkinje beam
         new_nodes = new_nodes[1:-1, :]
@@ -507,7 +513,8 @@ class ConductionSystem:
         beam_net.beam_nodes_mask[-1, -1] = True
 
         # usage of new class ------------
-        beamnet = pv.lines_from_points(bundle_branch.points)
+        new_points = np.vstack((start_coord,bundle_branch.points[1:-1],end_coord))
+        beamnet = pv.lines_from_points(new_points)
         id = self.m.conduction_system.get_unique_lines_id()
         self.m.conduction_system.add_lines(lines=beamnet, id=id, name=side + " bundle branch")
         # usage of new class ------------

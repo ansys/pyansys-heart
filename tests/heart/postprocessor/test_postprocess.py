@@ -58,7 +58,7 @@ def test_compute_thickness(get_data):
     d3plot = os.path.join(os.path.join(test_dir, "main", "d3plot"))
 
     s = AhaStrainCalculator(model, d3plot)
-    lines = s.compute_thickness_lines()
+    lines = s._compute_thickness_lines()
     assert len(lines) == 2
     assert lines[0]["time"] == 0
     assert lines[0]["label"][0] == 1

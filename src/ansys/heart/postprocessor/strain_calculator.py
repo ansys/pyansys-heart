@@ -56,7 +56,7 @@ class AhaStrainCalculator:
 
         self.d3plot = D3plotReader(d3plot_file)
 
-    def compute_thickness_lines(self, time_array: np.ndarray | list = None) -> list[pv.PolyData]:
+    def _compute_thickness_lines(self, time_array: np.ndarray | list = None) -> list[pv.PolyData]:
         """Compute ventricular myocardium thickness.
 
         Parameters
@@ -67,7 +67,7 @@ class AhaStrainCalculator:
         Returns
         -------
         list[pv.PolyData]
-        Polydata of two-nodes lines from endocardium to epicardium
+            Polydata that has lines from nodes on the endocardium to nodes on the epicardium
 
         Notes
         -----
@@ -134,7 +134,7 @@ class AhaStrainCalculator:
             thickness lines
         """
         res = []
-        # corresponding points are not varying in time
+        # assumes that corresponding points don't change in time
         pair = find_corresponding_points(surface_endo, surface_epi)
         for t in time_array:
             coordinates = (

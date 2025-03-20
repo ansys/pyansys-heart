@@ -35,6 +35,7 @@ from ansys.heart.core.helpers.vtk_utils import (
 
 
 def test_find_corresponding_points():
+    """Test correspoing points searching."""
     sphere1 = pv.Sphere(radius=1, center=(0, 0, 0))
     sphere2 = pv.Sphere(radius=1.2, center=(0, 0, 0))
     res = find_corresponding_points(sphere1, sphere2)
@@ -44,6 +45,7 @@ def test_find_corresponding_points():
 
 
 def test_generate_thickness_lines():
+    """Test thcikness lines generation."""
     sphere1 = pv.Sphere(radius=1, center=(0, 0, 0))
     sphere2 = pv.Sphere(radius=1.2, center=(0, 0, 0))
     lines = generate_thickness_lines(sphere1, sphere2)

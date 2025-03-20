@@ -364,7 +364,7 @@ class BaseSimulator:
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
-        dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, **kwargs)
+        dyna_writer = writers.LaplaceWriter(copy.deepcopy(self.model), type, **kwargs)
 
         dyna_writer.update()
         dyna_writer.export(export_directory)

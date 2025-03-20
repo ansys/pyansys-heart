@@ -40,7 +40,7 @@ def test_launch_fluent():
             mode="meshing",
             precision="double",
             processor_count=1,
-            start_transcript=True,
+            start_transcript=False,
             ui_mode="no_gui",
         )
         assert session._fluent_connection.check_health() == "SERVING"

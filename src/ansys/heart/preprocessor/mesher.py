@@ -86,11 +86,12 @@ def _get_supported_fluent_version():
 
     for version in _supported_fluent_versions:
         try:
-            pyfluent.launch_fluent(product_version=version, dry_run=True)
+            session = pyfluent.launch_fluent(product_version=version, dry_run=True)
             LOGGER.info(
                 f"Found Fluent {version} as latest compatible "
                 + f"version from supported versions: {_supported_fluent_versions}."
             )
+            session.exit()
             return version
         except Exception:
             pass

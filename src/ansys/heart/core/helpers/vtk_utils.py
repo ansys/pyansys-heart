@@ -454,7 +454,7 @@ def find_corresponding_points(
 
     Notes
     -----
-    Using normal ray trace method.
+    Uses ray tracing.
     The two surfaces are assumed to be close and nearly parallel.
     As a result, the correspondence is not one-to-one—some points may
     have no corresponding match, while others may share the same

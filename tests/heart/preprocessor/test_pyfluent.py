@@ -25,13 +25,9 @@
 import pytest
 
 import ansys.fluent.core as pyfluent
-from ansys.fluent.core.launcher.error_handler import LaunchFluentError
 
 # marks all tests with the 'requires_fluent' tag after this line
 pytestmark = pytest.mark.requires_fluent
-
-pyfluent.set_console_logging_level("DEBUG")
-
 
 def test_launch_fluent():
     """Launch pyfluent in meshing mode and check health."""
@@ -50,6 +46,5 @@ def test_launch_fluent():
         )
         session.exit()
         assert True
-    except (Exception, LaunchFluentError) as e:
-        print(f"exception: {e}")
+    except Exception:
         assert False, "Failed to launch pyfluent in meshing mode."

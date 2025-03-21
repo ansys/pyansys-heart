@@ -66,8 +66,6 @@ try:
     import ansys.fluent.core as pyfluent
     from ansys.fluent.core.session_meshing import Meshing as MeshingSession
 
-    pyfluent.set_console_logging_level("DEBUG")
-    pyfluent.FLUENT_AUTOMATIC_TRANSCRIPT = True
 except ImportError:
     LOGGER.info(
         "Failed to import PyFluent. Please install PyFluent with `pip install ansys-fluent-core`."

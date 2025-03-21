@@ -31,20 +31,12 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.MAIN_PYTHON_VERSION }}
+      - name: Set up uv with Python
+        uses: astral-sh/setup-uv@v5
 
-      - name: Create a virtual environment and use for subsequent steps
+      - name: Create a virtual environment and install dependencies
         run: |
-          python -m venv .venv
-          .venv\Scripts\Activate.ps1
-          python -m pip install -U pip
-
-      - name: Install package and dependencies
-        run: |
-          .venv\Scripts\Activate.ps1
+          uv venv .venv --seed --python=${{ env.MAIN_PYTHON_VERSION }}
           python -m pip install .[tests]
 
       # run all tests requiring Fluent (these are very slow compared to the previous tests)

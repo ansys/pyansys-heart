@@ -113,6 +113,8 @@ sphinx_gallery_conf = {
 
 # Configuration for Sphinx autoapi
 # -----------------------------------------------------------------------------
+
+# TODO (pyansys-health-team): drop implicit namespaces after renaming files
 autoapi_python_use_implicit_namespaces = True
 autoapi_ignore = [
     # Private modules
@@ -124,7 +126,6 @@ autoapi_ignore = [
     "*material_keywords.py",
 ]
 suppress_warnings = ["autoapi.python_import_resolution", "autosectionlabel.*", "config.cache"]
-autoapi_python_use_implicit_namespaces = True
 
 # Configuration for Sphinx Autodoc Typehints
 # -----------------------------------------------------------------------------

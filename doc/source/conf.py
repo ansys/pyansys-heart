@@ -125,7 +125,7 @@ autoapi_ignore = [
     "*keyword_module.py",
     "*material_keywords.py",
 ]
-suppress_warnings = ["autoapi.python_import_resolution", "autosectionlabel.*", "config.cache"]
+suppress_warnings = ["autoapi.python_import_resolution", "autosectionlabel.*", "config.cache", "design.fa-build",]
 
 # Configuration for Sphinx Autodoc Typehints
 # -----------------------------------------------------------------------------
@@ -143,6 +143,3 @@ jinja_contexts = {
 }
 
 
-# Configuration for Sphinx Design
-# -----------------------------------------------------------------------------
-sd_fontawesome_latex = True

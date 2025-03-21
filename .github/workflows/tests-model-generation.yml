@@ -37,7 +37,7 @@ jobs:
       - name: Create a virtual environment and install dependencies
         run: |
           uv venv .venv --seed --python=${{ env.MAIN_PYTHON_VERSION }}
-          python -m pip install .[tests]
+          uv pip install .[tests]
 
       # run all tests requiring Fluent (these are very slow compared to the previous tests)
       - name: Run all tests requiring (Py)Fluent

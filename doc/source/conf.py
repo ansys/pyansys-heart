@@ -110,6 +110,18 @@ source_suffix = ".rst"
 # The master toctree document.
 master_doc = "index"
 
+## Configuration for Sphinx autoapi ##
+# ---------------------------------- #
+autoapi_ignore = [
+    # the following files in writer are not exposed
+    "*custom_dynalib_keywords*",
+    "*system_models.py",
+    "*define_function_strings.py",
+    "*heart_decks.py",
+    "*keyword_module.py",
+    "*material_keywords.py",
+]
+
 typehints_defaults = "comma"
 simplify_optional_unions = False
 

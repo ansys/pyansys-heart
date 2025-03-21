@@ -1072,6 +1072,8 @@ class _BeamsMesh(Mesh):
 
         self._line_id_to_name: dict = {}
         """line id to name map."""
+        self.ep_material: dict = {}
+        """Ep material map."""
         pass
 
     def _get_submesh(
@@ -1167,9 +1169,23 @@ class _BeamsMesh(Mesh):
         self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan)
         if name:
             self._line_id_to_name[id] = name
+            self.ep_material[id] = EPMaterial.DummyMaterial()
         return self_copy
 
+    def get_lines_by_name(self, name: str) -> pv.PolyData:
+        # ?: Return SurfaceMesh instead of PolyData?
+        """Get the lines associated with `name`."""
+        if name not in list(self._line_id_to_name.keys()):
+            LOGGER.error(f"No lines associated with {name}")
+            return None
+        line_id = self._line_id_to_name[name]
+        return self.get_lines(line_id)
 
+    def get_lines(self, sid: int) -> pv.PolyData:
+        """Get lines as a PolyData object."""
+        return self._get_submesh(sid, scalar="_line-id").extract_surface()
+    
+    
 class PartType(Enum):
     """Stores valid part types."""
 

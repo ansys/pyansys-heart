@@ -267,7 +267,7 @@ class ConductionSystem:
         new_nodes[0] = self.m.conduction_system.get_lines(3).points[-1]
         beamnet = pv.lines_from_points(new_nodes)
         id = self.m.conduction_system.get_unique_lines_id()
-        self.m.conduction_system.add_lines(lines=beamnet, id=id, name="his_bundle_segment")
+        self.m.conduction_system.add_lines(lines=beamnet, id=id, name="His")
         # usage of new class ------------
         new_nodes = new_nodes[1:, :]
 
@@ -296,7 +296,7 @@ class ConductionSystem:
         )
         # usage of new class ------------
         beamnet = pv.lines_from_points(new_nodes_left)
-        self.m.conduction_system.add_lines(lines=beamnet, id=id, name="his_bundle_segment")
+        self.m.conduction_system.add_lines(lines=beamnet, id=id, name="His")
         # usage of new class ------------
         new_nodes = np.vstack((new_nodes, new_nodes_left[1:, :]))
         (
@@ -314,7 +314,7 @@ class ConductionSystem:
         )
         # usage of new class ------------
         beamnet = pv.lines_from_points(new_nodes_right)
-        self.m.conduction_system.add_lines(lines=beamnet, id=id, name="his_bundle_segment")
+        self.m.conduction_system.add_lines(lines=beamnet, id=id, name="His")
         # usage of new class ------------
         new_nodes = np.vstack((new_nodes, new_nodes_right[1:, :]))
         # finally

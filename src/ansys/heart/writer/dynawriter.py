@@ -3384,53 +3384,53 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         default_epmat.beta = material_settings.beam["beta"].m
         default_epmat.cm = material_settings.beam["cm"].m
         default_epmat.pmjres = material_settings.beam["pmjres"].m
-
-        for network in self.model.beam_network:
-            # pid is previously defined from purkinje generation step
-            # but needs to reassign part ID here
-            # to make sure no conflict with 4C/full heart case.
-            if isinstance(network.ep_material, EPMaterial.DummyMaterial):
-                network.ep_material = default_epmat
-            network.pid = self.get_unique_part_id()
-
-            if network.name == "Left-purkinje":
-                network._node_set_id = self.model.left_ventricle.endocardium._seg_set_id
-            elif network.name == "Right-purkinje":
-                network._node_set_id = self.model.right_ventricle.endocardium._seg_set_id
-            elif network.name == "SAN_to_AVN":
-                network._node_set_id = self.model.right_atrium.endocardium._seg_set_id
-            elif network.name == "Left bundle branch":
-                network._node_set_id = self.model.left_ventricle.cavity.surface._seg_set_id
-            elif network.name == "Right bundle branch":
-                network._node_set_id = self.model.right_ventricle.cavity.surface._seg_set_id
-            elif network.name == "His":
+        beam_point_offset_id = 0
+        self.model.conduction_system.point_data["_written-id"] = np.zeros(self.model.conduction_system.number_of_points,dtype=int)-1
+        # new for loop
+        for netid in self.model.conduction_system._line_id_to_name:
+            if isinstance(self.model.conduction_system.ep_material[netid], EPMaterial.DummyMaterial):
+                epmat = default_epmat
+            else:
+                epmat = self.model.conduction_system.ep_material[netid]
+            pid = self.get_unique_part_id()
+            name = self.model.conduction_system._line_id_to_name[netid]
+            if name == "Left-purkinje":
+                _node_set_id = self.model.left_ventricle.endocardium._seg_set_id
+            elif name == "Right-purkinje":
+                _node_set_id = self.model.right_ventricle.endocardium._seg_set_id
+            elif name == "SAN_to_AVN":
+                _node_set_id = self.model.right_atrium.endocardium._seg_set_id
+            elif name == "Left bundle branch":
+                _node_set_id = self.model.left_ventricle.cavity.surface._seg_set_id
+            elif name == "Right bundle branch":
+                _node_set_id = self.model.right_ventricle.cavity.surface._seg_set_id
+            elif name == "His":
                 # His bundle are inside of 3d mesh
                 # need to create the segment on which beam elements rely
                 surface = self._add_segment_from_surface(name="his_bundle_segment")
-                network._node_set_id = surface._seg_set_id
-            elif network.name == "Bachman bundle":
+                _node_set_id = surface._seg_set_id
+            elif name == "Bachman bundle":
                 # His bundle are inside of 3d mesh
                 # need to create the segment on which beam elements rely
                 surface = self._add_segment_from_surface(name="Bachman segment")
-                network._node_set_id = surface._seg_set_id
+                _node_set_id = surface._seg_set_id
             else:
-                LOGGER.error(f"Unknown network name for {network.name}.")
+                LOGGER.error(f"Unknown network name for {name}.")
                 exit()
 
             # overwrite nsid if beam should not follow the motion of segment
             if not associate_to_segment:
-                network._node_set_id = -1
+                _node_set_id = -1
 
             # write
-            self.kw_database.beam_networks.append(f"$$ {network.name} $$")
-
-            origin_coordinates = network.nodes[network.edges[0, 0]]
+            self.kw_database.beam_networks.append(f"$$ {name} $$")
+            origin_coordinates = self.model.conduction_system.get_lines(netid).points[0]
             self.kw_database.beam_networks.append(
                 custom_keywords.EmEpPurkinjeNetwork2(
-                    purkid=network.pid,
+                    purkid=pid,
                     buildnet=0,
-                    ssid=network._node_set_id,
-                    mid=network.pid,
+                    ssid=_node_set_id,
+                    mid=pid,
                     pointstx=origin_coordinates[0],
                     pointsty=origin_coordinates[1],
                     pointstz=origin_coordinates[2],
@@ -3441,39 +3441,70 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     pmjtype=self.settings.purkinje.pmjtype.m,
                     pmjradius=self.settings.purkinje.pmjradius.m,
                     pmjrestype=self.settings.electrophysiology.material.beam["pmjrestype"].m,
-                    pmjres=network.ep_material.pmjres,
+                    pmjres=epmat.pmjres,
                 )
             )
 
             part_df = pd.DataFrame(
                 {
-                    "heading": [network.name],
-                    "pid": [network.pid],
+                    "heading": [name],
+                    "pid": [pid],
                     "secid": [sid],
-                    "mid": [network.pid],
+                    "mid": [pid],
                 }
             )
             part_kw = keywords.Part()
             part_kw.parts = part_df
             self.kw_database.beam_networks.append(part_kw)
-            self.kw_database.beam_networks.append(keywords.MatNull(mid=network.pid, ro=1e-11))
+            self.kw_database.beam_networks.append(keywords.MatNull(mid=pid, ro=1e-11))
 
-            kw = self._get_ep_material_kw(network.pid, network.ep_material)
+            kw = self._get_ep_material_kw(pid, epmat)
             self.kw_database.beam_networks.append(kw)
 
             # cell model
             self._add_cell_model_keyword(
-                matid=network.pid, cellmodel=network.ep_material.cell_model
+                matid=pid, cellmodel=epmat.cell_model
             )
-            # mesh
+            
+            # Build connectivity
+            # get edges in a 2 column format
+            edges = self.model.conduction_system.get_lines(netid).lines.reshape((int(len(self.model.conduction_system.get_lines(netid).lines)/3), 3))[:,1:]
+
+            # get info on points to be connected to solid and their coordinates
+            connected_point_ids = np.where(self.model.conduction_system.get_lines(netid)["_is-connected"])[0]
+            mask_nonconnected = np.logical_not(self.model.conduction_system.get_lines(netid)["_is-connected"])
+            connected_points = self.model.conduction_system.get_lines(netid).points[connected_point_ids]
+            
+            # got ids in solid mesh of connected points
+            kdtree = spatial.cKDTree(self.model.mesh.points)
+            _, solid_connected_point_ids = kdtree.query(connected_points)
+            
+            # compute writer point ids depending on preivously written and connections to solid 
+            point_ids_to_write = np.zeros(self.model.conduction_system.get_lines(netid).number_of_points,dtype=int)
+            point_ids_to_write[connected_point_ids] = solid_connected_point_ids
+            mask_already_written = self.model.conduction_system.get_lines(netid)["_written-id"]>=0
+            point_ids_to_write[mask_already_written] = self.model.conduction_system.get_lines(netid)["_written-id"][mask_already_written]
+            mask_notconnected_notwritten = np.logical_and(mask_nonconnected,np.logical_not(mask_already_written))
+            point_ids_to_write[mask_notconnected_notwritten] = np.linspace(0,np.sum(mask_notconnected_notwritten)-1,np.sum(mask_notconnected_notwritten),dtype=int) + self.model.mesh.number_of_points + beam_point_offset_id 
+            
+            # replace point id values in edges
+            edges = np.vectorize(lambda idvalue: point_ids_to_write[idvalue])(edges)
+
+            # write mesh
             beams_kw = keywords.ElementBeam()
             beams_kw = add_beams_to_kw(
-                beams=network.edges + 1,
+                beams=edges + 1,
                 beam_kw=beams_kw,
-                pid=network.pid,
+                pid=pid,
                 offset=beam_elem_id_offset,
             )
-            beam_elem_id_offset += len(network.edges)
+            # offset beam element id
+            beam_elem_id_offset += len(edges)
+            # offset beam point id
+            beam_point_offset_id += self.model.conduction_system.get_lines(netid).number_of_points - len(connected_point_ids) - np.sum(mask_already_written)
+            # populate the already written ids variable for other beam networks
+            point_ids_in_conductionsystem = self.model.conduction_system.get_lines(netid)["_global-point-ids"]
+            self.model.conduction_system["_written-id"][point_ids_in_conductionsystem] = point_ids_to_write
             self.kw_database.beam_networks.append(beams_kw)
 
         self.id_offset["element"]["discrete"] = beam_elem_id_offset

@@ -46,7 +46,6 @@ extensions = [
     "numpydoc",
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
-    "autoapi.extension",
     "sphinx_autodoc_typehints",
     "sphinx_gallery.gen_gallery",
     "sphinxcontrib.video",
@@ -55,46 +54,6 @@ extensions = [
     "sphinx.ext.autodoc",
     "ansys_sphinx_theme.extension.autoapi",
 ]
-
-sphinx_gallery_conf = {
-    "examples_dirs": "../../examples",  # path to your example scripts
-    "gallery_dirs": "examples",  # path where the gallery generated outputs are to be saved
-}
-
-# Intersphinx mapping
-intersphinx_mapping = {
-    "python": ("https://docs.python.org/dev", None),
-    # kept here as an example
-    # "scipy": ("https://docs.scipy.org/doc/scipy/reference", None),
-    # "numpy": ("https://numpy.org/devdocs", None),
-    # "matplotlib": ("https://matplotlib.org/stable", None),
-    # "pandas": ("https://pandas.pydata.org/pandas-docs/stable", None),
-    # "pyvista": ("https://docs.pyvista.org/", None),
-    # "grpc": ("https://grpc.github.io/grpc/python/", None),
-}
-
-# numpydoc configuration
-numpydoc_show_class_members = False
-numpydoc_xref_param_type = True
-
-# Consider enabling numpydoc validation. See:
-# https://numpydoc.readthedocs.io/en/latest/validation.html#
-numpydoc_validate = True
-numpydoc_validation_checks = {
-    "GL06",  # Found unknown section
-    "GL07",  # Sections are in the wrong order.
-    # "GL08",  # The object does not have a docstring
-    "GL09",  # Deprecation warning should precede extended summary
-    "GL10",  # reST directives {directives} must be followed by two colons
-    "SS01",  # No summary found
-    "SS02",  # Summary does not start with a capital letter
-    # "SS03",  # Summary does not end with a period
-    "SS04",  # Summary contains heading whitespaces
-    # "SS05",  # Summary must start with infinitive verb, not third person
-    "RT02",  # The first line of the Returns section should contain only the
-    # type, unless multiple values are being returned"
-}
-
 
 # static path
 html_static_path = ["_static"]
@@ -111,11 +70,54 @@ source_suffix = ".rst"
 # The master toctree document.
 master_doc = "index"
 
-## Configuration for Sphinx autoapi ##
-# ---------------------------------- #
-autoapi_type = "python"
+# Configuration for InterSphinx
+# -----------------------------------------------------------------------------
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/dev", None),
+    # kept here as an example
+    # "scipy": ("https://docs.scipy.org/doc/scipy/reference", None),
+    # "numpy": ("https://numpy.org/devdocs", None),
+    # "matplotlib": ("https://matplotlib.org/stable", None),
+    # "pandas": ("https://pandas.pydata.org/pandas-docs/stable", None),
+    # "pyvista": ("https://docs.pyvista.org/", None),
+    # "grpc": ("https://grpc.github.io/grpc/python/", None),
+}
+
+# Configuration for Numpydoc
+# -----------------------------------------------------------------------------
+numpydoc_validate = True
+numpydoc_xref_param_type = True
+numpydoc_show_class_members = False
+# https://numpydoc.readthedocs.io/en/latest/validation.html
+numpydoc_validation_checks = {
+    "GL06",  # Found unknown section
+    "GL07",  # Sections are in the wrong order.
+    # "GL08",  # The object does not have a docstring
+    "GL09",  # Deprecation warning should precede extended summary
+    "GL10",  # reST directives {directives} must be followed by two colons
+    "SS01",  # No summary found
+    "SS02",  # Summary does not start with a capital letter
+    # "SS03",  # Summary does not end with a period
+    "SS04",  # Summary contains heading whitespaces
+    # "SS05",  # Summary must start with infinitive verb, not third person
+    "RT02",  # The first line of the Returns section should contain only the
+    # type, unless multiple values are being returned"
+}
+
+# Configuration for Sphinx gallery
+# -----------------------------------------------------------------------------
+sphinx_gallery_conf = {
+    "examples_dirs": "../../examples",
+    "gallery_dirs": "examples",
+}
+
+# Configuration for Sphinx autoapi
+# -----------------------------------------------------------------------------
+
+# TODO (pyansys-health-team): drop implicit namespaces after renaming files
+autoapi_python_use_implicit_namespaces = True
 autoapi_ignore = [
-    # the following files in writer are not exposed
+    # Private modules
     "*custom_dynalib_keywords*",
     "*system_models.py",
     "*define_function_strings.py",
@@ -123,17 +125,20 @@ autoapi_ignore = [
     "*keyword_module.py",
     "*material_keywords.py",
 ]
-# autoapi_dirs = [
-#     "../../src/ansys/heart/preprocessor",
-#     "../../src/ansys/heart/simulator",
-#     "../../src/ansys/heart/postprocessor",
-# ]
-suppress_warnings = ["autoapi.python_import_resolution", "autosectionlabel.*", "config.cache"]
-autoapi_python_use_implicit_namespaces = True
+suppress_warnings = [
+    "autoapi.python_import_resolution",
+    "autosectionlabel.*",
+    "config.cache",
+    "design.fa-build",
+]
 
+# Configuration for Sphinx Autodoc Typehints
+# -----------------------------------------------------------------------------
 typehints_defaults = "comma"
 simplify_optional_unions = False
 
+# Configuration for Jinja
+# -----------------------------------------------------------------------------
 jinja_contexts = {
     "toxenvs": {
         "envs": subprocess.run(

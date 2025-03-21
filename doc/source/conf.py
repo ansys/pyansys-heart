@@ -121,6 +121,8 @@ autoapi_ignore = [
     "*keyword_module.py",
     "*material_keywords.py",
 ]
+suppress_warnings = ["autoapi.python_import_resolution", "autosectionlabel.*", "config.cache"]
+autoapi_python_use_implicit_namespaces = True
 
 typehints_defaults = "comma"
 simplify_optional_unions = False

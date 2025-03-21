@@ -35,18 +35,24 @@ goto end
 echo Building LaTeX files...
 %SPHINXBUILD% -M latex %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% %O%
 
-cd "%BUILDDIR%\latex" || exit /b 1
+cd "%BUILDDIR%\latex"
 echo Compiling LaTeX into PDF...
-latexmk -r latexmkrc -pdf *.tex -interaction=nonstopmode || exit /b 1
+for %%f in (*.tex) do (
+pdflatex "%%f" --interaction=nonstopmode)
 
 REM Check if any PDF was generated
+set "pdfFound=false"
 for %%F in (*.pdf) do (
+    set "pdfFound=true"
     echo PDF successfully built: %%F
-    exit /b 0
 )
 
-echo PDF build failed
-exit /b 1
+if "%pdfFound%" == "false" (
+    echo No PDF generated!
+    exit /b 1
+)
+
+goto end
 
 :clean
 rmdir /s /q %BUILDDIR% > /NUL 2>&1

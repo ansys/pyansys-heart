@@ -125,7 +125,12 @@ autoapi_ignore = [
     "*keyword_module.py",
     "*material_keywords.py",
 ]
-suppress_warnings = ["autoapi.python_import_resolution", "autosectionlabel.*", "config.cache", "design.fa-build",]
+suppress_warnings = [
+    "autoapi.python_import_resolution",
+    "autosectionlabel.*",
+    "config.cache",
+    "design.fa-build",
+]
 
 # Configuration for Sphinx Autodoc Typehints
 # -----------------------------------------------------------------------------
@@ -141,5 +146,3 @@ jinja_contexts = {
         ).stdout.splitlines()[1:],
     },
 }
-
-

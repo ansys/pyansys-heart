@@ -141,3 +141,8 @@ jinja_contexts = {
         ).stdout.splitlines()[1:],
     },
 }
+
+
+# Configuration for Sphinx Design
+# -----------------------------------------------------------------------------
+sd_fontawesome_latex = True

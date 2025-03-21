@@ -978,20 +978,6 @@ class HeartModel:
             sheet = np.tile([[0.0, 1.0, 1.0]], (self.mesh.n_cells, 1))
             self.mesh.cell_data["sheet"] = sheet
 
-        if "uvc_l" not in self.mesh.array_names:
-            LOGGER.debug("Add approximate longitudinal coordinates.")
-            lv_apex = self.left_ventricle.apex_points[1].xyz
-            mv_centroid = [c.centroid for p in self.parts for c in p.caps if "mitral" in c.name][0]
-            longitudinal_axis = lv_apex - mv_centroid
-            from ansys.heart.core.helpers.misc import rodrigues_rot
-
-            points_rotation = rodrigues_rot(
-                self.mesh.points - lv_apex, longitudinal_axis, [0, 0, -1]
-            )
-            points_rotation[:, 2] = points_rotation[:, 2] - np.min(points_rotation, axis=0)[2]
-            scaling = points_rotation[:, 2] / np.max(points_rotation[:, 2])
-            self.mesh.point_data["uvc_longitudinal"] = scaling
-
         self._get_parts_info()
 
         return

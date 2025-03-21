@@ -364,7 +364,7 @@ class BaseSimulator:
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
-        dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, **kwargs)
+        dyna_writer = writers.LaplaceWriter(copy.deepcopy(self.model), type, **kwargs)
 
         dyna_writer.update()
         dyna_writer.export(export_directory)
@@ -576,6 +576,13 @@ class MechanicsSimulator(BaseSimulator):
 
         if zerop_folder is None:
             zerop_folder = os.path.join(self.root_directory, "zeropressure")
+
+        if "apico-basal" not in self.model.mesh.point_data.keys():
+            LOGGER.warning(
+                "Array named 'apico-basal' cannot be found, will compute"
+                "universal coordinate system (UVC) firstly."
+            )
+            self.compute_uhc()
 
         if self.initial_stress:
             # Use last iteration

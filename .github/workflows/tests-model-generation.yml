@@ -2,8 +2,8 @@
 # Tests consistencty of model being generated
 name: Test model generation
 on:
-  pull_request:
-    types: ['opened', 'edited', 'reopened', 'synchronize', 'ready_for_review']
+  # pull_request:
+  #   types: ['opened', 'edited', 'reopened', 'synchronize', 'ready_for_review']
   push:
     tags:
       - "*"

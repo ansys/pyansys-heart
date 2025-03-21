@@ -104,14 +104,14 @@ numpydoc_validation_checks = {
     # type, unless multiple values are being returned"
 }
 
-# Configuration for Sphinx gallery 
+# Configuration for Sphinx gallery
 # -----------------------------------------------------------------------------
 sphinx_gallery_conf = {
     "examples_dirs": "../../examples",
     "gallery_dirs": "examples",
 }
 
-# Configuration for Sphinx autoapi 
+# Configuration for Sphinx autoapi
 # -----------------------------------------------------------------------------
 autoapi_python_use_implicit_namespaces = True
 autoapi_ignore = [

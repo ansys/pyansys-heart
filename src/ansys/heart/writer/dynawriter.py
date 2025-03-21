@@ -1458,7 +1458,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         epicardium_surface_ids = []
         for part in targets:
             try:
-                epicardium_surface_ids.append[part.epicardium.id]
+                epicardium_surface_ids.append(part.epicardium.id)
             except AttributeError:
                 LOGGER.warning(f"{part.name} has no epicardium surface.")
                 # part as "Atrioventricular isolation" may not have epicardium surface

@@ -82,7 +82,7 @@ jobs:
   wheelhouse:
     name: "Wheelhouse / ${{ matrix.os}} / ${{ matrix.python-version }}"
     runs-on: ${{ matrix.os }}
-    needs: [tests]
+    needs: doc-style
     strategy:
       fail-fast: false
       matrix:

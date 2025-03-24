@@ -1,12 +1,8 @@
-name: Github Actions
+name: pull-request
 
 on:
   pull_request:
-  push:
-    tags:
-      - "*"
-    branches:
-      - main
+    types: [opened, synchronize, reopened, labeled]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -16,15 +12,58 @@ env:
   MAIN_PYTHON_VERSION: '3.10'
   DOCUMENTATION_CNAME: 'heart.docs.pyansys.com'
   LIBRARY_NAME: 'pyansys-heart'
-  LIBRARY_NAMESPACE: 'ansys.heart'
-  PIP_EXTRA_INDEX_URL: 'https://${{ secrets.PYANSYS_PYPI_PRIVATE_PAT }}@pkgs.dev.azure.com/pyansys/_packaging/pyansys/pypi/simple/'
   ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
 
 jobs:
 
+  labeler:
+    name: "Labels"
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+
+     - name: "Checkout project"
+       uses: actions/checkout@v4
+
+     - name: "Sync labels"
+       uses: micnncim/action-label-syncer@v1
+       env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+     - name: "Label pull-request"
+       # HACK: skip if contributor does not have write permissions (forks)
+       if: github.event.pull_request.head.repo.full_name == github.repository
+       uses: actions/labeler@v5.0.0
+       with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+  changelog-fragment:
+    name: "Create changelog fragment"
+    runs-on: ubuntu-latest
+    needs: labeler
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+
+      - uses: ansys/actions/check-pr-title@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: ansys/actions/doc-changelog@main
+        with:
+          token: ${{ secrets.PYANSYS_CI_BOT_TOKEN }}
+          use-conventional-commits: true
+          use-default-towncrier-config: true
+          bot-user: ${{ secrets.PYANSYS_CI_BOT_USERNAME }}
+          bot-email: ${{ secrets.PYANSYS_CI_BOT_EMAIL }}
+
   code-style:
     name: "Code style"
     runs-on: ubuntu-latest
+    needs: changelog-fragment
     steps:
       - uses: ansys/actions/code-style@v8
         with:
@@ -33,14 +72,15 @@ jobs:
   doc-style:
     name: Documentation Style Check
     runs-on: ubuntu-latest
+    needs: changelog-fragment
     steps:
       - name: "Running documentation style checks"
         uses: ansys/actions/doc-style@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-  smoke-tests:
-    name: "Build and Smoke tests"
+  wheelhouse:
+    name: "Wheelhouse / ${{ matrix.os}} / ${{ matrix.python-version }}"
     runs-on: ${{ matrix.os }}
     needs: [tests]
     strategy:
@@ -54,44 +94,49 @@ jobs:
           library-name: ${{ env.LIBRARY_NAME }}
           operating-system: ${{ matrix.os }}
           python-version: ${{ matrix.python-version }}
-          check-licenses: false
+          check-licenses: true
 
   doc-build:
     name: "Build documentation"
     runs-on: [self-hosted, pyhealth]
     needs: [doc-style]
     steps:
-      - uses: ansys/actions/doc-build@v8
-        with:
-          python-version: "3.11"
-          check-links: false
-          # By default, also '-W --keep-going'... we should eventually solve the warnings in the build process.
-          sphinxopts: '-j auto'
 
-  doc-deploy-dev:
-    name: "Deploy development documentation"
-    # Deploy development only when merging or pushing to the 'main' branch
-    if: github.event_name == 'push' && !contains(github.ref, 'refs/tags')
-    runs-on: ubuntu-latest
-    needs: doc-build
-    steps:
-      - uses: ansys/actions/doc-deploy-dev@v8
+      - name: "Checkout the project"
+        uses: actions/checkout@v4
+
+      - name: "Download wheelhouse into static path"
+        uses: actions/download-artifact@v4
         with:
-          cname: ${{ env.DOCUMENTATION_CNAME }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          bot-user: ${{ secrets.PYANSYS_CI_BOT_USERNAME }}
-          bot-email: ${{ secrets.PYANSYS_CI_BOT_EMAIL }}
+          path: "doc/source/_static/wheelhouse"
+          pattern: "*-wheelhouse-*"
+
+      - name: "Install Python ${{ env.MAIN_PYTHON_VERSION }}"
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.MAIN_PYTHON_VERSION }}
+
+      - name: "Install Tox"
+        run: |
+          python -m venv .venv
+          .venv\Scripts\Activate.ps1
+          python -m pip install -U pip tox
+
+      - name: "Build documentation"
+        run: |
+          .venv\Scripts\Activate.ps1
+          python -m tox -e doc-clean,doc-links,doc-html,doc-pdf
 
   tests:
-    name: Tests
+    name: "Tests ${{ matrix.python-version }}"
     runs-on: ubuntu-latest
     needs: [code-style]
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
       fail-fast: false
-
     steps:
+
       - name: Checkout project
         uses: actions/checkout@v4
 
@@ -121,9 +166,8 @@ jobs:
         run: |
           python -m pytest -v -m "not (requires_fluent or extract_models or k_file_writer)"
 
-
   build-library:
-    name: "Build library basic example"
+    name: "Build library"
     runs-on: ubuntu-latest
     needs: [tests]
     steps:
@@ -131,51 +175,3 @@ jobs:
         with:
           library-name: ${{ env.LIBRARY_NAME }}
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
-
-  release:
-    name: "Release project to private PyPI and GitHub"
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags')
-    needs: build-library
-    runs-on: ubuntu-latest
-    steps:
-
-      - name: "Release to the private PyPI repository"
-        uses: ansys/actions/release-pypi-private@v8
-        with:
-          library-name: ${{ env.LIBRARY_NAME }}
-          twine-username: "__token__"
-          twine-token: ${{ secrets.PYANSYS_PYPI_PRIVATE_PAT }}
-
-      - name: "Release to GitHub"
-        uses: ansys/actions/release-github@v8
-        with:
-          library-name: ${{ env.LIBRARY_NAME }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-  doc-deploy-stable:
-    name: "Deploy stable documentation"
-    # Deploy release documentation when creating a new tag
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags')
-    runs-on: ubuntu-latest
-    needs: release
-    steps:
-      - uses: ansys/actions/doc-deploy-stable@v8
-        with:
-          cname: ${{ env.DOCUMENTATION_CNAME }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          bot-user: ${{ secrets.PYANSYS_CI_BOT_USERNAME }}
-          bot-email: ${{ secrets.PYANSYS_CI_BOT_EMAIL }}
-
-  update-changelog:
-    name: "Update CHANGELOG (on release)"
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - uses: ansys/actions/doc-deploy-changelog@v8
-        with:
-          token: ${{ secrets.PYANSYS_CI_BOT_TOKEN }}
-          bot-user: ${{ secrets.PYANSYS_CI_BOT_USERNAME }}
-          bot-email: ${{ secrets.PYANSYS_CI_BOT_EMAIL }}

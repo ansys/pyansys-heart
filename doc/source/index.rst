@@ -47,7 +47,7 @@ PyAnsys Heart is a `Python`_ framework for heart modeling using Ansys tools.
    :hidden:
    :maxdepth: 2
 
-   getting-started/index
+   getting-started
    user-guide/index
    api/index
    examples/index

@@ -23,7 +23,7 @@ This guide helps you get started with PyAnsys Heart. It provides information on 
     :maxdepth: 2
     :hidden:
 
-    prerequisites
-    installation
+    getting-started/prerequisites
+    getting-started/installation
 
 

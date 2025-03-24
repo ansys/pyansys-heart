@@ -28,6 +28,7 @@ import glob
 import json
 import os
 import pathlib
+import shutil
 import tempfile
 from typing import Union
 
@@ -147,34 +148,37 @@ def extract_model(request):
     mesh_file = inputs[3]
 
     # global workdir
-    # workdir = tempfile.TemporaryDirectory(prefix=".pyansys-heart").name
-    with tempfile.TemporaryDirectory(
-        prefix=".pyansys-heart", ignore_cleanup_errors=True
-    ) as workdir:
-        model: models.HeartModel = model_type(working_directory=workdir)
+    workdir = tempfile.TemporaryDirectory(prefix=".pyansys-heart").name
 
-        if not isinstance(model, (models.BiVentricle, models.FullHeart)):
-            exit()
+    # with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
 
-        model.load_input(input_vtp, part_definitions, "boundary-id")
-        if mesh_volume:
-            model.mesh_volume(use_wrapper=True, global_mesh_size=2.0)
-        else:
-            model.mesh.load_mesh(mesh_file)
+    model: models.HeartModel = model_type(working_directory=workdir)
 
-        model._update_parts()
+    if not isinstance(model, (models.BiVentricle, models.FullHeart)):
+        exit()
 
-        # Dummy apico-basal data to match pericardium output in asset
-        lv_apex = model.left_ventricle.apex_points[1].xyz
-        mv_centroid = [c.centroid for p in model.parts for c in p.caps if "mitral" in c.name][0]
-        longitudinal_axis = lv_apex - mv_centroid
+    model.load_input(input_vtp, part_definitions, "boundary-id")
+    # model.mesh_volume(wrapper=True) # could use this: but requires fluent
+    if mesh_volume:
+        model.mesh_volume(use_wrapper=True, global_mesh_size=2.0)
+    else:
+        model.mesh.load_mesh(mesh_file)
 
-        points_rotation = rodrigues_rot(model.mesh.points - lv_apex, longitudinal_axis, [0, 0, -1])
-        points_rotation[:, 2] = points_rotation[:, 2] - np.min(points_rotation, axis=0)[2]
-        scaling = points_rotation[:, 2] / np.max(points_rotation[:, 2])
-        model.mesh.point_data["apico-basal"] = scaling
+    model._update_parts()
 
-        yield model, ref_stats
+    # Dummy apico-basal data to match pericardium output in asset
+    lv_apex = model.left_ventricle.apex_points[1].xyz
+    mv_centroid = [c.centroid for p in model.parts for c in p.caps if "mitral" in c.name][0]
+    longitudinal_axis = lv_apex - mv_centroid
+
+    points_rotation = rodrigues_rot(model.mesh.points - lv_apex, longitudinal_axis, [0, 0, -1])
+    points_rotation[:, 2] = points_rotation[:, 2] - np.min(points_rotation, axis=0)[2]
+    scaling = points_rotation[:, 2] / np.max(points_rotation[:, 2])
+    model.mesh.point_data["apico-basal"] = scaling
+
+    yield model, ref_stats
+
+    shutil.rmtree(workdir, ignore_errors=True)
 
     return
 
@@ -298,6 +302,7 @@ def test_writers(extract_model, writer_class):
             writer_class.__name__,
         )
 
+    # with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         to_test_folder = os.path.join(workdir, writer_class.__name__)
         writer.update()

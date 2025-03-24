@@ -430,3 +430,117 @@ def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii") -> Non
             fid.write(string_replace)
         fid.close()
     return
+
+
+def find_corresponding_points(
+    master_surface: pv.PolyData, slave_surface: pv.PolyData, distance: float = 20
+) -> np.ndarray:
+    """Find corresponding points between two surfaces.
+
+    Parameters
+    ----------
+    master_surface : pv.PolyData
+        first surface
+    slave_surface : pv.PolyData
+        second surface
+    distance : float
+        approximate largest distance between two surfaces
+
+    Returns
+    -------
+    np.ndarray
+        2*N array
+        first row is node IDs of master surface,
+        second row is corresponding node IDs on the slave surface
+        None if no corresponding node is found
+
+    Notes
+    -----
+    Uses ray tracing.
+    The two surfaces are assumed to be close and nearly parallel.
+    As a result, the correspondence is not one-to-one—some points may
+    have no corresponding match, while others may share the same
+    corresponding point.
+    """
+    # NOTE: using UVC coordinates leads to a shift in
+    # longitudinal direction from epicardium to endocardium and is thus not an option.
+
+    # Compute normal of master surface
+    master_surface.compute_normals(inplace=True)
+
+    points_m = master_surface.points
+    normals_m = master_surface.point_data["Normals"]
+
+    # corresponding points
+    corresp_points = []
+    tree_s = slave_surface.find_closest_point
+
+    # Find intersections
+    for i in range(len(points_m)):
+        start_point = points_m[i]
+        direction = normals_m[i]
+        # Cast a ray along the normal direction
+        intersection, _ = slave_surface.ray_trace(
+            start_point - direction * distance, start_point + direction * distance
+        )
+
+        if len(intersection) == 1:
+            corresp_points.append(tree_s(intersection[0]))
+        elif len(intersection) > 1:
+            # Take the closet intersection point
+            x = np.argmin(np.linalg.norm(intersection - start_point, axis=1))
+            corresp_points.append(tree_s(intersection[x]))
+        else:
+            corresp_points.append(None)  # fill None for no corresponding point
+
+    return np.vstack((range(0, master_surface.n_points), corresp_points))
+
+
+def generate_thickness_lines(
+    surface1: pv.PolyData, surface2: pv.PolyData, corresponding_points: np.ndarray = None
+) -> pv.PolyData:
+    """
+    Generate lines from points on surface 1 to corresponding points on surface 2.
+
+    Parameters
+    ----------
+    surface1 : pv.PolyData
+        master surface
+    surface2 : pv.PolyData
+        slave surface
+    res : np.ndarray, optional
+        corresponding points array, default None
+
+    Returns
+    -------
+    pv.PolyData
+        it contains cell data named 'thickenss'.
+    """
+    if corresponding_points is None:
+        corresponding_points = find_corresponding_points(surface1, surface2)
+
+    points = []
+    lines = []
+    thickness = []
+    idx = 0
+
+    for i in range(corresponding_points.shape[1]):
+        if corresponding_points[1, i] is not None:
+            # make sure point pair exist
+            p1 = surface1.points[corresponding_points[0, i]]
+            p2 = surface2.points[corresponding_points[1, i]]
+            points.append(p1)
+            points.append(p2)
+
+            # connectivity
+            start_idx = idx * 2
+            lines.append([2, start_idx, start_idx + 1])
+            # thickness
+            thickness.append(np.linalg.norm(p1 - p2))
+            idx += 1
+
+    # Create a PolyData object containing all lines
+    lines = pv.PolyData(np.array(points), lines=np.hstack(lines))
+    lines.cell_data["thickness"] = thickness
+
+    return lines.copy()

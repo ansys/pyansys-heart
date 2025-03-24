@@ -571,12 +571,6 @@ class MechanicsSimulator(BaseSimulator):
             main simulation folder name.
 
         """
-        directory = os.path.join(self.root_directory, folder_name)
-        os.makedirs(directory, exist_ok=True)
-
-        if zerop_folder is None:
-            zerop_folder = os.path.join(self.root_directory, "zeropressure")
-
         if "apico-basal" not in self.model.mesh.point_data.keys():
             LOGGER.warning(
                 "Array named 'apico-basal' cannot be found, will compute"
@@ -584,23 +578,11 @@ class MechanicsSimulator(BaseSimulator):
             )
             self.compute_uhc()
 
+        directory = os.path.join(self.root_directory, folder_name)
+        os.makedirs(directory, exist_ok=True)
+
         if self.initial_stress:
-            # Use last iteration
-            # At least two iterations required?
-            dynain_files = glob.glob(os.path.join(zerop_folder, "iter*.dynain.lsda"))
-
-            # force natural ordering since iteration numbers are not padded with zeros.
-            dynain_files = natsort.natsorted(dynain_files)
-
-            if len(dynain_files) == 0:
-                LOGGER.error("No dynain file 'iter*.dynain.lsda found.")
-                exit()
-            elif len(dynain_files) == 1:
-                LOGGER.error("Only one dynain file found, expecting at least two.")
-                exit()
-
-            dynain_file = dynain_files[-1]
-            LOGGER.info(f"Using {dynain_file} for initial stress.")
+            dynain_file = self._find_dynain_file(zerop_folder)
             shutil.copy(dynain_file, os.path.join(directory, "dynain.lsda"))
 
         self._write_main_simulation_files(folder_name=folder_name)
@@ -614,7 +596,27 @@ class MechanicsSimulator(BaseSimulator):
 
         if auto_post:
             mech_post(pathlib.Path(directory), self.model)
+
         return
+
+    def _find_dynain_file(self, zerop_folder):
+        if zerop_folder is None:
+            zerop_folder = os.path.join(self.root_directory, "zeropressure")
+        dynain_files = glob.glob(os.path.join(zerop_folder, "iter*.dynain.lsda"))
+
+        # force natural ordering since iteration numbers are not padded with zeros.
+        dynain_files = natsort.natsorted(dynain_files)
+
+        if len(dynain_files) == 0:
+            LOGGER.error("No dynain file 'iter*.dynain.lsda found.")
+            exit()
+        elif len(dynain_files) == 1:
+            LOGGER.error("Only one dynain file found, expecting at least two.")
+            exit()
+
+        dynain_file = dynain_files[-1]
+        LOGGER.info(f"Using {dynain_file} for initial stress.")
+        return dynain_file
 
     def compute_stress_free_configuration(self, folder_name="zeropressure", overwrite: bool = True):
         """Compute the stress-free configuration of the model."""

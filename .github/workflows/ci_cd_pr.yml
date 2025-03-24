@@ -179,7 +179,7 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m pytest -v -m ${{ matrix.tests.markers }} tests
+          python -m pytest -v -m "${{ matrix.tests.markers }}" tests
 
   build-library:
     name: "Build library"

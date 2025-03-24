@@ -30,10 +30,8 @@ import numpy as np
 import pytest
 import pyvista as pv
 
-from ansys.fluent.core import UIMode as FluentUIMode
 from ansys.heart.preprocessor.input import _InputModel
 import ansys.heart.preprocessor.mesher as mesher
-from ansys.heart.preprocessor.mesher import _get_fluent_ui_mode
 
 pytestmark = pytest.mark.requires_fluent
 
@@ -203,28 +201,3 @@ def test_meshing_for_non_manifold():
     assert vtk_mesh.get_volume(1).n_cells < vtk_mesh.get_volume(2).n_cells
 
     pass
-
-
-@pytest.mark.parametrize(
-    "env_name,env_var,expected",
-    (
-        [None, None, FluentUIMode.HIDDEN_GUI],
-        ["PYFLUENT_LAUNCH_CONTAINER", "1", FluentUIMode.HIDDEN_GUI],
-        ["PYANSYS_HEART_SHOW_FLUENT_GUI", "1", FluentUIMode.GUI],
-        ["PYANSYS_HEART_IS_PYHEALTH_RUNNER", "1", FluentUIMode.NO_GUI],
-    ),
-    ids=[
-        "no-env-variable",
-        "PYFLUENT_LAUNCH_CONTAINER",
-        "PYANSYS_HEART_SHOW_FLUENT_GUI",
-        "PYANSYS_HEART_IS_PYHEALTH_RUNNER",
-    ],
-)
-def test_get_fluent_ui_modes(env_name, env_var, expected):
-    """Test getting Fluent ui-modes based on environment variables."""
-    if env_name is not None:
-        os.environ[env_name] = env_var
-    assert _get_fluent_ui_mode() == expected
-
-    if env_name:
-        del os.environ[env_name]

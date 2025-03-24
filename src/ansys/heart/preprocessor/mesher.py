@@ -44,25 +44,9 @@ _num_cpus: bool = 2
 
 # check whether containerized version of Fluent is used
 _uses_container = bool(int(os.getenv("PYFLUENT_LAUNCH_CONTAINER", False)))
+_fluent_ui_mode = pyfluent.UIMode(os.getenv("PYFLUENT_UI_MODE"), None)
 
-
-def _get_fluent_ui_mode() -> pyfluent.UIMode:
-    """Get Fluent UI mode."""
-    # NOTE: can set os.environ["PYANSYS_HEART_SHOW_FLUENT_GUI"] = "1" to show Fluent GUI.
-    show_fluent_gui = bool(int(os.getenv("PYANSYS_HEART_SHOW_FLUENT_GUI", False)))
-    is_runner = bool(int(os.getenv("PYANSYS_HEART_IS_PYHEALTH_RUNNER", False)))
-
-    if is_runner:
-        fluent_ui_mode = pyfluent.UIMode("no_gui")
-    elif _uses_container or not show_fluent_gui:
-        fluent_ui_mode = pyfluent.UIMode("hidden_gui")
-    elif show_fluent_gui:
-        fluent_ui_mode = pyfluent.UIMode("gui")
-
-    return fluent_ui_mode
-
-
-LOGGER.info(f"Fluent GUI mode: {_get_fluent_ui_mode()}")
+LOGGER.debug(f"Fluent user interface mode: {_fluent_ui_mode.value}")
 
 
 def _get_supported_fluent_version():
@@ -159,7 +143,6 @@ def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingS
     """Get a Fluent Meshing session."""
     # NOTE: when using containerized version - we need to copy all the files
     # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
-    ui_mode = _get_fluent_ui_mode()
 
     if _fluent_version is None:
         product_version = _get_supported_fluent_version()
@@ -180,7 +163,7 @@ def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingS
             precision="double",
             processor_count=num_cpus,
             start_transcript=False,
-            ui_mode=ui_mode,
+            ui_mode=_fluent_ui_mode,
             product_version=product_version,
             start_container=_uses_container,
             container_dict=custom_config,
@@ -193,7 +176,7 @@ def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingS
             precision="double",
             processor_count=num_cpus,
             start_transcript=False,
-            ui_mode=ui_mode,
+            ui_mode=_fluent_ui_mode,
             product_version=product_version,
             start_container=_uses_container,
         )

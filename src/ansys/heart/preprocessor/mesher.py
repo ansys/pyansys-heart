@@ -33,7 +33,10 @@ import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.helpers.fluent_reader import _FluentCellZone, _FluentMesh
-from ansys.heart.core.helpers.vtk_utils import _get_point_ids_inside_surface, add_solid_name_to_stl
+from ansys.heart.core.helpers.vtk_utils import (
+    add_solid_name_to_stl,
+    cell_ids_inside_enclosed_surface,
+)
 from ansys.heart.core.objects import Mesh, SurfaceMesh
 from ansys.heart.preprocessor.input import _InputBoundary, _InputModel
 
@@ -169,6 +172,8 @@ def _assign_part_id_to_orphan_cells(grid: pv.UnstructuredGrid, scalar="part-id")
     grid.cell_data["_original-cell-ids"] = np.arange(0, grid.n_cells)
     orphans = grid.extract_cells(grid.cell_data[scalar] == 0)
 
+    LOGGER.debug(f"Assigning part ids to {orphans.n_cells} orphan cells.")
+
     grid_centers = grid.cell_centers()
     grid_centers = grid_centers.extract_points(grid_centers.cell_data["part-id"] != 0)
     part_ids = grid_centers.point_data["part-id"]
@@ -209,7 +214,10 @@ def _get_cells_inside_wrapped_parts(model: _InputModel, mesh: _FluentMesh):
 
         # get surface
         surface = part.combined_boundaries.clean()
-        point_ids_inside = _get_point_ids_inside_surface(cell_centroids1, surface)
+
+        point_ids_inside = cell_ids_inside_enclosed_surface(
+            cell_centroids1, surface, tolerance=1e-9
+        )
 
         # map back to original vtk object.
         point_ids_inside1 = cell_centroids1.point_data["_original-cell-ids"][point_ids_inside]

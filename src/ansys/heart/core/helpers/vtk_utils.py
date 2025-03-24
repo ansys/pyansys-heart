@@ -115,7 +115,7 @@ def extrude_polydata(
 
 
 def cell_ids_inside_enclosed_surface(
-    source: pv.UnstructuredGrid, surface: pv.PolyData
+    source: pv.UnstructuredGrid | pv.PolyData, surface: pv.PolyData, tolerance: float = 1e-9
 ) -> np.ndarray:
     """Get cell ids of cells of which the centroids are inside a given surface.
 
@@ -126,6 +126,13 @@ def cell_ids_inside_enclosed_surface(
         the specified surface
     surface : pv.PolyData
         Surface used to check whether cells are inside/outside.
+    tolerance : float, optional
+        Tolerance for the select_enclosed_points filter, by default 1e-9
+
+    Notes
+    -----
+    This also accepts a source that represent the cell centroids. In this case we can skip computing
+    the cell_centers.
 
     Returns
     -------
@@ -133,8 +140,11 @@ def cell_ids_inside_enclosed_surface(
         Array with cell ids that are inside the enclosed surface.
     """
     surface = surface.compute_normals()
-    centroids = source.cell_centers()
-    centroids = centroids.select_enclosed_points(surface, tolerance=1e-9)
+    if isinstance(source, pv.PolyData) and source.n_verts == source.n_points:
+        centroids = source
+    else:
+        centroids = source.cell_centers()
+    centroids = centroids.select_enclosed_points(surface, tolerance=tolerance, check_surface=True)
     cell_ids_inside = np.where(centroids.point_data["SelectedPoints"] == 1)[0]
     return cell_ids_inside
 
@@ -544,37 +554,3 @@ def generate_thickness_lines(
     lines.cell_data["thickness"] = thickness
 
     return lines.copy()
-
-
-def _get_point_ids_inside_surface(points: pv.PolyData, surface: pv.PolyData) -> np.ndarray:
-    """Get points inside a closed surface using an implicit function.
-
-    Parameters
-    ----------
-    points : pv.PolyData
-        Points to check whether these are inside the surface.
-    surface : pv.PolyData
-        The closed, manifold surface used as implicit function.
-
-    Returns
-    -------
-    np.ndarray
-        Point ids inside the given surface.
-
-    Notes
-    -----
-    This sets up the surface as an implicit function. Seems more robust
-    then computing it using the ExtractEnclosedPoints and SelectEnclosedPoints filters.
-    However, it is relatively slow.
-    """
-    points.point_data["_original-point-ids1"] = np.arange(0, points.n_points)
-    # set up implicit function.
-    function = vtk.vtkImplicitPolyDataDistance()
-    function.SetInput(surface)
-    # set up extract points filter.
-    extractor = vtk.vtkExtractPoints()
-    extractor.SetInputData(points)
-    extractor.SetImplicitFunction(function)
-    extractor.Update()
-    output = pv.PolyData(extractor.GetOutput())
-    return output.point_data["_original-point-ids1"]

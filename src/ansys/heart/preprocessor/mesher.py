@@ -33,13 +33,13 @@ import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.helpers.fluent_reader import _FluentCellZone, _FluentMesh
-from ansys.heart.core.helpers.vtkmethods import add_solid_name_to_stl
+from ansys.heart.core.helpers.vtk_utils import add_solid_name_to_stl
 from ansys.heart.core.objects import Mesh, SurfaceMesh
 from ansys.heart.preprocessor.input import _InputBoundary, _InputModel
 
 # NOTE: can set os.environ["SHOW_FLUENT_GUI"] = "1" to show Fluent GUI.
 
-_supported_fluent_versions = ["24.2", "24.1"]
+_supported_fluent_versions = ["25.1", "24.2", "24.1"]
 _show_fluent_gui: bool = True
 _uses_container: bool = True
 _num_cpus: bool = 2
@@ -60,11 +60,12 @@ else:
 if _show_fluent_gui:
     _fluent_ui_mode = "gui"
 else:
-    _fluent_ui_mode = "hidden_gui"
+    _fluent_ui_mode = "no_gui"
 
 try:
     import ansys.fluent.core as pyfluent
     from ansys.fluent.core.session_meshing import Meshing as MeshingSession
+
 except ImportError:
     LOGGER.info(
         "Failed to import PyFluent. Please install PyFluent with `pip install ansys-fluent-core`."

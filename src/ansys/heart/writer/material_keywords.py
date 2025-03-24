@@ -44,7 +44,7 @@ from ansys.dyna.core.keywords import keywords
 from ansys.heart.simulator.settings.material.material import ActiveModel, Mat295
 
 # import custom keywords in separate namespace
-from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
+from ansys.heart.writer import custom_keywords as custom_keywords
 
 
 class MaterialCap(keywords.MatNull):

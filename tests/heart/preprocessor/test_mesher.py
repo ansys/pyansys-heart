@@ -209,15 +209,15 @@ def test_meshing_for_non_manifold():
     "env_name,env_var,expected",
     (
         [None, None, FluentUIMode.HIDDEN_GUI],
+        ["PYFLUENT_LAUNCH_CONTAINER", "1", FluentUIMode.HIDDEN_GUI],
         ["PYANSYS_HEART_SHOW_FLUENT_GUI", "1", FluentUIMode.GUI],
         ["PYANSYS_HEART_IS_PYHEALTH_RUNNER", "1", FluentUIMode.NO_GUI],
-        ["PYFLUENT_LAUNCH_CONTAINER", "1", FluentUIMode.HIDDEN_GUI],
     ),
     ids=[
         "no-env-variable",
+        "PYFLUENT_LAUNCH_CONTAINER",
         "PYANSYS_HEART_SHOW_FLUENT_GUI",
         "PYANSYS_HEART_IS_PYHEALTH_RUNNER",
-        "PYFLUENT_LAUNCH_CONTAINER",
     ],
 )
 def test_get_fluent_ui_modes(env_name, env_var, expected):

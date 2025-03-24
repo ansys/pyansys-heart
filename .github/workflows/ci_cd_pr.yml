@@ -149,13 +149,25 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
 
+
+      - name: Check if DPF needs to be installed
+        id: needs-dpf-step
+        run: |
+          if [[ ${{ matrix.tests.runner }} == self-hosted ]]; then
+            echo "NEEDS_DPF_INSTALL=true" >> $GITHUB_OUTPUT
+          else
+            echo "NEEDS_DPF_INSTALL=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Set Licensing
         shell: bash
+        if: ${{ steps.needs-dpf-step.outputs.NEEDS_DPF_INSTALL }}
         run: |
           echo "ANSYS_DPF_ACCEPT_LA=Y" >> $GITHUB_ENV
 
       - name: Install DPF
         uses: ansys/pydpf-actions/install-dpf-server@v2.3
+        if: ${{ steps.needs-dpf-step.outputs.NEEDS_DPF_INSTALL }}
         with:
           dpf-standalone-TOKEN: ${{ secrets.PYANSYS_CI_BOT_TOKEN }}
           ANSYS_VERSION : "241"
@@ -167,7 +179,7 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m pytest -v -m ${{ matrix.tests.markers }}
+          python -m pytest -v -m ${{ matrix.tests.markers }} tests
 
   build-library:
     name: "Build library"

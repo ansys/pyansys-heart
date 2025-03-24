@@ -128,7 +128,7 @@ jobs:
           python -m tox -e doc-clean,doc-links,doc-html,doc-pdf
 
   tests:
-    name: "Tests Windows / Python ${{ matrix.tests.python-version }} / ${{ matrix.tests.name }}"
+    name: "Tests Windows / Python ${{ matrix.python-version }} / ${{ matrix.tests.name }}"
     runs-on: ${{ matrix.tests.runner }}
     needs: [code-style]
     strategy:

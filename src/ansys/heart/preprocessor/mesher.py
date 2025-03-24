@@ -47,7 +47,7 @@ _num_cpus: bool = 2
 
 # check whether containerized version of Fluent is used
 _uses_container = bool(int(os.getenv("PYFLUENT_LAUNCH_CONTAINER", False)))
-_fluent_ui_mode = pyfluent.UIMode(os.getenv("PYFLUENT_UI_MODE"), pyfluent.UIMode.HIDDEN_GUI)
+_fluent_ui_mode = pyfluent.UIMode(os.getenv("PYFLUENT_UI_MODE", pyfluent.UIMode.HIDDEN_GUI))
 
 LOGGER.debug(f"Fluent user interface mode: {_fluent_ui_mode.value}")
 

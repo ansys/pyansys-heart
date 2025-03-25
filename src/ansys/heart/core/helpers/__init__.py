@@ -19,33 +19,4 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-"""Collection of methods to test pyfluent."""
-
-import pytest
-
-import ansys.fluent.core as pyfluent
-
-# marks all tests with the 'requires_fluent' tag after this line
-pytestmark = pytest.mark.requires_fluent
-
-
-def test_launch_fluent():
-    """Launch pyfluent in meshing mode and check health."""
-    try:
-        session = pyfluent.launch_fluent(
-            mode="meshing",
-            precision="double",
-            processor_count=1,
-            start_transcript=False,
-            ui_mode="no_gui",
-        )
-        assert session._fluent_connection.check_health() == "SERVING"
-        # try to initialize workflow
-        assert session.workflow.InitializeWorkflow(WorkflowType="Watertight Geometry"), (
-            "Failed workflow"
-        )
-        session.exit()
-        assert True
-    except Exception:
-        assert False, "Failed to launch pyfluent in meshing mode."
+"""Helpers subpackage."""

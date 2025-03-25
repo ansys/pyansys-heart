@@ -35,15 +35,21 @@ This example shows you how to post process an EP simulation.
 # sphinx_gallery_thumbnail_path = '_static/images/ep_post_activationtime.png'
 # sphinx_gallery_end_ignore
 
-import os
 import pathlib
 
 from ansys.heart.postprocessor.ep_postprocessor import EPpostprocessor
 
 # set ep results folder
-ep_folder = os.path.join(
-    pathlib.Path(__file__).absolute().parents[2],
-    "downloads\\Strocchi2020\\01\FourChamber\\simulation-EP\\main-ep\\d3plot",
+ep_folder = (
+    pathlib.Path.home()
+    / "pyansys-heart"
+    / "downloads"
+    / "Strocchi2020"
+    / "01"
+    / "FourChamber"
+    / "simulation-EP"
+    / "main-ep"
+    / "d3plot"
 )
 ###############################################################################
 # Instantiate the Postprocessor
@@ -58,12 +64,9 @@ postproc = EPpostprocessor(results_path=ep_folder)
 # ~~~~~~~~~~~~~~~~
 # Plot 12-Lead ECGs
 
-ECGs, times = postproc.read_ECGs(
-    os.path.join(
-        pathlib.Path(__file__).absolute().parents[2],
-        "downloads\\Strocchi2020\\01\FourChamber\\simulation-EP\\main-ep\\em_EKG_001.dat",
-    )
-)
+path_to_ecg_file = ep_folder.parent / "em_EKG_001.dat"
+
+ECGs, times = postproc.read_ECGs(path_to_ecg_file)
 
 
 ECGs12 = postproc.compute_12_lead_ECGs(ECGs=ECGs, times=times, plot=True)

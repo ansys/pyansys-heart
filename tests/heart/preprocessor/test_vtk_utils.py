@@ -20,8 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-
 import numpy as np
+import pytest
 import pyvista as pv
 import pyvista.examples as examples
 
@@ -29,7 +29,28 @@ from ansys.heart.core.helpers.vtk_utils import (
     are_connected,
     cell_ids_inside_enclosed_surface,
     find_cells_close_to_nodes,
+    find_corresponding_points,
+    generate_thickness_lines,
 )
+
+
+def test_find_corresponding_points():
+    """Test correspoing points searching."""
+    sphere1 = pv.Sphere(radius=1, center=(0, 0, 0))
+    sphere2 = pv.Sphere(radius=1.2, center=(0, 0, 0))
+    res = find_corresponding_points(sphere1, sphere2)
+    assert res.shape == (2, sphere1.GetNumberOfPoints())
+    assert res[1, 0] == 0
+    assert res[1, 841] == 841
+
+
+def test_generate_thickness_lines():
+    """Test thcikness lines generation."""
+    sphere1 = pv.Sphere(radius=1, center=(0, 0, 0))
+    sphere2 = pv.Sphere(radius=1.2, center=(0, 0, 0))
+    lines = generate_thickness_lines(sphere1, sphere2)
+    assert lines.GetNumberOfCells() == sphere1.GetNumberOfPoints()
+    assert pytest.approx(0.2, rel=0.01) == lines["thickness"][0]
 
 
 def test_check_if_connected():
@@ -63,3 +84,21 @@ def test_cell_ids_inside_enclosed_surface():
     surface = mesh.extract_surface()
 
     assert np.all(cell_ids_inside_enclosed_surface(mesh, surface) == np.arange(0, mesh.n_cells))
+
+    surface = pv.Box((-0.5, 0.5, -0.5, 0.5, -0.5, 0.5)).triangulate()
+
+    # two points. One inside, one outside.
+    points = np.array([[0.0, 0.0, 0.0], [10.0, 0.0, 0.0]])
+    points = pv.PolyData(points)
+    pt_ids_inside = cell_ids_inside_enclosed_surface(points, surface)
+
+    assert len(pt_ids_inside) == 1
+    assert pt_ids_inside == [0]
+
+    # generate random points with seed for reproducibility
+    rng = np.random.default_rng(seed=42)
+    points = rng.random((10000, 3)) * 2 - 1
+    points = pv.PolyData(points)
+
+    pt_ids_inside = cell_ids_inside_enclosed_surface(points, surface)
+    assert len(pt_ids_inside) == 1244

@@ -152,3 +152,5 @@ jinja_contexts = {
 rst_epilog = ""
 links_filepath = pathlib.Path(__file__).parent.absolute() / "links.rst"
 rst_epilog += links_filepath.read_text(encoding="utf-8")
+
+exclude_patterns = ["links.rst"]

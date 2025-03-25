@@ -6,7 +6,7 @@
 PyAnsys Heart |version|
 =======================
 
-PyAnsys Heart is a `Python <https://www.python.org/>`_ framework for heart modeling using Ansys tools.
+PyAnsys Heart is a `Python`_ framework for heart modeling using Ansys tools.
 
 .. grid:: 1 2 3 3
    :gutter: 1 2 3 3

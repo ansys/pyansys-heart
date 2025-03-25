@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  MAIN_PYTHON_VERSION: '3.10'
+  MAIN_PYTHON_VERSION: '3.11'
   DOCUMENTATION_CNAME: 'heart.docs.pyansys.com'
   LIBRARY_NAME: 'ansys-heart'
   ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
@@ -63,7 +63,7 @@ jobs:
       - name: "Build documentation"
         run: |
           .venv\Scripts\Activate.ps1
-          python -m tox -e doc-clean,doc-links,doc-html,doc-pdf
+          python -m tox -e doc-links,doc-html
 
   doc-deploy-dev:
     name: "Deploy dev docs"

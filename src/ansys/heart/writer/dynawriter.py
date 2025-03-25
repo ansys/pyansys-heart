@@ -2929,7 +2929,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self._update_nodesets_db()
         self._update_parts_cellmodels()
 
-        if self.model.beam_network:
+        if self.model.conduction_system.number_of_cells!=0:
             # with smcoupl=1, mechanical coupling is disabled
             # with thcoupl=1, thermal coupling is disable
             self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1, smcoupl=1))
@@ -3069,8 +3069,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         save_part_ids = []
         for part in self.model.parts:
             save_part_ids.append(part.pid)
-        for beamnet in self.model.beam_network:
-            save_part_ids.append(beamnet.pid)
+        for beams_pid in self.model.conduction_system._line_id_to_pid.values():
+            save_part_ids.append(beams_pid)
         partset_id = self.get_unique_partset_id()
         kw = keywords.SetPartList(sid=partset_id)
         # kw.parts._data = save_part_ids
@@ -3241,14 +3241,14 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 )
 
                 #  add more nodes to initiate wave propagation
-                for network in self.model.beam_network:
-                    if network.name == "SAN_to_AVN":
-                        stim_nodes.append(network.edges[1, 0])
-                        # stim_nodes.append(network.edges[2, 0])
-                        # stim_nodes.append(network.edges[3, 0])
-                    elif network.name == "Bachman bundle":
-                        stim_nodes.append(network.edges[0, 0])  # SA node on epi, solid node
-                        stim_nodes.append(network.edges[1, 0])
+                if 'SAN_to_AVN' in list(self.model.conduction_system._line_id_to_name.values()):
+                    pointid = self.model.conduction_system.get_lines_by_name('SAN_to_AVN')["_written-id"][1]
+                    stim_nodes.append(pointid)
+                if 'Bachman bundle' in list(self.model.conduction_system._line_id_to_name.values()):
+                    pointid = self.model.conduction_system.get_lines_by_name('Bachman bundle')["_written-id"][0]
+                    stim_nodes.append(pointid)
+                    pointid = self.model.conduction_system.get_lines_by_name('Bachman bundle')["_written-id"][1]
+                    stim_nodes.append(pointid)
 
         # stimule entire elements for Eikonal
         if self.settings.electrophysiology.analysis.solvertype in [
@@ -3393,6 +3393,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             else:
                 epmat = self.model.conduction_system.ep_material[netid]
             pid = self.get_unique_part_id()
+            self.model.conduction_system._line_id_to_pid[netid] = pid
             name = self.model.conduction_system._line_id_to_name[netid]
             if name == "Left-purkinje":
                 _node_set_id = self.model.left_ventricle.endocardium._seg_set_id
@@ -3631,7 +3632,7 @@ class ElectrophysiologyBeamsDynaWriter(ElectrophysiologyDynaWriter):
 
         self._update_node_db()
 
-        if self.model.beam_network:
+        if self.model.conduction_system.number_of_cells!=0:
             # with smcoupl=1, coupling is disabled
             self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1, smcoupl=1))
             self._update_use_Purkinje(associate_to_segment=False)
@@ -3678,7 +3679,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
         MechanicsDynaWriter.update(self, with_dynain=with_dynain, robin_bcs=robin_bcs)
 
-        if self.model.beam_network:
+        if self.model.conduction_system.number_of_cells!=0:
             # Coupling enabled, EP beam nodes follow the motion of surfaces
             self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1, smcoupl=0))
             self._update_use_Purkinje()

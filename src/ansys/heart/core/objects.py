@@ -364,9 +364,6 @@ class _BeamMesh(pv.UnstructuredGrid, Feature):
         self.nodes = nodes
         """Node coordinates."""
 
-        self.beam_nodes_mask = beam_nodes_mask
-        """True for beam nodes, False for solid nodes."""
-
         self.pid = pid
         """Part id associated with the network."""
 
@@ -1074,6 +1071,8 @@ class _BeamsMesh(Mesh):
         """line id to name map."""
         self.ep_material: dict = {}
         """Ep material map."""
+        self._line_id_to_pid: dict = {}
+        """line id to part id map."""
         pass
 
     def _get_submesh(
@@ -1175,10 +1174,11 @@ class _BeamsMesh(Mesh):
     def get_lines_by_name(self, name: str) -> pv.PolyData:
         # ?: Return SurfaceMesh instead of PolyData?
         """Get the lines associated with `name`."""
-        if name not in list(self._line_id_to_name.keys()):
+        if name not in list(self._line_id_to_name.values()):
             LOGGER.error(f"No lines associated with {name}")
             return None
-        line_id = self._line_id_to_name[name]
+        position_in_list = list(self._line_id_to_name.values()).index(name)
+        line_id = list(self._line_id_to_name.keys())[position_in_list]
         return self.get_lines(line_id)
 
     def get_lines(self, sid: int) -> pv.PolyData:

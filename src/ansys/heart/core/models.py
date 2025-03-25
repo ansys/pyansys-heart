@@ -45,7 +45,6 @@ from ansys.heart.core.objects import (
     PartType,
     Point,
     SurfaceMesh,
-    _BeamMesh,
     _BeamsMesh,
 )
 from ansys.heart.preprocessor.input import _InputModel
@@ -310,9 +309,6 @@ class HeartModel:
         self.electrodes: List[Point] = []
         """Electrodes positions for ECG computing."""
 
-        self.beam_network: List[_BeamMesh] = []
-        """List of beam networks in the mesh."""
-
         self.conduction_system: _BeamsMesh = _BeamsMesh()
         """Beams data defining the conduction system."""
 
@@ -414,63 +410,6 @@ class HeartModel:
         id = self.conduction_system.get_unique_lines_id()
         self.conduction_system.add_lines(lines=beam_net, id=id, name=name)
 
-        beam = self.add_beam_net(beam_nodes, edges, mask, pid=pid, name=name)
-
-        return beam
-
-    def add_beam_net(
-        self, beam_nodes: np.ndarray, edges: np.ndarray, mask: np.ndarray, pid=0, name: str = None
-    ) -> _BeamMesh:
-        """Add a BeamMesh object on the model.
-
-        Parameters
-        ----------
-        beam_nodes : np.ndarray
-            new nodes coordinates.
-        edges : np.ndarray
-            beam elements connectivity
-            If `mask` is true, it's Id of `beam_nodes` (start by 0),
-            it will be offset when creating BeamMesh object.
-            If `mask` is false, it's Id of existed nodes, it will not be offset.
-        mask : np.ndarray
-            with the same shape of `edges`
-        pid : int, optional
-            part Id, will be reassigned when writing, by default 0
-        name : str, optional
-            name, by default None
-
-        Returns
-        -------
-        BeamMesh
-            BeamMesh object
-        """
-        edges[mask] += len(self.mesh.points) + len(_BeamMesh.all_beam_nodes)
-
-        if len(_BeamMesh.all_beam_nodes) == 0:
-            _BeamMesh.all_beam_nodes = beam_nodes
-        else:
-            _BeamMesh.all_beam_nodes = np.vstack((_BeamMesh.all_beam_nodes, beam_nodes))
-
-        # nodes is just for pyvista plot, edges used in writer will be offset
-        # TODO: only save necessary nodes, cells, and with a 'global id' array
-        beam_net = _BeamMesh(
-            nodes=np.vstack((self.mesh.points, _BeamMesh.all_beam_nodes)),
-            edges=edges,
-            beam_nodes_mask=mask,
-        )
-        beam_net.pid = pid
-        beam_net.name = name
-
-        #! class variable BeamMesh.all_beam_nodes is not saved in pickle
-        #! only the last created beam_network holds all previously created
-        #! nodes.
-        beam_net._all_beam_nodes = np.copy(_BeamMesh.all_beam_nodes)
-
-        self.beam_network.append(beam_net)
-
-        # sync across beam networks
-        for beams in self.beam_network:
-            beams._all_beam_nodes = np.copy(_BeamMesh.all_beam_nodes)
 
         return beam_net
 
@@ -807,15 +746,16 @@ class HeartModel:
 
     def plot_purkinje(self):
         """Plot the mesh and Purkinje network."""
-        if not len(self.beam_network) > 0:
-            LOGGER.info("No Purkinje network to plot.")
+        if self.conduction_system.number_of_cells==0:
+            LOGGER.info("No Conduction system to plot.")
             return
 
         try:
             plotter = pv.Plotter()
-            plotter.add_mesh(self.mesh, color="w", opacity=0.3)
-            for beams in self.beam_network:
-                plotter.add_mesh(beams, color="r", line_width=2)
+            plotter.add_mesh(self.mesh, color="w", opacity=0.1)
+            self.conduction_system.set_active_scalars('_line-id')
+            beams = self.conduction_system
+            plotter.add_mesh(beams, line_width=2)
             plotter.show()
         except Exception:
             LOGGER.warning("Failed to plot mesh.")

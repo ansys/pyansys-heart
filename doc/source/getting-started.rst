@@ -4,8 +4,8 @@ Getting started
 This guide helps you get started with PyAnsys Heart. It provides information on how to install the package, run tests, and check the code style.
 
 .. grid:: 1 2 3 3
-    :padding: 2
-    :margin: 2
+   :gutter: 1 2 3 3
+   :padding: 1 2 3 3
 
     .. grid-item-card::  :fa:`book` Overview
         :link: getting-started/overview

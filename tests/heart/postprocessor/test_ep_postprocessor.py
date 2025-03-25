@@ -30,7 +30,7 @@ import pytest
 import pyvista as pv
 
 from ansys.heart.core.models import FullHeart
-from ansys.heart.postprocessor.ep_postprocessor import EPpostprocessor
+from ansys.heart.postprocessor.dpf_utils import EPpostprocessor
 
 if os.getenv("GITHUB_ACTION"):
     github_runner = True

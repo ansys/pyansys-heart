@@ -2,6 +2,7 @@
 
 from datetime import datetime
 import os
+from pathlib import Path
 import subprocess
 
 from ansys_sphinx_theme import ansys_favicon, get_version_match
@@ -48,7 +49,7 @@ extensions = [
     "sphinx_copybutton",
     "autoapi.extension",
     "sphinx_autodoc_typehints",
-    "sphinx_gallery.gen_gallery",
+    #    "sphinx_gallery.gen_gallery",
     "sphinxcontrib.video",
     "sphinx_design",
     "sphinx_jinja",
@@ -133,6 +134,11 @@ autoapi_python_use_implicit_namespaces = True
 
 typehints_defaults = "comma"
 simplify_optional_unions = False
+
+# Common content for every RST file such us links
+rst_epilog = ""
+links_filepath = Path(__file__).parent.absolute() / "links.rst"
+rst_epilog += links_filepath.read_text(encoding="utf-8")
 
 jinja_globals = {
     "PYANSYS_HEART_VERSION": version,

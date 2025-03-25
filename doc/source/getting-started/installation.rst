@@ -16,7 +16,7 @@ PyPI
 ----
 
 Before installing PyAnsys Heart ensure that you have the latest version
-of the `pip <https://pip.pypa.io/en/stable/installation/>`_
+of the `pip`_
 package manager, run the following command:
 
 .. code:: bash
@@ -53,7 +53,7 @@ Install from a wheel file
 if you lack the internet connection, you can install PyAnsys Heart from a wheel file.
 You should install PyAnsys Heart by downloading the wheelhouse archive for your
 corresponding machine architecture from the repository’s
-`Release page <https://github.com/ansys/pyansys-heart/releases>`_.
+`PyAnsys Heart release page`_.
 
 Each release contains a wheel file for the corresponding Python version and
 machine architecture. For example, to install the wheel file for
@@ -68,5 +68,5 @@ If you are on Windows with Python 3.12, unzip the wheelhouse archive to a wheelh
 directory and then install using the same pip install command as in the preceding example.
 
 Consider installing using a virtual environment to avoid conflicts with other packages. For more information,
-refer to the `Python documentation <https://docs.python.org/3/library/venv.html>`_.
+refer to the `Python documentation`_.
 

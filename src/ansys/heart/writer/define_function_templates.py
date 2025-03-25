@@ -20,12 +20,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Collection of define function strings."""
+"""Collection of define function templates."""
 
 from ansys.dyna.core.keywords import keywords
 
 
-def function_alpha(alpha_endo: float = -60, alpha_epi: float = 60):
+def _function_alpha(alpha_endo: float = -60, alpha_epi: float = 60):
     """Define the alpha angle for fiber definition."""
     return "\n".join(
         [
@@ -47,7 +47,7 @@ def function_alpha(alpha_endo: float = -60, alpha_epi: float = 60):
     )
 
 
-def function_beta(beta_endo: float = 25, beta_epi: float = -65):
+def _function_beta(beta_endo: float = 25, beta_epi: float = -65):
     """Define the beta angle for fiber definition in ventricles."""
     return "\n".join(
         [
@@ -69,7 +69,7 @@ def function_beta(beta_endo: float = 25, beta_epi: float = -65):
     )
 
 
-def function_beta_septum(beta_endo: float = -65, beta_epi: float = 25):
+def _function_beta_septum(beta_endo: float = -65, beta_epi: float = 25):
     """Define the beta angle for fiber definition in the septum."""
     return "\n".join(
         [
@@ -91,13 +91,13 @@ def function_beta_septum(beta_endo: float = -65, beta_epi: float = 25):
     )
 
 
-def constant_flow_template():
+def _constant_flow_template():
     """Constant flow template."""
     template = "float {0}(float t, float dp, float area) \n{{\nreturn {1};\n}}"
     return template
 
 
-def valve_template():
+def _valve_template():
     """Diode valve model template."""
     template = (
         "float {0}(float t, float dp)\n"
@@ -117,7 +117,7 @@ def valve_template():
     return template
 
 
-def afterload_windkessel_template():
+def _afterload_windkessel_template():
     """Use the same model as in :func:`windkessel_template` but without preload."""
     template = (
         "float {0}(float t, float dp)\n"
@@ -294,7 +294,7 @@ def _ed_load_template():
     return template
 
 
-def windkessel_template():
+def _windkessel_template():
     """Windkessel template.
 
     Notes
@@ -478,7 +478,7 @@ def windkessel_template():
     return template
 
 
-def define_function_0d_system(
+def _define_function_0d_system(
     function_id: int,
     function_name: str,
     parameters: dict,
@@ -500,7 +500,7 @@ def define_function_0d_system(
         Formatted keyword for the define function.
     """
     if "constant_preload_windkessel_afterload" in function_name:
-        define_function_str = windkessel_template().format(
+        define_function_str = _windkessel_template().format(
             function_name,
             1,  # implicit flag
             parameters["constants"]["Rp"],
@@ -512,7 +512,7 @@ def define_function_0d_system(
             function_name + ".csv",
         )
     elif "afterload_windkessel" in function_name:
-        define_function_str = afterload_windkessel_template().format(
+        define_function_str = _afterload_windkessel_template().format(
             function_name,
             1,  # implicit flag
             parameters["constants"]["Rp"],
@@ -524,12 +524,12 @@ def define_function_0d_system(
             function_name + ".csv",
         )
     elif "constant_flow" in function_name:
-        define_function_str = constant_flow_template().format(
+        define_function_str = _constant_flow_template().format(
             function_name,
             parameters["flow"],
         )
     elif "valve" in function_name:
-        define_function_str = valve_template().format(
+        define_function_str = _valve_template().format(
             function_name,
             parameters["Rv"],
         )

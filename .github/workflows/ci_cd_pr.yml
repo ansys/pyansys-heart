@@ -153,11 +153,12 @@ jobs:
 
       - name: Check if DPF needs to be installed
         id: needs-dpf-step
+        shell: bash
         run: |
-          if [[ ${{ matrix.tests.runner }} == self-hosted ]]; then
-            echo "NEEDS_DPF_INSTALL=true" >> $GITHUB_OUTPUT
+          if [ "${{ matrix.tests.runner }}" = "self-hosted" ]; then
+            echo "NEEDS_DPF_INSTALL=true" >> "$GITHUB_OUTPUT"
           else
-            echo "NEEDS_DPF_INSTALL=false" >> $GITHUB_OUTPUT
+            echo "NEEDS_DPF_INSTALL=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Set Licensing

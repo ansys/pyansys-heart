@@ -16,6 +16,7 @@ env:
   MAIN_PYTHON_VERSION: "3.11"
   AWP_ROOT241: "C:\\Program Files\\ANSYS Inc\\v241"
   ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
+  PYFLUENT_UI_MODE: "no_gui"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

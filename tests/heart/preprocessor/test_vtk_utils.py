@@ -84,3 +84,21 @@ def test_cell_ids_inside_enclosed_surface():
     surface = mesh.extract_surface()
 
     assert np.all(cell_ids_inside_enclosed_surface(mesh, surface) == np.arange(0, mesh.n_cells))
+
+    surface = pv.Box((-0.5, 0.5, -0.5, 0.5, -0.5, 0.5)).triangulate()
+
+    # two points. One inside, one outside.
+    points = np.array([[0.0, 0.0, 0.0], [10.0, 0.0, 0.0]])
+    points = pv.PolyData(points)
+    pt_ids_inside = cell_ids_inside_enclosed_surface(points, surface)
+
+    assert len(pt_ids_inside) == 1
+    assert pt_ids_inside == [0]
+
+    # generate random points with seed for reproducibility
+    rng = np.random.default_rng(seed=42)
+    points = rng.random((10000, 3)) * 2 - 1
+    points = pv.PolyData(points)
+
+    pt_ids_inside = cell_ids_inside_enclosed_surface(points, surface)
+    assert len(pt_ids_inside) == 1244

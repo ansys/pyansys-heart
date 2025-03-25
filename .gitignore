@@ -181,3 +181,4 @@ examples/heart/preprocessor/compare_formatting.py
 test_case
 examples/heart/simulator/local_examples.py
 _*
+doc/source/sg_execution_times.rst

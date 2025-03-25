@@ -37,7 +37,16 @@ html_theme_options = {
     "logo": "pyansys",
     "ansys_sphinx_theme_autoapi": {
         "project": project,
-        "ignore": ["*writer*", "*misc*"],
+        "ignore": [
+            "*writer*",
+            "*misc*",
+            "*custom_dynalib_keywords*",
+            "*system_models.py",
+            "*define_function_strings.py",
+            "*heart_decks.py",
+            "*keyword_module.py",
+            "*material_keywords.py",
+        ],
     },
 }
 
@@ -116,15 +125,6 @@ sphinx_gallery_conf = {
 
 # TODO (pyansys-health-team): drop implicit namespaces after renaming files
 autoapi_python_use_implicit_namespaces = True
-autoapi_ignore = [
-    # Private modules
-    "*custom_dynalib_keywords*",
-    "*system_models.py",
-    "*define_function_strings.py",
-    "*heart_decks.py",
-    "*keyword_module.py",
-    "*material_keywords.py",
-]
 suppress_warnings = [
     "autoapi.python_import_resolution",
     "autosectionlabel.*",

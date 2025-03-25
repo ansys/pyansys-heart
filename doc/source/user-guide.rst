@@ -4,9 +4,8 @@ User guide
 This guide provides an overview of the capabilities of PyAnsys Heart, explaining the key concept of preprocessor, writer, simulator, postprocessor, and more.
 
 .. grid:: 1 2 3 3
-   :gutter: 1 2 3 3
-   :padding: 1 2 3 3
-
+    :gutter: 1 2 3 3
+    :padding: 1 2 3 3
 
     .. grid-item-card:: :material-regular:`power_settings_new;1.25em` Preprocessor
         :link: user-guide/preprocessor

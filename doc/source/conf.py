@@ -134,10 +134,18 @@ autoapi_python_use_implicit_namespaces = True
 typehints_defaults = "comma"
 simplify_optional_unions = False
 
+jinja_globals = {
+    "PYANSYS_HEART_VERSION": version,
+}
+
+# Get list of tox environments and add to jinja context
+envs = subprocess.run(["tox", "list", "-q"], capture_output=True, text=True).stdout.splitlines()
+envs.remove("default environments:")
+envs.remove("additional environments:")
+envs.remove("")
+
 jinja_contexts = {
     "toxenvs": {
-        "envs": subprocess.run(
-            ["tox", "list", "-d", "-q"], capture_output=True, text=True
-        ).stdout.splitlines()[1:],
-    },
+        "envs": envs,
+    }
 }

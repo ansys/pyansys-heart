@@ -3,17 +3,24 @@ Getting started
 
 This guide helps you get started with PyAnsys Heart. It provides information on how to install the package, run tests, and check the code style.
 
-.. grid::
+.. grid:: 1 2 3 3
+    :gutter: 1 2 3 3
+    :padding: 1 2 3 3
 
+    .. grid-item-card::  :fa:`book` Overview
+        :link: getting-started/overview
+        :link-type: doc
+
+        Learn about the key techniques in cardiac modeling and the theory behind PyAnsys Heart.
 
     .. grid-item-card::  :fa:`book` Prerequisites
-        :link: prerequisites
+        :link: getting-started/prerequisites
         :link-type: doc
 
         Learn about the prerequisites for using PyAnsys Heart.
 
     .. grid-item-card:: :fa:`download` Installation
-        :link: installation
+        :link: getting-started/installation
         :link-type: doc
 
         Learn how to install PyAnsys Heart.
@@ -23,7 +30,9 @@ This guide helps you get started with PyAnsys Heart. It provides information on 
     :maxdepth: 2
     :hidden:
 
-    prerequisites
-    installation
+    getting-started/overview
+    getting-started/prerequisites
+    getting-started/installation
+
 
 

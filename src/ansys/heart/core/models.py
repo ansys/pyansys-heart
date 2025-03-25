@@ -35,7 +35,7 @@ import yaml
 
 from ansys.heart.core import LOG as LOGGER
 import ansys.heart.core.helpers.connectivity as connectivity
-import ansys.heart.core.helpers.vtkmethods as vtkmethods
+import ansys.heart.core.helpers.vtk_utils as vtk_utils
 from ansys.heart.core.objects import (
     Cap,
     CapType,
@@ -959,20 +959,6 @@ class HeartModel:
             sheet = np.tile([[0.0, 1.0, 1.0]], (self.mesh.n_cells, 1))
             self.mesh.cell_data["sheet"] = sheet
 
-        if "uvc_l" not in self.mesh.array_names:
-            LOGGER.debug("Add approximate longitudinal coordinates.")
-            lv_apex = self.left_ventricle.apex_points[1].xyz
-            mv_centroid = [c.centroid for p in self.parts for c in p.caps if "mitral" in c.name][0]
-            longitudinal_axis = lv_apex - mv_centroid
-            from ansys.heart.core.helpers.misc import rodrigues_rot
-
-            points_rotation = rodrigues_rot(
-                self.mesh.points - lv_apex, longitudinal_axis, [0, 0, -1]
-            )
-            points_rotation[:, 2] = points_rotation[:, 2] - np.min(points_rotation, axis=0)[2]
-            scaling = points_rotation[:, 2] / np.max(points_rotation[:, 2])
-            self.mesh.point_data["uvc_longitudinal"] = scaling
-
         self._get_parts_info()
 
         return
@@ -1041,12 +1027,12 @@ class HeartModel:
         septum_surface.compute_normals()
         septum_surface = septum_surface.smooth()
 
-        septum_surface_extruded = vtkmethods.extrude_polydata(septum_surface, 20)
+        septum_surface_extruded = vtk_utils.extrude_polydata(septum_surface, 20)
 
         # only check tetra elements
         volume_vtk = self.mesh.extract_cells_by_type(pv.CellType.TETRA)
 
-        element_ids_septum = vtkmethods.cell_ids_inside_enclosed_surface(
+        element_ids_septum = vtk_utils.cell_ids_inside_enclosed_surface(
             volume_vtk, septum_surface_extruded
         )
         element_ids_septum = self.mesh._global_tetrahedron_ids[element_ids_septum]
@@ -1215,7 +1201,7 @@ class HeartModel:
             surface.id = int(np.sort(self.mesh.surface_ids)[-1] + 1)  # get unique id.
 
             # Generate patches that close the surface.
-            patches = vtkmethods.get_patches_with_centroid(surface)
+            patches = vtk_utils.get_patches_with_centroid(surface)
 
             LOGGER.debug(f"Generating {len(patches)} caps for {part.name}")
 
@@ -1283,7 +1269,7 @@ class HeartModel:
             for cap in part.caps:
                 cap_mesh = self.mesh.get_surface_by_name(cap.name)
                 for b in boundaries_to_check:
-                    if vtkmethods.are_connected(cap_mesh, b):
+                    if vtk_utils.are_connected(cap_mesh, b):
                         for split in b.name.split("_"):
                             if "valve" in split or "inlet" in split:
                                 break
@@ -1643,7 +1629,7 @@ class HeartModel:
             if cap.type is not CapType.TRICUSPID_VALVE_ATRIUM:
                 ring_nodes.extend(cap.global_node_ids_edge.tolist())
 
-        ring_eles = vtkmethods.find_cells_close_to_nodes(self.mesh, ring_nodes, radius=radius)
+        ring_eles = vtk_utils.find_cells_close_to_nodes(self.mesh, ring_nodes, radius=radius)
         #! remove any non-tetrahedron elements
         ring_eles = ring_eles[np.isin(ring_eles, self.mesh._global_tetrahedron_ids)]
         # above search may create orphan elements, pick them to rings

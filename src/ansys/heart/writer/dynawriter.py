@@ -43,7 +43,7 @@ import scipy.spatial as spatial
 
 from ansys.dyna.core.keywords import keywords
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.helpers.vtkmethods import compute_surface_nodal_area_pyvista
+from ansys.heart.core.helpers.vtk_utils import compute_surface_nodal_area_pyvista
 from ansys.heart.core.models import (
     BiVentricle,
     FourChamber,
@@ -59,7 +59,7 @@ from ansys.heart.simulator.settings.material.material import (
     NeoHookean,
 )
 from ansys.heart.simulator.settings.settings import SimulationSettings, Stimulation
-from ansys.heart.writer import custom_dynalib_keywords as custom_keywords
+from ansys.heart.writer import custom_keywords as custom_keywords
 from ansys.heart.writer.heart_decks import (
     BaseDecks,
     ElectroMechanicsDecks,
@@ -68,7 +68,7 @@ from ansys.heart.writer.heart_decks import (
     MechanicsDecks,
     PurkinjeGenerationDecks,
 )
-from ansys.heart.writer.keyword_module import (
+from ansys.heart.writer.keyword_utils import (
     add_beams_to_kw,
     add_nodes_to_kw,
     create_define_curve_kw,
@@ -219,7 +219,7 @@ class BaseDynaWriter:
         elif isinstance(self, ElectrophysiologyDynaWriter):
             if sett.Electrophysiology not in subsettings_classes:
                 raise ValueError("Expecting electrophysiology settings.")
-        elif isinstance(self, UHCWriter):
+        elif isinstance(self, LaplaceWriter):
             pass
         else:
             raise NotImplementedError(
@@ -959,14 +959,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self._update_controlvolume_db(system_map)
 
-        # else:
-        #     # Four chamber with passive atrial
-        #     # no control volume for atrial, constant pressure instead
-        #     bc_settings = self.settings.mechanics.boundary_conditions
-        #     pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m
-        #     pressure_rv = bc_settings.end_diastolic_cavity_pressure["right_ventricle"].m
-        #     self._add_constant_atrial_pressure(pressure_lv=pressure_lv, pressure_rv=pressure_rv)
-
         self._get_list_of_includes()
         self._add_includes()
 
@@ -1138,25 +1130,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(
             keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0, resplt=1)
         )
-
-        # remove, aha strain is computed from d3plot
-
-        # # control ELOUT file to extract left ventricle's stress/strain
-        # if hasattr(self.model, "septum"):
-        #     self.kw_database.main.append(
-        #         keywords.SetSolidGeneral(
-        #             option="PART",
-        #             sid=1,
-        #             e1=self.model.left_ventricle.pid,
-        #             e2=self.model.septum.pid,
-        #             user_comment="create left ventricle + septum set for exporting",
-        #         )
-        #     )
-        # else:
-        #     self.kw_database.main.append(
-        #         keywords.SetSolidGeneral(option="PART", sid=1, e1=self.model.left_ventricle.pid)
-        #     )
-        # self.kw_database.main.append(keywords.DatabaseHistorySolidSet(id1=1))
 
         return
 
@@ -1432,7 +1405,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         robin_settings = boundary_conditions.robin
 
         # collect all pericardium nodes:
-        ventricles_epi = self._get_epi_surface(apply="ventricle")
+        ventricles_epi = self._get_epi_surface(apply=PartType.VENTRICLE)
 
         #! penalty function is defined on all nodes in the mesh: but just need the epicardial nodes.
         # penalty function
@@ -1459,7 +1432,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         )
 
         if isinstance(self.model, FourChamber):
-            atrial_epi = self._get_epi_surface(apply="atrial")
+            atrial_epi = self._get_epi_surface(PartType.ATRIUM)
 
             k = robin_settings["atrial"]["stiffness"].to("MPa/mm").m
             self.kw_database.pericardium.extend(
@@ -1472,18 +1445,25 @@ class MechanicsDynaWriter(BaseDynaWriter):
             )
         return
 
-    # TODO: change apply input argument to PartType.VENTRICLE and PartType.ATRIUM
-    def _get_epi_surface(self, apply: Literal["ventricle", "atrial"] = "ventricle"):
+    def _get_epi_surface(
+        self, apply: Literal[PartType.VENTRICLE, PartType.ATRIUM] = PartType.VENTRICLE
+    ):
         """Get the epicardial surfaces of either the ventricle or atria."""
         LOGGER.debug(f"Collecting epicardium nodesets of {apply}:")
-        if apply == "ventricle":
-            targets = [part for part in self.model.parts if "ventricle" in part.name]
-        elif apply == "atrial":
-            targets = [part for part in self.model.parts if "atrium" in part.name]
+
+        targets = [part for part in self.model.parts if apply == part.part_type]
 
         # retrieve combined epicardial surface from the central mesh object:
         # this ensures that we can use the global-point-ids
-        epicardium_surface_ids = [ventricle.epicardium.id for ventricle in targets]
+        epicardium_surface_ids = []
+        for part in targets:
+            try:
+                epicardium_surface_ids.append(part.epicardium.id)
+            except AttributeError:
+                LOGGER.warning(f"{part.name} has no epicardium surface.")
+                # part as "Atrioventricular isolation" may not have epicardium surface
+                continue
+
         epicardium_surface1 = self.model.mesh.get_surface(epicardium_surface_ids)
 
         return epicardium_surface1
@@ -1503,7 +1483,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
             return 1 / (1 + np.exp(-z))
 
         # compute penalty function from longitudinal coordinate
-        uvc_l = self.model.mesh.point_data["uvc_longitudinal"]
+        try:
+            uvc_l = self.model.mesh.point_data["apico-basal"]
+        except KeyError:
+            LOGGER.warning(
+                "No apico-basal is found in point data, pericardium spring won't be created."
+            )
+            uvc_l = np.ones(self.model.mesh.GetNumberOfPoints())
         if np.any(uvc_l < 0):
             LOGGER.warning(
                 "Negative normalized longitudinal coordinate detected."
@@ -1540,6 +1526,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
         list
             list of dyna input deck
         """
+        if surface.n_points == 0:
+            LOGGER.error("Surface is empty, no Robin BC is added.")
+            return []
+
         if "_global-point-ids" not in surface.point_data:
             raise ValueError("surface must contain pointdata '_global-point-ids'.")
 
@@ -1810,16 +1800,219 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         return
 
-    # TODO: Keep this implementation for reference.
-    # def _add_enddiastolic_pressure_bc2(
-    #     self, pressure_lv: float = 1, pressure_rv: float = 1
-    # ):
+
+class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
+    """
+    Class for preparing the input for a stress-free LS-DYNA simulation.
+
+    Notes
+    -----
+    Derived from MechanicsDynaWriter and consequently derives all keywords relevant
+    for simulations involving mechanics. This class does not write the
+    control volume keywords but adds the keyword for computing the stress
+    free configuration based on left/right cavity pressures instead.
+
+    """
+
+    def __init__(
+        self,
+        model: HeartModel,
+        settings: SimulationSettings = None,
+    ) -> None:
+        super().__init__(model=model, settings=settings)
+
+        self.kw_database = MechanicsDecks()
+        """Collection of keyword decks relevant for mechanics."""
+
+        return
+
+    def update(self, robin_bcs: list[Callable] = None):
+        """Update the keyword database.
+
+        Parameters
+        ----------
+        robin_bcs : list[Callable], optional
+            A list of lambda functions to apply Robin-type BCs, by default None
+        """
+        # bc_settings = self.settings.mechanics.boundary_conditions
+
+        self._update_main_db()
+
+        self.kw_database.main.title = self.model.__class__.__name__ + " zero-pressure"
+
+        self._update_node_db()
+        self._update_parts_db()
+        self._update_solid_elements_db(add_fibers=True)
+        self._update_segmentsets_db(add_caps=True)
+        self._update_nodesets_db()
+        self._update_material_db(add_active=False)
+        self._update_cap_elements_db()
+
+        # for boundary conditions
+        if robin_bcs is None:
+            # default BC
+            self._add_cap_bc(bc_type="fix_caps")
+        else:
+            # loop for every Robin BC function
+            for robin_bc in robin_bcs:
+                self.kw_database.boundary_conditions.extend(robin_bc())
+
+        # Approximate end-diastolic pressures
+        self._add_enddiastolic_pressure_bc()
+
+        # zerop key words
+        self._add_control_reference_configuration()
+
+        # export dynain file
+        save_part_ids = []
+        for part in self.model.parts:
+            save_part_ids.append(part.pid)
+
+        caps = [cap for part in self.model.parts for cap in part.caps]
+        for cap in caps:
+            if cap.pid is not None:  # MV,TV for atrial parts get None
+                save_part_ids.append(cap.pid)
+
+        partset_id = self.get_unique_partset_id()
+        kw = keywords.SetPartList(sid=partset_id)
+        # kw.parts._data = save_part_ids
+        # NOTE: when len(save_part_ids) = 8/16, dynalib bugs
+        str = "\n"
+        for i, id in enumerate(save_part_ids):
+            str += "{0:10d}".format(id)
+            if (i + 1) % 8 == 0:
+                str += "\n"
+        kw = kw.write() + str
+
+        self.kw_database.main.append(kw)
+
+        self.kw_database.main.append(
+            custom_keywords.InterfaceSpringbackLsdyna(
+                psid=partset_id,
+                nshv=999,
+                ftype=3,
+                rflag=1,
+                optc="OPTCARD",
+                ndflag=1,
+                cflag=1,
+                hflag=1,
+            )
+        )
+
+        self.kw_database.main.append(
+            keywords.InterfaceSpringbackExclude(kwdname="BOUNDARY_SPC_NODE")
+        )
+
+        self._get_list_of_includes()
+        self._add_includes()
+
+        return
+
+    def _add_export_controls(self, dt_output_d3plot: float = 0.5):
+        """Rewrite method for zerop export.
+
+        Parameters
+        ----------
+        dt_output_d3plot : float, optional
+            Writes full D3PLOT results at this time-step spacing, by default 0.5
+        """
+        # add output control
+        self.kw_database.main.append(keywords.ControlOutput(npopt=1, neecho=1, ikedit=0, iflush=0))
+
+        # add export controls
+        # self.kw_database.main.append(keywords.DatabaseElout(dt=0.1, binary=2))
+        # self.kw_database.main.append(keywords.DatabaseGlstat(dt=0.1, binary=2))
+        # self.kw_database.main.append(keywords.DatabaseMatsum(dt=0.1, binary=2))
+
+        # frequency of full results
+        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
+
+        # self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
+
+        # add binout for post-process
+        settings = copy.deepcopy(self.settings.stress_free)
+        settings._remove_units()
+
+        self.kw_database.main.append(
+            keywords.DatabaseNodout(dt=settings.analysis.dt_nodout, binary=2)
+        )
+
+        # write for all nodes in nodout
+        nodeset_id = self.get_unique_nodeset_id()
+        kw = keywords.SetNodeGeneral(option="ALL", sid=nodeset_id)
+        self.kw_database.main.append(kw)
+
+        kw = keywords.DatabaseHistoryNodeSet(id1=nodeset_id)
+        self.kw_database.main.append(kw)
+
+        return
+
+    def _add_solution_controls(self):
+        """Rewrite method for the zerop simulation."""
+        settings = copy.deepcopy(self.settings.stress_free)
+        settings._remove_units()
+
+        self.kw_database.main.append(keywords.ControlTermination(endtim=settings.analysis.end_time))
+
+        self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
+
+        # add auto step controls
+        self.kw_database.main.append(
+            keywords.ControlImplicitAuto(
+                iauto=1, dtmin=settings.analysis.dtmin, dtmax=settings.analysis.dtmax
+            )
+        )
+
+        # add general implicit controls
+        self.kw_database.main.append(
+            keywords.ControlImplicitGeneral(imflag=1, dt0=settings.analysis.dtmax)
+        )
+
+        # add implicit solution controls
+        self.kw_database.main.append(
+            keywords.ControlImplicitSolution(
+                # maxref=35,
+                dctol=0.01,
+                ectol=1e6,
+                rctol=1e3,
+                abstol=1e-20,
+                dnorm=1,
+                diverg=2,
+                # lsmtd=5,
+            )
+        )
+
+        # add implicit solver controls
+        self.kw_database.main.append(custom_keywords.ControlImplicitSolver(autospc=2))
+
+        # accuracy control
+        self.kw_database.main.append(keywords.ControlAccuracy(osu=1, inn=4, iacc=1))
+
+        return
+
+    def _add_control_reference_configuration(self):
+        """Add control reference configuration keyword to main."""
+        LOGGER.debug("Adding *CONTROL_REFERENCE_CONFIGURATION to main.k")
+        settings = self.settings.stress_free.analysis
+        kw = keywords.ControlReferenceConfiguration(
+            maxiter=settings.max_iters,
+            target="nodes.k",
+            method=settings.method,
+            tol=settings.tolerance,
+        )
+
+        self.kw_database.main.append(kw)
+
+        return
+
+    # def _add_enddiastolic_pressure_by_cv(self, pressure_lv: float = 1, pressure_rv: float = 1):
     #     """
-    #     Apply ED pressure by control volume.
+    #     Apply end-of-diastolic pressure by control volume.
 
     #     Notes
     #     -----
-    #     LSDYNA stress reference configuration bug with this load due to define function.
+    #     LSDYNA stress reference configuration lead to a bug with this load,
+    #     it seems due to define function, need to be investigated.
     #     """
     #     cavities = [part.cavity for part in self.model.parts if part.cavity]
     #     for cavity in cavities:
@@ -1906,217 +2099,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
             else:
                 LOGGER.debug(f"No load added to {cavity.name}")
                 continue
-
-        return
-
-
-class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
-    """
-    Class for preparing the input for a stress-free LS-DYNA simulation.
-
-    Notes
-    -----
-    Derived from MechanicsDynaWriter and consequently derives all keywords relevant
-    for simulations involving mechanics. This class does not write the
-    control volume keywords but adds the keyword for computing the stress
-    free configuration based on left/right cavity pressures instead.
-
-    """
-
-    def __init__(
-        self,
-        model: HeartModel,
-        settings: SimulationSettings = None,
-    ) -> None:
-        super().__init__(model=model, settings=settings)
-
-        self.kw_database = MechanicsDecks()
-        """Collection of keyword decks relevant for mechanics."""
-
-        return
-
-    def update(self, robin_bcs: list[Callable] = None):
-        """Update the keyword database.
-
-        Parameters
-        ----------
-        robin_bcs : list[Callable], optional
-            A list of lambda functions to apply Robin-type BCs, by default None
-        """
-        # bc_settings = self.settings.mechanics.boundary_conditions
-
-        self._update_main_db()
-
-        self.kw_database.main.title = self.model.__class__.__name__ + " zero-pressure"
-
-        self._update_node_db()
-        self._update_parts_db()
-        self._update_solid_elements_db(add_fibers=True)
-        self._update_segmentsets_db(add_caps=True)
-        self._update_nodesets_db()
-        self._update_material_db(add_active=False)
-        self._update_cap_elements_db()
-
-        # for boundary conditions
-        if robin_bcs is None:
-            # default BC
-            self._add_cap_bc(bc_type="fix_caps")
-        else:
-            # loop for every Robin BC function
-            for robin_bc in robin_bcs:
-                self.kw_database.boundary_conditions.extend(robin_bc())
-
-        # if isinstance(self.model, FourChamber):
-        #     # add a small constraint to avoid rotation
-        #     self._add_pericardium_bc(scale=0.01)
-
-        # # Approximate end-diastolic pressures
-        self._add_enddiastolic_pressure_bc()
-
-        # zerop key words
-        self._add_control_reference_configuration()
-
-        # export dynain file
-        save_part_ids = []
-        for part in self.model.parts:
-            save_part_ids.append(part.pid)
-
-        caps = [cap for part in self.model.parts for cap in part.caps]
-        for cap in caps:
-            if cap.pid is not None:  # MV,TV for atrial parts get None
-                save_part_ids.append(cap.pid)
-
-        partset_id = self.get_unique_partset_id()
-        kw = keywords.SetPartList(sid=partset_id)
-        # kw.parts._data = save_part_ids
-        # NOTE: when len(save_part_ids) = 8/16, dynalib bugs
-        str = "\n"
-        for i, id in enumerate(save_part_ids):
-            str += "{0:10d}".format(id)
-            if (i + 1) % 8 == 0:
-                str += "\n"
-        kw = kw.write() + str
-
-        self.kw_database.main.append(kw)
-
-        self.kw_database.main.append(
-            custom_keywords.InterfaceSpringbackLsdyna(
-                psid=partset_id,
-                nshv=999,
-                ftype=3,
-                rflag=1,
-                optc="OPTCARD",
-                ndflag=1,
-                cflag=1,
-                hflag=1,
-            )
-        )
-
-        self.kw_database.main.append(
-            keywords.InterfaceSpringbackExclude(kwdname="BOUNDARY_SPC_NODE")
-        )
-
-        self._get_list_of_includes()
-        self._add_includes()
-
-        return
-
-    def _add_export_controls(self, dt_output_d3plot: float = 0.5):
-        """Rewrite method for zerop export.
-
-        Parameters
-        ----------
-        dt_output_d3plot : float, optional
-            Writes full D3PLOT results at this time-step spacing, by default 0.5
-        """
-        # add output control
-        self.kw_database.main.append(keywords.ControlOutput(npopt=1, neecho=1, ikedit=0, iflush=0))
-
-        # add export controls
-        # self.kw_database.main.append(keywords.DatabaseElout(dt=0.1, binary=2))
-        #
-        # self.kw_database.main.append(keywords.DatabaseGlstat(dt=0.1, binary=2))
-        #
-        # self.kw_database.main.append(keywords.DatabaseMatsum(dt=0.1, binary=2))
-
-        # frequency of full results
-        self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
-
-        # self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
-
-        # add binout for post-process
-        settings = copy.deepcopy(self.settings.stress_free)
-        settings._remove_units()
-
-        self.kw_database.main.append(
-            keywords.DatabaseNodout(dt=settings.analysis.dt_nodout, binary=2)
-        )
-
-        # write for all nodes in nodout
-        nodeset_id = self.get_unique_nodeset_id()
-        kw = keywords.SetNodeGeneral(option="ALL", sid=nodeset_id)
-        self.kw_database.main.append(kw)
-
-        kw = keywords.DatabaseHistoryNodeSet(id1=nodeset_id)
-        self.kw_database.main.append(kw)
-
-        return
-
-    def _add_solution_controls(self):
-        """Rewrite method for the zerop simulation."""
-        settings = copy.deepcopy(self.settings.stress_free)
-        settings._remove_units()
-
-        self.kw_database.main.append(keywords.ControlTermination(endtim=settings.analysis.end_time))
-
-        self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
-
-        # add auto step controls
-        self.kw_database.main.append(
-            keywords.ControlImplicitAuto(
-                iauto=1, dtmin=settings.analysis.dtmin, dtmax=settings.analysis.dtmax
-            )
-        )
-
-        # add general implicit controls
-        self.kw_database.main.append(
-            keywords.ControlImplicitGeneral(imflag=1, dt0=settings.analysis.dtmax)
-        )
-
-        # add implicit solution controls
-        self.kw_database.main.append(
-            keywords.ControlImplicitSolution(
-                # maxref=35,
-                dctol=0.01,
-                ectol=1e6,
-                rctol=1e3,
-                abstol=1e-20,
-                dnorm=1,
-                diverg=2,
-                # lsmtd=5,
-            )
-        )
-
-        # add implicit solver controls
-        self.kw_database.main.append(custom_keywords.ControlImplicitSolver(autospc=2))
-
-        # accuracy control
-        self.kw_database.main.append(keywords.ControlAccuracy(osu=1, inn=4, iacc=1))
-
-        return
-
-    def _add_control_reference_configuration(self):
-        """Add control reference configuration keyword to main."""
-        LOGGER.debug("Adding *CONTROL_REFERENCE_CONFIGURATION to main.k")
-        settings = self.settings.stress_free.analysis
-        kw = keywords.ControlReferenceConfiguration(
-            maxiter=settings.max_iters,
-            target="nodes.k",
-            method=settings.method,
-            tol=settings.tolerance,
-        )
-
-        self.kw_database.main.append(kw)
 
         return
 
@@ -3708,8 +3690,8 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         return
 
 
-class UHCWriter(BaseDynaWriter):
-    """Universal Heart Coordinate Writer."""
+class LaplaceWriter(BaseDynaWriter):
+    """Writer to set Laplace dirichlet problem."""
 
     # constant node set ID for atrial valves/caps
     _CAP_NODESET_MAP = {
@@ -3724,23 +3706,27 @@ class UHCWriter(BaseDynaWriter):
         CapType.INFERIOR_VENA_CAVA: 9,
     }
     _LANDMARK_RADIUS = 1.5  # mm
+    _UVC_APEX_RADIUS = 10.0  # mm
 
     def __init__(
         self, model: HeartModel, type: Literal["uvc", "la_fiber", "ra_fiber", "D-RBM"], **kwargs
     ):
-        """
-        Write thermal input to set up a Laplace dirichlet problem.
+        """Write thermal input to set up a Laplace dirichlet problem.
 
         Parameters
         ----------
-        model: Heart Model
-            Heart model to simulate.
-        type : Literal[]
-            Type of simulation to set up.
+        model : HeartModel
+            Heart model
+        type : Literal[&quot;uvc&quot;, &quot;la_fiber&quot;, &quot;ra_fiber&quot;, &quot;D
+            simulation type
         """
         super().__init__(model=model)
         self.type = type
+        """problem type"""
         self.landmarks = kwargs
+        """landmarks can be `laa`, `raa`, `top`"""
+        self.target: pv.UnstructuredGrid = None
+        """target mesh related to the problem."""
 
         # remove unnecessary parts
         if self.type == "uvc" or self.type == "D-RBM":
@@ -3751,15 +3737,15 @@ class UHCWriter(BaseDynaWriter):
         elif self.type == "ra_fiber":
             parts_to_keep = ["Right atrium"]
 
-        # remove unnecessary mesh
+        # remove unnecessary mesh and create target attribute
         if self.type == "uvc" or self.type == "D-RBM":
             elems_to_keep = []
             if isinstance(self.model, LeftVentricle):
-                elems_to_keep.extend(model.parts[0].element_ids)
+                elems_to_keep.extend(model.left_ventricle.element_ids)
             else:
-                elems_to_keep.extend(model.parts[0].element_ids)
-                elems_to_keep.extend(model.parts[1].element_ids)
-                elems_to_keep.extend(model.parts[2].element_ids)  #! assumes part ordering!
+                elems_to_keep.extend(model.left_ventricle.element_ids)
+                elems_to_keep.extend(model.right_ventricle.element_ids)
+                elems_to_keep.extend(model.septum.element_ids)
 
             # model.mesh.clear_data()
             model.mesh["cell_ids"] = np.arange(0, model.mesh.n_cells, dtype=int)
@@ -3777,7 +3763,7 @@ class UHCWriter(BaseDynaWriter):
 
     def _update_ra_top_nodeset(self, atrium: pv.UnstructuredGrid):
         """
-        Find right atrium top nodeset.
+        Define right atrium top nodeset with node set id 10.
 
         Parameters
         ----------
@@ -3794,6 +3780,14 @@ class UHCWriter(BaseDynaWriter):
         self.kw_database.node_sets.append(kw)
 
     def _find_top_nodeset_by_cut(self, atrium: pv.UnstructuredGrid):
+        """
+        Define right atrium top nodeset.
+
+        Cut through the center of TV, IVC and SVC, expecting to result in
+        3 unconnected regions and the farthest is top.
+        This method may fail with varying geometries, then the user
+        needs to define the top landmarks.
+        """
         cut_center, cut_normal = self._define_ra_cut()
 
         atrium["cell_ids_tmp"] = np.arange(0, atrium.n_cells, dtype=int)
@@ -3808,8 +3802,8 @@ class UHCWriter(BaseDynaWriter):
             LOGGER.error("Cannot find top nodeset...")
             raise ValueError("Please define top start/end points and re-run.")
 
-        # temporary fix with tricuspid-valve name
-        tv_name = "tricuspid-valve-atrium"
+        # get tricuspid-valve name
+        tv_name = CapType.TRICUSPID_VALVE_ATRIUM.value
 
         # compare closest point with TV nodes, top region should be far with TV node set
         tv_tree = spatial.cKDTree(atrium.points[atrium.point_data[tv_name] == 1])
@@ -3830,6 +3824,7 @@ class UHCWriter(BaseDynaWriter):
         return top_ids
 
     def _find_top_nodeset_by_geodesic(self, atrium: pv.UnstructuredGrid):
+        """Define top nodeset by connecting landmark points with a geodesic path."""
         top_ids = []
         surface: pv.PolyData = atrium.extract_surface()
         for i in range(len(self.landmarks["top"]) - 1):
@@ -3843,7 +3838,7 @@ class UHCWriter(BaseDynaWriter):
         return np.unique(np.array(top_ids))
 
     def _define_ra_cut(self):
-        """Define a cut from 3 holes of right atrium."""
+        """Define a cut-plane using the three caps of right atrium."""
         for cap in self.model.parts[0].caps:
             if cap.type == CapType.TRICUSPID_VALVE_ATRIUM:
                 tv_center = cap.centroid
@@ -3857,9 +3852,9 @@ class UHCWriter(BaseDynaWriter):
         return cut_center, cut_normal
 
     def _update_ra_tricuspid_nodeset(self, atrium):
-        """Find tricuspid_wall and tricuspid_septum."""
-        # temporary fix with tricuspid-valve name
-        tv_name = "tricuspid-valve-atrium"
+        """Define nodeset for tricuspid_wall and tricuspid_septum."""
+        # get tricuspid-valve name
+        tv_name = CapType.TRICUSPID_VALVE_ATRIUM.value
 
         # The cut_normal is determined so 1st part will be septum and 2nd will be free
         cut_center, cut_normal = self._define_ra_cut()
@@ -3890,8 +3885,7 @@ class UHCWriter(BaseDynaWriter):
         self.kw_database.node_sets.append(kw)
 
     def _update_atrial_caps_nodeset(self, atrium: pv.UnstructuredGrid):
-        """Define boundary condition."""
-        ids_edges = []  # all nodes belong to valves
+        """Define node sets for the caps."""
         for cap in self.model.parts[0].caps:
             # get node IDs for atrium mesh
             cap._mesh = self.model.mesh.get_surface(cap._mesh.id)
@@ -3899,94 +3893,68 @@ class UHCWriter(BaseDynaWriter):
             # create node set
             set_id = self._CAP_NODESET_MAP[cap.type]
 
-            if set_id:  # Can be none for LEFT_ATRIUM_APPENDAGE
+            if set_id:  # Can be None for LEFT_ATRIUM_APPENDAGE
                 kw = create_node_set_keyword(ids_sub + 1, node_set_id=set_id, title=cap.name)
                 self.kw_database.node_sets.append(kw)
 
-                ids_edges.extend(ids_sub)
-
-                # Add info to pyvista object (RA fiber use this)
+                # Add info to pyvista object, necessary for right atrial fibers.
                 atrium[cap.type.value] = np.zeros(atrium.n_points, dtype=int)
                 atrium[cap.type.value][ids_sub] = 1
 
-        return ids_edges
+        return
 
-    def _update_atrial_endo_epi_nodeset(
-        self, atrium: pv.UnstructuredGrid, nodes_to_remove: list[int]
-    ):
-        """Define atrial endo/epi nodeset to 100/200.
+    def _update_la_bc(self):
+        atrium = self.target
 
-        Parameters
-        ----------
-        atrium : pv.UnstructuredGrid
-            target atrium, left or right
-        nodes_to_remove : list[int]
-            nodes ID of valves, need to be removed from endo/epi sets.
-        """
-        # endo nodes ID
-        #! get up to date endocardium.
-        endocardium = self.model.mesh.get_surface(self.model.parts[0].endocardium.id)
-        ids_endo = np.where(np.isin(atrium["point_ids"], endocardium.global_node_ids_triangles))[0]
+        def get_laa_nodes(atrium, laa: np.ndarray):
+            tree = spatial.cKDTree(atrium.points)
+            ids = np.array(tree.query_ball_point(laa, self._LANDMARK_RADIUS))
+            return ids
 
-        atrium["endo"] = np.zeros(atrium.n_points, dtype=int)
-        atrium["endo"][ids_endo] = 1
-        kw = create_node_set_keyword(ids_endo + 1, node_set_id=100, title="endo")
-        self.kw_database.node_sets.append(kw)
-
-        # epi node ID
-        # epi cannot use directly Surface because new free surface exposed
-        ids_surface = atrium.extract_surface()["vtkOriginalPointIds"]
-        ids_epi = np.setdiff1d(ids_surface, ids_endo)
-        ids_epi = np.setdiff1d(ids_epi, nodes_to_remove)
-
-        atrium["epi"] = np.zeros(atrium.n_points, dtype=int)
-        atrium["epi"][ids_epi] = 1
-        kw = create_node_set_keyword(ids_epi + 1, node_set_id=200, title="epi")
-        self.kw_database.node_sets.append(kw)
-
-    def _get_laa_nodes(self, atrium, laa: np.ndarray):
-        tree = spatial.cKDTree(atrium.points)
-        ids = np.array(tree.query_ball_point(laa, self._LANDMARK_RADIUS))
-        return ids
-
-    def _update_la_bc(self, atrium):
-        edge_ids = self._update_atrial_caps_nodeset(atrium)
-        self._update_atrial_endo_epi_nodeset(atrium, edge_ids)
-
+        # laa
         if "laa" in self.landmarks.keys():
-            laa_ids = self._get_laa_nodes(atrium, self.landmarks["laa"])
-            kw = create_node_set_keyword(laa_ids + 1, node_set_id=2, title="left atrium appendage")
+            # else there should be a LEFT_ATRIUM_APPENDAGE as in Strocchi's data
+            laa_ids = get_laa_nodes(atrium, self.landmarks["laa"])
+
+            kw = create_node_set_keyword(
+                laa_ids + 1,
+                node_set_id=self._CAP_NODESET_MAP[CapType.LEFT_ATRIUM_APPENDAGE],
+                title="left atrium appendage",
+            )
             self.kw_database.node_sets.append(kw)
 
-        # set BC in into DYNA case
-        self.kw_database.main.append(keywords.Case(caseid=1, jobid="trans", scid1=1))
-        self.kw_database.main.append(keywords.Case(caseid=2, jobid="ab", scid1=2))
-        self.kw_database.main.append(keywords.Case(caseid=3, jobid="v", scid1=3))
-        self.kw_database.main.append(keywords.Case(caseid=4, jobid="r", scid1=4))
+        # caps
+        self._update_atrial_caps_nodeset(atrium)
 
-        self.kw_database.main.append("*CASE_BEGIN_1")
-        self._define_Laplace_Dirichlet_bc(set_ids=[100, 200], bc_values=[0, 1])
-        self.kw_database.main.append("*CASE_END_1")
+        # endo/epi
+        endo_nodes = self.model.left_atrium.endocardium.global_node_ids_triangles
+        epi_nodes = self.model.left_atrium.epicardium.global_node_ids_triangles
+        epi_nodes = np.setdiff1d(epi_nodes, endo_nodes)
 
-        self.kw_database.main.append("*CASE_BEGIN_2")
-        self._define_Laplace_Dirichlet_bc(
-            set_ids=[1, 3, 4, 5, 6, 2], bc_values=[2.0, 2.0, 1.0, 0.0, 0.0, -1.0]
-        )
-        self.kw_database.main.append("*CASE_END_2")
+        self._add_nodeset(endo_nodes, "endocardium", nodeset_id=100)
+        self._add_nodeset(epi_nodes, "epicardium", nodeset_id=200)
 
-        self.kw_database.main.append("*CASE_BEGIN_3")
-        self._define_Laplace_Dirichlet_bc(set_ids=[1, 3, 5, 6], bc_values=[1.0, 1.0, 0.0, 0.0])
-        self.kw_database.main.append("*CASE_END_3")
+        cases = [
+            (1, "trans", [100, 200], [0, 1]),
+            (2, "ab", [1, 3, 4, 5, 6, 2], [2.0, 2.0, 1.0, 0.0, 0.0, -1.0]),
+            (3, "v", [1, 3, 5, 6], [1.0, 1.0, 0.0, 0.0]),
+            (4, "r", [4, 1, 2, 3, 5, 6], [1.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+        ]
+        for case_id, job_name, set_ids, bc_values in cases:
+            self.add_case(case_id, job_name, set_ids, bc_values)
 
-        self.kw_database.main.append("*CASE_BEGIN_4")
-        self._define_Laplace_Dirichlet_bc(
-            set_ids=[4, 1, 2, 3, 5, 6], bc_values=[1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        )
-        self.kw_database.main.append("*CASE_END_4")
+    def _update_ra_bc(self):
+        atrium = self.target
+        # caps
+        self._update_atrial_caps_nodeset(atrium)
 
-    def _update_ra_bc(self, atrium):
-        edge_ids = self._update_atrial_caps_nodeset(atrium)
-        self._update_atrial_endo_epi_nodeset(atrium, edge_ids)
+        # endo/epi
+        endo_nodes = self.model.right_atrium.endocardium.global_node_ids_triangles
+        epi_nodes = self.model.right_atrium.epicardium.global_node_ids_triangles
+        epi_nodes = np.setdiff1d(epi_nodes, endo_nodes)
+
+        self._add_nodeset(endo_nodes, "endocardium", nodeset_id=100)
+        self._add_nodeset(epi_nodes, "epicardium", nodeset_id=200)
 
         # Find appendage apex
         tree = spatial.cKDTree(atrium.points)
@@ -4000,38 +3968,20 @@ class UHCWriter(BaseDynaWriter):
         atrium["raa"] = np.zeros(atrium.n_points)
         atrium["raa"][raa_ids] = 1
 
-        # other nodesets
+        # top nodeset
         self._update_ra_top_nodeset(atrium)
+        # tricuspid wall/free nodeset
         self._update_ra_tricuspid_nodeset(atrium)
 
-        self.kw_database.main.append(keywords.Case(caseid=1, jobid="trans", scid1=1))
-        self.kw_database.main.append(keywords.Case(caseid=2, jobid="ab", scid1=2))
-        self.kw_database.main.append(keywords.Case(caseid=3, jobid="v", scid1=3))
-        self.kw_database.main.append(keywords.Case(caseid=4, jobid="r", scid1=4))
-        self.kw_database.main.append(keywords.Case(caseid=5, jobid="w", scid1=5))
-
-        self.kw_database.main.append("*CASE_BEGIN_1")
-        self._define_Laplace_Dirichlet_bc(set_ids=[100, 200], bc_values=[0, 1])
-        self.kw_database.main.append("*CASE_END_1")
-
-        self.kw_database.main.append("*CASE_BEGIN_2")
-        self._define_Laplace_Dirichlet_bc(set_ids=[9, 7, 8, 11], bc_values=[2.0, 1.0, 0.0, -1.0])
-        self.kw_database.main.append("*CASE_END_2")
-
-        self.kw_database.main.append("*CASE_BEGIN_3")
-        self._define_Laplace_Dirichlet_bc(set_ids=[9, 8, 11], bc_values=[1.0, 0.0, 0.0])
-        self.kw_database.main.append("*CASE_END_3")
-
-        self.kw_database.main.append("*CASE_BEGIN_4")
-        self._define_Laplace_Dirichlet_bc(set_ids=[7, 10], bc_values=[1.0, 0.0])
-        self.kw_database.main.append("*CASE_END_4")
-
-        # Differently with article, we add Gamma_top = 0 to enforce BC
-        self.kw_database.main.append("*CASE_BEGIN_5")
-        self._define_Laplace_Dirichlet_bc(set_ids=[12, 13, 10], bc_values=[1.0, -1.0, 0.0])
-        self.kw_database.main.append("*CASE_END_5")
-
-        return atrium
+        cases = [
+            (1, "trans", [100, 200], [0, 1]),
+            (2, "ab", [9, 7, 8, 11], [2.0, 1.0, 0.0, -1.0]),
+            (3, "v", [9, 8, 11], [1.0, 0.0, 0.0]),
+            (4, "r", [7, 10], [1.0, 0.0]),
+            (5, "w", [12, 13, 10], [1.0, -1.0, 0.0]),
+        ]
+        for case_id, job_name, set_ids, bc_values in cases:
+            self.add_case(case_id, job_name, set_ids, bc_values)
 
     def update(self):
         """Update keyword database."""
@@ -4056,9 +4006,9 @@ class UHCWriter(BaseDynaWriter):
         if self.type == "uvc":
             self._update_uvc_bc()
         elif self.type == "la_fiber":
-            self._update_la_bc(self.target)
+            self._update_la_bc()
         elif self.type == "ra_fiber":
-            self._update_ra_bc(self.target)
+            self._update_ra_bc()
         elif self.type == "D-RBM":
             self._update_drbm_bc()
 
@@ -4066,129 +4016,59 @@ class UHCWriter(BaseDynaWriter):
         self._add_includes()
 
     def _update_uvc_bc(self):
-        self.kw_database.main.append(keywords.Case(caseid=1, jobid="transmural", scid1=1))
-        self.kw_database.main.append(keywords.Case(caseid=2, jobid="apico-basal", scid1=2))
-        self.kw_database.main.append(keywords.Case(caseid=3, jobid="rotational", scid1=3))
-
         # transmural uvc
-        endo_set = []
-        # epi_set = []
-        for part in self.model.parts:
-            for surf in part.surfaces:
-                if "endocardium" in surf.name and surf.name != "Right ventricle endocardium septum":
-                    endo_surf = self.model.mesh.get_surface(surf.id)
-                    if endo_surf.n_cells == 0:
-                        LOGGER.debug(f"Failed to collect nodes for {surf.name}. Empty mesh.")
-                        continue
-                    endo_set.extend(endo_surf.global_node_ids_triangles)
-                # elif "epicardium" in surf.name:
-                #     epi_set.extend(surf.node_ids)
+        endo_nodes = self.model.left_ventricle.endocardium.global_node_ids_triangles
+        epi_nodes = self.model.left_ventricle.epicardium.global_node_ids_triangles
 
-        # map IDs to sub mesh
-        endo_set_new = np.unique(np.where(np.isin(self.target["point_ids"], endo_set))[0])
+        if not isinstance(self.model, LeftVentricle):
+            rv_endo = self.model.right_ventricle.endocardium.global_node_ids_triangles
+            septum_endo = self._get_rv_septum_endo_surface().global_node_ids_triangles
+            rv_epi = self.model.right_ventricle.epicardium.global_node_ids_triangles
 
-        endo_sid = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(endo_set_new + 1, node_set_id=endo_sid, title="endo")
-        self.kw_database.node_sets.append(kw)
+            # septum endocardium is merged into epicardium set, this is
+            # consistent with transmural values of LeftVentricle model
+            endo_nodes = np.hstack((endo_nodes, rv_endo))
+            epi_nodes = np.hstack(
+                (
+                    epi_nodes,
+                    rv_epi,
+                    septum_endo,
+                )
+            )
+        epi_nodes = np.setdiff1d(epi_nodes, endo_nodes)
 
-        # epi_set_new = id_sorter[
-        #     np.searchsorted(self.target["point_ids"], epi_set, sorter=id_sorter)
-        # ]
-        # epi_set_new = np.unique(epi_set_new)
-        # epi_set_new = np.setdiff1d(epi_set_new, endo_set_new)
+        endo_sid = self._add_nodeset(endo_nodes, "endocardium")
+        epi_sid = self._add_nodeset(epi_nodes, "epicardium")
 
-        # epi cannot use directly Surface because new free surface exposed
-        ids_surface = self.target.extract_surface()["vtkOriginalPointIds"]
-        epi_set_new = np.unique(np.setdiff1d(ids_surface, endo_set_new))
+        # base-apical uvc
+        # apex is selected only at left ventricle and with a region of 10 mm
+        # This avoids mesh sensitivity and seems consistent with Strocchi paper's figure
+        apex_nodes = self.model.get_apex_node_set(radius=self._UVC_APEX_RADIUS)
+        apex_sid = self._add_nodeset(apex_nodes, "apex")
 
-        epi_sid = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(epi_set_new + 1, node_set_id=epi_sid, title="epi")
-        self.kw_database.node_sets.append(kw)
+        # base is with all cap nodes
+        (pv_nodes, tv_nodes, av_nodes, mv_nodes), _ = self._update_ventricular_caps_nodes()
+        if isinstance(self.model, LeftVentricle):
+            base_nodes = np.hstack((mv_nodes, av_nodes))
+        else:
+            base_nodes = np.hstack((mv_nodes, av_nodes, pv_nodes, tv_nodes))
 
-        self.kw_database.main.append("*CASE_BEGIN_1")
-        self._define_Laplace_Dirichlet_bc(set_ids=[endo_sid, epi_sid], bc_values=[0, 1])
-        self.kw_database.main.append("*CASE_END_1")
+        base_sid = self._add_nodeset(base_nodes, "base")
 
-        # apicobasal uvc
-        apex_sid = self._create_apex_nodeset()
-        base_sid = self._create_base_nodeset()
+        # rotational uvc
+        rot_start, rot_end, rot_mid = self._get_uvc_rotation_bc()
 
-        self.kw_database.main.append("*CASE_BEGIN_2")
-        self._define_Laplace_Dirichlet_bc(set_ids=[apex_sid, base_sid], bc_values=[0, 1])
-        self.kw_database.main.append("*CASE_END_2")
+        sid_minus_pi = self._add_nodeset(rot_start, title="rotation:-pi")
+        sid_plus_pi = self._add_nodeset(rot_end, title="rotation:pi")
+        sid_zero = self._add_nodeset(rot_mid, title="rotation:0")
 
-        # rotational uc
-        [sid_minus_pi, sid_plus_pi, sid_zero] = self._create_rotational_nodesets()
-
-        self.kw_database.main.append("*CASE_BEGIN_3")
-        self._define_Laplace_Dirichlet_bc(
-            set_ids=[sid_minus_pi, sid_plus_pi, sid_zero], bc_values=[-np.pi, np.pi, 0]
-        )
-        self.kw_database.main.append("*CASE_END_3")
-
-    def _create_apex_nodeset(self):
-        # apex
-        # select a region within 1 cm, this seems consistent with Strocchi database
-        apex_set = self.model.get_apex_node_set(radius=10)
-        # get local ID
-        ids_submesh = np.unique(np.where(np.isin(self.target["point_ids"], apex_set))[0])
-
-        sid = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(ids_submesh + 1, node_set_id=sid, title="apex")
-        self.kw_database.node_sets.append(kw)
-        return sid
-
-    def _create_base_nodeset(self):
-        # base
-        base_set = np.array([])
-        for part in self.model.parts:
-            for cap in part.caps:
-                cap._mesh = self.model.mesh.get_surface(cap._mesh.id)
-                base_set = np.append(base_set, cap.global_node_ids_edge)
-        # get local ID
-        ids_submesh = np.unique(np.where(np.isin(self.target["point_ids"], base_set))[0])
-
-        sid = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(ids_submesh + 1, node_set_id=sid, title="base")
-        self.kw_database.node_sets.append(kw)
-        return sid
-
-    def _create_surface_nodeset(self, surftype: str, cavity_type: str):
-        nodeset = np.array([])
-        for part in self.model.parts:
-            if cavity_type in part.name:
-                for surf in part.surfaces:
-                    if surftype in surf.name:
-                        nodeset = np.append(nodeset, surf.node_ids_triangles)
-        nodeset = np.unique(nodeset.astype(int))
-
-        # map IDs to sub mesh
-        ids_submesh = np.unique(np.where(np.isin(self.target["point_ids"], nodeset))[0])
-
-        sid = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(
-            ids_submesh + 1,
-            node_set_id=sid,
-            title=cavity_type + " " + surftype + " all",
-        )
-        self.kw_database.node_sets.append(kw)
-
-        return sid
-
-    def _create_rotational_nodesets(self):
-        # Find nodes on target mesh
-        rot_start, rot_end, septum = self._get_uvc_rotation_bc()
-
-        sid_minus_pi = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(rot_start + 1, node_set_id=sid_minus_pi, title="rotation:-pi")
-        self.kw_database.node_sets.append(kw)
-        sid_plus_pi = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(rot_end + 1, node_set_id=sid_plus_pi, title="rotation:pi")
-        self.kw_database.node_sets.append(kw)
-        sid_zero = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(septum + 1, node_set_id=sid_zero, title="rotation:0")
-        self.kw_database.node_sets.append(kw)
-        return [sid_minus_pi, sid_plus_pi, sid_zero]
+        cases = [
+            (1, "transmural", [endo_sid, epi_sid], [0, 1]),
+            (2, "apico-basal", [apex_sid, base_sid], [0, 1]),
+            (3, "rotational", [sid_minus_pi, sid_plus_pi, sid_zero], [-np.pi, np.pi, 0]),
+        ]
+        for case_id, job_name, set_ids, bc_values in cases:
+            self.add_case(case_id, job_name, set_ids, bc_values)
 
     def _get_uvc_rotation_bc(self):
         """Select node set on long axis plane."""
@@ -4220,21 +4100,6 @@ class UHCWriter(BaseDynaWriter):
         )  # 0
 
         return set1, set2, set3
-
-    def _define_Laplace_Dirichlet_bc(  # noqa N802
-        self,
-        set_ids: List[int],
-        bc_values: List[float],
-    ):
-        for sid, value in zip(set_ids, bc_values):
-            self.kw_database.main.append(
-                keywords.BoundaryTemperatureSet(
-                    nsid=sid,
-                    lcid=0,
-                    cmult=value,
-                ),
-            )
-        return
 
     def _update_parts_materials_db(self):
         """Loop over parts defined in the model and creates keywords."""
@@ -4283,150 +4148,187 @@ class UHCWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.DatabaseExtentBinary(therm=2))  # save heat flux
         self.kw_database.main.append(keywords.ControlTermination(endtim=1, dtmin=1.0))
 
+    def _add_nodeset(self, nodes: np.ndarray, title: str, nodeset_id: int = None) -> int:
+        """Convert to local node ID and add to nodeset.
+
+        Parameters
+        ----------
+        nodes : np.ndarray
+            Nodes global ids
+        title : str
+            nodeset title
+        nodeset_id : int, optional
+            attribute a nodeset ID if not given, by default None
+
+        Returns
+        -------
+        int
+            nodeset id
+        """
+        # get node IDs of sub mesh
+        nodes = np.where(np.isin(self.target["point_ids"], nodes))[0]
+        if nodeset_id is None:
+            nodeset_id = self.get_unique_nodeset_id()
+        # lsdyna ID start with 1
+        kw = create_node_set_keyword(nodes + 1, node_set_id=nodeset_id, title=title)
+        self.kw_database.node_sets.append(kw)
+        return nodeset_id
+
     def _update_drbm_bc(self):
+        """Update D-RBM boundary conditions."""
+
+        def clean_node_set(nodes: np.ndarray, exclude_nodes: np.ndarray = None):
+            """Make sure there are no duplicate or excluded nodes, avoid thermal BC error."""
+            nodes = np.unique(nodes)
+            if exclude_nodes is not None:
+                nodes = np.setdiff1d(nodes, exclude_nodes)
+            return nodes
+
+        (pv_nodes, tv_nodes, av_nodes, mv_nodes), combined_av_mv = (
+            self._update_ventricular_caps_nodes()
+        )
+
+        if isinstance(self.model, LeftVentricle):
+            rings_nodes = np.hstack((mv_nodes, av_nodes))
+        else:
+            rings_nodes = np.hstack((mv_nodes, av_nodes, pv_nodes, tv_nodes))
+
+        # LV endo
+        lv_endo_nodes = self.model.left_ventricle.endocardium.global_node_ids_triangles
+        lv_endo_nodes = clean_node_set(lv_endo_nodes, rings_nodes)
+        # LV epi
+        epi_nodes = self.model.left_ventricle.epicardium.global_node_ids_triangles
+        epi_nodes = clean_node_set(epi_nodes, np.hstack((lv_endo_nodes, rings_nodes)))
+        # LV apex
+        la_node = self.model.get_apex_node_set(part="left")
+
+        if not isinstance(self.model, LeftVentricle):
+            # Right ventricle endocardium
+            septum_endo = self._get_rv_septum_endo_surface()
+            rv_endo_nodes = np.hstack(
+                (
+                    self.model.right_ventricle.endocardium.global_node_ids_triangles,
+                    septum_endo.global_node_ids_triangles,
+                )
+            )
+            rv_endo_nodes = clean_node_set(rv_endo_nodes, rings_nodes)
+
+            # append RV epi
+            epi_nodes = np.hstack(
+                (
+                    epi_nodes,
+                    self.model.right_ventricle.epicardium.global_node_ids_triangles,
+                )
+            )
+            epi_nodes = clean_node_set(epi_nodes, np.hstack((rv_endo_nodes, rings_nodes)))
+            # RV apex
+            ra_node = self.model.get_apex_node_set(part="right")
+
+        if isinstance(self.model, LeftVentricle):
+            lv_endo_nodeset_id = self._add_nodeset(lv_endo_nodes, "lv endo")
+            epi_nodeset_id = self._add_nodeset(epi_nodes, "epi")
+            mv_nodeset_id = self._add_nodeset(mv_nodes, "mv")
+            av_nodeset_id = self._add_nodeset(av_nodes, "av")
+            la_nodeset_id = self._add_nodeset(la_node, "left apex")
+
+            # add case kewyords
+            cases = [
+                (1, "trans", [lv_endo_nodeset_id, epi_nodeset_id], [1, 0]),
+                (2, "ab_l", [mv_nodeset_id, la_nodeset_id], [1, 0]),
+                (3, "ot_l", [av_nodeset_id, la_nodeset_id], [1, 0]),
+                # If combined MV and AV, mv_nodeset=av_nodeset=combined, solve ab_l = ot_l
+                # w_l's has no effect on the result, so set only for structure of code
+                (4, "w_l", [mv_nodeset_id, la_nodeset_id], [1, 0])
+                if combined_av_mv
+                else (4, "w_l", [mv_nodeset_id, la_nodeset_id, av_nodeset_id], [1, 1, 0]),
+            ]
+        elif isinstance(self.model, (FullHeart, FourChamber, BiVentricle)):
+            lv_endo_nodeset_id = self._add_nodeset(lv_endo_nodes, "lv endo")
+            rv_endo_nodeset_id = self._add_nodeset(rv_endo_nodes, "rv endo")
+            epi_nodeset_id = self._add_nodeset(epi_nodes, "epi")
+            mv_nodeset_id = self._add_nodeset(mv_nodes, "mv")
+            av_nodeset_id = self._add_nodeset(av_nodes, "av")
+            tv_nodeset_id = self._add_nodeset(tv_nodes, "tv")
+            pv_nodeset_id = self._add_nodeset(pv_nodes, "pv")
+            la_nodeset_id = self._add_nodeset(la_node, "left apex")
+            ra_nodeset_id = self._add_nodeset(ra_node, "right apex")
+
+            # add case kewyords
+            cases = [
+                (1, "trans", [lv_endo_nodeset_id, rv_endo_nodeset_id, epi_nodeset_id], [2, -1, 0]),
+                (2, "ab_l", [mv_nodeset_id, la_nodeset_id], [1, 0]),
+                (3, "ab_r", [tv_nodeset_id, ra_nodeset_id], [1, 0]),
+                (4, "ot_l", [av_nodeset_id, la_nodeset_id], [1, 0]),
+                (5, "ot_r", [pv_nodeset_id, ra_nodeset_id], [1, 0]),
+                # If combined MV and AV, mv_nodeset=av_nodeset=combined, solve ab_l = ot_l
+                # w_l's has no effect on the result, so set only for structure of code
+                (6, "w_l", [mv_nodeset_id, la_nodeset_id], [1, 0])
+                if combined_av_mv
+                else (6, "w_l", [mv_nodeset_id, la_nodeset_id, av_nodeset_id], [1, 1, 0]),
+                (7, "w_r", [tv_nodeset_id, ra_nodeset_id, pv_nodeset_id], [1, 1, 0]),
+                (8, "lr", [lv_endo_nodeset_id, rv_endo_nodeset_id], [1, -1]),
+            ]
+
+        for case_id, job_name, set_ids, bc_values in cases:
+            self.add_case(case_id, job_name, set_ids, bc_values)
+
+    def _get_rv_septum_endo_surface(self):
+        """Get the right ventricle septum endocardium surface."""
+        for surface in self.model.right_ventricle.surfaces:
+            if "endocardium" in surface.name and "septum" in surface.name:
+                return surface
+
+        raise ValueError("Septum endocardium surface not found in right ventricle.")
+
+    def _update_ventricular_caps_nodes(self):
+        combined_av_mv = False  # combined mitral and aortic valve
+        mv_nodes = av_nodes = tv_nodes = pv_nodes = None
+
         for part in self.model.parts:
             for cap in part.caps:
                 if cap.type == CapType.MITRAL_VALVE:
                     mv_nodes = cap.global_node_ids_edge
-                elif cap.type == CapType.AORTIC_VALVE:
+                if cap.type == CapType.AORTIC_VALVE:
                     av_nodes = cap.global_node_ids_edge
-                elif cap.type == CapType.TRICUSPID_VALVE:
-                    tv_nodes = cap.global_node_ids_edge
-                elif cap.type == CapType.PULMONARY_VALVE:
-                    pv_nodes = cap.global_node_ids_edge
-        rings_nodes = np.hstack((mv_nodes, av_nodes, pv_nodes, tv_nodes))
+                if cap.type == CapType.COMBINED_MITRAL_AORTIC_VALVE:
+                    mv_nodes = av_nodes = cap.global_node_ids_edge
+                    combined_av_mv = True
 
-        lv_endo_nodes = self.model.get_part("Left ventricle").endocardium.global_node_ids_triangles
-        lv_endo_nodes = np.unique(lv_endo_nodes)
-        lv_endo_nodes = np.setdiff1d(lv_endo_nodes, rings_nodes)
-        rv_endo_nodes = np.hstack(
-            (
-                self.model.get_part("Right ventricle").endocardium.global_node_ids_triangles,
-                # TODO: make sure its septum
-                self.model.get_part("Right ventricle").surfaces[2].global_node_ids_triangles,
+                if not isinstance(self.model, LeftVentricle):
+                    if cap.type == CapType.TRICUSPID_VALVE:
+                        tv_nodes = cap.global_node_ids_edge
+                    if cap.type == CapType.PULMONARY_VALVE:
+                        pv_nodes = cap.global_node_ids_edge
+
+        return (pv_nodes, tv_nodes, av_nodes, mv_nodes), combined_av_mv
+
+    def add_case(self, case_id: int, case_name: str, set_ids: list[int], bc_values: list[float]):
+        """Add case to keyword database.
+
+        Parameters
+        ----------
+        case_id : int
+            case id
+        case_name : str
+            case name, will be d3plot file name
+        set_ids : list[int]
+            node set id for boundary condition
+        bc_values : list[float]
+            boundary condition values
+        """
+        # declare case
+        self.kw_database.main.append(keywords.Case(caseid=case_id, jobid=case_name, scid1=case_id))
+        # define BC for this case
+        self.kw_database.main.append(f"*CASE_BEGIN_{case_id}")
+        for sid, value in zip(set_ids, bc_values):
+            self.kw_database.main.append(
+                keywords.BoundaryTemperatureSet(
+                    nsid=sid,
+                    lcid=0,
+                    cmult=value,
+                ),
             )
-        )
-        rv_endo_nodes = np.unique(rv_endo_nodes)
-        rv_endo_nodes = np.setdiff1d(rv_endo_nodes, rings_nodes)
-
-        epi_nodes = np.hstack(
-            (
-                self.model.get_part("Left ventricle").epicardium.global_node_ids_triangles,
-                self.model.get_part("Right ventricle").epicardium.global_node_ids_triangles,
-            )
-        )
-        epi_nodes = np.unique(epi_nodes)
-        epi_nodes = np.setdiff1d(epi_nodes, np.hstack((lv_endo_nodes, rv_endo_nodes)))
-        epi_nodes = np.setdiff1d(epi_nodes, rings_nodes)
-
-        la_node = self.model.get_apex_node_set(part="left")
-        ra_node = self.model.get_apex_node_set(part="right")
-
-        # ids of sub mesh
-        sorter = np.argsort(self.target["point_ids"])
-
-        lv_endo_nodes = sorter[
-            np.searchsorted(self.target["point_ids"], lv_endo_nodes, sorter=sorter)
-        ]
-        lv_endo_nodeset_id = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(
-            lv_endo_nodes + 1, node_set_id=lv_endo_nodeset_id, title="lv endo"
-        )
-        self.kw_database.node_sets.append(kw)
-
-        rv_endo_nodes = sorter[
-            np.searchsorted(self.target["point_ids"], rv_endo_nodes, sorter=sorter)
-        ]
-        rv_endo_nodeset_id = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(
-            rv_endo_nodes + 1, node_set_id=rv_endo_nodeset_id, title="rv endo"
-        )
-        self.kw_database.node_sets.append(kw)
-
-        epi_nodes = sorter[np.searchsorted(self.target["point_ids"], epi_nodes, sorter=sorter)]
-        epi_nodes = np.unique(epi_nodes)  # necessary?
-        epi_nodeset_id = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(epi_nodes + 1, node_set_id=epi_nodeset_id, title="epi")
-        self.kw_database.node_sets.append(kw)
-
-        mv_nodes = sorter[np.searchsorted(self.target["point_ids"], mv_nodes, sorter=sorter)]
-        mv_nodeset_id = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(mv_nodes + 1, node_set_id=mv_nodeset_id, title="mv")
-        self.kw_database.node_sets.append(kw)
-
-        av_nodes = sorter[np.searchsorted(self.target["point_ids"], av_nodes, sorter=sorter)]
-        av_nodeset_id = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(av_nodes + 1, node_set_id=av_nodeset_id, title="av")
-        self.kw_database.node_sets.append(kw)
-
-        tv_nodes = sorter[np.searchsorted(self.target["point_ids"], tv_nodes, sorter=sorter)]
-        tv_nodeset_id = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(tv_nodes + 1, node_set_id=tv_nodeset_id, title="tv")
-        self.kw_database.node_sets.append(kw)
-
-        pv_nodes = sorter[np.searchsorted(self.target["point_ids"], pv_nodes, sorter=sorter)]
-        pv_nodeset_id = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(pv_nodes + 1, node_set_id=pv_nodeset_id, title="pv")
-        self.kw_database.node_sets.append(kw)
-
-        la_node = sorter[np.searchsorted(self.target["point_ids"], la_node, sorter=sorter)]
-        la_nodeset_id = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(la_node + 1, node_set_id=la_nodeset_id, title="left apex")
-        self.kw_database.node_sets.append(kw)
-
-        ra_node = sorter[np.searchsorted(self.target["point_ids"], ra_node, sorter=sorter)]
-        ra_nodeset_id = self.get_unique_nodeset_id()
-        kw = create_node_set_keyword(ra_node + 1, node_set_id=ra_nodeset_id, title="right apex")
-        self.kw_database.node_sets.append(kw)
-
-        self.kw_database.main.append(keywords.Case(caseid=1, jobid="trans", scid1=1))
-        self.kw_database.main.append("*CASE_BEGIN_1")
-        self._define_Laplace_Dirichlet_bc(
-            set_ids=[lv_endo_nodeset_id, rv_endo_nodeset_id, epi_nodeset_id], bc_values=[2, -1, 0]
-        )
-        self.kw_database.main.append("*CASE_END_1")
-
-        self.kw_database.main.append(keywords.Case(caseid=2, jobid="ab_l", scid1=2))
-
-        self.kw_database.main.append("*CASE_BEGIN_2")
-        self._define_Laplace_Dirichlet_bc(set_ids=[mv_nodeset_id, la_nodeset_id], bc_values=[1, 0])
-        self.kw_database.main.append("*CASE_END_2")
-
-        self.kw_database.main.append(keywords.Case(caseid=3, jobid="ab_r", scid1=3))
-        self.kw_database.main.append("*CASE_BEGIN_3")
-        self._define_Laplace_Dirichlet_bc(set_ids=[tv_nodeset_id, ra_nodeset_id], bc_values=[1, 0])
-        self.kw_database.main.append("*CASE_END_3")
-
-        self.kw_database.main.append(keywords.Case(caseid=4, jobid="ot_l", scid1=4))
-        self.kw_database.main.append("*CASE_BEGIN_4")
-        self._define_Laplace_Dirichlet_bc(set_ids=[av_nodeset_id, la_nodeset_id], bc_values=[1, 0])
-        self.kw_database.main.append("*CASE_END_4")
-
-        self.kw_database.main.append(keywords.Case(caseid=5, jobid="ot_r", scid1=5))
-        self.kw_database.main.append("*CASE_BEGIN_5")
-        self._define_Laplace_Dirichlet_bc(set_ids=[pv_nodeset_id, ra_nodeset_id], bc_values=[1, 0])
-        self.kw_database.main.append("*CASE_END_5")
-
-        self.kw_database.main.append(keywords.Case(caseid=6, jobid="w_l", scid1=6))
-        self.kw_database.main.append("*CASE_BEGIN_6")
-        self._define_Laplace_Dirichlet_bc(
-            set_ids=[mv_nodeset_id, la_nodeset_id, av_nodeset_id], bc_values=[1, 1, 0]
-        )
-        self.kw_database.main.append("*CASE_END_6")
-
-        self.kw_database.main.append(keywords.Case(caseid=7, jobid="w_r", scid1=7))
-        self.kw_database.main.append("*CASE_BEGIN_7")
-        self._define_Laplace_Dirichlet_bc(
-            set_ids=[tv_nodeset_id, ra_nodeset_id, pv_nodeset_id], bc_values=[1, 1, 0]
-        )
-        self.kw_database.main.append("*CASE_END_7")
-
-        self.kw_database.main.append(keywords.Case(caseid=8, jobid="lr", scid1=8))
-        self.kw_database.main.append("*CASE_BEGIN_8")
-        self._define_Laplace_Dirichlet_bc(
-            set_ids=[lv_endo_nodeset_id, rv_endo_nodeset_id], bc_values=[1, -1]
-        )
-        self.kw_database.main.append("*CASE_END_8")
+        self.kw_database.main.append(f"*CASE_END_{case_id}")
 
 
 if __name__ == "__main__":

@@ -33,13 +33,16 @@ import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.helpers.fluent_reader import _FluentCellZone, _FluentMesh
-from ansys.heart.core.helpers.vtkmethods import add_solid_name_to_stl
+from ansys.heart.core.helpers.vtk_utils import (
+    add_solid_name_to_stl,
+    cell_ids_inside_enclosed_surface,
+)
 from ansys.heart.core.objects import Mesh, SurfaceMesh
 from ansys.heart.preprocessor.input import _InputBoundary, _InputModel
 
 # NOTE: can set os.environ["SHOW_FLUENT_GUI"] = "1" to show Fluent GUI.
 
-_supported_fluent_versions = ["24.2", "24.1"]
+_supported_fluent_versions = ["25.1", "24.2", "24.1"]
 _show_fluent_gui: bool = True
 _uses_container: bool = True
 _num_cpus: bool = 2
@@ -60,11 +63,12 @@ else:
 if _show_fluent_gui:
     _fluent_ui_mode = "gui"
 else:
-    _fluent_ui_mode = "hidden_gui"
+    _fluent_ui_mode = "no_gui"
 
 try:
     import ansys.fluent.core as pyfluent
     from ansys.fluent.core.session_meshing import Meshing as MeshingSession
+
 except ImportError:
     LOGGER.info(
         "Failed to import PyFluent. Please install PyFluent with `pip install ansys-fluent-core`."
@@ -123,12 +127,11 @@ def _organize_connected_regions(grid: pv.UnstructuredGrid, scalar: str = "part-i
     """Ensure that cells that belong to same part are connected."""
     LOGGER.debug("Re-organize connected regions.")
     part_ids = np.unique(grid.cell_data[scalar])
-    grid.cell_data.set_scalars(np.arange(0, grid.n_cells, dtype=int), name="orig-cell-ids")
+    grid.cell_data["orig-cell-ids"] = np.arange(0, grid.n_cells, dtype=int)
 
     # grid1 = grid.copy(deep=False)
     grid1 = grid.copy(deep=True)
-
-    tets = grid.cells_dict[10]
+    tets = grid1.cells_dict[10]
 
     # get a list of orphan cells
     orphan_cell_ids = []
@@ -136,12 +139,15 @@ def _organize_connected_regions(grid: pv.UnstructuredGrid, scalar: str = "part-i
         mask = grid1.cell_data[scalar] == part_id
         grid2 = grid1.extract_cells(mask)
 
+        #! Note that this may not suffice. Need to check if at least => 2 points are connected
         conn = grid2.connectivity()
+        num_regions = np.unique(conn.cell_data["RegionId"]).shape[0]
 
-        if np.unique(conn.cell_data["RegionId"]).shape == (1,):
+        if num_regions == 1:
             continue
+
+        LOGGER.debug(f"Found {num_regions - 1} unnconnected regions, find connected candidate.")
         # for each region, find to what "main" region it is connected.
-        # use point
         for region in np.unique(conn.cell_data["RegionId"])[1:]:
             orphan_cell_ids = conn.cell_data["orig-cell-ids"][conn.cell_data["RegionId"] == region]
             point_ids = np.array([grid1.get_cell(id).point_ids for id in orphan_cell_ids]).flatten()
@@ -159,6 +165,85 @@ def _organize_connected_regions(grid: pv.UnstructuredGrid, scalar: str = "part-i
             grid.cell_data["part-id"][orphan_cell_ids] = unique_ids[np.argmax(counts)]
 
     return grid
+
+
+def _assign_part_id_to_orphan_cells(grid: pv.UnstructuredGrid, scalar="part-id"):
+    """Use closest point interpolation to assign part id to orphan cells."""
+    grid.cell_data["_original-cell-ids"] = np.arange(0, grid.n_cells)
+    orphans = grid.extract_cells(grid.cell_data[scalar] == 0)
+
+    LOGGER.debug(f"Assigning part ids to {orphans.n_cells} orphan cells.")
+
+    grid_centers = grid.cell_centers()
+    grid_centers = grid_centers.extract_points(grid_centers.cell_data["part-id"] != 0)
+    part_ids = grid_centers.point_data["part-id"]
+
+    grid_centers.point_data.clear()
+    grid_centers.cell_data.clear()
+    grid_centers.point_data["part-id"] = part_ids
+
+    orphan_centers = orphans.cell_centers()
+    orphan_centers.cell_data.clear()
+    orphan_centers.point_data.clear()
+
+    orphan_centers = orphan_centers.interpolate(grid_centers, n_points=1)
+
+    interpolated_part_ids = np.array(orphan_centers.point_data["part-id"], dtype=np.int32)
+    # assign interpolated part ids again to the original grid.
+    grid2 = grid.copy()
+    grid2.cell_data["part-id"][orphans.cell_data["_original-cell-ids"]] = interpolated_part_ids
+    return grid2
+
+
+def _get_cells_inside_wrapped_parts(model: _InputModel, mesh: _FluentMesh):
+    """Get cells inside each of the wrapped parts."""
+    grid = mesh._to_vtk()
+
+    # represent cell centroids as point cloud
+    cell_centroids = grid.cell_centers()
+    cell_centroids.point_data.set_scalars(name="part-id", scalars=0)
+    cell_centroids.point_data["_original-cell-ids"] = np.arange(0, cell_centroids.n_points)
+    cell_centroids1 = cell_centroids.copy()
+
+    used_cell_ids = np.empty(shape=(0,), dtype=int)
+    # use individual wrapped parts to separate the parts of the wrapped model.
+    for part in model.parts:
+        if not part.is_manifold:
+            LOGGER.warning(f"Part {part.name} is not manifold.")
+        LOGGER.debug(f"Redistributing cells based on surface of {part.name}...")
+
+        # get surface
+        surface = part.combined_boundaries.clean()
+
+        point_ids_inside = cell_ids_inside_enclosed_surface(
+            cell_centroids1, surface, tolerance=1e-9
+        )
+
+        # map back to original vtk object.
+        point_ids_inside1 = cell_centroids1.point_data["_original-cell-ids"][point_ids_inside]
+        cell_centroids.point_data["part-id"][point_ids_inside1] = part.id
+
+        # reduce data set for efficiency. Extract points/cells is very slow for some reason.
+        used_cell_ids = np.append(used_cell_ids, point_ids_inside1)
+        point_ids_not_inside = np.setdiff1d(
+            cell_centroids.point_data["_original-cell-ids"], used_cell_ids
+        )
+        # redefine cell centroids polydata. for processing.
+        cell_centroids1 = pv.PolyData(cell_centroids.points[point_ids_not_inside, :])
+        cell_centroids1.point_data["_original-cell-ids"] = cell_centroids.point_data[
+            "_original-cell-ids"
+        ][point_ids_not_inside]
+
+    grid1 = grid.copy()
+    grid1.cell_data["part-id"] = np.array(cell_centroids.point_data["part-id"], dtype=int)
+
+    # Use closed point interpolation to assign part ids to any un-assigned (orphan) cells.
+    grid2 = _assign_part_id_to_orphan_cells(grid1)
+
+    if np.any(grid2.cell_data["part-id"] == 0):
+        LOGGER.warning("Not all cells have a part id assigned.")
+
+    return grid2
 
 
 def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingSession:
@@ -916,61 +1001,8 @@ def mesh_from_non_manifold_input_model(
     # update the input model with the wrapped surfaces.
     model = _update_input_model_with_wrapped_surfaces(model, mesh, part_face_zone_ids_post_wrap)
 
-    # convert to unstructured grid.
-    grid = mesh._to_vtk()
-
-    # represent cell centroids as point cloud assign part-ids to cells.
-    cell_centroids = grid.cell_centers()
-    cell_centroids.point_data.set_scalars(name="part-id", scalars=0)
-
-    # use individual wrapped parts to separate the parts of the wrapped model.
-    for part in model.parts:
-        if not part.is_manifold:
-            LOGGER.warning(f"Part {part.name} is not manifold.")
-
-        cell_centroids = cell_centroids.select_enclosed_points(
-            part.combined_boundaries, check_surface=True
-        )
-        cell_centroids.point_data["part-id"][cell_centroids.point_data["SelectedPoints"] == 1] = (
-            part.id
-        )
-
-    # Use closest-point interpolation to assign part-ids to cell centers that are
-    # not enclosed by any of the wrapped parts
-    # TODO: clean up the following section.
-    cell_centroids["orig_indices"] = np.arange(cell_centroids.n_points, dtype=np.int32)
-    cell_centroids.point_data.remove("SelectedPoints")
-    cell_centroids_1 = cell_centroids.remove_cells(
-        cell_centroids.point_data["part-id"] != 0, inplace=False
-    )
-    orig_indices_1 = cell_centroids_1.point_data["orig_indices"]
-    cell_centroids_2 = cell_centroids.remove_cells(
-        cell_centroids.point_data["part-id"] == 0, inplace=False
-    )
-    # cleanup unwanted point and cell data.
-    try:
-        cell_centroids_2.point_data.remove("orig_indices")
-    except KeyError:
-        pass
-    try:
-        cell_centroids_2.point_data.remove("cell-zone-ids")
-    except KeyError:
-        pass
-    try:
-        cell_centroids_2.cell_data.remove("cell-zone-ids")
-    except KeyError:
-        pass
-
-    cell_centroids_1.point_data.remove("part-id")
-    cell_centroids_1.cell_data.remove("cell-zone-ids")
-
-    cell_centroids_1 = cell_centroids_1.interpolate(
-        cell_centroids_2, n_points=1, pass_cell_data=False
-    )
-    cell_centroids.point_data["part-id"][orig_indices_1] = cell_centroids_1.point_data["part-id"]
-
-    # assign part-ids to grid
-    grid.cell_data["part-id"] = np.array(cell_centroids.point_data["part-id"], dtype=int)
+    # get cells inside each of the wrapped parts.
+    grid = _get_cells_inside_wrapped_parts(model, mesh)
 
     # Ensure that parts are continuous and well connected.
     grid = _organize_connected_regions(grid, scalar="part-id")
@@ -978,6 +1010,8 @@ def mesh_from_non_manifold_input_model(
     if np.any(grid.cell_data["part-id"] == 0):
         raise ValueError("Invalid mesh, not all elements assigned to a part.")
 
+    # TODO: refactor and cleanup the following
+    # TODO: stick with the VTK object instead of _FluentMesh.
     # change FluentMesh object accordingly.
     idx_sorted = np.argsort(np.array(grid.cell_data["part-id"], dtype=int))
     partids_sorted = np.sort(np.array(grid.cell_data["part-id"], dtype=int))

@@ -144,10 +144,6 @@ class BaseSimulator:
             self._compute_fibers_lsdyna(rotation_angles)
 
         elif method == "D-RBM":
-            if isinstance(self.model, LeftVentricle):
-                LOGGER.error(f"{method} not supported for LeftVentricle model.")
-                exit()
-
             if rotation_angles is None:
                 # find default settings
                 rotation_angles = self.settings.get_ventricle_fiber_rotation(method="D-RBM")
@@ -158,13 +154,21 @@ class BaseSimulator:
                     exit()
             self._compute_fibers_drbm(rotation_angles)
 
+        else:
+            LOGGER.error(f"Method {method} not recognized")
+            exit()
+
         return
 
     def _compute_fibers_drbm(self, rotation_angles: dict):
         """Use D-RBM fiber method."""
         export_directory = os.path.join(self.root_directory, "D-RBM")
         target = self.run_laplace_problem(export_directory, type="D-RBM")
-        grid = compute_ventricle_fiber_by_drbm(export_directory, settings=rotation_angles)
+        grid = compute_ventricle_fiber_by_drbm(
+            export_directory,
+            settings=rotation_angles,
+            left_only=isinstance(self.model, LeftVentricle),
+        )
         grid.save(os.path.join(export_directory, "drbm_fibers.vtu"))
 
         # arrays that save ID map to full model
@@ -360,7 +364,7 @@ class BaseSimulator:
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
-        dyna_writer = writers.UHCWriter(copy.deepcopy(self.model), type, **kwargs)
+        dyna_writer = writers.LaplaceWriter(copy.deepcopy(self.model), type, **kwargs)
 
         dyna_writer.update()
         dyna_writer.export(export_directory)
@@ -571,6 +575,13 @@ class MechanicsSimulator(BaseSimulator):
 
         if zerop_folder is None:
             zerop_folder = os.path.join(self.root_directory, "zeropressure")
+
+        if "apico-basal" not in self.model.mesh.point_data.keys():
+            LOGGER.warning(
+                "Array named 'apico-basal' cannot be found, will compute"
+                "universal coordinate system (UVC) firstly."
+            )
+            self.compute_uhc()
 
         if self.initial_stress:
             # Use last iteration

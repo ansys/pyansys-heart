@@ -124,8 +124,6 @@ sphinx_gallery_conf = {
 # Configuration for Sphinx autoapi
 # -----------------------------------------------------------------------------
 
-# TODO (pyansys-health-team): drop implicit namespaces after renaming files
-autoapi_python_use_implicit_namespaces = True
 suppress_warnings = [
     "autoapi.python_import_resolution",
     "autosectionlabel.*",

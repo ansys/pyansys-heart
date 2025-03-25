@@ -79,7 +79,7 @@ Clone the latest version of PyAnsys Heart in development mode by running this co
 
 .. note::
 
-    If you are not an Ansys employee, you need to :ref:`fork the repository <Fork the repository>` and
+    If you are not an Ansys employee, you need to :ref:`fork the repository <fork-the-repository>` and
     replace ``ansys`` with your GitHub user name in the ``git clone``
     command.
 
@@ -220,7 +220,7 @@ These markers are associated with dedicated `Tox`_ environments.
               - Command
             {% for environment in envs %}
             {% set name, description  = environment.split("->") %}
-            {% if name.startswith("tests-")%}
+            {% if name.startswith("tests")%}
             * - {{ name }}
               - python -m tox -e {{ name }}
             {% endif %}

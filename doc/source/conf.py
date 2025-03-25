@@ -49,7 +49,7 @@ extensions = [
     "sphinx_copybutton",
     "autoapi.extension",
     "sphinx_autodoc_typehints",
-    #    "sphinx_gallery.gen_gallery",
+    "sphinx_gallery.gen_gallery",
     "sphinxcontrib.video",
     "sphinx_design",
     "sphinx_jinja",

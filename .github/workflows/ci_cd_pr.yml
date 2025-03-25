@@ -13,6 +13,7 @@ env:
   DOCUMENTATION_CNAME: 'heart.docs.pyansys.com'
   LIBRARY_NAME: 'ansys-heart'
   ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
+  PYFLUENT_UI_MODE: "no_gui"
 
 jobs:
 

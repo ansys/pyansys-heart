@@ -2,6 +2,7 @@
 
 from datetime import datetime
 import os
+import pathlib
 import subprocess
 
 from ansys_sphinx_theme import ansys_favicon, get_version_match
@@ -146,3 +147,8 @@ jinja_contexts = {
         ).stdout.splitlines()[1:],
     },
 }
+
+# Common content for every RST file such us links
+rst_epilog = ""
+links_filepath = pathlib.Path(__file__).parent.absolute() / "links.rst"
+rst_epilog += links_filepath.read_text(encoding="utf-8")

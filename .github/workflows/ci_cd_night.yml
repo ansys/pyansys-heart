@@ -3,7 +3,7 @@ on:
 
   schedule:
     # All weekdays at 00:00 UTC.
-    - cron: '0 0 * * * *'
+    - cron: '0 0 * * *'
 
 env:
   MAIN_PYTHON_VERSION: '3.10'

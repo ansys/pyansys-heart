@@ -100,7 +100,7 @@ jobs:
   doc-build:
     name: "Build documentation"
     runs-on: [self-hosted, pyhealth]
-    needs: [doc-style]
+    needs: build-wheelhouse
     steps:
 
       - name: "Checkout the project"

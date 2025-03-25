@@ -1086,8 +1086,6 @@ class _BeamsMesh(Mesh):
         self._set_global_ids()
         return self.extract_cells(mask)
 
-
-
     def _add_mesh(
         self,
         mesh_input: pv.PolyData,
@@ -1134,7 +1132,7 @@ class _BeamsMesh(Mesh):
             for name in point_data_names:
                 mesh.point_data[name] = _get_fill_data(self, mesh, name, "point")
 
-        merged = pv.merge((self, mesh), merge_points=True, main_has_priority=False)        
+        merged = pv.merge((self, mesh), merge_points=True, main_has_priority=False)
         super().__init__(merged)
         return self
 
@@ -1184,8 +1182,8 @@ class _BeamsMesh(Mesh):
     def get_lines(self, sid: int) -> pv.PolyData:
         """Get lines as a PolyData object."""
         return self._get_submesh(sid, scalar="_line-id").extract_surface()
-    
-    
+
+
 class PartType(Enum):
     """Stores valid part types."""
 

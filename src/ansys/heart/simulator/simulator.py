@@ -485,10 +485,8 @@ class EPSimulator(BaseSimulator):
             cs.compute_av_node()
             cs.compute_av_conduction()
             _, left_point, right_point = cs.compute_his_conduction(beam_length=beam_length)
-            cs.compute_left_right_bundle(
-                left_point.xyz, side="Left")
-            cs.compute_left_right_bundle(
-                right_point.xyz, side="Right")
+            cs.compute_left_right_bundle(left_point.xyz, side="Left")
+            cs.compute_left_right_bundle(right_point.xyz, side="Right")
 
             # # TODO: define end point by uhc, or let user choose
             # Note: must on surface after zerop if coupled with meca

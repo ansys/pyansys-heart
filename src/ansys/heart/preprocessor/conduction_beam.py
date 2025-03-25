@@ -227,7 +227,7 @@ class ConductionSystem:
         )
         new_nodes = self.m.mesh.points[nodes]
         new_nodes = _refine_line(new_nodes, beam_length=beam_length)
-        new_nodes[0] = self.m.conduction_system.get_lines_by_name('SAN_to_AVN').points[-1]
+        new_nodes[0] = self.m.conduction_system.get_lines_by_name("SAN_to_AVN").points[-1]
         beamnet = pv.lines_from_points(new_nodes)
         id = self.m.conduction_system.get_unique_lines_id()
         self.m.conduction_system.add_lines(lines=beamnet, id=id, name="His")
@@ -402,10 +402,12 @@ class ConductionSystem:
             endo_surface.find_closest_point(self.m.mesh.points[ventricle.apex_points[0].node_id]),
         )
 
-        new_points = np.vstack((start_coord,bundle_branch.points[1:-1],end_coord))
+        new_points = np.vstack((start_coord, bundle_branch.points[1:-1], end_coord))
         beamnet = pv.lines_from_points(new_points)
         id = self.m.conduction_system.get_unique_lines_id()
-        beam_net = self.m.conduction_system.add_lines(lines=beamnet, id=id, name=side + " bundle branch")
+        beam_net = self.m.conduction_system.add_lines(
+            lines=beamnet, id=id, name=side + " bundle branch"
+        )
 
         return beam_net
 
@@ -415,7 +417,9 @@ class ConductionSystem:
         cell_id = surface.find_closest_cell(point)
         return surface.get_cell(cell_id).point_ids[0]
 
-    def compute_bachman_bundle(self, start_coord, end_coord, beam_length: float = 1.5) -> _BeamsMesh:
+    def compute_bachman_bundle(
+        self, start_coord, end_coord, beam_length: float = 1.5
+    ) -> _BeamsMesh:
         """Compute Bachman bundle conduction system."""
         la_epi = self.m.mesh.get_surface(self.m.left_atrium.epicardium.id)
         ra_epi = self.m.mesh.get_surface(self.m.right_atrium.epicardium.id)

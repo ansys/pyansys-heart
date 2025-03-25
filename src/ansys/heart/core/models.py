@@ -410,7 +410,6 @@ class HeartModel:
         id = self.conduction_system.get_unique_lines_id()
         self.conduction_system.add_lines(lines=beam_net, id=id, name=name)
 
-
         return beam_net
 
     def load_input(self, input_vtp: pv.PolyData, part_definitions: dict, scalar: str):
@@ -746,14 +745,14 @@ class HeartModel:
 
     def plot_purkinje(self):
         """Plot the mesh and Purkinje network."""
-        if self.conduction_system.number_of_cells==0:
+        if self.conduction_system.number_of_cells == 0:
             LOGGER.info("No Conduction system to plot.")
             return
 
         try:
             plotter = pv.Plotter()
             plotter.add_mesh(self.mesh, color="w", opacity=0.1)
-            self.conduction_system.set_active_scalars('_line-id')
+            self.conduction_system.set_active_scalars("_line-id")
             beams = self.conduction_system
             plotter.add_mesh(beams, line_width=2)
             plotter.show()

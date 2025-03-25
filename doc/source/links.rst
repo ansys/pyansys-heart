@@ -30,6 +30,3 @@
 .. _PyAnsys Heart release page: https://github.com/ansys/pyansys-heart/releases
 
 
-.. #other
-
-

@@ -60,6 +60,10 @@ from ansys.heart.simulator.settings.material.material import (
 )
 from ansys.heart.simulator.settings.settings import SimulationSettings, Stimulation
 from ansys.heart.writer import custom_keywords as custom_keywords
+from ansys.heart.writer.define_function_templates import (  # noqa F401
+    _ed_load_template,
+    define_function_0d_system,
+)
 from ansys.heart.writer.heart_decks import (
     BaseDecks,
     ElectroMechanicsDecks,
@@ -84,10 +88,6 @@ from ansys.heart.writer.keyword_utils import (
     get_list_of_used_ids,
 )
 from ansys.heart.writer.material_keywords import MaterialHGOMyocardium, MaterialNeoHook
-from ansys.heart.writer.system_models import (  # noqa F401
-    _ed_load_template,
-    define_function_0d_system,
-)
 
 
 class CVInteraction(NamedTuple):

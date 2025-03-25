@@ -40,7 +40,7 @@ dependencies = [
     "vtk>=9.1.0, < 9.4",
     "httpx>=0.28.1",
     "natsort>=8.4.0",
-    "rich>=13.9.4"
+    "rich>=13.9.4",
 ]
 
 # Optional dependencies:

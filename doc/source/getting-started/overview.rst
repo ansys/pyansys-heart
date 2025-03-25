@@ -1,21 +1,3 @@
-..
-   This toctreemust be a top level index to get it to show up in
-   pydata_sphinx_theme
-
-.. toctree::
-   :maxdepth: 1
-   :hidden:
-
-   prepocessor
-   writer
-   simulator
-   postprocessor
-   calibration
-
-
-User guide
-==========
-
 PyAnsys Heart overview
 ----------------------
 

@@ -159,10 +159,10 @@ Verify the installation by checking the version of the library:
 
        >>> PyAnsys Heart version is {{ PYANSYS_HEART_VERSION }}
 
-Install Tox
+Install tox
 -----------
 
-Once the project is installed, you can install `Tox`_. This is a cross-platform
+Once the project is installed, you can install `tox`_. This is a cross-platform
 automation tool. The main advantage of Tox is that it eases routine tasks like project
 testing, documentation generation, and wheel building in separate and isolated Python
 virtual environments. To install Tox, run:
@@ -228,7 +228,7 @@ These markers are associated with dedicated `Tox`_ environments.
 
 .. Note::
 
-    The testing preceding commands will run all tests, including those that require Fluent (which take longer). For more
+    The preceding test commands run all tests, including those that require Fluent (which take longer). For more
     selective testing, ``-- -vv -m "not requires_fluent or (not extract_models)"`` or ``-- -vv -m "requires_fluent"`` can be
     appended to tox testing commands.
 

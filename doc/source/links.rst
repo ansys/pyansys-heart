@@ -14,7 +14,7 @@
 .. _Python311: https://www.python.org/downloads/release/python-3110/
 .. _Python312: https://www.python.org/downloads/release/python-3120/
 .. _pip: https://pypi.org/project/pip/
-.. _Tox: https://tox.wiki/en/stable/
+.. _tox: https://tox.wiki/en/stable/
 .. _Sphinx: https://www.sphinx-doc.org/en/master/
 .. _Sphinx-Gallery: https://sphinx-gallery.github.io/stable/index.html
 .. _reStructuredText: https://docutils.sourceforge.io/rst.html

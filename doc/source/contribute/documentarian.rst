@@ -85,7 +85,7 @@ Sphinx extension.
 Documentarians writing new examples are encouraged to familiarize themselves with
 `structuring Python scripts for Sphinx-Gallery <https://sphinx-gallery.github.io/stable/syntax.html>`_.
 Once the ``.py`` file for a new example is properly set up, Sphinx-Gallery automatically
-generates `Sphinx`_ `reStructuredText`_ files from it. The rendering of the resulting reST will provide
+generates `Sphinx`_ `reStructuredText`_ files from it. The rendering of the resulting reST provides
 users with ``.ipynb`` (Jupyter notebook) and ``.py`` files of each example, which users can download.
 
 Finally, here are some tips for writing examples:
@@ -100,7 +100,7 @@ Finally, here are some tips for writing examples:
   screenshots of rendered graphics are inserted in the document. You do not need
   to include the screenshots yourself.
 
-- When creating a new folder where more than one related example will be included, ensure
+- When creating a new folder which includes more than one related examples, ensure
   a ``README.txt`` file is also included. This file should contain reST to be used as the header
   for the index page corresponding to the subsection for these examples in the generated documentation.
 

@@ -33,6 +33,9 @@ import tarfile
 import typing
 
 import httpx
+
+# from rich.progress import Progress, track
+import rich.progress
 import validators
 
 from ansys.heart.core import LOG as LOGGER
@@ -183,9 +186,19 @@ def download_case_from_zenodo(
     # so requires follow_redirects=True.
     try:
         with httpx.stream("GET", download_url, follow_redirects=True) as response:
-            with open(save_path, "wb") as fp:
-                for chunk in response.iter_raw():
-                    fp.write(chunk)
+            total = int(response.headers["Content-Length"])
+
+            with rich.progress.Progress(
+                "[progress.percentage]{task.percentage:>3.0f}%",
+                rich.progress.BarColumn(bar_width=None),
+                rich.progress.DownloadColumn(),
+                rich.progress.TransferSpeedColumn(),
+            ) as progress:
+                download_task = progress.add_task("Download", total=total)
+                with open(save_path, "wb") as fp:
+                    for chunk in response.iter_bytes():
+                        fp.write(chunk)
+                        progress.update(download_task, completed=response.num_bytes_downloaded)
 
     except Exception as e:
         LOGGER.error(f"Failed to download from {download_url}: {e}")

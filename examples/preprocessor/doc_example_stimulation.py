@@ -45,6 +45,7 @@ Ventricular Coordinates (UVC).
 # sphinx_gallery_end_ignore
 
 import os
+from pathlib import Path
 
 import numpy as np
 import pyvista as pv
@@ -61,10 +62,11 @@ os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 # Overwrite with env variables: for testing purposes only. May be removed by user.
 
 # sphinx_gallery_end_ignore
-workdir = os.path.join(
-    "pyansys-heart", "downloads", "Strocchi2020", "01", "FourChamber", "teststim"
-)
-path_to_model = os.path.join(workdir, "heart_model.vtu")
+
+# specify the path to the working directory and heart model. The following path assumes
+# that a preprocessed model is already available
+workdir = Path.home() / "pyansys-heart" / "downloads" / "Strocchi2020" / "01" / "FourChamber"
+path_to_model = str(workdir / "heart_model.vtu")
 
 
 # load your four chamber heart model with uvcs (see preprocessor examples to create

@@ -1,15 +1,3 @@
-.. |python310| image:: https://img.shields.io/badge/Python-3.10-blue
-   :target: https://www.python.org/downloads/release/python-3100/
-   :alt: Python310
-
-.. |python311| image:: https://img.shields.io/badge/Python-3.11-blue
-   :target: https://www.python.org/downloads/release/python-3110/
-   :alt: Python311
-
-.. |python312| image:: https://img.shields.io/badge/Python-3.12-blue
-   :target: https://www.python.org/downloads/release/python-3120/
-   :alt: Python312
-
 Prerequisites
 =============
 

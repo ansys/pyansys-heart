@@ -20,11 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Auto downloads cases.
-
-Auto downloads cases from the remote repositories of Strocchi et al 2020,
-and Rodero et al 2021.
-"""
+"""Module containing methods to download cases from public databases."""
 
 import hashlib
 import os

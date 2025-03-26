@@ -25,12 +25,12 @@ import os
 import numpy as np
 import pytest
 
-from ansys.heart.core.helpers.landmark_utils import (
+import ansys.heart.core.models as models
+from ansys.heart.core.utils.landmark_utils import (
     compute_aha17,
     compute_anatomy_axis,
     compute_element_cs,
 )
-import ansys.heart.core.models as models
 from tests.heart.conftest import get_assets_folder
 
 

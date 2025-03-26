@@ -34,7 +34,6 @@ import typing
 
 import httpx
 
-# from rich.progress import Progress, track
 import rich.progress
 import validators
 
@@ -182,7 +181,7 @@ def download_case_from_zenodo(
         LOGGER.error(f"'{download_url}' is not a well-formed URL.")
         return None
 
-    # use httpx to stream data and write to target file. link is redirected
+    # Use httpx to stream data and write to target file. link is redirected
     # so requires follow_redirects=True.
     try:
         with httpx.stream("GET", download_url, follow_redirects=True) as response:

@@ -37,9 +37,9 @@ import validators
 from ansys.heart.core import LOG as LOGGER
 
 try:
-    import httpx  # type: ignore
+    import wget  # type: ignore
 except ImportError:
-    LOGGER.error("httpx not installed but required. Please install by: pip install httpx")
+    LOGGER.error("wget not installed but required. Please install by: pip install wget")
     exit()
 
 _URLS = {
@@ -184,22 +184,10 @@ def download_case_from_zenodo(
         return None
 
     try:
-        with httpx.stream("GET", download_url, follow_redirects=True, timeout=30) as response:
-            response.raise_for_status()  # Ensure we got a successful response
-            with open(save_path, "wb") as file:
-                for chunk in response.iter_bytes():
-                    file.write(chunk)
-
-        print(f"Downloaded successfully: {save_path}")
-
-    except httpx.HTTPStatusError as e:
-        print(f"HTTP error: {e.response.status_code} - {e}")
-
-    except httpx.RequestError as e:
-        print(f"Request failed: {e}")
-
+        wget.download(download_url, save_path)
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        LOGGER.error(f"Failed to download from {download_url}: {e}")
+        return None
 
     if validate_hash:
         is_valid_file = _validate_hash_sha256(

@@ -34,12 +34,12 @@ import pyvista as pv
 import ansys.fluent.core as pyfluent
 from ansys.fluent.core.session_meshing import Meshing as MeshingSession
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.helpers.fluent_reader import _FluentCellZone, _FluentMesh
-from ansys.heart.core.helpers.vtk_utils import (
+from ansys.heart.core.objects import Mesh, SurfaceMesh
+from ansys.heart.core.utils.fluent_reader import _FluentCellZone, _FluentMesh
+from ansys.heart.core.utils.vtk_utils import (
     add_solid_name_to_stl,
     cell_ids_inside_enclosed_surface,
 )
-from ansys.heart.core.objects import Mesh, SurfaceMesh
 from ansys.heart.preprocessor.input import _InputBoundary, _InputModel
 
 _supported_fluent_versions = ["25.1", "24.2", "24.1"]

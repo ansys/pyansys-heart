@@ -36,8 +36,6 @@ import pyvista as pv
 import yaml
 
 from ansys.heart.core import LOG as LOGGER
-import ansys.heart.core.helpers.connectivity as connectivity
-import ansys.heart.core.helpers.vtk_utils as vtk_utils
 from ansys.heart.core.objects import (
     BeamMesh,
     Cap,
@@ -49,6 +47,8 @@ from ansys.heart.core.objects import (
     Point,
     SurfaceMesh,
 )
+import ansys.heart.core.utils.connectivity as connectivity
+import ansys.heart.core.utils.vtk_utils as vtk_utils
 from ansys.heart.preprocessor.input import _InputModel
 import ansys.heart.preprocessor.mesher as mesher
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
@@ -640,7 +640,7 @@ class HeartModel:
 
     def summary(self) -> dict:
         """Get summary information of the model as a dictionary."""
-        from ansys.heart.core.helpers.misc import model_summary
+        from ansys.heart.core.utils.misc import model_summary
 
         summary = model_summary(self)
         return summary
@@ -1412,7 +1412,7 @@ class HeartModel:
 
     def _define_anatomy_axis(self):
         """Define long and short axes from left ventricle landmarks."""
-        from ansys.heart.core.helpers.landmark_utils import compute_anatomy_axis
+        from ansys.heart.core.utils.landmark_utils import compute_anatomy_axis
 
         mv_center = next(
             cap.centroid for cap in self.left_ventricle.caps if cap.type == CapType.MITRAL_VALVE

@@ -18,10 +18,51 @@ concurrency:
 
 jobs:
 
+  tests:
+    name: "Tests / Windows / Python ${{ matrix.python-version }} / ${{ matrix.tests.name }}"
+    runs-on: ${{ matrix.tests.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+        tests:
+          - { name: "Base", runner: "ubuntu-latest", markers: "not requires_fluent and not extract_models and not k_file_writer" }
+          - { name: "PyFluent", runner: "self-hosted", markers: "extract_models and not (requires_fluent or k_file_writer)" }
+    steps:
+
+      - name: Checkout project
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Set Licensing
+        if: ${{ matrix.tests.runner == 'ubuntu-latest' }}
+        run: |
+          echo "ANSYS_DPF_ACCEPT_LA=Y" >> $GITHUB_ENV
+
+      - name: Install DPF
+        uses: ansys/pydpf-actions/install-dpf-server@v2.3
+        if: ${{ matrix.tests.runner == 'ubuntu-latest' }}
+        with:
+          dpf-standalone-TOKEN: ${{ secrets.PYANSYS_CI_BOT_TOKEN }}
+          ANSYS_VERSION : "241"
+
+      - name: Installing dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install .[tests]
+
+      - name: Run tests
+        run: |
+          python -m pytest -v -m "${{ matrix.tests.markers }}" tests
+
   wheelhouse:
     name: "Wheelhouse / ${{ matrix.os}} / ${{ matrix.python-version }}"
     runs-on: ${{ matrix.os }}
-    needs: doc-style
     strategy:
       fail-fast: false
       matrix:
@@ -38,20 +79,20 @@ jobs:
   doc-build:
     name: "Build documentation"
     runs-on: [self-hosted, pyhealth]
-    needs: build-wheelhouse
+    needs: wheelhouse
     steps:
 
       - name: "Checkout the project"
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: "Download wheelhouse into static path"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
         with:
           path: "doc/source/_static/wheelhouse"
           pattern: "*-wheelhouse-*"
 
       - name: "Install Python ${{ env.MAIN_PYTHON_VERSION }}"
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
         with:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
 
@@ -65,6 +106,18 @@ jobs:
         run: |
           .venv\Scripts\Activate.ps1
           python -m tox -e doc-links,doc-html,doc-pdf
+
+      - name: Upload HTML documentation artifact
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        with:
+          name: documentation-html
+          path: doc/_build/html
+
+      - name: Upload PDF documentation artifact
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        with:
+          name: documentation-pdf
+          path: doc/_build/latex/*.pdf
 
   doc-deploy-dev:
     name: "Deploy dev docs"

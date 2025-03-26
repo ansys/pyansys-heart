@@ -30,7 +30,7 @@ import pytest
 import pyvista as pv
 
 from ansys.heart.core.models import FullHeart
-from ansys.heart.postprocessor.ep_postprocessor import EPpostprocessor
+from ansys.heart.postprocessor.dpf_utils import EPpostprocessor
 
 if os.getenv("GITHUB_ACTION"):
     github_runner = True
@@ -57,7 +57,7 @@ def _create_mock_electrode_positions() -> np.ndarray:
 @pytest.fixture
 def _mock_ep_postprocessor():
     """Get mock EP postprocessor object."""
-    with mock.patch("ansys.heart.postprocessor.ep_postprocessor.D3plotReader"):
+    with mock.patch("ansys.heart.postprocessor.dpf_utils.D3plotReader"):
         mock_model = mock.Mock(FullHeart)
 
         yield EPpostprocessor(".", mock_model)
@@ -69,11 +69,11 @@ def test_compute_12lead_ECG(to_plot, _mock_ep_postprocessor: EPpostprocessor):  
     time, ecg_data, _ = _create_mock_ECG_data()
 
     with mock.patch(
-        "ansys.heart.postprocessor.ep_postprocessor.EPpostprocessor.create_post_folder",
+        "ansys.heart.postprocessor.dpf_utils.EPpostprocessor.create_post_folder",
         return_value="",
     ) as mock_post:
-        with mock.patch("ansys.heart.postprocessor.ep_postprocessor.plt.show") as mock_show:
-            with mock.patch("ansys.heart.postprocessor.ep_postprocessor.plt.savefig") as mock_save:
+        with mock.patch("ansys.heart.postprocessor.dpf_utils.plt.show") as mock_show:
+            with mock.patch("ansys.heart.postprocessor.dpf_utils.plt.savefig") as mock_save:
                 _mock_ep_postprocessor.compute_12_lead_ECGs(ECGs=ecg_data, times=time, plot=to_plot)
                 if to_plot:
                     mock_post.assert_called_once()
@@ -108,7 +108,7 @@ def test_compute_ECGs(_mock_ep_postprocessor: EPpostprocessor):  # noqa N802
     times = np.arange(0, 10)
 
     with mock.patch(
-        "ansys.heart.postprocessor.ep_postprocessor.EPpostprocessor.get_transmembrane_potential",
+        "ansys.heart.postprocessor.dpf_utils.EPpostprocessor.get_transmembrane_potential",
         return_value=(vm, times),
     ) as mock_get_transmembrane:
         electrodes = _create_mock_electrode_positions()
@@ -131,12 +131,12 @@ def test_export_transmembrane_to_vtk(_mock_ep_postprocessor: EPpostprocessor):
 
         # mock get_transmembrane_potential
         with mock.patch(
-            "ansys.heart.postprocessor.ep_postprocessor.EPpostprocessor.get_transmembrane_potential",  # noqa E501
+            "ansys.heart.postprocessor.dpf_utils.EPpostprocessor.get_transmembrane_potential",  # noqa E501
             return_value=(vm, times),
         ) as mock_get_transmembrane:
             # mock create_post_folder:
             with mock.patch(
-                "ansys.heart.postprocessor.ep_postprocessor.EPpostprocessor.create_post_folder",
+                "ansys.heart.postprocessor.dpf_utils.EPpostprocessor.create_post_folder",
                 return_value=tempdir,
             ) as mock_post:
                 _mock_ep_postprocessor.export_transmembrane_to_vtk()

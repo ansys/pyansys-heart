@@ -745,7 +745,7 @@ class HeartModel:
 
     def plot_purkinje(self):
         """Plot the mesh and Purkinje network."""
-        if self.conduction_system.number_of_cells == 0:
+        if self.conduction_system is None or self.conduction_system.number_of_cells == 0:
             LOGGER.info("No Conduction system to plot.")
             return
 

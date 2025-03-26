@@ -2,7 +2,7 @@
 
 from datetime import datetime
 import os
-import pathlib
+from pathlib import Path
 import subprocess
 
 from ansys_sphinx_theme import ansys_favicon, get_version_match
@@ -136,19 +136,27 @@ suppress_warnings = [
 typehints_defaults = "comma"
 simplify_optional_unions = False
 
-# Configuration for Jinja
-# -----------------------------------------------------------------------------
-jinja_contexts = {
-    "toxenvs": {
-        "envs": subprocess.run(
-            ["tox", "list", "-d", "-q"], capture_output=True, text=True
-        ).stdout.splitlines()[1:],
-    },
-}
-
-# Common content for every RST file such us links
+# Common content for every RST file such as links
 rst_epilog = ""
-links_filepath = pathlib.Path(__file__).parent.absolute() / "links.rst"
+links_filepath = Path(__file__).parent.absolute() / "links.rst"
 rst_epilog += links_filepath.read_text(encoding="utf-8")
 
 exclude_patterns = ["links.rst"]
+
+# Configuration for Jinja
+# -----------------------------------------------------------------------------
+jinja_globals = {
+    "PYANSYS_HEART_VERSION": version,
+}
+
+# Get list of tox environments and add to jinja context
+envs = subprocess.run(["tox", "list", "-q"], capture_output=True, text=True).stdout.splitlines()
+envs.remove("default environments:")
+envs.remove("additional environments:")
+envs.remove("")
+
+jinja_contexts = {
+    "toxenvs": {
+        "envs": envs,
+    }
+}

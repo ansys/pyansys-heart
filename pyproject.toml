@@ -55,11 +55,15 @@ doc = [
     "sphinx-autodoc-typehints==3.1.0",
     "sphinx-copybutton==0.5.2",
     "sphinx-gallery==0.19.0",
+    "sphinx-jinja==2.0.2",
     "sphinxcontrib-video",
     "tox==4.24.2",
 ]
 
-tests = ["pytest==8.3.5"]
+tests = [
+    "pytest==8.3.5",
+    "pytest-cov==6.0.0",
+]
 
 [project.urls]
 Source = "https://github.com/ansys/pyansys-heart"

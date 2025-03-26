@@ -33,7 +33,6 @@ import tarfile
 import typing
 
 import httpx
-
 import rich.progress
 import validators
 

@@ -28,9 +28,20 @@ import pyvista as pv
 import pyvista.examples as examples
 
 from ansys.heart.core.models import FullHeart
-from ansys.heart.core.objects import Mesh, Part, PartType, Point, _BeamMesh
+from ansys.heart.core.objects import Mesh, Part, PartType, Point, _BeamMesh, _BeamsMesh
 from ansys.heart.simulator.settings.settings import SimulationSettings, Stimulation
 import ansys.heart.writer.dynawriter as writers
+
+
+def _get_mock_conduction_system() -> _BeamsMesh:
+    """Get a mock conduction system."""
+    edges = examples.load_tetbeam().extract_feature_edges()
+    conduction_system = _BeamsMesh()
+    conduction_system.add_lines(edges, 1, name="Left-purkinje")
+    conduction_system.point_data["_is-connected"] = 0
+    conduction_system.point_data["_is-connected"][0:10] = 1
+
+    return conduction_system
 
 
 @pytest.fixture()
@@ -43,6 +54,9 @@ def _mock_model():
     p2 = Point(name="electrode-1", xyz=np.array([1.0, 1.0, 1.0]), node_id=1)
 
     model.electrodes = [p1, p2]
+
+    conduction_system = _get_mock_conduction_system()
+    model.conduction_system = conduction_system
 
     yield model
 

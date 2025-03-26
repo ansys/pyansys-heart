@@ -32,15 +32,11 @@ from pathlib import Path, PurePath
 import tarfile
 import typing
 
+import httpx
+import rich.progress
 import validators
 
 from ansys.heart.core import LOG as LOGGER
-
-try:
-    import wget  # type: ignore
-except ImportError:
-    LOGGER.error("wget not installed but required. Please install by: pip install wget")
-    exit()
 
 _URLS = {
     "Strocchi2020": {"url": "https://zenodo.org/record/3890034", "num_cases": 24},
@@ -110,7 +106,7 @@ def _format_download_urls():
         url = _URLS[database_name]["url"]
         num_cases = _URLS[database_name]["num_cases"]
         for case_number in range(1, num_cases + 1):
-            download_urls[database_name][case_number] = "{:}/files/{:02d}.tar.gz?download=1".format(
+            download_urls[database_name][case_number] = "{:}/files/{:02d}.tar.gz".format(
                 url, case_number
             )
     return download_urls
@@ -184,8 +180,24 @@ def download_case_from_zenodo(
         LOGGER.error(f"'{download_url}' is not a well-formed URL.")
         return None
 
+    # Use httpx to stream data and write to target file. link is redirected
+    # so requires follow_redirects=True.
     try:
-        wget.download(download_url, save_path)
+        with httpx.stream("GET", download_url, follow_redirects=True) as response:
+            total = int(response.headers["Content-Length"])
+
+            with rich.progress.Progress(
+                "[progress.percentage]{task.percentage:>3.0f}%",
+                rich.progress.BarColumn(bar_width=None),
+                rich.progress.DownloadColumn(),
+                rich.progress.TransferSpeedColumn(),
+            ) as progress:
+                download_task = progress.add_task("Download", total=total)
+                with open(save_path, "wb") as fp:
+                    for chunk in response.iter_bytes():
+                        fp.write(chunk)
+                        progress.update(download_task, completed=response.num_bytes_downloaded)
+
     except Exception as e:
         LOGGER.error(f"Failed to download from {download_url}: {e}")
         return None

@@ -46,7 +46,7 @@ from pathlib import Path
 
 from ansys.heart.core.helpers.downloader import download_case_from_zenodo, unpack_case
 import ansys.heart.core.models as models
-from ansys.heart.preprocessor.database_preprocessor import get_compatible_input
+from ansys.heart.preprocessor.database_utils import get_compatible_input
 
 # Use Fluent 24.1 for meshing.
 import ansys.heart.preprocessor.mesher as mesher

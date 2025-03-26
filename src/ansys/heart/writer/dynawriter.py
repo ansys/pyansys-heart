@@ -51,7 +51,7 @@ from ansys.heart.core.models import (
     HeartModel,
     LeftVentricle,
 )
-from ansys.heart.core.objects import Cap, CapType, Part, PartType, SurfaceMesh
+from ansys.heart.core.objects import Cap, CapType, Part, PartType, SurfaceMesh, _ConductionType
 from ansys.heart.simulator.settings.material.ep_material import CellModel, EPMaterial
 from ansys.heart.simulator.settings.material.material import (
     Mat295,
@@ -3389,22 +3389,22 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             pid = self.get_unique_part_id()
             self.model.conduction_system._line_id_to_pid[netid] = pid
             name = self.model.conduction_system._line_id_to_name[netid]
-            if name == "Left-purkinje":
+            if name == _ConductionType.LEFT_PURKINJE.value:
                 _node_set_id = self.model.left_ventricle.endocardium._seg_set_id
-            elif name == "Right-purkinje":
+            elif name == _ConductionType.RIGHT_PURKINJE.value:
                 _node_set_id = self.model.right_ventricle.endocardium._seg_set_id
-            elif name == "SAN_to_AVN":
+            elif name == _ConductionType.SAN_AVN.value:
                 _node_set_id = self.model.right_atrium.endocardium._seg_set_id
-            elif name == "Left bundle branch":
+            elif name == _ConductionType.LEFT_BUNDLE_BRANCH.value:
                 _node_set_id = self.model.left_ventricle.cavity.surface._seg_set_id
-            elif name == "Right bundle branch":
+            elif name == _ConductionType.RIGHT_BUNDLE_BRANCH.value:
                 _node_set_id = self.model.right_ventricle.cavity.surface._seg_set_id
-            elif name == "His":
+            elif name == _ConductionType.HIS.value:
                 # His bundle are inside of 3d mesh
                 # need to create the segment on which beam elements rely
                 surface = self._add_segment_from_surface(name="his_bundle_segment")
                 _node_set_id = surface._seg_set_id
-            elif name == "Bachman bundle":
+            elif name == _ConductionType.BACHMANN_BUNDLE.value:
                 # His bundle are inside of 3d mesh
                 # need to create the segment on which beam elements rely
                 surface = self._add_segment_from_surface(name="Bachman segment")

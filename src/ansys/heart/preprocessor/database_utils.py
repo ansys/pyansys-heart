@@ -106,9 +106,18 @@ def _get_interface_surfaces(mesh: pv.UnstructuredGrid, labels: dict, tag_to_labe
     Parameters
     ----------
     mesh : pv.UnstructuredGrid
-        Volume mesh
+        Volume mesh.
     labels : dict
-        Label dict to which to add the interface labels
+        Label dict to which to add the interface labels.
+    tag_to_label : dict
+        Tag to label dictionary mapping.
+
+    Returns
+    -------
+    List[pv.PolyData]
+        List of interface surfaces.
+    dict
+        Updated label dictionary.
     """
     tetras = np.reshape(mesh.cells, (mesh.n_cells, 5))[:, 1:]
     faces, c0, c1 = face_tetra_connectivity(tetras)
@@ -156,9 +165,16 @@ def _find_endo_epicardial_regions(geom_all: pv.PolyData, tag_to_label: dict):
     Parameters
     ----------
     geom_all : pv.PolyData
-        Entire heart model
+        Entire heart model.
     tag_to_label : dict
-        Dictionary that maps the tags to the corresponding labels
+        Dictionary that maps the tags to the corresponding labels.
+
+    Returns
+    -------
+    pv.PolyData
+        Updated geometry with endo and epicardial regions.
+    dict
+        Updated tag to label dictionary.
     """
     geom_all.cell_data["orig_ids"] = np.arange(0, geom_all.n_cells)
 
@@ -224,15 +240,15 @@ def _get_part_definitions(original_labels: dict, boundary_label_to_boundary_id: 
     Parameters
     ----------
     original_labels : dict
-        Dictionary with the original labels
+        Dictionary with the original labels.
     boundary_label_to_boundary_id : dict
-        Dictionary of the boundary label to boundary id map
+        Dictionary of the boundary label to boundary id map.
 
     Returns
     -------
     dict
         Dictionary with the part definitions. That is part id and corresponding
-    boundaries that enclose that part.
+        boundaries that enclose that part.
     """
     part_definitions = {}
     for original_label, original_tag in original_labels.items():
@@ -304,7 +320,18 @@ def _get_part_definitions(original_labels: dict, boundary_label_to_boundary_id: 
 
 
 def _sort_edge_loop(edges):
-    """Sorts the points in an edge loop."""
+    """Sorts the points in an edge loop.
+
+    Parameters
+    ----------
+    edges : np.ndarray
+        Array of edges.
+
+    Returns
+    -------
+    np.ndarray
+        Sorted edge loop.
+    """
     remaining_edges = edges
     next_edge = edges[0]
     sorted_edges = [next_edge]
@@ -339,18 +366,18 @@ def _smooth_boundary_edges(
     Parameters
     ----------
     surface_mesh : pv.PolyData
-        Input surface mesh
+        Input surface mesh.
     id_to_label_map : dict
-        ID to label map
+        ID to label map.
     sub_label_to_smooth : str, optional
-        Sub label to smooth, by default "endocardium"
+        Sub label to smooth, by default "endocardium".
     window_size : int, optional
-        Window size of the smoothing method, by default 5
+        Window size of the smoothing method, by default 5.
 
     Returns
     -------
     Tuple[pv.PolyData, dict]
-        Preprocessor compatible polydata object and dictionary with part definitions
+        Preprocessor compatible polydata object and dictionary with part definitions.
     """
     surfaces_to_smooth = [
         id for id, label in id_to_label_map.items() if sub_label_to_smooth in label
@@ -433,16 +460,16 @@ def get_compatible_input(
     Parameters
     ----------
     mesh_path : str
-        Path to the input mesh (UnstructuredGrid or MultiBlock)
+        Path to the input mesh (UnstructuredGrid or MultiBlock).
     model_type : str, optional
-        Type of model to extract, by default "FullHeart"
+        Type of model to extract, by default "FullHeart".
     database : str, optional
-        Database name, by default "Rodero2021"
+        Database name, by default "Rodero2021".
 
     Returns
     -------
     Tuple[pv.PolyData, dict]
-        Preprocessor compatible polydata object and dictionary with part definitions
+        Preprocessor compatible polydata object and dictionary with part definitions.
     """
     case_num = os.path.basename(mesh_path)
     case_num = int(case_num.replace(".case", "").replace(".vtk", ""))

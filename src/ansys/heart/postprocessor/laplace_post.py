@@ -41,14 +41,14 @@ def read_laplace_solution(
     Parameters
     ----------
     directory : str
-        directory of d3plot files
+        directory of d3plot files.
     field_list : list[str]
-        name of each d3plot file/field
+        name of each d3plot file/field.
 
     Returns
     -------
     pv.UnstructuredGrid
-        grid with point data of each field
+        grid with point data of each field.
     """
     data = D3plotReader(os.path.join(directory, field_list[0] + ".d3plot"))
     grid: pv.UnstructuredGrid = data.model.metadata.meshed_region.grid
@@ -84,19 +84,19 @@ def update_transmural_by_normal(grid: pv.UnstructuredGrid, surface: pv.PolyData)
     Note
     ----
     Assume mesh is coarse compared to the thinkness, solid cell normal
-    is interpolated from closest surface normal
+    is interpolated from closest surface normal.
 
     Parameters
     ----------
-    grid : pv.UnstructuredGrid
+    grid : pv.UnstructuredGrid.
         atrium grid
     surface : pv.PolyData
-        atrium endocardium surface
+        atrium endocardium surface.
 
     Returns
     -------
     np.ndarray
-        cell transmural direction vector
+        cell transmural direction vector.
     """
     surface_normals = surface.clean().compute_normals()
 
@@ -120,14 +120,14 @@ def orthogonalization(
     Parameters
     ----------
     grad_trans : np.ndarray
-        transmural vector
+        transmural vector.
     k : np.ndarray
-        Bundle selection vector
+        Bundle selection vector.
 
     Returns
     -------
     tuple[np.ndarray, np.ndarray, np.ndarray]
-        local coordinate system e_l,e_n,e_t
+        local coordinate system e_l,e_n,e_t.
     """
     norm = np.linalg.norm(grad_trans, axis=1)
     bad_cells = np.argwhere(norm == 0).ravel()
@@ -241,7 +241,7 @@ def compute_ra_fiber_cs(
     settings : AtrialFiber
         Atrial fiber settings.
     endo_surface : pv.PolyData, optional
-        _description_, by default None
+        _description_, by default None.
         If given, normal direction will be updated by surface normal instead of Laplace solution.
 
     Notes
@@ -376,18 +376,18 @@ def set_rotation_bounds(
     Parameters
     ----------
     w : np.ndarray
-        intra-ventricular interpolation weight if outflow_tracts is not None
+        intra-ventricular interpolation weight if outflow_tracts is not None.
     endo : float
-        rotation angle at endocardium
+        rotation angle at endocardium.
     epi : float
-        rotation angle at epicardium
+        rotation angle at epicardium.
     outflow_tracts : list[float, float], optional
-        rotation angle of enendocardium do and epicardium on outflow tract, by default None
+        rotation angle of enendocardium do and epicardium on outflow tract, by default None.
 
     Returns
     -------
     tuple[np.ndarray, np.ndarray]
-        cell-wise rotation bounds for endocardium and epicardium
+        cell-wise rotation bounds for endocardium and epicardium.
     """
 
     def _sigmoid(z):

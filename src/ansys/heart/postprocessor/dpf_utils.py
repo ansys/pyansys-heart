@@ -105,7 +105,18 @@ class D3plotReader:
         return self.model.results.initial_coordinates.eval()[0].data
 
     def get_ep_fields(self, at_step: int = None) -> dpf.FieldsContainer:
-        """Get EP fields container."""
+        """Get EP fields container.
+
+        Parameters
+        ----------
+        at_step : int, optional
+            At this step, by default None.
+
+        Returns
+        -------
+        dpf.FieldsContainer
+            Fields container.
+        """
         fields = dpf.FieldsContainer()
 
         time_ids = (
@@ -300,7 +311,7 @@ class ICVoutReader:
         Returns
         -------
         np.ndarray
-            time array
+            time array.
         """
         # see pydpf examples, lsdyna-operators
         icvout_op = dpf.Operator("lsdyna::binout::ICV_P")
@@ -318,12 +329,12 @@ class ICVoutReader:
         Parameters
         ----------
         icv_id : int
-            control volume id
+            control volume id.
 
         Returns
         -------
         np.ndarray
-            pressure array
+            pressure array.
         """
         if icv_id not in self._icv_ids:
             raise ValueError("icv_id not found.")
@@ -336,12 +347,12 @@ class ICVoutReader:
         Parameters
         ----------
         icv_id : int
-            control volume id
+            control volume id.
 
         Returns
         -------
         np.ndarray
-            volume array
+            volume array.
         """
         if icv_id not in self._icv_ids:
             raise ValueError("icv_id not found.")
@@ -359,12 +370,12 @@ class ICVoutReader:
         Parameters
         ----------
         icvi_id : int
-            control volume interaction id
+            control volume interaction id.
 
         Returns
         -------
         np.ndarray
-            flowrate array
+            flowrate array.
         """
         if icvi_id not in self._icvi_ids:
             raise ValueError("icvi_id not found.")
@@ -588,15 +599,15 @@ class EPpostprocessor:
         ECGs : np.ndarray
             mxn array containing ECGs, where m is the number of time steps
             and n the 10 electrodes in this order:
-            "V1" "V2" "V3" "V4" "V5" "V6" "RA" "LA" "RL" "LL"
+            "V1" "V2" "V3" "V4" "V5" "V6" "RA" "LA" "RL" "LL".
         plot : bool, optional
-            plot option, by default True
+            plot option, by default True.
 
         Returns
         -------
         np.ndarray
             12-Lead ECGs in this order:
-            "I" "II" "III" "aVR" "aVL" "aVF" "V1" "V2" "V3" "V4" "V5" "V6"
+            "I" "II" "III" "aVR" "aVL" "aVF" "V1" "V2" "V3" "V4" "V5" "V6".
         """
         right_arm = ECGs[:, 6]
         left_arm = ECGs[:, 7]
@@ -713,12 +724,12 @@ class D3plotToVTKExporter:
         time : float
             time to convert
         fname : str
-            filename to be save save data, default is None
+            filename to be save save data, default is None.
 
         Returns
         -------
         pv.UnstructuredGrid
-            result in pyvista object
+            result in pyvista object.
         """
         mesh = self.data.meshgrid.copy()
         i_frame = np.where(self.data.time == time)[0][0]

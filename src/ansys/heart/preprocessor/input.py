@@ -123,6 +123,8 @@ _HEART_MODELS = {
 
 
 class _InputBoundary(pv.PolyData):
+    """Class to manage input boundaries."""
+
     def __init__(
         self,
         var_inp=None,
@@ -138,6 +140,7 @@ class _InputBoundary(pv.PolyData):
         id=None,
         name: str = "",
     ) -> None:
+        """Initiate the input boundary."""
         super().__init__(
             var_inp, faces, n_faces, lines, n_lines, strips, n_strips, deep, force_ext, force_float
         )
@@ -214,6 +217,7 @@ class _InputModel:
         scalar: str = None,
         part_definitions: dict = None,
     ) -> None:
+        """Initiate the input model."""
         self.input_polydata: pv.PolyData = None
         """Input boundary."""
         self.part_definitions = part_definitions

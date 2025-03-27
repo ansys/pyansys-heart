@@ -39,14 +39,14 @@ def strocchi_active(t_end=800, t_act=0) -> tuple[np.ndarray, np.ndarray]:
     Parameters
     ----------
     t_end : int, optional
-        heart beat period, by default 800
+        heart beat period, by default 800.
     t_act : int, optional
-        start time, by default 0
+        start time, by default 0.
 
     Returns
     -------
     tuple[np.ndarray, np.ndarray]
-        (time, stress) array
+        (time, stress) array.
     """
     # parameters used in Strocchi in ms
     tau_r = 130 * 800 / t_end
@@ -72,17 +72,17 @@ def kumaraswamy_active(t_end=1000) -> tuple[np.ndarray, np.ndarray]:
     """
     Active stress in  Gaëtan Desrues doi.org/10.1007/978-3-030-78710-3_43.
 
-    T_peak is described in MAT295
+    T_peak is described in MAT295.
 
     Parameters
     ----------
     t_end : int, optional
-        heart beat duration, by default 1000
+        heart beat duration, by default 1000.
 
     Returns
     -------
     tuple[np.ndarray, np.ndarray]
-        (timen,stress) array
+        (timen,stress) array.
     """
     apd90 = 250 * t_end / 1000  # action potential duration
     time_repolarization = 750 * t_end / 1000  #  repolarization time
@@ -107,14 +107,14 @@ def constant_ca2(tb: float = 800, ca2ionm: float = 4.35) -> tuple[np.ndarray, np
     Parameters
     ----------
     tb : float, optional
-        heart beat period, by default 800
+        heart beat period, by default 800.
     ca2ionm : : float, optional
-        amplitude which equals ca2ionm in MAT_295
+        amplitude which equals ca2ionm in MAT_295.
 
     Returns
     -------
     tuple[np.ndarray, np.ndarray]
-        (time, stress) array
+        (time, stress) array.
     """
     t = np.linspace(0, tb, 101)
     v = np.ones((101)) * ca2ionm
@@ -141,13 +141,13 @@ class ActiveCurve:
         Parameters
         ----------
         func : tuple[np.ndarray, np.ndarray]
-            (time, stress or ca2) array for one heart beat
+            (time, stress or ca2) array for one heart beat.
         type : Literal[&quot;stress&quot;, &quot;ca2&quot;], optional
-            type of curve, by default "ca2"
+            type of curve, by default "ca2".
         threshold : float, optional
             threshold of des/active active stress, by default 0.5e-6.
         n : int, optional
-            No. of heart beat will be written for LS-DYNA, by default 5
+            No. of heart beat will be written for LS-DYNA, by default 5.
 
         Note
         ----

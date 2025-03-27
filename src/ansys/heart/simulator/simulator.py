@@ -125,9 +125,9 @@ class BaseSimulator:
         Parameters
         ----------
         method : Literal[&quot;LSDYNA&quot;, &quot;D, optional
-            method, by default "LSDYNA"
+            method, by default "LSDYNA".
         rotation_angles : dict, optional
-            rotation angle alpha and beta, by default None
+            rotation angle alpha and beta, by default None.
         """
         LOGGER.info("Computing fiber orientation...")
 
@@ -301,7 +301,7 @@ class BaseSimulator:
         Parameters
         ----------
         appendage : list[float], optional
-            Coordinates of appendage, by default None
+            Coordinates of appendage, by default None.
             If not defined, we use the cap named 'appendage'.
 
         Returns
@@ -385,7 +385,6 @@ class BaseSimulator:
             Path to the LS-DYNA simulation file.
         options : str, optional
             Additional options to pass to command line, by default "".
-
         """
         if options != "":
             old_options = copy.deepcopy(self.dyna_settings.dyna_options)
@@ -693,7 +692,13 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         return
 
     def simulate(self, folder_name="ep_meca"):
-        """Launch the main simulation."""
+        """Launch the main simulation.
+
+        Parameters
+        ----------
+        folder_name : str
+            folder name for the main simulation.
+        """
         # MechanicalSimulator handle dynain file from zerop
         MechanicsSimulator.simulate(self, folder_name=folder_name)
 

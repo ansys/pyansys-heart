@@ -284,4 +284,5 @@ if __name__ == "__main__":
     mat2 = EPMaterial.Passive(sigma_fiber=0, sigma_sheet=2)
     mat3 = EPMaterial.Active(sigma_fiber=1, sigma_sheet=2, sigma_sheet_normal=3)
     mat4 = EPMaterial.Active(sigma_fiber=1, sigma_sheet=2, sigma_sheet_normal=3)
+    # TODO: @mhoeijm - use logger
     print("done")

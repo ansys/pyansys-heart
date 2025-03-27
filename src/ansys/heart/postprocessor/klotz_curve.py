@@ -45,9 +45,9 @@ class EDPVR:
         Parameters
         ----------
         vm : float
-            Volume in mL
+            Volume in mL.
         pm : float
-            Pressure in mmHg
+            Pressure in mmHg.
         """
         self.vm = vm
         self.pm = pm
@@ -78,7 +78,7 @@ class EDPVR:
         Returns
         -------
         float| np.ndarray
-            pressure in mmHg
+            pressure in mmHg.
         """
         return self.Alpha * volume**self.Beta
 
@@ -88,12 +88,12 @@ class EDPVR:
         Parameters
         ----------
         pressure : np.ndarray
-            pressure in mmHg
+            pressure in mmHg.
 
         Returns
         -------
         np.ndarray
-            volume in mmL
+            volume in mmL.
         """
         if not isinstance(pressure, np.ndarray):
             raise TypeError("Input must be 1-dimensioanl np.array.")
@@ -111,12 +111,12 @@ class EDPVR:
         Parameters
         ----------
         simulation_data : list, optional
-            [volume, pressure] from simulation, by default None
+            [volume, pressure] from simulation, by default None.
 
         Returns
         -------
         matplotlib.figure.Figure
-            figure
+            figure.
         """
         vv = np.linspace(0, 1.1 * self.vm, num=101)
         pp = self.get_pressure(vv)

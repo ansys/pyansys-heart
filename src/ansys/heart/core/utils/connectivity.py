@@ -255,6 +255,7 @@ def edge_connectivity(
         for edge_group in edge_groups:
             counts = np.unique(edge_group, return_counts=True)[1]
             if np.all(counts == 2):
+                # TODO: @mhoeijm - remove all print statements
                 # print("Closed edge loop")
                 group_types.append("closed")
             elif np.any(counts != 2):

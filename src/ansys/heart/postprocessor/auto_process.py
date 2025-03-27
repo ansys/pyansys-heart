@@ -45,16 +45,15 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     Parameters
     ----------
     directory : str
-        Path to simulation folder
+        Path to simulation folder.
     model : HeartModel
-        model to post-process
+        model to post-process.
 
     Returns
     -------
     tuple[dict, np.ndarray, np.ndarray]
-        dictionary with convergence information
-        stress free configuration
-        computed end-of-diastolic configuration
+        dictionary with convergence information, stress free configuration,
+        computed end-of-diastolic configuration.
     """
     folder = "post"
     os.makedirs(os.path.join(directory, folder), exist_ok=True)
@@ -149,9 +148,9 @@ def mech_post(directory: str, model: HeartModel):
     Parameters
     ----------
     directory : str
-        d3plot folder
+        d3plot folder.
     model : HeartModel
-        heart model
+        heart model.
     """
     last_cycle_duration = 800
     folder = "post"

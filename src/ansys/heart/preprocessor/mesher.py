@@ -319,9 +319,14 @@ def _update_size_per_part(
     global_size : float
         Global size to use for parts that are not referenced.
     part_names : list[str]
-        Part names involved in the model/
+        Part names involved in the model.
     size_per_part : dict, optional
-        Size per part used to override global size, by default None
+        Size per part used to override global size, by default None.
+
+    Returns
+    -------
+    dict
+        Dictionary containing the mesh size per part.
     """
     # convert both to Fluent naming convention. Note: so remove cases and spaces
     part_names = [_to_fluent_convention(part) for part in part_names]
@@ -759,15 +764,15 @@ def mesh_from_non_manifold_input_model(
     path_to_output : Union[str, Path]
         Path to the resulting Fluent mesh file.
     global_mesh_size : float, optional
-        Uniform mesh size to use for all volumes and surfaces, by default 2.0
+        Uniform mesh size to use for all volumes and surfaces, by default 2.0.
     _global_wrap_size : float, optional
-        Global size used by the wrapper to reconstruct the geometry, by default 1.5
+        Global size used by the wrapper to reconstruct the geometry, by default 1.5.
     overwrite_existing_mesh : bool, optional
-        Flag indicating whether to overwrite an existing mesh, by default True
+        Flag indicating whether to overwrite an existing mesh, by default True.
     mesh_size_per_part : dict, optional
-        Dictionary specifying the mesh size that should be used for each part, by default None
+        Dictionary specifying the mesh size that should be used for each part, by default None.
     _wrap_size_per_part : dict, optional
-        Dictionary specifying the mesh size that should be used to wrap each part, by default None
+        Dictionary specifying the mesh size that should be used to wrap each part, by default None.
 
     Notes
     -----

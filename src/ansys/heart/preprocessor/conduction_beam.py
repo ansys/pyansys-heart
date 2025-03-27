@@ -28,7 +28,7 @@ import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.models import FourChamber
-from ansys.heart.core.objects import CapType, Point, SurfaceMesh, _BeamsMesh, _ConductionType
+from ansys.heart.core.objects import CapType, Point, SurfaceMesh, _BeamsMesh
 
 
 def _create_line(point_start: np.array, point_end: np.array, beam_length: float):
@@ -384,18 +384,12 @@ class ConductionSystem:
 
         return (side_his[-1], side_his, sgmt)
 
-    def compute_left_right_bundle(self, start_coord, side: str):
+    def compute_left_right_bundle(self, start_coord, end_coord, side: str):
         """Bundle branch."""
         if side == "Left":
-            end_coord = self.m.conduction_system.get_lines_by_name(
-                _ConductionType.LEFT_PURKINJE.value
-            ).points[0]
             ventricle = self.m.left_ventricle
             endo_surface = self.m.mesh.get_surface(self.m.left_ventricle.endocardium.id)
         elif side == "Right":
-            end_coord = self.m.conduction_system.get_lines_by_name(
-                _ConductionType.RIGHT_PURKINJE.value
-            ).points[0]
             ventricle = self.m.right_ventricle
             surface_ids = [ventricle.endocardium.id, ventricle.septum.id]
             endo_surface = self.m.mesh.get_surface(surface_ids)

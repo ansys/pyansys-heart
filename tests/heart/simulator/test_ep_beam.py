@@ -26,6 +26,7 @@ import numpy as np
 import pytest
 import pyvista as pv
 
+from ansys.heart.core.objects import _ConductionType
 from ansys.heart.preprocessor.conduction_beam import ConductionSystem
 from tests.heart.conftest import get_fourchamber
 
@@ -111,14 +112,15 @@ def test_compute_left_right_bundle():
     cs.compute_av_node()
     cs.compute_av_conduction()
     beam, left_end, right_end = cs.compute_his_conduction()
-
-    left_bundle = cs.compute_left_right_bundle(left_end.xyz, side="Left")
-    right_bundle = cs.compute_left_right_bundle(right_end.xyz, side="Right")
-
-    # fourchamber.plot_purkinje()
-    assert np.all(left_bundle.edges[0] == [121937, 121942])
-    assert np.all(left_bundle.edges[-1] == [121996, 50025])
-    assert np.all(right_bundle.edges[0] == [121941, 121997])
-    assert np.all(right_bundle.edges[-1] == [122040, 68079])
+    coord_left = fourchamber.left_ventricle.apex_points[0].xyz
+    coord_right = fourchamber.right_ventricle.apex_points[0].xyz
+    result = cs.compute_left_right_bundle(left_end.xyz, end_coord=coord_left, side="Left")
+    result = cs.compute_left_right_bundle(right_end.xyz, end_coord=coord_right, side="Right")
+    left_bundle = result.get_lines_by_name(_ConductionType.LEFT_BUNDLE_BRANCH.value)
+    right_bundle = result.get_lines_by_name(_ConductionType.RIGHT_BUNDLE_BRANCH.value)
+    assert np.isclose(left_bundle.length, 76.23944721403967)
+    assert left_bundle.n_lines == 56
+    assert np.isclose(right_bundle.length, 61.4083335120675)
+    assert right_bundle.n_lines == 45
 
     return

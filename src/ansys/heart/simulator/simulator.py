@@ -478,6 +478,8 @@ class EPSimulator(BaseSimulator):
     def compute_conduction_system(self):
         """Compute the conduction system."""
         if isinstance(self.model, FourChamber):
+            from ansys.heart.core.objects import _ConductionType
+
             beam_length = self.settings.purkinje.edgelen.m
 
             cs = ConductionSystem(self.model)
@@ -485,8 +487,14 @@ class EPSimulator(BaseSimulator):
             cs.compute_av_node()
             cs.compute_av_conduction()
             _, left_point, right_point = cs.compute_his_conduction(beam_length=beam_length)
-            cs.compute_left_right_bundle(left_point.xyz, side="Left")
-            cs.compute_left_right_bundle(right_point.xyz, side="Right")
+            end_coord = cs.m.conduction_system.get_lines_by_name(
+                _ConductionType.LEFT_PURKINJE.value
+            ).points[0]
+            cs.compute_left_right_bundle(left_point.xyz, endcoord=end_coord, side="Left")
+            end_coord = cs.m.conduction_system.get_lines_by_name(
+                _ConductionType.RIGHT_PURKINJE.value
+            ).points[0]
+            cs.compute_left_right_bundle(right_point.xyz, end_coord=end_coord, side="Right")
 
             # # TODO: define end point by uhc, or let user choose
             # Note: must on surface after zerop if coupled with meca

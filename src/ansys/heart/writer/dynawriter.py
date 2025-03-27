@@ -43,7 +43,6 @@ import scipy.spatial as spatial
 
 from ansys.dyna.core.keywords import keywords
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.helpers.vtk_utils import compute_surface_nodal_area_pyvista
 from ansys.heart.core.models import (
     BiVentricle,
     FourChamber,
@@ -52,6 +51,7 @@ from ansys.heart.core.models import (
     LeftVentricle,
 )
 from ansys.heart.core.objects import Cap, CapType, Part, PartType, SurfaceMesh
+from ansys.heart.core.utils.vtk_utils import compute_surface_nodal_area_pyvista
 from ansys.heart.simulator.settings.material.ep_material import CellModel, EPMaterial
 from ansys.heart.simulator.settings.material.material import (
     Mat295,

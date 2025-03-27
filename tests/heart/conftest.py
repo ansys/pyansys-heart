@@ -27,8 +27,8 @@ import sys
 
 import pytest
 
-from ansys.heart.core.helpers.downloader import download_case_from_zenodo, unpack_case
 import ansys.heart.core.models as models
+from ansys.heart.core.utils.download import download_case_from_zenodo, unpack_case
 
 ROOT_FOLDER = os.path.join(pathlib.Path(__file__).parent)
 

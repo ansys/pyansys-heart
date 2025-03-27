@@ -576,8 +576,8 @@ def test_force_normals_inwards():
 
 def test_cap_properties():
     """Test getting global_node_ids_edge from Cap."""
-    from ansys.heart.core.helpers.vtk_utils import get_patches_with_centroid
     from ansys.heart.core.objects import Cap
+    from ansys.heart.core.utils.vtk_utils import get_patches_with_centroid
 
     half_sphere = pv.Sphere().clip(normal="y")
     patches = get_patches_with_centroid(half_sphere)

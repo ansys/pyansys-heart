@@ -161,13 +161,13 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Set Licensing
-        if: ${{ matrix.tests.runner }} == 'ubuntu-latest'
+        if: ${{ matrix.tests.runner == 'ubuntu-latest' }}
         run: |
           echo "ANSYS_DPF_ACCEPT_LA=Y" >> $GITHUB_ENV
 
       - name: Install DPF
         uses: ansys/pydpf-actions/install-dpf-server@v2.3
-        if: ${{ matrix.tests.runner }} == 'ubuntu-latest'
+        if: ${{ matrix.tests.runner == 'ubuntu-latest' }}
         with:
           dpf-standalone-TOKEN: ${{ secrets.PYANSYS_CI_BOT_TOKEN }}
           ANSYS_VERSION : "241"

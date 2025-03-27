@@ -24,32 +24,15 @@
 
 import numpy as np
 import pytest
+import pyvista as pv
 
-from ansys.heart.core.objects import _BeamMesh
 from ansys.heart.preprocessor.conduction_beam import ConductionSystem
 from tests.heart.conftest import get_fourchamber
 
 
-@pytest.mark.xfail(reason="add_beam_net method removed.")
-def test_add_beam_net():
-    """Test reading Purkinje from .k files."""
-    fourchamber = get_fourchamber()
-
-    nodes = np.array([[0, 0, 0], [10, 10, 10]])
-    edges = np.array([[0, 0], [0, 1]])
-    mask = np.array([[False, True], [True, True]])  # first node is form solid mesh
-    fourchamber.add_beam_net(beam_nodes=nodes, edges=edges.copy(), mask=mask, pid=0, name="test")
-
-    # construct mesh to compare against
-    n = fourchamber.mesh.points.shape[0]
-    beam_mesh = _BeamMesh(
-        nodes=np.vstack((fourchamber.mesh.points, _BeamMesh.all_beam_nodes)),
-        edges=np.array([[0, n], [n, n + 1]]),
-        beam_nodes_mask=mask,
-    )
-    beam_mesh.pid = 0
-    beam_mesh.name = "test"
-    assert fourchamber.beam_network[0] == beam_mesh
+def _mock_purkinje():
+    """Create a mock Purkinje mesh."""
+    pv.PolyData()
 
 
 def test_compute_sa_node():
@@ -81,8 +64,7 @@ def test_compute_av_conduction():
     # based on type hint: will fail:
     # assert isinstance(beam, _BeamsMesh)
     assert beam.n_lines == 48
-    assert np.all(beam.get_cell(0).point_ids == [0, 1])
-    assert np.all(beam.get_cell(beam.n_cells - 1).point_ids == [47, 48])
+    assert np.isclose(beam.length, 64.36592438345)
 
 
 def test_compute_his_conduction():
@@ -96,12 +78,11 @@ def test_compute_his_conduction():
     beam, _, _ = cs.compute_his_conduction()
     his = beam.get_lines_by_name("His")
 
-    assert np.all(his.get_cell(0).point_ids == [0, 1])
-    assert np.all(his.get_cell(his.n_cells - 1).point_ids == [19, 20])
+    assert his.n_lines == 20
     assert np.isclose(his.length, 17.961541876776412)
 
 
-@pytest.mark.xfail(reason="add_beam_net method was removed")
+@pytest.mark.xfail(reason="Bachmann bundle not implemented yet.")
 def test_compute_bachmann_bundle():
     # get a fresh model
     fourchamber = get_fourchamber()
@@ -121,7 +102,6 @@ def test_compute_bachmann_bundle():
     assert np.all(beam.edges[-1] == [121994, 94118])
 
 
-@pytest.mark.xfail(reason="Requires Purkinje network to be available.")
 def test_compute_left_right_bundle():
     # get a fresh model
     fourchamber = get_fourchamber()

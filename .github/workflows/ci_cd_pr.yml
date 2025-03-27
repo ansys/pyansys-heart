@@ -13,7 +13,6 @@ env:
   DOCUMENTATION_CNAME: 'heart.docs.pyansys.com'
   LIBRARY_NAME: 'ansys-heart'
   ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
-  PYFLUENT_UI_MODE: "no_gui"
   PYFLUENT_START_INSTANCE: 0
   PYFLUENT_LAUNCH_CONTAINER: 1
   FLUENT_IMAGE_TAG: v24.2.0
@@ -187,7 +186,7 @@ jobs:
         if: matrix.tests.use_fluent
         run: |
           sudo rm -rf /usr/share/dotnet
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          # sudo rm -rf "$AGENT_TOOLSDIRECTORY"
           docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
           docker image prune -f
 

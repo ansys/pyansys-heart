@@ -33,7 +33,10 @@ from ansys.heart.core.models import FullHeart
 from ansys.heart.postprocessor.dpf_utils import EPpostprocessor
 
 
-# TODO: @KarimElHouari can we get more sensible mock data?
+# TODO: test_compute_12lead_ECG requires better asserts and we may
+# TODO: want to add better test data that allows testing internals
+# TODO: of the method.
+# TODO: see issue #973
 def _create_mock_ECG_data() -> tuple:  # noqa N802
     """Create mock ECG data."""
     data = np.arange(10 * 12).reshape((12, 10)).T

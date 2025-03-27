@@ -128,24 +128,23 @@ def test_export_transmembrane_to_vtk(_mock_ep_postprocessor: EPpostprocessor):
         vm = np.ones((10, _mock_ep_postprocessor.reader.meshgrid.n_points))
         times = np.arange(0, 10)
 
-        # mock get_transmembrane_potential
         with mock.patch(
             "ansys.heart.postprocessor.dpf_utils.EPpostprocessor.get_transmembrane_potential",  # noqa E501
             return_value=(vm, times),
         ) as mock_get_transmembrane:
-            # mock create_post_folder:
             with mock.patch(
                 "ansys.heart.postprocessor.dpf_utils.EPpostprocessor.create_post_folder",
                 return_value=tempdir,
             ) as mock_post:
                 with mock.patch("pyvista.Plotter.update") as mock_update:
-                    _mock_ep_postprocessor.export_transmembrane_to_vtk()
+                    with mock.patch("pyvista.Plotter.update_scalars") as mock_update_scalars:
+                        _mock_ep_postprocessor.export_transmembrane_to_vtk()
 
-                    mock_post.assert_called_once()
-                    mock_get_transmembrane.assert_called_once()
+                        mock_post.assert_called_once()
+                        mock_get_transmembrane.assert_called_once()
 
-                    assert len(glob.glob(os.path.join(tempdir, "*.vtk"))) == 10
+                        assert len(glob.glob(os.path.join(tempdir, "*.vtk"))) == 10
 
-                    #! TODO: do we need asserts?
-                    _mock_ep_postprocessor.animate_transmembrane()
-                    assert mock_update.call_count == vm.shape[0]
+                        _mock_ep_postprocessor.animate_transmembrane()
+                        assert mock_update.call_count == vm.shape[0]
+                        assert mock_update_scalars.call_count == vm.shape[0]

@@ -138,7 +138,7 @@ def test_export_transmembrane_to_vtk(_mock_ep_postprocessor: EPpostprocessor):
             ) as mock_post:
                 with mock.patch("pyvista.Plotter.update") as mock_update:
                     with mock.patch("pyvista.Plotter.update_scalars") as mock_update_scalars:
-                        with mock.patch("pyvista.Plotter.render") as mock_render:
+                        with mock.patch("pyvista.Plotter.show") as mock_show:
                             _mock_ep_postprocessor.export_transmembrane_to_vtk()
 
                             mock_post.assert_called_once()
@@ -149,4 +149,4 @@ def test_export_transmembrane_to_vtk(_mock_ep_postprocessor: EPpostprocessor):
                             _mock_ep_postprocessor.animate_transmembrane()
                             assert mock_update.call_count == vm.shape[0]
                             assert mock_update_scalars.call_count == vm.shape[0]
-                            mock_render.assert_called()
+                            mock_show.assert_called_once()

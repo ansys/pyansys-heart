@@ -120,7 +120,6 @@ def test_compute_ECGs(_mock_ep_postprocessor: EPpostprocessor):  # noqa N802
     pass
 
 
-@pytest.mark.skipif(github_runner, reason="Interactive update fails on github runner")
 def test_export_transmembrane_to_vtk(_mock_ep_postprocessor: EPpostprocessor):
     """Test exporting to VTK."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
@@ -139,12 +138,14 @@ def test_export_transmembrane_to_vtk(_mock_ep_postprocessor: EPpostprocessor):
                 "ansys.heart.postprocessor.dpf_utils.EPpostprocessor.create_post_folder",
                 return_value=tempdir,
             ) as mock_post:
-                _mock_ep_postprocessor.export_transmembrane_to_vtk()
+                with mock.patch("pyvista.Plotter.update") as mock_update:
+                    _mock_ep_postprocessor.export_transmembrane_to_vtk()
 
-                mock_post.assert_called_once()
-                mock_get_transmembrane.assert_called_once()
+                    mock_post.assert_called_once()
+                    mock_get_transmembrane.assert_called_once()
 
-                assert len(glob.glob(os.path.join(tempdir, "*.vtk"))) == 10
+                    assert len(glob.glob(os.path.join(tempdir, "*.vtk"))) == 10
 
-                #! TODO: do we need asserts?
-                _mock_ep_postprocessor.animate_transmembrane()
+                    #! TODO: do we need asserts?
+                    _mock_ep_postprocessor.animate_transmembrane()
+                    assert mock_update.call_count == vm.shape[0]

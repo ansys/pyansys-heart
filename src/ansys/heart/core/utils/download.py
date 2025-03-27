@@ -20,11 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Auto downloads cases.
-
-Auto downloads cases from the remote repositories of Strocchi et al 2020,
-and Rodero et al 2021.
-"""
+"""Module containing methods to download cases from public databases."""
 
 import hashlib
 import os
@@ -277,7 +273,7 @@ def unpack_case(tar_path: Path, reduce_size: bool = True) -> str:
 
     Examples
     --------
-    >>> from ansys.heart.misc.downloader import unpack_case
+    >>> from ansys.heart.core.utils.download import unpack_case
     >>> path = unpack_case("Rodero2021\\01.tar.gz")
 
     Returns
@@ -310,11 +306,11 @@ def download_all_cases(download_dir: str = None):
 
     Examples
     --------
-    >>> from ansys.heart.misc.downloader import download_all_cases
+    >>> from ansys.heart.core.utils.download import download_all_cases
     >>> tar_files = download_call_cases("my-downloads")
 
     To unpack all cases you can use the unpack_cases method:
-    >>> from ansys.heart.misc.downloader import unpack_cases
+    >>> from ansys.heart.core.utils.download import unpack_cases
     >>> unpack_cases(tar_files)
 
     Notes
@@ -350,7 +346,7 @@ def unpack_cases(list_of_tar_files: typing.List):
 
     Examples
     --------
-    >>> from ansys.heart.misc.downloader import unpack_cases
+    >>> from ansys.heart.core.utils.download import unpack_cases
     >>> unpack_cases(["01.tar.gz", "02.tar.gz"])
     """
     for file in list_of_tar_files:

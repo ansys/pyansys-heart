@@ -30,8 +30,8 @@ import numpy as np
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.helpers.connectivity import face_tetra_connectivity
-import ansys.heart.core.helpers.misc as geodisc
+from ansys.heart.core.utils.connectivity import face_tetra_connectivity
+import ansys.heart.core.utils.misc as geodisc
 
 
 def _read_input_mesh(mesh_path: str, database: str) -> pv.UnstructuredGrid:
@@ -86,18 +86,12 @@ def _get_original_labels(database: str, case_num: int = None) -> dict:
     match database:
         case "Strocchi2020":
             if case_num in [12, 14]:
-                from ansys.heart.preprocessor.database_labels_to_id import (
-                    Strocchi2020_case_12_14 as database_labels,
-                )
+                database_labels = _Strocchi2020_case_12_14_labels
             else:
-                from ansys.heart.preprocessor.database_labels_to_id import (
-                    Strocchi2020 as database_labels,  # noqa: N813
-                )
+                database_labels = _Strocchi2020_labels
 
         case "Rodero2021":
-            from ansys.heart.preprocessor.database_labels_to_id import (
-                Rodero2021 as database_labels,  # noqa: N813
-            )
+            database_labels = _Rodero2021_labels
 
         case _:
             LOGGER.error(f"Database with name {database} not supported.")
@@ -535,3 +529,85 @@ def get_compatible_input(
         del part_definitions["Pulmonary artery"]
 
     return geom_with_interfaces, part_definitions
+
+
+# Dictionaries to map labels to ID for Strocchi et al 2020 and Rodero et al 2021 datasets."""
+_Strocchi2020_labels = {
+    "Left ventricle myocardium": 1,
+    "Right ventricle myocardium": 2,
+    "Left atrium myocardium": 3,
+    "Right atrium myocardium": 4,
+    "Aorta wall": 5,
+    "Pulmonary artery wall": 6,
+    "Left atrial appendage border": 7,
+    "Left superior pulmonary vein border": 8,
+    "Left inferior pulmonary vein border": 9,
+    "Right inferior pulmonary vein border": 10,
+    "Right superior pulmonary vein border": 11,
+    "Superior vena cava border": 12,
+    "Inferior vena cava border": 13,
+    "Mitral valve plane": 14,
+    "Tricuspid valve plane": 15,
+    "Aortic valve plane": 16,
+    "Pulmonary valve plane": 17,
+    "Left atrium appendage inlet": 18,
+    "Left superior pulmonary vein inlet": 19,
+    "Left inferior pulmonary vein inlet": 20,
+    "Right inferior pulmonary vein inlet": 21,
+    "Right superior pulmonary vein inlet": 22,
+    "Superior vena cava inlet": 23,
+    "Inferior vena cava inlet": 24,
+}
+#! NOTE: Strocchi 2020 cases 12 and 14 have different labeling.
+_Strocchi2020_case_12_14_labels = {
+    "Left ventricle myocardium": 1,
+    "Right ventricle myocardium": 2,
+    "Left atrium myocardium": 3,
+    "Right atrium myocardium": 4,
+    "Aorta wall": 5,
+    "Pulmonary artery wall": 6,
+    "Left atrial appendage border": 7,
+    "Left superior pulmonary vein border": 8,
+    "Left inferior pulmonary vein border": 9,
+    "Right inferior pulmonary vein border": 9,
+    "Right superior pulmonary vein border": 10,
+    "Superior vena cava border": 11,
+    "Inferior vena cava border": 12,
+    "Mitral valve plane": 13,
+    "Tricuspid valve plane": 14,
+    "Aortic valve plane": 15,
+    "Pulmonary valve plane": 16,
+    "Left atrium appendage inlet": 17,
+    "Left superior pulmonary vein inlet": 18,
+    "Left inferior pulmonary vein inlet": 18,
+    "Right inferior pulmonary vein inlet": 20,
+    "Right superior pulmonary vein inlet": 19,
+    "Superior vena cava inlet": 21,
+    "Inferior vena cava inlet": 22,
+}
+_Rodero2021_labels = {
+    "Left ventricle myocardium": 1,
+    "Right ventricle myocardium": 2,
+    "Left atrium myocardium": 3,
+    "Right atrium myocardium": 4,
+    "Aorta wall": 5,
+    "Pulmonary artery wall": 6,
+    "Left atrial appendage border": 18,
+    "Left superior pulmonary vein border": 21,
+    "Left inferior pulmonary vein border": 20,
+    "Right inferior pulmonary vein border": 19,
+    "Right superior pulmonary vein border": 22,
+    "Superior vena cava border": 23,
+    "Inferior vena cava border": 24,
+    "Mitral valve plane": 7,
+    "Tricuspid valve plane": 8,
+    "Aortic valve plane": 9,
+    "Pulmonary valve plane": 10,
+    "Left atrium appendage inlet": 11,
+    "Left superior pulmonary vein inlet": 12,
+    "Left inferior pulmonary vein inlet": 13,
+    "Right inferior pulmonary vein inlet": 14,
+    "Right superior pulmonary vein inlet": 15,
+    "Superior vena cava inlet": 16,
+    "Inferior vena cava inlet": 17,
+}

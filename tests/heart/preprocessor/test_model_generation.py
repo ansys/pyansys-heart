@@ -36,10 +36,10 @@ import numpy as np
 import pytest
 import yaml
 
-from ansys.heart.core.helpers.downloader import download_case_from_zenodo, unpack_case
-from ansys.heart.core.helpers.misc import rodrigues_rot
 import ansys.heart.core.models as models
-from ansys.heart.preprocessor.database_preprocessor import get_compatible_input
+from ansys.heart.core.utils.download import download_case_from_zenodo, unpack_case
+from ansys.heart.core.utils.misc import rodrigues_rot
+from ansys.heart.preprocessor.database_utils import get_compatible_input
 import ansys.heart.writer.dynawriter as writers
 from tests.heart.common import compare_stats_mesh, compare_stats_names, compare_stats_volumes
 from tests.heart.conftest import get_assets_folder

@@ -46,8 +46,8 @@ import psutil
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.helpers.misc import _read_orth_element_kfile
 from ansys.heart.core.models import FourChamber, HeartModel, LeftVentricle
+from ansys.heart.core.utils.misc import _read_orth_element_kfile
 from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
 from ansys.heart.postprocessor.laplace_post import (
     compute_la_fiber_cs,

@@ -14,6 +14,9 @@ env:
   LIBRARY_NAME: 'ansys-heart'
   ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
   PYFLUENT_UI_MODE: "no_gui"
+  PYFLUENT_START_INSTANCE: 0
+  PYFLUENT_LAUNCH_CONTAINER: 1
+  FLUENT_IMAGE_TAG: v24.2.0
 
 jobs:
 
@@ -140,7 +143,7 @@ jobs:
           retention-days: 7
 
   tests:
-    name: "Tests / Windows / Python ${{ matrix.python-version }} / ${{ matrix.tests.name }}"
+    name: "Tests / ${{ matrix.tests.runner }} / Python ${{ matrix.python-version }} / ${{ matrix.tests.name }}"
     runs-on: ${{ matrix.tests.runner }}
     needs: [code-style]
     strategy:
@@ -149,7 +152,7 @@ jobs:
         python-version: ['3.11', '3.12']
         tests:
           - { name: "Base", runner: "ubuntu-latest", markers: "not (requires_fluent or extract_models or k_file_writer)", use_dpf: true }
-          - { name: "PyFluent", runner: "self-hosted", markers: "(extract_models and not requires_fluent and not k_file_writer) or k_file_writer" }
+          - { name: "PyFluent", runner: "ubuntu-latest", markers: "requires_fluent or extract_models or k_file_writer", use_fluent: true }
     steps:
 
       - name: Checkout project
@@ -160,7 +163,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Set Licensing
+      - name: Set DPF Licensing
         if: matrix.tests.use_dpf
         run: |
           echo "ANSYS_DPF_ACCEPT_LA=Y" >> $GITHUB_ENV
@@ -171,6 +174,22 @@ jobs:
         with:
           dpf-standalone-TOKEN: ${{ secrets.PYANSYS_CI_BOT_TOKEN }}
           ANSYS_VERSION : "241"
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        if: matrix.tests.use_fluent
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull Fluent docker image
+        if: matrix.tests.use_fluent
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
+          docker image prune -f
 
       - name: Installing dependencies
         run: |

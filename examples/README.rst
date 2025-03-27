@@ -1,3 +1,5 @@
+.. _examples:
+
 Examples
 ========
 These examples show you how you can use the preprocessor and simulator modules

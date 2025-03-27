@@ -237,8 +237,6 @@ def test_heart_model_add_purkinje_from_file():
         model.add_purkinje_from_kfile(temp_path, "purkinje1")
 
         assert len(model.conduction_system.line_ids) == 1
-        # TODO: @KarimElHouari: do we need to retrieve part ids? This will fail now.
-        # assert model.conduction_system._line_id_to_pid == {1: 8}
         assert np.all(model.conduction_system.get_lines(1).lines == np.array([2, 0, 1, 2, 0, 2]))
         assert np.allclose(
             model.conduction_system.get_lines(1).points,

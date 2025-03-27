@@ -16,7 +16,6 @@ env:
   PYFLUENT_START_INSTANCE: 0
   PYFLUENT_LAUNCH_CONTAINER: 1
   FLUENT_IMAGE_TAG: v24.2.0
-  PYANSYS_HEART_FLUENT_VERSION: "24.2"
 
 jobs:
 
@@ -196,7 +195,7 @@ jobs:
 
       - name: Run tests
         env:
-          AWP_ROOT241: "/home/runner/work/pyansys-heart/pyansys-heart/dpf-standalone/v241"
+          ANSYS_DPF_PATH: "/home/runner/work/pyansys-heart/pyansys-heart/dpf-standalone/v241"
         run: |
           . .venv/bin/activate
           python -m tox -e tests -- -m "${{ matrix.tests.markers }}" -vv

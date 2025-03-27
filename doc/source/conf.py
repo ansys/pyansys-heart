@@ -38,6 +38,8 @@ html_theme_options = {
     "logo": "pyansys",
     "ansys_sphinx_theme_autoapi": {
         "project": project,
+        # TODO: remove the package depeth after moving all under core.
+        "package_depth": 2,
         "ignore": [
             "*writer*",
             "*misc*",

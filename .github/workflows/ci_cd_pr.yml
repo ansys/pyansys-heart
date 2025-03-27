@@ -161,13 +161,13 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Set Licensing
-        if: ${{ matrix.tests.use_dpf }}
+        if: matrix.tests.use_dpf
         run: |
           echo "ANSYS_DPF_ACCEPT_LA=Y" >> $GITHUB_ENV
 
       - name: Install DPF
         uses: ansys/pydpf-actions/install-dpf-server@v2.3
-        if: ${{ matrix.tests.use_dpf }}
+        if: matrix.tests.use_dpf
         with:
           dpf-standalone-TOKEN: ${{ secrets.PYANSYS_CI_BOT_TOKEN }}
           ANSYS_VERSION : "241"

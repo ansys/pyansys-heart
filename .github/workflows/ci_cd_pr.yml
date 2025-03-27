@@ -158,10 +158,8 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@v4
 
-      - name: "Install Python ${{ env.MAIN_PYTHON_VERSION }}"
+      - name: "Set up uv"
         uses: astral-sh/setup-uv@22695119d769bdb6f7032ad67b9bca0ef8c4a174 # v5.4.0
-        with:
-          python-version: ${{ matrix.python-version }}
 
       - name: Set DPF Licensing
         if: matrix.tests.use_dpf
@@ -191,13 +189,15 @@ jobs:
           docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
           docker image prune -f
 
-      - name: Installing dependencies
+      - name: Install Python ${{ matrix.python-version }} and tox
         run: |
-          uv tool install tox --with tox-uv
+          uv venv .venv --seed --python ${{ matrix.python-version }}
+          uv pip install tox
 
       - name: Run tests
         run: |
-          tox -e tests -- -m "${{ matrix.tests.markers }}" -vv
+          . .venv/bin/activate
+          python -m tox -e tests -- -m "${{ matrix.tests.markers }}" -vv
 
   build-library:
     name: "Build library"

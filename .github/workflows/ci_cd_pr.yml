@@ -148,7 +148,7 @@ jobs:
       matrix:
         python-version: ['3.11', '3.12']
         tests:
-          - { name: "Base", runner: "ubuntu-latest", markers: "not (requires_fluent or extract_models or k_file_writer)" }
+          - { name: "Base", runner: "ubuntu-latest", markers: "not (requires_fluent or extract_models or k_file_writer)", use_dpf: true }
           - { name: "PyFluent", runner: "self-hosted", markers: "(extract_models and not requires_fluent and not k_file_writer) or k_file_writer" }
     steps:
 
@@ -161,13 +161,13 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Set Licensing
-        if: ${{ matrix.tests.runner == 'ubuntu-latest' }}
+        if: ${{ matrix.tests.use_dpf }}
         run: |
           echo "ANSYS_DPF_ACCEPT_LA=Y" >> $GITHUB_ENV
 
       - name: Install DPF
         uses: ansys/pydpf-actions/install-dpf-server@v2.3
-        if: ${{ matrix.tests.runner == 'ubuntu-latest' }}
+        if: ${{ matrix.tests.use_dpf }}
         with:
           dpf-standalone-TOKEN: ${{ secrets.PYANSYS_CI_BOT_TOKEN }}
           ANSYS_VERSION : "241"

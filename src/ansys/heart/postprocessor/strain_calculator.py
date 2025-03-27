@@ -321,7 +321,7 @@ class AhaStrainCalculator:
         to the American Heart Association (AHA) [1]_
 
         Based on:
-        https://matplotlib.org/stable/gallery/specialty_plots/leftventricle_bulleye.html#sphx-glr-gallery-specialty-plots-leftventricle-bulleye-py
+        https://matplotlib.org/stable/gallery/specialty_plots/leftventricle_bulleye.html
 
         References
         ----------

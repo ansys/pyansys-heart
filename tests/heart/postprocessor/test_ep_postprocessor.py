@@ -32,14 +32,8 @@ import pyvista as pv
 from ansys.heart.core.models import FullHeart
 from ansys.heart.postprocessor.dpf_utils import EPpostprocessor
 
-if os.getenv("GITHUB_ACTION"):
-    github_runner = True
-else:
-    github_runner = False
-pv.OFF_SCREEN = True
 
-
-#! @kelhouari can we get more sensible mock data?
+# TODO: @KarimElHouari can we get more sensible mock data?
 def _create_mock_ECG_data() -> tuple:  # noqa N802
     """Create mock ECG data."""
     data = np.arange(10 * 12).reshape((12, 10)).T
@@ -92,16 +86,10 @@ def test_read_ECGs(_mock_ep_postprocessor: EPpostprocessor):  # noqa N802
         assert np.allclose(ecg, data_expected[:, 1:11])
 
 
-#! TODO: implement sensible asserts.
-#! TODO: reduce overlap with test_export_transmembrane_to_vtk
+# TODO: implement sensible asserts.
+# TODO: reduce overlap with test_export_transmembrane_to_vtk
 def test_compute_ECGs(_mock_ep_postprocessor: EPpostprocessor):  # noqa N802
     """Test the ECG computation."""
-    # mocks the following:
-    # vm, times = self.get_transmembrane_potential()
-    # self.reader.meshgrid
-    # used dummy data for:
-    # electrodes: (electrode positions)
-
     _mock_ep_postprocessor.reader = mock.Mock()
     _mock_ep_postprocessor.reader.meshgrid = pv.examples.load_tetbeam()
     vm = np.ones((10, _mock_ep_postprocessor.reader.meshgrid.n_points))
@@ -120,7 +108,12 @@ def test_compute_ECGs(_mock_ep_postprocessor: EPpostprocessor):  # noqa N802
     pass
 
 
-def test_export_transmembrane_to_vtk(_mock_ep_postprocessor: EPpostprocessor):
+@mock.patch("pyvista.Plotter.show")
+@mock.patch("pyvista.Plotter.update_scalars")
+@mock.patch("pyvista.Plotter.update")
+def test_export_transmembrane_to_vtk(
+    mock_update, mock_update_scalars, mock_show, _mock_ep_postprocessor: EPpostprocessor
+):
     """Test exporting to VTK."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         _mock_ep_postprocessor.reader = mock.Mock()
@@ -136,17 +129,15 @@ def test_export_transmembrane_to_vtk(_mock_ep_postprocessor: EPpostprocessor):
                 "ansys.heart.postprocessor.dpf_utils.EPpostprocessor.create_post_folder",
                 return_value=tempdir,
             ) as mock_post:
-                with mock.patch("pyvista.Plotter.update") as mock_update:
-                    with mock.patch("pyvista.Plotter.update_scalars") as mock_update_scalars:
-                        with mock.patch("pyvista.Plotter.show") as mock_show:
-                            _mock_ep_postprocessor.export_transmembrane_to_vtk()
+                _mock_ep_postprocessor.export_transmembrane_to_vtk()
 
-                            mock_post.assert_called_once()
-                            mock_get_transmembrane.assert_called_once()
+                mock_post.assert_called_once()
+                mock_get_transmembrane.assert_called_once()
 
-                            assert len(glob.glob(os.path.join(tempdir, "*.vtk"))) == 10
+                assert len(glob.glob(os.path.join(tempdir, "*.vtk"))) == 10
 
-                            _mock_ep_postprocessor.animate_transmembrane()
-                            assert mock_update.call_count == vm.shape[0]
-                            assert mock_update_scalars.call_count == vm.shape[0]
-                            mock_show.assert_called_once()
+                _mock_ep_postprocessor.animate_transmembrane()
+
+                assert mock_update.call_count == vm.shape[0]
+                assert mock_update_scalars.call_count == vm.shape[0]
+                mock_show.assert_called_once()

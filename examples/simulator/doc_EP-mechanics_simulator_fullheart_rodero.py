@@ -163,7 +163,9 @@ simulator.simulate()
 # Result in LS-PrePost
 
 ###############################################################################
-# .. video:: ../../_static/images/doc_Christobal01_epmeca_fh.mp4
-#   :width: 600
-#   :loop:
-#   :class: center
+# .. only:: html
+#
+#     .. video:: ../../_static/images/doc_Christobal01_epmeca_fh.mp4
+#       :width: 600
+#       :loop:
+#       :class: center

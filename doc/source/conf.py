@@ -187,4 +187,6 @@ linkcheck_ignore = [
     # Requires sign-in
     f"https://github.com/{user_repo}/*",
     "https://support.ansys.com/Home/HomePage",
+    # Pages generated at build time
+    r"../examples/",
 ]

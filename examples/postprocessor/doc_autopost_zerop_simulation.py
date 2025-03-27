@@ -136,7 +136,9 @@ zerop_post(zerop_folder, model)
 # You can show and export inflation animation
 
 ###############################################################################
-# .. video:: ../../_static/images/inflation.mp4
-#   :width: 300
-#   :loop:
-#   :class: center
+# .. only:: html
+#
+#     .. video:: ../../_static/images/inflation.mp4
+#       :width: 300
+#       :loop:
+#       :class: center

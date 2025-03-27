@@ -124,10 +124,8 @@ class BaseDynaWriter:
             Simulation settings used to create the LS-DYNA model.
             Loads defaults if None, by default None
 
-        Example
-        -------
-        TODO: add example
         """
+        # TODO: @mhoeijm: Add examples for the class docstring.
         self.model = model
         """Model information necessary for creating the LS-DYNA .k files."""
 

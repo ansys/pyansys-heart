@@ -35,6 +35,7 @@ class BaseDecks:
     """
 
     def __init__(self) -> None:
+        """Initiate the decks."""
         self.main = Deck()
         self.parts = Deck()
         self.nodes = Deck()
@@ -52,9 +53,16 @@ class BaseDecks:
 
 
 class MechanicsDecks(BaseDecks):
-    """Useful decks for a mechanics simulation."""
+    """Useful decks for a mechanics simulation.
+
+    Parameters
+    ----------
+    BaseDecks : BaseDecks
+        Inherits from BaseDecks class.
+    """
 
     def __init__(self) -> None:
+        """Initiate the decks."""
         super().__init__()
         self.cap_elements = Deck()
         self.control_volume = Deck()
@@ -62,9 +70,16 @@ class MechanicsDecks(BaseDecks):
 
 
 class FiberGenerationDecks(BaseDecks):
-    """Useful decks for fiber generation."""
+    """Useful decks for fiber generation.
+
+    Parameters
+    ----------
+    BaseDecks : BaseDecks
+        Inherits from BaseDecks class.
+    """
 
     def __init__(self) -> None:
+        """Initiate the decks."""
         super().__init__()
         self.ep_settings = Deck()
         self.create_fiber = Deck()
@@ -83,6 +98,7 @@ class ElectrophysiologyDecks(BaseDecks):
     """Useful decks for Electrophysiology simulations."""
 
     def __init__(self) -> None:
+        """Initiate the decks."""
         super().__init__()
         self.cell_models = Deck()
         self.ep_settings = Deck()
@@ -93,5 +109,6 @@ class ElectroMechanicsDecks(ElectrophysiologyDecks, MechanicsDecks):
     """Useful decks for a electromechanics simulation."""
 
     def __init__(self) -> None:
+        """Initiate the decks."""
         super().__init__()
         self.duplicate_nodes = Deck()

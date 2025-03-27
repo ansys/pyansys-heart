@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Module containing class for creating conduxtion system."""
+"""Module containing class for creating conduction system."""
 
 import networkx as nx
 import numpy as np
@@ -73,6 +73,7 @@ class ConductionSystem:
     """Methods to generate conduction system."""
 
     def __init__(self, model: FourChamber):
+        """Initialize the conduction system."""
         self.m = model
 
     def compute_sa_node(self, target_coord=None) -> Point:
@@ -81,6 +82,16 @@ class ConductionSystem:
 
         SinoAtrial node is defined on the endocardium of the right atrium and
         between sup vena cava and inf vena cave.
+
+        Parameters
+        ----------
+        target_coord : np.array, optional
+            Target coordinate to define the SA node, by default None.
+
+        Returns
+        -------
+        Point
+            returns the SA node.
         """
         if target_coord is None:
             sup_vcava_centroid = next(
@@ -120,6 +131,11 @@ class ConductionSystem:
 
         AtrioVentricular node is on right artrium endocardium surface and closest to septum.
 
+        Parameters
+        ----------
+        target_coord : np.array, optional
+            Target coordinate to define the AV node, by default None.
+
         Returns
         -------
         Point
@@ -152,7 +168,18 @@ class ConductionSystem:
         return atrioventricular_point
 
     def compute_av_conduction(self, beam_length: float = 1.5) -> BeamMesh:
-        """Compute Atrio-Ventricular conduction by means of beams following a geodesic path."""
+        """Compute Atrio-Ventricular conduction by means of beams following a geodesic path.
+
+        Parameters
+        ----------
+        beam_length : float, optional
+            Beam length, by default 1.5.
+
+        Returns
+        -------
+        BeamMesh
+            Returns the beam network.
+        """
         right_atrium_endo = self.m.mesh.get_surface(self.m.right_atrium.endocardium.id)
 
         try:
@@ -227,7 +254,18 @@ class ConductionSystem:
         return bifurcation_coord
 
     def compute_his_conduction(self, beam_length: float = 1.5) -> tuple[BeamMesh, Point, Point]:
-        """Compute His bundle conduction."""
+        """Compute His bundle conduction.
+
+        Parameters
+        ----------
+        beam_length : float, optional
+            Beam length, by default 1.5.
+
+        Returns
+        -------
+        tuple[BeamMesh, Point, Point]
+            Returns the beam network, left and right His bundle end points.
+        """
         bifurcation_coord = self._get_hisbundle_bifurcation()
 
         # path start from AV point, to septum start point, then to septum end point
@@ -346,9 +384,14 @@ class ConductionSystem:
         start : np.ndarray
             Start point coordinates.
         end : np.ndarray
-            End point coordinates
+            End point coordinates.
         return_segment : bool, optional
-            Return a segment set (list of triangles) on which the path relies, by default True
+            Return a segment set (list of triangles) on which the path relies, by default True.
+
+        Returns
+        -------
+        np.ndarray
+            Returns the path as a list of node ids.
         """
         #! mesh can now have multiple element types: TETRA, TRIANGLE, etc.
         mesh = mesh.extract_cells_by_type(pv.CellType.TETRA)
@@ -416,7 +459,23 @@ class ConductionSystem:
     def _create_his_side(
         self, side: str, new_nodes, edges, beam_length, bifurcation_coord, bifurcation_id
     ):
-        """Create His side after bifucation."""
+        """Create His side after bifucation.
+
+        Parameters
+        ----------
+        side : str
+            Side of the heart, either "left" or "right".
+        new_nodes : np.array
+            New nodes.
+        edges : np.array
+            Edges.
+        beam_length : float
+            Beam length.
+        bifurcation_coord : np.array
+            Bifurcation coordinate.
+        bifurcation_id : int
+            Bifurcation node id.
+        """
         if side.lower() == "left":
             endo = self.m.mesh.get_surface(self.m.left_ventricle.endocardium.id)
         elif side.lower() == "right":
@@ -453,7 +512,19 @@ class ConductionSystem:
         return (position_id_his_end, his_end_coord, new_nodes, edges, sgmt)
 
     def compute_left_right_bundle(self, start_coord, start_id, side: str, beam_length: float = 1.5):
-        """Bundle branch."""
+        """Bundle branch.
+
+        Parameters
+        ----------
+        start_coord : np.array
+            Start coordinate.
+        start_id : int
+            Start node id.
+        side : str
+            Side of the heart, either "Left" or "Right".
+        beam_length : float, optional
+            Beam length, by default 1.5.
+        """
         if side == "Left":
             ventricle = self.m.left_ventricle
             endo_surface = self.m.mesh.get_surface(self.m.left_ventricle.endocardium.id)
@@ -500,7 +571,17 @@ class ConductionSystem:
         return surface.get_cell(cell_id).point_ids[0]
 
     def compute_bachman_bundle(self, start_coord, end_coord, beam_length: float = 1.5) -> BeamMesh:
-        """Compute Bachman bundle conduction system."""
+        """Compute Bachman bundle conduction system.
+
+        Parameters
+        ----------
+        start_coord : np.array
+            Start coordinate.
+        end_coord : np.array
+            End coordinate.
+        beam_length : float, optional
+            Beam length, by default 1.5.
+        """
         la_epi = self.m.mesh.get_surface(self.m.left_atrium.epicardium.id)
         ra_epi = self.m.mesh.get_surface(self.m.right_atrium.epicardium.id)
         epi = la_epi.merge(ra_epi)

@@ -44,6 +44,10 @@ def create_node_keyword(nodes: np.array, offset: int = 0) -> keywords.Node:
     keywords.Node
         Formatted node keyword
     """
+    # TODO: @mhoeijm: offset is not used, should it be?
+    # if not required, remove it, otherwise improve the docstring
+    # by explaining what it does
+
     # create array with node ids
     nids = np.arange(0, nodes.shape[0], 1) + 1
 
@@ -117,6 +121,11 @@ def add_beams_to_kw(
         beam keyword
     offset : int
         beam id offset
+
+    Returns
+    -------
+    keywords.ElementBeam
+        Formatted beam keyword
     """
     # get beam id of last beam:
     if not beam_kw.elements.empty and offset == 0:
@@ -160,7 +169,7 @@ def create_segment_set_keyword(
     Returns
     -------
     keywords.SetSegment
-        Formatted segment set keyword
+        Formatted segment set keyword with the provided segments.
     """
     if segments.shape[1] < 3 or segments.shape[1] > 4:
         raise ValueError("expecting segments to have 3 or 4 columns")
@@ -221,6 +230,20 @@ def create_element_shell_keyword(
     shells: np.array, part_id: int = 1, id_offset: int = 0
 ) -> keywords.ElementShell:
     """Create element shell keyword.
+
+    Parameters
+    ----------
+    shells : np.array
+        Array of elements.
+    part_id : int, optional
+        Part id, by default 1.
+    id_offset : int, optional
+        Offset for the element id, by default 0.
+
+    Returns
+    -------
+    keywords.ElementShell
+        Formatted element shell keyword.
 
     Notes
     -----
@@ -363,7 +386,26 @@ def create_define_curve_kw(
     curve_id: int = 1,
     lcint: int = 15000,
 ) -> keywords.DefineCurve:
-    """Create define curve from x and y values."""
+    """Create define curve from x and y values.
+
+    Parameters
+    ----------
+    x : np.array
+        X values of the curve.
+    y : np.array
+        Y values of the curve.
+    curve_name : str, optional
+        Name of the curve, by default 'my-title'.
+    curve_id : int, optional
+        Curve id, by default 1.
+    lcint : int, optional
+        Load curve interpolation, by default 15000.
+
+    Returns
+    -------
+    keywords.DefineCurve
+        Formatted define curve keyword.
+    """
     kw = keywords.DefineCurve()
     kw.options["TITLE"].active = True
     kw.title = curve_name
@@ -385,11 +427,16 @@ def create_define_sd_orientation_kw(
     Parameters
     ----------
     vectors : np.array
-        Array of shape Nx3 with the defined vector
+        Array of shape Nx3 with the defined vector.
     vector_id_offset : int, optional
-        Offset for the vector id, by default 0
+        Offset for the vector id, by default 0.
     iop : int, optional
-        Option, by default 0
+        Option, by default 0.
+
+    Returns
+    -------
+    keywords.DefineSdOrientation
+        Formatted define SD orientation keyword.
     """
     kw = keywords.DefineSdOrientation()
     if len(vectors.shape) == 2:
@@ -421,18 +468,23 @@ def create_discrete_elements_kw(
     Parameters
     ----------
     nodes : np.array
-        Nx2 Array with node ids used for the discrete element
+        Nx2 Array with node ids used for the discrete element.
     part_id : int
         Part id of the discrete elements given
     vector_ids : Union[np.array, int]
         Orientation ids (vector ids) along which the spring acts.
         Can be either an array of length N, or a scalar integer
     scale_factor : Union[np.array, float]
-        Scale factor on forces, either an array of length N or scalar value
+        Scale factor on forces, either an array of length N or scalar value.
     element_id_offset : int, optional
-        Offset value for the element ids, by default 0
+        Offset value for the element ids, by default 0.
     init_offset : float, optional
-        Initial offset: initial displacement or rotation at t=0, by default 0.0
+        Initial offset: initial displacement or rotation at t=0, by default 0.0.
+
+    Returns
+    -------
+    keywords.ElementDiscrete
+        Formatted discrete element keyword.
     """
     num_elements = nodes.shape[0]
 
@@ -466,19 +518,19 @@ def get_list_of_used_ids(keyword_db: Deck, keyword_str: str) -> np.ndarray:
 
     Notes
     -----
-    E.g. for *SECTION, *PART and *MAT ids
+    E.g. for *SECTION, *PART and *MAT ids.
 
     Parameters
     ----------
     database : Deck
-        Database of keywords
+        Database of keywords.
     keyword : str
-        Keyword which to find
+        Keyword which to find.
 
     Returns
     -------
     np.ndarray
-        Array of ids (ints) which are already used
+        Array of ids (ints) which are already used.
     """
     ids = np.empty(0, dtype=int)
 
@@ -539,6 +591,13 @@ def fast_element_writer(
     element_kw: Union[keywords.ElementSolidOrtho, keywords.ElementSolid], filename: str
 ):
     """Fast implementation of the element writer.
+
+    Parameters
+    ----------
+    element_kw : Union[keywords.ElementSolidOrtho, keywords.ElementSolid]
+        Element keyword to write.
+    filename : str
+        Filename to write to.
 
     Notes
     -----

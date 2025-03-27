@@ -163,8 +163,10 @@ def active_curve(
 
     Parameters
     ----------
-    curve_name : str
-        Type of curve to compute
+    curve_type : str, optional
+        Type of curve to generate, by default "Strocchi2020"
+    endtime : float, optional
+        End time of the curve, by default 15
     """
     # time array
     # T = np.arange( 0, endtime, timestep )

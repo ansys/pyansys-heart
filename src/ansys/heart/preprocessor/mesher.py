@@ -85,7 +85,8 @@ except Exception:
 
 LOGGER.info(f"Fluent version: {_fluent_version}. Use container: {_uses_container}")
 
-LOGGER.info(f"Environment variables: {os.environ.keys()}")
+keys = list(os.environ.keys())
+LOGGER.info(f"Environment variables: {keys}")
 
 
 def _get_face_zones_with_filter(pyfluent_session, prefixes: list) -> list:

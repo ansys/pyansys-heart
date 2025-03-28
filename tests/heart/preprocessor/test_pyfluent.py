@@ -38,7 +38,7 @@ def test_launch_fluent():
             precision="double",
             processor_count=1,
             start_transcript=False,
-            ui_mode="no_gui",
+            ui_mode="hidden_gui",
         )
         assert session._fluent_connection.check_health() == "SERVING"
         # try to initialize workflow

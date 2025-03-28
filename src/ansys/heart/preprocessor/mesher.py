@@ -233,7 +233,7 @@ def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingS
     else:
         product_version = _fluent_version
 
-    LOGGER.info(f"Launching meshing session with {product_version}")
+    LOGGER.info(f"Launching meshing session with {product_version}. Container: {_uses_container}")
 
     if _uses_container:
         num_cpus = 1

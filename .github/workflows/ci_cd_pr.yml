@@ -201,13 +201,19 @@ jobs:
       #     echo "PYFLUENT_LAUNCH_CONTAINER=1" >> $GITHUB_ENV
 
       - name: Run tests
+        env:
+          PYFLUENT_LAUNCH_CONTAINER: "1"
+          PYFLUENT_START_INSTANCE: "0"
+          # AWP_ROOT241: ${{ secrets.AWP_ROOT241 }}
         run: |
+          echo "Image tag: $FLUENT_IMAGE_TAG"
           echo "PyFluent env var: $PYFLUENT_LAUNCH_CONTAINER"
           echo "PyFluent env var: $PYFLUENT_START_INSTANCE"
           echo "AWP_ROOT env var: $AWP_ROOT241"
 
           . .venv/bin/activate
           python -m tox -e tests -- -m "${{ matrix.tests.markers }}" -vv
+
 
   build-library:
     name: "Build library"

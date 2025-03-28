@@ -36,7 +36,7 @@ database.
 import glob
 from pathlib import Path
 
-from ansys.heart.core.helpers.downloader import download_case_from_zenodo, unpack_case
+from ansys.heart.core.utils.download import download_case_from_zenodo, unpack_case
 
 # Download the tar file of Rodero2021 from the Zenodo database.
 download_dir = Path.home() / "pyansys-heart" / "downloads"

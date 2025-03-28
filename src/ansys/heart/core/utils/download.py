@@ -20,11 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Auto downloads cases.
-
-Auto downloads cases from the remote repositories of Strocchi et al 2020,
-and Rodero et al 2021.
-"""
+"""Module containing methods to download cases from public databases."""
 
 import hashlib
 import os
@@ -32,15 +28,11 @@ from pathlib import Path, PurePath
 import tarfile
 import typing
 
+import httpx
+import rich.progress
 import validators
 
 from ansys.heart.core import LOG as LOGGER
-
-try:
-    import wget  # type: ignore
-except ImportError:
-    LOGGER.error("wget not installed but required. Please install by: pip install wget")
-    exit()
 
 _URLS = {
     "Strocchi2020": {"url": "https://zenodo.org/record/3890034", "num_cases": 24},
@@ -110,7 +102,7 @@ def _format_download_urls():
         url = _URLS[database_name]["url"]
         num_cases = _URLS[database_name]["num_cases"]
         for case_number in range(1, num_cases + 1):
-            download_urls[database_name][case_number] = "{:}/files/{:02d}.tar.gz?download=1".format(
+            download_urls[database_name][case_number] = "{:}/files/{:02d}.tar.gz".format(
                 url, case_number
             )
     return download_urls
@@ -147,12 +139,13 @@ def download_case_from_zenodo(
     Download case 1 from the public repository (Strocchi2020) of pathological hearts.
 
     >>> path_to_tar_file = download_case_from_zenodo(
-            database="Strocchi2020", case_number=1, download_folder="my/download/folder"
+        database="Strocchi2020", case_number=1, download_folder="my/download/folder"
         )
 
     Download case 1 from the public repository (Rodero2021) of 'healthy' hearts.
+
     >>> path_to_tar_file = download_case_from_zenodo(
-            database="Rodero2021", case_number=1, download_folder="my/download/folder"
+        database="Rodero2021", case_number=1, download_folder="my/download/folder"
         )
     """
     if database not in _VALID_DATABASES:
@@ -183,8 +176,24 @@ def download_case_from_zenodo(
         LOGGER.error(f"'{download_url}' is not a well-formed URL.")
         return None
 
+    # Use httpx to stream data and write to target file. link is redirected
+    # so requires follow_redirects=True.
     try:
-        wget.download(download_url, save_path)
+        with httpx.stream("GET", download_url, follow_redirects=True) as response:
+            total = int(response.headers["Content-Length"])
+
+            with rich.progress.Progress(
+                "[progress.percentage]{task.percentage:>3.0f}%",
+                rich.progress.BarColumn(bar_width=None),
+                rich.progress.DownloadColumn(),
+                rich.progress.TransferSpeedColumn(),
+            ) as progress:
+                download_task = progress.add_task("Download", total=total)
+                with open(save_path, "wb") as fp:
+                    for chunk in response.iter_bytes():
+                        fp.write(chunk)
+                        progress.update(download_task, completed=response.num_bytes_downloaded)
+
     except Exception as e:
         LOGGER.error(f"Failed to download from {download_url}: {e}")
         return None
@@ -264,7 +273,7 @@ def unpack_case(tar_path: Path, reduce_size: bool = True) -> str:
 
     Examples
     --------
-    >>> from ansys.heart.misc.downloader import unpack_case
+    >>> from ansys.heart.core.utils.download import unpack_case
     >>> path = unpack_case("Rodero2021\\01.tar.gz")
 
     Returns
@@ -297,11 +306,11 @@ def download_all_cases(download_dir: str = None):
 
     Examples
     --------
-    >>> from ansys.heart.misc.downloader import download_all_cases
+    >>> from ansys.heart.core.utils.download import download_all_cases
     >>> tar_files = download_call_cases("my-downloads")
 
     To unpack all cases you can use the unpack_cases method:
-    >>> from ansys.heart.misc.downloader import unpack_cases
+    >>> from ansys.heart.core.utils.download import unpack_cases
     >>> unpack_cases(tar_files)
 
     Notes
@@ -337,7 +346,7 @@ def unpack_cases(list_of_tar_files: typing.List):
 
     Examples
     --------
-    >>> from ansys.heart.misc.downloader import unpack_cases
+    >>> from ansys.heart.core.utils.download import unpack_cases
     >>> unpack_cases(["01.tar.gz", "02.tar.gz"])
     """
     for file in list_of_tar_files:

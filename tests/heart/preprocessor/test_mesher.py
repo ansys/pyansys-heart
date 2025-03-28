@@ -35,6 +35,7 @@ import ansys.heart.preprocessor.mesher as mesher
 
 pytestmark = pytest.mark.requires_fluent
 
+
 try:
     os.environ["GITHUB_JOB"]
     is_github_job = True

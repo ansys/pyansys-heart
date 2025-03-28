@@ -25,7 +25,7 @@ import tempfile
 
 import numpy as np
 
-from ansys.heart.core.helpers.misc import (
+from ansys.heart.core.utils.misc import (
     _read_orth_element_kfile,
     clean_directory,
 )

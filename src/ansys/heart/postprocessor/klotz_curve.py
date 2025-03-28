@@ -136,7 +136,3 @@ class EDPVR:
         plt.legend()
 
         return fig
-
-
-if __name__ == "__main__":
-    pass

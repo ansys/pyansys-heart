@@ -26,7 +26,7 @@ import numpy as np
 import pytest
 import pyvista as pv
 
-from ansys.heart.core.helpers.connectivity import (
+from ansys.heart.core.utils.connectivity import (
     edge_connectivity,
     face_tetra_connectivity,
     get_edges_from_triangles,

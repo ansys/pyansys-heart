@@ -43,7 +43,6 @@ import scipy.spatial as spatial
 
 from ansys.dyna.core.keywords import keywords
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.helpers.vtk_utils import compute_surface_nodal_area_pyvista
 from ansys.heart.core.models import (
     BiVentricle,
     FourChamber,
@@ -52,6 +51,7 @@ from ansys.heart.core.models import (
     LeftVentricle,
 )
 from ansys.heart.core.objects import Cap, CapType, Part, PartType, SurfaceMesh
+from ansys.heart.core.utils.vtk_utils import compute_surface_nodal_area_pyvista
 from ansys.heart.simulator.settings.material.ep_material import CellModel, EPMaterial
 from ansys.heart.simulator.settings.material.material import (
     Mat295,
@@ -60,6 +60,10 @@ from ansys.heart.simulator.settings.material.material import (
 )
 from ansys.heart.simulator.settings.settings import SimulationSettings, Stimulation
 from ansys.heart.writer import custom_keywords as custom_keywords
+from ansys.heart.writer.define_function_templates import (  # noqa F401
+    _define_function_0d_system,
+    _ed_load_template,
+)
 from ansys.heart.writer.heart_decks import (
     BaseDecks,
     ElectroMechanicsDecks,
@@ -84,10 +88,6 @@ from ansys.heart.writer.keyword_utils import (
     get_list_of_used_ids,
 )
 from ansys.heart.writer.material_keywords import MaterialHGOMyocardium, MaterialNeoHook
-from ansys.heart.writer.system_models import (  # noqa F401
-    _ed_load_template,
-    define_function_0d_system,
-)
 
 
 class CVInteraction(NamedTuple):
@@ -1795,7 +1795,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 self.kw_database.control_volume.append(cvi_kw)
 
                 # DEFINE FUNCTION
-                define_function_wk = define_function_0d_system(
+                define_function_wk = _define_function_0d_system(
                     function_id=interaction.lcid,
                     function_name=interaction.name,
                     parameters=interaction.parameters,
@@ -2419,15 +2419,15 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
 
             # define functions:
             from ansys.heart.writer.define_function_templates import (
-                function_alpha,
-                function_beta,
-                function_beta_septum,
+                _function_alpha,
+                _function_beta,
+                _function_beta_septum,
             )
 
             self.kw_database.create_fiber.append(
                 keywords.DefineFunction(
                     fid=101,
-                    function=function_alpha(
+                    function=_function_alpha(
                         alpha_endo=rotation_angles["alpha"][0],
                         alpha_epi=rotation_angles["alpha"][1],
                     ),
@@ -2436,7 +2436,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             self.kw_database.create_fiber.append(
                 keywords.DefineFunction(
                     fid=102,
-                    function=function_beta(
+                    function=_function_beta(
                         beta_endo=rotation_angles["beta"][0],
                         beta_epi=rotation_angles["beta"][1],
                     ),
@@ -2569,15 +2569,15 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
 
             # define functions:
             from ansys.heart.writer.define_function_templates import (
-                function_alpha,
-                function_beta,
-                function_beta_septum,
+                _function_alpha,
+                _function_beta,
+                _function_beta_septum,
             )
 
             self.kw_database.create_fiber.append(
                 keywords.DefineFunction(
                     fid=101,
-                    function=function_alpha(
+                    function=_function_alpha(
                         alpha_endo=rotation_angles["alpha"][0],
                         alpha_epi=rotation_angles["alpha"][1],
                     ),
@@ -2586,7 +2586,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             self.kw_database.create_fiber.append(
                 keywords.DefineFunction(
                     fid=102,
-                    function=function_beta(
+                    function=_function_beta(
                         beta_endo=rotation_angles["beta"][0],
                         beta_epi=rotation_angles["beta"][1],
                     ),
@@ -2595,7 +2595,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             self.kw_database.create_fiber.append(
                 keywords.DefineFunction(
                     fid=103,
-                    function=function_beta_septum(
+                    function=_function_beta_septum(
                         beta_endo=rotation_angles["beta_septum"][0],
                         beta_epi=rotation_angles["beta_septum"][1],
                     ),

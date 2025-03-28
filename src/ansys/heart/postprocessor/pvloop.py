@@ -105,7 +105,3 @@ def generate_pvloop(f: str, out_dir: str, t_to_keep: float = 800):
 
     #
     write_pvloop_pngs(pressure, volume, out_dir)
-
-
-if __name__ == "__main__":
-    pass

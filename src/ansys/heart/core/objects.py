@@ -38,7 +38,7 @@ import numpy as np
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
-import ansys.heart.core.helpers.vtk_utils as vtk_utils
+import ansys.heart.core.utils.vtk_utils as vtk_utils
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 from ansys.heart.simulator.settings.material.material import MechanicalMaterialModel
 

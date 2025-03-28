@@ -32,11 +32,10 @@ import numpy as np
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.models import HeartModel
 from ansys.heart.core.objects import Cavity
-from ansys.heart.postprocessor.dpf_utils import D3plotReader
+from ansys.heart.postprocessor.dpf_utils import D3plotReader, D3plotToVTKExporter
 from ansys.heart.postprocessor.klotz_curve import EDPVR
 from ansys.heart.postprocessor.pvloop import generate_pvloop
 from ansys.heart.postprocessor.strain_calculator import AhaStrainCalculator
-from ansys.heart.postprocessor.vtk_exporter import D3plotToVTKExporter
 from ansys.heart.simulator.settings.settings import SimulationSettings
 
 
@@ -186,7 +185,3 @@ def mech_post(directory: str, model: HeartModel):
     aha_strain.compute_aha_strain(out_dir, write_vtk=True, t_to_keep=last_cycle_duration)
 
     return
-
-
-if __name__ == "__main__":
-    pass

@@ -30,7 +30,7 @@ import unittest.mock as mock
 import pytest
 import validators
 
-from ansys.heart.core.helpers.downloader import (
+from ansys.heart.core.utils.download import (
     _SHA256_TABLE,
     _format_download_urls,
     _infer_extraction_path_from_tar,
@@ -62,7 +62,7 @@ def test_download_case(database_name):
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         download_folder = tempdir
 
-        with mock.patch("wget.download") as mock_download:
+        with mock.patch("httpx.stream") as mock_download:
             save_path = download_case_from_zenodo(
                 database_name, 1, download_folder, overwrite=True, validate_hash=False
             )

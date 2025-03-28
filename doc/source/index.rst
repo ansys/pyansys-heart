@@ -25,30 +25,36 @@ PyAnsys Heart is a `Python`_ framework for heart modeling using Ansys tools.
       Learn how to use the capabilities of PyAnsys Heart.
 
    .. grid-item-card:: :material-regular:`code;1.25em` API reference
-      :link: api
+      :link: api/index
       :link-type: doc
 
       Explore the API reference for PyAnsys Heart.
 
-   .. grid-item-card:: :material-regular:`code;1.25em` Examples
-      :link: examples
+   .. grid-item-card:: :material-regular:`library_books;1.25em` Examples
+      :link: examples/index
       :link-type: doc
 
       Explore examples to learn how to use PyAnsys Heart.
 
-   .. grid-item-card:: :material-regular:`code;1.25em` Contributing
+   .. grid-item-card:: :material-regular:`people;1.25em` Contributing
       :link: contributing
       :link-type: doc
 
       Learn how to contribute to PyAnsys Heart.
+
+   .. grid-item-card:: :material-regular:`history;1.25em` Changelog
+      :link: changelog
+      :link-type: doc
+
+      View the changelog for PyAnsys Heart.
 
 
 .. toctree::
    :hidden:
    :maxdepth: 2
 
-   getting-started/index
-   user-guide/index
+   getting-started
+   user-guide
    api/index
    examples/index
    contributing

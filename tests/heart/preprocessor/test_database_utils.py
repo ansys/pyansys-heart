@@ -26,12 +26,13 @@ import pytest
 import pyvista as pv
 from pyvista.examples import examples
 
-from ansys.heart.preprocessor.database_labels_to_id import Rodero2021, Strocchi2020
-from ansys.heart.preprocessor.database_preprocessor import (
+from ansys.heart.preprocessor.database_utils import (
     _get_interface_surfaces,
     _get_original_labels,
     _read_input_mesh,
+    _Rodero2021_labels,
     _smooth_boundary_edges,
+    _Strocchi2020_labels,
 )
 
 
@@ -96,7 +97,7 @@ def test_get_interface_surface():
 
 @pytest.mark.parametrize(
     "database,expected",
-    (["Strocchi2020", Strocchi2020], ["Rodero2021", Rodero2021], ["unknown", None]),
+    (["Strocchi2020", _Strocchi2020_labels], ["Rodero2021", _Rodero2021_labels], ["unknown", None]),
 )
 def test_get_original_labels(database, expected):
     assert _get_original_labels(database) == expected

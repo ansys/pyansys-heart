@@ -31,48 +31,25 @@ from typing import List, Union
 import numpy as np
 import pyvista as pv
 
+import ansys.fluent.core as pyfluent
+from ansys.fluent.core.session_meshing import Meshing as MeshingSession
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.helpers.fluent_reader import _FluentCellZone, _FluentMesh
-from ansys.heart.core.helpers.vtk_utils import (
+from ansys.heart.core.objects import Mesh, SurfaceMesh
+from ansys.heart.core.utils.fluent_reader import _FluentCellZone, _FluentMesh
+from ansys.heart.core.utils.vtk_utils import (
     add_solid_name_to_stl,
     cell_ids_inside_enclosed_surface,
 )
-from ansys.heart.core.objects import Mesh, SurfaceMesh
 from ansys.heart.preprocessor.input import _InputBoundary, _InputModel
 
-# NOTE: can set os.environ["SHOW_FLUENT_GUI"] = "1" to show Fluent GUI.
-
 _supported_fluent_versions = ["25.1", "24.2", "24.1"]
-_show_fluent_gui: bool = True
-_uses_container: bool = True
 _num_cpus: bool = 2
 
-try:
-    _show_fluent_gui = bool(int(os.environ["SHOW_FLUENT_GUI"]))
-except KeyError:
-    _show_fluent_gui = False
-LOGGER.info(f"Showing Fluent gui: {_show_fluent_gui}")
-
 # check whether containerized version of Fluent is used
-if os.getenv("PYFLUENT_LAUNCH_CONTAINER"):
-    _uses_container = True
-    _show_fluent_gui = False
-else:
-    _uses_container = False
+_uses_container = bool(int(os.getenv("PYFLUENT_LAUNCH_CONTAINER", False)))
+_fluent_ui_mode = pyfluent.UIMode(os.getenv("PYFLUENT_UI_MODE", pyfluent.UIMode.HIDDEN_GUI))
 
-if _show_fluent_gui:
-    _fluent_ui_mode = "gui"
-else:
-    _fluent_ui_mode = "no_gui"
-
-try:
-    import ansys.fluent.core as pyfluent
-    from ansys.fluent.core.session_meshing import Meshing as MeshingSession
-
-except ImportError:
-    LOGGER.info(
-        "Failed to import PyFluent. Please install PyFluent with `pip install ansys-fluent-core`."
-    )
+LOGGER.debug(f"Fluent user interface mode: {_fluent_ui_mode.value}")
 
 
 def _get_supported_fluent_version():
@@ -250,6 +227,7 @@ def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingS
     """Get a Fluent Meshing session."""
     # NOTE: when using containerized version - we need to copy all the files
     # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
+
     if _fluent_version is None:
         product_version = _get_supported_fluent_version()
     else:
@@ -276,7 +254,7 @@ def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingS
         )
 
     else:
-        num_cpus = os.getenv("PYANSYS_HEART_NUM_CPU", _num_cpus)
+        num_cpus = int(os.getenv("PYANSYS_HEART_NUM_CPU", _num_cpus))
         session = pyfluent.launch_fluent(
             mode="meshing",
             precision="double",

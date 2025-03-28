@@ -19,23 +19,4 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-import numpy as np
-
-from ansys.heart.core.utils.misc import _slerp, interpolate_slerp
-
-
-def test_slerp():
-    a = np.array([1, 0, 0])
-    b = np.array([0, 1, 0])
-
-    c = _slerp(a, b, 0.5)
-    assert np.allclose(c, np.array([0.70710678, 0.70710678, 0]))
-
-
-def test_interpolate_slerp():
-    p = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]])
-    v = np.array([[1, 0, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0]])
-    center = np.array([0.25, 0.25, 0.25]).reshape(1, 3)
-    c = interpolate_slerp(p, v, center)
-    assert np.allclose(c, np.array([0.71305305, 0.70111008, 0.0]))
+"""Helpers subpackage."""

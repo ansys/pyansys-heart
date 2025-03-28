@@ -11,7 +11,8 @@ Operating system
 Ansys tools
 -----------
 
-This framework was developed and tested under |Python310|, |Python311|, and |Python312|. Before starting the
+This framework was developed and tested under `Python310`_, `Python311`_ and `Python312`_ versions.
+Before starting the
 installation run ``python --version`` and check that it fits with the supported versions.
 
 Software
@@ -39,11 +40,9 @@ Software
   * - Ansys LS-DYNA
     - R16.0
     - Simulator
-    - Contact `PyAnsys Core <mailto:pyansys.core@ansys.com>`_ to get more information
+    - Contact `PyAnsys Core team <pyansys_core_>`_ to get more information
 
 .. Note::
 
     Fluent is required for meshing. Also note that currently the postprocessor module is only compatible with Ansys DPF Servers 2024.1 (comes with R24R1 installation), 2024.1rc1 and 2024.2rc0. Later versions are currently not supported. Hence installing Ansys Fluent R24R1 is currently the most convenient.
 
-
-.. _Ansys Customer Portal: https://support.ansys.com/Home/HomePage

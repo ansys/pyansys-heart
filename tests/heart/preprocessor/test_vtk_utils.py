@@ -25,7 +25,7 @@ import pytest
 import pyvista as pv
 import pyvista.examples as examples
 
-from ansys.heart.core.helpers.vtk_utils import (
+from ansys.heart.core.utils.vtk_utils import (
     are_connected,
     cell_ids_inside_enclosed_surface,
     find_cells_close_to_nodes,

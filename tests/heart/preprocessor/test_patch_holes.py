@@ -23,7 +23,7 @@
 import pytest
 import pyvista as pv
 
-from ansys.heart.core.helpers.vtk_utils import get_patches_delaunay, get_patches_with_centroid
+from ansys.heart.core.utils.vtk_utils import get_patches_delaunay, get_patches_with_centroid
 
 
 @pytest.mark.parametrize("method", (get_patches_delaunay, get_patches_with_centroid))
@@ -80,7 +80,7 @@ def test_patch_holes_002(method):
 
 
 def test_boundary_edge_loops():
-    from ansys.heart.core.helpers.vtk_utils import get_boundary_edge_loops
+    from ansys.heart.core.utils.vtk_utils import get_boundary_edge_loops
 
     # prep data
     sphere: pv.PolyData = pv.Sphere()

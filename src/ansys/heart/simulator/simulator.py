@@ -93,9 +93,6 @@ class BaseSimulator:
             self.dyna_settings: DynaSettings = dyna_settings
             """Contains the settings to launch LS-DYNA."""
 
-        self.directories: dict = {}
-        """Dictionary of all defined directories."""
-
         """Operating System."""
         if shutil.which(self.dyna_settings.lsdyna_path) is None:
             LOGGER.error(f"{self.dyna_settings.lsdyna_path} not exist")
@@ -184,7 +181,6 @@ class BaseSimulator:
     def _compute_fibers_lsdyna(self, rotation_angles: dict):
         """Use LSDYNA native fiber method."""
         directory = os.path.join(self.root_directory, "fibergeneration")
-        self.directories["fibergeneration"] = directory
 
         dyna_writer = writers.FiberGenerationDynaWriter(copy.deepcopy(self.model), self.settings)
         dyna_writer.update(rotation_angles)
@@ -446,7 +442,6 @@ class EPSimulator(BaseSimulator):
     def compute_purkinje(self):
         """Compute the purkinje network."""
         directory = os.path.join(self.root_directory, "purkinjegeneration")
-        self.directories["purkinjegeneration"] = directory
 
         self._write_purkinje_files(directory)
 
@@ -503,7 +498,7 @@ class EPSimulator(BaseSimulator):
     def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
-        self.directories["main-ep"] = export_directory
+
         model = copy.deepcopy(self.model)
         dyna_writer = writers.ElectrophysiologyDynaWriter(model, self.settings)
         dyna_writer.update()
@@ -514,7 +509,7 @@ class EPSimulator(BaseSimulator):
     def _write_main_conduction_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
-        self.directories["main-ep"] = export_directory
+
         model = copy.deepcopy(self.model)
         dyna_writer = writers.ElectrophysiologyBeamsDynaWriter(model, self.settings)
         dyna_writer.update()
@@ -658,7 +653,6 @@ class MechanicsSimulator(BaseSimulator):
     def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
-        self.directories["main-mechanics"] = export_directory
 
         dyna_writer = writers.MechanicsDynaWriter(
             self.model,
@@ -672,7 +666,6 @@ class MechanicsSimulator(BaseSimulator):
     def _write_stress_free_configuration_files(self, folder_name) -> pathlib:
         """Write LS-DYNA files to compute stress-free configuration."""
         export_directory = os.path.join(self.root_directory, folder_name)
-        self.directories["zeropressure"] = export_directory
 
         model = copy.deepcopy(self.model)
         # Isolation part need to be created in Zerop because main will use its dynain.lsda
@@ -709,7 +702,6 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
     def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
-        self.directories["main-coupling"] = export_directory
 
         dyna_writer = writers.ElectroMechanicsDynaWriter(self.model, self.settings)
         dyna_writer.update(dynain_name=self._dynain_name)

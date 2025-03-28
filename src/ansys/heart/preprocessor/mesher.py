@@ -228,12 +228,12 @@ def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingS
     # NOTE: when using containerized version - we need to copy all the files
     # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
 
+    LOGGER.info(f"Launching meshing session with {_fluent_version}. Container: {_uses_container}")
+
     if _fluent_version is None:
         product_version = _get_supported_fluent_version()
     else:
         product_version = _fluent_version
-
-    LOGGER.info(f"Launching meshing session with {product_version}. Container: {_uses_container}")
 
     if _uses_container:
         num_cpus = 1

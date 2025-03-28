@@ -209,8 +209,8 @@ jobs:
           # AWP_ROOT241: ${{ secrets.AWP_ROOT241 }}
         run: |
           echo "Image tag: $FLUENT_IMAGE_TAG"
-          echo "PyFluent env var: $PYFLUENT_LAUNCH_CONTAINER"
-          echo "PyFluent env var: $PYFLUENT_START_INSTANCE"
+          echo "PyFluent launch container var: $PYFLUENT_LAUNCH_CONTAINER"
+          echo "PyFluent start instance var: $PYFLUENT_START_INSTANCE"
           echo "AWP_ROOT env var: $AWP_ROOT241"
 
           . .venv/bin/activate

@@ -191,7 +191,6 @@ jobs:
 
       - name: Install Python ${{ matrix.python-version }} and tox
         run: |
-          find . -type d -name "v241"
           uv venv .venv --seed --python ${{ matrix.python-version }}
           uv pip install tox
 
@@ -208,6 +207,7 @@ jobs:
           AWP_ROOT241: "./dpf-standalone/v241"
           # AWP_ROOT241: ${{ secrets.AWP_ROOT241 }}
         run: |
+          find . -type d -name "v241"
           echo "Image tag: $FLUENT_IMAGE_TAG"
           echo "PyFluent launch container var: $PYFLUENT_LAUNCH_CONTAINER"
           echo "PyFluent start instance var: $PYFLUENT_START_INSTANCE"

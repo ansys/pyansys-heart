@@ -83,6 +83,8 @@ try:
 except Exception:
     _fluent_version = None
 
+LOGGER.info(f"Fluent version: {_fluent_version}. Use container: {_uses_container}")
+
 
 def _get_face_zones_with_filter(pyfluent_session, prefixes: list) -> list:
     """Get list of available boundaries in Fluent session that use any of the prefixes."""

@@ -191,6 +191,7 @@ jobs:
 
       - name: Install Python ${{ matrix.python-version }} and tox
         run: |
+          find /home
           uv venv .venv --seed --python ${{ matrix.python-version }}
           uv pip install tox
 

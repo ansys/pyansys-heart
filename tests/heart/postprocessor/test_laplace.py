@@ -37,6 +37,8 @@ from tests.heart.conftest import get_assets_folder
 
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
+requires_dpf = pytest.mark.requires_dpf
+
 
 def test_compute_la_fiber_cs():
     dir = os.path.join(get_assets_folder(), "post", "la_fiber")

@@ -32,6 +32,8 @@ import pyvista as pv
 from ansys.heart.core.models import FullHeart
 from ansys.heart.postprocessor.dpf_utils import EPpostprocessor
 
+requires_dpf = pytest.mark.requires_dpf
+
 
 # TODO: test_compute_12lead_ECG requires better asserts and we may
 # TODO: want to add better test data that allows testing internals

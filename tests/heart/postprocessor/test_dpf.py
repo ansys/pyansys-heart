@@ -36,6 +36,8 @@ from ansys.dpf import core as dpf
 from ansys.heart.postprocessor.dpf_utils import D3plotReader, ICVoutReader
 from tests.heart.conftest import get_assets_folder
 
+requires_dpf = pytest.mark.requires_dpf
+
 
 def test_icvout_reader():
     fn = os.path.join(get_assets_folder(), "post", "main", "binout")

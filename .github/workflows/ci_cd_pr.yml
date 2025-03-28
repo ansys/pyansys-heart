@@ -151,8 +151,9 @@ jobs:
       matrix:
         python-version: ['3.11', '3.12']
         tests:
-          - { name: "Base", runner: "ubuntu-latest", markers: "not (requires_fluent or extract_models or k_file_writer)", use_dpf: true }
-          - { name: "PyFluent", runner: ["self-hosted", "pyhealth"], markers: "requires_fluent or extract_models or k_file_writer", pull_fluent_image: false }
+          - { name: "Base", runner: "ubuntu-latest", markers: "not (requires_fluent or extract_models or k_file_writer or requires_dpf)", use_dpf: true }
+          - { name: "PyDPF", runner: "ubuntu-latest", markers: "requires_dpf", use_dpf: true }
+          - { name: "PyFluent", runner: "ubuntu-latest", markers: "requires_fluent or extract_models or k_file_writer", pull_fluent_image: false }
     steps:
 
       - name: Checkout project

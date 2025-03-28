@@ -41,6 +41,8 @@ dpf_utils._KILL_ANSYSCL_ON_DEL = True
 # Accept DPF LA
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
+requires_dpf = pytest.mark.requires_dpf
+
 
 @pytest.fixture(autouse=True, scope="module")
 def get_left_ventricle():

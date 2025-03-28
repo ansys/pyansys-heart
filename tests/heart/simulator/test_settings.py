@@ -49,6 +49,7 @@ REF_STRING_SETTINGS_YML_MECHANICS = (
     "      dt_d3plot: 4 second\n"
     "      dt_icvout: 5 millisecond\n"
     "      global_damping: 0.33 / second\n"
+    "      stiffness_damping: 0.1 second\n"
     "    material:\n"
     "      myocardium: null\n"
     "      passive: null\n"
@@ -78,6 +79,7 @@ REF_STRING_SETTINGS_YML_EP = (
     "      dt_d3plot: 4 second\n"
     "      dt_icvout: 5 millisecond\n"
     "      global_damping: 0 / second\n"
+    "      stiffness_damping: 0 second\n"
     "      solvertype: Monodomain\n"
     "    stimulation:\n"
     "      stimdefaults:\n"
@@ -106,6 +108,7 @@ def test_settings_save_001():
     settings.mechanics.analysis.dt_d3plot = Quantity(4, "s")
     settings.mechanics.analysis.dt_icvout = Quantity(5, "ms")
     settings.mechanics.analysis.global_damping = Quantity(0.33, "s**-1")
+    settings.mechanics.analysis.stiffness_damping = Quantity(0.1, "s")
 
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         file_path = os.path.join(tempdir, "settings.yml")
@@ -173,7 +176,7 @@ def test_settings_load():
         assert settings.mechanics.analysis.dt_d3plot == Quantity(4, "s")
         assert settings.mechanics.analysis.dt_icvout == Quantity(5, "ms")
         assert settings.mechanics.analysis.global_damping == Quantity(0.33, "s**-1")
-
+        assert settings.mechanics.analysis.stiffness_damping == Quantity(0.1, "s")
     pass
 
 

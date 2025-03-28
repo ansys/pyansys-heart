@@ -151,7 +151,7 @@ jobs:
         python-version: ['3.11', '3.12']
         tests:
           - { name: "Base", runner: "ubuntu-latest", markers: "not (requires_fluent or extract_models or k_file_writer)", use_dpf: true }
-          - { name: "PyFluent", runner: "self-hosted", markers: "requires_fluent or extract_models or k_file_writer", pull_fluent_image: false }
+          - { name: "PyFluent", runner: "ubuntu-latest", markers: "requires_fluent or extract_models or k_file_writer", pull_fluent_image: true }
     steps:
 
       - name: Checkout project

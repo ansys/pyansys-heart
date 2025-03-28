@@ -191,7 +191,7 @@ jobs:
 
       - name: Install Python ${{ matrix.python-version }} and tox
         run: |
-          find . -type d -name "ansys-dpf-standalone"
+          find . -type d -name "v241"
           uv venv .venv --seed --python ${{ matrix.python-version }}
           uv pip install tox
 

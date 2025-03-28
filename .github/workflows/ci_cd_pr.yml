@@ -214,6 +214,7 @@ jobs:
 
           . .venv/bin/activate
           # python -m tox -e tests -- -m "${{ matrix.tests.markers }}" -vv
+          pip install pytest
           python -m pytest tests -- -m "${{ matrix.tests.markers }}" -vv
 
 

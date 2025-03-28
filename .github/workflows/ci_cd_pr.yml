@@ -213,9 +213,9 @@ jobs:
           echo "AWP_ROOT env var: $AWP_ROOT241"
 
           . .venv/bin/activate
-          # python -m tox -e tests -- -m "${{ matrix.tests.markers }}" -vv
+          # python -m tox -e tests -m "${{ matrix.tests.markers }}" -vv
           pip install pytest
-          python -m pytest tests -- -m "${{ matrix.tests.markers }}" -vv
+          python -m pytest tests -m "${{ matrix.tests.markers }}" -vv
 
 
   build-library:

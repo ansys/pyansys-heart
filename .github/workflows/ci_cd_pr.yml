@@ -196,9 +196,17 @@ jobs:
           uv pip install tox
 
       - name: Run tests
+        if: ${{ matrix.tests.runner == 'ubuntu-latest' }}
         run: |
           . .venv/bin/activate
           python -m tox -e tests -- -m "${{ matrix.tests.markers }}" -vv
+
+      - name: Run tests
+        if: ${{ matrix.tests.name == 'PyFluent' }}
+        run: |
+          .venv\Scripts\Activate.ps1
+          python -m tox -e tests -- -m "${{ matrix.tests.markers }}" -vv
+
 
   build-library:
     name: "Build library"

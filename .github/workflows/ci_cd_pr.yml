@@ -194,14 +194,19 @@ jobs:
           uv venv .venv --seed --python ${{ matrix.python-version }}
           uv pip install tox
 
-      - name: Set PyFluent environment variables
-        if: matrix.tests.pull_fluent_image
-        run: |
-          echo "PYFLUENT_START_INSTANCE=0" >> $GITHUB_ENV
-          echo "PYFLUENT_LAUNCH_CONTAINER=1" >> $GITHUB_ENV
+      # - name: Set PyFluent environment variables
+      #   if: matrix.tests.pull_fluent_image
+      #   run: |
+      #     echo "PYFLUENT_START_INSTANCE=0" >> $GITHUB_ENV
+      #     echo "PYFLUENT_LAUNCH_CONTAINER=1" >> $GITHUB_ENV
 
       - name: Run tests
         run: |
+          echo $PYFLUENT_LAUNCH_CONTAINER
+          echo $PYFLUENT_START_INSTANCE
+          echo $AWP_ROOT241
+          export PYFLUENT_LAUNCH_CONTAINER="1"
+          export PYFLUENT_START_INSTANCE="0"
           . .venv/bin/activate
           python -m tox -e tests -- -m "${{ matrix.tests.markers }}" -vv
 

@@ -17,7 +17,7 @@ env:
   # PYFLUENT_START_INSTANCE: 0
   # PYFLUENT_LAUNCH_CONTAINER: 1
   FLUENT_IMAGE_TAG: v24.2.0
-  ANSYS_DPF_PATH: /home/runner/work/pyansys-heart/pyansys-heart/dpf-standalone/v241
+  AWP_ROOT241: /home/runner/work/pyansys-heart/pyansys-heart/dpf-standalone/v241
 
 jobs:
 

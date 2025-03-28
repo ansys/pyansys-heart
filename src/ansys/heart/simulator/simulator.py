@@ -548,7 +548,8 @@ class MechanicsSimulator(BaseSimulator):
 
         self.initial_stress = initial_stress
         """If stress free computation is taken into considered."""
-
+        self._dynain_name = None
+        """lsdyna initial state file name, from zeropressure."""
         return
 
     def simulate(
@@ -583,7 +584,8 @@ class MechanicsSimulator(BaseSimulator):
 
         if self.initial_stress:
             dynain_file = self._find_dynain_file(zerop_folder)
-            shutil.copy(dynain_file, os.path.join(directory, "dynain.lsda"))
+            self._dynain_name = "dynain.lsda"
+            shutil.copy(dynain_file, os.path.join(directory, self._dynain_name))
 
         self._write_main_simulation_files(folder_name=folder_name)
 
@@ -599,9 +601,11 @@ class MechanicsSimulator(BaseSimulator):
 
         return
 
-    def _find_dynain_file(self, zerop_folder):
+    def _find_dynain_file(self, zerop_folder) -> str:
+        """Find dynain.lsda file of last iteration."""
         if zerop_folder is None:
             zerop_folder = os.path.join(self.root_directory, "zeropressure")
+
         dynain_files = glob.glob(os.path.join(zerop_folder, "iter*.dynain.lsda"))
 
         # force natural ordering since iteration numbers are not padded with zeros.
@@ -616,6 +620,7 @@ class MechanicsSimulator(BaseSimulator):
 
         dynain_file = dynain_files[-1]
         LOGGER.info(f"Using {dynain_file} for initial stress.")
+
         return dynain_file
 
     def compute_stress_free_configuration(self, folder_name="zeropressure", overwrite: bool = True):
@@ -659,7 +664,7 @@ class MechanicsSimulator(BaseSimulator):
             self.model,
             self.settings,
         )
-        dyna_writer.update(with_dynain=self.initial_stress)
+        dyna_writer.update(dynain_name=self._dynain_name)
         dyna_writer.export(export_directory)
 
         return export_directory
@@ -707,7 +712,7 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         self.directories["main-coupling"] = export_directory
 
         dyna_writer = writers.ElectroMechanicsDynaWriter(self.model, self.settings)
-        dyna_writer.update(with_dynain=self.initial_stress)
+        dyna_writer.update(dynain_name=self._dynain_name)
         dyna_writer.export(export_directory)
 
         return export_directory

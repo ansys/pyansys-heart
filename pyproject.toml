@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 # Check https://flit.readthedocs.io/en/latest/pyproject_toml.html for all available sections
-name = "ansys-heart"
+name = "pyansys-heart"
 version = "0.11.dev0"
 description = "Python framework for heart modeling using ANSYS tools."
 readme = "README.rst"
@@ -124,7 +124,7 @@ show_missing = true
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
-markers = ["extract_models", "requires_fluent", "k_file_writer", "local", "downloader", "requires_dpf"]
+markers = ["extract_models", "requires_fluent", "k_file_writer", "requires_dpf"]
 tmp_path_retention_count = 0                                      # do not keep the temporary path that is created
 tmp_path_retention_policy = "none"                                # directories always removed, regardless of outcome
 

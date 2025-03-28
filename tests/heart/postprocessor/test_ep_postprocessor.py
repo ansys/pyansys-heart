@@ -32,8 +32,6 @@ import pyvista as pv
 from ansys.heart.core.models import FullHeart
 from ansys.heart.postprocessor.dpf_utils import EPpostprocessor
 
-requires_dpf = pytest.mark.requires_dpf
-
 
 # TODO: test_compute_12lead_ECG requires better asserts and we may
 # TODO: want to add better test data that allows testing internals
@@ -62,6 +60,7 @@ def _mock_ep_postprocessor():
         yield EPpostprocessor(".", mock_model)
 
 
+@pytest.mark.requires_dpf
 @pytest.mark.parametrize("to_plot", [False, True], ids=["Plot=False", "Plot=True"])
 def test_compute_12lead_ECG(to_plot, _mock_ep_postprocessor: EPpostprocessor):  # noqa: N802
     """Test 12 lead ECG computation."""
@@ -80,6 +79,7 @@ def test_compute_12lead_ECG(to_plot, _mock_ep_postprocessor: EPpostprocessor):  
                     mock_save.assert_called_once()
 
 
+@pytest.mark.requires_dpf
 def test_read_ECGs(_mock_ep_postprocessor: EPpostprocessor):  # noqa N802
     """Read ECGs"""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
@@ -93,6 +93,7 @@ def test_read_ECGs(_mock_ep_postprocessor: EPpostprocessor):  # noqa N802
 
 # TODO: implement sensible asserts.
 # TODO: reduce overlap with test_export_transmembrane_to_vtk
+@pytest.mark.requires_dpf
 def test_compute_ECGs(_mock_ep_postprocessor: EPpostprocessor):  # noqa N802
     """Test the ECG computation."""
     _mock_ep_postprocessor.reader = mock.Mock()
@@ -113,6 +114,7 @@ def test_compute_ECGs(_mock_ep_postprocessor: EPpostprocessor):  # noqa N802
     pass
 
 
+@pytest.mark.requires_dpf
 @mock.patch("pyvista.Plotter.show")
 @mock.patch("pyvista.Plotter.update_scalars")
 @mock.patch("pyvista.Plotter.update")

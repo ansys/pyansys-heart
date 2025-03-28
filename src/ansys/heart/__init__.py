@@ -29,7 +29,7 @@ except ModuleNotFoundError:  # pragma: no cover
 
 from ansys.heart.core import LOG
 
-__version__ = importlib_metadata.version("ansys-heart")
+__version__ = importlib_metadata.version("pyansys-heart")
 """The version of pyansys-heart."""
 
 # Flag to turn off visualization of plotters

@@ -197,7 +197,7 @@ jobs:
 
       - name: Run tests
         run: |
-          . .venv/bin/activate
+          # . .venv/bin/activate
           python -m tox -e tests -- -m "${{ matrix.tests.markers }}" -vv
 
   build-library:

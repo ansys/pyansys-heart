@@ -202,11 +202,10 @@ jobs:
 
       - name: Run tests
         run: |
-          echo $PYFLUENT_LAUNCH_CONTAINER
-          echo $PYFLUENT_START_INSTANCE
-          echo $AWP_ROOT241
-          export PYFLUENT_LAUNCH_CONTAINER="1"
-          export PYFLUENT_START_INSTANCE="0"
+          echo "PyFluent env var: $PYFLUENT_LAUNCH_CONTAINER"
+          echo "PyFluent env var: $PYFLUENT_START_INSTANCE"
+          echo "AWP_ROOT env var: $AWP_ROOT241"
+
           . .venv/bin/activate
           python -m tox -e tests -- -m "${{ matrix.tests.markers }}" -vv
 

@@ -85,6 +85,8 @@ except Exception:
 
 LOGGER.info(f"Fluent version: {_fluent_version}. Use container: {_uses_container}")
 
+LOGGER.info(f"Environment variables: {os.environ.keys()}")
+
 
 def _get_face_zones_with_filter(pyfluent_session, prefixes: list) -> list:
     """Get list of available boundaries in Fluent session that use any of the prefixes."""
@@ -229,6 +231,8 @@ def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingS
     """Get a Fluent Meshing session."""
     # NOTE: when using containerized version - we need to copy all the files
     # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
+    _uses_container = bool(int(os.getenv("PYFLUENT_LAUNCH_CONTAINER", False)))
+    _fluent_version = _get_supported_fluent_version()
 
     LOGGER.info(f"Launching meshing session with {_fluent_version}. Container: {_uses_container}")
 

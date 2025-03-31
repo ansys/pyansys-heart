@@ -79,4 +79,5 @@ jobs:
       - name: Run all tests requiring (Py)Fluent
         continue-on-error: false
         run: |
+          docker image list
           pytest -m pytest -v -m "requires_fluent"

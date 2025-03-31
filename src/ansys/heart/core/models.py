@@ -1414,6 +1414,11 @@ class HeartModel:
         """Define long and short axes from left ventricle landmarks."""
         from ansys.heart.core.utils.landmark_utils import compute_anatomy_axis
 
+        if not hasattr(self, "left_ventricle"):
+            LOGGER.info("Left ventricle part doesn't exist to build anatomical axis.")
+            self.l2cv_axis = self.l4cv_axis = self.short_axis = {}
+            return
+
         mv_center = next(
             cap.centroid for cap in self.left_ventricle.caps if cap.type == CapType.MITRAL_VALVE
         )

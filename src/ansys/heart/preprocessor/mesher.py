@@ -42,7 +42,7 @@ from ansys.heart.core.utils.vtk_utils import (
 )
 from ansys.heart.preprocessor.input import _InputBoundary, _InputModel
 
-_supported_fluent_versions = ["25.1", "24.2", "24.1"]
+_supported_fluent_versions = ["24.2", "24.1"]
 _num_cpus: bool = 2
 
 # check whether containerized version of Fluent is used

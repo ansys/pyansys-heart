@@ -27,7 +27,7 @@ concurrency:
 
 jobs:
   build:
-    if: github.event.pull_request.draft == false && !contains(github.event.pull_request.labels.*.name, 'tests:skip')
+    # if: github.event.pull_request.draft == false && !contains(github.event.pull_request.labels.*.name, 'tests:skip')
     name: Tests requiring PyFluent
     runs-on: ubuntu-latest
     timeout-minutes: 45

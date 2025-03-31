@@ -29,6 +29,7 @@ Uses a HeartModel (from ansys.heart.preprocessor.models).
 """
 
 import copy
+from enum import Enum
 import json
 
 # import missing keywords
@@ -88,6 +89,13 @@ from ansys.heart.writer.keyword_utils import (
     get_list_of_used_ids,
 )
 from ansys.heart.writer.material_keywords import MaterialHGOMyocardium, MaterialNeoHook
+
+
+class BoundaryType(Enum):
+    """Boundy condition type."""
+
+    FIX = "fix"
+    ROBIN = "Robin"
 
 
 class CVInteraction(NamedTuple):
@@ -817,7 +825,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # for boundary conditions
         if robin_bcs is None:
             # default BC
-            self._add_cap_bc(bc_type="springs_caps")
+            self._add_cap_bc(bc_type=BoundaryType.ROBIN)
         else:
             # loop for every Robin BC function
             for robin_bc in robin_bcs:
@@ -1210,22 +1218,19 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 )
                 self.kw_database.material.append(material_kw)
 
-    def _add_cap_bc(self, bc_type: str):
+    def _add_cap_bc(self, bc_type: BoundaryType):
         """Add boundary condition to the cap.
 
         Parameters
         ----------
-        bc_type : str
-            Boundary condition type. Valid bc's include: ["fix_caps", "springs_caps"].
-        """
-        valid_bcs = ["fix_caps", "springs_caps"]
-        if bc_type not in valid_bcs:
-            raise ValueError("Cap/Valve boundary condition must be of type: %r" % valid_bcs)
+        bc_type : BoundaryType
+           Boundary condition type.
 
+        """
         # create list of cap names where to add the spring b.c
         constraint_caps = self._get_contraint_caps()
 
-        if bc_type == "fix_caps":
+        if bc_type == BoundaryType.FIX:
             for part in self.model.parts:
                 for cap in part.caps:
                     if cap.type in constraint_caps:
@@ -1238,7 +1243,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                         self.kw_database.boundary_conditions.append(kw_fix)
 
         # if bc type is springs -> add springs
-        elif bc_type == "springs_caps":
+        elif bc_type == BoundaryType.ROBIN:
             part_id = self.get_unique_part_id()
             section_id = self.get_unique_section_id()
             mat_id = self.get_unique_mat_id()
@@ -1281,6 +1286,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _get_contraint_caps(self):
+        """Get list of constraint caps depending on models."""
         constraint_caps = []
 
         if isinstance(self.model, LeftVentricle):
@@ -1853,7 +1859,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # for boundary conditions
         if robin_bcs is None:
             # default BC
-            self._add_cap_bc(bc_type="fix_caps")
+            self._add_cap_bc(bc_type=BoundaryType.FIX)
         else:
             # loop for every Robin BC function
             for robin_bc in robin_bcs:

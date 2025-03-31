@@ -200,7 +200,7 @@ jobs:
 
       - name: Run Tox
         run: |
-          uv tool run tox -e tests -- -x testenv.deps+="-e dpf-standalone/v${{ env.ANSYS_VERSION }}" -m "${{ matrix.tests.markers }}" -vv
+          uv tool run tox -e tests -x testenv.deps+="-e dpf-standalone/v${{ env.ANSYS_VERSION }}" -- -m "${{ matrix.tests.markers }}" -vv
 
   build-library:
     name: "Build library"

@@ -3,7 +3,7 @@
 name: Test model generation
 on:
   pull_request:
-    types: ['opened', 'edited', 'reopened', 'synchronize', 'draft']
+    types: ['opened', 'edited', 'reopened', 'synchronize']
   push:
     tags:
       - "*"

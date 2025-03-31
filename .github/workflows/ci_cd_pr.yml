@@ -16,8 +16,8 @@ env:
   LIBRARY_NAME: 'ansys-heart'
   ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
   PYFLUENT_UI_MODE: "no_gui"
-  # PYFLUENT_START_INSTANCE: 0
-  # PYFLUENT_LAUNCH_CONTAINER: 1
+  PYFLUENT_START_INSTANCE: 0
+  PYFLUENT_LAUNCH_CONTAINER: 1
   FLUENT_IMAGE_TAG: v24.2.0
 
 jobs:
@@ -155,7 +155,7 @@ jobs:
         tests:
           - { name: "Base", runner: "ubuntu-latest", markers: "not (requires_fluent or extract_models or k_file_writer or requires_dpf)", tox_extra_args: ""}
           - { name: "PyDPF", runner: "ubuntu-latest", markers: "requires_dpf", needs_dpf: true}
-          - { name: "PyFluent", runner: ["self-hosted", "pyhealth"], markers: "requires_fluent or extract_models or k_file_writer", needs_fluent: false }
+          - { name: "PyFluent", runner: "ubuntu-latest", markers: "requires_fluent or extract_models or k_file_writer", needs_fluent: true }
     steps:
 
       - name: Checkout project

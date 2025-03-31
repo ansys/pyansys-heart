@@ -2913,7 +2913,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         if self.model.conduction_system.number_of_cells != 0:
             # with smcoupl=1, mechanical coupling is disabled
-            # with thcoupl=1, thermal coupling is disable
+            # with thcoupl=1, thermal coupling is disabled
             self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1, smcoupl=1))
             self._update_use_Purkinje()
 
@@ -3223,22 +3223,26 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 )
 
                 #  add more nodes to initiate wave propagation
-                if "SAN_to_AVN" in list(self.model.conduction_system._line_id_to_name.values()):
-                    pointid = self.model.conduction_system.get_lines_by_name("SAN_to_AVN")[
-                        "_written-id"
-                    ][1]
+                if _ConductionType.SAN_AVN.value in list(
+                    self.model.conduction_system._line_id_to_name.values()
+                ):
+                    pointid = self.model.conduction_system.get_lines_by_name(
+                        _ConductionType.SAN_AVN.value
+                    )["_written-id"][1]
                     stim_nodes.append(pointid)
-                if "Bachman bundle" in list(self.model.conduction_system._line_id_to_name.values()):
-                    pointid = self.model.conduction_system.get_lines_by_name("Bachman bundle")[
-                        "_written-id"
-                    ][0]
+                if _ConductionType.BACHMANN_BUNDLE.value in list(
+                    self.model.conduction_system._line_id_to_name.values()
+                ):
+                    pointid = self.model.conduction_system.get_lines_by_name(
+                        _ConductionType.BACHMANN_BUNDLE.value
+                    )["_written-id"][0]
                     stim_nodes.append(pointid)
-                    pointid = self.model.conduction_system.get_lines_by_name("Bachman bundle")[
-                        "_written-id"
-                    ][1]
+                    pointid = self.model.conduction_system.get_lines_by_name(
+                        _ConductionType.BACHMANN_BUNDLE.value
+                    )["_written-id"][1]
                     stim_nodes.append(pointid)
 
-        # stimule entire elements for Eikonal
+        # stimulate entire elements for Eikonal
         if self.settings.electrophysiology.analysis.solvertype in [
             "Eikonal",
             "ReactionEikonal",

@@ -310,7 +310,7 @@ class HeartModel:
         """Electrodes positions for ECG computing."""
 
         self.conduction_system: _BeamsMesh = _BeamsMesh()
-        """Beams data defining the conduction system."""
+        """Mesh defining the conduction system."""
 
         self.electrodes: List[Point] = []
         """Electrodes positions for ECG computing."""

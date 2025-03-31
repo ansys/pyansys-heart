@@ -62,7 +62,7 @@ def test_compute_av_conduction():
     cs.compute_av_node()
     beam = cs.compute_av_conduction()
 
-    # based on type hint: will fail:
+    # Following assert based on type hint, but will fail:
     # assert isinstance(beam, _BeamsMesh)
     assert beam.n_lines == 48
     assert np.isclose(beam.length, 64.36592438345)
@@ -94,7 +94,7 @@ def test_compute_bachmann_bundle():
     beam = cs.compute_av_conduction()
     beam, _, _ = cs.compute_his_conduction()
 
-    beam = cs.compute_bachman_bundle(
+    beam = cs._compute_bachman_bundle(
         start_coord=fourchamber.right_atrium.get_point("SA_node").xyz,
         end_coord=np.array([-34, 163, 413]),
     )

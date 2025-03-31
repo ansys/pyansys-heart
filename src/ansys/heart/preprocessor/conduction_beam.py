@@ -415,7 +415,7 @@ class ConductionSystem:
         cell_id = surface.find_closest_cell(point)
         return surface.get_cell(cell_id).point_ids[0]
 
-    def compute_bachman_bundle(
+    def _compute_bachman_bundle(
         self, start_coord, end_coord, beam_length: float = 1.5
     ) -> _BeamsMesh:
         """Compute Bachman bundle conduction system."""

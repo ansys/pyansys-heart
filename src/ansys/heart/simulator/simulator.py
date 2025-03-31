@@ -47,6 +47,7 @@ import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.models import FourChamber, HeartModel, LeftVentricle
+from ansys.heart.core.objects import _ConductionType
 from ansys.heart.core.utils.misc import _read_orth_element_kfile
 from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
 from ansys.heart.postprocessor.laplace_post import (
@@ -478,8 +479,6 @@ class EPSimulator(BaseSimulator):
     def compute_conduction_system(self):
         """Compute the conduction system."""
         if isinstance(self.model, FourChamber):
-            from ansys.heart.core.objects import _ConductionType
-
             beam_length = self.settings.purkinje.edgelen.m
 
             cs = ConductionSystem(self.model)
@@ -490,20 +489,21 @@ class EPSimulator(BaseSimulator):
             end_coord = cs.m.conduction_system.get_lines_by_name(
                 _ConductionType.LEFT_PURKINJE.value
             ).points[0]
-            cs.compute_left_right_bundle(left_point.xyz, endcoord=end_coord, side="Left")
+            cs.compute_left_right_bundle(left_point.xyz, end_coord=end_coord, side="Left")
             end_coord = cs.m.conduction_system.get_lines_by_name(
                 _ConductionType.RIGHT_PURKINJE.value
             ).points[0]
             cs.compute_left_right_bundle(right_point.xyz, end_coord=end_coord, side="Right")
-
             # # TODO: define end point by uhc, or let user choose
             # Note: must on surface after zerop if coupled with meca
-            # cs.compute_bachman_bundle(
+            # cs._compute_bachman_bundle(
             #     start_coord=self.model.right_atrium.get_point("SA_node").xyz,
             #     end_coord=np.array([-34, 163, 413]),
             # )
             cs.connect_to_solid(component_id=3, local_point_ids=0)
-            return cs
+        else:
+            LOGGER.info("Not implemented for other than FourChamber models.")
+        return cs
 
     def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""

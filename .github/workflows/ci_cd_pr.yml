@@ -194,7 +194,7 @@ jobs:
 
       - name: Run tests
         run: |
-          uv tool run -e tests -- -m "${{ matrix.tests.markers }}" -vv
+          uv tool run tox -e tests -- -m "${{ matrix.tests.markers }}" -vv
 
   build-library:
     name: "Build library"

@@ -192,6 +192,11 @@ jobs:
           docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
           docker image prune -f
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.MAIN_PYTHON_VERSION }}
+
       - name: Run tests PyFluent
         if: matrix.tests.pull_fluent_image
         run: |

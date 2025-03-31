@@ -196,7 +196,7 @@ jobs:
       - name: List files
         if: matrix.tests.use_dpf
         run: |
-          ls -R .
+          ls -R dpf-standalone
 
       - name: Run Tox
         run: |

@@ -81,4 +81,5 @@ jobs:
         run: |
           docker image list
           pytest -m pytest -v tests/heart/preprocessor/test_pyfluent.py
+          pytest -m pytest -v tests/heart/preprocessor/test_mesher.py
           pytest -m pytest -v -m "requires_fluent"

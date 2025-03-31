@@ -10,6 +10,7 @@ concurrency:
 
 env:
   ANSYS_VERSION: '241'
+  ANSYS_DPF_ACCEPT_LA: 'Y'
   MAIN_PYTHON_VERSION: '3.11'
   DOCUMENTATION_CNAME: 'heart.docs.pyansys.com'
   LIBRARY_NAME: 'ansys-heart'
@@ -152,9 +153,9 @@ jobs:
       matrix:
         python-version: ['3.11', '3.12']
         tests:
-          - { name: "Base", runner: "ubuntu-latest", markers: "not (requires_fluent or extract_models or k_file_writer or requires_dpf)"}
-          - { name: "PyDPF", runner: "ubuntu-latest", markers: "requires_dpf", use_dpf: true }
-          - { name: "PyFluent", runner: ["self-hosted", "pyhealth"], markers: "requires_fluent or extract_models or k_file_writer", pull_fluent_image: false }
+          - { name: "Base", runner: "ubuntu-latest", markers: "not (requires_fluent or extract_models or k_file_writer or requires_dpf)", tox_extra_args: ""}
+          - { name: "PyDPF", runner: "ubuntu-latest", markers: "requires_dpf", needs_dpf: true}
+          - { name: "PyFluent", runner: ["self-hosted", "pyhealth"], markers: "requires_fluent or extract_models or k_file_writer", needs_fluent: false }
     steps:
 
       - name: Checkout project
@@ -165,40 +166,35 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Set DPF Licensing
-        if: matrix.tests.use_dpf
-        run: |
-          echo "ANSYS_DPF_ACCEPT_LA=Y" >> $GITHUB_ENV
-
       - name: Install DPF
         uses: ansys/pydpf-actions/install-dpf-server@v2.3
-        if: matrix.tests.use_dpf
+        if: matrix.tests.needs_dpf
         with:
           dpf-standalone-TOKEN: ${{ secrets.PYANSYS_CI_BOT_TOKEN }}
           ANSYS_VERSION : ${{ env.ANSYS_VERSION }}
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
-        if: matrix.tests.pull_fluent_image
+        if: matrix.tests.needs_fluent
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Pull Fluent docker image
-        if: matrix.tests.pull_fluent_image
+        if: matrix.tests.needs_fluent
         run: |
           sudo rm -rf /usr/share/dotnet
-          # sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
+          docker pull ghcr.io/ansys/pyfluent:${{ env.FLUENT_IMAGE_TAG }}
           docker image prune -f
 
-      - name: List files
-        if: matrix.tests.use_dpf
+      - name: Run Tox
+        if: ! matrix.tests.needs_dpf
         run: |
-          ls -R dpf-standalone
+          uv tool run tox -e tests -- -m "${{ matrix.tests.markers }}" -vv
 
       - name: Run Tox
+        if: matrix.tests.needs_dpf
         run: |
           uv tool run tox -e tests -x testenv.deps+="-e dpf-standalone/v${{ env.ANSYS_VERSION }}" -- -m "${{ matrix.tests.markers }}" -vv
 

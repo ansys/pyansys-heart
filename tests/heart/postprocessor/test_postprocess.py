@@ -31,13 +31,10 @@ import pytest
 
 from ansys.heart.core.models import LeftVentricle
 from ansys.heart.postprocessor.auto_process import zerop_post
-import ansys.heart.postprocessor.dpf_utils as dpf_utils
 from ansys.heart.postprocessor.strain_calculator import AhaStrainCalculator
 from ansys.heart.postprocessor.system_model_post import SystemModelPost
 from tests.heart.conftest import get_assets_folder
 
-# Kills ansyscl. May be necessary to pass tests locally
-dpf_utils._KILL_ANSYSCL_ON_DEL = True
 # Accept DPF LA
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
@@ -52,6 +49,7 @@ def get_left_ventricle():
     return test_dir, model
 
 
+@pytest.mark.requires_dpf
 def test_compute_thickness(get_left_ventricle):
     test_dir = get_left_ventricle[0]
     model = get_left_ventricle[1]
@@ -65,6 +63,7 @@ def test_compute_thickness(get_left_ventricle):
     assert lines[0]["thickness"][0] == pytest.approx(6.75, abs=0.1)
 
 
+@pytest.mark.requires_dpf
 def test_compute_myocardial_strain(get_left_ventricle):
     test_dir = get_left_ventricle[0]
     model = get_left_ventricle[1]
@@ -75,6 +74,7 @@ def test_compute_myocardial_strain(get_left_ventricle):
     assert aha_lrc[-1, -1] == pytest.approx(0.05857088962026651)
 
 
+@pytest.mark.requires_dpf
 def test_compute_aha_strain(get_left_ventricle):
     test_dir = get_left_ventricle[0]
     model = get_left_ventricle[1]
@@ -86,6 +86,7 @@ def test_compute_aha_strain(get_left_ventricle):
     assert aha_lrc[1, -1] == pytest.approx(0.05857088962026651)
 
 
+@pytest.mark.requires_dpf
 def test_plot_aha_bullseye():
     """Test plotting AHA bullseye plot."""
     import matplotlib.pyplot as plt
@@ -102,6 +103,7 @@ def test_plot_aha_bullseye():
     AhaStrainCalculator.bullseye_plot(axs, data)
 
 
+@pytest.mark.requires_dpf
 def test_zerop_post(get_left_ventricle):
     test_dir = get_left_ventricle[0]
     model = get_left_ventricle[1]
@@ -114,6 +116,7 @@ def test_zerop_post(get_left_ventricle):
         shutil.rmtree(folder)
 
 
+@pytest.mark.requires_dpf
 class TestSystemModelPost:
     @pytest.fixture
     def system_model(self, get_left_ventricle):

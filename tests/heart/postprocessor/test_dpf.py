@@ -37,6 +37,7 @@ from ansys.heart.postprocessor.dpf_utils import D3plotReader, ICVoutReader
 from tests.heart.conftest import get_assets_folder
 
 
+@pytest.mark.requires_dpf
 def test_icvout_reader():
     fn = os.path.join(get_assets_folder(), "post", "main", "binout")
     icvout = ICVoutReader(fn)
@@ -54,6 +55,7 @@ def test_icvout_reader():
         icvout.get_flowrate(3)
 
 
+@pytest.mark.requires_dpf
 def test_d3plot_reader():
     fn = os.path.join(get_assets_folder(), "post", "main", "d3plot")
     d3plot = D3plotReader(fn)
@@ -66,6 +68,7 @@ def test_d3plot_reader():
     assert isinstance(d3plot.get_ep_fields(), dpf.FieldsContainer)
 
 
+@pytest.mark.requires_dpf
 def test_d3plot_reader2():
     fn = os.path.join(get_assets_folder(), "post", "main", "d3plot")
     d3plot = D3plotReader(fn)
@@ -73,6 +76,7 @@ def test_d3plot_reader2():
     assert d3plot.get_displacement_at(0.0).shape == (8598, 3)
 
 
+@pytest.mark.requires_dpf
 def test_d3plot_reader_init_supported_versions():
     """Test d3plot reader init."""
     fn = os.path.join(get_assets_folder(), "post", "main", "d3plot")

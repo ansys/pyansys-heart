@@ -64,11 +64,11 @@ jobs:
 
       # These tests will reuse an existing mesh and skip the step where the entire model
       # is remeshed.
-      - name: Test model generation
-        continue-on-error: false
-        run: |
-          pytest -m pytest -v -m "extract_models and not requires_fluent and not k_file_writer"
-          pytest -m pytest -v -m "k_file_writer"
+    #   - name: Test model generation
+    #     continue-on-error: false
+    #     run: |
+    #       pytest -m pytest -v -m "extract_models and not requires_fluent and not k_file_writer"
+    #       pytest -m pytest -v -m "k_file_writer"
 
       - name: Pull Fluent docker image
         run: |

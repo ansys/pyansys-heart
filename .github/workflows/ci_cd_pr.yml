@@ -153,7 +153,7 @@ jobs:
         tests:
           - { name: "Base", runner: "ubuntu-latest", markers: "not (requires_fluent or extract_models or k_file_writer or requires_dpf)"}
           - { name: "PyDPF", runner: "ubuntu-latest", markers: "requires_dpf", use_dpf: true }
-          - { name: "PyFluent", runner: "ubuntu-latest", markers: "requires_fluent or extract_models or k_file_writer", pull_fluent_image: true }
+          - { name: "PyFluent", runner: "ubuntu-latest", markers: "requires_fluent", pull_fluent_image: true }
     steps:
 
       - name: Checkout project

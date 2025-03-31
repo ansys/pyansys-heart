@@ -1,0 +1,80 @@
+# GitHub workflow for functional tests
+# Tests consistencty of model being generated
+name: Test model generation
+on:
+  pull_request:
+    types: ['opened', 'edited', 'reopened', 'synchronize', 'ready_for_review']
+  push:
+    tags:
+      - "*"
+    branches:
+      - main
+  workflow_dispatch:
+
+# Required env variables for pyfluent
+env:
+  MAIN_PYTHON_VERSION: "3.10"
+  ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
+  PYFLUENT_START_INSTANCE: 0
+  PYFLUENT_LAUNCH_CONTAINER: 1
+  FLUENT_IMAGE_TAG: v24.2.0
+
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: github.event.pull_request.draft == false && !contains(github.event.pull_request.labels.*.name, 'tests:skip')
+    name: Tests requiring PyFluent
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.MAIN_PYTHON_VERSION }}
+
+      # Login to Github container registry and pull Fluent image. if image-cach doesn't exist
+      - name: Login to GitHub Container Registry
+        # if: steps.image-cache.outputs.cache-hit != 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Print available space and remove unnecessary files
+        run: |
+          df -lh
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          df -lh
+
+      - name: Install package and dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install .[tests]
+
+      # These tests will reuse an existing mesh and skip the step where the entire model
+      # is remeshed.
+      - name: Test model generation
+        continue-on-error: false
+        run: |
+          pytest -m pytest -v -m "extract_models and not requires_fluent and not k_file_writer"
+          pytest -m pytest -v -m "k_file_writer"
+
+      - name: Pull Fluent docker image
+        run: |
+          docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
+          docker image prune -f
+
+      # run all tests requiring Fluent (these are very slow compared to the previous tests)
+      - name: Run all tests requiring (Py)Fluent
+        continue-on-error: false
+        run: |
+          pytest -m pytest -v -m "requires_fluent"

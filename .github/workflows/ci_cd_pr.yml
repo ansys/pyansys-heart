@@ -193,7 +193,12 @@ jobs:
           docker pull ghcr.io/ansys/pyfluent:$FLUENT_IMAGE_TAG
           docker image prune -f
 
-      - name: Run tests
+      - name: List files
+        if: matrix.tests.use_dpf
+        run: |
+          ls -R .
+
+      - name: Run Tox
         run: |
           uv tool run tox -e tests -- -x testenv.deps+="-e dpf-standalone/v${{ env.ANSYS_VERSION }}" -m "${{ matrix.tests.markers }}" -vv
 

@@ -189,7 +189,7 @@ jobs:
           docker image prune -f
 
       - name: Run Tox
-        if: ! matrix.tests.needs_dpf
+        if: ${{ ! matrix.tests.needs_dpf }}
         run: |
           uv tool run tox -e tests -- -m "${{ matrix.tests.markers }}" -vv
 

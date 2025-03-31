@@ -152,7 +152,8 @@ jobs:
       matrix:
         python-version: ['3.11', '3.12']
         tests:
-          - { name: "Base", runner: "ubuntu-latest", markers: "not (requires_fluent or requires_dpf)", tox_extra_args: ""}
+          - { name: "Base", runner: "ubuntu-latest", markers: "not (requires_fluent or extract_models or k_file_writer or requires_dpf)", tox_extra_args: ""}
+          - { name: "SlowTests", runner: "ubuntu-latest", markers: "extract_models or k_file_writer"}
           - { name: "PyDPF", runner: "ubuntu-latest", markers: "requires_dpf", needs_dpf: true}
           - { name: "PyFluent", runner: "ubuntu-latest", markers: "requires_fluent", needs_fluent: true }
     steps:

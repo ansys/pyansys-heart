@@ -28,7 +28,7 @@ import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.models import FourChamber
-from ansys.heart.core.objects import CapType, Point, SurfaceMesh, _BeamsMesh
+from ansys.heart.core.objects import CapType, Point, SurfaceMesh, _BeamsMesh, _ConductionType
 
 
 def _create_line(point_start: np.array, point_end: np.array, beam_length: float):
@@ -180,7 +180,7 @@ class ConductionSystem:
 
         beamnet = pv.lines_from_points(path_sinoatrial_atrioventricular.points)
         id = self.m.conduction_system.get_unique_lines_id()
-        self.m.conduction_system.add_lines(lines=beamnet, id=id, name="SAN_to_AVN")
+        self.m.conduction_system.add_lines(lines=beamnet, id=id, name=_ConductionType.SAN_AVN.value)
 
         return beamnet
 
@@ -230,7 +230,7 @@ class ConductionSystem:
         new_nodes[0] = self.m.conduction_system.get_lines_by_name("SAN_to_AVN").points[-1]
         beamnet = pv.lines_from_points(new_nodes)
         id = self.m.conduction_system.get_unique_lines_id()
-        self.m.conduction_system.add_lines(lines=beamnet, id=id, name="His")
+        self.m.conduction_system.add_lines(lines=beamnet, id=id, name=_ConductionType.HIS.value)
 
         (
             his_end_left_coord,
@@ -242,7 +242,7 @@ class ConductionSystem:
             bifurcation_coord=bifurcation_coord,
         )
         beamnet = pv.lines_from_points(new_nodes_left)
-        self.m.conduction_system.add_lines(lines=beamnet, id=id, name="His")
+        self.m.conduction_system.add_lines(lines=beamnet, id=id, name=_ConductionType.HIS.value)
         (
             his_end_right_coord,
             new_nodes_right,
@@ -254,7 +254,7 @@ class ConductionSystem:
         )
 
         beamnet = pv.lines_from_points(new_nodes_right)
-        beam_net = self.m.conduction_system.add_lines(lines=beamnet, id=id, name="His")
+        beam_net = self.m.conduction_system.add_lines(lines=beamnet, id=id, name=_ConductionType.HIS.value)
 
         surf = SurfaceMesh(
             name="his_bundle_segment",
@@ -386,10 +386,10 @@ class ConductionSystem:
 
     def compute_left_right_bundle(self, start_coord, end_coord, side: str):
         """Bundle branch."""
-        if side == "Left":
+        if side == _ConductionType.LEFT_BUNDLE_BRANCH.value:
             ventricle = self.m.left_ventricle
             endo_surface = self.m.mesh.get_surface(self.m.left_ventricle.endocardium.id)
-        elif side == "Right":
+        elif side == _ConductionType.RIGHT_BUNDLE_BRANCH.value:
             ventricle = self.m.right_ventricle
             surface_ids = [ventricle.endocardium.id, ventricle.septum.id]
             endo_surface = self.m.mesh.get_surface(surface_ids)

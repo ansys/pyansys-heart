@@ -602,19 +602,25 @@ class MechanicsSimulator(BaseSimulator):
             zerop_folder = os.path.join(self.root_directory, "zeropressure")
 
         dynain_files = glob.glob(os.path.join(zerop_folder, "iter*.dynain.lsda"))
-
         # force natural ordering since iteration numbers are not padded with zeros.
         dynain_files = natsort.natsorted(dynain_files)
 
         if len(dynain_files) == 0:
-            LOGGER.error("No dynain file 'iter*.dynain.lsda found.")
-            exit()
-        elif len(dynain_files) == 1:
-            LOGGER.error("Only one dynain file found, expecting at least two.")
-            exit()
+            error_message = f"Files iter*.dynain.lsda not found in {zerop_folder}"
+            LOGGER.error(error_message)
+            raise FileNotFoundError(error_message)
 
-        dynain_file = dynain_files[-1]
-        LOGGER.info(f"Using {dynain_file} for initial stress.")
+        elif len(dynain_files) == 1:
+            error_message = (
+                f"Only 1 iter*.dynain.lsda is found in {zerop_folder}, expect at least 2."
+            )
+
+            LOGGER.error(error_message)
+            raise IndexError(error_message)
+
+        else:
+            dynain_file = dynain_files[-1]
+            LOGGER.info(f"Using {dynain_file} for initial stress.")
 
         return dynain_file
 

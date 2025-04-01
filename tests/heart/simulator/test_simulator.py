@@ -325,3 +325,31 @@ def test_mechanics_simulator_simulate(
             # TODO: unique files for that.
             md5 = _get_md5(os.path.join(tempdir, folder_name, "dynain.lsda"))
             assert md5 == md5_ref
+
+
+def test__find_dynain_file(mechanics_simulator):
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        mechanics_simulator.root_directory = tempdir
+        zerop_folder = os.path.join(tempdir, "zero-pressure")
+        os.makedirs(zerop_folder)
+
+        for ii in range(0, 3):
+            filename = os.path.join(zerop_folder, f"iter{ii}.dynain.lsda")
+            with open(filename, "w") as tmpfile:
+                tmpfile.write(f"lsda_file_{ii}")
+
+        # test read successfully the last dynain file
+        file = mechanics_simulator._find_dynain_file(zerop_folder)
+        with open(os.path.join(zerop_folder, file)) as f:
+            assert f.read() == "lsda_file_2"
+
+        # test error with only 1 dynain file
+        os.remove(os.path.join(zerop_folder, "iter1.dynain.lsda"))
+        os.remove(os.path.join(zerop_folder, "iter2.dynain.lsda"))
+        with pytest.raises(IndexError):
+            mechanics_simulator._find_dynain_file(zerop_folder)
+
+        # test error with no dynain file
+        os.remove(os.path.join(zerop_folder, "iter0.dynain.lsda"))
+        with pytest.raises(FileNotFoundError):
+            mechanics_simulator._find_dynain_file(zerop_folder)

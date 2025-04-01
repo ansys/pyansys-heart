@@ -203,7 +203,7 @@ jobs:
   build-library:
    name: "Build library"
    runs-on: ubuntu-latest
-   needs: doc-build
+   needs: tests
    steps:
      - uses: ansys/actions/build-library@v8
        with:

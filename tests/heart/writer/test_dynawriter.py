@@ -213,9 +213,7 @@ def test_update_use_purkinje(_mock_model: FullHeart):
         assert expected_kw in kw_titles, f"Did not find {expected_kw} in keywords"
 
 
-def test_export(
-    _mock_model,
-):
+def test_export(_mock_model):
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         setting = mock.Mock(spec=Mechanics).return_value
         setting.mechanics.system.name = "ConstantPreloadWindkesselAfterload"

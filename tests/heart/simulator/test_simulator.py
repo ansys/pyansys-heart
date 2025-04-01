@@ -342,6 +342,7 @@ def test_call_with_user_k(mock_write_main, mock_mech_post, mock_run_dyna, mechan
 
         mock_write_main.assert_called_once_with(folder_name="main-mechanics", user_k=[user_file])
 
+
 @pytest.mark.parametrize(
     "dynain_files,expected,expected_error",
     [
@@ -368,4 +369,3 @@ def test_find_dynain_file(dynain_files, expected, expected_error, mechanics_simu
             assert mechanics_simulator._find_dynain_file(zerop_folder) == expected
 
         mock_glob.assert_called_once()
-

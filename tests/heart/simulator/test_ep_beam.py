@@ -77,7 +77,7 @@ def test_compute_his_conduction():
     cs.compute_av_node()
     beam = cs.compute_av_conduction()
     beam, _, _ = cs.compute_his_conduction()
-    his = beam.get_lines_by_name("His")
+    his = beam.get_lines_by_name( _ConductionType.HIS.value)
 
     assert his.n_lines == 20
     assert np.isclose(his.length, 17.961541876776412)

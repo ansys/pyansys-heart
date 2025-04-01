@@ -208,7 +208,7 @@ def test_update_use_purkinje(_mock_model: FullHeart):
     model = _mock_model
     model = _add_beam_network(model)
     model = _add_parts(model)
-    model.beam_network[0].name = "Left-purkinje"
+    model.beam_network[0].name =  _ConductionType.LEFT_PURKINJE.value
     model.mesh.add_surface(pv.Sphere(), id=10, name="Left ventricle endocardium")
     model.left_ventricle = model.parts[0]
     model.left_ventricle.endocardium = model.mesh.get_surface(10)

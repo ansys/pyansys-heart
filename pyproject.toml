@@ -46,13 +46,13 @@ dependencies = [
 # Optional dependencies:
 [project.optional-dependencies]
 doc = [
-    "ansys-sphinx-theme[autoapi]==1.3.2",
+    "ansys-sphinx-theme[autoapi]==1.3.3",
     "jupyter_sphinx==0.5.3",
     "myst-parser==4.0.1",
     "numpydoc==1.8.0",
-    "nbsphinx==0.9.6",
-    "sphinx==8.2.1",
-    "sphinx-autodoc-typehints==3.1.0",
+    "nbsphinx==0.9.7",
+    "sphinx==8.1.3",
+    "sphinx-autodoc-typehints==3.0.1",
     "sphinx-copybutton==0.5.2",
     "sphinx-gallery==0.19.0",
     "sphinx-jinja==2.0.2",
@@ -124,7 +124,7 @@ show_missing = true
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
-markers = ["extract_models", "requires_fluent", "k_file_writer", "local", "downloader"]
+markers = ["extract_models", "requires_fluent", "k_file_writer", "requires_dpf"]
 tmp_path_retention_count = 0                                      # do not keep the temporary path that is created
 tmp_path_retention_policy = "none"                                # directories always removed, regardless of outcome
 

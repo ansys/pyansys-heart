@@ -150,6 +150,10 @@ def _assign_part_id_to_orphan_cells(grid: pv.UnstructuredGrid, scalar="part-id")
     grid.cell_data["_original-cell-ids"] = np.arange(0, grid.n_cells)
     orphans = grid.extract_cells(grid.cell_data[scalar] == 0)
 
+    if orphans.n_cells == 0:
+        LOGGER.debug("No orphan cells detected.")
+        return grid
+
     LOGGER.debug(f"Assigning part ids to {orphans.n_cells} orphan cells.")
 
     grid_centers = grid.cell_centers()

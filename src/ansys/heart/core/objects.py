@@ -370,7 +370,7 @@ class BeamMesh(pv.UnstructuredGrid, Feature):
         """Temporary attribute to save all previously created beam nodes."""
 
         self.ep_material: EPMaterial = EPMaterial.DummyMaterial()
-        """Initialize dummy ep material model"""
+        """Initialize dummy ep material model."""
 
 
 class Cavity(Feature):

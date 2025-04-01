@@ -161,6 +161,8 @@ class Analysis(Settings):
     """Time-step of icvout export."""
     global_damping: Quantity = Quantity(0, "1/s")
     """Global damping constant."""
+    stiffness_damping: Quantity = Quantity(0, "s")
+    """Stiffness damping constant."""
 
 
 @dataclass(repr=False)

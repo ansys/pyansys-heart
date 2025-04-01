@@ -103,7 +103,8 @@ jobs:
 
   doc-build:
     name: "Build documentation"
-    runs-on: [self-hosted, pyhealth]
+    # runs-on: [self-hosted, pyhealth]
+    runs-on: ubuntu-latest
     needs: wheelhouse
     steps:
 

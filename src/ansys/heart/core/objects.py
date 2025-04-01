@@ -1181,12 +1181,20 @@ class _BeamsMesh(Mesh):
                 LOGGER.debug("sid should by type int.")
                 return None
             lines.cell_data["_line-id"] = np.ones(lines.n_cells, dtype=float) * id
-
+            if "_is-connected" not in lines.point_data.keys():
+                lines.point_data["_is-connected"] = np.zeros(lines.n_points, dtype=int)
         self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan)
         if name:
             self._line_id_to_name[id] = name
             self.ep_material[id] = EPMaterial.DummyMaterial()
         return self_copy
+
+
+    def get_line_id_from_name(self, name: str) -> int:
+        """Get line id from name using the `_line_id_to_name` attribute."""
+        position_in_list = list(self._line_id_to_name.values()).index(name)
+        line_id = list(self._line_id_to_name.keys())[position_in_list]
+        return line_id
 
     def get_lines_by_name(self, name: str) -> pv.PolyData:
         # ?: Return SurfaceMesh instead of PolyData?
@@ -1194,8 +1202,7 @@ class _BeamsMesh(Mesh):
         if name not in list(self._line_id_to_name.values()):
             LOGGER.error(f"No lines associated with {name}")
             return None
-        position_in_list = list(self._line_id_to_name.values()).index(name)
-        line_id = list(self._line_id_to_name.keys())[position_in_list]
+        line_id = self.get_line_id_from_name(name)
         return self.get_lines(line_id)
 
     def get_lines(self, sid: int) -> pv.PolyData:

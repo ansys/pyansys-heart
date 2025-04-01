@@ -30,7 +30,7 @@ class LSDYNATerminationError(BaseException):
         super().__init__("The LS-DYNA process did not terminate as expected.")
 
 
-class DataBaseNotSupportedError(NotImplementedError):
+class DatabaseNotSupportedError(NotImplementedError):
     """Exception raised when the database is not supported."""
 
     def __init__(self, db_type, message):
@@ -50,3 +50,7 @@ class InvalidInputModelTypeError(TypeError):
 
     def __init__(self, message: str):
         super().__init__(message)
+
+
+class InvalidHeartModelError(Exception):
+    """Exception raised when the heart model is invalid."""

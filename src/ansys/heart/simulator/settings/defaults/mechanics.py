@@ -37,6 +37,7 @@ analysis = {
     "dt_d3plot": heart["beat_time"] / 40,
     "dt_icvout": Quantity(5.0, "ms"),
     "global_damping": Quantity(0.1, "1/ms"),
+    "stiffness_damping": Quantity(-0.2, "ms"),
 }
 
 """Material settings."""

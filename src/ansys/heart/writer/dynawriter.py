@@ -33,7 +33,6 @@ import json
 
 # import missing keywords
 import os
-import shutil
 import time
 from typing import Callable, List, Literal, NamedTuple, Union
 
@@ -595,26 +594,20 @@ class BaseDynaWriter:
 
         return
 
-    def export(self, export_directory: str, user_k: list[str] = []):
-        """Write the model to files.
-
-        Parameters
-        ----------
-        export_directory : str
-            export directory
-        user_k : list[str], optional
-            user provided k files, by default []
-        """
+    def export(self, export_directory: str):
+        """Write the model to files."""
         tstart = time.time()
         LOGGER.info("Writing all LS-DYNA .k files...")
 
+        # is this reachable??
+        if not export_directory:
+            export_directory = os.path.join(
+                self.model.workdir,
+                self.__class__.__name__.lower().replace("dynawriter", ""),
+            )
+
         if not os.path.isdir(export_directory):
             os.makedirs(export_directory)
-
-        for k_file in user_k:
-            name = os.path.basename(k_file)
-            shutil.copy(k_file, os.path.join(export_directory, name))
-            self.kw_database.main.append(keywords.Include(filename=name))
 
         # export .k files
         self.export_databases(export_directory)
@@ -975,17 +968,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         return
 
-    def export(self, export_directory: str, user_k: list[str] = []):
-        """Write the model to files.
-
-        Parameters
-        ----------
-        export_directory : str
-            export directory
-        user_k : list[str], optional
-            user provided k files, by default []
-        """
-        super().export(export_directory, user_k=user_k)
+    def export(self, export_directory: str):
+        """Write the model to files."""
+        super().export(export_directory)
 
         # TODO: Close loop is only available from a customized LSDYNA executable
         # add system json in case of closed loop. For open-loop this is already

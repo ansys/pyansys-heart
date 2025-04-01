@@ -10,7 +10,7 @@ from ansys_sphinx_theme import ansys_favicon, get_version_match
 from ansys.heart import __version__
 
 # Project information
-project = "pyansys-heart"
+project = "ansys-heart"
 copyright = f"(c) {datetime.now().year} ANSYS, Inc. All rights reserved"
 author = "ANSYS, Inc."
 release = version = __version__
@@ -185,6 +185,7 @@ linkcheck_ignore = [
     # Third party pages
     "https://royalsocietypublishing.org/*",
     "https://doi.org/*",
+    "https://matplotlib.org/*",
     # Requires sign-in
     f"https://github.com/{user_repo}/*",
     "https://support.ansys.com/Home/HomePage",

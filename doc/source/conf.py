@@ -184,6 +184,7 @@ linkcheck_ignore = [
     "https://lsdyna.ansys.com/*",
     # Third party pages
     "https://royalsocietypublishing.org/*",
+    "https://doi.org/*",
     # Requires sign-in
     f"https://github.com/{user_repo}/*",
     "https://support.ansys.com/Home/HomePage",

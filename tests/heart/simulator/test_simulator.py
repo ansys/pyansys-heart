@@ -336,6 +336,7 @@ def test_mechanics_simulator_simulate(
             None,
         ),
         (["iter1.dynain.lsda", "iter2.dynain.lsda"], "iter2.dynain.lsda", None),
+        (["iter2.dynain.lsda", "iter1.dynain.lsda"], "iter2.dynain.lsda", None),
         (["iter1.dynain.lsda"], None, IndexError),
         ([], None, FileNotFoundError),
     ],

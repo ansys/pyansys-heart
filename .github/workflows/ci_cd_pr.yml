@@ -103,8 +103,8 @@ jobs:
 
   doc-build:
     name: "Build documentation"
-    # runs-on: [self-hosted, pyhealth]
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, pyhealth]
+    # runs-on: ubuntu-latest
     needs: wheelhouse
     steps:
 
@@ -203,7 +203,7 @@ jobs:
   build-library:
    name: "Build library"
    runs-on: ubuntu-latest
-   needs: [doc-build, tests]
+   needs: doc-build
    steps:
      - uses: ansys/actions/build-library@v8
        with:

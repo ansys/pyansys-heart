@@ -34,6 +34,7 @@ import pyvista as pv
 import ansys.fluent.core as pyfluent
 from ansys.fluent.core.session_meshing import Meshing as MeshingSession
 from ansys.heart.core import LOG as LOGGER
+from ansys.heart.core.exceptions import SupportedFluentVersionNotFoundError
 from ansys.heart.core.objects import Mesh, SurfaceMesh
 from ansys.heart.core.utils.fluent_reader import _FluentCellZone, _FluentMesh
 from ansys.heart.core.utils.vtk_utils import (
@@ -57,7 +58,7 @@ def _get_supported_fluent_version():
     if os.getenv("PYANSYS_HEART_FLUENT_VERSION", None):
         version = os.getenv("PYANSYS_HEART_FLUENT_VERSION")
         if version not in _supported_fluent_versions:
-            raise ValueError(
+            raise SupportedFluentVersionNotFoundError(
                 f"Fluent version {version} is not supported. Supported versions are: {_supported_fluent_versions}"  # noqa: E501
             )
         return version
@@ -72,7 +73,7 @@ def _get_supported_fluent_version():
             return version
         except Exception:
             pass
-    raise Exception(
+    raise SupportedFluentVersionNotFoundError(
         f"""Did not find a supported Fluent version,
         please install one of {_supported_fluent_versions}"""
     )

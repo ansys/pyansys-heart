@@ -404,7 +404,7 @@ class ConductionSystem:
         beamnet = pv.lines_from_points(new_points)
         id = self.m.conduction_system.get_unique_lines_id()
         beam_net = self.m.conduction_system.add_lines(
-            lines=beamnet, id=id, name=side + " bundle branch"
+            lines=beamnet, id=id, name=side
         )
 
         return beam_net
@@ -453,7 +453,15 @@ class ConductionSystem:
         return beam_net
 
     def _connect_to_solid(self, component_id: int, local_point_ids: np.array):
-        """Connect conduction system component to solid through the "_is-connected" pointdata."""
+        """Connect conduction system component to solid through the "_is-connected" pointdata.
+
+        Parameters
+        ----------
+        component_id : int
+            id of the beam mesh component
+        local_point_ids : np.array
+            _description_
+        """
         global_ids = self.m.conduction_system.get_lines(sid=component_id)["_global-point-ids"][
             local_point_ids
         ]

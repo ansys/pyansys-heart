@@ -23,7 +23,7 @@
 """
 Atrial fiber
 ------------
-This examples shows how to generate fibers with Laplace-Dirichlet-Rule-Based-Method
+This examples shows how to generate fibers with Laplace-Dirichlet-Rule-Based-Method.
 """
 
 ###############################################################################

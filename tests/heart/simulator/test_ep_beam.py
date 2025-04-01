@@ -114,8 +114,8 @@ def test_compute_left_right_bundle():
     beam, left_end, right_end = cs.compute_his_conduction()
     coord_left = fourchamber.left_ventricle.apex_points[0].xyz
     coord_right = fourchamber.right_ventricle.apex_points[0].xyz
-    result = cs.compute_left_right_bundle(left_end.xyz, end_coord=coord_left, side="Left")
-    result = cs.compute_left_right_bundle(right_end.xyz, end_coord=coord_right, side="Right")
+    result = cs.compute_left_right_bundle(left_end.xyz, end_coord=coord_left, side=_ConductionType.LEFT_BUNDLE_BRANCH.value)
+    result = cs.compute_left_right_bundle(right_end.xyz, end_coord=coord_right, side=_ConductionType.RIGHT_BUNDLE_BRANCH.value)
     left_bundle = result.get_lines_by_name(_ConductionType.LEFT_BUNDLE_BRANCH.value)
     right_bundle = result.get_lines_by_name(_ConductionType.RIGHT_BUNDLE_BRANCH.value)
     assert np.isclose(left_bundle.length, 76.23944721403967)
@@ -124,3 +124,22 @@ def test_compute_left_right_bundle():
     assert right_bundle.n_lines == 45
 
     return
+
+
+def test_connect_to_solid():
+    # get a fresh model
+    fourchamber = get_fourchamber()
+    cs = ConductionSystem(fourchamber)
+
+    cs.compute_sa_node()
+    cs.compute_av_node()
+    cs.compute_av_conduction()
+    _, _, right_end = cs.compute_his_conduction()
+    coord_right = fourchamber.right_ventricle.apex_points[0].xyz
+    result = cs.compute_left_right_bundle(right_end.xyz, end_coord=coord_right, side=_ConductionType.RIGHT_BUNDLE_BRANCH.value)
+    right_bundle = result.get_lines_by_name(_ConductionType.RIGHT_BUNDLE_BRANCH.value)
+    rbb_id = cs.m.conduction_system.get_line_id_from_name(_ConductionType.RIGHT_BUNDLE_BRANCH.value)
+    cs._connect_to_solid(rbb_id,[0,-1])
+    isconnected = np.zeros(right_bundle.n_points,dtype=int)
+    isconnected[[0,-1]] = 1
+    assert np.allclose(cs.m.conduction_system.get_lines(rbb_id)["_is-connected"],isconnected)

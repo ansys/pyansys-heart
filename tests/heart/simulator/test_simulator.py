@@ -325,3 +325,31 @@ def test_mechanics_simulator_simulate(
             # TODO: unique files for that.
             md5 = _get_md5(os.path.join(tempdir, folder_name, "dynain.lsda"))
             assert md5 == md5_ref
+
+
+@pytest.mark.parametrize(
+    "dynain_files,expected,expected_error",
+    [
+        (
+            ["iter1.dynain.lsda", "iter2.dynain.lsda", "iter3.dynain.lsda"],
+            "iter3.dynain.lsda",
+            None,
+        ),
+        (["iter1.dynain.lsda", "iter2.dynain.lsda"], "iter2.dynain.lsda", None),
+        (["iter2.dynain.lsda", "iter1.dynain.lsda"], "iter2.dynain.lsda", None),
+        (["iter1.dynain.lsda"], None, IndexError),
+        ([], None, FileNotFoundError),
+    ],
+)
+def test_find_dynain_file(dynain_files, expected, expected_error, mechanics_simulator):
+    with mock.patch("glob.glob") as mock_glob:
+        mock_glob.return_value = dynain_files
+        zerop_folder = ""
+
+        if expected_error:
+            with pytest.raises(expected_error):
+                mechanics_simulator._find_dynain_file(zerop_folder)
+        else:
+            assert mechanics_simulator._find_dynain_file(zerop_folder) == expected
+
+        mock_glob.assert_called_once()

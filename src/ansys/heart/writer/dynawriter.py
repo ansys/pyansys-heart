@@ -1156,7 +1156,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # stiff damping
         for part in self.model.parts:
             self.kw_database.main.append(f"$$ {part.name} stiffness damping [ms]")
-            kw = keywords.DampingPartStiffness(pid=part.pid, coef=-0.2)
+            kw = keywords.DampingPartStiffness(
+                pid=part.pid, coef=self.settings.mechanics.analysis.stiffness_damping.m
+            )
             self.kw_database.main.append(kw)
         return
 

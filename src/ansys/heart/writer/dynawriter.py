@@ -612,9 +612,14 @@ class BaseDynaWriter:
             os.makedirs(export_directory)
 
         for k_file in user_k:
-            name = os.path.basename(k_file)
-            shutil.copy(k_file, os.path.join(export_directory, name))
-            self.kw_database.main.append(keywords.Include(filename=name))
+            if not os.path.isfile(k_file):
+                error_msg = f"File {k_file} not found."
+                LOGGER.error(error_msg)
+                raise FileNotFoundError(error_msg)
+            else:
+                name = os.path.basename(k_file)
+                shutil.copy(k_file, os.path.join(export_directory, name))
+                self.kw_database.main.append(keywords.Include(filename=name))
 
         # export .k files
         self.export_databases(export_directory)
@@ -634,7 +639,7 @@ class BaseDynaWriter:
 
         for deckname, deck in vars(self.kw_database).items():
             # skip empty databases:
-            if deck.keywords == []:
+            if len(deck.keywords) == 0 and len(deck.string_keywords) == 0:
                 continue
             LOGGER.info("Writing: {}".format(deckname))
 

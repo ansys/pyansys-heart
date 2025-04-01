@@ -353,3 +353,19 @@ def test__find_dynain_file(mechanics_simulator):
         os.remove(os.path.join(zerop_folder, "iter0.dynain.lsda"))
         with pytest.raises(FileNotFoundError):
             mechanics_simulator._find_dynain_file(zerop_folder)
+
+
+@mock.patch("ansys.heart.simulator.simulator.MechanicsSimulator._run_dyna")
+@mock.patch("ansys.heart.simulator.simulator.mech_post")
+@mock.patch("ansys.heart.simulator.simulator.MechanicsSimulator._write_main_simulation_files")
+def test_call_with_user_k(mock_write_main, mock_mech_post, mock_run_dyna, mechanics_simulator):
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        user_file = os.path.join(tempdir, "user.k")
+        with open(user_file, "w") as tmpfile:
+            tmpfile.write("*END")
+
+        mechanics_simulator.root_directory = tempdir
+        mechanics_simulator.initial_stress = False
+        mechanics_simulator.simulate(user_k=[user_file])
+
+        mock_write_main.assert_called_once_with(folder_name="main-mechanics", user_k=[user_file])

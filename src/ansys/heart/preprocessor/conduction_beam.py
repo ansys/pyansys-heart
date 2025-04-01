@@ -452,7 +452,7 @@ class ConductionSystem:
 
         return beam_net
 
-    def connect_to_solid(self, component_id: int, local_point_ids: np.array):
+    def _connect_to_solid(self, component_id: int, local_point_ids: np.array):
         """Connect conduction system component to solid through the "_is-connected" pointdata."""
         global_ids = self.m.conduction_system.get_lines(sid=component_id)["_global-point-ids"][
             local_point_ids

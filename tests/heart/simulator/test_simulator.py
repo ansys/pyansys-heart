@@ -327,7 +327,7 @@ def test_mechanics_simulator_simulate(
             assert md5 == md5_ref
 
 
-def test__find_dynain_file(mechanics_simulator):
+def test_find_dynain_file(mechanics_simulator):
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         mechanics_simulator.root_directory = tempdir
         zerop_folder = os.path.join(tempdir, "zero-pressure")

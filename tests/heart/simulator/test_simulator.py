@@ -76,7 +76,6 @@ def mechanics_simulator() -> simulators.MechanicsSimulator:
         setting = mock.Mock(spec=DynaSettings)
         setting.lsdyna_path = ""
         simulation_directory = "."
-        setting.platform = ""
         simulator = simulators.MechanicsSimulator(model, setting, simulation_directory)
         yield simulator
 

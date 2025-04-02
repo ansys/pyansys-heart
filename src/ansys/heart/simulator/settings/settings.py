@@ -1069,6 +1069,8 @@ class DynaSettings:
 
     def _modify_from_global_settings(self):
         """Set DynaSettings based on globally defined settings for PyAnsys-Heart."""
+        keys = [key for key in os.environ.keys() if "PYANSYS_HEART" in key]
+        LOGGER.info(f"PYANSYS_HEART Environment variables: {keys}")
         self.lsdyna_path = os.getenv("PYANSYS_HEART_LSDYNA_PATH", self.lsdyna_path)
         self.platform = os.getenv("PYANSYS_HEART_LSDYNA_PLATFORM", self.platform)
         self.dynatype = os.getenv("PYANSYS_HEART_LSDYNA_TYPE", self.dynatype)

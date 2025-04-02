@@ -946,9 +946,14 @@ class DynaSettings:
         elif dynatype == "smp":
             self.mpi_options = ""
 
+        LOGGER.info("LS-DYNA Configuration 1:")
+        LOGGER.info(
+            f"path: {self.lsdyna_path} | type: {self.dynatype} | platform: {self.platform} | cpus: {self.num_cpus}"  # noqa: E501
+        )
+
         self._modify_from_global_settings()
 
-        LOGGER.info("LS-DYNA Configuration:")
+        LOGGER.info("LS-DYNA Configuration 2:")
         LOGGER.info(
             f"path: {self.lsdyna_path} | type: {self.dynatype} | platform: {self.platform} | cpus: {self.num_cpus}"  # noqa: E501
         )

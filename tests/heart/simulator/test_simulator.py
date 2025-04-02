@@ -55,6 +55,7 @@ def base_simulator() -> simulators.BaseSimulator:
 
         setting = mock.Mock(spec=DynaSettings)
         setting.lsdyna_path = ""
+        setting.platform = ""
         simulation_directory = "."
         simulator = simulators.BaseSimulator(model, setting, simulation_directory)
 

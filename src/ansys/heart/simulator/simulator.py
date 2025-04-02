@@ -46,7 +46,7 @@ import psutil
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.exceptions import LSDYNATerminationError
+from ansys.heart.core.exceptions import LSDYNANotFoundError, LSDYNATerminationError
 from ansys.heart.core.models import FourChamber, HeartModel, LeftVentricle
 from ansys.heart.core.utils.misc import _read_orth_element_kfile
 from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
@@ -62,10 +62,6 @@ import ansys.heart.writer.dynawriter as writers
 
 _KILL_ANSYSCL_PRIOR_TO_RUN = True
 """Flag indicating whether to kill all ansys license clients prior to LS-DYNA run."""
-
-
-class LSDYNANotFoundError(FileNotFoundError):
-    """LSDYNA executable not found."""
 
 
 class BaseSimulator:

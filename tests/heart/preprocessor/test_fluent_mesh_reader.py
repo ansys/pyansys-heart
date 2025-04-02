@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Some tests to test function of the Fluent mesh reader on a unit-cube example"""
+"""Some tests to test function of the Fluent mesh reader on a unit-cube example."""
 
 import os
 
@@ -106,7 +106,7 @@ def test_to_vtk():
 
 
 def test_read_nodes(_test_mesh):
-    """Tests reading of the nodes of simple box"""
+    """Tests reading of the nodes of simple box."""
     mesh = _test_mesh
     assert isinstance(mesh, _FluentMesh)
     mesh._read_nodes()
@@ -129,7 +129,7 @@ def test_read_nodes(_test_mesh):
 
 
 def test_read_face_zones(_test_mesh):
-    """Tests reading face zones. Checks face zone names and defined faces"""
+    """Tests reading face zones. Checks face zone names and defined faces."""
     mesh = _test_mesh
     assert isinstance(mesh, _FluentMesh)
     mesh._read_nodes()
@@ -212,7 +212,7 @@ def test_clean_mesh():
 
 
 def test_read_tetrahedrons(_test_mesh):
-    """Tests reading of tetrahedrons on simple box with single cell zone"""
+    """Tests reading of tetrahedrons on simple box with single cell zone."""
     mesh = _FluentMesh()
     mesh.load_mesh(FLUENT_BOX)
     expected_cells = mesh._unique_map[

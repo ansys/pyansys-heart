@@ -79,7 +79,7 @@ def test_compute_12lead_ECG(to_plot, _mock_ep_postprocessor: EPpostprocessor):  
 
 
 def test_read_ECGs(_mock_ep_postprocessor: EPpostprocessor):  # noqa N802
-    """Read ECGs"""
+    """Read ECGs."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         data_expected = _create_mock_ECG_data()[-1]
         ecg_data_file = os.path.join(tempdir, "ecg.data")

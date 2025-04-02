@@ -784,15 +784,19 @@ class MechanicsDynaWriter(BaseDynaWriter):
             raise ValueError("System model not valid")
         self._system_model = value
 
-    def update(self, with_dynain=False, robin_bcs: list[Callable] = None):
+    def update(self, dynain_name: str = None, robin_bcs: list[Callable] = None):
         """Update the keyword database.
 
         Parameters
         ----------
-        with_dynain : bool, optional
-            Use dynain.lsda file from stress free configuration computation, by default False
+        dynain_name : str, optional
+            dynain file from stress free configuration computation, by default None
         robin_bcs : list[Callable], optional
             A list of lambda functions to apply Robin-type BCs, by default None
+
+        Notes
+        -----
+        Do not need to write mesh files if dynain file is given.
         """
         self._update_main_db()
 
@@ -803,15 +807,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._update_segmentsets_db(add_caps=True)
         self._update_nodesets_db()
 
-        # for mesh
-        if not with_dynain:
+        if dynain_name is None:
+            # write mesh
             self._update_node_db()
             self._update_solid_elements_db(add_fibers=True)
-            # write cap with mesh
+            # write cap shells with mesh
             self._update_cap_elements_db(add_mesh=True)
         else:
-            self.kw_database.main.append(keywords.Include(filename="dynain.lsda"))
-            # cap mesh has been defined in Zerop and saved in dynain file
+            self.kw_database.main.append(keywords.Include(filename=dynain_name))
+            # cap mesh has been defined in dynain file
             self._update_cap_elements_db(add_mesh=False)
 
         # for boundary conditions
@@ -3700,15 +3704,27 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         self.set_flow_area = True
         """from MechanicWriter"""
 
-    def update(self, with_dynain=False, robin_bcs=None):
-        """Update the keyword database."""
+    def update(self, dynain_name: str = None, robin_bcs=None):
+        """Update the keyword database.
+
+        Parameters
+        ----------
+        dynain_name : str, optional
+            dynain file from stress free configuration computation, by default None
+        robin_bcs : list[Callable], optional
+            A list of lambda functions to apply Robin-type BCs, by default None
+
+        Notes
+        -----
+        Do not need to write mesh files if dynain file is given.
+        """
         if isinstance(self.model, FourChamber):
             self.model.left_atrium.fiber = True
             self.model.left_atrium.active = True
             self.model.right_atrium.fiber = True
             self.model.right_atrium.active = True
 
-        MechanicsDynaWriter.update(self, with_dynain=with_dynain, robin_bcs=robin_bcs)
+        MechanicsDynaWriter.update(self, dynain_name=dynain_name, robin_bcs=robin_bcs)
 
         if self.model.conduction_system.number_of_cells != 0:
             # Coupling enabled, EP beam nodes follow the motion of surfaces

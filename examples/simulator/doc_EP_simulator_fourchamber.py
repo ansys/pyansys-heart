@@ -195,7 +195,9 @@ simulator.simulate(folder_name="main-ep-ReactionEikonal")
 # We can plot transmembrane potential in LS-PrePost
 
 ###############################################################################
-# .. video:: ../../_static/images/ep_4cv.mp4
-#   :width: 600
-#   :loop:
-#   :class: center
+# .. only:: html
+#
+#     .. video:: ../../_static/images/ep_4cv.mp4
+#       :width: 600
+#       :loop:
+#       :class: center

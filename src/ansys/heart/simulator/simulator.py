@@ -97,7 +97,7 @@ class BaseSimulator:
             self.dyna_settings: DynaSettings = dyna_settings
             """Contains the settings to launch LS-DYNA."""
 
-        if dyna_settings.platform != "wsl":
+        if self.dyna_settings.platform != "wsl":
             if shutil.which(self.dyna_settings.lsdyna_path) is None:
                 LOGGER.error(f"{self.dyna_settings.lsdyna_path} does not exist")
                 raise LSDYNANotFoundError(

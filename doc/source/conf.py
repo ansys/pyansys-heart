@@ -10,7 +10,7 @@ from ansys_sphinx_theme import ansys_favicon, get_version_match
 from ansys.heart import __version__
 
 # Project information
-project = "pyansys-heart"
+project = "ansys-heart"
 copyright = f"(c) {datetime.now().year} ANSYS, Inc. All rights reserved"
 author = "ANSYS, Inc."
 release = version = __version__
@@ -18,11 +18,17 @@ cname = os.getenv("DOCUMENTATION_CNAME", "heart.docs.pyansys.com")
 
 # use the default pyansys logo
 html_theme = "ansys_sphinx_theme"
-
 html_short_title = html_title = "PyAnsys Heart"
 html_favicon = ansys_favicon
-
-# specify the location of your github repo
+html_context = {
+    "github_user": "ansys",
+    "github_repo": "pyansys-heart",
+    "github_version": "main",
+    "doc_path": "doc/source",
+    "version": "main" if version.endswith("dev0") else f"release/{version.split('.')[:-1]}",
+    "base_url": "https://github.com/ansys/pyansys-heart/blob/main",
+    "edit_page_provider_name": "GitHub",
+}
 html_theme_options = {
     "github_url": "https://github.com/ansys/pyansys-heart",
     "show_prev_next": False,
@@ -160,3 +166,29 @@ jinja_contexts = {
         "envs": envs,
     }
 }
+
+
+# Configuration for linkcheck
+# -----------------------------------------------------------------------------
+user_agent = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+    "AppleWebKit/537.36 (KHTML, like Gecko)"
+    "Chrome/123.0.0.0"
+    "Safari/537.36"
+    "Edg/123.0.2420.81"
+)
+user_repo = f"{html_context['github_user']}/{html_context['github_repo']}"
+linkcheck_ignore = [
+    # Ansys pages
+    "https://www.ansys.com/*",
+    "https://lsdyna.ansys.com/*",
+    # Third party pages
+    "https://royalsocietypublishing.org/*",
+    "https://doi.org/*",
+    "https://matplotlib.org/*",
+    # Requires sign-in
+    f"https://github.com/{user_repo}/*",
+    "https://support.ansys.com/Home/HomePage",
+    # Pages generated at build time
+    r"../examples/",
+]

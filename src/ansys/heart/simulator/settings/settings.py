@@ -946,14 +946,8 @@ class DynaSettings:
         elif dynatype == "smp":
             self.mpi_options = ""
 
-        LOGGER.info("LS-DYNA Configuration 1:")
-        LOGGER.info(
-            f"path: {self.lsdyna_path} | type: {self.dynatype} | platform: {self.platform} | cpus: {self.num_cpus}"  # noqa: E501
-        )
-
         self._modify_from_global_settings()
-
-        LOGGER.info("LS-DYNA Configuration 2:")
+        LOGGER.info("LS-DYNA Configuration:")
         LOGGER.info(
             f"path: {self.lsdyna_path} | type: {self.dynatype} | platform: {self.platform} | cpus: {self.num_cpus}"  # noqa: E501
         )
@@ -1070,7 +1064,7 @@ class DynaSettings:
     def _modify_from_global_settings(self):
         """Set DynaSettings based on globally defined settings for PyAnsys-Heart."""
         keys = [key for key in os.environ.keys() if "PYANSYS_HEART" in key]
-        LOGGER.info(f"PYANSYS_HEART Environment variables: {keys}")
+        LOGGER.debug(f"PYANSYS_HEART Environment variables: {keys}")
         self.lsdyna_path = os.getenv("PYANSYS_HEART_LSDYNA_PATH", self.lsdyna_path)
         self.platform = os.getenv("PYANSYS_HEART_LSDYNA_PLATFORM", self.platform)
         self.dynatype = os.getenv("PYANSYS_HEART_LSDYNA_TYPE", self.dynatype)

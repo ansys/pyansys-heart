@@ -329,3 +329,8 @@ def test_modify_settings_from_env_variables():
     assert settings.platform == "wsl"
     assert settings.dynatype == "msmpi"
     assert settings.num_cpus == 4
+
+    del os.environ["PYANSYS_HEART_LSDYNA_PATH"]
+    del os.environ["PYANSYS_HEART_LSDYNA_PLATFORM"]
+    del os.environ["PYANSYS_HEART_LSDYNA_TYPE"]
+    del os.environ["PYANSYS_HEART_NUM_CPU"]

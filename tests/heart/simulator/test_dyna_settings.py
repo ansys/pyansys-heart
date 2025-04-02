@@ -318,6 +318,7 @@ def test_modify_settings_from_env_variables(monkeypatch):
     assert settings.dynatype == "intelmpi"
     assert settings.num_cpus == 2
 
+    # temporarily set the environment variables
     monkeypatch.setenv("PYANSYS_HEART_LSDYNA_PATH", "new-dyna-path.exe")
     monkeypatch.setenv("PYANSYS_HEART_LSDYNA_PLATFORM", "wsl")
     monkeypatch.setenv("PYANSYS_HEART_LSDYNA_TYPE", "msmpi")

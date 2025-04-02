@@ -200,11 +200,12 @@ jobs:
          uv tool run tox -e tests -x testenv.deps+="-e dpf-standalone/v${{ env.ANSYS_VERSION }}" -- -m "${{ matrix.tests.markers }}" -vv
 
   build-library:
-   name: "Build library"
-   runs-on: ubuntu-latest
-   needs: [doc-build, tests]
-   steps:
-     - uses: ansys/actions/build-library@v8
-       with:
-         library-name: ${{ env.LIBRARY_NAME }}
-         python-version: ${{ env.MAIN_PYTHON_VERSION }}
+    name: "Build library"
+    runs-on: ubuntu-latest
+    needs: [doc-build, tests]
+    steps:
+      - name: "Build-library"
+        uses: ansys/actions/build-library@v8
+        with:
+          library-name: ${{ env.LIBRARY_NAME }}
+          python-version: ${{ env.MAIN_PYTHON_VERSION }}

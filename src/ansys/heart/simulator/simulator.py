@@ -469,7 +469,9 @@ class EPSimulator(BaseSimulator):
 
         if not isinstance(self.model, LeftVentricle):
             purkinje_k_file = os.path.join(directory, "purkinjeNetwork_002.k")
-            self.model.add_purkinje_from_kfile(purkinje_k_file,  _ConductionType.RIGHT_PURKINJE.value)
+            self.model.add_purkinje_from_kfile(
+                purkinje_k_file, _ConductionType.RIGHT_PURKINJE.value
+            )
 
     def compute_conduction_system(self):
         """Compute the conduction system."""
@@ -484,11 +486,15 @@ class EPSimulator(BaseSimulator):
             end_coord = cs.m.conduction_system.get_lines_by_name(
                 _ConductionType.LEFT_PURKINJE.value
             ).points[0]
-            cs.compute_left_right_bundle(left_point.xyz, end_coord=end_coord, side=_ConductionType.LEFT_BUNDLE_BRANCH.value)
+            cs.compute_left_right_bundle(
+                left_point.xyz, end_coord=end_coord, side=_ConductionType.LEFT_BUNDLE_BRANCH.value
+            )
             end_coord = cs.m.conduction_system.get_lines_by_name(
                 _ConductionType.RIGHT_PURKINJE.value
             ).points[0]
-            cs.compute_left_right_bundle(right_point.xyz, end_coord=end_coord, side=_ConductionType.RIGHT_BUNDLE_BRANCH.value)
+            cs.compute_left_right_bundle(
+                right_point.xyz, end_coord=end_coord, side=_ConductionType.RIGHT_BUNDLE_BRANCH.value
+            )
             # # TODO: define end point by uhc, or let user choose
             # Note: must on surface after zerop if coupled with meca
             # cs._compute_bachman_bundle(

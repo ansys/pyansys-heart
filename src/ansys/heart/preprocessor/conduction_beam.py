@@ -254,7 +254,9 @@ class ConductionSystem:
         )
 
         beamnet = pv.lines_from_points(new_nodes_right)
-        beam_net = self.m.conduction_system.add_lines(lines=beamnet, id=id, name=_ConductionType.HIS.value)
+        beam_net = self.m.conduction_system.add_lines(
+            lines=beamnet, id=id, name=_ConductionType.HIS.value
+        )
 
         surf = SurfaceMesh(
             name="his_bundle_segment",
@@ -403,9 +405,7 @@ class ConductionSystem:
         new_points = np.vstack((start_coord, bundle_branch.points[1:-1], end_coord))
         beamnet = pv.lines_from_points(new_points)
         id = self.m.conduction_system.get_unique_lines_id()
-        beam_net = self.m.conduction_system.add_lines(
-            lines=beamnet, id=id, name=side
-        )
+        beam_net = self.m.conduction_system.add_lines(lines=beamnet, id=id, name=side)
 
         return beam_net
 

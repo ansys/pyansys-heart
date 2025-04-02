@@ -3699,10 +3699,10 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         """Collection of keyword decks relevant for mechanics."""
 
         self.system_model_name = self.settings.mechanics.system.name
-        """Name of system model to use, from MechanicWriter"""
+        """Name of system model to use, from MechanicWriter."""
 
         self.set_flow_area = True
-        """from MechanicWriter"""
+        """from MechanicWriter."""
 
     def update(self, dynain_name: str = None, robin_bcs=None):
         """Update the keyword database.
@@ -3787,9 +3787,9 @@ class LaplaceWriter(BaseDynaWriter):
         """
         super().__init__(model=model)
         self.type = type
-        """problem type"""
+        """problem type."""
         self.landmarks = kwargs
-        """landmarks can be `laa`, `raa`, `top`"""
+        """landmarks can be `laa`, `raa`, `top`."""
         self.target: pv.UnstructuredGrid = None
         """target mesh related to the problem."""
 

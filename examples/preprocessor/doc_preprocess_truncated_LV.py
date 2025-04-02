@@ -26,7 +26,7 @@ Create a truncated ellipsoid model
 ----------------------------------
 This example shows you how to build a basic ellipsoidal model
 from primitive shapes. Shape based on
-Land et al (2015): https://doi.org/10.1098/rspa.2015.0641.
+`Land et al (2015) <https://doi.org/10.1098/rspa.2015.0641>`_.
 """
 
 ###############################################################################

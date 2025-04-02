@@ -94,9 +94,6 @@ class BaseSimulator:
             self.dyna_settings: DynaSettings = dyna_settings
             """Contains the settings to launch LS-DYNA."""
 
-        self.directories: dict = {}
-        """Dictionary of all defined directories."""
-
         """Operating System."""
         if shutil.which(self.dyna_settings.lsdyna_path) is None:
             LOGGER.error(f"{self.dyna_settings.lsdyna_path} not exist")
@@ -185,7 +182,6 @@ class BaseSimulator:
     def _compute_fibers_lsdyna(self, rotation_angles: dict):
         """Use LSDYNA native fiber method."""
         directory = os.path.join(self.root_directory, "fibergeneration")
-        self.directories["fibergeneration"] = directory
 
         dyna_writer = writers.FiberGenerationDynaWriter(copy.deepcopy(self.model), self.settings)
         dyna_writer.update(rotation_angles)
@@ -447,7 +443,6 @@ class EPSimulator(BaseSimulator):
     def compute_purkinje(self):
         """Compute the purkinje network."""
         directory = os.path.join(self.root_directory, "purkinjegeneration")
-        self.directories["purkinjegeneration"] = directory
 
         self._write_purkinje_files(directory)
 
@@ -504,7 +499,7 @@ class EPSimulator(BaseSimulator):
     def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
-        self.directories["main-ep"] = export_directory
+
         model = copy.deepcopy(self.model)
         dyna_writer = writers.ElectrophysiologyDynaWriter(model, self.settings)
         dyna_writer.update()
@@ -515,7 +510,7 @@ class EPSimulator(BaseSimulator):
     def _write_main_conduction_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
-        self.directories["main-ep"] = export_directory
+
         model = copy.deepcopy(self.model)
         dyna_writer = writers.ElectrophysiologyBeamsDynaWriter(model, self.settings)
         dyna_writer.update()
@@ -549,7 +544,8 @@ class MechanicsSimulator(BaseSimulator):
 
         self.initial_stress = initial_stress
         """If stress free computation is taken into considered."""
-
+        self._dynain_name = None
+        """lsdyna initial state file name, from zeropressure."""
         return
 
     def simulate(
@@ -572,12 +568,6 @@ class MechanicsSimulator(BaseSimulator):
             main simulation folder name.
 
         """
-        directory = os.path.join(self.root_directory, folder_name)
-        os.makedirs(directory, exist_ok=True)
-
-        if zerop_folder is None:
-            zerop_folder = os.path.join(self.root_directory, "zeropressure")
-
         if "apico-basal" not in self.model.mesh.point_data.keys():
             LOGGER.warning(
                 "Array named 'apico-basal' cannot be found, will compute"
@@ -585,24 +575,13 @@ class MechanicsSimulator(BaseSimulator):
             )
             self.compute_uhc()
 
+        directory = os.path.join(self.root_directory, folder_name)
+        os.makedirs(directory, exist_ok=True)
+
         if self.initial_stress:
-            # Use last iteration
-            # At least two iterations required?
-            dynain_files = glob.glob(os.path.join(zerop_folder, "iter*.dynain.lsda"))
-
-            # force natural ordering since iteration numbers are not padded with zeros.
-            dynain_files = natsort.natsorted(dynain_files)
-
-            if len(dynain_files) == 0:
-                LOGGER.error("No dynain file 'iter*.dynain.lsda found.")
-                exit()
-            elif len(dynain_files) == 1:
-                LOGGER.error("Only one dynain file found, expecting at least two.")
-                exit()
-
-            dynain_file = dynain_files[-1]
-            LOGGER.info(f"Using {dynain_file} for initial stress.")
-            shutil.copy(dynain_file, os.path.join(directory, "dynain.lsda"))
+            dynain_file = self._find_dynain_file(zerop_folder)
+            self._dynain_name = "dynain.lsda"
+            shutil.copy(dynain_file, os.path.join(directory, self._dynain_name))
 
         self._write_main_simulation_files(folder_name=folder_name)
 
@@ -615,7 +594,36 @@ class MechanicsSimulator(BaseSimulator):
 
         if auto_post:
             mech_post(pathlib.Path(directory), self.model)
+
         return
+
+    def _find_dynain_file(self, zerop_folder) -> str:
+        """Find dynain.lsda file of last iteration."""
+        if zerop_folder is None:
+            zerop_folder = os.path.join(self.root_directory, "zeropressure")
+
+        dynain_files = glob.glob(os.path.join(zerop_folder, "iter*.dynain.lsda"))
+        # force natural ordering since iteration numbers are not padded with zeros.
+        dynain_files = natsort.natsorted(dynain_files)
+
+        if len(dynain_files) == 0:
+            error_message = f"Files iter*.dynain.lsda not found in {zerop_folder}"
+            LOGGER.error(error_message)
+            raise FileNotFoundError(error_message)
+
+        elif len(dynain_files) == 1:
+            error_message = (
+                f"Only 1 iter*.dynain.lsda is found in {zerop_folder}, expect at least 2."
+            )
+
+            LOGGER.error(error_message)
+            raise IndexError(error_message)
+
+        else:
+            dynain_file = dynain_files[-1]
+            LOGGER.info(f"Using {dynain_file} for initial stress.")
+
+        return dynain_file
 
     def compute_stress_free_configuration(self, folder_name="zeropressure", overwrite: bool = True):
         """Compute the stress-free configuration of the model."""
@@ -652,13 +660,12 @@ class MechanicsSimulator(BaseSimulator):
     def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
-        self.directories["main-mechanics"] = export_directory
 
         dyna_writer = writers.MechanicsDynaWriter(
             self.model,
             self.settings,
         )
-        dyna_writer.update(with_dynain=self.initial_stress)
+        dyna_writer.update(dynain_name=self._dynain_name)
         dyna_writer.export(export_directory)
 
         return export_directory
@@ -666,7 +673,6 @@ class MechanicsSimulator(BaseSimulator):
     def _write_stress_free_configuration_files(self, folder_name) -> pathlib:
         """Write LS-DYNA files to compute stress-free configuration."""
         export_directory = os.path.join(self.root_directory, folder_name)
-        self.directories["zeropressure"] = export_directory
 
         model = copy.deepcopy(self.model)
         # Isolation part need to be created in Zerop because main will use its dynain.lsda
@@ -703,10 +709,9 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
     def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
-        self.directories["main-coupling"] = export_directory
 
         dyna_writer = writers.ElectroMechanicsDynaWriter(self.model, self.settings)
-        dyna_writer.update(with_dynain=self.initial_stress)
+        dyna_writer.update(dynain_name=self._dynain_name)
         dyna_writer.export(export_directory)
 
         return export_directory

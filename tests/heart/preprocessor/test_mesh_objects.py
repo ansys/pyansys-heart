@@ -420,7 +420,7 @@ def test_mesh_object_properties():
 
 
 def test_surface_mesh_init():
-    """Test whether SurfaceMesh __init__'s behaves similar to pv.PolyData init"""
+    """Test whether SurfaceMesh __init__'s behaves similar to pv.PolyData init."""
 
     sphere = pv.Sphere()
 

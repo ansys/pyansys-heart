@@ -10,7 +10,7 @@ from ansys_sphinx_theme import ansys_favicon, get_version_match
 from ansys.heart import __version__
 
 # Project information
-project = "ansys-heart"
+project = "pyansys-heart"
 copyright = f"(c) {datetime.now().year} ANSYS, Inc. All rights reserved"
 author = "ANSYS, Inc."
 release = version = __version__

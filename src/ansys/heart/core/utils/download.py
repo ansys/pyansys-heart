@@ -33,6 +33,7 @@ import rich.progress
 import validators
 
 from ansys.heart.core import LOG as LOGGER
+from ansys.heart.core.exceptions import DatabaseNotSupportedError
 
 _URLS = {
     "Strocchi2020": {"url": "https://zenodo.org/record/3890034", "num_cases": 24},
@@ -149,7 +150,7 @@ def download_case_from_zenodo(
         )
     """
     if database not in _VALID_DATABASES:
-        raise ValueError("Database not valid, please specify valid database: %s" % _VALID_DATABASES)
+        raise DatabaseNotSupportedError(database, f"Please choose one of {_VALID_DATABASES}")
 
     if database == "Rodero2021":
         save_dir = os.path.join(download_folder, database, "{:>02d}".format(case_number))

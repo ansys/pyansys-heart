@@ -30,12 +30,13 @@ import pytest
 import pyvista as pv
 from pyvista import examples as pyvista_examples
 
+from ansys.heart.core.exceptions import LSDYNATerminationError
 import ansys.heart.core.models as models
 from ansys.heart.simulator.settings.settings import DynaSettings
 
 # import after mocking.
 import ansys.heart.simulator.simulator as simulators
-from ansys.heart.simulator.simulator import LsDynaErrorTerminationError, run_lsdyna
+from ansys.heart.simulator.simulator import run_lsdyna
 
 
 def _get_md5(filename):
@@ -259,7 +260,7 @@ def test_run_dyna(settings):
 
                 # test exception is raised
                 mock_process.stdout = iter(["aaa\n", "bbb\n"])
-                with pytest.raises(LsDynaErrorTerminationError):
+                with pytest.raises(LSDYNATerminationError):
                     run_lsdyna(tmp_file, settings, curr_dir)
 
 

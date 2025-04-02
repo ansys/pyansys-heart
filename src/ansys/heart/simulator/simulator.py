@@ -63,6 +63,10 @@ _KILL_ANSYSCL_PRIOR_TO_RUN = True
 """Flag indicating whether to kill all ansys license clients prior to LS-DYNA run."""
 
 
+class LSDYNANotFoundError(FileNotFoundError):
+    """LSDYNA executable not found."""
+
+
 class BaseSimulator:
     """Base class for the simulator."""
 
@@ -93,10 +97,12 @@ class BaseSimulator:
             self.dyna_settings: DynaSettings = dyna_settings
             """Contains the settings to launch LS-DYNA."""
 
-        """Operating System."""
-        if shutil.which(self.dyna_settings.lsdyna_path) is None:
-            LOGGER.error(f"{self.dyna_settings.lsdyna_path} not exist")
-            exit()
+        if dyna_settings.platform != "wsl":
+            if shutil.which(self.dyna_settings.lsdyna_path) is None:
+                LOGGER.error(f"{self.dyna_settings.lsdyna_path} does not exist")
+                raise LSDYNANotFoundError(
+                    f"LS-DYNA executable {self.dyna_settings.lsdyna_path} not found."
+                )
 
         if simulation_directory == "":
             simulation_directory = os.path.join(self.model.workdir, "simulation")

@@ -106,7 +106,7 @@ def test_get_dyna_commands_001(dynatype, platform):
     ],
 )
 def test_get_dyna_commands_002(dynatype, platform):
-    """Test if get commands returns right command line arguments if dyna options are given"""
+    """Test if get commands returns right command line arguments if dyna options are given."""
     if dynatype == "msmpi" and platform != "windows":
         pytest.skip("MSMPI and %s are not compatible and does not make sense to test." % platform)
 

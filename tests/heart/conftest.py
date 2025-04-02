@@ -120,7 +120,7 @@ def compare_string_with_file(output: str, reference_file: str) -> None:
 
 
 def remove_keys_from_dict(dictionary: dict, exclude_keys=[]):
-    """Removes specific keys from the dictionary"""
+    """Removes specific keys from the dictionary."""
     new_d = {k: dictionary[k] for k in set(list(dictionary.keys())) - set(exclude_keys)}
     return new_d
 

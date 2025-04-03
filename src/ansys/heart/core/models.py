@@ -46,10 +46,10 @@ from ansys.heart.core.objects import (
     SurfaceMesh,
     _BeamsMesh,
 )
+from ansys.heart.core.preprocessor.input import _InputModel
+import ansys.heart.core.preprocessor.mesher as mesher
 import ansys.heart.core.utils.connectivity as connectivity
 import ansys.heart.core.utils.vtk_utils as vtk_utils
-from ansys.heart.preprocessor.input import _InputModel
-import ansys.heart.preprocessor.mesher as mesher
 from ansys.heart.simulator.settings.material.ep_material import EPMaterial
 from ansys.heart.simulator.settings.material.material import (
     ISO,

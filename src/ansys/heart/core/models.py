@@ -1516,7 +1516,9 @@ class HeartModel:
         # find orphan elements of atrial parts and assign to isolation part
         self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
         for atrium in [self.left_atrium, self.right_atrium]:
-            clean_obj = self.mesh.extract_cells(atrium.element_ids).connectivity(largest=True)
+            clean_obj = self.mesh.extract_cells(atrium.element_ids).connectivity(
+                extraction_mode="largest"
+            )
             connected_cells = clean_obj["cell_ids"]
             orphan_cells = np.setdiff1d(atrium.element_ids, connected_cells)
 
@@ -1643,7 +1645,7 @@ class HeartModel:
         unselect_eles = np.setdiff1d(
             np.hstack((self.left_atrium.element_ids, self.right_atrium.element_ids)), ring_eles
         )
-        largest = self.mesh.extract_cells(unselect_eles).connectivity(largest=True)
+        largest = self.mesh.extract_cells(unselect_eles).connectivity(extraction_mode="largest")
         connected_cells = largest["cell_ids"]
         orphan_cells = np.setdiff1d(unselect_eles, connected_cells)
         if len(orphan_cells) > 0:

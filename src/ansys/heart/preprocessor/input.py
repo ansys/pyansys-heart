@@ -40,6 +40,7 @@ import pyvista as pv
 import yaml
 
 from ansys.heart.core import LOG as LOGGER
+from ansys.heart.core.exceptions import InvalidInputModelTypeError
 from ansys.heart.core.utils.vtk_utils import add_solid_name_to_stl
 
 # BOUNDARIES_PER_HEART_PART stores the reference id's of the various parts and
@@ -467,7 +468,7 @@ def _get_required_parts(model_type: str) -> dict:
     try:
         part_names = _HEART_MODELS[model_type]
     except KeyError:
-        raise KeyError(
+        raise InvalidInputModelTypeError(
             "{0} invalid heart model type. Valid model types include: {1}".format(
                 model_type, list(_HEART_MODELS.keys())
             )

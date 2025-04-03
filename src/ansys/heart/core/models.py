@@ -36,6 +36,7 @@ import pyvista as pv
 import yaml
 
 from ansys.heart.core import LOG as LOGGER
+from ansys.heart.core.exceptions import InvalidHeartModelError
 from ansys.heart.core.objects import (
     BeamMesh,
     Cap,
@@ -1027,9 +1028,11 @@ class HeartModel:
         ]
 
         if len(septum_name) > 1:
-            raise ValueError("Expecting only one surface that contains string: 'septum'")
+            raise InvalidHeartModelError(
+                "Expecting only one surface that contains string: 'septum'"
+            )
         if len(septum_name) == 0:
-            raise ValueError("No boundary with name: 'septum' found")
+            raise InvalidHeartModelError("No boundary with name: 'septum' found")
         surface_septum = self.mesh.get_surface_by_name(septum_name[0])
 
         # extrude septum surface

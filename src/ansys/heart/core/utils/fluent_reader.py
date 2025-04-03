@@ -237,9 +237,7 @@ class _FluentMesh:
     def _read_cell_zone_info(self) -> List[_FluentCellZone]:
         """Initialize the list of cell zones."""
         cell_zone_names = (
-            np.chararray.tobytes(np.array(self.fid["meshes/1/cells/zoneTopology/name"]))
-            .decode()
-            .split(";")
+            np.array(self.fid["meshes/1/cells/zoneTopology/name"]).tobytes().decode().split(";")
         )
         cell_zone_ids = np.array(self.fid["meshes/1/cells/zoneTopology/id"], dtype=int)
         min_ids = np.array(self.fid["meshes/1/cells/zoneTopology/minId"], dtype=int)
@@ -263,11 +261,7 @@ class _FluentMesh:
         ids = np.array(self.fid["meshes/1/faces/zoneTopology/id"], dtype=int)
         max_ids = np.array(self.fid["meshes/1/faces/zoneTopology/maxId"], dtype=int)
         min_ids = np.array(self.fid["meshes/1/faces/zoneTopology/minId"], dtype=int)
-        names = (
-            np.chararray.tobytes(np.array(self.fid["meshes/1/faces/zoneTopology/name"]))
-            .decode()
-            .split(";")
-        )
+        names = np.array(self.fid["meshes/1/faces/zoneTopology/name"]).tobytes().decode().split(";")
         zone_types = np.array(self.fid["meshes/1/faces/zoneTopology/zoneType"], dtype=int)
         num_face_zones = len(ids)
         face_zones: List[_FluentFaceZone] = []

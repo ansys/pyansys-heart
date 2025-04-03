@@ -1,14 +1,14 @@
 [build-system]
-requires = ["flit_core >=3.2,<4"]
+requires = ["flit_core >=3.2,<3.11"]
 build-backend = "flit_core.buildapi"
 
 [project]
 # Check https://flit.readthedocs.io/en/latest/pyproject_toml.html for all available sections
-name = "pyansys-heart"
+name = "ansys-heart"
 version = "0.11.dev0"
 description = "Python framework for heart modeling using ANSYS tools."
 readme = "README.rst"
-requires-python = ">=3.10,<4"
+requires-python = ">=3.11,<4"
 license = { file = "LICENSE" }
 authors = [{ name = "ANSYS, Inc.", email = "pyansys.core@ansys.com" }]
 maintainers = [{ name = "ANSYS, Inc.", email = "pyansys.core@ansys.com" }]
@@ -40,19 +40,19 @@ dependencies = [
     "vtk>=9.1.0, < 9.4",
     "httpx>=0.28.1",
     "natsort>=8.4.0",
-    "rich>=13.9.4"
+    "rich>=13.9.4",
 ]
 
 # Optional dependencies:
 [project.optional-dependencies]
 doc = [
-    "ansys-sphinx-theme[autoapi]==1.3.2",
+    "ansys-sphinx-theme[autoapi]==1.3.3",
     "jupyter_sphinx==0.5.3",
     "myst-parser==4.0.1",
     "numpydoc==1.8.0",
-    "nbsphinx==0.9.6",
-    "sphinx==8.2.1",
-    "sphinx-autodoc-typehints==3.1.0",
+    "nbsphinx==0.9.7",
+    "sphinx==8.1.3",
+    "sphinx-autodoc-typehints==3.0.1",
     "sphinx-copybutton==0.5.2",
     "sphinx-gallery==0.19.0",
     "sphinx-jinja==2.0.2",
@@ -124,7 +124,7 @@ show_missing = true
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
-markers = ["extract_models", "requires_fluent", "k_file_writer", "local", "downloader"]
+markers = ["extract_models", "requires_fluent", "k_file_writer", "requires_dpf"]
 tmp_path_retention_count = 0                                      # do not keep the temporary path that is created
 tmp_path_retention_policy = "none"                                # directories always removed, regardless of outcome
 

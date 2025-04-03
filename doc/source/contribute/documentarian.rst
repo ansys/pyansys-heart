@@ -29,7 +29,7 @@ Write documentation
 
 The documentation generator used in PyAnsys Heart is `Sphinx`_. Most of the documents
 are written in `reStructuredText`_. Some parts of the documentation, like the
-:ref:`examples <Examples>`, use a mix of `reStructuredText`_ and Python, thanks to `Sphinx-Gallery`_.
+`examples <../examples/index>`_, use a mix of `reStructuredText`_ and Python, thanks to `Sphinx-Gallery`_.
 If you are interested in writing examples, see the :ref:`writing examples <write-examples>`
 section.
 
@@ -76,7 +76,7 @@ is declared.
 Write a new example
 ===================
 
-The :ref:`examples <Examples>` section of the documentation showcases different
+The `examples <../examples/index>`_ section of the documentation showcases different
 capabilities of PyAnsys Heart. Each example (grouped into folders of related examples)
 is a standalone Python script. Despite being ``*.py`` files, they are written in a mix
 of `reStructuredText`_ and Python. This is possible thanks to the `Sphinx-Gallery`_

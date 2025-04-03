@@ -20,12 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""
-Module that contains classes relevant for the mesh.
-
-Such as a Mesh object, Part object, Features, etc.
-
-"""
+"""Module that defines classes used in the heart model."""
 
 import copy
 from enum import Enum
@@ -183,7 +178,7 @@ class SurfaceMesh(pv.PolyData):
 
             elif num_extra_points < 0:
                 raise NotImplementedError(
-                    "Assigning less nodes than the original not implemented yet."
+                    "Assigning less nodes than the original, not implemented yet."
                 )
 
         except Exception as e:
@@ -375,7 +370,7 @@ class BeamMesh(pv.UnstructuredGrid, Feature):
         """Temporary attribute to save all previously created beam nodes."""
 
         self.ep_material: EPMaterial = EPMaterial.DummyMaterial()
-        """Initialize dummy ep material model"""
+        """Initialize dummy ep material model."""
 
 
 class Cavity(Feature):

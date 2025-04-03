@@ -30,12 +30,13 @@ import pytest
 import pyvista as pv
 from pyvista import examples as pyvista_examples
 
+from ansys.heart.core.exceptions import LSDYNATerminationError
 import ansys.heart.core.models as models
 from ansys.heart.simulator.settings.settings import DynaSettings
 
 # import after mocking.
 import ansys.heart.simulator.simulator as simulators
-from ansys.heart.simulator.simulator import LsDynaErrorTerminationError, run_lsdyna
+from ansys.heart.simulator.simulator import run_lsdyna
 
 
 def _get_md5(filename):
@@ -55,6 +56,7 @@ def base_simulator() -> simulators.BaseSimulator:
 
         setting = mock.Mock(spec=DynaSettings)
         setting.lsdyna_path = ""
+        setting.platform = ""
         simulation_directory = "."
         simulator = simulators.BaseSimulator(model, setting, simulation_directory)
 
@@ -75,6 +77,7 @@ def mechanics_simulator() -> simulators.MechanicsSimulator:
 
         setting = mock.Mock(spec=DynaSettings)
         setting.lsdyna_path = ""
+        setting.platform = ""
         simulation_directory = "."
         simulator = simulators.MechanicsSimulator(model, setting, simulation_directory)
         yield simulator
@@ -257,7 +260,7 @@ def test_run_dyna(settings):
 
                 # test exception is raised
                 mock_process.stdout = iter(["aaa\n", "bbb\n"])
-                with pytest.raises(LsDynaErrorTerminationError):
+                with pytest.raises(LSDYNATerminationError):
                     run_lsdyna(tmp_file, settings, curr_dir)
 
 
@@ -325,3 +328,31 @@ def test_mechanics_simulator_simulate(
             # TODO: unique files for that.
             md5 = _get_md5(os.path.join(tempdir, folder_name, "dynain.lsda"))
             assert md5 == md5_ref
+
+
+@pytest.mark.parametrize(
+    "dynain_files,expected,expected_error",
+    [
+        (
+            ["iter1.dynain.lsda", "iter2.dynain.lsda", "iter3.dynain.lsda"],
+            "iter3.dynain.lsda",
+            None,
+        ),
+        (["iter1.dynain.lsda", "iter2.dynain.lsda"], "iter2.dynain.lsda", None),
+        (["iter2.dynain.lsda", "iter1.dynain.lsda"], "iter2.dynain.lsda", None),
+        (["iter1.dynain.lsda"], None, IndexError),
+        ([], None, FileNotFoundError),
+    ],
+)
+def test_find_dynain_file(dynain_files, expected, expected_error, mechanics_simulator):
+    with mock.patch("glob.glob") as mock_glob:
+        mock_glob.return_value = dynain_files
+        zerop_folder = ""
+
+        if expected_error:
+            with pytest.raises(expected_error):
+                mechanics_simulator._find_dynain_file(zerop_folder)
+        else:
+            assert mechanics_simulator._find_dynain_file(zerop_folder) == expected
+
+        mock_glob.assert_called_once()

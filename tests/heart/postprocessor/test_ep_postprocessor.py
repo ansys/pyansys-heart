@@ -32,14 +32,11 @@ import pyvista as pv
 from ansys.heart.core.models import FullHeart
 from ansys.heart.postprocessor.dpf_utils import EPpostprocessor
 
-if os.getenv("GITHUB_ACTION"):
-    github_runner = True
-else:
-    github_runner = False
-pv.OFF_SCREEN = True
 
-
-#! @kelhouari can we get more sensible mock data?
+# TODO: test_compute_12lead_ECG requires better asserts and we may
+# TODO: want to add better test data that allows testing internals
+# TODO: of the method.
+# TODO: see issue #973
 def _create_mock_ECG_data() -> tuple:  # noqa N802
     """Create mock ECG data."""
     data = np.arange(10 * 12).reshape((12, 10)).T
@@ -82,7 +79,7 @@ def test_compute_12lead_ECG(to_plot, _mock_ep_postprocessor: EPpostprocessor):  
 
 
 def test_read_ECGs(_mock_ep_postprocessor: EPpostprocessor):  # noqa N802
-    """Read ECGs"""
+    """Read ECGs."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         data_expected = _create_mock_ECG_data()[-1]
         ecg_data_file = os.path.join(tempdir, "ecg.data")
@@ -92,16 +89,10 @@ def test_read_ECGs(_mock_ep_postprocessor: EPpostprocessor):  # noqa N802
         assert np.allclose(ecg, data_expected[:, 1:11])
 
 
-#! TODO: implement sensible asserts.
-#! TODO: reduce overlap with test_export_transmembrane_to_vtk
+# TODO: implement sensible asserts.
+# TODO: reduce overlap with test_export_transmembrane_to_vtk
 def test_compute_ECGs(_mock_ep_postprocessor: EPpostprocessor):  # noqa N802
     """Test the ECG computation."""
-    # mocks the following:
-    # vm, times = self.get_transmembrane_potential()
-    # self.reader.meshgrid
-    # used dummy data for:
-    # electrodes: (electrode positions)
-
     _mock_ep_postprocessor.reader = mock.Mock()
     _mock_ep_postprocessor.reader.meshgrid = pv.examples.load_tetbeam()
     vm = np.ones((10, _mock_ep_postprocessor.reader.meshgrid.n_points))
@@ -120,8 +111,12 @@ def test_compute_ECGs(_mock_ep_postprocessor: EPpostprocessor):  # noqa N802
     pass
 
 
-@pytest.mark.skipif(github_runner, reason="Interactive update fails on github runner")
-def test_export_transmembrane_to_vtk(_mock_ep_postprocessor: EPpostprocessor):
+@mock.patch("pyvista.Plotter.show")
+@mock.patch("pyvista.Plotter.update_scalars")
+@mock.patch("pyvista.Plotter.update")
+def test_export_transmembrane_to_vtk(
+    mock_update, mock_update_scalars, mock_show, _mock_ep_postprocessor: EPpostprocessor
+):
     """Test exporting to VTK."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         _mock_ep_postprocessor.reader = mock.Mock()
@@ -129,12 +124,10 @@ def test_export_transmembrane_to_vtk(_mock_ep_postprocessor: EPpostprocessor):
         vm = np.ones((10, _mock_ep_postprocessor.reader.meshgrid.n_points))
         times = np.arange(0, 10)
 
-        # mock get_transmembrane_potential
         with mock.patch(
             "ansys.heart.postprocessor.dpf_utils.EPpostprocessor.get_transmembrane_potential",  # noqa E501
             return_value=(vm, times),
         ) as mock_get_transmembrane:
-            # mock create_post_folder:
             with mock.patch(
                 "ansys.heart.postprocessor.dpf_utils.EPpostprocessor.create_post_folder",
                 return_value=tempdir,
@@ -146,5 +139,8 @@ def test_export_transmembrane_to_vtk(_mock_ep_postprocessor: EPpostprocessor):
 
                 assert len(glob.glob(os.path.join(tempdir, "*.vtk"))) == 10
 
-                #! TODO: do we need asserts?
                 _mock_ep_postprocessor.animate_transmembrane()
+
+                assert mock_update.call_count == vm.shape[0]
+                assert mock_update_scalars.call_count == vm.shape[0]
+                mock_show.assert_called_once()

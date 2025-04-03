@@ -34,6 +34,7 @@ import pyvista as pv
 import ansys.fluent.core as pyfluent
 from ansys.fluent.core.session_meshing import Meshing as MeshingSession
 from ansys.heart.core import LOG as LOGGER
+from ansys.heart.core.exceptions import SupportedFluentVersionNotFoundError
 from ansys.heart.core.objects import Mesh, SurfaceMesh
 from ansys.heart.core.utils.fluent_reader import _FluentCellZone, _FluentMesh
 from ansys.heart.core.utils.vtk_utils import (
@@ -47,6 +48,9 @@ _num_cpus: bool = 2
 
 # check whether containerized version of Fluent is used
 _uses_container = bool(int(os.getenv("PYFLUENT_LAUNCH_CONTAINER", False)))
+if _uses_container:
+    _supported_fluent_versions = ["24.2", "24.1"]
+
 _fluent_ui_mode = pyfluent.UIMode(os.getenv("PYFLUENT_UI_MODE", pyfluent.UIMode.HIDDEN_GUI))
 
 LOGGER.debug(f"Fluent user interface mode: {_fluent_ui_mode.value}")
@@ -57,7 +61,7 @@ def _get_supported_fluent_version():
     if os.getenv("PYANSYS_HEART_FLUENT_VERSION", None):
         version = os.getenv("PYANSYS_HEART_FLUENT_VERSION")
         if version not in _supported_fluent_versions:
-            raise ValueError(
+            raise SupportedFluentVersionNotFoundError(
                 f"Fluent version {version} is not supported. Supported versions are: {_supported_fluent_versions}"  # noqa: E501
             )
         return version
@@ -72,7 +76,7 @@ def _get_supported_fluent_version():
             return version
         except Exception:
             pass
-    raise Exception(
+    raise SupportedFluentVersionNotFoundError(
         f"""Did not find a supported Fluent version,
         please install one of {_supported_fluent_versions}"""
     )
@@ -148,6 +152,10 @@ def _assign_part_id_to_orphan_cells(grid: pv.UnstructuredGrid, scalar="part-id")
     """Use closest point interpolation to assign part id to orphan cells."""
     grid.cell_data["_original-cell-ids"] = np.arange(0, grid.n_cells)
     orphans = grid.extract_cells(grid.cell_data[scalar] == 0)
+
+    if orphans.n_cells == 0:
+        LOGGER.debug("No orphan cells detected.")
+        return grid
 
     LOGGER.debug(f"Assigning part ids to {orphans.n_cells} orphan cells.")
 

@@ -25,6 +25,7 @@
 import pytest
 
 import ansys.fluent.core as pyfluent
+from ansys.heart.preprocessor.mesher import _get_supported_fluent_version
 
 # marks all tests with the 'requires_fluent' tag after this line
 pytestmark = pytest.mark.requires_fluent
@@ -39,6 +40,7 @@ def test_launch_fluent():
             processor_count=1,
             start_transcript=False,
             ui_mode="no_gui",
+            product_version=_get_supported_fluent_version(),
         )
         assert session._fluent_connection.check_health() == "SERVING"
         # try to initialize workflow

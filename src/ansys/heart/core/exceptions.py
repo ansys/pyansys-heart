@@ -20,25 +20,41 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""PyAnsys Heart is a Python framework for heart modeling using ANSYS tools."""
+"""Custom exceptions for the PyAnsys-Heart package."""
 
-try:
-    import importlib.metadata as importlib_metadata
-except ModuleNotFoundError:  # pragma: no cover
-    import importlib_metadata
 
-from ansys.heart.core import LOG
+class LSDYNATerminationError(BaseException):
+    """Exception raised when `Normal Termination` is not found in the LS-DYNA logs."""
 
-__version__ = importlib_metadata.version("ansys-heart")
-"""The version of pyansys-heart."""
+    def __init__(self):
+        super().__init__("The LS-DYNA process did not terminate as expected.")
 
-# Flag to turn off visualization of plotters
-try:
-    import os
 
-    import pyvista as pv
+class DatabaseNotSupportedError(NotImplementedError):
+    """Exception raised when the database is not supported."""
 
-    pv.OFF_SCREEN = bool(os.environ["PYVISTA_OFF_SCREEN"])
-    LOG.debug(f"Pyvista OFF_SCREEN: {pv.OFF_SCREEN}")
-except KeyError:
-    pass
+    def __init__(self, db_type, message):
+        super().__init__(f"Database type '{db_type}' is not supported. {message}.")
+
+
+class SupportedDPFServerNotFoundError(Exception):
+    """Exception raised when no supported DPF server is found."""
+
+
+class SupportedFluentVersionNotFoundError(Exception):
+    """Exception raised when no supported Fluent version is found."""
+
+
+class InvalidInputModelTypeError(TypeError):
+    """Exception raised when the input heart model type is invalid."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
+class InvalidHeartModelError(Exception):
+    """Exception raised when the heart model is invalid."""
+
+
+class LSDYNANotFoundError(FileNotFoundError):
+    """LSDYNA executable not found."""

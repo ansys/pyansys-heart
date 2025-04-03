@@ -1,3 +1,4 @@
+# This file is part of the labeler action for GitHub.
 documentation:
 - changed-files:
   - any-glob-to-any-file: ['doc/source/**/*', 'README.rst']

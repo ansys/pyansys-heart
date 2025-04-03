@@ -32,6 +32,7 @@ import pyvista as pv
 
 from ansys.dpf import core as dpf
 from ansys.heart.core import LOG as LOGGER
+from ansys.heart.core.exceptions import SupportedDPFServerNotFoundError
 from ansys.heart.core.models import HeartModel
 
 _SUPPORTED_DPF_SERVERS = ["2024.1", "2024.1rc1", "2024.2rc0"]
@@ -51,12 +52,6 @@ def _check_accept_dpf():
         )
         exit()
     return
-
-
-class SupportedDPFServerNotFoundError(Exception):
-    """SupportedDPFServerNotFoundError."""
-
-    pass
 
 
 class D3plotReader:

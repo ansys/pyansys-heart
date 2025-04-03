@@ -46,6 +46,7 @@ import psutil
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
+from ansys.heart.core.exceptions import LSDYNANotFoundError, LSDYNATerminationError
 from ansys.heart.core.models import FourChamber, HeartModel, LeftVentricle
 from ansys.heart.core.objects import _ConductionType
 from ansys.heart.core.utils.misc import _read_orth_element_kfile
@@ -94,10 +95,12 @@ class BaseSimulator:
             self.dyna_settings: DynaSettings = dyna_settings
             """Contains the settings to launch LS-DYNA."""
 
-        """Operating System."""
-        if shutil.which(self.dyna_settings.lsdyna_path) is None:
-            LOGGER.error(f"{self.dyna_settings.lsdyna_path} not exist")
-            exit()
+        if self.dyna_settings.platform != "wsl":
+            if shutil.which(self.dyna_settings.lsdyna_path) is None:
+                LOGGER.error(f"{self.dyna_settings.lsdyna_path} does not exist")
+                raise LSDYNANotFoundError(
+                    f"LS-DYNA executable {self.dyna_settings.lsdyna_path} not found."
+                )
 
         if simulation_directory == "":
             simulation_directory = os.path.join(self.model.workdir, "simulation")
@@ -737,13 +740,6 @@ def _kill_all_ansyscl():
         LOGGER.warning(f"Failed to kill all ansyscl's: {e}")
 
 
-class LsDynaErrorTerminationError(Exception):
-    """Exception raised when `N o r m a l    t e r m i n a t i o n` is not found."""
-
-    def __init__(self):
-        super().__init__("The LS-DYNA process did not terminate as expected.")
-
-
 def run_lsdyna(
     path_to_input: pathlib,
     settings: DynaSettings = None,
@@ -787,6 +783,6 @@ def run_lsdyna(
     if "N o r m a l    t e r m i n a t i o n" not in "".join(mess):
         if "numNodePurkinje" not in "".join(mess):
             LOGGER.error("LS-DYNA did not terminate properly.")
-            raise LsDynaErrorTerminationError()
+            raise LSDYNATerminationError()
 
     return

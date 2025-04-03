@@ -30,7 +30,7 @@ import numpy as np
 import pandas as pd
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.postprocessor.dpf_utils import ICVoutReader
+from ansys.heart.core.postprocessor.dpf_utils import ICVoutReader
 from ansys.heart.simulator.settings.settings import SimulationSettings
 
 

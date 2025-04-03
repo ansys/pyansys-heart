@@ -27,7 +27,7 @@ import numpy as np
 import pytest
 import pyvista as pv
 
-from ansys.heart.postprocessor.laplace_post import (
+from ansys.heart.core.postprocessor.laplace_post import (
     compute_la_fiber_cs,
     compute_ra_fiber_cs,
     compute_ventricle_fiber_by_drbm,

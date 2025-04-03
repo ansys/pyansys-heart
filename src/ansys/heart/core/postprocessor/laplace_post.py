@@ -29,7 +29,7 @@ import numpy as np
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.postprocessor.dpf_utils import D3plotReader
+from ansys.heart.core.postprocessor.dpf_utils import D3plotReader
 from ansys.heart.simulator.settings.settings import AtrialFiber
 
 

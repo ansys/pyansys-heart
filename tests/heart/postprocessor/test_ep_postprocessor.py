@@ -30,7 +30,7 @@ import pytest
 import pyvista as pv
 
 from ansys.heart.core.models import FullHeart
-from ansys.heart.postprocessor.dpf_utils import EPpostprocessor
+from ansys.heart.core.postprocessor.dpf_utils import EPpostprocessor
 
 
 # TODO: test_compute_12lead_ECG requires better asserts and we may

@@ -33,7 +33,7 @@ import numpy as np
 import pytest
 
 from ansys.dpf import core as dpf
-from ansys.heart.postprocessor.dpf_utils import D3plotReader, ICVoutReader
+from ansys.heart.core.postprocessor.dpf_utils import D3plotReader, ICVoutReader
 from tests.heart.conftest import get_assets_folder
 
 

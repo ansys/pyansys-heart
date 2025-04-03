@@ -91,8 +91,8 @@ from ansys.heart.writer.keyword_utils import (
 from ansys.heart.writer.material_keywords import MaterialHGOMyocardium, MaterialNeoHook
 
 
-class BoundaryType(Enum):
-    """Boundy condition type."""
+class _BoundaryConditionType(Enum):
+    """Boundary condition type."""
 
     FIX = "fix"
     ROBIN = "Robin"
@@ -829,7 +829,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # for boundary conditions
         if robin_bcs is None:
             # default BC
-            self._add_cap_bc(bc_type=BoundaryType.ROBIN)
+            self._add_cap_bc(bc_type=_BoundaryConditionType.ROBIN)
         else:
             # loop for every Robin BC function
             for robin_bc in robin_bcs:
@@ -1224,7 +1224,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 )
                 self.kw_database.material.append(material_kw)
 
-    def _add_cap_bc(self, bc_type: BoundaryType):
+    def _add_cap_bc(self, bc_type: _BoundaryConditionType):
         """Add boundary condition to the cap.
 
         Parameters
@@ -1236,7 +1236,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # create list of cap names where to add the spring b.c
         constraint_caps = self._get_contraint_caps()
 
-        if bc_type == BoundaryType.FIX:
+        if bc_type == _BoundaryConditionType.FIX:
             for part in self.model.parts:
                 for cap in part.caps:
                     if cap.type in constraint_caps:
@@ -1249,7 +1249,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                         self.kw_database.boundary_conditions.append(kw_fix)
 
         # if bc type is springs -> add springs
-        elif bc_type == BoundaryType.ROBIN:
+        elif bc_type == _BoundaryConditionType.ROBIN:
             part_id = self.get_unique_part_id()
             section_id = self.get_unique_section_id()
             mat_id = self.get_unique_mat_id()
@@ -1865,7 +1865,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # for boundary conditions
         if robin_bcs is None:
             # default BC
-            self._add_cap_bc(bc_type=BoundaryType.FIX)
+            self._add_cap_bc(bc_type=_BoundaryConditionType.FIX)
         else:
             # loop for every Robin BC function
             for robin_bc in robin_bcs:

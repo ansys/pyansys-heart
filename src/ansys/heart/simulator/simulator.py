@@ -667,7 +667,6 @@ class MechanicsSimulator(BaseSimulator):
             self.model,
             self.settings,
         )
-
         dyna_writer.update(dynain_name=self._dynain_name)
         dyna_writer.export(export_directory)
 

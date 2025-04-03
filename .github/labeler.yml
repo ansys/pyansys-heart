@@ -1,22 +1,29 @@
 documentation:
-- changed-files:
-  - any-glob-to-any-file: ['doc/source/**/*', 'README.rst']
+  - changed-files:
+    - any-glob-to-any-file: ['doc/source/**/*', 'README.rst']
+
 maintenance:
-- changed-files:
-  - any-glob-to-any-file: ['pyproject.toml']
+  - changed-files:
+    - any-glob-to-any-file: ['pyproject.toml']
+
 testing:
-- changed-files:
-  - any-glob-to-any-file: ['tests/**/*']
+  - changed-files:
+    - any-glob-to-any-file: ['tests/**/*']
+
 dependencies:
-- changed-files:
-  - any-glob-to-any-file: ['pyproject.toml']
+  - changed-files:
+    - any-glob-to-any-file: ['pyproject.toml']
+
 fix:
   - head-branch: ['fix']
+
 enhancement:
   - head-branch: ['feat']
+
 ci:
   - changed-files:
     - any-glob-to-any-file: ['.github/workflows/**']
+
 test:skip:
   - changed-files:
     - any-glob-to-any-file: ['THIS-NEVER-MATCHES-A-FILE']

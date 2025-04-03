@@ -29,6 +29,7 @@ Uses a HeartModel (from ansys.heart.preprocessor.models).
 """
 
 import copy
+from enum import Enum
 import json
 
 # import missing keywords
@@ -88,6 +89,13 @@ from ansys.heart.writer.keyword_utils import (
     get_list_of_used_ids,
 )
 from ansys.heart.writer.material_keywords import MaterialHGOMyocardium, MaterialNeoHook
+
+
+class _BoundaryConditionType(Enum):
+    """Boundary condition type."""
+
+    FIX = "fix"
+    ROBIN = "Robin"
 
 
 class CVInteraction(NamedTuple):
@@ -821,7 +829,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # for boundary conditions
         if robin_bcs is None:
             # default BC
-            self._add_cap_bc(bc_type="springs_caps")
+            self._add_cap_bc(bc_type=_BoundaryConditionType.ROBIN)
         else:
             # loop for every Robin BC function
             for robin_bc in robin_bcs:
@@ -1216,46 +1224,22 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 )
                 self.kw_database.material.append(material_kw)
 
-    def _add_cap_bc(self, bc_type: str):
+    def _add_cap_bc(self, bc_type: _BoundaryConditionType):
         """Add boundary condition to the cap.
 
         Parameters
         ----------
-        bc_type : str
-            Boundary condition type. Valid bc's include: ["fix_caps", "springs_caps"].
+        bc_type : BoundaryType
+           Boundary condition type.
+
         """
-        bc_settings = self.settings.mechanics.boundary_conditions
-
-        valid_bcs = ["fix_caps", "springs_caps"]
-        if bc_type not in valid_bcs:
-            raise ValueError("Cap/Valve boundary condition must be of type: %r" % valid_bcs)
-
         # create list of cap names where to add the spring b.c
-        caps_to_use = []
-        if isinstance(self.model, LeftVentricle):
-            caps_to_use = [CapType.MITRAL_VALVE, CapType.AORTIC_VALVE]
-        elif isinstance(self.model, BiVentricle):
-            caps_to_use = [
-                CapType.MITRAL_VALVE,
-                CapType.AORTIC_VALVE,
-                CapType.TRICUSPID_VALVE,
-                CapType.PULMONARY_VALVE,
-            ]
+        constraint_caps = self._get_contraint_caps()
 
-        elif isinstance(self.model, (FourChamber, FullHeart)):
-            caps_to_use = [
-                CapType.SUPERIOR_VENA_CAVA,
-                CapType.RIGHT_INFERIOR_PULMONARY_VEIN,
-                CapType.RIGHT_SUPERIOR_PULMONARY_VEIN,
-            ]
-            if isinstance(self, ZeroPressureMechanicsDynaWriter):
-                # add additional constraint to avoid rotation
-                caps_to_use.extend([CapType.PULMONARY_VALVE])
-
-        if bc_type == "fix_caps":
+        if bc_type == _BoundaryConditionType.FIX:
             for part in self.model.parts:
                 for cap in part.caps:
-                    if cap.type in caps_to_use:
+                    if cap.type in constraint_caps:
                         kw_fix = keywords.BoundarySpcSet()
                         kw_fix.nsid = cap._node_set_id
                         kw_fix.dofx = 1
@@ -1265,16 +1249,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
                         self.kw_database.boundary_conditions.append(kw_fix)
 
         # if bc type is springs -> add springs
-        # NOTE add to boundary condition db or separate spring db?
-        elif bc_type == "springs_caps":
+        elif bc_type == _BoundaryConditionType.ROBIN:
             part_id = self.get_unique_part_id()
             section_id = self.get_unique_section_id()
             mat_id = self.get_unique_mat_id()
 
+            # read spring settings
+            bc_settings = self.settings.mechanics.boundary_conditions
             spring_stiffness = bc_settings.valve["stiffness"].m
-            if type(self) is ZeroPressureMechanicsDynaWriter:
-                spring_stiffness *= 1e16
-
             scale_factor_normal = bc_settings.valve["scale_factor"]["normal"]
             scale_factor_radial = bc_settings.valve["scale_factor"]["radial"]
 
@@ -1288,9 +1270,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 }
             )
             part_kw.parts = part_df
-
             section_kw = keywords.SectionDiscrete(secid=section_id, cdl=0, tdl=0)
-
             mat_kw = keywords.MatSpringElastic(mid=mat_id, k=spring_stiffness)
 
             self.kw_database.boundary_conditions.append(part_kw)
@@ -1300,7 +1280,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             # add springs for each cap
             caps = [cap for part in self.model.parts for cap in part.caps]
             for cap in caps:
-                if cap.type in caps_to_use:
+                if cap.type in constraint_caps:
                     self.kw_database.boundary_conditions.append(f"$$ spring at {cap.name}$$")
                     self._add_springs_cap_edge(
                         cap,
@@ -1310,6 +1290,34 @@ class MechanicsDynaWriter(BaseDynaWriter):
                     )
 
         return
+
+    def _get_contraint_caps(self):
+        """Get list of constraint caps depending on models."""
+        constraint_caps = []
+
+        if isinstance(self.model, LeftVentricle):
+            constraint_caps = [CapType.MITRAL_VALVE, CapType.AORTIC_VALVE]
+
+        elif isinstance(self.model, BiVentricle):
+            constraint_caps = [
+                CapType.MITRAL_VALVE,
+                CapType.AORTIC_VALVE,
+                CapType.TRICUSPID_VALVE,
+                CapType.PULMONARY_VALVE,
+            ]
+
+        elif isinstance(self.model, (FourChamber, FullHeart)):
+            constraint_caps = [
+                CapType.SUPERIOR_VENA_CAVA,
+                CapType.RIGHT_INFERIOR_PULMONARY_VEIN,
+                CapType.RIGHT_SUPERIOR_PULMONARY_VEIN,
+            ]
+
+            if isinstance(self, ZeroPressureMechanicsDynaWriter):
+                # add additional constraint to avoid rotation
+                constraint_caps.extend([CapType.PULMONARY_VALVE])
+
+        return constraint_caps
 
     def _add_springs_cap_edge(
         self,
@@ -1857,7 +1865,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # for boundary conditions
         if robin_bcs is None:
             # default BC
-            self._add_cap_bc(bc_type="fix_caps")
+            self._add_cap_bc(bc_type=_BoundaryConditionType.FIX)
         else:
             # loop for every Robin BC function
             for robin_bc in robin_bcs:

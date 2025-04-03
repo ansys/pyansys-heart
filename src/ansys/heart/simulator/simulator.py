@@ -48,6 +48,7 @@ import pyvista as pv
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.exceptions import LSDYNANotFoundError, LSDYNATerminationError
 from ansys.heart.core.models import FourChamber, HeartModel, LeftVentricle
+from ansys.heart.core.objects import _ConductionType
 from ansys.heart.core.utils.misc import _read_orth_element_kfile
 from ansys.heart.postprocessor.auto_process import mech_post, zerop_post
 from ansys.heart.postprocessor.laplace_post import (
@@ -467,11 +468,13 @@ class EPSimulator(BaseSimulator):
         LOGGER.info("Assign the Purkinje network to the model...")
 
         purkinje_k_file = os.path.join(directory, "purkinjeNetwork_001.k")
-        self.model.add_purkinje_from_kfile(purkinje_k_file, "Left-purkinje")
+        self.model.add_purkinje_from_kfile(purkinje_k_file, _ConductionType.LEFT_PURKINJE.value)
 
         if not isinstance(self.model, LeftVentricle):
             purkinje_k_file = os.path.join(directory, "purkinjeNetwork_002.k")
-            self.model.add_purkinje_from_kfile(purkinje_k_file, "Right-purkinje")
+            self.model.add_purkinje_from_kfile(
+                purkinje_k_file, _ConductionType.RIGHT_PURKINJE.value
+            )
 
     def compute_conduction_system(self):
         """Compute the conduction system."""
@@ -481,22 +484,30 @@ class EPSimulator(BaseSimulator):
             cs = ConductionSystem(self.model)
             cs.compute_sa_node()
             cs.compute_av_node()
-            cs.compute_av_conduction(beam_length=beam_length)
+            cs.compute_av_conduction()
             _, left_point, right_point = cs.compute_his_conduction(beam_length=beam_length)
+            end_coord = cs.m.conduction_system.get_lines_by_name(
+                _ConductionType.LEFT_PURKINJE.value
+            ).points[0]
             cs.compute_left_right_bundle(
-                left_point.xyz, left_point.node_id, side="Left", beam_length=beam_length
+                left_point.xyz, end_coord=end_coord, side=_ConductionType.LEFT_BUNDLE_BRANCH.value
             )
+            end_coord = cs.m.conduction_system.get_lines_by_name(
+                _ConductionType.RIGHT_PURKINJE.value
+            ).points[0]
             cs.compute_left_right_bundle(
-                right_point.xyz, right_point.node_id, side="Right", beam_length=beam_length
+                right_point.xyz, end_coord=end_coord, side=_ConductionType.RIGHT_BUNDLE_BRANCH.value
             )
-
             # # TODO: define end point by uhc, or let user choose
             # Note: must on surface after zerop if coupled with meca
-            # cs.compute_bachman_bundle(
+            # cs._compute_bachman_bundle(
             #     start_coord=self.model.right_atrium.get_point("SA_node").xyz,
             #     end_coord=np.array([-34, 163, 413]),
             # )
-            return cs
+            cs._connect_to_solid(component_id=3, local_point_ids=0)
+        else:
+            LOGGER.info("Not implemented for other than FourChamber models.")
+        return cs
 
     def _write_main_simulation_files(self, folder_name):
         """Write LS-DYNA files that are used to start the main simulation."""

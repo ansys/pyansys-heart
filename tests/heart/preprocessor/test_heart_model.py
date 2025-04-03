@@ -236,12 +236,10 @@ def test_heart_model_add_purkinje_from_file():
             f.writelines(lines)
         model.add_purkinje_from_kfile(temp_path, "purkinje1")
 
-        assert len(model.beam_network) == 1
-        assert model.beam_network[0].pid == 8
-        assert model.beam_network[0].name == "purkinje1"
-        assert np.all(model.beam_network[0].edges == np.array([[0, 1], [0, 2]]))
+        assert len(model.conduction_system.line_ids) == 1
+        assert np.all(model.conduction_system.get_lines(1).lines == np.array([2, 0, 1, 2, 0, 2]))
         assert np.allclose(
-            model.beam_network[0].points,
+            model.conduction_system.get_lines(1).points,
             np.array(
                 [
                     [0.117289119795e03, 0.244318845738e02, 0.883234881118e01],

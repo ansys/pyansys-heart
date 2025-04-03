@@ -28,7 +28,7 @@ import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.models import FourChamber
-from ansys.heart.core.objects import BeamMesh, CapType, Point, SurfaceMesh
+from ansys.heart.core.objects import CapType, Point, SurfaceMesh, _BeamsMesh, _ConductionType
 
 
 def _create_line(point_start: np.array, point_end: np.array, beam_length: float):
@@ -151,7 +151,7 @@ class ConductionSystem:
 
         return atrioventricular_point
 
-    def compute_av_conduction(self, beam_length: float = 1.5) -> BeamMesh:
+    def compute_av_conduction(self) -> _BeamsMesh:
         """Compute Atrio-Ventricular conduction by means of beams following a geodesic path."""
         right_atrium_endo = self.m.mesh.get_surface(self.m.right_atrium.endocardium.id)
 
@@ -177,22 +177,12 @@ class ConductionSystem:
         path_sinoatrial_atrioventricular = right_atrium_endo.geodesic(
             sino_atrial_id_local, atrio_ventricular_id_local
         )
-        beam_nodes = path_sinoatrial_atrioventricular.points
 
-        beam_nodes = _refine_line(beam_nodes, beam_length=beam_length)[1:, :]
+        beamnet = pv.lines_from_points(path_sinoatrial_atrioventricular.points)
+        id = self.m.conduction_system.get_unique_lines_id()
+        self.m.conduction_system.add_lines(lines=beamnet, id=id, name=_ConductionType.SAN_AVN.value)
 
-        # duplicate nodes inside the line, connect only SA node (the first) with 3D
-        point_ids = np.linspace(0, len(beam_nodes) - 1, len(beam_nodes), dtype=int)
-        point_ids = np.insert(point_ids, 0, sino_atrial_id)
-        # build connectivity table
-        edges = np.vstack((point_ids[:-1], point_ids[1:])).T
-
-        mask = np.ones(edges.shape, dtype=bool)
-        mask[0, 0] = False  # SA point at solid
-
-        beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="SAN_to_AVN")
-
-        return beam_net
+        return beamnet
 
     def _get_hisbundle_bifurcation(self):
         """
@@ -226,30 +216,10 @@ class ConductionSystem:
 
         return bifurcation_coord
 
-    def compute_his_conduction(self, beam_length: float = 1.5) -> tuple[BeamMesh, Point, Point]:
+    def compute_his_conduction(self, beam_length: float = 1.5) -> tuple[_BeamsMesh, Point, Point]:
         """Compute His bundle conduction."""
         bifurcation_coord = self._get_hisbundle_bifurcation()
 
-        # path start from AV point, to septum start point, then to septum end point
-        av_id = None
-        for beam in self.m.beam_network:
-            if beam.name == "SAN_to_AVN":
-                av_id = beam.edges[-1, -1]
-                break
-
-        if av_id is None:
-            LOGGER.error(
-                "Unable to find the last node of SAN_to_AVN branch, please define manually."
-            )
-            exit()
-
-        # create nodes from start to end
-        # new_nodes = np.array(
-        #     [
-        #         self.m.right_atrium.get_point("AV_node").xyz,
-        #         bifurcation_coord,
-        #     ]
-        # )
         sgmt_top, nodes = self.find_path(
             self.m.mesh,
             self.m.right_atrium.get_point("AV_node").xyz,
@@ -257,54 +227,36 @@ class ConductionSystem:
         )
         new_nodes = self.m.mesh.points[nodes]
         new_nodes = _refine_line(new_nodes, beam_length=beam_length)
-        new_nodes = new_nodes[1:, :]
-
-        point_ids = np.concatenate(
-            (
-                np.array([av_id]),
-                +np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int),
-            )
-        )
-        bifurcation_id = point_ids[-1]
-        # create beam
-        edges = np.vstack((point_ids[:-1], point_ids[1:])).T
+        new_nodes[0] = self.m.conduction_system.get_lines_by_name("SAN_to_AVN").points[-1]
+        beamnet = pv.lines_from_points(new_nodes)
+        id = self.m.conduction_system.get_unique_lines_id()
+        self.m.conduction_system.add_lines(lines=beamnet, id=id, name=_ConductionType.HIS.value)
 
         (
-            position_id_his_end_left,
             his_end_left_coord,
-            new_nodes,
-            edges,
+            new_nodes_left,
             sgmt_left,
         ) = self._create_his_side(
             side="left",
-            new_nodes=new_nodes,
-            edges=edges,
             beam_length=beam_length,
             bifurcation_coord=bifurcation_coord,
-            bifurcation_id=bifurcation_id,
         )
+        beamnet = pv.lines_from_points(new_nodes_left)
+        self.m.conduction_system.add_lines(lines=beamnet, id=id, name=_ConductionType.HIS.value)
         (
-            position_id_his_end_right,
             his_end_right_coord,
-            new_nodes,
-            edges,
+            new_nodes_right,
             sgmt_right,
         ) = self._create_his_side(
             side="right",
-            new_nodes=new_nodes,
-            edges=edges,
             beam_length=beam_length,
             bifurcation_coord=bifurcation_coord,
-            bifurcation_id=bifurcation_id,
         )
-        # finally
-        mask = np.ones(edges.shape, dtype=bool)
-        mask[0, 0] = False  # AV point at previous, not offset in creation
 
-        beam_net = self.m.add_beam_net(new_nodes, edges, mask, pid=0, name="His")
-        beam_net.beam_nodes_mask[0, 0] = True  # offset in writer
-
-        #
+        beamnet = pv.lines_from_points(new_nodes_right)
+        beam_net = self.m.conduction_system.add_lines(
+            lines=beamnet, id=id, name=_ConductionType.HIS.value
+        )
 
         surf = SurfaceMesh(
             name="his_bundle_segment",
@@ -321,11 +273,9 @@ class ConductionSystem:
             beam_net,
             Point(
                 xyz=his_end_left_coord,
-                node_id=beam_net.edges[position_id_his_end_left[0], position_id_his_end_left[1]],
             ),
             Point(
                 xyz=his_end_right_coord,
-                node_id=beam_net.edges[position_id_his_end_right[0], position_id_his_end_right[1]],
             ),
         )
 
@@ -413,9 +363,7 @@ class ConductionSystem:
         else:
             return path2
 
-    def _create_his_side(
-        self, side: str, new_nodes, edges, beam_length, bifurcation_coord, bifurcation_id
-    ):
+    def _create_his_side(self, side: str, beam_length, bifurcation_coord):
         """Create His side after bifucation."""
         if side.lower() == "left":
             endo = self.m.mesh.get_surface(self.m.left_ventricle.endocardium.id)
@@ -435,29 +383,15 @@ class ConductionSystem:
         side_his = self.m.mesh.points[nodes]
 
         side_his = _refine_line(side_his, beam_length=beam_length)
-        new_nodes = np.vstack((new_nodes, side_his[1:, :]))
 
-        side_his_point_ids = np.concatenate(
-            (
-                np.array([bifurcation_id]),
-                edges[-1, -1]
-                + 1
-                + np.linspace(0, len(side_his[1:, :]) - 1, len(side_his[1:, :]), dtype=int),
-            )
-        )
+        return (side_his[-1], side_his, sgmt)
 
-        edges = np.vstack(
-            (edges, np.column_stack((side_his_point_ids[:-1], side_his_point_ids[1:])))
-        )
-        position_id_his_end = np.argwhere(edges == side_his_point_ids[-1])[0]
-        return (position_id_his_end, his_end_coord, new_nodes, edges, sgmt)
-
-    def compute_left_right_bundle(self, start_coord, start_id, side: str, beam_length: float = 1.5):
+    def compute_left_right_bundle(self, start_coord, end_coord, side: str):
         """Bundle branch."""
-        if side == "Left":
+        if side == _ConductionType.LEFT_BUNDLE_BRANCH.value:
             ventricle = self.m.left_ventricle
             endo_surface = self.m.mesh.get_surface(self.m.left_ventricle.endocardium.id)
-        elif side == "Right":
+        elif side == _ConductionType.RIGHT_BUNDLE_BRANCH.value:
             ventricle = self.m.right_ventricle
             surface_ids = [ventricle.endocardium.id, ventricle.septum.id]
             endo_surface = self.m.mesh.get_surface(surface_ids)
@@ -468,28 +402,10 @@ class ConductionSystem:
             endo_surface.find_closest_point(self.m.mesh.points[ventricle.apex_points[0].node_id]),
         )
 
-        new_nodes = bundle_branch.points
-        new_nodes = _refine_line(new_nodes, beam_length=beam_length)
-        # exclude first and last (apex) node which belongs to purkinje beam
-        new_nodes = new_nodes[1:-1, :]
-        point_ids = np.linspace(0, len(new_nodes) - 1, len(new_nodes), dtype=int)
-        point_ids = np.insert(point_ids, 0, start_id)
-        apex = ventricle.apex_points[0].node_id
-        for network in self.m.beam_network:
-            if network.name == side + "-purkinje":
-                apex = network.edges[0, 0]
-        point_ids = np.append(point_ids, apex)
-
-        edges = np.vstack((point_ids[:-1], point_ids[1:])).T
-
-        mask = np.ones(edges.shape, dtype=bool)
-        mask[0, 0] = False  # His end point of previous, no offset at creation
-        mask[-1, -1] = False  # Apex point, no offset
-
-        beam_net = self.m.add_beam_net(new_nodes, edges, mask, pid=0, name=side + " bundle branch")
-        # used in dynawriter, to write beam connectivity, need offset since it's a beam node
-        beam_net.beam_nodes_mask[0, 0] = True
-        beam_net.beam_nodes_mask[-1, -1] = True
+        new_points = np.vstack((start_coord, bundle_branch.points[1:-1], end_coord))
+        beamnet = pv.lines_from_points(new_points)
+        id = self.m.conduction_system.get_unique_lines_id()
+        beam_net = self.m.conduction_system.add_lines(lines=beamnet, id=id, name=side)
 
         return beam_net
 
@@ -499,7 +415,9 @@ class ConductionSystem:
         cell_id = surface.find_closest_cell(point)
         return surface.get_cell(cell_id).point_ids[0]
 
-    def compute_bachman_bundle(self, start_coord, end_coord, beam_length: float = 1.5) -> BeamMesh:
+    def _compute_bachman_bundle(
+        self, start_coord, end_coord, beam_length: float = 1.5
+    ) -> _BeamsMesh:
         """Compute Bachman bundle conduction system."""
         la_epi = self.m.mesh.get_surface(self.m.left_atrium.epicardium.id)
         ra_epi = self.m.mesh.get_surface(self.m.right_atrium.epicardium.id)
@@ -533,3 +451,20 @@ class ConductionSystem:
         beam_net = self.m.add_beam_net(beam_nodes, edges, mask, pid=0, name="Bachman bundle")
 
         return beam_net
+
+    def _connect_to_solid(self, component_id: int, local_point_ids: np.array):
+        """Connect conduction system component to solid through the "_is-connected" pointdata.
+
+        Parameters
+        ----------
+        component_id : int
+            id of the beam mesh component
+        local_point_ids : np.array
+            _description_
+        """
+        global_ids = self.m.conduction_system.get_lines(sid=component_id)["_global-point-ids"][
+            local_point_ids
+        ]
+        self.m.conduction_system["_is-connected"][global_ids] = 1
+
+        return

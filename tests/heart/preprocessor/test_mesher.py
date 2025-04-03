@@ -36,20 +36,6 @@ import ansys.heart.preprocessor.mesher as mesher
 pytestmark = pytest.mark.requires_fluent
 
 
-try:
-    os.environ["GITHUB_JOB"]
-    is_github_job = True
-except KeyError:
-    is_github_job = False
-
-# disable Fluent gui for github job
-if is_github_job:
-    os.environ["SHOW_FLUENT_GUI"] = "0"
-
-# NOTE: Can manually set Fluent version:
-# mesher._fluent_version = "24.1"
-
-
 @pytest.fixture(scope="session", autouse=True)
 def clean_up_temp_dirs():
     tmpdirs = glob.glob(os.path.join(tempfile.gettempdir(), ".pyansys-heart*"))

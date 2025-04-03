@@ -246,8 +246,8 @@ def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingS
     if _uses_container:
         num_cpus = 1
         custom_config = {
-            "host_mount_path": f"{working_directory}",
-            "container_mount_path": "/mnt/pyfluent/meshing",
+            "mount_source": f"{working_directory}",
+            "mount_target": "/mnt/pyfluent/meshing",
         }
 
         session = pyfluent.launch_fluent(

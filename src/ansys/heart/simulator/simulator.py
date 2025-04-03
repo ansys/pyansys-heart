@@ -573,9 +573,9 @@ class MechanicsSimulator(BaseSimulator):
             simulation folder name, by default "main-mechanics"
         zerop_folder : str | None, optional
             folder contains stress free simulation.
-            Use "zeropressure" under roo_directory if None
+            Use "zeropressure" under root directory if None
         auto_post : bool, optional
-            if run post-process scripts, by default True
+            Flag indicating whether to run post-process scripts, by default True
         extra_k_files : list[str], optional
             user defined k files, by default []
         """

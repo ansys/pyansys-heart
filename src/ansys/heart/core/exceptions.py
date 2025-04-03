@@ -54,3 +54,7 @@ class InvalidInputModelTypeError(TypeError):
 
 class InvalidHeartModelError(Exception):
     """Exception raised when the heart model is invalid."""
+
+
+class LSDYNANotFoundError(FileNotFoundError):
+    """LSDYNA executable not found."""

@@ -837,7 +837,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             # write cap shells with mesh
             self._update_cap_elements_db(add_mesh=True)
         else:
-            self.kw_database.main.append(keywords.Include(filename=dynain_name))
+            self.include_to_main(dynain_name)
             # cap mesh has been defined in dynain file
             self._update_cap_elements_db(add_mesh=False)
 
@@ -3682,10 +3682,10 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
             # Coupling enabled, EP beam nodes follow the motion of surfaces
             self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1, smcoupl=0))
             self._update_use_Purkinje()
-            self.kw_database.main.append(keywords.Include(filename="beam_networks.k"))
+            self.include_to_main("beam_networks.k")
 
         self._update_parts_cellmodels()
-        self.kw_database.main.append(keywords.Include(filename="cell_models.k"))
+        self.include_to_main("cell_models.k")
 
         self._update_ep_settings()
         self._update_stimulation()
@@ -3696,7 +3696,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         )
         self.kw_database.ep_settings.append("$ EM-MECA coupling control")
         self.kw_database.ep_settings.append(coupling_str)
-        self.kw_database.main.append(keywords.Include(filename="ep_settings.k"))
+        self.include_to_main("ep_settings.k")
 
         return
 

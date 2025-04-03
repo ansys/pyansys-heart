@@ -341,9 +341,11 @@ def test_call_with_user_k(mock_write_main, mock_mech_post, mock_run_dyna, mechan
 
         mechanics_simulator.root_directory = tempdir
         mechanics_simulator.initial_stress = False
-        mechanics_simulator.simulate(user_k=[user_file])
+        mechanics_simulator.simulate(extra_k_files=[user_file])
 
-        mock_write_main.assert_called_once_with(folder_name="main-mechanics", user_k=[user_file])
+        mock_write_main.assert_called_once_with(
+            folder_name="main-mechanics", extra_k_files=[user_file]
+        )
 
 
 @pytest.mark.parametrize(

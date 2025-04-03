@@ -414,18 +414,18 @@ class EPSimulator(BaseSimulator):
 
         return
 
-    def simulate(self, folder_name="main-ep", user_k: list[str] = []):
+    def simulate(self, folder_name="main-ep", extra_k_files: list[str] = []):
         """Launch the electrophysiology simulation.
 
         Parameters
         ----------
         folder_name : str, optional
             simulation folder name, by default "main-ep"
-        user_k : list[str], optional
+        extra_k_files : list[str], optional
             user defined k files, by default []
         """
         directory = os.path.join(self.root_directory, folder_name)
-        self._write_main_simulation_files(folder_name, user_k=user_k)
+        self._write_main_simulation_files(folder_name, extra_k_files=extra_k_files)
 
         LOGGER.info("Launching main EP simulation...")
 
@@ -506,14 +506,14 @@ class EPSimulator(BaseSimulator):
             # )
             return cs
 
-    def _write_main_simulation_files(self, folder_name, user_k: list[str] = []):
+    def _write_main_simulation_files(self, folder_name, extra_k_files: list[str] = []):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
 
         model = copy.deepcopy(self.model)
         dyna_writer = writers.ElectrophysiologyDynaWriter(model, self.settings)
         dyna_writer.update()
-        dyna_writer.export(export_directory, user_k=user_k)
+        dyna_writer.export(export_directory, user_k=extra_k_files)
 
         return
 
@@ -563,7 +563,7 @@ class MechanicsSimulator(BaseSimulator):
         folder_name: str = "main-mechanics",
         zerop_folder: str | None = None,
         auto_post: bool = True,
-        user_k: list[str] = [],
+        extra_k_files: list[str] = [],
     ):
         """Launch the main mechanical simulation.
 
@@ -576,7 +576,7 @@ class MechanicsSimulator(BaseSimulator):
             Use "zeropressure" under roo_directory if None
         auto_post : bool, optional
             if run post-process scripts, by default True
-        user_k : list[str], optional
+        extra_k_files : list[str], optional
             user defined k files, by default []
         """
         if "apico-basal" not in self.model.mesh.point_data.keys():
@@ -594,7 +594,7 @@ class MechanicsSimulator(BaseSimulator):
             self._dynain_name = "dynain.lsda"
             shutil.copy(dynain_file, os.path.join(directory, self._dynain_name))
 
-        self._write_main_simulation_files(folder_name=folder_name, user_k=user_k)
+        self._write_main_simulation_files(folder_name=folder_name, extra_k_files=extra_k_files)
 
         LOGGER.info("Launching main simulation...")
 
@@ -640,7 +640,7 @@ class MechanicsSimulator(BaseSimulator):
         self,
         folder_name="zeropressure",
         overwrite: bool = True,
-        user_k: list[str] = [],
+        extra_k_files: list[str] = [],
     ):
         """Compute the stress-free configuration of the model.
 
@@ -650,7 +650,7 @@ class MechanicsSimulator(BaseSimulator):
             simulation folder name, by default "zeropressure"
         overwrite : bool, optional
             run simulation and overwrite files, by default True
-        user_k : list[str], optional
+        extra_k_files : list[str], optional
             user defined k files, by default []
         """
         directory = os.path.join(self.root_directory, folder_name)
@@ -658,7 +658,7 @@ class MechanicsSimulator(BaseSimulator):
         if not os.path.isdir(directory) or overwrite or len(os.listdir(directory)) == 0:
             os.makedirs(directory, exist_ok=True)
 
-            self._write_stress_free_configuration_files(folder_name, user_k=user_k)
+            self._write_stress_free_configuration_files(folder_name, extra_k_files=extra_k_files)
             self.settings.save(pathlib.Path(directory) / "simulation_settings.yml")
 
             LOGGER.info("Computing stress-free configuration...")
@@ -686,7 +686,7 @@ class MechanicsSimulator(BaseSimulator):
     def _write_main_simulation_files(
         self,
         folder_name,
-        user_k: list[str] = [],
+        extra_k_files: list[str] = [],
     ):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
@@ -696,11 +696,11 @@ class MechanicsSimulator(BaseSimulator):
             self.settings,
         )
         dyna_writer.update(dynain_name=self._dynain_name)
-        dyna_writer.export(export_directory, user_k=user_k)
+        dyna_writer.export(export_directory, user_k=extra_k_files)
 
         return
 
-    def _write_stress_free_configuration_files(self, folder_name, user_k: list[str] = []):
+    def _write_stress_free_configuration_files(self, folder_name, extra_k_files: list[str] = []):
         """Write LS-DYNA files to compute stress-free configuration."""
         export_directory = os.path.join(self.root_directory, folder_name)
 
@@ -711,7 +711,7 @@ class MechanicsSimulator(BaseSimulator):
 
         dyna_writer = writers.ZeroPressureMechanicsDynaWriter(model, self.settings)
         dyna_writer.update()
-        dyna_writer.export(export_directory, user_k=user_k)
+        dyna_writer.export(export_directory, user_k=extra_k_files)
 
         return
 
@@ -734,7 +734,7 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         folder_name: str = "ep_meca",
         zerop_folder: str | None = None,
         auto_post: bool = True,
-        user_k: list[str] = [],
+        extra_k_files: list[str] = [],
     ):
         """Launch the main electro-mechanical simulation.
 
@@ -747,7 +747,7 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
             Use "zeropressure" under roo_directory if None
         auto_post : bool, optional
             if run post-process scripts, by default True
-        user_k : list[str], optional
+        extra_k_files : list[str], optional
             user defined k files, by default []
         """
         # MechanicalSimulator handle dynain file from zerop
@@ -756,7 +756,7 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
             folder_name=folder_name,
             zerop_folder=zerop_folder,
             auto_post=auto_post,
-            user_k=user_k,
+            extra_k_files=extra_k_files,
         )
 
         return
@@ -764,14 +764,14 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
     def _write_main_simulation_files(
         self,
         folder_name,
-        user_k: list[str] = [],
+        extra_k_files: list[str] = [],
     ):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
 
         dyna_writer = writers.ElectroMechanicsDynaWriter(self.model, self.settings)
         dyna_writer.update(dynain_name=self._dynain_name)
-        dyna_writer.export(export_directory, user_k=user_k)
+        dyna_writer.export(export_directory, user_k=extra_k_files)
 
         return
 

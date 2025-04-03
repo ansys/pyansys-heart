@@ -178,7 +178,7 @@ class SurfaceMesh(pv.PolyData):
 
             elif num_extra_points < 0:
                 raise NotImplementedError(
-                    "Assigning less nodes than the original not implemented yet."
+                    "Assigning less nodes than the original, not implemented yet."
                 )
 
         except Exception as e:

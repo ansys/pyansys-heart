@@ -29,9 +29,28 @@ import pyvista as pv
 import pyvista.examples as examples
 
 from ansys.heart.core.models import FullHeart
-from ansys.heart.core.objects import BeamMesh, Mesh, Part, PartType, Point
+from ansys.heart.core.objects import (
+    Mesh,
+    Part,
+    PartType,
+    Point,
+    _BeamMesh,
+    _BeamsMesh,
+    _ConductionType,
+)
 from ansys.heart.simulator.settings.settings import Mechanics, SimulationSettings, Stimulation
 import ansys.heart.writer.dynawriter as writers
+
+
+def _get_mock_conduction_system() -> _BeamsMesh:
+    """Get a mock conduction system."""
+    edges = examples.load_tetbeam().extract_feature_edges()
+    conduction_system = _BeamsMesh()
+    conduction_system.add_lines(edges, 1, name=_ConductionType.LEFT_PURKINJE.value)
+    conduction_system.point_data["_is-connected"] = 0
+    conduction_system.point_data["_is-connected"][0:10] = 1
+
+    return conduction_system
 
 
 @pytest.fixture()
@@ -45,13 +64,16 @@ def _mock_model():
 
     model.electrodes = [p1, p2]
 
+    conduction_system = _get_mock_conduction_system()
+    model.conduction_system = conduction_system
+
     yield model
 
 
 def _add_beam_network(model: FullHeart):
     """Add a beam network to the model."""
     lines = pv.line_segments_from_points([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
-    beams = BeamMesh(name="beams")
+    beams = _BeamMesh(name="beams")
     beams.nodes = lines.points
     beams.edges = np.array([lines.lines[1:]])
     beams.pid = 1000
@@ -187,7 +209,7 @@ def test_update_use_purkinje(_mock_model: FullHeart):
     model = _mock_model
     model = _add_beam_network(model)
     model = _add_parts(model)
-    model.beam_network[0].name = "Left-purkinje"
+    model.beam_network[0].name = _ConductionType.LEFT_PURKINJE.value
     model.mesh.add_surface(pv.Sphere(), id=10, name="Left ventricle endocardium")
     model.left_ventricle = model.parts[0]
     model.left_ventricle.endocardium = model.mesh.get_surface(10)

@@ -177,9 +177,6 @@ class BaseDynaWriter:
         #     # part.pid = id
         # """Assign part id for heart parts."""
 
-        """List of .k files to include in main. This is derived from the Decks classes."""
-        self.include_files = []
-
         if not settings:
             self.settings = SimulationSettings()
             """Simulation settings."""
@@ -575,8 +572,13 @@ class BaseDynaWriter:
         """Suggest a unique curve-id."""
         return self._get_unique_id("DEFINE_CURVE")
 
-    def _get_list_of_includes(self):
-        """Get a list of files to include in main.k. Omit any empty decks."""
+    def _get_decknames_of_include(self) -> list[str]:
+        """
+        Get a list of deck file name in keyword database.
+
+        Except main and omit any empty decks.
+        """
+        include_files = []
         for deckname, deck in vars(self.kw_database).items():
             if deckname == "main":
                 continue
@@ -584,14 +586,23 @@ class BaseDynaWriter:
             if len(deck.keywords) == 0:
                 LOGGER.debug("No keywords in deck: {0}".format(deckname))
                 continue
-            self.include_files.append(deckname)
-        return
+            include_files.append(deckname + ".k")
 
-    def _add_includes(self):
-        """Add *INCLUDE keywords."""
-        for include_file in self.include_files:
-            filename_to_include = include_file + ".k"
-            self.kw_database.main.append(keywords.Include(filename=filename_to_include))
+        return include_files
+
+    def include_to_main(self, file_list: list[str] | str = []):
+        """Add *INCLUDE keywords into main.
+
+        Parameters
+        ----------
+        file_list : list[str] | str, optional
+            file(s) to be included, by default []
+        """
+        if isinstance(file_list, str):
+            file_list = [file_list]
+
+        for file in file_list:
+            self.kw_database.main.append(keywords.Include(filename=file))
 
         return
 
@@ -619,7 +630,7 @@ class BaseDynaWriter:
             else:
                 name = os.path.basename(k_file)
                 shutil.copy(k_file, os.path.join(export_directory, name))
-                self.kw_database.main.append(keywords.Include(filename=name))
+                self.include_to_main(name)
 
         # export .k files
         self.export_databases(export_directory)
@@ -975,8 +986,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self._update_controlvolume_db(system_map)
 
-        self._get_list_of_includes()
-        self._add_includes()
+        include_files = self._get_decknames_of_include()
+        self.include_to_main(include_files)
 
         return
 
@@ -1929,8 +1940,8 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
             keywords.InterfaceSpringbackExclude(kwdname="BOUNDARY_SPC_NODE")
         )
 
-        self._get_list_of_includes()
-        self._add_includes()
+        include_files = self._get_decknames_of_include()
+        self.include_to_main(include_files)
 
         return
 
@@ -2187,8 +2198,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             rotation_angles = self.settings.get_ventricle_fiber_rotation(method="LSDYNA")
         self._update_create_fibers(rotation_angles)
 
-        self._get_list_of_includes()
-        self._add_includes()
+        include_files = self._get_decknames_of_include()
+        self.include_to_main(include_files)
 
         return
 
@@ -2672,8 +2683,8 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
         self._update_ep_settings()
         self._update_create_Purkinje()
 
-        self._get_list_of_includes()
-        self._add_includes()
+        include_files = self._get_decknames_of_include()
+        self.include_to_main(include_files)
 
         return
 
@@ -2953,8 +2964,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         if hasattr(self.model, "electrodes") and len(self.model.electrodes) != 0:
             self._update_ECG_coordinates()
 
-        self._get_list_of_includes()
-        self._add_includes()
+        include_files = self._get_decknames_of_include()
+        self.include_to_main(include_files)
 
         return
 
@@ -3617,8 +3628,8 @@ class ElectrophysiologyBeamsDynaWriter(ElectrophysiologyDynaWriter):
         self._update_ep_settings()
         self._update_stimulation()
 
-        self._get_list_of_includes()
-        self._add_includes()
+        include_files = self._get_decknames_of_include()
+        self.include_to_main(include_files)
 
         return
 
@@ -4018,8 +4029,8 @@ class LaplaceWriter(BaseDynaWriter):
         elif self.type == "D-RBM":
             self._update_drbm_bc()
 
-        self._get_list_of_includes()
-        self._add_includes()
+        include_files = self._get_decknames_of_include()
+        self.include_to_main(include_files)
 
     def _update_uvc_bc(self):
         # transmural uvc

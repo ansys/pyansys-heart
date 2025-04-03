@@ -34,7 +34,8 @@ import pytest
 import pyvista as pv
 
 import ansys.heart.core.models as models
-from ansys.heart.core.objects import BeamMesh, Mesh, Part, SurfaceMesh
+from ansys.heart.core.objects import Mesh, Part, SurfaceMesh
+from tests.heart.writer.test_dynawriter import _get_mock_conduction_system
 
 
 @pytest.fixture
@@ -61,11 +62,7 @@ def _mock_input():
     mock_biventricle.mesh.add_surface(pv.Disc(), id=1, name="valve")
 
     # add mock purkinje data.
-    lines = pv.line_segments_from_points([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
-    beams = BeamMesh(name="beams")
-    beams.nodes = lines.points
-    beams.edges = np.array([lines.lines[1:]])
-    mock_biventricle.beam_network = [beams]
+    mock_biventricle.conduction_system = _get_mock_conduction_system()
 
     with mock.patch("pyvista.Plotter.show") as mock_show:
         yield mock_biventricle, mock_show
@@ -121,6 +118,6 @@ def test_heart_model_plot_purkinje(_mock_input):
     mock_show.reset_mock()
 
     # remove beam network.
-    mock_biventricle.beam_network = []
+    mock_biventricle.conduction_system = None
     mock_biventricle.plot_purkinje()
     mock_show.assert_not_called()

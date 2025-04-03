@@ -11,8 +11,8 @@ testing:
 dependencies:
 - changed-files:
   - any-glob-to-any-file: ['pyproject.toml']
-fix:
-  - head-branch: ['fix']
+# fix:
+#   - head-branch: ['fix']
 enhancement:
   - head-branch: ['feat']
 ci:

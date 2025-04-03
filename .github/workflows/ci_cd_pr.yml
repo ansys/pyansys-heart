@@ -44,6 +44,8 @@ jobs:
       with:
        repo-token: ${{ secrets.GITHUB_TOKEN }}
        sync-labels: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   changelog-fragment:
    name: "Create changelog fragment"

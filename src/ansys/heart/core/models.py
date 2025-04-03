@@ -25,8 +25,6 @@
 import copy
 import json
 import os
-
-# import json
 import pathlib
 import re
 from typing import List, Literal, Union
@@ -38,7 +36,6 @@ import yaml
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.exceptions import InvalidHeartModelError
 from ansys.heart.core.objects import (
-    BeamMesh,
     Cap,
     CapType,
     Cavity,
@@ -47,6 +44,7 @@ from ansys.heart.core.objects import (
     PartType,
     Point,
     SurfaceMesh,
+    _BeamsMesh,
 )
 import ansys.heart.core.utils.connectivity as connectivity
 import ansys.heart.core.utils.vtk_utils as vtk_utils
@@ -89,6 +87,55 @@ def _set_field_data_from_axis(
         return None
     mesh.field_data[axis_name] = data
     return mesh
+
+
+def _read_purkinje_from_kfile(filename: pathlib.Path):
+    """Read purkinje from k file.
+
+    Parameters
+    ----------
+    filename : pathlib.Path
+        Purkinje filename.
+
+    Returns
+    -------
+    _type_
+        Beam data extracted from file: beam_nodes,edges,mask,pid
+    """
+    # Open file and import beams and created nodes
+    with open(filename, "r") as file:
+        start_nodes = 0
+        lines = file.readlines()
+    # find line ids delimiting node data and edge data
+    start_nodes = np.array(np.where(["*NODE" in line for line in lines]))[0][0]
+    end_nodes = np.array(np.where(["*" in line for line in lines]))
+    end_nodes = end_nodes[end_nodes > start_nodes][0]
+    start_beams = np.array(np.where(["*ELEMENT_BEAM" in line for line in lines]))[0][0]
+    end_beams = np.array(np.where(["*" in line for line in lines]))
+    end_beams = end_beams[end_beams > start_beams][0]
+
+    # load node data
+    node_data = np.loadtxt(filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1)
+    new_ids = node_data[:, 0].astype(int) - 1
+    beam_nodes = node_data[:, 1:4]
+
+    # load beam data
+    beam_data = np.loadtxt(
+        filename, skiprows=start_beams + 1, max_rows=end_beams - start_beams - 1, dtype=int
+    )
+    edges = beam_data[:, 2:4] - 1
+    pid = beam_data[0, 1]
+
+    # TODO: physically, this is not fully understood: Merging the end of bundle branch, the
+    # TODO: origin of Purkinje and the apex of myiocardium seems logical, but it has more chance
+    # TODO: the EP wave will not be triggered.
+    # TODO: so I remove it, it means: end of bundle branch connect to apex, origin of Purkinje
+    # TODO: is another point on the same location.
+
+    mask = np.isin(edges, new_ids)  # True for new created nodes
+    edges[mask] -= new_ids[0]  # beam nodes id start from 0
+
+    return beam_nodes, edges, mask, pid
 
 
 def _set_workdir(workdir: pathlib.Path | str = None) -> str:
@@ -263,8 +310,8 @@ class HeartModel:
         self.electrodes: List[Point] = []
         """Electrodes positions for ECG computing."""
 
-        self.beam_network: List[BeamMesh] = []
-        """List of beam networks in the mesh."""
+        self.conduction_system: _BeamsMesh = _BeamsMesh()
+        """Mesh defining the conduction system."""
 
         self.electrodes: List[Point] = []
         """Electrodes positions for ECG computing."""
@@ -339,98 +386,30 @@ class HeartModel:
         name : str
             beamnet name
         """
-        # Open file and import beams and created nodes
-        with open(filename, "r") as file:
-            start_nodes = 0
-            lines = file.readlines()
-        # find line ids delimiting node data and edge data
-        start_nodes = np.array(np.where(["*NODE" in line for line in lines]))[0][0]
-        end_nodes = np.array(np.where(["*" in line for line in lines]))
-        end_nodes = end_nodes[end_nodes > start_nodes][0]
-        start_beams = np.array(np.where(["*ELEMENT_BEAM" in line for line in lines]))[0][0]
-        end_beams = np.array(np.where(["*" in line for line in lines]))
-        end_beams = end_beams[end_beams > start_beams][0]
+        beam_nodes, edges, mask, pid = _read_purkinje_from_kfile(filename)
 
-        # load node data
-        node_data = np.loadtxt(
-            filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1
+        # build tree: beam_nodes and solid_points
+        original_points_order = np.unique(edges[np.invert(mask)])
+        solid_points = self.mesh.points[original_points_order]
+        connectivity = np.empty_like(edges)
+        np.copyto(connectivity, edges)
+
+        # create ids of solid points and fill connectivity
+        _, _, inverse_indices = np.unique(
+            connectivity[np.logical_not(mask)], return_index=True, return_inverse=True
         )
-        new_ids = node_data[:, 0].astype(int) - 1
-        beam_nodes = node_data[:, 1:4]
+        connectivity[np.logical_not(mask)] = inverse_indices + max(connectivity[mask]) + 1
+        celltypes = np.full((connectivity.shape[0], 1), 2)
+        connectivity = np.hstack((celltypes, connectivity))
+        beam_points = np.vstack([beam_nodes, solid_points])
+        is_connected = np.concatenate(
+            [np.zeros(len(beam_nodes)), np.ones(len(solid_points))]
+        ).astype(np.int64)
 
-        # load beam data
-        beam_data = np.loadtxt(
-            filename, skiprows=start_beams + 1, max_rows=end_beams - start_beams - 1, dtype=int
-        )
-        edges = beam_data[:, 2:4] - 1
-        pid = beam_data[0, 1]
-
-        # TODO: physically, this is not fully understood: Merging the end of bundle branch, the
-        # TODO: origin of Purkinje and the apex of myiocardium seems logical, but it has more chance
-        # TODO: the EP wave will not be triggered.
-        # TODO: so I remove it, it means: end of bundle branch connect to apex, origin of Purkinje
-        # TODO: is another point on the same location.
-
-        mask = np.isin(edges, new_ids)  # True for new created nodes
-        edges[mask] -= new_ids[0]  # beam nodes id start from 0
-
-        beam = self.add_beam_net(beam_nodes, edges, mask, pid=pid, name=name)
-
-        return beam
-
-    def add_beam_net(
-        self, beam_nodes: np.ndarray, edges: np.ndarray, mask: np.ndarray, pid=0, name: str = None
-    ) -> BeamMesh:
-        """Add a BeamMesh object on the model.
-
-        Parameters
-        ----------
-        beam_nodes : np.ndarray
-            new nodes coordinates.
-        edges : np.ndarray
-            beam elements connectivity
-            If `mask` is true, it's Id of `beam_nodes` (start by 0),
-            it will be offset when creating BeamMesh object.
-            If `mask` is false, it's Id of existed nodes, it will not be offset.
-        mask : np.ndarray
-            with the same shape of `edges`
-        pid : int, optional
-            part Id, will be reassigned when writing, by default 0
-        name : str, optional
-            name, by default None
-
-        Returns
-        -------
-        BeamMesh
-            BeamMesh object
-        """
-        edges[mask] += len(self.mesh.points) + len(BeamMesh.all_beam_nodes)
-
-        if len(BeamMesh.all_beam_nodes) == 0:
-            BeamMesh.all_beam_nodes = beam_nodes
-        else:
-            BeamMesh.all_beam_nodes = np.vstack((BeamMesh.all_beam_nodes, beam_nodes))
-
-        # nodes is just for pyvista plot, edges used in writer will be offset
-        # TODO: only save necessary nodes, cells, and with a 'global id' array
-        beam_net = BeamMesh(
-            nodes=np.vstack((self.mesh.points, BeamMesh.all_beam_nodes)),
-            edges=edges,
-            beam_nodes_mask=mask,
-        )
-        beam_net.pid = pid
-        beam_net.name = name
-
-        #! class variable BeamMesh.all_beam_nodes is not saved in pickle
-        #! only the last created beam_network holds all previously created
-        #! nodes.
-        beam_net._all_beam_nodes = np.copy(BeamMesh.all_beam_nodes)
-
-        self.beam_network.append(beam_net)
-
-        # sync across beam networks
-        for beams in self.beam_network:
-            beams._all_beam_nodes = np.copy(BeamMesh.all_beam_nodes)
+        beam_net = pv.PolyData(beam_points, lines=connectivity)
+        beam_net.point_data["_is-connected"] = is_connected
+        id = self.conduction_system.get_unique_lines_id()
+        self.conduction_system.add_lines(lines=beam_net, id=id, name=name)
 
         return beam_net
 
@@ -767,15 +746,16 @@ class HeartModel:
 
     def plot_purkinje(self):
         """Plot the mesh and Purkinje network."""
-        if not len(self.beam_network) > 0:
-            LOGGER.info("No Purkinje network to plot.")
+        if self.conduction_system is None or self.conduction_system.number_of_cells == 0:
+            LOGGER.info("No Conduction system to plot.")
             return
 
         try:
             plotter = pv.Plotter()
-            plotter.add_mesh(self.mesh, color="w", opacity=0.3)
-            for beams in self.beam_network:
-                plotter.add_mesh(beams, color="r", line_width=2)
+            plotter.add_mesh(self.mesh, color="w", opacity=0.1)
+            self.conduction_system.set_active_scalars("_line-id")
+            beams = self.conduction_system
+            plotter.add_mesh(beams, line_width=2)
             plotter.show()
         except Exception:
             LOGGER.warning("Failed to plot mesh.")

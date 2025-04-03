@@ -1417,17 +1417,21 @@ class HeartModel:
         """Define long and short axes from left ventricle landmarks."""
         from ansys.heart.core.utils.landmark_utils import compute_anatomy_axis
 
+        try:
+            left_ventricle: Part = self.left_ventricle
+
+        except AttributeError:
+            LOGGER.info("Left ventricle part does not exist to build anatomical axis.")
+            self.l2cv_axis = self.l4cv_axis = self.short_axis = {}
+            return
+
         mv_center = next(
-            cap.centroid for cap in self.left_ventricle.caps if cap.type == CapType.MITRAL_VALVE
+            cap.centroid for cap in left_ventricle.caps if cap.type == CapType.MITRAL_VALVE
         )
-
         av_center = next(
-            cap.centroid for cap in self.left_ventricle.caps if cap.type == CapType.AORTIC_VALVE
+            cap.centroid for cap in left_ventricle.caps if cap.type == CapType.AORTIC_VALVE
         )
-
-        apex = next(
-            ap.xyz for ap in self.left_ventricle.apex_points if ap.name == "apex epicardium"
-        )
+        apex = next(ap.xyz for ap in left_ventricle.apex_points if ap.name == "apex epicardium")
 
         l4cv, l2cv, short = compute_anatomy_axis(
             mv_center, av_center, apex, first_cut_short_axis=0.2

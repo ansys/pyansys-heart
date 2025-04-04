@@ -61,6 +61,10 @@
   description: Skip documentation runs in CI/CD
   color: 0677ba
 
+- name: 'code-style'
+  description: Related to documentation style
+  color: 0677ba
+
 # -- Dependencies labels -----------------------------------------------------
 
 - name: 'dependencies'

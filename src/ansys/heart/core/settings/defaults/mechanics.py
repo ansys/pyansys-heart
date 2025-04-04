@@ -173,7 +173,7 @@ ra = 0.03 * rp
 rv = ra
 
 system_model = {
-    "name": "ConstantPreloadWindkesselAfterload",
+    "name": "openloop",
     "left_ventricle": {
         "constants": {
             # preload resistance

@@ -821,10 +821,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
         system_settings._remove_units()
 
         lcid = self.get_unique_curve_id()
-        if system_settings.name == "ConstantPreloadWindkesselAfterload":
+        if system_settings.name == "openloop":
             system_map = _create_open_loop(lcid, self.model, system_settings)
-        else:
+        elif system_settings.name == "closeloop":
+            LOGGER.warning("Close loop use recompiled version of LS-DYNA!")
             system_map = _create_close_loop(-lcid, self.model)
+        else:
+            msg = r"System name must be `openloop` or `closeloop`"
+            LOGGER.error(msg)
+            raise TypeError(msg)
 
         self._update_controlvolume_db(system_map)
 
@@ -1638,7 +1643,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 cvi_kw.cvid2 = interaction.cvid2
                 cvi_kw.lcid_ = interaction.lcid
                 self.kw_database.control_volume.append(cvi_kw)
-                self.kw_database.control_volume.append(interaction._generate_df())
+                self.kw_database.control_volume.append(interaction._define_function_keyword())
 
         return
 

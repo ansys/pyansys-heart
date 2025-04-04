@@ -39,7 +39,7 @@ class CVInteraction:
     name: str  # enum??
     parameters: dict
 
-    def _generate_df(self):
+    def _define_function_keyword(self):
         if self.name == "closeloop":
             return ""
         else:

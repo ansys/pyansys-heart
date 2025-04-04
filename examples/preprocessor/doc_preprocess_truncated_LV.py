@@ -45,7 +45,7 @@ import pyvista as pv
 import ansys.heart.core.models as models
 
 # Use Fluent 24.1 for meshing.
-import ansys.heart.core.preprocessor.mesher as mesher
+import ansys.heart.core.pre.mesher as mesher
 from ansys.heart.core.utils.misc import clean_directory
 
 mesher._fluent_version = "24.1"

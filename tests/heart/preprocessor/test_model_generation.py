@@ -37,7 +37,7 @@ import pytest
 import yaml
 
 import ansys.heart.core.models as models
-from ansys.heart.core.preprocessor.database_utils import get_compatible_input
+from ansys.heart.core.pre.database_utils import get_compatible_input
 from ansys.heart.core.utils.download import download_case_from_zenodo, unpack_case
 from ansys.heart.core.utils.misc import rodrigues_rot
 import ansys.heart.core.writer.dynawriter as writers

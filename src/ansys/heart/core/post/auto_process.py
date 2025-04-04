@@ -32,10 +32,10 @@ import numpy as np
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.models import HeartModel
 from ansys.heart.core.objects import Cavity
-from ansys.heart.core.postprocessor.dpf_utils import D3plotReader, D3plotToVTKExporter
-from ansys.heart.core.postprocessor.klotz_curve import EDPVR
-from ansys.heart.core.postprocessor.pvloop import generate_pvloop
-from ansys.heart.core.postprocessor.strain_calculator import AhaStrainCalculator
+from ansys.heart.core.post.dpf_utils import D3plotReader, D3plotToVTKExporter
+from ansys.heart.core.post.klotz_curve import EDPVR
+from ansys.heart.core.post.pvloop import generate_pvloop
+from ansys.heart.core.post.strain_calculator import AhaStrainCalculator
 from ansys.heart.simulator.settings.settings import SimulationSettings
 
 

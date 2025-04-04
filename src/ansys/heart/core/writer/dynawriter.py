@@ -24,7 +24,7 @@
 
 Notes
 -----
-Uses a HeartModel (from ansys.heart.preprocessor.models).
+Uses a HeartModel (from ansys.heart.core.models).
 
 """
 

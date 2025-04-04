@@ -182,10 +182,10 @@ def _mocked_methods():
     sheet = np.eye(3)
     x = (np.array([1, 2, 3]), [], [], fiber, sheet)
     with mock.patch(
-        "ansys.heart.simulator.simulator.BaseSimulator._run_dyna", return_value=True
+        "ansys.heart.core.simulator.BaseSimulator._run_dyna", return_value=True
     ) as mock_run_dyna:
         with mock.patch(
-            "ansys.heart.simulator.simulator._read_orth_element_kfile", return_value=x
+            "ansys.heart.core.simulator._read_orth_element_kfile", return_value=x
         ) as mock_orth:
             yield mock_run_dyna, mock_orth
 
@@ -218,7 +218,7 @@ def test_base_simulator_fiber(_mocked_methods):
         simulator.load_default_settings()
 
         with mock.patch(
-            "ansys.heart.simulator.simulator.writers",
+            "ansys.heart.core.simulator.writers",
             return_value=mock_writer,
         ):
             simulator.compute_fibers()
@@ -227,7 +227,7 @@ def test_base_simulator_fiber(_mocked_methods):
         _mock_read_orth.assert_called_once()
 
         with mock.patch(
-            "ansys.heart.simulator.simulator.BaseSimulator._compute_fibers_drbm",
+            "ansys.heart.core.simulator.BaseSimulator._compute_fibers_drbm",
         ) as mock_drbm:
             simulator.dyna_settings.dynatype = "smp"
             simulator.compute_fibers(method="D-RBM")
@@ -272,9 +272,9 @@ def test_run_dyna(settings):
         ("main-mechanics1", "zero-pressure", False, True),
     ],
 )
-@mock.patch("ansys.heart.simulator.simulator.MechanicsSimulator._run_dyna")
-@mock.patch("ansys.heart.simulator.simulator.mech_post")
-@mock.patch("ansys.heart.simulator.simulator.MechanicsSimulator._write_main_simulation_files")
+@mock.patch("ansys.heart.core.simulator.MechanicsSimulator._run_dyna")
+@mock.patch("ansys.heart.core.simulator.mech_post")
+@mock.patch("ansys.heart.core.simulator.MechanicsSimulator._write_main_simulation_files")
 def test_mechanics_simulator_simulate(
     mock_write_main,
     mock_mech_post,

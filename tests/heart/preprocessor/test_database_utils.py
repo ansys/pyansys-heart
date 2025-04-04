@@ -26,7 +26,7 @@ import pytest
 import pyvista as pv
 from pyvista.examples import examples
 
-from ansys.heart.core.preprocessor.database_utils import (
+from ansys.heart.core.pre.database_utils import (
     _get_interface_surfaces,
     _get_original_labels,
     _read_input_mesh,

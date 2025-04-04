@@ -25,7 +25,7 @@
 import numpy as np
 from pyvista.examples import load_tetbeam
 
-from ansys.heart.core.preprocessor.conduction_beam import (
+from ansys.heart.core.pre.conduction_beam import (
     ConductionSystem,
     _create_line,
     _refine_line,

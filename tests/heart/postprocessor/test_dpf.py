@@ -33,7 +33,7 @@ import numpy as np
 import pytest
 
 from ansys.dpf import core as dpf
-from ansys.heart.core.postprocessor.dpf_utils import D3plotReader, ICVoutReader
+from ansys.heart.core.post.dpf_utils import D3plotReader, ICVoutReader
 from tests.heart.conftest import get_assets_folder
 
 
@@ -82,7 +82,7 @@ def test_d3plot_reader_init_supported_versions():
     fn = os.path.join(get_assets_folder(), "post", "main", "d3plot")
 
     with mock.patch(
-        "ansys.heart.core.postprocessor.dpf_utils._SUPPORTED_DPF_SERVERS"
+        "ansys.heart.core.post.dpf_utils._SUPPORTED_DPF_SERVERS"
     ) as mock_supported_versions:
         mock_supported_versions.return_value = []
         with pytest.raises(Exception):

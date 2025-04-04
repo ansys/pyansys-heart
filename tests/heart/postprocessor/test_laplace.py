@@ -27,7 +27,7 @@ import numpy as np
 import pytest
 import pyvista as pv
 
-from ansys.heart.core.postprocessor.laplace_post import (
+from ansys.heart.core.post.laplace_post import (
     compute_la_fiber_cs,
     compute_ra_fiber_cs,
     compute_ventricle_fiber_by_drbm,
@@ -53,7 +53,7 @@ def test_compute_la_fiber_cs():
     la_endo = pv.read(os.path.join(dir, "la_endo.vtk"))
 
     with mock.patch(
-        "ansys.heart.core.postprocessor.laplace_post.read_laplace_solution", return_value=input_grid
+        "ansys.heart.core.post.laplace_post.read_laplace_solution", return_value=input_grid
     ):
         res = compute_la_fiber_cs(".", setting, la_endo)
         assert np.sum(res["bundle"] == 0) == 33097
@@ -83,7 +83,7 @@ def test_compute_ra_fiber_cs():
     la_endo = pv.read(os.path.join(dir, "ra_endo.vtk"))
 
     with mock.patch(
-        "ansys.heart.core.postprocessor.laplace_post.read_laplace_solution", return_value=input_grid
+        "ansys.heart.core.post.laplace_post.read_laplace_solution", return_value=input_grid
     ):
         res = compute_ra_fiber_cs(".", setting, la_endo)
 
@@ -100,7 +100,7 @@ def test_compute_ventricle_fiber_by_drbm():
     input_grid = pv.read(os.path.join(dir, "data.vtu"))
 
     with mock.patch(
-        "ansys.heart.core.postprocessor.laplace_post.read_laplace_solution",
+        "ansys.heart.core.post.laplace_post.read_laplace_solution",
         return_value=input_grid,
     ):
         # test no outflow tract

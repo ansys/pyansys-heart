@@ -31,7 +31,7 @@ import numpy as np
 import pytest
 import pyvista as pv
 
-from ansys.heart.core.preprocessor.input import _InputBoundary, _InputModel, _InputPart
+from ansys.heart.core.pre.input import _InputBoundary, _InputModel, _InputPart
 
 
 def _get_test_input_model() -> tuple[_InputModel, pv.PolyData, dict]:

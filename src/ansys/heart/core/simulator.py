@@ -49,14 +49,14 @@ from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.exceptions import LSDYNANotFoundError, LSDYNATerminationError
 from ansys.heart.core.models import FourChamber, HeartModel, LeftVentricle
 from ansys.heart.core.objects import _ConductionType
-from ansys.heart.core.postprocessor.auto_process import mech_post, zerop_post
-from ansys.heart.core.postprocessor.laplace_post import (
+from ansys.heart.core.post.auto_process import mech_post, zerop_post
+from ansys.heart.core.post.laplace_post import (
     compute_la_fiber_cs,
     compute_ra_fiber_cs,
     compute_ventricle_fiber_by_drbm,
     read_laplace_solution,
 )
-from ansys.heart.core.preprocessor.conduction_beam import ConductionSystem
+from ansys.heart.core.pre.conduction_beam import ConductionSystem
 from ansys.heart.core.utils.misc import _read_orth_element_kfile
 import ansys.heart.core.writer.dynawriter as writers
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings

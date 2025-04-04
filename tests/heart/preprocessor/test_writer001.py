@@ -34,7 +34,7 @@ import pyvista as pv
 
 import ansys.heart.core.models as models
 from ansys.heart.core.objects import Mesh, SurfaceMesh
-import ansys.heart.writer.dynawriter as writers
+import ansys.heart.core.writer.dynawriter as writers
 
 
 def get_test_model():

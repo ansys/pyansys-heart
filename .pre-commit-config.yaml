@@ -23,7 +23,7 @@ repos:
         tests/|
         examples/|
         src/ansys/heart/misc/|
-        src/ansys/heart/writer/custom_keywords/|
+        src/ansys/heart/core/writer/custom_keywords/|
         .*__init__.py
       )
 

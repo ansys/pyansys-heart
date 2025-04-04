@@ -32,11 +32,11 @@ from pyvista import examples as pyvista_examples
 
 from ansys.heart.core.exceptions import LSDYNATerminationError
 import ansys.heart.core.models as models
-from ansys.heart.simulator.settings.settings import DynaSettings
 
 # import after mocking.
-import ansys.heart.simulator.simulator as simulators
-from ansys.heart.simulator.simulator import run_lsdyna
+import ansys.heart.core.simulator as simulators
+from ansys.heart.core.simulator import run_lsdyna
+from ansys.heart.simulator.settings.settings import DynaSettings
 
 
 def _get_md5(filename):

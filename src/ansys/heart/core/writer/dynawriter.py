@@ -53,19 +53,12 @@ from ansys.heart.core.models import (
 )
 from ansys.heart.core.objects import Cap, CapType, Part, PartType, SurfaceMesh, _ConductionType
 from ansys.heart.core.utils.vtk_utils import compute_surface_nodal_area_pyvista
-from ansys.heart.simulator.settings.material.ep_material import CellModel, EPMaterial
-from ansys.heart.simulator.settings.material.material import (
-    Mat295,
-    MechanicalMaterialModel,
-    NeoHookean,
-)
-from ansys.heart.simulator.settings.settings import SimulationSettings, Stimulation
-from ansys.heart.writer import custom_keywords as custom_keywords
-from ansys.heart.writer.define_function_templates import (  # noqa F401
+from ansys.heart.core.writer import custom_keywords as custom_keywords
+from ansys.heart.core.writer.define_function_templates import (  # noqa F401
     _define_function_0d_system,
     _ed_load_template,
 )
-from ansys.heart.writer.heart_decks import (
+from ansys.heart.core.writer.heart_decks import (
     BaseDecks,
     ElectroMechanicsDecks,
     ElectrophysiologyDecks,
@@ -73,7 +66,7 @@ from ansys.heart.writer.heart_decks import (
     MechanicsDecks,
     PurkinjeGenerationDecks,
 )
-from ansys.heart.writer.keyword_utils import (
+from ansys.heart.core.writer.keyword_utils import (
     add_beams_to_kw,
     add_nodes_to_kw,
     create_define_curve_kw,
@@ -88,7 +81,14 @@ from ansys.heart.writer.keyword_utils import (
     fast_element_writer,
     get_list_of_used_ids,
 )
-from ansys.heart.writer.material_keywords import MaterialHGOMyocardium, MaterialNeoHook
+from ansys.heart.core.writer.material_keywords import MaterialHGOMyocardium, MaterialNeoHook
+from ansys.heart.simulator.settings.material.ep_material import CellModel, EPMaterial
+from ansys.heart.simulator.settings.material.material import (
+    Mat295,
+    MechanicalMaterialModel,
+    NeoHookean,
+)
+from ansys.heart.simulator.settings.settings import SimulationSettings, Stimulation
 
 
 class _BoundaryConditionType(Enum):
@@ -2428,7 +2428,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             )
 
             # define functions:
-            from ansys.heart.writer.define_function_templates import (
+            from ansys.heart.core.writer.define_function_templates import (
                 _function_alpha,
                 _function_beta,
                 _function_beta_septum,
@@ -2578,7 +2578,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             )
 
             # define functions:
-            from ansys.heart.writer.define_function_templates import (
+            from ansys.heart.core.writer.define_function_templates import (
                 _function_alpha,
                 _function_beta,
                 _function_beta_septum,

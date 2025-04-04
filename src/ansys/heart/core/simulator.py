@@ -58,8 +58,8 @@ from ansys.heart.core.postprocessor.laplace_post import (
 )
 from ansys.heart.core.preprocessor.conduction_beam import ConductionSystem
 from ansys.heart.core.utils.misc import _read_orth_element_kfile
+import ansys.heart.core.writer.dynawriter as writers
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
-import ansys.heart.writer.dynawriter as writers
 
 _KILL_ANSYSCL_PRIOR_TO_RUN = True
 """Flag indicating whether to kill all ansys license clients prior to LS-DYNA run."""

@@ -35,7 +35,7 @@ from enum import Enum
 import os
 import shutil
 import time
-from typing import Callable, List, Literal, NamedTuple, Union
+from typing import Callable, List, Literal, Union
 
 import numpy as np
 import pandas as pd
@@ -51,7 +51,7 @@ from ansys.heart.core.models import (
     HeartModel,
     LeftVentricle,
 )
-from ansys.heart.core.objects import Cap, CapType, Part, PartType, SurfaceMesh, _ConductionType
+from ansys.heart.core.objects import Cap, CapType, PartType, SurfaceMesh, _ConductionType
 from ansys.heart.core.settings.material.ep_material import CellModel, EPMaterial
 from ansys.heart.core.settings.material.material import (
     Mat295,
@@ -61,9 +61,10 @@ from ansys.heart.core.settings.material.material import (
 from ansys.heart.core.settings.settings import SimulationSettings, Stimulation
 from ansys.heart.core.utils.vtk_utils import compute_surface_nodal_area_pyvista
 from ansys.heart.core.writer import custom_keywords as custom_keywords
-from ansys.heart.core.writer.define_function_templates import (  # noqa F401
-    _define_function_0d_system,
-    _ed_load_template,
+from ansys.heart.core.writer.control_volume import (
+    ControlVolume,
+    _create_close_loop,
+    _create_open_loop,
 )
 from ansys.heart.core.writer.heart_decks import (
     BaseDecks,
@@ -96,25 +97,6 @@ class _BoundaryConditionType(Enum):
 
     FIX = "fix"
     ROBIN = "Robin"
-
-
-class CVInteraction(NamedTuple):
-    """Template to define control volume interaction."""
-
-    id: int
-    cvid1: int
-    cvid2: int
-    lcid: int
-    name: str
-    parameters: dict
-
-
-class ControlVolume(NamedTuple):
-    """Template to define control volume."""
-
-    part: Part
-    id: int
-    Interactions: list[CVInteraction]
 
 
 class BaseDynaWriter:
@@ -838,133 +820,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
         system_settings = copy.deepcopy(self.settings.mechanics.system)
         system_settings._remove_units()
 
-        if isinstance(self.model, LeftVentricle):
-            lcid = self.get_unique_curve_id()
-            system_map = [
-                ControlVolume(
-                    part=self.model.left_ventricle,
-                    id=1,
-                    Interactions=[
-                        CVInteraction(
-                            id=1,
-                            cvid1=1,
-                            cvid2=0,
-                            lcid=lcid,
-                            name="constant_preload_windkessel_afterload_left",
-                            parameters=system_settings.left_ventricle,
-                        )
-                    ],
-                )
-            ]
-        # Four chamber with active atrial
-        elif isinstance(self, ElectroMechanicsDynaWriter) and isinstance(self.model, FourChamber):
-            lcid = self.get_unique_curve_id()
-            system_map = [
-                ControlVolume(
-                    part=self.model.left_ventricle,
-                    id=1,
-                    Interactions=[
-                        CVInteraction(
-                            id=1,
-                            cvid1=1,
-                            cvid2=0,
-                            lcid=lcid,
-                            name="afterload_windkessel_left",
-                            parameters=system_settings.left_ventricle,
-                        ),
-                    ],
-                ),
-                ControlVolume(
-                    part=self.model.right_ventricle,
-                    id=2,
-                    Interactions=[
-                        CVInteraction(
-                            id=2,
-                            cvid1=2,
-                            cvid2=0,
-                            lcid=lcid + 1,
-                            name="afterload_windkessel_right",
-                            parameters=system_settings.right_ventricle,
-                        ),
-                    ],
-                ),
-                ControlVolume(
-                    part=self.model.left_atrium,
-                    id=3,
-                    Interactions=[
-                        CVInteraction(
-                            id=3,
-                            cvid1=3,
-                            cvid2=0,
-                            lcid=lcid + 2,
-                            name="constant_flow_left_atrium",
-                            parameters={"flow": -83.0},  # ~5 L/min
-                        ),
-                        CVInteraction(
-                            id=4,
-                            cvid1=3,
-                            cvid2=1,
-                            lcid=lcid + 3,
-                            name="valve_mitral",
-                            parameters={"Rv": 1e-6},
-                        ),
-                    ],
-                ),
-                ControlVolume(
-                    part=self.model.right_atrium,
-                    id=4,
-                    Interactions=[
-                        CVInteraction(
-                            id=5,
-                            cvid1=4,
-                            cvid2=0,
-                            lcid=lcid + 4,
-                            name="constant_flow_right_atrium",
-                            parameters={"flow": -83.0},  # ~5 L/min
-                        ),
-                        CVInteraction(
-                            id=6,
-                            cvid1=4,
-                            cvid2=2,
-                            lcid=lcid + 5,
-                            name="valve_tricuspid",
-                            parameters={"Rv": 1e-6},
-                        ),
-                    ],
-                ),
-            ]
-        else:  # BiVentricle model or higher
-            lcid = self.get_unique_curve_id()
-            system_map = [
-                ControlVolume(
-                    part=self.model.left_ventricle,
-                    id=1,
-                    Interactions=[
-                        CVInteraction(
-                            id=1,
-                            cvid1=1,
-                            cvid2=0,
-                            lcid=lcid,
-                            name="constant_preload_windkessel_afterload_left",
-                            parameters=system_settings.left_ventricle,
-                        )
-                    ],
-                ),
-                ControlVolume(
-                    part=self.model.right_ventricle,
-                    id=2,
-                    Interactions=[
-                        CVInteraction(
-                            id=2,
-                            cvid1=2,
-                            cvid2=0,
-                            lcid=lcid + 1,
-                            name="constant_preload_windkessel_afterload_right",
-                            parameters=system_settings.right_ventricle,
-                        )
-                    ],
-                ),
-            ]
+        lcid = self.get_unique_curve_id()
+        if system_settings.name == "ConstantPreloadWindkesselAfterload":
+            system_map = _create_open_loop(lcid, self.model, system_settings)
+        else:
+            system_map = _create_close_loop(-lcid, self.model)
 
         self._update_controlvolume_db(system_map)
 
@@ -1778,14 +1638,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 cvi_kw.cvid2 = interaction.cvid2
                 cvi_kw.lcid_ = interaction.lcid
                 self.kw_database.control_volume.append(cvi_kw)
-
-                # DEFINE FUNCTION
-                define_function_wk = _define_function_0d_system(
-                    function_id=interaction.lcid,
-                    function_name=interaction.name,
-                    parameters=interaction.parameters,
-                )
-                self.kw_database.control_volume.append(define_function_wk)
+                self.kw_database.control_volume.append(interaction._generate_df())
 
         return
 
@@ -3680,9 +3533,6 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
         self.kw_database = ElectroMechanicsDecks()
         """Collection of keyword decks relevant for mechanics."""
-
-        self.system_model_name = self.settings.mechanics.system.name
-        """Name of system model to use, from MechanicWriter."""
 
         self.set_flow_area = True
         """from MechanicWriter."""

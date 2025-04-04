@@ -20,13 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os
-
-if os.getenv("GITHUB_ACTIONS"):
-    is_gh_action = True
-else:
-    is_gh_action = False
-
 import unittest.mock as mock
 
 import numpy as np

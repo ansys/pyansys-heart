@@ -57,9 +57,9 @@ from ansys.heart.core.post.laplace_post import (
     read_laplace_solution,
 )
 from ansys.heart.core.pre.conduction_beam import ConductionSystem
+from ansys.heart.core.settings.settings import DynaSettings, SimulationSettings
 from ansys.heart.core.utils.misc import _read_orth_element_kfile
 import ansys.heart.core.writer.dynawriter as writers
-from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 
 _KILL_ANSYSCL_PRIOR_TO_RUN = True
 """Flag indicating whether to kill all ansys license clients prior to LS-DYNA run."""

@@ -48,14 +48,14 @@ from ansys.heart.core.objects import (
 )
 from ansys.heart.core.pre.input import _InputModel
 import ansys.heart.core.pre.mesher as mesher
-import ansys.heart.core.utils.connectivity as connectivity
-import ansys.heart.core.utils.vtk_utils as vtk_utils
-from ansys.heart.simulator.settings.material.ep_material import EPMaterial
-from ansys.heart.simulator.settings.material.material import (
+from ansys.heart.core.settings.material.ep_material import EPMaterial
+from ansys.heart.core.settings.material.material import (
     ISO,
     Mat295,
     MechanicalMaterialModel,
 )
+import ansys.heart.core.utils.connectivity as connectivity
+import ansys.heart.core.utils.vtk_utils as vtk_utils
 
 
 def _get_axis_from_field_data(

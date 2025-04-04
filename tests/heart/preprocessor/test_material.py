@@ -23,8 +23,8 @@
 import numpy as np
 import pytest
 
-from ansys.heart.simulator.settings.material.curve import ActiveCurve, constant_ca2, strocchi_active
-import ansys.heart.simulator.settings.material.material as material
+from ansys.heart.core.settings.material.curve import ActiveCurve, constant_ca2, strocchi_active
+import ansys.heart.core.settings.material.material as material
 
 
 class TestCa2Curve:

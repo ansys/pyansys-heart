@@ -32,7 +32,7 @@ from ansys.heart.core.post.laplace_post import (
     compute_ra_fiber_cs,
     compute_ventricle_fiber_by_drbm,
 )
-from ansys.heart.simulator.settings.settings import AtrialFiber
+from ansys.heart.core.settings.settings import AtrialFiber
 from tests.heart.conftest import get_assets_folder
 
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"

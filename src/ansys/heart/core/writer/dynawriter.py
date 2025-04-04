@@ -52,6 +52,13 @@ from ansys.heart.core.models import (
     LeftVentricle,
 )
 from ansys.heart.core.objects import Cap, CapType, Part, PartType, SurfaceMesh, _ConductionType
+from ansys.heart.core.settings.material.ep_material import CellModel, EPMaterial
+from ansys.heart.core.settings.material.material import (
+    Mat295,
+    MechanicalMaterialModel,
+    NeoHookean,
+)
+from ansys.heart.core.settings.settings import SimulationSettings, Stimulation
 from ansys.heart.core.utils.vtk_utils import compute_surface_nodal_area_pyvista
 from ansys.heart.core.writer import custom_keywords as custom_keywords
 from ansys.heart.core.writer.define_function_templates import (  # noqa F401
@@ -82,13 +89,6 @@ from ansys.heart.core.writer.keyword_utils import (
     get_list_of_used_ids,
 )
 from ansys.heart.core.writer.material_keywords import MaterialHGOMyocardium, MaterialNeoHook
-from ansys.heart.simulator.settings.material.ep_material import CellModel, EPMaterial
-from ansys.heart.simulator.settings.material.material import (
-    Mat295,
-    MechanicalMaterialModel,
-    NeoHookean,
-)
-from ansys.heart.simulator.settings.settings import SimulationSettings, Stimulation
 
 
 class _BoundaryConditionType(Enum):
@@ -204,7 +204,7 @@ class BaseDynaWriter:
 
     def _check_settings(self):
         """Check if required settings are available."""
-        import ansys.heart.simulator.settings.settings as sett
+        import ansys.heart.core.settings.settings as sett
 
         subsettings_classes = [
             getattr(self.settings, attr).__class__

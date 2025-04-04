@@ -32,11 +32,11 @@ from pyvista import examples as pyvista_examples
 
 from ansys.heart.core.exceptions import LSDYNATerminationError
 import ansys.heart.core.models as models
+from ansys.heart.core.settings.settings import DynaSettings
 
 # import after mocking.
 import ansys.heart.core.simulator as simulators
 from ansys.heart.core.simulator import run_lsdyna
-from ansys.heart.simulator.settings.settings import DynaSettings
 
 
 def _get_md5(filename):
@@ -192,7 +192,7 @@ def _mocked_methods():
 
 def test_base_simulator_load_default_settings():
     """Test loading defaults."""
-    from ansys.heart.simulator.settings.settings import SimulationSettings
+    from ansys.heart.core.settings.settings import SimulationSettings
 
     with mock.patch.object(shutil, "which", return_value=1):  # bypass check lsdyna path
         # test init

@@ -31,7 +31,7 @@ import pandas as pd
 
 from ansys.heart.core import LOG as LOGGER
 from ansys.heart.core.post.dpf_utils import ICVoutReader
-from ansys.heart.simulator.settings.settings import SimulationSettings
+from ansys.heart.core.settings.settings import SimulationSettings
 
 
 @dataclass(init=False)

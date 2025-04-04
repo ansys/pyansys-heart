@@ -95,7 +95,7 @@ class D3plotReader:
         self.meshgrid: pv.UnstructuredGrid = self.model.metadata.meshed_region.grid
         self.time = self.model.metadata.time_freq_support.time_frequencies.data
 
-    def get_initial_coordinates(self):
+    def get_initial_coordinates(self) -> np.ndarray:
         """Get initial coordinates."""
         return self.model.results.initial_coordinates.eval()[0].data
 
@@ -189,7 +189,7 @@ class D3plotReader:
             LOGGER.warning("No data at given time, results are from interpolation.")
         return self.model.results.displacement.on_time_scoping(float(time)).eval()[0].data
 
-    def get_material_ids(self):
+    def get_material_ids(self) -> np.ndarray:
         """Get list of material id."""
         return self.model.metadata.meshed_region.elements.materials_field.data
 
@@ -197,7 +197,7 @@ class D3plotReader:
         self,
         hv_index: List[int],
         at_step: int = 0,
-    ):
+    ) -> np.ndarray:
         """
         Get history variables in d3plot.
 
@@ -275,7 +275,7 @@ class ICVoutReader:
             LOGGER.error(f"{fn} does not contain icvout. {error}")
             exit()
 
-    def _get_available_ids(self):
+    def _get_available_ids(self) -> np.ndarray:
         """Get available CV ids and CVI ids."""
         icvout_op = dpf.Operator("lsdyna::binout::ICV_ICVIID")
         icvout_op.inputs.data_sources(self._ds)

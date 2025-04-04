@@ -143,7 +143,7 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     return dct, stress_free_coord, guess_ed_coord
 
 
-def mech_post(directory: str, model: HeartModel):
+def mech_post(directory: str, model: HeartModel) -> None:
     """Post-process mechanical simulation folder.
 
     Parameters

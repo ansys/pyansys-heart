@@ -9,7 +9,7 @@ repos:
   rev: v2.4.1
   hooks:
   - id: codespell
-    exclude: ^(examples/dyna_decks\/|tests/heart/assets\/)
+    exclude: ^(tests/heart/assets\/)
     args: [-L solf, "--ignore-words", "doc/styles/config/vocabularies/ANSYS/accept.txt", "-w"]
 
 - repo: https://github.com/pycqa/pydocstyle
@@ -22,7 +22,6 @@ repos:
       (?x)^(
         tests/|
         examples/|
-        src/ansys/heart/misc/|
         src/ansys/heart/core/writer/custom_keywords/|
         .*__init__.py
       )

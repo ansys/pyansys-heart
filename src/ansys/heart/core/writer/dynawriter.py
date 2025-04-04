@@ -1349,7 +1349,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         vector_ids_radial = sd_orientation_radial_kw.vectors["vid"].to_numpy()
         self.id_offset["vector"] = vector_ids_radial[-1]
 
-        ## create discrete elements
+        # create discrete elements
         nodes_discrete_elements = np.array(
             [attached_nodes + 1, np.zeros(len(attached_nodes))], dtype=int
         ).T
@@ -2199,7 +2199,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         for part in parts:
             # element_ids = part.element_ids
             # em_mat_id = self.get_unique_mat_id()
-            em_mat_id = part.mid  #! Needs to match material id used in update_parts_db
+            em_mat_id = part.mid  # Needs to match material id used in update_parts_db
             self.kw_database.material.extend(
                 [
                     keywords.MatElastic(mid=em_mat_id, ro=1e-6, e=1),
@@ -2296,7 +2296,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         apex_point = self.model.get_part("Left ventricle").apex_points[1]
         if "epicardium" not in apex_point.name:
             raise ValueError("Expecting a point on the epicardium")
-        node_apex = apex_point.node_id  #! is this a global node id?
+        node_apex = apex_point.node_id  # is this a global node id?
 
         # validate node set by removing nodes not part of the model without ventricles
         tet_ids_ventricles = np.empty((0), dtype=int)

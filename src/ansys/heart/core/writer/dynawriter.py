@@ -30,7 +30,6 @@ Uses a HeartModel (from ansys.heart.core.models).
 
 import copy
 from enum import Enum
-import json
 
 # import missing keywords
 import os
@@ -786,34 +785,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database = MechanicsDecks()
         """Collection of keyword decks relevant for mechanics."""
 
-        self.system_model_name = self.settings.mechanics.system.name
-        """Name of system model to use."""
-
         self.set_flow_area: bool = True
         """If flow area is set for control volume."""
         return
-
-    @property
-    def system_model_name(self):
-        """System model name.
-
-        Notes
-        -----
-        Valid options include:
-        ["ConstantPreloadWindkesselAfterload",
-        "ClosedLoop].
-
-        """
-        return self._system_model
-
-    @system_model_name.setter
-    def system_model_name(self, value: str):
-        if value not in [
-            "ConstantPreloadWindkesselAfterload",
-            "ClosedLoop",
-        ]:
-            raise ValueError("System model not valid")
-        self._system_model = value
 
     def update(self, dynain_name: str = None, robin_bcs: list[Callable] = None):
         """Update the keyword database.
@@ -996,34 +970,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         include_files = self._get_decknames_of_include()
         self.include_to_main(include_files)
-
-        return
-
-    def export(self, export_directory: str, user_k: list[str] = []):
-        """Write the model to files.
-
-        Parameters
-        ----------
-        export_directory : str
-            export directory
-        user_k : list[str], optional
-            user provided k files, by default []
-        """
-        super().export(export_directory, user_k=user_k)
-
-        # TODO: Close loop is only available from a customized LSDYNA executable
-        # add system json in case of closed loop. For open-loop this is already
-        # added in the control volume database
-        if (
-            self.system_model_name == "ClosedLoop"
-            and self.__class__.__name__ == "MechanicsDynaWriter"
-        ):
-            # exports system model
-            path_system_model_settings = os.path.join(
-                export_directory, "system_model_settings.json"
-            )
-            with open(path_system_model_settings, "w") as outfile:
-                json.dump(self.system_model_json, indent=4, fp=outfile)
 
         return
 
@@ -1755,8 +1701,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         system_map : list[ControlVolume]
             list of control volume
         """
-        if not self.system_model_name == "ConstantPreloadWindkesselAfterload":
-            exit()
 
         def _create_null_part():
             # material

@@ -26,7 +26,6 @@ import glob
 import os
 from pathlib import Path
 import shutil
-from typing import List, Union
 
 import numpy as np
 import pyvista as pv
@@ -56,7 +55,7 @@ _fluent_ui_mode = pyfluent.UIMode(os.getenv("PYFLUENT_UI_MODE", pyfluent.UIMode.
 LOGGER.debug(f"Fluent user interface mode: {_fluent_ui_mode.value}")
 
 
-def _get_supported_fluent_version():
+def _get_supported_fluent_version() -> str:
     """Use pyfluent to get a supported Fluent version."""
     if os.getenv("PYANSYS_HEART_FLUENT_VERSION", None):
         version = os.getenv("PYANSYS_HEART_FLUENT_VERSION")
@@ -88,7 +87,7 @@ except Exception:
     _fluent_version = None
 
 
-def _get_face_zones_with_filter(pyfluent_session, prefixes: list) -> list:
+def _get_face_zones_with_filter(pyfluent_session, prefixes: list) -> list[str]:
     """Get list of available boundaries in Fluent session that use any of the prefixes."""
     face_zones = []
     # get unique prefixes
@@ -104,7 +103,9 @@ def _get_face_zones_with_filter(pyfluent_session, prefixes: list) -> list:
     return face_zones
 
 
-def _organize_connected_regions(grid: pv.UnstructuredGrid, scalar: str = "part-id"):
+def _organize_connected_regions(
+    grid: pv.UnstructuredGrid, scalar: str = "part-id"
+) -> pv.UnstructuredGrid:
     """Ensure that cells that belong to same part are connected."""
     LOGGER.debug("Re-organize connected regions.")
     part_ids = np.unique(grid.cell_data[scalar])
@@ -148,7 +149,9 @@ def _organize_connected_regions(grid: pv.UnstructuredGrid, scalar: str = "part-i
     return grid
 
 
-def _assign_part_id_to_orphan_cells(grid: pv.UnstructuredGrid, scalar="part-id"):
+def _assign_part_id_to_orphan_cells(
+    grid: pv.UnstructuredGrid, scalar="part-id"
+) -> pv.UnstructuredGrid:
     """Use closest point interpolation to assign part id to orphan cells."""
     grid.cell_data["_original-cell-ids"] = np.arange(0, grid.n_cells)
     orphans = grid.extract_cells(grid.cell_data[scalar] == 0)
@@ -180,7 +183,7 @@ def _assign_part_id_to_orphan_cells(grid: pv.UnstructuredGrid, scalar="part-id")
     return grid2
 
 
-def _get_cells_inside_wrapped_parts(model: _InputModel, mesh: _FluentMesh):
+def _get_cells_inside_wrapped_parts(model: _InputModel, mesh: _FluentMesh) -> pv.UnstructuredGrid:
     """Get cells inside each of the wrapped parts."""
     grid = mesh._to_vtk()
 
@@ -231,7 +234,7 @@ def _get_cells_inside_wrapped_parts(model: _InputModel, mesh: _FluentMesh):
     return grid2
 
 
-def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingSession:
+def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession:
     """Get a Fluent Meshing session."""
     # NOTE: when using containerized version - we need to copy all the files
     # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
@@ -276,7 +279,7 @@ def _get_fluent_meshing_session(working_directory: Union[str, Path]) -> MeshingS
     return session
 
 
-def _wrap_part(session: MeshingSession, boundary_names: list, wrapped_part_name: str) -> list:
+def _wrap_part(session: MeshingSession, boundary_names: list, wrapped_part_name: str) -> list[str]:
     """Invoke the wrapper to wrap a part based on a list of boundary names."""
     pre_wrap_facezones = _get_face_zones_with_filter(session, ["*"])
     session.tui.objects.wrap.wrap(
@@ -319,7 +322,7 @@ def _update_size_per_part(
     part_names: list[str],
     global_size: float,
     size_per_part: dict = None,
-):
+) -> dict:
     """Update the dictionary containing the (wrap) size per part.
 
     Parameters
@@ -428,7 +431,7 @@ def _post_meshing_cleanup(fluent_mesh: _FluentMesh) -> Mesh:
 
 def _set_size_field_on_mesh_part(
     session: MeshingSession, mesh_size: float, part_name: str, growth_rate: float = 1.2
-):
+) -> MeshingSession:
     """Set the size field per part."""
     session.tui.scoped_sizing.create(
         f"boi-{part_name}",
@@ -450,7 +453,7 @@ def _set_size_field_on_face_zones(
     face_zone_names: list[str],
     boi_name: str,
     growth_rate: float = 1.2,
-):
+) -> MeshingSession:
     """Set the size field per list of boundaries."""
     session.tui.scoped_sizing.create(
         f"{boi_name}",
@@ -467,8 +470,8 @@ def _set_size_field_on_face_zones(
 
 # TODO: fix method.
 def _mesh_fluid_cavities(
-    fluid_boundaries: List[SurfaceMesh],
-    caps: List[SurfaceMesh],
+    fluid_boundaries: list[SurfaceMesh],
+    caps: list[SurfaceMesh],
     workdir: str,
     remesh_caps: bool = True,
 ) -> _FluentMesh:
@@ -563,8 +566,8 @@ def _mesh_fluid_cavities(
 
 def mesh_from_manifold_input_model(
     model: _InputModel,
-    workdir: Union[str, Path],
-    path_to_output: Union[str, Path],
+    workdir: str | Path,
+    path_to_output: str | Path,
     mesh_size: float = 2.0,
     overwrite_existing_mesh: bool = True,
 ) -> Mesh:
@@ -748,8 +751,8 @@ def mesh_from_manifold_input_model(
 
 def mesh_from_non_manifold_input_model(
     model: _InputModel,
-    workdir: Union[str, Path],
-    path_to_output: Union[str, Path],
+    workdir: str | Path,
+    path_to_output: str | Path,
     global_mesh_size: float = 2.0,
     _global_wrap_size: float = 1.5,
     overwrite_existing_mesh: bool = True,

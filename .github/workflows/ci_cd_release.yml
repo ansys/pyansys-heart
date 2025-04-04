@@ -194,7 +194,7 @@ jobs:
           path: ${{ env.LIBRARY_NAME }}-artifacts
 
       - name: "Release to private PyPI repository"
-        uses: ansys/actions/release-pypi-private@v8 # v1.12.4
+        uses: ansys/actions/release-pypi-private@v8
         with:
           library-name: ${{ env.LIBRARY_NAME }}
           twine-username: "__token__"

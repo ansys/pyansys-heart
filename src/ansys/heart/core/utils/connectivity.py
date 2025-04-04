@@ -23,7 +23,7 @@
 """Module containing methods for mesh connectivity."""
 
 import copy
-from typing import Optional, Tuple, Union
+from typing import Tuple
 
 import numpy as np
 
@@ -145,7 +145,7 @@ def get_edges_from_triangles(triangles: np.ndarray) -> np.ndarray:
 
 def get_free_edges(
     triangles: np.ndarray, return_free_triangles: bool = False
-) -> Union[np.ndarray, Optional[Tuple[np.ndarray, np.ndarray]]]:
+) -> np.ndarray | Tuple[np.ndarray, np.ndarray]:
     """Get the boundary edges that are only referenced once.
 
     Parameters

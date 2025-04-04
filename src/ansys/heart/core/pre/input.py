@@ -33,7 +33,6 @@ and to get the necessary parts or boundaries for each respective model.
 
 import os
 from pathlib import Path
-from typing import List, Tuple, Union
 
 import numpy as np
 import pyvista as pv
@@ -152,14 +151,14 @@ class _InputBoundary(pv.PolyData):
 
 
 class _InputPart:
-    def __init__(self, name="", id=None, boundaries: List[_InputBoundary] = []) -> None:
+    def __init__(self, name="", id=None, boundaries: list[_InputBoundary] = []) -> None:
         if not isinstance(boundaries, list):
             raise TypeError("Boundaries should be a list.")
         self.name = name
         """Name of part."""
         self.id = id
         """id of part."""
-        self.boundaries: List[_InputBoundary] = boundaries
+        self.boundaries: list[_InputBoundary] = boundaries
         """list of boundaries that enclose the part."""
         pass
 
@@ -187,7 +186,7 @@ class _InputPart:
     def __repr__(self) -> str:
         return f"Name: {self.name}\nid:{self.id}\n" + "Number of boundaries:{len(self.boundaries)}"
 
-    def write_boundaries(self, writedir: Union[str, Path] = ".", extension: str = ".stl"):
+    def write_boundaries(self, writedir: str | Path = ".", extension: str = ".stl") -> None:
         """Write all boundaries of the part."""
         filenames = []
         for b in self.boundaries:
@@ -211,7 +210,7 @@ class _InputModel:
 
     def __init__(
         self,
-        input: Union[Path, str, pv.UnstructuredGrid, pv.PolyData] = None,
+        input: Path | str | pv.UnstructuredGrid | pv.PolyData = None,
         scalar: str = None,
         part_definitions: dict = None,
     ) -> None:
@@ -220,7 +219,7 @@ class _InputModel:
         self.part_definitions = part_definitions
         """Part definitions."""
 
-        self._parts: List[_InputPart] = []
+        self._parts: list[_InputPart] = []
 
         # try to read the input.
         if isinstance(input, (Path, str)):
@@ -427,11 +426,11 @@ class _InputModel:
 
     def write_part_boundaries(
         self,
-        writedir: Union[str, Path] = ".",
+        writedir: str | Path = ".",
         extension: str = ".stl",
         avoid_duplicates: bool = True,
         add_name_to_header: bool = True,
-    ) -> Tuple[List, List]:
+    ) -> tuple[list, list]:
         """Write boundaries of all parts."""
         saved = []
         boundary_names = []
@@ -458,7 +457,7 @@ class _InputModel:
         return filenames, boundary_names
 
 
-def _invert_dict(d: dict):
+def _invert_dict(d: dict) -> dict:
     """Invert the input dictionary."""
     return {v: k for k, v in d.items()}
 
@@ -505,7 +504,7 @@ def _get_boundary_id_to_boundary_name_map() -> dict:
     return _invert_dict(_get_boundary_name_to_boundary_id_map())
 
 
-def _get_required_boundaries(model_type: str) -> List[str]:
+def _get_required_boundaries(model_type: str) -> list[str]:
     """Return a list of boundaries required for the given model."""
     parts = _get_required_parts(model_type)
     required_boundaries = []

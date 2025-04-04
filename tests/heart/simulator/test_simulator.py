@@ -330,9 +330,9 @@ def test_mechanics_simulator_simulate(
             assert md5 == md5_ref
 
 
-@mock.patch("ansys.heart.simulator.simulator.MechanicsSimulator._run_dyna")
-@mock.patch("ansys.heart.simulator.simulator.mech_post")
-@mock.patch("ansys.heart.simulator.simulator.MechanicsSimulator._write_main_simulation_files")
+@mock.patch("ansys.heart.core.simulator.MechanicsSimulator._run_dyna")
+@mock.patch("ansys.heart.core.simulator.mech_post")
+@mock.patch("ansys.heart.core.simulator.MechanicsSimulator._write_main_simulation_files")
 def test_call_with_user_k(mock_write_main, mock_mech_post, mock_run_dyna, mechanics_simulator):
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         user_file = os.path.join(tempdir, "user.k")

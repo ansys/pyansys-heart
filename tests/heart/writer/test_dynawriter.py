@@ -19,7 +19,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+import os
+import tempfile
 import unittest.mock as mock
 
 import numpy as np
@@ -37,7 +38,7 @@ from ansys.heart.core.objects import (
     _BeamsMesh,
     _ConductionType,
 )
-from ansys.heart.core.settings.settings import SimulationSettings, Stimulation
+from ansys.heart.core.settings.settings import Mechanics, SimulationSettings, Stimulation
 import ansys.heart.core.writer.dynawriter as writers
 
 
@@ -232,3 +233,25 @@ def test_update_use_purkinje(_mock_model: FullHeart):
     ]
     for expected_kw in expected_kw_titles:
         assert expected_kw in kw_titles, f"Did not find {expected_kw} in keywords"
+
+
+def test_export(_mock_model):
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        setting = mock.Mock(spec=Mechanics).return_value
+        setting.mechanics.system.name = "ConstantPreloadWindkesselAfterload"
+        w = writers.MechanicsDynaWriter(_mock_model, setting)
+        w.kw_database.main.append("*END")
+        w.export(tempdir)
+        # test export
+        assert os.listdir(tempdir) == ["main.k"]
+
+        user_file = os.path.join(tempdir, "..", "user.k")
+        with open(user_file, "w") as tmpfile:
+            tmpfile.write("*END")
+
+        # test raise with not found file
+        with pytest.raises(FileNotFoundError):
+            w.export(tempdir, user_k=[user_file + "0"])
+        # test write with user file
+        w.export(tempdir, user_k=[user_file])
+        assert set(os.listdir(tempdir)) == {"main.k", "user.k"}

@@ -330,6 +330,24 @@ def test_mechanics_simulator_simulate(
             assert md5 == md5_ref
 
 
+@mock.patch("ansys.heart.simulator.simulator.MechanicsSimulator._run_dyna")
+@mock.patch("ansys.heart.simulator.simulator.mech_post")
+@mock.patch("ansys.heart.simulator.simulator.MechanicsSimulator._write_main_simulation_files")
+def test_call_with_user_k(mock_write_main, mock_mech_post, mock_run_dyna, mechanics_simulator):
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        user_file = os.path.join(tempdir, "user.k")
+        with open(user_file, "w") as tmpfile:
+            tmpfile.write("*END")
+
+        mechanics_simulator.root_directory = tempdir
+        mechanics_simulator.initial_stress = False
+        mechanics_simulator.simulate(extra_k_files=[user_file])
+
+        mock_write_main.assert_called_once_with(
+            folder_name="main-mechanics", extra_k_files=[user_file]
+        )
+
+
 @pytest.mark.parametrize(
     "dynain_files,expected,expected_error",
     [

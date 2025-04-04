@@ -34,6 +34,7 @@ import json
 
 # import missing keywords
 import os
+import shutil
 import time
 from typing import Callable, List, Literal, NamedTuple, Union
 
@@ -183,9 +184,6 @@ class BaseDynaWriter:
         #     # part.pid = self.get_unique_part_id()
         #     # part.pid = id
         # """Assign part id for heart parts."""
-
-        """List of .k files to include in main. This is derived from the Decks classes."""
-        self.include_files = []
 
         if not settings:
             self.settings = SimulationSettings()
@@ -582,8 +580,13 @@ class BaseDynaWriter:
         """Suggest a unique curve-id."""
         return self._get_unique_id("DEFINE_CURVE")
 
-    def _get_list_of_includes(self):
-        """Get a list of files to include in main.k. Omit any empty decks."""
+    def _get_decknames_of_include(self) -> list[str]:
+        """
+        Get a list of deck file name in keyword database.
+
+        Except main and omit any empty decks.
+        """
+        include_files = []
         for deckname, deck in vars(self.kw_database).items():
             if deckname == "main":
                 continue
@@ -591,31 +594,51 @@ class BaseDynaWriter:
             if len(deck.keywords) == 0:
                 LOGGER.debug("No keywords in deck: {0}".format(deckname))
                 continue
-            self.include_files.append(deckname)
+            include_files.append(deckname + ".k")
+
+        return include_files
+
+    def include_to_main(self, file_list: list[str] | str = []):
+        """Add *INCLUDE keywords into main.
+
+        Parameters
+        ----------
+        file_list : list[str] | str, optional
+            file(s) to be included, by default []
+        """
+        if isinstance(file_list, str):
+            file_list = [file_list]
+
+        for file in file_list:
+            self.kw_database.main.append(keywords.Include(filename=file))
+
         return
 
-    def _add_includes(self):
-        """Add *INCLUDE keywords."""
-        for include_file in self.include_files:
-            filename_to_include = include_file + ".k"
-            self.kw_database.main.append(keywords.Include(filename=filename_to_include))
+    def export(self, export_directory: str, user_k: list[str] = []):
+        """Write the model to files.
 
-        return
-
-    def export(self, export_directory: str):
-        """Write the model to files."""
+        Parameters
+        ----------
+        export_directory : str
+            export directory
+        user_k : list[str], optional
+            user provided k files, by default []
+        """
         tstart = time.time()
         LOGGER.info("Writing all LS-DYNA .k files...")
 
-        # is this reachable??
-        if not export_directory:
-            export_directory = os.path.join(
-                self.model.workdir,
-                self.__class__.__name__.lower().replace("dynawriter", ""),
-            )
-
         if not os.path.isdir(export_directory):
             os.makedirs(export_directory)
+
+        for k_file in user_k:
+            if not os.path.isfile(k_file):
+                error_msg = f"File {k_file} not found."
+                LOGGER.error(error_msg)
+                raise FileNotFoundError(error_msg)
+            else:
+                name = os.path.basename(k_file)
+                shutil.copy(k_file, os.path.join(export_directory, name))
+                self.include_to_main(name)
 
         # export .k files
         self.export_databases(export_directory)
@@ -635,7 +658,7 @@ class BaseDynaWriter:
 
         for deckname, deck in vars(self.kw_database).items():
             # skip empty databases:
-            if deck.keywords == []:
+            if len(deck.keywords) == 0 and len(deck.string_keywords) == 0:
                 continue
             LOGGER.info("Writing: {}".format(deckname))
 
@@ -822,7 +845,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             # write cap shells with mesh
             self._update_cap_elements_db(add_mesh=True)
         else:
-            self.kw_database.main.append(keywords.Include(filename=dynain_name))
+            self.include_to_main(dynain_name)
             # cap mesh has been defined in dynain file
             self._update_cap_elements_db(add_mesh=False)
 
@@ -971,14 +994,22 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self._update_controlvolume_db(system_map)
 
-        self._get_list_of_includes()
-        self._add_includes()
+        include_files = self._get_decknames_of_include()
+        self.include_to_main(include_files)
 
         return
 
-    def export(self, export_directory: str):
-        """Write the model to files."""
-        super().export(export_directory)
+    def export(self, export_directory: str, user_k: list[str] = []):
+        """Write the model to files.
+
+        Parameters
+        ----------
+        export_directory : str
+            export directory
+        user_k : list[str], optional
+            user provided k files, by default []
+        """
+        super().export(export_directory, user_k=user_k)
 
         # TODO: Close loop is only available from a customized LSDYNA executable
         # add system json in case of closed loop. For open-loop this is already
@@ -1917,8 +1948,8 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
             keywords.InterfaceSpringbackExclude(kwdname="BOUNDARY_SPC_NODE")
         )
 
-        self._get_list_of_includes()
-        self._add_includes()
+        include_files = self._get_decknames_of_include()
+        self.include_to_main(include_files)
 
         return
 
@@ -2175,8 +2206,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             rotation_angles = self.settings.get_ventricle_fiber_rotation(method="LSDYNA")
         self._update_create_fibers(rotation_angles)
 
-        self._get_list_of_includes()
-        self._add_includes()
+        include_files = self._get_decknames_of_include()
+        self.include_to_main(include_files)
 
         return
 
@@ -2660,8 +2691,8 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
         self._update_ep_settings()
         self._update_create_Purkinje()
 
-        self._get_list_of_includes()
-        self._add_includes()
+        include_files = self._get_decknames_of_include()
+        self.include_to_main(include_files)
 
         return
 
@@ -2941,8 +2972,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         if hasattr(self.model, "electrodes") and len(self.model.electrodes) != 0:
             self._update_ECG_coordinates()
 
-        self._get_list_of_includes()
-        self._add_includes()
+        include_files = self._get_decknames_of_include()
+        self.include_to_main(include_files)
 
         return
 
@@ -3684,8 +3715,8 @@ class ElectrophysiologyBeamsDynaWriter(ElectrophysiologyDynaWriter):
         self._update_ep_settings()
         self._update_stimulation()
 
-        self._get_list_of_includes()
-        self._add_includes()
+        include_files = self._get_decknames_of_include()
+        self.include_to_main(include_files)
 
         return
 
@@ -3738,10 +3769,10 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
             # Coupling enabled, EP beam nodes follow the motion of surfaces
             self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1, smcoupl=0))
             self._update_use_Purkinje()
-            self.kw_database.main.append(keywords.Include(filename="beam_networks.k"))
+            self.include_to_main("beam_networks.k")
 
         self._update_parts_cellmodels()
-        self.kw_database.main.append(keywords.Include(filename="cell_models.k"))
+        self.include_to_main("cell_models.k")
 
         self._update_ep_settings()
         self._update_stimulation()
@@ -3752,7 +3783,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         )
         self.kw_database.ep_settings.append("$ EM-MECA coupling control")
         self.kw_database.ep_settings.append(coupling_str)
-        self.kw_database.main.append(keywords.Include(filename="ep_settings.k"))
+        self.include_to_main("ep_settings.k")
 
         return
 
@@ -4085,8 +4116,8 @@ class LaplaceWriter(BaseDynaWriter):
         elif self.type == "D-RBM":
             self._update_drbm_bc()
 
-        self._get_list_of_includes()
-        self._add_includes()
+        include_files = self._get_decknames_of_include()
+        self.include_to_main(include_files)
 
     def _update_uvc_bc(self):
         # transmural uvc

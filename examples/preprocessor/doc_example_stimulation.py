@@ -51,8 +51,8 @@ import numpy as np
 import pyvista as pv
 
 import ansys.heart.core.models as models
+from ansys.heart.core.settings.settings import SimulationSettings, Stimulation
 from ansys.heart.core.simulator import DynaSettings, EPSimulator
-from ansys.heart.simulator.settings.settings import SimulationSettings, Stimulation
 
 # accept dpf license agreement
 # https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing

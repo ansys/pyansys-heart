@@ -51,8 +51,8 @@ from pathlib import Path
 
 import ansys.heart.core.models as models
 from ansys.heart.core.objects import Point
+from ansys.heart.core.settings.settings import DynaSettings
 from ansys.heart.core.simulator import EPSimulator
-from ansys.heart.simulator.settings.settings import DynaSettings
 
 # accept dpf license agreement
 # https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing

@@ -25,23 +25,15 @@
 import json
 import os
 import tempfile
-
-import pyvista as pv
-from pyvista import examples
-
-from ansys.heart.core.objects import Mesh, PartType
-
-if os.getenv("GITHUB_ACTIONS"):
-    is_gh_action = True
-else:
-    is_gh_action = False
-
 import unittest.mock as mock
 
 import numpy as np
 import pytest
+import pyvista as pv
+from pyvista import examples
 
 import ansys.heart.core.models as models
+from ansys.heart.core.objects import Mesh, PartType
 
 
 def test_set_workdir():

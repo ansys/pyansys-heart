@@ -56,8 +56,8 @@ from ansys.heart.core.postprocessor.laplace_post import (
     compute_ventricle_fiber_by_drbm,
     read_laplace_solution,
 )
+from ansys.heart.core.preprocessor.conduction_beam import ConductionSystem
 from ansys.heart.core.utils.misc import _read_orth_element_kfile
-from ansys.heart.preprocessor.conduction_beam import ConductionSystem
 from ansys.heart.simulator.settings.settings import DynaSettings, SimulationSettings
 import ansys.heart.writer.dynawriter as writers
 

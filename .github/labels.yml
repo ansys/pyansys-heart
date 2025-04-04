@@ -99,6 +99,10 @@
   description: General improvements to existing features
   color: ffd827
 
+- name: 'refactor'
+  description: General improvements code structure
+  color: ffd827
+
 - name: 'maintenance'
   description: Generic maintenance related
   color: f78c37

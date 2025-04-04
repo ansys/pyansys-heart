@@ -24,7 +24,7 @@ from matplotlib.figure import Figure
 import numpy as np
 import pytest
 
-from ansys.heart.postprocessor.klotz_curve import EDPVR
+from ansys.heart.core.post.klotz_curve import EDPVR
 
 
 def test_edpvr():

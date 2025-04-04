@@ -33,18 +33,18 @@ from pint import Quantity, UnitRegistry
 import yaml
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.simulator.settings.defaults import (
+from ansys.heart.core.settings.defaults import (
     electrophysiology as ep_defaults,
     fibers as fibers_defaults,
     mechanics as mech_defaults,
     purkinje as purkinje_defaults,
     zeropressure as zero_pressure_defaults,
 )
-from ansys.heart.simulator.settings.material.curve import (
+from ansys.heart.core.settings.material.curve import (
     ActiveCurve,
     constant_ca2,
 )
-from ansys.heart.simulator.settings.material.material import (
+from ansys.heart.core.settings.material.material import (
     ACTIVE,
     ANISO,
     ISO,
@@ -402,7 +402,7 @@ class SimulationSettings:
         --------
         Instantiate settings and load defaults
 
-        >>> from ansys.heart.simulator.settings.settings import SimulationSettings
+        >>> from ansys.heart.core.settings.settings import SimulationSettings
         >>> settings = SimulationSettings()
         >>> settings.load_defaults()
         >>> print(settings)
@@ -467,7 +467,7 @@ class SimulationSettings:
         --------
         Create examples settings with default values.
 
-        >>> from ansys.heart.simulator.settings.settings import SimulationSettings
+        >>> from ansys.heart.core.settings.settings import SimulationSettings
         >>> settings = SimulationSettings()
         >>> settings.load_defaults()
         >>> settings.save("my_settings.yml")
@@ -510,7 +510,7 @@ class SimulationSettings:
         --------
         Create examples settings with default values.
 
-        >>> from ansys.heart.simulator.settings.settings import SimulationSettings
+        >>> from ansys.heart.core.settings.settings import SimulationSettings
         >>> settings = SimulationSettings()
         >>> settings.load_defaults()
         >>> settings.save("my_settings.yml")
@@ -570,7 +570,7 @@ class SimulationSettings:
         Create examples settings with default values.
 
         Load module
-        >>> from ansys.heart.simulator.settings.settings import SimulationSettings
+        >>> from ansys.heart.core.settings.settings import SimulationSettings
 
         Instantiate settings object.
 
@@ -639,7 +639,7 @@ class SimulationSettings:
         Convert to the consistent unit system ["MPa", "mm", "N", "ms", "g"].
 
         Import necessary modules
-        >>> from ansys.heart.simulator.settings.settings import SimulationSettings
+        >>> from ansys.heart.core.settings.settings import SimulationSettings
         >>> from pint import Quantity
 
         Instantiate settings

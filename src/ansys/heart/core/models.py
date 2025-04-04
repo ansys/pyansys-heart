@@ -46,16 +46,16 @@ from ansys.heart.core.objects import (
     SurfaceMesh,
     _BeamsMesh,
 )
-import ansys.heart.core.utils.connectivity as connectivity
-import ansys.heart.core.utils.vtk_utils as vtk_utils
-from ansys.heart.preprocessor.input import _InputModel
-import ansys.heart.preprocessor.mesher as mesher
-from ansys.heart.simulator.settings.material.ep_material import EPMaterial
-from ansys.heart.simulator.settings.material.material import (
+from ansys.heart.core.pre.input import _InputModel
+import ansys.heart.core.pre.mesher as mesher
+from ansys.heart.core.settings.material.ep_material import EPMaterial
+from ansys.heart.core.settings.material.material import (
     ISO,
     Mat295,
     MechanicalMaterialModel,
 )
+import ansys.heart.core.utils.connectivity as connectivity
+import ansys.heart.core.utils.vtk_utils as vtk_utils
 
 
 def _get_axis_from_field_data(
@@ -637,7 +637,7 @@ class HeartModel:
 
         Examples
         --------
-        >>> import ansys.heart.preprocessor.models as models
+        >>> import ansys.heart.core.models as models
         >>> model = models.HeartModel.load_model("heart_model.pickle")
         >>> model.plot_mesh(show_edges=True)
         """
@@ -657,7 +657,7 @@ class HeartModel:
 
         Examples
         --------
-        >>> import ansys.heart.preprocessor.models as models
+        >>> import ansys.heart.core.models as models
         >>> model = models.HeartModel.load_model("my_model.pickle")
         >>> model.part(model.left_ventricle)
         """
@@ -682,7 +682,7 @@ class HeartModel:
 
         Examples
         --------
-        >>> import ansys.heart.preprocessor.models as models
+        >>> import ansys.heart.core.models as models
         >>> model = models.HeartModel.load_model("my_model.pickle")
         >>> model.plot_fibers(n_seed_points=5000)
         """
@@ -711,7 +711,7 @@ class HeartModel:
         Examples
         --------
         Import modules and load model.
-        >>> import ansys.heart.preprocessor.models as models
+        >>> import ansys.heart.core.models as models
         >>> model = models.HeartModel.load_model("my_model.pickle")
         Plot the model
         >>> model.plot(show_edges=True)
@@ -813,7 +813,7 @@ class HeartModel:
 
         Examples
         --------
-        >>> from ansys.heart.preprocessor.models import FullHeart
+        >>> from ansys.heart.core.models import FullHeart
         >>> model: FullHeart = FullHeart()
         >>> model.load_model_from_mesh("mesh.vtu", "mesh.partinfo.json")
 

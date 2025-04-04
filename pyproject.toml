@@ -75,7 +75,7 @@ name = "ansys.heart"
 [tool.ruff]
 line-length = 100
 fix = true
-extend-exclude = ["src/ansys/heart/writer/custom_keywords/**"]
+extend-exclude = ["src/ansys/heart/core/writer/custom_keywords/**"]
 
 [tool.ruff.format]
 quote-style = "double"

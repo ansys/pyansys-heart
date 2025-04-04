@@ -29,8 +29,8 @@ import numpy as np
 from pint import Quantity
 import pytest
 
-from ansys.heart.simulator.settings.defaults import fibers as fibers_defaults
-from ansys.heart.simulator.settings.settings import (
+from ansys.heart.core.settings.defaults import fibers as fibers_defaults
+from ansys.heart.core.settings.settings import (
     Analysis,
     Fibers,
     SimulationSettings,

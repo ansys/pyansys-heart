@@ -28,7 +28,7 @@ from typing import List, Optional
 from deprecated import deprecated
 
 from ansys.heart.core import LOG as LOGGER
-from ansys.heart.simulator.settings.material.curve import ActiveCurve, constant_ca2
+from ansys.heart.core.settings.material.curve import ActiveCurve, constant_ca2
 
 
 @dataclass

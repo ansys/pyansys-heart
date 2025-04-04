@@ -38,8 +38,8 @@ from ansys.heart.core.objects import (
     _BeamsMesh,
     _ConductionType,
 )
-from ansys.heart.simulator.settings.settings import Mechanics, SimulationSettings, Stimulation
-import ansys.heart.writer.dynawriter as writers
+from ansys.heart.core.settings.settings import Mechanics, SimulationSettings, Stimulation
+import ansys.heart.core.writer.dynawriter as writers
 
 
 def _get_mock_conduction_system() -> _BeamsMesh:

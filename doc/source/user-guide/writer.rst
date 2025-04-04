@@ -19,7 +19,7 @@ Based on different applications, different Writers need to be created.
 A simple use example is given as the following:
 
 >>> # Get a heart model
->>> import ansys.heart.preprocessor.models as models
+>>> import ansys.heart.core.models as models
 >>> model = models.HeartModel.load_model("path_to_model")
 
 >>> import ansys.heart.writer.dynawriter as writers

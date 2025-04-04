@@ -35,13 +35,13 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
-from ansys.heart.simulator.settings.material.curve import (
+from ansys.heart.core.settings.material.curve import (
     ActiveCurve,
     constant_ca2,
     kumaraswamy_active,
 )
-from ansys.heart.simulator.settings.material.ep_material import CellModel, EPMaterial
-from ansys.heart.simulator.settings.material.material import (
+from ansys.heart.core.settings.material.ep_material import CellModel, EPMaterial
+from ansys.heart.core.settings.material.material import (
     ACTIVE,
     ANISO,
     ISO,

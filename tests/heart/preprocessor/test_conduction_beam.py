@@ -25,7 +25,11 @@
 import numpy as np
 from pyvista.examples import load_tetbeam
 
-from ansys.heart.preprocessor.conduction_beam import ConductionSystem, _create_line, _refine_line
+from ansys.heart.core.pre.conduction_beam import (
+    ConductionSystem,
+    _create_line,
+    _refine_line,
+)
 
 
 def test_find_path():

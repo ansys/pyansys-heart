@@ -61,7 +61,7 @@ from ansys.heart.core.settings.material.material import (
 from ansys.heart.core.settings.settings import SimulationSettings, Stimulation
 from ansys.heart.core.utils.vtk_utils import compute_surface_nodal_area_pyvista
 from ansys.heart.core.writer import custom_keywords as custom_keywords
-from ansys.heart.core.writer.control_volume import (
+from ansys.heart.core.writer._control_volume import (
     ControlVolume,
     _create_close_loop,
     _create_open_loop,

@@ -63,7 +63,7 @@ class EDPVR:
             self.Beta = np.log10(self.pm / 15) / np.log10(self.vm / v15)
             self.Alpha = self.pm / self.vm**self.Beta
 
-    def _get_constants(self):
+    def _get_constants(self) -> tuple[float, float]:
         """Get constants."""
         return self.Alpha, self.Beta
 

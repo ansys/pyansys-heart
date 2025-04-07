@@ -152,7 +152,7 @@ class D3plotReader:
     #     # print(self.model.operator())
     #     return
 
-    def print_lsdyna_ms_results(self):
+    def print_lsdyna_ms_results(self) -> None:
         """Print available ms results."""
         # NOTE: map between variable id and variable name.
         #  Elemental Electrical Conductivity(domain Id: 1, Variable Id: 33)
@@ -171,6 +171,8 @@ class D3plotReader:
         op = dpf.Operator("lsdyna::ms::result_info_provider")  # ls dyna EP operator
         op.inputs.data_sources(self.ds)
         print(op.eval())
+
+        return
 
     def get_displacement_at(self, time: float) -> np.ndarray:
         """Get displacement field.
@@ -289,6 +291,8 @@ class ICVoutReader:
         # available ICV id
         self._icv_ids = fields2[0].data.astype(int)
 
+        return self._icv_ids
+
     def get_time(self) -> np.ndarray:
         """Get time array.
 
@@ -366,7 +370,7 @@ class ICVoutReader:
         # area is obtained by 'ICVI_A'
         return self._get_field(icvi_id, "ICVI_FR")
 
-    def _get_field(self, id: int, operator_name: str):
+    def _get_field(self, id: int, operator_name: str) -> np.ndarray:
         icvout_op = dpf.Operator(f"lsdyna::binout::{operator_name}")
         icvout_op.inputs.data_sources(self._ds)
 

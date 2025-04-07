@@ -25,8 +25,6 @@
 import copy
 import json
 import os
-
-# import json
 import pathlib
 import re
 from typing import List, Literal, Union
@@ -36,8 +34,8 @@ import pyvista as pv
 import yaml
 
 from ansys.heart.core import LOG as LOGGER
+from ansys.heart.core.exceptions import InvalidHeartModelError
 from ansys.heart.core.objects import (
-    BeamMesh,
     Cap,
     CapType,
     Cavity,
@@ -46,17 +44,18 @@ from ansys.heart.core.objects import (
     PartType,
     Point,
     SurfaceMesh,
+    _BeamsMesh,
 )
-import ansys.heart.core.utils.connectivity as connectivity
-import ansys.heart.core.utils.vtk_utils as vtk_utils
-from ansys.heart.preprocessor.input import _InputModel
-import ansys.heart.preprocessor.mesher as mesher
-from ansys.heart.simulator.settings.material.ep_material import EPMaterial
-from ansys.heart.simulator.settings.material.material import (
+from ansys.heart.core.pre.input import _InputModel
+import ansys.heart.core.pre.mesher as mesher
+from ansys.heart.core.settings.material.ep_material import EPMaterial
+from ansys.heart.core.settings.material.material import (
     ISO,
     Mat295,
     MechanicalMaterialModel,
 )
+import ansys.heart.core.utils.connectivity as connectivity
+import ansys.heart.core.utils.vtk_utils as vtk_utils
 
 
 def _get_axis_from_field_data(
@@ -88,6 +87,55 @@ def _set_field_data_from_axis(
         return None
     mesh.field_data[axis_name] = data
     return mesh
+
+
+def _read_purkinje_from_kfile(filename: pathlib.Path):
+    """Read purkinje from k file.
+
+    Parameters
+    ----------
+    filename : pathlib.Path
+        Purkinje filename.
+
+    Returns
+    -------
+    _type_
+        Beam data extracted from file: beam_nodes,edges,mask,pid
+    """
+    # Open file and import beams and created nodes
+    with open(filename, "r") as file:
+        start_nodes = 0
+        lines = file.readlines()
+    # find line ids delimiting node data and edge data
+    start_nodes = np.array(np.where(["*NODE" in line for line in lines]))[0][0]
+    end_nodes = np.array(np.where(["*" in line for line in lines]))
+    end_nodes = end_nodes[end_nodes > start_nodes][0]
+    start_beams = np.array(np.where(["*ELEMENT_BEAM" in line for line in lines]))[0][0]
+    end_beams = np.array(np.where(["*" in line for line in lines]))
+    end_beams = end_beams[end_beams > start_beams][0]
+
+    # load node data
+    node_data = np.loadtxt(filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1)
+    new_ids = node_data[:, 0].astype(int) - 1
+    beam_nodes = node_data[:, 1:4]
+
+    # load beam data
+    beam_data = np.loadtxt(
+        filename, skiprows=start_beams + 1, max_rows=end_beams - start_beams - 1, dtype=int
+    )
+    edges = beam_data[:, 2:4] - 1
+    pid = beam_data[0, 1]
+
+    # TODO: physically, this is not fully understood: Merging the end of bundle branch, the
+    # TODO: origin of Purkinje and the apex of myiocardium seems logical, but it has more chance
+    # TODO: the EP wave will not be triggered.
+    # TODO: so I remove it, it means: end of bundle branch connect to apex, origin of Purkinje
+    # TODO: is another point on the same location.
+
+    mask = np.isin(edges, new_ids)  # True for new created nodes
+    edges[mask] -= new_ids[0]  # beam nodes id start from 0
+
+    return beam_nodes, edges, mask, pid
 
 
 def _set_workdir(workdir: pathlib.Path | str = None) -> str:
@@ -262,8 +310,8 @@ class HeartModel:
         self.electrodes: List[Point] = []
         """Electrodes positions for ECG computing."""
 
-        self.beam_network: List[BeamMesh] = []
-        """List of beam networks in the mesh."""
+        self.conduction_system: _BeamsMesh = _BeamsMesh()
+        """Mesh defining the conduction system."""
 
         self.electrodes: List[Point] = []
         """Electrodes positions for ECG computing."""
@@ -338,98 +386,30 @@ class HeartModel:
         name : str
             beamnet name
         """
-        # Open file and import beams and created nodes
-        with open(filename, "r") as file:
-            start_nodes = 0
-            lines = file.readlines()
-        # find line ids delimiting node data and edge data
-        start_nodes = np.array(np.where(["*NODE" in line for line in lines]))[0][0]
-        end_nodes = np.array(np.where(["*" in line for line in lines]))
-        end_nodes = end_nodes[end_nodes > start_nodes][0]
-        start_beams = np.array(np.where(["*ELEMENT_BEAM" in line for line in lines]))[0][0]
-        end_beams = np.array(np.where(["*" in line for line in lines]))
-        end_beams = end_beams[end_beams > start_beams][0]
+        beam_nodes, edges, mask, pid = _read_purkinje_from_kfile(filename)
 
-        # load node data
-        node_data = np.loadtxt(
-            filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1
+        # build tree: beam_nodes and solid_points
+        original_points_order = np.unique(edges[np.invert(mask)])
+        solid_points = self.mesh.points[original_points_order]
+        connectivity = np.empty_like(edges)
+        np.copyto(connectivity, edges)
+
+        # create ids of solid points and fill connectivity
+        _, _, inverse_indices = np.unique(
+            connectivity[np.logical_not(mask)], return_index=True, return_inverse=True
         )
-        new_ids = node_data[:, 0].astype(int) - 1
-        beam_nodes = node_data[:, 1:4]
+        connectivity[np.logical_not(mask)] = inverse_indices + max(connectivity[mask]) + 1
+        celltypes = np.full((connectivity.shape[0], 1), 2)
+        connectivity = np.hstack((celltypes, connectivity))
+        beam_points = np.vstack([beam_nodes, solid_points])
+        is_connected = np.concatenate(
+            [np.zeros(len(beam_nodes)), np.ones(len(solid_points))]
+        ).astype(np.int64)
 
-        # load beam data
-        beam_data = np.loadtxt(
-            filename, skiprows=start_beams + 1, max_rows=end_beams - start_beams - 1, dtype=int
-        )
-        edges = beam_data[:, 2:4] - 1
-        pid = beam_data[0, 1]
-
-        # TODO: physically, this is not fully understood: Merging the end of bundle branch, the
-        # TODO: origin of Purkinje and the apex of myiocardium seems logical, but it has more chance
-        # TODO: the EP wave will not be triggered.
-        # TODO: so I remove it, it means: end of bundle branch connect to apex, origin of Purkinje
-        # TODO: is another point on the same location.
-
-        mask = np.isin(edges, new_ids)  # True for new created nodes
-        edges[mask] -= new_ids[0]  # beam nodes id start from 0
-
-        beam = self.add_beam_net(beam_nodes, edges, mask, pid=pid, name=name)
-
-        return beam
-
-    def add_beam_net(
-        self, beam_nodes: np.ndarray, edges: np.ndarray, mask: np.ndarray, pid=0, name: str = None
-    ) -> BeamMesh:
-        """Add a BeamMesh object on the model.
-
-        Parameters
-        ----------
-        beam_nodes : np.ndarray
-            new nodes coordinates.
-        edges : np.ndarray
-            beam elements connectivity
-            If `mask` is true, it's Id of `beam_nodes` (start by 0),
-            it will be offset when creating BeamMesh object.
-            If `mask` is false, it's Id of existed nodes, it will not be offset.
-        mask : np.ndarray
-            with the same shape of `edges`
-        pid : int, optional
-            part Id, will be reassigned when writing, by default 0
-        name : str, optional
-            name, by default None
-
-        Returns
-        -------
-        BeamMesh
-            BeamMesh object
-        """
-        edges[mask] += len(self.mesh.points) + len(BeamMesh.all_beam_nodes)
-
-        if len(BeamMesh.all_beam_nodes) == 0:
-            BeamMesh.all_beam_nodes = beam_nodes
-        else:
-            BeamMesh.all_beam_nodes = np.vstack((BeamMesh.all_beam_nodes, beam_nodes))
-
-        # nodes is just for pyvista plot, edges used in writer will be offset
-        # TODO: only save necessary nodes, cells, and with a 'global id' array
-        beam_net = BeamMesh(
-            nodes=np.vstack((self.mesh.points, BeamMesh.all_beam_nodes)),
-            edges=edges,
-            beam_nodes_mask=mask,
-        )
-        beam_net.pid = pid
-        beam_net.name = name
-
-        #! class variable BeamMesh.all_beam_nodes is not saved in pickle
-        #! only the last created beam_network holds all previously created
-        #! nodes.
-        beam_net._all_beam_nodes = np.copy(BeamMesh.all_beam_nodes)
-
-        self.beam_network.append(beam_net)
-
-        # sync across beam networks
-        for beams in self.beam_network:
-            beams._all_beam_nodes = np.copy(BeamMesh.all_beam_nodes)
+        beam_net = pv.PolyData(beam_points, lines=connectivity)
+        beam_net.point_data["_is-connected"] = is_connected
+        id = self.conduction_system.get_unique_lines_id()
+        self.conduction_system.add_lines(lines=beam_net, id=id, name=name)
 
         return beam_net
 
@@ -657,7 +637,7 @@ class HeartModel:
 
         Examples
         --------
-        >>> import ansys.heart.preprocessor.models as models
+        >>> import ansys.heart.core.models as models
         >>> model = models.HeartModel.load_model("heart_model.pickle")
         >>> model.plot_mesh(show_edges=True)
         """
@@ -677,7 +657,7 @@ class HeartModel:
 
         Examples
         --------
-        >>> import ansys.heart.preprocessor.models as models
+        >>> import ansys.heart.core.models as models
         >>> model = models.HeartModel.load_model("my_model.pickle")
         >>> model.part(model.left_ventricle)
         """
@@ -702,7 +682,7 @@ class HeartModel:
 
         Examples
         --------
-        >>> import ansys.heart.preprocessor.models as models
+        >>> import ansys.heart.core.models as models
         >>> model = models.HeartModel.load_model("my_model.pickle")
         >>> model.plot_fibers(n_seed_points=5000)
         """
@@ -731,7 +711,7 @@ class HeartModel:
         Examples
         --------
         Import modules and load model.
-        >>> import ansys.heart.preprocessor.models as models
+        >>> import ansys.heart.core.models as models
         >>> model = models.HeartModel.load_model("my_model.pickle")
         Plot the model
         >>> model.plot(show_edges=True)
@@ -766,15 +746,16 @@ class HeartModel:
 
     def plot_purkinje(self):
         """Plot the mesh and Purkinje network."""
-        if not len(self.beam_network) > 0:
-            LOGGER.info("No Purkinje network to plot.")
+        if self.conduction_system is None or self.conduction_system.number_of_cells == 0:
+            LOGGER.info("No Conduction system to plot.")
             return
 
         try:
             plotter = pv.Plotter()
-            plotter.add_mesh(self.mesh, color="w", opacity=0.3)
-            for beams in self.beam_network:
-                plotter.add_mesh(beams, color="r", line_width=2)
+            plotter.add_mesh(self.mesh, color="w", opacity=0.1)
+            self.conduction_system.set_active_scalars("_line-id")
+            beams = self.conduction_system
+            plotter.add_mesh(beams, line_width=2)
             plotter.show()
         except Exception:
             LOGGER.warning("Failed to plot mesh.")
@@ -832,7 +813,7 @@ class HeartModel:
 
         Examples
         --------
-        >>> from ansys.heart.preprocessor.models import FullHeart
+        >>> from ansys.heart.core.models import FullHeart
         >>> model: FullHeart = FullHeart()
         >>> model.load_model_from_mesh("mesh.vtu", "mesh.partinfo.json")
 
@@ -1027,9 +1008,11 @@ class HeartModel:
         ]
 
         if len(septum_name) > 1:
-            raise ValueError("Expecting only one surface that contains string: 'septum'")
+            raise InvalidHeartModelError(
+                "Expecting only one surface that contains string: 'septum'"
+            )
         if len(septum_name) == 0:
-            raise ValueError("No boundary with name: 'septum' found")
+            raise InvalidHeartModelError("No boundary with name: 'septum' found")
         surface_septum = self.mesh.get_surface_by_name(septum_name[0])
 
         # extrude septum surface
@@ -1414,17 +1397,21 @@ class HeartModel:
         """Define long and short axes from left ventricle landmarks."""
         from ansys.heart.core.utils.landmark_utils import compute_anatomy_axis
 
+        try:
+            left_ventricle: Part = self.left_ventricle
+
+        except AttributeError:
+            LOGGER.info("Left ventricle part does not exist to build anatomical axis.")
+            self.l2cv_axis = self.l4cv_axis = self.short_axis = {}
+            return
+
         mv_center = next(
-            cap.centroid for cap in self.left_ventricle.caps if cap.type == CapType.MITRAL_VALVE
+            cap.centroid for cap in left_ventricle.caps if cap.type == CapType.MITRAL_VALVE
         )
-
         av_center = next(
-            cap.centroid for cap in self.left_ventricle.caps if cap.type == CapType.AORTIC_VALVE
+            cap.centroid for cap in left_ventricle.caps if cap.type == CapType.AORTIC_VALVE
         )
-
-        apex = next(
-            ap.xyz for ap in self.left_ventricle.apex_points if ap.name == "apex epicardium"
-        )
+        apex = next(ap.xyz for ap in left_ventricle.apex_points if ap.name == "apex epicardium")
 
         l4cv, l2cv, short = compute_anatomy_axis(
             mv_center, av_center, apex, first_cut_short_axis=0.2
@@ -1529,7 +1516,9 @@ class HeartModel:
         # find orphan elements of atrial parts and assign to isolation part
         self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
         for atrium in [self.left_atrium, self.right_atrium]:
-            clean_obj = self.mesh.extract_cells(atrium.element_ids).connectivity(largest=True)
+            clean_obj = self.mesh.extract_cells(atrium.element_ids).connectivity(
+                extraction_mode="largest"
+            )
             connected_cells = clean_obj["cell_ids"]
             orphan_cells = np.setdiff1d(atrium.element_ids, connected_cells)
 
@@ -1656,7 +1645,7 @@ class HeartModel:
         unselect_eles = np.setdiff1d(
             np.hstack((self.left_atrium.element_ids, self.right_atrium.element_ids)), ring_eles
         )
-        largest = self.mesh.extract_cells(unselect_eles).connectivity(largest=True)
+        largest = self.mesh.extract_cells(unselect_eles).connectivity(extraction_mode="largest")
         connected_cells = largest["cell_ids"]
         orphan_cells = np.setdiff1d(unselect_eles, connected_cells)
         if len(orphan_cells) > 0:

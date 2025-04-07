@@ -24,12 +24,7 @@
 
 
 def compare_stats_names(stats: dict, stats_ref: dict):
-    """Compare stats names
-
-    Notes
-    -----
-    Utilizes ansys.heart.preprocessor.helpers.model_summary method
-    to generate the stats
+    """Compare stats names.
 
     Parameters
     ----------
@@ -59,12 +54,7 @@ def compare_stats_names(stats: dict, stats_ref: dict):
 
 
 def compare_stats_volumes(stats: dict, stats_ref: dict):
-    """Compare stats volumes of cavities
-
-    Notes
-    -----
-    Utilizes ansys.heart.preprocessor.helpers.model_summary method
-    to generate the stats
+    """Compare stats volumes of cavities.
 
     Parameters
     ----------

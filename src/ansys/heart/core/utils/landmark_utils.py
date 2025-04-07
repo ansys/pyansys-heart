@@ -229,8 +229,7 @@ def compute_aha17(
                         label[i] = 14
 
     aha_ids[ele_ids] = label
-    # convert to int except nan
-    return np.where(np.isnan(aha_ids), np.nan, aha_ids.astype(int))
+    return aha_ids
 
 
 @deprecated(reason="Will use gradient from UVC to get better results")

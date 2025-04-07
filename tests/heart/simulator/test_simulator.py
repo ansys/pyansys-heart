@@ -30,12 +30,13 @@ import pytest
 import pyvista as pv
 from pyvista import examples as pyvista_examples
 
+from ansys.heart.core.exceptions import LSDYNATerminationError
 import ansys.heart.core.models as models
-from ansys.heart.simulator.settings.settings import DynaSettings
+from ansys.heart.core.settings.settings import DynaSettings
 
 # import after mocking.
-import ansys.heart.simulator.simulator as simulators
-from ansys.heart.simulator.simulator import LsDynaErrorTerminationError, run_lsdyna
+import ansys.heart.core.simulator as simulators
+from ansys.heart.core.simulator import run_lsdyna
 
 
 def _get_md5(filename):
@@ -55,6 +56,7 @@ def base_simulator() -> simulators.BaseSimulator:
 
         setting = mock.Mock(spec=DynaSettings)
         setting.lsdyna_path = ""
+        setting.platform = ""
         simulation_directory = "."
         simulator = simulators.BaseSimulator(model, setting, simulation_directory)
 
@@ -75,6 +77,7 @@ def mechanics_simulator() -> simulators.MechanicsSimulator:
 
         setting = mock.Mock(spec=DynaSettings)
         setting.lsdyna_path = ""
+        setting.platform = ""
         simulation_directory = "."
         simulator = simulators.MechanicsSimulator(model, setting, simulation_directory)
         yield simulator
@@ -179,17 +182,17 @@ def _mocked_methods():
     sheet = np.eye(3)
     x = (np.array([1, 2, 3]), [], [], fiber, sheet)
     with mock.patch(
-        "ansys.heart.simulator.simulator.BaseSimulator._run_dyna", return_value=True
+        "ansys.heart.core.simulator.BaseSimulator._run_dyna", return_value=True
     ) as mock_run_dyna:
         with mock.patch(
-            "ansys.heart.simulator.simulator._read_orth_element_kfile", return_value=x
+            "ansys.heart.core.simulator._read_orth_element_kfile", return_value=x
         ) as mock_orth:
             yield mock_run_dyna, mock_orth
 
 
 def test_base_simulator_load_default_settings():
     """Test loading defaults."""
-    from ansys.heart.simulator.settings.settings import SimulationSettings
+    from ansys.heart.core.settings.settings import SimulationSettings
 
     with mock.patch.object(shutil, "which", return_value=1):  # bypass check lsdyna path
         # test init
@@ -215,7 +218,7 @@ def test_base_simulator_fiber(_mocked_methods):
         simulator.load_default_settings()
 
         with mock.patch(
-            "ansys.heart.simulator.simulator.writers",
+            "ansys.heart.core.simulator.writers",
             return_value=mock_writer,
         ):
             simulator.compute_fibers()
@@ -224,7 +227,7 @@ def test_base_simulator_fiber(_mocked_methods):
         _mock_read_orth.assert_called_once()
 
         with mock.patch(
-            "ansys.heart.simulator.simulator.BaseSimulator._compute_fibers_drbm",
+            "ansys.heart.core.simulator.BaseSimulator._compute_fibers_drbm",
         ) as mock_drbm:
             simulator.dyna_settings.dynatype = "smp"
             simulator.compute_fibers(method="D-RBM")
@@ -257,7 +260,7 @@ def test_run_dyna(settings):
 
                 # test exception is raised
                 mock_process.stdout = iter(["aaa\n", "bbb\n"])
-                with pytest.raises(LsDynaErrorTerminationError):
+                with pytest.raises(LSDYNATerminationError):
                     run_lsdyna(tmp_file, settings, curr_dir)
 
 
@@ -269,9 +272,9 @@ def test_run_dyna(settings):
         ("main-mechanics1", "zero-pressure", False, True),
     ],
 )
-@mock.patch("ansys.heart.simulator.simulator.MechanicsSimulator._run_dyna")
-@mock.patch("ansys.heart.simulator.simulator.mech_post")
-@mock.patch("ansys.heart.simulator.simulator.MechanicsSimulator._write_main_simulation_files")
+@mock.patch("ansys.heart.core.simulator.MechanicsSimulator._run_dyna")
+@mock.patch("ansys.heart.core.simulator.mech_post")
+@mock.patch("ansys.heart.core.simulator.MechanicsSimulator._write_main_simulation_files")
 def test_mechanics_simulator_simulate(
     mock_write_main,
     mock_mech_post,
@@ -325,6 +328,24 @@ def test_mechanics_simulator_simulate(
             # TODO: unique files for that.
             md5 = _get_md5(os.path.join(tempdir, folder_name, "dynain.lsda"))
             assert md5 == md5_ref
+
+
+@mock.patch("ansys.heart.core.simulator.MechanicsSimulator._run_dyna")
+@mock.patch("ansys.heart.core.simulator.mech_post")
+@mock.patch("ansys.heart.core.simulator.MechanicsSimulator._write_main_simulation_files")
+def test_call_with_user_k(mock_write_main, mock_mech_post, mock_run_dyna, mechanics_simulator):
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        user_file = os.path.join(tempdir, "user.k")
+        with open(user_file, "w") as tmpfile:
+            tmpfile.write("*END")
+
+        mechanics_simulator.root_directory = tempdir
+        mechanics_simulator.initial_stress = False
+        mechanics_simulator.simulate(extra_k_files=[user_file])
+
+        mock_write_main.assert_called_once_with(
+            folder_name="main-mechanics", extra_k_files=[user_file]
+        )
 
 
 @pytest.mark.parametrize(

@@ -18,7 +18,7 @@ Based on different applications, different simulators need to be created.
 A simple usage example is given in the following:
 
 >>> # Get a heart model
->>> import ansys.heart.preprocessor.models as models
+>>> import ansys.heart.core.models as models
 >>> model = models.HeartModel.load_model("path_to_model")
 
 >>> # Set up a LS-DYNA executable

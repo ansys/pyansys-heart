@@ -485,10 +485,6 @@ def _mesh_fluid_cavities(
     pv.UnstructuredGrid
         Unstructured grid with fluid mesh.
     """
-    # Use the following tgrid api utility for each cavity:
-    # Consequently need to associate each "patch" with a cap. E.g. by centroid?
-    #
-    # (tgapi-util-fill-holes-in-face-zone-list '(face-zone-list) max-hole-edges)
     if _uses_container:
         mounted_volume = pyfluent.EXAMPLES_PATH
         work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing-fluid")
@@ -523,9 +519,7 @@ def _mesh_fluid_cavities(
     session.tui.size_functions.set_global_controls(mesh_size, mesh_size, 1.2)
     session.tui.scoped_sizing.compute("yes")
 
-    # create caps
-    # (tgapi-util-fill-holes-in-face-zone-list '(face-zone-list) max-hole-edges)
-    # convert all to mesh object
+    # create caps with uniform size.
     session.tui.objects.change_object_type("'(*)", "mesh", "yes")
     for cavity_boundary in cavity_boundaries:
         cavity_name = "-".join(cavity_boundary.name.split()).lower()
@@ -546,18 +540,6 @@ def _mesh_fluid_cavities(
         )
         # merge objects
         session.tui.objects.merge(f"'({cavity_name}*)")
-
-    # find overlapping pairs
-    # (tgapi-util-get-overlapping-face-zones "*patch*" 0.1 0.1 )
-    # try:
-    #     overlapping_pairs = session.scheme_eval.scheme_eval(
-    #         '(tgapi-util-get-overlapping-face-zones "*patch*" 0.1 0.1 )'
-    #     )
-    #     for pair in overlapping_pairs:
-    #         # remove first from pair
-    #         session.tui.boundary.manage.delete(f"'({pair[0]})", "yes")
-    # except:
-    #     LOGGER.debug("No overlapping face zones.")
 
     # merge mesh objects
     mesh_object_names = session.scheme_eval.scheme_eval("(get-objects-of-type 'mesh)")

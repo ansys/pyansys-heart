@@ -36,14 +36,14 @@ class CVInteraction:
     cvid1: int
     cvid2: int
     lcid: int
-    name: str  # enum??
+    flow_name: str
     parameters: dict
 
     def _define_function_keyword(self):
-        if self.name == "closeloop":
+        if self.flow_name == "closeloop":
             return ""
         else:
-            return _define_function_0d_system(self.lcid, self.name, self.parameters)
+            return _define_function_0d_system(self.lcid, self.flow_name, self.parameters)
 
 
 @dataclass
@@ -55,7 +55,23 @@ class ControlVolume:
     Interactions: list[CVInteraction]
 
 
-def _create_open_loop(id_offset: int, model: HeartModel, settings):
+def _create_open_loop(id_offset: int, model: HeartModel, settings) -> list[ControlVolume]:
+    """Create open loop system model.
+
+    Parameters
+    ----------
+    id_offset : int
+        ID of the first control volume
+    model : HeartModel
+        Heart model
+    settings : _type_
+        parameters for the control volume
+
+    Returns
+    -------
+    list[ControlVolume]
+        list of control volumes
+    """
     if isinstance(model, LeftVentricle):
         system_map = [
             ControlVolume(
@@ -67,7 +83,7 @@ def _create_open_loop(id_offset: int, model: HeartModel, settings):
                         cvid1=1,
                         cvid2=0,
                         lcid=id_offset,
-                        name="constant_preload_windkessel_afterload_left",
+                        flow_name="constant_preload_windkessel_afterload_left",
                         parameters=settings.left_ventricle,
                     )
                 ],
@@ -84,7 +100,7 @@ def _create_open_loop(id_offset: int, model: HeartModel, settings):
                         cvid1=1,
                         cvid2=0,
                         lcid=id_offset,
-                        name="constant_preload_windkessel_afterload_left",
+                        flow_name="constant_preload_windkessel_afterload_left",
                         parameters=settings.left_ventricle,
                     )
                 ],
@@ -98,7 +114,7 @@ def _create_open_loop(id_offset: int, model: HeartModel, settings):
                         cvid1=2,
                         cvid2=0,
                         lcid=id_offset + 1,
-                        name="constant_preload_windkessel_afterload_right",
+                        flow_name="constant_preload_windkessel_afterload_right",
                         parameters=settings.right_ventricle,
                     )
                 ],
@@ -115,7 +131,7 @@ def _create_open_loop(id_offset: int, model: HeartModel, settings):
                         cvid1=1,
                         cvid2=0,
                         lcid=id_offset,
-                        name="afterload_windkessel_left",
+                        flow_name="afterload_windkessel_left",
                         parameters=settings.left_ventricle,
                     ),
                 ],
@@ -129,7 +145,7 @@ def _create_open_loop(id_offset: int, model: HeartModel, settings):
                         cvid1=2,
                         cvid2=0,
                         lcid=id_offset + 1,
-                        name="afterload_windkessel_right",
+                        flow_name="afterload_windkessel_right",
                         parameters=settings.right_ventricle,
                     ),
                 ],
@@ -143,7 +159,7 @@ def _create_open_loop(id_offset: int, model: HeartModel, settings):
                         cvid1=3,
                         cvid2=0,
                         lcid=id_offset + 2,
-                        name="constant_flow_left_atrium",
+                        flow_name="constant_flow_left_atrium",
                         parameters={"flow": -83.0},  # ~5 L/min
                     ),
                     CVInteraction(
@@ -151,7 +167,7 @@ def _create_open_loop(id_offset: int, model: HeartModel, settings):
                         cvid1=3,
                         cvid2=1,
                         lcid=id_offset + 3,
-                        name="valve_mitral",
+                        flow_name="valve_mitral",
                         parameters={"Rv": 1e-6},
                     ),
                 ],
@@ -165,7 +181,7 @@ def _create_open_loop(id_offset: int, model: HeartModel, settings):
                         cvid1=4,
                         cvid2=0,
                         lcid=id_offset + 4,
-                        name="constant_flow_right_atrium",
+                        flow_name="constant_flow_right_atrium",
                         parameters={"flow": -83.0},  # ~5 L/min
                     ),
                     CVInteraction(
@@ -173,7 +189,7 @@ def _create_open_loop(id_offset: int, model: HeartModel, settings):
                         cvid1=4,
                         cvid2=2,
                         lcid=id_offset + 5,
-                        name="valve_tricuspid",
+                        flow_name="valve_tricuspid",
                         parameters={"Rv": 1e-6},
                     ),
                 ],
@@ -183,7 +199,21 @@ def _create_open_loop(id_offset: int, model: HeartModel, settings):
     return system_map
 
 
-def _create_close_loop(id_offset: int, model: HeartModel):
+def _create_close_loop(model: HeartModel) -> list[ControlVolume]:
+    """Create close loop system model.
+
+    Parameters
+    ----------
+    model : HeartModel
+        Heart model
+
+    Returns
+    -------
+    list[ControlVolume]
+        list of control volumes
+    """
+    iteraction_id = [-1, -2, -3, -4]
+
     if isinstance(model, LeftVentricle):
         control_volumes = [model.left_ventricle]
     elif isinstance(model, BiVentricle):
@@ -207,8 +237,8 @@ def _create_close_loop(id_offset: int, model: HeartModel):
                         id=i + 1,
                         cvid1=i + 1,
                         cvid2=0,
-                        lcid=id_offset - i,
-                        name="closeloop",
+                        lcid=iteraction_id[i],
+                        flow_name="closeloop",
                         parameters={},
                     )
                 ],

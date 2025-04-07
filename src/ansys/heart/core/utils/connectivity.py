@@ -207,7 +207,7 @@ def edge_connectivity(
 
     Notes
     -----
-    Uses an implementation of Dept-first search: https://en.wikipedia.org/wiki/Depth-first_search
+    Uses an implementation of a Depth-first search: https://en.wikipedia.org/wiki/Depth-first_search
     https://www.educative.io/answers/how-to-implement-depth-first-search-in-python
     Performance is not tested so may not be suitable for large arrays of edges.
     """

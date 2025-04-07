@@ -113,7 +113,7 @@ jobs:
           pattern: "*-wheelhouse-*"
 
       - name: "Install Python ${{ env.MAIN_PYTHON_VERSION }}"
-        uses: astral-sh/setup-uv@22695119d769bdb6f7032ad67b9bca0ef8c4a174 # v5.4.0
+        uses: astral-sh/setup-uv@0c5e2b8115b80b4c7c5ddf6ffdd634974642d182 # v5.4.1
         with:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
 
@@ -126,14 +126,14 @@ jobs:
           tox -e doc-links,doc-html,doc-pdf
 
       - name: Upload HTML documentation artifact
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: documentation-html
           path: doc/_build/html
           retention-days: 7
 
       - name: Upload PDF documentation artifact
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: documentation-pdf
           path: doc/_build/latex/*.pdf
@@ -157,7 +157,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: "Set up uv"
-        uses: astral-sh/setup-uv@22695119d769bdb6f7032ad67b9bca0ef8c4a174 # v5.4.0
+        uses: astral-sh/setup-uv@0c5e2b8115b80b4c7c5ddf6ffdd634974642d182 # v5.4.1
         with:
           python-version: ${{ matrix.python-version }}
 

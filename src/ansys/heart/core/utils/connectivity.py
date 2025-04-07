@@ -295,7 +295,7 @@ def edge_connectivity(
 
 
 def remove_triangle_layers_from_trimesh(triangles: np.ndarray, iters: int = 1) -> np.ndarray:
-    """Identify triangles connected to the boundary, and removes these from the array.
+    """Remove boundary triangles.
 
     Parameters
     ----------

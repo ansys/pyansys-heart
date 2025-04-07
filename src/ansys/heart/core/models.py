@@ -520,14 +520,8 @@ class HeartModel:
 
         return self.mesh
 
-    def _mesh_fluid_volume(self, remesh_caps: bool = True):
-        """Generate a volume mesh of the cavities.
-
-        Parameters
-        ----------
-        remesh_caps : bool, optional
-            Flag indicating whether to remesh the caps of each cavity, by default True
-        """
+    def _mesh_fluid_volume(self):
+        """Generate a volume mesh of the cavities."""
         # get all relevant boundaries for the fluid cavities:
         substrings_include = ["endocardium", "valve-plane", "septum"]
         substrings_include_re = "|".join(substrings_include)
@@ -555,38 +549,45 @@ class HeartModel:
 
         LOGGER.info("Meshing fluid cavities...")
 
+        # get list of fluid cavities
         # mesh the fluid cavities
-        fluid_mesh = mesher._mesh_fluid_cavities(
-            boundaries_fluid, caps, self.workdir, remesh_caps=remesh_caps
-        )
+        cavity_surfaces = [
+            self.mesh.get_surface(part.cavity.surface.id) for part in self.parts if part.cavity
+        ]
+        # remove caps.
+        cavity_surfaces = [
+            SurfaceMesh(cs.threshold((0, 0), "_cap_id").extract_surface(), name=cs.name)
+            for cs in cavity_surfaces
+        ]
+        fluid_mesh = mesher._mesh_fluid_cavities(cavity_surfaces, self.workdir, mesh_size=1)
 
-        LOGGER.info(f"Meshed {len(fluid_mesh.cell_zones)} fluid regions...")
+        # LOGGER.info(f"Meshed {len(fluid_mesh.cell_zones)} fluid regions...")
 
         # add part-ids
-        cz_ids = np.sort([cz.id for cz in fluid_mesh.cell_zones])
+        # cz_ids = np.sort([cz.id for cz in fluid_mesh.cell_zones])
 
         # TODO: this offset is arbitrary.
-        offset = 10000
-        new_ids = np.arange(cz_ids.shape[0]) + offset
-        czid_to_pid = {cz_id: new_ids[ii] for ii, cz_id in enumerate(cz_ids)}
+        # offset = 10000
+        # new_ids = np.arange(cz_ids.shape[0]) + offset
+        # czid_to_pid = {cz_id: new_ids[ii] for ii, cz_id in enumerate(cz_ids)}
 
-        for cz in fluid_mesh.cell_zones:
-            cz.id = czid_to_pid[cz.id]
+        # for cz in fluid_mesh.cell_zones:
+        #     cz.id = czid_to_pid[cz.id]
 
-        fluid_mesh._fix_negative_cells()
-        fluid_mesh_vtk = fluid_mesh._to_vtk(add_cells=True, add_faces=False)
+        # fluid_mesh._fix_negative_cells()
+        # fluid_mesh_vtk = fluid_mesh._to_vtk(add_cells=True, add_faces=False)
 
-        fluid_mesh_vtk.cell_data["_volume-id"] = fluid_mesh_vtk.cell_data["cell-zone-ids"]
+        # fluid_mesh_vtk.cell_data["part-id"] = fluid_mesh_vtk.cell_data["cell-zone-ids"]
 
-        boundaries = [
-            SurfaceMesh(name=fz.name, triangles=fz.faces, nodes=fluid_mesh.nodes, id=fz.id)
-            for fz in fluid_mesh.face_zones
-            if "interior" not in fz.name
-        ]
+        # boundaries = [
+        #     SurfaceMesh(name=fz.name, triangles=fz.faces, nodes=fluid_mesh.nodes, id=fz.id)
+        #     for fz in fluid_mesh.face_zones
+        #     if "interior" not in fz.name
+        # ]
 
-        self.fluid_mesh = Mesh(fluid_mesh_vtk)
-        for boundary in boundaries:
-            self.fluid_mesh.add_surface(boundary, boundary.id, boundary.name)
+        self.fluid_mesh = Mesh(fluid_mesh)
+        # for boundary in boundaries:
+        #     self.fluid_mesh.add_surface(boundary, boundary.id, boundary.name)
 
         return
 

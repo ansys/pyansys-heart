@@ -26,7 +26,7 @@ import glob
 import os
 from pathlib import Path
 import shutil
-from typing import List, Union
+from typing import Union
 
 import numpy as np
 import pyvista as pv
@@ -467,29 +467,28 @@ def _set_size_field_on_face_zones(
 
 # TODO: fix method.
 def _mesh_fluid_cavities(
-    fluid_boundaries: List[SurfaceMesh],
-    caps: List[SurfaceMesh],
-    workdir: str,
-    remesh_caps: bool = True,
-) -> _FluentMesh:
-    """Mesh the fluid cavities.
+    cavity_boundaries: list[SurfaceMesh], workdir: str, mesh_size: float = 1.0
+) -> pv.UnstructuredGrid:
+    """Mesh the caps of each fluid cavity with uniformly.
 
     Parameters
     ----------
-    fluid_boundaries : List[SurfaceMesh]
-        List of fluid boundaries used for meshing.
-    caps : List[SurfaceMesh]
-        List of caps that close each of the cavities.
+    cavity_boundaries : List[SurfaceMesh]
+        List of cavity boundaries used for meshing.
     workdir : str
         Working directory
-    remesh_caps : bool, optional
-        Flag indicating whether to remesh the caps, by default True
+    mesh_size : float
+        Mesh size
 
     Returns
     -------
-    Path
-        Path to the .msh.h5 volume mesh.
+    pv.UnstructuredGrid
+        Unstructured grid with fluid mesh.
     """
+    # Use the following tgrid api utility for each cavity:
+    # Consequently need to associate each "patch" with a cap. E.g. by centroid?
+    #
+    # (tgapi-util-fill-holes-in-face-zone-list '(face-zone-list) max-hole-edges)
     if _uses_container:
         mounted_volume = pyfluent.EXAMPLES_PATH
         work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing-fluid")
@@ -504,15 +503,10 @@ def _mesh_fluid_cavities(
             os.remove(f)
 
     # write all boundaries
-    for b in fluid_boundaries:
+    for b in cavity_boundaries:
         filename = os.path.join(work_dir_meshing, b.name.lower() + ".stl")
         b.save(filename)
         add_solid_name_to_stl(filename, b.name.lower(), file_type="binary")
-
-    for c in caps:
-        filename = os.path.join(work_dir_meshing, c.name.lower() + ".stl")
-        c.save(filename)
-        add_solid_name_to_stl(filename, c.name.lower(), file_type="binary")
 
     session = _get_fluent_meshing_session(work_dir_meshing)
 
@@ -522,43 +516,74 @@ def _mesh_fluid_cavities(
         # will be in /mnt/pyfluent. So need to use relative paths
         # or replace dirname by /mnt/pyfluent as prefix
         work_dir_meshing = "/mnt/pyfluent/meshing"
+
     session.tui.file.import_.cad(f"no {work_dir_meshing} *.stl")
 
-    # merge objects
-    session.tui.objects.merge("'(*)", "model-fluid")
-
-    # fix duplicate nodes
-    session.tui.diagnostics.face_connectivity.fix_free_faces("objects '(*)")
-
     # set size field
-    session.tui.size_functions.set_global_controls(1, 1, 1.2)
+    session.tui.size_functions.set_global_controls(mesh_size, mesh_size, 1.2)
     session.tui.scoped_sizing.compute("yes")
 
-    # remesh all caps
-    if remesh_caps:
-        session.tui.boundary.remesh.remesh_constant_size("(cap_*)", "()", 40, 20, 1, "yes")
+    # create caps
+    # (tgapi-util-fill-holes-in-face-zone-list '(face-zone-list) max-hole-edges)
+    # convert all to mesh object
+    session.tui.objects.change_object_type("'(*)", "mesh", "yes")
+    for cavity_boundary in cavity_boundaries:
+        cavity_name = "-".join(cavity_boundary.name.split()).lower()
+        session.scheme_eval.scheme_eval(
+            f"(tgapi-util-fill-holes-in-face-zone-list '({cavity_name}) 1000)"
+        )
+        # merge unreferenced with cavity
+        # (get-unreferenced-face-zones)
+        patch_ids = session.scheme_eval.scheme_eval("(get-unreferenced-face-zones)")
+        session.tui.objects.create(
+            f"{cavity_name}-patches",
+            "fluid",
+            3,
+            "({0})".format(" ".join([str(patch_id) for patch_id in patch_ids])),
+            "()",
+            "mesh",
+            "yes",
+        )
+        # merge objects
+        session.tui.objects.merge(f"'({cavity_name}*)")
 
-    # convert to mesh object
-    session.tui.objects.change_object_type("(*)", "mesh", "yes")
+    # find overlapping pairs
+    # (tgapi-util-get-overlapping-face-zones "*patch*" 0.1 0.1 )
+    # try:
+    #     overlapping_pairs = session.scheme_eval.scheme_eval(
+    #         '(tgapi-util-get-overlapping-face-zones "*patch*" 0.1 0.1 )'
+    #     )
+    #     for pair in overlapping_pairs:
+    #         # remove first from pair
+    #         session.tui.boundary.manage.delete(f"'({pair[0]})", "yes")
+    # except:
+    #     LOGGER.debug("No overlapping face zones.")
 
-    # compute volumetric regions
-    session.tui.objects.volumetric_regions.compute("model-fluid")
+    # merge mesh objects
+    mesh_object_names = session.scheme_eval.scheme_eval("(get-objects-of-type 'mesh)")
+    if len(mesh_object_names) > 1:
+        session.tui.objects.merge("'(*)", "fluid-zones")
+    else:
+        session.tui.objects.rename_object(mesh_object_names[0].str, "fluid-zones")
 
-    # mesh volume
-    session.tui.mesh.auto_mesh("model-fluid")
+    # merge nodes
+    session.tui.boundary.merge_nodes("'(*)", "'(*)", "no", "no , ,")
+    # mesh volumes
+    session.tui.objects.volumetric_regions.compute("fluid-zones", "no")
+    session.tui.mesh.auto_mesh("fluid-zones", "yes", "pyr", "tet", "yes")
 
-    # clean up
     session.tui.objects.delete_all_geom()
-    session.tui.objects.delete_unreferenced_faces_and_edges()
 
-    # write
     file_path_mesh = os.path.join(workdir, "fluid-mesh.msh.h5")
     session.tui.file.write_mesh(file_path_mesh)
 
-    mesh = _FluentMesh(file_path_mesh)
-    mesh.load_mesh()
+    session.exit()
 
-    return mesh
+    # # write
+    mesh = _FluentMesh(file_path_mesh)
+    mesh.load_mesh(reconstruct_tetrahedrons=True)
+
+    return mesh._to_vtk(add_cells=True, add_faces=True, remove_interior_faces=True)
 
 
 def mesh_from_manifold_input_model(

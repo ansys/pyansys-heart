@@ -193,15 +193,15 @@ jobs:
           name: ${{ env.LIBRARY_NAME }}-artifacts
           path: ${{ env.LIBRARY_NAME }}-artifacts
 
-      - name: "Release to Public PyPI"
-        uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc # v1.12.4
+      - name: "Release to private PyPI repository"
+        uses: ansys/actions/release-pypi-private@v8
         with:
-          repository-url: "https://upload.pypi.org/legacy/"
-          print-hash: true
-          packages-dir: ${{ env.LIBRARY_NAME }}-artifacts
-          skip-existing: true
+          library-name: ${{ env.LIBRARY_NAME }}
+          twine-username: "__token__"
+          twine-token: ${{ secrets.PYANSYS_PYPI_PRIVATE_PAT }}
 
       - name: Release to GitHub
         uses: ansys/actions/release-github@v8
         with:
           library-name: ${{ env.LIBRARY_NAME }}
+          token: ${{ secrets.GITHUB_TOKEN }}

@@ -541,29 +541,12 @@ class HeartModel:
         boundaries_fluid = [b for b in boundaries_fluid if b.name not in boundaries_exclude]
 
         if len(boundaries_fluid) == 0:
-            LOGGER.error("Meshing of fluid cavities not possible. No fluid surfaces detected.")
+            LOGGER.error("Meshing of blood pool not possible. No fluid surfaces detected.")
             return
 
-        LOGGER.info("Meshing fluid cavities...")
+        LOGGER.info("Meshing blood pool...")
 
-        # get list of fluid cavities
-        # mesh the fluid cavities
-        cavity_surfaces = [
-            self.mesh.get_surface(part.cavity.surface.id) for part in self.parts if part.cavity
-        ]
-
-        # get cap meshes.
-        # TODO: for right ventricle add septal surface.
-        cavity_surfaces = []
-        for part in self.parts:
-            try:
-                cavity_surfaces += [self.mesh.get_surface(part.endocardium.id)]
-            except AttributeError:
-                pass
-
-        fluid_mesh = mesher._mesh_fluid_from_boundaries(
-            cavity_surfaces, boundaries_fluid, self.workdir, mesh_size=1
-        )
+        fluid_mesh = mesher._mesh_fluid_from_boundaries(boundaries_fluid, self.workdir, mesh_size=1)
 
         # TODO: rename caps accordingly
 

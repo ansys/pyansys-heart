@@ -527,16 +527,16 @@ class HeartModel:
 
         # TODO: use naming convention caps.
         substrings_include = ["endocardium", "valve-plane", "septum"]
-        substrings_include_re = "|".join(substrings_include)
+        substrings_include_regex = "|".join(substrings_include)
 
-        substrings_exlude = ["pulmonary-valve", "aortic-valve"]
-        substrings_exlude_re = "|".join(substrings_exlude)
+        substrings_exlude = [CapType.PULMONARY_VALVE.value, CapType.AORTIC_VALVE.value]
+        substrings_exlude_regex = "|".join(substrings_exlude)
 
         boundaries_fluid = [
-            b for b in self.mesh._surfaces if re.search(substrings_include_re, b.name)
+            b for b in self.mesh._surfaces if re.search(substrings_include_regex, b.name)
         ]
         boundaries_exclude = [
-            b.name for b in boundaries_fluid if re.search(substrings_exlude_re, b.name)
+            b.name for b in boundaries_fluid if re.search(substrings_exlude_regex, b.name)
         ]
         boundaries_fluid = [b for b in boundaries_fluid if b.name not in boundaries_exclude]
 
@@ -561,7 +561,11 @@ class HeartModel:
             except AttributeError:
                 pass
 
-        fluid_mesh = mesher._mesh_fluid_cavities(cavity_surfaces, self.workdir, mesh_size=1)
+        fluid_mesh = mesher._mesh_fluid_from_boundaries(
+            cavity_surfaces, boundaries_fluid, self.workdir, mesh_size=1
+        )
+
+        # TODO: rename caps accordingly
 
         # rename cell-zone-ids to part-ids
         # TODO: check if all face zones properly exist.

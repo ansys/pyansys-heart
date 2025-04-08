@@ -22,36 +22,13 @@ env:
 
 jobs:
 
-  wheelhouse:
-    name: "Wheelhouse / ${{ matrix.os}} / ${{ matrix.python-version }}"
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        python-version: ['3.11', '3.12']
-    steps:
-      - uses: ansys/actions/build-wheelhouse@v8
-        with:
-          library-name: ${{ env.LIBRARY_NAME }}
-          operating-system: ${{ matrix.os }}
-          python-version: ${{ matrix.python-version }}
-          check-licenses: true
-
   doc-build:
     name: "Build documentation"
     runs-on: [self-hosted, pyhealth]
-    needs: wheelhouse
     steps:
 
       - name: "Checkout the project"
         uses: actions/checkout@v4
-
-      - name: "Download wheelhouse into static path"
-        uses: actions/download-artifact@v4
-        with:
-          path: "doc/source/_static/wheelhouse"
-          pattern: "*-wheelhouse-*"
 
       - name: "Install Python ${{ env.MAIN_PYTHON_VERSION }}"
         uses: astral-sh/setup-uv@22695119d769bdb6f7032ad67b9bca0ef8c4a174 # v5.4.0

@@ -23,7 +23,7 @@
 """Module containing methods for mesh connectivity."""
 
 import copy
-from typing import Optional, Tuple, Union
+from typing import Tuple
 
 import numpy as np
 
@@ -145,7 +145,7 @@ def get_edges_from_triangles(triangles: np.ndarray) -> np.ndarray:
 
 def get_free_edges(
     triangles: np.ndarray, return_free_triangles: bool = False
-) -> Union[np.ndarray, Optional[Tuple[np.ndarray, np.ndarray]]]:
+) -> np.ndarray | Tuple[np.ndarray, np.ndarray]:
     """Get the boundary edges that are only referenced once.
 
     Parameters
@@ -207,7 +207,7 @@ def edge_connectivity(
 
     Notes
     -----
-    Uses an implementation of Dept-first search: https://en.wikipedia.org/wiki/Depth-first_search
+    Uses an implementation of a Depth-first search: https://en.wikipedia.org/wiki/Depth-first_search
     https://www.educative.io/answers/how-to-implement-depth-first-search-in-python
     Performance is not tested so may not be suitable for large arrays of edges.
     """
@@ -295,7 +295,7 @@ def edge_connectivity(
 
 
 def remove_triangle_layers_from_trimesh(triangles: np.ndarray, iters: int = 1) -> np.ndarray:
-    """Identify triangles connected to the boundary, and removes these from the array.
+    """Remove boundary triangles.
 
     Parameters
     ----------

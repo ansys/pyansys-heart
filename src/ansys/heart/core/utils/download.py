@@ -95,7 +95,7 @@ _SHA256_TABLE = {
 }
 
 
-def _format_download_urls():
+def _format_download_urls() -> dict:
     """Format the URLS for all cases."""
     download_urls = {}
     for database_name in _URLS.keys():
@@ -118,7 +118,7 @@ def download_case_from_zenodo(
     download_folder: Path,
     overwrite: bool = True,
     validate_hash: bool = True,
-) -> Path:
+) -> Path | None:
     """Download a case from the remote repository.
 
     Parameters
@@ -245,7 +245,7 @@ def _infer_extraction_path_from_tar(tar_path: str | Path) -> str:
     return str(path)
 
 
-def _get_members_to_unpack(tar_ball: tarfile.TarFile) -> typing.List:
+def _get_members_to_unpack(tar_ball: tarfile.TarFile) -> list:
     """Get the members to unpack from the tar ball.
 
     Notes
@@ -261,7 +261,7 @@ def _get_members_to_unpack(tar_ball: tarfile.TarFile) -> typing.List:
     return members_to_unpack
 
 
-def unpack_case(tar_path: Path, reduce_size: bool = True) -> str:
+def unpack_case(tar_path: Path, reduce_size: bool = True) -> str | bool:
     r"""Unpack the downloaded tar file.
 
     Parameters
@@ -297,7 +297,7 @@ def unpack_case(tar_path: Path, reduce_size: bool = True) -> str:
         return False
 
 
-def download_all_cases(download_dir: str = None):
+def download_all_cases(download_dir: str = None) -> list[str]:
     """Download all supported cases.
 
     Parameters
@@ -337,7 +337,7 @@ def download_all_cases(download_dir: str = None):
     return tar_files
 
 
-def unpack_cases(list_of_tar_files: typing.List):
+def unpack_cases(list_of_tar_files: typing.List) -> None:
     """Unpack a list of tar files.
 
     Parameters

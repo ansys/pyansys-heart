@@ -186,7 +186,7 @@ def rodrigues_rot(points: np.ndarray, n0: np.ndarray, n1: np.ndarray) -> np.ndar
     return points_rotation
 
 
-def project_3d_points(p_set: np.ndarray) -> np.ndarray:
+def project_3d_points(p_set: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Project points on a representative plane.
 
     Parameters
@@ -234,7 +234,9 @@ def project_3d_points(p_set: np.ndarray) -> np.ndarray:
     return point_projected, normal, point_mean
 
 
-def _read_orth_element_kfile(fn):
+def _read_orth_element_kfile(
+    fn,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Read *ELEMENT_SOLID_ORTHO keywords from file."""
 
     def get_number_of_elements(file):

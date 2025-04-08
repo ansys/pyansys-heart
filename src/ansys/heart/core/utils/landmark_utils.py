@@ -50,12 +50,12 @@ def compute_anatomy_axis(
         left ventricle epicardium apex point
     first_cut_short_axis : float, optional
         relative distance between mv_center and apex, by default 0.2
-        Used for defining short axis center
+        Used for defining the center of the short axis
 
     Returns
     -------
     tuple[dict, dict, dict]
-        4CV,2CV and Short-axis, each dict contains `center` and `normal`
+        4CV,2CV and short-axis, each dict contains `center` and `normal`
     """
     # long 4CAV axis: cross apex, mitral and aortic valve centers
     center = np.mean(np.array([av_center, mv_center, apex]), axis=0)

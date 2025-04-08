@@ -227,7 +227,9 @@ class ConductionSystem:
         )
         new_nodes = self.m.mesh.points[nodes]
         new_nodes = _refine_line(new_nodes, beam_length=beam_length)
-        new_nodes[0] = self.m.conduction_system.get_lines_by_name("SAN_to_AVN").points[-1]
+        new_nodes[0] = self.m.conduction_system.get_lines_by_name(
+            _ConductionType.SAN_AVN.value
+        ).points[-1]
         beamnet = pv.lines_from_points(new_nodes)
         id = self.m.conduction_system.get_unique_lines_id()
         self.m.conduction_system.add_lines(lines=beamnet, id=id, name=_ConductionType.HIS.value)

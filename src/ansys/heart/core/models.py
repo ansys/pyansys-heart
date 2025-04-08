@@ -520,12 +520,10 @@ class HeartModel:
 
         return self.mesh
 
-    # TODO: simplify
-    def _mesh_fluid_volume(self):
+    def _mesh_fluid_volume(self) -> Mesh:
         """Generate a volume mesh of the cavities."""
-        # get all relevant boundaries for the fluid cavities:
-
-        # TODO: use naming convention caps.
+        # get all relevant boundaries for the fluid:
+        # NOTE: relies on substrings to select the right surfaces/boundaries.
         substrings_include = ["endocardium", "valve-plane", "septum"]
         substrings_include_regex = "|".join(substrings_include)
 
@@ -548,13 +546,20 @@ class HeartModel:
 
         fluid_mesh = mesher._mesh_fluid_from_boundaries(boundaries_fluid, self.workdir, mesh_size=1)
 
-        # TODO: rename caps accordingly
+        # update patches with appropriate cap name, based on centroid location.
+        model_caps = [c for part in self.parts for c in part.caps]
+        cap_centroids = np.array([cap.centroid for cap in model_caps])
+        cap_names = [cap.name for cap in model_caps]
 
-        # rename cell-zone-ids to part-ids
-        # TODO: check if all face zones properly exist.
-        self._fluid_mesh = Mesh(fluid_mesh)
+        patches = {sid: sn for sid, sn in fluid_mesh._surface_id_to_name.items() if "patch" in sn}
+        for patch_id in patches.keys():
+            patch_mesh = fluid_mesh.get_surface(patch_id)
+            cap_index = np.argmin(np.linalg.norm(cap_centroids - patch_mesh.center, axis=1))
+            fluid_mesh._surface_id_to_name[patch_id] = cap_names[cap_index]
 
-        return
+        self._fluid_mesh = fluid_mesh
+
+        return fluid_mesh
 
     def get_part(self, name: str, by_substring: bool = False) -> Union[Part, None]:
         """Get specific part based on part name."""

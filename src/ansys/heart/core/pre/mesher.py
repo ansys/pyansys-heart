@@ -951,7 +951,7 @@ def _mesh_fluid_from_boundaries(
     fluid_boundaries: list[SurfaceMesh],
     workdir: str,
     mesh_size: float = 1.0,
-) -> pv.UnstructuredGrid:
+) -> Mesh:
     """Mesh the fluid from the boundary surfaces.
 
     Parameters
@@ -1033,7 +1033,9 @@ def _mesh_fluid_from_boundaries(
     session.tui.objects.delete_all_geom()
 
     file_path_mesh = os.path.join(workdir, "fluid-mesh.msh.h5")
-    session.tui.file.write_mesh(file_path_mesh)
+    if os.path.isfile(file_path_mesh):
+        os.remove(file_path_mesh)
+    session.tui.file.write_mesh(file_path_mesh, "ok")
 
     session.exit()
 
@@ -1041,4 +1043,15 @@ def _mesh_fluid_from_boundaries(
     mesh = _FluentMesh(file_path_mesh)
     mesh.load_mesh(reconstruct_tetrahedrons=True)
 
-    return mesh._to_vtk(add_cells=True, add_faces=True, remove_interior_faces=True)
+    vtk_mesh = Mesh(mesh._to_vtk(add_cells=True, add_faces=True, remove_interior_faces=True))
+    vtk_mesh.rename_array("face-zone-ids", "_surface-id")
+    vtk_mesh.rename_array("cell-zone-ids", "_volume-id")
+
+    vtk_mesh._surface_id_to_name = {
+        int(fz.id): fz.name for fz in mesh.face_zones if fz.id in vtk_mesh.surface_ids
+    }
+    vtk_mesh._volume_id_to_name = {
+        int(cz.id): cz.name for cz in mesh.cell_zones if cz.id in vtk_mesh.volume_ids
+    }
+
+    return vtk_mesh

@@ -95,7 +95,7 @@ class D3plotReader:
         self.meshgrid: pv.UnstructuredGrid = self.model.metadata.meshed_region.grid
         self.time = self.model.metadata.time_freq_support.time_frequencies.data
 
-    def get_initial_coordinates(self):
+    def get_initial_coordinates(self) -> np.ndarray:
         """Get initial coordinates."""
         return self.model.results.initial_coordinates.eval()[0].data
 
@@ -152,7 +152,7 @@ class D3plotReader:
     #     # print(self.model.operator())
     #     return
 
-    def print_lsdyna_ms_results(self):
+    def print_lsdyna_ms_results(self) -> None:
         """Print available ms results."""
         # NOTE: map between variable id and variable name.
         #  Elemental Electrical Conductivity(domain Id: 1, Variable Id: 33)
@@ -172,6 +172,8 @@ class D3plotReader:
         op.inputs.data_sources(self.ds)
         print(op.eval())
 
+        return
+
     def get_displacement_at(self, time: float) -> np.ndarray:
         """Get displacement field.
 
@@ -189,7 +191,7 @@ class D3plotReader:
             LOGGER.warning("No data at given time, results are from interpolation.")
         return self.model.results.displacement.on_time_scoping(float(time)).eval()[0].data
 
-    def get_material_ids(self):
+    def get_material_ids(self) -> np.ndarray:
         """Get list of material id."""
         return self.model.metadata.meshed_region.elements.materials_field.data
 
@@ -197,7 +199,7 @@ class D3plotReader:
         self,
         hv_index: List[int],
         at_step: int = 0,
-    ):
+    ) -> np.ndarray:
         """
         Get history variables in d3plot.
 
@@ -275,7 +277,7 @@ class ICVoutReader:
             LOGGER.error(f"{fn} does not contain icvout. {error}")
             exit()
 
-    def _get_available_ids(self):
+    def _get_available_ids(self) -> np.ndarray:
         """Get available CV ids and CVI ids."""
         icvout_op = dpf.Operator("lsdyna::binout::ICV_ICVIID")
         icvout_op.inputs.data_sources(self._ds)
@@ -288,6 +290,8 @@ class ICVoutReader:
         fields2 = icvout_op.outputs.results()
         # available ICV id
         self._icv_ids = fields2[0].data.astype(int)
+
+        return self._icv_ids
 
     def get_time(self) -> np.ndarray:
         """Get time array.
@@ -366,7 +370,7 @@ class ICVoutReader:
         # area is obtained by 'ICVI_A'
         return self._get_field(icvi_id, "ICVI_FR")
 
-    def _get_field(self, id: int, operator_name: str):
+    def _get_field(self, id: int, operator_name: str) -> np.ndarray:
         icvout_op = dpf.Operator(f"lsdyna::binout::{operator_name}")
         icvout_op.inputs.data_sources(self._ds)
 

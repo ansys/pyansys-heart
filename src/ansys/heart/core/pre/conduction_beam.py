@@ -31,7 +31,7 @@ from ansys.heart.core.models import FourChamber
 from ansys.heart.core.objects import CapType, Point, SurfaceMesh, _BeamsMesh, _ConductionType
 
 
-def _create_line(point_start: np.array, point_end: np.array, beam_length: float):
+def _create_line(point_start: np.array, point_end: np.array, beam_length: float) -> np.ndarray:
     """Create points in a line defined by a start point and an end point.
 
     Parameters
@@ -45,7 +45,7 @@ def _create_line(point_start: np.array, point_end: np.array, beam_length: float)
 
     Returns
     -------
-    points:
+    np.ndarray:
         List of created points.
     """
     line_vector = point_end - point_start
@@ -59,7 +59,7 @@ def _create_line(point_start: np.array, point_end: np.array, beam_length: float)
     return points
 
 
-def _refine_line(nodes: np.array, beam_length: float):
+def _refine_line(nodes: np.array, beam_length: float) -> np.ndarray:
     new_nodes = [nodes[0, :]]
     for beam_id in range(len(nodes) - 1):
         point_start = nodes[beam_id, :]
@@ -151,7 +151,7 @@ class ConductionSystem:
 
         return atrioventricular_point
 
-    def compute_av_conduction(self) -> _BeamsMesh:
+    def compute_av_conduction(self) -> pv.PolyData:
         """Compute Atrio-Ventricular conduction by means of beams following a geodesic path."""
         right_atrium_endo = self.m.mesh.get_surface(self.m.right_atrium.endocardium.id)
 
@@ -184,7 +184,7 @@ class ConductionSystem:
 
         return beamnet
 
-    def _get_hisbundle_bifurcation(self):
+    def _get_hisbundle_bifurcation(self) -> np.ndarray:
         """
         Define start points of the bundle of His.
 
@@ -282,7 +282,7 @@ class ConductionSystem:
     @staticmethod
     def find_path(
         mesh: pv.UnstructuredGrid, start: np.ndarray, end: np.ndarray, return_segment=True
-    ):
+    ) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
         """Find shortest path between two nodes.
 
         Notes
@@ -363,7 +363,9 @@ class ConductionSystem:
         else:
             return path2
 
-    def _create_his_side(self, side: str, beam_length, bifurcation_coord):
+    def _create_his_side(
+        self, side: str, beam_length, bifurcation_coord
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Create His side after bifucation."""
         if side.lower() == "left":
             endo = self.m.mesh.get_surface(self.m.left_ventricle.endocardium.id)
@@ -452,7 +454,7 @@ class ConductionSystem:
 
         return beam_net
 
-    def _connect_to_solid(self, component_id: int, local_point_ids: np.array):
+    def _connect_to_solid(self, component_id: int, local_point_ids: np.ndarray) -> None:
         """Connect conduction system component to solid through the "_is-connected" pointdata.
 
         Parameters

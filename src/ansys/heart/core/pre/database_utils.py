@@ -24,7 +24,7 @@
 
 import copy
 import os
-from typing import List, Literal, Tuple
+from typing import Literal
 
 import numpy as np
 import pyvista as pv
@@ -100,7 +100,9 @@ def _get_original_labels(database: str, case_num: int = None) -> dict:
     return database_labels
 
 
-def _get_interface_surfaces(mesh: pv.UnstructuredGrid, labels: dict, tag_to_label: dict):
+def _get_interface_surfaces(
+    mesh: pv.UnstructuredGrid, labels: dict, tag_to_label: dict
+) -> tuple[list[pv.PolyData], dict]:
     """Get the each of the interface surfaces as polydata.
 
     Parameters
@@ -150,7 +152,9 @@ def _get_interface_surfaces(mesh: pv.UnstructuredGrid, labels: dict, tag_to_labe
     return interfaces, labels
 
 
-def _find_endo_epicardial_regions(geom_all: pv.PolyData, tag_to_label: dict):
+def _find_endo_epicardial_regions(
+    geom_all: pv.PolyData, tag_to_label: dict
+) -> tuple[pv.PolyData, dict]:
     """Find the endo and epicardial regions from the surface geometry of the entire model.
 
     Parameters
@@ -303,7 +307,7 @@ def _get_part_definitions(original_labels: dict, boundary_label_to_boundary_id: 
     return part_definitions1
 
 
-def _sort_edge_loop(edges):
+def _sort_edge_loop(edges) -> np.ndarray:
     """Sorts the points in an edge loop."""
     remaining_edges = edges
     next_edge = edges[0]
@@ -333,7 +337,7 @@ def _smooth_boundary_edges(
     id_to_label_map,
     sub_label_to_smooth: str = "endocardium",
     window_size: int = 5,
-) -> Tuple[pv.PolyData, List]:
+) -> tuple[pv.PolyData, list]:
     """Smooth edges of surfaces that match the label string.
 
     Parameters
@@ -427,7 +431,7 @@ def get_compatible_input(
     mesh_path: str,
     model_type: Literal["FullHeart", "FourChamber", "BiVentricle", "LeftVentricle"] = "FullHeart",
     database: str = "Rodero2021",
-) -> Tuple[pv.PolyData, dict]:
+) -> tuple[pv.PolyData, dict]:
     """Extract a preprocessor compatible input surface.
 
     Parameters

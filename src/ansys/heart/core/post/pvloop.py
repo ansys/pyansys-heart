@@ -33,7 +33,7 @@ from ansys.heart.core.post.dpf_utils import ICVoutReader
 CV_NAME = ["LV", "RV", "LA", "RA"]
 
 
-def write_pvloop_pngs(pressure: np.ndarray, volume: np.ndarray, save_to: str):
+def write_pvloop_pngs(pressure: np.ndarray, volume: np.ndarray, save_to: str) -> None:
     """Write pv loop figures into png.
 
     Parameters
@@ -69,7 +69,7 @@ def write_pvloop_pngs(pressure: np.ndarray, volume: np.ndarray, save_to: str):
     # ffmpeg -f image2 -i pv_%d.png output.mp4
 
 
-def generate_pvloop(f: str, out_dir: str, t_to_keep: float = 800):
+def generate_pvloop(f: str, out_dir: str, t_to_keep: float = 800) -> None:
     """Generate pv loop figures from icvout.
 
     Parameters

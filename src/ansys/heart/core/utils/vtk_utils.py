@@ -71,7 +71,7 @@ def compute_surface_nodal_area_pyvista(surface: pv.PolyData) -> np.ndarray:
 def extrude_polydata(
     surface: pv.PolyData,
     extrude_by: float = 1,
-    extrude_direction: np.array = np.empty(0),
+    extrude_direction: np.ndarray = np.empty(0),
 ) -> pv.PolyData:
     """Extrude a given polydata surface in a given direction.
 
@@ -221,7 +221,7 @@ def get_boundary_edges(surface: pv.PolyData) -> pv.MultiBlock:
 
 def get_boundary_edge_loops(
     surface: pv.PolyData, remove_open_edge_loops: bool = True, return_types: bool = False
-) -> dict:
+) -> dict | tuple[dict, dict]:
     """Get the closed/open boundary edge loops of a surface mesh.
 
     Parameters
@@ -318,7 +318,9 @@ def get_patches_delaunay(surface: pv.PolyData, closed_only: bool = True) -> list
     return patches
 
 
-def get_patches_with_centroid(surface: pv.PolyData, closed_only: bool = True) -> list[pv.PolyData]:
+def get_patches_with_centroid(
+    surface: pv.PolyData, closed_only: bool = True
+) -> list[pv.PolyData] | None:
     """Patch boundary edges with a custom algorithm using a central node.
 
     Parameters
@@ -375,7 +377,7 @@ def get_patches_with_centroid(surface: pv.PolyData, closed_only: bool = True) ->
 
 def are_connected(
     mesh1: pv.PolyData | pv.UnstructuredGrid, mesh2: pv.PolyData | pv.UnstructuredGrid
-):
+) -> bool:
     """Check whether two PolyData or UnstructuredGrids are connected.
 
     Parameters

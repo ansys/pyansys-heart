@@ -291,7 +291,7 @@ class HeartModel:
         self.mesh = Mesh()
         """Computational mesh."""
 
-        self.fluid_mesh = Mesh()
+        self._fluid_mesh = Mesh()
         """Generated fluid mesh."""
 
         #! TODO: non-functional flag. Remove or replace.
@@ -552,7 +552,7 @@ class HeartModel:
 
         # rename cell-zone-ids to part-ids
         # TODO: check if all face zones properly exist.
-        self.fluid_mesh = Mesh(fluid_mesh)
+        self._fluid_mesh = Mesh(fluid_mesh)
 
         return
 

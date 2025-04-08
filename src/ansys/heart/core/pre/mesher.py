@@ -1048,3 +1048,100 @@ def mesh_from_non_manifold_input_model(
     vtk_mesh = _post_meshing_cleanup(new_mesh)
 
     return vtk_mesh
+
+
+def _mesh_fluid_from_boundaries(
+    fluid_boundaries: list[SurfaceMesh],
+    workdir: str,
+    mesh_size: float = 1.0,
+) -> pv.UnstructuredGrid:
+    """Mesh the fluid from the boundary surfaces.
+
+    Parameters
+    ----------
+    fluid_boundaries : List[SurfaceMesh]
+        List of fluid boundaries used for meshing.
+    workdir : str
+        Working directory
+    mesh_size : float
+        Mesh size of the patches that.
+
+    Returns
+    -------
+    pv.UnstructuredGrid
+        Unstructured grid with fluid mesh.
+    """
+    if _uses_container:
+        mounted_volume = pyfluent.EXAMPLES_PATH
+        work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing-fluid")
+    else:
+        work_dir_meshing = os.path.join(workdir, "meshing-fluid")
+
+    if not os.path.isdir(work_dir_meshing):
+        os.makedirs(work_dir_meshing)
+    else:
+        files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+        for f in files:
+            os.remove(f)
+
+    # write all boundaries
+    for b in fluid_boundaries:
+        filename = os.path.join(work_dir_meshing, b.name.lower() + ".stl")
+        b.save(filename)
+        add_solid_name_to_stl(filename, b.name.lower(), file_type="binary")
+
+    session = _get_fluent_meshing_session(work_dir_meshing)
+
+    # import all stls
+    if _uses_container:
+        # NOTE: when using a Fluent container visible files
+        # will be in /mnt/pyfluent. So need to use relative paths
+        # or replace dirname by /mnt/pyfluent as prefix
+        work_dir_meshing = "/mnt/pyfluent/meshing"
+
+    session.tui.file.import_.cad(f"no {work_dir_meshing} *.stl")
+
+    # set size field
+    session.tui.size_functions.set_global_controls(mesh_size, mesh_size, 1.2)
+    session.tui.scoped_sizing.compute("yes")
+
+    # create caps with uniform size.
+    session.tui.objects.merge("(*)", "fluid-mesh")
+    # object_names = list(session.scheme_eval.scheme_eval("(tgapi-util-get-all-object-name-list)"))
+    # session.tui.objects.rename_object(object_names[0], "fluid-mesh")
+    session.tui.diagnostics.face_connectivity.fix_free_faces(
+        "objects '(fluid-mesh) merge-nodes yes 1e-3"
+    )
+    session.tui.objects.change_object_type("'(fluid-mesh)", "mesh", "yes")
+
+    session.scheme_eval.scheme_eval("(tgapi-util-fill-holes-in-face-zone-list '(*) 1000)")
+
+    patch_ids = session.scheme_eval.scheme_eval("(get-unreferenced-face-zones)")
+
+    session.tui.objects.create(
+        "mesh-patches",
+        "fluid",
+        3,
+        "({0})".format(" ".join([str(patch_id) for patch_id in patch_ids])),
+        "()",
+        "mesh",
+        "yes",
+    )
+    session.tui.objects.merge("'(*)")
+
+    # compute volume and mesh
+    session.tui.objects.volumetric_regions.compute("fluid-mesh", "no")
+    session.tui.mesh.auto_mesh("fluid-mesh", "yes", "pyr", "tet", "yes")
+
+    session.tui.objects.delete_all_geom()
+
+    file_path_mesh = os.path.join(workdir, "fluid-mesh.msh.h5")
+    session.tui.file.write_mesh(file_path_mesh)
+
+    session.exit()
+
+    # write to file.
+    mesh = _FluentMesh(file_path_mesh)
+    mesh.load_mesh(reconstruct_tetrahedrons=True)
+
+    return mesh._to_vtk(add_cells=True, add_faces=True, remove_interior_faces=True)

@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Module that defines some classes for settings."""
+"""Module that defines classes that hold settings relevant for PyAnsys-Heart."""
 
 import copy
 from dataclasses import asdict, dataclass, field

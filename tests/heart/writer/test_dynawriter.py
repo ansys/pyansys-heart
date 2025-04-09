@@ -19,7 +19,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+import os
+import tempfile
 import unittest.mock as mock
 
 import numpy as np
@@ -28,9 +29,28 @@ import pyvista as pv
 import pyvista.examples as examples
 
 from ansys.heart.core.models import FullHeart
-from ansys.heart.core.objects import BeamMesh, Mesh, Part, PartType, Point
-from ansys.heart.simulator.settings.settings import SimulationSettings, Stimulation
-import ansys.heart.writer.dynawriter as writers
+from ansys.heart.core.objects import (
+    Mesh,
+    Part,
+    PartType,
+    Point,
+    _BeamMesh,
+    _BeamsMesh,
+    _ConductionType,
+)
+from ansys.heart.core.settings.settings import Mechanics, SimulationSettings, Stimulation
+import ansys.heart.core.writer.dynawriter as writers
+
+
+def _get_mock_conduction_system() -> _BeamsMesh:
+    """Get a mock conduction system."""
+    edges = examples.load_tetbeam().extract_feature_edges()
+    conduction_system = _BeamsMesh()
+    conduction_system.add_lines(edges, 1, name=_ConductionType.LEFT_PURKINJE.value)
+    conduction_system.point_data["_is-connected"] = 0
+    conduction_system.point_data["_is-connected"][0:10] = 1
+
+    return conduction_system
 
 
 @pytest.fixture()
@@ -44,13 +64,16 @@ def _mock_model():
 
     model.electrodes = [p1, p2]
 
+    conduction_system = _get_mock_conduction_system()
+    model.conduction_system = conduction_system
+
     yield model
 
 
 def _add_beam_network(model: FullHeart):
     """Add a beam network to the model."""
     lines = pv.line_segments_from_points([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
-    beams = BeamMesh(name="beams")
+    beams = _BeamMesh(name="beams")
     beams.nodes = lines.points
     beams.edges = np.array([lines.lines[1:]])
     beams.pid = 1000
@@ -186,7 +209,7 @@ def test_update_use_purkinje(_mock_model: FullHeart):
     model = _mock_model
     model = _add_beam_network(model)
     model = _add_parts(model)
-    model.beam_network[0].name = "Left-purkinje"
+    model.beam_network[0].name = _ConductionType.LEFT_PURKINJE.value
     model.mesh.add_surface(pv.Sphere(), id=10, name="Left ventricle endocardium")
     model.left_ventricle = model.parts[0]
     model.left_ventricle.endocardium = model.mesh.get_surface(10)
@@ -210,3 +233,25 @@ def test_update_use_purkinje(_mock_model: FullHeart):
     ]
     for expected_kw in expected_kw_titles:
         assert expected_kw in kw_titles, f"Did not find {expected_kw} in keywords"
+
+
+def test_export(_mock_model):
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        setting = mock.Mock(spec=Mechanics).return_value
+        setting.mechanics.system.name = "ConstantPreloadWindkesselAfterload"
+        w = writers.MechanicsDynaWriter(_mock_model, setting)
+        w.kw_database.main.append("*END")
+        w.export(tempdir)
+        # test export
+        assert os.listdir(tempdir) == ["main.k"]
+
+        user_file = os.path.join(tempdir, "..", "user.k")
+        with open(user_file, "w") as tmpfile:
+            tmpfile.write("*END")
+
+        # test raise with not found file
+        with pytest.raises(FileNotFoundError):
+            w.export(tempdir, user_k=[user_file + "0"])
+        # test write with user file
+        w.export(tempdir, user_k=[user_file])
+        assert set(os.listdir(tempdir)) == {"main.k", "user.k"}

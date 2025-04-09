@@ -44,9 +44,9 @@ import numpy as np
 import pyvista as pv
 
 import ansys.heart.core.models as models
-from ansys.heart.postprocessor.auto_process import mech_post
-from ansys.heart.postprocessor.strain_calculator import AhaStrainCalculator
-from ansys.heart.postprocessor.system_model_post import SystemModelPost
+from ansys.heart.core.post.auto_process import mech_post
+from ansys.heart.core.post.strain_calculator import AhaStrainCalculator
+from ansys.heart.core.post.system_model_post import SystemModelPost
 
 ###############################################################################
 # Set relevant paths

@@ -29,13 +29,14 @@ import os
 import pathlib
 from typing import List, Literal, Union
 
+from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 
 from ansys.heart.core import LOG as LOGGER
+from ansys.heart.core.settings.material.ep_material import EPMaterial
+from ansys.heart.core.settings.material.material import MechanicalMaterialModel
 import ansys.heart.core.utils.vtk_utils as vtk_utils
-from ansys.heart.simulator.settings.material.ep_material import EPMaterial
-from ansys.heart.simulator.settings.material.material import MechanicalMaterialModel
 
 _SURFACE_CELL_TYPES = [pv.CellType.QUAD, pv.CellType.TRIANGLE]
 _VOLUME_CELL_TYPES = [pv.CellType.HEXAHEDRON, pv.CellType.TETRA]
@@ -301,7 +302,8 @@ class SurfaceMesh(pv.PolyData):
 
 
 # TODO: Refactor BeamMesh: why is this different from "Mesh"?
-class BeamMesh(pv.UnstructuredGrid, Feature):
+@deprecated(reason="BeamMesh is replaced by new class.")
+class _BeamMesh(pv.UnstructuredGrid, Feature):
     """Beam class."""
 
     all_beam_nodes = []
@@ -356,9 +358,6 @@ class BeamMesh(pv.UnstructuredGrid, Feature):
 
         self.nodes = nodes
         """Node coordinates."""
-
-        self.beam_nodes_mask = beam_nodes_mask
-        """True for beam nodes, False for solid nodes."""
 
         self.pid = pid
         """Part id associated with the network."""
@@ -1045,6 +1044,164 @@ class Mesh(pv.UnstructuredGrid):
         """
         mask = self.cell_data["_volume-id"] == lid
         return self.remove_cells(mask, inplace=True)
+
+
+class _ConductionType(Enum):
+    """Enum containing type of conduction system."""
+
+    LEFT_PURKINJE = "Left-purkinje"
+    """Left Purkinje network."""
+    RIGHT_PURKINJE = "Right-purkinje"
+    """Right Purkinje network."""
+    SAN_AVN = "SAN_to_AVN"
+    """Sino-atrial node to atrio-ventricular node."""
+    LEFT_BUNDLE_BRANCH = "Left bundle branch"
+    """Left bundle branch."""
+    RIGHT_BUNDLE_BRANCH = "Right bundle branch"
+    """Right bundle branch."""
+    HIS = "His"
+    """His segment."""
+    BACHMANN_BUNDLE = "Bachman bundle"
+    """Bachmann bundle."""
+
+
+class _BeamsMesh(Mesh):
+    """Mesh class: inherits from pyvista UnstructuredGrid.
+
+    Notes
+    -----
+    This class inherits from pyvista.UnstructuredGrid and adds additional
+    attributes and convenience methods for enhanced functionality. E.g. we use _volume_id,
+    _surface_id and _line_id cell arrays to keep track of "labeled" selections of
+    cells. _volume_id is used to group 3D volume cells together.
+    Any non 3D volume cell is labeled as numpy.nan. Similarly 2D and 1D cells are tracked
+    through _surface_id and _line_id respectively.
+    """
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+        self._line_id_to_name: dict = {}
+        """line id to name map."""
+        self.ep_material: dict = {}
+        """Ep material map."""
+        self._line_id_to_pid: dict = {}
+        """line id to part id map."""
+        pass
+
+    def _get_submesh(
+        self, sid: int, scalar: Literal["_surface-id", "_line-id", "_volume-id"]
+    ) -> pv.PolyData:
+        # NOTE: extract_cells cleans the object, removing any unused points.
+        if scalar not in self.cell_data.keys():
+            LOGGER.debug(f"{scalar} does not exist in cell_data")
+            return None
+        mask = np.isin(self.cell_data[scalar], sid)
+        self._set_global_ids()
+        return self.extract_cells(mask)
+
+    def _add_mesh(
+        self,
+        mesh_input: pv.PolyData,
+        keep_data: bool = True,
+        fill_float: np.float64 = np.nan,
+        fill_int: int = 0,
+    ):
+        """Add another mesh to this object.
+
+        Notes
+        -----
+        Adding the mesh is always in-place
+
+        Parameters
+        ----------
+        mesh_input : pv.PolyData | pv.UnstructuredGrid
+            Mesh to add, either PolyData or UnstructuredGrid
+        keep_data : bool, optional
+            Flag specifying whether to try to keep mesh point/cell data, by default True
+        """
+        mesh = copy.copy(mesh_input)
+        if keep_data:
+            # add cell/point arrays in self
+            cell_data_names = [k for k in mesh.cell_data.keys()]
+            point_data_names = [k for k in mesh.point_data.keys()]
+
+            for name in cell_data_names:
+                self.cell_data[name] = _get_fill_data(
+                    mesh, self, name, "cell", fill_int, fill_float
+                )
+
+            for name in point_data_names:
+                self.point_data[name] = _get_fill_data(
+                    mesh, self, name, "point", fill_int, fill_float
+                )
+
+            # add cell/point arrays mesh to be added
+            cell_data_names = [k for k in self.cell_data.keys()]
+            point_data_names = [k for k in self.point_data.keys()]
+
+            for name in cell_data_names:
+                mesh.cell_data[name] = _get_fill_data(self, mesh, name, "cell")
+
+            for name in point_data_names:
+                mesh.point_data[name] = _get_fill_data(self, mesh, name, "point")
+
+        merged = pv.merge((self, mesh), merge_points=True, main_has_priority=False)
+        super().__init__(merged)
+        return self
+
+    def get_unique_lines_id(self) -> int:
+        """Get unique lines id."""
+        new_id: int
+        if "_line-id" not in self.cell_data.keys():
+            new_id = 1
+        else:
+            new_id = np.max(np.unique(self.cell_data["_line-id"])) + 1
+        return int(new_id)
+
+    def add_lines(self, lines: pv.PolyData, id: int = None, name: str = None):
+        """Add lines.
+
+        Parameters
+        ----------
+        lines : pv.PolyData
+            PolyData representation of the lines to add
+        id : int
+            ID of the surface to be added. This id will be tracked as "_line-id"
+        """
+        if not id:
+            return None
+        else:
+            if not isinstance(id, int):
+                LOGGER.debug("sid should by type int.")
+                return None
+            lines.cell_data["_line-id"] = np.ones(lines.n_cells, dtype=float) * id
+            if "_is-connected" not in lines.point_data.keys():
+                lines.point_data["_is-connected"] = np.zeros(lines.n_points, dtype=int)
+        self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan)
+        if name:
+            self._line_id_to_name[id] = name
+            self.ep_material[id] = EPMaterial.DummyMaterial()
+        return self_copy
+
+    def get_line_id_from_name(self, name: str) -> int:
+        """Get line id from name using the `_line_id_to_name` attribute."""
+        position_in_list = list(self._line_id_to_name.values()).index(name)
+        line_id = list(self._line_id_to_name.keys())[position_in_list]
+        return line_id
+
+    def get_lines_by_name(self, name: str) -> pv.PolyData:
+        # ?: Return SurfaceMesh instead of PolyData?
+        """Get the lines associated with `name`."""
+        if name not in list(self._line_id_to_name.values()):
+            LOGGER.error(f"No lines associated with {name}")
+            return None
+        line_id = self.get_line_id_from_name(name)
+        return self.get_lines(line_id)
+
+    def get_lines(self, sid: int) -> pv.PolyData:
+        """Get lines as a PolyData object."""
+        return self._get_submesh(sid, scalar="_line-id").extract_surface()
 
 
 class PartType(Enum):

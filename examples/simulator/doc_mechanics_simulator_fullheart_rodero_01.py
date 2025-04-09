@@ -46,7 +46,7 @@ import os
 from pathlib import Path
 
 import ansys.heart.core.models as models
-from ansys.heart.simulator.simulator import DynaSettings, MechanicsSimulator
+from ansys.heart.core.simulator import DynaSettings, MechanicsSimulator
 
 # accept dpf license agreement
 # https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing

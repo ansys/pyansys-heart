@@ -1,11 +1,11 @@
 [build-system]
-requires = ["flit_core >=3.2,<3.11"]
+requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
 # Check https://flit.readthedocs.io/en/latest/pyproject_toml.html for all available sections
 name = "ansys-heart"
-version = "0.11.dev0"
+version = "0.12.dev0"
 description = "Python framework for heart modeling using ANSYS tools."
 readme = "README.rst"
 requires-python = ">=3.11,<4"
@@ -24,20 +24,20 @@ classifiers = [
 ]
 
 dependencies = [
-    "ansys-dpf-core==0.13.6",
-    "ansys-fluent-core==0.30.0",
-    "deprecated==1.2.18",
-    "ansys.dyna.core==0.7.1",
+    "ansys-dpf-core>=0.13.6",
+    "ansys-fluent-core>=0.30.0",
+    "deprecated>=1.2.18",
+    "ansys.dyna.core>=0.7.1",
     "h5py>=3.6.0",
-    "matplotlib==3.10.1",
-    "networkx==3.2.1",
+    "matplotlib>=3.10.1",
+    "networkx>=3.2.1",
     "numpy<=2.2.4",
     "pandas<=3.0.0",
-    "pint==0.24.4",
-    "pyvista==0.44.1",
+    "pint>=0.24.4",
+    "pyvista>=0.44.1",
     "scipy<=1.15.2",
-    "validators==0.34.0",
-    "vtk>=9.1.0, < 9.4",
+    "validators>=0.34.0",
+    "vtk>=9.1.0,<9.4",
     "httpx>=0.28.1",
     "natsort>=8.4.0",
     "rich>=13.9.4",
@@ -56,13 +56,11 @@ doc = [
     "sphinx-copybutton==0.5.2",
     "sphinx-gallery==0.19.0",
     "sphinx-jinja==2.0.2",
-    "sphinxcontrib-video",
-    "tox==4.24.2",
+    "sphinxcontrib-video==0.4.1",
 ]
-
 tests = [
     "pytest==8.3.5",
-    "pytest-cov==6.0.0",
+    "pytest-cov==6.1.1",
 ]
 
 [project.urls]
@@ -77,7 +75,7 @@ name = "ansys.heart"
 [tool.ruff]
 line-length = 100
 fix = true
-extend-exclude = ["src/ansys/heart/writer/custom_keywords/**"]
+extend-exclude = ["src/ansys/heart/core/writer/custom_keywords/**"]
 
 [tool.ruff.format]
 quote-style = "double"

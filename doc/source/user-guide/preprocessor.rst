@@ -5,4 +5,4 @@
 Preprocessor
 ************
 
-This section provides an overview of the :attr:`HeartModel <ansys.heart.preprocessor.models>` module.
+This section provides an overview of the :attr:`HeartModel <ansys.heart.core.pre>` module.

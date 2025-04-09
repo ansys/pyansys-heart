@@ -22,12 +22,15 @@
 
 """Module containing functions to read/write fluent meshes in HDF5 format."""
 
-from typing import List, Tuple
-
 import h5py
 import numpy as np
 
 from ansys.heart.core import LOG as LOGGER
+
+try:
+    import pyvista as pv
+except ImportError:
+    print("Failed to import pyvista. Try installing pyvista with `pip install pyvista`.")
 
 
 class _FluentCellZone:
@@ -131,9 +134,9 @@ class _FluentMesh:
         """All cells."""
         self.cell_ids: np.ndarray = None
         """Array of cell ids use to define the cell zones."""
-        self.cell_zones: List[_FluentCellZone] = []
+        self.cell_zones: list[_FluentCellZone] = []
         """List of cell zones."""
-        self.face_zones: List[_FluentFaceZone] = []
+        self.face_zones: list[_FluentFaceZone] = []
         """List of face zones."""
         self._unique_map: np.ndarray = None
         """Map to go from full node list to node-list without duplicates."""
@@ -165,7 +168,7 @@ class _FluentMesh:
         self._close_file()
         return
 
-    def clean(self):
+    def clean(self) -> None:
         """Remove all unused nodes."""
         used_node_ids1 = np.unique(
             np.array(np.vstack([fz.faces for fz in self.face_zones]), dtype=int)
@@ -202,7 +205,7 @@ class _FluentMesh:
         self.nodes = self._unique_nodes
         return
 
-    def _set_cells_in_cell_zones(self) -> List[_FluentCellZone]:
+    def _set_cells_in_cell_zones(self) -> list[_FluentCellZone]:
         """Iterate over the cell zones and assigns cells to them."""
         for cell_zone in self.cell_zones:
             zone_cell_ids = np.arange(cell_zone.min_id, cell_zone.max_id + 1, 1)
@@ -234,17 +237,15 @@ class _FluentMesh:
             self.nodes = np.vstack([self.nodes, np.array(self.fid["meshes/1/nodes/coords/" + ii])])
         return
 
-    def _read_cell_zone_info(self) -> List[_FluentCellZone]:
+    def _read_cell_zone_info(self) -> list[_FluentCellZone]:
         """Initialize the list of cell zones."""
         cell_zone_names = (
-            np.chararray.tobytes(np.array(self.fid["meshes/1/cells/zoneTopology/name"]))
-            .decode()
-            .split(";")
+            np.array(self.fid["meshes/1/cells/zoneTopology/name"]).tobytes().decode().split(";")
         )
         cell_zone_ids = np.array(self.fid["meshes/1/cells/zoneTopology/id"], dtype=int)
         min_ids = np.array(self.fid["meshes/1/cells/zoneTopology/minId"], dtype=int)
         max_ids = np.array(self.fid["meshes/1/cells/zoneTopology/maxId"], dtype=int)
-        cell_zones: List[_FluentCellZone] = []
+        cell_zones: list[_FluentCellZone] = []
 
         for ii in range(0, len(cell_zone_names), 1):
             cell_zones.append(
@@ -258,19 +259,15 @@ class _FluentMesh:
         self.cell_zones = cell_zones
         return cell_zones
 
-    def _read_face_zone_info(self) -> List[_FluentFaceZone]:
+    def _read_face_zone_info(self) -> list[_FluentFaceZone]:
         """Initialize the list of face zones."""
         ids = np.array(self.fid["meshes/1/faces/zoneTopology/id"], dtype=int)
         max_ids = np.array(self.fid["meshes/1/faces/zoneTopology/maxId"], dtype=int)
         min_ids = np.array(self.fid["meshes/1/faces/zoneTopology/minId"], dtype=int)
-        names = (
-            np.chararray.tobytes(np.array(self.fid["meshes/1/faces/zoneTopology/name"]))
-            .decode()
-            .split(";")
-        )
+        names = np.array(self.fid["meshes/1/faces/zoneTopology/name"]).tobytes().decode().split(";")
         zone_types = np.array(self.fid["meshes/1/faces/zoneTopology/zoneType"], dtype=int)
         num_face_zones = len(ids)
-        face_zones: List[_FluentFaceZone] = []
+        face_zones: list[_FluentFaceZone] = []
 
         for ii in range(0, num_face_zones, 1):
             face_zones.append(
@@ -286,7 +283,7 @@ class _FluentMesh:
         self.face_zones = face_zones
         return face_zones
 
-    def _read_all_faces_of_face_zones(self) -> List[_FluentFaceZone]:
+    def _read_all_faces_of_face_zones(self) -> list[_FluentFaceZone]:
         """Read the faces of the face zone."""
         for face_zone in self.face_zones:
             subdir = "meshes/1/faces/nodes/" + str(face_zone.hdf5_id) + "/nodes"
@@ -301,7 +298,7 @@ class _FluentMesh:
 
         return self.face_zones
 
-    def _read_c0c1_of_face_zones(self) -> List[_FluentFaceZone]:
+    def _read_c0c1_of_face_zones(self) -> list[_FluentFaceZone]:
         """Read the cell connectivity of the face zone. Only do for interior cells."""
         for face_zone in self.face_zones:
             subdir0 = "meshes/1/faces/c0/" + str(face_zone.hdf5_id)
@@ -311,7 +308,7 @@ class _FluentMesh:
 
         return self.face_zones
 
-    def _convert_interior_faces_to_tetrahedrons(self) -> Tuple[np.ndarray, np.ndarray]:
+    def _convert_interior_faces_to_tetrahedrons(self) -> tuple[np.ndarray, np.ndarray]:
         """Use c0c1 matrix to get tetrahedrons.
 
         Notes
@@ -368,7 +365,7 @@ class _FluentMesh:
         return tetrahedrons, cell_ids
 
     # NOTE: no typehint due to lazy import of pyvista
-    def _to_vtk(self, add_cells: bool = True, add_faces: bool = False):
+    def _to_vtk(self, add_cells: bool = True, add_faces: bool = False) -> pv.UnstructuredGrid:
         """Convert mesh to vtk unstructured grid or polydata.
 
         Parameters
@@ -383,11 +380,6 @@ class _FluentMesh:
         pv.UnstructuredGrid
             Unstructured grid representation of the fluent mesh.
         """
-        try:
-            import pyvista as pv
-        except ImportError:
-            print("Failed to import pyvista. Try installing pyvista with `pip install pyvista`.")
-
         if add_cells and add_faces:
             add_both = True
         else:
@@ -438,7 +430,7 @@ class _FluentMesh:
         if add_cells:
             return grid
 
-    def _fix_negative_cells(self):
+    def _fix_negative_cells(self) -> None:
         """Rorder base face in cells that have a negative cell volume.
 
         Notes
@@ -460,12 +452,12 @@ class _FluentMesh:
         self._set_cells_in_cell_zones()
         return
 
-    def _remove_empty_cell_zones(self):
+    def _remove_empty_cell_zones(self) -> None:
         """Remove empty cell zones from cell zone list."""
         self.cell_zones = [cz for cz in self.cell_zones if cz.cells.shape[0] > 0]
         return
 
-    def _merge_face_zones_based_on_connectivity(self, face_zone_separator: str = ":"):
+    def _merge_face_zones_based_on_connectivity(self, face_zone_separator: str = ":") -> None:
         """Merge face zones that were split by Fluent based on connectivity.
 
         Notes

@@ -22,67 +22,62 @@ env:
 jobs:
 
   labeler:
-   name: "Labels"
-   permissions:
-     contents: read
-     pull-requests: write
-   runs-on: ubuntu-latest
-   steps:
+    name: "Labels"
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-    - name: "Checkout project"
-      uses: actions/checkout@v4
+     - name: "Update labels"
+       uses: micnncim/action-label-syncer@3abd5ab72fda571e69fffd97bd4e0033dd5f495c # v1.3.0
+       env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: "Sync labels"
-      uses: micnncim/action-label-syncer@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: "Label pull-request"
-      # HACK: skip if contributor does not have write permissions (forks)
-      if: github.event.pull_request.head.repo.full_name == github.repository
-      uses: actions/labeler@v5.0.0
-      with:
-       repo-token: ${{ secrets.GITHUB_TOKEN }}
+     - name: "Label pull-request"
+       uses: actions/labeler@8558fd74291d67161a8a78ce36a881fa63b766a9 # v5.0.0
+       with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
 
   changelog-fragment:
-   name: "Create changelog fragment"
-   runs-on: ubuntu-latest
-   needs: labeler
-   permissions:
-     contents: read
-     pull-requests: write
-   steps:
+    name: "Create changelog fragment"
+    runs-on: ubuntu-latest
+    needs: labeler
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
 
-     - uses: ansys/actions/check-pr-title@main
-       with:
-         token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: ansys/actions/check-pr-title@b666c18ca3623198a1be4cf46f4522736527fee9 # v9.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-     - uses: ansys/actions/doc-changelog@main
-       with:
-         token: ${{ secrets.PYANSYS_CI_BOT_TOKEN }}
-         use-conventional-commits: true
-         use-default-towncrier-config: true
-         bot-user: ${{ secrets.PYANSYS_CI_BOT_USERNAME }}
-         bot-email: ${{ secrets.PYANSYS_CI_BOT_EMAIL }}
+      - uses: ansys/actions/doc-changelog@b666c18ca3623198a1be4cf46f4522736527fee9 # v9.0.0
+        with:
+          token: ${{ secrets.PYANSYS_CI_BOT_TOKEN }}
+          use-conventional-commits: true
+          use-default-towncrier-config: true
+          bot-user: ${{ secrets.PYANSYS_CI_BOT_USERNAME }}
+          bot-email: ${{ secrets.PYANSYS_CI_BOT_EMAIL }}
 
   code-style:
-   name: "Code style"
-   runs-on: ubuntu-latest
-   needs: changelog-fragment
-   steps:
-     - uses: ansys/actions/code-style@v8
-       with:
-         python-version: ${{ env.MAIN_PYTHON_VERSION }}
+    name: "Code style"
+    runs-on: ubuntu-latest
+    needs: changelog-fragment
+    steps:
+      - uses: ansys/actions/code-style@b666c18ca3623198a1be4cf46f4522736527fee9 # v9.0.0
+        with:
+          python-version: ${{ env.MAIN_PYTHON_VERSION }}
 
   doc-style:
-   name: Documentation Style Check
-   runs-on: ubuntu-latest
-   needs: changelog-fragment
-   steps:
-     - name: "Running documentation style checks"
-       uses: ansys/actions/doc-style@v8
-       with:
-         token: ${{ secrets.GITHUB_TOKEN }}
+    name: Documentation Style Check
+    runs-on: ubuntu-latest
+    needs: changelog-fragment
+    steps:
+      - uses: ansys/actions/doc-style@b666c18ca3623198a1be4cf46f4522736527fee9 # v9.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   wheelhouse:
     name: "Wheelhouse / ${{ matrix.os}} / ${{ matrix.python-version }}"
@@ -94,7 +89,7 @@ jobs:
         os: [ubuntu-latest, windows-latest]
         python-version: ['3.11', '3.12']
     steps:
-      - uses: ansys/actions/build-wheelhouse@v8
+      - uses: ansys/actions/build-wheelhouse@b666c18ca3623198a1be4cf46f4522736527fee9 # v9.0.0
         with:
           library-name: ${{ env.LIBRARY_NAME }}
           operating-system: ${{ matrix.os }}
@@ -104,20 +99,14 @@ jobs:
   doc-build:
     name: "Build documentation"
     runs-on: [self-hosted, pyhealth]
-    needs: wheelhouse
+    needs: doc-style
     steps:
 
       - name: "Checkout the project"
-        uses: actions/checkout@v4
-
-      - name: "Download wheelhouse into static path"
-        uses: actions/download-artifact@v4
-        with:
-          path: "doc/source/_static/wheelhouse"
-          pattern: "*-wheelhouse-*"
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: "Install Python ${{ env.MAIN_PYTHON_VERSION }}"
-        uses: astral-sh/setup-uv@22695119d769bdb6f7032ad67b9bca0ef8c4a174 # v5.4.0
+        uses: astral-sh/setup-uv@0c5e2b8115b80b4c7c5ddf6ffdd634974642d182 # v5.4.1
         with:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
 
@@ -130,81 +119,81 @@ jobs:
           tox -e doc-links,doc-html,doc-pdf
 
       - name: Upload HTML documentation artifact
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: documentation-html
           path: doc/_build/html
           retention-days: 7
 
       - name: Upload PDF documentation artifact
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: documentation-pdf
           path: doc/_build/latex/*.pdf
           retention-days: 7
 
   tests:
-   name: "Tests / ${{ matrix.tests.runner }} / Python ${{ matrix.python-version }} / ${{ matrix.tests.name }}"
-   runs-on: ${{ matrix.tests.runner }}
-   needs: [code-style]
-   strategy:
-     fail-fast: false
-     matrix:
-       python-version: ['3.11', '3.12']
-       tests:
-         - { name: "Base", runner: "ubuntu-latest", markers: "not (requires_fluent or requires_dpf)", tox_extra_args: ""}
-         - { name: "PyDPF", runner: "ubuntu-latest", markers: "requires_dpf", needs_dpf: true}
-         - { name: "PyFluent", runner: "ubuntu-latest", markers: "requires_fluent", needs_fluent: true }
-   steps:
+    name: "Tests / ${{ matrix.tests.runner }} / Python ${{ matrix.python-version }} / ${{ matrix.tests.name }}"
+    runs-on: ${{ matrix.tests.runner }}
+    needs: code-style
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
+        tests:
+          - { name: "Base", runner: "ubuntu-latest", markers: "not (requires_fluent or requires_dpf)", tox_extra_args: ""}
+          - { name: "PyDPF", runner: "ubuntu-latest", markers: "requires_dpf", needs_dpf: true}
+          - { name: "PyFluent", runner: "ubuntu-latest", markers: "requires_fluent", needs_fluent: true }
+    steps:
 
-     - name: Checkout project
-       uses: actions/checkout@v4
+      - name: "Checkout the project"
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-     - name: "Set up uv"
-       uses: astral-sh/setup-uv@22695119d769bdb6f7032ad67b9bca0ef8c4a174 # v5.4.0
-       with:
-         python-version: ${{ matrix.python-version }}
+      - name: "Set up uv"
+        uses: astral-sh/setup-uv@0c5e2b8115b80b4c7c5ddf6ffdd634974642d182 # v5.4.1
+        with:
+          python-version: ${{ matrix.python-version }}
 
-     - name: Install DPF
-       uses: ansys/pydpf-actions/install-dpf-server@v2.3
-       if: matrix.tests.needs_dpf
-       with:
-         dpf-standalone-TOKEN: ${{ secrets.PYANSYS_CI_BOT_TOKEN }}
-         ANSYS_VERSION : ${{ env.ANSYS_VERSION }}
+      - name: Install DPF
+        uses: ansys/pydpf-actions/install-dpf-server@v2.3
+        if: matrix.tests.needs_dpf
+        with:
+          dpf-standalone-TOKEN: ${{ secrets.PYANSYS_CI_BOT_TOKEN }}
+          ANSYS_VERSION : ${{ env.ANSYS_VERSION }}
 
-     - name: Login to GitHub Container Registry
-       uses: docker/login-action@v3
-       if: matrix.tests.needs_fluent
-       with:
-         registry: ghcr.io
-         username: ${{ github.actor }}
-         password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        if: matrix.tests.needs_fluent
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-     - name: Pull Fluent docker image
-       if: matrix.tests.needs_fluent
-       run: |
-         sudo rm -rf /usr/share/dotnet
-         docker pull ghcr.io/ansys/pyfluent:${{ env.FLUENT_IMAGE_TAG }}
-         docker image prune -f
+      - name: Pull Fluent docker image
+        if: matrix.tests.needs_fluent
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          docker pull ghcr.io/ansys/pyfluent:${{ env.FLUENT_IMAGE_TAG }}
+          docker image prune -f
 
-     - name: Run Tox
-       if: ${{ ! matrix.tests.needs_dpf }}
-       env:
-         PYFLUENT_UI_MODE: "hidden_gui"
-       run: |
-         uv tool run tox -e tests -- -m "${{ matrix.tests.markers }}" -vv
+      - name: Run Tox
+        if: ${{ ! matrix.tests.needs_dpf }}
+        env:
+          PYFLUENT_UI_MODE: "hidden_gui"
+        run: |
+          uv tool run tox -e tests -- -m "${{ matrix.tests.markers }}" -vv
 
-     - name: Run Tox
-       if: matrix.tests.needs_dpf
-       run: |
-         uv tool run tox -e tests -x testenv.deps+="-e dpf-standalone/v${{ env.ANSYS_VERSION }}" -- -m "${{ matrix.tests.markers }}" -vv
+      - name: Run Tox
+        if: matrix.tests.needs_dpf
+        run: |
+          uv tool run tox -e tests -x testenv.deps+="-e dpf-standalone/v${{ env.ANSYS_VERSION }}" -- -m "${{ matrix.tests.markers }}" -vv
 
   build-library:
-   name: "Build library"
-   runs-on: ubuntu-latest
-   needs: [doc-build, tests]
-   steps:
-     - uses: ansys/actions/build-library@v8
-       with:
-         library-name: ${{ env.LIBRARY_NAME }}
-         python-version: ${{ env.MAIN_PYTHON_VERSION }}
+    name: "Build library"
+    runs-on: ubuntu-latest
+    needs: [wheelhouse, doc-build, tests]
+    steps:
+      - uses: ansys/actions/build-library@b666c18ca3623198a1be4cf46f4522736527fee9 # v9.0.0
+        with:
+          library-name: ${{ env.LIBRARY_NAME }}
+          python-version: ${{ env.MAIN_PYTHON_VERSION }}

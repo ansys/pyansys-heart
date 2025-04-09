@@ -13,8 +13,8 @@ env:
   ANSYS_VERSION: '241'
   ANSYS_DPF_ACCEPT_LA: 'Y'
   MAIN_PYTHON_VERSION: '3.11'
-  DOCUMENTATION_CNAME: 'heart.docs.pyansys.com'
-  LIBRARY_NAME: 'ansys-heart'
+  DOCUMENTATION_CNAME: 'heart.health.docs.pyansys.com'
+  LIBRARY_NAME: 'ansys-health-heart'
   ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
   PYFLUENT_START_INSTANCE: 0
   PYFLUENT_LAUNCH_CONTAINER: 1

@@ -27,8 +27,8 @@ import sys
 
 import pytest
 
-import ansys.heart.core.models as models
-from ansys.heart.core.utils.download import download_case_from_zenodo, unpack_case
+import ansys.health.heart.models as models
+from ansys.health.heart.utils.download import download_case_from_zenodo, unpack_case
 
 ROOT_FOLDER = os.path.join(pathlib.Path(__file__).parent)
 

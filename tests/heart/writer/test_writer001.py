@@ -25,9 +25,9 @@ import copy
 import numpy as np
 import pyvista as pv
 
-import ansys.heart.core.models as models
-from ansys.heart.core.objects import Mesh, SurfaceMesh
-import ansys.heart.core.writer.dynawriter as writers
+import ansys.health.heart.models as models
+from ansys.health.heart.objects import Mesh, SurfaceMesh
+import ansys.health.heart.writer.dynawriter as writers
 
 
 def get_test_model():

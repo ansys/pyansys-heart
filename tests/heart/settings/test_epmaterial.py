@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from ansys.heart.core.settings.material.ep_material import CellModel, EPMaterial
+from ansys.health.heart.settings.material.ep_material import CellModel, EPMaterial
 
 midcelldata = dict(
     [

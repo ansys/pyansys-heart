@@ -25,8 +25,8 @@ import os
 import numpy as np
 import pytest
 
-import ansys.heart.core.models as models
-from ansys.heart.core.utils.landmark_utils import (
+import ansys.health.heart.models as models
+from ansys.health.heart.utils.landmark_utils import (
     compute_aha17,
     compute_anatomy_axis,
     compute_element_cs,

@@ -211,18 +211,20 @@ class SystemModelPost:
                 fcsv2, [r_ed_pressure, r_ed_volume], name="Right ventricle"
             )
 
-    def get_ejection_fraction(self, t_start=0, t_end=10e10):
-        """
-        Compute ejection fraction at a given time interval.
+    def get_ejection_fraction(self, t_start: float = 0, t_end: float = 10e10) -> float:
+        """Compute ejection fraction on given time interval.
 
         Parameters
         ----------
-        t_start: start time
-        t_end: end time
+        t_start : float, optional
+            Start time, by default 0
+        t_end : float, optional
+            End time, by default 10e10
 
         Returns
         -------
-        Ejection fraction
+        float
+            Ejection fraction
         """
         ef = [None, None]
         start = np.where(self.lv_system.time >= t_start)[0][0]

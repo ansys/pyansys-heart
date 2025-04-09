@@ -26,8 +26,8 @@ import numpy as np
 import pytest
 import pyvista as pv
 
-from ansys.heart.core.objects import _ConductionType
-from ansys.heart.core.pre.conduction_beam import ConductionSystem
+from ansys.health.heart.objects import _ConductionType
+from ansys.health.heart.pre.conduction_beam import ConductionSystem
 from tests.heart.conftest import get_fourchamber
 
 

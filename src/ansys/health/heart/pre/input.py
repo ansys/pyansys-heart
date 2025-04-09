@@ -38,9 +38,9 @@ import numpy as np
 import pyvista as pv
 import yaml
 
-from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.exceptions import InvalidInputModelTypeError
-from ansys.heart.core.utils.vtk_utils import add_solid_name_to_stl
+from ansys.health.heart import LOG as LOGGER
+from ansys.health.heart.exceptions import InvalidInputModelTypeError
+from ansys.health.heart.utils.vtk_utils import add_solid_name_to_stl
 
 # BOUNDARIES_PER_HEART_PART stores the reference id's of the various parts and
 # lists the required boundaries that enclose the part

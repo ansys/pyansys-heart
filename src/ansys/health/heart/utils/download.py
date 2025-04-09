@@ -32,8 +32,8 @@ import httpx
 import rich.progress
 import validators
 
-from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.exceptions import DatabaseNotSupportedError
+from ansys.health.heart import LOG as LOGGER
+from ansys.health.heart.exceptions import DatabaseNotSupportedError
 
 _URLS = {
     "Strocchi2020": {"url": "https://zenodo.org/record/3890034", "num_cases": 24},
@@ -274,7 +274,7 @@ def unpack_case(tar_path: Path, reduce_size: bool = True) -> str | bool:
 
     Examples
     --------
-    >>> from ansys.heart.core.utils.download import unpack_case
+    >>> from ansys.health.heart.utils.download import unpack_case
     >>> path = unpack_case("Rodero2021\\01.tar.gz")
 
     Returns
@@ -307,11 +307,11 @@ def download_all_cases(download_dir: str = None) -> list[str]:
 
     Examples
     --------
-    >>> from ansys.heart.core.utils.download import download_all_cases
+    >>> from ansys.health.heart.utils.download import download_all_cases
     >>> tar_files = download_call_cases("my-downloads")
 
     To unpack all cases you can use the unpack_cases method:
-    >>> from ansys.heart.core.utils.download import unpack_cases
+    >>> from ansys.health.heart.utils.download import unpack_cases
     >>> unpack_cases(tar_files)
 
     Notes
@@ -347,7 +347,7 @@ def unpack_cases(list_of_tar_files: typing.List) -> None:
 
     Examples
     --------
-    >>> from ansys.heart.core.utils.download import unpack_cases
+    >>> from ansys.health.heart.utils.download import unpack_cases
     >>> unpack_cases(["01.tar.gz", "02.tar.gz"])
     """
     for file in list_of_tar_files:

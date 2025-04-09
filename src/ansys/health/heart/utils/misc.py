@@ -27,8 +27,8 @@ import os
 import numpy as np
 from scipy.spatial import cKDTree
 
-from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.models import HeartModel
+from ansys.health.heart import LOG as LOGGER
+from ansys.health.heart.models import HeartModel
 
 
 def clean_directory(

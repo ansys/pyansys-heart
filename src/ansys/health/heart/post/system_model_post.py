@@ -29,9 +29,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.post.dpf_utils import ICVoutReader
-from ansys.heart.core.settings.settings import SimulationSettings
+from ansys.health.heart import LOG as LOGGER
+from ansys.health.heart.post.dpf_utils import ICVoutReader
+from ansys.health.heart.settings.settings import SimulationSettings
 
 
 @dataclass(init=False)

@@ -39,8 +39,8 @@ and visualize them in Paraview.
 # sphinx_gallery_end_ignore
 import os
 
-import ansys.heart.core.models as models
-from ansys.heart.core.post.auto_process import zerop_post
+import ansys.health.heart.models as models
+from ansys.health.heart.post.auto_process import zerop_post
 
 ###############################################################################
 # Set relevant paths

@@ -43,13 +43,13 @@ you must call at the top of your module:
 
 .. code:: python
 
-   from ansys.heart.core import LOG
+   from ansys.health.heart import LOG
 
 You could also rename it to avoid conflicts with other loggers (if any):
 
 .. code:: python
 
-   from ansys.heart.core import LOG as logger
+   from ansys.health.heart import LOG as logger
 
 
 It should be noticed that the default logging level of ``LOG`` is ``ERROR``.
@@ -83,14 +83,14 @@ you can add a file handler using:
 This sets the logger to be redirected also to that file.  If you wish
 to change the characteristics of this global logger from the beginning
 of the execution, you must edit the file ``__init__`` in the directory
-``ansys.heart.core``.
+``ansys.health.heart``.
 
 To log using this logger, just call the desired method as a normal logger.
 
 .. code:: pycon
 
     >>> import logging
-    >>> from ansys.heart.core.logging import Logger
+    >>> from ansys.health.heart.logging import Logger
     >>> LOG = Logger(level=logging.DEBUG, to_file=False, to_stdout=True)
     >>> LOG.debug("This is LOG debug message.")
 
@@ -316,7 +316,7 @@ class Logger:
     Import the global PyAnsys Heart logger and add a file output handler.
 
     >>> import os
-    >>> from ansys.heart.core import LOG
+    >>> from ansys.health.heart import LOG
     >>> file_path = os.path.join(os.getcwd(), "PyAnsys Heart.log")
     >>> LOG.log_to_file(file_path)
 
@@ -398,7 +398,7 @@ class Logger:
         --------
         Write to ``PyAnsys Heart.log`` in the current working directory.
 
-        >>> from ansys.heart.core import LOG
+        >>> from ansys.health.heart import LOG
         >>> import os
         >>> file_path = os.path.join(os.getcwd(), "PyAnsys Heart.log")
         >>> LOG.log_to_file(file_path)

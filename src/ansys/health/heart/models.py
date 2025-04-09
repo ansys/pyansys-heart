@@ -33,9 +33,9 @@ import numpy as np
 import pyvista as pv
 import yaml
 
-from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.exceptions import InvalidHeartModelError
-from ansys.heart.core.objects import (
+from ansys.health.heart import LOG as LOGGER
+from ansys.health.heart.exceptions import InvalidHeartModelError
+from ansys.health.heart.objects import (
     Cap,
     CapType,
     Cavity,
@@ -46,16 +46,16 @@ from ansys.heart.core.objects import (
     SurfaceMesh,
     _BeamsMesh,
 )
-from ansys.heart.core.pre.input import _InputModel
-import ansys.heart.core.pre.mesher as mesher
-from ansys.heart.core.settings.material.ep_material import EPMaterial
-from ansys.heart.core.settings.material.material import (
+from ansys.health.heart.pre.input import _InputModel
+import ansys.health.heart.pre.mesher as mesher
+from ansys.health.heart.settings.material.ep_material import EPMaterial
+from ansys.health.heart.settings.material.material import (
     ISO,
     Mat295,
     MechanicalMaterialModel,
 )
-import ansys.heart.core.utils.connectivity as connectivity
-import ansys.heart.core.utils.vtk_utils as vtk_utils
+import ansys.health.heart.utils.connectivity as connectivity
+import ansys.health.heart.utils.vtk_utils as vtk_utils
 
 
 def _get_axis_from_field_data(
@@ -469,7 +469,7 @@ class HeartModel:
 
         Examples
         --------
-        >>> from ansys.heart.core.models import HeartModel
+        >>> from ansys.health.heart.models import HeartModel
         >>> model = HeartModel()
         >>> model.load_input(geom, part_definitions, scalar)
         >>> # mesh the volume with a global size of 1.5 and size of 1 for the left ventricle.
@@ -620,7 +620,7 @@ class HeartModel:
 
     def summary(self) -> dict:
         """Get summary information of the model as a dictionary."""
-        from ansys.heart.core.utils.misc import model_summary
+        from ansys.health.heart.utils.misc import model_summary
 
         summary = model_summary(self)
         return summary
@@ -637,7 +637,7 @@ class HeartModel:
 
         Examples
         --------
-        >>> import ansys.heart.core.models as models
+        >>> import ansys.health.heart.models as models
         >>> model = models.HeartModel.load_model("heart_model.pickle")
         >>> model.plot_mesh(show_edges=True)
         """
@@ -657,7 +657,7 @@ class HeartModel:
 
         Examples
         --------
-        >>> import ansys.heart.core.models as models
+        >>> import ansys.health.heart.models as models
         >>> model = models.HeartModel.load_model("my_model.pickle")
         >>> model.part(model.left_ventricle)
         """
@@ -682,7 +682,7 @@ class HeartModel:
 
         Examples
         --------
-        >>> import ansys.heart.core.models as models
+        >>> import ansys.health.heart.models as models
         >>> model = models.HeartModel.load_model("my_model.pickle")
         >>> model.plot_fibers(n_seed_points=5000)
         """
@@ -711,7 +711,7 @@ class HeartModel:
         Examples
         --------
         Import modules and load model.
-        >>> import ansys.heart.core.models as models
+        >>> import ansys.health.heart.models as models
         >>> model = models.HeartModel.load_model("my_model.pickle")
         Plot the model
         >>> model.plot(show_edges=True)
@@ -813,7 +813,7 @@ class HeartModel:
 
         Examples
         --------
-        >>> from ansys.heart.core.models import FullHeart
+        >>> from ansys.health.heart.models import FullHeart
         >>> model: FullHeart = FullHeart()
         >>> model.load_model_from_mesh("mesh.vtu", "mesh.partinfo.json")
 
@@ -1395,7 +1395,7 @@ class HeartModel:
 
     def _define_anatomy_axis(self):
         """Define long and short axes from left ventricle landmarks."""
-        from ansys.heart.core.utils.landmark_utils import compute_anatomy_axis
+        from ansys.health.heart.utils.landmark_utils import compute_anatomy_axis
 
         try:
             left_ventricle: Part = self.left_ventricle

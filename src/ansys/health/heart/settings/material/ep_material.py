@@ -25,7 +25,7 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-from ansys.heart.core.settings.defaults import electrophysiology as ep_defaults
+from ansys.health.heart.settings.defaults import electrophysiology as ep_defaults
 
 
 @dataclass

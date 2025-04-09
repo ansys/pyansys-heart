@@ -27,7 +27,7 @@ try:
 except ModuleNotFoundError:  # pragma: no cover
     import importlib_metadata
 
-from ansys.heart.core import LOG
+from ansys.health.heart import LOG
 
 __version__ = importlib_metadata.version("ansys-heart")
 """The version of pyansys-heart."""
@@ -72,7 +72,7 @@ except KeyError:
 
 import os
 
-from ansys.heart.core.logger import LOG_LEVEL_FILE, LOG_LEVEL_STDOUT, Logger
+from ansys.health.heart.logger import LOG_LEVEL_FILE, LOG_LEVEL_STDOUT, Logger
 
 LOG = Logger(LOG_LEVEL_STDOUT, to_file=False, to_stdout=True)
 LOG.log_to_file(os.path.join(os.getcwd(), "PyAnsys-Heart.log"), LOG_LEVEL_FILE)

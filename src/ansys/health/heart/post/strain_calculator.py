@@ -29,10 +29,10 @@ from matplotlib import pyplot as plt
 import numpy as np
 import pyvista as pv
 
-from ansys.heart.core.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
-from ansys.heart.core.post.dpf_utils import D3plotReader
-from ansys.heart.core.utils.landmark_utils import compute_aha17, compute_element_cs
-from ansys.heart.core.utils.vtk_utils import find_corresponding_points, generate_thickness_lines
+from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
+from ansys.health.heart.post.dpf_utils import D3plotReader
+from ansys.health.heart.utils.landmark_utils import compute_aha17, compute_element_cs
+from ansys.health.heart.utils.vtk_utils import find_corresponding_points, generate_thickness_lines
 
 
 class AhaStrainCalculator:

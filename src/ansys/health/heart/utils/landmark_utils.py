@@ -28,8 +28,8 @@ from deprecated import deprecated
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-from ansys.heart.core.models import HeartModel
-from ansys.heart.core.objects import CapType
+from ansys.health.heart.models import HeartModel
+from ansys.health.heart.objects import CapType
 
 
 def compute_anatomy_axis(

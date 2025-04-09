@@ -27,7 +27,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ansys.heart.core.post.dpf_utils import ICVoutReader
+from ansys.health.heart.post.dpf_utils import ICVoutReader
 
 # NOTE: assume control volume is defined with in this order
 CV_NAME = ["LV", "RV", "LA", "RA"]

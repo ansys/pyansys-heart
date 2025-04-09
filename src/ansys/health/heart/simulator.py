@@ -45,21 +45,21 @@ import numpy as np
 import psutil
 import pyvista as pv
 
-from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.exceptions import LSDYNANotFoundError, LSDYNATerminationError
-from ansys.heart.core.models import FourChamber, HeartModel, LeftVentricle
-from ansys.heart.core.objects import _ConductionType
-from ansys.heart.core.post.auto_process import mech_post, zerop_post
-from ansys.heart.core.post.laplace_post import (
+from ansys.health.heart import LOG as LOGGER
+from ansys.health.heart.exceptions import LSDYNANotFoundError, LSDYNATerminationError
+from ansys.health.heart.models import FourChamber, HeartModel, LeftVentricle
+from ansys.health.heart.objects import _ConductionType
+from ansys.health.heart.post.auto_process import mech_post, zerop_post
+from ansys.health.heart.post.laplace_post import (
     compute_la_fiber_cs,
     compute_ra_fiber_cs,
     compute_ventricle_fiber_by_drbm,
     read_laplace_solution,
 )
-from ansys.heart.core.pre.conduction_beam import ConductionSystem
-from ansys.heart.core.settings.settings import DynaSettings, SimulationSettings
-from ansys.heart.core.utils.misc import _read_orth_element_kfile
-import ansys.heart.core.writer.dynawriter as writers
+from ansys.health.heart.pre.conduction_beam import ConductionSystem
+from ansys.health.heart.settings.settings import DynaSettings, SimulationSettings
+from ansys.health.heart.utils.misc import _read_orth_element_kfile
+import ansys.health.heart.writer.dynawriter as writers
 
 _KILL_ANSYSCL_PRIOR_TO_RUN = True
 """Flag indicating whether to kill all ansys license clients prior to LS-DYNA run."""

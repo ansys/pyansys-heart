@@ -25,7 +25,7 @@
 import h5py
 import numpy as np
 
-from ansys.heart.core import LOG as LOGGER
+from ansys.health.heart import LOG as LOGGER
 
 try:
     import pyvista as pv

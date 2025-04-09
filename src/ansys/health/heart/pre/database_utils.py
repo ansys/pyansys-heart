@@ -29,9 +29,9 @@ from typing import Literal
 import numpy as np
 import pyvista as pv
 
-from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.utils.connectivity import face_tetra_connectivity
-import ansys.heart.core.utils.misc as geodisc
+from ansys.health.heart import LOG as LOGGER
+from ansys.health.heart.utils.connectivity import face_tetra_connectivity
+import ansys.health.heart.utils.misc as geodisc
 
 
 def _read_input_mesh(mesh_path: str, database: str) -> pv.UnstructuredGrid:

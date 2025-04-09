@@ -44,9 +44,9 @@ purkinje network and conduction system and finally simulate the electrophysiolog
 import os
 from pathlib import Path
 
-import ansys.heart.core.models as models
-from ansys.heart.core.objects import Point
-from ansys.heart.core.simulator import DynaSettings, EPSimulator
+import ansys.health.heart.models as models
+from ansys.health.heart.objects import Point
+from ansys.health.heart.simulator import DynaSettings, EPSimulator
 
 # accept dpf license agreement
 # https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing

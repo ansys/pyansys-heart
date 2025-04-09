@@ -41,10 +41,10 @@ import numpy as np
 import pandas as pd
 
 from ansys.dyna.core.keywords import keywords
-from ansys.heart.core.settings.material.material import ActiveModel, Mat295
+from ansys.health.heart.settings.material.material import ActiveModel, Mat295
 
 # import custom keywords in separate namespace
-from ansys.heart.core.writer import custom_keywords as custom_keywords
+from ansys.health.heart.writer import custom_keywords as custom_keywords
 
 
 class MaterialCap(keywords.MatNull):

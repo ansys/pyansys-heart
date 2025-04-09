@@ -24,7 +24,7 @@
 
 Notes
 -----
-Uses a HeartModel (from ansys.heart.core.models).
+Uses a HeartModel (from ansys.health.heart.models).
 
 """
 
@@ -44,29 +44,29 @@ import pyvista as pv
 import scipy.spatial as spatial
 
 from ansys.dyna.core.keywords import keywords
-from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.models import (
+from ansys.health.heart import LOG as LOGGER
+from ansys.health.heart.models import (
     BiVentricle,
     FourChamber,
     FullHeart,
     HeartModel,
     LeftVentricle,
 )
-from ansys.heart.core.objects import Cap, CapType, Part, PartType, SurfaceMesh, _ConductionType
-from ansys.heart.core.settings.material.ep_material import CellModel, EPMaterial
-from ansys.heart.core.settings.material.material import (
+from ansys.health.heart.objects import Cap, CapType, Part, PartType, SurfaceMesh, _ConductionType
+from ansys.health.heart.settings.material.ep_material import CellModel, EPMaterial
+from ansys.health.heart.settings.material.material import (
     Mat295,
     MechanicalMaterialModel,
     NeoHookean,
 )
-from ansys.heart.core.settings.settings import SimulationSettings, Stimulation
-from ansys.heart.core.utils.vtk_utils import compute_surface_nodal_area_pyvista
-from ansys.heart.core.writer import custom_keywords as custom_keywords
-from ansys.heart.core.writer.define_function_templates import (  # noqa F401
+from ansys.health.heart.settings.settings import SimulationSettings, Stimulation
+from ansys.health.heart.utils.vtk_utils import compute_surface_nodal_area_pyvista
+from ansys.health.heart.writer import custom_keywords as custom_keywords
+from ansys.health.heart.writer.define_function_templates import (  # noqa F401
     _define_function_0d_system,
     _ed_load_template,
 )
-from ansys.heart.core.writer.heart_decks import (
+from ansys.health.heart.writer.heart_decks import (
     BaseDecks,
     ElectroMechanicsDecks,
     ElectrophysiologyDecks,
@@ -74,7 +74,7 @@ from ansys.heart.core.writer.heart_decks import (
     MechanicsDecks,
     PurkinjeGenerationDecks,
 )
-from ansys.heart.core.writer.keyword_utils import (
+from ansys.health.heart.writer.keyword_utils import (
     add_beams_to_kw,
     add_nodes_to_kw,
     create_define_curve_kw,
@@ -89,7 +89,7 @@ from ansys.heart.core.writer.keyword_utils import (
     fast_element_writer,
     get_list_of_used_ids,
 )
-from ansys.heart.core.writer.material_keywords import MaterialHGOMyocardium, MaterialNeoHook
+from ansys.health.heart.writer.material_keywords import MaterialHGOMyocardium, MaterialNeoHook
 
 
 class _BoundaryConditionType(Enum):
@@ -202,7 +202,7 @@ class BaseDynaWriter:
 
     def _check_settings(self):
         """Check if required settings are available."""
-        import ansys.heart.core.settings.settings as sett
+        import ansys.health.heart.settings.settings as sett
 
         subsettings_classes = [
             getattr(self.settings, attr).__class__
@@ -2459,7 +2459,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             )
 
             # define functions:
-            from ansys.heart.core.writer.define_function_templates import (
+            from ansys.health.heart.writer.define_function_templates import (
                 _function_alpha,
                 _function_beta,
                 _function_beta_septum,
@@ -2609,7 +2609,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             )
 
             # define functions:
-            from ansys.heart.core.writer.define_function_templates import (
+            from ansys.health.heart.writer.define_function_templates import (
                 _function_alpha,
                 _function_beta,
                 _function_beta_septum,

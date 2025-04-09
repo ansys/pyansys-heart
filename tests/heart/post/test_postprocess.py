@@ -29,10 +29,10 @@ os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 import pytest
 
-from ansys.heart.core.models import LeftVentricle
-from ansys.heart.core.post.auto_process import zerop_post
-from ansys.heart.core.post.strain_calculator import AhaStrainCalculator
-from ansys.heart.core.post.system_model_post import SystemModelPost
+from ansys.health.heart.models import LeftVentricle
+from ansys.health.heart.post.auto_process import zerop_post
+from ansys.health.heart.post.strain_calculator import AhaStrainCalculator
+from ansys.health.heart.post.system_model_post import SystemModelPost
 from tests.heart.conftest import get_assets_folder
 
 # Accept DPF LA

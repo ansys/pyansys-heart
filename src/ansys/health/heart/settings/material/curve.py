@@ -27,7 +27,7 @@ from typing import Literal
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ansys.heart.core import LOG as LOGGER
+from ansys.health.heart import LOG as LOGGER
 
 
 def strocchi_active(t_end=800, t_act=0) -> tuple[np.ndarray, np.ndarray]:

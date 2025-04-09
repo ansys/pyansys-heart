@@ -31,9 +31,9 @@ import numpy as np
 import pyvista as pv
 
 from ansys.dpf import core as dpf
-from ansys.heart.core import LOG as LOGGER
-from ansys.heart.core.exceptions import SupportedDPFServerNotFoundError
-from ansys.heart.core.models import HeartModel
+from ansys.health.heart import LOG as LOGGER
+from ansys.health.heart.exceptions import SupportedDPFServerNotFoundError
+from ansys.health.heart.models import HeartModel
 
 _SUPPORTED_DPF_SERVERS = ["2024.1", "2024.1rc1", "2024.2rc0"]
 """List of supported DPF Servers."""

@@ -28,7 +28,7 @@ import numpy as np
 import pyvista as pv
 import vtk
 
-from ansys.heart.core import LOG as LOGGER
+from ansys.health.heart import LOG as LOGGER
 
 
 def compute_surface_nodal_area_pyvista(surface: pv.PolyData) -> np.ndarray:

@@ -14,7 +14,7 @@ project = "ansys-heart"
 copyright = f"(c) {datetime.now().year} ANSYS, Inc. All rights reserved"
 author = "ANSYS, Inc."
 release = version = __version__
-cname = os.getenv("DOCUMENTATION_CNAME", "heart.docs.pyansys.com")
+cname = os.getenv("DOCUMENTATION_CNAME", "heart.health.docs.pyansys.com")
 
 # use the default pyansys logo
 html_theme = "ansys_sphinx_theme"

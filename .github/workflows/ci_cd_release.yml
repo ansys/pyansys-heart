@@ -76,17 +76,11 @@ jobs:
   doc-build:
     name: "Build documentation"
     runs-on: [self-hosted, pyhealth]
-    needs: wheelhouse
+    needs: doc-style
     steps:
 
       - name: "Checkout the project"
         uses: actions/checkout@v4
-
-      - name: "Download wheelhouse into static path"
-        uses: actions/download-artifact@v4
-        with:
-          path: "doc/source/_static/wheelhouse"
-          pattern: "*-wheelhouse-*"
 
       - name: "Install Python ${{ env.MAIN_PYTHON_VERSION }}"
         uses: astral-sh/setup-uv@22695119d769bdb6f7032ad67b9bca0ef8c4a174 # v5.4.0
@@ -118,7 +112,7 @@ jobs:
   tests:
    name: "Tests / ${{ matrix.tests.runner }} / Python ${{ matrix.python-version }} / ${{ matrix.tests.name }}"
    runs-on: ${{ matrix.tests.runner }}
-   needs: [code-style]
+   needs: code-style
    strategy:
      fail-fast: false
      matrix:
@@ -174,7 +168,7 @@ jobs:
   build-library:
     name: "Build library"
     runs-on: ubuntu-latest
-    needs: [doc-build, tests]
+    needs: [wheelhouse, doc-build, tests]
     steps:
       - uses: ansys/actions/build-library@v8
         with:

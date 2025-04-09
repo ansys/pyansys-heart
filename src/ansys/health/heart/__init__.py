@@ -43,5 +43,5 @@ try:
 except KeyError:
     pass
 
-__version__ = importlib_metadata.version("ansys-heart")
+__version__ = importlib_metadata.version("ansys-health-heart")
 """The version of pyansys-heart."""

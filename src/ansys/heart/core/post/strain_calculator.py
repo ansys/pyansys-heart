@@ -238,7 +238,9 @@ class AhaStrainCalculator:
 
         return aha_lrc
 
-    def _compute_myocardial_strain(self, at_frame, reference=None):
+    def _compute_myocardial_strain(
+        self, at_frame, reference=None
+    ) -> tuple[list[float], list[float], list[float]]:
         """
         Compute left ventricle myocardial strain.
 
@@ -300,7 +302,7 @@ class AhaStrainCalculator:
         return strain, aha_strain, averaged_strain
 
     @staticmethod
-    def bullseye_plot(ax, data, seg_bold=None, cmap=None, norm=None):
+    def bullseye_plot(ax, data, seg_bold=None, cmap=None, norm=None) -> None:
         """Bullseye representation for the left ventricle.
 
         Parameters

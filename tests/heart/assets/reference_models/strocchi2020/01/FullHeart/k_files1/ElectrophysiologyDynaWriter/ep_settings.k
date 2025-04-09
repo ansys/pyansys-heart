@@ -1,9 +1,14 @@
 *KEYWORD
+*EM_CONTROL_COUPLING
+$# thcoupl   smcoupl    thlcid    smlcid   thcplfl   smcplfl     cflag     nflag
+         1         1         0         0         0         0                    
+$#   smmod       dfx       dfy       dfz
+         0                              
 *SET_PART_LIST
 $#     sid       da1       da2       da3       da4    solver
          1       0.0       0.0       0.0       0.0MECH      
          1         2         7         3         4         5         6         8
-
+         9        10        11        12        13        14
 *EM_CONTROL_EP
 $#olvetype  numsplit   actusig  ionsolvr
          4         1 100000000          
@@ -27,8 +32,8 @@ $#                                                                         title
 Stim nodes                                                                      
 $#     sid       da1       da2       da3       da4    solver       its    unused
         25       0.0       0.0       0.0       0.0MECH                          
-$#   nodes     nodes
-     17543     32803
+$#   nodes     nodes     nodes     nodes     nodes     nodes
+     49710     49784     48103     48311     48330     69169
 *EM_EP_TENTUSSCHER_STIMULUS
 $#  stimid   settype     setid
         25         2        25

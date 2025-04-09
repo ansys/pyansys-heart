@@ -280,6 +280,21 @@ def test_writers(extract_model, writer_class):
     """
     model, _ = extract_model
     writer = writer_class(copy.deepcopy(model))
+    if isinstance(model, models.FullHeart) and isinstance(
+        writer, writers.ElectrophysiologyDynaWriter
+    ):
+        from ansys.heart.core.objects import _ConductionType
+        from ansys.heart.core.pre.conduction_beam import _compute_heart_conductionsystem
+
+        folder = os.path.join(
+            get_assets_folder(), "reference_models", "strocchi2020", "01", "conduction"
+        )
+        f1 = os.path.join(folder, "purkinjeNetwork_001.k")
+        f2 = os.path.join(folder, "purkinjeNetwork_002.k")
+
+        writer.model.add_purkinje_from_kfile(f1, _ConductionType.LEFT_PURKINJE.value)
+        writer.model.add_purkinje_from_kfile(f2, _ConductionType.RIGHT_PURKINJE.value)
+        _compute_heart_conductionsystem(writer.model, 1.5)
 
     if isinstance(model, models.BiVentricle):
         ref_folder = os.path.join(

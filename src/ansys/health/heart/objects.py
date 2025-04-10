@@ -1140,6 +1140,7 @@ class _BeamsMesh(Mesh):
         """line id to part id map."""
         pass
 
+    # TODO: consolidate this into Mesh or remove.
     def get_unique_lines_id(self) -> int:
         """Get unique lines id."""
         if self.line_ids is None:

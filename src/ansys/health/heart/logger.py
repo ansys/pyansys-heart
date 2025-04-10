@@ -38,7 +38,7 @@ Usage
 Global logger
 ~~~~~~~~~~~~~
 There is a global logger named ``PyAnsys Heart_global`` which is created at
-``ansys.PyAnsys Heart.core.__init__``.  If you want to use this global logger,
+``ansys.health.heart.__init__``.  If you want to use this global logger,
 you must call at the top of your module:
 
 .. code:: python

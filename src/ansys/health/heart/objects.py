@@ -1140,56 +1140,6 @@ class _BeamsMesh(Mesh):
         """line id to part id map."""
         pass
 
-    def _add_mesh(
-        self,
-        mesh_input: pv.PolyData,
-        keep_data: bool = True,
-        fill_float: np.float64 = np.nan,
-        fill_int: int = 0,
-    ):
-        """Add another mesh to this object.
-
-        Notes
-        -----
-        Adding the mesh is always in-place
-
-        Parameters
-        ----------
-        mesh_input : pv.PolyData | pv.UnstructuredGrid
-            Mesh to add, either PolyData or UnstructuredGrid
-        keep_data : bool, optional
-            Flag specifying whether to try to keep mesh point/cell data, by default True
-        """
-        mesh = copy.copy(mesh_input)
-        if keep_data:
-            # add cell/point arrays in self
-            cell_data_names = [k for k in mesh.cell_data.keys()]
-            point_data_names = [k for k in mesh.point_data.keys()]
-
-            for name in cell_data_names:
-                self.cell_data[name] = _get_fill_data(
-                    mesh, self, name, "cell", fill_int, fill_float
-                )
-
-            for name in point_data_names:
-                self.point_data[name] = _get_fill_data(
-                    mesh, self, name, "point", fill_int, fill_float
-                )
-
-            # add cell/point arrays mesh to be added
-            cell_data_names = [k for k in self.cell_data.keys()]
-            point_data_names = [k for k in self.point_data.keys()]
-
-            for name in cell_data_names:
-                mesh.cell_data[name] = _get_fill_data(self, mesh, name, "cell")
-
-            for name in point_data_names:
-                mesh.point_data[name] = _get_fill_data(self, mesh, name, "point")
-
-        merged = pv.merge((self, mesh), merge_points=True, main_has_priority=False)
-        super().__init__(merged)
-        return self
-
     def get_unique_lines_id(self) -> int:
         """Get unique lines id."""
         if self.line_ids is None:

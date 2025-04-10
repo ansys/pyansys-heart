@@ -25,7 +25,7 @@
 import pytest
 
 import ansys.fluent.core as pyfluent
-from ansys.heart.core.pre.mesher import _get_supported_fluent_version
+from ansys.health.heart.pre.mesher import _get_supported_fluent_version
 
 # marks all tests with the 'requires_fluent' tag after this line
 pytestmark = pytest.mark.requires_fluent

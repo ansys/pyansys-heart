@@ -37,7 +37,7 @@ This example shows you how to post process an EP simulation.
 
 import pathlib
 
-from ansys.heart.core.post.dpf_utils import EPpostprocessor
+from ansys.health.heart.post.dpf_utils import EPpostprocessor
 
 # set ep results folder
 ep_folder = (

@@ -35,13 +35,13 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
-from ansys.heart.core.settings.material.curve import (
+from ansys.health.heart.settings.material.curve import (
     ActiveCurve,
     constant_ca2,
     kumaraswamy_active,
 )
-from ansys.heart.core.settings.material.ep_material import CellModel, EPMaterial
-from ansys.heart.core.settings.material.material import (
+from ansys.health.heart.settings.material.ep_material import CellModel, EPMaterial
+from ansys.health.heart.settings.material.material import (
     ACTIVE,
     ANISO,
     ISO,
@@ -174,8 +174,8 @@ epinsulator = EPMaterial.Insulator()
 
 import numpy as np
 
-import ansys.heart.core.models as models
-from ansys.heart.core.objects import Part
+import ansys.health.heart.models as models
+from ansys.health.heart.objects import Part
 
 ###############################################################################
 # Load a heart model

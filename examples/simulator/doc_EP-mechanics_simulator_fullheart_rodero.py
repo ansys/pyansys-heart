@@ -49,10 +49,10 @@ from pathlib import Path
 
 from pint import Quantity
 
-import ansys.heart.core.models as models
-from ansys.heart.core.settings.material.ep_material import EPMaterial
-from ansys.heart.core.settings.material.material import ISO, Mat295
-from ansys.heart.core.simulator import DynaSettings, EPMechanicsSimulator
+import ansys.health.heart.models as models
+from ansys.health.heart.settings.material.ep_material import EPMaterial
+from ansys.health.heart.settings.material.material import ISO, Mat295
+from ansys.health.heart.simulator import DynaSettings, EPMechanicsSimulator
 
 ###############################################################################
 # Example setup

@@ -118,6 +118,8 @@ jobs:
         env:
           PYANSYS_HEART_FLUENT_VERSION: 24.1
           PYFLUENT_LAUNCH_CONTAINER: 0
+          MPLBACKEND: Agg
+          PYVISTA_OFF_SCREEN: 1
         run: |
           tox -e doc-links,doc-html,doc-pdf
 

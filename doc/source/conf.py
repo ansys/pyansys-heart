@@ -6,6 +6,7 @@ from pathlib import Path
 import subprocess
 
 from ansys_sphinx_theme import ansys_favicon, get_version_match
+from pyvista.plotting.utilities.sphinx_gallery import DynamicScraper
 
 from ansys.health.heart import __version__
 
@@ -123,8 +124,25 @@ numpydoc_validation_checks = {
 # Configuration for Sphinx gallery
 # -----------------------------------------------------------------------------
 sphinx_gallery_conf = {
+    # convert rst to md for ipynb
+    "pypandoc": True,
+    # path to your examples scripts
     "examples_dirs": "../../examples",
+    # path where to save gallery generated examples
     "gallery_dirs": "examples",
+    # Pattern to search for example files
+    "filename_pattern": r".*\.py",
+    # Remove the "Download all examples" button from the top level gallery
+    "download_all_examples": False,
+    # Sort gallery example by filename instead of number of lines (default)
+    "within_subsection_order": "FileNameSortKey",
+    # directory where function granular galleries are stored
+    "backreferences_dir": "api/_gallery_backreferences",
+    # Modules for which function level galleries are created.
+    "image_scrapers": (DynamicScraper(), "matplotlib"),
+    "ignore_pattern": r"__init__\.py",
+    "thumbnail_size": (320, 240),
+    "remove_config_comments": True,
 }
 
 # Configuration for Sphinx autoapi

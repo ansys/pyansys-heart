@@ -14,8 +14,8 @@ PyAnsys Heart
    :target: https://pypi.org/project/pyansys-heart
    :alt: PyPI
 
-.. |GH-CI| image:: https://github.com/ansys/pyansys-heart/actions/workflows/ci_cd.yml/badge.svg
-   :target: https://github.com/ansys/pyansys-heart/actions/workflows/ci_cd.yml
+.. |GH-CI| image:: https://github.com/ansys/pyansys-heart/actions/workflows/ci_cd_night.yml/badge.svg
+   :target: https://github.com/ansys/pyansys-heart/actions/workflows/ci_cd_night.yml
    :alt: GH-CI
 
 .. |MIT| image:: https://img.shields.io/badge/license-MIT-yellow

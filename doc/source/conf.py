@@ -7,14 +7,14 @@ import subprocess
 
 from ansys_sphinx_theme import ansys_favicon, get_version_match
 
-from ansys.heart import __version__
+from ansys.health.heart import __version__
 
 # Project information
-project = "ansys-heart"
+project = "ansys-health-heart"
 copyright = f"(c) {datetime.now().year} ANSYS, Inc. All rights reserved"
 author = "ANSYS, Inc."
 release = version = __version__
-cname = os.getenv("DOCUMENTATION_CNAME", "heart.docs.pyansys.com")
+cname = os.getenv("DOCUMENTATION_CNAME", "heart.health.docs.pyansys.com")
 
 # use the default pyansys logo
 html_theme = "ansys_sphinx_theme"

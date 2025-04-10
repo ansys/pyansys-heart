@@ -28,9 +28,9 @@ from typing import Callable
 
 import pytest
 
-from ansys.heart.core import LOG  # Global logger
-import ansys.heart.core.logger as logger
-from ansys.heart.core.logger import _clear_all_file_handlers
+from ansys.health.heart import LOG  # Global logger
+import ansys.health.heart.logger as logger
+from ansys.health.heart.logger import _clear_all_file_handlers
 
 ## Notes
 # Use the next fixtures for:

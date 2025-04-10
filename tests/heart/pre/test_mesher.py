@@ -30,8 +30,8 @@ import numpy as np
 import pytest
 import pyvista as pv
 
-from ansys.heart.core.pre.input import _InputModel
-import ansys.heart.core.pre.mesher as mesher
+from ansys.health.heart.pre.input import _InputModel
+import ansys.health.heart.pre.mesher as mesher
 
 pytestmark = pytest.mark.requires_fluent
 

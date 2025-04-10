@@ -21,9 +21,9 @@
 .. _Markdown: https://www.markdownguide.org/
 .. _Python documentation: https://docs.python.org/3/library/venv.html
 
-.. PyAnsys Developer Guide
+.. PyAnsys developer's guide
 
-.. _PyAnsys Developer's Guide: https://dev.docs.pyansys.com/
+.. _PyAnsys developer's guide: https://dev.docs.pyansys.com/
 
 .. PyAnsys Heart repository links
 
@@ -37,3 +37,4 @@
 .. Other links
 
 .. _Contributor Covenant Code of Conduct: https://www.contributor-covenant.org/version/2/1/code_of_conduct/
+

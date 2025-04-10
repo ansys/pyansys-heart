@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 """
+.. _stimulation_definition_example:
 
 Stimulation definition example
 ---------------------------------

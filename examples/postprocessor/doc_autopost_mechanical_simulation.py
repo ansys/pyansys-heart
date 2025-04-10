@@ -22,15 +22,14 @@
 
 """
 
-Post process mechanical simulation folder
+Postprocess the mechanical simulation folder
 -----------------------------------------
-This example shows you how to use post process script after mechanical simulation.
+This example shows how to use the postprocess script after a mechanical simulation.
 """
 
 ###############################################################################
-# Perform the required imports
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Import the required modules
+# Perform required imports
+# ~~~~~~~~~~~~~~~~~~~~~~~~
 
 # sphinx_gallery_start_ignore
 # Note that we need to put the thumbnail here to avoid weird rendering in the html page.
@@ -66,7 +65,7 @@ meca_folder = pathlib.Path(r"D:\pyansys-heart\test_case\test_lv\main-mechanics")
 ###############################################################################
 # Create PV loop
 # ~~~~~~~~~~~~~~
-# Pressure-volume loop figure is an important metric for heart function
+# A PV (Pressure-Volume) loop figure is an important metric for heart function.
 system = SystemModelPost(meca_folder)
 fig = system.plot_pv_loop()
 plt.show()
@@ -76,14 +75,14 @@ plt.show()
 #   :width: 300pt
 #   :align: center
 
-# You can generate a series of png by setting start and end time (in second)
+# You can generate a series of PNG files by setting start and end times (in seconds)
 for it, tt in enumerate(np.linspace(0.001, 3, 60)):
     # assume heart beat once per 1s
     fig = system.plot_pv_loop(t_start=0, t_end=tt)
     fig.savefig("pv_{0:d}.png".format(it))
     plt.close()
 ###############################################################################
-# An animation  can be created by
+# You can create an animation.
 
 # `ffmpeg -f image2 -i pv_%d.png pv_loop.mp4`
 
@@ -97,9 +96,9 @@ for it, tt in enumerate(np.linspace(0.001, 3, 60)):
 
 
 ###############################################################################
-# Myocardium wall strain
+# Compute myocardium wall strain
 # ~~~~~~~~~~~~~~~~~~~~~~
-# Compute left ventricle strain in longitudinal, radial, circumferential directions
+# Compute left ventricle strain in longitudinal, radial, circumferential directions.
 
 aha_evaluator = AhaStrainCalculator(model, d3plot_file=meca_folder / "d3plot")
 # get LRC strain at a given time and export a file named LRC_10.vtk
@@ -130,7 +129,7 @@ plt.show()
 #   :width: 400pt
 #   :align: center
 
-# get strain for all simulation frames (this will take a while)
+# get strain for all simulation frames, which takes a while
 strain_table = aha_evaluator.compute_aha_strain(out_dir=".", write_vtk=False)
 
 # plot
@@ -152,14 +151,14 @@ plt.show()
 ###############################################################################
 # Run with default process scripts
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# All above steps are encapsulated in one script:
+# All of the preceding steps are encapsulated in one script:
 
 mech_post(meca_folder, model)
 
 ###############################################################################
-# You can open Paraview and load the state file
+# You can open Paraview, load the state file
 # :download:`post_main2.pvsm <../../_static/others/post_main2.pvsm>`,
-# and specify the folder.
+# and specify the directory.
 
 ###############################################################################
 # .. only:: html

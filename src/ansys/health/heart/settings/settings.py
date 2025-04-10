@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Module that defines some classes for settings."""
+"""Module that defines classes that hold settings relevant for PyAnsys-Heart."""
 
 import copy
 from dataclasses import asdict, dataclass, field
@@ -1069,112 +1069,6 @@ class DynaSettings:
         self.platform = os.getenv("PYANSYS_HEART_LSDYNA_PLATFORM", self.platform)
         self.dynatype = os.getenv("PYANSYS_HEART_LSDYNA_TYPE", self.dynatype)
         self.num_cpus = int(os.getenv("PYANSYS_HEART_NUM_CPU", self.num_cpus))
-        return
-
-    # TODO: @mhoeijm update to ensure compatibility with new LS-DYNA/Ansys versions
-    def _set_env_variables(self):
-        r"""Try to set environment variables for MPI run using Ansys installation root directories.
-
-        Notes
-        -----
-        This is based on lsdynaintelvar.bat and lsdynamsvar.bat in
-        ANSYS Inc\v231\ansys\bin\winx64\lsprepost48\LS-Run 1.0
-        and requires you to install the MPI libraries with the Ansys installer.
-        """
-        # get latest installed Ansys version
-        env_variables = list(os.environ.keys())
-        ansys_env_roots = sorted([k for k in env_variables if "AWP_ROOT" in k])
-        ansys_env_roots.reverse()
-
-        if self.platform == "windows":
-            platform = "winx64"
-        elif self.platform == "linux":
-            platform = "linx64"
-
-        if self.dynatype in "intelmpi":
-            intel_cmp_rev = "2019.5.281"
-            intel_mkl_rev = "2020.0.166"
-            intel_mpi_rev = "2018.3.210"
-
-            if os.getenv("MPI_ROOT"):
-                LOGGER.warning(
-                    "MPI_ROOT already defined. Not trying to automatically set MPI env variables."
-                )
-                return
-
-            for root in ansys_env_roots:
-                mpi_root = os.path.join(
-                    os.getenv(root),
-                    "commonfiles",
-                    "MPI",
-                    "Intel",
-                    intel_mpi_rev,
-                    platform,
-                )
-                mpi_path = os.path.join(mpi_root, "bin")
-                mkl_path = os.path.join(os.getenv(root), "tp", "IntelMKL", intel_mkl_rev, platform)
-                cmp_path = os.path.join(
-                    os.getenv(root), "tp", "IntelCompiler", intel_cmp_rev, platform
-                )
-                for p in [mpi_root, mpi_path, mkl_path, cmp_path]:
-                    if not os.path.isdir(p):
-                        LOGGER.debug("Failed to set env variables with %s " % root)
-                        continue
-
-                LOGGER.info("Setting MPI environment variable MPI_ROOT to %s" % mpi_root)
-                LOGGER.info("Adding %s to PATH" % [mpi_path, mkl_path, cmp_path])
-
-                os.environ["MPI_ROOT"] = mpi_root
-                os.environ["PATH"] = (
-                    ";".join([mpi_path, mkl_path, cmp_path]) + ";" + os.environ["PATH"]
-                )
-                os.environ["I_MPI_AUTH_METHOD"] = "delegate"
-                os.environ["KMP_AFFINITY"] = "verbose"
-                break
-
-        elif self.dynatype == "msmpi" and self.platform == "windows":
-            intel_cmp_rev = "2019.5.281"
-            intel_mkl_rev = "2020.0.166"
-            ms_mpi_rev = "10.1.12498.18"
-
-            if os.getenv("MPI_ROOT"):
-                LOGGER.warning(
-                    "MPI_ROOT already defined. Not trying to automatically set MPI env variables."
-                )
-                return
-
-            for root in ansys_env_roots:
-                mpi_root = os.path.join(
-                    os.getenv(root),
-                    "commonfiles",
-                    "MPI",
-                    "Microsoft",
-                    ms_mpi_rev,
-                    platform,
-                )
-                mpi_path = os.path.join(mpi_root, "bin")
-                mkl_path = os.path.join(os.getenv(root), "tp", "IntelMKL", intel_mkl_rev, platform)
-                cmp_path = os.path.join(
-                    os.getenv(root), "tp", "IntelCompiler", intel_cmp_rev, platform
-                )
-                for p in [mpi_root, mpi_path, mkl_path, cmp_path]:
-                    if not os.path.isdir(p):
-                        LOGGER.debug("Failed to set env variables with %s " % root)
-                        continue
-
-                LOGGER.info("Setting MPI environment variable MPI_ROOT to %s" % mpi_root)
-                LOGGER.info("Adding %s to PATH" % [mpi_path, mkl_path, cmp_path])
-
-                os.environ["MPI_ROOT"] = mpi_root
-                os.environ["PATH"] = (
-                    ";".join([mpi_path, mkl_path, cmp_path]) + ";" + os.environ["PATH"]
-                )
-                break
-
-        elif self.dynatype == "platformmpi":
-            LOGGER.error("Automatically setting env variables for platform mpi not implemented yet")
-            return
-
         return
 
     def __repr__(self):

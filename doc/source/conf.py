@@ -125,6 +125,15 @@ numpydoc_validation_checks = {
 # Configuration for Sphinx gallery
 # -----------------------------------------------------------------------------
 pyvista.BUILDING_GALLERY = True
+
+
+skip_long = os.getenv("SKIP_LONG_GALLERY_EXAMPLES", True)
+if skip_long:
+    gallery_filename_pattern = r"inc-fast_.*\.py"
+else:
+    gallery_filename_pattern = r"inc-long_.*\.py"
+
+
 sphinx_gallery_conf = {
     # convert rst to md for ipynb
     "pypandoc": True,
@@ -134,7 +143,7 @@ sphinx_gallery_conf = {
     "gallery_dirs": "examples",
     # Pattern to search for example files to execute.
     # The following will try to execute files prefixed with "inc-pr_"
-    "filename_pattern": r"inc-pr_.*\.py",
+    "filename_pattern": gallery_filename_pattern,
     # Remove the "Download all examples" button from the top level gallery
     "download_all_examples": False,
     # Sort gallery example by filename instead of number of lines (default)

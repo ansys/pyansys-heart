@@ -30,7 +30,7 @@
 .. _PyAnsys Heart repository: https://github.com/ansys/pyansys-heart
 .. _PyAnsys Heart issues: https://github.com/ansys/pyansys-heart/issues
 .. _PyAnsys Heart discussions: https://github.com/ansys/pyansys-heart/discussions
-.. _PyAnsys Heart documentation: https://heart.docs.pyansys.com/version/stable/index.html
+.. _PyAnsys Heart documentation: https://heart.health.docs.pyansys.com/version/stable/index.html
 .. _PyAnsys Heart labels: https://github.com/ansys/pyansys-heart/labels
 .. _PyAnsys Heart release page: https://github.com/ansys/pyansys-heart/releases
 

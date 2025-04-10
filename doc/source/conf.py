@@ -6,6 +6,7 @@ from pathlib import Path
 import subprocess
 
 from ansys_sphinx_theme import ansys_favicon, get_version_match
+import pyvista
 from pyvista.plotting.utilities.sphinx_gallery import DynamicScraper
 
 from ansys.health.heart import __version__
@@ -123,6 +124,7 @@ numpydoc_validation_checks = {
 
 # Configuration for Sphinx gallery
 # -----------------------------------------------------------------------------
+pyvista.BUILDING_GALLERY = True
 sphinx_gallery_conf = {
     # convert rst to md for ipynb
     "pypandoc": True,

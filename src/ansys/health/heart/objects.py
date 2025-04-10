@@ -1159,24 +1159,18 @@ class _BeamsMesh(Mesh):
         id : int
             ID of the surface to be added. This id will be tracked as "_line-id"
         """
-        if not id:
-            return None
-        else:
-            if not isinstance(id, int):
-                LOGGER.debug("sid should by type int.")
-                return None
-            lines.cell_data["_line-id"] = np.ones(lines.n_cells, dtype=float) * id
-            if "_is-connected" not in lines.point_data.keys():
-                lines.point_data["_is-connected"] = np.zeros(lines.n_points, dtype=int)
-        self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan)
-        if name:
-            self._line_id_to_name[id] = name
-            self.ep_material[id] = EPMaterial.DummyMaterial()
-        return self_copy
+        # TODO: move _is_connected outside of _BeamsMesh, and treat
+        # TODO: like regular point data
+        if "_is-connected" not in lines.point_data.keys():
+            lines.point_data["_is-connected"] = np.zeros(lines.n_points, dtype=int)
 
-    def get_line_id_from_name(self, name: str) -> int:
-        """Get line id from name using the `_line_id_to_name` attribute."""
-        return self._line_name_to_id[name]
+        self_copy = super().add_lines(lines, id=id, name=name)
+
+        # TODO: move EP Material out of _BeamsMesh
+        if name:
+            self.ep_material[id] = EPMaterial.DummyMaterial()
+
+        return self_copy
 
 
 class PartType(Enum):

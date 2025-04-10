@@ -22,7 +22,7 @@
 
 """Hold Stateless methods for HeartModel."""
 
-from enum import Enum
+from dataclasses import dataclass
 from typing import Literal
 
 import numpy as np
@@ -33,17 +33,20 @@ from ansys.health.heart.models import HeartModel
 from ansys.health.heart.objects import CapType, Point
 
 
-class LandMarker(Enum):
+@dataclass
+class LandMarker:
     """Heart anatomical points."""
 
     SA_NODE = Point("SA_node", xyz=None, node_id=None)
     AV_NODE = Point("AV_node", xyz=None, node_id=None)
-    HIS_BIF_NODE = Point("His_bifurcaion", xyz=None, node_id=None)
+    HIS_BIF_NODE = Point("His_bifurcation", xyz=None, node_id=None)
     HIS_LEFT_END_NODE = Point("His_left_end", xyz=None, node_id=None)
     LEFT_APEX = Point("Left_apex", xyz=None, node_id=None)
     RIGHT_APEX = Point("Right_apex", xyz=None, node_id=None)
     BACHMAN_END_NODE = Point("Bachman_end", xyz=None, node_id=None)
-    LEFT_FASCILE_END = Point("Left_fascile_end", xyz=None, node_id=None)
+    LEFT_FASCILE_END = Point("Left_fasicle_end", xyz=None, node_id=None)
+
+    # NOTE bring APEX here
 
 
 class HeartModelUtils:
@@ -84,8 +87,8 @@ class HeartModelUtils:
 
         sino_atrial_node_id = right_atrium_endo.global_node_ids_triangles[target_id]
 
-        LandMarker.SA_NODE.value.xyz = model.mesh.points[sino_atrial_node_id, :]
-        LandMarker.SA_NODE.value.node_id = sino_atrial_node_id
+        LandMarker.SA_NODE.xyz = model.mesh.points[sino_atrial_node_id, :]
+        LandMarker.SA_NODE.node_id = sino_atrial_node_id
 
         return LandMarker.SA_NODE
 
@@ -123,8 +126,8 @@ class HeartModelUtils:
 
         # assign a point
         av_id = right_atrium_endo.global_node_ids_triangles[target_id]
-        LandMarker.AV_NODE.value.xyz = model.mesh.points[av_id, :]
-        LandMarker.AV_NODE.value.node_id = av_id
+        LandMarker.AV_NODE.xyz = model.mesh.points[av_id, :]
+        LandMarker.AV_NODE.node_id = av_id
 
         return LandMarker.AV_NODE
 
@@ -134,7 +137,7 @@ class HeartModelUtils:
     ) -> LandMarker | None:
         """TODO."""
         if target_coord is None:
-            av_coord = LandMarker.AV_NODE.value.xyz
+            av_coord = LandMarker.AV_NODE.xyz
             if av_coord is None:
                 LOGGER.error("AV node need to be defined before.")
                 return
@@ -158,8 +161,8 @@ class HeartModelUtils:
         pointcloud_id = septum_pointcloud.find_closest_point(target_coord)
 
         bifurcation_id = septum_point_ids[pointcloud_id]
-        LandMarker.HIS_BIF_NODE.value.xyz = model.mesh.points[bifurcation_id, :]
-        LandMarker.HIS_BIF_NODE.value.node_id = bifurcation_id
+        LandMarker.HIS_BIF_NODE.xyz = model.mesh.points[bifurcation_id, :]
+        LandMarker.HIS_BIF_NODE.node_id = bifurcation_id
 
         return LandMarker.HIS_BIF_NODE
 
@@ -181,7 +184,7 @@ class HeartModelUtils:
             return
         else:
             # find n-th closest point to bifurcation
-            bifurcation_coord = LandMarker.HIS_BIF_NODE.value.xyz
+            bifurcation_coord = LandMarker.HIS_BIF_NODE.xyz
             if bifurcation_coord is None:
                 LOGGER.error("AV node need to be defined before.")
                 return
@@ -192,13 +195,13 @@ class HeartModelUtils:
             his_end_id = endo.global_node_ids_triangles[temp_id]
 
         if side == "left":
-            LandMarker.HIS_LEFT_END_NODE.value.node_id = his_end_id
-            LandMarker.HIS_LEFT_END_NODE.value.xyz = model.mesh.points[his_end_id, :]
+            LandMarker.HIS_LEFT_END_NODE.node_id = his_end_id
+            LandMarker.HIS_LEFT_END_NODE.xyz = model.mesh.points[his_end_id, :]
             return LandMarker.HIS_LEFT_END_NODE
 
         elif side == "right":
-            LandMarker.LEFT_APEX.value.node_id = his_end_id
-            LandMarker.LEFT_APEX.value.xyz = model.mesh.points[his_end_id, :]
+            LandMarker.LEFT_APEX.node_id = his_end_id
+            LandMarker.LEFT_APEX.xyz = model.mesh.points[his_end_id, :]
 
             return LandMarker.LEFT_APEX
 

@@ -56,7 +56,7 @@ from ansys.health.heart.post.laplace_post import (
     compute_ventricle_fiber_by_drbm,
     read_laplace_solution,
 )
-from ansys.health.heart.pre.conduction_beam import ConductionSystem
+from ansys.health.heart.pre.conduction_beam import _compute_heart_conductionsystem
 from ansys.health.heart.settings.settings import DynaSettings, SimulationSettings
 from ansys.health.heart.utils.misc import _read_orth_element_kfile
 import ansys.health.heart.writer.dynawriter as writers
@@ -488,31 +488,7 @@ class EPSimulator(BaseSimulator):
         """Compute the conduction system."""
         if isinstance(self.model, FourChamber):
             beam_length = self.settings.purkinje.edgelen.m
-
-            cs = ConductionSystem(self.model)
-            cs.compute_sa_node()
-            cs.compute_av_node()
-            cs.compute_av_conduction()
-            _, left_point, right_point = cs.compute_his_conduction(beam_length=beam_length)
-            end_coord = cs.m.conduction_system.get_lines_by_name(
-                _ConductionType.LEFT_PURKINJE.value
-            ).points[0]
-            cs.compute_left_right_bundle(
-                left_point.xyz, end_coord=end_coord, side=_ConductionType.LEFT_BUNDLE_BRANCH.value
-            )
-            end_coord = cs.m.conduction_system.get_lines_by_name(
-                _ConductionType.RIGHT_PURKINJE.value
-            ).points[0]
-            cs.compute_left_right_bundle(
-                right_point.xyz, end_coord=end_coord, side=_ConductionType.RIGHT_BUNDLE_BRANCH.value
-            )
-            # # TODO: define end point by uhc, or let user choose
-            # Note: must on surface after zerop if coupled with meca
-            # cs._compute_bachman_bundle(
-            #     start_coord=self.model.right_atrium.get_point("SA_node").xyz,
-            #     end_coord=np.array([-34, 163, 413]),
-            # )
-            cs._connect_to_solid(component_id=3, local_point_ids=0)
+            cs = _compute_heart_conductionsystem(self.model, beam_length)
         else:
             LOGGER.info("Not implemented for other than FourChamber models.")
         return cs

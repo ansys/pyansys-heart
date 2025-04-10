@@ -470,3 +470,32 @@ class ConductionSystem:
         self.m.conduction_system["_is-connected"][global_ids] = 1
 
         return
+
+
+def _compute_heart_conductionsystem(heartmodel, beam_length):
+    cs = ConductionSystem(heartmodel)
+    cs.compute_sa_node()
+    cs.compute_av_node()
+    cs.compute_av_conduction()
+    _, left_point, right_point = cs.compute_his_conduction(beam_length=beam_length)
+
+    end_coord = cs.m.conduction_system.get_lines_by_name(
+        _ConductionType.LEFT_PURKINJE.value
+    ).points[0]
+    cs.compute_left_right_bundle(
+        left_point.xyz, end_coord=end_coord, side=_ConductionType.LEFT_BUNDLE_BRANCH.value
+    )
+    end_coord = cs.m.conduction_system.get_lines_by_name(
+        _ConductionType.RIGHT_PURKINJE.value
+    ).points[0]
+    cs.compute_left_right_bundle(
+        right_point.xyz, end_coord=end_coord, side=_ConductionType.RIGHT_BUNDLE_BRANCH.value
+    )
+    # # TODO: define end point by uhc, or let user choose
+    # Note: must on surface after zerop if coupled with meca
+    # cs._compute_bachman_bundle(
+    #     start_coord=self.model.right_atrium.get_point("SA_node").xyz,
+    #     end_coord=np.array([-34, 163, 413]),
+    # )
+    cs._connect_to_solid(component_id=3, local_point_ids=0)
+    return cs

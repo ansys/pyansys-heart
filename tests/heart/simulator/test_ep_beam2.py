@@ -25,8 +25,8 @@ import os
 import numpy as np
 import pyvista as pv
 
-from ansys.heart.core.objects import _ConductionType
-from ansys.heart.core.pre.conduction_beam import _compute_heart_conductionsystem
+from ansys.health.heart.objects import _ConductionType
+from ansys.health.heart.pre.conduction_beam import _compute_heart_conductionsystem
 from tests.heart.conftest import get_assets_folder, get_fullheart
 
 

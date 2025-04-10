@@ -281,10 +281,10 @@ def test_writers(extract_model, writer_class):
     model, _ = extract_model
     writer = writer_class(copy.deepcopy(model))
     if isinstance(model, models.FullHeart) and isinstance(
-        writer, writers.ElectrophysiologyDynaWriter
+        writer, writers.ElectroMechanicsDynaWriter
     ):
-        from ansys.heart.core.objects import _ConductionType
-        from ansys.heart.core.pre.conduction_beam import _compute_heart_conductionsystem
+        from ansys.health.heart.objects import _ConductionType
+        from ansys.health.heart.pre.conduction_beam import _compute_heart_conductionsystem
 
         folder = os.path.join(
             get_assets_folder(), "reference_models", "strocchi2020", "01", "conduction"

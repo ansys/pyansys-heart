@@ -272,6 +272,11 @@ def test_lines_add_001():
     assert mesh.line_names == ["lines1"]
     assert mesh.get_lines_by_name("lines1").n_cells == line.n_cells
 
+    mesh.add_lines(line, id=4, name="lines2")
+    assert mesh.line_names == ["lines1", "lines2"]
+    assert mesh.get_lines_by_name("lines2").n_cells == line.n_cells
+    assert mesh._line_id_to_name == {3: "lines1", 4: "lines2"}
+
 
 def test_volume_add_001():
     """Test adding a volume (hex elements) to an existing mesh."""

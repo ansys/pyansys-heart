@@ -1130,24 +1130,11 @@ class _BeamsMesh(Mesh):
     def __init__(self, *args):
         super().__init__(*args)
 
-        self._line_id_to_name: dict = {}
-        """line id to name map."""
         self.ep_material: dict = {}
         """Ep material map."""
         self._line_id_to_pid: dict = {}
         """line id to part id map."""
         pass
-
-    def _get_submesh(
-        self, sid: int, scalar: Literal["_surface-id", "_line-id", "_volume-id"]
-    ) -> pv.PolyData:
-        # NOTE: extract_cells cleans the object, removing any unused points.
-        if scalar not in self.cell_data.keys():
-            LOGGER.debug(f"{scalar} does not exist in cell_data")
-            return None
-        mask = np.isin(self.cell_data[scalar], sid)
-        self._set_global_ids()
-        return self.extract_cells(mask)
 
     def _add_mesh(
         self,
@@ -1201,13 +1188,13 @@ class _BeamsMesh(Mesh):
 
     def get_unique_lines_id(self) -> int:
         """Get unique lines id."""
-        new_id: int
-        if "_line-id" not in self.cell_data.keys():
+        if self.line_ids is None:
             new_id = 1
         else:
-            new_id = np.max(np.unique(self.cell_data["_line-id"])) + 1
+            new_id = np.max(self.line_ids) + 1
         return int(new_id)
 
+    @deprecated(reason="Use add_lines of the parent class instead.")
     def add_lines(self, lines: pv.PolyData, id: int = None, name: str = None):
         """Add lines.
 
@@ -1235,22 +1222,7 @@ class _BeamsMesh(Mesh):
 
     def get_line_id_from_name(self, name: str) -> int:
         """Get line id from name using the `_line_id_to_name` attribute."""
-        position_in_list = list(self._line_id_to_name.values()).index(name)
-        line_id = list(self._line_id_to_name.keys())[position_in_list]
-        return line_id
-
-    def get_lines_by_name(self, name: str) -> pv.PolyData:
-        # ?: Return SurfaceMesh instead of PolyData?
-        """Get the lines associated with `name`."""
-        if name not in list(self._line_id_to_name.values()):
-            LOGGER.error(f"No lines associated with {name}")
-            return None
-        line_id = self.get_line_id_from_name(name)
-        return self.get_lines(line_id)
-
-    def get_lines(self, sid: int) -> pv.PolyData:
-        """Get lines as a PolyData object."""
-        return self._get_submesh(sid, scalar="_line-id").extract_surface()
+        return self._line_name_to_id[name]
 
 
 class PartType(Enum):

@@ -1,0 +1,213 @@
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+"""Hold Stateless methods for HeartModel."""
+
+from enum import Enum
+from typing import Literal
+
+import numpy as np
+import pyvista as pv
+
+from ansys.health.heart import LOG as LOGGER
+from ansys.health.heart.models import HeartModel
+from ansys.health.heart.objects import CapType, Point
+
+
+class LandMarker(Enum):
+    """Heart anatomical points."""
+
+    SA_NODE = Point("SA_node", xyz=None, node_id=None)
+    AV_NODE = Point("AV_node", xyz=None, node_id=None)
+    HIS_BIF_NODE = Point("His_bifurcaion", xyz=None, node_id=None)
+    HIS_LEFT_END_NODE = Point("His_left_end", xyz=None, node_id=None)
+    LEFT_APEX = Point("Left_apex", xyz=None, node_id=None)
+    RIGHT_APEX = Point("Right_apex", xyz=None, node_id=None)
+    BACHMAN_END_NODE = Point("Bachman_end", xyz=None, node_id=None)
+    LEFT_FASCILE_END = Point("Left_fascile_end", xyz=None, node_id=None)
+
+
+class HeartModelUtils:
+    """Stateless methods for HeartModel."""
+
+    @staticmethod
+    def define_sino_atrial_node(model: HeartModel, target_coord=None) -> LandMarker | None:
+        """
+        Compute SinoAtrial node.
+
+        SinoAtrial node is defined on the endocardium of the right atrium and
+        between sup vena cava and inf vena cave.
+        """
+        try:
+            right_atrium_endo = model.mesh.get_surface(model.right_atrium.endocardium.id)
+        except AttributeError:
+            LOGGER.error("Cannot find right atrium to create SinoAtrial node")
+            return
+
+        if target_coord is None:
+            sup_vcava_centroid = next(
+                cap.centroid
+                for cap in model.right_atrium.caps
+                if cap.type == CapType.SUPERIOR_VENA_CAVA
+            )
+            inf_vcava_centroid = next(
+                cap.centroid
+                for cap in model.right_atrium.caps
+                if cap.type == CapType.INFERIOR_VENA_CAVA
+            )
+
+            # define SinoAtrial node:
+            target_coord = sup_vcava_centroid - (inf_vcava_centroid - sup_vcava_centroid) / 2
+
+        target_id = pv.PolyData(
+            model.mesh.points[right_atrium_endo.global_node_ids_triangles, :]
+        ).find_closest_point(target_coord)
+
+        sino_atrial_node_id = right_atrium_endo.global_node_ids_triangles[target_id]
+
+        LandMarker.SA_NODE.value.xyz = model.mesh.points[sino_atrial_node_id, :]
+        LandMarker.SA_NODE.value.node_id = sino_atrial_node_id
+
+        return LandMarker.SA_NODE
+
+    @staticmethod
+    def define_atrio_ventricular_node(model: HeartModel, target_coord=None) -> LandMarker | None:
+        """
+        Compute Atrio-Ventricular node.
+
+        AtrioVentricular node is on right artrium endocardium surface and closest to septum.
+
+        Returns
+        -------
+        Point
+            returns the AV node.
+        """
+        try:
+            right_atrium_endo = model.mesh.get_surface(model.right_atrium.endocardium.id)
+        except AttributeError:
+            LOGGER.error("Cannot find right atrium to create SinoAtrial node")
+            return
+
+        if target_coord is None:
+            for surface in model.right_ventricle.surfaces:
+                if "endocardium" in surface.name and "septum" in surface.name:
+                    right_septum = model.mesh.get_surface(surface.id)
+            # define AtrioVentricular as the closest point to septum
+            target_id = pv.PolyData(
+                model.mesh.points[right_atrium_endo.global_node_ids_triangles, :]
+            ).find_closest_point(right_septum.center)
+
+        else:
+            target_id = pv.PolyData(
+                model.mesh.points[right_atrium_endo.global_node_ids_triangles, :]
+            ).find_closest_point(target_coord)
+
+        # assign a point
+        av_id = right_atrium_endo.global_node_ids_triangles[target_id]
+        LandMarker.AV_NODE.value.xyz = model.mesh.points[av_id, :]
+        LandMarker.AV_NODE.value.node_id = av_id
+
+        return LandMarker.AV_NODE
+
+    @staticmethod
+    def define_his_bundle_bifurcation_node(
+        model: HeartModel, target_coord=None
+    ) -> LandMarker | None:
+        """TODO."""
+        if target_coord is None:
+            av_coord = LandMarker.AV_NODE.value.xyz
+            if av_coord is None:
+                LOGGER.error("AV node need to be defined before.")
+                return
+            target_coord = av_coord
+
+        septum_point_ids = np.unique(np.ravel(model.mesh.tetrahedrons[model.septum.element_ids]))
+
+        # remove nodes on surface, to make sure His bundle nodes are inside of septum
+        septum_point_ids = np.setdiff1d(
+            septum_point_ids,
+            model.mesh.get_surface(model.left_ventricle.endocardium.id).global_node_ids_triangles,
+        )
+        septum_point_ids = np.setdiff1d(
+            septum_point_ids,
+            model.mesh.get_surface(model.right_ventricle.septum.id).global_node_ids_triangles,
+        )
+
+        septum_pointcloud = pv.PolyData(model.mesh.points[septum_point_ids, :])
+
+        # Define start point: closest to artria
+        pointcloud_id = septum_pointcloud.find_closest_point(target_coord)
+
+        bifurcation_id = septum_point_ids[pointcloud_id]
+        LandMarker.HIS_BIF_NODE.value.xyz = model.mesh.points[bifurcation_id, :]
+        LandMarker.HIS_BIF_NODE.value.node_id = bifurcation_id
+
+        return LandMarker.HIS_BIF_NODE
+
+    @staticmethod
+    def define_his_bundle_end_node(
+        model: HeartModel,
+        target_coord=None,
+        side: Literal["left", "right"] = "left",
+        n_close: int = 20,
+    ) -> LandMarker | None:
+        """TODO."""
+        if side == "left":
+            endo = model.mesh.get_surface(model.left_ventricle.endocardium.id)
+        elif side == "right":
+            endo = model.mesh.get_surface(model.right_ventricle.septum.id)
+
+        if target_coord is not None:
+            LOGGER.error("Do not support user defined point.")
+            return
+        else:
+            # find n-th closest point to bifurcation
+            bifurcation_coord = LandMarker.HIS_BIF_NODE.value.xyz
+            if bifurcation_coord is None:
+                LOGGER.error("AV node need to be defined before.")
+                return
+            temp_id = pv.PolyData(
+                model.mesh.points[endo.global_node_ids_triangles, :]
+            ).find_closest_point(bifurcation_coord, n=n_close)[n_close - 1]
+
+            his_end_id = endo.global_node_ids_triangles[temp_id]
+
+        if side == "left":
+            LandMarker.HIS_LEFT_END_NODE.value.node_id = his_end_id
+            LandMarker.HIS_LEFT_END_NODE.value.xyz = model.mesh.points[his_end_id, :]
+            return LandMarker.HIS_LEFT_END_NODE
+
+        elif side == "right":
+            LandMarker.LEFT_APEX.value.node_id = his_end_id
+            LandMarker.LEFT_APEX.value.xyz = model.mesh.points[his_end_id, :]
+
+            return LandMarker.LEFT_APEX
+
+    @staticmethod
+    def define_bachman_bundle_end_node(model: HeartModel, target_coord=None) -> LandMarker | None:
+        """TODO."""
+        NotImplementedError
+
+    @staticmethod
+    def define_fascile_bundle_end_node(model: HeartModel, target_coord=None) -> LandMarker | None:
+        """TODO."""
+        NotImplementedError

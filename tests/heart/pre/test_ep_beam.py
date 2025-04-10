@@ -26,9 +26,52 @@ import numpy as np
 import pytest
 import pyvista as pv
 
+from ansys.health.heart.models_utils import HeartModelUtils
 from ansys.health.heart.objects import _ConductionType
 from ansys.health.heart.pre.conduction_beam import ConductionSystem
 from tests.heart.conftest import get_fourchamber
+
+
+def test_compute_sa_node2():
+    fourchamber = get_fourchamber()
+
+    sa_node = HeartModelUtils.define_sino_atrial_node(fourchamber)
+
+    assert np.allclose(sa_node.value.xyz, np.array([-48.80218005, 107.90170883, 423.33688959]))
+    assert sa_node.value.node_id == 105021
+
+
+def test_compute_av_node2():
+    fourchamber = get_fourchamber()
+    av_node = HeartModelUtils.define_atrio_ventricular_node(fourchamber)
+    assert np.allclose(av_node.value.xyz, np.array([-10.16353107, 108.95410155, 371.9505145]))
+    assert av_node.value.node_id == 100501
+
+
+def test_compute_his_bif_node():
+    fourchamber = get_fourchamber()
+    bif_node = HeartModelUtils.define_his_bundle_bifurcation_node(
+        fourchamber, target_coord=np.array([-10.16353107, 108.95410155, 371.9505145])
+    )
+    assert np.allclose(bif_node.value.xyz, np.array([1.22510233, 110.31896126, 364.402475]))
+    assert bif_node.value.node_id == 25326
+
+
+def test_compute_his_end_node():
+    fourchamber = get_fourchamber()
+    # need pre steps
+    HeartModelUtils.define_atrio_ventricular_node(fourchamber)
+    HeartModelUtils.define_his_bundle_bifurcation_node(fourchamber)
+    # test for left
+    left = HeartModelUtils.define_his_bundle_end_node(fourchamber, side="left")
+
+    assert np.allclose(left.value.xyz, np.array([4.15421613, 113.63743565, 369.27104019]))
+    assert left.value.node_id == 49464
+    # test for right
+    right = HeartModelUtils.define_his_bundle_end_node(fourchamber, side="right")
+
+    assert np.allclose(right.value.xyz, np.array([2.93215687, 106.09459183, 365.20590901]))
+    assert right.value.node_id == 43585
 
 
 def _mock_purkinje():

@@ -28,28 +28,6 @@ This example shows you how to download a Strocchi 2020 or Rodero 2021 case from 
 database.
 """
 
-# Perform the required imports
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Import the required modules and set relevant paths, including that of the working
-# directory and generated model.
-
-import glob
-from pathlib import Path
-
-from ansys.health.heart.utils.download import download_case_from_zenodo, unpack_case
-
-# Download the tar file of Rodero2021 from the Zenodo database.
-download_dir = Path.home() / "pyansys-heart" / "downloads"
-tar_file = download_case_from_zenodo("Rodero2021", 1, download_dir)
-
-# Unpack the tar file and get the path to the input .vtk/.case file.
-path = unpack_case(tar_file)
-
-print(path)
-
-# list all files
-glob.glob("downloads" + "/**/*.*", recursive=True)
-
 ###############################################################################
 # .. note::
 #    You can also manually download the .case or .vtk files from the Strocchi2020
@@ -60,3 +38,22 @@ glob.glob("downloads" + "/**/*.*", recursive=True)
 #
 #    Alternatively you can make use of the download
 #    module instead. See the example below.
+
+
+# Perform the required imports
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Import the required modules and set relevant paths, including that of the working
+# directory and generated model.
+
+from pathlib import Path
+
+from ansys.health.heart.utils.download import download_case_from_zenodo, unpack_case
+
+# Download the tar file of Rodero2021 from the Zenodo database.
+download_dir = Path.home() / "pyansys-heart" / "downloads"
+tar_file = download_case_from_zenodo("Rodero2021", 1, download_dir, overwrite=True)
+
+# Unpack the tar file and get the path to the input .vtk/.case file.
+path = unpack_case(tar_file)
+
+print(path)

@@ -54,7 +54,8 @@ mesher._fluent_version = "24.1"
 # Create a truncated ellipsoid using pyvista
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 workdir = Path.home() / "pyansys-heart" / "simplified-geometries" / "truncated_LV"
-workdir.mkdir(parents=True, exist_ok=True)
+workdir = str(workdir.resolve().absolute())
+os.makedirs(workdir, exist_ok=True)
 
 # create the surfaces of a truncated LV model
 ellips_epi: pv.PolyData = pv.ParametricEllipsoid(xradius=10, yradius=10, zradius=20)
@@ -101,7 +102,6 @@ part_definitions = {
 # use the combined polydata `heart` as input, where "surface-id" identifies each
 # of the relevant regions.
 # part definitions is used to map the remeshed model to the HeartModel parts/boundaries
-path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 # initialize left-ventricular heart model
 model = models.LeftVentricle(working_directory=workdir)
@@ -143,7 +143,9 @@ model._update_cap_types()
 model._validate_cap_names()
 model._extract_apex()
 
-model.save_model(os.path.join(workdir, "heart_model.vtu"))
+# save to vtu file.
+path_to_model = os.path.join(workdir, "heart_model.vtu")
+model.save_model(path_to_model)
 
 # plot the clipped volume mesh.
 model.mesh.clip(crinkle=True).plot(show_edges=True, color="white")

@@ -22,9 +22,9 @@
 
 """
 
-Download a PyAnsys - Heart compatible case from Zenodo.
--------------------------------------------------------
-This example shows you how to download a Strocchi 2020 or Rodero 2021 case from the Zenodo
+Download a PyAnsys Heart-compatible case from Zenodo
+----------------------------------------------------
+This example shows how to download a Strocchi 2020 or Rodero 2021 case from the Zenodo
 database.
 """
 

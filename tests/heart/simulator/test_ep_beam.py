@@ -144,7 +144,7 @@ def test_connect_to_solid():
         right_end.xyz, end_coord=coord_right, side=_ConductionType.RIGHT_BUNDLE_BRANCH.value
     )
     right_bundle = result.get_lines_by_name(_ConductionType.RIGHT_BUNDLE_BRANCH.value)
-    rbb_id = cs.m.conduction_system.get_line_id_from_name(_ConductionType.RIGHT_BUNDLE_BRANCH.value)
+    rbb_id = cs.m.conduction_system._line_name_to_id[_ConductionType.RIGHT_BUNDLE_BRANCH.value]
     cs._connect_to_solid(rbb_id, [0, -1])
     isconnected = np.zeros(right_bundle.n_points, dtype=int)
     isconnected[[0, -1]] = 1

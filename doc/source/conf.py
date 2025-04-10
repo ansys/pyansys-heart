@@ -126,8 +126,8 @@ numpydoc_validation_checks = {
 # -----------------------------------------------------------------------------
 pyvista.BUILDING_GALLERY = True
 
-
-skip_long = os.getenv("SKIP_LONG_GALLERY_EXAMPLES", True)
+# takes string values "true" or "false" are valid
+skip_long = bool(os.getenv("SKIP_LONG_GALLERY_EXAMPLES", True))
 if skip_long:
     gallery_filename_pattern = r"inc-fast_.*\.py"
 else:

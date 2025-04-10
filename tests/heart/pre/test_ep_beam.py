@@ -29,6 +29,7 @@ import pyvista as pv
 from ansys.health.heart.models_utils import HeartModelUtils
 from ansys.health.heart.objects import _ConductionType
 from ansys.health.heart.pre.conduction_beam import ConductionSystem
+from ansys.health.heart.pre.conduction_beam2 import ConductionBeams, ConductionBeamType
 from tests.heart.conftest import get_fourchamber
 
 
@@ -72,6 +73,27 @@ def test_compute_his_end_node():
 
     assert np.allclose(right.xyz, np.array([2.93215687, 106.09459183, 365.20590901]))
     assert right.node_id == 43585
+
+
+def test_create_conductionbeams_on_surface():
+    model = get_fourchamber()
+    sa = HeartModelUtils.define_sino_atrial_node(model)
+    av = HeartModelUtils.define_atrio_ventricular_node(model)
+
+    sa_av = ConductionBeams.create_from_keypoints(
+        name=ConductionBeamType.SAN_AVN,
+        keypoints=[sa.xyz, av.xyz],
+        id=2,
+        base_mesh=model.right_atrium.endocardium,
+        connection="none",
+    )
+
+    assert sa_av.mesh.n_lines == 48
+    assert np.isclose(sa_av.length, 64.36592438345)
+
+
+def test_create_conductionbeams_in_solid():
+    pass
 
 
 def _mock_purkinje():

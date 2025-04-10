@@ -674,6 +674,7 @@ class Mesh(pv.UnstructuredGrid):
         keep_data: bool = True,
         fill_float: np.float64 = np.nan,
         fill_int: int = -1,
+        merge_points: bool = False,
     ):
         """Add another mesh to this object.
 
@@ -687,6 +688,8 @@ class Mesh(pv.UnstructuredGrid):
             Mesh to add, either PolyData or UnstructuredGrid
         keep_data : bool, optional
             Flag specifying whether to try to keep mesh point/cell data, by default True
+        merge_points : bool, optional
+            Flag specifying whether to merge the points, by default False
         """
         mesh = copy.copy(mesh_input)
         if keep_data:
@@ -714,7 +717,7 @@ class Mesh(pv.UnstructuredGrid):
             for name in point_data_names:
                 mesh.point_data[name] = _get_fill_data(self, mesh, name, "point")
 
-        merged = pv.merge((self, mesh), merge_points=False, main_has_priority=False)
+        merged = pv.merge((self, mesh), merge_points=merge_points, main_has_priority=False)
         super().__init__(merged)
         return self
 
@@ -1003,7 +1006,8 @@ class Mesh(pv.UnstructuredGrid):
                 return None
             lines.cell_data["_line-id"] = np.ones(lines.n_cells, dtype=float) * id
 
-        self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan)
+        # TODO: have merge points as True here to ensure compatibility with _BeamsMesh
+        self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan, merge_points=True)
 
         if name:
             self._line_id_to_name[id] = name

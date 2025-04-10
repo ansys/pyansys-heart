@@ -132,8 +132,9 @@ sphinx_gallery_conf = {
     "examples_dirs": "../../examples",
     # path where to save gallery generated examples
     "gallery_dirs": "examples",
-    # Pattern to search for example files
-    "filename_pattern": r".*\.py",
+    # Pattern to search for example files. This will try to execute files prefixed
+    # with "inc-pr_" for every PR.
+    "filename_pattern": r"inc-pr_.*\.py",
     # Remove the "Download all examples" button from the top level gallery
     "download_all_examples": False,
     # Sort gallery example by filename instead of number of lines (default)

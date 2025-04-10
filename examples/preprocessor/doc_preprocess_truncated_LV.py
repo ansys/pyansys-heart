@@ -50,11 +50,6 @@ from ansys.health.heart.utils.misc import clean_directory
 
 mesher._fluent_version = "24.1"
 
-# sphinx_gallery_start_ignore
-# sphinx_gallery_thumbnail_path = '_static/images/truncated_LV_mesh.png'
-# sphinx_gallery_end_ignore
-
-
 ###############################################################################
 # Create a truncated ellipsoid using pyvista
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -86,11 +81,6 @@ ellips_epi.cell_data["surface-id"] = 2
 # combine into single poly data object.
 heart: pv.PolyData = ellips_endo + ellips_epi + base
 heart.plot(show_edges=True)
-
-###############################################################################
-# .. image:: /_static/images/truncated_LV_mesh_input.png
-#   :width: 400pt
-#   :align: center
 
 ###############################################################################
 # Convert the input to a HeartModel
@@ -156,43 +146,4 @@ model._extract_apex()
 model.save_model(os.path.join(workdir, "heart_model.vtu"))
 
 # plot the clipped volume mesh.
-model.mesh.clip(crinkle=True).plot(show_edges=True)
-
-###############################################################################
-# .. image:: /_static/images/truncated_LV_mesh.png
-#   :width: 400pt
-#   :align: center
-
-# sphinx_gallery_start_ignore
-# Generate static images for docs.
-#
-from pathlib import Path
-
-docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", "_static", "images")
-
-filename = Path(docs_images_folder, "truncated_LV_mesh_input.png")
-# model.plot_surfaces()
-plotter = pv.Plotter(off_screen=True)
-# plotter.view_zx()
-# plotter.add_mesh(model.mesh, show_edges=False, color="white")
-# plotter.add_mesh(model.mesh.clip(), show_edges=True, color="w")
-plotter.add_mesh(heart, show_edges=True)
-# plotter.view_yz()
-# plotter.add_legend()
-# plotter.camera.roll = -60
-plotter.screenshot(filename)
-
-
-# Full mesh
-filename = Path(docs_images_folder, "truncated_LV_mesh.png")
-# model.plot_surfaces()
-plotter = pv.Plotter(off_screen=True)
-# plotter.view_zx()
-# plotter.add_mesh(model.mesh, show_edges=False, color="white")
-plotter.add_mesh(model.mesh.clip(crinkle=True), show_edges=True, color="w")
-# plotter.view_yz()
-# plotter.add_legend()
-# plotter.camera.roll = -60
-plotter.screenshot(filename)
-
-# sphinx_gallery_end_ignore
+model.mesh.clip(crinkle=True).plot(show_edges=True, color="white")

@@ -45,8 +45,8 @@ stress free configuration, and finally simulate the mechanical model.
 import os
 from pathlib import Path
 
-import ansys.heart.core.models as models
-from ansys.heart.core.simulator import DynaSettings, MechanicsSimulator
+import ansys.health.heart.models as models
+from ansys.health.heart.simulator import DynaSettings, MechanicsSimulator
 
 # accept dpf license agreement
 # https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing

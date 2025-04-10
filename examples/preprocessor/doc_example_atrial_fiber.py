@@ -43,8 +43,8 @@ from pathlib import Path
 import numpy as np
 import pyvista as pv
 
-import ansys.heart.core.models as models
-from ansys.heart.core.simulator import BaseSimulator, DynaSettings
+import ansys.health.heart.models as models
+from ansys.health.heart.simulator import BaseSimulator, DynaSettings
 
 # specify the path to the working directory and heart model. The following path assumes
 # that a preprocessed model is already available

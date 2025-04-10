@@ -30,7 +30,7 @@ import unittest.mock as mock
 import pytest
 import validators
 
-from ansys.heart.core.utils.download import (
+from ansys.health.heart.utils.download import (
     _SHA256_TABLE,
     _format_download_urls,
     _infer_extraction_path_from_tar,

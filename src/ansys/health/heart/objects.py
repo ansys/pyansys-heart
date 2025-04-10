@@ -629,12 +629,21 @@ class Mesh(pv.UnstructuredGrid):
             return None
 
     @property
+    def line_names(self) -> List[str]:
+        """List of volume names."""
+        return [v for k, v in self._line_id_to_name.items()]
+
+    @property
     def _surface_name_to_id(self):
         return _invert_dict(self._surface_id_to_name)
 
     @property
     def _volume_name_to_id(self):
         return _invert_dict(self._volume_id_to_name)
+
+    @property
+    def _line_name_to_id(self):
+        return _invert_dict(self._line_id_to_name)
 
     @property
     def _global_cell_ids(self):
@@ -655,6 +664,8 @@ class Mesh(pv.UnstructuredGrid):
         """Surface id to name map."""
         self._volume_id_to_name: dict = {}
         """Volume id to name map."""
+        self._line_id_to_name: dict = {}
+        """Line id to name map."""
         pass
 
     def _add_mesh(
@@ -946,7 +957,7 @@ class Mesh(pv.UnstructuredGrid):
 
         return self_copy
 
-    def add_lines(self, lines: pv.PolyData, id: int = None):
+    def add_lines(self, lines: pv.PolyData, id: int = None, name: str = None):
         """Add lines.
 
         Parameters
@@ -955,10 +966,12 @@ class Mesh(pv.UnstructuredGrid):
             PolyData representation of the lines to add
         id : int
             ID of the surface to be added. This id will be tracked as "_line-id"
+        name : str, optional
+            Name of the added lines, by default None (not tracked)
         """
         if not id:
             if "_line-id" not in lines.cell_data.keys():
-                LOGGER.error("Failed to set _surface-id")
+                LOGGER.error("Failed to set _line-id")
                 return None
         else:
             if not isinstance(id, int):
@@ -967,6 +980,10 @@ class Mesh(pv.UnstructuredGrid):
             lines.cell_data["_line-id"] = np.ones(lines.n_cells, dtype=float) * id
 
         self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan)
+
+        if name:
+            self._line_id_to_name[id] = name
+
         return self_copy
 
     def get_volume(self, sid: int) -> pv.UnstructuredGrid:
@@ -1011,6 +1028,14 @@ class Mesh(pv.UnstructuredGrid):
     def get_lines(self, sid: int) -> pv.PolyData:
         """Get lines as a PolyData object."""
         return self._get_submesh(sid, scalar="_line-id").extract_surface()
+
+    def get_lines_by_name(self, name: str) -> pv.PolyData:
+        """Get the lines associated with `name`."""
+        if name not in list(self._line_name_to_id.keys()):
+            LOGGER.error(f"No lines associated with {name}")
+            return None
+        line_id = self._line_name_to_id[name]
+        return self.get_lines(line_id)
 
     def remove_surface(self, sid: int):
         """Remove a surface with id.

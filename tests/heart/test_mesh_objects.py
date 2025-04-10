@@ -23,7 +23,7 @@
 
 import os
 import tempfile
-from typing import Literal, Union
+from typing import Literal
 
 import numpy as np
 import pytest
@@ -56,7 +56,7 @@ def _convert_to_mesh(model: pv.UnstructuredGrid) -> Mesh:
 # define different beam models that can be used for testing.
 def _get_beam_model(
     cell_type: Literal["tets", "tets+triangles", "triangles", "hex", "hex+quads", "quads"],
-) -> Union[pv.UnstructuredGrid, pv.PolyData]:
+) -> pv.UnstructuredGrid | pv.PolyData:
     """Generates various beam models.
 
     Parameters
@@ -66,7 +66,7 @@ def _get_beam_model(
 
     Returns
     -------
-    Union[pv.UnstructuredGrid, pv.PolyData]
+    pv.UnstructuredGrid | pv.PolyData
         Beam model of defined by cells of type cell_type in UnstructuredGrid or PolyData form.
     """
     from pyvista import examples
@@ -265,6 +265,12 @@ def test_lines_add_001():
     assert np.all(np.isin(mesh.celltypes, [pv.CellType.LINE, pv.CellType.TETRA]))
     np.testing.assert_allclose(np.unique(mesh.cell_data["_volume-id"]), [1, np.nan])
     np.testing.assert_allclose(np.unique(mesh.cell_data["_line-id"]), [2, np.nan])
+
+    # test adding by name
+
+    mesh.add_lines(line, id=3, name="lines1")
+    assert mesh.line_names == ["lines1"]
+    assert mesh.get_lines_by_name("lines1").n_cells == line.n_cells
 
 
 def test_volume_add_001():

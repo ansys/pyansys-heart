@@ -115,6 +115,9 @@ jobs:
           uv tool install tox --with tox-uv
 
       - name: "Build documentation"
+        env:
+          PYANSYS_HEART_FLUENT_VERSION: 24.1
+          PYFLUENT_LAUNCH_CONTAINER: 0
         run: |
           tox -e doc-links,doc-html,doc-pdf
 

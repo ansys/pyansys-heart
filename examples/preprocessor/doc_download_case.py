@@ -38,11 +38,11 @@ from pathlib import Path
 
 from ansys.health.heart.utils.download import download_case_from_zenodo, unpack_case
 
-# Download the tar file of Rodero2021 from the Zenodo database.
+# Download the TAR file for Rodero 2021 from the Zenodo database.
 download_dir = Path.home() / "pyansys-heart" / "downloads"
 tar_file = download_case_from_zenodo("Rodero2021", 1, download_dir)
 
-# Unpack the tar file and get the path to the input .vtk/.case file.
+# Unpack the TAR file and get the path to the input CASE or VTK file.
 path = unpack_case(tar_file)
 
 print(path)
@@ -52,11 +52,12 @@ glob.glob("downloads" + "/**/*.*", recursive=True)
 
 ###############################################################################
 # .. note::
-#    You can also manually download the .case or .vtk files from the Strocchi2020
-#    and Rodero2021 databases first. See:
+#    You can also manually download the CASE or VTK files from the Strocchi 2020
+#    and Rodero 2021 databases. For more information, see:
 #
-#    - https://zenodo.org/records/3890034
-#    - https://zenodo.org/records/4590294
+#    - `A Publicly Available Virtual Cohort of Four-chamber Heart Meshes for
+#      Cardiac Electro-mechanics Simulations <https://zenodo.org/records/3890034>`_
+#    - `Virtual cohort of adult healthy four-chamber heart meshes from CT images <https://zenodo.org/records/4590294>`_
 #
-#    Alternatively you can make use of the download
-#    module instead. See the example below.
+#    Alternatively, you can simply click one of the following buttons to download
+#    a CASE file in an IPYNB, PY, or ZIP format.

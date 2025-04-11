@@ -24,18 +24,15 @@
 
 Create a truncated ellipsoid model
 ----------------------------------
-This example shows you how to build a basic ellipsoidal model
-from primitive shapes. Shape based on
-`Land et al (2015) <https://doi.org/10.1098/rspa.2015.0641>`_.
+This example shows how to build a basic ellipsoidal model from primitive shapes
+based on `Land et al (2015) <https://doi.org/10.1098/rspa.2015.0641>`_.
 """
 
 ###############################################################################
-# Example setup
-# -------------
 # Perform the required imports
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Import the required modules and set relevant paths, including that of the working
-# directory and generated model
+# directory and generated model.
 import os
 from pathlib import Path
 
@@ -44,7 +41,7 @@ import pyvista as pv
 
 import ansys.health.heart.models as models
 
-# Use Fluent 24.1 for meshing.
+# Use Fluent 2024 R1 for meshing.
 import ansys.health.heart.pre.mesher as mesher
 from ansys.health.heart.utils.misc import clean_directory
 
@@ -56,7 +53,7 @@ mesher._fluent_version = "24.1"
 
 
 ###############################################################################
-# Create a truncated ellipsoid using pyvista
+# Create a truncated ellipsoid using PyVista
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 workdir = Path.home() / "pyansys-heart" / "simplified-geometries" / "truncated_LV"
 workdir.mkdir(parents=True, exist_ok=True)
@@ -70,7 +67,7 @@ z_truncate = 5  # z-coordinate to truncate at
 ellips_endo = ellips_endo.clip(normal="z", origin=[0, 0, z_truncate])
 ellips_epi = ellips_epi.clip(normal="z", origin=[0, 0, z_truncate])
 
-# compute x and y radius to create a closing disc.
+# compute x and y radius to create a closing disc
 endo_bounds = ellips_endo.extract_feature_edges().bounds
 epi_bounds = ellips_epi.extract_feature_edges().bounds
 
@@ -83,7 +80,7 @@ base.cell_data["surface-id"] = 3
 ellips_endo.cell_data["surface-id"] = 1
 ellips_epi.cell_data["surface-id"] = 2
 
-# combine into single poly data object.
+# combine into single poly data object
 heart: pv.PolyData = ellips_endo + ellips_epi + base
 heart.plot(show_edges=True)
 
@@ -93,8 +90,8 @@ heart.plot(show_edges=True)
 #   :align: center
 
 ###############################################################################
-# Convert the input to a HeartModel
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Convert input to a HeartModel
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # construct part definition dictionary
 part_definitions = {
@@ -108,18 +105,18 @@ part_definitions = {
     }
 }
 
-# use the combined polydata `heart` as input, where "surface-id" identifies each
+# Use the combined polydata `heart` as input, where "surface-id" identifies each
 # of the relevant regions.
-# part definitions is used to map the remeshed model to the HeartModel parts/boundaries
+# The part definitions are used to map the remeshed model to the HeartModel parts/boundaries.
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
-# initialize left-ventricular heart model
+# Initialize left-ventricular heart model.
 model = models.LeftVentricle(working_directory=workdir)
 
-# clean working directory
+# Clean working directory.
 clean_directory(workdir, [".stl", ".msh.h5", ".pickle"])
 
-# load input model
+# Load input model.
 model.load_input(heart, part_definitions, "surface-id")
 
 ###############################################################################
@@ -155,7 +152,7 @@ model._extract_apex()
 
 model.save_model(os.path.join(workdir, "heart_model.vtu"))
 
-# plot the clipped volume mesh.
+# plot the clipped volume mesh
 model.mesh.clip(crinkle=True).plot(show_edges=True)
 
 ###############################################################################
@@ -163,6 +160,9 @@ model.mesh.clip(crinkle=True).plot(show_edges=True)
 #   :width: 400pt
 #   :align: center
 
+###############################################################################
+# Generate static images for documentation
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # sphinx_gallery_start_ignore
 # Generate static images for docs.
 #

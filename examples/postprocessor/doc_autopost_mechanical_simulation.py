@@ -32,7 +32,7 @@ This example shows how to use the postprocess script after a mechanical simulati
 # ~~~~~~~~~~~~~~~~~~~~~~~~
 
 # sphinx_gallery_start_ignore
-# Note that we need to put the thumbnail here to avoid weird rendering in the html page.
+# Note that we need to put the thumbnail here to avoid weird rendering on the HTML page.
 # sphinx_gallery_thumbnail_path = '_static/images/thumbnails/pv.png'
 # sphinx_gallery_end_ignore
 import os

@@ -22,27 +22,22 @@
 
 """
 
-Four-chamber EP-simulator example
----------------------------------
-This example shows you how to consume a four-cavity heart model and
-set it up for the main electropysiology simulation. This examples demonstrates how
-you can load a pre-computed heart model, compute the fiber direction, compute the
-purkinje network and conduction system and finally simulate the electrophysiology.
+Run a four-chamber heat EP simulation
+-------------------------------------
+This example shows how to consume a four-chamber heart model and
+set it up for the main EP (electropysiology) simulation. It loads a pre-computed
+heart model and computes the fiber direction, Purkinje network, and conduction system.
+It then simulates the electrophysiology.
 """
 
 ###############################################################################
-# Example setup
-# -------------
-# before computing the fiber orientation, purkinje network we need to load
-# the required modules, load a heart model and set up the simulator.
-#
 # Perform the required imports
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Import the required modules and set relevant paths, including that of the working
-# directory, model, and ls-dyna executable.
+# directory, heart model, and LS-DYNA executable file.
 
 # sphinx_gallery_start_ignore
-# Note that we need to put the thumbnail here to avoid weird rendering in the html page.
+# Note that we need to put the thumbnail here to avoid weird rendering on the HTML page.
 # sphinx_gallery_thumbnail_path = '_static/images/purkinje.png'
 # sphinx_gallery_end_ignore
 
@@ -54,23 +49,23 @@ from ansys.health.heart.objects import Point
 from ansys.health.heart.settings.settings import DynaSettings
 from ansys.health.heart.simulator import EPSimulator
 
-# accept dpf license agreement
+# Accept the DPF license agreement.
 # https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
-# set working directory and path to model. Note that we expect a pre-processed model
-# stored as "heart_model.vtu" in this folder.
+# Set the working directory and path to the model. This example assumes that there is a
+# preprocessed model named ``heart_model.vtu`` in the working directory.
 workdir = Path.home() / "pyansys-heart" / "downloads" / "Strocchi2020" / "01" / "FourChamber"
 path_to_model = str(workdir / "heart_model.vtu")
 
-# specify LS-DYNA path (last tested working versions is intelmpi-linux-DEV-106117)
+# Specify the LS-DYNA path. (The last tested working version is ``intelmpi-linux-DEV-106117``.)
 lsdyna_path = r"ls-dyna_msmpi.exe"
 
-# load four chamber heart model.
+# Load the four-chamber heart model.
 model: models.FourChamber = models.FourChamber(working_directory=workdir)
 model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
 
-# Define electrode positions and add them to model (correspond to patient 01 only)
+# Define electrode positions and add them to model (Positions are for patient 01 only.)
 # Positions were defined using a template torso geometry.
 electrodes = [
     Point(name="V1", xyz=[-29.893285751342773, 27.112899780273438, 373.30865478515625]),
@@ -94,16 +89,16 @@ if not isinstance(model, models.FourChamber):
 model.workdir = str(workdir)
 
 ###############################################################################
-# Instantiate the simulator object
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# instantiate the simulator and settings appropriately.
+# Instantiate the simulator
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+# Instantiate the simulator and define settings.
 
-# instantaiate dyna settings of choice
+# Instantiate DYNA settings.
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path, dynatype="smp", num_cpus=4, platform="windows"
 )
 
-# instantiate simulator. Change options where necessary.
+# Instantiate simulator and modify options as needed.
 simulator = EPSimulator(
     model=model,
     dyna_settings=dyna_settings,
@@ -113,14 +108,15 @@ simulator = EPSimulator(
 ###############################################################################
 # Load simulation settings
 # ~~~~~~~~~~~~~~~~~~~~~~~~
-# Here we load the default settings.
+# Load the default simulation settings.
 
 simulator.settings.load_defaults()
 
 ###############################################################################
-# Compute Universal Ventricular Coordinates
+# Compute UVCs
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# The transmural coordinate is used to define the endo, mid and epi layers.
+# Compute UNCs (Universal Ventricular Coordinates). The transmural coordinate
+# is used to define the endo, mid, and epi layers.
 
 ###############################################################################
 
@@ -133,20 +129,21 @@ simulator.compute_uhc()
 
 ###############################################################################
 # .. warning::
-#    Atrial fiber orientation is approximated by apex-base direction, the development is undergoing.
+#    The atrial fiber orientation is approximated by the apex-base direction.
+#    Development is ongoing.
 
-# compute ventricular fibers
+# Compute ventricular fibers.
 simulator.compute_fibers()
 
-# compute atrial fibers
+# Compute atrial fibers.
 simulator.model.right_atrium.active = True
 simulator.model.left_atrium.active = True
 simulator.model.right_atrium.fiber = True
 simulator.model.left_atrium.fiber = True
 
-# Strocchi/Rodero data has marked left atrium appendage point
+# Strocchi/Rodero data has a marked left atrium appendage point.
 simulator.compute_left_atrial_fiber()
-# need to manually select the right atrium appendage point
+# Manually select the right atrium appendage point.
 simulator.compute_right_atrial_fiber(appendage=[-33, 82, 417])
 
 simulator.model.plot_fibers(n_seed_points=2000)
@@ -159,14 +156,13 @@ simulator.model.plot_fibers(n_seed_points=2000)
 ###############################################################################
 # Compute conduction system
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
-# Compute conduction system and purkinje network and visualize.
-# The action potential will propagate faster through this system
-# compared to the rest of the model.
+# Compute the conduction system and Purkinje network, and then visualize them.
+# The action potential propagates faster through this system compared to the rest of the model.
 
 simulator.compute_purkinje()
 
-# by calling this method, stimulation will at Atrioventricular node
-# if you skip it, stimulation will at apex nodes of two ventricles
+# By calling this method, stimulation occurs at the Atrioventricular node.
+# If you do not call this method, stimulation occurs at the apex nodes of the two ventricles.
 simulator.compute_conduction_system()
 
 simulator.model.plot_purkinje()
@@ -177,11 +173,11 @@ simulator.model.plot_purkinje()
 #   :align: center
 
 ###############################################################################
-# Start main simulation
-# ~~~~~~~~~~~~~~~~~~~~~
+# Start the main simulation
+# ~~~~~~~~~~~~~~~~~~~~~~~
 # Start the main EP simulation. This uses the previously computed fiber orientation
-# and purkinje network to set up and run the LS-DYNA model using different solver
-# options
+# and Purkinje network to set up and run the LS-DYNA model with different solver
+# options.
 
 simulator.simulate()
 # The two following solves only work with LS-DYNA DEV-110013 or later
@@ -192,7 +188,7 @@ simulator.simulate(folder_name="main-ep-ReactionEikonal")
 
 
 ###############################################################################
-# We can plot transmembrane potential in LS-PrePost
+# View a plot of the transmembrane potential in LS-PrePost.
 
 ###############################################################################
 # .. only:: html

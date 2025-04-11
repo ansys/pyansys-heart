@@ -23,25 +23,21 @@
 """
 .. _stimulation_definition_example:
 
-Stimulation definition example
----------------------------------
-This example shows you how to define an EP stimulation. It demonstrates how you
-can load a pre-computed heart model, define a stimulation region based on a sphere
-centered on the apex, and a sphere centered on a point chosen in Universal
-Ventricular Coordinates (UVC).
+Define an EP stimulation
+------------------------
+This example shows how to define an EP stimulation. It demonstrates how to
+load a pre-computed heart model and define a stimulation region based
+on a sphere centered on the apex and a sphere centered on a point chosen in UVCs
+(Universal Ventricular Coordinates).
 """
 
 ###############################################################################
-# Example setup
-# -------------
-# Loading required modules and heart model.
-#
 # Perform the required imports
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Import the required modules and set relevant paths.
 
 # sphinx_gallery_start_ignore
-# Note that we need to put the thumbnail here to avoid weird rendering in the html page.
+# Note that we need to put the thumbnail here to avoid weird rendering on the HTML page.
 # sphinx_gallery_thumbnail_path = '_static/images/stimulation.png'
 # sphinx_gallery_end_ignore
 
@@ -55,7 +51,7 @@ import ansys.health.heart.models as models
 from ansys.health.heart.settings.settings import SimulationSettings, Stimulation
 from ansys.health.heart.simulator import DynaSettings, EPSimulator
 
-# accept dpf license agreement
+# Accept the DPF license agreement.
 # https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
@@ -64,21 +60,21 @@ os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 # sphinx_gallery_end_ignore
 
-# specify the path to the working directory and heart model. The following path assumes
-# that a preprocessed model is already available
+# Specify the path to the working directory and heart model. The following path assumes
+# that a preprocessed model is already available.
 workdir = Path.home() / "pyansys-heart" / "downloads" / "Strocchi2020" / "01" / "FourChamber"
 path_to_model = str(workdir / "heart_model.vtu")
 
 
-# load your four chamber heart model with uvcs (see preprocessor examples to create
-# a heart model from scratch)
+# Load your four-chamber heart model with UVCs. (See the preprocessor examples to create
+# a heart model from scratch.)
 model: models.FourChamber = models.FourChamber(working_directory=workdir)
 model.load_model_from_mesh(path_to_model)
 
 ###############################################################################
 # Define stimulation at the apex
 # ------------------------------
-# Select points inside sphere centered at the left apex.
+# Select points inside the sphere centered at the left apex.
 apex_left = model.left_ventricle.apex_points[0].xyz
 sphere = pv.Sphere(center=(apex_left), radius=2)
 newdata = model.mesh.select_enclosed_points(sphere)
@@ -90,14 +86,14 @@ pl.add_points(apex_stim_points, color="red")
 pl.add_mesh(model.mesh, color="lightgrey", opacity=0.2)
 pl.show()
 
-# Define stimulation and introduce it as simulation settings
+# Define stimulation and introduce it as simulation settings.
 stim_apex = Stimulation(node_ids=list(node_ids), t_start=0, period=800, duration=2, amplitude=50)
 settings = SimulationSettings()
 settings.load_defaults()
 settings.electrophysiology.stimulation = {"stim_apex": stim_apex}
 
 
-# Define auxiliary function to find a point in the model based on its UVC coordinates
+# Define auxiliary function to find a point in the model based on its UVCs.
 def get_point_from_uvc(
     model: models.HeartModel, apicobasal: float, transmural: float, rotational: float
 ):
@@ -122,10 +118,10 @@ def get_point_from_uvc(
 
 
 ###############################################################################
-# Define stimulation based on UVC
-# -------------------------------
-# Select points inside sphere centered at a chosen point based on UVC coordinates
-# (if the model has UVC).
+# Define stimulation using UVCs
+# -----------------------------
+# Select points inside the sphere centered at a chosen point based on UVCs
+# (if the model includes UVCs).
 if (
     ("transmural" in model.mesh.point_data.keys())
     and ("apico-basal" in model.mesh.point_data.keys())
@@ -147,11 +143,11 @@ if (
     stim_uvc = Stimulation(node_ids=list(node_ids), t_start=0, period=800, duration=2, amplitude=50)
     settings.electrophysiology.stimulation["stim_uvc"] = stim_uvc
 
-# specify LS-DYNA path
+# Specify LS-DYNA path.
 lsdyna_path = r"ls-dyna_msmpi.exe"
 
 
-# instantaiate dyna settings of choice
+# Instantiate DYNA settings of choice.
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path, dynatype="intelmpi", num_cpus=4, platform="wsl"
 )

@@ -120,7 +120,7 @@ jobs:
           PYANSYS_HEART_FLUENT_VERSION: 24.1
           PYFLUENT_LAUNCH_CONTAINER: 0
           MPLBACKEND: Agg
-          PYFLUENT_UI_MODE: no-gui
+          PYFLUENT_UI_MODE: no_gui
         run: |
           tox -e doc-links,doc-html,doc-pdf
 

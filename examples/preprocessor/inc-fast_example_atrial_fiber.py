@@ -40,15 +40,10 @@ This examples shows how to generate fibers with the Laplace-Dirichlet-Rule-Based
 import os
 from pathlib import Path
 
-os.environ["PYANSYS_HEART_LSDYNA_PATH"] = (
-    r"D:\development\dyna-versions\R16.0\ls-dyna_smp_d_R16_758-g9c13f88991_winx64_ifort190\ls-dyna_smp_d_R16_758-g9c13f88991_winx64_ifort190.exe"
-)
-os.environ["PYANSYS_HEART_LSDYNA_PLATFORM"] = "windows"
-os.environ["PYANSYS_HEART_LSDYNA_TYPE"] = "smp"
-os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
-
 import numpy as np
 import pyvista as pv
+
+pv.OFF_SCREEN = True
 
 from ansys.health.heart.examples import get_preprocessed_fullheart
 import ansys.health.heart.models as models

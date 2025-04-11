@@ -131,10 +131,9 @@ ep_mat_active = EPMaterial.Active(
 )
 epinsulator = EPMaterial.Insulator()
 
-from pyvista import examples
+import pyvista as pv
 
-tetbeam = examples.load_tetbeam()
-tetbeam.plot(show_edges=True)
+pv.Sphere().plot(show_edges=True)
 
 ###############################################################################
 # .. note::

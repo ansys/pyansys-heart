@@ -64,7 +64,7 @@ class ConductionBeams:
         name: ConductionBeamType,
         mesh: Mesh,
         id: int,
-        is_connceted: np.ndarray,
+        is_connected: np.ndarray,
         relying_surface: pv.PolyData,
         material: EPMaterial = EPMaterial.DummyMaterial(),
     ):
@@ -78,7 +78,7 @@ class ConductionBeams:
             Beam mesh.
         id : int
             id of the conduction beam.
-        is_connceted : np.ndarray
+        is_connected : np.ndarray
             mask array of points connected to solid mesh.
         relying_surface : pv.PolyData
             surface mesh where the conduction beam is relying on.
@@ -88,7 +88,7 @@ class ConductionBeams:
         self.name = name
         self.mesh = mesh.copy()
         self.id = id
-        self.is_connected = is_connceted
+        self.is_connected = is_connected
 
         # TODO: check if mesh are on relying_surface
         self.relying_surface = relying_surface
@@ -122,7 +122,7 @@ class ConductionBeams:
         id: int,
         base_mesh: pv.PolyData | pv.UnstructuredGrid,
         connection: Literal["none", "first", "last", "all"] = "none",
-        refine_length: float = 1.5,
+        refine_length: float | None = 1.5,
     ) -> ConductionBeams:
         """Create a conduction beam on a base mesh through keypoints.
 
@@ -195,6 +195,8 @@ def _create_line(point_start: np.array, point_end: np.array, beam_length: float)
 
 
 def _refine_line(nodes: np.array, beam_length: float) -> np.ndarray:
+    if beam_length is None:
+        return nodes
     new_nodes = [nodes[0, :]]
     for beam_id in range(len(nodes) - 1):
         point_start = nodes[beam_id, :]

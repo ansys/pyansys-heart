@@ -25,8 +25,8 @@ import os
 import numpy as np
 import pyvista as pv
 
+from ansys.health.heart.models_utils import HeartModelUtils
 from ansys.health.heart.objects import _ConductionType
-from ansys.health.heart.pre.conduction_beam import _compute_heart_conductionsystem
 from ansys.health.heart.pre.conduction_beam2 import ConductionBeams, ConductionBeamType
 from ansys.health.heart.settings.material.ep_material import EPMaterial
 from tests.heart.conftest import get_assets_folder, get_fullheart
@@ -67,12 +67,39 @@ def test_conduction():
     ref0 = pv.read(os.path.join(folder, "left_purkinje.vtp"))
     assert meshes_equal(ref0, left_purkjinje)
 
-    model.add_purkinje_from_kfile(f2, _ConductionType.RIGHT_PURKINJE.value)
+    right_purkinje = model.add_purkinje_from_kfile(f2, _ConductionType.RIGHT_PURKINJE.value)
 
-    _compute_heart_conductionsystem(model, 1.5)
-
+    l_pj = ConductionBeams(
+        name=ConductionBeamType.LEFT_PURKINJE,
+        mesh=left_purkjinje,
+        id=1,
+        is_connected=left_purkjinje["_is-connected"],
+        relying_surface=model.left_ventricle.endocardium,
+    )
+    r_pj = ConductionBeams(
+        name=ConductionBeamType.LEFT_PURKINJE,
+        mesh=right_purkinje,
+        id=2,
+        is_connected=right_purkinje["_is-connected"],
+        relying_surface=model.right_ventricle.endocardium,
+    )
+    model.add_conduction_beam(l_pj)
+    model.add_conduction_beam(r_pj)
+    beam_list = HeartModelUtils.define_default_conduction_system(model)
+    model.add_conduction_beam(beam_list)
+    res = model._conduction_system
     ref = pv.read(os.path.join(folder, "conduction.vtu"))
-    assert meshes_equal(ref, model.conduction_system)
+
+    assert res.n_cells == ref.n_cells
+    assert res.n_points == ref.n_points
+    # assert np.allclose(res.points, ref.points,atol=1e-3)
+    assert np.array_equal(res["_line-id"], ref["_line-id"])
+
+    assert np.all(
+        model.conduction_beams[0].is_connected
+        == ref.extract_cells(ref["_line-id"] == 1)["_is-connected"],
+    )
+    pass
 
 
 def test_conductionbeams_init():

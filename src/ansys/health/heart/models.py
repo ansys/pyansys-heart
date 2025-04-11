@@ -46,6 +46,7 @@ from ansys.health.heart.objects import (
     SurfaceMesh,
     _BeamsMesh,
 )
+from ansys.health.heart.pre.conduction_beam2 import ConductionBeams
 from ansys.health.heart.pre.input import _InputModel
 import ansys.health.heart.pre.mesher as mesher
 from ansys.health.heart.settings.material.ep_material import EPMaterial
@@ -312,6 +313,9 @@ class HeartModel:
 
         self.conduction_system: _BeamsMesh = _BeamsMesh()
         """Mesh defining the conduction system."""
+        self._conduction_beams: list[ConductionBeams] = []
+        # TODO: tempo structure before refactor of Mesh
+        self._conduction_system: _BeamsMesh = _BeamsMesh()
 
         self.electrodes: List[Point] = []
         """Electrodes positions for ECG computing."""
@@ -327,6 +331,21 @@ class HeartModel:
         """l4cv axis."""
 
         return
+
+    @property
+    def conduction_beams(self):
+        """Return conduction beams."""
+        return self._conduction_beams
+
+    def add_conduction_beam(self, beams: ConductionBeams | list[ConductionBeams]):
+        """Add conduction beam to the model."""
+        if isinstance(beams, ConductionBeams):
+            beams = [beams]
+
+        for beam in beams:
+            self._conduction_beams.append(beam)
+            # tempo operation to convert mesh as beammesh
+            self._conduction_system.add_lines(beam.mesh, beam.id, "tempo")
 
     def __str__(self):
         """Represent self as string."""

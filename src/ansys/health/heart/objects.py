@@ -1144,7 +1144,8 @@ class _BeamsMesh(Mesh):
             for name in point_data_names:
                 mesh.point_data[name] = _get_fill_data(self, mesh, name, "point")
 
-        merged = pv.merge((self, mesh), merge_points=True, main_has_priority=False)
+        merged = self.merge(mesh, merge_points=True, main_has_priority=False, tolerance=1.0e-9)
+
         super().__init__(merged)
         return self
 

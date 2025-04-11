@@ -122,6 +122,7 @@ jobs:
           PYANSYS_HEART_LSDYNA_PATH: C:\Program Files\ANSYS Inc\LS-DYNA\R16.0\windows\R16.0.exe
           PYANSYS_HEART_LSDYNA_PLATFORM: windows
           PYANSYS_HEART_LSDYNA_TYPE: "smp"
+          LSTC_LICENSE: ansys
           MPLBACKEND: Agg
           PYFLUENT_UI_MODE: no_gui # default hidden_gui fails on self-hosted runner
         run: |

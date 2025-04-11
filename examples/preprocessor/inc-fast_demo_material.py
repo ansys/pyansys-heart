@@ -31,7 +31,10 @@ This example show you how to create a mechanical material and assign it to a hea
 # Import material module
 # ~~~~~~~~~~~~~~~~~~~~~~
 
+from pathlib import Path
+
 import matplotlib.pyplot as plt
+import pyvista as pv
 
 from ansys.health.heart.settings.material.curve import (
     ActiveCurve,
@@ -47,6 +50,8 @@ from ansys.health.heart.settings.material.material import (
     Mat295,
     NeoHookean,
 )
+
+pv.OFF_SCREEN = True  # TODO: remove this, and use environment variable instead.
 
 ###############################################################################
 # .. note::
@@ -133,55 +138,56 @@ epinsulator = EPMaterial.Insulator()
 
 # import pyvista as pv
 
-# pv.Sphere().plot(show_edges=True)
+
+# ##############################################################################
+# .. note::
+#    Ca2+ curve will be ignored if the simulation is coupled with electrophysiology
+#
+# ##############################################################################
+# Assign material to a part
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+# Assign the materials to the heart model
+
+
+###############################################################################
+# Load a heart model
+###############################################################################
+# .. note::
+#    You need to complete the full heart preprocessing example first.
+import ansys.health.heart.examples as examples
+import ansys.health.heart.models as models
+
+heart_model_vtu, heart_model_partinfo, _ = examples.get_preprocessed_fullheart()
+workdir = str(Path.home() / "pyansys-heart" / "Rodero2021")
+
+# load a full heart model.
+heartmodel: models.FullHeart = models.FullHeart(working_directory=workdir)
+heartmodel.load_model_from_mesh(heart_model_vtu, heart_model_partinfo)
+
+heartmodel.mesh.set_active_scalars("_volume-id")
+heartmodel.mesh.plot()
+
+# Print default materials
+print(heartmodel.left_ventricle.meca_material)
+print(heartmodel.left_ventricle.ep_material)
 
 ###############################################################################
 # .. note::
-#    Ca2+ curve will be ignored if the simulation is coupled with electrophysiology
+#    If no material is set before writing k files, default material from ```settings```
+# will be set.
 
-# # ##############################################################################
-# # Assign material to a part
-# # ~~~~~~~~~~~~~~~~~~~~~~~~~
-# # Assign the materials to the heart model
+# Assign the material we just created
+heartmodel.left_ventricle.meca_material = active_mat
+heartmodel.left_ventricle.ep_material = ep_mat_active
 
+print(heartmodel.left_ventricle.meca_material)
+print(heartmodel.left_ventricle.ep_material)
+###############################################################################
+# Create a new part and set material
 
-# import ansys.health.heart.models as models
+# # A new part can be created by elements IDs
+# ids = np.where(heartmodel.mesh.point_data_to_cell_data()["uvc_longitudinal"] > 0.9)[0]
+# new_part: Part = heartmodel.create_part_by_ids(ids, "new_part")
 
-# ###############################################################################
-# # Load a heart model
-
-# ###############################################################################
-# # .. note::
-# #    You need to complete the full heart preprocessing example first.
-
-# workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "FullHeart"
-# path_to_model = str(workdir / "heart_model.vtu")
-
-# # load a full heart model.
-# heartmodel: models.FullHeart = models.FullHeart(working_directory=workdir)
-# heartmodel.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
-
-# # Print default materials
-# print(heartmodel.left_ventricle.meca_material)
-# print(heartmodel.left_ventricle.ep_material)
-
-# ###############################################################################
-# # .. note::
-# #    If no material is set before writing k files, default material from ```settings```
-# # will be set.
-
-# # Assign the material we just created
-# heartmodel.left_ventricle.meca_material = active_mat
-# heartmodel.left_ventricle.ep_material = ep_mat_active
-
-# print(heartmodel.left_ventricle.meca_material)
-# print(heartmodel.left_ventricle.ep_material)
-# ###############################################################################
-# # Create a new part and set material
-
-# # # A new part can be created by elements IDs
-# # ids = np.where(heartmodel.mesh.point_data_to_cell_data()["uvc_longitudinal"] > 0.9)[0]
-# # new_part: Part = heartmodel.create_part_by_ids(ids, "new_part")
-
-# # # Show the part
-# # plotter = heartmodel.plot_part(new_part)
+# # Show the part
+# plotter = heartmodel.plot_part(new_part)

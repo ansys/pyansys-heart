@@ -105,6 +105,7 @@ simulator = EPMechanicsSimulator(
 # load default simulation settings
 simulator.settings.load_defaults()
 
+
 # compute fiber orientation in the ventricles and atria
 simulator.compute_fibers()
 simulator.compute_left_atrial_fiber()

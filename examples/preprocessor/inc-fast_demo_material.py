@@ -131,9 +131,9 @@ ep_mat_active = EPMaterial.Active(
 )
 epinsulator = EPMaterial.Insulator()
 
-import pyvista as pv
+# import pyvista as pv
 
-pv.Sphere().plot(show_edges=True)
+# pv.Sphere().plot(show_edges=True)
 
 ###############################################################################
 # .. note::

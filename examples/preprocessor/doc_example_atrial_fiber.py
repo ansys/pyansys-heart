@@ -43,13 +43,15 @@ from pathlib import Path
 import numpy as np
 import pyvista as pv
 
+from ansys.health.heart.examples import get_preprocessed_fullheart
 import ansys.health.heart.models as models
 from ansys.health.heart.simulator import BaseSimulator, DynaSettings
 
 # specify the path to the working directory and heart model. The following path assumes
 # that a preprocessed model is already available
-workdir = Path.home() / "pyansys-heart" / "downloads" / "Strocchi2020" / "01" / "FourChamber"
-path_to_model = str(workdir / "heart_model.vtu")
+workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "FullHeart"
+
+path_to_model, path_to_partinfo, _ = get_preprocessed_fullheart()
 
 # specify LS-DYNA path
 lsdyna_path = r"ls-dyna_smp"
@@ -67,7 +69,7 @@ model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partin
 ###############################################################################
 # .. note::
 #    The DynaSettings object supports several LS-DYNA versions and platforms.
-#    Including: "smp", "intempi", "msmpi", "windows", "linux", or "wsl" Choose
+#    Including: "smp", "intelmpi", "msmpi", "windows", "linux", or "wsl" Choose
 #    the one that is appropriate for you.
 
 # instantiate LS-DYNA settings of choice
@@ -95,7 +97,7 @@ model.mesh.cell_data["sheet"] = np.zeros((model.mesh.n_cells, 3))
 la = simulator.compute_left_atrial_fiber()
 
 # Appendage apex point should be manually given to compute right atrium fiber
-appendage_apex = [-33, 82, 417]
+appendage_apex = [39, 29, 98]
 ra = simulator.compute_right_atrial_fiber(appendage_apex)
 
 ###############################################################################
@@ -109,22 +111,15 @@ ra = simulator.compute_right_atrial_fiber(appendage_apex)
 la.set_active_scalars("bundle")
 la.plot()
 
-###############################################################################
-# .. image:: /_static/images/la_bundle.png
-#   :width: 400pt
-#   :align: center
-
 ra.set_active_scalars("bundle")
 ra.plot()
 
-###############################################################################
-# .. image:: /_static/images/ra_bundle.png
-#   :width: 400pt
-#   :align: center
 
-###############################################################################
+#############
 # Plot fibers
 # ~~~~~~~~~~~
+
+# plot left atrial fibers
 plotter = pv.Plotter()
 mesh = la.ctp()
 streamlines = mesh.streamlines(vectors="e_l", source_radius=50, n_points=50000)
@@ -133,11 +128,7 @@ plotter.add_mesh(mesh, opacity=0.5, color="white")
 plotter.add_mesh(tubes, color="red")
 plotter.show()
 
-###############################################################################
-# .. image:: /_static/images/la_fiber.png
-#   :width: 400pt
-#   :align: center
-
+# plot right atrial fibers
 plotter = pv.Plotter()
 mesh = ra.ctp()
 streamlines = mesh.streamlines(vectors="e_l", source_radius=50, n_points=50000)
@@ -147,14 +138,7 @@ plotter.add_mesh(tubes, color="red")
 plotter.show()
 
 ###############################################################################
-# .. image:: /_static/images/ra_fiber.png
-#   :width: 400pt
-#   :align: center
-
-###############################################################################
-
 # Atrial fibers are automatically assigned to heart model after computation.
-
 plotter = pv.Plotter()
 mesh = model.mesh.ctp()
 streamlines = mesh.streamlines(vectors="fiber", source_radius=100, n_points=50000)
@@ -162,8 +146,3 @@ tubes = streamlines.tube()
 plotter.add_mesh(mesh, opacity=0.5, color="white")
 plotter.add_mesh(tubes, color="red")
 plotter.show()
-
-###############################################################################
-# .. image:: /_static/images/atrial_fiber_assign.png
-#   :width: 400pt
-#   :align: center

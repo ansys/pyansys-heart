@@ -93,7 +93,18 @@ def test_create_conductionbeams_on_surface():
 
 
 def test_create_conductionbeams_in_solid():
-    pass
+    model = get_fourchamber()
+    av = HeartModelUtils.define_atrio_ventricular_node(model)
+    bif = HeartModelUtils.define_his_bundle_bifurcation_node(model)
+    his_top = ConductionBeams.create_from_keypoints(
+        name=ConductionBeamType.HIS_TOP,
+        keypoints=[av.xyz, bif.xyz],
+        id=1,
+        base_mesh=model.mesh,
+        connection="none",
+    )
+    assert np.isclose(his_top.length, 14.276232139149878)
+    assert his_top.relying_surface.n_cells == 9
 
 
 def _mock_purkinje():

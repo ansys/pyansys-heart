@@ -22,13 +22,16 @@
 
 """Conduction system class."""
 
+from __future__ import annotations
+
 from enum import Enum
 from typing import Literal
 
+import networkx as nx
 import numpy as np
 import pyvista as pv
 
-from ansys.health.heart.objects import Mesh
+from ansys.health.heart.objects import Mesh, SurfaceMesh
 from ansys.health.heart.settings.material.ep_material import EPMaterial
 
 
@@ -120,8 +123,8 @@ class ConductionBeams:
         base_mesh: pv.PolyData | pv.UnstructuredGrid,
         connection: Literal["none", "first", "last", "all"] = "none",
         refine_length: float = 1.5,
-    ):
-        """Create a conduction beam by providing keypoints.
+    ) -> ConductionBeams:
+        """Create a conduction beam on a base mesh through keypoints.
 
         Parameters
         ----------
@@ -143,16 +146,16 @@ class ConductionBeams:
 
         Returns
         -------
-        _type_
-            _description_
+        ConductionBeams
+            ConductionBeams
         """
         if isinstance(base_mesh, pv.PolyData):
             under_surface = base_mesh
-            mesh = _create_path_by_geodesic(keypoints, under_surface, refine_length)
+            beam_mesh = _create_path_on_surface(keypoints, under_surface, refine_length)
         else:
-            NotImplementedError
+            beam_mesh, under_surface = _create_path_in_solid(keypoints, base_mesh, refine_length)
 
-        is_connceted = np.zeros(mesh.n_points)
+        is_connceted = np.zeros(beam_mesh.n_points)
         if connection == "first":
             is_connceted[0] = 1
         elif connection == "last":
@@ -160,7 +163,7 @@ class ConductionBeams:
         elif connection == "all":
             is_connceted[:] = 1
 
-        return ConductionBeams(name, mesh, id, is_connceted, under_surface)
+        return ConductionBeams(name, beam_mesh, id, is_connceted, under_surface)
 
 
 def _create_line(point_start: np.array, point_end: np.array, beam_length: float) -> np.ndarray:
@@ -201,7 +204,7 @@ def _refine_line(nodes: np.array, beam_length: float) -> np.ndarray:
     return new_nodes
 
 
-def _create_path_by_geodesic(
+def _create_path_on_surface(
     key_points: list[np.ndarray], surface: pv.PolyData, refine_length: float
 ) -> pv.PolyData:
     """Create a path by geodesic line between key points.
@@ -232,3 +235,89 @@ def _create_path_by_geodesic(
     path_points = _refine_line(np.array(path_points), beam_length=refine_length)
 
     return pv.lines_from_points(path_points)
+
+
+def _create_path_in_solid(
+    key_points: list[np.ndarray], volume: pv.UnstructuredGrid, refine_length: float
+) -> tuple[pv.PolyData, pv.PolyData]:
+    """TODO."""
+    if len(key_points) != 2:
+        TypeError("Can only define 2 keypoints.")
+        return
+
+    # keep only tetra cells
+    mesh = volume.extract_cells_by_type(pv.CellType.TETRA)
+
+    # do the search in a small region for efficiency
+    start = key_points[0]
+    end = key_points[1]
+    center = 0.5 * (start + end)
+    radius = 3 * np.linalg.norm(start - center)
+    sphere = pv.Sphere(center=center, radius=radius)
+
+    # extract region
+    cell_center = mesh.cell_centers()
+    ids = np.where(cell_center.select_enclosed_points(sphere)["SelectedPoints"])[0]
+    sub_mesh = mesh.extract_cells(ids)
+
+    # search shortes path across cells
+    source_id = sub_mesh.find_closest_point(start)
+    target_id = sub_mesh.find_closest_point(end)
+    graph = _mesh_to_nx_graph(sub_mesh)
+
+    # ids are in submesh
+    ids = nx.shortest_path(graph, source=source_id, target=target_id)
+    coords = sub_mesh.points[ids]
+
+    #
+    new_nodes = _refine_line(coords, beam_length=refine_length)
+    beamnet = pv.lines_from_points(new_nodes)
+
+    # seg
+    # TODO: split function
+    tetras = sub_mesh.cells.reshape(-1, 5)[:, 1:]
+    triangles = np.vstack(
+        (
+            tetras[:, [0, 1, 2]],
+            tetras[:, [0, 1, 3]],
+            tetras[:, [0, 2, 3]],
+            tetras[:, [1, 2, 3]],
+        )
+    )  # TODO: replace by pv extract_surface()
+    segment = []
+    for i, j in zip(ids[0:-1], ids[1:]):
+        for tri in triangles:
+            if i in tri and j in tri:
+                segment.append(tri)
+                break
+    segment = np.array(segment)
+
+    # segment2 = sub_mesh["_global-point-ids"][segment]
+
+    surf = SurfaceMesh(
+        name="his_bundle_segment",  # NOTE
+        triangles=segment,
+        nodes=sub_mesh.points,
+    )
+    return beamnet, surf
+
+
+def _mesh_to_nx_graph(mesh: pv.UnstructuredGrid) -> nx.Graph:
+    """Convert tetra mesh to graph."""
+    graph = nx.Graph()
+    # Add nodes
+    for i, point in enumerate(mesh.points):
+        graph.add_node(i, pos=tuple(point))
+
+    # Assume all cells are tetra
+    cells = np.array(mesh.cells).reshape(-1, 5)[:, 1:]
+    # Add edges
+    for cell in cells:
+        graph.add_edge(cell[0], cell[1])
+        graph.add_edge(cell[1], cell[2])
+        graph.add_edge(cell[2], cell[0])
+        graph.add_edge(cell[0], cell[3])
+        graph.add_edge(cell[1], cell[3])
+        graph.add_edge(cell[2], cell[3])
+
+    return graph

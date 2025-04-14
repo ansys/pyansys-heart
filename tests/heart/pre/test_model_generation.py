@@ -280,21 +280,7 @@ def test_writers(extract_model, writer_class):
     """
     model, _ = extract_model
     writer = writer_class(copy.deepcopy(model))
-    if isinstance(model, models.FullHeart) and isinstance(
-        writer, writers.ElectroMechanicsDynaWriter
-    ):
-        from ansys.health.heart.objects import _ConductionType
-        from ansys.health.heart.pre.conduction_beam import _compute_heart_conductionsystem
-
-        folder = os.path.join(
-            get_assets_folder(), "reference_models", "strocchi2020", "01", "conduction"
-        )
-        f1 = os.path.join(folder, "purkinjeNetwork_001.k")
-        f2 = os.path.join(folder, "purkinjeNetwork_002.k")
-
-        writer.model.add_purkinje_from_kfile(f1, _ConductionType.LEFT_PURKINJE.value)
-        writer.model.add_purkinje_from_kfile(f2, _ConductionType.RIGHT_PURKINJE.value)
-        _compute_heart_conductionsystem(writer.model, 1.5)
+    add_conduction_beams(writer)
 
     if isinstance(model, models.BiVentricle):
         ref_folder = os.path.join(
@@ -334,6 +320,25 @@ def test_writers(extract_model, writer_class):
         pass
 
     return
+
+
+def add_conduction_beams(writer):
+    if (
+        isinstance(writer.model, models.FullHeart)
+        and type(writer) is writers.ElectrophysiologyDynaWriter
+    ):
+        from ansys.health.heart.objects import _ConductionType
+        from ansys.health.heart.pre.conduction_beam import _compute_heart_conductionsystem
+
+        folder = os.path.join(
+            get_assets_folder(), "reference_models", "strocchi2020", "01", "conduction"
+        )
+        f1 = os.path.join(folder, "purkinjeNetwork_001.k")
+        f2 = os.path.join(folder, "purkinjeNetwork_002.k")
+
+        writer.model.add_purkinje_from_kfile(f1, _ConductionType.LEFT_PURKINJE.value)
+        writer.model.add_purkinje_from_kfile(f2, _ConductionType.RIGHT_PURKINJE.value)
+        _compute_heart_conductionsystem(writer.model, 1.5)
 
 
 @pytest.mark.parametrize(
@@ -388,6 +393,7 @@ def test_writers_after_load_model(extract_model, writer_class):
         model1.load_model_from_mesh(model_path, partinfo)
 
         writer = writer_class(copy.deepcopy(model1))
+        add_conduction_beams(writer)
 
         to_test_folder = os.path.join(workdir, writer_class.__name__)
         writer.update()

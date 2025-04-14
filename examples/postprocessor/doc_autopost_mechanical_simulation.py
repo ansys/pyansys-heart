@@ -23,7 +23,7 @@
 """
 
 Postprocess the mechanical simulation folder
------------------------------------------
+--------------------------------------------
 This example shows how to use the postprocess script after a mechanical simulation.
 """
 
@@ -97,7 +97,7 @@ for it, tt in enumerate(np.linspace(0.001, 3, 60)):
 
 ###############################################################################
 # Compute myocardium wall strain
-# ~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Compute left ventricle strain in longitudinal, radial, circumferential directions.
 
 aha_evaluator = AhaStrainCalculator(model, d3plot_file=meca_folder / "d3plot")

@@ -114,7 +114,7 @@ simulator.settings.load_defaults()
 
 ###############################################################################
 # Compute UVCs
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~
 # Compute UNCs (Universal Ventricular Coordinates). The transmural coordinate
 # is used to define the endo, mid, and epi layers.
 
@@ -174,7 +174,7 @@ simulator.model.plot_purkinje()
 
 ###############################################################################
 # Start the main simulation
-# ~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
 # Start the main EP simulation. This uses the previously computed fiber orientation
 # and Purkinje network to set up and run the LS-DYNA model with different solver
 # options.

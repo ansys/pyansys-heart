@@ -22,7 +22,7 @@
 
 """
 Postprocess an EP simulation
------------------------------
+----------------------------
 This example shows how to postprocess an EP simulation.
 """
 

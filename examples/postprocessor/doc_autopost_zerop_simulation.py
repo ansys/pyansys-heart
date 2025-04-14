@@ -23,7 +23,7 @@
 """
 
 Postprocess a zero pressure folder
--------------------------_--------
+----------------------------------
 This example shows you how to use the postprocess script after stress-free configuration simulation
 and visualize them in Paraview.
 """

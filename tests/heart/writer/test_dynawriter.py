@@ -28,8 +28,8 @@ import pytest
 import pyvista as pv
 import pyvista.examples as examples
 
-from ansys.heart.core.models import FullHeart
-from ansys.heart.core.objects import (
+from ansys.health.heart.models import FullHeart
+from ansys.health.heart.objects import (
     Mesh,
     Part,
     PartType,
@@ -38,8 +38,8 @@ from ansys.heart.core.objects import (
     _BeamsMesh,
     _ConductionType,
 )
-from ansys.heart.core.settings.settings import Mechanics, SimulationSettings, Stimulation
-import ansys.heart.core.writer.dynawriter as writers
+from ansys.health.heart.settings.settings import Mechanics, SimulationSettings, Stimulation
+import ansys.health.heart.writer.dynawriter as writers
 
 
 def _get_mock_conduction_system() -> _BeamsMesh:

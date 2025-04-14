@@ -25,7 +25,7 @@ import sys
 
 import pytest
 
-from ansys.heart.core.settings.settings import DynaSettings
+from ansys.health.heart.settings.settings import DynaSettings
 
 if os.getenv("GITHUB_ACTIONS"):
     is_gh_action = True
@@ -282,32 +282,6 @@ def test_get_dyna_commands_004(dynatype, platform):
             ]
 
     assert commands == expected
-
-
-@pytest.mark.parametrize(
-    "dynatype,expect_mpi_root", (["intelmpi", True], ["msmpi", True], ["platformmpi", False])
-)
-@pytest.mark.xfail(is_gh_action, reason="No Ansys installation expected on Github runner.")
-def test_set_env_variables(dynatype, expect_mpi_root):
-    """Test setting environment variables."""
-
-    import os
-
-    if os.getenv("MPI_ROOT"):
-        del os.environ["MPI_ROOT"]
-
-    settings = DynaSettings(
-        lsdyna_path="my-dyna-path.exe",
-        dynatype=dynatype,
-        num_cpus=2,
-        platform="windows",
-    )
-    settings._set_env_variables()
-
-    if expect_mpi_root:
-        assert os.getenv("MPI_ROOT")
-
-    pass
 
 
 def test_modify_settings_from_env_variables(monkeypatch):

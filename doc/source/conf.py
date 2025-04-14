@@ -133,17 +133,19 @@ pyvista.BUILDING_GALLERY = True
 build_with_ansys_deps = bool(os.getenv("BUILD_WITH_ANSYS_DEPS", False))
 skip_long = bool(os.getenv("SKIP_LONG_GALLERY_EXAMPLES", True))
 
+print(f"Build with deps: {build_with_ansys_deps} | skip long: {skip_long}")
+
 if not build_with_ansys_deps:
     # skip files starting with inc
-    gallery_filename_pattern = r".\/^(?!.*inc).*\.py"
+    gallery_filename_pattern = r"/^(?!inc).*\.py"
 
 if build_with_ansys_deps:
     if skip_long:
-        # skip files starting with inc-long
-        gallery_filename_pattern = r".\/^(?!.*inc-long).*\.py"
+        # include with no prefixes and with "inc-fast" prefix, but not include inc-long
+        gallery_filename_pattern = r"/^(?!inc-long).*\.py"
     else:
         # include all .py files
-        gallery_filename_pattern = r".\/.*\.py"
+        gallery_filename_pattern = r"/.*\.py"
 
 
 sphinx_gallery_conf = {

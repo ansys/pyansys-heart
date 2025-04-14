@@ -288,7 +288,7 @@ class HeartModelUtils:
         endo_surface = model.mesh.get_surface(surface_ids)
 
         right_bundle = ConductionBeams.create_from_keypoints(
-            name=ConductionBeamType.LEFT_BUNDLE_BRANCH,
+            name=ConductionBeamType.RIGHT_BUNDLE_BRANCH,
             keypoints=[his_right_point.xyz, model.right_ventricle.apex_points[0].xyz],
             id=6,
             base_mesh=endo_surface,

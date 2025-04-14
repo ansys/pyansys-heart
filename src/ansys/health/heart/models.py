@@ -46,7 +46,10 @@ from ansys.health.heart.objects import (
     SurfaceMesh,
     _BeamsMesh,
 )
-from ansys.health.heart.pre.conduction_beam2 import ConductionBeams, _read_purkinje_from_kfile
+from ansys.health.heart.pre.conduction_beam2 import (
+    ConductionBeams,
+    _read_purkinje_from_kfile,
+)
 from ansys.health.heart.pre.input import _InputModel
 import ansys.health.heart.pre.mesher as mesher
 from ansys.health.heart.settings.material.ep_material import EPMaterial
@@ -295,8 +298,88 @@ class HeartModel:
 
         for beam in beams:
             self._conduction_beams.append(beam)
-            # tempo operation to convert mesh as beammesh
-            self._conduction_system.add_lines(beam.mesh, beam.id, "tempo")
+
+            registered_name = [c.name for c in self._conduction_beams]
+            ids = []
+            if beam._up is not None:
+                if beam._up in registered_name:
+                    target = next(i for i in self._conduction_beams if i.name == beam._up)
+                    LOGGER.info(
+                        f"merging first node of {beam.name} in to last node of {target.name},\
+                        distance is {np.linalg.norm(target.mesh.points[-1] - beam.mesh.points[0])}"
+                    )
+                    ids.append(0)
+            if beam._down is not None:
+                if beam._down in registered_name:
+                    target = next(i for i in self._conduction_beams if i.name == beam._down)
+                    LOGGER.info(
+                        f"merging last node of {beam.name} in to first node of {target.name},\
+                        distance is {np.linalg.norm(target.mesh.points[0] - beam.mesh.points[-1])}"
+                    )
+                    ids.append(-1)
+
+            self._conduction_system = self._safe_line_merge(self._conduction_system, beam.mesh, ids)
+
+    @staticmethod
+    def _safe_line_merge(base: Mesh, add_mesh: Mesh, mereged_id: list) -> Mesh:
+        """
+        Merge lines by explicitly define IDs to be merged.
+
+        TODO: move it to Mesh.
+        """
+
+        def get_lines(m: pv.UnstructuredGrid | pv.PolyData):
+            if m.GetNumberOfCells() == 0:
+                return np.empty(shape=(0, 2), dtype=np.int_)
+            if isinstance(m, pv.UnstructuredGrid):
+                return m.cells.reshape(-1, 3)[:, 1:]
+            elif isinstance(m, pv.PolyData):
+                return m.lines.reshape(-1, 3)[:, 1:]
+
+        base_points = base.points
+        base_lines = get_lines(base)
+
+        if base.GetNumberOfCells() == 0:
+            point_data = np.empty(shape=(0,))
+            cell_data = np.empty(shape=(0,))
+        else:
+            point_data = base.point_data["_is-connected"]
+            cell_data = base.cell_data["_line-id"]
+
+        if mereged_id == []:
+            # no merge
+            new_points = add_mesh.points
+            new_point_data = add_mesh.point_data["_is-connected"]
+            new_lines = get_lines(add_mesh) + len(base_points)
+
+        elif mereged_id == [0]:
+            new_points = add_mesh.points[1:]
+            new_point_data = add_mesh.point_data["_is-connected"][1:]
+            # first node is merged, lead to an offset of all lines
+            new_lines = get_lines(add_mesh) + len(base_points) - 1
+
+        elif mereged_id == [0, -1]:
+            new_points = add_mesh.points[1:-1]
+            new_point_data = add_mesh.point_data["_is-connected"][1:-1]
+            # first node is merged, lead to an offset of all lines
+            new_lines = get_lines(add_mesh) + len(base_points) - 1
+            # last node is merged, replace to the closet point in base mesh
+            new_lines[-1, 1] = base.find_closest_point(add_mesh.points[-1])
+        elif mereged_id == [-1]:
+            NotImplementedError("Do not handle this merge lines.")
+        else:
+            NotImplementedError("Do not handle merge lines at random point.")
+
+        merged = pv.PolyData()
+        merged.points = np.vstack((base_points, new_points))
+        merged_lines = np.vstack((base_lines, new_lines))
+        merged.lines = np.hstack(
+            (2 * np.ones(len(merged_lines), dtype=int)[:, np.newaxis], merged_lines)
+        )
+        merged.cell_data["_line-id"] = np.hstack((cell_data, add_mesh.cell_data["_line-id"]))
+        merged.point_data["_is-connected"] = np.hstack((point_data, new_point_data))
+
+        return Mesh(merged)
 
     def __str__(self):
         """Represent self as string."""

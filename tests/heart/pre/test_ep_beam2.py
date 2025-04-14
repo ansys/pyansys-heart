@@ -23,7 +23,6 @@
 import os
 
 import numpy as np
-import pytest
 import pyvista as pv
 
 from ansys.health.heart.models_utils import HeartModelUtils
@@ -56,7 +55,6 @@ def meshes_equal(mesh1: pv.DataSet, mesh2: pv.DataSet) -> bool:
     return True
 
 
-@pytest.xfail("Unfinished development.")
 def test_conduction():
     model = get_fullheart()
     folder = os.path.join(
@@ -73,26 +71,21 @@ def test_conduction():
     res = model._conduction_system
 
     # old method
-    from ansys.health.heart.pre.conduction_beam import _compute_heart_conductionsystem
+    # from ansys.health.heart.pre.conduction_beam import _compute_heart_conductionsystem
 
-    f1 = os.path.join(folder, "purkinjeNetwork_001.k")
-    f2 = os.path.join(folder, "purkinjeNetwork_002.k")
-    model.add_purkinje_from_kfile(f1, _ConductionType.LEFT_PURKINJE.value)
-    model.add_purkinje_from_kfile(f2, _ConductionType.RIGHT_PURKINJE.value)
-    _compute_heart_conductionsystem(model, 1.5)
+    # f1 = os.path.join(folder, "purkinjeNetwork_001.k")
+    # f2 = os.path.join(folder, "purkinjeNetwork_002.k")
+    # model.add_purkinje_from_kfile(f1, _ConductionType.LEFT_PURKINJE.value)
+    # model.add_purkinje_from_kfile(f2, _ConductionType.RIGHT_PURKINJE.value)
+    # _compute_heart_conductionsystem(model, 1.5)
 
     ref = pv.read(os.path.join(folder, "conduction.vtu"))
 
     assert res.n_cells == ref.n_cells
     assert res.n_points == ref.n_points
-    # assert np.allclose(res.points, ref.points,atol=1e-3)
+    assert np.allclose(res.points, ref.points, atol=1e-3)
     assert np.array_equal(res["_line-id"], ref["_line-id"])
-
-    assert np.all(
-        model.conduction_beams[0].is_connected
-        == ref.extract_cells(ref["_line-id"] == 1)["_is-connected"],
-    )
-    pass
+    assert np.array_equal(res["_is-connected"], ref["_is-connected"])
 
 
 def test_conductionbeams_init():

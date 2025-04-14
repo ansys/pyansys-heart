@@ -56,6 +56,34 @@ class ConductionBeamType(Enum):
     """Bachmann bundle."""
 
 
+connections = {
+    ConductionBeamType.LEFT_PURKINJE: [ConductionBeamType.HIS_LEFT, None],
+    ConductionBeamType.RIGHT_PURKINJE: [ConductionBeamType.HIS_RIGHT, None],
+    ConductionBeamType.SAN_AVN: [None, ConductionBeamType.HIS_TOP],
+    ConductionBeamType.HIS_TOP: [
+        ConductionBeamType.SAN_AVN,
+        None,  # [ConductionBeamType.HIS_LEFT, ConductionBeamType.HIS_RIGHT],
+    ],
+    ConductionBeamType.HIS_LEFT: [
+        ConductionBeamType.HIS_TOP,
+        ConductionBeamType.LEFT_BUNDLE_BRANCH,
+    ],
+    ConductionBeamType.HIS_RIGHT: [
+        ConductionBeamType.HIS_TOP,
+        ConductionBeamType.RIGHT_BUNDLE_BRANCH,
+    ],
+    ConductionBeamType.LEFT_BUNDLE_BRANCH: [
+        ConductionBeamType.HIS_LEFT,
+        ConductionBeamType.LEFT_PURKINJE,
+    ],
+    ConductionBeamType.RIGHT_BUNDLE_BRANCH: [
+        ConductionBeamType.HIS_RIGHT,
+        ConductionBeamType.RIGHT_PURKINJE,
+    ],
+    ConductionBeamType.BACHMANN_BUNDLE: [ConductionBeamType.SAN_AVN, None],
+}
+
+
 class ConductionBeams:
     """Conduction beams class."""
 
@@ -95,6 +123,11 @@ class ConductionBeams:
         self.ep_material = material
 
         self._assign_data()
+        self._assign_connection()
+
+    def _assign_connection(self):
+        self._up = connections[self.name][0]
+        self._down = connections[self.name][1]
 
     def _assign_data(self):
         # tempo script to support old structure

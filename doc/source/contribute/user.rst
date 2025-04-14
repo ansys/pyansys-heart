@@ -69,7 +69,7 @@ Report bugs
 If you encounter a bug or an issue while using the project, report it.
 Your feedback helps to identify problems and get them resolved.
 
-- Search the `PyAnsys Heart issues`_ page to see if the issue has already been reported.
+- Search the `PyAnsys Heart Issues`_ page to see if the issue has already been reported.
 
 - Create an issue if one doesn't already exist.
 
@@ -84,7 +84,7 @@ Request a new feature
 =====================
 
 Do you have an idea for a new feature or an improvement? Your suggestions are
-welcome. You can request a new feature by creating an issue in the `PyAnsys Heart issues`_
+welcome. You can request a new feature by creating an issue on the `PyAnsys Heart Issues`_
 page.
 
 .. _test-a-new-feature:
@@ -92,9 +92,9 @@ page.
 Test a new feature
 ==================
 
-It is possible to test a new feature before it is officially released. To do
+You can test a new feature before it is officially released. To do
 so, you can install PyAnsys Heart from the source code by performing the
-following steps.
+steps in the following child topics.
 
 Clone the repository
 --------------------
@@ -182,10 +182,10 @@ Install the latest version
 Start a discussion
 ==================
 
-Complex topics may require a discussion. Whether you want to know how to use
+Complex topics might require a discussion. Whether you want to know how to use
 PyAnsys Heart for solving your specific problem or you have a suggestion for a new
 feature, a discussion is a good place to start. You can open a new discussion
-in the `PyAnsys Heart discussions`_ page.
+on the `PyAnsys Heart Discussions`_ page.
 
 .. _answer-questions:
 

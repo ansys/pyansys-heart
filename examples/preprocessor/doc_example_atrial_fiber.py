@@ -92,16 +92,16 @@ model.mesh.cell_data["sheet"] = np.zeros((model.mesh.n_cells, 3))
 # Compute atrial fibers
 # ~~~~~~~~~~~~~~~~~~~~~
 
-# Compute left atrium fiber
+# compute left atrium fiber
 la = simulator.compute_left_atrial_fiber()
 
-# Appendage apex point should be manually given to compute right atrium fiber
+# to compute right atrium fiber, give the appendage apex point
 appendage_apex = [-33, 82, 417]
 ra = simulator.compute_right_atrial_fiber(appendage_apex)
 
 ###############################################################################
 # .. note::
-#    You may need to define an appropriate point for the right atrial appendage.
+#    You might need to define an appropriate point for the right atrial appendage.
 #    The list specifies the x, y, and z coordinates close to the appendage.
 
 ###############################################################################
@@ -154,7 +154,7 @@ plotter.show()
 
 ###############################################################################
 
-# Atrial fibers are automatically assigned to heart model after computation
+# atrial fibers are automatically assigned to the heart model after computation
 
 plotter = pv.Plotter()
 mesh = model.mesh.ctp()

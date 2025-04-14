@@ -61,7 +61,7 @@ path_to_model = str(workdir / "heart_model.vtu")
 ###############################################################################
 # Load the full-heart model
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
-# Load the four-chamber heart model.
+# Load the full-heart model.
 model: models.FullHeart = models.FullHeart(working_directory=workdir)
 model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
 

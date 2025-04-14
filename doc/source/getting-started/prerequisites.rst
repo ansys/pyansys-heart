@@ -12,7 +12,7 @@ Ansys tools
 -----------
 
 This framework was developed and tested under `Python 3.10 <Python310_>`_, `Python 3.11 <Python311_>`_, and `Python 3.12 <Python312_>`_.
-Before starting the installation, run the ``python --version`` command and check that it is one of the supported versions.
+Before starting the installation, run the ``python --version`` command and check that you are using one of the supported versions.
 
 Software
 --------
@@ -32,7 +32,7 @@ Software
     - `Ansys Customer Portal`_
 
   * - Ansys DPF Server
-    - 2024.1 (2024R1 installation), 2024.1rc1, 2024.2rc0
+    - 2024.1 (comes with the 2024 R1 installation), 2024.1rc1, 2024.2rc0
     - Postprocessor
     - `Ansys Customer Portal`_
 

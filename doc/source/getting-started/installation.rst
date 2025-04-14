@@ -5,7 +5,7 @@ This page explains how to install PyAnsys Heart from PyPI, the GitHub source cod
 
 .. note::
 
-    If you do not have access to PyAnsys Heart, follow the instructions in :ref:`_install_from_wheel`.
+    If you do not have access to PyAnsys Heart, follow the instructions in :ref:`install_from_wheel`.
     You might need to request the wheel file from your Ansys contact.
 
 .. warning::
@@ -53,7 +53,7 @@ Then, verify the installation:
 Install from a wheel file
 -------------------------
 
-If you lack an internet connection, you can install PyAnsys Heart from a wheel file.
+If you do not have an internet connection, you can install PyAnsys Heart from a wheel file.
 Download the wheelhouse archive for your corresponding machine architecture
 from the `repository’s Releases page <PyAnsys Heart release page_>`_.
 

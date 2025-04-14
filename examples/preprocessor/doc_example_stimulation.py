@@ -25,10 +25,9 @@
 
 Define an EP stimulation
 ------------------------
-This example shows how to define an EP stimulation. It demonstrates how to
-load a pre-computed heart model and define a stimulation region based
-on a sphere centered on the apex and a sphere centered on a point chosen in UVCs
-(Universal Ventricular Coordinates).
+This example shows how to define an EP stimulation. It loads a pre-computed heart
+model and defines a stimulation region based on a sphere centered on the apex and
+a sphere centered on a point chosen in UVCs (Universal Ventricular Coordinates).
 """
 
 ###############################################################################

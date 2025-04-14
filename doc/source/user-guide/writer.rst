@@ -8,12 +8,12 @@ The :attr:`DynaWriter <ansys.heart.writer.dynawriter>` base class generates LS-D
 
 Based on different applications, different writers must be created.
 
-    - :attr:`PurkinjeGenerationDynaWriter`: Generates an LS-DYNA input deck for creating a Purkinje network.
-    - :attr:`FiberGenerationDynaWriter`: Generates an LS-DYNA input deck for creating fiber orientation vectors.
-    - :attr:`MechanicsDynaWriter`: Generates an LS-DYNA input deck for mechanical simulations.
-    - :attr:`ZeroPressureMechanicsDynaWriter`: Generates an LS-DYNA input deck for stress-free configuration simulations.
-    - :attr:`ElectrophysiologyDynaWriter`: Generates an LS-DYNA input deck for electrophysiology simulations.
-    - :attr:`ElectroMechanicsDynaWriter`: Generates an LS-DYNA input deck for electrical-mechanical coupled simulations.
+- :attr:`PurkinjeGenerationDynaWriter`: Generates an LS-DYNA input deck for creating a Purkinje network.
+- :attr:`FiberGenerationDynaWriter`: Generates an LS-DYNA input deck for creating fiber orientation vectors.
+- :attr:`MechanicsDynaWriter`: Generates an LS-DYNA input deck for mechanical simulations.
+- :attr:`ZeroPressureMechanicsDynaWriter`: Generates an LS-DYNA input deck for stress-free configuration simulations.
+- :attr:`ElectrophysiologyDynaWriter`: Generates an LS-DYNA input deck for electrophysiology simulations.
+- :attr:`ElectroMechanicsDynaWriter`: Generates an LS-DYNA input deck for electrical-mechanical coupled simulations.
 
 Here is a simple code example:
 

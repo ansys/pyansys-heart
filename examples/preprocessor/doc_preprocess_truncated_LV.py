@@ -80,7 +80,7 @@ base.cell_data["surface-id"] = 3
 ellips_endo.cell_data["surface-id"] = 1
 ellips_epi.cell_data["surface-id"] = 2
 
-# combine into single poly data object
+# combine into single polydata object
 heart: pv.PolyData = ellips_endo + ellips_epi + base
 heart.plot(show_edges=True)
 
@@ -90,10 +90,10 @@ heart.plot(show_edges=True)
 #    :align: center
 
 ###############################################################################
-# Convert input to a HeartModel
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Convert input to a heart model
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# construct part definition dictionary
+# Construct the part definition dictionary.
 part_definitions = {
     "Left ventricle": {
         "id": 1,
@@ -107,7 +107,7 @@ part_definitions = {
 
 # Use the combined polydata `heart` as input, where "surface-id" identifies each
 # of the relevant regions.
-# The part definitions are used to map the remeshed model to the HeartModel parts/boundaries.
+# The part definitions are used to map the remeshed model to the heart model parts and boundaries.
 path_to_model = os.path.join(workdir, "heart_model.pickle")
 
 # Initialize left-ventricular heart model.
@@ -125,7 +125,7 @@ model.load_input(heart, part_definitions, "surface-id")
 #
 # .. note::
 #
-#    The individual surfaces in the combined PolyData object are
+#    The individual surfaces in the combined ``PolyData`` object are
 #    unconnected. Using the wrapper automatically fixes any small gaps
 #    and ensures proper connectivity.
 

@@ -102,7 +102,7 @@ active = ACTIVE(model=ac_model1, ca2_curve=ac_curve1)
 ###############################################################################
 # Plot Ca2+ with threshold
 # ~~~~~~~~~~~~~~~~~~~~~~~~
-# plot Ca2+ with threshold
+# Plot Ca2+ with the threshold.
 fig = active.ca2_curve.plot_time_vs_ca2()
 plt.show()
 ###############################################################################

@@ -159,7 +159,7 @@ sphinx_gallery_conf = {
     "gallery_dirs": "examples",
     # Pattern to search for example files to execute.
     # The following will try to execute files prefixed with "inc-pr_"
-    "filename_pattern": r"inc-fast_.*\.py",
+    "filename_pattern": gallery_filename_pattern,
     # Remove the "Download all examples" button from the top level gallery
     "download_all_examples": False,
     # Sort gallery example by filename instead of number of lines (default)

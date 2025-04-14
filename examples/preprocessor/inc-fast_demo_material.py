@@ -34,7 +34,6 @@ This example show you how to create a mechanical material and assign it to a hea
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-import pyvista as pv
 
 from ansys.health.heart.settings.material.curve import (
     ActiveCurve,
@@ -50,8 +49,6 @@ from ansys.health.heart.settings.material.material import (
     Mat295,
     NeoHookean,
 )
-
-pv.OFF_SCREEN = True  # TODO: remove this, and use environment variable instead.
 
 ###############################################################################
 # .. note::

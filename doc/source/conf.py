@@ -125,6 +125,7 @@ numpydoc_validation_checks = {
 # Configuration for Sphinx gallery
 # -----------------------------------------------------------------------------
 pyvista.BUILDING_GALLERY = True
+pyvista.OFF_SCREEN = True
 
 # two flags control what examples to execute.
 # 1. build_with_ansys_deps: build examples that require Ansys products, prefixed by inc
@@ -137,7 +138,8 @@ print(f"Build with deps: {build_with_ansys_deps} | skip long: {skip_long}")
 
 if not build_with_ansys_deps:
     # skip files starting with inc
-    gallery_filename_pattern = r"/^(?!inc).*\.py"
+    # gallery_filename_pattern = r"/^(?!inc).*\.py"
+    gallery_filename_pattern = r"/inc-fast_"
 
 if build_with_ansys_deps:
     if skip_long:

@@ -43,8 +43,6 @@ from pathlib import Path
 import numpy as np
 import pyvista as pv
 
-pv.OFF_SCREEN = True
-
 from ansys.health.heart.examples import get_preprocessed_fullheart
 import ansys.health.heart.models as models
 from ansys.health.heart.simulator import BaseSimulator, DynaSettings

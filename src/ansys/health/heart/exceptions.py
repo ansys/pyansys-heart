@@ -20,11 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Custom exceptions for the PyAnsys-Heart package."""
+"""Custom exceptions for PyAnsys Heart."""
 
 
 class LSDYNATerminationError(BaseException):
-    """Exception raised when `Normal Termination` is not found in the LS-DYNA logs."""
+    """Exception raised when ``Normal Termination`` is not found in the LS-DYNA logs."""
 
     def __init__(self):
         super().__init__("The LS-DYNA process did not terminate as expected.")
@@ -57,4 +57,4 @@ class InvalidHeartModelError(Exception):
 
 
 class LSDYNANotFoundError(FileNotFoundError):
-    """LSDYNA executable not found."""
+    """Exception raised when the LS-DYNA executable file not found."""

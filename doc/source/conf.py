@@ -128,7 +128,7 @@ pyvista.BUILDING_GALLERY = True
 pyvista.OFF_SCREEN = True
 
 # use this environment variable to build nightly docs
-nightly_docs = bool(int(os.getenv("NIGHTLY_DOC_BUILD", True)))
+nightly_docs = bool(int(os.getenv("NIGHTLY_DOC_BUILD", False)))
 print(f"skip long examples: {nightly_docs}")
 
 if nightly_docs:

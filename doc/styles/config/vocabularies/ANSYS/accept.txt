@@ -44,3 +44,4 @@ Tox
 (?i)Zenodo
 namespace
 subpackages
+venv

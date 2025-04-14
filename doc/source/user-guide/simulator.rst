@@ -7,10 +7,10 @@ Simulator
 
 Different simulators must be created based on the application:
 
-    - :attr:`BaseSimulator`: The parent class for all other simulators. It holds general methods, such as fiber generation.
-    - :attr:`EPSimulator`: Runs electrophysiology cardiac simulations.
-    - :attr:`MechanicsSimulator`: Runs mechanical cardiac simulations.
-    - :attr:`EPMechanicsSimulator`: Runs electrical-mechanical coupled cardiac simulations.
+- :attr:`BaseSimulator`: The parent class for all other simulators. It holds general methods, such as fiber generation.
+- :attr:`EPSimulator`: Runs electrophysiology cardiac simulations.
+- :attr:`MechanicsSimulator`: Runs mechanical cardiac simulations.
+- :attr:`EPMechanicsSimulator`: Runs electrical-mechanical coupled cardiac simulations.
 
 Here is a simple code example:
 
@@ -31,7 +31,7 @@ Here is a simple code example:
     dyna_settings=dyna_settings,
     simulation_directory="output-path")
 
-Default modeling parameters are saved to the :attr:`<ansys.heart.simulator.settings.defaults>`_ attribute.
+Default modeling parameters are saved to the :attr:`ansys.heart.simulator.settings.defaults` attribute.
 You can load them into the simulator:
 
 .. code:: pycon

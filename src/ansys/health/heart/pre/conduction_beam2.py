@@ -207,6 +207,7 @@ class ConductionBeams:
 
         # build tree: beam_nodes and solid_points
         original_points_order = np.unique(edges[np.invert(mask)])
+        """TODO: only use points from model."""
         solid_points = model.mesh.points[original_points_order]
         connectivity = np.empty_like(edges)
         np.copyto(connectivity, edges)
@@ -230,7 +231,7 @@ class ConductionBeams:
         return ConductionBeams(name, beam_net, id, is_connected, base_mesh)
 
 
-def _create_line(point_start: np.array, point_end: np.array, beam_length: float) -> np.ndarray:
+def _fill_points(point_start: np.array, point_end: np.array, beam_length: float) -> np.ndarray:
     """Create points in a line defined by a start point and an end point.
 
     Parameters
@@ -251,21 +252,19 @@ def _create_line(point_start: np.array, point_end: np.array, beam_length: float)
     line_length = np.linalg.norm(line_vector)
     n_points = int(np.round(line_length / beam_length)) + 1
     points = np.zeros([n_points, 3])
-    # beams = np.zeros([n_points - 1, 2])
     points = np.linspace(point_start, point_end, n_points)
-    # beams[:, 0] = np.linspace(0, n_points - 2, n_points - 1, dtype=int)
-    # beams[:, 1] = np.linspace(0, n_points - 2, n_points - 1, dtype=int) + 1
     return points
 
 
-def _refine_line(nodes: np.array, beam_length: float) -> np.ndarray:
+def _refine_points(nodes: np.array, beam_length: float) -> np.ndarray:
     if beam_length is None:
         return nodes
+
     new_nodes = [nodes[0, :]]
     for beam_id in range(len(nodes) - 1):
         point_start = nodes[beam_id, :]
         point_end = nodes[beam_id + 1, :]
-        points = _create_line(point_start, point_end, beam_length=beam_length)
+        points = _fill_points(point_start, point_end, beam_length=beam_length)
         new_nodes = np.vstack((new_nodes, points[1:, :]))
     return new_nodes
 
@@ -298,7 +297,7 @@ def _create_path_on_surface(
         for point in path.points:
             path_points.append(point)
 
-    path_points = _refine_line(np.array(path_points), beam_length=refine_length)
+    path_points = _refine_points(np.array(path_points), beam_length=refine_length)
 
     return pv.lines_from_points(path_points)
 
@@ -336,7 +335,7 @@ def _create_path_in_solid(
     coords = sub_mesh.points[ids]
 
     #
-    new_nodes = _refine_line(coords, beam_length=refine_length)
+    new_nodes = _refine_points(coords, beam_length=refine_length)
     beamnet = pv.lines_from_points(new_nodes)
 
     # seg

@@ -127,16 +127,16 @@ numpydoc_validation_checks = {
 pyvista.BUILDING_GALLERY = True
 pyvista.OFF_SCREEN = True
 
-skip_long = bool(os.getenv("SKIP_LONG_GALLERY_EXAMPLES", True))
-print(f"skip long examples: {skip_long}")
+# use this environment variable to build nightly docs
+nightly_docs = bool(int(os.getenv("NIGHTLY_DOC_BUILD", True)))
+print(f"skip long examples: {nightly_docs}")
 
-if skip_long:
+if nightly_docs:
+    # executes all examples, including the time-intensive ones.
+    gallery_filename_pattern = r".*\.py"
+else:
     # only executes examples with suffix _pr.py
     gallery_filename_pattern = r".*(_pr\.py)"
-else:
-    # executes all examples
-    gallery_filename_pattern = r".*\.py"
-
 
 sphinx_gallery_conf = {
     # convert rst to md for ipynb

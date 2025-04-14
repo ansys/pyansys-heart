@@ -139,7 +139,7 @@ print(f"Build with deps: {build_with_ansys_deps} | skip long: {skip_long}")
 if not build_with_ansys_deps:
     # skip files starting with inc
     # gallery_filename_pattern = r"/^(?!inc).*\.py"
-    gallery_filename_pattern = r"/inc-fast_"
+    gallery_filename_pattern = r"inc-fast_.*\.py"
 
 if build_with_ansys_deps:
     if skip_long:
@@ -159,7 +159,7 @@ sphinx_gallery_conf = {
     "gallery_dirs": "examples",
     # Pattern to search for example files to execute.
     # The following will try to execute files prefixed with "inc-pr_"
-    "filename_pattern": gallery_filename_pattern,
+    "filename_pattern": r"inc-fast_.*\.py",
     # Remove the "Download all examples" button from the top level gallery
     "download_all_examples": False,
     # Sort gallery example by filename instead of number of lines (default)

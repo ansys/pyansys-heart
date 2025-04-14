@@ -86,8 +86,8 @@ heart.plot(show_edges=True)
 
 ###############################################################################
 # .. image:: /_static/images/truncated_LV_mesh_input.png
-#   :width: 400pt
-#   :align: center
+#    :width: 400pt
+#    :align: center
 
 ###############################################################################
 # Convert input to a HeartModel
@@ -124,6 +124,7 @@ model.load_input(heart, part_definitions, "surface-id")
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
 # .. note::
+#
 #    The individual surfaces in the combined PolyData object are
 #    unconnected. Using the wrapper automatically fixes any small gaps
 #    and ensures proper connectivity.
@@ -157,15 +158,15 @@ model.mesh.clip(crinkle=True).plot(show_edges=True)
 
 ###############################################################################
 # .. image:: /_static/images/truncated_LV_mesh.png
-#   :width: 400pt
-#   :align: center
+#    :width: 400pt
+#    :align: center
 
 ###############################################################################
 # Generate static images for documentation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# sphinx_gallery_start_ignore
 # Generate static images for docs.
-#
+
+# sphinx_gallery_start_ignore
 from pathlib import Path
 
 docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", "_static", "images")

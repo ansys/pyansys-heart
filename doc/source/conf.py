@@ -126,12 +126,24 @@ numpydoc_validation_checks = {
 # -----------------------------------------------------------------------------
 pyvista.BUILDING_GALLERY = True
 
-# takes string values "true" or "false" are valid
+# two flags control what examples to execute.
+# 1. build_with_ansys_deps: build examples that require Ansys products, prefixed by inc
+# 2. skip_long: skip examples that take a long time to run, prefixed by inc-long
+#
+build_with_ansys_deps = bool(os.getenv("BUILD_WITH_ANSYS_DEPS", False))
 skip_long = bool(os.getenv("SKIP_LONG_GALLERY_EXAMPLES", True))
-if skip_long:
-    gallery_filename_pattern = r"inc-fast_.*\.py"
-else:
-    gallery_filename_pattern = r"inc-long_.*\.py"
+
+if not build_with_ansys_deps:
+    # skip files starting with inc
+    gallery_filename_pattern = r".\/^(?!.*inc).*\.py"
+
+if build_with_ansys_deps:
+    if skip_long:
+        # skip files starting with inc-long
+        gallery_filename_pattern = r".\/^(?!.*inc-long).*\.py"
+    else:
+        # include all .py files
+        gallery_filename_pattern = r".\/.*\.py"
 
 
 sphinx_gallery_conf = {

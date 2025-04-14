@@ -23,6 +23,7 @@
 """Hold Stateless methods for HeartModel."""
 
 from dataclasses import dataclass
+import os
 from typing import Literal
 
 import numpy as np
@@ -217,8 +218,26 @@ class HeartModelUtils:
         NotImplementedError
 
     @staticmethod
-    def define_default_conduction_system(model: HeartModel) -> list[ConductionBeams]:
-        """TODO: except Purkinje."""
+    def define_default_conduction_system(
+        model: HeartModel, purkinje_folder: str
+    ) -> list[ConductionBeams]:
+        """TODO: define for LV BV and 4C."""
+        left_pirkinje = ConductionBeams.create_from_k_file(
+            ConductionBeamType.LEFT_PURKINJE,
+            k_file=os.path.join(purkinje_folder, "purkinjeNetwork_001.k"),
+            id=1,
+            base_mesh=model.left_ventricle.endocardium,
+            model=model,
+        )
+
+        right_pirkinje = ConductionBeams.create_from_k_file(
+            ConductionBeamType.RIGHT_PURKINJE,
+            k_file=os.path.join(purkinje_folder, "purkinjeNetwork_002.k"),
+            id=2,
+            base_mesh=model.right_ventricle.endocardium,
+            model=model,
+        )
+
         sa = HeartModelUtils.define_sino_atrial_node(model)
         av = HeartModelUtils.define_atrio_ventricular_node(model)
 
@@ -276,4 +295,13 @@ class HeartModelUtils:
             connection="none",  # TODO: change to 'last'?
             refine_length=None,
         )
-        return [sa_av, his_top, his_left, his_right, left_bundle, right_bundle]
+        return [
+            left_pirkinje,
+            right_pirkinje,
+            sa_av,
+            his_top,
+            his_left,
+            his_right,
+            left_bundle,
+            right_bundle,
+        ]

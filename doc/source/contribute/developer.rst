@@ -15,7 +15,7 @@ Contribute as a developer
         :link: clone-the-repository
         :link-type: ref
 
-        Clone the repository to download the copy to your local machine.``
+        Clone the repository to download the copy to your local machine.
 
     .. grid-item-card:: :fa:`download` Install for developers
         :padding: 2 2 2 2

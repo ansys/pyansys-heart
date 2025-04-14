@@ -110,12 +110,6 @@ jobs:
         with:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
 
-      - name: Install DPF
-        uses: ansys/pydpf-actions/install-dpf-server@v2.3
-        with:
-          dpf-standalone-TOKEN: ${{ secrets.PYANSYS_CI_BOT_TOKEN }}
-          ANSYS_VERSION : ${{ env.ANSYS_VERSION }}
-
       - name: "Install Tox"
         run: |
           uv tool install tox --with tox-uv

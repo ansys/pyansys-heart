@@ -131,10 +131,11 @@ skip_long = bool(os.getenv("SKIP_LONG_GALLERY_EXAMPLES", True))
 print(f"skip long examples: {skip_long}")
 
 if skip_long:
-    # skip long examples
-    gallery_filename_pattern = r"inc-fast_.*\.py"
+    # only executes examples with suffix _pr.py
+    gallery_filename_pattern = r".*(_pr\.py)"
 else:
-    gallery_filename_pattern = r"inc-.*\.py"
+    # executes all examples
+    gallery_filename_pattern = r".*\.py"
 
 
 sphinx_gallery_conf = {

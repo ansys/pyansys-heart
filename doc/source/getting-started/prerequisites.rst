@@ -39,7 +39,7 @@ Software
   * - Ansys LS-DYNA
     - 16.0.0 IntelMPI double precision, 16.0.0 MSMPI double precision
     - Simulator
-    - `Ansys LSDYNA Product Space_` or contact the `PyAnsys Core team <pyansys_core_>`_ to get more information.
+    - `Ansys LSDYNA Product Space`_ or contact the `PyAnsys Core team <pyansys_core_>`_ to get more information.
 
 .. note::
 

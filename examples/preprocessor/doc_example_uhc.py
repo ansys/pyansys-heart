@@ -23,7 +23,7 @@
 """
 
 Compute UHCs for the ventricles
-----------------------_--------
+-------------------------------
 This example shows how to compute UHCs (universal heart coordinates) for
 the ventricles.
 """

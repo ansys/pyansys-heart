@@ -974,7 +974,7 @@ class DynaSettings:
         if self.platform == "windows" or self.platform == "linux":
             if self.dynatype in ["intelmpi", "platformmpi"]:
                 commands = [
-                    "mpirun",
+                    "mpiexec",
                     self.mpi_options,
                     "-np",
                     str(self.num_cpus),
@@ -1021,7 +1021,7 @@ class DynaSettings:
 
             if self.dynatype in ["intelmpi", "platformmpi", "msmpi"]:
                 commands = [
-                    "mpirun",
+                    "mpiexec",
                     self.mpi_options,
                     "-np",
                     str(self.num_cpus),

@@ -720,9 +720,7 @@ class HeartModel:
         try:
             import matplotlib as matplotlib
         except ImportError:
-            LOGGER.warning(
-                "Matplotlib is not found. Install with the 'pip install matplotlib' command."
-            )
+            LOGGER.warning("Matplotlib is not found. Install with 'pip install matplotlib'.")
             return
 
         surfaces_to_plot = [s for p in self.parts for s in p.surfaces]
@@ -1429,7 +1427,7 @@ class HeartModel:
         option: Literal["endocardium", "epicardium", "myocardium"] = "epicardium",
         radius: float = 3,
     ) -> np.ndarray:
-        """Get a node set around the apex point.
+        """Get a nodeset around the apex point.
 
         Parameters
         ----------
@@ -1443,7 +1441,7 @@ class HeartModel:
         Returns
         -------
         np.ndarray
-            Apex node set
+            Apex nodeset
         """
         import scipy.spatial as spatial
 

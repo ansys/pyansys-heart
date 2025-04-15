@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Module contains methods for mesh operations related to the vtk library."""
+"""Module contains methods for mesh operations related to the VTK library."""
 
 import copy
 
@@ -37,16 +37,16 @@ def compute_surface_nodal_area_pyvista(surface: pv.PolyData) -> np.ndarray:
     Parameters
     ----------
     vtk_surface : vtk.vtkPolyData
-        Vtk object describing the object
+        VTK object describing the object.
 
     Returns
     -------
     np.array
-        Numpy array with nodal areas of length number of points
+        NumPy array with nodal areas of length number of points.
 
     Notes
     -----
-    Adds the partial areas of connected elements/cells to each node.
+    This method adds the partial areas of connected elements/cells to each node.
 
     """
     num_points = surface.n_points
@@ -79,16 +79,16 @@ def extrude_polydata(
     ----------
     surface : pv.PolyData
         Surface to extrude
-    extrude_by : float, optional
-        Extrude by this much, by default 1
-    extrude_direction : np.array, optional
-        Direction of extrusion, should have three components if not specified
-        extrudes in normal direction
+    extrude_by : float, default: 1
+        Amount to extrude.
+    extrude_direction : np.array, default: np.empty(0)
+        Direction of extrusion, which should have three components. If no
+        components are specified, it extrudes in the normal direction.
 
     Returns
     -------
     pv.PolyData
-        Extruded PolyData object
+        Extruded PolyData object.
     """
     extrude_normal = False
     if len(extrude_direction) == 0:
@@ -117,27 +117,27 @@ def extrude_polydata(
 def cell_ids_inside_enclosed_surface(
     source: pv.UnstructuredGrid | pv.PolyData, surface: pv.PolyData, tolerance: float = 1e-9
 ) -> np.ndarray:
-    """Get cell ids of cells of which the centroids are inside a given surface.
+    """Get IDs of cells with centroids that are inside a given surface.
 
     Parameters
     ----------
     source : pv.UnstructuredGrid
-        Source object of which to check which cells are inside/outside
-        the specified surface
+        Source object to check which cells are inside/outside
+        the specified surface.
     surface : pv.PolyData
-        Surface used to check whether cells are inside/outside.
-    tolerance : float, optional
-        Tolerance for the select_enclosed_points filter, by default 1e-9
+        Surface to check whether cells are inside/outside.
+    tolerance : float, default: 1e-9
+        Tolerance for the ``select_enclosed_points`` filter.
 
     Notes
     -----
-    This also accepts a source that represent the cell centroids. In this case we can skip computing
-    the cell_centers.
+    This method also accepts a source that represents the cell centroids.
+    In this case, computing the cell centers is skipped.
 
     Returns
     -------
     np.ndarray
-        Array with cell ids that are inside the enclosed surface.
+        Array with cell IDs that are inside the enclosed surface.
     """
     surface = surface.compute_normals()
     if isinstance(source, pv.PolyData) and source.n_verts == source.n_points:
@@ -157,16 +157,16 @@ def find_cells_close_to_nodes(
     Parameters
     ----------
     mesh : pv.UnstructuredGrid
-        target mesh
+        Target mesh.
     node_ids : list[int]
-        node IDs
-    radius : float, optional
-        influence radius, by default 2
+        Node IDs.
+    radius : float, default: 2
+        Influence radius.
 
     Returns
     -------
     np.ndarray
-        cell IDs
+        Cell IDs.
     """
     # Get coordinates of the given node IDs
     points = mesh.points[node_ids]
@@ -179,7 +179,7 @@ def find_cells_close_to_nodes(
         # Create a sphere at the given point
         sphere = pv.Sphere(radius=radius, center=point)
 
-        # Use boolean intersection to find cells that intersect with the sphere
+        # Use Boolean intersection to find cells that intersect with the sphere
         selection = mesh.select_enclosed_points(sphere, tolerance=0.0)
 
         # Get the indices of the cells
@@ -227,18 +227,18 @@ def get_boundary_edge_loops(
     Parameters
     ----------
     surface : pv.PolyData
-        Surface mesh to check for boundary edges
-    remove_open_edge_loops : bool, optional
-        Removes open edge loops from the return dictionary, by default True
+        Surface mesh to check for boundary edges.
+    remove_open_edge_loops : bool, default: True
+        Whether to remove open edge loops from the returned dictionary.
 
     Returns
     -------
     dict
-        dictionary with the edges that make up the open/closed loop
+        Dictionary with the edges that make up the open/closed loop.
     """
     # NOTE: Perhaps more consistent to return a pyvista polydata.
 
-    # add cell and point ids to keep track of ids.
+    # add cell and point IDs to keep track of IDs.
     surface1 = copy.deepcopy(surface)
     surface1.cell_data["original-cell-ids"] = np.arange(0, surface1.n_cells)
     surface1.point_data["original-point-ids"] = np.arange(0, surface1.n_points)
@@ -246,13 +246,13 @@ def get_boundary_edge_loops(
     # get boundary edges separated by connectivity
     edges_block = get_boundary_edges(surface1)
 
-    # lines formed with original point ids
+    # lines formed with original point IDs
     edge_groups = {
         k: edges.point_data["original-point-ids"][edges.cells_dict[3]]
         for k, edges in enumerate(edges_block)
     }
 
-    # check if it is a closed or open edge-loop, remove open ones.
+    # check if it is a closed or open edge loop. Remove open ones.
     group_types = {}
     closed_edge_groups = {}
     for k, edge_group in edge_groups.items():
@@ -276,15 +276,14 @@ def get_boundary_edge_loops(
 
 
 def get_patches_delaunay(surface: pv.PolyData, closed_only: bool = True) -> list[pv.PolyData]:
-    """Patch boundary edges with a delaunay algorithm.
+    """Patch boundary edges with a Delaunay algorithm.
 
     Parameters
     ----------
     surface : pv.PolyData
-        Surface with boundary edges for which to find patches.
-    closed_only : bool
-        Flag indicating whether to return patches for closed loops of boundary edges,
-        by default True
+        Surface with boundary edges to find patches for.
+    closed_only : bool, default: True
+        Whether to return patches for closed loops of boundary edges.
 
     Returns
     -------
@@ -326,14 +325,13 @@ def get_patches_with_centroid(
     Parameters
     ----------
     surface : pv.PolyData
-        Surface with boundary edges for which to find patches.
-    closed_only : bool
-        Flag indicating whether to return patches for closed loops of boundary edges,
-        by default True
+        Surface with boundary edges to find patches for.
+    closed_only : bool, default: True
+        Whether to return patches for closed loops of boundary edges.
 
     Notes
     -----
-    Edges need to be sorted properly for this method to return sensible patches.
+    Edges must be sorted properly for this method to return sensible patches.
 
     Returns
     -------
@@ -378,7 +376,7 @@ def get_patches_with_centroid(
 def are_connected(
     mesh1: pv.PolyData | pv.UnstructuredGrid, mesh2: pv.PolyData | pv.UnstructuredGrid
 ) -> bool:
-    """Check whether two PolyData or UnstructuredGrids are connected.
+    """Check whether two ``PolyData`` or ``UnstructuredGrids`` objects are connected.
 
     Parameters
     ----------
@@ -415,11 +413,11 @@ def are_connected(
 
 
 def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii") -> None:
-    """Add name of solid to stl file.
+    """Add name of the solid to STL file.
 
     Notes
     -----
-    Supports only single block.
+    This method supports only a single block.
 
     """
     if file_type == "ascii":
@@ -452,29 +450,29 @@ def find_corresponding_points(
     Parameters
     ----------
     master_surface : pv.PolyData
-        first surface
+        First surface.
     slave_surface : pv.PolyData
-        second surface
+        Second surface.
     distance : float
-        approximate largest distance between two surfaces
+        Approximate largest distance between two surfaces.
 
     Returns
     -------
     np.ndarray
         2*N array
-        first row is node IDs of master surface,
-        second row is corresponding node IDs on the slave surface
-        None if no corresponding node is found
+        The first row contains node IDs of the master surface.
+        The second row contains corresponding node IDs on the slave surface.
+        If no corresponding node is found, ``None`` is returned.
 
     Notes
     -----
-    Uses ray tracing.
+    This method uses ray tracing.
     The two surfaces are assumed to be close and nearly parallel.
-    As a result, the correspondence is not one-to-one—some points may
-    have no corresponding match, while others may share the same
+    As a result, the correspondence is not one to one. Some points might
+    have no corresponding match, while others might share the same
     corresponding point.
     """
-    # NOTE: using UVC coordinates leads to a shift in
+    # NOTE: Using UVCs lead to a shift in the
     # longitudinal direction from epicardium to endocardium and is thus not an option.
 
     # Compute normal of master surface
@@ -517,16 +515,16 @@ def generate_thickness_lines(
     Parameters
     ----------
     surface1 : pv.PolyData
-        master surface
+        Master surface.
     surface2 : pv.PolyData
-        slave surface
-    res : np.ndarray, optional
-        corresponding points array, default None
+        Slave surface.
+    corresponding_points : np.ndarray, default: None
+        Corresponding points array.
 
     Returns
     -------
     pv.PolyData
-        it contains cell data named 'thickenss'.
+        Object contains cell data named ``thickness``.
     """
     if corresponding_points is None:
         corresponding_points = find_corresponding_points(surface1, surface2)

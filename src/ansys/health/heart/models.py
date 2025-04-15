@@ -305,17 +305,13 @@ class HeartModel:
                 if beam._up in registered_name:
                     target = next(i for i in self._conduction_beams if i.name == beam._up)
                     LOGGER.info(
-                        f"merging first node of {beam.name} in to last node of {target.name},\
-                        distance is {np.linalg.norm(target.mesh.points[-1] - beam.mesh.points[0])}"
+                        f"merging first node of {beam.name.value} in to {target.name.value}"
                     )
                     ids.append(0)
             if beam._down is not None:
                 if beam._down in registered_name:
                     target = next(i for i in self._conduction_beams if i.name == beam._down)
-                    LOGGER.info(
-                        f"merging last node of {beam.name} in to first node of {target.name},\
-                        distance is {np.linalg.norm(target.mesh.points[0] - beam.mesh.points[-1])}"
-                    )
+                    LOGGER.info(f"merging last node of {beam.name.value} in to {target.name.value}")
                     ids.append(-1)
 
             self._conduction_system = self._safe_line_merge(self._conduction_system, beam.mesh, ids)
@@ -336,6 +332,12 @@ class HeartModel:
             elif isinstance(m, pv.PolyData):
                 return m.lines.reshape(-1, 3)[:, 1:]
 
+        def get_merge_point(m: Mesh, coord: np.ndarray):
+            id = m.find_closest_point(coord)
+            dst = np.linalg.norm(m.points[id] - coord)
+            LOGGER.info(f"Distance between two merging points is {dst}")
+            return id
+
         base_points = base.points
         base_lines = get_lines(base)
 
@@ -354,17 +356,24 @@ class HeartModel:
 
         elif mereged_id == [0]:
             new_points = add_mesh.points[1:]
-            new_point_data = add_mesh.point_data["_is-connected"][1:]
             # first node is merged, lead to an offset of all lines
             new_lines = get_lines(add_mesh) + len(base_points) - 1
+            # replace first node by the closet point
+            new_lines[0, 0] = get_merge_point(base, add_mesh.points[0])
+            # point data
+            new_point_data = add_mesh.point_data["_is-connected"][1:]
 
         elif mereged_id == [0, -1]:
-            new_points = add_mesh.points[1:-1]
-            new_point_data = add_mesh.point_data["_is-connected"][1:-1]
             # first node is merged, lead to an offset of all lines
+            # last node is just dropped
+            new_points = add_mesh.points[1:-1]
             new_lines = get_lines(add_mesh) + len(base_points) - 1
-            # last node is merged, replace to the closet point in base mesh
-            new_lines[-1, 1] = base.find_closest_point(add_mesh.points[-1])
+            # replace first node by the closet point
+            new_lines[0, 0] = get_merge_point(base, add_mesh.points[0])
+            # replace last node by the loset point
+            new_lines[-1, 1] = get_merge_point(base, add_mesh.points[-1])
+            # point data
+            new_point_data = add_mesh.point_data["_is-connected"][1:-1]
         elif mereged_id == [-1]:
             NotImplementedError("Do not handle this merge lines.")
         else:
@@ -799,15 +808,15 @@ class HeartModel:
 
     def plot_purkinje(self):
         """Plot the mesh and Purkinje network."""
-        if self.conduction_system is None or self.conduction_system.number_of_cells == 0:
+        if self._conduction_system is None or self._conduction_system.number_of_cells == 0:
             LOGGER.info("No Conduction system to plot.")
             return
 
         try:
             plotter = pv.Plotter()
             plotter.add_mesh(self.mesh, color="w", opacity=0.1)
-            self.conduction_system.set_active_scalars("_line-id")
-            beams = self.conduction_system
+            self._conduction_system.set_active_scalars("_line-id")
+            beams = self._conduction_system
             plotter.add_mesh(beams, line_width=2)
             plotter.show()
         except Exception:

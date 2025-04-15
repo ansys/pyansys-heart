@@ -44,6 +44,11 @@ class ConductionBeamType(Enum):
     """Right Purkinje network."""
     SAN_AVN = "SAN_to_AVN"
     """Sino-atrial node to atrio-ventricular node."""
+    MID_SAN_AVN = "MID_SAN_to_AVN"
+    """Sino-atrial node to atrio-ventricular node."""
+    POST_SAN_AVN = "POST_SAN_to_AVN"
+    """Sino-atrial node to atrio-ventricular node."""
+
     LEFT_BUNDLE_BRANCH = "Left bundle branch"
     """Left bundle branch."""
     RIGHT_BUNDLE_BRANCH = "Right bundle branch"
@@ -60,6 +65,8 @@ connections = {
     ConductionBeamType.LEFT_PURKINJE: [ConductionBeamType.HIS_LEFT, None],
     ConductionBeamType.RIGHT_PURKINJE: [ConductionBeamType.HIS_RIGHT, None],
     ConductionBeamType.SAN_AVN: [None, ConductionBeamType.HIS_TOP],
+    ConductionBeamType.MID_SAN_AVN: [ConductionBeamType.SAN_AVN, ConductionBeamType.HIS_TOP],
+    ConductionBeamType.POST_SAN_AVN: [ConductionBeamType.SAN_AVN, ConductionBeamType.HIS_TOP],
     ConductionBeamType.HIS_TOP: [
         ConductionBeamType.SAN_AVN,
         None,  # [ConductionBeamType.HIS_LEFT, ConductionBeamType.HIS_RIGHT],

@@ -3396,9 +3396,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             beam_elem_id_offset = 0  # no beam elements introduced before
 
         # write beam nodes
-        # Note: the last beam_network saves all beam nodes
-        new_nodes = self.model.conduction_system.points[
-            (np.where(np.logical_not(self.model.conduction_system["_is-connected"]))[0])
+        new_nodes = self.model._conduction_system.points[
+            (np.where(np.logical_not(self.model._conduction_system["_is-connected"]))[0])
         ]
         ids = (
             np.linspace(

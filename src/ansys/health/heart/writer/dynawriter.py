@@ -81,8 +81,8 @@ from ansys.health.heart.writer.keyword_utils import (
     create_define_sd_orientation_kw,
     create_discrete_elements_kw,
     create_element_shell_keyword,
-    create_element_solid_keyword,
     create_element_solid_ortho_keyword,
+    create_elemetn_solid_keyword,
     create_node_keyword,
     create_node_set_keyword,
     create_segment_set_keyword,
@@ -4107,7 +4107,7 @@ class LaplaceWriter(BaseDynaWriter):
         self._update_parts_materials_db()
 
         # elems
-        kw_elements = create_element_solid_keyword(
+        kw_elements = create_elemetn_solid_keyword(
             self.target.cells.reshape(-1, 5)[:, 1:] + 1,
             np.arange(1, self.target.n_cells + 1, dtype=int),
             self.model.parts[0].pid,
